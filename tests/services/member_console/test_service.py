@@ -1793,7 +1793,7 @@ def test_assessment_topic_catalog_is_fail_closed_without_form_bank(
     assert {item["target_form_count"] for item in catalog["topics"]} == {5}
 
 
-def test_assessment_topic_catalog_validates_persisted_form_bank_before_enabling(
+def test_assessment_topic_catalog_uses_form_metadata_without_loading_form_banks(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -1801,16 +1801,21 @@ def test_assessment_topic_catalog_validates_persisted_form_bank_before_enabling(
     service._data_path = tmp_path / "member_console.json"
     monkeypatch.setenv("ASSESSMENT_USE_SUPABASE", "true")
 
-    class _InvalidFormProvider:
-        def active_form_count(self, blueprint_version: str) -> int:
-            return 5 if blueprint_version == "topic_waterproof_v1" else 0
+    class _MetadataProvider:
+        def active_form_summaries(self, blueprint_versions: list[str]) -> dict[str, dict[str, object]]:
+            assert "topic_waterproof_v1" in blueprint_versions
+            return {
+                "topic_waterproof_v1": {
+                    "active_form_count": 5,
+                    "fallback_used": True,
+                    "question_bank_size": 4638,
+                }
+            }
 
         def load_persisted_form_bank(self, blueprint):
-            if blueprint.version == "topic_waterproof_v1":
-                raise member_service_module.AssessmentBlueprintUnavailable("duplicate source ids")
-            raise AssertionError("catalog should not validate topics below the open floor")
+            raise AssertionError("catalog must not load full form banks")
 
-    monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", _InvalidFormProvider)
+    monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", _MetadataProvider)
 
     catalog = service.get_assessment_topic_catalog()
     waterproof = next(item for item in catalog["topics"] if item["topic_id"] == "waterproof")
@@ -1818,7 +1823,7 @@ def test_assessment_topic_catalog_validates_persisted_form_bank_before_enabling(
     assert waterproof["form_count"] == 5
     assert waterproof["status"] == "authoring_needed"
     assert waterproof["enabled"] is False
-    assert waterproof["quality_status"] == "invalid_form_bank"
+    assert waterproof["quality_status"] == "fallback_form_bank"
 
 
 def test_assessment_topic_catalog_recommends_weak_enabled_topic(
@@ -1830,11 +1835,18 @@ def test_assessment_topic_catalog_recommends_weak_enabled_topic(
     monkeypatch.setenv("ASSESSMENT_USE_SUPABASE", "true")
 
     class _ValidFormProvider:
-        def active_form_count(self, blueprint_version: str) -> int:
-            return 5
+        def active_form_summaries(self, blueprint_versions: list[str]) -> dict[str, dict[str, object]]:
+            return {
+                blueprint_version: {
+                    "active_form_count": 5,
+                    "fallback_used": False,
+                    "question_bank_size": 4638,
+                }
+                for blueprint_version in blueprint_versions
+            }
 
         def load_persisted_form_bank(self, blueprint):
-            return object()
+            raise AssertionError("catalog must not load full form banks")
 
     monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", _ValidFormProvider)
 
@@ -6071,13 +6083,18 @@ def test_assessment_topic_catalog_reports_form_readiness(monkeypatch: pytest.Mon
     service = MemberConsoleService()
 
     class _Provider:
-        def active_form_count(self, blueprint_version: str) -> int:
-            if blueprint_version == "topic_waterproof_v1":
-                return 5
-            return 3
+        def active_form_summaries(self, blueprint_versions: list[str]) -> dict[str, dict[str, object]]:
+            return {
+                blueprint_version: {
+                    "active_form_count": 5 if blueprint_version == "topic_waterproof_v1" else 3,
+                    "fallback_used": False,
+                    "question_bank_size": 4638,
+                }
+                for blueprint_version in blueprint_versions
+            }
 
         def load_persisted_form_bank(self, blueprint):
-            return object()
+            raise AssertionError("catalog must not load full form banks")
 
     monkeypatch.setattr(member_service_module, "is_production_environment", lambda: True)
     monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", lambda: _Provider())
@@ -6094,17 +6111,22 @@ def test_assessment_topic_catalog_reports_form_readiness(monkeypatch: pytest.Mon
     assert by_id["decoration"]["target_form_count"] == 5
 
 
-def test_assessment_topic_catalog_rejects_invalid_form_bank(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_assessment_topic_catalog_rejects_fallback_form_bank(monkeypatch: pytest.MonkeyPatch) -> None:
     service = MemberConsoleService()
 
     class _Provider:
-        def active_form_count(self, blueprint_version: str) -> int:
-            return 5 if blueprint_version == "topic_waterproof_v1" else 0
+        def active_form_summaries(self, blueprint_versions: list[str]) -> dict[str, dict[str, object]]:
+            return {
+                blueprint_version: {
+                    "active_form_count": 5 if blueprint_version == "topic_waterproof_v1" else 0,
+                    "fallback_used": blueprint_version == "topic_waterproof_v1",
+                    "question_bank_size": 4638,
+                }
+                for blueprint_version in blueprint_versions
+            }
 
         def load_persisted_form_bank(self, blueprint):
-            if blueprint.version == "topic_waterproof_v1":
-                raise member_service_module.AssessmentBlueprintUnavailable("duplicate source ids")
-            raise AssertionError("topics below the open floor must not be validated")
+            raise AssertionError("catalog must not load full form banks")
 
     monkeypatch.setattr(member_service_module, "is_production_environment", lambda: True)
     monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", lambda: _Provider())
@@ -6115,7 +6137,7 @@ def test_assessment_topic_catalog_rejects_invalid_form_bank(monkeypatch: pytest.
     assert by_id["waterproof"]["form_count"] == 5
     assert by_id["waterproof"]["status"] == "authoring_needed"
     assert by_id["waterproof"]["enabled"] is False
-    assert by_id["waterproof"]["quality_status"] == "invalid_form_bank"
+    assert by_id["waterproof"]["quality_status"] == "fallback_form_bank"
     assert by_id["decoration"]["quality_status"] == "insufficient_forms"
 
 

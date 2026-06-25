@@ -607,12 +607,14 @@ training-intent writer。它必须满足：
 
 1. Catalog authority 来自 `deeptutor.services.assessment.topic_catalog` 定义的 topic
    清单，以及 `assessment_forms` 中每个 `blueprint_version` 的 active form count。
-2. 状态只能按 form bank 覆盖与质量校验分类，且达到 3/5 门槛的 topic 必须先通过
-   persisted form-bank validator（跨 form `source_question_id` / `semantic_signature`
-   去重、每套题量与 section floor）：
-   - `stable`: active forms >= 5 且 validator 通过
-   - `pilot`: active forms >= 3 and < 5 且 validator 通过
-   - `authoring_needed`: active forms < 3，或 validator 不通过
+2. 目录页只能读取 `assessment_forms` 的轻量元数据（active form count、
+   `fallback_used`、`question_bank_size`），不得串行加载 `items_json` 或在列表页重跑
+   persisted form-bank validator。完整 validator（跨 form `source_question_id` /
+   `semantic_signature` 去重、每套题量与 section floor）属于预生成 / 持久化和
+   `create_assessment` 出卷路径：
+   - `stable`: active forms >= 5 且 `fallback_used=false`
+   - `pilot`: active forms >= 3 and < 5 且 `fallback_used=false`
+   - `authoring_needed`: active forms < 3，或 active forms 来自 fallback form bank
 3. `authoring_needed` topic 可以在前端展示维护态，但不得开放正式测评。
 4. catalog status 不读取、不写入 `training_intent`、`last_assessment` 或 learner
    mastery；学员个人情况只影响独立的 `recommendation` read model 和后续
