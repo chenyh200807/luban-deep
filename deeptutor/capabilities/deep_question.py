@@ -3703,6 +3703,15 @@ class DeepQuestionCapability(BaseCapability):
         raw_user_message = str(
             context.metadata.get("raw_user_message") or context.user_message or ""
         ).strip()
+        if next_action == "ask_clarifying_question":
+            await self._emit_turn_semantic_clarification(
+                stream=stream,
+                turn_id=turn_id,
+                active_object=active_object,
+                suspended_object_stack=suspended_object_stack,
+                turn_semantic_decision=turn_semantic_decision,
+            )
+            return
         if (
             lifecycle_scene == "case_grading"
             and not force_generate_questions
@@ -5112,6 +5121,50 @@ class DeepQuestionCapability(BaseCapability):
         from deeptutor.services.semantic_router import is_unresolved_switch_followup
 
         return is_unresolved_switch_followup(turn_semantic_decision)
+
+    async def _emit_turn_semantic_clarification(
+        self,
+        *,
+        stream: StreamBus,
+        turn_id: str,
+        active_object: dict[str, Any] | None,
+        suspended_object_stack: list[dict[str, Any]] | None,
+        turn_semantic_decision: dict[str, Any] | None,
+    ) -> None:
+        """Honor the router's clarification decision before grading/generation fallback."""
+
+        async with stream.stage("generation", source=self.name):
+            answer = (
+                "我还不能确定你指的是哪道题，或这一轮是不是正式作答。\n\n"
+                "请把题干/题号和你要提交的答案一起发我。确认前我不会判分，"
+                "也不会把当前题的标准答案当成你问的那道题。"
+            )
+            if not answer_citations_enabled():
+                await stream.content(answer, source=self.name, stage="generation")
+            payload: dict[str, Any] = {
+                "response": answer,
+                "mode": "clarification",
+                "question_authority_source": "turn_semantic_decision",
+                "execution_path": "deep_question_turn_semantic_clarification",
+                "clarification_reason": "turn_semantic_decision_ask_clarifying_question",
+                "question_followup_context": {},
+                "active_object": normalize_active_object(active_object) or {},
+                "suspended_object_stack": suspended_object_stack or [],
+                "turn_semantic_decision": turn_semantic_decision or {},
+                "reveal_answers": False,
+                "reveal_explanations": False,
+                "metadata": {
+                    "needs_clarification": True,
+                    "clarification_reason": "turn_semantic_decision_ask_clarifying_question",
+                    "turn_id": turn_id,
+                },
+            }
+            await self._emit_result_with_citations(
+                stream,
+                payload,
+                stage="generation",
+                emit_content_when_enabled=True,
+            )
 
     async def _emit_unresolved_switch_clarification(
         self,

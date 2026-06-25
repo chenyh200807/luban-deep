@@ -1287,6 +1287,74 @@ async def test_lifecycle_question_review_respects_active_question_followup(
 
 
 @pytest.mark.asyncio
+async def test_lifecycle_question_review_routes_clarification_decision_to_chat(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_lifecycle_decision(_ctx: Any) -> SimpleNamespace:
+        return SimpleNamespace(
+            scene="question_review",
+            selected_skill_names=("construction-question-review",),
+            source="llm",
+            confidence=0.88,
+            required_anchor_status="active_question_present",
+            llm_scene_candidate=None,
+            business_gate_result="passed",
+            exact_question_blocked_reason="",
+            needs_clarification=False,
+            reason="用户提到刚才那题但指代不清。",
+        )
+
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.resolve_question_lifecycle_scene_decision",
+        fake_lifecycle_decision,
+    )
+
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def clarify_decision(_context: UnifiedContext, _message: str) -> dict[str, Any]:
+        decision = {
+            "relation_to_active_object": "uncertain",
+            "next_action": "ask_clarifying_question",
+            "target_object_ref": {"object_type": "single_question", "object_id": "q_roof"},
+            "allowed_patch": ["no_state_change"],
+            "confidence": 0.31,
+            "reason": "当前输入可同时命中多个题目对象，不能硬猜。",
+        }
+        _context.metadata["turn_semantic_decision"] = decision
+        return decision
+
+    orchestrator._resolve_turn_semantic_decision = clarify_decision  # type: ignore[assignment]
+
+    context = UnifiedContext(
+        session_id="s-active-question-clarify",
+        user_message="刚才那个同类题我选D。你知道我指哪道吗？",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "question_followup_context": {
+                "question_id": "q_roof",
+                "question": "倒置式屋面构造做法正确的是（ ）。",
+                "question_type": "choice",
+                "options": {"A": "保护层在防水层下", "B": "保温层在防水层上"},
+                "correct_answer": "B",
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["turn_semantic_decision"]["next_action"] == "ask_clarifying_question"
+    assert context.metadata["semantic_router_mode"] == "question_lifecycle"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    assert "ask_clarifying_question" in context.metadata["semantic_router_mode_reason"]
+    assert "force_generate_questions" not in context.config_overrides
+    assert "topic" not in context.config_overrides
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_keeps_learning_strategy_request_in_chat_even_if_effective_message_contains_practice_words() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
