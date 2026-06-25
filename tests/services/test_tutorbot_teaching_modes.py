@@ -98,6 +98,8 @@ def test_looks_like_practice_generation_request_accepts_natural_one_question_phr
 def test_looks_like_practice_generation_request_rejects_learning_strategy_phrasing():
     assert looks_like_practice_generation_request("我现在最大问题是记不住，做题时规范数字总串，给我一个今晚能执行的学习法") is False
     assert looks_like_practice_generation_request("给我一个练习方法，不要出题") is False
+    assert looks_like_practice_generation_request("最后一轮：请根据我的错因画像，再给我一个明天30分钟复盘计划。不要再出题，要求能执行。") is False
+    assert looks_like_practice_generation_request("给我30分钟复盘计划，不要继续出题") is False
     assert looks_like_practice_generation_request("讲一下自测清单怎么用") is False
     assert looks_like_practice_generation_request("查看摸底报告") is False
     assert (

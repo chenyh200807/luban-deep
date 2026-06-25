@@ -80,6 +80,35 @@ class _FakeContext:
         ]
 
 
+def test_save_turn_persists_raw_user_message_instead_of_context_envelope() -> None:
+    loop = _loop()
+    session = Session(key="web:case")
+    envelope = (
+        "## 参考证据\n"
+        "以下内容是辅助证据，不得覆盖当前用户问题与当前会话锚点。\n\n"
+        "### 局部工作记忆投影\n"
+        "这段只应注入给 LLM，不应进入 TutorBot mirror session。\n\n"
+        "## 当前用户问题\n"
+        "防水卷材搭接宽度怎么记？"
+    )
+    messages = [
+        {"role": "system", "content": "system"},
+        {"role": "user", "content": envelope},
+        {"role": "assistant", "content": "先按材料和施工方法区分。"},
+    ]
+
+    loop._save_turn(
+        session,
+        messages,
+        skip=1,
+        persist_user_content="防水卷材搭接宽度怎么记？",
+    )
+
+    assert [item["role"] for item in session.messages] == ["user", "assistant"]
+    assert session.messages[0]["content"] == "防水卷材搭接宽度怎么记？"
+    assert "参考证据" not in session.messages[0]["content"]
+
+
 @pytest.mark.asyncio
 async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path) -> None:
     from deeptutor.tutorbot.agent.tools.base import Tool

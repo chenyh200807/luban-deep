@@ -101,6 +101,7 @@
 - `llm_selection` 只允许携带 catalog 内的 `profile_id` / `model_id`，用于本次 turn 的 request-scoped LLM 解析；provider secret、endpoint、binding 仍由服务端 model catalog 唯一持有。它可以进入 request snapshot 和 session preferences 作为审计/恢复提示，但不得改写全局 catalog，也不得成为第二套 LLM authority。
 - session `preferences.runtime_state` 只允许作为内部 runtime 恢复态保存；对外 session detail/list payload 不得把它当成公开 preferences contract 暴露出去。
 - mobile conversation id 与 TutorBot internal session id 可能同时存在于历史数据中；adapter 只能把它们归一为同一个用户可见 conversation read-model，并在删除/归档等操作中覆盖同一 owner scope 下的 direct 与 mirror variants，不能让 mirror session 成为第二套会话真相。
+- TutorBot runtime 可以把 `context.user_message` 扩展成带上下文、参考证据、working memory projection 或 overlay 的 LLM prompt envelope，但 canonical session 与 TutorBot mirror session 的 `role=user` 持久内容只能写真实用户输入。`raw_user_message` 是 request-scoped 写入侧投影，不得进入 session preferences、learner-state、RAG 或 compiled truth authority；`参考证据`、`局部工作记忆投影` 等 prompt 标题不得被物化为用户消息正文。
 
 ## Schema
 

@@ -961,6 +961,7 @@ class TutorBotManager:
         mode: str = "smart",
         session_key: str | None = None,
         session_metadata: dict[str, Any] | None = None,
+        raw_user_content: str | None = None,
     ) -> str:
         """Send a message to a running bot and return the response."""
         instance = self._bots.get(bot_id)
@@ -1098,6 +1099,9 @@ class TutorBotManager:
         runtime_metadata = dict(merged_metadata)
         runtime_metadata.setdefault("bot_id", bot_id)
         runtime_metadata.setdefault("conversation_id", effective_chat_id)
+        raw_user_text = str(raw_user_content or "").strip()
+        if raw_user_text:
+            runtime_metadata["raw_user_message"] = raw_user_text
         runtime_metadata["selected_mode"] = (
             str(merged_metadata.get("selected_mode") or merged_metadata.get("effective_response_mode") or mode).strip()
             or mode

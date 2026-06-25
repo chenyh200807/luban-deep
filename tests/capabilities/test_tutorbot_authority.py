@@ -13,6 +13,9 @@ import deeptutor.services.tutorbot.manager as tutorbot_manager
 class _FakeTutorBotManager:
     sent_messages = 0
 
+    def __init__(self) -> None:
+        self.calls: list[dict[str, object]] = []
+
     def build_chat_session_key(self, bot_id: str, conversation_id: str, *, user_id: str | None = None) -> str:
         return f"{bot_id}:{conversation_id}:{user_id or 'anon'}"
 
@@ -24,6 +27,7 @@ class _FakeTutorBotManager:
 
     async def send_message(self, **kwargs) -> str:
         self.sent_messages += 1
+        self.calls.append(dict(kwargs))
         return (
             "第1题：下列关于施工缝处理正确的是？\n"
             "A. 任意留设\n"
@@ -64,6 +68,46 @@ async def test_tutorbot_does_not_turn_free_text_mcq_into_submitable_presentation
     assert "presentation" not in result_metadata
     assert "question_followup_context" not in result_metadata
     assert "active_object" not in result_metadata
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_bridge_keeps_raw_user_content_out_of_prompt_envelope_persistence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manager = _FakeTutorBotManager()
+    monkeypatch.setattr(
+        tutorbot_capability,
+        "get_tutorbot_manager",
+        lambda: manager,
+    )
+
+    raw_message = "防水卷材搭接宽度怎么记？"
+    prompt_envelope = (
+        "## 参考证据\n"
+        "以下内容是辅助证据，不得覆盖当前用户问题与当前会话锚点。\n\n"
+        "### 局部工作记忆投影\n"
+        "这里是注入给 LLM 的内部工作记忆。\n\n"
+        "## 当前用户问题\n"
+        f"{raw_message}"
+    )
+    stream = StreamBus()
+    context = UnifiedContext(
+        session_id="s-tutorbot-envelope",
+        user_message=prompt_envelope,
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "fast",
+        },
+        metadata={"raw_user_message": raw_message},
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    call = manager.calls[-1]
+    assert str(call["content"]).startswith("## 参考证据")
+    assert call["raw_user_content"] == raw_message
+    assert "raw_user_message" not in call["session_metadata"]
 
 
 @pytest.mark.asyncio

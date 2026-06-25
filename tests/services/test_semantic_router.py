@@ -774,3 +774,28 @@ def test_fallback_decision_high_confidence_real_answer_still_graded() -> None:
         looks_like_practice_generation_request=semantic_router.looks_like_practice_generation_request,
     )
     assert dec["next_action"] == "route_to_grading"  # 硬约束40
+
+
+@pytest.mark.asyncio
+async def test_negated_practice_request_routes_to_chat_instead_of_generation() -> None:
+    async def fake_interpret(
+        _message: str,
+        _context: dict[str, object] | None,
+        *,
+        history_context: str = "",
+    ):
+        return None
+
+    routing = await semantic_router.resolve_question_semantic_routing(
+        user_message="最后一轮：请根据我的错因画像，再给我一个明天30分钟复盘计划。不要再出题，要求能执行。",
+        metadata={"question_followup_context": _question_context()},
+        history_context="用户刚做完一道建筑实务选择题。",
+        interpret_followup_action=fake_interpret,
+        resolve_submission_attempt=semantic_router.resolve_submission_attempt,
+        looks_like_question_followup=semantic_router.looks_like_question_followup,
+        looks_like_practice_generation_request=semantic_router.looks_like_practice_generation_request,
+    )
+
+    assert routing.turn_semantic_decision is not None
+    assert routing.turn_semantic_decision["next_action"] == "route_to_general_chat"
+    assert routing.followup_action is None
