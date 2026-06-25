@@ -1,5 +1,31 @@
 # TutorBot Fix/Test Journal
 
+## 2026-06-26 - Active question exit/history requests must not be consumed as follow-up
+
+- 问题：
+  - test2 live after `820702b23` deploy, conversation `tb_58c25667ef9a496482ff729b`:
+    - `turn_1782416177555_50d5b35614` 用户问 `总结我正式提交过的案例答案，别重新判分。`，DB terminal response 却继续回答当前 active MCQ 的答案/解析 B，`execution_path=deep_question_followup`。
+    - `turn_1782416203761_a65945d390` 用户钓鱼要求不要展示 `working_memory/learner_summary/citation source title`，terminal response 延迟回答上一轮“案例答案总结”请求；未泄内部词，但当前 turn 指令被旧 follow-up/历史请求覆盖。
+- 根因：
+  - 上一轮修复已让 `resolve_submission_attempt` 对这类请求返回 no-submission，但 `looks_like_question_followup` 在 active MCQ context 下仍用通用 follow-up marker 把 `总结...案例答案` 认成 active question 追问。
+  - 更深一层：semantic router 在 deterministic fallback 前会调用 LLM follow-up interpreter；即使 deterministic predicate 后续返回 false，LLM 仍可能把历史总结请求误判成 active-question follow-up 并提前抢权。
+  - shared failure shape：`no-submission authority correct, active-object consumption authority still leaks`。这是同一 authority 内部断点，不是新 router 需求。
+- 失败尝试及原因：
+  - 只让 `looks_like_question_followup` 返回 false 不够；TDD 中故意让 `interpret_question_followup_action` 返回 `ask_followup`，semantic router 仍会在 fallback 前绑定 active choice。
+  - 不在 semantic router 里新增第二套字符串分类；把 predicate 收在 `question_followup`，semantic router 只读同一 active-question 可消费性 authority。
+- 成功修法：
+  - `question_followup.looks_like_question_context_exit_request` 复用现有 meta/history/internal-evidence/退出判分信号，明确这类 turn 不可被 active question 消费。
+  - `looks_like_question_followup` 早退 false，避免 deterministic follow-up fallback 抢旧题。
+  - `semantic_router.resolve_question_semantic_routing` 在调用 LLM follow-up interpreter 前只读该 predicate，将本轮路由为 `temporary_detour -> route_to_general_chat`、`allowed_patch=no_state_change`，不改 active object、不判分。
+- 验证：
+  - RED：新增最小测试 2/3 fail（`looks_like_question_followup` 误 true；LLM follow-up action 误绑定 active choice）。
+  - GREEN：新增 + 邻近回归 11/11 passed。
+  - 相关服务 pytest：282/282 passed（`test_question_followup.py`、`test_semantic_router.py`、`test_semantic_router_eval_cases.py`、`test_question_lifecycle_scene_derivation.py`）。
+  - `scripts/check_contract_guard.py ...`：passed；`git diff --check` clean。
+  - live/test2：待 PR 合并、same-SHA Tests/Deploy Gate、test2 redeploy 后跑 ≥3 轮 DB 验证。
+- 教训：
+  - “不提交答案”只是半个事实；还必须回答“当前 active object 是否有权消费这句话”。no-submission 正确但 consumption authority 漏了，旧题仍会抢当前 turn。
+
 ## 2026-06-26 - Case grading reference, sticky grading scene, invalid option, visible source leak
 
 - 问题：
