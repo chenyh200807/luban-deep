@@ -489,6 +489,8 @@ def is_low_information_exam_query(query: str) -> bool:
     text = re.sub(r"\s+", "", str(query or "").strip())
     if not text:
         return False
+    if _looks_like_full_case_answer_submission(str(query or "")):
+        return False
     if _looks_like_explicit_question_generation_request(text):
         return False
     answer_request_markers = (
@@ -1230,13 +1232,22 @@ def mcq_grading_context_from_full_submission(text: str) -> dict[str, Any] | None
     user_answer = str((submission or {}).get("answer") or "").strip()
     if not user_answer:
         return None
+    marked_correct = ""
+    correct_match = re.search(
+        r"(?:标准答案|参考答案|正确答案)\s*(?:是|为)?\s*[：:]?\s*"
+        r"([A-E](?:\s*[、，,/／\s]\s*[A-E])*)",
+        user_message,
+        re.IGNORECASE,
+    )
+    if correct_match is not None:
+        marked_correct = re.sub(r"[\s、，,/／]+", "", correct_match.group(1).upper())
     return {
         "question_id": "",
         "question": user_message,
         "question_type": "choice",
         "options": options,
         "user_answer": user_answer,
-        "correct_answer": "",
+        "correct_answer": marked_correct,
     }
 
 
@@ -1531,6 +1542,11 @@ def _full_case_question_surface_positions(user_message: str) -> list[int]:
             positions.add(start)
             start = user_message.find(marker, start + len(marker))
     if any(marker in user_message for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS):
+        for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS:
+            start = user_message.find(marker)
+            while start >= 0:
+                positions.add(start)
+                start = user_message.find(marker, start + len(marker))
         positions.update(
             match.start()
             for match in _FREE_TEXT_CASE_INLINE_QUESTION_SURFACE_RE.finditer(user_message)

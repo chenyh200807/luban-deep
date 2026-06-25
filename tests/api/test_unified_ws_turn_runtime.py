@@ -39,7 +39,7 @@ from deeptutor.services.session.turn_runtime import (
     _result_active_object,
     _result_question_followup_context,
     _sanitize_public_terminal_event,
-    _stamp_case_grading_scene_pre_capability,
+    _stamp_current_submission_scene_pre_capability,
     _TurnExecution,
 )
 
@@ -149,11 +149,15 @@ def test_turn_runtime_stamps_full_case_submission_scene_before_capability() -> N
         "作答：项目编码、项目名称、项目特征、计量单位和工程量。"
     )
 
-    _stamp_case_grading_scene_pre_capability(
+    _stamp_current_submission_scene_pre_capability(
         config,
         user_message=raw_case_submission,
-        followup_context=None,
-        followup_action=None,
+        followup_context={
+            "question_type": "case",
+            "question": raw_case_submission,
+            "user_answer": "项目编码、项目名称、项目特征、计量单位和工程量。",
+        },
+        followup_action={"intent": "answer_questions", "answers": []},
     )
 
     assert config["question_lifecycle_scene"] == "case_grading"
@@ -174,7 +178,7 @@ def test_turn_runtime_stamps_existing_case_submission_context_before_capability(
         "user_answer": "施工单位应避免违法分包。",
     }
 
-    _stamp_case_grading_scene_pre_capability(
+    _stamp_current_submission_scene_pre_capability(
         config,
         user_message="施工单位应避免违法分包。",
         followup_context=case_context,
@@ -185,7 +189,7 @@ def test_turn_runtime_stamps_existing_case_submission_context_before_capability(
     assert config["question_lifecycle_scene_reason"] == "case_submission_context"
 
 
-def test_turn_runtime_does_not_stamp_objective_submission_as_case_grading() -> None:
+def test_turn_runtime_stamps_objective_submission_as_mcq_grading() -> None:
     config: dict[str, object] = {}
     choice_context = {
         "question_id": "choice-current",
@@ -194,14 +198,15 @@ def test_turn_runtime_does_not_stamp_objective_submission_as_case_grading() -> N
         "options": {"A": "甲", "B": "乙"},
     }
 
-    _stamp_case_grading_scene_pre_capability(
+    _stamp_current_submission_scene_pre_capability(
         config,
         user_message="B",
         followup_context=choice_context,
         followup_action={"intent": "answer_questions", "answers": []},
     )
 
-    assert "question_lifecycle_scene" not in config
+    assert config["question_lifecycle_scene"] == "mcq_grading"
+    assert config["question_lifecycle_scene_reason"] == "mcq_submission_context"
 
 
 def test_turn_runtime_content_unwrap_keeps_non_transport_json_intact() -> None:
@@ -1823,6 +1828,12 @@ async def test_start_turn_promotes_full_new_mcq_over_stale_active_object(
             captured["question_followup_context"] = dict(
                 context.metadata.get("question_followup_context") or {}
             )
+            captured["question_lifecycle_scene"] = context.metadata.get(
+                "question_lifecycle_scene"
+            )
+            captured["question_lifecycle_scene_source"] = context.metadata.get(
+                "question_lifecycle_scene_source"
+            )
             # Simulate a stale downstream capability trying to write the prior object
             # back at turn-end. TurnRuntime owns object identity and must not accept it.
             yield StreamEvent(
@@ -1888,6 +1899,8 @@ async def test_start_turn_promotes_full_new_mcq_over_stale_active_object(
     assert "施工现场临时用电组织设计" in resolved_context["question"]
     assert resolved_context["options"]["B"] == "电气工程技术人员"
     assert resolved_context["user_answer"] == "B"
+    assert captured["question_lifecycle_scene"] == "mcq_grading"
+    assert captured["question_lifecycle_scene_source"] == "deterministic_pre_capability"
 
     active_object = await store.get_active_object(session["id"])
     assert active_object is not None
@@ -1895,6 +1908,104 @@ async def test_start_turn_promotes_full_new_mcq_over_stale_active_object(
     assert persisted_context is not None
     assert persisted_context["question_id"] != "stale-critical-path"
     assert "施工现场临时用电组织设计" in persisted_context["question"]
+
+
+@pytest.mark.asyncio
+async def test_start_turn_stamps_inline_full_mcq_scene_and_marked_answer(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["question_lifecycle_scene"] = context.metadata.get(
+                "question_lifecycle_scene"
+            )
+            captured["question_lifecycle_scene_source"] = context.metadata.get(
+                "question_lifecycle_scene_source"
+            )
+            captured["question_followup_context"] = dict(
+                context.metadata.get("question_followup_context") or {}
+            )
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="deep_question",
+                metadata={"response": "按当前竣工验收题批改。", "mode": "grading"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="session_inline_mcq_current_surface", title="旧题")
+    stale_context = {
+        "question_id": "stale-temporary-power",
+        "question": "施工现场临时用电中，配电系统应采用哪种保护系统？",
+        "question_type": "choice",
+        "options": {"A": "TT", "B": "TN-S", "C": "IT", "D": "TN-C"},
+        "correct_answer": "B",
+        "user_answer": "B",
+        "is_correct": True,
+    }
+    stale_active_object = build_active_object_from_question_context(stale_context)
+    assert stale_active_object is not None
+    await store.set_active_object(session["id"], stale_active_object)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": (
+                "请改判下面这道完整新题，不要沿用上一题：\n"
+                "题目：建设工程竣工验收应由谁组织？\n"
+                "A. 施工单位项目经理\n"
+                "B. 监理工程师\n"
+                "C. 建设单位项目负责人\n"
+                "D. 总监理工程师。我的答案 B。标准答案：C。"
+            ),
+            "session_id": session["id"],
+            "capability": "tutorbot",
+            "tools": [],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {"bot_id": "construction-exam-coach"},
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    resolved_context = captured["question_followup_context"]
+    assert captured["question_lifecycle_scene"] == "mcq_grading"
+    assert captured["question_lifecycle_scene_source"] == "deterministic_pre_capability"
+    assert "建设工程竣工验收" in resolved_context["question"]
+    assert resolved_context["options"]["D"] == "总监理工程师"
+    assert resolved_context["user_answer"] == "B"
+    assert resolved_context["correct_answer"] == "C"
 
 
 @pytest.mark.asyncio
@@ -1924,6 +2035,12 @@ async def test_start_turn_promotes_full_new_case_over_stale_active_object(
             captured["active_object"] = dict(context.metadata.get("active_object") or {})
             captured["question_followup_context"] = dict(
                 context.metadata.get("question_followup_context") or {}
+            )
+            captured["question_lifecycle_scene"] = context.metadata.get(
+                "question_lifecycle_scene"
+            )
+            captured["question_lifecycle_scene_source"] = context.metadata.get(
+                "question_lifecycle_scene_source"
             )
             yield StreamEvent(
                 type=StreamEventType.RESULT,
@@ -1989,6 +2106,8 @@ async def test_start_turn_promotes_full_new_case_over_stale_active_object(
     assert resolved_context["question_type"] == "case"
     assert "屋面卷材防水施工后渗漏" in resolved_context["question"]
     assert "基层必须干燥" in resolved_context["user_answer"]
+    assert captured["question_lifecycle_scene"] == "case_grading"
+    assert captured["question_lifecycle_scene_source"] == "deterministic_pre_capability"
 
     active_object = await store.get_active_object(session["id"])
     assert active_object is not None

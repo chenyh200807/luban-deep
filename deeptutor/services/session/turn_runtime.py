@@ -1417,39 +1417,54 @@ def _question_lifecycle_metadata_from_config(config: dict[str, Any] | None) -> d
     }
 
 
-def _stamp_case_grading_scene_pre_capability(
+def _stamp_current_submission_scene_pre_capability(
     runtime_config: dict[str, Any],
     *,
     user_message: str,
     followup_context: dict[str, Any] | None,
     followup_action: dict[str, Any] | None,
 ) -> None:
-    """Stamp the case-grading business fact before capability selection.
+    """Stamp the current submission business fact before capability selection.
 
     This is not a router and not a scorer. It only writes the canonical lifecycle
-    scene when the current turn already carries a stable case submission fact, so
-    deep_question and TutorBot both consume the same V1 grading authority.
+    scene when the current turn already carries a stable submission fact, so
+    deep_question and TutorBot both consume the same grading authority.
     """
 
     if not isinstance(runtime_config, dict):
         return
+    normalized_context = normalize_question_followup_context(followup_context)
+    normalized_action = _normalize_question_followup_action(followup_action)
+    if normalized_context is None:
+        return
+
+    scene = ""
     reason = ""
     confidence = 0.0
     if looks_like_full_case_answer_submission(user_message):
+        scene = "case_grading"
         reason = "full_case_answer_submission"
         confidence = 1.0
-    elif looks_like_case_grading_submission_context(followup_context, followup_action):
+    elif looks_like_case_grading_submission_context(normalized_context, normalized_action):
+        scene = "case_grading"
         reason = "case_submission_context"
         confidence = 0.96
-    if not reason:
+    elif (
+        str((normalized_action or {}).get("intent") or "").strip() == "answer_questions"
+        and (normalized_context.get("options") or normalized_context.get("items"))
+    ):
+        scene = "mcq_grading"
+        reason = "mcq_submission_context"
+        confidence = 0.96
+    if not scene:
         return
 
-    runtime_config["question_lifecycle_scene"] = "case_grading"
+    runtime_config["question_lifecycle_scene"] = scene
     runtime_config["question_lifecycle_scene_source"] = "deterministic_pre_capability"
     runtime_config["question_lifecycle_scene_confidence"] = confidence
     runtime_config["question_lifecycle_scene_reason"] = reason
     runtime_config["question_lifecycle_skill_names"] = list(
-        select_question_lifecycle_skill_names("case_grading")
+        select_question_lifecycle_skill_names(scene)
     )
 
 
@@ -4166,7 +4181,7 @@ class TurnRuntimeManager:
             explicit_action=runtime_followup_action,
             candidate_contexts=candidate_followup_contexts,
         )
-        _stamp_case_grading_scene_pre_capability(
+        _stamp_current_submission_scene_pre_capability(
             runtime_only_config,
             user_message=raw_user_content,
             followup_context=runtime_followup_question_context,
@@ -5055,7 +5070,7 @@ class TurnRuntimeManager:
                     volatile_followup_question_context,
                 ],
             )
-            _stamp_case_grading_scene_pre_capability(
+            _stamp_current_submission_scene_pre_capability(
                 request_config,
                 user_message=raw_user_content,
                 followup_context=followup_question_context,
