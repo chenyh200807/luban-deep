@@ -398,10 +398,17 @@ class ChatOrchestrator:
         mcq_grading_bypass = (
             lifecycle_scene == "mcq_grading" and preselected_capability != "deep_question"
         )
+        action = context.metadata.get("question_followup_action")
+        turn_decision = context.metadata.get("turn_semantic_decision")
+        is_generation_continuation = followup_action_route(action) == "practice_generation" or (
+            isinstance(turn_decision, dict)
+            and str(turn_decision.get("next_action") or "").strip() == "route_to_generation"
+        )
         if (
             preselected_capability == "deep_question"
             and not lifecycle_scene
             and self._has_active_lifecycle_context(context)
+            and not is_generation_continuation
             and not self._looks_like_question_submission(context, routing_user_message)
             and not self._looks_like_question_followup(context, routing_user_message)
             and not looks_like_practice_generation_request(routing_user_message)
