@@ -34,6 +34,9 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 - 真实链路：test2 公网 + 小程序 WebSocket（`/api/v1/ws` 是唯一聊天入口）。
   harness = `scripts/run_student_turn.py` + eval-bypass header；账号池 `/tmp/cc_pool.json`。
   抓答案优先读 DB（`/app/data/user/chat_history.db`），harness WS 捕获可能漏。
+  查 DB 时按 `conversation_id` 拉 **所有** `sessions` row；同一 conversation 可能同时有 canonical
+  session 与 TutorBot 内部投影 session，后者会把注入给 LLM 的"参考证据/局部工作记忆投影"
+  envelope 另存成 user 内容。核 ground truth 时不要只取最新/第一条 session。
   开跑前先核 release truth：本地 `origin/main`、same-SHA Tests/Deploy Gate、test2 host env、
   container env、`.Created`/health、容器内关键代码 grep 必须对齐；否则先同步 test2，别拿旧
   lineage 做 TutorBot 结论。
@@ -139,9 +142,10 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | DB `turn_semantic_decision.next_action=ask_clarifying_question` 但最终仍判分/生成/泄标准答案 | canonical decision 被 lifecycle fallthrough / deep_question full-submission fallback 当弱提示 | orchestrator 对 `semantic_route=chat` 直接回 TutorBot/chat; deep_question 收到同一 decision fail-closed clarification | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 粘贴案例并要求直接采分点评→bot 自造 4m 软土题并反向成为后续判分对象 | 学生真实题面/作答对象与 bot 自造题 active_object 多 writer | 待收口 assessment object authority:自造练习题不得覆盖用户粘贴案例 authority | ❌ 2026-06-25 live 复现(p04) |
 | 明确要求"单选/A-D/只出题"→lightweight 生成 A-E 五个选项 | 主因=questions_bank short-circuit 把 A-E/BDE 多选原题当 choice 直出;次因=batch generator 解析端也未执行 A-D schema | bank short-circuit 仅允许 A-D+单答案 choice 直出;batch generator 同步硬校验 raw option keys | ✅ 已修 #228/#229;test2 live 3/3 只出 A-D、无答案泄露(2026-06-25) |
-| 明确要求"先不要告诉答案"仍直接泄答案/解析 | 出题偏好没有成为终端输出 contract,生成器/渲染器仍把答案解析暴露给学生 | 待查 require_explanation/answer reveal sink,只出题模式下 hidden grading_key 可写但 public answer/explanation 不得出 | ❌ 2026-06-25 乱聊 persona T3 |
-| 完整粘贴 MCQ 要判分,答案 B 可判但改 D/重贴后误入"案例题逐采分点/无 authority" | MCQ 题型识别、active object、case grading fallback 竞争判分 authority | 自包含 MCQ + 明确我的答案 优先进入 MCQ grading full-submission authority;显式改答走同一 submission authority | ✅ 本地 TDD 已修(2026-06-25),test2 未部署复验 |
-| active MCQ 后问知识点("电气管线、给排水管道、设备安装最低保修期几年")却输出阅卷结论 | sticky `deep_question` preselect 越过 submission/active-object authority | orchestrator 对非提交/非追问/非出题/非题目审查 turn 降级默认 TutorBot/chat,不进入阅卷终端 | ✅ 本地 TDD 已修(2026-06-25),test2 未部署复验 |
+| 明确要求"先不要告诉答案"仍直接泄答案/解析 | 出题偏好没有成为终端输出 contract,生成器/渲染器仍把答案解析暴露给学生 | 显式 reveal preference 覆盖 stale config;TutorBot visible response 与 orchestrator reveal flags 服从同一 authority | ✅ #231 已修;test2 live 只出题无答案/解析(2026-06-25) |
+| 完整粘贴 MCQ 要判分,答案 B 可判但改 D/重贴后误入"案例题逐采分点/无 authority" | MCQ 题型识别、active object、case grading fallback 竞争判分 authority | 自包含 MCQ + 明确我的答案 优先进入 MCQ grading full-submission authority;显式改答走同一 submission authority | ✅ #232 已修;test2 live A→B 改答正确(2026-06-25);重贴/D 边界继续扩样本 |
+| active MCQ 后问知识点("电气管线、给排水管道、设备安装最低保修期几年")却输出阅卷结论 | sticky `deep_question` preselect 越过 submission/active-object authority | orchestrator 对非提交/非追问/非出题/非题目审查 turn 降级默认 TutorBot/chat,不进入阅卷终端 | ✅ #232 已修;test2 live active MCQ 后知识问答不判分(2026-06-25) |
+| DB 同一 conversation 出现 canonical session + TutorBot 内部投影 session,内部 session 把"参考证据/局部工作记忆投影"存成 user 内容 | 持久态可能混入 prompt envelope / evidence projection,有长期记忆污染风险 | 诊断时必须查所有 sessions row 并区分 user-visible canonical message 与 LLM-injected envelope;后续单独裁决写入侧是否收权 | ⚠️ 2026-06-25 live DB 发现,未修 |
 | 建筑复盘/混凝土模板防水出题请求被误拒为"非建筑实务主题" | domain gate / intent gate 与主 LLM 语义理解不一致,静态 gate 越权 | 待 dump `practice_generation_topic_domain_status` 与 turn_semantic_decision,unknown 应放行到主链路而非误拒 | ❌ 2026-06-25 专业 persona T4/T9 |
 | 终端输出出现"长期画像提示"/M07 画像提示等内部学情 meta | user-visible sink/画像投影边界泄漏 | 待查 learner_state 是否真有该画像;无论真假,学生输出 sink 不得裸露内部标签 | 🔵 2026-06-25 新模式 |
 | 〔N〕在判分/教学合成路径泄露(bot 承诺不带仍输出"正确答案:A〔1〕") | 判分 emit 绕过 citations 剥离权威,coerce sink 不剥〔N〕(dormant authority) | strip_orphan_public_markers 收口到 coerce_user_visible_answer(复用 citations 剥离,不造第二权威) | 🔵 task#27 已诊断未实施 |
