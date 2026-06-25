@@ -26,7 +26,7 @@ AUDIT="${AUDIT:-scripts/ci/live_rls_audit.sh}"
 
 # Tables hardened by 20260529000300 (user_*/questions_bank/mock_exams) and
 # 20260530000100 (wallets, H10) — none may grant anon/authenticated.
-MONITORED_TABLES="${MONITORED_TABLES:-user_profiles user_stats user_goals user_logs user_emotion_logs user_badges learner_mistake_book_items questions_bank mock_exams wallets}"
+MONITORED_TABLES="${MONITORED_TABLES:-user_profiles user_stats user_goals user_logs user_emotion_logs user_badges learner_mistake_book_items questions_bank mock_exams wallets assessment_sessions}"
 REQUIRE_FORCE_RLS="${REQUIRE_FORCE_RLS:-true}"
 
 if [ -z "${SUPABASE_DB_URL:-${DB_URL:-${DATABASE_URL:-}}}" ]; then
