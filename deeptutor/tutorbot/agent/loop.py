@@ -1619,6 +1619,7 @@ class AgentLoop:
         current_message: str,
         runtime_metadata: dict[str, Any],
         runtime_instruction: str,
+        persist_user_content: str | None = None,
         on_progress: Callable[[str], Awaitable[None]] | None = None,
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
     ) -> OutboundMessage | None:
@@ -1679,7 +1680,12 @@ class AgentLoop:
                 await self._emit_visible_text_deltas("\n\n" + block_content, on_content_delta)
         else:
             await self._emit_visible_text_deltas("\n\n" + final_content, on_content_delta)
-        self._save_turn(session, all_msgs, 1 + len(history))
+        self._save_turn(
+            session,
+            all_msgs,
+            1 + len(history),
+            persist_user_content=persist_user_content,
+        )
         session.metadata["last_exact_fast_path"] = False
         self.sessions.save(session)
         await self.memory_consolidator.maybe_consolidate_by_tokens(session)
@@ -3526,6 +3532,8 @@ class AgentLoop:
                 channel=msg.channel, chat_id=msg.chat_id, content="\n".join(lines),
             )
         current_message = msg.content
+        raw_user_message = str((msg.metadata or {}).get("raw_user_message") or "").strip()
+        persist_user_content = raw_user_message or current_message
         if cmd.startswith("/btw"):
             arg = raw[4:].strip()
             if not arg:
@@ -3687,7 +3695,7 @@ class AgentLoop:
             refusal = guard.content or ""
             session.add_message(
                 "user",
-                current_message,
+                persist_user_content,
                 guardrail_blocked=True,
                 guardrail_signals=list(guard.signals),
             )
@@ -3778,6 +3786,7 @@ class AgentLoop:
             session=session,
             history=history,
             current_message=current_message,
+            persist_user_content=persist_user_content,
             runtime_metadata=runtime_metadata,
             runtime_instruction=runtime_instruction,
             on_progress=on_progress,
@@ -3838,7 +3847,12 @@ class AgentLoop:
             if all_msgs:
                 all_msgs[-1]["content"] = final_content
             await self._emit_visible_text_deltas(final_content, on_content_delta)
-            self._save_turn(session, all_msgs, 1 + len(history))
+            self._save_turn(
+                session,
+                all_msgs,
+                1 + len(history),
+                persist_user_content=persist_user_content,
+            )
             session.metadata["last_exact_fast_path"] = bool(
                 fast_path_metadata and fast_path_metadata.get("authority_applied")
             )
@@ -3908,7 +3922,12 @@ class AgentLoop:
                 final_content = guarded_output.content or final_content
                 all_msgs = self.context.add_assistant_message(initial_messages, final_content)
                 await self._emit_visible_text_deltas(final_content, on_content_delta)
-                self._save_turn(session, all_msgs, 1 + len(history))
+                self._save_turn(
+                    session,
+                    all_msgs,
+                    1 + len(history),
+                    persist_user_content=persist_user_content,
+                )
                 session.metadata["last_exact_fast_path"] = False
                 self.sessions.save(session)
                 await self.memory_consolidator.maybe_consolidate_by_tokens(session)
@@ -3982,7 +4001,12 @@ class AgentLoop:
                 await self._emit_visible_text_deltas(final_content[len(streamed_text):], on_content_delta)
             elif not streamed_text:
                 await self._emit_visible_text_deltas(final_content, on_content_delta)
-            self._save_turn(session, all_msgs, 1 + len(history))
+            self._save_turn(
+                session,
+                all_msgs,
+                1 + len(history),
+                persist_user_content=persist_user_content,
+            )
             session.metadata["last_exact_fast_path"] = False
             self.sessions.save(session)
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
@@ -4067,7 +4091,12 @@ class AgentLoop:
         if suppress_agent_stream:
             await self._emit_visible_text_deltas(final_content, on_content_delta)
 
-        self._save_turn(session, all_msgs, 1 + len(history))
+        self._save_turn(
+            session,
+            all_msgs,
+            1 + len(history),
+            persist_user_content=persist_user_content,
+        )
         session.metadata["last_exact_fast_path"] = False
         self.sessions.save(session)
         await self.memory_consolidator.maybe_consolidate_by_tokens(session)
@@ -4085,8 +4114,16 @@ class AgentLoop:
             metadata=response_metadata,
         )
 
-    def _save_turn(self, session: Session, messages: list[dict], skip: int) -> None:
+    def _save_turn(
+        self,
+        session: Session,
+        messages: list[dict],
+        skip: int,
+        *,
+        persist_user_content: str | None = None,
+    ) -> None:
         """Save new-turn messages into session, truncating large tool results."""
+        raw_user_message_applied = False
         for m in messages[skip:]:
             entry = dict(m)
             role, content = entry.get("role"), entry.get("content")
@@ -4095,6 +4132,12 @@ class AgentLoop:
             if role == "tool" and isinstance(content, str) and len(content) > self._TOOL_RESULT_MAX_CHARS:
                 entry["content"] = content[:self._TOOL_RESULT_MAX_CHARS] + "\n... (truncated)"
             elif role == "user":
+                raw_user_message = str(persist_user_content or "").strip()
+                if raw_user_message and not raw_user_message_applied:
+                    entry["raw_user_message"] = raw_user_message
+                    content = raw_user_message
+                    entry["content"] = raw_user_message
+                    raw_user_message_applied = True
                 if isinstance(content, str):
                     stripped = ContextBuilder.strip_runtime_prefixes(content)
                     if stripped is None:

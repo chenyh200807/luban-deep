@@ -295,13 +295,37 @@ def normalize_anchor_terms_in_response(
     return normalized
 
 
+def _has_negated_practice_generation_request(text: str) -> bool:
+    compact = re.sub(r"\s+", "", text)
+    if not compact:
+        return False
+
+    negations = ("不要", "别", "不用", "无需", "不必", "先别", "先不要", "暂不")
+    targets = (
+        "出题",
+        "做题",
+        "刷题",
+        "练题",
+        "生成题",
+        "生成训练题",
+        "生成整套训练题",
+    )
+    for target in targets:
+        start = compact.find(target)
+        while start >= 0:
+            prefix = compact[max(0, start - 8) : start]
+            if any(negation in prefix for negation in negations):
+                return True
+            start = compact.find(target, start + len(target))
+    return False
+
+
 def looks_like_practice_generation_request(user_message: str | None) -> bool:
     text = str(user_message or "").strip().lower()
     if not text:
         return False
 
-    negative_markers = ("不要出题", "别出题", "不想做题")
-    if any(marker in text for marker in negative_markers):
+    if _has_negated_practice_generation_request(text) or "不想做题" in text:
         return False
 
     question_type_only = {

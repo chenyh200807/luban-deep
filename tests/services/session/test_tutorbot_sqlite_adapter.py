@@ -236,6 +236,51 @@ def test_tutorbot_sqlite_adapter_repeated_save_does_not_duplicate_final_answer(t
     ]
 
 
+def test_tutorbot_sqlite_adapter_persists_raw_user_message_not_prompt_envelope(tmp_path) -> None:
+    store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+    adapter = SQLiteSessionAdapter(store)
+    key = "bot:construction-exam-coach:user:u1:chat:c1"
+    envelope = (
+        "## 参考证据\n"
+        "以下内容是辅助证据，不得覆盖当前用户问题与当前会话锚点。\n\n"
+        "### 局部工作记忆投影\n"
+        "这里是注入给 LLM 的内部工作记忆。\n\n"
+        "## 当前用户问题\n"
+        "防水卷材搭接宽度怎么记？"
+    )
+
+    session = Session(
+        key=key,
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "conversation_id": "c1",
+            "user_id": "u1",
+            "source": "wx_miniprogram",
+            "title": "防水答疑",
+        },
+        messages=[
+            {
+                "role": "user",
+                "content": envelope,
+                "raw_user_message": "防水卷材搭接宽度怎么记？",
+            },
+            {"role": "assistant", "content": "先按材料和施工方法区分。"},
+        ],
+    )
+
+    adapter.save(session)
+    adapter.invalidate(key)
+
+    restored = adapter.get_or_create(key)
+    assert [item["content"] for item in restored.messages] == [
+        "防水卷材搭接宽度怎么记？",
+        "先按材料和施工方法区分。",
+    ]
+    rows = asyncio.run(store.get_messages(f"tutorbot:{key}"))
+    assert rows[0]["content"] == "防水卷材搭接宽度怎么记？"
+    assert "参考证据" not in rows[0]["content"]
+
+
 def test_tutorbot_sqlite_adapter_load_failure_is_not_treated_as_missing_session(tmp_path) -> None:
     class BrokenStore:
         def _get_session_sync(self, _session_id: str):

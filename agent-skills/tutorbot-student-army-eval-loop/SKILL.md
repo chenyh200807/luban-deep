@@ -52,6 +52,8 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   要压测放一个后台 agent 实时监测，吃不消降并发；先报最大并行。
   若并发 8 已出现 `ConnectError`、公网 502/readyz timeout、p95 >60s 或样本未完整落盘，
   本轮只标 partial evidence，先降到 3/5/8 梯度重测；不得继续宣称 10/15-20 舒适。
+  2026-06-25 实测 5 并发出现 `ConnectionClosedError`, 3 并发长跑 p95 仍接近 90s；
+  后续长对话样本采集默认先用 1-2 并发，只有 p95 <60s 且 DB/harness 完整一致后再上梯度。
 
 ## 2. 诊断阶段（铁律——血泪换来的，违反必走弯路）
 - 先问本质：坏掉的**一等业务事实**是什么？唯一 authority 是谁？最后一个正确点/
@@ -145,12 +147,15 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 明确要求"先不要告诉答案"仍直接泄答案/解析 | 出题偏好没有成为终端输出 contract,生成器/渲染器仍把答案解析暴露给学生 | 显式 reveal preference 覆盖 stale config;TutorBot visible response 与 orchestrator reveal flags 服从同一 authority | ✅ #231 已修;test2 live 只出题无答案/解析(2026-06-25) |
 | 完整粘贴 MCQ 要判分,答案 B 可判但改 D/重贴后误入"案例题逐采分点/无 authority" | MCQ 题型识别、active object、case grading fallback 竞争判分 authority | 自包含 MCQ + 明确我的答案 优先进入 MCQ grading full-submission authority;显式改答走同一 submission authority | ✅ #232 已修;test2 live A→B 改答正确(2026-06-25);重贴/D 边界继续扩样本 |
 | active MCQ 后问知识点("电气管线、给排水管道、设备安装最低保修期几年")却输出阅卷结论 | sticky `deep_question` preselect 越过 submission/active-object authority | orchestrator 对非提交/非追问/非出题/非题目审查 turn 降级默认 TutorBot/chat,不进入阅卷终端 | ✅ #232 已修;test2 live active MCQ 后知识问答不判分(2026-06-25) |
-| DB 同一 conversation 出现 canonical session + TutorBot 内部投影 session,内部 session 把"参考证据/局部工作记忆投影"存成 user 内容 | 持久态可能混入 prompt envelope / evidence projection,有长期记忆污染风险 | 诊断时必须查所有 sessions row 并区分 user-visible canonical message 与 LLM-injected envelope;后续单独裁决写入侧是否收权 | ⚠️ 2026-06-25 live DB 发现,未修 |
-| 建筑复盘/混凝土模板防水出题请求被误拒为"非建筑实务主题" | domain gate / intent gate 与主 LLM 语义理解不一致,静态 gate 越权 | 待 dump `practice_generation_topic_domain_status` 与 turn_semantic_decision,unknown 应放行到主链路而非误拒 | ❌ 2026-06-25 专业 persona T4/T9 |
+| DB 同一 conversation 出现 canonical session + TutorBot 内部投影 session,内部 session 把"参考证据/局部工作记忆投影"存成 user 内容 | TutorBot bridge/agent loop 把 LLM prompt envelope 当成 mirror session user 内容持久化 | 写入侧断环:bridge 传 `raw_user_content`,AgentLoop/SQLiteSessionAdapter 只把真实用户输入写入 user 消息,LLM envelope 仅用于本轮注入 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
+| 明确"不要再出题/给复盘计划"仍被判成 practice generation,随后以"非建筑实务主题"拒绝 | deterministic practice-generation fast-path 没有 fail-open 于显式否定出题语义 | 在既有 `looks_like_practice_generation_request` 中把显式否定出题降级为非生成请求,交回 semantic_router/general chat;不新增 router | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
+| 建筑复盘/混凝土模板防水/沟槽开挖请求 | 2026-06-25 live 当前不再复现为科目门误拒;残留主要是 topic precision drift/题源不忠于请求主题 | 不再用白名单/黑名单补科目门;后续单独收 topic-source authority 与近期题干 dedupe | ⚠️ 当前 live 已放行,内容漂移待修 |
 | 终端输出出现"长期画像提示"/M07 画像提示等内部学情 meta | user-visible sink/画像投影边界泄漏 | 待查 learner_state 是否真有该画像;无论真假,学生输出 sink 不得裸露内部标签 | 🔵 2026-06-25 新模式 |
 | 〔N〕在判分/教学合成路径泄露(bot 承诺不带仍输出"正确答案:A〔1〕") | 判分 emit 绕过 citations 剥离权威,coerce sink 不剥〔N〕(dormant authority) | strip_orphan_public_markers 收口到 coerce_user_visible_answer(复用 citations 剥离,不造第二权威) | 🔵 task#27 已诊断未实施 |
 | 一建他科(市政/机电/公路)+建筑工程白名单漏词(沟槽开挖)被科目门误拒 | 关键词白名单判语义,unknown_topic→拒("静态闸越权承担语义判断") | 反转:单一 helper 只 out_of_scope 拒,unknown 放行+非专项标注;判据用 RAG/教材覆盖非白名单 | ✅ 代码完成待 live(task#8) |
 | 出题考点精度漂移/逐字重复出题 | 主题槽位被对话噪声劫持 / 去重失效(异源拆出独立病) | 出题 prompt 主题约束隔离对话填充词 / 出题调度去重 | 🔵 task#8/task#28 |
+| 用户切换到案例点评,系统仍按上一道 MCQ active object 判分("关键线路"题) | active object / grading object 仍有跨题型多 writer,新用户题面没有先成为当前判分对象 authority | 待收口:用户粘贴/描述的新案例题面必须先替换或暂停旧 MCQ active object;无当前对象 authority 禁入阅卷 | ❌ 2026-06-25 live 复现(cliche T6) |
+| 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 必须增量落盘并用 DB completed/result 对账 | ⚠️ 稳定性待修 |
 
 ## 红线
 - 不绕 AGENTS.md 单一权威；不新增第二聊天 WS 入口；surgical diff；阿里云只写

@@ -470,6 +470,7 @@ class TutorBotCapability(BaseCapability):
                 mode=policy.effective_mode,
                 session_key=session_key,
                 session_metadata=session_metadata,
+                raw_user_content=self._raw_user_message(context),
             )
             final_response = response or "".join(chunks)
             exact_state_summary = build_choice_result_summary_from_exact_question(

@@ -73,6 +73,16 @@ class SQLiteSessionAdapter:
             message.get("name", ""),
         )
 
+    @staticmethod
+    def _message_for_sqlite(message: dict[str, Any]) -> dict[str, Any]:
+        normalized = dict(message)
+        if normalized.get("role") == "user":
+            raw_user_message = str(normalized.get("raw_user_message") or "").strip()
+            if raw_user_message:
+                normalized["content"] = raw_user_message
+        normalized.pop("raw_user_message", None)
+        return normalized
+
     @classmethod
     def _stored_tutorbot_messages(cls, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         messages: list[dict[str, Any]] = []
@@ -132,12 +142,13 @@ class SQLiteSessionAdapter:
         if metadata:
             await self.store.update_session_preferences(session_id, metadata)
         for msg in stable_messages:
+            stored_message = self._message_for_sqlite(msg)
             await self.store.add_message(
                 session_id=session_id,
-                role=msg.get("role", "user"),
-                content=msg.get("content", ""),
+                role=stored_message.get("role", "user"),
+                content=stored_message.get("content", ""),
                 capability="tutorbot",
-                events=[{"_tutorbot_message": dict(msg)}],
+                events=[{"_tutorbot_message": stored_message}],
             )
 
     def get_or_create(self, key: str) -> Session:
@@ -297,13 +308,14 @@ class SQLiteSessionAdapter:
                 existing_count = len(existing_msgs)
 
             for msg in stable_messages[existing_count:]:
-                role = msg.get("role", "user")
-                content = msg.get("content", "")
+                stored_message = self._message_for_sqlite(msg)
+                role = stored_message.get("role", "user")
+                content = stored_message.get("content", "")
                 await self.store.add_message(
                     session_id=session_id,
                     role=role,
                     content=content,
                     capability="tutorbot",
-                    events=[{"_tutorbot_message": dict(msg)}],
+                    events=[{"_tutorbot_message": stored_message}],
                 )
         self._cache[session.key] = session
