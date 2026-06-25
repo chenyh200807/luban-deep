@@ -15,6 +15,20 @@ _OFFICIAL_GRADING_RE = re.compile(
 )
 _DIAGNOSTIC_ONLY_MARKER = "本次不硬估标准分"
 _CASE_SCORE_AUTHORITY_KINDS = {"case", "case_study", "case_bundle", "written", "subjective"}
+CASE_GRADING_TURN_METADATA_KEYS: tuple[str, ...] = (
+    "grading_engine_version",
+    "v1_case_graded",
+    "score_authority",
+    "grading_rubric_provenance",
+    "grading_to_brain_loop",
+    "learning_evidence_event_id",
+    "learning_training_intent",
+    "grading_to_brain_projection",
+    "case_grading_stream_mode",
+    "case_grading_adjudication_strategy",
+    "case_grading_adjudication_group_count",
+    "case_grading_adjudication_point_count",
+)
 # An explicit case-style score *verdict* (not a bare 采分点 teaching label, a
 # rubric like "满分100分", or a unit price like "5分/平米"). Used only as the
 # safety net for unclassified turns that escaped case_grading scene derivation;
@@ -45,6 +59,32 @@ def case_grading_score_authority_available(runtime_metadata: dict[str, Any] | No
         if _exact_question_has_case_score_authority(exact_question):
             return True
     return False
+
+
+def copy_current_case_grading_turn_metadata(
+    source_metadata: dict[str, Any] | None,
+    target_metadata: dict[str, Any] | None,
+) -> None:
+    """Project case-grading receipt fields only for the current case-grading turn."""
+
+    if not isinstance(target_metadata, dict):
+        return
+    if (
+        not isinstance(source_metadata, dict)
+        or str(source_metadata.get("question_lifecycle_scene") or "").strip() != "case_grading"
+    ):
+        strip_case_grading_turn_metadata(target_metadata)
+        return
+    for key in CASE_GRADING_TURN_METADATA_KEYS:
+        if key in source_metadata:
+            target_metadata[key] = source_metadata[key]
+
+
+def strip_case_grading_turn_metadata(metadata: dict[str, Any] | None) -> None:
+    if not isinstance(metadata, dict):
+        return
+    for key in CASE_GRADING_TURN_METADATA_KEYS:
+        metadata.pop(key, None)
 
 
 def _exact_question_has_case_score_authority(exact_question: dict[str, Any]) -> bool:

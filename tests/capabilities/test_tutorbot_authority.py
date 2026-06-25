@@ -521,12 +521,62 @@ def test_grading_to_brain_result_payload_is_public_projection_source_pin() -> No
 
     import deeptutor.capabilities.tutorbot as tutorbot_module
 
-    src = inspect.getsource(tutorbot_module)
-    copy_block_start = src.index("grading_to_brain_loop")
-    copy_block = src[copy_block_start: copy_block_start + 2000]
-    assert '"personalization_context",' not in copy_block
-    assert '"learning_training_intent",' not in copy_block
-    assert "public_grading_to_brain_meta" in copy_block
+    src = inspect.getsource(tutorbot_module.TutorBotCapability.run)
+    assert "copy_current_case_grading_turn_metadata" in src
+    assert '"grading_to_brain_loop",' not in src
+    assert '"personalization_context",' not in src
+    assert '"learning_training_intent",' not in src
+    assert "public_grading_to_brain_meta" in src
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_result_payload_strips_stale_case_grading_receipt_on_non_case_turn(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class StaleReceiptManager(_FakeTutorBotManager):
+        async def send_message(self, **kwargs) -> str:
+            session_metadata = kwargs["session_metadata"]
+            session_metadata.update(
+                {
+                    "execution_path": "tutorbot_kb_first_full_agent_policy",
+                    "v1_case_graded": True,
+                    "score_authority": "rubric_scored_v1",
+                    "grading_to_brain_loop": {"writeback_count": 1},
+                    "learning_evidence_event_id": "evt-old",
+                }
+            )
+            return "已按你的正式提交做了摘要，没有重新判分。"
+
+    monkeypatch.setattr(
+        tutorbot_capability,
+        "get_tutorbot_manager",
+        lambda: StaleReceiptManager(),
+    )
+
+    stream = StreamBus()
+    context = UnifiedContext(
+        session_id="s-tutorbot-stale-grading-receipt",
+        user_message="总结我正式提交过的案例答案，别重新判分。",
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "fast",
+        },
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
+    assert result_events
+    result_payload = result_events[-1].metadata
+    assert result_payload["execution_path"] == "tutorbot_kb_first_full_agent_policy"
+    for key in (
+        "v1_case_graded",
+        "score_authority",
+        "grading_to_brain_loop",
+        "learning_evidence_event_id",
+    ):
+        assert key not in result_payload
 
 
 def test_public_grading_to_brain_meta_strips_internal_authority_fields() -> None:
