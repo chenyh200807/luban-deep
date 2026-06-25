@@ -1812,9 +1812,14 @@ def _looks_like_non_exam_garbage(text: str) -> bool:
 
 
 def _render_missing_question_review_feedback(topic: str) -> str:
-    focus = str(topic or "").strip() or "这道题"
+    # 去毒(2026-06-23,task#22 残留漏点):此罐头此前逐字嵌入 focus=topic，而上游 caller
+    # 传入的 topic 可能被污染成内部出题锚点 prompt（"请严格围绕以下当前学习锚点出题…当前
+    # 会话主题:[用户原句]"，Langfuse 实证 system prompt 脚手架原样泄露给学生）。与
+    # question_lifecycle_skills low_information 罐头同口径：面向学生输出绝不逐字回显用户
+    # 输入/内部 prompt——改为不嵌入任何外部串的干净澄清。topic 参数保留以兼容 caller。
+    _ = topic
     return (
-        f"我还没有定位到“{focus}”对应的原题题干和选项，不能把它伪装成真题解析。\n\n"
+        "我还没有定位到你说的这道题对应的原题题干和选项，不能把它伪装成真题解析。\n\n"
         "请把完整题干和 A/B/C/D 选项发给我；我会按题目讲评模式给你拆解："
         "题干关键词、正确答案、逐项选项分析、易错点和下一步练法。"
     )
@@ -5555,6 +5560,8 @@ class DeepQuestionCapability(BaseCapability):
                 and counters.get("lightweight_batch_fallback") == "blocked_unresolved_anchor"
             ):
                 return _render_missing_generation_topic_anchor_feedback()
+            # 科目出口门拒答：lightweight 走 lightweight_batch_fallback，heavy 走 trace.subject_scope_blocked，
+            # 统一渲染 subject_unavailable（owner=只建筑，他科/跑偏题诚实拒答而非出垃圾题）。
             if (isinstance(trace, dict) and trace.get("subject_scope_blocked")) or (
                 isinstance(counters, dict)
                 and counters.get("lightweight_batch_fallback") == "blocked_out_of_scope_topic"

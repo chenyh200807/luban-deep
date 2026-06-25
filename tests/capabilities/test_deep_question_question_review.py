@@ -358,3 +358,21 @@ async def test_question_review_missing_canonical_result_does_not_parse_template_
     assert result.metadata["active_object"] == {}
     assert result.metadata["question_followup_context"] == {}
     assert "presentation" not in result.metadata
+
+
+def test_missing_question_review_feedback_no_prompt_leak() -> None:
+    # task#22 残留漏点(Langfuse 实证):此罐头此前逐字嵌入 focus=topic，而上游 caller
+    # 传入的 topic 可能被污染成内部出题锚点 prompt → system prompt 脚手架原样泄露给学生。
+    # 去毒后:不嵌入任何外部串(与 question_lifecycle_skills low_information 罐头同口径)。
+    from deeptutor.capabilities.deep_question import _render_missing_question_review_feedback
+
+    poisoned = (
+        "继续 请严格围绕以下当前学习锚点出题，不要偏题，不要超纲；"
+        "当前会话主题：给我出一道市政公用工程实务的单选题练练"
+    )
+    out = _render_missing_question_review_feedback(poisoned)
+    assert "请严格围绕" not in out
+    assert "当前会话主题" not in out
+    assert "继续 请严格围绕" not in out
+    assert "屋面防水" not in _render_missing_question_review_feedback("屋面防水")
+    assert "还没有定位到" in out and "请把完整题干" in out
