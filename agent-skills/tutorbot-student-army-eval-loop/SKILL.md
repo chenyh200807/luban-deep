@@ -84,6 +84,12 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   和 `active_object`；以及 resolver 的 public-submission merge / turn-end result merge 是否又把旧
   candidate / RESULT `active_object` 的 `question_id`、`correct_answer`、`user_answer` 合回来。只修
   "skip stale candidate" 不够，第二次 merge 是常见复发点。
+- **铁律③.9（2026-06-25 current submission terminal binding）：对象身份正确 ≠ 终端判分事实正确。**
+  live 若出现 stream 片段看似按当前题批改，但 DB `result.metadata.response` / assistant message 又落回
+  generic TutorBot fallback、旧题文案或 low-info clarification，说明当前完整 submission 没有原子绑定
+  `question_lifecycle_scene` / action / marked reference。修法是让当前 full MCQ/case submission 在
+  capability 前绑定对象 + learner answer + 显式 `标准答案|正确答案|参考答案` + terminal scene；
+  不是新增第二 router，也不是让 LLM prompt 承诺"不要沿用上一题"。
 - **异源核（同源不能自证）**：根因判断 + "无编造/已修好"结论必须异源在环。
   Codex 额度耗尽用 `deepseek-v4-pro`@api.deepseek.com（`DEEPSEEK_API_KEY`，OpenAI
   兼容）：给中立证据 + 对立假设让它独立选，**别 prime**。异源也可能共享错前提，
@@ -160,6 +166,7 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 一建他科(市政/机电/公路)+建筑工程白名单漏词(沟槽开挖)被科目门误拒 | 关键词白名单判语义,unknown_topic→拒("静态闸越权承担语义判断") | 反转:单一 helper 只 out_of_scope 拒,unknown 放行+非专项标注;判据用 RAG/教材覆盖非白名单 | ✅ 代码完成待 live(task#8) |
 | 出题考点精度漂移/逐字重复出题 | 主题槽位被对话噪声劫持 / 去重失效(异源拆出独立病) | 出题 prompt 主题约束隔离对话填充词 / 出题调度去重 | 🔵 task#8/task#28 |
 | 用户切换到新 MCQ / 案例点评,系统仍按上一道 MCQ active object 判分("关键线路"题) | current grading object identity 多 writer:旧 active_object/candidate 与下游 RESULT 可二次覆盖当前题面 | 完整 MCQ/case submission 共享投影 helper 上移到 `question_lifecycle_skills`; turn-start 只允许同题 context 保权,不匹配则当前题面成 active_object; turn-end grading RESULT 不得用不同 object_id 旧对象覆盖当前对象 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
+| 当前新 MCQ stream 看似判对,但 DB `result.response`/assistant message 又落回旧 TN-S 题或 generic fallback；自然案例题被 low-info gate 拒绝 | current submission 只绑定了对象身份,未原子绑定 scene/action/reference; terminal sink 与 low-info gate 仍抢权 | turn-start 从 `question_lifecycle_skills` 当前 context/action 薄盖 `mcq_grading`/`case_grading`;显式标准答案只认 `标准答案/正确答案/参考答案`;完整 `案例题...问...我的答案` 逃逸 low-info | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 必须增量落盘并用 DB completed/result 对账 | ⚠️ 稳定性待修 |
 
 ## 红线
