@@ -43,6 +43,12 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   **harness `ws_timeout`/漏捕不等于 turn 未完成**：先查 DB `turns` + `turn_events`
   的 terminal `result`；若 DB 已 completed，以 DB 终态为准。driver 必须尽量逐 turn
   fail-soft/增量落盘，避免单个 `ConnectError` 丢整个人格样本。
+  `scripts/run_student_turn.py turn` 支持 `--output-jsonl` 逐 turn 追加结构化结果（含
+  `conversation_id/turn_id/client_turn_id/status/latency/ws_error/db_reconciled`），并可用
+  `--db-path` 对本地只读 `chat_history.db` 做同步对账。只有远端 DB 时，用只读命令拉取：
+  `python scripts/run_student_turn.py db-reconcile --db-path /app/data/user/chat_history.db --turn-id <turn_id> --conversation-id <conversation_id>`；
+  该模式只读 `turns`、terminal `turn_events.result.metadata.response` 和同 conversation
+  的 `messages.content`，不得写远端文件。
 - 多 persona（乱聊 / 专业 / 攻击钓鱼 / 套话），重点 **长对话 ≥10 轮**：
   出题→答题→追问→再出题，混入切换能力、回指"刚才那题"、非答题轮、未作答追问、
   点名选项追问、粘贴 MCQ/案例题判分。判官独立于被测。
