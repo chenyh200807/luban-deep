@@ -122,6 +122,9 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   > prompt 约束（LLM 可能不遵守）。
 - **对新增层有罪推定**：新字段/router/classifier/wrapper/fallback 默认错，先证明
   没造第二套 authority、没把语义降级成正则。
+- active case/written context 只说明有待处理对象，不证明当前 turn 新提交了答案；当前 turn
+  submission authority 必须先判定是否真提交。无显式答案前缀且明确退出判分/切到学习计划时，
+  写入侧 fail-open 为 follow-up/chat，不让旧判分态继续抢权。
 - TDD：先写测试看 RED。改 contract-protected 文件必须**同 commit** 更新 registered
   domain test + contract surface（否则 contract_guard FAIL；注意 sensitive vs
   protected 是两类要求）。packaged 副本（如 `deeptutor/contracts/index.yaml`）要同步。
@@ -170,6 +173,7 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 简答/案例判分请求→被 MCQ 生成器抢占,判 bot 自己生成的 MCQ | 判分对象路由错(锚到 bot 自造题非用户真题) | 判分态/判分对象单一 decider 收权 | ❌ **2026-06-24 live 复现**(g6 8处,task#20 簇A) |
 | 回指"刚才那题"→串到别题且编造作答记录("你答了C/多选B和C") | 判分对象=哪道题的权威失守 | 判分对象只能是真实活跃题,无活跃题 fail-closed | ❌ **2026-06-24 live 复现**(g1 T9/g4 T10,task#20 簇A) |
 | 非答题轮("我不会/先别判/还没做")→ 凭空判分 | "是否提交作答"散在确定性关键词+LLM 偏置多 writer(fast-path-as-authority) | submission_confidence 单一信号:HIGH 必判(硬约束40)/LOW 不判;qls scene+semantic_router 守卫+interpret backstop+fallback 全 gate | ✅ **2026-06-24 收口 live GO 6/6**(Steps 1-4.6,plan 判分态收口;凭空判分不再,真作答必判;PR#212)。⚠️残 whack-a-mole:逐路径 gate,单一 chokepoint(turn_runtime _submission_action,Step5)更彻底 |
+| 案例题批改后说"只给复盘计划/现在聊学习计划"仍继续判分 | active case context 被误当成 current submission authority,主观题抽取把任意长文本写成新答案 | `question_followup.resolve_submission_attempt` 写入侧收权:无显式答案前缀且命中退出判分/学习计划意图→非 submission;显式答案仍提交 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 质疑轮(只反驳未作答)→ 凭空判分"你答了D得0分" + 附和编造修订叙事 | 质疑被误触发阅卷态 + 不重 grounding 无条件附和 | 质疑轮禁判分态 + 强制重走 RAG 核验 | ❌ **2026-06-24 live**(g5 T3/4/7 凭空判分;T10 DeepSeek conf=1.0 编造"罚款2020修订4%→8%",task#20 簇A) |
 | 非答题轮凭空判分后→捏造"系统记录显示你提交了C"为前轮幻觉背书 | 会话内即时自强化幻觉(非跨会话 notebook,PR#204 只断了 notebook 写入侧) | 判分态收权根治(不进判分就无幻觉判分可背书) | ❌ **2026-06-24 新形态**(g2 T10) |
 | DB `turn_semantic_decision.next_action=ask_clarifying_question` 但最终仍判分/生成/泄标准答案 | canonical decision 被 lifecycle fallthrough / deep_question full-submission fallback 当弱提示 | orchestrator 对 `semantic_route=chat` 直接回 TutorBot/chat; deep_question 收到同一 decision fail-closed clarification | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
