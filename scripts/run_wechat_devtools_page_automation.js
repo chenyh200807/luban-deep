@@ -160,46 +160,74 @@ async function seedAuthStorage(miniProgram, authPayload) {
   });
 }
 
-async function readLearningReportViaRuntime(miniProgram, baseUrl) {
-  const normalized = String(baseUrl || "").trim().replace(/\/$/, "");
-  if (!normalized) return { attempted: false, reason: "missing_base_url" };
-  return await miniProgram.evaluate(function (url) {
-    return new Promise(function (resolve) {
-      var token = wx.getStorageSync("auth_token");
-      wx.request({
-        url: url,
-        method: "GET",
-        header: {
-          Authorization: token ? "Bearer " + token : "",
-          "Content-Type": "application/json",
+async function readLearningReportViaRuntimeAuthority(page, currentPageData) {
+  const pageData =
+    currentPageData && typeof currentPageData === "object" ? currentPageData : {};
+  if (!page || typeof page.callMethod !== "function") {
+    return { attempted: false, reason: "page_call_method_unavailable" };
+  }
+  try {
+    const snapshot = await page.callMethod("_loadReportSnapshot");
+    if (!snapshot || typeof snapshot !== "object") {
+      return {
+        attempted: true,
+        source: "report_page_reader",
+        ok: false,
+        snapshot_loaded: false,
+        reason: "snapshot_unavailable",
+        page_data_fallback: {
+          is_guest_preview: !!pageData.isGuestPreview,
+          report_fallback_active: !!pageData.reportFallbackActive,
+          degraded_hint: String(pageData.degradedHint || "").trim(),
+          degraded_sources: Array.isArray(pageData.degradedSources)
+            ? pageData.degradedSources.slice(0, 20)
+            : [],
+          page_data_keys: Object.keys(pageData).sort().slice(0, 80),
         },
-        timeout: 20000,
-        success: function (res) {
-          var body = res && res.data && typeof res.data === "object" ? res.data : {};
-          var loop = body.grading_to_brain_loop && typeof body.grading_to_brain_loop === "object"
-            ? body.grading_to_brain_loop
-            : {};
-          resolve({
-            attempted: true,
-            status_code: res && res.statusCode,
-            body_keys: Object.keys(body).sort().slice(0, 80),
-            has_grading_to_brain_loop: Object.prototype.hasOwnProperty.call(body, "grading_to_brain_loop"),
-            loop_status: String(loop.status || ""),
-            loop_next_required_action: String(loop.next_required_action || loop.nextRequiredAction || ""),
-            loop_evidence_ref_count: Array.isArray(loop.evidence_refs) ? loop.evidence_refs.length : 0,
-            loop_stage_count: Array.isArray(loop.stages) ? loop.stages.length : 0,
-          });
-        },
-        fail: function (err) {
-          resolve({
-            attempted: true,
-            status_code: 0,
-            error: String(err && err.errMsg ? err.errMsg : err),
-          });
-        },
-      });
-    });
-  }, normalized + "/api/v1/mobile/learning-report?event_limit=100&schema_version=2");
+      };
+    }
+    const report = snapshot.report && typeof snapshot.report === "object"
+      ? snapshot.report
+      : {};
+    const loop = report.grading_to_brain_loop && typeof report.grading_to_brain_loop === "object"
+      ? report.grading_to_brain_loop
+      : {};
+    return {
+      attempted: true,
+      source: "report_page_reader",
+      ok: true,
+      snapshot_loaded: true,
+      degraded: !!snapshot.degraded,
+      degraded_sources: Array.isArray(snapshot.degradedSources)
+        ? snapshot.degradedSources.slice(0, 20)
+        : [],
+      source_status_keys:
+        snapshot.sourceStatus && typeof snapshot.sourceStatus === "object"
+          ? Object.keys(snapshot.sourceStatus).sort().slice(0, 40)
+          : [],
+      body_keys: Object.keys(report).sort().slice(0, 80),
+      has_grading_to_brain_loop: Object.prototype.hasOwnProperty.call(
+        report,
+        "grading_to_brain_loop",
+      ),
+      loop_status: String(loop.status || ""),
+      loop_next_required_action: String(
+        loop.next_required_action || loop.nextRequiredAction || "",
+      ),
+      loop_evidence_ref_count: Array.isArray(loop.evidence_refs)
+        ? loop.evidence_refs.length
+        : 0,
+      loop_stage_count: Array.isArray(loop.stages) ? loop.stages.length : 0,
+    };
+  } catch (error) {
+    return {
+      attempted: true,
+      source: "report_page_reader",
+      ok: false,
+      snapshot_loaded: false,
+      error: String(error && error.message ? error.message : error),
+    };
+  }
 }
 
 async function waitForCurrentPage(miniProgram, targetPage, timeoutMs) {
@@ -265,7 +293,6 @@ async function loginWithPasswordIfAvailable(miniProgram, targetPage) {
     }
     await page.waitFor(Math.max(0, Number(args.waitMs || 800)));
     let snapshot = await currentPageSnapshot(miniProgram);
-    const runtimeReportProbe = await readLearningReportViaRuntime(miniProgram, qaBaseUrl);
     let auth = {
       attempted: httpAuth.attempted,
       credential_source: httpAuth.credential_source,
@@ -278,6 +305,10 @@ async function loginWithPasswordIfAvailable(miniProgram, targetPage) {
       auth = await loginWithPasswordIfAvailable(miniProgram, targetPage);
       snapshot = await currentPageSnapshot(miniProgram);
     }
+    const runtimeReportProbe = await readLearningReportViaRuntimeAuthority(
+      page,
+      snapshot.pageData,
+    );
     const currentPage = snapshot.currentPage;
     const pageData = snapshot.pageData;
     const reachedTarget = normalizePagePath(currentPage) === targetPage;
