@@ -439,6 +439,55 @@ class SupabaseAssessmentQuestionProvider:
         )
         return len(rows)
 
+    def active_form_summaries(self, blueprint_versions: list[str] | tuple[str, ...]) -> dict[str, dict[str, Any]]:
+        versions = [str(item or "").strip() for item in blueprint_versions if str(item or "").strip()]
+        if not versions:
+            return {}
+        base_url, api_key = self._supabase_config()
+        rows = self._rest_get(
+            base_url,
+            api_key,
+            "assessment_forms",
+            {
+                "select": "blueprint_version,form_id,form_index,fallback_used,question_bank_size",
+                "blueprint_version": f"in.({','.join(versions)})",
+                "status": "eq.active",
+                "order": "blueprint_version.asc,form_index.asc",
+                "limit": str(_ASSESSMENT_FORM_COUNT * len(versions)),
+            },
+        )
+        summaries: dict[str, dict[str, Any]] = {
+            version: {
+                "active_form_count": 0,
+                "fallback_used": False,
+                "question_bank_size": 0,
+            }
+            for version in versions
+        }
+        seen_form_ids: dict[str, set[str]] = {version: set() for version in versions}
+        for row in rows:
+            version = str(row.get("blueprint_version") or "").strip()
+            if version not in summaries:
+                continue
+            form_id = str(row.get("form_id") or row.get("form_index") or "").strip()
+            if form_id and form_id in seen_form_ids[version]:
+                continue
+            if form_id:
+                seen_form_ids[version].add(form_id)
+            summaries[version]["active_form_count"] = int(summaries[version]["active_form_count"]) + 1
+            summaries[version]["fallback_used"] = bool(
+                summaries[version]["fallback_used"] or row.get("fallback_used")
+            )
+            try:
+                question_bank_size = int(row.get("question_bank_size") or 0)
+            except (TypeError, ValueError):
+                question_bank_size = 0
+            summaries[version]["question_bank_size"] = max(
+                int(summaries[version]["question_bank_size"]),
+                question_bank_size,
+            )
+        return summaries
+
     def save_form_bank(self, blueprint: AssessmentBlueprint, form_bank: _AssessmentFormBank) -> None:
         base_url, api_key = self._supabase_config()
         rows = [
