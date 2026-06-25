@@ -297,6 +297,20 @@ def test_study_assistant_intent():
     assert derive_question_lifecycle_scene(ctx) == "study_assistant"
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        "不看内部信息了，给我一个3天复盘计划，不要再出题。",
+        "只给我复盘计划，不要继续判分，也不要把这句话当成新的案例答案。",
+        "给我30分钟复盘计划，不要继续出题",
+        "现在聊学习计划：我每天只有40分钟。",
+    ],
+)
+def test_study_plan_requests_return_study_assistant_not_generic_chat(message: str):
+    ctx = _FakeContext(user_message=message)
+    assert derive_question_lifecycle_scene(ctx) == "study_assistant"
+
+
 def test_free_text_mcq_grading_requires_question_signal():
     ctx = _FakeContext(user_message="我选哪个老师的课程比较合适？")
     assert derive_question_lifecycle_scene(ctx) is None
