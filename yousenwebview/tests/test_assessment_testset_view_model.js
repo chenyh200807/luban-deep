@@ -42,6 +42,7 @@ function loadPage(apiOverrides) {
   var modalCalls = [];
   var toastCalls = [];
   var createPayloads = [];
+  var submitPayloads = [];
   var reLaunchCalls = [];
   var pendingChatIntents = [];
   var apiMock = Object.assign(
@@ -105,7 +106,13 @@ function loadPage(apiOverrides) {
           ],
         });
       },
-      submitAssessment: function () {
+      submitAssessment: function (quizId, answers, timeSpent, deviceId) {
+        submitPayloads.push({
+          quizId: quizId,
+          answers: answers,
+          timeSpent: timeSpent,
+          deviceId: deviceId,
+        });
         return Promise.resolve({
           schema_version: "p0a-v1",
           quiz_id: "quiz_p0a",
@@ -212,12 +219,13 @@ function loadPage(apiOverrides) {
       }
       throw new Error("unexpected require: " + request);
     },
-    wx: {
-      showToast: function (options) { toastCalls.push(options || {}); },
-      showModal: function (options) { modalCalls.push(options || {}); },
-      setStorageSync: function (key, value) { sandbox.__storage[key] = value; },
-      reLaunch: function (options) { reLaunchCalls.push(options || {}); },
-      navigateBack: function () {},
+      wx: {
+        showToast: function (options) { toastCalls.push(options || {}); },
+        showModal: function (options) { modalCalls.push(options || {}); },
+        getStorageSync: function (key) { return sandbox.__storage[key]; },
+        setStorageSync: function (key, value) { sandbox.__storage[key] = value; },
+        reLaunch: function (options) { reLaunchCalls.push(options || {}); },
+        navigateBack: function () {},
     },
     __storage: {},
     Page: function (def) {
@@ -244,6 +252,7 @@ function loadPage(apiOverrides) {
     modalCalls: modalCalls,
     toastCalls: toastCalls,
     createPayloads: createPayloads,
+    submitPayloads: submitPayloads,
     reLaunchCalls: reLaunchCalls,
     pendingChatIntents: pendingChatIntents,
     storage: sandbox.__storage,
@@ -276,6 +285,7 @@ function stringify(value) {
     assert(createPayload.assessment_type === "real_exam_simulation", "default create should request durable comprehensive form");
     assert(createPayload.count === 20, "comprehensive mode should request the 20-question form");
     assert(!createPayload.topic_ids, "diagnostic mode should not send topic_ids");
+    assert(createPayload.device_id === loaded.storage["deeptutor.assessment.deviceId"], "create should bind to local assessment device id");
     assert(loaded.page.data.welcomeTitle === "综合摸底", "default title should name the 20-question diagnostic");
   });
 
@@ -439,6 +449,108 @@ function stringify(value) {
     assert(loaded.page.data.selectedTopicId === "waterproof", "first enabled stable topic should remain selectable");
   });
 
+  await run("late topic recommendation must not override manual comprehensive selection", async function () {
+    var resolveTopics;
+    var loaded = loadPage({
+      getAssessmentTopics: function () {
+        return new Promise(function (resolve) {
+          resolveTopics = resolve;
+        });
+      },
+    });
+    loaded.page.onLoad();
+    loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "diagnostic" } } });
+    resolveTopics({
+      recommendation: {
+        recommended_mode: "topic",
+        recommended_topic_id: "main_structure",
+        recommended_count: 12,
+        reason: "主体结构薄弱，建议先专题。",
+      },
+      topics: [
+        {
+          topic_id: "main_structure",
+          label: "主体结构",
+          status: "stable",
+          enabled: true,
+          form_count: 5,
+        },
+      ],
+    });
+    await flushPromises();
+
+    assert(loaded.page.data.recommendedMode === "topic", "late recommendation should still update recommendation badge");
+    assert(loaded.page.data.selectedTopicId === "main_structure", "late catalog should still update selected topic metadata");
+    assert(loaded.page.data.assessmentMode === "diagnostic", "manual comprehensive selection must remain authoritative");
+    assert(loaded.page.data.welcomeTitle === "综合摸底", "manual comprehensive welcome copy must not be overwritten");
+  });
+
+  await run("late topic recommendation must not override manually selected topic", async function () {
+    var resolveTopics;
+    var loaded = loadPage({
+      getAssessmentTopics: function () {
+        return new Promise(function (resolve) {
+          resolveTopics = resolve;
+        });
+      },
+    });
+    loaded.page.onLoad();
+    loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
+    loaded.page.onSelectTopic({ currentTarget: { dataset: { topicId: "waterproof" } } });
+    resolveTopics({
+      recommendation: {
+        recommended_mode: "topic",
+        recommended_topic_id: "main_structure",
+        recommended_count: 12,
+        reason: "主体结构薄弱，建议先专题。",
+      },
+      topics: [
+        {
+          topic_id: "waterproof",
+          label: "防水工程",
+          status: "stable",
+          enabled: true,
+          form_count: 5,
+        },
+        {
+          topic_id: "main_structure",
+          label: "主体结构",
+          status: "stable",
+          enabled: true,
+          form_count: 5,
+        },
+      ],
+    });
+    await flushPromises();
+    loaded.page.onStart();
+    await flushPromises();
+
+    assert(loaded.page.data.assessmentMode === "topic", "manual topic mode must remain authoritative");
+    assert(loaded.page.data.selectedTopicId === "waterproof", "manual topic selection must remain authoritative");
+    assert(loaded.page.data.welcomeTitle === "防水工程专题测评", "manual topic welcome copy must not be overwritten");
+    assert(loaded.createPayloads[0].topic_ids[0] === "waterproof", "create should use manually selected topic");
+  });
+
+  await run("create failure uses classified learner-facing error copy", async function () {
+    var loaded = loadPage({
+      createAssessment: function (payload) {
+        loaded.createPayloads.push(payload);
+        return Promise.reject({ status: 503, detail: { error: "assessment_sessions_unavailable" } });
+      },
+      describeRequestError: function (err, fallbackMsg, opts) {
+        var msg = opts.customMap({ status: err.status, detailText: "assessment_sessions_unavailable", rawMessage: "" });
+        return msg || fallbackMsg;
+      },
+    });
+    loaded.page.onStart();
+    await flushPromises();
+
+    var toastText = loaded.toastCalls.map(function (item) { return item.title || ""; }).join("|");
+    assert(toastText.indexOf("题库服务暂时不可用") >= 0, "create failure should show specific service-unavailable copy");
+    assert(toastText.indexOf("加载题目失败") < 0, "create failure should not collapse to generic load failure");
+    assert(loaded.page.data.stage === "welcome", "failed create should return to welcome");
+  });
+
   await run("P0A start uses topic diagnostic request and redacted pre-submit payload", async function () {
     var loaded = loadPage();
     loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
@@ -450,6 +562,7 @@ function stringify(value) {
     assert(createPayload.subject_id === "construction_exam", "create should include subject_id");
     assert(createPayload.topic_ids[0] === "waterproof", "create should request waterproof topic");
     assert(createPayload.count === 12, "create should request signed P0A count");
+    assert(createPayload.device_id === loaded.storage["deeptutor.assessment.deviceId"], "topic create should include local assessment device id");
     assert(stringify(loaded.page.data.questions).indexOf("correct_answer") < 0, "pre-submit payload should not expose correct_answer");
     assert(stringify(loaded.page.data.questions).indexOf('"answer"') < 0, "pre-submit payload should not expose answer");
   });
@@ -468,6 +581,7 @@ function stringify(value) {
     loaded.page.onSubmit();
     await flushPromises();
 
+    assert(loaded.submitPayloads[0].deviceId === loaded.storage["deeptutor.assessment.deviceId"], "submit should reuse local assessment device id");
     assert(loaded.page.data.serverReportMode === true, "result should use P0A server report mode");
     assert(loaded.page.data.scoreTitle.indexOf("本次") === 0, "score title must be scoped to this test");
     assert(loaded.page.data.resultScore === 50, "score should come from backend report");
