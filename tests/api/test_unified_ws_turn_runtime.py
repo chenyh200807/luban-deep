@@ -1309,6 +1309,61 @@ async def test_resolve_question_followup_explicit_context_ignores_generation_hin
 
 
 @pytest.mark.asyncio
+async def test_resolve_question_followup_explicit_context_downgrades_invalid_option_submission_hint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _followup_interpret(_message, _question_context, **_kwargs):
+        return {
+            "intent": "ask_followup",
+            "confidence": 0.91,
+            "answers": [],
+            "reason": "用户是在问不存在的 E 选项是否可选。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        _followup_interpret,
+    )
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="如果我选E，对不对？一句话。",
+        explicit_context={
+            "question_id": "q_live_numbered",
+            "question": "### 第 1 题 施工缝留置位置判断。\n下列说法错误的是（ ）。",
+            "question_type": "choice",
+            "options": {
+                "A": "施工缝宜留在结构受剪力较小且便于施工的部位",
+                "B": "梁板施工缝可留在次梁跨度的中间1/3范围内",
+                "C": "单向板施工缝可留在平行于板短边的位置",
+                "D": "有主次梁楼板宜顺着次梁方向浇筑",
+            },
+            "correct_answer": "C",
+            "user_answer": "",
+        },
+        explicit_action={
+            "intent": "answer_questions",
+            "confidence": 0.9,
+            "answers": [
+                {
+                    "question_index": 1,
+                    "question_id": "q_live_numbered",
+                    "answer": "E",
+                }
+            ],
+            "reason": "上游提交优先误判。",
+        },
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "q_live_numbered"
+    assert resolved_context.get("user_answer") == ""
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
+    assert resolved_action["answers"] == []
+
+
+@pytest.mark.asyncio
 async def test_resolve_question_followup_does_not_treat_next_question_explainer_as_generation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

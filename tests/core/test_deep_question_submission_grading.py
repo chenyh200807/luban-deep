@@ -2122,6 +2122,31 @@ def test_plain_count_generation_request_uses_conversation_context_anchor() -> No
     assert "变形缝" in topic
 
 
+def test_different_topic_generation_request_inherits_active_question_domain() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再出一道不同考点的单选题，不要答案。",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context={
+            "question_id": "q_joint",
+            "question": "下列关于施工缝留置位置的说法，错误的是（ ）。",
+            "question_type": "choice",
+            "options": {
+                "A": "施工缝宜留在结构受剪力较小处",
+                "B": "梁板施工缝可留在受剪力较大处",
+                "C": "次梁跨度中间1/3范围可留设施工缝",
+                "D": "单向板可平行于短边留设施工缝",
+            },
+            "correct_answer": "B",
+        },
+        conversation_context_text="",
+    )
+
+    assert topic.startswith("再出一道不同考点的单选题")
+    assert "当前学习锚点" in topic
+    assert "施工缝" in topic
+
+
 def test_explicit_generation_topic_does_not_require_context_anchor() -> None:
     assert deep_question_module._topic_needs_authoritative_anchor("出三道变形缝的题") is False
     for user_topic in (
@@ -2406,6 +2431,95 @@ async def test_deep_question_allows_explicit_construction_generation_topic(
     assert captured["generate_from_topic"]["num_questions"] == 3
     assert "变形缝" in captured["generate_from_topic"]["user_topic"]
     assert "practice_generation_blocked_reason" not in result_event.metadata
+
+
+@pytest.mark.asyncio
+async def test_deep_question_different_topic_request_inherits_question_anchor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, callback: Any) -> None:
+            captured["ws_callback"] = callback
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["generate_from_topic"] = kwargs
+            return {
+                "source": "topic",
+                "requested": kwargs.get("num_questions", 0),
+                "completed": 0,
+                "failed": 0,
+                "results": [],
+                "trace": {
+                    "lightweight_generation": kwargs.get("lightweight_generation", False),
+                    "lightweight_counters": {
+                        "llm_calls": 0,
+                        "retriever_calls": 0,
+                        "bank_hits": 0,
+                        "lightweight_batch_fallback": "none",
+                        "generated_explanation": False,
+                    },
+                },
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="再出一道不同考点的单选题，不要答案。",
+        config_overrides={
+            "mode": "custom",
+            "topic": "再出一道不同考点的单选题，不要答案。",
+            "num_questions": 1,
+            "question_type": "choice",
+            "force_generate_questions": True,
+            "lightweight_generation": False,
+            "reveal_answers": False,
+            "reveal_explanations": False,
+        },
+        language="zh",
+        metadata={
+            "question_lifecycle_scene": "practice_generation",
+            "selected_mode": "deep",
+            "question_followup_context": {
+                "question_id": "q_joint",
+                "question": "下列关于施工缝留置位置的说法，错误的是（ ）。",
+                "question_type": "choice",
+                "options": {
+                    "A": "施工缝宜留在结构受剪力较小处",
+                    "B": "梁板施工缝可留在受剪力较大处",
+                    "C": "次梁跨度中间1/3范围可留设施工缝",
+                    "D": "单向板可平行于短边留设施工缝",
+                },
+                "correct_answer": "B",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    user_topic = captured["generate_from_topic"]["user_topic"]
+    assert "当前学习锚点" in user_topic
+    assert "施工缝" in user_topic
+    assert "practice_generation_blocked_reason" not in result_event.metadata
+    assert "非建筑实务" not in result_event.metadata["response"]
 
 
 def test_related_generation_anchor_uses_next_training_signal() -> None:
