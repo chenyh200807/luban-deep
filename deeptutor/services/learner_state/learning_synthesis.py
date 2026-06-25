@@ -77,7 +77,8 @@ def synthesize_learning_truth(
             })
             continue
         if (
-            not item["concept_id"]
+            item["source_feature"] == "conversation_synthesis"
+            or not item["concept_id"]
             or not item["error_code"]
             or not item["question_id"]
             or _blocks_stable_learning_truth(item["evidence_cap_reasons"])
@@ -430,6 +431,7 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
         error_code = _improvement_error_code(payload, concept_id=concept)
         return [{
             "event_id": event.event_id,
+            "source_feature": event.source_feature,
             "observed_at": event.created_at,
             "question_id": question_id,
             "turn_id": turn_id,
@@ -441,6 +443,7 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
             "conflicting_event_ids": conflicting_event_ids,
             "evidence_cap_reasons": _evidence_cap_reasons(quality),
             "evidence_level": evidence_level,
+            "claim_promotion_allowed": payload.get("claim_promotion_allowed"),
             "is_improvement": True,
         }]
     if not errors:
@@ -454,6 +457,7 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
         rubric_item_id = _clean_text(error.get("rubric_item_id")) or fallback_rubric_id
         items.append({
             "event_id": event.event_id,
+            "source_feature": event.source_feature,
             "observed_at": event.created_at,
             "question_id": question_id,
             "turn_id": turn_id,
@@ -473,6 +477,7 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
             "conflicting_event_ids": conflicting_event_ids,
             "evidence_cap_reasons": _evidence_cap_reasons(quality),
             "evidence_level": evidence_level,
+            "claim_promotion_allowed": payload.get("claim_promotion_allowed"),
             "is_improvement": False,
         })
     return items
@@ -543,6 +548,8 @@ def _active_weak_points(
         key = (_clean_text(observed.get("concept_id")), _clean_text(observed.get("error_code")))
         if not key[0] or not key[1] or key in seen_keys or key in improved_keys:
             continue
+        if _clean_text(observed.get("source_feature")) == "conversation_synthesis":
+            continue
         if _blocks_stable_learning_truth(list(observed.get("evidence_cap_reasons") or [])):
             continue
         confirmations = _manual_confirmations(manual_by_key.get(key, []))
@@ -596,6 +603,8 @@ def _candidate(item: dict[str, Any], *, evidence_level: str) -> dict[str, Any]:
         "last_observed_at": item["observed_at"],
         "recommended_training": dict(item.get("recommended_training") or {}),
         "evidence_level": evidence_level,
+        "source_feature": item.get("source_feature", ""),
+        "claim_promotion_allowed": item.get("claim_promotion_allowed"),
         "memory_lifecycle_stage": lifecycle_stage_for_evidence_level(evidence_level),
         "evidence_cap_reasons": list(item.get("evidence_cap_reasons") or []),
         # D-class: 1-element timeline for the single-observation path (append-only).
@@ -670,7 +679,6 @@ def _build_compiled_objects(
     objects: dict[str, dict[str, Any]] = {}
     weak_keys = {(weak["concept_id"], weak["error_code"]) for weak in weak_points}
     improving_keys = _resolved_improved_keys(improvements=improvements)
-    improving_concepts = {concept_id for concept_id, _error_code in improving_keys}
     manual_by_key: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for manual_event in manual_events:
         manual_by_key[(manual_event["concept_id"], manual_event["error_code"])].append(manual_event)
@@ -759,6 +767,11 @@ def _build_compiled_objects(
                     decay_state="active",
                 )
     for observed in observed_candidates:
+        if (
+            _clean_text(observed.get("source_feature")) == "conversation_synthesis"
+            or _blocks_stable_learning_truth(list(observed.get("evidence_cap_reasons") or []))
+        ):
+            continue
         if observed.get("concept_id") and observed.get("error_code") and observed.get("supporting_event_ids"):
             event_id = observed["supporting_event_ids"][0]
             _put_object(

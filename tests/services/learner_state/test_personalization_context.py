@@ -76,6 +76,56 @@ def test_personalization_context_treats_string_evidence_ref_as_single_ref() -> N
     assert pack["top_claims"][0]["evidence_refs"] == ["evt_string"]
 
 
+def test_personalization_context_excludes_blocked_conversation_claims_from_prompt_payload() -> None:
+    raw_topic = "我想练习主体结构相关的题目 请严格围绕以下当前学习锚点出题"
+    pack = build_personalization_context_pack(
+        user_id="student_demo",
+        learning_brain={
+            "compiled_objects": [
+                {
+                    "object_id": f"{raw_topic}:M07",
+                    "object_type": "error",
+                    "claim_status": "observed",
+                    "concept_id": raw_topic,
+                    "current_truth": f"长期画像提示：{raw_topic} 上出现 M07 错因",
+                    "evidence_refs": ["conv_turn_1"],
+                    "evidence_cap_reasons": ["conversation_signal_not_grading_truth"],
+                }
+            ]
+        },
+    )
+
+    payload_text = str(pack)
+    assert pack["top_claims"] == []
+    assert pack["active_training_intent"] == {}
+    assert pack["next_best_action_candidates"] == []
+    assert "M07" not in payload_text
+    assert "长期画像提示" not in payload_text
+
+
+def test_personalization_context_humanizes_internal_error_codes_for_prompt_payload() -> None:
+    pack = build_personalization_context_pack(
+        user_id="student_demo",
+        learning_brain={
+            "compiled_objects": [
+                {
+                    "object_id": "1A432000:M07",
+                    "object_type": "error",
+                    "claim_status": "confirmed",
+                    "concept_id": "1A432000",
+                    "current_truth": "1A432000 上出现 M07 错因观察",
+                    "evidence_refs": ["grading_evt_1", "grading_evt_2"],
+                }
+            ]
+        },
+    )
+
+    payload_text = str(pack)
+    assert pack["top_claims"]
+    assert "M07" not in payload_text
+    assert "多选错选" in payload_text
+
+
 def test_personalization_context_derives_next_action_from_confirmed_long_term_claim() -> None:
     pack = build_personalization_context_pack(
         user_id="student_demo",
@@ -179,7 +229,8 @@ def test_personalization_context_surfaces_review_due_by_time_rule() -> None:
 
     due = pack["review_due"]
     assert len(due) == 1
-    assert due[0]["claim_id"] == "1A413050:M06"
+    assert due[0]["claim_id"] == "屋面与防水工程施工:多选漏选"
+    assert due[0]["concept_id"] == "1A413050"
     assert due[0]["days_since_last_evidence"] >= 14
     # 无显式 intent 时，复习项优先驱动下一步动作
     assert pack["active_training_intent"]["concept_id"] == "1A413050"

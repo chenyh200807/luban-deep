@@ -76,6 +76,10 @@ def wrap_learning_brain_projection(projection: dict[str, Any]) -> dict[str, Any]
     return {"learning_brain": dict(projection or {})}
 
 
+def humanize_learning_brain_text(value: Any) -> str:
+    return _humanize_text(value)
+
+
 def extract_learning_brain_projection(payload: dict[str, Any] | None) -> dict[str, Any]:
     structured = _dict(payload)
     nested = _dict(structured.get("learning_brain"))
