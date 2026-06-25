@@ -544,6 +544,51 @@ async def test_orchestrator_learning_evidence_story_overrides_stale_question_con
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_study_plan_overrides_stale_question_context() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-study-plan-stale-question",
+        user_message="不看内部信息了，给我一个3天复盘计划，不要再出题。",
+        active_capability="deep_question",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "object_id": "stale-q1",
+                "scope": {"domain": "session", "session_id": "s-study-plan-stale-question"},
+                "state_snapshot": {
+                    "question_id": "stale-q1",
+                    "question": "旧题目",
+                    "question_type": "choice",
+                    "correct_answer": "B",
+                },
+                "version": 1,
+            },
+            "question_followup_context": {
+                "question_id": "stale-q1",
+                "question": "旧题目",
+                "question_type": "choice",
+                "correct_answer": "B",
+            },
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] == "study_assistant"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    assert context.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-study-assistant",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_materializes_free_text_real_exam_review_before_explaining() -> None:
     """A request like "分析一道真题" must create a question object first.
 
