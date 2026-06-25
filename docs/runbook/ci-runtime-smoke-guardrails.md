@@ -14,6 +14,24 @@ failures.
 This file is the failure catalog. `AGENTS.md` and the skill are the activation
 surface.
 
+## Tests Workflow Fast Path
+
+The `Tests` workflow is intentionally split into PR fast paths and push-to-main
+full validation:
+
+- PR runs first classify changed paths in `Change Scope`, then run only the
+  affected domain jobs. Backend/governance changes run contract/import/smoke;
+  `web/`, `wx_miniprogram/`, and `yousenwebview/` changes run their own checks.
+- Pushes to `main` or `dev` still run the full job set so Deploy Gate remains a
+  main-line release-readiness signal.
+- PR secret scanning checks only changed tracked files; push secret scanning
+  still checks the full repository.
+- Skipped PR jobs are expected when their domain was not touched. Do not treat a
+  skipped frontend/WX/Yousen job as a missing test unless the changed paths
+  should have selected that domain.
+- Repeated pushes to the same PR cancel older in-flight `Tests` runs. Debug the
+  newest run for the current head SHA, not a cancelled older SHA.
+
 ## Failure Signature
 
 - `tests/api/test_main_entrypoints.py` fails inside the full smoke suite.
