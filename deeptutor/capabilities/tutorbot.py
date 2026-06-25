@@ -909,6 +909,10 @@ class TutorBotCapability(BaseCapability):
     def _reveal_reference_flags(context: UnifiedContext) -> tuple[bool, bool]:
         overrides = context.config_overrides if isinstance(context.config_overrides, dict) else {}
         explicit_preference = detect_answer_reveal_preference(context.user_message)
+        if explicit_preference is False:
+            return False, False
+        if explicit_preference is True:
+            return True, True
         reveal_answers = bool(overrides.get("reveal_answers", False)) or explicit_preference is True
         if "reveal_explanations" in overrides:
             reveal_explanations = bool(overrides.get("reveal_explanations"))

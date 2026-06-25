@@ -3258,11 +3258,12 @@ async def test_tutorbot_practice_generation_keeps_scenario_before_problem_marker
 
 
 @pytest.mark.parametrize(
-    ("user_message", "extra_overrides", "answer_visible"),
+    ("user_message", "extra_overrides", "answer_visible", "explanation_visible"),
     [
-        ("给我一道题并带答案解析", {}, True),
-        ("给我一道题测试一下这个知识点", {"reveal_answers": True, "reveal_explanations": True}, True),
-        ("给我一道题测试一下这个知识点", {"reveal_answers": False, "reveal_explanations": True}, False),
+        ("给我一道题并带答案解析", {}, True, True),
+        ("给我一道题测试一下这个知识点", {"reveal_answers": True, "reveal_explanations": True}, True, True),
+        ("给我一道题测试一下这个知识点", {"reveal_answers": False, "reveal_explanations": True}, False, True),
+        ("给我一道题测试一下这个知识点，只出题，不要给答案或解析", {"reveal_answers": True, "reveal_explanations": True}, False, False),
     ],
 )
 @pytest.mark.asyncio
@@ -3271,6 +3272,7 @@ async def test_tutorbot_capability_reveals_answers_for_explicit_practice_generat
     user_message: str,
     extra_overrides: dict[str, Any],
     answer_visible: bool,
+    explanation_visible: bool,
 ) -> None:
     class FakeManager:
         async def ensure_bot_running(self, bot_id: str, config=None) -> None:
@@ -3342,9 +3344,9 @@ async def test_tutorbot_capability_reveals_answers_for_explicit_practice_generat
 
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert ("答案" in result_event.metadata["response"]) is answer_visible
-    assert "解析" in result_event.metadata["response"]
+    assert ("解析" in result_event.metadata["response"]) is explanation_visible
     assert result_event.metadata["reveal_answers"] is answer_visible
-    assert result_event.metadata["reveal_explanations"] is True
+    assert result_event.metadata["reveal_explanations"] is explanation_visible
     question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
     expected_answer = "C" if answer_visible else ""
     assert question["followup_context"]["correct_answer"] == expected_answer

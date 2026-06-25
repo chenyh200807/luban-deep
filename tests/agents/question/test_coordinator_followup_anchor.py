@@ -481,3 +481,13 @@ def test_lightweight_anchor_label_uses_explicit_exam_topic_after_action_words() 
     payload = AgentCoordinator._base_lightweight_anchor_payload(user_topic=user_topic)
     assert payload["concentration"] == "屋面保温或屋面防水"
     assert payload["knowledge_context"] == "当前学习锚点：屋面保温或屋面防水"
+
+
+def test_lightweight_anchor_label_uses_topic_clause_when_answer_reveal_is_suppressed() -> None:
+    user_topic = "先出一道建筑实务单选题，临时用电/安全，只出题，不要给答案或解析。"
+
+    assert AgentCoordinator._derive_lightweight_anchor_label(user_topic=user_topic) == "临时用电/安全"
+
+    payload = AgentCoordinator._base_lightweight_anchor_payload(user_topic=user_topic)
+    assert payload["concentration"] == "临时用电/安全"
+    assert payload["knowledge_context"] == "当前学习锚点：临时用电/安全"
