@@ -290,7 +290,7 @@ def test_supabase_submit_uses_atomic_unsubmitted_status_filter() -> None:
 
     repo = SupabaseAssessmentSessionRepository(
         base_url="https://supabase.example",
-        service_key="service-role",
+        service_key="service-role",  # pragma: allowlist secret
         client=_Client(),
         now_fn=_now,
     )
@@ -363,7 +363,7 @@ def test_supabase_create_reuses_active_session_after_insert_conflict() -> None:
 
     repo = SupabaseAssessmentSessionRepository(
         base_url="https://supabase.example",
-        service_key="service-role",
+        service_key="service-role",  # pragma: allowlist secret
         client=_Client(),
         now_fn=_now,
     )
@@ -434,7 +434,7 @@ def test_supabase_create_blocks_active_session_from_other_device() -> None:
 
     repo = SupabaseAssessmentSessionRepository(
         base_url="https://supabase.example",
-        service_key="service-role",
+        service_key="service-role",  # pragma: allowlist secret
         client=_Client(),
         now_fn=_now,
     )
@@ -462,7 +462,7 @@ def test_supabase_transport_error_maps_to_assessment_session_error() -> None:
 
     repo = SupabaseAssessmentSessionRepository(
         base_url="https://supabase.example",
-        service_key="service-role",
+        service_key="service-role",  # pragma: allowlist secret
         client=_Client(),
         now_fn=_now,
     )
