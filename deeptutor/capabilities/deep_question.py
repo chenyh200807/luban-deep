@@ -1412,6 +1412,8 @@ def _should_render_deterministic_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
+    if _render_targeted_brief_reference_feedback(user_message, question_context):
+        return True
     if not (
         should_reveal_reference_material(user_message, question_context)
         and _reference_items(question_context)
@@ -1499,10 +1501,27 @@ def _named_option_letters(user_message: str, options: dict[str, str]) -> list[st
     return named
 
 
+def _named_invalid_option_letters(user_message: str, options: dict[str, str]) -> list[str]:
+    text = str(user_message or "").upper()
+    available = {str(letter).strip().upper()[:1] for letter in options.keys()}
+    invalid: list[str] = []
+    for letter in "ABCDE":
+        if letter in available:
+            continue
+        if re.search(rf"(?<![A-Z]){letter}(?![A-Z])", text):
+            invalid.append(letter)
+    return invalid
+
+
 def _render_brief_wrong_cause(item: dict[str, Any], user_message: str = "") -> str:
     correct_letters = set(_answer_letters(item.get("correct_answer")))
     user_letters = set(_answer_letters(item.get("user_answer")))
     options = dict(_option_entries(item))
+    invalid_letters = _named_invalid_option_letters(user_message, options)
+    if invalid_letters:
+        available = "、".join(letter for letter, _text in _option_entries(item)) or "当前题面选项"
+        invalid = "、".join(invalid_letters)
+        return f"{invalid}不是这道题的选项；这题只有{available}，不能按不存在的选项判。"
     # When the learner names a specific option ("A错在哪里"), answer about *that*
     # option using the question's own standard answer as the single authority.
     # Otherwise a correct-answer learner falls through to "没错，答案正确", which
@@ -3685,16 +3704,17 @@ class DeepQuestionCapability(BaseCapability):
             return
         if (
             not force_generate_questions
-            and not (
-                isinstance(followup_question_context, dict)
-                and followup_question_context.get("question")
-            )
         ):
             # A learner pasted a self-contained MCQ (own stem + own option order) and
             # answered it. This object has its own learner-surface authority, so it must
             # beat stale lifecycle labels and the broader case full-submission fallback.
             full_mcq_context = self._mcq_grading_context_from_full_submission(raw_user_message)
             if full_mcq_context is not None:
+                full_mcq_active_object = build_active_object_from_question_context(
+                    full_mcq_context,
+                    source_turn_id=turn_id,
+                    previous_active_object=active_object,
+                ) or active_object
                 mcq_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
                     relation_to_active_object=(
                         "revise_answer_on_active_object"
@@ -3705,36 +3725,38 @@ class DeepQuestionCapability(BaseCapability):
                     allowed_patch="append_answer_slots" if len((full_mcq_context or {}).get("items") or []) > 1 else "update_answer_slot",
                     confidence=1.0,
                     reason="mcq_grading full-submission fallback",
-                    active_object=active_object,
+                    active_object=full_mcq_active_object,
                 )
                 context.metadata["question_followup_context"] = dict(full_mcq_context)
+                context.metadata["active_object"] = dict(full_mcq_active_object or {})
                 context.metadata["turn_semantic_decision"] = mcq_turn_decision
                 await self._emit_grading_result(
                     stream=stream,
                     context=context,
                     llm_config=llm_config,
                     turn_id=turn_id,
-                    active_object=active_object,
+                    active_object=full_mcq_active_object,
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=mcq_turn_decision,
                     graded_context=full_mcq_context,
                     raw_user_message=raw_user_message,
                     selected_mode=selected_mode,
                     authority_source="mcq_grading_full_submission",
-                    correct_answer_present=False,
+                    correct_answer_present=bool(str(full_mcq_context.get("correct_answer") or "").strip()),
                     kb_name=kb_name,
                 )
                 return
         if (
             lifecycle_scene == "case_grading"
             and not force_generate_questions
-            and not (
-                isinstance(followup_question_context, dict)
-                and followup_question_context.get("question")
-            )
         ):
             full_case_context = self._case_grading_context_from_full_submission(raw_user_message)
             if full_case_context is not None:
+                full_case_active_object = build_active_object_from_question_context(
+                    full_case_context,
+                    source_turn_id=turn_id,
+                    previous_active_object=active_object,
+                ) or active_object
                 case_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
                     relation_to_active_object=(
                         "revise_answer_on_active_object"
@@ -3745,16 +3767,17 @@ class DeepQuestionCapability(BaseCapability):
                     allowed_patch="append_answer_slots" if len((full_case_context or {}).get("items") or []) > 1 else "update_answer_slot",
                     confidence=1.0,
                     reason="case_grading full-submission fallback",
-                    active_object=active_object,
+                    active_object=full_case_active_object,
                 )
                 context.metadata["question_followup_context"] = dict(full_case_context)
+                context.metadata["active_object"] = dict(full_case_active_object or {})
                 context.metadata["turn_semantic_decision"] = case_turn_decision
                 await self._emit_grading_result(
                     stream=stream,
                     context=context,
                     llm_config=llm_config,
                     turn_id=turn_id,
-                    active_object=active_object,
+                    active_object=full_case_active_object,
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=case_turn_decision,
                     graded_context=full_case_context,

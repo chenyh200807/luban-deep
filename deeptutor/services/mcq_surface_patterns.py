@@ -28,7 +28,7 @@ import re
 # verbatim from question_lifecycle_skills._FREE_TEXT_MCQ_OPTION_SELECTION_RE (behavior
 # preserved — identical pattern + flags; a test asserts byte-equality).
 OPTION_ANSWER_ASSERTION_RE = re.compile(
-    r"(?:我选|我选择|选|答案是|我的答案是)\s*[A-DＡ-Ｄ]",
+    r"(?:我选|我选择|选|答案(?:是|为)?|我的答案(?:是|为)?)\s*[:：]?\s*[A-DＡ-Ｄ]",
     re.IGNORECASE,
 )
 

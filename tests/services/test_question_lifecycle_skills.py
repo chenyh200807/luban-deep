@@ -8,6 +8,7 @@ from deeptutor.services.question_lifecycle_skills import (
     attach_question_lifecycle_scene_to_context,
     build_question_lifecycle_skill_context,
     build_question_lifecycle_skill_context_from_legacy_scene,
+    case_grading_context_from_full_submission,
     project_question_lifecycle_scene_from_metadata,
     select_question_lifecycle_skill_names,
 )
@@ -196,6 +197,21 @@ def test_missing_skill_degrades_without_crashing(tmp_path: Path) -> None:
     assert result.instructions == "# Exam Tutor"
     assert result.source_status.complete is False
     assert result.source_status.missing_skills == ("construction-question-supply",)
+
+
+def test_full_case_submission_keeps_marked_reference_out_of_learner_answer() -> None:
+    message = (
+        "请按案例题给我采分点评：题目：屋面防水卷材采用空铺法时，"
+        "短边搭接宽度不应小于多少？我的答案：100mm。标准答案：150mm。"
+    )
+
+    context = case_grading_context_from_full_submission(message)
+
+    assert context is not None
+    assert context["user_answer"] == "100mm"
+    assert context["correct_answer"] == "150mm"
+    assert "标准答案" not in context["user_answer"]
+    assert "150mm" not in context["user_answer"]
 
 
 def test_backreference_explanation_not_blocked_as_submission_after_practice_gen() -> None:

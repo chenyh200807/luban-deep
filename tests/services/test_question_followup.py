@@ -526,6 +526,7 @@ def test_resolve_submission_attempt_keeps_explicit_case_answer_with_plan_words()
         "我不是要重新提交C，是想知道C为什么不对；用刚才那题回答。",
         "我不是要重新提交C",
         "如果我选B，你会怎么扣？",
+        "如果我选E，对不对？一句话。",
         "这里是不是屋脊？如果选B会怎么判？",
         "不选A为什么不行？",
         "不是提交C，解释一下C错在哪里。",
@@ -2426,6 +2427,7 @@ def test_submission_confidence_high_for_explicit_answer_revision(message: str) -
 def test_submission_confidence_does_not_grade_hypothetical_option_challenge() -> None:
     # "如果选D对不对"是点名选项追问,不是把当前答案改成 D。
     assert submission_confidence("如果选D对不对", _SC_SINGLE_CTX) is None
+    assert submission_confidence("如果我选E，对不对？一句话。", _SC_SINGLE_CTX) is None
 
 
 def test_submission_confidence_subjective_payload_keeps_deferral_low() -> None:

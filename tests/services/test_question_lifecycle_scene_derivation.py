@@ -118,6 +118,14 @@ def test_active_object_hypothetical_option_challenge_stays_question_review():
     assert derive_question_lifecycle_scene(ctx) == "question_review"
 
 
+def test_active_object_invalid_option_challenge_stays_question_review():
+    ctx = _FakeContext(
+        user_message="如果我选E，对不对？一句话。",
+        metadata={"question_followup_context": _mcq_followup_context(answered=True)},
+    )
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
 def test_active_question_set_with_batch_submission_returns_mcq_grading():
     ctx = _FakeContext(
         user_message="第1题：C；第2题：A；第3题：B",
@@ -142,6 +150,14 @@ def test_active_object_without_submission_returns_question_review():
     ctx = _FakeContext(
         user_message="这道题怎么做",
         metadata={"question_followup_context": _mcq_followup_context()},
+    )
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
+def test_active_object_correct_answer_request_returns_question_review():
+    ctx = _FakeContext(
+        user_message="刚才那题正确答案到底是什么？",
+        metadata={"question_followup_context": _mcq_followup_context(answered=True)},
     )
     assert derive_question_lifecycle_scene(ctx) == "question_review"
 
