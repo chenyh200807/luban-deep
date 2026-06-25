@@ -5147,7 +5147,6 @@ class TurnRuntimeManager:
                 self._set_volatile_question_context(session_id, dict(followup_question_context))
             notebook_context = ""
             history_context = ""
-            context_pack: Any | None = None
             context_route: str = ""
             task_anchor_type: str = ""
             route_confidence = 0.0
@@ -5421,7 +5420,6 @@ class TurnRuntimeManager:
                             history_references=history_references,
                         )
                         history_result = orchestrated["history_result"]
-                        context_pack = orchestrated["pack"]
                         effective_user_message = orchestrated["effective_user_message"]
                         memory_context = orchestrated["memory_context"]
                         notebook_context = orchestrated["notebook_context"]
