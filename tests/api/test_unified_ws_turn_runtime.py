@@ -2657,7 +2657,7 @@ async def test_turn_runtime_bootstraps_open_chat_active_object_when_no_stronger_
 
 
 @pytest.mark.asyncio
-async def test_turn_runtime_prefers_result_response_as_assistant_content(
+async def test_turn_runtime_prefers_public_content_stream_over_stale_result_response(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -2683,18 +2683,18 @@ async def test_turn_runtime_prefers_result_response_as_assistant_content(
                 type=StreamEventType.CONTENT,
                 source="chat",
                 stage="responding",
-                content="## 结论\n",
+                content="## 当前题判分\n",
             )
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
                 stage="responding",
-                content="建筑构造是研究建筑物组成与连接方式的技术。",
+                content="你答了 B，正确答案是 C，本题不得分。",
             )
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
-                metadata={"response": "建筑构造是研究建筑物组成与连接方式的技术。"},
+                metadata={"response": "旧题 TN-S：你答了 B，正确答案是 B，本题得分。"},
             )
             yield StreamEvent(type=StreamEventType.DONE, source="chat")
 
@@ -2712,7 +2712,7 @@ async def test_turn_runtime_prefers_result_response_as_assistant_content(
     session, turn = await runtime.start_turn(
         {
             "type": "start_turn",
-            "content": "建筑构造是什么？",
+            "content": "请批改这道竣工验收单选题，我选B，标准答案C。",
             "session_id": None,
             "capability": None,
             "tools": [],
@@ -2723,12 +2723,23 @@ async def test_turn_runtime_prefers_result_response_as_assistant_content(
         }
     )
 
-    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
-        pass
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert (
+        result_events[-1]["metadata"]["response"]
+        == "## 当前题判分\n你答了 B，正确答案是 C，本题不得分。"
+    )
 
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
-    assert detail["messages"][-1]["content"] == "建筑构造是研究建筑物组成与连接方式的技术。"
+    assert (
+        detail["messages"][-1]["content"]
+        == "## 当前题判分\n你答了 B，正确答案是 C，本题不得分。"
+    )
 
 
 @pytest.mark.asyncio

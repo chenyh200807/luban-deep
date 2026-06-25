@@ -90,6 +90,12 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   `question_lifecycle_scene` / action / marked reference。修法是让当前 full MCQ/case submission 在
   capability 前绑定对象 + learner answer + 显式 `标准答案|正确答案|参考答案` + terminal scene；
   不是新增第二 router，也不是让 LLM prompt 承诺"不要沿用上一题"。
+- **铁律③.10（2026-06-25 public stream read-model）：content stream 正确 ≠ terminal read-model 正确。**
+  如果 public `content` stream 已把当前题答案流给学生，但后到 `result.metadata.response` 携带旧题 /
+  fallback 文案，DB assistant message、mobile history、replay 会被 terminal result 翻案。验证必须同时核
+  public `content`、public `result.metadata.response`、`messages.role=assistant.content`；修法落在
+  `turn_runtime` terminal sink：已有 public final-answer stream 时，`result.response` 只能投影同一份
+  stream；没有 stream 时才由 result 承担终局答案。不要给旧题词补黑名单。
 - **异源核（同源不能自证）**：根因判断 + "无编造/已修好"结论必须异源在环。
   Codex 额度耗尽用 `deepseek-v4-pro`@api.deepseek.com（`DEEPSEEK_API_KEY`，OpenAI
   兼容）：给中立证据 + 对立假设让它独立选，**别 prime**。异源也可能共享错前提，
@@ -167,6 +173,7 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 出题考点精度漂移/逐字重复出题 | 主题槽位被对话噪声劫持 / 去重失效(异源拆出独立病) | 出题 prompt 主题约束隔离对话填充词 / 出题调度去重 | 🔵 task#8/task#28 |
 | 用户切换到新 MCQ / 案例点评,系统仍按上一道 MCQ active object 判分("关键线路"题) | current grading object identity 多 writer:旧 active_object/candidate 与下游 RESULT 可二次覆盖当前题面 | 完整 MCQ/case submission 共享投影 helper 上移到 `question_lifecycle_skills`; turn-start 只允许同题 context 保权,不匹配则当前题面成 active_object; turn-end grading RESULT 不得用不同 object_id 旧对象覆盖当前对象 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 当前新 MCQ stream 看似判对,但 DB `result.response`/assistant message 又落回旧 TN-S 题或 generic fallback；自然案例题被 low-info gate 拒绝 | current submission 只绑定了对象身份,未原子绑定 scene/action/reference; terminal sink 与 low-info gate 仍抢权 | turn-start 从 `question_lifecycle_skills` 当前 context/action 薄盖 `mcq_grading`/`case_grading`;显式标准答案只认 `标准答案/正确答案/参考答案`;完整 `案例题...问...我的答案` 逃逸 low-info | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
+| public content stream 已判当前题,但 terminal result/DB assistant message 被旧 TN-S/fallback response 覆盖 | terminal read-model authority drift: 后到 `result.metadata.response` 覆盖已流出的同源 public final content | `turn_runtime` 在持久化/发布 public RESULT 前,若已捕获 public content stream,强制 `result.metadata.response` 对齐 stream;无 stream 时仍保留 result authority | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 必须增量落盘并用 DB completed/result 对账 | ⚠️ 稳定性待修 |
 
 ## 红线
