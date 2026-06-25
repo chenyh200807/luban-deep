@@ -729,6 +729,66 @@ def test_question_review_does_not_build_qapair_from_unrelated_evidence_bundle(
     assert fake_gen.batch_call_count == 0
 
 
+def test_question_review_does_not_short_circuit_multiselect_bank_hit_for_choice_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Live 2026-06-25: a single-choice request reused an A-E/BDE bank multiselect."""
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+
+    async def _hit_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return {
+            "answer": "",
+            "provider": "stub",
+            "kb_name": "stub-kb",
+            "exact_question": {},
+            "evidence_bundle": {
+                "sources": [
+                    {
+                        "_source_group": "TEXTBOOK",
+                        "chunk_id": "question-15131",
+                        "content": (
+                            "【题目】关于混凝土施工缝留置位置的做法，符合要求的是（  ）。\n"
+                            "【选项】[\"A. 宜留置在弯矩较小处\", "
+                            "\"B. 柱的施工缝宜留置在基础、楼板、梁的顶面\", "
+                            "\"C. 楼梯梯段施工缝留设在梯段板跨度中部1/3范围内\", "
+                            "\"D. 单向板施工缝留设在跨度方向平行的任何位置\", "
+                            "\"E. 墙的施工缝宜留置在门洞口过梁跨中1/3范围内\"]\n"
+                            "【答案】BDE\n"
+                            "【解析】正确答案: BDE"
+                        ),
+                    }
+                ]
+            },
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _hit_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="再出一道关于施工缝处理的单选题，只出题，先不要给答案。",
+            preference="只出题",
+            num_questions=1,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+            allow_lightweight_fallback=False,
+        )
+    )
+
+    assert result.get("results") == []
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("bank_hits") == 0
+    assert counters.get("llm_calls") == 0
+    assert fake_gen.call_count == 0
+    assert fake_gen.batch_call_count == 0
+
+
 def test_structured_anchor_parser_handles_inline_options_without_swallowing_answer() -> None:
     parsed = AgentCoordinator._extract_structured_anchor_from_answer(
         "【题目】验槽通常主要采用什么方法？\n"
