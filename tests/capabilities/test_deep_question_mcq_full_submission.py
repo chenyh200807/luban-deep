@@ -1,8 +1,34 @@
 from __future__ import annotations
 
+import asyncio
+from types import SimpleNamespace
+from typing import Any
+
+import pytest
+
 from deeptutor.capabilities.deep_question import DeepQuestionCapability
+from deeptutor.core.context import UnifiedContext
+from deeptutor.core.stream import StreamEvent, StreamEventType
+from deeptutor.core.stream_bus import StreamBus
 
 _parse = DeepQuestionCapability._mcq_grading_context_from_full_submission
+
+
+async def _collect_events(run_coro) -> list[StreamEvent]:
+    bus = StreamBus()
+    events: list[StreamEvent] = []
+
+    async def _consume() -> None:
+        async for event in bus.subscribe():
+            events.append(event)
+
+    consumer = asyncio.create_task(_consume())
+    await asyncio.sleep(0)
+    await run_coro(bus)
+    await asyncio.sleep(0)
+    await bus.close()
+    await consumer
+    return events
 
 
 def test_pasted_single_choice_parsed_on_learner_surface() -> None:
@@ -78,3 +104,45 @@ def test_fabrication_observation_fields_extracts_identifying_context() -> None:
         "scene": None, "active_object": False, "suspended": 0,
         "turn_id": None, "client_turn_id": None,
     }
+
+
+@pytest.mark.asyncio
+async def test_deep_question_honors_clarification_decision_before_full_mcq_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.get_llm_config",
+        lambda: SimpleNamespace(api_key="test", base_url="", api_version=""),
+    )
+
+    async def fail_grading(self, **_kwargs: Any) -> None:
+        raise AssertionError("ask_clarifying_question must not enter grading")
+
+    monkeypatch.setattr(DeepQuestionCapability, "_emit_grading_result", fail_grading)
+
+    context = UnifiedContext(
+        session_id="s-clarify-before-mcq-fallback",
+        user_message="题干：倒置式屋面构造做法正确的是（ ）。A.保护层在防水层下 B.保温层在防水层上。我选B",
+        config_overrides={},
+        metadata={
+            "turn_id": "turn-clarify-before-mcq-fallback",
+            "turn_semantic_decision": {
+                "relation_to_active_object": "uncertain",
+                "next_action": "ask_clarifying_question",
+                "target_object_ref": {"object_type": "single_question", "object_id": "q_roof"},
+                "allowed_patch": ["no_state_change"],
+                "confidence": 0.31,
+                "reason": "当前输入可同时命中多个题目对象，不能硬猜。",
+            },
+        },
+        language="zh",
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["mode"] == "clarification"
+    assert result_event.metadata["turn_semantic_decision"]["next_action"] == "ask_clarifying_question"
+    assert result_event.metadata["question_authority_source"] == "turn_semantic_decision"
+    assert result_event.metadata["reveal_answers"] is False

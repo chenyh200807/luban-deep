@@ -32,6 +32,7 @@ from deeptutor.tools.question.question_extractor import extract_questions_from_p
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tutorbot.teaching_modes import (
     practice_generation_request_needs_context_anchor,
+    practice_generation_topic_block_decision,
     practice_generation_topic_domain_status,
 )
 
@@ -194,11 +195,12 @@ class AgentCoordinator:
         batch_number = 0
         if _uses_construction_exam_scope(self.kb_name):
             topic_domain_status = practice_generation_topic_domain_status(user_topic)
-            if topic_domain_status != "construction_topic":
+            block_decision = practice_generation_topic_block_decision(topic_domain_status)
+            if block_decision != "allow":
                 blocked_reason = (
                     "blocked_out_of_scope_topic"
-                    if topic_domain_status == "out_of_scope_topic"
-                    else "blocked_unknown_topic_anchor"
+                    if block_decision == "block_out_of_scope"
+                    else "blocked_unresolved_anchor"
                 )
                 if lightweight_generation:
                     lightweight_trace_counters["lightweight_batch_fallback"] = blocked_reason
@@ -430,6 +432,30 @@ class AgentCoordinator:
                 history_context=history_context,
                 require_explanation=require_explanation,
                 lightweight_generation=lightweight_generation,
+            )
+        # 出口科目门（owner=只建筑）：construction-exam 生成题全部跑偏到非建筑
+        # （汉字/外国常识/纯他科）时诚实拒答 subject_unavailable。非 construction KB
+        # 不使用这道出口门，避免把其它知识库的合法题误拦。
+        if _uses_construction_exam_scope(self.kb_name) and not self._generated_questions_in_construction_scope(
+            templates[:requested],
+            qa_pairs,
+        ):
+            if lightweight_generation:
+                lightweight_trace_counters["lightweight_batch_fallback"] = "blocked_out_of_scope_topic"
+            return self._build_summary(
+                source="topic",
+                requested=requested,
+                templates=[],
+                qa_pairs=[],
+                trace={
+                    "batches": batch_trace,
+                    "lightweight_generation": lightweight_generation,
+                    "lightweight_counters": dict(lightweight_trace_counters)
+                    if lightweight_generation
+                    else None,
+                    "subject_scope_blocked": "subject_unavailable",
+                    "topic_domain_status": "out_of_scope_topic",
+                },
             )
         return self._build_summary(
             source="topic",
@@ -1344,6 +1370,30 @@ class AgentCoordinator:
         return any(bigram in haystack for bigram in topic_bigrams)
 
     @staticmethod
+    def _generated_questions_in_construction_scope(
+        templates: list[QuestionTemplate], qa_pairs: list[dict[str, Any]]
+    ) -> bool:
+        """出口科目门（owner 决策=现阶段只服务建筑实务）：生成题至少一道能 ground 到建筑
+        才算 in-scope。复用单一建筑判据 practice_generation_topic_domain_status（入口出口
+        同源，不另造科目权威），判生成题考点+题面是否建筑实务；全部跑偏（汉字/外国常识/
+        纯他科）= 诚实 subject_unavailable，禁出无关/跨科题。无题面可判时不拦（避免空判误拒）。
+        """
+        texts: list[str] = []
+        for qp in qa_pairs or []:
+            pair = qp.get("qa_pair") if isinstance(qp, dict) else None
+            if isinstance(pair, dict):
+                texts.append(f"{pair.get('concentration') or ''} {pair.get('question') or ''}")
+        for template in templates or []:
+            texts.append(str(getattr(template, "concentration", "") or ""))
+        candidates = [text for text in texts if text.strip()]
+        if not candidates:
+            return True
+        return any(
+            practice_generation_topic_domain_status(text) == "construction_topic"
+            for text in candidates
+        )
+
+    @staticmethod
     def _derive_lightweight_anchor_label(
         *,
         user_topic: str,
@@ -1351,6 +1401,9 @@ class AgentCoordinator:
         text = re.sub(r"\s+", " ", str(user_topic or "")).strip()
         if not text:
             return "当前学习主题"
+        explicit_topic = AgentCoordinator._extract_explicit_lightweight_topic_label(text)
+        if explicit_topic:
+            return explicit_topic[:32]
         first_clause = re.split(r"[，,。!?！？]", text, maxsplit=1)[0].strip() or text
         patterns = (
             r"^(我现在学到|我学到|现在学到|学到)",
@@ -1372,6 +1425,33 @@ class AgentCoordinator:
         if cleaned:
             return cleaned[:32]
         return text[:32] or "当前学习主题"
+
+    @staticmethod
+    def _extract_explicit_lightweight_topic_label(text: str) -> str:
+        for pattern in (
+            r"(?:围绕|关于|针对)(?P<label>[^，,。!?！？；;:：]+)",
+            r"考(?!我|点|试)(?P<label>[^，,。!?！？；;:：]+)",
+        ):
+            match = re.search(pattern, text)
+            if not match:
+                continue
+            label = re.sub(r"\s+", " ", match.group("label")).strip()
+            label = re.sub(r"^(一下|下|一?道|建筑实务|实务|的)+", "", label).strip()
+            label = re.split(
+                r"(?:给我)?(?:出|来|生成|编)[一1]?(?:道|个|题)?|带[A-DABCD\-]+选项|带选项",
+                label,
+                maxsplit=1,
+            )[0].strip()
+            label = re.sub(
+                r"的?(单选题|多选题|选择题|判断题|简答题|案例题|题目|练习|小测|小题)(吧)?$",
+                "",
+                label,
+            ).strip()
+            label = re.sub(r"[，。！？、,.!?\-:：\s]+", " ", label).strip()
+            label = re.sub(r"(吧|了|呢|呀)$", "", label).strip()
+            if label:
+                return label
+        return ""
 
     @staticmethod
     def _extract_structured_anchor_from_answer(answer: str) -> dict[str, Any] | None:

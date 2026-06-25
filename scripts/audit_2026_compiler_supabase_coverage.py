@@ -96,9 +96,19 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--env", default="", help="Optional env file containing DB_URL or DATABASE_URL")
+    parser.add_argument(
+        "--allow-main-db",
+        action="store_true",
+        help="Explicitly acknowledge that this read-only audit targets the main database.",
+    )
     args = parser.parse_args()
 
     try:
+        if not args.allow_main_db:
+            raise ConfigError(
+                "Refusing to connect to the main database without --allow-main-db. "
+                "Use static checks or shadow/test data unless an explicitly approved read-only audit is required."
+            )
         runner = PsqlRunner(_db_url(args.env))
         assert_target_database_is_main(runner)
         rows = _metrics(runner)

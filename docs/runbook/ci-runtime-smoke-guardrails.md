@@ -14,6 +14,49 @@ failures.
 This file is the failure catalog. `AGENTS.md` and the skill are the activation
 surface.
 
+## Tests Workflow Fast Path
+
+The `Tests` workflow is intentionally split into PR fast paths and push-to-main
+full validation:
+
+- PR runs first classify changed paths in `Change Scope`, then run only the
+  affected domain jobs. Backend/governance changes run contract/import/smoke;
+  `web/`, `wx_miniprogram/`, and `yousenwebview/` changes run their own checks.
+- Pushes to `main` or `dev` still run the full job set so Deploy Gate remains a
+  main-line release-readiness signal.
+- PR secret scanning checks only changed tracked files; push secret scanning
+  still checks the full repository.
+- Skipped PR jobs are expected when their domain was not touched. Do not treat a
+  skipped frontend/WX/Yousen job as a missing test unless the changed paths
+  should have selected that domain.
+- Repeated pushes to the same PR cancel older in-flight `Tests` runs. Debug the
+  newest run for the current head SHA, not a cancelled older SHA.
+
+## Deploy Gate Stale Workflow Runs
+
+`Deploy Gate` is triggered by `workflow_run` after a `Tests` run completes. When
+`main` receives several pushes close together, GitHub can deliver a cancelled
+older `Tests` run after a newer commit is already the default-branch head. The
+Deploy Gate run may then appear on the newer commit while
+`github.event.workflow_run.head_sha` still points at the older cancelled Tests
+SHA.
+
+Failure signature:
+
+- Deploy Gate job head SHA in the Actions UI is the latest `main` commit.
+- The log line `Upstream Tests run:` points to an older cancelled `Tests` run.
+- `github.event.workflow_run.head_sha` differs from `github.sha`.
+
+Expected handling:
+
+- If `github.event.workflow_run.head_sha != github.sha`, treat the event as
+  stale, write `status=stale`, and do not fail the Deploy Gate job.
+- Only a non-success `Tests` conclusion for the current `main` SHA should turn
+  Deploy Gate red.
+- Final release closure still requires the latest `Tests` run and same-SHA
+  current Deploy Gate to be green; a stale Deploy Gate success is not deploy
+  approval.
+
 ## Failure Signature
 
 - `tests/api/test_main_entrypoints.py` fails inside the full smoke suite.
@@ -72,6 +115,7 @@ Also freeze `mobile_module.datetime.now()` for quota-window tests: weekly
 windows reset at Asia/Shanghai Monday 00:00, so relative timestamps like
 `datetime.now() - timedelta(hours=1)` can cross into the previous week during
 Sunday/Monday CI runs.
+
 ## Secret Baseline Discipline
 
 If `detect-secrets-hook --baseline .secrets.baseline $(git ls-files)` reports
@@ -85,6 +129,25 @@ baseline entry for those files, sample the surrounding JSON and confirm the
 value is a generated artifact hash, not a credential or token. New high-entropy
 strings in application config, source code, env examples, or user-authored docs
 still require removal and credential rotation, not baseline registration.
+
+### Full Secret Scan Timeout
+
+Push-to-main `Security Scan` runs `scan-secrets-full`. If it spends about five
+minutes in `Secret scan full repository (BLOCKING on push)` and ends with
+`The operation was canceled`, first classify it as CI runtime timeout, not as a
+confirmed secret finding. The fix belongs in
+`scripts/ci/tests_workflow_scope.py` scan-input filtering, not in
+`.secrets.baseline`.
+
+The scan must still include source, workflow, config, env examples, and
+user-authored docs. It may skip known generated payloads, binary/media files,
+runtime-supply data, and the baseline file itself. Reproduce locally with:
+
+```bash
+python scripts/ci/tests_workflow_scope.py scan-secrets-full
+```
+
+Record both the original timeout and the filtered-file count/time in the PR.
 
 ## Contract Index Copy Discipline
 

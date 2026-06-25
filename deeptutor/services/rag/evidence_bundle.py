@@ -102,6 +102,45 @@ def evidence_bundle_id(provider: str, kb_name: str, query: str) -> str:
     return hashlib.sha256(f"{provider}:{kb_name}:{query}".encode("utf-8")).hexdigest()[:16]
 
 
+def _first_text(*values: Any) -> str:
+    for value in values:
+        text = str(value or "").strip()
+        if text:
+            return text
+    return ""
+
+
+def _normalize_source_item(item: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(item)
+    normalized["document_id"] = _first_text(
+        normalized.get("document_id"),
+        normalized.get("doc_id"),
+        normalized.get("source_id"),
+    )
+    normalized["source"] = _first_text(
+        normalized.get("source"),
+        normalized.get("source_path"),
+        normalized.get("title"),
+        normalized.get("source_id"),
+    )
+    normalized["authority"] = normalized.get("authority")
+    if normalized["authority"] in (None, ""):
+        normalized["authority"] = {}
+    normalized["subject"] = _first_text(
+        normalized.get("subject"),
+        normalized.get("chapter_name"),
+        normalized.get("chapter"),
+        normalized.get("node_code"),
+        normalized.get("taxonomy_path"),
+        normalized.get("source_type"),
+    )
+    return normalized
+
+
+def _normalize_source_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [_normalize_source_item(item) for item in items if isinstance(item, dict)]
+
+
 def build_evidence_bundle(
     *,
     query: str,
@@ -148,7 +187,7 @@ def build_evidence_bundle(
         provider=provider,
         kb_name=kb_name,
         content_blocks=list(content_blocks or []),
-        sources=src,
+        sources=_normalize_source_items(src),
         exact_question=dict(exact_question or {}),
         retrieval_plan=dict(retrieval_plan or {}),
         ranking_trace=dict(ranking_trace or {}),

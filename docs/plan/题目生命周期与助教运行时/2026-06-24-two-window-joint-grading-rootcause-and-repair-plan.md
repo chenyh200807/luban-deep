@@ -54,7 +54,6 @@
 - **why P0**：确定性复现 + 把答对判错=倒诬学生（信任摧毁性最强）+ 独立单点 + 收权没碰它。
 
 ### P0-b 病①意图+对象维度（R2 简答被MCQ抢占 + R5 串题/统计）— **窗口A 主修（收口姊妹维度）**
-
 > **✅ R2 意图维度 DONE + live GO 3/3（2026-06-24，commit 1206e1a9c）**：专家团(5区域/47decider)+指挥官定根因=`intent-fast-path-as-authority`（过宽练题检测器无对手"一票定生成"，缺"作答在场→判分优先"门）。收口=复用已存在判分单一权威（submission 收口的同款谓词）+放宽 `_looks_like_free_text_case_grading` 的 `CONTEXT AND ACTION` 硬门为"案例壳 ∨ 作答payload在场"正向并集。live：R2 简答求判分→真判分 3/3，"再出3题"→生成 3/3（零误伤）。
 >
 > **✅ R5（对象维度·回指串题/批次统计）= 已被先前合并工作收口，live 验证不复现（2026-06-24）**：按铁律先复现再修，发现 R5 在当前 test2 **已正确**——回指"最开始那道题"3/3 正确召回第1题（无串题/无编造）、带题号批量作答全判分且汇总计数对（无漏计）、多题单答无题号→诚实 ambiguous 守卫（不凭空判分）。这是 memory `single-authority-collapse-playbook` 记录的 E1（召回错题）/E8（批量塌缩）/task#14（序数 review）已合并 object-continuity 收口的功效。eval 的 g1 T9/g3 T14 系更早 base 或非确定性实例。**R5 不需新代码,标 verified-fixed。**
@@ -66,11 +65,12 @@
 - **协同点**：窗口A 已有 active_object 收口边界（task#20 簇A），R2/R5 作为该收口的**意图+对象维度增量 Step**，避免与窗口B 的 R1（题面维度）撞，也避免另起第二套锚定权威。
 
 ### P1 病②残留（R3 sycophancy + R4 编采分点）— **窗口B 主修（闸-4 域）**
-- **R3**：先 live 复现 g5 质疑轮，验闸-4 是否已挡"2020修订罚款8%"；残留 sycophancy 在单一 `GROUNDING_CLAUSE`（core/grounding.py）加一句"不得附和/背书学生未经证据核实的事实断言"（单点，不在 directive 再加）。
-- **R4**：自承"无标准答案"后**禁编采分点**——走 open-world RAG-grounded 判分或诚实 hedge（"这道题我没拿到标准采分点，按规范/教材给你方向性判断"），禁硬给配分。归闸-4/grounding 域。
+- **✅ R3 DONE + live 验证 3/3（2026-06-24，PR #215 合 main + 部署 5aa7be840）**：在单一 `GROUNDING_CLAUSE`（core/grounding.py）加"学生口头断言不属题面/检索证据/学情三来源，不得附和/背书，更不得为圆学生给的数字编造支撑叙事"。live：断言"罚款2%~8%、2020修订过"3 轮，bot 全部**拒绝附和 + 主动纠正 + 不编 2020修订叙事**（response 层）。单点，不在 directive 再加。
+- **✅ R4 实测=已强制（无需新代码，2026-06-24）**：按铁律先复现，发现 case 判分**终态强制其实已存在且生效**——`_case_grading_no_authority_score_fallback`（loop.py:1700）+ `should_demote_case_grading_hard_score`（case_output_policy.py）在 case_grading 无 V1 权威时把硬分输出 demote 成 `build_case_grading_diagnostic_only_response`。live 持久化验证：harness 流式 fragments 吐"得分2/6"（剥前），但**持久化 assistant content 已 demote 成"未命中评分真相层，本轮不硬估分。本次不硬估标准分。"**（终态/真实用户回读=剥后）。**之前 eval 报的"R4 复现"是 harness 流式 vs 终态假象**（同 〔N〕，本会话第 3 次撞同坑，见 memory `meta-marker-leak-is-streaming-only-final-clean`）。残留=流式硬分一过性闪烁，归 R6 展示层族。新增防漂移测试钉住规则不被删（`tests/tutorbot/test_r4_open_skill_no_hard_score_guard.py`）。
 
 ### P2 病③（R6 展示层）— 低优先
-- 〔N〕流式 delta 剥离有跨 delta 边界复杂度（终态/历史已干净）；meta 脚手架泄露收口到单一公开 sink。产品取舍，排最后。
+- 〔N〕流式 delta 剥离有跨 delta 边界复杂度（终态/历史已干净）；meta 脚手架泄露收口到单一公开 sink。**R4 的流式硬分闪烁同族**（终态已 demote 干净，只流式 delta 一过性显示剥前硬分）。产品取舍，排最后。
+- **通用铁律（本会话第 3 次实证）**：验"终态剥离/demote/redaction"类修复，**核持久化 `/api/v1/conversations/{cid}/messages` 的 assistant content，别信 harness `visible_response`（取流式 fragments=剥前预览）**。三次：〔N〕 meta 标记 / R4 案例硬分 / 同类 demote。终态对=修复生效；流式残=R6 一过性闪烁低优先，两者别混报成 bug。
 
 ## 4. 红线（三方共识）
 - **别把病①②③合成一次"判分大收口"**——机制不同，合并=巨型改动 + 两窗口在飞收权互撞。
@@ -79,7 +79,7 @@
 - **两窗口分工**：B 修 R1（题面，最独立）+ R3/R4（内容域，它的闸-4 主场）；A 修 R2/R5（对象维度，它的收口姊妹）。各自单点，先对齐 active_object 收口边界再动 R2，防互撞。
 
 ## 5. 一句话总账
-- **发现**:~10 类 + 7 条编造 | **已修 live 验证**:凭空判分(A)+ 硬事实数值(B) | **残留**:R1/R2/R5(判分锚定·同族)+ R3/R4(内容真相残留)+ R6(展示层)。
+- **发现**:~10 类 + 7 条编造 | **已修 live 验证**:凭空判分(A)、**R2 意图误路由(A,live GO 3/3)**、R5(A,verified-fixed)、硬事实数值闸-4(B)、**R1 选项重排(B,合 main b2d8b0f96+部署)**、**R3 反 sycophancy(B,live 3/3)** | **R4(B)实测=已强制**(终态 demote 生效,"复现"是流式假象) | **残留仅 R6 展示层**(流式硬分/〔N〕一过性闪烁,终态干净,低优先)。**判分质量战役实质收口,仅剩 R6 流式闪烁低优先项。**
 - **根因**:**五方一致——3 个病不是一个**;但残留集中在「判分锚定单一权威」一族(意图 R2 / 对象 R2下游·R5 / 题面 R1 三维),是病①已收口"触发维度"的姊妹,应协同修非各打各。
 - **多模型评审增量**:DeepSeek 揭示 R1/R2/R5 同族(实体绑定);Qwen3-max 进一步拆出 R2 是**意图误路由**(判分被当生成)先于对象绑定。两个同厂 Claude 窗口都没拆到这一层——**这就是引第三、四个异源模型评审的价值**。
 - **分工**:窗口B 接 R1(题面,最独立单点)+ R3/R4(内容域);窗口A 接 R2(意图+对象,信任伤害最重,先动)+ R5。各自单点 + live ≥3,先对齐 active_object 收口边界防互撞。

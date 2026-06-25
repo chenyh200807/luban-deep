@@ -290,6 +290,7 @@ Promise.resolve(
 
       var originalEnsureFreshAuthToken = api.ensureFreshAuthToken;
       var tokens = ["token_first_connect", "token_second_connect"];
+      var telemetry = [];
       api.ensureFreshAuthToken = function () {
         return Promise.resolve(tokens.shift() || "");
       };
@@ -303,6 +304,9 @@ Promise.resolve(
         {
           onError: function () {},
           onDone: function () {},
+          onTelemetryEvent: function (payload) {
+            telemetry.push(payload);
+          },
         },
       );
 
@@ -319,12 +323,26 @@ Promise.resolve(
       });
       await flush();
       await flush();
+      if (socketState.handlers.open) {
+        socketState.handlers.open();
+      }
       api.ensureFreshAuthToken = originalEnsureFreshAuthToken;
 
       assertEqual(
         socketState.headers[1] && socketState.headers[1].Authorization,
         "Bearer token_second_connect",
         "socket reconnect should request and use a fresh token",
+      );
+      assertEqual(
+        telemetry
+          .filter(function (item) {
+            return item.eventName === "ws_connected";
+          })
+          .map(function (item) {
+            return item.metadata.reconnect_attempts;
+          }),
+        [0, 1],
+        "ws_connected telemetry should report attempts before resetting reconnect state",
       );
     });
   })

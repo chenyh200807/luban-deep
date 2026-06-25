@@ -57,6 +57,7 @@ from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
 from deeptutor.tutorbot.teaching_modes import (
     looks_like_practice_generation_request,
     practice_generation_request_needs_context_anchor,
+    practice_generation_topic_block_decision,
     practice_generation_topic_domain_status,
 )
 
@@ -1811,9 +1812,14 @@ def _looks_like_non_exam_garbage(text: str) -> bool:
 
 
 def _render_missing_question_review_feedback(topic: str) -> str:
-    focus = str(topic or "").strip() or "这道题"
+    # 去毒(2026-06-23,task#22 残留漏点):此罐头此前逐字嵌入 focus=topic，而上游 caller
+    # 传入的 topic 可能被污染成内部出题锚点 prompt（"请严格围绕以下当前学习锚点出题…当前
+    # 会话主题:[用户原句]"，Langfuse 实证 system prompt 脚手架原样泄露给学生）。与
+    # question_lifecycle_skills low_information 罐头同口径：面向学生输出绝不逐字回显用户
+    # 输入/内部 prompt——改为不嵌入任何外部串的干净澄清。topic 参数保留以兼容 caller。
+    _ = topic
     return (
-        f"我还没有定位到“{focus}”对应的原题题干和选项，不能把它伪装成真题解析。\n\n"
+        "我还没有定位到你说的这道题对应的原题题干和选项，不能把它伪装成真题解析。\n\n"
         "请把完整题干和 A/B/C/D 选项发给我；我会按题目讲评模式给你拆解："
         "题干关键词、正确答案、逐项选项分析、易错点和下一步练法。"
     )
@@ -3703,6 +3709,15 @@ class DeepQuestionCapability(BaseCapability):
         raw_user_message = str(
             context.metadata.get("raw_user_message") or context.user_message or ""
         ).strip()
+        if next_action == "ask_clarifying_question":
+            await self._emit_turn_semantic_clarification(
+                stream=stream,
+                turn_id=turn_id,
+                active_object=active_object,
+                suspended_object_stack=suspended_object_stack,
+                turn_semantic_decision=turn_semantic_decision,
+            )
+            return
         if (
             lifecycle_scene == "case_grading"
             and not force_generate_questions
@@ -4121,13 +4136,14 @@ class DeepQuestionCapability(BaseCapability):
                 trace_meta = context.metadata.setdefault("trace_metadata", {})
                 if isinstance(trace_meta, dict):
                     trace_meta["practice_generation.topic_domain_status"] = topic_domain_status
-            if topic_domain_status != "construction_topic":
-                blocked_reason = (
-                    "out_of_scope_topic"
-                    if topic_domain_status == "out_of_scope_topic"
-                    else "unknown_topic_anchor"
-                )
-                content = _render_invalid_generation_topic_feedback(topic_domain_status)
+            block_decision = practice_generation_topic_block_decision(topic_domain_status)
+            if block_decision != "allow":
+                if block_decision == "needs_anchor":
+                    blocked_reason = "needs_context_anchor"
+                    content = _render_missing_generation_topic_anchor_feedback()
+                else:
+                    blocked_reason = "out_of_scope_topic"
+                    content = _render_invalid_generation_topic_feedback("out_of_scope_topic")
                 if content and not answer_citations_enabled():
                     await stream.content(content, source=self.name, stage="generation")
                 result_payload = {
@@ -5113,6 +5129,50 @@ class DeepQuestionCapability(BaseCapability):
 
         return is_unresolved_switch_followup(turn_semantic_decision)
 
+    async def _emit_turn_semantic_clarification(
+        self,
+        *,
+        stream: StreamBus,
+        turn_id: str,
+        active_object: dict[str, Any] | None,
+        suspended_object_stack: list[dict[str, Any]] | None,
+        turn_semantic_decision: dict[str, Any] | None,
+    ) -> None:
+        """Honor the router's clarification decision before grading/generation fallback."""
+
+        async with stream.stage("generation", source=self.name):
+            answer = (
+                "我还不能确定你指的是哪道题，或这一轮是不是正式作答。\n\n"
+                "请把题干/题号和你要提交的答案一起发我。确认前我不会判分，"
+                "也不会把当前题的标准答案当成你问的那道题。"
+            )
+            if not answer_citations_enabled():
+                await stream.content(answer, source=self.name, stage="generation")
+            payload: dict[str, Any] = {
+                "response": answer,
+                "mode": "clarification",
+                "question_authority_source": "turn_semantic_decision",
+                "execution_path": "deep_question_turn_semantic_clarification",
+                "clarification_reason": "turn_semantic_decision_ask_clarifying_question",
+                "question_followup_context": {},
+                "active_object": normalize_active_object(active_object) or {},
+                "suspended_object_stack": suspended_object_stack or [],
+                "turn_semantic_decision": turn_semantic_decision or {},
+                "reveal_answers": False,
+                "reveal_explanations": False,
+                "metadata": {
+                    "needs_clarification": True,
+                    "clarification_reason": "turn_semantic_decision_ask_clarifying_question",
+                    "turn_id": turn_id,
+                },
+            }
+            await self._emit_result_with_citations(
+                stream,
+                payload,
+                stage="generation",
+                emit_content_when_enabled=True,
+            )
+
     async def _emit_unresolved_switch_clarification(
         self,
         *,
@@ -5491,25 +5551,23 @@ class DeepQuestionCapability(BaseCapability):
     ) -> str:
         results = summary.get("results", []) if isinstance(summary, dict) else []
         if not results:
+            trace = summary.get("trace") if isinstance(summary.get("trace"), dict) else {}
             counters = (
-                (summary.get("trace") or {}).get("lightweight_counters")
-                if isinstance(summary.get("trace"), dict)
-                else {}
+                trace.get("lightweight_counters") if isinstance(trace, dict) else {}
             )
             if (
                 isinstance(counters, dict)
                 and counters.get("lightweight_batch_fallback") == "blocked_unresolved_anchor"
             ):
                 return _render_missing_generation_topic_anchor_feedback()
-            if isinstance(counters, dict) and counters.get(
-                "lightweight_batch_fallback"
-            ) in {"blocked_out_of_scope_topic", "blocked_unknown_topic_anchor"}:
-                status = (
-                    (summary.get("trace") or {}).get("topic_domain_status")
-                    if isinstance(summary.get("trace"), dict)
-                    else ""
-                )
-                return _render_invalid_generation_topic_feedback(str(status or "unknown_topic"))
+            # 科目出口门拒答：lightweight 走 lightweight_batch_fallback，heavy 走 trace.subject_scope_blocked，
+            # 统一渲染 subject_unavailable（owner=只建筑，他科/跑偏题诚实拒答而非出垃圾题）。
+            if (isinstance(trace, dict) and trace.get("subject_scope_blocked")) or (
+                isinstance(counters, dict)
+                and counters.get("lightweight_batch_fallback") == "blocked_out_of_scope_topic"
+            ):
+                status = trace.get("topic_domain_status") if isinstance(trace, dict) else ""
+                return _render_invalid_generation_topic_feedback(str(status or "out_of_scope_topic"))
             return ""
 
         lines: list[str] = []

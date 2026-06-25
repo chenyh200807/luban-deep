@@ -126,13 +126,34 @@ class Generator(BaseAgent):
         for template, item in zip(templates, items):
             if not isinstance(item, dict):
                 return None
-            stem = str(item.get("question") or item.get("stem") or "").strip()
-            options = item.get("options") if isinstance(item.get("options"), dict) else None
-            correct_answer = str(item.get("correct_answer") or "").strip()
-            if not stem or not correct_answer:
+            expected_type = self._normalize_question_type(template.question_type)
+            raw_options = item.get("options")
+            payload = {
+                "question_type": item.get("question_type") or template.question_type,
+                "question": item.get("question") or item.get("stem") or "",
+                "options": raw_options,
+                "correct_answer": item.get("correct_answer") or "",
+                "explanation": item.get("explanation") or "",
+            }
+            normalized = self._normalize_payload_shape(expected_type, payload)
+            issues = self._collect_payload_issues(
+                expected_type,
+                normalized,
+                require_explanation=False,
+            )
+            if expected_type == "choice":
+                raw_option_keys = (
+                    {str(key).strip().upper() for key in raw_options.keys() if str(key).strip()}
+                    if isinstance(raw_options, dict)
+                    else set()
+                )
+                if raw_option_keys != {"A", "B", "C", "D"}:
+                    issues.append("choice_options_must_be_a_to_d")
+            if issues:
                 return None
-            if template.question_type == "choice" and not options:
-                return None
+            stem = str(normalized.get("question") or "").strip()
+            options = normalized.get("options") if isinstance(normalized.get("options"), dict) else None
+            correct_answer = str(normalized.get("correct_answer") or "").strip()
             grading_points = [
                 str(p).strip() for p in (item.get("grading_points") or []) if str(p).strip()
             ]
@@ -145,7 +166,7 @@ class Generator(BaseAgent):
                     question=stem,
                     correct_answer="",  # public string-form correct_answer never written; grading_key 持有
                     explanation="",
-                    question_type=str(item.get("question_type") or template.question_type or "choice"),
+                    question_type=str(normalized.get("question_type") or template.question_type or "choice"),
                     options=options,
                     concentration=template.concentration,
                     difficulty=template.difficulty,

@@ -94,10 +94,45 @@ on:
       - "scripts/ci/live_rls_audit.sh"
       - "docs/**"
 
+concurrency:
+  group: tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  change-scope:
+    name: Change Scope
+    runs-on: ubuntu-latest
+    outputs:
+      governance: ${{ steps.scope.outputs.governance }}
+      backend: ${{ steps.scope.outputs.backend }}
+      frontend: ${{ steps.scope.outputs.frontend }}
+      wx: ${{ steps.scope.outputs.wx }}
+      yousen: ${{ steps.scope.outputs.yousen }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Classify changed paths
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python scripts/ci/tests_workflow_scope.py classify \
+            --event-name "$EVENT_NAME" \
+            --base-sha "$BASE_SHA" \
+            --head-sha "$HEAD_SHA" \
+            --github-output "$GITHUB_OUTPUT"
+
   contract-guard:
     name: Contract Guard
     runs-on: ubuntu-latest
+    needs: change-scope
+    if: github.event_name != 'pull_request' || needs.change-scope.outputs.governance == 'true'
 
     steps:
       - name: Checkout code
@@ -300,7 +335,8 @@ jobs:
   import-check:
     name: Import Check (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    needs: contract-guard
+    needs: change-scope
+    if: github.event_name != 'pull_request' || needs.change-scope.outputs.backend == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -344,7 +380,8 @@ jobs:
   smoke-tests:
     name: Smoke Tests (Python 3.11)
     runs-on: ubuntu-latest
-    needs: import-check
+    needs: change-scope
+    if: github.event_name != 'pull_request' || needs.change-scope.outputs.backend == 'true'
     timeout-minutes: 12
     env:
       LANGFUSE_ENABLED: "false"
@@ -422,7 +459,8 @@ jobs:
   frontend-checks:
     name: Frontend Checks
     runs-on: ubuntu-latest
-    needs: contract-guard
+    needs: change-scope
+    if: github.event_name != 'pull_request' || needs.change-scope.outputs.frontend == 'true'
 
     steps:
       - name: Checkout code
@@ -449,7 +487,8 @@ jobs:
   wx-checks:
     name: WX Checks
     runs-on: ubuntu-latest
-    needs: contract-guard
+    needs: change-scope
+    if: github.event_name != 'pull_request' || needs.change-scope.outputs.wx == 'true'
 
     steps:
       - name: Checkout code
@@ -477,7 +516,8 @@ jobs:
   yousen-checks:
     name: Yousen Checks
     runs-on: ubuntu-latest
-    needs: contract-guard
+    needs: change-scope
+    if: github.event_name != 'pull_request' || needs.change-scope.outputs.yousen == 'true'
 
     steps:
       - name: Checkout code
@@ -531,9 +571,12 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    needs: change-scope
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python 3.11
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -560,15 +603,22 @@ jobs:
       # guard is server-side CI. detect-secrets-hook exits non-zero only when a tracked
       # file contains a secret NOT already allowlisted in .secrets.baseline — it does not
       # rewrite the baseline, so there is no generated_at churn / false failure. Catches a
-      # committed .env or hardcoded key. The baseline's exclude filters skip artifacts/.
-      - name: Secret scan (BLOCKING — fails on any new unregistered secret)
+      # committed .env or hardcoded key. scripts/ci/tests_workflow_scope.py owns the
+      # scan-input filter for generated payloads, binary assets, and runtime-supply data.
+      - name: Secret scan changed files (BLOCKING on PR)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if ! detect-secrets-hook --baseline .secrets.baseline $(git ls-files); then
-            echo "::error::detect-secrets found a secret not in .secrets.baseline."
-            echo "If real: remove it and ROTATE the credential. If false positive: run"
-            echo "'detect-secrets scan --baseline .secrets.baseline', 'detect-secrets audit .secrets.baseline', then commit the updated baseline."
-            exit 1
-          fi
+          python scripts/ci/tests_workflow_scope.py scan-secrets-changed \
+            --base-sha "$BASE_SHA" \
+            --head-sha "$HEAD_SHA"
+
+      - name: Secret scan full repository (BLOCKING on push)
+        if: github.event_name != 'pull_request'
+        run: |
+          python scripts/ci/tests_workflow_scope.py scan-secrets-full
 
       # BLOCKING bandit gate for NEW high-severity + high-confidence findings only.
       # `.bandit-baseline.json` pins the 16 pre-existing high-sev findings (assessment/grading
@@ -594,7 +644,7 @@ jobs:
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [contract-guard, import-check, smoke-tests, frontend-checks, wx-checks, yousen-checks, security-scan]
+    needs: [change-scope, contract-guard, import-check, smoke-tests, frontend-checks, wx-checks, yousen-checks, security-scan]
     if: always()
 
     steps:
@@ -602,16 +652,40 @@ jobs:
         run: |
           echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scope | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| governance | \`${{ needs.change-scope.outputs.governance }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| backend | \`${{ needs.change-scope.outputs.backend }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| frontend | \`${{ needs.change-scope.outputs.frontend }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| wx | \`${{ needs.change-scope.outputs.wx }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| yousen | \`${{ needs.change-scope.outputs.yousen }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Contract guard | ${{ needs.contract-guard.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Import check (3.11/3.12) | ${{ needs.import-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Smoke tests (3.11) | ${{ needs.smoke-tests.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend checks | ${{ needs.frontend-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| WX checks | ${{ needs.wx-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Yousen checks | ${{ needs.yousen-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Security scan | ${{ needs.security-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          render() {
+            case "$2" in
+              success) status="✅ Passed" ;;
+              skipped) status="⏭️ Skipped" ;;
+              failure) status="❌ Failed" ;;
+              cancelled) status="⚠️ Cancelled" ;;
+              *) status="$2" ;;
+            esac
+            echo "| $1 | $status |" >> "$GITHUB_STEP_SUMMARY"
+          }
+          render "Contract guard" "${{ needs.contract-guard.result }}"
+          render "Import check (3.11/3.12)" "${{ needs.import-check.result }}"
+          render "Smoke tests (3.11)" "${{ needs.smoke-tests.result }}"
+          render "Frontend checks" "${{ needs.frontend-checks.result }}"
+          render "WX checks" "${{ needs.wx-checks.result }}"
+          render "Yousen checks" "${{ needs.yousen-checks.result }}"
+          render "Security scan" "${{ needs.security-scan.result }}"
 
-      - name: Fail if tests failed
-        if: needs.contract-guard.result == 'failure' || needs.import-check.result == 'failure' || needs.smoke-tests.result == 'failure' || needs.frontend-checks.result == 'failure' || needs.wx-checks.result == 'failure' || needs.yousen-checks.result == 'failure' || needs.security-scan.result == 'failure'
-        run: exit 1
+      - name: Fail if required checks failed
+        run: |
+          results="${{ needs.change-scope.result }} ${{ needs.contract-guard.result }} ${{ needs.import-check.result }} ${{ needs.smoke-tests.result }} ${{ needs.frontend-checks.result }} ${{ needs.wx-checks.result }} ${{ needs.yousen-checks.result }} ${{ needs.security-scan.result }}"
+          case "$results" in
+            *failure*|*cancelled*)
+              echo "::error::At least one required Tests job failed or was cancelled: $results"
+              exit 1
+              ;;
+          esac

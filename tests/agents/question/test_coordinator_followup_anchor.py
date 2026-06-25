@@ -455,6 +455,9 @@ def test_generated_questions_construction_scope_gate() -> None:
     hanzi = [{"qa_pair": {"concentration": "汉语日常交流", "question": "“你好”最常被用于哪种情境"}}]
     assert AgentCoordinator._generated_questions_in_construction_scope([], hanzi) is False
 
+    live_hanzi = [{"qa_pair": {"concentration": "词语理解", "question": "“先”在“先来后到”中表示什么？"}}]
+    assert AgentCoordinator._generated_questions_in_construction_scope([], live_hanzi) is False
+
     # 外国地理常识跑偏 → 出 scope
     paris = [{"qa_pair": {"concentration": "世界地理", "question": "法国的首都是哪座城市"}}]
     assert AgentCoordinator._generated_questions_in_construction_scope([], paris) is False
@@ -465,3 +468,16 @@ def test_generated_questions_construction_scope_gate() -> None:
 
     # 无题面可判 → 不拦(避免空判误拒)
     assert AgentCoordinator._generated_questions_in_construction_scope([], []) is True
+
+
+def test_lightweight_anchor_label_uses_explicit_exam_topic_after_action_words() -> None:
+    user_topic = "先出一道建筑实务单选题，考屋面保温或屋面防水，带A-D选项。"
+
+    assert (
+        AgentCoordinator._derive_lightweight_anchor_label(user_topic=user_topic)
+        == "屋面保温或屋面防水"
+    )
+
+    payload = AgentCoordinator._base_lightweight_anchor_payload(user_topic=user_topic)
+    assert payload["concentration"] == "屋面保温或屋面防水"
+    assert payload["knowledge_context"] == "当前学习锚点：屋面保温或屋面防水"

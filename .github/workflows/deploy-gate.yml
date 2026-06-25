@@ -20,7 +20,10 @@ name: Deploy Gate
 #   - If Tests concluded `success` → this gate job succeeds, writes a GREEN
 #     step summary, and uploads a `deploy-readiness` artifact containing
 #     `status=green` (machine-readable for downstream tooling / SSH runbooks).
-#   - If Tests concluded anything else (failure, cancelled, timed_out, …) →
+#   - If the completed Tests run belongs to an older main SHA that has already
+#     been superseded by a newer push → this gate writes `status=stale` and
+#     succeeds. A stale cancellation must not paint the current main commit red.
+#   - If current-main Tests concluded anything else (failure, cancelled, timed_out, …) →
 #     this gate job uploads `status=red` and then exits non-zero, so the
 #     Deploy Gate check on the main commit is RED. Any deploy that keys off
 #     this check must refuse to proceed.
@@ -49,29 +52,41 @@ jobs:
         env:
           TESTS_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
           TESTS_RUN_URL: ${{ github.event.workflow_run.html_url }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          TESTS_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          CURRENT_MAIN_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          if [ "$TESTS_CONCLUSION" = "success" ]; then
+          if [ "$TESTS_HEAD_SHA" != "$CURRENT_MAIN_SHA" ]; then
+            echo "status=stale" >> "$GITHUB_OUTPUT"
+            echo "reason=stale_upstream_run" >> "$GITHUB_OUTPUT"
+          elif [ "$TESTS_CONCLUSION" = "success" ]; then
             echo "status=green" >> "$GITHUB_OUTPUT"
+            echo "reason=current_tests_green" >> "$GITHUB_OUTPUT"
           else
             echo "status=red" >> "$GITHUB_OUTPUT"
+            echo "reason=current_tests_not_green" >> "$GITHUB_OUTPUT"
           fi
-          echo "Tests conclusion for main@${HEAD_SHA}: ${TESTS_CONCLUSION}"
+          echo "Current main SHA: ${CURRENT_MAIN_SHA}"
+          echo "Tests run SHA: ${TESTS_HEAD_SHA}"
+          echo "Tests conclusion: ${TESTS_CONCLUSION}"
           echo "Upstream Tests run: ${TESTS_RUN_URL}"
 
       - name: Write deploy-readiness marker
         env:
           STATUS: ${{ steps.gate.outputs.status }}
+          REASON: ${{ steps.gate.outputs.reason }}
           TESTS_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          TESTS_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          CURRENT_MAIN_SHA: ${{ github.sha }}
           TESTS_RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           set -euo pipefail
           {
             echo "status=${STATUS}"
+            echo "reason=${REASON}"
             echo "tests_conclusion=${TESTS_CONCLUSION}"
-            echo "head_sha=${HEAD_SHA}"
+            echo "tests_head_sha=${TESTS_HEAD_SHA}"
+            echo "current_main_sha=${CURRENT_MAIN_SHA}"
             echo "tests_run_url=${TESTS_RUN_URL}"
           } > deploy-readiness.txt
           cat deploy-readiness.txt
@@ -86,13 +101,17 @@ jobs:
       - name: Step summary
         env:
           STATUS: ${{ steps.gate.outputs.status }}
+          REASON: ${{ steps.gate.outputs.reason }}
           TESTS_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          TESTS_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          CURRENT_MAIN_SHA: ${{ github.sha }}
           TESTS_RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           set -euo pipefail
           if [ "$STATUS" = "green" ]; then
             verdict="🟢 GREEN — deploy allowed"
+          elif [ "$STATUS" = "stale" ]; then
+            verdict="⚪ STALE — ignored superseded Tests run"
           else
             verdict="🔴 RED — deploy blocked"
           fi
@@ -103,13 +122,15 @@ jobs:
             echo ""
             echo "| Field | Value |"
             echo "|-------|-------|"
-            echo "| main commit | \`${HEAD_SHA}\` |"
+            echo "| current main commit | \`${CURRENT_MAIN_SHA}\` |"
+            echo "| upstream Tests commit | \`${TESTS_HEAD_SHA}\` |"
             echo "| Tests conclusion | \`${TESTS_CONCLUSION}\` |"
+            echo "| Reason | \`${REASON}\` |"
             echo "| Upstream run | ${TESTS_RUN_URL} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fail gate if Tests were not green
-        if: steps.gate.outputs.status != 'green'
+      - name: Fail gate if current Tests were not green
+        if: steps.gate.outputs.status == 'red'
         env:
           TESTS_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
         run: |
