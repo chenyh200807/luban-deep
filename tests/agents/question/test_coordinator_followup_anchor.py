@@ -468,3 +468,16 @@ def test_generated_questions_construction_scope_gate() -> None:
 
     # 无题面可判 → 不拦(避免空判误拒)
     assert AgentCoordinator._generated_questions_in_construction_scope([], []) is True
+
+
+def test_lightweight_anchor_label_uses_explicit_exam_topic_after_action_words() -> None:
+    user_topic = "先出一道建筑实务单选题，考屋面保温或屋面防水，带A-D选项。"
+
+    assert (
+        AgentCoordinator._derive_lightweight_anchor_label(user_topic=user_topic)
+        == "屋面保温或屋面防水"
+    )
+
+    payload = AgentCoordinator._base_lightweight_anchor_payload(user_topic=user_topic)
+    assert payload["concentration"] == "屋面保温或屋面防水"
+    assert payload["knowledge_context"] == "当前学习锚点：屋面保温或屋面防水"
