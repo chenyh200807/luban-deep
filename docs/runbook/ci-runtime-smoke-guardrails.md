@@ -22,10 +22,14 @@ full validation:
 - PR runs first classify changed paths in `Change Scope`, then run only the
   affected domain jobs. Backend/governance changes run contract/import/smoke;
   `web/`, `wx_miniprogram/`, and `yousenwebview/` changes run their own checks.
+- Merge queue runs use the same `Change Scope` fast path through the
+  `merge_group` event and `github.event.merge_group.base_sha`. They must not
+  fall back to push-style full-domain validation, or the queue will serialize on
+  unrelated frontend/WX/Yousen jobs.
 - Pushes to `main` or `dev` still run the full job set so Deploy Gate remains a
   main-line release-readiness signal.
-- PR secret scanning checks only changed tracked files; push secret scanning
-  still checks the full repository.
+- PR and merge queue secret scanning check only changed tracked files; push
+  secret scanning still checks the full repository.
 - Skipped PR jobs are expected when their domain was not touched. Do not treat a
   skipped frontend/WX/Yousen job as a missing test unless the changed paths
   should have selected that domain.

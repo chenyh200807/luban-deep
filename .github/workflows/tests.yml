@@ -93,6 +93,8 @@ on:
       - "scripts/ci/check_live_rls_regression.sh"
       - "scripts/ci/live_rls_audit.sh"
       - "docs/**"
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: tests-${{ github.event.pull_request.number || github.ref }}
@@ -119,7 +121,7 @@ jobs:
         id: scope
         env:
           EVENT_NAME: ${{ github.event_name }}
-          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'merge_group' && github.event.merge_group.base_sha || github.event.before }}
           HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
           python scripts/ci/tests_workflow_scope.py classify \
@@ -132,7 +134,7 @@ jobs:
     name: Contract Guard
     runs-on: ubuntu-latest
     needs: change-scope
-    if: github.event_name != 'pull_request' || needs.change-scope.outputs.governance == 'true'
+    if: github.event_name == 'push' || needs.change-scope.outputs.governance == 'true'
 
     steps:
       - name: Checkout code
@@ -336,7 +338,7 @@ jobs:
     name: Import Check (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     needs: change-scope
-    if: github.event_name != 'pull_request' || needs.change-scope.outputs.backend == 'true'
+    if: github.event_name == 'push' || needs.change-scope.outputs.backend == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -377,12 +379,16 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
 
-  smoke-tests:
-    name: Smoke Tests (Python 3.11)
+  smoke-shards:
+    name: Smoke Tests Shard (${{ matrix.shard }})
     runs-on: ubuntu-latest
     needs: change-scope
-    if: github.event_name != 'pull_request' || needs.change-scope.outputs.backend == 'true'
+    if: github.event_name == 'push' || needs.change-scope.outputs.backend == 'true'
     timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [api-contract, runtime-capability, learner-grading]
     env:
       LANGFUSE_ENABLED: "false"
 
@@ -419,48 +425,84 @@ jobs:
             level: WARNING
           YAML
 
-      - name: Run smoke tests
+      - name: Run smoke shard
         run: |
-          echo "🧪 Running smoke test subset"
+          echo "🧪 Running smoke shard: ${{ matrix.shard }}"
           # Grading / learner-state / capabilities are launch-critical correctness cores.
           # They must execute in CI so a scoring/learner regression cannot merge undetected
           # (contract-guard only enforces test-file coupling, not execution). tests/services/rag
           # is intentionally excluded: it mixes hermetic units with network-dependent retrieval
           # integration tests (live embedding API / DB host) that a hermetic smoke job must not
           # run; RAG retrieval quality is gated separately by the eval / golden-set baseline.
-          pytest -q --import-mode=importlib \
-            tests/api \
-            tests/cli \
-            tests/scripts/test_schema_registry.py \
-            tests/scripts/test_db_registry.py \
-            tests/scripts/test_env_registry.py \
-            tests/scripts/test_provider_registry.py \
-            tests/scripts/test_process_registry.py \
-            tests/scripts/test_registries_meta.py \
-            tests/scripts/test_contract_guard.py \
-            tests/services/test_import_smoke.py \
-            tests/services/test_app_facade.py \
-            tests/services/test_model_catalog.py \
-            tests/services/test_bi_metrics.py \
-            tests/services/test_path_service.py \
-            tests/runtime/test_orchestrator_autoroute.py \
-            tests/services/test_render_presentation.py \
-            tests/core/test_prompt_parity.py \
-            tests/services/memory \
-            tests/services/session \
-            tests/security \
-            tests/tools \
-            tests/capabilities \
-            tests/services/construction_grading \
-            tests/services/learner_state
+          case "${{ matrix.shard }}" in
+            api-contract)
+              pytest -q --import-mode=importlib \
+                tests/api \
+                tests/cli \
+                tests/scripts/test_schema_registry.py \
+                tests/scripts/test_db_registry.py \
+                tests/scripts/test_env_registry.py \
+                tests/scripts/test_provider_registry.py \
+                tests/scripts/test_process_registry.py \
+                tests/scripts/test_registries_meta.py \
+                tests/scripts/test_contract_guard.py
+              ;;
+            runtime-capability)
+              pytest -q --import-mode=importlib \
+                tests/services/test_import_smoke.py \
+                tests/services/test_app_facade.py \
+                tests/services/test_model_catalog.py \
+                tests/services/test_bi_metrics.py \
+                tests/services/test_path_service.py \
+                tests/runtime/test_orchestrator_autoroute.py \
+                tests/services/test_render_presentation.py \
+                tests/core/test_prompt_parity.py \
+                tests/security \
+                tests/tools \
+                tests/capabilities
+              ;;
+            learner-grading)
+              pytest -q --import-mode=importlib \
+                tests/services/memory \
+                tests/services/session \
+                tests/services/construction_grading \
+                tests/services/learner_state
+              ;;
+            *)
+              echo "::error::Unknown smoke shard: ${{ matrix.shard }}"
+              exit 1
+              ;;
+          esac
         env:
           PYTHONPATH: ${{ github.workspace }}
+
+  smoke-tests:
+    name: Smoke Tests (Python 3.11)
+    runs-on: ubuntu-latest
+    needs: [change-scope, smoke-shards]
+    if: always() && (github.event_name == 'push' || needs.change-scope.outputs.backend == 'true')
+
+    steps:
+      - name: Check smoke shard results
+        run: |
+          case "${{ needs.smoke-shards.result }}" in
+            success)
+              echo "All smoke shards passed."
+              ;;
+            skipped)
+              echo "Smoke shards skipped."
+              ;;
+            *)
+              echo "::error::Smoke shard result was ${{ needs.smoke-shards.result }}"
+              exit 1
+              ;;
+          esac
 
   frontend-checks:
     name: Frontend Checks
     runs-on: ubuntu-latest
     needs: change-scope
-    if: github.event_name != 'pull_request' || needs.change-scope.outputs.frontend == 'true'
+    if: github.event_name == 'push' || needs.change-scope.outputs.frontend == 'true'
 
     steps:
       - name: Checkout code
@@ -488,7 +530,7 @@ jobs:
     name: WX Checks
     runs-on: ubuntu-latest
     needs: change-scope
-    if: github.event_name != 'pull_request' || needs.change-scope.outputs.wx == 'true'
+    if: github.event_name == 'push' || needs.change-scope.outputs.wx == 'true'
 
     steps:
       - name: Checkout code
@@ -517,7 +559,7 @@ jobs:
     name: Yousen Checks
     runs-on: ubuntu-latest
     needs: change-scope
-    if: github.event_name != 'pull_request' || needs.change-scope.outputs.yousen == 'true'
+    if: github.event_name == 'push' || needs.change-scope.outputs.yousen == 'true'
 
     steps:
       - name: Checkout code
@@ -605,18 +647,18 @@ jobs:
       # rewrite the baseline, so there is no generated_at churn / false failure. Catches a
       # committed .env or hardcoded key. scripts/ci/tests_workflow_scope.py owns the
       # scan-input filter for generated payloads, binary assets, and runtime-supply data.
-      - name: Secret scan changed files (BLOCKING on PR)
-        if: github.event_name == 'pull_request'
+      - name: Secret scan changed files (BLOCKING on PR / merge queue)
+        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'merge_group' && github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
           python scripts/ci/tests_workflow_scope.py scan-secrets-changed \
             --base-sha "$BASE_SHA" \
             --head-sha "$HEAD_SHA"
 
       - name: Secret scan full repository (BLOCKING on push)
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'push'
         run: |
           python scripts/ci/tests_workflow_scope.py scan-secrets-full
 
