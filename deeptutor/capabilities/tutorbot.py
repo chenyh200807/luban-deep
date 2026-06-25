@@ -35,6 +35,9 @@ from deeptutor.services.citations import (
     answer_citations_enabled,
     apply_answer_citation_metadata,
 )
+from deeptutor.services.construction_grading.case_output_policy import (
+    copy_current_case_grading_turn_metadata,
+)
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 from deeptutor.tutorbot.response_mode import (
@@ -250,18 +253,11 @@ class TutorBotCapability(BaseCapability):
                     "release_id",
                     "git_sha",
                     "deployment_environment",
-                    "grading_engine_version",
-                    "v1_case_graded",
-                    "score_authority",
-                    "grading_rubric_provenance",
-                    "case_grading_stream_mode",
-                    "case_grading_adjudication_strategy",
-                    "case_grading_adjudication_group_count",
-                    "case_grading_adjudication_point_count",
                     "llm_stream_telemetry",
                 ):
                     if metadata_key in session_metadata:
                         result_payload[metadata_key] = session_metadata[metadata_key]
+                copy_current_case_grading_turn_metadata(session_metadata, result_payload)
                 citation_metadata: dict[str, Any] = {}
                 result_payload["response"] = apply_answer_citation_metadata(
                     citation_metadata,
@@ -338,18 +334,11 @@ class TutorBotCapability(BaseCapability):
                     "release_id",
                     "git_sha",
                     "deployment_environment",
-                    "grading_engine_version",
-                    "v1_case_graded",
-                    "score_authority",
-                    "grading_rubric_provenance",
-                    "case_grading_stream_mode",
-                    "case_grading_adjudication_strategy",
-                    "case_grading_adjudication_group_count",
-                    "case_grading_adjudication_point_count",
                     "llm_stream_telemetry",
                 ):
                     if metadata_key in session_metadata:
                         result_payload[metadata_key] = session_metadata[metadata_key]
+                copy_current_case_grading_turn_metadata(session_metadata, result_payload)
                 citation_metadata: dict[str, Any] = {}
                 result_payload["response"] = apply_answer_citation_metadata(
                     citation_metadata,
@@ -586,19 +575,9 @@ class TutorBotCapability(BaseCapability):
                 "rag_retrieval_error_type",
                 "degraded_exact_answer_guard_applied",
                 "degraded_mcq_grading_guard_applied",
-                "grading_to_brain_loop",
-                "learning_evidence_event_id",
                 "release_id",
                 "git_sha",
                 "deployment_environment",
-                "grading_engine_version",
-                "v1_case_graded",
-                "score_authority",
-                "grading_rubric_provenance",
-                "case_grading_stream_mode",
-                "case_grading_adjudication_strategy",
-                "case_grading_adjudication_group_count",
-                "case_grading_adjudication_point_count",
                 "luban_general_knowledge_context",
                 "luban_general_knowledge_context_status",
                 "llm_stream_telemetry",
@@ -606,6 +585,7 @@ class TutorBotCapability(BaseCapability):
             ):
                 if metadata_key in session_metadata:
                     result_payload[metadata_key] = session_metadata[metadata_key]
+            copy_current_case_grading_turn_metadata(session_metadata, result_payload)
             # Grading-to-Brain 公开投影（与练题入口同口径）：PCP/intent 是服务端
             # 内部权威数据，只在 runtime/session metadata 供渲染与观测，不随
             # result 下发；next_best_action 只下发展示级字段。

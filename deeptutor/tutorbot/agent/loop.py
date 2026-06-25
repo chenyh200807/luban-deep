@@ -19,6 +19,7 @@ from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.construction_grading.case_output_policy import (
     build_case_grading_diagnostic_only_response,
     case_grading_score_authority_available,
+    copy_current_case_grading_turn_metadata,
     should_demote_case_grading_hard_score,
 )
 from deeptutor.services.exam_track import exam_track_label
@@ -484,23 +485,7 @@ class AgentLoop:
         runtime_metadata: dict[str, Any],
         target_metadata: dict[str, Any] | None,
     ) -> None:
-        if not isinstance(runtime_metadata, dict) or not isinstance(target_metadata, dict):
-            return
-        for key in (
-            "v1_case_graded",
-            "score_authority",
-            "grading_rubric_provenance",
-            "grading_to_brain_loop",
-            "learning_evidence_event_id",
-            "learning_training_intent",
-            "grading_to_brain_projection",
-            "case_grading_stream_mode",
-            "case_grading_adjudication_strategy",
-            "case_grading_adjudication_group_count",
-            "case_grading_adjudication_point_count",
-        ):
-            if key in runtime_metadata:
-                target_metadata[key] = runtime_metadata[key]
+        copy_current_case_grading_turn_metadata(runtime_metadata, target_metadata)
 
     @staticmethod
     def _strip_think(text: str | None) -> str | None:
@@ -3884,11 +3869,13 @@ class AgentLoop:
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
             preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
             logger.info("Fast-path exact authority response to {}:{}: {}", msg.channel, msg.sender_id, preview)
+            response_metadata = dict(msg.metadata or {})
+            self._export_case_grading_metadata(runtime_metadata, response_metadata)
             return OutboundMessage(
                 channel=msg.channel,
                 chat_id=msg.chat_id,
                 content=final_content,
-                metadata=msg.metadata or {},
+                metadata=response_metadata,
             )
 
         initial_messages = self.context.build_messages(
@@ -3966,11 +3953,13 @@ class AgentLoop:
                     msg.sender_id,
                     preview,
                 )
+                response_metadata = dict(msg.metadata or {})
+                self._export_case_grading_metadata(runtime_metadata, response_metadata)
                 return OutboundMessage(
                     channel=msg.channel,
                     chat_id=msg.chat_id,
                     content=final_content,
-                    metadata=msg.metadata or {},
+                    metadata=response_metadata,
                 )
         if response_mode == "fast":
             suppress_fast_stream = self._should_suppress_stream_for_degraded_answer(

@@ -1111,6 +1111,7 @@ def test_case_grading_metadata_export_includes_g2b_projection_receipt() -> None:
     target = {"message_id": "msg-1"}
     AgentLoop._export_case_grading_metadata(
         {
+            "question_lifecycle_scene": "case_grading",
             "v1_case_graded": True,
             "score_authority": "rubric_scored_v1",
             "grading_rubric_provenance": "on_the_fly_reference",
@@ -1135,6 +1136,30 @@ def test_case_grading_metadata_export_includes_g2b_projection_receipt() -> None:
     assert target["case_grading_adjudication_strategy"] == "dynamic_parallel_question_groups"
     assert target["case_grading_adjudication_group_count"] == 3
     assert target["case_grading_adjudication_point_count"] == 24
+
+
+def test_case_grading_metadata_export_strips_stale_receipt_on_non_case_turn() -> None:
+    target = {
+        "message_id": "msg-2",
+        "v1_case_graded": True,
+        "score_authority": "rubric_scored_v1",
+        "grading_to_brain_loop": {"writeback_count": 1},
+        "learning_evidence_event_id": "evt-old",
+    }
+
+    AgentLoop._export_case_grading_metadata(
+        {
+            "question_lifecycle_scene": None,
+            "execution_path": "tutorbot_kb_first_full_agent_policy",
+            "v1_case_graded": True,
+            "score_authority": "rubric_scored_v1",
+            "grading_to_brain_loop": {"writeback_count": 1},
+            "learning_evidence_event_id": "evt-old",
+        },
+        target,
+    )
+
+    assert target == {"message_id": "msg-2"}
 
 
 def test_projected_exact_question_renders_authority_on_learner_surface() -> None:

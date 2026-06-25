@@ -1,5 +1,27 @@
 # TutorBot Fix/Test Journal
 
+## 2026-06-26 - Case grading receipt metadata must stay turn-scoped
+
+- 问题：
+  - PR#247 / `fdfdffb4` 部署 test2 后，active-question exit/history 主病 live 3/3 已修：summary turn 不再进入 `deep_question_followup`，DB `semantic_decision.next_action=route_to_general_chat`、`final_executed_capability=tutorbot`。
+  - 同一 live 对话 `tb_98e3c80f10f24b47a3bcb7de` 的 3 个 summary turn 仍稳定带旧判分 terminal metadata：`v1_case_graded=true`、`score_authority=rubric_scored_v1`、`grading_to_brain_loop.writeback_count=1`、`learning_evidence_event_id`，尽管本轮 `question_lifecycle_scene=null`、`execution_path=tutorbot_kb_first_full_agent_policy`，visible response 是总结而非判分。
+- 根因：
+  - 合法 writer 是当前 case grading turn 的 V1 / grading-to-brain 链路；但 `AgentLoop._export_case_grading_metadata`、`TutorBotManager.send_message`、`TutorBotCapability.run` 三处把 `runtime_metadata/session_metadata` 中的 grading receipt 当成可继承 session-level metadata 无条件复制到 terminal result / trace / caller session metadata。
+  - shared failure shape：`turn-scoped receipt promoted to session-level truth`。router 已正确，不是 `deep_question_followup` 残留，也不是 LLM 幻觉。
+- 失败尝试及原因：
+  - 只改 `AgentLoop._export_case_grading_metadata` 能让 loop 层 RED 变绿，但 manager/capability 仍有第二出口，会把旧字段从 `runtime_metadata/session_metadata` 重新塞回 result。
+  - 不在 capability result_payload 里继续维护一份黑名单；那会变成第三个 metadata authority。改为把 case-grading receipt key 列表和 current-turn gate 下沉到 `construction_grading.case_output_policy`。
+- 成功修法：
+  - 新增 `copy_current_case_grading_turn_metadata` / `strip_case_grading_turn_metadata` 作为唯一 case-grading turn receipt 投影 helper。
+  - `AgentLoop`、`TutorBotManager`、`TutorBotCapability` 全部只调用该 helper；非 `question_lifecycle_scene=case_grading` turn 自动剥离旧 `v1_case_graded/score_authority/grading_to_brain_loop/learning_evidence_event_id/...`。
+  - `contracts/turn.md` 增加不变量：grading receipt 是 current case-grading turn metadata，不是 session-level learner truth。
+- 验证：
+  - RED：新增 loop 最小测试先失败，旧 export 会保留 4 个 stale receipt 字段。
+  - GREEN：目标测试 4/4 passed；登记相关测试 85/85 passed（`test_agent_loop_case_rubric_v1.py`、`test_tutorbot_authority.py`、`test_tutorbot_sqlite_adapter.py`、`test_case_output_policy.py`）。
+  - 待完成：contract_guard、same-SHA Tests/Deploy Gate、test2 redeploy、live ≥3 轮 DB 验证 metadata 0/3 泄漏。
+- 教训：
+  - result metadata 也有生命周期边界。判分 receipt 可以被观测、写入长期证据，但不能作为 session mirror truth 自动继承到普通总结/答疑 turn；否则“已修路由”仍会被 terminal metadata 翻案。
+
 ## 2026-06-26 - Active question exit/history requests must not be consumed as follow-up
 
 - 问题：
