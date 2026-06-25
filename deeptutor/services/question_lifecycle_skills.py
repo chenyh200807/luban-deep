@@ -912,6 +912,11 @@ _FREE_TEXT_CASE_ANSWER_MARKER_RE = re.compile(
     r"(?:作答|我的作答|学生作答|我的答案|答案)[ \t]*[:：][ \t]*",
     re.IGNORECASE,
 )
+_FREE_TEXT_CASE_REFERENCE_MARKER_RE = re.compile(
+    r"(?:^|[\r\n]|[ \t。；;!！?？])"
+    r"(?:标准答案|参考答案|正确答案|参考要点)[ \t]*[:：][ \t]*",
+    re.IGNORECASE,
+)
 _FREE_TEXT_MCQ_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
     "单选题",
     "多选题",
@@ -1182,21 +1187,24 @@ def looks_like_free_text_mcq_question_surface(text: str) -> bool:
 def case_grading_context_from_full_submission(text: str) -> dict[str, Any] | None:
     """Project a self-contained case submission into the current question context."""
 
-    question_stem, learner_answer = split_full_case_answer_submission(text)
+    question_stem, learner_answer, marked_reference = _split_full_case_answer_submission_components(text)
     if not question_stem.strip() or not learner_answer.strip():
         return None
-    return {
+    context = {
         "question_id": "",
         "question": question_stem.strip(),
         "question_stem": question_stem.strip(),
         "question_type": "case",
         "user_answer": learner_answer.strip(),
-        "correct_answer": "",
+        "correct_answer": marked_reference.strip(),
         "construction_grading_result": {
             "type": "case",
             "max_score": 10,
         },
     }
+    if marked_reference.strip():
+        context["reference_answer"] = marked_reference.strip()
+    return context
 
 
 def mcq_grading_context_from_full_submission(text: str) -> dict[str, Any] | None:
@@ -1210,11 +1218,7 @@ def mcq_grading_context_from_full_submission(text: str) -> dict[str, Any] | None
     from deeptutor.services.rag.historical_questions import _extract_query_options
 
     option_surface = user_message
-    answer_marker = re.search(
-        r"(?:我选|我选择|我的答案(?:是|为)?|答案(?:是|为)?|选)\s*[A-DＡ-Ｄ]",
-        user_message,
-        re.IGNORECASE,
-    )
+    answer_marker = OPTION_ANSWER_ASSERTION_RE.search(user_message)
     if answer_marker is not None:
         option_surface = user_message[: answer_marker.start()]
     options = {
@@ -1230,6 +1234,13 @@ def mcq_grading_context_from_full_submission(text: str) -> dict[str, Any] | None
         {"question": user_message, "question_type": "choice", "options": options},
     )
     user_answer = str((submission or {}).get("answer") or "").strip()
+    if not user_answer and answer_marker is not None:
+        letters = re.findall(r"[A-DＡ-Ｄ]", answer_marker.group(0).upper())
+        if letters:
+            user_answer = "".join(
+                chr(ord(letter) - ord("Ａ") + ord("A")) if "Ａ" <= letter <= "Ｄ" else letter
+                for letter in letters
+            )
     if not user_answer:
         return None
     marked_correct = ""
@@ -1283,21 +1294,45 @@ def looks_like_full_case_answer_submission(text: str) -> bool:
 def split_full_case_answer_submission(text: str) -> tuple[str, str]:
     """Split a full case grading submission into current stem and learner answer."""
 
+    stem, learner_answer, _marked_reference = _split_full_case_answer_submission_components(text)
+    return stem, learner_answer
+
+
+def _split_full_case_answer_submission_components(text: str) -> tuple[str, str, str]:
+    """Split a full case grading submission into stem, learner answer, and marked reference."""
+
     raw = str(text or "").strip()
     if not raw or not _looks_like_full_case_answer_submission(raw):
-        return "", raw
+        return "", raw, ""
     markers = [
         marker
         for marker in _FREE_TEXT_CASE_ANSWER_MARKER_RE.finditer(raw)
         if any(pos < marker.start() for pos in _full_case_question_surface_positions(raw))
     ]
     if not markers:
-        return "", raw
+        return "", raw, ""
     marker = markers[-1]
     stem = raw[:marker.start()].strip()
     answer = raw[marker.end():].strip()
     answer = _FREE_TEXT_CASE_ANSWER_MARKER_RE.sub("", answer, count=1).strip()
-    return stem, answer or raw
+    learner_answer, marked_reference = _split_case_learner_answer_and_reference(answer)
+    return stem, learner_answer, marked_reference
+
+
+def _split_case_learner_answer_and_reference(answer: str) -> tuple[str, str]:
+    raw = str(answer or "").strip()
+    if not raw:
+        return "", ""
+    marker = _FREE_TEXT_CASE_REFERENCE_MARKER_RE.search(raw)
+    if marker is None:
+        return raw, ""
+    learner_answer = _strip_case_submission_fragment(raw[: marker.start()])
+    marked_reference = _strip_case_submission_fragment(raw[marker.end():])
+    return learner_answer, marked_reference
+
+
+def _strip_case_submission_fragment(value: str) -> str:
+    return str(value or "").strip().strip("。.!！?；;，,：:、 ")
 
 
 def _parse_llm_scene_payload(raw: Any) -> dict[str, Any] | None:

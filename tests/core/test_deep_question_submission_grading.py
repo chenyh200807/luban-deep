@@ -741,6 +741,74 @@ async def test_deep_question_option_hypothetical_followup_gives_targeted_scoring
 
 
 @pytest.mark.asyncio
+async def test_deep_question_invalid_option_followup_uses_current_options_not_fabrication(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for follow-up mode")
+
+    class FailingFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("invalid option check should use current option authority")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=FailingFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="E",
+        language="zh",
+        metadata={
+            "raw_user_message": "如果我选E，对不对？一句话。",
+            "turn_semantic_decision": {
+                "next_action": "route_to_followup_explainer",
+            },
+            "question_followup_action": {
+                "intent": "ask_followup",
+            },
+            "question_followup_context": {
+                "question_id": "q_joint",
+                "question": "下列关于施工缝留置位置的说法，错误的是（ ）。",
+                "question_type": "choice",
+                "options": {
+                    "A": "施工缝可留在剪力较小处",
+                    "B": "楼梯梯段施工缝可留在梯段板跨中1/3范围内",
+                    "C": "梁板施工缝可留在次梁跨中1/3范围内",
+                    "D": "单向板施工缝可留在平行于短边的位置",
+                },
+                "correct_answer": "B",
+                "user_answer": "D",
+                "is_correct": False,
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert result_event.metadata["mode"] == "followup"
+    assert "E" in response
+    assert "不是这道题的选项" in response
+    assert "A、B、C、D" in response
+    assert "E（" not in response
+
+
+@pytest.mark.asyncio
 async def test_deep_question_reveals_written_reference_without_followup_llm(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -127,6 +127,9 @@ _FOLLOWUP_MARKERS = (
     "错在哪",
     "答案是什么",
     "正确答案是什么",
+    "正确答案",
+    "标准答案",
+    "参考答案",
     "这题",
     "这道题",
     "上一题",
@@ -1954,12 +1957,14 @@ def _looks_like_option_challenge_followup(
     if not text:
         return False
 
-    option_keys = _available_option_keys(question_context)
     compact = re.sub(r"\s+", "", text).upper().strip("。.!！?？；;，,")
     if not compact:
         return False
 
-    letter = rf"[{option_keys}]"
+    # Follow-up challenges may name a non-existent option (for example "如果我选E").
+    # Submission extraction still only accepts the current option keys; this wider
+    # matcher only keeps the turn on the question-review path instead of generic chat.
+    letter = r"[A-E]"
     negative_markers = (
         r"(?:错在哪(?:里)?|哪(?:里)?错(?:了)?|哪里错(?:了)?|错因|问题在哪(?:里)?|"
         r"不对|错误|错|不是|不选|不能选|不该选|不行|不可以|为什么|为啥|怎么|咋)"
