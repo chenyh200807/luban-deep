@@ -2434,6 +2434,39 @@ async def test_orchestrator_preselected_deep_question_overrides_schema_defaults_
     assert context.config_overrides["lightweight_generation"] is True
 
 
+@pytest.mark.asyncio
+async def test_orchestrator_user_suppress_answer_reveal_overrides_stale_reveal_config() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-preselected-suppress-reveal",
+        user_message="先出一道建筑实务单选题，临时用电/安全，只出题，不要给答案或解析。",
+        active_capability="deep_question",
+        config_overrides={
+            "mode": "custom",
+            "topic": "",
+            "question_type": "",
+            "reveal_answers": True,
+            "reveal_explanations": True,
+        },
+        metadata={
+            "interaction_hints": {
+                "preferred_question_type": "choice",
+                "suppress_answer_reveal_on_generate": True,
+            },
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Batch A — plan §Phase 1 Step 1.1 测试矩阵 (review-2026-05-20)
 # 验证 classify_practice_strategy 单一规约 + 上限 1<=N<=5 + heavy negative keywords。

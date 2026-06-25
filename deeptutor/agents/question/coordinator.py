@@ -1423,25 +1423,39 @@ class AgentCoordinator:
         explicit_topic = AgentCoordinator._extract_explicit_lightweight_topic_label(text)
         if explicit_topic:
             return explicit_topic[:32]
-        first_clause = re.split(r"[，,。!?！？]", text, maxsplit=1)[0].strip() or text
         patterns = (
             r"^(我现在学到|我学到|现在学到|学到)",
             r"^(我现在在学|我在学|现在在学|最近在学|正在学)",
+            r"^(先|请|麻烦你|麻烦)",
             r"(先|请|麻烦你|麻烦)?给我",
             r"来[一1]?道",
             r"出[一1]?道",
             r"建筑实务",
             r"(单选题|多选题|选择题|判断题|简答题|案例题)",
+            r"(题目?|练习)$",
             r"(不要给答案|别给答案|先不要答案|只出题|不要解析|别解析)",
             r"(很短的小题|很短的小测|小题|小测)",
             r"(考我|刷题)",
         )
-        cleaned = first_clause
-        for pattern in patterns:
-            cleaned = re.sub(pattern, " ", cleaned, flags=re.IGNORECASE)
-        cleaned = re.sub(r"[，。！？、,.!?\-:：\s]+", " ", cleaned).strip()
-        cleaned = re.sub(r"(了|呢|呀)$", "", cleaned).strip()
-        if cleaned:
+
+        def _clean_clause(raw: str) -> str:
+            cleaned = raw
+            for pattern in patterns:
+                cleaned = re.sub(pattern, " ", cleaned, flags=re.IGNORECASE)
+            cleaned = re.sub(r"[，。！？、,.!?\-:：\s]+", " ", cleaned).strip()
+            cleaned = re.sub(r"(吧|了|呢|呀)$", "", cleaned).strip()
+            return cleaned
+
+        for clause in re.split(r"[，,。!?！？；;]", text):
+            cleaned = _clean_clause(clause)
+            if not cleaned or cleaned in {"先", "题", "一道", "一题"}:
+                continue
+            if practice_generation_topic_domain_status(cleaned) == "construction_topic":
+                return cleaned[:32]
+
+        first_clause = re.split(r"[，,。!?！？]", text, maxsplit=1)[0].strip() or text
+        cleaned = _clean_clause(first_clause)
+        if cleaned and cleaned not in {"先", "题", "一道", "一题"}:
             return cleaned[:32]
         return text[:32] or "当前学习主题"
 

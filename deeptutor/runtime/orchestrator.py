@@ -1087,8 +1087,11 @@ class ChatOrchestrator:
             )
         if reveal_preference is not None:
             suppress_answer_reveal = not reveal_preference
-        context.config_overrides.setdefault("reveal_answers", not suppress_answer_reveal)
-        context.config_overrides.setdefault("reveal_explanations", not suppress_answer_reveal)
+            context.config_overrides["reveal_answers"] = reveal_preference
+            context.config_overrides["reveal_explanations"] = reveal_preference
+        else:
+            context.config_overrides.setdefault("reveal_answers", not suppress_answer_reveal)
+            context.config_overrides.setdefault("reveal_explanations", not suppress_answer_reveal)
         # plan §Phase 1 Step 1.1 (A2/A3): classify_practice_strategy 是 lightweight 的
         # 单一规约函数；上限由原本的 `<= 3` 放宽到 `<= 5`（详见 plan §2.2）。
         effective_count = _coerce_positive_int(
