@@ -18,9 +18,12 @@
 - 验证：
   - RED：新增 loop 最小测试先失败，旧 export 会保留 4 个 stale receipt 字段。
   - GREEN：目标测试 4/4 passed；登记相关测试 85/85 passed（`test_agent_loop_case_rubric_v1.py`、`test_tutorbot_authority.py`、`test_tutorbot_sqlite_adapter.py`、`test_case_output_policy.py`）。
-  - 待完成：contract_guard、same-SHA Tests/Deploy Gate、test2 redeploy、live ≥3 轮 DB 验证 metadata 0/3 泄漏。
+  - contract_guard PASS；same-SHA main `Tests` run `28198648044` PASS，`Deploy Gate` run `28198906232` PASS，均为 `1f7155a1de9c7491df584c9f29da6f363712ce39`。
+  - test2 已 redeploy 到 `1f7155a1de9c7491df584c9f29da6f363712ce39`；host `.env`、container env、container `.Created=2026-06-25T20:41:47Z` / healthy、公网 endpoints、observability、remote contract_guard readiness 均通过。
+  - live DB 验证 3/3：三组独立 `case -> MCQ -> summary` 对话的 summary turn 均 `status=completed`、`capability=tutorbot`、`question_lifecycle_scene=null`、`execution_path=tutorbot_kb_first_full_agent_policy`，terminal result metadata 与 summary assistant message metadata 的 `v1_case_graded/score_authority/grading_to_brain_loop/learning_evidence_event_id/...` 泄漏为 0/3。
 - 教训：
   - result metadata 也有生命周期边界。判分 receipt 可以被观测、写入长期证据，但不能作为 session mirror truth 自动继承到普通总结/答疑 turn；否则“已修路由”仍会被 terminal metadata 翻案。
+  - 验证 stale metadata 时必须按当前 `turn_id` 查 terminal result / 当前 assistant message；全 session 粗 grep 会命中历史 case-grading message 的合法 `events_json` receipt，不能把合法历史 receipt 误判成当前 turn 泄漏。
 
 ## 2026-06-26 - Active question exit/history requests must not be consumed as follow-up
 
