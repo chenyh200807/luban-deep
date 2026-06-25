@@ -234,6 +234,16 @@ class ChatOrchestrator:
                     context.metadata["semantic_router_shadow_route"] = ""
                     context.metadata["semantic_router_selected_capability"] = cap_name
                     return cap_name
+                if semantic_route == "chat":
+                    cap_name = self._default_chat_capability(context)
+                    context.metadata["semantic_router_mode"] = "question_lifecycle"
+                    context.metadata["semantic_router_mode_reason"] = (
+                        f"{lifecycle_decision.source}_question_review_active_object_{next_action}"
+                    )
+                    context.metadata["semantic_router_shadow_decision"] = {}
+                    context.metadata["semantic_router_shadow_route"] = ""
+                    context.metadata["semantic_router_selected_capability"] = cap_name
+                    return cap_name
                 if semantic_route == "deep_question" and next_action in {
                     "route_to_followup_explainer",
                     "route_to_grading",
@@ -298,6 +308,16 @@ class ChatOrchestrator:
                     context.metadata["semantic_router_mode"] = "question_lifecycle"
                     context.metadata["semantic_router_mode_reason"] = (
                         f"{lifecycle_decision.source}_unresolved_switch_to_context_continuity"
+                    )
+                    context.metadata["semantic_router_shadow_decision"] = {}
+                    context.metadata["semantic_router_shadow_route"] = ""
+                    context.metadata["semantic_router_selected_capability"] = cap_name
+                    return cap_name
+                if semantic_route == "chat":
+                    cap_name = self._default_chat_capability(context)
+                    context.metadata["semantic_router_mode"] = "question_lifecycle"
+                    context.metadata["semantic_router_mode_reason"] = (
+                        f"{lifecycle_decision.source}_practice_generation_active_object_{next_action}"
                     )
                     context.metadata["semantic_router_shadow_decision"] = {}
                     context.metadata["semantic_router_shadow_route"] = ""
