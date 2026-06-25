@@ -104,6 +104,25 @@ value is a generated artifact hash, not a credential or token. New high-entropy
 strings in application config, source code, env examples, or user-authored docs
 still require removal and credential rotation, not baseline registration.
 
+### Full Secret Scan Timeout
+
+Push-to-main `Security Scan` runs `scan-secrets-full`. If it spends about five
+minutes in `Secret scan full repository (BLOCKING on push)` and ends with
+`The operation was canceled`, first classify it as CI runtime timeout, not as a
+confirmed secret finding. The fix belongs in
+`scripts/ci/tests_workflow_scope.py` scan-input filtering, not in
+`.secrets.baseline`.
+
+The scan must still include source, workflow, config, env examples, and
+user-authored docs. It may skip known generated payloads, binary/media files,
+runtime-supply data, and the baseline file itself. Reproduce locally with:
+
+```bash
+python scripts/ci/tests_workflow_scope.py scan-secrets-full
+```
+
+Record both the original timeout and the filtered-file count/time in the PR.
+
 ## Contract Index Copy Discipline
 
 `contracts/index.yaml` is the repo authority, and
