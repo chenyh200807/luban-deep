@@ -31,6 +31,18 @@ class PromptCapturingGenerator(Generator):
         )
 
 
+class LightweightBatchStubGenerator(Generator):
+    def __init__(self, payload: str) -> None:
+        self.payload = payload
+        self.tool_flags = {}
+
+    def get_prompt(self, *_args, **_kwargs):  # type: ignore[override]
+        return ""
+
+    async def stream_llm(self, **kwargs):  # type: ignore[override]
+        yield self.payload
+
+
 def test_generator_tool_names_fail_closed_for_web_search_when_absent() -> None:
     generator = PromptCapturingGenerator()
 
@@ -185,3 +197,35 @@ async def test_generator_lightweight_prompt_uses_canonical_anchor_only() -> None
     assert "User topic:" not in prompt
     assert '"concentration"' not in prompt
     assert "当前学习锚点：防水工程" in prompt
+
+
+@pytest.mark.asyncio
+async def test_lightweight_batch_rejects_choice_with_extra_option() -> None:
+    generator = LightweightBatchStubGenerator(
+        '{"questions":[{'
+        '"question_id":"q_1",'
+        '"question_type":"choice",'
+        '"question":"关于混凝土施工缝留置位置的做法，符合要求的是（  ）。",'
+        '"options":{"A":"宜留置在弯矩较小处","B":"柱的施工缝宜留置在基础、楼板、梁的顶面",'
+        '"C":"楼梯梯段施工缝留设在梯段板跨度中部1/3范围内",'
+        '"D":"单向板施工缝留设在跨度方向平行的任何位置",'
+        '"E":"墙的施工缝宜留置在门洞口过梁跨中1/3范围内"},'
+        '"correct_answer":"B","explanation":""'
+        "}]}",
+    )
+    template = QuestionTemplate(
+        question_id="q_1",
+        concentration="施工缝处理",
+        question_type="choice",
+        difficulty="easy",
+        metadata={"knowledge_context": "当前学习锚点：施工缝处理"},
+    )
+
+    result = await generator.process_batch_lightweight(
+        templates=[template],
+        user_topic="再出一道关于施工缝处理的单选题，只出题，先不要给答案。",
+        preference="只出题",
+        history_context="",
+    )
+
+    assert result is None
