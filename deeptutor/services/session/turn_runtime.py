@@ -4193,7 +4193,7 @@ class TurnRuntimeManager:
             if requested_capability in {"chat", "tutorbot"}
             else None
         )
-        if entry_capability_hint is None and (
+        if entry_capability_hint is None and requested_capability is None and (
             _normalize_interaction_profile_name(runtime_only_config.get("interaction_profile") or "")
             == "tutorbot"
             or str((runtime_interaction_hints or {}).get("profile") or "").strip().lower()
