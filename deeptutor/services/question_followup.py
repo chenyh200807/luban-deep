@@ -143,10 +143,20 @@ _FOLLOWUP_MARKERS = (
 _JUDGMENT_TRUE_TOKENS = {"对", "正确", "是", "true", "yes", "√", "t"}
 _JUDGMENT_FALSE_TOKENS = {"错", "错误", "否", "false", "no", "×", "x", "f"}
 _LEADING_SUBMISSION_PREFIX = re.compile(
-    r"^(?:我答(?:案)?(?:是)?|我的(?:答案)?(?:是)?|答案(?:是)?|我选|我觉得选|选(?!择)|就是|应该是|option|answer)[:：]?",
+    r"^(?:我答(?:案)?(?:是)?|我的(?:答案|作答)?(?:是)?|学生作答|作答|答案(?:是)?|我选|我觉得选|选(?!择)|就是|应该是|option|answer)[:：]?",
     re.IGNORECASE,
 )
-_SUBJECTIVE_QUESTION_TYPES = {"case", "written", "subjective", "short_answer", "essay"}
+_SUBJECTIVE_QUESTION_TYPES = {
+    "case",
+    "case_study",
+    "case_background",
+    "calculation",
+    "written",
+    "subjective",
+    "short_answer",
+    "essay",
+    "open_ended",
+}
 # A turn that LEADS with a bare option answer ("B" / "BCD" / "B，再出3题") is an
 # answer-led submission; §5.1 gives it priority over any trailing generation intent.
 _LEADING_OPTION_ANSWER = re.compile(r"^[A-Ea-e](?:[、，,/／\s]*[A-Ea-e])*(?:[。.!！?，,、：:\s]|$)")
@@ -191,6 +201,32 @@ _STUDY_PLAN_REQUEST_MARKERS = (
     "给我", "只给我", "帮我", "现在聊", "聊学习", "制定", "安排", "每天", "明天",
     "今天", "本周", "分钟", "小时",
 )
+_SUBJECTIVE_META_REQUEST_ACTION_MARKERS = (
+    "总结",
+    "复盘",
+    "回顾",
+    "列出",
+    "输出",
+    "展示",
+    "显示",
+    "不要",
+    "别",
+)
+_SUBJECTIVE_META_REQUEST_TARGET_MARKERS = (
+    "内部",
+    "参考证据",
+    "证据",
+    "工作记忆",
+    "投影",
+    "prompt",
+    "source",
+    "标题",
+    "引用",
+    "正式提交",
+    "提交过",
+    "本轮",
+    "案例答案",
+)
 
 
 def _looks_like_past_question_explanation_request(text: str) -> bool:
@@ -220,6 +256,10 @@ def _looks_like_subjective_context_exit_request(text: str) -> bool:
     if _LEADING_SUBMISSION_PREFIX.match(t) or _LEADING_OPTION_ANSWER.match(t):
         return False
     if any(marker in t for marker in _GRADING_EXIT_MARKERS):
+        return True
+    if any(marker in t for marker in _SUBJECTIVE_META_REQUEST_ACTION_MARKERS) and any(
+        marker in t for marker in _SUBJECTIVE_META_REQUEST_TARGET_MARKERS
+    ):
         return True
     return any(marker in t for marker in _STUDY_PLAN_INTENT_MARKERS) and any(
         marker in t for marker in _STUDY_PLAN_REQUEST_MARKERS
@@ -1980,7 +2020,7 @@ def _looks_like_option_challenge_followup(
     # Follow-up challenges may name a non-existent option (for example "如果我选E").
     # Submission extraction still only accepts the current option keys; this wider
     # matcher only keeps the turn on the question-review path instead of generic chat.
-    letter = r"[A-E]"
+    letter = r"[A-Z]"
     negative_markers = (
         r"(?:错在哪(?:里)?|哪(?:里)?错(?:了)?|哪里错(?:了)?|错因|问题在哪(?:里)?|"
         r"不对|错误|错|不是|不选|不能选|不该选|不行|不可以|为什么|为啥|怎么|咋)"

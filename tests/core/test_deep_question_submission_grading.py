@@ -126,6 +126,56 @@ async def test_deep_question_case_grading_scene_without_context_uses_grading_pat
 
 
 @pytest.mark.asyncio
+async def test_deep_question_full_case_submission_marks_current_reference_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("case grading should not generate questions")
+
+    async def fake_emit_grading_result(self, **kwargs: Any) -> None:
+        captured.update(kwargs)
+        await kwargs["stream"].result({"response": "graded"}, source=self.name)
+
+    captured: dict[str, Any] = {}
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.get_llm_config",
+        lambda: SimpleNamespace(api_key="test", base_url="", api_version=""),
+    )
+    monkeypatch.setattr(
+        DeepQuestionCapability,
+        "_emit_grading_result",
+        fake_emit_grading_result,
+    )
+    raw_case_submission = (
+        "案例题：某工程底模拆除时混凝土强度检查。\n"
+        "问题：跨度为8m的现浇梁底模拆除时，混凝土强度应达到设计强度的多少？"
+        "我的答案：75%。标准答案：100%。请判分。"
+    )
+    capability = DeepQuestionCapability()
+    context = UnifiedContext(
+        session_id="s-case-deep-question-reference",
+        user_message=raw_case_submission,
+        config_overrides={},
+        metadata={"question_lifecycle_scene": "case_grading"},
+        language="zh",
+    )
+
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["authority_source"] == "case_grading_full_submission"
+    assert captured["correct_answer_present"] is True
+    assert captured["graded_context"]["correct_answer"] == "100%"
+    assert captured["graded_context"]["reference_answer"] == "100%"
+    assert captured["graded_context"]["user_answer"] == "75%"
+
+
+@pytest.mark.asyncio
 async def test_deep_question_uses_deterministic_feedback_for_choice_submission(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

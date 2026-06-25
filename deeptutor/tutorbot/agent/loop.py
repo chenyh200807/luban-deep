@@ -29,6 +29,7 @@ from deeptutor.services.query_intent import (
     query_uses_learner_state_authority,
 )
 from deeptutor.services.question_lifecycle_skills import (
+    case_grading_context_from_full_submission,
     looks_like_free_text_mcq_answer_request,
     looks_like_free_text_mcq_grading_request,
     split_full_case_answer_submission,
@@ -1232,7 +1233,20 @@ class AgentLoop:
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
         eq = md.get("_prefetched_exact_question")
         eq = eq if isinstance(eq, dict) else {}
-        user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
+        current_case_context = case_grading_context_from_full_submission(user_message) or {}
+        user_stem = str(
+            current_case_context.get("question_stem")
+            or current_case_context.get("question")
+            or ""
+        )
+        user_answer = str(current_case_context.get("user_answer") or "")
+        current_reference = str(
+            current_case_context.get("reference_answer")
+            or current_case_context.get("correct_answer")
+            or ""
+        ).strip()
+        if not user_stem or not user_answer:
+            user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
         if user_stem and eq and not AgentLoop._case_exact_question_matches_user_stem(eq, user_stem):
             md["exact_question_blocked_reason"] = "case_exact_mismatch"
             eq = {}
@@ -1269,9 +1283,19 @@ class AgentLoop:
             ref = "\n".join(
                 str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
             ).strip()
-        ref = ref or str(fc_current.get("reference") or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis")) or "")
+        ref = current_reference or ref or str(
+            fc_current.get("reference")
+            or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis"))
+            or ""
+        )
         try:
-            nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
+            current_grading_result = current_case_context.get("construction_grading_result")
+            current_max_score = (
+                current_grading_result.get("max_score")
+                if isinstance(current_grading_result, dict)
+                else None
+            )
+            nominal = float(eq.get("max_score") or fc.get("max_score") or current_max_score or 0)
         except (TypeError, ValueError):
             nominal = 0.0
         # question_stem: bank entry > followup context > safely split full-case stem.

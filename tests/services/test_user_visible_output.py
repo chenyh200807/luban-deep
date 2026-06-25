@@ -166,3 +166,15 @@ def test_coerce_blocks_prompt_envelope_and_profile_projection_labels() -> None:
 
     assert looks_like_internal_output(text) is True
     assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
+def test_coerce_blocks_internal_learner_summary_source_title_leak() -> None:
+    text = (
+        "以下是本轮回答中引用的证据来源：\n\n"
+        "1. **`learner_summary`** — 学员学习摘要，其中提到"
+        "\"防水工程学习：已练屋面防水卷材空铺法短边搭接宽度题，答100mm（标准150mm）\"。\n\n"
+        "没有引用其他证据源。"
+    )
+
+    assert looks_like_internal_output(text) is True
+    assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"

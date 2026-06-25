@@ -467,6 +467,8 @@ def test_resolve_submission_attempt_keeps_english_written_explanation_as_followu
         "只给我复盘计划，不要继续判分。",
         "现在聊学习计划：我每天只有40分钟。",
         "先别继续判分，给我一个明天30分钟复盘计划。",
+        "不要把内部参考证据或工作记忆投影展示给我。",
+        "总结我正式提交过的案例答案。",
     ],
 )
 def test_resolve_submission_attempt_keeps_case_exit_or_study_plan_as_followup(
@@ -527,6 +529,7 @@ def test_resolve_submission_attempt_keeps_explicit_case_answer_with_plan_words()
         "我不是要重新提交C",
         "如果我选B，你会怎么扣？",
         "如果我选E，对不对？一句话。",
+        "如果我选Z，对不对？一句话。",
         "这里是不是屋脊？如果选B会怎么判？",
         "不选A为什么不行？",
         "不是提交C，解释一下C错在哪里。",
@@ -2428,6 +2431,7 @@ def test_submission_confidence_does_not_grade_hypothetical_option_challenge() ->
     # "如果选D对不对"是点名选项追问,不是把当前答案改成 D。
     assert submission_confidence("如果选D对不对", _SC_SINGLE_CTX) is None
     assert submission_confidence("如果我选E，对不对？一句话。", _SC_SINGLE_CTX) is None
+    assert submission_confidence("如果我选Z，对不对？一句话。", _SC_SINGLE_CTX) is None
 
 
 def test_submission_confidence_subjective_payload_keeps_deferral_low() -> None:
@@ -2528,7 +2532,7 @@ def test_option_challenge_non_submission_downgrades_llm_submission(monkeypatch):
                     {
                         "question_index": 1,
                         "question_id": "q_live_numbered",
-                        "answer": "E",
+                        "answer": "Z",
                     }
                 ],
                 "reason": "提交优先原则",
@@ -2539,7 +2543,7 @@ def test_option_challenge_non_submission_downgrades_llm_submission(monkeypatch):
 
     action = _asyncio.run(
         _qf.interpret_question_followup_action(
-            "如果我选E，对不对？一句话。",
+            "如果我选Z，对不对？一句话。",
             question_context,
         )
     )

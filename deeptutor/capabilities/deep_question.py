@@ -3784,7 +3784,13 @@ class DeepQuestionCapability(BaseCapability):
                     raw_user_message=raw_user_message,
                     selected_mode=selected_mode,
                     authority_source="case_grading_full_submission",
-                    correct_answer_present=False,
+                    correct_answer_present=bool(
+                        str(
+                            full_case_context.get("correct_answer")
+                            or full_case_context.get("reference_answer")
+                            or ""
+                        ).strip()
+                    ),
                     kb_name=kb_name,
                 )
                 return

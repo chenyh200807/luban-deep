@@ -826,6 +826,31 @@ async def test_scene_decision_honors_pre_capability_case_grading_fact():
     )
 
 
+@pytest.mark.asyncio
+async def test_scene_decision_ignores_stale_pre_capability_case_grading_fact():
+    ctx = _FakeContext(
+        user_message="总结我正式提交过的案例答案。",
+        metadata={
+            "question_lifecycle_scene": "case_grading",
+            "question_lifecycle_scene_source": "deterministic_pre_capability",
+            "question_lifecycle_scene_confidence": 0.96,
+            "question_lifecycle_scene_reason": "case_submission_context",
+            "question_followup_context": {
+                "question_id": "case-current",
+                "question_type": "case",
+                "question": "屋面卷材防水附加层宽度检查。问题：阴阳角附加层宽度应为多少？",
+                "user_answer": "100mm",
+                "correct_answer": "150mm",
+            },
+        },
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+
+    assert decision.scene != "case_grading"
+    assert decision.business_gate_result != "pre_stamped_scene"
+
+
 def test_attach_honors_explicit_none_from_upstream():
     """Upstream may set scene=None to mean 'definitely chat fallback'."""
     ctx = _FakeContext(
