@@ -455,6 +455,9 @@ def test_generated_questions_construction_scope_gate() -> None:
     hanzi = [{"qa_pair": {"concentration": "汉语日常交流", "question": "“你好”最常被用于哪种情境"}}]
     assert AgentCoordinator._generated_questions_in_construction_scope([], hanzi) is False
 
+    live_hanzi = [{"qa_pair": {"concentration": "词语理解", "question": "“先”在“先来后到”中表示什么？"}}]
+    assert AgentCoordinator._generated_questions_in_construction_scope([], live_hanzi) is False
+
     # 外国地理常识跑偏 → 出 scope
     paris = [{"qa_pair": {"concentration": "世界地理", "question": "法国的首都是哪座城市"}}]
     assert AgentCoordinator._generated_questions_in_construction_scope([], paris) is False
