@@ -270,6 +270,39 @@ def _extract_authoritative_assistant_content(event: StreamEvent) -> str:
     return ""
 
 
+def _coerce_public_stream_response(content: str) -> str:
+    if not str(content or "").strip():
+        return ""
+    return normalize_markdown_for_tutorbot(
+        coerce_user_visible_answer(content)
+    )
+
+
+def _replace_public_result_response_with_stream(
+    event: StreamEvent,
+    streamed_content: str,
+) -> None:
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return
+    if event.type != StreamEventType.RESULT:
+        return
+    response = _coerce_public_stream_response(streamed_content)
+    if not response:
+        return
+    metadata = dict(event.metadata or {})
+    metadata["response"] = response
+    nested = metadata.get("metadata")
+    if isinstance(nested, dict):
+        nested_metadata = dict(nested)
+        if any(
+            str(nested_metadata.get(key) or "").strip()
+            for key in ("response", "assistant_content", "content")
+        ):
+            nested_metadata["response"] = response
+        metadata["metadata"] = nested_metadata
+    event.metadata = metadata
+
+
 def _is_mobile_surface_turn_config(
     config: Mapping[str, Any] | None,
     billing_context: Mapping[str, Any] | None = None,
@@ -4655,6 +4688,7 @@ class TurnRuntimeManager:
         persisted_attachment_records: list[dict[str, Any]] = []
         assistant_events: list[dict[str, Any]] = []
         assistant_content = ""
+        streamed_assistant_content = ""
         authoritative_assistant_content = ""
         assistant_content_source = "content_stream"
         turn_observation: Any | None = None
@@ -5889,6 +5923,10 @@ class TurnRuntimeManager:
                             dict(event.metadata or {}),
                             result_trace_metadata,
                         )
+                        _replace_public_result_response_with_stream(
+                            event,
+                            streamed_assistant_content,
+                        )
                         if (
                             _event_visibility(event) == _PUBLIC_VISIBILITY
                             and _result_response_text(event.metadata or {})
@@ -5898,10 +5936,14 @@ class TurnRuntimeManager:
                         event.type == StreamEventType.DONE
                         and synthesize_mobile_result_before_done
                         and not public_result_response_seen
-                        and authoritative_assistant_content
+                        and (streamed_assistant_content or authoritative_assistant_content)
                     ):
+                        synthetic_content = (
+                            _coerce_public_stream_response(streamed_assistant_content)
+                            or authoritative_assistant_content
+                        )
                         synthetic_result = _build_synthetic_result_from_final_content(
-                            content=authoritative_assistant_content,
+                            content=synthetic_content,
                             source=str(event.source or "").strip() or capability_name or "turn_runtime",
                         )
                         if synthetic_result is not None:
@@ -5928,6 +5970,8 @@ class TurnRuntimeManager:
                         and _event_visibility(payload_event) == _PUBLIC_VISIBILITY
                     ):
                         assistant_events.append(payload_event)
+                    if _should_capture_assistant_content(event):
+                        streamed_assistant_content += str(event.content or "")
                     authoritative_candidate = _extract_authoritative_assistant_content(event)
                     if authoritative_candidate:
                         authoritative_assistant_content = authoritative_candidate
