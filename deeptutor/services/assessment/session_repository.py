@@ -115,9 +115,11 @@ class InMemoryAssessmentSessionRepository:
             topic_ids=topic_ids,
         )
         if reusable is not None:
-            result = copy.deepcopy(reusable)
-            result["reuse_reason"] = "active_session_exists"
-            return result
+            return self._reuse_active_session_or_raise(
+                reusable,
+                device_id=device_id,
+                reason="active_session_exists",
+            )
         now = self._now_fn()
         quiz_id = f"quiz_{uuid.uuid4().hex[:12]}"
         row = {
@@ -346,6 +348,22 @@ class InMemoryAssessmentSessionRepository:
             raise AssessmentSessionNotFound("assessment_session_not_found")
         return row
 
+    def _reuse_active_session_or_raise(
+        self,
+        reusable: dict[str, Any],
+        *,
+        device_id: str,
+        reason: str,
+    ) -> dict[str, Any]:
+        row = self._owned_row(str(reusable.get("user_id") or ""), str(reusable.get("quiz_id") or ""))
+        self._expire_if_needed(row)
+        if row.get("status") == "expired":
+            raise AssessmentSessionExpired("assessment_session_expired")
+        self._assert_lease(row, device_id=device_id)
+        result = copy.deepcopy(row)
+        result["reuse_reason"] = reason
+        return result
+
     def _expire_if_needed(self, row: dict[str, Any]) -> None:
         if row.get("status") == "in_progress" and _parse_iso(str(row.get("expires_at"))) <= self._now_fn():
             row["status"] = "expired"
@@ -428,9 +446,11 @@ class SupabaseAssessmentSessionRepository:
             topic_ids=topic_ids,
         )
         if reusable is not None:
-            result = copy.deepcopy(reusable)
-            result["reuse_reason"] = "active_session_exists"
-            return result
+            return self._reuse_active_session_or_raise(
+                reusable,
+                device_id=device_id,
+                reason="active_session_exists",
+            )
         now = self._now_fn()
         row = {
             "quiz_id": f"quiz_{uuid.uuid4().hex[:12]}",
@@ -466,7 +486,25 @@ class SupabaseAssessmentSessionRepository:
             "expires_at": _iso(now + DEFAULT_TTL),
             "updated_at": _iso(now),
         }
-        inserted = self._insert(row)
+        try:
+            inserted = self._insert(row)
+        except AssessmentSessionConflict as exc:
+            if str(exc) != "assessment_session_insert_conflict":
+                raise
+            reusable = self.find_active_session(
+                user_id=user_id,
+                assessment_type=assessment_type,
+                subject_id=subject_id,
+                blueprint_version=blueprint_version,
+                topic_ids=topic_ids,
+            )
+            if reusable is None:
+                raise
+            inserted = self._reuse_active_session_or_raise(
+                reusable,
+                device_id=device_id,
+                reason="active_session_insert_conflict",
+            )
         logger.info(
             "assessment_session_started quiz_id=%s assessment_type=%s blueprint_version=%s form_id=%s topic_ids=%s trace_id=%s",
             inserted.get("quiz_id"),
@@ -547,7 +585,22 @@ class SupabaseAssessmentSessionRepository:
             "scored_at": _iso(now),
             "updated_at": _iso(now),
         }
-        updated = self._patch_owned(user_id, quiz_id, patch)
+        try:
+            updated = self._patch_owned(
+                user_id,
+                quiz_id,
+                patch,
+                filters={
+                    "status": "eq.in_progress",
+                    "submitted_answer_snapshot": "is.null",
+                    "expires_at": f"gt.{_iso(self._now_fn())}",
+                },
+            )
+        except AssessmentSessionNotFound as exc:
+            latest = self._owned_row(user_id, quiz_id)
+            if latest.get("submitted_answer_snapshot") is not None and latest.get("submit_idempotency_key") == key:
+                return copy.deepcopy(latest)
+            raise AssessmentSessionConflict("assessment_submit_body_conflict") from exc
         logger.info(
             "assessment_session_scored quiz_id=%s assessment_type=%s blueprint_version=%s form_id=%s answered_count=%s",
             quiz_id,
@@ -677,6 +730,20 @@ class SupabaseAssessmentSessionRepository:
             raise AssessmentSessionNotFound("assessment_session_not_found")
         return copy.deepcopy(rows[0])
 
+    def _reuse_active_session_or_raise(
+        self,
+        reusable: dict[str, Any],
+        *,
+        device_id: str,
+        reason: str,
+    ) -> dict[str, Any]:
+        row = self._claim_if_lease_expired(copy.deepcopy(reusable), device_id=device_id)
+        if row.get("lease_holder_other_device"):
+            raise AssessmentLeaseConflict("lease_conflict")
+        result = copy.deepcopy(row)
+        result["reuse_reason"] = reason
+        return result
+
     def _expire_if_needed(self, row: dict[str, Any]) -> dict[str, Any]:
         if row.get("status") == "in_progress" and _parse_iso(str(row.get("expires_at"))) <= self._now_fn():
             return self._patch_owned(str(row.get("user_id") or ""), str(row.get("quiz_id") or ""), {"status": "expired"})
@@ -703,23 +770,41 @@ class SupabaseAssessmentSessionRepository:
         raise AssessmentLeaseConflict("lease_conflict")
 
     def _insert(self, row: dict[str, Any]) -> dict[str, Any]:
-        response = self._client_or_create().post(
-            f"{self._base_url}/rest/v1/assessment_sessions",
-            headers=self._headers(prefer="return=representation"),
-            json=[row],
-        )
-        response.raise_for_status()
+        try:
+            response = self._client_or_create().post(
+                f"{self._base_url}/rest/v1/assessment_sessions",
+                headers=self._headers(prefer="return=representation"),
+                json=[row],
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            if exc.response is not None and exc.response.status_code == 409:
+                raise AssessmentSessionConflict("assessment_session_insert_conflict") from exc
+            raise AssessmentSessionError("assessment_sessions_unavailable") from exc
+        except httpx.HTTPError as exc:
+            raise AssessmentSessionError("assessment_sessions_unavailable") from exc
         payload = response.json()
         return dict(payload[0]) if isinstance(payload, list) and payload else dict(row)
 
-    def _patch_owned(self, user_id: str, quiz_id: str, patch: dict[str, Any]) -> dict[str, Any]:
-        response = self._client_or_create().patch(
-            f"{self._base_url}/rest/v1/assessment_sessions",
-            headers=self._headers(prefer="return=representation"),
-            params={"user_id": f"eq.{user_id}", "quiz_id": f"eq.{quiz_id}"},
-            json=dict(patch or {}),
-        )
-        response.raise_for_status()
+    def _patch_owned(
+        self,
+        user_id: str,
+        quiz_id: str,
+        patch: dict[str, Any],
+        *,
+        filters: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        params = {"user_id": f"eq.{user_id}", "quiz_id": f"eq.{quiz_id}", **dict(filters or {})}
+        try:
+            response = self._client_or_create().patch(
+                f"{self._base_url}/rest/v1/assessment_sessions",
+                headers=self._headers(prefer="return=representation"),
+                params=params,
+                json=dict(patch or {}),
+            )
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise AssessmentSessionError("assessment_sessions_unavailable") from exc
         payload = response.json()
         if not isinstance(payload, list) or not payload:
             raise AssessmentSessionNotFound("assessment_session_not_found")
@@ -729,12 +814,15 @@ class SupabaseAssessmentSessionRepository:
         params: dict[str, Any] = {"select": "*", **dict(filters or {})}
         if limit is not None:
             params["limit"] = int(limit)
-        response = self._client_or_create().get(
-            f"{self._base_url}/rest/v1/assessment_sessions",
-            headers=self._headers(),
-            params=params,
-        )
-        response.raise_for_status()
+        try:
+            response = self._client_or_create().get(
+                f"{self._base_url}/rest/v1/assessment_sessions",
+                headers=self._headers(),
+                params=params,
+            )
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise AssessmentSessionError("assessment_sessions_unavailable") from exc
         payload = response.json()
         return [dict(item) for item in payload if isinstance(item, dict)]
 

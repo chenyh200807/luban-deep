@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import httpx
 import pytest
 
 from deeptutor.services.assessment.session_repository import (
@@ -10,6 +11,7 @@ from deeptutor.services.assessment.session_repository import (
     AssessmentSessionExpired,
     AssessmentSessionNotFound,
     InMemoryAssessmentSessionRepository,
+    SupabaseAssessmentSessionRepository,
 )
 
 
@@ -115,6 +117,24 @@ def test_device_lease_blocks_conflicting_writer() -> None:
             result_report_json={"schema_version": "p0a-v1"},
             device_id="d2",
         )
+
+
+def test_active_session_reuse_blocks_conflicting_creator_device() -> None:
+    repo = _repo()
+    _create(repo, device_id="d1")
+
+    with pytest.raises(AssessmentLeaseConflict):
+        _create(repo, device_id="d2")
+
+
+def test_active_session_reuse_allows_same_creator_device() -> None:
+    repo = _repo()
+    first = _create(repo, device_id="d1")
+
+    reused = _create(repo, device_id="d1")
+
+    assert reused["quiz_id"] == first["quiz_id"]
+    assert reused["reuse_reason"] == "active_session_exists"
 
 
 def test_expired_in_progress_session_cannot_be_submitted() -> None:
@@ -226,3 +246,229 @@ def test_degraded_status_records_explicit_reason_and_is_recoverable_via_writebac
     )
     assert recovered["status"] == "scored"
     assert recovered["degraded_reason"] is None
+
+
+def test_supabase_submit_uses_atomic_unsubmitted_status_filter() -> None:
+    calls: list[tuple[str, dict]] = []
+    row = {
+        "quiz_id": "quiz_atomic",
+        "user_id": "u1",
+        "assessment_type": "topic_diagnostic",
+        "subject_id": "construction_exam",
+        "topic_ids": ["waterproof"],
+        "blueprint_version": "topic_waterproof_v1",
+        "form_id": "topic_waterproof_v1_form_1",
+        "status": "in_progress",
+        "submitted_answer_snapshot": None,
+        "submit_idempotency_key": None,
+        "result_report_json": None,
+        "session_questions_private": [{"question_id": "q1", "answer": "A"}],
+        "client_questions_public": [{"question_id": "q1", "question_stem": "防水题"}],
+        "device_id": "d1",
+        "lease_expires_at": "2026-05-24T12:30:00Z",
+        "expires_at": "2026-05-25T12:00:00Z",
+    }
+
+    class _Response:
+        def __init__(self, payload):
+            self._payload = payload
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self._payload
+
+    class _Client:
+        def get(self, url, *, headers, params):
+            calls.append(("get", dict(params)))
+            return _Response([dict(row)])
+
+        def patch(self, url, *, headers, params, json):
+            calls.append(("patch", dict(params)))
+            return _Response([{**row, **dict(json or {})}])
+
+    repo = SupabaseAssessmentSessionRepository(
+        base_url="https://supabase.example",
+        service_key="service-role",  # pragma: allowlist secret
+        client=_Client(),
+        now_fn=_now,
+    )
+
+    repo.mark_submitted_once(
+        "u1",
+        "quiz_atomic",
+        submitted_answer_snapshot={"q1": "A"},
+        result_report_json={"schema_version": "p0a-v1"},
+        device_id="d1",
+    )
+
+    patch_params = [params for name, params in calls if name == "patch"][0]
+    assert patch_params["user_id"] == "eq.u1"
+    assert patch_params["quiz_id"] == "eq.quiz_atomic"
+    assert patch_params["status"] == "eq.in_progress"
+    assert patch_params["submitted_answer_snapshot"] == "is.null"
+    assert patch_params["expires_at"] == "gt.2026-05-24T12:00:00Z"
+
+
+def test_supabase_create_reuses_active_session_after_insert_conflict() -> None:
+    calls: list[tuple[str, dict]] = []
+    row = {
+        "quiz_id": "quiz_existing",
+        "user_id": "u1",
+        "assessment_type": "topic_diagnostic",
+        "subject_id": "construction_exam",
+        "topic_ids": ["waterproof"],
+        "blueprint_version": "topic_waterproof_v1",
+        "form_id": "topic_waterproof_v1_form_1",
+        "status": "in_progress",
+        "schema_version": "assessment_session_v1",
+        "submitted_answer_snapshot": None,
+        "result_report_json": None,
+        "session_questions_private": [{"question_id": "q1", "answer": "A"}],
+        "client_questions_public": [{"question_id": "q1", "question_stem": "防水题"}],
+        "device_id": "d1",
+        "lease_expires_at": "2026-05-24T12:30:00Z",
+        "expires_at": "2026-05-25T12:00:00Z",
+    }
+
+    class _Response:
+        def __init__(self, payload, *, status_code: int = 200):
+            self._payload = payload
+            self.status_code = status_code
+            self.request = httpx.Request("POST", "https://supabase.example/rest/v1/assessment_sessions")
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                response = httpx.Response(self.status_code, request=self.request, json={"code": "23505"})
+                raise httpx.HTTPStatusError("duplicate key", request=self.request, response=response)
+
+        def json(self):
+            return self._payload
+
+    class _Client:
+        def __init__(self):
+            self.get_count = 0
+
+        def get(self, url, *, headers, params):
+            calls.append(("get", dict(params)))
+            self.get_count += 1
+            if self.get_count < 3:
+                return _Response([])
+            return _Response([dict(row)])
+
+        def post(self, url, *, headers, json):
+            calls.append(("post", {"url": url}))
+            return _Response({"code": "23505"}, status_code=409)
+
+    repo = SupabaseAssessmentSessionRepository(
+        base_url="https://supabase.example",
+        service_key="service-role",  # pragma: allowlist secret
+        client=_Client(),
+        now_fn=_now,
+    )
+
+    created = repo.create_session(
+        user_id="u1",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="topic_waterproof_v1",
+        form_id="topic_waterproof_v1_form_1",
+        client_questions_public=[{"question_id": "q1", "question_stem": "防水题"}],
+        session_questions_private=[{"question_id": "q1", "answer": "A"}],
+        device_id="d1",
+    )
+
+    assert created["quiz_id"] == "quiz_existing"
+    assert created["reuse_reason"] == "active_session_insert_conflict"
+    assert [name for name, _params in calls].count("post") == 1
+    assert [name for name, _params in calls].count("get") == 3
+
+
+def test_supabase_create_blocks_active_session_from_other_device() -> None:
+    calls: list[tuple[str, dict]] = []
+    row = {
+        "quiz_id": "quiz_existing",
+        "user_id": "u1",
+        "assessment_type": "topic_diagnostic",
+        "subject_id": "construction_exam",
+        "topic_ids": ["waterproof"],
+        "blueprint_version": "topic_waterproof_v1",
+        "form_id": "topic_waterproof_v1_form_1",
+        "status": "in_progress",
+        "schema_version": "assessment_session_v1",
+        "submitted_answer_snapshot": None,
+        "result_report_json": None,
+        "session_questions_private": [{"question_id": "q1", "answer": "A"}],
+        "client_questions_public": [{"question_id": "q1", "question_stem": "防水题"}],
+        "device_id": "d1",
+        "lease_expires_at": "2026-05-24T12:30:00Z",
+        "expires_at": "2026-05-25T12:00:00Z",
+    }
+
+    class _Response:
+        def __init__(self, payload):
+            self._payload = payload
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self._payload
+
+    class _Client:
+        def __init__(self):
+            self.get_count = 0
+
+        def get(self, url, *, headers, params):
+            calls.append(("get", dict(params)))
+            self.get_count += 1
+            if self.get_count == 1:
+                return _Response([])
+            return _Response([dict(row)])
+
+        def post(self, url, *, headers, json):
+            calls.append(("post", {"url": url}))
+            return _Response([dict(row)])
+
+    repo = SupabaseAssessmentSessionRepository(
+        base_url="https://supabase.example",
+        service_key="service-role",  # pragma: allowlist secret
+        client=_Client(),
+        now_fn=_now,
+    )
+
+    with pytest.raises(AssessmentLeaseConflict):
+        repo.create_session(
+            user_id="u1",
+            assessment_type="topic_diagnostic",
+            subject_id="construction_exam",
+            topic_ids=["waterproof"],
+            blueprint_version="topic_waterproof_v1",
+            form_id="topic_waterproof_v1_form_1",
+            client_questions_public=[{"question_id": "q1", "question_stem": "防水题"}],
+            session_questions_private=[{"question_id": "q1", "answer": "A"}],
+            device_id="d2",
+        )
+
+    assert [name for name, _params in calls] == ["get", "get"]
+
+
+def test_supabase_transport_error_maps_to_assessment_session_error() -> None:
+    class _Client:
+        def get(self, url, *, headers, params):
+            raise httpx.ConnectError("connect failed")
+
+    repo = SupabaseAssessmentSessionRepository(
+        base_url="https://supabase.example",
+        service_key="service-role",  # pragma: allowlist secret
+        client=_Client(),
+        now_fn=_now,
+    )
+
+    with pytest.raises(Exception) as exc_info:
+        repo.private_session("u1", "quiz_unavailable")
+
+    assert exc_info.type.__name__ == "AssessmentSessionError"
+    assert str(exc_info.value) == "assessment_sessions_unavailable"

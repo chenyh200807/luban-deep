@@ -337,6 +337,7 @@ function rawRequest(opts) {
         }
 
         if (
+          !opts.noBaseFallback &&
           !opts.url.startsWith("http") &&
           res.statusCode >= 500 &&
           baseIndex + 1 < baseCandidates.length
@@ -404,6 +405,7 @@ function rawRequest(opts) {
         }
 
         if (
+          !opts.noBaseFallback &&
           !opts.url.startsWith("http") &&
           baseIndex + 1 < baseCandidates.length
         ) {
@@ -856,21 +858,29 @@ function createAssessment(type, count) {
     url: "/api/v1/assessment/create",
     method: "POST",
     data: payload,
+    noRetry: true,
+    noBaseFallback: true,
   });
 }
 
 /** 摸底测试 — 提交答案 */
-function submitAssessment(quizId, answers, timeSpent) {
+function submitAssessment(quizId, answers, timeSpent, deviceId) {
   return request({
     url: "/api/v1/assessment/" + quizId + "/submit",
     method: "POST",
-    data: { answers: answers, time_spent_seconds: timeSpent },
+    data: { answers: answers, time_spent_seconds: timeSpent, device_id: deviceId || "" },
+    noRetry: true,
+    noBaseFallback: true,
   });
 }
 
 /** 摸底测试 — 恢复答题 */
-function getAssessmentSession(quizId) {
-  return requestStateGet("/api/v1/assessment/" + quizId);
+function getAssessmentSession(quizId, deviceId) {
+  var url = "/api/v1/assessment/" + quizId;
+  if (deviceId) {
+    url += "?device_id=" + encodeURIComponent(deviceId);
+  }
+  return requestStateGet(url);
 }
 
 /** 摸底测试 — 获取报告 */

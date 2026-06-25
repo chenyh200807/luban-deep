@@ -3275,6 +3275,9 @@ def test_real_exam_simulation_create_and_submit_use_mini_blueprint(
     assert payload["assessment_type"] == "real_exam_simulation"
     assert payload["blueprint_version"] == "real_exam_simulation_mini_v1"
     assert payload["topic_label"] == "综合模拟测评"
+    assert payload["form_id"]
+    assert payload["form_index"] >= 0
+    assert payload["form_count"] >= 1
     assert len(payload["questions"]) == 20
     assert all("answer" not in question for question in payload["questions"])
 
@@ -3290,6 +3293,97 @@ def test_real_exam_simulation_create_and_submit_use_mini_blueprint(
     assert result["blueprint_version"] == "real_exam_simulation_mini_v1"
     assert result["topic_label"] == "综合模拟测评"
     assert result["score_summary"]["scored_count"] == 20
+
+
+def test_submit_assessment_different_body_retry_conflicts(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="topic_waterproof_v1",
+        form_id="topic_waterproof_v1_form_1",
+        client_questions_public=[{"question_id": "q1", "question_stem": "防水题 1"}],
+        session_questions_private=[{"question_id": "q1", "answer": "A", "scored": True}],
+        device_id="",
+    )
+
+    first = service.submit_assessment(
+        "student_demo",
+        session["quiz_id"],
+        {"q1": "A"},
+        time_spent_seconds=30,
+    )
+    retry = service.submit_assessment(
+        "student_demo",
+        session["quiz_id"],
+        {"q1": "A"},
+        time_spent_seconds=30,
+    )
+
+    assert retry == first
+    with pytest.raises(member_service_module.AssessmentSessionConflict, match="assessment_submit_body_conflict"):
+        service.submit_assessment(
+            "student_demo",
+            session["quiz_id"],
+            {"q1": "B"},
+            time_spent_seconds=30,
+        )
+
+
+def test_submit_assessment_durable_session_error_does_not_fallback_to_legacy(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _Repository:
+        def private_session(self, user_id: str, quiz_id: str):
+            raise member_service_module.AssessmentSessionError("assessment_sessions_unavailable")
+
+    service._assessment_session_repository = _Repository()
+
+    with pytest.raises(member_service_module.AssessmentSessionError, match="assessment_sessions_unavailable"):
+        service.submit_assessment(
+            "student_demo",
+            "quiz_missing_repo",
+            {"q1": "A"},
+            time_spent_seconds=30,
+        )
+
+
+def test_submit_assessment_scoring_error_maps_to_session_conflict(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="topic_waterproof_v1",
+        form_id="topic_waterproof_v1_form_1",
+        client_questions_public=[
+            {"question_id": "q1", "question_stem": "防水题 1"},
+            {"question_id": "q2", "question_stem": "防水题 2"},
+        ],
+        session_questions_private=[
+            {"question_id": "q1", "source_question_id": "src_dup", "answer": "A"},
+            {"question_id": "q2", "source_question_id": "src_dup", "answer": "B"},
+        ],
+        device_id="",
+    )
+
+    with pytest.raises(member_service_module.AssessmentSessionConflict, match="assessment_scoring_conflict"):
+        service.submit_assessment(
+            "student_demo",
+            session["quiz_id"],
+            {"q1": "A", "q2": "B"},
+            time_spent_seconds=30,
+        )
 
 
 def test_assessment_deep_explanation_reads_submitted_report_without_score_mutation(

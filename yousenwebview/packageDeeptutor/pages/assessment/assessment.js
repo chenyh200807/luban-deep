@@ -271,6 +271,57 @@ function learnerSafeDegradedCopy(reason) {
   return ASSESSMENT_I18N_KEYS.degraded[key] || ASSESSMENT_I18N_KEYS.degraded.unknown;
 }
 
+var ASSESSMENT_DEVICE_ID_KEY = "deeptutor.assessment.deviceId";
+
+function getAssessmentDeviceId() {
+  var fallback =
+    "wx_assessment_" +
+    Date.now().toString(36) +
+    "_" +
+    Math.random().toString(36).slice(2, 10);
+  if (typeof wx === "undefined") return fallback;
+  try {
+    if (typeof wx.getStorageSync === "function") {
+      var stored = String(wx.getStorageSync(ASSESSMENT_DEVICE_ID_KEY) || "").trim();
+      if (stored) return stored.slice(0, 128);
+    }
+    if (typeof wx.setStorageSync === "function") {
+      wx.setStorageSync(ASSESSMENT_DEVICE_ID_KEY, fallback);
+    }
+  } catch (err) {
+    return fallback;
+  }
+  return fallback;
+}
+
+function assessmentCreateErrorCopy(err) {
+  var fallback = "加载题目失败，请稍后重试";
+  if (!api.describeRequestError) return fallback;
+  return api.describeRequestError(err, fallback, {
+    context: "assessment_create",
+    customMap: function (info) {
+      var payloadDetail =
+        info && info.payload && info.payload.detail && typeof info.payload.detail === "object"
+          ? info.payload.detail
+          : {};
+      var errorCode = String(payloadDetail.error || info.detailText || "");
+      if (errorCode.indexOf("assessment_sessions_unavailable") >= 0) {
+        return "题库服务暂时不可用，请稍后重试";
+      }
+      if (errorCode.indexOf("assessment_blueprint_unavailable") >= 0) {
+        return "当前题库暂不足以生成本次测评，请稍后再试";
+      }
+      if (errorCode.indexOf("assessment_session_expired") >= 0) {
+        return "本次测评已过期，请重新开始";
+      }
+      if (errorCode.indexOf("assessment_lease_conflict") >= 0) {
+        return "这份测评正在另一台设备作答";
+      }
+      return "";
+    },
+  });
+}
+
 function normalizeTopicCatalog(items) {
   var topics = (items || []).map(function (item) {
     var status = String(item.status || "authoring_needed");
@@ -775,6 +826,8 @@ Page({
     recommendedMode: "diagnostic",
     recommendedTopicId: "",
     assessmentRecommendationReason: "",
+    assessmentModeTouched: false,
+    assessmentTopicTouched: false,
     serverReportMode: false,
     reportSchemaVersion: "",
     scoreTitle: ASSESSMENT_I18N_KEYS.scoreTitle,
@@ -849,17 +902,26 @@ Page({
           recommendation.recommendedTopicId,
         );
         var selected =
-          catalog.find(function (item) {
-            return item.enabled && item.topicId === recommendation.recommendedTopicId;
-          }) ||
-          catalog.find(function (item) {
-            return item.enabled;
-          }) ||
-          catalog[0];
+          self.data.assessmentTopicTouched
+            ? catalog.find(function (item) {
+                return item.enabled && item.topicId === self.data.selectedTopicId;
+              })
+            : null;
+        if (!selected) {
+          selected =
+            catalog.find(function (item) {
+              return item.enabled && item.topicId === recommendation.recommendedTopicId;
+            }) ||
+            catalog.find(function (item) {
+              return item.enabled;
+            }) ||
+            catalog[0];
+        }
         var recommendedMode =
           recommendation.recommendedMode === "topic" && selected && selected.topicId === recommendation.recommendedTopicId
             ? "topic"
             : "diagnostic";
+        var nextMode = self.data.assessmentModeTouched ? self.data.assessmentMode : recommendedMode;
         self.setData(
           Object.assign(
             {
@@ -873,7 +935,7 @@ Page({
               recommendedTopicId: recommendation.recommendedTopicId,
               assessmentRecommendationReason: recommendation.reason,
             },
-            buildWelcomeModeState(recommendedMode, selected.label, selected.formCount),
+            buildWelcomeModeState(nextMode, selected.label, selected.formCount),
           ),
         );
       })
@@ -902,6 +964,7 @@ Page({
           selectedTopicLabel: selected.label,
           selectedTopicStatus: selected.status,
           selectedTopicFormCount: selected.formCount,
+          assessmentTopicTouched: true,
         },
         buildWelcomeModeState(this.data.assessmentMode, selected.label, selected.formCount),
       ),
@@ -910,7 +973,12 @@ Page({
 
   onSelectAssessmentMode: function (e) {
     var mode = String((e.currentTarget.dataset || {}).mode || "diagnostic");
-    this.setData(buildWelcomeModeState(mode, this.data.selectedTopicLabel, this.data.selectedTopicFormCount));
+    this.setData(
+      Object.assign(
+        { assessmentModeTouched: true },
+        buildWelcomeModeState(mode, this.data.selectedTopicLabel, this.data.selectedTopicFormCount),
+      ),
+    );
   },
 
   // ── 开始测试 ──────────────────────────────────
@@ -942,6 +1010,7 @@ Page({
             count: 20,
             duration_policy: { mode: "one_shot" },
           };
+    requestPayload.device_id = getAssessmentDeviceId();
 
     api
       .createAssessment(requestPayload)
@@ -999,7 +1068,7 @@ Page({
       })
       .catch(function (e) {
         console.error("[Assessment] create request failed", e);
-        wx.showToast({ title: "加载题目失败", icon: "none" });
+        wx.showToast({ title: assessmentCreateErrorCopy(e), icon: "none" });
         self.setData({ stage: "welcome", starting: false });
       });
   },
@@ -1162,7 +1231,7 @@ Page({
     });
 
     api
-      .submitAssessment(self._quizId, answers, timeSpent)
+      .submitAssessment(self._quizId, answers, timeSpent, getAssessmentDeviceId())
       .then(function (resp) {
         var data = resp.data || resp;
         try {
