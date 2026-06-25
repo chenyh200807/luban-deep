@@ -32,6 +32,7 @@ from deeptutor.tools.question.question_extractor import extract_questions_from_p
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tutorbot.teaching_modes import (
     practice_generation_request_needs_context_anchor,
+    practice_generation_topic_block_decision,
     practice_generation_topic_domain_status,
 )
 
@@ -194,11 +195,12 @@ class AgentCoordinator:
         batch_number = 0
         if _uses_construction_exam_scope(self.kb_name):
             topic_domain_status = practice_generation_topic_domain_status(user_topic)
-            if topic_domain_status != "construction_topic":
+            block_decision = practice_generation_topic_block_decision(topic_domain_status)
+            if block_decision != "allow":
                 blocked_reason = (
                     "blocked_out_of_scope_topic"
-                    if topic_domain_status == "out_of_scope_topic"
-                    else "blocked_unknown_topic_anchor"
+                    if block_decision == "block_out_of_scope"
+                    else "blocked_unresolved_anchor"
                 )
                 if lightweight_generation:
                     lightweight_trace_counters["lightweight_batch_fallback"] = blocked_reason
@@ -430,6 +432,27 @@ class AgentCoordinator:
                 history_context=history_context,
                 require_explanation=require_explanation,
                 lightweight_generation=lightweight_generation,
+            )
+        if _uses_construction_exam_scope(self.kb_name) and not self._generated_questions_in_construction_scope(
+            templates[:requested],
+            qa_pairs,
+        ):
+            if lightweight_generation:
+                lightweight_trace_counters["lightweight_batch_fallback"] = "blocked_out_of_scope_topic"
+            return self._build_summary(
+                source="topic",
+                requested=requested,
+                templates=[],
+                qa_pairs=[],
+                trace={
+                    "batches": batch_trace,
+                    "lightweight_generation": lightweight_generation,
+                    "lightweight_counters": dict(lightweight_trace_counters)
+                    if lightweight_generation
+                    else None,
+                    "subject_scope_blocked": "subject_unavailable",
+                    "topic_domain_status": "out_of_scope_topic",
+                },
             )
         return self._build_summary(
             source="topic",
@@ -1342,6 +1365,25 @@ class AgentCoordinator:
         # (SMA topic vs 垂直运输/井架 stem) shares none and is rejected.
         topic_bigrams = {t[i : i + 2] for t in loose_terms for i in range(len(t) - 1)}
         return any(bigram in haystack for bigram in topic_bigrams)
+
+    @staticmethod
+    def _generated_questions_in_construction_scope(
+        templates: list[QuestionTemplate], qa_pairs: list[dict[str, Any]]
+    ) -> bool:
+        texts: list[str] = []
+        for qp in qa_pairs or []:
+            pair = qp.get("qa_pair") if isinstance(qp, dict) else None
+            if isinstance(pair, dict):
+                texts.append(f"{pair.get('concentration') or ''} {pair.get('question') or ''}")
+        for template in templates or []:
+            texts.append(str(getattr(template, "concentration", "") or ""))
+        candidates = [text for text in texts if text.strip()]
+        if not candidates:
+            return True
+        return any(
+            practice_generation_topic_domain_status(text) == "construction_topic"
+            for text in candidates
+        )
 
     @staticmethod
     def _derive_lightweight_anchor_label(

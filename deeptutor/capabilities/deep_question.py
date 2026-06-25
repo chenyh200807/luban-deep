@@ -57,6 +57,7 @@ from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
 from deeptutor.tutorbot.teaching_modes import (
     looks_like_practice_generation_request,
     practice_generation_request_needs_context_anchor,
+    practice_generation_topic_block_decision,
     practice_generation_topic_domain_status,
 )
 
@@ -4130,13 +4131,14 @@ class DeepQuestionCapability(BaseCapability):
                 trace_meta = context.metadata.setdefault("trace_metadata", {})
                 if isinstance(trace_meta, dict):
                     trace_meta["practice_generation.topic_domain_status"] = topic_domain_status
-            if topic_domain_status != "construction_topic":
-                blocked_reason = (
-                    "out_of_scope_topic"
-                    if topic_domain_status == "out_of_scope_topic"
-                    else "unknown_topic_anchor"
-                )
-                content = _render_invalid_generation_topic_feedback(topic_domain_status)
+            block_decision = practice_generation_topic_block_decision(topic_domain_status)
+            if block_decision != "allow":
+                if block_decision == "needs_anchor":
+                    blocked_reason = "needs_context_anchor"
+                    content = _render_missing_generation_topic_anchor_feedback()
+                else:
+                    blocked_reason = "out_of_scope_topic"
+                    content = _render_invalid_generation_topic_feedback("out_of_scope_topic")
                 if content and not answer_citations_enabled():
                     await stream.content(content, source=self.name, stage="generation")
                 result_payload = {
@@ -5544,25 +5546,21 @@ class DeepQuestionCapability(BaseCapability):
     ) -> str:
         results = summary.get("results", []) if isinstance(summary, dict) else []
         if not results:
+            trace = summary.get("trace") if isinstance(summary.get("trace"), dict) else {}
             counters = (
-                (summary.get("trace") or {}).get("lightweight_counters")
-                if isinstance(summary.get("trace"), dict)
-                else {}
+                trace.get("lightweight_counters") if isinstance(trace, dict) else {}
             )
             if (
                 isinstance(counters, dict)
                 and counters.get("lightweight_batch_fallback") == "blocked_unresolved_anchor"
             ):
                 return _render_missing_generation_topic_anchor_feedback()
-            if isinstance(counters, dict) and counters.get(
-                "lightweight_batch_fallback"
-            ) in {"blocked_out_of_scope_topic", "blocked_unknown_topic_anchor"}:
-                status = (
-                    (summary.get("trace") or {}).get("topic_domain_status")
-                    if isinstance(summary.get("trace"), dict)
-                    else ""
-                )
-                return _render_invalid_generation_topic_feedback(str(status or "unknown_topic"))
+            if (isinstance(trace, dict) and trace.get("subject_scope_blocked")) or (
+                isinstance(counters, dict)
+                and counters.get("lightweight_batch_fallback") == "blocked_out_of_scope_topic"
+            ):
+                status = trace.get("topic_domain_status") if isinstance(trace, dict) else ""
+                return _render_invalid_generation_topic_feedback(str(status or "out_of_scope_topic"))
             return ""
 
         lines: list[str] = []

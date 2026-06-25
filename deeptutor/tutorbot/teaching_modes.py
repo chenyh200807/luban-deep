@@ -474,6 +474,11 @@ PracticeGenerationTopicDomainStatus = Literal[
     "unknown_topic",
     "out_of_scope_topic",
 ]
+PracticeGenerationTopicBlockDecision = Literal[
+    "block_out_of_scope",
+    "needs_anchor",
+    "allow",
+]
 _LIGHTWEIGHT_MAX_QUESTIONS = 5
 _CONSTRUCTION_PRACTICE_TOPIC_MARKERS = (
     "建筑实务",
@@ -638,6 +643,22 @@ def practice_generation_topic_domain_status(
     if practice_generation_request_needs_context_anchor(text):
         return "needs_context_anchor"
     return "unknown_topic"
+
+
+def practice_generation_topic_block_decision(
+    status: PracticeGenerationTopicDomainStatus,
+) -> PracticeGenerationTopicBlockDecision:
+    """Map topic-domain status to the single entry gate decision.
+
+    ``unknown_topic`` is allowed at entry because keyword coverage is not a
+    subject authority. The generated-question owner must enforce the exit gate
+    before returning submit-able practice.
+    """
+    if status == "out_of_scope_topic":
+        return "block_out_of_scope"
+    if status == "needs_context_anchor":
+        return "needs_anchor"
+    return "allow"
 
 
 def classify_practice_strategy(
