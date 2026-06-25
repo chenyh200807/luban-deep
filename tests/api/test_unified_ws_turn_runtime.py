@@ -22,6 +22,7 @@ from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
     build_active_object_from_session,
     build_user_owner_key,
+    extract_question_context_from_active_object,
 )
 from deeptutor.services.session.turn_runtime import (
     TurnRuntimeManager,
@@ -744,8 +745,13 @@ async def test_full_new_mcq_does_not_regrade_stale_active_question() -> None:
         ],
     )
 
-    assert resolved_context is None
-    assert resolved_action is None
+    assert resolved_context is not None
+    assert resolved_context["question_id"] != "historical:roof_slope"
+    assert "历史建筑的建筑高度" in resolved_context["question"]
+    assert resolved_context["user_answer"] == "C"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"][0]["answer"] == "C"
 
 
 @pytest.mark.asyncio
@@ -772,8 +778,13 @@ async def test_full_new_case_submission_does_not_regrade_stale_active_question()
         ],
     )
 
-    assert resolved_context is None
-    assert resolved_action is None
+    assert resolved_context is not None
+    assert resolved_context["question_id"] != "stale_fixed_price_case"
+    assert resolved_context["question_type"] == "case"
+    assert "工程量清单的强制性内容" in resolved_context["question"]
+    assert resolved_context["user_answer"].startswith("1. 工程量计算规则")
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
 
 
 @pytest.mark.asyncio
@@ -874,8 +885,13 @@ async def test_full_case_submission_rejects_item_only_shared_background_context(
         ],
     )
 
-    assert resolved_context is None
-    assert resolved_action is None
+    assert resolved_context is not None
+    assert resolved_context["question_id"] != "stale_shared_background_case"
+    assert resolved_context["question_type"] == "case"
+    assert "投标单位实质性响应内容" in resolved_context["question"]
+    assert resolved_context["user_answer"].startswith("1. 工期")
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
 
 
 @pytest.mark.asyncio
@@ -932,8 +948,13 @@ async def test_full_new_mcq_does_not_regrade_stale_explicit_question() -> None:
         candidate_contexts=[],
     )
 
-    assert resolved_context is None
-    assert resolved_action is None
+    assert resolved_context is not None
+    assert resolved_context["question_id"] != "historical:roof_slope"
+    assert "历史建筑的建筑高度" in resolved_context["question"]
+    assert resolved_context["user_answer"] == "C"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"][0]["answer"] == "C"
 
 
 @pytest.mark.asyncio
@@ -959,8 +980,13 @@ async def test_full_new_mcq_with_same_option_values_does_not_keep_stale_explicit
         candidate_contexts=[],
     )
 
-    assert resolved_context is None
-    assert resolved_action is None
+    assert resolved_context is not None
+    assert resolved_context["question_id"] != "old_regulation_level"
+    assert "安全生产法属于" in resolved_context["question"]
+    assert resolved_context["user_answer"] == "A"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"][0]["answer"] == "A"
 
 
 @pytest.mark.asyncio
@@ -1767,6 +1793,210 @@ async def test_start_turn_recovers_stored_active_question_for_plain_text_option_
     assert selector_action["intent"] == "ask_followup"
     assert resolved_context["question_id"] == "historical:roof_slope"
     assert resolved_context["user_answer"] == "B"
+
+
+@pytest.mark.asyncio
+async def test_start_turn_promotes_full_new_mcq_over_stale_active_object(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["active_object"] = dict(context.metadata.get("active_object") or {})
+            captured["question_followup_context"] = dict(
+                context.metadata.get("question_followup_context") or {}
+            )
+            # Simulate a stale downstream capability trying to write the prior object
+            # back at turn-end. TurnRuntime owns object identity and must not accept it.
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="deep_question",
+                metadata={
+                    "response": "按新题面批改。",
+                    "mode": "grading",
+                    "active_object": stale_active_object,
+                    "question_followup_context": stale_context,
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="session_full_new_mcq_over_stale", title="旧题")
+    stale_context = {
+        "question_id": "stale-critical-path",
+        "question": "关键线路是由哪些工作组成？",
+        "question_type": "choice",
+        "options": {"A": "关键工作", "B": "自由时差最大工作", "C": "普通工作", "D": "虚工作"},
+        "correct_answer": "A",
+        "user_answer": "A",
+        "is_correct": True,
+    }
+    stale_active_object = build_active_object_from_question_context(stale_context)
+    assert stale_active_object is not None
+    await store.set_active_object(session["id"], stale_active_object)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": (
+                "施工现场临时用电组织设计由谁编制？"
+                "A.项目经理 B.电气工程技术人员 C.安全员 D.总监理工程师。"
+                "我的答案 B，请判分。"
+            ),
+            "session_id": session["id"],
+            "capability": "tutorbot",
+            "tools": [],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {"bot_id": "construction-exam-coach"},
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    resolved_context = captured["question_followup_context"]
+    assert resolved_context["question_id"] != "stale-critical-path"
+    assert "施工现场临时用电组织设计" in resolved_context["question"]
+    assert resolved_context["options"]["B"] == "电气工程技术人员"
+    assert resolved_context["user_answer"] == "B"
+
+    active_object = await store.get_active_object(session["id"])
+    assert active_object is not None
+    persisted_context = extract_question_context_from_active_object(active_object)
+    assert persisted_context is not None
+    assert persisted_context["question_id"] != "stale-critical-path"
+    assert "施工现场临时用电组织设计" in persisted_context["question"]
+
+
+@pytest.mark.asyncio
+async def test_start_turn_promotes_full_new_case_over_stale_active_object(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["active_object"] = dict(context.metadata.get("active_object") or {})
+            captured["question_followup_context"] = dict(
+                context.metadata.get("question_followup_context") or {}
+            )
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="deep_question",
+                metadata={
+                    "response": "按新案例点评。",
+                    "mode": "grading",
+                    "active_object": stale_active_object,
+                    "question_followup_context": stale_context,
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="session_full_new_case_over_stale", title="旧题")
+    stale_context = {
+        "question_id": "stale-critical-path",
+        "question": "关键线路是由哪些工作组成？",
+        "question_type": "choice",
+        "options": {"A": "关键工作", "B": "自由时差最大工作", "C": "普通工作", "D": "虚工作"},
+        "correct_answer": "A",
+        "user_answer": "A",
+        "is_correct": True,
+    }
+    stale_active_object = build_active_object_from_question_context(stale_context)
+    assert stale_active_object is not None
+    await store.set_active_object(session["id"], stale_active_object)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": (
+                "某屋面卷材防水施工后渗漏，现场发现基层潮湿、搭接宽度不足、"
+                "闭水试验记录缺失。\n"
+                "【问题】请指出主要质量问题并提出整改措施。\n"
+                "作答：基层必须干燥，搭接宽度应符合规范，补做蓄水试验并整改渗漏点。"
+            ),
+            "session_id": session["id"],
+            "capability": "tutorbot",
+            "tools": [],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {"bot_id": "construction-exam-coach"},
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    resolved_context = captured["question_followup_context"]
+    assert resolved_context["question_id"] != "stale-critical-path"
+    assert resolved_context["question_type"] == "case"
+    assert "屋面卷材防水施工后渗漏" in resolved_context["question"]
+    assert "基层必须干燥" in resolved_context["user_answer"]
+
+    active_object = await store.get_active_object(session["id"])
+    assert active_object is not None
+    persisted_context = extract_question_context_from_active_object(active_object)
+    assert persisted_context is not None
+    assert persisted_context["question_id"] != "stale-critical-path"
+    assert persisted_context["question_type"] == "case"
+    assert "屋面卷材防水施工后渗漏" in persisted_context["question"]
 
 
 @pytest.mark.asyncio

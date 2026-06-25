@@ -64,16 +64,20 @@ from deeptutor.services.question_followup import (
     submission_confidence,
 )
 from deeptutor.services.question_lifecycle_skills import (
+    case_grading_context_from_full_submission,
     looks_like_case_grading_submission_context,
-    looks_like_full_case_answer_submission,
     looks_like_free_text_mcq_grading_request,
     looks_like_free_text_mcq_question_surface,
+    looks_like_full_case_answer_submission,
+    mcq_grading_context_from_full_submission,
     select_question_lifecycle_skill_names,
     split_full_case_answer_submission,
 )
 from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
+)
+from deeptutor.services.semantic_router import (
     has_explicit_practice_generation_intent,
 )
 from deeptutor.services.semantic_router_telemetry import (
@@ -1291,6 +1295,20 @@ def _question_context_matches_free_text_surface(
     return option_hits >= min(2, len(options))
 
 
+def _question_context_matches_current_surface(
+    user_message: str,
+    current_surface_context: dict[str, Any],
+    question_context: dict[str, Any],
+) -> bool:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return False
+    current_type = str(current_surface_context.get("question_type") or "").strip().lower()
+    if current_type == "case":
+        return _case_context_matches_full_case_surface(user_message, normalized_context)
+    return _question_context_matches_free_text_surface(user_message, normalized_context)
+
+
 def _case_context_matches_full_case_surface(
     user_message: str,
     question_context: dict[str, Any],
@@ -1348,6 +1366,36 @@ def _full_case_submission_action() -> dict[str, Any]:
         "answers": [],
         "reason": "用户消息包含当前完整案例题题面和作答，优先进入案例批改。",
     }
+
+
+def _current_surface_submission_context_and_action(
+    user_message: str,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    mcq_context = mcq_grading_context_from_full_submission(user_message)
+    if mcq_context is not None:
+        submission_context, submission_action = _submission_action_for_user_message(
+            user_message,
+            mcq_context,
+        )
+        if submission_action is None and str(mcq_context.get("user_answer") or "").strip():
+            submission_action = {
+                "intent": "answer_questions",
+                "confidence": 0.92,
+                "answers": [
+                    {
+                        "question_id": str(mcq_context.get("question_id") or "").strip(),
+                        "answer": str(mcq_context.get("user_answer") or "").strip(),
+                    }
+                ],
+                "reason": "用户消息包含当前完整选择题题面和作答，优先进入批改。",
+            }
+        return submission_context or mcq_context, submission_action
+
+    case_context = case_grading_context_from_full_submission(user_message)
+    if case_context is not None:
+        return case_context, _full_case_submission_action()
+
+    return None, None
 
 
 _QUESTION_LIFECYCLE_METADATA_KEYS = (
@@ -1524,6 +1572,21 @@ async def _resolve_question_followup_context_and_action(
         and looks_like_free_text_mcq_question_surface(user_message)
     )
     full_case_answer_submission = looks_like_full_case_answer_submission(user_message)
+    current_surface_context, current_surface_action = _current_surface_submission_context_and_action(
+        user_message
+    )
+    if (
+        current_surface_context is not None
+        and normalized_explicit is not None
+        and not _question_context_matches_current_surface(
+            user_message,
+            current_surface_context,
+            normalized_explicit,
+        )
+    ):
+        normalized_explicit = None
+        normalized_action = None
+
     if _should_ignore_explicit_context_for_free_text_mcq(user_message, normalized_explicit):
         normalized_explicit = None
         normalized_action = None
@@ -1544,6 +1607,15 @@ async def _resolve_question_followup_context_and_action(
 
     if normalized_explicit is not None:
         for candidate in candidate_contexts:
+            if (
+                current_surface_context is not None
+                and not _question_context_matches_current_surface(
+                    user_message,
+                    current_surface_context,
+                    candidate or {},
+                )
+            ):
+                continue
             merged = _merge_public_submission_with_authoritative_context(
                 normalized_explicit,
                 candidate,
@@ -1611,6 +1683,15 @@ async def _resolve_question_followup_context_and_action(
         if normalized_candidate is None:
             continue
         if (
+            current_surface_context is not None
+            and not _question_context_matches_current_surface(
+                user_message,
+                current_surface_context,
+                normalized_candidate,
+            )
+        ):
+            continue
+        if (
             full_case_answer_submission
             and not _case_context_matches_full_case_surface(user_message, normalized_candidate)
         ):
@@ -1670,6 +1751,9 @@ async def _resolve_question_followup_context_and_action(
             return normalized_candidate, candidate_action
         if deterministic_followup:
             return normalized_candidate, None
+
+    if current_surface_context is not None:
+        return current_surface_context, current_surface_action
 
     return None, None
 
@@ -6234,15 +6318,25 @@ class TurnRuntimeManager:
             execution.session_id,
             default=None,
         )
+        normalized_prior_ao = normalize_active_object(prior_ao)
         prior_ctx = extract_question_context_from_active_object(prior_ao)
         prior_items = list((prior_ctx or {}).get("items") or [])
+        decision = metadata.get("turn_semantic_decision")
+        next_action = str((decision or {}).get("next_action") or "").strip() if isinstance(decision, dict) else ""
+        result_mode = str(
+            metadata.get("mode") or metadata.get("selected_mode") or ""
+        ).strip().lower()
+        is_grading_result = next_action == "route_to_grading" or result_mode == "grading"
         if len(prior_items) <= 1:
+            if is_grading_result and prior_ctx is not None:
+                prior_object_id = str((normalized_prior_ao or {}).get("object_id") or "").strip()
+                result_object_id = str(result_ao.get("object_id") or "").strip()
+                if prior_object_id and result_object_id and prior_object_id != result_object_id:
+                    return prior_ao if isinstance(prior_ao, dict) else result_active_object
             # Prior was not a batch set → nothing to preserve, behave as before.
             return result_active_object
 
         prior_qids = [str(it.get("question_id") or "").strip() for it in prior_items]
-        decision = metadata.get("turn_semantic_decision")
-        next_action = str((decision or {}).get("next_action") or "").strip() if isinstance(decision, dict) else ""
 
         if result_qid and result_qid in prior_qids:
             # Grading-of-set-item: merge the judged version back into the set.

@@ -1177,6 +1177,69 @@ def looks_like_free_text_mcq_question_surface(text: str) -> bool:
     )
 
 
+def case_grading_context_from_full_submission(text: str) -> dict[str, Any] | None:
+    """Project a self-contained case submission into the current question context."""
+
+    question_stem, learner_answer = split_full_case_answer_submission(text)
+    if not question_stem.strip() or not learner_answer.strip():
+        return None
+    return {
+        "question_id": "",
+        "question": question_stem.strip(),
+        "question_stem": question_stem.strip(),
+        "question_type": "case",
+        "user_answer": learner_answer.strip(),
+        "correct_answer": "",
+        "construction_grading_result": {
+            "type": "case",
+            "max_score": 10,
+        },
+    }
+
+
+def mcq_grading_context_from_full_submission(text: str) -> dict[str, Any] | None:
+    """Project a learner-pasted MCQ plus answer onto the learner's option surface."""
+
+    user_message = str(text or "").strip()
+    if not (user_message and looks_like_free_text_mcq_question_surface(user_message)):
+        return None
+
+    from deeptutor.services.question_followup import resolve_submission_attempt
+    from deeptutor.services.rag.historical_questions import _extract_query_options
+
+    option_surface = user_message
+    answer_marker = re.search(
+        r"(?:我选|我选择|我的答案(?:是|为)?|答案(?:是|为)?|选)\s*[A-DＡ-Ｄ]",
+        user_message,
+        re.IGNORECASE,
+    )
+    if answer_marker is not None:
+        option_surface = user_message[: answer_marker.start()]
+    options = {
+        str(opt.get("key") or "").strip().upper(): str(opt.get("value") or "").strip()
+        for opt in _extract_query_options(option_surface)
+        if str(opt.get("key") or "").strip() and str(opt.get("value") or "").strip()
+    }
+    if len(options) < 2:
+        return None
+
+    _target, submission = resolve_submission_attempt(
+        user_message,
+        {"question": user_message, "question_type": "choice", "options": options},
+    )
+    user_answer = str((submission or {}).get("answer") or "").strip()
+    if not user_answer:
+        return None
+    return {
+        "question_id": "",
+        "question": user_message,
+        "question_type": "choice",
+        "options": options,
+        "user_answer": user_answer,
+        "correct_answer": "",
+    }
+
+
 def _is_case_grading_context_row(row: dict[str, Any]) -> bool:
     q_type = str(row.get("question_type") or row.get("type") or "").strip().lower()
     if q_type in _CASE_GRADING_CONTEXT_TYPES:

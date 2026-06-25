@@ -79,6 +79,11 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 - **铁律③.7（2026-06-25 generation bypass）：prompt/generator schema 绿 ≠ 出题终端经过了 generator。**
   若输出逐字稳定、延迟很低、且复验补了 generator 仍无效，立即 dump DB `templates_ready` metadata；
   questions_bank short-circuit 可能直接把题库原题 QAPair 送到终端，绕过 batch generator/schema。
+- **铁律③.8（2026-06-25 current surface authority）：完整新题面先成为本轮对象，不等于旧对象不会二次抢权。**
+  需要同时查两处：turn-start resolver 是否把当前完整 MCQ / case surface 投影成 `question_followup_context`
+  和 `active_object`；以及 resolver 的 public-submission merge / turn-end result merge 是否又把旧
+  candidate / RESULT `active_object` 的 `question_id`、`correct_answer`、`user_answer` 合回来。只修
+  "skip stale candidate" 不够，第二次 merge 是常见复发点。
 - **异源核（同源不能自证）**：根因判断 + "无编造/已修好"结论必须异源在环。
   Codex 额度耗尽用 `deepseek-v4-pro`@api.deepseek.com（`DEEPSEEK_API_KEY`，OpenAI
   兼容）：给中立证据 + 对立假设让它独立选，**别 prime**。异源也可能共享错前提，
@@ -154,7 +159,7 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 〔N〕在判分/教学合成路径泄露(bot 承诺不带仍输出"正确答案:A〔1〕") | 判分 emit 绕过 citations 剥离权威,coerce sink 不剥〔N〕(dormant authority) | strip_orphan_public_markers 收口到 coerce_user_visible_answer(复用 citations 剥离,不造第二权威) | 🔵 task#27 已诊断未实施 |
 | 一建他科(市政/机电/公路)+建筑工程白名单漏词(沟槽开挖)被科目门误拒 | 关键词白名单判语义,unknown_topic→拒("静态闸越权承担语义判断") | 反转:单一 helper 只 out_of_scope 拒,unknown 放行+非专项标注;判据用 RAG/教材覆盖非白名单 | ✅ 代码完成待 live(task#8) |
 | 出题考点精度漂移/逐字重复出题 | 主题槽位被对话噪声劫持 / 去重失效(异源拆出独立病) | 出题 prompt 主题约束隔离对话填充词 / 出题调度去重 | 🔵 task#8/task#28 |
-| 用户切换到案例点评,系统仍按上一道 MCQ active object 判分("关键线路"题) | active object / grading object 仍有跨题型多 writer,新用户题面没有先成为当前判分对象 authority | 待收口:用户粘贴/描述的新案例题面必须先替换或暂停旧 MCQ active object;无当前对象 authority 禁入阅卷 | ❌ 2026-06-25 live 复现(cliche T6) |
+| 用户切换到新 MCQ / 案例点评,系统仍按上一道 MCQ active object 判分("关键线路"题) | current grading object identity 多 writer:旧 active_object/candidate 与下游 RESULT 可二次覆盖当前题面 | 完整 MCQ/case submission 共享投影 helper 上移到 `question_lifecycle_skills`; turn-start 只允许同题 context 保权,不匹配则当前题面成 active_object; turn-end grading RESULT 不得用不同 object_id 旧对象覆盖当前对象 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 必须增量落盘并用 DB completed/result 对账 | ⚠️ 稳定性待修 |
 
 ## 红线
