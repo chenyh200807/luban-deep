@@ -4996,7 +4996,13 @@ def test_list_members_and_dashboard_use_supabase_directory_plus_local_manual_mem
     assert directory.calls
 
 
-def test_member_directory_includes_member_console_only_manual_phone_member(tmp_path: Path) -> None:
+def test_member_directory_includes_member_console_only_manual_phone_member(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime(2026, 6, 22, 15, 0, tzinfo=timezone(timedelta(hours=8)))
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+
     directory = _FakeMemberDirectory(
         [
             {
