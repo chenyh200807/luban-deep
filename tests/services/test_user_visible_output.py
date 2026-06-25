@@ -145,3 +145,24 @@ def test_coerce_strips_rich_grounding_source_markers():
     )
     assert "〔源:CK_1A_0001〕" not in out and "〔源" not in out
     assert "阅卷结论" in out and "危大工程需专家论证" in out  # 正文保留
+
+
+def test_coerce_strips_body_marker_not_backed_by_footer_marker() -> None:
+    text = "正确答案是 C〔2〕。\n\n依据\n〔1〕2026建筑实务教材 §3.1"
+
+    out = coerce_user_visible_answer(text)
+
+    assert "C〔2〕" not in out
+    assert "正确答案是 C" in out
+    assert "〔1〕2026建筑实务教材 §3.1" in out
+
+
+def test_coerce_blocks_prompt_envelope_and_profile_projection_labels() -> None:
+    text = (
+        "参考证据：题库命中片段\n"
+        "局部工作记忆投影：上一轮判分摘要\n"
+        "长期画像提示：M07 画像提示，学生近期薄弱点为防水构造。"
+    )
+
+    assert looks_like_internal_output(text) is True
+    assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"

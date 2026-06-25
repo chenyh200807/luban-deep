@@ -2743,6 +2743,165 @@ async def test_turn_runtime_prefers_public_content_stream_over_stale_result_resp
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_visible_sink_strips_orphan_markers_across_stream_result_history(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="## 当前题判分\n你答了 A〔1〕，正确答案是 B。\n",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "旧结果也不应抢权〔2〕"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "请批改这道题，我选A，正确答案B。",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    content_events = [event for event in events if event.get("type") == "content"]
+    assert content_events
+    assert "〔1〕" not in content_events[-1]["content"]
+    assert content_events[-1]["content"].endswith("\n")
+
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert "〔" not in result_events[-1]["metadata"]["response"]
+    assert result_events[-1]["metadata"]["response"] == content_events[-1]["content"].strip()
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert "〔" not in detail["messages"][-1]["content"]
+    assert detail["messages"][-1]["content"] == content_events[-1]["content"].strip()
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_visible_sink_blocks_internal_envelope_in_result_and_history(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={
+                    "response": (
+                        "参考证据：题库命中片段\n"
+                        "局部工作记忆投影：上一轮判分摘要\n"
+                        "长期画像提示：M07 画像提示，学生近期薄弱点为防水构造。"
+                    )
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "帮我复盘一下。",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    response = result_events[-1]["metadata"]["response"]
+    assert response == "暂时未生成适合直接展示的答案，请重试一次。"
+    assert "参考证据" not in response
+    assert "长期画像" not in response
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert detail["messages"][-1]["content"] == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_projects_assistant_content_to_legacy_result_response(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
