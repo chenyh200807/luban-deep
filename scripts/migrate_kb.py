@@ -14,7 +14,7 @@ Features:
 - Run test query to verify migration
 
 Usage:
-    python scripts/migrate_kb.py /path/to/kb --name my_kb --test --extract-items
+    python scripts/migrate_kb.py /path/to/kb --apply --name my_kb --test --extract-items
     python scripts/migrate_kb.py /path/to/kb --validate-only
 """
 
@@ -410,6 +410,7 @@ async def migrate_kb(
     source_path: str,
     target_base_dir: str | None = None,
     kb_name: str | None = None,
+    apply: bool = False,
     run_test: bool = False,
     extract_items: bool = False,
     validate_only: bool = False,
@@ -472,6 +473,11 @@ async def migrate_kb(
 
     if validate_only:
         print("Validation-only mode. Exiting.")
+        return True
+
+    if not apply:
+        print("Dry-run mode. Validation passed; no files were copied or modified.")
+        print("Re-run with --apply to copy files, register the KB, and run optional follow-up steps.")
         return True
 
     # Step 2: Copy to target
@@ -540,23 +546,23 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Migrate a knowledge base
+  # Preview a migration (default; no writes)
   python scripts/migrate_kb.py /path/to/my_kb
 
-  # Migrate with custom name
-  python scripts/migrate_kb.py /path/to/kb --name my_textbook
+  # Apply a migration
+  python scripts/migrate_kb.py /path/to/my_kb --apply
 
-  # Migrate and run test query
-  python scripts/migrate_kb.py /path/to/kb --test
+  # Apply with custom name
+  python scripts/migrate_kb.py /path/to/kb --apply --name my_textbook
 
-  # Migrate and extract numbered items
-  python scripts/migrate_kb.py /path/to/kb --extract-items
+  # Apply and run test query
+  python scripts/migrate_kb.py /path/to/kb --apply --test
 
   # Validate only (don't migrate)
   python scripts/migrate_kb.py /path/to/kb --validate-only
 
-  # Force overwrite existing KB
-  python scripts/migrate_kb.py /path/to/kb --force
+  # Apply and force overwrite existing KB
+  python scripts/migrate_kb.py /path/to/kb --apply --force
 """,
     )
 
@@ -568,6 +574,12 @@ Examples:
 
     parser.add_argument(
         "--target-dir", help=f"Target base directory (default: {DEFAULT_KB_BASE_DIR})"
+    )
+
+    parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Execute the migration. Default mode is dry-run/plan-only.",
     )
 
     parser.add_argument("--test", action="store_true", help="Run a test query after migration")
@@ -585,10 +597,14 @@ Examples:
     )
 
     parser.add_argument(
-        "--force", action="store_true", help="Overwrite existing knowledge base if exists"
+        "--force",
+        action="store_true",
+        help="Overwrite existing knowledge base if exists (requires --apply)",
     )
 
     args = parser.parse_args()
+    if args.apply and args.validate_only:
+        parser.error("--apply cannot be combined with --validate-only")
 
     # Run migration
     success = asyncio.run(
@@ -596,6 +612,7 @@ Examples:
             source_path=args.source,
             target_base_dir=args.target_dir,
             kb_name=args.name,
+            apply=args.apply,
             run_test=args.test,
             extract_items=args.extract_items,
             validate_only=args.validate_only,

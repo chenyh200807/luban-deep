@@ -157,3 +157,25 @@ def test_explicit_bundle_id_is_passed_through() -> None:
         query="q", provider="kbv5", kb_name="kb", content_blocks=[], sources=[], bundle_id="fixed-id"
     )
     assert bundle["bundle_id"] == "fixed-id"
+
+
+def test_source_items_are_normalized_by_single_authority_builder() -> None:
+    bundle = build_evidence_bundle(
+        query="q",
+        provider="kbv5",
+        kb_name="kb",
+        content_blocks=[],
+        sources=[
+            {
+                "doc_id": "doc-1",
+                "title": "建筑构造",
+                "chapter": "屋面工程",
+            }
+        ],
+    )
+
+    source = bundle["sources"][0]
+    assert source["document_id"] == "doc-1"
+    assert source["source"] == "建筑构造"
+    assert source["authority"] == {}
+    assert source["subject"] == "屋面工程"

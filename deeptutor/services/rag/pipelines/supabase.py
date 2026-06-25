@@ -472,6 +472,7 @@ def _build_evidence_bundle(
     query_shape: str,
     rewritten,
     second_pass_queries: list[str],
+    embedding_dim: int | None = None,
     retrieval_warnings: list[Any] | None = None,
 ) -> dict[str, Any]:
     # Thin adapter over the single-authority builder: maps the supabase lane's inputs to the
@@ -491,6 +492,7 @@ def _build_evidence_bundle(
         retrieval_warnings=retrieval_warnings,
         trace={
             "retrieval_query": str(rewritten.primary_query or query).strip(),
+            "retrieval_runtime": {"embedding_dim": embedding_dim},
             "query_rewrite": {
                 "normalized_query": str(rewritten.normalized_query or "").strip(),
                 "keywords": list(rewritten.keywords or []),
@@ -824,6 +826,7 @@ class SupabasePipeline:
         compiled_learning_truth = kwargs.get("compiled_learning_truth")
         personalization_context = kwargs.get("personalization_context")
         personalization_context = personalization_context if isinstance(personalization_context, dict) else None
+        self._last_query_embedding_dim: int | None = None
         with observability.start_observation(
             name="rag.supabase.search",
             as_type="retriever",
@@ -1155,6 +1158,9 @@ class SupabasePipeline:
                     "chunk_id": item.get("chunk_id") or item.get("id") or "",
                     "score": round(float(item.get("score") or 0.0), 4),
                     "source_type": item.get("source_type") or "",
+                    "document_id": metadata.get("document_id") or metadata.get("doc_id") or item.get("document_id") or item.get("doc_id") or "",
+                    "authority": metadata.get("authority") or item.get("authority") or {},
+                    "subject": metadata.get("subject") or item.get("subject") or "",
                     "source_id": metadata.get("source_id") or item.get("source_id") or "",
                     "source_table": metadata.get("source_table") or item.get("_source_table") or item.get("source_table") or "",
                     "stable_id": metadata.get("stable_id") or item.get("stable_id") or "",
@@ -1182,6 +1188,7 @@ class SupabasePipeline:
             query_shape=query_shape,
             rewritten=rewritten,
             second_pass_queries=second_pass_queries,
+            embedding_dim=self._last_query_embedding_dim,
             # builder derives retrieval_degraded/status/warning_count from this (fully populated here)
             retrieval_warnings=retrieval_warnings,
         )
@@ -1201,7 +1208,7 @@ class SupabasePipeline:
             "query": query,
             "answer": content,
             "content": content,
-            "sources": sources,
+            "sources": evidence_bundle["sources"],
             "provider": "supabase",
             "kb_name": kb_name,
             "evidence_bundle": evidence_bundle,
@@ -1400,12 +1407,16 @@ class SupabasePipeline:
             )
         ]
         semaphore = asyncio.Semaphore(max(1, int(getattr(config, "query_variant_concurrency", 1) or 1)))
+        query_embedding_dim = 0
 
         async def run_one(query_index: int, item: str) -> tuple[int, list[dict[str, Any]]]:
+            nonlocal query_embedding_dim
             current_query = str(item or "").strip()
             if not current_query:
                 return query_index, []
             embedding = await self._embed_query(current_query)
+            if not query_embedding_dim and embedding:
+                query_embedding_dim = len(embedding)
             vector_literal = _vector_literal(embedding)
             tasks = [
                 self._search_source(
@@ -1509,6 +1520,7 @@ class SupabasePipeline:
         plans: list[dict[str, Any]] = []
         for _query_index, query_plans in sorted(batches, key=lambda item: item[0]):
             plans.extend(query_plans)
+        self._last_query_embedding_dim = query_embedding_dim or None
         return plans
 
     def _fuse_plan_results(

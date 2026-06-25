@@ -371,31 +371,35 @@ class KbV5Pipeline:
                 )
                 raise rag_error from exc
 
-            sources = [_source_from_chunk(chunk) for chunk in result.chunks]
-            content = _render_context(sources)
-            ranking_trace = build_ranking_trace(sources)
+            raw_sources = [_source_from_chunk(chunk) for chunk in result.chunks]
+            content = _render_context(raw_sources)
+            ranking_trace = build_ranking_trace(raw_sources)
             evidence_bundle = build_evidence_bundle(
                 query=query,
                 provider="kbv5",
                 kb_name=kb_name,
                 content_blocks=[content],
-                sources=sources,
+                sources=raw_sources,
                 retrieval_plan=retrieval_plan.to_dict(),
                 ranking_trace=ranking_trace,
                 trace={
                     "transport": "direct_postgres_readonly",
                     "doc_types": list(result.doc_types),
+                    "retrieval_runtime": {
+                        "data_version": data_version,
+                        "embedding_dim": result.embed_dim,
+                    },
                     "embed_dim": result.embed_dim,
                     "latency_ms": result.latency_ms,
                 },
             )
             observability.update_observation(
                 observation,
-                output_payload={"source_count": len(sources)},
+                output_payload={"source_count": len(raw_sources)},
                 metadata={
                     "kb_name": kb_name,
-                    "source_count": len(sources),
-                    "retrieval_status": "ok" if sources else "empty",
+                    "source_count": len(raw_sources),
+                    "retrieval_status": "ok" if raw_sources else "empty",
                     "latency_ms": result.latency_ms,
                 },
             )
@@ -403,10 +407,10 @@ class KbV5Pipeline:
                 "query": query,
                 "answer": content,
                 "content": content,
-                "sources": sources,
+                "sources": evidence_bundle["sources"],
                 "provider": "kbv5",
                 "kb_name": kb_name,
-                "retrieval_status": "ok" if sources else "empty",
+                "retrieval_status": "ok" if raw_sources else "empty",
                 "retrieval_degraded": False,
                 "evidence_bundle": evidence_bundle,
             }

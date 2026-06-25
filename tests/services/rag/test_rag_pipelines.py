@@ -1036,6 +1036,9 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
                         "_source_group": "questions_bank",
                         "_source_table": "questions_bank",
                         "metadata": {
+                            "document_id": "doc-question-roof",
+                            "authority": {"kind": "questions_bank", "weight": 1.5},
+                            "subject": "建筑防水",
                             "source_id": "question_2026_roof_001",
                             "source_table": "questions_bank",
                             "stable_id": "question_2026_roof_001:stem",
@@ -1203,6 +1206,9 @@ async def test_supabase_search_emits_evidence_bundle_and_respects_routing_metada
                         "_source_group": "questions_bank",
                         "_source_table": "questions_bank",
                         "metadata": {
+                            "document_id": "doc-question-roof",
+                            "authority": {"kind": "questions_bank", "weight": 1.5},
+                            "subject": "建筑防水",
                             "source_id": "question_2026_roof_001",
                             "source_table": "questions_bank",
                             "stable_id": "question_2026_roof_001:stem",
@@ -1240,6 +1246,12 @@ async def test_supabase_search_emits_evidence_bundle_and_respects_routing_metada
     assert result["evidence_bundle"]["sources"][0]["source_span"] == {"question": "Q1", "section": "roof"}
     assert result["evidence_bundle"]["sources"][0]["content_hash"] == "hash-question-roof"
     assert result["evidence_bundle"]["sources"][0]["quote_hash"] == "quote-question-roof"
+    assert result["evidence_bundle"]["sources"][0]["document_id"] == "doc-question-roof"
+    assert result["evidence_bundle"]["sources"][0]["authority"] == {
+        "kind": "questions_bank",
+        "weight": 1.5,
+    }
+    assert result["evidence_bundle"]["sources"][0]["subject"] == "建筑防水"
 
 
 @pytest.mark.asyncio
