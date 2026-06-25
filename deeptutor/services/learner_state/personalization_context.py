@@ -13,7 +13,6 @@ from deeptutor.services.learner_state.training_intent import build_learning_trai
 _STABLE_CLAIM_STATUSES = {"confirmed", "repeated", "observed"}
 _GAP_CLAIM_STATUSES = {"stale", "superseded", "contradicted", "rejected"}
 _BLOCKED_LIVE_CLAIM_CAP_REASONS = {"conversation_signal_not_grading_truth"}
-_INTERNAL_CLAIM_MARKER_RE = re.compile(r"\b[EM]\d{2}\b|长期画像提示", flags=re.IGNORECASE)
 # 时间规则（遗忘曲线第一步）：active claim 末次证据超过该天数 → 进入 review_due。
 REVIEW_DUE_AFTER_DAYS = 14
 
@@ -137,7 +136,7 @@ def _claim_views(learning_brain: dict[str, Any] | None, *, max_claims: int) -> l
         raw_claim_id = str(item.get("object_id") or item.get("claim_id") or "").strip()
         public_error_label = _public_error_label(raw_claim_id)
         views.append({
-            "claim_id": _public_claim_id(raw_claim_id),
+            "claim_id": raw_claim_id,
             "object_type": str(item.get("object_type") or "").strip(),
             "claim_status": status,
             "decay_state": decay_state,
@@ -166,8 +165,9 @@ def _claim_gaps(learning_brain: dict[str, Any] | None) -> list[dict[str, str]]:
             continue
         status = str(item.get("claim_status") or "").strip()
         if status in _GAP_CLAIM_STATUSES:
+            raw_claim_id = str(item.get("object_id") or item.get("claim_id") or "").strip()
             gaps.append({
-                "claim_id": _public_claim_id(str(item.get("object_id") or item.get("claim_id") or "").strip()),
+                "claim_id": raw_claim_id,
                 "reason": f"claim_{status}",
             })
     return gaps
@@ -341,13 +341,6 @@ def _blocked_live_claim(item: dict[str, Any]) -> bool:
         if str(reason or "").strip()
     }
     return bool(cap_reasons.intersection(_BLOCKED_LIVE_CLAIM_CAP_REASONS))
-
-
-def _public_claim_id(raw_claim_id: str) -> str:
-    text = str(raw_claim_id or "").strip()
-    if not text or not _INTERNAL_CLAIM_MARKER_RE.search(text):
-        return text
-    return _clean_public_claim_text(text) or "learner_claim"
 
 
 def _public_claim_label(item: dict[str, Any], *, raw_claim_id: str) -> str:

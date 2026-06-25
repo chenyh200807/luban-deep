@@ -120,10 +120,12 @@ def test_personalization_context_humanizes_internal_error_codes_for_prompt_paylo
         },
     )
 
-    payload_text = str(pack)
     assert pack["top_claims"]
-    assert "M07" not in payload_text
-    assert "多选错选" in payload_text
+    claim = pack["top_claims"][0]
+    assert claim["claim_id"] == "1A432000:M07"
+    assert claim["error_label"] == "多选错选"
+    assert "多选错选" in claim["label"]
+    assert "长期画像提示" not in str(pack)
 
 
 def test_personalization_context_derives_next_action_from_confirmed_long_term_claim() -> None:
@@ -229,7 +231,7 @@ def test_personalization_context_surfaces_review_due_by_time_rule() -> None:
 
     due = pack["review_due"]
     assert len(due) == 1
-    assert due[0]["claim_id"] == "屋面与防水工程施工:多选漏选"
+    assert due[0]["claim_id"] == "1A413050:M06"
     assert due[0]["concept_id"] == "1A413050"
     assert due[0]["days_since_last_evidence"] >= 14
     # 无显式 intent 时，复习项优先驱动下一步动作
