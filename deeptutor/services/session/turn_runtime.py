@@ -94,10 +94,7 @@ from deeptutor.services.session.sqlite_store import (
     normalize_active_object,
     normalize_suspended_object_stack,
 )
-from deeptutor.services.user_visible_output import (
-    coerce_user_visible_answer,
-    looks_like_unsafe_visible_output,
-)
+from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
     normalize_requested_response_mode,
@@ -576,14 +573,10 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
         return metadata
     if event.type == StreamEventType.CONTENT and _should_capture_assistant_content(event):
         raw = event.content if isinstance(event.content, str) else ""
-        # Token-level deltas must keep whitespace verbatim; coerce/normalize are
-        # paragraph-level transforms that strip per-delta whitespace and drop
-        # pure-newline deltas ("\n\n") to "", which breaks ATX heading and list
-        # parsing in the frontend markdown renderer.
-        if raw and looks_like_unsafe_visible_output(raw):
-            event.content = coerce_user_visible_answer(raw)
-        else:
-            event.content = raw
+        # Token-level deltas must keep whitespace verbatim; use the shared
+        # visible sink in delta-preserving mode so citation/internal noise is
+        # still removed without breaking ATX heading and list parsing.
+        event.content = coerce_user_visible_answer(raw, preserve_outer_whitespace=True)
         return metadata
     if event.type == StreamEventType.ERROR:
         event.content = normalize_markdown_for_tutorbot(
