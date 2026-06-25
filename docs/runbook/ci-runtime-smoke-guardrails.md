@@ -32,6 +32,31 @@ full validation:
 - Repeated pushes to the same PR cancel older in-flight `Tests` runs. Debug the
   newest run for the current head SHA, not a cancelled older SHA.
 
+## Deploy Gate Stale Workflow Runs
+
+`Deploy Gate` is triggered by `workflow_run` after a `Tests` run completes. When
+`main` receives several pushes close together, GitHub can deliver a cancelled
+older `Tests` run after a newer commit is already the default-branch head. The
+Deploy Gate run may then appear on the newer commit while
+`github.event.workflow_run.head_sha` still points at the older cancelled Tests
+SHA.
+
+Failure signature:
+
+- Deploy Gate job head SHA in the Actions UI is the latest `main` commit.
+- The log line `Upstream Tests run:` points to an older cancelled `Tests` run.
+- `github.event.workflow_run.head_sha` differs from `github.sha`.
+
+Expected handling:
+
+- If `github.event.workflow_run.head_sha != github.sha`, treat the event as
+  stale, write `status=stale`, and do not fail the Deploy Gate job.
+- Only a non-success `Tests` conclusion for the current `main` SHA should turn
+  Deploy Gate red.
+- Final release closure still requires the latest `Tests` run and same-SHA
+  current Deploy Gate to be green; a stale Deploy Gate success is not deploy
+  approval.
+
 ## Failure Signature
 
 - `tests/api/test_main_entrypoints.py` fails inside the full smoke suite.
@@ -90,6 +115,7 @@ Also freeze `mobile_module.datetime.now()` for quota-window tests: weekly
 windows reset at Asia/Shanghai Monday 00:00, so relative timestamps like
 `datetime.now() - timedelta(hours=1)` can cross into the previous week during
 Sunday/Monday CI runs.
+
 ## Secret Baseline Discipline
 
 If `detect-secrets-hook --baseline .secrets.baseline $(git ls-files)` reports
