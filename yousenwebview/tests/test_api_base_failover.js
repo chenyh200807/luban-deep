@@ -142,6 +142,39 @@ function loadApiModule(config) {
   );
   assert(result && result.token === "local-token", "request should resolve with fallback response");
 
+  var createLoaded = loadApiModule({
+    requestHandler: function (requestOptions) {
+      requestOptions.success({
+        statusCode: 503,
+        data: { detail: { error: "assessment_sessions_unavailable" } },
+      });
+    },
+  });
+  var createError = null;
+  try {
+    await createLoaded.api.createAssessment({
+      assessment_type: "topic_diagnostic",
+      topic_ids: ["waterproof"],
+      count: 12,
+    });
+  } catch (err) {
+    createError = err;
+  }
+  await flushPromises();
+
+  assert(
+    createLoaded.state.requests.length === 1,
+    "assessment create POST should not replay against an alternate base",
+  );
+  assert(
+    createLoaded.state.requests[0].url === "http://127.0.0.1:8001/api/v1/assessment/create",
+    "assessment create should stay on the authoritative base",
+  );
+  assert(
+    createError && createError.statusCode === 503,
+    "assessment create should return the original controlled 503",
+  );
+
   var notFoundLoaded = loadApiModule({
     requestHandler: function (requestOptions) {
       requestOptions.success({

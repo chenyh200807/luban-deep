@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import httpx
 import pytest
 
 from deeptutor.services.assessment.session_repository import (
@@ -10,6 +11,7 @@ from deeptutor.services.assessment.session_repository import (
     AssessmentSessionExpired,
     AssessmentSessionNotFound,
     InMemoryAssessmentSessionRepository,
+    SupabaseAssessmentSessionRepository,
 )
 
 
@@ -226,3 +228,85 @@ def test_degraded_status_records_explicit_reason_and_is_recoverable_via_writebac
     )
     assert recovered["status"] == "scored"
     assert recovered["degraded_reason"] is None
+
+
+def test_supabase_submit_uses_atomic_unsubmitted_status_filter() -> None:
+    calls: list[tuple[str, dict]] = []
+    row = {
+        "quiz_id": "quiz_atomic",
+        "user_id": "u1",
+        "assessment_type": "topic_diagnostic",
+        "subject_id": "construction_exam",
+        "topic_ids": ["waterproof"],
+        "blueprint_version": "topic_waterproof_v1",
+        "form_id": "topic_waterproof_v1_form_1",
+        "status": "in_progress",
+        "submitted_answer_snapshot": None,
+        "submit_idempotency_key": None,
+        "result_report_json": None,
+        "session_questions_private": [{"question_id": "q1", "answer": "A"}],
+        "client_questions_public": [{"question_id": "q1", "question_stem": "防水题"}],
+        "device_id": "d1",
+        "lease_expires_at": "2026-05-24T12:30:00Z",
+        "expires_at": "2026-05-25T12:00:00Z",
+    }
+
+    class _Response:
+        def __init__(self, payload):
+            self._payload = payload
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self._payload
+
+    class _Client:
+        def get(self, url, *, headers, params):
+            calls.append(("get", dict(params)))
+            return _Response([dict(row)])
+
+        def patch(self, url, *, headers, params, json):
+            calls.append(("patch", dict(params)))
+            return _Response([{**row, **dict(json or {})}])
+
+    repo = SupabaseAssessmentSessionRepository(
+        base_url="https://supabase.example",
+        service_key="service-role",
+        client=_Client(),
+        now_fn=_now,
+    )
+
+    repo.mark_submitted_once(
+        "u1",
+        "quiz_atomic",
+        submitted_answer_snapshot={"q1": "A"},
+        result_report_json={"schema_version": "p0a-v1"},
+        device_id="d1",
+    )
+
+    patch_params = [params for name, params in calls if name == "patch"][0]
+    assert patch_params["user_id"] == "eq.u1"
+    assert patch_params["quiz_id"] == "eq.quiz_atomic"
+    assert patch_params["status"] == "eq.in_progress"
+    assert patch_params["submitted_answer_snapshot"] == "is.null"
+    assert patch_params["expires_at"] == "gt.2026-05-24T12:00:00Z"
+
+
+def test_supabase_transport_error_maps_to_assessment_session_error() -> None:
+    class _Client:
+        def get(self, url, *, headers, params):
+            raise httpx.ConnectError("connect failed")
+
+    repo = SupabaseAssessmentSessionRepository(
+        base_url="https://supabase.example",
+        service_key="service-role",
+        client=_Client(),
+        now_fn=_now,
+    )
+
+    with pytest.raises(Exception) as exc_info:
+        repo.private_session("u1", "quiz_unavailable")
+
+    assert exc_info.type.__name__ == "AssessmentSessionError"
+    assert str(exc_info.value) == "assessment_sessions_unavailable"

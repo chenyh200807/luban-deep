@@ -648,6 +648,11 @@ P0A TestSet 的学情写回只允许走 `assessment_sessions -> AssessmentWriteb
    `training_intent`。Study plan 后续只读取 canonical learner-state projection。
 7. 错题集写回必须使用云端 mistake-book authority 与 signed attempt ref；写回失败时
    session 进入 `degraded` 并保留可重试状态，不伪装成完整成功。
+8. 提交一次性必须由 `assessment_sessions` repository 原子维护：正式 TestSet submit
+   只能在 `status=in_progress` 且 `submitted_answer_snapshot is null` 的同一条件写中
+   落库；并发同 body 重放返回既有 `result_report_json`，并发不同 body 必须返回
+   `assessment_submit_body_conflict`。HTTP adapter 只能做请求体上限、限流、鉴权和
+   错误语义，不得把 durable session 故障回落成 legacy JSON session truth。
 
 ### Assessment TestSet P0B/P1 Extension Contract
 
@@ -656,8 +661,8 @@ session / evidence truth。
 
 1. `real_exam_simulation` mini 卷必须复用 `assessment_sessions` durable session
    authority，使用 `real_exam_simulation_mini_v1` blueprint，返回 20 题 redacted
-   public payload，并在 `result_report_json.assessment_type` 中保留
-   `real_exam_simulation`。
+   public payload，暴露 `form_source`、`form_id`、`form_index`、`form_count` 作为
+   轮换证据，并在 `result_report_json.assessment_type` 中保留 `real_exam_simulation`。
 2. 真题样式 mini 卷的用户文案默认只能叫“综合模拟测评”或“真题样式测评”；没有
    provenance + 教研签字时不得声明“官方真题”。
 3. P1 deep explanation 是基于已提交 report 和 hidden grading artifact 的 projection：

@@ -52,9 +52,11 @@ from deeptutor.services.assessment.deep_explanation import (
     minimum_explanation_points,
 )
 from deeptutor.services.assessment.report_read_model import build_result_report
-from deeptutor.services.assessment.scoring import score_assessment
+from deeptutor.services.assessment.scoring import AssessmentScoringError, score_assessment
 from deeptutor.services.assessment.session_repository import (
+    AssessmentSessionConflict,
     AssessmentSessionError,
+    AssessmentSessionNotFound,
     InMemoryAssessmentSessionRepository,
     SupabaseAssessmentSessionRepository,
 )
@@ -635,7 +637,7 @@ class MemberConsoleService:
 
     def _require_durable_assessment_sessions(self) -> None:
         if self._assessment_sessions_supabase_required_but_missing:
-            raise RuntimeError("assessment_sessions_supabase_not_configured")
+            raise AssessmentSessionError("assessment_sessions_supabase_not_configured")
 
     def _get_learner_state_service(self):
         from deeptutor.services.learner_state import get_learner_state_service
@@ -7215,6 +7217,8 @@ class MemberConsoleService:
             "shortfall_count": payload["shortfall_count"],
             "fallback_used": bool(payload.get("fallback_used")),
             "form_source": str(payload.get("form_source") or "unknown"),
+            "form_index": int(payload.get("form_index") or 0),
+            "form_count": int(payload.get("form_count") or 0),
         }
 
     def _create_real_exam_simulation_assessment(
@@ -7268,12 +7272,14 @@ class MemberConsoleService:
             "shortfall_count": payload["shortfall_count"],
             "fallback_used": bool(payload.get("fallback_used")),
             "form_source": str(payload.get("form_source") or "unknown"),
+            "form_index": int(payload.get("form_index") or 0),
+            "form_count": int(payload.get("form_count") or 0),
         }
 
     def submit_assessment(self, user_id: str, quiz_id: str, answers: dict[str, str], time_spent_seconds: int) -> dict[str, Any]:
         try:
             p0a_session = self._assessment_session_repository.private_session(user_id, quiz_id)
-        except AssessmentSessionError:
+        except AssessmentSessionNotFound:
             p0a_session = None
         if p0a_session and p0a_session.get("assessment_type") in {"topic_diagnostic", "real_exam_simulation"}:
             return self._submit_durable_assessment(
@@ -7470,11 +7476,14 @@ class MemberConsoleService:
         session = self._assessment_session_repository.private_session(user_id, quiz_id)
         if session.get("submitted_answer_snapshot") is not None and session.get("result_report_json"):
             return deepcopy(session["result_report_json"])
-        scored_result = score_assessment(
-            list(session.get("session_questions_private") or []),
-            answers,
-            time_spent_seconds=time_spent_seconds,
-        )
+        try:
+            scored_result = score_assessment(
+                list(session.get("session_questions_private") or []),
+                answers,
+                time_spent_seconds=time_spent_seconds,
+            )
+        except AssessmentScoringError as exc:
+            raise AssessmentSessionConflict("assessment_scoring_conflict") from exc
         assessment_type = str(session.get("assessment_type") or "topic_diagnostic")
         topic_ids = list(session.get("topic_ids") or ["waterproof"])
         if assessment_type == "real_exam_simulation":

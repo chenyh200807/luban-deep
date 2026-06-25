@@ -337,6 +337,7 @@ function rawRequest(opts) {
         }
 
         if (
+          !opts.noBaseFallback &&
           !opts.url.startsWith("http") &&
           res.statusCode >= 500 &&
           baseIndex + 1 < baseCandidates.length
@@ -404,6 +405,7 @@ function rawRequest(opts) {
         }
 
         if (
+          !opts.noBaseFallback &&
           !opts.url.startsWith("http") &&
           baseIndex + 1 < baseCandidates.length
         ) {
@@ -856,6 +858,8 @@ function createAssessment(type, count) {
     url: "/api/v1/assessment/create",
     method: "POST",
     data: payload,
+    noRetry: true,
+    noBaseFallback: true,
   });
 }
 

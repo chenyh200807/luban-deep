@@ -4550,6 +4550,89 @@ def test_mobile_assessment_testset_routes_delegate_with_auth_user(
     assert calls[3] == ("report", "student_demo", "quiz_p0a")
 
 
+def test_mobile_assessment_create_runs_sync_service_in_threadpool(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, object]] = []
+
+    class _Member:
+        def create_assessment(self, user_id, **kwargs):
+            calls.append(("create", {"user_id": user_id, **kwargs}))
+            return {"quiz_id": "quiz_threadpool", "questions": []}
+
+    async def fake_run_in_threadpool(fn, *args, **kwargs):
+        calls.append(("threadpool", getattr(fn, "__name__", "")))
+        return fn(*args, **kwargs)
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "run_in_threadpool", fake_run_in_threadpool)
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/assessment/create",
+            json={
+                "assessment_type": "real_exam_simulation",
+                "subject_id": "construction_exam",
+                "count": 20,
+            },
+        )
+
+    assert response.status_code == 200
+    assert calls[0] == ("threadpool", "create_assessment")
+    assert calls[1][0] == "create"
+
+
+def test_mobile_assessment_create_maps_session_config_failure_to_503(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _Member:
+        def create_assessment(self, user_id, **kwargs):
+            raise mobile_module.AssessmentSessionError("assessment_sessions_supabase_not_configured")
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app(), raise_server_exceptions=False) as client:
+        response = client.post(
+            "/api/v1/assessment/create",
+            json={
+                "assessment_type": "topic_diagnostic",
+                "subject_id": "construction_exam",
+                "topic_ids": ["waterproof"],
+                "count": 12,
+            },
+        )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["error"] == "assessment_sessions_unavailable"
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"answers": {f"q{i}": "A" for i in range(51)}, "time_spent_seconds": 60},
+        {"answers": {"q1": "A" * 65}, "time_spent_seconds": 60},
+        {"answers": {"q1": "A"}, "time_spent_seconds": -1},
+    ],
+)
+def test_mobile_assessment_submit_rejects_oversized_payloads(
+    payload: dict[str, object],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _Member:
+        def submit_assessment(self, user_id, quiz_id, *, answers, time_spent_seconds):
+            raise AssertionError("invalid submit payload must not reach service")
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/assessment/quiz_p0a/submit", json=payload)
+
+    assert response.status_code == 422
+
+
 def test_mobile_assessment_topics_routes_delegate_with_auth_user(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

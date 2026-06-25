@@ -439,6 +439,108 @@ function stringify(value) {
     assert(loaded.page.data.selectedTopicId === "waterproof", "first enabled stable topic should remain selectable");
   });
 
+  await run("late topic recommendation must not override manual comprehensive selection", async function () {
+    var resolveTopics;
+    var loaded = loadPage({
+      getAssessmentTopics: function () {
+        return new Promise(function (resolve) {
+          resolveTopics = resolve;
+        });
+      },
+    });
+    loaded.page.onLoad();
+    loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "diagnostic" } } });
+    resolveTopics({
+      recommendation: {
+        recommended_mode: "topic",
+        recommended_topic_id: "main_structure",
+        recommended_count: 12,
+        reason: "主体结构薄弱，建议先专题。",
+      },
+      topics: [
+        {
+          topic_id: "main_structure",
+          label: "主体结构",
+          status: "stable",
+          enabled: true,
+          form_count: 5,
+        },
+      ],
+    });
+    await flushPromises();
+
+    assert(loaded.page.data.recommendedMode === "topic", "late recommendation should still update recommendation badge");
+    assert(loaded.page.data.selectedTopicId === "main_structure", "late catalog should still update selected topic metadata");
+    assert(loaded.page.data.assessmentMode === "diagnostic", "manual comprehensive selection must remain authoritative");
+    assert(loaded.page.data.welcomeTitle === "综合摸底", "manual comprehensive welcome copy must not be overwritten");
+  });
+
+  await run("late topic recommendation must not override manually selected topic", async function () {
+    var resolveTopics;
+    var loaded = loadPage({
+      getAssessmentTopics: function () {
+        return new Promise(function (resolve) {
+          resolveTopics = resolve;
+        });
+      },
+    });
+    loaded.page.onLoad();
+    loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
+    loaded.page.onSelectTopic({ currentTarget: { dataset: { topicId: "waterproof" } } });
+    resolveTopics({
+      recommendation: {
+        recommended_mode: "topic",
+        recommended_topic_id: "main_structure",
+        recommended_count: 12,
+        reason: "主体结构薄弱，建议先专题。",
+      },
+      topics: [
+        {
+          topic_id: "waterproof",
+          label: "防水工程",
+          status: "stable",
+          enabled: true,
+          form_count: 5,
+        },
+        {
+          topic_id: "main_structure",
+          label: "主体结构",
+          status: "stable",
+          enabled: true,
+          form_count: 5,
+        },
+      ],
+    });
+    await flushPromises();
+    loaded.page.onStart();
+    await flushPromises();
+
+    assert(loaded.page.data.assessmentMode === "topic", "manual topic mode must remain authoritative");
+    assert(loaded.page.data.selectedTopicId === "waterproof", "manual topic selection must remain authoritative");
+    assert(loaded.page.data.welcomeTitle === "防水工程专题测评", "manual topic welcome copy must not be overwritten");
+    assert(loaded.createPayloads[0].topic_ids[0] === "waterproof", "create should use manually selected topic");
+  });
+
+  await run("create failure uses classified learner-facing error copy", async function () {
+    var loaded = loadPage({
+      createAssessment: function (payload) {
+        loaded.createPayloads.push(payload);
+        return Promise.reject({ status: 503, detail: { error: "assessment_sessions_unavailable" } });
+      },
+      describeRequestError: function (err, fallbackMsg, opts) {
+        var msg = opts.customMap({ status: err.status, detailText: "assessment_sessions_unavailable", rawMessage: "" });
+        return msg || fallbackMsg;
+      },
+    });
+    loaded.page.onStart();
+    await flushPromises();
+
+    var toastText = loaded.toastCalls.map(function (item) { return item.title || ""; }).join("|");
+    assert(toastText.indexOf("题库服务暂时不可用") >= 0, "create failure should show specific service-unavailable copy");
+    assert(toastText.indexOf("加载题目失败") < 0, "create failure should not collapse to generic load failure");
+    assert(loaded.page.data.stage === "welcome", "failed create should return to welcome");
+  });
+
   await run("P0A start uses topic diagnostic request and redacted pre-submit payload", async function () {
     var loaded = loadPage();
     loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
