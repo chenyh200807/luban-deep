@@ -34,6 +34,9 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 - 真实链路：test2 公网 + 小程序 WebSocket（`/api/v1/ws` 是唯一聊天入口）。
   harness = `scripts/run_student_turn.py` + eval-bypass header；账号池 `/tmp/cc_pool.json`。
   抓答案优先读 DB（`/app/data/user/chat_history.db`），harness WS 捕获可能漏。
+  开跑前先核 release truth：本地 `origin/main`、same-SHA Tests/Deploy Gate、test2 host env、
+  container env、`.Created`/health、容器内关键代码 grep 必须对齐；否则先同步 test2，别拿旧
+  lineage 做 TutorBot 结论。
   **harness `ws_timeout`/漏捕不等于 turn 未完成**：先查 DB `turns` + `turn_events`
   的 terminal `result`；若 DB 已 completed，以 DB 终态为准。driver 必须尽量逐 turn
   fail-soft/增量落盘，避免单个 `ConnectError` 丢整个人格样本。
@@ -132,6 +135,10 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 非答题轮凭空判分后→捏造"系统记录显示你提交了C"为前轮幻觉背书 | 会话内即时自强化幻觉(非跨会话 notebook,PR#204 只断了 notebook 写入侧) | 判分态收权根治(不进判分就无幻觉判分可背书) | ❌ **2026-06-24 新形态**(g2 T10) |
 | DB `turn_semantic_decision.next_action=ask_clarifying_question` 但最终仍判分/生成/泄标准答案 | canonical decision 被 lifecycle fallthrough / deep_question full-submission fallback 当弱提示 | orchestrator 对 `semantic_route=chat` 直接回 TutorBot/chat; deep_question 收到同一 decision fail-closed clarification | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 粘贴案例并要求直接采分点评→bot 自造 4m 软土题并反向成为后续判分对象 | 学生真实题面/作答对象与 bot 自造题 active_object 多 writer | 待收口 assessment object authority:自造练习题不得覆盖用户粘贴案例 authority | ❌ 2026-06-25 live 复现(p04) |
+| 明确要求"单选/A-D/只出题"→lightweight 生成 A-E 五个选项 | batch lightweight 只靠 prompt 要求 A-D,解析端未执行 choice schema contract | generator batch 路径在 LLM JSON→QAPair 前硬校验 raw option keys 必须 A-D,不合格走既有 fallback | ✅ 本地 RED→GREEN(2026-06-25),PR/live 待闭环 |
+| 明确要求"先不要告诉答案"仍直接泄答案/解析 | 出题偏好没有成为终端输出 contract,生成器/渲染器仍把答案解析暴露给学生 | 待查 require_explanation/answer reveal sink,只出题模式下 hidden grading_key 可写但 public answer/explanation 不得出 | ❌ 2026-06-25 乱聊 persona T3 |
+| 完整粘贴 MCQ 要判分,答案 B 可判但改 D/重贴后误入"案例题逐采分点/无 authority" | MCQ 题型识别、active object、case grading fallback 竞争判分 authority | 待收口:自包含 MCQ + 明确我的答案 必须进入 MCQ grading authority,不得被 case rubric fallback 接管 | ❌ 2026-06-25 专业/攻击 persona 复现 |
+| 建筑复盘/混凝土模板防水出题请求被误拒为"非建筑实务主题" | domain gate / intent gate 与主 LLM 语义理解不一致,静态 gate 越权 | 待 dump `practice_generation_topic_domain_status` 与 turn_semantic_decision,unknown 应放行到主链路而非误拒 | ❌ 2026-06-25 专业 persona T4/T9 |
 | 终端输出出现"长期画像提示"/M07 画像提示等内部学情 meta | user-visible sink/画像投影边界泄漏 | 待查 learner_state 是否真有该画像;无论真假,学生输出 sink 不得裸露内部标签 | 🔵 2026-06-25 新模式 |
 | 〔N〕在判分/教学合成路径泄露(bot 承诺不带仍输出"正确答案:A〔1〕") | 判分 emit 绕过 citations 剥离权威,coerce sink 不剥〔N〕(dormant authority) | strip_orphan_public_markers 收口到 coerce_user_visible_answer(复用 citations 剥离,不造第二权威) | 🔵 task#27 已诊断未实施 |
 | 一建他科(市政/机电/公路)+建筑工程白名单漏词(沟槽开挖)被科目门误拒 | 关键词白名单判语义,unknown_topic→拒("静态闸越权承担语义判断") | 反转:单一 helper 只 out_of_scope 拒,unknown 放行+非专项标注;判据用 RAG/教材覆盖非白名单 | ✅ 代码完成待 live(task#8) |
