@@ -160,6 +160,7 @@ class AgentCoordinator:
         history_context: str = "",
         lightweight_generation: bool = False,
         require_explanation: bool = True,
+        reveal_answers: bool = False,
         allow_lightweight_fallback: bool = True,
         allow_similar_source_variant: bool = False,
     ) -> dict[str, Any]:
@@ -189,6 +190,7 @@ class AgentCoordinator:
             "llm_calls": 0,
             "retriever_calls": 0,
             "bank_hits": 0,
+            "deduped_bank_hits": 0,
             "lightweight_batch_fallback": "none",
             "generated_explanation": False,
         }
@@ -276,11 +278,16 @@ class AgentCoordinator:
             )
             # plan §Phase 2 Step 2.4 (B1) — questions_bank 命中且字段完整时
             # 跳过 LLM，直接组装 QAPair；anchor 不足时进入下面的并行 batch path。
-            bank_qa_pairs = self._build_bank_hit_qa_pairs(
+            bank_qa_pairs, bank_skip_reason = self._build_bank_hit_qa_pairs(
                 anchor_payload=anchor_payload,
                 templates=templates,
                 question_type=target_question_type or "choice",
+                history_context=history_context,
+                reveal_answers=reveal_answers,
+                require_explanation=require_explanation,
             )
+            if bank_skip_reason == "duplicate_recent_question":
+                lightweight_trace_counters["deduped_bank_hits"] += 1
             lightweight_trace_counters["bank_hits"] = len(bank_qa_pairs)
             batch_trace.append(
                 {
@@ -672,7 +679,10 @@ class AgentCoordinator:
         anchor_payload: dict[str, Any] | None,
         templates: list[QuestionTemplate],
         question_type: str,
-    ) -> list[QAPair]:
+        history_context: str = "",
+        reveal_answers: bool = False,
+        require_explanation: bool = False,
+    ) -> tuple[list[QAPair], str]:
         """plan §Phase 2 Step 2.4 (B1) — questions_bank 命中且字段完整时，
         直接组装 QAPair（含 hidden grading_key），跳过 LLM。
 
@@ -688,25 +698,32 @@ class AgentCoordinator:
             "question_evidence_bundle",
             "rag_answer_bundle",
         }:
-            return []
+            return [], ""
         reference_question = str(payload.get("reference_question") or "").strip()
         reference_answer = str(payload.get("reference_answer") or "").strip()
         if not reference_question or not reference_answer:
-            return []
+            return [], ""
         if not templates:
-            return []
+            return [], ""
         # 从 evidence_refs 反查完整 options（如果上游已经压扁，就跳过）。
         options = self._extract_bank_options_from_payload(payload)
         if not options or len(options) < 2:
-            return []
+            return [], ""
         template = templates[0]
         if not self._bank_hit_matches_question_contract(
             question_type=question_type or template.question_type,
             options=options,
             reference_answer=reference_answer,
         ):
-            return []
+            return [], "contract_mismatch"
         analysis = str(payload.get("analysis") or "").strip()
+        if require_explanation and not analysis:
+            return [], "missing_explanation"
+        if self._recent_history_contains_question(
+            history_context=history_context,
+            question=reference_question,
+        ):
+            return [], "duplicate_recent_question"
         review_notes = build_mcq_review_notes_from_exact_question(
             {
                 "answer_kind": "mcq",
@@ -729,7 +746,7 @@ class AgentCoordinator:
             QAPair(
                 question_id=template.question_id,
                 question=reference_question,
-                correct_answer="",  # public string-form correct_answer 不写入；grading 走 grading_key
+                correct_answer=reference_answer if reveal_answers else "",
                 explanation=analysis,
                 question_type=question_type or "choice",
                 options=dict(options),
@@ -748,7 +765,7 @@ class AgentCoordinator:
                 },
                 grading_key=grading_key,
             )
-        ]
+        ], ""
 
     @staticmethod
     def _bank_hit_matches_question_contract(
@@ -757,11 +774,30 @@ class AgentCoordinator:
         options: dict[str, str],
         reference_answer: str,
     ) -> bool:
-        if str(question_type or "").strip().lower() != "choice":
-            return True
+        normalized_type = str(question_type or "").strip().lower()
         option_keys = {str(key).strip().upper() for key in options if str(key).strip()}
         answer_letters = re.findall(r"[A-E]", str(reference_answer or "").upper())
-        return option_keys == {"A", "B", "C", "D"} and len(answer_letters) == 1
+        if normalized_type in {"choice", "single_choice", "mcq"}:
+            return option_keys == {"A", "B", "C", "D"} and len(answer_letters) == 1
+        if normalized_type in {"multiple_choice", "multi_choice"}:
+            return option_keys in (
+                {"A", "B", "C", "D"},
+                {"A", "B", "C", "D", "E"},
+            ) and len(answer_letters) > 1
+        return False
+
+    @staticmethod
+    def _recent_history_contains_question(*, history_context: str, question: str) -> bool:
+        needle = AgentCoordinator._normalize_question_text_for_dedupe(question)
+        if len(needle) < 8:
+            return False
+        haystack = AgentCoordinator._normalize_question_text_for_dedupe(history_context)
+        return bool(haystack and needle in haystack)
+
+    @staticmethod
+    def _normalize_question_text_for_dedupe(value: str) -> str:
+        text = re.sub(r"\s+", "", str(value or ""))
+        return re.sub(r"[，。！？、,.!?；;：:（）()【】\[\]\"'“”‘’`*_\-]+", "", text)
 
     @staticmethod
     def _has_similar_source_variant_anchor(anchor_payload: dict[str, Any] | None) -> bool:
