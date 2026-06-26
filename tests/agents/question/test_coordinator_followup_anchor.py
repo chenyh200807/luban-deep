@@ -561,3 +561,24 @@ def test_lightweight_anchor_label_uses_topic_clause_when_answer_reveal_is_suppre
     payload = AgentCoordinator._base_lightweight_anchor_payload(user_topic=user_topic)
     assert payload["concentration"] == "临时用电/安全"
     assert payload["knowledge_context"] == "当前学习锚点：临时用电/安全"
+
+
+def test_current_question_exclusion_anchor_label_ignores_exclusion_block() -> None:
+    user_topic = """再出一道不同考点的单选题，不要和刚才那题重复；仍然只给题目和A/B/C/D选项。
+
+请基于以下更大范围学习主题出题，但必须避开当前题题干、选项和同一小考点：
+当前会话主题：新对话
+
+排除当前题（仅用于去重，不得作为新题考点）：
+需避开考点：一级建造师项目管理
+需避开题干：施工现场负责审查批准一级动火作业的（ ）。
+需避开选项面：A. 项目负责人；B. 项目生产负责人；C. 项目安全管理部门；D. 企业安全管理部门"""
+
+    payload = AgentCoordinator._current_question_exclusion_anchor_payload(user_topic=user_topic)
+
+    assert payload["anchor_source"] == "current_question_exclusion"
+    assert payload["concentration"] == "建筑实务高频考点"
+    assert "排除当前题" in payload["knowledge_context"]
+    assert "需避开题干" in payload["knowledge_context"]
+    assert "需避开" not in payload["concentration"]
+    assert "不得作为新题考点" not in payload["concentration"]
