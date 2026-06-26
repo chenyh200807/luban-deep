@@ -1,5 +1,35 @@
 # TutorBot Fix/Test Journal
 
+## 2026-06-26 - Study assistant no-evidence terminal gate blocks fabricated learner state
+
+- 问题：
+  - #252 已把“3天复盘计划/学习计划”路由到 `question_lifecycle_scene=study_assistant`，但 test2 live+DB 仍复现 P0：无结构化学情证据时，TutorBot 可见输出编造“入门摸底做了8题错了6题”“14个章节都还没正式开始，已做8题中有6题答错”等学生画像。
+- 根因：
+  - 最后正确点是 lifecycle scene / selected skill 已命中 `study_assistant` 和 `construction-study-assistant`。
+  - 第一个错误点是 `TutorBotCapability` 仍把无证据的 study assistant turn 交给 generic full-agent；skill prompt 写了“不要编造画像”，但没有 terminal fail-closed path。
+  - shared failure shape：terminal visible authority missing / prompt-only authority。
+- 失败尝试及原因：
+  - #252 只修第一断点，live 2/2 证伪 terminal 仍会编造；继续扩路由短语或做“8题/14章”输出黑名单会变第二 authority。
+  - #253 首版被并行复核 HOLD：evidence predicate 递归把任意非空叶子当 evidence，会把空壳 `PersonalizationContextPack.source/schema_version/user_id` 或 subject-only compiled truth 误判成真实证据。
+- 成功修法：
+  - 在 existing `study_assistant` authority 下新增 no-evidence terminal path：`scene=study_assistant` 且无 evidence refs / attempt ids / study_plan / next_best_action 等结构化学习证据时，不调用 manager/full-agent，直接返回 deterministic “当前记录不足 + 通用3天复盘计划”。
+  - terminal result 写入 `execution_path=tutorbot_study_assistant_degraded_no_evidence`、`actual_tool_rounds=0`、`study_assistant_authority=construction-study-assistant`。
+  - evidence predicate 收窄为只认 evidence-bearing refs/ids；空 PCP shell 和 subject-only compiled truth 均 false。
+  - 未新增第二 WS/router/classifier/fallback/output blacklist。
+- 验证：
+  - TDD RED：无 evidence 时 fake manager 编造“入门摸底/14章/8题/6题”，新测试先失败；首版 predicate 过宽经并行 HOLD 后补 empty PCP false / subject-only compiled truth false。
+  - GREEN：本地聚焦 `4 passed`；相关 capability/lifecycle/orchestrator `227 passed`；`tests/services/test_question_lifecycle_skills.py` `20 passed`；ruff PASS；contract guard PASS；`git diff --check` PASS。
+  - PR #253 checks 全绿，并行窗口 GO 后 squash 合 main `1f0029b3693fc467074340d82746a2b43d8f3a22`；same-SHA main Tests `28210941385` success；Deploy Gate `28211097817` success。
+  - test2 fast redeploy 后 host/container env 均 `DEEPTUTOR_GIT_SHA=1f0029b3693fc467074340d82746a2b43d8f3a22`，dirty=false，container Created `2026-06-26T01:25:14.893967022Z`，healthy，public endpoints / observability / contract_guard readiness PASS，容器内 grep 命中新 path/helper。
+  - live+DB：目标 plan turn 6/6 PASS（fresh 3/3，active MCQ 后 3/3）。DB result metadata 6/6 `execution_path=tutorbot_study_assistant_degraded_no_evidence`、`actual_tool_rounds=0`、`question_lifecycle_scene=study_assistant`；DB `result.metadata.response` 6/6 和 assistant message 6/6 均含“当前记录不足/通用3天复盘计划”；禁词“入门摸底/14个章节/已做8题/6题答错”0/6。
+- 残留/边界：
+  - 这只证明“无结构化学情证据的 study_assistant 复盘计划不再编造学生画像”；不等于全局无编造。
+  - active setup 3/3 出了同一道“工业厂房120m/合同额3800万”题，说明题源去重/内容供给 authority 仍是独立残留。
+  - case事实口径、orphan citation/public sink、并发长尾仍需下一轮按各自 authority 处理。
+- 教训：
+  - Prompt 写了“不要编造”不是 terminal authority；无证据路径必须 fail-closed 到 deterministic terminal response。
+  - 空投影壳不是证据；证据门只能认 refs/ids/action basis，不能把 schema/source/user_id 当学习事实。
+
 ## 2026-06-26 - Public output sink must block internal evidence and learner-memory leaks
 
 - 问题：
