@@ -441,6 +441,133 @@ async def test_tutorbot_exam_catalog_query_answers_directory_without_llm_call(
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_study_assistant_without_learning_evidence_degrades_without_llm_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class HallucinatingManager(_FakeTutorBotManager):
+        async def send_message(self, **kwargs) -> str:
+            self.sent_messages += 1
+            return "你现在处于入门摸底阶段，14个章节都还没正式开始，已做8题中有6题答错。"
+
+    manager = HallucinatingManager()
+    monkeypatch.setattr(
+        tutorbot_capability,
+        "get_tutorbot_manager",
+        lambda: manager,
+    )
+
+    stream = StreamBus()
+    context = UnifiedContext(
+        session_id="s-study-assistant-no-evidence",
+        user_message="不看内部信息了，给我一个3天复盘计划，不要再出题。",
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "fast",
+        },
+        metadata={
+            "question_lifecycle_scene": "study_assistant",
+            "decision_source": "deterministic",
+            "scene_confidence": 1.0,
+            "required_anchor_status": "satisfied",
+            "selected_skill_names": [
+                "construction-exam-tutor",
+                "construction-study-assistant",
+            ],
+            "question_lifecycle_decision": {
+                "scene": "study_assistant",
+                "decision_source": "deterministic",
+                "scene_confidence": 1.0,
+                "required_anchor_status": "satisfied",
+                "selected_skill_names": [
+                    "construction-exam-tutor",
+                    "construction-study-assistant",
+                ],
+                "business_gate_result": "pre_stamped_scene",
+            },
+            "business_gate_result": "pre_stamped_scene",
+            "personalization_context": {
+                "schema_version": 1,
+                "user_id": "stu_empty",
+                "source": "PersonalizationContextPack",
+                "authority": {"claims": "learning_synthesis"},
+                "top_claims": [],
+                "recent_improvement_signals": [],
+                "recent_evidence_refs": [],
+                "active_training_intent": {},
+                "next_best_action_candidates": [],
+            },
+            "compiled_learning_truth": {
+                "schema_version": 1,
+                "subject": "construction_exam",
+                "source": "learner_state_read_model",
+            },
+        },
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
+    assert result_events
+    result_payload = result_events[-1].metadata
+    response = result_payload["response"]
+    assert "当前记录不足" in response
+    assert "3天" in response
+    for fabricated_claim in ("入门摸底阶段", "14个章节", "已做8题", "6题答错"):
+        assert fabricated_claim not in response
+    assert result_payload["question_lifecycle_scene"] == "study_assistant"
+    assert result_payload["execution_path"] == "tutorbot_study_assistant_degraded_no_evidence"
+    assert result_payload["actual_tool_rounds"] == 0
+    assert manager.sent_messages == 0
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_study_assistant_with_learning_evidence_keeps_agent_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class EvidenceManager(_FakeTutorBotManager):
+        async def send_message(self, **kwargs) -> str:
+            self.sent_messages += 1
+            session_metadata = kwargs["session_metadata"]
+            assert session_metadata["compiled_learning_truth"]["evidence_refs"] == ["evt_1"]
+            return "根据已记录的错题证据，今天先复盘屋面防水保修期限。"
+
+    manager = EvidenceManager()
+    monkeypatch.setattr(
+        tutorbot_capability,
+        "get_tutorbot_manager",
+        lambda: manager,
+    )
+
+    stream = StreamBus()
+    context = UnifiedContext(
+        session_id="s-study-assistant-with-evidence",
+        user_message="给我一个3天复盘计划。",
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "fast",
+        },
+        metadata={
+            "question_lifecycle_scene": "study_assistant",
+            "compiled_learning_truth": {
+                "evidence_refs": ["evt_1"],
+                "weak_points": [{"name": "屋面防水保修期限", "evidence_refs": ["evt_1"]}],
+            },
+        },
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
+    assert result_events
+    result_payload = result_events[-1].metadata
+    assert "根据已记录的错题证据" in result_payload["response"]
+    assert "study_assistant_degraded_no_evidence" not in result_payload
+    assert manager.sent_messages == 1
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_regular_result_exports_lifecycle_decision_metadata(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

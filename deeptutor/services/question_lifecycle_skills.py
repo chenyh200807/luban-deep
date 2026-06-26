@@ -525,6 +525,133 @@ def build_question_lifecycle_exam_catalog_response(message: str, metadata: dict[
     )
 
 
+_STUDY_ASSISTANT_EVIDENCE_KEYS: tuple[str, ...] = (
+    "compiled_learning_truth",
+    "personalization_context",
+    "learning_training_intent",
+    "training_intent",
+    "study_plan",
+    "next_best_action",
+    "next_best_action_candidates",
+    "learning_evidence_refs",
+    "evidence_refs",
+    "basis_refs",
+    "supporting_event_ids",
+    "recent_attempts",
+    "attempt_detail",
+)
+_STUDY_ASSISTANT_REF_KEYS: set[str] = {
+    "evidence_refs",
+    "basis_refs",
+    "supporting_event_ids",
+    "learning_evidence_refs",
+    "recent_evidence_refs",
+}
+_STUDY_ASSISTANT_ID_KEYS: set[str] = {
+    "event_id",
+    "attempt_id",
+    "attempt_ref",
+    "learning_evidence_event_id",
+    "training_intent_id",
+}
+_STUDY_ASSISTANT_ACTION_KEYS: set[str] = {
+    "study_plan",
+    "next_best_action",
+    "next_best_action_candidates",
+}
+
+
+def study_assistant_has_learning_evidence(metadata: dict[str, Any] | None) -> bool:
+    """Return True only when the turn carries structured learner evidence."""
+
+    if not isinstance(metadata, dict) or not metadata:
+        return False
+    return any(
+        _study_assistant_evidence_value_present(key, metadata.get(key))
+        for key in _STUDY_ASSISTANT_EVIDENCE_KEYS
+    )
+
+
+def build_question_lifecycle_study_assistant_degraded_response(
+    message: str,
+    metadata: dict[str, Any] | None = None,
+) -> str:
+    """Student-facing study plan when no learner-state evidence is available."""
+
+    _ = metadata
+    days = _extract_requested_plan_days(message) or 3
+    return (
+        "当前记录不足，我不能断言你处于哪个阶段、做过几题、错过几题，"
+        f"也不能说哪些章节已经开始或没开始。先给你一个通用{days}天复盘计划：\n\n"
+        "第1天：回到最近一道题或一个知识点\n"
+        "- 只选一个你最不稳的点，先把概念、适用条件和常见陷阱整理清楚。\n"
+        "- 用自己的话写出“题干问什么、我为什么会错、下次看到什么关键词要警惕”。\n\n"
+        "第2天：做小范围巩固\n"
+        "- 围绕同一考点做 2-3 道同类题，先不要追求数量。\n"
+        "- 每做完一题，只记录一个具体错因：概念混淆、条件漏看、数字记错，或审题失误。\n\n"
+        "第3天：复测和收口\n"
+        "- 隔一天再做 1-2 道同类题，看是否还会犯同一类错。\n"
+        "- 如果仍错，把这个考点降成“先讲清楚再练”；如果能稳定做对，再换下一个考点。\n\n"
+        "你也可以把最近一道错题或一段作答贴出来，我再按真实题面帮你改成更具体的复盘表。"
+    )
+
+
+def _study_assistant_evidence_value_present(key: str, value: Any) -> bool:
+    if value is None:
+        return False
+    normalized_key = str(key or "").strip()
+    if normalized_key in _STUDY_ASSISTANT_REF_KEYS:
+        return _has_non_empty_leaf(value)
+    if normalized_key in _STUDY_ASSISTANT_ACTION_KEYS:
+        return _has_non_empty_leaf(value)
+    return _contains_evidence_reference(value)
+
+
+def _contains_evidence_reference(value: Any) -> bool:
+    if isinstance(value, list):
+        return any(_contains_evidence_reference(item) for item in value)
+    if not isinstance(value, dict) or not value:
+        return False
+    for raw_key, item in value.items():
+        key = str(raw_key or "").strip()
+        if key in _STUDY_ASSISTANT_REF_KEYS and _has_non_empty_leaf(item):
+            return True
+        if key in _STUDY_ASSISTANT_ID_KEYS and str(item or "").strip():
+            return True
+        if _contains_evidence_reference(item):
+            return True
+    return False
+
+
+def _has_non_empty_leaf(value: Any) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return True
+    if isinstance(value, list):
+        return any(_has_non_empty_leaf(item) for item in value)
+    if isinstance(value, dict):
+        return any(_has_non_empty_leaf(item) for item in value.values())
+    return True
+
+
+def _extract_requested_plan_days(message: str) -> int | None:
+    match = re.search(r"([1-9]\d?)\s*天", str(message or ""))
+    if not match:
+        return None
+    try:
+        days = int(match.group(1))
+    except ValueError:
+        return None
+    if days < 1 or days > 30:
+        return None
+    return days
+
+
 def is_low_information_exam_query(query: str) -> bool:
     """Return True when the message is an exam inventory/filter query, not a question.
 

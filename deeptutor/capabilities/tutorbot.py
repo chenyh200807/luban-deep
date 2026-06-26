@@ -9,6 +9,15 @@ from deeptutor.contracts.bot_runtime_defaults import resolve_bot_runtime_default
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
+from deeptutor.services.citations import (
+    CitationPolicy,
+    answer_citations_enabled,
+    apply_answer_citation_metadata,
+)
+from deeptutor.services.construction_grading.case_output_policy import (
+    copy_current_case_grading_turn_metadata,
+)
+from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.question_followup import (
     annotate_submission_context_from_message,
     build_choice_result_summary_from_exact_question,
@@ -21,22 +30,15 @@ from deeptutor.services.question_followup import (
 from deeptutor.services.question_lifecycle_skills import (
     build_question_lifecycle_clarification_response,
     build_question_lifecycle_exam_catalog_response,
+    build_question_lifecycle_study_assistant_degraded_response,
+    study_assistant_has_learning_evidence,
 )
-from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.render_presentation import build_canonical_presentation
-from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
 from deeptutor.services.security.tool_access import filter_end_user_tools
+from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
 from deeptutor.services.semantic_router import (
     apply_active_object_transition,
     build_active_object_from_question_context,
-)
-from deeptutor.services.citations import (
-    CitationPolicy,
-    answer_citations_enabled,
-    apply_answer_citation_metadata,
-)
-from deeptutor.services.construction_grading.case_output_policy import (
-    copy_current_case_grading_turn_metadata,
 )
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
@@ -194,6 +196,89 @@ class TutorBotCapability(BaseCapability):
         if conversation_context_text:
             session_metadata["conversation_context_text"] = conversation_context_text
 
+        async def _emit_lifecycle_terminal_response(
+            response_text: str,
+            *,
+            execution_path: str,
+            call_kind: str,
+            extra_payload: dict[str, Any] | None = None,
+        ) -> None:
+            async with stream.stage(
+                "responding",
+                source=self.name,
+                metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
+            ):
+                content_metadata = {
+                    "execution_engine": "tutorbot_runtime",
+                    "call_kind": call_kind,
+                }
+                if not citation_enabled:
+                    await stream.content(
+                        response_text,
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
+                result_payload = {
+                    "response": response_text,
+                    "bot_id": bot_id,
+                    "execution_engine": "tutorbot_runtime",
+                    "authority_applied": False,
+                    "exact_question": {},
+                    "rag_rounds": [],
+                    "rag_saturation": {},
+                    "requested_response_mode": policy.requested_mode,
+                    "selected_mode": policy.selected_mode,
+                    "effective_response_mode": policy.effective_mode,
+                    "execution_path": execution_path,
+                    "exact_fast_path_hit": False,
+                    "actual_tool_rounds": 0,
+                    "reveal_answers": False,
+                    "reveal_explanations": False,
+                    **dict(extra_payload or {}),
+                }
+                for metadata_key in (
+                    "question_lifecycle_decision",
+                    "decision_source",
+                    "scene_confidence",
+                    "required_anchor_status",
+                    "exact_question_blocked_reason",
+                    "selected_skill_names",
+                    "llm_scene_candidate",
+                    "business_gate_result",
+                    "question_lifecycle_scene",
+                    "question_lifecycle_scene_source",
+                    "question_lifecycle_scene_confidence",
+                    "question_lifecycle_scene_reason",
+                    "question_lifecycle_skill_names",
+                    "question_lifecycle_clarification",
+                    "active_object",
+                    "release_id",
+                    "git_sha",
+                    "deployment_environment",
+                    "llm_stream_telemetry",
+                ):
+                    if metadata_key in session_metadata:
+                        result_payload[metadata_key] = session_metadata[metadata_key]
+                copy_current_case_grading_turn_metadata(session_metadata, result_payload)
+                citation_metadata: dict[str, Any] = {}
+                result_payload["response"] = apply_answer_citation_metadata(
+                    citation_metadata,
+                    response=str(result_payload.get("response") or ""),
+                    sources=[],
+                    policy=CitationPolicy(surface="student"),
+                    enabled=citation_enabled,
+                )
+                result_payload.update(citation_metadata)
+                if citation_enabled:
+                    await stream.content(
+                        str(result_payload["response"] or ""),
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
+                await stream.result(result_payload, source=self.name)
+
         exam_catalog_response = ""
         if str(context.metadata.get("question_lifecycle_scene") or "").strip() == "exam_catalog_query":
             exam_catalog_response = build_question_lifecycle_exam_catalog_response(
@@ -201,80 +286,11 @@ class TutorBotCapability(BaseCapability):
                 context.metadata if isinstance(context.metadata, dict) else {},
             )
         if exam_catalog_response:
-            async with stream.stage(
-                "responding",
-                source=self.name,
-                metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
-            ):
-                content_metadata = {
-                    "execution_engine": "tutorbot_runtime",
-                    "call_kind": "exam_catalog_query",
-                }
-                if not citation_enabled:
-                    await stream.content(
-                        exam_catalog_response,
-                        source=self.name,
-                        stage="responding",
-                        metadata=content_metadata,
-                    )
-                result_payload = {
-                    "response": exam_catalog_response,
-                    "bot_id": bot_id,
-                    "execution_engine": "tutorbot_runtime",
-                    "authority_applied": False,
-                    "exact_question": {},
-                    "rag_rounds": [],
-                    "rag_saturation": {},
-                    "requested_response_mode": policy.requested_mode,
-                    "selected_mode": policy.selected_mode,
-                    "effective_response_mode": policy.effective_mode,
-                    "execution_path": "tutorbot_exam_catalog_query",
-                    "exact_fast_path_hit": False,
-                    "actual_tool_rounds": 0,
-                    "reveal_answers": False,
-                    "reveal_explanations": False,
-                }
-                for metadata_key in (
-                    "question_lifecycle_decision",
-                    "decision_source",
-                    "scene_confidence",
-                    "required_anchor_status",
-                    "exact_question_blocked_reason",
-                    "selected_skill_names",
-                    "llm_scene_candidate",
-                    "business_gate_result",
-                    "question_lifecycle_scene",
-                    "question_lifecycle_scene_source",
-                    "question_lifecycle_scene_confidence",
-                    "question_lifecycle_scene_reason",
-                    "question_lifecycle_skill_names",
-                    "question_lifecycle_clarification",
-                    "active_object",
-                    "release_id",
-                    "git_sha",
-                    "deployment_environment",
-                    "llm_stream_telemetry",
-                ):
-                    if metadata_key in session_metadata:
-                        result_payload[metadata_key] = session_metadata[metadata_key]
-                copy_current_case_grading_turn_metadata(session_metadata, result_payload)
-                citation_metadata: dict[str, Any] = {}
-                result_payload["response"] = apply_answer_citation_metadata(
-                    citation_metadata,
-                    response=str(result_payload.get("response") or ""),
-                    sources=[],
-                    policy=CitationPolicy(surface="student"),
-                    enabled=citation_enabled,
-                )
-                result_payload.update(citation_metadata)
-                if citation_enabled:
-                    await stream.content(
-                        str(result_payload["response"] or ""),
-                        source=self.name,
-                        stage="responding",
-                        metadata=content_metadata,
-                    )
-                await stream.result(result_payload, source=self.name)
+            await _emit_lifecycle_terminal_response(
+                exam_catalog_response,
+                execution_path="tutorbot_exam_catalog_query",
+                call_kind="exam_catalog_query",
+            )
             return
 
         clarification_response = build_question_lifecycle_clarification_response(
@@ -282,80 +298,34 @@ class TutorBotCapability(BaseCapability):
             str(context.metadata.get("exact_question_blocked_reason") or "").strip(),
         )
         if clarification_response:
-            async with stream.stage(
-                "responding",
-                source=self.name,
-                metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
-            ):
-                content_metadata = {
-                    "execution_engine": "tutorbot_runtime",
-                    "call_kind": "lifecycle_clarification",
-                }
-                if not citation_enabled:
-                    await stream.content(
-                        clarification_response,
-                        source=self.name,
-                        stage="responding",
-                        metadata=content_metadata,
-                    )
-                result_payload = {
-                    "response": clarification_response,
-                    "bot_id": bot_id,
-                    "execution_engine": "tutorbot_runtime",
-                    "authority_applied": False,
-                    "exact_question": {},
-                    "rag_rounds": [],
-                    "rag_saturation": {},
-                    "requested_response_mode": policy.requested_mode,
-                    "selected_mode": policy.selected_mode,
-                    "effective_response_mode": policy.effective_mode,
-                    "execution_path": "tutorbot_lifecycle_clarification",
-                    "exact_fast_path_hit": False,
-                    "actual_tool_rounds": 0,
-                    "reveal_answers": False,
-                    "reveal_explanations": False,
-                }
-                for metadata_key in (
-                    "question_lifecycle_decision",
-                    "decision_source",
-                    "scene_confidence",
-                    "required_anchor_status",
-                    "exact_question_blocked_reason",
-                    "selected_skill_names",
-                    "llm_scene_candidate",
-                    "business_gate_result",
-                    "question_lifecycle_scene",
-                    "question_lifecycle_scene_source",
-                    "question_lifecycle_scene_confidence",
-                    "question_lifecycle_scene_reason",
-                    "question_lifecycle_skill_names",
-                    "question_lifecycle_clarification",
-                    "active_object",
-                    "release_id",
-                    "git_sha",
-                    "deployment_environment",
-                    "llm_stream_telemetry",
-                ):
-                    if metadata_key in session_metadata:
-                        result_payload[metadata_key] = session_metadata[metadata_key]
-                copy_current_case_grading_turn_metadata(session_metadata, result_payload)
-                citation_metadata: dict[str, Any] = {}
-                result_payload["response"] = apply_answer_citation_metadata(
-                    citation_metadata,
-                    response=str(result_payload.get("response") or ""),
-                    sources=[],
-                    policy=CitationPolicy(surface="student"),
-                    enabled=citation_enabled,
-                )
-                result_payload.update(citation_metadata)
-                if citation_enabled:
-                    await stream.content(
-                        str(result_payload["response"] or ""),
-                        source=self.name,
-                        stage="responding",
-                        metadata=content_metadata,
-                    )
-                await stream.result(result_payload, source=self.name)
+            await _emit_lifecycle_terminal_response(
+                clarification_response,
+                execution_path="tutorbot_lifecycle_clarification",
+                call_kind="lifecycle_clarification",
+            )
+            return
+
+        study_assistant_degraded_response = ""
+        if (
+            str(context.metadata.get("question_lifecycle_scene") or "").strip() == "study_assistant"
+            and not study_assistant_has_learning_evidence(
+                context.metadata if isinstance(context.metadata, dict) else {}
+            )
+        ):
+            study_assistant_degraded_response = build_question_lifecycle_study_assistant_degraded_response(
+                self._raw_user_message(context),
+                context.metadata if isinstance(context.metadata, dict) else {},
+            )
+        if study_assistant_degraded_response:
+            await _emit_lifecycle_terminal_response(
+                study_assistant_degraded_response,
+                execution_path="tutorbot_study_assistant_degraded_no_evidence",
+                call_kind="study_assistant_degraded_no_evidence",
+                extra_payload={
+                    "study_assistant_degraded_no_evidence": True,
+                    "study_assistant_authority": "construction-study-assistant",
+                },
+            )
             return
 
         async def _on_progress(text: str) -> None:
