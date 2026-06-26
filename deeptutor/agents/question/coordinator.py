@@ -1225,6 +1225,8 @@ class AgentCoordinator:
             result=result,
         )
         if evidence_anchor:
+            if not str(evidence_anchor.get("reference_answer") or "").strip():
+                return base
             evidence_parts: list[str] = [base["knowledge_context"]]
             evidence_parts.append(f"题库参考题目：{evidence_anchor['reference_question']}")
             evidence_option_lines = AgentCoordinator._format_reference_options(
@@ -1267,6 +1269,8 @@ class AgentCoordinator:
             clipped_analysis = analysis[:280] + ("..." if len(analysis) > 280 else "")
             parts.append(f"题库解析要点：{clipped_analysis}")
         if len(parts) > 1:
+            if not correct_answer:
+                return base
             # Topic-relevance gate (Bug#1 主因): only adopt this RAG hit as the
             # canonical generation anchor when it actually matches the user's topic.
             # Otherwise an off-topic top hit (e.g. SMA query → 垂直运输 question) would
@@ -1323,6 +1327,8 @@ class AgentCoordinator:
         ):
             return base
         if parsed_bundle:
+            if not str(parsed_bundle.get("reference_answer") or "").strip():
+                return base
             bundle_parts: list[str] = [base["knowledge_context"]]
             bundle_parts.append(f"题库参考题目：{parsed_bundle['reference_question']}")
             parsed_option_lines = AgentCoordinator._format_reference_options(
