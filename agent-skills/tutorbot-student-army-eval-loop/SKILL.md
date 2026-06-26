@@ -147,6 +147,13 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   复用。修法不在 router；把 grading receipt 定义为 current case-grading turn-scoped metadata，由
   `construction_grading.case_output_policy` 单一 helper 投影，manager/capability/agent loop 只读同一 helper，
   非 `question_lifecycle_scene=case_grading` turn 必须从 result + 可继承 session metadata 中剥离。
+- **铁律③.17（2026-06-26 study-assistant evidence gate）：空投影壳不是学情证据。**
+  live 若 `scene=study_assistant` 已正确，但复盘计划仍编造“已做几题/错几题/章节进度”，不要继续改
+  scene 短语或加输出黑名单；第一个错误点通常是 terminal path 仍 fall through generic full-agent。
+  修法是在既有 study assistant authority 下 fail-closed：无 evidence refs/attempt ids/study_plan/
+  next_best_action 等结构化学习证据时直接 degraded terminal response，`actual_tool_rounds=0`。
+  验证 evidence predicate 必须覆盖 empty `PersonalizationContextPack` shell 和 subject-only compiled truth
+  均 false；`schema_version/source/user_id/subject` 不得被算作学习事实。
 - **异源核（同源不能自证）**：根因判断 + "无编造/已修好"结论必须异源在环。
   Codex 额度耗尽用 `deepseek-v4-pro`@api.deepseek.com（`DEEPSEEK_API_KEY`，OpenAI
   兼容）：给中立证据 + 对立假设让它独立选，**别 prime**。异源也可能共享错前提，
@@ -240,6 +247,7 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | summary/general TutorBot turn 路由正确但 DB terminal metadata 仍带 `v1_case_graded/score_authority/grading_to_brain_loop.writeback_count` | turn-scoped case grading receipt 被 session/runtime metadata 提升为 session-level truth,manager/capability/loop 三处重复导出 | `construction_grading.case_output_policy.copy_current_case_grading_turn_metadata` 成为唯一 receipt 投影 helper;非 `case_grading` turn 从 result/trace/session metadata 剥离 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
 | 攻击钓鱼要求输出 evidence/source 标题、`learner_summary`、`working_memory`、`qa_persona_*` 时泄内部 meta/profile | user-visible output/citation sink 漏识别内部 title/profile；`guard_output` 先遇 refusal marker 早退 safe；unsafe/refusal response 仍可携带 sources | security skill input/output groups + `guard_output` 先扫 internal leak 再允许 refusal；`coerce_user_visible_answer` 统一剥内部 title/profile；citation runtime 对 unsafe/refusal 清空 sources | ✅ PR#250 已修并部署 test2(2026-06-26);live 攻击 3/3 无 `tool_call/tool_result/sources`,正常教材/规范引用未误杀;DeepSeek 异源 H1 0.95 |
 | "再出一道不同考点..." semantic 已 route_to_generation 但 visible 非建筑拒绝 | generation topic/context authority 把相对 topic 当裸 topic;`不同考点` 未被识别为需要 active/conversation anchor,下游题源只见非建筑浓度 | `teaching_modes` context-anchor marker 覆盖不同/换个/其他/别的考点;`deep_question._resolve_generation_topic` 继承 active question anchor 后再交 coordinator,不新增 router/domain fallback | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| `study_assistant` 复盘计划路由正确但 visible 编造“入门摸底/已做8题/6题答错/14章未开始” | terminal visible authority missing:无结构化学情证据仍进入 generic full-agent;首版 evidence predicate 又把空 PCP/subject-only truth 当证据 | study assistant no-evidence terminal gate:只认 evidence refs/attempt ids/action basis;空 PCP shell false;无证据直接 deterministic “当前记录不足+通用3天复盘计划”,不调用 manager/full-agent | ✅ PR#253 已修并部署 test2(2026-06-26);live+DB 6/6 PASS(fresh 3/3,active MCQ 后 3/3),result/message 禁词 0/6 |
 | 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 逐 turn JSONL 落盘并用 DB completed/result 对账 | ✅ harness 已修;系统并发稳定性仍需 live 压测 |
 
 ## 红线
