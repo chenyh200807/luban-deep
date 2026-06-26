@@ -310,6 +310,38 @@ async def test_coordinator_lightweight_topic_generation_uses_single_rag_anchor(
     assert result["trace"]["lightweight_generation"] is True
 
 
+def test_lightweight_anchor_rejects_question_evidence_without_answer() -> None:
+    payload = AgentCoordinator._build_lightweight_rag_anchor_payload(
+        user_topic="请出一道一级建造师项目管理单选题，只要题目和A/B/C/D选项，先不要解析。",
+        result={
+            "answer": "",
+            "exact_question": {},
+            "evidence_bundle": {
+                "retrieval_status": "hit",
+                "sources": [
+                    {
+                        "_source_group": "REAL_EXAM",
+                        "question_id": "question-17487",
+                        "content": (
+                            "【题目】施工现场负责审查批准一级动火作业的（　　）。\n"
+                            "【选项】"
+                            '[{"key": "A", "value": "项目负责人"}, '
+                            '{"key": "B", "value": "项目生产负责人"}, '
+                            '{"key": "C", "value": "项目安全管理部门"}, '
+                            '{"key": "D", "value": "企业安全管理部门"}]'
+                        ),
+                    }
+                ],
+            },
+        },
+    )
+
+    assert payload["concentration"] == "一级建造师项目管理"
+    assert "reference_question" not in payload
+    assert payload.get("anchor_source") != "question_evidence_bundle"
+    assert "题库参考题目" not in payload["knowledge_context"]
+
+
 @pytest.mark.asyncio
 async def test_coordinator_lightweight_topic_generation_falls_back_when_rag_empty(
     monkeypatch: pytest.MonkeyPatch,
