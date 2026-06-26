@@ -163,6 +163,7 @@ class AgentCoordinator:
         reveal_answers: bool = False,
         allow_lightweight_fallback: bool = True,
         allow_similar_source_variant: bool = False,
+        avoid_current_question: bool = False,
     ) -> dict[str, Any]:
         self._current_batch_dir = self._create_batch_dir("custom")
         requested = max(1, int(num_questions or 1))
@@ -237,11 +238,20 @@ class AgentCoordinator:
                     },
                 )
         if lightweight_generation:
-            anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
-                user_topic=user_topic,
-            )
-            # retriever_calls 计数：调过 rag_search 即算一次（成功/失败都计入）。
-            lightweight_trace_counters["retriever_calls"] = 1
+            if avoid_current_question:
+                anchor_payload = self._current_question_exclusion_anchor_payload(
+                    user_topic=user_topic,
+                )
+                retrieval_trace = {
+                    "used_rag": False,
+                    "skipped": "current_question_exclusion",
+                }
+            else:
+                anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
+                    user_topic=user_topic,
+                )
+                # retriever_calls 计数：调过 rag_search 即算一次（成功/失败都计入）。
+                lightweight_trace_counters["retriever_calls"] = 1
             if self._should_block_unresolved_lightweight_anchor(
                 user_topic=user_topic,
                 anchor_payload=anchor_payload,
@@ -1087,6 +1097,16 @@ class AgentCoordinator:
         return {
             "knowledge_context": f"当前学习锚点：{anchor_label}",
             "concentration": anchor_label,
+        }
+
+    @staticmethod
+    def _current_question_exclusion_anchor_payload(*, user_topic: str) -> dict[str, Any]:
+        topic = str(user_topic or "").strip()
+        anchor_label = AgentCoordinator._derive_lightweight_anchor_label(user_topic=topic)
+        return {
+            "knowledge_context": topic or "请从建筑实务/建造师考试高频考点中选择一个不同小考点出题。",
+            "concentration": anchor_label or "建筑实务高频考点",
+            "anchor_source": "current_question_exclusion",
         }
 
     @staticmethod

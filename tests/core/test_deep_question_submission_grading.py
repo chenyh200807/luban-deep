@@ -2195,7 +2195,9 @@ def test_different_topic_generation_request_excludes_active_question_anchor() ->
     assert topic.startswith("再出一道不同考点的单选题")
     assert "建筑实务/建造师考试高频考点" in topic
     assert "当前学习锚点" not in topic
-    assert "施工缝" not in topic
+    assert "排除当前题" in topic
+    assert "不得作为新题考点" in topic
+    assert "施工缝" in topic
 
 
 def test_explicit_generation_topic_does_not_require_context_anchor() -> None:
@@ -2549,18 +2551,28 @@ async def test_deep_question_different_topic_request_does_not_inherit_question_a
         language="zh",
         metadata={
             "question_lifecycle_scene": "practice_generation",
-            "selected_mode": "deep",
-            "question_followup_context": {
-                "question_id": "q_joint",
-                "question": "下列关于施工缝留置位置的说法，错误的是（ ）。",
-                "question_type": "choice",
-                "options": {
-                    "A": "施工缝宜留在结构受剪力较小处",
-                    "B": "梁板施工缝可留在受剪力较大处",
-                    "C": "次梁跨度中间1/3范围可留设施工缝",
-                    "D": "单向板可平行于短边留设施工缝",
+            "selected_mode": "fast",
+            "active_object": {
+                "object_type": "single_question",
+                "object_id": "q_hot_work",
+                "state_snapshot": {
+                    "question_id": "q_hot_work",
+                    "question": "施工现场负责审查批准一级动火作业的（ ）。",
+                    "question_type": "choice",
+                    "options": {
+                        "A": "项目负责人",
+                        "B": "项目生产负责人",
+                        "C": "项目安全管理部门",
+                        "D": "企业安全管理部门",
+                    },
+                    "correct_answer": "A",
+                    "construction_grading_result": {
+                        "next_training_signal": {
+                            "concept": "一级建造师项目管理",
+                            "focus": "动火审批责任主体",
+                        }
+                    },
                 },
-                "correct_answer": "B",
             },
         },
     )
@@ -2570,8 +2582,12 @@ async def test_deep_question_different_topic_request_does_not_inherit_question_a
 
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     user_topic = captured["generate_from_topic"]["user_topic"]
+    assert captured["generate_from_topic"]["avoid_current_question"] is True
     assert "当前学习锚点" not in user_topic
-    assert "施工缝" not in user_topic
+    assert "排除当前题" in user_topic
+    assert "一级动火作业" in user_topic
+    assert "上一轮薄弱点" not in user_topic
+    assert "next_training_signal" not in user_topic
     assert "practice_generation_blocked_reason" not in result_event.metadata
     assert "非建筑实务" not in result_event.metadata["response"]
 

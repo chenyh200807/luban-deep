@@ -291,6 +291,39 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
     return "\n".join(anchor_lines)
 
 
+def _question_context_exclusion_anchor(question_context: dict[str, Any] | None) -> str:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return ""
+
+    items = normalized.get("items") or []
+    contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
+    concentrations: list[str] = []
+    question_parts: list[str] = []
+    option_parts: list[str] = []
+
+    for item in contexts:
+        _append_unique(concentrations, item.get("concentration"))
+        _append_unique(question_parts, _clip_text(item.get("question"), limit=180))
+        options = item.get("options")
+        if isinstance(options, dict):
+            rendered_options = "；".join(
+                f"{str(key).strip().upper()}. {_clip_text(value, limit=80)}"
+                for key, value in list(options.items())[:5]
+                if str(key).strip() and str(value).strip()
+            )
+            _append_unique(option_parts, rendered_options)
+
+    anchor_lines: list[str] = []
+    if concentrations:
+        anchor_lines.append(f"需避开考点：{'；'.join(concentrations[:3])}")
+    if question_parts:
+        anchor_lines.append(f"需避开题干：{'；'.join(question_parts[:2])}")
+    if option_parts:
+        anchor_lines.append(f"需避开选项面：{'；'.join(option_parts[:2])}")
+    return "\n".join(anchor_lines)
+
+
 def _active_object_generation_anchor(active_object: dict[str, Any] | None) -> str:
     normalized = normalize_active_object(active_object)
     if not normalized:
@@ -338,17 +371,29 @@ def _conversation_generation_anchor(conversation_context_text: str) -> str:
     return f"最近对话摘要：{text}"
 
 
-def _current_question_exclusion_generation_topic(topic: str, broader_anchor: str) -> str:
+def _current_question_exclusion_generation_topic(
+    topic: str,
+    broader_anchor: str,
+    exclusion_anchor: str = "",
+) -> str:
+    exclusion_block = ""
+    if exclusion_anchor:
+        exclusion_block = (
+            "\n\n排除当前题（仅用于去重，不得作为新题考点）：\n"
+            f"{exclusion_anchor}"
+        )
     if broader_anchor:
         return (
             f"{topic}\n\n"
             "请基于以下更大范围学习主题出题，但必须避开当前题题干、选项和同一小考点：\n"
             f"{broader_anchor}"
+            f"{exclusion_block}"
         )
     return (
         f"{topic}\n\n"
         "请从建筑实务/建造师考试高频考点中选择一个与当前题不同的小考点出题；"
         "不要沿用当前题题干、选项或同一小考点。"
+        f"{exclusion_block}"
     )
 
 
@@ -400,11 +445,20 @@ def _resolve_generation_topic(
         broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
         normalized_active_object = normalize_active_object(active_object)
         active_object_type = str((normalized_active_object or {}).get("object_type") or "").strip()
+        exclusion_anchor = _question_context_exclusion_anchor(followup_question_context)
+        if not exclusion_anchor and active_object_type in {"question_set", "single_question"}:
+            exclusion_anchor = _question_context_exclusion_anchor(
+                question_context_from_active_object(normalized_active_object)
+            )
         if not broader_anchor and active_object_type not in {"question_set", "single_question"}:
             broader_anchor = _active_object_generation_anchor(normalized_active_object)
         if not broader_anchor:
             broader_anchor = _conversation_generation_anchor(conversation_context_text)
-        return _current_question_exclusion_generation_topic(topic, broader_anchor)
+        return _current_question_exclusion_generation_topic(
+            topic,
+            broader_anchor,
+            exclusion_anchor,
+        )
     if not _topic_needs_authoritative_anchor(topic):
         return topic
 
@@ -3984,6 +4038,7 @@ class DeepQuestionCapability(BaseCapability):
 
         mode = str(overrides.get("mode", "custom") or "custom").strip().lower()
         raw_topic = str(overrides.get("topic") or context.user_message or "").strip()
+        current_question_exclusion = _requests_current_question_exclusion(raw_topic)
         topic = _resolve_generation_topic(
             raw_topic=raw_topic,
             active_object=active_object,
@@ -4055,7 +4110,11 @@ class DeepQuestionCapability(BaseCapability):
         #   1. active_object.state_snapshot.construction_grading_result.next_training_signal
         #   2. active_object.state_snapshot.items[i].construction_grading_result.next_training_signal
         # 把 concept / focus 拼到 topic（如尚未出现），以便 coordinator anchor 命中 weak point。
-        if lightweight_generation and _topic_needs_authoritative_anchor(raw_topic):
+        if (
+            lightweight_generation
+            and _topic_needs_authoritative_anchor(raw_topic)
+            and not current_question_exclusion
+        ):
             consumed_concept, consumed_focus = self._extract_latest_next_training_signal(active_object)
             hint_parts: list[str] = []
             if consumed_concept and consumed_concept not in topic:
@@ -4297,6 +4356,7 @@ class DeepQuestionCapability(BaseCapability):
                     reveal_answers=reveal_answers,
                     allow_lightweight_fallback=not question_review_mode,
                     allow_similar_source_variant=question_review_mode,
+                    avoid_current_question=current_question_exclusion,
                 )
 
         if question_review_mode:
