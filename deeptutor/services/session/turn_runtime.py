@@ -65,12 +65,10 @@ from deeptutor.services.question_followup import (
 )
 from deeptutor.services.question_lifecycle_skills import (
     case_grading_context_from_full_submission,
-    looks_like_case_grading_submission_context,
     looks_like_free_text_mcq_grading_request,
     looks_like_free_text_mcq_question_surface,
     looks_like_full_case_answer_submission,
     mcq_grading_context_from_full_submission,
-    select_question_lifecycle_skill_names,
     split_full_case_answer_submission,
 )
 from deeptutor.services.security.tool_access import filter_end_user_tools
@@ -865,6 +863,11 @@ def _build_terminal_turn_observation_event(
         "authority_applied",
         "exact_fast_path_hit",
         "execution_path",
+        # Observe-only live-shadow metric (mirrors authority_applied): passthrough
+        # the structured control-plane shadow-hit list so the report script can
+        # count when a compat/projection/legacy writer became the operative
+        # control-plane source. No control flow change; just carries the list.
+        "control_plane_shadow_hits",
         "question_lifecycle_scene",
         "rag_retrieval_degraded",
         "rag_retrieval_status",
@@ -1441,57 +1444,6 @@ def _question_lifecycle_metadata_from_config(config: dict[str, Any] | None) -> d
         for key in _QUESTION_LIFECYCLE_METADATA_KEYS
         if config.get(key) not in (None, "", [], {})
     }
-
-
-def _stamp_current_submission_scene_pre_capability(
-    runtime_config: dict[str, Any],
-    *,
-    user_message: str,
-    followup_context: dict[str, Any] | None,
-    followup_action: dict[str, Any] | None,
-) -> None:
-    """Stamp the current submission business fact before capability selection.
-
-    This is not a router and not a scorer. It only writes the canonical lifecycle
-    scene when the current turn already carries a stable submission fact, so
-    deep_question and TutorBot both consume the same grading authority.
-    """
-
-    if not isinstance(runtime_config, dict):
-        return
-    normalized_context = normalize_question_followup_context(followup_context)
-    normalized_action = _normalize_question_followup_action(followup_action)
-    if normalized_context is None:
-        return
-
-    scene = ""
-    reason = ""
-    confidence = 0.0
-    if looks_like_full_case_answer_submission(user_message):
-        scene = "case_grading"
-        reason = "full_case_answer_submission"
-        confidence = 1.0
-    elif looks_like_case_grading_submission_context(normalized_context, normalized_action):
-        scene = "case_grading"
-        reason = "case_submission_context"
-        confidence = 0.96
-    elif (
-        str((normalized_action or {}).get("intent") or "").strip() == "answer_questions"
-        and (normalized_context.get("options") or normalized_context.get("items"))
-    ):
-        scene = "mcq_grading"
-        reason = "mcq_submission_context"
-        confidence = 0.96
-    if not scene:
-        return
-
-    runtime_config["question_lifecycle_scene"] = scene
-    runtime_config["question_lifecycle_scene_source"] = "deterministic_pre_capability"
-    runtime_config["question_lifecycle_scene_confidence"] = confidence
-    runtime_config["question_lifecycle_scene_reason"] = reason
-    runtime_config["question_lifecycle_skill_names"] = list(
-        select_question_lifecycle_skill_names(scene)
-    )
 
 
 def _should_ignore_explicit_context_for_free_text_mcq(
@@ -4233,12 +4185,6 @@ class TurnRuntimeManager:
             explicit_action=runtime_followup_action,
             candidate_contexts=candidate_followup_contexts,
         )
-        _stamp_current_submission_scene_pre_capability(
-            runtime_only_config,
-            user_message=raw_user_content,
-            followup_context=runtime_followup_question_context,
-            followup_action=runtime_followup_action,
-        )
         setup_stages.record_since("followup_resolution", followup_resolution_started_at)
         entry_capability_hint = (
             requested_capability
@@ -5122,12 +5068,6 @@ class TurnRuntimeManager:
                     stored_followup_question_context,
                     volatile_followup_question_context,
                 ],
-            )
-            _stamp_current_submission_scene_pre_capability(
-                request_config,
-                user_message=raw_user_content,
-                followup_context=followup_question_context,
-                followup_action=followup_question_action,
             )
             if followup_question_context:
                 active_object = build_active_object_from_question_context(

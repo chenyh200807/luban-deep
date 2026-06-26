@@ -3794,6 +3794,29 @@ class DeepQuestionCapability(BaseCapability):
                     context.metadata["trace_metadata"][
                         "deep_question_canonical_decision_missing"
                     ] = True
+                    # Observe-only live-shadow hit (no control flow change): the
+                    # fallback below still runs unchanged. Record that this
+                    # compat-projection path became the operative source of
+                    # turn_semantic_decision because the canonical decision was
+                    # absent. Reuses the single terminal turn_observation event
+                    # via the trace_metadata whitelist passthrough.
+                    context.metadata["trace_metadata"].setdefault(
+                        "control_plane_shadow_hits", []
+                    ).append(
+                        {
+                            "fact": "turn_semantic_decision",
+                            "writer_role": "compat_projection",
+                            "writer_symbol": "run",
+                            "path": "deep_question",
+                            # Blind-spot #1 fix: tag scene + site so the window can
+                            # attribute fabrication per-route (generation vs review
+                            # vs case_grading). scene is the orchestrator-projected
+                            # lifecycle scene (deep_question never derives one).
+                            "site": "canonical_missing_guard",
+                            "scene": lifecycle_scene or "",
+                            "canonical_present": False,
+                        }
+                    )
             # loguru uses {key}-style formatting; enrich with identifying context so the
             # observation window can pin which upstream path bypassed the canonical decision.
             logger.warning(
@@ -4426,6 +4449,11 @@ class DeepQuestionCapability(BaseCapability):
                 content = _render_missing_question_review_feedback(topic)
                 if not answer_citations_enabled():
                     await stream.content(content, source=self.name, stage="generation")
+                # OBSERVE-ONLY (blind-spot #2): S5 fabricates a turn_semantic_decision
+                # unconditionally below; record it (no control-flow change).
+                self._append_bare_build_shadow_hit(
+                    context.metadata, site="S5_review_render", scene=lifecycle_scene
+                )
                 await self._emit_result_with_citations(
                     stream,
                     {
@@ -4504,6 +4532,11 @@ class DeepQuestionCapability(BaseCapability):
             )
             if not answer_citations_enabled():
                 await stream.content(content, source=self.name, stage="generation")
+            # OBSERVE-ONLY (blind-spot #2): S6 fabricates a turn_semantic_decision
+            # unconditionally below; record it (no control-flow change).
+            self._append_bare_build_shadow_hit(
+                context.metadata, site="S6_refused", scene=lifecycle_scene
+            )
             await self._emit_result_with_citations(
                 stream,
                 {
@@ -5366,6 +5399,40 @@ class DeepQuestionCapability(BaseCapability):
         if not isinstance(metadata, dict):
             return False
         return not normalize_turn_semantic_decision(metadata.get("turn_semantic_decision"))
+
+    @staticmethod
+    def _append_bare_build_shadow_hit(
+        metadata: Any, *, site: str, scene: str
+    ) -> None:
+        """OBSERVE-ONLY (blind-spot #2): record that an UNCONDITIONAL bare
+        ``build_turn_semantic_decision(...)`` site became the operative source of
+        ``turn_semantic_decision``. Unlike the canonical-missing guard, these
+        sites (S5 review-render, S6 refused) fabricate a second-authority decision
+        even when the canonical decision is present — so ``canonical_present`` is
+        computed REALLY here and may be True, which is exactly the blind spot the
+        7-day window must surface. This only appends to the piggy-backed shadow-hit
+        list; it changes no control flow, no return value, no fabricated decision.
+        """
+
+        if not isinstance(metadata, dict):
+            return
+        canonical_present = bool(
+            normalize_turn_semantic_decision(metadata.get("turn_semantic_decision"))
+        )
+        trace_meta = metadata.setdefault("trace_metadata", {})
+        if not isinstance(trace_meta, dict):
+            return
+        trace_meta.setdefault("control_plane_shadow_hits", []).append(
+            {
+                "fact": "turn_semantic_decision",
+                "writer_role": "unconditional_fabricate",
+                "writer_symbol": "run",
+                "path": "deep_question",
+                "site": site,
+                "scene": scene or "",
+                "canonical_present": canonical_present,
+            }
+        )
 
     @staticmethod
     def _fabrication_observation_fields(metadata: Any) -> dict[str, Any]:

@@ -155,24 +155,29 @@ async def test_orchestrator_routes_active_guide_page_continuation_to_chat() -> N
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_shadow_mode_keeps_legacy_route_authoritative(
+async def test_orchestrator_shadow_mode_routes_via_canonical_decision(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Control-plane Task 3 (Decision A): the legacy capability decider is removed, so
+    shadow mode no longer previews-canonical-then-returns-legacy. It now routes by the
+    canonical turn_semantic_decision directly (here: route_to_grading → deep_question)."""
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
 
-    async def _fake_preview(_context, _message):
-        return {
+    async def _fake_decision(context, _message):
+        decision = {
             "relation_to_active_object": "answer_active_object",
             "next_action": "route_to_grading",
             "target_object_ref": {"object_type": "single_question", "object_id": "q_1"},
             "allowed_patch": ["update_answer_slot"],
             "confidence": 0.91,
-            "reason": "shadow compare",
+            "reason": "shadow canonical",
         }
+        context.metadata["turn_semantic_decision"] = decision
+        return decision
 
-    monkeypatch.setattr(orchestrator, "_preview_turn_semantic_decision", _fake_preview)
+    monkeypatch.setattr(orchestrator, "_resolve_turn_semantic_decision", _fake_decision)
 
     context = UnifiedContext(
         session_id="semantic-router-shadow",
@@ -187,18 +192,38 @@ async def test_orchestrator_shadow_mode_keeps_legacy_route_authoritative(
 
     _ = [event async for event in orchestrator.handle(context)]
 
-    assert registry.captured[0] == "chat"
+    assert registry.captured[0] == "deep_question"
     assert context.metadata["semantic_router_mode"] == "shadow"
-    assert context.metadata["semantic_router_shadow_route"] == "deep_question"
-    assert context.metadata["semantic_router_selected_capability"] == "chat"
-    assert "turn_semantic_decision" not in context.metadata
+    assert context.metadata["semantic_router_selected_capability"] == "deep_question"
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_disabled_mode_skips_semantic_router() -> None:
+async def test_orchestrator_disabled_mode_routes_via_canonical_decision(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Killswitch removed: with the router disabled, the post-lifecycle fall-through still
+    resolves the canonical decision (no second heuristic authority). A chat decision →
+    default chat. Mode stays observably ``disabled``."""
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    resolved: dict[str, Any] = {}
+
+    async def _fake_decision(context, _message):
+        decision = {
+            "relation_to_active_object": "out_of_scope_chat",
+            "next_action": "route_to_general_chat",
+            "target_object_ref": {"object_type": "", "object_id": ""},
+            "allowed_patch": ["no_state_change"],
+            "confidence": 0.8,
+            "reason": "guide continuation chat",
+        }
+        context.metadata["turn_semantic_decision"] = decision
+        resolved["called"] = True
+        return decision
+
+    monkeypatch.setattr(orchestrator, "_resolve_turn_semantic_decision", _fake_decision)
 
     context = UnifiedContext(
         session_id="semantic-router-disabled",
@@ -210,17 +235,35 @@ async def test_orchestrator_disabled_mode_skips_semantic_router() -> None:
 
     _ = [event async for event in orchestrator.handle(context)]
 
+    assert resolved.get("called") is True
     assert registry.captured[0] == "chat"
     assert context.metadata["semantic_router_mode"] == "disabled"
     assert context.metadata["semantic_router_selected_capability"] == "chat"
-    assert "turn_semantic_decision" not in context.metadata
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_scope_excludes_guide_from_question_only_rollout() -> None:
+async def test_orchestrator_scope_excluded_routes_via_canonical_decision(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Scope-excluded guide turn (question_only rollout) now also routes via the canonical
+    decision (legacy heuristic removed). Mode/scope telemetry preserved."""
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _fake_decision(context, _message):
+        decision = {
+            "relation_to_active_object": "out_of_scope_chat",
+            "next_action": "route_to_general_chat",
+            "target_object_ref": {"object_type": "", "object_id": ""},
+            "allowed_patch": ["no_state_change"],
+            "confidence": 0.8,
+            "reason": "guide page continuation chat",
+        }
+        context.metadata["turn_semantic_decision"] = decision
+        return decision
+
+    monkeypatch.setattr(orchestrator, "_resolve_turn_semantic_decision", _fake_decision)
 
     context = UnifiedContext(
         session_id="semantic-router-scope-guide",

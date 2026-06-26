@@ -268,6 +268,15 @@ jobs:
         run: |
           python scripts/check_model_authority.py
 
+      - name: control-plane writer allowlist gate (single turn_semantic_decision / scene / active_object / reveal / visible-output writer)
+        # AGENTS §5.7 single-authority: every control-plane write-site (turn_semantic_decision,
+        # question_lifecycle_scene, active_object, reveal_*, visible-output RESULT/PROGRESS/ACK)
+        # must be declared in contracts/index.yaml control_plane_writers; an unregistered
+        # production writer fails CI (register-before-use, AST-based, fail-closed). Both the
+        # repo and packaged contracts copies must agree (parity).
+        run: |
+          python scripts/check_control_plane_writer_allowlist.py --check
+
       - name: governance registry meta-gate (every scanner cataloged + every pr_gate wired)
         # The roll-up the schema-governance audit found missing: contracts/registries.yaml
         # is the single catalog of every governance scanner + its resource class + where it
