@@ -1125,3 +1125,12 @@ control_plane_writers:
     allowed_role: defensive_guard
     reason: Last-mile public redaction safety belt; never the primary reveal authority.
     remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _prepare_practice_request_context
+    allowed_role: adapter_projection
+    reason: Orchestrator setdefaults the canonical practice-generation decision via
+      build_turn_semantic_decision on every practice route, mirroring deep_question's
+      S7 generation values so the reader reads canonical instead of fabricating.
+    remove_when: Task 2 (deep_question generation fabricate deletion after live-window proof).

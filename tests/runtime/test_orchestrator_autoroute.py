@@ -8,6 +8,7 @@ import pytest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEventType
 from deeptutor.runtime.orchestrator import ChatOrchestrator
+from deeptutor.services.semantic_router import normalize_turn_semantic_decision
 
 
 class _FakeCapability:
@@ -179,6 +180,36 @@ async def test_orchestrator_routes_training_by_question_count_as_practice_genera
     assert context.config_overrides["num_questions"] == 3
     assert context.config_overrides["reveal_answers"] is False
     assert context.config_overrides["reveal_explanations"] is False
+    # Canonical turn_semantic_decision must be supplied on the no-active practice
+    # generation route too, so deep_question reads it instead of fabricating S7.
+    decision = context.metadata.get("turn_semantic_decision")
+    assert normalize_turn_semantic_decision(decision) is not None
+    assert decision["next_action"] == "route_to_generation"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_supplies_canonical_decision_on_practice_when_router_disabled() -> None:
+    """Disabled-router practice generation (no active object) must still receive a
+    canonical turn_semantic_decision from the orchestrator, not leave it absent for
+    deep_question to fabricate."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-training-router-disabled",
+        user_message="用 3 道题训练项目质量计划管理",
+        config_overrides={"mode": "deep", "semantic_router_enabled": False},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    decision = context.metadata.get("turn_semantic_decision")
+    assert normalize_turn_semantic_decision(decision) is not None
+    assert decision["next_action"] == "route_to_generation"
 
 
 @pytest.mark.asyncio

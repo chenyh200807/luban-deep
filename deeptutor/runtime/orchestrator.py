@@ -1038,14 +1038,28 @@ class ChatOrchestrator:
                     "reason": "question lifecycle routed this turn to practice generation",
                 },
             )
-            context.metadata.setdefault(
-                "turn_semantic_decision",
-                {
-                    "next_action": "route_to_generation",
-                    "confidence": 1.0,
-                    "reason": "question lifecycle routed this turn to practice generation",
-                },
-            )
+        # Supply the canonical practice-generation turn_semantic_decision on EVERY
+        # practice route (no-active generation and legacy/disabled-router paths too,
+        # not just the active-question branch above), mirroring deep_question's S7
+        # generation fabricate so the reader reads it instead of re-fabricating.
+        practice_active_object = normalize_active_object(
+            context.metadata.get("active_object")
+        )
+        context.metadata.setdefault(
+            "turn_semantic_decision",
+            build_turn_semantic_decision(
+                relation_to_active_object=(
+                    "continue_same_learning_flow"
+                    if practice_active_object
+                    else "switch_to_new_object"
+                ),
+                next_action="route_to_generation",
+                allowed_patch="set_active_object",
+                confidence=1.0,
+                reason="practice generation result",
+                active_object=practice_active_object,
+            ),
+        )
         skill_names = list(select_question_lifecycle_skill_names("practice_generation"))
         context.metadata["question_lifecycle_skill_names"] = skill_names
         interaction_hints = (
