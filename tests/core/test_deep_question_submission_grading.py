@@ -2200,6 +2200,59 @@ def test_different_topic_generation_request_excludes_active_question_anchor() ->
     assert "施工缝" in topic
 
 
+def test_different_topic_generation_preserves_broad_subject_anchor() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再出一道不同考点的单选题，不要答案。",
+        active_object={
+            "object_type": "single_question",
+            "object_id": "q_pm",
+            "state_snapshot": {
+                "question_id": "q_pm",
+                "concentration": "一级建造师项目管理",
+                "question": "建设工程项目管理的核心任务是（ ）。",
+                "question_type": "choice",
+                "options": {
+                    "A": "质量控制",
+                    "B": "成本控制",
+                    "C": "项目目标控制",
+                    "D": "合同管理",
+                },
+                "correct_answer": "C",
+            },
+        },
+        suspended_object_stack=[],
+        followup_question_context=None,
+        conversation_context_text="",
+    )
+
+    assert topic.startswith("再出一道不同考点的单选题")
+    assert "当前学习主题：一级建造师项目管理" in topic
+    assert "排除当前题" in topic
+    assert "需避开考点：一级建造师项目管理" not in topic
+    assert "建设工程项目管理的核心任务" in topic
+
+
+def test_current_question_exclusion_keeps_specific_point_exclusion() -> None:
+    exclusion = deep_question_module._question_context_exclusion_anchor(
+        {
+            "question_id": "q_rhythm",
+            "concentration": "流水节拍",
+            "question": "关于流水施工参数的说法，正确的是（ ）。",
+            "question_type": "choice",
+            "options": {
+                "A": "流水节拍表示一个施工过程在一个施工段上的持续时间",
+                "B": "流水节拍只能取整数",
+                "C": "流水步距等于流水节拍",
+                "D": "流水强度等于施工段数量",
+            },
+            "correct_answer": "A",
+        }
+    )
+
+    assert "需避开考点：流水节拍" in exclusion
+    assert "需避开题干" in exclusion
+
+
 def test_explicit_generation_topic_does_not_require_context_anchor() -> None:
     assert deep_question_module._topic_needs_authoritative_anchor("出三道变形缝的题") is False
     for user_topic in (
@@ -2558,6 +2611,7 @@ async def test_deep_question_different_topic_request_does_not_inherit_question_a
                 "state_snapshot": {
                     "question_id": "q_hot_work",
                     "question": "施工现场负责审查批准一级动火作业的（ ）。",
+                    "concentration": "一级建造师项目管理",
                     "question_type": "choice",
                     "options": {
                         "A": "项目负责人",
@@ -2584,7 +2638,9 @@ async def test_deep_question_different_topic_request_does_not_inherit_question_a
     user_topic = captured["generate_from_topic"]["user_topic"]
     assert captured["generate_from_topic"]["avoid_current_question"] is True
     assert "当前学习锚点" not in user_topic
+    assert "当前学习主题：一级建造师项目管理" in user_topic
     assert "排除当前题" in user_topic
+    assert "需避开考点：一级建造师项目管理" not in user_topic
     assert "一级动火作业" in user_topic
     assert "上一轮薄弱点" not in user_topic
     assert "next_training_signal" not in user_topic
