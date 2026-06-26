@@ -122,6 +122,12 @@ _BROAD_QUESTION_SUBJECT_LABELS = {
 }
 _BROAD_QUESTION_SUBJECT_MARKERS = ("一级建造师", "一建", "建造师考试")
 _BROAD_QUESTION_SUBJECT_SUFFIXES = ("项目管理", "建筑实务", "管理与实务")
+_OPEN_CHAT_PLACEHOLDER_TITLES = {
+    "新对话",
+    "new conversation",
+    "untitled session",
+    "untitled",
+}
 
 
 def _compact_text(value: Any) -> str:
@@ -385,7 +391,7 @@ def _active_object_generation_anchor(active_object: dict[str, Any] | None) -> st
         summary = _clip_text(snapshot.get("compressed_summary"), limit=220)
         if summary:
             anchor_lines.append(f"当前会话摘要：{summary}")
-        elif title:
+        elif title and title.lower() not in _OPEN_CHAT_PLACEHOLDER_TITLES:
             anchor_lines.append(f"当前会话主题：{title}")
         return "\n".join(anchor_lines)
 
@@ -483,7 +489,6 @@ def _resolve_generation_topic(
     if not topic:
         return ""
     if _requests_current_question_exclusion(topic):
-        broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
         normalized_active_object = normalize_active_object(active_object)
         active_object_type = str((normalized_active_object or {}).get("object_type") or "").strip()
         exclusion_anchor = _question_context_exclusion_anchor(followup_question_context)
@@ -491,12 +496,13 @@ def _resolve_generation_topic(
             exclusion_anchor = _question_context_exclusion_anchor(
                 question_context_from_active_object(normalized_active_object)
             )
+        broader_anchor = _question_context_broader_subject_anchor(followup_question_context)
         if not broader_anchor:
-            broader_anchor = _question_context_broader_subject_anchor(followup_question_context)
-        if not broader_anchor and active_object_type in {"question_set", "single_question"}:
             broader_anchor = _question_context_broader_subject_anchor(
                 question_context_from_active_object(normalized_active_object)
             )
+        if not broader_anchor:
+            broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
         if not broader_anchor and active_object_type not in {"question_set", "single_question"}:
             broader_anchor = _active_object_generation_anchor(normalized_active_object)
         if not broader_anchor:

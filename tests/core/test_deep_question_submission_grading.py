@@ -2137,6 +2137,26 @@ def test_plain_count_generation_request_requires_authoritative_anchor() -> None:
         assert deep_question_module._topic_needs_authoritative_anchor(user_topic) is True
 
 
+def _placeholder_open_chat_topic() -> dict[str, Any]:
+    return {
+        "object_type": "open_chat_topic",
+        "object_id": "session-live",
+        "scope": {
+            "domain": "session",
+            "session_id": "session-live",
+            "source": "",
+        },
+        "state_snapshot": {
+            "session_id": "session-live",
+            "title": "新对话",
+            "compressed_summary": "",
+            "source": "",
+            "status": "running",
+        },
+        "version": 1,
+    }
+
+
 def test_plain_count_generation_request_uses_open_chat_topic_anchor() -> None:
     topic = deep_question_module._resolve_generation_topic(
         raw_topic="出三道题",
@@ -2148,7 +2168,7 @@ def test_plain_count_generation_request_uses_open_chat_topic_anchor() -> None:
                 "compressed_summary": "用户刚学习了建筑实务变形缝的设置与构造处理。",
             },
         },
-        suspended_object_stack=[],
+        suspended_object_stack=[_placeholder_open_chat_topic()],
         followup_question_context=None,
         conversation_context_text="",
     )
@@ -2220,13 +2240,15 @@ def test_different_topic_generation_preserves_broad_subject_anchor() -> None:
                 "correct_answer": "C",
             },
         },
-        suspended_object_stack=[],
+        suspended_object_stack=[_placeholder_open_chat_topic()],
         followup_question_context=None,
         conversation_context_text="",
     )
 
     assert topic.startswith("再出一道不同考点的单选题")
     assert "当前学习主题：一级建造师项目管理" in topic
+    assert "当前会话主题：新对话" not in topic
+    assert deep_question_module.practice_generation_topic_domain_status(topic) == "construction_topic"
     assert "排除当前题" in topic
     assert "需避开考点：一级建造师项目管理" not in topic
     assert "建设工程项目管理的核心任务" in topic
