@@ -39,7 +39,6 @@ from deeptutor.services.session.turn_runtime import (
     _result_active_object,
     _result_question_followup_context,
     _sanitize_public_terminal_event,
-    _stamp_current_submission_scene_pre_capability,
     _TurnExecution,
 )
 
@@ -140,73 +139,12 @@ def test_turn_runtime_unwraps_transport_content_envelope_for_case_grading() -> N
     )
 
 
-def test_turn_runtime_stamps_full_case_submission_scene_before_capability() -> None:
-    config: dict[str, object] = {}
-    raw_case_submission = (
-        "建设单位编制了投资兴建某工程的招标文件。\n"
-        "【问题】1. 工程量清单的强制性内容还有哪些？\n"
-        "回答\n"
-        "作答：项目编码、项目名称、项目特征、计量单位和工程量。"
-    )
-
-    _stamp_current_submission_scene_pre_capability(
-        config,
-        user_message=raw_case_submission,
-        followup_context={
-            "question_type": "case",
-            "question": raw_case_submission,
-            "user_answer": "项目编码、项目名称、项目特征、计量单位和工程量。",
-        },
-        followup_action={"intent": "answer_questions", "answers": []},
-    )
-
-    assert config["question_lifecycle_scene"] == "case_grading"
-    assert config["question_lifecycle_scene_source"] == "deterministic_pre_capability"
-    assert config["question_lifecycle_scene_reason"] == "full_case_answer_submission"
-    assert config["question_lifecycle_skill_names"] == [
-        "construction-exam-tutor",
-        "construction-case-grading",
-    ]
-
-
-def test_turn_runtime_stamps_existing_case_submission_context_before_capability() -> None:
-    config: dict[str, object] = {}
-    case_context = {
-        "question_id": "case-current",
-        "question_type": "case_study",
-        "question": "背景资料：某工程施工总承包。\n【问题】指出不妥之处。",
-        "user_answer": "施工单位应避免违法分包。",
-    }
-
-    _stamp_current_submission_scene_pre_capability(
-        config,
-        user_message="施工单位应避免违法分包。",
-        followup_context=case_context,
-        followup_action={"intent": "answer_questions", "answers": []},
-    )
-
-    assert config["question_lifecycle_scene"] == "case_grading"
-    assert config["question_lifecycle_scene_reason"] == "case_submission_context"
-
-
-def test_turn_runtime_stamps_objective_submission_as_mcq_grading() -> None:
-    config: dict[str, object] = {}
-    choice_context = {
-        "question_id": "choice-current",
-        "question_type": "single_choice",
-        "question": "下列说法正确的是？",
-        "options": {"A": "甲", "B": "乙"},
-    }
-
-    _stamp_current_submission_scene_pre_capability(
-        config,
-        user_message="B",
-        followup_context=choice_context,
-        followup_action={"intent": "answer_questions", "answers": []},
-    )
-
-    assert config["question_lifecycle_scene"] == "mcq_grading"
-    assert config["question_lifecycle_scene_reason"] == "mcq_submission_context"
+# Control-plane Task 4: the deterministic pre-capability scene pre-stamp
+# (_stamp_current_submission_scene_pre_capability) was removed. The canonical lifecycle
+# scene is now resolved solely by resolve_question_lifecycle_scene_decision (which derives
+# the same mcq_grading / case_grading scene from the same submission facts). Scene parity
+# across submission/non-submission turns is pinned by
+# tests/services/test_pre_stamp_scene_parity.py.
 
 
 def test_turn_runtime_content_unwrap_keeps_non_transport_json_intact() -> None:
@@ -1995,8 +1933,20 @@ async def test_start_turn_promotes_full_new_mcq_over_stale_active_object(
     assert "施工现场临时用电组织设计" in resolved_context["question"]
     assert resolved_context["options"]["B"] == "电气工程技术人员"
     assert resolved_context["user_answer"] == "B"
-    assert captured["question_lifecycle_scene"] == "mcq_grading"
-    assert captured["question_lifecycle_scene_source"] == "deterministic_pre_capability"
+    # Control-plane Task 4: the pre-capability scene pre-stamp was removed, so the scene is
+    # no longer present in context.metadata when the (here-stubbed) orchestrator is entered.
+    # The canonical resolver derives the same mcq_grading scene from the promoted followup
+    # context, preserving the single-authority behavior the pre-stamp used to provide.
+    assert captured["question_lifecycle_scene"] is None
+    assert (
+        derive_question_lifecycle_scene(
+            SimpleNamespace(
+                user_message="我的答案 B，请判分。",
+                metadata={"question_followup_context": resolved_context},
+            )
+        )
+        == "mcq_grading"
+    )
 
     active_object = await store.get_active_object(session["id"])
     assert active_object is not None
@@ -2096,12 +2046,21 @@ async def test_start_turn_stamps_inline_full_mcq_scene_and_marked_answer(
         pass
 
     resolved_context = captured["question_followup_context"]
-    assert captured["question_lifecycle_scene"] == "mcq_grading"
-    assert captured["question_lifecycle_scene_source"] == "deterministic_pre_capability"
+    # Control-plane Task 4: scene pre-stamp removed; canonical resolver owns the scene.
+    assert captured["question_lifecycle_scene"] is None
     assert "建设工程竣工验收" in resolved_context["question"]
     assert resolved_context["options"]["D"] == "总监理工程师"
     assert resolved_context["user_answer"] == "B"
     assert resolved_context["correct_answer"] == "C"
+    assert (
+        derive_question_lifecycle_scene(
+            SimpleNamespace(
+                user_message="我的答案 B。标准答案：C。",
+                metadata={"question_followup_context": resolved_context},
+            )
+        )
+        == "mcq_grading"
+    )
 
 
 @pytest.mark.asyncio
@@ -2202,8 +2161,22 @@ async def test_start_turn_promotes_full_new_case_over_stale_active_object(
     assert resolved_context["question_type"] == "case"
     assert "屋面卷材防水施工后渗漏" in resolved_context["question"]
     assert "基层必须干燥" in resolved_context["user_answer"]
-    assert captured["question_lifecycle_scene"] == "case_grading"
-    assert captured["question_lifecycle_scene_source"] == "deterministic_pre_capability"
+    # Control-plane Task 4: scene pre-stamp removed; canonical resolver owns the scene.
+    assert captured["question_lifecycle_scene"] is None
+    assert (
+        derive_question_lifecycle_scene(
+            SimpleNamespace(
+                user_message=(
+                    "某屋面卷材防水施工后渗漏，现场发现基层潮湿、搭接宽度不足、"
+                    "闭水试验记录缺失。\n"
+                    "【问题】请指出主要质量问题并提出整改措施。\n"
+                    "作答：基层必须干燥，搭接宽度应符合规范，补做蓄水试验并整改渗漏点。"
+                ),
+                metadata={"question_followup_context": resolved_context},
+            )
+        )
+        == "case_grading"
+    )
 
     active_object = await store.get_active_object(session["id"])
     assert active_object is not None
