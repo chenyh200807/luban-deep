@@ -1134,3 +1134,24 @@ control_plane_writers:
       build_turn_semantic_decision on every practice route, mirroring deep_question's
       S7 generation values so the reader reads canonical instead of fabricating.
     remove_when: Task 2 (deep_question generation fabricate deletion after live-window proof).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: >-
+      Main-drift (post-831a98e73 tutorbot/deep_question fixes): MCQ/case full-submission
+      writes active_object onto context.metadata via build_active_object_from_question_context.
+      Capability-side active-object identity is QuestionTurnPolicyKernel-owned in the target
+      topology; demotion candidate.
+    remove_when: Task 2/4 (active_object identity collapse into QuestionTurnPolicyKernel).
+  - field: visible_result
+    writer_type: stream_result
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: _emit_lifecycle_terminal_response
+    allowed_role: production_decider
+    reason: >-
+      Main-drift (post-831a98e73): lifecycle terminal response emitter calls stream.result
+      directly. Contentful visible-output is TerminalResultAssembler-owned in the target
+      topology; demotion candidate.
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
