@@ -110,6 +110,18 @@ _QUESTION_BANK_METADATA_KEYS = (
     "source_question",
     "recovered_question_context",
 )
+_BROAD_QUESTION_SUBJECT_LABELS = {
+    "一级建造师项目管理",
+    "一建项目管理",
+    "建设工程项目管理",
+    "建筑工程项目管理",
+    "一级建造师建筑实务",
+    "一建建筑实务",
+    "一级建造师建筑工程",
+    "建筑工程管理与实务",
+}
+_BROAD_QUESTION_SUBJECT_MARKERS = ("一级建造师", "一建", "建造师考试")
+_BROAD_QUESTION_SUBJECT_SUFFIXES = ("项目管理", "建筑实务", "管理与实务")
 
 
 def _compact_text(value: Any) -> str:
@@ -133,6 +145,19 @@ def _append_unique(parts: list[str], candidate: Any) -> None:
     if not text or text in parts:
         return
     parts.append(text)
+
+
+def _is_broad_question_subject_label(value: Any) -> bool:
+    text = _compact_text(value)
+    if not text:
+        return False
+    if text in _BROAD_QUESTION_SUBJECT_LABELS:
+        return True
+    if len(text) > 32:
+        return False
+    return any(marker in text for marker in _BROAD_QUESTION_SUBJECT_MARKERS) and any(
+        text.endswith(suffix) for suffix in _BROAD_QUESTION_SUBJECT_SUFFIXES
+    )
 
 
 def _training_signal_text_from_context(question_context: dict[str, Any]) -> str:
@@ -303,7 +328,9 @@ def _question_context_exclusion_anchor(question_context: dict[str, Any] | None) 
     option_parts: list[str] = []
 
     for item in contexts:
-        _append_unique(concentrations, item.get("concentration"))
+        concentration = item.get("concentration")
+        if not _is_broad_question_subject_label(concentration):
+            _append_unique(concentrations, concentration)
         _append_unique(question_parts, _clip_text(item.get("question"), limit=180))
         options = item.get("options")
         if isinstance(options, dict):
@@ -322,6 +349,20 @@ def _question_context_exclusion_anchor(question_context: dict[str, Any] | None) 
     if option_parts:
         anchor_lines.append(f"需避开选项面：{'；'.join(option_parts[:2])}")
     return "\n".join(anchor_lines)
+
+
+def _question_context_broader_subject_anchor(question_context: dict[str, Any] | None) -> str:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return ""
+
+    items = normalized.get("items") or []
+    contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
+    for item in contexts:
+        concentration = item.get("concentration")
+        if _is_broad_question_subject_label(concentration):
+            return f"当前学习主题：{_clip_text(concentration, limit=80)}"
+    return ""
 
 
 def _active_object_generation_anchor(active_object: dict[str, Any] | None) -> str:
@@ -448,6 +489,12 @@ def _resolve_generation_topic(
         exclusion_anchor = _question_context_exclusion_anchor(followup_question_context)
         if not exclusion_anchor and active_object_type in {"question_set", "single_question"}:
             exclusion_anchor = _question_context_exclusion_anchor(
+                question_context_from_active_object(normalized_active_object)
+            )
+        if not broader_anchor:
+            broader_anchor = _question_context_broader_subject_anchor(followup_question_context)
+        if not broader_anchor and active_object_type in {"question_set", "single_question"}:
+            broader_anchor = _question_context_broader_subject_anchor(
                 question_context_from_active_object(normalized_active_object)
             )
         if not broader_anchor and active_object_type not in {"question_set", "single_question"}:
