@@ -316,6 +316,7 @@ domains:
       - deeptutor/api/routers/mobile.py
     test_files:
       - tests/runtime/test_orchestrator_autoroute.py
+      - tests/runtime/test_orchestrator_semantic_router.py
       - tests/agents/question/test_coordinator_followup_anchor.py
       - tests/api/test_mobile_eval_bypass.py
       - tests/api/test_unified_ws_turn_runtime.py

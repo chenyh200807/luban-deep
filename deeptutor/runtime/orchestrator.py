@@ -449,83 +449,83 @@ class ChatOrchestrator:
         context.metadata["semantic_router_scope"] = semantic_router_scope
         context.metadata["semantic_router_scope_match"] = semantic_router_scope_match
 
+        # Control-plane single-authority (Task 3, Decision A): the canonical semantic
+        # router is the SOLE capability decider on every post-lifecycle fall-through.
+        # The former heuristic ``_select_legacy_capability`` (and the router killswitch
+        # it backed) is removed — DEEPTUTOR_SEMANTIC_ROUTER_ENABLED defaults True / scope
+        # all in production, so the heuristic was already dormant. Shadow / primary /
+        # disabled / scope-excluded all resolve the canonical turn_semantic_decision and
+        # route by it; a None-route (resolver could not produce a mappable decision)
+        # defaults to the context-continuous chat/tutorbot executor (the same belt the
+        # unresolved-switch invariant uses), never a second heuristic authority.
         if semantic_router_shadow_mode and semantic_router_scope_match:
-            shadow_decision = await self._preview_turn_semantic_decision(context, routing_user_message)
-            context.metadata["semantic_router_mode"] = "shadow"
-            context.metadata["semantic_router_mode_reason"] = "shadow_compare_only"
-            context.metadata["semantic_router_shadow_decision"] = shadow_decision or {}
-            context.metadata["semantic_router_shadow_route"] = (
-                turn_semantic_decision_route(shadow_decision) or ""
+            mode, reason = "shadow", "semantic_router_shadow"
+        elif semantic_router_enabled and semantic_router_scope_match:
+            mode, reason = "primary", "semantic_router_primary"
+        else:
+            mode = "disabled"
+            reason = (
+                "scope_excluded"
+                if not semantic_router_scope_match
+                and (semantic_router_enabled or semantic_router_shadow_mode)
+                else "flag_disabled"
             )
-            cap_name = self._select_legacy_capability(context, routing_user_message)
-            context.metadata["semantic_router_selected_capability"] = cap_name
-            return cap_name
-
-        if semantic_router_enabled and semantic_router_scope_match:
-            turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
-            context.metadata["semantic_router_mode"] = "primary"
-            context.metadata["semantic_router_mode_reason"] = "semantic_router_primary"
-            context.metadata["semantic_router_shadow_decision"] = {}
-            context.metadata["semantic_router_shadow_route"] = ""
-            semantic_route = turn_semantic_decision_route(turn_decision)
-            # Context-continuity invariant: an unresolved switch/back-reference depends on
-            # prior context (conversation_context_text) → route to the context-continuous
-            # main LLM, never the deep_question structured switch resolver (fail-closed).
-            if is_unresolved_switch_followup(turn_decision):
-                cap_name = self._default_chat_capability(context)
-                context.metadata["semantic_router_mode_reason"] = (
-                    "unresolved_switch_to_context_continuity"
-                )
-                context.metadata["semantic_router_selected_capability"] = cap_name
-                return cap_name
-            if semantic_route == "deep_question":
-                next_action = str((turn_decision or {}).get("next_action") or "").strip()
-                if next_action == "route_to_grading":
-                    self._prepare_question_submission_context(
-                        context,
-                        context.metadata.get("question_followup_action"),
-                    )
-                elif next_action == "route_to_generation":
-                    self._prepare_practice_request_context(
-                        context,
-                        self._practice_generation_message(context, routing_user_message),
-                    )
-                context.metadata["semantic_router_selected_capability"] = "deep_question"
-                return "deep_question"
-            if semantic_route == "chat":
-                cap_name = self._default_chat_capability(context)
-                context.metadata["semantic_router_selected_capability"] = cap_name
-                return cap_name
-
-        context.metadata["semantic_router_mode"] = "disabled"
-        context.metadata["semantic_router_mode_reason"] = (
-            "scope_excluded"
-            if not semantic_router_scope_match and (semantic_router_enabled or semantic_router_shadow_mode)
-            else "flag_disabled"
+        return await self._route_via_canonical_decision(
+            context,
+            routing_user_message,
+            mode=mode,
+            mode_reason=reason,
         )
+
+    async def _route_via_canonical_decision(
+        self,
+        context: UnifiedContext,
+        routing_user_message: str,
+        *,
+        mode: str,
+        mode_reason: str,
+    ) -> str:
+        """Resolve the canonical turn_semantic_decision and route by it. Single capability
+        decider for every post-lifecycle fall-through (shadow / primary / disabled /
+        scope-excluded). Preserves the §6 safety belt (unresolved-switch →
+        context-continuous main LLM) and the deep_question grading/generation context
+        prep. A None-route (no mappable canonical decision) defaults to the
+        context-continuous chat/tutorbot executor — never a second heuristic authority.
+        """
+        turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
+        context.metadata["semantic_router_mode"] = mode
+        context.metadata["semantic_router_mode_reason"] = mode_reason
         context.metadata["semantic_router_shadow_decision"] = {}
         context.metadata["semantic_router_shadow_route"] = ""
-        cap_name = self._select_legacy_capability(context, routing_user_message)
-        context.metadata["semantic_router_selected_capability"] = cap_name
-        # Observe-only live-shadow hit (no control flow / cap_name change): when
-        # the semantic router is disabled / scope-excluded and the LEGACY decider
-        # drove a non-default (non-chat) production routing decision, record that
-        # the legacy decider became the operative control-plane source. Reuses the
-        # single terminal turn_observation event via the trace_metadata whitelist.
-        if cap_name != self._default_chat_capability(context) and isinstance(
-            context.metadata, dict
-        ):
-            trace_meta = context.metadata.setdefault("trace_metadata", {})
-            if isinstance(trace_meta, dict):
-                trace_meta.setdefault("control_plane_shadow_hits", []).append(
-                    {
-                        "fact": "legacy_capability_selection",
-                        "writer_role": "legacy_decider",
-                        "writer_symbol": "_select_legacy_capability",
-                        "path": "disabled",
-                        "canonical_present": False,
-                    }
+        semantic_route = turn_semantic_decision_route(turn_decision)
+        # Context-continuity invariant: an unresolved switch/back-reference depends on
+        # prior context (conversation_context_text) → route to the context-continuous
+        # main LLM, never the deep_question structured switch resolver (fail-closed).
+        if is_unresolved_switch_followup(turn_decision):
+            cap_name = self._default_chat_capability(context)
+            context.metadata["semantic_router_mode_reason"] = (
+                "unresolved_switch_to_context_continuity"
+            )
+            context.metadata["semantic_router_selected_capability"] = cap_name
+            return cap_name
+        if semantic_route == "deep_question":
+            next_action = str((turn_decision or {}).get("next_action") or "").strip()
+            if next_action == "route_to_grading":
+                self._prepare_question_submission_context(
+                    context,
+                    context.metadata.get("question_followup_action"),
                 )
+            elif next_action == "route_to_generation":
+                self._prepare_practice_request_context(
+                    context,
+                    self._practice_generation_message(context, routing_user_message),
+                )
+            context.metadata["semantic_router_selected_capability"] = "deep_question"
+            return "deep_question"
+        # chat route OR None-route (no mappable canonical decision) → the
+        # context-continuous default chat/tutorbot executor.
+        cap_name = self._default_chat_capability(context)
+        context.metadata["semantic_router_selected_capability"] = cap_name
         return cap_name
 
     @staticmethod
@@ -764,15 +764,6 @@ class ChatOrchestrator:
             context.metadata["question_followup_action"] = routing.followup_action
         return routing.turn_semantic_decision
 
-    async def _preview_turn_semantic_decision(
-        self,
-        context: UnifiedContext,
-        message: str,
-    ) -> dict[str, Any] | None:
-        preview_metadata = dict(context.metadata or {})
-        routing = await self._resolve_semantic_routing(context, message, metadata=preview_metadata)
-        return routing.turn_semantic_decision
-
     async def _resolve_semantic_routing(
         self,
         context: UnifiedContext,
@@ -804,24 +795,6 @@ class ChatOrchestrator:
             looks_like_question_followup=looks_like_question_followup,
             looks_like_practice_generation_request=looks_like_practice_generation_request,
         )
-
-    def _select_legacy_capability(self, context: UnifiedContext, message: str) -> str:
-        if self._looks_like_question_submission(context, message):
-            self._prepare_question_submission_context(context)
-            return "deep_question"
-
-        if looks_like_practice_generation_request(message):
-            self._prepare_practice_request_context(context, message)
-            return "deep_question"
-
-        if self._looks_like_free_text_question_review_request(context, message):
-            self._prepare_free_text_question_review_context(context, message)
-            return "deep_question"
-
-        if self._looks_like_question_followup(context, message):
-            return "deep_question"
-
-        return self._default_chat_capability(context)
 
     def _semantic_router_scope_match(
         self,
