@@ -623,3 +623,503 @@ learning_state_inference:
     - unregistered error_code in payload outside docs/contracts/error_code_registry.md
     - keyword-only rubric items rendered as "采分点" instead of "审题要点"
     - write-back into questions_bank.grading_rubric
+
+# ---------------------------------------------------------------------------
+# Control-plane single-writer allowlist (Task 1, fast-mode-orchestrator plan §14.A).
+#
+# Register-before-use baseline: every control-plane write-site that
+# scripts/check_control_plane_writer_allowlist.py detects in the writer-map
+# files must have a matching (field + writer_type + file + symbol) entry here.
+# A new, unregistered writer turns the gate red. Task 1 only REGISTERS the
+# current writers (canonical + competing + defensive); it does not converge
+# authorities. Each competing writer carries allowed_role + remove_when
+# pointing at the collapsing task (plan §14.A Task 2-5). The two reveal sinks
+# are both registered (TutorBot canonical_writer, deep_question
+# compat_projection demotion candidate). Dormant prospective arms
+# (StreamEventType.ACK / stream.ack / first_useful_content) have zero live hits
+# (the enum has no ACK member); the guard scans for them so a future contentful
+# visible-frame writer is flagged on arrival.
+control_plane_writers:
+  - field: active_object
+    writer_type: payload_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: is_correct
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _apply_open_world_grading_state
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: is_correct
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _build_submission_context
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: is_correct
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _emit_grading_result
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: is_correct
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _fill_missing_mcq_authority
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: question_followup_context
+    writer_type: payload_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: question_lifecycle_scene
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question scene projection into trace_meta (competing writer).
+    remove_when: Task 3 (deep_question reads canonical scene).
+  - field: reveal_reference
+    writer_type: reveal_kwarg
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _coerce_question_bank_contexts
+    allowed_role: compat_projection
+    reason: deep_question second reveal sink (demotion candidate).
+    remove_when: Task 5 (single canonical reveal writer).
+  - field: reveal_reference
+    writer_type: reveal_kwarg
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question second reveal sink (demotion candidate).
+    remove_when: Task 5 (single canonical reveal writer).
+  - field: score
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _build_batch_submission_context
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: score
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _build_submission_context
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: score
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _emit_grading_result
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _emit_followup_result
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _emit_grading_result
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: turn_semantic_decision
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: turn_semantic_decision
+    writer_type: payload_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: visible_result
+    writer_type: stream_result
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _emit_grading_result
+    allowed_role: production_decider
+    reason: deep_question emits result/progress via StreamBus.
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_result
+    writer_type: stream_result
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _emit_result_with_citations
+    allowed_role: production_decider
+    reason: deep_question emits result/progress via StreamBus.
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_transport_frame
+    writer_type: stream_progress
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _trace_bridge
+    allowed_role: production_decider
+    reason: deep_question emits result/progress via StreamBus.
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_transport_frame
+    writer_type: stream_progress
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _ws_bridge
+    allowed_role: production_decider
+    reason: deep_question emits result/progress via StreamBus.
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: TutorBot carries active-object / followup projection (competing writer).
+    remove_when: Task 3 (TutorBot reads canonical decision).
+  - field: active_object
+    writer_type: payload_assignment
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: TutorBot carries active-object / followup projection (competing writer).
+    remove_when: Task 3 (TutorBot reads canonical decision).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: TutorBot carries active-object / followup projection (competing writer).
+    remove_when: Task 3 (TutorBot reads canonical decision).
+  - field: question_followup_context
+    writer_type: payload_assignment
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: TutorBot carries active-object / followup projection (competing writer).
+    remove_when: Task 3 (TutorBot reads canonical decision).
+  - field: reveal_reference
+    writer_type: reveal_kwarg
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: _build_visible_response
+    allowed_role: canonical_writer
+    reason: TutorBot canonical visible reveal sink.
+    remove_when: Task 5 (single canonical reveal writer).
+  - field: reveal_reference
+    writer_type: reveal_kwarg
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: canonical_writer
+    reason: TutorBot canonical visible reveal sink.
+    remove_when: Task 5 (single canonical reveal writer).
+  - field: visible_result
+    writer_type: stream_result
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: production_decider
+    reason: TutorBot emits terminal result payload via StreamBus.
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_transport_frame
+    writer_type: stream_progress
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: _on_progress
+    allowed_role: production_decider
+    reason: TutorBot transport progress frame.
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_result
+    writer_type: stream_result
+    file: deeptutor/core/stream_bus.py
+    symbol: result
+    allowed_role: canonical_writer
+    reason: StreamBus is the single visible-frame transport authority.
+    remove_when: never
+  - field: visible_transport_frame
+    writer_type: stream_progress
+    file: deeptutor/core/stream_bus.py
+    symbol: progress
+    allowed_role: canonical_writer
+    reason: StreamBus is the single visible-frame transport authority.
+    remove_when: never
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _prepare_practice_request_context
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _prepare_question_submission_context
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _record_lifecycle_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _resolve_semantic_routing
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _resolve_turn_semantic_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: question_followup_action
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _resolve_turn_semantic_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _prepare_practice_request_context
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _prepare_question_submission_context
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _resolve_turn_semantic_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: question_lifecycle_scene
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _record_lifecycle_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _select_capability
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: turn_semantic_decision
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _resolve_turn_semantic_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: turn_semantic_decision
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _select_capability
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: is_correct
+    writer_type: metadata_assignment
+    file: deeptutor/services/construction_grading/deep_question_adapter.py
+    symbol: attach_deep_question_grading_result
+    allowed_role: canonical_writer
+    reason: Construction-grading adapter projects grading-kernel verdict.
+    remove_when: never
+  - field: score
+    writer_type: metadata_assignment
+    file: deeptutor/services/construction_grading/deep_question_adapter.py
+    symbol: attach_deep_question_grading_result
+    allowed_role: canonical_writer
+    reason: Construction-grading adapter projects grading-kernel verdict.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _decision_from_active_learning_object
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _decision_from_active_open_chat_object
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _decision_from_ambiguity_gate
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _decision_from_fallback
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _decision_from_followup_action
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _promote_suspended_candidate_decision
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: resolve_question_semantic_routing
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: resolve_turn_semantic_decision
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _enrich_result_question_authority_from_trace
+    allowed_role: production_decider
+    reason: Runtime relation/active-object/followup write before capability dispatch.
+    remove_when: Task 2 (QuestionTurnPolicyKernel collapse).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _persist_and_publish
+    allowed_role: production_decider
+    reason: Runtime persists/applies QTPK-issued active-object / followup patch.
+    remove_when: Task 2/5 (runtime restore-persist only).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _run_turn
+    allowed_role: trace_projection
+    reason: Mirrors canonical fact into trace_metadata for observability.
+    remove_when: never
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _enrich_result_question_authority_from_trace
+    allowed_role: production_decider
+    reason: Runtime relation/active-object/followup write before capability dispatch.
+    remove_when: Task 2 (QuestionTurnPolicyKernel collapse).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _persist_and_publish
+    allowed_role: production_decider
+    reason: Runtime persists/applies QTPK-issued active-object / followup patch.
+    remove_when: Task 2/5 (runtime restore-persist only).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _run_turn
+    allowed_role: trace_projection
+    reason: Mirrors canonical fact into trace_metadata for observability.
+    remove_when: never
+  - field: question_lifecycle_scene
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _stamp_current_submission_scene_pre_capability
+    allowed_role: compat_projection
+    reason: Pre-capability scene pre-stamp (compat; QTPK should own scene).
+    remove_when: Task 2 (QuestionTurnPolicyKernel owns scene).
+  - field: question_lifecycle_scene
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _summarize_assistant_events
+    allowed_role: production_decider
+    reason: Runtime relation/active-object/followup write before capability dispatch.
+    remove_when: Task 2 (QuestionTurnPolicyKernel collapse).
+  - field: reveal_reference
+    writer_type: reveal_kwarg
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _exact_question_followup_context
+    allowed_role: compat_projection
+    reason: Runtime exact-question followup reveal projection.
+    remove_when: Task 5 (single canonical reveal writer).
+  - field: turn_semantic_decision
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _run_turn
+    allowed_role: trace_projection
+    reason: Mirrors canonical fact into trace_metadata for observability.
+    remove_when: never
+  - field: visible_result
+    writer_type: stream_result
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _build_synthetic_result_from_final_content
+    allowed_role: production_decider
+    reason: Runtime transport frame (synthetic result / progress).
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_result
+    writer_type: stream_result
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _complete_security_guardrail_turn
+    allowed_role: production_decider
+    reason: Runtime transport frame (synthetic result / progress).
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_transport_frame
+    writer_type: stream_progress
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _run_turn
+    allowed_role: production_decider
+    reason: Runtime transport frame (synthetic result / progress).
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_result
+    writer_type: visible_event
+    file: deeptutor/api/routers/unified_ws.py
+    symbol: _redact_event_for_public
+    allowed_role: defensive_guard
+    reason: Last-mile public redaction safety belt; never the primary reveal authority.
+    remove_when: never
