@@ -2172,7 +2172,7 @@ def test_plain_count_generation_request_uses_conversation_context_anchor() -> No
     assert "变形缝" in topic
 
 
-def test_different_topic_generation_request_inherits_active_question_domain() -> None:
+def test_different_topic_generation_request_excludes_active_question_anchor() -> None:
     topic = deep_question_module._resolve_generation_topic(
         raw_topic="再出一道不同考点的单选题，不要答案。",
         active_object=None,
@@ -2193,8 +2193,9 @@ def test_different_topic_generation_request_inherits_active_question_domain() ->
     )
 
     assert topic.startswith("再出一道不同考点的单选题")
-    assert "当前学习锚点" in topic
-    assert "施工缝" in topic
+    assert "建筑实务/建造师考试高频考点" in topic
+    assert "当前学习锚点" not in topic
+    assert "施工缝" not in topic
 
 
 def test_explicit_generation_topic_does_not_require_context_anchor() -> None:
@@ -2484,7 +2485,7 @@ async def test_deep_question_allows_explicit_construction_generation_topic(
 
 
 @pytest.mark.asyncio
-async def test_deep_question_different_topic_request_inherits_question_anchor(
+async def test_deep_question_different_topic_request_does_not_inherit_question_anchor(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     captured: dict[str, Any] = {}
@@ -2518,6 +2519,9 @@ async def test_deep_question_different_topic_request_inherits_question_anchor(
                     },
                 },
             }
+
+        async def generate_from_followup_context(self, **_kwargs: Any) -> dict[str, Any]:
+            raise AssertionError("different-topic requests must not use current question anchor")
 
     _install_module(
         monkeypatch,
@@ -2566,8 +2570,8 @@ async def test_deep_question_different_topic_request_inherits_question_anchor(
 
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     user_topic = captured["generate_from_topic"]["user_topic"]
-    assert "当前学习锚点" in user_topic
-    assert "施工缝" in user_topic
+    assert "当前学习锚点" not in user_topic
+    assert "施工缝" not in user_topic
     assert "practice_generation_blocked_reason" not in result_event.metadata
     assert "非建筑实务" not in result_event.metadata["response"]
 
