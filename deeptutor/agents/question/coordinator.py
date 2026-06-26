@@ -1102,12 +1102,61 @@ class AgentCoordinator:
     @staticmethod
     def _current_question_exclusion_anchor_payload(*, user_topic: str) -> dict[str, Any]:
         topic = str(user_topic or "").strip()
-        anchor_label = AgentCoordinator._derive_lightweight_anchor_label(user_topic=topic)
+        anchor_label = AgentCoordinator._current_question_exclusion_anchor_label(
+            user_topic=topic
+        )
         return {
             "knowledge_context": topic or "请从建筑实务/建造师考试高频考点中选择一个不同小考点出题。",
             "concentration": anchor_label or "建筑实务高频考点",
             "anchor_source": "current_question_exclusion",
         }
+
+    @staticmethod
+    def _current_question_exclusion_anchor_label(*, user_topic: str) -> str:
+        topic = str(user_topic or "").strip()
+        if not topic:
+            return "建筑实务高频考点"
+
+        generation_scope = topic.split("排除当前题", 1)[0].strip()
+        invalid_markers = (
+            "排除当前题",
+            "需避开",
+            "不得作为新题考点",
+            "题干",
+            "选项面",
+            "不同考点",
+            "刚才那题",
+            "重复",
+        )
+
+        def _clean_label(value: str) -> str:
+            label = re.sub(r"\s+", " ", str(value or "")).strip()
+            label = re.sub(r"^[：:，,。；;\s]+", "", label).strip()
+            label = re.sub(r"[：:，,。；;\s]+$", "", label).strip()
+            if not label or label in {"新对话", "当前会话主题", "当前学习主题"}:
+                return ""
+            if any(marker in label for marker in invalid_markers):
+                return ""
+            return label[:32]
+
+        for line in generation_scope.splitlines():
+            match = re.search(
+                r"(?:当前(?:会话|学习)主题|当前学习锚点|最近对话摘要)[:：](?P<label>.+)",
+                line,
+            )
+            if not match:
+                continue
+            label = _clean_label(match.group("label"))
+            if label:
+                return label
+
+        first_paragraph = generation_scope.split("\n\n", 1)[0]
+        derived = _clean_label(
+            AgentCoordinator._derive_lightweight_anchor_label(user_topic=first_paragraph)
+        )
+        if derived and practice_generation_topic_domain_status(derived) == "construction_topic":
+            return derived
+        return "建筑实务高频考点"
 
     @staticmethod
     def _extract_embedded_generation_anchor(user_topic: str) -> str:
