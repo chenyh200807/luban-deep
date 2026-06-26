@@ -88,6 +88,11 @@ _CURRENT_QUESTION_ANCHOR_MARKERS = (
     "围绕这题",
     "照着这题",
 )
+_CURRENT_QUESTION_EXCLUSION_RE = re.compile(
+    r"(?:(?:不同|其他|其它|别的|换(?:个|一个)?)(?:考点|知识点))"
+    r"|(?:(?:不要|别)和刚才)"
+    r"|(?:(?:不要|别|不)重复)"
+)
 _MCQ_QUESTION_TYPES = {
     "choice",
     "single_choice",
@@ -109,6 +114,11 @@ _QUESTION_BANK_METADATA_KEYS = (
 
 def _compact_text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _requests_current_question_exclusion(topic: str) -> bool:
+    normalized = _compact_text(topic).lower()
+    return bool(normalized and _CURRENT_QUESTION_EXCLUSION_RE.search(normalized))
 
 
 def _clip_text(value: Any, *, limit: int = 280) -> str:
@@ -328,6 +338,20 @@ def _conversation_generation_anchor(conversation_context_text: str) -> str:
     return f"最近对话摘要：{text}"
 
 
+def _current_question_exclusion_generation_topic(topic: str, broader_anchor: str) -> str:
+    if broader_anchor:
+        return (
+            f"{topic}\n\n"
+            "请基于以下更大范围学习主题出题，但必须避开当前题题干、选项和同一小考点：\n"
+            f"{broader_anchor}"
+        )
+    return (
+        f"{topic}\n\n"
+        "请从建筑实务/建造师考试高频考点中选择一个与当前题不同的小考点出题；"
+        "不要沿用当前题题干、选项或同一小考点。"
+    )
+
+
 def _suspended_stack_generation_anchor(
     suspended_object_stack: list[dict[str, Any]] | None,
 ) -> str:
@@ -352,6 +376,8 @@ def _prefers_current_question_anchor(topic: str) -> bool:
     normalized = _compact_text(topic).lower()
     if not normalized:
         return False
+    if _requests_current_question_exclusion(normalized):
+        return False
     if any(marker in normalized for marker in _CURRENT_QUESTION_ANCHOR_MARKERS):
         return True
     if "概念" in normalized or "知识点" in normalized:
@@ -370,6 +396,15 @@ def _resolve_generation_topic(
     topic = _compact_text(raw_topic)
     if not topic:
         return ""
+    if _requests_current_question_exclusion(topic):
+        broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
+        normalized_active_object = normalize_active_object(active_object)
+        active_object_type = str((normalized_active_object or {}).get("object_type") or "").strip()
+        if not broader_anchor and active_object_type not in {"question_set", "single_question"}:
+            broader_anchor = _active_object_generation_anchor(normalized_active_object)
+        if not broader_anchor:
+            broader_anchor = _conversation_generation_anchor(conversation_context_text)
+        return _current_question_exclusion_generation_topic(topic, broader_anchor)
     if not _topic_needs_authoritative_anchor(topic):
         return topic
 
@@ -426,6 +461,8 @@ def _should_use_followup_anchor_generation(
     followup_question_context: dict[str, Any] | None,
 ) -> bool:
     if str(mode or "").strip().lower() != "custom":
+        return False
+    if _requests_current_question_exclusion(raw_topic):
         return False
     if int(num_questions or 1) > 3:
         return False
