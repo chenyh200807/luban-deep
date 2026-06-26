@@ -160,6 +160,76 @@ async def test_coordinator_lightweight_topic_generation_skips_idea_agent(
 
 
 @pytest.mark.asyncio
+async def test_coordinator_lightweight_topic_exclusion_skips_rag_reference_anchor(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    monkeypatch.setattr(
+        AgentCoordinator,
+        "_create_idea_agent",
+        lambda self: (_ for _ in ()).throw(
+            AssertionError("lightweight topic generation should not construct IdeaAgent")
+        ),
+    )
+    monkeypatch.setattr(
+        AgentCoordinator,
+        "_create_batch_dir",
+        lambda self, prefix: (tmp_path / prefix).mkdir(parents=True, exist_ok=True) or (tmp_path / prefix),
+    )
+
+    async def _fake_rag_search(**_kwargs: Any) -> dict[str, Any]:
+        raise AssertionError("current-question exclusion must not ask RAG for a reference anchor")
+
+    async def _fake_lightweight_batch_generate(
+        self,
+        *,
+        templates,
+        user_topic: str,
+        preference: str,
+        history_context: str,
+        counters,
+    ):
+        captured["templates"] = templates
+        captured["user_topic"] = user_topic
+        captured["counters"] = dict(counters)
+        return []
+
+    monkeypatch.setattr("deeptutor.agents.question.coordinator.rag_search", _fake_rag_search)
+    monkeypatch.setattr(AgentCoordinator, "_lightweight_batch_generate", _fake_lightweight_batch_generate)
+
+    coordinator = AgentCoordinator(language="zh", kb_name="construction-exam", enable_idea_rag=True)
+    result = await coordinator.generate_from_topic(
+        user_topic=(
+            "再出一道不同考点的单选题，不要和刚才那题重复。\n\n"
+            "请从建筑实务/建造师考试高频考点中选择一个与当前题不同的小考点出题；"
+            "不要沿用当前题题干、选项或同一小考点。\n\n"
+            "排除当前题（仅用于去重，不得作为新题考点）：\n"
+            "当前题：施工现场负责审查批准一级动火作业的（ ）。"
+        ),
+        preference="只出题",
+        num_questions=1,
+        difficulty="easy",
+        question_type="choice",
+        history_context="",
+        lightweight_generation=True,
+        require_explanation=False,
+        avoid_current_question=True,
+    )
+
+    templates = captured["templates"]
+    assert isinstance(templates, list)
+    assert len(templates) == 1
+    assert templates[0].source == "lightweight_topic"
+    assert templates[0].reference_question is None
+    assert templates[0].metadata["anchor_source"] == "current_question_exclusion"
+    assert "排除当前题" in templates[0].metadata["knowledge_context"]
+    assert result["trace"]["lightweight_generation"] is True
+    assert result["trace"]["lightweight_counters"]["retriever_calls"] == 0
+
+
+@pytest.mark.asyncio
 async def test_coordinator_lightweight_topic_generation_uses_single_rag_anchor(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
