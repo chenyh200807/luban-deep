@@ -176,6 +176,37 @@ _COMPAT_HIT = {
     "path": "deep_question",
     "canonical_present": False,
 }
+# Live-shadow blind-spot fixes: the canonical-missing guard now carries a scene
+# and site; the S5/S6 bare-build sites are unconditional_fabricate hits whose
+# canonical_present may be True (they fabricate even with canonical present).
+_GUARD_SCENED_HIT = {
+    "fact": "turn_semantic_decision",
+    "writer_role": "compat_projection",
+    "writer_symbol": "run",
+    "path": "deep_question",
+    "site": "canonical_missing_guard",
+    "scene": "practice_generation",
+    "canonical_present": False,
+}
+_S5_FABRICATE_HIT = {
+    "fact": "turn_semantic_decision",
+    "writer_role": "unconditional_fabricate",
+    "writer_symbol": "run",
+    "path": "deep_question",
+    "site": "S5_review_render",
+    "scene": "question_review",
+    # canonical_present True — the blind spot: S5 fabricates even when canonical present.
+    "canonical_present": True,
+}
+_S6_FABRICATE_HIT = {
+    "fact": "turn_semantic_decision",
+    "writer_role": "unconditional_fabricate",
+    "writer_symbol": "run",
+    "path": "deep_question",
+    "site": "S6_refused",
+    "scene": "practice_generation",
+    "canonical_present": False,
+}
 
 
 # ---------------------------------------------------------------------------
@@ -302,3 +333,56 @@ def test_run_cli_exit_code_matches_report(tmp_path, capsys) -> None:
     out = capsys.readouterr().out
     assert exit_code == 1
     assert "legacy_production_decision_hits" in out
+
+
+# ---------------------------------------------------------------------------
+# Blind-spot fixes: per-scene / per-site breakdown + unconditional_fabricate
+# counted toward compat_projection_production_reads (it is an operative second
+# authority regardless of canonical_present).
+# ---------------------------------------------------------------------------
+def test_counter_breaks_down_per_scene(tmp_path) -> None:
+    """The window aggregates hits per scene so generation (practice_generation)
+    fabrication can be proven distinct from review (question_review)."""
+    event_log = TurnEventLog(events_dir=tmp_path)
+    _write_event(event_log, session_id="gen-1", shadow_hits=[_GUARD_SCENED_HIT, _S6_FABRICATE_HIT])
+    _write_event(event_log, session_id="rev-1", shadow_hits=[_S5_FABRICATE_HIT])
+    report = report_control_plane_shadow_hits(event_log=event_log, days=7)
+    assert report["per_scene"]["practice_generation"] == 2
+    assert report["per_scene"]["question_review"] == 1
+
+
+def test_counter_breaks_down_per_site(tmp_path) -> None:
+    """The window aggregates hits per site so the canonical-missing guard, the
+    S5 review-render fabricate, and the S6 refused fabricate are separable."""
+    event_log = TurnEventLog(events_dir=tmp_path)
+    _write_event(
+        event_log,
+        session_id="multi-1",
+        shadow_hits=[_GUARD_SCENED_HIT, _S5_FABRICATE_HIT, _S6_FABRICATE_HIT],
+    )
+    report = report_control_plane_shadow_hits(event_log=event_log, days=7)
+    assert report["per_site"]["canonical_missing_guard"] == 1
+    assert report["per_site"]["S5_review_render"] == 1
+    assert report["per_site"]["S6_refused"] == 1
+
+
+def test_unconditional_fabricate_counts_as_production_read_even_canonical_present(
+    tmp_path,
+) -> None:
+    """S5 fabricates even when canonical_present is True. unconditional_fabricate
+    is an operative second authority, so it MUST count toward
+    compat_projection_production_reads regardless of canonical_present."""
+    event_log = TurnEventLog(events_dir=tmp_path)
+    _write_event(event_log, session_id="s5-present", shadow_hits=[_S5_FABRICATE_HIT])
+    report = report_control_plane_shadow_hits(event_log=event_log, days=7)
+    assert report["exit_code"] == 1
+    # canonical_present is True here, yet it still counts (operative second authority).
+    assert report["compat_projection_production_reads"] == 1
+
+
+def test_unconditional_fabricate_canonical_absent_also_counts(tmp_path) -> None:
+    event_log = TurnEventLog(events_dir=tmp_path)
+    _write_event(event_log, session_id="s6-absent", shadow_hits=[_S6_FABRICATE_HIT])
+    report = report_control_plane_shadow_hits(event_log=event_log, days=7)
+    assert report["exit_code"] == 1
+    assert report["compat_projection_production_reads"] == 1

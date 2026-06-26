@@ -69,9 +69,17 @@ from deeptutor.services.observability.turn_event_log import (  # noqa: E402
     get_turn_event_log,
 )
 
-# Non-canonical writer roles whose operative use is a control-plane shadow hit.
+# Non-canonical writer roles whose operative use is a control-plane shadow hit
+# ONLY when the canonical decision was absent (a compat/fabricate writer filled
+# the gap because nothing canonical was present).
 _NON_CANONICAL_WRITER_ROLES: frozenset[str] = frozenset(
     {"compat_projection", "production_decider"}
+)
+# Writer roles that are an operative SECOND authority regardless of whether the
+# canonical decision was present — a bare unconditional ``build_turn_semantic_decision``
+# site fabricates even when canonical is present, so canonical_present is NOT a gate.
+_UNCONDITIONAL_FABRICATE_WRITER_ROLES: frozenset[str] = frozenset(
+    {"unconditional_fabricate"}
 )
 _LEGACY_PRODUCTION_SYMBOL = "_select_legacy_capability"
 _LEGACY_PRODUCTION_PATH = "disabled"
@@ -115,10 +123,13 @@ def _is_legacy_production_hit(hit: dict[str, Any]) -> bool:
 
 
 def _is_compat_projection_read(hit: dict[str, Any]) -> bool:
-    return (
-        str(hit.get("writer_role") or "").strip() in _NON_CANONICAL_WRITER_ROLES
-        and hit.get("canonical_present") is False
-    )
+    role = str(hit.get("writer_role") or "").strip()
+    # Unconditional bare-build fabricate: operative second authority irrespective
+    # of canonical_present (it fabricates even when canonical is present).
+    if role in _UNCONDITIONAL_FABRICATE_WRITER_ROLES:
+        return True
+    # Compat/projection writers count only when they filled a canonical gap.
+    return role in _NON_CANONICAL_WRITER_ROLES and hit.get("canonical_present") is False
 
 
 def _load_window_events(
@@ -156,6 +167,10 @@ def report_control_plane_shadow_hits(
             "legacy_production_decision_hits": 0,
             "compat_projection_production_reads": 0,
             "per_writer": {},
+            "per_fact": {},
+            "per_path": {},
+            "per_scene": {},
+            "per_site": {},
             "coverage": "fail-closed: event log unreadable; no coverage measurable",
             "window": {"days": days, "start_ts": start_ts, "end_ts": end_ts},
             "counting_method": _COUNTING_METHOD,
@@ -170,6 +185,8 @@ def report_control_plane_shadow_hits(
     per_writer: dict[str, dict[str, int]] = {}
     per_fact: dict[str, int] = {}
     per_path: dict[str, int] = {}
+    per_scene: dict[str, int] = {}
+    per_site: dict[str, int] = {}
 
     # Count hits across all canonical events (defense in depth: a recorded
     # competing-writer fire is a red signal regardless of marker presence — the
@@ -179,9 +196,13 @@ def report_control_plane_shadow_hits(
             symbol = str(hit.get("writer_symbol") or "").strip() or "<unknown>"
             fact = str(hit.get("fact") or "").strip() or "<unknown>"
             path = str(hit.get("path") or "").strip() or "<unknown>"
+            scene = str(hit.get("scene") or "").strip() or "<unknown>"
+            site = str(hit.get("site") or "").strip() or "<unknown>"
             per_writer.setdefault(symbol, {"count": 0})["count"] += 1
             per_fact[fact] = per_fact.get(fact, 0) + 1
             per_path[path] = per_path.get(path, 0) + 1
+            per_scene[scene] = per_scene.get(scene, 0) + 1
+            per_site[site] = per_site.get(site, 0) + 1
             if _is_legacy_production_hit(hit):
                 legacy_hits += 1
             if _is_compat_projection_read(hit):
@@ -222,6 +243,8 @@ def report_control_plane_shadow_hits(
         "per_writer": per_writer,
         "per_fact": per_fact,
         "per_path": per_path,
+        "per_scene": per_scene,
+        "per_site": per_site,
         "coverage": coverage,
         "window": {"days": days, "start_ts": start_ts, "end_ts": end_ts},
         "counting_method": _COUNTING_METHOD,
