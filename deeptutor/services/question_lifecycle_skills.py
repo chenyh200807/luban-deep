@@ -185,6 +185,46 @@ def select_question_lifecycle_skill_names(scene: str | None) -> tuple[str, ...]:
     return SCENE_COMPOSITION[normalized]
 
 
+def _pre_stamped_grading_scene_matches_current_submission(
+    scene: str | None,
+    user_message: str,
+    metadata: dict[str, Any],
+) -> bool:
+    """A pre-stamped grading scene is valid only when this turn submits an answer."""
+
+    if scene not in {"case_grading", "mcq_grading"}:
+        return True
+    text = str(user_message or "").strip()
+    if not text:
+        return False
+    if scene == "case_grading" and _looks_like_full_case_answer_submission(text):
+        return True
+    if scene == "mcq_grading" and _looks_like_free_text_mcq_grading(text):
+        return True
+
+    question_context = _active_question_context_from_metadata(metadata)
+    if not question_context:
+        return False
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            resolve_submission_attempt,
+            submission_confidence,
+        )
+
+        target_context, submission = resolve_submission_attempt(text, question_context)
+        confidence = submission_confidence(text, question_context)
+    except Exception:
+        return False
+    if not submission or submission.get("kind") == "ambiguous" or confidence != "high":
+        return False
+
+    graded_context = target_context if isinstance(target_context, dict) and target_context else question_context
+    q_type = str(graded_context.get("question_type") or graded_context.get("type") or "").strip().lower()
+    if scene == "mcq_grading":
+        return q_type in _MCQ_QUESTION_TYPES or bool(graded_context.get("options"))
+    return _is_case_grading_context_row(graded_context) or _is_case_grading_context_row(question_context)
+
+
 async def resolve_question_lifecycle_scene_decision(
     ctx: Any,
     *,
@@ -202,23 +242,31 @@ async def resolve_question_lifecycle_scene_decision(
     if isinstance(metadata, dict) and "question_lifecycle_scene" in metadata:
         pre_scene = _normalize_scene(metadata.get("question_lifecycle_scene"))
         if pre_scene is not None:
-            source = str(metadata.get("question_lifecycle_scene_source") or "metadata").strip()
-            reason = str(
-                metadata.get("question_lifecycle_scene_reason")
-                or "pre-stamped lifecycle scene"
-            ).strip()
-            try:
-                confidence = float(metadata.get("question_lifecycle_scene_confidence") or 1.0)
-            except (TypeError, ValueError):
-                confidence = 1.0
-            return QuestionLifecycleSceneDecision(
-                scene=pre_scene,
-                source=source or "metadata",
-                confidence=confidence,
-                reason=reason,
-                required_anchor_status="satisfied",
-                selected_skill_names=select_question_lifecycle_skill_names(pre_scene),
-                business_gate_result="pre_stamped_scene",
+            if _pre_stamped_grading_scene_matches_current_submission(
+                pre_scene,
+                user_message,
+                metadata,
+            ):
+                source = str(metadata.get("question_lifecycle_scene_source") or "metadata").strip()
+                reason = str(
+                    metadata.get("question_lifecycle_scene_reason")
+                    or "pre-stamped lifecycle scene"
+                ).strip()
+                try:
+                    confidence = float(metadata.get("question_lifecycle_scene_confidence") or 1.0)
+                except (TypeError, ValueError):
+                    confidence = 1.0
+                return QuestionLifecycleSceneDecision(
+                    scene=pre_scene,
+                    source=source or "metadata",
+                    confidence=confidence,
+                    reason=reason,
+                    required_anchor_status="satisfied",
+                    selected_skill_names=select_question_lifecycle_skill_names(pre_scene),
+                    business_gate_result="pre_stamped_scene",
+                )
+            metadata["question_lifecycle_scene_blocked_reason"] = (
+                "pre_stamped_grading_scene_without_current_submission"
             )
     scene = derive_question_lifecycle_scene(ctx)
     # A back-reference to an EARLIER question + explanation intent ("刚才那道屋面坡度题，
@@ -475,6 +523,133 @@ def build_question_lifecycle_exam_catalog_response(message: str, metadata: dict[
         "- 展开钢筋保护层或地下防水的真题范围。\n"
         "- 我粘贴具体题干和选项，请按真题讲评格式解析：先列题目，再给答案、逐项分析、易错点和记忆抓手。"
     )
+
+
+_STUDY_ASSISTANT_EVIDENCE_KEYS: tuple[str, ...] = (
+    "compiled_learning_truth",
+    "personalization_context",
+    "learning_training_intent",
+    "training_intent",
+    "study_plan",
+    "next_best_action",
+    "next_best_action_candidates",
+    "learning_evidence_refs",
+    "evidence_refs",
+    "basis_refs",
+    "supporting_event_ids",
+    "recent_attempts",
+    "attempt_detail",
+)
+_STUDY_ASSISTANT_REF_KEYS: set[str] = {
+    "evidence_refs",
+    "basis_refs",
+    "supporting_event_ids",
+    "learning_evidence_refs",
+    "recent_evidence_refs",
+}
+_STUDY_ASSISTANT_ID_KEYS: set[str] = {
+    "event_id",
+    "attempt_id",
+    "attempt_ref",
+    "learning_evidence_event_id",
+    "training_intent_id",
+}
+_STUDY_ASSISTANT_ACTION_KEYS: set[str] = {
+    "study_plan",
+    "next_best_action",
+    "next_best_action_candidates",
+}
+
+
+def study_assistant_has_learning_evidence(metadata: dict[str, Any] | None) -> bool:
+    """Return True only when the turn carries structured learner evidence."""
+
+    if not isinstance(metadata, dict) or not metadata:
+        return False
+    return any(
+        _study_assistant_evidence_value_present(key, metadata.get(key))
+        for key in _STUDY_ASSISTANT_EVIDENCE_KEYS
+    )
+
+
+def build_question_lifecycle_study_assistant_degraded_response(
+    message: str,
+    metadata: dict[str, Any] | None = None,
+) -> str:
+    """Student-facing study plan when no learner-state evidence is available."""
+
+    _ = metadata
+    days = _extract_requested_plan_days(message) or 3
+    return (
+        "当前记录不足，我不能断言你处于哪个阶段、做过几题、错过几题，"
+        f"也不能说哪些章节已经开始或没开始。先给你一个通用{days}天复盘计划：\n\n"
+        "第1天：回到最近一道题或一个知识点\n"
+        "- 只选一个你最不稳的点，先把概念、适用条件和常见陷阱整理清楚。\n"
+        "- 用自己的话写出“题干问什么、我为什么会错、下次看到什么关键词要警惕”。\n\n"
+        "第2天：做小范围巩固\n"
+        "- 围绕同一考点做 2-3 道同类题，先不要追求数量。\n"
+        "- 每做完一题，只记录一个具体错因：概念混淆、条件漏看、数字记错，或审题失误。\n\n"
+        "第3天：复测和收口\n"
+        "- 隔一天再做 1-2 道同类题，看是否还会犯同一类错。\n"
+        "- 如果仍错，把这个考点降成“先讲清楚再练”；如果能稳定做对，再换下一个考点。\n\n"
+        "你也可以把最近一道错题或一段作答贴出来，我再按真实题面帮你改成更具体的复盘表。"
+    )
+
+
+def _study_assistant_evidence_value_present(key: str, value: Any) -> bool:
+    if value is None:
+        return False
+    normalized_key = str(key or "").strip()
+    if normalized_key in _STUDY_ASSISTANT_REF_KEYS:
+        return _has_non_empty_leaf(value)
+    if normalized_key in _STUDY_ASSISTANT_ACTION_KEYS:
+        return _has_non_empty_leaf(value)
+    return _contains_evidence_reference(value)
+
+
+def _contains_evidence_reference(value: Any) -> bool:
+    if isinstance(value, list):
+        return any(_contains_evidence_reference(item) for item in value)
+    if not isinstance(value, dict) or not value:
+        return False
+    for raw_key, item in value.items():
+        key = str(raw_key or "").strip()
+        if key in _STUDY_ASSISTANT_REF_KEYS and _has_non_empty_leaf(item):
+            return True
+        if key in _STUDY_ASSISTANT_ID_KEYS and str(item or "").strip():
+            return True
+        if _contains_evidence_reference(item):
+            return True
+    return False
+
+
+def _has_non_empty_leaf(value: Any) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return True
+    if isinstance(value, list):
+        return any(_has_non_empty_leaf(item) for item in value)
+    if isinstance(value, dict):
+        return any(_has_non_empty_leaf(item) for item in value.values())
+    return True
+
+
+def _extract_requested_plan_days(message: str) -> int | None:
+    match = re.search(r"([1-9]\d?)\s*天", str(message or ""))
+    if not match:
+        return None
+    try:
+        days = int(match.group(1))
+    except ValueError:
+        return None
+    if days < 1 or days > 30:
+        return None
+    return days
 
 
 def is_low_information_exam_query(query: str) -> bool:
@@ -840,6 +1015,13 @@ _STUDY_ASSISTANT_PHRASES: tuple[str, ...] = (
     "下一步",
     "接下来该练",
     "给我安排",
+    "复盘计划",
+    "学习计划",
+    "复习计划",
+    "训练计划",
+    "备考计划",
+    "学习安排",
+    "复习安排",
     "训练建议",
     "下一步怎么做",
     "接下来该学什么",
@@ -910,6 +1092,18 @@ _FREE_TEXT_CASE_INLINE_QUESTION_SURFACE_RE = re.compile(
 _FREE_TEXT_CASE_ANSWER_MARKER_RE = re.compile(
     r"(?:^|[\r\n]|[ \t。；;!！?？])(?:回答[ \t]*)?"
     r"(?:作答|我的作答|学生作答|我的答案|答案)[ \t]*[:：][ \t]*",
+    re.IGNORECASE,
+)
+_FREE_TEXT_CASE_REFERENCE_MARKER_RE = re.compile(
+    r"(?:^|[\r\n]|[ \t。；;!！?？])"
+    r"(?:标准答案|参考答案|正确答案|参考要点)[ \t]*[:：][ \t]*",
+    re.IGNORECASE,
+)
+_TRAILING_CASE_GRADING_ACTION_RE = re.compile(
+    r"(?:[。.!！?；;，,、\s]*)"
+    r"(?:请|帮我|直接|顺便)?(?:按[^。.!！?；;]{0,40})?"
+    r"(?:批改|判分|打分|阅卷)(?:一下|下)?"
+    r"(?:[。.!！?；;，,、\s]*)$",
     re.IGNORECASE,
 )
 _FREE_TEXT_MCQ_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
@@ -1182,21 +1376,24 @@ def looks_like_free_text_mcq_question_surface(text: str) -> bool:
 def case_grading_context_from_full_submission(text: str) -> dict[str, Any] | None:
     """Project a self-contained case submission into the current question context."""
 
-    question_stem, learner_answer = split_full_case_answer_submission(text)
+    question_stem, learner_answer, marked_reference = _split_full_case_answer_submission_components(text)
     if not question_stem.strip() or not learner_answer.strip():
         return None
-    return {
+    context = {
         "question_id": "",
         "question": question_stem.strip(),
         "question_stem": question_stem.strip(),
         "question_type": "case",
         "user_answer": learner_answer.strip(),
-        "correct_answer": "",
+        "correct_answer": marked_reference.strip(),
         "construction_grading_result": {
             "type": "case",
             "max_score": 10,
         },
     }
+    if marked_reference.strip():
+        context["reference_answer"] = marked_reference.strip()
+    return context
 
 
 def mcq_grading_context_from_full_submission(text: str) -> dict[str, Any] | None:
@@ -1210,11 +1407,7 @@ def mcq_grading_context_from_full_submission(text: str) -> dict[str, Any] | None
     from deeptutor.services.rag.historical_questions import _extract_query_options
 
     option_surface = user_message
-    answer_marker = re.search(
-        r"(?:我选|我选择|我的答案(?:是|为)?|答案(?:是|为)?|选)\s*[A-DＡ-Ｄ]",
-        user_message,
-        re.IGNORECASE,
-    )
+    answer_marker = OPTION_ANSWER_ASSERTION_RE.search(user_message)
     if answer_marker is not None:
         option_surface = user_message[: answer_marker.start()]
     options = {
@@ -1230,6 +1423,13 @@ def mcq_grading_context_from_full_submission(text: str) -> dict[str, Any] | None
         {"question": user_message, "question_type": "choice", "options": options},
     )
     user_answer = str((submission or {}).get("answer") or "").strip()
+    if not user_answer and answer_marker is not None:
+        letters = re.findall(r"[A-DＡ-Ｄ]", answer_marker.group(0).upper())
+        if letters:
+            user_answer = "".join(
+                chr(ord(letter) - ord("Ａ") + ord("A")) if "Ａ" <= letter <= "Ｄ" else letter
+                for letter in letters
+            )
     if not user_answer:
         return None
     marked_correct = ""
@@ -1283,21 +1483,47 @@ def looks_like_full_case_answer_submission(text: str) -> bool:
 def split_full_case_answer_submission(text: str) -> tuple[str, str]:
     """Split a full case grading submission into current stem and learner answer."""
 
+    stem, learner_answer, _marked_reference = _split_full_case_answer_submission_components(text)
+    return stem, learner_answer
+
+
+def _split_full_case_answer_submission_components(text: str) -> tuple[str, str, str]:
+    """Split a full case grading submission into stem, learner answer, and marked reference."""
+
     raw = str(text or "").strip()
     if not raw or not _looks_like_full_case_answer_submission(raw):
-        return "", raw
+        return "", raw, ""
     markers = [
         marker
         for marker in _FREE_TEXT_CASE_ANSWER_MARKER_RE.finditer(raw)
         if any(pos < marker.start() for pos in _full_case_question_surface_positions(raw))
     ]
     if not markers:
-        return "", raw
+        return "", raw, ""
     marker = markers[-1]
     stem = raw[:marker.start()].strip()
     answer = raw[marker.end():].strip()
     answer = _FREE_TEXT_CASE_ANSWER_MARKER_RE.sub("", answer, count=1).strip()
-    return stem, answer or raw
+    learner_answer, marked_reference = _split_case_learner_answer_and_reference(answer)
+    return stem, learner_answer, marked_reference
+
+
+def _split_case_learner_answer_and_reference(answer: str) -> tuple[str, str]:
+    raw = str(answer or "").strip()
+    if not raw:
+        return "", ""
+    marker = _FREE_TEXT_CASE_REFERENCE_MARKER_RE.search(raw)
+    if marker is None:
+        return raw, ""
+    learner_answer = _strip_case_submission_fragment(raw[: marker.start()])
+    marked_reference = _strip_case_submission_fragment(raw[marker.end():])
+    return learner_answer, marked_reference
+
+
+def _strip_case_submission_fragment(value: str) -> str:
+    stripped = str(value or "").strip()
+    stripped = _TRAILING_CASE_GRADING_ACTION_RE.sub("", stripped).strip()
+    return stripped.strip("。.!！?；;，,：:、 ")
 
 
 def _parse_llm_scene_payload(raw: Any) -> dict[str, Any] | None:

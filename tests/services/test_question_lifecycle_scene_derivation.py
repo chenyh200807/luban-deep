@@ -118,6 +118,14 @@ def test_active_object_hypothetical_option_challenge_stays_question_review():
     assert derive_question_lifecycle_scene(ctx) == "question_review"
 
 
+def test_active_object_invalid_option_challenge_stays_question_review():
+    ctx = _FakeContext(
+        user_message="如果我选E，对不对？一句话。",
+        metadata={"question_followup_context": _mcq_followup_context(answered=True)},
+    )
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
 def test_active_question_set_with_batch_submission_returns_mcq_grading():
     ctx = _FakeContext(
         user_message="第1题：C；第2题：A；第3题：B",
@@ -142,6 +150,14 @@ def test_active_object_without_submission_returns_question_review():
     ctx = _FakeContext(
         user_message="这道题怎么做",
         metadata={"question_followup_context": _mcq_followup_context()},
+    )
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
+def test_active_object_correct_answer_request_returns_question_review():
+    ctx = _FakeContext(
+        user_message="刚才那题正确答案到底是什么？",
+        metadata={"question_followup_context": _mcq_followup_context(answered=True)},
     )
     assert derive_question_lifecycle_scene(ctx) == "question_review"
 
@@ -278,6 +294,20 @@ def test_personal_learning_status_intent_returns_learning_evidence_story(message
 
 def test_study_assistant_intent():
     ctx = _FakeContext(user_message="今天学什么")
+    assert derive_question_lifecycle_scene(ctx) == "study_assistant"
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "不看内部信息了，给我一个3天复盘计划，不要再出题。",
+        "只给我复盘计划，不要继续判分，也不要把这句话当成新的案例答案。",
+        "给我30分钟复盘计划，不要继续出题",
+        "现在聊学习计划：我每天只有40分钟。",
+    ],
+)
+def test_study_plan_requests_return_study_assistant_not_generic_chat(message: str):
+    ctx = _FakeContext(user_message=message)
     assert derive_question_lifecycle_scene(ctx) == "study_assistant"
 
 
@@ -808,6 +838,31 @@ async def test_scene_decision_honors_pre_capability_case_grading_fact():
         "construction-exam-tutor",
         "construction-case-grading",
     )
+
+
+@pytest.mark.asyncio
+async def test_scene_decision_ignores_stale_pre_capability_case_grading_fact():
+    ctx = _FakeContext(
+        user_message="总结我正式提交过的案例答案。",
+        metadata={
+            "question_lifecycle_scene": "case_grading",
+            "question_lifecycle_scene_source": "deterministic_pre_capability",
+            "question_lifecycle_scene_confidence": 0.96,
+            "question_lifecycle_scene_reason": "case_submission_context",
+            "question_followup_context": {
+                "question_id": "case-current",
+                "question_type": "case",
+                "question": "屋面卷材防水附加层宽度检查。问题：阴阳角附加层宽度应为多少？",
+                "user_answer": "100mm",
+                "correct_answer": "150mm",
+            },
+        },
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+
+    assert decision.scene != "case_grading"
+    assert decision.business_gate_result != "pre_stamped_scene"
 
 
 def test_attach_honors_explicit_none_from_upstream():

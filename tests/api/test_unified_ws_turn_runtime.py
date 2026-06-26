@@ -1309,6 +1309,61 @@ async def test_resolve_question_followup_explicit_context_ignores_generation_hin
 
 
 @pytest.mark.asyncio
+async def test_resolve_question_followup_explicit_context_downgrades_invalid_option_submission_hint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _followup_interpret(_message, _question_context, **_kwargs):
+        return {
+            "intent": "ask_followup",
+            "confidence": 0.91,
+            "answers": [],
+            "reason": "用户是在问不存在的 E 选项是否可选。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        _followup_interpret,
+    )
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="如果我选E，对不对？一句话。",
+        explicit_context={
+            "question_id": "q_live_numbered",
+            "question": "### 第 1 题 施工缝留置位置判断。\n下列说法错误的是（ ）。",
+            "question_type": "choice",
+            "options": {
+                "A": "施工缝宜留在结构受剪力较小且便于施工的部位",
+                "B": "梁板施工缝可留在次梁跨度的中间1/3范围内",
+                "C": "单向板施工缝可留在平行于板短边的位置",
+                "D": "有主次梁楼板宜顺着次梁方向浇筑",
+            },
+            "correct_answer": "C",
+            "user_answer": "",
+        },
+        explicit_action={
+            "intent": "answer_questions",
+            "confidence": 0.9,
+            "answers": [
+                {
+                    "question_index": 1,
+                    "question_id": "q_live_numbered",
+                    "answer": "E",
+                }
+            ],
+            "reason": "上游提交优先误判。",
+        },
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "q_live_numbered"
+    assert resolved_context.get("user_answer") == ""
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
+    assert resolved_action["answers"] == []
+
+
+@pytest.mark.asyncio
 async def test_resolve_question_followup_does_not_treat_next_question_explainer_as_generation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -2657,7 +2712,7 @@ async def test_turn_runtime_bootstraps_open_chat_active_object_when_no_stronger_
 
 
 @pytest.mark.asyncio
-async def test_turn_runtime_prefers_result_response_as_assistant_content(
+async def test_turn_runtime_prefers_public_content_stream_over_stale_result_response(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -2683,18 +2738,18 @@ async def test_turn_runtime_prefers_result_response_as_assistant_content(
                 type=StreamEventType.CONTENT,
                 source="chat",
                 stage="responding",
-                content="## 结论\n",
+                content="## 当前题判分\n",
             )
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
                 stage="responding",
-                content="建筑构造是研究建筑物组成与连接方式的技术。",
+                content="你答了 B，正确答案是 C，本题不得分。",
             )
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
-                metadata={"response": "建筑构造是研究建筑物组成与连接方式的技术。"},
+                metadata={"response": "旧题 TN-S：你答了 B，正确答案是 B，本题得分。"},
             )
             yield StreamEvent(type=StreamEventType.DONE, source="chat")
 
@@ -2712,7 +2767,7 @@ async def test_turn_runtime_prefers_result_response_as_assistant_content(
     session, turn = await runtime.start_turn(
         {
             "type": "start_turn",
-            "content": "建筑构造是什么？",
+            "content": "请批改这道竣工验收单选题，我选B，标准答案C。",
             "session_id": None,
             "capability": None,
             "tools": [],
@@ -2723,12 +2778,182 @@ async def test_turn_runtime_prefers_result_response_as_assistant_content(
         }
     )
 
-    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
-        pass
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert (
+        result_events[-1]["metadata"]["response"]
+        == "## 当前题判分\n你答了 B，正确答案是 C，本题不得分。"
+    )
 
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
-    assert detail["messages"][-1]["content"] == "建筑构造是研究建筑物组成与连接方式的技术。"
+    assert (
+        detail["messages"][-1]["content"]
+        == "## 当前题判分\n你答了 B，正确答案是 C，本题不得分。"
+    )
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_visible_sink_strips_orphan_markers_across_stream_result_history(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="## 当前题判分\n你答了 A〔1〕，正确答案是 B。\n",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "旧结果也不应抢权〔2〕"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "请批改这道题，我选A，正确答案B。",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    content_events = [event for event in events if event.get("type") == "content"]
+    assert content_events
+    assert "〔1〕" not in content_events[-1]["content"]
+    assert content_events[-1]["content"].endswith("\n")
+
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert "〔" not in result_events[-1]["metadata"]["response"]
+    assert result_events[-1]["metadata"]["response"] == content_events[-1]["content"].strip()
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert "〔" not in detail["messages"][-1]["content"]
+    assert detail["messages"][-1]["content"] == content_events[-1]["content"].strip()
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_visible_sink_blocks_internal_envelope_in_result_and_history(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={
+                    "response": (
+                        "参考证据：题库命中片段\n"
+                        "局部工作记忆投影：上一轮判分摘要\n"
+                        "长期画像提示：M07 画像提示，学生近期薄弱点为防水构造。"
+                    )
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "帮我复盘一下。",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    response = result_events[-1]["metadata"]["response"]
+    assert response == "暂时未生成适合直接展示的答案，请重试一次。"
+    assert "参考证据" not in response
+    assert "长期画像" not in response
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert detail["messages"][-1]["content"] == "暂时未生成适合直接展示的答案，请重试一次。"
 
 
 @pytest.mark.asyncio

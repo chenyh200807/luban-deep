@@ -88,6 +88,11 @@ _CURRENT_QUESTION_ANCHOR_MARKERS = (
     "围绕这题",
     "照着这题",
 )
+_CURRENT_QUESTION_EXCLUSION_RE = re.compile(
+    r"(?:(?:不同|其他|其它|别的|换(?:个|一个)?)(?:考点|知识点))"
+    r"|(?:(?:不要|别)和刚才)"
+    r"|(?:(?:不要|别|不)重复)"
+)
 _MCQ_QUESTION_TYPES = {
     "choice",
     "single_choice",
@@ -105,10 +110,27 @@ _QUESTION_BANK_METADATA_KEYS = (
     "source_question",
     "recovered_question_context",
 )
+_BROAD_QUESTION_SUBJECT_LABELS = {
+    "一级建造师项目管理",
+    "一建项目管理",
+    "建设工程项目管理",
+    "建筑工程项目管理",
+    "一级建造师建筑实务",
+    "一建建筑实务",
+    "一级建造师建筑工程",
+    "建筑工程管理与实务",
+}
+_BROAD_QUESTION_SUBJECT_MARKERS = ("一级建造师", "一建", "建造师考试")
+_BROAD_QUESTION_SUBJECT_SUFFIXES = ("项目管理", "建筑实务", "管理与实务")
 
 
 def _compact_text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _requests_current_question_exclusion(topic: str) -> bool:
+    normalized = _compact_text(topic).lower()
+    return bool(normalized and _CURRENT_QUESTION_EXCLUSION_RE.search(normalized))
 
 
 def _clip_text(value: Any, *, limit: int = 280) -> str:
@@ -123,6 +145,19 @@ def _append_unique(parts: list[str], candidate: Any) -> None:
     if not text or text in parts:
         return
     parts.append(text)
+
+
+def _is_broad_question_subject_label(value: Any) -> bool:
+    text = _compact_text(value)
+    if not text:
+        return False
+    if text in _BROAD_QUESTION_SUBJECT_LABELS:
+        return True
+    if len(text) > 32:
+        return False
+    return any(marker in text for marker in _BROAD_QUESTION_SUBJECT_MARKERS) and any(
+        text.endswith(suffix) for suffix in _BROAD_QUESTION_SUBJECT_SUFFIXES
+    )
 
 
 def _training_signal_text_from_context(question_context: dict[str, Any]) -> str:
@@ -281,6 +316,55 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
     return "\n".join(anchor_lines)
 
 
+def _question_context_exclusion_anchor(question_context: dict[str, Any] | None) -> str:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return ""
+
+    items = normalized.get("items") or []
+    contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
+    concentrations: list[str] = []
+    question_parts: list[str] = []
+    option_parts: list[str] = []
+
+    for item in contexts:
+        concentration = item.get("concentration")
+        if not _is_broad_question_subject_label(concentration):
+            _append_unique(concentrations, concentration)
+        _append_unique(question_parts, _clip_text(item.get("question"), limit=180))
+        options = item.get("options")
+        if isinstance(options, dict):
+            rendered_options = "；".join(
+                f"{str(key).strip().upper()}. {_clip_text(value, limit=80)}"
+                for key, value in list(options.items())[:5]
+                if str(key).strip() and str(value).strip()
+            )
+            _append_unique(option_parts, rendered_options)
+
+    anchor_lines: list[str] = []
+    if concentrations:
+        anchor_lines.append(f"需避开考点：{'；'.join(concentrations[:3])}")
+    if question_parts:
+        anchor_lines.append(f"需避开题干：{'；'.join(question_parts[:2])}")
+    if option_parts:
+        anchor_lines.append(f"需避开选项面：{'；'.join(option_parts[:2])}")
+    return "\n".join(anchor_lines)
+
+
+def _question_context_broader_subject_anchor(question_context: dict[str, Any] | None) -> str:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return ""
+
+    items = normalized.get("items") or []
+    contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
+    for item in contexts:
+        concentration = item.get("concentration")
+        if _is_broad_question_subject_label(concentration):
+            return f"当前学习主题：{_clip_text(concentration, limit=80)}"
+    return ""
+
+
 def _active_object_generation_anchor(active_object: dict[str, Any] | None) -> str:
     normalized = normalize_active_object(active_object)
     if not normalized:
@@ -328,6 +412,32 @@ def _conversation_generation_anchor(conversation_context_text: str) -> str:
     return f"最近对话摘要：{text}"
 
 
+def _current_question_exclusion_generation_topic(
+    topic: str,
+    broader_anchor: str,
+    exclusion_anchor: str = "",
+) -> str:
+    exclusion_block = ""
+    if exclusion_anchor:
+        exclusion_block = (
+            "\n\n排除当前题（仅用于去重，不得作为新题考点）：\n"
+            f"{exclusion_anchor}"
+        )
+    if broader_anchor:
+        return (
+            f"{topic}\n\n"
+            "请基于以下更大范围学习主题出题，但必须避开当前题题干、选项和同一小考点：\n"
+            f"{broader_anchor}"
+            f"{exclusion_block}"
+        )
+    return (
+        f"{topic}\n\n"
+        "请从建筑实务/建造师考试高频考点中选择一个与当前题不同的小考点出题；"
+        "不要沿用当前题题干、选项或同一小考点。"
+        f"{exclusion_block}"
+    )
+
+
 def _suspended_stack_generation_anchor(
     suspended_object_stack: list[dict[str, Any]] | None,
 ) -> str:
@@ -352,6 +462,8 @@ def _prefers_current_question_anchor(topic: str) -> bool:
     normalized = _compact_text(topic).lower()
     if not normalized:
         return False
+    if _requests_current_question_exclusion(normalized):
+        return False
     if any(marker in normalized for marker in _CURRENT_QUESTION_ANCHOR_MARKERS):
         return True
     if "概念" in normalized or "知识点" in normalized:
@@ -370,6 +482,30 @@ def _resolve_generation_topic(
     topic = _compact_text(raw_topic)
     if not topic:
         return ""
+    if _requests_current_question_exclusion(topic):
+        broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
+        normalized_active_object = normalize_active_object(active_object)
+        active_object_type = str((normalized_active_object or {}).get("object_type") or "").strip()
+        exclusion_anchor = _question_context_exclusion_anchor(followup_question_context)
+        if not exclusion_anchor and active_object_type in {"question_set", "single_question"}:
+            exclusion_anchor = _question_context_exclusion_anchor(
+                question_context_from_active_object(normalized_active_object)
+            )
+        if not broader_anchor:
+            broader_anchor = _question_context_broader_subject_anchor(followup_question_context)
+        if not broader_anchor and active_object_type in {"question_set", "single_question"}:
+            broader_anchor = _question_context_broader_subject_anchor(
+                question_context_from_active_object(normalized_active_object)
+            )
+        if not broader_anchor and active_object_type not in {"question_set", "single_question"}:
+            broader_anchor = _active_object_generation_anchor(normalized_active_object)
+        if not broader_anchor:
+            broader_anchor = _conversation_generation_anchor(conversation_context_text)
+        return _current_question_exclusion_generation_topic(
+            topic,
+            broader_anchor,
+            exclusion_anchor,
+        )
     if not _topic_needs_authoritative_anchor(topic):
         return topic
 
@@ -426,6 +562,8 @@ def _should_use_followup_anchor_generation(
     followup_question_context: dict[str, Any] | None,
 ) -> bool:
     if str(mode or "").strip().lower() != "custom":
+        return False
+    if _requests_current_question_exclusion(raw_topic):
         return False
     if int(num_questions or 1) > 3:
         return False
@@ -1412,6 +1550,8 @@ def _should_render_deterministic_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
+    if _render_targeted_brief_reference_feedback(user_message, question_context):
+        return True
     if not (
         should_reveal_reference_material(user_message, question_context)
         and _reference_items(question_context)
@@ -1499,10 +1639,27 @@ def _named_option_letters(user_message: str, options: dict[str, str]) -> list[st
     return named
 
 
+def _named_invalid_option_letters(user_message: str, options: dict[str, str]) -> list[str]:
+    text = str(user_message or "").upper()
+    available = {str(letter).strip().upper()[:1] for letter in options.keys()}
+    invalid: list[str] = []
+    for letter in "ABCDE":
+        if letter in available:
+            continue
+        if re.search(rf"(?<![A-Z]){letter}(?![A-Z])", text):
+            invalid.append(letter)
+    return invalid
+
+
 def _render_brief_wrong_cause(item: dict[str, Any], user_message: str = "") -> str:
     correct_letters = set(_answer_letters(item.get("correct_answer")))
     user_letters = set(_answer_letters(item.get("user_answer")))
     options = dict(_option_entries(item))
+    invalid_letters = _named_invalid_option_letters(user_message, options)
+    if invalid_letters:
+        available = "、".join(letter for letter, _text in _option_entries(item)) or "当前题面选项"
+        invalid = "、".join(invalid_letters)
+        return f"{invalid}不是这道题的选项；这题只有{available}，不能按不存在的选项判。"
     # When the learner names a specific option ("A错在哪里"), answer about *that*
     # option using the question's own standard answer as the single authority.
     # Otherwise a correct-answer learner falls through to "没错，答案正确", which
@@ -3708,16 +3865,17 @@ class DeepQuestionCapability(BaseCapability):
             return
         if (
             not force_generate_questions
-            and not (
-                isinstance(followup_question_context, dict)
-                and followup_question_context.get("question")
-            )
         ):
             # A learner pasted a self-contained MCQ (own stem + own option order) and
             # answered it. This object has its own learner-surface authority, so it must
             # beat stale lifecycle labels and the broader case full-submission fallback.
             full_mcq_context = self._mcq_grading_context_from_full_submission(raw_user_message)
             if full_mcq_context is not None:
+                full_mcq_active_object = build_active_object_from_question_context(
+                    full_mcq_context,
+                    source_turn_id=turn_id,
+                    previous_active_object=active_object,
+                ) or active_object
                 mcq_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
                     relation_to_active_object=(
                         "revise_answer_on_active_object"
@@ -3728,36 +3886,38 @@ class DeepQuestionCapability(BaseCapability):
                     allowed_patch="append_answer_slots" if len((full_mcq_context or {}).get("items") or []) > 1 else "update_answer_slot",
                     confidence=1.0,
                     reason="mcq_grading full-submission fallback",
-                    active_object=active_object,
+                    active_object=full_mcq_active_object,
                 )
                 context.metadata["question_followup_context"] = dict(full_mcq_context)
+                context.metadata["active_object"] = dict(full_mcq_active_object or {})
                 context.metadata["turn_semantic_decision"] = mcq_turn_decision
                 await self._emit_grading_result(
                     stream=stream,
                     context=context,
                     llm_config=llm_config,
                     turn_id=turn_id,
-                    active_object=active_object,
+                    active_object=full_mcq_active_object,
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=mcq_turn_decision,
                     graded_context=full_mcq_context,
                     raw_user_message=raw_user_message,
                     selected_mode=selected_mode,
                     authority_source="mcq_grading_full_submission",
-                    correct_answer_present=False,
+                    correct_answer_present=bool(str(full_mcq_context.get("correct_answer") or "").strip()),
                     kb_name=kb_name,
                 )
                 return
         if (
             lifecycle_scene == "case_grading"
             and not force_generate_questions
-            and not (
-                isinstance(followup_question_context, dict)
-                and followup_question_context.get("question")
-            )
         ):
             full_case_context = self._case_grading_context_from_full_submission(raw_user_message)
             if full_case_context is not None:
+                full_case_active_object = build_active_object_from_question_context(
+                    full_case_context,
+                    source_turn_id=turn_id,
+                    previous_active_object=active_object,
+                ) or active_object
                 case_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
                     relation_to_active_object=(
                         "revise_answer_on_active_object"
@@ -3768,23 +3928,30 @@ class DeepQuestionCapability(BaseCapability):
                     allowed_patch="append_answer_slots" if len((full_case_context or {}).get("items") or []) > 1 else "update_answer_slot",
                     confidence=1.0,
                     reason="case_grading full-submission fallback",
-                    active_object=active_object,
+                    active_object=full_case_active_object,
                 )
                 context.metadata["question_followup_context"] = dict(full_case_context)
+                context.metadata["active_object"] = dict(full_case_active_object or {})
                 context.metadata["turn_semantic_decision"] = case_turn_decision
                 await self._emit_grading_result(
                     stream=stream,
                     context=context,
                     llm_config=llm_config,
                     turn_id=turn_id,
-                    active_object=active_object,
+                    active_object=full_case_active_object,
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=case_turn_decision,
                     graded_context=full_case_context,
                     raw_user_message=raw_user_message,
                     selected_mode=selected_mode,
                     authority_source="case_grading_full_submission",
-                    correct_answer_present=False,
+                    correct_answer_present=bool(
+                        str(
+                            full_case_context.get("correct_answer")
+                            or full_case_context.get("reference_answer")
+                            or ""
+                        ).strip()
+                    ),
                     kb_name=kb_name,
                 )
                 return
@@ -3941,6 +4108,7 @@ class DeepQuestionCapability(BaseCapability):
 
         mode = str(overrides.get("mode", "custom") or "custom").strip().lower()
         raw_topic = str(overrides.get("topic") or context.user_message or "").strip()
+        current_question_exclusion = _requests_current_question_exclusion(raw_topic)
         topic = _resolve_generation_topic(
             raw_topic=raw_topic,
             active_object=active_object,
@@ -4012,8 +4180,11 @@ class DeepQuestionCapability(BaseCapability):
         #   1. active_object.state_snapshot.construction_grading_result.next_training_signal
         #   2. active_object.state_snapshot.items[i].construction_grading_result.next_training_signal
         # 把 concept / focus 拼到 topic（如尚未出现），以便 coordinator anchor 命中 weak point。
-        next_training_signal_consumed = False
-        if lightweight_generation:
+        if (
+            lightweight_generation
+            and _topic_needs_authoritative_anchor(raw_topic)
+            and not current_question_exclusion
+        ):
             consumed_concept, consumed_focus = self._extract_latest_next_training_signal(active_object)
             hint_parts: list[str] = []
             if consumed_concept and consumed_concept not in topic:
@@ -4022,7 +4193,6 @@ class DeepQuestionCapability(BaseCapability):
                 hint_parts.append(f"focus={consumed_focus}")
             if hint_parts:
                 topic = (topic + "；" if topic else "") + "；".join(hint_parts)
-                next_training_signal_consumed = True
                 if isinstance(context.metadata, dict):
                     trace_meta = context.metadata.setdefault("trace_metadata", {})
                     if isinstance(trace_meta, dict):
@@ -4253,8 +4423,10 @@ class DeepQuestionCapability(BaseCapability):
                     history_context=history_context,
                     lightweight_generation=lightweight_generation,
                     require_explanation=require_explanation,
+                    reveal_answers=reveal_answers,
                     allow_lightweight_fallback=not question_review_mode,
                     allow_similar_source_variant=question_review_mode,
+                    avoid_current_question=current_question_exclusion,
                 )
 
         if question_review_mode:

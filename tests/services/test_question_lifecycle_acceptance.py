@@ -234,6 +234,26 @@ def test_tutorbot_study_assistant_intent():
     )
 
 
+def test_tutorbot_study_plan_intent_loads_study_assistant_authority():
+    """Study plans must use the existing study-assistant authority.
+
+    The generic TutorBot teaching skill may phrase the answer, but it must not
+    invent learner-stage or attempt-count facts when no learner-state evidence
+    was projected into the turn.
+    """
+
+    ctx = _FakeContext(user_message="不看内部信息了，给我一个3天复盘计划，不要再出题。")
+    scene = attach_question_lifecycle_scene_to_context(ctx)
+    assert scene == "study_assistant"
+    skill_ctx = build_question_lifecycle_skill_context(ctx)
+    assert skill_ctx.skill_names == (
+        "construction-exam-tutor",
+        "construction-study-assistant",
+    )
+    assert "不自行发明薄弱点、掌握度、题目优先级或长期计划" in skill_ctx.instructions
+    assert "证据不足时断言" in skill_ctx.instructions
+
+
 # ---------------------------------------------------------------------------
 # §5.0 verification target #2: single loader invariant
 # ---------------------------------------------------------------------------

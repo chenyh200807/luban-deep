@@ -160,6 +160,76 @@ async def test_coordinator_lightweight_topic_generation_skips_idea_agent(
 
 
 @pytest.mark.asyncio
+async def test_coordinator_lightweight_topic_exclusion_skips_rag_reference_anchor(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    monkeypatch.setattr(
+        AgentCoordinator,
+        "_create_idea_agent",
+        lambda self: (_ for _ in ()).throw(
+            AssertionError("lightweight topic generation should not construct IdeaAgent")
+        ),
+    )
+    monkeypatch.setattr(
+        AgentCoordinator,
+        "_create_batch_dir",
+        lambda self, prefix: (tmp_path / prefix).mkdir(parents=True, exist_ok=True) or (tmp_path / prefix),
+    )
+
+    async def _fake_rag_search(**_kwargs: Any) -> dict[str, Any]:
+        raise AssertionError("current-question exclusion must not ask RAG for a reference anchor")
+
+    async def _fake_lightweight_batch_generate(
+        self,
+        *,
+        templates,
+        user_topic: str,
+        preference: str,
+        history_context: str,
+        counters,
+    ):
+        captured["templates"] = templates
+        captured["user_topic"] = user_topic
+        captured["counters"] = dict(counters)
+        return []
+
+    monkeypatch.setattr("deeptutor.agents.question.coordinator.rag_search", _fake_rag_search)
+    monkeypatch.setattr(AgentCoordinator, "_lightweight_batch_generate", _fake_lightweight_batch_generate)
+
+    coordinator = AgentCoordinator(language="zh", kb_name="construction-exam", enable_idea_rag=True)
+    result = await coordinator.generate_from_topic(
+        user_topic=(
+            "再出一道不同考点的单选题，不要和刚才那题重复。\n\n"
+            "请从建筑实务/建造师考试高频考点中选择一个与当前题不同的小考点出题；"
+            "不要沿用当前题题干、选项或同一小考点。\n\n"
+            "排除当前题（仅用于去重，不得作为新题考点）：\n"
+            "当前题：施工现场负责审查批准一级动火作业的（ ）。"
+        ),
+        preference="只出题",
+        num_questions=1,
+        difficulty="easy",
+        question_type="choice",
+        history_context="",
+        lightweight_generation=True,
+        require_explanation=False,
+        avoid_current_question=True,
+    )
+
+    templates = captured["templates"]
+    assert isinstance(templates, list)
+    assert len(templates) == 1
+    assert templates[0].source == "lightweight_topic"
+    assert templates[0].reference_question is None
+    assert templates[0].metadata["anchor_source"] == "current_question_exclusion"
+    assert "排除当前题" in templates[0].metadata["knowledge_context"]
+    assert result["trace"]["lightweight_generation"] is True
+    assert result["trace"]["lightweight_counters"]["retriever_calls"] == 0
+
+
+@pytest.mark.asyncio
 async def test_coordinator_lightweight_topic_generation_uses_single_rag_anchor(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -238,6 +308,38 @@ async def test_coordinator_lightweight_topic_generation_uses_single_rag_anchor(
     assert templates[0].metadata["anchor_source"] == "question_exact_text"
     assert templates[0].metadata["anchor_confidence"] == 0.93
     assert result["trace"]["lightweight_generation"] is True
+
+
+def test_lightweight_anchor_rejects_question_evidence_without_answer() -> None:
+    payload = AgentCoordinator._build_lightweight_rag_anchor_payload(
+        user_topic="请出一道一级建造师项目管理单选题，只要题目和A/B/C/D选项，先不要解析。",
+        result={
+            "answer": "",
+            "exact_question": {},
+            "evidence_bundle": {
+                "retrieval_status": "hit",
+                "sources": [
+                    {
+                        "_source_group": "REAL_EXAM",
+                        "question_id": "question-17487",
+                        "content": (
+                            "【题目】施工现场负责审查批准一级动火作业的（　　）。\n"
+                            "【选项】"
+                            '[{"key": "A", "value": "项目负责人"}, '
+                            '{"key": "B", "value": "项目生产负责人"}, '
+                            '{"key": "C", "value": "项目安全管理部门"}, '
+                            '{"key": "D", "value": "企业安全管理部门"}]'
+                        ),
+                    }
+                ],
+            },
+        },
+    )
+
+    assert payload["concentration"] == "一级建造师项目管理"
+    assert "reference_question" not in payload
+    assert payload.get("anchor_source") != "question_evidence_bundle"
+    assert "题库参考题目" not in payload["knowledge_context"]
 
 
 @pytest.mark.asyncio
@@ -491,3 +593,24 @@ def test_lightweight_anchor_label_uses_topic_clause_when_answer_reveal_is_suppre
     payload = AgentCoordinator._base_lightweight_anchor_payload(user_topic=user_topic)
     assert payload["concentration"] == "临时用电/安全"
     assert payload["knowledge_context"] == "当前学习锚点：临时用电/安全"
+
+
+def test_current_question_exclusion_anchor_label_ignores_exclusion_block() -> None:
+    user_topic = """再出一道不同考点的单选题，不要和刚才那题重复；仍然只给题目和A/B/C/D选项。
+
+请基于以下更大范围学习主题出题，但必须避开当前题题干、选项和同一小考点：
+当前会话主题：新对话
+
+排除当前题（仅用于去重，不得作为新题考点）：
+需避开考点：一级建造师项目管理
+需避开题干：施工现场负责审查批准一级动火作业的（ ）。
+需避开选项面：A. 项目负责人；B. 项目生产负责人；C. 项目安全管理部门；D. 企业安全管理部门"""
+
+    payload = AgentCoordinator._current_question_exclusion_anchor_payload(user_topic=user_topic)
+
+    assert payload["anchor_source"] == "current_question_exclusion"
+    assert payload["concentration"] == "建筑实务高频考点"
+    assert "排除当前题" in payload["knowledge_context"]
+    assert "需避开题干" in payload["knowledge_context"]
+    assert "需避开" not in payload["concentration"]
+    assert "不得作为新题考点" not in payload["concentration"]

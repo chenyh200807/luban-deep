@@ -127,6 +127,9 @@ _FOLLOWUP_MARKERS = (
     "错在哪",
     "答案是什么",
     "正确答案是什么",
+    "正确答案",
+    "标准答案",
+    "参考答案",
     "这题",
     "这道题",
     "上一题",
@@ -140,10 +143,20 @@ _FOLLOWUP_MARKERS = (
 _JUDGMENT_TRUE_TOKENS = {"对", "正确", "是", "true", "yes", "√", "t"}
 _JUDGMENT_FALSE_TOKENS = {"错", "错误", "否", "false", "no", "×", "x", "f"}
 _LEADING_SUBMISSION_PREFIX = re.compile(
-    r"^(?:我答(?:案)?(?:是)?|我的(?:答案)?(?:是)?|答案(?:是)?|我选|我觉得选|选(?!择)|就是|应该是|option|answer)[:：]?",
+    r"^(?:我答(?:案)?(?:是)?|我的(?:答案|作答)?(?:是)?|学生作答|作答|答案(?:是)?|我选|我觉得选|选(?!择)|就是|应该是|option|answer)[:：]?",
     re.IGNORECASE,
 )
-_SUBJECTIVE_QUESTION_TYPES = {"case", "written", "subjective", "short_answer", "essay"}
+_SUBJECTIVE_QUESTION_TYPES = {
+    "case",
+    "case_study",
+    "case_background",
+    "calculation",
+    "written",
+    "subjective",
+    "short_answer",
+    "essay",
+    "open_ended",
+}
 # A turn that LEADS with a bare option answer ("B" / "BCD" / "B，再出3题") is an
 # answer-led submission; §5.1 gives it priority over any trailing generation intent.
 _LEADING_OPTION_ANSWER = re.compile(r"^[A-Ea-e](?:[、，,/／\s]*[A-Ea-e])*(?:[。.!！?，,、：:\s]|$)")
@@ -176,6 +189,44 @@ _PAST_QUESTION_EXPLANATION_MARKERS = (
     "拆考点", "拆一下", "为什么", "为啥", "再讲", "回顾", "复盘",
     "怎么分析", "考点", "知识点", "再帮我", "再给我讲",
 )
+_GRADING_EXIT_MARKERS = (
+    "不要继续判分", "不要再判分", "别继续判分", "别再判分", "先别继续判分",
+    "不用判分", "不判分", "别判分", "不要判分", "不要继续批改", "不要再批改",
+    "别继续批改", "别再批改", "不用批改", "不批改", "别批改", "不要批改",
+)
+_STUDY_PLAN_INTENT_MARKERS = (
+    "学习计划", "复习计划", "复盘计划", "训练计划", "备考计划", "学习安排", "复习安排",
+)
+_STUDY_PLAN_REQUEST_MARKERS = (
+    "给我", "只给我", "帮我", "现在聊", "聊学习", "制定", "安排", "每天", "明天",
+    "今天", "本周", "分钟", "小时",
+)
+_SUBJECTIVE_META_REQUEST_ACTION_MARKERS = (
+    "总结",
+    "复盘",
+    "回顾",
+    "列出",
+    "输出",
+    "展示",
+    "显示",
+    "不要",
+    "别",
+)
+_SUBJECTIVE_META_REQUEST_TARGET_MARKERS = (
+    "内部",
+    "参考证据",
+    "证据",
+    "工作记忆",
+    "投影",
+    "prompt",
+    "source",
+    "标题",
+    "引用",
+    "正式提交",
+    "提交过",
+    "本轮",
+    "案例答案",
+)
 
 
 def _looks_like_past_question_explanation_request(text: str) -> bool:
@@ -196,6 +247,34 @@ def _looks_like_past_question_explanation_request(text: str) -> bool:
     return any(b in t for b in _PAST_QUESTION_BACKREFERENCE_MARKERS) and any(
         e in t for e in _PAST_QUESTION_EXPLANATION_MARKERS
     )
+
+
+def _looks_like_subjective_context_exit_request(text: str) -> bool:
+    t = str(text or "").strip()
+    if not t:
+        return False
+    if _LEADING_SUBMISSION_PREFIX.match(t) or _LEADING_OPTION_ANSWER.match(t):
+        return False
+    if any(marker in t for marker in _GRADING_EXIT_MARKERS):
+        return True
+    if any(marker in t for marker in _SUBJECTIVE_META_REQUEST_ACTION_MARKERS) and any(
+        marker in t for marker in _SUBJECTIVE_META_REQUEST_TARGET_MARKERS
+    ):
+        return True
+    return any(marker in t for marker in _STUDY_PLAN_INTENT_MARKERS) and any(
+        marker in t for marker in _STUDY_PLAN_REQUEST_MARKERS
+    )
+
+
+def looks_like_question_context_exit_request(
+    message: str,
+    question_context: dict[str, Any] | None = None,
+) -> bool:
+    if question_context is not None and normalize_question_followup_context(question_context) is None:
+        return False
+    return _looks_like_subjective_context_exit_request(message)
+
+
 _TRAILING_GRADING_REQUEST_RE = re.compile(
     r"(?:[。.!！?；;，,、 ]*)"
     r"(?:请)?(?:按[^。.!！?；;]{0,40})?"
@@ -630,6 +709,8 @@ async def interpret_question_followup_action(
     if parsed is None:
         return None
     action = _normalize_followup_action(parsed, normalized)
+    action_route = followup_action_route(action)
+    deterministic_confidence = submission_confidence(message, normalized)
     # 判分态单一权威收口 Step 4.5 (2026-06-24, live NO-GO 揪出): LLM 作答分类器带"提交优先"
     # 偏置(prompt 规则1),会把"我猜是A但你先别判"这类**试探+显式推迟**误判成 answer_questions
     # (live reason 自述"提交优先原则")→ 凭空判分。确定性 backstop:LLM 判 submission 但
@@ -637,8 +718,22 @@ async def interpret_question_followup_action(
     # 只动 LOW(试探/推迟/回指),HIGH 真作答("我选B")confidence=high 永不降 → 不伤硬约束40。
     # skill 铁律:确定性高精确信号 > 纯 prompt 压偏置。
     if (
-        followup_action_route(action) == "submission"
-        and submission_confidence(message, normalized) == "low"
+        action_route == "submission"
+        and deterministic_confidence is None
+        and looks_like_question_followup(message, normalized)
+    ):
+        downgraded = dict(action or {})
+        downgraded["intent"] = "ask_followup"
+        downgraded["answers"] = []
+        downgraded["reason"] = (
+            "deterministic_submission=none且消息是题目追问,不按LLM提交判分,改 ask_followup。"
+            "原 LLM intent="
+            + str((action or {}).get("intent") or "")
+        )
+        return _normalize_followup_action(downgraded, normalized)
+    if (
+        action_route == "submission"
+        and deterministic_confidence == "low"
     ):
         downgraded = dict(action or {})
         downgraded["intent"] = "ask_followup"
@@ -789,6 +884,8 @@ def annotate_submission_context_from_message(
 def looks_like_question_followup(message: str, question_context: dict[str, Any] | None) -> bool:
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
+        return False
+    if looks_like_question_context_exit_request(message, normalized):
         return False
     if _looks_like_option_challenge_followup(message, normalized):
         return True
@@ -1501,6 +1598,8 @@ def _extract_subjective_submission(message: str, question_context: dict[str, Any
     if _looks_like_past_question_explanation_request(text):
         return None
     explicit_answer = bool(_LEADING_SUBMISSION_PREFIX.match(text))
+    if not explicit_answer and _looks_like_subjective_context_exit_request(text):
+        return None
     prestrip_lowered = text.lower()
     prestrip_question_markers = (
         "答案是什么",
@@ -1927,12 +2026,14 @@ def _looks_like_option_challenge_followup(
     if not text:
         return False
 
-    option_keys = _available_option_keys(question_context)
     compact = re.sub(r"\s+", "", text).upper().strip("。.!！?？；;，,")
     if not compact:
         return False
 
-    letter = rf"[{option_keys}]"
+    # Follow-up challenges may name a non-existent option (for example "如果我选E").
+    # Submission extraction still only accepts the current option keys; this wider
+    # matcher only keeps the turn on the question-review path instead of generic chat.
+    letter = r"[A-Z]"
     negative_markers = (
         r"(?:错在哪(?:里)?|哪(?:里)?错(?:了)?|哪里错(?:了)?|错因|问题在哪(?:里)?|"
         r"不对|错误|错|不是|不选|不能选|不该选|不行|不可以|为什么|为啥|怎么|咋)"

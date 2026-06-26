@@ -59,21 +59,32 @@ def _strip_inline_reference_noise(answer: str, *, markers: list[str]) -> str:
     return "\n".join(lines).strip()
 
 
-_ORPHAN_REFERENCE_MARKER_RE = re.compile(r"〔\d{1,3}〕")
+_ORPHAN_REFERENCE_MARKER_RE = re.compile(r"〔(\d{1,3})〕")
 # 〔源:chunk_id〕 是 rich_leaf 检索 grounding 标记(supporting-citation-only),只该
 # 出现在喂 LLM 判分/教学的上下文里,绝不是合法学生引用(合法引用是带 footer 的数字
 # 〔N〕)。judge 模仿进输出时必须无条件剥——与 backing footer 无关。
 _GROUNDING_SOURCE_MARKER_RE = re.compile(r"〔源[:：][^〕]*〕")
 
 
-def _has_backing_reference_footer(text: str) -> bool:
-    """文本里是否有合法的引用 footer(`依据` 段 + 〔N〕 + 来源线索)——即 assembler
-    渲染出来、〔N〕 真有来源的情况。有则 〔N〕 是合法引用,不可剥。"""
+def _backing_reference_footer_markers(text: str) -> tuple[int | None, set[int]]:
+    """Return the last legal citation footer start and its backed numeric markers."""
+    footer_start: int | None = None
+    backed_markers: set[int] = set()
     for match in _FOOTER_RE.finditer(text):
         footer = text[match.end() :]
-        if _ORPHAN_REFERENCE_MARKER_RE.search(footer) and _REFERENCE_SOURCE_HINT_RE.search(footer):
-            return True
-    return False
+        markers = {int(item.group(1)) for item in _ORPHAN_REFERENCE_MARKER_RE.finditer(footer)}
+        if markers and _REFERENCE_SOURCE_HINT_RE.search(footer):
+            footer_start = match.start()
+            backed_markers = markers
+    return footer_start, backed_markers
+
+
+def _strip_unbacked_reference_markers(text: str, *, backed_markers: set[int]) -> str:
+    def _replace(match: re.Match[str]) -> str:
+        marker = int(match.group(1))
+        return match.group(0) if marker in backed_markers else ""
+
+    return _ORPHAN_REFERENCE_MARKER_RE.sub(_replace, text)
 
 
 def strip_orphan_reference_markers(answer: str) -> str:
@@ -90,8 +101,11 @@ def strip_orphan_reference_markers(answer: str) -> str:
         return text
     # 〔源:chunk_id〕 grounding 标记永远剥(与 footer 无关),它不是合法学生引用。
     text = _GROUNDING_SOURCE_MARKER_RE.sub("", text)
-    if _has_backing_reference_footer(text):
-        return text
+    footer_start, backed_markers = _backing_reference_footer_markers(text)
+    if backed_markers:
+        body = text[:footer_start] if footer_start is not None else text
+        footer = text[footer_start:] if footer_start is not None else ""
+        return _strip_unbacked_reference_markers(body, backed_markers=backed_markers) + footer
     lines = []
     for line in text.splitlines():
         reference_line = _REFERENCE_LINE_RE.match(line)

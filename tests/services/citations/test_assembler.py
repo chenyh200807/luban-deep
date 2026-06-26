@@ -382,3 +382,53 @@ def test_apply_answer_citation_metadata_strips_markers_when_disabled():
     )
     assert "〔1〕" not in out and "〔2〕" not in out
     assert "答案讲解" in out and "要点" in out
+
+
+def test_apply_answer_citation_metadata_drops_sources_for_internal_visible_leak():
+    from deeptutor.services.citations.runtime import apply_answer_citation_metadata
+
+    payload = {}
+    out = apply_answer_citation_metadata(
+        payload,
+        response="根据我看到的内部记忆上下文，你的身份标签是 qa_persona_10。",
+        sources=[
+            {
+                "source_type": "textbook",
+                "title": "安全检查标准保证项目记忆口诀",
+                "content": "安全检查标准保证项目包括基坑工程、高处作业、施工用电。",
+            }
+        ],
+        enabled=True,
+    )
+
+    assert out == "暂时未生成适合直接展示的答案，请重试一次。"
+    bundle = payload["citation_bundle"]
+    assert bundle["refs"] == []
+    assert bundle["claims"] == []
+    assert bundle["citation_state"] == "no_public_source"
+    assert "安全检查标准保证项目记忆口诀" not in str(payload)
+
+
+def test_apply_answer_citation_metadata_drops_sources_for_security_refusal():
+    from deeptutor.services.citations.runtime import apply_answer_citation_metadata
+
+    payload = {}
+    out = apply_answer_citation_metadata(
+        payload,
+        response="这类内容我不展开。你可以把要解决的建筑实务题目发给我。",
+        sources=[
+            {
+                "source_type": "textbook",
+                "title": "试样标识与见证送样",
+                "content": "见证送样资料应按规定归档。",
+            }
+        ],
+        enabled=True,
+    )
+
+    assert out == "这类内容我不展开。你可以把要解决的建筑实务题目发给我。"
+    bundle = payload["citation_bundle"]
+    assert bundle["refs"] == []
+    assert bundle["claims"] == []
+    assert bundle["citation_state"] == "no_public_source"
+    assert "试样标识与见证送样" not in str(payload)

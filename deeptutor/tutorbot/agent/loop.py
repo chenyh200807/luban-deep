@@ -19,6 +19,7 @@ from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.construction_grading.case_output_policy import (
     build_case_grading_diagnostic_only_response,
     case_grading_score_authority_available,
+    copy_current_case_grading_turn_metadata,
     should_demote_case_grading_hard_score,
 )
 from deeptutor.services.exam_track import exam_track_label
@@ -29,6 +30,7 @@ from deeptutor.services.query_intent import (
     query_uses_learner_state_authority,
 )
 from deeptutor.services.question_lifecycle_skills import (
+    case_grading_context_from_full_submission,
     looks_like_free_text_mcq_answer_request,
     looks_like_free_text_mcq_grading_request,
     split_full_case_answer_submission,
@@ -483,23 +485,7 @@ class AgentLoop:
         runtime_metadata: dict[str, Any],
         target_metadata: dict[str, Any] | None,
     ) -> None:
-        if not isinstance(runtime_metadata, dict) or not isinstance(target_metadata, dict):
-            return
-        for key in (
-            "v1_case_graded",
-            "score_authority",
-            "grading_rubric_provenance",
-            "grading_to_brain_loop",
-            "learning_evidence_event_id",
-            "learning_training_intent",
-            "grading_to_brain_projection",
-            "case_grading_stream_mode",
-            "case_grading_adjudication_strategy",
-            "case_grading_adjudication_group_count",
-            "case_grading_adjudication_point_count",
-        ):
-            if key in runtime_metadata:
-                target_metadata[key] = runtime_metadata[key]
+        copy_current_case_grading_turn_metadata(runtime_metadata, target_metadata)
 
     @staticmethod
     def _strip_think(text: str | None) -> str | None:
@@ -1232,7 +1218,20 @@ class AgentLoop:
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
         eq = md.get("_prefetched_exact_question")
         eq = eq if isinstance(eq, dict) else {}
-        user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
+        current_case_context = case_grading_context_from_full_submission(user_message) or {}
+        user_stem = str(
+            current_case_context.get("question_stem")
+            or current_case_context.get("question")
+            or ""
+        )
+        user_answer = str(current_case_context.get("user_answer") or "")
+        current_reference = str(
+            current_case_context.get("reference_answer")
+            or current_case_context.get("correct_answer")
+            or ""
+        ).strip()
+        if not user_stem or not user_answer:
+            user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
         if user_stem and eq and not AgentLoop._case_exact_question_matches_user_stem(eq, user_stem):
             md["exact_question_blocked_reason"] = "case_exact_mismatch"
             eq = {}
@@ -1269,9 +1268,19 @@ class AgentLoop:
             ref = "\n".join(
                 str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
             ).strip()
-        ref = ref or str(fc_current.get("reference") or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis")) or "")
+        ref = current_reference or ref or str(
+            fc_current.get("reference")
+            or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis"))
+            or ""
+        )
         try:
-            nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
+            current_grading_result = current_case_context.get("construction_grading_result")
+            current_max_score = (
+                current_grading_result.get("max_score")
+                if isinstance(current_grading_result, dict)
+                else None
+            )
+            nominal = float(eq.get("max_score") or fc.get("max_score") or current_max_score or 0)
         except (TypeError, ValueError):
             nominal = 0.0
         # question_stem: bank entry > followup context > safely split full-case stem.
@@ -3860,11 +3869,13 @@ class AgentLoop:
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
             preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
             logger.info("Fast-path exact authority response to {}:{}: {}", msg.channel, msg.sender_id, preview)
+            response_metadata = dict(msg.metadata or {})
+            self._export_case_grading_metadata(runtime_metadata, response_metadata)
             return OutboundMessage(
                 channel=msg.channel,
                 chat_id=msg.chat_id,
                 content=final_content,
-                metadata=msg.metadata or {},
+                metadata=response_metadata,
             )
 
         initial_messages = self.context.build_messages(
@@ -3942,11 +3953,13 @@ class AgentLoop:
                     msg.sender_id,
                     preview,
                 )
+                response_metadata = dict(msg.metadata or {})
+                self._export_case_grading_metadata(runtime_metadata, response_metadata)
                 return OutboundMessage(
                     channel=msg.channel,
                     chat_id=msg.chat_id,
                     content=final_content,
-                    metadata=msg.metadata or {},
+                    metadata=response_metadata,
                 )
         if response_mode == "fast":
             suppress_fast_stream = self._should_suppress_stream_for_degraded_answer(

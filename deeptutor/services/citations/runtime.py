@@ -9,12 +9,30 @@ from deeptutor.services.citations.assembler import (
 )
 from deeptutor.services.citations.quality import CitationQualityError, validate_cited_answer
 from deeptutor.services.citations.schema import CitationBundle, CitationPolicy, CitedAnswer
-
+from deeptutor.services.user_visible_output import (
+    coerce_user_visible_answer,
+    looks_like_unsafe_visible_output,
+)
 
 SAFE_CITATION_FAILURE_RESPONSE = (
     "本轮回答包含不可公开展示的内部评分或答案字段，已按安全策略隐藏。"
     "请重新提问，或在提交后查看公开解析。"
 )
+_PUBLIC_REFUSAL_MARKERS = (
+    "这类内容我不展开",
+    "暂时未生成适合直接展示的答案",
+)
+
+
+def _public_response_and_sources(
+    response: str,
+    sources: list[dict[str, Any]],
+) -> tuple[str, list[dict[str, Any]]]:
+    if looks_like_unsafe_visible_output(response):
+        return coerce_user_visible_answer(response), []
+    if any(marker in str(response or "") for marker in _PUBLIC_REFUSAL_MARKERS):
+        return response, []
+    return response, sources
 
 
 def assemble_public_cited_answer(
@@ -86,6 +104,7 @@ def apply_answer_citation_metadata(
     enabled: bool,
     policy: CitationPolicy | None = None,
 ) -> str:
+    response, sources = _public_response_and_sources(response, sources)
     cited = assemble_public_cited_answer(response, sources=sources, policy=policy)
     metrics = citation_metrics(cited.bundle)
     if enabled:

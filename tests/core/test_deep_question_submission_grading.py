@@ -126,6 +126,56 @@ async def test_deep_question_case_grading_scene_without_context_uses_grading_pat
 
 
 @pytest.mark.asyncio
+async def test_deep_question_full_case_submission_marks_current_reference_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("case grading should not generate questions")
+
+    async def fake_emit_grading_result(self, **kwargs: Any) -> None:
+        captured.update(kwargs)
+        await kwargs["stream"].result({"response": "graded"}, source=self.name)
+
+    captured: dict[str, Any] = {}
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.get_llm_config",
+        lambda: SimpleNamespace(api_key="test", base_url="", api_version=""),
+    )
+    monkeypatch.setattr(
+        DeepQuestionCapability,
+        "_emit_grading_result",
+        fake_emit_grading_result,
+    )
+    raw_case_submission = (
+        "案例题：某工程底模拆除时混凝土强度检查。\n"
+        "问题：跨度为8m的现浇梁底模拆除时，混凝土强度应达到设计强度的多少？"
+        "我的答案：75%。标准答案：100%。请判分。"
+    )
+    capability = DeepQuestionCapability()
+    context = UnifiedContext(
+        session_id="s-case-deep-question-reference",
+        user_message=raw_case_submission,
+        config_overrides={},
+        metadata={"question_lifecycle_scene": "case_grading"},
+        language="zh",
+    )
+
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["authority_source"] == "case_grading_full_submission"
+    assert captured["correct_answer_present"] is True
+    assert captured["graded_context"]["correct_answer"] == "100%"
+    assert captured["graded_context"]["reference_answer"] == "100%"
+    assert captured["graded_context"]["user_answer"] == "75%"
+
+
+@pytest.mark.asyncio
 async def test_deep_question_uses_deterministic_feedback_for_choice_submission(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -738,6 +788,74 @@ async def test_deep_question_option_hypothetical_followup_gives_targeted_scoring
     assert "改写标准答案" not in response
     assert "D（最高点）" in response
     assert "解析" in response
+
+
+@pytest.mark.asyncio
+async def test_deep_question_invalid_option_followup_uses_current_options_not_fabrication(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for follow-up mode")
+
+    class FailingFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("invalid option check should use current option authority")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=FailingFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="E",
+        language="zh",
+        metadata={
+            "raw_user_message": "如果我选E，对不对？一句话。",
+            "turn_semantic_decision": {
+                "next_action": "route_to_followup_explainer",
+            },
+            "question_followup_action": {
+                "intent": "ask_followup",
+            },
+            "question_followup_context": {
+                "question_id": "q_joint",
+                "question": "下列关于施工缝留置位置的说法，错误的是（ ）。",
+                "question_type": "choice",
+                "options": {
+                    "A": "施工缝可留在剪力较小处",
+                    "B": "楼梯梯段施工缝可留在梯段板跨中1/3范围内",
+                    "C": "梁板施工缝可留在次梁跨中1/3范围内",
+                    "D": "单向板施工缝可留在平行于短边的位置",
+                },
+                "correct_answer": "B",
+                "user_answer": "D",
+                "is_correct": False,
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert result_event.metadata["mode"] == "followup"
+    assert "E" in response
+    assert "不是这道题的选项" in response
+    assert "A、B、C、D" in response
+    assert "E（" not in response
 
 
 @pytest.mark.asyncio
@@ -2054,6 +2172,87 @@ def test_plain_count_generation_request_uses_conversation_context_anchor() -> No
     assert "变形缝" in topic
 
 
+def test_different_topic_generation_request_excludes_active_question_anchor() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再出一道不同考点的单选题，不要答案。",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context={
+            "question_id": "q_joint",
+            "question": "下列关于施工缝留置位置的说法，错误的是（ ）。",
+            "question_type": "choice",
+            "options": {
+                "A": "施工缝宜留在结构受剪力较小处",
+                "B": "梁板施工缝可留在受剪力较大处",
+                "C": "次梁跨度中间1/3范围可留设施工缝",
+                "D": "单向板可平行于短边留设施工缝",
+            },
+            "correct_answer": "B",
+        },
+        conversation_context_text="",
+    )
+
+    assert topic.startswith("再出一道不同考点的单选题")
+    assert "建筑实务/建造师考试高频考点" in topic
+    assert "当前学习锚点" not in topic
+    assert "排除当前题" in topic
+    assert "不得作为新题考点" in topic
+    assert "施工缝" in topic
+
+
+def test_different_topic_generation_preserves_broad_subject_anchor() -> None:
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再出一道不同考点的单选题，不要答案。",
+        active_object={
+            "object_type": "single_question",
+            "object_id": "q_pm",
+            "state_snapshot": {
+                "question_id": "q_pm",
+                "concentration": "一级建造师项目管理",
+                "question": "建设工程项目管理的核心任务是（ ）。",
+                "question_type": "choice",
+                "options": {
+                    "A": "质量控制",
+                    "B": "成本控制",
+                    "C": "项目目标控制",
+                    "D": "合同管理",
+                },
+                "correct_answer": "C",
+            },
+        },
+        suspended_object_stack=[],
+        followup_question_context=None,
+        conversation_context_text="",
+    )
+
+    assert topic.startswith("再出一道不同考点的单选题")
+    assert "当前学习主题：一级建造师项目管理" in topic
+    assert "排除当前题" in topic
+    assert "需避开考点：一级建造师项目管理" not in topic
+    assert "建设工程项目管理的核心任务" in topic
+
+
+def test_current_question_exclusion_keeps_specific_point_exclusion() -> None:
+    exclusion = deep_question_module._question_context_exclusion_anchor(
+        {
+            "question_id": "q_rhythm",
+            "concentration": "流水节拍",
+            "question": "关于流水施工参数的说法，正确的是（ ）。",
+            "question_type": "choice",
+            "options": {
+                "A": "流水节拍表示一个施工过程在一个施工段上的持续时间",
+                "B": "流水节拍只能取整数",
+                "C": "流水步距等于流水节拍",
+                "D": "流水强度等于施工段数量",
+            },
+            "correct_answer": "A",
+        }
+    )
+
+    assert "需避开考点：流水节拍" in exclusion
+    assert "需避开题干" in exclusion
+
+
 def test_explicit_generation_topic_does_not_require_context_anchor() -> None:
     assert deep_question_module._topic_needs_authoritative_anchor("出三道变形缝的题") is False
     for user_topic in (
@@ -2338,6 +2537,115 @@ async def test_deep_question_allows_explicit_construction_generation_topic(
     assert captured["generate_from_topic"]["num_questions"] == 3
     assert "变形缝" in captured["generate_from_topic"]["user_topic"]
     assert "practice_generation_blocked_reason" not in result_event.metadata
+
+
+@pytest.mark.asyncio
+async def test_deep_question_different_topic_request_does_not_inherit_question_anchor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, callback: Any) -> None:
+            captured["ws_callback"] = callback
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["generate_from_topic"] = kwargs
+            return {
+                "source": "topic",
+                "requested": kwargs.get("num_questions", 0),
+                "completed": 0,
+                "failed": 0,
+                "results": [],
+                "trace": {
+                    "lightweight_generation": kwargs.get("lightweight_generation", False),
+                    "lightweight_counters": {
+                        "llm_calls": 0,
+                        "retriever_calls": 0,
+                        "bank_hits": 0,
+                        "lightweight_batch_fallback": "none",
+                        "generated_explanation": False,
+                    },
+                },
+            }
+
+        async def generate_from_followup_context(self, **_kwargs: Any) -> dict[str, Any]:
+            raise AssertionError("different-topic requests must not use current question anchor")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="再出一道不同考点的单选题，不要答案。",
+        config_overrides={
+            "mode": "custom",
+            "topic": "再出一道不同考点的单选题，不要答案。",
+            "num_questions": 1,
+            "question_type": "choice",
+            "force_generate_questions": True,
+            "lightweight_generation": False,
+            "reveal_answers": False,
+            "reveal_explanations": False,
+        },
+        language="zh",
+        metadata={
+            "question_lifecycle_scene": "practice_generation",
+            "selected_mode": "fast",
+            "active_object": {
+                "object_type": "single_question",
+                "object_id": "q_hot_work",
+                "state_snapshot": {
+                    "question_id": "q_hot_work",
+                    "question": "施工现场负责审查批准一级动火作业的（ ）。",
+                    "concentration": "一级建造师项目管理",
+                    "question_type": "choice",
+                    "options": {
+                        "A": "项目负责人",
+                        "B": "项目生产负责人",
+                        "C": "项目安全管理部门",
+                        "D": "企业安全管理部门",
+                    },
+                    "correct_answer": "A",
+                    "construction_grading_result": {
+                        "next_training_signal": {
+                            "concept": "一级建造师项目管理",
+                            "focus": "动火审批责任主体",
+                        }
+                    },
+                },
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    user_topic = captured["generate_from_topic"]["user_topic"]
+    assert captured["generate_from_topic"]["avoid_current_question"] is True
+    assert "当前学习锚点" not in user_topic
+    assert "当前学习主题：一级建造师项目管理" in user_topic
+    assert "排除当前题" in user_topic
+    assert "需避开考点：一级建造师项目管理" not in user_topic
+    assert "一级动火作业" in user_topic
+    assert "上一轮薄弱点" not in user_topic
+    assert "next_training_signal" not in user_topic
+    assert "practice_generation_blocked_reason" not in result_event.metadata
+    assert "非建筑实务" not in result_event.metadata["response"]
 
 
 def test_related_generation_anchor_uses_next_training_signal() -> None:

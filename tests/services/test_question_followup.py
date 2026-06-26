@@ -464,6 +464,81 @@ def test_resolve_submission_attempt_keeps_english_written_explanation_as_followu
 @pytest.mark.parametrize(
     "message",
     [
+        "只给我复盘计划，不要继续判分。",
+        "现在聊学习计划：我每天只有40分钟。",
+        "先别继续判分，给我一个明天30分钟复盘计划。",
+        "不要把内部参考证据或工作记忆投影展示给我。",
+        "总结我正式提交过的案例答案。",
+    ],
+)
+def test_resolve_submission_attempt_keeps_case_exit_or_study_plan_as_followup(
+    message: str,
+) -> None:
+    case_context = {
+        "question_id": "case_1",
+        "question": "屋面防水卷材采用空铺法时，短边搭接宽度不应小于多少？",
+        "question_type": "case",
+        "user_answer": "100mm",
+        "correct_answer": "150mm",
+    }
+
+    target, submission = resolve_submission_attempt(message, case_context)
+
+    assert target is not None
+    assert submission is None
+    assert submission_confidence(message, case_context) is None
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "总结我正式提交过的案例答案，别重新判分。",
+        "不要把内部参考证据、working_memory、learner_summary 或 citation source title 展示给我；只回答你是否能做到。",
+    ],
+)
+def test_active_choice_context_does_not_consume_history_or_internal_meta_request(
+    message: str,
+) -> None:
+    choice_context = {
+        "question_id": "choice_1",
+        "question": "流水步距反映的是什么？",
+        "question_type": "choice",
+        "options": {"A": "工期", "B": "相邻专业队投入间隔", "C": "流水节拍", "D": "施工段"},
+        "correct_answer": "B",
+        "user_answer": "A",
+    }
+
+    target, submission = resolve_submission_attempt(message, choice_context)
+
+    assert target is not None
+    assert submission is None
+    assert submission_confidence(message, choice_context) is None
+    assert looks_like_question_followup(message, choice_context) is False
+
+
+def test_resolve_submission_attempt_keeps_explicit_case_answer_with_plan_words() -> None:
+    case_context = {
+        "question_id": "case_1",
+        "question": "项目经理发现工人安全交底不到位，应如何整改？",
+        "question_type": "case",
+    }
+
+    target, submission = resolve_submission_attempt(
+        "我的答案是：应重新组织安全交底并制定复盘计划。请判分。",
+        case_context,
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "question_id": "case_1",
+        "answer": "应重新组织安全交底并制定复盘计划",
+    }
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
         "为什么不是B？一句话。",
         "为什么不是 B？一句话。",
         "B为什么不对？",
@@ -480,6 +555,8 @@ def test_resolve_submission_attempt_keeps_english_written_explanation_as_followu
         "我不是要重新提交C，是想知道C为什么不对；用刚才那题回答。",
         "我不是要重新提交C",
         "如果我选B，你会怎么扣？",
+        "如果我选E，对不对？一句话。",
+        "如果我选Z，对不对？一句话。",
         "这里是不是屋脊？如果选B会怎么判？",
         "不选A为什么不行？",
         "不是提交C，解释一下C错在哪里。",
@@ -2380,6 +2457,8 @@ def test_submission_confidence_high_for_explicit_answer_revision(message: str) -
 def test_submission_confidence_does_not_grade_hypothetical_option_challenge() -> None:
     # "如果选D对不对"是点名选项追问,不是把当前答案改成 D。
     assert submission_confidence("如果选D对不对", _SC_SINGLE_CTX) is None
+    assert submission_confidence("如果我选E，对不对？一句话。", _SC_SINGLE_CTX) is None
+    assert submission_confidence("如果我选Z，对不对？一句话。", _SC_SINGLE_CTX) is None
 
 
 def test_submission_confidence_subjective_payload_keeps_deferral_low() -> None:
@@ -2447,6 +2526,58 @@ def test_low_confidence_non_answer_downgraded_even_if_llm_says_submission(monkey
     action = _interpret("我猜是A但不确定，你先别判", monkeypatch)
     assert action is not None
     assert _qf.followup_action_route(action) != "submission"
+
+
+def test_option_challenge_non_submission_downgrades_llm_submission(monkeypatch):
+    # live 2026-06-26: LLM follow-up classifier sometimes treated the
+    # hypothetical invalid option "如果我选E" as a submitted answer even though
+    # the current A-D question has no E option. Deterministic submission
+    # authority must win before any user_answer write.
+    question_context = {
+        "question_id": "q_live_numbered",
+        "question": "### 第 1 题 施工缝留置位置判断。\n下列说法错误的是（ ）。",
+        "question_type": "choice",
+        "options": {
+            "A": "施工缝宜留在结构受剪力较小且便于施工的部位",
+            "B": "梁板施工缝可留在次梁跨度的中间1/3范围内",
+            "C": "单向板施工缝可留在平行于板短边的位置",
+            "D": "有主次梁楼板宜顺着次梁方向浇筑",
+        },
+        "correct_answer": "C",
+        "user_answer": "",
+    }
+
+    async def fake_complete(**kwargs):
+        import json as _json
+
+        return _json.dumps(
+            {
+                "intent": "answer_questions",
+                "confidence": 0.91,
+                "preserve_other_answers": False,
+                "answers": [
+                    {
+                        "question_index": 1,
+                        "question_id": "q_live_numbered",
+                        "answer": "Z",
+                    }
+                ],
+                "reason": "提交优先原则",
+            }
+        )
+
+    monkeypatch.setattr(_qf, "complete", fake_complete)
+
+    action = _asyncio.run(
+        _qf.interpret_question_followup_action(
+            "如果我选Z，对不对？一句话。",
+            question_context,
+        )
+    )
+
+    assert action is not None
+    assert _qf.followup_action_route(action) == "followup"
+    assert action["answers"] == []
 
 
 def test_high_confidence_real_answer_stays_submission(monkeypatch):

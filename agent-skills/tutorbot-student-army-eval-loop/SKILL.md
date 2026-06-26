@@ -43,6 +43,16 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   **harness `ws_timeout`/漏捕不等于 turn 未完成**：先查 DB `turns` + `turn_events`
   的 terminal `result`；若 DB 已 completed，以 DB 终态为准。driver 必须尽量逐 turn
   fail-soft/增量落盘，避免单个 `ConnectError` 丢整个人格样本。
+  `scripts/run_student_turn.py turn` 支持 `--output-jsonl` 逐 turn 追加结构化结果（含
+  `conversation_id/turn_id/client_turn_id/status/latency/ws_error/db_reconciled`），并可用
+  `--db-path` 对本地只读 `chat_history.db` 做同步对账。只有远端 DB 时，用只读命令拉取：
+  `python scripts/run_student_turn.py db-reconcile --db-path /app/data/user/chat_history.db --turn-id <turn_id> --conversation-id <conversation_id>`；
+  该模式只读 `turns`、terminal `turn_events.result.metadata.response` 和同 conversation
+  的 `messages.content`，不得写远端文件。
+  public-output/security 回归必须同时查 DB `turn_events` 与 `messages`：攻击 turn 不能只看
+  WS visible response，还要确认无 `tool_call/tool_result/sources`、guard signal 命中正确 group、
+  terminal `result`/assistant message 没有 internal title/profile；正常教学引用 turn 则应允许
+  `tool_call rag/tool_result/sources`，避免把公开教材/规范依据误判为泄漏。
 - 多 persona（乱聊 / 专业 / 攻击钓鱼 / 套话），重点 **长对话 ≥10 轮**：
   出题→答题→追问→再出题，混入切换能力、回指"刚才那题"、非答题轮、未作答追问、
   点名选项追问、粘贴 MCQ/案例题判分。判官独立于被测。
@@ -90,6 +100,60 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   `question_lifecycle_scene` / action / marked reference。修法是让当前 full MCQ/case submission 在
   capability 前绑定对象 + learner answer + 显式 `标准答案|正确答案|参考答案` + terminal scene；
   不是新增第二 router，也不是让 LLM prompt 承诺"不要沿用上一题"。
+- **铁律③.10（2026-06-26 deterministic no-submission must bind upstream hints）：确定性提交权威返回 no-submission，不代表
+  上游 LLM/semantic action hint 不会再把同一 turn 升级成 `answer_questions`。live 若 DB 出现
+  `relation_to_active_object=answer_active_object` 但 `resolve_submission_attempt` 对同一消息返回 None，
+  根因不是再补可见文案，而是 upstream action hint 越过了 submission authority。修法应在
+  turn-runtime 写入硬门把 deterministic follow-up/no-submission 降级为 `ask_followup`，确保
+  `user_answer` 持久态 0→0。
+- **铁律③.11（2026-06-25 public stream read-model）：content stream 正确 ≠ terminal read-model 正确。**
+  如果 public `content` stream 已把当前题答案流给学生，但后到 `result.metadata.response` 携带旧题 /
+  fallback 文案，DB assistant message、mobile history、replay 会被 terminal result 翻案。验证必须同时核
+  public `content`、public `result.metadata.response`、`messages.role=assistant.content`；修法落在
+  `turn_runtime` terminal sink：已有 public final-answer stream 时，`result.response` 只能投影同一份
+  stream；没有 stream 时才由 result 承担终局答案。不要给旧题词补黑名单。
+- **铁律③.11（2026-06-25 learner-state truth）：conversation_synthesis 观察 ≠ 长期画像事实。**
+  live 出现"你反复..."、M07 画像等个性化断言时，先 dump learner-state 持久态，区分
+  structured grading/answer evidence 与 conversation_synthesis observation。修法是让 PCP/long-term
+  profile 只读 canonical evidence；观察可进图谱/候选，不得自动晋升为 stable claim。
+- **铁律③.12（2026-06-25 visible sink）：内部 meta/citation 泄露不能按 emit 路径补。**
+  `参考证据`、`局部工作记忆`、`长期画像提示`、孤儿 `〔N〕` 这类学生不可见内容，必须由
+  `coerce_user_visible_answer`/citation assembler 单一 sink 处理，并覆盖 stream delta 与 terminal
+  result。不要在 grader/followup/generator 各补一套剥离。
+- **铁律③.12.1（2026-06-26 refusal is not proof of safety）：安全拒绝标记不能短路泄漏扫描。**
+  live 若出现“我不能展开/不能透露”后面仍带内部 evidence title、source title、learner_summary、
+  working_memory、`qa_persona_*`，根因通常是 output guard 先把 refusal marker 当 safe 早退。
+  修法是 user-visible sink 先扫 internal leak，再允许 refusal；citation assembler 对 unsafe/refusal
+  response 必须清空 sources。验证必须查 DB：攻击 turn 应无 `tool_call/tool_result/sources`，
+  正常“依据哪本教材/规范”教学 turn 仍可走 RAG/sources。
+- **铁律③.13（2026-06-26 pre-stamped grading scene）：预盖章 grading scene 不是永久 authority。**
+  `question_lifecycle_scene=case_grading|mcq_grading` 若来自 pre-capability metadata，必须由当前 turn 的
+  HIGH submission 或完整自包含 submission 重新证明；`总结/复盘/不要展示内部证据/输出 source 标题`
+  这类 meta/history/public-output 请求不得继承上一轮 sticky 判分态。
+- **铁律③.14（2026-06-26 current marked reference）：当前完整案例的 marked reference 优先于派生 rubric。**
+  live 若出现用户同句给出 `我的答案` + `标准答案/正确答案/参考答案` 仍被 `derived_from_stem`
+  判满分，根因通常不是 grader 后置裁决，而是 current full-submission projection 没把 marked reference
+  输入 V1 ctx；修法落在共享 projection + thin wrapper 只读，不在 TutorBot 文案层补。
+- **铁律③.15（2026-06-26 active-object consumption authority）：no-submission 正确不等于 active object 不能抢当前 turn。**
+  live 若出现 `resolve_submission_attempt` 对同一句返回 None，但 terminal 仍走 `deep_question_followup`
+  回答旧题/上一轮请求，根因通常在 active-question 可消费性 authority 漏了：`looks_like_question_followup`
+  或 LLM follow-up interpreter 仍把 history/meta/internal-evidence/退出判分请求绑定到旧 active question。
+  修法不是新增 router；把“active question 不可消费此 turn”的 predicate 收进 `question_followup`，
+  semantic router 只读该 predicate，在 LLM follow-up interpreter 前 detour 到 general chat/no_state_change。
+- **铁律③.16（2026-06-26 turn-scoped grading receipt）：路由正确不代表 terminal metadata 干净。**
+  live 若 DB response 已是总结/答疑，`semantic_decision.next_action=route_to_general_chat`，但 terminal
+  `result.metadata` 仍带 `v1_case_graded=true`、`score_authority`、`grading_to_brain_loop.writeback_count`，
+  根因通常是上一轮 case grading receipt 被 `session_metadata/runtime_metadata` 当 session-level truth
+  复用。修法不在 router；把 grading receipt 定义为 current case-grading turn-scoped metadata，由
+  `construction_grading.case_output_policy` 单一 helper 投影，manager/capability/agent loop 只读同一 helper，
+  非 `question_lifecycle_scene=case_grading` turn 必须从 result + 可继承 session metadata 中剥离。
+- **铁律③.17（2026-06-26 study-assistant evidence gate）：空投影壳不是学情证据。**
+  live 若 `scene=study_assistant` 已正确，但复盘计划仍编造“已做几题/错几题/章节进度”，不要继续改
+  scene 短语或加输出黑名单；第一个错误点通常是 terminal path 仍 fall through generic full-agent。
+  修法是在既有 study assistant authority 下 fail-closed：无 evidence refs/attempt ids/study_plan/
+  next_best_action 等结构化学习证据时直接 degraded terminal response，`actual_tool_rounds=0`。
+  验证 evidence predicate 必须覆盖 empty `PersonalizationContextPack` shell 和 subject-only compiled truth
+  均 false；`schema_version/source/user_id/subject` 不得被算作学习事实。
 - **异源核（同源不能自证）**：根因判断 + "无编造/已修好"结论必须异源在环。
   Codex 额度耗尽用 `deepseek-v4-pro`@api.deepseek.com（`DEEPSEEK_API_KEY`，OpenAI
   兼容）：给中立证据 + 对立假设让它独立选，**别 prime**。异源也可能共享错前提，
@@ -102,6 +166,9 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   > prompt 约束（LLM 可能不遵守）。
 - **对新增层有罪推定**：新字段/router/classifier/wrapper/fallback 默认错，先证明
   没造第二套 authority、没把语义降级成正则。
+- active case/written context 只说明有待处理对象，不证明当前 turn 新提交了答案；当前 turn
+  submission authority 必须先判定是否真提交。无显式答案前缀且明确退出判分/切到学习计划时，
+  写入侧 fail-open 为 follow-up/chat，不让旧判分态继续抢权。
 - TDD：先写测试看 RED。改 contract-protected 文件必须**同 commit** 更新 registered
   domain test + contract surface（否则 contract_guard FAIL；注意 sensitive vs
   protected 是两类要求）。packaged 副本（如 `deeptutor/contracts/index.yaml`）要同步。
@@ -150,6 +217,7 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 简答/案例判分请求→被 MCQ 生成器抢占,判 bot 自己生成的 MCQ | 判分对象路由错(锚到 bot 自造题非用户真题) | 判分态/判分对象单一 decider 收权 | ❌ **2026-06-24 live 复现**(g6 8处,task#20 簇A) |
 | 回指"刚才那题"→串到别题且编造作答记录("你答了C/多选B和C") | 判分对象=哪道题的权威失守 | 判分对象只能是真实活跃题,无活跃题 fail-closed | ❌ **2026-06-24 live 复现**(g1 T9/g4 T10,task#20 簇A) |
 | 非答题轮("我不会/先别判/还没做")→ 凭空判分 | "是否提交作答"散在确定性关键词+LLM 偏置多 writer(fast-path-as-authority) | submission_confidence 单一信号:HIGH 必判(硬约束40)/LOW 不判;qls scene+semantic_router 守卫+interpret backstop+fallback 全 gate | ✅ **2026-06-24 收口 live GO 6/6**(Steps 1-4.6,plan 判分态收口;凭空判分不再,真作答必判;PR#212)。⚠️残 whack-a-mole:逐路径 gate,单一 chokepoint(turn_runtime _submission_action,Step5)更彻底 |
+| 案例题批改后说"只给复盘计划/现在聊学习计划"仍继续判分 | active case context 被误当成 current submission authority,主观题抽取把任意长文本写成新答案 | `question_followup.resolve_submission_attempt` 写入侧收权:无显式答案前缀且命中退出判分/学习计划意图→非 submission;显式答案仍提交 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 质疑轮(只反驳未作答)→ 凭空判分"你答了D得0分" + 附和编造修订叙事 | 质疑被误触发阅卷态 + 不重 grounding 无条件附和 | 质疑轮禁判分态 + 强制重走 RAG 核验 | ❌ **2026-06-24 live**(g5 T3/4/7 凭空判分;T10 DeepSeek conf=1.0 编造"罚款2020修订4%→8%",task#20 簇A) |
 | 非答题轮凭空判分后→捏造"系统记录显示你提交了C"为前轮幻觉背书 | 会话内即时自强化幻觉(非跨会话 notebook,PR#204 只断了 notebook 写入侧) | 判分态收权根治(不进判分就无幻觉判分可背书) | ❌ **2026-06-24 新形态**(g2 T10) |
 | DB `turn_semantic_decision.next_action=ask_clarifying_question` 但最终仍判分/生成/泄标准答案 | canonical decision 被 lifecycle fallthrough / deep_question full-submission fallback 当弱提示 | orchestrator 对 `semantic_route=chat` 直接回 TutorBot/chat; deep_question 收到同一 decision fail-closed clarification | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
@@ -161,13 +229,26 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | DB 同一 conversation 出现 canonical session + TutorBot 内部投影 session,内部 session 把"参考证据/局部工作记忆投影"存成 user 内容 | TutorBot bridge/agent loop 把 LLM prompt envelope 当成 mirror session user 内容持久化 | 写入侧断环:bridge 传 `raw_user_content`,AgentLoop/SQLiteSessionAdapter 只把真实用户输入写入 user 消息,LLM envelope 仅用于本轮注入 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 明确"不要再出题/给复盘计划"仍被判成 practice generation,随后以"非建筑实务主题"拒绝 | deterministic practice-generation fast-path 没有 fail-open 于显式否定出题语义 | 在既有 `looks_like_practice_generation_request` 中把显式否定出题降级为非生成请求,交回 semantic_router/general chat;不新增 router | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 建筑复盘/混凝土模板防水/沟槽开挖请求 | 2026-06-25 live 当前不再复现为科目门误拒;残留主要是 topic precision drift/题源不忠于请求主题 | 不再用白名单/黑名单补科目门;后续单独收 topic-source authority 与近期题干 dedupe | ⚠️ 当前 live 已放行,内容漂移待修 |
-| 终端输出出现"长期画像提示"/M07 画像提示等内部学情 meta | user-visible sink/画像投影边界泄漏 | 待查 learner_state 是否真有该画像;无论真假,学生输出 sink 不得裸露内部标签 | 🔵 2026-06-25 新模式 |
-| 〔N〕在判分/教学合成路径泄露(bot 承诺不带仍输出"正确答案:A〔1〕") | 判分 emit 绕过 citations 剥离权威,coerce sink 不剥〔N〕(dormant authority) | strip_orphan_public_markers 收口到 coerce_user_visible_answer(复用 citations 剥离,不造第二权威) | 🔵 task#27 已诊断未实施 |
+| 终端输出出现"长期画像提示"/M07 画像提示等内部学情 meta | user-visible sink/画像投影边界泄漏 + conversation_synthesis observation 被长期画像读取 | PCP/stable personalization 只读 structured evidence;学生输出统一走 coerce_user_visible_answer 剥内部标题 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
+| 〔N〕在判分/教学合成路径泄露(bot 承诺不带仍输出"正确答案:A〔1〕") | citation assembler / visible sink 没有统一剥 orphan body marker | strip_orphan_reference_markers 与 coerce_user_visible_answer 单一 sink 剥无 footer 支撑的 body markers,保留合法 footer 引用 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 一建他科(市政/机电/公路)+建筑工程白名单漏词(沟槽开挖)被科目门误拒 | 关键词白名单判语义,unknown_topic→拒("静态闸越权承担语义判断") | 反转:单一 helper 只 out_of_scope 拒,unknown 放行+非专项标注;判据用 RAG/教材覆盖非白名单 | ✅ 代码完成待 live(task#8) |
-| 出题考点精度漂移/逐字重复出题 | 主题槽位被对话噪声劫持 / 去重失效(异源拆出独立病) | 出题 prompt 主题约束隔离对话填充词 / 出题调度去重 | 🔵 task#8/task#28 |
+| 新出题请求仍消费上一题 next_training_signal 或重复题库原题 | question supply authority 被旧 active_object 与 question_bank short-circuit 争抢 | 仅权威锚点缺失时读取 next_training_signal;bank short-circuit 必须尊重题型/reveal/近期 dedupe | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
+| 出题考点精度漂移/逐字重复出题 | 主题槽位被对话噪声劫持 / 去重失效(异源拆出独立病) | 出题 prompt 主题约束隔离对话填充词 / 出题调度去重 | ⚠️ 已收一层 supply authority,仍需 live 扩样本 |
 | 用户切换到新 MCQ / 案例点评,系统仍按上一道 MCQ active object 判分("关键线路"题) | current grading object identity 多 writer:旧 active_object/candidate 与下游 RESULT 可二次覆盖当前题面 | 完整 MCQ/case submission 共享投影 helper 上移到 `question_lifecycle_skills`; turn-start 只允许同题 context 保权,不匹配则当前题面成 active_object; turn-end grading RESULT 不得用不同 object_id 旧对象覆盖当前对象 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 当前新 MCQ stream 看似判对,但 DB `result.response`/assistant message 又落回旧 TN-S 题或 generic fallback；自然案例题被 low-info gate 拒绝 | current submission 只绑定了对象身份,未原子绑定 scene/action/reference; terminal sink 与 low-info gate 仍抢权 | turn-start 从 `question_lifecycle_skills` 当前 context/action 薄盖 `mcq_grading`/`case_grading`;显式标准答案只认 `标准答案/正确答案/参考答案`;完整 `案例题...问...我的答案` 逃逸 low-info | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
-| 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 必须增量落盘并用 DB completed/result 对账 | ⚠️ 稳定性待修 |
+| public content stream 已判当前题,但 terminal result/DB assistant message 被旧 TN-S/fallback response 覆盖 | terminal read-model authority drift: 后到 `result.metadata.response` 覆盖已流出的同源 public final content | `turn_runtime` 在持久化/发布 public RESULT 前,若已捕获 public content stream,强制 `result.metadata.response` 对齐 stream;无 stream 时仍保留 result authority | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
+| 完整案例同句含"我的答案100mm。标准答案150mm"却给满分 | case submission extraction 把 marked reference 混进 `user_answer`,阅卷器把标准答案当学生命中 | `question_lifecycle_skills` 当前案例投影原子拆 `user_answer` 与 `correct_answer/reference_answer`;不改 grader/router | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| 完整案例同句含"我的答案75%。标准答案100%"却按 stem-derived rubric 判 10/10 | current marked reference 未进入 TutorBot V1 case ctx,显式 reference 被 `derived_from_stem` 覆盖 | 共享 full-case projection 产出 `correct_answer/reference_answer`;TutorBot V1 wrapper 优先只读 current marked reference;`deep_question` full-case path 同步 `correct_answer_present` | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| 完整自包含 MCQ 判当前题,但 DB active_object/q_followup 仍旧题,下一轮"刚才那题/B不对"串回旧题 | self-contained current surface 没覆盖 stale active object/result metadata | `deep_question` full MCQ/case fallback 使用当前投影生成 active_object 并写回 metadata;旧 active object 降级 previous | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| A-D 题里问"如果我选E/Z,对不对"→把不存在选项当错选项讲 / 偶发写成 `user_answer=第1题:E/Z` | invalid option follow-up 二层病: predicate/visible 层曾漏;修后 live 仍见 upstream action hint 越过 deterministic no-submission 写入提交态 | follow-up challenge predicate 覆盖 A-Z 但 submission 仍只认当前 options;`interpret_question_followup_action` 与 `turn_runtime` explicit action hint 都服从 no-submission+followup backstop;brief renderer 用当前 options 确定性说明该选项不存在 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| active question 下问"正确答案到底是什么"→TutorBot 泛化回答并编造"你选过C" | correct-answer follow-up marker 太窄,未进入 question_review,raw history 被 LLM 当作作答历史 | `_FOLLOWUP_MARKERS` 覆盖正确/标准/参考答案请求,让 active question 走 question_review/reference authority | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| 案例后问"总结我正式提交过的案例答案/不要展示内部证据"仍进入 `case_grading` | pre-stamped grading scene 无当前提交 proof 仍被尊重;subjective active context 把 meta/history/internal-evidence 请求当答案 | `resolve_question_lifecycle_scene_decision` 对 pre-stamped grading scene 做 current-turn revalidation;`resolve_submission_attempt` 写入侧让 meta/history/internal-evidence 请求 0→0 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| active MCQ 后问"总结我正式提交过的案例答案/不要展示内部证据"→仍走 `deep_question_followup` 回答旧题或上一轮请求 | no-submission authority 正确,但 active-object consumption authority 漏: deterministic follow-up fallback / LLM follow-up interpreter 仍可绑定旧 active question | `question_followup.looks_like_question_context_exit_request` 作为单一不可消费 predicate;semantic router 在 LLM follow-up 前只读 detour 到 general chat/no_state_change | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| summary/general TutorBot turn 路由正确但 DB terminal metadata 仍带 `v1_case_graded/score_authority/grading_to_brain_loop.writeback_count` | turn-scoped case grading receipt 被 session/runtime metadata 提升为 session-level truth,manager/capability/loop 三处重复导出 | `construction_grading.case_output_policy.copy_current_case_grading_turn_metadata` 成为唯一 receipt 投影 helper;非 `case_grading` turn 从 result/trace/session metadata 剥离 | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| 攻击钓鱼要求输出 evidence/source 标题、`learner_summary`、`working_memory`、`qa_persona_*` 时泄内部 meta/profile | user-visible output/citation sink 漏识别内部 title/profile；`guard_output` 先遇 refusal marker 早退 safe；unsafe/refusal response 仍可携带 sources | security skill input/output groups + `guard_output` 先扫 internal leak 再允许 refusal；`coerce_user_visible_answer` 统一剥内部 title/profile；citation runtime 对 unsafe/refusal 清空 sources | ✅ PR#250 已修并部署 test2(2026-06-26);live 攻击 3/3 无 `tool_call/tool_result/sources`,正常教材/规范引用未误杀;DeepSeek 异源 H1 0.95 |
+| "再出一道不同考点..." semantic 已 route_to_generation 但 visible 非建筑拒绝 | generation topic/context authority 把相对 topic 当裸 topic;`不同考点` 未被识别为需要 active/conversation anchor,下游题源只见非建筑浓度 | `teaching_modes` context-anchor marker 覆盖不同/换个/其他/别的考点;`deep_question._resolve_generation_topic` 继承 active question anchor 后再交 coordinator,不新增 router/domain fallback | ✅ 本地 TDD+contract 已修(2026-06-26),live 待部署复验 |
+| `study_assistant` 复盘计划路由正确但 visible 编造“入门摸底/已做8题/6题答错/14章未开始” | terminal visible authority missing:无结构化学情证据仍进入 generic full-agent;首版 evidence predicate 又把空 PCP/subject-only truth 当证据 | study assistant no-evidence terminal gate:只认 evidence refs/attempt ids/action basis;空 PCP shell false;无证据直接 deterministic “当前记录不足+通用3天复盘计划”,不调用 manager/full-agent | ✅ PR#253 已修并部署 test2(2026-06-26);live+DB 6/6 PASS(fresh 3/3,active MCQ 后 3/3),result/message 禁词 0/6 |
+| 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 逐 turn JSONL 落盘并用 DB completed/result 对账 | ✅ harness 已修;系统并发稳定性仍需 live 压测 |
 
 ## 红线
 - 不绕 AGENTS.md 单一权威；不新增第二聊天 WS 入口；surgical diff；阿里云只写

@@ -94,10 +94,7 @@ from deeptutor.services.session.sqlite_store import (
     normalize_active_object,
     normalize_suspended_object_stack,
 )
-from deeptutor.services.user_visible_output import (
-    coerce_user_visible_answer,
-    looks_like_unsafe_visible_output,
-)
+from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
     normalize_requested_response_mode,
@@ -268,6 +265,39 @@ def _extract_authoritative_assistant_content(event: StreamEvent) -> str:
         if str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS:
             return str(event.content or "").strip()
     return ""
+
+
+def _coerce_public_stream_response(content: str) -> str:
+    if not str(content or "").strip():
+        return ""
+    return normalize_markdown_for_tutorbot(
+        coerce_user_visible_answer(content)
+    )
+
+
+def _replace_public_result_response_with_stream(
+    event: StreamEvent,
+    streamed_content: str,
+) -> None:
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return
+    if event.type != StreamEventType.RESULT:
+        return
+    response = _coerce_public_stream_response(streamed_content)
+    if not response:
+        return
+    metadata = dict(event.metadata or {})
+    metadata["response"] = response
+    nested = metadata.get("metadata")
+    if isinstance(nested, dict):
+        nested_metadata = dict(nested)
+        if any(
+            str(nested_metadata.get(key) or "").strip()
+            for key in ("response", "assistant_content", "content")
+        ):
+            nested_metadata["response"] = response
+        metadata["metadata"] = nested_metadata
+    event.metadata = metadata
 
 
 def _is_mobile_surface_turn_config(
@@ -543,14 +573,10 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
         return metadata
     if event.type == StreamEventType.CONTENT and _should_capture_assistant_content(event):
         raw = event.content if isinstance(event.content, str) else ""
-        # Token-level deltas must keep whitespace verbatim; coerce/normalize are
-        # paragraph-level transforms that strip per-delta whitespace and drop
-        # pure-newline deltas ("\n\n") to "", which breaks ATX heading and list
-        # parsing in the frontend markdown renderer.
-        if raw and looks_like_unsafe_visible_output(raw):
-            event.content = coerce_user_visible_answer(raw)
-        else:
-            event.content = raw
+        # Token-level deltas must keep whitespace verbatim; use the shared
+        # visible sink in delta-preserving mode so citation/internal noise is
+        # still removed without breaking ATX heading and list parsing.
+        event.content = coerce_user_visible_answer(raw, preserve_outer_whitespace=True)
         return metadata
     if event.type == StreamEventType.ERROR:
         event.content = normalize_markdown_for_tutorbot(
@@ -1567,6 +1593,27 @@ def _deterministic_followup_action_for_user_message(
     }
 
 
+def _demote_submission_hint_when_deterministic_followup(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+    action: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Keep an upstream action hint from overruling the submission authority."""
+
+    if followup_action_route(action) != "submission":
+        return action
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return action
+    if submission_confidence(user_message, normalized_context) is not None:
+        return action
+    deterministic_followup_action = _deterministic_followup_action_for_user_message(
+        user_message,
+        normalized_context,
+    )
+    return deterministic_followup_action or action
+
+
 def _has_ambiguous_submission_attempt(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -1696,6 +1743,11 @@ async def _resolve_question_followup_context_and_action(
             and not looks_like_practice_generation_request(user_message)
         ):
             normalized_action = None
+        normalized_action = _demote_submission_hint_when_deterministic_followup(
+            user_message,
+            normalized_explicit,
+            normalized_action,
+        )
         return normalized_explicit, normalized_action
 
     for candidate in candidate_contexts:
@@ -4660,6 +4712,7 @@ class TurnRuntimeManager:
         persisted_attachment_records: list[dict[str, Any]] = []
         assistant_events: list[dict[str, Any]] = []
         assistant_content = ""
+        streamed_assistant_content = ""
         authoritative_assistant_content = ""
         assistant_content_source = "content_stream"
         turn_observation: Any | None = None
@@ -5125,7 +5178,6 @@ class TurnRuntimeManager:
                 self._set_volatile_question_context(session_id, dict(followup_question_context))
             notebook_context = ""
             history_context = ""
-            context_pack: Any | None = None
             context_route: str = ""
             task_anchor_type: str = ""
             route_confidence = 0.0
@@ -5399,7 +5451,6 @@ class TurnRuntimeManager:
                             history_references=history_references,
                         )
                         history_result = orchestrated["history_result"]
-                        context_pack = orchestrated["pack"]
                         effective_user_message = orchestrated["effective_user_message"]
                         memory_context = orchestrated["memory_context"]
                         notebook_context = orchestrated["notebook_context"]
@@ -5894,6 +5945,10 @@ class TurnRuntimeManager:
                             dict(event.metadata or {}),
                             result_trace_metadata,
                         )
+                        _replace_public_result_response_with_stream(
+                            event,
+                            streamed_assistant_content,
+                        )
                         if (
                             _event_visibility(event) == _PUBLIC_VISIBILITY
                             and _result_response_text(event.metadata or {})
@@ -5903,10 +5958,14 @@ class TurnRuntimeManager:
                         event.type == StreamEventType.DONE
                         and synthesize_mobile_result_before_done
                         and not public_result_response_seen
-                        and authoritative_assistant_content
+                        and (streamed_assistant_content or authoritative_assistant_content)
                     ):
+                        synthetic_content = (
+                            _coerce_public_stream_response(streamed_assistant_content)
+                            or authoritative_assistant_content
+                        )
                         synthetic_result = _build_synthetic_result_from_final_content(
-                            content=authoritative_assistant_content,
+                            content=synthetic_content,
                             source=str(event.source or "").strip() or capability_name or "turn_runtime",
                         )
                         if synthetic_result is not None:
@@ -5933,6 +5992,8 @@ class TurnRuntimeManager:
                         and _event_visibility(payload_event) == _PUBLIC_VISIBILITY
                     ):
                         assistant_events.append(payload_event)
+                    if _should_capture_assistant_content(event):
+                        streamed_assistant_content += str(event.content or "")
                     authoritative_candidate = _extract_authoritative_assistant_content(event)
                     if authoritative_candidate:
                         authoritative_assistant_content = authoritative_candidate
