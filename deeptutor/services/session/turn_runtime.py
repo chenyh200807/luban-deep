@@ -839,6 +839,11 @@ def _build_terminal_turn_observation_event(
         "authority_applied",
         "exact_fast_path_hit",
         "execution_path",
+        # Observe-only live-shadow metric (mirrors authority_applied): passthrough
+        # the structured control-plane shadow-hit list so the report script can
+        # count when a compat/projection/legacy writer became the operative
+        # control-plane source. No control flow change; just carries the list.
+        "control_plane_shadow_hits",
         "question_lifecycle_scene",
         "rag_retrieval_degraded",
         "rag_retrieval_status",

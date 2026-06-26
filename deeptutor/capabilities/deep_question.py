@@ -3637,6 +3637,23 @@ class DeepQuestionCapability(BaseCapability):
                     context.metadata["trace_metadata"][
                         "deep_question_canonical_decision_missing"
                     ] = True
+                    # Observe-only live-shadow hit (no control flow change): the
+                    # fallback below still runs unchanged. Record that this
+                    # compat-projection path became the operative source of
+                    # turn_semantic_decision because the canonical decision was
+                    # absent. Reuses the single terminal turn_observation event
+                    # via the trace_metadata whitelist passthrough.
+                    context.metadata["trace_metadata"].setdefault(
+                        "control_plane_shadow_hits", []
+                    ).append(
+                        {
+                            "fact": "turn_semantic_decision",
+                            "writer_role": "compat_projection",
+                            "writer_symbol": "run",
+                            "path": "deep_question",
+                            "canonical_present": False,
+                        }
+                    )
             # loguru uses {key}-style formatting; enrich with identifying context so the
             # observation window can pin which upstream path bypassed the canonical decision.
             logger.warning(

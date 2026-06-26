@@ -276,6 +276,7 @@ domains:
       - tests/services/learner_state/test_learning_evidence_quality_gate.py
       - tests/services/member_console/test_home_dashboard_learning_projection.py
       - tests/services/observability/test_turn_runtime_observer_event.py
+      - tests/services/observability/test_control_plane_shadow_hits.py
       - tests/api/test_unified_ws_error_boundary.py
       - tests/services/test_runtime_env_fail_closed.py
       - tests/services/learner_state/test_subjective_focus_priority.py
@@ -342,6 +343,7 @@ domains:
       - tests/core/test_deep_question_submission_grading.py
       - tests/services/test_r1_option_surface_grading.py
       - tests/services/test_render_presentation.py
+      - tests/services/observability/test_control_plane_shadow_hits.py
       - wx_miniprogram/tests/test_ai_message_state.js
       - yousenwebview/tests/test_question_review_readonly_mcq.js
     schema_files:

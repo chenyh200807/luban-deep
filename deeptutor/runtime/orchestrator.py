@@ -507,6 +507,25 @@ class ChatOrchestrator:
         context.metadata["semantic_router_shadow_route"] = ""
         cap_name = self._select_legacy_capability(context, routing_user_message)
         context.metadata["semantic_router_selected_capability"] = cap_name
+        # Observe-only live-shadow hit (no control flow / cap_name change): when
+        # the semantic router is disabled / scope-excluded and the LEGACY decider
+        # drove a non-default (non-chat) production routing decision, record that
+        # the legacy decider became the operative control-plane source. Reuses the
+        # single terminal turn_observation event via the trace_metadata whitelist.
+        if cap_name != self._default_chat_capability(context) and isinstance(
+            context.metadata, dict
+        ):
+            trace_meta = context.metadata.setdefault("trace_metadata", {})
+            if isinstance(trace_meta, dict):
+                trace_meta.setdefault("control_plane_shadow_hits", []).append(
+                    {
+                        "fact": "legacy_capability_selection",
+                        "writer_role": "legacy_decider",
+                        "writer_symbol": "_select_legacy_capability",
+                        "path": "disabled",
+                        "canonical_present": False,
+                    }
+                )
         return cap_name
 
     @staticmethod
