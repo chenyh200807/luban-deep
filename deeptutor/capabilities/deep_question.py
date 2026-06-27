@@ -3781,14 +3781,16 @@ class DeepQuestionCapability(BaseCapability):
         turn_semantic_decision = normalize_turn_semantic_decision(
             context.metadata.get("turn_semantic_decision")
         ) or {}
-        # Context-Continuity 真闭包 task #12 step 2 (observability-first, ZERO behavior
-        # change): deep_question should READ the orchestrator's canonical
-        # turn_semantic_decision. When it is absent here, deep_question fabricates a
-        # fallback (_default_turn_semantic_decision) — a second-authority path the
-        # migration will remove. Before removing it we OBSERVE in production whether any
-        # live path actually reaches deep_question without the canonical decision (the
-        # harness only covers the matrix, not all live paths). Records a trace flag + warns;
-        # the existing fallback still runs, so routing/grading is unchanged.
+        # Context-Continuity 真闭包 task #12 step 2 → 治本 Action 2 Step 3:
+        # deep_question is a READER of the orchestrator's canonical turn_semantic_decision
+        # (turn.md §硬约束 24). The generation/review result-assembly sites no longer
+        # fabricate a second-authority fallback when the canonical decision is missing —
+        # they fail LOUD via _require_canonical_turn_semantic_decision (orchestrator
+        # preselect injection + production evidence 0/537 prove canonical is always
+        # present there). This early observe-guard stays for the paths that LEGITIMATELY
+        # build their own slot-binding authority without an entry canonical (MCQ/case
+        # paste, legacy-followup belt): it records a per-scene trace flag + warns so the
+        # 7-day window can still distinguish those paths. It changes no control flow.
         if self._canonical_turn_decision_missing(context.metadata):
             _md = context.metadata if isinstance(context.metadata, dict) else {}
             if isinstance(context.metadata, dict):
@@ -4334,13 +4336,10 @@ class DeepQuestionCapability(BaseCapability):
                 "mode": mode,
                 "question_followup_context": {},
                 "active_object": {},
-                "turn_semantic_decision": turn_semantic_decision or build_turn_semantic_decision(
-                    relation_to_active_object="continue_same_learning_flow" if active_object else "switch_to_new_object",
-                    next_action="route_to_generation",
-                    allowed_patch="set_active_object",
-                    confidence=1.0,
-                    reason="generation blocked: missing_topic_anchor",
-                    active_object=active_object,
+                "turn_semantic_decision": self._require_canonical_turn_semantic_decision(
+                    turn_semantic_decision,
+                    site="generation_blocked_missing_topic_anchor",
+                    metadata=context.metadata,
                 ),
                 "practice_generation_blocked_reason": "missing_topic_anchor",
                 "metadata": {
@@ -4386,13 +4385,10 @@ class DeepQuestionCapability(BaseCapability):
                     "mode": mode,
                     "question_followup_context": {},
                     "active_object": {},
-                    "turn_semantic_decision": turn_semantic_decision or build_turn_semantic_decision(
-                        relation_to_active_object="continue_same_learning_flow" if active_object else "switch_to_new_object",
-                        next_action="route_to_generation",
-                        allowed_patch="set_active_object",
-                        confidence=1.0,
-                        reason="generation blocked: invalid topic",
-                        active_object=active_object,
+                    "turn_semantic_decision": self._require_canonical_turn_semantic_decision(
+                        turn_semantic_decision,
+                        site="generation_blocked_invalid_topic",
+                        metadata=context.metadata,
                     ),
                     "practice_generation_blocked_reason": blocked_reason,
                     "practice_generation_topic_domain_status": topic_domain_status,
@@ -4695,15 +4691,10 @@ class DeepQuestionCapability(BaseCapability):
                 learning_training_intent,
             )
             result_payload["learning_training_intent"] = dict(learning_training_intent)
-        result_payload["turn_semantic_decision"] = turn_semantic_decision or build_turn_semantic_decision(
-            relation_to_active_object="ask_about_active_object" if question_review_mode else (
-                "continue_same_learning_flow" if (result_payload.get("active_object") or active_object) else "switch_to_new_object"
-            ),
-            next_action="route_to_followup_explainer" if question_review_mode else "route_to_generation",
-            allowed_patch="no_state_change" if question_review_mode else "set_active_object",
-            confidence=1.0,
-            reason="question_review followup" if question_review_mode else "practice generation result",
-            active_object=result_payload.get("active_object") or active_object,
+        result_payload["turn_semantic_decision"] = self._require_canonical_turn_semantic_decision(
+            turn_semantic_decision,
+            site="question_review_followup" if question_review_mode else "practice_generation_result",
+            metadata=context.metadata,
         )
         transitioned_active_object, transitioned_stack = apply_active_object_transition(
             previous_active_object=active_object,
@@ -5521,6 +5512,64 @@ class DeepQuestionCapability(BaseCapability):
                 "scene": scene or "",
                 "canonical_present": canonical_present,
             }
+        )
+
+    @staticmethod
+    def _require_canonical_turn_semantic_decision(
+        turn_semantic_decision: Any, *, site: str, metadata: Any
+    ) -> dict[str, Any]:
+        """Read the orchestrator's canonical turn_semantic_decision; LOUD fail-fast if absent.
+
+        Control-plane single-authority (治本 Action 2 Step 3 — retire the
+        canonical-missing fabrication兜底). The canonical decision is the orchestrator's
+        SOLE authority (turn.md §硬约束 24). deep_question used to fabricate a
+        second-authority fallback here when the canonical decision was missing; production
+        evidence (Langfuse 537 deep_question turns / 4.3 days, control_plane_shadow_hits
+        all 0) plus the orchestrator preselect injection (Step 2) prove the canonical
+        decision is always present at these generation/review result-assembly sites. So
+        instead of silently fabricating a replacement authority, we now READ the canonical
+        decision and, if it is ever absent, fail LOUD (error log + recorded shadow hit +
+        raise) so the missing-injection entry path is surfaced and the turn degrades via
+        the existing capability error boundary — never via a silent second authority.
+        """
+
+        normalized = normalize_turn_semantic_decision(turn_semantic_decision)
+        if normalized:
+            return normalized
+        # Record a fail-fast shadow hit so the existing 7-day observation window can still
+        # attribute the missing-canonical entry path per-site even though we now raise.
+        if isinstance(metadata, dict):
+            trace_meta = metadata.setdefault("trace_metadata", {})
+            if isinstance(trace_meta, dict):
+                trace_meta.setdefault("control_plane_shadow_hits", []).append(
+                    {
+                        "fact": "turn_semantic_decision",
+                        "writer_role": "canonical_required_fail_fast",
+                        "writer_symbol": "run",
+                        "path": "deep_question",
+                        "site": site,
+                        "scene": str((metadata.get("question_lifecycle_scene") or "")),
+                        "canonical_present": False,
+                    }
+                )
+        logger.error(
+            "deep_question reached {site} without the orchestrator's canonical "
+            "turn_semantic_decision (turn.md §硬约束 24). The second-authority "
+            "fabrication fallback is retired; failing fast so the missing-injection "
+            "entry path is surfaced instead of silently fabricating a replacement "
+            "authority. scene={scene} turn_id={turn_id} client_turn_id={client_turn_id}",
+            site=site,
+            **{
+                k: v
+                for k, v in DeepQuestionCapability._fabrication_observation_fields(
+                    metadata
+                ).items()
+                if k in {"scene", "turn_id", "client_turn_id"}
+            },
+        )
+        raise RuntimeError(
+            f"deep_question {site}: missing canonical turn_semantic_decision "
+            "(orchestrator is the single authority — turn.md §硬约束 24)"
         )
 
     @staticmethod

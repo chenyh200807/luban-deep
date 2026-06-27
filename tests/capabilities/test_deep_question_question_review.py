@@ -56,6 +56,25 @@ def _review_context() -> UnifiedContext:
     )
 
 
+def _review_context_with_canonical() -> UnifiedContext:
+    """A question_review context carrying the canonical turn_semantic_decision the
+    orchestrator supplies for this scene (turn.md §硬约束 24). Control-plane 治本
+    Action 2: deep_question is a READER of the orchestrator's canonical decision; the
+    main review-render path fail-fasts (no second-authority fabrication) if it is
+    absent, so unit tests that drive the render path directly must supply it just like
+    every production entry route (question_review-no-active inject / canonical resolve /
+    preselect inject) does."""
+    ctx = _review_context()
+    ctx.metadata["turn_semantic_decision"] = {
+        "relation_to_active_object": "ask_about_active_object",
+        "next_action": "route_to_followup_explainer",
+        "allowed_patch": "no_state_change",
+        "confidence": 1.0,
+        "reason": "orchestrator question_review canonical decision",
+    }
+    return ctx
+
+
 def _patch_llm_config(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "deeptutor.services.llm.config.get_llm_config",
@@ -120,7 +139,7 @@ async def test_question_review_bank_hit_renders_non_interactive_review_card(
     _patch_llm_config(monkeypatch)
 
     capability = DeepQuestionCapability()
-    events = await _collect_events(lambda bus: capability.run(_review_context(), bus))
+    events = await _collect_events(lambda bus: capability.run(_review_context_with_canonical(), bus))
 
     assert calls
     assert calls[0]["lightweight_generation"] is True
@@ -251,7 +270,7 @@ async def test_question_review_variant_marks_generated_card_as_variant(
     _patch_llm_config(monkeypatch)
 
     capability = DeepQuestionCapability()
-    events = await _collect_events(lambda bus: capability.run(_review_context(), bus))
+    events = await _collect_events(lambda bus: capability.run(_review_context_with_canonical(), bus))
 
     assert calls
     assert calls[0]["allow_lightweight_fallback"] is False
