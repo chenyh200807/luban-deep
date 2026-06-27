@@ -323,7 +323,6 @@ domains:
       - tests/agents/question/test_coordinator_followup_anchor.py
       - tests/api/test_mobile_eval_bypass.py
       - tests/api/test_unified_ws_turn_runtime.py
-      - tests/services/test_active_object_builder_unify.py
       - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_unified_ws_connection_cap.py
       - tests/api/test_rate_limit.py
