@@ -26,6 +26,7 @@ from deeptutor.services.question_followup import (
     detect_answer_reveal_preference,
     extract_choice_result_summary_from_text,
     normalize_question_followup_context,
+    requested_question_item_index,
     resolve_reveal_decision,
     resolve_submission_attempt,
     should_block_unanswered_reference_reveal,
@@ -428,6 +429,92 @@ class TutorBotCapability(BaseCapability):
                     stage="responding",
                     metadata=merged_metadata,
                 )
+
+        # SEV anti-cheat — deterministic short-circuit for unanswered-question
+        # references. When the learner points at a still-unattempted question
+        # inside a batch ("第2题怎么做"), the free-text LLM agent loop would solve
+        # it from model knowledge and leak the answer. Prompt-level soft
+        # instructions proved insufficient in live eval (2/3 leaked). The only
+        # reliable fix is to NOT route this turn through a free LLM at all:
+        # re-present the referenced question deterministically (stem + options,
+        # answer stays hidden in grading_key) plus a fixed nudge to attempt it
+        # first. Authority reused, not rebuilt — should_block_unanswered_reference_reveal
+        # + requested_question_item_index are the existing single authorities for
+        # "is this an unanswered reference" and "which item"; zero new adjudication,
+        # no answer regex/blocklist. The safety belt (already-attempted question,
+        # answer concession, topic switch) is preserved because all three make
+        # should_block_unanswered_reference_reveal return False / requested index
+        # None, so this block does not fire for them.
+        unanswered_reference_response = self._build_unanswered_reference_response(context)
+        if unanswered_reference_response is not None:
+            async with stream.stage(
+                "responding",
+                source=self.name,
+                metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
+            ):
+                content_metadata = {
+                    "execution_engine": "tutorbot_runtime",
+                    "call_kind": "unanswered_reference_reprompt",
+                }
+                if not citation_enabled:
+                    await stream.content(
+                        unanswered_reference_response,
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
+                result_payload = {
+                    "response": unanswered_reference_response,
+                    "bot_id": bot_id,
+                    "execution_engine": "tutorbot_runtime",
+                    "authority_applied": False,
+                    "exact_question": {},
+                    "rag_rounds": [],
+                    "rag_saturation": {},
+                    "requested_response_mode": policy.requested_mode,
+                    "selected_mode": policy.selected_mode,
+                    "effective_response_mode": policy.effective_mode,
+                    "execution_path": "tutorbot_unanswered_reference_reprompt",
+                    "exact_fast_path_hit": False,
+                    "actual_tool_rounds": 0,
+                    "reveal_answers": False,
+                    "reveal_explanations": False,
+                }
+                for metadata_key in (
+                    "question_lifecycle_decision",
+                    "decision_source",
+                    "scene_confidence",
+                    "required_anchor_status",
+                    "exact_question_blocked_reason",
+                    "selected_skill_names",
+                    "llm_scene_candidate",
+                    "business_gate_result",
+                    "question_lifecycle_scene",
+                    "active_object",
+                    "release_id",
+                    "git_sha",
+                    "deployment_environment",
+                ):
+                    if metadata_key in session_metadata:
+                        result_payload[metadata_key] = session_metadata[metadata_key]
+                citation_metadata: dict[str, Any] = {}
+                result_payload["response"] = apply_answer_citation_metadata(
+                    citation_metadata,
+                    response=str(result_payload.get("response") or ""),
+                    sources=[],
+                    policy=CitationPolicy(surface="student"),
+                    enabled=citation_enabled,
+                )
+                result_payload.update(citation_metadata)
+                if citation_enabled:
+                    await stream.content(
+                        str(result_payload["response"] or ""),
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
+                await stream.result(result_payload, source=self.name)
+            return
 
         async with stream.stage(
             "responding",
@@ -970,13 +1057,14 @@ class TutorBotCapability(BaseCapability):
         *,
         reveal_answers: bool = False,
         reveal_explanations: bool = False,
+        start_index: int = 1,
     ) -> str:
         results = summary.get("results", []) if isinstance(summary, dict) else []
         if not isinstance(results, list) or not results:
             return ""
 
         lines: list[str] = []
-        for idx, item in enumerate(results, 1):
+        for idx, item in enumerate(results, start_index):
             qa_pair = item.get("qa_pair", {}) if isinstance(item, dict) else {}
             question = str(qa_pair.get("question", "") or "").strip()
             options = qa_pair.get("options")
@@ -1002,6 +1090,71 @@ class TutorBotCapability(BaseCapability):
                 lines.append(f"**解析**：{explanation}")
             lines.append("")
         return "\n".join(lines).strip()
+
+    # Fixed, deterministic nudge appended to the re-presented unanswered
+    # question. Static text — never LLM-generated — so it cannot leak.
+    _UNANSWERED_REFERENCE_NUDGE = (
+        "这道题你还没作答，先试着做做——你的初步思路或选哪个？我再帮你看。"
+    )
+
+    @classmethod
+    def _build_unanswered_reference_response(
+        cls, context: UnifiedContext
+    ) -> str | None:
+        """Deterministic re-presentation of a referenced *unanswered* question.
+
+        Returns the rendered stem + options (answer hidden) + a fixed nudge when,
+        and only when, the turn is an unanswered-question reference to a specific
+        item in a batch. Returns None otherwise (caller falls through to the
+        normal LLM path), preserving the safety belt:
+
+        - already-attempted question  -> should_block_... False -> None
+        - answer concession           -> should_block_... False -> None
+        - topic switch / no "第N题"    -> requested index None    -> None
+        - no active batch context     -> normalize None          -> None
+
+        Reuses the two existing single authorities verbatim
+        (should_block_unanswered_reference_reveal + requested_question_item_index);
+        no new adjudication, no answer regex. The correct_answer / grading_key on
+        the item is intentionally NOT read — _render_question_response is called
+        with reveal_answers=False / reveal_explanations=False.
+        """
+
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        followup_context = metadata.get("question_followup_context")
+        normalized = normalize_question_followup_context(
+            followup_context if isinstance(followup_context, dict) else None
+        )
+        if not normalized:
+            return None
+
+        message = context.user_message
+        # Single authority #1: is this an unanswered-reference reveal attempt?
+        if not should_block_unanswered_reference_reveal(message, normalized):
+            return None
+        # Single authority #2: which specific batch item is referenced?
+        requested_index = requested_question_item_index(message, normalized)
+        if requested_index is None:
+            return None
+
+        items = normalized.get("items") or []
+        if not isinstance(items, list) or not (1 <= requested_index <= len(items)):
+            return None
+        item = items[requested_index - 1]
+        if not isinstance(item, dict):
+            return None
+
+        # Reuse the existing renderer. reveal flags hard-False so neither the
+        # hidden correct_answer nor the explanation is emitted.
+        rendered = cls._render_question_response(
+            {"results": [{"qa_pair": item}]},
+            reveal_answers=False,
+            reveal_explanations=False,
+            start_index=requested_index,
+        )
+        if not rendered:
+            return None
+        return f"{rendered}\n\n{cls._UNANSWERED_REFERENCE_NUDGE}"
 
     def _default_bot_config(self, context: UnifiedContext) -> BotConfig | None:
         bot_id = self._bot_id(context)
