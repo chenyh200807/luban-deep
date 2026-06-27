@@ -9,6 +9,7 @@ from deeptutor.contracts.bot_runtime_defaults import resolve_bot_runtime_default
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
+from deeptutor.core.terminal_result_assembler import TerminalResultAssembler
 from deeptutor.services.citations import (
     CitationPolicy,
     answer_citations_enabled,
@@ -277,7 +278,19 @@ class TutorBotCapability(BaseCapability):
                         stage="responding",
                         metadata=content_metadata,
                     )
-                await stream.result(result_payload, source=self.name)
+                # Control-plane Task 5 Slice 3: the lifecycle degraded terminal
+                # RESULT frame is owned by TerminalResultAssembler (single
+                # contentful visible-output authority). Behaviour-preserving:
+                # build_event reproduces stream.result framing byte-identically
+                # (type=RESULT / source / stage="" / visibility="public" /
+                # merge_trace_metadata copy). Reveal flags pass through
+                # result_payload unchanged — the assembler only emits.
+                await stream.emit(
+                    TerminalResultAssembler.build_event(
+                        source=self.name,
+                        metadata=result_payload,
+                    )
+                )
 
         exam_catalog_response = ""
         if str(context.metadata.get("question_lifecycle_scene") or "").strip() == "exam_catalog_query":
@@ -653,7 +666,20 @@ class TutorBotCapability(BaseCapability):
                     )
                     context.metadata["active_object"] = dict(result_payload["active_object"])
                     context.metadata["suspended_object_stack"] = list(transitioned_stack)
-            await stream.result(result_payload, source=self.name)
+            # Control-plane Task 5 Slice 3: the main terminal RESULT frame is
+            # owned by TerminalResultAssembler (single contentful visible-output
+            # authority). Behaviour-preserving: build_event reproduces
+            # stream.result framing byte-identically (type=RESULT / source /
+            # stage="" / visibility="public" / merge_trace_metadata copy). The
+            # reveal flags + presentation + question_followup_context + active_object
+            # blocks already live in result_payload (capability-owned in this
+            # slice) — the assembler only emits, it never decides reveal.
+            await stream.emit(
+                TerminalResultAssembler.build_event(
+                    source=self.name,
+                    metadata=result_payload,
+                )
+            )
 
     @staticmethod
     def _stream_public_deltas_enabled() -> bool:

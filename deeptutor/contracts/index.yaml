@@ -354,6 +354,7 @@ domains:
       - yousenwebview/tests/test_question_review_readonly_mcq.js
       - tests/core/test_terminal_result_assembler.py
       - tests/core/test_assembler_grading_result.py
+      - tests/core/test_assembler_tutorbot_result.py
     schema_files:
       - deeptutor/capabilities/request_contracts.py
 
@@ -847,13 +848,6 @@ control_plane_writers:
     allowed_role: canonical_writer
     reason: TutorBot canonical visible reveal sink.
     remove_when: Task 5 (single canonical reveal writer).
-  - field: visible_result
-    writer_type: stream_result
-    file: deeptutor/capabilities/tutorbot.py
-    symbol: run
-    allowed_role: production_decider
-    reason: TutorBot emits terminal result payload via StreamBus.
-    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
   - field: visible_transport_frame
     writer_type: stream_progress
     file: deeptutor/capabilities/tutorbot.py
@@ -1200,13 +1194,3 @@ control_plane_writers:
       Capability-side active-object identity is QuestionTurnPolicyKernel-owned in the target
       topology; demotion candidate.
     remove_when: Task 2/4 (active_object identity collapse into QuestionTurnPolicyKernel).
-  - field: visible_result
-    writer_type: stream_result
-    file: deeptutor/capabilities/tutorbot.py
-    symbol: _emit_lifecycle_terminal_response
-    allowed_role: production_decider
-    reason: >-
-      Main-drift (post-831a98e73): lifecycle terminal response emitter calls stream.result
-      directly. Contentful visible-output is TerminalResultAssembler-owned in the target
-      topology; demotion candidate.
-    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
