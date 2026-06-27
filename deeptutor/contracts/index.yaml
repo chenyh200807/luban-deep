@@ -248,6 +248,7 @@ domains:
     test_files:
       - tests/api/test_system_router.py
       - tests/api/test_unified_ws_turn_runtime.py
+      - tests/services/test_active_object_builder_unify.py
       - tests/services/test_pre_stamp_scene_parity.py
       - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_unified_ws_answer_citations.py
