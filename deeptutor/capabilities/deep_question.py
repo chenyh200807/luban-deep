@@ -37,8 +37,10 @@ from deeptutor.services.question_followup import (
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
+    detect_answer_reveal_preference,
     normalize_question_followup_context,
     requested_question_item_index,
+    resolve_reveal_decision,
     resolve_submission_attempt,
     should_reveal_reference_material,
 )
@@ -4197,11 +4199,40 @@ class DeepQuestionCapability(BaseCapability):
         difficulty = str(overrides.get("difficulty", "") or "")
         question_type = str(overrides.get("question_type", "") or "")
         preference = str(overrides.get("preference", "") or "")
-        reveal_answers = bool(overrides.get("reveal_answers", False))
-        reveal_explanations = bool(overrides.get("reveal_explanations", reveal_answers))
-        if question_review_mode:
-            reveal_answers = True
-            reveal_explanations = True
+        # Single reveal authority (Task 5 Slice 4): read the adjudicated decision
+        # from resolve_reveal_decision instead of deriving reveal flags inline.
+        # Pass the reveal preference EXPLICITLY (no longer rely on the orchestrator
+        # having implicitly projected it into overrides) and is_review =
+        # question_review_mode. The question-bank's own reveal flags ride in as
+        # context_reveal_flags (an input signal — never flipped here).
+        reveal_overrides_signal = (
+            bool(overrides.get("reveal_answers"))
+            if "reveal_answers" in overrides
+            else None
+        )
+        reveal_overrides_explanations = (
+            bool(overrides.get("reveal_explanations"))
+            if "reveal_explanations" in overrides
+            else None
+        )
+        question_bank_reveal_flags = bool(
+            isinstance(followup_question_context, dict)
+            and (
+                followup_question_context.get("reveal_explanations")
+                or followup_question_context.get("reveal_answers")
+            )
+        )
+        reveal_decision = resolve_reveal_decision(
+            preference=detect_answer_reveal_preference(raw_user_message),
+            is_review=bool(question_review_mode),
+            is_unanswered_block=False,
+            overrides_reveal=reveal_overrides_signal,
+            context_reveal_flags=question_bank_reveal_flags,
+            explicit_request=False,
+            overrides_reveal_explanations=reveal_overrides_explanations,
+        )
+        reveal_answers = reveal_decision.reveal_answers
+        reveal_explanations = reveal_decision.reveal_explanations
         lightweight_generation = bool(overrides.get("lightweight_generation", False))
         lightweight_followup_generation = _should_use_lightweight_followup_generation(
             selected_mode=selected_mode,

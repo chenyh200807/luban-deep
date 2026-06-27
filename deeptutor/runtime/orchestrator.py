@@ -1091,6 +1091,11 @@ class ChatOrchestrator:
             suppress_answer_reveal = bool(
                 interaction_hints.get("suppress_answer_reveal_on_generate", True)
             )
+        # Reveal authority single-writer (Task 5 Slice 4): these overrides are an
+        # INPUT SIGNAL only — kept for backward compat. The reveal decision is made
+        # solely by resolve_reveal_decision (consumed by deep_question /
+        # tutorbot _reveal_reference_flags as overrides_reveal). Writing them here
+        # never reveals on its own.
         if reveal_preference is not None:
             suppress_answer_reveal = not reveal_preference
             context.config_overrides["reveal_answers"] = reveal_preference
