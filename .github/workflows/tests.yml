@@ -277,6 +277,16 @@ jobs:
         run: |
           python scripts/check_control_plane_writer_allowlist.py --check
 
+      - name: QTPK import-allowlist gate (god-object red line on question_turn_policy.py)
+        # QTPK physical-extraction plan S0: deeptutor/services/question_turn_policy.py is a
+        # read-only forwarder over the canonical question-turn resolvers. This guard AST-scans
+        # its imports and fails (fail-closed) on any import that is not a canonical resolver
+        # (semantic_router / question_lifecycle_skills / active_object_builder / question_followup)
+        # or stdlib — i.e. any LLM/grading/RAG/learner-state/reveal/terminal/stream/orchestrator/
+        # turn_runtime import is rejected so QTPK cannot grow into a god object.
+        run: |
+          python scripts/check_qtpk_import_allowlist.py --check
+
       - name: governance registry meta-gate (every scanner cataloged + every pr_gate wired)
         # The roll-up the schema-governance audit found missing: contracts/registries.yaml
         # is the single catalog of every governance scanner + its resource class + where it

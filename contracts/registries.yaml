@@ -71,6 +71,9 @@ scanners:
   - script: scripts/check_control_plane_writer_allowlist.py
     governs: single-writer allowlist for control-plane facts — turn_semantic_decision / question_lifecycle_scene / active_object / reveal / visible-output RESULT·PROGRESS·ACK write-sites (contracts/index.yaml control_plane_writers)
     enforcement: pr_gate
+  - script: scripts/check_qtpk_import_allowlist.py
+    governs: QTPK god-object import red line — deeptutor/services/question_turn_policy.py may import only the canonical question-turn resolvers (semantic_router / question_lifecycle_skills / active_object_builder / question_followup) + stdlib; forbids LLM/grading/RAG/learner-state/reveal/terminal/stream/orchestrator/turn_runtime (fail-closed)
+    enforcement: pr_gate
   # ── shell CI gates ──
   - script: scripts/ci/check_secure_routers.sh
     governs: routers must use the secure auth dependency (fail-on-new)
