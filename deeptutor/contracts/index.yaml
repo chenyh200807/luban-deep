@@ -912,16 +912,36 @@ control_plane_writers:
     writer_type: metadata_assignment
     file: deeptutor/runtime/orchestrator.py
     symbol: _resolve_semantic_routing
-    allowed_role: production_decider
-    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
-    remove_when: Task 4 (CapabilityAdapter thinning).
+    allowed_role: adapter_projection
+    reason: >-
+      Router-input adapter mirror for the PRESENT active_object: when
+      metadata["active_object"] exists it normalizes + re-stamps it into the
+      metadata the semantic router reads (orchestrator.py ~:774-781). The
+      current-facet authority is the turn_runtime restore block; the router owns
+      the relation/submission decision. CONDITIONAL CONSTRUCTOR on the
+      rebuild-from-question_followup_context branch (~:775-778): when active_object
+      is ABSENT it calls build_active_object_from_question_context to CONSTRUCT
+      (not mirror) an active_object from question_followup_context. Do NOT naively
+      delete — the absent branch builds a real active_object that the router and
+      downstream readers consume. Demote/remove only after proving (live window)
+      that the turn_runtime restore block always populates active_object before
+      this point so the rebuild branch is provably dead.
+    remove_when: >-
+      never delete naively — carries a conditional rebuild-from-question_followup_context
+      constructor; remove only at Task 2 (active_object current-facet collapse into
+      turn_runtime restore) AND only after proving the rebuild branch is dead.
   - field: active_object
     writer_type: metadata_assignment
     file: deeptutor/runtime/orchestrator.py
     symbol: _resolve_turn_semantic_decision
-    allowed_role: production_decider
-    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
-    remove_when: Task 4 (CapabilityAdapter thinning).
+    allowed_role: adapter_projection
+    reason: >-
+      Router-transition projection (NOT a current-facet decider): mirrors the
+      semantic router's output (routing.active_object) into context.metadata
+      (orchestrator.py ~:758) so readers see the router's decision. The router is
+      the authority for the relation/submission decision; the current-facet
+      authority is the turn_runtime restore block.
+    remove_when: Task 2 (active_object current-facet collapse into turn_runtime restore).
   - field: question_followup_action
     writer_type: metadata_assignment
     file: deeptutor/runtime/orchestrator.py
@@ -1052,22 +1072,51 @@ control_plane_writers:
     writer_type: metadata_assignment
     file: deeptutor/services/session/turn_runtime.py
     symbol: _enrich_result_question_authority_from_trace
-    allowed_role: production_decider
-    reason: Runtime relation/active-object/followup write before capability dispatch.
-    remove_when: Task 2 (QuestionTurnPolicyKernel collapse).
+    allowed_role: trace_projection
+    reason: >-
+      Post-result trace backfill projection (NOT a current-facet decider): reads
+      the already-decided active_object and only attaches state_snapshot (a
+      question-authority context recovered from trace_metadata) onto a copy
+      (turn_runtime.py ~:713-716). It never derives the active_object identity; the
+      current-facet authority is the turn_runtime restore block.
+    remove_when: Task 2 (active_object current-facet collapse into turn_runtime restore).
   - field: active_object
     writer_type: metadata_assignment
     file: deeptutor/services/session/turn_runtime.py
     symbol: _persist_and_publish
-    allowed_role: production_decider
-    reason: Runtime persists/applies QTPK-issued active-object / followup patch.
-    remove_when: Task 2/5 (runtime restore-persist only).
+    allowed_role: compat_projection
+    reason: >-
+      Persist-executor for the COMMON merge-back path: reads the capability output
+      via _result_active_object, merges the judged item back into the prior active
+      set through _merge_grading_result_into_active_set (E8/E1 SEV-1
+      object-continuity safety line), then writes back + persists (turn_runtime.py
+      ~:6415-6430). The "turn-END is NOT a second active_object writer" self-note
+      describes only this merge-back intent. CONDITIONAL IDENTITY WRITER on the
+      genuine-switch branch: when the new object is NOT in the prior set,
+      _merge_grading_result_into_active_set returns result_active_object as-is
+      (turn_runtime.py ~:6370-6371) and _persist_and_publish writes that NEW
+      identity onto metadata + persists it — a real turn-end identity write, not a
+      mirror of the restore block. Do NOT naively delete: the genuine-switch path
+      carries a real current-facet identity write that the restore block does not
+      reproduce mid-turn.
+    remove_when: >-
+      never delete naively — carries a conditional genuine-switch identity write
+      (new object not in prior set replaces identity); revisit only at Task 2/5
+      (runtime restore-persist only) AND only after the genuine-switch identity
+      write is provably relocated, never by bare removal.
   - field: active_object
     writer_type: metadata_assignment
     file: deeptutor/services/session/turn_runtime.py
     symbol: _run_turn
-    allowed_role: trace_projection
-    reason: Mirrors canonical fact into trace_metadata for observability.
+    allowed_role: canonical_writer
+    reason: >-
+      Current-facet single authority: the turn-start restore block reads the stored
+      active_object, applies the task#14 ordinal-safe demote (turn_runtime.py
+      ~:4953-5108), and stamps the resolved object into the dispatch
+      UnifiedContext.metadata ("active_object": active_object or {} ~:5668) that the
+      orchestrator and capabilities read. The sibling trace_metadata["active_object"]
+      write (~:5187) in the same function is an observability mirror of this same
+      resolved object, not a second decision.
     remove_when: never
   - field: question_followup_context
     writer_type: metadata_assignment
