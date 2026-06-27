@@ -334,6 +334,7 @@ domains:
       - tests/capabilities/test_deep_question_question_review.py
       - tests/capabilities/test_deep_question_lightweight_generation.py
       - tests/capabilities/test_deep_question_mcq_full_submission.py
+      - tests/capabilities/test_deep_question_full_submission_grading_authority.py
       - tests/agents/question/test_coordinator_followup_anchor.py
       - tests/capabilities/test_deep_question_reference_feedback.py
       - tests/capabilities/test_deep_question_general_knowledge_context.py
@@ -763,9 +764,24 @@ control_plane_writers:
     writer_type: metadata_assignment
     file: deeptutor/capabilities/deep_question.py
     symbol: run
-    allowed_role: compat_projection
-    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
-    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+    allowed_role: canonical_writer
+    reason: >-
+      Full-submission paste SLOT-BINDING canonical authority (facet, not the whole
+      turn_semantic_decision). The two metadata["turn_semantic_decision"] writes in
+      run() (mcq_grading / case_grading full-submission paths) are FIELD-LEVEL
+      merges: deep_question is the canonical authority for the slot-binding facet
+      ONLY — allowed_patch + active_object/target_object_ref — because a learner who
+      pasted a self-contained MCQ/case owns the learner-surface, so the slot binding
+      must come from the PASTE (the stale router allowed_patch/target_object_ref are
+      keyed off the prior active object and mis-bind the pasted slot; deep_question.py
+      §3870 "own learner-surface authority"). The INTENT facet
+      (relation_to_active_object / next_action / confidence) remains the semantic
+      router's authority — it sees conversation context (e.g. a no-keyword revision
+      "不对应该是B" stays revise_answer_on_active_object and is NOT downgraded by the
+      local keyword heuristic). When the router supplied no decision, deep_question
+      builds the whole grading decision. The two writers share the field but never
+      compete on a facet: router owns intent, deep_question owns slot-binding.
+    remove_when: never
   - field: turn_semantic_decision
     writer_type: payload_assignment
     file: deeptutor/capabilities/deep_question.py
