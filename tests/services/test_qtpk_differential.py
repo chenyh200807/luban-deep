@@ -88,11 +88,24 @@ async def test_legacy_followup_path_is_stable(label: str, kwargs: dict[str, Any]
 
 
 # ---------------------------------------------------------------------------
-# The S0 skeleton stub raises NotImplementedError (no logic yet).
+# S1: resolve_turn_policy is now a partial forwarder over the physically-moved
+# submission resolver — it returns a TurnPolicyDecision (no longer a stub).
 # ---------------------------------------------------------------------------
-def test_resolve_turn_policy_is_unimplemented_stub_in_s0() -> None:
-    with pytest.raises(NotImplementedError):
-        resolve_turn_policy()
+@pytest.mark.asyncio
+async def test_resolve_turn_policy_returns_decision_in_s1() -> None:
+    decision = await resolve_turn_policy(
+        user_message="这道题怎么做",
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=(),
+    )
+    assert isinstance(decision, TurnPolicyDecision)
+    # S1 forwards ONLY the submission intent + evidence fact; the other four
+    # facts stay at their empty envelope defaults until the S2+ full assembly.
+    assert decision.active_object is None
+    assert decision.turn_semantic_decision is None
+    assert decision.lifecycle_scene is None
+    assert decision.scene_decision is None
 
 
 def test_turn_policy_decision_is_frozen_envelope() -> None:
@@ -109,18 +122,18 @@ def test_turn_policy_decision_is_frozen_envelope() -> None:
 
 
 # ---------------------------------------------------------------------------
-# The differential assertion — enabled in S1 once resolve_turn_policy exists.
+# The differential assertion — enabled in S1 now that resolve_turn_policy
+# forwards the physically-moved submission resolver. The baseline path
+# (``turn_runtime._resolve_question_followup_context_and_action``) is now the
+# import-back of the QTPK-owned function, so this asserts the QTPK envelope
+# carries the same submission intent + evidence the pre-move turn_runtime path
+# produced for the corpus inputs (zero-behavior parity).
 # ---------------------------------------------------------------------------
-@pytest.mark.skip(reason="S1: enable once resolve_turn_policy() forwards the canonical resolvers")
 @pytest.mark.asyncio
 @pytest.mark.parametrize("label,kwargs", _FOLLOWUP_CORPUS, ids=lambda v: v if isinstance(v, str) else "")
 async def test_qtpk_matches_legacy_followup(label: str, kwargs: dict[str, Any]) -> None:
     baseline_context, baseline_action = await _baseline_followup(kwargs)
 
-    # S1 wires the candidate, e.g.:
-    #     decision = await resolve_turn_policy(**kwargs)
-    #     assert decision.question_followup_context == baseline_context
-    #     assert decision.question_followup_action == baseline_action
-    candidate: TurnPolicyDecision = await resolve_turn_policy(**kwargs)  # noqa: F841 (S1)
+    candidate: TurnPolicyDecision = await resolve_turn_policy(**kwargs)
     assert candidate.question_followup_context == baseline_context
     assert candidate.question_followup_action == baseline_action

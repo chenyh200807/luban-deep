@@ -119,11 +119,26 @@ def _imported_module_paths(tree: ast.AST) -> list[tuple[str, int]]:
             # Relative imports (``from . import x``) have module possibly None.
             module = node.module or ""
             # ``from <module> import a, b`` — ``a``/``b`` may be names OR
-            # submodules. Emit one candidate path PER imported name so a
-            # forbidden submodule sharing a line with an allowed one is still
-            # caught: prefer the ``module.name`` path when it is the resolved
-            # target (allowed canonical or forbidden-substring submodule),
-            # otherwise fall back to the package ``module`` path.
+            # submodules. The forbidden-substring red line is about the MODULE
+            # an import pulls from, never the symbol names that module
+            # legitimately exports — an allowed canonical module is allowed to
+            # export grading-/reveal-named predicates, and importing them is not
+            # a god-object breach. So if the package ``module`` itself is an
+            # explicitly allowed canonical module, the from-import is clean
+            # regardless of the imported names: emit the allowed ``module`` path
+            # once and skip per-name substring scanning entirely (this fixes the
+            # substring bug that flagged allowed exports like
+            # ``mcq_grading_context_from_full_submission`` because the name
+            # contains ``grading``).
+            if module in _ALLOWED_DEEPTUTOR_MODULES:
+                out.append((module, node.lineno))
+                continue
+            # Otherwise emit one candidate path PER imported name so a forbidden
+            # *submodule* sharing a line with an allowed one is still caught:
+            # prefer the ``module.name`` path when it is the resolved target
+            # (allowed canonical submodule, or a forbidden-substring submodule
+            # such as ``from deeptutor.services import turn_runtime``), otherwise
+            # fall back to the package ``module`` path.
             for alias in node.names:
                 candidate = f"{module}.{alias.name}" if module else alias.name
                 if candidate in _ALLOWED_DEEPTUTOR_MODULES:
