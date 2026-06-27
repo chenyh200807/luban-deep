@@ -102,7 +102,6 @@ from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
     active_object_requires_deep_mode,
     normalize_requested_response_mode,
-    resolve_requested_response_mode,
     select_response_mode,
 )
 
@@ -3467,70 +3466,14 @@ class TurnRuntimeManager:
                 "exam_track": explicit_exam_track,
             }
             runtime_only_config["interaction_hints"] = runtime_interaction_hints
-        runtime_followup_question_context = normalize_question_followup_context(
-            runtime_only_config.get("followup_question_context")
-        )
-        runtime_followup_action = _normalize_question_followup_action(
-            runtime_only_config.get("_question_followup_action")
-        )
-        stored_active_object = None
-        candidate_followup_contexts: list[dict[str, Any] | None] = []
-        active_object_lookup_started_at = time.perf_counter()
-        if session_id:
-            stored_active_object = await self._safe_store_call(
-                None,
-                "get_active_object_for_start_turn",
-                self.store.get_active_object,
-                session_id,
-                default=None,
-            )
-            stored_followup_question_context = extract_question_context_from_active_object(
-                stored_active_object
-            )
-            volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
-            candidate_followup_contexts.extend(
-                [stored_followup_question_context, volatile_followup_question_context]
-            )
-            billing_context = (
-                runtime_only_config.get("billing_context")
-                if isinstance(runtime_only_config.get("billing_context"), dict)
-                else {}
-            )
-            mirror_user_id = str(
-                billing_context.get("learning_user_id")
-                or billing_context.get("user_id")
-                or billing_context.get("wallet_user_id")
-                or ""
-            ).strip()
-            for mirror_session_id in _tutorbot_mirror_session_ids(
-                bot_id=str(raw_config.get("bot_id") or "").strip(),
-                session_id=session_id,
-                user_id=mirror_user_id,
-            ):
-                mirror_active_object = await self._safe_store_call(
-                    None,
-                    "get_tutorbot_mirror_active_object_for_start_turn",
-                    self.store.get_active_object,
-                    mirror_session_id,
-                    default=None,
-                )
-                mirror_followup_context = extract_question_context_from_active_object(
-                    mirror_active_object
-                )
-                if mirror_followup_context is not None:
-                    candidate_followup_contexts.append(mirror_followup_context)
-        setup_stages.record_since("active_object_lookup", active_object_lookup_started_at)
-        followup_resolution_started_at = time.perf_counter()
-        (
-            runtime_followup_question_context,
-            runtime_followup_action,
-        ) = await _resolve_question_followup_context_and_action(
-            user_message=raw_user_content,
-            explicit_context=runtime_followup_question_context,
-            explicit_action=runtime_followup_action,
-            candidate_contexts=candidate_followup_contexts,
-        )
-        setup_stages.record_since("followup_resolution", followup_resolution_started_at)
+        # QTPK S3d (2026-06-27): start_turn no longer pre-parses the
+        # question-turn followup context, nor pre-selects fast/deep mode. Those
+        # were the FIRST of three physical parses; ``_run_turn`` re-resolves the
+        # followup authoritatively (single authority, incl. mirror sessions —
+        # see ``_collect_mirror_followup_candidates``) and the fast/deep mode is
+        # selected by ``TutorBotCapability._mode_policy`` from the SAME canonical
+        # ``active_object_requires_deep_mode`` (S3a convergence). Differential /
+        # regression parity: tests/services/test_start_turn_mode_selection_removal_parity.py.
         entry_capability_hint = (
             requested_capability
             if requested_capability in {"chat", "tutorbot"}
@@ -3550,20 +3493,6 @@ class TurnRuntimeManager:
             requested_capability = None
             capability = ""
             config_capability = "chat"
-        mode_selection_active_object = stored_active_object
-        if (
-            mode_selection_active_object is not None
-            and extract_question_context_from_active_object(mode_selection_active_object) is not None
-            and runtime_followup_question_context is None
-            and followup_action_route(runtime_followup_action) is None
-        ):
-            mode_selection_active_object = None
-        if runtime_followup_question_context is not None:
-            runtime_only_config["followup_question_context"] = dict(
-                runtime_followup_question_context
-            )
-        if runtime_followup_action is not None:
-            runtime_only_config["_question_followup_action"] = dict(runtime_followup_action)
         public_config_validation_started_at = time.perf_counter()
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
@@ -3592,48 +3521,6 @@ class TurnRuntimeManager:
         )
         if interaction_profile:
             runtime_only_config["interaction_profile"] = interaction_profile
-        requested_response_mode = resolve_requested_response_mode(
-            chat_mode=raw_config.get("chat_mode"),
-            interaction_hints=runtime_interaction_hints,
-        )
-        if _should_select_tutorbot_mode(
-            capability=config_capability,
-            bot_id=bot_id,
-            interaction_profile=interaction_profile,
-            interaction_hints=runtime_interaction_hints,
-            explicit_chat_mode=explicit_chat_mode,
-        ):
-            selected_chat_mode, selection_reason = select_response_mode(
-                requested_response_mode,
-                user_message=raw_user_content,
-                interaction_hints=runtime_interaction_hints,
-                has_active_object=active_object_requires_deep_mode(
-                    active_object=(
-                        mode_selection_active_object
-                        if mode_selection_active_object is not None
-                        else build_active_object_from_question_context(
-                            runtime_followup_question_context
-                        )
-                        if runtime_followup_question_context is not None
-                        else None
-                    ),
-                    followup_context=runtime_followup_question_context,
-                    user_message=raw_user_content,
-                ),
-            )
-            validated_public_config = {
-                **validated_public_config,
-                "chat_mode": selected_chat_mode,
-            }
-            runtime_interaction_hints = {
-                **dict(runtime_interaction_hints or {}),
-                "requested_response_mode": requested_response_mode,
-                "effective_response_mode": selected_chat_mode,
-                "selected_mode": selected_chat_mode,
-                "response_mode_selection_reason": selection_reason,
-            }
-            runtime_only_config["interaction_hints"] = runtime_interaction_hints
-            effective_chat_mode_explicit = True
         bot_runtime_defaults_started_at = time.perf_counter()
         knowledge_chain_defaults = _resolve_bot_runtime_defaults(
             bot_id=bot_id,
@@ -3994,6 +3881,49 @@ class TurnRuntimeManager:
             return
         async for item in self.subscribe_turn(active_turn["id"], after_seq=after_seq):
             yield item
+
+    async def _collect_mirror_followup_candidates(
+        self,
+        execution: "_TurnExecution | None",
+        *,
+        session_id: str,
+        bot_id: str,
+        billing_context: dict[str, Any] | None,
+    ) -> list[dict[str, Any] | None]:
+        """QTPK S3d single authority: the followup context is resolved exactly
+        once, in ``_run_turn``. ``start_turn`` no longer pre-collects mirror
+        candidates, so the authoritative resolve must read the same TutorBot
+        mirror sessions itself — otherwise cross-mirror follow-ups (e.g. a
+        question asked on one surface, referenced on its mirror) would silently
+        lose their question context."""
+        if not session_id:
+            return []
+        context = billing_context if isinstance(billing_context, dict) else {}
+        mirror_user_id = str(
+            context.get("learning_user_id")
+            or context.get("user_id")
+            or context.get("wallet_user_id")
+            or ""
+        ).strip()
+        candidates: list[dict[str, Any] | None] = []
+        for mirror_session_id in _tutorbot_mirror_session_ids(
+            bot_id=str(bot_id or "").strip(),
+            session_id=session_id,
+            user_id=mirror_user_id,
+        ):
+            mirror_active_object = await self._safe_store_call(
+                execution,
+                "get_tutorbot_mirror_active_object_for_run_turn",
+                self.store.get_active_object,
+                mirror_session_id,
+                default=None,
+            )
+            mirror_followup_context = extract_question_context_from_active_object(
+                mirror_active_object
+            )
+            if mirror_followup_context is not None:
+                candidates.append(mirror_followup_context)
+        return candidates
 
     async def _run_turn(self, execution: _TurnExecution) -> None:
         await self._wait_for_first_subscriber(execution)
@@ -4410,6 +4340,12 @@ class TurnRuntimeManager:
                     ),
                     source_turn_id=turn_id,
                 )
+            mirror_followup_candidates = await self._collect_mirror_followup_candidates(
+                execution,
+                session_id=session_id,
+                bot_id=str(request_config.get("bot_id", "") or "").strip(),
+                billing_context=billing_context,
+            )
             (
                 followup_question_context,
                 followup_question_action,
@@ -4420,6 +4356,7 @@ class TurnRuntimeManager:
                 candidate_contexts=[
                     stored_followup_question_context,
                     volatile_followup_question_context,
+                    *mirror_followup_candidates,
                 ],
             )
             if followup_question_context:
@@ -4520,10 +4457,99 @@ class TurnRuntimeManager:
                 (interaction_hints or {}).get("selected_mode")
                 or effective_response_mode
             ).strip()
-            trace_metadata["chat_mode"] = chat_mode
+            # QTPK S3c (2026-06-27): start_turn no longer pre-selects fast/deep,
+            # so the effective mode is no longer pre-stamped into chat_mode / hints
+            # nor persisted by start_turn. For tutorbot-mode turns this runtime now
+            # owns the single fast/deep authority: when the mode is still smart /
+            # empty it is selected here from the SAME canonical the capability
+            # fallback uses (S3a convergence; parity in
+            # tests/services/test_start_turn_mode_selection_removal_parity.py) over
+            # the already-resolved active_object / followup. The resolved mode is
+            # then propagated to the orchestrator/capability (config_overrides +
+            # chat_mode_explicit) and persisted to session preferences so the
+            # mobile response-mode echo (_load_feedback_response_mode_metadata)
+            # does not degrade to smart.
+            interaction_profile = _normalize_interaction_profile_name(
+                request_config.get("interaction_profile")
+                or (interaction_hints or {}).get("profile")
+                or ""
+            )
+            # ``chat_mode`` here is the validated public config which defaults to
+            # "deep" even when the client never sent one — so ``bool(chat_mode)``
+            # is NOT the explicit signal. The genuine explicit flag is
+            # ``payload["_chat_mode_explicit"]`` (set by start_turn from the raw
+            # request). Using it keeps generic chat turns (config {}) out of the
+            # tutorbot fast/deep path.
+            client_chat_mode_explicit = bool(payload.get("_chat_mode_explicit"))
+            tutorbot_mode_turn = _should_select_tutorbot_mode(
+                capability="tutorbot" if capability_name in {"", "tutorbot"} else capability_name,
+                bot_id=str(request_config.get("bot_id", "") or "").strip(),
+                interaction_profile=interaction_profile,
+                interaction_hints=interaction_hints,
+                explicit_chat_mode=client_chat_mode_explicit,
+            )
+            if tutorbot_mode_turn:
+                # The genuine fast/deep intent is the REQUESTED mode (from hints /
+                # an explicit client chat_mode), NOT the validated public-config
+                # default (which is "deep"). start_turn used to overwrite that
+                # default via mode-selection; now this runtime selects from the
+                # SAME canonical when the request is smart/empty.
+                hints_requested_mode = str(
+                    (interaction_hints or {}).get("requested_response_mode")
+                    or raw_interaction_hints.get("requested_response_mode")
+                    or ""
+                ).strip().lower()
+                if hints_requested_mode not in {"fast", "deep"}:
+                    hints_requested_mode = ""
+                tutorbot_requested_mode = hints_requested_mode or (
+                    chat_mode if (client_chat_mode_explicit and chat_mode in {"fast", "deep"}) else ""
+                )
+                if tutorbot_requested_mode in {"fast", "deep"}:
+                    canonical_mode = tutorbot_requested_mode
+                    canonical_reason = "requested_mode_explicit"
+                else:
+                    canonical_mode, canonical_reason = select_response_mode(
+                        tutorbot_requested_mode or "smart",
+                        user_message=raw_user_content,
+                        interaction_hints=(
+                            interaction_hints if isinstance(interaction_hints, dict) else None
+                        ),
+                        has_active_object=active_object_requires_deep_mode(
+                            active_object=active_object,
+                            followup_context=followup_question_context,
+                            user_message=raw_user_content,
+                        ),
+                    )
+                effective_response_mode = canonical_mode
+                selected_mode = canonical_mode
+                request_config["chat_mode"] = canonical_mode
+                payload["_chat_mode_explicit"] = True
+                if isinstance(interaction_hints, dict):
+                    interaction_hints["effective_response_mode"] = canonical_mode
+                    interaction_hints["selected_mode"] = canonical_mode
+                    if requested_response_mode:
+                        interaction_hints.setdefault(
+                            "requested_response_mode", requested_response_mode
+                        )
+                    interaction_hints["response_mode_selection_reason"] = canonical_reason
+            trace_metadata["chat_mode"] = str(request_config.get("chat_mode") or chat_mode).strip()
             trace_metadata["requested_response_mode"] = requested_response_mode
             trace_metadata["effective_response_mode"] = effective_response_mode
             trace_metadata["selected_mode"] = selected_mode
+            if tutorbot_mode_turn and session_id:
+                await self._safe_store_call(
+                    execution,
+                    "persist_effective_response_mode_for_mobile_echo",
+                    self.store.update_session_preferences,
+                    session_id,
+                    {
+                        "chat_mode": effective_response_mode,
+                        "interaction_hints": interaction_hints
+                        if isinstance(interaction_hints, dict)
+                        else {},
+                    },
+                    default=None,
+                )
             exam_track = normalize_exam_track(
                 request_config.get("exam_track")
                 or (interaction_hints or {}).get("exam_track")
