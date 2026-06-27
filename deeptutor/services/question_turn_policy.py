@@ -758,6 +758,45 @@ async def _resolve_question_followup_context_and_action(
     return None, None
 
 
+def grading_merge_needs_prior(result_active_object: dict[str, Any]) -> bool:
+    """Decide whether the grading-merge patch needs to read the prior active_object.
+
+    Byte-identical pre-check for the §6 SEV-1 套题防塌 merge: this replicates,
+    verbatim, the three early-return conditions at the **top** of the pre-move
+    ``turn_runtime._merge_grading_result_into_active_set`` that ran *before* the
+    store read of the prior active_object. Those early-returns short-circuit the
+    method without ever touching the store:
+
+      1. ``normalize_active_object(result_active_object) is None`` → early return;
+      2. ``extract_question_context_from_active_object(result_ao) is None`` → early return;
+      3. ``len(result_ctx.get("items") or []) > 1`` → early return.
+
+    Only when none of the three fire does the original method fall through to the
+    ``store.get_active_object`` read. So this returns ``True`` (the prior must be
+    read) iff:
+
+        result_ao is not None AND result_ctx is not None AND len(result_items) <= 1
+
+    and ``False`` otherwise (no store read needed — caller short-circuits exactly
+    as the original early-return path did).
+
+    PURE: no I/O. Lets the transport keep the store read **conditional** (the
+    early-return path does not read the store), preserving byte-identical behavior
+    — ``_safe_store_call`` can re-raise non-persistence errors, so an unconditional
+    read on the early-return path would not be byte-identical.
+    """
+    result_ao = normalize_active_object(result_active_object)
+    if result_ao is None:
+        return False
+    result_ctx = extract_question_context_from_active_object(result_ao)
+    if result_ctx is None:
+        return False
+    result_items = result_ctx.get("items") or []
+    if len(result_items) > 1:
+        return False
+    return True
+
+
 def apply_grading_result_patch(
     *,
     prior_active_object: dict[str, Any] | None,

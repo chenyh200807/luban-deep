@@ -65,6 +65,7 @@ from deeptutor.services.question_turn_policy import (
     _resolve_question_followup_context_and_action,
     _same_active_object_identity,
     apply_grading_result_patch,
+    grading_merge_needs_prior,
 )
 
 # QTPK physical extraction (S1): these submission-intent helpers were physically
@@ -5666,12 +5667,22 @@ class TurnRuntimeManager:
         keeps turn-END from acting as a second, set-destroying writer.
 
         S2 (QTPK physical extraction): the merge **decision logic** now lives in the
-        QTPK pure function ``apply_grading_result_patch`` (no I/O). This method keeps
-        only the transport/I/O: it reads the prior active_object from the store and
-        hands it to QTPK. Byte-identical behavior — the QTPK function carries the
-        verbatim branch logic; ``tests/services/test_qtpk_grading_patch.py`` asserts
-        parity with the pre-move logic for every E8 scenario.
+        QTPK pure functions ``grading_merge_needs_prior`` (the pre-check) and
+        ``apply_grading_result_patch`` (the branch logic). This method keeps only the
+        transport/I/O. Byte-identical behavior — the store read of the prior stays
+        **conditional**: the pure pre-check replicates the original early-return
+        conditions (result not normalizable / no question context / result is itself
+        a set), and on those early-return paths the original method returned *before*
+        reading the store. We must not read the store there either: ``_safe_store_call``
+        can re-raise non-persistence errors, so an unconditional read would not be
+        byte-identical. ``tests/services/test_qtpk_grading_patch.py`` asserts parity
+        with the pre-move logic for every E8 scenario.
         """
+        if not grading_merge_needs_prior(result_active_object):
+            # Original early-return path: result is not normalizable, carries no
+            # question context, or is itself a set → return unchanged WITHOUT
+            # touching the store (matches the pre-move method exactly).
+            return result_active_object
         prior_active_object = await self._safe_store_call(
             execution,
             "get_active_object_for_grading_merge",
