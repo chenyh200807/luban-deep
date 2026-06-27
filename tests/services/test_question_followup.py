@@ -184,6 +184,62 @@ def test_unanswered_question_set_blocks_indexed_reference_reveal_until_attempt()
     ) is True
 
 
+def test_set_level_reveal_flag_does_not_bypass_per_item_unanswered_block() -> None:
+    # Multi-item set where the set-level reveal flag is already True (e.g. baked
+    # reveal_explanations or set by an earlier turn). Q1 has a learner attempt,
+    # Q2 has none. Asking "第2题怎么做" must NOT leak Q2's answer/explanation just
+    # because the set-level reveal flag is on. Per-item unanswered-block takes
+    # priority over the set-level flag (answer-leak red line, slice-4 aligned).
+    question_context = {
+        "question_id": "quiz_generated",
+        "question": "第1题...\n第2题...",
+        "question_type": "choice",
+        "reveal_explanations": True,
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1"},
+                "correct_answer": "A",
+                "user_answer": "A",
+                "is_correct": True,
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2"},
+                "grading_key": {"correct_answer": "B"},
+            },
+        ],
+    }
+
+    # RED before fix: set-level reveal flag short-circuits to return False (leak).
+    assert should_block_unanswered_reference_reveal(
+        "第2题怎么做？",
+        question_context,
+    ) is True
+    assert should_reveal_reference_material(
+        "第2题怎么做？",
+        question_context,
+    ) is False
+
+    # Non-regression: the already-answered Q1 can still be revealed even with the
+    # set-level flag on.
+    assert should_block_unanswered_reference_reveal(
+        "第1题答案是什么？",
+        question_context,
+    ) is False
+
+    # Non-regression: a general request (no 第N题) with the set-level flag on
+    # keeps the original behavior (flag short-circuits → not blocked).
+    assert should_block_unanswered_reference_reveal(
+        "给答案",
+        question_context,
+    ) is False
+
+
 def test_unanswered_question_reveals_when_learner_explicitly_concedes() -> None:
     question_context = {
         "question_id": "q1",

@@ -1321,8 +1321,10 @@ def should_block_unanswered_reference_reveal(
     normalized = normalize_question_followup_context(question_context) or {}
     if not normalized:
         return False
-    if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
-        return False
+    # Per-item navigation is checked BEFORE the set-level reveal flag: a set-level
+    # reveal_explanations/reveal_answers flag (baked or set by an earlier turn)
+    # must not bypass the per-item unanswered-block, otherwise "第N题" leaks an
+    # unanswered question's answer/explanation (answer-leak red line).
     requested_index = requested_question_item_index(message, normalized)
     if requested_index is not None:
         items = normalized.get("items") or []
@@ -1331,6 +1333,9 @@ def should_block_unanswered_reference_reveal(
             if isinstance(item, dict) and _question_has_learner_attempt(item):
                 return False
         return not _looks_like_answer_concession(message)
+    # Per-item path exhausted; only then honor the set-level reveal flag.
+    if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
+        return False
     if _question_has_learner_attempt(normalized):
         return False
     return not _looks_like_answer_concession(message)
