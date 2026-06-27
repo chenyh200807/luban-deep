@@ -447,73 +447,16 @@ class TutorBotCapability(BaseCapability):
         # None, so this block does not fire for them.
         unanswered_reference_response = self._build_unanswered_reference_response(context)
         if unanswered_reference_response is not None:
-            async with stream.stage(
-                "responding",
-                source=self.name,
-                metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
-            ):
-                content_metadata = {
-                    "execution_engine": "tutorbot_runtime",
-                    "call_kind": "unanswered_reference_reprompt",
-                }
-                if not citation_enabled:
-                    await stream.content(
-                        unanswered_reference_response,
-                        source=self.name,
-                        stage="responding",
-                        metadata=content_metadata,
-                    )
-                result_payload = {
-                    "response": unanswered_reference_response,
-                    "bot_id": bot_id,
-                    "execution_engine": "tutorbot_runtime",
-                    "authority_applied": False,
-                    "exact_question": {},
-                    "rag_rounds": [],
-                    "rag_saturation": {},
-                    "requested_response_mode": policy.requested_mode,
-                    "selected_mode": policy.selected_mode,
-                    "effective_response_mode": policy.effective_mode,
-                    "execution_path": "tutorbot_unanswered_reference_reprompt",
-                    "exact_fast_path_hit": False,
-                    "actual_tool_rounds": 0,
-                    "reveal_answers": False,
-                    "reveal_explanations": False,
-                }
-                for metadata_key in (
-                    "question_lifecycle_decision",
-                    "decision_source",
-                    "scene_confidence",
-                    "required_anchor_status",
-                    "exact_question_blocked_reason",
-                    "selected_skill_names",
-                    "llm_scene_candidate",
-                    "business_gate_result",
-                    "question_lifecycle_scene",
-                    "active_object",
-                    "release_id",
-                    "git_sha",
-                    "deployment_environment",
-                ):
-                    if metadata_key in session_metadata:
-                        result_payload[metadata_key] = session_metadata[metadata_key]
-                citation_metadata: dict[str, Any] = {}
-                result_payload["response"] = apply_answer_citation_metadata(
-                    citation_metadata,
-                    response=str(result_payload.get("response") or ""),
-                    sources=[],
-                    policy=CitationPolicy(surface="student"),
-                    enabled=citation_enabled,
-                )
-                result_payload.update(citation_metadata)
-                if citation_enabled:
-                    await stream.content(
-                        str(result_payload["response"] or ""),
-                        source=self.name,
-                        stage="responding",
-                        metadata=content_metadata,
-                    )
-                await stream.result(result_payload, source=self.name)
+            # Control-plane: the deterministic RESULT frame is owned by
+            # TerminalResultAssembler (single contentful visible-output authority,
+            # via _emit_lifecycle_terminal_response). Do NOT emit a raw stream.result
+            # here — that would register a second visible_result writer. Reuse the
+            # lifecycle terminal helper (same path as exam_catalog / clarification).
+            await _emit_lifecycle_terminal_response(
+                unanswered_reference_response,
+                execution_path="tutorbot_unanswered_reference_reprompt",
+                call_kind="unanswered_reference_reprompt",
+            )
             return
 
         async with stream.stage(
