@@ -284,6 +284,7 @@ domains:
       - tests/services/learner_state/test_dispute_revalidation_readside.py
       - tests/services/learner_state/test_home_personalization_imports.py
       - tests/core/test_terminal_result_assembler.py
+      - tests/core/test_assembler_grading_result.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
@@ -352,6 +353,7 @@ domains:
       - wx_miniprogram/tests/test_ai_message_state.js
       - yousenwebview/tests/test_question_review_readonly_mcq.js
       - tests/core/test_terminal_result_assembler.py
+      - tests/core/test_assembler_grading_result.py
     schema_files:
       - deeptutor/capabilities/request_contracts.py
 
@@ -789,13 +791,6 @@ control_plane_writers:
     allowed_role: compat_projection
     reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
     remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
-  - field: visible_result
-    writer_type: stream_result
-    file: deeptutor/capabilities/deep_question.py
-    symbol: _emit_grading_result
-    allowed_role: production_decider
-    reason: deep_question emits result/progress via StreamBus.
-    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
   - field: visible_transport_frame
     writer_type: stream_progress
     file: deeptutor/capabilities/deep_question.py
