@@ -789,13 +789,6 @@ control_plane_writers:
     allowed_role: compat_projection
     reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
     remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
-  - field: visible_result
-    writer_type: stream_result
-    file: deeptutor/capabilities/deep_question.py
-    symbol: _emit_grading_result
-    allowed_role: production_decider
-    reason: deep_question emits result/progress via StreamBus.
-    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
   - field: visible_transport_frame
     writer_type: stream_progress
     file: deeptutor/capabilities/deep_question.py

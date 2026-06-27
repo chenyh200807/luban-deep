@@ -5219,7 +5219,19 @@ class DeepQuestionCapability(BaseCapability):
                     stage="generation",
                 )
 
-            await stream.result(result_payload, source=self.name)
+            # Control-plane Task 5 Slice 2: the terminal grading RESULT frame is
+            # owned by TerminalResultAssembler (single contentful visible-output
+            # authority). Behaviour-preserving: build_event reproduces
+            # stream.result framing byte-identically (type=RESULT / source /
+            # stage / visibility / merge_trace_metadata copy). The grading verdict
+            # (is_correct/score/diagnosis) and reveal flags already live in
+            # result_payload — the assembler only emits, it never decides.
+            await stream.emit(
+                TerminalResultAssembler.build_event(
+                    source=self.name,
+                    metadata=result_payload,
+                )
+            )
 
     async def _emit_followup_result(
         self,
