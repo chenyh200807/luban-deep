@@ -2610,3 +2610,24 @@ def test_chokepoint_high_confidence_single_builds_submission_action():
     from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
     _ctx, action = _submission_action_for_user_message("我选B", _S5_SINGLE)
     assert isinstance(action, dict) and action.get("intent") == "answer_questions"  # HIGH 必判,硬约束40
+
+
+def test_practice_generation_predicate_rehomed_to_question_followup():
+    """QTPK S1 re-home: looks_like_practice_generation_request 的 canonical 归宿是
+    question_followup（question-turn intent 谓词），teaching_modes re-export 同对象。"""
+    from deeptutor.services.question_followup import (
+        looks_like_practice_generation_request as qf_pred,
+    )
+    from deeptutor.tutorbot.teaching_modes import (
+        looks_like_practice_generation_request as tm_pred,
+    )
+
+    # re-home identity: 两条 import 路径同一对象（teaching_modes re-export canonical）
+    assert qf_pred is tm_pred
+
+    # 行为正确（零行为搬迁）: practice generation 请求识别
+    assert qf_pred("给我出一道题练练") is True
+    assert qf_pred("出3道单选题") is True
+    assert qf_pred("这道题怎么做") is False
+    assert qf_pred("") is False
+    assert qf_pred(None) is False
