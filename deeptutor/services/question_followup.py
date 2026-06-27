@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Any
+from typing import Any, NamedTuple
 
 from deeptutor.services.llm.factory import complete
 
@@ -674,6 +674,74 @@ def detect_answer_reveal_preference(message: str) -> bool | None:
     return None
 
 
+class RevealDecision(NamedTuple):
+    """Single canonical answer/explanation reveal verdict.
+
+    Both fields default-deny. Produced only by ``resolve_reveal_decision`` so
+    every reveal writer reads one adjudicated decision instead of re-deriving
+    its own (control-plane collapse Task 5 Slice 4).
+    """
+
+    reveal_answers: bool
+    reveal_explanations: bool
+
+
+def resolve_reveal_decision(
+    *,
+    preference: bool | None,
+    is_review: bool,
+    is_unanswered_block: bool,
+    overrides_reveal: bool | None,
+    context_reveal_flags: bool,
+    explicit_request: bool,
+    overrides_reveal_explanations: bool | None = None,
+) -> RevealDecision:
+    """Single authority for the answer/explanation reveal decision.
+
+    Pure function: callers construct the boolean facets from whatever context
+    shape they hold, this function only adjudicates them against one priority
+    ladder (highest -> lowest, first hit wins):
+
+      1. ``preference is False``         -> (False, False)  user "先别给" HARD RED LINE
+                                            (compresses everything, incl. review).
+      2. ``is_unanswered_block``         -> (False, False)  anti-peek HARD RED LINE
+                                            (compresses review/preference=True/
+                                            explicit/overrides).
+      3. ``is_review``                   -> (True,  True)   question_review mode.
+      4. ``preference is True``          -> (True,  True)   explicit "给答案".
+      5. ``context_reveal_flags``        -> (True,  True)   question-bank carries reveal.
+      6. ``explicit_request``            -> (True,  True)   answer/explanation marker.
+      7. ``overrides_reveal is True``    -> (True,  <explanations override>)
+                                            orchestrator compat signal.
+      8. default                         -> (False, False)  default-deny.
+
+    The two hard red lines (rules 1 + 2) are answer-leak guards and MUST stay at
+    the top of the ladder; nothing below may override them.
+    """
+    # --- HARD RED LINE 1: explicit suppression preference compresses all. ---
+    if preference is False:
+        return RevealDecision(reveal_answers=False, reveal_explanations=False)
+    # --- HARD RED LINE 2: unanswered, non-conceding practice anti-peek. ---
+    if is_unanswered_block:
+        return RevealDecision(reveal_answers=False, reveal_explanations=False)
+    if is_review:
+        return RevealDecision(reveal_answers=True, reveal_explanations=True)
+    if preference is True:
+        return RevealDecision(reveal_answers=True, reveal_explanations=True)
+    if context_reveal_flags:
+        return RevealDecision(reveal_answers=True, reveal_explanations=True)
+    if explicit_request:
+        return RevealDecision(reveal_answers=True, reveal_explanations=True)
+    if overrides_reveal is True:
+        reveal_explanations = (
+            True
+            if overrides_reveal_explanations is None
+            else bool(overrides_reveal_explanations)
+        )
+        return RevealDecision(reveal_answers=True, reveal_explanations=reveal_explanations)
+    return RevealDecision(reveal_answers=False, reveal_explanations=False)
+
+
 async def interpret_question_followup_action(
     message: str,
     question_context: dict[str, Any] | None,
@@ -1205,41 +1273,45 @@ def answers_match(
     return False
 
 
+_REFERENCE_EXPLICIT_REQUEST_MARKERS = (
+    "参考答案",
+    "标准答案",
+    "正确答案",
+    "答案",
+    "解析",
+    "讲解",
+    "为什么",
+    "错因",
+    "扣分",
+    "怎么扣",
+    "怎么判",
+    "怎么评分",
+    "评分",
+)
+
+
 def should_reveal_reference_material(
     message: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
-    preference = detect_answer_reveal_preference(message)
+    # Single reveal authority (Task 5 Slice 4): construct the facets and read the
+    # adjudicated decision from resolve_reveal_decision. Semantics preserved —
+    # this is a near-zero behavior change wrapper.
     normalized = normalize_question_followup_context(question_context) or {}
-    if preference is True:
-        if should_block_unanswered_reference_reveal(message, normalized):
-            return False
-        return True
-    if preference is False:
-        return False
-    if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
-        return True
     text = str(message or "").strip().lower()
-    explicit_request_markers = (
-        "参考答案",
-        "标准答案",
-        "正确答案",
-        "答案",
-        "解析",
-        "讲解",
-        "为什么",
-        "错因",
-        "扣分",
-        "怎么扣",
-        "怎么判",
-        "怎么评分",
-        "评分",
+    decision = resolve_reveal_decision(
+        preference=detect_answer_reveal_preference(message),
+        is_review=False,
+        is_unanswered_block=should_block_unanswered_reference_reveal(message, normalized),
+        overrides_reveal=None,
+        context_reveal_flags=bool(
+            normalized.get("reveal_explanations") or normalized.get("reveal_answers")
+        ),
+        explicit_request=any(
+            marker in text for marker in _REFERENCE_EXPLICIT_REQUEST_MARKERS
+        ),
     )
-    if any(marker in text for marker in explicit_request_markers):
-        if should_block_unanswered_reference_reveal(message, normalized):
-            return False
-        return True
-    return False
+    return decision.reveal_answers
 
 
 def should_block_unanswered_reference_reveal(

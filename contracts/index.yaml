@@ -355,6 +355,7 @@ domains:
       - tests/core/test_terminal_result_assembler.py
       - tests/core/test_assembler_grading_result.py
       - tests/core/test_assembler_tutorbot_result.py
+      - tests/services/test_resolve_reveal_decision.py
     schema_files:
       - deeptutor/capabilities/request_contracts.py
 
@@ -596,6 +597,7 @@ domains:
       - tests/scripts/test_luban_pgo_stage5_canary_gate.py
       - tests/services/construction_grading/test_learning_evidence.py
       - tests/services/test_question_followup.py
+      - tests/services/test_resolve_reveal_decision.py
       - tests/tutorbot/test_agent_loop_case_rubric_v1.py
       - tests/services/construction_grading/test_m32_grading_event_learning_evidence.py
       - tests/services/construction_grading/test_case_grading_fusion.py
@@ -711,16 +713,16 @@ control_plane_writers:
     writer_type: reveal_kwarg
     file: deeptutor/capabilities/deep_question.py
     symbol: _coerce_question_bank_contexts
-    allowed_role: compat_projection
-    reason: deep_question second reveal sink (demotion candidate).
-    remove_when: Task 5 (single canonical reveal writer).
+    allowed_role: value_projection
+    reason: deep_question reveal kwarg site; the reveal decision is read from the single canonical authority resolve_reveal_decision (question_followup.py) — this only propagates that adjudicated value.
+    remove_when: never
   - field: reveal_reference
     writer_type: reveal_kwarg
     file: deeptutor/capabilities/deep_question.py
     symbol: run
-    allowed_role: compat_projection
-    reason: deep_question second reveal sink (demotion candidate).
-    remove_when: Task 5 (single canonical reveal writer).
+    allowed_role: value_projection
+    reason: deep_question reveal kwarg site; the reveal decision is read from the single canonical authority resolve_reveal_decision (question_followup.py) — this only propagates that adjudicated value.
+    remove_when: never
   - field: score
     writer_type: metadata_assignment
     file: deeptutor/capabilities/deep_question.py
@@ -838,16 +840,16 @@ control_plane_writers:
     writer_type: reveal_kwarg
     file: deeptutor/capabilities/tutorbot.py
     symbol: _build_visible_response
-    allowed_role: canonical_writer
-    reason: TutorBot canonical visible reveal sink.
-    remove_when: Task 5 (single canonical reveal writer).
+    allowed_role: value_projection
+    reason: TutorBot reveal kwarg site; the reveal decision is read from the single canonical authority resolve_reveal_decision (question_followup.py, via _reveal_reference_flags) — this only propagates that adjudicated value.
+    remove_when: never
   - field: reveal_reference
     writer_type: reveal_kwarg
     file: deeptutor/capabilities/tutorbot.py
     symbol: run
-    allowed_role: canonical_writer
-    reason: TutorBot canonical visible reveal sink.
-    remove_when: Task 5 (single canonical reveal writer).
+    allowed_role: value_projection
+    reason: TutorBot reveal kwarg site; the reveal decision is read from the single canonical authority resolve_reveal_decision (question_followup.py, via _reveal_reference_flags) — this only propagates that adjudicated value.
+    remove_when: never
   - field: visible_transport_frame
     writer_type: stream_progress
     file: deeptutor/capabilities/tutorbot.py
@@ -1150,9 +1152,9 @@ control_plane_writers:
     writer_type: reveal_kwarg
     file: deeptutor/services/session/turn_runtime.py
     symbol: _exact_question_followup_context
-    allowed_role: compat_projection
-    reason: Runtime exact-question followup reveal projection.
-    remove_when: Task 5 (single canonical reveal writer).
+    allowed_role: value_projection
+    reason: Runtime exact-question followup reveal projection; defers to the single canonical authority resolve_reveal_decision (question_followup.py) for the reveal decision.
+    remove_when: never
   - field: turn_semantic_decision
     writer_type: metadata_assignment
     file: deeptutor/services/session/turn_runtime.py

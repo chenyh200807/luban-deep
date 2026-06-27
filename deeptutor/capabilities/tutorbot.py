@@ -26,7 +26,9 @@ from deeptutor.services.question_followup import (
     detect_answer_reveal_preference,
     extract_choice_result_summary_from_text,
     normalize_question_followup_context,
+    resolve_reveal_decision,
     resolve_submission_attempt,
+    should_block_unanswered_reference_reveal,
 )
 from deeptutor.services.question_lifecycle_skills import (
     build_question_lifecycle_clarification_response,
@@ -884,18 +886,42 @@ class TutorBotCapability(BaseCapability):
 
     @staticmethod
     def _reveal_reference_flags(context: UnifiedContext) -> tuple[bool, bool]:
+        # Single reveal authority (Task 5 Slice 4): construct the facets and read
+        # the adjudicated decision from resolve_reveal_decision. RED-LINE FIX —
+        # the old branch returned (True, True) the instant preference was True,
+        # BEFORE the unanswered-block check, leaking answers on un-attempted
+        # practice questions. The resolver now routes preference=True through the
+        # unanswered-block red line.
         overrides = context.config_overrides if isinstance(context.config_overrides, dict) else {}
-        explicit_preference = detect_answer_reveal_preference(context.user_message)
-        if explicit_preference is False:
-            return False, False
-        if explicit_preference is True:
-            return True, True
-        reveal_answers = bool(overrides.get("reveal_answers", False)) or explicit_preference is True
-        if "reveal_explanations" in overrides:
-            reveal_explanations = bool(overrides.get("reveal_explanations"))
-        else:
-            reveal_explanations = reveal_answers
-        return reveal_answers, reveal_explanations
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        followup_context = metadata.get("question_followup_context")
+        normalized = normalize_question_followup_context(
+            followup_context if isinstance(followup_context, dict) else None
+        ) or {}
+        overrides_reveal = (
+            bool(overrides.get("reveal_answers"))
+            if "reveal_answers" in overrides
+            else None
+        )
+        overrides_reveal_explanations = (
+            bool(overrides.get("reveal_explanations"))
+            if "reveal_explanations" in overrides
+            else None
+        )
+        decision = resolve_reveal_decision(
+            preference=detect_answer_reveal_preference(context.user_message),
+            is_review=False,
+            is_unanswered_block=should_block_unanswered_reference_reveal(
+                context.user_message, normalized
+            ),
+            overrides_reveal=overrides_reveal,
+            context_reveal_flags=bool(
+                normalized.get("reveal_explanations") or normalized.get("reveal_answers")
+            ),
+            explicit_request=False,
+            overrides_reveal_explanations=overrides_reveal_explanations,
+        )
+        return decision.reveal_answers, decision.reveal_explanations
 
     def _should_hide_generated_answers(self, context: UnifiedContext) -> bool:
         reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
