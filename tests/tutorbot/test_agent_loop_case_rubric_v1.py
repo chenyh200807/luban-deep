@@ -1303,3 +1303,70 @@ async def test_prefetched_rag_grounding_projects_answer_to_learner_option_surfac
     assert options[0] == {"key": "A", "value": "5%"}
     assert "【答案】D" not in tool_message["content"]
     assert tool_results == [tool_message["content"]]
+
+
+# --- reachability act 1: loop assembles the unanswered-reveal guard ----------
+# The loop wires build_unanswered_reveal_guard_instruction off the followup
+# context derived from runtime_metadata (the same _followup_context_from_metadata
+# helper). This pins that wiring: an unanswered multi-question set whose user
+# message references "第N题怎么做" produces the prompt-side anti-peek guard, and
+# an answered item leaves it silent. The verdict itself is owned by the single
+# reveal authority (should_block_unanswered_reference_reveal) — this only proves
+# the loop consumes it.
+def _multi_question_runtime_metadata() -> dict[str, Any]:
+    return {
+        "question_followup_context": {
+            "question_id": "quiz_generated",
+            "question": "第1题...\n第2题...",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_1",
+                    "question": "第1题",
+                    "question_type": "single_choice",
+                    "options": {"A": "A1", "B": "B1"},
+                    "correct_answer": "A",
+                },
+                {
+                    "question_id": "q_2",
+                    "question": "第2题",
+                    "question_type": "single_choice",
+                    "options": {"A": "A2", "B": "B2"},
+                    "grading_key": {"correct_answer": "B"},
+                },
+            ],
+        }
+    }
+
+
+def test_loop_assembles_unanswered_reveal_guard_for_unanswered_item() -> None:
+    from deeptutor.tutorbot.teaching_modes import (
+        build_unanswered_reveal_guard_instruction,
+    )
+
+    followup = AgentLoop._followup_context_from_metadata(
+        _multi_question_runtime_metadata()
+    )
+    instruction = build_unanswered_reveal_guard_instruction(
+        followup_context=followup,
+        user_message="第2题怎么做？直接告诉我答案。",
+    )
+    assert instruction.strip()
+    assert "尚未作答" in instruction
+
+
+def test_loop_unanswered_reveal_guard_silent_when_item_answered() -> None:
+    from deeptutor.tutorbot.teaching_modes import (
+        build_unanswered_reveal_guard_instruction,
+    )
+
+    metadata = _multi_question_runtime_metadata()
+    items = metadata["question_followup_context"]["items"]
+    items[1]["user_answer"] = "A"
+    items[1]["is_correct"] = False
+    followup = AgentLoop._followup_context_from_metadata(metadata)
+    instruction = build_unanswered_reveal_guard_instruction(
+        followup_context=followup,
+        user_message="第2题怎么做？直接告诉我答案。",
+    )
+    assert instruction == ""

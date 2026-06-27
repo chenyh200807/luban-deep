@@ -200,3 +200,38 @@ def test_coerce_blocks_internal_learner_memory_profile_leak() -> None:
 
     assert looks_like_internal_output(text) is True
     assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
+# --- reveal-decision structural backstop (reachability act 1) ---------------
+# coerce_user_visible_answer is the single user-visible sink. When a structured
+# answer-block emit site passes the already-adjudicated RevealDecision and that
+# decision blocks answers (reveal_answers is False — e.g. an unanswered-block
+# anti-peek verdict), the sink masks the structured answer as the LAST backstop.
+# It performs NO new adjudication and NO answer-content scanning; it only trusts
+# the decision the upstream reveal authority produced.
+
+from deeptutor.services.question_followup import RevealDecision  # noqa: E402
+
+
+def test_coerce_masks_structured_answer_when_reveal_decision_blocks() -> None:
+    text = "第2题参考答案：B。解析：……"
+    masked = coerce_user_visible_answer(
+        text,
+        reveal_decision=RevealDecision(reveal_answers=False, reveal_explanations=False),
+    )
+    assert masked == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
+def test_coerce_passes_structured_answer_when_reveal_decision_allows() -> None:
+    text = "第2题参考答案：B。解析：……"
+    out = coerce_user_visible_answer(
+        text,
+        reveal_decision=RevealDecision(reveal_answers=True, reveal_explanations=True),
+    )
+    assert out == text
+
+
+def test_coerce_unchanged_when_no_reveal_decision_passed() -> None:
+    # 默认 None → 行为与既有调用完全一致（向后兼容，不破坏 ~20 个现有 call site）。
+    text = "第2题参考答案：B。解析：……"
+    assert coerce_user_visible_answer(text) == text

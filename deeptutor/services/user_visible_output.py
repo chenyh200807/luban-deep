@@ -158,7 +158,22 @@ def coerce_user_visible_answer(
     *,
     fallback: str = _SAFE_FALLBACK,
     preserve_outer_whitespace: bool = False,
+    reveal_decision: Any = None,
 ) -> str:
+    # Reveal-decision structural backstop (reachability act 1): the single
+    # user-visible sink also consumes the already-adjudicated RevealDecision when
+    # a structured answer-block emit site opts in by passing it. When the verdict
+    # blocks answers (``reveal_answers is False`` — e.g. the unanswered-block
+    # anti-peek red line), mask the structured answer as the LAST backstop.
+    #
+    # This is NOT a second decider and NOT an answer-content regex: it performs
+    # no adjudication, it only trusts the decision the upstream reveal authority
+    # (resolve_reveal_decision / should_block_unanswered_reference_reveal) already
+    # produced. Per-item correctness (answered item ⇒ reveal_answers True ⇒ pass)
+    # is owned by that authority. ``reveal_decision`` defaults to None so every
+    # existing call site is byte-for-byte unaffected.
+    if reveal_decision is not None and getattr(reveal_decision, "reveal_answers", True) is False:
+        return fallback
     raw = str(text or "")
     if preserve_outer_whitespace:
         if not raw.strip():

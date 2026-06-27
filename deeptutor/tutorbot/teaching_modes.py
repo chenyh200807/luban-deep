@@ -8,6 +8,7 @@ from typing import Any, Literal
 from deeptutor.core.grounding import GROUNDING_CLAUSE, extract_anchor_terms
 from deeptutor.services.question_followup import (
     looks_like_practice_generation_request,
+    should_block_unanswered_reference_reveal,
 )
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
 
@@ -679,6 +680,49 @@ def get_practice_generation_instruction(
 - 不要提前给答案、正确选项、参考答案、解析、评分点。
 - 等用户提交作答后，再进入批改、讲解或公布答案。
 - 只有当用户明确要求“带答案”“附解析”“公布答案”时，才可以透露答案与解析。
+""".strip()
+
+
+def build_unanswered_reveal_guard_instruction(
+    *,
+    followup_context: dict | None,
+    user_message: str | None,
+) -> str:
+    """Prompt-level anti-peek guard for the LLM free-text layer.
+
+    THIN WRAPPER — zero new adjudication. It only READS the already-adjudicated
+    ``should_block_unanswered_reference_reveal`` verdict (the single reveal
+    authority, ``question_followup.py``) for THIS turn's followup context +
+    message, and translates a True verdict into a prompt instruction that tells
+    the LLM not to solve/reveal the referenced *unanswered* question.
+
+    Why this exists (reachability act 1): the structured reveal layer
+    (``_reveal_reference_flags`` / ``coerce_user_visible_answer``) already
+    consumes the reveal authority, but the LLM free-text layer was bare — for a
+    multi-question set where "第N题怎么做" references an UNANSWERED item,
+    continuity injects QN's stem into the model's memory yet no prompt forbade
+    self-solving it. This wrapper is the prompt-side consumer of the SAME
+    ``should_block`` verdict; it adds no second decider and no answer regex.
+
+    Per-item correctness (answered item → not blocked, conceded → not blocked,
+    reveal flags present → not blocked) is entirely owned by ``should_block``.
+
+    NOTE (do NOT extend here): the continuity injection
+    (``teaching_modes.py`` cross-capability context / ``build_continuity_anchor_instruction``)
+    is what surfaces QN's stem into model memory. A reveal-masked continuity
+    variant is deliberately OUT OF SCOPE for this act and needs a Langfuse dump
+    of the actual injected text first. See plan:
+    docs/plan/题目生命周期与助教运行时/ (control-plane collapse — reachability act 1).
+    """
+    if not isinstance(followup_context, dict) or not followup_context:
+        return ""
+    if not should_block_unanswered_reference_reveal(user_message, followup_context):
+        return ""
+    return """
+本轮关联的以下题目，学生尚未作答：
+- 严禁直接给出或推导其答案、正确选项、参考答案、解析或评分点。
+- 即使用户问“第N题怎么做”“直接告诉我答案”，也要先引导其自己作答。
+- 只有当用户对该题已作答、明确放弃认输、或明确要求“公布答案/附解析”时，才可以透露。
 """.strip()
 
 

@@ -66,6 +66,7 @@ from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
     build_continuity_anchor_instruction,
     build_cross_capability_context_instruction,
+    build_unanswered_reveal_guard_instruction,
     correct_construction_exam_boundary_fact_response,
     get_construction_exam_boundary_fact_instruction,
     get_anchor_preservation_instruction,
@@ -3784,6 +3785,17 @@ class AgentLoop:
                 suppress_answer_reveal_on_generate=bool(
                     runtime_metadata.get("suppress_answer_reveal_on_generate")
                 ),
+            ),
+            # Reachability act 1 — prompt-side anti-peek for the LLM free-text
+            # layer. Independent gate from the question-supply gate above: this
+            # one fires when THIS turn's followup context carries an UNANSWERED
+            # referenced item ("第N题怎么做" / "直接告诉我答案"). The verdict is
+            # read from the single reveal authority (should_block_unanswered_
+            # reference_reveal); this only translates it to a prompt — no new
+            # decider, no answer regex.
+            build_unanswered_reveal_guard_instruction(
+                followup_context=self._followup_context_from_metadata(runtime_metadata),
+                user_message=current_message,
             ),
         ]
         runtime_instruction = "\n\n".join(
