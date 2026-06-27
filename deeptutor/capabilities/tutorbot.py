@@ -46,6 +46,7 @@ from deeptutor.services.semantic_router import (
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 from deeptutor.tutorbot.response_mode import (
+    active_object_requires_deep_mode,
     build_mode_execution_policy,
     normalize_requested_response_mode,
     resolve_requested_response_mode,
@@ -769,7 +770,15 @@ class TutorBotCapability(BaseCapability):
                 requested_mode,
                 user_message=context.user_message,
                 interaction_hints=hints if isinstance(hints, dict) else None,
-                has_active_object=TutorBotCapability._active_object_requires_deep(context),
+                has_active_object=active_object_requires_deep_mode(
+                    active_object=metadata.get("active_object")
+                    if isinstance(metadata.get("active_object"), dict)
+                    else None,
+                    followup_context=metadata.get("question_followup_context")
+                    if isinstance(metadata.get("question_followup_context"), dict)
+                    else None,
+                    user_message=context.user_message,
+                ),
             )
             if not selection_reason:
                 selection_reason = inferred_reason
@@ -778,35 +787,6 @@ class TutorBotCapability(BaseCapability):
             selected_mode=selected_mode,
             selection_reason=selection_reason,
         )
-
-    @staticmethod
-    def _active_object_requires_deep(context: UnifiedContext) -> bool:
-        metadata = context.metadata if isinstance(context.metadata, dict) else {}
-        active_object = metadata.get("active_object") if isinstance(metadata.get("active_object"), dict) else {}
-        if not active_object:
-            return False
-        object_type = str(active_object.get("object_type") or "").strip()
-        if object_type == "open_chat_topic":
-            return False
-
-        followup_context = normalize_question_followup_context(
-            metadata.get("question_followup_context")
-            if isinstance(metadata.get("question_followup_context"), dict)
-            else None
-        )
-        if object_type in {"question_set", "single_question"} and followup_context:
-            if looks_like_practice_generation_request(context.user_message):
-                return False
-            _, submission = resolve_submission_attempt(context.user_message, followup_context)
-            if submission:
-                return False
-            text = str(context.user_message or "").strip()
-            if (
-                any(marker in text for marker in ("我答", "我选", "批改", "判分", "打分"))
-                and re.search(r"第\s*[0-9一二两三四五六七八九十]+\s*[题问]", text)
-            ):
-                return False
-        return True
 
     @staticmethod
     def _dedupe_strings(values: list[str]) -> list[str]:

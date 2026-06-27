@@ -100,6 +100,7 @@ from deeptutor.services.session.sqlite_store import (
 from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
+    active_object_requires_deep_mode,
     normalize_requested_response_mode,
     resolve_requested_response_mode,
     select_response_mode,
@@ -1034,16 +1035,6 @@ def _active_object_plan_id(active_object: dict[str, Any] | None) -> str:
         if value:
             return value
     return ""
-
-
-def _active_object_requires_deep_mode(active_object: dict[str, Any] | None) -> bool:
-    normalized = normalize_active_object(active_object)
-    if not isinstance(normalized, dict):
-        return False
-    if extract_question_context_from_active_object(normalized) is not None:
-        return True
-    object_type = str(normalized.get("object_type") or "").strip()
-    return object_type not in {"", "open_chat_topic"}
 
 
 def _suspended_stack_plan_id(suspended_object_stack: list[dict[str, Any]] | None) -> str:
@@ -3616,9 +3607,18 @@ class TurnRuntimeManager:
                 requested_response_mode,
                 user_message=raw_user_content,
                 interaction_hints=runtime_interaction_hints,
-                has_active_object=bool(
-                    runtime_followup_question_context
-                    or _active_object_requires_deep_mode(mode_selection_active_object)
+                has_active_object=active_object_requires_deep_mode(
+                    active_object=(
+                        mode_selection_active_object
+                        if mode_selection_active_object is not None
+                        else build_active_object_from_question_context(
+                            runtime_followup_question_context
+                        )
+                        if runtime_followup_question_context is not None
+                        else None
+                    ),
+                    followup_context=runtime_followup_question_context,
+                    user_message=raw_user_content,
                 ),
             )
             validated_public_config = {
