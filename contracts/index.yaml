@@ -1122,16 +1122,27 @@ control_plane_writers:
     writer_type: metadata_assignment
     file: deeptutor/services/session/turn_runtime.py
     symbol: _enrich_result_question_authority_from_trace
-    allowed_role: production_decider
-    reason: Runtime relation/active-object/followup write before capability dispatch.
-    remove_when: Task 2 (QuestionTurnPolicyKernel collapse).
+    allowed_role: derived_projection
+    reason: >-
+      Task 2 collapse: not an independent followup judgment. Co-writes
+      active_object.state_snapshot = enriched_context in the SAME block
+      (turn_runtime ~:712-716), so followup_context is a pure projection of the
+      active_object this helper builds; the two cannot diverge. Authority being
+      merged is grading-authority (a different field), not followup_context.
+      Proven value-equal by tests/services/test_question_followup_context_derivation_audit.py.
+    remove_when: never (projection of active_object; collapses with active_object only).
   - field: question_followup_context
     writer_type: metadata_assignment
     file: deeptutor/services/session/turn_runtime.py
     symbol: _persist_and_publish
-    allowed_role: production_decider
-    reason: Runtime persists/applies QTPK-issued active-object / followup patch.
-    remove_when: Task 2/5 (runtime restore-persist only).
+    allowed_role: derived_projection
+    reason: >-
+      Task 2 collapse: not an independent followup judgment. When active_object
+      exists the written value IS extract_question_context_from_active_object(
+      active_object) verbatim (turn_runtime ~:6433-6439) — a literal derived
+      read, not a second decision; the no-active fallback only re-reads metadata.
+      Proven value-equal by tests/services/test_question_followup_context_derivation_audit.py.
+    remove_when: never (projection of active_object; collapses with active_object only).
   - field: question_followup_context
     writer_type: metadata_assignment
     file: deeptutor/services/session/turn_runtime.py
