@@ -29,7 +29,7 @@ orchestrator 删第三次解析（`_resolve_semantic_routing` 改读已签发 de
 | **S0** | 建 question_turn_policy.py 空模块 + import-allowlist CI guard + differential test 脚手架（旧路径 vs QTPK 同输入断言相同），不改调用方 | 零行为 | 无需 live（先做，最安全）|
 | **S1** | 物理搬 `_resolve_question_followup_context_and_action` + active_object helper + `_message_references_stored_question_set_item` 进 QTPK，callsite import 回去 | 零行为（纯 move parity）| unit parity + harness baseline 不变 |
 | **S2** | E8 `_merge_grading_result_into_active_set` 提纯函数进 QTPK，turn_runtime 只留 get/set，逐字保分支 | 零行为 | **判分 live≥3**（套题判一题不塌/单题/真切换）|
-| **S3** | 删 start_turn 预解析（消除第1次解析），mode-selection 读 QTPK 输出 | 改行为 | scene + 回指 live≥3 |
+| **S3** | 删 start_turn 预解析。**investigation 修正(2026-06-27): 非单片, 拆 4 子步**——start_turn 有①followup 重复解析(可删, 与 _run_turn 真重复)②mode-selection(fast/deep)=唯一权威 _run_turn 只消费。**新发现双权威**: 两个 _active_object_requires_deep(start_turn 粗版 turn_runtime:1039 vs tutorbot 细版 tutorbot:782 答题/出题 followup→fast)。删任一块改 fast/deep 学生面+chat_mode persist 退化(mobile 回显)+mirror 丢失。**S3a 收敛两个 _active_object_requires_deep 单一权威→S3b 建 mode 差分网→S3c 修 mobile persist→S3d 删 start_turn 块** | 改行为(学生面 fast/deep) | **每子步 fast/deep live≥3**(活跃题+讲解=deep/活跃题+答题=fast/活跃题+出题=fast/mirror followup/mobile 回显) |
 | **S4** | restore/demote/回指 收敛到 apply_active_object_transition（differential 暴露手写 vs canonical 差异，以 canonical 为准补 hard corpus）| 改行为（双权威收敛）| **回指+判分+scene live≥3**（最危险，拆 2 会话）|
 | **S5** | orchestrator 删第3次解析（读已签发 decision）+ 削重复 branch（Task 4）| 改行为 | autoroute+WS 全绿 + 回指/判分/scene live≥3 |
 
