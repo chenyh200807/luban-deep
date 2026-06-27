@@ -324,6 +324,7 @@ domains:
       - deeptutor/api/routers/mobile.py
     test_files:
       - tests/runtime/test_orchestrator_autoroute.py
+      - tests/runtime/test_orchestrator_preselect_canonical.py
       - tests/runtime/test_capability_routing_map_collapse.py
       - tests/runtime/test_orchestrator_semantic_router.py
       - tests/agents/question/test_coordinator_followup_anchor.py
@@ -340,6 +341,7 @@ domains:
       - tests/capabilities/test_request_contracts.py
       - tests/capabilities/test_tutorbot_authority.py
       - tests/capabilities/test_deep_question_question_review.py
+      - tests/capabilities/test_deep_question_canonical_fail_fast.py
       - tests/capabilities/test_deep_question_lightweight_generation.py
       - tests/capabilities/test_deep_question_mcq_full_submission.py
       - tests/capabilities/test_deep_question_full_submission_grading_authority.py
@@ -1192,6 +1194,22 @@ control_plane_writers:
       build_turn_semantic_decision on every practice route, mirroring deep_question's
       S7 generation values so the reader reads canonical instead of fabricating.
     remove_when: Task 2 (deep_question generation fabricate deletion after live-window proof).
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _ensure_preselect_canonical_decision
+    allowed_role: adapter_projection
+    reason: >-
+      Control-plane single-authority (治本 Action 2 Step 2): the deep_question preselect
+      branch returns without routing through _resolve_turn_semantic_decision, so it
+      bypassed the canonical signer and deep_question fabricated a second authority.
+      The orchestrator now setdefaults the canonical turn_semantic_decision on the
+      preselect path (submission/generation/followup sub-routes), mirroring the values
+      deep_question formerly fabricated, so the reader reads canonical instead of
+      fabricating. setdefault never overwrites an upstream canonical decision; the
+      orchestrator stays the sole signer (turn.md §硬约束 24).
+    remove_when: Task 2/4 (canonical decision signing collapses into the semantic router
+      so the preselect path resolves through it directly).
   - field: active_object
     writer_type: metadata_assignment
     file: deeptutor/capabilities/deep_question.py

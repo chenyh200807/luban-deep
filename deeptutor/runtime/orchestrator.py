@@ -581,15 +581,72 @@ class ChatOrchestrator:
                 context,
                 self._practice_generation_message(context, message),
             )
+            self._ensure_preselect_canonical_decision(context, next_action="route_to_generation")
             return
         if (
             followup_action_route(action) == "submission"
             or self._looks_like_question_submission(context, message)
         ):
             self._prepare_question_submission_context(context, action)
+            self._ensure_preselect_canonical_decision(context, next_action="route_to_grading")
             return
         if looks_like_practice_generation_request(message):
             self._prepare_practice_request_context(context, message)
+            self._ensure_preselect_canonical_decision(context, next_action="route_to_generation")
+            return
+        # Control-plane single-authority (治本 Action 2 Step 2): the preselect branch
+        # returns deep_question WITHOUT routing through ``_resolve_turn_semantic_decision``,
+        # so deep_question used to be reached without the canonical turn_semantic_decision
+        # and fabricated a second-authority fallback (turn.md §硬约束 24 — canonical is
+        # the orchestrator's sole authority). Supply it here for the remaining
+        # deep_question followup fall-through too, mirroring the question_review-no-active
+        # injection above. ``setdefault`` keeps any upstream canonical intact.
+        self._ensure_preselect_canonical_decision(
+            context, next_action="route_to_followup_explainer"
+        )
+
+    @staticmethod
+    def _ensure_preselect_canonical_decision(
+        context: UnifiedContext, *, next_action: str
+    ) -> None:
+        """Supply the canonical turn_semantic_decision on the deep_question preselect
+        path so deep_question READS it instead of fabricating a second authority.
+
+        Single authority closure (治本 Action 2 Step 2): the preselect branch bypasses
+        ``_resolve_turn_semantic_decision``; this mirrors the decision-bearing fields
+        deep_question formerly fabricated for each sub-route, so behavior is preserved
+        while the orchestrator stays the sole signer (turn.md §硬约束 24). ``setdefault``
+        never overwrites an upstream canonical decision.
+        """
+
+        if not isinstance(context.metadata, dict):
+            return
+        if context.metadata.get("turn_semantic_decision"):
+            return
+        active_object = normalize_active_object(context.metadata.get("active_object"))
+        if next_action == "route_to_grading":
+            relation = "answer_active_object"
+            allowed_patch = "update_answer_slot"
+            reason = "preselect deep_question submission canonical decision (turn.md §24)"
+        elif next_action == "route_to_generation":
+            relation = "continue_same_learning_flow" if active_object else "switch_to_new_object"
+            allowed_patch = "set_active_object"
+            reason = "preselect deep_question generation canonical decision (turn.md §24)"
+        else:
+            relation = "ask_about_active_object"
+            allowed_patch = "no_state_change"
+            reason = "preselect deep_question followup canonical decision (turn.md §24)"
+        context.metadata.setdefault(
+            "turn_semantic_decision",
+            build_turn_semantic_decision(
+                relation_to_active_object=relation,
+                next_action=next_action,
+                allowed_patch=allowed_patch,
+                confidence=1.0,
+                reason=reason,
+                active_object=active_object,
+            ),
+        )
 
     @staticmethod
     def _record_lifecycle_decision(
