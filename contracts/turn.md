@@ -206,3 +206,52 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
   不构成对同一决策的双重写。pipeline / task#14 / 相位边界证据见
   `tests/services/test_turn_start_demote_canonical_pipeline.py`。
 - **S4(b) 零行为**：只新增测试 + 文档 + 代码注释，turn-START demote 逻辑与 canonical 一字未改。
+
+## QTPK 物理抽出 S5（2026-06-27，turn_semantic_decision 的②③ pipeline 相位 + capability 映射收口，零行为 + byte-parity 收口）
+
+### S5-doc：`turn_semantic_decision` 的②③相位（pipeline 非冗余，零行为）
+
+`turn_semantic_decision` 跨**两个相位**产生，**唯一 canonical 签发点在③**，②是 observe-only 投影，
+**非双权威、非冗余**（investigation 已证 S5 原 premise "orchestrator 删第3次解析读已签发" 是**错的**——②不是
+canonical，删/绕③才会降级丢回指与历史 SEV-1）：
+
+- **②restore 相位（compat_projection，observe-only）**：`_run_turn` / QTPK 在 turn-START 先产
+  `followup_context` / `followup_question_action` / `active_object`（恢复态），随后
+  `deeptutor/services/session/turn_runtime.py::_build_turn_semantic_decision`（确定性映射
+  `followup_action_route` → relation/next_action/allowed_patch）产出一个**compat 投影**。
+  这只是给下游早期消费者的兼容快照，**不是路由权威**，会被③覆写。
+- **③routing 相位（canonical 唯一签发）**：orchestrator
+  `deeptutor/runtime/orchestrator.py::_resolve_semantic_routing`（→
+  `deeptutor/services/semantic_router.py::resolve_question_semantic_routing`）是
+  `turn_semantic_decision` 的**唯一 canonical 签发点**，history-aware（读 `conversation_context_text`）、
+  回指升级、ambiguity 判定、stack-resolve（出栈恢复）。它在
+  `_resolve_turn_semantic_decision` 里把 `metadata["turn_semantic_decision"]` **覆写**成 canonical 决策
+  （`turn_runtime.py:4409` 的②投影至此被③覆盖）。
+- **②③互补非冗余**：②是 turn-START 的 compat 投影，③是 routing 相位的 canonical 签发。**绝不能让③
+  "读已签发"（②的投影）当 canonical**——那会跳过 history-aware/回指升级，把依赖上下文的 turn fail-closed
+  成失忆（回指/历史 SEV-1）。S5 不动③签发逻辑。
+
+### S5-branch：decision→capability 映射收口（authority 3→1，byte-parity）
+
+`turn_semantic_decision` 的 **deep_question-route → capability + context 副作用** 映射原本在 orchestrator
+**三处手抄**：`_select_capability` 的 question_review active 分支、practice_generation active 分支、
+`_route_via_canonical_decision` fall-through。三处都对 `route_to_grading` 调
+`_prepare_question_submission_context`（load-bearing 重复）。
+
+- **收口单点 = `deeptutor/runtime/orchestrator.py::_map_canonical_decision_to_capability(context,
+  turn_decision, *, routing_user_message)`**：拥有 deep_question 路由的 next_action → context-prep 分发
+  （`route_to_grading` → submission prep / `route_to_generation` → practice prep / 其余如
+  `route_to_followup_explainer` → 无 prep）+ 返回 canonical `deep_question` capability 名。三处共用。
+  authority 真降（3 抄 → 1）。
+- **byte-parity**：caller 仍各自 gate **入口**（自己的 `semantic_route`/`next_action` accept-set）与
+  per-caller telemetry（`semantic_router_mode`/`mode_reason`/`shadow`），收口点只接管 deep_question 副作用 +
+  capability 名，故每个 caller 行为字节等价。active-lifecycle 两处的 accept-set 不含 `route_to_generation`，
+  故收口点的 generation 分支在那两处永不触发，parity 成立。
+- **三安全带不经收口点、未动**：① unresolved-switch-followup（`is_unresolved_switch_followup`）→ 上下文连续
+  chat/tutorbot（SEV-1，三处都在收口点**之前**短路）；② MCQ-grading preselect bypass（硬约束40）；
+  ③ deep_question preselect demote 非答题轮（task#20）。收口点**不读 / 不重签** canonical 决策，
+  `_resolve_semantic_routing`（③签发）一字未改。
+- **differential 证据**：`tests/runtime/test_capability_routing_map_collapse.py`（收口点契约 + 三 caller
+  端到端 capability/副作用 parity + 三安全带回归护栏）。
+- **S5 零行为**：只新增收口方法（三处旧 inline 副作用逐字搬入）+ 测试 + 文档 + 注释；路由 accept-set、
+  telemetry、③canonical 签发逻辑均未改。两份 index byte-identical。

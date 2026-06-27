@@ -248,19 +248,17 @@ class ChatOrchestrator:
                     "route_to_followup_explainer",
                     "route_to_grading",
                 }:
-                    if next_action == "route_to_grading":
-                        self._prepare_question_submission_context(
-                            context,
-                            context.metadata.get("question_followup_action"),
-                        )
                     context.metadata["semantic_router_mode"] = "question_lifecycle"
                     context.metadata["semantic_router_mode_reason"] = (
                         f"{lifecycle_decision.source}_question_review_active_object_{next_action}"
                     )
                     context.metadata["semantic_router_shadow_decision"] = {}
                     context.metadata["semantic_router_shadow_route"] = ""
-                    context.metadata["semantic_router_selected_capability"] = "deep_question"
-                    return "deep_question"
+                    return self._map_canonical_decision_to_capability(
+                        context,
+                        turn_decision,
+                        routing_user_message=routing_user_message,
+                    )
             if self._should_replace_active_context_for_question_review(
                 context,
                 routing_user_message,
@@ -327,19 +325,17 @@ class ChatOrchestrator:
                     "route_to_followup_explainer",
                     "route_to_grading",
                 }:
-                    if next_action == "route_to_grading":
-                        self._prepare_question_submission_context(
-                            context,
-                            context.metadata.get("question_followup_action"),
-                        )
                     context.metadata["semantic_router_mode"] = "question_lifecycle"
                     context.metadata["semantic_router_mode_reason"] = (
                         f"{lifecycle_decision.source}_practice_generation_active_object_{next_action}"
                     )
                     context.metadata["semantic_router_shadow_decision"] = {}
                     context.metadata["semantic_router_shadow_route"] = ""
-                    context.metadata["semantic_router_selected_capability"] = "deep_question"
-                    return "deep_question"
+                    return self._map_canonical_decision_to_capability(
+                        context,
+                        turn_decision,
+                        routing_user_message=routing_user_message,
+                    )
             self._prepare_practice_request_context(context, routing_user_message)
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
@@ -509,24 +505,58 @@ class ChatOrchestrator:
             context.metadata["semantic_router_selected_capability"] = cap_name
             return cap_name
         if semantic_route == "deep_question":
-            next_action = str((turn_decision or {}).get("next_action") or "").strip()
-            if next_action == "route_to_grading":
-                self._prepare_question_submission_context(
-                    context,
-                    context.metadata.get("question_followup_action"),
-                )
-            elif next_action == "route_to_generation":
-                self._prepare_practice_request_context(
-                    context,
-                    self._practice_generation_message(context, routing_user_message),
-                )
-            context.metadata["semantic_router_selected_capability"] = "deep_question"
-            return "deep_question"
+            return self._map_canonical_decision_to_capability(
+                context,
+                turn_decision,
+                routing_user_message=routing_user_message,
+            )
         # chat route OR None-route (no mappable canonical decision) → the
         # context-continuous default chat/tutorbot executor.
         cap_name = self._default_chat_capability(context)
         context.metadata["semantic_router_selected_capability"] = cap_name
         return cap_name
+
+    def _map_canonical_decision_to_capability(
+        self,
+        context: UnifiedContext,
+        turn_decision: dict[str, Any] | None,
+        *,
+        routing_user_message: str,
+    ) -> str:
+        """Single chokepoint: map a canonical ``deep_question``-route turn decision to
+        the ``deep_question`` capability AND run the matching context-prep side-effect.
+
+        Collapses the formerly-triplicated ``next_action`` → context-prep dispatch
+        (question_review active / practice_generation active /
+        _route_via_canonical_decision). Callers gate ENTRY on their own
+        ``semantic_route``/``next_action`` accept-set and the §6 safety belts
+        (unresolved-switch, ask_clarifying_question); this method owns only the
+        deep_question side-effect + capability name, so behavior is byte-parity per
+        caller:
+
+        * ``route_to_grading`` → ``_prepare_question_submission_context(context,
+          question_followup_action)`` (the load-bearing duplicate at the three sites).
+        * ``route_to_generation`` → ``_prepare_practice_request_context`` (only the
+          canonical fall-through ever passes this next_action).
+        * any other deep_question route (e.g. ``route_to_followup_explainer``) → no prep.
+
+        Returns the canonical ``deep_question`` capability name. Does NOT set the
+        per-caller ``semantic_router_mode``/``mode_reason``/``shadow`` telemetry — those
+        stay caller-owned. Does NOT read or re-sign the canonical decision.
+        """
+        next_action = str((turn_decision or {}).get("next_action") or "").strip()
+        if next_action == "route_to_grading":
+            self._prepare_question_submission_context(
+                context,
+                context.metadata.get("question_followup_action"),
+            )
+        elif next_action == "route_to_generation":
+            self._prepare_practice_request_context(
+                context,
+                self._practice_generation_message(context, routing_user_message),
+            )
+        context.metadata["semantic_router_selected_capability"] = "deep_question"
+        return "deep_question"
 
     @staticmethod
     def _question_lifecycle_decision_authority_enabled(context: UnifiedContext) -> bool:
