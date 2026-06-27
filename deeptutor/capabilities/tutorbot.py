@@ -20,6 +20,7 @@ from deeptutor.services.construction_grading.case_output_policy import (
 )
 from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.question_followup import (
+    _question_has_learner_attempt,
     annotate_submission_context_from_message,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
@@ -456,6 +457,28 @@ class TutorBotCapability(BaseCapability):
                 unanswered_reference_response,
                 execution_path="tutorbot_unanswered_reference_reprompt",
                 call_kind="unanswered_reference_reprompt",
+            )
+            return
+
+        # 判分倒诬 SEV (动作3 选项②): when the learner explicitly asks to reshuffle /
+        # re-list the options of an active *unanswered* MCQ, a free LLM would invent
+        # a new option order WITHOUT rebuilding state_snapshot / re-projecting
+        # correct_answer — grading then compares against the stale surface and 倒诬
+        # the learner. Deterministic fix: re-present the active question in CANONICAL
+        # order (answer hidden) + a fixed note, skipping the LLM entirely so no
+        # divergent surface is ever generated. Grading internals untouched. The
+        # safety belt (clarification / hint / answer / already-attempted / no
+        # options) all return None below and fall through to the normal LLM path.
+        reshuffle_canonical_response = self._build_reshuffle_canonical_represent_response(
+            context
+        )
+        if reshuffle_canonical_response is not None:
+            # Control-plane: reuse the registered terminal authority (same as the
+            # Action1 short-circuit above). Do NOT emit a raw stream.result here.
+            await _emit_lifecycle_terminal_response(
+                reshuffle_canonical_response,
+                execution_path="tutorbot_canonical_represent",
+                call_kind="canonical_represent",
             )
             return
 
@@ -1098,6 +1121,129 @@ class TutorBotCapability(BaseCapability):
         if not rendered:
             return None
         return f"{rendered}\n\n{cls._UNANSWERED_REFERENCE_NUDGE}"
+
+    # Fixed, deterministic note prepended to the canonical re-presentation of an
+    # active MCQ when the learner explicitly asks to reshuffle the options. Static
+    # text — never LLM-generated. Explains why the order is kept canonical so the
+    # learner understands the surface was not actually re-ordered.
+    _RESHUFFLE_CANONICAL_NOTE = (
+        "为保证判分准确，选项顺序以原题为准，这道题展示如下："
+    )
+
+    # 窄 deterministic intent markers for an explicit "reshuffle / re-list the
+    # options" request. Stable format, not a semantic classifier: only an explicit
+    # reorder verb co-occurring with an option/order/label noun fires the
+    # short-circuit. Clarification ("A选项什么意思"), hints ("这题提示下"), and
+    # answers ("我选B") contain none of these reorder verbs and fall through to the
+    # LLM. Over-trigger is the primary risk; keep this list narrow.
+    _RESHUFFLE_INTENT_VERBS = (
+        "打乱",
+        "重排",
+        "重新排",
+        "重新排列",
+        "换个顺序",
+        "换顺序",
+        "调换",
+        "对调",
+    )
+    _RESHUFFLE_INTENT_NOUNS = (
+        "选项",
+        "顺序",
+        "位置",
+        "abcd",
+        "ＡＢＣＤ",
+    )
+
+    @classmethod
+    def _looks_like_reshuffle_request(cls, message: str) -> bool:
+        """Narrow deterministic detector for an explicit option-reshuffle intent.
+
+        Returns True only when the message contains BOTH a reorder verb (打乱 /
+        重排 / 换个顺序 / 调换 …) AND an option/order/label noun (选项 / 顺序 /
+        位置 / ABCD). A bare verb or bare noun does not fire — this keeps
+        clarification / hint / answer turns out of the short-circuit.
+        """
+
+        text = str(message or "").strip().lower()
+        if not text:
+            return False
+        if not any(verb in text for verb in cls._RESHUFFLE_INTENT_VERBS):
+            return False
+        return any(noun in text for noun in cls._RESHUFFLE_INTENT_NOUNS)
+
+    @classmethod
+    def _build_reshuffle_canonical_represent_response(
+        cls, context: UnifiedContext
+    ) -> str | None:
+        """Deterministic canonical re-presentation for an explicit reshuffle request.
+
+        判分倒诬 SEV (动作3 选项②). When a learner explicitly asks to reshuffle /
+        re-list the options of an *active unanswered MCQ*, routing the turn through
+        a free LLM lets it invent a NEW option order without rebuilding the
+        state_snapshot or re-projecting correct_answer — grading then compares
+        against the old surface and 倒诬 the learner. The deterministic fix is to
+        NOT call the LLM: re-present the active question in CANONICAL order
+        (state_snapshot.options 原序, answer hidden) plus a fixed note. This keeps
+        the presented surface and the grading anchor identical. The grading
+        internals (answers_match / mcq.py) are untouched.
+
+        Returns the rendered note + stem + canonical options when, and only when:
+
+        - there is an active question with options (single MCQ or batch primary);
+        - the question is NOT yet attempted (reuse _question_has_learner_attempt);
+        - the message is an explicit reshuffle intent (_looks_like_reshuffle_request).
+
+        Returns None otherwise (caller falls through to the normal LLM path),
+        preserving the safety belt: clarification / hint / answer turns lack the
+        reorder intent; already-attempted questions fail the unanswered gate;
+        written questions / plain chat lack options. The correct_answer /
+        grading_key is intentionally NOT read — _render_question_response is called
+        with reveal_answers=False / reveal_explanations=False.
+        """
+
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        followup_context = metadata.get("question_followup_context")
+        normalized = normalize_question_followup_context(
+            followup_context if isinstance(followup_context, dict) else None
+        )
+        if not normalized:
+            return None
+
+        # Gate #1: explicit, narrow reshuffle intent (deterministic, stable-format).
+        if not cls._looks_like_reshuffle_request(context.user_message):
+            return None
+
+        # Resolve the active MCQ surface to re-present. A single active MCQ carries
+        # its stem + options at the top level; a batch carries them in items[]. The
+        # active object's first item is the canonical surface authority.
+        items = normalized.get("items") or []
+        if isinstance(items, list) and items:
+            target = items[0] if isinstance(items[0], dict) else None
+        else:
+            target = normalized
+        if not isinstance(target, dict):
+            return None
+
+        # Gate #2: there must actually be options to (re-)present. Written
+        # questions / plain chat have none -> fall through to the LLM.
+        options = target.get("options")
+        if not isinstance(options, dict) or not options:
+            return None
+
+        # Gate #3 (single authority, reused verbatim): the question must be
+        # unanswered. Re-presenting an already-graded surface is out of scope and
+        # could confuse a learner mid-review -> fall through to the LLM.
+        if _question_has_learner_attempt(normalized):
+            return None
+
+        rendered = cls._render_question_response(
+            {"results": [{"qa_pair": target}]},
+            reveal_answers=False,
+            reveal_explanations=False,
+        )
+        if not rendered:
+            return None
+        return f"{cls._RESHUFFLE_CANONICAL_NOTE}\n\n{rendered}"
 
     def _default_bot_config(self, context: UnifiedContext) -> BotConfig | None:
         bot_id = self._bot_id(context)
