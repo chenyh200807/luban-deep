@@ -108,6 +108,7 @@ WRITER_MAP_FILES: tuple[str, ...] = (
     "deeptutor/capabilities/tutorbot.py",
     "deeptutor/services/construction_grading/deep_question_adapter.py",
     "deeptutor/core/stream_bus.py",
+    "deeptutor/core/terminal_result_assembler.py",
     "deeptutor/api/routers/unified_ws.py",
 )
 

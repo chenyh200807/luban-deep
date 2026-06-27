@@ -29,6 +29,7 @@ from deeptutor.contracts.bot_runtime_defaults import (
     resolve_bot_runtime_defaults as resolve_bot_binding_defaults,
 )
 from deeptutor.core.stream import StreamEvent, StreamEventType
+from deeptutor.core.terminal_result_assembler import TerminalResultAssembler
 from deeptutor.logging.context import bind_log_context, reset_log_context
 from deeptutor.services.exam_track import (
     exam_track_label,
@@ -338,8 +339,9 @@ def _build_synthetic_result_from_final_content(
     response = normalize_markdown_for_tutorbot(coerce_user_visible_answer(content))
     if not response.strip():
         return None
-    return StreamEvent(
-        type=StreamEventType.RESULT,
+    # Control-plane Task 5 Slice 1: terminal RESULT frame shaped by the single
+    # TerminalResultAssembler authority. No-reveal, no-verdict; byte-identical.
+    return TerminalResultAssembler.build_event(
         source=source or "turn_runtime",
         metadata={
             "response": response,
@@ -4783,11 +4785,10 @@ class TurnRuntimeManager:
                         "guardrail": "tutorbot_security_skill",
                     },
                 ),
-                StreamEvent(
-                    type=StreamEventType.RESULT,
+                TerminalResultAssembler.build_event(
                     source=public_source,
-                    stage="responding",
                     metadata=security_metadata,
+                    stage="responding",
                 ),
                 StreamEvent(
                     type=StreamEventType.STAGE_END,

@@ -20,6 +20,7 @@ from deeptutor.capabilities.request_contracts import get_capability_request_sche
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
+from deeptutor.core.terminal_result_assembler import TerminalResultAssembler
 from deeptutor.core.trace import merge_trace_metadata
 from deeptutor.services.citations import (
     CitationPolicy,
@@ -4657,24 +4658,17 @@ class DeepQuestionCapability(BaseCapability):
         sources: list[dict[str, Any]] | None = None,
         emit_content_when_enabled: bool = True,
     ) -> None:
-        if "response" in result_payload:
-            citation_enabled = answer_citations_enabled()
-            citation_metadata: dict[str, Any] = {}
-            result_payload["response"] = apply_answer_citation_metadata(
-                citation_metadata,
-                response=str(result_payload.get("response") or ""),
-                sources=sources or [],
-                policy=CitationPolicy(surface="student"),
-                enabled=citation_enabled,
-            )
-            result_payload.update(citation_metadata)
-            if citation_enabled and emit_content_when_enabled:
-                await stream.content(
-                    str(result_payload["response"] or ""),
-                    source=self.name,
-                    stage=stage,
-                )
-        await stream.result(result_payload, source=self.name)
+        # Control-plane Task 5 Slice 1: the citation surface strategy + terminal
+        # RESULT frame are owned by TerminalResultAssembler (single contentful
+        # visible-output authority). Behaviour-preserving: byte-identical frame.
+        await TerminalResultAssembler.emit(
+            stream,
+            result_payload,
+            capability_name=self.name,
+            stage=stage,
+            sources=sources,
+            emit_content_when_enabled=emit_content_when_enabled,
+        )
 
     @staticmethod
     def _followup_action_from_submission(submission: dict[str, Any]) -> dict[str, Any]:

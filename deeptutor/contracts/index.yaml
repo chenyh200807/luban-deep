@@ -283,6 +283,7 @@ domains:
       - tests/services/learner_state/test_subjective_focus_priority.py
       - tests/services/learner_state/test_dispute_revalidation_readside.py
       - tests/services/learner_state/test_home_personalization_imports.py
+      - tests/core/test_terminal_result_assembler.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
@@ -349,6 +350,7 @@ domains:
       - tests/services/observability/test_control_plane_shadow_hits.py
       - wx_miniprogram/tests/test_ai_message_state.js
       - yousenwebview/tests/test_question_review_readonly_mcq.js
+      - tests/core/test_terminal_result_assembler.py
     schema_files:
       - deeptutor/capabilities/request_contracts.py
 
@@ -778,13 +780,6 @@ control_plane_writers:
     allowed_role: production_decider
     reason: deep_question emits result/progress via StreamBus.
     remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
-  - field: visible_result
-    writer_type: stream_result
-    file: deeptutor/capabilities/deep_question.py
-    symbol: _emit_result_with_citations
-    allowed_role: production_decider
-    reason: deep_question emits result/progress via StreamBus.
-    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
   - field: visible_transport_frame
     writer_type: stream_progress
     file: deeptutor/capabilities/deep_question.py
@@ -861,6 +856,13 @@ control_plane_writers:
     symbol: result
     allowed_role: canonical_writer
     reason: StreamBus is the single visible-frame transport authority.
+    remove_when: never
+  - field: visible_result
+    writer_type: stream_result
+    file: deeptutor/core/terminal_result_assembler.py
+    symbol: build_event
+    allowed_role: canonical_writer
+    reason: TerminalResultAssembler is the single contentful visible-output (terminal RESULT) shaping authority; thin wrapper over StreamBus transport.
     remove_when: never
   - field: visible_transport_frame
     writer_type: stream_progress
@@ -1093,20 +1095,6 @@ control_plane_writers:
     allowed_role: trace_projection
     reason: Mirrors canonical fact into trace_metadata for observability.
     remove_when: never
-  - field: visible_result
-    writer_type: stream_result
-    file: deeptutor/services/session/turn_runtime.py
-    symbol: _build_synthetic_result_from_final_content
-    allowed_role: production_decider
-    reason: Runtime transport frame (synthetic result / progress).
-    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
-  - field: visible_result
-    writer_type: stream_result
-    file: deeptutor/services/session/turn_runtime.py
-    symbol: _complete_security_guardrail_turn
-    allowed_role: production_decider
-    reason: Runtime transport frame (synthetic result / progress).
-    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
   - field: visible_transport_frame
     writer_type: stream_progress
     file: deeptutor/services/session/turn_runtime.py
