@@ -146,3 +146,20 @@
 - `tests/api/test_mobile_router.py`
 - `tests/services/test_semantic_router.py`
 - `tests/runtime/test_orchestrator_semantic_router.py`
+
+## QTPK 物理抽出 S1（2026-06-27，控制面收权 Task 2/4 物理执行）
+
+question-turn policy 解析器（`_resolve_question_followup_context_and_action` + submission-intent
+cluster + active_object 身份 helper）已**物理搬出 `turn_runtime.py`**，住进单一权威模块
+`deeptutor/services/question_turn_policy.py`（QuestionTurnPolicyKernel）。TurnRuntime 通过
+import 回去调用，callsite 行为不变（byte-identical move，differential parity 验证）。
+
+- **不变量**：question-turn policy 的解析逻辑单一物理归宿 = QTPK；TurnRuntime 朝 transport-only
+  （auth+persist+stream+replay+deadline）瘦身。
+- **QTPK 边界**（import-allowlist guard `check_qtpk_import_allowlist.py` 强制）：QTPK 只 import
+  canonical question-turn 解析器（semantic_router / question_lifecycle_skills /
+  active_object_builder / question_followup）+ stdlib；禁 LLM/grading-module/RAG/learner-state/
+  reveal/terminal/turn_runtime/orchestrator（god-object 防线）。
+- **S1 范围**：纯物理搬迁 + guard calibration，零行为。后续 S2（E8 grading merge 进 QTPK）、
+  S3（删 start_turn 预解析）、S4（restore/demote 收敛 apply_active_object_transition）、
+  S5（orchestrator 削第三次解析）见 `docs/plan/2026-06-27-qtpk-physical-extraction-turnruntime-thinning-execution-plan.md`。

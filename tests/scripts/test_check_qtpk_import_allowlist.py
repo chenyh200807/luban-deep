@@ -61,6 +61,35 @@ def test_active_object_builder_module_import_is_clean() -> None:
     assert CHK.evaluate_qtpk_imports(source, _REL) == []
 
 
+def test_allowed_module_grading_named_imports_are_clean() -> None:
+    # Regression for the substring bug: a forbidden substring in the *imported
+    # name* (not the module path) of an ALLOWED canonical module must NOT be
+    # flagged. The forbidden-substring red line is about the MODULE the import
+    # pulls from, not the symbol names that module legitimately exports. These
+    # three grading-named predicates are real exports of the allowed
+    # ``question_lifecycle_skills`` module that QTPK must be able to forward to.
+    source = (
+        "from deeptutor.services.question_lifecycle_skills import (\n"
+        "    looks_like_free_text_mcq_grading_request,\n"
+        "    mcq_grading_context_from_full_submission,\n"
+        "    case_grading_context_from_full_submission,\n"
+        ")\n"
+    )
+    violations = CHK.evaluate_qtpk_imports(source, _REL)
+    assert violations == [], _msgs(violations)
+
+
+def test_allowed_question_followup_grading_named_import_is_clean() -> None:
+    # Same regression on the ``question_followup`` allowed module: an imported
+    # name carrying a forbidden substring must not trip the red line when the
+    # source module is on the allowlist.
+    source = (
+        "from deeptutor.services.question_followup import "
+        "requested_question_item_index\n"
+    )
+    assert CHK.evaluate_qtpk_imports(source, _REL) == []
+
+
 # --- Forbidden imports are rejected (exit-2 substrings) -------------------------
 def test_llm_client_import_is_forbidden() -> None:
     source = "from deeptutor.services.llm_client import LLMClient\n"

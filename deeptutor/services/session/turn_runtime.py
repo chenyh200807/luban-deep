@@ -53,31 +53,33 @@ from deeptutor.services.observability.identity_bridge import enrich_trace_metada
 from deeptutor.services.observability.turn_event_log import build_turn_observation_event
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
-    batch_answer_action_for_numbered_single,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     followup_action_route,
-    interpret_question_followup_action,
-    looks_like_question_followup,
     normalize_question_followup_context,
-    reset_question_submission_state,
-    resolve_submission_attempt,
-    submission_confidence,
 )
-from deeptutor.services.question_lifecycle_skills import (
-    case_grading_context_from_full_submission,
-    looks_like_free_text_mcq_grading_request,
-    looks_like_free_text_mcq_question_surface,
-    looks_like_full_case_answer_submission,
-    mcq_grading_context_from_full_submission,
-    split_full_case_answer_submission,
+from deeptutor.services.question_turn_policy import (
+    _active_object_ref,
+    _message_references_stored_question_set_item,
+    _normalize_question_followup_action,
+    _resolve_question_followup_context_and_action,
+    _same_active_object_identity,
+)
+
+# QTPK physical extraction (S1): these submission-intent helpers were physically
+# moved to ``question_turn_policy`` but are still imported from this module by
+# tests/scripts. Re-export them (redundant ``as`` alias marks the intentional
+# re-export so ruff does not flag F401) so the move is transparent to every
+# existing ``from ...turn_runtime import _<helper>`` callsite.
+from deeptutor.services.question_turn_policy import (
+    _merge_public_submission_with_authoritative_context as _merge_public_submission_with_authoritative_context,
+)
+from deeptutor.services.question_turn_policy import (
+    _submission_action_for_user_message as _submission_action_for_user_message,
 )
 from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
-)
-from deeptutor.services.semantic_router import (
-    has_explicit_practice_generation_intent,
 )
 from deeptutor.services.semantic_router_telemetry import (
     build_semantic_router_telemetry_event,
@@ -100,7 +102,6 @@ from deeptutor.tutorbot.response_mode import (
     resolve_requested_response_mode,
     select_response_mode,
 )
-from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 logger = logging.getLogger(__name__)
 observability = get_langfuse_observability()
@@ -1013,30 +1014,6 @@ def _env_flag(name: str, default: bool = True) -> bool:
     return raw not in {"0", "false", "no", "off"}
 
 
-def _normalize_question_followup_action(raw: Any) -> dict[str, Any] | None:
-    if not isinstance(raw, dict):
-        return None
-    intent = str(raw.get("intent") or "").strip()
-    if not intent:
-        return None
-    return {
-        "intent": intent,
-        "confidence": raw.get("confidence"),
-        "preserve_other_answers": bool(raw.get("preserve_other_answers", False)),
-        "answers": raw.get("answers") if isinstance(raw.get("answers"), list) else [],
-        "reason": str(raw.get("reason") or "").strip(),
-    }
-
-
-def _active_object_ref(active_object: dict[str, Any] | None) -> dict[str, Any]:
-    if not isinstance(active_object, dict):
-        return {}
-    return {
-        "object_type": str(active_object.get("object_type") or "").strip(),
-        "object_id": str(active_object.get("object_id") or "").strip(),
-    }
-
-
 def _active_object_plan_id(active_object: dict[str, Any] | None) -> str:
     normalized = normalize_active_object(active_object)
     if not isinstance(normalized, dict):
@@ -1067,52 +1044,12 @@ def _active_object_requires_deep_mode(active_object: dict[str, Any] | None) -> b
     return object_type not in {"", "open_chat_topic"}
 
 
-def _same_active_object_identity(
-    left: dict[str, Any] | None,
-    right: dict[str, Any] | None,
-) -> bool:
-    normalized_left = normalize_active_object(left)
-    normalized_right = normalize_active_object(right)
-    if not isinstance(normalized_left, dict) or not isinstance(normalized_right, dict):
-        return False
-    return (
-        str(normalized_left.get("object_type") or "").strip()
-        == str(normalized_right.get("object_type") or "").strip()
-        and str(normalized_left.get("object_id") or "").strip()
-        == str(normalized_right.get("object_id") or "").strip()
-    )
-
-
 def _suspended_stack_plan_id(suspended_object_stack: list[dict[str, Any]] | None) -> str:
     for item in normalize_suspended_object_stack(suspended_object_stack):
         plan_id = _active_object_plan_id(item)
         if plan_id:
             return plan_id
     return ""
-
-
-def _message_references_stored_question_set_item(
-    message: str,
-    stored_question_context: dict[str, Any] | None,
-) -> bool:
-    """True if ``message`` references an item of the stored batch question_set by ordinal
-    ("第N题"), via the single ordinal→item authority
-    (``question_followup.requested_question_item_index``, same one the submission path uses).
-
-    Used by the turn-start suspend guard to NOT demote an active batch set into the
-    suspended stack when the user is actually referring to one of its items (task#14):
-    keeping the set in active_object lets the scene low-information gate anchor "第N题".
-    """
-
-    if not stored_question_context:
-        return False
-    try:
-        from deeptutor.services.question_followup import (  # noqa: WPS433
-            requested_question_item_index,
-        )
-    except Exception:
-        return False
-    return requested_question_item_index(message, stored_question_context) is not None
 
 
 def _prepend_suspended_object(
@@ -1173,262 +1110,6 @@ def _build_turn_semantic_decision(
     )
 
 
-def _context_has_reference_answer(context: dict[str, Any] | None) -> bool:
-    def _item_has_reference_answer(item: dict[str, Any] | None) -> bool:
-        if not isinstance(item, dict):
-            return False
-        if str(item.get("correct_answer") or "").strip():
-            return True
-        grading_key = item.get("grading_key")
-        return isinstance(grading_key, dict) and bool(
-            str(grading_key.get("correct_answer") or "").strip()
-        )
-
-    normalized = normalize_question_followup_context(context)
-    if normalized is None:
-        return False
-    if _item_has_reference_answer(normalized):
-        return True
-    return any(_item_has_reference_answer(item) for item in normalized.get("items") or [])
-
-
-def _merge_public_submission_with_authoritative_context(
-    explicit_context: dict[str, Any] | None,
-    candidate_context: dict[str, Any] | None,
-) -> dict[str, Any] | None:
-    explicit = normalize_question_followup_context(explicit_context)
-    candidate = normalize_question_followup_context(candidate_context)
-    if explicit is None or candidate is None:
-        return None
-    if _context_has_reference_answer(explicit) or not _context_has_reference_answer(candidate):
-        return None
-
-    explicit_items = explicit.get("items") or []
-    candidate_items = candidate.get("items") or []
-    if explicit_items and candidate_items:
-        merged_items = [dict(item) for item in candidate_items]
-        candidate_by_id = {
-            str(item.get("question_id") or "").strip(): index
-            for index, item in enumerate(candidate_items)
-            if str(item.get("question_id") or "").strip()
-        }
-        for index, item in enumerate(explicit_items):
-            target_index = candidate_by_id.get(str(item.get("question_id") or "").strip(), index)
-            if target_index < 0 or target_index >= len(merged_items):
-                continue
-            user_answer = str(item.get("user_answer") or "").strip()
-            if user_answer:
-                merged_items[target_index]["user_answer"] = user_answer
-        merged = dict(candidate)
-        merged["items"] = merged_items
-        merged_user_answer = str(explicit.get("user_answer") or "").strip()
-        if merged_user_answer:
-            merged["user_answer"] = merged_user_answer
-        return normalize_question_followup_context(merged)
-
-    if candidate_items:
-        explicit_question_id = str(explicit.get("question_id") or "").strip()
-        target_index: int | None = None
-        if explicit_question_id:
-            for index, item in enumerate(candidate_items):
-                if str(item.get("question_id") or "").strip() == explicit_question_id:
-                    target_index = index
-                    break
-        elif len(candidate_items) == 1:
-            target_index = 0
-        if target_index is not None and 0 <= target_index < len(candidate_items):
-            merged = dict(candidate_items[target_index])
-            user_answer = str(explicit.get("user_answer") or "").strip()
-            if user_answer:
-                merged["user_answer"] = user_answer
-            return normalize_question_followup_context(merged)
-
-    explicit_question_id = str(explicit.get("question_id") or "").strip()
-    candidate_question_id = str(candidate.get("question_id") or "").strip()
-    if explicit_question_id and candidate_question_id and explicit_question_id != candidate_question_id:
-        return None
-    merged = dict(candidate)
-    user_answer = str(explicit.get("user_answer") or "").strip()
-    if user_answer:
-        merged["user_answer"] = user_answer
-    return normalize_question_followup_context(merged)
-
-
-def _practice_generation_action_for_explicit_request(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> dict[str, Any] | None:
-    if not looks_like_practice_generation_request(user_message):
-        return None
-    if not has_explicit_practice_generation_intent(user_message):
-        return None
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return None
-    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
-    if submission is not None:
-        return None
-    return {
-        "intent": "generate_more_questions",
-        "confidence": 0.86,
-        "answers": [],
-        "reason": "用户明确要求出题/选择题，应生成新题而不是批改当前题目。",
-    }
-
-
-def _looks_like_batch_correction_reference(user_message: str) -> bool:
-    return bool(
-        re.search(r"第\s*[0-9一二两三四五六七八九十]+\s*[题问]?", user_message)
-        and ("不动" in user_message or "不变" in user_message or "不改" in user_message)
-    )
-
-
-def _normalize_question_identity_text(value: Any) -> str:
-    text = str(value or "").strip().lower()
-    return re.sub(r"[\s　，,。.!！?？；;：:、/／+\-—_（）()【】\[\]<>《》\"'“”‘’]+", "", text)
-
-
-def _identity_ngrams(text: str, *, size: int = 2) -> set[str]:
-    normalized = _normalize_question_identity_text(text)
-    if len(normalized) < size:
-        return set()
-    return {normalized[index : index + size] for index in range(0, len(normalized) - size + 1)}
-
-
-def _question_context_matches_free_text_surface(
-    user_message: str,
-    question_context: dict[str, Any],
-) -> bool:
-    message_identity = _normalize_question_identity_text(user_message)
-    if not message_identity:
-        return False
-
-    question_identity = _normalize_question_identity_text(question_context.get("question"))
-    if question_identity:
-        if len(question_identity) >= 10 and question_identity in message_identity:
-            return True
-        question_grams = _identity_ngrams(question_identity)
-        if question_grams:
-            message_grams = _identity_ngrams(message_identity)
-            overlap_ratio = len(question_grams & message_grams) / max(len(question_grams), 1)
-            if overlap_ratio >= 0.55:
-                return True
-        return False
-
-    options = question_context.get("options") if isinstance(question_context, dict) else None
-    if not isinstance(options, dict) or not options:
-        return False
-    option_hits = 0
-    for value in options.values():
-        option_identity = _normalize_question_identity_text(value)
-        if len(option_identity) >= 2 and option_identity in message_identity:
-            option_hits += 1
-    return option_hits >= min(2, len(options))
-
-
-def _question_context_matches_current_surface(
-    user_message: str,
-    current_surface_context: dict[str, Any],
-    question_context: dict[str, Any],
-) -> bool:
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return False
-    current_type = str(current_surface_context.get("question_type") or "").strip().lower()
-    if current_type == "case":
-        return _case_context_matches_full_case_surface(user_message, normalized_context)
-    return _question_context_matches_free_text_surface(user_message, normalized_context)
-
-
-def _case_context_matches_full_case_surface(
-    user_message: str,
-    question_context: dict[str, Any],
-) -> bool:
-    message_identity = _normalize_question_identity_text(user_message)
-    if not message_identity:
-        return False
-
-    def _has_current_question_anchor(value: Any) -> bool:
-        text = str(value or "")
-        return bool(
-            "【问题" in text
-            or "问题】" in text
-            or re.search(r"问题\s*[：:]", text)
-            or "？" in text
-            or "?" in text
-        )
-
-    def _question_identity_values(context: dict[str, Any]):
-        for key in ("question", "question_stem", "stem"):
-            yield context.get(key)
-        for item in context.get("items") or []:
-            if not isinstance(item, dict):
-                continue
-            for key in ("question", "question_stem", "stem"):
-                yield item.get(key)
-
-    for value in _question_identity_values(question_context):
-        if not _has_current_question_anchor(value):
-            continue
-        question_identity = _normalize_question_identity_text(value)
-        if len(question_identity) >= 8 and (
-            question_identity in message_identity or message_identity in question_identity
-        ):
-            return True
-    return False
-
-
-def _annotate_full_case_submission_context(
-    user_message: str,
-    question_context: dict[str, Any],
-) -> dict[str, Any]:
-    _stem, learner_answer = split_full_case_answer_submission(user_message)
-    if not learner_answer.strip():
-        return question_context
-    updated = dict(question_context)
-    updated["user_answer"] = learner_answer.strip()
-    return updated
-
-
-def _full_case_submission_action() -> dict[str, Any]:
-    return {
-        "intent": "answer_questions",
-        "confidence": 0.92,
-        "answers": [],
-        "reason": "用户消息包含当前完整案例题题面和作答，优先进入案例批改。",
-    }
-
-
-def _current_surface_submission_context_and_action(
-    user_message: str,
-) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
-    mcq_context = mcq_grading_context_from_full_submission(user_message)
-    if mcq_context is not None:
-        submission_context, submission_action = _submission_action_for_user_message(
-            user_message,
-            mcq_context,
-        )
-        if submission_action is None and str(mcq_context.get("user_answer") or "").strip():
-            submission_action = {
-                "intent": "answer_questions",
-                "confidence": 0.92,
-                "answers": [
-                    {
-                        "question_id": str(mcq_context.get("question_id") or "").strip(),
-                        "answer": str(mcq_context.get("user_answer") or "").strip(),
-                    }
-                ],
-                "reason": "用户消息包含当前完整选择题题面和作答，优先进入批改。",
-            }
-        return submission_context or mcq_context, submission_action
-
-    case_context = case_grading_context_from_full_submission(user_message)
-    if case_context is not None:
-        return case_context, _full_case_submission_action()
-
-    return None, None
-
-
 _QUESTION_LIFECYCLE_METADATA_KEYS = (
     "question_lifecycle_scene",
     "question_lifecycle_scene_source",
@@ -1446,337 +1127,6 @@ def _question_lifecycle_metadata_from_config(config: dict[str, Any] | None) -> d
         for key in _QUESTION_LIFECYCLE_METADATA_KEYS
         if config.get(key) not in (None, "", [], {})
     }
-
-
-def _should_ignore_explicit_context_for_free_text_mcq(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> bool:
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return False
-    if not (
-        looks_like_free_text_mcq_grading_request(user_message)
-        and looks_like_free_text_mcq_question_surface(user_message)
-    ):
-        return False
-    return not _question_context_matches_free_text_surface(user_message, normalized_context)
-
-
-def _submission_action_for_user_message(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return None, None
-    items = normalized_context.get("items") or []
-    if not items and _looks_like_batch_correction_reference(user_message):
-        return normalized_context, None
-    target_context, submission = resolve_submission_attempt(user_message, normalized_context)
-    if (
-        items
-        and _looks_like_batch_correction_reference(user_message)
-        and isinstance(submission, dict)
-        and submission.get("kind") != "batch"
-    ):
-        return normalized_context, None
-    if not target_context or not submission:
-        return normalized_context, None
-    if submission.get("kind") == "ambiguous":
-        return target_context, None
-    if submission.get("kind") == "batch":
-        return target_context, {
-            "intent": "answer_questions",
-            "confidence": 0.92,
-            "answers": submission.get("answers") or [],
-            "reason": "用户消息包含当前题组的可解析答案，优先进入批改。",
-        }
-    # object-continuity (E8 SEV-1): a numbered single answer to ONE item of a multi-item
-    # set must be graded WITHIN the full set so the other items survive — returning the
-    # narrowed single context here collapses the set at turn-start (before any capability
-    # runs), so a later "第1题" binds to the 1-item set and grades the wrong question.
-    # This is the single chokepoint above both tutorbot and deep_question grading paths.
-    batch_action = batch_answer_action_for_numbered_single(submission, normalized_context)
-    if batch_action is not None:
-        return normalized_context, batch_action
-    # 判分态单一权威收口 Step 5 (2026-06-24, 单一 chokepoint): 这是 submission action 的最上游
-    # 构造点(decider map 自承"single chokepoint above both grading paths")。只有 HIGH 置信的
-    # 裸单题作答才在此构造 answer_questions 提交动作;LOW 置信(试探/推迟,如"我猜A但你先别判",
-    # submission_confidence 首子句非干净答案)不构造 → 下游不缓存 submission、不进判分。把 Step
-    # 4.5/4.6 的逐路径 gate 收敛到单一最早点(未来新增下游消费路径自动继承,止 whack-a-mole);
-    # per-path gate 保留作 defense-in-depth。保硬约束40:HIGH 裸作答仍构造提交动作必判。
-    # batch / numbered-single 是显式结构化提交(=HIGH),走上面分支,不经此 gate。
-    if submission_confidence(user_message, normalized_context) == "low":
-        return normalized_context, None
-    return target_context, {
-        "intent": "answer_questions",
-        "confidence": 0.92,
-        "answers": [
-            {
-                "question_id": submission.get("question_id", ""),
-                "answer": str(submission.get("answer") or "").strip(),
-            }
-        ],
-        "reason": "用户消息包含当前题目的可解析答案，优先进入批改。",
-    }
-
-
-def _deterministic_followup_action_for_user_message(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> dict[str, Any] | None:
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return None
-    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
-    if isinstance(submission, dict) and submission.get("kind") != "ambiguous":
-        return None
-    if not looks_like_question_followup(user_message, normalized_context):
-        return None
-    return {
-        "intent": "ask_followup",
-        "confidence": 0.88,
-        "answers": [],
-        "reason": "用户消息是围绕当前题目的稳定格式追问，不应被解释成改答或提交答案。",
-    }
-
-
-def _demote_submission_hint_when_deterministic_followup(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-    action: dict[str, Any] | None,
-) -> dict[str, Any] | None:
-    """Keep an upstream action hint from overruling the submission authority."""
-
-    if followup_action_route(action) != "submission":
-        return action
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return action
-    if submission_confidence(user_message, normalized_context) is not None:
-        return action
-    deterministic_followup_action = _deterministic_followup_action_for_user_message(
-        user_message,
-        normalized_context,
-    )
-    return deterministic_followup_action or action
-
-
-def _has_ambiguous_submission_attempt(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> bool:
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return False
-    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
-    return isinstance(submission, dict) and submission.get("kind") == "ambiguous"
-
-
-async def _resolve_question_followup_context_and_action(
-    *,
-    user_message: str,
-    explicit_context: dict[str, Any] | None,
-    explicit_action: dict[str, Any] | None,
-    candidate_contexts: list[dict[str, Any] | None] | tuple[dict[str, Any] | None, ...] = (),
-) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
-    normalized_explicit = normalize_question_followup_context(explicit_context)
-    normalized_action = _normalize_question_followup_action(explicit_action)
-    free_text_mcq_grading_request = (
-        looks_like_free_text_mcq_grading_request(user_message)
-        and looks_like_free_text_mcq_question_surface(user_message)
-    )
-    full_case_answer_submission = looks_like_full_case_answer_submission(user_message)
-    current_surface_context, current_surface_action = _current_surface_submission_context_and_action(
-        user_message
-    )
-    if (
-        current_surface_context is not None
-        and normalized_explicit is not None
-        and not _question_context_matches_current_surface(
-            user_message,
-            current_surface_context,
-            normalized_explicit,
-        )
-    ):
-        normalized_explicit = None
-        normalized_action = None
-
-    if _should_ignore_explicit_context_for_free_text_mcq(user_message, normalized_explicit):
-        normalized_explicit = None
-        normalized_action = None
-    if (
-        full_case_answer_submission
-        and normalized_explicit is not None
-        and not _case_context_matches_full_case_surface(user_message, normalized_explicit)
-    ):
-        normalized_explicit = None
-        normalized_action = None
-    if (
-        normalized_explicit is not None
-        and not (normalized_explicit.get("items") or [])
-        and _looks_like_batch_correction_reference(user_message)
-    ):
-        normalized_explicit = None
-        normalized_action = None
-
-    if normalized_explicit is not None:
-        for candidate in candidate_contexts:
-            if (
-                current_surface_context is not None
-                and not _question_context_matches_current_surface(
-                    user_message,
-                    current_surface_context,
-                    candidate or {},
-                )
-            ):
-                continue
-            merged = _merge_public_submission_with_authoritative_context(
-                normalized_explicit,
-                candidate,
-            )
-            if merged is not None:
-                normalized_explicit = merged
-                break
-        if full_case_answer_submission:
-            normalized_explicit = _annotate_full_case_submission_context(
-                user_message,
-                normalized_explicit,
-            )
-            return normalized_explicit, _full_case_submission_action()
-        submission_context, submission_action = _submission_action_for_user_message(
-            user_message,
-            normalized_explicit,
-        )
-        if submission_action is not None:
-            return submission_context or normalized_explicit, submission_action
-        if _has_ambiguous_submission_attempt(user_message, normalized_explicit):
-            return normalized_explicit, None
-        if (
-            followup_action_route(normalized_action) == "practice_generation"
-            and not looks_like_practice_generation_request(user_message)
-        ):
-            normalized_action = None
-        if normalized_action is None:
-            practice_action = _practice_generation_action_for_explicit_request(
-                user_message,
-                normalized_explicit,
-            )
-            if practice_action is not None:
-                normalized_explicit = (
-                    reset_question_submission_state(normalized_explicit)
-                    or normalized_explicit
-                )
-                normalized_action = practice_action
-            else:
-                deterministic_followup_action = _deterministic_followup_action_for_user_message(
-                    user_message,
-                    normalized_explicit,
-                )
-                if deterministic_followup_action is not None:
-                    return normalized_explicit, deterministic_followup_action
-                normalized_action = await interpret_question_followup_action(
-                    user_message,
-                    normalized_explicit,
-                )
-                if (
-                    followup_action_route(normalized_action) == "practice_generation"
-                    and not looks_like_practice_generation_request(user_message)
-                ):
-                    normalized_action = None
-        deterministic_followup = looks_like_question_followup(user_message, normalized_explicit)
-        if (
-            deterministic_followup
-            and followup_action_route(normalized_action) == "practice_generation"
-            and not looks_like_practice_generation_request(user_message)
-        ):
-            normalized_action = None
-        normalized_action = _demote_submission_hint_when_deterministic_followup(
-            user_message,
-            normalized_explicit,
-            normalized_action,
-        )
-        return normalized_explicit, normalized_action
-
-    for candidate in candidate_contexts:
-        normalized_candidate = normalize_question_followup_context(candidate)
-        if normalized_candidate is None:
-            continue
-        if (
-            current_surface_context is not None
-            and not _question_context_matches_current_surface(
-                user_message,
-                current_surface_context,
-                normalized_candidate,
-            )
-        ):
-            continue
-        if (
-            full_case_answer_submission
-            and not _case_context_matches_full_case_surface(user_message, normalized_candidate)
-        ):
-            continue
-        if full_case_answer_submission:
-            normalized_candidate = _annotate_full_case_submission_context(
-                user_message,
-                normalized_candidate,
-            )
-            return normalized_candidate, _full_case_submission_action()
-        if (
-            free_text_mcq_grading_request
-            and not _question_context_matches_free_text_surface(user_message, normalized_candidate)
-        ):
-            continue
-        if (
-            not (normalized_candidate.get("items") or [])
-            and _looks_like_batch_correction_reference(user_message)
-        ):
-            continue
-        submission_context, submission_action = _submission_action_for_user_message(
-            user_message,
-            normalized_candidate,
-        )
-        if submission_action is not None:
-            return submission_context or normalized_candidate, submission_action
-        if _has_ambiguous_submission_attempt(user_message, normalized_candidate):
-            return normalized_candidate, None
-        practice_action = _practice_generation_action_for_explicit_request(
-            user_message,
-            normalized_candidate,
-        )
-        if practice_action is not None:
-            return (
-                reset_question_submission_state(normalized_candidate) or normalized_candidate,
-                practice_action,
-            )
-        deterministic_followup_action = _deterministic_followup_action_for_user_message(
-            user_message,
-            normalized_candidate,
-        )
-        if deterministic_followup_action is not None:
-            return normalized_candidate, deterministic_followup_action
-        deterministic_followup = looks_like_question_followup(user_message, normalized_candidate)
-        candidate_action = await interpret_question_followup_action(
-            user_message,
-            normalized_candidate,
-        )
-        candidate_route = followup_action_route(candidate_action)
-        if candidate_route == "submission":
-            return normalized_candidate, candidate_action
-        if candidate_route == "practice_generation" and looks_like_practice_generation_request(
-            user_message
-        ):
-            return normalized_candidate, candidate_action
-        if candidate_route == "followup" and deterministic_followup:
-            return normalized_candidate, candidate_action
-        if deterministic_followup:
-            return normalized_candidate, None
-
-    if current_surface_context is not None:
-        return current_surface_context, current_surface_action
-
-    return None, None
 
 
 def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[str, Any] | None:

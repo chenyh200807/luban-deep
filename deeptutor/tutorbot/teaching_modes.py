@@ -6,6 +6,9 @@ import re
 from typing import Any, Literal
 
 from deeptutor.core.grounding import GROUNDING_CLAUSE, extract_anchor_terms
+from deeptutor.services.question_followup import (
+    looks_like_practice_generation_request,
+)
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
 
 TutorBotTeachingMode = Literal["smart", "fast", "deep"]
@@ -295,93 +298,15 @@ def normalize_anchor_terms_in_response(
     return normalized
 
 
-def _has_negated_practice_generation_request(text: str) -> bool:
-    compact = re.sub(r"\s+", "", text)
-    if not compact:
-        return False
-
-    negations = ("不要", "别", "不用", "无需", "不必", "先别", "先不要", "暂不")
-    targets = (
-        "出题",
-        "做题",
-        "刷题",
-        "练题",
-        "生成题",
-        "生成训练题",
-        "生成整套训练题",
-    )
-    for target in targets:
-        start = compact.find(target)
-        while start >= 0:
-            prefix = compact[max(0, start - 8) : start]
-            if any(negation in prefix for negation in negations):
-                return True
-            start = compact.find(target, start + len(target))
-    return False
-
-
-def looks_like_practice_generation_request(user_message: str | None) -> bool:
-    text = str(user_message or "").strip().lower()
-    if not text:
-        return False
-
-    if _has_negated_practice_generation_request(text) or "不想做题" in text:
-        return False
-
-    question_type_only = {
-        "选择题",
-        "单选题",
-        "多选题",
-        "判断题",
-        "案例题",
-        "简答题",
-    }
-    if text in question_type_only:
-        return True
-
-    positive_markers = (
-        "出题",
-        "出一道",
-        "生成一道",
-        "生成一题",
-        "来一道",
-        "来一题",
-        "考我",
-        "刷题",
-        "测我",
-        "摸底测评",
-        "继续出",
-        "继续来一道",
-        "再来一道",
-        "再出一道",
-        "下一题",
-        "下一道",
-        # plan §Phase 1 Step 1.1 (A2) — "继续练 / 再练" 是高频练题表述，
-        # 旧 markers 没覆盖，导致 "继续练刚才错的，N题" 被判 heavy。
-        "继续练",
-        "再练",
-        "继续做",
-        "再做几道",
-        "再做一道",
-        "quiz me",
-        "test me",
-        "give me a question",
-        "give me one question",
-    )
-    if any(marker in text for marker in positive_markers):
-        return True
-    request_patterns = (
-        r"(给我|帮我|来|出|生成)\s*(?:\d{0,2}|[一二两三四五六七八九十]?)\s*(?:道题|题|道)",
-        r"(给我|帮我|来|出|生成).{0,16}(?:\d{1,2}|[一二两三四五六七八九十几]+)\s*(?:道题|题|道)",
-        r"(给我|帮我|来|出|生成)\s*(?:出|来|生成)?\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:单选题|多选题|案例题|简答题|选择题|判断题)",
-        r"(我想|想)\s*(?:来|做|练|练习)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道题|题|道)",
-        r"(我想|想).{0,24}(?:练习|刷|做).{0,24}(?:题|题目|单选题|多选题|案例题|简答题|选择题|判断题)",
-        r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
-        r"(?:用|拿|安排)\s*(?:\d{1,2}|[一二两三四五六七八九十几]+)\s*(?:道题|题|道).{0,24}(?:练|训练|巩固|测试)",
-        r"(?:检验|测测|测试).{0,16}(?:掌握|会不会|学会|熟不熟)",
-        r"(?:先|来|做|开始|进行|帮我|给我|帮我做|安排)\s*(?:一次|一轮|个)?\s*(?:入门)?(?:摸底测评|摸底测试|摸底|小测|自测)",
-    )
-    return any(re.search(pattern, text) for pattern in request_patterns)
+# ``_has_negated_practice_generation_request`` and
+# ``looks_like_practice_generation_request`` were re-homed to
+# ``deeptutor.services.question_followup`` (QTPK physical extraction plan, S1)
+# so the question-turn policy kernel can forward to the practice-generation
+# intent predicate without importing this tutorbot teaching layer. They are
+# re-exported above (``from deeptutor.services.question_followup import
+# looks_like_practice_generation_request``) so every existing caller keeps its
+# ``from deeptutor.tutorbot.teaching_modes import
+# looks_like_practice_generation_request`` import unchanged.
 
 
 _PRACTICE_GENERATION_CONTEXT_ANCHOR_MARKERS = (

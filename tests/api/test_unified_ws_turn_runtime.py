@@ -1176,7 +1176,7 @@ async def test_resolve_question_followup_explicit_context_keeps_option_challenge
         }
 
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _misleading_interpret,
     )
 
@@ -1215,7 +1215,7 @@ async def test_resolve_question_followup_explicit_context_ignores_generation_hin
         }
 
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _followup_interpret,
     )
 
@@ -1259,7 +1259,7 @@ async def test_resolve_question_followup_explicit_context_downgrades_invalid_opt
         }
 
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _followup_interpret,
     )
 
@@ -1314,7 +1314,7 @@ async def test_resolve_question_followup_does_not_treat_next_question_explainer_
         }
 
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _fake_interpret,
     )
 
@@ -1351,7 +1351,7 @@ async def test_resolve_question_followup_does_not_treat_question_type_explainer_
         }
 
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _fake_interpret,
     )
 
@@ -1780,7 +1780,7 @@ async def test_start_turn_recovers_stored_active_question_for_plain_text_option_
 
     monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
-    monkeypatch.setattr("deeptutor.services.session.turn_runtime.interpret_question_followup_action", fake_interpret)
+    monkeypatch.setattr("deeptutor.services.question_turn_policy.interpret_question_followup_action", fake_interpret)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
     monkeypatch.setattr(
         "deeptutor.services.memory.get_memory_service",
@@ -5784,7 +5784,7 @@ async def test_turn_runtime_does_not_pin_tutorbot_when_llm_identifies_followup_t
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _fake_interpret,
     )
     monkeypatch.setattr(
@@ -5919,7 +5919,7 @@ async def test_turn_runtime_treats_choice_type_as_generation_with_stored_active_
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _misleading_interpret,
     )
     monkeypatch.setattr(
@@ -6044,7 +6044,7 @@ async def test_turn_runtime_treats_written_question_type_request_as_generation_w
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _misleading_interpret,
     )
     monkeypatch.setattr(
