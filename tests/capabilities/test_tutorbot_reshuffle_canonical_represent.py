@@ -87,10 +87,30 @@ def _active_single_mcq(*, answered: bool = False) -> dict[str, object]:
     return ctx
 
 
-def _build_context(*, user_message: str, followup_context: dict[str, object] | None) -> UnifiedContext:
+def _build_context(
+    *,
+    user_message: str,
+    followup_context: dict[str, object] | None,
+    use_active_object: bool = True,
+    include_followup: bool = False,
+) -> UnifiedContext:
+    """Build a TutorBot context reflecting the LIVE metadata shape.
+
+    Live reality (the failure mode this suite guards): the moment an MCQ is
+    presented (BEFORE any attempt) the CANONICAL surface lives in
+    ``active_object.state_snapshot`` — the SAME source the grading anchor
+    reads — while ``question_followup_context`` is only filled AFTER an
+    attempt. So the default fixture seeds the surface into ``active_object``;
+    ``question_followup_context`` is only added when ``include_followup`` is set
+    (the post-attempt / legacy shape).
+    """
+
     metadata: dict[str, object] = {}
     if followup_context is not None:
-        metadata["question_followup_context"] = followup_context
+        if use_active_object:
+            metadata["active_object"] = {"state_snapshot": dict(followup_context)}
+        if include_followup or not use_active_object:
+            metadata["question_followup_context"] = followup_context
     return UnifiedContext(
         session_id="s-reshuffle",
         user_message=user_message,
@@ -185,6 +205,48 @@ async def test_reshuffle_variants_short_circuit(
         assert manager.sent_messages == 0, f"reshuffle variant should short-circuit: {message!r}"
         payload = _result_payload(stream)
         assert payload["execution_path"] == "tutorbot_canonical_represent", message
+
+
+@pytest.mark.asyncio
+async def test_reshuffle_fires_from_active_object_without_followup_context(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Live-failure regression: post-presentation, PRE-attempt.
+
+    At this exact moment ``question_followup_context`` is NOT yet populated
+    (it only fills AFTER an attempt) while ``active_object.state_snapshot``
+    already carries the canonical surface. The old data source read only
+    ``question_followup_context`` -> gate failed -> the turn dropped to the
+    free LLM, which reshuffled the surface away from the grading anchor (the
+    倒诬 SEV). Reading the canonical active_object must short-circuit here.
+    """
+
+    manager = _FreeLlmManager()
+    monkeypatch.setattr(tutorbot_capability, "get_tutorbot_manager", lambda: manager)
+
+    stream = StreamBus()
+    context = _build_context(
+        user_message="把选项打乱重排一下",
+        followup_context=_active_single_mcq(),
+        use_active_object=True,
+        include_followup=False,
+    )
+    # Assert the live precondition: NO question_followup_context present.
+    assert "question_followup_context" not in context.metadata
+    assert isinstance(context.metadata.get("active_object"), dict)
+
+    await TutorBotCapability().run(context, stream)
+
+    # The free LLM was never invoked -> no divergent surface generated.
+    assert manager.sent_messages == 0
+    payload = _result_payload(stream)
+    response = str(payload["response"])
+    pos_a = response.index("A. 无需支护")
+    pos_b = response.index("B. 按经验")
+    pos_c = response.index("C. 按勘察与设计方案")
+    pos_d = response.index("D. 随意")
+    assert pos_a < pos_b < pos_c < pos_d, "options must stay in canonical order"
+    assert payload["execution_path"] == "tutorbot_canonical_represent"
 
 
 @pytest.mark.asyncio

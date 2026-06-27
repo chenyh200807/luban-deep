@@ -40,6 +40,10 @@ from deeptutor.services.question_lifecycle_skills import (
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tool_access import filter_end_user_tools
+from deeptutor.services.active_object_builder import (
+    extract_question_context_from_active_object,
+    normalize_active_object,
+)
 from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
 from deeptutor.services.semantic_router import (
     apply_active_object_transition,
@@ -1202,10 +1206,20 @@ class TutorBotCapability(BaseCapability):
         """
 
         metadata = context.metadata if isinstance(context.metadata, dict) else {}
-        followup_context = metadata.get("question_followup_context")
-        normalized = normalize_question_followup_context(
-            followup_context if isinstance(followup_context, dict) else None
-        )
+        # Data source = the CANONICAL active_object (state_snapshot), which is the
+        # SAME source the grading anchor reads. This is populated as soon as the
+        # MCQ is presented (before any attempt), so the deterministic re-present
+        # is available exactly when a reshuffle request arrives. Falling back to
+        # question_followup_context (only filled AFTER an attempt) would let the
+        # gate fail pre-attempt and the turn drop to the free LLM — the live
+        # failure mode that re-shuffled the surface away from the grading anchor.
+        active_object = normalize_active_object(metadata.get("active_object"))
+        normalized = extract_question_context_from_active_object(active_object)
+        if not normalized:
+            followup_context = metadata.get("question_followup_context")
+            normalized = normalize_question_followup_context(
+                followup_context if isinstance(followup_context, dict) else None
+            )
         if not normalized:
             return None
 
