@@ -163,3 +163,22 @@ import 回去调用，callsite 行为不变（byte-identical move，differential
 - **S1 范围**：纯物理搬迁 + guard calibration，零行为。后续 S2（E8 grading merge 进 QTPK）、
   S3（删 start_turn 预解析）、S4（restore/demote 收敛 apply_active_object_transition）、
   S5（orchestrator 削第三次解析）见 `docs/plan/2026-06-27-qtpk-physical-extraction-turnruntime-thinning-execution-plan.md`。
+
+## QTPK 物理抽出 S2（2026-06-27，§6 SEV-1 套题防塌安全带进 QTPK，零行为）
+
+E8/E1 套题防塌 active-object **patch 决策逻辑**（套题判一题不塌 / 单题判分透传 /
+`route_to_grading` qid 对不上不塌 / 真切换替换）已从 `turn_runtime._merge_grading_result_into_active_set`
+**逐字节搬进** QTPK 纯函数 `apply_grading_result_patch`（无 I/O，prior active_object 由 caller 传入）。
+
+- **I/O 与逻辑分离**：`turn_runtime._merge_grading_result_into_active_set` 瘦成 transport-only——
+  从 store 读 prior active_object（`store.get_active_object`，I/O 留在 turn_runtime），把
+  `(prior, result, metadata)` 交给 QTPK 纯函数，写回/持久化在调用点 `_persist_and_publish` 不变。
+- **不变量（单一权威）**：active_object 身份的唯一 turn-START writer 不变；turn-END 仍只做 merge-back，
+  不当第二个 set-destroying writer。merge 分支逐字未改，**byte-identical 提取**。
+- **parity 证相同**：`tests/services/test_qtpk_grading_patch.py` 对每个 E8 场景断言 QTPK
+  `apply_grading_result_patch` 与搬前 `_merge` 分支逻辑输出一致（normalise 掉 `build_active_object_*`
+  自带的 `last_touched_at` 墙钟噪声，非行为差）。
+- **QTPK 边界仍守 guard**：S2 只新增 `active_object_builder` 的 `build_active_object_from_question_context`
+  / `extract_question_context_from_active_object` import（已在 allowlist canonical 模块内），未碰 god-object 防线。
+- **S2 不接生产**：`resolve_turn_policy` 已把 active-object patch fact 纳入信封（grading 入参可选），
+  但生产仍走 `turn_runtime` → `apply_grading_result_patch` 直调；信封路径在 S5 才被生产消费。

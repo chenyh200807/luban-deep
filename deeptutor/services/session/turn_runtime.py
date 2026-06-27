@@ -64,6 +64,8 @@ from deeptutor.services.question_turn_policy import (
     _normalize_question_followup_action,
     _resolve_question_followup_context_and_action,
     _same_active_object_identity,
+    apply_grading_result_patch,
+    grading_merge_needs_prior,
 )
 
 # QTPK physical extraction (S1): these submission-intent helpers were physically
@@ -5663,71 +5665,36 @@ class TurnRuntimeManager:
 
         Single-authority: the only active_object identity writer is turn-START; this
         keeps turn-END from acting as a second, set-destroying writer.
-        """
-        result_ao = normalize_active_object(result_active_object)
-        if result_ao is None:
-            return result_active_object
-        result_ctx = extract_question_context_from_active_object(result_ao)
-        if result_ctx is None:
-            return result_active_object
-        result_items = result_ctx.get("items") or []
-        # Only single-item results can collapse a set; a result that is itself a set
-        # is either a fresh generated set (switch) or already whole — leave it.
-        if len(result_items) > 1:
-            return result_active_object
-        result_single = result_items[0] if result_items else result_ctx
-        result_qid = str(result_single.get("question_id") or "").strip()
 
-        prior_ao = await self._safe_store_call(
+        S2 (QTPK physical extraction): the merge **decision logic** now lives in the
+        QTPK pure functions ``grading_merge_needs_prior`` (the pre-check) and
+        ``apply_grading_result_patch`` (the branch logic). This method keeps only the
+        transport/I/O. Byte-identical behavior — the store read of the prior stays
+        **conditional**: the pure pre-check replicates the original early-return
+        conditions (result not normalizable / no question context / result is itself
+        a set), and on those early-return paths the original method returned *before*
+        reading the store. We must not read the store there either: ``_safe_store_call``
+        can re-raise non-persistence errors, so an unconditional read would not be
+        byte-identical. ``tests/services/test_qtpk_grading_patch.py`` asserts parity
+        with the pre-move logic for every E8 scenario.
+        """
+        if not grading_merge_needs_prior(result_active_object):
+            # Original early-return path: result is not normalizable, carries no
+            # question context, or is itself a set → return unchanged WITHOUT
+            # touching the store (matches the pre-move method exactly).
+            return result_active_object
+        prior_active_object = await self._safe_store_call(
             execution,
             "get_active_object_for_grading_merge",
             self.store.get_active_object,
             execution.session_id,
             default=None,
         )
-        normalized_prior_ao = normalize_active_object(prior_ao)
-        prior_ctx = extract_question_context_from_active_object(prior_ao)
-        prior_items = list((prior_ctx or {}).get("items") or [])
-        decision = metadata.get("turn_semantic_decision")
-        next_action = str((decision or {}).get("next_action") or "").strip() if isinstance(decision, dict) else ""
-        result_mode = str(
-            metadata.get("mode") or metadata.get("selected_mode") or ""
-        ).strip().lower()
-        is_grading_result = next_action == "route_to_grading" or result_mode == "grading"
-        if len(prior_items) <= 1:
-            if is_grading_result and prior_ctx is not None:
-                prior_object_id = str((normalized_prior_ao or {}).get("object_id") or "").strip()
-                result_object_id = str(result_ao.get("object_id") or "").strip()
-                if prior_object_id and result_object_id and prior_object_id != result_object_id:
-                    return prior_ao if isinstance(prior_ao, dict) else result_active_object
-            # Prior was not a batch set → nothing to preserve, behave as before.
-            return result_active_object
-
-        prior_qids = [str(it.get("question_id") or "").strip() for it in prior_items]
-
-        if result_qid and result_qid in prior_qids:
-            # Grading-of-set-item: merge the judged version back into the set.
-            merged_items = [
-                dict(result_single) if qid == result_qid else it
-                for it, qid in zip(prior_items, prior_qids)
-            ]
-        elif next_action == "route_to_grading":
-            # Grading turn but the result id does not line up with the set (id not
-            # preserved through grading). Never collapse on a grading turn: keep the
-            # prior set intact (the judging is already surfaced in the response).
-            merged_items = prior_items
-        else:
-            # Genuine switch (new object not in the prior set) → let it replace.
-            return result_active_object
-
-        merged_ctx = dict(prior_ctx)
-        merged_ctx["items"] = merged_items
-        merged_ao = build_active_object_from_question_context(
-            merged_ctx,
-            previous_active_object=prior_ao,
-            source_turn_id=str(metadata.get("turn_id") or "").strip() or None,
+        return apply_grading_result_patch(
+            prior_active_object=prior_active_object,
+            result_active_object=result_active_object,
+            metadata=metadata,
         )
-        return merged_ao or result_active_object
 
     async def _persist_and_publish(
         self,

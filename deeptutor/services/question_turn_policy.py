@@ -51,7 +51,11 @@ from dataclasses import dataclass, field
 import re
 from typing import Any
 
-from deeptutor.services.active_object_builder import normalize_active_object
+from deeptutor.services.active_object_builder import (
+    build_active_object_from_question_context,
+    extract_question_context_from_active_object,
+    normalize_active_object,
+)
 from deeptutor.services.question_followup import (
     batch_answer_action_for_numbered_single,
     followup_action_route,
@@ -754,12 +758,140 @@ async def _resolve_question_followup_context_and_action(
     return None, None
 
 
+def grading_merge_needs_prior(result_active_object: dict[str, Any]) -> bool:
+    """Decide whether the grading-merge patch needs to read the prior active_object.
+
+    Byte-identical pre-check for the §6 SEV-1 套题防塌 merge: this replicates,
+    verbatim, the three early-return conditions at the **top** of the pre-move
+    ``turn_runtime._merge_grading_result_into_active_set`` that ran *before* the
+    store read of the prior active_object. Those early-returns short-circuit the
+    method without ever touching the store:
+
+      1. ``normalize_active_object(result_active_object) is None`` → early return;
+      2. ``extract_question_context_from_active_object(result_ao) is None`` → early return;
+      3. ``len(result_ctx.get("items") or []) > 1`` → early return.
+
+    Only when none of the three fire does the original method fall through to the
+    ``store.get_active_object`` read. So this returns ``True`` (the prior must be
+    read) iff:
+
+        result_ao is not None AND result_ctx is not None AND len(result_items) <= 1
+
+    and ``False`` otherwise (no store read needed — caller short-circuits exactly
+    as the original early-return path did).
+
+    PURE: no I/O. Lets the transport keep the store read **conditional** (the
+    early-return path does not read the store), preserving byte-identical behavior
+    — ``_safe_store_call`` can re-raise non-persistence errors, so an unconditional
+    read on the early-return path would not be byte-identical.
+    """
+    result_ao = normalize_active_object(result_active_object)
+    if result_ao is None:
+        return False
+    result_ctx = extract_question_context_from_active_object(result_ao)
+    if result_ctx is None:
+        return False
+    result_items = result_ctx.get("items") or []
+    if len(result_items) > 1:
+        return False
+    return True
+
+
+def apply_grading_result_patch(
+    *,
+    prior_active_object: dict[str, Any] | None,
+    result_active_object: dict[str, Any],
+    metadata: dict[str, Any],
+) -> dict[str, Any]:
+    """Active-object patch fact: keep a batch question_set alive across a single-item grading turn.
+
+    §6 SEV-1 套题防塌安全带 (E8/E1 object-continuity). A grading turn judges ONE
+    item; the capability emits a single-question active_object. If the prior
+    canonical active_object is a multi-item set and this result is a single
+    question that BELONGS to that set, merge the judged item back into the set (by
+    question_id) and keep the SET as active_object — do not let turn-END collapse
+    the set to the lone judged item. A genuine switch (the result question is not
+    part of the prior set, e.g. a freshly generated question) passes through
+    unchanged so real transitions still work.
+
+    Single-authority: the only active_object identity writer is turn-START; this
+    keeps turn-END from acting as a second, set-destroying writer.
+
+    PURE (S2): the prior active_object is **passed in** by the caller (turn_runtime
+    reads it from the store; that I/O stays in transport). This function performs
+    no I/O — it only forwards the canonical ``active_object_builder`` resolvers and
+    applies the merge decision branch logic verbatim (byte-identical to the
+    pre-move ``turn_runtime._merge_grading_result_into_active_set``).
+    """
+    result_ao = normalize_active_object(result_active_object)
+    if result_ao is None:
+        return result_active_object
+    result_ctx = extract_question_context_from_active_object(result_ao)
+    if result_ctx is None:
+        return result_active_object
+    result_items = result_ctx.get("items") or []
+    # Only single-item results can collapse a set; a result that is itself a set
+    # is either a fresh generated set (switch) or already whole — leave it.
+    if len(result_items) > 1:
+        return result_active_object
+    result_single = result_items[0] if result_items else result_ctx
+    result_qid = str(result_single.get("question_id") or "").strip()
+
+    prior_ao = prior_active_object
+    normalized_prior_ao = normalize_active_object(prior_ao)
+    prior_ctx = extract_question_context_from_active_object(prior_ao)
+    prior_items = list((prior_ctx or {}).get("items") or [])
+    decision = metadata.get("turn_semantic_decision")
+    next_action = str((decision or {}).get("next_action") or "").strip() if isinstance(decision, dict) else ""
+    result_mode = str(
+        metadata.get("mode") or metadata.get("selected_mode") or ""
+    ).strip().lower()
+    is_grading_result = next_action == "route_to_grading" or result_mode == "grading"
+    if len(prior_items) <= 1:
+        if is_grading_result and prior_ctx is not None:
+            prior_object_id = str((normalized_prior_ao or {}).get("object_id") or "").strip()
+            result_object_id = str(result_ao.get("object_id") or "").strip()
+            if prior_object_id and result_object_id and prior_object_id != result_object_id:
+                return prior_ao if isinstance(prior_ao, dict) else result_active_object
+        # Prior was not a batch set → nothing to preserve, behave as before.
+        return result_active_object
+
+    prior_qids = [str(it.get("question_id") or "").strip() for it in prior_items]
+
+    if result_qid and result_qid in prior_qids:
+        # Grading-of-set-item: merge the judged version back into the set.
+        merged_items = [
+            dict(result_single) if qid == result_qid else it
+            for it, qid in zip(prior_items, prior_qids)
+        ]
+    elif next_action == "route_to_grading":
+        # Grading turn but the result id does not line up with the set (id not
+        # preserved through grading). Never collapse on a grading turn: keep the
+        # prior set intact (the judging is already surfaced in the response).
+        merged_items = prior_items
+    else:
+        # Genuine switch (new object not in the prior set) → let it replace.
+        return result_active_object
+
+    merged_ctx = dict(prior_ctx)
+    merged_ctx["items"] = merged_items
+    merged_ao = build_active_object_from_question_context(
+        merged_ctx,
+        previous_active_object=prior_ao,
+        source_turn_id=str(metadata.get("turn_id") or "").strip() or None,
+    )
+    return merged_ao or result_active_object
+
+
 async def resolve_turn_policy(
     *,
     user_message: str,
     explicit_context: dict[str, Any] | None,
     explicit_action: dict[str, Any] | None,
     candidate_contexts: list[dict[str, Any] | None] | tuple[dict[str, Any] | None, ...] = (),
+    grading_prior_active_object: dict[str, Any] | None = None,
+    grading_result_active_object: dict[str, Any] | None = None,
+    grading_metadata: dict[str, Any] | None = None,
 ) -> TurnPolicyDecision:
     """Resolve the question-turn policy for a single turn (QTPK entry point).
 
@@ -768,14 +900,20 @@ async def resolve_turn_policy(
     forwarding — never reimplementing — the canonical resolvers documented in the
     module docstring.
 
-    S1: **partial** forwarder. Only the submission **intent + evidence** fact —
-    the resolver physically moved into this module in S1
-    (``_resolve_question_followup_context_and_action``) — is forwarded here. The
-    other four facts (scene / semantic decision / current object identity /
-    active-object patch) stay at their empty envelope defaults until the S2+ full
-    assembly wires the remaining canonical resolvers in. This zero-behavior
-    forwarder is what the differential parity net asserts is identical to the
-    pre-move ``turn_runtime`` submission resolution.
+    S1+S2: **partial** forwarder. Forwarded so far:
+      * submission **intent + evidence** (S1, ``_resolve_question_followup_context_and_action``);
+      * **active-object patch** (S2, ``apply_grading_result_patch`` — the E8 §6
+        SEV-1 套题防塌 merge) **when** the grading inputs are supplied. The prior
+        active_object is passed in (turn_runtime reads it from the store; that
+        I/O stays in transport). S2 only *wires* this fact into the envelope; the
+        production callsite (turn_runtime._merge_grading_result_into_active_set)
+        still calls ``apply_grading_result_patch`` directly — the envelope path is
+        consumed by production only in S5.
+
+    The remaining facts (scene / semantic decision / current object identity)
+    stay at their empty envelope defaults until later steps wire the rest of the
+    canonical resolvers in. This zero-behavior forwarder is what the differential
+    parity nets assert is identical to the pre-move ``turn_runtime`` resolution.
     """
 
     (
@@ -787,7 +925,15 @@ async def resolve_turn_policy(
         explicit_action=explicit_action,
         candidate_contexts=candidate_contexts,
     )
+    active_object: dict[str, Any] | None = None
+    if grading_result_active_object is not None:
+        active_object = apply_grading_result_patch(
+            prior_active_object=grading_prior_active_object,
+            result_active_object=grading_result_active_object,
+            metadata=grading_metadata or {},
+        )
     return TurnPolicyDecision(
+        active_object=active_object,
         question_followup_context=question_followup_context,
         question_followup_action=question_followup_action,
     )

@@ -12261,3 +12261,115 @@ async def test_subscribe_turn_completed_turn_on_other_worker_returns_backlog_wit
     events = [evt async for evt in runtime.subscribe_turn(tid, after_seq=0)]
     types = [e["type"] for e in events]
     assert types == ["session", "content", "done"]
+
+
+# ---------------------------------------------------------------------------
+# E8 grading-merge: store read stays CONDITIONAL (QTPK S2 byte-identical fix).
+#
+# The pre-move ``_merge_grading_result_into_active_set`` had three early-returns
+# at the TOP that ran BEFORE the ``store.get_active_object`` read. After S2 the
+# store read had moved AHEAD of the early-returns (unconditional read), which is
+# NOT byte-identical: ``_safe_store_call`` re-raises non-persistence errors, so
+# the early-return path could newly raise / do extra I/O. These tests pin the
+# read back to conditional: on every early-return path the store is NOT read.
+# ---------------------------------------------------------------------------
+class _GradingMergeProbeStore:
+    """Store whose get_active_object counts calls and raises if ever invoked.
+
+    Raising proves the byte-identity concern: the pre-move early-return path
+    returned WITHOUT reading the store, so a probe that raises on read must NOT
+    be reached on those paths. The counter lets us assert exactly zero reads.
+    """
+
+    def __init__(self) -> None:
+        self.get_active_object_calls = 0
+
+    async def get_active_object(self, _session_id: str) -> dict[str, Any]:
+        self.get_active_object_calls += 1
+        raise AssertionError(
+            "store.get_active_object must not be read on the grading-merge "
+            "early-return path (byte-identical conditional read)"
+        )
+
+
+def _grading_merge_execution() -> _TurnExecution:
+    return _TurnExecution(
+        turn_id="t-grading-merge",
+        session_id="s-grading-merge",
+        capability="deep_question",
+        payload={},
+    )
+
+
+@pytest.mark.asyncio
+async def test_grading_merge_early_return_does_not_read_store_for_result_set() -> None:
+    """Condition 3 (result is itself a set): early return, store NOT read."""
+    store = _GradingMergeProbeStore()
+    runtime = TurnRuntimeManager(store)  # type: ignore[arg-type]
+    execution = _grading_merge_execution()
+    result_set = build_active_object_from_question_context(
+        {
+            "items": [
+                {"question_id": "q9", "question": "题目 q9"},
+                {"question_id": "q10", "question": "题目 q10"},
+            ]
+        }
+    )
+
+    out = await runtime._merge_grading_result_into_active_set(
+        execution,
+        result_set,
+        {"turn_semantic_decision": {"next_action": "route_to_grading"}},
+    )
+
+    assert store.get_active_object_calls == 0
+    # Early return is byte-identical: the input result is returned unchanged.
+    assert out is result_set
+
+
+@pytest.mark.asyncio
+async def test_grading_merge_early_return_does_not_read_store_for_unnormalizable_result() -> None:
+    """Condition 1/2 (result not normalizable / no question context): no read."""
+    store = _GradingMergeProbeStore()
+    runtime = TurnRuntimeManager(store)  # type: ignore[arg-type]
+    execution = _grading_merge_execution()
+    result_no_context: dict[str, Any] = {}
+
+    out = await runtime._merge_grading_result_into_active_set(
+        execution,
+        result_no_context,
+        {"turn_semantic_decision": {"next_action": "route_to_grading"}},
+    )
+
+    assert store.get_active_object_calls == 0
+    assert out is result_no_context
+
+
+@pytest.mark.asyncio
+async def test_grading_merge_single_item_result_reads_store_once() -> None:
+    """A single-item result needs the prior → store IS read exactly once."""
+
+    class _ReadOnceStore:
+        def __init__(self) -> None:
+            self.get_active_object_calls = 0
+
+        async def get_active_object(self, _session_id: str) -> None:
+            self.get_active_object_calls += 1
+            return None
+
+    store = _ReadOnceStore()
+    runtime = TurnRuntimeManager(store)  # type: ignore[arg-type]
+    execution = _grading_merge_execution()
+    single = build_active_object_from_question_context(
+        {"question_id": "q1", "question": "题目 q1"}
+    )
+
+    out = await runtime._merge_grading_result_into_active_set(
+        execution,
+        single,
+        {"turn_semantic_decision": {"next_action": "route_to_grading"}},
+    )
+
+    assert store.get_active_object_calls == 1
+    # prior is None → no set to preserve → result passes through unchanged.
+    assert out is single
