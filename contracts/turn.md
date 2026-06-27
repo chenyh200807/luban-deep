@@ -182,3 +182,27 @@ E8/E1 套题防塌 active-object **patch 决策逻辑**（套题判一题不塌 
   / `extract_question_context_from_active_object` import（已在 allowlist canonical 模块内），未碰 god-object 防线。
 - **S2 不接生产**：`resolve_turn_policy` 已把 active-object patch fact 纳入信封（grading 入参可选），
   但生产仍走 `turn_runtime` → `apply_grading_result_patch` 直调；信封路径在 S5 才被生产消费。
+
+## QTPK 物理抽出 S4(b)（2026-06-27，active_object/suspended_object_stack 转换的相位权威划分，零行为）
+
+`active_object` / `suspended_object_stack` 的转换跨**三个相位**，每个相位各自单一权威，**互不重判同一输入**。
+investigation 已证 turn-START demote 与 canonical `apply_active_object_transition` 是**相位互补、非重复**，
+owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 task#14 回指 SEV-1 + 给 canonical 加复杂度违 §2 架构简单）。
+
+- **turn-START 相位**（单一权威 = `deeptutor/services/session/turn_runtime.py` demote 块）：
+  在 scene gate **之前**把 stored active question object **降级（压栈）**到 `suspended_object_stack`，
+  产物写进 `metadata.suspended_object_stack`。turn-START **只压栈、从不出栈**。
+  - **task#14（2026-06-22）是本相位独有的回指 SEV-1 保护，不可删 / 不可折叠进 canonical**：当本轮用 "第N题"
+    ordinal 引用 stored 套题的某个 item 时**不压栈**（`stored_set_ordinal_referenced=True`），让套题保持 active，
+    scene low-information gate（读 `active_object`/`question_followup_context`，不读 suspended stack）才锚得住
+    "第N题"，否则 fail-closed。单一 ordinal→item 权威 = `question_followup.requested_question_item_index`（同提交路径）。
+- **routing 相位**（单一权威 = `deeptutor/services/semantic_router.py::apply_active_object_transition`）：
+  orchestrator 经 `metadata.suspended_object_stack` 读到 turn-START 压栈的对象，在 `resume_suspended_object`
+  决策下**恢复（出栈）**。canonical **只出栈、从不在 turn-START 那个输入上重做压栈决策**。
+- **turn-END 相位**（单一权威 = E8 grading merge，已 QTPK 化 `apply_grading_result_patch`，见 §S2）：
+  只 merge-back 评分状态，不当第二个 set-destroying writer。
+
+- **相位互补 ≠ 双权威违规**：turn-START 压栈、canonical 出栈作用在 pipeline 的两端（上游产出 → 下游消费），
+  不构成对同一决策的双重写。pipeline / task#14 / 相位边界证据见
+  `tests/services/test_turn_start_demote_canonical_pipeline.py`。
+- **S4(b) 零行为**：只新增测试 + 文档 + 代码注释，turn-START demote 逻辑与 canonical 一字未改。

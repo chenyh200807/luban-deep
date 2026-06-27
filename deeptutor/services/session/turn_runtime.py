@@ -4258,7 +4258,18 @@ class TurnRuntimeManager:
                 stored_followup_question_context = extract_question_context_from_active_object(
                     stored_active_object
                 )
-            # task#14 (2026-06-22): do NOT demote the active batch question_set when this
+            # S4(b) 相位权威标注（contracts/turn.md §"QTPK 物理抽出 S4(b)"）：
+            # 这是 active_object → suspended_object_stack 转换的 **turn-START 相位**单一权威
+            # （在 scene gate 之前 demote/压栈），与 routing 相位
+            # （semantic_router.apply_active_object_transition，orchestrator 经
+            # metadata.suspended_object_stack 读栈并 resume/出栈）**相位互补、非重复**：
+            # turn-START 只压栈、canonical 才出栈，两者不在同一输入上做矛盾决策。owner 决策 (b)
+            # 文档化相位互补，不强行收敛进 canonical（强收敛冒 task#14 回指 SEV-1 + 给
+            # canonical 加复杂度）。pipeline / 相位边界证据见
+            # tests/services/test_turn_start_demote_canonical_pipeline.py。
+            #
+            # task#14 (2026-06-22) —— turn-START 相位独有的回指 SEV-1 保护，不可删 / 不可折叠
+            # 进 canonical：do NOT demote the active batch question_set when this
             # turn explicitly references one of its items by ordinal ("刚才第3题的答案和考点
             # 讲讲"). Otherwise the set is pushed to the suspended stack and the scene
             # low-information gate (which reads active_object/question_followup_context, not
