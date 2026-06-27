@@ -252,6 +252,7 @@ domains:
       - tests/services/test_active_object_deep_mode_convergence.py
       - tests/services/test_start_turn_mode_selection_removal_parity.py
       - tests/services/test_qtpk_grading_patch.py
+      - tests/services/test_turn_start_demote_canonical_pipeline.py
       - tests/services/test_active_object_builder_unify.py
       - tests/services/test_pre_stamp_scene_parity.py
       - tests/api/test_unified_ws_public_redaction.py
