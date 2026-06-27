@@ -3877,18 +3877,50 @@ class DeepQuestionCapability(BaseCapability):
                     source_turn_id=turn_id,
                     previous_active_object=active_object,
                 ) or active_object
-                mcq_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
+                # Field-level merge (single-authority by FACET, not whole-decision):
+                #   * deep_question owns the SLOT-BINDING facet (allowed_patch /
+                #     active_object): a learner who pastes a self-contained MCQ owns
+                #     the learner-surface, so the slot binding is derived from the
+                #     PASTE. The stale router's allowed_patch / target_object_ref are
+                #     keyed off the prior active object (e.g. a multi-question set →
+                #     append_answer_slots) and would mis-bind the single pasted slot.
+                #   * the router owns the INTENT facet (relation_to_active_object /
+                #     next_action / target_object_ref / confidence): it sees the
+                #     conversation context, so e.g. a no-keyword revision ("不对应该是B")
+                #     is correctly relation=revise_answer_on_active_object — the local
+                #     4-keyword heuristic below MUST NOT downgrade it.
+                # When the router supplied a decision, keep its intent fields and
+                # override ONLY the slot-binding facet with the paste truth. When it
+                # did not, deep_question builds the whole grading decision.
+                mcq_paste_allowed_patch = (
+                    "append_answer_slots"
+                    if len((full_mcq_context or {}).get("items") or []) > 1
+                    else "update_answer_slot"
+                )
+                mcq_paste_decision = build_turn_semantic_decision(
                     relation_to_active_object=(
                         "revise_answer_on_active_object"
                         if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
                         else "answer_active_object"
                     ),
                     next_action="route_to_grading",
-                    allowed_patch="append_answer_slots" if len((full_mcq_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    allowed_patch=mcq_paste_allowed_patch,
                     confidence=1.0,
-                    reason="mcq_grading full-submission fallback",
+                    reason="mcq_grading full-submission paste (paste-parsed slot-binding authority)",
                     active_object=full_mcq_active_object,
                 )
+                if turn_semantic_decision:
+                    # Router supplied intent; deep_question overrides only the
+                    # slot-binding facet (allowed_patch + target_object_ref bound to
+                    # the pasted object). relation/next_action/confidence stay router's.
+                    mcq_turn_decision = {
+                        **turn_semantic_decision,
+                        "allowed_patch": mcq_paste_decision["allowed_patch"],
+                        "target_object_ref": mcq_paste_decision["target_object_ref"],
+                        "reason": "mcq_grading full-submission paste (router intent + paste slot-binding)",
+                    }
+                else:
+                    mcq_turn_decision = mcq_paste_decision
                 context.metadata["question_followup_context"] = dict(full_mcq_context)
                 context.metadata["active_object"] = dict(full_mcq_active_object or {})
                 context.metadata["turn_semantic_decision"] = mcq_turn_decision
@@ -3919,18 +3951,38 @@ class DeepQuestionCapability(BaseCapability):
                     source_turn_id=turn_id,
                     previous_active_object=active_object,
                 ) or active_object
-                case_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
+                # Same field-level merge as the MCQ paste path above: deep_question
+                # owns the SLOT-BINDING facet (allowed_patch / active_object — derived
+                # from the pasted self-contained case), the router owns the INTENT facet
+                # (relation_to_active_object / next_action / confidence — it sees the
+                # conversation context, so a no-keyword revision is not downgraded by the
+                # local 4-keyword heuristic). Merge fields; do not whole-replace.
+                case_paste_allowed_patch = (
+                    "append_answer_slots"
+                    if len((full_case_context or {}).get("items") or []) > 1
+                    else "update_answer_slot"
+                )
+                case_paste_decision = build_turn_semantic_decision(
                     relation_to_active_object=(
                         "revise_answer_on_active_object"
                         if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
                         else "answer_active_object"
                     ),
                     next_action="route_to_grading",
-                    allowed_patch="append_answer_slots" if len((full_case_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    allowed_patch=case_paste_allowed_patch,
                     confidence=1.0,
-                    reason="case_grading full-submission fallback",
+                    reason="case_grading full-submission paste (paste-parsed slot-binding authority)",
                     active_object=full_case_active_object,
                 )
+                if turn_semantic_decision:
+                    case_turn_decision = {
+                        **turn_semantic_decision,
+                        "allowed_patch": case_paste_decision["allowed_patch"],
+                        "target_object_ref": case_paste_decision["target_object_ref"],
+                        "reason": "case_grading full-submission paste (router intent + paste slot-binding)",
+                    }
+                else:
+                    case_turn_decision = case_paste_decision
                 context.metadata["question_followup_context"] = dict(full_case_context)
                 context.metadata["active_object"] = dict(full_case_active_object or {})
                 context.metadata["turn_semantic_decision"] = case_turn_decision
