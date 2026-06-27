@@ -701,9 +701,9 @@ control_plane_writers:
     writer_type: metadata_assignment
     file: deeptutor/capabilities/deep_question.py
     symbol: run
-    allowed_role: compat_projection
-    reason: deep_question scene projection into trace_meta (competing writer).
-    remove_when: Task 3 (deep_question reads canonical scene).
+    allowed_role: trace_projection
+    reason: Mirrors canonical scene into trace_metadata for observability (reads canonical via project_question_lifecycle_scene_from_metadata; never derives one).
+    remove_when: never
   - field: reveal_reference
     writer_type: reveal_kwarg
     file: deeptutor/capabilities/deep_question.py
@@ -1094,8 +1094,8 @@ control_plane_writers:
     writer_type: metadata_assignment
     file: deeptutor/services/session/turn_runtime.py
     symbol: _summarize_assistant_events
-    allowed_role: production_decider
-    reason: Runtime relation/active-object/followup write before capability dispatch.
+    allowed_role: trace_projection
+    reason: Read-backs scene from already-emitted events into the observation summary (not a decider).
     remove_when: Task 2 (QuestionTurnPolicyKernel collapse).
   - field: reveal_reference
     writer_type: reveal_kwarg
