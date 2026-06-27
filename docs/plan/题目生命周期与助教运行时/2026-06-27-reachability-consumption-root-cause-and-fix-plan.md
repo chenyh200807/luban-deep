@@ -50,6 +50,12 @@
 - **风险**: sink 高频汇点改签名扫全 call site；遮蔽过度伤已答题（用 per-item）。
 - **替代（不确定性）**: continuity 注入直接过滤伤连续性不变量。**替代=不删注入，给未答题答案位打 reveal-masked 标记**（主 LLM 看题干不看答案），需 Langfuse dump 注入文本实际形态后定。
 
+### 执行进展（2026-06-27 更新）
+
+**动作 1（泄露）= ✅ 已治本上线（main, live 5/5 不泄）**。关键过程教训：第一版 prompt 软指令（求 LLM 别说）**live 2/3 泄露**（fast 模式压过软指令 + LLM 看 Q2 题干用自己知识自解，答案不在 context 在 grading_key 所以遮蔽也没用）→ 证伪"软指令防泄露"。**第二版确定性路由（已上线）**：未作答题指代在 manager.send_message（LLM）**之前**短路，复用 should_block + requested_question_item_index 已有权威定位被指代题，确定性渲染题干+引导（答案隐藏），emit 走 TerminalResultAssembler 单一 visible-output 权威。**LLM 根本不被调 = 结构上看不到也答不出**。印证统一原则：结构 > 软指令。
+
+**动作 2 shadow 取证 = ✅ 已完成（2026-06-27）**：Langfuse（Aliyun port 3001）挖 537 个 deep_question turn（2026-06-23~06-27 共 4.3 天，scene: practice_generation 261/question_review 140/mcq_grading 132/?4），**0 个触发 fabrication**（control_plane_shadow_hits 全 0）。埋点 sound（`_canonical_turn_decision_missing` 真检测非 no-op）+ whitelist 确认。**结论**：deep_question fabrication 在生产经验性休眠（canonical 总在场，4.3 天/537 turn/三大 scene 零现编），commander 担心的 preselect 漏点生产未发生。**动作 2 安全做法**：删静默 fabrication → 改 loud fail-fast（0/537 证据说 fail-fast 不会响，是安全网）。残留不确定性：0 跨全 writer_role 略可疑，改 fail-fast 时核 S5/S6 站点是否真接 _append_bare_build_shadow_hit。红线：改后必 live≥3（三 scene）核终态。
+
 ### 动作 2 — 回指入口侧：canonical 必达 + deep_question fail-fast（中风险，先 7 天 shadow 观测）
 - **one fact**: 每个到达 deep_question 的 turn 带 orchestrator 签发的 canonical turn_semantic_decision。
 - **one authority**: build_turn_semantic_decision / orchestrator（turn.md 硬约束 24）。
