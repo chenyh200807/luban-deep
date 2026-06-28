@@ -61,6 +61,7 @@ from deeptutor.services.question_followup import (
 from deeptutor.services.question_turn_policy import (
     _active_object_ref,
     _message_references_stored_question_set_item,
+    _message_requests_active_mcq_represent,
     _normalize_question_followup_action,
     _resolve_question_followup_context_and_action,
     _same_active_object_identity,
@@ -4280,12 +4281,24 @@ class TurnRuntimeManager:
             stored_set_ordinal_referenced = _message_references_stored_question_set_item(
                 raw_user_content, stored_followup_question_context
             )
+            # #287 (2026-06-28) — turn-START 相位独有的 re-present 引用保护，与 task#14
+            # 同形（"本轮引用了活跃对象 → 不要 demote"）：当本轮显式要求把活跃 MCQ
+            # 重排 / 重新展示（"选项重新排列一下" / "把abcd换个顺序重新给我看"）时，不要
+            # 把活跃 MCQ 压进 suspended stack。否则 active_object 被换成 open_chat_topic，
+            # tutorbot/deep_question 的确定性 re-present 短路（build_canonical_represent_response）
+            # 因 context 里没有活跃 choice MCQ 而 fail-safe 落 free LLM → 凭空换题（幻觉）。
+            # 单一 re-present 意图权威 = question_followup.message_has_represent_request_intent
+            # （build_canonical_represent_response 复用同一权威），此处只读不重判。
+            stored_active_mcq_represent_referenced = _message_requests_active_mcq_represent(
+                raw_user_content, stored_followup_question_context
+            )
             if (
                 stored_active_object is not None
                 and stored_followup_question_context is not None
                 and followup_question_context is None
                 and followup_action_route(followup_question_action) is None
                 and not stored_set_ordinal_referenced
+                and not stored_active_mcq_represent_referenced
             ):
                 stored_suspended_object_stack = _prepend_suspended_object(
                     stored_suspended_object_stack,

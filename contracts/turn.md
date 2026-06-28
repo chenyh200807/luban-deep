@@ -196,6 +196,12 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
     ordinal 引用 stored 套题的某个 item 时**不压栈**（`stored_set_ordinal_referenced=True`），让套题保持 active，
     scene low-information gate（读 `active_object`/`question_followup_context`，不读 suspended stack）才锚得住
     "第N题"，否则 fail-closed。单一 ordinal→item 权威 = `question_followup.requested_question_item_index`（同提交路径）。
+  - **#287（2026-06-28）是同相位、同形的 re-present 引用保护**：当本轮显式要求把活跃 MCQ **重排 / 重新展示**
+    （"选项重新排列一下" / "把abcd换个顺序重新给我看"）时**不压栈**（`stored_active_mcq_represent_referenced=True`），
+    让活跃 MCQ 保持 active；否则 active_object 被换成 open_chat_topic，tutorbot/deep_question 的确定性 re-present
+    短路 `build_canonical_represent_response` 因 context 里没有活跃 choice MCQ 而 fail-safe 落 free LLM → **凭空换题（幻觉）**。
+    单一 re-present 意图权威 = `question_followup.message_has_represent_request_intent`（`build_canonical_represent_response`
+    复用同一权威），demote 守卫经 `question_turn_policy._message_requests_active_mcq_represent` 只读不重判，不新增第二决策点。
 - **routing 相位**（单一权威 = `deeptutor/services/semantic_router.py::apply_active_object_transition`）：
   orchestrator 经 `metadata.suspended_object_stack` 读到 turn-START 压栈的对象，在 `resume_suspended_object`
   决策下**恢复（出栈）**。canonical **只出栈、从不在 turn-START 那个输入上重做压栈决策**。

@@ -16,6 +16,7 @@ from deeptutor.services.question_followup import (
     detect_requested_question_type,
     extract_choice_result_summary_from_text,
     looks_like_question_followup,
+    message_has_represent_request_intent,
     normalize_question_followup_context,
     resolve_submission,
     resolve_submission_attempt,
@@ -2753,6 +2754,47 @@ def test_canonical_represent_fires_on_letter_manipulation_request() -> None:
     assert out is not None
     # 仍按 canonical 原序展示(不真对调)
     assert out.index("A. 1年") < out.index("B. 3年")
+
+
+# ---------------------------------------------------------------------------
+# #287: re-present 意图单一权威 message_has_represent_request_intent
+# build_canonical_represent_response 与 turn-START demote 守卫共用此权威，确保 terse
+# 引用活跃 MCQ 时该题不被 demote、确定性 re-present 短路能 fire（不再幻觉换题）。
+# ---------------------------------------------------------------------------
+
+
+def test_represent_intent_fires_on_terse_287_phrases() -> None:
+    # issue #287 复现用的 terse 措辞，必须被识别为 re-present 意图。
+    assert message_has_represent_request_intent("选项重新排列一下") is True
+    assert message_has_represent_request_intent("把abcd换个顺序重新给我看") is True
+    assert message_has_represent_request_intent("把选项顺序打乱重新展示") is True
+    assert message_has_represent_request_intent("重新展示一下这道题") is True
+
+
+def test_represent_intent_excludes_new_question_intent() -> None:
+    # 换新题意图绝不算 re-present（"换一道"含"换"但优先排除）。
+    assert message_has_represent_request_intent("换一道题") is False
+    assert message_has_represent_request_intent("下一题") is False
+    assert message_has_represent_request_intent("再来一道单选") is False
+
+
+def test_represent_intent_none_on_answer_or_unrelated() -> None:
+    assert message_has_represent_request_intent("我选B") is False
+    assert message_has_represent_request_intent("为什么选B") is False
+    assert message_has_represent_request_intent("A选项是什么意思") is False
+    assert message_has_represent_request_intent("这道题好难") is False
+    assert message_has_represent_request_intent("") is False
+    assert message_has_represent_request_intent(None) is False
+
+
+def test_represent_intent_is_single_authority_for_canonical_represent() -> None:
+    # build_canonical_represent_response 的 fire/不-fire 必须与本权威一致（同一意图源）。
+    for msg in ("选项重新排列一下", "把abcd换个顺序重新给我看", "重新展示一下这道题"):
+        assert message_has_represent_request_intent(msg) is True
+        assert build_canonical_represent_response(_mcq_active_object(), msg) is not None
+    for msg in ("换一道题", "我选B", "为什么选B", "这道题好难"):
+        assert message_has_represent_request_intent(msg) is False
+        assert build_canonical_represent_response(_mcq_active_object(), msg) is None
 
 
 def test_canonical_represent_fires_on_production_single_item_shape() -> None:
