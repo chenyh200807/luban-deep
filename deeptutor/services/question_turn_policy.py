@@ -194,9 +194,16 @@ def _message_requests_active_mcq_represent(
         return False
     try:
         from deeptutor.services.question_followup import (  # noqa: WPS433
+            _validate_single_mcq_snapshot,
             message_has_represent_request_intent,
         )
     except Exception:
+        return False
+    # Only a single-choice MCQ can be deterministically re-presented from
+    # state_snapshot (build_canonical_represent_response 的同一 shape 权威
+    # _validate_single_mcq_snapshot)。套题 batch / 非 choice / 学习计划等对象即便带
+    # 残留 question context 也不在本 carve-out 范围 → 照常 demote（不误保活、不状态泄漏）。
+    if _validate_single_mcq_snapshot(stored_question_context) is None:
         return False
     return message_has_represent_request_intent(message)
 

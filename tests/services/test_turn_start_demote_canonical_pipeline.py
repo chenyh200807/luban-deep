@@ -179,6 +179,33 @@ def test_287_represent_reference_blocks_turn_start_demote() -> None:
     assert _message_requests_active_mcq_represent("选项重新排列一下", None) is False
 
 
+def test_287_represent_carveout_only_for_single_choice_mcq() -> None:
+    """异源核(GLM)硬化：carve-out 只对单选 choice MCQ 生效。
+
+    套题 batch / 非 choice / 即便带残留 question context 的对象，都不在本 carve-out 范围
+    → 照常 demote（不误保活、不状态泄漏）。名实相符：是 active_MCQ_represent，不是 any-object。
+    """
+
+    # 套题 batch（items>1）即使命中 re-present 措辞也不触发 carve-out → 照常 demote。
+    batch_ctx = _question_set_context()
+    assert _message_requests_active_mcq_represent("选项重新排列一下", batch_ctx) is False
+
+    # 非 choice（如 case 简答题）不触发。
+    case_ctx = {
+        "question_id": "c1",
+        "question": "论述危大工程论证流程",
+        "question_type": "case",
+        "items": [],
+    }
+    assert _message_requests_active_mcq_represent("选项重新排列一下", case_ctx) is False
+
+    # 单选 choice MCQ 才触发（对照组）。
+    assert (
+        _message_requests_active_mcq_represent("选项重新排列一下", _single_mcq_context())
+        is True
+    )
+
+
 def test_turn_start_only_pushes_canonical_only_pops_phase_boundary() -> None:
     """相位边界：turn-START 只压栈、canonical 才出栈，两者不在同一输入上矛盾。
 
