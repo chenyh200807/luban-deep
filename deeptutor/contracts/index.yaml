@@ -250,6 +250,7 @@ domains:
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/services/test_qtpk_differential.py
       - tests/services/test_qtpk_lifecycle_state.py
+      - tests/services/test_qtpk_lifecycle_state_shadow.py
       - tests/services/test_active_object_deep_mode_convergence.py
       - tests/services/test_start_turn_mode_selection_removal_parity.py
       - tests/services/test_qtpk_grading_patch.py
