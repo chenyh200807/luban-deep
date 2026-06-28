@@ -1337,6 +1337,28 @@ _NEW_QUESTION_REQUEST_MARKERS = (
 )
 
 
+def message_has_represent_request_intent(user_message: str) -> bool:
+    """单一权威: 这条消息是否在显式要求 **重排 / 重新展示** 一道活跃 MCQ。
+
+    判据 = 命中 ``_REPRESENT_REQUEST_MARKERS`` 且不命中 ``_NEW_QUESTION_REQUEST_MARKERS``
+    （"换一道"等换新题意图绝不算 re-present）。这是 re-present 意图的唯一来源：
+    ``build_canonical_represent_response`` 的确定性短路与 turn-START demote 守卫
+    （经 ``question_turn_policy._message_requests_active_mcq_represent``）都读它，
+    不各自重判，避免出现第二个 represent 决策点（turn.md §硬约束 24 单一权威）。
+
+    注意：本判据只看意图标记，**不**判断"是不是一次作答"——混合意图（"我选C，重新展示"）
+    的让路由 ``build_canonical_represent_response`` 复用 canonical ``resolve_submission_attempt``
+    处理；demote 守卫侧另有 ``followup_question_action`` 提交判定兜底，故此处保持纯意图。
+    """
+
+    text = str(user_message or "").strip()
+    if not text:
+        return False
+    if any(marker in text for marker in _NEW_QUESTION_REQUEST_MARKERS):
+        return False
+    return any(marker in text for marker in _REPRESENT_REQUEST_MARKERS)
+
+
 def _validate_single_mcq_snapshot(
     snapshot: Any,
 ) -> tuple[dict[str, Any], dict[str, str]] | None:
@@ -1401,11 +1423,9 @@ def build_canonical_represent_response(
     text = str(user_message or "").strip()
     if not text:
         return None
-    # 换新题意图优先：绝不把"换一道"误当 re-present。
-    if any(marker in text for marker in _NEW_QUESTION_REQUEST_MARKERS):
-        return None
-    # 必须显式 re-present marker（解析/无关消息都不含 → 不 fire）。
-    if not any(marker in text for marker in _REPRESENT_REQUEST_MARKERS):
+    # re-present 意图单一权威（同时含"换新题优先排除"+"必须显式 re-present marker"）。
+    # demote 守卫读同一权威，二者不各自重判 marker（turn.md §硬约束 24）。
+    if not message_has_represent_request_intent(text):
         return None
     # 混合意图防护：消息同时是一次作答（"我选C，重新展示"）时交给判分，不可吞掉作答。
     # 复用 canonical submission 权威 resolve_submission_attempt（question_followup 的单一

@@ -171,6 +171,43 @@ def _message_references_stored_question_set_item(
     return requested_question_item_index(message, stored_question_context) is not None
 
 
+def _message_requests_active_mcq_represent(
+    message: str,
+    stored_question_context: dict[str, Any] | None,
+) -> bool:
+    """True if ``message`` explicitly asks to re-present / reshuffle the stored active
+    MCQ ("选项重新排列一下" / "把abcd换个顺序重新给我看"), via the single re-present
+    intent authority (``question_followup.message_has_represent_request_intent`` — the
+    same markers ``build_canonical_represent_response`` consumes).
+
+    Used by the turn-start suspend guard to NOT demote the active MCQ into the suspended
+    stack when the learner is referencing it for a re-present (#287). Without this, the
+    demote guard treats the re-present turn as "moved on", pushes the MCQ to the suspended
+    stack and surfaces an open_chat_topic as active_object → the deterministic re-present
+    short-circuit fail-safes (no active choice MCQ in context) and the free LLM hallucinates
+    a different question. Mirror of the task#14 ordinal carve-out
+    (``_message_references_stored_question_set_item``): same shape ("this turn references the
+    active object → keep it active"), reusing an existing single authority, not a new gate.
+    """
+
+    if not stored_question_context:
+        return False
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            _validate_single_mcq_snapshot,
+            message_has_represent_request_intent,
+        )
+    except Exception:
+        return False
+    # Only a single-choice MCQ can be deterministically re-presented from
+    # state_snapshot (build_canonical_represent_response 的同一 shape 权威
+    # _validate_single_mcq_snapshot)。套题 batch / 非 choice / 学习计划等对象即便带
+    # 残留 question context 也不在本 carve-out 范围 → 照常 demote（不误保活、不状态泄漏）。
+    if _validate_single_mcq_snapshot(stored_question_context) is None:
+        return False
+    return message_has_represent_request_intent(message)
+
+
 def _context_has_reference_answer(context: dict[str, Any] | None) -> bool:
     def _item_has_reference_answer(item: dict[str, Any] | None) -> bool:
         if not isinstance(item, dict):
