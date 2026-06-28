@@ -42,6 +42,7 @@ from deeptutor.services.question_lifecycle_skills import (
 )
 from deeptutor.services.runtime_env import env_flag
 from deeptutor.services.semantic_router import (
+    active_object_family_for_type,
     build_active_object_from_question_context,
     build_turn_semantic_decision,
     is_unresolved_switch_followup,
@@ -901,11 +902,18 @@ class ChatOrchestrator:
     def _semantic_router_target_domain(self, context: UnifiedContext, message: str) -> str:
         active_object = normalize_active_object(context.metadata.get("active_object"))
         object_type = str((active_object or {}).get("object_type") or "").strip()
-        if object_type in {"question_set", "single_question"}:
+        # Family-first split via the single active-object family authority: a question
+        # (题型) object — including open_world_question, which the old hand-listed
+        # {question_set, single_question} silently dropped — maps to the question domain.
+        family = active_object_family_for_type(object_type)
+        if family == "question":
             return "question"
-        if object_type in {"guide_page", "study_plan", "lesson_topic"}:
+        # Non-question objects short-circuit explicitly to their domain rather than
+        # falling through into the question heuristics below. (lesson_topic is a
+        # guide-side alias not in GUIDE_ACTIVE_OBJECT_TYPES; kept explicit.)
+        if family == "guide" or object_type == "lesson_topic":
             return "guide"
-        if object_type == "open_chat_topic":
+        if family == "open_chat":
             return "general"
         if looks_like_practice_generation_request(message):
             return "question"

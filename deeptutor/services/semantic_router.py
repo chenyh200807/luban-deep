@@ -1362,18 +1362,42 @@ def _normalize_confidence(raw: Any, *, default: float) -> float:
     return value
 
 
+def active_object_family_for_type(object_type: Any) -> str:
+    """Single family-first authority: classify an ``object_type`` string into its
+    active-object family — ``"question"`` (题型: single_question / question_set /
+    open_world_question, has a question lifecycle) / ``"guide"`` / ``"open_chat"`` /
+    ``""`` (unknown / non-classified, e.g. question_lifecycle_clarification).
+
+    This is the ONE place that decides "题型 vs 非题型". Callers MUST consult this
+    instead of hand-listing ``{"question_set", "single_question"}`` inline — every such
+    hand-list silently dropped ``open_world_question`` and drifted from
+    ``QUESTION_ACTIVE_OBJECT_TYPES``. ``_active_object_family`` (dict-level) and
+    ``is_question_active_object_type`` (boolean) both forward to this.
+    """
+
+    resolved = str(object_type or "").strip()
+    if resolved in QUESTION_ACTIVE_OBJECT_TYPES:
+        return "question"
+    if resolved in GUIDE_ACTIVE_OBJECT_TYPES:
+        return "guide"
+    if resolved in SESSION_ACTIVE_OBJECT_TYPES:
+        return "open_chat"
+    return ""
+
+
+def is_question_active_object_type(object_type: Any) -> bool:
+    """True iff ``object_type`` is a question-family (题型) object_type — the boolean
+    family-first split used to short-circuit non-question objects out of question logic.
+    Forwards to the single ``active_object_family_for_type`` authority (no second set)."""
+
+    return active_object_family_for_type(object_type) == "question"
+
+
 def _active_object_family(active_object: dict[str, Any] | None) -> str:
     normalized = normalize_active_object(active_object)
     if normalized is None:
         return ""
-    object_type = str(normalized.get("object_type") or "").strip()
-    if object_type in QUESTION_ACTIVE_OBJECT_TYPES:
-        return "question"
-    if object_type in GUIDE_ACTIVE_OBJECT_TYPES:
-        return "guide"
-    if object_type in SESSION_ACTIVE_OBJECT_TYPES:
-        return "open_chat"
-    return ""
+    return active_object_family_for_type(normalized.get("object_type"))
 
 
 def _is_low_signal_continuation(message: str) -> bool:
@@ -1660,6 +1684,8 @@ __all__ = [
     "SEMANTIC_NEXT_ACTIONS",
     "SEMANTIC_RELATIONS",
     "SemanticRoutingResult",
+    "active_object_family_for_type",
+    "is_question_active_object_type",
     "build_question_active_object",
     "apply_active_object_transition",
     "build_target_object_ref",

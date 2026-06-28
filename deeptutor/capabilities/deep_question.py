@@ -51,6 +51,7 @@ from deeptutor.services.semantic_router import (
     apply_active_object_transition,
     build_active_object_from_question_context,
     build_turn_semantic_decision,
+    is_question_active_object_type,
     normalize_active_object,
     normalize_suspended_object_stack,
     normalize_turn_semantic_decision,
@@ -450,7 +451,10 @@ def _suspended_stack_generation_anchor(
         if not normalized:
             continue
         object_type = str(normalized.get("object_type") or "").strip()
-        if object_type in {"question_set", "single_question"}:
+        # Family-first: skip any question (题型) suspended object — we want a BROADER
+        # non-question anchor here. Consults the single family authority instead of a
+        # hand-listed {question_set, single_question} that dropped open_world_question.
+        if is_question_active_object_type(object_type):
             continue
         anchor = _active_object_generation_anchor(normalized)
         if anchor:
@@ -490,18 +494,22 @@ def _resolve_generation_topic(
         broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
         normalized_active_object = normalize_active_object(active_object)
         active_object_type = str((normalized_active_object or {}).get("object_type") or "").strip()
+        # Family-first: a question (题型) active object's exclusion / broader anchor is
+        # read from its question context; a non-question object uses its generic anchor.
+        # Single family authority replaces the hand-listed {question_set, single_question}.
+        active_object_is_question = is_question_active_object_type(active_object_type)
         exclusion_anchor = _question_context_exclusion_anchor(followup_question_context)
-        if not exclusion_anchor and active_object_type in {"question_set", "single_question"}:
+        if not exclusion_anchor and active_object_is_question:
             exclusion_anchor = _question_context_exclusion_anchor(
                 question_context_from_active_object(normalized_active_object)
             )
         if not broader_anchor:
             broader_anchor = _question_context_broader_subject_anchor(followup_question_context)
-        if not broader_anchor and active_object_type in {"question_set", "single_question"}:
+        if not broader_anchor and active_object_is_question:
             broader_anchor = _question_context_broader_subject_anchor(
                 question_context_from_active_object(normalized_active_object)
             )
-        if not broader_anchor and active_object_type not in {"question_set", "single_question"}:
+        if not broader_anchor and not active_object_is_question:
             broader_anchor = _active_object_generation_anchor(normalized_active_object)
         if not broader_anchor:
             broader_anchor = _conversation_generation_anchor(conversation_context_text)
@@ -515,12 +523,14 @@ def _resolve_generation_topic(
 
     normalized_active_object = normalize_active_object(active_object)
     active_object_type = str((normalized_active_object or {}).get("object_type") or "").strip()
+    # Family-first via the single family authority (replaces hand-listed literal).
+    active_object_is_question = is_question_active_object_type(active_object_type)
     question_anchor = _question_context_generation_anchor(followup_question_context)
-    if not question_anchor and active_object_type in {"question_set", "single_question"}:
+    if not question_anchor and active_object_is_question:
         question_anchor = _active_object_generation_anchor(normalized_active_object)
 
     broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
-    if not broader_anchor and active_object_type not in {"question_set", "single_question"}:
+    if not broader_anchor and not active_object_is_question:
         broader_anchor = _active_object_generation_anchor(normalized_active_object)
     if not broader_anchor:
         broader_anchor = _conversation_generation_anchor(conversation_context_text)
