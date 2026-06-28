@@ -1462,6 +1462,15 @@ Pass criteria：
 
 ### Task 6: Fast / Deep latency only after authority baseline
 
+> **结论（2026-06-28，accept 现状，owner 裁决；Langfuse 真实瓶颈分解 + 源码核验后）**：
+> Task 6 在其 pinned write scope（`response_mode.py`/`loop.py`/`turn_runtime.py`/observability）内**无安全可做的减法**。**premise 反转**（embedded 假设"RAG ~6s 阻塞首 token"在当前 main 不成立）：
+> - Task 6 点名要后移的阻塞串行（learner_state.refresh / RAG / forced prefetch / memory / notebook-history）**在当前 main 上要么已后移、要么不是瓶颈**（这些 turn 上 RAG=0、supabase≈0、learner refresh 已并行）。
+> - **真实残留瓶颈 = 首答前的阻塞 LLM scene 分类器** `_llm_question_lifecycle_scene_proposal`（`deeptutor/services/question_lifecycle_skills.py:1546` 调 `llm_factory.complete`，~6-8s，scene=None 普通聊天才跑，由 `orchestrator.py:680` 触发）。它**在 Task 6 write scope 外**（orchestrator/lifecycle_skills），且**在 SEV 路径上**——输出喂 `question_lifecycle_scene`/`active_object`(orchestrator.py:706)/`turn_semantic_decision`(orchestrator.py:279)，即 3 SEV（泄露/回指/倒诬）依赖的路由真相。Task 6 护栏内（不碰 SEV 路径、不出 write scope）无法安全移除。
+> - **fast 普通 QA**（scene 确定、分类器不跑）首答 **2-3s，已达 ≤4s SLO**；**dominant 流量是 deep_question**（近样本 746 vs tutorbot 53），为 **model-bound**（单次 llm.complete 可达 59s），杠杆是 model/prompt/token budget 非本地串行——也不在 Task 6 write scope。
+> - **核心洞察**：剩的"慢"和"对"在此**共用同一组件**（产出 SEV 路由的 scene 分类器正是首答前延迟源），不能在 Task 6 护栏内廉价/安全地"减"。
+> - **未做（且正确）**：无 flag 减法 / 无 before-after p95 / 无 billable A/B eval（eval-design：不为没做的减法花钱证质量）。fast 契约（`contracts/turn.md:102`）确实陈旧（与"first_useful_content 不含阻塞 prefetch、ack 不算"冲突），但**单改契约 rename 无加速**（prefetch 极少触发），留独立 contract-hygiene PR。
+> - **若未来要真做**：scene 分类器对普通聊天非阻塞化（deterministic-first / ack-then-classify，保 scene/active_object/turn_semantic_decision 字节一致）= orchestrator/lifecycle 改动**在 SEV 路径上**，需单独 write-scope 授权 + 3-SEV live 回归 ≥3× + eval-design，**非 Task 6 单会话窄改**。
+
 Owner: Runtime + TutorBot + Observability
 
 Primary write scope:
