@@ -1,6 +1,6 @@
 # DeepTutor 控制面单一权威收权 + Fast / Deep Mode 与 Orchestrator 简化改造计划
 
-> Status: Proposed v0.4 / Canonical control-plane authority collapse, Phase -1 thin-slice, Phase 0 WEAK-GO (2026-06-28 Task 7 离线 closure GREEN — same-SHA replay + hard corpus + §6.5 authority_count 真下降，见 §Task 7 Closure Record), Phase 1-3 deletion gated（7 天 live shadow 窗最早 ~07-03 成熟 + 微信真机 true-entry 未执行；全 GO 时间门未到）
+> Status: Proposed v0.4 / Canonical control-plane authority collapse, Phase -1 thin-slice, Phase 0 WEAK-GO (2026-06-28 Task 7 离线 closure GREEN + 生产真窗实测 exit0/0命中 + 微信真机 true-entry 核心 3 SEV 5/6 PASS，见 §Task 7 Closure Record), Phase 1-3 deletion gated（唯一剩余 = 7 天 live shadow 窗日历+流量成熟 ~07-03；到期 hits 持续 0 才解锁 deletion 盖 GO）
 > Created: 2026-06-26
 > Revised: 2026-06-26
 > Type: Architecture authority collapse + simplification + latency execution plan
@@ -1614,9 +1614,20 @@ Pass criteria：
   | 6 | 重排 | bot 出题「重排选项再考你」后作答 | 同 #4，重排后判分对象=最新题面 |
   | 每条记录 | — | target_page / entry_flow / auth_state / auth_mode / backend_turn_id / frontend_consume_timestamp | 终态对齐生产 turn |
 
-- 后端侧这 6 类的终态在 hard corpus + 持久化层已绿（§A）；harness 唯一新增覆盖 = **微信端 presentation flags + 可见渲染**，须真机核。**在用户完成真机 6 条并核终态对之前，全 GO 不闭合。**
+- **2026-06-28 已实跑（automator 真入口，非 /wechat-harness）：5 PASS + 1 CHECK**。auth_mode=QA 密码登录（`qa_wechat_*` cohort）；billing 经签名 `X-Eval-Bypass` token 绕过（**仅 billing，真客户端/WS/后端/路由/判分/reveal/渲染全和真实用户一致**，billing 与 3 SEV 正交）；环境 DevTools 真机模拟器；后端=生产 `2f124da8`。
 
-**裁决：Phase 0 离线 closure GREEN（A+B+C 全绿，authority_count 真下降）；全 GO 仍 gated 在 (D) 7 天 live 窗成熟（~07-03）+ (E) 微信真机 true-entry。状态维持 `Phase 0 WEAK-GO 离线收口完成 / Phase 1-3 deletion 时间门未到`，不翻 GO。**
+  | # | 类型 | 真机终态实测 | 判定 |
+  |---|---|---|---|
+  | 1 | 泄露(出题) | MCQ 卡 + presentation 零泄露：options 全 `selected:false`，followupContext 无 correct_answer/answer_key/scoring_points，reveal flag 不存在 | **PASS** |
+  | 2 | 泄露(pasted) | 粘贴完整 MCQ 讲解不预泄答案字母（无「正确答案是X/本题选X」模式） | **PASS** |
+  | 3 | 回指(上一题) | 「上一题讲一下」给连贯解答（513 字），无失忆/「没有上一题」重置 | **PASS** |
+  | 4 | 倒诬(面锚定) | 选 A → 判「你答了A，正确答案是D，本题得0分」，**锚定真机题面选择 A** 核对其内容，无把对判错 | **PASS** |
+  | 5 | 答题(verdict) | onMcqTap+onMcqSubmit → 完整阅卷结论（诊断类型/正确答案D/为什么错，1208 字） | **PASS** |
+  | 6 | 重排(面锚) | bot 拒绝「打乱选项再考」（当无 topic 新生成走 fail-closed），重排场景未触发；倒诬面锚定已由 #4/#5 验证 | **CHECK**（场景未复现，非 fix 回归）|
+
+- 残留：#6「bot 主动重排」需换 prompt 或人眼核（倒诬核心已 #4 验证）；#3 精确 ordinal「上一题=q1 还是 q2」程序难断，连续性（无失忆）已证，精确序需人眼复核一次。
+
+**裁决（2026-06-28 更新）：Phase 0 离线 closure GREEN（A+B+C，authority_count 真下降）+ 生产真窗实测干净（D，exit 0/0 命中/薄样本）+ 微信真机 true-entry 核心 3 SEV 全 PASS（E，5/6，billing-orthogonal eval-bypass）。**全 GO 唯一剩余 gate = (D) 7 天 live 窗日历+流量成熟（~07-03，目前仅 ~2 天 18 turns），到期 hits 持续 0 才解锁 Task 2-5 deletion 并盖 GO。状态：`Phase 0 WEAK-GO 离线收口完成 + 真机 true-entry 核心 SEV 验证 / Phase 1-3 deletion 仅剩 7 天 live 窗时间门`。不翻全 GO（红线：窗未成熟不得据此删除）。**
 
 ## 15. 测试与质量门
 
