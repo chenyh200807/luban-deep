@@ -106,6 +106,168 @@ class TurnPolicyDecision:
     # Full lifecycle scene decision envelope (scene + supporting fields).
     scene_decision: dict[str, Any] | None = None
 
+    @property
+    def lifecycle_state(self) -> dict[str, Any] | None:
+        """READ-ONLY explicit question lifecycle state, purely derived from the
+        envelope's already-canonical facts (active_object + suspended stack). NOT a
+        sixth fact — holds no new truth. ``None`` for non-question objects. See
+        ``derive_question_lifecycle_state``."""
+
+        return derive_question_lifecycle_state(
+            active_object=self.active_object,
+            suspended_object_stack=self.suspended_object_stack,
+        )
+
+
+# --------------------------------------------------------------------------- #
+# M1: explicit question lifecycle_state — READ-ONLY derivation (no sixth fact). #
+# --------------------------------------------------------------------------- #
+#
+# The question-turn lifecycle FSM already exists IMPLICITLY: the per-item state of
+# a question instance is fully determined by the already-canonical facts QTPK owns
+# (object_type + state_snapshot.items[].{user_answer, is_correct,
+# construction_grading_result} + scene + suspended_object_stack). This block names
+# it EXPLICITLY as a pure derivation — it holds NO new truth (god-object red line:
+# per-item progress is READ from items[].grading fields, never stored), so it is
+# not a sixth QTPK fact. It exists for diagnostic value (shadow parity vs the
+# implicit object_type+scene classification) and as the assertable anchor M2/M3
+# collapse against. Zero behavior: assertions are observe-only (never fail-close).
+
+LIFECYCLE_PRESENTED = "presented"  # 未答 (I3: 答案不泄)
+LIFECYCLE_ATTEMPTED = "attempted"  # 已答待判 (I1: 作答锚==学生所见呈现面)
+LIFECYCLE_GRADED = "graded"  # 已判 (score 进 turn receipt 非 session truth)
+LIFECYCLE_SUSPENDED = "suspended"  # 挂起 (I2: 回指锚唯一身份, task#14)
+
+# Only these object_types are question instances with a lifecycle. Non-question
+# objects (open_chat_topic / guide_page / study_plan / clarification) have NO
+# question lifecycle → derivation returns None (M2 will route them family-first).
+_QUESTION_LIFECYCLE_OBJECT_TYPES = frozenset(
+    {"single_question", "question_set", "open_world_question"}
+)
+
+
+def _item_is_graded(item: dict[str, Any]) -> bool:
+    if item.get("is_correct") is not None:
+        return True
+    grading_result = item.get("construction_grading_result")
+    return isinstance(grading_result, dict) and bool(grading_result)
+
+
+def _item_is_attempted(item: dict[str, Any]) -> bool:
+    return bool(str(item.get("user_answer") or "").strip())
+
+
+def _derive_item_lifecycle_state(
+    item: dict[str, Any],
+    *,
+    object_type: str,
+) -> tuple[str, bool]:
+    """Return (state, graded_pending) for ONE question item, READ-only.
+
+    graded_pending = open_world question that has a learner attempt but no verdict
+    yet (is_correct is None and no construction_grading_result) — the ATTEMPTED↔
+    GRADED substate where a RAG/open-world judgment is still pending. It is a flag
+    ON the ATTEMPTED state, not a fifth flat state.
+    """
+
+    if not isinstance(item, dict):
+        return LIFECYCLE_PRESENTED, False
+    if _item_is_graded(item):
+        return LIFECYCLE_GRADED, False
+    if _item_is_attempted(item):
+        graded_pending = object_type == "open_world_question"
+        return LIFECYCLE_ATTEMPTED, graded_pending
+    return LIFECYCLE_PRESENTED, False
+
+
+def _summarize_item_states(item_states: list[str]) -> str:
+    """Summary state of a set from its per-item states (per-item array is the
+    load-bearing dimension; this summary is convenience only)."""
+
+    if not item_states:
+        return LIFECYCLE_PRESENTED
+    if all(state == LIFECYCLE_GRADED for state in item_states):
+        return LIFECYCLE_GRADED
+    if any(state in (LIFECYCLE_ATTEMPTED, LIFECYCLE_GRADED) for state in item_states):
+        return LIFECYCLE_ATTEMPTED
+    return LIFECYCLE_PRESENTED
+
+
+def derive_question_lifecycle_state(
+    *,
+    active_object: dict[str, Any] | None,
+    suspended_object_stack: list[dict[str, Any]] | None = None,
+) -> dict[str, Any] | None:
+    """READ-ONLY derivation of the active question object's lifecycle state.
+
+    Returns ``None`` for non-question objects (open_chat_topic / guide_page /
+    study_plan / clarification) and when there is no active question — those have
+    no question lifecycle. For a question object returns a pure-derived envelope::
+
+        {
+          "object_type": "question_set",
+          "state": "attempted",          # summary of the active object
+          "graded_pending": False,        # open_world awaiting verdict
+          "items": [{"question_id", "state", "graded_pending"}, ...],  # per-item
+          "suspended": [{"object_type", "object_id"}, ...],  # SUSPENDED objects (I2)
+        }
+
+    NO new truth is held: per-item state is READ from
+    items[].{user_answer, is_correct, construction_grading_result}; SUSPENDED is
+    READ from the suspended_object_stack. This is the single derivation authority;
+    ``TurnPolicyDecision.lifecycle_state`` forwards it.
+    """
+
+    normalized = normalize_active_object(active_object)
+    if not isinstance(normalized, dict):
+        return None
+    object_type = str(normalized.get("object_type") or "").strip()
+    if object_type not in _QUESTION_LIFECYCLE_OBJECT_TYPES:
+        return None
+    context = extract_question_context_from_active_object(normalized) or {}
+    raw_items = context.get("items")
+    items = [it for it in raw_items if isinstance(it, dict)] if isinstance(raw_items, list) else []
+
+    per_item: list[dict[str, Any]] = []
+    if items:
+        for item in items:
+            state, graded_pending = _derive_item_lifecycle_state(item, object_type=object_type)
+            per_item.append(
+                {
+                    "question_id": str(item.get("question_id") or "").strip(),
+                    "state": state,
+                    "graded_pending": graded_pending,
+                }
+            )
+        summary_state = _summarize_item_states([entry["state"] for entry in per_item])
+        graded_pending = any(entry["graded_pending"] for entry in per_item)
+    else:
+        # single_question / open_world_question: the state_snapshot itself is the item.
+        summary_state, graded_pending = _derive_item_lifecycle_state(
+            context, object_type=object_type
+        )
+        per_item = [
+            {
+                "question_id": str(context.get("question_id") or "").strip(),
+                "state": summary_state,
+                "graded_pending": graded_pending,
+            }
+        ]
+
+    suspended: list[dict[str, Any]] = []
+    for entry in suspended_object_stack or []:
+        ref = _active_object_ref(entry)
+        if ref.get("object_type") or ref.get("object_id"):
+            suspended.append(ref)
+
+    return {
+        "object_type": object_type,
+        "state": summary_state,
+        "graded_pending": graded_pending,
+        "items": per_item,
+        "suspended": suspended,
+    }
+
 
 def _normalize_question_followup_action(raw: Any) -> dict[str, Any] | None:
     if not isinstance(raw, dict):
