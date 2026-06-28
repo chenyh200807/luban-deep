@@ -1,6 +1,6 @@
 # DeepTutor 控制面单一权威收权 + Fast / Deep Mode 与 Orchestrator 简化改造计划
 
-> Status: Proposed v0.4 / Canonical control-plane authority collapse, Phase -1 thin-slice, Phase 0 WEAK-GO, Phase 1-3 gated
+> Status: Proposed v0.4 / Canonical control-plane authority collapse, Phase -1 thin-slice, Phase 0 WEAK-GO (2026-06-28 Task 7 离线 closure GREEN — same-SHA replay + hard corpus + §6.5 authority_count 真下降，见 §Task 7 Closure Record), Phase 1-3 deletion gated（7 天 live shadow 窗最早 ~07-03 成熟 + 微信真机 true-entry 未执行；全 GO 时间门未到）
 > Created: 2026-06-26
 > Revised: 2026-06-26
 > Type: Architecture authority collapse + simplification + latency execution plan
@@ -1545,6 +1545,78 @@ Pass criteria：
 - `legacy_production_decision_hits == 0` 连续 7 天，且覆盖 hard corpus 和代表性生产分布。
 - emergency-only 分支删除 PR 已排期或已执行。
 - 同一 SHA 的 replay/live/WeChat/observability 结论一致。
+
+#### Task 7 Closure Record（2026-06-28，QA + Release 裁决：OFFLINE-CLOSURE GREEN / 全 GO 时间门未到）
+
+裁决基线 SHA：`origin/main = 97c7fc2cb`（干净 worktree `/tmp/deeptutor-task7-closure`，detached at 97c7fc2cb）。
+
+**A. 已诚实关闭的确定性 / 离线面（全绿，可复现）：**
+
+| closure face | 命令 / 证据 | 结果 |
+|---|---|---|
+| same-SHA replay 确定性 | hard corpus 同输入连跑 2 次，diff capability/scene/reveal 决策 | 17 决策行逐字节一致（DETERMINISTIC） |
+| same-SHA WS trajectory | `scripts/run_harness_trajectory_eval.py --replay` | OK (3 cases, invariants hold) |
+| writer allowlist parity | `scripts/check_control_plane_writer_allowlist.py --check` | OK (67 site allowlisted, contracts parity OK) |
+| control_plane hard corpus | `run_harness_authority_baseline.py --scenario-set control_plane_hard_cases --check` | OK (12 rows, no drift)：tentative/hypothetical/answer_revision/no_active_object/pasted_mcq/pasted_case/only_question/unresolved_switch/source_backed/active_submission_mcq+case/fat_kernel_reroute |
+| reveal_terminal hard corpus | `run_harness_authority_baseline.py --scenario-set reveal_terminal_hard_cases --check` | OK (5 rows)：only_question/hidden_grading_key/scoring_points/citation_bundle/wechat_card_payload 均 no-leak |
+| /api/v1/ws turn runtime + mobile router | `pytest test_unified_ws_turn_runtime.py test_mobile_router.py` | 306 passed |
+| eval_gate authority | `scripts/run_eval_gate.py --list` | OK（全 READY / 预期 DEFERRED）|
+
+**B. §6.5 单一权威改善验收门（代码层证实 authority_count 真下降，非换 envelope）：**
+
+- `_select_legacy_capability` 启发式**已真删除**（`orchestrator.py:449-457` 仅留注释），canonical semantic router 成为唯一 capability decider，None-route 落 context-continuous 安全带——非改名 shadow。
+- `deep_question` canonical-missing fabrication 兜底**已退役**为 `_require_canonical_turn_semantic_decision` LOUD fail-fast（`deep_question.py:5595`，缺 canonical 则 raise，绝不静默第二权威）。
+- `control_plane_writers` 67 site：15 `canonical_writer` + 24 `never`（安全带/reveal last-mile/merge guard）= 永久单一权威；20 `compat_projection` + 4 `adapter_projection` 全部标 read-only/demotion-candidate 且带 `remove_when` 解锁条件。
+- reveal 单 canonical writer：`question_followup.py:689 resolve_reveal_decision`，deep_question result / TutorBot visible sink / WS redaction 只读它。
+- response mode / practice / tool 分离：`tutorbot/response_mode.py` 独立 policy；`teaching_mode` 不参与 route/tool/identity。
+- active object restore + turn-end merge guard 保留（`turn_runtime.py` suspended_object_stack restore + `_persist_and_publish` merge-back），hard corpus 答题/改单题/非答案QA/pasted MCQ+case 全绿 = §6.5 line 621 replay 证明。
+
+**C. Deletion window inventory（已结构化在 `contracts/index.yaml:control_plane_writers.remove_when`）：**
+
+| 解锁条件 | 候选数 | kill switch / owner / expiry |
+|---|---|---|
+| `never`（canonical/安全带，**非删除候选**）| 24 | 永久单一权威，不删 |
+| Task 2（generation fabricate 删 S3/S4/S7，**after live-window proof**）| 1 + dormant prep | owner: deep_question；gate: per_scene.practice_generation fabricate==0 ≥7d；kill: 8957b3d46 prep dormant |
+| Task 3（deep_question/TutorBot 读 canonical + grading 单 writer）| 18 | gate: legacy_production_decision_hits==0；kill: fail-loud guard 已就位 |
+| Task 4（CapabilityAdapter thinning）| 11 | gate: 同上 + adapter 收敛 |
+| Task 5（TerminalResultAssembler 单 visible sink）| 4 | gate: visible-output 单 sink 验证 |
+
+所有 compat_projection/adapter_projection 删除均 gated 在 Phase 1-3，本质 gated 在 7 天 live shadow 窗。**本会话无 0-命中可安全裸删的 dormant 二级权威**——所有候选都带 `remove_when` 条件且依赖 live 窗证据，裸删会破坏 conditional rebuild/genuine-switch identity 分支（allowlist 已显式警告 "never delete naively"）。
+
+**D. 时间门 — 为何今天不能盖全 GO（诚实，非假 closure；附生产真窗实测）：**
+
+- live-shadow instrumentation（`ce7184353` 等）全部 **2026-06-26 撰写/部署**；今天 **2026-06-28**，生产最多 2 天数据。
+- 生产真窗实测（2026-06-28，`Aliyun-ECS-2` 容器 `deeptutor` SHA=`2f124da8`，含 ce7184353，仅落后 main 2 个 doc commit）：
+  ```
+  docker exec deeptutor python scripts/report_control_plane_shadow_hits.py --days 7
+  → exit_code: 0  | instrumented_turns: 18/18  | coverage: "verified clean"
+  → legacy_production_decision_hits: 0  | compat_projection_production_reads: 0
+  → per_scene / per_site / per_writer: {} (零命中)
+  ```
+  本地 worktree 同命令 = **exit 2 NOT-MEASURED**（TurnEventLog 是每部署本地 JSONL，生产数据只在 Aliyun 容器盘）。
+- **判读（关键）**：脚本 gate 已 exit 0（窗在累积、零命中、无意外，非 stalled）——但 **18 turns / ~2 天**覆盖极薄，`per_scene.practice_generation` 为空 ⇒ 这薄样本**没 exercise 到 S3/S4/S7/S5/S6 fabricate 点**，无法据此解锁 Task 2 删除。
+- runbook §1 明示「累计够后看 per_scene/per_site」；7 天**日历窗最早 ~2026-07-03 成熟**，且需足够 practice-generation 流量打到各 fabricate site。
+- Task 7 pass criteria 第一条「`legacy_production_decision_hits == 0` 连续 7 天 + 代表性生产分布」+ §5.A.4/§5.A.5 红线（telemetry/report-only/harness 不得冒充 closure；窗未成熟不得据此删除）⇒ 今天盖全 GO = 假 closure，停。**窗趋势干净是好消息，但日历+流量未到。**
+
+**E. 仍未关闭面（real-device，与时间门并列）：微信 true-entry，auth-gated 交用户执行**
+
+- plan §5.A.5 明示 `/wechat-harness` **不算** true-entry，需真机 DevTools 走真入口。Web 内存守卫已跑绿（无 AI-owned Next 树）。离线 WeChat 渲染契约（`web_wechat_harness_data`）不替代 true-entry。
+- **本会话未执行的根因 = auth 硬边界**：DevTools 未运行、无 automation 端口、登录态缓存 `Login Data For Account` 停在 **2026-03-21（3 个月前已过期）**；`miniprogram-automator` 未装。true-entry 必填 `auth_state`/`auth_mode` = 用户的真机/微信登录，AI 无法代登。Task 7 **无任何前端改动**（worktree 是干净 origin/main，前端为已发布版）⇒ true-entry 是「验证生产后端 3 SEV 修复经真机前端渲染对不对」，本质需用户已登录真机。
+- **交付执行 harness（用户真机/重新登录 DevTools 后执行；devtools_project_root=`.../yousenwebview`，target_subpackage=`packageDeeptutor`，后端=生产 `2f124da8`）**：
+
+  | # | 类型 | 真入口操作 | 核终态（presentation flags + 可见答案 + 判分）|
+  |---|---|---|---|
+  | 1 | 泄露 SEV | 真入口发「出一道选择题」→ 不作答 | 可见区**无** answer_key/scoring_points/正确选项；reveal flag=false；卡片 payload 不含隐藏字段 |
+  | 2 | 泄露 SEV | 粘贴完整 MCQ「…A.甲 B.乙 C.丙 D.丁」请它讲 | 同上，讲解不预先泄答案；hidden grading key 不出现在卡片 |
+  | 3 | 回指 SEV | 出 2 题后发「上一题怎么做」/「这道题再讲一下」 | 承接到正确那一题（非重置/失忆）；active_object 指向被回指题 |
+  | 4 | 倒诬 SEV | 出题→选项被重排后用当前题面字母作答 | 判分锚**当前题面**字母（非题库原序）；答对判对、不倒诬 |
+  | 5 | 答题 | active MCQ 直接发「B」 | verdict + 至少一句原因；可见答案/解析符合 reveal 策略 |
+  | 6 | 重排 | bot 出题「重排选项再考你」后作答 | 同 #4，重排后判分对象=最新题面 |
+  | 每条记录 | — | target_page / entry_flow / auth_state / auth_mode / backend_turn_id / frontend_consume_timestamp | 终态对齐生产 turn |
+
+- 后端侧这 6 类的终态在 hard corpus + 持久化层已绿（§A）；harness 唯一新增覆盖 = **微信端 presentation flags + 可见渲染**，须真机核。**在用户完成真机 6 条并核终态对之前，全 GO 不闭合。**
+
+**裁决：Phase 0 离线 closure GREEN（A+B+C 全绿，authority_count 真下降）；全 GO 仍 gated 在 (D) 7 天 live 窗成熟（~07-03）+ (E) 微信真机 true-entry。状态维持 `Phase 0 WEAK-GO 离线收口完成 / Phase 1-3 deletion 时间门未到`，不翻 GO。**
 
 ## 15. 测试与质量门
 
