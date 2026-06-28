@@ -35,6 +35,7 @@ from deeptutor.services.active_object_builder import (
     extract_question_context_from_active_object,
 )
 from deeptutor.services.question_turn_policy import (
+    _message_is_submission_for_stored_set,
     _message_references_stored_question_set_item,
     _message_requests_active_mcq_represent,
 )
@@ -133,6 +134,49 @@ def test_task14_ordinal_reference_blocks_turn_start_demote() -> None:
         _message_references_stored_question_set_item("换个话题，讲讲地基处理", stored_ctx)
         is False
     )
+
+
+def test_s1_submission_blocks_turn_start_demote() -> None:
+    """S1 (2026-06-29)：本轮是对活跃题组的真实作答时 turn-START 不 demote。
+
+    与 task#14 (ordinal) / #287 (re-present) 同形（"本轮引用了活跃对象 → 不要 demote"）。
+    没有这条 carve-out 时，作答轮（batch "q1 B q2 C q3 A" / 裸答 "我选B"）不被识别为
+    "引用活跃对象"，活跃 question_set 在 scene/grading dispatch 之前就被压栈 → 判分能力读不到
+    题组 → 重显题面而非判分（live S1 0/6，turn-start 埋点实证 WILL_DEMOTE=True on 作答轮）。
+    单一 submission 意图权威 = question_followup.resolve_submission_attempt。
+
+    可证伪：删掉 carve-out（demote 条件不含 ``not stored_set_submission_referenced``）则
+    作答轮被压栈，本测试断言的"作答→不 demote"行为消失。
+    """
+
+    # 3-item set so the batch "q1 q2 q3" maps to real items (the live S1 shape).
+    three_item_set = {
+        "question_id": "set-1",
+        "items": [
+            {
+                "question_id": f"q{i}",
+                "question_type": "choice",
+                "question": f"第{i}题：下列哪个正确？",
+                "options": {"A": "甲", "B": "乙", "C": "丙", "D": "丁"},
+            }
+            for i in (1, 2, 3)
+        ],
+    }
+    stored_active = build_active_object_from_question_context(three_item_set)
+    assert stored_active is not None
+    stored_ctx = extract_question_context_from_active_object(stored_active)
+    assert stored_ctx is not None
+
+    # batch 作答（带尾随讲解请求）→ 命中 submission carve-out → demote 守卫跳过压栈。
+    assert (
+        _message_is_submission_for_stored_set("q1 B q2 C q3 A，帮我对答案逐题讲解", stored_ctx)
+        is True
+    )
+    # 裸答 → 命中 submission carve-out（保活，由下游 submission_confidence 决定判/澄清）。
+    assert _message_is_submission_for_stored_set("我选B", stored_ctx) is True
+    # 非作答（话题切换 / 纯追问）→ 不命中 → demote 块照常压栈（不误保活）。
+    assert _message_is_submission_for_stored_set("换个话题，讲讲地基处理", stored_ctx) is False
+    assert _message_is_submission_for_stored_set("这道题为什么选B", stored_ctx) is False
 
 
 def _single_mcq_context() -> dict[str, Any]:

@@ -60,6 +60,7 @@ from deeptutor.services.question_followup import (
 )
 from deeptutor.services.question_turn_policy import (
     _active_object_ref,
+    _message_is_submission_for_stored_set,
     _message_references_stored_question_set_item,
     _message_requests_active_mcq_represent,
     _normalize_question_followup_action,
@@ -4292,6 +4293,17 @@ class TurnRuntimeManager:
             stored_active_mcq_represent_referenced = _message_requests_active_mcq_represent(
                 raw_user_content, stored_followup_question_context
             )
+            # S1 (2026-06-29) — turn-START 相位的 submission carve-out，与 task#14
+            # (ordinal) / #287 (re-present) 同形（"本轮引用了活跃对象 → 不要 demote"）：
+            # 当本轮是对活跃题组的真实作答（batch "q1 B q2 C q3 A" / 裸答 "我选B"）时，
+            # 不要把活跃 question_set 压进 suspended stack。否则判分 dispatch 读不到题组 →
+            # 重显题面而非判分（live S1 0/6，turn-start 埋点实证 WILL_DEMOTE=True on every
+            # 作答轮）。单一 submission 意图权威 = question_followup.resolve_submission_attempt
+            # （scene/grading 同一权威，此处只读不重判）。SEV 安全：保活不等于判分，真正判分仍由
+            # 下游 submission_confidence 把关（LOW/试探/推迟/回指 → ask_followup），凭空判分/倒诬保护不动。
+            stored_set_submission_referenced = _message_is_submission_for_stored_set(
+                raw_user_content, stored_followup_question_context
+            )
             if (
                 stored_active_object is not None
                 and stored_followup_question_context is not None
@@ -4299,6 +4311,7 @@ class TurnRuntimeManager:
                 and followup_action_route(followup_question_action) is None
                 and not stored_set_ordinal_referenced
                 and not stored_active_mcq_represent_referenced
+                and not stored_set_submission_referenced
             ):
                 stored_suspended_object_stack = _prepend_suspended_object(
                     stored_suspended_object_stack,

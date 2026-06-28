@@ -202,6 +202,14 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
     短路 `build_canonical_represent_response` 因 context 里没有活跃 choice MCQ 而 fail-safe 落 free LLM → **凭空换题（幻觉）**。
     单一 re-present 意图权威 = `question_followup.message_has_represent_request_intent`（`build_canonical_represent_response`
     复用同一权威），demote 守卫经 `question_turn_policy._message_requests_active_mcq_represent` 只读不重判，不新增第二决策点。
+  - **S1（2026-06-29）是同相位、同形的 submission（作答）引用保护 —— forward-reachability 不变量，不可删**：
+    当本轮是对 stored 活跃题组的**真实作答**（batch `"q1 B q2 C q3 A"` / 裸答 `"我选B"`）时**不压栈**
+    （`stored_set_submission_referenced=True`），让活跃 question_set 保持 active，判分 dispatch（scene→mcq_grading/
+    case_grading）读得到题组而**真正判分**；否则作答轮被误压栈 → 判分能力读不到题组 → **重显题面而非判分**
+    （live S1 forward-liveness 0/6，turn-start 埋点实证 WILL_DEMOTE=True on 每个作答轮）。单一 submission 意图权威 =
+    `question_followup.resolve_submission_attempt`（scene/grading 同一权威），demote 守卫经
+    `question_turn_policy._message_is_submission_for_stored_set` 只读不重判，不新增第二决策点。**SEV 安全**：保活
+    不等于判分 —— 真正判分仍由下游 `submission_confidence` 把关（LOW/试探/推迟/回指 → ask_followup），凭空判分/倒诬保护不动。
 - **routing 相位**（单一权威 = `deeptutor/services/semantic_router.py::apply_active_object_transition`）：
   orchestrator 经 `metadata.suspended_object_stack` 读到 turn-START 压栈的对象，在 `resume_suspended_object`
   决策下**恢复（出栈）**。canonical **只出栈、从不在 turn-START 那个输入上重做压栈决策**。
