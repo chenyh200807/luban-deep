@@ -1503,10 +1503,16 @@ class AgentCoordinator:
     def _generated_questions_in_construction_scope(
         templates: list[QuestionTemplate], qa_pairs: list[dict[str, Any]]
     ) -> bool:
-        """出口科目门（owner 决策=现阶段只服务建筑实务）：生成题至少一道能 ground 到建筑
-        才算 in-scope。复用单一建筑判据 practice_generation_topic_domain_status（入口出口
-        同源，不另造科目权威），判生成题考点+题面是否建筑实务；全部跑偏（汉字/外国常识/
-        纯他科）= 诚实 subject_unavailable，禁出无关/跨科题。无题面可判时不拦（避免空判误拒）。
+        """出口科目门（owner 决策=现阶段只服务建筑实务）：复用单一建筑判据
+        practice_generation_topic_domain_status（入口出口同源，不另造科目权威），判生成题
+        考点+题面是否建筑实务。
+
+        口径与入口门 practice_generation_topic_block_decision **对称**：只在生成题**确有
+        他科证据（out_of_scope_topic 命中法语/数学等）且无任何建筑证据**时才判
+        subject_unavailable。``unknown_topic``（关键词白名单未覆盖的建筑长尾，如"水泥/沟槽
+        开挖"）一律视为 in-scope 放行——禁止重蹈入口门已修正过的 ``!= construction_topic``
+        误拒（白名单永远不全，正向命中口径会把同主题的不同表述当跑题，见 teaching_modes.py
+        practice_generation_topic_block_decision 的修正注释）。无题面可判时不拦（避免空判误拒）。
         """
         texts: list[str] = []
         for qp in qa_pairs or []:
@@ -1518,10 +1524,12 @@ class AgentCoordinator:
         candidates = [text for text in texts if text.strip()]
         if not candidates:
             return True
-        return any(
-            practice_generation_topic_domain_status(text) == "construction_topic"
-            for text in candidates
-        )
+        statuses = [
+            practice_generation_topic_domain_status(text) for text in candidates
+        ]
+        if any(status == "construction_topic" for status in statuses):
+            return True
+        return not any(status == "out_of_scope_topic" for status in statuses)
 
     @staticmethod
     def _derive_lightweight_anchor_label(

@@ -547,25 +547,33 @@ def test_construction_scope_gate_allows_intra_jianzao_subjects() -> None:
 
 
 def test_generated_questions_construction_scope_gate() -> None:
-    # 出口科目门(owner=只建筑):生成题 ground 建筑→放行;全跑偏(汉字/外国常识)→诚实拒答。
+    # 出口科目门(owner=只建筑)，2026-06-28 口径对称(subject-scope exit gate symmetry，见
+    # contracts/capability.md 硬约束 35 的 2026-06-28 补充)：与入口门同口径——只对高置信他科
+    # (撞 _OUT_OF_SCOPE 黑名单)拒答；unknown_topic(未撞黑名单，含建筑长尾"水泥/沟槽开挖"，
+    # 也含 LLM 跑偏出的汉字/语文题)一律放行，真正的科目语义守门由主 LLM 的建筑 KB grounding
+    # 承担，出口关键词门只做高置信止血。新契约完整锁定见
+    # tests/agents/question/test_coordinator_subject_scope_gate.py。
     from deeptutor.agents.question.coordinator import AgentCoordinator
 
     jianzhu = [{"qa_pair": {"concentration": "基坑支护", "question": "深基坑开挖与支护下列说法正确的是"}}]
     assert AgentCoordinator._generated_questions_in_construction_scope([], jianzhu) is True
 
-    # LLM 跑偏出的语文/汉字题(用户真实 case:市政→"你好"情境题)→ 出 scope,拒答
+    # unknown_topic(未撞黑名单)：建筑长尾"水泥"放行——根治本次报告的误拒。
+    cement = [{"qa_pair": {"concentration": "水泥强度等级", "question": "下列关于水泥强度等级的说法正确的是"}}]
+    assert AgentCoordinator._generated_questions_in_construction_scope([], cement) is True
+
+    # 行为变化(诚实记录)：LLM 跑偏出的汉字/语文题 concentration 不撞 _OUT_OF_SCOPE 黑名单
+    # ("汉语/词语"非黑名单词)→ unknown_topic → 新口径放行(旧口径拒)。出口关键词门结构上无法
+    # 区分"水泥=建筑长尾"与"你好=语文跑偏"(都 unknown)，补黑名单是打地鼠；LLM 跑偏由 grounding 治。
     hanzi = [{"qa_pair": {"concentration": "汉语日常交流", "question": "“你好”最常被用于哪种情境"}}]
-    assert AgentCoordinator._generated_questions_in_construction_scope([], hanzi) is False
+    assert AgentCoordinator._generated_questions_in_construction_scope([], hanzi) is True
 
-    live_hanzi = [{"qa_pair": {"concentration": "词语理解", "question": "“先”在“先来后到”中表示什么？"}}]
-    assert AgentCoordinator._generated_questions_in_construction_scope([], live_hanzi) is False
-
-    # 外国地理常识跑偏 → 出 scope
+    # 高置信他科(撞 _OUT_OF_SCOPE 黑名单:地理/法国/首都)→ 仍诚实拒答，防跑题保护不塌。
     paris = [{"qa_pair": {"concentration": "世界地理", "question": "法国的首都是哪座城市"}}]
     assert AgentCoordinator._generated_questions_in_construction_scope([], paris) is False
 
     # 至少一道建筑题即放行(混合时不误杀建筑题)
-    mixed = hanzi + jianzhu
+    mixed = paris + jianzhu
     assert AgentCoordinator._generated_questions_in_construction_scope([], mixed) is True
 
     # 无题面可判 → 不拦(避免空判误拒)
