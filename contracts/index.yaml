@@ -357,6 +357,8 @@ domains:
       - tests/core/test_deep_question_case_rubric_v1.py
       - tests/core/test_deep_question_submission_grading.py
       - tests/services/test_r1_option_surface_grading.py
+      - tests/capabilities/test_deep_question_canonical_represent.py
+      - tests/capabilities/test_tutorbot_canonical_represent_short_circuit.py
       - tests/services/test_render_presentation.py
       - tests/services/observability/test_control_plane_shadow_hits.py
       - wx_miniprogram/tests/test_ai_message_state.js

@@ -34,6 +34,7 @@ from deeptutor.services.construction_grading.writeback import write_grading_erro
 from deeptutor.services.question_followup import (
     answers_match,
     apply_followup_action_to_context,
+    build_canonical_represent_response,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
@@ -4020,6 +4021,32 @@ class DeepQuestionCapability(BaseCapability):
             )
             and next_action != "route_to_generation"
         ):
+            # M4(i) 方案②: deterministic canonical re-present of the active single
+            # MCQ. The followup branch otherwise hands "把选项重排/重新展示" to a free
+            # LLM (route_to_followup_explainer / legacy fallback), which emits a
+            # divergent option surface that state_snapshot — and the prose grader —
+            # never capture, so a later letter answer is graded against the original
+            # surface (倒诬). Re-present from the single authority (active_object
+            # state_snapshot, original order) instead. Placed before submission/
+            # followup dispatch but it CANNOT preempt grading: the helper requires an
+            # explicit re-present marker, which an answer ("我选B") never carries, so
+            # route_to_grading turns fall through unchanged (fail-safe). Sibling of
+            # the tutorbot canonical-represent short-circuit; same shared authority.
+            canonical_represent_response = build_canonical_represent_response(
+                active_object,
+                raw_user_message,
+                question_context=followup_question_context,
+            )
+            if canonical_represent_response is not None:
+                await self._emit_canonical_represent(
+                    stream=stream,
+                    turn_id=turn_id,
+                    active_object=active_object,
+                    suspended_object_stack=suspended_object_stack,
+                    turn_semantic_decision=turn_semantic_decision,
+                    response_text=canonical_represent_response,
+                )
+                return
             should_resolve_submission = (
                 (next_action == "route_to_grading" and followup_action is None)
                 or (not next_action and allow_legacy_followup_fallback)
@@ -5408,6 +5435,47 @@ class DeepQuestionCapability(BaseCapability):
                     "clarification_reason": "turn_semantic_decision_ask_clarifying_question",
                     "turn_id": turn_id,
                 },
+            }
+            await self._emit_result_with_citations(
+                stream,
+                payload,
+                stage="generation",
+                emit_content_when_enabled=True,
+            )
+
+    async def _emit_canonical_represent(
+        self,
+        *,
+        stream: StreamBus,
+        turn_id: str,
+        active_object: dict[str, Any] | None,
+        suspended_object_stack: list[dict[str, Any]] | None,
+        turn_semantic_decision: dict[str, Any] | None,
+        response_text: str,
+    ) -> None:
+        """M4(i) 方案②: emit the deterministic canonical re-presentation of the
+        active single MCQ (original option order, answer hidden).
+
+        The active object / question_followup_context are PRESERVED unchanged so a
+        subsequent answer is graded against the same (canonical) surface the learner
+        just saw — that is the whole point. No state is written; nothing is graded.
+        """
+
+        async with stream.stage("generation", source=self.name):
+            if not answer_citations_enabled():
+                await stream.content(response_text, source=self.name, stage="generation")
+            payload: dict[str, Any] = {
+                "response": response_text,
+                "mode": "represent",
+                "question_authority_source": "canonical_mcq_represent",
+                "execution_path": "deep_question_canonical_mcq_represent",
+                "question_followup_context": question_context_from_active_object(active_object) or {},
+                "active_object": normalize_active_object(active_object) or {},
+                "suspended_object_stack": suspended_object_stack or [],
+                "turn_semantic_decision": turn_semantic_decision or {},
+                "reveal_answers": False,
+                "reveal_explanations": False,
+                "metadata": {"turn_id": turn_id},
             }
             await self._emit_result_with_citations(
                 stream,
