@@ -213,6 +213,11 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
   `tests/services/test_turn_start_demote_canonical_pipeline.py`。
 - **S4(b) 零行为**：只新增测试 + 文档 + 代码注释，turn-START demote 逻辑与 canonical 一字未改。
 
+> **后人勿重蹈（2026-06-28，M3「capability fork 2→1」裁撤）**：题目生命周期简化计划曾提出 M3 = 把
+> `deeptutor/capabilities/tutorbot.py`（~:711）与 `deeptutor/capabilities/deep_question.py`（~:4736）里对
+> `apply_active_object_transition` 的调用「收成 turn-END 单点 writer（2→1）」。**经 ground truth + owner 决策(b) 裁定撤销，不做。** 这两个调用**不是** active_object identity 的冗余持久化 writer——持久化已是 turn-END 单点
+> （`store.set_active_object` + E8 `apply_grading_result_patch`），且 turn_runtime **从不 CALL `apply_active_object_transition`**（仅注释提及）。它们是**上文 routing 相位**的挂起栈转换计算器（resume/出栈 + switch 压栈），与 turn-START 相位互补；tutorbot 用 hardcode `switch_to_new_object`、deep_question 用 canonical 启发式，挂起栈语义**行为不同**，强行 collapse = 改回指/挂起栈行为 = **task#14 回指 SEV-1 复发**（本相位带 task#14 ordinal 守卫 + #287 re-present 守卫）。**capability fork 与本节三相位、§S5 的 ②③ pipeline 同类 = 合法相位互补，不是要砍的复杂度。** 题目生命周期简化的天花板 = lifecycle_state 状态显式化（M1）+ object_type 题型/非题型分流（M2）；capability fork 不动。
+
 ## QTPK 物理抽出 S5（2026-06-27，turn_semantic_decision 的②③ pipeline 相位 + capability 映射收口，零行为 + byte-parity 收口）
 
 ### S5-doc：`turn_semantic_decision` 的②③相位（pipeline 非冗余，零行为）

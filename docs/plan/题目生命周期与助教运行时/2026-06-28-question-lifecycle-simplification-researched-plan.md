@@ -39,17 +39,21 @@
 - 混判点(orchestrator.py:904/turn_runtime.py:4338/semantic_router.py:1370)改 family-first 分流；lifecycle_state 只在题型定义，非题型返 None。
 - **gate**：回归（非题型不被误判题状态）+ 静默空 fall-through 点核查。无 live。
 
-### M3：capability fork 写回收 turn-END 单点（中风险，必 live≥3）
-- 把 tutorbot PRESENTING 写回 + deep_question PRESENTING 写回收 turn-END 单点；**保留 deep_question 判分态 recent_outcomes 滑窗 + authority-gate + 真 canonical decision vs tutorbot hardcode 的统一**（调研标这是真工作量非纯删）。
-- **红线**：不碰 turn-START demote（task#14 回指 SEV-1，owner 已拒 turn_runtime.py:4266）；E8 turn-END merge 一字不动。
-- **gate**：live≥3（套题判不塌/tutorbot 答完切 deep_question 身份不丢/判分态持久化终态）。
+### ~~M3：capability fork 写回收 turn-END 单点~~ —— ❌ 撤销（2026-06-28，ground truth + owner 决策(b) 双裁决）
 
-## 减复杂度量化（调研修正后）
-- object_type 题状态输入 6→3（M2）✓
-- capability 写回 2→1（M3，但保留判分态特殊行为，非纯删）
-- 倒诬不变量从"失败的意图短路补丁"→"判分前无条件面投影结构修法"（M4i）✓
-- 状态显式化（M1，含 per-item + graded-pending，比原设计 4 flat 更准）
-- **相位不减**（owner 红线，task#14/E8）
+> **M3 不做。** premise（"capability 写回 2→1 = 收冗余重复 writer"）被 ground truth 证伪：
+> - 要收的"2 个 capability writer" = `deeptutor/capabilities/tutorbot.py` 与 `deeptutor/capabilities/deep_question.py` 里对 `apply_active_object_transition` 的调用（tutorbot ~:711 / deep_question ~:4736）。它们**不是 active_object identity 的冗余持久化 writer**——持久化已是 turn-END 单点（`store.set_active_object` + E8 `apply_grading_result_patch`）。它们是 **routing 相位的挂起栈转换计算器**，且 turn_runtime **从不 CALL `apply_active_object_transition`**（只在注释里提它）。
+> - 这正是 **§S4(b) 三相位互补** 的 routing 相位（见 contracts/turn.md §"QTPK 物理抽出 S4(b)"），**owner 决策(b) 已明确不强行收敛进 canonical**：turn-START 只压栈、routing 才出栈、turn-END 只 merge 评分，三相位作用在 pipeline 不同端，**相位互补 ≠ 双权威违规**。tutorbot hardcode `switch_to_new_object` 与 deep_question canonical 启发式在挂起栈语义上**行为不同**，强行 collapse = 改回指/挂起栈行为 = **task#14 回指 SEV-1 复发**（带 task#14 + #287 回指守卫）。
+> - GLM-5.2 异源核（实现前）独立裁决 `DO-NOT-IMPLEMENT`。
+> **结论：capability fork 与 active_object 三相位、orchestrator ②③ pipeline 同类 = 合法相位互补，不是要砍的复杂度。本计划的简化天花板 = M1 + M2。** 若未来仍要做 routing 相位 transition 的真 2→1（Option A：把 transition 搬进 turn-END），那是改行为的多步 gated 迁移（须先证 E8 + turn-START demote + 新 turn-END transition 三者挂起栈变更顺序 + GLM 异源核 + live≥3 核持久化终态：套题不塌/切身份不丢/回指不错绑/倒诬不复发 + owner 重新签字），**与决策(b) 直接冲突，不在本计划范围**。
+
+## 减复杂度量化（调研 + 执行修正后）
+- object_type 题状态输入 6→3（M2）✓ **已上线**（收口到单一 `is_question_active_object_type`/`active_object_family_for_type`）
+- ~~capability 写回 2→1（M3）~~ ❌ **撤销**——capability fork = routing 相位合法互补（§S4(b)/决策(b)），非冗余 writer，强收冒 task#14 SEV-1。**不算减复杂度，不动。**
+- 倒诬不变量从"失败的意图短路补丁"→"判分前无条件面投影结构修法"（M4i）✓ **已上线**
+- 状态显式化（M1，含 per-item + graded-pending）✓ **已上线**（shadow 一致率 3/3 验过）
+- **相位不减**（owner 红线，task#14/E8/S4(b) 三相位互补）
+- **实际简化天花板 = M1（状态显式化）+ M2（object_type 6→3）。** capability fork / active_object 三相位 / orchestrator ②③ pipeline 均为合法相位互补，不是复杂度，不砍。
 
 ## 红线（owner 已拍板 + 调研确认）
 不动三相位 / 不碰 ③canonical 签发 / lifecycle_state 只读派生不成第六 fact（套题 per-item 派生不持有）/ 安全带搬迁不丢（unresolved-switch/mcq_bypass/preselect demote/submission_confidence chokepoint/E8/task#14）/ M4 不破硬约束26（只喂判分投影）/ 判分类必 live≥3 核持久化终态非流式 + 异源核。
