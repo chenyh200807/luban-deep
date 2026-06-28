@@ -370,6 +370,42 @@ def _message_requests_active_mcq_represent(
     return message_has_represent_request_intent(message)
 
 
+def _message_is_submission_for_stored_set(
+    message: str,
+    stored_question_context: dict[str, Any] | None,
+) -> bool:
+    """True if ``message`` is a real answer submission against the stored active
+    question set (batch ``"q1 B q2 C q3 A"`` or bare ``"我选B"``), via the SINGLE
+    submission-intent authority ``question_followup.resolve_submission_attempt`` —
+    the same resolver the scene/grading path uses (not a new detector).
+
+    Forward-reachability carve-out (S1, 2026-06-29): the turn-start suspend guard
+    only carved out ordinal-reference (task#14) and re-present (#287) turns. A turn
+    that ANSWERS the stored set was not recognized as "referencing the active
+    object", so its active question_set was demoted into the suspended stack before
+    the scene/grading dispatch could read it → the grading capability lost the set
+    and re-presented the question instead of grading (live S1 0/6, confirmed via
+    turn-start instrumentation: WILL_DEMOTE=True on every batch/bare answer turn).
+    Same shape as the two existing carve-outs ("this turn references the active
+    object → keep it active"): a real submission ⇒ do NOT demote, so the set flows
+    into the grading dispatch. SEV-safe: keeping the set active does not grade
+    anything by itself — what actually grades is still gated downstream by
+    ``submission_confidence`` (LOW / 试探 / 推迟 / 回指 → ask_followup), so the
+    凭空判分 / 倒诬 protections are untouched.
+    """
+
+    if not stored_question_context:
+        return False
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            resolve_submission_attempt,
+        )
+    except Exception:
+        return False
+    _target, submission = resolve_submission_attempt(message, stored_question_context)
+    return bool(submission)
+
+
 def _context_has_reference_answer(context: dict[str, Any] | None) -> bool:
     def _item_has_reference_answer(item: dict[str, Any] | None) -> bool:
         if not isinstance(item, dict):
