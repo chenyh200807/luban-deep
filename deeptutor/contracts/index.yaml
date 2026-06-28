@@ -614,6 +614,7 @@ domains:
       - tests/services/test_question_followup.py
       - tests/services/test_resolve_reveal_decision.py
       - tests/tutorbot/test_agent_loop_case_rubric_v1.py
+      - tests/tutorbot/test_case_grading_generation_falls_through.py
       - tests/services/construction_grading/test_m32_grading_event_learning_evidence.py
       - tests/services/construction_grading/test_case_grading_fusion.py
       - tests/services/construction_grading/test_compiled_registry_resolver.py

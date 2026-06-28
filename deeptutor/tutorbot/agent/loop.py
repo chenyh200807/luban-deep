@@ -1634,6 +1634,15 @@ class AgentLoop:
     ) -> OutboundMessage | None:
         if not self._is_case_grading_scene(runtime_metadata):
             return None
+        # A practice-generation request ("再出一道新题") is never a case-grading turn: it
+        # carries no answer to grade and owns no score authority. If the lifecycle still
+        # pinned case_grading, fall through to the generation path instead of emitting the
+        # no-authority "把标准答案/采分点发来" template — which a student can never satisfy for
+        # a case the bot itself authored, deadlocking "出新题". (S4 forward-reachability.)
+        if looks_like_practice_generation_request(current_message) and not (
+            case_grading_score_authority_available(runtime_metadata)
+        ):
+            return None
         runtime_metadata["execution_path"] = "tutorbot_case_grading_v1_direct"
         runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
         if on_progress:
@@ -1721,6 +1730,13 @@ class AgentLoop:
     ) -> str:
         # Defensive: when V1 already produced the authoritative grade, never demote it.
         if isinstance(runtime_metadata, dict) and runtime_metadata.get("_v1_case_graded"):
+            return ""
+        # A practice-generation turn produces a NEW question, never a grade. The no-authority
+        # case template must not clobber it — otherwise "再出一道新题" gets overwritten with a
+        # demand for ground truth the bot itself authored (deadlock). Fall through to whatever
+        # the generation path produced. (S4 forward-reachability collapse — fall-through, not
+        # fail-closed-to-template.)
+        if looks_like_practice_generation_request(user_message):
             return ""
         scene = (
             str(runtime_metadata.get("question_lifecycle_scene") or "").strip()
