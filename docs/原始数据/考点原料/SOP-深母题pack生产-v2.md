@@ -4,6 +4,65 @@
 > 本 SOP 是生产引擎（造说明书）的标准流程，不是导航（运行时用说明书辅导）。pack 默认 `candidate_teaching_prototype`，不授权 runtime。
 > 对齐既有权威：知识身份→canonical taxonomy node_code；错因→`ERROR_CODE_REGISTRY`；判分/学情→signed artifact / `LearnerStateService`；结构→`case_family_structure` L0-L7。**不立第二套 authority。**
 
+## 启动咒语（复制即跑 · 封装 §1 流程 · 单炉 = 一个新考点）
+
+> 填最上面 3 行即发起一炉**深母题 pack（研层 R1-R8 事实）**。本段**不复述** §0/§1——
+> 命令权威以本文件 §1 步骤 + `ENGINE-OVERVIEW-深母题量产引擎总览.md` 工具表为准，冲突以它们为准。
+> 教/测**动画卡**的启动在 `agent-skills/luban-learning-pack-factory/SKILL.md §6`，不是这里（两个生产对象，别混）。
+> 进化方式：**永远别改本咒语**——把每炉新教训分诊回 §5 的三个汇点（SOP/闸/Tracker），下炉用同一咒语自动吃到。
+
+```text
+# 炼一个新的深母题 pack（候选级）。cwd = docs/原始数据/考点原料/
+
+## 本炉唯一变量（只改这三行）
+- Slot/ID:    <如 B02>
+- 紧关键词 kw: <挖矿/取证/闸2 共用；去掉"工期/管理"这类泛词，否则跨域漏判>
+- taxonomy:   <从 60-slot 注册表 resolve 的 node_code；母题=case_family，非 archetype>
+
+## 0 先读权威再动手（不得跳过/复述）
+读本 SOP §0+§1、ENGINE-OVERVIEW §5 教训、README 三色铁律/L0-L7。冲突以它们为准。
+
+## 1 选题合法性门（取 slot 前查 60-slot 注册表状态，违一即停）
+- direct / composite                         → 可产
+- coarse_review / needs_leaf_review（C06/S07/Q03）→ 先 leaf review，不直接产
+- merged_child（K02/F06/D17/X04）             → 不独立产
+- conditional_split（R05/X05/D15/D16）         → 需 source_ref 证据先到位
+
+## 2 执行（严格 §1 四步 + Step3.5 陪审团；命令权威见 ENGINE 工具表，下为锚点）
+S1 挖矿      mine_{ID}.py（仿邻近 mine_*.py）→ _{ID}_compiled_source.json
+            丰度门：命中单元 ≥~30 且去重采分点 ≥~90 才够锚；
+            不够且属计算型（网络/索赔/计价）→ 走"挖真题例题"源料管线（待建，标记停）；否则报"源料不足"停
+S2 真题取证  python3 extract_exam_evidence.py {ID} "{kw}" → _{ID}_exam_evidence.json
+            （唯一允许的真题锚源；禁凭记忆写"某年第N题"）
+S3 4谱系4镜头 produce_lens.py / produce-4lineage：Opus+Codex+DeepSeek+Qwen 各独立产
+            【原理因果 / 出题人意图 / 采分边界 / 误区动画】；真题锚只能引 S2 证据
+            （codex 走 exec --sandbox read-only；别用 rescue 后台，会卡死/断线）
+S4 两闸（0 token，必过）   python3 verify_pack.py {ID}.md ；python3 verify_exam_anchors.py {ID}.md "{kw}"
+S5 4源陪审团（必过）       python3 jury_audit.py {ID}.md
+            中立 prompt 禁点名疑似问题；count≥2 立即改；count=1 回真源核（非丢弃）；Opus 自审绝不单靠
+S6 自动修+复跑            python3 autofix_v2.py {ID}.md {ID}_jury.json → 复跑 S4
+S7 冲突裁定               任一层互打 → 回真源（考卷JSON/教材chunk/error_codes.py）逐项核，不信任何单层
+（所有产物文件名固定 → 中断可从任一 S 续跑）
+
+## 3 红线（违一即返工）
+采分点必溯源教材 page、真题锚必来自 S2，二者都不许编；
+不立第二 authority（判分→signed artifact／错因→ERROR_CODE_REGISTRY／学情→LearnerStateService／知识身份→canonical taxonomy；pack 只引用不拥有）；
+默认 candidate_teaching_prototype，不授权 runtime（R7 真人边界仍 🔴）；干净分支/worktree、register-before-use。
+
+## 4 一炉完成 = Definition of Done（全绿才算完，缺一不算）
+[ ] 两闸全绿（S4 复跑后）
+[ ] 4源陪审团：无 count≥2 未决，count=1 已回源裁定
+[ ] taxonomy resolve + pack 末尾挂「## 注册表对齐」块
+[ ] 更新 PRODUCTION-TRACKER 对应 slot 状态
+[ ] ★ 进化回写（见 5，与上面并列，不可省）
+
+## 5 ★ 进化回写（DoD 硬门 —— 咒语越用越准的引擎；分诊进【已有汇点】，不改本咒语）
+- 新失败模式 / 裁判盲点 / 某源系统性错       → 回写 SOP §0 + ENGINE-OVERVIEW §5
+- 可确定性化的语义错（反复出现、能代码穷举） → 加进 verify_pack.py / verify_exam_anchors.py（语义债 → 0token 闸，下炉自动拦）
+- 选题 / 进度 / 源料缺口                     → 回写 PRODUCTION-TRACKER
+一句话交账：这炉踩了什么 · 沉淀到哪个文件 · 下炉因此如何更准。
+```
+
 ## 0. 核心原则（来自 v1→v2 三炉 + 裁判互错的提炼）
 
 1. **按验证类型分工**：结构化事实（题号/point_id/error_code 存不存在）= 确定性代码穷举核；语义判断（examiner_intent 成不成立、推理有没有编、主题对不对）= LLM 异源裁判。**别让 LLM 查事实（它抽样+猜会错），别让代码判语义。**

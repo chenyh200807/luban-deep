@@ -15,7 +15,7 @@ description: Use when batch-producing Luban 教研测一体 learning packs, high
 
 | | 内容 | 事实来源(不许 LLM 编) |
 |---|---|---|
-| **研** | 母题:R2 不变量、变题库 variants、采分点、误解模型、source 溯源 | 讲义 `_v8` chunk + 真题 + 规范;采分点必带 `kind` + 候选后缀,溯源到 `page` |
+| **研** | 母题:R2 不变量、变题库 variants、采分点、误解模型、source 溯源 | 讲义 `_v8` chunk + 真题 + 规范;采分点必带 `kind` + 候选后缀,溯源到 `page`。**造法=SOP「启动咒语」** |
 | **教** | 讲懂动画:hook → 判据/工序逐点 → 结论 → 采分词;PPT 板书 + 运镜 | 旁白事实 anchor 回母题/卡字段;表现层 LLM 放开 |
 | **测** | 闯关:同工程换数值分档 + 换工程迁移;看穿:真懂 vs 背过 + 暖反馈 | 变题=`variants`;看穿判定只读 `mastery_discrimination` signal,不另造 |
 
@@ -87,6 +87,8 @@ Orchestrator:读高频考点清单 -> 按 6+1 原型分桶(同原型共享 fixtu
 8. **关键样板过 Codex 对抗**(`codex exec --sandbox read-only`);调试钩子 URL 门控不留生产。
 
 ## 6. 启动(批量第一步)——先证闭环,再 fan out
+
+> **本节是「教/测」动画卡的启动。「研」层深母题 pack(R1-R8 事实)的启动咒语在 `docs/原始数据/考点原料/SOP-深母题pack生产-v2.md` 的「启动咒语」段——复制即跑、进版本管理;两个生产对象,别混。**
 
 1. **MVP**:选 1 张已有母题卡(J01 危大,数据最全)跑完整 loop——生成 IR -> 机器闸 -> 独立 judge -> 反馈喂回改 -> **验收=改 IR 三轮内从红到绿**(MVP 已达成两轮)。证明闭环收敛。
 2. **建库**:抽 `stage_shell`(壳=合同/几何=参数)+ 6+1 `fixture.json`/golden + `gate.sh`(串机器闸)+ 固化 judge/修订 prompt 模板;补两道缺门(`validate_timing_sync.mjs`、`data-id` selector 断言)。
