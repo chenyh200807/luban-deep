@@ -1273,6 +1273,165 @@ def answers_match(
     return False
 
 
+# ---------------------------------------------------------------------------
+# M4(i) 方案②: 活跃单选 MCQ 的确定性 canonical re-present（倒诬根治）
+#
+# 病: 学生要求把活跃 MCQ 的选项"重排/重新展示"时，turn 在 deep_question_followup ↔
+# tutorbot_kb_first_fast_policy 之间非确定性路由，两条路都让 free LLM 生成一个分叉
+# 的呈现面（标号重排），而 state_snapshot 仍锚原序、判分（tutorbot 散文）也锚原序
+# → 学生按呈现面字母作答被判错（倒诬）。呈现面从未被任何权威捕获，判分时无可靠呈现
+# 面可投影，故"判分汇点投影"不可行（见 mcq-grading memory Step1 gate）。
+#
+# 修法（single-authority 收口）: 把"re-present 活跃 MCQ"从 free LLM 收回到确定性渲染
+# ——直读唯一权威 active_object.state_snapshot 的原序 options 重新展示。呈现面 ==
+# state_snapshot 原序 == 判分锚的原序，三者结构对齐，倒诬不可能发生（无论判分落哪条
+# capability）。两个 capability（tutorbot 短路串 / deep_question followup 分支）各调
+# 一次本共享函数 = 单一权威、单一逻辑、零新增 state、不碰判分。
+#
+# fail-safe: 任何条件不满足 → 返回 None，caller 落原 LLM 路径。故 under-trigger 只
+# 退回现状（无新增危害），over-trigger 需显式 re-present marker（答题/解析/换新题都
+# 不含这些 marker，结构上不会误触发）。correct_answer 不读不需要（只展示题干+选项，
+# 答案隐藏；原序渲染让字母判分自洽）。
+# ---------------------------------------------------------------------------
+
+# 显式"重新展示/重排"意图标记（窄集合，确定性）。答题("我选B")、解析("为什么")、
+# 换新题("换一道")都不含这些 → 结构上避免 over-trigger。
+_REPRESENT_REQUEST_MARKERS = (
+    "重排",
+    "重新排",
+    "重新排列",
+    "重新展示",
+    "重新显示",
+    "重新出示",
+    "重新发",
+    "再发一遍",
+    "再列一遍",
+    "打乱",
+    "换个顺序",
+    "换一下顺序",
+    "换种顺序",
+    "调换顺序",
+    "调整顺序",
+    "顺序打乱",
+    "顺序换",
+    "顺序重新",
+)
+
+# "换新题"意图标记。命中这些必须 fall through 去生成新题，绝不 re-present 旧题。
+_NEW_QUESTION_REQUEST_MARKERS = (
+    "换一道",
+    "换道题",
+    "换一题",
+    "换个题",
+    "换题",
+    "下一题",
+    "下一道",
+    "再来一道",
+    "再出一道",
+    "再来一题",
+    "另一道",
+    "别的题",
+    "其他题",
+    "新题",
+    "新的题",
+)
+
+
+def _validate_single_mcq_snapshot(
+    snapshot: Any,
+) -> tuple[dict[str, Any], dict[str, str]] | None:
+    """当 ``snapshot``（question-context 形状）是一道带选项的 choice MCQ（单选或多选）
+    时，返回 (snapshot, 规范化后的有序 options dict)；否则 None。
+
+    options 经本模块 ``_normalize_options`` 规范化（生产实测 options 为 dict；非 dict
+    形态 → None → fail-safe 退 LLM，不静默误判）。规范化保持 dict 原序。套题（items 多
+    于一项）不在本修法范围（fail-safe 落 LLM）——生产单题的 state_snapshot 自带一个自指
+    items（len==1），属正常形态，不应被排除。
+    """
+
+    if not isinstance(snapshot, dict):
+        return None
+    if str(snapshot.get("question_type") or "").strip().lower() != "choice":
+        return None
+    if not str(snapshot.get("question") or "").strip():
+        return None
+    items = snapshot.get("items")
+    if isinstance(items, list) and len(items) > 1:
+        return None
+    options = _normalize_options(snapshot.get("options"))
+    if not isinstance(options, dict) or len(options) < 2:
+        return None
+    return snapshot, options
+
+
+def _active_single_mcq_state_snapshot(
+    active_object: Any,
+) -> tuple[dict[str, Any], dict[str, str]] | None:
+    """从 active_object.state_snapshot 提取并校验单选 MCQ。"""
+
+    if not isinstance(active_object, dict):
+        return None
+    return _validate_single_mcq_snapshot(active_object.get("state_snapshot"))
+
+
+def build_canonical_represent_response(
+    active_object: Any,
+    user_message: str,
+    *,
+    question_context: Any = None,
+) -> str | None:
+    """M4(i) 方案②: 当学生显式要求 re-present/重排活跃单选 MCQ 时，从唯一权威
+    active_object.state_snapshot 的原序 options 确定性重新展示（答案隐藏），杜绝
+    free LLM 生成分叉呈现面导致的判分倒诬。
+
+    返回渲染好的展示文本；不满足触发条件时返回 None（caller 落原 LLM 路径，fail-safe）。
+    """
+
+    # active_object.state_snapshot 是首选权威；某些 orchestrator 路由（tutorbot
+    # preselect-bypass）不把 active_object 喂进 capability context，但 question_followup_
+    # context 仍在 → 作为同一道活跃 MCQ 的等价权威回退（live 实证 cases 3,4 的 gap）。
+    resolved = _active_single_mcq_state_snapshot(active_object)
+    if resolved is None and question_context is not None:
+        resolved = _validate_single_mcq_snapshot(
+            normalize_question_followup_context(question_context)
+        )
+    if resolved is None:
+        return None
+    snapshot, options = resolved
+    text = str(user_message or "").strip()
+    if not text:
+        return None
+    # 换新题意图优先：绝不把"换一道"误当 re-present。
+    if any(marker in text for marker in _NEW_QUESTION_REQUEST_MARKERS):
+        return None
+    # 必须显式 re-present marker（解析/无关消息都不含 → 不 fire）。
+    if not any(marker in text for marker in _REPRESENT_REQUEST_MARKERS):
+        return None
+    # 混合意图防护：消息同时是一次作答（"我选C，重新展示"）时交给判分，不可吞掉作答。
+    # 复用 canonical submission 权威 resolve_submission_attempt（question_followup 的单一
+    # 提交判定），不新建 _looks_like_* 二次决策点（turn.md §24 / submission-gate-authority
+    # guard）——它怎么判这条消息是不是作答，本短路就怎么让路。
+    _represent_target, _represent_submission = resolve_submission_attempt(
+        text, normalize_question_followup_context(snapshot)
+    )
+    if _represent_submission:
+        return None
+
+    question = str(snapshot.get("question") or "").strip()
+    lines: list[str] = [question, ""]
+    for key, value in options.items():
+        option_key = str(key or "").strip().upper()
+        option_text = str(value or "").strip()
+        if option_key and option_text:
+            lines.append(f"{option_key}. {option_text}")
+    body = "\n".join(lines).strip()
+    # 至少要渲染出一道题干 + 选项；否则视为不可信，落 LLM。
+    if "\n" not in body:
+        return None
+    note = "（选项顺序与原题保持一致，以保证判分准确。请直接回复你选的字母。）"
+    return f"{body}\n\n{note}"
+
+
 _REFERENCE_EXPLICIT_REQUEST_MARKERS = (
     "参考答案",
     "标准答案",

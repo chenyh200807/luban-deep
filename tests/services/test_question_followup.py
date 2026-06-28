@@ -8,6 +8,7 @@ from deeptutor.services.question_followup import (
     annotate_batch_submission_context,
     apply_followup_action_to_context,
     answers_match,
+    build_canonical_represent_response,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
@@ -2631,3 +2632,161 @@ def test_practice_generation_predicate_rehomed_to_question_followup():
     assert qf_pred("这道题怎么做") is False
     assert qf_pred("") is False
     assert qf_pred(None) is False
+
+
+# ---------------------------------------------------------------------------
+# M4(i) 方案②: 确定性 canonical re-present（倒诬根治）
+#
+# bug: 学生让 bot 把活跃 MCQ 的选项"重排/重新展示"时，free LLM 生成一个分叉的
+# 呈现面（A/B/C/D 标号重排），但 state_snapshot 仍锚原序、判分也锚原序 → 学生按
+# 呈现面字母作答被判错（倒诬）。修法=re-present 走确定性渲染（直读 state_snapshot
+# 原序），呈现面 == 原始面 == 判分面，结构上消除分叉。
+# ---------------------------------------------------------------------------
+
+
+def _mcq_active_object() -> dict:
+    return {
+        "object_type": "single_question",
+        "object_id": "q_1",
+        "state_snapshot": {
+            "question_id": "q_1",
+            "question": "一级建造师注册证书的有效期是几年？",
+            "question_type": "choice",
+            "options": {"A": "1年", "B": "3年", "C": "4年", "D": "5年"},
+            "user_answer": "",
+            "is_correct": None,
+            "multi_select": False,
+            "items": [],
+        },
+    }
+
+
+def test_canonical_represent_fires_on_reshuffle_request() -> None:
+    out = build_canonical_represent_response(
+        _mcq_active_object(),
+        "把这道题的选项内容不变，只把ABCD标号打乱顺序重新展示给我",
+    )
+    assert out is not None
+    # 题干 + 全部四个选项都在
+    assert "一级建造师注册证书的有效期是几年" in out
+    for letter, value in (("A", "1年"), ("B", "3年"), ("C", "4年"), ("D", "5年")):
+        assert f"{letter}. {value}" in out
+
+
+def test_canonical_represent_preserves_original_order() -> None:
+    out = build_canonical_represent_response(
+        _mcq_active_object(),
+        "重新展示一下这道题",
+    )
+    assert out is not None
+    # 原序 A→1年 B→3年 C→4年 D→5年，绝不按重排面输出
+    pos = {ltr: out.index(f"{ltr}. ") for ltr in "ABCD"}
+    assert pos["A"] < pos["B"] < pos["C"] < pos["D"]
+    assert out.index("A. 1年") < out.index("B. 3年") < out.index("C. 4年") < out.index("D. 5年")
+
+
+def test_canonical_represent_does_not_leak_answer() -> None:
+    out = build_canonical_represent_response(
+        _mcq_active_object(),
+        "把选项顺序打乱重新展示",
+    )
+    assert out is not None
+    # 不泄露答案：无"答案"标注，正确字母不被标注为正确
+    assert "答案" not in out
+    assert "正确答案" not in out
+
+
+def test_canonical_represent_none_on_answer_submission() -> None:
+    assert build_canonical_represent_response(_mcq_active_object(), "我选B") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "B") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "我选3年") is None
+
+
+def test_canonical_represent_none_on_explanation_request() -> None:
+    assert build_canonical_represent_response(_mcq_active_object(), "为什么选B") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "讲一下这道题的解析") is None
+
+
+def test_canonical_represent_none_on_new_question_request() -> None:
+    # 换新题意图必须 fall through 去生成新题，绝不 re-present 旧题
+    assert build_canonical_represent_response(_mcq_active_object(), "换一道题") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "再来一道单选") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "下一题") is None
+
+
+def test_canonical_represent_none_without_active_object() -> None:
+    assert build_canonical_represent_response(None, "把选项重排重新展示") is None
+    assert build_canonical_represent_response({}, "把选项重排重新展示") is None
+
+
+def test_canonical_represent_none_for_non_mcq() -> None:
+    ao = _mcq_active_object()
+    ao["state_snapshot"]["question_type"] = "case"
+    ao["state_snapshot"].pop("options", None)
+    assert build_canonical_represent_response(ao, "把选项重排重新展示") is None
+
+
+def test_canonical_represent_none_for_batch() -> None:
+    ao = _mcq_active_object()
+    snap = ao["state_snapshot"]
+    snap["items"] = [dict(snap), dict(snap)]  # 套题 batch 不在本修法范围
+    assert build_canonical_represent_response(ao, "把选项重排重新展示") is None
+
+
+def test_canonical_represent_none_on_unrelated_message() -> None:
+    # 没有显式 re-present marker → 不 fire（fail-safe 落 LLM）
+    assert build_canonical_represent_response(_mcq_active_object(), "这道题好难") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "A选项是什么意思") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "") is None
+
+
+def test_canonical_represent_none_on_mixed_answer_and_represent() -> None:
+    # GLM 红队 + 自审: "我选C，重新展示一下" 同时是作答 → 必须交给判分,不可被 re-present
+    # 吞掉作答(option② 下学生看到的恒是 canonical 面,判分判得对)。
+    assert build_canonical_represent_response(_mcq_active_object(), "我选C，重新展示一下") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "C，再发一遍") is None
+
+
+def test_canonical_represent_fires_on_letter_manipulation_request() -> None:
+    # "把A和B对调重新展示" 是带字母的 re-present 操作请求,不是作答 → 必须 fire(否则漏修)。
+    out = build_canonical_represent_response(_mcq_active_object(), "把A和B对调，重新展示这道题")
+    assert out is not None
+    # 仍按 canonical 原序展示(不真对调)
+    assert out.index("A. 1年") < out.index("B. 3年")
+
+
+def test_canonical_represent_fires_on_production_single_item_shape() -> None:
+    # 生产单题真实形态: state_snapshot 自带一个自指 items(len==1),不应被当套题排除。
+    ao = _mcq_active_object()
+    snap = ao["state_snapshot"]
+    snap["items"] = [dict(snap)]  # 自指单元素
+    out = build_canonical_represent_response(ao, "把选项打乱重新展示")
+    assert out is not None
+    assert "A. 1年" in out and "B. 3年" in out
+
+
+def test_canonical_represent_failsafe_on_non_dict_options() -> None:
+    # options 非 dict 形态(生产实测为 dict;此为防御) → fail-safe 返回 None,不静默误判。
+    ao = _mcq_active_object()
+    ao["state_snapshot"]["options"] = ["1年", "3年", "4年", "5年"]
+    assert build_canonical_represent_response(ao, "把选项打乱重新展示") is None
+
+
+def test_canonical_represent_fires_via_question_context_fallback() -> None:
+    # live cases 3,4 gap: tutorbot preselect-bypass 路由不喂 active_object,
+    # 但 question_followup_context 仍在 → 必须用它回退触发(否则这些措辞漏修倒诬)。
+    qfc = {
+        "question_id": "q_1",
+        "question": "一级建造师注册证书的有效期是几年？",
+        "question_type": "choice",
+        "options": {"A": "1年", "B": "3年", "C": "4年", "D": "5年"},
+    }
+    out = build_canonical_represent_response(None, "选项重新排列一下", question_context=qfc)
+    assert out is not None
+    assert "A. 1年" in out and "B. 3年" in out
+    # active_object 优先于 fallback
+    out2 = build_canonical_represent_response(_mcq_active_object(), "把abcd换个顺序重新给我看",
+                                              question_context={"question_type": "case"})
+    assert out2 is not None and "A. 1年" in out2
+    # 两者都无 → None
+    assert build_canonical_represent_response(None, "选项重新排列一下", question_context=None) is None

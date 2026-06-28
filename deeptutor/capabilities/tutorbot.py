@@ -21,6 +21,7 @@ from deeptutor.services.construction_grading.case_output_policy import (
 from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.question_followup import (
     annotate_submission_context_from_message,
+    build_canonical_represent_response,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
@@ -456,6 +457,34 @@ class TutorBotCapability(BaseCapability):
                 unanswered_reference_response,
                 execution_path="tutorbot_unanswered_reference_reprompt",
                 call_kind="unanswered_reference_reprompt",
+            )
+            return
+
+        # M4(i) 方案②: deterministic canonical re-present of an active single MCQ.
+        # When the learner asks to re-show / reshuffle the active question, the
+        # free LLM would emit a divergent option surface (letters reshuffled) that
+        # state_snapshot — and the prose grader — never capture, so a subsequent
+        # letter answer is graded against the original surface (倒诬). Re-present
+        # deterministically from the single authority (active_object.state_snapshot,
+        # original order) instead of the free LLM, so presented surface == grading
+        # surface. Fail-safe: build_canonical_represent_response returns None unless
+        # an active single MCQ + an explicit re-present marker are both present, so
+        # answer / explanation / new-question turns fall through unchanged. Sibling
+        # of the unanswered-reference anti-cheat; reuses the same terminal helper.
+        canonical_represent_response = build_canonical_represent_response(
+            active_object,
+            context.user_message,
+            question_context=(
+                context.metadata.get("question_followup_context")
+                if isinstance(context.metadata, dict)
+                else None
+            ),
+        )
+        if canonical_represent_response is not None:
+            await _emit_lifecycle_terminal_response(
+                canonical_represent_response,
+                execution_path="tutorbot_canonical_mcq_represent",
+                call_kind="canonical_mcq_represent",
             )
             return
 
