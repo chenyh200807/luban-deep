@@ -230,6 +230,7 @@ def active_object_requires_deep_mode(
         normalize_question_followup_context,
         resolve_submission_attempt,
     )
+    from deeptutor.services.semantic_router import is_question_active_object_type
     from deeptutor.tutorbot.teaching_modes import (
         looks_like_practice_generation_request,
     )
@@ -245,7 +246,11 @@ def active_object_requires_deep_mode(
     if not resolved_followup:
         resolved_followup = extract_question_context_from_active_object(normalized)
 
-    if object_type in {"question_set", "single_question"} and resolved_followup:
+    # Family-first: the FAST-demote (submission / practice / grading) branch applies
+    # only to question (题型) objects — including open_world_question, which the old
+    # hand-listed {question_set, single_question} silently dropped. Non-question objects
+    # keep their pre-existing DEEP fall-through unchanged.
+    if is_question_active_object_type(object_type) and resolved_followup:
         if looks_like_practice_generation_request(user_message):
             return False
         _, submission = resolve_submission_attempt(user_message, resolved_followup)
