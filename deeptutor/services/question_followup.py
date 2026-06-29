@@ -154,6 +154,42 @@ _LEADING_SUBMISSION_PREFIX = re.compile(
 _EXPLICIT_ANSWER_SUBMISSION_MARKER = re.compile(
     r"(?:我的?(?:作答|答案|回答)|我来作答)(?:如下)?\s*[:：]|(?:作答|答案|回答)如下\s*[:：]?",
 )
+# Forward-reachability (A2, 2026-06-29): a turn that DEFERS the verdict ("先别判") or is
+# non-committal ("我猜/不确定/还没想好") must never reach HIGH confidence — even if a clean
+# answer token can be extracted. Single source of the deferral vocabulary, shared by the
+# subjective payload-dominance check and the confidence clause-split guard (don't枚举 a second
+# copy). SEV: respects an explicit "先别判" and keeps 试探 turns off the deterministic grading
+# fast-path → the LLM (question_review) makes the final is-this-a-submission call.
+_ANSWER_DEFERRAL_MARKERS = (
+    "我猜",
+    "不确定",
+    "还没想好",
+    "没想好",
+    "先别判",
+    "先不要判",
+    "别判",
+    "不判",
+    "先不判",
+    "先别批",
+    "先不要批",
+    "别批",
+    "不批",
+    "不交卷",
+    "先不交卷",
+)
+# Softened-but-committed answer prefix ("我觉得这题选" / "应该选" / "我认为是"). Extends the
+# POSITIVE commitment signal so a genuine answer embedded in reasoning ("我觉得这题选D，因为…")
+# reaches HIGH confidence and is graded (A2 跳步 hole) — NOT an exclusion regex. The clean-answer
+# -token requirement downstream keeps option-questions ("D选项…对吗") and chatter at LOW (they
+# never reduce to a clean token), so this only promotes real committed answers.
+_SOFT_ANSWER_COMMITMENT_PREFIX = re.compile(
+    # Only COMMITMENT verbs (觉得/认为/感觉/倾向/应该 = "I think it's X" / "it should be X"),
+    # NOT hedges (大概/多半/估计 = "probably X" = tentative). Hedged turns must stay LOW so a
+    # genuinely uncertain "大概是B吧，不太确定" is not graded (SEV: hedge ≠ commitment).
+    r"^(?:我)?(?:觉得|认为|感觉|倾向(?:于)?|应该)"
+    r"(?:这道?题)?(?:应该)?(?:是|选(?!择)|答)?[:：]?",
+    re.IGNORECASE,
+)
 _SUBJECTIVE_QUESTION_TYPES = {
     "case",
     "case_study",
@@ -301,6 +337,13 @@ _Q_NUMBERED_SUBMISSION_RE = re.compile(
 _NUMBERED_BATCH_MARKER_RE = re.compile(
     r"(?:(?<=^)|(?<=[\s；;，,\n]))"
     r"(?:第\s*([0-9一二两三四五六七八九十]+)\s*(?:题|问)?|([0-9]+)\s*(?:题|问)?|[Qq]\s*([0-9]+)\s*(?:题|问)?)"
+    # Forward-reachability (A1, 2026-06-29): allow an explicit submission verb between the
+    # question number and the answer letter ("第1题**选**A") so the natural human batch form
+    # is segmented by the SAME single numbered-batch marker — not degraded to a single (grade
+    # q1, drop q2/q3). The strict boundary (punct or A-E lookahead) keeps parenthetical option
+    # text like "（24学时）" from false-matching as a 题号, so consolidating here does not need
+    # the fragile compact fallback to absorb it.
+    r"\s*(?:选择|选|答案[是为]?|答)?"
     r"\s*(?:[:：、.)）．]|(?=\s*[A-Ea-e对错正确错误√×TFtf]))",
     re.IGNORECASE,
 )
@@ -1107,10 +1150,22 @@ def submission_confidence(
     # (前者"我猜"是试探非提交前缀;后者"我选"埋在"刚才那道题…"子句中段非子句首)→ LOW。
     # 红线:HIGH 用正向"显式提交前缀 + 干净答案 token"判,不枚举否定/试探词排除。混合"我选A但
     # 先别判"这类需对话历史的语义,交下游 LLM 复核;本函数只给单条消息的确定性置信。
+    # ① is-this-a-submission SEV guard (A2): a turn that defers the verdict ("先别判") or is
+    # non-committal ("我猜/不确定/还没想好") stays LOW — the deterministic fast-path never hard-
+    # grades against an explicit defer; the LLM (question_review) decides. The documented intent
+    # ("我选A但先别判 …交下游 LLM 复核") was previously not enforced for MCQ; this enforces it.
+    if any(marker in text for marker in _ANSWER_DEFERRAL_MARKERS):
+        return "low"
+    # Positive signal: a clause that, after stripping its explicit OR softened commitment prefix
+    # ("我选B" / "我觉得这题选D" / "应该选D"), is a clean answer token. The softened prefix grades a
+    # genuine answer embedded in reasoning (A2 跳步 hole); the clean-token requirement keeps
+    # option-questions ("D选项…对吗") and chatter at LOW (never a clean token) → non-answers未被判分.
     for clause in re.split(r"[，,。.!！?？；;、\s]+", text):
-        candidate = _LEADING_SUBMISSION_PREFIX.sub("", clause.strip()).strip("。.!！?？，,：:　 ")
-        if _message_is_clean_answer_token(candidate, normalized):
-            return "high"
+        stripped_clause = clause.strip()
+        for _prefix in (_LEADING_SUBMISSION_PREFIX, _SOFT_ANSWER_COMMITMENT_PREFIX):
+            candidate = _prefix.sub("", stripped_clause).strip("。.!！?？，,：:　 吧呢啊呀嘛了哦")
+            if _message_is_clean_answer_token(candidate, normalized):
+                return "high"
     return "low"
 
 
@@ -1123,22 +1178,7 @@ def _subjective_submission_is_payload_dominant(message: str, answer: str) -> boo
     guarded_text = text.lower()
     if any(marker in guarded_text for marker in _ANSWER_CONCESSION_MARKERS):
         return False
-    low_confidence_markers = (
-        "我猜",
-        "不确定",
-        "先别判",
-        "先不要判",
-        "别判",
-        "不判",
-        "先不判",
-        "先别批",
-        "先不要批",
-        "别批",
-        "不批",
-        "不交卷",
-        "先不交卷",
-    )
-    if any(marker in guarded_text for marker in low_confidence_markers):
+    if any(marker in guarded_text for marker in _ANSWER_DEFERRAL_MARKERS):
         return False
     stripped = _strip_submission_prefix(text)
     stripped = _TRAILING_GRADING_REQUEST_RE.sub("", stripped).strip()
