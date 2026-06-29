@@ -211,6 +211,17 @@ domains:
         teaching-context service; it must not create a second knowledge
         authority, mutate canonical learner truth, or open any WebSocket route
         other than /api/v1/ws.
+      - content_truth_low_confidence_claims is an OBSERVE-ONLY ② content-truth
+        review-loop passthrough. When the TutorBot loop writes a regulation code
+        that this turn's standard recall could not verify, it does NOT suppress
+        output (owner principle — always answer plus honest hedge); it stamps the low-confidence
+        claims into runtime_metadata, and turn runtime passes them (plus
+        content_truth_guard_applied) verbatim into the TurnEventLog observation
+        event. This is a one-way flag into the single event sink for the OFFLINE
+        review agent (content_truth_review_queue); it must not become a second
+        runtime decider, gate output, or create a second truth source — truth
+        stays with this-turn standard recall (runtime) and textbook arbitration
+        (offline).
     contract_files:
       - CONTRACT.md
       - contracts/turn.md
@@ -248,6 +259,7 @@ domains:
     test_files:
       - tests/api/test_system_router.py
       - tests/api/test_unified_ws_turn_runtime.py
+      - tests/services/observability/test_content_truth_review_queue.py
       - tests/services/test_qtpk_differential.py
       - tests/services/test_qtpk_lifecycle_state.py
       - tests/services/test_qtpk_lifecycle_state_shadow.py

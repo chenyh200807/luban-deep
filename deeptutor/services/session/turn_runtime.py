@@ -881,6 +881,12 @@ def _build_terminal_turn_observation_event(
         "rag_retrieval_error_type",
         "degraded_exact_answer_guard_applied",
         "degraded_mcq_grading_guard_applied",
+        # ② content-truth review loop (observe-only)：bot 写出但本轮 standard 召回核不到的规范
+        # 编号低置信记录。runtime 已在 L1 大方输出 + hedge(不抑制)，这里仅把 flag 透传进单一
+        # 事件 sink (TurnEventLog) 供离线评审 agent (content_truth_review_queue) 异步纠错。
+        # 不改控制流，不裁决真值；与 control_plane_shadow_hits 同纪律。
+        "content_truth_guard_applied",
+        "content_truth_low_confidence_claims",
         "raw_user_id",
         "member_user_id",
         "identity_resolution_status",

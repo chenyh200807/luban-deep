@@ -64,6 +64,8 @@ from deeptutor.tutorbot.bus.queue import MessageBus
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
+    assess_unverifiable_standard_codes,
+    build_content_truth_review_records,
     build_continuity_anchor_instruction,
     build_cross_capability_context_instruction,
     content_truth_guard_response,
@@ -827,24 +829,40 @@ class AgentLoop:
         final_content: str | None,
         runtime_metadata: dict[str, Any] | None,
     ) -> str:
-        """② content-truth 核验闸：bot 写出的规范条文号/版本必须能在本轮 standard 召回里核到。
+        """② content-truth review loop (owner 三层)：bot 写出的规范条文号/版本去本轮 standard
+        召回核一遍。owner 设计 = **永不抑制输出**——
 
-        核不到(RAG miss)或检索退化(rag_retrieval_degraded)→ 诚实降级(append caveat，把这些
-        编号从"规范依据"降为"通用判断方向，以教材为准")，绝不让现编的规范编号当权威输出。
-        regex 只抽取编号，真值由召回证据裁决(单一汇点 fail-closed)。返回应展示的最终文本。"""
+        - L1：核不到(RAG miss)或检索退化 → 保留全文 + append 大方诚实 hedge(AI 生成 / 以教材或
+          官方规范为准 / 不保证 100%)，绝不沉默/拒答。
+        - L2：把核不到的编号静默记进 ``content_truth_low_confidence_claims``(runtime 只 flag，
+          不裁决不抑制)，经 turn_runtime allow-list 流进单一事件 sink(TurnEventLog)供离线评审(L3)。
 
+        regex 只抽取编号，真值由召回证据裁决(单一汇点)。返回应展示的最终文本。"""
+
+        rag_degraded = bool((runtime_metadata or {}).get("rag_retrieval_degraded"))
+        evidence_text = cls._collect_standard_recall_evidence(runtime_metadata)
+        # 单一计算点：哪些编号核不到(L1 hedge 与 L2 review record 共享，避免双实现)。
+        unverifiable = assess_unverifiable_standard_codes(
+            response=final_content,
+            standard_evidence_text=evidence_text,
+            rag_degraded=rag_degraded,
+        )
         guarded = content_truth_guard_response(
             user_message=user_message,
             response=final_content,
-            standard_evidence_text=cls._collect_standard_recall_evidence(runtime_metadata),
-            rag_degraded=bool((runtime_metadata or {}).get("rag_retrieval_degraded")),
+            standard_evidence_text=evidence_text,
+            rag_degraded=rag_degraded,
         )
-        if (
-            guarded
-            and guarded != final_content
-            and isinstance(runtime_metadata, dict)
-        ):
+        if unverifiable and isinstance(runtime_metadata, dict):
             runtime_metadata["content_truth_guard_applied"] = True
+            # L2 低置信内部记录：纯 flag，写进 runtime_metadata 由 turn_runtime 透传进事件 sink。
+            runtime_metadata["content_truth_low_confidence_claims"] = (
+                build_content_truth_review_records(
+                    response=final_content,
+                    unverifiable_codes=unverifiable,
+                    rag_degraded=rag_degraded,
+                )
+            )
         return guarded if guarded is not None else final_content
 
     @staticmethod
