@@ -270,23 +270,102 @@ def extract_standard_clause_claims(text: str | None) -> list[str]:
     return out
 
 
-def render_content_truth_caveat(
+def assess_unverifiable_standard_codes(
+    *,
+    response: str | None,
+    standard_evidence_text: str | None,
+    rag_degraded: bool,
+) -> list[str]:
+    """**唯一**"核不到"判定点：bot 写出的规范编号里，哪些无法在本轮 standard 召回核到。
+
+    regex 只**抽取**编号，真值由本轮 standard 召回证据裁决(单一汇点)——regex 不承担"这条规范
+    对不对"的理解。L1(hedge)/L2(review record) 共享这一个计算，不重复实现判定逻辑。
+
+    - 无编号 / 空输出 → ``[]``(普通教学/闲聊零影响，防过矫正)。
+    - ``rag_degraded`` → 召回不可信，**所有**编号 fail-closed(扩 fail-closed 到规范依据形态)。
+    - 否则逐编号比对召回证据：在证据里 → 放行；不在(RAG miss) → 进低置信集合。"""
+
+    content = str(response or "")
+    if not content.strip():
+        return []
+    codes = extract_standard_clause_claims(content)
+    if not codes:
+        return []
+    if rag_degraded:
+        return list(codes)
+    evidence = _normalize_standard_code(standard_evidence_text)
+    return [code for code in codes if code not in evidence]
+
+
+def render_content_truth_hedge(
     unverifiable_codes: list[str], *, rag_degraded: bool
 ) -> str:
-    """渲染诚实降级 caveat：把核不到的规范编号从"规范依据"降为"通用判断方向，请以教材核实"。"""
+    """渲染 owner 的**大方诚实 hedge**(L1)：不否定、不抑制，承认 AI 生成 + 指向权威核对。
+
+    owner 拍板：闭嘴/否定让学员觉得系统没用；宁可大方输出 + 诚实声明，准确性靠后台 review loop
+    收敛。这里命名核不到的编号(更诚实、更有用)，并提示以教材/官方规范原文为准、不保证 100%。"""
 
     codes = "、".join(unverifiable_codes)
     if rag_degraded:
         return (
-            f"⚠️ 说明：当前题库检索不可用，我无法核到 {codes} 的规范原文。"
-            "上面涉及这些编号/条文/数值的部分只能当作通用判断方向，"
-            "请以教材或规范原文为准，不要当作我已确认的规范依据。"
+            f"ℹ️ 小提示：本轮题库检索暂不可用，以上内容由 AI 生成（含规范编号「{codes}」），"
+            "建议你以教材或官方规范原文核对，我不保证 100% 准确；题面思路与判断方向仍可参考。"
         )
     return (
-        f"⚠️ 说明：我无法在本轮题库检索中核到 {codes} 的规范原文。"
-        "上面引用这些编号/条文/数值的部分请以教材或规范原文为准，"
-        "不要当作我已确认的规范依据；其余基于题面的判断方向仍然有效。"
+        f"ℹ️ 小提示：以上内容由 AI 生成，其中规范编号「{codes}」建议你以教材或官方规范原文核对，"
+        "我不保证 100% 准确；题面思路与判断方向仍可参考。"
     )
+
+
+# 兼容旧调用名：#302 曾叫 render_content_truth_caveat，owner 改造后语义=大方 hedge。
+render_content_truth_caveat = render_content_truth_hedge
+
+
+def _context_excerpt_around_code(text: str, code: str, *, window: int = 80) -> str:
+    """从 bot 答案里截取规范编号周边的有界片段(±window 字)，供离线评审定位上下文。
+
+    只取 **bot 生成**的答案文本(规范陈述，PII 风险低)，不碰用户输入；并做长度上界，
+    离线评审与纠错数据集落地时再按 failed_turn_promotion 同纪律 redact 链接标识。"""
+
+    haystack = str(text or "")
+    if not haystack:
+        return ""
+    normalized_target = _normalize_standard_code(code)
+    best = -1
+    for match in _STANDARD_CODE_RE.finditer(haystack):
+        if _normalize_standard_code(match.group(0)) == normalized_target:
+            best = match.start()
+            break
+    if best < 0:
+        return haystack[: 2 * window].strip()
+    start = max(best - window, 0)
+    end = min(best + window, len(haystack))
+    return haystack[start:end].strip()
+
+
+def build_content_truth_review_records(
+    *,
+    response: str | None,
+    unverifiable_codes: list[str],
+    rag_degraded: bool,
+) -> list[dict[str, str]]:
+    """L2：把核不到的编号构造成结构化低置信记录(供离线 review queue)。runtime 只 flag。
+
+    每条 = claim(归一化编号) + claim_kind + confidence_signal(rag_miss / rag_degraded) +
+    context_excerpt(bot 答案里编号周边的有界片段)。不裁决真值、不影响学员体验。"""
+
+    signal = "rag_degraded" if rag_degraded else "rag_miss"
+    records: list[dict[str, str]] = []
+    for code in unverifiable_codes:
+        records.append(
+            {
+                "claim": _normalize_standard_code(code),
+                "claim_kind": "standard_code",
+                "confidence_signal": signal,
+                "context_excerpt": _context_excerpt_around_code(response, code),
+            }
+        )
+    return records
 
 
 def content_truth_guard_response(
@@ -296,37 +375,28 @@ def content_truth_guard_response(
     standard_evidence_text: str | None,
     rag_degraded: bool,
 ) -> str | None:
-    """post-gen 规范核验闸：bot 写出的规范编号必须能在本轮 standard 召回证据里核到。
+    """L1 永远输出 + 诚实 hedge：bot 写出的规范编号若核不到本轮 standard 召回，**不抑制**，
+    保留全文并 append 大方诚实声明(AI 生成 / 以教材或官方规范为准 / 不保证 100%)。
 
     返回值与 ``correct_construction_exam_boundary_fact_response`` 同约定：无需改动时返回
-    原 ``response``；需降级时返回追加了诚实 caveat 的新文本。
+    原 ``response``；有核不到编号时返回追加 hedge 的新文本(正文逐字保留，绝不 nuke)。
 
-    判定(单一决策点)：
-    - 输出里没有规范编号 → 不动(普通教学/闲聊零影响，防过矫正)。
-    - ``rag_degraded`` → 召回不可信，**所有**编号 fail-closed 降级(扩 fail-closed 到规范依据形态)。
-    - 否则逐编号比对本轮召回证据：在证据里 → 放行；不在(RAG miss) → 降级。
-    - 全部核到 → 不动。
-
-    不 nuke 正文(append caveat 保留有用内容)，不回落确定性关键词路径。"""
+    owner 设计：准确性靠后台 review loop(L3)收敛，**不在输出端抑制**；核不到=诚实声明，
+    不回落 V0([[v1-grading-must-be-open-world-nexus-not-lookup]])。"""
 
     content = str(response or "")
     if not content.strip():
         return response
-    codes = extract_standard_clause_claims(content)
-    if not codes:
-        return response
-
-    if rag_degraded:
-        unverifiable = list(codes)
-    else:
-        evidence = _normalize_standard_code(standard_evidence_text)
-        unverifiable = [code for code in codes if code not in evidence]
-
+    unverifiable = assess_unverifiable_standard_codes(
+        response=content,
+        standard_evidence_text=standard_evidence_text,
+        rag_degraded=rag_degraded,
+    )
     if not unverifiable:
         return response
 
-    caveat = render_content_truth_caveat(unverifiable, rag_degraded=rag_degraded)
-    return content.rstrip() + "\n\n" + caveat
+    hedge = render_content_truth_hedge(unverifiable, rag_degraded=rag_degraded)
+    return content.rstrip() + "\n\n" + hedge
 
 
 _CROSS_CAPABILITY_CONTEXT_MAX_CHARS = 4000
