@@ -141,6 +141,30 @@ forward 家族共享同一抽象动作，落两处结构性保证（均"连接�
 
 **交付**：2 新 domain test（`tests/services/test_question_followup_case_submission.py` + `tests/tutorbot/test_case_grading_forward_reachability.py`）注册 `luban_grading_engine`，两份 index byte-identical；surface=`contracts/turn.md` S4 不变量（挂 S1 carve-out 节下）；CI 双口径 contract guard PASS（全 CI 绿：Contract Guard/Import 3.11+3.12/Security/3 Smoke shard/Change Scope）；PR #301 squash `dfd94c7bf`（7 文件 265 insertions）合 main = `a64373f70`（与候选字节同树）；test2 三方对齐重部署 `a64373f70`（origin=host=container），merged main 上 live sanity 1/1 PASS 诊断判分不破。诊断埋点法（S4DIAG observe-only + 容器内 `get_active_object` 直读）留存供后续。
 
+## 家族一次收口（Phase 1 测绘全 → Phase 2 家族级单一权威收口，2026-06-29，**已合 main `20bb6c0d1` (PR #305) + 部署三方对齐 + live≥3 + SEV 双绿 + 异源核全绿**）
+
+> 工程师：控制面收权。承接满意度 3 专家裁决「forward 半边 reactive 逐半边追=元病」——这次**先测绘全两个子家族所有缺口，当一个家族一次收，禁止找到第一个缺口就补**。
+
+**Phase 1 测绘全（推翻多个 hint = 测绘全的价值）**：本地确定性路由探针（直调 `resolve_submission_attempt`/`submission_confidence`/`derive_question_lifecycle_scene`/`looks_like_practice_generation_request`，无网络）+ 定向 live dump n=2 + 历史 eval 转录三源交叉。**phantom（已好/by-design，严禁碰）**：① "第1题选A，第2题选B" 无括号 batch（#299 后正常，hint"非要 q1 A"错）② 模考收尾汇总（live 输出完整汇总表，hint"被当出题挡 p9"错）③ 换考点出错科目（#300 科目锁生效）④ case 后 meta 问（live 正常答）⑤ 裸答"我选A"多题组（真歧义 by-design）。
+
+**3 真洞 = 同一 shared shape**（确定性闸切不准/低置信/遇否定时 fail-closed 丢项/不判/误标，而非 fall-through 到读得懂的主 LLM = fail-closed-to-template 的 forward 镜像）：
+- **A1 题号 batch 带括号选项文字**（"第1题选A（班组），第2题选A（24学时），第3题选A（…）"）→ 原只判 q1，q2/q3 "系统未收到作答"静默丢。根因=主 marker `_NUMBERED_BATCH_MARKER_RE`(question_followup.py:301) 边界拒"选"动词 + compact parser(:2047) 把括号"24"误当题号 → 回退 single。**修（减 decider）**：主 marker 加可选提交动词 `(?:选择|选|答案[是为]?|答)?`，自然批量形态被**同一** numbered-batch 单一权威切分；严格边界天然挡括号内裸数字，无需脆弱 compact fallback 吸收（3 脆弱 parser → 1 鲁棒 marker）。
+- **A2 跳步（答案埋推理）**（"我觉得这题选D吧，因为…对吧"）→ 原 `submission_confidence` 返 low → scene 落 question_review → LLM 教学不判（需催）。**修（两层①作答判别）**：`submission_confidence` 加 ① `_SOFT_ANSWER_COMMITMENT_PREFIX`（我觉得/我认为/应该+这题?+选/答/是）+ clean-token → 真作答 HIGH→mcq_grading；`_ANSWER_DEFERRAL_MARKERS`（先别判/我猜/不确定/还没想好，单一来源复用 `_subjective_submission_is_payload_dominant`）guard → 试探/defer 停 LOW。**clean-token 要求天然挡非作答**（问选项"D选项…对吗"/hedge"大概是B吧"/闲聊永不约化成 clean token）= SEV 凭空判分防线保留；且补回文档既有意图"我选X但先别判→不判"（原 MCQ 分支未守）。
+- **B1 出题-after-case 被判分吞**（"我没让你判分啊，是让你出一道新案例题"）→ 原 scene 优先级 `_looks_like_free_text_case_grading`(q_l_s:1060) 在 practice_generation(1087) 前触发（"判分"否定子串 + "案例分析题"误命中）→ case_grading → 判 0/10。**修（reorder 非新 decider）**：`derive_question_lifecycle_scene` free-text 判分检测前加 guard——出题 intent **且无任何作答 payload**（`_looks_like_full_case_answer_submission` / `_FREE_TEXT_CASE_ANSWER_MARKER_RE` / MCQ option-selection / active-object submission 四查皆空）才优先 practice_generation；answer-led（R2 粘贴作答 / "我选B再出3题"）仍判分不破。
+
+**验证（候选 `4e3ab1e65` → merged main `20bb6c0d1`，同 forward-family 字节树）**：
+| 维度 | 结果 |
+|---|---|
+| family forward-liveness ≥3（候选） | **A1 3/3 + A2 3/3 + B1 3/3**（持久化终态人核；B1 metric 假阴性 eval-design#5 修正：bot 每轮出真案例/计算题零 case 罐头）|
+| merged main sanity | A1/A2/B1 各 1/1（行为等同候选）|
+| SEV 异源（DeepSeek） | 倒诬 3/3 CLEAN + 泄露 3/3 CLEAN + 回指 5/6（1 flaky MISBIND+1 infra-502，**路由证明正交**：回指 3 轮 routing 不受改动影响 + 重跑 4/4 CORRECT_BIND，属 pre-existing 内容真相病非本 PR）|
+| A2 凭空判分 live | **4/4 PASS**（试探/defer "好的先不判" + 问选项"讲解"，零凭空判分）|
+| unit | 14 family（含双向 SEV）+ 418 相邻回归 PASS；4 deep_question generation 失败=baseline pre-existing 隔离污染（stash 验证非本 PR）|
+| CI/契约 | PR #305 全 CI 绿（Contract Guard/Import 3.11+3.12/Security/3 Smoke shard/Change Scope/Test Summary）；contract guard 双口径 `--base/--head`；两份 index byte-identical；新 domain test 注册 capability(routing)+luban_grading_engine 两 domain |
+| 减 decider 证明 | A1 3 脆弱 batch parser→1 鲁棒 marker；A2 deferral 词表单一来源（删重复 tuple）；B1 reorder 复用既有两权威无新 decider |
+
+**交付**：PR #305 主 commit（question_followup.py + question_lifecycle_skills.py + tests/services/test_forward_family_reachability.py + 两 index）合 main `20bb6c0d1`；test2 三方对齐重部署 `20bb6c0d1`（origin=host=container，dirty=false，容器含 3 洞改动）。**诚实**：fall-through 未把非作答轮变判分（A2 SEV live 4/4 实证）；回指 flaky 非本 PR 引入（正交证明）；live 终态人核非流式。harness 留存 `scratchpad/forward_route_probe.py`（本地确定性探针）+ `scratchpad/forward_family_verify.py`（family 断言 live≥3）+ 缺口清单 `artifacts/forward_family_mapping/gap_inventory.md`。
+
 ## 留存
 - forward-liveness harness：`scratchpad/army_forward_liveness.py`（4 场景确定性断言 + DB 驱动 + 度量自测 + goal2+3 垃圾守卫）、`scratchpad/army_forward_register.py`、结果 `scratchpad/army_forward_results.json`；S1 ≥3 验证器 `scratchpad/verify_s1_fix.py`；turn-start 埋点法（observe-only logger + 容器 DB runtime_state 直读 `scratchpad/probe_ao.py`）。
 - 学生军团活体 eval 全景：`artifacts/student_army_eval_full_2026-06-28.md` / `student_army_eval_smoke_2026-06-28.md`。
