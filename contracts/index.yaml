@@ -620,6 +620,7 @@ domains:
       - tests/tutorbot/test_case_grading_generation_falls_through.py
       - tests/services/test_question_followup_case_submission.py
       - tests/tutorbot/test_case_grading_forward_reachability.py
+      - tests/tutorbot/test_content_truth_guard.py
       - tests/services/construction_grading/test_m32_grading_event_learning_evidence.py
       - tests/services/construction_grading/test_case_grading_fusion.py
       - tests/services/construction_grading/test_compiled_registry_resolver.py

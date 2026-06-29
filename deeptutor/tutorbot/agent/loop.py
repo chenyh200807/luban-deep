@@ -66,6 +66,7 @@ from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
     build_continuity_anchor_instruction,
     build_cross_capability_context_instruction,
+    content_truth_guard_response,
     correct_construction_exam_boundary_fact_response,
     get_construction_exam_boundary_fact_instruction,
     get_anchor_preservation_instruction,
@@ -786,6 +787,65 @@ class AgentLoop:
             "可用结论：这轮需要小程序继续传入题卡 id，或等题库检索恢复后再按标准答案批改；"
             "如果只做非题库标准确认的思路分析，可以基于题干逐项判断，但结论不能标成真题标准答案。"
         )
+
+    @staticmethod
+    def _collect_standard_recall_evidence(runtime_metadata: dict[str, Any] | None) -> str:
+        """汇集本轮 standard/KB 召回证据正文，供 content-truth 核验闸比对规范编号。
+
+        证据来自 ``runtime_metadata['rag_rounds'][*]['sources'][*]['content']`` 以及每轮的
+        聚合 ``answer`` 文本(search_standard_chunks 等检索把 standard/textbook/exam chunk 正文
+        放在这里)。这是单一真值源(已接检索)，不新建第二 authority。"""
+
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        parts: list[str] = []
+        for round_meta in metadata.get("rag_rounds") or []:
+            if not isinstance(round_meta, dict):
+                continue
+            answer = round_meta.get("answer")
+            if isinstance(answer, str) and answer.strip():
+                parts.append(answer)
+            for source in round_meta.get("sources") or []:
+                if not isinstance(source, dict):
+                    continue
+                text = source.get("content") or source.get("text") or source.get("snippet")
+                if isinstance(text, str) and text.strip():
+                    parts.append(text)
+        # 预取的精确题/规范证据也算本轮召回(避免对已有权威误降级)。
+        prefetched = metadata.get("_prefetched_exact_question")
+        if isinstance(prefetched, dict):
+            for key in ("question", "answer", "explanation", "analysis", "content"):
+                value = prefetched.get(key)
+                if isinstance(value, str) and value.strip():
+                    parts.append(value)
+        return "\n\n".join(parts)
+
+    @classmethod
+    def _content_truth_guard(
+        cls,
+        *,
+        user_message: str,
+        final_content: str | None,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> str:
+        """② content-truth 核验闸：bot 写出的规范条文号/版本必须能在本轮 standard 召回里核到。
+
+        核不到(RAG miss)或检索退化(rag_retrieval_degraded)→ 诚实降级(append caveat，把这些
+        编号从"规范依据"降为"通用判断方向，以教材为准")，绝不让现编的规范编号当权威输出。
+        regex 只抽取编号，真值由召回证据裁决(单一汇点 fail-closed)。返回应展示的最终文本。"""
+
+        guarded = content_truth_guard_response(
+            user_message=user_message,
+            response=final_content,
+            standard_evidence_text=cls._collect_standard_recall_evidence(runtime_metadata),
+            rag_degraded=bool((runtime_metadata or {}).get("rag_retrieval_degraded")),
+        )
+        if (
+            guarded
+            and guarded != final_content
+            and isinstance(runtime_metadata, dict)
+        ):
+            runtime_metadata["content_truth_guard_applied"] = True
+        return guarded if guarded is not None else final_content
 
     @staticmethod
     def _format_answer_letters(letters: str | None) -> str:
@@ -3898,6 +3958,11 @@ class AgentLoop:
                 final_content=final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
+            final_content = self._content_truth_guard(
+                user_message=current_message,
+                final_content=final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
             final_content = guarded_output.content or final_content
             if all_msgs:
@@ -3976,6 +4041,11 @@ class AgentLoop:
                     final_content=final_content,
                     runtime_metadata=runtime_metadata,
                 ) or final_content
+                final_content = self._content_truth_guard(
+                    user_message=current_message,
+                    final_content=final_content,
+                    runtime_metadata=runtime_metadata,
+                ) or final_content
                 guarded_output = guard_tutorbot_output(final_content)
                 final_content = guarded_output.content or final_content
                 all_msgs = self.context.add_assistant_message(initial_messages, final_content)
@@ -4049,6 +4119,11 @@ class AgentLoop:
                 runtime_metadata=runtime_metadata,
             ) or final_content
             final_content = self._degraded_mcq_grading_response(
+                user_message=current_message,
+                final_content=final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
+            final_content = self._content_truth_guard(
                 user_message=current_message,
                 final_content=final_content,
                 runtime_metadata=runtime_metadata,
@@ -4140,6 +4215,11 @@ class AgentLoop:
             runtime_metadata=runtime_metadata,
         ) or final_content
         final_content = self._degraded_mcq_grading_response(
+            user_message=current_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        final_content = self._content_truth_guard(
             user_message=current_message,
             final_content=final_content,
             runtime_metadata=runtime_metadata,
