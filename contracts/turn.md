@@ -210,6 +210,21 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
     `question_followup.resolve_submission_attempt`（scene/grading 同一权威），demote 守卫经
     `question_turn_policy._message_is_submission_for_stored_set` 只读不重判，不新增第二决策点。**SEV 安全**：保活
     不等于判分 —— 真正判分仍由下游 `submission_confidence` 把关（LOW/试探/推迟/回指 → ask_followup），凭空判分/倒诬保护不动。
+  - **S4 主观/案例（2026-06-29）是 S1 同相位、同 carve-out 的 case 形态补全 —— forward-reachability 不变量，不可删**：
+    bot 上一轮生成的案例题写进 active_object（题干在 `state_snapshot.question`、bot 自生成参考在 `correct_answer`，均**未签名**）。
+    本轮**自由文本作答**（"针对刚才的案例题，**我的作答如下：**…，帮我按采分点判一下"）此前不被 `resolve_submission_attempt`
+    识别为 submission——明确作答标记位于句**中**（前有 "针对…案例题，" 前缀），锚定的 `_LEADING_SUBMISSION_PREFIX` 漏掉，
+    且结尾判分诉求 "？" 触发 question-marker 否决 → demote carve-out False → 案例 active_object 在判分 dispatch 前被压栈
+    → `_grade_one_case_v1` `has_stem=False` → Tier-3 `no_reference` 死锁（live 3/3 + 确定性双证）。修法**仍走 S1 同一
+    submission 权威**：`resolve_submission_attempt` 识别**句中**明确作答-提交标记（`_EXPLICIT_ANSWER_SUBMISSION_MARKER`，
+    紧扣框架——必须带冒号或 "如下"，故 "我的作答对吗" / "我的答案是什么？" 这类**试探/问句不命中**，绝不把问句变成判分作答），
+    于是 scene（`_looks_like_free_text_case_grading`）与 demote carve-out（`_message_is_submission_for_stored_set`）**对齐**，
+    案例 active_object 存活 → 判分 ctx 读得到题干。判分 ctx 单点权威 = `loop.py::_build_v1_case_ctx`：题干从
+    `fc["question"]`（active_object 派生案例题的题干所在）surface 给 Tier-3；**未签名**的 bot 自生成 `correct_answer` 在
+    无 bank/签名 authority（`_prefetched_exact_question` 空）时**不**升级为 Tier-2 `on_the_fly_reference`，强制走 Tier-3
+    `derive_rubric_from_stem` 诊断（`official_score_allowed=False` + 诊断 hedge）。**SEV 安全**：①标记紧扣提交框架不吃问句；
+    ②V1 判分事件基线即 `official_score_allowed=False`，未签名参考被抑制后更不可能凭空给官方分；③保活不等于判分，下游
+    把关不动。证据见 `tests/services/test_question_followup_case_submission.py` + `tests/tutorbot/test_case_grading_forward_reachability.py`。
 - **routing 相位**（单一权威 = `deeptutor/services/semantic_router.py::apply_active_object_transition`）：
   orchestrator 经 `metadata.suspended_object_stack` 读到 turn-START 压栈的对象，在 `resume_suspended_object`
   决策下**恢复（出栈）**。canonical **只出栈、从不在 turn-START 那个输入上重做压栈决策**。

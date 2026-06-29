@@ -146,6 +146,14 @@ _LEADING_SUBMISSION_PREFIX = re.compile(
     r"^(?:我答(?:案)?(?:是)?|我的(?:答案|作答)?(?:是)?|学生作答|作答|答案(?:是)?|我选|我觉得选|选(?!择)|就是|应该是|option|answer)[:：]?",
     re.IGNORECASE,
 )
+# Forward-reachability (S4, 2026-06-29): an EXPLICIT answer-submission marker that may
+# appear MID-message (after a "针对刚才的案例题，" preamble), unlike the anchored
+# ``_LEADING_SUBMISSION_PREFIX``. Tightly scoped to submission framing — it REQUIRES a
+# colon or "如下" after the marker, so a 试探/question ("我的作答对吗" / "我的答案是什么？")
+# does NOT match and stays a non-submission (SEV: never turns a question into a graded answer).
+_EXPLICIT_ANSWER_SUBMISSION_MARKER = re.compile(
+    r"(?:我的?(?:作答|答案|回答)|我来作答)(?:如下)?\s*[:：]|(?:作答|答案|回答)如下\s*[:：]?",
+)
 _SUBJECTIVE_QUESTION_TYPES = {
     "case",
     "case_study",
@@ -1848,7 +1856,13 @@ def _extract_subjective_submission(message: str, question_context: dict[str, Any
     # type, so this path would otherwise capture the whole recall sentence as the answer).
     if _looks_like_past_question_explanation_request(text):
         return None
-    explicit_answer = bool(_LEADING_SUBMISSION_PREFIX.match(text))
+    leading_prefix = bool(_LEADING_SUBMISSION_PREFIX.match(text))
+    # An explicit answer-submission marker may sit MID-message; it is as strong a
+    # submission signal as a leading prefix (S4 forward-reachability).
+    midmessage_marker = (
+        None if leading_prefix else _EXPLICIT_ANSWER_SUBMISSION_MARKER.search(text)
+    )
+    explicit_answer = leading_prefix or bool(midmessage_marker)
     if not explicit_answer and _looks_like_subjective_context_exit_request(text):
         return None
     prestrip_lowered = text.lower()
@@ -1879,7 +1893,10 @@ def _extract_subjective_submission(message: str, question_context: dict[str, Any
         or ("？" in text or "?" in text)
     ):
         return None
-    stripped = _strip_submission_prefix(text)
+    # When the explicit marker sits mid-message, drop everything up to and including
+    # it so the extracted answer is the body AFTER "…作答如下：", not the preamble.
+    extract_source = text[midmessage_marker.end():] if midmessage_marker else text
+    stripped = _strip_submission_prefix(extract_source)
     stripped = _TRAILING_GRADING_REQUEST_RE.sub("", stripped).strip()
     stripped = stripped.strip("。.!！?；;，,：:、 ")
     if not stripped:
