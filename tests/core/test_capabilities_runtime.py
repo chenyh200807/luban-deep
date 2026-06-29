@@ -3419,6 +3419,35 @@ async def test_tutorbot_practice_generation_salvages_question_surface_on_inline_
         assert leaked not in response, f"answer leaked: {leaked!r}"
 
 
+def test_tutorbot_suppress_answer_reveal_defaults_fail_closed_for_generation() -> None:
+    # 安全 SEV-1 真根因（对抗 agent 抓到 fail-open，2026-06-29）：detect 无偏好（None）
+    # 时，出题轮答案抑制必须 fail-closed（默认 suppress），不再依赖 billing source
+    # （旧实现非 wx_miniprogram 源 → 默认不抑制 → 泄露）。让所有 detect 漏判落安全侧。
+    cap = TutorBotCapability()
+    # detect=None（纯出题无偏好），无 interaction_hints，非小程序源 → 必须 suppress。
+    for source in ("web", "ws", "h5", ""):
+        ctx = UnifiedContext(
+            session_id="failclosed",
+            user_message="出3道屋面防水单选题",
+            metadata={"billing_context": {"user_id": "u1", "source": source}},
+        )
+        assert cap._suppress_answer_reveal_on_generate(ctx) is True, source
+    # 明确 reveal（detect=True，无否定）仍公布，不过度抑制。
+    ctx_reveal = UnifiedContext(
+        session_id="reveal",
+        user_message="出3道题并带答案解析",
+        metadata={"billing_context": {"user_id": "u1", "source": "web"}},
+    )
+    assert cap._suppress_answer_reveal_on_generate(ctx_reveal) is False
+    # 显式 interaction_hint 仍被尊重（上游明确意图优先）。
+    ctx_hint = UnifiedContext(
+        session_id="hint",
+        user_message="出3道题",
+        metadata={"interaction_hints": {"suppress_answer_reveal_on_generate": False}},
+    )
+    assert cap._suppress_answer_reveal_on_generate(ctx_hint) is False
+
+
 @pytest.mark.asyncio
 async def test_tutorbot_practice_generation_keeps_scenario_before_problem_marker(
     monkeypatch: pytest.MonkeyPatch,

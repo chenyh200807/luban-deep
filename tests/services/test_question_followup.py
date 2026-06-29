@@ -55,12 +55,18 @@ def test_detect_answer_reveal_preference_negated_tell_answer_is_suppress() -> No
         "别告诉我答案，给我点思路",
         "先别说答案，我自己想想",
         "先别告诉我答案，给我思路",
+        # 对抗 agent 抓到的绕过措辞（否定词与 reveal marker 隔了 >4 字）：
+        "别这么快就告诉我答案，出3道题",
+        "先不要剧透答案",
+        "先不揭晓正确答案",
+        "先别透露答案",
     ):
         assert detect_answer_reveal_preference(message) is False, message
-    # 未否定的 reveal 仍是 reveal（不过度抑制）。
+    # 未否定的 reveal 仍是 reveal（不过度抑制）；跨子句否定不误伤同句 reveal。
     assert detect_answer_reveal_preference("出题，记得带答案") is True
     assert detect_answer_reveal_preference("请告诉我答案") is True
     assert detect_answer_reveal_preference("公布答案并讲解") is True
+    assert detect_answer_reveal_preference("不要听废话，直接告诉我答案") is True
 
 
 def test_resolve_submission_attempt_extracts_numbered_batch_with_wo_xuan_prefix() -> None:

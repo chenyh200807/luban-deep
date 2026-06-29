@@ -107,7 +107,14 @@ _REVEAL_ANSWER_MARKERS = (
     "详细解析",
     "讲解一下",
     "解析一下",
+    "剧透",
+    "揭晓",
+    "透露答案",
 )
+
+# 子句分隔符：否定感知只在 reveal marker 所在子句内判定，避免跨子句误伤
+# （"不要听废话，直接告诉我答案" 的 reveal 子句无否定 → 仍 reveal）。
+_CLAUSE_SEPARATORS = "，,。.！!？?；;\n"
 
 # 安全 SEV-1（organic 出题轮答案泄露根因，2026-06-29）：reveal marker 前若紧邻
 # 否定词（"先别告诉我答案"），子串法会把它误判成 reveal。否定感知覆盖所有 reveal
@@ -744,8 +751,15 @@ def detect_answer_reveal_preference(message: str) -> bool | None:
         index = text.find(marker)
         if index < 0:
             continue
-        window = text[max(0, index - 4):index]
-        if any(negation in window for negation in _REVEAL_NEGATION_PREFIXES):
+        # clause-bounded 否定感知：取 marker 前最近子句分隔符之后的片段，子句内含
+        # 否定词 = 抑制（覆盖 "别这么快就告诉我答案" 这种否定与 marker 隔 >4 字的形态），
+        # 但不跨子句误伤（"不要听废话，直接告诉我答案" 的 reveal 子句无否定 → reveal）。
+        clause_start = max(
+            (text.rfind(sep, 0, index) for sep in _CLAUSE_SEPARATORS),
+            default=-1,
+        )
+        clause = text[clause_start + 1:index]
+        if any(negation in clause for negation in _REVEAL_NEGATION_PREFIXES):
             return False
         return True
     return None

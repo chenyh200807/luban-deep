@@ -1017,7 +1017,12 @@ class TutorBotCapability(BaseCapability):
         hints = context.metadata.get("interaction_hints", {}) if isinstance(context.metadata, dict) else {}
         if isinstance(hints, dict) and "suppress_answer_reveal_on_generate" in hints:
             return bool(hints.get("suppress_answer_reveal_on_generate"))
-        return self._billing_source(context) == "wx_miniprogram"
+        # 安全 SEV-1 真根因（对抗 agent 抓到 fail-open，2026-06-29）：detect 无偏好 +
+        # 无显式 hint 时，出题轮 fail-closed —— 默认 suppress，不再依赖 billing source
+        # （旧实现非 wx_miniprogram 源默认不抑制 = fail-open，detect 任意漏判即泄露）。
+        # 让所有 detect 漏判结构上落安全侧；明确 reveal（detect=True）仍在上方公布。
+        # 代价 = 无偏好"出题"默认不附答案，对练习场景本就是更优行为（先练后揭晓）。
+        return True
 
     @staticmethod
     def _reveal_reference_flags(context: UnifiedContext) -> tuple[bool, bool]:
