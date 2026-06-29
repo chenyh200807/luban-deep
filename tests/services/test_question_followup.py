@@ -2589,6 +2589,28 @@ def test_high_confidence_real_answer_stays_submission(monkeypatch):
     assert _qf.followup_action_route(action) == "submission"
 
 
+# --- ③稳定性 2b/B1: followup 分类器是首答前阻塞 LLM,只重试 transient infra 失败,
+# fallback(None)对 SEV fail-safe(under-act 不 mis-act)。把默认 max_retries=3 收成 1:
+# 单次 transient blip 仍有一次廉价重试,但不再 3 层指数退避堆出 ~18s 长尾。砍重试
+# 不改裁决(同 prompt/temperature=0,重试成功=首次成功),只在 provider 真抖动时更快落
+# fail-safe fallback。Phase2a 活体证:长尾主因是单次调用慢非重试,此项=低风险诚实清理。
+def test_followup_classifier_caps_retries_to_one(monkeypatch):
+    captured = {}
+
+    async def fake_complete(**kwargs):
+        captured.update(kwargs)
+        import json as _json
+
+        return _json.dumps(
+            {"intent": "ask_followup", "confidence": 0.9, "reason": "x"}
+        )
+
+    monkeypatch.setattr(_qf, "complete", fake_complete)
+    _asyncio.run(_qf.interpret_question_followup_action("这题为什么选C", _S45_CTX))
+    # 显式 max_retries=1 收口:不再吃全局默认 3,杜绝 transient 失败堆 3 层退避长尾。
+    assert captured.get("max_retries") == 1
+
+
 # --- Step 5: 单一 chokepoint 收口 turn_runtime._submission_action_for_user_message ---
 # 把 4.5/4.6 逐路径 gate 收敛到最上游:LOW 裸单题作答不在此构造提交动作 → 下游不缓存
 # submission(防未来新下游路径再凭空判分)。batch/numbered 显式提交=HIGH 不经此 gate。
