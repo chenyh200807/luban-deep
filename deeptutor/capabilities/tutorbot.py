@@ -70,6 +70,9 @@ _ANSWER_SUPPRESSED_NOTICE = (
 # 弱正则挡不住 → 必须 fail-closed）与「非 MCQ 案例/简答」（答案在 labeled 段，
 # _strip_reference_sections 能结构化删除）。只认题面结构、不认答案变体，故不打地鼠。
 _MCQ_OPTION_MARKER_RE = re.compile(r"(?:^|[\s（(])([A-DＡ-Ｄ])[\.、．)）:：]")
+# 行首即选项标记（"A. …" / "A、…" / "A) …"）。用于 Y positional 渲染识别选项行，
+# 而不把"（正确答案 B）"/"**正确选项：A**"/"因此正确选项是A" 这类答案行误判成选项。
+_OPTION_LINE_START_RE = re.compile(r"^\s*(?:\*\*)?[A-DＡ-Ｄ][\.、．)）]\s*\S")
 
 
 def _contains_mcq_options(text: str) -> bool:
@@ -78,6 +81,13 @@ def _contains_mcq_options(text: str) -> bool:
         for match in _MCQ_OPTION_MARKER_RE.finditer(str(text or ""))
     }
     return len(distinct) >= 3
+
+
+def _is_option_line(line: str) -> bool:
+    # 选项行 = 行首即 A–D 标记（多行选项），或整行含 ≥3 个 A–D 标记（单行选项
+    # "A. x B. y C. z D. w"）。答案行（括号/加粗/散文，只含单个字母且非行首标记）
+    # 不命中 → 不会被当成选项保留。
+    return bool(_OPTION_LINE_START_RE.match(line)) or _contains_mcq_options(line)
 
 
 class TutorBotCapability(BaseCapability):
@@ -1096,8 +1106,38 @@ class TutorBotCapability(BaseCapability):
             if rendered:
                 return rendered
         if _contains_mcq_options(final_response):
+            # Y（题面质量，positional，2026-06-29）：MCQ-shaped 但结构化 parse 失败，
+            # positional 渲染题干+选项块、丢弃选项块之后的答案/解析（按 position，不
+            # 认答案变体，不打地鼠）。salvage 失败才落 X 的 fail-closed 安全提示。
+            salvaged = self._render_question_surface_only(final_response)
+            if salvaged:
+                return salvaged
             return _ANSWER_SUPPRESSED_NOTICE
         return self._strip_reference_sections(final_response) or _ANSWER_SUPPRESSED_NOTICE
+
+    @staticmethod
+    def _render_question_surface_only(text: str) -> str:
+        """Y（题面质量，2026-06-29）：positional 题面渲染。
+
+        保留题干 + 选项块（含选项块内/之间的内容），丢弃 **最后一个选项行之后** 的
+        一切——organic 出题轮答案/解析都出现在选项块之后，按 position 丢弃即可，
+        不需要识别"答案"字样的任何变体（不打地鼠）。无法定位任何选项行 → 返回 ""，
+        交回 _build_visible_response 的 fail-closed 安全提示（X 安全底线不被削弱）。
+
+        边界（诚实）：若答案被内联进题干或某个选项行内部，本 positional 层不剥离，
+        交回 X fail-closed —— 但这不在 organic 出题轮的形态内。
+        """
+        raw = str(text or "").strip()
+        if not raw:
+            return ""
+        lines = raw.splitlines()
+        last_option_idx = -1
+        for idx, line in enumerate(lines):
+            if _is_option_line(line):
+                last_option_idx = idx
+        if last_option_idx < 0:
+            return ""
+        return "\n".join(lines[: last_option_idx + 1]).rstrip()
 
     @staticmethod
     def _strip_reference_sections(text: str) -> str:
