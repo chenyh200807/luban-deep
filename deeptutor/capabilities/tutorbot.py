@@ -23,6 +23,7 @@ from deeptutor.services.question_followup import (
     annotate_submission_context_from_message,
     build_canonical_represent_response,
     build_choice_result_summary_from_exact_question,
+    build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
     extract_choice_result_summary_from_text,
@@ -682,6 +683,63 @@ class TutorBotCapability(BaseCapability):
                 )
                 if presentation:
                     result_payload["presentation"] = presentation
+                # 收权（inline 多题集注册病）：inline 自由文本出题（含多题）必须经
+                # 唯一 builder build_active_object_from_question_context 注册成可
+                # resolve 的 question_set active_object（items[]），与 deep_question
+                # 出题链路同一 writer / 同一 persist（turn_runtime set_active_object）。
+                # 否则下一轮学员作答在 deep_question 端绑不到题面 → "你还没作答" 拒判。
+                # 注册题面 ≠ 判分权威：§硬约束 26 只禁 TutorBot 用 free text 自行判分 /
+                # 补官方扣分理由；分值/扣分仍只来自鲁班 V1 / rubric / 开放世界裁决。
+                # exact-question authority 命中时由下方 state_result_summary 块注册
+                # （更高权威），故此处只在无 exact 摘要时兜底，避免双写。
+                if presentation and not state_result_summary:
+                    practice_followup_context = (
+                        build_question_followup_context_from_presentation(
+                            presentation,
+                            final_response,
+                            reveal_answers=reveal_answers,
+                            reveal_explanations=reveal_explanations,
+                        )
+                    )
+                    if practice_followup_context:
+                        practice_active_object = (
+                            build_active_object_from_question_context(
+                                practice_followup_context,
+                                source_turn_id=turn_id,
+                                previous_active_object=active_object,
+                            )
+                            or {}
+                        )
+                        (
+                            practice_transitioned_active_object,
+                            practice_transitioned_stack,
+                        ) = apply_active_object_transition(
+                            previous_active_object=active_object,
+                            previous_suspended_object_stack=context.metadata.get(
+                                "suspended_object_stack"
+                            ),
+                            turn_semantic_decision={
+                                "relation_to_active_object": "switch_to_new_object",
+                                "next_action": "route_to_grading",
+                                "allowed_patch": ["set_active_object"],
+                                "confidence": 1.0,
+                                "reason": "inline practice generation registered a new question_set active object.",
+                                "target_object_ref": {},
+                            },
+                            resolved_active_object=practice_active_object,
+                        )
+                        result_payload["question_followup_context"] = practice_followup_context
+                        result_payload["active_object"] = (
+                            practice_transitioned_active_object or practice_active_object
+                        )
+                        result_payload["suspended_object_stack"] = practice_transitioned_stack
+                        context.metadata["question_followup_context"] = dict(
+                            practice_followup_context
+                        )
+                        context.metadata["active_object"] = dict(result_payload["active_object"])
+                        context.metadata["suspended_object_stack"] = list(
+                            practice_transitioned_stack
+                        )
             if state_result_summary:
                 # Authority-gated: question_followup_context + active_object
                 # only emitted when exact_question authority is present.
