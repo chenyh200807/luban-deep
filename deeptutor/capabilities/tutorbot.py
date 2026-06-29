@@ -58,38 +58,6 @@ from deeptutor.tutorbot.response_mode import (
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 
-# 安全 SEV-1（organic 出题轮答案泄露收口，2026-06-29）：suppress 出题轮无法把
-# 自由文本结构化为题面时的 fail-closed 安全提示。宁可少展示，绝不泄露答案。
-_ANSWER_SUPPRESSED_NOTICE = (
-    "题目我已经按你的要求出好了。为了不提前泄露答案，先请你作答，"
-    "提交后我再公布正确答案和解析。"
-)
-
-# 稳定结构谓词（非 answer 探测）：题面是否含 MCQ 选项枚举（A–D 标记 ≥3）。
-# 用于区分「MCQ-shaped 但结构化 parse 失败」（答案常内联在选项后，行首 label
-# 弱正则挡不住 → 必须 fail-closed）与「非 MCQ 案例/简答」（答案在 labeled 段，
-# _strip_reference_sections 能结构化删除）。只认题面结构、不认答案变体，故不打地鼠。
-_MCQ_OPTION_MARKER_RE = re.compile(r"(?:^|[\s（(])([A-DＡ-Ｄ])[\.、．)）:：]")
-# 行首即选项标记（"A. …" / "A、…" / "A) …"）。用于 Y positional 渲染识别选项行，
-# 而不把"（正确答案 B）"/"**正确选项：A**"/"因此正确选项是A" 这类答案行误判成选项。
-_OPTION_LINE_START_RE = re.compile(r"^\s*(?:\*\*)?[A-DＡ-Ｄ][\.、．)）]\s*\S")
-
-
-def _contains_mcq_options(text: str) -> bool:
-    distinct = {
-        match.group(1).upper().translate(str.maketrans("ＡＢＣＤ", "ABCD"))
-        for match in _MCQ_OPTION_MARKER_RE.finditer(str(text or ""))
-    }
-    return len(distinct) >= 3
-
-
-def _is_option_line(line: str) -> bool:
-    # 选项行 = 行首即 A–D 标记（多行选项），或整行含 ≥3 个 A–D 标记（单行选项
-    # "A. x B. y C. z D. w"）。答案行（括号/加粗/散文，只含单个字母且非行首标记）
-    # 不命中 → 不会被当成选项保留。
-    return bool(_OPTION_LINE_START_RE.match(line)) or _contains_mcq_options(line)
-
-
 class TutorBotCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="tutorbot",
@@ -1017,12 +985,7 @@ class TutorBotCapability(BaseCapability):
         hints = context.metadata.get("interaction_hints", {}) if isinstance(context.metadata, dict) else {}
         if isinstance(hints, dict) and "suppress_answer_reveal_on_generate" in hints:
             return bool(hints.get("suppress_answer_reveal_on_generate"))
-        # 安全 SEV-1 真根因（对抗 agent 抓到 fail-open，2026-06-29）：detect 无偏好 +
-        # 无显式 hint 时，出题轮 fail-closed —— 默认 suppress，不再依赖 billing source
-        # （旧实现非 wx_miniprogram 源默认不抑制 = fail-open，detect 任意漏判即泄露）。
-        # 让所有 detect 漏判结构上落安全侧；明确 reveal（detect=True）仍在上方公布。
-        # 代价 = 无偏好"出题"默认不附答案，对练习场景本就是更优行为（先练后揭晓）。
-        return True
+        return self._billing_source(context) == "wx_miniprogram"
 
     @staticmethod
     def _reveal_reference_flags(context: UnifiedContext) -> tuple[bool, bool]:
@@ -1095,54 +1058,9 @@ class TutorBotCapability(BaseCapability):
             return self._strip_reference_sections(final_response) or final_response
         if not self._should_hide_generated_answers(context):
             return final_response
-        # 安全 SEV-1（organic 出题轮答案泄露收口，2026-06-29）：suppress 时可见输出
-        # 必须结构上无 correct_answer/解析。单一权威 = 结构化题面渲染
-        # （_render_question_only_response 只渲染 question+options，答案字段物理不输出）。
-        # 绝不 fall-through 原始 final_response —— organic 自由文本常把答案内联/括号/
-        # 加粗在选项后（"因此正确选项是A"/"（正确答案 B）"/"**正确选项：A**"），结构化
-        # parse 失败时 _strip_reference_sections 只匹配行首 label，挡不住这些变体 →
-        # 3/3 复现泄露。fail-closed：
-        #   - 有结构化 render → 用它（题面+选项，答案丢弃）。
-        #   - MCQ-shaped 但 parse 失败 → 安全提示（题面质量由 Y 后续 positional 渲染补）。
-        #   - 非 MCQ（案例/简答）labeled 段 → _strip_reference_sections 结构化删除，
-        #     兜底也走安全提示而非原文（删掉 `or final_response` fail-open）。
         if parsed_result_summary:
-            rendered = self._render_question_only_response(parsed_result_summary)
-            if rendered:
-                return rendered
-        if _contains_mcq_options(final_response):
-            # Y（题面质量，positional，2026-06-29）：MCQ-shaped 但结构化 parse 失败，
-            # positional 渲染题干+选项块、丢弃选项块之后的答案/解析（按 position，不
-            # 认答案变体，不打地鼠）。salvage 失败才落 X 的 fail-closed 安全提示。
-            salvaged = self._render_question_surface_only(final_response)
-            if salvaged:
-                return salvaged
-            return _ANSWER_SUPPRESSED_NOTICE
-        return self._strip_reference_sections(final_response) or _ANSWER_SUPPRESSED_NOTICE
-
-    @staticmethod
-    def _render_question_surface_only(text: str) -> str:
-        """Y（题面质量，2026-06-29）：positional 题面渲染。
-
-        保留题干 + 选项块（含选项块内/之间的内容），丢弃 **最后一个选项行之后** 的
-        一切——organic 出题轮答案/解析都出现在选项块之后，按 position 丢弃即可，
-        不需要识别"答案"字样的任何变体（不打地鼠）。无法定位任何选项行 → 返回 ""，
-        交回 _build_visible_response 的 fail-closed 安全提示（X 安全底线不被削弱）。
-
-        边界（诚实）：若答案被内联进题干或某个选项行内部，本 positional 层不剥离，
-        交回 X fail-closed —— 但这不在 organic 出题轮的形态内。
-        """
-        raw = str(text or "").strip()
-        if not raw:
-            return ""
-        lines = raw.splitlines()
-        last_option_idx = -1
-        for idx, line in enumerate(lines):
-            if _is_option_line(line):
-                last_option_idx = idx
-        if last_option_idx < 0:
-            return ""
-        return "\n".join(lines[: last_option_idx + 1]).rstrip()
+            return self._render_question_only_response(parsed_result_summary) or final_response
+        return self._strip_reference_sections(final_response) or final_response
 
     @staticmethod
     def _strip_reference_sections(text: str) -> str:
