@@ -1249,6 +1249,39 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
 
     if _looks_like_free_text_mcq_answer_request(user_message):
         return None
+
+    # Forward-reachability (B1, 2026-06-29): a practice-generation request ("出一道新案例题")
+    # is an OUTPUT intent, never a grading turn. The free-text case/mcq grading detectors below
+    # key on message patterns ("判分" substring — even the NEGATED "我没让你判分" — plus
+    # "案例分析题"), so a generation request otherwise lands in case_grading and deadlocks
+    # "出新题" into the no-authority demand (B1 forward hole). Single-authority precedence:
+    # when the turn is a generation request carrying NO actual answer submission against the
+    # active object, generation wins. An answer-led turn ("我选B，再出3题") resolves a real
+    # submission here and falls through to grading below — submission keeps priority (SEV: a
+    # genuine answer is never reclassified as generation, so 凭空判分 protection is untouched).
+    if looks_like_practice_generation_request(user_message):
+        # ① "是不是作答" layer (SEV): only preempt to generation when the turn carries NO
+        # answer payload of ANY form — neither a pasted free-text answer ("我的作答：…", a full
+        # case Q+answer, or an MCQ option selection) nor a submission against the active object.
+        # If any answer is present the turn is a grading turn and keeps priority (covers R2:
+        # pasted 简答+作答+判分; and answer-led "我选B，再出3题") → 凭空判分 protection untouched.
+        has_answer_payload = (
+            _looks_like_full_case_answer_submission(user_message)
+            or bool(_FREE_TEXT_CASE_ANSWER_MARKER_RE.search(user_message))
+            or bool(_FREE_TEXT_MCQ_OPTION_SELECTION_RE.search(user_message))
+        )
+        if not has_answer_payload:
+            generation_submission_context = question_context or normalize_question_followup_context(
+                metadata.get("question_followup_context") if isinstance(metadata, dict) else None
+            )
+            if generation_submission_context:
+                _gen_target, _gen_submission = resolve_submission_attempt(
+                    user_message, generation_submission_context
+                )
+                has_answer_payload = bool(_gen_submission)
+        if not has_answer_payload:
+            return "practice_generation"
+
     if _looks_like_free_text_mcq_grading(user_message):
         return "mcq_grading"
     if _looks_like_free_text_case_grading(user_message):
