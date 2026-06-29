@@ -332,6 +332,7 @@ domains:
       - tests/services/test_active_object_family_first.py
       - tests/agents/question/test_coordinator_followup_anchor.py
       - tests/agents/question/test_coordinator_subject_scope_gate.py
+      - tests/agents/question/test_lightweight_anchor_block_topic_authority.py
       - tests/api/test_mobile_eval_bypass.py
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_unified_ws_public_redaction.py

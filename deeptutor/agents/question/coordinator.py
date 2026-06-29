@@ -1196,7 +1196,17 @@ class AgentCoordinator:
         label = str(payload.get("concentration") or "").strip() or AgentCoordinator._derive_lightweight_anchor_label(
             user_topic=user_topic
         )
-        return practice_generation_request_needs_context_anchor(label)
+        # Block only when NEITHER the derived concentration/label NOR the raw ``user_topic``
+        # carries a usable topic. The derived label alone over-strips a noisy-but-valid topic
+        # ("出一道流水施工的单选题考考我" -> "考我") and false-blocks it into the needs-anchor
+        # canned even though the topic IS construction (p11 root cause; live S3DIAG showed
+        # both domain gates returned construction_topic). The raw-``user_topic`` escape keeps
+        # such a valid topic generating; the label path keeps a continuation grounded by a RAG
+        # concentration generating; only a bare action word (BOTH need an anchor) still blocks.
+        return (
+            practice_generation_request_needs_context_anchor(label)
+            and practice_generation_request_needs_context_anchor(user_topic)
+        )
 
     @staticmethod
     def _build_lightweight_rag_anchor_payload(
