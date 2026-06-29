@@ -1236,6 +1236,22 @@ class AgentLoop:
             md["exact_question_blocked_reason"] = "case_exact_mismatch"
             eq = {}
         fc = AgentLoop._followup_context_from_metadata(md)
+        # Forward-reachability (S4, 2026-06-29): the flat followup keys
+        # (question_followup_context / active_question_context / followup_question_context)
+        # are NOT always projected into the grading turn's runtime_metadata even though the
+        # canonical ``active_object`` survives there (live S4DIAG: has_ao=True, has_qfc=False).
+        # The case stem + reference live in active_object.state_snapshot — consume them as the
+        # single canonical source when the flat keys did not carry a question.
+        if not str(fc.get("question") or "").strip():
+            ao = md.get("active_object")
+            if isinstance(ao, dict):
+                from deeptutor.services.session.sqlite_store import (
+                    extract_question_context_from_active_object,
+                )
+
+                ao_ctx = extract_question_context_from_active_object(ao)
+                if ao_ctx:
+                    fc = {**ao_ctx, **{k: v for k, v in fc.items() if str(v or "").strip()}}
         if user_stem and fc:
             fc_probe = {
                 "stem": fc.get("question_stem") or fc.get("stem") or fc.get("question") or "",
@@ -1273,6 +1289,15 @@ class AgentLoop:
             or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis"))
             or ""
         )
+        # Forward-reachability (S4, 2026-06-29): a bot-generated case has NO bank/signed
+        # answer-key authority (``eq`` empty) and no pasted full-case reference (``user_stem``
+        # empty). The only candidate reference here is the active_object's self-generated
+        # ``correct_answer`` — NOT signed truth. Drop it so ``_grade_one_case_v1`` takes the
+        # Tier-3 stem-derived diagnostic path (official_score_allowed=False, 诊断 hedge) rather
+        # than an official-style Tier-2 ``on_the_fly_reference`` score off an unsigned answer.
+        if ref and not eq and not user_stem and not current_reference:
+            md["case_reference_unsigned_demoted_to_tier3"] = True
+            ref = ""
         try:
             current_grading_result = current_case_context.get("construction_grading_result")
             current_max_score = (
@@ -1287,7 +1312,13 @@ class AgentLoop:
         # Do NOT fall back to the raw user_message: free-text submissions often mix question + student
         # answer in one message. Only the stable "题干 ... 回答/作答 ..." shape may feed Tier-3 stem
         # derivation, and mismatched exact hits are demoted before their reference answer can score.
-        question_stem = str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or user_stem or "")
+        # Forward-reachability (S4): an active_object-derived case keeps its stem in
+        # ``fc["question"]`` (NOT ``question_stem``); read it so Tier-3 has a stem to ground on.
+        question_stem = str(
+            eq.get("stem") or eq.get("question")
+            or fc.get("question_stem") or fc.get("question")
+            or user_stem or ""
+        )
         node_code = str(eq.get("node_code") or fc.get("node_code") or md.get("node_code") or "")
         return {
             "question_id": str(eq.get("question_id") or eq.get("qid") or fc_current.get("question_id") or ""),
