@@ -1408,6 +1408,12 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 "rag_retrieval_error_type",
                 "degraded_exact_answer_guard_applied",
                 "degraded_mcq_grading_guard_applied",
+                # ② content-truth review loop (observe-only): same finalization-flag
+                # channel as degraded_mcq above — carry the low-confidence regulation
+                # claims from the assistant event into the turn summary so the terminal
+                # observation event (and the offline review agent) can see them.
+                "content_truth_guard_applied",
+                "content_truth_low_confidence_claims",
             ):
                 if metadata_key in candidate and metadata_key not in retrieval_metadata:
                     retrieval_metadata[metadata_key] = candidate[metadata_key]

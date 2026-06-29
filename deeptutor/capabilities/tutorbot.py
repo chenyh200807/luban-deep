@@ -621,6 +621,12 @@ class TutorBotCapability(BaseCapability):
                 "rag_retrieval_error_type",
                 "degraded_exact_answer_guard_applied",
                 "degraded_mcq_grading_guard_applied",
+                # ② content-truth review loop (observe-only): export the low-confidence
+                # regulation claims from session metadata into the result event so the
+                # terminal observation event + offline review agent can see them. Same
+                # diagnostic-only channel as the degraded_* flags above; never routes.
+                "content_truth_guard_applied",
+                "content_truth_low_confidence_claims",
                 "release_id",
                 "git_sha",
                 "deployment_environment",
