@@ -39,6 +39,9 @@ from deeptutor.services.observability.turn_event_log import (  # noqa: E402
     SHADOW_INSTRUMENTATION_VERSION as _INSTRUMENTATION_VERSION,
 )
 from scripts.report_control_plane_shadow_hits import (  # noqa: E402
+    _LIVE_EMIT_SOURCE_FILES,
+    _WATCHED_WRITER_ROLES,
+    _watch_target_liveness_error,
     report_control_plane_shadow_hits,
     run_cli,
 )
@@ -162,13 +165,6 @@ def _write_predate_event(
     assert event_log.append(raw_event) is True
 
 
-_LEGACY_HIT = {
-    "fact": "legacy_capability_selection",
-    "writer_role": "legacy_decider",
-    "writer_symbol": "_select_legacy_capability",
-    "path": "disabled",
-    "canonical_present": False,
-}
 _COMPAT_HIT = {
     "fact": "turn_semantic_decision",
     "writer_role": "compat_projection",
@@ -217,7 +213,6 @@ def test_counter_empty_window_fails_closed(tmp_path) -> None:
     report = report_control_plane_shadow_hits(event_log=event_log, days=7)
     assert report["exit_code"] == 2
     assert report["total_canonical_turns"] == 0
-    assert report["legacy_production_decision_hits"] == 0
     assert report["compat_projection_production_reads"] == 0
 
 
@@ -229,7 +224,6 @@ def test_counter_clean_window_is_green(tmp_path) -> None:
     assert report["exit_code"] == 0
     assert report["total_canonical_turns"] == 2
     assert report["instrumented_turns"] == 2
-    assert report["legacy_production_decision_hits"] == 0
     assert report["compat_projection_production_reads"] == 0
 
 
@@ -244,7 +238,6 @@ def test_counter_predate_window_fails_closed_no_coverage(tmp_path) -> None:
     assert report["exit_code"] == 2
     assert report["total_canonical_turns"] == 2
     assert report["instrumented_turns"] == 0
-    assert report["legacy_production_decision_hits"] == 0
     assert report["compat_projection_production_reads"] == 0
 
 
@@ -266,24 +259,11 @@ def test_counter_predate_hit_still_red(tmp_path) -> None:
     event is still a red signal — a recorded competing-writer fire is never
     suppressed by missing the marker."""
     event_log = TurnEventLog(events_dir=tmp_path)
-    _write_predate_event(event_log, session_id="predate-hit-1", shadow_hits=[_LEGACY_HIT])
+    _write_predate_event(event_log, session_id="predate-hit-1", shadow_hits=[_COMPAT_HIT])
     _write_event(event_log, session_id="instrumented-clean-1")
     report = report_control_plane_shadow_hits(event_log=event_log, days=7)
     assert report["exit_code"] == 1
-    assert report["legacy_production_decision_hits"] == 1
-
-
-def test_counter_legacy_production_hit_is_red(tmp_path) -> None:
-    event_log = TurnEventLog(events_dir=tmp_path)
-    _write_event(event_log, session_id="legacy-1", shadow_hits=[_LEGACY_HIT])
-    _write_event(event_log, session_id="clean-1")
-    report = report_control_plane_shadow_hits(event_log=event_log, days=7)
-    assert report["exit_code"] == 1
-    assert report["legacy_production_decision_hits"] == 1
-    # legacy hit is also a canonical_present==False read by a non-canonical writer
-    assert report["compat_projection_production_reads"] >= 0
-    assert report["total_canonical_turns"] == 2
-    assert report["per_writer"]["_select_legacy_capability"]["count"] == 1
+    assert report["compat_projection_production_reads"] == 1
 
 
 def test_counter_compat_projection_read_is_red(tmp_path) -> None:
@@ -291,7 +271,6 @@ def test_counter_compat_projection_read_is_red(tmp_path) -> None:
     _write_event(event_log, session_id="compat-1", shadow_hits=[_COMPAT_HIT])
     report = report_control_plane_shadow_hits(event_log=event_log, days=7)
     assert report["exit_code"] == 1
-    assert report["legacy_production_decision_hits"] == 0
     assert report["compat_projection_production_reads"] == 1
 
 
@@ -300,39 +279,37 @@ def test_counter_excludes_test_only_events(tmp_path) -> None:
     _write_event(
         event_log,
         session_id="synthetic-1",
-        shadow_hits=[_LEGACY_HIT],
+        shadow_hits=[_COMPAT_HIT],
         test_only=True,
     )
     _write_event(event_log, session_id="clean-1")
     report = report_control_plane_shadow_hits(event_log=event_log, days=7)
-    # the test_only legacy hit must be excluded → window is clean
+    # the test_only compat hit must be excluded → window is clean
     assert report["exit_code"] == 0
-    assert report["legacy_production_decision_hits"] == 0
+    assert report["compat_projection_production_reads"] == 0
     assert report["total_canonical_turns"] == 1
     assert report["excluded_test_only_event_count"] == 1
 
 
 def test_counter_aggregates_per_writer(tmp_path) -> None:
     event_log = TurnEventLog(events_dir=tmp_path)
-    _write_event(event_log, session_id="a", shadow_hits=[_LEGACY_HIT, _COMPAT_HIT])
-    _write_event(event_log, session_id="b", shadow_hits=[_LEGACY_HIT])
+    _write_event(event_log, session_id="a", shadow_hits=[_COMPAT_HIT, _S5_FABRICATE_HIT])
+    _write_event(event_log, session_id="b", shadow_hits=[_COMPAT_HIT])
     report = report_control_plane_shadow_hits(event_log=event_log, days=7)
-    assert report["legacy_production_decision_hits"] == 2
-    # legacy_decider role is NOT a compat_projection role; only the single compat
-    # hit counts toward compat_projection_production_reads.
-    assert report["compat_projection_production_reads"] == 1
-    assert report["per_writer"]["_select_legacy_capability"]["count"] == 2
-    assert report["per_writer"]["run"]["count"] == 1
+    # two compat-projection canonical-gap reads + one unconditional_fabricate read
+    assert report["compat_projection_production_reads"] == 3
+    # per_writer aggregates raw hits by writer_symbol (all three are "run")
+    assert report["per_writer"]["run"]["count"] == 3
     assert report["counting_method"]
 
 
 def test_run_cli_exit_code_matches_report(tmp_path, capsys) -> None:
     event_log = TurnEventLog(events_dir=tmp_path)
-    _write_event(event_log, session_id="legacy-1", shadow_hits=[_LEGACY_HIT])
+    _write_event(event_log, session_id="compat-1", shadow_hits=[_COMPAT_HIT])
     exit_code = run_cli(["--days", "7"], event_log=event_log)
     out = capsys.readouterr().out
     assert exit_code == 1
-    assert "legacy_production_decision_hits" in out
+    assert "compat_projection_production_reads" in out
 
 
 # ---------------------------------------------------------------------------
@@ -386,3 +363,56 @@ def test_unconditional_fabricate_canonical_absent_also_counts(tmp_path) -> None:
     report = report_control_plane_shadow_hits(event_log=event_log, days=7)
     assert report["exit_code"] == 1
     assert report["compat_projection_production_reads"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Per-watch-target liveness self-check (P0-a anti green-by-omission). Coverage is
+# proven globally, but EXISTENCE must be proven per watch-target: every counted
+# writer_role MUST have a live `"writer_role": "<role>"` emit site in production
+# code. A watch-target with no live emit is a ghost — its counter is pinned at 0
+# not because production is clean but because nothing can fire it (the exact
+# failure mode of the removed _select_legacy_capability / production_decider
+# watch-targets). A ghost target is exit 2, never silent green.
+# ---------------------------------------------------------------------------
+def test_watched_roles_are_only_the_live_emitting_set() -> None:
+    """The counted watch-targets are exactly the roles with a live emit site;
+    the removed legacy decider and the never-emitted production_decider are NOT
+    watched (watching them would borrow global coverage = the green-by-omission
+    bug)."""
+    assert _WATCHED_WRITER_ROLES == frozenset(
+        {"compat_projection", "unconditional_fabricate"}
+    )
+
+
+def test_watch_targets_all_live_on_real_sources() -> None:
+    """Positive control: against the real production emit sources, every counted
+    role has a live emit, so the self-check passes (returns None)."""
+    assert _watch_target_liveness_error() is None
+
+
+def test_watch_target_ghost_fails_closed(tmp_path) -> None:
+    """CORE counter-example (the discriminating difference vs the old false-green).
+
+    Rename a live ``writer_role`` emit literal in a copy of the production source
+    (simulating someone deleting/renaming the live emit). The self-check then
+    turns the metric RED (exit 2) — whereas the old legacy-symbol watch-target,
+    which had NO live emit at all, sat at 0 and reported exit 0 forever."""
+    real_src = _LIVE_EMIT_SOURCE_FILES[0].read_text(encoding="utf-8")
+    assert '"writer_role": "unconditional_fabricate"' in real_src
+    mutated = real_src.replace(
+        '"writer_role": "unconditional_fabricate"',
+        '"writer_role": "unconditional_fabricate_RENAMED"',
+    )
+    ghost_src = tmp_path / "deep_question_mutated.py"
+    ghost_src.write_text(mutated, encoding="utf-8")
+
+    event_log = TurnEventLog(events_dir=tmp_path)
+    # A perfectly clean, instrumented window — under the OLD design this is green.
+    _write_event(event_log, session_id="clean-1")
+    report = report_control_plane_shadow_hits(
+        event_log=event_log, days=7, live_emit_source_files=[ghost_src]
+    )
+    assert report["exit_code"] == 2
+    assert "unconditional_fabricate" in report["error"]
+    assert "has no live emit site" in report["error"]
+    assert "ghost" in report["error"]

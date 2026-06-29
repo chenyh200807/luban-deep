@@ -10,8 +10,6 @@ from deeptutor.services.observability.turn_event_log import TurnEventLog
 from deeptutor.services.observability.turn_event_log import event_is_test_only
 from deeptutor.services.observability.turn_event_log import get_turn_event_log
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_FAILED_TURN_DIR = PROJECT_ROOT / "tmp" / "observability" / "failed_turn_incidents"
 _FAILED_STATUSES = {"failed", "error", "timeout"}
 
 
@@ -147,7 +145,12 @@ def write_failed_turn_incident_report(
     *,
     output_dir: Path | None = None,
 ) -> dict[str, str]:
-    target_dir = (output_dir or DEFAULT_FAILED_TURN_DIR).expanduser().resolve()
+    if output_dir is not None:
+        target_dir = Path(output_dir).expanduser().resolve()
+    else:
+        from deeptutor.services.path_service import get_path_service
+
+        target_dir = (get_path_service().get_observability_dir() / "failed_turn_incidents").resolve()
     target_dir.mkdir(parents=True, exist_ok=True)
     stamp = time.strftime("%Y%m%d_%H%M%S")
     json_path = target_dir / f"failed_turn_incident_{stamp}.json"

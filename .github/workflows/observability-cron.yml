@@ -1,0 +1,91 @@
+name: Observability Eval Gate Cron
+
+# Daily continuous trigger for the eval/observability loop.
+#
+# scripts/run_eval_gate.py is the automation command authority over eval/gates.yaml,
+# but until now NO workflow consumed it — a dormant gate mechanism (the eval island
+# was never connected to a continuous trigger or an alert sink). This cron closes
+# that loop: it runs the `quick` category — the hermetic, no-key, no-network gate set
+# (contract/authority guards, recorded-cassette trajectory replay, the offline pytest
+# kernels) — on a schedule, and turns a regression into a RED Actions run that GitHub
+# emails on, exactly like wallet-consistency-cron.yml does for wallet drift.
+#
+# 假红 (false-red) guard: the live-network rag gates and the node-dependent web gate
+# carry required_paths markers (annotated golden set / web node_modules) that DO NOT
+# exist on this python-only runner, so run_eval_gate DEFERS them — an honest skip, not
+# a failure. They auto-activate once their prerequisite is provisioned. A real gate
+# FAILURE (not a deferral) is what turns this run red.
+#
+# Read-only: it evaluates the checkout, writes artifacts under tmp/, and performs no
+# prod writes. Registered in contracts/process_registry.yaml scheduled_tasks[]
+# (register-before-use); an unregistered cron fails the process-registry gate.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily at 05:00 UTC (offset from wallet-consistency-cron at 04:00).
+    - cron: "0 5 * * *"
+
+jobs:
+  observability-eval-gate:
+    name: Observability Eval Gate (quick / hermetic)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # dev.txt = full runtime (server.txt) + pytest + pytest-asyncio, which the
+          # hermetic pytest gates in the quick category require.
+          pip install -r requirements/dev.txt
+
+      - name: Run hermetic eval gates (quick category) and alert on regression
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          set -o pipefail
+          artifact_dir="tmp/eval-gate/observability-cron"
+
+          # run_eval_gate already exits non-zero when any gate FAILs (a DEFERRED gate
+          # does NOT count as a failure). Capture its code, then parse summary.json for
+          # an alertable, human-readable message.
+          set +e
+          python scripts/run_eval_gate.py --category quick --artifact-dir "${artifact_dir}"
+          rc=$?
+          set -e
+
+          summary="${artifact_dir}/summary.json"
+          if [ ! -f "${summary}" ]; then
+            echo "::error::eval gate produced no summary.json (runner crashed before writing results)."
+            exit 1
+          fi
+
+          # Parse the verdict + counts from summary.json on one line (no heredoc, so
+          # the YAML block scalar stays intact), then split into positional params.
+          summary_line=$(python3 -c "import json; s=json.load(open('${summary}', encoding='utf-8')); c=s['summary']; print(s['verdict'], c['passed'], c['failed'], c['deferred'])")
+          set -- ${summary_line}
+          verdict="$1"; passed="$2"; failed="$3"; deferred="$4"
+          echo "verdict=${verdict} passed=${passed} failed=${failed} deferred=${deferred}"
+
+          if [ "${verdict}" = "PASS" ] && [ "${rc}" = "0" ]; then
+            echo "Observability eval gate clean: ${passed} passed, ${deferred} deferred (honest skips)."
+          else
+            echo "::error::Observability eval gate regression (verdict=${verdict}, failed=${failed}). See summary.json + per-gate logs in the uploaded artifact."
+            exit 1
+          fi
+
+      - name: Upload eval gate artifact
+        if: always()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4
+        with:
+          name: observability-eval-gate
+          path: tmp/eval-gate/observability-cron
+          if-no-files-found: ignore

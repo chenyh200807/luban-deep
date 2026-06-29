@@ -97,6 +97,13 @@ scheduled_tasks:
     owner: platform
     lifecycle: weekly runtime asset validation (also runs on push/PR).
     supervised_by: GitHub Actions.
+  - name: observability-eval-gate-cron
+    file: .github/workflows/observability-cron.yml
+    type: cron
+    schedule: "0 5 * * *"
+    owner: observability
+    lifecycle: daily hermetic eval-gate run (scripts/run_eval_gate.py --category quick); red Actions run + email on regression, read-only.
+    supervised_by: GitHub Actions (disable via workflow toggle / branch protection).
 
 # ── Application-internal always-on daemons (the 201.6 GB blast-radius class) ──
 # Each = the source file that starts a PERSISTENT create_task + owner + lifecycle

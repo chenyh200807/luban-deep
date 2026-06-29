@@ -176,6 +176,13 @@ class PathService:
     def get_runtime_dir(self) -> Path:
         return self.project_root / "data" / "runtime"
 
+    def get_observability_dir(self) -> Path:
+        """Persistent root for production observability facts (turn events, control-plane
+        runs, failed-turn incidents). Lives under the mounted ``data/runtime`` so it
+        survives container rebuilds — unlike the former ``/app/tmp`` defaults that
+        evaporated on every deploy."""
+        return self.get_runtime_dir() / "observability"
+
     def get_learner_state_outbox_db(self) -> Path:
         return self.get_runtime_dir() / "outbox.db"
 

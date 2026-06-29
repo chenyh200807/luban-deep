@@ -7,8 +7,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_STORE_DIR = PROJECT_ROOT / "tmp" / "observability" / "control_plane"
 _ALLOWED_KINDS = {
     "benchmark_runs",
     "change_impact_runs",
@@ -89,13 +87,14 @@ class ObservabilityControlPlaneStore:
 
     def __init__(self, *, base_dir: Path | None = None) -> None:
         configured_dir = str(os.getenv("DEEPTUTOR_OBSERVABILITY_STORE_DIR", "") or "").strip()
-        self._base_dir = (
-            Path(base_dir).expanduser().resolve()
-            if base_dir is not None
-            else Path(configured_dir).expanduser().resolve()
-            if configured_dir
-            else DEFAULT_STORE_DIR.expanduser().resolve()
-        )
+        if base_dir is not None:
+            self._base_dir = Path(base_dir).expanduser().resolve()
+        elif configured_dir:
+            self._base_dir = Path(configured_dir).expanduser().resolve()
+        else:
+            from deeptutor.services.path_service import get_path_service
+
+            self._base_dir = (get_path_service().get_observability_dir() / "control_plane").resolve()
         self._lock = threading.Lock()
 
     @property

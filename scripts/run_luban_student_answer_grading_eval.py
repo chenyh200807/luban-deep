@@ -84,6 +84,32 @@ case_eval.PROVIDER_DEFAULTS.setdefault(
 )
 
 
+# eval-design defaults (trustworthiness, not a new framework — just better priors):
+#   - n=4 was under-powered; a single grading row swung the verdict. Raise the
+#     default sample size. (A single run still has NO variance band; the JSON
+#     output annotates that honest boundary rather than implying mean±std.)
+DEFAULT_EVAL_LIMIT = 20
+
+
+def _cross_source_of(provider: str, *, available: dict[str, Any] | None = None) -> str:
+    """Default the LLM judge to a DIFFERENT provider than the grader.
+
+    Same-source judging is the circular-metric confound: a model that fabricates
+    an answer shares the blind spot when asked to judge that same answer, so it
+    rubber-stamps its own fabrication (the异源 jury repeatedly caught编造 that the
+    同源 jury waved through). Picking a cross-source judge by default makes the
+    eval adversarial instead of self-confirming.
+
+    Degrades honestly: when only one provider is configured there is no cross
+    source, so it returns the same provider rather than crashing.
+    """
+    pool = sorted(available if available is not None else case_eval.PROVIDER_DEFAULTS)
+    for candidate in pool:
+        if candidate != provider:
+            return candidate
+    return provider
+
+
 def _clip(value: Any, *, limit: int) -> str:
     text = str(value or "").strip()
     return text if len(text) <= limit else text[: limit - 1] + "…"
@@ -1163,7 +1189,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--rich-pack", type=Path, default=DEFAULT_RICH_PACK)
     parser.add_argument("--sample-ids", default="")
     parser.add_argument("--arms", default=",".join(PLANNED_ARMS))
-    parser.add_argument("--limit", type=int, default=4)
+    parser.add_argument("--limit", type=int, default=DEFAULT_EVAL_LIMIT)
     parser.add_argument("--seed", type=int, default=20260613)
     parser.add_argument("--provider", choices=sorted(case_eval.PROVIDER_DEFAULTS), default="deepseek")
     parser.add_argument("--model", default=None)
@@ -1179,7 +1205,9 @@ def main(argv: list[str] | None = None) -> int:
     model = args.model or case_eval.PROVIDER_DEFAULTS[args.provider]["model"]
     planned_arms = parse_arm_list(args.arms)
     provider_call = None if args.no_provider_call else case_eval._openai_compat_provider(provider=args.provider, model=model, timeout_s=args.timeout_s)
-    judge_provider = args.judge_provider or args.provider
+    # Default the judge to a cross-source provider (≠ grader) so the eval is
+    # adversarial, not self-confirming. An explicit --judge-provider still wins.
+    judge_provider = args.judge_provider or _cross_source_of(args.provider)
     judge_model = None
     judge_provider_call = None
     if provider_call is not None and not args.skip_llm_judge:
@@ -1212,6 +1240,17 @@ def main(argv: list[str] | None = None) -> int:
                 "runtime_exercised": report["runtime_exercised"],
                 "models": report["models"],
                 "sample": report["sample"],
+                "eval_design": {
+                    "grader_provider": args.provider,
+                    "judge_provider": judge_provider,
+                    "judge_is_cross_source": judge_provider != args.provider,
+                    "sample_limit": args.limit,
+                    "seed": args.seed,
+                    # honest boundary: this is a single deterministic-seed run, so
+                    # the numbers have NO variance band. Re-run with several --seed
+                    # values to estimate spread before reading a small delta as real.
+                    "variance": "single_run_no_variance_band",
+                },
                 "provider_usage": report["provider_usage"],
                 "arms": [
                     {

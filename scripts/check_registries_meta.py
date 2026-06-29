@@ -33,7 +33,15 @@ CI_WORKFLOW = REPO / ".github" / "workflows" / "tests.yml"
 
 # The governance-scanner discovery globs. A script matching these is a "gate" that must be
 # cataloged. (Plain scripts/*.py that are not check_* are not gates and are out of scope.)
-_DISCOVERY = ("scripts/check_*.py", "scripts/ci/check_*.py", "scripts/ci/check_*.sh")
+# Report-type scripts are NOT swept wholesale (most are one-off analyses): only a report
+# explicitly used as GO/No-Go release evidence is named here so it too falls under
+# register-before-use + the on-disk existence check.
+_DISCOVERY = (
+    "scripts/check_*.py",
+    "scripts/ci/check_*.py",
+    "scripts/ci/check_*.sh",
+    "scripts/report_control_plane_shadow_hits.py",
+)
 
 
 def _discover_scanners() -> set[str]:
