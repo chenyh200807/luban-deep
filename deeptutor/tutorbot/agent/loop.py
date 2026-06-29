@@ -491,6 +491,28 @@ class AgentLoop:
         copy_current_case_grading_turn_metadata(runtime_metadata, target_metadata)
 
     @staticmethod
+    def _export_content_truth_metadata(
+        runtime_metadata: dict[str, Any] | None,
+        target_metadata: dict[str, Any] | None,
+    ) -> None:
+        """② content-truth review loop (observe-only): carry the low-confidence regulation
+        claims OUT on the OutboundMessage metadata so ``process_direct`` round-trips them to
+        the manager (``metadata.update(response.metadata)``) → result event → offline review.
+
+        ``_content_truth_guard`` stamps these on the loop's internal ``runtime_metadata``,
+        a COPY of the inbound metadata; without this export they never reach the outbound
+        message and die inside the loop (live break observed 2026-06-29). Flag carrier only,
+        never gates output."""
+        if not isinstance(runtime_metadata, dict) or not isinstance(target_metadata, dict):
+            return
+        for metadata_key in (
+            "content_truth_guard_applied",
+            "content_truth_low_confidence_claims",
+        ):
+            if metadata_key in runtime_metadata:
+                target_metadata[metadata_key] = runtime_metadata[metadata_key]
+
+    @staticmethod
     def _strip_think(text: str | None) -> str | None:
         """Remove <think>…</think> blocks that some models embed in content."""
         if not text:
@@ -1820,6 +1842,7 @@ class AgentLoop:
         response_metadata = dict(msg.metadata or {})
         self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
         self._export_case_grading_metadata(runtime_metadata, response_metadata)
+        self._export_content_truth_metadata(runtime_metadata, response_metadata)
         response_metadata["execution_path"] = "tutorbot_case_grading_v1_direct"
         if isinstance(runtime_metadata.get("presentation"), dict):
             response_metadata["presentation"] = runtime_metadata["presentation"]
@@ -4001,6 +4024,7 @@ class AgentLoop:
             logger.info("Fast-path exact authority response to {}:{}: {}", msg.channel, msg.sender_id, preview)
             response_metadata = dict(msg.metadata or {})
             self._export_case_grading_metadata(runtime_metadata, response_metadata)
+            self._export_content_truth_metadata(runtime_metadata, response_metadata)
             return OutboundMessage(
                 channel=msg.channel,
                 chat_id=msg.chat_id,
@@ -4090,6 +4114,7 @@ class AgentLoop:
                 )
                 response_metadata = dict(msg.metadata or {})
                 self._export_case_grading_metadata(runtime_metadata, response_metadata)
+                self._export_content_truth_metadata(runtime_metadata, response_metadata)
                 return OutboundMessage(
                     channel=msg.channel,
                     chat_id=msg.chat_id,
@@ -4168,6 +4193,7 @@ class AgentLoop:
             response_metadata = dict(msg.metadata or {})
             self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
             self._export_case_grading_metadata(runtime_metadata, response_metadata)
+            self._export_content_truth_metadata(runtime_metadata, response_metadata)
             return OutboundMessage(
                 channel=msg.channel,
                 chat_id=msg.chat_id,
@@ -4267,6 +4293,7 @@ class AgentLoop:
         response_metadata = dict(msg.metadata or {})
         self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
         self._export_case_grading_metadata(runtime_metadata, response_metadata)
+        self._export_content_truth_metadata(runtime_metadata, response_metadata)
         return OutboundMessage(
             channel=msg.channel, chat_id=msg.chat_id, content=final_content,
             metadata=response_metadata,
