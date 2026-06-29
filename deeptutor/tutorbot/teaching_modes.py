@@ -220,6 +220,115 @@ def correct_construction_exam_boundary_fact_response(
     )
 
 
+# ── ② content-truth 核验闸 (reachability/consumption — verification 半边) ──────────
+#
+# 收权背景：本周满意度 eval 揭示 grounding 准确率 84%→73%，bot 现场编造规范条文号/版本
+# (如 GB50016"2019版"不存在、GB50500"2024版"§8.11.8 不存在)。真根因(专家 C 真码确诊)：
+# 规范源 ``standard`` 已接进检索，唯一反编造机制却是 ``grounding.py`` 注入的**软约束**
+# (其 docstring 自认"必要不充分")——没有任何结构强制把 bot 写出的 GB/JGJ 条文号去本轮
+# KB ``standard`` 召回核一遍 (``grep verify.*clause`` = 0)。这里补上那个结构闸。
+#
+# 单一汇点 fail-closed：regex **只抽取** claim(标准编号/版本)，真值由本轮 standard 召回
+# 证据裁决——regex 不承担"这条规范对不对"的理解。核不到=诚实降级，不现编(owner 拍板
+# trade-off：辅导产品信任 > 自信编造)。不新建第二真值 authority(真值=已接检索的召回证据)，
+# 不回落 V0([[v1-grading-must-be-open-world-nexus-not-lookup]])。
+#
+# 规范编号族：GB / GB/T / JGJ / JGJ/T / JG/T / CJJ / CJ/T / TB / DB / SL / JTG / CECS …
+# 形如 ``GB 50016-2014`` / ``JGJ107—2016`` / ``GB/T 50001``。
+_STANDARD_CODE_RE = re.compile(
+    r"(?:GB/?T?|JGJ?(?:/T)?|JG/?T|CJJ|CJ/?T|TB/?T?|DBJ?|SL|JTG/?[A-Z]?|CECS)"
+    r"\s*[-—－]?\s*\d{2,5}"
+    r"(?:\s*[-—－]\s*\d{4})?",
+    re.IGNORECASE,
+)
+
+
+def _normalize_standard_code(token: str) -> str:
+    """规范化一个标准编号 token：去空白、统一破折号、字母大写。
+
+    ``GB 50016—2014`` / ``GB50016-2014`` → ``GB50016-2014``。regex 只做这一步形式归一，
+    不解释语义。"""
+
+    text = str(token or "")
+    text = re.sub(r"[\s]+", "", text)
+    text = text.replace("—", "-").replace("－", "-")
+    return text.upper()
+
+
+def extract_standard_clause_claims(text: str | None) -> list[str]:
+    """从文本里抽取规范编号 claim(去重、按出现序、归一化)。regex 只抽取，不裁决真值。"""
+
+    out: list[str] = []
+    seen: set[str] = set()
+    for match in _STANDARD_CODE_RE.findall(str(text or "")):
+        code = _normalize_standard_code(match)
+        # 至少要有数字编号主体(排除把孤立 "GB" 之类误抽)
+        if not re.search(r"\d{2,5}", code) or code in seen:
+            continue
+        seen.add(code)
+        out.append(code)
+    return out
+
+
+def render_content_truth_caveat(
+    unverifiable_codes: list[str], *, rag_degraded: bool
+) -> str:
+    """渲染诚实降级 caveat：把核不到的规范编号从"规范依据"降为"通用判断方向，请以教材核实"。"""
+
+    codes = "、".join(unverifiable_codes)
+    if rag_degraded:
+        return (
+            f"⚠️ 说明：当前题库检索不可用，我无法核到 {codes} 的规范原文。"
+            "上面涉及这些编号/条文/数值的部分只能当作通用判断方向，"
+            "请以教材或规范原文为准，不要当作我已确认的规范依据。"
+        )
+    return (
+        f"⚠️ 说明：我无法在本轮题库检索中核到 {codes} 的规范原文。"
+        "上面引用这些编号/条文/数值的部分请以教材或规范原文为准，"
+        "不要当作我已确认的规范依据；其余基于题面的判断方向仍然有效。"
+    )
+
+
+def content_truth_guard_response(
+    *,
+    user_message: str | None,
+    response: str | None,
+    standard_evidence_text: str | None,
+    rag_degraded: bool,
+) -> str | None:
+    """post-gen 规范核验闸：bot 写出的规范编号必须能在本轮 standard 召回证据里核到。
+
+    返回值与 ``correct_construction_exam_boundary_fact_response`` 同约定：无需改动时返回
+    原 ``response``；需降级时返回追加了诚实 caveat 的新文本。
+
+    判定(单一决策点)：
+    - 输出里没有规范编号 → 不动(普通教学/闲聊零影响，防过矫正)。
+    - ``rag_degraded`` → 召回不可信，**所有**编号 fail-closed 降级(扩 fail-closed 到规范依据形态)。
+    - 否则逐编号比对本轮召回证据：在证据里 → 放行；不在(RAG miss) → 降级。
+    - 全部核到 → 不动。
+
+    不 nuke 正文(append caveat 保留有用内容)，不回落确定性关键词路径。"""
+
+    content = str(response or "")
+    if not content.strip():
+        return response
+    codes = extract_standard_clause_claims(content)
+    if not codes:
+        return response
+
+    if rag_degraded:
+        unverifiable = list(codes)
+    else:
+        evidence = _normalize_standard_code(standard_evidence_text)
+        unverifiable = [code for code in codes if code not in evidence]
+
+    if not unverifiable:
+        return response
+
+    caveat = render_content_truth_caveat(unverifiable, rag_degraded=rag_degraded)
+    return content.rstrip() + "\n\n" + caveat
+
+
 _CROSS_CAPABILITY_CONTEXT_MAX_CHARS = 4000
 
 
