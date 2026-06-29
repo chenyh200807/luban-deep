@@ -105,6 +105,10 @@ scanners:
     governs: 2026 source-compiler release Go/No-Go gates
     enforcement: release_gate
     runs_in: on-demand / release runbook
+  - script: scripts/report_control_plane_shadow_hits.py
+    governs: control-plane shadow-hit window metric (per-watch-target liveness + fail-closed coverage); GO/No-Go release evidence
+    enforcement: release_gate
+    runs_in: on-demand / release runbook
   # ── other workflow ──
   - script: scripts/check_hermes_upstream.py
     governs: upstream (HKUDS) sync drift

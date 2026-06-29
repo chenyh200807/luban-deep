@@ -374,11 +374,20 @@ def main() -> int:
     parser.add_argument("--gates-path", default=str(DEFAULT_GATES_PATH))
     parser.add_argument("--artifact-dir", default="")
     parser.add_argument("--list", action="store_true", help="List gates and exit.")
+    parser.add_argument(
+        "--category",
+        default="",
+        help="Only run gates whose category matches (e.g. 'quick' for the "
+        "hermetic, no-key, no-network set the observability cron runs). "
+        "Empty = every gate.",
+    )
     args = parser.parse_args()
 
     gates_path = _resolve_project_path(args.gates_path)
     artifact_dir = Path(args.artifact_dir).resolve() if args.artifact_dir else _default_artifact_dir()
     gates = _execution_order(load_gates(gates_path))
+    if args.category:
+        gates = [gate for gate in gates if gate.category == args.category]
 
     if args.list:
         _print_gate_list(gates)

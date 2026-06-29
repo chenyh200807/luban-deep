@@ -49,6 +49,14 @@ bash "${SCRIPT_DIR}/verify_aliyun_observability.sh"
 ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && docker compose exec -T deeptutor python scripts/run_readiness_check.py --check-id contract_guard --report-only${READINESS_CHANGED_ARGS}" \
   || echo "readiness check non-fatal"
 
+# observe-only: 部署后跑控制面 shadow 测量，把"单一权威是否被违反"打印到部署日志（这是
+# 既有 SSH hook 的复用，不新建 Aliyun crontab）。退出码 0=clean / 1=有 compat·fabricate 生产
+# 命中需排查 / 2=窗口未累积满。数据底座 TurnEventLog 已收口到持久挂载卷（data/runtime/
+# observability），7 天窗不再每次部署清零，故此测量从此能真正累积。non-fatal。
+ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && docker compose exec -T deeptutor python scripts/report_control_plane_shadow_hits.py --days 7" \
+  && echo "control-plane shadow: clean（单一权威无 compat/fabricate 生产命中）" \
+  || echo "control-plane shadow: 退出码非 0（1=有命中需排查 / 2=窗口未累积满，observe-only non-fatal）"
+
 # 发布后清 build cache（治本：本脚本经 server_fast_reload 每次都 `docker compose build`，
 # 生成 GB 级 build cache 层且从不自动清，多次发布累积到撑爆 99G 盘 → 容器写不了 /tmp 崩 → 502。
 # 详见 docs/zh/guide/aliyun-deploy.md §16。只清未用缓存,绝不碰 Langfuse 业务数据卷。non-fatal。

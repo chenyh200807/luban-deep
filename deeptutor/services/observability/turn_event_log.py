@@ -11,8 +11,6 @@ from zoneinfo import ZoneInfo
 
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_EVENTS_DIR = PROJECT_ROOT / "tmp" / "observability" / "observer" / "events"
 _SYNTHETIC_SESSION_TOKENS = ("shadow",)
 _SYNTHETIC_SURFACES = {"online_shadow"}
 
@@ -164,7 +162,9 @@ class TurnEventLog:
         elif configured_dir:
             self.events_dir = Path(configured_dir).expanduser().resolve()
         else:
-            self.events_dir = DEFAULT_EVENTS_DIR.expanduser().resolve()
+            from deeptutor.services.path_service import get_path_service
+
+            self.events_dir = (get_path_service().get_observability_dir() / "observer" / "events").resolve()
         self.events_dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._last_write_error = ""

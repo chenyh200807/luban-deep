@@ -552,6 +552,31 @@ def test_load_provenance_index_reads_unit_scoring_points(tmp_path):
     assert refs and refs[0]["source_ref"] == "1A412010_063_0124"
 
 
+def test_cross_source_of_defaults_judge_to_a_different_provider():
+    # eval-design fix: a judge that shares the grader's provider shares its blind
+    # spots (same model that fabricates an answer also fails to flag it). The
+    # default judge must be cross-source — a DIFFERENT provider than the grader.
+    cross = mod._cross_source_of("deepseek")
+    assert cross != "deepseek"
+    assert cross in mod.case_eval.PROVIDER_DEFAULTS
+    # symmetric: a non-deepseek grader gets a non-self judge too
+    assert mod._cross_source_of("openai") != "openai"
+
+
+def test_cross_source_of_degrades_to_same_provider_when_only_one_configured():
+    # honest degradation: with a single configured provider there is no cross
+    # source, so it returns the same provider rather than crashing.
+    only = {"deepseek": dict(mod.case_eval.PROVIDER_DEFAULTS["deepseek"])}
+    assert mod._cross_source_of("deepseek", available=only) == "deepseek"
+
+
+def test_grading_eval_default_sample_size_is_no_longer_underpowered():
+    # the under-powered n=4 default produced unstable single-shot verdicts. The
+    # default sample size must be raised (single run still has no variance band —
+    # the output annotates that honest boundary).
+    assert mod.DEFAULT_EVAL_LIMIT >= 20
+
+
 def test_contract_summary_counts_valid_invalid_and_regrades():
     summary = mod._contract_summary(
         [
