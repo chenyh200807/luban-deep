@@ -22,6 +22,7 @@ owner 原则：信当下 LLM 能力，宁可大方输出 + 诚实声明，也不
 
 from __future__ import annotations
 
+from deeptutor.tutorbot.agent.loop import AgentLoop
 from deeptutor.tutorbot.teaching_modes import (
     assess_unverifiable_standard_codes,
     build_content_truth_review_records,
@@ -199,6 +200,31 @@ def test_review_records_empty_when_nothing_unverifiable():
     assert build_content_truth_review_records(
         response="x", unverifiable_codes=[], rag_degraded=False
     ) == []
+
+
+# ---- L2 export: claims must ride OUT on the OutboundMessage metadata ----
+# (process_direct round-trips response.metadata to the manager; the loop's internal
+#  runtime_metadata is a COPY, so without this export the claims die inside the loop —
+#  the live break observed 2026-06-29 where TurnEventLog had 0 claims.)
+
+def test_export_content_truth_metadata_carries_claims_to_outbound():
+    records = [{"claim": "GB50500-2013", "confidence_signal": "rag_miss"}]
+    runtime_metadata = {
+        "content_truth_guard_applied": True,
+        "content_truth_low_confidence_claims": records,
+        "unrelated": "x",
+    }
+    response_metadata: dict = {}
+    AgentLoop._export_content_truth_metadata(runtime_metadata, response_metadata)
+    assert response_metadata["content_truth_low_confidence_claims"] == records
+    assert response_metadata["content_truth_guard_applied"] is True
+    assert "unrelated" not in response_metadata  # only the two flag keys cross
+
+
+def test_export_content_truth_metadata_noop_when_absent():
+    response_metadata: dict = {"keep": 1}
+    AgentLoop._export_content_truth_metadata({"rag_retrieval_degraded": False}, response_metadata)
+    assert response_metadata == {"keep": 1}  # nothing to export → untouched
 
 
 # ---- eval-design #5 metric self-test: clean passes AND fabricated caught ----
