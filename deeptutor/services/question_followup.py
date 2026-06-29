@@ -776,6 +776,11 @@ async def interpret_question_followup_action(
             temperature=0,
             response_format={"type": "json_object"},
             max_tokens=500,
+            # ③稳定性 2b/B1: 首答前阻塞分类器,只重试 transient infra 失败,fallback(None)
+            # 对 SEV fail-safe(under-act 不 mis-act)。收成 1 次重试(默认 3)=保留对单次
+            # provider blip 的廉价恢复,但不再堆 3 层指数退避长尾。重试成功=首次成功
+            # (同 prompt/temperature=0),裁决不变;只在 provider 真抖动时更快落 fail-safe。
+            max_retries=1,
         )
     except Exception:
         logger.debug("LLM followup interpretation failed", exc_info=True)
