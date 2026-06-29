@@ -79,3 +79,24 @@
 - `deeptutor/services/construction_grading/runtime_llm_adjudicator.py`（运行时判分，闸-4 落点）
 - 教材源:`docs/原始数据/2026_副本/讲义/*_v8/page_N.json`（结构化表）
 - 关联 memory:`scoring-point-truth-is-grading-compile-pipeline-not-deep-pack`、`luban-scoring-points-must-trace-to-textbook`、`authority-ladder-textbook-adjudicates-llm-panels`、`cross-model-judge-catches-fabrication-same-source-misses`
+
+## 8. ② content-truth 核验闸收口（2026-06-29，闸-4 扩到规范条文号，DONE / live≥3 全绿）
+
+**背景**：2026-06-29 满意度 rerun 揪出新主病——grounding 异源核准确率 84%→73%，bot 现场编造**规范条文号/版本**（GB50016"2019版"不存在、GB50500"2024版"§8.11.8 不存在、自造"题库权威记录全国统一"）。这是 reachability/consumption 病的 **verification 半边**（见 memory `satisfaction-drags-map-one-reachability-disease-plus-orthogonal-stability`），与本计划闸-4「运行时硬事实接地」同根。
+
+**真根因（专家 C 真码确诊）**：不是没内容源——规范源 `standard` doc_type 已接进检索（`retrieval_plan.py` standard_clause / `supabase.py` search_standard_chunks / `kbv5.py`）。病在**消费侧无结构闸**：唯一反编造是 `core/grounding.py` 注入的 system-prompt 软约束（docstring 自认"必要不充分"），没有结构强制把 bot 写出的 GB/JGJ 条文号去本轮 KB `standard` 召回核一遍（`grep verify.*clause` = 0）。
+
+**治本（接通 + 扩 fail-closed，非加门，PR #302 合 main = `ccd5731eb`）**：
+- 纯验证器 `content_truth_guard_response`（`deeptutor/tutorbot/teaching_modes.py`，post-gen 矫正器既定家，镜像 `correct_construction_exam_boundary_fact_response`）：regex **只抽取** GB/JGJ 编号+版本年，真值由本轮 `standard` 召回证据裁决（单一汇点 fail-closed，regex 不承担理解）。
+- 接入 `tutorbot/agent/loop.py`：现有 degraded guard 同层（4 个 finalization 站）接 `_content_truth_guard`，证据取自 `runtime_metadata['rag_rounds'][*]['sources'][*]['content']`（单一真值源，已接检索，不新建第二 authority）。
+- 判定：无规范编号→不动（防过矫正，普通教学/闲聊零影响）；编号在本轮召回→放行；核不到（RAG miss）或 `rag_retrieval_degraded`→诚实降级 caveat（从"规范依据"降为"通用判断方向，以教材为准"），**不 nuke 正文**，不回落 V0，G2 闸保留。
+
+**验证（live≥3 终态 + 异源核 + SEV 双绿）**：
+- TDD（先 RED）：`tests/tutorbot/test_content_truth_guard.py` 10 项含 eval-design #5 metric 自测（干净放行/编造拦各命中）；隔离污染已证非回归（baseline `a64373f70` 同样 12 fail）。
+- CI 双口径 contract guard PASS（`[luban_grading_engine] passed | protected=loop.py | tests=test_content_truth_guard.py`），两份 index.yaml byte-identical，verify_runtime_assets PASS。
+- 部署三方对齐：origin=host=container=`ccd5731eb`，dirty=false，gate 入容器。
+- **live≥3（`scratchpad/verify_content_truth_gate.py`，9 turns）**：5 个 cite 规范编号**全 5/5 带 caveat（gate fired）**，4 个无编号（clean 未误伤），**0 个裸编号作权威输出**。p0 工期索赔每轮引 `GB50500-2024`（eval 揪出的编造）→ 3/3 全被降级。
+- **DeepSeek 异源核（self_test PASS）**：被 caveat 的 `GB50500-2024` = **fabricated(0.95)**「尚未发布，现行 GB50500-2013，无 8.11.8 条」= gate 拦的确含真编造；GB55034-2022/GB5725/JGJ80-2016 = accurate（真编号本轮未召回被 caveat = owner 拍板 trade-off，正文保留+诚实 hedge，(C) 补内容长尾可降这类）。
+- SEV 双绿：倒诬 HOLD（顶住"选项顺序"施压不改判）、答案泄露 HOLD（拒泄露未答题答案）——caveat append 未回归 SEV。
+
+**残留 / 下一步（不阻塞本收口）**：(C) 补内容长尾——从 caveat 命中日志定位本轮该召回却没召回的真规范（GB55034/GB5725/JGJ80），走召回侧而非前置，降对真编号的 caveat 噪声。reachability 全战役剩 ①正向路由家族整体收口（满意度边际最大）+ ③稳定性 scoped 专项。
