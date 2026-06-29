@@ -20,6 +20,7 @@ from __future__ import annotations
 from deeptutor.services.observability.turn_event_log import TurnEventLog
 from deeptutor.services.session.turn_runtime import (
     _build_terminal_turn_observation_event,
+    _summarize_assistant_events,
 )
 from deeptutor.services.observability.content_truth_review_queue import (
     apply_review_verdicts,
@@ -57,6 +58,35 @@ def test_terminal_event_passes_through_content_truth_low_confidence_claims():
     )
     assert event["metadata"]["content_truth_low_confidence_claims"] == _CLAIMS
     assert event["metadata"]["content_truth_guard_applied"] is True
+
+
+def test_summarize_assistant_events_forwards_content_truth_claims():
+    # boundary A: the assistant 'result' event carries the low-confidence claims
+    # (manager forwards them from runtime_metadata); _summarize_assistant_events
+    # must propagate them into the turn summary so the terminal observation event
+    # (and the offline review agent) can see them. Regression guard for the live
+    # break where claims died at this hop (only the terminal allow-list was wired).
+    summary = _summarize_assistant_events(
+        [
+            {
+                "type": "result",
+                "metadata": {
+                    "rag_retrieval_degraded": False,
+                    "content_truth_guard_applied": True,
+                    "content_truth_low_confidence_claims": _CLAIMS,
+                },
+            }
+        ]
+    )
+    assert summary["content_truth_low_confidence_claims"] == _CLAIMS
+    assert summary["content_truth_guard_applied"] is True
+
+
+def test_summarize_assistant_events_omits_content_truth_when_absent():
+    summary = _summarize_assistant_events(
+        [{"type": "result", "metadata": {"rag_retrieval_degraded": False}}]
+    )
+    assert "content_truth_low_confidence_claims" not in summary
 
 
 def test_terminal_event_omits_content_truth_when_absent():

@@ -1204,6 +1204,12 @@ class TutorBotManager:
                         "personalization_context",
                         "next_best_action",
                         "llm_stream_telemetry",
+                        # ② content-truth review loop (observe-only): the agent loop stamps
+                        # these on runtime_metadata when it appends an honest hedge for an
+                        # unverifiable regulation code. Forward them (like the skill/lifecycle
+                        # keys above) so the result event + offline review agent can see them.
+                        "content_truth_guard_applied",
+                        "content_truth_low_confidence_claims",
                     ):
                         if metadata_key in runtime_metadata:
                             trace_metadata[metadata_key] = runtime_metadata[metadata_key]
@@ -1320,6 +1326,11 @@ class TutorBotManager:
                             "luban_general_knowledge_context_status",
                             "llm_stream_telemetry",
                             "presentation",
+                            # ② content-truth review loop (observe-only): mirror the
+                            # runtime_metadata → session_metadata bridge so tutorbot.py's
+                            # result_payload allow-list can export the low-confidence claims.
+                            "content_truth_guard_applied",
+                            "content_truth_low_confidence_claims",
                         ):
                             if metadata_key in runtime_metadata:
                                 update_metadata[metadata_key] = runtime_metadata[metadata_key]
