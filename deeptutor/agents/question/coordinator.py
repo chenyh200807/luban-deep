@@ -256,29 +256,47 @@ class AgentCoordinator:
                 user_topic=user_topic,
                 anchor_payload=anchor_payload,
             ):
-                lightweight_trace_counters["lightweight_batch_fallback"] = "blocked_unresolved_anchor"
-                batch_trace.append(
-                    {
-                        "mode": "lightweight_topic_generation",
-                        "requested": requested,
-                        "generated": 0,
-                        "knowledge_context": str(anchor_payload.get("knowledge_context") or ""),
-                        "retrieval": retrieval_trace,
-                        "bank_short_circuit": False,
-                        "anchor_resolution_status": "blocked_unresolved_anchor",
-                    }
+                # Step 3 (p11 fall-through, NOT fail-closed-to-template): a bare-action
+                # continuation ("继续出一道") has no topic THIS turn. Inherit the established
+                # construction topic from the conversation context and generate, instead of
+                # canning. Safe because the generator subject lock (Step 1) guarantees
+                # construction-only output even on a thin topic — fall-through can never produce
+                # off-domain garbage. Only a TRUE cold start (no topic in message OR context)
+                # still falls to the honest needs-anchor canned.
+                inherited_topic = self._resolve_practice_topic_with_context(
+                    user_topic=user_topic,
+                    history_context=history_context,
                 )
-                return self._build_summary(
-                    source="topic",
-                    requested=requested,
-                    templates=[],
-                    qa_pairs=[],
-                    trace={
-                        "batches": batch_trace,
-                        "lightweight_generation": lightweight_generation,
-                        "lightweight_counters": dict(lightweight_trace_counters),
-                    },
-                )
+                if inherited_topic:
+                    user_topic = inherited_topic
+                    anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
+                        user_topic=inherited_topic,
+                    )
+                    lightweight_trace_counters["lightweight_batch_fallback"] = "anchor_inherited_from_context"
+                else:
+                    lightweight_trace_counters["lightweight_batch_fallback"] = "blocked_unresolved_anchor"
+                    batch_trace.append(
+                        {
+                            "mode": "lightweight_topic_generation",
+                            "requested": requested,
+                            "generated": 0,
+                            "knowledge_context": str(anchor_payload.get("knowledge_context") or ""),
+                            "retrieval": retrieval_trace,
+                            "bank_short_circuit": False,
+                            "anchor_resolution_status": "blocked_unresolved_anchor",
+                        }
+                    )
+                    return self._build_summary(
+                        source="topic",
+                        requested=requested,
+                        templates=[],
+                        qa_pairs=[],
+                        trace={
+                            "batches": batch_trace,
+                            "lightweight_generation": lightweight_generation,
+                            "lightweight_counters": dict(lightweight_trace_counters),
+                        },
+                    )
             templates = self._build_lightweight_topic_templates(
                 user_topic=user_topic,
                 requested=requested,
@@ -1185,6 +1203,28 @@ class AgentCoordinator:
         return isinstance(evidence_refs, list) and any(isinstance(ref, dict) for ref in evidence_refs)
 
     @staticmethod
+    def _resolve_practice_topic_with_context(*, user_topic: str, history_context: str) -> str:
+        """Single authority for the lightweight practice topic (Step 3, p11 fall-through).
+
+        This turn's own topic wins; if the message is a bare action word with no topic, inherit
+        the established construction topic from the conversation context. Returns ""  only on a
+        true cold start (no topic in the message AND none in the context) — that case still falls
+        to the honest needs-anchor canned. Reuses the single normalizer
+        ``_derive_lightweight_anchor_label`` (no second topic decider). Safe to fall through here
+        because the generator subject lock (Step 1) guarantees construction-only output even on a
+        thin topic, so inheriting-and-generating can never produce off-domain garbage.
+        """
+        own = AgentCoordinator._derive_lightweight_anchor_label(user_topic=user_topic)
+        if practice_generation_topic_domain_status(own) == "construction_topic":
+            return own
+        inherited = AgentCoordinator._derive_lightweight_anchor_label(
+            user_topic=str(history_context or "")
+        )
+        if practice_generation_topic_domain_status(inherited) == "construction_topic":
+            return inherited
+        return ""
+
+    @staticmethod
     def _should_block_unresolved_lightweight_anchor(
         *,
         user_topic: str,
@@ -1582,7 +1622,10 @@ class AgentCoordinator:
     def _extract_explicit_lightweight_topic_label(text: str) -> str:
         for pattern in (
             r"(?:围绕|关于|针对)(?P<label>[^，,。!?！？；;:：]+)",
-            r"考(?!我|点|试)(?P<label>[^，,。!?！？；;:：]+)",
+            # "考 <topic>" (考网络计划). Exclude 考我/考点/考试 AND a doubled 考 so the action
+            # phrase "考考我" is NOT mis-read as topic="考我" (S3 live root cause: that dropped
+            # the real "流水施工" and drove both the generator concentration and the anchor block).
+            r"考(?!我|点|试|考)(?P<label>[^，,。!?！？；;:：]+)",
         ):
             match = re.search(pattern, text)
             if not match:

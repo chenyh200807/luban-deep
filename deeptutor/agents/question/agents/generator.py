@@ -77,11 +77,13 @@ class Generator(BaseAgent):
         ]
         user_prompt = (
             "Generate a batch of lightweight quiz items in a single response.\n\n"
+            f"用户主题（建筑实务考点，可能含动作词噪声，取其中的建筑考点）：{user_topic or '(none)'}\n"
             f"Number of items requested: {len(templates)}\n"
             f"Canonical anchor:\n{knowledge_context or '(none)'}\n\n"
             "Item contracts (one per template, preserve question_id):\n"
             f"{json.dumps(template_dicts, ensure_ascii=False, indent=2)}\n\n"
             "Hard rules:\n"
+            "- 只能出建筑实务（一级建造师）考点题；锚点/主题为空或残缺时也只出建筑实务通用考点题，绝不出非建筑（地理/历史/常识/英语等）题。\n"
             "- Stay strictly within the canonical anchor.\n"
             "- Do not introduce new concepts outside the anchor.\n"
             "- Keep each question short and exam-style.\n"
@@ -280,10 +282,12 @@ class Generator(BaseAgent):
         if lightweight_generation:
             user_prompt_template = (
                 "Generate one concise quiz payload from the anchor below.\n\n"
+                "用户主题（建筑实务考点，可能含动作词噪声，取其中的建筑考点）：{user_topic}\n"
                 "Template contract: {template}\n"
                 "Previously generated questions (avoid overlap):\n{previous_questions}\n"
                 "Canonical anchor: {knowledge_context}\n\n"
                 "Hard rules:\n"
+                "- 只能出建筑实务（一级建造师）考点题；锚点/主题为空或残缺时也只出建筑实务通用考点题，绝不出非建筑（地理/历史/常识/英语等）题。\n"
                 "- Stay strictly within the canonical anchor.\n"
                 "- Do not introduce new concepts outside the anchor.\n"
                 "- Keep the question short and exam-style.\n"
@@ -312,7 +316,7 @@ class Generator(BaseAgent):
 
         user_prompt = user_prompt_template.format(
             template=json.dumps(template_dict, ensure_ascii=False, indent=2),
-            user_topic="(lightweight anchor only)" if lightweight_generation else user_topic,
+            user_topic=(user_topic or "(none)"),
             preference=preference or "(none)",
             history_context=history_context or "(none)",
             previous_questions=previous_questions or "(none)",
