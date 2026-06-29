@@ -58,6 +58,28 @@ from deeptutor.tutorbot.response_mode import (
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 
+# 安全 SEV-1（organic 出题轮答案泄露收口，2026-06-29）：suppress 出题轮无法把
+# 自由文本结构化为题面时的 fail-closed 安全提示。宁可少展示，绝不泄露答案。
+_ANSWER_SUPPRESSED_NOTICE = (
+    "题目我已经按你的要求出好了。为了不提前泄露答案，先请你作答，"
+    "提交后我再公布正确答案和解析。"
+)
+
+# 稳定结构谓词（非 answer 探测）：题面是否含 MCQ 选项枚举（A–D 标记 ≥3）。
+# 用于区分「MCQ-shaped 但结构化 parse 失败」（答案常内联在选项后，行首 label
+# 弱正则挡不住 → 必须 fail-closed）与「非 MCQ 案例/简答」（答案在 labeled 段，
+# _strip_reference_sections 能结构化删除）。只认题面结构、不认答案变体，故不打地鼠。
+_MCQ_OPTION_MARKER_RE = re.compile(r"(?:^|[\s（(])([A-DＡ-Ｄ])[\.、．)）:：]")
+
+
+def _contains_mcq_options(text: str) -> bool:
+    distinct = {
+        match.group(1).upper().translate(str.maketrans("ＡＢＣＤ", "ABCD"))
+        for match in _MCQ_OPTION_MARKER_RE.finditer(str(text or ""))
+    }
+    return len(distinct) >= 3
+
+
 class TutorBotCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="tutorbot",
@@ -1058,9 +1080,24 @@ class TutorBotCapability(BaseCapability):
             return self._strip_reference_sections(final_response) or final_response
         if not self._should_hide_generated_answers(context):
             return final_response
+        # 安全 SEV-1（organic 出题轮答案泄露收口，2026-06-29）：suppress 时可见输出
+        # 必须结构上无 correct_answer/解析。单一权威 = 结构化题面渲染
+        # （_render_question_only_response 只渲染 question+options，答案字段物理不输出）。
+        # 绝不 fall-through 原始 final_response —— organic 自由文本常把答案内联/括号/
+        # 加粗在选项后（"因此正确选项是A"/"（正确答案 B）"/"**正确选项：A**"），结构化
+        # parse 失败时 _strip_reference_sections 只匹配行首 label，挡不住这些变体 →
+        # 3/3 复现泄露。fail-closed：
+        #   - 有结构化 render → 用它（题面+选项，答案丢弃）。
+        #   - MCQ-shaped 但 parse 失败 → 安全提示（题面质量由 Y 后续 positional 渲染补）。
+        #   - 非 MCQ（案例/简答）labeled 段 → _strip_reference_sections 结构化删除，
+        #     兜底也走安全提示而非原文（删掉 `or final_response` fail-open）。
         if parsed_result_summary:
-            return self._render_question_only_response(parsed_result_summary) or final_response
-        return self._strip_reference_sections(final_response) or final_response
+            rendered = self._render_question_only_response(parsed_result_summary)
+            if rendered:
+                return rendered
+        if _contains_mcq_options(final_response):
+            return _ANSWER_SUPPRESSED_NOTICE
+        return self._strip_reference_sections(final_response) or _ANSWER_SUPPRESSED_NOTICE
 
     @staticmethod
     def _strip_reference_sections(text: str) -> str:
