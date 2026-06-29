@@ -43,6 +43,26 @@ def test_detect_answer_reveal_preference_respects_suppress_request() -> None:
     assert detect_answer_reveal_preference("出3道建筑实务单选题，先不公布答案。") is False
 
 
+def test_detect_answer_reveal_preference_negated_tell_answer_is_suppress() -> None:
+    # 安全 SEV-1（organic 出题轮答案泄露根因，2026-06-29，harness 异源核验抓到）：
+    # "先别告诉我答案" 是抑制请求，但 "告诉我答案" 是 reveal marker、"先别" 否定它，
+    # 旧子串法漏否定 → 误判 reveal=True → _should_hide_generated_answers 返回 False
+    # → hide 整个被绕过 → 原始答案泄露。否定感知必须把这些判成 suppress(False)。
+    for message in (
+        "先别告诉我答案",
+        "出3道屋面防水单选题，先别告诉我答案",
+        "先别告诉答案出3道屋面防水单选题",
+        "别告诉我答案，给我点思路",
+        "先别说答案，我自己想想",
+        "先别告诉我答案，给我思路",
+    ):
+        assert detect_answer_reveal_preference(message) is False, message
+    # 未否定的 reveal 仍是 reveal（不过度抑制）。
+    assert detect_answer_reveal_preference("出题，记得带答案") is True
+    assert detect_answer_reveal_preference("请告诉我答案") is True
+    assert detect_answer_reveal_preference("公布答案并讲解") is True
+
+
 def test_resolve_submission_attempt_extracts_numbered_batch_with_wo_xuan_prefix() -> None:
     question_set = {
         "question_id": "quiz_generated",

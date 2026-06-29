@@ -462,6 +462,58 @@ def _run_reveal_terminal_scenarios(rows: list[dict[str, Any]]) -> list[str]:
         leftover = _remaining_hidden_keys(redacted, PUBLIC_HIDDEN_PAYLOAD_KEYS)
         if leftover:
             failures.append(f"{name}: hidden keys survived redaction: {leftover}")
+    # 出题轮"自带答案" emit 出口（安全 SEV-1，2026-06-29）：上面的 redaction 只覆盖
+    # metadata 出口（回指揭示）。must_not_leak_in 里的 "body"（学生可见正文）此前是
+    # dormant（无 driver）。下面驱动真实 _build_visible_response(hide=True) 可见文本
+    # 出口，钉死 organic 出题轮答案不进 body。
+    failures += _run_generation_visible_scenarios(rows)
+    return failures
+
+
+def _run_generation_visible_scenarios(rows: list[dict[str, Any]]) -> list[str]:
+    """Drive the REAL question-generation visible-text exit (no live LLM).
+
+    For rows carrying a ``generated_text`` (an organic LLM emission), render the
+    student-visible body via the production ``_build_visible_response`` under a
+    suppress (hide=True) practice-generation context, and assert the answer never
+    survives into the body — and (Y) the question surface does survive when present.
+    Pure/deterministic: ``_build_visible_response`` does no IO/LLM given its inputs.
+    """
+    from deeptutor.capabilities.tutorbot import TutorBotCapability
+    from deeptutor.core.context import UnifiedContext
+    from deeptutor.services.question_followup import (
+        extract_choice_result_summary_from_text,
+    )
+
+    cap = TutorBotCapability()
+    failures: list[str] = []
+    for row in rows:
+        generated = row.get("generated_text")
+        if not generated:
+            continue
+        name = row.get("name", "<unnamed>")
+        ctx = UnifiedContext(
+            session_id="harness-generation",
+            user_message=row.get("user_message", "出3道单选题"),
+            metadata={
+                "interaction_hints": {"suppress_answer_reveal_on_generate": True}
+            },
+        )
+        body = cap._build_visible_response(
+            context=ctx,
+            final_response=generated,
+            parsed_result_summary=extract_choice_result_summary_from_text(generated),
+            reveal_answers=False,
+            reveal_explanations=False,
+        )
+        for forbidden in row.get("body_must_not_contain", []):
+            if forbidden in body:
+                failures.append(f"{name}: answer leaked into visible body: {forbidden!r}")
+        for required in row.get("body_must_contain", []):
+            if required not in body:
+                failures.append(
+                    f"{name}: question surface missing from visible body: {required!r}"
+                )
     return failures
 
 

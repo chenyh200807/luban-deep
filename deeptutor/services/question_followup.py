@@ -92,6 +92,8 @@ _SUPPRESS_ANSWER_MARKERS = (
 )
 _REVEAL_ANSWER_MARKERS = (
     "告诉我答案",
+    "告诉答案",
+    "说答案",
     "答案是什么",
     "正确答案是什么",
     "给答案",
@@ -105,6 +107,22 @@ _REVEAL_ANSWER_MARKERS = (
     "详细解析",
     "讲解一下",
     "解析一下",
+)
+
+# 安全 SEV-1（organic 出题轮答案泄露根因，2026-06-29）：reveal marker 前若紧邻
+# 否定词（"先别告诉我答案"），子串法会把它误判成 reveal。否定感知覆盖所有 reveal
+# 动词、不需为每种"动词×否定"组合枚举一条 suppress marker（不打地鼠）。
+_REVEAL_NEGATION_PREFIXES = (
+    "先别",
+    "别",
+    "先不要",
+    "不要",
+    "先不",
+    "暂不",
+    "暂时不",
+    "勿",
+    "不用",
+    "先别急着",
 )
 _ANSWER_CONCESSION_MARKERS = (
     "我放弃",
@@ -720,7 +738,15 @@ def detect_answer_reveal_preference(message: str) -> bool | None:
         return None
     if any(marker in text for marker in _SUPPRESS_ANSWER_MARKERS):
         return False
-    if any(marker in text for marker in _REVEAL_ANSWER_MARKERS):
+    # 否定感知：reveal marker 前紧邻否定词（"先别告诉我答案"）= 抑制，不是 reveal。
+    # 覆盖所有 reveal 动词，避免为每种"否定×动词"枚举一条 suppress marker。
+    for marker in _REVEAL_ANSWER_MARKERS:
+        index = text.find(marker)
+        if index < 0:
+            continue
+        window = text[max(0, index - 4):index]
+        if any(negation in window for negation in _REVEAL_NEGATION_PREFIXES):
+            return False
         return True
     return None
 

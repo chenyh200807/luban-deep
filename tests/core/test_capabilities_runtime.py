@@ -3253,6 +3253,172 @@ async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visi
     assert question["followup_context"]["explanation"] == ""
 
 
+@pytest.mark.parametrize("chat_mode", ["fast", "deep"])
+@pytest.mark.asyncio
+async def test_tutorbot_practice_generation_failclosed_on_inline_answer_leak(
+    monkeypatch: pytest.MonkeyPatch,
+    chat_mode: str,
+) -> None:
+    # 安全 SEV-1（organic 出题轮答案泄露收口，2026-06-29）：suppress 出题轮，
+    # 主 LLM 把答案内联在选项后（"因此正确选项是A"），结构化 parse 失败 →
+    # 旧 _strip_reference_sections 只匹配行首 label，挡不住内联变体 → 3/3 泄露。
+    # fail-closed 不变量：可见输出（live content + 持久 result.response）绝不含
+    # correct_answer / 解析。题面是否展示是 Y（质量）的事，本测试只钉死安全底线。
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+            **kwargs: Any,
+        ) -> str:
+            # 单行选项 + 内联答案：真实 organic 格式，结构化 parse 失败、弱正则漏。
+            return "\n".join(
+                [
+                    "第1题：关于屋面防水卷材施工，下列做法正确的是？",
+                    "A. 满粘法  B. 空铺法  C. 点粘法  D. 条粘法",
+                    "因此正确选项是A，满粘法适用于基层平整且需牢固粘结的情况。",
+                ]
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-leak-inline-1",
+        user_message="给我一道题测试一下这个知识点",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": chat_mode},
+        metadata={
+            "billing_context": {"user_id": "u1", "source": "wx_miniprogram"},
+            "interaction_hints": {"suppress_answer_reveal_on_generate": True},
+        },
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    # 安全不变量：答案 reveal 一律不可见。
+    for leaked in ("正确选项是A", "正确选项", "满粘法适用于"):
+        assert leaked not in response, f"answer leaked in result.response: {leaked!r}"
+    # live content delta 同样不得泄露。
+    content_text = "".join(
+        event.content for event in events if event.type == StreamEventType.CONTENT
+    )
+    for leaked in ("正确选项是A", "满粘法适用于"):
+        assert leaked not in content_text, f"answer leaked in live content: {leaked!r}"
+    # fail-closed 必须给出非空可见输出（安全提示），不是空串。
+    assert response.strip(), "fail-closed must emit a non-empty safe notice"
+
+
+@pytest.mark.parametrize("chat_mode", ["fast", "deep"])
+@pytest.mark.asyncio
+async def test_tutorbot_practice_generation_salvages_question_surface_on_inline_answer(
+    monkeypatch: pytest.MonkeyPatch,
+    chat_mode: str,
+) -> None:
+    # Y（题面质量，positional，2026-06-29）：同一泄露输入（单行选项 + 内联答案，
+    # 结构化 parse 失败），suppress 时应 positional 渲染出题干+选项（答案在选项块
+    # 之后，按 position 丢弃），而非退化成安全提示。安全底线（无答案）仍由 X 保证；
+    # Y 只把"安全提示"升级回"干净题面"。不认答案变体、不打地鼠。
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+            **kwargs: Any,
+        ) -> str:
+            return "\n".join(
+                [
+                    "第1题：关于屋面防水卷材施工，下列做法正确的是？",
+                    "A. 满粘法  B. 空铺法  C. 点粘法  D. 条粘法",
+                    "因此正确选项是A，满粘法适用于基层平整且需牢固粘结的情况。",
+                ]
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-salvage-1",
+        user_message="给我一道题测试一下这个知识点",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": chat_mode},
+        metadata={
+            "billing_context": {"user_id": "u1", "source": "wx_miniprogram"},
+            "interaction_hints": {"suppress_answer_reveal_on_generate": True},
+        },
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+    response = next(
+        event for event in events if event.type == StreamEventType.RESULT
+    ).metadata["response"]
+
+    # 题面 + 选项必须可见（Y 把安全提示升级回题面）。
+    assert "屋面防水卷材施工" in response
+    assert "满粘法" in response and "空铺法" in response
+    # 答案仍绝不可见（X 安全底线）。
+    for leaked in ("正确选项是A", "满粘法适用于"):
+        assert leaked not in response, f"answer leaked: {leaked!r}"
+
+
 @pytest.mark.asyncio
 async def test_tutorbot_practice_generation_keeps_scenario_before_problem_marker(
     monkeypatch: pytest.MonkeyPatch,
