@@ -7,10 +7,12 @@
 #
 # 前置（见 README.md）：
 #   1. 主 deeptutor compose 已 up（提供 deeptutor 容器 + deeptutor-network）。
-#   2. 创建 secret 文件（不入库，secrets/ 已被 .gitignore 排除）：
-#        mkdir -p deployment/observability/secrets
-#        printf '%s' "$DEEPTUTOR_METRICS_TOKEN" > deployment/observability/secrets/metrics_token
-#        printf '%s' "$SMTP_PASSWORD"           > deployment/observability/secrets/smtp_password
+#   2. 创建 secret 文件到 data/ 下（durable）。data/ 被 sync_to_aliyun.sh 的 EXCLUDES
+#      排除，rsync --delete 不会删它——secret 因此能在每次全量发布中存活（旧位置
+#      deployment/observability/secrets/ 在同步树内，会被 --delete 抹掉，已弃用）：
+#        mkdir -p data/observability-secrets
+#        printf '%s' "$DEEPTUTOR_METRICS_TOKEN" > data/observability-secrets/metrics_token
+#        printf '%s' "$SMTP_PASSWORD"           > data/observability-secrets/smtp_password
 #   3. 确认外部网络名与主 compose 实际创建的一致：
 #        docker network ls | grep deeptutor   # 默认 <project>_deeptutor-network
 #
@@ -38,7 +40,8 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       # 单一 authority：告警规则复用 CI 校验过的 example 文件，不另起一份。
       - ./prometheus.alerts.example.yml:/etc/prometheus/alerts.yml:ro
-      - ./secrets/metrics_token:/etc/prometheus/secrets/metrics_token:ro
+      # Secret 落在 sync 排除的 data/ 下，全量发布 (rsync --delete) 删不掉 (见头部注释)。
+      - ../../data/observability-secrets/metrics_token:/etc/prometheus/secrets/metrics_token:ro
       - prometheus-data:/prometheus
     ports:
       - "127.0.0.1:9090:9090"
@@ -63,7 +66,8 @@ services:
       - --storage.path=/alertmanager
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-      - ./secrets/smtp_password:/etc/alertmanager/secrets/smtp_password:ro
+      # 同上：secret 落在 sync 排除的 data/ 下，全量发布删不掉。
+      - ../../data/observability-secrets/smtp_password:/etc/alertmanager/secrets/smtp_password:ro
       - alertmanager-data:/alertmanager
     ports:
       - "127.0.0.1:9093:9093"

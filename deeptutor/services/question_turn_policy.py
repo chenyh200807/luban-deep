@@ -1093,7 +1093,16 @@ def apply_grading_result_patch(
 
     prior_qids = [str(it.get("question_id") or "").strip() for it in prior_items]
 
-    if result_qid and result_qid in prior_qids:
+    # Gate the merge on ``is_grading_result``: question_id is per-generation
+    # positional ("q1", "q2", …), NOT a stable identity, so a freshly generated
+    # single question recycles "q1" and collides with a prior batch's "q1". Only a
+    # single-item GRADING turn (this function's documented contract) may merge the
+    # judged item back into the set; a NON-grading generation turn that happens to
+    # recycle a qid is a genuine switch and must replace the stale set — otherwise
+    # the new question is mistaken for a re-grade of set-item-1 and the stale q2/q3
+    # survive (3-item Frankenstein → "我选B" false-rejected as ambiguous-multi;
+    # live DB run1 T3 evidence, 2026-06-30).
+    if is_grading_result and result_qid and result_qid in prior_qids:
         # Grading-of-set-item: merge the judged version back into the set.
         merged_items = [
             dict(result_single) if qid == result_qid else it
