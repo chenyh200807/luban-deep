@@ -149,12 +149,20 @@ async def test_explanation_request_on_unanswered_suppresses_to_structured_hint(
 
 
 @pytest.mark.asyncio
-async def test_new_question_request_still_goes_through_llm(
+async def test_new_question_request_not_represented_as_old_question(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # 「换一道题」live 实测路由 deep_question 生成（出新题），不到本 tutorbot 短路。
+    # 在 forced-tutorbot 场景（未作答活跃题）下，它落 anti-peek 结构化提示（leak-safe），
+    # 而非把**旧题**当新题 re-present（原不变量保留）——不新增 relation 闸（单一 relation
+    # 权威不变量），不读旧题答案。核心不变量：绝不把未答旧题答案泄出 / 不 re-present 旧题。
     manager = _ReshuffleManager()
     monkeypatch.setattr(tutorbot_capability, "get_tutorbot_manager", lambda: manager)
     stream = StreamBus()
     await TutorBotCapability().run(_build_context("换一道题"), stream)
-    # New-question intent must NOT be re-presented as the old question.
-    assert manager.sent_messages == 1
+    result_events = [e for e in stream._history if e.type == StreamEventType.RESULT]
+    assert result_events, "expected a result event"
+    response = result_events[-1].metadata["response"]
+    # 旧题答案/题面不被泄露或当新题 re-present。
+    for leaked in ("正确答案", "答案是", "选 B", "一级建造师注册证书的有效期是几年"):
+        assert leaked not in response, leaked

@@ -65,33 +65,6 @@ from deeptutor.tutorbot.response_mode import (
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 
-# P1（2026-06-30）：窄「换题/出新题」意图短语。用于把切题/新生成轮从"未答题隐式求助
-# 结构化提示短路"里排除（它该交给生成路径出新题，非提示旧题）。识别学员意图，非探测题面。
-_SWITCH_TO_NEW_QUESTION_MARKERS = (
-    "换一道",
-    "换一题",
-    "换个题",
-    "换道题",
-    "换题",
-    "再来一道",
-    "再来一题",
-    "再来一个题",
-    "下一题",
-    "下一道",
-    "出道新的",
-    "出个新的",
-    "出新题",
-    "另一道",
-    "别的题",
-    "其他题",
-)
-
-
-def _looks_like_switch_to_new_question(message: str | None) -> bool:
-    text = str(message or "").strip()
-    return any(marker in text for marker in _SWITCH_TO_NEW_QUESTION_MARKERS)
-
-
 class TutorBotCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="tutorbot",
@@ -1236,12 +1209,10 @@ class TutorBotCapability(BaseCapability):
                 return None
             if _message_requests_active_mcq_represent(message, normalized):
                 return None
-            # 换题/出新题（"换一道题/再来一道/下一题/出道新的"）= 切题/新生成意图，
-            # 应交给生成路径出新题，不是提示旧题（非泄露，纯 UX；anti-peek 只管"别泄当前
-            # 未答题答案"）。复用生成意图权威 + 窄换题短语（学员意图，非题面探测）排除。
-            if looks_like_practice_generation_request(message) or _looks_like_switch_to_new_question(
-                message
-            ):
+            # 出题/换题（新生成意图）交给生成路径出新题，不提示旧题。复用既有生成意图
+            # 单一权威 looks_like_practice_generation_request（不新增 relation 闸——单一
+            # relation 权威不变量，见 contracts/turn.md §24 / check_submission_relation_gate）。
+            if looks_like_practice_generation_request(message):
                 return None
             return cls._build_structured_hint_for_unanswered(normalized)
 
