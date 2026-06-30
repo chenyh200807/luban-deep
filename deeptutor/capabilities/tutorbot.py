@@ -42,6 +42,13 @@ from deeptutor.services.question_lifecycle_skills import (
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
+from deeptutor.services.active_object_builder import (
+    extract_question_context_from_active_object,
+)
+from deeptutor.services.question_turn_policy import (
+    _message_is_submission_for_stored_set,
+    _message_requests_active_mcq_represent,
+)
 from deeptutor.services.semantic_router import (
     apply_active_object_transition,
     build_active_object_from_question_context,
@@ -1169,6 +1176,15 @@ class TutorBotCapability(BaseCapability):
             followup_context if isinstance(followup_context, dict) else None
         )
         if not normalized:
+            # reachability 收口（2026-06-30，修第一刀 green-on-unreachable）：
+            # question_followup_context 只在 orchestrator 的 followup/submission 分支注入；
+            # 通用求助轮（"给点提示/还是不会"→ tutorbot_kb_first）不注入它 → 短路读不到
+            # 活跃题 → 落自由 LLM 泄底。active_object 是始终恢复的单一 relation 权威
+            # （turn_runtime 每轮恢复），从它派生题面，让短路对这些泄露轮真正可达。
+            normalized = extract_question_context_from_active_object(
+                metadata.get("active_object")
+            )
+        if not normalized:
             return None
 
         message = context.user_message
@@ -1184,6 +1200,20 @@ class TutorBotCapability(BaseCapability):
             # LLM(tutorbot_kb_first)，LLM 用建造师知识自己推出答案（软指令/遮蔽已证伪）。
             # 治本=结构上不走自由 LLM：确定性结构化提示（考点+解题思路+nudge，绝不含
             # 答案/选项评价）。动作1 proven 治本扩面到通用求助。
+            #
+            # 但 should_block=True 太宽——也命中**有专属确定性 handler** 的轮：真实作答
+            # （应判分）、re-present（应确定性重排）。这些不能被结构化提示偷走（否则判分/
+            # 重排失效）。复用 turn-START carve-out 同款单一权威排除它们，只对真正会落
+            # 自由 LLM 的隐式求助短路。
+            if _message_is_submission_for_stored_set(message, normalized):
+                return None
+            if _message_requests_active_mcq_represent(message, normalized):
+                return None
+            # 出题/换题（新生成意图）交给生成路径出新题，不提示旧题。复用既有生成意图
+            # 单一权威 looks_like_practice_generation_request（不新增 relation 闸——单一
+            # relation 权威不变量，见 contracts/turn.md §24 / check_submission_relation_gate）。
+            if looks_like_practice_generation_request(message):
+                return None
             return cls._build_structured_hint_for_unanswered(normalized)
 
         items = normalized.get("items") or []
@@ -1216,30 +1246,17 @@ class TutorBotCapability(BaseCapability):
         不同字段）。**绝不读** correct_answer / grading_key / explanation /
         knowledge_context（后者含「题库参考答案」明文，见 P2a）。无考点也给通用思路 nudge。
         """
-        items = normalized.get("items") if isinstance(normalized.get("items"), list) else []
-        sources = items or [normalized]
-        concepts: list[str] = []
-        for item in sources:
-            if not isinstance(item, dict):
-                continue
-            concept = str(item.get("concentration") or "").strip()
-            if concept and concept not in concepts:
-                concepts.append(concept)
-
-        lines: list[str] = []
-        if len(concepts) == 1:
-            lines.append(f"这道题考查的是【{concepts[0]}】。")
-        elif len(concepts) > 1:
-            lines.append(
-                "这几道题分别考查："
-                + "、".join(f"【{concept}】" for concept in concepts[:5])
-                + "。"
-            )
-        lines.append(
-            "解题思路：先抓住题干里的关键词和限定条件，回顾对应考点的规范要求/数值/原则，"
-            "再逐一对照每个选项判断哪个最符合——别急着核对答案，自己先推一遍印象最深。"
-        )
-        lines.append(cls._UNANSWERED_STRUCTURED_HINT_NUDGE)
+        # 只用通用、确定性、保证无答案的内容拼提示。不读 concentration（实测它常被
+        # 写成用户原话=垃圾，不可靠）、不读 correct_answer/explanation/knowledge_context
+        # （含答案）、不逐项评价选项。这是 leak-proof 的下限：宁可通用，绝不泄底。
+        lines = [
+            "这道题先自己推一推，我给你一个通用的判断框架：",
+            "解题思路：①先圈出题干里的关键词和限定条件（比如「正确的/错误的」、具体"
+            "数值、特定情形或工序）；②回顾这个知识点对应的规范要求或基本原则；③再逐一"
+            "对照每个选项，看哪个和你回顾到的原则最吻合——别急着核对答案，自己先推一遍"
+            "印象最深。",
+            cls._UNANSWERED_STRUCTURED_HINT_NUDGE,
+        ]
         return "\n\n".join(lines)
 
     def _default_bot_config(self, context: UnifiedContext) -> BotConfig | None:

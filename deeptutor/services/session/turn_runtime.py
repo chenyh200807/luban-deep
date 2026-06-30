@@ -57,6 +57,7 @@ from deeptutor.services.question_followup import (
     build_question_followup_context_from_result_summary,
     followup_action_route,
     normalize_question_followup_context,
+    should_block_unanswered_reference_reveal,
 )
 from deeptutor.services.question_turn_policy import (
     _active_object_ref,
@@ -4316,6 +4317,19 @@ class TurnRuntimeManager:
             stored_set_submission_referenced = _message_is_submission_for_stored_set(
                 raw_user_content, stored_followup_question_context
             )
+            # 安全 SEV（2026-06-30，Langfuse 取证定位）—— turn-START 相位的 anti-peek
+            # carve-out，与 task#14(ordinal) / #287(re-present) / S1(submission) 同形
+            # （"本轮引用了活跃对象 → 不要 demote"）：当本轮是对一道**未作答活跃题的
+            # 隐式求助**（"给点提示 / 还是不会 / 这题怎么想"，should_block=True）时，不要
+            # 把它压进 suspended stack。否则 active_object 被换成 open_chat_topic，下游
+            # anti-peek 消费点（tutorbot 结构化提示短路 / reveal 决策）读不到活跃未答题
+            # → 落自由 LLM，LLM 从历史看到题、用知识自推答案泄底（live 红队 5/6 复现，
+            # 软指令/遮蔽已证伪）。单一权威 = should_block_unanswered_reference_reveal
+            # （reveal/anti-peek 同一权威，此处只读不重判）。显式要答案(should_block=False)
+            # 不命中本 carve-out → 照常 demote，由 reveal 路径放行答案（不抑制显式）。
+            stored_set_unanswered_implicit_help = should_block_unanswered_reference_reveal(
+                raw_user_content, stored_followup_question_context
+            )
             if (
                 stored_active_object is not None
                 and stored_followup_question_context is not None
@@ -4324,6 +4338,7 @@ class TurnRuntimeManager:
                 and not stored_set_ordinal_referenced
                 and not stored_active_mcq_represent_referenced
                 and not stored_set_submission_referenced
+                and not stored_set_unanswered_implicit_help
             ):
                 stored_suspended_object_stack = _prepend_suspended_object(
                     stored_suspended_object_stack,
