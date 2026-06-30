@@ -182,6 +182,16 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   `.Created` + contract_guard PASS，别只信 `docker compose ps`。修复合 main 后
   redeploy main 回 test2 保 lineage。
 - 诚实边界：主病根治 ≠ 残留全清；纯 prompt 压不住强幻觉就明说，列独立残留议题。
+- **反自证元门（真相 authority 三性 = 独立 + 可证伪 + 可重复终态观测）**：宣称"绿/封板"
+  前先过这道 meta-gate，否则绿是自证的假绿。①**独立**：判据不依赖被测 bot 自报——读
+  持久化 `/messages` 终态（非流式/非动作自报），异源判官非同一模型家族且假阳自动降级
+  （`JUDGE_DEGRADED` 不计 pass/fail）。②**可证伪**：每个断言写死失败判据（如拒判文本→fail、
+  自由重排+判官 DAOWU→fail）；探针必须能在真 bug 上跑出红，绿才有意义。③**可重复终态观测**：
+  `--runs` 多轮、全新会话、清白持久态→触发→查持久态，看复现率不看单次。**硬前置**：三方
+  SHA 门（origin/main == host .env == container env 且 GIT_DIRTY=false），不齐 STOP——
+  绝不在"不是当前 main"的部署上跑 eval 并据此下结论。一键门见
+  `scripts/quality_gate/accuracy_gate.py`（6 维探针走 `_probe_common`），loop 设计见
+  [2026-06-30-continuous-quality-flywheel-v1.md](../../docs/plan/题目生命周期与助教运行时/2026-06-30-continuous-quality-flywheel-v1.md)。
 
 ## 5. 沉淀阶段（每次必做，失败也是资产）
 - `artifacts/tutorbot_fix_test_journal.md` 追加（倒序）：问题→根因→**失败尝试及
@@ -196,7 +206,12 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 2. 新踩出的铁律 / 反模式 → 追加到 §2/§3 对应阶段。
 3. harness / 诊断手法改进（新脚本、新 DB 查法、新 dump 技巧）→ 记到 §1。
 4. 若某模式已根治且 live 稳 → 在 §7 标 ✅，保留作回归清单（防复发）。
-5. 改完本 skill 用 `git diff --check` 过一遍；提交走 narrow commit。
+5. **接内容飞轮**：fabrication（编造规范条文/采分点/题目）不是只在运行时压制——它是
+   **内容补全信号**。当 content-truth / 判分维度反复在某知识缺口"现编"时，把该缺口回灌到
+   内容生产飞轮：采分点缺→`scoring_point_compile.v1` 编译管道补该母题采分点（真值唯一源，
+   bot 只引用）；教材条文缺→教材逐字签发（讲义 `*_v8` chunk）补该章节，使运行时核得到、
+   不必现编。质量门的"红"= 内容生产的需求清单，闭合"辅导→暴露缺口→内容补全→复测"飞轮。
+6. 改完本 skill 用 `git diff --check` 过一遍；提交走 narrow commit。
 保持本文件 < 400 行：同类模式合并，过时的细节删，链到日志/memory 而非复制。
 
 ## 7. 已知问题模式库（持续追加 —— 也是回归清单）
