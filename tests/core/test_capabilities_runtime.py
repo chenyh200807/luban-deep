@@ -84,6 +84,44 @@ def test_unanswered_implicit_help_short_circuits_to_structured_hint_no_leak() ->
             assert leaked not in hint, f"structured hint leaked {leaked!r}: {hint}"
 
 
+def test_unanswered_implicit_help_short_circuits_via_active_object_only() -> None:
+    # reachability 收口（2026-06-30，修 green-on-unreachable）：通用求助轮（kb_first）
+    # 不注入 question_followup_context，只有 active_object（始终恢复的单一权威）。短路
+    # 必须从 active_object 派生题面才对这些泄露轮可达。本测试只放 active_object，无
+    # question_followup_context，断言结构化提示仍短路（不泄底）。
+    ctx = UnifiedContext(
+        session_id="ao-only",
+        user_message="给点提示",
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "object_id": "q1",
+                "state_snapshot": {
+                    "question_id": "q1",
+                    "question": "屋面防水基本要求正确的是",
+                    "question_type": "single_choice",
+                    "options": {"A": "以排为主", "B": "坡度2%", "C": "厚度15mm", "D": "年限不低于20年"},
+                    "concentration": "屋面防水基本要求",
+                    "items": [
+                        {
+                            "question_id": "q1",
+                            "question": "屋面防水基本要求正确的是",
+                            "options": {"A": "以排为主", "B": "坡度2%", "C": "厚度15mm", "D": "年限不低于20年"},
+                            "concentration": "屋面防水基本要求",
+                            "grading_key": {"correct_answer": "D"},
+                        }
+                    ],
+                },
+            }
+        },
+    )
+    hint = TutorBotCapability._build_unanswered_reference_response(ctx)
+    assert hint is not None, "短路必须从 active_object 派生(无 followup_context 也可达)"
+    assert "屋面防水基本要求" in hint
+    for leaked in ("年限不低于20年", "正确答案", "选 D", "答案是 D"):
+        assert leaked not in hint, f"leaked {leaked!r}"
+
+
 def test_unanswered_explicit_answer_request_does_not_short_circuit() -> None:
     # owner 边界 #2：显式要答案 → 不短路（返回 None），让 reveal 路径正常出答案。
     for message in ("公布答案", "直接告诉我答案", "把答案给我", "直接说哪个对"):

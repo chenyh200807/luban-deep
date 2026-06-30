@@ -42,6 +42,9 @@ from deeptutor.services.question_lifecycle_skills import (
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
+from deeptutor.services.active_object_builder import (
+    extract_question_context_from_active_object,
+)
 from deeptutor.services.semantic_router import (
     apply_active_object_transition,
     build_active_object_from_question_context,
@@ -1168,6 +1171,15 @@ class TutorBotCapability(BaseCapability):
         normalized = normalize_question_followup_context(
             followup_context if isinstance(followup_context, dict) else None
         )
+        if not normalized:
+            # reachability 收口（2026-06-30，修第一刀 green-on-unreachable）：
+            # question_followup_context 只在 orchestrator 的 followup/submission 分支注入；
+            # 通用求助轮（"给点提示/还是不会"→ tutorbot_kb_first）不注入它 → 短路读不到
+            # 活跃题 → 落自由 LLM 泄底。active_object 是始终恢复的单一 relation 权威
+            # （turn_runtime 每轮恢复），从它派生题面，让短路对这些泄露轮真正可达。
+            normalized = extract_question_context_from_active_object(
+                metadata.get("active_object")
+            )
         if not normalized:
             return None
 
