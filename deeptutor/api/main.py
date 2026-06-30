@@ -464,6 +464,17 @@ async def lifespan(app: FastAPI):
     _configure_runtime_observability_store()
     _persist_launch_readiness_check(app)
 
+    # Cross-worker metrics: each worker periodically dumps its metric bundle so a Prometheus
+    # scrape on any worker merges every worker's view (avoids ~N× under-count with N workers).
+    try:
+        from deeptutor.runtime.safety import spawn_task as _spawn_task
+
+        app.state.metrics_dump_task = _spawn_task(
+            _metrics_dump_loop(), name="observability.metrics_dump"
+        )
+    except Exception as e:
+        logger.warning(f"Failed to start cross-worker metrics dump loop: {e}")
+
     if _assessment_form_prewarm_enabled():
         from deeptutor.runtime.safety import spawn_task as _spawn_task
         app.state.assessment_form_prewarm_task = _spawn_task(
@@ -499,6 +510,18 @@ async def lifespan(app: FastAPI):
         logger.info("LearnerState runtime stopped")
     except Exception as e:
         logger.warning(f"Failed to stop LearnerState runtime: {e}")
+
+    # Stop the cross-worker metrics dump loop and remove this worker's file so a recreated
+    # worker (new pid) does not leave a stale file lingering until it ages out.
+    try:
+        from deeptutor.services.observability import multiworker_metrics as _mwm
+
+        task = getattr(app.state, "metrics_dump_task", None)
+        if task is not None:
+            task.cancel()
+        _mwm.remove_worker_snapshot(get_path_service().get_observability_dir(), os.getpid())
+    except Exception as e:
+        logger.warning(f"Failed to stop metrics dump loop: {e}")
 
 
 app = FastAPI(
@@ -749,6 +772,38 @@ async def readyz():
     return JSONResponse(status_code=status_code, content=body)
 
 
+def _build_live_metric_bundle() -> dict:
+    """This worker's five per-process singleton snapshots, bundled for cross-worker merge.
+    These same singletons also feed the JSON ``/metrics`` and observer rollups, so the
+    multiworker fix reads them rather than re-instrumenting the hot path."""
+    return {
+        "http": app.state.runtime_metrics.snapshot(),
+        "turn": get_turn_runtime_metrics().snapshot(),
+        "surface": get_surface_event_store().snapshot(),
+        "providers": get_tracker_snapshot(),
+        "circuit_breakers": get_circuit_breaker_snapshot(),
+    }
+
+
+async def _metrics_dump_loop() -> None:
+    """Periodically persist this worker's metric bundle to the shared observability dir so
+    a Prometheus scrape landing on any worker can merge every worker's view (UVICORN_WORKERS>1
+    otherwise under-counts ~N×). Off the hot path; a dump failure is logged, never fatal."""
+    from deeptutor.services.observability import multiworker_metrics as _mwm
+
+    pid = os.getpid()
+    while True:
+        try:
+            base = get_path_service().get_observability_dir()
+            _mwm.dump_worker_snapshot(base, pid, _build_live_metric_bundle())
+        except Exception:
+            logger.debug("worker metrics dump failed", exc_info=True)
+        try:
+            await asyncio.sleep(_mwm.DEFAULT_DUMP_INTERVAL_SECONDS)
+        except asyncio.CancelledError:
+            break
+
+
 @app.get("/metrics", include_in_schema=False, dependencies=[Depends(require_metrics_access)])
 async def metrics():
     return {
@@ -766,21 +821,32 @@ async def metrics():
 
 @app.get("/metrics/prometheus", include_in_schema=False, dependencies=[Depends(require_metrics_access)])
 async def metrics_prometheus():
-    http_snapshot = app.state.runtime_metrics.snapshot()
-    turn_snapshot = get_turn_runtime_metrics().snapshot()
-    surface_snapshot = get_surface_event_store().snapshot()
+    from deeptutor.services.observability import multiworker_metrics as _mwm
+
+    # Merge every worker's snapshot (this worker's live + the others' fresh files) so a
+    # scrape is correct under UVICORN_WORKERS>1. Fail-safe: an observability endpoint must
+    # never 500 — on any merge error fall back to this worker's live (per-worker) view.
+    live_bundle = _build_live_metric_bundle()
+    try:
+        merged = _mwm.collect_merged_snapshots(
+            get_path_service().get_observability_dir(), os.getpid(), live_bundle
+        )
+    except Exception:
+        logger.debug("cross-worker metrics merge failed; serving live worker only", exc_info=True)
+        merged = live_bundle
+
+    # Readiness and release lineage are per-worker-consistent, so the live worker's values
+    # are authoritative — they are not part of the cross-worker merge.
     readiness_snapshot = get_readyz_payload(app)[1]
-    provider_error_rates = get_tracker_snapshot()
-    circuit_breakers = get_circuit_breaker_snapshot()
     release_snapshot = get_release_lineage_snapshot()
     return PlainTextResponse(
         render_prometheus_metrics(
-            http_snapshot=http_snapshot,
-            turn_snapshot=turn_snapshot,
-            surface_snapshot=surface_snapshot,
+            http_snapshot=merged["http"],
+            turn_snapshot=merged["turn"],
+            surface_snapshot=merged["surface"],
             readiness_snapshot=readiness_snapshot,
-            provider_error_rates=provider_error_rates,
-            circuit_breakers=circuit_breakers,
+            provider_error_rates=merged["providers"],
+            circuit_breakers=merged["circuit_breakers"],
             release_snapshot=release_snapshot,
         ),
         media_type="text/plain; version=0.0.4; charset=utf-8",
