@@ -16,7 +16,7 @@
 | `prometheus.scrape.example.yml` | 可移植 scrape 片段，给"已有自己 Prometheus、只想合并 DeepTutor job"的场景；本容器化栈不用它。 |
 | `alertmanager.yml` | Alertmanager 配置；默认邮件出口，飞书需适配器（见文件内注释）。 |
 | `docker-compose.observability.yml` | 拉起 Prometheus + Alertmanager 两容器。 |
-| `secrets/` | 运行期 secret 文件（`.gitignore` 排除，永不入库）。 |
+| `../../data/observability-secrets/` | 运行期 secret 文件（`metrics_token` / `smtp_password`）。放在 `data/` 下因为它被 `sync_to_aliyun.sh` 排除，全量发布 (`rsync --delete`) 删不掉；永不入库。 |
 
 ## 部署 runbook
 
@@ -28,9 +28,10 @@ docker network ls | grep deeptutor
 # 若不是 deeptutor_deeptutor-network，改 docker-compose.observability.yml 里 networks.*.name
 
 # 2. 创建 secret 文件（不入库）
-mkdir -p deployment/observability/secrets
-printf '%s' "$DEEPTUTOR_METRICS_TOKEN" > deployment/observability/secrets/metrics_token   # 必须等于 .env 里的同名值
-printf '%s' "$SMTP_PASSWORD"           > deployment/observability/secrets/smtp_password   # 邮件出口口令
+# Secret 放在 data/ 下 (sync 排除, 全量发布删不掉)
+mkdir -p data/observability-secrets
+printf '%s' "$DEEPTUTOR_METRICS_TOKEN" > data/observability-secrets/metrics_token   # 必须等于 .env 里的同名值
+printf '%s' "$SMTP_PASSWORD"           > data/observability-secrets/smtp_password   # 邮件出口口令
 
 # 3. 把 alertmanager.yml 的占位（smtp_smarthost / smtp_from / to）改成真实值
 
