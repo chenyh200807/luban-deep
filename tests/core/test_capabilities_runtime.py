@@ -78,7 +78,7 @@ def test_unanswered_implicit_help_short_circuits_to_structured_hint_no_leak() ->
             _unanswered_hint_context(message)
         )
         assert hint is not None, f"implicit help must short-circuit: {message}"
-        assert "屋面防水基本要求" in hint, "考点应在结构化提示里"
+        assert "解题思路" in hint, "通用解题思路应在结构化提示里"
         # 绝不泄底：不含正确选项字母指向、正确选项文本、逐项判别正确值。
         for leaked in ("年限不低于20年", "正确答案", "正确选项", "选 D", "答案是 D", "答案：D"):
             assert leaked not in hint, f"structured hint leaked {leaked!r}: {hint}"
@@ -117,7 +117,7 @@ def test_unanswered_implicit_help_short_circuits_via_active_object_only() -> Non
     )
     hint = TutorBotCapability._build_unanswered_reference_response(ctx)
     assert hint is not None, "短路必须从 active_object 派生(无 followup_context 也可达)"
-    assert "屋面防水基本要求" in hint
+    assert "解题思路" in hint
     for leaked in ("年限不低于20年", "正确答案", "选 D", "答案是 D"):
         assert leaked not in hint, f"leaked {leaked!r}"
 

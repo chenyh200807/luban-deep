@@ -1228,30 +1228,17 @@ class TutorBotCapability(BaseCapability):
         不同字段）。**绝不读** correct_answer / grading_key / explanation /
         knowledge_context（后者含「题库参考答案」明文，见 P2a）。无考点也给通用思路 nudge。
         """
-        items = normalized.get("items") if isinstance(normalized.get("items"), list) else []
-        sources = items or [normalized]
-        concepts: list[str] = []
-        for item in sources:
-            if not isinstance(item, dict):
-                continue
-            concept = str(item.get("concentration") or "").strip()
-            if concept and concept not in concepts:
-                concepts.append(concept)
-
-        lines: list[str] = []
-        if len(concepts) == 1:
-            lines.append(f"这道题考查的是【{concepts[0]}】。")
-        elif len(concepts) > 1:
-            lines.append(
-                "这几道题分别考查："
-                + "、".join(f"【{concept}】" for concept in concepts[:5])
-                + "。"
-            )
-        lines.append(
-            "解题思路：先抓住题干里的关键词和限定条件，回顾对应考点的规范要求/数值/原则，"
-            "再逐一对照每个选项判断哪个最符合——别急着核对答案，自己先推一遍印象最深。"
-        )
-        lines.append(cls._UNANSWERED_STRUCTURED_HINT_NUDGE)
+        # 只用通用、确定性、保证无答案的内容拼提示。不读 concentration（实测它常被
+        # 写成用户原话=垃圾，不可靠）、不读 correct_answer/explanation/knowledge_context
+        # （含答案）、不逐项评价选项。这是 leak-proof 的下限：宁可通用，绝不泄底。
+        lines = [
+            "这道题先自己推一推，我给你一个通用的判断框架：",
+            "解题思路：①先圈出题干里的关键词和限定条件（比如「正确的/错误的」、具体"
+            "数值、特定情形或工序）；②回顾这个知识点对应的规范要求或基本原则；③再逐一"
+            "对照每个选项，看哪个和你回顾到的原则最吻合——别急着核对答案，自己先推一遍"
+            "印象最深。",
+            cls._UNANSWERED_STRUCTURED_HINT_NUDGE,
+        ]
         return "\n\n".join(lines)
 
     def _default_bot_config(self, context: UnifiedContext) -> BotConfig | None:
