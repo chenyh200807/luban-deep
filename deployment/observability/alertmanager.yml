@@ -1,0 +1,52 @@
+# DeepTutor Alertmanager 配置。
+#
+# 默认出口 = 邮件（与现有 nightly cron 告警同渠道）。SMTP 口令走 *_file，secret 不入库。
+# 下面 smtp_smarthost / smtp_from / to 都是占位，部署前必须改成真实值并创建 secret 文件。
+#
+# 部署前自检：
+#   docker run --rm -v "$PWD/alertmanager.yml:/c.yml:ro" prom/alertmanager:v0.27.0 \
+#     amtool check-config /c.yml
+global:
+  resolve_timeout: 5m
+  # —— 占位，部署前替换 ——
+  smtp_smarthost: 'smtp.example.com:587'
+  smtp_from: 'deeptutor-alerts@example.com'
+  smtp_auth_username: 'deeptutor-alerts@example.com'
+  smtp_auth_password_file: /etc/alertmanager/secrets/smtp_password
+  smtp_require_tls: true
+
+route:
+  receiver: deeptutor-email
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 3h
+  routes:
+    # critical 收得更急、重复提醒更频繁。
+    - matchers:
+        - severity="critical"
+      receiver: deeptutor-email
+      group_wait: 10s
+      repeat_interval: 1h
+
+receivers:
+  - name: deeptutor-email
+    email_configs:
+      # —— 占位，部署前替换为 oncall 邮箱 ——
+      - to: 'oncall@example.com'
+        send_resolved: true
+
+  # 飞书自定义机器人（可选）：Alertmanager 原生 webhook 的 JSON schema 与飞书的
+  # {"msg_type":"text",...} 不兼容，直连飞书无法渲染。需中间适配器
+  # （如 prometheus-webhook-dingtalk / 飞书 adapter），再把下面的 webhook_configs
+  # 指向适配器。url_file 让 webhook 地址也不入库（alertmanager ≥ v0.26 支持）。
+  # - name: deeptutor-feishu
+  #   webhook_configs:
+  #     - url_file: /etc/alertmanager/secrets/feishu_webhook_url
+  #       send_resolved: true
+
+inhibit_rules:
+  # 同一 alertname 下，critical 已响则压制 warning，避免双重打扰。
+  - source_matchers: ['severity="critical"']
+    target_matchers: ['severity="warning"']
+    equal: ['alertname']
