@@ -64,17 +64,48 @@ def remove_worker_snapshot(base_dir: Path, pid: int) -> None:
         pass
 
 
+def _pid_is_alive(pid: int) -> bool:
+    """Whether a process with this pid currently exists in the shared namespace.
+    uvicorn --workers forks all workers inside one container (one pid namespace), so the
+    scrape-handling worker can probe a sibling worker's pid with signal 0."""
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True  # exists, owned by another user — still alive
+    except OSError:
+        return True  # unknown error: be conservative, do not reap on uncertainty
+    return True
+
+
 def read_worker_snapshots(
     base_dir: Path,
     *,
     staleness_seconds: float = DEFAULT_STALENESS_SECONDS,
     now: float | None = None,
     exclude_pid: int | None = None,
+    pid_is_alive: "callable | None" = None,
 ) -> list[dict[str, Any]]:
-    """Return fresh worker bundles. A file is dropped if its recorded ``ts`` is older than
-    ``staleness_seconds`` (a dead worker stops dumping, so its file ages out and is no
-    longer counted) or if it belongs to ``exclude_pid`` (the caller supplies its own live
-    snapshot for itself). Corrupt/partial files are skipped, never fatal."""
+    """Return fresh sibling worker bundles for cross-worker merge. A file is excluded when:
+
+    - it is not a dict (corrupt / unexpected-shape JSON) — skipped, never fatal (a valid
+      JSON scalar/list must not raise AttributeError on ``.get``);
+    - it belongs to ``exclude_pid`` (caller merges its own live snapshot for itself);
+    - its writer pid is no longer alive — the worker crashed; the file is **reaped
+      immediately** so a dead worker's last snapshot cannot keep being summed. Without this,
+      on an OOM-kill the dead file stays within the staleness window while the replacement
+      worker (new pid) also dumps, double-counting counters ~Nx until age-out, then dropping
+      them (a counter reset that corrupts ``rate()``). This is the crash path the saturated
+      single-host deployment invites;
+    - its recorded ``ts`` is older than ``staleness_seconds`` — backstop for a live-but-not-
+      dumping worker (its dump loop died) and for pid reuse.
+
+    ``pid_is_alive`` is injectable for deterministic tests; production uses real ``os.kill``.
+    """
+    alive = pid_is_alive or _pid_is_alive
     now_ts = _now(now)
     directory = metrics_dir(base_dir)
     bundles: list[dict[str, Any]] = []
@@ -85,7 +116,17 @@ def read_worker_snapshots(
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             continue
-        if exclude_pid is not None and int(payload.get("pid", -1)) == int(exclude_pid):
+        if not isinstance(payload, dict):
+            continue  # valid JSON but not our shape — skip, never .get on a non-dict
+        pid = int(payload.get("pid", -1))
+        if exclude_pid is not None and pid == int(exclude_pid):
+            continue
+        if not alive(pid):
+            # Crashed worker: drop now AND reap, so it neither double-counts nor leaks.
+            try:
+                path.unlink()
+            except OSError:
+                pass
             continue
         ts = float(payload.get("ts", 0.0))
         if now_ts - ts > staleness_seconds:
@@ -103,11 +144,16 @@ def collect_merged_snapshots(
     *,
     staleness_seconds: float = DEFAULT_STALENESS_SECONDS,
     now: float | None = None,
+    pid_is_alive: "callable | None" = None,
 ) -> dict[str, Any]:
     """Merge this worker's live (always-fresh) bundle with every other worker's fresh
     file. Single-worker => identity on ``live_bundle``."""
     others = read_worker_snapshots(
-        base_dir, staleness_seconds=staleness_seconds, now=now, exclude_pid=live_pid
+        base_dir,
+        staleness_seconds=staleness_seconds,
+        now=now,
+        exclude_pid=live_pid,
+        pid_is_alive=pid_is_alive,
     )
     return merge_metric_snapshots([live_bundle, *others])
 

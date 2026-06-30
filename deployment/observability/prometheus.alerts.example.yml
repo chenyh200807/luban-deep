@@ -48,3 +48,17 @@ groups:
         annotations:
           summary: DeepTutor metrics endpoint is unscrapeable
           description: Prometheus failed to scrape the deeptutor /metrics/prometheus target for 2m; all deeptutor alerts are blind until this recovers.
+
+      # Watch-the-watcher: if Alertmanager is down, Prometheus rules still fire but the
+      # notifications are silently dropped. This alert is itself routed through the (possibly
+      # dead) Alertmanager, so it MUST be backed by the out-of-band nightly cron email
+      # (see README) as the real dead-man's-switch. Requires the alertmanager scrape job
+      # in prometheus.yml.
+      - alert: AlertmanagerDown
+        expr: up{job="alertmanager"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Alertmanager is down
+          description: Prometheus cannot scrape Alertmanager for 2m; alert notifications may be silently dropped.

@@ -1,0 +1,136 @@
+# promtool test rules — behavioral regression for the alert rules.
+#   promtool test rules deployment/observability/prometheus.alerts.test.yml
+#
+# `promtool check rules` only proves syntax; this proves each rule actually FIRES when its
+# condition holds past its `for:` window and does NOT fire otherwise. rule_files reuses the
+# CI-validated example file (single authority — rules are never duplicated here).
+# promtool compares annotations exactly, so exp_annotations must mirror the rule text.
+rule_files:
+  - prometheus.alerts.example.yml
+
+evaluation_interval: 1m
+
+tests:
+  # ---- DeepTutorNotReady (deeptutor_ready == 0, for 2m) ----
+  - interval: 1m
+    input_series:
+      - series: "deeptutor_ready"
+        values: "0 0 0"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorNotReady
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: DeepTutor readiness failed
+              description: One or more DeepTutor readiness checks are failing.
+  - interval: 1m
+    input_series:
+      - series: "deeptutor_ready"
+        values: "1 1 1"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorNotReady
+        exp_alerts: []
+
+  # ---- DeepTutorServerErrors (increase(deeptutor_http_errors_total[5m]) > 5, for 5m) ----
+  - interval: 1m
+    input_series:
+      - series: "deeptutor_http_errors_total"
+        values: "0+10x15"  # +10/min => increase[5m] ~50 > 5, sustained
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: DeepTutorServerErrors
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: DeepTutor is returning 5xx responses
+              description: DeepTutor emitted more than 5 HTTP 5xx responses in the last 5 minutes.
+  - interval: 1m
+    input_series:
+      - series: "deeptutor_http_errors_total"
+        values: "0x15"  # flat counter => increase 0, never > 5
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: DeepTutorServerErrors
+        exp_alerts: []
+
+  # ---- DeepTutorProviderThresholdExceeded (== 1, for 3m) ----
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_provider_threshold_exceeded{provider="deepseek"}'
+        values: "1 1 1 1"
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: DeepTutorProviderThresholdExceeded
+        exp_alerts:
+          - exp_labels: { severity: warning, provider: deepseek }
+            exp_annotations:
+              summary: Upstream provider error rate is above threshold
+              description: At least one provider has exceeded the configured sliding-window error threshold.
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_provider_threshold_exceeded{provider="deepseek"}'
+        values: "0 0 0 0"
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: DeepTutorProviderThresholdExceeded
+        exp_alerts: []
+
+  # ---- DeepTutorCircuitBreakerOpen (== 1, for 1m) — the Step 2 OR-merge payoff ----
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_circuit_breaker_open{provider="deepseek"}'
+        values: "1 1"
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: DeepTutorCircuitBreakerOpen
+        exp_alerts:
+          - exp_labels: { severity: critical, provider: deepseek }
+            exp_annotations:
+              summary: DeepTutor circuit breaker is open
+              description: A provider circuit breaker has opened and requests are being blocked.
+  - interval: 1m
+    input_series:
+      - series: 'deeptutor_circuit_breaker_open{provider="deepseek"}'
+        values: "0 0"
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: DeepTutorCircuitBreakerOpen
+        exp_alerts: []
+
+  # ---- DeepTutorMetricsScrapeDown (up{job="deeptutor"} == 0, for 2m) ----
+  - interval: 1m
+    input_series:
+      - series: 'up{job="deeptutor"}'
+        values: "0 0 0"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorMetricsScrapeDown
+        exp_alerts:
+          - exp_labels: { severity: critical, job: deeptutor }
+            exp_annotations:
+              summary: DeepTutor metrics endpoint is unscrapeable
+              description: Prometheus failed to scrape the deeptutor /metrics/prometheus target for 2m; all deeptutor alerts are blind until this recovers.
+  - interval: 1m
+    input_series:
+      - series: 'up{job="deeptutor"}'
+        values: "1 1 1"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: DeepTutorMetricsScrapeDown
+        exp_alerts: []
+
+  # ---- AlertmanagerDown (up{job="alertmanager"} == 0, for 2m) ----
+  - interval: 1m
+    input_series:
+      - series: 'up{job="alertmanager"}'
+        values: "0 0 0"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: AlertmanagerDown
+        exp_alerts:
+          - exp_labels: { severity: critical, job: alertmanager }
+            exp_annotations:
+              summary: Alertmanager is down
+              description: Prometheus cannot scrape Alertmanager for 2m; alert notifications may be silently dropped.
