@@ -1,0 +1,80 @@
+# DeepTutor 观测栈（Prometheus + Alertmanager）— 独立 compose，按需拉起，不进主发布。
+#
+# 拉起：
+#   docker compose -f deployment/observability/docker-compose.observability.yml up -d
+# 停止：
+#   docker compose -f deployment/observability/docker-compose.observability.yml down
+#
+# 前置（见 README.md）：
+#   1. 主 deeptutor compose 已 up（提供 deeptutor 容器 + deeptutor-network）。
+#   2. 创建 secret 文件（不入库，secrets/ 已被 .gitignore 排除）：
+#        mkdir -p deployment/observability/secrets
+#        printf '%s' "$DEEPTUTOR_METRICS_TOKEN" > deployment/observability/secrets/metrics_token
+#        printf '%s' "$SMTP_PASSWORD"           > deployment/observability/secrets/smtp_password
+#   3. 确认外部网络名与主 compose 实际创建的一致：
+#        docker network ls | grep deeptutor   # 默认 <project>_deeptutor-network
+#
+# 端口只绑 loopback；公网必须经反代/TLS，不直接暴露 9090/9093。
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    container_name: deeptutor-prometheus
+    restart: unless-stopped
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # 单一 authority：告警规则复用 CI 校验过的 example 文件，不另起一份。
+      - ./prometheus.alerts.example.yml:/etc/prometheus/alerts.yml:ro
+      - ./secrets/metrics_token:/etc/prometheus/secrets/metrics_token:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks:
+      - deeptutor-network
+    depends_on:
+      - alertmanager
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: deeptutor-alertmanager
+    restart: unless-stopped
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./secrets/smtp_password:/etc/alertmanager/secrets/smtp_password:ro
+      - alertmanager-data:/alertmanager
+    ports:
+      - "127.0.0.1:9093:9093"
+    networks:
+      - deeptutor-network
+
+# 外部网络：由主 docker-compose.yml 创建。名字默认是 <compose-project>_deeptutor-network；
+# Aliyun 上主 compose 在 /root/deeptutor → 项目名 deeptutor → 网络 deeptutor_deeptutor-network。
+# 若 `docker network ls` 显示的名字不同，改这里的 name 或设 COMPOSE_PROJECT_NAME。
+networks:
+  deeptutor-network:
+    external: true
+    name: deeptutor_deeptutor-network
+
+volumes:
+  prometheus-data:
+  alertmanager-data:

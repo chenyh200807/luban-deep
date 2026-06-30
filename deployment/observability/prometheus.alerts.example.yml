@@ -36,3 +36,15 @@ groups:
         annotations:
           summary: DeepTutor circuit breaker is open
           description: A provider circuit breaker has opened and requests are being blocked.
+
+      # Self-monitoring: if Prometheus cannot scrape /metrics/prometheus the rest of
+      # these alerts go silently blind. This fires when the deeptutor target is down,
+      # so a dead observability path is itself an alert instead of a quiet gap.
+      - alert: DeepTutorMetricsScrapeDown
+        expr: up{job="deeptutor"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: DeepTutor metrics endpoint is unscrapeable
+          description: Prometheus failed to scrape the deeptutor /metrics/prometheus target for 2m; all deeptutor alerts are blind until this recovers.

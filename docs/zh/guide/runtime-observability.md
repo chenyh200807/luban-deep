@@ -116,12 +116,21 @@ bash scripts/verify_aliyun_observability.sh
 
 它们只负责验证仓库内的约定是否还对齐，不替代生产环境里的 Prometheus / Alertmanager 接线。
 
-典型接法：
+典型接法（两选一）：
+
+**A. 已有自己的 Prometheus —— 只合并 DeepTutor job**
 
 1. 把 `prometheus.scrape.example.yml` 合并到你们现有 Prometheus 配置。
    确保目标环境注入 `DEEPTUTOR_METRICS_TOKEN`，让 scrape job 走只读 token。
 2. 把 `prometheus.alerts.example.yml` 放到 Prometheus `rule_files` 路径。
 3. 把告警接到你们自己的 Alertmanager、飞书或 PagerDuty。
+
+**B. 没有 Prometheus —— 用仓库自带的可部署观测栈**
+
+`deployment/observability/docker-compose.observability.yml` 提供一套独立 compose，
+按需在生产宿主拉起 Prometheus + Alertmanager，scrape `deeptutor:8001` 并实时告警。
+完整 runbook、secret 处理、部署前校验命令、以及多 worker 少计的已知限制，见
+[`deployment/observability/README.md`](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/deployment/observability/README.md)。
 
 ## 最小告警建议
 
