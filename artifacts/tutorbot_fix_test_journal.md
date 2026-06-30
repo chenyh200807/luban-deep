@@ -1,5 +1,14 @@
 # TutorBot Fix/Test Journal
 
+> **Header 索引（shared brain）**：本 journal = 倒序详细复盘（每条 问题→根因→失败尝试→
+> 成功修法→验证）。一行结论的「飞轮活动流」+ metrics 时序见持续质量飞轮 shared brain：
+> - 活动流：`domains/quality-flywheel/LOG.md`（`## YYYY-MM-DD · 标题 · #tag` + What + Refs）
+> - signals（去重/频次）：`domains/quality-flywheel/signals.md`
+> - metrics 时序：`domains/quality-flywheel/metrics/accuracy.jsonl`
+> - charter：`domains/quality-flywheel/README.md`
+>
+> 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
+
 ## 2026-06-26 - Study assistant no-evidence terminal gate blocks fabricated learner state
 
 - 问题：

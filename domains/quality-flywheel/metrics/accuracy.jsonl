@@ -1,0 +1,6 @@
+{"ts": "2026-07-01T01:16:11.660963", "deployed_sha": "skip_sha_gate", "dim": "daowu", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
+{"ts": "2026-07-01T01:16:11.660963", "deployed_sha": "skip_sha_gate", "dim": "huizhi", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
+{"ts": "2026-07-01T01:16:11.660963", "deployed_sha": "skip_sha_gate", "dim": "leak_boundary", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
+{"ts": "2026-07-01T01:16:11.660963", "deployed_sha": "skip_sha_gate", "dim": "sev_regression", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
+{"ts": "2026-07-01T01:16:11.660963", "deployed_sha": "skip_sha_gate", "dim": "forward_liveness", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
+{"ts": "2026-07-01T01:16:11.660963", "deployed_sha": "skip_sha_gate", "dim": "content_truth", "fail_rate": 1.0, "reproduced": true, "conclusive": true, "gate_verdict": "BLOCK"}

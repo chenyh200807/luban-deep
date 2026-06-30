@@ -112,3 +112,74 @@ python scripts/quality_gate/accuracy_gate.py --runs 1
 - 待 main 与部署对齐后，跑一次三方 SHA 门齐的 `--runs 3` 全量封板，落 GO 证据。
 - 维度扩充: 案例题采分点判分忠实度、topic-source 忠实度、长对话稳定性（按内容飞轮缺口优先级）。
 - 接 CI / 定时: 作为 release 前置门挂 `deeptutor-aliyun-release` 流程后段（部署后真窗复核）。
+
+---
+
+# 持续质量飞轮 V2 — shared brain 结构化 + metrics 时序
+
+- 状态: `Implemented`（V2 第一步：把 v1 散件按 loop-engineer-template shared-brain 结构落地 +
+  补 metrics jsonl 时序缺口；纯新增 + 文档，零运行时代码改动，不碰 SEV 路径。调度=第二步未做）。
+- 单一 authority 不变: 门的代码 authority 仍在 `scripts/quality_gate/accuracy_gate.py`；
+  V2 只新增「记账 + 复利」的 shared brain，不新建第二套质量门主线。
+
+## V2.1 V2 = v1 + 模板 shared brain / 隔离 / 验证门
+
+v1 已把学员军团 eval 固化为一键六维门。V2 解决 v1 的真缺口：**每次 eval 算出的 6 维
+fail_rate 跑完就丢，没有时序**——无法看「某维上周 GO 这周 BLOCK」的回归趋势。V2 第一步：
+
+1. **metrics 确定性时序**（核心缺口）: `accuracy_gate.py` 跑完每维 append 一行到
+   `domains/quality-flywheel/metrics/accuracy.jsonl`，字段 `{ts, deployed_sha, dim,
+   fail_rate, reproduced, conclusive, gate_verdict}`。**确定性 collector**（写的是脚本自算的数，
+   非 LLM）；pure observer，**门判定逻辑/退出码一字未改**，collector 失败也不影响门。
+2. **shared brain 四层落地**: charter（`domains/quality-flywheel/README.md`）+ signals
+   频次（`domains/quality-flywheel/signals.md`）+ metrics 时序 + LOG 活动流
+   （`domains/quality-flywheel/LOG.md`）。我们已半自发在用（skill §7≈signals、
+   journal≈LOG、memory 已 `[[slug]]` 双链），V2 把它系统化。
+3. **隔离 / 验证门**: 飞轮只读 `/messages` 持久化终态 + 写本目录文件，绝不写运行时 authority；
+   反自证三方 SHA 门（L0）是验证门的硬前置。
+
+> charter / signals / LOG / metrics 四件全落 `domains/quality-flywheel/`（committable，非
+> gitignored）。门**运行时**写的逐维证据 JSON 仍落 `artifacts/quality_gate/<ts>/`（gitignored
+> 运行产物），与 committed shared brain 区分。
+
+## V2.2 五道红线闸（飞轮自身也守，防把假绿放大）
+
+| # | 红线闸 | 含义 | 落点 |
+|---|---|---|---|
+| ① | **LLM 仅附加非主裁** | metrics 写的全是确定性主裁的数；异源 judge 降级即 `JUDGE_DEGRADED` 不计 pass/fail | `_probe_common.{deepseek,glm}_judge` + `is_degraded`；collector 只写确定性数 |
+| ② | **封板 = WEAK-GO，人盖 GO** | 门只挡「确定性可复现的红」；`gate_verdict=GO` 是结构判定，最终封板由人裁 | `accuracy_gate.main` 退出码 + 人在环复核 |
+| ③ | **隔离盒只 eval 不碰生产** | 飞轮只读终态 + 写本目录文件，绝不写 TutorBot 运行时 authority | probes 只 GET `/messages`；collector 只写 jsonl |
+| ④ | **narrow add 防并发扫** | 飞轮所有写都是纯新增（domains/ 四件 + accuracy_gate collector），绝不 `git add -A` | PR diff 收窄到 domains/ + accuracy_gate.py + plan/ + journal header |
+| ⑤ | **治本设计人在环** | metrics 的「红」是内容生产需求清单；回灌内容飞轮（采分点/教材编译）的设计由人裁 | §7 接内容飞轮 → `scoring_point_compile.v1` / 教材 `*_v8`，飞轮只暴露缺口 |
+
+母原则（`[[false-success-root-cause-self-attestation-trap]]`）：任何「成功/生效/通过」声明的真相
+authority 只能是**独立于执行动作的 + 可证伪 + 可重复的终态观测**，禁止自证。五道闸都服从它。
+
+## V2.3 自动化 vs 人在环边界
+
+- **自动（门 + collector 负责）**: 确定性可复现的红（拒判复现、自由重排倒诬、显式 REVEAL 泄露、
+  内容抑制/无 hedge）→ 自动 `BLOCK` + 写 metrics 时序。
+- **人在环（飞轮只标，不替判）**: 全维 inconclusive（judge 全降级/采集失败 → `INCONCLUSIVE`）；
+  语义边界争议（topic precision drift、题源忠实度）继续走 student-army skill 人读裁决；
+  封板 GO 由人盖（②）；内容缺口回灌设计由人裁（⑤）。
+
+## V2.4 loop-engineer-template 映射表
+
+| 模板 shared-brain 件 | 本项目已有的半自发对应 | V2 系统化落点 |
+|---|---|---|
+| signals（去重 + 频次） | skill `§7 模式库`（逐条带状态） | `domains/quality-flywheel/signals.md`（家族归并 + 复发次数 + domain） |
+| LOG.md（append-only 一行/ship） | `artifacts/tutorbot_fix_test_journal.md`（倒序复盘） | `domains/quality-flywheel/LOG.md`（header + What 结论先行 + Refs）+ journal 顶加 header 索引 |
+| metrics/*.jsonl（确定性 collector） | **缺口**（fail_rate 跑完即丢） | `domains/quality-flywheel/metrics/accuracy.jsonl`（`accuracy_gate` 确定性 append） |
+| domains/<x>/README.md（charter） | 无 | `domains/quality-flywheel/README.md`（goal/cadence/links/红线） |
+| `[[slug]]` 复利 | memory 已双链 | charter / signals / LOG 里继续 `[[slug]]` 链 memory + plan + skill |
+
+## V2.5 调度 = 第二步（门确定性可信后才接）
+
+cadence 现为 **manual**，**刻意不接调度**。理由（服从「反自证 > 一切」）：调度/CI/GitHub Action
+会**放大**门的任何假绿——若门还没被证明「确定性可信」（反自证三方 SHA 门 + 确定性主裁 +
+异源判官降级都经多轮 live 验证），定时跑只会把假绿自动化、规模化。
+
+第二步触发条件（满足后再接 `schedule` / GitHub Action，挂 `deeptutor-aliyun-release` 后段）:
+1. 三方 SHA 门齐的 `--runs 3` 全量封板至少一次落 GO 证据（v1 §10 后续项）。
+2. metrics 时序已积累足够样本，能看出「某维回归趋势」而非单点。
+3. 调度产出的 GO 仍走「WEAK-GO 人盖 GO」（②），不允许定时任务自动宣布封板成功。

@@ -31,9 +31,17 @@ import os
 import subprocess
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 PROBES_DIR = Path(__file__).resolve().parent / "probes"
+
+# 确定性 metrics 时序: 每维一行, 脚本自算的数(非 LLM), append-only.
+# 持续质量飞轮 V2 shared brain 的「metrics/*.jsonl 确定性 collector」层.
+METRICS_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "domains" / "quality-flywheel" / "metrics" / "accuracy.jsonl"
+)
 if str(PROBES_DIR) not in sys.path:
     sys.path.insert(0, str(PROBES_DIR))
 
@@ -153,6 +161,45 @@ def _evidence_path(name: str, result: dict, out_dir: Path) -> str:
     return str(path)
 
 
+def _dim_verdict(result: dict) -> str:
+    """把脚本自算的 reproduced/conclusive 投影成 per-dim 封板判定.
+
+    口径与 main() 完全一致(纯派生, 非第二 authority): 任一复现 -> BLOCK;
+    否则有定论 -> GO; 全 inconclusive -> INCONCLUSIVE.
+    """
+    if result.get("reproduced"):
+        return "BLOCK"
+    if result.get("conclusive"):
+        return "GO"
+    return "INCONCLUSIVE"
+
+
+def _append_metrics(deployed_sha: str, results: list[dict]) -> int:
+    """确定性 collector: 每维 append 一行数值时序到 accuracy.jsonl.
+
+    写的全是脚本自己算出的数(fail_rate/reproduced/conclusive/verdict), 不依赖
+    LLM, 不改任何判定逻辑——只是把跑完即丢的时序固化下来. append-only.
+    返回写入的行数.
+    """
+    ts = datetime.now().isoformat()
+    lines = []
+    for r in results:
+        lines.append(json.dumps({
+            "ts": ts,
+            "deployed_sha": deployed_sha,
+            "dim": r.get("dim"),
+            "fail_rate": r.get("fail_rate"),
+            "reproduced": bool(r.get("reproduced")),
+            "conclusive": bool(r.get("conclusive")),
+            "gate_verdict": _dim_verdict(r),
+        }, ensure_ascii=False))
+    METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with METRICS_PATH.open("a", encoding="utf-8") as fh:
+        for line in lines:
+            fh.write(line + "\n")
+    return len(lines)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="P0 accuracy gate (6-dim regression)")
     ap.add_argument("--runs", type=int, default=3, help="每维每 unit 跑几轮(smoke=1)")
@@ -230,6 +277,17 @@ def main() -> int:
          "reproduced_dims": [r["dim"] for r in reproduced]},
         ensure_ascii=False, indent=2))
     print(f"门汇总: {gate_path}", flush=True)
+
+    # 确定性 metrics 时序落盘(纯 append, 不影响判定/退出码).
+    deployed_sha = (sha.get("container_env") or sha.get("origin_main") or "")
+    if sha.get("skipped"):
+        deployed_sha = deployed_sha or "skip_sha_gate"
+    try:
+        n_metrics = _append_metrics(deployed_sha, summary)
+        print(f"metrics: 已 append {n_metrics} 行 -> {METRICS_PATH}", flush=True)
+    except Exception as e:  # noqa: BLE001
+        # collector 失败绝不影响门判定(它只是观测时序, 不是 authority).
+        print(f"metrics: append 失败(不影响门判定): {str(e)[:160]}", flush=True)
 
     if reproduced:
         names = ", ".join(r["dim"] for r in reproduced)
