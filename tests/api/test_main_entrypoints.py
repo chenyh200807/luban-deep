@@ -745,7 +745,7 @@ def test_readyz_reflects_readiness_state(
             "ENV": None,
             "ENVIRONMENT": None,
             "DEEPTUTOR_CORS_ALLOW_ORIGINS": None,
-            "LLM_API_KEY": "sk-test-readyz-non-placeholder",
+            "LLM_API_KEY": "sk-test-readyz-non-placeholder",  # pragma: allowlist secret
         },
         tmp_path=tmp_path,
     )
