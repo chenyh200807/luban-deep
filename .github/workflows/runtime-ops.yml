@@ -1,36 +1,21 @@
 name: Runtime Ops Assets
 
 on:
+  # NO paths: filter on purpose. This job is a ~1-min hermetic invariant validator
+  # (pip install + a few pytest files + promtool). A paths: allowlist is a SECOND copy
+  # of "which files the guards read" and necessarily drifts from verify_runtime_assets.py
+  # + the guard tests — e.g. a guard reads scripts/sync_to_aliyun.sh / Dockerfile /
+  # docker-compose.ghcr.yml, none of which were in the old allowlist, so a change that
+  # broke the guarded invariant ran NEITHER workflow (dormant authority / green-by-omission).
+  # Running unconditionally on main/dev kills that whole class instead of chasing paths.
   push:
     branches:
       - main
       - dev
-    paths:
-      - "scripts/backup_data.py"
-      - "scripts/restore_data.py"
-      - "scripts/verify_runtime_assets.py"
-      - "tests/scripts/test_runtime_backup_restore.py"
-      - "tests/scripts/test_runtime_assets.py"
-      - "deployment/observability/**"
-      - "docs/zh/guide/runtime-backup-restore.md"
-      - "docs/zh/guide/runtime-observability.md"
-      - "docker-compose.yml"
-      - ".github/workflows/runtime-ops.yml"
   pull_request:
     branches:
       - main
       - dev
-    paths:
-      - "scripts/backup_data.py"
-      - "scripts/restore_data.py"
-      - "scripts/verify_runtime_assets.py"
-      - "tests/scripts/test_runtime_backup_restore.py"
-      - "tests/scripts/test_runtime_assets.py"
-      - "deployment/observability/**"
-      - "docs/zh/guide/runtime-backup-restore.md"
-      - "docs/zh/guide/runtime-observability.md"
-      - "docker-compose.yml"
-      - ".github/workflows/runtime-ops.yml"
   schedule:
     - cron: "0 3 * * 1"
 
@@ -53,7 +38,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/server.txt pytest pytest-asyncio
 
+      - name: Install promtool (pinned)
+        run: |
+          set -euo pipefail
+          PROM_VERSION=2.53.1
+          curl -fsSL -o /tmp/prometheus.tar.gz \
+            "https://github.com/prometheus/prometheus/releases/download/v${PROM_VERSION}/prometheus-${PROM_VERSION}.linux-amd64.tar.gz"
+          tar -xzf /tmp/prometheus.tar.gz -C /tmp
+          sudo install "/tmp/prometheus-${PROM_VERSION}.linux-amd64/promtool" /usr/local/bin/promtool
+          promtool --version
+
       - name: Validate runtime asset suite
         run: |
           python scripts/verify_runtime_assets.py
-          pytest -q tests/scripts/test_runtime_backup_restore.py tests/scripts/test_runtime_assets.py
+          pytest -q \
+            tests/scripts/test_runtime_backup_restore.py \
+            tests/scripts/test_runtime_assets.py
+          # NOTE: tests/scripts/test_aliyun_deploy_scripts.py is intentionally NOT wired
+          # here yet. It is hermetic but currently RED against the evolved deploy scripts
+          # (asserts a tmp REMOTE_DIR succeeds, but validate_aliyun_release_env.sh now
+          # enforces the canonical /root/deeptutor target) — a separate dormant-test-rot
+          # to remediate before it can gate CI. Wiring a red suite here would block all PRs.
+
+      - name: Validate + behaviorally test Prometheus alert rules
+        run: |
+          # check rules = syntax/expr validity; test rules = fire/no-fire behavior
+          # (catches a typo'd expr that never fires — which check rules cannot).
+          promtool check rules deployment/observability/prometheus.alerts.example.yml
+          promtool test rules deployment/observability/prometheus.alerts.test.yml
