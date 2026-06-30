@@ -26,6 +26,7 @@ from deeptutor.services.active_object_builder import (
     build_active_object_from_question_context,
     extract_question_context_from_active_object,
     normalize_active_object,
+    normalize_question_followup_context,
 )
 from deeptutor.services.question_turn_policy import (
     apply_grading_result_patch,
@@ -82,7 +83,19 @@ def _legacy_merge_decision(
 
     prior_qids = [str(it.get("question_id") or "").strip() for it in prior_items]
 
-    if result_qid and result_qid in prior_qids:
+    # NOTE: the first branch is gated on ``is_grading_result`` to reflect the
+    # 2026-06-30 bug fix (stale-active-set on a new question). question_id values
+    # are NOT stable identities — they reset to q_1, q_2, … on every generation —
+    # so a freshly generated single question recycles qid "q_1", which collides
+    # with a prior batch's "q_1". WITHOUT this gate the merge mistook that genuine
+    # NEW question (a non-grading generation turn) for a re-grade of set-item-1 and
+    # retained the stale q_2/q_3 → a 3-item Frankenstein set → "我选B" then false-
+    # rejected as ambiguous-multi. The merge only ever applied to single-item
+    # GRADING turns (per this function's contract), so a generation turn must fall
+    # through to the genuine-switch replace. This oracle is updated in lock-step
+    # with ``apply_grading_result_patch`` so the parity net asserts the corrected
+    # behavior.
+    if is_grading_result and result_qid and result_qid in prior_qids:
         merged_items = [
             dict(result_single) if qid == result_qid else it
             for it, qid in zip(prior_items, prior_qids)
@@ -203,6 +216,20 @@ _E8_CORPUS: tuple[tuple[str, dict[str, Any]], ...] = (
             "metadata": {"selected_mode": "grading", "turn_id": "t-123"},
         },
     ),
+    (
+        # 2026-06-30 stale-active-set bug: a NEW single question generated after a
+        # batch recycles qid "q1" (per-generation numbering, NOT a stable id), which
+        # collides with the prior batch's "q1". This is a NON-grading generation turn
+        # (route_to_generation), so the merge must NOT fire — the new question fully
+        # replaces the stale set. Live DB evidence (run1 T3) showed the unfixed code
+        # produced a 3-item Frankenstein [new q1, stale q2, stale q3].
+        "new_generation_recycled_qid_replaces_stale_set",
+        {
+            "prior_active_object": _set_active_object(["q1", "q2", "q3"]),
+            "result_active_object": _single_active_object("q1"),
+            "metadata": {"turn_semantic_decision": {"next_action": "route_to_generation"}},
+        },
+    ),
 )
 
 
@@ -236,6 +263,37 @@ def test_qtpk_grading_patch_matches_legacy_merge(kwargs: dict[str, Any]) -> None
     expected = _legacy_merge_decision(**kwargs)
     actual = apply_grading_result_patch(**kwargs)
     assert _strip_wallclock(actual) == _strip_wallclock(expected)
+
+
+def test_new_generation_with_recycled_qid_replaces_stale_set() -> None:
+    """A new single question generated after a batch must REPLACE the stale set.
+
+    Root cause (2026-06-30): question_id is per-generation positional ("q1", "q2",
+    …), NOT a stable identity. A freshly generated single question recycles "q1",
+    colliding with the prior batch's "q1". On a NON-grading generation turn the
+    merge must not fire — the new question is a genuine switch and replaces the set.
+    Reproduces the exact live DB Frankenstein (run1 T3): prior set [q1,q2,q3] +
+    new single q1 (网络计划) on route_to_generation → must become a SINGLE-item
+    active_object, never [new q1, stale q2, stale q3].
+    """
+    prior = _set_active_object(["q1", "q2", "q3"])
+    new_single = _single_active_object("q1")
+    out = apply_grading_result_patch(
+        prior_active_object=prior,
+        result_active_object=new_single,
+        metadata={"turn_semantic_decision": {"next_action": "route_to_generation"}},
+    )
+    normalized = normalize_active_object(out)
+    assert normalized is not None
+    # The new question fully replaces the stale batch: a single_question, NOT a
+    # question_set still carrying q2/q3.
+    assert normalized.get("object_type") == "single_question", normalized.get("object_type")
+    assert str(normalized.get("object_id") or "") == "q1"
+    # The disambiguation gate reads the question count via the SAME canonical
+    # normalizer; it must see <= 1 item so "我选B" grades instead of being
+    # false-rejected as ambiguous-multi-question.
+    snapshot_ctx = normalize_question_followup_context(normalized.get("state_snapshot"))
+    assert len((snapshot_ctx or {}).get("items") or []) <= 1
 
 
 def test_qtpk_grading_patch_is_pure_no_store_access() -> None:
