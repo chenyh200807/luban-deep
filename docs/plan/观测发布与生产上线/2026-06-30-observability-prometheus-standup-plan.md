@@ -53,11 +53,21 @@ P0/P1 加固已把"干净代码接线"做完（持久化 + 假绿闸 + eval 通�
 - `README.md`：部署 runbook + 多 worker 限制文档 + Step 2 指针。
 - `docs/zh/guide/runtime-observability.md`：新增"用仓库自带观测栈"接法 B。
 
-### Step 2（独立 PR，Proposed）
+### Step 2（独立 PR，Implemented — 改用方案 B，非原计划 A）
 
-prometheus_client 多进程迁移：5 个进程内单例 → Counter/Gauge/Histogram +
-`PROMETHEUS_MULTIPROC_DIR` + `MultiProcessCollector`。counter 跨 worker 自动汇总、
-gauge 用 `livesum`、均值改 histogram 或 sum+count。需热路径回归测试。
+多 worker 少计根治。**原计划 A（prometheus_client multiproc）经复审否决**：5 个单例
+同时喂 JSON `/metrics`(BI) + observer nightly 滚动 + turn 域逻辑，A 需热路径双重埋点 +
+新依赖 + avg→histogram 改契约，且给延迟敏感热路径加开销（与本程序的延迟关切冲突）。
+
+**改用方案 B（旁路文件合并，热路径零改动）**：每个 worker 后台定时器（15s）把现有
+`snapshot()` dump 到 `<observability_dir>/worker_metrics/worker-<pid>.json`；
+`/metrics/prometheus` 读所有 fresh worker 文件 + 自己 live 快照，按字段语义合并
+（counter sum、avg 按 count 重新加权、provider 阈值/熔断器 OR——确保任一 worker 开闸
+不被漏报），喂给**未改的渲染器**。陈旧 worker 文件按 mtime 窗口（60s）自动剔除；端点
+fail-safe（合并出错回退 live）。无新依赖、无契约变更、复用现有 snapshot/render（单一真相）。
+合并所需原始计数全用现成字段（`turn_latency_count == completed+failed+cancelled` 可派生），
+零 snapshot 改动。`deeptutor/services/observability/multiworker_metrics.py` + 15 条
+TDD 测试（含真实渲染器 shape 契约）。
 
 ## 验收标准
 
