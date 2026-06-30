@@ -1133,6 +1133,13 @@ class TutorBotCapability(BaseCapability):
         "这道题你还没作答，先试着做做——你的初步思路或选哪个？我再帮你看。"
     )
 
+    # P1（2026-06-30）：未答题「隐式求助」结构化提示的 nudge。明示如何显式拿答案
+    # （"公布答案"），尊重"不能不输出"——anti-peek 只压隐式，显式一律放行。
+    _UNANSWERED_STRUCTURED_HINT_NUDGE = (
+        "先按这个思路试着作答，把你的选择或想法发我，我再帮你逐项详细讲解；"
+        "如果确实想直接看答案，可以说「公布答案」。"
+    )
+
     @classmethod
     def _build_unanswered_reference_response(
         cls, context: UnifiedContext
@@ -1171,7 +1178,13 @@ class TutorBotCapability(BaseCapability):
         # Single authority #2: which specific batch item is referenced?
         requested_index = requested_question_item_index(message, normalized)
         if requested_index is None:
-            return None
+            # P1（2026-06-30）：无具体「第N题」指代的隐式求助（"给点提示/还是不会/
+            # 这题怎么想"）。should_block 已为 True（未答 + 非显式 reveal + 非 concession，
+            # 显式要答案在 should_block 内已放行）。真泄露根因=这类轮 fall-through 到自由
+            # LLM(tutorbot_kb_first)，LLM 用建造师知识自己推出答案（软指令/遮蔽已证伪）。
+            # 治本=结构上不走自由 LLM：确定性结构化提示（考点+解题思路+nudge，绝不含
+            # 答案/选项评价）。动作1 proven 治本扩面到通用求助。
+            return cls._build_structured_hint_for_unanswered(normalized)
 
         items = normalized.get("items") or []
         if not isinstance(items, list) or not (1 <= requested_index <= len(items)):
@@ -1191,6 +1204,43 @@ class TutorBotCapability(BaseCapability):
         if not rendered:
             return None
         return f"{rendered}\n\n{cls._UNANSWERED_REFERENCE_NUDGE}"
+
+    @classmethod
+    def _build_structured_hint_for_unanswered(
+        cls, normalized: dict[str, Any]
+    ) -> str | None:
+        """确定性结构化提示（P1，2026-06-30）：未答题隐式求助轮，结构上不走自由 LLM
+        （它会用建造师知识推出答案 → 泄底），只确定性拼「考点 + 通用解题思路 + nudge」。
+
+        只读保证无答案的字段：``concentration``（考点/知识点标签，与 correct_answer 是
+        不同字段）。**绝不读** correct_answer / grading_key / explanation /
+        knowledge_context（后者含「题库参考答案」明文，见 P2a）。无考点也给通用思路 nudge。
+        """
+        items = normalized.get("items") if isinstance(normalized.get("items"), list) else []
+        sources = items or [normalized]
+        concepts: list[str] = []
+        for item in sources:
+            if not isinstance(item, dict):
+                continue
+            concept = str(item.get("concentration") or "").strip()
+            if concept and concept not in concepts:
+                concepts.append(concept)
+
+        lines: list[str] = []
+        if len(concepts) == 1:
+            lines.append(f"这道题考查的是【{concepts[0]}】。")
+        elif len(concepts) > 1:
+            lines.append(
+                "这几道题分别考查："
+                + "、".join(f"【{concept}】" for concept in concepts[:5])
+                + "。"
+            )
+        lines.append(
+            "解题思路：先抓住题干里的关键词和限定条件，回顾对应考点的规范要求/数值/原则，"
+            "再逐一对照每个选项判断哪个最符合——别急着核对答案，自己先推一遍印象最深。"
+        )
+        lines.append(cls._UNANSWERED_STRUCTURED_HINT_NUDGE)
+        return "\n\n".join(lines)
 
     def _default_bot_config(self, context: UnifiedContext) -> BotConfig | None:
         bot_id = self._bot_id(context)

@@ -45,6 +45,56 @@ def _install_module(monkeypatch: pytest.MonkeyPatch, fullname: str, **attrs: Any
     return module
 
 
+def _unanswered_hint_context(user_message: str) -> UnifiedContext:
+    return UnifiedContext(
+        session_id="hint",
+        user_message=user_message,
+        metadata={
+            "question_followup_context": {
+                "question_id": "q1",
+                "question": "屋面防水基本要求正确的是",
+                "question_type": "single_choice",
+                "options": {"A": "以排为主", "B": "坡度2%", "C": "厚度15mm", "D": "年限不低于20年"},
+                "concentration": "屋面防水基本要求",
+                "items": [
+                    {
+                        "question_id": "q1",
+                        "question": "屋面防水基本要求正确的是",
+                        "options": {"A": "以排为主", "B": "坡度2%", "C": "厚度15mm", "D": "年限不低于20年"},
+                        "concentration": "屋面防水基本要求",
+                        "grading_key": {"correct_answer": "D"},
+                    }
+                ],
+            }
+        },
+    )
+
+
+def test_unanswered_implicit_help_short_circuits_to_structured_hint_no_leak() -> None:
+    # P1（owner 真治本 2026-06-30）：未答题「隐式求助」结构上不走自由 LLM（会推出答案），
+    # 短路到确定性结构化提示（考点+思路+nudge），绝不含正确选项/答案值/逐项判别。
+    for message in ("给点提示", "还是不会", "这题怎么想", "再多说点"):
+        hint = TutorBotCapability._build_unanswered_reference_response(
+            _unanswered_hint_context(message)
+        )
+        assert hint is not None, f"implicit help must short-circuit: {message}"
+        assert "屋面防水基本要求" in hint, "考点应在结构化提示里"
+        # 绝不泄底：不含正确选项字母指向、正确选项文本、逐项判别正确值。
+        for leaked in ("年限不低于20年", "正确答案", "正确选项", "选 D", "答案是 D", "答案：D"):
+            assert leaked not in hint, f"structured hint leaked {leaked!r}: {hint}"
+
+
+def test_unanswered_explicit_answer_request_does_not_short_circuit() -> None:
+    # owner 边界 #2：显式要答案 → 不短路（返回 None），让 reveal 路径正常出答案。
+    for message in ("公布答案", "直接告诉我答案", "把答案给我", "直接说哪个对"):
+        assert (
+            TutorBotCapability._build_unanswered_reference_response(
+                _unanswered_hint_context(message)
+            )
+            is None
+        ), f"explicit reveal must pass through: {message}"
+
+
 def test_tutorbot_fast_mode_preserves_explicit_web_search_tool() -> None:
     context = UnifiedContext(
         user_message="联网查询2026一建考试时间",

@@ -69,6 +69,47 @@ def test_detect_answer_reveal_preference_negated_tell_answer_is_suppress() -> No
     assert detect_answer_reveal_preference("不要听废话，直接告诉我答案") is True
 
 
+def test_detect_recognizes_explicit_answer_request_phrasings() -> None:
+    # owner 边界 #2/#3（2026-06-30）：anti-peek 只压隐式求助；任何显式要答案放行。
+    # detect 必须把这些显式 reveal 措辞认成 True（含 #314 止血遗留的反向回归）。
+    for message in (
+        "直接说哪个对",
+        "直接说哪个正确",
+        "把答案给我",
+        "把正确答案给我",
+        "把正确答案标出来",
+        "出3道题并把正确答案也标出来",
+        "直接给答案",
+    ):
+        assert detect_answer_reveal_preference(message) is True, message
+    # 隐式求助仍 None（不被误判成 reveal）。
+    for message in ("还是不会", "给点提示", "这题怎么想", "再多说点"):
+        assert detect_answer_reveal_preference(message) is None, message
+    # 否定的显式仍 suppress。
+    assert detect_answer_reveal_preference("先别把答案给我") is False
+
+
+def test_should_block_passes_explicit_answer_request_on_unanswered() -> None:
+    # owner 边界 #2：未答题上的显式要答案不被 anti-peek 压住（should_block=False）。
+    ctx = {
+        "question_id": "q1",
+        "question": "屋面防水正确的是",
+        "options": {"A": "x", "B": "y", "C": "z", "D": "w"},
+        "items": [
+            {
+                "question_id": "q1",
+                "question": "屋面防水",
+                "options": {"A": "x", "B": "y", "C": "z", "D": "w"},
+                "grading_key": {"correct_answer": "D"},
+            }
+        ],
+    }
+    for message in ("公布答案", "直接告诉我答案", "把答案给我", "直接说哪个对"):
+        assert should_block_unanswered_reference_reveal(message, ctx) is False, message
+    for message in ("还是不会", "给点提示", "这题怎么想"):
+        assert should_block_unanswered_reference_reveal(message, ctx) is True, message
+
+
 def test_resolve_submission_attempt_extracts_numbered_batch_with_wo_xuan_prefix() -> None:
     question_set = {
         "question_id": "quiz_generated",
@@ -146,7 +187,10 @@ def test_resolve_submission_attempt_rejects_multi_option_single_choice_without_i
     assert submission is None
 
 
-def test_unanswered_question_does_not_reveal_answer_on_direct_answer_request() -> None:
+def test_unanswered_question_reveals_on_explicit_request_blocks_implicit_help() -> None:
+    # owner 边界 #2（2026-06-30）：anti-peek 只压「未答 + 隐式求助」。
+    # 显式要答案（"直接告诉我答案"）→ 放行（尊重"不能不输出"，学员主动解锁）。
+    # 隐式求助（"给点提示"/"还是不会"）→ 仍压（不揭示），这才是 SEV 防的面。
     question_context = {
         "question_id": "q1",
         "question": "验槽通常主要采用什么方法？",
@@ -156,7 +200,9 @@ def test_unanswered_question_does_not_reveal_answer_on_direct_answer_request() -
         "explanation": "观察法为主，钎探法为辅。",
     }
 
-    assert should_reveal_reference_material("直接告诉我答案", question_context) is False
+    assert should_reveal_reference_material("直接告诉我答案", question_context) is True
+    assert should_reveal_reference_material("给点提示", question_context) is False
+    assert should_reveal_reference_material("还是不会", question_context) is False
 
 
 def test_unanswered_question_set_blocks_indexed_reference_reveal_until_attempt() -> None:

@@ -110,6 +110,11 @@ _REVEAL_ANSWER_MARKERS = (
     "剧透",
     "揭晓",
     "透露答案",
+    # owner 边界 #2/#3（2026-06-30）：显式要答案一律放行 —— 补认这些显式 reveal 措辞。
+    "答案给我",
+    "把正确答案",
+    "哪个对",
+    "哪个正确",
 )
 
 # 子句分隔符：否定感知只在 reveal marker 所在子句内判定，避免跨子句误伤
@@ -1594,6 +1599,11 @@ def should_block_unanswered_reference_reveal(
     if not normalized:
         return False
     if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
+        return False
+    # owner 边界 #2（2026-06-30）：anti-peek 只压「隐式求助」。显式要答案（"公布答案"/
+    # "把答案给我"/"直接说哪个对"）一律放行——尊重"不能不输出"，不被 anti-peek 压住。
+    # 与既有 concession 放行同级（都是"学员主动解锁"），只是把"显式 reveal"也并入。
+    if detect_answer_reveal_preference(message) is True:
         return False
     requested_index = requested_question_item_index(message, normalized)
     if requested_index is not None:
