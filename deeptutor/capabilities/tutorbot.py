@@ -45,6 +45,10 @@ from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_outpu
 from deeptutor.services.active_object_builder import (
     extract_question_context_from_active_object,
 )
+from deeptutor.services.question_turn_policy import (
+    _message_is_submission_for_stored_set,
+    _message_requests_active_mcq_represent,
+)
 from deeptutor.services.semantic_router import (
     apply_active_object_transition,
     build_active_object_from_question_context,
@@ -59,6 +63,33 @@ from deeptutor.tutorbot.response_mode import (
     select_response_mode,
 )
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
+
+
+# P1（2026-06-30）：窄「换题/出新题」意图短语。用于把切题/新生成轮从"未答题隐式求助
+# 结构化提示短路"里排除（它该交给生成路径出新题，非提示旧题）。识别学员意图，非探测题面。
+_SWITCH_TO_NEW_QUESTION_MARKERS = (
+    "换一道",
+    "换一题",
+    "换个题",
+    "换道题",
+    "换题",
+    "再来一道",
+    "再来一题",
+    "再来一个题",
+    "下一题",
+    "下一道",
+    "出道新的",
+    "出个新的",
+    "出新题",
+    "另一道",
+    "别的题",
+    "其他题",
+)
+
+
+def _looks_like_switch_to_new_question(message: str | None) -> bool:
+    text = str(message or "").strip()
+    return any(marker in text for marker in _SWITCH_TO_NEW_QUESTION_MARKERS)
 
 
 class TutorBotCapability(BaseCapability):
@@ -1196,6 +1227,22 @@ class TutorBotCapability(BaseCapability):
             # LLM(tutorbot_kb_first)，LLM 用建造师知识自己推出答案（软指令/遮蔽已证伪）。
             # 治本=结构上不走自由 LLM：确定性结构化提示（考点+解题思路+nudge，绝不含
             # 答案/选项评价）。动作1 proven 治本扩面到通用求助。
+            #
+            # 但 should_block=True 太宽——也命中**有专属确定性 handler** 的轮：真实作答
+            # （应判分）、re-present（应确定性重排）。这些不能被结构化提示偷走（否则判分/
+            # 重排失效）。复用 turn-START carve-out 同款单一权威排除它们，只对真正会落
+            # 自由 LLM 的隐式求助短路。
+            if _message_is_submission_for_stored_set(message, normalized):
+                return None
+            if _message_requests_active_mcq_represent(message, normalized):
+                return None
+            # 换题/出新题（"换一道题/再来一道/下一题/出道新的"）= 切题/新生成意图，
+            # 应交给生成路径出新题，不是提示旧题（非泄露，纯 UX；anti-peek 只管"别泄当前
+            # 未答题答案"）。复用生成意图权威 + 窄换题短语（学员意图，非题面探测）排除。
+            if looks_like_practice_generation_request(message) or _looks_like_switch_to_new_question(
+                message
+            ):
+                return None
             return cls._build_structured_hint_for_unanswered(normalized)
 
         items = normalized.get("items") or []

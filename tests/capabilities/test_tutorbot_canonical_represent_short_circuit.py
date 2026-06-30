@@ -129,14 +129,23 @@ async def test_answer_submission_still_goes_through_llm(
 
 
 @pytest.mark.asyncio
-async def test_explanation_request_still_goes_through_llm(
+async def test_explanation_request_on_unanswered_suppresses_to_structured_hint(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # 安全 SEV（2026-06-30）：未作答题上问"为什么选B"=要求解释某选项为何正确，
+    # 自由 LLM 会借机点明答案泄底（anti-peek 防的正是这种隐式求助）。结构上不走自由
+    # LLM：短路到确定性结构化提示（sent_messages=0），绝不泄底。显式"公布答案"仍放行。
     manager = _ReshuffleManager()
     monkeypatch.setattr(tutorbot_capability, "get_tutorbot_manager", lambda: manager)
     stream = StreamBus()
     await TutorBotCapability().run(_build_context("为什么选B"), stream)
-    assert manager.sent_messages == 1
+    assert manager.sent_messages == 0
+    result_events = [e for e in stream._history if e.type == StreamEventType.RESULT]
+    assert result_events, "expected a result event"
+    response = result_events[-1].metadata["response"]
+    assert "解题思路" in response
+    for leaked in ("正确答案", "答案是", "选 B", "B. 3年"):
+        assert leaked not in response, leaked
 
 
 @pytest.mark.asyncio
