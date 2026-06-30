@@ -65,6 +65,40 @@ def _question_set_context() -> dict[str, Any]:
     }
 
 
+def test_unanswered_implicit_help_is_demote_carveout_explicit_passes() -> None:
+    """安全 SEV（2026-06-30，Langfuse 取证定位）：turn-START demote 第 4 个 carve-out。
+
+    与 task#14(ordinal)/#287(re-present)/S1(submission) 同形——"本轮引用活跃对象 → 不
+    demote"。未作答活跃题 + **隐式求助**（"给点提示/还是不会"，should_block=True）必须
+    命中 carve-out（不压栈，活跃题保留，下游 anti-peek 短路才可达，否则落自由 LLM 泄底）。
+    **显式要答案**（"公布答案"，should_block=False）不命中 → 照常 demote，reveal 路径放行。
+
+    turn_runtime demote 块的 carve-out 谓词 = should_block_unanswered_reference_reveal
+    （reveal/anti-peek 单一权威，此处只读不重判）。
+    """
+    from deeptutor.services.question_followup import (
+        should_block_unanswered_reference_reveal,
+    )
+
+    unanswered_ctx = _question_set_context()  # 无 user_answer / is_correct = 未作答
+
+    # 隐式求助 → carve-out 命中（should_block=True → demote 条件被否定 → 不压栈）。
+    for message in ("给点提示", "还是不会", "这题怎么想", "再多说点"):
+        assert should_block_unanswered_reference_reveal(message, unanswered_ctx) is True, message
+
+    # 显式要答案 → 不命中 carve-out（should_block=False → 照常 demote → reveal 放行）。
+    for message in ("公布答案", "直接告诉我答案", "把答案给我"):
+        assert should_block_unanswered_reference_reveal(message, unanswered_ctx) is False, message
+
+    # 已作答题不命中（attempt 存在 → should_block=False，不属本 carve-out）。
+    answered_ctx = _question_set_context()
+    answered_ctx["items"][0]["user_answer"] = "A"
+    answered_ctx["items"][0]["is_correct"] = False
+    answered_ctx["items"][1]["user_answer"] = "B"
+    answered_ctx["items"][1]["is_correct"] = True
+    assert should_block_unanswered_reference_reveal("给点提示", answered_ctx) is False
+
+
 def _resume_decision(active_object: dict[str, Any]) -> dict[str, Any]:
     """A canonical routing-phase decision that asks to resume the suspended object."""
 
