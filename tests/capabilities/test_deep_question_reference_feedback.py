@@ -227,18 +227,21 @@ def test_unanswered_knowledge_followup_withholds_answer_and_routes_to_followup_a
     assert _should_render_deterministic_reference_feedback(msg, ctx) is False
 
 
-def test_unanswered_explicit_answer_request_still_withholds_answer() -> None:
-    """未作答题上即便明确"答案是什么"也必须隐藏参考答案(不泄露);改走 FollowupAgent,
-    由其渲染层(reveal=False)拿不到答案 + 被指示不得陈述/猜测,而非硬 block。"""
+def test_unanswered_explicit_reveals_implicit_help_withholds() -> None:
+    """owner 边界 #2(2026-06-30):anti-peek 只压「未答+隐式求助」。
+    显式要答案("直接告诉我答案是什么")→ 放行(reveal,尊重"不能不输出");
+    隐式求助("给点提示"/"还是不会")→ 仍 withhold(不泄底,这才是 SEV 防的面)。"""
     from deeptutor.capabilities.deep_question import (
         _should_render_deterministic_reference_feedback,
     )
     from deeptutor.services.question_followup import should_reveal_reference_material
 
     ctx = _unanswered_wall_context()
-    msg = "直接告诉我答案是什么"
-    assert should_reveal_reference_material(msg, ctx) is False
-    assert _should_render_deterministic_reference_feedback(msg, ctx) is False
+    assert should_reveal_reference_material("直接告诉我答案是什么", ctx) is True
+    assert _should_render_deterministic_reference_feedback("直接告诉我答案是什么", ctx) is True
+    for msg in ("给点提示", "还是不会"):
+        assert should_reveal_reference_material(msg, ctx) is False, msg
+        assert _should_render_deterministic_reference_feedback(msg, ctx) is False, msg
 
 
 def test_depth_concept_followup_routes_to_followup_agent_not_deterministic():
