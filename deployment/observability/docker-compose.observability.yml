@@ -21,7 +21,9 @@ services:
     image: prom/prometheus:v2.53.1
     container_name: deeptutor-prometheus
     restart: unless-stopped
-    mem_limit: 512m
+    # 共享 ECS 宿主内存吃紧（~3-4G 可用、无 swap）。我们指标基数很低，384m 对
+    # Prometheus head + TSDB 足够，刻意压低以免在已饱和的宿主上触发 OOM killer。
+    mem_limit: 384m
     logging:
       driver: json-file
       options:
@@ -49,7 +51,8 @@ services:
     image: prom/alertmanager:v0.27.0
     container_name: deeptutor-alertmanager
     restart: unless-stopped
-    mem_limit: 256m
+    # 同上，宿主内存吃紧；Alertmanager 占用很小，128m 足够。
+    mem_limit: 128m
     logging:
       driver: json-file
       options:
