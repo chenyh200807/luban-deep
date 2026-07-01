@@ -475,7 +475,7 @@ def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
             "language": "zh",
             "llm_selection": {
                 "provider": "openai",
-                "api_key": "sk-secret",
+                "api_key": "sk-secret",  # pragma: allowlist secret
                 "headers": {"Authorization": "Bearer secret-token"},
             },
         },
@@ -483,7 +483,7 @@ def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
         capability="chat",
         config={
             "bot_id": "construction-exam-coach",
-            "api_key": "config-secret",
+            "api_key": "config-secret",  # pragma: allowlist secret
             "nested": {"token": "nested-secret", "safe": "ok"},
         },
         attachments=[
@@ -503,7 +503,7 @@ def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
         memory_references=[],
         llm_selection={
             "provider": "openai",
-            "api_key": "sk-secret",
+            "api_key": "sk-secret",  # pragma: allowlist secret
             "headers": {"Authorization": "Bearer secret-token"},
         },
     )
@@ -2435,7 +2435,7 @@ async def test_turn_runtime_applies_request_scoped_llm_selection(
                                 "name": "Default",
                                 "binding": "openai",
                                 "base_url": "https://default.example/v1",
-                                "api_key": "default-key",
+                                "api_key": "default-key",  # pragma: allowlist secret
                                 "api_version": "",
                                 "extra_headers": {},
                                 "models": [{"id": "llm-m1", "name": "Default", "model": "gpt-default"}],
@@ -2445,7 +2445,7 @@ async def test_turn_runtime_applies_request_scoped_llm_selection(
                                 "name": "Selected",
                                 "binding": "dashscope",
                                 "base_url": "",
-                                "api_key": "selected-key",
+                                "api_key": "selected-key",  # pragma: allowlist secret
                                 "api_version": "",
                                 "extra_headers": {},
                                 "models": [{"id": "llm-m2", "name": "Selected", "model": "qwen-selected"}],
@@ -2493,7 +2493,7 @@ async def test_turn_runtime_applies_request_scoped_llm_selection(
             provider_mode="standard",
             binding_hint="dashscope",
             binding="dashscope",
-            api_key="selected-key",
+            api_key="selected-key",  # pragma: allowlist secret
             base_url="https://dashscope.example/v1",
             effective_url="https://dashscope.example/v1",
             api_version=None,
