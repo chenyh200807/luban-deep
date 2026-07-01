@@ -138,6 +138,15 @@
   runtime `metadata`，供 agent loop / RAGAdapterTool / deep_question 读取，使 learner claim → 个性化下一步动作
   在实时回合可见。它是 learner-state 读模型的**只读投影**，不是第二套推荐 authority；缺 claims 时为空且不进 metadata，
   绝不由前端或回合自行编造推荐。`next_best_action` 在回合内只作 view-layer 呈现，权威仍属 learner-state。
+- 终态答案的 content-truth ② 免责不变量（`ensure_regulatory_hedge`，单一输出守卫之家
+  `deeptutor/services/user_visible_output.py`）：当终态答案把「具名规范/法规源（`《…》` 或
+  `GB/JGJ/…` 代号）+ 具体条款或数值（`第 N 条` / `N 年` 等）」当事实直出、却全程无 hedge 免责时，
+  `turn_runtime` 在**终态全文投影**（`_sanitize_public_terminal_event` 的 `result.metadata.response`
+  + 持久化 `assistant_content`）确定性追加一句标准免责（法规具体值随规范修订/考纲变化，以现行官方
+  规范为准）。它把 hedge 从「LLM 概率产出」降级为「确定性终态兜底」；**幂等**（已带 hedge 含本
+  NOTICE 自身不二次追加）、**内容级自限**（不满足具名规范源+具体数值不触发）、capability 无关；
+  只在终态全文一次性应用，**绝不作用于 token 级 delta**（`content` 流不动）。它不是评分/路由/
+  learner-state authority，只是终态公开答案的准确性护栏。
 
 ## 必测项
 
@@ -146,6 +155,7 @@
 - `tests/api/test_mobile_router.py`
 - `tests/services/test_semantic_router.py`
 - `tests/runtime/test_orchestrator_semantic_router.py`
+- `tests/services/test_user_visible_output.py`
 
 ## QTPK 物理抽出 S1（2026-06-27，控制面收权 Task 2/4 物理执行）
 

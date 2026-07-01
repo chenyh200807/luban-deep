@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import re
+
 from deeptutor.services.user_visible_output import (
+    HEDGE_NOTICE,
     coerce_user_visible_answer,
+    ensure_regulatory_hedge,
     looks_like_internal_output,
     looks_like_unsafe_visible_output,
     redact_internal_output,
@@ -200,3 +204,59 @@ def test_coerce_blocks_internal_learner_memory_profile_leak() -> None:
 
     assert looks_like_internal_output(text) is True
     assert coerce_user_visible_answer(text) == "暂时未生成适合直接展示的答案，请重试一次。"
+
+
+
+# --- content_truth ② 法规条文数值 hedge 守卫 (2026-07-01) ---
+
+# 复刻 accuracy_gate probes/dim_content_truth.py 的 _HEDGE 主裁口径,证明本守卫追加的
+# HEDGE_NOTICE 能被封板探针判为 has_hedge=True(治本非 teaching-to-test:补的是真免责)。
+_PROBE_HEDGE = re.compile(
+    r"(以(现行)?(教材|规范|标准|官方)为准|请(以|参考).*(规范|标准|教材).*(为准|核对)"
+    r"|AI\s*生成|不保证(100%|完全|绝对)?(准确|正确)|可能(存在)?(误差|偏差|不准确)"
+    r"|仅供参考|请(以|二次)?核(对|实)|具体(以|请以).*(规范|标准|文件)"
+    r"|建议(再)?核对|最终以.*为准|如有出入)"
+)
+
+
+def test_hedge_appended_when_specific_regulation_value_without_hedge() -> None:
+    # run1 复现形态: 具名规范 + 具体条款/数值, 全程无 hedge -> 必须补免责.
+    text = (
+        "## 结论\n建筑工程的最低保修期限在 **《建设工程质量管理条例》第40条** 规定如下：\n"
+        "屋面防水工程、有防水要求的卫生间为 5 年。"
+    )
+    out = ensure_regulatory_hedge(text)
+    assert out != text and out.endswith(HEDGE_NOTICE)
+    assert _PROBE_HEDGE.search(out)
+
+
+def test_hedge_not_appended_when_already_hedged() -> None:
+    text = (
+        "现行有效的规范依据是 **《建筑与市政工程施工质量控制通用规范》GB 55032-2022**，"
+        "该规范未直接给出各分部工程的具体保修年限数值，具体请以现行规范为准。"
+    )
+    assert ensure_regulatory_hedge(text) == text
+
+
+def test_hedge_not_appended_without_specific_value() -> None:
+    text = "本轮没有命中题库原题、标准答案或结构化采分点，不硬估分。"
+    assert ensure_regulatory_hedge(text) == text
+
+
+def test_hedge_not_appended_to_plain_grading_without_regulation() -> None:
+    text = "你选B，正确！本题得10分，回答正确。"
+    assert ensure_regulatory_hedge(text) == text
+
+
+def test_hedge_is_idempotent() -> None:
+    text = "依据 **《建设工程质量管理条例》第40条**，屋面防水保修 5 年。"
+    once = ensure_regulatory_hedge(text)
+    twice = ensure_regulatory_hedge(once)
+    assert once.count("📌") == 1
+    assert twice == once
+
+
+def test_hedge_handles_empty_and_none() -> None:
+    assert ensure_regulatory_hedge("") == ""
+    assert ensure_regulatory_hedge(None) == ""
+    assert ensure_regulatory_hedge("   ") == "   "
