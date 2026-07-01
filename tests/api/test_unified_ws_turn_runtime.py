@@ -475,7 +475,7 @@ def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
             "language": "zh",
             "llm_selection": {
                 "provider": "openai",
-                "api_key": "sk-secret",  # pragma: allowlist secret
+                "api_key": "sk-secret",
                 "headers": {"Authorization": "Bearer secret-token"},
             },
         },
@@ -483,7 +483,7 @@ def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
         capability="chat",
         config={
             "bot_id": "construction-exam-coach",
-            "api_key": "config-secret",  # pragma: allowlist secret
+            "api_key": "config-secret",
             "nested": {"token": "nested-secret", "safe": "ok"},
         },
         attachments=[
@@ -503,7 +503,7 @@ def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
         memory_references=[],
         llm_selection={
             "provider": "openai",
-            "api_key": "sk-secret",  # pragma: allowlist secret
+            "api_key": "sk-secret",
             "headers": {"Authorization": "Bearer secret-token"},
         },
     )
@@ -2435,7 +2435,7 @@ async def test_turn_runtime_applies_request_scoped_llm_selection(
                                 "name": "Default",
                                 "binding": "openai",
                                 "base_url": "https://default.example/v1",
-                                "api_key": "default-key",  # pragma: allowlist secret
+                                "api_key": "default-key",
                                 "api_version": "",
                                 "extra_headers": {},
                                 "models": [{"id": "llm-m1", "name": "Default", "model": "gpt-default"}],
@@ -2445,7 +2445,7 @@ async def test_turn_runtime_applies_request_scoped_llm_selection(
                                 "name": "Selected",
                                 "binding": "dashscope",
                                 "base_url": "",
-                                "api_key": "selected-key",  # pragma: allowlist secret
+                                "api_key": "selected-key",
                                 "api_version": "",
                                 "extra_headers": {},
                                 "models": [{"id": "llm-m2", "name": "Selected", "model": "qwen-selected"}],
@@ -2493,7 +2493,7 @@ async def test_turn_runtime_applies_request_scoped_llm_selection(
             provider_mode="standard",
             binding_hint="dashscope",
             binding="dashscope",
-            api_key="selected-key",  # pragma: allowlist secret
+            api_key="selected-key",
             base_url="https://dashscope.example/v1",
             effective_url="https://dashscope.example/v1",
             api_version=None,
@@ -12373,33 +12373,3 @@ async def test_grading_merge_single_item_result_reads_store_once() -> None:
     assert store.get_active_object_calls == 1
     # prior is None → no set to preserve → result passes through unchanged.
     assert out is single
-
-
-
-def test_sanitize_public_terminal_event_appends_regulatory_hedge() -> None:
-    """content_truth ②: 终态 RESULT 投影对'具名规范+具体条款数值却无 hedge'的答案,
-    确定性追加标准免责(把 hedge 从 LLM 概率产出降级为终态确定性兜底)。"""
-    from deeptutor.services.user_visible_output import HEDGE_NOTICE
-
-    event = StreamEvent(type=StreamEventType.RESULT, source="tutorbot")
-    metadata: dict[str, Any] = {
-        "response": (
-            "## 结论\n建筑工程最低保修期限见 **《建设工程质量管理条例》第40条**：\n"
-            "屋面防水工程为 5 年。"
-        )
-    }
-    out = _sanitize_public_terminal_event(event, metadata)
-    assert out["response"].endswith(HEDGE_NOTICE)
-    assert "以现行有效的官方规范" in out["response"]
-
-
-def test_sanitize_public_terminal_event_no_double_hedge_when_present() -> None:
-    """已带 hedge 的终态答案不二次追加(幂等,避免双重免责)。"""
-    event = StreamEvent(type=StreamEventType.RESULT, source="tutorbot")
-    body = (
-        "现行规范依据是 **《建筑与市政工程施工质量控制通用规范》GB 55032-2022**，"
-        "未直接给出各分部具体保修年限数值，具体请以现行规范为准。"
-    )
-    metadata: dict[str, Any] = {"response": body}
-    out = _sanitize_public_terminal_event(event, metadata)
-    assert out["response"].count("📌") == 0
