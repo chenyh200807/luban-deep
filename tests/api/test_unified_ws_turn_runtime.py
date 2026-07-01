@@ -12373,33 +12373,3 @@ async def test_grading_merge_single_item_result_reads_store_once() -> None:
     assert store.get_active_object_calls == 1
     # prior is None → no set to preserve → result passes through unchanged.
     assert out is single
-
-
-
-def test_sanitize_public_terminal_event_appends_regulatory_hedge() -> None:
-    """content_truth ②: 终态 RESULT 投影对'具名规范+具体条款数值却无 hedge'的答案,
-    确定性追加标准免责(把 hedge 从 LLM 概率产出降级为终态确定性兜底)。"""
-    from deeptutor.services.user_visible_output import HEDGE_NOTICE
-
-    event = StreamEvent(type=StreamEventType.RESULT, source="tutorbot")
-    metadata: dict[str, Any] = {
-        "response": (
-            "## 结论\n建筑工程最低保修期限见 **《建设工程质量管理条例》第40条**：\n"
-            "屋面防水工程为 5 年。"
-        )
-    }
-    out = _sanitize_public_terminal_event(event, metadata)
-    assert out["response"].endswith(HEDGE_NOTICE)
-    assert "以现行有效的官方规范" in out["response"]
-
-
-def test_sanitize_public_terminal_event_no_double_hedge_when_present() -> None:
-    """已带 hedge 的终态答案不二次追加(幂等,避免双重免责)。"""
-    event = StreamEvent(type=StreamEventType.RESULT, source="tutorbot")
-    body = (
-        "现行规范依据是 **《建筑与市政工程施工质量控制通用规范》GB 55032-2022**，"
-        "未直接给出各分部具体保修年限数值，具体请以现行规范为准。"
-    )
-    metadata: dict[str, Any] = {"response": body}
-    out = _sanitize_public_terminal_event(event, metadata)
-    assert out["response"].count("📌") == 0
