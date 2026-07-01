@@ -17,9 +17,14 @@ TutorBot 运行时 authority（飞轮是观测者 + 记账者，不是 writer）
 
 ## Cadence
 
-**manual**（本阶段刻意不接调度）。先把门做到「确定性可信」（反自证三方 SHA 门 +
-确定性主裁 + 异源判官降级），**调度是第二步**：门确定性可信后才接 `schedule` /
-GitHub Action，否则把假绿放大违「反自证 > 一切」。详见 plan doc §V2 调度边界。
+**daily（机制已建，未激活）**。调度机制（`scripts/quality_gate/scheduled_run.py` +
+`.github/workflows/accuracy-gate-scheduled.yml`）已经落地，但 workflow 里的
+`schedule:` cron 行**当前保持注释**，只留 `workflow_dispatch` 可手动触发——因为
+plan doc §V2.5 定的两个调度触发条件**截至本次更新都还没满足**：①从未有过一次
+三方 SHA 对齐的 `--runs 3` 全量 `GO`（唯一一次三方对齐的全量跑 `content_truth`
+复现 → `BLOCK`）；②`metrics/accuracy.jsonl` 目前样本量不足以看趋势。owner 需要
+先拿到一次真 `GO` 证据，再手动取消 workflow 里的 cron 注释。详见下面「调度
+(Scheduled Runs)」小节 + plan doc §V2.6。
 
 ## Layout（shared brain 四层）
 
@@ -65,6 +70,51 @@ GitHub Action，否则把假绿放大违「反自证 > 一切」。详见 plan d
 - `[[release-gate-runner-attest-only-what-it-exercises]]` — 只 attest 真实跑到的，别 borrowed-coverage。
 - `[[dont-stop-at-handoff-continue-to-actual-fix-and-verify-live-final]]` — 核 live 终态非 unit 绿。
 - `[[student-army-live-eval-method-and-findings]]` — 学员军团活体 eval 法。
+
+## 调度 (Scheduled Runs)
+
+持续质量飞轮 V2 第二步。`scripts/quality_gate/scheduled_run.py` 是 `accuracy_gate.py`
+的薄封装：① SHA 门前置检查(不齐 -> `skipped:misaligned`, 不跑任何探针, 不花钱)
+② 对齐则 subprocess 跑 `accuracy_gate.py --runs 3` ③ 读 `gate_summary.json` 产
+WEAK-GO 报告(`artifacts/quality_gate/scheduled/<ts>/report.md`, 六维矩阵 + 趋势,
+样本不足如实说不足) ④ 给本文件同目录的 `LOG.md` 追加一行。判定逻辑单一权威仍在
+`accuracy_gate.py`，本脚本不重新实现任何判据，退出码原样透传(`0`=结构 GO 待人盖
+封板 / `2`=SHA 门不齐 STOP / `3`=复现阻断 BLOCK / `4`=无法判定)。
+
+`.github/workflows/accuracy-gate-scheduled.yml` 是外层调度器：`workflow_dispatch`
+可随时手动触发；`schedule:` cron 行**当前注释**，取消注释前请先确认上面 Cadence
+段说的两个触发条件已经满足。exit 2(misaligned)只打 warning 不算失败；exit 3
+(BLOCK)job 失败 + 告警(webhook 或开 issue，只报告不自动修)；exit 4(inconclusive)
+job 失败但不告警(避免把"判不出"和"真的红"混进同一通知噪声)。**自动化只到产出
+WEAK-GO 报告，封板 = 人在环，workflow 不会、也不应该自动宣布"调度成功"。**
+
+### Secrets 清单(需要 owner 去 GitHub repo secrets 里加)
+
+| Secret | 必需? | 用途 | 缺失时的行为 |
+|---|---|---|---|
+| `WECHAT_QA_USERNAME` / `WECHAT_QA_PASSWORD` | 必需 | 映射成 `DEEPTUTOR_QA_USERNAME`/`DEEPTUTOR_QA_PASSWORD`，探针登录用 | 登录失败 -> exit 4(无法判定) |
+| `ALIYUN_SSH_PRIVATE_KEY` / `ALIYUN_SSH_HOST` | 必需 | SHA 三方门要 SSH 读 host `.env` + container env(别名 `Aliyun-ECS-2`) | workflow 直接 `::error::` 停在配置步骤 |
+| `DEEPSEEK_API_KEY` / `BIGMODEL_API_KEY` | 可选 | 异源判官(附加，非主裁) | 缺则 `JUDGE_DEGRADED` 降级，不阻断门 |
+| `QUALITY_GATE_WEBHOOK_URL` | 可选 | BLOCK 时飞书/企微 webhook 告警 | 缺则退化为 `gh issue create`(用默认 `GITHUB_TOKEN`，不需要额外配) |
+| `DEEPTUTOR_QA_BASE_URL` | 可选 | 覆盖探针打的 base url | 缺则用 `accuracy_gate.py` 默认值 `https://test2.yousenjiaoyu.com` |
+
+**不需要 `DEEPTUTOR_EVAL_BYPASS_KEY`**：核实过 `accuracy_gate.py`/`probes/` 当前
+不读这个变量(它是小程序真机 automator 场景绕 billing 用的，和这条走公网 HTTP
+探针的门是两条不同路径)，除非未来新增探针要用，否则不必配。
+
+### post-deploy 集成(可选，默认不接)
+
+`scripts/deploy_aliyun.sh` 跑完后，owner 可以手动或在自己的发布流程里另起一步做
+"部署即复核"：
+
+```bash
+cd <repo>; set -a; source .env; set +a
+export DEEPTUTOR_QA_USERNAME="$WECHAT_QA_USERNAME" DEEPTUTOR_QA_PASSWORD="$WECHAT_QA_PASSWORD"
+python scripts/quality_gate/scheduled_run.py --runs 3
+```
+
+**不修改 `deploy_aliyun.sh` 本身**——每次部署自动跑门会拖慢发布 + 产生额外 billable
+调用，是否接入由 owner 决定。
 
 ## 红线（飞轮自身也守）
 
