@@ -10,11 +10,11 @@
 # 单一 authority：告警规则不在此重复定义。rule_files 直接复用 CI 校验过的
 # prometheus.alerts.example.yml（compose 把它挂到 /etc/prometheus/alerts.yml）。
 #
-# ⚠️ 多 worker 少计：生产 UVICORN_WORKERS=2，/metrics/prometheus 读进程内单例，
-# 每次 scrape 只命中其中一个 worker（共享监听 socket，无法分别寻址）。计数类指标
-# 约 2× 少计且 counter 会在 worker 间跳变（rate() 不可靠）；per-worker 状态闸
-# （熔断器/provider 阈值）可能漏报另一 worker 的开闸。这是已知限制，根治在独立的
-# prometheus_client multiproc 迁移 PR（见 deployment/observability/README.md）。
+# 多 worker 正确性：生产 UVICORN_WORKERS=2。/metrics/prometheus 已通过 Step 2 跨 worker
+# 合并（multiworker_metrics.py）把每个 worker 的快照按字段语义聚合后渲染——counter 求和、
+# per-worker 状态闸 OR（任一 worker 开闸不漏报）。崩溃路径用 pid 存活剔除避免双计数。
+# 生效前提：deeptutor 容器跑的镜像已含 Step 2（worker_metrics dump loop）；用
+# verify_aliyun_observability_stack.sh 的 worker_metrics 检查确认 live 生效。
 global:
   scrape_interval: 30s
   evaluation_interval: 30s
@@ -36,6 +36,14 @@ scrape_configs:
     static_configs:
       - targets:
           - localhost:9090
+
+  # Alertmanager 自监控（watch-the-watcher）：没有这个 job，AM 挂掉时规则照常 fire 但
+  # 通知静默丢失，无 up{job="alertmanager"} 即无 AlertmanagerDown 告警。配合 nightly
+  # cron 邮件做带外兜底（AlertmanagerDown 本身要经可能已死的 AM 投递）。
+  - job_name: alertmanager
+    static_configs:
+      - targets:
+          - alertmanager:9093
 
   - job_name: deeptutor
     metrics_path: /metrics/prometheus

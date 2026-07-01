@@ -93,6 +93,14 @@ class _FakePathService:
     def get_runtime_dir(self) -> Path:
         return self._dir("data", "runtime")
 
+    def get_observability_dir(self) -> Path:
+        # Mirror the real PathService (get_runtime_dir()/"observability"). Without this the
+        # /metrics/prometheus endpoint's collect_merged_snapshots() raised AttributeError and
+        # silently fell back to the live worker — so the cross-worker merge wiring was never
+        # actually exercised by any test (green-by-omission). Keep this in sync with
+        # deeptutor/services/path_service.py:get_observability_dir.
+        return self._dir("data", "runtime", "observability")
+
     def get_learner_state_outbox_db(self) -> Path:
         return self.get_runtime_dir() / "outbox.db"
 
@@ -737,7 +745,7 @@ def test_readyz_reflects_readiness_state(
             "ENV": None,
             "ENVIRONMENT": None,
             "DEEPTUTOR_CORS_ALLOW_ORIGINS": None,
-            "LLM_API_KEY": "sk-test-readyz-non-placeholder",
+            "LLM_API_KEY": "sk-test-readyz-non-placeholder",  # pragma: allowlist secret
         },
         tmp_path=tmp_path,
     )
@@ -1123,6 +1131,87 @@ def test_metrics_prometheus_exports_runtime_and_provider_snapshots(
     assert 'deeptutor_circuit_breaker_failure_count{provider="test-provider"}' in body
     error_rate_module.clear_tracker_state()
     circuit_breaker_module.reset_circuit_breakers()
+
+
+def test_metrics_prometheus_merges_sibling_worker_through_endpoint(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The cross-worker merge wiring must actually run end-to-end (not the except-fallback).
+    Drop another worker's snapshot file into the observability dir; a sibling-only circuit
+    breaker that is open must surface in the scrape output — it can ONLY appear if the
+    endpoint merged that file (OR semantics across workers)."""
+    module = _reload_main(
+        monkeypatch,
+        env={"DEEPTUTOR_ENV": "local", "APP_ENV": None, "ENV": None, "ENVIRONMENT": None,
+             "DEEPTUTOR_CORS_ALLOW_ORIGINS": None},
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+    module.app.state.readiness_checks = {"config_consistent": True}
+    module.app.dependency_overrides[module.require_metrics_access] = lambda: None
+
+    from deeptutor.services.observability import multiworker_metrics as mwm
+
+    obs_dir = module.get_path_service().get_observability_dir()
+    sibling_pid = os.getppid()  # a real, alive pid that is not this process → survives reaping, not self-excluded
+    mwm.dump_worker_snapshot(
+        obs_dir,
+        sibling_pid,
+        {
+            "http": {"requests_total": 20, "errors_total": 3, "status_counts": {"200": 17, "500": 3},
+                     "routes": [], "recent_errors": [], "uptime_seconds": 0.0, "started_at": 0.0},
+            "turn": {},
+            "surface": {},
+            "providers": {},
+            "circuit_breakers": {"sibling-only": {"state": "open", "failure_count": 4,
+                                                  "last_failure_time": 0.0, "recovery_timeout": 30,
+                                                  "failure_threshold": 5}},
+        },
+    )
+
+    with TestClient(module.app) as client:
+        body = client.get("/metrics/prometheus").text
+
+    # Proof of merge: the sibling-only provider's open breaker is present (could not appear
+    # from this worker's own live snapshot — it has no such provider).
+    assert 'deeptutor_circuit_breaker_open{provider="sibling-only"} 1' in body
+    # And the sibling's request count is summed in.
+    import re
+    m = re.search(r"^deeptutor_http_requests_total (\d+)$", body, re.M)
+    assert m and int(m.group(1)) >= 20
+
+
+def test_metrics_prometheus_falls_back_to_live_on_merge_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Observability endpoint must never 500: if the cross-worker merge raises, the endpoint
+    serves this worker's live (per-worker) snapshot instead."""
+    module = _reload_main(
+        monkeypatch,
+        env={"DEEPTUTOR_ENV": "local", "APP_ENV": None, "ENV": None, "ENVIRONMENT": None,
+             "DEEPTUTOR_CORS_ALLOW_ORIGINS": None},
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+    module.app.state.readiness_checks = {"config_consistent": True}
+    module.app.dependency_overrides[module.require_metrics_access] = lambda: None
+
+    from deeptutor.services.observability import multiworker_metrics as mwm
+
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("merge failed")
+
+    monkeypatch.setattr(mwm, "collect_merged_snapshots", _boom)
+
+    with TestClient(module.app) as client:
+        resp = client.get("/metrics/prometheus")
+
+    assert resp.status_code == 200  # did not 500
+    assert "deeptutor_ready" in resp.text  # still rendered the live snapshot
 
 
 @pytest.mark.parametrize(("path"), ("/metrics", "/metrics/prometheus"))

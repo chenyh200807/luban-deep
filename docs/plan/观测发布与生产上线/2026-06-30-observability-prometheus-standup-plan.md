@@ -79,10 +79,34 @@ TDD 测试（含真实渲染器 shape 契约）。
 - [ ] 部署前（执行时）：`amtool check-config alertmanager.yml`（README 已列，需 docker daemon）
 - [ ] 部署后（执行时）：`/api/v1/targets` 显示 deeptutor target up
 
+### Step 3（独立 PR，Implemented）验证体系加固
+
+诚实自审发现"可验证体系"在 3 处其实没成立（共因 = borrowed-coverage / green-by-omission：
+成功信号借自不真正行使被保证属性的 proxy）。4 专家团队对抗性加强后治本：
+
+- **CI 触发边界（dormant authority）**：`runtime-ops.yml` 的 `paths:` 是"哪些文件重要"的第二份
+  副本，与 guard 实际读的文件漂移（sync_to_aliyun.sh / Dockerfile / docker-compose.ghcr.yml
+  都不在内）→ 删掉 `paths:`，让轻量不变量校验器每个 PR 无条件跑，杀整类。
+- **告警从未行为级验证**：`promtool test rules`（`prometheus.alerts.test.yml`）真测 6 条告警
+  fire/no-fire；CI 装 pinned promtool 跑 `check rules`+`test rules`。
+- **端点 merge wiring 从未被测**（FakePathService 缺 `get_observability_dir` → 端点静默 fallback）
+  → 补该方法 + 真 merge 端点测试（sibling-only 熔断器证明合并）+ fallback 测试。
+- **Step 2 崩溃双计数 SEV-1 bug**：死 worker 文件 60s 内仍 fresh + 新 pid 文件 → 2× 虚高再跌
+  → 按 **pid 存活**剔除+reap（治本 + 治文件泄漏）；+ 非 dict JSON 守卫 + merge 边界测试。
+- **可重复栈验证件**：新建 `scripts/verify_aliyun_observability_stack.sh`（8 检查含 up==1 证
+  token 字节匹配 + worker_metrics 活体）替代一次性手动 curl。
+- **watch-the-watcher**：prometheus 加 `job_name: alertmanager` + 第 6 条 `AlertmanagerDown`。
+- **诚实门**：`verify_runtime_assets.py` 校验 `alertmanager.yml` 结构；验证脚本检测 example.com
+  占位 → WARN "交付未配置"，杜绝把绿读成"会被 page"。
+
+**明确 GATED（不假绿）**：真 SMTP/飞书/企微交付（用户 defer）；Step 2 + 本 PR 的 live 2-worker
+数值正确性（随下次发布上线后用验证脚本确认）；sidecar 宿主重启竞态 + OOM 余量（部署时验）。
+
 ## 相关代码入口
 
-- `deeptutor/api/main.py:773` `/metrics/prometheus` 端点
-- `deeptutor/api/runtime_metrics.py:214` `render_prometheus_metrics`
-- `deeptutor/api/dependencies/auth.py:217` `require_metrics_access`
-- `scripts/verify_runtime_assets.py` + `.github/workflows/runtime-ops.yml` CI 门
-- `deployment/observability/` 全部新增/改动文件
+- `deeptutor/api/main.py` `/metrics/prometheus` 端点 + `_metrics_dump_loop` + lifespan 起停
+- `deeptutor/services/observability/multiworker_metrics.py` 跨 worker 合并 + pid 存活剔除
+- `deeptutor/api/runtime_metrics.py` `render_prometheus_metrics`
+- `scripts/verify_runtime_assets.py` + `.github/workflows/runtime-ops.yml` CI 门（已删 paths）
+- `scripts/verify_aliyun_observability_stack.sh` 可重复栈健康验证
+- `deployment/observability/` 全部新增/改动文件（含 `prometheus.alerts.test.yml`）

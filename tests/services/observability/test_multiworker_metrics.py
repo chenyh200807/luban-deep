@@ -10,6 +10,11 @@ from __future__ import annotations
 
 from deeptutor.services.observability import multiworker_metrics as mwm
 
+# Treat every pid as alive so file-IO/merge tests exercise the age/exclude/merge logic
+# deterministically, independent of whether a fake pid happens to exist on the CI runner.
+# pid-liveness reaping has its own dedicated tests below.
+ALIVE = lambda _pid: True  # noqa: E731
+
 
 def _http(requests=0, errors=0, uptime=0.0, status=None, routes=None):
     return {
@@ -180,22 +185,24 @@ def test_breaker_half_open_beats_closed() -> None:
 def test_dump_then_read_round_trip(tmp_path) -> None:
     b = _bundle(http=_http(requests=7))
     mwm.dump_worker_snapshot(tmp_path, 111, b, now=1000.0)
-    read = mwm.read_worker_snapshots(tmp_path, staleness_seconds=60.0, now=1000.0)
+    read = mwm.read_worker_snapshots(tmp_path, staleness_seconds=60.0, now=1000.0, pid_is_alive=ALIVE)
     assert len(read) == 1
     assert read[0]["http"]["requests_total"] == 7
 
 
 def test_read_excludes_stale_files(tmp_path) -> None:
     mwm.dump_worker_snapshot(tmp_path, 111, _bundle(http=_http(requests=7)), now=1000.0)
-    # 200s later, worker 111 long dead (>60s staleness)
-    read = mwm.read_worker_snapshots(tmp_path, staleness_seconds=60.0, now=1200.0)
+    # 200s later, worker 111 stopped dumping (alive but dump loop dead) → age-out
+    read = mwm.read_worker_snapshots(tmp_path, staleness_seconds=60.0, now=1200.0, pid_is_alive=ALIVE)
     assert read == []
 
 
 def test_read_excludes_self_pid(tmp_path) -> None:
     mwm.dump_worker_snapshot(tmp_path, 111, _bundle(http=_http(requests=7)), now=1000.0)
     mwm.dump_worker_snapshot(tmp_path, 222, _bundle(http=_http(requests=9)), now=1000.0)
-    read = mwm.read_worker_snapshots(tmp_path, staleness_seconds=60.0, now=1000.0, exclude_pid=111)
+    read = mwm.read_worker_snapshots(
+        tmp_path, staleness_seconds=60.0, now=1000.0, exclude_pid=111, pid_is_alive=ALIVE
+    )
     assert len(read) == 1
     assert read[0]["http"]["requests_total"] == 9
 
@@ -204,13 +211,17 @@ def test_collect_merged_combines_live_self_with_other_workers(tmp_path) -> None:
     # other worker 222 wrote a (possibly slightly stale) file; live self 111 is fresh
     mwm.dump_worker_snapshot(tmp_path, 222, _bundle(http=_http(requests=20)), now=995.0)
     live = _bundle(http=_http(requests=10))
-    merged = mwm.collect_merged_snapshots(tmp_path, 111, live, staleness_seconds=60.0, now=1000.0)
+    merged = mwm.collect_merged_snapshots(
+        tmp_path, 111, live, staleness_seconds=60.0, now=1000.0, pid_is_alive=ALIVE
+    )
     assert merged["http"]["requests_total"] == 30  # live 10 + other 20
 
 
 def test_collect_merged_single_worker_is_live_identity(tmp_path) -> None:
     live = _bundle(http=_http(requests=10, errors=2))
-    merged = mwm.collect_merged_snapshots(tmp_path, 111, live, staleness_seconds=60.0, now=1000.0)
+    merged = mwm.collect_merged_snapshots(
+        tmp_path, 111, live, staleness_seconds=60.0, now=1000.0, pid_is_alive=ALIVE
+    )
     assert merged["http"]["requests_total"] == 10
     assert merged["http"]["errors_total"] == 2
 
@@ -238,7 +249,9 @@ def test_merged_bundle_renders_with_real_renderer(tmp_path) -> None:
         breakers={"deepseek": {"state": "closed", "failure_count": 0, "last_failure_time": 0.0,
                                "recovery_timeout": 30, "failure_threshold": 5}},
     )
-    merged = mwm.collect_merged_snapshots(tmp_path, 111, live, staleness_seconds=60.0, now=1000.0)
+    merged = mwm.collect_merged_snapshots(
+        tmp_path, 111, live, staleness_seconds=60.0, now=1000.0, pid_is_alive=ALIVE
+    )
 
     text = render_prometheus_metrics(
         http_snapshot=merged["http"],
@@ -253,3 +266,88 @@ def test_merged_bundle_renders_with_real_renderer(tmp_path) -> None:
     assert "deeptutor_http_errors_total 5" in text  # 1 + 4
     # breaker open on worker 222 surfaces even though live worker 111 was closed
     assert 'deeptutor_circuit_breaker_open{provider="deepseek"} 1' in text
+
+
+# -------------------------------------------------- crash safety (pid liveness)
+
+def test_dead_worker_file_is_excluded_and_reaped(tmp_path) -> None:
+    """SEV-1 regression: an OOM-killed worker's file must NOT keep being summed (it would
+    double-count counters ~Nx until age-out, then drop them = a counter reset to rate()).
+    A dead pid is dropped immediately AND the file is reaped, regardless of freshness."""
+    mwm.dump_worker_snapshot(tmp_path, 999, _bundle(http=_http(requests=50)), now=1000.0)
+    # file is fresh (now==dump ts) — only pid-liveness, not age, can exclude it.
+    read = mwm.read_worker_snapshots(
+        tmp_path, staleness_seconds=60.0, now=1000.0, pid_is_alive=lambda p: p != 999
+    )
+    assert read == []
+    assert not (mwm.metrics_dir(tmp_path) / "worker-999.json").exists()  # reaped
+
+
+def test_live_worker_fresh_file_survives_when_pid_alive(tmp_path) -> None:
+    mwm.dump_worker_snapshot(tmp_path, 999, _bundle(http=_http(requests=50)), now=1000.0)
+    read = mwm.read_worker_snapshots(
+        tmp_path, staleness_seconds=60.0, now=1000.0, pid_is_alive=lambda p: True
+    )
+    assert len(read) == 1
+    assert (mwm.metrics_dir(tmp_path) / "worker-999.json").exists()  # not reaped
+
+
+def test_crash_then_restart_does_not_double_count(tmp_path) -> None:
+    """Concrete crash path: worker 100 dumped then OOM-died; replacement worker 200 (new
+    pid) is now live and dumped too. Merge from the scrape worker must count only the live
+    replacement, never sum the dead worker's lingering-but-fresh file."""
+    mwm.dump_worker_snapshot(tmp_path, 100, _bundle(http=_http(requests=40)), now=1000.0)  # dead
+    mwm.dump_worker_snapshot(tmp_path, 200, _bundle(http=_http(requests=40)), now=1000.0)  # live replacement
+    live = _bundle(http=_http(requests=10))  # the scrape worker itself
+    merged = mwm.collect_merged_snapshots(
+        tmp_path, 111, live, staleness_seconds=60.0, now=1000.0, pid_is_alive=lambda p: p != 100
+    )
+    assert merged["http"]["requests_total"] == 50  # live 10 + replacement 40; dead 40 excluded
+
+
+# -------------------------------------------------- corrupt / edge robustness
+
+def test_non_dict_json_payload_is_skipped_not_fatal(tmp_path) -> None:
+    """A valid-JSON-but-wrong-shape file (e.g. a bare list) must be skipped, not raise
+    AttributeError on .get — the docstring promises corrupt files are never fatal."""
+    directory = mwm.metrics_dir(tmp_path)
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "worker-1.json").write_text("[]", encoding="utf-8")  # valid JSON, not a dict
+    (directory / "worker-2.json").write_text("not json at all", encoding="utf-8")  # invalid JSON
+    read = mwm.read_worker_snapshots(tmp_path, staleness_seconds=60.0, now=1000.0, pid_is_alive=ALIVE)
+    assert read == []  # both skipped, no exception
+
+
+def test_merge_empty_list_returns_zeroed_shape(tmp_path) -> None:
+    merged = mwm.merge_metric_snapshots([])
+    assert set(merged) == {"http", "turn", "surface", "providers", "circuit_breakers"}
+    assert merged["http"]["requests_total"] == 0
+    assert merged["turn"]["turns_started_total"] == 0
+    assert merged["providers"] == {}
+    assert merged["circuit_breakers"] == {}
+
+
+def test_merge_provider_present_in_only_one_worker() -> None:
+    a = {"deepseek": {"total_calls": 10, "error_calls": 2, "error_rate": 0.2,
+                      "threshold_exceeded": False, "alert_open": False}}
+    b = {}  # this worker never called deepseek
+    merged = mwm.merge_metric_snapshots([_bundle(providers=a), _bundle(providers=b)])["providers"]
+    assert merged["deepseek"]["total_calls"] == 10
+    assert merged["deepseek"]["error_calls"] == 2
+    assert merged["deepseek"]["error_rate"] == 0.2  # missing side counts as 0, no crash
+
+
+def test_merge_coverage_zero_start_no_division_error() -> None:
+    a = {"event_counts": [], "coverage": [{"surface": "wx", "start_turn_sent": 0,
+         "first_visible_content_rendered": 0, "done_rendered": 0, "surface_render_failed": 0,
+         "first_render_coverage_ratio": None, "done_render_coverage_ratio": None}], "recent_events": []}
+    merged = mwm.merge_metric_snapshots([_bundle(surface=a)])["surface"]
+    cov = {c["surface"]: c for c in merged["coverage"]}["wx"]
+    assert cov["first_render_coverage_ratio"] is None  # start=0 → None, no ZeroDivisionError
+
+
+def test_merge_breaker_missing_state_field_defaults_closed() -> None:
+    a = {"x": {"failure_count": 1, "last_failure_time": 0.0, "recovery_timeout": 30,
+               "failure_threshold": 5}}  # no "state" key
+    merged = mwm.merge_metric_snapshots([_bundle(breakers=a)])["circuit_breakers"]
+    assert merged["x"]["state"] == "closed"  # absent state must not read as open
