@@ -183,3 +183,33 @@ cadence 现为 **manual**，**刻意不接调度**。理由（服从「反自证
 1. 三方 SHA 门齐的 `--runs 3` 全量封板至少一次落 GO 证据（v1 §10 后续项）。
 2. metrics 时序已积累足够样本，能看出「某维回归趋势」而非单点。
 3. 调度产出的 GO 仍走「WEAK-GO 人盖 GO」（②），不允许定时任务自动宣布封板成功。
+
+## V2.6 调度机制已建（未激活）
+
+- 状态: `Implemented, disabled`（机制落地，cron 未打开）。
+- 落地: `scripts/quality_gate/scheduled_run.py`（`accuracy_gate.py` 薄封装：SHA 门前置
+  → 跑门 → 读 `gate_summary.json` 产 WEAK-GO 报告 → `domains/quality-flywheel/LOG.md`
+  记账，判定逻辑单一权威仍在 `accuracy_gate.py`，退出码原样透传）+
+  `.github/workflows/accuracy-gate-scheduled.yml`（`workflow_dispatch` + 注释掉的
+  `schedule:`）+ `contracts/process_registry.yaml` 预登记 + `domains/quality-flywheel/README.md`
+  §调度（secrets 清单 + post-deploy 手动集成示例）。
+
+- **核实结论：本节写下时，§V2.5 的两个触发条件依然都没满足**：
+  1. 唯一一次三方 SHA 对齐的 `--runs 3` 全量跑（`artifacts/quality_gate/accuracy_seal_2026-07-01_005432/gate_summary.json`，
+     对齐的 SHA `c9150ca60` 已落后当前 `origin/main`）结果是 `content_truth` 复现 → `BLOCK`，不是 `GO`。
+  2. `metrics/accuracy.jsonl` 里仅有的 6 行样本来自一次 `--skip-sha-gate` 的跑（本文档 §5 明说这个
+     flag 不要用于真 eval），同样是 `BLOCK`，不构成趋势判断的有效样本。
+
+  因此 workflow 里的 `schedule:` cron 行**保持注释**，只有 `workflow_dispatch` 可手动验证；
+  合并本节改动**不会**自动开始花钱跑定时任务。
+
+- **并行进展（写下本节时观察到，非本次任务完成）**：本地分支 `release/content-truth-hedge`
+  （commit `9b90a0e64` 「法规条文数值断言确定性 hedge 守卫」）正在修 `content_truth` 复现的
+  真实回归，尚未开 PR。这条修复一旦落地，是满足触发条件①的必要前置之一（还需要之后再跑一次
+  三方 SHA 对齐的 `--runs 3` 全量拿到真 GO，不能假设修完就自动等于 GO）。
+
+- 打开定时的操作步骤（owner 执行，非自动）：
+  1. 确认已有一次三方 SHA 对齐的 `--runs 3` 全量 `GO` 证据（六维全 0 复现）。
+  2. 取消 `.github/workflows/accuracy-gate-scheduled.yml` 里 `schedule:` 段的注释。
+  3. 在 GitHub repo secrets 里配好 `domains/quality-flywheel/README.md` §调度 列的清单。
+  4. 先手动 `workflow_dispatch` 触发一次，确认真的跑绿，再放心让 cron 接管。
