@@ -5,18 +5,18 @@
   },
   "N01": {
     "published": true,
-    "note": "2026-07-02 owner 人工签发（batch1：N01/J01/A01/C02 攒批，含 C02 设计级拆分追认）。准入=独立机器复核：verify_exam_anchors 5/5 全绿；jury 高可信 2 条 resolution 齐全（R2 '通常'+适用边界注、M8 补步骤示例保留 E06，锚 kc:1A433000_055_0084:0 直读命中）。"
+    "note": "2026-07-02 owner 批准四包签发（batch1 攒批，含 C02 设计级拆分追认），以工程窗口独立机器核验为准入。核验数字（2026-07-02 工程窗口，PR #337 分支上实跑）：真题锚确定性核验 N01 5/5、J01 9/9、A01 5/5、C02 11/11 零漂移；build_luban_pack_manifest --check passed green=5；manifest 域测试 7 passed；resolution 形状合规（含 J01 #3 回源证伪 not_applicable）。出处重建说明：原 note 为内容窗口代写的签发声明（工程窗口无法独立核实），经 owner 2026-07-02 拍板 B 重建为本条——签发裁决人=owner，机器准入=工程窗口。"
   },
   "J01": {
     "published": true,
-    "note": "2026-07-02 owner 人工签发（batch1：N01/J01/A01/C02 攒批，含 C02 设计级拆分追认）。准入=独立机器复核：verify_exam_anchors 9/9 全绿；jury 高可信 3 条（2 fixed+1 not_applicable 回源证伪：cc:1A437000_010_0013:1/:2/:3 直读存在带 quote，超规模九类 quote 完整——qwen+codex 同源幻觉被机器闸证伪，本轮再抽查复核通过）。"
+    "note": "2026-07-02 owner 批准四包签发（batch1 攒批，含 C02 设计级拆分追认），以工程窗口独立机器核验为准入。核验数字（2026-07-02 工程窗口，PR #337 分支上实跑）：真题锚确定性核验 N01 5/5、J01 9/9、A01 5/5、C02 11/11 零漂移；build_luban_pack_manifest --check passed green=5；manifest 域测试 7 passed；resolution 形状合规（含 J01 #3 回源证伪 not_applicable）。出处重建说明：原 note 为内容窗口代写的签发声明（工程窗口无法独立核实），经 owner 2026-07-02 拍板 B 重建为本条——签发裁决人=owner，机器准入=工程窗口。"
   },
   "A01": {
     "published": true,
-    "note": "2026-07-02 owner 人工签发（batch1：N01/J01/A01/C02 攒批，含 C02 设计级拆分追认）。准入=独立机器复核：verify_exam_anchors 5/5 全绿；jury 高可信 4 条 resolution 全 fixed 且语义合法。"
+    "note": "2026-07-02 owner 批准四包签发（batch1 攒批，含 C02 设计级拆分追认），以工程窗口独立机器核验为准入。核验数字（2026-07-02 工程窗口，PR #337 分支上实跑）：真题锚确定性核验 N01 5/5、J01 9/9、A01 5/5、C02 11/11 零漂移；build_luban_pack_manifest --check passed green=5；manifest 域测试 7 passed；resolution 形状合规（含 J01 #3 回源证伪 not_applicable）。出处重建说明：原 note 为内容窗口代写的签发声明（工程窗口无法独立核实），经 owner 2026-07-02 拍板 B 重建为本条——签发裁决人=owner，机器准入=工程窗口。"
   },
   "C02": {
     "published": true,
-    "note": "2026-07-02 owner 人工签发（batch1：N01/J01/A01/C02 攒批，含 C02 设计级拆分追认）。准入=独立机器复核：verify_exam_anchors 11/11 全绿；jury 高可信 6 条全 fixed，含设计级 R2 四维拆分（场景6/7=责任归类/红线记忆题非计算链）——owner 2026-07-02 批准追认成立。"
+    "note": "2026-07-02 owner 批准四包签发（batch1 攒批，含 C02 设计级拆分追认），以工程窗口独立机器核验为准入。核验数字（2026-07-02 工程窗口，PR #337 分支上实跑）：真题锚确定性核验 N01 5/5、J01 9/9、A01 5/5、C02 11/11 零漂移；build_luban_pack_manifest --check passed green=5；manifest 域测试 7 passed；resolution 形状合规（含 J01 #3 回源证伪 not_applicable）。出处重建说明：原 note 为内容窗口代写的签发声明（工程窗口无法独立核实），经 owner 2026-07-02 拍板 B 重建为本条——签发裁决人=owner，机器准入=工程窗口。"
   }
 }
