@@ -692,6 +692,45 @@ def test_get_profile_persists_first_real_member(tmp_path: Path) -> None:
     assert any(member["user_id"] == "ghost_user" for member in data["members"])
 
 
+def test_update_profile_exam_date_roundtrip(tmp_path: Path) -> None:
+    """T5 我的 tab 接线：exam_date 经 update_profile 落盘并从 get_profile 回显。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    updated = service.update_profile("t5_user", {"exam_date": "2026-09-19"})
+
+    assert updated["exam_date"] == "2026-09-19"
+    assert service.get_profile("t5_user")["exam_date"] == "2026-09-19"
+
+
+def test_update_profile_time_budget_accepts_three_tiers_and_reset(tmp_path: Path) -> None:
+    """时间预算偏好三档（light/medium/heavy）+ 空串重置均可落盘回显。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    assert service.get_profile("t5_user")["time_budget"] == ""
+
+    for tier in ("light", "medium", "heavy"):
+        updated = service.update_profile("t5_user", {"time_budget": tier})
+        assert updated["time_budget"] == tier
+        assert service.get_profile("t5_user")["time_budget"] == tier
+
+    updated = service.update_profile("t5_user", {"time_budget": ""})
+    assert updated["time_budget"] == ""
+
+
+def test_update_profile_time_budget_rejects_unknown_enum(tmp_path: Path) -> None:
+    """非法枚举值不落盘（fail-closed 保持原值），避免脏枚举进入 read model。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    service.update_profile("t5_user", {"time_budget": "medium"})
+    updated = service.update_profile("t5_user", {"time_budget": "marathon"})
+
+    assert updated["time_budget"] == "medium"
+    assert service.get_profile("t5_user")["time_budget"] == "medium"
+
+
 def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from_learner_state(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

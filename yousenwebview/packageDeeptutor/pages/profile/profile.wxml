@@ -1,238 +1,236 @@
-<!-- pages/profile/profile.wxml — 个人中心 -->
-<view class="profile-page {{isDark?'':'light'}}">
+<!-- pages/profile/profile.wxml — 我的 tab（第10轮 10f：权益透明 · 纸墨朱竹） -->
+<view class="mine-page {{isDark ? '' : 'light'}}">
 
-  <!-- 自定义导航栏 -->
-  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
-    <view class="nav-content">
-      <view class="nav-back" bindtap="goHome">
-        <text class="nav-back-arrow">‹</text>
-        <text class="nav-back-txt">{{navBackLabel}}</text>
-      </view>
-      <view style="flex:1"></view>
-    </view>
-  </view>
+  <scroll-view
+    class="mine-scroll"
+    scroll-y
+    enhanced="{{true}}"
+    bounces="{{true}}"
+    show-scrollbar="{{false}}"
+    style="top: {{statusBarHeight + 8}}px; bottom: 0"
+  >
+    <view class="mine-inner">
 
-  <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
-    <view class="page-inner">
-
-      <!-- ── 用户信息卡片 ──────────────────────────── -->
-      <view class="user-card glass-card">
-        <view class="user-avatar" bindtap="onChangeAvatar">
+      <!-- ── 用户行：头像 + 昵称 + 考试日副标题 ─────────── -->
+      <view class="mine-user-row">
+        <view class="mine-avatar" bindtap="onChangeAvatar">
           <image
             wx:if="{{avatarUrl}}"
-            class="avatar-image"
+            class="mine-avatar-img"
             src="{{avatarUrl}}"
             mode="aspectFill"
           />
-          <text wx:else class="avatar-char">{{avatarChar}}</text>
-          <view class="avatar-edit-badge">
-            <text class="avatar-edit-icon">+</text>
+          <text wx:else class="mine-avatar-char">{{avatarChar}}</text>
+        </view>
+        <view class="mine-user-info" bindtap="onChangeName">
+          <view class="mine-user-name-row">
+            <text class="mine-user-name">{{username}}</text>
+            <text class="mine-user-edit">›</text>
+          </view>
+          <text class="mine-user-sub">一建建筑实务 · {{examDateLabel}}</text>
+        </view>
+      </view>
+
+      <!-- ── 浏览模式提示 ───────────────────────────── -->
+      <view class="mine-card mine-guest-card" wx:if="{{isGuestPreview}}">
+        <text class="mine-guest-kicker">浏览模式</text>
+        <text class="mine-guest-title">登录后同步你的权益和学习档案</text>
+        <text class="mine-guest-desc">当前可以查看个人中心结构；修改设置、同步权益和保存学习记录时再快速登录。</text>
+        <view class="mine-primary-btn" bindtap="goQuickLogin" aria-role="button" aria-label="快速登录">
+          <text class="mine-primary-btn-txt">快速登录</text>
+        </view>
+      </view>
+
+      <!-- ── 会员 + 钱包（既有 wallet read model） ────── -->
+      <view class="mine-card" bindtap="openUsageDetail" aria-role="button" aria-label="查看权益详情">
+        <view class="mine-usage-head">
+          <view class="mine-usage-copy">
+            <text class="mine-kicker">学习权益</text>
+            <text class="mine-usage-title">{{usagePrimaryLabel}}</text>
+          </view>
+          <view class="mine-usage-action" catchtap="goBilling" aria-role="button" aria-label="打开权益中心">
+            <text class="mine-usage-action-txt">充值</text>
           </view>
         </view>
-        <view class="user-info">
-          <view class="user-name-row" bindtap="onChangeName">
-            <text class="user-name">{{username}}</text>
-            <text class="user-name-edit">›</text>
+        <view class="mine-usage-rows" wx:if="{{usageRows.length}}">
+          <view class="mine-usage-row" wx:for="{{usageRows}}" wx:key="key">
+            <text class="mine-usage-label">{{item.label}}</text>
+            <text class="mine-usage-detail">{{item.detailLabel}}</text>
           </view>
-          <view class="user-stats">
-            <view class="stat-chip">
-              <text class="stat-label">Lv.{{level}}</text>
+          <view class="mine-usage-more">
+            <text class="mine-usage-more-txt">查看详情</text>
+            <text class="mine-usage-more-arrow">›</text>
+          </view>
+        </view>
+        <view class="mine-usage-empty" wx:elif="{{!usageLoading}}">
+          <text class="mine-usage-empty-txt">暂无使用数据</text>
+        </view>
+      </view>
+
+      <!-- ── 免费小课额度 ●●○（read model 缺字段整块隐藏） ── -->
+      <view class="mine-card" wx:if="{{freeQuota}}">
+        <view class="mine-quota-head">
+          <text class="mine-quota-title">免费小课</text>
+          <view class="mine-quota-dots">
+            <text
+              class="mine-quota-dot {{item.lit ? 'lit' : ''}}"
+              wx:for="{{freeQuota.dots}}"
+              wx:key="id"
+            ></text>
+            <text class="mine-quota-count">剩 {{freeQuota.remaining}} / {{freeQuota.total}}</text>
+          </view>
+        </view>
+        <text class="mine-quota-note">已点亮的小课生成的复习单元永久可回炉，不计费</text>
+      </view>
+
+      <!-- ── 「明天见」复测提醒（订阅消息：查看/说明入口） ── -->
+      <view class="mine-card mine-remind-card">
+        <view class="mine-remind-row">
+          <text class="mine-remind-dot {{reviewReminder ? 'on' : ''}}"></text>
+          <text class="mine-remind-title">「明天见」复测提醒</text>
+          <switch
+            class="mine-remind-switch"
+            checked="{{reviewReminder}}"
+            bindchange="onReminderChange"
+            color="#55967b"
+          />
+        </view>
+        <view class="mine-remind-note-row" bindtap="onSubscribeExplain" aria-role="button" aria-label="订阅消息说明">
+          <text class="mine-remind-note">提醒经微信订阅消息发送，授权在每次练完的「明天见」时刻发起</text>
+          <text class="mine-remind-note-link">说明 ›</text>
+        </view>
+      </view>
+
+      <!-- ── 学习设置（考试日期 / 时间预算 / 每日目标 / 难度 / 风格） ── -->
+      <view class="mine-section-title">学习设置</view>
+      <view class="mine-card mine-settings-card">
+        <!-- 考试日期（picker → PATCH exam_date → 回显） -->
+        <picker mode="date" value="{{examDate}}" bindchange="onExamDateChange">
+          <view class="mine-setting-row">
+            <text class="mine-setting-label">考试日期</text>
+            <view class="mine-setting-value-row">
+              <text class="mine-setting-value">{{examDate || '待设置'}}</text>
+              <text class="mine-setting-arrow">›</text>
             </view>
-            <view class="stat-chip">
-              <text class="stat-val">{{xp}} XP</text>
+          </view>
+          <text class="mine-setting-note">复习引擎按它排程</text>
+        </picker>
+
+        <view class="mine-divider"></view>
+
+        <!-- 时间预算（三档偏好，只存字段不接调度） -->
+        <view class="mine-setting-row mine-setting-col">
+          <text class="mine-setting-label">时间预算</text>
+          <view class="mine-chips-row">
+            <view
+              class="mine-chip {{timeBudget === item.val ? 'active' : ''}}"
+              wx:for="{{timeBudgetOptions}}"
+              wx:key="val"
+              bindtap="setTimeBudget"
+              data-val="{{item.val}}"
+            >
+              <text class="mine-chip-txt">{{item.label}}</text>
+              <text class="mine-chip-desc">{{item.desc}}</text>
             </view>
           </view>
         </view>
-      </view>
 
-      <view class="guest-profile-card glass-card" wx:if="{{isGuestPreview}}">
-        <view class="guest-profile-copy">
-          <text class="guest-profile-kicker">浏览模式</text>
-          <text class="guest-profile-title">登录后同步你的权益和学习档案</text>
-          <text class="guest-profile-desc">当前可以查看个人中心结构；修改设置、同步权益和保存学习记录时再快速登录。</text>
-        </view>
-        <view class="guest-profile-action" bindtap="goQuickLogin" aria-role="button" aria-label="快速登录">
-          <text class="guest-profile-action-txt">快速登录</text>
-        </view>
-      </view>
-
-      <!-- ── 使用情况 ───────────────────────────────── -->
-      <view class="usage-card glass-card" bindtap="openUsageDetail" aria-role="button" aria-label="查看权益详情">
-        <view class="usage-head">
-          <view>
-            <text class="usage-kicker">学习权益</text>
-            <text class="usage-title">{{usagePrimaryLabel}}</text>
-          </view>
-          <view class="usage-action" catchtap="goBilling" aria-role="button" aria-label="打开权益中心">
-            <text class="usage-action-txt">充值</text>
-          </view>
-        </view>
-        <view class="usage-summary-list" wx:if="{{usageRows.length}}">
-          <view class="usage-summary-row" wx:for="{{usageRows}}" wx:key="key">
-            <text class="usage-summary-label">{{item.label}}</text>
-            <text class="usage-summary-detail">{{item.detailLabel}}</text>
-          </view>
-          <view class="usage-more-row">
-            <text class="usage-more-text">查看详情</text>
-            <text class="usage-more-arrow">›</text>
-          </view>
-        </view>
-        <view class="usage-empty" wx:elif="{{!usageLoading}}">
-          <text class="usage-empty-txt">暂无使用数据</text>
-        </view>
-      </view>
-
-      <!-- ── 学习设置 ───────────────────────────────── -->
-      <view class="section-header">
-        <text class="section-title">学习设置</text>
-      </view>
-
-      <view class="settings-card glass-card">
-        <!-- 考试日期 -->
-        <view class="setting-row">
-          <text class="setting-label">考试日期</text>
-          <picker mode="date" value="{{examDate}}" bindchange="onExamDateChange">
-            <view class="setting-value-row">
-              <text class="setting-value">{{examDate || '待设置'}}</text>
-              <text class="setting-arrow">›</text>
-            </view>
-          </picker>
-        </view>
-
-        <view class="divider"></view>
+        <view class="mine-divider"></view>
 
         <!-- 每日目标 -->
-        <view class="setting-row">
-          <text class="setting-label">每日目标</text>
-          <view class="chips-row">
+        <view class="mine-setting-row">
+          <text class="mine-setting-label">每日目标</text>
+          <view class="mine-chips-row">
             <view
-              class="chip {{dailyTarget === item ? 'chip-active' : ''}}"
+              class="mine-chip {{dailyTarget === item ? 'active' : ''}}"
               wx:for="{{dailyTargetOptions}}"
-              wx:key="index"
+              wx:key="*this"
               bindtap="setDailyTarget"
               data-val="{{item}}"
             >
-              <text class="chip-txt">{{item}} 题</text>
+              <text class="mine-chip-txt">{{item}} 题</text>
             </view>
           </view>
         </view>
 
-        <view class="divider"></view>
+        <view class="mine-divider"></view>
 
         <!-- 难度偏好 -->
-        <view class="setting-row">
-          <text class="setting-label">难度偏好</text>
-          <view class="chips-row">
+        <view class="mine-setting-row">
+          <text class="mine-setting-label">难度偏好</text>
+          <view class="mine-chips-row">
             <view
-              class="chip {{difficultyPref === item.val ? 'chip-active' : ''}}"
+              class="mine-chip {{difficultyPref === item.val ? 'active' : ''}}"
               wx:for="{{difficultyOptions}}"
               wx:key="val"
               bindtap="setDifficulty"
               data-val="{{item.val}}"
             >
-              <text class="chip-txt">{{item.label}}</text>
+              <text class="mine-chip-txt">{{item.label}}</text>
             </view>
           </view>
         </view>
 
-        <view class="divider"></view>
+        <view class="mine-divider"></view>
 
         <!-- 解题风格 -->
-        <view class="setting-row">
-          <text class="setting-label">解题风格</text>
-          <view class="chips-row">
+        <view class="mine-setting-row">
+          <text class="mine-setting-label">解题风格</text>
+          <view class="mine-chips-row">
             <view
-              class="chip {{explainStyle === item.val ? 'chip-active' : ''}}"
+              class="mine-chip {{explainStyle === item.val ? 'active' : ''}}"
               wx:for="{{explainOptions}}"
               wx:key="val"
               bindtap="setExplainStyle"
               data-val="{{item.val}}"
             >
-              <text class="chip-txt">{{item.label}}</text>
+              <text class="mine-chip-txt">{{item.label}}</text>
             </view>
           </view>
         </view>
-
-        <view class="divider"></view>
-
-        <!-- 复习提醒 -->
-        <view class="setting-row">
-          <text class="setting-label">复习提醒</text>
-          <switch
-            class="setting-switch"
-            checked="{{reviewReminder}}"
-            bindchange="onReminderChange"
-            color="#3b82f6"
-          />
-        </view>
       </view>
 
-      <!-- ── 我的成就 ───────────────────────────────── -->
-      <view class="section-header">
-        <text class="section-title">我的成就</text>
-      </view>
-
-      <view class="badges-grid glass-card">
-        <view
-          class="badge-item {{item.earned ? '' : 'badge-locked'}}"
-          wx:for="{{badges}}"
-          wx:key="id"
-          bindtap="onBadgeTap"
-          data-id="{{item.id}}"
-        >
-          <text class="badge-icon">{{item.icon}}</text>
-          <text class="badge-name">{{item.name}}</text>
-        </view>
-      </view>
-
-      <!-- ── 链接列表 ───────────────────────────────── -->
-      <view class="links-card glass-card">
-        <block
-          wx:for="{{linkItems}}"
-          wx:key="id"
-        >
-          <view
-            class="link-row"
-            bindtap="openLink"
-            data-id="{{item.id}}"
-          >
-            <view class="link-left">
-              <text class="link-icon">{{item.icon}}</text>
-              <text class="link-title">{{item.title}}</text>
-            </view>
-            <text class="link-arrow">›</text>
+      <!-- ── 聚合入口：权益充值 / 摸底测试 / 客服与反馈 / 服务条款 ── -->
+      <view class="mine-card mine-links-card">
+        <block wx:for="{{linkItems}}" wx:key="id">
+          <view class="mine-link-row" bindtap="openLink" data-id="{{item.id}}">
+            <text class="mine-link-title">{{item.title}}</text>
+            <text class="mine-link-arrow">›</text>
           </view>
         </block>
       </view>
 
+      <!-- 商业化口径（10f 底部铭牌） -->
+      <text class="mine-footnote">不按题收费 · 会员 = 解锁你这条路线的剩余部分</text>
+
       <!-- 退出登录 / 退出体验 -->
-      <view class="logout-btn" bindtap="logout" aria-role="button" aria-label="{{isGuestPreview ? '退出体验' : '退出登录'}}">
-        <text class="logout-btn-txt">{{isGuestPreview ? '退出体验' : '退出登录'}}</text>
+      <view class="mine-logout" bindtap="logout" aria-role="button" aria-label="{{isGuestPreview ? '退出体验' : '退出登录'}}">
+        <text class="mine-logout-txt">{{isGuestPreview ? '退出体验' : '退出登录'}}</text>
       </view>
 
-      <view style="height: 240rpx"></view>
+      <view class="mine-tail-spacer"></view>
     </view>
   </scroll-view>
 
-  <view class="usage-detail-mask {{usageDetailShow ? 'show' : ''}}" bindtap="closeUsageDetail"></view>
-  <view class="usage-detail-sheet {{usageDetailShow ? 'show' : ''}}">
-    <view class="usage-detail-head">
-      <text class="usage-detail-title">权益详情</text>
-      <view class="usage-detail-close" bindtap="closeUsageDetail" aria-role="button" aria-label="关闭权益详情">
-        <text class="usage-detail-close-txt">×</text>
+  <view class="mine-detail-mask {{usageDetailShow ? 'show' : ''}}" bindtap="closeUsageDetail"></view>
+  <view class="mine-detail-sheet {{usageDetailShow ? 'show' : ''}}">
+    <view class="mine-detail-head">
+      <text class="mine-detail-title">权益详情</text>
+      <view class="mine-detail-close" bindtap="closeUsageDetail" aria-role="button" aria-label="关闭权益详情">
+        <text class="mine-detail-close-txt">×</text>
       </view>
     </view>
-    <view class="usage-list">
-      <view class="usage-row" wx:for="{{usageRows}}" wx:key="key">
-        <view class="usage-row-head">
+    <view class="mine-detail-list">
+      <view class="mine-detail-row" wx:for="{{usageRows}}" wx:key="key">
+        <view class="mine-detail-row-head">
           <view>
-            <text class="usage-row-title">{{item.label}}</text>
-            <text class="usage-row-reset" wx:if="{{item.resetLabel}}">{{item.resetLabel}}</text>
+            <text class="mine-detail-row-title">{{item.label}}</text>
+            <text class="mine-detail-row-reset" wx:if="{{item.resetLabel}}">{{item.resetLabel}}</text>
           </view>
-          <text class="usage-row-percent">{{item.remainingLabel}}</text>
+          <text class="mine-detail-row-percent">{{item.remainingLabel}}</text>
         </view>
-        <view class="usage-meter">
-          <view class="usage-meter-fill" style="{{item.barStyle}}"></view>
+        <view class="mine-meter">
+          <view class="mine-meter-fill" style="{{item.barStyle}}"></view>
         </view>
       </view>
     </view>

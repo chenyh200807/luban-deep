@@ -278,6 +278,10 @@ Overlay 必须支持：
 
 - 学员长期 profile 主表
 - 存放稳定画像、偏好、目标参数、heartbeat 偏好、来源信息
+- 偏好字段含 `time_budget`（时间预算三档 `light`/`medium`/`heavy`，空串=未设置）：
+  由「我的」tab 经 `member_console.update_profile` 白名单写入（非法枚举 fail-closed
+  不落盘），随 profile 同步进 `user_profiles.attributes`。本期只存偏好；调度引擎
+  消费在阶段 2，不得据此在前端自算排程。
 
 必须真实接入：
 

@@ -127,6 +127,9 @@ _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
     }
 )
 _WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS = int(datetime(2026, 6, 22, 3, 3, tzinfo=timezone.utc).timestamp())
+# 时间预算偏好三档（"" = 未设置）。第10轮 10f「我的」tab 写入，阶段 2 调度引擎消费。
+_TIME_BUDGET_VALUES = frozenset({"", "light", "medium", "heavy"})
+
 _MEMBERSHIP_TIER_RANK = {
     "trial": 0,
     "vip": 1,
@@ -953,6 +956,7 @@ class MemberConsoleService:
             "focus_query": "帮我做一次入门摸底测试",
             "exam_date": "",
             "daily_target": 30,
+            "time_budget": "",
             "difficulty_preference": "medium",
             "explanation_style": "detailed",
             "review_reminder": True,
@@ -2417,6 +2421,7 @@ class MemberConsoleService:
             "focus_query",
             "exam_date",
             "daily_target",
+            "time_budget",
             "difficulty_preference",
             "explanation_style",
             "review_reminder",
@@ -6246,6 +6251,7 @@ class MemberConsoleService:
             "points": member["points_balance"],
             "exam_date": member["exam_date"],
             "daily_target": member["daily_target"],
+            "time_budget": member.get("time_budget", ""),
             "difficulty_preference": member["difficulty_preference"],
             "explanation_style": member["explanation_style"],
             "focus_topic": member.get("focus_topic", ""),
@@ -6274,6 +6280,12 @@ class MemberConsoleService:
             for src, dst in mapping.items():
                 if src in patch:
                     member[dst] = patch[src]
+            if "time_budget" in patch:
+                # 时间预算偏好三档（第10轮 10f）。本期只存偏好，调度引擎消费在阶段 2。
+                # 非法值不落盘（fail-closed 保持原值），避免脏枚举进入 read model。
+                candidate = str(patch.get("time_budget") or "").strip().lower()
+                if candidate in _TIME_BUDGET_VALUES:
+                    member["time_budget"] = candidate
             self._append_audit(
                 data,
                 action="profile_update",
