@@ -336,6 +336,8 @@ page {
   --lb-warn: #d4b263;
   --lb-bad: #bf5b4e;
   --lb-brand: #cf4436;
+  /* 卡片描边/分隔线（与 workspace-shell 同口径：暗=纸色低透，亮=宣纸描边） */
+  --lb-bd: rgba(241, 239, 232, 0.08);
 }
 
 page.theme-light,
@@ -351,6 +353,7 @@ page.theme-light,
   --lb-warn: #d4b263;
   --lb-bad: #bf5b4e;
   --lb-brand: #cf4436;
+  --lb-bd: #e7e3d5;
 }
 
 /*

@@ -1,4 +1,4 @@
-<view class="station-page">
+<view class="station-page {{isDark ? '' : 'light'}}">
   <view class="st-loading" wx:if="{{loading}}">
     <text>正在打开这一站…</text>
   </view>

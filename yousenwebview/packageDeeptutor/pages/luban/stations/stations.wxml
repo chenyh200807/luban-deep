@@ -1,50 +1,102 @@
 <view class="luban-page {{isDark ? '' : 'light'}}">
-  <view class="lb-nav" style="padding-top: {{statusBarHeight}}px">
-    <view class="lb-nav-inner">
-      <view class="lb-back" bindtap="goBack">
-        <text class="lb-back-arrow">‹</text>
-        <text class="lb-back-text">返回</text>
+  <view class="lb-inner" style="padding-top: {{statusBarHeight + 48}}px">
+
+    <!-- 顶部品牌行（红章 = 品牌朱红四处之一：鲁 logo 章） -->
+    <view class="lb-brand-row">
+      <view class="lb-brand-seal">
+        <image
+          class="lb-brand-logo"
+          src="/packageDeeptutor/images/logo-mark-white.png"
+          mode="aspectFit"
+        />
       </view>
-      <text class="lb-nav-title">提分路线</text>
+      <text class="lb-brand-name">鲁班智考</text>
     </view>
-  </view>
 
-  <scroll-view class="lb-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px">
-    <view class="lb-inner">
-      <view class="lb-hero">
-        <text class="lb-kicker">鲁班学习双轮</text>
-        <text class="lb-title">你的提分路线——每天走一站</text>
+    <!-- 顶部状态卡：距考（占位深链）+ 路线进度 -->
+    <view class="lb-status-grid">
+      <view class="lb-status-card lb-status-card-tap" bindtap="goProfile">
+        <text class="lb-status-label">距考试</text>
+        <text class="lb-status-link">设置考试日期 →</text>
       </view>
-
-      <view class="lb-error" wx:if="{{errorText}}">
-        <text>{{errorText}}</text>
-        <view class="lb-retry" bindtap="retry">重试</view>
+      <view class="lb-status-card">
+        <text class="lb-status-label">路线 · 已点亮
+          <text class="lb-status-strong">{{lessonCount}}/{{totalStations}} 站</text>
+        </text>
+        <view class="lb-progress-track">
+          <view class="lb-progress-fill" style="width: {{routePercent}}%"></view>
+        </view>
       </view>
+    </view>
 
-      <view class="lb-loading" wx:if="{{loading}}">
-        <text class="lb-loading-text">正在为你铺路…</text>
-      </view>
+    <view class="lb-error" wx:if="{{errorText}}">
+      <text>{{errorText}}</text>
+      <view class="lb-retry" bindtap="retry">重试</view>
+    </view>
 
-      <block wx:if="{{!loading && !errorText}}">
+    <view class="lb-loading" wx:if="{{loading}}">
+      <text class="lb-loading-text">正在为你铺路…</text>
+    </view>
+
+    <block wx:if="{{!loading && !errorText}}">
+      <!-- 下一站卡 -->
+      <view class="lb-next-card" wx:if="{{nextLesson}}">
+        <view class="lb-next-head">
+          <view class="lb-next-seal">
+            <image
+              class="lb-next-logo"
+              src="/packageDeeptutor/images/logo-mark-white.png"
+              mode="aspectFit"
+            />
+          </view>
+          <view class="lb-next-titles">
+            <text class="lb-next-kicker">下一站 · 你的路线</text>
+            <text class="lb-next-title">{{nextLesson.title}}</text>
+          </view>
+        </view>
         <view
-          class="lb-station-card"
+          class="lb-next-cta"
+          data-pack-id="{{nextLesson.pack_id}}"
+          bindtap="openStation"
+        >
+          <text>进入这一站</text>
+        </view>
+        <text class="lb-next-why">为什么是它：「{{nextLesson.title}}」是你的路线下一站。</text>
+      </view>
+
+      <!-- 复习到期 chip：纯跳转复习 tab -->
+      <view class="lb-review-chip" bindtap="goReview">
+        <text class="lb-review-chip-label">复习到期</text>
+        <text class="lb-review-chip-go">去复习 →</text>
+      </view>
+
+      <!-- 路线地图：绿灯站（书法海报，墨/朱/纸轮替）+ 即将开通灰态 slot -->
+      <view class="lb-map-head">
+        <text class="lb-map-title">你的路线 · 已点亮 {{lessonCount}} / {{totalStations}} 站</text>
+      </view>
+      <view class="lb-map-grid">
+        <view
+          class="lb-poster lb-tone-{{index % 3}}"
           wx:for="{{lessons}}"
           wx:key="pack_id"
           data-pack-id="{{item.pack_id}}"
           bindtap="openStation"
         >
-          <view class="lb-station-main">
-            <text class="lb-station-title">{{item.title}}</text>
-            <text class="lb-station-id">{{item.pack_id}}</text>
-          </view>
-          <text class="lb-station-arrow">›</text>
+          <text class="lb-poster-vtitle">{{item.title}}</text>
+          <text class="lb-poster-badge">S{{index + 1}}</text>
+          <text class="lb-poster-state">已点亮</text>
+          <view class="lb-poster-line"></view>
         </view>
+        <view class="lb-slot" wx:for="{{upcomingSlots}}" wx:key="*this">
+          <text class="lb-slot-badge">S{{item}}</text>
+          <text class="lb-slot-text">即将开通</text>
+        </view>
+      </view>
 
-        <view class="lb-empty" wx:if="{{!lessons.length}}">
-          <text>站点正在建设中，很快就能开走第一站。</text>
-        </view>
-      </block>
-    </view>
-  </scroll-view>
+      <view class="lb-empty" wx:if="{{!lessons.length}}">
+        <text>站点正在建设中，很快就能开走第一站。</text>
+      </view>
+    </block>
+  </view>
   <workspace-shell id="workspaceShell"></workspace-shell>
 </view>

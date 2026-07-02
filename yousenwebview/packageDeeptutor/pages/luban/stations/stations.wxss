@@ -1,143 +1,412 @@
 @import "/packageDeeptutor/theme.wxss";
 
+/* 学习 tab 首页 · 第10轮 10a（宣纸亮）/10b（夜宣纸暗）
+ * 全部主题色走 --lb-* token；仅两类字面量有意保留：
+ * 1) 宣纸点阵纹理 = 低透明度中性 rgba（无法用 hex token 表达 alpha）；
+ * 2) 路线海报（墨/朱/纸）= 品牌艺术资产，按 10b 定稿「不随主题变」。 */
+
 .luban-page {
-  height: 100vh;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  overflow: hidden;
+  min-height: 100vh;
+  background-color: var(--lb-bg);
+  background-image: radial-gradient(
+    rgba(241, 239, 232, 0.05) 1.4rpx,
+    transparent 1.4rpx
+  );
+  background-size: 36rpx 36rpx;
+  color: var(--lb-t1);
 }
 
-.lb-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: rgba(10, 10, 10, 0.92);
-  border-bottom: 1rpx solid var(--border);
-}
-
-.lb-nav-inner {
-  height: 96rpx;
-  display: flex;
-  align-items: center;
-  padding: 0 24rpx 0 0;
-  gap: 16rpx;
-}
-
-.lb-back {
-  display: flex;
-  align-items: center;
-  gap: 4rpx;
-  margin-left: 20rpx;
-  padding: 8rpx 12rpx 8rpx 4rpx;
-  border-radius: 8rpx;
-}
-
-.lb-back:active {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.lb-back-arrow {
-  font-size: 40rpx;
-  line-height: 1;
-  color: #818cf8;
-  font-weight: 300;
-  margin-top: -4rpx;
-}
-
-.lb-back-text {
-  font-size: 28rpx;
-  color: #818cf8;
-  font-weight: 500;
-}
-
-.lb-nav-title {
-  flex: 1;
-  font-size: 34rpx;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.lb-scroll {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow-y: auto;
+.luban-page.light {
+  background-image: radial-gradient(
+    rgba(38, 36, 31, 0.1) 1.4rpx,
+    transparent 1.4rpx
+  );
 }
 
 .lb-inner {
-  padding: 28rpx 24rpx 48rpx;
+  padding-left: 24rpx;
+  padding-right: 24rpx;
+  /* 壳遮挡：workspace-shell 高 140rpx */
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 18rpx;
+  box-sizing: border-box;
 }
 
-.lb-hero,
-.lb-station-card,
-.lb-empty,
-.lb-error {
-  border-radius: 22rpx;
-  border: 1rpx solid rgba(148, 163, 184, 0.16);
-  background: rgba(15, 23, 42, 0.62);
+/* ── 品牌行 ─────────────────────────────────── */
+.lb-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 8rpx 4rpx;
 }
 
-.lb-hero {
-  padding: 28rpx 24rpx;
-  background:
-    radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 36%),
-    linear-gradient(145deg, rgba(14, 165, 233, 0.18), rgba(5, 150, 105, 0.12), rgba(15, 23, 42, 0.72));
+.lb-brand-seal {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 14rpx;
+  background: var(--lb-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6rpx 20rpx rgba(207, 68, 54, 0.2);
 }
 
-.lb-kicker {
-  display: block;
-  margin-bottom: 8rpx;
-  font-size: 22rpx;
+.lb-brand-logo {
+  width: 34rpx;
+  height: 34rpx;
+}
+
+.lb-brand-name {
+  font-size: 32rpx;
   font-weight: 800;
-  color: #7dd3fc;
+  letter-spacing: 1rpx;
+  color: var(--lb-t1);
 }
 
-.lb-title {
-  display: block;
-  font-size: 36rpx;
-  line-height: 1.25;
-  font-weight: 850;
-  color: #fff;
+/* ── 顶部状态卡 ─────────────────────────────── */
+.lb-status-grid {
+  display: flex;
+  gap: 16rpx;
 }
 
-.lb-station-card {
+.lb-status-card {
+  flex: 1;
+  min-width: 0;
+  padding: 22rpx 20rpx;
+  border-radius: 28rpx;
+  background: var(--lb-card);
+  border: 1rpx solid var(--lb-bd);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14rpx;
+  box-sizing: border-box;
+}
+
+.lb-status-card-tap:active {
+  opacity: 0.8;
+}
+
+.lb-status-label {
+  font-size: 24rpx;
+  color: var(--lb-t3);
+}
+
+.lb-status-strong {
+  font-weight: 700;
+  color: var(--lb-t1);
+}
+
+.lb-status-link {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--lb-t1);
+}
+
+.lb-progress-track {
+  height: 18rpx;
+  border-radius: 9rpx;
+  background: var(--lb-bd);
+  overflow: hidden;
+}
+
+.lb-progress-fill {
+  height: 100%;
+  border-radius: 9rpx;
+  background: var(--lb-good);
+}
+
+/* ── 下一站卡 ───────────────────────────────── */
+.lb-next-card {
+  border-radius: 32rpx;
+  background: var(--lb-card);
+  border: 1rpx solid var(--lb-bd);
+  padding: 28rpx 26rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.lb-next-head {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.lb-next-seal {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 16rpx;
+  background: var(--lb-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lb-next-logo {
+  width: 38rpx;
+  height: 38rpx;
+}
+
+.lb-next-titles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.lb-next-kicker {
+  font-size: 24rpx;
+  letter-spacing: 3rpx;
+  font-weight: 700;
+  color: var(--lb-t3);
+}
+
+.lb-next-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--lb-t1);
+}
+
+/* 主按钮 = 墨色，暗色反转纸色（bg=t1 / 字=bg 天然实现双态） */
+.lb-next-cta {
+  min-height: 92rpx;
+  border-radius: 24rpx;
+  background: var(--lb-t1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lb-next-cta:active {
+  opacity: 0.85;
+}
+
+.lb-next-cta text {
+  font-size: 28rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--lb-bg);
+}
+
+.lb-next-why {
+  font-size: 24rpx;
+  line-height: 1.65;
+  color: var(--lb-t3);
+}
+
+/* ── 复习到期 chip ──────────────────────────── */
+.lb-review-chip {
+  min-height: 96rpx;
+  padding: 0 28rpx;
+  border-radius: 28rpx;
+  background: var(--lb-card);
+  border: 1rpx solid var(--lb-bd);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 26rpx 24rpx;
+  gap: 20rpx;
 }
 
-.lb-station-card:active {
-  background: rgba(30, 41, 59, 0.85);
+.lb-review-chip:active {
+  opacity: 0.8;
 }
 
-.lb-station-main {
+.lb-review-chip-label {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--lb-t1);
+}
+
+.lb-review-chip-go {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--lb-good);
+}
+
+/* ── 路线地图 ───────────────────────────────── */
+.lb-map-head {
+  padding: 8rpx 4rpx 0;
+}
+
+.lb-map-title {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: var(--lb-t3);
+}
+
+.lb-map-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+/* 绿灯站 = 竖排书法海报 84×112（rpx ×2 = 168×224），墨/朱/纸三色轮替。
+ * 海报为品牌艺术资产，色值按 10b 定稿固定、不随主题变（见文件头注释）。 */
+.lb-poster {
+  position: relative;
+  width: 168rpx;
+  height: 224rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-size: 28rpx 28rpx;
+}
+
+.lb-poster:active {
+  opacity: 0.85;
+}
+
+.lb-poster-vtitle {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  writing-mode: vertical-rl;
+  max-height: 150rpx;
+  overflow: hidden;
+  font-family: "Kaiti SC", "STKaiti", "KaiTi", serif;
+  font-size: 26rpx;
+  letter-spacing: 4rpx;
+  line-height: 1;
+}
+
+.lb-poster-badge {
+  position: absolute;
+  top: 16rpx;
+  left: 16rpx;
+  min-width: 40rpx;
+  height: 40rpx;
+  padding: 0 6rpx;
+  border-radius: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 800;
+  box-sizing: border-box;
+}
+
+.lb-poster-state {
+  position: absolute;
+  left: 16rpx;
+  bottom: 18rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.lb-poster-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6rpx;
+}
+
+/* 墨 */
+.lb-tone-0 {
+  background-color: #26241f;
+  background-image: radial-gradient(
+    rgba(244, 243, 236, 0.08) 1.4rpx,
+    transparent 1.4rpx
+  );
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.18);
+}
+.lb-tone-0 .lb-poster-vtitle {
+  color: #f4f3ec;
+}
+.lb-tone-0 .lb-poster-badge {
+  background: var(--lb-brand);
+  color: #ffffff;
+}
+.lb-tone-0 .lb-poster-state {
+  color: #8fbfa8;
+}
+.lb-tone-0 .lb-poster-line {
+  background: #8fbfa8;
+}
+
+/* 朱（品牌朱红四处之一：红海报） */
+.lb-tone-1 {
+  background-color: #cf4436;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.14) 1.4rpx,
+    transparent 1.4rpx
+  );
+  box-shadow: 0 8rpx 28rpx rgba(207, 68, 54, 0.3);
+}
+.lb-tone-1 .lb-poster-vtitle {
+  color: #ffffff;
+}
+.lb-tone-1 .lb-poster-badge {
+  background: rgba(255, 255, 255, 0.92);
+  color: #cf4436;
+}
+.lb-tone-1 .lb-poster-state {
+  color: #ffe1ba;
+}
+.lb-tone-1 .lb-poster-line {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* 纸 */
+.lb-tone-2 {
+  background-color: #f4f3ec;
+  background-image: radial-gradient(#e4e2d7 1.4rpx, transparent 1.4rpx);
+  border: 1rpx solid #e4e2d7;
+}
+.lb-tone-2 .lb-poster-vtitle {
+  color: #cf4436;
+}
+.lb-tone-2 .lb-poster-badge {
+  background: #26241f;
+  color: #f4f3ec;
+}
+.lb-tone-2 .lb-poster-state {
+  color: #96917e;
+}
+.lb-tone-2 .lb-poster-line {
+  background: rgba(38, 36, 31, 0.18);
+}
+
+/* 即将开通灰态 slot（诚实标注，不装全） */
+.lb-slot {
+  width: 168rpx;
+  height: 224rpx;
+  border-radius: 20rpx;
+  border: 2rpx dashed var(--lb-bd);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
 }
 
-.lb-station-title {
-  font-size: 30rpx;
+.lb-slot-badge {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: var(--lb-t3);
+  opacity: 0.7;
+}
+
+.lb-slot-text {
+  font-size: 24rpx;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--lb-t3);
 }
 
-.lb-station-id {
-  font-size: 22rpx;
-  color: var(--text-muted);
-}
-
-.lb-station-arrow {
-  font-size: 44rpx;
-  color: #818cf8;
-  font-weight: 300;
+/* ── 加载 / 空 / 错误态 ─────────────────────── */
+.lb-loading,
+.lb-empty,
+.lb-error {
+  border-radius: 28rpx;
+  border: 1rpx solid var(--lb-bd);
+  background: var(--lb-card);
 }
 
 .lb-loading,
@@ -149,7 +418,7 @@
 .lb-loading-text,
 .lb-empty text {
   font-size: 26rpx;
-  color: var(--text-tertiary);
+  color: var(--lb-t3);
 }
 
 .lb-error {
@@ -159,15 +428,15 @@
   justify-content: space-between;
   gap: 20rpx;
   font-size: 26rpx;
-  color: #fca5a5;
+  color: var(--lb-bad);
 }
 
 .lb-retry {
   flex-shrink: 0;
   padding: 12rpx 28rpx;
   border-radius: 999rpx;
-  background: rgba(129, 140, 248, 0.18);
-  color: #a5b4fc;
+  background: var(--lb-t1);
+  color: var(--lb-bg);
   font-size: 26rpx;
-  font-weight: 600;
+  font-weight: 700;
 }

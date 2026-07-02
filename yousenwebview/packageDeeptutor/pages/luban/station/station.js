@@ -15,6 +15,7 @@
 // - 幕/档位切换 = learning_action_started（action=start_training,
 //   object_id="<pack>:<tier>"）
 const api = require("../../../utils/api");
+const helpers = require("../../../utils/helpers");
 const telemetry = require("../../../utils/surface-telemetry");
 
 var TIER_LESSON = "lesson";
@@ -30,6 +31,7 @@ Page({
   data: {
     packId: "",
     title: "",
+    isDark: true, // 展示派生：10a/10b 主题切换（不参与数据流）
     loading: true,
     errorText: "",
     tier: TIER_LESSON, // "lesson" | "practice"
@@ -40,7 +42,7 @@ Page({
 
   onLoad(query) {
     var packId = String((query && query.pack_id) || "").trim();
-    this.setData({ packId: packId });
+    this.setData({ packId: packId, isDark: helpers.isDark() });
     // 站进入（任务稿 luban_station_enter 的登记名）
     telemetry.trackProductBehavior("module_viewed", {
       module: "learning",
