@@ -1,13 +1,14 @@
 @import "/packageDeeptutor/theme.wxss";
 
 /* 学习 tab 首页 · 第10轮 10a（宣纸亮）/10b（夜宣纸暗）
+ * 像素权威 = 设计资产-五模块第10轮/screens/screen-10a.png、screen-10b.png。
  * 全部主题色走 --lb-* token；仅两类字面量有意保留：
  * 1) 宣纸点阵纹理 = 低透明度中性 rgba（无法用 hex token 表达 alpha）；
- * 2) 路线海报（墨/朱/纸）= 品牌艺术资产，按 10b 定稿「不随主题变」。 */
+ * 2) 路线海报（墨/朱/纸）与舞台原色宣纸 = 品牌艺术资产，按定稿「不随主题变」。 */
 
 .luban-page {
   min-height: 100vh;
-  background-color: var(--lb-bg);
+  background-color: var(--lb-paper);
   background-image: radial-gradient(
     rgba(241, 239, 232, 0.05) 1.4rpx,
     transparent 1.4rpx
@@ -30,53 +31,55 @@
   padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  gap: 20rpx;
   box-sizing: border-box;
 }
 
-/* ── 品牌行 ─────────────────────────────────── */
+/* ── ① 品牌行（与原生胶囊同一水平线）───────────── */
 .lb-brand-row {
   display: flex;
   align-items: center;
   gap: 16rpx;
-  padding: 8rpx 4rpx;
+  padding: 0 4rpx;
+  margin-bottom: 10rpx;
 }
 
 .lb-brand-seal {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 14rpx;
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 16rpx;
   background: var(--lb-brand);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6rpx 20rpx rgba(207, 68, 54, 0.2);
+  box-shadow: 0 6rpx 20rpx rgba(207, 68, 54, 0.25);
 }
 
 .lb-brand-logo {
-  width: 34rpx;
-  height: 34rpx;
+  width: 36rpx;
+  height: 36rpx;
 }
 
 .lb-brand-name {
-  font-size: 32rpx;
+  font-size: 34rpx;
   font-weight: 800;
-  letter-spacing: 1rpx;
+  letter-spacing: 2rpx;
   color: var(--lb-t1);
 }
 
-/* ── 顶部状态卡 ─────────────────────────────── */
-.lb-status-grid {
+/* ── ② 指标卡横排 ───────────────────────────── */
+.lb-metrics {
   display: flex;
   gap: 16rpx;
 }
 
-.lb-status-card {
+.lb-metric-card {
   flex: 1;
   min-width: 0;
-  padding: 22rpx 20rpx;
+  min-height: 156rpx;
+  padding: 24rpx 22rpx;
   border-radius: 28rpx;
-  background: var(--lb-card);
+  background: var(--lb-paper-card);
   border: 1rpx solid var(--lb-bd);
   display: flex;
   flex-direction: column;
@@ -85,60 +88,70 @@
   box-sizing: border-box;
 }
 
-.lb-status-card-tap:active {
+.lb-metric-tap:active {
   opacity: 0.8;
 }
 
-.lb-status-label {
+.lb-metric-label {
   font-size: 24rpx;
   color: var(--lb-t3);
 }
 
-.lb-status-strong {
+.lb-metric-label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+}
+
+.lb-metric-strong {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--lb-t1);
+  font-variant-numeric: tabular-nums;
+}
+
+.lb-metric-link {
+  font-size: 27rpx;
   font-weight: 700;
+  line-height: 1.4;
   color: var(--lb-t1);
 }
 
-.lb-status-link {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: var(--lb-t1);
-}
-
-.lb-progress-track {
-  height: 18rpx;
-  border-radius: 9rpx;
+/* 竹青短进度条 */
+.lb-metric-bar {
+  height: 16rpx;
+  border-radius: 8rpx;
   background: var(--lb-bd);
   overflow: hidden;
 }
 
-.lb-progress-fill {
+.lb-metric-fill {
   height: 100%;
-  border-radius: 9rpx;
+  border-radius: 8rpx;
   background: var(--lb-good);
 }
 
-/* ── 下一站卡 ───────────────────────────────── */
+/* ── ③ 下一站大卡 ───────────────────────────── */
 .lb-next-card {
   border-radius: 32rpx;
-  background: var(--lb-card);
+  background: var(--lb-paper-card);
   border: 1rpx solid var(--lb-bd);
-  padding: 28rpx 26rpx;
+  padding: 26rpx 24rpx 24rpx;
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 22rpx;
 }
 
 .lb-next-head {
   display: flex;
   align-items: center;
-  gap: 18rpx;
+  gap: 16rpx;
 }
 
 .lb-next-seal {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 16rpx;
+  width: 68rpx;
+  height: 68rpx;
+  border-radius: 18rpx;
   background: var(--lb-brand);
   display: flex;
   align-items: center;
@@ -147,8 +160,8 @@
 }
 
 .lb-next-logo {
-  width: 38rpx;
-  height: 38rpx;
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .lb-next-titles {
@@ -161,7 +174,7 @@
 
 .lb-next-kicker {
   font-size: 24rpx;
-  letter-spacing: 3rpx;
+  letter-spacing: 2rpx;
   font-weight: 700;
   color: var(--lb-t3);
 }
@@ -169,87 +182,198 @@
 .lb-next-title {
   font-size: 32rpx;
   font-weight: 800;
-  line-height: 1.35;
+  line-height: 1.3;
   color: var(--lb-t1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-/* 主按钮 = 墨色，暗色反转纸色（bg=t1 / 字=bg 天然实现双态） */
-.lb-next-cta {
-  min-height: 92rpx;
-  border-radius: 24rpx;
-  background: var(--lb-t1);
+/* 「匹配你的薄弱」浅金 chip（竹青字） */
+.lb-weak-chip {
+  flex-shrink: 0;
+  padding: 10rpx 20rpx;
+  border-radius: 999rpx;
+  background: var(--lb-chip-gold);
+  align-self: flex-start;
+}
+
+.lb-weak-chip text {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--lb-good);
+}
+
+/* ── 动画舞台（原色宣纸静态预览，不内嵌 web-view）── */
+.lb-stage {
+  position: relative;
+  border-radius: 20rpx;
+  background-color: var(--lb-stage);
+  background-image: radial-gradient(var(--lb-stage-dot) 1.4rpx, transparent 1.4rpx);
+  background-size: 36rpx 36rpx;
+  padding: 120rpx 32rpx 36rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26rpx;
+  overflow: hidden;
+}
+
+.lb-stage:active {
+  opacity: 0.9;
+}
+
+/* 左上「旁白·开」朱红胶囊 */
+.lb-stage-narr {
+  position: absolute;
+  top: 28rpx;
+  left: 28rpx;
+  padding: 10rpx 24rpx;
+  border-radius: 999rpx;
+  background: var(--lb-brand);
+  box-shadow: 0 6rpx 18rpx rgba(207, 68, 54, 0.35);
+}
+
+.lb-stage-narr text {
+  font-size: 24rpx;
+  font-weight: 800;
+  letter-spacing: 1rpx;
+  color: #ffffff;
+}
+
+/* 右上全屏图标（墨底 + 四角括号，纯 CSS 绘制） */
+.lb-stage-full {
+  position: absolute;
+  top: 28rpx;
+  right: 28rpx;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 16rpx;
+  background: var(--lb-stage-ink);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.lb-next-cta:active {
-  opacity: 0.85;
+.lb-stage-full-glyph {
+  position: relative;
+  width: 30rpx;
+  height: 30rpx;
+  border: 3rpx solid var(--lb-stage);
+  border-radius: 4rpx;
+  box-sizing: border-box;
 }
 
-.lb-next-cta text {
+/* 用墨底色条遮住边框中段，只留四角括号 */
+.lb-stage-full-gap-h {
+  position: absolute;
+  left: 6rpx;
+  right: 6rpx;
+  top: -4rpx;
+  bottom: -4rpx;
+  background: var(--lb-stage-ink);
+}
+
+.lb-stage-full-gap-v {
+  position: absolute;
+  top: 6rpx;
+  bottom: 6rpx;
+  left: -4rpx;
+  right: -4rpx;
+  background: var(--lb-stage-ink);
+}
+
+/* 居中书法体品牌字（朱红） */
+.lb-stage-brand {
+  font-family: "Kaiti SC", "STKaiti", "KaiTi", serif;
+  font-size: 76rpx;
+  font-weight: 700;
+  letter-spacing: 10rpx;
+  color: var(--lb-brand);
+  line-height: 1.2;
+}
+
+.lb-stage-sub {
   font-size: 28rpx;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 2rpx;
-  color: var(--lb-bg);
+  color: var(--lb-stage-ink);
+  margin-top: -6rpx;
 }
 
-.lb-next-why {
+/* 中央朱红圆形播放键 */
+.lb-stage-play {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: var(--lb-brand);
+  box-shadow: 0 10rpx 30rpx rgba(207, 68, 54, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10rpx 0;
+}
+
+.lb-stage-play::after {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 26rpx solid #ffffff;
+  border-top: 16rpx solid transparent;
+  border-bottom: 16rpx solid transparent;
+  margin-left: 8rpx;
+}
+
+.lb-stage-hint {
   font-size: 24rpx;
-  line-height: 1.65;
-  color: var(--lb-t3);
+  letter-spacing: 2rpx;
+  color: var(--lb-stage-sub);
 }
 
-/* ── 复习到期 chip ──────────────────────────── */
-.lb-review-chip {
-  min-height: 96rpx;
-  padding: 0 28rpx;
-  border-radius: 28rpx;
-  background: var(--lb-card);
-  border: 1rpx solid var(--lb-bd);
+/* ── ④ 路线横滑区 ───────────────────────────── */
+.lb-map-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20rpx;
+  gap: 16rpx;
+  padding: 8rpx 4rpx 0;
 }
 
-.lb-review-chip:active {
-  opacity: 0.8;
-}
-
-.lb-review-chip-label {
+.lb-map-title {
   font-size: 26rpx;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--lb-t1);
 }
 
-.lb-review-chip-go {
+.lb-map-more {
+  flex-shrink: 0;
   font-size: 26rpx;
   font-weight: 700;
   color: var(--lb-good);
 }
 
-/* ── 路线地图 ───────────────────────────────── */
-.lb-map-head {
-  padding: 8rpx 4rpx 0;
+.lb-map-more:active {
+  opacity: 0.7;
 }
 
-.lb-map-title {
-  font-size: 24rpx;
-  font-weight: 800;
-  color: var(--lb-t3);
+.lb-map-scroll {
+  width: 100%;
+  white-space: nowrap;
 }
 
-.lb-map-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
+.lb-map-track {
+  display: inline-flex;
+  gap: 14rpx;
+  padding: 4rpx 2rpx 10rpx;
 }
 
 /* 绿灯站 = 竖排书法海报 84×112（rpx ×2 = 168×224），墨/朱/纸三色轮替。
  * 海报为品牌艺术资产，色值按 10b 定稿固定、不随主题变（见文件头注释）。 */
 .lb-poster {
   position: relative;
+  flex-shrink: 0;
   width: 168rpx;
   height: 224rpx;
   border-radius: 20rpx;
@@ -267,7 +391,7 @@
   top: 16rpx;
   right: 16rpx;
   writing-mode: vertical-rl;
-  max-height: 150rpx;
+  max-height: 130rpx;
   overflow: hidden;
   font-family: "Kaiti SC", "STKaiti", "KaiTi", serif;
   font-size: 26rpx;
@@ -295,7 +419,7 @@
   position: absolute;
   left: 16rpx;
   bottom: 18rpx;
-  font-size: 24rpx;
+  font-size: 22rpx;
   font-weight: 800;
 }
 
@@ -373,8 +497,9 @@
   background: rgba(38, 36, 31, 0.18);
 }
 
-/* 即将开通灰态 slot（诚实标注，不装全） */
-.lb-slot {
+/* 末尾「完整路线」虚线卡 */
+.lb-map-end {
+  flex-shrink: 0;
   width: 168rpx;
   height: 224rpx;
   border-radius: 20rpx;
@@ -384,20 +509,126 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10rpx;
+  gap: 8rpx;
 }
 
-.lb-slot-badge {
-  font-size: 24rpx;
-  font-weight: 800;
-  color: var(--lb-t3);
-  opacity: 0.7;
+.lb-end-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  width: 76rpx;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
 }
 
-.lb-slot-text {
+.lb-end-swatch {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+}
+
+.lb-end-swatch-ink {
+  background: #26241f;
+}
+
+.lb-end-swatch-red {
+  background: #cf4436;
+}
+
+.lb-end-swatch-paper {
+  background: #f4f3ec;
+  border: 1rpx solid #e4e2d7;
+}
+
+.lb-end-swatch-dash {
+  border: 2rpx dashed var(--lb-bd);
+}
+
+.lb-end-text {
   font-size: 24rpx;
   font-weight: 700;
+  line-height: 1.5;
+  color: var(--lb-t1);
+}
+
+/* ── ⑤ 今天最该完成卡 ───────────────────────── */
+.lb-today-card {
+  border-radius: 32rpx;
+  background: var(--lb-paper-card);
+  border: 1rpx solid var(--lb-bd);
+  padding: 30rpx 26rpx 26rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.lb-today-kicker {
+  font-size: 26rpx;
+  font-weight: 600;
   color: var(--lb-t3);
+}
+
+.lb-today-title {
+  font-size: 38rpx;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--lb-t1);
+}
+
+.lb-today-sub {
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--lb-t3);
+}
+
+.lb-today-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 14rpx;
+}
+
+/* 主按钮 = 墨色，暗色反转纸色（bg=t1 / 字=paper 天然实现双态） */
+.lb-today-main {
+  flex: 1;
+  min-height: 96rpx;
+  border-radius: 24rpx;
+  background: var(--lb-t1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lb-today-main:active {
+  opacity: 0.85;
+}
+
+.lb-today-main text {
+  font-size: 30rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--lb-paper);
+}
+
+.lb-today-alt {
+  flex-shrink: 0;
+  min-height: 96rpx;
+  padding: 0 32rpx;
+  border-radius: 24rpx;
+  background: var(--lb-paper-card);
+  border: 1rpx solid var(--lb-bd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lb-today-alt:active {
+  opacity: 0.8;
+}
+
+.lb-today-alt text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--lb-t1);
 }
 
 /* ── 加载 / 空 / 错误态 ─────────────────────── */
@@ -406,7 +637,7 @@
 .lb-error {
   border-radius: 28rpx;
   border: 1rpx solid var(--lb-bd);
-  background: var(--lb-card);
+  background: var(--lb-paper-card);
 }
 
 .lb-loading,
@@ -436,7 +667,7 @@
   padding: 12rpx 28rpx;
   border-radius: 999rpx;
   background: var(--lb-t1);
-  color: var(--lb-bg);
+  color: var(--lb-paper);
   font-size: 26rpx;
   font-weight: 700;
 }

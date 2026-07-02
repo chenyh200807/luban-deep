@@ -1,8 +1,8 @@
 <view class="luban-page {{isDark ? '' : 'light'}}">
-  <view class="lb-inner" style="padding-top: {{statusBarHeight + 48}}px">
+  <view class="lb-inner" style="padding-top: {{brandTop}}px">
 
-    <!-- 顶部品牌行（红章 = 品牌朱红四处之一：鲁 logo 章） -->
-    <view class="lb-brand-row">
+    <!-- ① 顶部品牌行：朱红方章 + 鲁班智考；右侧胶囊按钮组 = 微信原生胶囊（custom nav 下原生常驻，不重复绘制） -->
+    <view class="lb-brand-row" style="height: {{brandHeight}}px">
       <view class="lb-brand-seal">
         <image
           class="lb-brand-logo"
@@ -13,18 +13,23 @@
       <text class="lb-brand-name">鲁班智考</text>
     </view>
 
-    <!-- 顶部状态卡：距考（占位深链）+ 路线进度 -->
-    <view class="lb-status-grid">
-      <view class="lb-status-card lb-status-card-tap" bindtap="goProfile">
-        <text class="lb-status-label">距考试</text>
-        <text class="lb-status-link">设置考试日期 →</text>
+    <!-- ② 三指标卡横排。数据纪律：
+         距考 = exam_date 未接线（T5）→ 占位深链「设置考试日期 →」；
+         今日分钟 = 无数据源 → 整卡隐藏（禁造数），故当前实渲染 2 卡。 -->
+    <view class="lb-metrics">
+      <view class="lb-metric-card lb-metric-tap" bindtap="goProfile">
+        <text class="lb-metric-label">距考试</text>
+        <text class="lb-metric-link">设置考试日期 →</text>
       </view>
-      <view class="lb-status-card">
-        <text class="lb-status-label">路线 · 已点亮
-          <text class="lb-status-strong" wx:if="{{totalStations > 0}}">{{lessonCount}}/{{totalStations}} 站</text><text class="lb-status-strong" wx:else>{{lessonCount}} 站</text>
-        </text>
-        <view class="lb-progress-track">
-          <view class="lb-progress-fill" style="width: {{routePercent}}%"></view>
+      <view class="lb-metric-card">
+        <view class="lb-metric-label-row">
+          <text class="lb-metric-label">路线</text>
+          <text class="lb-metric-strong" wx:if="{{totalStations > 0}}">{{lessonCount}}/{{totalStations}}</text>
+          <text class="lb-metric-strong" wx:else>{{lessonCount}}</text>
+          <text class="lb-metric-label">站</text>
+        </view>
+        <view class="lb-metric-bar" wx:if="{{totalStations > 0}}">
+          <view class="lb-metric-fill" style="width: {{routePercent}}%"></view>
         </view>
       </view>
     </view>
@@ -39,7 +44,7 @@
     </view>
 
     <block wx:if="{{!loading && !errorText}}">
-      <!-- 下一站卡 -->
+      <!-- ③ 下一站大卡：kicker + 标题 + 浅金 chip + 动画舞台静态预览（tap = 进 station 页讲懂幕） -->
       <view class="lb-next-card" wx:if="{{nextLesson}}">
         <view class="lb-next-head">
           <view class="lb-next-seal">
@@ -50,46 +55,94 @@
             />
           </view>
           <view class="lb-next-titles">
-            <text class="lb-next-kicker">下一站 · 你的路线</text>
+            <text class="lb-next-kicker">下一站 · 你的路线 S{{nextOrdinal}}</text>
             <text class="lb-next-title">{{nextLesson.title}}</text>
+          </view>
+          <view class="lb-weak-chip">
+            <text>匹配你的薄弱</text>
           </view>
         </view>
         <view
-          class="lb-next-cta"
+          class="lb-stage"
           data-pack-id="{{nextLesson.pack_id}}"
           bindtap="openStation"
         >
-          <text>进入这一站</text>
+          <view class="lb-stage-narr"><text>旁白·开</text></view>
+          <view class="lb-stage-full">
+            <view class="lb-stage-full-glyph">
+              <view class="lb-stage-full-gap-h"></view>
+              <view class="lb-stage-full-gap-v"></view>
+            </view>
+          </view>
+          <text class="lb-stage-brand">鲁班智考</text>
+          <text class="lb-stage-sub">动画精讲 · 先讲懂，再动笔</text>
+          <view class="lb-stage-play"></view>
+          <text class="lb-stage-hint">点击播放 · 精讲 + 追问，讲懂再练</text>
         </view>
-        <text class="lb-next-why">为什么是它：「{{nextLesson.title}}」是你的路线下一站。</text>
       </view>
 
-      <!-- 复习到期 chip：纯跳转复习 tab -->
-      <view class="lb-review-chip" bindtap="goReview">
-        <text class="lb-review-chip-label">复习到期</text>
-        <text class="lb-review-chip-go">去复习 →</text>
-      </view>
-
-      <!-- 路线地图：绿灯站（书法海报，墨/朱/纸轮替）+ 即将开通灰态 slot -->
+      <!-- ④ 路线横滑区：横向书法海报 + 末尾「完整路线」虚线卡 -->
       <view class="lb-map-head">
-        <text class="lb-map-title" wx:if="{{totalStations > 0}}">你的路线 · 已点亮 {{lessonCount}} / {{totalStations}} 站</text><text class="lb-map-title" wx:else>你的路线 · 已点亮 {{lessonCount}} 站</text>
+        <text class="lb-map-title" wx:if="{{totalStations > 0}}">你的路线 · 已点亮 {{lessonCount}} / {{totalStations}} 站</text>
+        <text class="lb-map-title" wx:else>你的路线 · 已点亮 {{lessonCount}} 站</text>
+        <text class="lb-map-more" bindtap="scrollMapToEnd">查看完整地图 →</text>
       </view>
-      <view class="lb-map-grid">
-        <view
-          class="lb-poster lb-tone-{{index % 3}}"
-          wx:for="{{lessons}}"
-          wx:key="pack_id"
-          data-pack-id="{{item.pack_id}}"
-          bindtap="openStation"
-        >
-          <text class="lb-poster-vtitle">{{item.title}}</text>
-          <text class="lb-poster-badge">S{{index + 1}}</text>
-          <text class="lb-poster-state">已点亮</text>
-          <view class="lb-poster-line"></view>
+      <scroll-view
+        class="lb-map-scroll"
+        scroll-x="{{true}}"
+        scroll-into-view="{{mapScrollId}}"
+        scroll-with-animation="{{true}}"
+        show-scrollbar="{{false}}"
+        enhanced="{{true}}"
+      >
+        <view class="lb-map-track">
+          <view
+            class="lb-poster lb-tone-{{index % 3}}"
+            wx:for="{{lessons}}"
+            wx:key="pack_id"
+            data-pack-id="{{item.pack_id}}"
+            bindtap="openStation"
+          >
+            <text class="lb-poster-badge">S{{index + 1}}</text>
+            <text class="lb-poster-vtitle">{{item.title}}</text>
+            <text class="lb-poster-state">● 已点亮</text>
+            <view class="lb-poster-line"></view>
+          </view>
+          <view class="lb-map-end" id="lb-map-end" wx:if="{{totalStations > 0}}">
+            <view class="lb-end-swatches">
+              <view class="lb-end-swatch lb-end-swatch-ink"></view>
+              <view class="lb-end-swatch lb-end-swatch-red"></view>
+              <view class="lb-end-swatch lb-end-swatch-paper"></view>
+              <view class="lb-end-swatch lb-end-swatch-dash"></view>
+            </view>
+            <text class="lb-end-text">完整路线</text>
+            <text class="lb-end-text">{{totalStations}} 站 →</text>
+          </view>
         </view>
-        <view class="lb-slot" wx:for="{{upcomingSlots}}" wx:key="*this">
-          <text class="lb-slot-badge">S{{item}}</text>
-          <text class="lb-slot-text">即将开通</text>
+      </scroll-view>
+
+      <!-- ⑤ 今天最该完成卡：文案取下一站派生；掌握可信度环无数据源不渲染（禁造数） -->
+      <view class="lb-today-card" wx:if="{{nextLesson}}">
+        <text class="lb-today-kicker">今天最该完成</text>
+        <text class="lb-today-title">{{nextLesson.title}} · 半写训练</text>
+        <text class="lb-today-sub">写满采分句，比背答案更接近得分</text>
+        <view class="lb-today-actions">
+          <view
+            class="lb-today-main"
+            data-pack-id="{{nextLesson.pack_id}}"
+            data-tier="practice"
+            bindtap="openStation"
+          >
+            <text>开始半写训练</text>
+          </view>
+          <view
+            class="lb-today-alt"
+            data-pack-id="{{nextLesson.pack_id}}"
+            data-tier="lesson"
+            bindtap="openStation"
+          >
+            <text>换轻练</text>
+          </view>
         </view>
       </view>
 

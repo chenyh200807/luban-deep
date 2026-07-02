@@ -356,6 +356,30 @@ page.theme-light,
   --lb-bd: #e7e3d5;
 }
 
+/* ── 第10轮 10a/10b 学习屏宣纸画布增补（只增不删）──────────
+ * 像素权威 = screens/screen-10a.png / screen-10b.png。
+ * --lb-paper      页面宣纸底（10a #f5f3ec / 10b 夜宣纸 #1c1a15，同点阵纹理）
+ * --lb-paper-card 浮白指标卡（10a #fffdf8 / 10b 暖夜卡）
+ * --lb-chip-gold  「匹配你的薄弱」浅金 chip 底
+ * --lb-stage-*    动画舞台 = 原色宣纸，10a/10b 均不随主题变（定稿钦定） */
+page {
+  --lb-paper: #1c1a15;
+  --lb-paper-card: #24211a;
+  --lb-chip-gold: rgba(212, 178, 99, 0.16);
+  --lb-stage: #f4f3ec;
+  --lb-stage-dot: #e4e2d7;
+  --lb-stage-ink: #26241f;
+  --lb-stage-sub: #a19c8b;
+}
+
+page.theme-light,
+.theme-light,
+.light {
+  --lb-paper: #f5f3ec;
+  --lb-paper-card: #fffdf8;
+  --lb-chip-gold: #f3ecd9;
+}
+
 /*
  * 占位（禁实现，仅记录第5/6轮备选 palette，YAGNI）:
  * - bw 黑红白 dark: bg#0c0d0f 白字 浅蓝#8fc2e8(好) 灰#6e747b(中) 红#c05a4e(差)

@@ -16,7 +16,9 @@ const runtime = require("../../../utils/runtime");
 
 Page({
   data: {
-    statusBarHeight: 0,
+    // 品牌行与原生胶囊按钮组同一水平线（10a/10b 顶部构图）
+    brandTop: 0,
+    brandHeight: 32,
     isDark: true,
     loading: true,
     errorText: "",
@@ -26,7 +28,8 @@ Page({
     totalStations: 0,
     routePercent: 0,
     nextLesson: null,
-    upcomingSlots: [],
+    nextOrdinal: 1,
+    mapScrollId: "",
   },
 
   onLoad() {
@@ -34,8 +37,15 @@ Page({
       typeof wx !== "undefined" && wx.getSystemInfoSync
         ? wx.getSystemInfoSync()
         : {};
+    var statusBarHeight = info.statusBarHeight || 0;
+    var menu =
+      typeof wx !== "undefined" &&
+      typeof wx.getMenuButtonBoundingClientRect === "function"
+        ? wx.getMenuButtonBoundingClientRect()
+        : null;
     this.setData({
-      statusBarHeight: info.statusBarHeight || 0,
+      brandTop: menu && menu.top ? menu.top : statusBarHeight + 6,
+      brandHeight: menu && menu.height ? menu.height : 32,
       isDark: helpers.isDark(),
     });
     // 受保护请求前显式判登录：未登录带 returnTo 回跳本页（Codex 对抗#4）
@@ -66,18 +76,31 @@ Page({
   },
 
   openStation(event) {
-    var packId =
+    var dataset =
       event && event.currentTarget && event.currentTarget.dataset
-        ? event.currentTarget.dataset.packId
-        : "";
+        ? event.currentTarget.dataset
+        : {};
+    var packId = dataset.packId || "";
     if (!packId) return;
+    // tier 透传（practice=半写档 / lesson=轻练先讲懂）；station 页当前从讲懂幕
+    // 起步、暂不消费该参数——接口先行，档位深链归 station 页接线。
+    var tier = dataset.tier ? String(dataset.tier) : "";
     if (typeof wx !== "undefined" && wx.navigateTo) {
       wx.navigateTo({
         url:
           "/packageDeeptutor/pages/luban/station/station?pack_id=" +
-          encodeURIComponent(String(packId)),
+          encodeURIComponent(String(packId)) +
+          (tier ? "&tier=" + encodeURIComponent(tier) : ""),
       });
     }
+  },
+
+  // 「查看完整地图 →」：滑动路线横滑区到末尾「完整路线」卡（当前无独立地图页）
+  scrollMapToEnd() {
+    var that = this;
+    this.setData({ mapScrollId: "" }, function () {
+      that.setData({ mapScrollId: "lb-map-end" });
+    });
   },
 
   // 距考卡占位深链：exam_date 设置在「我的」tab（T5 接线后本卡换真实天数）
@@ -93,19 +116,6 @@ Page({
     });
   },
 
-  // 复习到期 chip：纯跳转复习 tab，不做任何到期逻辑（逻辑归 T2/后端）
-  goReview() {
-    if (typeof wx === "undefined" || !wx.redirectTo) return;
-    wx.redirectTo({
-      url: "/packageDeeptutor/pages/luban/review/review",
-      fail: function () {
-        if (wx.reLaunch) {
-          wx.reLaunch({ url: "/packageDeeptutor/pages/luban/review/review" });
-        }
-      },
-    });
-  },
-
   _loadLessons() {
     var that = this;
     return api
@@ -116,17 +126,14 @@ Page({
         var count = lessons.length;
         var total = parseInt(body.total_registered, 10) || 0;
         var lit = total > 0 ? Math.min(count, total) : count;
-        var upcoming = [];
-        for (var i = count; i < total; i++) {
-          upcoming.push(i + 1);
-        }
         that.setData({
           lessons: lessons,
           lessonCount: count,
           totalStations: total,
           routePercent: total > 0 ? Math.round((lit / total) * 100) : 0,
+          // 无完成态数据 → 下一站 = 列表第一站（S1），kicker 序号与海报一致
           nextLesson: count ? lessons[0] : null,
-          upcomingSlots: upcoming,
+          nextOrdinal: 1,
           loading: false,
           errorText: "",
         });
