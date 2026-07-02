@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -12,7 +12,6 @@ import httpx
 from deeptutor.services.learner_state.attempt_refs import verify_attempt_ref
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
-
 
 _TZ = timezone(timedelta(hours=8))
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
@@ -366,6 +365,11 @@ class MistakeBookService:
         return item
 
     def mark_mastered(self, *, user_id: str, attempt_ref: str, if_match: str | None = None) -> dict[str, Any]:
+        """写呈现层的用户隐藏旗标(mastered_at), 不是学情掌握真值。
+
+        掌握结论只能由客观复测证据经 learner truth 链路派生(M0 reality-lock);
+        本旗标仅用于错题列表的默认过滤/徽章展示, 禁止回流任何学情推断。
+        """
         _require_write_enabled()
         normalized_user = _require_text(user_id, "user_id")
         ref = _verify_ref(attempt_ref, user_id=normalized_user)
@@ -378,16 +382,21 @@ class MistakeBookService:
         return _public_item(updated or {})
 
     def record_review(self, *, user_id: str, attempt_ref: str, if_match: str | None = None) -> dict[str, Any]:
+        """记录一次复习观测(last_reviewed_at), 不产生任何调度结论。
+
+        到期/复习调度真值唯一归 revalidation_queue 投影(双轮设计 v3 §10-①);
+        本方法显式清空 review_due_at——既不新增伪日期, 也顺带清掉收权前
+        存量行里的历史硬编码日期(原实现固定 now+3d, 属第二调度权威)。
+        """
         _require_write_enabled()
         normalized_user = _require_text(user_id, "user_id")
         ref = _verify_ref(attempt_ref, user_id=normalized_user)
         self._require_current(normalized_user, ref["event_id"], if_match=if_match)
         reviewed_at = _now()
-        due_at = (datetime.now(_TZ) + timedelta(days=3)).isoformat()
         updated = self._store.update_item(
             normalized_user,
             ref["event_id"],
-            {"last_reviewed_at": reviewed_at, "review_due_at": due_at, "updated_at": reviewed_at},
+            {"last_reviewed_at": reviewed_at, "review_due_at": None, "updated_at": reviewed_at},
         )
         return _public_item(updated or {})
 
