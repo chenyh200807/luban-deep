@@ -149,3 +149,24 @@ def test_validate_product_behavior_event_rejects_nested_forbidden_payload_fields
                 "extra": {"complete_subjective_answer": "should not be stored"},
             },
         )
+
+
+def test_luban_spike_d15_events_registered():
+    """双轮 spike D15 三个新事件名过 catalog 校验（维度走 object/result 约定）。"""
+    from deeptutor.services.observability.product_behavior_catalog import (
+        validate_product_behavior_event,
+    )
+    for name, meta in [
+        ("handoff_rendered", {"module": "learning", "action": "render",
+                              "object_type": "station", "object_id": "S05",
+                              "visit_id": "v1", "surface": "wechat_yousenwebview"}),
+        ("retest_item_answered", {"module": "practice", "action": "complete",
+                                  "object_type": "variant", "object_id": "S05-B-003",
+                                  "result": "correct", "visit_id": "v1"}),
+        ("subscribe_prompt_result", {"module": "learning", "action": "complete",
+                                     "object_type": "station", "object_id": "S05",
+                                     "result": "red_dot", "visit_id": "v1"}),
+    ]:
+        record = validate_product_behavior_event(name, meta)
+        assert record["event_name"] == name
+        assert record["object_id"] == meta["object_id"]
