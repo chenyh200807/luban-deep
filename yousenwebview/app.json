@@ -36,6 +36,10 @@
         "pages/practice/practice",
         "pages/assessment/assessment",
         "pages/legal/terms",
+        "pages/luban/stations/stations",
+        "pages/luban/station/station",
+        "pages/luban/handoff/handoff",
+        "pages/luban/retest/retest",
         "pages/internal/diagramWebviewTest/diagramWebviewTest"
       ]
     },

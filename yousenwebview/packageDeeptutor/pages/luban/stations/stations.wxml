@@ -1,0 +1,49 @@
+<view class="luban-page {{isDark ? '' : 'light'}}">
+  <view class="lb-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="lb-nav-inner">
+      <view class="lb-back" bindtap="goBack">
+        <text class="lb-back-arrow">‹</text>
+        <text class="lb-back-text">返回</text>
+      </view>
+      <text class="lb-nav-title">提分路线</text>
+    </view>
+  </view>
+
+  <scroll-view class="lb-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="lb-inner">
+      <view class="lb-hero">
+        <text class="lb-kicker">鲁班学习双轮</text>
+        <text class="lb-title">你的提分路线——每天走一站</text>
+      </view>
+
+      <view class="lb-error" wx:if="{{errorText}}">
+        <text>{{errorText}}</text>
+        <view class="lb-retry" bindtap="retry">重试</view>
+      </view>
+
+      <view class="lb-loading" wx:if="{{loading}}">
+        <text class="lb-loading-text">正在为你铺路…</text>
+      </view>
+
+      <block wx:if="{{!loading && !errorText}}">
+        <view
+          class="lb-station-card"
+          wx:for="{{lessons}}"
+          wx:key="pack_id"
+          data-pack-id="{{item.pack_id}}"
+          bindtap="openStation"
+        >
+          <view class="lb-station-main">
+            <text class="lb-station-title">{{item.title}}</text>
+            <text class="lb-station-id">{{item.pack_id}}</text>
+          </view>
+          <text class="lb-station-arrow">›</text>
+        </view>
+
+        <view class="lb-empty" wx:if="{{!lessons.length}}">
+          <text>站点正在建设中，很快就能开走第一站。</text>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>
