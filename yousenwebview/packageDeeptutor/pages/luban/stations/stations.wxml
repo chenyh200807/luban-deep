@@ -21,7 +21,7 @@
       </view>
       <view class="lb-status-card">
         <text class="lb-status-label">路线 · 已点亮
-          <text class="lb-status-strong">{{lessonCount}}/{{totalStations}} 站</text>
+          <text class="lb-status-strong" wx:if="{{totalStations > 0}}">{{lessonCount}}/{{totalStations}} 站</text><text class="lb-status-strong" wx:else>{{lessonCount}} 站</text>
         </text>
         <view class="lb-progress-track">
           <view class="lb-progress-fill" style="width: {{routePercent}}%"></view>
@@ -72,7 +72,7 @@
 
       <!-- 路线地图：绿灯站（书法海报，墨/朱/纸轮替）+ 即将开通灰态 slot -->
       <view class="lb-map-head">
-        <text class="lb-map-title">你的路线 · 已点亮 {{lessonCount}} / {{totalStations}} 站</text>
+        <text class="lb-map-title" wx:if="{{totalStations > 0}}">你的路线 · 已点亮 {{lessonCount}} / {{totalStations}} 站</text><text class="lb-map-title" wx:else>你的路线 · 已点亮 {{lessonCount}} 站</text>
       </view>
       <view class="lb-map-grid">
         <view

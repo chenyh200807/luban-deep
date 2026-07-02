@@ -84,6 +84,12 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
     return sorted(rows, key=lambda r: r["pack_id"])
 
 
+def count_registered_packs(*, manifest_path: Path | None = None) -> int:
+    """路线总站数权威 = manifest 注册包数（含未签发）；manifest 缺失/损坏 → 0，
+    客户端按 0 隐藏总数与占位 slot（不造数），禁前端硬编码第二套总量。"""
+    return len(_load_manifest(manifest_path).get("packs") or [])
+
+
 def build_lesson_viewmodel(
     pack_id: str, *, manifest_path: Path | None = None
 ) -> dict[str, Any]:

@@ -8,14 +8,20 @@
 // - 自主检索 = 纯前端过滤已加载数据（按母题=点亮站 / 按错因=错题错因聚合）。
 // 零学习证据写入（学习证据归 learner_signal / 判分链路，本页不碰）。
 var api = require("../../../utils/api");
+var auth = require("../../../utils/auth");
 var helpers = require("../../../utils/helpers");
 var route = require("../../../utils/route");
+var runtime = require("../../../utils/runtime");
 var mistakeBookViewModel = require("../../../utils/mistake-book-view-model");
 
 var RETEST_LIMIT = 5;
 // 到期探测上限：luban_lesson_retest 限流 30 次/60s，留余量。
 // 点亮站超过上限后，到期聚合应由后端供给，前端不越权补调度。
 var RETEST_PROBE_MAX = 20;
+// 探测并发上限：分批串行，避免瞬时打满限流窗把探测失败伪装成"无到期"。
+var RETEST_PROBE_CONCURRENCY = 4;
+// 探测失败/截断时的弱化文案（禁确定性"没有到期"）。
+var DUE_UNCERTAIN_NOTICE = "部分站点未能检查，下拉重试";
 
 Page({
   data: {
@@ -29,6 +35,9 @@ Page({
     dueCount: 0,
     dueItemTotal: 0,
     duePercent: 0,
+    // true = 有站点探测失败或点亮站超出探测上限——到期结论不完整，
+    // 禁展示确定性"今天没有到期"（诚实降级为弱化文案）。
+    dueUncertain: false,
     firstDue: null,
     searchMode: "pack",
     errorBars: [],
@@ -45,6 +54,12 @@ Page({
       statusBarHeight: info.statusBarHeight || 0,
       isDark: helpers.isDark(),
     });
+    // 受保护请求前显式判登录：未登录带 returnTo 回跳本页，
+    // 避免 api.js 401 兜底 redirectToLogin() 丢目标页（登录后落回 chat）。
+    if (!auth.isLoggedIn()) {
+      runtime.redirectToLogin(route.lubanReview());
+      return;
+    }
     this._loadAll();
   },
 
@@ -118,8 +133,37 @@ Page({
   },
 
   _loadAll: function () {
-    this.setData({ loading: true, errorText: "", dueNotice: "" });
+    this.setData({ loading: true, errorText: "", dueNotice: "", dueUncertain: false });
     return Promise.all([this._loadDue(), this._loadMistakeBank()]);
+  },
+
+  // 逐站探测 retest-items（分批串行，单批 ≤RETEST_PROBE_CONCURRENCY 并发防限流）
+  _probeDueInChunks: function (targets) {
+    var results = [];
+    var probeOne = function (lesson) {
+      return api
+        .getLubanRetestItems(lesson.pack_id, RETEST_LIMIT)
+        .then(function (itemsResp) {
+          var itemsBody = api.unwrapResponse(itemsResp) || {};
+          var items = Array.isArray(itemsBody.items) ? itemsBody.items : [];
+          return { lesson: lesson, count: items.length, failed: false };
+        })
+        .catch(function () {
+          // 单站探测失败不阻塞整页，但必须计入 dueUncertain（禁伪装成"无到期"）
+          return { lesson: lesson, count: 0, failed: true };
+        });
+    };
+    var runChunk = function (start) {
+      if (start >= targets.length) return Promise.resolve(results);
+      var chunk = targets
+        .slice(start, start + RETEST_PROBE_CONCURRENCY)
+        .map(probeOne);
+      return Promise.all(chunk).then(function (part) {
+        results = results.concat(part);
+        return runChunk(start + RETEST_PROBE_CONCURRENCY);
+      });
+    };
+    return runChunk(0);
   },
 
   // 到期推送区：逐站探测 retest-items 有无数据（有 = 今日到期）
@@ -137,25 +181,15 @@ Page({
             dueCount: 0,
             dueItemTotal: 0,
             duePercent: 0,
+            dueUncertain: false,
             firstDue: null,
             loading: false,
           });
           return;
         }
-        var probes = lessons.slice(0, RETEST_PROBE_MAX).map(function (lesson) {
-          return api
-            .getLubanRetestItems(lesson.pack_id, RETEST_LIMIT)
-            .then(function (itemsResp) {
-              var itemsBody = api.unwrapResponse(itemsResp) || {};
-              var items = Array.isArray(itemsBody.items) ? itemsBody.items : [];
-              return { lesson: lesson, count: items.length, failed: false };
-            })
-            .catch(function () {
-              // 单站探测失败不阻塞整页，计入 dueNotice 提示重试
-              return { lesson: lesson, count: 0, failed: true };
-            });
-        });
-        return Promise.all(probes).then(function (results) {
+        var truncated = lessons.length > RETEST_PROBE_MAX;
+        var targets = lessons.slice(0, RETEST_PROBE_MAX);
+        return that._probeDueInChunks(targets).then(function (results) {
           var dueEntries = [];
           var dueItemTotal = 0;
           var failedCount = 0;
@@ -173,6 +207,8 @@ Page({
               dueItemTotal += result.count;
             }
           });
+          // 有失败或截断 = 到期结论不完整：禁展示确定性"没有到期"
+          var dueUncertain = failedCount > 0 || truncated;
           that.setData({
             lessons: lessons,
             dueEntries: dueEntries,
@@ -181,9 +217,9 @@ Page({
             duePercent: lessons.length
               ? Math.round((dueEntries.length / lessons.length) * 100)
               : 0,
+            dueUncertain: dueUncertain,
             firstDue: dueEntries.length ? dueEntries[0] : null,
-            dueNotice:
-              failedCount > 0 ? "部分站点的到期数据暂时取不到，下拉可重试" : "",
+            dueNotice: dueUncertain ? DUE_UNCERTAIN_NOTICE : "",
             loading: false,
           });
         });

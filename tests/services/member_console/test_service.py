@@ -6635,3 +6635,23 @@ def test_spike_d1_report_excludes_allowlisted_users() -> None:
     assert report["d1"] == 0.5
     assert report["cohort_gate_met"] is False
     assert "未达读数条件" in report["verdict"]
+
+
+def test_update_profile_exam_date_fail_closed_validation(tmp_path: Path) -> None:
+    """exam_date 主事实白名单校验（Codex 对抗#2）：空串/真实日期收，其余一律 ValueError。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    updated = service.update_profile("cx_user", {"exam_date": "2026-09-19"})
+    assert updated["exam_date"] == "2026-09-19"
+    updated = service.update_profile("cx_user", {"exam_date": ""})
+    assert updated["exam_date"] == ""
+
+    import pytest as _pytest
+
+    for bad in ("明天", "2026/09/19", "2026-13-01", "2026-02-30", "2019-09-19",
+                "2036-09-19", "2026-09-19'; DROP TABLE members;--", "2026-9-9"):
+        with _pytest.raises(ValueError):
+            service.update_profile("cx_user", {"exam_date": bad})
+    # 校验失败不落盘
+    assert service.get_profile("cx_user")["exam_date"] == ""

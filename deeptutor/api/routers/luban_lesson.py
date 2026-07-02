@@ -15,6 +15,7 @@ from deeptutor.services.luban_lesson import (
     LessonNotAvailable,
     build_lesson_viewmodel,
     build_retest_items,
+    count_registered_packs,
     list_green_lessons,
 )
 
@@ -28,7 +29,8 @@ router = secure_router(tags=["luban_lesson"])
     ],
 )
 async def lessons(_: AuthContext = Depends(get_current_user)) -> dict:
-    return {"lessons": list_green_lessons()}
+    # total_registered 权威 = manifest 注册包数（路线总站数）；0 = 客户端隐藏总数。
+    return {"lessons": list_green_lessons(), "total_registered": count_registered_packs()}
 
 
 @router.get(

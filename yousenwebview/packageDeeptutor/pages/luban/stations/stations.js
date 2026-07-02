@@ -6,10 +6,13 @@
 // - 无完成态数据，下一站 = 列表第一个站；地图绿灯站 = lessons 全量；
 // - manifest 外 slot 诚实标注「即将开通」，不装全。
 const api = require("../../../utils/api");
+const auth = require("../../../utils/auth");
 const helpers = require("../../../utils/helpers");
+const routeUtil = require("../../../utils/route");
+const runtime = require("../../../utils/runtime");
 
-// 路线总站数（第10轮定稿口径「已点亮 N/40 站」）
-var TOTAL_STATIONS = 40;
+// 路线总站数权威 = 后端 total_registered（manifest 注册包数）；
+// 后端未供给（0/缺失）时隐藏总数与"即将开通"slot——禁前端硬编码第二套总量（Codex 对抗#5）。
 
 Page({
   data: {
@@ -20,7 +23,7 @@ Page({
     lessons: [],
     // ── 展示派生（均由 lessons 列表长度算出，不造数）──
     lessonCount: 0,
-    totalStations: TOTAL_STATIONS,
+    totalStations: 0,
     routePercent: 0,
     nextLesson: null,
     upcomingSlots: [],
@@ -35,6 +38,11 @@ Page({
       statusBarHeight: info.statusBarHeight || 0,
       isDark: helpers.isDark(),
     });
+    // 受保护请求前显式判登录：未登录带 returnTo 回跳本页（Codex 对抗#4）
+    if (!auth.isLoggedIn()) {
+      runtime.redirectToLogin(routeUtil.lubanStations());
+      return;
+    }
     this._loadLessons();
   },
 
@@ -106,15 +114,17 @@ Page({
         var body = api.unwrapResponse(resp) || {};
         var lessons = Array.isArray(body.lessons) ? body.lessons : [];
         var count = lessons.length;
-        var lit = Math.min(count, TOTAL_STATIONS);
+        var total = parseInt(body.total_registered, 10) || 0;
+        var lit = total > 0 ? Math.min(count, total) : count;
         var upcoming = [];
-        for (var i = count; i < TOTAL_STATIONS; i++) {
+        for (var i = count; i < total; i++) {
           upcoming.push(i + 1);
         }
         that.setData({
           lessons: lessons,
           lessonCount: count,
-          routePercent: Math.round((lit / TOTAL_STATIONS) * 100),
+          totalStations: total,
+          routePercent: total > 0 ? Math.round((lit / total) * 100) : 0,
           nextLesson: count ? lessons[0] : null,
           upcomingSlots: upcoming,
           loading: false,

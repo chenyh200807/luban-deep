@@ -129,6 +129,29 @@ _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
 _WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS = int(datetime(2026, 6, 22, 3, 3, tzinfo=timezone.utc).timestamp())
 # 时间预算偏好三档（"" = 未设置）。第10轮 10f「我的」tab 写入，阶段 2 调度引擎消费。
 _TIME_BUDGET_VALUES = frozenset({"", "light", "medium", "heavy"})
+# exam_date 主事实校验（fail-closed）：只收空串（清除）或真实 YYYY-MM-DD 日期，
+# 年份窗口挡手滑/脏客户端写入；镜像到 learner_state 的倒计时/排程都读它，禁脏值入库。
+_EXAM_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_EXAM_DATE_YEAR_MIN = 2020
+_EXAM_DATE_YEAR_MAX = 2035
+
+
+def _validate_exam_date(value: Any) -> str:
+    """exam_date 白名单校验：返回规整值，非法一律 ValueError（路由映射 400）。"""
+    candidate = str(value if value is not None else "").strip()
+    if candidate == "":
+        return ""
+    if not _EXAM_DATE_PATTERN.match(candidate):
+        raise ValueError("exam_date must be an empty string or a YYYY-MM-DD date")
+    try:
+        parsed = datetime.strptime(candidate, "%Y-%m-%d")
+    except ValueError as exc:
+        raise ValueError("exam_date must be a real calendar date (YYYY-MM-DD)") from exc
+    if not (_EXAM_DATE_YEAR_MIN <= parsed.year <= _EXAM_DATE_YEAR_MAX):
+        raise ValueError(
+            f"exam_date year must be between {_EXAM_DATE_YEAR_MIN} and {_EXAM_DATE_YEAR_MAX}"
+        )
+    return candidate
 
 _MEMBERSHIP_TIER_RANK = {
     "trial": 0,
@@ -6264,6 +6287,11 @@ class MemberConsoleService:
         }
 
     def update_profile(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        if "exam_date" in patch:
+            # fail-closed：非法 exam_date 在任何落盘/审计发生前拒绝（ValueError → 路由 400），
+            # member_console 与 learner_state 镜像都不会被脏值污染。
+            patch = {**patch, "exam_date": _validate_exam_date(patch["exam_date"])}
+
         def _apply(data: dict[str, Any]) -> None:
             member = self._ensure_member(data, user_id)
             before = deepcopy(member)

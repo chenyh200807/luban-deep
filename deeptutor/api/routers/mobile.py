@@ -1886,6 +1886,7 @@ def _build_member_profile_rollback_patch(profile: dict[str, Any]) -> dict[str, A
         "display_name",
         "exam_date",
         "daily_target",
+        "time_budget",
         "difficulty_preference",
         "explanation_style",
         "review_reminder",
@@ -2385,7 +2386,11 @@ async def auth_profile_settings(
     previous_learner_profile = learner_state_service.read_profile(user_id)
     goal_patches = _extract_goal_patches(patch)
     previous_goals = learner_state_service.read_goals(user_id) if goal_patches else []
-    profile = member_service.update_profile(user_id, patch)
+    try:
+        profile = member_service.update_profile(user_id, patch)
+    except ValueError as exc:
+        # fail-closed 校验拒绝（如非法 exam_date）：什么都没写，直接 400。
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     learner_profile = _build_learner_profile_payload(profile, patch)
     try:
         learner_state_service.write_profile_strict(user_id, learner_profile)

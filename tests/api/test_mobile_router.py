@@ -5987,3 +5987,20 @@ def test_mobile_chat_start_turn_is_rate_limited(monkeypatch: pytest.MonkeyPatch)
 
     assert statuses[:10] == [200] * 10  # first 10 within the window pass
     assert statuses[10] == 429  # 11th over the limit is rejected
+
+
+def test_member_profile_rollback_patch_covers_time_budget() -> None:
+    """回滚字段清单必须含 time_budget（Codex 对抗#1：漏字段=503 时写入半提交分叉）。"""
+    profile = {
+        "display_name": "旧昵称",
+        "exam_date": "2026-09-19",
+        "daily_target": 10,
+        "time_budget": "light",
+        "difficulty_preference": "medium",
+        "explanation_style": "concise",
+        "review_reminder": True,
+        "avatar_url": "",
+    }
+    patch = mobile_module._build_member_profile_rollback_patch(profile)
+    assert patch["time_budget"] == "light"
+    assert patch["exam_date"] == "2026-09-19"

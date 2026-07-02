@@ -130,3 +130,10 @@ def test_retest_pool_wraps_when_exhausted(tmp_path):
     _bank(tmp_path, n_core=2)
     items = build_retest_items("S05", user_id="u", day_index=99, limit=5, manifest_path=mp)
     assert len(items) == 2, "池小于 limit 时只发池内不重复项(复用旧变体, 绝不现编)"
+
+
+def test_count_registered_packs_authority_and_fail_closed(tmp_path):
+    """路线总站数权威=manifest 注册包数（Codex 对抗#5：禁前端硬编码 40）。"""
+    from deeptutor.services.luban_lesson import count_registered_packs
+    assert count_registered_packs() == 40, "真 manifest 当前注册 40 包"
+    assert count_registered_packs(manifest_path=tmp_path / "nope.json") == 0, "缺失→0→客户端隐藏总数"
