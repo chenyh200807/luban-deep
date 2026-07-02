@@ -825,3 +825,7 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
 ## member display_name 真值（2026-06-24）
 
 `member_console` 投影的 `display_name` **不得回落为 `user_id`**：微信快捷登录曾把 `display_name` 误置为内部 `user_id`（退化态），导致学员台账把内部 uid 当昵称展示。修复后单点约束：当 `display_name` 缺失或等于 `user_id` 时，统一回落为 `微信用户{user_id 后4位}`（`member_console/service.py` 的 directory 投影与绑定路径同口径）。`display_name` 是**展示字段**，不是 learner identity authority——identity 仍按 `canonical_uid` 单点（见上文「单一权威」），display_name 退化不得污染 identity 解析。
+
+## QA/内部账号 allowlist 导出（2026-07-02）
+
+`MemberConsoleService.list_internal_test_user_ids()` 是 QA/内部账号名单的**唯一读权威**（spike D1 度量与 D15 埋点读侧共用）：判据复用 `_looks_like_test_member`，禁止在度量脚本里另建启发式名单（`turns>50` 等只能作对照披露）。实现注意：不得经 `_load_member_directory_members_for_bi` 取数——其 BI 过滤会先剔除测试账号，生产恒为空集；必须遍历本地 store + Supabase directory 原始成员。该导出是只读投影，不是第二 identity authority——identity 仍按 `canonical_uid` 单点。

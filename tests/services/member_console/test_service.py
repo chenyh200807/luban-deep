@@ -214,7 +214,7 @@ async def test_login_with_wechat_code_promotes_phone_backed_member_to_canonical_
                 **service._build_default_member("wx_O4aNJg7O_wRk"),
                 "user_id": "wx_O4aNJg7O_wRk",
                 "phone": "34277511499",
-                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             }
         ]
 
@@ -1108,7 +1108,7 @@ def test_login_with_password_does_not_fail_when_wallet_bootstrap_is_unavailable(
     users_file = tmp_path / "users.json"
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     username = "wallet_quota_user"
-    password = "SyntheticPass123"
+    password = "SyntheticPass123"  # pragma: allowlist secret
     password_hash = bcrypt.hashpw(
         hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8"),
         bcrypt.gensalt(),
