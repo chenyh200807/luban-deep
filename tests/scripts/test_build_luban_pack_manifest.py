@@ -45,3 +45,38 @@ def test_entry_shape_has_projection_gate_fields() -> None:
     }
     for pack in manifest["packs"]:
         assert required <= set(pack), f"{pack['pack_id']} 缺字段: {required - set(pack)}"
+
+
+def test_jury_clean_counts_only_unresolved_high_confidence() -> None:
+    """jury_clean = 无未解决高可信 issue: 有 resolution.status=fixed 的不再挡门,
+    无 resolution 的高可信 issue 仍 fail-closed 挡门(S05 签发样板实证)。"""
+    manifest = _mod.build_manifest()
+    s05 = next(p for p in manifest["packs"] if p["pack_id"] == "S05")
+    # S05: 3 条高可信全部登记 resolution.status=fixed → clean
+    assert s05["jury_high_confidence"] == 3
+    assert s05["jury_high_confidence_unresolved"] == 0
+    assert s05["jury_clean"] is True
+    # 但未签发时仍不得进绿灯(published 恒 False, 除非 overrides 人工置 true)
+    if not _mod.OVERRIDES_PATH.exists():
+        assert "S05" not in manifest["projection_green"]
+    # 对照组: 仍有未解决高可信 issue 的 pack 必须保持 jury_clean=False
+    dirty = [p for p in manifest["packs"] if p["jury_high_confidence_unresolved"] > 0]
+    assert dirty, "应存在未收口 pack(否则本断言失效需更新)"
+    assert all(p["jury_clean"] is False for p in dirty)
+
+
+def test_is_resolved_fail_closed_shapes() -> None:
+    """resolution 形状不合法一律计为未解决(fail-closed)。"""
+    assert _mod._is_resolved({"resolution": {"status": "fixed"}}) is True
+    assert _mod._is_resolved({"resolution": {"status": "not_applicable"}}) is True
+    assert _mod._is_resolved({}) is False
+    assert _mod._is_resolved({"resolution": "fixed"}) is False
+    assert _mod._is_resolved({"resolution": {"status": "wip"}}) is False
+
+
+def test_companion_files_found_in_parent_mining_dir() -> None:
+    """配套件在上级挖矿目录也算存在(S05 的 compiled_source/exam_evidence 实存于上级)。"""
+    manifest = _mod.build_manifest()
+    s05 = next(p for p in manifest["packs"] if p["pack_id"] == "S05")
+    assert s05["has_compiled_source"] is True
+    assert s05["has_exam_evidence"] is True
