@@ -838,6 +838,34 @@ function getHomeDashboard(opts) {
   return requestStateGet("/api/v1/homepage/dashboard", opts);
 }
 
+// ── 鲁班学习双轮（站点卡 lesson viewmodel，只读投影，零学习证据写入） ──
+
+/** 鲁班 — 绿灯站点列表 */
+function getLubanLessons(opts) {
+  return requestStateGet("/api/v1/luban/lessons", opts);
+}
+
+/** 鲁班 — 单站 viewmodel（card_url / variant_retest 等） */
+function getLubanLessonDetail(packId, opts) {
+  return requestStateGet(
+    "/api/v1/luban/lessons/" + encodeURIComponent(String(packId || "")),
+    opts,
+  );
+}
+
+/** 鲁班 — 次日变体复测题面（服务端确定性抽取，客户端本地判分） */
+function getLubanRetestItems(packId, limit, opts) {
+  var n = Number(limit || 5);
+  if (!Number.isFinite(n) || n <= 0) n = 5;
+  return requestStateGet(
+    "/api/v1/luban/lessons/" +
+      encodeURIComponent(String(packId || "")) +
+      "/retest-items?limit=" +
+      Math.min(Math.round(n), 10),
+    opts,
+  );
+}
+
 /** 摸底测试 — 获取诊断档案 */
 function getAssessmentProfile(opts) {
   return requestStateGet("/api/v1/assessment/profile", opts);
@@ -939,6 +967,9 @@ module.exports = {
   submitFeedback: submitFeedback,
   uploadFeedbackAttachment: uploadFeedbackAttachment,
   getHomeDashboard: getHomeDashboard,
+  getLubanLessons: getLubanLessons,
+  getLubanLessonDetail: getLubanLessonDetail,
+  getLubanRetestItems: getLubanRetestItems,
   getAssessmentProfile: getAssessmentProfile,
   getAssessmentTopics: getAssessmentTopics,
   createAssessment: createAssessment,

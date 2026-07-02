@@ -14,6 +14,7 @@ from deeptutor.api.dependencies.rate_limit import route_rate_limit
 from deeptutor.services.luban_lesson import (
     LessonNotAvailable,
     build_lesson_viewmodel,
+    build_retest_items,
     list_green_lessons,
 )
 
