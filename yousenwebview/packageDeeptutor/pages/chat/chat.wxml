@@ -22,7 +22,7 @@ module.exports = {
   </view>
   <image class="bg-horizon" src="../../images/bg_horizon.jpg" mode="aspectFill" />
 
-  <!-- 顶栏 — 仅 logo + 新对话 -->
+  <!-- 顶栏 — logo + 会话历史（三种历史归属①：时钟图标二级页）+ 新对话 -->
   <view class="navbar {{hasMessages ? 'navbar-chat' : ''}}" style="padding-top:{{statusBarHeight}}px">
     <view class="navbar-inner" style="padding-right:{{navRightInset}}px">
       <view class="nav-brand-stack">
@@ -33,13 +33,18 @@ module.exports = {
         </view>
       </view>
       <view style="flex:1"></view>
-      <view class="nav-chat-actions" wx:if="{{hasMessages}}">
-        <view class="nav-icon-btn nav-new-chat" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
-          <view class="nav-compose-icon"></view>
+      <view class="nav-chat-actions">
+        <view class="nav-icon-btn nav-history-chat" bindtap="goHistoryPage" aria-role="button" aria-label="会话历史">
+          <view class="nav-clock-icon"></view>
         </view>
-        <view class="nav-icon-btn nav-more-chat" bindtap="onChatMoreActions" aria-role="button" aria-label="更多对话操作">
-          <text class="nav-more-icon">•••</text>
-        </view>
+        <block wx:if="{{hasMessages}}">
+          <view class="nav-icon-btn nav-new-chat" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
+            <view class="nav-compose-icon"></view>
+          </view>
+          <view class="nav-icon-btn nav-more-chat" bindtap="onChatMoreActions" aria-role="button" aria-label="更多对话操作">
+            <text class="nav-more-icon">•••</text>
+          </view>
+        </block>
       </view>
     </view>
   </view>
@@ -630,6 +635,15 @@ module.exports = {
           </view>
           <view class="act-btn" bindtap="onRetry" data-msgid="{{item.id}}" aria-role="button" aria-label="重新生成">
             <view class="ico ico-retry"></view>
+          </view>
+        </view>
+        <!-- T3 导流钩子 — 答完导回训练（只做入口跳转；无既有入口/后端 API 的钩子不做） -->
+        <view class="flow-hooks" wx:if="{{item.role !== 'user' && !item.streaming && index === messages.length - 1 && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}">
+          <text class="flow-hooks-title">懂了不等于会写——现在练一下？</text>
+          <view class="flow-hooks-row">
+            <view class="flow-hook-btn" bindtap="goPracticeSimilar" aria-role="button" aria-label="去学习页练一道同类题">
+              <text class="flow-hook-txt">练一道同类题</text>
+            </view>
           </view>
         </view>
         <!-- 反馈弹窗（点踩后展开） -->

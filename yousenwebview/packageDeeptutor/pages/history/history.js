@@ -98,6 +98,20 @@ function _capabilityLabel(capability) {
   return "专题对话";
 }
 
+/* T3 类型徽章：只从既有会话元数据 capability 派生（问答/出题…）。
+ * 元数据缺失或未知能力一律返回空串不显示，禁猜；
+ * 「批改」发生在 chat 能力轮内部、会话级 capability 无对应值，故当前不可派生。 */
+function _typeBadge(capability) {
+  var key = String(capability || "").trim().toLowerCase();
+  if (!key) return "";
+  if (key === "chat" || key === "tutorbot") return "问答";
+  if (key === "question" || key === "deep_question") return "出题";
+  if (key === "solve" || key === "deep_solve") return "解题";
+  if (key === "research" || key === "deep_research") return "研究";
+  if (key === "guide") return "导学";
+  return "";
+}
+
 function _normalizeModeKey(value) {
   var key = String(value || "").trim().toLowerCase();
   if (!key) return "";
@@ -245,7 +259,9 @@ function _buildConversationItem(c) {
     sourceLabel: source.label,
     sourceTone: source.tone,
     modeLabel: modeLabel,
+    capability: String(c.capability || ""),
     capabilityLabel: capabilityLabel,
+    typeBadge: _typeBadge(c.capability),
     messageCount: messageCount,
     metaLine: _joinMeta([messageCount > 0 ? messageCount + " 条消息" : ""]),
     searchText: _joinSearchText([
@@ -275,6 +291,8 @@ function _normalizeCachedConversationItem(item) {
   } else if (!cachedLabel || cachedLabelKey === "tutorbot" || cachedLabelKey === "chat") {
     normalized.capabilityLabel = "智能对话";
   }
+  /* 旧缓存无 capability 字段时徽章为空，刷新后自然补齐（禁猜） */
+  normalized.typeBadge = _typeBadge(normalized.capability);
   normalized.searchText = _joinSearchText([
     normalized.title,
     normalized.preview,
@@ -433,9 +451,6 @@ Page({
   onShow: function () {
     this.setData({ isDark: helpers.isDark() });
     if (!flags.ensureFeatureEnabled("history")) return;
-    helpers.syncTabBar(this, 1, {
-      hidden: !flags.shouldShowWorkspaceShell(),
-    });
     if (!auth.isLoggedIn()) {
       this._showGuestPreview();
       return;
@@ -683,7 +698,6 @@ Page({
       selectedCount: 0,
       allSelected: false,
     });
-    helpers.syncTabBar(this, 1, { hidden: true });
   },
 
   exitEditMode: function () {
@@ -697,9 +711,6 @@ Page({
       selectedIds: {},
       selectedCount: 0,
       allSelected: false,
-    });
-    helpers.syncTabBar(this, 1, {
-      hidden: !flags.shouldShowWorkspaceShell(),
     });
   },
 
@@ -865,9 +876,14 @@ Page({
     return _groupByDate(_filterConversations(convs, query));
   },
 
+  /* 历史已是问鲁班 tab 的二级页：优先原路返回，保住聊天现场；
+   * 无上级页（如登录回跳直达）才回落 reLaunch 到问鲁班 tab。 */
   goHome: function () {
-    runtime.setWorkspaceBack(route.history(), "历史");
-    runtime.markGoHome();
+    var pages = typeof getCurrentPages === "function" ? getCurrentPages() : [];
+    if (pages && pages.length > 1) {
+      wx.navigateBack({ delta: 1 });
+      return;
+    }
     wx.reLaunch({ url: route.chat() });
   },
 

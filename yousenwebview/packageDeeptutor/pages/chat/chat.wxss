@@ -2435,3 +2435,59 @@
   flex: 0 0 calc(50% - 8rpx); width: calc(50% - 8rpx);
   opacity: 1; animation: none;
 }
+
+/* ── T3 顶栏会话历史（时钟图标，三种历史归属①） ─────────── */
+.nav-history-chat { border-radius: 18rpx; }
+.nav-clock-icon {
+  width: 34rpx;
+  height: 34rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 34rpx 34rpx;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 3'/%3E%3C/svg%3E");
+}
+.page.light .nav-clock-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 3'/%3E%3C/svg%3E");
+}
+
+/* ── T3 导流钩子 — 答完导回训练（色值对齐 theme.wxss --lb-* token，
+ * chat 页不 @import theme 以免选择器冲突，与 custom-tab-bar 同口径用字面量）：
+ * good 暗 #55967b / 亮 #48806a；主按钮墨色 #26241f（暗色反转纸色 #f1efe8）。 */
+.flow-hooks {
+  margin: 16rpx 8rpx 4rpx;
+  padding: 22rpx 26rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(85, 150, 123, 0.35);
+  background: rgba(85, 150, 123, 0.10);
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  align-self: flex-start;
+  max-width: 88%;
+}
+.flow-hooks-title {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #55967b;
+  line-height: 1.5;
+}
+.flow-hooks-row { display: flex; gap: 14rpx; flex-wrap: wrap; }
+.flow-hook-btn {
+  padding: 16rpx 26rpx;
+  border-radius: 18rpx;
+  background: #f1efe8;
+}
+.flow-hook-btn:active { opacity: 0.85; }
+.flow-hook-txt {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: #26241f;
+  line-height: 1;
+}
+.page.light .flow-hooks {
+  border-color: rgba(72, 128, 106, 0.3);
+  background: rgba(72, 128, 106, 0.06);
+}
+.page.light .flow-hooks-title { color: #48806a; }
+.page.light .flow-hook-btn { background: #26241f; }
+.page.light .flow-hook-txt { color: #f5f3ec; }

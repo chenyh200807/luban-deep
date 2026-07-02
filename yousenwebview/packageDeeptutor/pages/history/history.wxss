@@ -303,6 +303,12 @@
   color: #9da7ff;
   border: 1rpx solid rgba(99,102,241,0.24);
 }
+/* T3 类型徽章（问答/出题…）— 中性色，色值对齐 theme.wxss --lb-* token */
+.tag-type {
+  background: rgba(241,239,232,0.08);
+  color: #8b9398;
+  border: 1rpx solid rgba(241,239,232,0.14);
+}
 .conv-preview {
   font-size: 24rpx; color: rgba(255,255,255,0.35);
   line-height: 1.45;
@@ -490,6 +496,7 @@
 .history-page.light .tag-slate { background: rgba(148,163,184,0.10); color: #475569; border-color: rgba(148,163,184,0.18); }
 .history-page.light .tag-violet { background: rgba(139,92,246,0.08); color: #7c3aed; border-color: rgba(139,92,246,0.16); }
 .history-page.light .tag-indigo { background: rgba(79,70,229,0.08); color: #4338ca; border-color: rgba(79,70,229,0.16); }
+.history-page.light .tag-type { background: rgba(38,36,31,0.05); color: #8a8574; border-color: rgba(38,36,31,0.10); }
 
 /* 底部栏亮色 */
 .history-page.light .bottom-bar {

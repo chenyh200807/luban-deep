@@ -1,4 +1,4 @@
-<!-- pages/history/history.wxml — 历史对话列表（支持管理/归档） -->
+<!-- pages/history/history.wxml — 会话历史（问鲁班 tab 顶栏时钟图标的二级页，支持管理/归档） -->
 <view class="history-page {{isDark?'':'light'}}">
 
   <!-- 自定义导航栏 -->
@@ -7,7 +7,7 @@
       <view class="nav-main-row" style="padding-right: {{navRightInset}}px">
         <view class="nav-back" bindtap="goHome">
           <text class="nav-back-arrow">‹</text>
-          <text class="nav-back-txt">对话</text>
+          <text class="nav-back-txt">问鲁班</text>
         </view>
       </view>
       <view class="nav-action-row">
@@ -148,14 +148,13 @@
                   <text class="conv-title">{{conv.title}}</text>
                   <view class="conv-tags">
                     <text wx:if="{{conv.statusLabel}}" class="conv-tag tag-{{conv.statusTone}}">{{conv.statusLabel}}</text>
-                    <text wx:if="{{!conv.statusLabel && conv.modeLabel}}" class="conv-tag tag-indigo">{{conv.modeLabel}}</text>
+                    <!-- 类型徽章：只从既有会话元数据 capability 派生，缺失不显示（禁猜） -->
+                    <text wx:if="{{conv.typeBadge}}" class="conv-tag tag-type">{{conv.typeBadge}}</text>
                   </view>
                 </view>
                 <text class="conv-preview" wx:if="{{conv.preview}}">{{conv.preview}}</text>
-                <view class="conv-meta-row">
-                  <text wx:if="{{conv.sourceLabel}}" class="conv-tag tag-{{conv.sourceTone}}">{{conv.sourceLabel}}</text>
-                  <text wx:if="{{conv.statusLabel && conv.modeLabel}}" class="conv-meta">{{conv.modeLabel}}</text>
-                  <text wx:if="{{conv.metaLine}}" class="conv-meta">{{conv.metaLine}}</text>
+                <view class="conv-meta-row" wx:if="{{conv.metaLine}}">
+                  <text class="conv-meta">{{conv.metaLine}}</text>
                 </view>
               </view>
               <view class="conv-right">
@@ -204,7 +203,5 @@
       <text class="bottom-btn-txt">恢复</text>
     </view>
   </view>
-
-  <workspace-shell id="workspaceShell"></workspace-shell>
 
 </view>

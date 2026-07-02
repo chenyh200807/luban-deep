@@ -2974,6 +2974,29 @@ Page({
     wx.navigateTo({ url: route.profile() });
   },
 
+  /* T3 三种历史归属①：会话历史 = 顶栏时钟图标二级页（不再是 tab） */
+  goHistoryPage: function () {
+    if (!flags.isFeatureEnabled("history")) {
+      wx.showToast({ title: "历史暂未开放", icon: "none" });
+      return;
+    }
+    helpers.vibrate("light");
+    wx.navigateTo({ url: route.history() });
+  },
+
+  /* T3 导流钩子：练同类 → 学习 tab（只做入口跳转，与 tab 壳同款切换方式） */
+  goPracticeSimilar: function () {
+    helpers.vibrate("light");
+    runtime.setWorkspaceBack(route.chat(), "问鲁班");
+    var url = route.lubanStations();
+    wx.redirectTo({
+      url: url,
+      fail: function () {
+        wx.reLaunch({ url: url });
+      },
+    });
+  },
+
   _syncWorkspaceBack: function () {
     var workspaceBack = runtime.getWorkspaceBack(route.chat());
     if (workspaceBack && !flags.isRouteEnabled(workspaceBack.url)) {
@@ -2992,7 +3015,8 @@ Page({
 
   _setWorkspaceShellHidden: function (hidden) {
     this._syncWorkspaceChrome({ hidden: !!hidden });
-    helpers.syncTabBar(this, 0, {
+    /* 五 tab 后高亮由壳按当前路由自判，不再传旧四 tab 序号（死参数已清） */
+    helpers.syncTabBar(this, null, {
       hidden: !!hidden,
     });
   },
