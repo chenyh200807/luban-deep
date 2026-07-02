@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 import httpx
+import pytest
 
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.mistake_book import (
@@ -74,12 +74,60 @@ def test_mistake_book_mastered_and_review_updates_are_filtered_by_default() -> N
     saved = service.save_item(user_id="u1", attempt_ref=attempt_ref, subject_id="construction_exam_1")
     reviewed = service.record_review(user_id="u1", attempt_ref=attempt_ref, if_match=saved["etag"])
     assert reviewed["last_reviewed_at"]
-    assert reviewed["review_due_at"]
+    assert reviewed["review_due_at"] is None
 
     mastered = service.mark_mastered(user_id="u1", attempt_ref=attempt_ref, if_match=reviewed["etag"])
     assert mastered["mastered_at"]
     assert service.list_items(user_id="u1")["count"] == 0
     assert service.list_items(user_id="u1", include_mastered=True)["count"] == 1
+
+
+def test_record_review_does_not_fabricate_schedule_and_clears_stale_due() -> None:
+    """record_review 只写观测(last_reviewed_at), 不产调度结论。
+
+    到期/调度真值唯一归 revalidation_queue 投影; 本服务硬编码 due 日期
+    属第二调度权威(双轮设计 v3 §10-①), 本测试钉死收权后的行为:
+    1) 复习不再捏造 review_due_at;
+    2) 存量行里的历史假日期在下一次复习时被清空。
+    """
+    store = InMemoryMistakeBookStore()
+    service = MistakeBookService(store=store)
+    attempt_ref = sign_attempt_ref(user_id="u1", event_id="evt1", question_id="q1")
+
+    saved = service.save_item(user_id="u1", attempt_ref=attempt_ref, subject_id="construction_exam_1")
+    assert saved["review_due_at"] is None
+
+    # 模拟收权前遗留的假调度日期(生产存量行)。
+    store.update_item("u1", "evt1", {"review_due_at": "2020-01-01T08:00:00+08:00"})
+
+    reviewed = service.record_review(user_id="u1", attempt_ref=attempt_ref)
+    assert reviewed["last_reviewed_at"]
+    assert reviewed["review_due_at"] is None
+
+    listed = service.list_items(user_id="u1")["items"][0]
+    assert listed["review_due_at"] is None
+
+
+def test_mistake_book_module_never_touches_learner_truth_writers() -> None:
+    """mastered_at/复习动作只是呈现层旗标, 不得写学情/证据/掌握真值。
+
+    静态钉死: 本模块源码不得引用证据写入口或掌握推断器
+    (防止未来把"标记掌握"按钮接回 learner truth, 违反 M0 reality-lock)。
+    """
+    import re
+
+    source = (
+        Path(__file__).resolve().parents[3]
+        / "deeptutor"
+        / "services"
+        / "learner_state"
+        / "mistake_book.py"
+    ).read_text(encoding="utf-8")
+    forbidden = re.compile(
+        r"append_memory_event|build_learning_evidence|mastery_estimator|refresh_from_turn"
+    )
+    match = forbidden.search(source)
+    assert match is None, f"mistake_book.py 不得触碰学情真值写入口: {match.group(0)}"
 
 
 def test_mistake_book_stale_etag_raises_conflict() -> None:

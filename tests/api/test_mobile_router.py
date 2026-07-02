@@ -4455,7 +4455,8 @@ def test_mobile_mistake_book_mastered_and_review(
         assert reviewed_response.status_code == 200
         reviewed = reviewed_response.json()
         assert reviewed["last_reviewed_at"]
-        assert reviewed["review_due_at"]
+        # 调度真值归 revalidation_queue; record_review 不再捏造 due 日期(双轮 v3 §10-① 收权)。
+        assert reviewed["review_due_at"] is None
 
         mastered_response = client.post(
             f"/api/v1/mobile/mistake-book/items/{attempt_ref}/mastered",
