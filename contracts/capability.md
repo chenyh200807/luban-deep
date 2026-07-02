@@ -85,6 +85,12 @@
 
 32. `ChatOrchestrator` 在路由决策点就地把本轮 routing 消息写入 `context.metadata["semantic_router_captured_input"]`，作为 semantic-router 决策遥测的 in-place 输入捕获（供 turn 完成时落 `semantic_router_telemetry` internal 事件，免事后 session+time join）。这是**纯 additive、只读观测**，**绝不改变任何 capability 路由判决**（behavior-preserving）；任何 capability/路由判定不得读取或依赖该字段做决策。
 
+**边界声明（2026-07-02）**：`/api/v1/auth/profile/settings` 是偏好写入 adapter，
+不是 capability 面——它不得创建 turn/capability 路由事实；其原子语义（fail-closed
+校验→400 零落盘、learner 同步失败回滚全部可写偏好字段含 `time_budget`）归
+`contracts/turn.md` 硬约束 25 与 `contracts/learner-state.md` user_profiles 节，
+本文件不复制第二份（防双权威）。
+
 ## Schema
 
 - 机器可读 schema：`deeptutor/capabilities/request_contracts.py`
