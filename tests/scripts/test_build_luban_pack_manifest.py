@@ -80,3 +80,21 @@ def test_companion_files_found_in_parent_mining_dir() -> None:
     s05 = next(p for p in manifest["packs"] if p["pack_id"] == "S05")
     assert s05["has_compiled_source"] is True
     assert s05["has_exam_evidence"] is True
+
+
+def test_published_only_from_overrides_and_green_closure() -> None:
+    """published 只能来自 overrides 人工置位; 绿灯 = published∧jury_clean∧非barred 的精确闭包。"""
+    manifest = _mod.build_manifest()
+    published = {p["pack_id"] for p in manifest["packs"] if p["published"]}
+    if _mod.OVERRIDES_PATH.exists():
+        import json as _json
+        overrides = _json.loads(_mod.OVERRIDES_PATH.read_text(encoding="utf-8"))
+        allowed = {k for k, v in overrides.items() if v.get("published")}
+        assert published == allowed, "published 集合必须与 overrides 人工置位完全一致"
+    else:
+        assert published == set()
+    expected_green = sorted(
+        p["pack_id"] for p in manifest["packs"]
+        if p["published"] and p["jury_clean"] and not p["explicitly_barred_default_entry"]
+    )
+    assert sorted(manifest["projection_green"]) == expected_green

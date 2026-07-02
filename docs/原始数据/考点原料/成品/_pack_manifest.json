@@ -649,7 +649,7 @@
    "title": "起重吊装安全"
   },
   {
-   "content_sha256": "059d75ea2a3eb098e940ecb5939357c61a25919bdc78652460838f04eb02ec1b",
+   "content_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
    "explicitly_barred_default_entry": false,
    "file": "S05_临时用电三级配电.md",
    "has_answer_layer": true,
@@ -662,8 +662,9 @@
    "jury_total": 12,
    "needs_leaf_review": false,
    "pack_id": "S05",
-   "published": false,
-   "red_marker_count": 24,
+   "publish_note": "2026-07-02 owner 人工签发（S05 签发样板批次）。依据：jury 3 条高可信 issue 全部 fixed 并经独立复核（2017 停电顺序锚直读证据包命中、verify_exam_anchors 8/8、ERROR_CODE_REGISTRY 语义核真）；残留一致性 3 处收口（§5 D2 外延标注、§5 C1/R7 移除 M08 同理延伸）；owner 确认 diff 含两处同理延伸。",
+   "published": true,
+   "red_marker_count": 25,
    "review_level": "standard",
    "title": "临时用电三级配电"
   },
@@ -763,7 +764,9 @@
    "title": "文明绿色环保施工措施"
   }
  ],
- "projection_green": [],
+ "projection_green": [
+  "S05"
+ ],
  "schema": "luban_deep_pack_manifest.v0",
  "superseded_files": [
   "Q03_质量通病防治_v4model.md"

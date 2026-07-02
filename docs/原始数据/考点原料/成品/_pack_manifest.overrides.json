@@ -1,0 +1,6 @@
+{
+  "S05": {
+    "published": true,
+    "note": "2026-07-02 owner 人工签发（S05 签发样板批次）。依据：jury 3 条高可信 issue 全部 fixed 并经独立复核（2017 停电顺序锚直读证据包命中、verify_exam_anchors 8/8、ERROR_CODE_REGISTRY 语义核真）；残留一致性 3 处收口（§5 D2 外延标注、§5 C1/R7 移除 M08 同理延伸）；owner 确认 diff 含两处同理延伸。"
+  }
+}
