@@ -282,6 +282,12 @@ Overlay 必须支持：
   由「我的」tab 经 `member_console.update_profile` 白名单写入（非法枚举 fail-closed
   不落盘），随 profile 同步进 `user_profiles.attributes`。本期只存偏好；调度引擎
   消费在阶段 2，不得据此在前端自算排程。
+- `exam_date` 主事实 fail-closed 校验（2026-07-02 Codex 对抗采信）：`update_profile`
+  只接受空串（清除）或真实 `YYYY-MM-DD`（年份窗 2020–2035），非法值 `ValueError`
+  → `/api/v1/auth/profile/settings` 返 400 且不落盘、不镜像 learner_state——
+  倒计时/排程读的是它，禁脏值入库。
+- profile/settings 的 learner 同步失败回滚字段清单（`_build_member_profile_rollback_patch`）
+  含 `time_budget`（漏字段=503 时 member 与 learner_state 半提交分叉，单元测试钉死清单）。
 
 必须真实接入：
 

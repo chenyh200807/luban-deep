@@ -44,6 +44,7 @@
 23. `turn_runtime` 可以在入口处、question lifecycle / semantic router 裁决前，归一化旧 transport 误包的纯 `{"content": "..."}` JSON envelope，并把解包事实仅作为 `transport_content_unwrapped` / `transport_content_unwrap_depth` trace metadata 记录；该兼容只处理唯一键为 `content` 的 wrapper，最多展开三层，不得把任意 JSON 业务 payload 当作聊天正文重写，也不得定义第二套 streaming 协议或绕过 question lifecycle / semantic router authority。
 24. 跨 worker live 订阅必须以共享 SQLite store 为单一事件权威（强化 H15/H16）：`UVICORN_WORKERS>1` 时一个 turn 常运行在**兄弟 worker**，因此不在本 worker 的进程内 `turn_runtime._executions` 里。`subscribe_turn` 在 `execution is None` 且 turn 仍 `running` 时，**必须轮询共享 store 把事件 tail 到 terminal（`done`/`error` 或 store 状态转终态）**，不得只回放 backlog 就结束（会造成 WS 订阅者收到 backlog 后再无 live 事件、无 terminal——跨 worker 流式死,2026-06-22 live eval 实证),也**不得对兄弟 worker 正在运行的 turn 调 orphan recovery 标记 `failed`**;只有在 tail 期间持续无新事件超过 `_CROSS_WORKER_TAIL_ORPHAN_TIMEOUT_SECONDS`（疑似 worker 崩溃的真孤儿）才回落 orphan recovery。进程内 `_executions` / live 队列只是同 worker 快路径，不是"turn 是否存活"的权威。
 
+25. `/api/v1/auth/profile/settings`（mobile HTTP adapter）的偏好写入必须保持原子语义：`member_console.update_profile` 的 fail-closed 校验拒绝（如非法 `exam_date`，白名单=空串或 YYYY-MM-DD 且年份窗 2020–2035）映射为 HTTP 400 且零落盘、零 learner_state 镜像；learner 同步失败（503）时 member profile 回滚清单必须覆盖全部可写偏好字段（含 `time_budget`，见 `_build_member_profile_rollback_patch`）——漏字段=member 与 learner_state 半提交分叉，属 authority 分裂缺陷。（2026-07-02 Codex 对抗采信，语义细节见 `contracts/learner-state.md` user_profiles 节。）
 ## TutorBot 规则
 
 - TutorBot 是业务身份，不是 transport。
