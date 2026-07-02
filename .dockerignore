@@ -18,6 +18,9 @@
 *.md
 !README.md
 docs/
+# 双轮供给文件例外(#344 的 COPY 依赖; docs/ 整体仍排除):
+!docs/原始数据/考点原料/成品/_pack_manifest.json
+!docs/原始数据/考点原料/成品/_S05_variant_bank.v0.json
 assets/gifs/
 assets/figs/
 assets/README/
