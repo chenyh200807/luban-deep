@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 54 54" fill="none">
+  <!-- 问鲁班 = 红章（54px 圆形 #cf4436 白边 + 「问」字）。
+       运行时由 custom-tab-bar 的 .tab-seal 结构实现，本文件仅作设计资产存档。 -->
+  <circle cx="27" cy="27" r="25" fill="#cf4436" stroke="#ffffff" stroke-width="3" />
+  <text x="27" y="35" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff" font-family="-apple-system, 'PingFang SC', sans-serif">问</text>
+</svg>

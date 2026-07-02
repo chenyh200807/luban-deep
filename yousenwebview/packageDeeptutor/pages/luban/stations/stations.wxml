@@ -46,4 +46,5 @@
       </block>
     </view>
   </scroll-view>
+  <workspace-shell id="workspaceShell"></workspace-shell>
 </view>

@@ -1,0 +1,8 @@
+<view class="lb-review-page {{isDark ? '' : 'light'}}">
+  <view class="lb-review-inner" style="padding-top: {{statusBarHeight + 48}}px">
+    <text class="lb-review-kicker">复习 · 回炉</text>
+    <text class="lb-review-title">到期复测和错因银行正在铺路</text>
+    <text class="lb-review-desc">先去学习 tab 点亮第一站，这里很快会有你的复习任务。</text>
+  </view>
+  <workspace-shell id="workspaceShell"></workspace-shell>
+</view>

@@ -318,3 +318,45 @@ page.theme-light,
   --shadow-lg: 0 28rpx 72rpx rgba(126, 147, 185, 0.16);
   --shadow-glow: 0 0 72rpx rgba(37, 99, 235, 0.14);
 }
+
+/* ============================================================
+ * 鲁班暖调「纸墨朱竹」token — 第10轮定稿
+ * 规格权威: docs/plan/鲁班移动端提分闭环 五模块实施计划 T0
+ *          + 设计资产第10轮「评审要点摘要」
+ * palette prop 只落 warm 一套（YAGNI）。
+ * 朱红 --lb-brand 恒定四处: 鲁 logo 章 / 播放键 / 红海报 / 问鲁班红章。
+ * ============================================================ */
+page {
+  /* dark（夜宣纸暗色，默认） */
+  --lb-bg: #101315;
+  --lb-card: #181b1e;
+  --lb-t1: #f1efe8;
+  --lb-t3: #8b9398;
+  --lb-good: #55967b;
+  --lb-warn: #d4b263;
+  --lb-bad: #bf5b4e;
+  --lb-brand: #cf4436;
+}
+
+page.theme-light,
+.theme-light,
+.light {
+  /* light = 宣纸底（bg 为规格钦定值；card/t1/t3/good 取第10轮定稿画布亮色 token） */
+  --lb-bg: #faf9f5;
+  --lb-card: #fffdf8;
+  --lb-t1: #26241f;
+  --lb-t3: #8a8574;
+  --lb-good: #48806a;
+  /* warn/bad/brand 亮色未在第10轮单独定值，沿用暖调同值 */
+  --lb-warn: #d4b263;
+  --lb-bad: #bf5b4e;
+  --lb-brand: #cf4436;
+}
+
+/*
+ * 占位（禁实现，仅记录第5/6轮备选 palette，YAGNI）:
+ * - bw 黑红白 dark: bg#0c0d0f 白字 浅蓝#8fc2e8(好) 灰#6e747b(中) 红#c05a4e(差)
+ * - trend 2026趋势 dark: 石墨暖灰#171815 card#1f211d 燕麦白#f0eee6
+ *   青瓷#4f9a8c(好) 哑金#b3995f(警) 灰红#bd5a4c(差) 雾蓝#9db5c8(信息);
+ *   light=燕麦砂岩#f1efe9
+ */
