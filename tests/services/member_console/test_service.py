@@ -220,7 +220,7 @@ async def test_login_with_wechat_code_promotes_phone_backed_member_to_canonical_
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
-            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             "unionid": "unionid_live_user",
             "session_key": "session_key_value",
         }
@@ -262,7 +262,7 @@ async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical
 
         @staticmethod
         def resolve_alias(*, alias_type: str, alias_value: str):
-            if alias_type == "wx_openid" and alias_value == "oTHl5610QTUB2maCO4aNJg7O-wRk":
+            if alias_type == "wx_openid" and alias_value == "oTHl5610QTUB2maCO4aNJg7O-wRk":  # pragma: allowlist secret
                 return {"user_id": canonical_uid}
             return None
 
@@ -272,13 +272,13 @@ async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical
                 **service._build_default_member("wx_O4aNJg7O_wRk"),
                 "user_id": "wx_O4aNJg7O_wRk",
                 "phone": "34277511499",
-                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             }
         ]
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
-            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             "unionid": "",
             "session_key": "session_key_value",
         }
@@ -301,7 +301,7 @@ async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical
     assert wallet_service.calls[0]["user_id"] == canonical_uid
     assert canonical_snapshot["display_name"] != "wx_O4aNJg7O_wRk"
     assert canonical_snapshot["display_name"].startswith("微信用户")
-    assert canonical_snapshot["wx_openid"] == "oTHl5610QTUB2maCO4aNJg7O-wRk"
+    assert canonical_snapshot["wx_openid"] == "oTHl5610QTUB2maCO4aNJg7O-wRk"  # pragma: allowlist secret
     assert legacy_snapshot["external_auth_user_id"] == canonical_uid
 
 
@@ -1164,7 +1164,7 @@ def test_internal_qa_billing_bypass_skips_wallet_bootstrap(
     users_file = tmp_path / "users.json"
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     username = "qa_wallet_bypass_user"
-    password = "SyntheticPass123"
+    password = "SyntheticPass123"  # pragma: allowlist secret
     password_hash = bcrypt.hashpw(
         hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8"),
         bcrypt.gensalt(),
