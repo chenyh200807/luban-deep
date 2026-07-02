@@ -41,3 +41,28 @@ async def lesson_detail(pack_id: str, _: AuthContext = Depends(get_current_user)
         return build_lesson_viewmodel(pack_id)
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
+
+
+@router.get(
+    "/lessons/{pack_id}/retest-items",
+    dependencies=[
+        Depends(route_rate_limit("luban_lesson_retest", default_max_requests=30, default_window_seconds=60.0))
+    ],
+)
+async def retest_items(
+    pack_id: str,
+    limit: int = 5,
+    current_user: AuthContext = Depends(get_current_user),
+) -> dict:
+    from datetime import datetime, timedelta, timezone
+
+    # §9-D2: "天"按服务端 UTC+8 日历日折算, 客户端不自算
+    now = datetime.now(timezone(timedelta(hours=8)))
+    day_index = now.year * 1000 + now.timetuple().tm_yday
+    try:
+        items = build_retest_items(
+            pack_id, user_id=current_user.user_id, day_index=day_index, limit=limit
+        )
+    except LessonNotAvailable:
+        raise HTTPException(status_code=404, detail="lesson not found")
+    return {"pack_id": pack_id.upper(), "items": items, "day_index": day_index}

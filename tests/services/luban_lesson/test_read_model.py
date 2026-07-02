@@ -89,3 +89,44 @@ def test_real_manifest_green_packs_all_project():
     for row in rows:
         vm = build_lesson_viewmodel(row["pack_id"])
         assert vm["content_sha256"]
+
+
+def _bank(tmp_path, n_core=6, n_ext=2):
+    variants = [{"variant_id": f"S05-X-{i:03d}", "rule_group": "C-voltage",
+                 "surface": f"表面{i}", "expected_ok": i % 2 == 0,
+                 "correct_statement": "s", "anchor": "kc:x", "extension": False}
+                for i in range(n_core)]
+    variants += [{"variant_id": f"S05-E-{i}", "rule_group": "X-distance",
+                  "surface": f"外延{i}", "expected_ok": True,
+                  "correct_statement": "s", "anchor": "{2017,第2题}", "extension": True}
+                 for i in range(n_ext)]
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(
+        json.dumps({"status": "candidate", "variants": variants}), encoding="utf-8")
+
+
+def test_retest_items_deterministic_and_core_only(tmp_path):
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _bank(tmp_path)
+    a = build_retest_items("S05", user_id="u1", day_index=738000, limit=3, manifest_path=mp)
+    b = build_retest_items("S05", user_id="u1", day_index=738000, limit=3, manifest_path=mp)
+    assert a == b and len(a) == 3, "同用户同日必须幂等(§9-D3)"
+    c = build_retest_items("S05", user_id="u1", day_index=738001, limit=3, manifest_path=mp)
+    assert a != c, "跨天轮换"
+    assert all(not i["variant_id"].startswith("S05-E") for i in a + c), "外延变体禁入复测"
+
+
+def test_retest_items_gate_and_empty_bank(tmp_path):
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05, _X99], ["S05"])
+    with pytest.raises(LessonNotAvailable):
+        build_retest_items("X99", user_id="u", day_index=1, manifest_path=mp)
+    assert build_retest_items("S05", user_id="u", day_index=1, manifest_path=mp) == []
+
+
+def test_retest_pool_wraps_when_exhausted(tmp_path):
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _bank(tmp_path, n_core=2)
+    items = build_retest_items("S05", user_id="u", day_index=99, limit=5, manifest_path=mp)
+    assert len(items) == 2, "池小于 limit 时只发池内不重复项(复用旧变体, 绝不现编)"

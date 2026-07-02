@@ -112,3 +112,48 @@ def build_lesson_viewmodel(
             "full_answer": "case_grading",  # 档位③（判分内核链路）
         },
     }
+
+
+def build_retest_items(
+    pack_id: str,
+    *,
+    user_id: str,
+    day_index: int,
+    limit: int = 5,
+    manifest_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """次日变体复测题面投影——runtime 只从编译期预生成池**抽取**（§8 红线）。
+
+    确定性轮换：同一用户同一天取同一切片（多端幂等，§9-D3）；跨天按
+    ``day_index``（服务端本地日，§9-D2）前进，池耗尽自动回绕复用旧变体
+    （产能报告的降级预案①，绝不 runtime 现编）。只发核心变体
+    （extension=false）；judge 所需的期望判定随题下发（判断题二选一，
+    本地确定性判分=档位①，D5 离线可用）。
+    """
+    vm = build_lesson_viewmodel(pack_id, manifest_path=manifest_path)
+    if not vm["variant_retest"]["available"]:
+        return []
+    manifest_dir = (manifest_path or _MANIFEST_PATH).parent
+    bank_path = manifest_dir / _VARIANT_BANK_TEMPLATE.format(pack_id=vm["pack_id"])
+    try:
+        bank = json.loads(bank_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    core = [v for v in bank.get("variants") or [] if not v.get("extension")]
+    if not core:
+        return []
+    limit = max(1, min(int(limit), 10))
+    seed = sum(ord(c) for c in str(user_id)) + int(day_index)
+    start = seed % len(core)
+    picked = [core[(start + i) % len(core)] for i in range(min(limit, len(core)))]
+    return [
+        {
+            "variant_id": v["variant_id"],
+            "rule_group": v["rule_group"],
+            "surface": v["surface"],
+            "expected_ok": bool(v["expected_ok"]),
+            "correct_statement": v["correct_statement"],
+            "anchor": v["anchor"],
+        }
+        for v in picked
+    ]
