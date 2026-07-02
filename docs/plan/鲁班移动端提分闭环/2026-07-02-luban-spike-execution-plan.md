@@ -1,7 +1,7 @@
 # 最小双轮 spike 执行计划（阶段 1 留存实验本体）
 
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:executing-plans / subagent-driven-development，步骤用 `- [ ]` 追踪。
-> Status: **Ready-to-ignite / 待 owner 点火**（点火与判据拍板 = P7 硬闸）
+> Status: **Ready-to-ignite，点火顺延**——owner 2026-07-02 拍板「五模块全量 IA 先行」（第 10 轮定稿，见 `artifacts/luban_five_module_design/`）：阶段 2 的 tabBar/IA 迁移闸由 owner 提前解除，spike 以五模块形态点火。本计划的四页 spike 壳升级为五模块中的对应屏，链路/埋点/红线不变。（P6 透明登记：与 v3.2 顶部落地闸的偏离系 owner P7 拍板，非工程自行放闸）
 > Date: 2026-07-02 · 上位契约: [双轮设计 v3.2](2026-07-02-luban-learn-review-double-wheel-design.md) §12 阶段 1
 
 **Goal:** 用已就绪件组装最小「学习×复习」双轮，对真实一建在职考生小样本跑 D1/D7 留存实验。
