@@ -2,5 +2,21 @@
   "S05": {
     "published": true,
     "note": "2026-07-02 owner 人工签发（S05 签发样板批次）。依据：jury 3 条高可信 issue 全部 fixed 并经独立复核（2017 停电顺序锚直读证据包命中、verify_exam_anchors 8/8、ERROR_CODE_REGISTRY 语义核真）；残留一致性 3 处收口（§5 D2 外延标注、§5 C1/R7 移除 M08 同理延伸）；owner 确认 diff 含两处同理延伸。"
+  },
+  "N01": {
+    "published": true,
+    "note": "2026-07-02 owner 人工签发（batch1：N01/J01/A01/C02 攒批，含 C02 设计级拆分追认）。准入=独立机器复核：verify_exam_anchors 5/5 全绿；jury 高可信 2 条 resolution 齐全（R2 '通常'+适用边界注、M8 补步骤示例保留 E06，锚 kc:1A433000_055_0084:0 直读命中）。"
+  },
+  "J01": {
+    "published": true,
+    "note": "2026-07-02 owner 人工签发（batch1：N01/J01/A01/C02 攒批，含 C02 设计级拆分追认）。准入=独立机器复核：verify_exam_anchors 9/9 全绿；jury 高可信 3 条（2 fixed+1 not_applicable 回源证伪：cc:1A437000_010_0013:1/:2/:3 直读存在带 quote，超规模九类 quote 完整——qwen+codex 同源幻觉被机器闸证伪，本轮再抽查复核通过）。"
+  },
+  "A01": {
+    "published": true,
+    "note": "2026-07-02 owner 人工签发（batch1：N01/J01/A01/C02 攒批，含 C02 设计级拆分追认）。准入=独立机器复核：verify_exam_anchors 5/5 全绿；jury 高可信 4 条 resolution 全 fixed 且语义合法。"
+  },
+  "C02": {
+    "published": true,
+    "note": "2026-07-02 owner 人工签发（batch1：N01/J01/A01/C02 攒批，含 C02 设计级拆分追认）。准入=独立机器复核：verify_exam_anchors 11/11 全绿；jury 高可信 6 条全 fixed，含设计级 R2 四维拆分（场景6/7=责任归类/红线记忆题非计算链）——owner 2026-07-02 批准追认成立。"
   }
 }
