@@ -1,5 +1,5 @@
 {
- "pack_count": 41,
+ "pack_count": 40,
  "pack_dir": "docs/原始数据/考点原料/成品",
  "packs": [
   {
@@ -561,24 +561,6 @@
    "title": "质量通病防治"
   },
   {
-   "content_sha256": "4843951fbf223eceecdec20656a71cf9cac87a60006c16f6c817a3a6c4ac415e",
-   "explicitly_barred_default_entry": true,
-   "file": "Q03_质量通病防治_v4model.md",
-   "has_answer_layer": false,
-   "has_compiled_source": false,
-   "has_exam_evidence": false,
-   "jury_clean": false,
-   "jury_file": true,
-   "jury_high_confidence": 4,
-   "jury_total": 4,
-   "needs_leaf_review": true,
-   "pack_id": "Q03",
-   "published": false,
-   "red_marker_count": 21,
-   "review_level": "coarse_review",
-   "title": "质量通病防治_v4model"
-  },
-  {
    "content_sha256": "86e87afc3a453d012eb91f86508f9dd45fd04a532bbc073d0ffcc96fd1bdfbe1",
    "explicitly_barred_default_entry": false,
    "file": "R01_现场消防布置动火检查验收.md",
@@ -742,5 +724,8 @@
   }
  ],
  "projection_green": [],
- "schema": "luban_deep_pack_manifest.v0"
+ "schema": "luban_deep_pack_manifest.v0",
+ "superseded_files": [
+  "Q03_质量通病防治_v4model.md"
+ ]
 }
