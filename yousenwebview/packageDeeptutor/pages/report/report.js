@@ -9,6 +9,7 @@ const flags = require("../../utils/flags");
 const auth = require("../../utils/auth");
 const reportViewModel = require("../../utils/learning-report-view-model");
 const taxonomy = require("../../utils/taxonomy");
+const errorCodeLabels = require("../../utils/error-code-labels");
 
 const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
 const REPORT_SNAPSHOT_CACHE_KEY = "deeptutor.report.unifiedSnapshot.v1";
@@ -193,22 +194,11 @@ function _learningBrainEdgeLabel(edgeType) {
   return key ? "学习关系" : "";
 }
 
-// Display-only mirror of docs/contracts/error_code_registry.md for stale Learning Brain rows.
-// Backend registry remains the scoring/write authority; this client fallback only prevents raw
-// M-codes from leaking into learner-facing copy when historical rows arrive without labels.
+// 错因展示统一走 utils/error-code-labels（T6 方案 A：registry 名直展，唯一只读镜像）。
+// 未知码 fail-closed 显示原码，禁止在此第二次归因/改写。
 function _learningBrainErrorLabel(errorCode) {
   var code = String(errorCode || "").trim().toUpperCase();
-  if (code === "M01") return "知识点不熟";
-  if (code === "M02") return "关键词误读";
-  if (code === "M03") return "概念混淆";
-  if (code === "M04") return "选项陷阱";
-  if (code === "M05") return "审题方向错误";
-  if (code === "M06") return "多选漏选";
-  if (code === "M07") return "多选错选";
-  if (code === "M08") return "规范数字混淆";
-  if (code === "M09") return "题干条件提取不完整";
-  if (code === "M10") return "用常识替代规范判断";
-  return code ? "错因" : "";
+  return code ? errorCodeLabels.labelFor(code) : "";
 }
 
 function _learningBrainConceptLabel(code, withCode) {
@@ -1439,7 +1429,9 @@ Page({
       navBackLabel: workspaceBack ? workspaceBack.label : "对话",
       assessmentEnabled: flags.isFeatureEnabled("assessment"),
     });
-    helpers.syncTabBar(this, 2, {
+    // 五 tab 高亮以壳内路由判定为唯一权威（custom-tab-bar resolveSelectedByRoute），
+    // 旧四 tab 序号是死参数，这里不再传。
+    helpers.syncTabBar(this, null, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
     if (!auth.isLoggedIn()) {
@@ -1764,6 +1756,32 @@ Page({
     helpers.vibrate("light");
     this._dismissReportModuleHint();
     wx.navigateTo({ url: route.mistakeBook() });
+  },
+
+  // 「下一步」深链：图表卡底部导回学习 tab（与壳内 tab 切换同为 redirectTo，不新增入口层级）
+  goLearnTab() {
+    if (typeof wx === "undefined" || !wx.redirectTo) return;
+    helpers.vibrate("light");
+    var url = route.lubanStations();
+    wx.redirectTo({
+      url: url,
+      fail: function () {
+        if (wx.reLaunch) wx.reLaunch({ url: url });
+      },
+    });
+  },
+
+  // 「下一步」深链：图表卡底部导回复习 tab
+  goReviewTab() {
+    if (typeof wx === "undefined" || !wx.redirectTo) return;
+    helpers.vibrate("light");
+    var url = route.lubanReview();
+    wx.redirectTo({
+      url: url,
+      fail: function () {
+        if (wx.reLaunch) wx.reLaunch({ url: url });
+      },
+    });
   },
 
   async _loadOverview(snapshot) {

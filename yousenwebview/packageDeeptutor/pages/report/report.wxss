@@ -1084,10 +1084,10 @@
 
 .map-summary-num {
   margin-top: 2rpx;
-  font-size: 52rpx;
-  line-height: 1;
+  font-size: 40rpx;
+  line-height: 1.1;
   font-weight: 850;
-  color: #7dd3fc;
+  color: var(--lb-good);
 }
 
 .map-summary-bars {
@@ -1101,9 +1101,10 @@
   border-radius: 99rpx;
 }
 
-.map-summary-bar.strong { width: 120rpx; background: #34d399; }
-.map-summary-bar.normal { width: 90rpx; background: #7dd3fc; }
-.map-summary-bar.weak { width: 54rpx; background: #fb7185; }
+/* 三态暖色语义（T4，10e）：稳了 / 再看一眼就稳 / 待复验——禁红灯墙 */
+.map-summary-bar.strong { width: 120rpx; background: var(--lb-good); }
+.map-summary-bar.normal { width: 90rpx; background: rgba(85, 150, 123, 0.45); } /* --lb-good @45% */
+.map-summary-bar.weak { width: 54rpx; background: var(--lb-bad); }
 
 .training-route {
   display: flex;
@@ -2557,9 +2558,9 @@
   margin-bottom: 4rpx;
 }
 
-.dot-strong { background: #34d399; }
-.dot-normal { background: #fbbf24; }
-.dot-weak   { background: #f87171; }
+.dot-strong { background: var(--lb-good); }
+.dot-normal { background: rgba(85, 150, 123, 0.45); } /* --lb-good @45%（再看一眼就稳） */
+.dot-weak   { background: var(--lb-bad); }
 
 .stat-num {
   font-size: 40rpx;
@@ -2635,6 +2636,7 @@
   font-weight: 600;
   min-width: 64rpx;
   text-align: right;
+  white-space: nowrap;
 }
 
 /* ── 掌握度大数字 ────────────────────────────────── */
@@ -2652,23 +2654,11 @@
   gap: 8rpx;
 }
 
-.mastery-score {
-  font-size: 96rpx;
+/* 总体掌握状态：三态定性文案，不呈现精确百分比（T4，10e） */
+.mastery-state-text {
+  font-size: 56rpx;
   font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 0.92;
-}
-
-.score-good { color: #34d399; }
-.score-mid  { color: #fbbf24; }
-.score-low  { color: #f87171; }
-
-.mastery-unit {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: var(--text-muted);
-  line-height: 1;
-  margin-bottom: 12rpx;
+  line-height: 1.1;
 }
 
 .mastery-label {
@@ -2852,16 +2842,13 @@
 .group-avg {
   font-size: 26rpx;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .group-toggle {
   font-size: 22rpx;
   color: var(--primary-400);
 }
-
-.avg-good { color: #34d399; }
-.avg-mid  { color: #fbbf24; }
-.avg-low  { color: #f87171; }
 
 .group-chapters {
   display: flex;
@@ -2899,10 +2886,11 @@
 }
 
 .ch-pct {
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 600;
   min-width: 56rpx;
   text-align: right;
+  white-space: nowrap;
 }
 
 /* ── AI 作战方案 ───────────────────────────────── */
@@ -3351,4 +3339,97 @@
 
 .report-page.light .progress-chart-bar text {
   color: #0f172a;
+}
+
+/* ============================================================
+ * T4 学情 tab（10e）新增：三态暖色语义 + 轻量诊断卡 + 下一步深链
+ * token 来源 theme.wxss --lb-*（暗/亮随 .light 自动切换）
+ * ============================================================ */
+
+/* 三态文案色：稳了 / 再看一眼就稳 / 待复验 */
+.state-good { color: var(--lb-good); }
+.state-mid  { color: #8fb3a3; } /* --lb-good 冲淡（对应设计 35% 绿的文本可读版） */
+.state-due  { color: var(--lb-bad); }
+
+/* 三态进度条填充 */
+.fill-good { background: var(--lb-good); }
+.fill-mid  { background: rgba(85, 150, 123, 0.45); } /* --lb-good @45% */
+.fill-due  { background: var(--lb-bad); }
+
+/* 轻量诊断卡：本周建议 + 完整报告入口 */
+.diag-card {
+  padding: 28rpx 28rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  border-left: 6rpx solid var(--lb-good);
+}
+
+.diag-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.diag-kicker {
+  font-size: 24rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  color: var(--lb-good);
+}
+
+.diag-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.diag-sub {
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.diag-report-link {
+  align-self: flex-start;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 6rpx;
+  padding: 4rpx 0;
+}
+
+/* 图表卡底部「下一步」深链按钮：主按钮墨色语义（暗色下反转为浅底） */
+.next-step-btn {
+  margin-top: 20rpx;
+  min-height: 84rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  background: rgba(241, 239, 232, 0.1);
+  border: 1rpx solid var(--lb-bd);
+}
+
+.next-step-btn-pressed {
+  opacity: 0.78;
+}
+
+.next-step-label {
+  font-size: 27rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.next-step-arrow {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.report-page.light .next-step-btn {
+  background: rgba(38, 36, 31, 0.06);
 }

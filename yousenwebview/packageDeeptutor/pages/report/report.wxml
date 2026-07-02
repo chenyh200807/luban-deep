@@ -1,4 +1,28 @@
 <!-- pages/report/report.wxml — 学情页：诊断 + AI作战方案 + 进步反馈 -->
+<!-- 掌握三态展示投影（T4，10e）：只把后端已有掌握数值折成暖色三态文案（稳了/再看一眼就稳/待复验），
+     不产生新掌握度、不呈现精确百分比。阈值 70/40 与 report.js _buildRadarViewModel 的兜底分类一致。 -->
+<wxs module="mtone">
+function cls(p) {
+  p = p * 1;
+  if (!(p >= 0)) p = 0;
+  if (p >= 70) return "good";
+  if (p >= 40) return "mid";
+  return "due";
+}
+function label(p) {
+  var c = cls(p);
+  if (c === "good") return "稳了";
+  if (c === "mid") return "再看一眼就稳";
+  return "待复验";
+}
+function brief(p) {
+  var c = cls(p);
+  if (c === "good") return "稳了";
+  if (c === "mid") return "再看一眼";
+  return "待复验";
+}
+module.exports = { cls: cls, label: label, brief: brief };
+</wxs>
 <view class="report-page {{isDark?'':'light'}}">
 
   <!-- 自定义导航栏 -->
@@ -14,6 +38,30 @@
 
   <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" scroll-top="{{reportScrollTop}}" style="top: {{navHeight}}px; bottom: 0">
     <view class="page-inner">
+      <!-- 轻量诊断卡（T4，10e）：本周建议 + 完整报告入口。
+           N = learning-report read model 已有字段（weak_count / weak_node_count），零新字段；
+           无待补盲点时只给定性文案，禁造数。 -->
+      <view class="diag-card glass-card" wx:if="{{reportDetailView == 'home' && !isGuestPreview}}">
+        <view class="diag-copy">
+          <text class="diag-kicker">本周建议</text>
+          <block wx:if="{{learningReviewSummary.weakCount || weakNodeCount}}">
+            <text class="diag-title">本周补掉 {{learningReviewSummary.weakCount || weakNodeCount}} 个盲点</text>
+            <text class="diag-sub">补上这些，路线会稳不少</text>
+          </block>
+          <block wx:elif="{{learningBrainEmpty}}">
+            <text class="diag-title">完成一轮训练后，这里会给出你的本周诊断</text>
+            <text class="diag-sub">先从今日处方开始就行</text>
+          </block>
+          <block wx:else>
+            <text class="diag-title">暂时没有待补的盲点</text>
+            <text class="diag-sub">保持复测节奏，稳住已点亮的部分</text>
+          </block>
+        </view>
+        <view class="diag-report-link" data-detail="evidence" bindtap="openReportDetail" hover-class="metric-chip-hover">
+          <text>完整诊断报告 →</text>
+        </view>
+      </view>
+
       <view class="overview-hero glass-card" wx:if="{{reportDetailView == 'home'}}">
         <view class="overview-hero-main">
           <view class="overview-copy">
@@ -173,7 +221,7 @@
             <view class="module-card-head">
               <view>
                 <text class="module-card-kicker">看强弱结构</text>
-                <text class="module-card-title">掌握地图 {{overallMastery}}%</text>
+                <text class="module-card-title">掌握地图</text>
               </view>
               <text class="module-card-arrow">›</text>
             </view>
@@ -185,8 +233,8 @@
               <view class="mini-radar-dot dot-three"></view>
             </view>
             <view class="module-mini-stats">
-              <text>强 {{strongCount}}</text>
-              <text>弱 {{weakCount}}</text>
+              <text>稳了 {{strongCount}}</text>
+              <text>待复验 {{weakCount}}</text>
             </view>
           </view>
 
@@ -574,6 +622,11 @@
             <text class="brain-footer-text">{{learningBrainGraphStats.projectionSubjectLabel || learningBrainGraphStats.projectionSubject}}</text>
             <text class="brain-footer-text">稳定结论 {{learningBrainGraphStats.createdClaimCount || 0}}</text>
           </view>
+
+          <view class="next-step-btn" bindtap="goReviewTab" hover-class="next-step-btn-pressed">
+            <text class="next-step-label">下一步 · 去复习把错因清掉</text>
+            <text class="next-step-arrow">›</text>
+          </view>
         </view>
       </view>
       </block>
@@ -586,8 +639,8 @@
         <text class="detail-hero-sub">雷达图看能力结构，掌握分布看章节和复习压力，避免只盯一个总分。</text>
         <view class="report-map-summary">
           <view>
-            <text class="map-summary-label">总体掌握</text>
-            <text class="map-summary-num">{{overallMastery}}%</text>
+            <text class="map-summary-label">整体状态</text>
+            <text class="map-summary-num state-{{mtone.cls(overallMastery)}}">{{mtone.label(overallMastery)}}</text>
           </view>
           <view class="map-summary-bars">
             <view class="map-summary-bar strong"></view>
@@ -595,9 +648,9 @@
             <view class="map-summary-bar weak"></view>
           </view>
           <view class="module-mini-stats">
-            <text>强项 {{strongCount}}</text>
-            <text>一般 {{normalCount}}</text>
-            <text>薄弱 {{weakCount}}</text>
+            <text>稳了 {{strongCount}}</text>
+            <text>再看一眼 {{normalCount}}</text>
+            <text>待复验 {{weakCount}}</text>
           </view>
         </view>
       </view>
@@ -646,17 +699,17 @@
           <view class="radar-stat">
             <view class="stat-dot dot-strong"></view>
             <text class="stat-num">{{strongCount}}</text>
-            <text class="stat-label">强项</text>
+            <text class="stat-label">稳了</text>
           </view>
           <view class="radar-stat">
             <view class="stat-dot dot-normal"></view>
             <text class="stat-num">{{normalCount}}</text>
-            <text class="stat-label">一般</text>
+            <text class="stat-label">再看一眼就稳</text>
           </view>
           <view class="radar-stat">
             <view class="stat-dot dot-weak"></view>
             <text class="stat-num">{{weakCount}}</text>
-            <text class="stat-label">薄弱</text>
+            <text class="stat-label">待复验</text>
           </view>
         </view>
 
@@ -676,12 +729,17 @@
             <text class="dim-name">{{item.name}}</text>
             <view class="dim-bar">
               <view
-                class="dim-bar-fill"
-                style="width: {{item.pct}}%; background: {{item.color}}"
+                class="dim-bar-fill fill-{{mtone.cls(item.pct)}}"
+                style="width: {{item.pct}}%"
               ></view>
             </view>
-            <text class="dim-pct" style="color: {{item.color}}">{{item.pct}}%</text>
+            <text class="dim-pct state-{{mtone.cls(item.pct)}}">{{mtone.brief(item.pct)}}</text>
           </view>
+        </view>
+
+        <view class="next-step-btn" bindtap="goLearnTab" hover-class="next-step-btn-pressed">
+          <text class="next-step-label">下一步 · 去点亮下一站</text>
+          <text class="next-step-arrow">›</text>
         </view>
       </view>
 
@@ -708,12 +766,9 @@
       <view wx:else>
         <view class="mastery-hero glass-card">
           <view class="mastery-score-wrap">
-            <text class="mastery-score {{masteryScoreClass}}">
-              {{overallMastery}}
-            </text>
-            <text class="mastery-unit">%</text>
+            <text class="mastery-state-text state-{{mtone.cls(overallMastery)}}">{{mtone.label(overallMastery)}}</text>
           </view>
-          <text class="mastery-label">总体掌握度</text>
+          <text class="mastery-label">总体掌握状态</text>
           <view class="mastery-map-row" wx:if="{{knowledgeSummary.totalTextbookChapters || knowledgeSummary.total_textbook_chapters}}">
             <view class="mastery-map-item">
               <text class="mastery-map-num">{{knowledgeSummary.totalTextbookChapters || knowledgeSummary.total_textbook_chapters}}</text>
@@ -781,8 +836,8 @@
               <text class="group-preview">{{item.previewText}}</text>
             </view>
             <view class="group-meta">
-              <text class="group-avg {{item.avgClass}}">
-                {{item.avgMastery}}%
+              <text class="group-avg state-{{mtone.cls(item.avgMastery)}}">
+                {{mtone.brief(item.avgMastery)}}
               </text>
               <text class="group-toggle">{{item.expanded ? '收起' : '展开'}}</text>
             </view>
@@ -797,13 +852,18 @@
               <text class="ch-name">{{ch.name}}</text>
               <view class="ch-bar">
                 <view
-                  class="ch-bar-fill"
-                  style="width: {{ch.mastery}}%; background: {{ch.color}}"
+                  class="ch-bar-fill fill-{{mtone.cls(ch.mastery)}}"
+                  style="width: {{ch.mastery}}%"
                 ></view>
               </view>
-              <text class="ch-pct" style="color: {{ch.color}}">{{ch.mastery}}%</text>
+              <text class="ch-pct state-{{mtone.cls(ch.mastery)}}">{{mtone.brief(ch.mastery)}}</text>
             </view>
           </view>
+        </view>
+
+        <view class="next-step-btn" bindtap="goReviewTab" hover-class="next-step-btn-pressed">
+          <text class="next-step-label">下一步 · 把待复验的排进复习</text>
+          <text class="next-step-arrow">›</text>
         </view>
       </view>
       </block>
@@ -949,6 +1009,11 @@
               <text class="progress-milestone-detail">{{item.detail}}</text>
             </view>
           </view>
+        </view>
+
+        <view class="next-step-btn" bindtap="goLearnTab" hover-class="next-step-btn-pressed">
+          <text class="next-step-label">下一步 · 回到学习路线继续推进</text>
+          <text class="next-step-arrow">›</text>
         </view>
       </view>
       </block>
