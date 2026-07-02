@@ -153,3 +153,11 @@
   - case grading 的 marked reference 是当前题面事实，必须在共享 projection 层进入评分 ctx；让 TutorBot wrapper 补字符串会长出第二套 authority。
   - pre-stamped scene 是前置事实，不是永久事实；每个 turn 仍要由当前 submission authority 证明。
   - visible leak 要收在单一 public sink，不能在每条 emit path 补脱敏。
+
+## 2026-07-02 · luban_lesson router F821（并行窗口代修，本窗复盘）
+- 问题：`luban_lesson.py` retest-items endpoint 引用 `build_retest_items` 未 import，CI F821。
+- 根因：endpoint 用 heredoc 追加进文件，只顾函数体没回看头部 import 块；本地只跑了 pytest（测试直接 import service 层，不经 router），没跑 import check——**测试路径与故障路径不同层**。
+- 失败尝试：无（并行窗口先于我发现并修复）。
+- 修法：`from deeptutor.services.luban_lesson import (...)` 补 `build_retest_items`（commit 665f8e3e7）。
+- 验证：10 域测试 passed + `python3 -c "import deeptutor.api.main"` 通过。
+- 教训：给已有文件追加代码后，验证必须覆盖"该文件自身被加载"的路径（import check / app 装配），单测绿≠模块可加载。
