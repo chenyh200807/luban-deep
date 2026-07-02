@@ -29,7 +29,8 @@
 
 - **判据（乙案，正式生效）**：spike 参与用户（走完 ≥1 个站点闭环者）D1 ≥ **15%**（对标工具类小程序次留中位），cohort ≥ 30 人方可读数（防小样本假阳）。
 - **观察指标（原甲案，降级不作判据）**：spike 参与用户 D1 相对基线倍数（2×B≈9.2% 为参考线），只随报告披露、不参与成败裁决。
-- 共同护栏：读数窗口 ≥ 7 天；QA/内部账号进 allowlist 剔除（qa_ 映射表从 member 侧导出接进度量口径，硬前置）；不达 cohort 门槛只报「未达读数条件」不报成败。
+- 共同护栏：读数窗口 ≥ 7 天；QA/内部账号进 allowlist 剔除；不达 cohort 门槛只报「未达读数条件」不报成败。
+- **QA allowlist 口径（硬前置，已接通 2026-07-02）**：唯一权威 = `MemberConsoleService.list_internal_test_user_ids()`（复用既有 `_looks_like_test_member` 分类器，本地 store+Supabase directory 双源，含 user_id/external_auth_user_id/alias 三键位）；读数执行口径 = `scripts/report_luban_spike_d1.py`（D1，乙案判据内置）与 `scripts/report_luban_spike_events.py`（D15 事件双计数 total/real/qa_excluded），两脚本共用同一权威、绝不各自维护名单。§2 的「turns>50 启发式」自此降级为对照披露。
 
 ## 4. 复算命令（独立可证伪）
 
