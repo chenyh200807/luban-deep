@@ -161,3 +161,9 @@
 - 修法：`from deeptutor.services.luban_lesson import (...)` 补 `build_retest_items`（commit 665f8e3e7）。
 - 验证：10 域测试 passed + `python3 -c "import deeptutor.api.main"` 通过。
 - 教训：给已有文件追加代码后，验证必须覆盖"该文件自身被加载"的路径（import check / app 装配），单测绿≠模块可加载。
+
+## 2026-07-02 · spike 点火段三连坑（部署链+并行协调+automator）
+- **坑1 镜像供给缺失**：#344 给 Dockerfile 加 COPY 但 .dockerignore `docs/` 挡住 build context，远端 build 必败且 CI 抓不到（不 build 生产 stage）。修=反排除两行（#345，签发窗口先合；我的 #346 重复被关但守卫测试思路可复用）。教训：**Dockerfile COPY 必须连 .dockerignore 一起改一起验**；CI 对镜像层变更无覆盖是已知洞（需 workflow scope 把 Dockerfile/.dockerignore 加进 tests.yml paths）。
+- **坑2 只动 .dockerignore 的 PR 永久 BLOCKED**：必需检查（Contract Guard/Test Summary）被 tests.yml 路径过滤跳过、永不上报。修=PR 里带上会触发 CI 的实文件（如守卫测试）。
+- **坑3 复合命令夹带 git stash pop 弹出他人旧 stash**：与 memory「merge中严禁复合命令夹带 git stash」同类复发——红绿验证想用 stash 保存现场，pop 时弹出栈里别人的 WIP 造成 unmerged。修=红绿验证用 `git checkout <rev> -- <file>` 定点还原，禁 stash。
+- **坑4 automator 三层排障**：①`automator.launch` 解析此版 CLI `-v` 输出崩（'split' undefined）→ 改 `cli auto --auto-port` + `automator.connect`；②reLaunch 全超时=隐私同意弹窗挡导航+登录页在**分包**（`/packageDeeptutor/pages/login/login`，非主包 pages/login/*）→ 截图诊断破案；③方法链=handlePrivacyCheckboxTap→switchLoginMode→onUsernameInput/onPasswordInput→handlePasswordLogin。验证数字：三轮 ALL PASS、D15 retest_item_answered=15 入生产库。
