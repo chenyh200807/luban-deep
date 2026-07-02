@@ -1,0 +1,36 @@
+@import "/packageDeeptutor/theme.wxss";
+
+.lb-review-page {
+  min-height: 100vh;
+  background: var(--lb-bg);
+  box-sizing: border-box;
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+}
+
+.lb-review-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding-left: 48rpx;
+  padding-right: 48rpx;
+}
+
+.lb-review-kicker {
+  font-size: 24rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  color: var(--lb-good);
+}
+
+.lb-review-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--lb-t1);
+  line-height: 1.4;
+}
+
+.lb-review-desc {
+  font-size: 28rpx;
+  color: var(--lb-t3);
+  line-height: 1.6;
+}

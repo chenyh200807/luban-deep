@@ -1,6 +1,6 @@
 <view class="tab-bar {{isDark?'':'light'}}" wx:if="{{!hidden}}" aria-role="tablist">
   <view
-    class="tab-item {{selected === index ? 'active' : ''}}"
+    class="tab-item {{item.seal ? 'tab-item-seal' : ''}} {{selected === index ? 'active' : ''}}"
     wx:for="{{list}}"
     wx:key="pagePath"
     wx:if="{{!item.hidden}}"
@@ -10,7 +10,11 @@
     aria-label="{{item.text}}"
     aria-selected="{{selected === index}}"
   >
+    <view wx:if="{{item.seal}}" class="tab-seal">
+      <text class="tab-seal-text">问</text>
+    </view>
     <view
+      wx:else
       class="tab-icon icon-{{selected === index ? item.activeIcon : item.icon}}"
     ></view>
     <text class="tab-text">{{item.text}}</text>
