@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
-import sys
 from pathlib import Path
+import sys
 
 REPO = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location(
