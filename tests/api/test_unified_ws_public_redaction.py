@@ -457,6 +457,56 @@ def test_redact_metadata_preserves_string_bodies_and_non_hidden_keys() -> None:
     assert redacted["tool_traces"] == []
 
 
+def test_redact_metadata_drops_internal_observability_timeline_fields() -> None:
+    event = {
+        "type": "result",
+        "metadata": {
+            "response": "这是给用户看的答案。",
+            "server_turn_start_to_first_useful_content_ms": 123.4,
+            "first_useful_content_event_type": "content",
+            "latency_timeline": [{"scope": "llm_provider", "stage": "provider_stream_read"}],
+            "latency_timeline_truncated": True,
+            "latency_timeline_total_count": 81,
+            "latency_max_stall": {"provider_name": "dashscope", "duration_ms": 456.7},
+            "llm_stream_telemetry": {
+                "calls": [
+                    {
+                        "provider_name": "dashscope",
+                        "prompt": "hidden prompt",
+                        "user_input": "hidden user input",
+                        "api_key": "sk-hidden",
+                        "tool_args": {"q": "hidden"},
+                    }
+                ]
+            },
+            "metadata": {
+                "provider_first_content_delta": 100.0,
+                "capability_stream_stage_timings_ms": {"first_content": 100.0},
+            },
+        },
+    }
+
+    redacted = _redact_event_for_public(event)
+    blob = json.dumps(redacted, ensure_ascii=False)
+    assert redacted["metadata"]["response"] == "这是给用户看的答案。"
+    for forbidden in (
+        "server_turn_start_to_first_useful_content_ms",
+        "first_useful_content_event_type",
+        "latency_timeline",
+        "latency_timeline_truncated",
+        "latency_timeline_total_count",
+        "latency_max_stall",
+        "llm_stream_telemetry",
+        "provider_first_content_delta",
+        "capability_stream_stage_timings_ms",
+        "hidden prompt",
+        "hidden user input",
+        "sk-hidden",
+        "tool_args",
+    ):
+        assert forbidden not in blob
+
+
 # ── Oversized event payload clamp (public WS boundary only) ──────────────────
 # Backport item: bound the size of the event copy sent to clients over
 # /api/v1/ws. Persisted truth (turn_events) and canonical final answer

@@ -176,6 +176,110 @@ def _result_response_text(metadata: dict[str, Any] | None) -> str:
     return ""
 
 
+def _event_type_value(event: StreamEvent | dict[str, Any]) -> str:
+    raw = event.get("type") if isinstance(event, dict) else event.type
+    return str(getattr(raw, "value", raw) or "").strip()
+
+
+def _event_metadata(event: StreamEvent | dict[str, Any]) -> dict[str, Any]:
+    raw = event.get("metadata") if isinstance(event, dict) else event.metadata
+    return dict(raw or {}) if isinstance(raw, dict) else {}
+
+
+def _event_source_value(event: StreamEvent | dict[str, Any]) -> str:
+    raw = event.get("source") if isinstance(event, dict) else event.source
+    return str(raw or "").strip()
+
+
+def _event_stage_value(event: StreamEvent | dict[str, Any]) -> str:
+    raw = event.get("stage") if isinstance(event, dict) else event.stage
+    return str(raw or "").strip()
+
+
+def _event_content_value(event: StreamEvent | dict[str, Any]) -> str:
+    raw = event.get("content") if isinstance(event, dict) else event.content
+    return raw if isinstance(raw, str) else ""
+
+
+def _is_public_assistant_content_event(event: StreamEvent | dict[str, Any]) -> bool:
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return False
+    if _event_type_value(event) != StreamEventType.CONTENT.value:
+        return False
+    if not _event_content_value(event).strip():
+        return False
+    metadata = _event_metadata(event)
+    call_id = metadata.get("call_id")
+    if not call_id:
+        return True
+    return str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS
+
+
+def _first_useful_content_observation(
+    event: StreamEvent | dict[str, Any],
+    *,
+    elapsed_ms: float,
+    capability_elapsed_ms: float | None = None,
+) -> dict[str, Any]:
+    """Classify the first public content that is useful to the learner.
+
+    Public progress/status events are intentionally excluded. This observes the
+    event after it has passed runtime sanitization/persistence, so runtime stays
+    the latency authority instead of letting provider/frontend clocks compete.
+    """
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return {}
+
+    event_type = _event_type_value(event)
+    metadata = _event_metadata(event)
+    content_source = ""
+    if event_type == StreamEventType.CONTENT.value:
+        if not _is_public_assistant_content_event(event):
+            return {}
+        content_source = "content.delta"
+    elif event_type == StreamEventType.RESULT.value:
+        if not _result_response_text(metadata):
+            return {}
+        content_source = "result.response"
+    else:
+        return {}
+
+    try:
+        normalized_elapsed = round(max(float(elapsed_ms), 0.0), 2)
+    except (TypeError, ValueError):
+        normalized_elapsed = 0.0
+    observation: dict[str, Any] = {
+        "server_turn_start_to_first_useful_content_ms": normalized_elapsed,
+        "first_useful_content_event_type": event_type,
+        "first_useful_content_content_source": content_source,
+    }
+    if capability_elapsed_ms is not None:
+        try:
+            observation["capability_stream_to_first_useful_content_ms"] = round(
+                max(float(capability_elapsed_ms), 0.0),
+                2,
+            )
+        except (TypeError, ValueError):
+            pass
+
+    source = _event_source_value(event)
+    stage = _event_stage_value(event)
+    if source:
+        observation["first_useful_content_source"] = source
+    if stage:
+        observation["first_useful_content_stage"] = stage
+    for source_key, target_key in (
+        ("selected_mode", "first_useful_content_selected_mode"),
+        ("effective_response_mode", "first_useful_content_effective_response_mode"),
+        ("execution_path", "first_useful_content_execution_path"),
+        ("question_lifecycle_scene", "first_useful_content_question_lifecycle_scene"),
+    ):
+        value = str(metadata.get(source_key) or "").strip()
+        if value:
+            observation[target_key] = value
+    return observation
+
+
 def _normalize_turn_user_content(value: Any) -> tuple[str, dict[str, Any]]:
     text = str(value or "").strip()
     unwrap_depth = 0
@@ -785,6 +889,159 @@ def _normalize_llm_stream_telemetry(value: Any) -> dict[str, Any]:
     }
 
 
+_FIRST_USEFUL_CONTENT_STRING_FIELDS = (
+    "first_useful_content_event_type",
+    "first_useful_content_source",
+    "first_useful_content_stage",
+    "first_useful_content_content_source",
+    "first_useful_content_selected_mode",
+    "first_useful_content_effective_response_mode",
+    "first_useful_content_execution_path",
+    "first_useful_content_question_lifecycle_scene",
+)
+_FIRST_USEFUL_CONTENT_FLOAT_FIELDS = (
+    "server_turn_start_to_first_useful_content_ms",
+    "capability_stream_to_first_useful_content_ms",
+)
+
+
+def _normalize_first_useful_content_metadata(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    normalized: dict[str, Any] = {}
+    for key in _FIRST_USEFUL_CONTENT_FLOAT_FIELDS:
+        item = value.get(key)
+        if not isinstance(item, (int, float)):
+            continue
+        duration = float(item)
+        if duration < 0:
+            continue
+        normalized[key] = round(duration, 2)
+    if "server_turn_start_to_first_useful_content_ms" not in normalized:
+        return {}
+    for key in _FIRST_USEFUL_CONTENT_STRING_FIELDS:
+        item = str(value.get(key) or "").strip()
+        if item:
+            normalized[key] = item
+    return normalized
+
+
+def _latency_timeline_entry(
+    *,
+    scope: str,
+    stage: str,
+    duration_ms: float,
+    **extra: Any,
+) -> dict[str, Any] | None:
+    try:
+        duration = float(duration_ms)
+    except (TypeError, ValueError):
+        return None
+    if duration < 0:
+        return None
+    entry: dict[str, Any] = {
+        "scope": scope,
+        "stage": stage,
+        "duration_ms": round(duration, 2),
+    }
+    for key, value in extra.items():
+        if isinstance(value, str):
+            normalized = value.strip()
+            if normalized:
+                entry[key] = normalized
+        elif isinstance(value, (int, float)) and value >= 0:
+            entry[key] = int(value) if key.endswith("_index") else value
+    return entry
+
+
+def _extend_latency_timeline(
+    entries: list[dict[str, Any]],
+    *,
+    scope: str,
+    timings: Any,
+    **extra: Any,
+) -> None:
+    for stage, duration_ms in normalize_latency_stage_timings(timings).items():
+        entry = _latency_timeline_entry(
+            scope=scope,
+            stage=stage,
+            duration_ms=duration_ms,
+            **extra,
+        )
+        if entry is not None:
+            entries.append(entry)
+
+
+def _build_latency_timeline(
+    trace_metadata: dict[str, Any],
+    *,
+    limit: int | None = 80,
+) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    _extend_latency_timeline(
+        entries,
+        scope="start_turn_setup",
+        timings=trace_metadata.get("start_turn_setup_stage_timings_ms"),
+    )
+    _extend_latency_timeline(
+        entries,
+        scope="turn_runtime",
+        timings=trace_metadata.get("latency_stages_ms"),
+    )
+    _extend_latency_timeline(
+        entries,
+        scope="context_build",
+        timings=trace_metadata.get("context_build_stage_timings_ms"),
+    )
+    _extend_latency_timeline(
+        entries,
+        scope="capability_stream",
+        timings=trace_metadata.get("capability_stream_stage_timings_ms"),
+    )
+    fuc = _normalize_first_useful_content_metadata(trace_metadata)
+    if fuc:
+        entry = _latency_timeline_entry(
+            scope="cumulative",
+            stage="server_turn_start_to_first_useful_content",
+            duration_ms=fuc["server_turn_start_to_first_useful_content_ms"],
+            event_type=str(fuc.get("first_useful_content_event_type") or ""),
+            event_source=str(fuc.get("first_useful_content_source") or ""),
+            content_source=str(fuc.get("first_useful_content_content_source") or ""),
+        )
+        if entry is not None:
+            entries.append(entry)
+
+    llm_stream_telemetry = _normalize_llm_stream_telemetry(
+        trace_metadata.get("llm_stream_telemetry")
+    )
+    for call_index, call in enumerate(llm_stream_telemetry.get("calls") or [], start=1):
+        if not isinstance(call, dict):
+            continue
+        _extend_latency_timeline(
+            entries,
+            scope="llm_provider",
+            timings=call.get("stage_timings_ms"),
+            call_index=call_index,
+            call_site=str(call.get("call_site") or ""),
+            provider_name=str(call.get("provider_name") or ""),
+            model=str(call.get("model") or ""),
+        )
+    if limit is None:
+        return entries
+    return entries[:limit]
+
+
+def _latency_max_stall(entries: list[dict[str, Any]]) -> dict[str, Any]:
+    candidates = [
+        item
+        for item in entries
+        if str(item.get("stage") or "") != "server_turn_start_to_first_useful_content"
+    ] or entries
+    if not candidates:
+        return {}
+    return dict(max(candidates, key=lambda item: float(item.get("duration_ms") or 0.0)))
+
+
 def _build_terminal_turn_observation_event(
     *,
     session_id: str,
@@ -835,6 +1092,19 @@ def _build_terminal_turn_observation_event(
     )
     if llm_stream_telemetry:
         metadata["llm_stream_telemetry"] = llm_stream_telemetry
+    first_useful_content_metadata = _normalize_first_useful_content_metadata(trace_metadata)
+    if first_useful_content_metadata:
+        metadata.update(first_useful_content_metadata)
+    full_latency_timeline = _build_latency_timeline(trace_metadata, limit=None)
+    if full_latency_timeline:
+        latency_timeline = full_latency_timeline[:80]
+        metadata["latency_timeline"] = latency_timeline
+        if len(full_latency_timeline) > len(latency_timeline):
+            metadata["latency_timeline_truncated"] = True
+            metadata["latency_timeline_total_count"] = len(full_latency_timeline)
+        max_stall = _latency_max_stall(full_latency_timeline)
+        if max_stall:
+            metadata["latency_max_stall"] = max_stall
     for metadata_key in (
         "authority_applied",
         "exact_fast_path_hit",
@@ -5828,6 +6098,7 @@ class TurnRuntimeManager:
                 capability_stream_stage_timings = _TurnLatencyStages()
                 capability_stream_event_counts: dict[str, int] = {}
                 public_result_response_seen = False
+                first_useful_content_metadata: dict[str, Any] = {}
                 synthesize_mobile_result_before_done = _is_mobile_surface_turn_config(
                     request_config,
                     billing_context,
@@ -5837,6 +6108,23 @@ class TurnRuntimeManager:
                     if capability_stream_stage_timings.has_stage(stage):
                         return
                     capability_stream_stage_timings.record_since(stage, capability_stream_started_at)
+
+                def _record_first_useful_content_once(payload_event: dict[str, Any]) -> None:
+                    nonlocal first_useful_content_metadata
+                    if first_useful_content_metadata:
+                        return
+                    observed = _first_useful_content_observation(
+                        payload_event,
+                        elapsed_ms=(time.perf_counter() - turn_started_at) * 1000.0,
+                        capability_elapsed_ms=(
+                            time.perf_counter() - capability_stream_started_at
+                        )
+                        * 1000.0,
+                    )
+                    if not observed:
+                        return
+                    first_useful_content_metadata = observed
+                    trace_metadata.update(observed)
 
                 async for event in orch.handle(context):
                     _record_capability_stream_since_once("first_event")
@@ -5915,6 +6203,7 @@ class TurnRuntimeManager:
                                 (time.perf_counter() - synthetic_persist_started_at) * 1000.0,
                             )
                             if _event_visibility(synthetic_payload_event) == _PUBLIC_VISIBILITY:
+                                _record_first_useful_content_once(synthetic_payload_event)
                                 assistant_events.append(synthetic_payload_event)
                             public_result_response_seen = True
                     event_persist_started_at = time.perf_counter()
@@ -5927,6 +6216,7 @@ class TurnRuntimeManager:
                         payload_event.get("type") not in {"done", "session"}
                         and _event_visibility(payload_event) == _PUBLIC_VISIBILITY
                     ):
+                        _record_first_useful_content_once(payload_event)
                         assistant_events.append(payload_event)
                     authoritative_candidate = _extract_authoritative_assistant_content(event)
                     if authoritative_candidate:

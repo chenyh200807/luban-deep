@@ -12,8 +12,8 @@ import json
 import logging
 import os
 import time
-import uuid
 from typing import Any
+import uuid
 
 from fastapi import WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
@@ -21,11 +21,6 @@ from pydantic import ValidationError
 from deeptutor.api._secure_router import secure_ws_endpoint, secure_ws_router
 from deeptutor.api.dependencies import AuthContext, enforce_websocket_rate_limit
 from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
-from deeptutor.runtime.safety import spawn_task
-from deeptutor.services.question_followup import (
-    PUBLIC_HIDDEN_PAYLOAD_KEYS,
-    redact_question_followup_context_for_public,
-)
 from deeptutor.contracts.unified_turn import (
     UnifiedTurnCancelMessage,
     UnifiedTurnResumeMessage,
@@ -33,6 +28,11 @@ from deeptutor.contracts.unified_turn import (
     UnifiedTurnSubscribeMessage,
     UnifiedTurnSubscribeSessionMessage,
     UnifiedTurnUnsubscribeMessage,
+)
+from deeptutor.runtime.safety import spawn_task
+from deeptutor.services.question_followup import (
+    PUBLIC_HIDDEN_PAYLOAD_KEYS,
+    redact_question_followup_context_for_public,
 )
 
 router = secure_ws_router()
@@ -320,6 +320,24 @@ def _bind_authenticated_user(
 # scoring_points, explanation) must never leave the server through this stream,
 # regardless of nesting depth or visibility=internal/public.
 _HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = PUBLIC_HIDDEN_PAYLOAD_KEYS
+_INTERNAL_OBSERVABILITY_PAYLOAD_KEYS: tuple[str, ...] = (
+    "capability_stream_event_counts",
+    "capability_stream_stage_timings_ms",
+    "capability_stream_to_first_useful_content_ms",
+    "context_build_stage_timings_ms",
+    "latency_max_stall",
+    "latency_stages_ms",
+    "latency_timeline",
+    "latency_timeline_total_count",
+    "latency_timeline_truncated",
+    "llm_stream_telemetry",
+    "server_turn_start_to_first_useful_content_ms",
+    "start_turn_setup_stage_timings_ms",
+)
+_INTERNAL_OBSERVABILITY_KEY_PREFIXES: tuple[str, ...] = (
+    "first_useful_content_",
+    "provider_",
+)
 
 # plan §Phase 3 Step 3.2 — evidence-style entries describe which source field
 # produced the evidence value. If the named field references a hidden authority,
@@ -331,6 +349,12 @@ _EVIDENCE_FIELD_KEYS: tuple[str, ...] = ("field", "source_field", "source_key", 
 
 def _is_hidden_payload_key(value: str) -> bool:
     return any(part in _HIDDEN_PAYLOAD_KEYS for part in value.split("."))
+
+
+def _is_internal_observability_payload_key(value: str) -> bool:
+    return value in _INTERNAL_OBSERVABILITY_PAYLOAD_KEYS or any(
+        value.startswith(prefix) for prefix in _INTERNAL_OBSERVABILITY_KEY_PREFIXES
+    )
 
 
 def _is_hidden_evidence_entry(value: dict[str, Any]) -> bool:
@@ -385,6 +409,8 @@ def _redact_dict_for_public(payload: dict[str, Any]) -> dict[str, Any] | None:
     clean: dict[str, Any] = {}
     for key, value in payload.items():
         if key in _HIDDEN_PAYLOAD_KEYS:
+            continue
+        if _is_internal_observability_payload_key(str(key)):
             continue
         if key == "source_fields" and isinstance(value, list):
             kept = [

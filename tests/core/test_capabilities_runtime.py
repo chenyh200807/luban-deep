@@ -4879,6 +4879,121 @@ async def test_tutorbot_agent_loop_disables_further_rag_after_high_overlap_satur
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_agent_loop_only_suppresses_rag_after_successful_prefetch(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {"tool_name_sets": []}
+
+    class CapturingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            captured["tool_name_sets"].append(
+                [
+                    str(item.get("function", {}).get("name") or "")
+                    for item in list(tools or [])
+                ]
+            )
+            return LLMResponse(content="基于已召回证据回答。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class DummyTool(Tool):
+        def __init__(self, name: str) -> None:
+            self._name = name
+
+        @property
+        def name(self) -> str:
+            return self._name
+
+        @property
+        def description(self) -> str:
+            return "dummy"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return str(kwargs)
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=CapturingProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(DummyTool("rag"))
+    loop.tools.register(DummyTool("web_search"))
+
+    metadata = {
+        "default_tools": ["rag", "web_search"],
+        "prefetched_rag_satisfied": True,
+    }
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [
+            {"role": "user", "content": "2026教材有什么变化？"},
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": "prefetch-rag-1",
+                        "type": "function",
+                        "function": {"name": "rag", "arguments": "{}"},
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "tool_call_id": "prefetch-rag-1",
+                "name": "rag",
+                "content": "## 2026教材重点变化：安全检查·消防管理·资源管理",
+            },
+        ],
+        runtime_metadata=metadata,
+    )
+
+    assert final_content == "基于已召回证据回答。"
+    assert tools_used == []
+    assert captured["tool_name_sets"] == [["web_search"]]
+    assert metadata["prefetched_rag_suppressed_first_loop"] is True
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_agent_loop_forces_exact_authority_response(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -6901,7 +7016,11 @@ async def test_tutorbot_process_direct_prefetches_grounded_rag_for_current_info_
     from deeptutor.tutorbot.bus.queue import MessageBus
     from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
 
-    captured: dict[str, Any] = {"tool_calls": [], "tool_results": []}
+    captured: dict[str, Any] = {
+        "tool_calls": [],
+        "tool_results": [],
+        "provider_tool_names": [],
+    }
 
     class PrefetchProvider(LLMProvider):
         async def chat(
@@ -6916,6 +7035,12 @@ async def test_tutorbot_process_direct_prefetches_grounded_rag_for_current_info_
             on_content_delta=None,
         ) -> LLMResponse:
             tool_messages = [item for item in messages if item.get("role") == "tool"]
+            captured["provider_tool_names"].append(
+                [
+                    str(item.get("function", {}).get("name") or "")
+                    for item in list(tools or [])
+                ]
+            )
             assert len(tool_messages) == 1
             assert "2026教材重点变化" in str(tool_messages[0].get("content") or "")
             assert any(
@@ -7011,6 +7136,8 @@ async def test_tutorbot_process_direct_prefetches_grounded_rag_for_current_info_
         "source_overlap_to_prev": None,
         "shared_source_count_with_prev": 0,
     }
+    assert captured["tool_results"][0][2]["prefetched_rag_satisfied"] is True
+    assert captured["provider_tool_names"] == [[]]
 
 
 @pytest.mark.asyncio
@@ -7173,7 +7300,11 @@ async def test_tutorbot_fast_process_direct_prefetched_exact_mcq_takes_authority
     from deeptutor.tutorbot.bus.queue import MessageBus
     from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
 
-    captured: dict[str, Any] = {"tool_results": [], "deltas": []}
+    captured: dict[str, Any] = {
+        "tool_results": [],
+        "deltas": [],
+        "provider_tool_names": [],
+    }
     user_message = (
         "模板支架检查评分表保证项目那题，五个候选是施工方案、支架构造、"
         "底座与托撑、构配件材质、支架稳定。我只勾施工方案+支架构造+支架稳定，能拿满吗？"
@@ -7443,7 +7574,11 @@ async def test_tutorbot_full_process_direct_suppresses_stream_when_degraded_answ
     from deeptutor.tutorbot.bus.queue import MessageBus
     from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
 
-    captured: dict[str, Any] = {"tool_results": [], "deltas": []}
+    captured: dict[str, Any] = {
+        "tool_results": [],
+        "deltas": [],
+        "provider_tool_names": [],
+    }
     user_message = "2023地下连续墙多选答案是不是CDE？别装不知道。"
 
     class FullProvider(LLMProvider):
@@ -7459,6 +7594,12 @@ async def test_tutorbot_full_process_direct_suppresses_stream_when_degraded_answ
             on_content_delta=None,
         ) -> LLMResponse:
             assert [item for item in messages if item.get("role") == "tool"]
+            captured["provider_tool_names"].append(
+                [
+                    str(item.get("function", {}).get("name") or "")
+                    for item in list(tools or [])
+                ]
+            )
             assert on_content_delta is None
             return LLMResponse(content="不是，答案不是 CDE，正确答案是 ABD。")
 
@@ -7535,6 +7676,7 @@ async def test_tutorbot_full_process_direct_suppresses_stream_when_degraded_answ
     assert "我现在不能确认或否定 C、D、E" in content
     assert "正确答案是 ABD" not in content
     assert captured["tool_results"][0][2]["retrieval_degraded"] is True
+    assert captured["provider_tool_names"] == [["rag"]]
     assert "".join(captured["deltas"]) == content
 
 
