@@ -5,6 +5,8 @@
 
 ## 一、判据（乙案 owner-approved，已预登记防挪门柱）
 
+> **活体基线重述（QA allowlist 权威口径，2026-07-02 生产直查）**：`report_luban_spike_d1` 实跑——allowlist=883 个内部键位，剔除 414/436 个历史 owner_key；**真实用户 cohort=22、D1=27.3%、未达 cohort≥30 读数条件**。即预登记 §2 的 4.6% 启发式基线被证明重度污染（历史流量大头是 QA/学生军团/eval 探针）；spike 的第一意义就是把真实 cohort 做到 ≥30 完成首次可读数。QA 口径端到端闭环已实证：true-entry 三轮产生的全部 D15 事件（retest_item_answered=30/handoff_rendered=16/module_viewed=16/subscribe_prompt_result=15/learning_action_started=14/learning_action_completed=6，2 日窗）被 `report_luban_spike_events` 全部正确归入 qa_excluded、real=0——测试流量污染不进读数。
+
 - **正式判据**：spike 参与用户（走完 ≥1 站闭环）D1 ≥ **15%**，cohort ≥ 30 方可读数，窗口 ≥ 7 天。
 - 观察指标：相对基线倍数（B=4.6% 剔内部 / 6.2% 全量；2×B≈9.2% 参考线），只披露不裁决。
 - 读数硬前置已备：QA/内部账号 allowlist（member 权威导出 + `report_luban_spike_d1`/`report_luban_spike_events` 双脚本）已合 main。
