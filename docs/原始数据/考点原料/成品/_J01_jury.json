@@ -2,31 +2,61 @@
   {
     "issue": "§4 S7/规则组F 中‘不得擅自修改’及危大现场管理的标色、边界和语境存在多处争议：DeepSeek 指出措辞窄化为论证后方案，GPT 建议‘不得擅自修改/方案交底’可作本体扩展、其余管理项降邻接，Qwen 指出真题锚误标为🔴。需统一调整。",
     "location": "§4 (S7, 规则组F) 及相关 §1#11, §5 R5#11",
-    "flagged_by": ["DeepSeek-V4-Pro", "qwen-max", "gpt-5.5-codex"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "qwen-max",
+      "gpt-5.5-codex"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "明确‘不得擅自修改方案’适用于所有专项方案，调整相应措辞；S7 的真题锚根据教材锚存在改为🟢；公示、登记监督、监测巡视、第三方监测等邻接内容降为🔵备料。"
+    "fix": "明确‘不得擅自修改方案’适用于所有专项方案，调整相应措辞；S7 的真题锚根据教材锚存在改为🟢；公示、登记监督、监测巡视、第三方监测等邻接内容降为🔵备料。",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "J01_危大工程专项方案专家论证.md §9.1 jury#1 部分采纳：'不得擅自修改适用于所有专项方案'正文§1#13/§4规则F/§6M5 本就无'论证后'限定(已对齐);驳回'S7 真题锚改🟢'——_J01_exam_evidence.json 内确无危大六项管理独立小问直命真题,教材锚🟢/真题🔴拆分是诚实标注",
+      "verified": "2026-07-02 独立复核：_J01_compiled_source.json cc:1A436000_010_0011:3 quote='施工单位应当严格按照专项施工方案组织施工，不得擅自修改专项施工方案'无场景窄化;S7 🔴 保留符合三色铁律(§4:173 注明核验过程)",
+      "verified_flag": true
+    }
   },
   {
     "issue": "超规模阈值表表述不完整且部分项过度挂锚：缺少‘模板支撑’类别前缀，且‘钢结构36m/网架60m、挖孔桩16m、大型结构1000kN’等未提供 quote 支持。",
     "location": "§1#2, §4 R4-B, §5 R5#2、R6#2 等",
-    "flagged_by": ["qwen-max", "gpt-5.5-codex"],
+    "flagged_by": [
+      "qwen-max",
+      "gpt-5.5-codex"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "为‘模板高度≥8m…’添加类别前缀‘模板支撑’；为无 quote 支撑的项降🔴或补充对应锚定 quote。"
+    "fix": "为‘模板高度≥8m…’添加类别前缀‘模板支撑’；为无 quote 支撑的项降🔴或补充对应锚定 quote。",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "J01_危大工程专项方案专家论证.md §1#2(已补'模板支撑/承重支撑'类别前缀);驳回'钢结构36m/挖孔桩16m/大型结构1000kN 降🔴'",
+      "verified": "2026-07-02 确定性核验：kc:1A436000_009_0012:0 quote(258字)完整含钢结构/36/16/1000kN 九类全表,point_id 存在且 quote 一致,jury 称'无 quote 支持'系 qwen+codex 同源幻觉,机器闸证伪",
+      "verified_flag": true
+    }
   },
   {
     "issue": "部分 cc 锚点缺少 quote 支撑或在源料中未提供，特别是 §1 知识点7 的 cc:1A437000_010_0013:1 未找到，全局 cc 系列 quote 不充分。",
     "location": "§1 知识点7 及全局所有 cc 锚点",
-    "flagged_by": ["qwen-max", "gpt-5.5-codex"],
+    "flagged_by": [
+      "qwen-max",
+      "gpt-5.5-codex"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "为所有 cc 锚点补充 quote 或降级处理；重点核实 cc:1A437000_010_0013:1 的可用性。"
+    "fix": "为所有 cc 锚点补充 quote 或降级处理；重点核实 cc:1A437000_010_0013:1 的可用性。",
+    "resolution": {
+      "status": "not_applicable",
+      "fixed_in": "无需改正文——jury 断言回源证伪(J01 §9.1 jury#3)",
+      "verified": "2026-07-02 确定性核验：cc:1A437000_010_0013:1/:2/:3 在 _J01_compiled_source.json 中全部存在且各带 quote(:1='对于超过一定规模的危大工程…组织召开专家论证会…'),jury 称'源料中未找到'为两 AI 共享幻觉,point_id 机器闸凌驾 LLM 共识",
+      "verified_flag": true
+    }
   },
   {
     "issue": "ca:1A437000_010_0013 锚点不支持‘论证主要内容三项’（完整可行/计算书/现场实际），教材锚与所挂内容不匹配。",
     "location": "§3 场景4, §4 S5, §5 R5#10、R6#8",
-    "flagged_by": ["gpt-5.5-codex"],
+    "flagged_by": [
+      "gpt-5.5-codex"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "选择题真题锚可保留🟢，ca 教材锚降🔴或换成正确 quote。"
@@ -34,7 +64,9 @@
   {
     "issue": "‘审核→审查→论证，顺序不可颠倒’表述过强，quote 仅支持论证前需审核+审查，未单独证明审核先于审查是不可颠倒的顺序。",
     "location": "§2, §3, §4 规则组E, §5 R5#8",
-    "flagged_by": ["gpt-5.5-codex"],
+    "flagged_by": [
+      "gpt-5.5-codex"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "‘论证前审核+审查’保持🟢；‘审核先于审查不可颠倒/最后一道关’降为🔵，待更明确规范 quote。"
@@ -42,7 +74,9 @@
   {
     "issue": "R7 标题误将‘需单独编制专项方案清单’写为‘需论证工程清单’，概念混淆。",
     "location": "§5 R7 标题行",
-    "flagged_by": ["gpt-5.5-codex"],
+    "flagged_by": [
+      "gpt-5.5-codex"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "将标题改为‘需单独编制专项方案清单补全’；若保留‘需论证’则必须带超规模参数。"
@@ -50,7 +84,9 @@
   {
     "issue": "§6 M5 的 E06 挂码条件过宽，‘现场擅自改/无需重新论证’核心是规范适用错误（E10），只有‘先改后审/先执行后论证’才是顺序错误。",
     "location": "§6 M5",
-    "flagged_by": ["gpt-5.5-codex"],
+    "flagged_by": [
+      "gpt-5.5-codex"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "保留 E10，E06 降为🔵条件码。"
@@ -58,7 +94,9 @@
   {
     "issue": "§6 M7 对客观题（MCQ）只挂 E05 审题错误，不贴合；多选误把‘经济性/分包资质’当论证内容，更接近多选错选（M07）、选项陷阱（M04）或概念混淆（M03）。",
     "location": "§6 M7",
-    "flagged_by": ["gpt-5.5-codex"],
+    "flagged_by": [
+      "gpt-5.5-codex"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "客观题场景改用 M07/M04/M03 等题型码，E05 降为🔵；主观题场景可保留 E05。"
@@ -66,7 +104,9 @@
   {
     "issue": "§6 M8 的‘口号不得分’锚不充分，现有 kc quote 仅支持六项现场管理内容，不支持‘必须落到阈值+主体+程序+数字，否则不得分’的表达型评分边界。",
     "location": "§6 M8",
-    "flagged_by": ["gpt-5.5-codex"],
+    "flagged_by": [
+      "gpt-5.5-codex"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "E04 语义成立，但教材锚降🔵；应补充表达类评分 artifact 或相关注册项。"
@@ -74,7 +114,9 @@
   {
     "issue": "§6 M1 误区映射使用了 M08 和 E07，但‘混档’核心是概念混淆（E07），M08 通常用于数字混淆，应移除。",
     "location": "§6 M1",
-    "flagged_by": ["qwen-max"],
+    "flagged_by": [
+      "qwen-max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "保留 E07，移除 M08。"
@@ -82,7 +124,9 @@
   {
     "issue": "§6 M4 误区映射使用了 M08 和 E10，但‘专家组人数与回避要求’核心是规范适用错误（E10），应移除 M08。",
     "location": "§6 M4",
-    "flagged_by": ["qwen-max"],
+    "flagged_by": [
+      "qwen-max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "保留 E10，移除 M08。"
