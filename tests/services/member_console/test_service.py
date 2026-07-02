@@ -214,13 +214,13 @@ async def test_login_with_wechat_code_promotes_phone_backed_member_to_canonical_
                 **service._build_default_member("wx_O4aNJg7O_wRk"),
                 "user_id": "wx_O4aNJg7O_wRk",
                 "phone": "34277511499",
-                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             }
         ]
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
-            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             "unionid": "unionid_live_user",
             "session_key": "session_key_value",
         }
@@ -262,7 +262,7 @@ async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical
 
         @staticmethod
         def resolve_alias(*, alias_type: str, alias_value: str):
-            if alias_type == "wx_openid" and alias_value == "oTHl5610QTUB2maCO4aNJg7O-wRk":
+            if alias_type == "wx_openid" and alias_value == "oTHl5610QTUB2maCO4aNJg7O-wRk":  # pragma: allowlist secret
                 return {"user_id": canonical_uid}
             return None
 
@@ -272,13 +272,13 @@ async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical
                 **service._build_default_member("wx_O4aNJg7O_wRk"),
                 "user_id": "wx_O4aNJg7O_wRk",
                 "phone": "34277511499",
-                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             }
         ]
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
-            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             "unionid": "",
             "session_key": "session_key_value",
         }
@@ -301,7 +301,7 @@ async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical
     assert wallet_service.calls[0]["user_id"] == canonical_uid
     assert canonical_snapshot["display_name"] != "wx_O4aNJg7O_wRk"
     assert canonical_snapshot["display_name"].startswith("微信用户")
-    assert canonical_snapshot["wx_openid"] == "oTHl5610QTUB2maCO4aNJg7O-wRk"
+    assert canonical_snapshot["wx_openid"] == "oTHl5610QTUB2maCO4aNJg7O-wRk"  # pragma: allowlist secret
     assert legacy_snapshot["external_auth_user_id"] == canonical_uid
 
 
@@ -1108,7 +1108,7 @@ def test_login_with_password_does_not_fail_when_wallet_bootstrap_is_unavailable(
     users_file = tmp_path / "users.json"
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     username = "wallet_quota_user"
-    password = "SyntheticPass123"
+    password = "SyntheticPass123"  # pragma: allowlist secret
     password_hash = bcrypt.hashpw(
         hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8"),
         bcrypt.gensalt(),
@@ -1164,7 +1164,7 @@ def test_internal_qa_billing_bypass_skips_wallet_bootstrap(
     users_file = tmp_path / "users.json"
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     username = "qa_wallet_bypass_user"
-    password = "SyntheticPass123"
+    password = "SyntheticPass123"  # pragma: allowlist secret
     password_hash = bcrypt.hashpw(
         hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8"),
         bcrypt.gensalt(),
@@ -6546,3 +6546,53 @@ async def test_bind_phone_wechat_persists_wechat_openid_identity(
     p = wechat_persisted[0]
     assert p["openid"] == "oid_test_openid_1", "应传入该 member 的 wx_openid"
     assert p["unionid"] == "uid_test_unionid_1", "应传入该 member 的 wx_unionid"
+
+
+def test_list_internal_test_user_ids_uses_test_member_classifier(tmp_path: Path) -> None:
+    """QA allowlist 导出：唯一权威=既有 _looks_like_test_member，含 alias/external 键位。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_members(data):
+        data["members"] = [
+            {
+                "user_id": "11111111-1111-1111-1111-111111111111",
+                "auth_username": "qa_spike_probe",
+                "display_name": "QA probe",
+                "external_auth_user_id": "22222222-2222-2222-2222-222222222222",
+                "alias_user_ids": ["33333333-3333-3333-3333-333333333333"],
+            },
+            {
+                "user_id": "44444444-4444-4444-4444-444444444444",
+                "auth_username": "realstudent01",
+                "display_name": "真实学员",
+                "phone": "13712345678",
+            },
+        ]
+
+    service._mutate(_seed_members)
+    ids = service.list_internal_test_user_ids()
+    assert "11111111-1111-1111-1111-111111111111" in ids
+    assert "22222222-2222-2222-2222-222222222222" in ids
+    assert "33333333-3333-3333-3333-333333333333" in ids
+    assert "44444444-4444-4444-4444-444444444444" not in ids
+
+
+def test_spike_d1_report_excludes_allowlisted_users() -> None:
+    """D1 度量脚本：allowlist 用户不入 cohort；乙案 cohort 门槛生效。"""
+    import datetime as _dt
+
+    from scripts.report_luban_spike_d1 import compute_d1
+
+    days = {
+        "user:aaaa": {"2026-06-01", "2026-06-02"},
+        "user:bbbb": {"2026-06-01"},
+        "user:qa-uuid": {"2026-06-01", "2026-06-02"},
+    }
+    report = compute_d1(days, {"qa-uuid"}, today=_dt.date(2026, 7, 2))
+    assert report["cohort"] == 2
+    assert report["retained"] == 1
+    assert report["excluded_internal_accounts"] == 1
+    assert report["d1"] == 0.5
+    assert report["cohort_gate_met"] is False
+    assert "未达读数条件" in report["verdict"]
