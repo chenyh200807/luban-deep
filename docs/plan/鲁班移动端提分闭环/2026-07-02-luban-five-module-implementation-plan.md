@@ -88,7 +88,11 @@
 - [ ] Step 4: 订阅消息管理入口（授权主入口仍在交接时刻，此处只是查看/说明页）
 - [ ] Step 5: 验证：契约+guard 全绿（碰 member_console 必查 contracts/index.yaml domain test）；commit
 
-## T6 错因 10 类中文标签映射（PENDING_OWNER 后合入）
+## T6 错因标签（✅ owner 2026-07-02 拍板方案 A：registry 名直展，10 类作废）
+
+裁决记录：设计摘要的 10 类与 `ERROR_CODE_REGISTRY` 对不齐（3 类无贴切码、5 码无归属），owner 拍板直接用 registry 自带中文名展示——零映射零第二分类。落地=前端只读镜像 `utils/error-code-labels.js`（`labelFor(code)`，未知码 fail-closed 显示原码）+ CI 同步闸 `test_error_code_labels_mirror.py`（逐码一致，漂移即红）。T2/T4 的错因展示统一走 `labelFor`。
+
+### ~~原 T6（已作废）~~
 
 **Files:** Create `yousenwebview/packageDeeptutor/utils/error-code-labels.js`（唯一映射表，前端只读）。
 
