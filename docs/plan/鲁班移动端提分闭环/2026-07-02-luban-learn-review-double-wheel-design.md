@@ -27,7 +27,9 @@ DeepSeek + GLM 5.2 双异源以同套六路攻击指令对抗本稿，各判 4/1
 
 **驳回 3 项**（附证据）：①"砍 SR 引擎改纯错因触发式"——主动回忆的间隔练习（testing effect）对复杂技能同样成立；纯触发式只治已错、不防遗忘；exam-date 地平线正是对"非终身学习"的适配。②"『我会了』直接提升 mastery 置信度并喂高权重 evidence"——违反 M0 reality-lock（假掌握病根）；正确形态 = 既有 `user_dispute`→复测挑战（见 D17，后端已实现）。③"小程序分包 2MB 判动画卡死刑"——部分事实错：动画卡走 web-view 远端 H5 不受分包限制；真约束是弱网加载耗时（D6 已升 P0 预研）。
 
-红队打回不改变本稿 Proposed 状态（其证伪对象多为阶段 1 待验证假设），采信项已全部收编，**本稿以修正后形态进入阶段 1 准备**。Codex（GPT 系）补充对抗另行执行。
+红队打回不改变本稿 Proposed 状态（其证伪对象多为阶段 1 待验证假设），采信项已全部收编。
+
+**Codex（GPT 系）第三轮对抗（2026-07-02，有仓库访问权，判 4/10 打回）——主控裁决**：其核心指控成立并已折入：①**"弹药已编译好只差接线"是过度声称**——抽样 S07/F16 实为 `candidate_teaching_prototype + coarse_review`，成品目录**无任何机器可读 `published` 字段**，本稿投影门若现在运行会 fail-closed 拦下全部包（门正确、叙事过度），§7 已降级为"候选供给盘点"+阶段 1 新增 Pack manifest 与签发工作流；②`mistake_book.py:386` 锚点已过期（该缺陷本日 commit `82770dbca` 已修复，§10-① 已改标 ✅）；③C1 写侧白名单是未做加固项而非现状（现状=memory_kind 隔离+synthesis 读侧过滤），已改写；④微信订阅消息链路（模板申请/审核/tmplIds/发送/降级）全仓 0 实现、静态样张页是无 auth/evidence 的 internal 原型——均已补入阶段 1 血径；⑤"考频加权"在考频 authority 建成前是话术，已改为纯 miss_count 排序。**我的 3 项驳回被 Codex 复核全部维持。** Codex 定性："不是产品方向被证伪"——三家异源均未击杀双轮/投影不生成/authority 模型；击杀的是"阶段 1 只需接线"的虚假闭环叙事。**本稿以 v3.2 诚实化形态进入阶段 1 准备。**
 
 ## 1. 一句话定位与总律
 
@@ -51,6 +53,8 @@ DeepSeek + GLM 5.2 双异源以同套六路攻击指令对抗本稿，各判 4/1
 
 ## 3. 所有权与结构闸（authority 边界，每条带 file:line）
 
+**概念地位声明（Codex 对抗采信，防概念漂移）**：「学习 / 复习 / 站 / 考点卡 / 错因银行 / 路线 / 下一站」均为 **UI 呈现标签**，不是新 schema、不是新 authority——每个标签的唯一读写路径就是下表对应的既有权威；任何把这些标签固化为 schema 对象的动作，必须先走 register-before-use。
+
 **所有权表**（双轮只引用、绝不拥有）：
 
 | 事实 | 唯一权威 | 双轮的合法动作 |
@@ -64,7 +68,7 @@ DeepSeek + GLM 5.2 双异源以同套六路攻击指令对抗本稿，各判 4/1
 | 卡的呈现态（bookmark/归档/助记） | 用户（合法拥有——总律授予"呈现"） | 读写呈现字段，绝不反馈进 mastery |
 
 **结构闸（v1 的 C1–C5 落地态）**：
-- **C1（EVIDENCE 回灌）— 已结构闭合，加固防漂移**：主控核实 `record_notebook_writeback` 写 `memory_kind=notebook_*`（`service.py:1431`），而 evidence 消费侧只吃 `memory_kind=="learning_evidence"`（`learning_synthesis.py:345`）+ 写侧 `mastery_effect` 硬钉 `"none"`（`notebook_card/service.py:44` "永久固定，忽略调用方"）。**加固项**：在 sink `append_memory_event` 增加 `source_feature` 白名单准入（选 `source_feature` 而非 payload 内键——它是调用方结构化传参，离 LLM 可污染的 payload 最远），非白名单来源 raise 不落盘；非判分来源一律由 sink 覆写 `claim_promotion_allowed=False`。
+- **C1（EVIDENCE 回灌）— 当前闭合机制 = memory_kind 隔离 + 读侧过滤（Codex 复核后如实改写）**：主控核实 `record_notebook_writeback` 写 `memory_kind=notebook_*`（`service.py:1431`），evidence 消费侧只吃 `memory_kind=="learning_evidence"`（`learning_synthesis.py:345`）+ 写侧 `mastery_effect` 硬钉 `"none"`（`notebook_card/service.py:44`）。**诚实边界**：sink `append_memory_event` 当前**没有**写侧白名单、不 raise（Codex 核实）——真正的 promotion 裁决在读侧 gate（`_is_improvement` + canonical policy）。**加固项（阶段 2 工程，非现状）**：sink 增加 `source_feature` 白名单准入（白名单须收录既有合法源，含 `learner_signal`——`learner_signal.py:57-63` 亦写 learning_evidence），非白名单 raise；非判分来源由 sink 覆写 `claim_promotion_allowed=False`。
 - **C2（必背红标定权威）**：个人维度 = `scoring_point_map` 的 `miss_count`（`scoring_point_map_read_model.py:127-158`，现成、零新建）；全局考频**无数据源**（`exam_weight` 硬编码 1.0，`:290`）——MVP 红标只用 miss_count，考频延后且若建必须锚真题 source_refs 计数并登记 schema，禁 AI 判"必背"。
 - **C3（错因轴）**：canonical `mistake_tag` **不存在**，错因轴 = `ERROR_CODE_REGISTRY`；现有 `MistakeBookService` 自由 `tags`/`error_label` 与 registry 双轨的收敛，作为缺陷修复一并裁决（§10-①）。
 - **C4（调度双权威）**：真实缺陷，见 §10-①。修复后本稿的到期/掌握全部读 `revalidation_queue` 投影。
@@ -91,7 +95,7 @@ DeepSeek + GLM 5.2 双异源以同套六路攻击指令对抗本稿，各判 4/1
 **形态裁决（已拍板）**：不是货架（microlesson plan 明令禁止，且货架把"不知道先学哪块"的决策负担丢回用户），不是纯今日流（单薄、冲刺期无出口）——是**路线**：同一份数据渲染两个视图，顶部=下一站（今日流），下滑=地图（可跳站）。
 
 ### 5.1 地图
-- 按章节分**路段**，母题为**站点**；默认顺序 = 60-slot registry 的 priority（考频优先），**每晚按学情重排段内顺序**（付费反馈"动态重算"的兑现；重排是确定性规则：薄弱分 × 考频权重，非 AI）。
+- 按章节分**路段**，母题为**站点**；默认顺序 = 60-slot registry 的 priority（考频优先），**每晚按学情重排段内顺序**（付费反馈"动态重算"的兑现；重排是确定性规则，非 AI。**诚实措辞**：全局考频 authority 未建成前（`exam_weight` 现硬编码 1.0，见 §10-⑤），重排 = 纯 miss_count 薄弱分 + registry 静态 priority，**不对外承诺"考频加权"**——Codex 采信）。
 - 站点四态：已点亮（可回看）/ 下一站（高亮）/ **锁定露脸**（标题 + "为什么这站对你重要"可见，内容要会员）/ 即将开通（未编译 slot，诚实标注，不装全）。
 - **可跳站，不设前置依赖锁**：冲刺用户直接点任意已解锁站开学；跳站产生的证据照常喂学情、路线照常重排。
 - **摸底 = 可选加速器**（已拍板）：day-0 第一动作永远是"看一张动画卡"；首站写成分本身就是第一份摸底；显式摸底以"让路线更准"入口后置提供，语气按文案铁律（帮你排准路线，不是考你）。
@@ -108,7 +112,7 @@ DeepSeek + GLM 5.2 双异源以同套六路攻击指令对抗本稿，各判 4/1
 
 ### 6.1 引擎（纯算法，无 AI；`revalidation_queue`/`mastery_estimator` 的进化，不是新调度器）
 - **稳定度驱动**：答对间隔增、答错（lapse）稳定度重置重新变密；**"closed/已掌握"不是终态，是休眠、lapse 可重开**（复考者"背了又忘"的病根解法）。
-- **考试日期地平线**：`exam_date` 为调度硬边界参数——距考 120 天按长期留存排；考前 40 天起确定性压缩间隔、按 `分值(exam_weight) × 掌握缺口` 重排；**考前一周结构上不可能出现"21 天后复习"**；考后队列语义切换（滚动科目/明年）。
+- **考试日期地平线**：`exam_date` 为调度硬边界参数——距考 120 天按长期留存排；考前 40 天起确定性压缩间隔、按 `掌握缺口`（考频 authority 建成后再乘 `exam_weight`，现值恒 1.0——见 §10-⑤）重排；**考前一周结构上不可能出现"21 天后复习"**；考后队列语义切换（滚动科目/明年）。
 - **间隔上限**：早期 cap ≤14 天（FSRS 实战：47 天间隔让用户觉得"App 把我忘了"）。
 - **新学/复习分相**：刚学的走短间隔学习相（当天→次日→3 天），巩固后进复习相——**两相不混一个队列**（驾考平台第一大 bug）。
 - **冷启动**：新用户用人群种子参数，随个人复习历史逐步收敛（~50 次），不从零猜。
@@ -129,7 +133,9 @@ DeepSeek + GLM 5.2 双异源以同套六路攻击指令对抗本稿，各判 4/1
 ### 6.4 错因银行（带解药）
 判分产出纯投影入库：错因码（`error_events[].error_code`）+ 采分点 + **原题背景切片**（GLM 硬伤：脱离原题背景的错因标签无意义）+ **R8 解药**（错一次得到的不是红叉是处方——Pack 白送的独家层）。同采分点错 ≥2 次自动聚焦。低置信/OCR 不确定的判分**不入库**（复用 PRD 复核机制，防脏错因污染复习，§9-D14）。
 
-## 7. Pack → 双轮投影映射表（含投影门）
+## 7. Pack → 双轮投影映射表（**候选供给盘点**，非投产就绪清单）
+
+> ⚠️ **资产真实状态（Codex 对抗核实，2026-07-02）**：抽样 S07/F16 标注 `candidate_teaching_prototype + coarse_review`，成品目录**无任何机器可读 `published` 字段**，部分 Pack 仍有 R7 红项与 source/jury 缺口。下表描述的是**结构对应关系**（每层的形状与归宿），不是"可直接投产"——按本节投影门，当前**零个 Pack 可通过**（fail-closed 正常工作）。阶段 1 前置：建**机器可读 Pack manifest**（`pack_id/status/published/default_entry_allowed/jury_clean/content_sha256/source_refs`）+ 对 spike 选用的 3-5 包走完签发裁决工作流，投影只认 manifest 绿灯。
 
 | Pack 已编译层 | 喂给 | 状态 |
 |---|---|---|
@@ -181,7 +187,7 @@ DeepSeek + GLM 5.2 双异源以同套六路攻击指令对抗本稿，各判 4/1
 
 ## 10. 真实缺陷上报（独立于本稿，按优先级修复；本稿多处依赖 ① 的修复）
 
-1. 🔴 **`mistake_book` 调度/掌握双权威**：`record_review` 硬编码 `review_due_at = now+3d`（`services/learner_state/mistake_book.py:386`）+ `mark_mastered` 手动直写 `mastered_at`（`:368`）——与 `revalidation_queue` 撞车，违反 single authority + PRD M0 reality-lock（按钮直达掌握态）。**修法=收权非加闸**：删 +3d 硬编码，`record_review` 改为写呈现时间戳 + 发非 promoting light-signal 由 queue 重算；`mark_mastered` 降级为呈现隐藏（或删除、复用 `archived_at`）；`bookmark/archived` 呈现态保留合法。同时裁决自由 `tags`/`error_label` 与 registry 的双轨（C3）。live+protected：需登记 domain test。**先修它，双轮的调度地基才成立。**
+1. ✅ **`mistake_book` 调度双权威——已修复（2026-07-02，commit `82770dbca`）**：`record_review` 的 `now+3d` 硬编码已删、改为显式清空 `review_due_at`（存量假日期随下次复习清除），docstring 钉死调度真值归 `revalidation_queue`；`mark_mastered` docstring 钉死为呈现层旗标；新增域测试（不捏造+清存量、静态守卫禁触学情真值写入口），146 passed + 前端 view-model 零改动优雅降级 + contract guard 全绿。**残余待办**：前端"标记掌握"等语义谎报 copy 的收口（阶段 2 UX）；自由 `tags`/`error_label` 与 registry 双轨裁决（C3）；前端是否误读 `mastered_at` 的审计（Codex 提示）。
 2. 🔴 **线上 tabBar 聊天打头**（`custom-tab-bar/index.js:17`）：PRD 点名的头号留存反模式，§4 的 5-tab 即修复方案，作为独立迁移工程排期。
 3. 🟠 **`NotebookCardService.update_card` 编辑后 `source_ref` 原样保留**：编辑过的卡继续冒充可溯源（无 sha 重算/无 detach）——按 §8 的 fork-to-manual_note 方案修，sourced 卡 immutable。
 4. 🟡 **错因分辨率**：内核 12 个 E 码实际只塌缩到 E02/E07 两个（`rubric_grader_v1.py:574-581`）——错因银行照实投影则用户只见两类。是否够用交真人验证，**禁止用 AI 补分辨率**（补的都是编的）。
@@ -200,7 +206,8 @@ DeepSeek + GLM 5.2 双异源以同套六路攻击指令对抗本稿，各判 4/1
 
 **阶段 0（文档对齐 + 缺陷修复启动）**：① 本稿挂 INDEX，v2 稿废止；② microlesson plan §5 第 83 行「AI 摘要草稿」→「复习单元（签发投影考点卡）」+ PRD v1.3 模块结构对齐（PRD owner 已拍板方向，改动仍走 PRD 修订流程）；③ **启动 §10-① mistake_book 收权修复**（小手术、独立于产品排期、含 domain test）。
 **阶段 1（最小双轮 spike = 留存实验本体）**：3-5 个已签发母题（建议含安全事故卡样张）× 完整双轮（下一站→讲懂→档位①②练→交接时刻→次日变体复测→错因银行），静态 HTML 样张过人眼核 → 真实一建在职考生小样本，度量 D1/D7 + D15 埋点全量。**通过判据预登记**（防事后挪门柱）：次日回访率、变体复测完成率、订阅授权率——具体阈值在 spike 启动前与 owner 锁定。
-**阶段 1 前置 P0 技术预研（红队点名的两颗工程地雷，实测不过则 spike 范围收缩）**：① 动画卡分发——压缩目标 1-2MB（Lottie / MP4 / 原生组件 vs 自解包 HTML 对比），核心度量 = 模拟弱网（~100kb/s）下的加载耗时；走 web-view 远端 H5 不受分包限制，真约束是网络。② 变体产能实测——单母题需几个变体撑 1 个月复测、教研产一个合格变体的平均耗时、变体过判分内核一致性自动检查门；产能不足的降级预案 = 降低变体复测频率或低频考点仅普通复习。
+**阶段 1 前置 P0 技术预研（红队点名的两颗工程地雷，实测不过则 spike 范围收缩）**：① 动画卡分发——压缩目标 1-2MB（Lottie / MP4 / 原生组件 vs 自解包 HTML 对比），核心度量 = 模拟弱网（~100kb/s）下的加载耗时；走 web-view 远端 H5 不受分包限制，真约束是网络。② 变体产能实测——单母题需几个变体撑 1 个月复测、教研产一个合格变体的平均耗时、变体过判分内核一致性自动检查门；产能不足的降级预案 = 降低变体复测频率或低频考点仅普通复习。③ **Pack manifest + spike 包签发**（Codex 采信）——建机器可读 manifest，spike 选用的 3-5 包走完签发裁决（当前全部是 candidate/coarse_review，投影门一个都放不过）。④ **微信订阅消息链路从零建**（Codex 核实全仓 0 实现）——模板类目申请与审核、`tmplIds` 配置、客户端授权、服务端发送、拒绝/过期降级；审核周期有外部不确定性，D12 的"明天见"推送在链路建成前降级为 App 内红点。⑤ **runtime 渲染 adapter**（Codex 核实现有 `diagramWebviewTest` 是无 auth/evidence 的 internal 原型）——lesson/card viewmodel、业务域名/CDN、auth + progress + evidence 写入、真机 true-entry 验证。
+**阶段 1 复习调度边界（Codex 采信，防引擎范围蔓延）**：spike 直接用 `revalidation_queue` v0 现状——其"首跳到期"天然支持次日复测，日容量 1 对 3-5 包 spike 够用；**完整引擎（多跳阶梯/exam-date/容量参数/分相）是阶段 2 工程**，spike 不评估完整 SR、只验证"次日换皮复测"这一跳的留存效果。
 **阶段 2（gated on 阶段 1 数据）**：tabBar 迁移、引擎完整版（exam-date 地平线/分相/堆积降级）、40 站量产接线、会员深度层（档位③半写全量）。
 **阶段 3**：schema 登记、交互稿、执行计划另立（本稿是契约不是执行文档）。
 
