@@ -1,0 +1,164 @@
+{
+  "schema_version": "luban_workflow_review_packet.v0",
+  "card_id": "P40_G01",
+  "generated_at": "2026-06-22T15:30:23.747Z",
+  "official_score_allowed": false,
+  "grading_authority": false,
+  "learner_state_write_allowed": false,
+  "verdict": "PASS",
+  "machine_gates": [
+    {
+      "name": "source_workflow",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "aliyun_print",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "animation_ir_contract",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "practice_interactions",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "remotion_tsc",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "practice_real_click",
+      "status": "PASS",
+      "warn": 0
+    }
+  ],
+  "ir_summary": {
+    "path": "P40_G01.animation_ir.v0.json",
+    "exists": true,
+    "bytes": 48750,
+    "sha256": "ef4a3b8ff6d06bb1f37b0f5491d4e4ac669947de6d56d5d493c8cf206ceb2c02",
+    "schema_version": "luban_animation_ir.v0",
+    "quality_status": "workflow_candidate",
+    "student_ready": false,
+    "visual_excellence_profile": {
+      "reference_style": "dark_blue_engineering_threshold_blueprint",
+      "must_show_count": 6,
+      "motion_standards_count": 5,
+      "layout_guards_count": 5,
+      "release_bar": "workflow_candidate only; finished copy requires source workflow, Aliyun print, IR contract, preview collision gate, practice interaction gate, 390px screenshot inspection, and real-click smoke."
+    },
+    "visual_archetype_decision_present": true,
+    "domain_visual_plan_count": 6,
+    "practice_blueprint_present": true,
+    "scene_count": 8,
+    "visual_node_count": 9,
+    "animated_node_count": 7,
+    "action_count": 41,
+    "action_kind_counts": {
+      "reveal": 9,
+      "primitive_step": 16,
+      "highlight": 8,
+      "camera": 8
+    },
+    "semantic_action_count": 16,
+    "primitive_step_count": 16,
+    "primitive_step_kind_counts": {
+      "reveal_object": 3,
+      "trace_path": 5,
+      "branch_eliminate": 2,
+      "move_object": 3,
+      "write_answer_atom": 1,
+      "scan_row": 2
+    },
+    "repeated_action_patterns": [],
+    "blocking_failures": []
+  },
+  "screenshots": [
+    {
+      "viewport": "390_preview",
+      "path": "P40_G01.preview.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 302065,
+      "sha256": "dbaf6cea2d26b2555d747b1a37e532a117f4b2a12281bc20fba1a0aa0e45c867"
+    },
+    {
+      "viewport": "390_score",
+      "path": "P40_G01.score.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 333232,
+      "sha256": "614793a513c39c9d7253a98cdcf870c9ae3fc4d6311f86be2576942eb45030dc"
+    },
+    {
+      "viewport": "390_practice",
+      "path": "P40_G01.practice.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 256935,
+      "sha256": "18561c62a9a1136d10f28a01ef83967759d9afe3d4e3b37a0991f62b157e1e9b"
+    },
+    {
+      "viewport": "390_practice_result",
+      "path": "P40_G01.practice.result.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 737865,
+      "sha256": "3ff52beffaf846e635c0c451b043dbfa05f16964513dbccadf47595f59271e38"
+    }
+  ],
+  "judge": {
+    "verdict": "PASS",
+    "issues": [
+      {
+        "axis": "layout",
+        "anti_pattern": "text_object_overlap",
+        "beat_or_question": "hook/score",
+        "severity": "high",
+        "fix_layer": "IR+renderer",
+        "fix": "扩大蓝图视野并隐藏非必要图内标签"
+      }
+    ]
+  },
+  "root_cause_triage": [
+    {
+      "symptom": "图内文字被对象/箭头压住",
+      "shared_failure_shape": "现场对象和标签共用同一小画布导致视觉拥挤",
+      "one_authority": "animation_ir.v0 visual_library + shared HTML/Remotion renderer",
+      "broken_contract": "domain objects must explain knowledge without text overlap",
+      "fix_layer": "IR+renderer+gate",
+      "new_gate_or_antipattern": "blueprint 420x300 viewBox plus sparse label mode"
+    }
+  ],
+  "revision_scope": {
+    "allowed": [
+      "animation_ir.v0表现字段",
+      "renderer primitive",
+      "gate",
+      "skill anti-pattern",
+      "learning-stage shell"
+    ],
+    "forbidden": [
+      "改母题事实",
+      "改采分点",
+      "改答案",
+      "只调单卡 CSS 后宣布治本"
+    ]
+  },
+  "blocking_failures": []
+}

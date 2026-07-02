@@ -597,6 +597,7 @@ def test_production_disables_legacy_router_mounts_by_default(
     assert "/api/v1/chat" not in paths
     assert "/api/v1/question/mimic" not in paths
     assert "/api/v1/dashboard/recent" not in paths
+    assert "/api/v1/notebook/add_record" in paths
     assert "/api/v1/notebook/list" not in paths
     assert "/api/v1/plugins/list" not in paths
     assert "/api/v1/tutorbot" not in paths

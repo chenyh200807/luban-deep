@@ -656,6 +656,7 @@ from deeptutor.api.routers import (
     memory,
     mobile,
     notebook,
+    notebook_card_entry,
     observability,
     photo_answer,
     plugins_api,
@@ -683,6 +684,11 @@ if _legacy_routers_enabled():
 else:
     logger.info(
         "Legacy routers disabled; production contract remains on /api/v1/ws and authenticated REST APIs"
+    )
+    app.include_router(
+        notebook_card_entry.router,
+        prefix="/api/v1/notebook",
+        tags=["notebook"],
     )
 app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledge"])
 app.include_router(invite_test.router, prefix="/api/v1/invite-test", tags=["invite-test"])

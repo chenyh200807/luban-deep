@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib
 from types import SimpleNamespace
 
 import pytest
@@ -38,6 +39,72 @@ def test_card_type_routes_to_card_service_not_legacy(monkeypatch):
     out = asyncio.run(nb_router.add_record(_request("scoring_card"), current_user=SimpleNamespace(user_id="u1")))
     assert out["note_id"] == "note_abc"
     assert calls["card"] == 1 and calls["legacy"] == 0   # 分流：card 路径，legacy 不动
+
+
+@pytest.mark.unit
+def test_stable_card_entry_routes_to_card_service(monkeypatch):
+    entry = importlib.import_module("deeptutor.api.routers.notebook_card_entry")
+    calls = []
+
+    class _CardSvc:
+        async def save_card(self, **kwargs):
+            calls.append(kwargs)
+            return {"note_id": "note_stable", "mastery_effect": "none"}
+
+    monkeypatch.setattr(entry, "get_notebook_card_service", lambda: _CardSvc())
+
+    out = asyncio.run(
+        entry.add_record(
+            entry.AddRecordRequest(
+                notebook_ids=[],
+                record_type="chat",
+                title="答疑学习卡",
+                user_query="保存答疑学习卡",
+                output="",
+                metadata={"card_type": "review_note"},
+            ),
+            current_user=SimpleNamespace(user_id="u1"),
+        )
+    )
+
+    assert out["note_id"] == "note_stable"
+    assert calls == [
+        {
+            "user_id": "u1",
+            "subject_id": "",
+            "source_bot_id": "",
+            "card_type": "review_note",
+            "source_type": "manual",
+            "source_ref": {},
+            "evidence_event_ids": [],
+            "title": "答疑学习卡",
+            "raw_user_content": "保存答疑学习卡",
+            "ai_enhanced_content": {},
+        }
+    ]
+
+
+@pytest.mark.unit
+def test_stable_card_entry_rejects_non_card_request():
+    entry = importlib.import_module("deeptutor.api.routers.notebook_card_entry")
+
+    with pytest.raises(entry.HTTPException) as exc:
+        asyncio.run(
+            entry.add_record(
+                entry.AddRecordRequest(
+                    notebook_ids=["nb_1"],
+                    record_type="chat",
+                    title="普通笔记",
+                    user_query="记一下",
+                    output="",
+                    metadata={},
+                ),
+                current_user=SimpleNamespace(user_id="u1"),
+            )
+        )
+
+    assert exc.value.status_code == 422
+    assert exc.value.detail == "notebook_card_type_required"
 
 
 @pytest.mark.unit

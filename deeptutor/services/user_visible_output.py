@@ -156,6 +156,49 @@ def coerce_user_visible_answer(
     return source
 
 
+# content_truth ② 法规条文数值断言的确定性 hedge 守卫(2026-07-01):
+# 业务事实——终态答案把"具名规范/法规 + 具体条款或数值"当事实直出、却全程无 hedge
+# 免责时,必须补一句标准免责:法规具体值随规范修订/考试大纲变化,以现行官方规范为准,
+# 不得以绝对真相呈现。这是把 hedge 从"LLM 概率产出(~2/3,非确定)"降级为"确定性终态
+# 守卫兜底"。仅在终态全文一次性应用(见 turn_runtime 终态投影),绝不碰 token 级 delta。
+# 幂等:已带 hedge(含本 NOTICE 自身)不重复贴。内容级触发、capability 无关。
+_REG_SOURCE_CLAIM = re.compile(
+    r"(《[^》]{2,40}》|\b(?:GB|JGJ|JG|CJJ|CECS|DBJ|DB|TB|JTG)\b\s*/?\s*T?\s*\d)"
+)
+_REG_VALUE_CLAIM = re.compile(
+    r"(第\s*\d+\s*条|\d+\s*(?:年|个月|月|日|天|周|小时|米|mm|MPa|kN|kg|%|‰|级|度))"
+)
+# 既有 hedge 检测:命中即不追加(避免双重免责 + 保证幂等)。刻意保持"强显式 hedge"口径,
+# 宁可多贴一句也不漏贴——漏贴才是本次要修的失败方向。
+_EXISTING_HEDGE = re.compile(
+    r"(以(现行)?(教材|规范|标准|官方|大纲).{0,10}为准"
+    r"|请(以|参考).{0,24}(规范|标准|教材|大纲).{0,10}(为准|核对|核实)"
+    r"|AI\s*生成|不保证(100%|完全|绝对)?(准确|正确)|仅供参考"
+    r"|最终以.{0,14}为准|如有出入|具体(以|请以).{0,14}(规范|标准|文件|大纲))"
+)
+HEDGE_NOTICE = (
+    "\n\n> 📌 以上具体条文与数值依据常见教材/规范整理，"
+    "可能随规范修订或考试大纲更新而变化，请以现行有效的官方规范和最新考试大纲为准。"
+)
+
+
+def ensure_regulatory_hedge(text: str | None) -> str:
+    """终态答案含"具名规范/法规 + 具体条款/数值"断言却无 hedge 时,补标准免责。
+
+    幂等 + 内容级自限:仅当(具名规范源 且 具体条款/数值)同时命中、且全程无既有 hedge
+    时追加 HEDGE_NOTICE;HEDGE_NOTICE 自身命中 _EXISTING_HEDGE,重复调用不会二次追加。
+    只应在终态全文上调用(非 token delta)。
+    """
+    source = str(text or "")
+    if not source.strip():
+        return source
+    if not (_REG_SOURCE_CLAIM.search(source) and _REG_VALUE_CLAIM.search(source)):
+        return source
+    if _EXISTING_HEDGE.search(source):
+        return source
+    return source.rstrip() + HEDGE_NOTICE
+
+
 def redact_internal_output(value: Any) -> Any:
     if isinstance(value, str):
         return _REDACTED_PLACEHOLDER if looks_like_unsafe_visible_output(value) else value
@@ -170,6 +213,7 @@ def redact_internal_output(value: Any) -> Any:
 
 __all__ = [
     "coerce_user_visible_answer",
+    "ensure_regulatory_hedge",
     "looks_like_malformed_model_output",
     "looks_like_internal_output",
     "looks_like_unsafe_visible_output",

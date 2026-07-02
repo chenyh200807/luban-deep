@@ -96,6 +96,7 @@ from deeptutor.services.session.sqlite_store import (
 )
 from deeptutor.services.user_visible_output import (
     coerce_user_visible_answer,
+    ensure_regulatory_hedge,
     looks_like_unsafe_visible_output,
 )
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
@@ -562,8 +563,8 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
 
     response = _result_response_text(metadata)
     if response:
-        metadata["response"] = normalize_markdown_for_tutorbot(
-            coerce_user_visible_answer(response)
+        metadata["response"] = ensure_regulatory_hedge(
+            normalize_markdown_for_tutorbot(coerce_user_visible_answer(response))
         )
 
     nested = metadata.get("metadata")
@@ -571,8 +572,8 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
         nested_metadata = dict(nested)
         nested_response = _result_response_text(nested_metadata)
         if nested_response:
-            nested_metadata["response"] = normalize_markdown_for_tutorbot(
-                coerce_user_visible_answer(nested_response)
+            nested_metadata["response"] = ensure_regulatory_hedge(
+                normalize_markdown_for_tutorbot(coerce_user_visible_answer(nested_response))
             )
         metadata["metadata"] = nested_metadata
     return metadata
@@ -5994,8 +5995,10 @@ class TurnRuntimeManager:
                 elif "question_followup_context" in trace_metadata:
                     trace_metadata.pop("question_followup_context", None)
                 assistant_content = authoritative_assistant_content or assistant_content
-                assistant_content = normalize_markdown_for_tutorbot(
-                    coerce_user_visible_answer(assistant_content)
+                assistant_content = ensure_regulatory_hedge(
+                    normalize_markdown_for_tutorbot(
+                        coerce_user_visible_answer(assistant_content)
+                    )
                 )
                 execution.terminal_commit_started = True
                 await self._safe_store_call(

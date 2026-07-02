@@ -86,20 +86,6 @@
         </view>
       </view>
 
-      <view class="today-task-strip" wx:if="{{reportDetailView == 'home' && todayTasks.length}}">
-        <view class="today-task-controls">
-          <text class="today-task-control" catchtap="compressTodayTasks">今天时间少</text>
-          <text class="today-task-control" catchtap="rotateTodayTasks">换一组</text>
-        </view>
-        <view class="today-task-item" wx:for="{{todayTasks}}" wx:key="key" data-taskid="{{item.taskId || item.key}}" bindtap="startTodayTask">
-          <view>
-            <text class="today-task-title">{{item.title}}</text>
-            <text class="today-task-sub">{{item.subtitle || '来自你的学习卡片'}}</text>
-          </view>
-          <text class="today-task-action">{{item.action.label || '开始'}}</text>
-        </view>
-      </view>
-
       <view class="report-home-shell" wx:if="{{reportDetailView == 'home'}}">
         <view class="home-section-head">
           <view>
@@ -501,11 +487,6 @@
                   catchtap="toggleMistakeBookmark"
                 >收藏错题</text>
                 <text
-                  class="attempt-action note-card-action"
-                  data-key="{{item.key}}"
-                  catchtap="saveAttemptNotebookCard"
-                >保存学习卡</text>
-                <text
                   class="attempt-action note-card-action primary"
                   data-key="{{item.key}}"
                   catchtap="startAttemptProbe"
@@ -519,19 +500,6 @@
                 <text class="brain-edge-event" wx:if="{{item.eventLabel}}">{{item.eventLabel}}</text>
               </view>
             </block>
-          </view>
-
-          <view class="brain-column" wx:if="{{noteAssets.length}}">
-            <text class="brain-column-title">学习卡片</text>
-            <text class="brain-column-sub">收藏后只作为用户资产和低权重复习线索</text>
-            <view class="note-asset-row" wx:for="{{noteAssets}}" wx:key="key">
-              <view>
-                <text class="note-asset-title">{{item.title}}</text>
-                <text class="note-asset-summary">{{item.summary}}</text>
-                <text class="note-asset-source" wx:if="{{item.sourceLinked}}">{{item.sourceLabel || '已关联学习证据'}}</text>
-              </view>
-              <text class="note-asset-action" data-noteid="{{item.noteId}}" bindtap="startNoteAssetAction">{{item.action.label || '测一下'}}</text>
-            </view>
           </view>
 
           <view class="brain-column" wx:if="{{learningTrainingLoops.length || learningBrainChains.length}}">

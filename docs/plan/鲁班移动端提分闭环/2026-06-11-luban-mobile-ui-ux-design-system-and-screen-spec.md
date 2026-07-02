@@ -38,6 +38,8 @@ P0A 必须有以下屏幕规格或高保真 mock。
 
 P0A navigation rule: 不替换现有 4 TabBar。今日任务可以作为现有入口内的「今日焦点」、独立入口页或 feature-flagged 页面承载；5 Tab 信息架构只作为 P0B 目标。任何设计稿如果要求 P0A 同时替换全站底部导航，默认退回修改。
 
+> 关联专项（2026-07-01）：学习首屏的「考点小课」引流英雄位（免费 3 个 → 会员）规格见 [考点小课引流与会员转化专项计划](2026-07-01-luban-microlesson-acquisition-conversion-plan.md) §6（Proposed）。它复用本规格的设计方向与状态词汇，**不新增 Tab**，且每张卡必须拖着「练 → 诊断」进入留存闭环，不作为营销 hero 装饰卡。全产品文案禁「看穿」类审视语气（见该专项 §2）。
+
 ### 2.1 今日页
 
 First screen must answer:

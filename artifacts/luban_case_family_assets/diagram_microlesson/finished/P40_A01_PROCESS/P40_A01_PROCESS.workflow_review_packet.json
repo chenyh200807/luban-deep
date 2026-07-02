@@ -1,0 +1,107 @@
+{
+  "schema_version": "luban_workflow_review_packet.v0",
+  "card_id": "P40_A01_PROCESS",
+  "generated_at": "2026-06-22T12:16:34.467Z",
+  "official_score_allowed": false,
+  "grading_authority": false,
+  "learner_state_write_allowed": false,
+  "verdict": "PASS",
+  "machine_gates": [
+    {
+      "name": "validate_lesson_source_workflow",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "build_aliyun_lesson_narration_print",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "build_aliyun_lesson_narration",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_contract",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "render_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "render_animation_ir_practice",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_practice_interactions",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "cdp_practice_click_smoke",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "cdp_shot_preview_390",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "cdp_shot_practice_390",
+      "status": "PASS",
+      "warn": 0
+    }
+  ],
+  "screenshots": [
+    {
+      "viewport": "preview_390x844",
+      "path": "P40_A01_PROCESS.preview.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 262387,
+      "sha256": "5d13f5dfefd90068830da3e9c823d8bea1989503ee4d4d25053fd64406d1bbe5"
+    },
+    {
+      "viewport": "practice_390x844",
+      "path": "P40_A01_PROCESS.practice.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 236781,
+      "sha256": "4706e90d77f808f8891f8ae695d768ce5e1ac63eeb6d16750b3d4b486e57e0b1"
+    }
+  ],
+  "judge": {
+    "verdict": "PASS",
+    "issues": []
+  },
+  "root_cause_triage": [],
+  "revision_scope": {
+    "allowed": [
+      "animation_ir.v0表现字段",
+      "renderer primitive",
+      "gate",
+      "skill anti-pattern",
+      "learning-stage shell"
+    ],
+    "forbidden": [
+      "改母题事实",
+      "改采分点",
+      "改答案",
+      "只调单卡 CSS 后宣布治本"
+    ]
+  },
+  "blocking_failures": []
+}

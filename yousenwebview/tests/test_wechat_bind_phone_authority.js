@@ -224,6 +224,37 @@ function createSandbox(sourcePath, apiMock, extras) {
     }
   });
 
+  await run("privacy consent controls should stay readable on the dark login background", async function () {
+    var wxssPaths = [
+      "yousenwebview/packageDeeptutor/pages/login/login.wxss",
+      "wx_miniprogram/pages/login/login.wxss",
+    ];
+    for (var i = 0; i < wxssPaths.length; i++) {
+      var loginWxss = fs.readFileSync(path.join(repoRoot, wxssPaths[i]), "utf8");
+      assert(
+        loginWxss.indexOf(".privacy-checkbox") >= 0,
+        wxssPaths[i] + " should style the visible privacy checkbox",
+      );
+      assert(
+        loginWxss.indexOf(".privacy-checkbox.checked") >= 0,
+        wxssPaths[i] + " should style the checked privacy checkbox state",
+      );
+      assert(
+        loginWxss.indexOf(".privacy-checkmark") >= 0,
+        wxssPaths[i] + " should style the checkmark instead of inheriting default dark text",
+      );
+      assert(
+        loginWxss.indexOf(".privacy-copy") >= 0 &&
+          loginWxss.indexOf("rgba(226, 232, 240, 0.68)") >= 0,
+        wxssPaths[i] + " should render privacy copy in a readable light color",
+      );
+      assert(
+        loginWxss.indexOf(".privacy-link") >= 0 && loginWxss.indexOf("#8fc7ff") >= 0,
+        wxssPaths[i] + " should render the privacy guide link in a visible accent color",
+      );
+    }
+  });
+
   await run("plain wechat login/register handlers should not issue tokens", async function () {
     for (var i = 0; i < cases.length; i++) {
       var loginCalls = [];

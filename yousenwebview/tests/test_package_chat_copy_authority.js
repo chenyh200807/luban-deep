@@ -160,9 +160,9 @@ var chatWxml = fs.readFileSync(
   "utf8",
 );
 assert(
-  chatWxml.indexOf("onSaveNotebookCard") >= 0 &&
-    chatWxml.indexOf("存卡") >= 0,
-  "chat AI answer actions should expose the P0A save-card entry",
+  chatWxml.indexOf("onSaveNotebookCard") === -1 &&
+    chatWxml.indexOf("存卡") === -1,
+  "chat AI answer actions should hide the unfinished save-card entry",
 );
 assert(
   chatSource.indexOf("api.saveNotebookCard") >= 0 &&

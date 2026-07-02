@@ -90,10 +90,21 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   `question_lifecycle_scene` / action / marked reference。修法是让当前 full MCQ/case submission 在
   capability 前绑定对象 + learner answer + 显式 `标准答案|正确答案|参考答案` + terminal scene；
   不是新增第二 router，也不是让 LLM prompt 承诺"不要沿用上一题"。
-- **异源核（同源不能自证）**：根因判断 + "无编造/已修好"结论必须异源在环。
-  Codex 额度耗尽用 `deepseek-v4-pro`@api.deepseek.com（`DEEPSEEK_API_KEY`，OpenAI
-  兼容）：给中立证据 + 对立假设让它独立选，**别 prime**。异源也可能共享错前提，
-  只有 dump ground truth 能终审。多源时可加 `qwen-max-latest`@dashscope。
+- **铁律④：裁决阶梯（owner 钉死 2026-06-29，撞≥3次后沉淀）——判官 LLM 不能当主裁决。**
+  `①确定性断言 = 主裁决` → `②自己独立 review + 读真实持久化终态 = 主力对抗` →
+  `③异源 LLM（GLM-5.2@BIGMODEL 能力更强优先 / deepseek-v4-pro / qwen-max）= 仅附加盲点检测，绝不主裁`。
+  **判官 LLM 的 verdict 字段结构性不可信**（实证：倒诬 run2 写 `DAOWU` 但自身 reason 说"无倒诬 CLEAN" /
+  回指 run2 把 content-truth 答案分歧"石灰vs石膏"误标 `MISBIND` / 六跑 verdict 与自身 evidence 矛盾）。
+  所以**判分类/绑定类/泄露类 SEV 必须用确定性断言主裁**，判官只佐证——异源限流(GLM 429)/不可用也不污染结论：
+  · 倒诬 = `surface_stable`（重排后 o1==o2 原序则不可能倒诬）
+  · 回指 = `binding-check`（逐项分析是否锚定原题那4个选项，≥3/4 命中=绑定正确）
+  · 泄露 = 答案段确定性扫描（label `答案/正确选项/正确答案/解析` + 内联 `（正确答案X）` 变体）
+  · 拒判 = 判分标记扫描（终态含逐题 `对/错/正确答案` 且无 `还没作答/未提交`）
+  **必须把"绑定/判分"SEV 与"哪个答案对"content-truth 轴确定性分离**——别让判官的内容分歧污染 SEV 判定（回指 run2 实证）。
+- **异源核（盲点检测，附加非主裁）**：让异源在环 catch **我自己的盲点**（给中立证据 + 对立假设让它独立选，
+  **别 prime**），但它只标记可疑、不下 SEV 结论。异源也可能共享错前提；**内容真值终极靠教材仲裁**
+  （`authority-ladder-textbook-adjudicates-llm-panels`，讲义 *_v8 用 python alltext 非 grep），不靠任何 LLM verdict。
+  content-truth 对错搬异步评审 loop（不在 runtime/eval 当即时 SEV 判）。
 
 ## 3. 修复阶段（铁律）
 - **先收权再补逻辑**：找唯一 authority，其余 decider 降级只读；别加第 N+1 个
@@ -102,6 +113,15 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
   > prompt 约束（LLM 可能不遵守）。
 - **对新增层有罪推定**：新字段/router/classifier/wrapper/fallback 默认错，先证明
   没造第二套 authority、没把语义降级成正则。
+- **铁律⑤：泄露/SEV 类修复，动手前先红队复现确认 leak 真实可达 + 定位真实承载链路**
+  （2026-06-29 organic 泄露血泪）。别在 brief/诊断前提上直接开建——若真 leak 在另一条
+  链路，你建的修复就是 **green-on-unreachable-path 假绿**（单测直构造目标函数绕过真实
+  路由 / live≥3 测的是安全旁路，真路径根本不跑）。实证：organic 泄露我建了 detect()+渲染门
+  X+Y+#314 一大套，但 ① X+Y 的门依赖 `looks_like_practice_generation_request=True`，而
+  looks_like=True 一律路由去 deep_question → tutorbot 渲染门**永不跑=假绿**；② #314
+  fail-closed 默认把"把答案也给我"也压制=**反向回归**；③ 真 leak 在没碰的**"给我点提示"
+  提示轮**（"先别告诉答案"是瞬时偏好没跨轮共享，提示轮散讲泄底，红队 2/2 复现）。**只有
+  detect() 否定修复命中真实可达路径=load-bearing 该留。** 先红队复现 → 定位承载链路 → 再动手。
 - TDD：先写测试看 RED。改 contract-protected 文件必须**同 commit** 更新 registered
   domain test + contract surface（否则 contract_guard FAIL；注意 sensitive vs
   protected 是两类要求）。packaged 副本（如 `deeptutor/contracts/index.yaml`）要同步。
@@ -168,6 +188,9 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 | 用户切换到新 MCQ / 案例点评,系统仍按上一道 MCQ active object 判分("关键线路"题) | current grading object identity 多 writer:旧 active_object/candidate 与下游 RESULT 可二次覆盖当前题面 | 完整 MCQ/case submission 共享投影 helper 上移到 `question_lifecycle_skills`; turn-start 只允许同题 context 保权,不匹配则当前题面成 active_object; turn-end grading RESULT 不得用不同 object_id 旧对象覆盖当前对象 | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 当前新 MCQ stream 看似判对,但 DB `result.response`/assistant message 又落回旧 TN-S 题或 generic fallback；自然案例题被 low-info gate 拒绝 | current submission 只绑定了对象身份,未原子绑定 scene/action/reference; terminal sink 与 low-info gate 仍抢权 | turn-start 从 `question_lifecycle_skills` 当前 context/action 薄盖 `mcq_grading`/`case_grading`;显式标准答案只认 `标准答案/正确答案/参考答案`;完整 `案例题...问...我的答案` 逃逸 low-info | ✅ 本地 TDD+contract 已修(2026-06-25),live 待部署复验 |
 | 5 并发出现 `ConnectionClosedError`, DB turn 全 completed 但 harness 漏捕 | 公网/WS 捕获稳定性独立遮蔽面;DB terminal result 才是 turn truth | 长对话采集先 1-2 并发;harness 必须增量落盘并用 DB completed/result 对账 | ⚠️ 稳定性待修 |
+| 未答题隐式求助("给点提示/还是不会")→bot 散讲泄底(LLM 用建造师知识自推答案,非结构喂) | turn-START demote 把未答活跃题误判切题→压 suspended_stack→active_object 换 open_chat_topic→下游读不到活跃未答题→落自由 LLM(cross-capability-continuity **入口侧**)。出口侧加短路=green-on-unreachable 假绿 | turn-START demote **第4个 carve-out**(同 task#14/#287/S1 同形:守卫"该留活跃题"反复漏 case)+确定性结构化提示短路(拼思路+nudge,绝不含答案/选项)+边界 anti-peek 只压未答+隐式,显式要答案放行。**血泪:active_object/路由类改动必先 Langfuse/DB 取证活体真态(走哪 path+context 有没有)再动,出口侧防御挡不住入口侧丢上下文** | ✅ 已修 #315/#317/#318 live 3/3(2026-06-30) |
+| 出题轮自带答案/"先别告诉答案"仍泄露(经典 auto-answer) | 生成轮结构化 Generator `correct_answer=""` 已 fail-closed | 红队复现确认**经典出题轮 auto-answer 不可复现**;真 leak 在隐式求助 follow-up 轮(见上行) | ✅ 生成轮已 fail-closed(红队 2026-06-30 证) |
+| 同会话先出3题、再出单题后,学员 bare"我选B"被"你这轮有多道题请带题号"拒判(确定性 3/3) | **陈旧多题 active-set 没随新单题替换**(新题替换旧 active_object 语义没收,旧 question_set/items 计数残留,判分消歧按旧计数索题号)=同 A#308 active_object 状态家族 | `set_active_object` 出新题时**完整替换**旧 active-set(清残留计数);判分消歧读当前 active_object 真实题数。先 Langfuse/DB 取证再改(铁律⑤) | ❌ **2026-06-30 准确性 eval Dim1 复现**(s1 T4 on 686fe37bb,封板唯一阻断,待修;多题批量判分仍 3/3 正常) |
 
 ## 红线
 - 不绕 AGENTS.md 单一权威；不新增第二聊天 WS 入口；surgical diff；阿里云只写

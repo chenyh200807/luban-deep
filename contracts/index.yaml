@@ -75,6 +75,7 @@ http_routes:
   - {prefix: /api/v1/member, reason: "Member console: profile / progress / goals / wallet."}
   - {prefix: /api/v1/memory, reason: "Learner memory read models."}
   - {prefix: /api/v1/mobile, reason: "Mobile (mini-program) read models + auth adapters."}
+  - {prefix: /api/v1/notebook, reason: "Notebook-card save adapter; production exposes add_record card path without reopening legacy notebook routers."}
   - {prefix: /api/v1/observability, reason: "Observability read models."}
   - {prefix: /api/v1/photo-answer, reason: "Photo-answer OCR + solve adapter."}
   - {prefix: /api/v1/plan, reason: "Plan read model."}
@@ -477,6 +478,7 @@ domains:
       - deeptutor/services/notebook_card/**/*.py
       - deeptutor/api/routers/guide.py
       - deeptutor/api/routers/notebook.py
+      - deeptutor/api/routers/notebook_card_entry.py
       - deeptutor/api/routers/tutor_state.py
       - deeptutor/api/routers/memory.py
       - deeptutor/contracts/learner_state.py
