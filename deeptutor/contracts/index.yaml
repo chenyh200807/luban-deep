@@ -211,6 +211,21 @@ domains:
         teaching-context service; it must not create a second knowledge
         authority, mutate canonical learner truth, or open any WebSocket route
         other than /api/v1/ws.
+      - content_truth_low_confidence_claims is an OBSERVE-ONLY ② content-truth
+        review-loop passthrough. When the TutorBot loop writes a regulation code
+        that this turn's standard recall could not verify, it does NOT suppress
+        output (owner principle — always answer plus honest hedge); it stamps the low-confidence
+        claims into runtime_metadata, and the multi-hop observability pipeline
+        forwards them (plus content_truth_guard_applied) verbatim into the
+        TurnEventLog observation event via these hops — manager bridges runtime_metadata into
+        trace/merged/session metadata, the tutorbot capability exports them onto
+        the result event, and turn runtime's _summarize_assistant_events plus the
+        terminal observation allow-list carry them through. Every hop is a fixed
+        allow-list mirroring the degraded_* flags. This is a one-way flag into the
+        single event sink for the OFFLINE review agent (content_truth_review_queue);
+        it must not become a second runtime decider, gate output, or create a
+        second truth source — truth stays with this-turn standard recall (runtime)
+        and textbook arbitration (offline).
     contract_files:
       - CONTRACT.md
       - contracts/turn.md
@@ -248,6 +263,16 @@ domains:
     test_files:
       - tests/api/test_system_router.py
       - tests/api/test_unified_ws_turn_runtime.py
+      - tests/services/observability/test_content_truth_review_queue.py
+      - tests/services/test_qtpk_differential.py
+      - tests/services/test_qtpk_lifecycle_state.py
+      - tests/services/test_qtpk_lifecycle_state_shadow.py
+      - tests/services/test_active_object_deep_mode_convergence.py
+      - tests/services/test_start_turn_mode_selection_removal_parity.py
+      - tests/services/test_qtpk_grading_patch.py
+      - tests/services/test_turn_start_demote_canonical_pipeline.py
+      - tests/services/test_active_object_builder_unify.py
+      - tests/services/test_pre_stamp_scene_parity.py
       - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_unified_ws_answer_citations.py
       - tests/api/test_rate_limit.py
@@ -276,11 +301,14 @@ domains:
       - tests/services/learner_state/test_learning_evidence_quality_gate.py
       - tests/services/member_console/test_home_dashboard_learning_projection.py
       - tests/services/observability/test_turn_runtime_observer_event.py
+      - tests/services/observability/test_control_plane_shadow_hits.py
       - tests/api/test_unified_ws_error_boundary.py
       - tests/services/test_runtime_env_fail_closed.py
       - tests/services/learner_state/test_subjective_focus_priority.py
       - tests/services/learner_state/test_dispute_revalidation_readside.py
       - tests/services/learner_state/test_home_personalization_imports.py
+      - tests/core/test_terminal_result_assembler.py
+      - tests/core/test_assembler_grading_result.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
@@ -314,7 +342,15 @@ domains:
       - deeptutor/api/routers/mobile.py
     test_files:
       - tests/runtime/test_orchestrator_autoroute.py
+      - tests/runtime/test_orchestrator_preselect_canonical.py
+      - tests/runtime/test_capability_routing_map_collapse.py
+      - tests/runtime/test_orchestrator_semantic_router.py
+      - tests/services/test_active_object_family_first.py
       - tests/agents/question/test_coordinator_followup_anchor.py
+      - tests/agents/question/test_coordinator_subject_scope_gate.py
+      - tests/agents/question/test_generator_subject_lock.py
+      - tests/agents/question/test_lightweight_topic_normalizer.py
+      - tests/agents/question/test_practice_topic_context_inheritance.py
       - tests/api/test_mobile_eval_bypass.py
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_unified_ws_public_redaction.py
@@ -323,12 +359,16 @@ domains:
       - tests/api/test_mobile_router.py
       - tests/services/test_question_lifecycle_skills.py
       - tests/services/test_question_lifecycle_scene_derivation.py
+      - tests/services/test_forward_family_reachability.py
       - tests/services/test_question_lifecycle_acceptance.py
+      - tests/services/test_pre_stamp_scene_parity.py
       - tests/capabilities/test_request_contracts.py
       - tests/capabilities/test_tutorbot_authority.py
       - tests/capabilities/test_deep_question_question_review.py
+      - tests/capabilities/test_deep_question_canonical_fail_fast.py
       - tests/capabilities/test_deep_question_lightweight_generation.py
       - tests/capabilities/test_deep_question_mcq_full_submission.py
+      - tests/capabilities/test_deep_question_full_submission_grading_authority.py
       - tests/agents/question/test_coordinator_followup_anchor.py
       - tests/capabilities/test_deep_question_reference_feedback.py
       - tests/capabilities/test_deep_question_general_knowledge_context.py
@@ -341,9 +381,16 @@ domains:
       - tests/core/test_deep_question_case_rubric_v1.py
       - tests/core/test_deep_question_submission_grading.py
       - tests/services/test_r1_option_surface_grading.py
+      - tests/capabilities/test_deep_question_canonical_represent.py
+      - tests/capabilities/test_tutorbot_canonical_represent_short_circuit.py
       - tests/services/test_render_presentation.py
+      - tests/services/observability/test_control_plane_shadow_hits.py
       - wx_miniprogram/tests/test_ai_message_state.js
       - yousenwebview/tests/test_question_review_readonly_mcq.js
+      - tests/core/test_terminal_result_assembler.py
+      - tests/core/test_assembler_grading_result.py
+      - tests/core/test_assembler_tutorbot_result.py
+      - tests/services/test_resolve_reveal_decision.py
     schema_files:
       - deeptutor/capabilities/request_contracts.py
 
@@ -585,7 +632,13 @@ domains:
       - tests/scripts/test_luban_pgo_stage5_canary_gate.py
       - tests/services/construction_grading/test_learning_evidence.py
       - tests/services/test_question_followup.py
+      - tests/services/test_forward_family_reachability.py
+      - tests/services/test_resolve_reveal_decision.py
       - tests/tutorbot/test_agent_loop_case_rubric_v1.py
+      - tests/tutorbot/test_case_grading_generation_falls_through.py
+      - tests/services/test_question_followup_case_submission.py
+      - tests/tutorbot/test_case_grading_forward_reachability.py
+      - tests/tutorbot/test_content_truth_guard.py
       - tests/services/construction_grading/test_m32_grading_event_learning_evidence.py
       - tests/services/construction_grading/test_case_grading_fusion.py
       - tests/services/construction_grading/test_compiled_registry_resolver.py
@@ -623,3 +676,579 @@ learning_state_inference:
     - unregistered error_code in payload outside docs/contracts/error_code_registry.md
     - keyword-only rubric items rendered as "采分点" instead of "审题要点"
     - write-back into questions_bank.grading_rubric
+
+# ---------------------------------------------------------------------------
+# Control-plane single-writer allowlist (Task 1, fast-mode-orchestrator plan §14.A).
+#
+# Register-before-use baseline: every control-plane write-site that
+# scripts/check_control_plane_writer_allowlist.py detects in the writer-map
+# files must have a matching (field + writer_type + file + symbol) entry here.
+# A new, unregistered writer turns the gate red. Task 1 only REGISTERS the
+# current writers (canonical + competing + defensive); it does not converge
+# authorities. Each competing writer carries allowed_role + remove_when
+# pointing at the collapsing task (plan §14.A Task 2-5). The two reveal sinks
+# are both registered (TutorBot canonical_writer, deep_question
+# compat_projection demotion candidate). Dormant prospective arms
+# (StreamEventType.ACK / stream.ack / first_useful_content) have zero live hits
+# (the enum has no ACK member); the guard scans for them so a future contentful
+# visible-frame writer is flagged on arrival.
+control_plane_writers:
+  - field: active_object
+    writer_type: payload_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: is_correct
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _apply_open_world_grading_state
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: is_correct
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _build_submission_context
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: is_correct
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _emit_grading_result
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: is_correct
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _fill_missing_mcq_authority
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: question_followup_context
+    writer_type: payload_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: question_lifecycle_scene
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: trace_projection
+    reason: Mirrors canonical scene into trace_metadata for observability (reads canonical via project_question_lifecycle_scene_from_metadata; never derives one).
+    remove_when: never
+  - field: reveal_reference
+    writer_type: reveal_kwarg
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _coerce_question_bank_contexts
+    allowed_role: value_projection
+    reason: deep_question reveal kwarg site; the reveal decision is read from the single canonical authority resolve_reveal_decision (question_followup.py) — this only propagates that adjudicated value.
+    remove_when: never
+  - field: reveal_reference
+    writer_type: reveal_kwarg
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: value_projection
+    reason: deep_question reveal kwarg site; the reveal decision is read from the single canonical authority resolve_reveal_decision (question_followup.py) — this only propagates that adjudicated value.
+    remove_when: never
+  - field: score
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _build_batch_submission_context
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: score
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _build_submission_context
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: score
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _emit_grading_result
+    allowed_role: compat_projection
+    reason: deep_question grading-state projection (clears/fills authority placeholders).
+    remove_when: Task 3 (grading authority single writer).
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _emit_followup_result
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _emit_grading_result
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: turn_semantic_decision
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: canonical_writer
+    reason: >-
+      Full-submission paste SLOT-BINDING canonical authority (facet, not the whole
+      turn_semantic_decision). The two metadata["turn_semantic_decision"] writes in
+      run() (mcq_grading / case_grading full-submission paths) are FIELD-LEVEL
+      merges: deep_question is the canonical authority for the slot-binding facet
+      ONLY — allowed_patch + active_object/target_object_ref — because a learner who
+      pasted a self-contained MCQ/case owns the learner-surface, so the slot binding
+      must come from the PASTE (the stale router allowed_patch/target_object_ref are
+      keyed off the prior active object and mis-bind the pasted slot; deep_question.py
+      §3870 "own learner-surface authority"). The INTENT facet
+      (relation_to_active_object / next_action / confidence) remains the semantic
+      router's authority — it sees conversation context (e.g. a no-keyword revision
+      "不对应该是B" stays revise_answer_on_active_object and is NOT downgraded by the
+      local keyword heuristic). When the router supplied no decision, deep_question
+      builds the whole grading decision. The two writers share the field but never
+      compete on a facet: router owns intent, deep_question owns slot-binding.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: payload_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: deep_question fabricated/competing turn-fact writer (demotion candidate).
+    remove_when: Task 3 (deep_question reads canonical decision; fail-loud instead of fabricate).
+  - field: visible_transport_frame
+    writer_type: stream_progress
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _trace_bridge
+    allowed_role: production_decider
+    reason: deep_question emits result/progress via StreamBus.
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_transport_frame
+    writer_type: stream_progress
+    file: deeptutor/capabilities/deep_question.py
+    symbol: _ws_bridge
+    allowed_role: production_decider
+    reason: deep_question emits result/progress via StreamBus.
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: TutorBot carries active-object / followup projection (competing writer).
+    remove_when: Task 3 (TutorBot reads canonical decision).
+  - field: active_object
+    writer_type: payload_assignment
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: TutorBot carries active-object / followup projection (competing writer).
+    remove_when: Task 3 (TutorBot reads canonical decision).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: TutorBot carries active-object / followup projection (competing writer).
+    remove_when: Task 3 (TutorBot reads canonical decision).
+  - field: question_followup_context
+    writer_type: payload_assignment
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: TutorBot carries active-object / followup projection (competing writer).
+    remove_when: Task 3 (TutorBot reads canonical decision).
+  - field: reveal_reference
+    writer_type: reveal_kwarg
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: _build_visible_response
+    allowed_role: value_projection
+    reason: TutorBot reveal kwarg site; the reveal decision is read from the single canonical authority resolve_reveal_decision (question_followup.py, via _reveal_reference_flags) — this only propagates that adjudicated value.
+    remove_when: never
+  - field: reveal_reference
+    writer_type: reveal_kwarg
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: run
+    allowed_role: value_projection
+    reason: TutorBot reveal kwarg site; the reveal decision is read from the single canonical authority resolve_reveal_decision (question_followup.py, via _reveal_reference_flags) — this only propagates that adjudicated value.
+    remove_when: never
+  - field: visible_transport_frame
+    writer_type: stream_progress
+    file: deeptutor/capabilities/tutorbot.py
+    symbol: _on_progress
+    allowed_role: production_decider
+    reason: TutorBot transport progress frame.
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_result
+    writer_type: stream_result
+    file: deeptutor/core/stream_bus.py
+    symbol: result
+    allowed_role: canonical_writer
+    reason: StreamBus is the single visible-frame transport authority.
+    remove_when: never
+  - field: visible_result
+    writer_type: stream_result
+    file: deeptutor/core/terminal_result_assembler.py
+    symbol: build_event
+    allowed_role: canonical_writer
+    reason: TerminalResultAssembler is the single contentful visible-output (terminal RESULT) shaping authority; thin wrapper over StreamBus transport.
+    remove_when: never
+  - field: visible_transport_frame
+    writer_type: stream_progress
+    file: deeptutor/core/stream_bus.py
+    symbol: progress
+    allowed_role: canonical_writer
+    reason: StreamBus is the single visible-frame transport authority.
+    remove_when: never
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _prepare_practice_request_context
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _prepare_question_submission_context
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _record_lifecycle_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _resolve_semantic_routing
+    allowed_role: adapter_projection
+    reason: >-
+      Router-input adapter mirror for the PRESENT active_object: when
+      metadata["active_object"] exists it normalizes + re-stamps it into the
+      metadata the semantic router reads (orchestrator.py ~:774-781). The
+      current-facet authority is the turn_runtime restore block; the router owns
+      the relation/submission decision. CONDITIONAL CONSTRUCTOR on the
+      rebuild-from-question_followup_context branch (~:775-778): when active_object
+      is ABSENT it calls build_active_object_from_question_context to CONSTRUCT
+      (not mirror) an active_object from question_followup_context. Do NOT naively
+      delete — the absent branch builds a real active_object that the router and
+      downstream readers consume. Demote/remove only after proving (live window)
+      that the turn_runtime restore block always populates active_object before
+      this point so the rebuild branch is provably dead.
+    remove_when: >-
+      never delete naively — carries a conditional rebuild-from-question_followup_context
+      constructor; remove only at Task 2 (active_object current-facet collapse into
+      turn_runtime restore) AND only after proving the rebuild branch is dead.
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _resolve_turn_semantic_decision
+    allowed_role: adapter_projection
+    reason: >-
+      Router-transition projection (NOT a current-facet decider): mirrors the
+      semantic router's output (routing.active_object) into context.metadata
+      (orchestrator.py ~:758) so readers see the router's decision. The router is
+      the authority for the relation/submission decision; the current-facet
+      authority is the turn_runtime restore block.
+    remove_when: Task 2 (active_object current-facet collapse into turn_runtime restore).
+  - field: question_followup_action
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _resolve_turn_semantic_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _prepare_practice_request_context
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _prepare_question_submission_context
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _resolve_turn_semantic_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: question_lifecycle_scene
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _record_lifecycle_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _select_capability
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: turn_semantic_decision
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _resolve_turn_semantic_decision
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: turn_semantic_decision
+    writer_type: metadata_assignment
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _select_capability
+    allowed_role: production_decider
+    reason: Orchestrator stamps canonical decision onto context.metadata before dispatch.
+    remove_when: Task 4 (CapabilityAdapter thinning).
+  - field: is_correct
+    writer_type: metadata_assignment
+    file: deeptutor/services/construction_grading/deep_question_adapter.py
+    symbol: attach_deep_question_grading_result
+    allowed_role: canonical_writer
+    reason: Construction-grading adapter projects grading-kernel verdict.
+    remove_when: never
+  - field: score
+    writer_type: metadata_assignment
+    file: deeptutor/services/construction_grading/deep_question_adapter.py
+    symbol: attach_deep_question_grading_result
+    allowed_role: canonical_writer
+    reason: Construction-grading adapter projects grading-kernel verdict.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _decision_from_active_learning_object
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _decision_from_active_open_chat_object
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _decision_from_ambiguity_gate
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _decision_from_fallback
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _decision_from_followup_action
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: _promote_suspended_candidate_decision
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: resolve_question_semantic_routing
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/services/semantic_router.py
+    symbol: resolve_turn_semantic_decision
+    allowed_role: canonical_writer
+    reason: Canonical relation/submission decision builder.
+    remove_when: never
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _enrich_result_question_authority_from_trace
+    allowed_role: trace_projection
+    reason: >-
+      Post-result trace backfill projection (NOT a current-facet decider): reads
+      the already-decided active_object and only attaches state_snapshot (a
+      question-authority context recovered from trace_metadata) onto a copy
+      (turn_runtime.py ~:713-716). It never derives the active_object identity; the
+      current-facet authority is the turn_runtime restore block.
+    remove_when: Task 2 (active_object current-facet collapse into turn_runtime restore).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _persist_and_publish
+    allowed_role: compat_projection
+    reason: >-
+      Persist-executor for the COMMON merge-back path: reads the capability output
+      via _result_active_object, merges the judged item back into the prior active
+      set through _merge_grading_result_into_active_set (E8/E1 SEV-1
+      object-continuity safety line), then writes back + persists (turn_runtime.py
+      ~:6415-6430). The "turn-END is NOT a second active_object writer" self-note
+      describes only this merge-back intent. CONDITIONAL IDENTITY WRITER on the
+      genuine-switch branch: when the new object is NOT in the prior set,
+      _merge_grading_result_into_active_set returns result_active_object as-is
+      (turn_runtime.py ~:6370-6371) and _persist_and_publish writes that NEW
+      identity onto metadata + persists it — a real turn-end identity write, not a
+      mirror of the restore block. Do NOT naively delete: the genuine-switch path
+      carries a real current-facet identity write that the restore block does not
+      reproduce mid-turn.
+    remove_when: >-
+      never delete naively — carries a conditional genuine-switch identity write
+      (new object not in prior set replaces identity); revisit only at Task 2/5
+      (runtime restore-persist only) AND only after the genuine-switch identity
+      write is provably relocated, never by bare removal.
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _run_turn
+    allowed_role: canonical_writer
+    reason: >-
+      Current-facet single authority: the turn-start restore block reads the stored
+      active_object, applies the task#14 ordinal-safe demote (turn_runtime.py
+      ~:4953-5108), and stamps the resolved object into the dispatch
+      UnifiedContext.metadata ("active_object": active_object or {} ~:5668) that the
+      orchestrator and capabilities read. The sibling trace_metadata["active_object"]
+      write (~:5187) in the same function is an observability mirror of this same
+      resolved object, not a second decision.
+    remove_when: never
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _enrich_result_question_authority_from_trace
+    allowed_role: derived_projection
+    reason: >-
+      Task 2 collapse: not an independent followup judgment. Co-writes
+      active_object.state_snapshot = enriched_context in the SAME block
+      (turn_runtime ~:712-716), so followup_context is a pure projection of the
+      active_object this helper builds; the two cannot diverge. Authority being
+      merged is grading-authority (a different field), not followup_context.
+      Proven value-equal by tests/services/test_question_followup_context_derivation_audit.py.
+    remove_when: never (projection of active_object; collapses with active_object only).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _persist_and_publish
+    allowed_role: derived_projection
+    reason: >-
+      Task 2 collapse: not an independent followup judgment. When active_object
+      exists the written value IS extract_question_context_from_active_object(
+      active_object) verbatim (turn_runtime ~:6433-6439) — a literal derived
+      read, not a second decision; the no-active fallback only re-reads metadata.
+      Proven value-equal by tests/services/test_question_followup_context_derivation_audit.py.
+    remove_when: never (projection of active_object; collapses with active_object only).
+  - field: question_followup_context
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _run_turn
+    allowed_role: trace_projection
+    reason: Mirrors canonical fact into trace_metadata for observability.
+    remove_when: never
+  - field: question_lifecycle_scene
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _summarize_assistant_events
+    allowed_role: trace_projection
+    reason: Read-backs scene from already-emitted events into the observation summary (not a decider).
+    remove_when: Task 2 (QuestionTurnPolicyKernel collapse).
+  - field: reveal_reference
+    writer_type: reveal_kwarg
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _exact_question_followup_context
+    allowed_role: value_projection
+    reason: Runtime exact-question followup reveal projection; defers to the single canonical authority resolve_reveal_decision (question_followup.py) for the reveal decision.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: metadata_assignment
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _run_turn
+    allowed_role: trace_projection
+    reason: Mirrors canonical fact into trace_metadata for observability.
+    remove_when: never
+  - field: visible_transport_frame
+    writer_type: stream_progress
+    file: deeptutor/services/session/turn_runtime.py
+    symbol: _run_turn
+    allowed_role: production_decider
+    reason: Runtime transport frame (synthetic result / progress).
+    remove_when: Task 5 (TerminalResultAssembler single visible-output sink).
+  - field: visible_result
+    writer_type: visible_event
+    file: deeptutor/api/routers/unified_ws.py
+    symbol: _redact_event_for_public
+    allowed_role: defensive_guard
+    reason: Last-mile public redaction safety belt; never the primary reveal authority.
+    remove_when: never
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _prepare_practice_request_context
+    allowed_role: adapter_projection
+    reason: Orchestrator setdefaults the canonical practice-generation decision via
+      build_turn_semantic_decision on every practice route, mirroring deep_question's
+      S7 generation values so the reader reads canonical instead of fabricating.
+    remove_when: Task 2 (deep_question generation fabricate deletion after live-window proof).
+  - field: turn_semantic_decision
+    writer_type: builder_call
+    file: deeptutor/runtime/orchestrator.py
+    symbol: _ensure_preselect_canonical_decision
+    allowed_role: adapter_projection
+    reason: >-
+      Control-plane single-authority (治本 Action 2 Step 2): the deep_question preselect
+      branch returns without routing through _resolve_turn_semantic_decision, so it
+      bypassed the canonical signer and deep_question fabricated a second authority.
+      The orchestrator now setdefaults the canonical turn_semantic_decision on the
+      preselect path (submission/generation/followup sub-routes), mirroring the values
+      deep_question formerly fabricated, so the reader reads canonical instead of
+      fabricating. setdefault never overwrites an upstream canonical decision; the
+      orchestrator stays the sole signer (turn.md §硬约束 24).
+    remove_when: Task 2/4 (canonical decision signing collapses into the semantic router
+      so the preselect path resolves through it directly).
+  - field: active_object
+    writer_type: metadata_assignment
+    file: deeptutor/capabilities/deep_question.py
+    symbol: run
+    allowed_role: compat_projection
+    reason: >-
+      Main-drift (post-831a98e73 tutorbot/deep_question fixes): MCQ/case full-submission
+      writes active_object onto context.metadata via build_active_object_from_question_context.
+      Capability-side active-object identity is QuestionTurnPolicyKernel-owned in the target
+      topology; demotion candidate.
+    remove_when: Task 2/4 (active_object identity collapse into QuestionTurnPolicyKernel).

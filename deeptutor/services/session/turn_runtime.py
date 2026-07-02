@@ -29,6 +29,7 @@ from deeptutor.contracts.bot_runtime_defaults import (
     resolve_bot_runtime_defaults as resolve_bot_binding_defaults,
 )
 from deeptutor.core.stream import StreamEvent, StreamEventType
+from deeptutor.core.terminal_result_assembler import TerminalResultAssembler
 from deeptutor.logging.context import bind_log_context, reset_log_context
 from deeptutor.services.exam_track import (
     exam_track_label,
@@ -52,33 +53,38 @@ from deeptutor.services.observability.identity_bridge import enrich_trace_metada
 from deeptutor.services.observability.turn_event_log import build_turn_observation_event
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
-    batch_answer_action_for_numbered_single,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     followup_action_route,
-    interpret_question_followup_action,
-    looks_like_question_followup,
     normalize_question_followup_context,
-    reset_question_submission_state,
-    resolve_submission_attempt,
-    submission_confidence,
+    should_block_unanswered_reference_reveal,
 )
-from deeptutor.services.question_lifecycle_skills import (
-    case_grading_context_from_full_submission,
-    looks_like_case_grading_submission_context,
-    looks_like_free_text_mcq_grading_request,
-    looks_like_free_text_mcq_question_surface,
-    looks_like_full_case_answer_submission,
-    mcq_grading_context_from_full_submission,
-    select_question_lifecycle_skill_names,
-    split_full_case_answer_submission,
+from deeptutor.services.question_turn_policy import (
+    _active_object_ref,
+    _message_is_submission_for_stored_set,
+    _message_references_stored_question_set_item,
+    _message_requests_active_mcq_represent,
+    _normalize_question_followup_action,
+    _resolve_question_followup_context_and_action,
+    _same_active_object_identity,
+    apply_grading_result_patch,
+    grading_merge_needs_prior,
+)
+
+# QTPK physical extraction (S1): these submission-intent helpers were physically
+# moved to ``question_turn_policy`` but are still imported from this module by
+# tests/scripts. Re-export them (redundant ``as`` alias marks the intentional
+# re-export so ruff does not flag F401) so the move is transparent to every
+# existing ``from ...turn_runtime import _<helper>`` callsite.
+from deeptutor.services.question_turn_policy import (
+    _merge_public_submission_with_authoritative_context as _merge_public_submission_with_authoritative_context,
+)
+from deeptutor.services.question_turn_policy import (
+    _submission_action_for_user_message as _submission_action_for_user_message,
 )
 from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
-)
-from deeptutor.services.semantic_router import (
-    has_explicit_practice_generation_intent,
 )
 from deeptutor.services.semantic_router_telemetry import (
     build_semantic_router_telemetry_event,
@@ -94,17 +100,13 @@ from deeptutor.services.session.sqlite_store import (
     normalize_active_object,
     normalize_suspended_object_stack,
 )
-from deeptutor.services.user_visible_output import (
-    coerce_user_visible_answer,
-    looks_like_unsafe_visible_output,
-)
+from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
+    active_object_requires_deep_mode,
     normalize_requested_response_mode,
-    resolve_requested_response_mode,
     select_response_mode,
 )
-from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 logger = logging.getLogger(__name__)
 observability = get_langfuse_observability()
@@ -374,6 +376,39 @@ def _extract_authoritative_assistant_content(event: StreamEvent) -> str:
     return ""
 
 
+def _coerce_public_stream_response(content: str) -> str:
+    if not str(content or "").strip():
+        return ""
+    return normalize_markdown_for_tutorbot(
+        coerce_user_visible_answer(content)
+    )
+
+
+def _replace_public_result_response_with_stream(
+    event: StreamEvent,
+    streamed_content: str,
+) -> None:
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return
+    if event.type != StreamEventType.RESULT:
+        return
+    response = _coerce_public_stream_response(streamed_content)
+    if not response:
+        return
+    metadata = dict(event.metadata or {})
+    metadata["response"] = response
+    nested = metadata.get("metadata")
+    if isinstance(nested, dict):
+        nested_metadata = dict(nested)
+        if any(
+            str(nested_metadata.get(key) or "").strip()
+            for key in ("response", "assistant_content", "content")
+        ):
+            nested_metadata["response"] = response
+        metadata["metadata"] = nested_metadata
+    event.metadata = metadata
+
+
 def _is_mobile_surface_turn_config(
     config: Mapping[str, Any] | None,
     billing_context: Mapping[str, Any] | None = None,
@@ -414,8 +449,9 @@ def _build_synthetic_result_from_final_content(
     response = normalize_markdown_for_tutorbot(coerce_user_visible_answer(content))
     if not response.strip():
         return None
-    return StreamEvent(
-        type=StreamEventType.RESULT,
+    # Control-plane Task 5 Slice 1: terminal RESULT frame shaped by the single
+    # TerminalResultAssembler authority. No-reveal, no-verdict; byte-identical.
+    return TerminalResultAssembler.build_event(
         source=source or "turn_runtime",
         metadata={
             "response": response,
@@ -647,14 +683,10 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
         return metadata
     if event.type == StreamEventType.CONTENT and _should_capture_assistant_content(event):
         raw = event.content if isinstance(event.content, str) else ""
-        # Token-level deltas must keep whitespace verbatim; coerce/normalize are
-        # paragraph-level transforms that strip per-delta whitespace and drop
-        # pure-newline deltas ("\n\n") to "", which breaks ATX heading and list
-        # parsing in the frontend markdown renderer.
-        if raw and looks_like_unsafe_visible_output(raw):
-            event.content = coerce_user_visible_answer(raw)
-        else:
-            event.content = raw
+        # Token-level deltas must keep whitespace verbatim; use the shared
+        # visible sink in delta-preserving mode so citation/internal noise is
+        # still removed without breaking ATX heading and list parsing.
+        event.content = coerce_user_visible_answer(raw, preserve_outer_whitespace=True)
         return metadata
     if event.type == StreamEventType.ERROR:
         event.content = normalize_markdown_for_tutorbot(
@@ -1109,12 +1141,23 @@ def _build_terminal_turn_observation_event(
         "authority_applied",
         "exact_fast_path_hit",
         "execution_path",
+        # Observe-only live-shadow metric (mirrors authority_applied): passthrough
+        # the structured control-plane shadow-hit list so the report script can
+        # count when a compat/projection/legacy writer became the operative
+        # control-plane source. No control flow change; just carries the list.
+        "control_plane_shadow_hits",
         "question_lifecycle_scene",
         "rag_retrieval_degraded",
         "rag_retrieval_status",
         "rag_retrieval_error_type",
         "degraded_exact_answer_guard_applied",
         "degraded_mcq_grading_guard_applied",
+        # ② content-truth review loop (observe-only)：bot 写出但本轮 standard 召回核不到的规范
+        # 编号低置信记录。runtime 已在 L1 大方输出 + hedge(不抑制)，这里仅把 flag 透传进单一
+        # 事件 sink (TurnEventLog) 供离线评审 agent (content_truth_review_queue) 异步纠错。
+        # 不改控制流，不裁决真值；与 control_plane_shadow_hits 同纪律。
+        "content_truth_guard_applied",
+        "content_truth_low_confidence_claims",
         "raw_user_id",
         "member_user_id",
         "identity_resolution_status",
@@ -1252,30 +1295,6 @@ def _env_flag(name: str, default: bool = True) -> bool:
     return raw not in {"0", "false", "no", "off"}
 
 
-def _normalize_question_followup_action(raw: Any) -> dict[str, Any] | None:
-    if not isinstance(raw, dict):
-        return None
-    intent = str(raw.get("intent") or "").strip()
-    if not intent:
-        return None
-    return {
-        "intent": intent,
-        "confidence": raw.get("confidence"),
-        "preserve_other_answers": bool(raw.get("preserve_other_answers", False)),
-        "answers": raw.get("answers") if isinstance(raw.get("answers"), list) else [],
-        "reason": str(raw.get("reason") or "").strip(),
-    }
-
-
-def _active_object_ref(active_object: dict[str, Any] | None) -> dict[str, Any]:
-    if not isinstance(active_object, dict):
-        return {}
-    return {
-        "object_type": str(active_object.get("object_type") or "").strip(),
-        "object_id": str(active_object.get("object_id") or "").strip(),
-    }
-
-
 def _active_object_plan_id(active_object: dict[str, Any] | None) -> str:
     normalized = normalize_active_object(active_object)
     if not isinstance(normalized, dict):
@@ -1296,62 +1315,12 @@ def _active_object_plan_id(active_object: dict[str, Any] | None) -> str:
     return ""
 
 
-def _active_object_requires_deep_mode(active_object: dict[str, Any] | None) -> bool:
-    normalized = normalize_active_object(active_object)
-    if not isinstance(normalized, dict):
-        return False
-    if extract_question_context_from_active_object(normalized) is not None:
-        return True
-    object_type = str(normalized.get("object_type") or "").strip()
-    return object_type not in {"", "open_chat_topic"}
-
-
-def _same_active_object_identity(
-    left: dict[str, Any] | None,
-    right: dict[str, Any] | None,
-) -> bool:
-    normalized_left = normalize_active_object(left)
-    normalized_right = normalize_active_object(right)
-    if not isinstance(normalized_left, dict) or not isinstance(normalized_right, dict):
-        return False
-    return (
-        str(normalized_left.get("object_type") or "").strip()
-        == str(normalized_right.get("object_type") or "").strip()
-        and str(normalized_left.get("object_id") or "").strip()
-        == str(normalized_right.get("object_id") or "").strip()
-    )
-
-
 def _suspended_stack_plan_id(suspended_object_stack: list[dict[str, Any]] | None) -> str:
     for item in normalize_suspended_object_stack(suspended_object_stack):
         plan_id = _active_object_plan_id(item)
         if plan_id:
             return plan_id
     return ""
-
-
-def _message_references_stored_question_set_item(
-    message: str,
-    stored_question_context: dict[str, Any] | None,
-) -> bool:
-    """True if ``message`` references an item of the stored batch question_set by ordinal
-    ("第N题"), via the single ordinal→item authority
-    (``question_followup.requested_question_item_index``, same one the submission path uses).
-
-    Used by the turn-start suspend guard to NOT demote an active batch set into the
-    suspended stack when the user is actually referring to one of its items (task#14):
-    keeping the set in active_object lets the scene low-information gate anchor "第N题".
-    """
-
-    if not stored_question_context:
-        return False
-    try:
-        from deeptutor.services.question_followup import (  # noqa: WPS433
-            requested_question_item_index,
-        )
-    except Exception:
-        return False
-    return requested_question_item_index(message, stored_question_context) is not None
 
 
 def _prepend_suspended_object(
@@ -1412,262 +1381,6 @@ def _build_turn_semantic_decision(
     )
 
 
-def _context_has_reference_answer(context: dict[str, Any] | None) -> bool:
-    def _item_has_reference_answer(item: dict[str, Any] | None) -> bool:
-        if not isinstance(item, dict):
-            return False
-        if str(item.get("correct_answer") or "").strip():
-            return True
-        grading_key = item.get("grading_key")
-        return isinstance(grading_key, dict) and bool(
-            str(grading_key.get("correct_answer") or "").strip()
-        )
-
-    normalized = normalize_question_followup_context(context)
-    if normalized is None:
-        return False
-    if _item_has_reference_answer(normalized):
-        return True
-    return any(_item_has_reference_answer(item) for item in normalized.get("items") or [])
-
-
-def _merge_public_submission_with_authoritative_context(
-    explicit_context: dict[str, Any] | None,
-    candidate_context: dict[str, Any] | None,
-) -> dict[str, Any] | None:
-    explicit = normalize_question_followup_context(explicit_context)
-    candidate = normalize_question_followup_context(candidate_context)
-    if explicit is None or candidate is None:
-        return None
-    if _context_has_reference_answer(explicit) or not _context_has_reference_answer(candidate):
-        return None
-
-    explicit_items = explicit.get("items") or []
-    candidate_items = candidate.get("items") or []
-    if explicit_items and candidate_items:
-        merged_items = [dict(item) for item in candidate_items]
-        candidate_by_id = {
-            str(item.get("question_id") or "").strip(): index
-            for index, item in enumerate(candidate_items)
-            if str(item.get("question_id") or "").strip()
-        }
-        for index, item in enumerate(explicit_items):
-            target_index = candidate_by_id.get(str(item.get("question_id") or "").strip(), index)
-            if target_index < 0 or target_index >= len(merged_items):
-                continue
-            user_answer = str(item.get("user_answer") or "").strip()
-            if user_answer:
-                merged_items[target_index]["user_answer"] = user_answer
-        merged = dict(candidate)
-        merged["items"] = merged_items
-        merged_user_answer = str(explicit.get("user_answer") or "").strip()
-        if merged_user_answer:
-            merged["user_answer"] = merged_user_answer
-        return normalize_question_followup_context(merged)
-
-    if candidate_items:
-        explicit_question_id = str(explicit.get("question_id") or "").strip()
-        target_index: int | None = None
-        if explicit_question_id:
-            for index, item in enumerate(candidate_items):
-                if str(item.get("question_id") or "").strip() == explicit_question_id:
-                    target_index = index
-                    break
-        elif len(candidate_items) == 1:
-            target_index = 0
-        if target_index is not None and 0 <= target_index < len(candidate_items):
-            merged = dict(candidate_items[target_index])
-            user_answer = str(explicit.get("user_answer") or "").strip()
-            if user_answer:
-                merged["user_answer"] = user_answer
-            return normalize_question_followup_context(merged)
-
-    explicit_question_id = str(explicit.get("question_id") or "").strip()
-    candidate_question_id = str(candidate.get("question_id") or "").strip()
-    if explicit_question_id and candidate_question_id and explicit_question_id != candidate_question_id:
-        return None
-    merged = dict(candidate)
-    user_answer = str(explicit.get("user_answer") or "").strip()
-    if user_answer:
-        merged["user_answer"] = user_answer
-    return normalize_question_followup_context(merged)
-
-
-def _practice_generation_action_for_explicit_request(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> dict[str, Any] | None:
-    if not looks_like_practice_generation_request(user_message):
-        return None
-    if not has_explicit_practice_generation_intent(user_message):
-        return None
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return None
-    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
-    if submission is not None:
-        return None
-    return {
-        "intent": "generate_more_questions",
-        "confidence": 0.86,
-        "answers": [],
-        "reason": "用户明确要求出题/选择题，应生成新题而不是批改当前题目。",
-    }
-
-
-def _looks_like_batch_correction_reference(user_message: str) -> bool:
-    return bool(
-        re.search(r"第\s*[0-9一二两三四五六七八九十]+\s*[题问]?", user_message)
-        and ("不动" in user_message or "不变" in user_message or "不改" in user_message)
-    )
-
-
-def _normalize_question_identity_text(value: Any) -> str:
-    text = str(value or "").strip().lower()
-    return re.sub(r"[\s　，,。.!！?？；;：:、/／+\-—_（）()【】\[\]<>《》\"'“”‘’]+", "", text)
-
-
-def _identity_ngrams(text: str, *, size: int = 2) -> set[str]:
-    normalized = _normalize_question_identity_text(text)
-    if len(normalized) < size:
-        return set()
-    return {normalized[index : index + size] for index in range(0, len(normalized) - size + 1)}
-
-
-def _question_context_matches_free_text_surface(
-    user_message: str,
-    question_context: dict[str, Any],
-) -> bool:
-    message_identity = _normalize_question_identity_text(user_message)
-    if not message_identity:
-        return False
-
-    question_identity = _normalize_question_identity_text(question_context.get("question"))
-    if question_identity:
-        if len(question_identity) >= 10 and question_identity in message_identity:
-            return True
-        question_grams = _identity_ngrams(question_identity)
-        if question_grams:
-            message_grams = _identity_ngrams(message_identity)
-            overlap_ratio = len(question_grams & message_grams) / max(len(question_grams), 1)
-            if overlap_ratio >= 0.55:
-                return True
-        return False
-
-    options = question_context.get("options") if isinstance(question_context, dict) else None
-    if not isinstance(options, dict) or not options:
-        return False
-    option_hits = 0
-    for value in options.values():
-        option_identity = _normalize_question_identity_text(value)
-        if len(option_identity) >= 2 and option_identity in message_identity:
-            option_hits += 1
-    return option_hits >= min(2, len(options))
-
-
-def _question_context_matches_current_surface(
-    user_message: str,
-    current_surface_context: dict[str, Any],
-    question_context: dict[str, Any],
-) -> bool:
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return False
-    current_type = str(current_surface_context.get("question_type") or "").strip().lower()
-    if current_type == "case":
-        return _case_context_matches_full_case_surface(user_message, normalized_context)
-    return _question_context_matches_free_text_surface(user_message, normalized_context)
-
-
-def _case_context_matches_full_case_surface(
-    user_message: str,
-    question_context: dict[str, Any],
-) -> bool:
-    message_identity = _normalize_question_identity_text(user_message)
-    if not message_identity:
-        return False
-
-    def _has_current_question_anchor(value: Any) -> bool:
-        text = str(value or "")
-        return bool(
-            "【问题" in text
-            or "问题】" in text
-            or re.search(r"问题\s*[：:]", text)
-            or "？" in text
-            or "?" in text
-        )
-
-    def _question_identity_values(context: dict[str, Any]):
-        for key in ("question", "question_stem", "stem"):
-            yield context.get(key)
-        for item in context.get("items") or []:
-            if not isinstance(item, dict):
-                continue
-            for key in ("question", "question_stem", "stem"):
-                yield item.get(key)
-
-    for value in _question_identity_values(question_context):
-        if not _has_current_question_anchor(value):
-            continue
-        question_identity = _normalize_question_identity_text(value)
-        if len(question_identity) >= 8 and (
-            question_identity in message_identity or message_identity in question_identity
-        ):
-            return True
-    return False
-
-
-def _annotate_full_case_submission_context(
-    user_message: str,
-    question_context: dict[str, Any],
-) -> dict[str, Any]:
-    _stem, learner_answer = split_full_case_answer_submission(user_message)
-    if not learner_answer.strip():
-        return question_context
-    updated = dict(question_context)
-    updated["user_answer"] = learner_answer.strip()
-    return updated
-
-
-def _full_case_submission_action() -> dict[str, Any]:
-    return {
-        "intent": "answer_questions",
-        "confidence": 0.92,
-        "answers": [],
-        "reason": "用户消息包含当前完整案例题题面和作答，优先进入案例批改。",
-    }
-
-
-def _current_surface_submission_context_and_action(
-    user_message: str,
-) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
-    mcq_context = mcq_grading_context_from_full_submission(user_message)
-    if mcq_context is not None:
-        submission_context, submission_action = _submission_action_for_user_message(
-            user_message,
-            mcq_context,
-        )
-        if submission_action is None and str(mcq_context.get("user_answer") or "").strip():
-            submission_action = {
-                "intent": "answer_questions",
-                "confidence": 0.92,
-                "answers": [
-                    {
-                        "question_id": str(mcq_context.get("question_id") or "").strip(),
-                        "answer": str(mcq_context.get("user_answer") or "").strip(),
-                    }
-                ],
-                "reason": "用户消息包含当前完整选择题题面和作答，优先进入批改。",
-            }
-        return submission_context or mcq_context, submission_action
-
-    case_context = case_grading_context_from_full_submission(user_message)
-    if case_context is not None:
-        return case_context, _full_case_submission_action()
-
-    return None, None
-
-
 _QUESTION_LIFECYCLE_METADATA_KEYS = (
     "question_lifecycle_scene",
     "question_lifecycle_scene_source",
@@ -1685,362 +1398,6 @@ def _question_lifecycle_metadata_from_config(config: dict[str, Any] | None) -> d
         for key in _QUESTION_LIFECYCLE_METADATA_KEYS
         if config.get(key) not in (None, "", [], {})
     }
-
-
-def _stamp_current_submission_scene_pre_capability(
-    runtime_config: dict[str, Any],
-    *,
-    user_message: str,
-    followup_context: dict[str, Any] | None,
-    followup_action: dict[str, Any] | None,
-) -> None:
-    """Stamp the current submission business fact before capability selection.
-
-    This is not a router and not a scorer. It only writes the canonical lifecycle
-    scene when the current turn already carries a stable submission fact, so
-    deep_question and TutorBot both consume the same grading authority.
-    """
-
-    if not isinstance(runtime_config, dict):
-        return
-    normalized_context = normalize_question_followup_context(followup_context)
-    normalized_action = _normalize_question_followup_action(followup_action)
-    if normalized_context is None:
-        return
-
-    scene = ""
-    reason = ""
-    confidence = 0.0
-    if looks_like_full_case_answer_submission(user_message):
-        scene = "case_grading"
-        reason = "full_case_answer_submission"
-        confidence = 1.0
-    elif looks_like_case_grading_submission_context(normalized_context, normalized_action):
-        scene = "case_grading"
-        reason = "case_submission_context"
-        confidence = 0.96
-    elif (
-        str((normalized_action or {}).get("intent") or "").strip() == "answer_questions"
-        and (normalized_context.get("options") or normalized_context.get("items"))
-    ):
-        scene = "mcq_grading"
-        reason = "mcq_submission_context"
-        confidence = 0.96
-    if not scene:
-        return
-
-    runtime_config["question_lifecycle_scene"] = scene
-    runtime_config["question_lifecycle_scene_source"] = "deterministic_pre_capability"
-    runtime_config["question_lifecycle_scene_confidence"] = confidence
-    runtime_config["question_lifecycle_scene_reason"] = reason
-    runtime_config["question_lifecycle_skill_names"] = list(
-        select_question_lifecycle_skill_names(scene)
-    )
-
-
-def _should_ignore_explicit_context_for_free_text_mcq(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> bool:
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return False
-    if not (
-        looks_like_free_text_mcq_grading_request(user_message)
-        and looks_like_free_text_mcq_question_surface(user_message)
-    ):
-        return False
-    return not _question_context_matches_free_text_surface(user_message, normalized_context)
-
-
-def _submission_action_for_user_message(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return None, None
-    items = normalized_context.get("items") or []
-    if not items and _looks_like_batch_correction_reference(user_message):
-        return normalized_context, None
-    target_context, submission = resolve_submission_attempt(user_message, normalized_context)
-    if (
-        items
-        and _looks_like_batch_correction_reference(user_message)
-        and isinstance(submission, dict)
-        and submission.get("kind") != "batch"
-    ):
-        return normalized_context, None
-    if not target_context or not submission:
-        return normalized_context, None
-    if submission.get("kind") == "ambiguous":
-        return target_context, None
-    if submission.get("kind") == "batch":
-        return target_context, {
-            "intent": "answer_questions",
-            "confidence": 0.92,
-            "answers": submission.get("answers") or [],
-            "reason": "用户消息包含当前题组的可解析答案，优先进入批改。",
-        }
-    # object-continuity (E8 SEV-1): a numbered single answer to ONE item of a multi-item
-    # set must be graded WITHIN the full set so the other items survive — returning the
-    # narrowed single context here collapses the set at turn-start (before any capability
-    # runs), so a later "第1题" binds to the 1-item set and grades the wrong question.
-    # This is the single chokepoint above both tutorbot and deep_question grading paths.
-    batch_action = batch_answer_action_for_numbered_single(submission, normalized_context)
-    if batch_action is not None:
-        return normalized_context, batch_action
-    # 判分态单一权威收口 Step 5 (2026-06-24, 单一 chokepoint): 这是 submission action 的最上游
-    # 构造点(decider map 自承"single chokepoint above both grading paths")。只有 HIGH 置信的
-    # 裸单题作答才在此构造 answer_questions 提交动作;LOW 置信(试探/推迟,如"我猜A但你先别判",
-    # submission_confidence 首子句非干净答案)不构造 → 下游不缓存 submission、不进判分。把 Step
-    # 4.5/4.6 的逐路径 gate 收敛到单一最早点(未来新增下游消费路径自动继承,止 whack-a-mole);
-    # per-path gate 保留作 defense-in-depth。保硬约束40:HIGH 裸作答仍构造提交动作必判。
-    # batch / numbered-single 是显式结构化提交(=HIGH),走上面分支,不经此 gate。
-    if submission_confidence(user_message, normalized_context) == "low":
-        return normalized_context, None
-    return target_context, {
-        "intent": "answer_questions",
-        "confidence": 0.92,
-        "answers": [
-            {
-                "question_id": submission.get("question_id", ""),
-                "answer": str(submission.get("answer") or "").strip(),
-            }
-        ],
-        "reason": "用户消息包含当前题目的可解析答案，优先进入批改。",
-    }
-
-
-def _deterministic_followup_action_for_user_message(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> dict[str, Any] | None:
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return None
-    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
-    if isinstance(submission, dict) and submission.get("kind") != "ambiguous":
-        return None
-    if not looks_like_question_followup(user_message, normalized_context):
-        return None
-    return {
-        "intent": "ask_followup",
-        "confidence": 0.88,
-        "answers": [],
-        "reason": "用户消息是围绕当前题目的稳定格式追问，不应被解释成改答或提交答案。",
-    }
-
-
-def _has_ambiguous_submission_attempt(
-    user_message: str,
-    question_context: dict[str, Any] | None,
-) -> bool:
-    normalized_context = normalize_question_followup_context(question_context)
-    if normalized_context is None:
-        return False
-    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
-    return isinstance(submission, dict) and submission.get("kind") == "ambiguous"
-
-
-async def _resolve_question_followup_context_and_action(
-    *,
-    user_message: str,
-    explicit_context: dict[str, Any] | None,
-    explicit_action: dict[str, Any] | None,
-    candidate_contexts: list[dict[str, Any] | None] | tuple[dict[str, Any] | None, ...] = (),
-) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
-    normalized_explicit = normalize_question_followup_context(explicit_context)
-    normalized_action = _normalize_question_followup_action(explicit_action)
-    free_text_mcq_grading_request = (
-        looks_like_free_text_mcq_grading_request(user_message)
-        and looks_like_free_text_mcq_question_surface(user_message)
-    )
-    full_case_answer_submission = looks_like_full_case_answer_submission(user_message)
-    current_surface_context, current_surface_action = _current_surface_submission_context_and_action(
-        user_message
-    )
-    if (
-        current_surface_context is not None
-        and normalized_explicit is not None
-        and not _question_context_matches_current_surface(
-            user_message,
-            current_surface_context,
-            normalized_explicit,
-        )
-    ):
-        normalized_explicit = None
-        normalized_action = None
-
-    if _should_ignore_explicit_context_for_free_text_mcq(user_message, normalized_explicit):
-        normalized_explicit = None
-        normalized_action = None
-    if (
-        full_case_answer_submission
-        and normalized_explicit is not None
-        and not _case_context_matches_full_case_surface(user_message, normalized_explicit)
-    ):
-        normalized_explicit = None
-        normalized_action = None
-    if (
-        normalized_explicit is not None
-        and not (normalized_explicit.get("items") or [])
-        and _looks_like_batch_correction_reference(user_message)
-    ):
-        normalized_explicit = None
-        normalized_action = None
-
-    if normalized_explicit is not None:
-        for candidate in candidate_contexts:
-            if (
-                current_surface_context is not None
-                and not _question_context_matches_current_surface(
-                    user_message,
-                    current_surface_context,
-                    candidate or {},
-                )
-            ):
-                continue
-            merged = _merge_public_submission_with_authoritative_context(
-                normalized_explicit,
-                candidate,
-            )
-            if merged is not None:
-                normalized_explicit = merged
-                break
-        if full_case_answer_submission:
-            normalized_explicit = _annotate_full_case_submission_context(
-                user_message,
-                normalized_explicit,
-            )
-            return normalized_explicit, _full_case_submission_action()
-        submission_context, submission_action = _submission_action_for_user_message(
-            user_message,
-            normalized_explicit,
-        )
-        if submission_action is not None:
-            return submission_context or normalized_explicit, submission_action
-        if _has_ambiguous_submission_attempt(user_message, normalized_explicit):
-            return normalized_explicit, None
-        if (
-            followup_action_route(normalized_action) == "practice_generation"
-            and not looks_like_practice_generation_request(user_message)
-        ):
-            normalized_action = None
-        if normalized_action is None:
-            practice_action = _practice_generation_action_for_explicit_request(
-                user_message,
-                normalized_explicit,
-            )
-            if practice_action is not None:
-                normalized_explicit = (
-                    reset_question_submission_state(normalized_explicit)
-                    or normalized_explicit
-                )
-                normalized_action = practice_action
-            else:
-                deterministic_followup_action = _deterministic_followup_action_for_user_message(
-                    user_message,
-                    normalized_explicit,
-                )
-                if deterministic_followup_action is not None:
-                    return normalized_explicit, deterministic_followup_action
-                normalized_action = await interpret_question_followup_action(
-                    user_message,
-                    normalized_explicit,
-                )
-                if (
-                    followup_action_route(normalized_action) == "practice_generation"
-                    and not looks_like_practice_generation_request(user_message)
-                ):
-                    normalized_action = None
-        deterministic_followup = looks_like_question_followup(user_message, normalized_explicit)
-        if (
-            deterministic_followup
-            and followup_action_route(normalized_action) == "practice_generation"
-            and not looks_like_practice_generation_request(user_message)
-        ):
-            normalized_action = None
-        return normalized_explicit, normalized_action
-
-    for candidate in candidate_contexts:
-        normalized_candidate = normalize_question_followup_context(candidate)
-        if normalized_candidate is None:
-            continue
-        if (
-            current_surface_context is not None
-            and not _question_context_matches_current_surface(
-                user_message,
-                current_surface_context,
-                normalized_candidate,
-            )
-        ):
-            continue
-        if (
-            full_case_answer_submission
-            and not _case_context_matches_full_case_surface(user_message, normalized_candidate)
-        ):
-            continue
-        if full_case_answer_submission:
-            normalized_candidate = _annotate_full_case_submission_context(
-                user_message,
-                normalized_candidate,
-            )
-            return normalized_candidate, _full_case_submission_action()
-        if (
-            free_text_mcq_grading_request
-            and not _question_context_matches_free_text_surface(user_message, normalized_candidate)
-        ):
-            continue
-        if (
-            not (normalized_candidate.get("items") or [])
-            and _looks_like_batch_correction_reference(user_message)
-        ):
-            continue
-        submission_context, submission_action = _submission_action_for_user_message(
-            user_message,
-            normalized_candidate,
-        )
-        if submission_action is not None:
-            return submission_context or normalized_candidate, submission_action
-        if _has_ambiguous_submission_attempt(user_message, normalized_candidate):
-            return normalized_candidate, None
-        practice_action = _practice_generation_action_for_explicit_request(
-            user_message,
-            normalized_candidate,
-        )
-        if practice_action is not None:
-            return (
-                reset_question_submission_state(normalized_candidate) or normalized_candidate,
-                practice_action,
-            )
-        deterministic_followup_action = _deterministic_followup_action_for_user_message(
-            user_message,
-            normalized_candidate,
-        )
-        if deterministic_followup_action is not None:
-            return normalized_candidate, deterministic_followup_action
-        deterministic_followup = looks_like_question_followup(user_message, normalized_candidate)
-        candidate_action = await interpret_question_followup_action(
-            user_message,
-            normalized_candidate,
-        )
-        candidate_route = followup_action_route(candidate_action)
-        if candidate_route == "submission":
-            return normalized_candidate, candidate_action
-        if candidate_route == "practice_generation" and looks_like_practice_generation_request(
-            user_message
-        ):
-            return normalized_candidate, candidate_action
-        if candidate_route == "followup" and deterministic_followup:
-            return normalized_candidate, candidate_action
-        if deterministic_followup:
-            return normalized_candidate, None
-
-    if current_surface_context is not None:
-        return current_surface_context, current_surface_action
-
-    return None, None
 
 
 def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -2322,6 +1679,12 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 "rag_retrieval_error_type",
                 "degraded_exact_answer_guard_applied",
                 "degraded_mcq_grading_guard_applied",
+                # ② content-truth review loop (observe-only): same finalization-flag
+                # channel as degraded_mcq above — carry the low-confidence regulation
+                # claims from the assistant event into the turn summary so the terminal
+                # observation event (and the offline review agent) can see them.
+                "content_truth_guard_applied",
+                "content_truth_low_confidence_claims",
             ):
                 if metadata_key in candidate and metadata_key not in retrieval_metadata:
                     retrieval_metadata[metadata_key] = candidate[metadata_key]
@@ -4388,76 +3751,14 @@ class TurnRuntimeManager:
                 "exam_track": explicit_exam_track,
             }
             runtime_only_config["interaction_hints"] = runtime_interaction_hints
-        runtime_followup_question_context = normalize_question_followup_context(
-            runtime_only_config.get("followup_question_context")
-        )
-        runtime_followup_action = _normalize_question_followup_action(
-            runtime_only_config.get("_question_followup_action")
-        )
-        stored_active_object = None
-        candidate_followup_contexts: list[dict[str, Any] | None] = []
-        active_object_lookup_started_at = time.perf_counter()
-        if session_id:
-            stored_active_object = await self._safe_store_call(
-                None,
-                "get_active_object_for_start_turn",
-                self.store.get_active_object,
-                session_id,
-                default=None,
-            )
-            stored_followup_question_context = extract_question_context_from_active_object(
-                stored_active_object
-            )
-            volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
-            candidate_followup_contexts.extend(
-                [stored_followup_question_context, volatile_followup_question_context]
-            )
-            billing_context = (
-                runtime_only_config.get("billing_context")
-                if isinstance(runtime_only_config.get("billing_context"), dict)
-                else {}
-            )
-            mirror_user_id = str(
-                billing_context.get("learning_user_id")
-                or billing_context.get("user_id")
-                or billing_context.get("wallet_user_id")
-                or ""
-            ).strip()
-            for mirror_session_id in _tutorbot_mirror_session_ids(
-                bot_id=str(raw_config.get("bot_id") or "").strip(),
-                session_id=session_id,
-                user_id=mirror_user_id,
-            ):
-                mirror_active_object = await self._safe_store_call(
-                    None,
-                    "get_tutorbot_mirror_active_object_for_start_turn",
-                    self.store.get_active_object,
-                    mirror_session_id,
-                    default=None,
-                )
-                mirror_followup_context = extract_question_context_from_active_object(
-                    mirror_active_object
-                )
-                if mirror_followup_context is not None:
-                    candidate_followup_contexts.append(mirror_followup_context)
-        setup_stages.record_since("active_object_lookup", active_object_lookup_started_at)
-        followup_resolution_started_at = time.perf_counter()
-        (
-            runtime_followup_question_context,
-            runtime_followup_action,
-        ) = await _resolve_question_followup_context_and_action(
-            user_message=raw_user_content,
-            explicit_context=runtime_followup_question_context,
-            explicit_action=runtime_followup_action,
-            candidate_contexts=candidate_followup_contexts,
-        )
-        _stamp_current_submission_scene_pre_capability(
-            runtime_only_config,
-            user_message=raw_user_content,
-            followup_context=runtime_followup_question_context,
-            followup_action=runtime_followup_action,
-        )
-        setup_stages.record_since("followup_resolution", followup_resolution_started_at)
+        # QTPK S3d (2026-06-27): start_turn no longer pre-parses the
+        # question-turn followup context, nor pre-selects fast/deep mode. Those
+        # were the FIRST of three physical parses; ``_run_turn`` re-resolves the
+        # followup authoritatively (single authority, incl. mirror sessions —
+        # see ``_collect_mirror_followup_candidates``) and the fast/deep mode is
+        # selected by ``TutorBotCapability._mode_policy`` from the SAME canonical
+        # ``active_object_requires_deep_mode`` (S3a convergence). Differential /
+        # regression parity: tests/services/test_start_turn_mode_selection_removal_parity.py.
         entry_capability_hint = (
             requested_capability
             if requested_capability in {"chat", "tutorbot"}
@@ -4477,20 +3778,6 @@ class TurnRuntimeManager:
             requested_capability = None
             capability = ""
             config_capability = "chat"
-        mode_selection_active_object = stored_active_object
-        if (
-            mode_selection_active_object is not None
-            and extract_question_context_from_active_object(mode_selection_active_object) is not None
-            and runtime_followup_question_context is None
-            and followup_action_route(runtime_followup_action) is None
-        ):
-            mode_selection_active_object = None
-        if runtime_followup_question_context is not None:
-            runtime_only_config["followup_question_context"] = dict(
-                runtime_followup_question_context
-            )
-        if runtime_followup_action is not None:
-            runtime_only_config["_question_followup_action"] = dict(runtime_followup_action)
         public_config_validation_started_at = time.perf_counter()
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
@@ -4519,39 +3806,6 @@ class TurnRuntimeManager:
         )
         if interaction_profile:
             runtime_only_config["interaction_profile"] = interaction_profile
-        requested_response_mode = resolve_requested_response_mode(
-            chat_mode=raw_config.get("chat_mode"),
-            interaction_hints=runtime_interaction_hints,
-        )
-        if _should_select_tutorbot_mode(
-            capability=config_capability,
-            bot_id=bot_id,
-            interaction_profile=interaction_profile,
-            interaction_hints=runtime_interaction_hints,
-            explicit_chat_mode=explicit_chat_mode,
-        ):
-            selected_chat_mode, selection_reason = select_response_mode(
-                requested_response_mode,
-                user_message=raw_user_content,
-                interaction_hints=runtime_interaction_hints,
-                has_active_object=bool(
-                    runtime_followup_question_context
-                    or _active_object_requires_deep_mode(mode_selection_active_object)
-                ),
-            )
-            validated_public_config = {
-                **validated_public_config,
-                "chat_mode": selected_chat_mode,
-            }
-            runtime_interaction_hints = {
-                **dict(runtime_interaction_hints or {}),
-                "requested_response_mode": requested_response_mode,
-                "effective_response_mode": selected_chat_mode,
-                "selected_mode": selected_chat_mode,
-                "response_mode_selection_reason": selection_reason,
-            }
-            runtime_only_config["interaction_hints"] = runtime_interaction_hints
-            effective_chat_mode_explicit = True
         bot_runtime_defaults_started_at = time.perf_counter()
         knowledge_chain_defaults = _resolve_bot_runtime_defaults(
             bot_id=bot_id,
@@ -4913,6 +4167,49 @@ class TurnRuntimeManager:
         async for item in self.subscribe_turn(active_turn["id"], after_seq=after_seq):
             yield item
 
+    async def _collect_mirror_followup_candidates(
+        self,
+        execution: "_TurnExecution | None",
+        *,
+        session_id: str,
+        bot_id: str,
+        billing_context: dict[str, Any] | None,
+    ) -> list[dict[str, Any] | None]:
+        """QTPK S3d single authority: the followup context is resolved exactly
+        once, in ``_run_turn``. ``start_turn`` no longer pre-collects mirror
+        candidates, so the authoritative resolve must read the same TutorBot
+        mirror sessions itself — otherwise cross-mirror follow-ups (e.g. a
+        question asked on one surface, referenced on its mirror) would silently
+        lose their question context."""
+        if not session_id:
+            return []
+        context = billing_context if isinstance(billing_context, dict) else {}
+        mirror_user_id = str(
+            context.get("learning_user_id")
+            or context.get("user_id")
+            or context.get("wallet_user_id")
+            or ""
+        ).strip()
+        candidates: list[dict[str, Any] | None] = []
+        for mirror_session_id in _tutorbot_mirror_session_ids(
+            bot_id=str(bot_id or "").strip(),
+            session_id=session_id,
+            user_id=mirror_user_id,
+        ):
+            mirror_active_object = await self._safe_store_call(
+                execution,
+                "get_tutorbot_mirror_active_object_for_run_turn",
+                self.store.get_active_object,
+                mirror_session_id,
+                default=None,
+            )
+            mirror_followup_context = extract_question_context_from_active_object(
+                mirror_active_object
+            )
+            if mirror_followup_context is not None:
+                candidates.append(mirror_followup_context)
+        return candidates
+
     async def _run_turn(self, execution: _TurnExecution) -> None:
         await self._wait_for_first_subscriber(execution)
         payload = execution.payload
@@ -4925,6 +4222,7 @@ class TurnRuntimeManager:
         persisted_attachment_records: list[dict[str, Any]] = []
         assistant_events: list[dict[str, Any]] = []
         assistant_content = ""
+        streamed_assistant_content = ""
         authoritative_assistant_content = ""
         assistant_content_source = "content_stream"
         turn_observation: Any | None = None
@@ -5054,11 +4352,10 @@ class TurnRuntimeManager:
                         "guardrail": "tutorbot_security_skill",
                     },
                 ),
-                StreamEvent(
-                    type=StreamEventType.RESULT,
+                TerminalResultAssembler.build_event(
                     source=public_source,
-                    stage="responding",
                     metadata=security_metadata,
+                    stage="responding",
                 ),
                 StreamEvent(
                     type=StreamEventType.STAGE_END,
@@ -5246,7 +4543,18 @@ class TurnRuntimeManager:
                 stored_followup_question_context = extract_question_context_from_active_object(
                     stored_active_object
                 )
-            # task#14 (2026-06-22): do NOT demote the active batch question_set when this
+            # S4(b) 相位权威标注（contracts/turn.md §"QTPK 物理抽出 S4(b)"）：
+            # 这是 active_object → suspended_object_stack 转换的 **turn-START 相位**单一权威
+            # （在 scene gate 之前 demote/压栈），与 routing 相位
+            # （semantic_router.apply_active_object_transition，orchestrator 经
+            # metadata.suspended_object_stack 读栈并 resume/出栈）**相位互补、非重复**：
+            # turn-START 只压栈、canonical 才出栈，两者不在同一输入上做矛盾决策。owner 决策 (b)
+            # 文档化相位互补，不强行收敛进 canonical（强收敛冒 task#14 回指 SEV-1 + 给
+            # canonical 加复杂度）。pipeline / 相位边界证据见
+            # tests/services/test_turn_start_demote_canonical_pipeline.py。
+            #
+            # task#14 (2026-06-22) —— turn-START 相位独有的回指 SEV-1 保护，不可删 / 不可折叠
+            # 进 canonical：do NOT demote the active batch question_set when this
             # turn explicitly references one of its items by ordinal ("刚才第3题的答案和考点
             # 讲讲"). Otherwise the set is pushed to the suspended stack and the scene
             # low-information gate (which reads active_object/question_followup_context, not
@@ -5257,12 +4565,50 @@ class TurnRuntimeManager:
             stored_set_ordinal_referenced = _message_references_stored_question_set_item(
                 raw_user_content, stored_followup_question_context
             )
+            # #287 (2026-06-28) — turn-START 相位独有的 re-present 引用保护，与 task#14
+            # 同形（"本轮引用了活跃对象 → 不要 demote"）：当本轮显式要求把活跃 MCQ
+            # 重排 / 重新展示（"选项重新排列一下" / "把abcd换个顺序重新给我看"）时，不要
+            # 把活跃 MCQ 压进 suspended stack。否则 active_object 被换成 open_chat_topic，
+            # tutorbot/deep_question 的确定性 re-present 短路（build_canonical_represent_response）
+            # 因 context 里没有活跃 choice MCQ 而 fail-safe 落 free LLM → 凭空换题（幻觉）。
+            # 单一 re-present 意图权威 = question_followup.message_has_represent_request_intent
+            # （build_canonical_represent_response 复用同一权威），此处只读不重判。
+            stored_active_mcq_represent_referenced = _message_requests_active_mcq_represent(
+                raw_user_content, stored_followup_question_context
+            )
+            # S1 (2026-06-29) — turn-START 相位的 submission carve-out，与 task#14
+            # (ordinal) / #287 (re-present) 同形（"本轮引用了活跃对象 → 不要 demote"）：
+            # 当本轮是对活跃题组的真实作答（batch "q1 B q2 C q3 A" / 裸答 "我选B"）时，
+            # 不要把活跃 question_set 压进 suspended stack。否则判分 dispatch 读不到题组 →
+            # 重显题面而非判分（live S1 0/6，turn-start 埋点实证 WILL_DEMOTE=True on every
+            # 作答轮）。单一 submission 意图权威 = question_followup.resolve_submission_attempt
+            # （scene/grading 同一权威，此处只读不重判）。SEV 安全：保活不等于判分，真正判分仍由
+            # 下游 submission_confidence 把关（LOW/试探/推迟/回指 → ask_followup），凭空判分/倒诬保护不动。
+            stored_set_submission_referenced = _message_is_submission_for_stored_set(
+                raw_user_content, stored_followup_question_context
+            )
+            # 安全 SEV（2026-06-30，Langfuse 取证定位）—— turn-START 相位的 anti-peek
+            # carve-out，与 task#14(ordinal) / #287(re-present) / S1(submission) 同形
+            # （"本轮引用了活跃对象 → 不要 demote"）：当本轮是对一道**未作答活跃题的
+            # 隐式求助**（"给点提示 / 还是不会 / 这题怎么想"，should_block=True）时，不要
+            # 把它压进 suspended stack。否则 active_object 被换成 open_chat_topic，下游
+            # anti-peek 消费点（tutorbot 结构化提示短路 / reveal 决策）读不到活跃未答题
+            # → 落自由 LLM，LLM 从历史看到题、用知识自推答案泄底（live 红队 5/6 复现，
+            # 软指令/遮蔽已证伪）。单一权威 = should_block_unanswered_reference_reveal
+            # （reveal/anti-peek 同一权威，此处只读不重判）。显式要答案(should_block=False)
+            # 不命中本 carve-out → 照常 demote，由 reveal 路径放行答案（不抑制显式）。
+            stored_set_unanswered_implicit_help = should_block_unanswered_reference_reveal(
+                raw_user_content, stored_followup_question_context
+            )
             if (
                 stored_active_object is not None
                 and stored_followup_question_context is not None
                 and followup_question_context is None
                 and followup_action_route(followup_question_action) is None
                 and not stored_set_ordinal_referenced
+                and not stored_active_mcq_represent_referenced
+                and not stored_set_submission_referenced
+                and not stored_set_unanswered_implicit_help
             ):
                 stored_suspended_object_stack = _prepend_suspended_object(
                     stored_suspended_object_stack,
@@ -5328,6 +4674,12 @@ class TurnRuntimeManager:
                     ),
                     source_turn_id=turn_id,
                 )
+            mirror_followup_candidates = await self._collect_mirror_followup_candidates(
+                execution,
+                session_id=session_id,
+                bot_id=str(request_config.get("bot_id", "") or "").strip(),
+                billing_context=billing_context,
+            )
             (
                 followup_question_context,
                 followup_question_action,
@@ -5338,13 +4690,8 @@ class TurnRuntimeManager:
                 candidate_contexts=[
                     stored_followup_question_context,
                     volatile_followup_question_context,
+                    *mirror_followup_candidates,
                 ],
-            )
-            _stamp_current_submission_scene_pre_capability(
-                request_config,
-                user_message=raw_user_content,
-                followup_context=followup_question_context,
-                followup_action=followup_question_action,
             )
             if followup_question_context:
                 active_object = build_active_object_from_question_context(
@@ -5390,7 +4737,6 @@ class TurnRuntimeManager:
                 self._set_volatile_question_context(session_id, dict(followup_question_context))
             notebook_context = ""
             history_context = ""
-            context_pack: Any | None = None
             context_route: str = ""
             task_anchor_type: str = ""
             route_confidence = 0.0
@@ -5445,10 +4791,99 @@ class TurnRuntimeManager:
                 (interaction_hints or {}).get("selected_mode")
                 or effective_response_mode
             ).strip()
-            trace_metadata["chat_mode"] = chat_mode
+            # QTPK S3c (2026-06-27): start_turn no longer pre-selects fast/deep,
+            # so the effective mode is no longer pre-stamped into chat_mode / hints
+            # nor persisted by start_turn. For tutorbot-mode turns this runtime now
+            # owns the single fast/deep authority: when the mode is still smart /
+            # empty it is selected here from the SAME canonical the capability
+            # fallback uses (S3a convergence; parity in
+            # tests/services/test_start_turn_mode_selection_removal_parity.py) over
+            # the already-resolved active_object / followup. The resolved mode is
+            # then propagated to the orchestrator/capability (config_overrides +
+            # chat_mode_explicit) and persisted to session preferences so the
+            # mobile response-mode echo (_load_feedback_response_mode_metadata)
+            # does not degrade to smart.
+            interaction_profile = _normalize_interaction_profile_name(
+                request_config.get("interaction_profile")
+                or (interaction_hints or {}).get("profile")
+                or ""
+            )
+            # ``chat_mode`` here is the validated public config which defaults to
+            # "deep" even when the client never sent one — so ``bool(chat_mode)``
+            # is NOT the explicit signal. The genuine explicit flag is
+            # ``payload["_chat_mode_explicit"]`` (set by start_turn from the raw
+            # request). Using it keeps generic chat turns (config {}) out of the
+            # tutorbot fast/deep path.
+            client_chat_mode_explicit = bool(payload.get("_chat_mode_explicit"))
+            tutorbot_mode_turn = _should_select_tutorbot_mode(
+                capability="tutorbot" if capability_name in {"", "tutorbot"} else capability_name,
+                bot_id=str(request_config.get("bot_id", "") or "").strip(),
+                interaction_profile=interaction_profile,
+                interaction_hints=interaction_hints,
+                explicit_chat_mode=client_chat_mode_explicit,
+            )
+            if tutorbot_mode_turn:
+                # The genuine fast/deep intent is the REQUESTED mode (from hints /
+                # an explicit client chat_mode), NOT the validated public-config
+                # default (which is "deep"). start_turn used to overwrite that
+                # default via mode-selection; now this runtime selects from the
+                # SAME canonical when the request is smart/empty.
+                hints_requested_mode = str(
+                    (interaction_hints or {}).get("requested_response_mode")
+                    or raw_interaction_hints.get("requested_response_mode")
+                    or ""
+                ).strip().lower()
+                if hints_requested_mode not in {"fast", "deep"}:
+                    hints_requested_mode = ""
+                tutorbot_requested_mode = hints_requested_mode or (
+                    chat_mode if (client_chat_mode_explicit and chat_mode in {"fast", "deep"}) else ""
+                )
+                if tutorbot_requested_mode in {"fast", "deep"}:
+                    canonical_mode = tutorbot_requested_mode
+                    canonical_reason = "requested_mode_explicit"
+                else:
+                    canonical_mode, canonical_reason = select_response_mode(
+                        tutorbot_requested_mode or "smart",
+                        user_message=raw_user_content,
+                        interaction_hints=(
+                            interaction_hints if isinstance(interaction_hints, dict) else None
+                        ),
+                        has_active_object=active_object_requires_deep_mode(
+                            active_object=active_object,
+                            followup_context=followup_question_context,
+                            user_message=raw_user_content,
+                        ),
+                    )
+                effective_response_mode = canonical_mode
+                selected_mode = canonical_mode
+                request_config["chat_mode"] = canonical_mode
+                payload["_chat_mode_explicit"] = True
+                if isinstance(interaction_hints, dict):
+                    interaction_hints["effective_response_mode"] = canonical_mode
+                    interaction_hints["selected_mode"] = canonical_mode
+                    if requested_response_mode:
+                        interaction_hints.setdefault(
+                            "requested_response_mode", requested_response_mode
+                        )
+                    interaction_hints["response_mode_selection_reason"] = canonical_reason
+            trace_metadata["chat_mode"] = str(request_config.get("chat_mode") or chat_mode).strip()
             trace_metadata["requested_response_mode"] = requested_response_mode
             trace_metadata["effective_response_mode"] = effective_response_mode
             trace_metadata["selected_mode"] = selected_mode
+            if tutorbot_mode_turn and session_id:
+                await self._safe_store_call(
+                    execution,
+                    "persist_effective_response_mode_for_mobile_echo",
+                    self.store.update_session_preferences,
+                    session_id,
+                    {
+                        "chat_mode": effective_response_mode,
+                        "interaction_hints": interaction_hints
+                        if isinstance(interaction_hints, dict)
+                        else {},
+                    },
+                    default=None,
+                )
             exam_track = normalize_exam_track(
                 request_config.get("exam_track")
                 or (interaction_hints or {}).get("exam_track")
@@ -5664,7 +5099,6 @@ class TurnRuntimeManager:
                             history_references=history_references,
                         )
                         history_result = orchestrated["history_result"]
-                        context_pack = orchestrated["pack"]
                         effective_user_message = orchestrated["effective_user_message"]
                         memory_context = orchestrated["memory_context"]
                         notebook_context = orchestrated["notebook_context"]
@@ -6177,6 +5611,10 @@ class TurnRuntimeManager:
                             dict(event.metadata or {}),
                             result_trace_metadata,
                         )
+                        _replace_public_result_response_with_stream(
+                            event,
+                            streamed_assistant_content,
+                        )
                         if (
                             _event_visibility(event) == _PUBLIC_VISIBILITY
                             and _result_response_text(event.metadata or {})
@@ -6186,10 +5624,14 @@ class TurnRuntimeManager:
                         event.type == StreamEventType.DONE
                         and synthesize_mobile_result_before_done
                         and not public_result_response_seen
-                        and authoritative_assistant_content
+                        and (streamed_assistant_content or authoritative_assistant_content)
                     ):
+                        synthetic_content = (
+                            _coerce_public_stream_response(streamed_assistant_content)
+                            or authoritative_assistant_content
+                        )
                         synthetic_result = _build_synthetic_result_from_final_content(
-                            content=authoritative_assistant_content,
+                            content=synthetic_content,
                             source=str(event.source or "").strip() or capability_name or "turn_runtime",
                         )
                         if synthetic_result is not None:
@@ -6218,6 +5660,8 @@ class TurnRuntimeManager:
                     ):
                         _record_first_useful_content_once(payload_event)
                         assistant_events.append(payload_event)
+                    if _should_capture_assistant_content(event):
+                        streamed_assistant_content += str(event.content or "")
                     authoritative_candidate = _extract_authoritative_assistant_content(event)
                     if authoritative_candidate:
                         authoritative_assistant_content = authoritative_candidate
@@ -6601,71 +6045,36 @@ class TurnRuntimeManager:
 
         Single-authority: the only active_object identity writer is turn-START; this
         keeps turn-END from acting as a second, set-destroying writer.
-        """
-        result_ao = normalize_active_object(result_active_object)
-        if result_ao is None:
-            return result_active_object
-        result_ctx = extract_question_context_from_active_object(result_ao)
-        if result_ctx is None:
-            return result_active_object
-        result_items = result_ctx.get("items") or []
-        # Only single-item results can collapse a set; a result that is itself a set
-        # is either a fresh generated set (switch) or already whole — leave it.
-        if len(result_items) > 1:
-            return result_active_object
-        result_single = result_items[0] if result_items else result_ctx
-        result_qid = str(result_single.get("question_id") or "").strip()
 
-        prior_ao = await self._safe_store_call(
+        S2 (QTPK physical extraction): the merge **decision logic** now lives in the
+        QTPK pure functions ``grading_merge_needs_prior`` (the pre-check) and
+        ``apply_grading_result_patch`` (the branch logic). This method keeps only the
+        transport/I/O. Byte-identical behavior — the store read of the prior stays
+        **conditional**: the pure pre-check replicates the original early-return
+        conditions (result not normalizable / no question context / result is itself
+        a set), and on those early-return paths the original method returned *before*
+        reading the store. We must not read the store there either: ``_safe_store_call``
+        can re-raise non-persistence errors, so an unconditional read would not be
+        byte-identical. ``tests/services/test_qtpk_grading_patch.py`` asserts parity
+        with the pre-move logic for every E8 scenario.
+        """
+        if not grading_merge_needs_prior(result_active_object):
+            # Original early-return path: result is not normalizable, carries no
+            # question context, or is itself a set → return unchanged WITHOUT
+            # touching the store (matches the pre-move method exactly).
+            return result_active_object
+        prior_active_object = await self._safe_store_call(
             execution,
             "get_active_object_for_grading_merge",
             self.store.get_active_object,
             execution.session_id,
             default=None,
         )
-        normalized_prior_ao = normalize_active_object(prior_ao)
-        prior_ctx = extract_question_context_from_active_object(prior_ao)
-        prior_items = list((prior_ctx or {}).get("items") or [])
-        decision = metadata.get("turn_semantic_decision")
-        next_action = str((decision or {}).get("next_action") or "").strip() if isinstance(decision, dict) else ""
-        result_mode = str(
-            metadata.get("mode") or metadata.get("selected_mode") or ""
-        ).strip().lower()
-        is_grading_result = next_action == "route_to_grading" or result_mode == "grading"
-        if len(prior_items) <= 1:
-            if is_grading_result and prior_ctx is not None:
-                prior_object_id = str((normalized_prior_ao or {}).get("object_id") or "").strip()
-                result_object_id = str(result_ao.get("object_id") or "").strip()
-                if prior_object_id and result_object_id and prior_object_id != result_object_id:
-                    return prior_ao if isinstance(prior_ao, dict) else result_active_object
-            # Prior was not a batch set → nothing to preserve, behave as before.
-            return result_active_object
-
-        prior_qids = [str(it.get("question_id") or "").strip() for it in prior_items]
-
-        if result_qid and result_qid in prior_qids:
-            # Grading-of-set-item: merge the judged version back into the set.
-            merged_items = [
-                dict(result_single) if qid == result_qid else it
-                for it, qid in zip(prior_items, prior_qids)
-            ]
-        elif next_action == "route_to_grading":
-            # Grading turn but the result id does not line up with the set (id not
-            # preserved through grading). Never collapse on a grading turn: keep the
-            # prior set intact (the judging is already surfaced in the response).
-            merged_items = prior_items
-        else:
-            # Genuine switch (new object not in the prior set) → let it replace.
-            return result_active_object
-
-        merged_ctx = dict(prior_ctx)
-        merged_ctx["items"] = merged_items
-        merged_ao = build_active_object_from_question_context(
-            merged_ctx,
-            previous_active_object=prior_ao,
-            source_turn_id=str(metadata.get("turn_id") or "").strip() or None,
+        return apply_grading_result_patch(
+            prior_active_object=prior_active_object,
+            result_active_object=result_active_object,
+            metadata=metadata,
         )
-        return merged_ao or result_active_object
 
     async def _persist_and_publish(
         self,

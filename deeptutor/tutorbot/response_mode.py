@@ -202,6 +202,68 @@ def select_response_mode(
     return "fast", ",".join(fast_reasons)
 
 
+def active_object_requires_deep_mode(
+    *,
+    active_object: dict[str, Any] | None,
+    followup_context: dict[str, Any] | None,
+    user_message: str,
+) -> bool:
+    """Single authority (control-plane S3a): does the active question object
+    require DEEP mode-selection?
+
+    Both ``start_turn`` mode-selection and ``TutorBotCapability._mode_policy``
+    smart fallback call this. It carries the FINE semantics (the more correct
+    of the two legacy implementations): an active question with an answer
+    submission / practice-generation / grading followup is demoted to FAST;
+    a pure explanation request (or any active object without such a followup)
+    stays DEEP.
+
+    This decides the fast/deep response mode and intentionally lives in
+    ``response_mode`` rather than QTPK — fast/deep is a response-mode policy,
+    not a question-turn fact.
+    """
+    from deeptutor.services.active_object_builder import (
+        extract_question_context_from_active_object,
+        normalize_active_object,
+    )
+    from deeptutor.services.question_followup import (
+        normalize_question_followup_context,
+        resolve_submission_attempt,
+    )
+    from deeptutor.services.semantic_router import is_question_active_object_type
+    from deeptutor.tutorbot.teaching_modes import (
+        looks_like_practice_generation_request,
+    )
+
+    normalized = normalize_active_object(active_object)
+    if not isinstance(normalized, dict):
+        return False
+    object_type = str(normalized.get("object_type") or "").strip()
+    if object_type in {"", "open_chat_topic"}:
+        return False
+
+    resolved_followup = normalize_question_followup_context(followup_context)
+    if not resolved_followup:
+        resolved_followup = extract_question_context_from_active_object(normalized)
+
+    # Family-first: the FAST-demote (submission / practice / grading) branch applies
+    # only to question (题型) objects — including open_world_question, which the old
+    # hand-listed {question_set, single_question} silently dropped. Non-question objects
+    # keep their pre-existing DEEP fall-through unchanged.
+    if is_question_active_object_type(object_type) and resolved_followup:
+        if looks_like_practice_generation_request(user_message):
+            return False
+        _, submission = resolve_submission_attempt(user_message, resolved_followup)
+        if submission:
+            return False
+        text = str(user_message or "").strip()
+        if any(marker in text for marker in ("我答", "我选", "批改", "判分", "打分")) and re.search(
+            r"第\s*[0-9一二两三四五六七八九十]+\s*[题问]", text
+        ):
+            return False
+    return True
+
+
 def build_mode_execution_policy(
     requested_mode: Any,
     *,

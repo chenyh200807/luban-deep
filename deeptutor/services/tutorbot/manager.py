@@ -31,6 +31,9 @@ from deeptutor.services.compiled_knowledge.lecture_answer_methods import (
     format_lecture_answer_method_grounding,
     resolve_lecture_answer_method_context,
 )
+from deeptutor.services.construction_grading.case_output_policy import (
+    copy_current_case_grading_turn_metadata,
+)
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.observability.identity_bridge import enrich_trace_metadata_with_bi_identity
 from deeptutor.services.user_visible_output import coerce_user_visible_answer
@@ -1197,24 +1200,22 @@ class TutorBotManager:
                         "skill_trace",
                         "loader_source",
                         "skill_source_status",
-                        "grading_to_brain_loop",
-                        "learning_evidence_event_id",
                         "learning_training_intent",
                         "personalization_context",
                         "next_best_action",
-                        "grading_engine_version",
-                        "v1_case_graded",
-                        "score_authority",
-                        "grading_rubric_provenance",
-                        "case_grading_stream_mode",
-                        "case_grading_adjudication_strategy",
-                        "case_grading_adjudication_group_count",
-                        "case_grading_adjudication_point_count",
                         "llm_stream_telemetry",
+                        # ② content-truth review loop (observe-only): the agent loop stamps
+                        # these on runtime_metadata when it appends an honest hedge for an
+                        # unverifiable regulation code. Forward them (like the skill/lifecycle
+                        # keys above) so the result event + offline review agent can see them.
+                        "content_truth_guard_applied",
+                        "content_truth_low_confidence_claims",
                     ):
                         if metadata_key in runtime_metadata:
                             trace_metadata[metadata_key] = runtime_metadata[metadata_key]
                             merged_metadata[metadata_key] = runtime_metadata[metadata_key]
+                    copy_current_case_grading_turn_metadata(runtime_metadata, trace_metadata)
+                    copy_current_case_grading_turn_metadata(runtime_metadata, merged_metadata)
                     if any(
                         item.get("name") == "web_search"
                         for item in tool_trace_summary["tool_calls"]
@@ -1316,29 +1317,25 @@ class TutorBotManager:
                             "skill_trace",
                             "loader_source",
                             "skill_source_status",
-                            "grading_to_brain_loop",
-                            "learning_evidence_event_id",
                             "learning_training_intent",
                             "personalization_context",
                             "next_best_action",
-                            "grading_engine_version",
-                            "v1_case_graded",
-                            "score_authority",
-                            "grading_rubric_provenance",
-                            "case_grading_stream_mode",
-                            "case_grading_adjudication_strategy",
-                            "case_grading_adjudication_group_count",
-                            "case_grading_adjudication_point_count",
                             "luban_lecture_answer_method_context",
                             "luban_lecture_answer_method_context_status",
                             "luban_general_knowledge_context",
                             "luban_general_knowledge_context_status",
                             "llm_stream_telemetry",
                             "presentation",
+                            # ② content-truth review loop (observe-only): mirror the
+                            # runtime_metadata → session_metadata bridge so tutorbot.py's
+                            # result_payload allow-list can export the low-confidence claims.
+                            "content_truth_guard_applied",
+                            "content_truth_low_confidence_claims",
                         ):
                             if metadata_key in runtime_metadata:
                                 update_metadata[metadata_key] = runtime_metadata[metadata_key]
                         session_metadata.update(update_metadata)
+                        copy_current_case_grading_turn_metadata(runtime_metadata, session_metadata)
                     response = coerce_user_visible_answer(response)
                     usage_summary = observability.get_current_usage_summary()
                     observability.update_observation(

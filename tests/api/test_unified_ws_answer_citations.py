@@ -52,3 +52,35 @@ def test_unified_ws_public_boundary_redacts_hidden_fields_inside_citation_bundle
     assert "official_answer" not in text
     assert "grading_key" not in text
     assert "knowledge_point" in text
+
+
+def test_public_citation_bundle_drops_internal_source_titles() -> None:
+    event = {
+        "type": "result",
+        "metadata": {
+            "response": "我会只用学生可见的话复盘。",
+            "citation_bundle": {
+                "citation_state": "supported",
+                "refs": [
+                    {
+                        "marker": "〔1〕",
+                        "title": "learner_summary",
+                        "source": "learner_summary",
+                    },
+                    {
+                        "marker": "〔2〕",
+                        "title": "教材公开资料",
+                        "source": "construction_grading",
+                    },
+                ],
+                "claims": [],
+                "footer_text": "依据\n〔1〕learner_summary\n〔2〕教材公开资料",
+            },
+        },
+    }
+
+    redacted = _redact_event_for_public(event)
+    text = str(redacted)
+
+    assert "learner_summary" not in text
+    assert "教材公开资料" in text

@@ -179,6 +179,8 @@ grandfathered_base_url_sites:
   - {path: deeptutor/services/benchmark/kb_v5_readonly_adapter.py, provider: dashscope, kind: full_path_endpoint, status: existing}
   - {path: deeptutor/services/photo_answer/engines/qwen_vl_ocr.py, provider: dashscope, kind: full_path_endpoint, status: existing}
   - {path: deeptutor/tutorbot/providers/transcription.py, provider: groq, kind: full_path_endpoint, status: existing}
+  - {path: scripts/quality_gate/probes/_probe_common.py, provider: deepseek, kind: bare_base_url, status: existing}
+  - {path: scripts/quality_gate/probes/_probe_common.py, provider: zhipu, kind: full_path_endpoint, status: existing}
 
 # ── Provider modes (the closed set of provider kinds) ────────────────────────
 provider_modes:

@@ -73,7 +73,9 @@
 - 当用户消息本身包含完整案例题题干 / 问题 surface / `回答|作答|我的答案` surface 时，本轮完整题面和学员作答优先于 restored / candidate / explicit question-domain context；这类完整案例提交不得被低信息考试查询 gate 改写成 clarification。只有能用严格同题题面证明匹配当前消息的 active-object / followup context 可以继续作为同一题的 hidden authority；不匹配或无法证明同题的旧 `question_id`、`correct_answer`、`user_answer`、`grading_key` 只能作为历史状态保留，不得合并进本轮 case grading，也不得成为 Nexus/V1 的 `on_the_fly_reference` 评分 authority；当前题若未命中 compiled rubric，应由 case grading 主链路基于当前题干降级到 current reference 或 `derived_from_stem`，并在 trace 中标明 provenance。
 - 完整 free-text MCQ 的同题判断必须以题干/stem surface 为主，选项值重合只能辅助、不能单独保留旧题 context；带内部逗号/句读的选项仍属于完整题面，不得被 lifecycle 误判成无锚点答案提交并阻断 exact-question authority。
 - 评分 turn 的 `result.metadata.active_object` 只能更新当前 active object 的评分状态，不得替换当前 active object 身份。若 turn-start 已把当前完整 MCQ / case surface 写为本轮 `active_object`，而下游 grading RESULT 带回不同 `object_id` 的旧 question object，`turn_runtime` 必须保留 turn-start 的当前对象；批量题组的单题评分仍按题号合并回同一 question_set，不得因此塌缩成单题。
-- 稳定格式的选项或数值追问（如 `A错在哪里`、`那1.0m行不行`）属于 active-question follow-up，不是 answer revision。turn runtime 可以将其归一为 canonical `ask_followup` 输入证据；LLM follow-up interpreter 不得把这种 deterministic follow-up 升级为 `revise_answers` / `answer_questions`。
+- 稳定格式的选项或数值追问（如 `A错在哪里`、`那1.0m行不行`）属于 active-question follow-up，不是 answer revision。turn runtime 可以将其归一为 canonical `ask_followup` 输入证据；LLM follow-up interpreter、semantic/lifecycle upstream action hint、或其它 pre-capability hint 都不得把这种 deterministic follow-up 升级为 `revise_answers` / `answer_questions`。若 deterministic submission authority 对本轮返回 no-submission，而同一消息可确定为题目追问，turn runtime 必须把上游 submission hint 降级为 `ask_followup`，不得写 `user_answer`、不得发布 `relation_to_active_object=answer_active_object`。
+- 历史总结、内部证据/source 标题请求、退出判分/学习计划这类 active question 不可消费的 turn，即使当前存在 `question_followup_context` / `active_object`，也必须归一为 `temporary_detour` + `route_to_general_chat` + `no_state_change`；不得调用或采信 LLM follow-up interpreter 把它升级成 `ask_about_active_object`，不得进入 `deep_question_followup`，不得写 `user_answer`、不得更新 active object。
+- `v1_case_graded`、`score_authority`、`grading_to_brain_loop`、`learning_evidence_event_id`、case-rubric provenance / adjudication metadata 属于 **current case-grading turn receipt**，不是 session-level learner truth。只有当前 turn 的 `question_lifecycle_scene=case_grading` 且由 case grading authority 产出时，才允许进入 `result.metadata`、manager trace metadata 或 caller `session_metadata`；普通 TutorBot 总结 / 知识问答 / active-object detour turn 必须从 terminal result 与可继承 session metadata 中剥离这些字段，不得把上一轮判分 receipt 复用成当前 turn 的写回事实。
 - 当 exact-question 命中携带官方答案 / 解析 authority 时，`turn_runtime` 在持久化和发布 `result` 前必须把缺失的 `correct_answer`、`explanation` 等 hidden authority 同步到服务端内部 `question_followup_context` 与 `active_object.state_snapshot`。这一步只补齐 canonical result state，不得根据 `response` / `presentation` 文本反向猜测答案，也不得在公开 WS 边界绕过 hidden authority redaction。
 - 当用户在多题上下文中稳定点名“第 N 题答案 / 解析 / 公布”时，服务端仍以同一个 question-domain context 为 authority，但公开 reference feedback 只投影被点名 item；不得因顶层集合没有公开 `correct_answer` 就拒绝、澄清或改用 TutorBot/RAG 猜答案。
 - 练题出题属于 question authority 域。即使入口带有 `bot_id=construction-exam-coach` 或 TutorBot 默认知识库，`practice_generation` 也不得被预先 pin 到 TutorBot；必须交给统一 semantic route / `deep_question` 生成 canonical `active_object`、`question_followup_context`、隐藏标准答案与后续批改依据。TutorBot 可以参与普通讲解、知识问答和已命中精确题目的 grounded answer，但不得成为出题标准答案的第二套 authority。
@@ -122,7 +124,8 @@
 - `stage_start` / `stage_end` / `thinking` / `observation` / `tool_call` / `tool_result` / `progress` 默认应视为 `internal`，除非调用方显式提升。
 - 客户端可以把 `internal` 事件投影成用户可见的安全处理摘要，但普通用户 UI 禁止渲染 raw `content`、raw `metadata`、tool args、tool result 或内部 stage 原文。
 - `turn_runtime` 可以在统一 `/api/v1/ws` 内发送 `progress` + `metadata.status_kind=turn_status` 的 public-safe 进度投影（如 `understanding` / `writing`），用于降低首屏空等感。该事件只能表达“服务端正在处理到哪一段”，不得携带 hidden grading authority、不得成为 capability route / scoring / learner-state / billing authority，也不得替代 terminal `result.metadata.response`。
-- `result.metadata.response` 是 public `result` 事件里的 canonical final answer；如果某 capability 需要流式增量展示，增量 `content` 只能服务展示，不能替代 public `result` 的终局答案投影。对 `subscribe_turn` / `resume_from` 回放的历史 public `result` 事件，若缺少 `metadata.response` 但已有同源 `assistant_content`，`turn_runtime` 必须在统一 WS 出口清洗后投影出同一份 `result.metadata.response`，用于旧客户端兼容。mobile surface 上不得让空 `done` 抢先成为终态；当 capability 尚未发出 public `result.metadata.response`、但 runtime 已捕获同源 authoritative final content 时，`done` 前必须合成 public `result.metadata.response`。非 mobile 的普通 `content` + `done` 流不得仅因 capability route（如 auto-selected `deep_question`）被强行升级为 `result`。该字段仍只是 canonical final answer 的公开投影，不得反向解析成评分、路由、learner-state 或 hidden authority。
+- `result.metadata.response` 是 public `result` 事件里的 canonical final answer 投影；当本轮已经向学生发送 public final-answer `content` stream 时，`turn_runtime` 必须在持久化 / 发布 `result` 前把 `result.metadata.response` 对齐到已捕获的同源 public content stream，禁止后到的 stale / fallback `result.response` 覆盖学生实际看到的答案、历史 assistant message 或 replay read model。只有没有 public content stream 时，capability 发出的 `result.metadata.response` 才作为终局答案来源。对 `subscribe_turn` / `resume_from` 回放的历史 public `result` 事件，若缺少 `metadata.response` 但已有同源 `assistant_content`，`turn_runtime` 必须在统一 WS 出口清洗后投影出同一份 `result.metadata.response`，用于旧客户端兼容。mobile surface 上不得让空 `done` 抢先成为终态；当 capability 尚未发出 public `result.metadata.response`、但 runtime 已捕获同源 authoritative final content 时，`done` 前必须合成 public `result.metadata.response`。非 mobile 的普通 `content` + `done` 流不得仅因 capability route（如 auto-selected `deep_question`）被强行升级为 `result`。该字段仍只是 canonical final answer 的公开投影，不得反向解析成评分、路由、learner-state 或 hidden authority。
+- Public final-answer `content` deltas、`result.metadata.response` 与持久化 assistant message 必须复用同一个 user-visible output sink：剥离未被合法 citation footer / bundle 支撑的 `〔N〕` marker、内部 prompt envelope / 参考证据 / 局部工作记忆 / 长期画像提示等非学生正文；`learner_summary`、`working_memory`、`active_object`、`question_followup_context`、`turn_semantic_decision` 等内部 source title / trace key 也不得作为学生可见正文或 citation 标题泄漏。`content` delta 清洗必须保留原始首尾 whitespace，不能破坏 markdown heading/list 渲染；有合法 footer 支撑的 citation marker 仍可保留。
 - `result.metadata.citation_bundle` 是 final answer 的公开引用投影，只允许包含 public-safe `citation_state / refs / claims / footer_text`，不得携带 hidden grading authority。
 - `turn_runtime` 的 terminal observer metadata 可以携带 `latency_stages_ms`，用于把单轮耗时拆成 `context_route_preview`、`observability_start`、`context_build`、`capability_selection`、`user_message_persist`、`capability_stream` 等内部阶段，并由 runtime metrics / observer snapshot 聚合。该字段是运维观测投影，不是公开 stream contract、capability route、评分、计费或 learner-state authority；客户端不得依赖它做业务状态判断。
 - `context_pack_trace.build_stage_timings_ms` 与 terminal observer metadata 的 `context_build_stage_timings_ms` 可以携带 context build 内部子阶段耗时（如 `route_resolver`、`session_history`、`learner_state`、`source_loader_*`、`context_pack`、`pack_render`），用于定位首屏与上下文构建性能瓶颈。它们只属于 trace/observability projection，不得改变 context route、候选选择、token budget、learner-state truth、评分或计费 authority。
@@ -144,3 +147,158 @@
 - `tests/api/test_mobile_router.py`
 - `tests/services/test_semantic_router.py`
 - `tests/runtime/test_orchestrator_semantic_router.py`
+
+## QTPK 物理抽出 S1（2026-06-27，控制面收权 Task 2/4 物理执行）
+
+question-turn policy 解析器（`_resolve_question_followup_context_and_action` + submission-intent
+cluster + active_object 身份 helper）已**物理搬出 `turn_runtime.py`**，住进单一权威模块
+`deeptutor/services/question_turn_policy.py`（QuestionTurnPolicyKernel）。TurnRuntime 通过
+import 回去调用，callsite 行为不变（byte-identical move，differential parity 验证）。
+
+- **不变量**：question-turn policy 的解析逻辑单一物理归宿 = QTPK；TurnRuntime 朝 transport-only
+  （auth+persist+stream+replay+deadline）瘦身。
+- **QTPK 边界**（import-allowlist guard `check_qtpk_import_allowlist.py` 强制）：QTPK 只 import
+  canonical question-turn 解析器（semantic_router / question_lifecycle_skills /
+  active_object_builder / question_followup）+ stdlib；禁 LLM/grading-module/RAG/learner-state/
+  reveal/terminal/turn_runtime/orchestrator（god-object 防线）。
+- **S1 范围**：纯物理搬迁 + guard calibration，零行为。后续 S2（E8 grading merge 进 QTPK）、
+  S3（删 start_turn 预解析）、S4（restore/demote 收敛 apply_active_object_transition）、
+  S5（orchestrator 削第三次解析）见 `docs/plan/2026-06-27-qtpk-physical-extraction-turnruntime-thinning-execution-plan.md`。
+
+## QTPK 物理抽出 S2（2026-06-27，§6 SEV-1 套题防塌安全带进 QTPK，零行为）
+
+E8/E1 套题防塌 active-object **patch 决策逻辑**（套题判一题不塌 / 单题判分透传 /
+`route_to_grading` qid 对不上不塌 / 真切换替换）已从 `turn_runtime._merge_grading_result_into_active_set`
+**逐字节搬进** QTPK 纯函数 `apply_grading_result_patch`（无 I/O，prior active_object 由 caller 传入）。
+
+- **I/O 与逻辑分离**：`turn_runtime._merge_grading_result_into_active_set` 瘦成 transport-only——
+  从 store 读 prior active_object（`store.get_active_object`，I/O 留在 turn_runtime），把
+  `(prior, result, metadata)` 交给 QTPK 纯函数，写回/持久化在调用点 `_persist_and_publish` 不变。
+- **不变量（单一权威）**：active_object 身份的唯一 turn-START writer 不变；turn-END 仍只做 merge-back，
+  不当第二个 set-destroying writer。merge 分支逐字未改，**byte-identical 提取**。
+- **parity 证相同**：`tests/services/test_qtpk_grading_patch.py` 对每个 E8 场景断言 QTPK
+  `apply_grading_result_patch` 与搬前 `_merge` 分支逻辑输出一致（normalise 掉 `build_active_object_*`
+  自带的 `last_touched_at` 墙钟噪声，非行为差）。
+- **QTPK 边界仍守 guard**：S2 只新增 `active_object_builder` 的 `build_active_object_from_question_context`
+  / `extract_question_context_from_active_object` import（已在 allowlist canonical 模块内），未碰 god-object 防线。
+- **S2 不接生产**：`resolve_turn_policy` 已把 active-object patch fact 纳入信封（grading 入参可选），
+  但生产仍走 `turn_runtime` → `apply_grading_result_patch` 直调；信封路径在 S5 才被生产消费。
+
+## QTPK 物理抽出 S4(b)（2026-06-27，active_object/suspended_object_stack 转换的相位权威划分，零行为）
+
+`active_object` / `suspended_object_stack` 的转换跨**三个相位**，每个相位各自单一权威，**互不重判同一输入**。
+investigation 已证 turn-START demote 与 canonical `apply_active_object_transition` 是**相位互补、非重复**，
+owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 task#14 回指 SEV-1 + 给 canonical 加复杂度违 §2 架构简单）。
+
+- **turn-START 相位**（单一权威 = `deeptutor/services/session/turn_runtime.py` demote 块）：
+  在 scene gate **之前**把 stored active question object **降级（压栈）**到 `suspended_object_stack`，
+  产物写进 `metadata.suspended_object_stack`。turn-START **只压栈、从不出栈**。
+  - **task#14（2026-06-22）是本相位独有的回指 SEV-1 保护，不可删 / 不可折叠进 canonical**：当本轮用 "第N题"
+    ordinal 引用 stored 套题的某个 item 时**不压栈**（`stored_set_ordinal_referenced=True`），让套题保持 active，
+    scene low-information gate（读 `active_object`/`question_followup_context`，不读 suspended stack）才锚得住
+    "第N题"，否则 fail-closed。单一 ordinal→item 权威 = `question_followup.requested_question_item_index`（同提交路径）。
+  - **#287（2026-06-28）是同相位、同形的 re-present 引用保护**：当本轮显式要求把活跃 MCQ **重排 / 重新展示**
+    （"选项重新排列一下" / "把abcd换个顺序重新给我看"）时**不压栈**（`stored_active_mcq_represent_referenced=True`），
+    让活跃 MCQ 保持 active；否则 active_object 被换成 open_chat_topic，tutorbot/deep_question 的确定性 re-present
+    短路 `build_canonical_represent_response` 因 context 里没有活跃 choice MCQ 而 fail-safe 落 free LLM → **凭空换题（幻觉）**。
+    单一 re-present 意图权威 = `question_followup.message_has_represent_request_intent`（`build_canonical_represent_response`
+    复用同一权威），demote 守卫经 `question_turn_policy._message_requests_active_mcq_represent` 只读不重判，不新增第二决策点。
+  - **S1（2026-06-29）是同相位、同形的 submission（作答）引用保护 —— forward-reachability 不变量，不可删**：
+    当本轮是对 stored 活跃题组的**真实作答**（batch `"q1 B q2 C q3 A"` / 裸答 `"我选B"`）时**不压栈**
+    （`stored_set_submission_referenced=True`），让活跃 question_set 保持 active，判分 dispatch（scene→mcq_grading/
+    case_grading）读得到题组而**真正判分**；否则作答轮被误压栈 → 判分能力读不到题组 → **重显题面而非判分**
+    （live S1 forward-liveness 0/6，turn-start 埋点实证 WILL_DEMOTE=True on 每个作答轮）。单一 submission 意图权威 =
+    `question_followup.resolve_submission_attempt`（scene/grading 同一权威），demote 守卫经
+    `question_turn_policy._message_is_submission_for_stored_set` 只读不重判，不新增第二决策点。**SEV 安全**：保活
+    不等于判分 —— 真正判分仍由下游 `submission_confidence` 把关（LOW/试探/推迟/回指 → ask_followup），凭空判分/倒诬保护不动。
+  - **S4 主观/案例（2026-06-29）是 S1 同相位、同 carve-out 的 case 形态补全 —— forward-reachability 不变量，不可删**：
+    bot 上一轮生成的案例题写进 active_object（题干在 `state_snapshot.question`、bot 自生成参考在 `correct_answer`，均**未签名**）。
+    本轮**自由文本作答**（"针对刚才的案例题，**我的作答如下：**…，帮我按采分点判一下"）此前不被 `resolve_submission_attempt`
+    识别为 submission——明确作答标记位于句**中**（前有 "针对…案例题，" 前缀），锚定的 `_LEADING_SUBMISSION_PREFIX` 漏掉，
+    且结尾判分诉求 "？" 触发 question-marker 否决 → demote carve-out False → 案例 active_object 在判分 dispatch 前被压栈
+    → `_grade_one_case_v1` `has_stem=False` → Tier-3 `no_reference` 死锁（live 3/3 + 确定性双证）。修法**仍走 S1 同一
+    submission 权威**：`resolve_submission_attempt` 识别**句中**明确作答-提交标记（`_EXPLICIT_ANSWER_SUBMISSION_MARKER`，
+    紧扣框架——必须带冒号或 "如下"，故 "我的作答对吗" / "我的答案是什么？" 这类**试探/问句不命中**，绝不把问句变成判分作答），
+    于是 scene（`_looks_like_free_text_case_grading`）与 demote carve-out（`_message_is_submission_for_stored_set`）**对齐**，
+    案例 active_object 存活 → 判分 ctx 读得到题干。判分 ctx 单点权威 = `loop.py::_build_v1_case_ctx`：题干从
+    `fc["question"]`（active_object 派生案例题的题干所在）surface 给 Tier-3；**未签名**的 bot 自生成 `correct_answer` 在
+    无 bank/签名 authority（`_prefetched_exact_question` 空）时**不**升级为 Tier-2 `on_the_fly_reference`，强制走 Tier-3
+    `derive_rubric_from_stem` 诊断（`official_score_allowed=False` + 诊断 hedge）。**SEV 安全**：①标记紧扣提交框架不吃问句；
+    ②V1 判分事件基线即 `official_score_allowed=False`，未签名参考被抑制后更不可能凭空给官方分；③保活不等于判分，下游
+    把关不动。证据见 `tests/services/test_question_followup_case_submission.py` + `tests/tutorbot/test_case_grading_forward_reachability.py`。
+  - **anti-peek 隐式求助（2026-06-30）是同相位、同形的安全 SEV carve-out —— 答案泄露入口侧不变量，不可删**：
+    当本轮是对一道**未作答活跃题的隐式求助**（"给点提示" / "还是不会" / "这题怎么想"，
+    `should_block_unanswered_reference_reveal=True`）时**不压栈**（`stored_set_unanswered_implicit_help=True`），
+    让未答题保持 active；否则 active_object 被换成 open_chat_topic，下游 anti-peek 消费点（tutorbot 确定性结构化
+    提示短路 / reveal 决策）读不到活跃未答题 → fail-safe 落 free LLM → LLM 从对话历史看到题、用领域知识**自推答案
+    泄底**（Langfuse + DB 取证定位真断点：出题后 `active_object=single_question`，"给点提示"后变 `open_chat_topic`、
+    题被压栈；live 红队 5/6 复现，软指令/遮蔽已证伪，唯结构上不走 free LLM 可靠）。单一 anti-peek 权威 =
+    `question_followup.should_block_unanswered_reference_reveal`（reveal/anti-peek 同一权威），demote 守卫只读不重判，
+    不新增第二决策点。**SEV 安全 + 不误伤显式**：显式要答案（"公布答案"，`should_block=False`）不命中本 carve-out
+    → 照常 demote，reveal 路径放行答案（anti-peek 只压隐式求助，不抑制显式 —— 尊重"不能不输出"）。已作答题
+    （attempt 存在 → `should_block=False`）不命中。证据见 `tests/services/test_turn_start_demote_canonical_pipeline.py`
+    （carve-out 谓词）+ live 红队 `给点提示/还是不会` 3/3 `structured_hint=True/leak=False`。
+- **routing 相位**（单一权威 = `deeptutor/services/semantic_router.py::apply_active_object_transition`）：
+  orchestrator 经 `metadata.suspended_object_stack` 读到 turn-START 压栈的对象，在 `resume_suspended_object`
+  决策下**恢复（出栈）**。canonical **只出栈、从不在 turn-START 那个输入上重做压栈决策**。
+- **turn-END 相位**（单一权威 = E8 grading merge，已 QTPK 化 `apply_grading_result_patch`，见 §S2）：
+  只 merge-back 评分状态，不当第二个 set-destroying writer。
+
+- **相位互补 ≠ 双权威违规**：turn-START 压栈、canonical 出栈作用在 pipeline 的两端（上游产出 → 下游消费），
+  不构成对同一决策的双重写。pipeline / task#14 / 相位边界证据见
+  `tests/services/test_turn_start_demote_canonical_pipeline.py`。
+- **S4(b) 零行为**：只新增测试 + 文档 + 代码注释，turn-START demote 逻辑与 canonical 一字未改。
+
+> **后人勿重蹈（2026-06-28，M3「capability fork 2→1」裁撤）**：题目生命周期简化计划曾提出 M3 = 把
+> `deeptutor/capabilities/tutorbot.py`（~:711）与 `deeptutor/capabilities/deep_question.py`（~:4736）里对
+> `apply_active_object_transition` 的调用「收成 turn-END 单点 writer（2→1）」。**经 ground truth + owner 决策(b) 裁定撤销，不做。** 这两个调用**不是** active_object identity 的冗余持久化 writer——持久化已是 turn-END 单点
+> （`store.set_active_object` + E8 `apply_grading_result_patch`），且 turn_runtime **从不 CALL `apply_active_object_transition`**（仅注释提及）。它们是**上文 routing 相位**的挂起栈转换计算器（resume/出栈 + switch 压栈），与 turn-START 相位互补；tutorbot 用 hardcode `switch_to_new_object`、deep_question 用 canonical 启发式，挂起栈语义**行为不同**，强行 collapse = 改回指/挂起栈行为 = **task#14 回指 SEV-1 复发**（本相位带 task#14 ordinal 守卫 + #287 re-present 守卫）。**capability fork 与本节三相位、§S5 的 ②③ pipeline 同类 = 合法相位互补，不是要砍的复杂度。** 题目生命周期简化的天花板 = lifecycle_state 状态显式化（M1）+ object_type 题型/非题型分流（M2）；capability fork 不动。
+
+## QTPK 物理抽出 S5（2026-06-27，turn_semantic_decision 的②③ pipeline 相位 + capability 映射收口，零行为 + byte-parity 收口）
+
+### S5-doc：`turn_semantic_decision` 的②③相位（pipeline 非冗余，零行为）
+
+`turn_semantic_decision` 跨**两个相位**产生，**唯一 canonical 签发点在③**，②是 observe-only 投影，
+**非双权威、非冗余**（investigation 已证 S5 原 premise "orchestrator 删第3次解析读已签发" 是**错的**——②不是
+canonical，删/绕③才会降级丢回指与历史 SEV-1）：
+
+- **②restore 相位（compat_projection，observe-only）**：`_run_turn` / QTPK 在 turn-START 先产
+  `followup_context` / `followup_question_action` / `active_object`（恢复态），随后
+  `deeptutor/services/session/turn_runtime.py::_build_turn_semantic_decision`（确定性映射
+  `followup_action_route` → relation/next_action/allowed_patch）产出一个**compat 投影**。
+  这只是给下游早期消费者的兼容快照，**不是路由权威**，会被③覆写。
+- **③routing 相位（canonical 唯一签发）**：orchestrator
+  `deeptutor/runtime/orchestrator.py::_resolve_semantic_routing`（→
+  `deeptutor/services/semantic_router.py::resolve_question_semantic_routing`）是
+  `turn_semantic_decision` 的**唯一 canonical 签发点**，history-aware（读 `conversation_context_text`）、
+  回指升级、ambiguity 判定、stack-resolve（出栈恢复）。它在
+  `_resolve_turn_semantic_decision` 里把 `metadata["turn_semantic_decision"]` **覆写**成 canonical 决策
+  （`turn_runtime.py:4409` 的②投影至此被③覆盖）。
+- **②③互补非冗余**：②是 turn-START 的 compat 投影，③是 routing 相位的 canonical 签发。**绝不能让③
+  "读已签发"（②的投影）当 canonical**——那会跳过 history-aware/回指升级，把依赖上下文的 turn fail-closed
+  成失忆（回指/历史 SEV-1）。S5 不动③签发逻辑。
+
+### S5-branch：decision→capability 映射收口（authority 3→1，byte-parity）
+
+`turn_semantic_decision` 的 **deep_question-route → capability + context 副作用** 映射原本在 orchestrator
+**三处手抄**：`_select_capability` 的 question_review active 分支、practice_generation active 分支、
+`_route_via_canonical_decision` fall-through。三处都对 `route_to_grading` 调
+`_prepare_question_submission_context`（load-bearing 重复）。
+
+- **收口单点 = `deeptutor/runtime/orchestrator.py::_map_canonical_decision_to_capability(context,
+  turn_decision, *, routing_user_message)`**：拥有 deep_question 路由的 next_action → context-prep 分发
+  （`route_to_grading` → submission prep / `route_to_generation` → practice prep / 其余如
+  `route_to_followup_explainer` → 无 prep）+ 返回 canonical `deep_question` capability 名。三处共用。
+  authority 真降（3 抄 → 1）。
+- **byte-parity**：caller 仍各自 gate **入口**（自己的 `semantic_route`/`next_action` accept-set）与
+  per-caller telemetry（`semantic_router_mode`/`mode_reason`/`shadow`），收口点只接管 deep_question 副作用 +
+  capability 名，故每个 caller 行为字节等价。active-lifecycle 两处的 accept-set 不含 `route_to_generation`，
+  故收口点的 generation 分支在那两处永不触发，parity 成立。
+- **三安全带不经收口点、未动**：① unresolved-switch-followup（`is_unresolved_switch_followup`）→ 上下文连续
+  chat/tutorbot（SEV-1，三处都在收口点**之前**短路）；② MCQ-grading preselect bypass（硬约束40）；
+  ③ deep_question preselect demote 非答题轮（task#20）。收口点**不读 / 不重签** canonical 决策，
+  `_resolve_semantic_routing`（③签发）一字未改。
+- **differential 证据**：`tests/runtime/test_capability_routing_map_collapse.py`（收口点契约 + 三 caller
+  端到端 capability/副作用 parity + 三安全带回归护栏）。
+- **S5 零行为**：只新增收口方法（三处旧 inline 副作用逐字搬入）+ 测试 + 文档 + 注释；路由 accept-set、
+  telemetry、③canonical 签发逻辑均未改。两份 index byte-identical。

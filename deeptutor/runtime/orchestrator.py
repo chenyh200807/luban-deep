@@ -42,6 +42,7 @@ from deeptutor.services.question_lifecycle_skills import (
 )
 from deeptutor.services.runtime_env import env_flag
 from deeptutor.services.semantic_router import (
+    active_object_family_for_type,
     build_active_object_from_question_context,
     build_turn_semantic_decision,
     is_unresolved_switch_followup,
@@ -248,19 +249,17 @@ class ChatOrchestrator:
                     "route_to_followup_explainer",
                     "route_to_grading",
                 }:
-                    if next_action == "route_to_grading":
-                        self._prepare_question_submission_context(
-                            context,
-                            context.metadata.get("question_followup_action"),
-                        )
                     context.metadata["semantic_router_mode"] = "question_lifecycle"
                     context.metadata["semantic_router_mode_reason"] = (
                         f"{lifecycle_decision.source}_question_review_active_object_{next_action}"
                     )
                     context.metadata["semantic_router_shadow_decision"] = {}
                     context.metadata["semantic_router_shadow_route"] = ""
-                    context.metadata["semantic_router_selected_capability"] = "deep_question"
-                    return "deep_question"
+                    return self._map_canonical_decision_to_capability(
+                        context,
+                        turn_decision,
+                        routing_user_message=routing_user_message,
+                    )
             if self._should_replace_active_context_for_question_review(
                 context,
                 routing_user_message,
@@ -327,19 +326,17 @@ class ChatOrchestrator:
                     "route_to_followup_explainer",
                     "route_to_grading",
                 }:
-                    if next_action == "route_to_grading":
-                        self._prepare_question_submission_context(
-                            context,
-                            context.metadata.get("question_followup_action"),
-                        )
                     context.metadata["semantic_router_mode"] = "question_lifecycle"
                     context.metadata["semantic_router_mode_reason"] = (
                         f"{lifecycle_decision.source}_practice_generation_active_object_{next_action}"
                     )
                     context.metadata["semantic_router_shadow_decision"] = {}
                     context.metadata["semantic_router_shadow_route"] = ""
-                    context.metadata["semantic_router_selected_capability"] = "deep_question"
-                    return "deep_question"
+                    return self._map_canonical_decision_to_capability(
+                        context,
+                        turn_decision,
+                        routing_user_message=routing_user_message,
+                    )
             self._prepare_practice_request_context(context, routing_user_message)
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
@@ -449,65 +446,118 @@ class ChatOrchestrator:
         context.metadata["semantic_router_scope"] = semantic_router_scope
         context.metadata["semantic_router_scope_match"] = semantic_router_scope_match
 
+        # Control-plane single-authority (Task 3, Decision A): the canonical semantic
+        # router is the SOLE capability decider on every post-lifecycle fall-through.
+        # The former heuristic ``_select_legacy_capability`` (and the router killswitch
+        # it backed) is removed — DEEPTUTOR_SEMANTIC_ROUTER_ENABLED defaults True / scope
+        # all in production, so the heuristic was already dormant. Shadow / primary /
+        # disabled / scope-excluded all resolve the canonical turn_semantic_decision and
+        # route by it; a None-route (resolver could not produce a mappable decision)
+        # defaults to the context-continuous chat/tutorbot executor (the same belt the
+        # unresolved-switch invariant uses), never a second heuristic authority.
         if semantic_router_shadow_mode and semantic_router_scope_match:
-            shadow_decision = await self._preview_turn_semantic_decision(context, routing_user_message)
-            context.metadata["semantic_router_mode"] = "shadow"
-            context.metadata["semantic_router_mode_reason"] = "shadow_compare_only"
-            context.metadata["semantic_router_shadow_decision"] = shadow_decision or {}
-            context.metadata["semantic_router_shadow_route"] = (
-                turn_semantic_decision_route(shadow_decision) or ""
+            mode, reason = "shadow", "semantic_router_shadow"
+        elif semantic_router_enabled and semantic_router_scope_match:
+            mode, reason = "primary", "semantic_router_primary"
+        else:
+            mode = "disabled"
+            reason = (
+                "scope_excluded"
+                if not semantic_router_scope_match
+                and (semantic_router_enabled or semantic_router_shadow_mode)
+                else "flag_disabled"
             )
-            cap_name = self._select_legacy_capability(context, routing_user_message)
-            context.metadata["semantic_router_selected_capability"] = cap_name
-            return cap_name
-
-        if semantic_router_enabled and semantic_router_scope_match:
-            turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
-            context.metadata["semantic_router_mode"] = "primary"
-            context.metadata["semantic_router_mode_reason"] = "semantic_router_primary"
-            context.metadata["semantic_router_shadow_decision"] = {}
-            context.metadata["semantic_router_shadow_route"] = ""
-            semantic_route = turn_semantic_decision_route(turn_decision)
-            # Context-continuity invariant: an unresolved switch/back-reference depends on
-            # prior context (conversation_context_text) → route to the context-continuous
-            # main LLM, never the deep_question structured switch resolver (fail-closed).
-            if is_unresolved_switch_followup(turn_decision):
-                cap_name = self._default_chat_capability(context)
-                context.metadata["semantic_router_mode_reason"] = (
-                    "unresolved_switch_to_context_continuity"
-                )
-                context.metadata["semantic_router_selected_capability"] = cap_name
-                return cap_name
-            if semantic_route == "deep_question":
-                next_action = str((turn_decision or {}).get("next_action") or "").strip()
-                if next_action == "route_to_grading":
-                    self._prepare_question_submission_context(
-                        context,
-                        context.metadata.get("question_followup_action"),
-                    )
-                elif next_action == "route_to_generation":
-                    self._prepare_practice_request_context(
-                        context,
-                        self._practice_generation_message(context, routing_user_message),
-                    )
-                context.metadata["semantic_router_selected_capability"] = "deep_question"
-                return "deep_question"
-            if semantic_route == "chat":
-                cap_name = self._default_chat_capability(context)
-                context.metadata["semantic_router_selected_capability"] = cap_name
-                return cap_name
-
-        context.metadata["semantic_router_mode"] = "disabled"
-        context.metadata["semantic_router_mode_reason"] = (
-            "scope_excluded"
-            if not semantic_router_scope_match and (semantic_router_enabled or semantic_router_shadow_mode)
-            else "flag_disabled"
+        return await self._route_via_canonical_decision(
+            context,
+            routing_user_message,
+            mode=mode,
+            mode_reason=reason,
         )
+
+    async def _route_via_canonical_decision(
+        self,
+        context: UnifiedContext,
+        routing_user_message: str,
+        *,
+        mode: str,
+        mode_reason: str,
+    ) -> str:
+        """Resolve the canonical turn_semantic_decision and route by it. Single capability
+        decider for every post-lifecycle fall-through (shadow / primary / disabled /
+        scope-excluded). Preserves the §6 safety belt (unresolved-switch →
+        context-continuous main LLM) and the deep_question grading/generation context
+        prep. A None-route (no mappable canonical decision) defaults to the
+        context-continuous chat/tutorbot executor — never a second heuristic authority.
+        """
+        turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
+        context.metadata["semantic_router_mode"] = mode
+        context.metadata["semantic_router_mode_reason"] = mode_reason
         context.metadata["semantic_router_shadow_decision"] = {}
         context.metadata["semantic_router_shadow_route"] = ""
-        cap_name = self._select_legacy_capability(context, routing_user_message)
+        semantic_route = turn_semantic_decision_route(turn_decision)
+        # Context-continuity invariant: an unresolved switch/back-reference depends on
+        # prior context (conversation_context_text) → route to the context-continuous
+        # main LLM, never the deep_question structured switch resolver (fail-closed).
+        if is_unresolved_switch_followup(turn_decision):
+            cap_name = self._default_chat_capability(context)
+            context.metadata["semantic_router_mode_reason"] = (
+                "unresolved_switch_to_context_continuity"
+            )
+            context.metadata["semantic_router_selected_capability"] = cap_name
+            return cap_name
+        if semantic_route == "deep_question":
+            return self._map_canonical_decision_to_capability(
+                context,
+                turn_decision,
+                routing_user_message=routing_user_message,
+            )
+        # chat route OR None-route (no mappable canonical decision) → the
+        # context-continuous default chat/tutorbot executor.
+        cap_name = self._default_chat_capability(context)
         context.metadata["semantic_router_selected_capability"] = cap_name
         return cap_name
+
+    def _map_canonical_decision_to_capability(
+        self,
+        context: UnifiedContext,
+        turn_decision: dict[str, Any] | None,
+        *,
+        routing_user_message: str,
+    ) -> str:
+        """Single chokepoint: map a canonical ``deep_question``-route turn decision to
+        the ``deep_question`` capability AND run the matching context-prep side-effect.
+
+        Collapses the formerly-triplicated ``next_action`` → context-prep dispatch
+        (question_review active / practice_generation active /
+        _route_via_canonical_decision). Callers gate ENTRY on their own
+        ``semantic_route``/``next_action`` accept-set and the §6 safety belts
+        (unresolved-switch, ask_clarifying_question); this method owns only the
+        deep_question side-effect + capability name, so behavior is byte-parity per
+        caller:
+
+        * ``route_to_grading`` → ``_prepare_question_submission_context(context,
+          question_followup_action)`` (the load-bearing duplicate at the three sites).
+        * ``route_to_generation`` → ``_prepare_practice_request_context`` (only the
+          canonical fall-through ever passes this next_action).
+        * any other deep_question route (e.g. ``route_to_followup_explainer``) → no prep.
+
+        Returns the canonical ``deep_question`` capability name. Does NOT set the
+        per-caller ``semantic_router_mode``/``mode_reason``/``shadow`` telemetry — those
+        stay caller-owned. Does NOT read or re-sign the canonical decision.
+        """
+        next_action = str((turn_decision or {}).get("next_action") or "").strip()
+        if next_action == "route_to_grading":
+            self._prepare_question_submission_context(
+                context,
+                context.metadata.get("question_followup_action"),
+            )
+        elif next_action == "route_to_generation":
+            self._prepare_practice_request_context(
+                context,
+                self._practice_generation_message(context, routing_user_message),
+            )
+        context.metadata["semantic_router_selected_capability"] = "deep_question"
+        return "deep_question"
 
     @staticmethod
     def _question_lifecycle_decision_authority_enabled(context: UnifiedContext) -> bool:
@@ -532,15 +582,72 @@ class ChatOrchestrator:
                 context,
                 self._practice_generation_message(context, message),
             )
+            self._ensure_preselect_canonical_decision(context, next_action="route_to_generation")
             return
         if (
             followup_action_route(action) == "submission"
             or self._looks_like_question_submission(context, message)
         ):
             self._prepare_question_submission_context(context, action)
+            self._ensure_preselect_canonical_decision(context, next_action="route_to_grading")
             return
         if looks_like_practice_generation_request(message):
             self._prepare_practice_request_context(context, message)
+            self._ensure_preselect_canonical_decision(context, next_action="route_to_generation")
+            return
+        # Control-plane single-authority (治本 Action 2 Step 2): the preselect branch
+        # returns deep_question WITHOUT routing through ``_resolve_turn_semantic_decision``,
+        # so deep_question used to be reached without the canonical turn_semantic_decision
+        # and fabricated a second-authority fallback (turn.md §硬约束 24 — canonical is
+        # the orchestrator's sole authority). Supply it here for the remaining
+        # deep_question followup fall-through too, mirroring the question_review-no-active
+        # injection above. ``setdefault`` keeps any upstream canonical intact.
+        self._ensure_preselect_canonical_decision(
+            context, next_action="route_to_followup_explainer"
+        )
+
+    @staticmethod
+    def _ensure_preselect_canonical_decision(
+        context: UnifiedContext, *, next_action: str
+    ) -> None:
+        """Supply the canonical turn_semantic_decision on the deep_question preselect
+        path so deep_question READS it instead of fabricating a second authority.
+
+        Single authority closure (治本 Action 2 Step 2): the preselect branch bypasses
+        ``_resolve_turn_semantic_decision``; this mirrors the decision-bearing fields
+        deep_question formerly fabricated for each sub-route, so behavior is preserved
+        while the orchestrator stays the sole signer (turn.md §硬约束 24). ``setdefault``
+        never overwrites an upstream canonical decision.
+        """
+
+        if not isinstance(context.metadata, dict):
+            return
+        if context.metadata.get("turn_semantic_decision"):
+            return
+        active_object = normalize_active_object(context.metadata.get("active_object"))
+        if next_action == "route_to_grading":
+            relation = "answer_active_object"
+            allowed_patch = "update_answer_slot"
+            reason = "preselect deep_question submission canonical decision (turn.md §24)"
+        elif next_action == "route_to_generation":
+            relation = "continue_same_learning_flow" if active_object else "switch_to_new_object"
+            allowed_patch = "set_active_object"
+            reason = "preselect deep_question generation canonical decision (turn.md §24)"
+        else:
+            relation = "ask_about_active_object"
+            allowed_patch = "no_state_change"
+            reason = "preselect deep_question followup canonical decision (turn.md §24)"
+        context.metadata.setdefault(
+            "turn_semantic_decision",
+            build_turn_semantic_decision(
+                relation_to_active_object=relation,
+                next_action=next_action,
+                allowed_patch=allowed_patch,
+                confidence=1.0,
+                reason=reason,
+                active_object=active_object,
+            ),
+        )
 
     @staticmethod
     def _record_lifecycle_decision(
@@ -745,15 +852,6 @@ class ChatOrchestrator:
             context.metadata["question_followup_action"] = routing.followup_action
         return routing.turn_semantic_decision
 
-    async def _preview_turn_semantic_decision(
-        self,
-        context: UnifiedContext,
-        message: str,
-    ) -> dict[str, Any] | None:
-        preview_metadata = dict(context.metadata or {})
-        routing = await self._resolve_semantic_routing(context, message, metadata=preview_metadata)
-        return routing.turn_semantic_decision
-
     async def _resolve_semantic_routing(
         self,
         context: UnifiedContext,
@@ -786,24 +884,6 @@ class ChatOrchestrator:
             looks_like_practice_generation_request=looks_like_practice_generation_request,
         )
 
-    def _select_legacy_capability(self, context: UnifiedContext, message: str) -> str:
-        if self._looks_like_question_submission(context, message):
-            self._prepare_question_submission_context(context)
-            return "deep_question"
-
-        if looks_like_practice_generation_request(message):
-            self._prepare_practice_request_context(context, message)
-            return "deep_question"
-
-        if self._looks_like_free_text_question_review_request(context, message):
-            self._prepare_free_text_question_review_context(context, message)
-            return "deep_question"
-
-        if self._looks_like_question_followup(context, message):
-            return "deep_question"
-
-        return self._default_chat_capability(context)
-
     def _semantic_router_scope_match(
         self,
         context: UnifiedContext,
@@ -822,11 +902,18 @@ class ChatOrchestrator:
     def _semantic_router_target_domain(self, context: UnifiedContext, message: str) -> str:
         active_object = normalize_active_object(context.metadata.get("active_object"))
         object_type = str((active_object or {}).get("object_type") or "").strip()
-        if object_type in {"question_set", "single_question"}:
+        # Family-first split via the single active-object family authority: a question
+        # (题型) object — including open_world_question, which the old hand-listed
+        # {question_set, single_question} silently dropped — maps to the question domain.
+        family = active_object_family_for_type(object_type)
+        if family == "question":
             return "question"
-        if object_type in {"guide_page", "study_plan", "lesson_topic"}:
+        # Non-question objects short-circuit explicitly to their domain rather than
+        # falling through into the question heuristics below. (lesson_topic is a
+        # guide-side alias not in GUIDE_ACTIVE_OBJECT_TYPES; kept explicit.)
+        if family == "guide" or object_type == "lesson_topic":
             return "guide"
-        if object_type == "open_chat_topic":
+        if family == "open_chat":
             return "general"
         if looks_like_practice_generation_request(message):
             return "question"
@@ -1019,25 +1106,29 @@ class ChatOrchestrator:
                     "reason": "question lifecycle routed this turn to practice generation",
                 },
             )
-            if not context.metadata.get("turn_semantic_decision"):
-                decision_active_object = normalize_active_object(
-                    context.metadata.get("active_object")
-                )
-                context.metadata["turn_semantic_decision"] = build_turn_semantic_decision(
-                    relation_to_active_object=(
-                        "continue_same_learning_flow"
-                        if decision_active_object is not None
-                        else "switch_to_new_object"
-                    ),
-                    next_action="route_to_generation",
-                    allowed_patch="set_active_object",
-                    confidence=1.0,
-                    reason="question lifecycle routed this turn to practice generation",
-                    active_object=decision_active_object,
-                )
-                context.metadata["turn_semantic_decision_writer_chain"] = [
-                    "orchestrator_practice_context"
-                ]
+        # Supply the canonical practice-generation turn_semantic_decision on EVERY
+        # practice route (no-active generation and legacy/disabled-router paths too,
+        # not just the active-question branch above), mirroring deep_question's S7
+        # generation fabricate so the reader reads it instead of re-fabricating.
+        practice_active_object = normalize_active_object(
+            context.metadata.get("active_object")
+        )
+        if not context.metadata.get("turn_semantic_decision"):
+            context.metadata["turn_semantic_decision"] = build_turn_semantic_decision(
+                relation_to_active_object=(
+                    "continue_same_learning_flow"
+                    if practice_active_object
+                    else "switch_to_new_object"
+                ),
+                next_action="route_to_generation",
+                allowed_patch="set_active_object",
+                confidence=1.0,
+                reason="practice generation result",
+                active_object=practice_active_object,
+            )
+            context.metadata["turn_semantic_decision_writer_chain"] = [
+                "orchestrator_practice_context"
+            ]
         skill_names = list(select_question_lifecycle_skill_names("practice_generation"))
         context.metadata["question_lifecycle_skill_names"] = skill_names
         interaction_hints = (
@@ -1096,6 +1187,11 @@ class ChatOrchestrator:
             suppress_answer_reveal = bool(
                 interaction_hints.get("suppress_answer_reveal_on_generate", True)
             )
+        # Reveal authority single-writer (Task 5 Slice 4): these overrides are an
+        # INPUT SIGNAL only — kept for backward compat. The reveal decision is made
+        # solely by resolve_reveal_decision (consumed by deep_question /
+        # tutorbot _reveal_reference_flags as overrides_reveal). Writing them here
+        # never reveals on its own.
         if reveal_preference is not None:
             suppress_answer_reveal = not reveal_preference
             context.config_overrides["reveal_answers"] = reveal_preference

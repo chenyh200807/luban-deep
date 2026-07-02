@@ -384,12 +384,135 @@ def _diff(golden: dict[str, Any], current: dict[str, Any]) -> str:
     )
 
 
+# ---------------------------------------------------------------------------
+# Control-plane / reveal-terminal hard-corpus scenario sets (plan §14.A Task 1).
+# These drive the *canonical* turn-fact authorities deterministically (no live
+# LLM) so the hard corpus is a real executable gate, not a telemetry stand-in.
+# They run on a separate code path from the scene/grounding/exact golden above
+# and never touch GOLDEN_PATH.
+# ---------------------------------------------------------------------------
+
+FIXTURES_DIR = PROJECT_ROOT / "tests" / "fixtures"
+SCENARIO_SETS = ("control_plane_hard_cases", "reveal_terminal_hard_cases")
+
+
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line:
+            rows.append(json.loads(line))
+    return rows
+
+
+async def _run_control_plane_scenarios(rows: list[dict[str, Any]]) -> list[str]:
+    """Drive the canonical scene authority; assert expected/must_not per row.
+
+    The scene authority is the single canonical writer for
+    ``question_lifecycle_scene``; a fat kernel must NOT be able to override it
+    (the ``fat_kernel_reads_scene_then_reroutes`` row carries a bogus
+    ``fat_kernel_attempted_route_override`` that the authority must ignore).
+    """
+    failures: list[str] = []
+    for row in rows:
+        name = row.get("name", "<unnamed>")
+        ctx = _FakeContext(
+            user_message=row.get("user_message", ""),
+            metadata=copy.deepcopy(row.get("metadata", {})),
+        )
+        decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+        actual = decision.scene
+        expected = row.get("expected", {})
+        must_not = row.get("must_not", {})
+        if "scene" in expected and actual != expected["scene"]:
+            failures.append(f"{name}: scene={actual!r} expected={expected['scene']!r}")
+        if "scene" in must_not and actual == must_not["scene"]:
+            failures.append(f"{name}: scene={actual!r} hit must_not={must_not['scene']!r}")
+    return failures
+
+
+def _remaining_hidden_keys(obj: Any, hidden: tuple[str, ...], path: str = "") -> list[str]:
+    found: list[str] = []
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if key in hidden:
+                found.append(f"{path}.{key}")
+            found += _remaining_hidden_keys(value, hidden, f"{path}.{key}")
+    elif isinstance(obj, list):
+        for idx, value in enumerate(obj):
+            found += _remaining_hidden_keys(value, hidden, f"{path}[{idx}]")
+    return found
+
+
+def _run_reveal_terminal_scenarios(rows: list[dict[str, Any]]) -> list[str]:
+    """Drive the public-redaction authority; assert no hidden fact survives.
+
+    ACK / first_useful_content frames do not exist in the runtime yet, so the
+    matching ``must_not_leak_in`` entries are dormant (no such frame is ever
+    produced — trivially leak-free). The real teeth are on the metadata frame:
+    after redaction, no ``_HIDDEN_PAYLOAD_KEYS`` key may survive at any depth.
+    """
+    from deeptutor.api.routers.unified_ws import _redact_metadata_for_public
+    from deeptutor.services.question_followup import PUBLIC_HIDDEN_PAYLOAD_KEYS
+
+    failures: list[str] = []
+    for row in rows:
+        name = row.get("name", "<unnamed>")
+        redacted = _redact_metadata_for_public(copy.deepcopy(row.get("metadata", {})))
+        leftover = _remaining_hidden_keys(redacted, PUBLIC_HIDDEN_PAYLOAD_KEYS)
+        if leftover:
+            failures.append(f"{name}: hidden keys survived redaction: {leftover}")
+    return failures
+
+
+async def _run_scenario_set(scenario_set: str, *, check: bool) -> int:
+    fixture = FIXTURES_DIR / f"{scenario_set}.jsonl"
+    if not fixture.exists():
+        print(f"ERROR: scenario fixture missing: {fixture}", file=sys.stderr)
+        return 2
+    try:
+        rows = _load_jsonl(fixture)
+    except (OSError, json.JSONDecodeError) as exc:  # pragma: no cover - infra
+        print(f"ERROR: failed to load {fixture}: {exc}", file=sys.stderr)
+        return 2
+    if not rows:
+        print(f"ERROR: scenario fixture empty: {fixture}", file=sys.stderr)
+        return 2
+
+    try:
+        if scenario_set == "control_plane_hard_cases":
+            failures = await _run_control_plane_scenarios(rows)
+        else:
+            failures = _run_reveal_terminal_scenarios(rows)
+    except Exception as exc:  # noqa: BLE001 - authority import/exec is the gate
+        print(f"ERROR: authority execution failed for {scenario_set}: {exc}", file=sys.stderr)
+        return 2
+
+    if failures:
+        print(f"ERROR: {scenario_set} drift ({len(failures)}/{len(rows)} rows):", file=sys.stderr)
+        for failure in failures:
+            print(f"  - {failure}", file=sys.stderr)
+        return 1
+
+    print(f"{scenario_set} OK ({len(rows)} rows, no authority drift)")
+    return 0
+
+
 async def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--update", action="store_true", help="(re)freeze the golden baseline")
     group.add_argument("--check", action="store_true", help="diff current decisions vs golden (gate mode)")
+    parser.add_argument(
+        "--scenario-set",
+        choices=SCENARIO_SETS,
+        default=None,
+        help="run a hard-corpus scenario set against the canonical authorities (use with --check)",
+    )
     args = parser.parse_args()
+
+    if args.scenario_set is not None:
+        return await _run_scenario_set(args.scenario_set, check=args.check)
 
     baseline = await compute_baseline()
 

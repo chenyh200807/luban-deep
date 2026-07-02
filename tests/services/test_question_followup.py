@@ -8,6 +8,7 @@ from deeptutor.services.question_followup import (
     annotate_batch_submission_context,
     apply_followup_action_to_context,
     answers_match,
+    build_canonical_represent_response,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
@@ -15,6 +16,7 @@ from deeptutor.services.question_followup import (
     detect_requested_question_type,
     extract_choice_result_summary_from_text,
     looks_like_question_followup,
+    message_has_represent_request_intent,
     normalize_question_followup_context,
     resolve_submission,
     resolve_submission_attempt,
@@ -39,6 +41,73 @@ def test_detect_answer_reveal_preference_respects_suppress_request() -> None:
     assert detect_answer_reveal_preference("先不要直接给答案，先给作答要求") is False
     assert detect_answer_reveal_preference("不要先给答案，先考我") is False
     assert detect_answer_reveal_preference("出3道建筑实务单选题，先不公布答案。") is False
+
+
+def test_detect_answer_reveal_preference_negated_tell_answer_is_suppress() -> None:
+    # 安全 SEV-1（organic 出题轮答案泄露根因，2026-06-29，harness 异源核验抓到）：
+    # "先别告诉我答案" 是抑制请求，但 "告诉我答案" 是 reveal marker、"先别" 否定它，
+    # 旧子串法漏否定 → 误判 reveal=True → _should_hide_generated_answers 返回 False
+    # → hide 整个被绕过 → 原始答案泄露。否定感知必须把这些判成 suppress(False)。
+    for message in (
+        "先别告诉我答案",
+        "出3道屋面防水单选题，先别告诉我答案",
+        "先别告诉答案出3道屋面防水单选题",
+        "别告诉我答案，给我点思路",
+        "先别说答案，我自己想想",
+        "先别告诉我答案，给我思路",
+        # 对抗 agent 抓到的绕过措辞（否定词与 reveal marker 隔了 >4 字）：
+        "别这么快就告诉我答案，出3道题",
+        "先不要剧透答案",
+        "先不揭晓正确答案",
+        "先别透露答案",
+    ):
+        assert detect_answer_reveal_preference(message) is False, message
+    # 未否定的 reveal 仍是 reveal（不过度抑制）；跨子句否定不误伤同句 reveal。
+    assert detect_answer_reveal_preference("出题，记得带答案") is True
+    assert detect_answer_reveal_preference("请告诉我答案") is True
+    assert detect_answer_reveal_preference("公布答案并讲解") is True
+    assert detect_answer_reveal_preference("不要听废话，直接告诉我答案") is True
+
+
+def test_detect_recognizes_explicit_answer_request_phrasings() -> None:
+    # owner 边界 #2/#3（2026-06-30）：anti-peek 只压隐式求助；任何显式要答案放行。
+    # detect 必须把这些显式 reveal 措辞认成 True（含 #314 止血遗留的反向回归）。
+    for message in (
+        "直接说哪个对",
+        "直接说哪个正确",
+        "把答案给我",
+        "把正确答案给我",
+        "把正确答案标出来",
+        "出3道题并把正确答案也标出来",
+        "直接给答案",
+    ):
+        assert detect_answer_reveal_preference(message) is True, message
+    # 隐式求助仍 None（不被误判成 reveal）。
+    for message in ("还是不会", "给点提示", "这题怎么想", "再多说点"):
+        assert detect_answer_reveal_preference(message) is None, message
+    # 否定的显式仍 suppress。
+    assert detect_answer_reveal_preference("先别把答案给我") is False
+
+
+def test_should_block_passes_explicit_answer_request_on_unanswered() -> None:
+    # owner 边界 #2：未答题上的显式要答案不被 anti-peek 压住（should_block=False）。
+    ctx = {
+        "question_id": "q1",
+        "question": "屋面防水正确的是",
+        "options": {"A": "x", "B": "y", "C": "z", "D": "w"},
+        "items": [
+            {
+                "question_id": "q1",
+                "question": "屋面防水",
+                "options": {"A": "x", "B": "y", "C": "z", "D": "w"},
+                "grading_key": {"correct_answer": "D"},
+            }
+        ],
+    }
+    for message in ("公布答案", "直接告诉我答案", "把答案给我", "直接说哪个对"):
+        assert should_block_unanswered_reference_reveal(message, ctx) is False, message
+    for message in ("还是不会", "给点提示", "这题怎么想"):
+        assert should_block_unanswered_reference_reveal(message, ctx) is True, message
 
 
 def test_resolve_submission_attempt_extracts_numbered_batch_with_wo_xuan_prefix() -> None:
@@ -118,7 +187,10 @@ def test_resolve_submission_attempt_rejects_multi_option_single_choice_without_i
     assert submission is None
 
 
-def test_unanswered_question_does_not_reveal_answer_on_direct_answer_request() -> None:
+def test_unanswered_question_reveals_on_explicit_request_blocks_implicit_help() -> None:
+    # owner 边界 #2（2026-06-30）：anti-peek 只压「未答 + 隐式求助」。
+    # 显式要答案（"直接告诉我答案"）→ 放行（尊重"不能不输出"，学员主动解锁）。
+    # 隐式求助（"给点提示"/"还是不会"）→ 仍压（不揭示），这才是 SEV 防的面。
     question_context = {
         "question_id": "q1",
         "question": "验槽通常主要采用什么方法？",
@@ -128,7 +200,9 @@ def test_unanswered_question_does_not_reveal_answer_on_direct_answer_request() -
         "explanation": "观察法为主，钎探法为辅。",
     }
 
-    assert should_reveal_reference_material("直接告诉我答案", question_context) is False
+    assert should_reveal_reference_material("直接告诉我答案", question_context) is True
+    assert should_reveal_reference_material("给点提示", question_context) is False
+    assert should_reveal_reference_material("还是不会", question_context) is False
 
 
 def test_unanswered_question_set_blocks_indexed_reference_reveal_until_attempt() -> None:
@@ -464,6 +538,81 @@ def test_resolve_submission_attempt_keeps_english_written_explanation_as_followu
 @pytest.mark.parametrize(
     "message",
     [
+        "只给我复盘计划，不要继续判分。",
+        "现在聊学习计划：我每天只有40分钟。",
+        "先别继续判分，给我一个明天30分钟复盘计划。",
+        "不要把内部参考证据或工作记忆投影展示给我。",
+        "总结我正式提交过的案例答案。",
+    ],
+)
+def test_resolve_submission_attempt_keeps_case_exit_or_study_plan_as_followup(
+    message: str,
+) -> None:
+    case_context = {
+        "question_id": "case_1",
+        "question": "屋面防水卷材采用空铺法时，短边搭接宽度不应小于多少？",
+        "question_type": "case",
+        "user_answer": "100mm",
+        "correct_answer": "150mm",
+    }
+
+    target, submission = resolve_submission_attempt(message, case_context)
+
+    assert target is not None
+    assert submission is None
+    assert submission_confidence(message, case_context) is None
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "总结我正式提交过的案例答案，别重新判分。",
+        "不要把内部参考证据、working_memory、learner_summary 或 citation source title 展示给我；只回答你是否能做到。",
+    ],
+)
+def test_active_choice_context_does_not_consume_history_or_internal_meta_request(
+    message: str,
+) -> None:
+    choice_context = {
+        "question_id": "choice_1",
+        "question": "流水步距反映的是什么？",
+        "question_type": "choice",
+        "options": {"A": "工期", "B": "相邻专业队投入间隔", "C": "流水节拍", "D": "施工段"},
+        "correct_answer": "B",
+        "user_answer": "A",
+    }
+
+    target, submission = resolve_submission_attempt(message, choice_context)
+
+    assert target is not None
+    assert submission is None
+    assert submission_confidence(message, choice_context) is None
+    assert looks_like_question_followup(message, choice_context) is False
+
+
+def test_resolve_submission_attempt_keeps_explicit_case_answer_with_plan_words() -> None:
+    case_context = {
+        "question_id": "case_1",
+        "question": "项目经理发现工人安全交底不到位，应如何整改？",
+        "question_type": "case",
+    }
+
+    target, submission = resolve_submission_attempt(
+        "我的答案是：应重新组织安全交底并制定复盘计划。请判分。",
+        case_context,
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "question_id": "case_1",
+        "answer": "应重新组织安全交底并制定复盘计划",
+    }
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
         "为什么不是B？一句话。",
         "为什么不是 B？一句话。",
         "B为什么不对？",
@@ -480,6 +629,8 @@ def test_resolve_submission_attempt_keeps_english_written_explanation_as_followu
         "我不是要重新提交C，是想知道C为什么不对；用刚才那题回答。",
         "我不是要重新提交C",
         "如果我选B，你会怎么扣？",
+        "如果我选E，对不对？一句话。",
+        "如果我选Z，对不对？一句话。",
         "这里是不是屋脊？如果选B会怎么判？",
         "不选A为什么不行？",
         "不是提交C，解释一下C错在哪里。",
@@ -2380,6 +2531,8 @@ def test_submission_confidence_high_for_explicit_answer_revision(message: str) -
 def test_submission_confidence_does_not_grade_hypothetical_option_challenge() -> None:
     # "如果选D对不对"是点名选项追问,不是把当前答案改成 D。
     assert submission_confidence("如果选D对不对", _SC_SINGLE_CTX) is None
+    assert submission_confidence("如果我选E，对不对？一句话。", _SC_SINGLE_CTX) is None
+    assert submission_confidence("如果我选Z，对不对？一句话。", _SC_SINGLE_CTX) is None
 
 
 def test_submission_confidence_subjective_payload_keeps_deferral_low() -> None:
@@ -2449,11 +2602,85 @@ def test_low_confidence_non_answer_downgraded_even_if_llm_says_submission(monkey
     assert _qf.followup_action_route(action) != "submission"
 
 
+def test_option_challenge_non_submission_downgrades_llm_submission(monkeypatch):
+    # live 2026-06-26: LLM follow-up classifier sometimes treated the
+    # hypothetical invalid option "如果我选E" as a submitted answer even though
+    # the current A-D question has no E option. Deterministic submission
+    # authority must win before any user_answer write.
+    question_context = {
+        "question_id": "q_live_numbered",
+        "question": "### 第 1 题 施工缝留置位置判断。\n下列说法错误的是（ ）。",
+        "question_type": "choice",
+        "options": {
+            "A": "施工缝宜留在结构受剪力较小且便于施工的部位",
+            "B": "梁板施工缝可留在次梁跨度的中间1/3范围内",
+            "C": "单向板施工缝可留在平行于板短边的位置",
+            "D": "有主次梁楼板宜顺着次梁方向浇筑",
+        },
+        "correct_answer": "C",
+        "user_answer": "",
+    }
+
+    async def fake_complete(**kwargs):
+        import json as _json
+
+        return _json.dumps(
+            {
+                "intent": "answer_questions",
+                "confidence": 0.91,
+                "preserve_other_answers": False,
+                "answers": [
+                    {
+                        "question_index": 1,
+                        "question_id": "q_live_numbered",
+                        "answer": "Z",
+                    }
+                ],
+                "reason": "提交优先原则",
+            }
+        )
+
+    monkeypatch.setattr(_qf, "complete", fake_complete)
+
+    action = _asyncio.run(
+        _qf.interpret_question_followup_action(
+            "如果我选Z，对不对？一句话。",
+            question_context,
+        )
+    )
+
+    assert action is not None
+    assert _qf.followup_action_route(action) == "followup"
+    assert action["answers"] == []
+
+
 def test_high_confidence_real_answer_stays_submission(monkeypatch):
     # HIGH 真作答"我选B":LLM 判 answer_questions → 保留 submission(硬约束40 真作答必判)。
     action = _interpret("我选B", monkeypatch, answer="B")
     assert action is not None
     assert _qf.followup_action_route(action) == "submission"
+
+
+# --- ③稳定性 2b/B1: followup 分类器是首答前阻塞 LLM,只重试 transient infra 失败,
+# fallback(None)对 SEV fail-safe(under-act 不 mis-act)。把默认 max_retries=3 收成 1:
+# 单次 transient blip 仍有一次廉价重试,但不再 3 层指数退避堆出 ~18s 长尾。砍重试
+# 不改裁决(同 prompt/temperature=0,重试成功=首次成功),只在 provider 真抖动时更快落
+# fail-safe fallback。Phase2a 活体证:长尾主因是单次调用慢非重试,此项=低风险诚实清理。
+def test_followup_classifier_caps_retries_to_one(monkeypatch):
+    captured = {}
+
+    async def fake_complete(**kwargs):
+        captured.update(kwargs)
+        import json as _json
+
+        return _json.dumps(
+            {"intent": "ask_followup", "confidence": 0.9, "reason": "x"}
+        )
+
+    monkeypatch.setattr(_qf, "complete", fake_complete)
+    _asyncio.run(_qf.interpret_question_followup_action("这题为什么选C", _S45_CTX))
+    # 显式 max_retries=1 收口:不再吃全局默认 3,杜绝 transient 失败堆 3 层退避长尾。
+    assert captured.get("max_retries") == 1
 
 
 # --- Step 5: 单一 chokepoint 收口 turn_runtime._submission_action_for_user_message ---
@@ -2479,3 +2706,223 @@ def test_chokepoint_high_confidence_single_builds_submission_action():
     from deeptutor.services.session.turn_runtime import _submission_action_for_user_message
     _ctx, action = _submission_action_for_user_message("我选B", _S5_SINGLE)
     assert isinstance(action, dict) and action.get("intent") == "answer_questions"  # HIGH 必判,硬约束40
+
+
+def test_practice_generation_predicate_rehomed_to_question_followup():
+    """QTPK S1 re-home: looks_like_practice_generation_request 的 canonical 归宿是
+    question_followup（question-turn intent 谓词），teaching_modes re-export 同对象。"""
+    from deeptutor.services.question_followup import (
+        looks_like_practice_generation_request as qf_pred,
+    )
+    from deeptutor.tutorbot.teaching_modes import (
+        looks_like_practice_generation_request as tm_pred,
+    )
+
+    # re-home identity: 两条 import 路径同一对象（teaching_modes re-export canonical）
+    assert qf_pred is tm_pred
+
+    # 行为正确（零行为搬迁）: practice generation 请求识别
+    assert qf_pred("给我出一道题练练") is True
+    assert qf_pred("出3道单选题") is True
+    assert qf_pred("这道题怎么做") is False
+    assert qf_pred("") is False
+    assert qf_pred(None) is False
+
+
+# ---------------------------------------------------------------------------
+# M4(i) 方案②: 确定性 canonical re-present（倒诬根治）
+#
+# bug: 学生让 bot 把活跃 MCQ 的选项"重排/重新展示"时，free LLM 生成一个分叉的
+# 呈现面（A/B/C/D 标号重排），但 state_snapshot 仍锚原序、判分也锚原序 → 学生按
+# 呈现面字母作答被判错（倒诬）。修法=re-present 走确定性渲染（直读 state_snapshot
+# 原序），呈现面 == 原始面 == 判分面，结构上消除分叉。
+# ---------------------------------------------------------------------------
+
+
+def _mcq_active_object() -> dict:
+    return {
+        "object_type": "single_question",
+        "object_id": "q_1",
+        "state_snapshot": {
+            "question_id": "q_1",
+            "question": "一级建造师注册证书的有效期是几年？",
+            "question_type": "choice",
+            "options": {"A": "1年", "B": "3年", "C": "4年", "D": "5年"},
+            "user_answer": "",
+            "is_correct": None,
+            "multi_select": False,
+            "items": [],
+        },
+    }
+
+
+def test_canonical_represent_fires_on_reshuffle_request() -> None:
+    out = build_canonical_represent_response(
+        _mcq_active_object(),
+        "把这道题的选项内容不变，只把ABCD标号打乱顺序重新展示给我",
+    )
+    assert out is not None
+    # 题干 + 全部四个选项都在
+    assert "一级建造师注册证书的有效期是几年" in out
+    for letter, value in (("A", "1年"), ("B", "3年"), ("C", "4年"), ("D", "5年")):
+        assert f"{letter}. {value}" in out
+
+
+def test_canonical_represent_preserves_original_order() -> None:
+    out = build_canonical_represent_response(
+        _mcq_active_object(),
+        "重新展示一下这道题",
+    )
+    assert out is not None
+    # 原序 A→1年 B→3年 C→4年 D→5年，绝不按重排面输出
+    pos = {ltr: out.index(f"{ltr}. ") for ltr in "ABCD"}
+    assert pos["A"] < pos["B"] < pos["C"] < pos["D"]
+    assert out.index("A. 1年") < out.index("B. 3年") < out.index("C. 4年") < out.index("D. 5年")
+
+
+def test_canonical_represent_does_not_leak_answer() -> None:
+    out = build_canonical_represent_response(
+        _mcq_active_object(),
+        "把选项顺序打乱重新展示",
+    )
+    assert out is not None
+    # 不泄露答案：无"答案"标注，正确字母不被标注为正确
+    assert "答案" not in out
+    assert "正确答案" not in out
+
+
+def test_canonical_represent_none_on_answer_submission() -> None:
+    assert build_canonical_represent_response(_mcq_active_object(), "我选B") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "B") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "我选3年") is None
+
+
+def test_canonical_represent_none_on_explanation_request() -> None:
+    assert build_canonical_represent_response(_mcq_active_object(), "为什么选B") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "讲一下这道题的解析") is None
+
+
+def test_canonical_represent_none_on_new_question_request() -> None:
+    # 换新题意图必须 fall through 去生成新题，绝不 re-present 旧题
+    assert build_canonical_represent_response(_mcq_active_object(), "换一道题") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "再来一道单选") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "下一题") is None
+
+
+def test_canonical_represent_none_without_active_object() -> None:
+    assert build_canonical_represent_response(None, "把选项重排重新展示") is None
+    assert build_canonical_represent_response({}, "把选项重排重新展示") is None
+
+
+def test_canonical_represent_none_for_non_mcq() -> None:
+    ao = _mcq_active_object()
+    ao["state_snapshot"]["question_type"] = "case"
+    ao["state_snapshot"].pop("options", None)
+    assert build_canonical_represent_response(ao, "把选项重排重新展示") is None
+
+
+def test_canonical_represent_none_for_batch() -> None:
+    ao = _mcq_active_object()
+    snap = ao["state_snapshot"]
+    snap["items"] = [dict(snap), dict(snap)]  # 套题 batch 不在本修法范围
+    assert build_canonical_represent_response(ao, "把选项重排重新展示") is None
+
+
+def test_canonical_represent_none_on_unrelated_message() -> None:
+    # 没有显式 re-present marker → 不 fire（fail-safe 落 LLM）
+    assert build_canonical_represent_response(_mcq_active_object(), "这道题好难") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "A选项是什么意思") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "") is None
+
+
+def test_canonical_represent_none_on_mixed_answer_and_represent() -> None:
+    # GLM 红队 + 自审: "我选C，重新展示一下" 同时是作答 → 必须交给判分,不可被 re-present
+    # 吞掉作答(option② 下学生看到的恒是 canonical 面,判分判得对)。
+    assert build_canonical_represent_response(_mcq_active_object(), "我选C，重新展示一下") is None
+    assert build_canonical_represent_response(_mcq_active_object(), "C，再发一遍") is None
+
+
+def test_canonical_represent_fires_on_letter_manipulation_request() -> None:
+    # "把A和B对调重新展示" 是带字母的 re-present 操作请求,不是作答 → 必须 fire(否则漏修)。
+    out = build_canonical_represent_response(_mcq_active_object(), "把A和B对调，重新展示这道题")
+    assert out is not None
+    # 仍按 canonical 原序展示(不真对调)
+    assert out.index("A. 1年") < out.index("B. 3年")
+
+
+# ---------------------------------------------------------------------------
+# #287: re-present 意图单一权威 message_has_represent_request_intent
+# build_canonical_represent_response 与 turn-START demote 守卫共用此权威，确保 terse
+# 引用活跃 MCQ 时该题不被 demote、确定性 re-present 短路能 fire（不再幻觉换题）。
+# ---------------------------------------------------------------------------
+
+
+def test_represent_intent_fires_on_terse_287_phrases() -> None:
+    # issue #287 复现用的 terse 措辞，必须被识别为 re-present 意图。
+    assert message_has_represent_request_intent("选项重新排列一下") is True
+    assert message_has_represent_request_intent("把abcd换个顺序重新给我看") is True
+    assert message_has_represent_request_intent("把选项顺序打乱重新展示") is True
+    assert message_has_represent_request_intent("重新展示一下这道题") is True
+
+
+def test_represent_intent_excludes_new_question_intent() -> None:
+    # 换新题意图绝不算 re-present（"换一道"含"换"但优先排除）。
+    assert message_has_represent_request_intent("换一道题") is False
+    assert message_has_represent_request_intent("下一题") is False
+    assert message_has_represent_request_intent("再来一道单选") is False
+
+
+def test_represent_intent_none_on_answer_or_unrelated() -> None:
+    assert message_has_represent_request_intent("我选B") is False
+    assert message_has_represent_request_intent("为什么选B") is False
+    assert message_has_represent_request_intent("A选项是什么意思") is False
+    assert message_has_represent_request_intent("这道题好难") is False
+    assert message_has_represent_request_intent("") is False
+    assert message_has_represent_request_intent(None) is False
+
+
+def test_represent_intent_is_single_authority_for_canonical_represent() -> None:
+    # build_canonical_represent_response 的 fire/不-fire 必须与本权威一致（同一意图源）。
+    for msg in ("选项重新排列一下", "把abcd换个顺序重新给我看", "重新展示一下这道题"):
+        assert message_has_represent_request_intent(msg) is True
+        assert build_canonical_represent_response(_mcq_active_object(), msg) is not None
+    for msg in ("换一道题", "我选B", "为什么选B", "这道题好难"):
+        assert message_has_represent_request_intent(msg) is False
+        assert build_canonical_represent_response(_mcq_active_object(), msg) is None
+
+
+def test_canonical_represent_fires_on_production_single_item_shape() -> None:
+    # 生产单题真实形态: state_snapshot 自带一个自指 items(len==1),不应被当套题排除。
+    ao = _mcq_active_object()
+    snap = ao["state_snapshot"]
+    snap["items"] = [dict(snap)]  # 自指单元素
+    out = build_canonical_represent_response(ao, "把选项打乱重新展示")
+    assert out is not None
+    assert "A. 1年" in out and "B. 3年" in out
+
+
+def test_canonical_represent_failsafe_on_non_dict_options() -> None:
+    # options 非 dict 形态(生产实测为 dict;此为防御) → fail-safe 返回 None,不静默误判。
+    ao = _mcq_active_object()
+    ao["state_snapshot"]["options"] = ["1年", "3年", "4年", "5年"]
+    assert build_canonical_represent_response(ao, "把选项打乱重新展示") is None
+
+
+def test_canonical_represent_fires_via_question_context_fallback() -> None:
+    # live cases 3,4 gap: tutorbot preselect-bypass 路由不喂 active_object,
+    # 但 question_followup_context 仍在 → 必须用它回退触发(否则这些措辞漏修倒诬)。
+    qfc = {
+        "question_id": "q_1",
+        "question": "一级建造师注册证书的有效期是几年？",
+        "question_type": "choice",
+        "options": {"A": "1年", "B": "3年", "C": "4年", "D": "5年"},
+    }
+    out = build_canonical_represent_response(None, "选项重新排列一下", question_context=qfc)
+    assert out is not None
+    assert "A. 1年" in out and "B. 3年" in out
+    # active_object 优先于 fallback
+    out2 = build_canonical_represent_response(_mcq_active_object(), "把abcd换个顺序重新给我看",
+                                              question_context={"question_type": "case"})
+    assert out2 is not None and "A. 1年" in out2
+    # 两者都无 → None
+    assert build_canonical_represent_response(None, "选项重新排列一下", question_context=None) is None

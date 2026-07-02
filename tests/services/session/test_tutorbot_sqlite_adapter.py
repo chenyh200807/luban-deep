@@ -786,6 +786,92 @@ async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_extern
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_manager_strips_stale_case_grading_receipt_from_non_case_turn(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    observability = get_langfuse_observability()
+    manager = TutorBotManager()
+    captured_update: dict[str, object] = {}
+
+    def _capture_update_observation(*args, **kwargs) -> None:
+        captured_update["metadata"] = kwargs.get("metadata")
+
+    monkeypatch.setattr(observability, "update_observation", _capture_update_observation)
+
+    stale_receipt = {
+        "v1_case_graded": True,
+        "score_authority": "rubric_scored_v1",
+        "grading_to_brain_loop": {"writeback_count": 1},
+        "learning_evidence_event_id": "evt-old",
+    }
+
+    class _FakeSessions:
+        def __init__(self) -> None:
+            self._session = Session(
+                key="bot:demo:user:u1:chat:c1",
+                metadata=dict(stale_receipt),
+            )
+
+        def get_or_create(self, key: str) -> Session:
+            self._session.key = key
+            return self._session
+
+        def save(self, session: Session) -> None:
+            self._session = session
+
+    fake_sessions = _FakeSessions()
+
+    class _FakeAgentLoop:
+        def __init__(self) -> None:
+            self.sessions = fake_sessions
+
+        async def process_direct(self, *args, **kwargs) -> str:
+            metadata = kwargs.get("metadata")
+            if isinstance(metadata, dict):
+                metadata["question_lifecycle_scene"] = None
+                metadata["execution_path"] = "tutorbot_kb_first_full_agent_policy"
+            return "已按你的正式提交做了摘要，没有重新判分。"
+
+    pending_task = asyncio.create_task(asyncio.sleep(60))
+    manager._bots["demo-bot"] = SimpleNamespace(
+        bot_id="demo-bot",
+        running=True,
+        tasks=[pending_task],
+        agent_loop=_FakeAgentLoop(),
+        channel_manager=None,
+        channel_bindings={},
+    )
+
+    try:
+        session_metadata = {
+            "session_id": "mobile-session",
+            "turn_id": "turn-1",
+            "user_id": "u1",
+            "source": "wx_miniprogram",
+        }
+        response = await manager.send_message(
+            "demo-bot",
+            "总结我正式提交过的案例答案，别重新判分。",
+            chat_id="c1",
+            session_metadata=session_metadata,
+        )
+    finally:
+        pending_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await pending_task
+
+    assert response == "已按你的正式提交做了摘要，没有重新判分。"
+    for container in (
+        session_metadata,
+        fake_sessions._session.metadata,
+        captured_update["metadata"],
+    ):
+        assert isinstance(container, dict)
+        for key in stale_receipt:
+            assert key not in container
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_manager_injects_high_confidence_general_knowledge_context(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

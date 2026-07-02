@@ -56,6 +56,25 @@ def _review_context() -> UnifiedContext:
     )
 
 
+def _review_context_with_canonical() -> UnifiedContext:
+    """A question_review context carrying the canonical turn_semantic_decision the
+    orchestrator supplies for this scene (turn.md §硬约束 24). Control-plane 治本
+    Action 2: deep_question is a READER of the orchestrator's canonical decision; the
+    main review-render path fail-fasts (no second-authority fabrication) if it is
+    absent, so unit tests that drive the render path directly must supply it just like
+    every production entry route (question_review-no-active inject / canonical resolve /
+    preselect inject) does."""
+    ctx = _review_context()
+    ctx.metadata["turn_semantic_decision"] = {
+        "relation_to_active_object": "ask_about_active_object",
+        "next_action": "route_to_followup_explainer",
+        "allowed_patch": "no_state_change",
+        "confidence": 1.0,
+        "reason": "orchestrator question_review canonical decision",
+    }
+    return ctx
+
+
 def _patch_llm_config(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "deeptutor.services.llm.config.get_llm_config",
@@ -120,7 +139,7 @@ async def test_question_review_bank_hit_renders_non_interactive_review_card(
     _patch_llm_config(monkeypatch)
 
     capability = DeepQuestionCapability()
-    events = await _collect_events(lambda bus: capability.run(_review_context(), bus))
+    events = await _collect_events(lambda bus: capability.run(_review_context_with_canonical(), bus))
 
     assert calls
     assert calls[0]["lightweight_generation"] is True
@@ -251,7 +270,7 @@ async def test_question_review_variant_marks_generated_card_as_variant(
     _patch_llm_config(monkeypatch)
 
     capability = DeepQuestionCapability()
-    events = await _collect_events(lambda bus: capability.run(_review_context(), bus))
+    events = await _collect_events(lambda bus: capability.run(_review_context_with_canonical(), bus))
 
     assert calls
     assert calls[0]["allow_lightweight_fallback"] is False
@@ -376,3 +395,113 @@ def test_missing_question_review_feedback_no_prompt_leak() -> None:
     assert "继续 请严格围绕" not in out
     assert "屋面防水" not in _render_missing_question_review_feedback("屋面防水")
     assert "还没有定位到" in out and "请把完整题干" in out
+
+
+def _missing_question_review_coordinator(calls: list[dict[str, Any]]):
+    """Coordinator returning a non-renderable result → drives the S5 bare-build
+    (missing_question_bank_hit) fallback at deep_question.py:~4281."""
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, _callback) -> None:
+            pass
+
+        def set_trace_callback(self, _callback) -> None:
+            pass
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            calls.append(dict(kwargs))
+            return {
+                "success": False,
+                "requested": 1,
+                "completed": 0,
+                "templates": [],
+                "results": [],
+                "trace": {
+                    "lightweight_counters": {
+                        "bank_hits": 0,
+                        "llm_calls": 0,
+                        "retriever_calls": 1,
+                        "lightweight_batch_fallback": "disabled",
+                    }
+                },
+            }
+
+    return FakeCoordinator
+
+
+@pytest.mark.asyncio
+async def test_s5_bare_build_appends_unconditional_fabricate_shadow_hit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """OBSERVE-ONLY live-shadow blind-spot #2: the S5 review-render bare
+    ``build_turn_semantic_decision(...)`` fabricates a second-authority decision
+    UNCONDITIONALLY — even when a canonical decision is present. It must append a
+    ``unconditional_fabricate`` shadow hit (site=S5_review_render) carrying the
+    scene and the REAL canonical_present, so the 7-day window can prove (or
+    disprove) generation/review fabrication per-site/per-scene. RED before the
+    append site exists."""
+    calls: list[dict[str, Any]] = []
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.AgentCoordinator",
+        _missing_question_review_coordinator(calls),
+    )
+    _patch_llm_config(monkeypatch)
+
+    # Canonical decision IS present in metadata — S5 still fabricates a second
+    # one (the blind spot the canonical-missing guard cannot see).
+    ctx = _review_context()
+    ctx.metadata["turn_semantic_decision"] = {
+        "relation_to_active_object": "ask_about_active_object",
+        "next_action": "route_to_followup_explainer",
+        "allowed_patch": "no_state_change",
+        "confidence": 1.0,
+        "reason": "canonical present",
+    }
+
+    capability = DeepQuestionCapability()
+    await _collect_events(lambda bus: capability.run(ctx, bus))
+
+    hits = ctx.metadata["trace_metadata"]["control_plane_shadow_hits"]
+    s5_hits = [h for h in hits if h.get("site") == "S5_review_render"]
+    assert len(s5_hits) == 1, hits
+    hit = s5_hits[0]
+    assert hit["fact"] == "turn_semantic_decision"
+    assert hit["writer_role"] == "unconditional_fabricate"
+    assert hit["writer_symbol"] == "run"
+    assert hit["path"] == "deep_question"
+    assert hit["scene"] == "question_review"
+    # canonical_present is computed REALLY — here it is True, exposing that S5
+    # fabricates even when the canonical decision exists.
+    assert hit["canonical_present"] is True
+
+
+@pytest.mark.asyncio
+async def test_canonical_missing_guard_hit_carries_scene_and_site(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """OBSERVE-ONLY blind-spot #1: the canonical-missing guard hit must carry the
+    scene + a ``site=canonical_missing_guard`` tag so the window can attribute
+    fabrication per-scene (generation vs review). The review context has NO
+    canonical turn_semantic_decision → the guard fires. RED before the fields
+    are added."""
+    calls: list[dict[str, Any]] = []
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.AgentCoordinator",
+        _missing_question_review_coordinator(calls),
+    )
+    _patch_llm_config(monkeypatch)
+
+    ctx = _review_context()  # no canonical turn_semantic_decision → guard fires
+    capability = DeepQuestionCapability()
+    await _collect_events(lambda bus: capability.run(ctx, bus))
+
+    hits = ctx.metadata["trace_metadata"]["control_plane_shadow_hits"]
+    guard_hits = [h for h in hits if h.get("site") == "canonical_missing_guard"]
+    assert len(guard_hits) == 1, hits
+    guard = guard_hits[0]
+    assert guard["writer_role"] == "compat_projection"
+    assert guard["canonical_present"] is False
+    assert guard["scene"] == "question_review"

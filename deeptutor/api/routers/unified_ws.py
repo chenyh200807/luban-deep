@@ -34,6 +34,7 @@ from deeptutor.services.question_followup import (
     PUBLIC_HIDDEN_PAYLOAD_KEYS,
     redact_question_followup_context_for_public,
 )
+from deeptutor.services.user_visible_output import looks_like_internal_output
 
 router = secure_ws_router()
 logger = logging.getLogger(__name__)
@@ -345,6 +346,12 @@ _INTERNAL_OBSERVABILITY_KEY_PREFIXES: tuple[str, ...] = (
 # whole entry. Mirrors question_followup._EVIDENCE_FIELD_KEYS so both public
 # boundaries share the same rule.
 _EVIDENCE_FIELD_KEYS: tuple[str, ...] = ("field", "source_field", "source_key", "name")
+_PUBLIC_SOURCE_TITLE_KEYS: tuple[str, ...] = (
+    "title",
+    "source",
+    "source_title",
+    "source_name",
+)
 
 
 def _is_hidden_payload_key(value: str) -> bool:
@@ -363,6 +370,15 @@ def _is_hidden_evidence_entry(value: dict[str, Any]) -> bool:
         if isinstance(sibling, str) and _is_hidden_payload_key(sibling):
             return True
     return False
+
+
+def _redact_public_footer_text(value: str) -> str:
+    lines = [
+        line
+        for line in str(value or "").splitlines()
+        if not looks_like_internal_output(line)
+    ]
+    return "\n".join(lines).strip()
 
 
 def _redact_value_for_public(value: Any) -> Any:
@@ -411,6 +427,17 @@ def _redact_dict_for_public(payload: dict[str, Any]) -> dict[str, Any] | None:
         if key in _HIDDEN_PAYLOAD_KEYS:
             continue
         if _is_internal_observability_payload_key(str(key)):
+            continue
+        if (
+            key in _PUBLIC_SOURCE_TITLE_KEYS
+            and isinstance(value, str)
+            and looks_like_internal_output(value)
+        ):
+            continue
+        if key == "footer_text" and isinstance(value, str):
+            footer_text = _redact_public_footer_text(value)
+            if footer_text:
+                clean[key] = footer_text
             continue
         if key == "source_fields" and isinstance(value, list):
             kept = [

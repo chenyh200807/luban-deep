@@ -34,6 +34,8 @@ def validate_runtime_assets(repo_root: Path) -> list[str]:
     dockerfile_path = repo_root / "Dockerfile"
     scrape_path = repo_root / "deployment" / "observability" / "prometheus.scrape.example.yml"
     alerts_path = repo_root / "deployment" / "observability" / "prometheus.alerts.example.yml"
+    alerts_test_path = repo_root / "deployment" / "observability" / "prometheus.alerts.test.yml"
+    alertmanager_path = repo_root / "deployment" / "observability" / "alertmanager.yml"
     backup_doc = repo_root / "docs" / "zh" / "guide" / "runtime-backup-restore.md"
     observability_doc = repo_root / "docs" / "zh" / "guide" / "runtime-observability.md"
 
@@ -115,6 +117,9 @@ def validate_runtime_assets(repo_root: Path) -> list[str]:
                 "DeepTutorServerErrors": "deeptutor_http_errors_total",
                 "DeepTutorProviderThresholdExceeded": "deeptutor_provider_threshold_exceeded",
                 "DeepTutorCircuitBreakerOpen": "deeptutor_circuit_breaker_open",
+                # Self-monitoring + watch-the-watcher: register so they cannot silently vanish.
+                "DeepTutorMetricsScrapeDown": 'up{job="deeptutor"}',
+                "AlertmanagerDown": 'up{job="alertmanager"}',
             }
             for alert_name, metric_name in required_alerts.items():
                 rule = alerts_by_name.get(alert_name)
@@ -126,6 +131,35 @@ def validate_runtime_assets(repo_root: Path) -> list[str]:
                     errors.append(f"alert {alert_name} must reference {metric_name}")
         except Exception as exc:
             errors.append(f"failed to parse prometheus alerts example: {exc}")
+
+    # The promtool behavioral test file must exist (CI runs `promtool test rules` on it).
+    if not alerts_test_path.exists():
+        errors.append(f"missing prometheus alerts test (promtool): {alerts_test_path}")
+
+    # Alertmanager config was previously validated nowhere. Structurally validate it so a
+    # malformed route/receiver is caught in CI (delivery placeholders are intentional and are
+    # surfaced as a runtime WARN by verify_aliyun_observability_stack.sh, not failed here).
+    if not alertmanager_path.exists():
+        errors.append(f"missing alertmanager config: {alertmanager_path}")
+    else:
+        try:
+            am = _load_yaml(alertmanager_path) or {}
+            route = am.get("route") or {}
+            receivers = am.get("receivers") or []
+            receiver_names = {str(r.get("name")) for r in receivers if isinstance(r, dict)}
+            default_receiver = route.get("receiver")
+            if not default_receiver:
+                errors.append("alertmanager.yml route must define a default receiver")
+            elif str(default_receiver) not in receiver_names:
+                errors.append(
+                    f"alertmanager.yml route.receiver {default_receiver!r} not in receivers {sorted(receiver_names)}"
+                )
+            for sub in route.get("routes") or []:
+                sub_recv = sub.get("receiver") if isinstance(sub, dict) else None
+                if sub_recv and str(sub_recv) not in receiver_names:
+                    errors.append(f"alertmanager.yml sub-route receiver {sub_recv!r} not in receivers")
+        except Exception as exc:
+            errors.append(f"failed to parse alertmanager config: {exc}")
 
     if not backup_doc.exists():
         errors.append(f"missing backup runbook: {backup_doc}")

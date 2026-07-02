@@ -294,6 +294,92 @@ gates:
     assert release_gate["status"] == "PASS"
 
 
+def test_eval_gate_runner_filters_by_category(tmp_path: Path) -> None:
+    # The observability cron runs only the hermetic `quick` category. The runner
+    # must execute ONLY gates whose category matches and never touch deep gates.
+    gates_path = tmp_path / "gates.yaml"
+    artifact_dir = tmp_path / "artifacts"
+    gates_path.write_text(
+        """
+version: 1
+gates:
+  quick_gate:
+    category: quick
+    command: ["python", "-c", "print('quick ran')"]
+  deep_gate:
+    category: deep
+    command: ["python", "-c", "raise SystemExit('deep must not run under --category quick')"]
+""",
+        encoding="utf-8",
+    )
+
+    result = _run_eval_gate(
+        "--gates-path",
+        str(gates_path),
+        "--artifact-dir",
+        str(artifact_dir),
+        "--category",
+        "quick",
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    summary = json.loads((artifact_dir / "summary.json").read_text(encoding="utf-8"))
+    assert [gate["name"] for gate in summary["gates"]] == ["quick_gate"]
+    assert summary["verdict"] == "PASS"
+
+
+def test_eval_gate_list_respects_category_filter(tmp_path: Path) -> None:
+    gates_path = tmp_path / "gates.yaml"
+    gates_path.write_text(
+        """
+version: 1
+gates:
+  quick_gate:
+    category: quick
+    command: ["python", "-c", "print('x')"]
+  deep_gate:
+    category: deep
+    command: ["python", "-c", "print('y')"]
+""",
+        encoding="utf-8",
+    )
+
+    result = _run_eval_gate("--gates-path", str(gates_path), "--list", "--category", "deep")
+
+    assert result.returncode == 0, result.stderr
+    assert "deep_gate" in result.stdout
+    assert "quick_gate" not in result.stdout
+
+
+def test_real_quick_category_defers_nonhermetic_gates() -> None:
+    # Hard guard against the 假红 (false-red) trap: on the observability cron's
+    # hermetic runner (no KB, no egress, no node) the live-network rag gates and
+    # the node-dependent web gate must DEFER, not FAIL. exam_quality_cross_model
+    # (deep, needs keyed providers) must also be deferred until configured. We
+    # assert on --list status so this stays env-independent on a clean checkout
+    # (golden fixture + provider keys are absent in any fresh tree).
+    result = _run_eval_gate("--list")
+    assert result.returncode == 0, result.stderr
+    lines = {
+        line.split("\t")[0]: line
+        for line in result.stdout.splitlines()
+        if "\t" in line
+    }
+    for name in ("rag_retrieval_contract", "rag_retrieval_quality"):
+        assert name in lines, f"{name} missing from gates.yaml"
+        assert "DEFERRED" in lines[name], lines[name]
+    assert "exam_quality_cross_model" in lines, "exam_quality gate not registered"
+    assert "DEFERRED" in lines["exam_quality_cross_model"], lines["exam_quality_cross_model"]
+
+
+def test_exam_quality_cross_model_gate_command_reuses_existing_cli() -> None:
+    gates = (PROJECT_ROOT / "eval" / "gates.yaml").read_text(encoding="utf-8")
+    # reuse the existing closed-book cross-model CLI entry — no new harness
+    assert "deeptutor.services.benchmark.exam_quality_eval" in gates
+    # web gate gains a deferral marker so a python-only runner skips it honestly
+    assert '"web/node_modules"' in gates
+
+
 def test_eval_gate_yaml_turns_coverage_gaps_into_runnable_gates() -> None:
     gates = (PROJECT_ROOT / "eval" / "gates.yaml").read_text(encoding="utf-8")
 

@@ -20,6 +20,7 @@ from deeptutor.capabilities.request_contracts import get_capability_request_sche
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
+from deeptutor.core.terminal_result_assembler import TerminalResultAssembler
 from deeptutor.core.trace import merge_trace_metadata
 from deeptutor.services.citations import (
     CitationPolicy,
@@ -33,11 +34,14 @@ from deeptutor.services.construction_grading.writeback import write_grading_erro
 from deeptutor.services.question_followup import (
     answers_match,
     apply_followup_action_to_context,
+    build_canonical_represent_response,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
+    detect_answer_reveal_preference,
     normalize_question_followup_context,
     requested_question_item_index,
+    resolve_reveal_decision,
     resolve_submission_attempt,
     should_reveal_reference_material,
 )
@@ -47,6 +51,7 @@ from deeptutor.services.semantic_router import (
     apply_active_object_transition,
     build_active_object_from_question_context,
     build_turn_semantic_decision,
+    is_question_active_object_type,
     normalize_active_object,
     normalize_suspended_object_stack,
     normalize_turn_semantic_decision,
@@ -88,6 +93,11 @@ _CURRENT_QUESTION_ANCHOR_MARKERS = (
     "围绕这题",
     "照着这题",
 )
+_CURRENT_QUESTION_EXCLUSION_RE = re.compile(
+    r"(?:(?:不同|其他|其它|别的|换(?:个|一个)?)(?:考点|知识点))"
+    r"|(?:(?:不要|别)和刚才)"
+    r"|(?:(?:不要|别|不)重复)"
+)
 _MCQ_QUESTION_TYPES = {
     "choice",
     "single_choice",
@@ -105,10 +115,27 @@ _QUESTION_BANK_METADATA_KEYS = (
     "source_question",
     "recovered_question_context",
 )
+_BROAD_QUESTION_SUBJECT_LABELS = {
+    "一级建造师项目管理",
+    "一建项目管理",
+    "建设工程项目管理",
+    "建筑工程项目管理",
+    "一级建造师建筑实务",
+    "一建建筑实务",
+    "一级建造师建筑工程",
+    "建筑工程管理与实务",
+}
+_BROAD_QUESTION_SUBJECT_MARKERS = ("一级建造师", "一建", "建造师考试")
+_BROAD_QUESTION_SUBJECT_SUFFIXES = ("项目管理", "建筑实务", "管理与实务")
 
 
 def _compact_text(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _requests_current_question_exclusion(topic: str) -> bool:
+    normalized = _compact_text(topic).lower()
+    return bool(normalized and _CURRENT_QUESTION_EXCLUSION_RE.search(normalized))
 
 
 def _clip_text(value: Any, *, limit: int = 280) -> str:
@@ -123,6 +150,19 @@ def _append_unique(parts: list[str], candidate: Any) -> None:
     if not text or text in parts:
         return
     parts.append(text)
+
+
+def _is_broad_question_subject_label(value: Any) -> bool:
+    text = _compact_text(value)
+    if not text:
+        return False
+    if text in _BROAD_QUESTION_SUBJECT_LABELS:
+        return True
+    if len(text) > 32:
+        return False
+    return any(marker in text for marker in _BROAD_QUESTION_SUBJECT_MARKERS) and any(
+        text.endswith(suffix) for suffix in _BROAD_QUESTION_SUBJECT_SUFFIXES
+    )
 
 
 def _training_signal_text_from_context(question_context: dict[str, Any]) -> str:
@@ -281,6 +321,55 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
     return "\n".join(anchor_lines)
 
 
+def _question_context_exclusion_anchor(question_context: dict[str, Any] | None) -> str:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return ""
+
+    items = normalized.get("items") or []
+    contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
+    concentrations: list[str] = []
+    question_parts: list[str] = []
+    option_parts: list[str] = []
+
+    for item in contexts:
+        concentration = item.get("concentration")
+        if not _is_broad_question_subject_label(concentration):
+            _append_unique(concentrations, concentration)
+        _append_unique(question_parts, _clip_text(item.get("question"), limit=180))
+        options = item.get("options")
+        if isinstance(options, dict):
+            rendered_options = "；".join(
+                f"{str(key).strip().upper()}. {_clip_text(value, limit=80)}"
+                for key, value in list(options.items())[:5]
+                if str(key).strip() and str(value).strip()
+            )
+            _append_unique(option_parts, rendered_options)
+
+    anchor_lines: list[str] = []
+    if concentrations:
+        anchor_lines.append(f"需避开考点：{'；'.join(concentrations[:3])}")
+    if question_parts:
+        anchor_lines.append(f"需避开题干：{'；'.join(question_parts[:2])}")
+    if option_parts:
+        anchor_lines.append(f"需避开选项面：{'；'.join(option_parts[:2])}")
+    return "\n".join(anchor_lines)
+
+
+def _question_context_broader_subject_anchor(question_context: dict[str, Any] | None) -> str:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return ""
+
+    items = normalized.get("items") or []
+    contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
+    for item in contexts:
+        concentration = item.get("concentration")
+        if _is_broad_question_subject_label(concentration):
+            return f"当前学习主题：{_clip_text(concentration, limit=80)}"
+    return ""
+
+
 def _active_object_generation_anchor(active_object: dict[str, Any] | None) -> str:
     normalized = normalize_active_object(active_object)
     if not normalized:
@@ -328,6 +417,32 @@ def _conversation_generation_anchor(conversation_context_text: str) -> str:
     return f"最近对话摘要：{text}"
 
 
+def _current_question_exclusion_generation_topic(
+    topic: str,
+    broader_anchor: str,
+    exclusion_anchor: str = "",
+) -> str:
+    exclusion_block = ""
+    if exclusion_anchor:
+        exclusion_block = (
+            "\n\n排除当前题（仅用于去重，不得作为新题考点）：\n"
+            f"{exclusion_anchor}"
+        )
+    if broader_anchor:
+        return (
+            f"{topic}\n\n"
+            "请基于以下更大范围学习主题出题，但必须避开当前题题干、选项和同一小考点：\n"
+            f"{broader_anchor}"
+            f"{exclusion_block}"
+        )
+    return (
+        f"{topic}\n\n"
+        "请从建筑实务/建造师考试高频考点中选择一个与当前题不同的小考点出题；"
+        "不要沿用当前题题干、选项或同一小考点。"
+        f"{exclusion_block}"
+    )
+
+
 def _suspended_stack_generation_anchor(
     suspended_object_stack: list[dict[str, Any]] | None,
 ) -> str:
@@ -336,7 +451,10 @@ def _suspended_stack_generation_anchor(
         if not normalized:
             continue
         object_type = str(normalized.get("object_type") or "").strip()
-        if object_type in {"question_set", "single_question"}:
+        # Family-first: skip any question (题型) suspended object — we want a BROADER
+        # non-question anchor here. Consults the single family authority instead of a
+        # hand-listed {question_set, single_question} that dropped open_world_question.
+        if is_question_active_object_type(object_type):
             continue
         anchor = _active_object_generation_anchor(normalized)
         if anchor:
@@ -351,6 +469,8 @@ def _topic_needs_authoritative_anchor(topic: str) -> bool:
 def _prefers_current_question_anchor(topic: str) -> bool:
     normalized = _compact_text(topic).lower()
     if not normalized:
+        return False
+    if _requests_current_question_exclusion(normalized):
         return False
     if any(marker in normalized for marker in _CURRENT_QUESTION_ANCHOR_MARKERS):
         return True
@@ -370,17 +490,47 @@ def _resolve_generation_topic(
     topic = _compact_text(raw_topic)
     if not topic:
         return ""
+    if _requests_current_question_exclusion(topic):
+        broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
+        normalized_active_object = normalize_active_object(active_object)
+        active_object_type = str((normalized_active_object or {}).get("object_type") or "").strip()
+        # Family-first: a question (题型) active object's exclusion / broader anchor is
+        # read from its question context; a non-question object uses its generic anchor.
+        # Single family authority replaces the hand-listed {question_set, single_question}.
+        active_object_is_question = is_question_active_object_type(active_object_type)
+        exclusion_anchor = _question_context_exclusion_anchor(followup_question_context)
+        if not exclusion_anchor and active_object_is_question:
+            exclusion_anchor = _question_context_exclusion_anchor(
+                question_context_from_active_object(normalized_active_object)
+            )
+        if not broader_anchor:
+            broader_anchor = _question_context_broader_subject_anchor(followup_question_context)
+        if not broader_anchor and active_object_is_question:
+            broader_anchor = _question_context_broader_subject_anchor(
+                question_context_from_active_object(normalized_active_object)
+            )
+        if not broader_anchor and not active_object_is_question:
+            broader_anchor = _active_object_generation_anchor(normalized_active_object)
+        if not broader_anchor:
+            broader_anchor = _conversation_generation_anchor(conversation_context_text)
+        return _current_question_exclusion_generation_topic(
+            topic,
+            broader_anchor,
+            exclusion_anchor,
+        )
     if not _topic_needs_authoritative_anchor(topic):
         return topic
 
     normalized_active_object = normalize_active_object(active_object)
     active_object_type = str((normalized_active_object or {}).get("object_type") or "").strip()
+    # Family-first via the single family authority (replaces hand-listed literal).
+    active_object_is_question = is_question_active_object_type(active_object_type)
     question_anchor = _question_context_generation_anchor(followup_question_context)
-    if not question_anchor and active_object_type in {"question_set", "single_question"}:
+    if not question_anchor and active_object_is_question:
         question_anchor = _active_object_generation_anchor(normalized_active_object)
 
     broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
-    if not broader_anchor and active_object_type not in {"question_set", "single_question"}:
+    if not broader_anchor and not active_object_is_question:
         broader_anchor = _active_object_generation_anchor(normalized_active_object)
     if not broader_anchor:
         broader_anchor = _conversation_generation_anchor(conversation_context_text)
@@ -426,6 +576,8 @@ def _should_use_followup_anchor_generation(
     followup_question_context: dict[str, Any] | None,
 ) -> bool:
     if str(mode or "").strip().lower() != "custom":
+        return False
+    if _requests_current_question_exclusion(raw_topic):
         return False
     if int(num_questions or 1) > 3:
         return False
@@ -1412,6 +1564,8 @@ def _should_render_deterministic_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
+    if _render_targeted_brief_reference_feedback(user_message, question_context):
+        return True
     if not (
         should_reveal_reference_material(user_message, question_context)
         and _reference_items(question_context)
@@ -1499,10 +1653,27 @@ def _named_option_letters(user_message: str, options: dict[str, str]) -> list[st
     return named
 
 
+def _named_invalid_option_letters(user_message: str, options: dict[str, str]) -> list[str]:
+    text = str(user_message or "").upper()
+    available = {str(letter).strip().upper()[:1] for letter in options.keys()}
+    invalid: list[str] = []
+    for letter in "ABCDE":
+        if letter in available:
+            continue
+        if re.search(rf"(?<![A-Z]){letter}(?![A-Z])", text):
+            invalid.append(letter)
+    return invalid
+
+
 def _render_brief_wrong_cause(item: dict[str, Any], user_message: str = "") -> str:
     correct_letters = set(_answer_letters(item.get("correct_answer")))
     user_letters = set(_answer_letters(item.get("user_answer")))
     options = dict(_option_entries(item))
+    invalid_letters = _named_invalid_option_letters(user_message, options)
+    if invalid_letters:
+        available = "、".join(letter for letter, _text in _option_entries(item)) or "当前题面选项"
+        invalid = "、".join(invalid_letters)
+        return f"{invalid}不是这道题的选项；这题只有{available}，不能按不存在的选项判。"
     # When the learner names a specific option ("A错在哪里"), answer about *that*
     # option using the question's own standard answer as the single authority.
     # Otherwise a correct-answer learner falls through to "没错，答案正确", which
@@ -3621,14 +3792,16 @@ class DeepQuestionCapability(BaseCapability):
         turn_semantic_decision = normalize_turn_semantic_decision(
             context.metadata.get("turn_semantic_decision")
         ) or {}
-        # Context-Continuity 真闭包 task #12 step 2 (observability-first, ZERO behavior
-        # change): deep_question should READ the orchestrator's canonical
-        # turn_semantic_decision. When it is absent here, deep_question fabricates a
-        # fallback (_default_turn_semantic_decision) — a second-authority path the
-        # migration will remove. Before removing it we OBSERVE in production whether any
-        # live path actually reaches deep_question without the canonical decision (the
-        # harness only covers the matrix, not all live paths). Records a trace flag + warns;
-        # the existing fallback still runs, so routing/grading is unchanged.
+        # Context-Continuity 真闭包 task #12 step 2 → 治本 Action 2 Step 3:
+        # deep_question is a READER of the orchestrator's canonical turn_semantic_decision
+        # (turn.md §硬约束 24). The generation/review result-assembly sites no longer
+        # fabricate a second-authority fallback when the canonical decision is missing —
+        # they fail LOUD via _require_canonical_turn_semantic_decision (orchestrator
+        # preselect injection + production evidence 0/537 prove canonical is always
+        # present there). This early observe-guard stays for the paths that LEGITIMATELY
+        # build their own slot-binding authority without an entry canonical (MCQ/case
+        # paste, legacy-followup belt): it records a per-scene trace flag + warns so the
+        # 7-day window can still distinguish those paths. It changes no control flow.
         if self._canonical_turn_decision_missing(context.metadata):
             _md = context.metadata if isinstance(context.metadata, dict) else {}
             if isinstance(context.metadata, dict):
@@ -3637,6 +3810,29 @@ class DeepQuestionCapability(BaseCapability):
                     context.metadata["trace_metadata"][
                         "deep_question_canonical_decision_missing"
                     ] = True
+                    # Observe-only live-shadow hit (no control flow change): the
+                    # fallback below still runs unchanged. Record that this
+                    # compat-projection path became the operative source of
+                    # turn_semantic_decision because the canonical decision was
+                    # absent. Reuses the single terminal turn_observation event
+                    # via the trace_metadata whitelist passthrough.
+                    context.metadata["trace_metadata"].setdefault(
+                        "control_plane_shadow_hits", []
+                    ).append(
+                        {
+                            "fact": "turn_semantic_decision",
+                            "writer_role": "compat_projection",
+                            "writer_symbol": "run",
+                            "path": "deep_question",
+                            # Blind-spot #1 fix: tag scene + site so the window can
+                            # attribute fabrication per-route (generation vs review
+                            # vs case_grading). scene is the orchestrator-projected
+                            # lifecycle scene (deep_question never derives one).
+                            "site": "canonical_missing_guard",
+                            "scene": lifecycle_scene or "",
+                            "canonical_present": False,
+                        }
+                    )
             # loguru uses {key}-style formatting; enrich with identifying context so the
             # observation window can pin which upstream path bypassed the canonical decision.
             logger.warning(
@@ -3685,83 +3881,145 @@ class DeepQuestionCapability(BaseCapability):
             return
         if (
             not force_generate_questions
-            and not (
-                isinstance(followup_question_context, dict)
-                and followup_question_context.get("question")
-            )
         ):
             # A learner pasted a self-contained MCQ (own stem + own option order) and
             # answered it. This object has its own learner-surface authority, so it must
             # beat stale lifecycle labels and the broader case full-submission fallback.
             full_mcq_context = self._mcq_grading_context_from_full_submission(raw_user_message)
             if full_mcq_context is not None:
-                mcq_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
+                full_mcq_active_object = build_active_object_from_question_context(
+                    full_mcq_context,
+                    source_turn_id=turn_id,
+                    previous_active_object=active_object,
+                ) or active_object
+                # Field-level merge (single-authority by FACET, not whole-decision):
+                #   * deep_question owns the SLOT-BINDING facet (allowed_patch /
+                #     active_object): a learner who pastes a self-contained MCQ owns
+                #     the learner-surface, so the slot binding is derived from the
+                #     PASTE. The stale router's allowed_patch / target_object_ref are
+                #     keyed off the prior active object (e.g. a multi-question set →
+                #     append_answer_slots) and would mis-bind the single pasted slot.
+                #   * the router owns the INTENT facet (relation_to_active_object /
+                #     next_action / target_object_ref / confidence): it sees the
+                #     conversation context, so e.g. a no-keyword revision ("不对应该是B")
+                #     is correctly relation=revise_answer_on_active_object — the local
+                #     4-keyword heuristic below MUST NOT downgrade it.
+                # When the router supplied a decision, keep its intent fields and
+                # override ONLY the slot-binding facet with the paste truth. When it
+                # did not, deep_question builds the whole grading decision.
+                mcq_paste_allowed_patch = (
+                    "append_answer_slots"
+                    if len((full_mcq_context or {}).get("items") or []) > 1
+                    else "update_answer_slot"
+                )
+                mcq_paste_decision = build_turn_semantic_decision(
                     relation_to_active_object=(
                         "revise_answer_on_active_object"
                         if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
                         else "answer_active_object"
                     ),
                     next_action="route_to_grading",
-                    allowed_patch="append_answer_slots" if len((full_mcq_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    allowed_patch=mcq_paste_allowed_patch,
                     confidence=1.0,
-                    reason="mcq_grading full-submission fallback",
-                    active_object=active_object,
+                    reason="mcq_grading full-submission paste (paste-parsed slot-binding authority)",
+                    active_object=full_mcq_active_object,
                 )
+                if turn_semantic_decision:
+                    # Router supplied intent; deep_question overrides only the
+                    # slot-binding facet (allowed_patch + target_object_ref bound to
+                    # the pasted object). relation/next_action/confidence stay router's.
+                    mcq_turn_decision = {
+                        **turn_semantic_decision,
+                        "allowed_patch": mcq_paste_decision["allowed_patch"],
+                        "target_object_ref": mcq_paste_decision["target_object_ref"],
+                        "reason": "mcq_grading full-submission paste (router intent + paste slot-binding)",
+                    }
+                else:
+                    mcq_turn_decision = mcq_paste_decision
                 context.metadata["question_followup_context"] = dict(full_mcq_context)
+                context.metadata["active_object"] = dict(full_mcq_active_object or {})
                 context.metadata["turn_semantic_decision"] = mcq_turn_decision
                 await self._emit_grading_result(
                     stream=stream,
                     context=context,
                     llm_config=llm_config,
                     turn_id=turn_id,
-                    active_object=active_object,
+                    active_object=full_mcq_active_object,
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=mcq_turn_decision,
                     graded_context=full_mcq_context,
                     raw_user_message=raw_user_message,
                     selected_mode=selected_mode,
                     authority_source="mcq_grading_full_submission",
-                    correct_answer_present=False,
+                    correct_answer_present=bool(str(full_mcq_context.get("correct_answer") or "").strip()),
                     kb_name=kb_name,
                 )
                 return
         if (
             lifecycle_scene == "case_grading"
             and not force_generate_questions
-            and not (
-                isinstance(followup_question_context, dict)
-                and followup_question_context.get("question")
-            )
         ):
             full_case_context = self._case_grading_context_from_full_submission(raw_user_message)
             if full_case_context is not None:
-                case_turn_decision = turn_semantic_decision or build_turn_semantic_decision(
+                full_case_active_object = build_active_object_from_question_context(
+                    full_case_context,
+                    source_turn_id=turn_id,
+                    previous_active_object=active_object,
+                ) or active_object
+                # Same field-level merge as the MCQ paste path above: deep_question
+                # owns the SLOT-BINDING facet (allowed_patch / active_object — derived
+                # from the pasted self-contained case), the router owns the INTENT facet
+                # (relation_to_active_object / next_action / confidence — it sees the
+                # conversation context, so a no-keyword revision is not downgraded by the
+                # local 4-keyword heuristic). Merge fields; do not whole-replace.
+                case_paste_allowed_patch = (
+                    "append_answer_slots"
+                    if len((full_case_context or {}).get("items") or []) > 1
+                    else "update_answer_slot"
+                )
+                case_paste_decision = build_turn_semantic_decision(
                     relation_to_active_object=(
                         "revise_answer_on_active_object"
                         if any(m in str(raw_user_message or "") for m in ("改", "更正", "修正", "订正"))
                         else "answer_active_object"
                     ),
                     next_action="route_to_grading",
-                    allowed_patch="append_answer_slots" if len((full_case_context or {}).get("items") or []) > 1 else "update_answer_slot",
+                    allowed_patch=case_paste_allowed_patch,
                     confidence=1.0,
-                    reason="case_grading full-submission fallback",
-                    active_object=active_object,
+                    reason="case_grading full-submission paste (paste-parsed slot-binding authority)",
+                    active_object=full_case_active_object,
                 )
+                if turn_semantic_decision:
+                    case_turn_decision = {
+                        **turn_semantic_decision,
+                        "allowed_patch": case_paste_decision["allowed_patch"],
+                        "target_object_ref": case_paste_decision["target_object_ref"],
+                        "reason": "case_grading full-submission paste (router intent + paste slot-binding)",
+                    }
+                else:
+                    case_turn_decision = case_paste_decision
                 context.metadata["question_followup_context"] = dict(full_case_context)
+                context.metadata["active_object"] = dict(full_case_active_object or {})
                 context.metadata["turn_semantic_decision"] = case_turn_decision
                 await self._emit_grading_result(
                     stream=stream,
                     context=context,
                     llm_config=llm_config,
                     turn_id=turn_id,
-                    active_object=active_object,
+                    active_object=full_case_active_object,
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=case_turn_decision,
                     graded_context=full_case_context,
                     raw_user_message=raw_user_message,
                     selected_mode=selected_mode,
                     authority_source="case_grading_full_submission",
-                    correct_answer_present=False,
+                    correct_answer_present=bool(
+                        str(
+                            full_case_context.get("correct_answer")
+                            or full_case_context.get("reference_answer")
+                            or ""
+                        ).strip()
+                    ),
                     kb_name=kb_name,
                 )
                 return
@@ -3773,6 +4031,32 @@ class DeepQuestionCapability(BaseCapability):
             )
             and next_action != "route_to_generation"
         ):
+            # M4(i) 方案②: deterministic canonical re-present of the active single
+            # MCQ. The followup branch otherwise hands "把选项重排/重新展示" to a free
+            # LLM (route_to_followup_explainer / legacy fallback), which emits a
+            # divergent option surface that state_snapshot — and the prose grader —
+            # never capture, so a later letter answer is graded against the original
+            # surface (倒诬). Re-present from the single authority (active_object
+            # state_snapshot, original order) instead. Placed before submission/
+            # followup dispatch but it CANNOT preempt grading: the helper requires an
+            # explicit re-present marker, which an answer ("我选B") never carries, so
+            # route_to_grading turns fall through unchanged (fail-safe). Sibling of
+            # the tutorbot canonical-represent short-circuit; same shared authority.
+            canonical_represent_response = build_canonical_represent_response(
+                active_object,
+                raw_user_message,
+                question_context=followup_question_context,
+            )
+            if canonical_represent_response is not None:
+                await self._emit_canonical_represent(
+                    stream=stream,
+                    turn_id=turn_id,
+                    active_object=active_object,
+                    suspended_object_stack=suspended_object_stack,
+                    turn_semantic_decision=turn_semantic_decision,
+                    response_text=canonical_represent_response,
+                )
+                return
             should_resolve_submission = (
                 (next_action == "route_to_grading" and followup_action is None)
                 or (not next_action and allow_legacy_followup_fallback)
@@ -3918,6 +4202,7 @@ class DeepQuestionCapability(BaseCapability):
 
         mode = str(overrides.get("mode", "custom") or "custom").strip().lower()
         raw_topic = str(overrides.get("topic") or context.user_message or "").strip()
+        current_question_exclusion = _requests_current_question_exclusion(raw_topic)
         topic = _resolve_generation_topic(
             raw_topic=raw_topic,
             active_object=active_object,
@@ -3953,11 +4238,40 @@ class DeepQuestionCapability(BaseCapability):
         difficulty = str(overrides.get("difficulty", "") or "")
         question_type = str(overrides.get("question_type", "") or "")
         preference = str(overrides.get("preference", "") or "")
-        reveal_answers = bool(overrides.get("reveal_answers", False))
-        reveal_explanations = bool(overrides.get("reveal_explanations", reveal_answers))
-        if question_review_mode:
-            reveal_answers = True
-            reveal_explanations = True
+        # Single reveal authority (Task 5 Slice 4): read the adjudicated decision
+        # from resolve_reveal_decision instead of deriving reveal flags inline.
+        # Pass the reveal preference EXPLICITLY (no longer rely on the orchestrator
+        # having implicitly projected it into overrides) and is_review =
+        # question_review_mode. The question-bank's own reveal flags ride in as
+        # context_reveal_flags (an input signal — never flipped here).
+        reveal_overrides_signal = (
+            bool(overrides.get("reveal_answers"))
+            if "reveal_answers" in overrides
+            else None
+        )
+        reveal_overrides_explanations = (
+            bool(overrides.get("reveal_explanations"))
+            if "reveal_explanations" in overrides
+            else None
+        )
+        question_bank_reveal_flags = bool(
+            isinstance(followup_question_context, dict)
+            and (
+                followup_question_context.get("reveal_explanations")
+                or followup_question_context.get("reveal_answers")
+            )
+        )
+        reveal_decision = resolve_reveal_decision(
+            preference=detect_answer_reveal_preference(raw_user_message),
+            is_review=bool(question_review_mode),
+            is_unanswered_block=False,
+            overrides_reveal=reveal_overrides_signal,
+            context_reveal_flags=question_bank_reveal_flags,
+            explicit_request=False,
+            overrides_reveal_explanations=reveal_overrides_explanations,
+        )
+        reveal_answers = reveal_decision.reveal_answers
+        reveal_explanations = reveal_decision.reveal_explanations
         lightweight_generation = bool(overrides.get("lightweight_generation", False))
         lightweight_followup_generation = _should_use_lightweight_followup_generation(
             selected_mode=selected_mode,
@@ -3989,8 +4303,11 @@ class DeepQuestionCapability(BaseCapability):
         #   1. active_object.state_snapshot.construction_grading_result.next_training_signal
         #   2. active_object.state_snapshot.items[i].construction_grading_result.next_training_signal
         # 把 concept / focus 拼到 topic（如尚未出现），以便 coordinator anchor 命中 weak point。
-        next_training_signal_consumed = False
-        if lightweight_generation:
+        if (
+            lightweight_generation
+            and _topic_needs_authoritative_anchor(raw_topic)
+            and not current_question_exclusion
+        ):
             consumed_concept, consumed_focus = self._extract_latest_next_training_signal(active_object)
             hint_parts: list[str] = []
             if consumed_concept and consumed_concept not in topic:
@@ -3999,7 +4316,6 @@ class DeepQuestionCapability(BaseCapability):
                 hint_parts.append(f"focus={consumed_focus}")
             if hint_parts:
                 topic = (topic + "；" if topic else "") + "；".join(hint_parts)
-                next_training_signal_consumed = True
                 if isinstance(context.metadata, dict):
                     trace_meta = context.metadata.setdefault("trace_metadata", {})
                     if isinstance(trace_meta, dict):
@@ -4057,13 +4373,10 @@ class DeepQuestionCapability(BaseCapability):
                 "mode": mode,
                 "question_followup_context": {},
                 "active_object": {},
-                "turn_semantic_decision": turn_semantic_decision or build_turn_semantic_decision(
-                    relation_to_active_object="continue_same_learning_flow" if active_object else "switch_to_new_object",
-                    next_action="route_to_generation",
-                    allowed_patch="set_active_object",
-                    confidence=1.0,
-                    reason="generation blocked: missing_topic_anchor",
-                    active_object=active_object,
+                "turn_semantic_decision": self._require_canonical_turn_semantic_decision(
+                    turn_semantic_decision,
+                    site="generation_blocked_missing_topic_anchor",
+                    metadata=context.metadata,
                 ),
                 "practice_generation_blocked_reason": "missing_topic_anchor",
                 "metadata": {
@@ -4109,13 +4422,10 @@ class DeepQuestionCapability(BaseCapability):
                     "mode": mode,
                     "question_followup_context": {},
                     "active_object": {},
-                    "turn_semantic_decision": turn_semantic_decision or build_turn_semantic_decision(
-                        relation_to_active_object="continue_same_learning_flow" if active_object else "switch_to_new_object",
-                        next_action="route_to_generation",
-                        allowed_patch="set_active_object",
-                        confidence=1.0,
-                        reason="generation blocked: invalid topic",
-                        active_object=active_object,
+                    "turn_semantic_decision": self._require_canonical_turn_semantic_decision(
+                        turn_semantic_decision,
+                        site="generation_blocked_invalid_topic",
+                        metadata=context.metadata,
                     ),
                     "practice_generation_blocked_reason": blocked_reason,
                     "practice_generation_topic_domain_status": topic_domain_status,
@@ -4230,8 +4540,10 @@ class DeepQuestionCapability(BaseCapability):
                     history_context=history_context,
                     lightweight_generation=lightweight_generation,
                     require_explanation=require_explanation,
+                    reveal_answers=reveal_answers,
                     allow_lightweight_fallback=not question_review_mode,
                     allow_similar_source_variant=question_review_mode,
+                    avoid_current_question=current_question_exclusion,
                 )
 
         if question_review_mode:
@@ -4254,6 +4566,11 @@ class DeepQuestionCapability(BaseCapability):
                 content = _render_missing_question_review_feedback(topic)
                 if not answer_citations_enabled():
                     await stream.content(content, source=self.name, stage="generation")
+                # OBSERVE-ONLY (blind-spot #2): S5 fabricates a turn_semantic_decision
+                # unconditionally below; record it (no control-flow change).
+                self._append_bare_build_shadow_hit(
+                    context.metadata, site="S5_review_render", scene=lifecycle_scene
+                )
                 await self._emit_result_with_citations(
                     stream,
                     {
@@ -4332,6 +4649,11 @@ class DeepQuestionCapability(BaseCapability):
             )
             if not answer_citations_enabled():
                 await stream.content(content, source=self.name, stage="generation")
+            # OBSERVE-ONLY (blind-spot #2): S6 fabricates a turn_semantic_decision
+            # unconditionally below; record it (no control-flow change).
+            self._append_bare_build_shadow_hit(
+                context.metadata, site="S6_refused", scene=lifecycle_scene
+            )
             await self._emit_result_with_citations(
                 stream,
                 {
@@ -4406,15 +4728,10 @@ class DeepQuestionCapability(BaseCapability):
                 learning_training_intent,
             )
             result_payload["learning_training_intent"] = dict(learning_training_intent)
-        result_payload["turn_semantic_decision"] = turn_semantic_decision or build_turn_semantic_decision(
-            relation_to_active_object="ask_about_active_object" if question_review_mode else (
-                "continue_same_learning_flow" if (result_payload.get("active_object") or active_object) else "switch_to_new_object"
-            ),
-            next_action="route_to_followup_explainer" if question_review_mode else "route_to_generation",
-            allowed_patch="no_state_change" if question_review_mode else "set_active_object",
-            confidence=1.0,
-            reason="question_review followup" if question_review_mode else "practice generation result",
-            active_object=result_payload.get("active_object") or active_object,
+        result_payload["turn_semantic_decision"] = self._require_canonical_turn_semantic_decision(
+            turn_semantic_decision,
+            site="question_review_followup" if question_review_mode else "practice_generation_result",
+            metadata=context.metadata,
         )
         transitioned_active_object, transitioned_stack = apply_active_object_transition(
             previous_active_object=active_object,
@@ -4452,24 +4769,17 @@ class DeepQuestionCapability(BaseCapability):
         sources: list[dict[str, Any]] | None = None,
         emit_content_when_enabled: bool = True,
     ) -> None:
-        if "response" in result_payload:
-            citation_enabled = answer_citations_enabled()
-            citation_metadata: dict[str, Any] = {}
-            result_payload["response"] = apply_answer_citation_metadata(
-                citation_metadata,
-                response=str(result_payload.get("response") or ""),
-                sources=sources or [],
-                policy=CitationPolicy(surface="student"),
-                enabled=citation_enabled,
-            )
-            result_payload.update(citation_metadata)
-            if citation_enabled and emit_content_when_enabled:
-                await stream.content(
-                    str(result_payload["response"] or ""),
-                    source=self.name,
-                    stage=stage,
-                )
-        await stream.result(result_payload, source=self.name)
+        # Control-plane Task 5 Slice 1: the citation surface strategy + terminal
+        # RESULT frame are owned by TerminalResultAssembler (single contentful
+        # visible-output authority). Behaviour-preserving: byte-identical frame.
+        await TerminalResultAssembler.emit(
+            stream,
+            result_payload,
+            capability_name=self.name,
+            stage=stage,
+            sources=sources,
+            emit_content_when_enabled=emit_content_when_enabled,
+        )
 
     @staticmethod
     def _followup_action_from_submission(submission: dict[str, Any]) -> dict[str, Any]:
@@ -4968,7 +5278,19 @@ class DeepQuestionCapability(BaseCapability):
                     stage="generation",
                 )
 
-            await stream.result(result_payload, source=self.name)
+            # Control-plane Task 5 Slice 2: the terminal grading RESULT frame is
+            # owned by TerminalResultAssembler (single contentful visible-output
+            # authority). Behaviour-preserving: build_event reproduces
+            # stream.result framing byte-identically (type=RESULT / source /
+            # stage / visibility / merge_trace_metadata copy). The grading verdict
+            # (is_correct/score/diagnosis) and reveal flags already live in
+            # result_payload — the assembler only emits, it never decides.
+            await stream.emit(
+                TerminalResultAssembler.build_event(
+                    source=self.name,
+                    metadata=result_payload,
+                )
+            )
 
     async def _emit_followup_result(
         self,
@@ -5131,6 +5453,47 @@ class DeepQuestionCapability(BaseCapability):
                 emit_content_when_enabled=True,
             )
 
+    async def _emit_canonical_represent(
+        self,
+        *,
+        stream: StreamBus,
+        turn_id: str,
+        active_object: dict[str, Any] | None,
+        suspended_object_stack: list[dict[str, Any]] | None,
+        turn_semantic_decision: dict[str, Any] | None,
+        response_text: str,
+    ) -> None:
+        """M4(i) 方案②: emit the deterministic canonical re-presentation of the
+        active single MCQ (original option order, answer hidden).
+
+        The active object / question_followup_context are PRESERVED unchanged so a
+        subsequent answer is graded against the same (canonical) surface the learner
+        just saw — that is the whole point. No state is written; nothing is graded.
+        """
+
+        async with stream.stage("generation", source=self.name):
+            if not answer_citations_enabled():
+                await stream.content(response_text, source=self.name, stage="generation")
+            payload: dict[str, Any] = {
+                "response": response_text,
+                "mode": "represent",
+                "question_authority_source": "canonical_mcq_represent",
+                "execution_path": "deep_question_canonical_mcq_represent",
+                "question_followup_context": question_context_from_active_object(active_object) or {},
+                "active_object": normalize_active_object(active_object) or {},
+                "suspended_object_stack": suspended_object_stack or [],
+                "turn_semantic_decision": turn_semantic_decision or {},
+                "reveal_answers": False,
+                "reveal_explanations": False,
+                "metadata": {"turn_id": turn_id},
+            }
+            await self._emit_result_with_citations(
+                stream,
+                payload,
+                stage="generation",
+                emit_content_when_enabled=True,
+            )
+
     async def _emit_unresolved_switch_clarification(
         self,
         *,
@@ -5194,6 +5557,98 @@ class DeepQuestionCapability(BaseCapability):
         if not isinstance(metadata, dict):
             return False
         return not normalize_turn_semantic_decision(metadata.get("turn_semantic_decision"))
+
+    @staticmethod
+    def _append_bare_build_shadow_hit(
+        metadata: Any, *, site: str, scene: str
+    ) -> None:
+        """OBSERVE-ONLY (blind-spot #2): record that an UNCONDITIONAL bare
+        ``build_turn_semantic_decision(...)`` site became the operative source of
+        ``turn_semantic_decision``. Unlike the canonical-missing guard, these
+        sites (S5 review-render, S6 refused) fabricate a second-authority decision
+        even when the canonical decision is present — so ``canonical_present`` is
+        computed REALLY here and may be True, which is exactly the blind spot the
+        7-day window must surface. This only appends to the piggy-backed shadow-hit
+        list; it changes no control flow, no return value, no fabricated decision.
+        """
+
+        if not isinstance(metadata, dict):
+            return
+        canonical_present = bool(
+            normalize_turn_semantic_decision(metadata.get("turn_semantic_decision"))
+        )
+        trace_meta = metadata.setdefault("trace_metadata", {})
+        if not isinstance(trace_meta, dict):
+            return
+        trace_meta.setdefault("control_plane_shadow_hits", []).append(
+            {
+                "fact": "turn_semantic_decision",
+                "writer_role": "unconditional_fabricate",
+                "writer_symbol": "run",
+                "path": "deep_question",
+                "site": site,
+                "scene": scene or "",
+                "canonical_present": canonical_present,
+            }
+        )
+
+    @staticmethod
+    def _require_canonical_turn_semantic_decision(
+        turn_semantic_decision: Any, *, site: str, metadata: Any
+    ) -> dict[str, Any]:
+        """Read the orchestrator's canonical turn_semantic_decision; LOUD fail-fast if absent.
+
+        Control-plane single-authority (治本 Action 2 Step 3 — retire the
+        canonical-missing fabrication兜底). The canonical decision is the orchestrator's
+        SOLE authority (turn.md §硬约束 24). deep_question used to fabricate a
+        second-authority fallback here when the canonical decision was missing; production
+        evidence (Langfuse 537 deep_question turns / 4.3 days, control_plane_shadow_hits
+        all 0) plus the orchestrator preselect injection (Step 2) prove the canonical
+        decision is always present at these generation/review result-assembly sites. So
+        instead of silently fabricating a replacement authority, we now READ the canonical
+        decision and, if it is ever absent, fail LOUD (error log + recorded shadow hit +
+        raise) so the missing-injection entry path is surfaced and the turn degrades via
+        the existing capability error boundary — never via a silent second authority.
+        """
+
+        normalized = normalize_turn_semantic_decision(turn_semantic_decision)
+        if normalized:
+            return normalized
+        # Record a fail-fast shadow hit so the existing 7-day observation window can still
+        # attribute the missing-canonical entry path per-site even though we now raise.
+        if isinstance(metadata, dict):
+            trace_meta = metadata.setdefault("trace_metadata", {})
+            if isinstance(trace_meta, dict):
+                trace_meta.setdefault("control_plane_shadow_hits", []).append(
+                    {
+                        "fact": "turn_semantic_decision",
+                        "writer_role": "canonical_required_fail_fast",
+                        "writer_symbol": "run",
+                        "path": "deep_question",
+                        "site": site,
+                        "scene": str((metadata.get("question_lifecycle_scene") or "")),
+                        "canonical_present": False,
+                    }
+                )
+        logger.error(
+            "deep_question reached {site} without the orchestrator's canonical "
+            "turn_semantic_decision (turn.md §硬约束 24). The second-authority "
+            "fabrication fallback is retired; failing fast so the missing-injection "
+            "entry path is surfaced instead of silently fabricating a replacement "
+            "authority. scene={scene} turn_id={turn_id} client_turn_id={client_turn_id}",
+            site=site,
+            **{
+                k: v
+                for k, v in DeepQuestionCapability._fabrication_observation_fields(
+                    metadata
+                ).items()
+                if k in {"scene", "turn_id", "client_turn_id"}
+            },
+        )
+        raise RuntimeError(
+            f"deep_question {site}: missing canonical turn_semantic_decision "
+            "(orchestrator is the single authority — turn.md §硬约束 24)"
+        )
 
     @staticmethod
     def _fabrication_observation_fields(metadata: Any) -> dict[str, Any]:

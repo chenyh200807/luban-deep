@@ -7,6 +7,7 @@ from typing import Any, Awaitable, Callable, Literal
 from deeptutor.services.question_followup import (
     followup_action_route,
     interpret_question_followup_action,
+    looks_like_question_context_exit_request,
     looks_like_question_followup,
     normalize_question_followup_context,
     reset_question_submission_state,
@@ -14,6 +15,10 @@ from deeptutor.services.question_followup import (
     submission_confidence,
 )
 from deeptutor.services.question_lifecycle_skills import looks_like_free_text_mcq_grading_request
+from deeptutor.services.active_object_builder import (
+    build_active_object_from_question_context as _canonical_build_active_object,
+    normalize_active_object as _canonical_normalize_active_object,
+)
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 _PREVIOUS_OBJECT_MARKERS = (
@@ -302,53 +307,10 @@ def apply_active_object_transition(
 
 
 def normalize_active_object(raw: dict[str, Any] | None) -> dict[str, Any] | None:
-    if not isinstance(raw, dict):
-        return None
-
-    raw_state_snapshot = raw.get("state_snapshot") if isinstance(raw.get("state_snapshot"), dict) else {}
-    state_snapshot = normalize_question_followup_context(raw_state_snapshot)
-    object_type = str(raw.get("object_type") or "").strip().lower()
-    if not object_type and state_snapshot is not None:
-        object_type = infer_question_active_object_type(state_snapshot)
-    if object_type in QUESTION_ACTIVE_OBJECT_TYPES:
-        object_id = _normalize_object_id(raw.get("object_id"), state_snapshot, object_type)
-        if not object_id:
-            return None
-
-        scope = raw.get("scope") if isinstance(raw.get("scope"), dict) else {}
-        if not scope and state_snapshot is not None:
-            scope = _build_question_scope(state_snapshot)
-
-        version = _coerce_version(raw.get("version"), default=1)
-        return {
-            "object_type": object_type,
-            "object_id": object_id,
-            "scope": dict(scope),
-            "state_snapshot": state_snapshot or {},
-            "version": version,
-            "entered_at": str(raw.get("entered_at") or "").strip(),
-            "last_touched_at": str(raw.get("last_touched_at") or "").strip(),
-            "source_turn_id": str(raw.get("source_turn_id") or "").strip(),
-        }
-
-    if object_type not in GUIDE_ACTIVE_OBJECT_TYPES and object_type not in SESSION_ACTIVE_OBJECT_TYPES:
-        return None
-
-    object_id = str(raw.get("object_id") or "").strip()
-    if not object_id:
-        return None
-
-    scope = raw.get("scope") if isinstance(raw.get("scope"), dict) else {}
-    return {
-        "object_type": object_type,
-        "object_id": object_id,
-        "scope": dict(scope),
-        "state_snapshot": dict(raw_state_snapshot),
-        "version": _coerce_version(raw.get("version"), default=1),
-        "entered_at": str(raw.get("entered_at") or "").strip(),
-        "last_touched_at": str(raw.get("last_touched_at") or "").strip(),
-        "source_turn_id": str(raw.get("source_turn_id") or "").strip(),
-    }
+    # 单一权威：active_object 的 normalizer 已收敛到
+    # deeptutor/services/session/active_object_builder.py。SR 版只做委托，保留
+    # 既有 import 路径，确保 restore(current) 与 capability(next) 身份口径一致。
+    return _canonical_normalize_active_object(raw)
 
 
 def normalize_suspended_object_stack(raw: Any) -> list[dict[str, Any]]:
@@ -379,41 +341,16 @@ def build_question_active_object(
     source_turn_id: str = "",
     object_type_override: str | None = None,
 ) -> dict[str, Any] | None:
-    normalized = normalize_question_followup_context(question_context)
-    if normalized is None:
-        return None
-
-    prior = normalize_active_object(prior_active_object)
-    # object_type_override 让出题侧（如 source-backed 变式卡）显式声明 open_world_question
-    # tier；否则按 item 数推断 single_question / question_set。只接受受支持的 question
-    # tier，非法值回落推断，绝不引入未登记类型。
-    override = str(object_type_override or "").strip().lower()
-    object_type = (
-        override if override in QUESTION_ACTIVE_OBJECT_TYPES
-        else infer_question_active_object_type(normalized)
+    # 单一权威：active_object 的 question builder 已收敛到
+    # deeptutor/services/session/active_object_builder.py。SR 版只做委托并映射
+    # object_type_override -> object_type，确保 capability(next) 与 restore(current)
+    # 产出相同的 object_id / object_type / version 语义 / float timestamp。
+    return _canonical_build_active_object(
+        question_context,
+        previous_active_object=prior_active_object,
+        object_type=object_type_override,
+        source_turn_id=source_turn_id,
     )
-    object_id = _normalize_object_id(None, normalized, object_type)
-    if not object_id:
-        return None
-
-    version = 1
-    entered_at = ""
-    if prior and prior.get("object_id") == object_id and prior.get("object_type") == object_type:
-        version = int(prior.get("version", 1) or 1) + 1
-        entered_at = str(prior.get("entered_at") or "").strip()
-
-    return {
-        "object_type": object_type,
-        "object_id": object_id,
-        "scope": _build_question_scope(normalized),
-        "state_snapshot": normalized,
-        "version": version,
-        "entered_at": entered_at,
-        "last_touched_at": "",
-        "source_turn_id": str(source_turn_id or "").strip() or str(
-            (prior or {}).get("source_turn_id") or ""
-        ).strip(),
-    }
 
 
 def question_context_from_active_object(active_object: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -749,6 +686,25 @@ async def resolve_question_semantic_routing(
             )
 
     llm_action: dict[str, Any] | None = followup_action
+    if question_context is not None and looks_like_question_context_exit_request(
+        user_message,
+        question_context,
+    ):
+        detour_decision = build_turn_semantic_decision(
+            relation_to_active_object="temporary_detour",
+            next_action="route_to_general_chat",
+            allowed_patch="no_state_change",
+            confidence=0.74,
+            reason="当前输入是历史总结/内部证据/退出判分请求，不能由 active question 消费。",
+            active_object=active_object,
+        )
+        return SemanticRoutingResult(
+            active_object=active_object,
+            suspended_object_stack=suspended_stack,
+            turn_semantic_decision=detour_decision,
+            question_context=question_context,
+            followup_action=None,
+        )
     # Stage C activation (2026-06-21): the cached followup action is resolved upstream
     # (turn_runtime) BEFORE conversation history is built, so it only ever sees the
     # active question set — it cannot detect that an EXPLANATION turn references a
@@ -1369,48 +1325,9 @@ def _promote_suspended_candidate_decision(
     )
 
 
-def _normalize_object_id(
-    raw_object_id: Any,
-    question_context: dict[str, Any] | None,
-    object_type: str,
-) -> str:
-    explicit = str(raw_object_id or "").strip()
-    if explicit:
-        return explicit
-    normalized = normalize_question_followup_context(question_context)
-    if normalized is None:
-        return ""
-    question_id = str(normalized.get("question_id") or "").strip()
-    if question_id:
-        return question_id
-    items = normalized.get("items") or []
-    item_ids = [
-        str(item.get("question_id") or "").strip()
-        for item in items
-        if isinstance(item, dict) and str(item.get("question_id") or "").strip()
-    ]
-    if object_type == "question_set" and item_ids:
-        return f"question_set:{item_ids[0]}"
-    if object_type == "single_question" and item_ids:
-        return item_ids[0]
-    return object_type
-
-
-def _build_question_scope(question_context: dict[str, Any]) -> dict[str, Any]:
-    items = question_context.get("items") or []
-    question_ids = [
-        str(item.get("question_id") or "").strip()
-        for item in items
-        if isinstance(item, dict) and str(item.get("question_id") or "").strip()
-    ]
-    if len(items) > 1:
-        return {
-            "question_ids": question_ids,
-            "question_count": len(items),
-        }
-    return {
-        "question_id": str(question_context.get("question_id") or "").strip(),
-    }
+# _normalize_object_id / _build_question_scope / _coerce_version 的旧分叉口径已被
+# deeptutor/services/active_object_builder.py 的单一权威取代（见本文件顶部 import
+# 与 build_question_active_object / normalize_active_object 的委托）。
 
 
 def _normalize_target_object_ref(raw: Any) -> dict[str, Any] | None:
@@ -1445,18 +1362,42 @@ def _normalize_confidence(raw: Any, *, default: float) -> float:
     return value
 
 
+def active_object_family_for_type(object_type: Any) -> str:
+    """Single family-first authority: classify an ``object_type`` string into its
+    active-object family — ``"question"`` (题型: single_question / question_set /
+    open_world_question, has a question lifecycle) / ``"guide"`` / ``"open_chat"`` /
+    ``""`` (unknown / non-classified, e.g. question_lifecycle_clarification).
+
+    This is the ONE place that decides "题型 vs 非题型". Callers MUST consult this
+    instead of hand-listing ``{"question_set", "single_question"}`` inline — every such
+    hand-list silently dropped ``open_world_question`` and drifted from
+    ``QUESTION_ACTIVE_OBJECT_TYPES``. ``_active_object_family`` (dict-level) and
+    ``is_question_active_object_type`` (boolean) both forward to this.
+    """
+
+    resolved = str(object_type or "").strip()
+    if resolved in QUESTION_ACTIVE_OBJECT_TYPES:
+        return "question"
+    if resolved in GUIDE_ACTIVE_OBJECT_TYPES:
+        return "guide"
+    if resolved in SESSION_ACTIVE_OBJECT_TYPES:
+        return "open_chat"
+    return ""
+
+
+def is_question_active_object_type(object_type: Any) -> bool:
+    """True iff ``object_type`` is a question-family (题型) object_type — the boolean
+    family-first split used to short-circuit non-question objects out of question logic.
+    Forwards to the single ``active_object_family_for_type`` authority (no second set)."""
+
+    return active_object_family_for_type(object_type) == "question"
+
+
 def _active_object_family(active_object: dict[str, Any] | None) -> str:
     normalized = normalize_active_object(active_object)
     if normalized is None:
         return ""
-    object_type = str(normalized.get("object_type") or "").strip()
-    if object_type in QUESTION_ACTIVE_OBJECT_TYPES:
-        return "question"
-    if object_type in GUIDE_ACTIVE_OBJECT_TYPES:
-        return "guide"
-    if object_type in SESSION_ACTIVE_OBJECT_TYPES:
-        return "open_chat"
-    return ""
+    return active_object_family_for_type(normalized.get("object_type"))
 
 
 def _is_low_signal_continuation(message: str) -> bool:
@@ -1516,14 +1457,6 @@ def _referenced_slot_index(message: str) -> int:
         leading = text[0]
         return _ORDINAL_INDEX_MAP.get(leading, 0)
     return 0
-
-
-def _coerce_version(raw: Any, *, default: int) -> int:
-    try:
-        value = int(raw)
-    except (TypeError, ValueError):
-        return default
-    return value if value > 0 else default
 
 
 def _message_looks_like_revision(message: str) -> bool:
@@ -1751,6 +1684,8 @@ __all__ = [
     "SEMANTIC_NEXT_ACTIONS",
     "SEMANTIC_RELATIONS",
     "SemanticRoutingResult",
+    "active_object_family_for_type",
+    "is_question_active_object_type",
     "build_question_active_object",
     "apply_active_object_transition",
     "build_target_object_ref",

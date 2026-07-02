@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import re
 import time
 from typing import Any
 
+from deeptutor.services.learner_state.learning_brain_read_model import humanize_learning_brain_text
 from deeptutor.services.learner_state.learning_trajectory import group_typed_edges
 from deeptutor.services.learner_state.next_best_action import build_next_best_actions
 from deeptutor.services.learner_state.training_intent import build_learning_training_intent
 
 _STABLE_CLAIM_STATUSES = {"confirmed", "repeated", "observed"}
 _GAP_CLAIM_STATUSES = {"stale", "superseded", "contradicted", "rejected"}
+_BLOCKED_LIVE_CLAIM_CAP_REASONS = {"conversation_signal_not_grading_truth"}
 # 时间规则（遗忘曲线第一步）：active claim 末次证据超过该天数 → 进入 review_due。
 REVIEW_DUE_AFTER_DAYS = 14
 
@@ -117,6 +120,8 @@ def _parse_iso_timestamp(value: str) -> float | None:
 def _claim_views(learning_brain: dict[str, Any] | None, *, max_claims: int) -> list[dict[str, Any]]:
     views: list[dict[str, Any]] = []
     for item in _compiled_objects(learning_brain):
+        if _blocked_live_claim(item):
+            continue
         status = str(item.get("claim_status") or "observed").strip() or "observed"
         if status not in _STABLE_CLAIM_STATUSES:
             continue
@@ -128,8 +133,10 @@ def _claim_views(learning_brain: dict[str, Any] | None, *, max_claims: int) -> l
         # 末次证据时间必须取自完整 timeline（升序），不能用截断后的展示片段。
         last_observed_at = timeline[-1]["observed_at"] if timeline else ""
         decay_state = str(item.get("decay_state") or "active").strip() or "active"
+        raw_claim_id = str(item.get("object_id") or item.get("claim_id") or "").strip()
+        public_error_label = _public_error_label(raw_claim_id)
         views.append({
-            "claim_id": str(item.get("object_id") or item.get("claim_id") or "").strip(),
+            "claim_id": raw_claim_id,
             "object_type": str(item.get("object_type") or "").strip(),
             "claim_status": status,
             "decay_state": decay_state,
@@ -139,13 +146,8 @@ def _claim_views(learning_brain: dict[str, Any] | None, *, max_claims: int) -> l
                 occurrence_count=occurrence_count,
             ),
             "concept_id": str(item.get("concept_id") or "").strip(),
-            "label": str(
-                item.get("label")
-                or item.get("display_title")
-                or item.get("current_truth")
-                or item.get("claim")
-                or ""
-            ).strip(),
+            "label": _public_claim_label(item, raw_claim_id=raw_claim_id),
+            **({"error_label": public_error_label} if public_error_label else {}),
             "confidence": item.get("confidence"),
             "evidence_refs": evidence_refs[:5],
             "occurrence_count": occurrence_count,
@@ -159,10 +161,13 @@ def _claim_views(learning_brain: dict[str, Any] | None, *, max_claims: int) -> l
 def _claim_gaps(learning_brain: dict[str, Any] | None) -> list[dict[str, str]]:
     gaps: list[dict[str, str]] = []
     for item in _compiled_objects(learning_brain):
+        if _blocked_live_claim(item):
+            continue
         status = str(item.get("claim_status") or "").strip()
         if status in _GAP_CLAIM_STATUSES:
+            raw_claim_id = str(item.get("object_id") or item.get("claim_id") or "").strip()
             gaps.append({
-                "claim_id": str(item.get("object_id") or item.get("claim_id") or "").strip(),
+                "claim_id": raw_claim_id,
                 "reason": f"claim_{status}",
             })
     return gaps
@@ -257,12 +262,13 @@ def _training_intent_from_claim(*, user_id: str, claim: dict[str, Any]) -> dict[
         concept_id = claim_id.split(":", 1)[0].strip()
     if ":" in claim_id:
         error_code = claim_id.rsplit(":", 1)[-1].strip()
+    error_label = str(claim.get("error_label") or error_code).strip()
     intent = build_learning_training_intent(
         user_id=str(user_id or "").strip(),
         concept_id=concept_id,
         concept_label=str(claim.get("label") or claim.get("claim_id") or "").strip(),
         error_code=error_code,
-        error_label=error_code,
+        error_label=error_label,
         evidence_refs=evidence_refs,
         training_mode="case_repair",
         source="PersonalizationContextPack",
@@ -319,6 +325,49 @@ def _dedupe_refs(refs: list[str]) -> list[str]:
         seen.add(ref)
         out.append(ref)
     return out
+
+
+def _blocked_live_claim(item: dict[str, Any]) -> bool:
+    if str(item.get("source_feature") or item.get("evidence_source") or "").strip() == "conversation_synthesis":
+        return True
+    if item.get("claim_promotion_allowed") is False:
+        return True
+    quality = item.get("quality") if isinstance(item.get("quality"), dict) else {}
+    if quality.get("truth_eligible") is False or quality.get("stable_truth_eligible") is False:
+        return True
+    cap_reasons = {
+        str(reason or "").strip()
+        for reason in list(item.get("evidence_cap_reasons") or quality.get("evidence_cap_reasons") or [])
+        if str(reason or "").strip()
+    }
+    return bool(cap_reasons.intersection(_BLOCKED_LIVE_CLAIM_CAP_REASONS))
+
+
+def _public_claim_label(item: dict[str, Any], *, raw_claim_id: str) -> str:
+    for value in (
+        item.get("label"),
+        item.get("display_title"),
+        item.get("current_truth"),
+        item.get("claim"),
+        raw_claim_id,
+    ):
+        text = _clean_public_claim_text(value)
+        if text:
+            return text
+    return ""
+
+
+def _public_error_label(raw_claim_id: str) -> str:
+    match = re.search(r"\b([EM]\d{2})\b", str(raw_claim_id or ""), flags=re.IGNORECASE)
+    if not match:
+        return ""
+    return _clean_public_claim_text(match.group(1))
+
+
+def _clean_public_claim_text(value: Any) -> str:
+    text = humanize_learning_brain_text(value)
+    text = text.replace("长期画像提示", "").strip(" ：:，,")
+    return text
 
 
 def _status_rank(status: Any) -> int:

@@ -8,6 +8,7 @@ import pytest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEventType
 from deeptutor.runtime.orchestrator import ChatOrchestrator
+from deeptutor.services.semantic_router import normalize_turn_semantic_decision
 
 
 class _FakeCapability:
@@ -179,6 +180,36 @@ async def test_orchestrator_routes_training_by_question_count_as_practice_genera
     assert context.config_overrides["num_questions"] == 3
     assert context.config_overrides["reveal_answers"] is False
     assert context.config_overrides["reveal_explanations"] is False
+    # Canonical turn_semantic_decision must be supplied on the no-active practice
+    # generation route too, so deep_question reads it instead of fabricating S7.
+    decision = context.metadata.get("turn_semantic_decision")
+    assert normalize_turn_semantic_decision(decision) is not None
+    assert decision["next_action"] == "route_to_generation"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_supplies_canonical_decision_on_practice_when_router_disabled() -> None:
+    """Disabled-router practice generation (no active object) must still receive a
+    canonical turn_semantic_decision from the orchestrator, not leave it absent for
+    deep_question to fabricate."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-training-router-disabled",
+        user_message="用 3 道题训练项目质量计划管理",
+        config_overrides={"mode": "deep", "semantic_router_enabled": False},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    decision = context.metadata.get("turn_semantic_decision")
+    assert normalize_turn_semantic_decision(decision) is not None
+    assert decision["next_action"] == "route_to_generation"
 
 
 @pytest.mark.asyncio
@@ -540,6 +571,51 @@ async def test_orchestrator_learning_evidence_story_overrides_stale_question_con
     assert context.metadata["question_lifecycle_skill_names"] == [
         "construction-exam-tutor",
         "construction-learning-evidence-story",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_study_plan_overrides_stale_question_context() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-study-plan-stale-question",
+        user_message="不看内部信息了，给我一个3天复盘计划，不要再出题。",
+        active_capability="deep_question",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "object_id": "stale-q1",
+                "scope": {"domain": "session", "session_id": "s-study-plan-stale-question"},
+                "state_snapshot": {
+                    "question_id": "stale-q1",
+                    "question": "旧题目",
+                    "question_type": "choice",
+                    "correct_answer": "B",
+                },
+                "version": 1,
+            },
+            "question_followup_context": {
+                "question_id": "stale-q1",
+                "question": "旧题目",
+                "question_type": "choice",
+                "correct_answer": "B",
+            },
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] == "study_assistant"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    assert context.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-study-assistant",
     ]
 
 
@@ -3093,6 +3169,208 @@ def test_prepare_submission_keeps_batch_set_after_numbered_single_grade() -> Non
         (context.metadata.get("active_object") or {}).get("state_snapshot") or {}
     ).get("items") or []
     assert len(active_items) == 3
+
+
+# ---------------------------------------------------------------------------
+# Control-plane Task 3 (Decision A): legacy capability decider removed; canonical
+# semantic router is the sole capability decider on the post-lifecycle fall-through.
+# These cover the two routes that previously delegated to ``_select_legacy_capability``:
+#   - production fall-through on a None-route (resolver could not produce a mappable
+#     decision) → must default to the context-continuous chat/tutorbot executor
+#     (same belt as the unresolved-switch invariant), never the deleted heuristic.
+#   - disabled / scope-excluded router (killswitch removed) → must still route via the
+#     canonical turn_semantic_decision, never the deleted heuristic.
+# Main-path autoroute (router enabled + scope=all) behavior is asserted unchanged by
+# the rest of this suite (mcq_grading_bypass, deep_question/chat routing, etc.).
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_none_route_falls_through_to_context_continuous_chat() -> None:
+    """When the canonical resolver cannot produce a mappable decision (None-route), the
+    post-lifecycle fall-through must default to the context-continuous chat/tutorbot
+    executor (matching the §6 unresolved-switch belt), NOT the removed legacy heuristic.
+    """
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _none_decision(_context: UnifiedContext, _message: str) -> dict[str, Any] | None:
+        # Degenerate / unresolvable decision → turn_semantic_decision_route(...) == None.
+        return None
+
+    orchestrator._resolve_turn_semantic_decision = _none_decision  # type: ignore[assignment]
+
+    context = UnifiedContext(
+        session_id="s-none-route-default-chat",
+        # Plain concept question: no lifecycle scene, no preselected capability, no
+        # active object → reaches the post-lifecycle canonical fall-through.
+        user_message="横道图和网络图有什么区别",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    # No legacy live-shadow emit survives the deletion.
+    trace_meta = context.metadata.get("trace_metadata") or {}
+    assert "control_plane_shadow_hits" not in trace_meta
+
+
+@pytest.mark.asyncio
+async def test_none_route_defaults_to_chat_without_bot_id() -> None:
+    """None-route with no bot_id → plain ``chat`` executor (the context-continuous
+    default), still never the removed legacy heuristic."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _none_decision(_context: UnifiedContext, _message: str) -> dict[str, Any] | None:
+        return None
+
+    orchestrator._resolve_turn_semantic_decision = _none_decision  # type: ignore[assignment]
+
+    context = UnifiedContext(
+        session_id="s-none-route-default-chat-no-bot",
+        user_message="横道图和网络图有什么区别",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "chat"
+    assert context.metadata["semantic_router_selected_capability"] == "chat"
+
+
+@pytest.mark.asyncio
+async def test_disabled_router_routes_via_canonical_not_legacy_heuristic() -> None:
+    """Killswitch removed: with the router disabled, the post-lifecycle fall-through must
+    still resolve the canonical turn_semantic_decision and route by it (here:
+    deep_question via route_to_generation), NOT the deleted ``_select_legacy_capability``
+    heuristic. Mode is recorded as ``disabled`` (the gate stays observable)."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    resolved: dict[str, Any] = {}
+
+    async def _generation_decision(context: UnifiedContext, _message: str) -> dict[str, Any]:
+        decision = {
+            "relation_to_active_object": "switch_to_new_object",
+            "next_action": "route_to_generation",
+            "allowed_patch": ["set_active_object"],
+            "confidence": 0.9,
+            "reason": "学生请求出题练习。",
+            "target_object_ref": {"object_type": "single_question", "object_id": "gen-1"},
+        }
+        context.metadata["turn_semantic_decision"] = decision
+        resolved["called"] = True
+        return decision
+
+    orchestrator._resolve_turn_semantic_decision = _generation_decision  # type: ignore[assignment]
+
+    context = UnifiedContext(
+        session_id="s-disabled-canonical-generation",
+        # No lifecycle scene so it reaches the post-lifecycle block; router disabled.
+        user_message="横道图和网络图有什么区别",
+        config_overrides={"bot_id": "construction-exam-coach", "semantic_router_enabled": False},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert resolved.get("called") is True
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["semantic_router_selected_capability"] == "deep_question"
+    assert context.metadata["semantic_router_mode"] == "disabled"
+
+
+@pytest.mark.asyncio
+async def test_disabled_router_chat_decision_routes_to_default_chat() -> None:
+    """Router disabled + canonical chat decision → default chat/tutorbot, via canonical
+    route (not legacy heuristic)."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _chat_decision(context: UnifiedContext, _message: str) -> dict[str, Any]:
+        decision = {
+            "relation_to_active_object": "out_of_scope_chat",
+            "next_action": "route_to_general_chat",
+            "allowed_patch": ["no_state_change"],
+            "confidence": 0.8,
+            "reason": "普通知识问答。",
+            "target_object_ref": {"object_type": "", "object_id": ""},
+        }
+        context.metadata["turn_semantic_decision"] = decision
+        return decision
+
+    orchestrator._resolve_turn_semantic_decision = _chat_decision  # type: ignore[assignment]
+
+    context = UnifiedContext(
+        session_id="s-disabled-canonical-chat",
+        user_message="横道图和网络图有什么区别",
+        config_overrides={"bot_id": "construction-exam-coach", "semantic_router_enabled": False},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    assert context.metadata["semantic_router_mode"] == "disabled"
+
+
+@pytest.mark.asyncio
+async def test_shadow_mode_routes_via_canonical_not_legacy() -> None:
+    """Shadow mode (formerly preview-canonical-then-return-legacy) now routes by the
+    canonical decision directly; legacy heuristic is gone. A canonical chat decision in
+    shadow mode → default chat/tutorbot."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _chat_decision(context: UnifiedContext, _message: str) -> dict[str, Any]:
+        decision = {
+            "relation_to_active_object": "out_of_scope_chat",
+            "next_action": "route_to_general_chat",
+            "allowed_patch": ["no_state_change"],
+            "confidence": 0.8,
+            "reason": "普通知识问答。",
+            "target_object_ref": {"object_type": "", "object_id": ""},
+        }
+        context.metadata["turn_semantic_decision"] = decision
+        return decision
+
+    orchestrator._resolve_turn_semantic_decision = _chat_decision  # type: ignore[assignment]
+
+    context = UnifiedContext(
+        session_id="s-shadow-canonical-chat",
+        user_message="横道图和网络图有什么区别",
+        config_overrides={"bot_id": "construction-exam-coach", "semantic_router_shadow_mode": True},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+
+
+@pytest.mark.asyncio
+async def test_select_legacy_capability_is_removed() -> None:
+    """The legacy capability decider is deleted: canonical semantic router is the sole
+    capability decider. Authority count down by one routing engine."""
+    orchestrator = ChatOrchestrator()
+    assert not hasattr(orchestrator, "_select_legacy_capability")
 
 
 def test_prepare_submission_uses_shared_batch_continuity_helper() -> None:

@@ -268,6 +268,25 @@ jobs:
         run: |
           python scripts/check_model_authority.py
 
+      - name: control-plane writer allowlist gate (single turn_semantic_decision / scene / active_object / reveal / visible-output writer)
+        # AGENTS §5.7 single-authority: every control-plane write-site (turn_semantic_decision,
+        # question_lifecycle_scene, active_object, reveal_*, visible-output RESULT/PROGRESS/ACK)
+        # must be declared in contracts/index.yaml control_plane_writers; an unregistered
+        # production writer fails CI (register-before-use, AST-based, fail-closed). Both the
+        # repo and packaged contracts copies must agree (parity).
+        run: |
+          python scripts/check_control_plane_writer_allowlist.py --check
+
+      - name: QTPK import-allowlist gate (god-object red line on question_turn_policy.py)
+        # QTPK physical-extraction plan S0: deeptutor/services/question_turn_policy.py is a
+        # read-only forwarder over the canonical question-turn resolvers. This guard AST-scans
+        # its imports and fails (fail-closed) on any import that is not a canonical resolver
+        # (semantic_router / question_lifecycle_skills / active_object_builder / question_followup)
+        # or stdlib — i.e. any LLM/grading/RAG/learner-state/reveal/terminal/stream/orchestrator/
+        # turn_runtime import is rejected so QTPK cannot grow into a god object.
+        run: |
+          python scripts/check_qtpk_import_allowlist.py --check
+
       - name: governance registry meta-gate (every scanner cataloged + every pr_gate wired)
         # The roll-up the schema-governance audit found missing: contracts/registries.yaml
         # is the single catalog of every governance scanner + its resource class + where it

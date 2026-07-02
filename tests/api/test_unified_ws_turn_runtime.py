@@ -39,7 +39,6 @@ from deeptutor.services.session.turn_runtime import (
     _result_active_object,
     _result_question_followup_context,
     _sanitize_public_terminal_event,
-    _stamp_current_submission_scene_pre_capability,
     _TurnExecution,
 )
 
@@ -140,73 +139,12 @@ def test_turn_runtime_unwraps_transport_content_envelope_for_case_grading() -> N
     )
 
 
-def test_turn_runtime_stamps_full_case_submission_scene_before_capability() -> None:
-    config: dict[str, object] = {}
-    raw_case_submission = (
-        "建设单位编制了投资兴建某工程的招标文件。\n"
-        "【问题】1. 工程量清单的强制性内容还有哪些？\n"
-        "回答\n"
-        "作答：项目编码、项目名称、项目特征、计量单位和工程量。"
-    )
-
-    _stamp_current_submission_scene_pre_capability(
-        config,
-        user_message=raw_case_submission,
-        followup_context={
-            "question_type": "case",
-            "question": raw_case_submission,
-            "user_answer": "项目编码、项目名称、项目特征、计量单位和工程量。",
-        },
-        followup_action={"intent": "answer_questions", "answers": []},
-    )
-
-    assert config["question_lifecycle_scene"] == "case_grading"
-    assert config["question_lifecycle_scene_source"] == "deterministic_pre_capability"
-    assert config["question_lifecycle_scene_reason"] == "full_case_answer_submission"
-    assert config["question_lifecycle_skill_names"] == [
-        "construction-exam-tutor",
-        "construction-case-grading",
-    ]
-
-
-def test_turn_runtime_stamps_existing_case_submission_context_before_capability() -> None:
-    config: dict[str, object] = {}
-    case_context = {
-        "question_id": "case-current",
-        "question_type": "case_study",
-        "question": "背景资料：某工程施工总承包。\n【问题】指出不妥之处。",
-        "user_answer": "施工单位应避免违法分包。",
-    }
-
-    _stamp_current_submission_scene_pre_capability(
-        config,
-        user_message="施工单位应避免违法分包。",
-        followup_context=case_context,
-        followup_action={"intent": "answer_questions", "answers": []},
-    )
-
-    assert config["question_lifecycle_scene"] == "case_grading"
-    assert config["question_lifecycle_scene_reason"] == "case_submission_context"
-
-
-def test_turn_runtime_stamps_objective_submission_as_mcq_grading() -> None:
-    config: dict[str, object] = {}
-    choice_context = {
-        "question_id": "choice-current",
-        "question_type": "single_choice",
-        "question": "下列说法正确的是？",
-        "options": {"A": "甲", "B": "乙"},
-    }
-
-    _stamp_current_submission_scene_pre_capability(
-        config,
-        user_message="B",
-        followup_context=choice_context,
-        followup_action={"intent": "answer_questions", "answers": []},
-    )
-
-    assert config["question_lifecycle_scene"] == "mcq_grading"
-    assert config["question_lifecycle_scene_reason"] == "mcq_submission_context"
+# Control-plane Task 4: the deterministic pre-capability scene pre-stamp
+# (_stamp_current_submission_scene_pre_capability) was removed. The canonical lifecycle
+# scene is now resolved solely by resolve_question_lifecycle_scene_decision (which derives
+# the same mcq_grading / case_grading scene from the same submission facts). Scene parity
+# across submission/non-submission turns is pinned by
+# tests/services/test_pre_stamp_scene_parity.py.
 
 
 def test_turn_runtime_content_unwrap_keeps_non_transport_json_intact() -> None:
@@ -537,7 +475,7 @@ def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
             "language": "zh",
             "llm_selection": {
                 "provider": "openai",
-                "api_key": "sk-secret",
+                "api_key": "sk-secret",  # pragma: allowlist secret
                 "headers": {"Authorization": "Bearer secret-token"},
             },
         },
@@ -545,7 +483,7 @@ def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
         capability="chat",
         config={
             "bot_id": "construction-exam-coach",
-            "api_key": "config-secret",
+            "api_key": "config-secret",  # pragma: allowlist secret
             "nested": {"token": "nested-secret", "safe": "ok"},
         },
         attachments=[
@@ -565,7 +503,7 @@ def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
         memory_references=[],
         llm_selection={
             "provider": "openai",
-            "api_key": "sk-secret",
+            "api_key": "sk-secret",  # pragma: allowlist secret
             "headers": {"Authorization": "Bearer secret-token"},
         },
     )
@@ -1238,7 +1176,7 @@ async def test_resolve_question_followup_explicit_context_keeps_option_challenge
         }
 
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _misleading_interpret,
     )
 
@@ -1277,7 +1215,7 @@ async def test_resolve_question_followup_explicit_context_ignores_generation_hin
         }
 
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _followup_interpret,
     )
 
@@ -1309,6 +1247,61 @@ async def test_resolve_question_followup_explicit_context_ignores_generation_hin
 
 
 @pytest.mark.asyncio
+async def test_resolve_question_followup_explicit_context_downgrades_invalid_option_submission_hint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _followup_interpret(_message, _question_context, **_kwargs):
+        return {
+            "intent": "ask_followup",
+            "confidence": 0.91,
+            "answers": [],
+            "reason": "用户是在问不存在的 E 选项是否可选。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
+        _followup_interpret,
+    )
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="如果我选E，对不对？一句话。",
+        explicit_context={
+            "question_id": "q_live_numbered",
+            "question": "### 第 1 题 施工缝留置位置判断。\n下列说法错误的是（ ）。",
+            "question_type": "choice",
+            "options": {
+                "A": "施工缝宜留在结构受剪力较小且便于施工的部位",
+                "B": "梁板施工缝可留在次梁跨度的中间1/3范围内",
+                "C": "单向板施工缝可留在平行于板短边的位置",
+                "D": "有主次梁楼板宜顺着次梁方向浇筑",
+            },
+            "correct_answer": "C",
+            "user_answer": "",
+        },
+        explicit_action={
+            "intent": "answer_questions",
+            "confidence": 0.9,
+            "answers": [
+                {
+                    "question_index": 1,
+                    "question_id": "q_live_numbered",
+                    "answer": "E",
+                }
+            ],
+            "reason": "上游提交优先误判。",
+        },
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "q_live_numbered"
+    assert resolved_context.get("user_answer") == ""
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
+    assert resolved_action["answers"] == []
+
+
+@pytest.mark.asyncio
 async def test_resolve_question_followup_does_not_treat_next_question_explainer_as_generation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1321,7 +1314,7 @@ async def test_resolve_question_followup_does_not_treat_next_question_explainer_
         }
 
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _fake_interpret,
     )
 
@@ -1358,7 +1351,7 @@ async def test_resolve_question_followup_does_not_treat_question_type_explainer_
         }
 
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _fake_interpret,
     )
 
@@ -1787,7 +1780,7 @@ async def test_start_turn_recovers_stored_active_question_for_plain_text_option_
 
     monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
-    monkeypatch.setattr("deeptutor.services.session.turn_runtime.interpret_question_followup_action", fake_interpret)
+    monkeypatch.setattr("deeptutor.services.question_turn_policy.interpret_question_followup_action", fake_interpret)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
     monkeypatch.setattr(
         "deeptutor.services.memory.get_memory_service",
@@ -1940,8 +1933,20 @@ async def test_start_turn_promotes_full_new_mcq_over_stale_active_object(
     assert "施工现场临时用电组织设计" in resolved_context["question"]
     assert resolved_context["options"]["B"] == "电气工程技术人员"
     assert resolved_context["user_answer"] == "B"
-    assert captured["question_lifecycle_scene"] == "mcq_grading"
-    assert captured["question_lifecycle_scene_source"] == "deterministic_pre_capability"
+    # Control-plane Task 4: the pre-capability scene pre-stamp was removed, so the scene is
+    # no longer present in context.metadata when the (here-stubbed) orchestrator is entered.
+    # The canonical resolver derives the same mcq_grading scene from the promoted followup
+    # context, preserving the single-authority behavior the pre-stamp used to provide.
+    assert captured["question_lifecycle_scene"] is None
+    assert (
+        derive_question_lifecycle_scene(
+            SimpleNamespace(
+                user_message="我的答案 B，请判分。",
+                metadata={"question_followup_context": resolved_context},
+            )
+        )
+        == "mcq_grading"
+    )
 
     active_object = await store.get_active_object(session["id"])
     assert active_object is not None
@@ -2041,12 +2046,21 @@ async def test_start_turn_stamps_inline_full_mcq_scene_and_marked_answer(
         pass
 
     resolved_context = captured["question_followup_context"]
-    assert captured["question_lifecycle_scene"] == "mcq_grading"
-    assert captured["question_lifecycle_scene_source"] == "deterministic_pre_capability"
+    # Control-plane Task 4: scene pre-stamp removed; canonical resolver owns the scene.
+    assert captured["question_lifecycle_scene"] is None
     assert "建设工程竣工验收" in resolved_context["question"]
     assert resolved_context["options"]["D"] == "总监理工程师"
     assert resolved_context["user_answer"] == "B"
     assert resolved_context["correct_answer"] == "C"
+    assert (
+        derive_question_lifecycle_scene(
+            SimpleNamespace(
+                user_message="我的答案 B。标准答案：C。",
+                metadata={"question_followup_context": resolved_context},
+            )
+        )
+        == "mcq_grading"
+    )
 
 
 @pytest.mark.asyncio
@@ -2147,8 +2161,22 @@ async def test_start_turn_promotes_full_new_case_over_stale_active_object(
     assert resolved_context["question_type"] == "case"
     assert "屋面卷材防水施工后渗漏" in resolved_context["question"]
     assert "基层必须干燥" in resolved_context["user_answer"]
-    assert captured["question_lifecycle_scene"] == "case_grading"
-    assert captured["question_lifecycle_scene_source"] == "deterministic_pre_capability"
+    # Control-plane Task 4: scene pre-stamp removed; canonical resolver owns the scene.
+    assert captured["question_lifecycle_scene"] is None
+    assert (
+        derive_question_lifecycle_scene(
+            SimpleNamespace(
+                user_message=(
+                    "某屋面卷材防水施工后渗漏，现场发现基层潮湿、搭接宽度不足、"
+                    "闭水试验记录缺失。\n"
+                    "【问题】请指出主要质量问题并提出整改措施。\n"
+                    "作答：基层必须干燥，搭接宽度应符合规范，补做蓄水试验并整改渗漏点。"
+                ),
+                metadata={"question_followup_context": resolved_context},
+            )
+        )
+        == "case_grading"
+    )
 
     active_object = await store.get_active_object(session["id"])
     assert active_object is not None
@@ -2407,7 +2435,7 @@ async def test_turn_runtime_applies_request_scoped_llm_selection(
                                 "name": "Default",
                                 "binding": "openai",
                                 "base_url": "https://default.example/v1",
-                                "api_key": "default-key",
+                                "api_key": "default-key",  # pragma: allowlist secret
                                 "api_version": "",
                                 "extra_headers": {},
                                 "models": [{"id": "llm-m1", "name": "Default", "model": "gpt-default"}],
@@ -2417,7 +2445,7 @@ async def test_turn_runtime_applies_request_scoped_llm_selection(
                                 "name": "Selected",
                                 "binding": "dashscope",
                                 "base_url": "",
-                                "api_key": "selected-key",
+                                "api_key": "selected-key",  # pragma: allowlist secret
                                 "api_version": "",
                                 "extra_headers": {},
                                 "models": [{"id": "llm-m2", "name": "Selected", "model": "qwen-selected"}],
@@ -2465,7 +2493,7 @@ async def test_turn_runtime_applies_request_scoped_llm_selection(
             provider_mode="standard",
             binding_hint="dashscope",
             binding="dashscope",
-            api_key="selected-key",
+            api_key="selected-key",  # pragma: allowlist secret
             base_url="https://dashscope.example/v1",
             effective_url="https://dashscope.example/v1",
             api_version=None,
@@ -2657,7 +2685,7 @@ async def test_turn_runtime_bootstraps_open_chat_active_object_when_no_stronger_
 
 
 @pytest.mark.asyncio
-async def test_turn_runtime_prefers_result_response_as_assistant_content(
+async def test_turn_runtime_prefers_public_content_stream_over_stale_result_response(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
@@ -2683,18 +2711,18 @@ async def test_turn_runtime_prefers_result_response_as_assistant_content(
                 type=StreamEventType.CONTENT,
                 source="chat",
                 stage="responding",
-                content="## 结论\n",
+                content="## 当前题判分\n",
             )
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
                 stage="responding",
-                content="建筑构造是研究建筑物组成与连接方式的技术。",
+                content="你答了 B，正确答案是 C，本题不得分。",
             )
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
-                metadata={"response": "建筑构造是研究建筑物组成与连接方式的技术。"},
+                metadata={"response": "旧题 TN-S：你答了 B，正确答案是 B，本题得分。"},
             )
             yield StreamEvent(type=StreamEventType.DONE, source="chat")
 
@@ -2712,7 +2740,7 @@ async def test_turn_runtime_prefers_result_response_as_assistant_content(
     session, turn = await runtime.start_turn(
         {
             "type": "start_turn",
-            "content": "建筑构造是什么？",
+            "content": "请批改这道竣工验收单选题，我选B，标准答案C。",
             "session_id": None,
             "capability": None,
             "tools": [],
@@ -2723,12 +2751,182 @@ async def test_turn_runtime_prefers_result_response_as_assistant_content(
         }
     )
 
-    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
-        pass
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert (
+        result_events[-1]["metadata"]["response"]
+        == "## 当前题判分\n你答了 B，正确答案是 C，本题不得分。"
+    )
 
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
-    assert detail["messages"][-1]["content"] == "建筑构造是研究建筑物组成与连接方式的技术。"
+    assert (
+        detail["messages"][-1]["content"]
+        == "## 当前题判分\n你答了 B，正确答案是 C，本题不得分。"
+    )
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_visible_sink_strips_orphan_markers_across_stream_result_history(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="## 当前题判分\n你答了 A〔1〕，正确答案是 B。\n",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "旧结果也不应抢权〔2〕"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "请批改这道题，我选A，正确答案B。",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    content_events = [event for event in events if event.get("type") == "content"]
+    assert content_events
+    assert "〔1〕" not in content_events[-1]["content"]
+    assert content_events[-1]["content"].endswith("\n")
+
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    assert "〔" not in result_events[-1]["metadata"]["response"]
+    assert result_events[-1]["metadata"]["response"] == content_events[-1]["content"].strip()
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert "〔" not in detail["messages"][-1]["content"]
+    assert detail["messages"][-1]["content"] == content_events[-1]["content"].strip()
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_visible_sink_blocks_internal_envelope_in_result_and_history(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={
+                    "response": (
+                        "参考证据：题库命中片段\n"
+                        "局部工作记忆投影：上一轮判分摘要\n"
+                        "长期画像提示：M07 画像提示，学生近期薄弱点为防水构造。"
+                    )
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "帮我复盘一下。",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+
+    result_events = [event for event in events if event.get("type") == "result"]
+    assert result_events
+    response = result_events[-1]["metadata"]["response"]
+    assert response == "暂时未生成适合直接展示的答案，请重试一次。"
+    assert "参考证据" not in response
+    assert "长期画像" not in response
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert detail["messages"][-1]["content"] == "暂时未生成适合直接展示的答案，请重试一次。"
 
 
 @pytest.mark.asyncio
@@ -5595,7 +5793,7 @@ async def test_turn_runtime_does_not_pin_tutorbot_when_llm_identifies_followup_t
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _fake_interpret,
     )
     monkeypatch.setattr(
@@ -5730,7 +5928,7 @@ async def test_turn_runtime_treats_choice_type_as_generation_with_stored_active_
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _misleading_interpret,
     )
     monkeypatch.setattr(
@@ -5855,7 +6053,7 @@ async def test_turn_runtime_treats_written_question_type_request_as_generation_w
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
     monkeypatch.setattr(
-        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
         _misleading_interpret,
     )
     monkeypatch.setattr(
@@ -12072,3 +12270,115 @@ async def test_subscribe_turn_completed_turn_on_other_worker_returns_backlog_wit
     events = [evt async for evt in runtime.subscribe_turn(tid, after_seq=0)]
     types = [e["type"] for e in events]
     assert types == ["session", "content", "done"]
+
+
+# ---------------------------------------------------------------------------
+# E8 grading-merge: store read stays CONDITIONAL (QTPK S2 byte-identical fix).
+#
+# The pre-move ``_merge_grading_result_into_active_set`` had three early-returns
+# at the TOP that ran BEFORE the ``store.get_active_object`` read. After S2 the
+# store read had moved AHEAD of the early-returns (unconditional read), which is
+# NOT byte-identical: ``_safe_store_call`` re-raises non-persistence errors, so
+# the early-return path could newly raise / do extra I/O. These tests pin the
+# read back to conditional: on every early-return path the store is NOT read.
+# ---------------------------------------------------------------------------
+class _GradingMergeProbeStore:
+    """Store whose get_active_object counts calls and raises if ever invoked.
+
+    Raising proves the byte-identity concern: the pre-move early-return path
+    returned WITHOUT reading the store, so a probe that raises on read must NOT
+    be reached on those paths. The counter lets us assert exactly zero reads.
+    """
+
+    def __init__(self) -> None:
+        self.get_active_object_calls = 0
+
+    async def get_active_object(self, _session_id: str) -> dict[str, Any]:
+        self.get_active_object_calls += 1
+        raise AssertionError(
+            "store.get_active_object must not be read on the grading-merge "
+            "early-return path (byte-identical conditional read)"
+        )
+
+
+def _grading_merge_execution() -> _TurnExecution:
+    return _TurnExecution(
+        turn_id="t-grading-merge",
+        session_id="s-grading-merge",
+        capability="deep_question",
+        payload={},
+    )
+
+
+@pytest.mark.asyncio
+async def test_grading_merge_early_return_does_not_read_store_for_result_set() -> None:
+    """Condition 3 (result is itself a set): early return, store NOT read."""
+    store = _GradingMergeProbeStore()
+    runtime = TurnRuntimeManager(store)  # type: ignore[arg-type]
+    execution = _grading_merge_execution()
+    result_set = build_active_object_from_question_context(
+        {
+            "items": [
+                {"question_id": "q9", "question": "题目 q9"},
+                {"question_id": "q10", "question": "题目 q10"},
+            ]
+        }
+    )
+
+    out = await runtime._merge_grading_result_into_active_set(
+        execution,
+        result_set,
+        {"turn_semantic_decision": {"next_action": "route_to_grading"}},
+    )
+
+    assert store.get_active_object_calls == 0
+    # Early return is byte-identical: the input result is returned unchanged.
+    assert out is result_set
+
+
+@pytest.mark.asyncio
+async def test_grading_merge_early_return_does_not_read_store_for_unnormalizable_result() -> None:
+    """Condition 1/2 (result not normalizable / no question context): no read."""
+    store = _GradingMergeProbeStore()
+    runtime = TurnRuntimeManager(store)  # type: ignore[arg-type]
+    execution = _grading_merge_execution()
+    result_no_context: dict[str, Any] = {}
+
+    out = await runtime._merge_grading_result_into_active_set(
+        execution,
+        result_no_context,
+        {"turn_semantic_decision": {"next_action": "route_to_grading"}},
+    )
+
+    assert store.get_active_object_calls == 0
+    assert out is result_no_context
+
+
+@pytest.mark.asyncio
+async def test_grading_merge_single_item_result_reads_store_once() -> None:
+    """A single-item result needs the prior → store IS read exactly once."""
+
+    class _ReadOnceStore:
+        def __init__(self) -> None:
+            self.get_active_object_calls = 0
+
+        async def get_active_object(self, _session_id: str) -> None:
+            self.get_active_object_calls += 1
+            return None
+
+    store = _ReadOnceStore()
+    runtime = TurnRuntimeManager(store)  # type: ignore[arg-type]
+    execution = _grading_merge_execution()
+    single = build_active_object_from_question_context(
+        {"question_id": "q1", "question": "题目 q1"}
+    )
+
+    out = await runtime._merge_grading_result_into_active_set(
+        execution,
+        single,
+        {"turn_semantic_decision": {"next_action": "route_to_grading"}},
+    )
+
+    assert store.get_active_object_calls == 1
+    # prior is None → no set to preserve → result passes through unchanged.
+    assert out is single

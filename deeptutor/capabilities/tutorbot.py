@@ -9,35 +9,54 @@ from deeptutor.contracts.bot_runtime_defaults import resolve_bot_runtime_default
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
-from deeptutor.services.question_followup import (
-    annotate_submission_context_from_message,
-    build_choice_result_summary_from_exact_question,
-    build_question_followup_context_from_result_summary,
-    detect_answer_reveal_preference,
-    extract_choice_result_summary_from_text,
-    normalize_question_followup_context,
-    resolve_submission_attempt,
-)
-from deeptutor.services.question_lifecycle_skills import (
-    build_question_lifecycle_clarification_response,
-    build_question_lifecycle_exam_catalog_response,
-)
-from deeptutor.services.query_intent import query_requires_current_info
-from deeptutor.services.render_presentation import build_canonical_presentation
-from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
-from deeptutor.services.security.tool_access import filter_end_user_tools
-from deeptutor.services.semantic_router import (
-    apply_active_object_transition,
-    build_active_object_from_question_context,
-)
+from deeptutor.core.terminal_result_assembler import TerminalResultAssembler
 from deeptutor.services.citations import (
     CitationPolicy,
     answer_citations_enabled,
     apply_answer_citation_metadata,
 )
+from deeptutor.services.construction_grading.case_output_policy import (
+    copy_current_case_grading_turn_metadata,
+)
+from deeptutor.services.query_intent import query_requires_current_info
+from deeptutor.services.question_followup import (
+    annotate_submission_context_from_message,
+    build_canonical_represent_response,
+    build_choice_result_summary_from_exact_question,
+    build_question_followup_context_from_presentation,
+    build_question_followup_context_from_result_summary,
+    detect_answer_reveal_preference,
+    extract_choice_result_summary_from_text,
+    normalize_question_followup_context,
+    requested_question_item_index,
+    resolve_reveal_decision,
+    resolve_submission_attempt,
+    should_block_unanswered_reference_reveal,
+)
+from deeptutor.services.question_lifecycle_skills import (
+    build_question_lifecycle_clarification_response,
+    build_question_lifecycle_exam_catalog_response,
+    build_question_lifecycle_study_assistant_degraded_response,
+    study_assistant_has_learning_evidence,
+)
+from deeptutor.services.render_presentation import build_canonical_presentation
+from deeptutor.services.security.tool_access import filter_end_user_tools
+from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
+from deeptutor.services.active_object_builder import (
+    extract_question_context_from_active_object,
+)
+from deeptutor.services.question_turn_policy import (
+    _message_is_submission_for_stored_set,
+    _message_requests_active_mcq_represent,
+)
+from deeptutor.services.semantic_router import (
+    apply_active_object_transition,
+    build_active_object_from_question_context,
+)
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 from deeptutor.tutorbot.response_mode import (
+    active_object_requires_deep_mode,
     build_mode_execution_policy,
     normalize_requested_response_mode,
     resolve_requested_response_mode,
@@ -191,6 +210,101 @@ class TutorBotCapability(BaseCapability):
         if conversation_context_text:
             session_metadata["conversation_context_text"] = conversation_context_text
 
+        async def _emit_lifecycle_terminal_response(
+            response_text: str,
+            *,
+            execution_path: str,
+            call_kind: str,
+            extra_payload: dict[str, Any] | None = None,
+        ) -> None:
+            async with stream.stage(
+                "responding",
+                source=self.name,
+                metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
+            ):
+                content_metadata = {
+                    "execution_engine": "tutorbot_runtime",
+                    "call_kind": call_kind,
+                }
+                if not citation_enabled:
+                    await stream.content(
+                        response_text,
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
+                result_payload = {
+                    "response": response_text,
+                    "bot_id": bot_id,
+                    "execution_engine": "tutorbot_runtime",
+                    "authority_applied": False,
+                    "exact_question": {},
+                    "rag_rounds": [],
+                    "rag_saturation": {},
+                    "requested_response_mode": policy.requested_mode,
+                    "selected_mode": policy.selected_mode,
+                    "effective_response_mode": policy.effective_mode,
+                    "execution_path": execution_path,
+                    "exact_fast_path_hit": False,
+                    "actual_tool_rounds": 0,
+                    "reveal_answers": False,
+                    "reveal_explanations": False,
+                    **dict(extra_payload or {}),
+                }
+                for metadata_key in (
+                    "question_lifecycle_decision",
+                    "decision_source",
+                    "scene_confidence",
+                    "required_anchor_status",
+                    "exact_question_blocked_reason",
+                    "selected_skill_names",
+                    "llm_scene_candidate",
+                    "business_gate_result",
+                    "question_lifecycle_scene",
+                    "question_lifecycle_scene_source",
+                    "question_lifecycle_scene_confidence",
+                    "question_lifecycle_scene_reason",
+                    "question_lifecycle_skill_names",
+                    "question_lifecycle_clarification",
+                    "active_object",
+                    "release_id",
+                    "git_sha",
+                    "deployment_environment",
+                    "llm_stream_telemetry",
+                ):
+                    if metadata_key in session_metadata:
+                        result_payload[metadata_key] = session_metadata[metadata_key]
+                copy_current_case_grading_turn_metadata(session_metadata, result_payload)
+                citation_metadata: dict[str, Any] = {}
+                result_payload["response"] = apply_answer_citation_metadata(
+                    citation_metadata,
+                    response=str(result_payload.get("response") or ""),
+                    sources=[],
+                    policy=CitationPolicy(surface="student"),
+                    enabled=citation_enabled,
+                )
+                result_payload.update(citation_metadata)
+                if citation_enabled:
+                    await stream.content(
+                        str(result_payload["response"] or ""),
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
+                # Control-plane Task 5 Slice 3: the lifecycle degraded terminal
+                # RESULT frame is owned by TerminalResultAssembler (single
+                # contentful visible-output authority). Behaviour-preserving:
+                # build_event reproduces stream.result framing byte-identically
+                # (type=RESULT / source / stage="" / visibility="public" /
+                # merge_trace_metadata copy). Reveal flags pass through
+                # result_payload unchanged — the assembler only emits.
+                await stream.emit(
+                    TerminalResultAssembler.build_event(
+                        source=self.name,
+                        metadata=result_payload,
+                    )
+                )
+
         exam_catalog_response = ""
         if str(context.metadata.get("question_lifecycle_scene") or "").strip() == "exam_catalog_query":
             exam_catalog_response = build_question_lifecycle_exam_catalog_response(
@@ -198,87 +312,11 @@ class TutorBotCapability(BaseCapability):
                 context.metadata if isinstance(context.metadata, dict) else {},
             )
         if exam_catalog_response:
-            async with stream.stage(
-                "responding",
-                source=self.name,
-                metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
-            ):
-                content_metadata = {
-                    "execution_engine": "tutorbot_runtime",
-                    "call_kind": "exam_catalog_query",
-                }
-                if not citation_enabled:
-                    await stream.content(
-                        exam_catalog_response,
-                        source=self.name,
-                        stage="responding",
-                        metadata=content_metadata,
-                    )
-                result_payload = {
-                    "response": exam_catalog_response,
-                    "bot_id": bot_id,
-                    "execution_engine": "tutorbot_runtime",
-                    "authority_applied": False,
-                    "exact_question": {},
-                    "rag_rounds": [],
-                    "rag_saturation": {},
-                    "requested_response_mode": policy.requested_mode,
-                    "selected_mode": policy.selected_mode,
-                    "effective_response_mode": policy.effective_mode,
-                    "execution_path": "tutorbot_exam_catalog_query",
-                    "exact_fast_path_hit": False,
-                    "actual_tool_rounds": 0,
-                    "reveal_answers": False,
-                    "reveal_explanations": False,
-                }
-                for metadata_key in (
-                    "question_lifecycle_decision",
-                    "decision_source",
-                    "scene_confidence",
-                    "required_anchor_status",
-                    "exact_question_blocked_reason",
-                    "selected_skill_names",
-                    "llm_scene_candidate",
-                    "business_gate_result",
-                    "question_lifecycle_scene",
-                    "question_lifecycle_scene_source",
-                    "question_lifecycle_scene_confidence",
-                    "question_lifecycle_scene_reason",
-                    "question_lifecycle_skill_names",
-                    "question_lifecycle_clarification",
-                    "active_object",
-                    "release_id",
-                    "git_sha",
-                    "deployment_environment",
-                    "grading_engine_version",
-                    "v1_case_graded",
-                    "score_authority",
-                    "grading_rubric_provenance",
-                    "case_grading_stream_mode",
-                    "case_grading_adjudication_strategy",
-                    "case_grading_adjudication_group_count",
-                    "case_grading_adjudication_point_count",
-                    "llm_stream_telemetry",
-                ):
-                    if metadata_key in session_metadata:
-                        result_payload[metadata_key] = session_metadata[metadata_key]
-                citation_metadata: dict[str, Any] = {}
-                result_payload["response"] = apply_answer_citation_metadata(
-                    citation_metadata,
-                    response=str(result_payload.get("response") or ""),
-                    sources=[],
-                    policy=CitationPolicy(surface="student"),
-                    enabled=citation_enabled,
-                )
-                result_payload.update(citation_metadata)
-                if citation_enabled:
-                    await stream.content(
-                        str(result_payload["response"] or ""),
-                        source=self.name,
-                        stage="responding",
-                        metadata=content_metadata,
-                    )
-                await stream.result(result_payload, source=self.name)
+            await _emit_lifecycle_terminal_response(
+                exam_catalog_response,
+                execution_path="tutorbot_exam_catalog_query",
+                call_kind="exam_catalog_query",
+            )
             return
 
         clarification_response = build_question_lifecycle_clarification_response(
@@ -286,87 +324,34 @@ class TutorBotCapability(BaseCapability):
             str(context.metadata.get("exact_question_blocked_reason") or "").strip(),
         )
         if clarification_response:
-            async with stream.stage(
-                "responding",
-                source=self.name,
-                metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
-            ):
-                content_metadata = {
-                    "execution_engine": "tutorbot_runtime",
-                    "call_kind": "lifecycle_clarification",
-                }
-                if not citation_enabled:
-                    await stream.content(
-                        clarification_response,
-                        source=self.name,
-                        stage="responding",
-                        metadata=content_metadata,
-                    )
-                result_payload = {
-                    "response": clarification_response,
-                    "bot_id": bot_id,
-                    "execution_engine": "tutorbot_runtime",
-                    "authority_applied": False,
-                    "exact_question": {},
-                    "rag_rounds": [],
-                    "rag_saturation": {},
-                    "requested_response_mode": policy.requested_mode,
-                    "selected_mode": policy.selected_mode,
-                    "effective_response_mode": policy.effective_mode,
-                    "execution_path": "tutorbot_lifecycle_clarification",
-                    "exact_fast_path_hit": False,
-                    "actual_tool_rounds": 0,
-                    "reveal_answers": False,
-                    "reveal_explanations": False,
-                }
-                for metadata_key in (
-                    "question_lifecycle_decision",
-                    "decision_source",
-                    "scene_confidence",
-                    "required_anchor_status",
-                    "exact_question_blocked_reason",
-                    "selected_skill_names",
-                    "llm_scene_candidate",
-                    "business_gate_result",
-                    "question_lifecycle_scene",
-                    "question_lifecycle_scene_source",
-                    "question_lifecycle_scene_confidence",
-                    "question_lifecycle_scene_reason",
-                    "question_lifecycle_skill_names",
-                    "question_lifecycle_clarification",
-                    "active_object",
-                    "release_id",
-                    "git_sha",
-                    "deployment_environment",
-                    "grading_engine_version",
-                    "v1_case_graded",
-                    "score_authority",
-                    "grading_rubric_provenance",
-                    "case_grading_stream_mode",
-                    "case_grading_adjudication_strategy",
-                    "case_grading_adjudication_group_count",
-                    "case_grading_adjudication_point_count",
-                    "llm_stream_telemetry",
-                ):
-                    if metadata_key in session_metadata:
-                        result_payload[metadata_key] = session_metadata[metadata_key]
-                citation_metadata: dict[str, Any] = {}
-                result_payload["response"] = apply_answer_citation_metadata(
-                    citation_metadata,
-                    response=str(result_payload.get("response") or ""),
-                    sources=[],
-                    policy=CitationPolicy(surface="student"),
-                    enabled=citation_enabled,
-                )
-                result_payload.update(citation_metadata)
-                if citation_enabled:
-                    await stream.content(
-                        str(result_payload["response"] or ""),
-                        source=self.name,
-                        stage="responding",
-                        metadata=content_metadata,
-                    )
-                await stream.result(result_payload, source=self.name)
+            await _emit_lifecycle_terminal_response(
+                clarification_response,
+                execution_path="tutorbot_lifecycle_clarification",
+                call_kind="lifecycle_clarification",
+            )
+            return
+
+        study_assistant_degraded_response = ""
+        if (
+            str(context.metadata.get("question_lifecycle_scene") or "").strip() == "study_assistant"
+            and not study_assistant_has_learning_evidence(
+                context.metadata if isinstance(context.metadata, dict) else {}
+            )
+        ):
+            study_assistant_degraded_response = build_question_lifecycle_study_assistant_degraded_response(
+                self._raw_user_message(context),
+                context.metadata if isinstance(context.metadata, dict) else {},
+            )
+        if study_assistant_degraded_response:
+            await _emit_lifecycle_terminal_response(
+                study_assistant_degraded_response,
+                execution_path="tutorbot_study_assistant_degraded_no_evidence",
+                call_kind="study_assistant_degraded_no_evidence",
+                extra_payload={
+                    "study_assistant_degraded_no_evidence": True,
+                    "study_assistant_authority": "construction-study-assistant",
+                },
+            )
             return
 
         async def _on_progress(text: str) -> None:
@@ -453,6 +438,63 @@ class TutorBotCapability(BaseCapability):
                     stage="responding",
                     metadata=merged_metadata,
                 )
+
+        # SEV anti-cheat — deterministic short-circuit for unanswered-question
+        # references. When the learner points at a still-unattempted question
+        # inside a batch ("第2题怎么做"), the free-text LLM agent loop would solve
+        # it from model knowledge and leak the answer. Prompt-level soft
+        # instructions proved insufficient in live eval (2/3 leaked). The only
+        # reliable fix is to NOT route this turn through a free LLM at all:
+        # re-present the referenced question deterministically (stem + options,
+        # answer stays hidden in grading_key) plus a fixed nudge to attempt it
+        # first. Authority reused, not rebuilt — should_block_unanswered_reference_reveal
+        # + requested_question_item_index are the existing single authorities for
+        # "is this an unanswered reference" and "which item"; zero new adjudication,
+        # no answer regex/blocklist. The safety belt (already-attempted question,
+        # answer concession, topic switch) is preserved because all three make
+        # should_block_unanswered_reference_reveal return False / requested index
+        # None, so this block does not fire for them.
+        unanswered_reference_response = self._build_unanswered_reference_response(context)
+        if unanswered_reference_response is not None:
+            # Control-plane: the deterministic RESULT frame is owned by
+            # TerminalResultAssembler (single contentful visible-output authority,
+            # via _emit_lifecycle_terminal_response). Do NOT emit a raw stream.result
+            # here — that would register a second visible_result writer. Reuse the
+            # lifecycle terminal helper (same path as exam_catalog / clarification).
+            await _emit_lifecycle_terminal_response(
+                unanswered_reference_response,
+                execution_path="tutorbot_unanswered_reference_reprompt",
+                call_kind="unanswered_reference_reprompt",
+            )
+            return
+
+        # M4(i) 方案②: deterministic canonical re-present of an active single MCQ.
+        # When the learner asks to re-show / reshuffle the active question, the
+        # free LLM would emit a divergent option surface (letters reshuffled) that
+        # state_snapshot — and the prose grader — never capture, so a subsequent
+        # letter answer is graded against the original surface (倒诬). Re-present
+        # deterministically from the single authority (active_object.state_snapshot,
+        # original order) instead of the free LLM, so presented surface == grading
+        # surface. Fail-safe: build_canonical_represent_response returns None unless
+        # an active single MCQ + an explicit re-present marker are both present, so
+        # answer / explanation / new-question turns fall through unchanged. Sibling
+        # of the unanswered-reference anti-cheat; reuses the same terminal helper.
+        canonical_represent_response = build_canonical_represent_response(
+            active_object,
+            context.user_message,
+            question_context=(
+                context.metadata.get("question_followup_context")
+                if isinstance(context.metadata, dict)
+                else None
+            ),
+        )
+        if canonical_represent_response is not None:
+            await _emit_lifecycle_terminal_response(
+                canonical_represent_response,
+                execution_path="tutorbot_canonical_mcq_represent",
+                call_kind="canonical_mcq_represent",
+            )
+            return
 
         async with stream.stage(
             "responding",
@@ -586,19 +628,15 @@ class TutorBotCapability(BaseCapability):
                 "rag_retrieval_error_type",
                 "degraded_exact_answer_guard_applied",
                 "degraded_mcq_grading_guard_applied",
-                "grading_to_brain_loop",
-                "learning_evidence_event_id",
+                # ② content-truth review loop (observe-only): export the low-confidence
+                # regulation claims from session metadata into the result event so the
+                # terminal observation event + offline review agent can see them. Same
+                # diagnostic-only channel as the degraded_* flags above; never routes.
+                "content_truth_guard_applied",
+                "content_truth_low_confidence_claims",
                 "release_id",
                 "git_sha",
                 "deployment_environment",
-                "grading_engine_version",
-                "v1_case_graded",
-                "score_authority",
-                "grading_rubric_provenance",
-                "case_grading_stream_mode",
-                "case_grading_adjudication_strategy",
-                "case_grading_adjudication_group_count",
-                "case_grading_adjudication_point_count",
                 "luban_general_knowledge_context",
                 "luban_general_knowledge_context_status",
                 "llm_stream_telemetry",
@@ -606,6 +644,7 @@ class TutorBotCapability(BaseCapability):
             ):
                 if metadata_key in session_metadata:
                     result_payload[metadata_key] = session_metadata[metadata_key]
+            copy_current_case_grading_turn_metadata(session_metadata, result_payload)
             # Grading-to-Brain 公开投影（与练题入口同口径）：PCP/intent 是服务端
             # 内部权威数据，只在 runtime/session metadata 供渲染与观测，不随
             # result 下发；next_best_action 只下发展示级字段。
@@ -657,6 +696,63 @@ class TutorBotCapability(BaseCapability):
                 )
                 if presentation:
                     result_payload["presentation"] = presentation
+                # 收权（inline 多题集注册病）：inline 自由文本出题（含多题）必须经
+                # 唯一 builder build_active_object_from_question_context 注册成可
+                # resolve 的 question_set active_object（items[]），与 deep_question
+                # 出题链路同一 writer / 同一 persist（turn_runtime set_active_object）。
+                # 否则下一轮学员作答在 deep_question 端绑不到题面 → "你还没作答" 拒判。
+                # 注册题面 ≠ 判分权威：§硬约束 26 只禁 TutorBot 用 free text 自行判分 /
+                # 补官方扣分理由；分值/扣分仍只来自鲁班 V1 / rubric / 开放世界裁决。
+                # exact-question authority 命中时由下方 state_result_summary 块注册
+                # （更高权威），故此处只在无 exact 摘要时兜底，避免双写。
+                if presentation and not state_result_summary:
+                    practice_followup_context = (
+                        build_question_followup_context_from_presentation(
+                            presentation,
+                            final_response,
+                            reveal_answers=reveal_answers,
+                            reveal_explanations=reveal_explanations,
+                        )
+                    )
+                    if practice_followup_context:
+                        practice_active_object = (
+                            build_active_object_from_question_context(
+                                practice_followup_context,
+                                source_turn_id=turn_id,
+                                previous_active_object=active_object,
+                            )
+                            or {}
+                        )
+                        (
+                            practice_transitioned_active_object,
+                            practice_transitioned_stack,
+                        ) = apply_active_object_transition(
+                            previous_active_object=active_object,
+                            previous_suspended_object_stack=context.metadata.get(
+                                "suspended_object_stack"
+                            ),
+                            turn_semantic_decision={
+                                "relation_to_active_object": "switch_to_new_object",
+                                "next_action": "route_to_grading",
+                                "allowed_patch": ["set_active_object"],
+                                "confidence": 1.0,
+                                "reason": "inline practice generation registered a new question_set active object.",
+                                "target_object_ref": {},
+                            },
+                            resolved_active_object=practice_active_object,
+                        )
+                        result_payload["question_followup_context"] = practice_followup_context
+                        result_payload["active_object"] = (
+                            practice_transitioned_active_object or practice_active_object
+                        )
+                        result_payload["suspended_object_stack"] = practice_transitioned_stack
+                        context.metadata["question_followup_context"] = dict(
+                            practice_followup_context
+                        )
+                        context.metadata["active_object"] = dict(result_payload["active_object"])
+                        context.metadata["suspended_object_stack"] = list(
+                            practice_transitioned_stack
+                        )
             if state_result_summary:
                 # Authority-gated: question_followup_context + active_object
                 # only emitted when exact_question authority is present.
@@ -703,7 +799,20 @@ class TutorBotCapability(BaseCapability):
                     )
                     context.metadata["active_object"] = dict(result_payload["active_object"])
                     context.metadata["suspended_object_stack"] = list(transitioned_stack)
-            await stream.result(result_payload, source=self.name)
+            # Control-plane Task 5 Slice 3: the main terminal RESULT frame is
+            # owned by TerminalResultAssembler (single contentful visible-output
+            # authority). Behaviour-preserving: build_event reproduces
+            # stream.result framing byte-identically (type=RESULT / source /
+            # stage="" / visibility="public" / merge_trace_metadata copy). The
+            # reveal flags + presentation + question_followup_context + active_object
+            # blocks already live in result_payload (capability-owned in this
+            # slice) — the assembler only emits, it never decides reveal.
+            await stream.emit(
+                TerminalResultAssembler.build_event(
+                    source=self.name,
+                    metadata=result_payload,
+                )
+            )
 
     @staticmethod
     def _stream_public_deltas_enabled() -> bool:
@@ -791,7 +900,15 @@ class TutorBotCapability(BaseCapability):
                 requested_mode,
                 user_message=context.user_message,
                 interaction_hints=hints if isinstance(hints, dict) else None,
-                has_active_object=TutorBotCapability._active_object_requires_deep(context),
+                has_active_object=active_object_requires_deep_mode(
+                    active_object=metadata.get("active_object")
+                    if isinstance(metadata.get("active_object"), dict)
+                    else None,
+                    followup_context=metadata.get("question_followup_context")
+                    if isinstance(metadata.get("question_followup_context"), dict)
+                    else None,
+                    user_message=context.user_message,
+                ),
             )
             if not selection_reason:
                 selection_reason = inferred_reason
@@ -800,35 +917,6 @@ class TutorBotCapability(BaseCapability):
             selected_mode=selected_mode,
             selection_reason=selection_reason,
         )
-
-    @staticmethod
-    def _active_object_requires_deep(context: UnifiedContext) -> bool:
-        metadata = context.metadata if isinstance(context.metadata, dict) else {}
-        active_object = metadata.get("active_object") if isinstance(metadata.get("active_object"), dict) else {}
-        if not active_object:
-            return False
-        object_type = str(active_object.get("object_type") or "").strip()
-        if object_type == "open_chat_topic":
-            return False
-
-        followup_context = normalize_question_followup_context(
-            metadata.get("question_followup_context")
-            if isinstance(metadata.get("question_followup_context"), dict)
-            else None
-        )
-        if object_type in {"question_set", "single_question"} and followup_context:
-            if looks_like_practice_generation_request(context.user_message):
-                return False
-            _, submission = resolve_submission_attempt(context.user_message, followup_context)
-            if submission:
-                return False
-            text = str(context.user_message or "").strip()
-            if (
-                any(marker in text for marker in ("我答", "我选", "批改", "判分", "打分"))
-                and re.search(r"第\s*[0-9一二两三四五六七八九十]+\s*[题问]", text)
-            ):
-                return False
-        return True
 
     @staticmethod
     def _dedupe_strings(values: list[str]) -> list[str]:
@@ -908,18 +996,42 @@ class TutorBotCapability(BaseCapability):
 
     @staticmethod
     def _reveal_reference_flags(context: UnifiedContext) -> tuple[bool, bool]:
+        # Single reveal authority (Task 5 Slice 4): construct the facets and read
+        # the adjudicated decision from resolve_reveal_decision. RED-LINE FIX —
+        # the old branch returned (True, True) the instant preference was True,
+        # BEFORE the unanswered-block check, leaking answers on un-attempted
+        # practice questions. The resolver now routes preference=True through the
+        # unanswered-block red line.
         overrides = context.config_overrides if isinstance(context.config_overrides, dict) else {}
-        explicit_preference = detect_answer_reveal_preference(context.user_message)
-        if explicit_preference is False:
-            return False, False
-        if explicit_preference is True:
-            return True, True
-        reveal_answers = bool(overrides.get("reveal_answers", False)) or explicit_preference is True
-        if "reveal_explanations" in overrides:
-            reveal_explanations = bool(overrides.get("reveal_explanations"))
-        else:
-            reveal_explanations = reveal_answers
-        return reveal_answers, reveal_explanations
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        followup_context = metadata.get("question_followup_context")
+        normalized = normalize_question_followup_context(
+            followup_context if isinstance(followup_context, dict) else None
+        ) or {}
+        overrides_reveal = (
+            bool(overrides.get("reveal_answers"))
+            if "reveal_answers" in overrides
+            else None
+        )
+        overrides_reveal_explanations = (
+            bool(overrides.get("reveal_explanations"))
+            if "reveal_explanations" in overrides
+            else None
+        )
+        decision = resolve_reveal_decision(
+            preference=detect_answer_reveal_preference(context.user_message),
+            is_review=False,
+            is_unanswered_block=should_block_unanswered_reference_reveal(
+                context.user_message, normalized
+            ),
+            overrides_reveal=overrides_reveal,
+            context_reveal_flags=bool(
+                normalized.get("reveal_explanations") or normalized.get("reveal_answers")
+            ),
+            explicit_request=False,
+            overrides_reveal_explanations=overrides_reveal_explanations,
+        )
+        return decision.reveal_answers, decision.reveal_explanations
 
     def _should_hide_generated_answers(self, context: UnifiedContext) -> bool:
         reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
@@ -988,13 +1100,14 @@ class TutorBotCapability(BaseCapability):
         *,
         reveal_answers: bool = False,
         reveal_explanations: bool = False,
+        start_index: int = 1,
     ) -> str:
         results = summary.get("results", []) if isinstance(summary, dict) else []
         if not isinstance(results, list) or not results:
             return ""
 
         lines: list[str] = []
-        for idx, item in enumerate(results, 1):
+        for idx, item in enumerate(results, start_index):
             qa_pair = item.get("qa_pair", {}) if isinstance(item, dict) else {}
             question = str(qa_pair.get("question", "") or "").strip()
             options = qa_pair.get("options")
@@ -1020,6 +1133,131 @@ class TutorBotCapability(BaseCapability):
                 lines.append(f"**解析**：{explanation}")
             lines.append("")
         return "\n".join(lines).strip()
+
+    # Fixed, deterministic nudge appended to the re-presented unanswered
+    # question. Static text — never LLM-generated — so it cannot leak.
+    _UNANSWERED_REFERENCE_NUDGE = (
+        "这道题你还没作答，先试着做做——你的初步思路或选哪个？我再帮你看。"
+    )
+
+    # P1（2026-06-30）：未答题「隐式求助」结构化提示的 nudge。明示如何显式拿答案
+    # （"公布答案"），尊重"不能不输出"——anti-peek 只压隐式，显式一律放行。
+    _UNANSWERED_STRUCTURED_HINT_NUDGE = (
+        "先按这个思路试着作答，把你的选择或想法发我，我再帮你逐项详细讲解；"
+        "如果确实想直接看答案，可以说「公布答案」。"
+    )
+
+    @classmethod
+    def _build_unanswered_reference_response(
+        cls, context: UnifiedContext
+    ) -> str | None:
+        """Deterministic re-presentation of a referenced *unanswered* question.
+
+        Returns the rendered stem + options (answer hidden) + a fixed nudge when,
+        and only when, the turn is an unanswered-question reference to a specific
+        item in a batch. Returns None otherwise (caller falls through to the
+        normal LLM path), preserving the safety belt:
+
+        - already-attempted question  -> should_block_... False -> None
+        - answer concession           -> should_block_... False -> None
+        - topic switch / no "第N题"    -> requested index None    -> None
+        - no active batch context     -> normalize None          -> None
+
+        Reuses the two existing single authorities verbatim
+        (should_block_unanswered_reference_reveal + requested_question_item_index);
+        no new adjudication, no answer regex. The correct_answer / grading_key on
+        the item is intentionally NOT read — _render_question_response is called
+        with reveal_answers=False / reveal_explanations=False.
+        """
+
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        followup_context = metadata.get("question_followup_context")
+        normalized = normalize_question_followup_context(
+            followup_context if isinstance(followup_context, dict) else None
+        )
+        if not normalized:
+            # reachability 收口（2026-06-30，修第一刀 green-on-unreachable）：
+            # question_followup_context 只在 orchestrator 的 followup/submission 分支注入；
+            # 通用求助轮（"给点提示/还是不会"→ tutorbot_kb_first）不注入它 → 短路读不到
+            # 活跃题 → 落自由 LLM 泄底。active_object 是始终恢复的单一 relation 权威
+            # （turn_runtime 每轮恢复），从它派生题面，让短路对这些泄露轮真正可达。
+            normalized = extract_question_context_from_active_object(
+                metadata.get("active_object")
+            )
+        if not normalized:
+            return None
+
+        message = context.user_message
+        # Single authority #1: is this an unanswered-reference reveal attempt?
+        if not should_block_unanswered_reference_reveal(message, normalized):
+            return None
+        # Single authority #2: which specific batch item is referenced?
+        requested_index = requested_question_item_index(message, normalized)
+        if requested_index is None:
+            # P1（2026-06-30）：无具体「第N题」指代的隐式求助（"给点提示/还是不会/
+            # 这题怎么想"）。should_block 已为 True（未答 + 非显式 reveal + 非 concession，
+            # 显式要答案在 should_block 内已放行）。真泄露根因=这类轮 fall-through 到自由
+            # LLM(tutorbot_kb_first)，LLM 用建造师知识自己推出答案（软指令/遮蔽已证伪）。
+            # 治本=结构上不走自由 LLM：确定性结构化提示（考点+解题思路+nudge，绝不含
+            # 答案/选项评价）。动作1 proven 治本扩面到通用求助。
+            #
+            # 但 should_block=True 太宽——也命中**有专属确定性 handler** 的轮：真实作答
+            # （应判分）、re-present（应确定性重排）。这些不能被结构化提示偷走（否则判分/
+            # 重排失效）。复用 turn-START carve-out 同款单一权威排除它们，只对真正会落
+            # 自由 LLM 的隐式求助短路。
+            if _message_is_submission_for_stored_set(message, normalized):
+                return None
+            if _message_requests_active_mcq_represent(message, normalized):
+                return None
+            # 出题/换题（新生成意图）交给生成路径出新题，不提示旧题。复用既有生成意图
+            # 单一权威 looks_like_practice_generation_request（不新增 relation 闸——单一
+            # relation 权威不变量，见 contracts/turn.md §24 / check_submission_relation_gate）。
+            if looks_like_practice_generation_request(message):
+                return None
+            return cls._build_structured_hint_for_unanswered(normalized)
+
+        items = normalized.get("items") or []
+        if not isinstance(items, list) or not (1 <= requested_index <= len(items)):
+            return None
+        item = items[requested_index - 1]
+        if not isinstance(item, dict):
+            return None
+
+        # Reuse the existing renderer. reveal flags hard-False so neither the
+        # hidden correct_answer nor the explanation is emitted.
+        rendered = cls._render_question_response(
+            {"results": [{"qa_pair": item}]},
+            reveal_answers=False,
+            reveal_explanations=False,
+            start_index=requested_index,
+        )
+        if not rendered:
+            return None
+        return f"{rendered}\n\n{cls._UNANSWERED_REFERENCE_NUDGE}"
+
+    @classmethod
+    def _build_structured_hint_for_unanswered(
+        cls, normalized: dict[str, Any]
+    ) -> str | None:
+        """确定性结构化提示（P1，2026-06-30）：未答题隐式求助轮，结构上不走自由 LLM
+        （它会用建造师知识推出答案 → 泄底），只确定性拼「考点 + 通用解题思路 + nudge」。
+
+        只读保证无答案的字段：``concentration``（考点/知识点标签，与 correct_answer 是
+        不同字段）。**绝不读** correct_answer / grading_key / explanation /
+        knowledge_context（后者含「题库参考答案」明文，见 P2a）。无考点也给通用思路 nudge。
+        """
+        # 只用通用、确定性、保证无答案的内容拼提示。不读 concentration（实测它常被
+        # 写成用户原话=垃圾，不可靠）、不读 correct_answer/explanation/knowledge_context
+        # （含答案）、不逐项评价选项。这是 leak-proof 的下限：宁可通用，绝不泄底。
+        lines = [
+            "这道题先自己推一推，我给你一个通用的判断框架：",
+            "解题思路：①先圈出题干里的关键词和限定条件（比如「正确的/错误的」、具体"
+            "数值、特定情形或工序）；②回顾这个知识点对应的规范要求或基本原则；③再逐一"
+            "对照每个选项，看哪个和你回顾到的原则最吻合——别急着核对答案，自己先推一遍"
+            "印象最深。",
+            cls._UNANSWERED_STRUCTURED_HINT_NUDGE,
+        ]
+        return "\n\n".join(lines)
 
     def _default_bot_config(self, context: UnifiedContext) -> BotConfig | None:
         bot_id = self._bot_id(context)

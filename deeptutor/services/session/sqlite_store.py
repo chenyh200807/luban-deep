@@ -17,6 +17,15 @@ from typing import Any, Mapping
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
 from deeptutor.services.render_presentation import build_canonical_presentation
+from deeptutor.services.active_object_builder import (
+    QUESTION_ACTIVE_OBJECT_TYPES as _QUESTION_ACTIVE_OBJECT_TYPES,
+    build_active_object_from_question_context,
+    coerce_positive_int as _coerce_positive_int,
+    coerce_timestamp as _coerce_timestamp,
+    extract_question_context_from_active_object,
+    normalize_active_object,
+    normalize_suspended_object_stack,
+)
 
 _STALE_TURN_TIMEOUT_SECONDS = 180.0
 _SQLITE_TIMEOUT_SECONDS = 5.0
@@ -41,94 +50,16 @@ def _json_loads(value: str | None, default: Any) -> Any:
         return default
 
 
-_QUESTION_ACTIVE_OBJECT_TYPES = {"single_question", "question_set"}
-_QUESTION_ACTIVE_OBJECT_TYPE_ALIASES = {
-    "question": "single_question",
-    "single_question": "single_question",
-    "question_set": "question_set",
-}
+# active_object question类型集 / 派生 / coerce / builder / normalizer 的单一权威
+# 已收敛到 deeptutor/services/session/active_object_builder.py（见模块顶部 import）。
+# 此处只保留 sqlite_store 其他 builder（learning_plan / session）需要的类型集。
 _LEARNING_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 _SESSION_ACTIVE_OBJECT_TYPES = {"open_chat_topic"}
 _PLAN_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 
 
-def _coerce_positive_int(value: Any) -> int | None:
-    try:
-        resolved = int(value)
-    except (TypeError, ValueError):
-        return None
-    return resolved if resolved > 0 else None
-
-
-def _coerce_timestamp(value: Any) -> float | None:
-    try:
-        resolved = float(value)
-    except (TypeError, ValueError):
-        return None
-    return resolved if resolved > 0 else None
-
-
 def _normalize_runtime_state(runtime_state: Any) -> dict[str, Any]:
     return dict(runtime_state) if isinstance(runtime_state, dict) else {}
-
-
-def _normalize_question_active_object_type(
-    value: Any,
-    *,
-    has_items: bool,
-) -> str:
-    normalized = _QUESTION_ACTIVE_OBJECT_TYPE_ALIASES.get(str(value or "").strip().lower())
-    if normalized:
-        return normalized
-    return "question_set" if has_items else "single_question"
-
-
-def _build_question_active_object_scope(question_context: dict[str, Any]) -> dict[str, Any]:
-    items = question_context.get("items") if isinstance(question_context.get("items"), list) else []
-    question_ids = [
-        str(item.get("question_id") or "").strip()
-        for item in items
-        if isinstance(item, dict) and str(item.get("question_id") or "").strip()
-    ]
-    primary_question_id = str(question_context.get("question_id") or "").strip()
-    if primary_question_id and primary_question_id not in question_ids:
-        question_ids.insert(0, primary_question_id)
-    return {
-        "domain": "question",
-        "question_ids": question_ids,
-        "item_count": len(items) if items else 1,
-    }
-
-
-def _derive_question_active_object_id(question_context: dict[str, Any]) -> str:
-    items = question_context.get("items") if isinstance(question_context.get("items"), list) else []
-    item_ids = [
-        str(item.get("question_id") or "").strip()
-        for item in items
-        if isinstance(item, dict) and str(item.get("question_id") or "").strip()
-    ]
-    if len(item_ids) > 1:
-        parent_quiz_session_id = str(question_context.get("parent_quiz_session_id") or "").strip()
-        if parent_quiz_session_id:
-            return parent_quiz_session_id
-        return "question_set:" + "|".join(item_ids[:8])
-
-    question_id = str(question_context.get("question_id") or "").strip()
-    if question_id:
-        return question_id
-
-    if item_ids:
-        return item_ids[0]
-
-    parent_quiz_session_id = str(question_context.get("parent_quiz_session_id") or "").strip()
-    if parent_quiz_session_id:
-        return parent_quiz_session_id
-
-    question_text = str(question_context.get("question") or "").strip().lower()
-    if not question_text:
-        return "question"
-    token = "".join(char if char.isalnum() else "_" for char in question_text).strip("_")
-    return f"question:{token[:48] or 'anonymous'}"
 
 
 def _resolve_learning_plan_current_page(
@@ -343,147 +274,9 @@ def build_active_object_from_session(
     }
 
 
-def build_active_object_from_question_context(
-    question_context: dict[str, Any] | None,
-    *,
-    previous_active_object: dict[str, Any] | None = None,
-    object_type: Any = None,
-    object_id: Any = None,
-    scope: Any = None,
-    version: Any = None,
-    entered_at: Any = None,
-    last_touched_at: Any = None,
-    source_turn_id: Any = None,
-    now: float | None = None,
-) -> dict[str, Any] | None:
-    normalized_question = normalize_question_followup_context(question_context)
-    if normalized_question is None:
-        return None
-
-    resolved_now = float(now if now is not None else time.time())
-    previous = previous_active_object if isinstance(previous_active_object, dict) else {}
-    has_items = bool(normalized_question.get("items"))
-    resolved_object_type = _normalize_question_active_object_type(object_type, has_items=has_items)
-    resolved_object_id = str(object_id or "").strip() or _derive_question_active_object_id(
-        normalized_question
-    )
-    previous_object_type = str(previous.get("object_type") or "").strip()
-    previous_object_id = str(previous.get("object_id") or "").strip()
-    same_identity = (
-        previous_object_type in _QUESTION_ACTIVE_OBJECT_TYPES
-        and previous_object_type == resolved_object_type
-        and previous_object_id == resolved_object_id
-    )
-
-    resolved_scope = scope if isinstance(scope, dict) else _build_question_active_object_scope(
-        normalized_question
-    )
-    resolved_version = _coerce_positive_int(version)
-    if resolved_version is None:
-        previous_version = _coerce_positive_int(previous.get("version")) or 0
-        resolved_version = previous_version + 1 if same_identity else 1
-
-    resolved_entered_at = _coerce_timestamp(entered_at)
-    if resolved_entered_at is None:
-        resolved_entered_at = (
-            _coerce_timestamp(previous.get("entered_at")) if same_identity else resolved_now
-        )
-    resolved_last_touched_at = _coerce_timestamp(last_touched_at) or resolved_now
-    resolved_source_turn_id = str(source_turn_id or "").strip() or (
-        str(previous.get("source_turn_id") or "").strip() if same_identity else ""
-    )
-
-    return {
-        "object_type": resolved_object_type,
-        "object_id": resolved_object_id,
-        "scope": dict(resolved_scope),
-        "state_snapshot": dict(normalized_question),
-        "version": resolved_version,
-        "entered_at": resolved_entered_at,
-        "last_touched_at": resolved_last_touched_at,
-        "source_turn_id": resolved_source_turn_id,
-    }
-
-
-def extract_question_context_from_active_object(
-    active_object: dict[str, Any] | None,
-) -> dict[str, Any] | None:
-    if not isinstance(active_object, dict):
-        return None
-    snapshot = (
-        active_object.get("state_snapshot")
-        if isinstance(active_object.get("state_snapshot"), dict)
-        else active_object.get("question_followup_context")
-        if isinstance(active_object.get("question_followup_context"), dict)
-        else None
-    )
-    if not isinstance(snapshot, dict):
-        return None
-    return normalize_question_followup_context(snapshot)
-
-
-def normalize_active_object(
-    raw: dict[str, Any] | None,
-    *,
-    previous_active_object: dict[str, Any] | None = None,
-    now: float | None = None,
-) -> dict[str, Any] | None:
-    if not isinstance(raw, dict):
-        return None
-
-    question_snapshot = (
-        raw.get("state_snapshot")
-        if isinstance(raw.get("state_snapshot"), dict)
-        else raw
-        if ("question" in raw or "items" in raw)
-        else None
-    )
-    if isinstance(question_snapshot, dict) and normalize_question_followup_context(question_snapshot):
-        return build_active_object_from_question_context(
-            question_snapshot,
-            previous_active_object=previous_active_object,
-            object_type=raw.get("object_type"),
-            object_id=raw.get("object_id"),
-            scope=raw.get("scope"),
-            version=raw.get("version"),
-            entered_at=raw.get("entered_at"),
-            last_touched_at=raw.get("last_touched_at"),
-            source_turn_id=raw.get("source_turn_id"),
-            now=now,
-        )
-
-    object_type = str(raw.get("object_type") or "").strip()
-    object_id = str(raw.get("object_id") or "").strip()
-    state_snapshot = raw.get("state_snapshot") if isinstance(raw.get("state_snapshot"), dict) else {}
-    if not object_type or not object_id:
-        return None
-
-    resolved_now = float(now if now is not None else time.time())
-    resolved_version = _coerce_positive_int(raw.get("version")) or 1
-    resolved_entered_at = _coerce_timestamp(raw.get("entered_at")) or resolved_now
-    resolved_last_touched_at = _coerce_timestamp(raw.get("last_touched_at")) or resolved_now
-    resolved_scope = raw.get("scope") if isinstance(raw.get("scope"), dict) else {}
-    return {
-        "object_type": object_type,
-        "object_id": object_id,
-        "scope": dict(resolved_scope),
-        "state_snapshot": dict(state_snapshot),
-        "version": resolved_version,
-        "entered_at": resolved_entered_at,
-        "last_touched_at": resolved_last_touched_at,
-        "source_turn_id": str(raw.get("source_turn_id") or "").strip(),
-    }
-
-
-def normalize_suspended_object_stack(raw: Any) -> list[dict[str, Any]]:
-    if not isinstance(raw, list):
-        return []
-    normalized_stack: list[dict[str, Any]] = []
-    for item in raw:
-        normalized = normalize_active_object(item)
-        if normalized is not None:
-            normalized_stack.append(normalized)
-    return normalized_stack
+# build_active_object_from_question_context / extract_question_context_from_active_object /
+# normalize_active_object / normalize_suspended_object_stack 的单一权威已收敛到
+# deeptutor/services/session/active_object_builder.py（见模块顶部 import 再导出）。
 
 
 def build_user_owner_key(user_id: str | None) -> str:

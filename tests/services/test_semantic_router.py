@@ -350,6 +350,50 @@ async def test_resolve_turn_semantic_decision_keeps_option_challenge_from_llm_ge
 
 
 @pytest.mark.asyncio
+async def test_resolve_turn_semantic_decision_does_not_bind_history_summary_to_active_choice(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def misleading_interpret(
+        _message: str,
+        _context: dict[str, object],
+        *,
+        history_context: str = "",
+    ):
+        return {
+            "intent": "ask_followup",
+            "confidence": 0.93,
+            "answers": [],
+            "reason": "如果被调用，就会把历史总结请求误绑到当前选择题。",
+        }
+
+    monkeypatch.setattr(semantic_router, "interpret_question_followup_action", misleading_interpret)
+    active_object = semantic_router.build_active_object_from_question_context(
+        {
+            "question_id": "choice_1",
+            "question": "流水步距反映的是什么？",
+            "question_type": "choice",
+            "options": {"A": "工期", "B": "相邻专业队投入间隔", "C": "流水节拍", "D": "施工段"},
+            "correct_answer": "B",
+            "user_answer": "A",
+            "is_correct": False,
+        },
+        source_turn_id="turn-choice-history-summary",
+    )
+
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        "总结我正式提交过的案例答案，别重新判分。",
+        active_object,
+        history_context="用户前面提交过一个案例题答案：75%。标准答案：100%。",
+    )
+
+    assert action is None
+    assert decision is not None
+    assert decision["relation_to_active_object"] == "temporary_detour"
+    assert decision["next_action"] == "route_to_general_chat"
+    assert decision["allowed_patch"] == ["no_state_change"]
+
+
+@pytest.mark.asyncio
 async def test_resolve_turn_semantic_decision_does_not_bind_full_new_mcq_to_active_question(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

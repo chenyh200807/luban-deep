@@ -45,6 +45,94 @@ def _install_module(monkeypatch: pytest.MonkeyPatch, fullname: str, **attrs: Any
     return module
 
 
+def _unanswered_hint_context(user_message: str) -> UnifiedContext:
+    return UnifiedContext(
+        session_id="hint",
+        user_message=user_message,
+        metadata={
+            "question_followup_context": {
+                "question_id": "q1",
+                "question": "屋面防水基本要求正确的是",
+                "question_type": "single_choice",
+                "options": {"A": "以排为主", "B": "坡度2%", "C": "厚度15mm", "D": "年限不低于20年"},
+                "concentration": "屋面防水基本要求",
+                "items": [
+                    {
+                        "question_id": "q1",
+                        "question": "屋面防水基本要求正确的是",
+                        "options": {"A": "以排为主", "B": "坡度2%", "C": "厚度15mm", "D": "年限不低于20年"},
+                        "concentration": "屋面防水基本要求",
+                        "grading_key": {"correct_answer": "D"},
+                    }
+                ],
+            }
+        },
+    )
+
+
+def test_unanswered_implicit_help_short_circuits_to_structured_hint_no_leak() -> None:
+    # P1（owner 真治本 2026-06-30）：未答题「隐式求助」结构上不走自由 LLM（会推出答案），
+    # 短路到确定性结构化提示（考点+思路+nudge），绝不含正确选项/答案值/逐项判别。
+    for message in ("给点提示", "还是不会", "这题怎么想", "再多说点"):
+        hint = TutorBotCapability._build_unanswered_reference_response(
+            _unanswered_hint_context(message)
+        )
+        assert hint is not None, f"implicit help must short-circuit: {message}"
+        assert "解题思路" in hint, "通用解题思路应在结构化提示里"
+        # 绝不泄底：不含正确选项字母指向、正确选项文本、逐项判别正确值。
+        for leaked in ("年限不低于20年", "正确答案", "正确选项", "选 D", "答案是 D", "答案：D"):
+            assert leaked not in hint, f"structured hint leaked {leaked!r}: {hint}"
+
+
+def test_unanswered_implicit_help_short_circuits_via_active_object_only() -> None:
+    # reachability 收口（2026-06-30，修 green-on-unreachable）：通用求助轮（kb_first）
+    # 不注入 question_followup_context，只有 active_object（始终恢复的单一权威）。短路
+    # 必须从 active_object 派生题面才对这些泄露轮可达。本测试只放 active_object，无
+    # question_followup_context，断言结构化提示仍短路（不泄底）。
+    ctx = UnifiedContext(
+        session_id="ao-only",
+        user_message="给点提示",
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "object_id": "q1",
+                "state_snapshot": {
+                    "question_id": "q1",
+                    "question": "屋面防水基本要求正确的是",
+                    "question_type": "single_choice",
+                    "options": {"A": "以排为主", "B": "坡度2%", "C": "厚度15mm", "D": "年限不低于20年"},
+                    "concentration": "屋面防水基本要求",
+                    "items": [
+                        {
+                            "question_id": "q1",
+                            "question": "屋面防水基本要求正确的是",
+                            "options": {"A": "以排为主", "B": "坡度2%", "C": "厚度15mm", "D": "年限不低于20年"},
+                            "concentration": "屋面防水基本要求",
+                            "grading_key": {"correct_answer": "D"},
+                        }
+                    ],
+                },
+            }
+        },
+    )
+    hint = TutorBotCapability._build_unanswered_reference_response(ctx)
+    assert hint is not None, "短路必须从 active_object 派生(无 followup_context 也可达)"
+    assert "解题思路" in hint
+    for leaked in ("年限不低于20年", "正确答案", "选 D", "答案是 D"):
+        assert leaked not in hint, f"leaked {leaked!r}"
+
+
+def test_unanswered_explicit_answer_request_does_not_short_circuit() -> None:
+    # owner 边界 #2：显式要答案 → 不短路（返回 None），让 reveal 路径正常出答案。
+    for message in ("公布答案", "直接告诉我答案", "把答案给我", "直接说哪个对"):
+        assert (
+            TutorBotCapability._build_unanswered_reference_response(
+                _unanswered_hint_context(message)
+            )
+            is None
+        ), f"explicit reveal must pass through: {message}"
+
+
 def test_tutorbot_fast_mode_preserves_explicit_web_search_tool() -> None:
     context = UnifiedContext(
         user_message="联网查询2026一建考试时间",
@@ -2800,6 +2888,7 @@ async def test_tutorbot_capability_emits_structured_mcq_summary_for_plain_text_g
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **kwargs: Any,
         ) -> str:
             return "\n".join(
                 [
@@ -2845,8 +2934,88 @@ async def test_tutorbot_capability_emits_structured_mcq_summary_for_plain_text_g
     assert isinstance(presentation, dict)
     assert len(presentation["blocks"][0]["questions"]) == 2
     assert presentation["blocks"][0]["questions"][0]["question_type"] == "multi_choice"
-    assert "question_followup_context" not in result_event.metadata
-    assert "active_object" not in result_event.metadata
+    # 收权（inline 多题集注册病）：inline 出题现在必须经唯一 builder 注册成 question_set
+    # active_object（items[]），下一轮学员作答能 bind 判分。注册 ≠ 判分（§硬约束 26 只禁
+    # TutorBot 用 free text 自行判分 / 补扣分理由）。
+    followup_context = result_event.metadata["question_followup_context"]
+    assert followup_context and followup_context.get("items")
+    active_object = result_event.metadata["active_object"]
+    assert active_object["object_type"] == "question_set"
+    assert len(active_object["state_snapshot"]["items"]) == 2
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_inline_practice_generation_registers_question_set_active_object(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 收权回归（inline 多题集注册病）：bot inline 自由文本出多题时，必须经唯一
+    # builder build_active_object_from_question_context 注册成可 resolve 的
+    # question_set active_object（items[]），否则下一轮学员作答在 deep_question 端
+    # 绑不到题面 → "你还没作答" 拒判。注册 ≠ 判分（判分仍走 deep_question/rubric/
+    # 开放世界）；§硬约束 26 只禁 TutorBot 用 free text 自行判分/补扣分理由。
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(self, **kwargs: Any) -> str:
+            return "\n".join(
+                [
+                    "下面给你两道题。",
+                    "",
+                    "第1题：防火门构造的基本要求有（ ）。",
+                    "A. 甲级防火门耐火极限为 1.5h",
+                    "B. 向内开启",
+                    "C. 关闭后应能从内外两侧手动开启",
+                    "D. 具有自行关闭功能",
+                    "",
+                    "第2题：倒置式屋面保温层应设置在（ ）。",
+                    "A. 找平层下",
+                    "B. 防水层上",
+                    "C. 结构层上",
+                    "D. 保护层下",
+                ]
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-inline-qs",
+        user_message="给我出两道建筑构造的选择题练练",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    # presentation 仍按既有契约发出（渲染层）
+    presentation = result_event.metadata.get("presentation")
+    assert isinstance(presentation, dict)
+    assert len(presentation["blocks"][0]["questions"]) == 2
+    # 收权：active_object 现在必须注册成 question_set，state_snapshot 带 items[]
+    active_object = result_event.metadata.get("active_object")
+    assert isinstance(active_object, dict) and active_object, "inline 出题必须注册 active_object"
+    assert active_object["object_type"] == "question_set"
+    items = active_object["state_snapshot"]["items"]
+    assert isinstance(items, list) and len(items) == 2, "两道题必须注册为 2 个可 resolve 的 items"
 
 
 @pytest.mark.asyncio
@@ -3108,6 +3277,7 @@ async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visi
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **kwargs: Any,
         ) -> str:
             captured["mode"] = mode
             captured["session_metadata"] = session_metadata
@@ -3158,8 +3328,13 @@ async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visi
     assert captured["session_metadata"]["default_tools"] == ["rag"]
     assert "答案" not in result_event.metadata["response"]
     assert "采分点" not in result_event.metadata["response"]
-    assert "question_followup_context" not in result_event.metadata
-    assert "active_object" not in result_event.metadata
+    # 收权（inline 多题集注册病）：单题 inline 出题也必须注册成可 resolve 的 active_object，
+    # 下一轮学员作答能 bind。reveal 抑制只让答案不下发渲染，不影响题面注册；items 的
+    # correct_answer 为空 → 学员作答走开放世界判分（不再"你还没作答"拒判）。
+    active_object = result_event.metadata["active_object"]
+    assert active_object and active_object["object_type"] in {"single_question", "question_set"}
+    snapshot_items = active_object["state_snapshot"].get("items") or []
+    assert snapshot_items, "题面必须注册成可 resolve 的 items"
     assert isinstance(result_event.metadata.get("presentation"), dict)
     question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
     assert question["followup_context"]["correct_answer"] == ""

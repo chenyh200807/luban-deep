@@ -160,8 +160,10 @@ class AgentCoordinator:
         history_context: str = "",
         lightweight_generation: bool = False,
         require_explanation: bool = True,
+        reveal_answers: bool = False,
         allow_lightweight_fallback: bool = True,
         allow_similar_source_variant: bool = False,
+        avoid_current_question: bool = False,
     ) -> dict[str, Any]:
         self._current_batch_dir = self._create_batch_dir("custom")
         requested = max(1, int(num_questions or 1))
@@ -189,6 +191,7 @@ class AgentCoordinator:
             "llm_calls": 0,
             "retriever_calls": 0,
             "bank_hits": 0,
+            "deduped_bank_hits": 0,
             "lightweight_batch_fallback": "none",
             "generated_explanation": False,
         }
@@ -235,38 +238,65 @@ class AgentCoordinator:
                     },
                 )
         if lightweight_generation:
-            anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
-                user_topic=user_topic,
-            )
-            # retriever_calls 计数：调过 rag_search 即算一次（成功/失败都计入）。
-            lightweight_trace_counters["retriever_calls"] = 1
+            if avoid_current_question:
+                anchor_payload = self._current_question_exclusion_anchor_payload(
+                    user_topic=user_topic,
+                )
+                retrieval_trace = {
+                    "used_rag": False,
+                    "skipped": "current_question_exclusion",
+                }
+            else:
+                anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
+                    user_topic=user_topic,
+                )
+                # retriever_calls 计数：调过 rag_search 即算一次（成功/失败都计入）。
+                lightweight_trace_counters["retriever_calls"] = 1
             if self._should_block_unresolved_lightweight_anchor(
                 user_topic=user_topic,
                 anchor_payload=anchor_payload,
             ):
-                lightweight_trace_counters["lightweight_batch_fallback"] = "blocked_unresolved_anchor"
-                batch_trace.append(
-                    {
-                        "mode": "lightweight_topic_generation",
-                        "requested": requested,
-                        "generated": 0,
-                        "knowledge_context": str(anchor_payload.get("knowledge_context") or ""),
-                        "retrieval": retrieval_trace,
-                        "bank_short_circuit": False,
-                        "anchor_resolution_status": "blocked_unresolved_anchor",
-                    }
+                # Step 3 (p11 fall-through, NOT fail-closed-to-template): a bare-action
+                # continuation ("继续出一道") has no topic THIS turn. Inherit the established
+                # construction topic from the conversation context and generate, instead of
+                # canning. Safe because the generator subject lock (Step 1) guarantees
+                # construction-only output even on a thin topic — fall-through can never produce
+                # off-domain garbage. Only a TRUE cold start (no topic in message OR context)
+                # still falls to the honest needs-anchor canned.
+                inherited_topic = self._resolve_practice_topic_with_context(
+                    user_topic=user_topic,
+                    history_context=history_context,
                 )
-                return self._build_summary(
-                    source="topic",
-                    requested=requested,
-                    templates=[],
-                    qa_pairs=[],
-                    trace={
-                        "batches": batch_trace,
-                        "lightweight_generation": lightweight_generation,
-                        "lightweight_counters": dict(lightweight_trace_counters),
-                    },
-                )
+                if inherited_topic:
+                    user_topic = inherited_topic
+                    anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
+                        user_topic=inherited_topic,
+                    )
+                    lightweight_trace_counters["lightweight_batch_fallback"] = "anchor_inherited_from_context"
+                else:
+                    lightweight_trace_counters["lightweight_batch_fallback"] = "blocked_unresolved_anchor"
+                    batch_trace.append(
+                        {
+                            "mode": "lightweight_topic_generation",
+                            "requested": requested,
+                            "generated": 0,
+                            "knowledge_context": str(anchor_payload.get("knowledge_context") or ""),
+                            "retrieval": retrieval_trace,
+                            "bank_short_circuit": False,
+                            "anchor_resolution_status": "blocked_unresolved_anchor",
+                        }
+                    )
+                    return self._build_summary(
+                        source="topic",
+                        requested=requested,
+                        templates=[],
+                        qa_pairs=[],
+                        trace={
+                            "batches": batch_trace,
+                            "lightweight_generation": lightweight_generation,
+                            "lightweight_counters": dict(lightweight_trace_counters),
+                        },
+                    )
             templates = self._build_lightweight_topic_templates(
                 user_topic=user_topic,
                 requested=requested,
@@ -276,11 +306,16 @@ class AgentCoordinator:
             )
             # plan §Phase 2 Step 2.4 (B1) — questions_bank 命中且字段完整时
             # 跳过 LLM，直接组装 QAPair；anchor 不足时进入下面的并行 batch path。
-            bank_qa_pairs = self._build_bank_hit_qa_pairs(
+            bank_qa_pairs, bank_skip_reason = self._build_bank_hit_qa_pairs(
                 anchor_payload=anchor_payload,
                 templates=templates,
                 question_type=target_question_type or "choice",
+                history_context=history_context,
+                reveal_answers=reveal_answers,
+                require_explanation=require_explanation,
             )
+            if bank_skip_reason == "duplicate_recent_question":
+                lightweight_trace_counters["deduped_bank_hits"] += 1
             lightweight_trace_counters["bank_hits"] = len(bank_qa_pairs)
             batch_trace.append(
                 {
@@ -672,7 +707,10 @@ class AgentCoordinator:
         anchor_payload: dict[str, Any] | None,
         templates: list[QuestionTemplate],
         question_type: str,
-    ) -> list[QAPair]:
+        history_context: str = "",
+        reveal_answers: bool = False,
+        require_explanation: bool = False,
+    ) -> tuple[list[QAPair], str]:
         """plan §Phase 2 Step 2.4 (B1) — questions_bank 命中且字段完整时，
         直接组装 QAPair（含 hidden grading_key），跳过 LLM。
 
@@ -688,25 +726,32 @@ class AgentCoordinator:
             "question_evidence_bundle",
             "rag_answer_bundle",
         }:
-            return []
+            return [], ""
         reference_question = str(payload.get("reference_question") or "").strip()
         reference_answer = str(payload.get("reference_answer") or "").strip()
         if not reference_question or not reference_answer:
-            return []
+            return [], ""
         if not templates:
-            return []
+            return [], ""
         # 从 evidence_refs 反查完整 options（如果上游已经压扁，就跳过）。
         options = self._extract_bank_options_from_payload(payload)
         if not options or len(options) < 2:
-            return []
+            return [], ""
         template = templates[0]
         if not self._bank_hit_matches_question_contract(
             question_type=question_type or template.question_type,
             options=options,
             reference_answer=reference_answer,
         ):
-            return []
+            return [], "contract_mismatch"
         analysis = str(payload.get("analysis") or "").strip()
+        if require_explanation and not analysis:
+            return [], "missing_explanation"
+        if self._recent_history_contains_question(
+            history_context=history_context,
+            question=reference_question,
+        ):
+            return [], "duplicate_recent_question"
         review_notes = build_mcq_review_notes_from_exact_question(
             {
                 "answer_kind": "mcq",
@@ -729,7 +774,7 @@ class AgentCoordinator:
             QAPair(
                 question_id=template.question_id,
                 question=reference_question,
-                correct_answer="",  # public string-form correct_answer 不写入；grading 走 grading_key
+                correct_answer=reference_answer if reveal_answers else "",
                 explanation=analysis,
                 question_type=question_type or "choice",
                 options=dict(options),
@@ -748,7 +793,7 @@ class AgentCoordinator:
                 },
                 grading_key=grading_key,
             )
-        ]
+        ], ""
 
     @staticmethod
     def _bank_hit_matches_question_contract(
@@ -757,11 +802,30 @@ class AgentCoordinator:
         options: dict[str, str],
         reference_answer: str,
     ) -> bool:
-        if str(question_type or "").strip().lower() != "choice":
-            return True
+        normalized_type = str(question_type or "").strip().lower()
         option_keys = {str(key).strip().upper() for key in options if str(key).strip()}
         answer_letters = re.findall(r"[A-E]", str(reference_answer or "").upper())
-        return option_keys == {"A", "B", "C", "D"} and len(answer_letters) == 1
+        if normalized_type in {"choice", "single_choice", "mcq"}:
+            return option_keys == {"A", "B", "C", "D"} and len(answer_letters) == 1
+        if normalized_type in {"multiple_choice", "multi_choice"}:
+            return option_keys in (
+                {"A", "B", "C", "D"},
+                {"A", "B", "C", "D", "E"},
+            ) and len(answer_letters) > 1
+        return False
+
+    @staticmethod
+    def _recent_history_contains_question(*, history_context: str, question: str) -> bool:
+        needle = AgentCoordinator._normalize_question_text_for_dedupe(question)
+        if len(needle) < 8:
+            return False
+        haystack = AgentCoordinator._normalize_question_text_for_dedupe(history_context)
+        return bool(haystack and needle in haystack)
+
+    @staticmethod
+    def _normalize_question_text_for_dedupe(value: str) -> str:
+        text = re.sub(r"\s+", "", str(value or ""))
+        return re.sub(r"[，。！？、,.!?；;：:（）()【】\[\]\"'“”‘’`*_\-]+", "", text)
 
     @staticmethod
     def _has_similar_source_variant_anchor(anchor_payload: dict[str, Any] | None) -> bool:
@@ -1054,6 +1118,65 @@ class AgentCoordinator:
         }
 
     @staticmethod
+    def _current_question_exclusion_anchor_payload(*, user_topic: str) -> dict[str, Any]:
+        topic = str(user_topic or "").strip()
+        anchor_label = AgentCoordinator._current_question_exclusion_anchor_label(
+            user_topic=topic
+        )
+        return {
+            "knowledge_context": topic or "请从建筑实务/建造师考试高频考点中选择一个不同小考点出题。",
+            "concentration": anchor_label or "建筑实务高频考点",
+            "anchor_source": "current_question_exclusion",
+        }
+
+    @staticmethod
+    def _current_question_exclusion_anchor_label(*, user_topic: str) -> str:
+        topic = str(user_topic or "").strip()
+        if not topic:
+            return "建筑实务高频考点"
+
+        generation_scope = topic.split("排除当前题", 1)[0].strip()
+        invalid_markers = (
+            "排除当前题",
+            "需避开",
+            "不得作为新题考点",
+            "题干",
+            "选项面",
+            "不同考点",
+            "刚才那题",
+            "重复",
+        )
+
+        def _clean_label(value: str) -> str:
+            label = re.sub(r"\s+", " ", str(value or "")).strip()
+            label = re.sub(r"^[：:，,。；;\s]+", "", label).strip()
+            label = re.sub(r"[：:，,。；;\s]+$", "", label).strip()
+            if not label or label in {"新对话", "当前会话主题", "当前学习主题"}:
+                return ""
+            if any(marker in label for marker in invalid_markers):
+                return ""
+            return label[:32]
+
+        for line in generation_scope.splitlines():
+            match = re.search(
+                r"(?:当前(?:会话|学习)主题|当前学习锚点|最近对话摘要)[:：](?P<label>.+)",
+                line,
+            )
+            if not match:
+                continue
+            label = _clean_label(match.group("label"))
+            if label:
+                return label
+
+        first_paragraph = generation_scope.split("\n\n", 1)[0]
+        derived = _clean_label(
+            AgentCoordinator._derive_lightweight_anchor_label(user_topic=first_paragraph)
+        )
+        if derived and practice_generation_topic_domain_status(derived) == "construction_topic":
+            return derived
+        return "建筑实务高频考点"
+
+    @staticmethod
     def _extract_embedded_generation_anchor(user_topic: str) -> str:
         text = str(user_topic or "").strip()
         marker = "请严格围绕以下当前学习锚点出题"
@@ -1078,6 +1201,28 @@ class AgentCoordinator:
             return True
         evidence_refs = payload.get("evidence_refs")
         return isinstance(evidence_refs, list) and any(isinstance(ref, dict) for ref in evidence_refs)
+
+    @staticmethod
+    def _resolve_practice_topic_with_context(*, user_topic: str, history_context: str) -> str:
+        """Single authority for the lightweight practice topic (Step 3, p11 fall-through).
+
+        This turn's own topic wins; if the message is a bare action word with no topic, inherit
+        the established construction topic from the conversation context. Returns ""  only on a
+        true cold start (no topic in the message AND none in the context) — that case still falls
+        to the honest needs-anchor canned. Reuses the single normalizer
+        ``_derive_lightweight_anchor_label`` (no second topic decider). Safe to fall through here
+        because the generator subject lock (Step 1) guarantees construction-only output even on a
+        thin topic, so inheriting-and-generating can never produce off-domain garbage.
+        """
+        own = AgentCoordinator._derive_lightweight_anchor_label(user_topic=user_topic)
+        if practice_generation_topic_domain_status(own) == "construction_topic":
+            return own
+        inherited = AgentCoordinator._derive_lightweight_anchor_label(
+            user_topic=str(history_context or "")
+        )
+        if practice_generation_topic_domain_status(inherited) == "construction_topic":
+            return inherited
+        return ""
 
     @staticmethod
     def _should_block_unresolved_lightweight_anchor(
@@ -1120,6 +1265,8 @@ class AgentCoordinator:
             result=result,
         )
         if evidence_anchor:
+            if not str(evidence_anchor.get("reference_answer") or "").strip():
+                return base
             evidence_parts: list[str] = [base["knowledge_context"]]
             evidence_parts.append(f"题库参考题目：{evidence_anchor['reference_question']}")
             evidence_option_lines = AgentCoordinator._format_reference_options(
@@ -1162,6 +1309,8 @@ class AgentCoordinator:
             clipped_analysis = analysis[:280] + ("..." if len(analysis) > 280 else "")
             parts.append(f"题库解析要点：{clipped_analysis}")
         if len(parts) > 1:
+            if not correct_answer:
+                return base
             # Topic-relevance gate (Bug#1 主因): only adopt this RAG hit as the
             # canonical generation anchor when it actually matches the user's topic.
             # Otherwise an off-topic top hit (e.g. SMA query → 垂直运输 question) would
@@ -1218,6 +1367,8 @@ class AgentCoordinator:
         ):
             return base
         if parsed_bundle:
+            if not str(parsed_bundle.get("reference_answer") or "").strip():
+                return base
             bundle_parts: list[str] = [base["knowledge_context"]]
             bundle_parts.append(f"题库参考题目：{parsed_bundle['reference_question']}")
             parsed_option_lines = AgentCoordinator._format_reference_options(
@@ -1392,10 +1543,16 @@ class AgentCoordinator:
     def _generated_questions_in_construction_scope(
         templates: list[QuestionTemplate], qa_pairs: list[dict[str, Any]]
     ) -> bool:
-        """出口科目门（owner 决策=现阶段只服务建筑实务）：生成题至少一道能 ground 到建筑
-        才算 in-scope。复用单一建筑判据 practice_generation_topic_domain_status（入口出口
-        同源，不另造科目权威），判生成题考点+题面是否建筑实务；全部跑偏（汉字/外国常识/
-        纯他科）= 诚实 subject_unavailable，禁出无关/跨科题。无题面可判时不拦（避免空判误拒）。
+        """出口科目门（owner 决策=现阶段只服务建筑实务）：复用单一建筑判据
+        practice_generation_topic_domain_status（入口出口同源，不另造科目权威），判生成题
+        考点+题面是否建筑实务。
+
+        口径与入口门 practice_generation_topic_block_decision **对称**：只在生成题**确有
+        他科证据（out_of_scope_topic 命中法语/数学等）且无任何建筑证据**时才判
+        subject_unavailable。``unknown_topic``（关键词白名单未覆盖的建筑长尾，如"水泥/沟槽
+        开挖"）一律视为 in-scope 放行——禁止重蹈入口门已修正过的 ``!= construction_topic``
+        误拒（白名单永远不全，正向命中口径会把同主题的不同表述当跑题，见 teaching_modes.py
+        practice_generation_topic_block_decision 的修正注释）。无题面可判时不拦（避免空判误拒）。
         """
         texts: list[str] = []
         for qp in qa_pairs or []:
@@ -1407,10 +1564,12 @@ class AgentCoordinator:
         candidates = [text for text in texts if text.strip()]
         if not candidates:
             return True
-        return any(
-            practice_generation_topic_domain_status(text) == "construction_topic"
-            for text in candidates
-        )
+        statuses = [
+            practice_generation_topic_domain_status(text) for text in candidates
+        ]
+        if any(status == "construction_topic" for status in statuses):
+            return True
+        return not any(status == "out_of_scope_topic" for status in statuses)
 
     @staticmethod
     def _derive_lightweight_anchor_label(
@@ -1463,7 +1622,10 @@ class AgentCoordinator:
     def _extract_explicit_lightweight_topic_label(text: str) -> str:
         for pattern in (
             r"(?:围绕|关于|针对)(?P<label>[^，,。!?！？；;:：]+)",
-            r"考(?!我|点|试)(?P<label>[^，,。!?！？；;:：]+)",
+            # "考 <topic>" (考网络计划). Exclude 考我/考点/考试 AND a doubled 考 so the action
+            # phrase "考考我" is NOT mis-read as topic="考我" (S3 live root cause: that dropped
+            # the real "流水施工" and drove both the generator concentration and the anchor block).
+            r"考(?!我|点|试|考)(?P<label>[^，,。!?！？；;:：]+)",
         ):
             match = re.search(pattern, text)
             if not match:

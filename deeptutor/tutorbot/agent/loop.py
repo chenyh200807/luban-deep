@@ -18,6 +18,7 @@ from loguru import logger
 from deeptutor.services.construction_grading.case_output_policy import (
     build_case_grading_diagnostic_only_response,
     case_grading_score_authority_available,
+    copy_current_case_grading_turn_metadata,
     should_demote_case_grading_hard_score,
 )
 from deeptutor.services.exam_track import exam_track_label
@@ -29,6 +30,7 @@ from deeptutor.services.query_intent import (
     query_uses_learner_state_authority,
 )
 from deeptutor.services.question_lifecycle_skills import (
+    case_grading_context_from_full_submission,
     looks_like_free_text_mcq_answer_request,
     looks_like_free_text_mcq_grading_request,
     split_full_case_answer_submission,
@@ -63,8 +65,11 @@ from deeptutor.tutorbot.markdown_style import get_markdown_style_instruction
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
+    assess_unverifiable_standard_codes,
+    build_content_truth_review_records,
     build_continuity_anchor_instruction,
     build_cross_capability_context_instruction,
+    content_truth_guard_response,
     correct_construction_exam_boundary_fact_response,
     get_anchor_preservation_instruction,
     get_construction_exam_boundary_fact_instruction,
@@ -483,23 +488,29 @@ class AgentLoop:
         runtime_metadata: dict[str, Any],
         target_metadata: dict[str, Any] | None,
     ) -> None:
+        copy_current_case_grading_turn_metadata(runtime_metadata, target_metadata)
+
+    @staticmethod
+    def _export_content_truth_metadata(
+        runtime_metadata: dict[str, Any] | None,
+        target_metadata: dict[str, Any] | None,
+    ) -> None:
+        """② content-truth review loop (observe-only): carry the low-confidence regulation
+        claims OUT on the OutboundMessage metadata so ``process_direct`` round-trips them to
+        the manager (``metadata.update(response.metadata)``) → result event → offline review.
+
+        ``_content_truth_guard`` stamps these on the loop's internal ``runtime_metadata``,
+        a COPY of the inbound metadata; without this export they never reach the outbound
+        message and die inside the loop (live break observed 2026-06-29). Flag carrier only,
+        never gates output."""
         if not isinstance(runtime_metadata, dict) or not isinstance(target_metadata, dict):
             return
-        for key in (
-            "v1_case_graded",
-            "score_authority",
-            "grading_rubric_provenance",
-            "grading_to_brain_loop",
-            "learning_evidence_event_id",
-            "learning_training_intent",
-            "grading_to_brain_projection",
-            "case_grading_stream_mode",
-            "case_grading_adjudication_strategy",
-            "case_grading_adjudication_group_count",
-            "case_grading_adjudication_point_count",
+        for metadata_key in (
+            "content_truth_guard_applied",
+            "content_truth_low_confidence_claims",
         ):
-            if key in runtime_metadata:
-                target_metadata[key] = runtime_metadata[key]
+            if metadata_key in runtime_metadata:
+                target_metadata[metadata_key] = runtime_metadata[metadata_key]
 
     @staticmethod
     def _strip_think(text: str | None) -> str | None:
@@ -800,6 +811,81 @@ class AgentLoop:
             "可用结论：这轮需要小程序继续传入题卡 id，或等题库检索恢复后再按标准答案批改；"
             "如果只做非题库标准确认的思路分析，可以基于题干逐项判断，但结论不能标成真题标准答案。"
         )
+
+    @staticmethod
+    def _collect_standard_recall_evidence(runtime_metadata: dict[str, Any] | None) -> str:
+        """汇集本轮 standard/KB 召回证据正文，供 content-truth 核验闸比对规范编号。
+
+        证据来自 ``runtime_metadata['rag_rounds'][*]['sources'][*]['content']`` 以及每轮的
+        聚合 ``answer`` 文本(search_standard_chunks 等检索把 standard/textbook/exam chunk 正文
+        放在这里)。这是单一真值源(已接检索)，不新建第二 authority。"""
+
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        parts: list[str] = []
+        for round_meta in metadata.get("rag_rounds") or []:
+            if not isinstance(round_meta, dict):
+                continue
+            answer = round_meta.get("answer")
+            if isinstance(answer, str) and answer.strip():
+                parts.append(answer)
+            for source in round_meta.get("sources") or []:
+                if not isinstance(source, dict):
+                    continue
+                text = source.get("content") or source.get("text") or source.get("snippet")
+                if isinstance(text, str) and text.strip():
+                    parts.append(text)
+        # 预取的精确题/规范证据也算本轮召回(避免对已有权威误降级)。
+        prefetched = metadata.get("_prefetched_exact_question")
+        if isinstance(prefetched, dict):
+            for key in ("question", "answer", "explanation", "analysis", "content"):
+                value = prefetched.get(key)
+                if isinstance(value, str) and value.strip():
+                    parts.append(value)
+        return "\n\n".join(parts)
+
+    @classmethod
+    def _content_truth_guard(
+        cls,
+        *,
+        user_message: str,
+        final_content: str | None,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> str:
+        """② content-truth review loop (owner 三层)：bot 写出的规范条文号/版本去本轮 standard
+        召回核一遍。owner 设计 = **永不抑制输出**——
+
+        - L1：核不到(RAG miss)或检索退化 → 保留全文 + append 大方诚实 hedge(AI 生成 / 以教材或
+          官方规范为准 / 不保证 100%)，绝不沉默/拒答。
+        - L2：把核不到的编号静默记进 ``content_truth_low_confidence_claims``(runtime 只 flag，
+          不裁决不抑制)，经 turn_runtime allow-list 流进单一事件 sink(TurnEventLog)供离线评审(L3)。
+
+        regex 只抽取编号，真值由召回证据裁决(单一汇点)。返回应展示的最终文本。"""
+
+        rag_degraded = bool((runtime_metadata or {}).get("rag_retrieval_degraded"))
+        evidence_text = cls._collect_standard_recall_evidence(runtime_metadata)
+        # 单一计算点：哪些编号核不到(L1 hedge 与 L2 review record 共享，避免双实现)。
+        unverifiable = assess_unverifiable_standard_codes(
+            response=final_content,
+            standard_evidence_text=evidence_text,
+            rag_degraded=rag_degraded,
+        )
+        guarded = content_truth_guard_response(
+            user_message=user_message,
+            response=final_content,
+            standard_evidence_text=evidence_text,
+            rag_degraded=rag_degraded,
+        )
+        if unverifiable and isinstance(runtime_metadata, dict):
+            runtime_metadata["content_truth_guard_applied"] = True
+            # L2 低置信内部记录：纯 flag，写进 runtime_metadata 由 turn_runtime 透传进事件 sink。
+            runtime_metadata["content_truth_low_confidence_claims"] = (
+                build_content_truth_review_records(
+                    response=final_content,
+                    unverifiable_codes=unverifiable,
+                    rag_degraded=rag_degraded,
+                )
+            )
+        return guarded if guarded is not None else final_content
 
     @staticmethod
     def _format_answer_letters(letters: str | None) -> str:
@@ -1232,11 +1318,40 @@ class AgentLoop:
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
         eq = md.get("_prefetched_exact_question")
         eq = eq if isinstance(eq, dict) else {}
-        user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
+        current_case_context = case_grading_context_from_full_submission(user_message) or {}
+        user_stem = str(
+            current_case_context.get("question_stem")
+            or current_case_context.get("question")
+            or ""
+        )
+        user_answer = str(current_case_context.get("user_answer") or "")
+        current_reference = str(
+            current_case_context.get("reference_answer")
+            or current_case_context.get("correct_answer")
+            or ""
+        ).strip()
+        if not user_stem or not user_answer:
+            user_stem, user_answer = AgentLoop._split_case_grading_submission(user_message)
         if user_stem and eq and not AgentLoop._case_exact_question_matches_user_stem(eq, user_stem):
             md["exact_question_blocked_reason"] = "case_exact_mismatch"
             eq = {}
         fc = AgentLoop._followup_context_from_metadata(md)
+        # Forward-reachability (S4, 2026-06-29): the flat followup keys
+        # (question_followup_context / active_question_context / followup_question_context)
+        # are NOT always projected into the grading turn's runtime_metadata even though the
+        # canonical ``active_object`` survives there (live S4DIAG: has_ao=True, has_qfc=False).
+        # The case stem + reference live in active_object.state_snapshot — consume them as the
+        # single canonical source when the flat keys did not carry a question.
+        if not str(fc.get("question") or "").strip():
+            ao = md.get("active_object")
+            if isinstance(ao, dict):
+                from deeptutor.services.session.sqlite_store import (
+                    extract_question_context_from_active_object,
+                )
+
+                ao_ctx = extract_question_context_from_active_object(ao)
+                if ao_ctx:
+                    fc = {**ao_ctx, **{k: v for k, v in fc.items() if str(v or "").strip()}}
         if user_stem and fc:
             fc_probe = {
                 "stem": fc.get("question_stem") or fc.get("stem") or fc.get("question") or "",
@@ -1269,16 +1384,41 @@ class AgentLoop:
             ref = "\n".join(
                 str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
             ).strip()
-        ref = ref or str(fc_current.get("reference") or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis")) or "")
+        ref = current_reference or ref or str(
+            fc_current.get("reference")
+            or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis"))
+            or ""
+        )
+        # Forward-reachability (S4, 2026-06-29): a bot-generated case has NO bank/signed
+        # answer-key authority (``eq`` empty) and no pasted full-case reference (``user_stem``
+        # empty). The only candidate reference here is the active_object's self-generated
+        # ``correct_answer`` — NOT signed truth. Drop it so ``_grade_one_case_v1`` takes the
+        # Tier-3 stem-derived diagnostic path (official_score_allowed=False, 诊断 hedge) rather
+        # than an official-style Tier-2 ``on_the_fly_reference`` score off an unsigned answer.
+        if ref and not eq and not user_stem and not current_reference:
+            md["case_reference_unsigned_demoted_to_tier3"] = True
+            ref = ""
         try:
-            nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
+            current_grading_result = current_case_context.get("construction_grading_result")
+            current_max_score = (
+                current_grading_result.get("max_score")
+                if isinstance(current_grading_result, dict)
+                else None
+            )
+            nominal = float(eq.get("max_score") or fc.get("max_score") or current_max_score or 0)
         except (TypeError, ValueError):
             nominal = 0.0
         # question_stem: bank entry > followup context > safely split full-case stem.
         # Do NOT fall back to the raw user_message: free-text submissions often mix question + student
         # answer in one message. Only the stable "题干 ... 回答/作答 ..." shape may feed Tier-3 stem
         # derivation, and mismatched exact hits are demoted before their reference answer can score.
-        question_stem = str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or user_stem or "")
+        # Forward-reachability (S4): an active_object-derived case keeps its stem in
+        # ``fc["question"]`` (NOT ``question_stem``); read it so Tier-3 has a stem to ground on.
+        question_stem = str(
+            eq.get("stem") or eq.get("question")
+            or fc.get("question_stem") or fc.get("question")
+            or user_stem or ""
+        )
         node_code = str(eq.get("node_code") or fc.get("node_code") or md.get("node_code") or "")
         return {
             "question_id": str(eq.get("question_id") or eq.get("qid") or fc_current.get("question_id") or ""),
@@ -1625,6 +1765,15 @@ class AgentLoop:
     ) -> OutboundMessage | None:
         if not self._is_case_grading_scene(runtime_metadata):
             return None
+        # A practice-generation request ("再出一道新题") is never a case-grading turn: it
+        # carries no answer to grade and owns no score authority. If the lifecycle still
+        # pinned case_grading, fall through to the generation path instead of emitting the
+        # no-authority "把标准答案/采分点发来" template — which a student can never satisfy for
+        # a case the bot itself authored, deadlocking "出新题". (S4 forward-reachability.)
+        if looks_like_practice_generation_request(current_message) and not (
+            case_grading_score_authority_available(runtime_metadata)
+        ):
+            return None
         runtime_metadata["execution_path"] = "tutorbot_case_grading_v1_direct"
         runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
         if on_progress:
@@ -1693,6 +1842,7 @@ class AgentLoop:
         response_metadata = dict(msg.metadata or {})
         self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
         self._export_case_grading_metadata(runtime_metadata, response_metadata)
+        self._export_content_truth_metadata(runtime_metadata, response_metadata)
         response_metadata["execution_path"] = "tutorbot_case_grading_v1_direct"
         if isinstance(runtime_metadata.get("presentation"), dict):
             response_metadata["presentation"] = runtime_metadata["presentation"]
@@ -1712,6 +1862,13 @@ class AgentLoop:
     ) -> str:
         # Defensive: when V1 already produced the authoritative grade, never demote it.
         if isinstance(runtime_metadata, dict) and runtime_metadata.get("_v1_case_graded"):
+            return ""
+        # A practice-generation turn produces a NEW question, never a grade. The no-authority
+        # case template must not clobber it — otherwise "再出一道新题" gets overwritten with a
+        # demand for ground truth the bot itself authored (deadlock). Fall through to whatever
+        # the generation path produced. (S4 forward-reachability collapse — fall-through, not
+        # fail-closed-to-template.)
+        if looks_like_practice_generation_request(user_message):
             return ""
         scene = (
             str(runtime_metadata.get("question_lifecycle_scene") or "").strip()
@@ -3859,6 +4016,11 @@ class AgentLoop:
                 final_content=final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
+            final_content = self._content_truth_guard(
+                user_message=current_message,
+                final_content=final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
             final_content = guarded_output.content or final_content
             if all_msgs:
@@ -3877,11 +4039,14 @@ class AgentLoop:
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
             preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
             logger.info("Fast-path exact authority response to {}:{}: {}", msg.channel, msg.sender_id, preview)
+            response_metadata = dict(msg.metadata or {})
+            self._export_case_grading_metadata(runtime_metadata, response_metadata)
+            self._export_content_truth_metadata(runtime_metadata, response_metadata)
             return OutboundMessage(
                 channel=msg.channel,
                 chat_id=msg.chat_id,
                 content=final_content,
-                metadata=msg.metadata or {},
+                metadata=response_metadata,
             )
 
         initial_messages = self.context.build_messages(
@@ -3935,6 +4100,11 @@ class AgentLoop:
                     final_content=final_content,
                     runtime_metadata=runtime_metadata,
                 ) or final_content
+                final_content = self._content_truth_guard(
+                    user_message=current_message,
+                    final_content=final_content,
+                    runtime_metadata=runtime_metadata,
+                ) or final_content
                 guarded_output = guard_tutorbot_output(final_content)
                 final_content = guarded_output.content or final_content
                 all_msgs = self.context.add_assistant_message(initial_messages, final_content)
@@ -3959,11 +4129,14 @@ class AgentLoop:
                     msg.sender_id,
                     preview,
                 )
+                response_metadata = dict(msg.metadata or {})
+                self._export_case_grading_metadata(runtime_metadata, response_metadata)
+                self._export_content_truth_metadata(runtime_metadata, response_metadata)
                 return OutboundMessage(
                     channel=msg.channel,
                     chat_id=msg.chat_id,
                     content=final_content,
-                    metadata=msg.metadata or {},
+                    metadata=response_metadata,
                 )
         if response_mode == "fast":
             suppress_fast_stream = self._should_suppress_stream_for_degraded_answer(
@@ -4010,6 +4183,11 @@ class AgentLoop:
                 final_content=final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
+            final_content = self._content_truth_guard(
+                user_message=current_message,
+                final_content=final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
             final_content = guarded_output.content or final_content
             if all_msgs:
@@ -4032,6 +4210,7 @@ class AgentLoop:
             response_metadata = dict(msg.metadata or {})
             self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
             self._export_case_grading_metadata(runtime_metadata, response_metadata)
+            self._export_content_truth_metadata(runtime_metadata, response_metadata)
             return OutboundMessage(
                 channel=msg.channel,
                 chat_id=msg.chat_id,
@@ -4101,6 +4280,11 @@ class AgentLoop:
             final_content=final_content,
             runtime_metadata=runtime_metadata,
         ) or final_content
+        final_content = self._content_truth_guard(
+            user_message=current_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
         guarded_output = guard_tutorbot_output(final_content)
         final_content = guarded_output.content or final_content
         if all_msgs:
@@ -4126,6 +4310,7 @@ class AgentLoop:
         response_metadata = dict(msg.metadata or {})
         self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
         self._export_case_grading_metadata(runtime_metadata, response_metadata)
+        self._export_content_truth_metadata(runtime_metadata, response_metadata)
         return OutboundMessage(
             channel=msg.channel, chat_id=msg.chat_id, content=final_content,
             metadata=response_metadata,

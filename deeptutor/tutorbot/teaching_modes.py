@@ -6,6 +6,9 @@ import re
 from typing import Any, Literal
 
 from deeptutor.core.grounding import GROUNDING_CLAUSE, extract_anchor_terms
+from deeptutor.services.question_followup import (
+    looks_like_practice_generation_request,
+)
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
 
 TutorBotTeachingMode = Literal["smart", "fast", "deep"]
@@ -217,6 +220,203 @@ def correct_construction_exam_boundary_fact_response(
     )
 
 
+# ── ② content-truth 核验闸 (reachability/consumption — verification 半边) ──────────
+#
+# 收权背景：本周满意度 eval 揭示 grounding 准确率 84%→73%，bot 现场编造规范条文号/版本
+# (如 GB50016"2019版"不存在、GB50500"2024版"§8.11.8 不存在)。真根因(专家 C 真码确诊)：
+# 规范源 ``standard`` 已接进检索，唯一反编造机制却是 ``grounding.py`` 注入的**软约束**
+# (其 docstring 自认"必要不充分")——没有任何结构强制把 bot 写出的 GB/JGJ 条文号去本轮
+# KB ``standard`` 召回核一遍 (``grep verify.*clause`` = 0)。这里补上那个结构闸。
+#
+# 单一汇点 fail-closed：regex **只抽取** claim(标准编号/版本)，真值由本轮 standard 召回
+# 证据裁决——regex 不承担"这条规范对不对"的理解。核不到=诚实降级，不现编(owner 拍板
+# trade-off：辅导产品信任 > 自信编造)。不新建第二真值 authority(真值=已接检索的召回证据)，
+# 不回落 V0([[v1-grading-must-be-open-world-nexus-not-lookup]])。
+#
+# 规范编号族：GB / GB/T / JGJ / JGJ/T / JG/T / CJJ / CJ/T / TB / DB / SL / JTG / CECS …
+# 形如 ``GB 50016-2014`` / ``JGJ107—2016`` / ``GB/T 50001``。
+_STANDARD_CODE_RE = re.compile(
+    r"(?:GB/?T?|JGJ?(?:/T)?|JG/?T|CJJ|CJ/?T|TB/?T?|DBJ?|SL|JTG/?[A-Z]?|CECS)"
+    r"\s*[-—－]?\s*\d{2,5}"
+    r"(?:\s*[-—－]\s*\d{4})?",
+    re.IGNORECASE,
+)
+
+# content_truth ② 盲点补齐(2026-07-01 封板复现):bot 常引"《法规/条例名》第N条"这类**具名
+# 法规**断言具体条文数值(如《建设工程质量管理条例》第40条),而非 GB/JGJ 规范编号。早期抽取器
+# 只认规范编号 → 具名法规断言漏 hedge。这里补抽《》具名依据(法规/条例/办法/教材名)。
+_LAW_CITATION_RE = re.compile(r"《[^》]{2,40}》")
+
+
+def _normalize_standard_code(token: str) -> str:
+    """规范化一个标准编号 token：去空白、统一破折号、字母大写。
+
+    ``GB 50016—2014`` / ``GB50016-2014`` → ``GB50016-2014``。regex 只做这一步形式归一，
+    不解释语义。"""
+
+    text = str(token or "")
+    text = re.sub(r"[\s]+", "", text)
+    text = text.replace("—", "-").replace("－", "-")
+    return text.upper()
+
+
+def extract_standard_clause_claims(text: str | None) -> list[str]:
+    """从文本里抽取规范编号 claim(去重、按出现序、归一化)。regex 只抽取，不裁决真值。"""
+
+    out: list[str] = []
+    seen: set[str] = set()
+    for match in _STANDARD_CODE_RE.findall(str(text or "")):
+        code = _normalize_standard_code(match)
+        # 至少要有数字编号主体(排除把孤立 "GB" 之类误抽)
+        if not re.search(r"\d{2,5}", code) or code in seen:
+            continue
+        seen.add(code)
+        out.append(code)
+    # 具名法规/依据《》:不要求数字编号(第N条可选),按出现序去重追加。
+    for match in _LAW_CITATION_RE.findall(str(text or "")):
+        law = _normalize_standard_code(match)
+        if len(law) < 4 or law in seen:
+            continue
+        seen.add(law)
+        out.append(law)
+    return out
+
+
+def assess_unverifiable_standard_codes(
+    *,
+    response: str | None,
+    standard_evidence_text: str | None,
+    rag_degraded: bool,
+) -> list[str]:
+    """**唯一**"核不到"判定点：bot 写出的规范编号里，哪些无法在本轮 standard 召回核到。
+
+    regex 只**抽取**编号，真值由本轮 standard 召回证据裁决(单一汇点)——regex 不承担"这条规范
+    对不对"的理解。L1(hedge)/L2(review record) 共享这一个计算，不重复实现判定逻辑。
+
+    - 无编号 / 空输出 → ``[]``(普通教学/闲聊零影响，防过矫正)。
+    - ``rag_degraded`` → 召回不可信，**所有**编号 fail-closed(扩 fail-closed 到规范依据形态)。
+    - 否则逐编号比对召回证据：在证据里 → 放行；不在(RAG miss) → 进低置信集合。"""
+
+    content = str(response or "")
+    if not content.strip():
+        return []
+    codes = extract_standard_clause_claims(content)
+    if not codes:
+        return []
+    if rag_degraded:
+        return list(codes)
+    evidence = _normalize_standard_code(standard_evidence_text)
+    # 具名法规/条文《》属**版本敏感**断言:即便本轮召回到法规名,也不代表召回了该条文的现行
+    # 数值,故 fail-closed 恒视为核不到 → 恒 hedge(以现行官方规范为准),与 ② 护栏一致。
+    # 规范编号(GB/JGJ…)仍按本轮 standard 召回逐条核(在证据里=放行)。
+    return [
+        code for code in codes
+        if ("《" in code) or (code not in evidence)
+    ]
+
+
+def render_content_truth_hedge(
+    unverifiable_codes: list[str], *, rag_degraded: bool
+) -> str:
+    """渲染 owner 的**大方诚实 hedge**(L1)：不否定、不抑制，承认 AI 生成 + 指向权威核对。
+
+    owner 拍板：闭嘴/否定让学员觉得系统没用；宁可大方输出 + 诚实声明，准确性靠后台 review loop
+    收敛。这里命名核不到的编号(更诚实、更有用)，并提示以教材/官方规范原文为准、不保证 100%。"""
+
+    codes = "、".join(unverifiable_codes)
+    if rag_degraded:
+        return (
+            f"ℹ️ 小提示：本轮题库检索暂不可用，以上内容由 AI 生成（含规范/条文依据「{codes}」），"
+            "建议你以教材或官方规范原文核对，我不保证 100% 准确；题面思路与判断方向仍可参考。"
+        )
+    return (
+        f"ℹ️ 小提示：以上内容由 AI 生成，其中规范/条文依据「{codes}」建议你以教材或官方规范原文核对，"
+        "我不保证 100% 准确；题面思路与判断方向仍可参考。"
+    )
+
+
+# 兼容旧调用名：#302 曾叫 render_content_truth_caveat，owner 改造后语义=大方 hedge。
+render_content_truth_caveat = render_content_truth_hedge
+
+
+def _context_excerpt_around_code(text: str, code: str, *, window: int = 80) -> str:
+    """从 bot 答案里截取规范编号周边的有界片段(±window 字)，供离线评审定位上下文。
+
+    只取 **bot 生成**的答案文本(规范陈述，PII 风险低)，不碰用户输入；并做长度上界，
+    离线评审与纠错数据集落地时再按 failed_turn_promotion 同纪律 redact 链接标识。"""
+
+    haystack = str(text or "")
+    if not haystack:
+        return ""
+    normalized_target = _normalize_standard_code(code)
+    best = -1
+    for match in _STANDARD_CODE_RE.finditer(haystack):
+        if _normalize_standard_code(match.group(0)) == normalized_target:
+            best = match.start()
+            break
+    if best < 0:
+        return haystack[: 2 * window].strip()
+    start = max(best - window, 0)
+    end = min(best + window, len(haystack))
+    return haystack[start:end].strip()
+
+
+def build_content_truth_review_records(
+    *,
+    response: str | None,
+    unverifiable_codes: list[str],
+    rag_degraded: bool,
+) -> list[dict[str, str]]:
+    """L2：把核不到的编号构造成结构化低置信记录(供离线 review queue)。runtime 只 flag。
+
+    每条 = claim(归一化编号) + claim_kind + confidence_signal(rag_miss / rag_degraded) +
+    context_excerpt(bot 答案里编号周边的有界片段)。不裁决真值、不影响学员体验。"""
+
+    signal = "rag_degraded" if rag_degraded else "rag_miss"
+    records: list[dict[str, str]] = []
+    for code in unverifiable_codes:
+        records.append(
+            {
+                "claim": _normalize_standard_code(code),
+                "claim_kind": "regulation_citation" if "《" in code else "standard_code",
+                "confidence_signal": signal,
+                "context_excerpt": _context_excerpt_around_code(response, code),
+            }
+        )
+    return records
+
+
+def content_truth_guard_response(
+    *,
+    user_message: str | None,
+    response: str | None,
+    standard_evidence_text: str | None,
+    rag_degraded: bool,
+) -> str | None:
+    """L1 永远输出 + 诚实 hedge：bot 写出的规范编号若核不到本轮 standard 召回，**不抑制**，
+    保留全文并 append 大方诚实声明(AI 生成 / 以教材或官方规范为准 / 不保证 100%)。
+
+    返回值与 ``correct_construction_exam_boundary_fact_response`` 同约定：无需改动时返回
+    原 ``response``；有核不到编号时返回追加 hedge 的新文本(正文逐字保留，绝不 nuke)。
+
+    owner 设计：准确性靠后台 review loop(L3)收敛，**不在输出端抑制**；核不到=诚实声明，
+    不回落 V0([[v1-grading-must-be-open-world-nexus-not-lookup]])。"""
+
+    content = str(response or "")
+    if not content.strip():
+        return response
+    unverifiable = assess_unverifiable_standard_codes(
+        response=content,
+        standard_evidence_text=standard_evidence_text,
+        rag_degraded=rag_degraded,
+    )
+    if not unverifiable:
+        return response
+
+    hedge = render_content_truth_hedge(unverifiable, rag_degraded=rag_degraded)
+    return content.rstrip() + "\n\n" + hedge
+
+
 _CROSS_CAPABILITY_CONTEXT_MAX_CHARS = 4000
 
 
@@ -295,93 +495,15 @@ def normalize_anchor_terms_in_response(
     return normalized
 
 
-def _has_negated_practice_generation_request(text: str) -> bool:
-    compact = re.sub(r"\s+", "", text)
-    if not compact:
-        return False
-
-    negations = ("不要", "别", "不用", "无需", "不必", "先别", "先不要", "暂不")
-    targets = (
-        "出题",
-        "做题",
-        "刷题",
-        "练题",
-        "生成题",
-        "生成训练题",
-        "生成整套训练题",
-    )
-    for target in targets:
-        start = compact.find(target)
-        while start >= 0:
-            prefix = compact[max(0, start - 8) : start]
-            if any(negation in prefix for negation in negations):
-                return True
-            start = compact.find(target, start + len(target))
-    return False
-
-
-def looks_like_practice_generation_request(user_message: str | None) -> bool:
-    text = str(user_message or "").strip().lower()
-    if not text:
-        return False
-
-    if _has_negated_practice_generation_request(text) or "不想做题" in text:
-        return False
-
-    question_type_only = {
-        "选择题",
-        "单选题",
-        "多选题",
-        "判断题",
-        "案例题",
-        "简答题",
-    }
-    if text in question_type_only:
-        return True
-
-    positive_markers = (
-        "出题",
-        "出一道",
-        "生成一道",
-        "生成一题",
-        "来一道",
-        "来一题",
-        "考我",
-        "刷题",
-        "测我",
-        "摸底测评",
-        "继续出",
-        "继续来一道",
-        "再来一道",
-        "再出一道",
-        "下一题",
-        "下一道",
-        # plan §Phase 1 Step 1.1 (A2) — "继续练 / 再练" 是高频练题表述，
-        # 旧 markers 没覆盖，导致 "继续练刚才错的，N题" 被判 heavy。
-        "继续练",
-        "再练",
-        "继续做",
-        "再做几道",
-        "再做一道",
-        "quiz me",
-        "test me",
-        "give me a question",
-        "give me one question",
-    )
-    if any(marker in text for marker in positive_markers):
-        return True
-    request_patterns = (
-        r"(给我|帮我|来|出|生成)\s*(?:\d{0,2}|[一二两三四五六七八九十]?)\s*(?:道题|题|道)",
-        r"(给我|帮我|来|出|生成).{0,16}(?:\d{1,2}|[一二两三四五六七八九十几]+)\s*(?:道题|题|道)",
-        r"(给我|帮我|来|出|生成)\s*(?:出|来|生成)?\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:单选题|多选题|案例题|简答题|选择题|判断题)",
-        r"(我想|想)\s*(?:来|做|练|练习)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道题|题|道)",
-        r"(我想|想).{0,24}(?:练习|刷|做).{0,24}(?:题|题目|单选题|多选题|案例题|简答题|选择题|判断题)",
-        r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
-        r"(?:用|拿|安排)\s*(?:\d{1,2}|[一二两三四五六七八九十几]+)\s*(?:道题|题|道).{0,24}(?:练|训练|巩固|测试)",
-        r"(?:检验|测测|测试).{0,16}(?:掌握|会不会|学会|熟不熟)",
-        r"(?:先|来|做|开始|进行|帮我|给我|帮我做|安排)\s*(?:一次|一轮|个)?\s*(?:入门)?(?:摸底测评|摸底测试|摸底|小测|自测)",
-    )
-    return any(re.search(pattern, text) for pattern in request_patterns)
+# ``_has_negated_practice_generation_request`` and
+# ``looks_like_practice_generation_request`` were re-homed to
+# ``deeptutor.services.question_followup`` (QTPK physical extraction plan, S1)
+# so the question-turn policy kernel can forward to the practice-generation
+# intent predicate without importing this tutorbot teaching layer. They are
+# re-exported above (``from deeptutor.services.question_followup import
+# looks_like_practice_generation_request``) so every existing caller keeps its
+# ``from deeptutor.tutorbot.teaching_modes import
+# looks_like_practice_generation_request`` import unchanged.
 
 
 _PRACTICE_GENERATION_CONTEXT_ANCHOR_MARKERS = (
@@ -394,6 +516,11 @@ _PRACTICE_GENERATION_CONTEXT_ANCHOR_MARKERS = (
     "类似",
     "相关",
     "同类",
+    "不同考点",
+    "换个考点",
+    "换一个考点",
+    "其他考点",
+    "别的考点",
     "继续",
     "再来",
     "不要超纲",

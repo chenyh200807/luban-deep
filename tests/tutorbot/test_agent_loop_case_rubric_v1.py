@@ -316,6 +316,22 @@ def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> Non
     assert ctx["node_code"] == "1A432000"
 
 
+def test_build_v1_case_ctx_uses_current_full_submission_marked_reference() -> None:
+    md = {"question_lifecycle_scene": "case_grading", "user_id": "qa_loop_v1"}
+    message = (
+        "案例题：某工程底模拆除时混凝土强度检查。\n"
+        "问题：跨度为8m的现浇梁底模拆除时，混凝土强度应达到设计强度的多少？"
+        "我的答案：75%。标准答案：100%。请判分。"
+    )
+
+    ctx = AgentLoop._build_v1_case_ctx(md, message)
+
+    assert ctx["correct_answer"] == "100%"
+    assert ctx["user_answer"] == "75%"
+    assert "标准答案" not in ctx["user_answer"]
+    assert "底模拆除" in ctx["question_stem"]
+
+
 def test_build_v1_case_ctx_splits_full_case_submission_and_blocks_mismatched_exact() -> None:
     md = _case_md()
     md["_prefetched_exact_question"] = {
@@ -1198,6 +1214,7 @@ def test_case_grading_metadata_export_includes_g2b_projection_receipt() -> None:
     target = {"message_id": "msg-1"}
     AgentLoop._export_case_grading_metadata(
         {
+            "question_lifecycle_scene": "case_grading",
             "v1_case_graded": True,
             "score_authority": "rubric_scored_v1",
             "grading_rubric_provenance": "on_the_fly_reference",
@@ -1222,6 +1239,30 @@ def test_case_grading_metadata_export_includes_g2b_projection_receipt() -> None:
     assert target["case_grading_adjudication_strategy"] == "dynamic_parallel_question_groups"
     assert target["case_grading_adjudication_group_count"] == 3
     assert target["case_grading_adjudication_point_count"] == 24
+
+
+def test_case_grading_metadata_export_strips_stale_receipt_on_non_case_turn() -> None:
+    target = {
+        "message_id": "msg-2",
+        "v1_case_graded": True,
+        "score_authority": "rubric_scored_v1",
+        "grading_to_brain_loop": {"writeback_count": 1},
+        "learning_evidence_event_id": "evt-old",
+    }
+
+    AgentLoop._export_case_grading_metadata(
+        {
+            "question_lifecycle_scene": None,
+            "execution_path": "tutorbot_kb_first_full_agent_policy",
+            "v1_case_graded": True,
+            "score_authority": "rubric_scored_v1",
+            "grading_to_brain_loop": {"writeback_count": 1},
+            "learning_evidence_event_id": "evt-old",
+        },
+        target,
+    )
+
+    assert target == {"message_id": "msg-2"}
 
 
 def test_projected_exact_question_renders_authority_on_learner_surface() -> None:

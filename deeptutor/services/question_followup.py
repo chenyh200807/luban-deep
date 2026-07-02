@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Any
+from typing import Any, NamedTuple
 
 from deeptutor.services.llm.factory import complete
 
@@ -92,6 +92,8 @@ _SUPPRESS_ANSWER_MARKERS = (
 )
 _REVEAL_ANSWER_MARKERS = (
     "告诉我答案",
+    "告诉答案",
+    "说答案",
     "答案是什么",
     "正确答案是什么",
     "给答案",
@@ -105,6 +107,34 @@ _REVEAL_ANSWER_MARKERS = (
     "详细解析",
     "讲解一下",
     "解析一下",
+    "剧透",
+    "揭晓",
+    "透露答案",
+    # owner 边界 #2/#3（2026-06-30）：显式要答案一律放行 —— 补认这些显式 reveal 措辞。
+    "答案给我",
+    "把正确答案",
+    "哪个对",
+    "哪个正确",
+)
+
+# 子句分隔符：否定感知只在 reveal marker 所在子句内判定，避免跨子句误伤
+# （"不要听废话，直接告诉我答案" 的 reveal 子句无否定 → 仍 reveal）。
+_CLAUSE_SEPARATORS = "，,。.！!？?；;\n"
+
+# 安全 SEV-1（organic 出题轮答案泄露根因，2026-06-29）：reveal marker 前若紧邻
+# 否定词（"先别告诉我答案"），子串法会把它误判成 reveal。否定感知覆盖所有 reveal
+# 动词、不需为每种"动词×否定"组合枚举一条 suppress marker（不打地鼠）。
+_REVEAL_NEGATION_PREFIXES = (
+    "先别",
+    "别",
+    "先不要",
+    "不要",
+    "先不",
+    "暂不",
+    "暂时不",
+    "勿",
+    "不用",
+    "先别急着",
 )
 _ANSWER_CONCESSION_MARKERS = (
     "我放弃",
@@ -127,6 +157,9 @@ _FOLLOWUP_MARKERS = (
     "错在哪",
     "答案是什么",
     "正确答案是什么",
+    "正确答案",
+    "标准答案",
+    "参考答案",
     "这题",
     "这道题",
     "上一题",
@@ -140,10 +173,64 @@ _FOLLOWUP_MARKERS = (
 _JUDGMENT_TRUE_TOKENS = {"对", "正确", "是", "true", "yes", "√", "t"}
 _JUDGMENT_FALSE_TOKENS = {"错", "错误", "否", "false", "no", "×", "x", "f"}
 _LEADING_SUBMISSION_PREFIX = re.compile(
-    r"^(?:我答(?:案)?(?:是)?|我的(?:答案)?(?:是)?|答案(?:是)?|我选|我觉得选|选(?!择)|就是|应该是|option|answer)[:：]?",
+    r"^(?:我答(?:案)?(?:是)?|我的(?:答案|作答)?(?:是)?|学生作答|作答|答案(?:是)?|我选|我觉得选|选(?!择)|就是|应该是|option|answer)[:：]?",
     re.IGNORECASE,
 )
-_SUBJECTIVE_QUESTION_TYPES = {"case", "written", "subjective", "short_answer", "essay"}
+# Forward-reachability (S4, 2026-06-29): an EXPLICIT answer-submission marker that may
+# appear MID-message (after a "针对刚才的案例题，" preamble), unlike the anchored
+# ``_LEADING_SUBMISSION_PREFIX``. Tightly scoped to submission framing — it REQUIRES a
+# colon or "如下" after the marker, so a 试探/question ("我的作答对吗" / "我的答案是什么？")
+# does NOT match and stays a non-submission (SEV: never turns a question into a graded answer).
+_EXPLICIT_ANSWER_SUBMISSION_MARKER = re.compile(
+    r"(?:我的?(?:作答|答案|回答)|我来作答)(?:如下)?\s*[:：]|(?:作答|答案|回答)如下\s*[:：]?",
+)
+# Forward-reachability (A2, 2026-06-29): a turn that DEFERS the verdict ("先别判") or is
+# non-committal ("我猜/不确定/还没想好") must never reach HIGH confidence — even if a clean
+# answer token can be extracted. Single source of the deferral vocabulary, shared by the
+# subjective payload-dominance check and the confidence clause-split guard (don't枚举 a second
+# copy). SEV: respects an explicit "先别判" and keeps 试探 turns off the deterministic grading
+# fast-path → the LLM (question_review) makes the final is-this-a-submission call.
+_ANSWER_DEFERRAL_MARKERS = (
+    "我猜",
+    "不确定",
+    "还没想好",
+    "没想好",
+    "先别判",
+    "先不要判",
+    "别判",
+    "不判",
+    "先不判",
+    "先别批",
+    "先不要批",
+    "别批",
+    "不批",
+    "不交卷",
+    "先不交卷",
+)
+# Softened-but-committed answer prefix ("我觉得这题选" / "应该选" / "我认为是"). Extends the
+# POSITIVE commitment signal so a genuine answer embedded in reasoning ("我觉得这题选D，因为…")
+# reaches HIGH confidence and is graded (A2 跳步 hole) — NOT an exclusion regex. The clean-answer
+# -token requirement downstream keeps option-questions ("D选项…对吗") and chatter at LOW (they
+# never reduce to a clean token), so this only promotes real committed answers.
+_SOFT_ANSWER_COMMITMENT_PREFIX = re.compile(
+    # Only COMMITMENT verbs (觉得/认为/感觉/倾向/应该 = "I think it's X" / "it should be X"),
+    # NOT hedges (大概/多半/估计 = "probably X" = tentative). Hedged turns must stay LOW so a
+    # genuinely uncertain "大概是B吧，不太确定" is not graded (SEV: hedge ≠ commitment).
+    r"^(?:我)?(?:觉得|认为|感觉|倾向(?:于)?|应该)"
+    r"(?:这道?题)?(?:应该)?(?:是|选(?!择)|答)?[:：]?",
+    re.IGNORECASE,
+)
+_SUBJECTIVE_QUESTION_TYPES = {
+    "case",
+    "case_study",
+    "case_background",
+    "calculation",
+    "written",
+    "subjective",
+    "short_answer",
+    "essay",
+    "open_ended",
+}
 # A turn that LEADS with a bare option answer ("B" / "BCD" / "B，再出3题") is an
 # answer-led submission; §5.1 gives it priority over any trailing generation intent.
 _LEADING_OPTION_ANSWER = re.compile(r"^[A-Ea-e](?:[、，,/／\s]*[A-Ea-e])*(?:[。.!！?，,、：:\s]|$)")
@@ -176,6 +263,44 @@ _PAST_QUESTION_EXPLANATION_MARKERS = (
     "拆考点", "拆一下", "为什么", "为啥", "再讲", "回顾", "复盘",
     "怎么分析", "考点", "知识点", "再帮我", "再给我讲",
 )
+_GRADING_EXIT_MARKERS = (
+    "不要继续判分", "不要再判分", "别继续判分", "别再判分", "先别继续判分",
+    "不用判分", "不判分", "别判分", "不要判分", "不要继续批改", "不要再批改",
+    "别继续批改", "别再批改", "不用批改", "不批改", "别批改", "不要批改",
+)
+_STUDY_PLAN_INTENT_MARKERS = (
+    "学习计划", "复习计划", "复盘计划", "训练计划", "备考计划", "学习安排", "复习安排",
+)
+_STUDY_PLAN_REQUEST_MARKERS = (
+    "给我", "只给我", "帮我", "现在聊", "聊学习", "制定", "安排", "每天", "明天",
+    "今天", "本周", "分钟", "小时",
+)
+_SUBJECTIVE_META_REQUEST_ACTION_MARKERS = (
+    "总结",
+    "复盘",
+    "回顾",
+    "列出",
+    "输出",
+    "展示",
+    "显示",
+    "不要",
+    "别",
+)
+_SUBJECTIVE_META_REQUEST_TARGET_MARKERS = (
+    "内部",
+    "参考证据",
+    "证据",
+    "工作记忆",
+    "投影",
+    "prompt",
+    "source",
+    "标题",
+    "引用",
+    "正式提交",
+    "提交过",
+    "本轮",
+    "案例答案",
+)
 
 
 def _looks_like_past_question_explanation_request(text: str) -> bool:
@@ -196,6 +321,34 @@ def _looks_like_past_question_explanation_request(text: str) -> bool:
     return any(b in t for b in _PAST_QUESTION_BACKREFERENCE_MARKERS) and any(
         e in t for e in _PAST_QUESTION_EXPLANATION_MARKERS
     )
+
+
+def _looks_like_subjective_context_exit_request(text: str) -> bool:
+    t = str(text or "").strip()
+    if not t:
+        return False
+    if _LEADING_SUBMISSION_PREFIX.match(t) or _LEADING_OPTION_ANSWER.match(t):
+        return False
+    if any(marker in t for marker in _GRADING_EXIT_MARKERS):
+        return True
+    if any(marker in t for marker in _SUBJECTIVE_META_REQUEST_ACTION_MARKERS) and any(
+        marker in t for marker in _SUBJECTIVE_META_REQUEST_TARGET_MARKERS
+    ):
+        return True
+    return any(marker in t for marker in _STUDY_PLAN_INTENT_MARKERS) and any(
+        marker in t for marker in _STUDY_PLAN_REQUEST_MARKERS
+    )
+
+
+def looks_like_question_context_exit_request(
+    message: str,
+    question_context: dict[str, Any] | None = None,
+) -> bool:
+    if question_context is not None and normalize_question_followup_context(question_context) is None:
+        return False
+    return _looks_like_subjective_context_exit_request(message)
+
+
 _TRAILING_GRADING_REQUEST_RE = re.compile(
     r"(?:[。.!！?；;，,、 ]*)"
     r"(?:请)?(?:按[^。.!！?；;]{0,40})?"
@@ -214,6 +367,13 @@ _Q_NUMBERED_SUBMISSION_RE = re.compile(
 _NUMBERED_BATCH_MARKER_RE = re.compile(
     r"(?:(?<=^)|(?<=[\s；;，,\n]))"
     r"(?:第\s*([0-9一二两三四五六七八九十]+)\s*(?:题|问)?|([0-9]+)\s*(?:题|问)?|[Qq]\s*([0-9]+)\s*(?:题|问)?)"
+    # Forward-reachability (A1, 2026-06-29): allow an explicit submission verb between the
+    # question number and the answer letter ("第1题**选**A") so the natural human batch form
+    # is segmented by the SAME single numbered-batch marker — not degraded to a single (grade
+    # q1, drop q2/q3). The strict boundary (punct or A-E lookahead) keeps parenthetical option
+    # text like "（24学时）" from false-matching as a 题号, so consolidating here does not need
+    # the fragile compact fallback to absorb it.
+    r"\s*(?:选择|选|答案[是为]?|答)?"
     r"\s*(?:[:：、.)）．]|(?=\s*[A-Ea-e对错正确错误√×TFtf]))",
     re.IGNORECASE,
 )
@@ -590,9 +750,92 @@ def detect_answer_reveal_preference(message: str) -> bool | None:
         return None
     if any(marker in text for marker in _SUPPRESS_ANSWER_MARKERS):
         return False
-    if any(marker in text for marker in _REVEAL_ANSWER_MARKERS):
+    # 否定感知：reveal marker 前紧邻否定词（"先别告诉我答案"）= 抑制，不是 reveal。
+    # 覆盖所有 reveal 动词，避免为每种"否定×动词"枚举一条 suppress marker。
+    for marker in _REVEAL_ANSWER_MARKERS:
+        index = text.find(marker)
+        if index < 0:
+            continue
+        # clause-bounded 否定感知：取 marker 前最近子句分隔符之后的片段，子句内含
+        # 否定词 = 抑制（覆盖 "别这么快就告诉我答案" 这种否定与 marker 隔 >4 字的形态），
+        # 但不跨子句误伤（"不要听废话，直接告诉我答案" 的 reveal 子句无否定 → reveal）。
+        clause_start = max(
+            (text.rfind(sep, 0, index) for sep in _CLAUSE_SEPARATORS),
+            default=-1,
+        )
+        clause = text[clause_start + 1:index]
+        if any(negation in clause for negation in _REVEAL_NEGATION_PREFIXES):
+            return False
         return True
     return None
+
+
+class RevealDecision(NamedTuple):
+    """Single canonical answer/explanation reveal verdict.
+
+    Both fields default-deny. Produced only by ``resolve_reveal_decision`` so
+    every reveal writer reads one adjudicated decision instead of re-deriving
+    its own (control-plane collapse Task 5 Slice 4).
+    """
+
+    reveal_answers: bool
+    reveal_explanations: bool
+
+
+def resolve_reveal_decision(
+    *,
+    preference: bool | None,
+    is_review: bool,
+    is_unanswered_block: bool,
+    overrides_reveal: bool | None,
+    context_reveal_flags: bool,
+    explicit_request: bool,
+    overrides_reveal_explanations: bool | None = None,
+) -> RevealDecision:
+    """Single authority for the answer/explanation reveal decision.
+
+    Pure function: callers construct the boolean facets from whatever context
+    shape they hold, this function only adjudicates them against one priority
+    ladder (highest -> lowest, first hit wins):
+
+      1. ``preference is False``         -> (False, False)  user "先别给" HARD RED LINE
+                                            (compresses everything, incl. review).
+      2. ``is_unanswered_block``         -> (False, False)  anti-peek HARD RED LINE
+                                            (compresses review/preference=True/
+                                            explicit/overrides).
+      3. ``is_review``                   -> (True,  True)   question_review mode.
+      4. ``preference is True``          -> (True,  True)   explicit "给答案".
+      5. ``context_reveal_flags``        -> (True,  True)   question-bank carries reveal.
+      6. ``explicit_request``            -> (True,  True)   answer/explanation marker.
+      7. ``overrides_reveal is True``    -> (True,  <explanations override>)
+                                            orchestrator compat signal.
+      8. default                         -> (False, False)  default-deny.
+
+    The two hard red lines (rules 1 + 2) are answer-leak guards and MUST stay at
+    the top of the ladder; nothing below may override them.
+    """
+    # --- HARD RED LINE 1: explicit suppression preference compresses all. ---
+    if preference is False:
+        return RevealDecision(reveal_answers=False, reveal_explanations=False)
+    # --- HARD RED LINE 2: unanswered, non-conceding practice anti-peek. ---
+    if is_unanswered_block:
+        return RevealDecision(reveal_answers=False, reveal_explanations=False)
+    if is_review:
+        return RevealDecision(reveal_answers=True, reveal_explanations=True)
+    if preference is True:
+        return RevealDecision(reveal_answers=True, reveal_explanations=True)
+    if context_reveal_flags:
+        return RevealDecision(reveal_answers=True, reveal_explanations=True)
+    if explicit_request:
+        return RevealDecision(reveal_answers=True, reveal_explanations=True)
+    if overrides_reveal is True:
+        reveal_explanations = (
+            True
+            if overrides_reveal_explanations is None
+            else bool(overrides_reveal_explanations)
+        )
+        return RevealDecision(reveal_answers=True, reveal_explanations=reveal_explanations)
+    return RevealDecision(reveal_answers=False, reveal_explanations=False)
 
 
 async def interpret_question_followup_action(
@@ -621,6 +864,11 @@ async def interpret_question_followup_action(
             temperature=0,
             response_format={"type": "json_object"},
             max_tokens=500,
+            # ③稳定性 2b/B1: 首答前阻塞分类器,只重试 transient infra 失败,fallback(None)
+            # 对 SEV fail-safe(under-act 不 mis-act)。收成 1 次重试(默认 3)=保留对单次
+            # provider blip 的廉价恢复,但不再堆 3 层指数退避长尾。重试成功=首次成功
+            # (同 prompt/temperature=0),裁决不变;只在 provider 真抖动时更快落 fail-safe。
+            max_retries=1,
         )
     except Exception:
         logger.debug("LLM followup interpretation failed", exc_info=True)
@@ -630,6 +878,8 @@ async def interpret_question_followup_action(
     if parsed is None:
         return None
     action = _normalize_followup_action(parsed, normalized)
+    action_route = followup_action_route(action)
+    deterministic_confidence = submission_confidence(message, normalized)
     # 判分态单一权威收口 Step 4.5 (2026-06-24, live NO-GO 揪出): LLM 作答分类器带"提交优先"
     # 偏置(prompt 规则1),会把"我猜是A但你先别判"这类**试探+显式推迟**误判成 answer_questions
     # (live reason 自述"提交优先原则")→ 凭空判分。确定性 backstop:LLM 判 submission 但
@@ -637,8 +887,22 @@ async def interpret_question_followup_action(
     # 只动 LOW(试探/推迟/回指),HIGH 真作答("我选B")confidence=high 永不降 → 不伤硬约束40。
     # skill 铁律:确定性高精确信号 > 纯 prompt 压偏置。
     if (
-        followup_action_route(action) == "submission"
-        and submission_confidence(message, normalized) == "low"
+        action_route == "submission"
+        and deterministic_confidence is None
+        and looks_like_question_followup(message, normalized)
+    ):
+        downgraded = dict(action or {})
+        downgraded["intent"] = "ask_followup"
+        downgraded["answers"] = []
+        downgraded["reason"] = (
+            "deterministic_submission=none且消息是题目追问,不按LLM提交判分,改 ask_followup。"
+            "原 LLM intent="
+            + str((action or {}).get("intent") or "")
+        )
+        return _normalize_followup_action(downgraded, normalized)
+    if (
+        action_route == "submission"
+        and deterministic_confidence == "low"
     ):
         downgraded = dict(action or {})
         downgraded["intent"] = "ask_followup"
@@ -790,6 +1054,8 @@ def looks_like_question_followup(message: str, question_context: dict[str, Any] 
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
         return False
+    if looks_like_question_context_exit_request(message, normalized):
+        return False
     if _looks_like_option_challenge_followup(message, normalized):
         return True
     if _looks_like_option_value_challenge_followup(message, normalized):
@@ -929,10 +1195,22 @@ def submission_confidence(
     # (前者"我猜"是试探非提交前缀;后者"我选"埋在"刚才那道题…"子句中段非子句首)→ LOW。
     # 红线:HIGH 用正向"显式提交前缀 + 干净答案 token"判,不枚举否定/试探词排除。混合"我选A但
     # 先别判"这类需对话历史的语义,交下游 LLM 复核;本函数只给单条消息的确定性置信。
+    # ① is-this-a-submission SEV guard (A2): a turn that defers the verdict ("先别判") or is
+    # non-committal ("我猜/不确定/还没想好") stays LOW — the deterministic fast-path never hard-
+    # grades against an explicit defer; the LLM (question_review) decides. The documented intent
+    # ("我选A但先别判 …交下游 LLM 复核") was previously not enforced for MCQ; this enforces it.
+    if any(marker in text for marker in _ANSWER_DEFERRAL_MARKERS):
+        return "low"
+    # Positive signal: a clause that, after stripping its explicit OR softened commitment prefix
+    # ("我选B" / "我觉得这题选D" / "应该选D"), is a clean answer token. The softened prefix grades a
+    # genuine answer embedded in reasoning (A2 跳步 hole); the clean-token requirement keeps
+    # option-questions ("D选项…对吗") and chatter at LOW (never a clean token) → non-answers未被判分.
     for clause in re.split(r"[，,。.!！?？；;、\s]+", text):
-        candidate = _LEADING_SUBMISSION_PREFIX.sub("", clause.strip()).strip("。.!！?？，,：:　 ")
-        if _message_is_clean_answer_token(candidate, normalized):
-            return "high"
+        stripped_clause = clause.strip()
+        for _prefix in (_LEADING_SUBMISSION_PREFIX, _SOFT_ANSWER_COMMITMENT_PREFIX):
+            candidate = _prefix.sub("", stripped_clause).strip("。.!！?？，,：:　 吧呢啊呀嘛了哦")
+            if _message_is_clean_answer_token(candidate, normalized):
+                return "high"
     return "low"
 
 
@@ -945,22 +1223,7 @@ def _subjective_submission_is_payload_dominant(message: str, answer: str) -> boo
     guarded_text = text.lower()
     if any(marker in guarded_text for marker in _ANSWER_CONCESSION_MARKERS):
         return False
-    low_confidence_markers = (
-        "我猜",
-        "不确定",
-        "先别判",
-        "先不要判",
-        "别判",
-        "不判",
-        "先不判",
-        "先别批",
-        "先不要批",
-        "别批",
-        "不批",
-        "不交卷",
-        "先不交卷",
-    )
-    if any(marker in guarded_text for marker in low_confidence_markers):
+    if any(marker in guarded_text for marker in _ANSWER_DEFERRAL_MARKERS):
         return False
     stripped = _strip_submission_prefix(text)
     stripped = _TRAILING_GRADING_REQUEST_RE.sub("", stripped).strip()
@@ -1108,41 +1371,224 @@ def answers_match(
     return False
 
 
+# ---------------------------------------------------------------------------
+# M4(i) 方案②: 活跃单选 MCQ 的确定性 canonical re-present（倒诬根治）
+#
+# 病: 学生要求把活跃 MCQ 的选项"重排/重新展示"时，turn 在 deep_question_followup ↔
+# tutorbot_kb_first_fast_policy 之间非确定性路由，两条路都让 free LLM 生成一个分叉
+# 的呈现面（标号重排），而 state_snapshot 仍锚原序、判分（tutorbot 散文）也锚原序
+# → 学生按呈现面字母作答被判错（倒诬）。呈现面从未被任何权威捕获，判分时无可靠呈现
+# 面可投影，故"判分汇点投影"不可行（见 mcq-grading memory Step1 gate）。
+#
+# 修法（single-authority 收口）: 把"re-present 活跃 MCQ"从 free LLM 收回到确定性渲染
+# ——直读唯一权威 active_object.state_snapshot 的原序 options 重新展示。呈现面 ==
+# state_snapshot 原序 == 判分锚的原序，三者结构对齐，倒诬不可能发生（无论判分落哪条
+# capability）。两个 capability（tutorbot 短路串 / deep_question followup 分支）各调
+# 一次本共享函数 = 单一权威、单一逻辑、零新增 state、不碰判分。
+#
+# fail-safe: 任何条件不满足 → 返回 None，caller 落原 LLM 路径。故 under-trigger 只
+# 退回现状（无新增危害），over-trigger 需显式 re-present marker（答题/解析/换新题都
+# 不含这些 marker，结构上不会误触发）。correct_answer 不读不需要（只展示题干+选项，
+# 答案隐藏；原序渲染让字母判分自洽）。
+# ---------------------------------------------------------------------------
+
+# 显式"重新展示/重排"意图标记（窄集合，确定性）。答题("我选B")、解析("为什么")、
+# 换新题("换一道")都不含这些 → 结构上避免 over-trigger。
+_REPRESENT_REQUEST_MARKERS = (
+    "重排",
+    "重新排",
+    "重新排列",
+    "重新展示",
+    "重新显示",
+    "重新出示",
+    "重新发",
+    "再发一遍",
+    "再列一遍",
+    "打乱",
+    "换个顺序",
+    "换一下顺序",
+    "换种顺序",
+    "调换顺序",
+    "调整顺序",
+    "顺序打乱",
+    "顺序换",
+    "顺序重新",
+)
+
+# "换新题"意图标记。命中这些必须 fall through 去生成新题，绝不 re-present 旧题。
+_NEW_QUESTION_REQUEST_MARKERS = (
+    "换一道",
+    "换道题",
+    "换一题",
+    "换个题",
+    "换题",
+    "下一题",
+    "下一道",
+    "再来一道",
+    "再出一道",
+    "再来一题",
+    "另一道",
+    "别的题",
+    "其他题",
+    "新题",
+    "新的题",
+)
+
+
+def message_has_represent_request_intent(user_message: str) -> bool:
+    """单一权威: 这条消息是否在显式要求 **重排 / 重新展示** 一道活跃 MCQ。
+
+    判据 = 命中 ``_REPRESENT_REQUEST_MARKERS`` 且不命中 ``_NEW_QUESTION_REQUEST_MARKERS``
+    （"换一道"等换新题意图绝不算 re-present）。这是 re-present 意图的唯一来源：
+    ``build_canonical_represent_response`` 的确定性短路与 turn-START demote 守卫
+    （经 ``question_turn_policy._message_requests_active_mcq_represent``）都读它，
+    不各自重判，避免出现第二个 represent 决策点（turn.md §硬约束 24 单一权威）。
+
+    注意：本判据只看意图标记，**不**判断"是不是一次作答"——混合意图（"我选C，重新展示"）
+    的让路由 ``build_canonical_represent_response`` 复用 canonical ``resolve_submission_attempt``
+    处理；demote 守卫侧另有 ``followup_question_action`` 提交判定兜底，故此处保持纯意图。
+    """
+
+    text = str(user_message or "").strip()
+    if not text:
+        return False
+    if any(marker in text for marker in _NEW_QUESTION_REQUEST_MARKERS):
+        return False
+    return any(marker in text for marker in _REPRESENT_REQUEST_MARKERS)
+
+
+def _validate_single_mcq_snapshot(
+    snapshot: Any,
+) -> tuple[dict[str, Any], dict[str, str]] | None:
+    """当 ``snapshot``（question-context 形状）是一道带选项的 choice MCQ（单选或多选）
+    时，返回 (snapshot, 规范化后的有序 options dict)；否则 None。
+
+    options 经本模块 ``_normalize_options`` 规范化（生产实测 options 为 dict；非 dict
+    形态 → None → fail-safe 退 LLM，不静默误判）。规范化保持 dict 原序。套题（items 多
+    于一项）不在本修法范围（fail-safe 落 LLM）——生产单题的 state_snapshot 自带一个自指
+    items（len==1），属正常形态，不应被排除。
+    """
+
+    if not isinstance(snapshot, dict):
+        return None
+    if str(snapshot.get("question_type") or "").strip().lower() != "choice":
+        return None
+    if not str(snapshot.get("question") or "").strip():
+        return None
+    items = snapshot.get("items")
+    if isinstance(items, list) and len(items) > 1:
+        return None
+    options = _normalize_options(snapshot.get("options"))
+    if not isinstance(options, dict) or len(options) < 2:
+        return None
+    return snapshot, options
+
+
+def _active_single_mcq_state_snapshot(
+    active_object: Any,
+) -> tuple[dict[str, Any], dict[str, str]] | None:
+    """从 active_object.state_snapshot 提取并校验单选 MCQ。"""
+
+    if not isinstance(active_object, dict):
+        return None
+    return _validate_single_mcq_snapshot(active_object.get("state_snapshot"))
+
+
+def build_canonical_represent_response(
+    active_object: Any,
+    user_message: str,
+    *,
+    question_context: Any = None,
+) -> str | None:
+    """M4(i) 方案②: 当学生显式要求 re-present/重排活跃单选 MCQ 时，从唯一权威
+    active_object.state_snapshot 的原序 options 确定性重新展示（答案隐藏），杜绝
+    free LLM 生成分叉呈现面导致的判分倒诬。
+
+    返回渲染好的展示文本；不满足触发条件时返回 None（caller 落原 LLM 路径，fail-safe）。
+    """
+
+    # active_object.state_snapshot 是首选权威；某些 orchestrator 路由（tutorbot
+    # preselect-bypass）不把 active_object 喂进 capability context，但 question_followup_
+    # context 仍在 → 作为同一道活跃 MCQ 的等价权威回退（live 实证 cases 3,4 的 gap）。
+    resolved = _active_single_mcq_state_snapshot(active_object)
+    if resolved is None and question_context is not None:
+        resolved = _validate_single_mcq_snapshot(
+            normalize_question_followup_context(question_context)
+        )
+    if resolved is None:
+        return None
+    snapshot, options = resolved
+    text = str(user_message or "").strip()
+    if not text:
+        return None
+    # re-present 意图单一权威（同时含"换新题优先排除"+"必须显式 re-present marker"）。
+    # demote 守卫读同一权威，二者不各自重判 marker（turn.md §硬约束 24）。
+    if not message_has_represent_request_intent(text):
+        return None
+    # 混合意图防护：消息同时是一次作答（"我选C，重新展示"）时交给判分，不可吞掉作答。
+    # 复用 canonical submission 权威 resolve_submission_attempt（question_followup 的单一
+    # 提交判定），不新建 _looks_like_* 二次决策点（turn.md §24 / submission-gate-authority
+    # guard）——它怎么判这条消息是不是作答，本短路就怎么让路。
+    _represent_target, _represent_submission = resolve_submission_attempt(
+        text, normalize_question_followup_context(snapshot)
+    )
+    if _represent_submission:
+        return None
+
+    question = str(snapshot.get("question") or "").strip()
+    lines: list[str] = [question, ""]
+    for key, value in options.items():
+        option_key = str(key or "").strip().upper()
+        option_text = str(value or "").strip()
+        if option_key and option_text:
+            lines.append(f"{option_key}. {option_text}")
+    body = "\n".join(lines).strip()
+    # 至少要渲染出一道题干 + 选项；否则视为不可信，落 LLM。
+    if "\n" not in body:
+        return None
+    note = "（选项顺序与原题保持一致，以保证判分准确。请直接回复你选的字母。）"
+    return f"{body}\n\n{note}"
+
+
+_REFERENCE_EXPLICIT_REQUEST_MARKERS = (
+    "参考答案",
+    "标准答案",
+    "正确答案",
+    "答案",
+    "解析",
+    "讲解",
+    "为什么",
+    "错因",
+    "扣分",
+    "怎么扣",
+    "怎么判",
+    "怎么评分",
+    "评分",
+)
+
+
 def should_reveal_reference_material(
     message: str,
     question_context: dict[str, Any] | None,
 ) -> bool:
-    preference = detect_answer_reveal_preference(message)
+    # Single reveal authority (Task 5 Slice 4): construct the facets and read the
+    # adjudicated decision from resolve_reveal_decision. Semantics preserved —
+    # this is a near-zero behavior change wrapper.
     normalized = normalize_question_followup_context(question_context) or {}
-    if preference is True:
-        if should_block_unanswered_reference_reveal(message, normalized):
-            return False
-        return True
-    if preference is False:
-        return False
-    if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
-        return True
     text = str(message or "").strip().lower()
-    explicit_request_markers = (
-        "参考答案",
-        "标准答案",
-        "正确答案",
-        "答案",
-        "解析",
-        "讲解",
-        "为什么",
-        "错因",
-        "扣分",
-        "怎么扣",
-        "怎么判",
-        "怎么评分",
-        "评分",
+    decision = resolve_reveal_decision(
+        preference=detect_answer_reveal_preference(message),
+        is_review=False,
+        is_unanswered_block=should_block_unanswered_reference_reveal(message, normalized),
+        overrides_reveal=None,
+        context_reveal_flags=bool(
+            normalized.get("reveal_explanations") or normalized.get("reveal_answers")
+        ),
+        explicit_request=any(
+            marker in text for marker in _REFERENCE_EXPLICIT_REQUEST_MARKERS
+        ),
     )
-    if any(marker in text for marker in explicit_request_markers):
-        if should_block_unanswered_reference_reveal(message, normalized):
-            return False
-        return True
-    return False
+    return decision.reveal_answers
 
 
 def should_block_unanswered_reference_reveal(
@@ -1153,6 +1599,11 @@ def should_block_unanswered_reference_reveal(
     if not normalized:
         return False
     if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
+        return False
+    # owner 边界 #2（2026-06-30）：anti-peek 只压「隐式求助」。显式要答案（"公布答案"/
+    # "把答案给我"/"直接说哪个对"）一律放行——尊重"不能不输出"，不被 anti-peek 压住。
+    # 与既有 concession 放行同级（都是"学员主动解锁"），只是把"显式 reveal"也并入。
+    if detect_answer_reveal_preference(message) is True:
         return False
     requested_index = requested_question_item_index(message, normalized)
     if requested_index is not None:
@@ -1500,7 +1951,15 @@ def _extract_subjective_submission(message: str, question_context: dict[str, Any
     # type, so this path would otherwise capture the whole recall sentence as the answer).
     if _looks_like_past_question_explanation_request(text):
         return None
-    explicit_answer = bool(_LEADING_SUBMISSION_PREFIX.match(text))
+    leading_prefix = bool(_LEADING_SUBMISSION_PREFIX.match(text))
+    # An explicit answer-submission marker may sit MID-message; it is as strong a
+    # submission signal as a leading prefix (S4 forward-reachability).
+    midmessage_marker = (
+        None if leading_prefix else _EXPLICIT_ANSWER_SUBMISSION_MARKER.search(text)
+    )
+    explicit_answer = leading_prefix or bool(midmessage_marker)
+    if not explicit_answer and _looks_like_subjective_context_exit_request(text):
+        return None
     prestrip_lowered = text.lower()
     prestrip_question_markers = (
         "答案是什么",
@@ -1529,7 +1988,10 @@ def _extract_subjective_submission(message: str, question_context: dict[str, Any
         or ("？" in text or "?" in text)
     ):
         return None
-    stripped = _strip_submission_prefix(text)
+    # When the explicit marker sits mid-message, drop everything up to and including
+    # it so the extracted answer is the body AFTER "…作答如下：", not the preamble.
+    extract_source = text[midmessage_marker.end():] if midmessage_marker else text
+    stripped = _strip_submission_prefix(extract_source)
     stripped = _TRAILING_GRADING_REQUEST_RE.sub("", stripped).strip()
     stripped = stripped.strip("。.!！?；;，,：:、 ")
     if not stripped:
@@ -1927,12 +2389,14 @@ def _looks_like_option_challenge_followup(
     if not text:
         return False
 
-    option_keys = _available_option_keys(question_context)
     compact = re.sub(r"\s+", "", text).upper().strip("。.!！?？；;，,")
     if not compact:
         return False
 
-    letter = rf"[{option_keys}]"
+    # Follow-up challenges may name a non-existent option (for example "如果我选E").
+    # Submission extraction still only accepts the current option keys; this wider
+    # matcher only keeps the turn on the question-review path instead of generic chat.
+    letter = r"[A-Z]"
     negative_markers = (
         r"(?:错在哪(?:里)?|哪(?:里)?错(?:了)?|哪里错(?:了)?|错因|问题在哪(?:里)?|"
         r"不对|错误|错|不是|不选|不能选|不该选|不行|不可以|为什么|为啥|怎么|咋)"
@@ -2824,3 +3288,103 @@ def _extract_choice_qa_pair(block: str, index: int) -> dict[str, Any] | None:
         "concentration": "",
         "multi_select": multi_select,
     }
+
+
+# ---------------------------------------------------------------------------
+# Practice-generation intent predicate — re-homed from
+# ``deeptutor.tutorbot.teaching_modes`` (QTPK physical extraction plan, S1).
+#
+# This is a pure question-turn intent predicate (does the learner's message
+# ask to generate practice questions?). It belongs on the canonical
+# question-turn surface so the Question-Turn Policy Kernel can forward to it
+# without importing the ``tutorbot`` teaching layer. The function body is moved
+# verbatim (zero behavior change); ``teaching_modes`` now re-exports it so all
+# existing callers keep their import line unchanged.
+# ---------------------------------------------------------------------------
+def _has_negated_practice_generation_request(text: str) -> bool:
+    compact = re.sub(r"\s+", "", text)
+    if not compact:
+        return False
+
+    negations = ("不要", "别", "不用", "无需", "不必", "先别", "先不要", "暂不")
+    targets = (
+        "出题",
+        "做题",
+        "刷题",
+        "练题",
+        "生成题",
+        "生成训练题",
+        "生成整套训练题",
+    )
+    for target in targets:
+        start = compact.find(target)
+        while start >= 0:
+            prefix = compact[max(0, start - 8) : start]
+            if any(negation in prefix for negation in negations):
+                return True
+            start = compact.find(target, start + len(target))
+    return False
+
+
+def looks_like_practice_generation_request(user_message: str | None) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+
+    if _has_negated_practice_generation_request(text) or "不想做题" in text:
+        return False
+
+    question_type_only = {
+        "选择题",
+        "单选题",
+        "多选题",
+        "判断题",
+        "案例题",
+        "简答题",
+    }
+    if text in question_type_only:
+        return True
+
+    positive_markers = (
+        "出题",
+        "出一道",
+        "生成一道",
+        "生成一题",
+        "来一道",
+        "来一题",
+        "考我",
+        "刷题",
+        "测我",
+        "摸底测评",
+        "继续出",
+        "继续来一道",
+        "再来一道",
+        "再出一道",
+        "下一题",
+        "下一道",
+        # plan §Phase 1 Step 1.1 (A2) — "继续练 / 再练" 是高频练题表述，
+        # 旧 markers 没覆盖，导致 "继续练刚才错的，N题" 被判 heavy。
+        "继续练",
+        "再练",
+        "继续做",
+        "再做几道",
+        "再做一道",
+        "quiz me",
+        "test me",
+        "give me a question",
+        "give me one question",
+    )
+    if any(marker in text for marker in positive_markers):
+        return True
+    request_patterns = (
+        r"(给我|帮我|来|出|生成)\s*(?:\d{0,2}|[一二两三四五六七八九十]?)\s*(?:道题|题|道)",
+        r"(给我|帮我|来|出|生成).{0,16}(?:\d{1,2}|[一二两三四五六七八九十几]+)\s*(?:道题|题|道)",
+        r"(给我|帮我|来|出|生成)\s*(?:出|来|生成)?\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道)?(?:单选题|多选题|案例题|简答题|选择题|判断题)",
+        r"(我想|想)\s*(?:来|做|练|练习)\s*(?:\d{0,2}|[一二两三四五六七八九十几]?)\s*(?:道题|题|道)",
+        r"(我想|想).{0,24}(?:练习|刷|做).{0,24}(?:题|题目|单选题|多选题|案例题|简答题|选择题|判断题)",
+        r"(我想|想)\s*(?:刷题|练题|做几道题|做一道题|练几道题|练一道题)",
+        r"(?:用|拿|安排)\s*(?:\d{1,2}|[一二两三四五六七八九十几]+)\s*(?:道题|题|道).{0,24}(?:练|训练|巩固|测试)",
+        r"(?:检验|测测|测试).{0,16}(?:掌握|会不会|学会|熟不熟)",
+        r"(?:先|来|做|开始|进行|帮我|给我|帮我做|安排)\s*(?:一次|一轮|个)?\s*(?:入门)?(?:摸底测评|摸底测试|摸底|小测|自测)",
+    )
+    return any(re.search(pattern, text) for pattern in request_patterns)

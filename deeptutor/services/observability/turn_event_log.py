@@ -11,10 +11,25 @@ from zoneinfo import ZoneInfo
 
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_EVENTS_DIR = PROJECT_ROOT / "tmp" / "observability" / "observer" / "events"
 _SYNTHETIC_SESSION_TOKENS = ("shadow",)
 _SYNTHETIC_SURFACES = {"online_shadow"}
+
+# --- Control-plane shadow-hit observe-only coverage marker --------------------
+# Stamped UNCONDITIONALLY on every turn that flows through this canonical builder,
+# regardless of whether a competing control-plane writer fired. A clean turn and
+# a turn that simply predates this metric are otherwise byte-identical (neither
+# carries control_plane_shadow_hits), so the report counter cannot tell "verified
+# clean" from "never measured" without this marker. Its presence proves the turn
+# ran code that *would* have recorded any competing-writer fire; its absence means
+# not-measured (the counter fails closed on a window with zero marked turns).
+#
+# ASSUMPTION (documented per reviewer): all shadow-hit emit points and this marker
+# ship in the same commit / same deployment, so a single version constant is
+# sufficient to prove "this turn ran instrumentation version X". Bump the version
+# whenever the set of emit points or the hit schema changes, so a window mixing
+# pre/post-change turns is not silently aggregated as one coverage cohort.
+INSTRUMENTATION_MARKER_KEY = "control_plane_shadow_instrumentation_version"
+SHADOW_INSTRUMENTATION_VERSION = "1"
 
 
 def _coerce_non_negative_int(value: Any) -> int:
@@ -96,6 +111,10 @@ def build_turn_observation_event(
     test_only: bool | None = None,
 ) -> dict[str, Any]:
     normalized_metadata = dict(metadata or {})
+    # Observe-only coverage marker: stamp unconditionally so every turn through the
+    # canonical builder proves it ran the shadow-hit instrumentation. No control
+    # flow change; this is metadata only.
+    normalized_metadata[INSTRUMENTATION_MARKER_KEY] = SHADOW_INSTRUMENTATION_VERSION
     resolved_cohort, resolved_synthetic, resolved_test_only = _infer_observation_flags(
         session_id=str(session_id or "").strip(),
         surface=str(surface or "").strip(),
@@ -131,12 +150,21 @@ class TurnEventLog:
     """Append-only JSONL log for derived turn observation facts."""
 
     def __init__(self, *, events_dir: Path | None = None) -> None:
+        # Precedence: an EXPLICIT events_dir argument is the caller's specific
+        # intent and wins over the process-wide DEEPTUTOR_OBSERVER_EVENT_DIR
+        # default. The env var only governs the no-argument case (the production
+        # singleton). This lets a test-suite session fixture set the env to keep
+        # bare instances out of the production default dir while a function-scoped
+        # test that passes its own events_dir still isolates to that directory.
         configured_dir = str(os.getenv("DEEPTUTOR_OBSERVER_EVENT_DIR", "") or "").strip()
-        self.events_dir = (
-            Path(configured_dir).expanduser().resolve()
-            if configured_dir
-            else (events_dir or DEFAULT_EVENTS_DIR).expanduser().resolve()
-        )
+        if events_dir is not None:
+            self.events_dir = Path(events_dir).expanduser().resolve()
+        elif configured_dir:
+            self.events_dir = Path(configured_dir).expanduser().resolve()
+        else:
+            from deeptutor.services.path_service import get_path_service
+
+            self.events_dir = (get_path_service().get_observability_dir() / "observer" / "events").resolve()
         self.events_dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._last_write_error = ""

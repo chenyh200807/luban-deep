@@ -10,6 +10,7 @@ from deeptutor.capabilities.deep_question import DeepQuestionCapability
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.stream_bus import StreamBus
+from deeptutor.services.semantic_router import build_active_object_from_question_context
 
 _parse = DeepQuestionCapability._mcq_grading_context_from_full_submission
 
@@ -232,3 +233,89 @@ async def test_deep_question_prefers_self_contained_mcq_over_case_fallback(
     assert context.metadata["question_followup_context"]["question_type"] == "choice"
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["authority_source"] == "mcq_grading_full_submission"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_self_contained_mcq_overrides_stale_active_object(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.get_llm_config",
+        lambda: SimpleNamespace(api_key="test", base_url="", api_version=""),
+    )
+    captured: dict[str, Any] = {}
+
+    async def capture_grading(self, **kwargs: Any) -> None:
+        captured.update(kwargs)
+        await kwargs["stream"].result(
+            {"response": "graded"},
+            source="deep_question",
+            metadata={
+                "mode": "grading",
+                "authority_source": kwargs.get("authority_source"),
+                "question_followup_context": kwargs.get("graded_context"),
+                "active_object": kwargs.get("active_object"),
+            },
+        )
+
+    monkeypatch.setattr(DeepQuestionCapability, "_emit_grading_result", capture_grading)
+
+    stale_context = {
+        "question_id": "q_old",
+        "question": "以下关于施工缝留置位置的说法，错误的是（ ）。",
+        "question_type": "choice",
+        "options": {
+            "A": "柱的施工缝宜留置在基础、楼板、梁的顶面",
+            "B": "楼梯梯段施工缝留设在梯段板跨度中部1/3范围内",
+            "C": "单向板施工缝留设在跨度方向平行的任何位置",
+            "D": "墙的施工缝宜留置在门洞口过梁跨中1/3范围内",
+        },
+        "correct_answer": "B",
+        "user_answer": "A",
+        "is_correct": False,
+    }
+    stale_active_object = build_active_object_from_question_context(stale_context)
+    message = (
+        "请判这道我粘贴的单选题：题目：关于混凝土施工缝留置，下列说法正确的是？"
+        "A. 施工缝可随意留置 "
+        "B. 施工缝宜留在结构受剪力较大处 "
+        "C. 施工缝处理时无需清除浮浆 "
+        "D. 施工缝位置应按设计要求和施工技术方案确定。"
+        "我的答案：D。标准答案：D。"
+    )
+    context = UnifiedContext(
+        session_id="s-self-contained-mcq-stale-active",
+        user_message=message,
+        config_overrides={},
+        metadata={
+            "turn_id": "turn-self-contained-mcq-stale-active",
+            "raw_user_message": message,
+            "question_lifecycle_scene": "mcq_grading",
+            "active_object": stale_active_object,
+            "question_followup_context": stale_context,
+            "turn_semantic_decision": {
+                "relation_to_active_object": "answer_active_object",
+                "next_action": "route_to_grading",
+                "allowed_patch": ["update_answer_slot"],
+                "confidence": 0.95,
+                "target_object_ref": {
+                    "object_type": "single_question",
+                    "object_id": "q_old",
+                },
+            },
+        },
+        language="zh",
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["authority_source"] == "mcq_grading_full_submission"
+    assert captured["graded_context"]["question"] == message
+    assert captured["graded_context"]["options"]["B"] == "施工缝宜留在结构受剪力较大处"
+    assert captured["graded_context"]["correct_answer"] == "D"
+    assert captured["active_object"]["state_snapshot"]["question"] == message
+    assert captured["active_object"]["state_snapshot"]["correct_answer"] == "D"
+    assert context.metadata["question_followup_context"]["question"] == message
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["active_object"]["state_snapshot"]["question"] == message

@@ -1,0 +1,58 @@
+# DeepTutor 自托管 Prometheus 主配置（容器化 standalone）。
+#
+# 与 prometheus.scrape.example.yml 的区别：
+#   - prometheus.scrape.example.yml 是"合并进你们已有 Prometheus"的可移植片段，
+#     target 写 127.0.0.1:8001（宿主网络假设），credentials 走 ${VAR} 模板占位。
+#   - 本文件是 docker-compose.observability.yml 拉起的 DeepTutor 自有 Prometheus
+#     容器用的完整配置：target 走 compose 网络服务名 deeptutor:8001，token 走
+#     credentials_file（secret 不入库）。
+#
+# 单一 authority：告警规则不在此重复定义。rule_files 直接复用 CI 校验过的
+# prometheus.alerts.example.yml（compose 把它挂到 /etc/prometheus/alerts.yml）。
+#
+# 多 worker 正确性：生产 UVICORN_WORKERS=2。/metrics/prometheus 已通过 Step 2 跨 worker
+# 合并（multiworker_metrics.py）把每个 worker 的快照按字段语义聚合后渲染——counter 求和、
+# per-worker 状态闸 OR（任一 worker 开闸不漏报）。崩溃路径用 pid 存活剔除避免双计数。
+# 生效前提：deeptutor 容器跑的镜像已含 Step 2（worker_metrics dump loop）；用
+# verify_aliyun_observability_stack.sh 的 worker_metrics 检查确认 live 生效。
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+  external_labels:
+    service: deeptutor
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+scrape_configs:
+  # Prometheus 自监控（让 up / 规则评估健康可见）。
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+
+  # Alertmanager 自监控（watch-the-watcher）：没有这个 job，AM 挂掉时规则照常 fire 但
+  # 通知静默丢失，无 up{job="alertmanager"} 即无 AlertmanagerDown 告警。配合 nightly
+  # cron 邮件做带外兜底（AlertmanagerDown 本身要经可能已死的 AM 投递）。
+  - job_name: alertmanager
+    static_configs:
+      - targets:
+          - alertmanager:9093
+
+  - job_name: deeptutor
+    metrics_path: /metrics/prometheus
+    scheme: http
+    authorization:
+      type: Bearer
+      # Secret 不入库：宿主 ./secrets/metrics_token 挂载到此路径，内容必须等于
+      # DeepTutor 容器的 DEEPTUTOR_METRICS_TOKEN。
+      credentials_file: /etc/prometheus/secrets/metrics_token
+    static_configs:
+      - targets:
+          - deeptutor:8001

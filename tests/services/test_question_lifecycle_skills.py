@@ -8,8 +8,10 @@ from deeptutor.services.question_lifecycle_skills import (
     attach_question_lifecycle_scene_to_context,
     build_question_lifecycle_skill_context,
     build_question_lifecycle_skill_context_from_legacy_scene,
+    case_grading_context_from_full_submission,
     project_question_lifecycle_scene_from_metadata,
     select_question_lifecycle_skill_names,
+    study_assistant_has_learning_evidence,
 )
 from deeptutor.tutorbot.agent.skills import SkillsLoader
 
@@ -24,6 +26,36 @@ def test_build_question_lifecycle_skill_context_loads_question_supply() -> None:
     assert "# Construction Exam Tutor" in result.instructions
     assert "# Construction Question Supply" in result.instructions
     assert result.loader_sources["construction-question-supply"] == "builtin"
+
+
+def test_study_assistant_learning_evidence_ignores_empty_projection_shells() -> None:
+    assert study_assistant_has_learning_evidence({
+        "personalization_context": {
+            "schema_version": 1,
+            "user_id": "stu_empty",
+            "source": "PersonalizationContextPack",
+            "authority": {"claims": "learning_synthesis"},
+            "top_claims": [],
+            "recent_improvement_signals": [],
+            "recent_evidence_refs": [],
+            "active_training_intent": {},
+            "next_best_action_candidates": [],
+        },
+        "compiled_learning_truth": {
+            "schema_version": 1,
+            "subject": "construction_exam",
+            "source": "learner_state_read_model",
+        },
+    }) is False
+
+
+def test_study_assistant_learning_evidence_accepts_evidence_refs() -> None:
+    assert study_assistant_has_learning_evidence({
+        "compiled_learning_truth": {
+            "evidence_refs": ["evt_1"],
+            "weak_points": [{"name": "屋面防水保修期限", "evidence_refs": ["evt_1"]}],
+        },
+    }) is True
 
 
 def test_build_question_lifecycle_skill_context_loads_question_review() -> None:
@@ -198,6 +230,21 @@ def test_missing_skill_degrades_without_crashing(tmp_path: Path) -> None:
     assert result.source_status.missing_skills == ("construction-question-supply",)
 
 
+def test_full_case_submission_keeps_marked_reference_out_of_learner_answer() -> None:
+    message = (
+        "请按案例题给我采分点评：题目：屋面防水卷材采用空铺法时，"
+        "短边搭接宽度不应小于多少？我的答案：100mm。标准答案：150mm。"
+    )
+
+    context = case_grading_context_from_full_submission(message)
+
+    assert context is not None
+    assert context["user_answer"] == "100mm"
+    assert context["correct_answer"] == "150mm"
+    assert "标准答案" not in context["user_answer"]
+    assert "150mm" not in context["user_answer"]
+
+
 def test_backreference_explanation_not_blocked_as_submission_after_practice_gen() -> None:
     """task#11: after a practice-gen turn replaces the active object with a new set,
     recalling an EARLIER question to explain it must not be blocked by the submission
@@ -336,6 +383,7 @@ def test_free_text_short_answer_grading_beats_practice_generation_R2() -> None:
     会触发过宽练题检测器的话题词。正向"作答 payload 在场 + 判分诉求"信号,不靠"别出题"否定排除。
     合法练题(无作答体)不误伤,仍 practice_generation。"""
     import asyncio
+
     from deeptutor.services.question_lifecycle_skills import (
         _looks_like_free_text_case_grading,
         resolve_question_lifecycle_scene_decision,
