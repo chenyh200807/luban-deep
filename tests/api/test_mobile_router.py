@@ -3178,7 +3178,7 @@ def test_auth_reset_password_calls_member_service_without_issuing_token(
                 "username": "reset_student",
                 "phone": "13955556666",
                 "code": "123456",
-                "password": "NewPass123",
+                "password": "NewPass123",  # pragma: allowlist secret
             },
         )
 

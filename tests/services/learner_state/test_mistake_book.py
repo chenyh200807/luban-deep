@@ -215,7 +215,7 @@ def test_supabase_mistake_book_store_uses_user_event_authority_filters() -> None
     client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://example.supabase.co")
     store = SupabaseMistakeBookStore(
         base_url="https://example.supabase.co",
-        service_key="service-key",
+        service_key="service-key",  # pragma: allowlist secret
         client=client,
     )
     saved = store.upsert_item({"user_id": "u1", "event_id": "evt1", "attempt_ref": "ref", "saved_at": "t"})
