@@ -1,36 +1,523 @@
 @import "/packageDeeptutor/theme.wxss";
 
-.lb-review-page {
+/* 复习 tab 首页 · 第10轮 10c（宣纸亮 / 夜宣纸暗）
+ * 全部主题色走 --lb-* token；有意保留的字面量：
+ * 1) 宣纸点阵纹理 = 低透明度中性 rgba（hex token 表达不了 alpha）；
+ * 2) 「变」字印章 = 品牌书法资产（原纸色舞台，按定稿不随主题变）；
+ * 3) 行图标 data-URI SVG 内的描边色（data-URI 吃不到 CSS 变量，
+ *    按 T0 tab 图标同惯例给暗/亮两套）。 */
+
+.luban-page {
   min-height: 100vh;
-  background: var(--lb-bg);
-  box-sizing: border-box;
-  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+  background-color: var(--lb-bg);
+  background-image: radial-gradient(
+    rgba(241, 239, 232, 0.05) 1.4rpx,
+    transparent 1.4rpx
+  );
+  background-size: 36rpx 36rpx;
+  color: var(--lb-t1);
 }
 
-.lb-review-inner {
+.luban-page.light {
+  background-image: radial-gradient(
+    rgba(38, 36, 31, 0.1) 1.4rpx,
+    transparent 1.4rpx
+  );
+}
+
+.lb-inner {
+  padding-left: 24rpx;
+  padding-right: 24rpx;
+  /* 壳遮挡：workspace-shell 高 140rpx */
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
-  padding-left: 48rpx;
-  padding-right: 48rpx;
+  gap: 18rpx;
+  box-sizing: border-box;
 }
 
-.lb-review-kicker {
+/* ── 顶栏 ───────────────────────────────────── */
+.rv-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  padding: 8rpx 4rpx;
+}
+
+.rv-head-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: var(--lb-t1);
+}
+
+.rv-head-sub {
+  font-size: 24rpx;
+  color: var(--lb-t3);
+}
+
+/* ── 错误 / 加载 ────────────────────────────── */
+.rv-error {
+  border-radius: 22rpx;
+  border: 1rpx solid var(--lb-bd);
+  background: var(--lb-card);
+  padding: 26rpx 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  font-size: 26rpx;
+  color: var(--lb-bad);
+}
+
+.rv-retry {
+  flex-shrink: 0;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--lb-bd);
+  color: var(--lb-t1);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.rv-loading {
+  padding: 48rpx 24rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--lb-t3);
+}
+
+/* ── 空态（深链学习 tab）──────────────────── */
+.rv-empty {
+  border-radius: 32rpx;
+  border: 1rpx solid var(--lb-bd);
+  background: var(--lb-card);
+  padding: 40rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.rv-empty-kicker {
   font-size: 24rpx;
   font-weight: 700;
   letter-spacing: 4rpx;
   color: var(--lb-good);
 }
 
-.lb-review-title {
+.rv-empty-title {
+  font-size: 38rpx;
+  font-weight: 800;
+  color: var(--lb-t1);
+  line-height: 1.4;
+}
+
+.rv-empty-desc {
+  font-size: 26rpx;
+  color: var(--lb-t3);
+  line-height: 1.7;
+}
+
+/* 主 CTA = 墨色（暗色下反转为纸色），朱红只留品牌四处 */
+.rv-empty-cta {
+  margin-top: 10rpx;
+  min-height: 88rpx;
+  border-radius: 22rpx;
+  background: var(--lb-t1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rv-empty-cta text {
+  font-size: 28rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--lb-bg);
+}
+
+.rv-empty-cta:active {
+  opacity: 0.85;
+}
+
+/* ── 今日到期 hero ──────────────────────────── */
+.rv-hero {
+  border-radius: 32rpx;
+  border: 1rpx solid var(--lb-bd);
+  background: var(--lb-card);
+  padding: 30rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+}
+
+.rv-hero-row {
+  display: flex;
+  align-items: center;
+  gap: 26rpx;
+}
+
+/* 环形进度：conic-gradient 外环 + 卡底内芯 */
+.rv-gauge {
+  flex-shrink: 0;
+  width: 116rpx;
+  height: 116rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rv-gauge-core {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 50%;
+  background: var(--lb-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rpx;
+}
+
+.rv-gauge-num {
+  font-size: 36rpx;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--lb-t1);
+}
+
+.rv-gauge-label {
+  font-size: 24rpx;
+  color: var(--lb-t3);
+}
+
+.rv-hero-titles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.rv-hero-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: var(--lb-t1);
+  line-height: 1.4;
+}
+
+.rv-hero-desc {
+  font-size: 24rpx;
+  color: var(--lb-t3);
+  line-height: 1.6;
+}
+
+.rv-hero-cta {
+  min-height: 92rpx;
+  border-radius: 24rpx;
+  background: var(--lb-t1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.18);
+}
+
+.rv-hero-cta text {
+  font-size: 28rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--lb-bg);
+}
+
+.rv-hero-cta:active {
+  opacity: 0.85;
+}
+
+.rv-hero-note {
+  font-size: 24rpx;
+  color: var(--lb-t3);
+  text-align: center;
+}
+
+/* ── 昨天的约定 · 换皮复测 ──────────────────── */
+.rv-pact {
+  border-radius: 28rpx;
+  border: 1rpx solid var(--lb-bd);
+  background: var(--lb-card);
+  padding: 24rpx 26rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.rv-pact:active {
+  opacity: 0.85;
+}
+
+/* 「变」印章：原纸色舞台 + 点阵，朱红书法（品牌资产，不随主题变） */
+.rv-pact-stamp {
+  flex-shrink: 0;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 18rpx;
+  background-color: #f4f3ec;
+  background-image: radial-gradient(#e4e2d7 1.4rpx, transparent 1.4rpx);
+  background-size: 20rpx 20rpx;
+  border: 1rpx solid var(--lb-bd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rv-pact-stamp text {
+  font-family: "Long Cang", "Kaiti SC", cursive;
   font-size: 40rpx;
+  line-height: 1;
+  color: var(--lb-brand);
+}
+
+.rv-pact-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.rv-pact-kicker {
+  font-size: 24rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--lb-good);
+}
+
+.rv-pact-title {
+  font-size: 28rpx;
+  font-weight: 800;
+  color: var(--lb-t1);
+  line-height: 1.4;
+}
+
+.rv-pact-desc {
+  font-size: 24rpx;
+  color: var(--lb-t3);
+  line-height: 1.6;
+}
+
+.rv-pact-link {
+  flex-shrink: 0;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--lb-t1);
+  text-decoration: underline;
+}
+
+/* ── 到期清单 ───────────────────────────────── */
+.rv-list {
+  border-radius: 28rpx;
+  border: 1rpx solid var(--lb-bd);
+  background: var(--lb-card);
+  overflow: hidden;
+}
+
+.rv-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22rpx 26rpx 14rpx;
+}
+
+.rv-list-title {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: var(--lb-t3);
+  letter-spacing: 2rpx;
+}
+
+.rv-list-hint {
+  font-size: 24rpx;
+  color: var(--lb-t3);
+}
+
+/* ── 列表行（到期清单 / 自主检索共用）────────── */
+.rv-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  min-height: 104rpx;
+  padding: 14rpx 26rpx;
+  border-top: 1rpx solid var(--lb-bd);
+  box-sizing: border-box;
+}
+
+.rv-row:active {
+  opacity: 0.8;
+}
+
+/* 检索区的独立行：自带卡片壳 */
+.rv-row.plain {
+  border: 1rpx solid var(--lb-bd);
+  border-radius: 22rpx;
+  background: var(--lb-card);
+}
+
+.rv-row-icon {
+  flex-shrink: 0;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 14rpx;
+  background-color: rgba(85, 150, 123, 0.12);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 30rpx 30rpx;
+}
+
+.rv-row-icon.warm {
+  background-color: rgba(191, 91, 78, 0.12);
+}
+
+.rv-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+
+.rv-row-title {
+  font-size: 28rpx;
   font-weight: 700;
   color: var(--lb-t1);
   line-height: 1.4;
 }
 
-.lb-review-desc {
-  font-size: 28rpx;
+.rv-row-sub {
+  font-size: 24rpx;
   color: var(--lb-t3);
-  line-height: 1.6;
+}
+
+.rv-row-link {
+  flex-shrink: 0;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--lb-t1);
+  text-decoration: underline;
+}
+
+/* ── 资产入口卡 ─────────────────────────────── */
+.rv-asset {
+  border-radius: 28rpx;
+  border: 1rpx solid var(--lb-bd);
+  background: var(--lb-card);
+  padding: 24rpx 26rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.rv-asset:active {
+  opacity: 0.85;
+}
+
+.rv-asset.disabled {
+  opacity: 0.62;
+}
+
+.rv-asset.disabled:active {
+  opacity: 0.62;
+}
+
+.rv-asset-arrow {
+  flex-shrink: 0;
+  font-size: 36rpx;
+  line-height: 1;
+  color: var(--lb-t3);
+}
+
+.rv-asset-badge {
+  flex-shrink: 0;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--lb-bd);
+  font-size: 24rpx;
+  color: var(--lb-t3);
+}
+
+/* ── 自主检索 ───────────────────────────────── */
+.rv-search {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  padding-top: 6rpx;
+}
+
+.rv-search-title {
+  font-size: 24rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--lb-t3);
+  padding: 0 4rpx;
+}
+
+.rv-chips {
+  display: flex;
+  gap: 14rpx;
+  flex-wrap: wrap;
+}
+
+.rv-chip {
+  padding: 12rpx 26rpx;
+  border-radius: 999rpx;
+  background: var(--lb-card);
+  border: 1rpx solid var(--lb-bd);
+}
+
+.rv-chip text {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--lb-t3);
+}
+
+.rv-chip.active {
+  background: var(--lb-t1);
+  border-color: var(--lb-t1);
+}
+
+.rv-chip.active text {
+  color: var(--lb-bg);
+}
+
+.rv-search-empty {
+  border-radius: 22rpx;
+  border: 1rpx solid var(--lb-bd);
+  background: var(--lb-card);
+  padding: 32rpx 26rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--lb-t3);
+  line-height: 1.7;
+}
+
+/* ── 行图标（线性 SVG 1.8 stroke，暗/亮两套描边）───────── */
+/* 考点卡（暗：竹青 #55967B） */
+.icon-rv-card {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Crect x='3' y='5' width='18' height='14' rx='2' stroke='%2355967B' stroke-width='1.8'/%3E%3Cpath d='M7 9h10M7 13h6' stroke='%2355967B' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.luban-page.light .icon-rv-card {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Crect x='3' y='5' width='18' height='14' rx='2' stroke='%2348806A' stroke-width='1.8'/%3E%3Cpath d='M7 9h10M7 13h6' stroke='%2348806A' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* 错因银行（暖赭 #BF5B4E，暗亮同值） */
+.icon-rv-bank {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' stroke='%23BF5B4E' stroke-width='1.8'/%3E%3Cpath d='M3 12h18M12 6V4' stroke='%23BF5B4E' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+/* 考点卡库（暗：竹青） */
+.icon-rv-book {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20' stroke='%2355967B' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpath d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' stroke='%2355967B' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.luban-page.light .icon-rv-book {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20' stroke='%2348806A' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpath d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' stroke='%2348806A' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E");
 }

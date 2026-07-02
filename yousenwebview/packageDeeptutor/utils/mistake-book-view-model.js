@@ -1,3 +1,7 @@
+// 错因名唯一投影 = ERROR_CODE_REGISTRY 镜像（labelFor：码→registry 中文名，
+// 非码/未知码 fail-closed 显示原文）。禁在此之外自造/改写错因名。
+var errorCodeLabels = require("./error-code-labels");
+
 function asList(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -101,12 +105,15 @@ function buildInsight(items, conceptBars, errorBars, dueCount) {
 function normalizeItem(raw, index, nowMs) {
   var item = asObject(raw);
   var masteredAt = text(item.mastered_at || item.masteredAt);
+  var rawErrorLabel = text(item.error_label || item.errorLabel);
   var normalized = {
     key: text(item.event_id || item.key || item.attempt_ref, "mistake-" + index),
     attemptRef: text(item.attempt_ref || item.attemptRef),
     title: text(item.title, "错题复盘"),
     conceptLabel: text(item.concept_label || item.conceptLabel, "未归类知识点"),
-    errorLabel: text(item.error_label || item.errorLabel, "待归因错因"),
+    errorLabel: rawErrorLabel
+      ? errorCodeLabels.labelFor(rawErrorLabel)
+      : "待归因错因",
     note: text(item.note),
     savedAt: text(item.saved_at || item.savedAt),
     savedLabel: shortDate(item.saved_at || item.savedAt),

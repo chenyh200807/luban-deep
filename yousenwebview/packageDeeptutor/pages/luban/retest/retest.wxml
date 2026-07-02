@@ -53,12 +53,15 @@
             </view>
           </view>
 
+          <!-- 反馈语固定文案（文案铁律，不得改写）：
+               对=「你是真懂了，不是背的 ✅」错=「这一点再看一眼就稳了 ↺」 -->
           <view class="rt-feedback {{item.correct ? 'good' : 'warm'}}" wx:if="{{item.answered}}">
             <block wx:if="{{item.correct}}">
-              <text class="rt-feedback-main">对——你是真懂了</text>
+              <text class="rt-feedback-main">你是真懂了，不是背的 ✅</text>
             </block>
             <block wx:else>
-              <text class="rt-feedback-main">再看一眼就稳了：{{item.correct_statement}}</text>
+              <text class="rt-feedback-main">这一点再看一眼就稳了 ↺</text>
+              <text class="rt-feedback-detail" wx:if="{{item.correct_statement}}">{{item.correct_statement}}</text>
             </block>
             <text class="rt-anchor" wx:if="{{item.anchor}}">{{item.anchor}}</text>
           </view>

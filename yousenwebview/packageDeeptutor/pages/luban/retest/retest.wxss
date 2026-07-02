@@ -1,10 +1,26 @@
 @import "/packageDeeptutor/theme.wxss";
 
+/* 换皮复测 · 第10轮 10c 纸墨视觉（宣纸亮 / 夜宣纸暗）
+ * 全部主题色走 --lb-* token；语义三态只用暖色（对=竹青 / 错=暖金提醒），
+ * 禁红灯墙。低透明度 tint 为 token 色的 alpha 版（hex token 表达不了 alpha）。 */
+
 .luban-page {
   height: 100vh;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background-color: var(--lb-bg);
+  background-image: radial-gradient(
+    rgba(241, 239, 232, 0.05) 1.4rpx,
+    transparent 1.4rpx
+  );
+  background-size: 36rpx 36rpx;
+  color: var(--lb-t1);
   overflow: hidden;
+}
+
+.luban-page.light {
+  background-image: radial-gradient(
+    rgba(38, 36, 31, 0.1) 1.4rpx,
+    transparent 1.4rpx
+  );
 }
 
 .lb-nav {
@@ -13,8 +29,8 @@
   left: 0;
   right: 0;
   z-index: 50;
-  background: rgba(10, 10, 10, 0.92);
-  border-bottom: 1rpx solid var(--border);
+  background: var(--lb-bg);
+  border-bottom: 1rpx solid var(--lb-bd);
 }
 
 .lb-nav-inner {
@@ -35,20 +51,20 @@
 }
 
 .lb-back:active {
-  background: rgba(255, 255, 255, 0.08);
+  opacity: 0.7;
 }
 
 .lb-back-arrow {
   font-size: 40rpx;
   line-height: 1;
-  color: #818cf8;
+  color: var(--lb-t3);
   font-weight: 300;
   margin-top: -4rpx;
 }
 
 .lb-back-text {
   font-size: 28rpx;
-  color: #818cf8;
+  color: var(--lb-t3);
   font-weight: 500;
 }
 
@@ -56,7 +72,7 @@
   flex: 1;
   font-size: 34rpx;
   font-weight: 800;
-  color: var(--text-primary);
+  color: var(--lb-t1);
 }
 
 .lb-scroll {
@@ -68,7 +84,8 @@
 }
 
 .lb-inner {
-  padding: 28rpx 24rpx 48rpx;
+  padding: 28rpx 24rpx;
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 18rpx;
@@ -79,32 +96,30 @@
 .rt-empty,
 .rt-error,
 .rt-done {
-  border-radius: 22rpx;
-  border: 1rpx solid rgba(148, 163, 184, 0.16);
-  background: rgba(15, 23, 42, 0.62);
+  border-radius: 28rpx;
+  border: 1rpx solid var(--lb-bd);
+  background: var(--lb-card);
 }
 
 .rt-hero {
-  padding: 28rpx 24rpx;
-  background:
-    radial-gradient(circle at top right, rgba(129, 140, 248, 0.18), transparent 40%),
-    linear-gradient(145deg, rgba(79, 70, 229, 0.16), rgba(15, 23, 42, 0.72));
+  padding: 28rpx 26rpx;
 }
 
 .rt-kicker {
   display: block;
   margin-bottom: 8rpx;
-  font-size: 22rpx;
+  font-size: 24rpx;
   font-weight: 800;
-  color: #a5b4fc;
+  letter-spacing: 2rpx;
+  color: var(--lb-good);
 }
 
 .rt-title {
   display: block;
   font-size: 34rpx;
   line-height: 1.3;
-  font-weight: 850;
-  color: #fff;
+  font-weight: 800;
+  color: var(--lb-t1);
 }
 
 .rt-card {
@@ -115,14 +130,14 @@
 }
 
 .rt-index {
-  font-size: 22rpx;
-  color: var(--text-muted);
+  font-size: 24rpx;
+  color: var(--lb-t3);
 }
 
 .rt-surface {
   font-size: 28rpx;
   line-height: 1.65;
-  color: var(--text-primary);
+  color: var(--lb-t1);
 }
 
 .rt-choices {
@@ -141,16 +156,17 @@
   font-weight: 700;
 }
 
+/* 判断题二选一：竹青（妥当）/ 暖金（不妥当）——语义暖色，不上红 */
 .rt-choice.ok {
-  background: rgba(52, 211, 153, 0.14);
-  border: 1rpx solid rgba(52, 211, 153, 0.32);
-  color: #34d399;
+  background: rgba(85, 150, 123, 0.14);
+  border: 1rpx solid rgba(85, 150, 123, 0.35);
+  color: var(--lb-good);
 }
 
 .rt-choice.not-ok {
-  background: rgba(251, 146, 60, 0.12);
-  border: 1rpx solid rgba(251, 146, 60, 0.3);
-  color: #fdba74;
+  background: rgba(212, 178, 99, 0.12);
+  border: 1rpx solid rgba(212, 178, 99, 0.32);
+  color: var(--lb-warn);
 }
 
 .rt-choice:active {
@@ -158,7 +174,7 @@
 }
 
 .rt-feedback {
-  border-radius: 16rpx;
+  border-radius: 18rpx;
   padding: 20rpx 22rpx;
   display: flex;
   flex-direction: column;
@@ -166,28 +182,35 @@
 }
 
 .rt-feedback.good {
-  background: rgba(52, 211, 153, 0.1);
-  border: 1rpx solid rgba(52, 211, 153, 0.26);
+  background: rgba(85, 150, 123, 0.1);
+  border: 1rpx solid rgba(85, 150, 123, 0.28);
 }
 
 .rt-feedback.warm {
-  background: rgba(251, 191, 36, 0.08);
-  border: 1rpx solid rgba(251, 191, 36, 0.24);
+  background: rgba(212, 178, 99, 0.1);
+  border: 1rpx solid rgba(212, 178, 99, 0.26);
 }
 
 .rt-feedback-main {
-  font-size: 27rpx;
+  font-size: 28rpx;
   line-height: 1.6;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: var(--lb-t1);
 }
 
 .rt-feedback.good .rt-feedback-main {
-  color: #6ee7b7;
+  color: var(--lb-good);
+}
+
+.rt-feedback-detail {
+  font-size: 26rpx;
+  line-height: 1.65;
+  color: var(--lb-t1);
 }
 
 .rt-anchor {
-  font-size: 22rpx;
-  color: var(--text-muted);
+  font-size: 24rpx;
+  color: var(--lb-t3);
 }
 
 .rt-loading,
@@ -195,7 +218,11 @@
   padding: 40rpx 24rpx;
   text-align: center;
   font-size: 26rpx;
-  color: var(--text-tertiary);
+  color: var(--lb-t3);
+}
+
+.rt-loading {
+  border-radius: 28rpx;
 }
 
 .rt-error {
@@ -205,15 +232,15 @@
   justify-content: space-between;
   gap: 20rpx;
   font-size: 26rpx;
-  color: #fca5a5;
+  color: var(--lb-bad);
 }
 
 .rt-retry {
   flex-shrink: 0;
   padding: 12rpx 28rpx;
   border-radius: 999rpx;
-  background: rgba(129, 140, 248, 0.18);
-  color: #a5b4fc;
+  border: 1rpx solid var(--lb-bd);
+  color: var(--lb-t1);
   font-size: 26rpx;
   font-weight: 600;
 }
@@ -225,18 +252,15 @@
   align-items: center;
   gap: 12rpx;
   text-align: center;
-  background:
-    radial-gradient(circle at top, rgba(52, 211, 153, 0.14), transparent 55%),
-    rgba(15, 23, 42, 0.62);
 }
 
 .rt-done-title {
   font-size: 34rpx;
-  font-weight: 850;
-  color: #fff;
+  font-weight: 800;
+  color: var(--lb-t1);
 }
 
 .rt-done-desc {
   font-size: 26rpx;
-  color: var(--text-secondary);
+  color: var(--lb-t3);
 }
