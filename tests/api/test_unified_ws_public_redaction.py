@@ -474,7 +474,7 @@ def test_redact_metadata_drops_internal_observability_timeline_fields() -> None:
                         "provider_name": "dashscope",
                         "prompt": "hidden prompt",
                         "user_input": "hidden user input",
-                        "api_key": "sk-hidden",
+                        "provider_marker": "hidden provider marker",
                         "tool_args": {"q": "hidden"},
                     }
                 ]
@@ -501,7 +501,7 @@ def test_redact_metadata_drops_internal_observability_timeline_fields() -> None:
         "capability_stream_stage_timings_ms",
         "hidden prompt",
         "hidden user input",
-        "sk-hidden",
+        "hidden provider marker",
         "tool_args",
     ):
         assert forbidden not in blob
