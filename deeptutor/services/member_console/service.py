@@ -4198,6 +4198,41 @@ class MemberConsoleService:
             )
         )
 
+    def list_internal_test_user_ids(self) -> set[str]:
+        """QA/内部账号 allowlist 导出——spike D1 度量与 D15 埋点读侧口径的唯一权威。
+
+        判据完全复用 ``_looks_like_test_member``（不建第二套启发式）；返回集合
+        含 user_id / external_auth_user_id / alias_user_ids 三种键位，便于与
+        ``sessions.owner_key``（``user:<uuid>``）及埋点 user_id 直接比对。
+        注意不可走 ``_load_member_directory_members_for_bi``——其 BI 过滤会先剔除
+        测试账号，导致生产恒为空集；必须遍历原始成员。
+        """
+        data = self._load()
+        candidates: list[dict[str, Any]] = [
+            member for member in (data.get("members") or []) if isinstance(member, dict)
+        ]
+        directory = self._member_directory
+        if self._member_directory_enabled() and bool(getattr(directory, "is_configured", False)):
+            try:
+                candidates.extend(
+                    member for member in directory.list_members(limit=5000) if isinstance(member, dict)
+                )
+            except Exception:
+                logger.warning(
+                    "Failed to load Supabase member directory for QA allowlist", exc_info=True
+                )
+        ids: set[str] = set()
+        for member in candidates:
+            if not self._looks_like_test_member(member):
+                continue
+            keys = [member.get("user_id"), member.get("external_auth_user_id")]
+            keys.extend(member.get("alias_user_ids") or [])
+            for value in keys:
+                normalized = str(value or "").strip()
+                if normalized:
+                    ids.add(normalized)
+        return ids
+
     def get_member_360(self, user_id: str) -> dict[str, Any]:
         data = self._load()
         try:
