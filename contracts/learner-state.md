@@ -505,6 +505,16 @@ Overlay 必须支持：
    理由文案用群体理由（诚实版，不伪装个性化）。
 5. 接入面：home dashboard，受 `DEEPTUTOR_HOME_NEXT_STEP_ENABLED`（默认 off）
    门控；退路（若被证明越权）= learn 只作路线图固有语义。
+6. 输入供给禁断供（2026-07-03，Codex SEV-1 治本）：caller 组装输入时**禁止
+   硬编码空供给**冒充"该权威无输出"。首页接线口径 = 活跃练从同一份
+   snapshot events 纯派生处方 outcomes（`status != "verified"` 即活跃），
+   同一份 outcomes 必须同时传入 `revalidation_queue`（已验证抑制，与
+   learning-report 路径同口径）；claims 从 `read_compiled_learning_truth`
+   的 `weak_points` 读取（miss 时空列表如实降级，**不**跑在线 dry-run
+   合成——此为对上文 cache-miss 回退条款在首页在线路径的显式最小偏离）。
+7. weak_points 聚合保真（同日）：`learning_synthesis` 的 L2 档聚合按
+   evidence rank 判定并保留组内最高 level（`L2_real_retest` 不得被字面
+   `L2_confirmed` 比较降档）——真懂信号不在聚合层丢失。
 
 ## 单一写入职责
 

@@ -6721,3 +6721,42 @@ def test_mastery_faces_keep_legacy_scores_when_no_evidence_in_window(
     radar = service.get_radar_data("student_mastery_legacy")
     dimension = next(item for item in radar["dimensions"] if item["key"] == "网络计划")
     assert dimension["score"] == 80
+
+
+def test_snapshot_read_count_is_pinned_per_surface(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Codex #5:mastery 三面 + report 组合曾有冗余 snapshot 读风险。
+    # 钉住每面恰好 1 次 read_snapshot(计数回归,防未来叠加);
+    # report 组合路径的整体减法归独立 PR(踢重 legacy source)。
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("student_read_count")
+
+    calls = {"count": 0}
+
+    class _CountingLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            calls["count"] += 1
+            return SimpleNamespace(profile={}, progress={}, summary="", memory_events=[])
+
+        def read_compiled_learning_truth(self, user_id: str):
+            return {}
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 3):
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _CountingLearnerStateService())
+
+    calls["count"] = 0
+    service.get_home_dashboard("student_read_count")
+    assert calls["count"] == 1, f"home dashboard must read snapshot exactly once, got {calls['count']}"
+
+    calls["count"] = 0
+    service.get_radar_data("student_read_count")
+    assert calls["count"] == 1, f"radar must read snapshot exactly once, got {calls['count']}"
+
+    calls["count"] = 0
+    service.get_mastery_dashboard("student_read_count")
+    assert calls["count"] == 1, f"mastery dashboard must read snapshot exactly once, got {calls['count']}"

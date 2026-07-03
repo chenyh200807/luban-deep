@@ -6503,36 +6503,52 @@ class MemberConsoleService:
         """融合计划 §3：跨模式「下一步」= home_next_step_projection 单一仲裁。
 
         本方法只组装输入并委托，不做任何规则判断（禁在 member_console 再拼）。
-        依赖标注（§7 rollout）：review 臂依赖 learning-state 投影可用；活跃练
-        臂的 active_training_intents 首页暂无干净读源（PCP 归 report 链路），
-        通电前传空——仲裁自然落到 learn/fallback 臂，不伪装。
+        三条输入全部真实接线（Codex SEV-1 治本，禁硬编码空供给）：
+        - 活跃练 = 同一份 snapshot events 纯派生的处方 outcomes（零新增 IO），
+          status != verified 即活跃；同一份 outcomes 同时喂 queue 做已验证抑制
+          （与 report 路径 learning_report_read_model 同口径，防已验证 probe 复活）。
+        - claims = read_compiled_learning_truth 的 weak_points（照 report 先例；
+          生产 = 1 次 Supabase 读，miss 返回空如实降级，不跑 dry-run 合成——
+          对 contracts/learner-state.md:52 cache-miss 回退条款的显式最小偏离）。
         """
         try:
-            from deeptutor.services.learner_state.home_next_step_projection import (
-                build_home_next_step_projection,
-            )
+            from deeptutor.services.learner_state import home_next_step_projection as _hns
+            from deeptutor.services.learner_state import pack_lifecycle_projection as _plp
+            from deeptutor.services.learner_state import revalidation_queue as _rq
             from deeptutor.services.learner_state.learning_state_projection import (
                 project_three_layer_learning_state,
             )
-            from deeptutor.services.learner_state.pack_lifecycle_projection import (
-                project_pack_lifecycle,
-            )
-            from deeptutor.services.learner_state.revalidation_queue import (
-                build_revalidation_queue_projection,
+            from deeptutor.services.learner_state.prescription_outcome_read_model import (
+                build_prescription_outcomes_read_projection,
             )
             from deeptutor.services.luban_lesson import list_green_lessons
 
+            learner_state_service = self._get_learner_state_service()
             events = self._snapshot_memory_events(snapshot)
             learning_state = project_three_layer_learning_state(events=events)
-            queue = build_revalidation_queue_projection(
+            outcomes = build_prescription_outcomes_read_projection(events=events)
+            active_intents = [
+                outcome
+                for outcome in outcomes
+                if str(outcome.get("training_intent_id") or "").strip()
+                and outcome.get("status") != "verified"
+            ]
+            try:
+                compiled = learner_state_service.read_compiled_learning_truth(learner_user_id)
+            except Exception:
+                logger.warning("Failed to read compiled truth for home next step", exc_info=True)
+                compiled = {}
+            claims = list((compiled or {}).get("weak_points") or [])
+            queue = _rq.build_revalidation_queue_projection(
                 user_id=learner_user_id,
                 events=events,
                 learning_state=learning_state,
+                prescription_outcomes=outcomes,
             )
-            return build_home_next_step_projection(
+            return _hns.build_home_next_step_projection(
                 revalidation_items=list(queue.get("items") or []),
-                active_training_intents=[],
-                pack_lifecycle=project_pack_lifecycle(events=events, claims=[]),
+                active_training_intents=active_intents,
+                pack_lifecycle=_plp.project_pack_lifecycle(events=events, claims=claims),
                 green_lessons=list_green_lessons(),
             )
         except Exception:

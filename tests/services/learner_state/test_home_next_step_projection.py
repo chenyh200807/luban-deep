@@ -186,3 +186,101 @@ def test_learn_arm_respects_prerequisite_order_k01_after_n01() -> None:
         green_lessons=green,
     )
     assert step["source_ref"] == "K01"
+
+
+def test_home_next_step_wires_real_intents_claims_and_verified_suppression(
+    tmp_path, monkeypatch
+) -> None:
+    # Codex SEV-1:practice 臂曾被硬编码 active_training_intents=[] 断供
+    # (dormant authority),claims=[] 使 mastered 语义被改写;且首页 queue
+    # 没传 prescription_outcomes(已验证 probe 会复活)。接线断言钉死三条输入。
+    from types import SimpleNamespace
+
+    from deeptutor.services.learner_state import home_next_step_projection as hns
+    from deeptutor.services.learner_state import pack_lifecycle_projection as plp
+    from deeptutor.services.learner_state import revalidation_queue as rq
+    from deeptutor.services.member_console.service import MemberConsoleService
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("student_wired")
+
+    practice_event = SimpleNamespace(
+        event_id="rx_evt_1",
+        memory_kind="learning_evidence",
+        source_feature="construction_grading",
+        source_id="turn:rx1",
+        dedupe_key="rx_evt_1",
+        created_at="2026-07-03T10:00:00+08:00",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "q_rx_1",
+            "training_intent_id": "ti_active_1",
+            "prescription_phase": "discovery_probe",
+            "score_awarded": 0.0,
+            "max_score": 1.0,
+            "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+        },
+    )
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            return SimpleNamespace(
+                profile={}, progress={}, summary="", memory_events=[practice_event]
+            )
+
+        def read_compiled_learning_truth(self, user_id: str):
+            return {
+                "weak_points": [
+                    {
+                        "concept_id": "1A433000-B041",
+                        "evidence_level": "L2_real_retest",
+                        "decay_state": "active",
+                    }
+                ]
+            }
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 3):
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    captured: dict = {}
+
+    def _capture_arbiter(**kwargs):
+        captured["arbiter"] = kwargs
+        return {"mode": "practice_active", "source_authority": "training_intent", "source_ref": "ti_active_1", "reason": "x"}
+
+    def _capture_queue(**kwargs):
+        captured["queue"] = kwargs
+        return {"items": [], "source_status": {"candidate_count": 0}}
+
+    def _capture_lifecycle(**kwargs):
+        captured["lifecycle"] = kwargs
+        return {"packs": {}}
+
+    monkeypatch.setattr(hns, "build_home_next_step_projection", _capture_arbiter)
+    monkeypatch.setattr(rq, "build_revalidation_queue_projection", _capture_queue)
+    monkeypatch.setattr(plp, "project_pack_lifecycle", _capture_lifecycle)
+
+    step = service._build_home_next_step(
+        learner_user_id="student_wired",
+        snapshot=_FakeLearnerStateService().read_snapshot("student_wired"),
+    )
+    assert step["mode"] == "practice_active"
+
+    # ①practice 臂供给:未 verified 的处方 outcome 必须进 active_training_intents
+    active = captured["arbiter"]["active_training_intents"]
+    assert any(item.get("training_intent_id") == "ti_active_1" for item in active)
+    # ②claims 供给:compiled truth 的 weak_points 必须喂 lifecycle(mastered 语义可达)
+    assert captured["lifecycle"]["claims"], "claims must come from read_compiled_learning_truth"
+    assert captured["lifecycle"]["claims"][0]["evidence_level"] == "L2_real_retest"
+    # ③首页复验臂必须带已验证抑制(与 report 路径同口径)
+    assert "prescription_outcomes" in captured["queue"]
+    assert any(
+        item.get("training_intent_id") == "ti_active_1"
+        for item in captured["queue"]["prescription_outcomes"]
+    )
