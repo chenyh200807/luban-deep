@@ -38,6 +38,7 @@
 | `DEEPTUTOR_SEMANTIC_ROUTER_ENABLED` | True | killswitch | ✅ | |
 | `DEEPTUTOR_SEMANTIC_ROUTER_SHADOW_MODE` | False | shadow | ✅ | |
 | `QUESTION_LIFECYCLE_DECISION_AUTHORITY` | True | killswitch | ✅ | 无 `_ENABLED` 后缀,靠 env_flag 抓到 |
+| `DEEPTUTOR_HOME_NEXT_STEP_ENABLED` | False | rollout | ✅ | 融合计划 §3 home_next_step_projection(跨模式「下一步」呈现仲裁),默认 off,已登记 env_registry.yaml |
 | `KBV5_RAG_ENABLED` | (无显式 default) | rollout | ✅ | **KB v5 灰度核心**,拼错=假灰度 |
 | `SUPABASE_RAG_ENABLED` | False | rollout | ✅ | |
 | `SUPABASE_RAG_COMPILED_TRUTH_ENABLED` | (无) | rollout | ✅ | |
