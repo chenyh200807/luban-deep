@@ -159,3 +159,30 @@ def test_home_dashboard_gates_next_step_behind_flag(tmp_path, monkeypatch) -> No
     assert step.get("mode") in {MODE_LEARN, MODE_FALLBACK}
     for field in _FOUR_FIELDS:
         assert step.get(field) is not None
+
+
+def test_learn_arm_respects_prerequisite_order_k01_after_n01() -> None:
+    # §4-2 章序陷阱：K01(432章)在字母/章节序上先于 N01(433章)，但 N01
+    # (网络计划定量求解)是 K01(索赔工期臂)的前置——两者都未学时先推 N01。
+    # 不设前置锁：只影响排序，可跳站不变。
+    green = [
+        {"pack_id": "K01", "title": "索赔成立与计算"},
+        {"pack_id": "N01", "title": "网络计划关键线路"},
+    ]
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[],
+        pack_lifecycle=_lifecycle({"K01": "unlearned", "N01": "unlearned"}),
+        green_lessons=green,
+    )
+    assert step["mode"] == MODE_LEARN
+    assert step["source_ref"] == "N01", "prerequisite N01 must come before K01"
+
+    # 前置已学（practiced）→ 不再挡 K01。
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[],
+        pack_lifecycle=_lifecycle({"K01": "unlearned", "N01": "practiced"}),
+        green_lessons=green,
+    )
+    assert step["source_ref"] == "K01"

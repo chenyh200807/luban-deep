@@ -22,6 +22,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from deeptutor.services.taxonomy.construction_learning_graph import (
+    order_packs_with_prerequisites,
+)
+
 MODE_REVIEW = "review_due"
 MODE_PRACTICE = "practice_active"
 MODE_LEARN = "learn_next"
@@ -69,11 +73,20 @@ def build_home_next_step_projection(
     green = [item for item in list(green_lessons or []) if isinstance(item, dict) and _text(item.get("pack_id"))]
     packs = (pack_lifecycle or {}).get("packs") if isinstance(pack_lifecycle, dict) else {}
     packs = packs if isinstance(packs, dict) else {}
-    for lesson in green:  # green_lessons 已按 registry 静态序（pack_id 排序）
-        pack_id = _text(lesson.get("pack_id"))
+
+    def _state(pack_id: str) -> str:
         entry = packs.get(pack_id) if isinstance(packs.get(pack_id), dict) else {}
-        if _text(entry.get("lifecycle_state")) in ("", "unlearned"):
-            title = _text(lesson.get("title")) or pack_id
+        return _text(entry.get("lifecycle_state"))
+
+    titles = {_text(item.get("pack_id")): _text(item.get("title")) for item in green}
+    ordered_ids = [_text(item.get("pack_id")) for item in green]  # registry 静态序
+    unlearned = {pack_id for pack_id in ordered_ids if _state(pack_id) in ("", "unlearned")}
+    # §4-2 前置过滤：未学前置 A 时不把后继 B 排到 A 前（学序=registry+前置边，
+    # 规则归 construction_learning_graph 教研 authority；不设前置锁，可跳站不变）。
+    ordered_ids = order_packs_with_prerequisites(ordered_ids, unlearned_pack_ids=unlearned)
+    for pack_id in ordered_ids:
+        if pack_id in unlearned:
+            title = titles.get(pack_id) or pack_id
             return {
                 "mode": MODE_LEARN,
                 "source_authority": "pack_lifecycle_projection",

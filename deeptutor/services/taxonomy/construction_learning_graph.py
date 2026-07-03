@@ -127,6 +127,79 @@ _EDGES: tuple[dict[str, str], ...] = (
 )
 
 
+# ─── Pack-level prerequisite edges（融合计划 §4-2，2026-07-03）─────────────
+# 深 pack（60-slot 注册表 pack_id）级前置边——node_code 边之外的第二种承载，
+# 同属本模块唯一 authority（教研拥有；禁全量 DAG：只登记有 jury/教研证据的边）。
+# 语义：from = 前置站，to = 后继站。**不设前置锁**：边只影响学序排序
+# （未学前置 A 时不把 B 排到 A 前），可跳站不变（v3.2 §5.1）。
+# 每条边必须带数据签名（pack jury 记录 file:line）；教研确认前标
+# pending_review=True——排序生效但对外理由文案不得声称教研已定。
+_PACK_PREREQUISITE_EDGES: tuple[dict[str, Any], ...] = (
+    {
+        "from": "N01",
+        "to": "N02",
+        "relation": "prerequisite",
+        "evidence": "60-slot registry slot 8→49：双代号网络计划关键线路/时间参数是 N 簇后续定量站的基础锚（1A433000-B041 复用）",
+        "pending_review": True,
+    },
+    {
+        "from": "N01",
+        "to": "N04",
+        "relation": "prerequisite",
+        "evidence": "60-slot registry slot 50：时标网络计划与前锋线判断以 1A433000-B041 关键线路为辅锚（N 簇同链）",
+        "pending_review": True,
+    },
+    {
+        "from": "N01",
+        "to": "K01",
+        "relation": "prerequisite",
+        "evidence": "K01_索赔成立与计算.md jury #5：网络计划定量求解=判索赔（工期臂）前置工具层能力（🔴高可信·回真源核）",
+        "pending_review": True,
+    },
+)
+
+
+def pack_prerequisites(pack_id: Any) -> list[str]:
+    """返回 ``pack_id`` 的前置 pack 列表（登记序）。未登记 → []。"""
+    normalized = str(pack_id or "").strip()
+    if not normalized:
+        return []
+    return [
+        edge["from"]
+        for edge in _PACK_PREREQUISITE_EDGES
+        if edge["to"] == normalized and edge["relation"] == "prerequisite"
+    ]
+
+
+def list_pack_prerequisite_edges() -> list[dict[str, Any]]:
+    """全部 pack 级前置边（fresh copies，含证据签名与 pending_review）。"""
+    return [dict(edge) for edge in _PACK_PREREQUISITE_EDGES]
+
+
+def order_packs_with_prerequisites(
+    ordered_pack_ids: list[str],
+    *,
+    unlearned_pack_ids: set[str],
+) -> list[str]:
+    """学序的前置过滤（融合计划 §4-2）：稳定重排——当后继 B 已在序列中、
+    其未学前置 A 出现在 B 之后时，把 A 提到 B 前。**不是锁**：不移除任何
+    站、不阻止直接访问；只消章序陷阱（如 K01 章节序先于其前置 N01）。"""
+    ordered = [str(item or "").strip() for item in ordered_pack_ids if str(item or "").strip()]
+    result: list[str] = []
+    for pack_id in ordered:
+        insert_at = len(result)
+        if pack_id in unlearned_pack_ids:
+            dependents = [
+                index
+                for index, placed in enumerate(result)
+                if placed in unlearned_pack_ids and pack_id in pack_prerequisites(placed)
+            ]
+            if dependents:
+                insert_at = min(dependents)
+        result.insert(insert_at, pack_id)
+    return result
+
+
 _CLUSTERS: tuple[dict[str, Any], ...] = (
     {
         "name": "建筑材料",
@@ -213,5 +286,8 @@ __all__ = [
     "is_known_learning_graph_node",
     "iter_known_node_ids",
     "list_learning_graph_clusters",
+    "list_pack_prerequisite_edges",
+    "order_packs_with_prerequisites",
+    "pack_prerequisites",
     "related_learning_graph_edges",
 ]
