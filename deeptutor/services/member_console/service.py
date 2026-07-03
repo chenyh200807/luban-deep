@@ -119,6 +119,7 @@ BI_OPERATION_START_AT = datetime(2026, 6, 22, 0, 0, tzinfo=_TZ)
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
+_HOME_NEXT_STEP_ENABLED = "DEEPTUTOR_HOME_NEXT_STEP_ENABLED"
 _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
     {
         "phone_backfill",
@@ -6489,7 +6490,54 @@ class MemberConsoleService:
             if is_canonical_home_personalization_projection(home_projection):
                 dashboard["home_projection"] = home_projection
                 self._apply_home_learning_projection(dashboard, home_projection)
+        if env_flag(_HOME_NEXT_STEP_ENABLED):
+            next_step = self._build_home_next_step(
+                learner_user_id=learner_user_id,
+                snapshot=snapshot,
+            )
+            if next_step.get("mode") and next_step.get("mode") != "unavailable":
+                dashboard["next_step"] = next_step
         return dashboard
+
+    def _build_home_next_step(self, *, learner_user_id: str, snapshot: Any | None) -> dict[str, Any]:
+        """融合计划 §3：跨模式「下一步」= home_next_step_projection 单一仲裁。
+
+        本方法只组装输入并委托，不做任何规则判断（禁在 member_console 再拼）。
+        依赖标注（§7 rollout）：review 臂依赖 learning-state 投影可用；活跃练
+        臂的 active_training_intents 首页暂无干净读源（PCP 归 report 链路），
+        通电前传空——仲裁自然落到 learn/fallback 臂，不伪装。
+        """
+        try:
+            from deeptutor.services.learner_state.home_next_step_projection import (
+                build_home_next_step_projection,
+            )
+            from deeptutor.services.learner_state.learning_state_projection import (
+                project_three_layer_learning_state,
+            )
+            from deeptutor.services.learner_state.pack_lifecycle_projection import (
+                project_pack_lifecycle,
+            )
+            from deeptutor.services.learner_state.revalidation_queue import (
+                build_revalidation_queue_projection,
+            )
+            from deeptutor.services.luban_lesson import list_green_lessons
+
+            events = self._snapshot_memory_events(snapshot)
+            learning_state = project_three_layer_learning_state(events=events)
+            queue = build_revalidation_queue_projection(
+                user_id=learner_user_id,
+                events=events,
+                learning_state=learning_state,
+            )
+            return build_home_next_step_projection(
+                revalidation_items=list(queue.get("items") or []),
+                active_training_intents=[],
+                pack_lifecycle=project_pack_lifecycle(events=events, claims=[]),
+                green_lessons=list_green_lessons(),
+            )
+        except Exception:
+            logger.warning("Failed to build home next step projection", exc_info=True)
+            return {"mode": "unavailable", "source_authority": "", "source_ref": "", "reason": ""}
 
     @staticmethod
     def _apply_home_learning_projection(dashboard: dict[str, Any], projection: dict[str, Any]) -> None:

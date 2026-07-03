@@ -1,0 +1,161 @@
+"""§3 home_next_step_projection：确定性优先级、四字段可审计、冷启动
+fallback 非空（day-0 不白屏）、铁律（零写入纯函数 + 规则单点）。"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from deeptutor.services.learner_state.home_next_step_projection import (
+    MODE_FALLBACK,
+    MODE_LEARN,
+    MODE_PRACTICE,
+    MODE_REVIEW,
+    build_home_next_step_projection,
+)
+
+_GREEN = [
+    {"pack_id": "A01", "title": "检验批验收程序"},
+    {"pack_id": "N01", "title": "网络计划关键线路"},
+]
+_REVIEW_ITEM = {
+    "probe_id": "rvp_x1",
+    "intent": {"concept_label": "网络计划", "training_intent_id": "rvp_x1"},
+}
+_ACTIVE_INTENT = {"training_intent_id": "ti_1", "concept_label": "防水工程"}
+_FOUR_FIELDS = ("mode", "source_authority", "source_ref", "reason")
+
+
+def _lifecycle(states: dict[str, str]) -> dict:
+    return {"packs": {pack: {"lifecycle_state": state} for pack, state in states.items()}}
+
+
+def test_priority_review_beats_practice_beats_learn() -> None:
+    # 三权威同时非空 → 到期复赢。
+    step = build_home_next_step_projection(
+        revalidation_items=[_REVIEW_ITEM],
+        active_training_intents=[_ACTIVE_INTENT],
+        pack_lifecycle=_lifecycle({"A01": "unlearned"}),
+        green_lessons=_GREEN,
+    )
+    assert step["mode"] == MODE_REVIEW
+    assert step["source_authority"] == "revalidation_queue"
+    assert step["source_ref"] == "rvp_x1"
+
+    # 无到期复 → 活跃练赢。
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[_ACTIVE_INTENT],
+        pack_lifecycle=_lifecycle({"A01": "unlearned"}),
+        green_lessons=_GREEN,
+    )
+    assert step["mode"] == MODE_PRACTICE
+    assert step["source_authority"] == "training_intent"
+    assert step["source_ref"] == "ti_1"
+
+    # 只剩学 → 第一个 未学∧绿灯。
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[],
+        pack_lifecycle=_lifecycle({"A01": "practiced", "N01": "unlearned"}),
+        green_lessons=_GREEN,
+    )
+    assert step["mode"] == MODE_LEARN
+    assert step["source_ref"] == "N01"
+
+
+def test_cold_start_fallback_is_never_blank() -> None:
+    # 冷启动零证据：前三臂全空 → fallback 必非空（day-0 不白屏），群体理由。
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[],
+        pack_lifecycle={"packs": {}},
+        green_lessons=_GREEN,
+    )
+    # 零证据时 pack 无状态 = 未学 → learn 臂直接兜住。
+    assert step["mode"] in {MODE_LEARN, MODE_FALLBACK}
+    assert step["source_ref"] == "A01"
+    assert step["reason"]
+
+
+def test_all_learned_falls_back_to_registry_first_green() -> None:
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[],
+        pack_lifecycle=_lifecycle({"A01": "mastered", "N01": "practiced"}),
+        green_lessons=_GREEN,
+    )
+    assert step["mode"] == MODE_FALLBACK
+    assert step["source_authority"] == "pack_manifest.registry_order"
+    assert step["source_ref"] == "A01"
+    assert "第一站" in step["reason"]
+
+
+def test_every_arm_emits_all_four_audit_fields() -> None:
+    cases = [
+        dict(revalidation_items=[_REVIEW_ITEM], active_training_intents=[], pack_lifecycle={}, green_lessons=_GREEN),
+        dict(revalidation_items=[], active_training_intents=[_ACTIVE_INTENT], pack_lifecycle={}, green_lessons=_GREEN),
+        dict(revalidation_items=[], active_training_intents=[], pack_lifecycle=_lifecycle({"A01": "unlearned"}), green_lessons=_GREEN),
+        dict(revalidation_items=[], active_training_intents=[], pack_lifecycle=_lifecycle({"A01": "mastered", "N01": "mastered"}), green_lessons=_GREEN),
+    ]
+    for kwargs in cases:
+        step = build_home_next_step_projection(**kwargs)
+        for field in _FOUR_FIELDS:
+            assert field in step, f"missing audit field {field} in {step}"
+        assert step["mode"] != "unavailable"
+
+
+def test_no_green_supply_is_honest_unavailable() -> None:
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[],
+        pack_lifecycle={},
+        green_lessons=[],
+    )
+    assert step["mode"] == "unavailable"
+
+
+def test_module_is_pure_no_ledger_write_no_intent_generation() -> None:
+    # 铁律源码 pin：禁写 ledger / 禁生成 training_intent / 禁改 revalidation。
+    source = Path("deeptutor/services/learner_state/home_next_step_projection.py").read_text(
+        encoding="utf-8"
+    )
+    assert "append_memory_event" not in source
+    assert "build_learning_training_intent" not in source
+    assert "write_" not in source
+    # 只读组合：不 import 任何 service 单例。
+    assert "get_learner_state_service" not in source
+
+
+def test_home_dashboard_gates_next_step_behind_flag(tmp_path, monkeypatch) -> None:
+    from pathlib import Path as _P
+    from types import SimpleNamespace
+
+    from deeptutor.services.member_console.service import MemberConsoleService
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("student_next_step")
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            return SimpleNamespace(profile={}, progress={}, summary="", memory_events=[])
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 3):
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    monkeypatch.delenv("DEEPTUTOR_HOME_NEXT_STEP_ENABLED", raising=False)
+    dashboard = service.get_home_dashboard("student_next_step")
+    assert "next_step" not in dashboard  # flag 默认 off
+
+    monkeypatch.setenv("DEEPTUTOR_HOME_NEXT_STEP_ENABLED", "1")
+    dashboard = service.get_home_dashboard("student_next_step")
+    step = dashboard.get("next_step") or {}
+    # 冷启动零证据 → learn/fallback 兜底非空。
+    assert step.get("mode") in {MODE_LEARN, MODE_FALLBACK}
+    for field in _FOUR_FIELDS:
+        assert step.get(field) is not None

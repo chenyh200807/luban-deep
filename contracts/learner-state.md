@@ -487,6 +487,25 @@ Overlay 必须支持：
 
 - 学员级 heartbeat 调度主表
 
+### Home Next-Step Projection（融合计划 §3，2026-07-03 登记）
+
+`home_next_step_projection` 是跨模式「下一步」的**呈现仲裁 read-model authority**
+（display arbitration，register-before-use 显式登记——不是第二练习处方）。
+
+1. 组合规则只存在这一份（`learner_state/home_next_step_projection.py`）：
+   `到期复（revalidation_queue 有 due probe）> 活跃练（training_intent 有
+   active intent）> 下一学（路线上第一个 未学∧绿灯签发 的站）> fallback
+   （registry 静态序第一个绿灯站 + 群体理由）`。**禁前端/各 tab 再拼一次。**
+2. 输出必须带 `mode / source_authority / source_ref / reason` 四字段——每个
+   「下一步」可审计来自哪个权威。
+3. 铁律：禁写 ledger、禁生成/修改 `training_intent`、禁改 revalidation 状态。
+   它不生成任何「该练什么」的内容判断——练的内容仍完全由 `training_intent`
+   说了算，复由 `revalidation_queue`，学序由 registry+前置边。
+4. 冷启动兜底：新用户零证据 → 前三臂空 → fallback 必须非空（day-0 不白屏），
+   理由文案用群体理由（诚实版，不伪装个性化）。
+5. 接入面：home dashboard，受 `DEEPTUTOR_HOME_NEXT_STEP_ENABLED`（默认 off）
+   门控；退路（若被证明越权）= learn 只作路线图固有语义。
+
 ## 单一写入职责
 
 ### Session State
