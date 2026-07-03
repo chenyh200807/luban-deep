@@ -1001,3 +1001,25 @@ def test_claim_status_treats_real_retest_as_confirmed() -> None:
     assert _claim_status("L2_confirmed", "active") == "confirmed"
     assert _claim_status("L1_repeated", "active") == "repeated"
     assert _claim_status("L0_observed", "active") == "observed"
+
+
+def test_weak_point_aggregation_preserves_real_retest_level() -> None:
+    # 1a 同族残留地雷:weak_points 聚合曾用字面 == "L2_confirmed" 判 L2 档,
+    # L2_real_retest 级 item 会被降到 repeated/observed——真懂信号在聚合层丢失。
+    retest_events = [
+        _learning_event(
+            f"retest_evt_{i}",
+            observed_at=f"2026-05-1{8 + i}T10:00:00+08:00",
+            quality={
+                "evidence_level": "L2_real_retest",
+                "writeback_eligible": True,
+                "retest_happened": True,
+                "retest_authority": "real_student_retest",
+            },
+        )
+        for i in range(2)
+    ]
+    projection = synthesize_learning_truth(retest_events)
+    weak = projection["weak_points"][0]
+    assert weak["evidence_level"] == "L2_real_retest"
+    assert weak["claim_status"] == "confirmed"

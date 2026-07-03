@@ -22,9 +22,10 @@
 from __future__ import annotations
 
 import json
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
+
+from loguru import logger
 
 from deeptutor.services.learner_state.lesson_evidence import is_lesson_view_event
 from deeptutor.services.learner_state.memory_lifecycle import evidence_level_rank
@@ -42,27 +43,55 @@ LIFECYCLE_DORMANT = "dormant"
 
 _MASTERY_RANK_FLOOR = evidence_level_rank("L2_real_retest")
 
+# 编译产物的单一 loader 汇点（照 m35_artifact_query 的 (mtime_ns, size) 模式）：
+# 失败（缺文件/损坏）**绝不写缓存**——修好文件后同进程下次调用即恢复；
+# 成功才按 stat 键缓存，产物热更新（mtime 变）自动失效。降级必打 warning 可观测。
+_ARTIFACT_CACHE: dict[str, tuple[tuple[int, int], Any]] = {}
 
-@lru_cache(maxsize=1)
-def _question_to_packs() -> dict[str, tuple[str, ...]]:
-    """裸 chunk_id → packs（合并跨年；runtime question_id 不带年份限定）。"""
+
+def _load_compiled_artifact(path: Path, project: Any) -> Any:
     try:
-        compiled = json.loads(_QUESTION_PACK_MAP_PATH.read_text(encoding="utf-8"))
+        stat = path.stat()
+        stat_key = (stat.st_mtime_ns, stat.st_size)
+    except OSError:
+        logger.warning("pack lifecycle artifact missing (degraded, not cached): {}", path)
+        return project(None)
+    cache_key = str(path)
+    cached = _ARTIFACT_CACHE.get(cache_key)
+    if cached is not None and cached[0] == stat_key:
+        return cached[1]
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
+        logger.warning("pack lifecycle artifact unreadable (degraded, not cached): {}", path)
+        return project(None)
+    projected = project(payload)
+    _ARTIFACT_CACHE[cache_key] = (stat_key, projected)
+    return projected
+
+
+def _project_question_index(compiled: dict[str, Any] | None) -> dict[str, tuple[str, ...]]:
+    """双键索引：qualified `year:chunk_id` 精确键 + 裸 chunk_id 键（合并跨年，
+    仅唯一 pack 时才可 join——歧义由 resolver fail-closed 处理）。零碰撞：
+    qualified 键恒有 `^\\d{4}:` 前缀，裸键不含 `:`（专家 B 实测 252/234 键验证）。"""
+    if not isinstance(compiled, dict):
         return {}
-    merged: dict[str, set[str]] = {}
+    index: dict[str, set[str]] = {}
     for qualified, packs in (compiled.get("reverse_index") or {}).items():
+        index.setdefault(qualified, set()).update(packs)
         bare = qualified.split(":", 1)[-1]
-        merged.setdefault(bare, set()).update(packs)
-    return {key: tuple(sorted(value)) for key, value in merged.items()}
+        index.setdefault(bare, set()).update(packs)
+    return {key: tuple(sorted(value)) for key, value in index.items()}
 
 
-@lru_cache(maxsize=1)
-def _taxonomy_to_packs() -> tuple[dict[str, tuple[str, ...]], dict[str, tuple[str, ...]]]:
-    """taxonomy_code → (primary 命中 packs, 任意 ref 命中 packs)。"""
-    try:
-        compiled = json.loads(_PACK_TAXONOMY_REGISTRY_PATH.read_text(encoding="utf-8"))
-    except Exception:
+def _question_to_packs() -> dict[str, tuple[str, ...]]:
+    return _load_compiled_artifact(_QUESTION_PACK_MAP_PATH, _project_question_index)
+
+
+def _project_taxonomy_index(
+    compiled: dict[str, Any] | None,
+) -> tuple[dict[str, tuple[str, ...]], dict[str, tuple[str, ...]]]:
+    if not isinstance(compiled, dict):
         return {}, {}
     primary: dict[str, set[str]] = {}
     any_ref: dict[str, set[str]] = {}
@@ -78,6 +107,11 @@ def _taxonomy_to_packs() -> tuple[dict[str, tuple[str, ...]], dict[str, tuple[st
         {key: tuple(sorted(value)) for key, value in primary.items()},
         {key: tuple(sorted(value)) for key, value in any_ref.items()},
     )
+
+
+def _taxonomy_to_packs() -> tuple[dict[str, tuple[str, ...]], dict[str, tuple[str, ...]]]:
+    """taxonomy_code → (primary 命中 packs, 任意 ref 命中 packs)。"""
+    return _load_compiled_artifact(_PACK_TAXONOMY_REGISTRY_PATH, _project_taxonomy_index)
 
 
 def _resolve_pack_for_practice(payload: dict[str, Any]) -> tuple[str, str]:

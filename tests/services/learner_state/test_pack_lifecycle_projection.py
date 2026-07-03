@@ -168,3 +168,60 @@ def test_report_read_model_exposes_pack_lifecycle_composer() -> None:
     payload = _build_pack_lifecycle_from(events=[_lesson_event("N01")], weak_points=[])
     assert payload["packs"]["N01"]["lifecycle_state"] == LIFECYCLE_EXPOSED
     assert payload["authority"] == "pack_lifecycle_projection.read_model"
+
+
+def test_artifact_loader_never_caches_failure(tmp_path, monkeypatch) -> None:
+    # Codex #3:lru_cache 曾把首次读失败(空 dict)缓存到进程死;
+    # 修好文件后同进程必须能恢复,失败必打 warning。
+    import deeptutor.services.learner_state.pack_lifecycle_projection as plp
+
+    artifact = tmp_path / "map.json"
+    monkeypatch.setattr(plp, "_QUESTION_PACK_MAP_PATH", artifact)
+    plp._ARTIFACT_CACHE.clear()
+
+    # 文件缺失 → 空索引(降级),但不落缓存
+    assert plp._question_to_packs() == {}
+
+    artifact.write_text(
+        '{"reverse_index": {"2015:EXAM_XW2015_MU_30": ["N01"]}}', encoding="utf-8"
+    )
+    index = plp._question_to_packs()
+    # 同进程恢复:qualified 精确键 + 裸键都可查
+    assert index["2015:EXAM_XW2015_MU_30"] == ("N01",)
+    assert index["EXAM_XW2015_MU_30"] == ("N01",)
+
+    # 产物热更新(内容变) → 缓存按 stat 键失效重读
+    artifact.write_text(
+        '{"reverse_index": {"2016:EXAM_XW2016_SI_01": ["A01"]}}', encoding="utf-8"
+    )
+    index = plp._question_to_packs()
+    assert "EXAM_XW2016_SI_01" in index and "EXAM_XW2015_MU_30" not in index
+    plp._ARTIFACT_CACHE.clear()
+
+
+def test_question_index_serves_qualified_and_unique_bare_keys(tmp_path, monkeypatch) -> None:
+    # Codex #2 修复:qualified 键保留精确契约;裸键跨年合并后不同 pack = 歧义,
+    # resolver 不硬塞(fail-closed 语义不变)。
+    import deeptutor.services.learner_state.pack_lifecycle_projection as plp
+
+    artifact = tmp_path / "map.json"
+    artifact.write_text(
+        '{"reverse_index": {"2022:EXAM_1A411001_P0001_01": ["A01"], "2023:EXAM_1A411001_P0001_01": ["N01"]}}',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(plp, "_QUESTION_PACK_MAP_PATH", artifact)
+    plp._ARTIFACT_CACHE.clear()
+
+    # qualified 精确键各归各的 pack(年份限定契约在 runtime 不再被剥)
+    assert plp._resolve_pack_for_practice({"question_id": "2022:EXAM_1A411001_P0001_01"}) == (
+        "A01",
+        "question_map",
+    )
+    assert plp._resolve_pack_for_practice({"question_id": "2023:EXAM_1A411001_P0001_01"}) == (
+        "N01",
+        "question_map",
+    )
+    # 裸键跨年属不同 pack → 歧义,禁硬塞
+    pack, reason = plp._resolve_pack_for_practice({"question_id": "EXAM_1A411001_P0001_01"})
+    assert pack == "" and reason == "question_ambiguous"
+    plp._ARTIFACT_CACHE.clear()

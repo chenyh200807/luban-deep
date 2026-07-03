@@ -95,8 +95,13 @@ def synthesize_learning_truth(
     raw_weak_points: list[dict[str, Any]] = []
     for (concept_id, error_code), items in sorted(grouped.items()):
         candidate = _candidate_from_items(concept_id, error_code, items)
-        if any(_clean_text(item.get("evidence_level")) == "L2_confirmed" for item in items):
-            raw_weak_points.append({**candidate, "evidence_level": "L2_confirmed"})
+        top_level = ""
+        for item in items:
+            top_level = max_evidence_level(top_level, _clean_text(item.get("evidence_level")))
+        if evidence_level_rank(top_level) >= evidence_level_rank("L2_confirmed"):
+            # §6-1 同族:字面 == "L2_confirmed" 曾把 L2_real_retest 降档;
+            # 按 rank 判 L2 档并保真最高 level(真懂信号不在聚合层丢失)。
+            raw_weak_points.append({**candidate, "evidence_level": top_level})
         elif len(items) >= 2:
             raw_weak_points.append({**candidate, "evidence_level": "L1_repeated"})
         else:
