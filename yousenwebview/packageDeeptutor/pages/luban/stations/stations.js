@@ -29,6 +29,8 @@ Page({
     routePercent: 0,
     nextLesson: null,
     nextOrdinal: 1,
+    // exam_date 派生(profile read model, §5.1 "知道你考试日期"): "" = 未设置显示深链
+    examDaysLeft: "",
     mapScrollId: "",
   },
 
@@ -54,6 +56,7 @@ Page({
       return;
     }
     this._loadLessons();
+    this._loadExamCountdown();
   },
 
   onShow() {
@@ -116,6 +119,23 @@ Page({
     });
   },
 
+  // 距考天数 = profile.exam_date 纯展示派生(服务端已校验 YYYY-MM-DD, T5 已接写侧)
+  _loadExamCountdown() {
+    var that = this;
+    return api
+      .getUserInfo()
+      .then(function (resp) {
+        var info = api.unwrapResponse(resp) || {};
+        var examDate = String(info.exam_date || "").trim();
+        if (!examDate) return;
+        var target = new Date(examDate + "T00:00:00+08:00").getTime();
+        if (isNaN(target)) return;
+        var days = Math.ceil((target - Date.now()) / 86400000);
+        if (days >= 0) that.setData({ examDaysLeft: String(days) });
+      })
+      .catch(function () {});
+  },
+
   _loadLessons() {
     var that = this;
     return api
@@ -131,9 +151,10 @@ Page({
           lessonCount: count,
           totalStations: total,
           routePercent: total > 0 ? Math.round((lit / total) * 100) : 0,
-          // 无完成态数据 → 下一站 = 列表第一站（S1），kicker 序号与海报一致
+          // 下一站 = 考频优先第一站(服务端已按 registry_slot 排序, §5.1 冷启动
+          // 退化为考频/priority——推荐理由可验证不编造); 无完成态数据暂不跳过已学站
           nextLesson: count ? lessons[0] : null,
-          nextOrdinal: 1,
+          nextOrdinal: count && lessons[0].registry_slot ? lessons[0].registry_slot : 1,
           loading: false,
           errorText: "",
         });

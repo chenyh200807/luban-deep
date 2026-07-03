@@ -137,3 +137,26 @@ def test_count_registered_packs_authority_and_fail_closed(tmp_path):
     from deeptutor.services.luban_lesson import count_registered_packs
     assert count_registered_packs() == 40, "真 manifest 当前注册 40 包"
     assert count_registered_packs(manifest_path=tmp_path / "nope.json") == 0, "缺失→0→客户端隐藏总数"
+
+
+def test_lessons_sorted_by_registry_slot_not_alpha(tmp_path):
+    """路线排序权威=registry_slot 考频优先(双轮 §5.1)——字母序是被 owner 打回的假排序。"""
+    packs = [
+        {"pack_id": "A01", "title": "验收", "student_title": "检验批验收", "content_sha256": "a",
+         "registry_slot": 7, "published": True, "jury_clean": True, "explicitly_barred_default_entry": False},
+        {"pack_id": "J01", "title": "危大", "student_title": "危大工程", "content_sha256": "j",
+         "registry_slot": 1, "published": True, "jury_clean": True, "explicitly_barred_default_entry": False},
+        {"pack_id": "Z01", "title": "未对齐", "student_title": "", "content_sha256": "z",
+         "registry_slot": 0, "published": True, "jury_clean": True, "explicitly_barred_default_entry": False},
+    ]
+    mp = _write_manifest(tmp_path, packs, ["A01", "J01", "Z01"])
+    rows = list_green_lessons(manifest_path=mp)
+    assert [r["pack_id"] for r in rows] == ["J01", "A01", "Z01"], "slot 升序, 未对齐(0)排最后"
+    assert rows[0]["title"] == "危大工程", "学员端标题优先 student_title"
+
+
+def test_real_manifest_green_slots_present():
+    rows = list_green_lessons()
+    slots = {r["pack_id"]: r["registry_slot"] for r in rows}
+    assert slots.get("J01") == 1 and slots.get("S05") == 17 and slots.get("F16") == 29
+    assert [r["pack_id"] for r in rows][0] == "J01", "考频第一站=J01"

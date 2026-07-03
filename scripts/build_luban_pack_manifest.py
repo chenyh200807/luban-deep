@@ -93,6 +93,11 @@ def _scan_pack(path: Path, pack_id: str, title: str) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8")
     jury = _jury_stats(pack_id)
     coarse = "coarse_review" in text
+    # 60-slot 注册表对齐块的 slot 号 = 考频优先序（路线排序权威, 双轮 §5.1）
+    slot_m = re.search(r"`?registry_slot`?\s*\|\s*(\d+)", text)
+    registry_slot = int(slot_m.group(1)) if slot_m else 0
+    title_m = re.search(r"`?student_title`?\s*\|\s*([^|\n]+)", text)
+    student_title = title_m.group(1).strip() if title_m else ""
     needs_leaf = "needs_leaf_review" in text
     barred = bool(re.search(r"不进(学员)?默认(学习)?入口", text)) or needs_leaf
     entry: dict[str, Any] = {
@@ -102,6 +107,8 @@ def _scan_pack(path: Path, pack_id: str, title: str) -> dict[str, Any]:
         "content_sha256": _sha256(path),
         # 状态信号(确定性提取, 不做语义裁决)
         "review_level": "coarse_review" if coarse else "standard",
+        "registry_slot": registry_slot,
+        "student_title": student_title,
         "needs_leaf_review": needs_leaf,
         "explicitly_barred_default_entry": barred,
         "red_marker_count": text.count("🔴"),

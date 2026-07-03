@@ -19,7 +19,11 @@
     <view class="lb-metrics">
       <view class="lb-metric-card lb-metric-tap" bindtap="goProfile">
         <text class="lb-metric-label">距考试</text>
-        <text class="lb-metric-link">设置考试日期 →</text>
+        <view class="lb-metric-label-row" wx:if="{{examDaysLeft !== ''}}">
+          <text class="lb-metric-strong lb-exam-days">{{examDaysLeft}}</text>
+          <text class="lb-metric-label">天</text>
+        </view>
+        <text class="lb-metric-link" wx:else>设置考试日期 →</text>
       </view>
       <view class="lb-metric-card">
         <view class="lb-metric-label-row">
@@ -55,11 +59,11 @@
             />
           </view>
           <view class="lb-next-titles">
-            <text class="lb-next-kicker">下一站 · 你的路线 S{{nextOrdinal}}</text>
+            <text class="lb-next-kicker">下一站 · 考频优先第 {{nextOrdinal}} 位</text>
             <text class="lb-next-title">{{nextLesson.title}}</text>
           </view>
           <view class="lb-weak-chip">
-            <text>匹配你的薄弱</text>
+            <text>考频高频考点</text>
           </view>
         </view>
         <view

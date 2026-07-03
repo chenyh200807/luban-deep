@@ -19,7 +19,9 @@
    "publish_note": "2026-07-02 owner 批准四包签发（batch1 攒批，含 C02 设计级拆分追认），以工程窗口独立机器核验为准入。核验数字（2026-07-02 工程窗口，PR #337 分支上实跑）：真题锚确定性核验 N01 5/5、J01 9/9、A01 5/5、C02 11/11 零漂移；build_luban_pack_manifest --check passed green=5；manifest 域测试 7 passed；resolution 形状合规（含 J01 #3 回源证伪 not_applicable）。出处重建说明：原 note 为内容窗口代写的签发声明（工程窗口无法独立核实），经 owner 2026-07-02 拍板 B 重建为本条——签发裁决人=owner，机器准入=工程窗口。",
    "published": true,
    "red_marker_count": 58,
+   "registry_slot": 7,
    "review_level": "standard",
+   "student_title": "检验批/分部分项验收程序",
    "title": "检验批验收程序"
   },
   {
@@ -38,7 +40,9 @@
    "pack_id": "A02",
    "published": false,
    "red_marker_count": 25,
+   "registry_slot": 40,
    "review_level": "coarse_review",
+   "student_title": "隐蔽工程验收 + 材料进场复验/见证取样",
    "title": "隐蔽验收材料复验见证取样"
   },
   {
@@ -57,7 +61,9 @@
    "pack_id": "B02",
    "published": false,
    "red_marker_count": 15,
+   "registry_slot": 5,
    "review_level": "standard",
+   "student_title": "基坑支护选型与降水/监测",
    "title": "基坑支护选型与降水监测"
   },
   {
@@ -76,7 +82,9 @@
    "pack_id": "C01",
    "published": false,
    "red_marker_count": 18,
+   "registry_slot": 13,
    "review_level": "standard",
+   "student_title": "施工缝留置与处理",
    "title": "施工缝留置与处理"
   },
   {
@@ -96,7 +104,9 @@
    "publish_note": "2026-07-02 owner 批准四包签发（batch1 攒批，含 C02 设计级拆分追认），以工程窗口独立机器核验为准入。核验数字（2026-07-02 工程窗口，PR #337 分支上实跑）：真题锚确定性核验 N01 5/5、J01 9/9、A01 5/5、C02 11/11 零漂移；build_luban_pack_manifest --check passed green=5；manifest 域测试 7 passed；resolution 形状合规（含 J01 #3 回源证伪 not_applicable）。出处重建说明：原 note 为内容窗口代写的签发声明（工程窗口无法独立核实），经 owner 2026-07-02 拍板 B 重建为本条——签发裁决人=owner，机器准入=工程窗口。",
    "published": true,
    "red_marker_count": 17,
+   "registry_slot": 4,
    "review_level": "standard",
+   "student_title": "进度款/计量计价",
    "title": "进度款与计量计价"
   },
   {
@@ -115,7 +125,9 @@
    "pack_id": "C04",
    "published": false,
    "red_marker_count": 34,
+   "registry_slot": 11,
    "review_level": "standard",
+   "student_title": "模板拆除顺序与条件",
    "title": "模板拆除顺序与条件"
   },
   {
@@ -134,7 +146,9 @@
    "pack_id": "C05",
    "published": false,
    "red_marker_count": 27,
+   "registry_slot": 14,
    "review_level": "standard",
+   "student_title": "钢筋连接选用",
    "title": "钢筋连接选用"
   },
   {
@@ -153,7 +167,9 @@
    "pack_id": "C06",
    "published": false,
    "red_marker_count": 19,
+   "registry_slot": 15,
    "review_level": "coarse_review",
+   "student_title": "砌体留槎与构造柱",
    "title": "砌体留槎与构造柱"
   },
   {
@@ -172,7 +188,9 @@
    "pack_id": "C07",
    "published": false,
    "red_marker_count": 17,
+   "registry_slot": 16,
    "review_level": "standard",
+   "student_title": "钢结构连接: 焊接/高强螺栓",
    "title": "钢结构连接"
   },
   {
@@ -191,7 +209,9 @@
    "pack_id": "D11",
    "published": false,
    "red_marker_count": 20,
+   "registry_slot": 21,
    "review_level": "coarse_review",
+   "student_title": "抹灰工序与质量控制",
    "title": "抹灰工序与质量控制"
   },
   {
@@ -210,7 +230,9 @@
    "pack_id": "D12",
    "published": false,
    "red_marker_count": 23,
+   "registry_slot": 22,
    "review_level": "standard",
+   "student_title": "饰面砖/板施工质量与空鼓防治",
    "title": "饰面砖板施工质量与空鼓防治"
   },
   {
@@ -229,7 +251,9 @@
    "pack_id": "D13",
    "published": false,
    "red_marker_count": 18,
+   "registry_slot": 23,
    "review_level": "coarse_review",
+   "student_title": "幕墙防火/防雷/层间封堵构造",
    "title": "幕墙防火防雷层间封堵"
   },
   {
@@ -248,7 +272,9 @@
    "pack_id": "E01",
    "published": false,
    "red_marker_count": 11,
+   "registry_slot": 41,
    "review_level": "coarse_review",
+   "student_title": "工程量清单计价",
    "title": "工程量清单计价"
   },
   {
@@ -267,7 +293,9 @@
    "pack_id": "E05",
    "published": false,
    "red_marker_count": 33,
+   "registry_slot": 39,
    "review_level": "coarse_review",
+   "student_title": "挣值法/偏差分析",
    "title": "挣值法偏差分析"
   },
   {
@@ -286,7 +314,9 @@
    "pack_id": "F02",
    "published": false,
    "red_marker_count": 19,
+   "registry_slot": 30,
    "review_level": "coarse_review",
+   "student_title": "卷材防水施工顺序与搭接方向",
    "title": "卷材防水施工顺序与搭接方向"
   },
   {
@@ -305,7 +335,9 @@
    "pack_id": "F03",
    "published": false,
    "red_marker_count": 19,
+   "registry_slot": 31,
    "review_level": "standard",
+   "student_title": "防水构造层次: 屋面/地下",
    "title": "防水构造层次屋面地下"
   },
   {
@@ -324,7 +356,9 @@
    "pack_id": "F04",
    "published": false,
    "red_marker_count": 21,
+   "registry_slot": 32,
    "review_level": "coarse_review",
+   "student_title": "防水细部节点: 阴阳角/管根/女儿墙",
    "title": "防水细部节点阴阳角管根女儿墙"
   },
   {
@@ -343,7 +377,9 @@
    "pack_id": "F05",
    "published": false,
    "red_marker_count": 21,
+   "registry_slot": 33,
    "review_level": "coarse_review",
+   "student_title": "渗漏治理诊断",
    "title": "渗漏治理诊断"
   },
   {
@@ -363,7 +399,9 @@
    "publish_note": "2026-07-03 owner 人工签发（本轮对话明文批准：'F16 直接批签发，把那 2 条 jury 收口掉'）。依据：2 条高可信 jury 正文早已采纳（HI#1 M2=E02主码+E06条件码 / HI#2 排气孔推断降🔵），本次补机器可读 resolution；工程窗口独立核验=锚 2/2 确定性命中+registry 语义核对；finished 成品教学卡(teach/practice+audio)已托管 web/public/luban-preview/f16/。",
    "published": true,
    "red_marker_count": 19,
+   "registry_slot": 29,
    "review_level": "coarse_review",
+   "student_title": "屋面防水起鼓割补",
    "title": "屋面防水起鼓割补"
   },
   {
@@ -382,7 +420,9 @@
    "pack_id": "G01",
    "published": false,
    "red_marker_count": 18,
+   "registry_slot": 25,
    "review_level": "coarse_review",
+   "student_title": "基坑开挖与降水方法选择",
    "title": "基坑开挖与降水方法选择"
   },
   {
@@ -401,7 +441,9 @@
    "pack_id": "G02",
    "published": false,
    "red_marker_count": 23,
+   "registry_slot": 26,
    "review_level": "coarse_review",
+   "student_title": "土方回填压实与检测",
    "title": "土方回填压实与检测"
   },
   {
@@ -420,7 +462,9 @@
    "pack_id": "G03",
    "published": false,
    "red_marker_count": 15,
+   "registry_slot": 27,
    "review_level": "coarse_review",
+   "student_title": "桩基施工与质量问题",
    "title": "桩基施工与质量问题"
   },
   {
@@ -439,7 +483,9 @@
    "pack_id": "G04",
    "published": false,
    "red_marker_count": 22,
+   "registry_slot": 28,
    "review_level": "coarse_review",
+   "student_title": "地基验槽与地基处理",
    "title": "地基验槽与地基处理"
   },
   {
@@ -459,7 +505,9 @@
    "publish_note": "2026-07-02 owner 批准四包签发（batch1 攒批，含 C02 设计级拆分追认），以工程窗口独立机器核验为准入。核验数字（2026-07-02 工程窗口，PR #337 分支上实跑）：真题锚确定性核验 N01 5/5、J01 9/9、A01 5/5、C02 11/11 零漂移；build_luban_pack_manifest --check passed green=5；manifest 域测试 7 passed；resolution 形状合规（含 J01 #3 回源证伪 not_applicable）。出处重建说明：原 note 为内容窗口代写的签发声明（工程窗口无法独立核实），经 owner 2026-07-02 拍板 B 重建为本条——签发裁决人=owner，机器准入=工程窗口。",
    "published": true,
    "red_marker_count": 31,
+   "registry_slot": 1,
    "review_level": "standard",
+   "student_title": "危大工程范围 + 专项方案 + 专家论证",
    "title": "危大工程专项方案专家论证"
   },
   {
@@ -478,7 +526,9 @@
    "pack_id": "K01",
    "published": false,
    "red_marker_count": 30,
+   "registry_slot": 9,
    "review_level": "standard",
+   "student_title": "索赔成立与工期/费用计算",
    "title": "索赔成立与计算"
   },
   {
@@ -498,7 +548,9 @@
    "publish_note": "2026-07-02 owner 批准四包签发（batch1 攒批，含 C02 设计级拆分追认），以工程窗口独立机器核验为准入。核验数字（2026-07-02 工程窗口，PR #337 分支上实跑）：真题锚确定性核验 N01 5/5、J01 9/9、A01 5/5、C02 11/11 零漂移；build_luban_pack_manifest --check passed green=5；manifest 域测试 7 passed；resolution 形状合规（含 J01 #3 回源证伪 not_applicable）。出处重建说明：原 note 为内容窗口代写的签发声明（工程窗口无法独立核实），经 owner 2026-07-02 拍板 B 重建为本条——签发裁决人=owner，机器准入=工程窗口。",
    "published": true,
    "red_marker_count": 20,
+   "registry_slot": 8,
    "review_level": "standard",
+   "student_title": "双代号网络计划关键线路/总时差",
    "title": "网络计划关键线路"
   },
   {
@@ -517,7 +569,9 @@
    "pack_id": "N02",
    "published": false,
    "red_marker_count": 53,
+   "registry_slot": 20,
    "review_level": "standard",
+   "student_title": "网络计划工期优化与赶工费用",
    "title": "网络计划工期优化"
   },
   {
@@ -536,7 +590,9 @@
    "pack_id": "N03",
    "published": false,
    "red_marker_count": 20,
+   "registry_slot": 38,
    "review_level": "standard",
+   "student_title": "流水施工参数与工期",
    "title": "流水施工参数与工期"
   },
   {
@@ -555,7 +611,9 @@
    "pack_id": "Q01",
    "published": false,
    "red_marker_count": 38,
+   "registry_slot": 6,
    "review_level": "standard",
+   "student_title": "混凝土养护与裂缝防治",
    "title": "混凝土养护与裂缝防治"
   },
   {
@@ -574,7 +632,9 @@
    "pack_id": "Q02",
    "published": false,
    "red_marker_count": 62,
+   "registry_slot": 12,
    "review_level": "standard",
+   "student_title": "大体积混凝土温控裂缝",
    "title": "大体积混凝土温控"
   },
   {
@@ -593,7 +653,9 @@
    "pack_id": "Q03",
    "published": false,
    "red_marker_count": 53,
+   "registry_slot": 10,
    "review_level": "coarse_review",
+   "student_title": "质量通病: 蜂窝麻面/空鼓裂缝",
    "title": "质量通病防治"
   },
   {
@@ -612,7 +674,9 @@
    "pack_id": "R01",
    "published": false,
    "red_marker_count": 21,
+   "registry_slot": 37,
    "review_level": "coarse_review",
+   "student_title": "现场消防布置、动火、检查、验收流程",
    "title": "现场消防布置动火检查验收"
   },
   {
@@ -631,7 +695,9 @@
    "pack_id": "S01",
    "published": false,
    "red_marker_count": 85,
+   "registry_slot": 2,
    "review_level": "standard",
+   "student_title": "脚手架/高大模板支架验收",
    "title": "脚手架模板支架验收"
   },
   {
@@ -650,7 +716,9 @@
    "pack_id": "S02",
    "published": false,
    "red_marker_count": 59,
+   "registry_slot": 3,
    "review_level": "standard",
+   "student_title": "起重吊装安全",
    "title": "起重吊装安全"
   },
   {
@@ -670,7 +738,9 @@
    "publish_note": "2026-07-02 owner 人工签发（S05 签发样板批次）。依据：jury 3 条高可信 issue 全部 fixed 并经独立复核（2017 停电顺序锚直读证据包命中、verify_exam_anchors 8/8、ERROR_CODE_REGISTRY 语义核真）；残留一致性 3 处收口（§5 D2 外延标注、§5 C1/R7 移除 M08 同理延伸）；owner 确认 diff 含两处同理延伸。",
    "published": true,
    "red_marker_count": 25,
+   "registry_slot": 17,
    "review_level": "standard",
+   "student_title": "临时用电: 三级配电两级保护",
    "title": "临时用电三级配电"
   },
   {
@@ -689,7 +759,9 @@
    "pack_id": "S06",
    "published": false,
    "red_marker_count": 51,
+   "registry_slot": 18,
    "review_level": "standard",
+   "student_title": "高处作业/临边洞口防护",
    "title": "高处作业临边洞口防护"
   },
   {
@@ -708,7 +780,9 @@
    "pack_id": "S07",
    "published": false,
    "red_marker_count": 27,
+   "registry_slot": 19,
    "review_level": "coarse_review",
+   "student_title": "安全事故等级判定与上报",
    "title": "安全事故等级判定与上报"
   },
   {
@@ -727,7 +801,9 @@
    "pack_id": "X01",
    "published": false,
    "red_marker_count": 32,
+   "registry_slot": 34,
    "review_level": "standard",
+   "student_title": "施工平面布置原则",
    "title": "施工平面布置原则"
   },
   {
@@ -746,7 +822,9 @@
    "pack_id": "X02",
    "published": false,
    "red_marker_count": 18,
+   "registry_slot": 35,
    "review_level": "coarse_review",
+   "student_title": "临设、道路、材料堆场布置",
    "title": "临设道路材料堆场布置"
   },
   {
@@ -765,7 +843,9 @@
    "pack_id": "X03",
    "published": false,
    "red_marker_count": 28,
+   "registry_slot": 36,
    "review_level": "coarse_review",
+   "student_title": "文明/绿色/环保施工措施",
    "title": "文明绿色环保施工措施"
   }
  ],

@@ -77,11 +77,14 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
         rows.append(
             {
                 "pack_id": pack["pack_id"],
-                "title": str(pack.get("title") or ""),
+                "title": str(pack.get("student_title") or pack.get("title") or ""),
                 "content_sha256": str(pack.get("content_sha256") or ""),
+                # 路线排序权威 = 60-slot 注册表 slot 号(考频优先, 双轮 §5.1);
+                # 0=未对齐, 排最后。禁前端自排(第二排序权威)。
+                "registry_slot": int(pack.get("registry_slot") or 0),
             }
         )
-    return sorted(rows, key=lambda r: r["pack_id"])
+    return sorted(rows, key=lambda r: (r["registry_slot"] == 0, r["registry_slot"], r["pack_id"]))
 
 
 def count_registered_packs(*, manifest_path: Path | None = None) -> int:
