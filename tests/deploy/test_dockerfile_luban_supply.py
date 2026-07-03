@@ -1,21 +1,61 @@
-"""Dockerfile 必须携带鲁班 runtime 供给文件（防镜像缺 manifest 致 lessons 全空复发）。
+"""Dockerfile 必须携带鲁班 runtime 供给文件（防镜像缺 manifest/变体池致运行时空转复发）。
 
-2026-07-02 live 事故：容器无 _pack_manifest.json → lesson read_model fail-closed →
-/api/v1/luban/lessons 恒空；unit 全绿（测试注入 manifest_path）掩盖了缺口。
-本测试把「镜像必须 COPY 供给文件」固化为仓库不变量。
+事故史（两次同型）：
+- 2026-07-02：容器无 _pack_manifest.json → lessons fail-closed 恒空（#344/#345 修）。
+- 2026-07-03：#344 逐文件 COPY 只写了 S05 → F16 变体池不进镜像 → F16 复测线上空。
+治本：成品目录整目录 COPY + .dockerignore 白名单通配（新站补池零 Dockerfile 改动）。
+本测试固化通配语义 + 用真实磁盘文件核验白名单实际命中（防模式写错的假绿）。
 """
+import fnmatch
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
+SUPPLY_DIR = "docs/原始数据/考点原料/成品"
 
 
-def test_dockerfile_copies_luban_pack_manifest_and_variant_bank() -> None:
+def _dockerignore_patterns() -> list[str]:
+    lines = (REPO / ".dockerignore").read_text(encoding="utf-8").splitlines()
+    return [l.strip() for l in lines if l.strip() and not l.strip().startswith("#")]
+
+
+def _excluded(path: str, patterns: list[str]) -> bool:
+    # docker patternmatcher 近似: last-match-wins, `!` 反排除
+    verdict = False
+    for pat in patterns:
+        neg = pat.startswith("!")
+        core = (pat[1:] if neg else pat).rstrip("/")
+        if (
+            fnmatch.fnmatch(path, core)
+            or path.startswith(core + "/")
+            or fnmatch.fnmatch(path, core + "/*")
+        ):
+            verdict = not neg
+    return verdict
+
+
+def test_dockerfile_copies_supply_dir() -> None:
     dockerfile = (REPO / "Dockerfile").read_text(encoding="utf-8")
-    assert "_pack_manifest.json" in dockerfile, "镜像必须 COPY 深母题 pack manifest"
-    assert "_S05_variant_bank.v0.json" in dockerfile, "镜像必须 COPY 变体池(次日复测供给)"
+    assert f'COPY ["{SUPPLY_DIR}/"' in dockerfile, (
+        "镜像必须整目录 COPY 供给目录(配 dockerignore 白名单)——"
+        "逐文件 COPY 是 F16 漏拷事故的根因, 禁止回退"
+    )
 
 
-def test_dockerignore_allowlists_luban_supply_files() -> None:
-    dockerignore = (REPO / ".dockerignore").read_text(encoding="utf-8")
-    assert "!docs/原始数据/考点原料/成品/_pack_manifest.json" in dockerignore
-    assert "!docs/原始数据/考点原料/成品/_S05_variant_bank.v0.json" in dockerignore
+def test_dockerignore_wildcard_covers_all_variant_banks_on_disk() -> None:
+    """白名单必须命中磁盘上全部 bank + manifest（真实文件核验, 防模式假绿）。"""
+    patterns = _dockerignore_patterns()
+    supply = REPO / SUPPLY_DIR
+    targets = sorted(p.name for p in supply.glob("_*_variant_bank.v0.json"))
+    assert targets, "磁盘上应存在至少一个变体池(S05/F16 已产)"
+    assert len(targets) >= 2, f"S05+F16 双池时代, 实际: {targets}"
+    for name in targets + ["_pack_manifest.json"]:
+        assert not _excluded(f"{SUPPLY_DIR}/{name}", patterns), (
+            f"{name} 被 .dockerignore 挡在 build context 外(远端 build 后运行时缺供给)"
+        )
+
+
+def test_dockerignore_still_excludes_pack_bodies() -> None:
+    """白名单只放供给 sidecar，pack 正文/jury 等不进镜像（防镜像膨胀）。"""
+    patterns = _dockerignore_patterns()
+    for name in ("S05_临时用电三级配电.md", "_S05_jury.json", "_pack_manifest.overrides.json"):
+        assert _excluded(f"{SUPPLY_DIR}/{name}", patterns), f"{name} 不应进镜像"

@@ -215,7 +215,8 @@ COPY contracts/ ./contracts/
 # 鲁班深母题 runtime 供给（lesson viewmodel read_model 只读这两类文件；
 # 不拷整个 docs/——manifest 绿灯投影 fail-closed，缺文件=供给面全空）
 COPY ["docs/原始数据/考点原料/成品/_pack_manifest.json", "./docs/原始数据/考点原料/成品/"]
-COPY ["docs/原始数据/考点原料/成品/_S05_variant_bank.v0.json", "./docs/原始数据/考点原料/成品/"]
+# 变体池 sidecar 通配拷贝(新站补池零 Dockerfile 改动——F16 漏拷事故治本)
+COPY ["docs/原始数据/考点原料/成品/", "./docs/原始数据/考点原料/成品/"]
 COPY scripts/ ./scripts/
 COPY pyproject.toml ./
 COPY requirements/ ./requirements/
