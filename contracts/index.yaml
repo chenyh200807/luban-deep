@@ -564,6 +564,7 @@ domains:
       - tests/services/learner_state/test_learning_state_projection.py
       - tests/services/learner_state/test_lesson_evidence.py
       - tests/api/test_lesson_progress_endpoint.py
+      - tests/services/learner_state/test_pack_lifecycle_projection.py
       - tests/services/learner_state/test_m32_waterproof_learning_synthesis.py
       - tests/services/learner_state/test_mastery_estimator.py
       - tests/services/learner_state/test_training_intent.py

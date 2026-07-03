@@ -68,6 +68,18 @@ def _variant_summary(pack_id: str, manifest_dir: Path) -> dict[str, Any]:
     }
 
 
+def list_all_pack_ids(*, manifest_path: Path | None = None) -> list[str]:
+    """40 pack 全集（manifest 登记序）——生命周期投影「未学」态的枚举范围
+    （融合计划 §1.1：考点全集 = 60-slot 注册表的 40 pack，不是 1976 叶）。
+    只读 manifest，绿灯与否不影响「未学」枚举（锁定站也如实是未学）。"""
+    manifest = _load_manifest(manifest_path)
+    return sorted(
+        str(pack.get("pack_id") or "").strip()
+        for pack in manifest.get("packs") or []
+        if str(pack.get("pack_id") or "").strip()
+    )
+
+
 def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, Any]]:
     """绿灯站点列表投影（地图/路线消费）；只含绿灯包，锁定站的露脸文案归上层。"""
     manifest = _load_manifest(manifest_path)
