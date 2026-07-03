@@ -48,6 +48,8 @@ def compile_registry() -> dict:
     packs: dict[str, dict] = {}
     for row in rows:
         refs = list(row.taxonomy_refs)
+        if row.pack_id in packs:
+            raise SystemExit(f"duplicate pack_id {row.pack_id!r} in 60-slot registry")
         packs[row.pack_id] = {
             "slot": row.slot,
             "student_title": row.student_title,

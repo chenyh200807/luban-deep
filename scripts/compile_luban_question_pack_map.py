@@ -16,19 +16,27 @@ join 题库 ``FINAL_CLEANED_EXAM_V<year>.json`` 的
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EVIDENCE_DIR = REPO_ROOT / "docs/原始数据/考点原料"
 OUTPUT_JSON = REPO_ROOT / "docs/原始数据/考点原料/成品/_question_pack_map.v0.json"
 UNMATCHED_MD = REPO_ROOT / "docs/原始数据/考点原料/待归位-题到pack映射未匹配清单.md"
-DEFAULT_BANK_ROOT = Path(
-    "/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/原始数据/2026_副本/题库"
-)
+# 题库快照收进 repo（11 个年卷共 3.3MB，与已 tracked 的 37 份 exam_evidence
+# 同级体量）：确定性重跑测试在任何 full checkout / CI 上都能真跑，
+# 不再依赖盘外数据（原盘外路径仍可用 --bank-root 覆盖）。
+DEFAULT_BANK_ROOT = REPO_ROOT / "docs/原始数据/考点原料/题库快照"
 
-_CN_DIGITS = {"一": "1", "二": "2", "三": "3", "四": "4", "五": "5", "六": "6", "七": "7", "八": "8", "九": "9", "十": "10"}
+_CN_DIGITS = {
+    "一": "1", "二": "2", "三": "3", "四": "4", "五": "5",
+    "六": "6", "七": "7", "八": "8", "九": "9", "十": "10",
+    "十一": "11", "十二": "12", "十三": "13", "十四": "14", "十五": "15",
+    "十六": "16", "十七": "17", "十八": "18", "十九": "19", "二十": "20",
+}
 
 
 def normalize_anchor(raw: str) -> str:
@@ -47,6 +55,42 @@ def normalize_anchor(raw: str) -> str:
     return text
 
 
+def _bank_files(bank_root: Path) -> list[Path]:
+    """题库年卷文件（扁平快照目录 + 兼容旧的按年子目录结构）。"""
+    return sorted(
+        {
+            *bank_root.glob("FINAL_CLEANED_EXAM_V*.json"),
+            *bank_root.glob("*/FINAL_CLEANED_EXAM_V*.json"),
+        }
+    )
+
+
+def build_sources_section(bank_root: Path) -> list[dict[str, Any]]:
+    """产物溯源段：每个源年卷的 relpath + sha256 + chunk 数。
+
+    hash 的核验路径与写入路径解耦：CI/独立核验者直接对快照文件重算
+    sha256 对照本段（非自证）——见 tests/scripts/test_luban_question_pack_map.py。"""
+    sources: list[dict[str, Any]] = []
+    for path in _bank_files(bank_root):
+        raw = path.read_bytes()
+        try:
+            chunk_count = len(json.loads(raw).get("chunks") or [])
+        except Exception:
+            chunk_count = 0
+        try:
+            relpath = path.relative_to(REPO_ROOT).as_posix()
+        except ValueError:
+            relpath = path.as_posix()
+        sources.append(
+            {
+                "relpath": relpath,
+                "sha256": hashlib.sha256(raw).hexdigest(),
+                "chunk_count": chunk_count,
+            }
+        )
+    return sources
+
+
 def load_bank_index(bank_root: Path) -> dict[tuple[str, str], list[str]]:
     """(year, normalized_anchor) -> ["year:chunk_id", ...]。
 
@@ -55,7 +99,7 @@ def load_bank_index(bank_root: Path) -> dict[tuple[str, str], list[str]]:
     复合键。同一案例可按分问拆成多个 chunk（2017 案例一 = P0009_01 +
     P0010_04），因此 (year, anchor) 合法一对多。"""
     index: dict[tuple[str, str], list[str]] = {}
-    for path in sorted(bank_root.glob("*/FINAL_CLEANED_EXAM_V*.json")):
+    for path in _bank_files(bank_root):
         payload = json.loads(path.read_text(encoding="utf-8"))
         for chunk in payload.get("chunks") or []:
             meta = chunk.get("source_meta") or {}
@@ -77,6 +121,8 @@ def compile_map(bank_root: Path) -> dict:
     for path in sorted(EVIDENCE_DIR.glob("_*_exam_evidence.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
         pack_id = str(payload.get("考点") or path.name.split("_")[1]).strip()
+        if pack_id in packs:
+            raise SystemExit(f"duplicate pack_id {pack_id!r} across exam_evidence files")
         linked: set[str] = set()
         ambiguous: list[dict] = []
         unmatched: list[dict] = []
@@ -114,6 +160,7 @@ def compile_map(bank_root: Path) -> dict:
             "只作学情 join/生命周期投影用，不充判分 authority。未匹配项如实在 unmatched，禁止硬塞。"
         ),
         "question_key_format": "year:chunk_id（题库 chunk_id 跨年不唯一，必须带年份限定）",
+        "sources": build_sources_section(bank_root),
         "packs": packs,
         "reverse_index": reverse,
     }

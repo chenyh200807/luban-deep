@@ -61,3 +61,35 @@
   - 第 5 个（write_persists_only_canonical_projection）= suite 内全局状态隔离污染：该测试自带 fake learner state 完全自包含，单独跑 1 passed——符合"单独 PASS=污染非回归"铁律，非本分支引入路径。
 - qa_ cohort TestClient 冒烟：未认证 401 ✅ / qa_ 写入 200 ✅ / 同日 dedupe 折叠（同 event_id）✅ / 非法 watched_stage 400 ✅。
 - contract-guard passed；rest-route-allowlist passed（35 mounts）；env-registry-guard passed；schema-registry-guard passed；luban-animation-taxonomy-alignment passed（registry_rows=60）。
+
+## 5. Codex 对抗性 review 修复轮(2026-07-03 晚,三专家并行测绘 + 主控裁决)
+
+方法:root-cause skill 六问 + 3 个只读专家 subagent 并行(供给面/产物 seam/溯源策略)各带证伪任务,主控逐条独立核源码后统一实现。
+
+### 裁决与修复对照(Codex 5 条 → 实际 7 项)
+
+| # | Codex 判 | 主控终裁 | 修法 |
+|---|---|---|---|
+| 1 | SEV-1 next_step 输入断供 | **坐实并加重**(claims=[] 使 20-events 窗外的老用户全 pack 显示未学) | 三输入真实接线:活跃练=同 events 纯派生处方 outcomes(status!=verified,零新增 IO);claims=read_compiled_learning_truth.weak_points(照 report 先例,miss 空降级);**顺带修专家 A 挖出的第 6 个问题**:首页 queue 补 prescription_outcomes(已验证 probe 不再复活)。contract 新增"输入供给禁断供"条款 |
+| 2 | SEV-2 year:chunk_id 被剥 | **降级**:专家 B 用 2346 条真实事件普查证明 runtime 从不产 EXAM 形态 id(0 命中,该 join 路径是 unconsumed island);"精确键 miss"是空指控;裸键合并数学上不可能错 join(只会变歧义),真实伤害=5 键(6.6%)精度损失 | 双键索引(qualified 精确 + 裸键唯一才 join,实测零碰撞);**真缺口如实登记**:判分 evidence 不携带可 join 的题库 id(桥=questions_bank.original_id),接线归独立 PR |
+| 3 | SEV-2 lru_cache 缓存失败态 | **坐实**(吞异常返回空值恰好被 lru_cache 缓存中毒) | 两 loader 收敛到 `_load_compiled_artifact` 单一汇点,照抄 m35_artifact_query 的 (mtime_ns,size) 成熟模式:失败不缓存+warning 可观测,热更新自动失效;测试证同进程恢复 |
+| 4 | SEV-2 外部题库+CI skip | **翻案出更优解**:专家 C 实测 11 个年卷仅 3.3MB(219M 是无关渲染产物);且 CI 白名单根本不跑该测试,Codex "remove the skip" 单独做是空转 | 题库快照收进 repo(docs/原始数据/考点原料/题库快照/,与已 tracked 3.8MB evidence 同级);DEFAULT_BANK_ROOT 改指 repo 内;产物加 sources 段(relpath+sha256+chunk_count);测试删 skip+加独立 sha256 核验(核验方=测试,声称方=编译,物理分离反自证);两个编译测试加进 tests.yml api-contract shard 白名单 |
+| 5 | SEV-2 冗余 snapshot 读 | **修正量级**(实测 2 次非 3-4 次;radar 不在 report 组合内)但风险真实:0.5s legacy 超时生产近乎必然触发且超时线程照烧 | 本 PR:计数回归测试钉死每面恰好 1 次 read_snapshot;**report 踢重 legacy source 的减法归独立 PR**(专家 A 方案 C,行为面大) |
+| +6 | (专家 A 证伪挖出)首页复验臂缺已验证抑制 | 坐实 | 并入 #1 接线(同一份 outcomes) |
+| +7 | (主控独立核出)synthesis :98 weak_points 聚合字面 == L2_confirmed,L2_real_retest 被降档 | 坐实(1a 同族残留;RED 实证降成 L1_repeated) | rank 判 L2 档 + max_evidence_level 保真;contract 新增聚合保真条款 |
+
+### 顺手加固(专家 B 隐患清单)
+- 两个编译脚本 pack_id 重复静默覆盖 → fail-fast;_CN_DIGITS 补齐十一~二十(案例十一不再白丢)。
+- **登记不修**(如实):题库多科目时 (year,anchor) 键无科目维度是地雷(当前单科目未爆);taxonomy registry 复核 md 排序键装饰性错;question_map join 真通电需判分 evidence 带 original_id(独立接线 PR);report 踢 legacy source 减法(独立 PR);横切 dormant-gate 病(build_luban_pack_manifest --check 自称 CI 校验但零接线,scan_scoring_point_provenance/review_content_truth_queue 盘外 glob 静默空扫)。
+
+### 验证数字
+- learner_state 全套 + 编译守护 + 端点 + graph:**549 passed**;新增 RED→GREEN 5 个(聚合保真/loader 恢复/双键 fail-closed/三输入接线/读计数)。
+- contract-guard / rest-route-allowlist(35) / env-registry 全 passed;编译产物两次重跑零漂移(含 sources 段)。
+
+### 待 owner 手动应用(push 权限限制)
+本会话 OAuth token 无 `workflow` scope,无法推 `.github/workflows/tests.yml`。请 owner 手动在 tests.yml 的 api-contract shard 白名单(`tests/scripts/test_contract_guard.py` 之后)追加两行:
+```
+                tests/scripts/test_luban_question_pack_map.py \
+                tests/scripts/test_luban_pack_taxonomy_registry.py
+```
+(没有这一步,#4 的确定性重跑+sha256 核验测试只在本地跑,CI 不可见。)

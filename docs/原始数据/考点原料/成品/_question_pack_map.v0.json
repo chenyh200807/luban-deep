@@ -9648,5 +9648,62 @@
       "C05"
     ]
   },
-  "schema": "luban_question_pack_map.v0"
+  "schema": "luban_question_pack_map.v0",
+  "sources": [
+    {
+      "chunk_count": 35,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2015.json",
+      "sha256": "8ef277d588d7b56066538912b8952f54d44924902bef02518c64d3d18d43b248"
+    },
+    {
+      "chunk_count": 35,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2016.json",
+      "sha256": "2549e4f5fe5971f80cc810ada00d49dc02814fc5485bcc48801abda097c3fdbc"
+    },
+    {
+      "chunk_count": 34,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2017.json",
+      "sha256": "a5ec4346428b50ae37b7dc768497bb8eb54aebf48880d9c965ed59bce52fa269"
+    },
+    {
+      "chunk_count": 48,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2018.json",
+      "sha256": "4c68731cbc125c02d702d3f620c2347e85985b8cb9d1f419b02a111073961f8b"
+    },
+    {
+      "chunk_count": 48,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2019.json",
+      "sha256": "9c85553a4c64725292b184fcda1a92acc5cef824c53471e6996da3008a88b6af"
+    },
+    {
+      "chunk_count": 53,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2020.json",
+      "sha256": "e85837c2469c5a824b43629a5ce5ce4b6009a0e2426ee1b5ea84bd05cfe6c4c8"
+    },
+    {
+      "chunk_count": 46,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2021.json",
+      "sha256": "82ac9d9c73aa7e66d551551a4b28966c4a5cf84373327ae322dc6bdfe15636af"
+    },
+    {
+      "chunk_count": 44,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2022.json",
+      "sha256": "315cdc2157208ee75a052be6903b87d85bdc1b4ebea795b85ad8aeb32da3a751"
+    },
+    {
+      "chunk_count": 38,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2023.json",
+      "sha256": "da93fba13ae94279154495ba806f7bbeafe099ccdbf3823bbf9d4b917b811d6b"
+    },
+    {
+      "chunk_count": 40,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2024.json",
+      "sha256": "807eccf62d1ca393d737c10b6d18ba70a00bb128ab63f363f39be055d87f2340"
+    },
+    {
+      "chunk_count": 43,
+      "relpath": "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2025.json",
+      "sha256": "78f708cc883cddcf1f7547d2347d34bd387b64ed02e6d12cc052195d2a05987a"
+    }
+  ]
 }
