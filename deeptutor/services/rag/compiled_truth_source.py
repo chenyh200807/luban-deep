@@ -5,6 +5,10 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from deeptutor.services.learner_state.memory_lifecycle import (
+    evidence_level_from_claim_status,
+    evidence_level_rank,
+)
 
 _DEFAULT_MAX_CHARS_PER_DOC = 700
 _DEFAULT_MAX_TOTAL_CHARS = 2400
@@ -38,22 +42,11 @@ def _text(value: Any) -> str:
 
 
 def _evidence_level_rank(level: str) -> int:
-    order = {
-        "L0_observed": 0,
-        "L1_repeated": 1,
-        "L2_confirmed": 2,
-        "L3_mastery_signal": 3,
-    }
-    return order.get(_text(level), -1)
+    return evidence_level_rank(level)
 
 
 def _evidence_level_from_claim_status(status: Any) -> str:
-    normalized = _text(status)
-    return {
-        "observed": "L0_observed",
-        "repeated": "L1_repeated",
-        "confirmed": "L2_confirmed",
-    }.get(normalized, "")
+    return evidence_level_from_claim_status(status)
 
 
 def _sanitize_compiled_truth_text(value: Any, *, max_chars: int) -> tuple[str, int, bool]:

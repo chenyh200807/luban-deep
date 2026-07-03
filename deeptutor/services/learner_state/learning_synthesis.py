@@ -8,7 +8,12 @@ from typing import Any, Iterable
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
 )
-from deeptutor.services.learner_state.memory_lifecycle import lifecycle_stage_for_evidence_level
+from deeptutor.services.learner_state.memory_lifecycle import (
+    confidence_for_evidence_level,
+    evidence_level_rank,
+    lifecycle_stage_for_evidence_level,
+    max_evidence_level,
+)
 from deeptutor.services.learner_state.canonical_truth_policy import (
     trusted_adjudication_from_quality,
 )
@@ -815,7 +820,7 @@ def _put_object(
             *superseded_by_event_ids,
         ])
         timeline_refs = [*previous.get("timeline_refs", []), *timeline_refs]
-    final_evidence_level = _max_level(previous.get("evidence_level") if previous else "", evidence_level)
+    final_evidence_level = max_evidence_level(previous.get("evidence_level") if previous else "", evidence_level)
     final_decay_state = decay_state if decay_state != "active" else (previous or {}).get("decay_state", "active")
     final_supporting_event_ids = _dedupe(supporting_event_ids)
     claim_status = _claim_status(final_evidence_level, final_decay_state)
@@ -824,7 +829,7 @@ def _put_object(
         "object_id": object_id,
         "current_truth": current_truth,
         "evidence_level": final_evidence_level,
-        "confidence": _confidence_for_level(final_evidence_level),
+        "confidence": confidence_for_evidence_level(final_evidence_level),
         "supporting_event_ids": final_supporting_event_ids,
         "evidence_refs": final_supporting_event_ids,
         "conflicting_event_ids": _dedupe(conflicting_event_ids),
@@ -867,7 +872,7 @@ def _claim_status(evidence_level: str, decay_state: str) -> str:
         return "superseded"
     if decay_state in {"improving", "stale"}:
         return "stale"
-    if evidence_level in {"L2_confirmed", "L3_mastery_signal"}:
+    if evidence_level_rank(evidence_level) >= evidence_level_rank("L2_confirmed"):
         return "confirmed"
     if evidence_level == "L1_repeated":
         return "repeated"
@@ -1183,15 +1188,6 @@ def _first_training_signal(items: list[dict[str, Any]]) -> dict[str, Any]:
         if isinstance(signal, dict) and signal:
             return dict(signal)
     return {}
-
-
-def _max_level(previous: str, current: str) -> str:
-    order = {"": 0, "L0_observed": 1, "L1_repeated": 2, "L2_confirmed": 3}
-    return previous if order.get(previous, 0) >= order.get(current, 0) else current
-
-
-def _confidence_for_level(level: str) -> float:
-    return {"L2_confirmed": 0.9, "L1_repeated": 0.72, "L0_observed": 0.45}.get(level, 0.3)
 
 
 def _first_observed(timeline_refs: list[dict[str, Any]]) -> str:
