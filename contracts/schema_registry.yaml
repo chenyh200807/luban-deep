@@ -107,6 +107,15 @@ content_asset_contracts:
     official_score_allowed: false
     runtime_canonical: false
     grading_authority: false
+  - name: luban_question_pack_map.v0
+    owner: luban_deep_pack
+    contract_for: deterministic question->pack mapping compiled from 37 exam_evidence files joined to the exam bank; question key = "year:chunk_id" (bank chunk_id is NOT unique across years); weak-anchor ambiguity and unmatched rows are reported honestly, never force-linked
+    validation_gate: scripts/compile_luban_question_pack_map.py
+    validation_scope: deterministic rebuild must match on-disk artifact (tests/scripts/test_luban_question_pack_map.py); learner-state join only, never grading authority
+    consumed_by: lifecycle projection practice-evidence join (fusion plan §2.4 path 1 / §6-5)
+    official_score_allowed: false
+    runtime_canonical: false
+    grading_authority: false
 
 # ── Tier3 carve-out: ephemeral one-shot artifacts (rule, NOT 1:1 registration) ─
 #
