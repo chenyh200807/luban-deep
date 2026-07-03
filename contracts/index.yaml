@@ -70,6 +70,7 @@ http_routes:
   - {prefix: /api/v1/invite-test, reason: "Invite-test application intake."}
   - {prefix: /api/v1/knowledge, reason: "Knowledge-base CRUD + ingestion."}
   - {prefix: /api/v1/learner-signal, reason: "Learner subjective signal write adapter; records learning_evidence with source_feature=learner_signal and does not enter compiler truth."}
+  - {prefix: /api/v1/lesson-progress, reason: "学-evidence (lesson_viewed) write adapter (融合计划 §2.1): records learning_evidence with source_feature=luban_lesson, evidence_level=exposed, progress_countable=false; stays OUT of the synthesis whitelist and never promotes mastery (M0)."}
   - {prefix: /api/v1/learning-brain, reason: "Learning-brain QA (dev-gated)."}
   - {prefix: /api/v1/luban-preview, reason: "Luban preview AI ask adapter; production REST surface must stay explicitly governed and rate-limited."}
   - {prefix: /api/v1/luban, reason: "Luban lesson viewmodel (双轮 §7 投影门 runtime 消费者): authed read-only projection of pack-manifest green lights; fail-closed 404 for unpublished packs; zero write (evidence 归 learner_signal/判分链路)."}
@@ -262,6 +263,7 @@ domains:
       - web/lib/unified-ws.ts
       - web/context/UnifiedChatContext.tsx
     test_files:
+      - tests/services/learner_state/test_lesson_evidence.py
       - tests/api/test_system_router.py
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/services/observability/test_content_truth_review_queue.py
@@ -560,6 +562,8 @@ domains:
       - tests/services/learner_state/test_learning_synthesis.py
       - tests/services/learner_state/test_learning_report_read_model.py
       - tests/services/learner_state/test_learning_state_projection.py
+      - tests/services/learner_state/test_lesson_evidence.py
+      - tests/api/test_lesson_progress_endpoint.py
       - tests/services/learner_state/test_m32_waterproof_learning_synthesis.py
       - tests/services/learner_state/test_mastery_estimator.py
       - tests/services/learner_state/test_training_intent.py

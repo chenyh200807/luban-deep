@@ -10,7 +10,9 @@ Thin 投影层（§3 所有权表）：本模块**只读投影、零生成**—�
 - ``content_sha256`` 透传给客户端作缓存键（§9-D7/D8：pack 升版 → sha 变 → 重取）。
 
 学习证据边界（防第四 builder）：本模块**不写任何学习证据**。档位①②轻练走既有
-``learner_signal`` 路由（非 promoting），档位③走判分链路——写侧一个不加。
+``learner_signal`` 路由（非 promoting），档位③走判分链路；学-evidence
+（lesson_viewed）唯一 writer = ``learner_state/lesson_evidence.py``（经
+``lesson_progress`` 路由，融合计划 §2.1）——本投影模块仍零写入。
 """
 from __future__ import annotations
 

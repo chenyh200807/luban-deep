@@ -399,6 +399,18 @@ Overlay 必须支持：
   仅通过 `payload.evidence_source="conversation_synthesis"` 和
   `payload.learning_signal_type` 区分。conversation evidence 不得直接提升 mastery，
   只能进入 recent observation / needs confirmation，直到后续 grading evidence 验证。
+- 学-evidence（`learning_signal_type="lesson_viewed"`，融合计划 §2.1）：唯一 writer =
+  `learner_state/lesson_evidence.record_lesson_view_evidence()`（经 `/api/v1/lesson-progress`
+  路由），仍走 `append_memory_event` 唯一 sink。payload 必须带
+  `event_type="learning_evidence"`（本 contract 硬要求）+ `evidence_level="exposed"`
+  （ladder 外 level，不参与掌握排序）+ `quality.progress_countable=false`（report
+  attempt/streak 与 mastery attempts 全部跳过）；`source_feature="luban_lesson"` 必须
+  保持在 `learning_synthesis._is_learning_evidence` 白名单**之外**——看动画绝不进
+  claim/weak point/mastery（M0）。dedupe_key 按（用户, pack, watched_stage, 业务日）
+  折叠。消费边界：只被生命周期投影（「已学·待验证」态）等定向读侧消费；
+  `home_personalization` 的最近事件选择器必须过滤 `lesson_viewed`（不顶替
+  today_focus）；`learning_state_projection` 以 `lesson_view_count` 显式分类（不计入
+  legacy_count）。
 - 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
   `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
   读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
