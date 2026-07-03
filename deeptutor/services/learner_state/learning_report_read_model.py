@@ -71,6 +71,13 @@ def _build_prescription_outcomes_from(*, events: list[Any]) -> list[dict[str, An
     return build_prescription_outcomes_read_projection(events=events)
 
 
+def aggregate_attempts_by_label(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
+    """§6-2 首页 mastery 收口的公开 seam：同一份 learning-evidence 过滤 +
+    聚合逻辑喂 estimate_mastery（唯一 mastery 算子）。member_console 的
+    首页/雷达/章节盘必须复用这里，不得自建第二套 attempts 聚合。"""
+    return _aggregate_learning_evidence(_learning_evidence_events(list(events or [])))["attempts_by_label"]
+
+
 _TZ = timezone(timedelta(hours=8))
 # Canonical schema id for register-before-use (schema-governance P2: this read model is
 # this module's single schema authority — contracts/learning-report.md). The wire payload

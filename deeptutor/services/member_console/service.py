@@ -6347,14 +6347,70 @@ class MemberConsoleService:
     def _build_provisional_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
         return []
 
-    def _report_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
+    def _report_mastery_items(
+        self,
+        member: dict[str, Any],
+        *,
+        evidence_events: list[Any] | None = None,
+    ) -> list[dict[str, Any]]:
         last_assessment_items = self._last_assessment_mastery_items(member)
         if last_assessment_items:
-            return self._mastery_items_in_member_scope(member, last_assessment_items)
-        mastery_items = self._chapter_mastery_items(member)
-        if any(int(item.get("mastery") or 0) > 0 for item in mastery_items):
-            return self._mastery_items_in_member_scope(member, mastery_items)
-        return self._build_provisional_mastery_items(member)
+            base_items = self._mastery_items_in_member_scope(member, last_assessment_items)
+        else:
+            mastery_items = self._chapter_mastery_items(member)
+            if any(int(item.get("mastery") or 0) > 0 for item in mastery_items):
+                base_items = self._mastery_items_in_member_scope(member, mastery_items)
+            else:
+                base_items = self._build_provisional_mastery_items(member)
+        return self._blend_mastery_with_evidence(base_items, evidence_events=evidence_events)
+
+    @staticmethod
+    def _blend_mastery_with_evidence(
+        items: list[dict[str, Any]],
+        *,
+        evidence_events: list[Any] | None,
+    ) -> list[dict[str, Any]]:
+        """§6-2 首页 mastery 收口：estimate_mastery（唯一 mastery 算子）聚合
+        learner-state 证据 → 旧形状 [{"name","mastery"}] adapter。
+
+        只对证据窗内有 attempts 的章节混合；窗内无证据的章节保持 legacy 分
+        （摸底测评优先契约不破，也避免 event_limit 小窗造成的假 insufficient 降级）。
+        """
+        if not items or not evidence_events:
+            return items
+        try:
+            from deeptutor.services.learner_state.learning_report_read_model import (
+                aggregate_attempts_by_label,
+            )
+            from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
+
+            attempts_by_label = aggregate_attempts_by_label(list(evidence_events))
+        except Exception:
+            logger.warning("Failed to aggregate mastery evidence for member console", exc_info=True)
+            return items
+        if not attempts_by_label:
+            return items
+        blended: list[dict[str, Any]] = []
+        for item in items:
+            name = str(item.get("name") or "").strip()
+            attempts = attempts_by_label.get(name) or []
+            if not attempts:
+                blended.append(item)
+                continue
+            estimate = estimate_mastery(attempts=attempts, legacy_score=item.get("mastery"))
+            blended.append({**item, "mastery": int(estimate.get("score") or 0)})
+        return blended
+
+    def _mastery_evidence_events(self, member: dict[str, Any], user_id: str) -> list[Any]:
+        learner_user_id = str(member.get("user_id") or user_id or "").strip()
+        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=20)
+        return self._snapshot_memory_events(snapshot)
+
+    @staticmethod
+    def _snapshot_memory_events(snapshot: Any | None) -> list[Any]:
+        if snapshot is None:
+            return []
+        return list(getattr(snapshot, "memory_events", []) or [])
 
     def get_chapter_progress(self, user_id: str) -> list[dict[str, Any]]:
         member = self._load_member_snapshot(user_id)["member"]
@@ -6384,7 +6440,11 @@ class MemberConsoleService:
         member = self._load_member_snapshot(user_id)["member"]
         learner_user_id = str(member.get("user_id") or user_id or "").strip()
         learning = self._ensure_learning_profile(member)
-        mastery_items = self._report_mastery_items(member)
+        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=20)
+        mastery_items = self._report_mastery_items(
+            member,
+            evidence_events=self._snapshot_memory_events(snapshot),
+        )
         weak_nodes = [
             {"name": item["name"], "mastery": item["mastery"]}
             for item in mastery_items
@@ -6395,7 +6455,6 @@ class MemberConsoleService:
             "overdue": max(0, member["review_due"] - 1),
             "due_today": 1 if member["review_due"] else 0,
         }
-        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=20)
         heartbeat_context = self._read_home_heartbeat_context(learner_user_id)
         study_plan = self._build_home_study_plan(
             member,
@@ -6911,7 +6970,10 @@ class MemberConsoleService:
 
     def get_radar_data(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
-        mastery_items = self._report_mastery_items(member)
+        mastery_items = self._report_mastery_items(
+            member,
+            evidence_events=self._mastery_evidence_events(member, user_id),
+        )
         dimensions = [
             {
                 "key": item["name"],
@@ -6925,7 +6987,10 @@ class MemberConsoleService:
 
     def get_mastery_dashboard(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
-        chapters = self._report_mastery_items(member)
+        chapters = self._report_mastery_items(
+            member,
+            evidence_events=self._mastery_evidence_events(member, user_id),
+        )
         if not chapters:
             return {
                 "overall_mastery": 0,
