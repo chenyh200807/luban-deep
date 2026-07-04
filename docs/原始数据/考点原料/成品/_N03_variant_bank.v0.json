@@ -1,0 +1,716 @@
+{
+ "schema_version": "luban-n03-variant-bank",
+ "pack_id": "N03",
+ "status": "candidate",
+ "source_pack_sha256": "ae9e5525c4f86bda1a0868a65663b2b56dcd4bd48846f8aa7e5a62af9999b590",
+ "generation_ms": 0.03,
+ "gate": {
+  "total": 48,
+  "passed": 48,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-type": 9,
+  "B-step": 5,
+  "B2-dacha": 5,
+  "C-crew": 5,
+  "D-param": 11,
+  "E-feature": 13
+ },
+ "variants": [
+  {
+   "variant_id": "N03-A-type-000",
+   "rule_group": "A-type",
+   "surface": "某工程各施工段各施工过程的流水节拍全部相等，项目部判定为等节奏流水施工",
+   "params": {
+    "pattern": "equal",
+    "claimed_type": "等节奏流水施工"
+   },
+   "expected_ok": true,
+   "correct_statement": "节拍全部相等→等节奏；节拍不全相等但成倍数关系→等步距异节奏（成倍节拍）；节拍无规律→无节奏，判型须写理由（节拍关系）",
+   "anchor": "kc:1A433000_052_0077:0 + kc:1A433000_053_0078:0 + kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-A-type-001",
+   "rule_group": "A-type",
+   "surface": "某工程各施工段各施工过程的流水节拍全部相等，项目部判定为等步距异节奏流水施工",
+   "params": {
+    "pattern": "equal",
+    "claimed_type": "等步距异节奏流水施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "节拍全部相等→等节奏；节拍不全相等但成倍数关系→等步距异节奏（成倍节拍）；节拍无规律→无节奏，判型须写理由（节拍关系）",
+   "anchor": "kc:1A433000_052_0077:0 + kc:1A433000_053_0078:0 + kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-A-type-002",
+   "rule_group": "A-type",
+   "surface": "某工程各施工段各施工过程的流水节拍全部相等，项目部判定为无节奏流水施工",
+   "params": {
+    "pattern": "equal",
+    "claimed_type": "无节奏流水施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "节拍全部相等→等节奏；节拍不全相等但成倍数关系→等步距异节奏（成倍节拍）；节拍无规律→无节奏，判型须写理由（节拍关系）",
+   "anchor": "kc:1A433000_052_0077:0 + kc:1A433000_053_0078:0 + kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-A-type-003",
+   "rule_group": "A-type",
+   "surface": "某工程各施工段各施工过程的流水节拍不全相等但互为倍数关系，项目部判定为等节奏流水施工",
+   "params": {
+    "pattern": "multiple",
+    "claimed_type": "等节奏流水施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "节拍全部相等→等节奏；节拍不全相等但成倍数关系→等步距异节奏（成倍节拍）；节拍无规律→无节奏，判型须写理由（节拍关系）",
+   "anchor": "kc:1A433000_052_0077:0 + kc:1A433000_053_0078:0 + kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-A-type-004",
+   "rule_group": "A-type",
+   "surface": "某工程各施工段各施工过程的流水节拍不全相等但互为倍数关系，项目部判定为等步距异节奏流水施工",
+   "params": {
+    "pattern": "multiple",
+    "claimed_type": "等步距异节奏流水施工"
+   },
+   "expected_ok": true,
+   "correct_statement": "节拍全部相等→等节奏；节拍不全相等但成倍数关系→等步距异节奏（成倍节拍）；节拍无规律→无节奏，判型须写理由（节拍关系）",
+   "anchor": "kc:1A433000_052_0077:0 + kc:1A433000_053_0078:0 + kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-A-type-005",
+   "rule_group": "A-type",
+   "surface": "某工程各施工段各施工过程的流水节拍不全相等但互为倍数关系，项目部判定为无节奏流水施工",
+   "params": {
+    "pattern": "multiple",
+    "claimed_type": "无节奏流水施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "节拍全部相等→等节奏；节拍不全相等但成倍数关系→等步距异节奏（成倍节拍）；节拍无规律→无节奏，判型须写理由（节拍关系）",
+   "anchor": "kc:1A433000_052_0077:0 + kc:1A433000_053_0078:0 + kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-A-type-006",
+   "rule_group": "A-type",
+   "surface": "某工程各施工段各施工过程的流水节拍无规律（不全相等且不成倍数），项目部判定为等节奏流水施工",
+   "params": {
+    "pattern": "unrhythmic",
+    "claimed_type": "等节奏流水施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "节拍全部相等→等节奏；节拍不全相等但成倍数关系→等步距异节奏（成倍节拍）；节拍无规律→无节奏，判型须写理由（节拍关系）",
+   "anchor": "kc:1A433000_052_0077:0 + kc:1A433000_053_0078:0 + kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-A-type-007",
+   "rule_group": "A-type",
+   "surface": "某工程各施工段各施工过程的流水节拍无规律（不全相等且不成倍数），项目部判定为等步距异节奏流水施工",
+   "params": {
+    "pattern": "unrhythmic",
+    "claimed_type": "等步距异节奏流水施工"
+   },
+   "expected_ok": false,
+   "correct_statement": "节拍全部相等→等节奏；节拍不全相等但成倍数关系→等步距异节奏（成倍节拍）；节拍无规律→无节奏，判型须写理由（节拍关系）",
+   "anchor": "kc:1A433000_052_0077:0 + kc:1A433000_053_0078:0 + kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-A-type-008",
+   "rule_group": "A-type",
+   "surface": "某工程各施工段各施工过程的流水节拍无规律（不全相等且不成倍数），项目部判定为无节奏流水施工",
+   "params": {
+    "pattern": "unrhythmic",
+    "claimed_type": "无节奏流水施工"
+   },
+   "expected_ok": true,
+   "correct_statement": "节拍全部相等→等节奏；节拍不全相等但成倍数关系→等步距异节奏（成倍节拍）；节拍无规律→无节奏，判型须写理由（节拍关系）",
+   "anchor": "kc:1A433000_052_0077:0 + kc:1A433000_053_0078:0 + kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-B-step-009",
+   "rule_group": "B-step",
+   "surface": "某工程各施工段各施工过程流水节拍均相等，项目部取流水步距 K=流水节拍 t",
+   "params": {
+    "pattern": "equal",
+    "k_choice": "t"
+   },
+   "expected_ok": true,
+   "correct_statement": "等节奏 K=流水节拍 t；等步距异节奏（成倍节拍）K=各节拍最大公约数（2023：gcd(3,6)=3 个月），K 取成最大/平均节拍即错",
+   "anchor": "kc:1A433000_052_0077:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-B-step-010",
+   "rule_group": "B-step",
+   "surface": "基础工程流水节拍 3 个月、上部结构 6 个月（成倍数关系），项目部取流水步距 K=各节拍最大公约数 3 个月",
+   "params": {
+    "pattern": "multiple",
+    "k_choice": "gcd",
+    "takts": [
+     3,
+     6
+    ],
+    "k_value": 3
+   },
+   "expected_ok": true,
+   "correct_statement": "等节奏 K=流水节拍 t；等步距异节奏（成倍节拍）K=各节拍最大公约数（2023：gcd(3,6)=3 个月），K 取成最大/平均节拍即错",
+   "anchor": "kc:1A433000_053_0078:1 + {2023,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-B-step-011",
+   "rule_group": "B-step",
+   "surface": "基础工程流水节拍 3 个月、上部结构 6 个月（成倍数关系），项目部取最大节拍 6 个月作为流水步距",
+   "params": {
+    "pattern": "multiple",
+    "k_choice": "max",
+    "takts": [
+     3,
+     6
+    ],
+    "k_value": 6
+   },
+   "expected_ok": false,
+   "correct_statement": "等节奏 K=流水节拍 t；等步距异节奏（成倍节拍）K=各节拍最大公约数（2023：gcd(3,6)=3 个月），K 取成最大/平均节拍即错",
+   "anchor": "kc:1A433000_053_0078:1 + {2023,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-B-step-012",
+   "rule_group": "B-step",
+   "surface": "各施工过程流水节拍成倍数关系，项目部取各节拍的平均值作为流水步距",
+   "params": {
+    "pattern": "multiple",
+    "k_choice": "avg"
+   },
+   "expected_ok": false,
+   "correct_statement": "等节奏 K=流水节拍 t；等步距异节奏（成倍节拍）K=各节拍最大公约数（2023：gcd(3,6)=3 个月），K 取成最大/平均节拍即错",
+   "anchor": "kc:1A433000_053_0078:1 + {2023,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-B-step-013",
+   "rule_group": "B-step",
+   "surface": "各施工过程流水节拍分别为 3、3、9、6、6 天，项目部取流水步距 K=各节拍最大公约数 3 天",
+   "params": {
+    "pattern": "multiple",
+    "k_choice": "gcd",
+    "takts": [
+     3,
+     3,
+     9,
+     6,
+     6
+    ],
+    "k_value": 3
+   },
+   "expected_ok": true,
+   "correct_statement": "等节奏 K=流水节拍 t；等步距异节奏（成倍节拍）K=各节拍最大公约数（2023：gcd(3,6)=3 个月），K 取成最大/平均节拍即错",
+   "anchor": "kc:1A433000_053_0078:1 + {2019,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-B2-dacha-014",
+   "rule_group": "B2-dacha",
+   "surface": "采用大差法确定流水步距，项目部依次完成：列各施工过程累加数列→错位相减→取差值的最大值定为流水步距",
+   "params": {
+    "steps": [
+     "列各施工过程累加数列",
+     "错位相减",
+     "取差值的最大值定为流水步距"
+    ]
+   },
+   "expected_ok": true,
+   "correct_statement": "大差法三动作缺一不可：列累加数列 → 错位相减 → 取最大值 = 流水步距",
+   "anchor": "kc:1A433000_054_0081:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-B2-dacha-015",
+   "rule_group": "B2-dacha",
+   "surface": "采用大差法确定流水步距，项目部只做了：错位相减→取差值的最大值定为流水步距，缺少「列各施工过程累加数列」",
+   "params": {
+    "steps": [
+     "错位相减",
+     "取差值的最大值定为流水步距"
+    ]
+   },
+   "expected_ok": false,
+   "correct_statement": "大差法三动作缺一不可：列累加数列 → 错位相减 → 取最大值 = 流水步距",
+   "anchor": "kc:1A433000_054_0081:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-B2-dacha-016",
+   "rule_group": "B2-dacha",
+   "surface": "采用大差法确定流水步距，项目部只做了：列各施工过程累加数列→取差值的最大值定为流水步距，缺少「错位相减」",
+   "params": {
+    "steps": [
+     "列各施工过程累加数列",
+     "取差值的最大值定为流水步距"
+    ]
+   },
+   "expected_ok": false,
+   "correct_statement": "大差法三动作缺一不可：列累加数列 → 错位相减 → 取最大值 = 流水步距",
+   "anchor": "kc:1A433000_054_0081:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-B2-dacha-017",
+   "rule_group": "B2-dacha",
+   "surface": "采用大差法确定流水步距，项目部只做了：列各施工过程累加数列→错位相减，缺少「取差值的最大值定为流水步距」",
+   "params": {
+    "steps": [
+     "列各施工过程累加数列",
+     "错位相减"
+    ]
+   },
+   "expected_ok": false,
+   "correct_statement": "大差法三动作缺一不可：列累加数列 → 错位相减 → 取最大值 = 流水步距",
+   "anchor": "kc:1A433000_054_0081:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-B2-dacha-018",
+   "rule_group": "B2-dacha",
+   "surface": "项目部只在答案里写「用大差法计算流水步距」，未展示累加数列与错位相减过程",
+   "params": {
+    "steps": []
+   },
+   "expected_ok": false,
+   "correct_statement": "大差法三动作缺一不可：列累加数列 → 错位相减 → 取最大值 = 流水步距",
+   "anchor": "kc:1A433000_054_0081:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-C-crew-019",
+   "rule_group": "C-crew",
+   "surface": "各施工过程流水节拍 3、3、9、6、6 天，流水步距 3 天，项目部按节拍÷步距组织专业工作队：1、1、3、2、2，合计 9 个",
+   "params": {
+    "takts": [
+     3,
+     3,
+     9,
+     6,
+     6
+    ],
+    "k": 3,
+    "crews": [
+     1,
+     1,
+     3,
+     2,
+     2
+    ],
+    "total": 9
+   },
+   "expected_ok": true,
+   "correct_statement": "成倍节拍各过程专业队数 = 节拍÷步距后求和（2019：3、3、9、6、6÷3=1、1、3、2、2，合计 9 队），专业队数大于施工过程数",
+   "anchor": "{2019,第2题} + kc:1A433000_053_0078:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-C-crew-020",
+   "rule_group": "C-crew",
+   "surface": "各施工过程流水节拍 3、3、9、6、6 天组织成倍节拍流水，项目部为每个施工过程只配 1 个专业工作队",
+   "params": {
+    "takts": [
+     3,
+     3,
+     9,
+     6,
+     6
+    ],
+    "k": 3,
+    "crews": [
+     1,
+     1,
+     1,
+     1,
+     1
+    ],
+    "total": 5
+   },
+   "expected_ok": false,
+   "correct_statement": "成倍节拍各过程专业队数 = 节拍÷步距后求和（2019：3、3、9、6、6÷3=1、1、3、2、2，合计 9 队），专业队数大于施工过程数",
+   "anchor": "{2019,第2题} + kc:1A433000_053_0078:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-C-crew-021",
+   "rule_group": "C-crew",
+   "surface": "基础流水节拍 3 个月、上部结构 6 个月，流水步距 3 个月，专业队数=1+1+2+1=5 个，项目部算总工期=（2+5-1）×3=18 个月",
+   "params": {
+    "m": 2,
+    "n_crews": 5,
+    "k": 3,
+    "claimed_T": 18
+   },
+   "expected_ok": true,
+   "correct_statement": "总工期须体现搭接（2023：(2+5-1)×3=18 个月，带过程与单位），不是机械相加所有节拍",
+   "anchor": "{2023,第2题} + kc:1A433000_055_0083:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-C-crew-022",
+   "rule_group": "C-crew",
+   "surface": "计算流水施工总工期时，项目部把所有施工过程的节拍机械相加",
+   "params": {
+    "claim": "sum_all_takts"
+   },
+   "expected_ok": false,
+   "correct_statement": "总工期须体现搭接（2023：(2+5-1)×3=18 个月，带过程与单位），不是机械相加所有节拍",
+   "anchor": "{2023,第2题} + kc:1A433000_055_0083:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-C-crew-023",
+   "rule_group": "C-crew",
+   "surface": "组织成倍节拍（等步距异节奏）流水施工时，项目部认为专业工作队数必然等于施工过程数",
+   "params": {
+    "claim": "crews_equal_processes"
+   },
+   "expected_ok": false,
+   "correct_statement": "成倍节拍各过程专业队数 = 节拍÷步距后求和（2019：3、3、9、6、6÷3=1、1、3、2、2，合计 9 队），专业队数大于施工过程数",
+   "anchor": "kc:1A433000_053_0078:1 + {2019,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-024",
+   "rule_group": "D-param",
+   "surface": "项目部把「流水节拍」定义为某专业队在一个施工段上的施工时间",
+   "params": {
+    "term": "流水节拍",
+    "definition": "one_segment_time"
+   },
+   "expected_ok": true,
+   "correct_statement": "流水节拍 t=某专业队在一个施工段上的施工时间；流水步距 K=相邻两专业队进入流水作业的时间间隔；工期 T=首队投入流水到末队完成最后一段并退出，t 与 K 不同维度不得互换",
+   "anchor": "kc:1A433000_052_0075:0、kc:1A433000_052_0075:1、kc:1A433000_052_0075:2",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-025",
+   "rule_group": "D-param",
+   "surface": "项目部把「流水步距」定义为相邻两专业队进入流水作业的时间间隔",
+   "params": {
+    "term": "流水步距",
+    "definition": "adjacent_interval"
+   },
+   "expected_ok": true,
+   "correct_statement": "流水节拍 t=某专业队在一个施工段上的施工时间；流水步距 K=相邻两专业队进入流水作业的时间间隔；工期 T=首队投入流水到末队完成最后一段并退出，t 与 K 不同维度不得互换",
+   "anchor": "kc:1A433000_052_0075:0、kc:1A433000_052_0075:1、kc:1A433000_052_0075:2",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-026",
+   "rule_group": "D-param",
+   "surface": "项目部把「流水施工工期」定义为第一个专业队投入流水到最后一个专业队完成最后一段并退出的持续时间",
+   "params": {
+    "term": "流水施工工期",
+    "definition": "first_in_last_out"
+   },
+   "expected_ok": true,
+   "correct_statement": "流水节拍 t=某专业队在一个施工段上的施工时间；流水步距 K=相邻两专业队进入流水作业的时间间隔；工期 T=首队投入流水到末队完成最后一段并退出，t 与 K 不同维度不得互换",
+   "anchor": "kc:1A433000_052_0075:0、kc:1A433000_052_0075:1、kc:1A433000_052_0075:2",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-027",
+   "rule_group": "D-param",
+   "surface": "项目部把「流水节拍」定义为相邻两专业队进入流水作业的时间间隔",
+   "params": {
+    "term": "流水节拍",
+    "definition": "adjacent_interval"
+   },
+   "expected_ok": false,
+   "correct_statement": "流水节拍 t=某专业队在一个施工段上的施工时间；流水步距 K=相邻两专业队进入流水作业的时间间隔；工期 T=首队投入流水到末队完成最后一段并退出，t 与 K 不同维度不得互换",
+   "anchor": "kc:1A433000_052_0075:0、kc:1A433000_052_0075:1、kc:1A433000_052_0075:2",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-028",
+   "rule_group": "D-param",
+   "surface": "项目部把「流水步距」定义为某专业队在一个施工段上的施工时间",
+   "params": {
+    "term": "流水步距",
+    "definition": "one_segment_time"
+   },
+   "expected_ok": false,
+   "correct_statement": "流水节拍 t=某专业队在一个施工段上的施工时间；流水步距 K=相邻两专业队进入流水作业的时间间隔；工期 T=首队投入流水到末队完成最后一段并退出，t 与 K 不同维度不得互换",
+   "anchor": "kc:1A433000_052_0075:0、kc:1A433000_052_0075:1、kc:1A433000_052_0075:2",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-029",
+   "rule_group": "D-param",
+   "surface": "项目部将流水节拍、流水步距、施工工期归入时间参数",
+   "params": {
+    "items": [
+     "流水节拍",
+     "流水步距",
+     "施工工期"
+    ],
+    "claimed_class": "时间参数"
+   },
+   "expected_ok": true,
+   "correct_statement": "参数三体系：工艺参数（施工过程数/流水强度）/时间参数（流水节拍/流水步距/施工工期）/空间参数（施工段/施工层）；三大组织方式为依次施工、平行施工、流水施工",
+   "anchor": "{2021,案例二} + kc:1A433000_051_0074:0 + kc:1A433000_052_0075:0、kc:1A433000_052_0075:1、kc:1A433000_052_0075:2",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-030",
+   "rule_group": "D-param",
+   "surface": "项目部将施工段、施工层归入空间参数",
+   "params": {
+    "items": [
+     "施工段",
+     "施工层"
+    ],
+    "claimed_class": "空间参数"
+   },
+   "expected_ok": true,
+   "correct_statement": "参数三体系：工艺参数（施工过程数/流水强度）/时间参数（流水节拍/流水步距/施工工期）/空间参数（施工段/施工层）；三大组织方式为依次施工、平行施工、流水施工",
+   "anchor": "{2021,案例二} + kc:1A433000_051_0074:0 + kc:1A433000_052_0075:0、kc:1A433000_052_0075:1、kc:1A433000_052_0075:2",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-031",
+   "rule_group": "D-param",
+   "surface": "项目部将施工过程数、流水强度归入工艺参数",
+   "params": {
+    "items": [
+     "施工过程数",
+     "流水强度"
+    ],
+    "claimed_class": "工艺参数"
+   },
+   "expected_ok": true,
+   "correct_statement": "参数三体系：工艺参数（施工过程数/流水强度）/时间参数（流水节拍/流水步距/施工工期）/空间参数（施工段/施工层）；三大组织方式为依次施工、平行施工、流水施工",
+   "anchor": "{2021,案例二} + kc:1A433000_051_0074:0 + kc:1A433000_052_0075:0、kc:1A433000_052_0075:1、kc:1A433000_052_0075:2",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-032",
+   "rule_group": "D-param",
+   "surface": "项目部将流水节拍归入工艺参数",
+   "params": {
+    "items": [
+     "流水节拍"
+    ],
+    "claimed_class": "工艺参数"
+   },
+   "expected_ok": false,
+   "correct_statement": "参数三体系：工艺参数（施工过程数/流水强度）/时间参数（流水节拍/流水步距/施工工期）/空间参数（施工段/施工层）；三大组织方式为依次施工、平行施工、流水施工",
+   "anchor": "{2021,案例二} + kc:1A433000_051_0074:0 + kc:1A433000_052_0075:0、kc:1A433000_052_0075:1、kc:1A433000_052_0075:2",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-033",
+   "rule_group": "D-param",
+   "surface": "项目部将流水步距归入工艺参数",
+   "params": {
+    "items": [
+     "流水步距"
+    ],
+    "claimed_class": "工艺参数"
+   },
+   "expected_ok": false,
+   "correct_statement": "参数三体系：工艺参数（施工过程数/流水强度）/时间参数（流水节拍/流水步距/施工工期）/空间参数（施工段/施工层）；三大组织方式为依次施工、平行施工、流水施工",
+   "anchor": "{2021,案例二} + kc:1A433000_051_0074:0 + kc:1A433000_052_0075:0、kc:1A433000_052_0075:1、kc:1A433000_052_0075:2",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-D-param-034",
+   "rule_group": "D-param",
+   "surface": "项目部答「施工组织方式有依次施工、平行施工、流水施工三种」",
+   "params": {
+    "claim": "three_modes"
+   },
+   "expected_ok": true,
+   "correct_statement": "参数三体系：工艺参数（施工过程数/流水强度）/时间参数（流水节拍/流水步距/施工工期）/空间参数（施工段/施工层）；三大组织方式为依次施工、平行施工、流水施工",
+   "anchor": "kc:1A433000_051_0074:0 + {2021,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-035",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「各专业工作队在各施工段上能够连续作业」是等节奏流水施工的特点",
+   "params": {
+    "claimed_type": "等节奏流水施工",
+    "feature": "各专业工作队在各施工段上能够连续作业"
+   },
+   "expected_ok": true,
+   "correct_statement": "「各专业工作队在各施工段上能够连续作业」是等节奏流水施工、等步距异节奏流水施工的特点",
+   "anchor": "{2015,第16题} + kc:1A433000_052_0077:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-036",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「各专业工作队不能连续作业」是等节奏流水施工的特点",
+   "params": {
+    "claimed_type": "等节奏流水施工",
+    "feature": "各专业工作队不能连续作业"
+   },
+   "expected_ok": false,
+   "correct_statement": "各专业工作队在各施工段上能够连续作业，「不能连续作业」不属于任何流水施工方式的特点（2015 第16题 D 项即此错误）",
+   "anchor": "{2015,第16题} + kc:1A433000_052_0077:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-037",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「流水步距等于流水节拍」是等节奏流水施工的特点",
+   "params": {
+    "claimed_type": "等节奏流水施工",
+    "feature": "流水步距等于流水节拍"
+   },
+   "expected_ok": true,
+   "correct_statement": "「流水步距等于流水节拍」是等节奏流水施工的特点",
+   "anchor": "{2015,第16题} + kc:1A433000_052_0077:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-038",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「流水步距等于各节拍的最大公约数」是等节奏流水施工的特点",
+   "params": {
+    "claimed_type": "等节奏流水施工",
+    "feature": "流水步距等于各节拍的最大公约数"
+   },
+   "expected_ok": false,
+   "correct_statement": "「流水步距等于各节拍的最大公约数」是等步距异节奏流水施工的特点",
+   "anchor": "{2015,第16题} + kc:1A433000_052_0077:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-039",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「专业工作队数等于施工过程数」是等节奏流水施工的特点",
+   "params": {
+    "claimed_type": "等节奏流水施工",
+    "feature": "专业工作队数等于施工过程数"
+   },
+   "expected_ok": true,
+   "correct_statement": "「专业工作队数等于施工过程数」是等节奏流水施工、无节奏流水施工的特点",
+   "anchor": "{2015,第16题} + kc:1A433000_052_0077:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-040",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「施工过程之间可能有间隔时间」是等节奏流水施工的特点",
+   "params": {
+    "claimed_type": "等节奏流水施工",
+    "feature": "施工过程之间可能有间隔时间"
+   },
+   "expected_ok": false,
+   "correct_statement": "「施工过程之间可能有间隔时间」是无节奏流水施工的特点",
+   "anchor": "{2015,第16题} + kc:1A433000_052_0077:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-041",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「流水步距等于各节拍的最大公约数」是等步距异节奏流水施工的特点",
+   "params": {
+    "claimed_type": "等步距异节奏流水施工",
+    "feature": "流水步距等于各节拍的最大公约数"
+   },
+   "expected_ok": true,
+   "correct_statement": "「流水步距等于各节拍的最大公约数」是等步距异节奏流水施工的特点",
+   "anchor": "kc:1A433000_053_0078:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-042",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「各施工过程的流水节拍互为倍数关系」是等步距异节奏流水施工的特点",
+   "params": {
+    "claimed_type": "等步距异节奏流水施工",
+    "feature": "各施工过程的流水节拍互为倍数关系"
+   },
+   "expected_ok": true,
+   "correct_statement": "「各施工过程的流水节拍互为倍数关系」是等步距异节奏流水施工的特点",
+   "anchor": "kc:1A433000_053_0078:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-043",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「专业工作队数大于施工过程数」是等步距异节奏流水施工的特点",
+   "params": {
+    "claimed_type": "等步距异节奏流水施工",
+    "feature": "专业工作队数大于施工过程数"
+   },
+   "expected_ok": true,
+   "correct_statement": "「专业工作队数大于施工过程数」是等步距异节奏流水施工的特点",
+   "anchor": "kc:1A433000_053_0078:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-044",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「专业工作队数等于施工过程数」是等步距异节奏流水施工的特点",
+   "params": {
+    "claimed_type": "等步距异节奏流水施工",
+    "feature": "专业工作队数等于施工过程数"
+   },
+   "expected_ok": false,
+   "correct_statement": "「专业工作队数等于施工过程数」是等节奏流水施工、无节奏流水施工的特点",
+   "anchor": "kc:1A433000_053_0078:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-045",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「施工过程之间可能有间隔时间」是无节奏流水施工的特点",
+   "params": {
+    "claimed_type": "无节奏流水施工",
+    "feature": "施工过程之间可能有间隔时间"
+   },
+   "expected_ok": true,
+   "correct_statement": "「施工过程之间可能有间隔时间」是无节奏流水施工的特点",
+   "anchor": "kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-046",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「流水节拍不全相等、流水步距不尽相等」是无节奏流水施工的特点",
+   "params": {
+    "claimed_type": "无节奏流水施工",
+    "feature": "流水节拍不全相等、流水步距不尽相等"
+   },
+   "expected_ok": true,
+   "correct_statement": "「流水节拍不全相等、流水步距不尽相等」是无节奏流水施工的特点",
+   "anchor": "kc:1A433000_052_0076:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N03-E-feature-047",
+   "rule_group": "E-feature",
+   "surface": "项目部认为「专业工作队数等于施工过程数」是无节奏流水施工的特点",
+   "params": {
+    "claimed_type": "无节奏流水施工",
+    "feature": "专业工作队数等于施工过程数"
+   },
+   "expected_ok": true,
+   "correct_statement": "「专业工作队数等于施工过程数」是等节奏流水施工、无节奏流水施工的特点",
+   "anchor": "kc:1A433000_052_0076:0",
+   "extension": false
+  }
+ ]
+}
