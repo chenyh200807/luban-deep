@@ -132,6 +132,9 @@ feature_flags:
   # 复习模块(双轮 §6 回炉屏)灰度: review-due 投影 / station_completed 信号 /
   # mistake_book review_due_at 读侧派生, 三处同旗标; 关 = 与收权前行为一致。
   - {name: LUBAN_REVIEW_MODULE_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  # 讲懂卡托管基址: read_model 派生 card_url={base}/{pack_id小写}/lesson.html;
+  # 未设置 = 全站 card_url 空串走原生占位降级(fail-closed), 局外人审计断链②的合闸键。
+  - {name: LUBAN_LESSON_CARD_BASE, default: "", kind: config, read: hand_rolled}
   - {name: LUBAN_M35_ARTIFACT_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
   - {name: LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED, default: false, kind: rollout, read: hand_rolled}
@@ -404,6 +407,7 @@ grandfathered_envs:
   - LUBAN_M35_ARTIFACT_SHADOW_ENABLED
   - LUBAN_OBJECTIVE_CANDIDATE_COHORT
   - LUBAN_OBJECTIVE_V2_DEV_SUPPLY_DIR
+  - LUBAN_LESSON_CARD_BASE
   - LUBAN_REVIEW_MODULE_ENABLED
   - LUBAN_RUBRIC_EXTRACTION_CACHE_MAX_ENTRIES
   - LUBAN_RUBRIC_EXTRACTION_CACHE_TTL_SECONDS
