@@ -8,21 +8,24 @@
 from __future__ import annotations
 
 from fastapi import Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from deeptutor.api._secure_router import secure_router
 from deeptutor.api.dependencies import AuthContext, get_current_user
 from deeptutor.api.dependencies.rate_limit import route_rate_limit
 from deeptutor.services.learner_state.lesson_evidence import record_lesson_view_evidence
 from deeptutor.services.learner_state.service import get_learner_state_service
+from deeptutor.services.luban_lesson import list_all_pack_ids
 
 router = secure_router(tags=["lesson_progress"])
 
 
 class LessonProgressRequest(BaseModel):
-    pack_id: str
+    # 输入边界(病E):长度上限 schema 级拒绝;pack 存在性在 handler 对
+    # manifest 全集(list_all_pack_ids,唯一 pack 枚举权威)校验。
+    pack_id: str = Field(min_length=1, max_length=64)
     watched_stage: str  # "lesson"（讲懂幕）| "practice"（闯关幕）
-    card_sha: str = ""
+    card_sha: str = Field(default="", max_length=128)
 
 
 @router.post(
@@ -37,6 +40,9 @@ def post_lesson_progress(
 ) -> dict:
     # 同步 def(非 async):端点内是同步账本 I/O(JSONL append + outbox
     # sqlite),FastAPI 自动放线程池执行,不阻塞事件循环(病B-1)。
+    if body.pack_id not in list_all_pack_ids():
+        # 未知 pack 绝不落 append-only 账本(垃圾证据无法收回)。
+        raise HTTPException(status_code=400, detail=f"unknown pack_id: {body.pack_id}")
     try:
         event = record_lesson_view_evidence(
             get_learner_state_service(),

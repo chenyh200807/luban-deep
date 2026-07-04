@@ -53,6 +53,11 @@ def record_lesson_view_evidence(
 
     dedupe 初始方案：按（用户, pack, watched_stage, 日）去重——同日重看同幕
     折叠为一条；跨幕/跨日各自成条（dedupe 语义 = 计划 U2 开放项）。
+
+    已知低危并发窗（病E 注记，接受不修）：append_memory_event 的 dedupe 是
+    scan-then-append 非原子——同用户同 key 并发双写可能各落一条。读侧按
+    dedupe_key 去重（_dedupe_learning_evidence_events），且本证据
+    progress_countable=false 不进任何计数，重复行无语义放大。
     """
     normalized_user = str(user_id or "").strip()
     if not normalized_user:
