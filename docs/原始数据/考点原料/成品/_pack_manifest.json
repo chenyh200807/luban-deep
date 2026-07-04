@@ -1,5 +1,5 @@
 {
- "pack_count": 40,
+ "pack_count": 41,
  "pack_dir": "docs/原始数据/考点原料/成品",
  "packs": [
   {
@@ -233,6 +233,25 @@
    "title": "幕墙防火防雷层间封堵"
   },
   {
+   "content_sha256": "11ecd47be950ed09d72b3d93cf11e5f5ab29922f408099a9c4861442ea4a2fc0",
+   "explicitly_barred_default_entry": false,
+   "file": "D14_吊顶门窗地面装饰质量综合.md",
+   "has_answer_layer": false,
+   "has_compiled_source": true,
+   "has_exam_evidence": true,
+   "jury_clean": false,
+   "jury_file": true,
+   "jury_high_confidence": 1,
+   "jury_high_confidence_unresolved": 1,
+   "jury_total": 11,
+   "needs_leaf_review": false,
+   "pack_id": "D14",
+   "published": false,
+   "red_marker_count": 27,
+   "review_level": "standard",
+   "title": "吊顶门窗地面装饰质量综合"
+  },
+  {
    "content_sha256": "302dc15016a0244315844c053dcf59338f477f7623c97dbfb13ab785039f9c87",
    "explicitly_barred_default_entry": false,
    "file": "E01_工程量清单计价.md",
@@ -353,14 +372,15 @@
    "has_answer_layer": true,
    "has_compiled_source": true,
    "has_exam_evidence": true,
-   "jury_clean": false,
+   "jury_clean": true,
    "jury_file": true,
    "jury_high_confidence": 2,
-   "jury_high_confidence_unresolved": 2,
+   "jury_high_confidence_unresolved": 0,
    "jury_total": 15,
    "needs_leaf_review": false,
    "pack_id": "F16",
-   "published": false,
+   "publish_note": "2026-07-03 owner 人工签发（本轮对话明文批准：'F16 直接批签发，把那 2 条 jury 收口掉'）。依据：2 条高可信 jury 正文早已采纳（HI#1 M2=E02主码+E06条件码 / HI#2 排气孔推断降🔵），本次补机器可读 resolution；工程窗口独立核验=锚 2/2 确定性命中+registry 语义核对；finished 成品教学卡(teach/practice+audio)已托管 web/public/luban-preview/f16/。",
+   "published": true,
    "red_marker_count": 19,
    "review_level": "coarse_review",
    "title": "屋面防水起鼓割补"
@@ -771,6 +791,7 @@
  "projection_green": [
   "A01",
   "C02",
+  "F16",
   "J01",
   "N01",
   "S05"

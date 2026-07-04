@@ -18,5 +18,9 @@
   "C02": {
     "published": true,
     "note": "2026-07-02 owner 批准四包签发（batch1 攒批，含 C02 设计级拆分追认），以工程窗口独立机器核验为准入。核验数字（2026-07-02 工程窗口，PR #337 分支上实跑）：真题锚确定性核验 N01 5/5、J01 9/9、A01 5/5、C02 11/11 零漂移；build_luban_pack_manifest --check passed green=5；manifest 域测试 7 passed；resolution 形状合规（含 J01 #3 回源证伪 not_applicable）。出处重建说明：原 note 为内容窗口代写的签发声明（工程窗口无法独立核实），经 owner 2026-07-02 拍板 B 重建为本条——签发裁决人=owner，机器准入=工程窗口。"
+  },
+  "F16": {
+    "published": true,
+    "note": "2026-07-03 owner 人工签发（本轮对话明文批准：'F16 直接批签发，把那 2 条 jury 收口掉'）。依据：2 条高可信 jury 正文早已采纳（HI#1 M2=E02主码+E06条件码 / HI#2 排气孔推断降🔵），本次补机器可读 resolution；工程窗口独立核验=锚 2/2 确定性命中+registry 语义核对；finished 成品教学卡(teach/practice+audio)已托管 web/public/luban-preview/f16/。"
   }
 }

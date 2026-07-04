@@ -151,6 +151,6 @@ Communication.md
 
 # 鲁班 runtime 供给（Dockerfile COPY 需要；docs/ 整体仍排除）
 !docs/原始数据/考点原料/成品/_pack_manifest.json
-!docs/原始数据/考点原料/成品/_S05_variant_bank.v0.json
+!docs/原始数据/考点原料/成品/_*_variant_bank.v0.json
 !docs/原始数据/考点原料/成品/_question_pack_map.v0.json
 !docs/原始数据/考点原料/成品/_pack_taxonomy_registry.v0.json

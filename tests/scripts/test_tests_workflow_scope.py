@@ -66,6 +66,8 @@ def test_secret_scan_files_keep_source_and_skip_generated_heavy_inputs() -> None
             "deeptutor/services/taxonomy/compiled/construction.json",
             "tests/fixtures/luban_m35_fastapi_mcq_20q_100a/manifest.json",
             "web/public/luban-preview/c02/C02_progress_payment.lesson.mp3",
+            "web/public/luban-preview/f16/lesson.html",
+            "web/public/luban-preview/f16/support.js",
         ]
     ) == [
         "deeptutor/runtime/orchestrator.py",
