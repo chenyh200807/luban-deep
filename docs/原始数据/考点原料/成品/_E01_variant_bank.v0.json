@@ -1,0 +1,565 @@
+{
+ "schema_version": "luban-e01-variant-bank",
+ "pack_id": "E01",
+ "status": "candidate",
+ "source_pack_sha256": "302dc15016a0244315844c053dcf59338f477f7623c97dbfb13ab785039f9c87",
+ "generation_ms": 0.02,
+ "gate": {
+  "total": 41,
+  "passed": 41,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-mode": 4,
+  "A-unitprice": 4,
+  "B-fee": 3,
+  "B-item": 2,
+  "B-measure": 4,
+  "B-total": 2,
+  "B-vat": 3,
+  "C-bid": 3,
+  "C-defect": 4,
+  "C-risk": 12
+ },
+ "variants": [
+  {
+   "variant_id": "E01-A-mode-000",
+   "rule_group": "A-mode",
+   "surface": "招标工程量清单中，分部分项工程采用单价计价方式",
+   "params": {
+    "item": "分部分项工程",
+    "mode": "单价计价"
+   },
+   "expected_ok": true,
+   "correct_statement": "分部分项工程宜采用单价计价；措施项目宜采用总价计价",
+   "anchor": "kc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-A-mode-001",
+   "rule_group": "A-mode",
+   "surface": "招标工程量清单中，分部分项工程采用总价计价方式",
+   "params": {
+    "item": "分部分项工程",
+    "mode": "总价计价"
+   },
+   "expected_ok": false,
+   "correct_statement": "分部分项工程宜采用单价计价；措施项目宜采用总价计价",
+   "anchor": "kc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-A-mode-002",
+   "rule_group": "A-mode",
+   "surface": "招标工程量清单中，措施项目采用单价计价方式",
+   "params": {
+    "item": "措施项目",
+    "mode": "单价计价"
+   },
+   "expected_ok": false,
+   "correct_statement": "分部分项工程宜采用单价计价；措施项目宜采用总价计价",
+   "anchor": "kc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-A-mode-003",
+   "rule_group": "A-mode",
+   "surface": "招标工程量清单中，措施项目采用总价计价方式",
+   "params": {
+    "item": "措施项目",
+    "mode": "总价计价"
+   },
+   "expected_ok": true,
+   "correct_statement": "分部分项工程宜采用单价计价；措施项目宜采用总价计价",
+   "anchor": "kc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-A-unitprice-004",
+   "rule_group": "A-unitprice",
+   "surface": "投标人综合单价按人工费、材料费、机具费、管理费、利润组价并考虑风险费，不含增值税",
+   "params": {
+    "includes_vat": false,
+    "includes_risk": true,
+    "includes_overhead_profit": true
+   },
+   "expected_ok": true,
+   "correct_statement": "综合单价是不含增值税的税前全费用价，含人工费+材料费+机具费+管理费+利润+风险费",
+   "anchor": "kc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-A-unitprice-005",
+   "rule_group": "A-unitprice",
+   "surface": "投标人认为综合单价中应包含增值税",
+   "params": {
+    "includes_vat": true,
+    "includes_risk": true,
+    "includes_overhead_profit": true
+   },
+   "expected_ok": false,
+   "correct_statement": "综合单价是不含增值税的税前全费用价，含人工费+材料费+机具费+管理费+利润+风险费",
+   "anchor": "kc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-A-unitprice-006",
+   "rule_group": "A-unitprice",
+   "surface": "投标人综合单价只按人工费、材料费、机具费、管理费、利润组价，不考虑风险费",
+   "params": {
+    "includes_vat": false,
+    "includes_risk": false,
+    "includes_overhead_profit": true
+   },
+   "expected_ok": false,
+   "correct_statement": "综合单价是不含增值税的税前全费用价，含人工费+材料费+机具费+管理费+利润+风险费",
+   "anchor": "kc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-A-unitprice-007",
+   "rule_group": "A-unitprice",
+   "surface": "投标人综合单价只按人工费、材料费、机具费直接成本组价",
+   "params": {
+    "includes_vat": false,
+    "includes_risk": false,
+    "includes_overhead_profit": false
+   },
+   "expected_ok": false,
+   "correct_statement": "综合单价是不含增值税的税前全费用价，含人工费+材料费+机具费+管理费+利润+风险费",
+   "anchor": "kc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-fee-008",
+   "rule_group": "B-fee",
+   "surface": "题目给出规费计算规定，投标人按分部分项工程费+措施项目费+其他项目费+规费+增值税逐项汇总总造价",
+   "params": {
+    "fee_given": true,
+    "fee_in_sum": true
+   },
+   "expected_ok": true,
+   "correct_statement": "清单造价逐项汇总：分部分项工程费+措施项目费+其他项目费+（题给/规范要求时）规费+增值税，项数随题给清单结构，不漏项不重复",
+   "anchor": "kc:1A435000_040_0054:2 + kc:1A435000_039_0053:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-fee-009",
+   "rule_group": "B-fee",
+   "surface": "题目给出规费计算规定，投标人只按分部分项工程费+措施项目费+其他项目费+增值税汇总总造价",
+   "params": {
+    "fee_given": true,
+    "fee_in_sum": false
+   },
+   "expected_ok": false,
+   "correct_statement": "清单造价逐项汇总：分部分项工程费+措施项目费+其他项目费+（题给/规范要求时）规费+增值税，项数随题给清单结构，不漏项不重复",
+   "anchor": "kc:1A435000_040_0054:2 + kc:1A435000_039_0053:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-fee-010",
+   "rule_group": "B-fee",
+   "surface": "题目未给规费，投标人按分部分项工程费+措施项目费+其他项目费+增值税汇总总造价",
+   "params": {
+    "fee_given": false,
+    "fee_in_sum": false
+   },
+   "expected_ok": true,
+   "correct_statement": "清单造价逐项汇总：分部分项工程费+措施项目费+其他项目费+（题给/规范要求时）规费+增值税，项数随题给清单结构，不漏项不重复",
+   "anchor": "kc:1A435000_040_0054:2 + kc:1A435000_039_0053:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-vat-011",
+   "rule_group": "B-vat",
+   "surface": "题目未给规费，增值税以分部分项工程费+措施项目费+其他项目费之和为基数乘以税率",
+   "params": {
+    "includes_levied_vat": false,
+    "omits_given_item": false
+   },
+   "expected_ok": true,
+   "correct_statement": "增值税基数=全部税前计价项之和（分部分项费+措施费+其他费，题给规费时再加规费），不含已计的增值税本身",
+   "anchor": "kc:1A435000_040_0054:2 + kc:1A435000_039_0053:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-vat-012",
+   "rule_group": "B-vat",
+   "surface": "投标人计算增值税时，基数中包含了已计的增值税",
+   "params": {
+    "includes_levied_vat": true,
+    "omits_given_item": false
+   },
+   "expected_ok": false,
+   "correct_statement": "增值税基数=全部税前计价项之和（分部分项费+措施费+其他费，题给规费时再加规费），不含已计的增值税本身",
+   "anchor": "kc:1A435000_040_0054:2 + kc:1A435000_039_0053:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-vat-013",
+   "rule_group": "B-vat",
+   "surface": "题目给出规费，投标人计算增值税时基数漏掉了规费",
+   "params": {
+    "includes_levied_vat": false,
+    "omits_given_item": true
+   },
+   "expected_ok": false,
+   "correct_statement": "增值税基数=全部税前计价项之和（分部分项费+措施费+其他费，题给规费时再加规费），不含已计的增值税本身",
+   "anchor": "kc:1A435000_040_0054:2 + kc:1A435000_039_0053:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-total-014",
+   "rule_group": "B-total",
+   "surface": "投标总价与各组成合计不一致，投标人保持总价不变、调整已标价工程量清单",
+   "params": {
+    "action": "保持总价调整清单"
+   },
+   "expected_ok": true,
+   "correct_statement": "投标总价应与各组成合计一致；不一致时保持总价不变、调整已标价工程量清单",
+   "anchor": "kc:1A435000_040_0054:2 + kc:1A435000_039_0053:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-total-015",
+   "rule_group": "B-total",
+   "surface": "投标总价与各组成合计不一致，投标人直接修改投标总价",
+   "params": {
+    "action": "直接改总价"
+   },
+   "expected_ok": false,
+   "correct_statement": "投标总价应与各组成合计一致；不一致时保持总价不变、调整已标价工程量清单",
+   "anchor": "kc:1A435000_040_0054:2 + kc:1A435000_039_0053:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-measure-016",
+   "rule_group": "B-measure",
+   "surface": "题目要求措施项目按单价计量，投标人按单价计量计算措施项目费",
+   "params": {
+    "required": "单价计量",
+    "used": "单价计量"
+   },
+   "expected_ok": true,
+   "correct_statement": "措施项目费按单价计量=Σ(工程量×综合单价)、按总价计量=Σ(计算基数×费率)，计量方式应与题给一致",
+   "anchor": "kc:1A435000_038_0050:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-measure-017",
+   "rule_group": "B-measure",
+   "surface": "题目要求措施项目按单价计量，投标人按总价计量计算措施项目费",
+   "params": {
+    "required": "单价计量",
+    "used": "总价计量"
+   },
+   "expected_ok": false,
+   "correct_statement": "措施项目费按单价计量=Σ(工程量×综合单价)、按总价计量=Σ(计算基数×费率)，计量方式应与题给一致",
+   "anchor": "kc:1A435000_038_0050:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-measure-018",
+   "rule_group": "B-measure",
+   "surface": "题目要求措施项目按总价计量，投标人按单价计量计算措施项目费",
+   "params": {
+    "required": "总价计量",
+    "used": "单价计量"
+   },
+   "expected_ok": false,
+   "correct_statement": "措施项目费按单价计量=Σ(工程量×综合单价)、按总价计量=Σ(计算基数×费率)，计量方式应与题给一致",
+   "anchor": "kc:1A435000_038_0050:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-measure-019",
+   "rule_group": "B-measure",
+   "surface": "题目要求措施项目按总价计量，投标人按总价计量计算措施项目费",
+   "params": {
+    "required": "总价计量",
+    "used": "总价计量"
+   },
+   "expected_ok": true,
+   "correct_statement": "措施项目费按单价计量=Σ(工程量×综合单价)、按总价计量=Σ(计算基数×费率)，计量方式应与题给一致",
+   "anchor": "kc:1A435000_038_0050:2",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-item-020",
+   "rule_group": "B-item",
+   "surface": "分部分项工程费按Σ(工程量×综合单价)计算，综合单价含人材机、管理费和利润",
+   "params": {
+    "includes_overhead_profit": true
+   },
+   "expected_ok": true,
+   "correct_statement": "分部分项工程费=Σ(分部分项工程量×综合单价)，综合单价含人材机+管理费+利润",
+   "anchor": "kc:1A435000_038_0050:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-B-item-021",
+   "rule_group": "B-item",
+   "surface": "分部分项工程费只按人工费、材料费、机具费汇总，不含管理费和利润",
+   "params": {
+    "includes_overhead_profit": false
+   },
+   "expected_ok": false,
+   "correct_statement": "分部分项工程费=Σ(分部分项工程量×综合单价)，综合单价含人材机+管理费+利润",
+   "anchor": "kc:1A435000_038_0050:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-defect-022",
+   "rule_group": "C-defect",
+   "surface": "单价合同履行中发现招标工程量清单缺陷，判由发包人负责",
+   "params": {
+    "contract": "单价合同",
+    "liable": "发包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "清单缺陷按合同类型归责：单价合同缺陷发包人负责；总价合同缺陷承包人负责",
+   "anchor": "kc:1A432002_037_0048:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-defect-023",
+   "rule_group": "C-defect",
+   "surface": "单价合同履行中发现招标工程量清单缺陷，判由承包人负责",
+   "params": {
+    "contract": "单价合同",
+    "liable": "承包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "清单缺陷按合同类型归责：单价合同缺陷发包人负责；总价合同缺陷承包人负责",
+   "anchor": "kc:1A432002_037_0048:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-defect-024",
+   "rule_group": "C-defect",
+   "surface": "总价合同履行中发现招标工程量清单缺陷，判由发包人负责",
+   "params": {
+    "contract": "总价合同",
+    "liable": "发包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "清单缺陷按合同类型归责：单价合同缺陷发包人负责；总价合同缺陷承包人负责",
+   "anchor": "kc:1A432002_037_0048:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-defect-025",
+   "rule_group": "C-defect",
+   "surface": "总价合同履行中发现招标工程量清单缺陷，判由承包人负责",
+   "params": {
+    "contract": "总价合同",
+    "liable": "承包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "清单缺陷按合同类型归责：单价合同缺陷发包人负责；总价合同缺陷承包人负责",
+   "anchor": "kc:1A432002_037_0048:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-026",
+   "rule_group": "C-risk",
+   "surface": "因招标工程量清单数据错误产生的计价风险，判由发包人承担",
+   "params": {
+    "event": "招标工程量清单数据错误",
+    "liable": "发包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-027",
+   "rule_group": "C-risk",
+   "surface": "因招标工程量清单数据错误产生的计价风险，判由承包人承担",
+   "params": {
+    "event": "招标工程量清单数据错误",
+    "liable": "承包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-028",
+   "rule_group": "C-risk",
+   "surface": "因工程变更产生的计价风险，判由发包人承担",
+   "params": {
+    "event": "工程变更",
+    "liable": "发包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-029",
+   "rule_group": "C-risk",
+   "surface": "因工程变更产生的计价风险，判由承包人承担",
+   "params": {
+    "event": "工程变更",
+    "liable": "承包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-030",
+   "rule_group": "C-risk",
+   "surface": "因发包人要求赶工产生的计价风险，判由发包人承担",
+   "params": {
+    "event": "发包人要求赶工",
+    "liable": "发包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-031",
+   "rule_group": "C-risk",
+   "surface": "因发包人要求赶工产生的计价风险，判由承包人承担",
+   "params": {
+    "event": "发包人要求赶工",
+    "liable": "承包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-032",
+   "rule_group": "C-risk",
+   "surface": "因措施项目清单的准确性产生的计价风险，判由发包人承担",
+   "params": {
+    "event": "措施项目清单的准确性",
+    "liable": "发包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-033",
+   "rule_group": "C-risk",
+   "surface": "因措施项目清单的准确性产生的计价风险，判由承包人承担",
+   "params": {
+    "event": "措施项目清单的准确性",
+    "liable": "承包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-034",
+   "rule_group": "C-risk",
+   "surface": "因承包人自身施工方案变更产生的计价风险，判由发包人承担",
+   "params": {
+    "event": "承包人自身施工方案变更",
+    "liable": "发包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-035",
+   "rule_group": "C-risk",
+   "surface": "因承包人自身施工方案变更产生的计价风险，判由承包人承担",
+   "params": {
+    "event": "承包人自身施工方案变更",
+    "liable": "承包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-036",
+   "rule_group": "C-risk",
+   "surface": "因承包人施工效率产生的计价风险，判由发包人承担",
+   "params": {
+    "event": "承包人施工效率",
+    "liable": "发包人"
+   },
+   "expected_ok": false,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-risk-037",
+   "rule_group": "C-risk",
+   "surface": "因承包人施工效率产生的计价风险，判由承包人承担",
+   "params": {
+    "event": "承包人施工效率",
+    "liable": "承包人"
+   },
+   "expected_ok": true,
+   "correct_statement": "计价风险按来源归属：发包人承担清单缺陷/数据错误/变更/赶工；承包人承担措施清单准确性/自身方案变更/施工效率",
+   "anchor": "kc:1A432002_036_0047:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-bid-038",
+   "rule_group": "C-bid",
+   "surface": "投标报价低于成本价，评标时仍判该报价有效",
+   "params": {
+    "below_cost": true,
+    "above_ceiling": false,
+    "judged_valid": true
+   },
+   "expected_ok": false,
+   "correct_statement": "投标报价不得低于成本价、不得高于最高投标限价",
+   "anchor": "kc:1A435000_040_0054:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-bid-039",
+   "rule_group": "C-bid",
+   "surface": "投标报价高于最高投标限价，评标时仍判该报价有效",
+   "params": {
+    "below_cost": false,
+    "above_ceiling": true,
+    "judged_valid": true
+   },
+   "expected_ok": false,
+   "correct_statement": "投标报价不得低于成本价、不得高于最高投标限价",
+   "anchor": "kc:1A435000_040_0054:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E01-C-bid-040",
+   "rule_group": "C-bid",
+   "surface": "投标报价不低于成本价且不高于最高投标限价，评标时判该报价有效",
+   "params": {
+    "below_cost": false,
+    "above_ceiling": false,
+    "judged_valid": true
+   },
+   "expected_ok": true,
+   "correct_statement": "投标报价不得低于成本价、不得高于最高投标限价",
+   "anchor": "kc:1A435000_040_0054:0",
+   "extension": false
+  }
+ ]
+}
