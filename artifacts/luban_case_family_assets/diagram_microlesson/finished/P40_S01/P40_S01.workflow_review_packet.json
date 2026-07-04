@@ -1,0 +1,95 @@
+{
+  "schema_version": "luban_workflow_review_packet.v0",
+  "card_id": "P40_S01",
+  "generated_at": "2026-06-22T05:45:51.131Z",
+  "official_score_allowed": false,
+  "grading_authority": false,
+  "learner_state_write_allowed": false,
+  "verdict": "PASS",
+  "machine_gates": [
+    {
+      "name": "validate_lesson_source_workflow",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "build_aliyun_lesson_narration_print",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "build_aliyun_lesson_narration",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_contract",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    }
+  ],
+  "screenshots": [
+    {
+      "viewport": "390x864_hook",
+      "path": "P40_S01.mobile.hook.v2.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 298952,
+      "sha256": "0c5da35157d553418b5b3d8c18b17b9bb9cbce773ad9af7cbbe40997e2fcf854"
+    },
+    {
+      "viewport": "390x881_threshold",
+      "path": "P40_S01.mobile.threshold.v2.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 256226,
+      "sha256": "9a6a982fc3e5f6c46c75f4f1e78bdf1e0e4b177bb718c053b87fef4bf112c0ed"
+    },
+    {
+      "viewport": "390x864_score",
+      "path": "P40_S01.mobile.score.v2.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 241156,
+      "sha256": "fddf254b60db91c797da7c06aebc6239e6b9130ef64446bac110d93c661d9a44"
+    },
+    {
+      "viewport": "390x844_qa",
+      "path": "P40_S01.mobile.qa.v2.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 162361,
+      "sha256": "f30b0c19d855d6519ce71d286624ec2af36ee9ad2eb9c950554f66acfc8fda3f"
+    }
+  ],
+  "judge": {
+    "verdict": "PASS",
+    "issues": []
+  },
+  "root_cause_triage": [],
+  "revision_scope": {
+    "allowed": [
+      "animation_ir.v0表现字段",
+      "renderer primitive",
+      "gate",
+      "skill anti-pattern",
+      "learning-stage shell"
+    ],
+    "forbidden": [
+      "改母题事实",
+      "改采分点",
+      "改答案",
+      "只调单卡 CSS 后宣布治本"
+    ]
+  },
+  "blocking_failures": []
+}

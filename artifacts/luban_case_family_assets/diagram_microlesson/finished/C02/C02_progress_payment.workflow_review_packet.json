@@ -1,0 +1,85 @@
+{
+  "schema_version": "luban_workflow_review_packet.v0",
+  "card_id": "C02_progress_payment",
+  "generated_at": "2026-06-20T09:30:58.679Z",
+  "official_score_allowed": false,
+  "grading_authority": false,
+  "learner_state_write_allowed": false,
+  "verdict": "PASS",
+  "machine_gates": [
+    {
+      "name": "validate_animation_ir_contract",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "remotion_compositions",
+      "status": "PASS",
+      "warn": 0
+    }
+  ],
+  "screenshots": [
+    {
+      "viewport": "390x844_initial",
+      "path": "C02.ir.mobile.initial.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 188422,
+      "sha256": "cb93ad41d8912b3804059c4e227830fca6d652a400dca1fa3d980e9a214de4cd"
+    },
+    {
+      "viewport": "390x844_advance",
+      "path": "C02.ir.mobile.advance.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 192316,
+      "sha256": "26736bf77c26576fcc6e9e8c490510bcf5499ae4ebbe224589e651f325682d14"
+    },
+    {
+      "viewport": "390x844_theater",
+      "path": "C02.ir.mobile.theater.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 78045,
+      "sha256": "f95a82f156dd8991f6dcc0388115d306dfe5e5fba6029d53cd9fb690873564a9"
+    },
+    {
+      "viewport": "390x844_practice",
+      "path": "C02.practice.mobile.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 179241,
+      "sha256": "3f361f976874a4a2324d99eb275e4ed2ece7ab5196245a0afdd4ed7231a5b388"
+    }
+  ],
+  "judge": {
+    "verdict": "PASS",
+    "issues": []
+  },
+  "root_cause_triage": [],
+  "revision_scope": {
+    "allowed": [
+      "animation_ir.v0表现字段",
+      "renderer primitive",
+      "gate",
+      "skill anti-pattern",
+      "learning-stage shell"
+    ],
+    "forbidden": [
+      "改母题事实",
+      "改采分点",
+      "改答案",
+      "只调单卡 CSS 后宣布治本"
+    ]
+  },
+  "blocking_failures": []
+}

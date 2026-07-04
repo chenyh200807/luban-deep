@@ -1,0 +1,154 @@
+{
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "derived_from": "P40_S05.source_card.json",
+  "speakers": {
+    "T": {
+      "role": "teacher",
+      "voice": "longanhuan_v3"
+    },
+    "S": {
+      "role": "student",
+      "voice": "longlaotie_v3"
+    }
+  },
+  "opening": {
+    "exam_scene": "题干出现临时用电、总配电箱、分配电箱、开关箱、设备共用开关箱、插头插座活动连接、停送电顺序、安全电压或电缆埋地，要求指出不妥并改正。",
+    "why_learn": "S05 最容易丢分的不是不会背三个箱名，而是现场对象没画清: 哪一级越过了，哪台设备共箱了，保护链漏了哪一段，答案就散成口号。",
+    "promise": "看完只练一个动作: 把临时用电题写成“架构完整、末端专用、顺序参数、管理闭环”的采分句。"
+  },
+  "teach": {
+    "voice": "longanhuan_v3",
+    "beats": [
+      {
+        "state": "hook",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[hook]",
+        "keycard": "别把临电题写成安全口号",
+        "bridge": "首幕先把考场错觉打掉。",
+        "exam_task": "把“临时用电不妥”翻译成现场供电对象哪里接错、漏保护、漏采分。",
+        "visual_explanation": "白板先出现一台电锯和一台砂轮机共用开关箱，进线端插头插座闪红，旁边的口号答案被压暗。",
+        "answer_move": "先指出现场错法，再写正确接法，不先写“加强用电管理”。",
+        "narration": "注意哈，临时用电这类题，很多人一上来写“加强用电管理”，听着安全，其实很容易没分。考场真正盯的是现场对象：这台设备是不是越级接电，开关箱是不是一箱控两机，保护链有没有漏，停送电顺序有没有写反。今天我们只练一条能写分的链：先画供电树，再查保护链，最后落到答题纸。"
+      },
+      {
+        "state": "power_tree",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[power_tree]",
+        "keycard": "三级配电是供电树，不是三个词",
+        "bridge": "既然要改现场接法，先把正确的供电树搭起来。",
+        "exam_task": "写清总配电箱、分配电箱、开关箱逐级配电，识别越级供电。",
+        "visual_explanation": "总配电箱进入画面，电缆 trace 到分配电箱，再到开关箱，最后才到用电设备；越过开关箱的路径被淘汰。",
+        "answer_move": "答案写“总配电箱、分配电箱、开关箱三级配电，设备不得越级接入”。",
+        "narration": "先看这棵供电树。总配电箱是入口，电先到分配电箱，再到开关箱，最后才到用电设备。三级配电不是把三个箱名背出来，而是设备必须沿这条树逐级接入。题干如果从分配电箱直接拖线给设备，或者绕过开关箱，那就不是少写一句管理，而是供电路径错了。"
+      },
+      {
+        "state": "protection",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[protection]",
+        "keycard": "配电树还要补保护链",
+        "bridge": "所以树搭好了以后，还不能只看配电箱，保护系统也要跟上。",
+        "exam_task": "把三级配电、TN-S 接零保护和二级剩余电流动作保护一起写全。",
+        "visual_explanation": "黄绿 PE 线沿供电树独立贯穿到设备外壳，两处漏保徽标先后亮起，漏电风险被保护链截断。",
+        "answer_move": "答案中补齐 TN-S 接零保护系统和二级剩余电流动作保护系统，避免只写三级配电。",
+        "narration": "第二步，把保护链补上。临时用电的系统答案，不能只写三级配电。还要写 TN-S 接零保护系统，再写二级剩余电流动作保护系统。你可以把它想成两层防线：配电树负责让电走对路，保护链负责让漏电风险被及时切断。答系统时只写“三级配电”，就像画了树干但漏了保护线。"
+      },
+      {
+        "state": "terminal_rule",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[terminal_rule]",
+        "keycard": "末端要一台设备一个开关箱",
+        "bridge": "保护链补齐后，再看最容易出案例纠错的末端。",
+        "exam_task": "诊断两台设备共用一个开关箱、进线端插头插座活动连接，并写正确做法。",
+        "visual_explanation": "一只开关箱同时分叉带电锯和砂轮机先红显，然后两台设备各自移动到独立开关箱下，插头插座红叉退出。",
+        "answer_move": "写“每台设备专用开关箱，不得一箱控制两台及以上，进线端严禁插头插座活动连接”。",
+        "narration": "第三步看末端。案例题最爱写，两台设备共用一个开关箱，或者开关箱进线端用插头插座活动连接。正确动作不是贴个标签，也不是安排人看着，而是每台设备使用专用开关箱，不得一箱控制两台及以上设备；配电箱、开关箱的电源进线端，也严禁采用插头插座做活动连接。这里的“专用”，必须落到设备和开关箱一一对应。"
+      },
+      {
+        "state": "sequence_param",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[sequence_param]",
+        "keycard": "顺序和参数都要挂到现场对象",
+        "bridge": "所以末端接对以后，还要按正确动作操作，并把参数写到具体场所。",
+        "exam_task": "写清送电/停电顺序，补安全电压、电缆埋地、电工持证和用电方案等常见追问。",
+        "visual_explanation": "上半屏两条箭头显示送电总→分→开、停电开→分→总；下半屏切出潮湿/易触及/金属容器灯具和电缆沟剖面。",
+        "answer_move": "遇到顺序题写正反方向；遇到参数题补 36/24/12V、0.7m、持证和方案。",
+        "narration": "第四步，把顺序和参数挂到现场对象。送电是总配电箱到分配电箱，再到开关箱；停电反过来，从开关箱到分配电箱，再到总配电箱。参数也别写空话：潮湿、隧道、人防照明不大于三十六伏；易触及带电体不大于二十四伏；金属容器和锅炉内不大于十二伏。电缆直接埋地，深度不小于零点七米。再碰到管理题，就补电工持证、五十千瓦及以上临时用电组织设计、装饰阶段补编单项用电方案。"
+      },
+      {
+        "state": "score",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[score]",
+        "keycard": "答题纸按四行扫描",
+        "bridge": "前面的对象、路径、保护、参数都已经归位，最后必须变成采分句。",
+        "exam_task": "把图上的供电树和保护链转写成“架构、末端、顺序参数、管理”的答案。",
+        "visual_explanation": "答题纸四行依次出现: 架构完整、末端专用、顺序参数、管理闭环；扫描笔逐行 hit，口号答案显示 miss。",
+        "answer_move": "输出完整采分句，不停在“加强管理”。",
+        "narration": "最后落到答题纸。你可以按四行写：第一行，临时用电采用三级配电系统、TN-S 接零保护系统和二级剩余电流动作保护系统；第二行，总配、分配、开关箱逐级配电，每台设备专用开关箱，进线端不得插头插座活动连接；第三行，送电总到分到开，停电开到分到总，并把安全电压和电缆埋地参数写清；第四行，电工持证，按容量和施工阶段编制或补编用电方案。这样写，阅卷人能顺着现场对象给分。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "state": "score",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，我写“三级配电”这四个字，再把三个箱名列上，能拿分不？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[only_three_boxes]",
+        "text": "能拿一部分，但不稳。三级配电要写成总配电箱、分配电箱、开关箱逐级接到设备；系统题还要补 TN-S 和二级漏保。只列箱名，像背词，不像改现场。"
+      }
+    },
+    {
+      "state": "terminal_rule",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "那我看到两台设备共用一个箱，写“设专人看护”，这样行不行？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[shared_switch_box]",
+        "text": "不行。这不是看护强不强的问题，而是末端控制不专用。要写每台设备使用专用开关箱，不得一箱控制两台及以上，进线端也不能用插头插座活动连接。"
+      }
+    },
+    {
+      "state": "sequence_param",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "这块我有点懵，送电和停电方向老写反，咋记？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[sequence_reverse]",
+        "text": "记现场动作就行。送电是从源头往设备送，所以总、分、开；停电是先让设备末端停下来，所以开、分、总。一个正向送，一个反向收。"
+      }
+    }
+  ],
+  "closing": {
+    "state": "closing_challenge",
+    "speaker": "T",
+    "claim": true,
+    "anchor": "memory_hook",
+    "text": "最后记住哈：先画供电树，再查保护链；一机一箱写末端，顺序参数落答题纸。现在进闯关，别背口号，直接看现场对象能不能写成采分句。"
+  }
+}

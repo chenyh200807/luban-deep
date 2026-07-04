@@ -1,0 +1,161 @@
+{
+  "schema_version": "luban_teaching_lesson.v0",
+  "lesson_id": "P40_S01_lesson",
+  "derived_from": "P40_S01.source_card.json",
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "opening": {
+    "exam_scene": "脚手架或高大模板支架搭设完成，题目问能不能使用、能不能浇筑、能不能放行。",
+    "why_learn": "S01 不是背一堆脚手架散点，而是把安全题写成一条可采分的判断链。",
+    "promise": "看完只练一个动作：先取数分档，再看构造稳定，最后写验收放行。"
+  },
+  "speakers": {
+    "T": {
+      "name": "鲁班老师",
+      "voice": "longanhuan_v3"
+    },
+    "S": {
+      "name": "龙老铁",
+      "voice": "longlaotie_v3"
+    }
+  },
+  "teach": {
+    "voice": "longanhuan_v3",
+    "beats": [
+      {
+        "state": "hook",
+        "claim": true,
+        "anchor": "wrong_idea",
+        "keycard": "常见丢分:只写“验收合格”",
+        "bridge": "首幕先把考试任务说清楚。",
+        "exam_task": "把“搭设完成”翻译成“能不能安全放行”。",
+        "visual_explanation": "白板上先出现错误句和目标句，告诉学生本卡不是背规范散点，而是写采分链。",
+        "answer_move": "先写对象和放行任务，不先写空泛结论。",
+        "narration": "注意哈，S01 这类题别一上来写“验收合格”。考场真正问的是：这套脚手架或模板支架，能不能安全放行。今天只练一条链：先取数分档，再看构造稳不稳，最后写成验收放行的采分句。"
+      },
+      {
+        "state": "load_path",
+        "claim": true,
+        "anchor": "facts[load_path].text",
+        "keycard": "先看它为什么会垮",
+        "bridge": "既然问能不能放行，先看它为什么可能不稳。",
+        "exam_task": "识别对象是临时受力系统，而不是普通设备清单。",
+        "visual_explanation": "把荷载路径从作业面画到立杆、底座、地基，再点亮连墙件和剪刀撑的侧向约束。",
+        "answer_move": "把答题对象写清楚：脚手架或模板支架。",
+        "narration": "为什么先看传力？因为它不是一个普通物品清单，而是临时受力系统。荷载从作业面落到立杆，再到底座和地基；连墙件、剪刀撑、扫地杆，是防侧倒、防底部失稳、防整体垮塌的。对象读错，后面验收项目就会写散。"
+      },
+      {
+        "state": "threshold_gate",
+        "claim": true,
+        "anchor": "facts[thresholds].text",
+        "keycard": "第一刀:取数分档",
+        "bridge": "知道它是受力系统后，第一刀不是凭感觉，而是取数比阈值。",
+        "exam_task": "判断是否进入高大模板支撑/高风险口径。",
+        "visual_explanation": "四个数值 H、跨度、总荷载、线荷载逐个进入阈值尺，命中项高亮。",
+        "answer_move": "写出取数分档依据，必要时和 J01 论证程序交接。",
+        "narration": "有了对象以后，第一刀才是取数。高度 H、搭设跨度、施工总荷载、集中线荷载，逐个拿来比阈值。比如高大模板支撑常见四道门：H 达到 8 米、跨度达到 18 米、总荷载达到 15 千牛每平方米、线荷载达到 20 千牛每米。命中的是风险口径，后面的论证程序再交给 J01。"
+      },
+      {
+        "state": "structure_gate",
+        "claim": true,
+        "anchor": "facts[structure_gate].text",
+        "keycard": "第二刀:构造稳不稳",
+        "bridge": "但取数只说明风险高，不代表这套架体已经能用。",
+        "exam_task": "把构造检查写成放行依据，而不是散点背规范。",
+        "visual_explanation": "扫地杆稳底部，连墙件约束侧向，剪刀撑保整体，拆除顺序保时序。",
+        "answer_move": "写“构造稳定”：支承、连接、侧向约束、时序符合要求。",
+        "narration": "但注意，命中阈值只说明风险高，不等于可以使用。第二刀看构造有没有把风险控制住：扫地杆稳住底部，连墙件约束侧向，剪刀撑保证整体刚度，拆除顺序防止承重路径突然断掉。考试问搭设错误，就在这些位置找；考试问放行，就把这些变成验收依据。"
+      },
+      {
+        "state": "acceptance_gate",
+        "claim": true,
+        "anchor": "facts[acceptance_four].text",
+        "keycard": "第三刀:验收四件套",
+        "bridge": "接着从构造转到验收：构造解决稳不稳，验收解决证据够不够。",
+        "exam_task": "把安全放行写成验收闭环。",
+        "visual_explanation": "四个验收格依次出现：材料、支承固定、搭设质量、技术资料。",
+        "answer_move": "写验收合格并形成放行条件。",
+        "narration": "构造解决的是“稳不稳”，验收解决的是“证据够不够”。答题纸上要落到四件套：材料合格，支承固定可靠，架体搭设质量符合要求，技术资料和验收记录齐全。只写一句“验收合格”，没有告诉阅卷人你验收了什么，采分颗粒是不够的。"
+      },
+      {
+        "state": "trap",
+        "claim": true,
+        "anchor": "common_errors[only_conclusion].why",
+        "keycard": "错法:把结论当答案",
+        "bridge": "所以现在反过来看，为什么很多答案看起来对却不给分。",
+        "exam_task": "诊断学生答案漏掉哪段采分动作。",
+        "visual_explanation": "答题纸扫描错误句，标出漏对象、漏验收项目、漏放行条件。",
+        "answer_move": "把错句改成对象 + 项目 + 合格 + 方可使用。",
+        "narration": "所以常见丢分不是完全不会，而是把结论当答案。比如只写“验收合格，可以使用”，看着没错，但它漏了对象，漏了验收项目，也漏了放行条件。阅卷时最稳的写法，是让对象、检查项目和结论同时出现。"
+      },
+      {
+        "state": "score",
+        "claim": true,
+        "anchor": "facts[score_phrase].text",
+        "keycard": "落答题纸",
+        "bridge": "纠正错法后，最后必须落成一句能写的采分句。",
+        "exam_task": "把前面的图示链压缩成主观题答案。",
+        "visual_explanation": "答题纸逐词扫光：对象、材料、支承固定、搭设质量、技术资料、验收合格、方可使用。",
+        "answer_move": "输出最终采分句。",
+        "narration": "最后把这条链写成一句能拿分的话：脚手架或模板支架，经材料、支承固定、搭设质量和技术资料验收合格后，方可使用。记住，不是背一堆规范名，而是把题目翻译成三步：取数分档，构造稳定，验收放行。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，我就写“验收合格”，能拿分不？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[only_conclusion].why",
+        "text": "不够。你没交代验收了什么，也没写放行条件。至少把对象、验收项目和结论带上。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "这块是不是一看到 8 米，就直接写专家论证？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[mix_thresholds].why",
+        "text": "先别急。你得先判对象。高大模板支撑 H 达到 8 米是论证口径，落地脚手架又有另一套高度门槛。先取对象，再比阈值。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "那扫地杆、连墙件这些，我要不要都写上啊？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[scatter_specs].why",
+        "text": "看题问什么。问搭设错误，就写具体构造点；问验收放行，就把构造合格放进验收依据，别把规范散点一股脑堆上去。"
+      }
+    }
+  ],
+  "closing": {
+    "state": "closing_challenge",
+    "speaker": "T",
+    "claim": true,
+    "anchor": "memory_hook",
+    "text": "最后收束一句哈：S01 不是背脚手架散点，而是把安全题写成三步采分链。先取数分档，再看构造稳定，最后验收放行。现在进闯关，看你能不能把这句话写稳。"
+  }
+}

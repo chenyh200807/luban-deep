@@ -1,0 +1,137 @@
+{
+  "schema_version": "luban_workflow_review_packet.v0",
+  "card_id": "P40_A02",
+  "generated_at": "2026-06-22T14:21:05.186Z",
+  "official_score_allowed": false,
+  "grading_authority": false,
+  "learner_state_write_allowed": false,
+  "verdict": "PASS",
+  "machine_gates": [
+    {
+      "name": "validate_animation_ir_contract",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "render_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "runtime_domain_layout_overlap",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "runtime_domain_layout_item_count",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "runtime_ai_ask_occlusion",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "cdp_preview_390_screenshot",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "cdp_preview_1230_screenshot",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_practice_interactions",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "cdp_practice_click_smoke",
+      "status": "PASS",
+      "warn": 0
+    }
+  ],
+  "screenshots": [
+    {
+      "viewport": "preview_390x844",
+      "path": "P40_A02.preview.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 279429,
+      "sha256": "f6844d89ee74ae1e0128cbf667f53f7dd1d0a2f1adca5ae1f3717e7caffed675"
+    },
+    {
+      "viewport": "preview_1230x744",
+      "path": "P40_A02.preview.1230.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 449682,
+      "sha256": "66dfb6692b10978d05621edc156d31c05ddb0b3d1efe0d0c3eb8a6a9dc26553d"
+    },
+    {
+      "viewport": "practice_390x844",
+      "path": "P40_A02.practice.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 254386,
+      "sha256": "5a82fa7001d45c6b0cccef37eae6b9e7201c6f135561adeabd7b3013927f17a0"
+    }
+  ],
+  "judge": {
+    "verdict": "PASS",
+    "issues": [
+      {
+        "axis": "visual_semantics",
+        "anti_pattern": "first item looked like two separate objects, making 5 visual objects for a 4-item model",
+        "beat_or_question": "hook_filter_flow",
+        "severity": "FIXED",
+        "fix_layer": "renderer primitive plus DOM gate",
+        "fix": "合格证 and material sample are now drawn inside one 材料进场托盘 object; runtime_domain_layout_item_count enforces exactly four marked domain items"
+      },
+      {
+        "axis": "visual_layout",
+        "anti_pattern": "object/text overlap and crowding",
+        "beat_or_question": "hook_filter_flow",
+        "severity": "FIXED",
+        "fix_layer": "renderer primitive plus DOM gate",
+        "fix": "hidden_sample_objects uses four marked domain items with separate label bands and object/label/shape collision checks"
+      }
+    ]
+  },
+  "root_cause_triage": [
+    {
+      "symptom": "4-item model rendered as 5 perceived objects",
+      "shared_failure_shape": "source labels contained 合格证 and 材料样品 separately but visual label was 材料进场",
+      "one_authority": "shared hidden_sample_objects primitive",
+      "broken_contract": "renderer used two standalone icons inside first item",
+      "fix_layer": "renderer primitive and validator",
+      "new_gate_or_antipattern": "merged first item into one tray object and added runtime_domain_layout_item_count"
+    }
+  ],
+  "revision_scope": {
+    "allowed": [
+      "animation_ir.v0表现字段",
+      "renderer primitive",
+      "gate",
+      "skill anti-pattern",
+      "learning-stage shell"
+    ],
+    "forbidden": [
+      "改母题事实",
+      "改采分点",
+      "改答案",
+      "只调单卡 CSS 后宣布治本"
+    ]
+  },
+  "blocking_failures": []
+}
