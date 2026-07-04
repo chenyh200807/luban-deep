@@ -120,6 +120,12 @@ BI_OPERATION_START_AT = datetime(2026, 6, 22, 0, 0, tzinfo=_TZ)
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
 _HOME_NEXT_STEP_ENABLED = "DEEPTUTOR_HOME_NEXT_STEP_ENABLED"
+# 首页/雷达/章节盘共用的 learner 事件读窗(病C:窗口粒度)。容量推理:
+# lesson_viewed 按(pack,幕,日)折叠,40 pack × 2 幕 = 一天最多 ~80 条;
+# 判分/测评证据必须在同一窗内存活,100 = 80 条 lesson_viewed + 20 条判分
+# 证据仍全部放得下。窗只管容量;语义过滤在窗**之后**由各消费者做
+# (mastery blend 只吃 progress_countable=true 的,生命周期投影全吃)。
+_HOME_LEARNER_EVENT_LIMIT = 100
 _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
     {
         "phone_backfill",
@@ -6404,7 +6410,7 @@ class MemberConsoleService:
 
     def _mastery_evidence_events(self, member: dict[str, Any], user_id: str) -> list[Any]:
         learner_user_id = str(member.get("user_id") or user_id or "").strip()
-        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=20)
+        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=_HOME_LEARNER_EVENT_LIMIT)
         return self._snapshot_memory_events(snapshot)
 
     @staticmethod
@@ -6441,7 +6447,7 @@ class MemberConsoleService:
         member = self._load_member_snapshot(user_id)["member"]
         learner_user_id = str(member.get("user_id") or user_id or "").strip()
         learning = self._ensure_learning_profile(member)
-        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=20)
+        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=_HOME_LEARNER_EVENT_LIMIT)
         mastery_items = self._report_mastery_items(
             member,
             evidence_events=self._snapshot_memory_events(snapshot),
