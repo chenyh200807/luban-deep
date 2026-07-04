@@ -104,6 +104,7 @@ Page({
 
     if (done) {
       // 复测完成（任务稿 luban_retest_complete 的登记名）
+      api.postStationCompleted(this.data.packId || "", "").catch(function () {});
       telemetry.trackProductBehavior("learning_action_completed", {
         module: "practice",
         action: "complete",

@@ -91,3 +91,23 @@ def test_unverified_weak_observation_uses_three_day_cadence() -> None:
     )
 
     assert queue["items"][0]["status"] == "active"
+
+
+def test_fresh_phase_due_next_calendar_day_not_24h():
+    """新学相(fresh)按 UTC+8 日历日次日到期(双轮 §6.1 分相首跳/§9-D2 '天'=日历日)：
+    昨晚学的今早即到期；同日不到期——'明天见'承诺的调度语义。"""
+    from deeptutor.services.learner_state.revalidation_queue import (
+        build_revalidation_queue_projection,
+    )
+
+    def _q(observed, now):
+        return build_revalidation_queue_projection(
+            user_id="u1",
+            candidates=[{"node_id": "F16", "label": "屋面防水", "state": "fresh",
+                         "ability_dimension": "", "last_observed_at": observed}],
+            now_iso=now,
+        )["source_status"]["due_count"]
+
+    assert _q("2026-07-03T22:00:00+08:00", "2026-07-04T09:00:00+08:00") == 1, "昨晚学→今早到期(仅 11h 但跨日)"
+    assert _q("2026-07-04T01:00:00+08:00", "2026-07-04T23:59:00+08:00") == 0, "同日 23h 不到期"
+    assert _q("2026-07-01T10:00:00+08:00", "2026-07-04T09:00:00+08:00") == 1, "跨多日仍到期"

@@ -42,7 +42,7 @@
               </view>
             </view>
             <view class="rv-hero-titles">
-              <text class="rv-hero-title" wx:if="{{dueCount}}">今日回炉 {{dueCount}} 站 · 共 {{dueItemTotal}} 题</text>
+              <text class="rv-hero-title" wx:if="{{dueCount}}">今日回炉 {{dueCount}} 站 · 昨天的约定</text>
               <text class="rv-hero-title" wx:else>今天没有到期的回炉任务</text>
               <text class="rv-hero-desc" wx:if="{{dueCount}}">都是你学过的考点，换了身皮再见一面</text>
               <text class="rv-hero-desc" wx:else>你点亮的站都稳着。想主动翻一翻，用下面的检索。</text>

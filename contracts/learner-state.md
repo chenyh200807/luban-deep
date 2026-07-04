@@ -288,6 +288,12 @@ Overlay 必须支持：
   倒计时/排程读的是它，禁脏值入库。
 - profile/settings 的 learner 同步失败回滚字段清单（`_build_member_profile_rollback_patch`）
   含 `time_budget`（漏字段=503 时 member 与 learner_state 半提交分叉，单元测试钉死清单）。
+- `learner_signal` 第三类 `station_completed`（2026-07-04，双轮复习到期收权）：站点完成
+  （交接时刻/复测完成）的触发事实，`concept_id`=pack_id；仍非 promoting（source_feature=
+  learner_signal，证据编译器排除）。到期语义唯一权威=`revalidation_queue`：新增新学相
+  `state="fresh"` 首跳按 **UTC+8 日历日次日**（§6.1 分相最小实现 + §9-D2「天」=日历日，
+  「明天见」承诺的调度载体；满 24h 判定被否——昨晚学的今早即到期）。pack 级到期投影
+  `luban_lesson/review_due.py` 只做粒度桥接与绿灯 join，零调度逻辑（禁第二调度器）。
 
 必须真实接入：
 

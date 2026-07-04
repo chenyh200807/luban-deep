@@ -271,11 +271,19 @@ def _is_due(row: dict[str, Any], *, now: datetime) -> bool:
     )
     if observed_at is None:
         return True
+    if row.get("state") == "fresh":
+        # 新学相"明天见"按日历日(§9-D2: "天"=UTC+8 日历日, 服务端折算)——
+        # 昨晚学的今早即到期; 满 24h 判定会把它拖到晚上, 违背次日承诺。
+        return now.astimezone(_TZ).date() > observed_at.astimezone(_TZ).date()
     age_days = (now - observed_at).total_seconds() / 86400
     return age_days >= _first_interval_days(row)
 
 
 def _first_interval_days(row: dict[str, Any]) -> int:
+    # "fresh" = 新学相(双轮 §6.1 分相: 刚学的走短间隔, 首跳次日)——
+    # 交接时刻"明天见"承诺的调度语义载体; 巩固后转常规 schedule 是阶段 2。
+    if row.get("state") == "fresh":
+        return 1
     if row.get("state") == "weak":
         return 3
     ability = str(row.get("ability_dimension") or "").strip()

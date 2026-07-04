@@ -14,7 +14,9 @@ from __future__ import annotations
 from typing import Any
 
 SOURCE_FEATURE = "learner_signal"
-_SIGNAL_TYPES = frozenset({"subjective_focus", "user_dispute"})
+# station_completed: 站点完成(交接时刻/复测完成)——复习到期调度的触发事实
+# (concept_id=pack_id)。仍非 promoting: 不写掌握、不进证据编译器。
+_SIGNAL_TYPES = frozenset({"subjective_focus", "user_dispute", "station_completed"})
 _USER_SAYS = frozenset({"mastered", "not_mastered"})
 
 

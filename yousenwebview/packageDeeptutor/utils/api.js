@@ -854,6 +854,29 @@ function getLubanLessonDetail(packId, opts) {
 }
 
 /** 鲁班 — 次日变体复测题面（服务端确定性抽取，客户端本地判分） */
+function getLubanReviewDue(opts) {
+  // 复习到期投影(到期语义权威=revalidation_queue), 替代前端逐站探测
+  return requestStateGet("/api/v1/luban/review-due", opts);
+}
+
+function postStationCompleted(packId, packTitle, opts) {
+  // 站完成信号(非 promoting): 复测调度的触发事实——交接时刻/复测完成时上报
+  return request(
+    Object.assign(
+      {
+        url: "/api/v1/learner-signal/signal",
+        method: "POST",
+        data: {
+          signal_type: "station_completed",
+          concept_id: String(packId || "").trim(),
+          concept_label: String(packTitle || "").trim(),
+        },
+      },
+      opts || {},
+    ),
+  );
+}
+
 function getLubanRetestItems(packId, limit, opts) {
   var n = Number(limit || 5);
   if (!Number.isFinite(n) || n <= 0) n = 5;
@@ -970,6 +993,8 @@ module.exports = {
   getLubanLessons: getLubanLessons,
   getLubanLessonDetail: getLubanLessonDetail,
   getLubanRetestItems: getLubanRetestItems,
+  getLubanReviewDue: getLubanReviewDue,
+  postStationCompleted: postStationCompleted,
   getAssessmentProfile: getAssessmentProfile,
   getAssessmentTopics: getAssessmentTopics,
   createAssessment: createAssessment,

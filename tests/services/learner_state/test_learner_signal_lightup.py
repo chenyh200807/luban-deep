@@ -76,3 +76,27 @@ def test_invalid_signal_type_rejected():
     svc = _FakeLearnerStateService()
     with pytest.raises(ValueError):
         record_learner_signal(svc, user_id="u1", signal_type="mastery_hack", concept_id="k")
+
+
+def test_station_completed_signal_type_accepted():
+    """station_completed(站完成=复测调度触发事实, concept_id=pack_id)入白名单；
+    仍走非 promoting 路径(source_feature=learner_signal, 证据编译器排除)。"""
+    from deeptutor.services.learner_state.learner_signal import record_learner_signal
+
+    calls = {}
+
+    class _Svc:
+        def append_memory_event(self, user_id, **kw):
+            calls.update(kw, user_id=user_id)
+            return type("E", (), {"event_id": "e1"})()
+
+    record_learner_signal(_Svc(), user_id="u1", signal_type="station_completed",
+                          concept_id="F16", concept_label="屋面防水")
+    assert calls["source_feature"] == "learner_signal"
+    assert calls["memory_kind"] == "learning_evidence"
+    assert calls["payload_json"]["learning_signal_type"] == "station_completed"
+    assert calls["payload_json"]["concept_id"] == "F16"
+
+    import pytest as _pytest
+    with _pytest.raises(ValueError):
+        record_learner_signal(_Svc(), user_id="u1", signal_type="station_done", concept_id="F16")

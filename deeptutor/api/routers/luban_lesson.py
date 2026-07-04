@@ -69,3 +69,20 @@ async def retest_items(
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
     return {"pack_id": pack_id.upper(), "items": items, "day_index": day_index}
+
+
+@router.get(
+    "/review-due",
+    dependencies=[
+        Depends(route_rate_limit("luban_review_due", default_max_requests=30, default_window_seconds=60.0))
+    ],
+)
+async def review_due(current_user: AuthContext = Depends(get_current_user)) -> dict:
+    """复习到期投影——到期语义唯一权威=revalidation_queue(§3 C4), 替代前端 N+1 探测。"""
+    from deeptutor.services.learner_state.service import get_learner_state_service
+    from deeptutor.services.luban_lesson.review_due import build_review_due_projection
+
+    events = get_learner_state_service().list_memory_events(
+        current_user.user_id, limit=200
+    )
+    return build_review_due_projection(user_id=current_user.user_id, events=events)
