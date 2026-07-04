@@ -421,6 +421,26 @@ Overlay 必须支持：
   `learner_memory_events.learning_evidence` 恢复一次同形态 projection；若没有有效证据，
   再降级到 `data/seed/<subject_id>/starter_prompts.json`。该 starter pool 是 fallback
   projection，不是第二套推荐 authority。
+- Home dashboard 的 `review`（`{overdue, due_today}`）与 `mastery.weak_nodes`
+  （`[{name, mastery}]`）不得由 `member_console` 现场用 member-local 启发式计算。
+  这两个信号的**单一 writer** 是 learner_state 层的
+  `home_learner_signals.build_home_learner_signals(...)`：`review` 从 canonical
+  `build_revalidation_queue_projection`（ARRS 复测队列，over `learner_memory_events`）
+  的 items 派生（v0 daily capacity=1：`due_today = 1 if items else 0`，
+  `overdue = source_status.suppressed_due_count`），保持既有 `{overdue, due_today}`
+  形状；`weak_nodes` 的 mastery **数值**目前没有比 member snapshot `chapter_mastery` /
+  `last_assessment` 更下层的 canonical 源（learning_brain `weak_points` 只带
+  concept/error 语义，无 mastery 数值），因此这半只做阈值过滤与排序、如实标注
+  `source_status.weak_nodes.collapsed=false`，待后续接入 canonical mastery 数值源。
+  `learning_report_read_model` 继续通过它既有的 `get_home_dashboard` 读取
+  `home_dashboard.review.due_today` / `home_dashboard.mastery.weak_nodes`，因此
+  这些回读值现在自然是 canonical 派生结果——**learning_report 侧无需改动**。
+  `home_learner_signals` 只读 learner_state 同层原语，**不得** import
+  `member_console` 或 `learning_report_read_model`（否则重建
+  home_dashboard ↔ learning_report 模块环）；`member_console` 侧用函数内延迟
+  import 引用该 helper，保持依赖单向。member 字段 `review_due` 仍可作为
+  study_plan “待复习点” total_due 的次要文案 hint，但**不再**作为
+  `review.overdue/due_today` 的 authority。
 - `home_personalization` projection 的 canonical marker 必须位于 projection 本体的
   `source_status`：`home_projection_contract="canonical_taxonomy_v1"` 且
   `topic_authority="learner_state.home_personalization.canonical_taxonomy"`。外层

@@ -526,6 +526,7 @@ domains:
       - tests/services/learner_state/test_evidence_story_read_model.py
       - tests/services/learner_state/test_prescription_outcomes_read_model.py
       - tests/services/learner_state/test_revalidation_queue.py
+      - tests/services/learner_state/test_home_learner_signals.py
       - tests/services/learner_state/test_mistake_clustering.py
       - tests/services/learner_state/test_learning_state_scenario_matrix.py
       - tests/services/learner_state/test_evidence_story_pii_redaction.py

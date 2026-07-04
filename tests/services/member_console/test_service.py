@@ -708,6 +708,9 @@ def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from
                 continue
             member["focus_topic"] = "施工管理"
             member["daily_target"] = 8
+            # `review_due` remains a member field feeding the "待复习点" total_due
+            # phrasing in study_plan, but it NO LONGER drives review.overdue/due_today
+            # (which are now derived from the canonical revalidation queue below).
             member["review_due"] = 2
             member["study_days"] = 3
             member["daily_practice_counts"] = {
@@ -761,6 +764,34 @@ def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from
                                 }
                             },
                         ),
+                        # Two canonical revalidation-due dispute probes → the queue
+                        # emits 1 (v0 capacity) and suppresses 1, so review.overdue==1.
+                        # This is what now drives the "优先处理逾期复习" focus — proving it
+                        # is canonical-derived, not the member["review_due"] scalar.
+                        SimpleNamespace(
+                            event_id="evt_dispute_a",
+                            memory_kind="learning_evidence",
+                            source_feature="conversation_synthesis",
+                            payload_json={
+                                "learning_signal_type": "user_dispute",
+                                "concept_id": "防水工程",
+                                "concept_label": "防水工程",
+                                "ability_dimension": "code_application",
+                                "user_says": "not_mastered",
+                            },
+                        ),
+                        SimpleNamespace(
+                            event_id="evt_dispute_b",
+                            memory_kind="learning_evidence",
+                            source_feature="conversation_synthesis",
+                            payload_json={
+                                "learning_signal_type": "user_dispute",
+                                "concept_id": "屋面工程",
+                                "concept_label": "屋面工程",
+                                "ability_dimension": "concept_recall",
+                                "user_says": "not_mastered",
+                            },
+                        ),
                     ],
                 },
             )()
@@ -769,6 +800,9 @@ def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from
 
     dashboard = service.get_home_dashboard("student_plan")
 
+    # review now comes from the canonical revalidation queue (2 due probes,
+    # capacity 1 → due_today=1, overdue=1), not member["review_due"]==2.
+    assert dashboard["review"] == {"overdue": 1, "due_today": 1}
     assert dashboard["today_focus"]["source"] == "learner_state.study_plan"
     assert dashboard["today_focus"]["title"] == "优先处理逾期复习"
     assert dashboard["today_focus"]["reason"] == "review_due"
@@ -1027,6 +1061,106 @@ def test_home_dashboard_ignores_global_workspace_heartbeat_as_user_focus_authori
 
     assert dashboard["today_focus"]["source"] == "learner_state.study_plan"
     assert "周期复习节奏" not in dashboard["today_focus"]["query"]
+
+
+def _dispute_revalidation_event() -> SimpleNamespace:
+    """A canonical learner-memory dispute event that the revalidation queue
+    turns into an immediately-due probe (``needs_revalidation``, capacity 1)."""
+    return SimpleNamespace(
+        event_id="evt_dispute_review",
+        memory_kind="learning_evidence",
+        source_feature="conversation_synthesis",
+        payload_json={
+            "learning_signal_type": "user_dispute",
+            "concept_id": "防水工程",
+            "concept_label": "防水工程",
+            "ability_dimension": "code_application",
+            "user_says": "not_mastered",
+        },
+    )
+
+
+def test_home_dashboard_review_is_derived_from_canonical_revalidation_queue(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """收权断言:review 的 due_today 来自 canonical revalidation queue,
+    不再来自 member-local ``review_due`` 标量。给一个含到期复测事件的
+    canonical 快照,断言 review.due_today == 1 且 today_focus 反映复习到期。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("review_canonical")
+
+    def _apply(data: dict[str, object]) -> None:
+        for member in data["members"]:
+            if member["user_id"] != "review_canonical":
+                continue
+            # member-local scalar deliberately says "no reviews due" — canonical must win.
+            member["review_due"] = 0
+            break
+
+    service._mutate(_apply)
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            return SimpleNamespace(
+                profile={},
+                progress={},
+                summary="",
+                memory_events=[_dispute_revalidation_event()],
+            )
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, limit: int = 3):
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    dashboard = service.get_home_dashboard("review_canonical")
+
+    # canonical queue emits one due probe → due_today reflects canonical, not member["review_due"]==0.
+    assert dashboard["review"]["due_today"] == 1
+    assert dashboard["review"]["overdue"] == 0
+
+
+def test_home_dashboard_review_ignores_member_local_scalar_when_canonical_empty(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """收权断言(反向):member-local ``review_due`` 与 canonical 不一致时以 canonical 为准。
+    member 说有 3 条待复习,但 canonical 快照没有任何到期复测事件 → review 归 0。
+    这直接证明 review 的 writer 已从 member-local 收成 canonical 单一源。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("review_stale_scalar")
+
+    def _apply(data: dict[str, object]) -> None:
+        for member in data["members"]:
+            if member["user_id"] != "review_stale_scalar":
+                continue
+            member["review_due"] = 3  # stale member-local heuristic
+            break
+
+    service._mutate(_apply)
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            return SimpleNamespace(profile={}, progress={}, summary="", memory_events=[])
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, limit: int = 3):
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    dashboard = service.get_home_dashboard("review_stale_scalar")
+
+    # No canonical due probe → review is empty regardless of the stale member["review_due"]==3.
+    assert dashboard["review"] == {"overdue": 0, "due_today": 0}
 
 
 @pytest.mark.asyncio

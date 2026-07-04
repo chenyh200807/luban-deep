@@ -6349,18 +6349,16 @@ class MemberConsoleService:
         member = self._load_member_snapshot(user_id)["member"]
         learner_user_id = str(member.get("user_id") or user_id or "").strip()
         learning = self._ensure_learning_profile(member)
-        mastery_items = self._report_mastery_items(member)
-        weak_nodes = [
-            {"name": item["name"], "mastery": item["mastery"]}
-            for item in mastery_items
-            if int(item.get("mastery") or 0) < 60
-        ]
-        weak_nodes.sort(key=lambda item: item["mastery"])
-        review = {
-            "overdue": max(0, member["review_due"] - 1),
-            "due_today": 1 if member["review_due"] else 0,
-        }
         snapshot = self._read_learner_snapshot(learner_user_id, event_limit=20)
+        # Single-authority collapse: review/weak_nodes are derived from the
+        # canonical revalidation queue + canonical mastery (learner_state layer),
+        # not from member-local heuristics. learning_report_read_model reads these
+        # back through get_home_dashboard, so it now sees canonical data with no
+        # change on its side. This is a downward, one-way read into a lower
+        # primitive — get_home_dashboard never reads learning_report (no cycle).
+        signals = self._build_home_learner_signals(learner_user_id, member, snapshot)
+        weak_nodes = signals["weak_nodes"]
+        review = signals["review"]
         heartbeat_context = self._read_home_heartbeat_context(learner_user_id)
         study_plan = self._build_home_study_plan(
             member,
@@ -6468,6 +6466,32 @@ class MemberConsoleService:
                 if value:
                     return value
         return "construction_exam_1"
+
+    def _build_home_learner_signals(
+        self,
+        learner_user_id: str,
+        member: dict[str, Any],
+        snapshot: Any | None,
+    ) -> dict[str, Any]:
+        """Canonical ``review``/``weak_nodes`` for the home dashboard.
+
+        Delegates to the single learner_state derivation point. The lazy import
+        keeps member_console ← learner_state one-way (learning_report_read_model
+        imports member_console, so a top-level import here could recreate a
+        module cycle; this helper reads only lower primitives, never
+        learning_report). Shapes returned are the exact downstream contract:
+        ``review={"overdue","due_today"}`` and ``weak_nodes=[{"name","mastery"}]``.
+        """
+        from deeptutor.services.learner_state.home_learner_signals import (
+            build_home_learner_signals,
+        )
+
+        memory_events = list(getattr(snapshot, "memory_events", []) or []) if snapshot is not None else []
+        return build_home_learner_signals(
+            user_id=learner_user_id or str(member.get("user_id") or ""),
+            memory_events=memory_events,
+            mastery_items=self._report_mastery_items(member),
+        )
 
     def _read_learner_snapshot(self, user_id: str, *, event_limit: int = 5) -> Any | None:
         try:
