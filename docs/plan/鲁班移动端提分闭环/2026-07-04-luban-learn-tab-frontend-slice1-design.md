@@ -73,24 +73,41 @@
 - Long Cang 书法体仅用于教学动画模块(海报竖排考点名 + 舞台"鲁班智考");wxss 用 `'Long Cang','Kaiti SC',cursive` 兜底
 - 单位换算:设计 px → 小程序 rpx(×2,以 375pt 设计宽为基,`402px` 屏按比例)
 
-## 4. 文件结构(新建,复用 token)
+## 3.9 关键发现:spike 已建可用播放器(复用,不重造)
+
+调查发现 2026-07-02 spike 已落 `packageDeeptutor/pages/luban/`:
+- `stations`:站点列表(拉 `/api/v1/luban/lessons` 绿灯站,navigate 到 station)
+- `station`:**两幕 web-view 播放器**——幕1 讲懂 `card_url`→幕2 闯关 `practice.html`→跳 handoff(已接 `getLubanLessonDetail`)
+- `retest`:变体复测(拉 `/retest-items` 本地判分,telemetry only)
+- `handoff`:交接时刻(明天见订阅授权)
+
+**它缺的恰是本片要补的**:①`lesson-progress` 学-evidence 上报(station 页注释明写"零学习证据写入·本页不碰"——我的新端点没接);②第 10 轮纸墨朱竹**学习 home**;③消费 `next_step`/`pack_lifecycle`。
+
+**打法收敛(less is more:复用 > 重造)**:
+- **不新建 lesson 播放页**——复用 spike 的 `luban/station`(已工作的 web-view 播放器)
+- 本片新建的只有**学习 home**(`pages/learn/learn`,纸墨朱竹宣纸驾驶舱),它的下一站卡「播放」/ 课程架 / 完整路线 → navigate 进现有 `luban/station`、`luban/stations`
+- **lesson-progress 接进现有 `luban/station` 讲懂幕**(补上缺的学-evidence writer),不在新页做
+
+**由此产生一个新决策(待用户)**:spike 的 `station/stations` 是可用但**旧设计形态**(非纸墨朱竹)。本片是 (a) 保留 station/stations 原样、只建纸墨朱竹学习 home + 接 lesson-progress,还是 (b) 顺带把 station/stations 也重塑成纸墨朱竹?推荐 (a)——先让学习 home 这个"驾驶舱"立起来消费后端,播放器视觉统一放后续片,避免第一片摊太大。
+
+## 4. 文件结构(新建学习 home + 复用 spike 播放器)
 
 ```
-packageDeeptutor/pages/learn/
-  learn.js          # 页面逻辑:并发拉 read model + 组装 viewmodel + 降级
-  learn.wxml        # 忠实 10a 结构
-  learn.wxss        # 学习页样式(import 纸墨朱竹 token)
-  learn.json        # 页面配置
+packageDeeptutor/pages/learn/          # 新建:纸墨朱竹学习 home(宣纸驾驶舱)
+  learn.js/.wxml/.wxss/.json
 packageDeeptutor/styles/
-  paper-ink.wxss    # 纸墨朱竹可复用 token(后 4 tab 复用)
+  paper-ink.wxss    # 新建:纸墨朱竹可复用 token(后 4 tab 复用)
 packageDeeptutor/utils/
-  learn-view-model.js  # 纯函数:read model → 页面 data(可 node 测试)
-packageDeeptutor/pages/lesson/
-  lesson.js/.wxml/.wxss/.json  # 讲懂微课 web-view 播放页 + 看完 CTA → lesson-progress
+  learn-view-model.js  # 新建:纯函数 read model → 页面 data(node 测试)
+packageDeeptutor/pages/luban/station/  # 复用(spike):补 lesson-progress 上报到讲懂幕
+  station.js        # 幕1 讲懂 web-view 后 → postLessonProgress(lesson_viewed)
+packageDeeptutor/utils/api.js          # 补:postLessonProgress(唯一缺的 API 封装)
 ```
 
-- app.json 注册 `packageDeeptutor/pages/learn/learn`、`.../lesson/lesson`
-- 请求复用现有 `utils/request` / `host-runtime`(不新建网络层)
+- app.json 注册 `packageDeeptutor/pages/learn/learn`(station/stations 已注册)
+- 请求复用现有 `utils/api`(已有 getHomeDashboard/getLubanLessons/getLubanLessonDetail/
+  getLearningReport;只补 `postLessonProgress`)——不新建网络层
+- 学习 home 播放键/课程架 → `route`/`navigateTo` 进现有 `luban/station`、`luban/stations`
 
 ## 5. 数据流
 
