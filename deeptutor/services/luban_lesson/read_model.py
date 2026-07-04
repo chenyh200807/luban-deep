@@ -161,7 +161,9 @@ def build_lesson_viewmodel(
         "pack_id": pack_id,
         "title": str(pack.get("title") or ""),
         "content_sha256": str(pack.get("content_sha256") or ""),
-        "card_url": _card_url(pack_id),
+        # card_hosted=manifest 确定性扫描(web/public/luban-preview/<id>/lesson.html 实存);
+        # 非 hosted 站不发 URL——防 web-view 打开 404(部署探针实证 22/28 站无卡)
+        "card_url": _card_url(pack_id) if pack.get("card_hosted") else "",
         "variant_retest": _variant_summary(
             pack_id, manifest_dir, str(pack.get("content_sha256") or "")
         ),
