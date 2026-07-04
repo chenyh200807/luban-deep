@@ -10,7 +10,11 @@
 // - retest_available=false 的站 fail-closed 隐藏「换皮」承诺句(现状仅 2 变体池,
 //   禁对无池站承诺换皮复测), 回炉动作降级为回站重看。
 // - 错因聚合 = 云端错题集 read model(mistake-book-view-model), 禁第二套错因分类。
+// - 点亮语义: 绿灯(published)只是可学≠点亮(learned)。点亮真值 = report.pack_lifecycle,
+//   判定复用 learn-view-model 的 isLitLifecycleState(与学习页同一权威, 禁第二套判定);
+//   lifecycle 不可用时不造数——既不标已点亮也不标未点亮。
 // - 文案铁律: 只用「帮你变强」基调, 禁审视揭短词(测试钉死禁词表)。
+var isLitLifecycleState = require("./learn-view-model").isLitLifecycleState;
 
 function _safeObj(v) {
   return v && typeof v === "object" && !Array.isArray(v) ? v : {};
@@ -41,12 +45,18 @@ function _dueEntry(item) {
   };
 }
 
+// 检索行(按母题)文案: 点亮态来自 lifecycle, lifecycle 缺失时诚实中性(不造数)
+var LIT_SUB = "已点亮 · 回站重看";
+var UNLIT_SUB = "还没点亮 · 去站里过一遍";
+var UNKNOWN_SUB = "回站重看";
+
 /**
  * 组装复习页 data。
- * @param {object} args {lessons, reviewDue, mistakeBook}
+ * @param {object} args {lessons, reviewDue, mistakeBook, report}
  *   lessons    = GET /api/v1/luban/lessons 响应 body
  *   reviewDue  = GET /api/v1/luban/review-due 响应 body
  *   mistakeBook= mistake-book-view-model.buildMistakeBookViewModel 输出(可空)
+ *   report     = GET /api/v1/learning/report 响应 body(pack_lifecycle 点亮真值,可空降级)
  * @returns {object} setData payload
  */
 function buildReviewViewModel(args) {
@@ -54,10 +64,21 @@ function buildReviewViewModel(args) {
   var lessonsBody = _safeObj(a.lessons);
   var dueBody = _safeObj(a.reviewDue);
   var mistake = _safeObj(a.mistakeBook);
+  var lifecyclePacks = _safeObj(_safeObj(_safeObj(a.report).pack_lifecycle).packs);
+  // lifecycle 供给可用才敢断言点亮/未点亮; 缺失(旧后端/请求失败)= unknown 不造数
+  var litKnown = Object.keys(lifecyclePacks).length > 0;
 
   var lessons = _safeArr(lessonsBody.lessons).map(function (l) {
     var o = _safeObj(l);
-    return { pack_id: _str(o.pack_id).toUpperCase(), title: _str(o.title) };
+    var packId = _str(o.pack_id).toUpperCase();
+    var lit = litKnown && isLitLifecycleState(_safeObj(lifecyclePacks[packId]).lifecycle_state);
+    return {
+      pack_id: packId,
+      title: _str(o.title),
+      lit: lit,
+      sub: lit ? LIT_SUB : litKnown ? UNLIT_SUB : UNKNOWN_SUB,
+      linkText: lit || !litKnown ? "回看" : "去学",
+    };
   });
 
   var dueEntries = _safeArr(dueBody.due).map(_dueEntry);
