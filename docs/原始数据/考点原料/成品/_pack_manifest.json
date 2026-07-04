@@ -3,6 +3,7 @@
  "pack_dir": "docs/原始数据/考点原料/成品",
  "packs": [
   {
+   "card_hosted": true,
    "content_sha256": "23593d60ab10292ab5b2e9dac8ce767f0ed111e4b5fc669051aa5cf1824e92f1",
    "explicitly_barred_default_entry": false,
    "file": "A01_检验批验收程序.md",
@@ -23,6 +24,7 @@
    "title": "检验批验收程序"
   },
   {
+   "card_hosted": false,
    "content_sha256": "ebc3b0793d53451b31324e6b212f5f45f5e70576b76254bab0c211f1619aa80b",
    "explicitly_barred_default_entry": false,
    "file": "A02_隐蔽验收材料复验见证取样.md",
@@ -42,6 +44,7 @@
    "title": "隐蔽验收材料复验见证取样"
   },
   {
+   "card_hosted": false,
    "content_sha256": "5386e2fa881ff36c29700b42e04c11dff17b6b4d0c41f19d832b24e0d4f7cd39",
    "explicitly_barred_default_entry": false,
    "file": "B02_基坑支护选型与降水监测.md",
@@ -61,6 +64,7 @@
    "title": "基坑支护选型与降水监测"
   },
   {
+   "card_hosted": false,
    "content_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
    "explicitly_barred_default_entry": false,
    "file": "C01_施工缝留置与处理.md",
@@ -81,6 +85,7 @@
    "title": "施工缝留置与处理"
   },
   {
+   "card_hosted": true,
    "content_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
    "explicitly_barred_default_entry": false,
    "file": "C02_进度款与计量计价.md",
@@ -101,6 +106,7 @@
    "title": "进度款与计量计价"
   },
   {
+   "card_hosted": false,
    "content_sha256": "890334cf5c4a12d7a68f569af605ea5b5adb4637848ec9936521fbc292f9aed2",
    "explicitly_barred_default_entry": false,
    "file": "C04_模板拆除顺序与条件.md",
@@ -121,6 +127,7 @@
    "title": "模板拆除顺序与条件"
   },
   {
+   "card_hosted": false,
    "content_sha256": "48ab7ee6eef1a5f9170f8e4ab40d87259c0899f95df8c0d2f1b77bee6ebb5734",
    "explicitly_barred_default_entry": false,
    "file": "C05_钢筋连接选用.md",
@@ -140,6 +147,7 @@
    "title": "钢筋连接选用"
   },
   {
+   "card_hosted": false,
    "content_sha256": "2e443ed86a102ae893115810ea1640438ab097461ff251419e690286102fd935",
    "explicitly_barred_default_entry": true,
    "file": "C06_砌体留槎与构造柱.md",
@@ -159,6 +167,7 @@
    "title": "砌体留槎与构造柱"
   },
   {
+   "card_hosted": false,
    "content_sha256": "8b631ce2e6ac6297bf715a0890b40294b9b3d6d43bc122a15274eb719479e8ac",
    "explicitly_barred_default_entry": false,
    "file": "C07_钢结构连接.md",
@@ -178,6 +187,7 @@
    "title": "钢结构连接"
   },
   {
+   "card_hosted": false,
    "content_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
    "explicitly_barred_default_entry": false,
    "file": "D11_抹灰工序与质量控制.md",
@@ -198,6 +208,7 @@
    "title": "抹灰工序与质量控制"
   },
   {
+   "card_hosted": false,
    "content_sha256": "701c192b8452c27afb6af58d3c7054eeda3e8a2a4f2ef0526df840650a01b8fc",
    "explicitly_barred_default_entry": false,
    "file": "D12_饰面砖板施工质量与空鼓防治.md",
@@ -217,6 +228,7 @@
    "title": "饰面砖板施工质量与空鼓防治"
   },
   {
+   "card_hosted": false,
    "content_sha256": "6745894a27086c053065b63739bd0fb66eee75a32a56ec5679fb8467cc9bbcf3",
    "explicitly_barred_default_entry": false,
    "file": "D13_幕墙防火防雷层间封堵.md",
@@ -237,6 +249,7 @@
    "title": "幕墙防火防雷层间封堵"
   },
   {
+   "card_hosted": false,
    "content_sha256": "11ecd47be950ed09d72b3d93cf11e5f5ab29922f408099a9c4861442ea4a2fc0",
    "explicitly_barred_default_entry": false,
    "file": "D14_吊顶门窗地面装饰质量综合.md",
@@ -256,6 +269,7 @@
    "title": "吊顶门窗地面装饰质量综合"
   },
   {
+   "card_hosted": false,
    "content_sha256": "302dc15016a0244315844c053dcf59338f477f7623c97dbfb13ab785039f9c87",
    "explicitly_barred_default_entry": false,
    "file": "E01_工程量清单计价.md",
@@ -276,6 +290,7 @@
    "title": "工程量清单计价"
   },
   {
+   "card_hosted": false,
    "content_sha256": "8c29ebca6b36692f9006175958152ba3f31e447e20f209b8f6582956dfa281c9",
    "explicitly_barred_default_entry": false,
    "file": "E05_挣值法偏差分析.md",
@@ -296,6 +311,7 @@
    "title": "挣值法偏差分析"
   },
   {
+   "card_hosted": false,
    "content_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
    "explicitly_barred_default_entry": false,
    "file": "F02_卷材防水施工顺序与搭接方向.md",
@@ -316,6 +332,7 @@
    "title": "卷材防水施工顺序与搭接方向"
   },
   {
+   "card_hosted": false,
    "content_sha256": "12b0066ad4ed932dd0ccdebf292cafb5fa005970a9108b808d4bfed705ff12e7",
    "explicitly_barred_default_entry": false,
    "file": "F03_防水构造层次屋面地下.md",
@@ -336,6 +353,7 @@
    "title": "防水构造层次屋面地下"
   },
   {
+   "card_hosted": false,
    "content_sha256": "7fc64c43b64eb10782cda1014ce062c8420075b21ca78c05a29ed2eb5e63760a",
    "explicitly_barred_default_entry": true,
    "file": "F04_防水细部节点阴阳角管根女儿墙.md",
@@ -355,6 +373,7 @@
    "title": "防水细部节点阴阳角管根女儿墙"
   },
   {
+   "card_hosted": false,
    "content_sha256": "eeb066fb568138d8358817e5fd9e05b9e6283ec175664ded3edf965cc80c3bf0",
    "explicitly_barred_default_entry": false,
    "file": "F05_渗漏治理诊断.md",
@@ -375,6 +394,7 @@
    "title": "渗漏治理诊断"
   },
   {
+   "card_hosted": true,
    "content_sha256": "51b0f455ad205b4ed9965720d9562861a4a2ef7e8e7aa4c690ca69b8d88fff2e",
    "explicitly_barred_default_entry": false,
    "file": "F16_屋面防水起鼓割补.md",
@@ -395,6 +415,7 @@
    "title": "屋面防水起鼓割补"
   },
   {
+   "card_hosted": false,
    "content_sha256": "3455920218f604373887e790d80419451e2877fbcd8a37dce3da206c7f0afa35",
    "explicitly_barred_default_entry": false,
    "file": "G01_基坑开挖与降水方法选择.md",
@@ -414,6 +435,7 @@
    "title": "基坑开挖与降水方法选择"
   },
   {
+   "card_hosted": false,
    "content_sha256": "c7439e8e1907c65d489879e883d865e136c8f45d633c0aaa92916561f749aecc",
    "explicitly_barred_default_entry": false,
    "file": "G02_土方回填压实与检测.md",
@@ -433,6 +455,7 @@
    "title": "土方回填压实与检测"
   },
   {
+   "card_hosted": false,
    "content_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
    "explicitly_barred_default_entry": false,
    "file": "G03_桩基施工与质量问题.md",
@@ -453,6 +476,7 @@
    "title": "桩基施工与质量问题"
   },
   {
+   "card_hosted": false,
    "content_sha256": "658a60001d44a2c125e1c7b3576bb4083ca52c4a17d55f04c9abf98e1d79775f",
    "explicitly_barred_default_entry": false,
    "file": "G04_地基验槽与地基处理.md",
@@ -472,6 +496,7 @@
    "title": "地基验槽与地基处理"
   },
   {
+   "card_hosted": true,
    "content_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
    "explicitly_barred_default_entry": false,
    "file": "J01_危大工程专项方案专家论证.md",
@@ -492,6 +517,7 @@
    "title": "危大工程专项方案专家论证"
   },
   {
+   "card_hosted": false,
    "content_sha256": "53a81cccfc3292efcb9e8827bd7162ae930acdf52d7fe7baaeb12b5c6afc5f03",
    "explicitly_barred_default_entry": false,
    "file": "K01_索赔成立与计算.md",
@@ -512,6 +538,7 @@
    "title": "索赔成立与计算"
   },
   {
+   "card_hosted": true,
    "content_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
    "explicitly_barred_default_entry": false,
    "file": "N01_网络计划关键线路.md",
@@ -532,6 +559,7 @@
    "title": "网络计划关键线路"
   },
   {
+   "card_hosted": false,
    "content_sha256": "272cacd10a5be6faa88e13c85a79cfd5570cde2e4bf03de07beaee99af40effd",
    "explicitly_barred_default_entry": false,
    "file": "N02_网络计划工期优化.md",
@@ -552,6 +580,7 @@
    "title": "网络计划工期优化"
   },
   {
+   "card_hosted": false,
    "content_sha256": "ae9e5525c4f86bda1a0868a65663b2b56dcd4bd48846f8aa7e5a62af9999b590",
    "explicitly_barred_default_entry": false,
    "file": "N03_流水施工参数与工期.md",
@@ -572,6 +601,7 @@
    "title": "流水施工参数与工期"
   },
   {
+   "card_hosted": false,
    "content_sha256": "be6eae789509f1b0c19c808b1a6b822e8d6181553fcda4fcfd60f7c183f56354",
    "explicitly_barred_default_entry": false,
    "file": "Q01_混凝土养护与裂缝防治.md",
@@ -592,6 +622,7 @@
    "title": "混凝土养护与裂缝防治"
   },
   {
+   "card_hosted": false,
    "content_sha256": "81d50133b6f7f8f7b777d40c46a67bd6a69096d6a7f4d69a546fdb8af7f639c4",
    "explicitly_barred_default_entry": false,
    "file": "Q02_大体积混凝土温控.md",
@@ -612,6 +643,7 @@
    "title": "大体积混凝土温控"
   },
   {
+   "card_hosted": false,
    "content_sha256": "4e22a6697aeba00353186f44a8ea1568041734406eabbda632b1a7262303e8bc",
    "explicitly_barred_default_entry": true,
    "file": "Q03_质量通病防治.md",
@@ -631,6 +663,7 @@
    "title": "质量通病防治"
   },
   {
+   "card_hosted": false,
    "content_sha256": "86e87afc3a453d012eb91f86508f9dd45fd04a532bbc073d0ffcc96fd1bdfbe1",
    "explicitly_barred_default_entry": false,
    "file": "R01_现场消防布置动火检查验收.md",
@@ -651,6 +684,7 @@
    "title": "现场消防布置动火检查验收"
   },
   {
+   "card_hosted": false,
    "content_sha256": "13429caa1bd32a20f6708c393980b39566a92425793a2d15e9f841689edf2b13",
    "explicitly_barred_default_entry": false,
    "file": "S01_脚手架模板支架验收.md",
@@ -671,6 +705,7 @@
    "title": "脚手架模板支架验收"
   },
   {
+   "card_hosted": false,
    "content_sha256": "32aa09500e3ba31c5b064058c1b51892f7976e8d069b5ff497d07f1a061cf1ab",
    "explicitly_barred_default_entry": false,
    "file": "S02_起重吊装安全.md",
@@ -691,6 +726,7 @@
    "title": "起重吊装安全"
   },
   {
+   "card_hosted": true,
    "content_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
    "explicitly_barred_default_entry": false,
    "file": "S05_临时用电三级配电.md",
@@ -711,6 +747,7 @@
    "title": "临时用电三级配电"
   },
   {
+   "card_hosted": false,
    "content_sha256": "22438b347c9f36c8fb53a305b4c2f3d5eb07b8d7438b7bdb3d6e24e0d71870d8",
    "explicitly_barred_default_entry": false,
    "file": "S06_高处作业临边洞口防护.md",
@@ -731,6 +768,7 @@
    "title": "高处作业临边洞口防护"
   },
   {
+   "card_hosted": false,
    "content_sha256": "4f4bb9138304e1a874ad07961d268a322f3fe87be4ac04312425ec381eeb497e",
    "explicitly_barred_default_entry": true,
    "file": "S07_安全事故等级判定与上报.md",
@@ -750,6 +788,7 @@
    "title": "安全事故等级判定与上报"
   },
   {
+   "card_hosted": false,
    "content_sha256": "173b2bf67a0ef36794281518e3511873105f84b371f22cd23c2d0661240a94ef",
    "explicitly_barred_default_entry": false,
    "file": "X01_施工平面布置原则.md",
@@ -770,6 +809,7 @@
    "title": "施工平面布置原则"
   },
   {
+   "card_hosted": false,
    "content_sha256": "d3a4eec1f279c91dce1254ca27e09de0a4ece72c42f8bffbf6551f665ae94c01",
    "explicitly_barred_default_entry": false,
    "file": "X02_临设道路材料堆场布置.md",
@@ -790,6 +830,7 @@
    "title": "临设道路材料堆场布置"
   },
   {
+   "card_hosted": false,
    "content_sha256": "6da4f10de5f46af7abdb5f1665d3a6db44e1cc6f870000a5c9e70fcc620769e1",
    "explicitly_barred_default_entry": false,
    "file": "X03_文明绿色环保施工措施.md",
