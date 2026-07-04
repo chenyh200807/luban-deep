@@ -30,7 +30,7 @@ def test_map_covers_all_exam_evidence_packs() -> None:
         path.name.split("_")[1] for path in EVIDENCE_DIR.glob("_*_exam_evidence.json")
     }
     assert set(compiled["packs"]) == evidence_packs
-    assert len(evidence_packs) == 37
+    assert len(evidence_packs) == 38  # +D14(2026-07-04 PR#360 入仓)——加站时有意识 bump
 
 
 def test_question_keys_are_year_qualified() -> None:

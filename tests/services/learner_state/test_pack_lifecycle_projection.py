@@ -161,7 +161,7 @@ def test_unmappable_practice_falls_into_unassigned_bucket() -> None:
 
 def test_full_40_pack_set_is_the_default_universe() -> None:
     projection = project_pack_lifecycle(events=[], claims=[])
-    assert len(projection["packs"]) == 40
+    assert len(projection["packs"]) == 41  # 40+D14(2026-07-04)——manifest 全集,加站时有意识 bump
 
 
 def test_revalidation_queue_emits_zero_probe_for_unlearned_and_exposed() -> None:

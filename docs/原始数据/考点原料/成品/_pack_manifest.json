@@ -1,5 +1,5 @@
 {
- "pack_count": 40,
+ "pack_count": 41,
  "pack_dir": "docs/原始数据/考点原料/成品",
  "packs": [
   {
@@ -231,6 +231,25 @@
    "red_marker_count": 18,
    "review_level": "coarse_review",
    "title": "幕墙防火防雷层间封堵"
+  },
+  {
+   "content_sha256": "11ecd47be950ed09d72b3d93cf11e5f5ab29922f408099a9c4861442ea4a2fc0",
+   "explicitly_barred_default_entry": false,
+   "file": "D14_吊顶门窗地面装饰质量综合.md",
+   "has_answer_layer": false,
+   "has_compiled_source": true,
+   "has_exam_evidence": true,
+   "jury_clean": false,
+   "jury_file": true,
+   "jury_high_confidence": 1,
+   "jury_high_confidence_unresolved": 1,
+   "jury_total": 11,
+   "needs_leaf_review": false,
+   "pack_id": "D14",
+   "published": false,
+   "red_marker_count": 27,
+   "review_level": "standard",
+   "title": "吊顶门窗地面装饰质量综合"
   },
   {
    "content_sha256": "302dc15016a0244315844c053dcf59338f477f7623c97dbfb13ab785039f9c87",
