@@ -7,7 +7,9 @@
 // DevTools 模拟器可见，真机上可能被 web-view 盖住。若真机验证不可用，
 // 后续方案 = 卡内 wx.miniProgram.navigateTo 桥接，或原生壳 + navigateTo 分幕。
 //
-// 零学习证据写入：本页只做投影消费 + telemetry，不写任何掌握态/学习证据接口。
+// 学-evidence 上报（融合计划 §2.1）：讲懂幕看完 → lesson_viewed（唯一 writer
+// /api/v1/lesson-progress，后端 progress_countable=false/exposed，绝不算掌握 M0）。
+// 除此之外仍零学习证据写入：掌握态/判分归判分链路，本页不碰。
 //
 // 埋点走 register-before-use catalog（product_behavior_catalog.py D15 登记，
 // 白名单外事件名会被 ingest 拒收，故不用任务稿的 luban_* 自由名）：
@@ -35,7 +37,9 @@ Page({
     tier: TIER_LESSON, // "lesson" | "practice"
     currentUrl: "",
     cardUrl: "",
+    cardSha: "",
     practiceUrl: "",
+    _lessonReported: false, // 客户端去重(后端亦按业务日 dedupe)
   },
 
   onLoad(query) {
@@ -76,6 +80,10 @@ Page({
   // 底部常驻按钮：幕1「看完了，去闯关」→ 幕2「闯关完成」→ handoff
   onPrimaryTap() {
     if (this.data.tier === TIER_LESSON) {
+      // 融合计划 §2.1:讲懂幕看完 = lesson_viewed 学-evidence(唯一 writer)。
+      // fire-and-forget:后端 progress_countable=false/exposed,绝不算掌握(M0);
+      // 上报失败(如后端未部署)不阻塞、不打断闯关。
+      this._reportLessonViewed();
       this._enterTier(TIER_PRACTICE);
       return;
     }
@@ -85,6 +93,17 @@ Page({
           "/packageDeeptutor/pages/luban/handoff/handoff?pack_id=" +
           encodeURIComponent(this.data.packId),
       });
+    }
+  },
+
+  _reportLessonViewed() {
+    if (this.data._lessonReported || !this.data.packId) return;
+    this.setData({ _lessonReported: true });
+    try {
+      var p = api.postLessonProgress(this.data.packId, TIER_LESSON, this.data.cardSha, { silent: true });
+      if (p && typeof p.catch === "function") p.catch(function () {});
+    } catch (e) {
+      /* 上报绝不打断学习流 */
     }
   },
 
@@ -110,6 +129,7 @@ Page({
         that.setData({
           title: String(body.title || ""),
           cardUrl: cardUrl,
+          cardSha: String(body.content_sha256 || ""),
           practiceUrl: practiceUrlFrom(cardUrl),
           loading: false,
           errorText: "",

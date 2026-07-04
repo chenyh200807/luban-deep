@@ -1,5 +1,5 @@
 {
-  "pages":[
+  "pages": [
     "pages/freeCourse/freeCourse",
     "pages/index/index",
     "pages/view/view",
@@ -21,6 +21,7 @@
       "root": "packageDeeptutor",
       "pages": [
         "pages/chat/chat",
+        "pages/learn/learn",
         "pages/history/history",
         "pages/report/report",
         "pages/mistake-book/mistake-book",
@@ -55,11 +56,11 @@
       ]
     }
   ],
-  "window":{
-    "backgroundTextStyle":"light",
+  "window": {
+    "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
     "navigationBarTitleText": "佑森咨询",
-    "navigationBarTextStyle":"black"
+    "navigationBarTextStyle": "black"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
@@ -68,7 +69,9 @@
   "preloadRule": {
     "pages/freeCourse/freeCourse": {
       "network": "wifi",
-      "packages": ["packageDeeptutor"]
+      "packages": [
+        "packageDeeptutor"
+      ]
     }
   }
 }
