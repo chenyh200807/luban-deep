@@ -45,29 +45,31 @@ _MASTERY_RANK_FLOOR = evidence_level_rank("L2_real_retest")
 
 # 编译产物的单一 loader 汇点（照 m35_artifact_query 的 (mtime_ns, size) 模式）：
 # 失败（缺文件/损坏）**绝不写缓存**——修好文件后同进程下次调用即恢复；
-# 成功才按 stat 键缓存，产物热更新（mtime 变）自动失效。降级必打 warning 可观测。
+# 成功才按 stat 键缓存，产物热更新（mtime 变）自动失效。降级必打 warning 可观测，
+# 且 ok=False 上抛到投影输出的 ``degraded`` 标志——空映射绝不冒充健康。
 _ARTIFACT_CACHE: dict[str, tuple[tuple[int, int], Any]] = {}
 
 
-def _load_compiled_artifact(path: Path, project: Any) -> Any:
+def _load_compiled_artifact(path: Path, project: Any) -> tuple[Any, bool]:
+    """返回 (投影结果, ok)。ok=False = 产物缺失/损坏（降级，未缓存）。"""
     try:
         stat = path.stat()
         stat_key = (stat.st_mtime_ns, stat.st_size)
     except OSError:
         logger.warning("pack lifecycle artifact missing (degraded, not cached): {}", path)
-        return project(None)
+        return project(None), False
     cache_key = str(path)
     cached = _ARTIFACT_CACHE.get(cache_key)
     if cached is not None and cached[0] == stat_key:
-        return cached[1]
+        return cached[1], True
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         logger.warning("pack lifecycle artifact unreadable (degraded, not cached): {}", path)
-        return project(None)
+        return project(None), False
     projected = project(payload)
     _ARTIFACT_CACHE[cache_key] = (stat_key, projected)
-    return projected
+    return projected, True
 
 
 def _project_question_index(compiled: dict[str, Any] | None) -> dict[str, tuple[str, ...]]:
@@ -84,7 +86,7 @@ def _project_question_index(compiled: dict[str, Any] | None) -> dict[str, tuple[
     return {key: tuple(sorted(value)) for key, value in index.items()}
 
 
-def _question_to_packs() -> dict[str, tuple[str, ...]]:
+def _question_to_packs() -> tuple[dict[str, tuple[str, ...]], bool]:
     return _load_compiled_artifact(_QUESTION_PACK_MAP_PATH, _project_question_index)
 
 
@@ -109,16 +111,17 @@ def _project_taxonomy_index(
     )
 
 
-def _taxonomy_to_packs() -> tuple[dict[str, tuple[str, ...]], dict[str, tuple[str, ...]]]:
-    """taxonomy_code → (primary 命中 packs, 任意 ref 命中 packs)。"""
+def _taxonomy_to_packs() -> tuple[tuple[dict[str, tuple[str, ...]], dict[str, tuple[str, ...]]], bool]:
+    """返回 ((taxonomy_code → primary 命中 packs, → 任意 ref 命中 packs), ok)。"""
     return _load_compiled_artifact(_PACK_TAXONOMY_REGISTRY_PATH, _project_taxonomy_index)
 
 
 def _resolve_pack_for_practice(payload: dict[str, Any]) -> tuple[str, str]:
     """返回 (pack_id, join_path)；无法唯一归位 → ("", 原因)。"""
     question_id = str(payload.get("question_id") or "").strip()
+    question_index, _ = _question_to_packs()
     if question_id:
-        packs = _question_to_packs().get(question_id) or ()
+        packs = question_index.get(question_id) or ()
         if len(packs) == 1:
             return packs[0], "question_map"
     topic = payload.get("canonical_topic") if isinstance(payload.get("canonical_topic"), dict) else {}
@@ -126,7 +129,7 @@ def _resolve_pack_for_practice(payload: dict[str, Any]) -> tuple[str, str]:
     if not code:
         code = str(payload.get("taxonomy_code") or payload.get("node_code") or "").strip()
     if code:
-        primary, any_ref = _taxonomy_to_packs()
+        (primary, any_ref), _ = _taxonomy_to_packs()
         primary_hits = primary.get(code) or ()
         if len(primary_hits) == 1:
             return primary_hits[0], "taxonomy_primary"
@@ -135,7 +138,7 @@ def _resolve_pack_for_practice(payload: dict[str, Any]) -> tuple[str, str]:
             return ref_hits[0], "taxonomy_ref"
         if ref_hits:
             return "", "taxonomy_ambiguous"
-    if question_id and _question_to_packs().get(question_id):
+    if question_id and question_index.get(question_id):
         return "", "question_ambiguous"
     return "", "unmapped"
 
@@ -158,7 +161,7 @@ def _is_practice_evidence(event: Any) -> bool:
 
 def _claim_packs(claims: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     """claim（concept_id=taxonomy code）→ pack 的最强掌握信号聚合。"""
-    primary, any_ref = _taxonomy_to_packs()
+    (primary, any_ref), _ = _taxonomy_to_packs()
     by_pack: dict[str, dict[str, Any]] = {}
     for claim in claims:
         if not isinstance(claim, dict):
@@ -227,6 +230,12 @@ def project_pack_lifecycle(
 
     mastery_by_pack = _claim_packs(list(claims or []))
 
+    # 病A 契约：编译产物加载失败（容器缺文件/损坏）必须显式降级——
+    # 空映射会把所有练-evidence 打进未归位桶，绝不能看起来健康。
+    _, question_map_ok = _question_to_packs()
+    _, taxonomy_registry_ok = _taxonomy_to_packs()
+    degraded = not (question_map_ok and taxonomy_registry_ok)
+
     packs: dict[str, dict[str, Any]] = {}
     for pack_id in pack_ids:
         mastery = mastery_by_pack.get(pack_id) or {}
@@ -266,6 +275,7 @@ def project_pack_lifecycle(
         ],
         "packs": packs,
         "unassigned_practice": unassigned,
+        "degraded": degraded,
     }
 
 

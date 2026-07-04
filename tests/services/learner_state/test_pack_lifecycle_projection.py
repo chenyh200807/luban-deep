@@ -179,14 +179,16 @@ def test_artifact_loader_never_caches_failure(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(plp, "_QUESTION_PACK_MAP_PATH", artifact)
     plp._ARTIFACT_CACHE.clear()
 
-    # 文件缺失 → 空索引(降级),但不落缓存
-    assert plp._question_to_packs() == {}
+    # 文件缺失 → 空索引(降级 ok=False),但不落缓存
+    index, ok = plp._question_to_packs()
+    assert index == {} and ok is False
 
     artifact.write_text(
         '{"reverse_index": {"2015:EXAM_XW2015_MU_30": ["N01"]}}', encoding="utf-8"
     )
-    index = plp._question_to_packs()
+    index, ok = plp._question_to_packs()
     # 同进程恢复:qualified 精确键 + 裸键都可查
+    assert ok is True
     assert index["2015:EXAM_XW2015_MU_30"] == ("N01",)
     assert index["EXAM_XW2015_MU_30"] == ("N01",)
 
@@ -194,9 +196,43 @@ def test_artifact_loader_never_caches_failure(tmp_path, monkeypatch) -> None:
     artifact.write_text(
         '{"reverse_index": {"2016:EXAM_XW2016_SI_01": ["A01"]}}', encoding="utf-8"
     )
-    index = plp._question_to_packs()
+    index, ok = plp._question_to_packs()
     assert "EXAM_XW2016_SI_01" in index and "EXAM_XW2015_MU_30" not in index
     plp._ARTIFACT_CACHE.clear()
+
+
+def test_missing_artifacts_mark_projection_degraded_and_recover(tmp_path, monkeypatch) -> None:
+    # 病A:容器里缺编译产物时曾静默降级成"什么都没练过"且看起来健康。
+    # 契约:加载失败 → degraded=True + warning 可观测;修好文件后同进程恢复
+    # (失败不落缓存),degraded 回 False。
+    import deeptutor.services.learner_state.pack_lifecycle_projection as plp
+    from loguru import logger as _loguru
+
+    map_path = tmp_path / "map.json"
+    registry_path = tmp_path / "registry.json"
+    monkeypatch.setattr(plp, "_QUESTION_PACK_MAP_PATH", map_path)
+    monkeypatch.setattr(plp, "_PACK_TAXONOMY_REGISTRY_PATH", registry_path)
+    plp._ARTIFACT_CACHE.clear()
+
+    warnings: list[str] = []
+    sink_id = _loguru.add(lambda message: warnings.append(str(message)), level="WARNING")
+    try:
+        projection = project_pack_lifecycle(events=[], claims=[], pack_ids=_PACK_IDS)
+    finally:
+        _loguru.remove(sink_id)
+    assert projection["degraded"] is True
+    assert any("pack lifecycle artifact" in text for text in warnings)
+
+    map_path.write_text('{"reverse_index": {}}', encoding="utf-8")
+    registry_path.write_text('{"packs": {}}', encoding="utf-8")
+    projection = project_pack_lifecycle(events=[], claims=[], pack_ids=_PACK_IDS)
+    assert projection["degraded"] is False
+    plp._ARTIFACT_CACHE.clear()
+
+
+def test_healthy_repo_artifacts_are_not_degraded() -> None:
+    projection = project_pack_lifecycle(events=[], claims=[], pack_ids=_PACK_IDS)
+    assert projection["degraded"] is False
 
 
 def test_question_index_serves_qualified_and_unique_bare_keys(tmp_path, monkeypatch) -> None:
