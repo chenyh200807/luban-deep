@@ -1,0 +1,1545 @@
+{
+ "schema_version": "luban-x01-variant-bank",
+ "pack_id": "X01",
+ "status": "candidate",
+ "source_pack_sha256": "173b2bf67a0ef36794281518e3511873105f84b371f22cd23c2d0661240a94ef",
+ "generation_ms": 0.05,
+ "gate": {
+  "total": 111,
+  "passed": 111,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-content": 12,
+  "B-principle": 14,
+  "B-slogan": 2,
+  "C-factor": 44,
+  "C-gate-count": 3,
+  "D-steps": 6,
+  "E-boards": 12,
+  "E-fence": 8,
+  "F-vert": 10
+ },
+ "variants": [
+  {
+   "variant_id": "X01-A-content-000",
+   "rule_group": "A-content",
+   "surface": "项目部将「地形状况」列入施工总平面布置图内容",
+   "params": {
+    "item": "地形状况",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-001",
+   "rule_group": "A-content",
+   "surface": "项目部认为「地形状况」不属于施工总平面布置图内容",
+   "params": {
+    "item": "地形状况",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-002",
+   "rule_group": "A-content",
+   "surface": "项目部将「拟建建构筑物位置」列入施工总平面布置图内容",
+   "params": {
+    "item": "拟建建构筑物位置",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-003",
+   "rule_group": "A-content",
+   "surface": "项目部认为「拟建建构筑物位置」不属于施工总平面布置图内容",
+   "params": {
+    "item": "拟建建构筑物位置",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-004",
+   "rule_group": "A-content",
+   "surface": "项目部将「加工运输储存设施」列入施工总平面布置图内容",
+   "params": {
+    "item": "加工运输储存设施",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-005",
+   "rule_group": "A-content",
+   "surface": "项目部认为「加工运输储存设施」不属于施工总平面布置图内容",
+   "params": {
+    "item": "加工运输储存设施",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-006",
+   "rule_group": "A-content",
+   "surface": "项目部将「临时道路办公生活用房」列入施工总平面布置图内容",
+   "params": {
+    "item": "临时道路办公生活用房",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-007",
+   "rule_group": "A-content",
+   "surface": "项目部认为「临时道路办公生活用房」不属于施工总平面布置图内容",
+   "params": {
+    "item": "临时道路办公生活用房",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-008",
+   "rule_group": "A-content",
+   "surface": "项目部将「安全消防环保设施」列入施工总平面布置图内容",
+   "params": {
+    "item": "安全消防环保设施",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-009",
+   "rule_group": "A-content",
+   "surface": "项目部认为「安全消防环保设施」不属于施工总平面布置图内容",
+   "params": {
+    "item": "安全消防环保设施",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-010",
+   "rule_group": "A-content",
+   "surface": "项目部将「周边既有建筑环境」列入施工总平面布置图内容",
+   "params": {
+    "item": "周边既有建筑环境",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-A-content-011",
+   "rule_group": "A-content",
+   "surface": "项目部认为「周边既有建筑环境」不属于施工总平面布置图内容",
+   "params": {
+    "item": "周边既有建筑环境",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面布置图内容应含六项：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路办公生活用房、安全消防环保设施、周边既有建筑环境，漏项即不全",
+   "anchor": "kc:1A431011_011_0012:0 + ca:1A431011_011_0012",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-012",
+   "rule_group": "B-principle",
+   "surface": "项目部将「占地少」列为施工总平面图设计原则",
+   "params": {
+    "item": "占地少",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-013",
+   "rule_group": "B-principle",
+   "surface": "项目部认为「占地少」不属于施工总平面图设计原则",
+   "params": {
+    "item": "占地少",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-014",
+   "rule_group": "B-principle",
+   "surface": "项目部将「运输合理(减少二次搬运)」列为施工总平面图设计原则",
+   "params": {
+    "item": "运输合理(减少二次搬运)",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-015",
+   "rule_group": "B-principle",
+   "surface": "项目部认为「运输合理(减少二次搬运)」不属于施工总平面图设计原则",
+   "params": {
+    "item": "运输合理(减少二次搬运)",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-016",
+   "rule_group": "B-principle",
+   "surface": "项目部将「减少干扰」列为施工总平面图设计原则",
+   "params": {
+    "item": "减少干扰",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-017",
+   "rule_group": "B-principle",
+   "surface": "项目部认为「减少干扰」不属于施工总平面图设计原则",
+   "params": {
+    "item": "减少干扰",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-018",
+   "rule_group": "B-principle",
+   "surface": "项目部将「利用既有设施」列为施工总平面图设计原则",
+   "params": {
+    "item": "利用既有设施",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-019",
+   "rule_group": "B-principle",
+   "surface": "项目部认为「利用既有设施」不属于施工总平面图设计原则",
+   "params": {
+    "item": "利用既有设施",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-020",
+   "rule_group": "B-principle",
+   "surface": "项目部将「分区设置」列为施工总平面图设计原则",
+   "params": {
+    "item": "分区设置",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-021",
+   "rule_group": "B-principle",
+   "surface": "项目部认为「分区设置」不属于施工总平面图设计原则",
+   "params": {
+    "item": "分区设置",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-022",
+   "rule_group": "B-principle",
+   "surface": "项目部将「环保安全」列为施工总平面图设计原则",
+   "params": {
+    "item": "环保安全",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-023",
+   "rule_group": "B-principle",
+   "surface": "项目部认为「环保安全」不属于施工总平面图设计原则",
+   "params": {
+    "item": "环保安全",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-024",
+   "rule_group": "B-principle",
+   "surface": "项目部将「遵守规定」列为施工总平面图设计原则",
+   "params": {
+    "item": "遵守规定",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-principle-025",
+   "rule_group": "B-principle",
+   "surface": "项目部认为「遵守规定」不属于施工总平面图设计原则",
+   "params": {
+    "item": "遵守规定",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-slogan-026",
+   "rule_group": "B-slogan",
+   "surface": "某住宅楼工地平面布置方案对各设施布置理由统一只写「合理布置、科学规划」",
+   "params": {
+    "slogan_only": true
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-B-slogan-027",
+   "rule_group": "B-slogan",
+   "surface": "某厂房项目现场平面布置方案对各设施布置理由统一只写「合理布置、科学规划」",
+   "params": {
+    "slogan_only": true
+   },
+   "expected_ok": false,
+   "correct_statement": "施工总平面图设计原则七条：占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定；布置理由须落到这七条的因果句，只写「合理布置/科学规划」=口号化不得分",
+   "anchor": "kc:1A431011_011_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-028",
+   "rule_group": "C-factor",
+   "surface": "布置大门时，项目部将「路网」列入考虑因素",
+   "params": {
+    "facility": "大门",
+    "factor": "路网",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "大门宜设≥2个，考虑路网、转弯半径、坡度，满足车辆运输",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-029",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置大门无需考虑「路网」",
+   "params": {
+    "facility": "大门",
+    "factor": "路网",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "大门宜设≥2个，考虑路网、转弯半径、坡度，满足车辆运输",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-030",
+   "rule_group": "C-factor",
+   "surface": "布置大门时，项目部将「转弯半径」列入考虑因素",
+   "params": {
+    "facility": "大门",
+    "factor": "转弯半径",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "大门宜设≥2个，考虑路网、转弯半径、坡度，满足车辆运输",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-031",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置大门无需考虑「转弯半径」",
+   "params": {
+    "facility": "大门",
+    "factor": "转弯半径",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "大门宜设≥2个，考虑路网、转弯半径、坡度，满足车辆运输",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-032",
+   "rule_group": "C-factor",
+   "surface": "布置大门时，项目部将「坡度」列入考虑因素",
+   "params": {
+    "facility": "大门",
+    "factor": "坡度",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "大门宜设≥2个，考虑路网、转弯半径、坡度，满足车辆运输",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-033",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置大门无需考虑「坡度」",
+   "params": {
+    "facility": "大门",
+    "factor": "坡度",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "大门宜设≥2个，考虑路网、转弯半径、坡度，满足车辆运输",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-034",
+   "rule_group": "C-factor",
+   "surface": "布置大门时，项目部将「车辆运输」列入考虑因素",
+   "params": {
+    "facility": "大门",
+    "factor": "车辆运输",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "大门宜设≥2个，考虑路网、转弯半径、坡度，满足车辆运输",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-035",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置大门无需考虑「车辆运输」",
+   "params": {
+    "facility": "大门",
+    "factor": "车辆运输",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "大门宜设≥2个，考虑路网、转弯半径、坡度，满足车辆运输",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-036",
+   "rule_group": "C-factor",
+   "surface": "布置塔吊时，项目部将「基础」列入考虑因素",
+   "params": {
+    "facility": "塔吊",
+    "factor": "基础",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-037",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置塔吊无需考虑「基础」",
+   "params": {
+    "facility": "塔吊",
+    "factor": "基础",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-038",
+   "rule_group": "C-factor",
+   "surface": "布置塔吊时，项目部将「环境」列入考虑因素",
+   "params": {
+    "facility": "塔吊",
+    "factor": "环境",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-039",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置塔吊无需考虑「环境」",
+   "params": {
+    "facility": "塔吊",
+    "factor": "环境",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-040",
+   "rule_group": "C-factor",
+   "surface": "布置塔吊时，项目部将「覆盖范围」列入考虑因素",
+   "params": {
+    "facility": "塔吊",
+    "factor": "覆盖范围",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-041",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置塔吊无需考虑「覆盖范围」",
+   "params": {
+    "facility": "塔吊",
+    "factor": "覆盖范围",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-042",
+   "rule_group": "C-factor",
+   "surface": "布置塔吊时，项目部将「吊重」列入考虑因素",
+   "params": {
+    "facility": "塔吊",
+    "factor": "吊重",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-043",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置塔吊无需考虑「吊重」",
+   "params": {
+    "facility": "塔吊",
+    "factor": "吊重",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-044",
+   "rule_group": "C-factor",
+   "surface": "布置塔吊时，项目部将「运输堆放」列入考虑因素",
+   "params": {
+    "facility": "塔吊",
+    "factor": "运输堆放",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-045",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置塔吊无需考虑「运输堆放」",
+   "params": {
+    "facility": "塔吊",
+    "factor": "运输堆放",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-046",
+   "rule_group": "C-factor",
+   "surface": "布置塔吊时，项目部将「附墙位置」列入考虑因素",
+   "params": {
+    "facility": "塔吊",
+    "factor": "附墙位置",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-047",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置塔吊无需考虑「附墙位置」",
+   "params": {
+    "facility": "塔吊",
+    "factor": "附墙位置",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-048",
+   "rule_group": "C-factor",
+   "surface": "布置塔吊时，项目部将「拆除运输」列入考虑因素",
+   "params": {
+    "facility": "塔吊",
+    "factor": "拆除运输",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-049",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置塔吊无需考虑「拆除运输」",
+   "params": {
+    "facility": "塔吊",
+    "factor": "拆除运输",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-050",
+   "rule_group": "C-factor",
+   "surface": "布置塔吊时，项目部将「群塔防撞」列入考虑因素",
+   "params": {
+    "facility": "塔吊",
+    "factor": "群塔防撞",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-051",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置塔吊无需考虑「群塔防撞」",
+   "params": {
+    "facility": "塔吊",
+    "factor": "群塔防撞",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "塔吊布置八因素：基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞，缺项即不全",
+   "anchor": "kc:1A431011_011_0012:3",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-052",
+   "rule_group": "C-factor",
+   "surface": "布置混凝土泵时，项目部将「泵管输送距离」列入考虑因素",
+   "params": {
+    "facility": "混凝土泵",
+    "factor": "泵管输送距离",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "混凝土泵布置考虑泵管输送距离、罐车停靠、立管固定牢固，泵车可流动",
+   "anchor": "kc:1A431011_011_0012:4",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-053",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置混凝土泵无需考虑「泵管输送距离」",
+   "params": {
+    "facility": "混凝土泵",
+    "factor": "泵管输送距离",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "混凝土泵布置考虑泵管输送距离、罐车停靠、立管固定牢固，泵车可流动",
+   "anchor": "kc:1A431011_011_0012:4",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-054",
+   "rule_group": "C-factor",
+   "surface": "布置混凝土泵时，项目部将「罐车停靠」列入考虑因素",
+   "params": {
+    "facility": "混凝土泵",
+    "factor": "罐车停靠",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "混凝土泵布置考虑泵管输送距离、罐车停靠、立管固定牢固，泵车可流动",
+   "anchor": "kc:1A431011_011_0012:4",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-055",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置混凝土泵无需考虑「罐车停靠」",
+   "params": {
+    "facility": "混凝土泵",
+    "factor": "罐车停靠",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "混凝土泵布置考虑泵管输送距离、罐车停靠、立管固定牢固，泵车可流动",
+   "anchor": "kc:1A431011_011_0012:4",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-056",
+   "rule_group": "C-factor",
+   "surface": "布置混凝土泵时，项目部将「立管固定」列入考虑因素",
+   "params": {
+    "facility": "混凝土泵",
+    "factor": "立管固定",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "混凝土泵布置考虑泵管输送距离、罐车停靠、立管固定牢固，泵车可流动",
+   "anchor": "kc:1A431011_011_0012:4",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-057",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置混凝土泵无需考虑「立管固定」",
+   "params": {
+    "facility": "混凝土泵",
+    "factor": "立管固定",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "混凝土泵布置考虑泵管输送距离、罐车停靠、立管固定牢固，泵车可流动",
+   "anchor": "kc:1A431011_011_0012:4",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-058",
+   "rule_group": "C-factor",
+   "surface": "布置混凝土泵时，项目部将「泵车可流动」列入考虑因素",
+   "params": {
+    "facility": "混凝土泵",
+    "factor": "泵车可流动",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "混凝土泵布置考虑泵管输送距离、罐车停靠、立管固定牢固，泵车可流动",
+   "anchor": "kc:1A431011_011_0012:4",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-059",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置混凝土泵无需考虑「泵车可流动」",
+   "params": {
+    "facility": "混凝土泵",
+    "factor": "泵车可流动",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "混凝土泵布置考虑泵管输送距离、罐车停靠、立管固定牢固，泵车可流动",
+   "anchor": "kc:1A431011_011_0012:4",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-060",
+   "rule_group": "C-factor",
+   "surface": "布置施工升降机时，项目部将「地基承载力」列入考虑因素",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "地基承载力",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-061",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置施工升降机无需考虑「地基承载力」",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "地基承载力",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-062",
+   "rule_group": "C-factor",
+   "surface": "布置施工升降机时，项目部将「平整度」列入考虑因素",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "平整度",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-063",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置施工升降机无需考虑「平整度」",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "平整度",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-064",
+   "rule_group": "C-factor",
+   "surface": "布置施工升降机时，项目部将「排水」列入考虑因素",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "排水",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-065",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置施工升降机无需考虑「排水」",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "排水",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-066",
+   "rule_group": "C-factor",
+   "surface": "布置施工升降机时，项目部将「附墙位置」列入考虑因素",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "附墙位置",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-067",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置施工升降机无需考虑「附墙位置」",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "附墙位置",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-068",
+   "rule_group": "C-factor",
+   "surface": "布置施工升降机时，项目部将「楼层通道」列入考虑因素",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "楼层通道",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-069",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置施工升降机无需考虑「楼层通道」",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "楼层通道",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-070",
+   "rule_group": "C-factor",
+   "surface": "布置施工升降机时，项目部将「防护门」列入考虑因素",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "防护门",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-factor-071",
+   "rule_group": "C-factor",
+   "surface": "项目部认为布置施工升降机无需考虑「防护门」",
+   "params": {
+    "facility": "施工升降机",
+    "factor": "防护门",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "施工升降机布置考虑地基承载力、平整度、排水、附墙位置、楼层通道、防护门",
+   "anchor": "kc:1A431011_011_0012:5 + {2021,案例二} + {2025,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-gate-count-072",
+   "rule_group": "C-gate-count",
+   "surface": "施工现场共设置 1 个大门",
+   "params": {
+    "gate_count": 1
+   },
+   "expected_ok": false,
+   "correct_statement": "现场宜设置≥2个大门（考虑路网、转弯半径、坡度，满足车辆运输）",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-gate-count-073",
+   "rule_group": "C-gate-count",
+   "surface": "施工现场共设置 2 个大门",
+   "params": {
+    "gate_count": 2
+   },
+   "expected_ok": true,
+   "correct_statement": "现场宜设置≥2个大门（考虑路网、转弯半径、坡度，满足车辆运输）",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-C-gate-count-074",
+   "rule_group": "C-gate-count",
+   "surface": "施工现场共设置 3 个大门",
+   "params": {
+    "gate_count": 3
+   },
+   "expected_ok": true,
+   "correct_statement": "现场宜设置≥2个大门（考虑路网、转弯半径、坡度，满足车辆运输）",
+   "anchor": "kc:1A431011_011_0012:2",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-D-steps-075",
+   "rule_group": "D-steps",
+   "surface": "某住宅楼工地临时设施平面布置步骤为：布置仓库堆场→布置加工厂→布置场内临时运输道路→布置临时房屋→布置临时水电管网",
+   "params": {
+    "steps": [
+     "布置仓库堆场",
+     "布置加工厂",
+     "布置场内临时运输道路",
+     "布置临时房屋",
+     "布置临时水电管网"
+    ],
+    "case": "complete"
+   },
+   "expected_ok": true,
+   "correct_statement": "临时设施平面布置步骤应为：布置仓库堆场→布置加工厂→布置场内临时运输道路→布置临时房屋→布置临时水电管网，顺序不得错乱",
+   "anchor": "ca:1A431011_012_0013 + {2021,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-D-steps-076",
+   "rule_group": "D-steps",
+   "surface": "某住宅楼工地临时设施平面布置步骤为：布置加工厂→布置仓库堆场→布置场内临时运输道路→布置临时房屋→布置临时水电管网",
+   "params": {
+    "steps": [
+     "布置加工厂",
+     "布置仓库堆场",
+     "布置场内临时运输道路",
+     "布置临时房屋",
+     "布置临时水电管网"
+    ],
+    "case": "order:先加工厂后仓库堆场"
+   },
+   "expected_ok": false,
+   "correct_statement": "临时设施平面布置步骤应为：布置仓库堆场→布置加工厂→布置场内临时运输道路→布置临时房屋→布置临时水电管网，顺序不得错乱",
+   "anchor": "ca:1A431011_012_0013 + {2021,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-D-steps-077",
+   "rule_group": "D-steps",
+   "surface": "某住宅楼工地临时设施平面布置步骤为：布置仓库堆场→布置加工厂→布置临时房屋→布置场内临时运输道路→布置临时水电管网",
+   "params": {
+    "steps": [
+     "布置仓库堆场",
+     "布置加工厂",
+     "布置临时房屋",
+     "布置场内临时运输道路",
+     "布置临时水电管网"
+    ],
+    "case": "order:先临时房屋后运输道路"
+   },
+   "expected_ok": false,
+   "correct_statement": "临时设施平面布置步骤应为：布置仓库堆场→布置加工厂→布置场内临时运输道路→布置临时房屋→布置临时水电管网，顺序不得错乱",
+   "anchor": "ca:1A431011_012_0013 + {2021,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-D-steps-078",
+   "rule_group": "D-steps",
+   "surface": "某厂房项目现场临时设施平面布置步骤为：布置仓库堆场→布置加工厂→布置场内临时运输道路→布置临时房屋→布置临时水电管网",
+   "params": {
+    "steps": [
+     "布置仓库堆场",
+     "布置加工厂",
+     "布置场内临时运输道路",
+     "布置临时房屋",
+     "布置临时水电管网"
+    ],
+    "case": "complete"
+   },
+   "expected_ok": true,
+   "correct_statement": "临时设施平面布置步骤应为：布置仓库堆场→布置加工厂→布置场内临时运输道路→布置临时房屋→布置临时水电管网，顺序不得错乱",
+   "anchor": "ca:1A431011_012_0013 + {2021,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-D-steps-079",
+   "rule_group": "D-steps",
+   "surface": "某厂房项目现场临时设施平面布置步骤为：布置加工厂→布置仓库堆场→布置场内临时运输道路→布置临时房屋→布置临时水电管网",
+   "params": {
+    "steps": [
+     "布置加工厂",
+     "布置仓库堆场",
+     "布置场内临时运输道路",
+     "布置临时房屋",
+     "布置临时水电管网"
+    ],
+    "case": "order:先加工厂后仓库堆场"
+   },
+   "expected_ok": false,
+   "correct_statement": "临时设施平面布置步骤应为：布置仓库堆场→布置加工厂→布置场内临时运输道路→布置临时房屋→布置临时水电管网，顺序不得错乱",
+   "anchor": "ca:1A431011_012_0013 + {2021,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-D-steps-080",
+   "rule_group": "D-steps",
+   "surface": "某厂房项目现场临时设施平面布置步骤为：布置仓库堆场→布置加工厂→布置临时房屋→布置场内临时运输道路→布置临时水电管网",
+   "params": {
+    "steps": [
+     "布置仓库堆场",
+     "布置加工厂",
+     "布置临时房屋",
+     "布置场内临时运输道路",
+     "布置临时水电管网"
+    ],
+    "case": "order:先临时房屋后运输道路"
+   },
+   "expected_ok": false,
+   "correct_statement": "临时设施平面布置步骤应为：布置仓库堆场→布置加工厂→布置场内临时运输道路→布置临时房屋→布置临时水电管网，顺序不得错乱",
+   "anchor": "ca:1A431011_012_0013 + {2021,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-fence-081",
+   "rule_group": "E-fence",
+   "surface": "市区主要路段施工现场围挡高度设为 1.8m",
+   "params": {
+    "road": "市区主要路段",
+    "height_m": 1.8
+   },
+   "expected_ok": false,
+   "correct_statement": "围挡高度：市区主要路段≥2.5m、一般路段≥1.8m，不得混淆路段档位",
+   "anchor": "kc:1A431011_013_0014:0 + ca:1A431011_013_0014",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-fence-082",
+   "rule_group": "E-fence",
+   "surface": "市区主要路段施工现场围挡高度设为 2.0m",
+   "params": {
+    "road": "市区主要路段",
+    "height_m": 2.0
+   },
+   "expected_ok": false,
+   "correct_statement": "围挡高度：市区主要路段≥2.5m、一般路段≥1.8m，不得混淆路段档位",
+   "anchor": "kc:1A431011_013_0014:0 + ca:1A431011_013_0014",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-fence-083",
+   "rule_group": "E-fence",
+   "surface": "市区主要路段施工现场围挡高度设为 2.5m",
+   "params": {
+    "road": "市区主要路段",
+    "height_m": 2.5
+   },
+   "expected_ok": true,
+   "correct_statement": "围挡高度：市区主要路段≥2.5m、一般路段≥1.8m，不得混淆路段档位",
+   "anchor": "kc:1A431011_013_0014:0 + ca:1A431011_013_0014",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-fence-084",
+   "rule_group": "E-fence",
+   "surface": "市区主要路段施工现场围挡高度设为 3.0m",
+   "params": {
+    "road": "市区主要路段",
+    "height_m": 3.0
+   },
+   "expected_ok": true,
+   "correct_statement": "围挡高度：市区主要路段≥2.5m、一般路段≥1.8m，不得混淆路段档位",
+   "anchor": "kc:1A431011_013_0014:0 + ca:1A431011_013_0014",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-fence-085",
+   "rule_group": "E-fence",
+   "surface": "一般路段施工现场围挡高度设为 1.5m",
+   "params": {
+    "road": "一般路段",
+    "height_m": 1.5
+   },
+   "expected_ok": false,
+   "correct_statement": "围挡高度：市区主要路段≥2.5m、一般路段≥1.8m，不得混淆路段档位",
+   "anchor": "kc:1A431011_013_0014:0 + ca:1A431011_013_0014",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-fence-086",
+   "rule_group": "E-fence",
+   "surface": "一般路段施工现场围挡高度设为 1.8m",
+   "params": {
+    "road": "一般路段",
+    "height_m": 1.8
+   },
+   "expected_ok": true,
+   "correct_statement": "围挡高度：市区主要路段≥2.5m、一般路段≥1.8m，不得混淆路段档位",
+   "anchor": "kc:1A431011_013_0014:0 + ca:1A431011_013_0014",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-fence-087",
+   "rule_group": "E-fence",
+   "surface": "一般路段施工现场围挡高度设为 2.5m",
+   "params": {
+    "road": "一般路段",
+    "height_m": 2.5
+   },
+   "expected_ok": true,
+   "correct_statement": "围挡高度：市区主要路段≥2.5m、一般路段≥1.8m，不得混淆路段档位",
+   "anchor": "kc:1A431011_013_0014:0 + ca:1A431011_013_0014",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-fence-088",
+   "rule_group": "E-fence",
+   "surface": "项目部规定：围挡高度不分路段统一按 1.8m 设置",
+   "params": {
+    "uniform_height_m": 1.8
+   },
+   "expected_ok": false,
+   "correct_statement": "围挡高度：市区主要路段≥2.5m、一般路段≥1.8m，不得混淆路段档位",
+   "anchor": "kc:1A431011_013_0014:0 + ca:1A431011_013_0014",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-089",
+   "rule_group": "E-boards",
+   "surface": "项目部将「工程概况牌」列入主要出入口的五牌一图",
+   "params": {
+    "item": "工程概况牌",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-090",
+   "rule_group": "E-boards",
+   "surface": "项目部认为主要出入口五牌一图无需包含「工程概况牌」",
+   "params": {
+    "item": "工程概况牌",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-091",
+   "rule_group": "E-boards",
+   "surface": "项目部将「消防保卫牌」列入主要出入口的五牌一图",
+   "params": {
+    "item": "消防保卫牌",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-092",
+   "rule_group": "E-boards",
+   "surface": "项目部认为主要出入口五牌一图无需包含「消防保卫牌」",
+   "params": {
+    "item": "消防保卫牌",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-093",
+   "rule_group": "E-boards",
+   "surface": "项目部将「安全生产牌」列入主要出入口的五牌一图",
+   "params": {
+    "item": "安全生产牌",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-094",
+   "rule_group": "E-boards",
+   "surface": "项目部认为主要出入口五牌一图无需包含「安全生产牌」",
+   "params": {
+    "item": "安全生产牌",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-095",
+   "rule_group": "E-boards",
+   "surface": "项目部将「文明施工牌」列入主要出入口的五牌一图",
+   "params": {
+    "item": "文明施工牌",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-096",
+   "rule_group": "E-boards",
+   "surface": "项目部认为主要出入口五牌一图无需包含「文明施工牌」",
+   "params": {
+    "item": "文明施工牌",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-097",
+   "rule_group": "E-boards",
+   "surface": "项目部将「管理人员名单及监督电话牌」列入主要出入口的五牌一图",
+   "params": {
+    "item": "管理人员名单及监督电话牌",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-098",
+   "rule_group": "E-boards",
+   "surface": "项目部认为主要出入口五牌一图无需包含「管理人员名单及监督电话牌」",
+   "params": {
+    "item": "管理人员名单及监督电话牌",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-099",
+   "rule_group": "E-boards",
+   "surface": "项目部将「施工现场总平面图」列入主要出入口的五牌一图",
+   "params": {
+    "item": "施工现场总平面图",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-E-boards-100",
+   "rule_group": "E-boards",
+   "surface": "项目部认为主要出入口五牌一图无需包含「施工现场总平面图」",
+   "params": {
+    "item": "施工现场总平面图",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "主要出入口五牌一图应含：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌 + 施工现场总平面图，漏项不全",
+   "anchor": "kc:1A431011_013_0014:1 + {2017,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-F-vert-101",
+   "rule_group": "F-vert",
+   "surface": "备考笔记称「塔式起重机」属于垂直运输设备",
+   "params": {
+    "equipment": "塔式起重机",
+    "claimed_vertical": true
+   },
+   "expected_ok": true,
+   "correct_statement": "垂直运输设备 = 塔式起重机/施工电梯/物料提升架/混凝土泵；吊篮属高处作业设备，不属垂直运输设备",
+   "anchor": "{2020,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-F-vert-102",
+   "rule_group": "F-vert",
+   "surface": "备考笔记称「塔式起重机」不属于垂直运输设备",
+   "params": {
+    "equipment": "塔式起重机",
+    "claimed_vertical": false
+   },
+   "expected_ok": false,
+   "correct_statement": "垂直运输设备 = 塔式起重机/施工电梯/物料提升架/混凝土泵；吊篮属高处作业设备，不属垂直运输设备",
+   "anchor": "{2020,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-F-vert-103",
+   "rule_group": "F-vert",
+   "surface": "备考笔记称「施工电梯」属于垂直运输设备",
+   "params": {
+    "equipment": "施工电梯",
+    "claimed_vertical": true
+   },
+   "expected_ok": true,
+   "correct_statement": "垂直运输设备 = 塔式起重机/施工电梯/物料提升架/混凝土泵；吊篮属高处作业设备，不属垂直运输设备",
+   "anchor": "{2020,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-F-vert-104",
+   "rule_group": "F-vert",
+   "surface": "备考笔记称「施工电梯」不属于垂直运输设备",
+   "params": {
+    "equipment": "施工电梯",
+    "claimed_vertical": false
+   },
+   "expected_ok": false,
+   "correct_statement": "垂直运输设备 = 塔式起重机/施工电梯/物料提升架/混凝土泵；吊篮属高处作业设备，不属垂直运输设备",
+   "anchor": "{2020,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-F-vert-105",
+   "rule_group": "F-vert",
+   "surface": "备考笔记称「物料提升架」属于垂直运输设备",
+   "params": {
+    "equipment": "物料提升架",
+    "claimed_vertical": true
+   },
+   "expected_ok": true,
+   "correct_statement": "垂直运输设备 = 塔式起重机/施工电梯/物料提升架/混凝土泵；吊篮属高处作业设备，不属垂直运输设备",
+   "anchor": "{2020,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-F-vert-106",
+   "rule_group": "F-vert",
+   "surface": "备考笔记称「物料提升架」不属于垂直运输设备",
+   "params": {
+    "equipment": "物料提升架",
+    "claimed_vertical": false
+   },
+   "expected_ok": false,
+   "correct_statement": "垂直运输设备 = 塔式起重机/施工电梯/物料提升架/混凝土泵；吊篮属高处作业设备，不属垂直运输设备",
+   "anchor": "{2020,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-F-vert-107",
+   "rule_group": "F-vert",
+   "surface": "备考笔记称「混凝土泵」属于垂直运输设备",
+   "params": {
+    "equipment": "混凝土泵",
+    "claimed_vertical": true
+   },
+   "expected_ok": true,
+   "correct_statement": "垂直运输设备 = 塔式起重机/施工电梯/物料提升架/混凝土泵；吊篮属高处作业设备，不属垂直运输设备",
+   "anchor": "{2020,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-F-vert-108",
+   "rule_group": "F-vert",
+   "surface": "备考笔记称「混凝土泵」不属于垂直运输设备",
+   "params": {
+    "equipment": "混凝土泵",
+    "claimed_vertical": false
+   },
+   "expected_ok": false,
+   "correct_statement": "垂直运输设备 = 塔式起重机/施工电梯/物料提升架/混凝土泵；吊篮属高处作业设备，不属垂直运输设备",
+   "anchor": "{2020,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-F-vert-109",
+   "rule_group": "F-vert",
+   "surface": "备考笔记称「吊篮」属于垂直运输设备",
+   "params": {
+    "equipment": "吊篮",
+    "claimed_vertical": true
+   },
+   "expected_ok": false,
+   "correct_statement": "垂直运输设备 = 塔式起重机/施工电梯/物料提升架/混凝土泵；吊篮属高处作业设备，不属垂直运输设备",
+   "anchor": "{2020,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X01-F-vert-110",
+   "rule_group": "F-vert",
+   "surface": "备考笔记称「吊篮」属高处作业设备、不属垂直运输设备",
+   "params": {
+    "equipment": "吊篮",
+    "claimed_vertical": false
+   },
+   "expected_ok": true,
+   "correct_statement": "垂直运输设备 = 塔式起重机/施工电梯/物料提升架/混凝土泵；吊篮属高处作业设备，不属垂直运输设备",
+   "anchor": "{2020,第27题}",
+   "extension": false
+  }
+ ]
+}
