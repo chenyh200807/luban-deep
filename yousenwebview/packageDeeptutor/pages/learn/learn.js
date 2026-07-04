@@ -45,7 +45,7 @@ Page({
   data: {
     statusBarHeight: 0,
     navHeight: 96,
-    isDark: true,
+    isDark: false,
     loading: true,
     vm: null, // learn-view-model 输出
     whyOpen: false,
@@ -55,7 +55,7 @@ Page({
     var info =
       typeof wx !== "undefined" && wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
     var sbh = info.statusBarHeight || 0;
-    this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: helpers.isDark() });
+    this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
     this._loadLongCangFont();
     // 设计预览模式:?preview=1 用镜像第 10 版的数据渲染完整设计(审核用,不打后端)
     if (query && String(query.preview) === "1") {

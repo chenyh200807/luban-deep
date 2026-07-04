@@ -32,7 +32,7 @@ function practiceUrlFrom(cardUrl) {
 Page({
   data: {
     packId: "",
-    isDark: true,
+    isDark: false,
     title: "",
     loading: true,
     errorText: "",
@@ -46,7 +46,7 @@ Page({
 
   onLoad(query) {
     var packId = String((query && query.pack_id) || "").trim();
-    this.setData({ packId: packId, isDark: helpers.isDark() });
+    this.setData({ packId: packId, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
     // 站进入（任务稿 luban_station_enter 的登记名）
     telemetry.trackProductBehavior("module_viewed", {
       module: "learning",
