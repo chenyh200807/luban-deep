@@ -1,0 +1,40 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D3-medium",
+    "issue_idx": 0,
+    "tier": "Tier-0确定性核验+Tier-2确认",
+    "actions": [
+      "adjudicate.py B02: UNDECIDED; verify_exam_anchors exit 0",
+      "确定性直读: exam_evidence {2024,第8题} analysis='对基坑工程，应进行基坑及其支护结构变形监测和周边环境变形监测' 直接支持'周边环境变形'; 前轮已把该论断改挂🟢{2024,第8题}并给 kc:1A413000_072_0139:0 加'须监测的对象清单'限定括注",
+      "GLM-5.2(异源终审锚): satisfied=true; Fable-5 复签同意",
+      "结论: status=fixed(前轮已改, 本轮补凭据), 升色=0, 新增🟢=0"
+    ],
+    "panel": {"GLM-5.2": {"satisfied": true}, "Fable-5": "复签同意(exam_evidence 直读为独立证据)"}
+  },
+  {
+    "ts": "2026-07-04",
+    "batch": "D3-medium",
+    "issue_idx": 1,
+    "tier": "Tier-0确定性核验+Tier-2确认(结构/措辞类)",
+    "actions": [
+      "字符串定位: §3 R2-2 '安全等级只是首轮筛选…非封闭单因子裁决' + §4 封闭性自检 '规则组B…标🔵首轮筛选表' 均实存 — 前轮已按 fix 改全(降级/收窄方向)",
+      "GLM-5.2: satisfied=true; Fable-5 复签同意",
+      "结论: status=fixed(前轮已改, 本轮补凭据)"
+    ],
+    "panel": {"GLM-5.2": {"satisfied": true}, "Fable-5": "复签同意"}
+  },
+  {
+    "ts": "2026-07-04",
+    "batch": "D3-medium",
+    "issue_idx": 2,
+    "tier": "Tier-2(错因码语义类)确认",
+    "actions": [
+      "registry 直读: E07=概念混淆(code_application); §6 M6 当前已挂 E07 且错误心智括注'(概念混淆,误判触发条件)' — 前轮已按 fix 改",
+      "GLM-5.2 单审(flaggers=DeepSeek/Qwen, GLM 未 flag 本条): e07_apt=true, satisfied=true",
+      "Fable-5 复签: 同意 — '浅坑不用监测'是对监测触发条件(kc:1A413000_081_0152:0 深度≥5m等)的概念性误判, E07 贴切; jury 备选 E08(question_reading维)不如 E07",
+      "结论: status=fixed(前轮已改, 本轮双签确认), 2/2"
+    ],
+    "panel": {"GLM-5.2": {"satisfied": true, "e07_apt": true}, "Fable-5": "复签同意 E07 维持"}
+  }
+]
