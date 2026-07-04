@@ -27,6 +27,7 @@ SECRET_SCAN_EXCLUDED_PREFIXES = (
     "output/",
     "tests/fixtures/",
     "tmp/",
+    "web/public/luban-preview/",
 )
 
 SECRET_SCAN_EXCLUDED_SUFFIXES = (

@@ -215,11 +215,11 @@ COPY contracts/ ./contracts/
 # 鲁班深母题 runtime 供给（lesson viewmodel read_model 只读这两类文件；
 # 不拷整个 docs/——manifest 绿灯投影 fail-closed，缺文件=供给面全空）
 COPY ["docs/原始数据/考点原料/成品/_pack_manifest.json", "./docs/原始数据/考点原料/成品/"]
-COPY ["docs/原始数据/考点原料/成品/_S05_variant_bank.v0.json", "./docs/原始数据/考点原料/成品/"]
+# 供给文件通配拷贝(新站补池零 Dockerfile 改动——F16 漏拷事故治本);
+# 实际供给集由 .dockerignore 反选白名单决定(变体池通配 + manifest + 两条 join 映射)。
 # 生命周期投影的两条确定性 join 映射（pack_lifecycle_projection 只读；
 # 缺文件 = 投影 degraded=True + warning，学员全显示未练过——必须随镜像供给）
-COPY ["docs/原始数据/考点原料/成品/_question_pack_map.v0.json", "./docs/原始数据/考点原料/成品/"]
-COPY ["docs/原始数据/考点原料/成品/_pack_taxonomy_registry.v0.json", "./docs/原始数据/考点原料/成品/"]
+COPY ["docs/原始数据/考点原料/成品/", "./docs/原始数据/考点原料/成品/"]
 COPY scripts/ ./scripts/
 COPY pyproject.toml ./
 COPY requirements/ ./requirements/
