@@ -74,7 +74,8 @@
    "jury_total": 14,
    "needs_leaf_review": false,
    "pack_id": "C01",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 3 个, 案例锚 1 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 18,
    "review_level": "standard",
    "title": "施工缝留置与处理"
@@ -189,7 +190,8 @@
    "jury_total": 9,
    "needs_leaf_review": false,
    "pack_id": "D11",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 3 个, 案例锚 0 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 20,
    "review_level": "coarse_review",
    "title": "抹灰工序与质量控制"
@@ -227,7 +229,8 @@
    "jury_total": 7,
    "needs_leaf_review": false,
    "pack_id": "D13",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 10 个, 案例锚 1 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 18,
    "review_level": "coarse_review",
    "title": "幕墙防火防雷层间封堵"
@@ -265,7 +268,8 @@
    "jury_total": 12,
    "needs_leaf_review": false,
    "pack_id": "E01",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 0 个, 案例锚 5 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 11,
    "review_level": "coarse_review",
    "title": "工程量清单计价"
@@ -284,7 +288,8 @@
    "jury_total": 8,
    "needs_leaf_review": false,
    "pack_id": "E05",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 0 个, 案例锚 0 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 33,
    "review_level": "coarse_review",
    "title": "挣值法偏差分析"
@@ -303,7 +308,8 @@
    "jury_total": 10,
    "needs_leaf_review": false,
    "pack_id": "F02",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 7 个, 案例锚 2 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 19,
    "review_level": "coarse_review",
    "title": "卷材防水施工顺序与搭接方向"
@@ -322,7 +328,8 @@
    "jury_total": 12,
    "needs_leaf_review": false,
    "pack_id": "F03",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 3 个, 案例锚 0 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 19,
    "review_level": "standard",
    "title": "防水构造层次屋面地下"
@@ -360,7 +367,8 @@
    "jury_total": 13,
    "needs_leaf_review": false,
    "pack_id": "F05",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 3 个, 案例锚 1 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 22,
    "review_level": "coarse_review",
    "title": "渗漏治理诊断"
@@ -554,7 +562,8 @@
    "jury_total": 11,
    "needs_leaf_review": false,
    "pack_id": "N03",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 4 个, 案例锚 1 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 20,
    "review_level": "standard",
    "title": "流水施工参数与工期"
@@ -630,7 +639,8 @@
    "jury_total": 15,
    "needs_leaf_review": false,
    "pack_id": "R01",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 5 个, 案例锚 1 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 21,
    "review_level": "coarse_review",
    "title": "现场消防布置动火检查验收"
@@ -745,7 +755,8 @@
    "jury_total": 7,
    "needs_leaf_review": false,
    "pack_id": "X01",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 2 个, 案例锚 4 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 32,
    "review_level": "standard",
    "title": "施工平面布置原则"
@@ -764,7 +775,8 @@
    "jury_total": 2,
    "needs_leaf_review": false,
    "pack_id": "X02",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 1 个, 案例锚 3 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 18,
    "review_level": "coarse_review",
    "title": "临设道路材料堆场布置"
@@ -783,7 +795,8 @@
    "jury_total": 11,
    "needs_leaf_review": false,
    "pack_id": "X03",
-   "published": false,
+   "publish_note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 8 个, 案例锚 2 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。",
+   "published": true,
    "red_marker_count": 28,
    "review_level": "coarse_review",
    "title": "文明绿色环保施工措施"
@@ -791,12 +804,25 @@
  ],
  "projection_green": [
   "A01",
+  "C01",
   "C02",
+  "D11",
+  "D13",
+  "E01",
+  "E05",
+  "F02",
+  "F03",
+  "F05",
   "F16",
   "G03",
   "J01",
   "N01",
-  "S05"
+  "N03",
+  "R01",
+  "S05",
+  "X01",
+  "X02",
+  "X03"
  ],
  "schema": "luban_deep_pack_manifest.v0",
  "superseded_files": [
