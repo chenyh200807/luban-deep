@@ -564,6 +564,7 @@ domains:
       - tests/services/learner_state/test_learning_state_projection.py
       - tests/services/learner_state/test_lesson_evidence.py
       - tests/api/test_lesson_progress_endpoint.py
+      - tests/api/test_lesson_progress_validation.py
       - tests/services/learner_state/test_pack_lifecycle_projection.py
       - tests/services/learner_state/test_home_next_step_projection.py
       - tests/services/learner_state/test_m32_waterproof_learning_synthesis.py
@@ -590,6 +591,7 @@ domains:
       # Member console service participates in learner/member authority gates.
       - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
+      - tests/services/member_console/test_home_event_window.py
       - tests/services/member_console/test_admin_store.py
       - tests/services/member_console/test_admin_management.py
       - tests/services/member_console/test_rbac.py
