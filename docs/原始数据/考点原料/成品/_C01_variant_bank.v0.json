@@ -1,0 +1,577 @@
+{
+ "schema_version": "luban-c01-variant-bank",
+ "pack_id": "C01",
+ "status": "candidate",
+ "source_pack_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
+ "generation_ms": 0.02,
+ "gate": {
+  "total": 41,
+  "passed": 41,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-position": 12,
+  "B-timing": 4,
+  "C-seq": 6,
+  "D-postpour": 14,
+  "E-waterproof": 5
+ },
+ "variants": [
+  {
+   "variant_id": "C01-A-position-000",
+   "rule_group": "A-position",
+   "surface": "柱的施工缝留置在基础、楼板、梁的顶面",
+   "params": {
+    "member": "柱",
+    "position": "基础、楼板、梁的顶面"
+   },
+   "expected_ok": true,
+   "correct_statement": "柱的施工缝应留置在基础、楼板、梁的顶面",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-001",
+   "rule_group": "A-position",
+   "surface": "柱的施工缝留置在柱中段（受剪力较大处）",
+   "params": {
+    "member": "柱",
+    "position": "柱中段（受剪力较大处）"
+   },
+   "expected_ok": false,
+   "correct_statement": "柱的施工缝应留置在基础、楼板、梁的顶面",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-002",
+   "rule_group": "A-position",
+   "surface": "单向板的施工缝留置在平行于板短边的任意位置",
+   "params": {
+    "member": "单向板",
+    "position": "平行于板短边的任意位置"
+   },
+   "expected_ok": true,
+   "correct_statement": "单向板的施工缝应留置在平行于板短边的任意位置",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-003",
+   "rule_group": "A-position",
+   "surface": "单向板的施工缝留置在平行于板长边的位置",
+   "params": {
+    "member": "单向板",
+    "position": "平行于板长边的位置"
+   },
+   "expected_ok": false,
+   "correct_statement": "单向板的施工缝应留置在平行于板短边的任意位置",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-004",
+   "rule_group": "A-position",
+   "surface": "有主次梁的楼板的施工缝留置在次梁跨中 1/3 范围内",
+   "params": {
+    "member": "有主次梁的楼板",
+    "position": "次梁跨中 1/3 范围内"
+   },
+   "expected_ok": true,
+   "correct_statement": "有主次梁的楼板的施工缝应留置在次梁跨中 1/3 范围内",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-005",
+   "rule_group": "A-position",
+   "surface": "有主次梁的楼板的施工缝留置在次梁支座处",
+   "params": {
+    "member": "有主次梁的楼板",
+    "position": "次梁支座处"
+   },
+   "expected_ok": false,
+   "correct_statement": "有主次梁的楼板的施工缝应留置在次梁跨中 1/3 范围内",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-006",
+   "rule_group": "A-position",
+   "surface": "墙的施工缝留置在门洞口过梁跨中 1/3 范围内或墙纵横交接处",
+   "params": {
+    "member": "墙",
+    "position": "门洞口过梁跨中 1/3 范围内或墙纵横交接处"
+   },
+   "expected_ok": true,
+   "correct_statement": "墙的施工缝应留置在门洞口过梁跨中 1/3 范围内或墙纵横交接处",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-007",
+   "rule_group": "A-position",
+   "surface": "墙的施工缝留置在墙上任意位置",
+   "params": {
+    "member": "墙",
+    "position": "墙上任意位置"
+   },
+   "expected_ok": false,
+   "correct_statement": "墙的施工缝应留置在门洞口过梁跨中 1/3 范围内或墙纵横交接处",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-008",
+   "rule_group": "A-position",
+   "surface": "楼梯梯段的施工缝留置在端部 1/3 范围内",
+   "params": {
+    "member": "楼梯梯段",
+    "position": "端部 1/3 范围内"
+   },
+   "expected_ok": true,
+   "correct_statement": "楼梯梯段的施工缝应留置在端部 1/3 范围内",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-009",
+   "rule_group": "A-position",
+   "surface": "楼梯梯段的施工缝留置在梯段中部",
+   "params": {
+    "member": "楼梯梯段",
+    "position": "梯段中部"
+   },
+   "expected_ok": false,
+   "correct_statement": "楼梯梯段的施工缝应留置在端部 1/3 范围内",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-010",
+   "rule_group": "A-position",
+   "surface": "双向受力板的施工缝留置在按设计要求确定的位置",
+   "params": {
+    "member": "双向受力板",
+    "position": "按设计要求确定的位置"
+   },
+   "expected_ok": true,
+   "correct_statement": "双向受力板的施工缝应留置在按设计要求确定的位置",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-A-position-011",
+   "rule_group": "A-position",
+   "surface": "双向受力板的施工缝留置在施工单位自行确定的位置",
+   "params": {
+    "member": "双向受力板",
+    "position": "施工单位自行确定的位置"
+   },
+   "expected_ok": false,
+   "correct_statement": "双向受力板的施工缝应留置在按设计要求确定的位置",
+   "anchor": "kc:1A413030_103_0196:0 + {2021,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-B-timing-012",
+   "rule_group": "B-timing",
+   "surface": "某住宅楼工地混凝土浇筑需短时间歇，间歇时间尽量缩短，并在前层混凝土初凝之前浇筑完次层混凝土",
+   "params": {
+    "poured_before_initial_set": true
+   },
+   "expected_ok": true,
+   "correct_statement": "混凝土浇筑宜连续进行；当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝",
+   "anchor": "cc:1A413030_103_0196:2 + cc:1A413030_103_0196:3",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-B-timing-013",
+   "rule_group": "B-timing",
+   "surface": "某住宅楼工地混凝土浇筑间歇超过前层混凝土初凝时间，未作处理即继续浇筑次层混凝土",
+   "params": {
+    "poured_before_initial_set": false
+   },
+   "expected_ok": false,
+   "correct_statement": "混凝土浇筑宜连续进行；当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝",
+   "anchor": "cc:1A413030_103_0196:2 + cc:1A413030_103_0196:3",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-B-timing-014",
+   "rule_group": "B-timing",
+   "surface": "某厂房项目现场混凝土浇筑需短时间歇，间歇时间尽量缩短，并在前层混凝土初凝之前浇筑完次层混凝土",
+   "params": {
+    "poured_before_initial_set": true
+   },
+   "expected_ok": true,
+   "correct_statement": "混凝土浇筑宜连续进行；当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝",
+   "anchor": "cc:1A413030_103_0196:2 + cc:1A413030_103_0196:3",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-B-timing-015",
+   "rule_group": "B-timing",
+   "surface": "某厂房项目现场混凝土浇筑间歇超过前层混凝土初凝时间，未作处理即继续浇筑次层混凝土",
+   "params": {
+    "poured_before_initial_set": false
+   },
+   "expected_ok": false,
+   "correct_statement": "混凝土浇筑宜连续进行；当必须间歇时，其间歇时间宜尽量缩短，并应在前层混凝土初凝之前，将次层混凝土浇筑完毕；否则，应留置施工缝",
+   "anchor": "cc:1A413030_103_0196:2 + cc:1A413030_103_0196:3",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-C-seq-016",
+   "rule_group": "C-seq",
+   "surface": "某住宅楼工地对既有施工缝接缝处理，工序为：已浇混凝土强度达 1.2N/mm²→凿毛处理→清理松动石子浮浆→铺 30mm 砂浆→浇筑振捣养护",
+   "params": {
+    "steps": [
+     "已浇混凝土强度达 1.2N/mm²",
+     "凿毛处理",
+     "清理松动石子浮浆",
+     "铺 30mm 砂浆",
+     "浇筑振捣养护"
+    ],
+    "case": "complete"
+   },
+   "expected_ok": true,
+   "correct_statement": "施工缝处理工序应为：已浇混凝土强度达 1.2N/mm²→凿毛处理→清理松动石子浮浆→铺 30mm 砂浆→浇筑振捣养护，不得先浇后凿或未达强度即接",
+   "anchor": "ca:1A413030_103_0196（EP关键词级·回源 CET_1A413030_P0103_001）",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-C-seq-017",
+   "rule_group": "C-seq",
+   "surface": "某住宅楼工地对既有施工缝接缝处理，工序为：已浇混凝土强度达 1.2N/mm²→浇筑振捣养护→清理松动石子浮浆→铺 30mm 砂浆→凿毛处理",
+   "params": {
+    "steps": [
+     "已浇混凝土强度达 1.2N/mm²",
+     "浇筑振捣养护",
+     "清理松动石子浮浆",
+     "铺 30mm 砂浆",
+     "凿毛处理"
+    ],
+    "case": "order:先浇后凿"
+   },
+   "expected_ok": false,
+   "correct_statement": "施工缝处理工序应为：已浇混凝土强度达 1.2N/mm²→凿毛处理→清理松动石子浮浆→铺 30mm 砂浆→浇筑振捣养护，不得先浇后凿或未达强度即接",
+   "anchor": "ca:1A413030_103_0196（EP关键词级·回源 CET_1A413030_P0103_001）",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-C-seq-018",
+   "rule_group": "C-seq",
+   "surface": "某住宅楼工地对既有施工缝接缝处理，工序为：凿毛处理→清理松动石子浮浆→铺 30mm 砂浆→浇筑振捣养护",
+   "params": {
+    "steps": [
+     "凿毛处理",
+     "清理松动石子浮浆",
+     "铺 30mm 砂浆",
+     "浇筑振捣养护"
+    ],
+    "case": "omit:未达强度即接"
+   },
+   "expected_ok": false,
+   "correct_statement": "施工缝处理工序应为：已浇混凝土强度达 1.2N/mm²→凿毛处理→清理松动石子浮浆→铺 30mm 砂浆→浇筑振捣养护，不得先浇后凿或未达强度即接",
+   "anchor": "ca:1A413030_103_0196（EP关键词级·回源 CET_1A413030_P0103_001）",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-C-seq-019",
+   "rule_group": "C-seq",
+   "surface": "某厂房项目现场对既有施工缝接缝处理，工序为：已浇混凝土强度达 1.2N/mm²→凿毛处理→清理松动石子浮浆→铺 30mm 砂浆→浇筑振捣养护",
+   "params": {
+    "steps": [
+     "已浇混凝土强度达 1.2N/mm²",
+     "凿毛处理",
+     "清理松动石子浮浆",
+     "铺 30mm 砂浆",
+     "浇筑振捣养护"
+    ],
+    "case": "complete"
+   },
+   "expected_ok": true,
+   "correct_statement": "施工缝处理工序应为：已浇混凝土强度达 1.2N/mm²→凿毛处理→清理松动石子浮浆→铺 30mm 砂浆→浇筑振捣养护，不得先浇后凿或未达强度即接",
+   "anchor": "ca:1A413030_103_0196（EP关键词级·回源 CET_1A413030_P0103_001）",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-C-seq-020",
+   "rule_group": "C-seq",
+   "surface": "某厂房项目现场对既有施工缝接缝处理，工序为：已浇混凝土强度达 1.2N/mm²→浇筑振捣养护→清理松动石子浮浆→铺 30mm 砂浆→凿毛处理",
+   "params": {
+    "steps": [
+     "已浇混凝土强度达 1.2N/mm²",
+     "浇筑振捣养护",
+     "清理松动石子浮浆",
+     "铺 30mm 砂浆",
+     "凿毛处理"
+    ],
+    "case": "order:先浇后凿"
+   },
+   "expected_ok": false,
+   "correct_statement": "施工缝处理工序应为：已浇混凝土强度达 1.2N/mm²→凿毛处理→清理松动石子浮浆→铺 30mm 砂浆→浇筑振捣养护，不得先浇后凿或未达强度即接",
+   "anchor": "ca:1A413030_103_0196（EP关键词级·回源 CET_1A413030_P0103_001）",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-C-seq-021",
+   "rule_group": "C-seq",
+   "surface": "某厂房项目现场对既有施工缝接缝处理，工序为：凿毛处理→清理松动石子浮浆→铺 30mm 砂浆→浇筑振捣养护",
+   "params": {
+    "steps": [
+     "凿毛处理",
+     "清理松动石子浮浆",
+     "铺 30mm 砂浆",
+     "浇筑振捣养护"
+    ],
+    "case": "omit:未达强度即接"
+   },
+   "expected_ok": false,
+   "correct_statement": "施工缝处理工序应为：已浇混凝土强度达 1.2N/mm²→凿毛处理→清理松动石子浮浆→铺 30mm 砂浆→浇筑振捣养护，不得先浇后凿或未达强度即接",
+   "anchor": "ca:1A413030_103_0196（EP关键词级·回源 CET_1A413030_P0103_001）",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-022",
+   "rule_group": "D-postpour",
+   "surface": "后浇带浇筑采用微膨胀混凝土",
+   "params": {
+    "concrete": "微膨胀混凝土"
+   },
+   "expected_ok": true,
+   "correct_statement": "后浇带应采用微膨胀混凝土（补偿收缩）",
+   "anchor": "kc:1A413030_103_0196:1 + {2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-023",
+   "rule_group": "D-postpour",
+   "surface": "后浇带浇筑采用与原结构同强度等级的普通混凝土",
+   "params": {
+    "concrete": "与原结构同强度等级的普通混凝土"
+   },
+   "expected_ok": false,
+   "correct_statement": "后浇带应采用微膨胀混凝土（补偿收缩）",
+   "anchor": "kc:1A413030_103_0196:1 + {2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-024",
+   "rule_group": "D-postpour",
+   "surface": "后浇带混凝土强度等级比原结构提高一级",
+   "params": {
+    "grade": "比原结构提高一级"
+   },
+   "expected_ok": true,
+   "correct_statement": "后浇带混凝土强度等级应比原结构提高一级",
+   "anchor": "kc:1A413030_103_0196:1 + {2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-025",
+   "rule_group": "D-postpour",
+   "surface": "后浇带混凝土强度等级与原结构同级",
+   "params": {
+    "grade": "与原结构同级"
+   },
+   "expected_ok": false,
+   "correct_statement": "后浇带混凝土强度等级应比原结构提高一级",
+   "anchor": "kc:1A413030_103_0196:1 + {2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-026",
+   "rule_group": "D-postpour",
+   "surface": "后浇带混凝土强度等级比原结构降低一级",
+   "params": {
+    "grade": "比原结构降低一级"
+   },
+   "expected_ok": false,
+   "correct_statement": "后浇带混凝土强度等级应比原结构提高一级",
+   "anchor": "kc:1A413030_103_0196:1 + {2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-027",
+   "rule_group": "D-postpour",
+   "surface": "后浇带混凝土浇筑后保持 14d 湿润养护",
+   "params": {
+    "curing_d": 14,
+    "min_d": 14
+   },
+   "expected_ok": true,
+   "correct_statement": "后浇带应保持不少于 14d 湿润养护",
+   "anchor": "kc:1A413030_103_0196:1 + {2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-028",
+   "rule_group": "D-postpour",
+   "surface": "后浇带混凝土浇筑后保持 10d 湿润养护",
+   "params": {
+    "curing_d": 10,
+    "min_d": 14
+   },
+   "expected_ok": false,
+   "correct_statement": "后浇带应保持不少于 14d 湿润养护",
+   "anchor": "kc:1A413030_103_0196:1 + {2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-029",
+   "rule_group": "D-postpour",
+   "surface": "底板后浇带在两侧主体完成 28d 后封闭",
+   "params": {
+    "closure_d": 28,
+    "min_d": 28
+   },
+   "expected_ok": true,
+   "correct_statement": "底板后浇带应在 ≥28d 后封闭，待两侧主体完成初期收缩",
+   "anchor": "{2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-030",
+   "rule_group": "D-postpour",
+   "surface": "底板后浇带在两侧主体完成 10d 后封闭",
+   "params": {
+    "closure_d": 10,
+    "min_d": 28
+   },
+   "expected_ok": false,
+   "correct_statement": "底板后浇带应在 ≥28d 后封闭，待两侧主体完成初期收缩",
+   "anchor": "{2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-031",
+   "rule_group": "D-postpour",
+   "surface": "后浇带接缝按施工缝要求处理（整理钢筋、冲洗松动部分）",
+   "params": {
+    "joint_treated_as_construction_joint": true
+   },
+   "expected_ok": true,
+   "correct_statement": "后浇带接缝应按施工缝处理（整理钢筋/冲洗松动部分）",
+   "anchor": "kc:1A413030_103_0196:1 + {2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-032",
+   "rule_group": "D-postpour",
+   "surface": "后浇带接缝未作处理直接浇筑混凝土",
+   "params": {
+    "joint_treated_as_construction_joint": false
+   },
+   "expected_ok": false,
+   "correct_statement": "后浇带接缝应按施工缝处理（整理钢筋/冲洗松动部分）",
+   "anchor": "kc:1A413030_103_0196:1 + {2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-033",
+   "rule_group": "D-postpour",
+   "surface": "后浇带两侧钢丝网予以保留",
+   "params": {
+    "mesh": "钢丝网",
+    "action": "保留"
+   },
+   "expected_ok": true,
+   "correct_statement": "后浇带钢丝网应保留，不得剔除",
+   "anchor": "{2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-034",
+   "rule_group": "D-postpour",
+   "surface": "后浇带两侧钢丝网在浇筑前全部剔除",
+   "params": {
+    "mesh": "钢丝网",
+    "action": "剔除"
+   },
+   "expected_ok": false,
+   "correct_statement": "后浇带钢丝网应保留，不得剔除",
+   "anchor": "{2018,案例三问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-D-postpour-035",
+   "rule_group": "D-postpour",
+   "surface": "后浇带采用快易收口网，浇筑前拆除并凿毛",
+   "params": {
+    "mesh": "快易收口网",
+    "action": "浇筑前拆除并凿毛"
+   },
+   "expected_ok": true,
+   "correct_statement": "后浇带快易收口网应在浇筑前拆除并凿毛",
+   "anchor": "kc:1A413030_094_0176:0",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-E-waterproof-036",
+   "rule_group": "E-waterproof",
+   "surface": "地下防水混凝土连续浇筑、宜少留施工缝",
+   "params": {
+    "practice": "连续浇筑宜少留缝"
+   },
+   "expected_ok": true,
+   "correct_statement": "防水混凝土应连续浇筑、宜少留施工缝；留缝时不应留在剪力最大处或底板与侧墙交接处",
+   "anchor": "{2015,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-E-waterproof-037",
+   "rule_group": "E-waterproof",
+   "surface": "防水混凝土施工缝留在剪力最大处",
+   "params": {
+    "practice": "留在剪力最大处"
+   },
+   "expected_ok": false,
+   "correct_statement": "防水混凝土应连续浇筑、宜少留施工缝；留缝时不应留在剪力最大处或底板与侧墙交接处",
+   "anchor": "{2015,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-E-waterproof-038",
+   "rule_group": "E-waterproof",
+   "surface": "防水混凝土施工缝留在底板与侧墙交接处",
+   "params": {
+    "practice": "留在底板与侧墙交接处"
+   },
+   "expected_ok": false,
+   "correct_statement": "防水混凝土应连续浇筑、宜少留施工缝；留缝时不应留在剪力最大处或底板与侧墙交接处",
+   "anchor": "{2015,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-E-waterproof-039",
+   "rule_group": "E-waterproof",
+   "surface": "防水混凝土浇筑后养护 14d",
+   "params": {
+    "curing_d": 14,
+    "min_d": 14
+   },
+   "expected_ok": true,
+   "correct_statement": "防水混凝土养护时间不少于 14d",
+   "anchor": "{2015,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "C01-E-waterproof-040",
+   "rule_group": "E-waterproof",
+   "surface": "防水混凝土浇筑后养护 7d",
+   "params": {
+    "curing_d": 7,
+    "min_d": 14
+   },
+   "expected_ok": false,
+   "correct_statement": "防水混凝土养护时间不少于 14d",
+   "anchor": "{2015,第26题}",
+   "extension": false
+  }
+ ]
+}
