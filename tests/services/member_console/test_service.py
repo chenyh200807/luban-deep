@@ -725,7 +725,12 @@ def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from
     class _FakeLearnerStateService:
         def read_snapshot(self, user_id: str, *, event_limit: int = 5):
             assert user_id == "student_plan"
-            assert event_limit == 20
+            # 接线断言钉命名常量而非魔数：首页读窗权威 = _HOME_LEARNER_EVENT_LIMIT
+            # （fusion-c a66fe1c3f 把 20 升到 100 后旧魔数 pin 在 try/except 里
+            # 静默降级 snapshot，正是本测试要防的假绿形态）。
+            from deeptutor.services.member_console import service as _mc_service
+
+            assert event_limit == _mc_service._HOME_LEARNER_EVENT_LIMIT
             return type(
                 "Snapshot",
                 (),
@@ -6648,25 +6653,49 @@ def _seed_static_chapter_mastery(service: MemberConsoleService, user_id: str, *,
     service._mutate(_apply)
 
 
-def test_radar_and_mastery_dashboard_blend_estimate_mastery_from_learning_evidence(
+class _FakeEnvStore:
+    """env_flag 经 get_env_store 先读磁盘 .env（磁盘值遮蔽 os.environ），
+    monkeypatch os.environ 无效——按 tests/services/config/test_runtime_env.py
+    既有范式 stub get_env_store 单一读点。"""
+
+    def __init__(self, values: dict[str, str]) -> None:
+        self._values = values
+
+    def get(self, key: str, default: str = "") -> str:
+        return self._values.get(key, default)
+
+
+def _stub_env_store(monkeypatch: pytest.MonkeyPatch, values: dict[str, str]) -> None:
+    store = _FakeEnvStore({"DEEPTUTOR_ENV": "local", **values})
+    monkeypatch.setattr(
+        "deeptutor.services.config.env_store.get_env_store",
+        lambda: store,
+    )
+
+
+def _make_blend_service(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    # §6-2 首页 mastery 收口：首页/雷达/章节盘必须经 estimate_mastery（唯一 mastery 算子）
-    # 聚合 learner-state 证据，不再裸读静态 member.chapter_mastery。
+    *,
+    user_id: str,
+    legacy_mastery: int,
+    corrects: list[bool],
+) -> MemberConsoleService:
+    # 融合面总开关置开（mastery blend 正在被收进 DEEPTUTOR_HOME_NEXT_STEP_ENABLED）。
+    _stub_env_store(monkeypatch, {"DEEPTUTOR_HOME_NEXT_STEP_ENABLED": "1"})
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
-    service.get_profile("student_mastery_blend")
-    _seed_static_chapter_mastery(service, "student_mastery_blend", mastery=40)
+    service.get_profile(user_id)
+    _seed_static_chapter_mastery(service, user_id, mastery=legacy_mastery)
+
+    events = [_mastery_evidence_event(i, correct=correct) for i, correct in enumerate(corrects)]
 
     class _FakeLearnerStateService:
         def read_snapshot(self, user_id: str, *, event_limit: int = 5):
-            return SimpleNamespace(
-                profile={},
-                progress={},
-                summary="",
-                memory_events=[_mastery_evidence_event(i) for i in range(3)],
-            )
+            return SimpleNamespace(profile={}, progress={}, summary="", memory_events=list(events))
+
+        def read_compiled_learning_truth(self, user_id: str):
+            return {}
 
         def list_heartbeat_jobs(self, user_id: str):
             return []
@@ -6675,6 +6704,22 @@ def test_radar_and_mastery_dashboard_blend_estimate_mastery_from_learning_eviden
             return []
 
     monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+    return service
+
+
+def test_radar_and_mastery_dashboard_blend_estimate_mastery_from_learning_evidence(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # §6-2 首页 mastery 收口：首页/雷达/章节盘必须经 estimate_mastery（唯一 mastery 算子）
+    # 聚合 learner-state 证据，不再裸读静态 member.chapter_mastery。
+    service = _make_blend_service(
+        tmp_path,
+        monkeypatch,
+        user_id="student_mastery_blend",
+        legacy_mastery=40,
+        corrects=[True, True, True],
+    )
 
     radar = service.get_radar_data("student_mastery_blend")
     dimension = next(item for item in radar["dimensions"] if item["key"] == "网络计划")
@@ -6690,10 +6735,36 @@ def test_radar_and_mastery_dashboard_blend_estimate_mastery_from_learning_eviden
     ]
     assert chapters and chapters[0]["mastery"] == dimension["score"]
 
+    # 评审项 6（排除路径，确定性）：legacy 40 + 3 全对 → 混合分确定越过 60，
+    # 必然被 weak_nodes（<60 才入）排除——显式断言，不再用 if 守出死代码。
+    assert dimension["score"] >= 60
     home = service.get_home_dashboard("student_mastery_blend")
     weak_names = {item["name"]: item["mastery"] for item in home["mastery"]["weak_nodes"]}
-    if "网络计划" in weak_names:
-        assert weak_names["网络计划"] == dimension["score"]
+    assert "网络计划" not in weak_names
+
+
+def test_home_weak_nodes_carry_blended_score_when_evidence_keeps_chapter_weak(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 评审项 6（保留路径，确定性）：legacy 40 + 3 全错 → 混合分确定下压且 <60，
+    # 章节必然留在 weak_nodes，且首页展示的必须是混合值（与雷达同一算子同一数）。
+    service = _make_blend_service(
+        tmp_path,
+        monkeypatch,
+        user_id="student_mastery_weak",
+        legacy_mastery=40,
+        corrects=[False, False, False],
+    )
+
+    radar = service.get_radar_data("student_mastery_weak")
+    dimension = next(item for item in radar["dimensions"] if item["key"] == "网络计划")
+    assert dimension["score"] < 40  # 全错证据必须把静态 40 往下混
+
+    home = service.get_home_dashboard("student_mastery_weak")
+    weak_names = {item["name"]: item["mastery"] for item in home["mastery"]["weak_nodes"]}
+    assert "网络计划" in weak_names, "混合后 <60 的章节必须留在 weak_nodes"
+    assert weak_names["网络计划"] == dimension["score"]
 
 
 def test_mastery_faces_keep_legacy_scores_when_no_evidence_in_window(

@@ -19,39 +19,10 @@ from deeptutor.services.learner_state.lesson_evidence import (
     record_lesson_view_evidence,
 )
 from deeptutor.services.learner_state.service import LearnerStateEvent
-
-
-class _RecordingLearnerState:
-    def __init__(self) -> None:
-        self.calls: list[dict] = []
-
-    def append_memory_event(self, user_id, **kwargs):
-        self.calls.append({"user_id": user_id, **kwargs})
-        return type("Event", (), {"event_id": f"evt_{len(self.calls)}", **kwargs})()
-
-
-def _lesson_event(event_id: str = "lesson_evt_1", *, stage: str = "lesson") -> LearnerStateEvent:
-    recorder = _RecordingLearnerState()
-    record_lesson_view_evidence(
-        recorder,
-        user_id="student_demo",
-        pack_id="N01",
-        watched_stage=stage,
-        card_sha="sha256:card",
-        now=datetime(2026, 7, 3, 10, 0, tzinfo=timezone.utc),
-    )
-    call = recorder.calls[0]
-    return LearnerStateEvent(
-        event_id=event_id,
-        user_id="student_demo",
-        source_feature=call["source_feature"],
-        source_id=call["source_id"],
-        source_bot_id=None,
-        memory_kind=call["memory_kind"],
-        dedupe_key=call["dedupe_key"],
-        created_at="2026-07-03T18:00:00+08:00",
-        payload_json=call["payload_json"],
-    )
+from tests.services.learner_state._factories import (
+    RecordingLearnerState as _RecordingLearnerState,
+    lesson_event as _lesson_event,
+)
 
 
 def test_lesson_evidence_payload_honors_contract_and_plan() -> None:
@@ -152,15 +123,82 @@ def test_supabase_outbox_whitelist_accepts_learning_evidence() -> None:
 
 def test_revalidation_queue_ignores_exposed_lesson_state() -> None:
     # 学-evidence 只到「已学·待验证」；exposed 不在 revalidation 白名单态,
-    # 绝不给未验证的接触发复测 probe（M0）。
-    from deeptutor.services.learner_state.lesson_evidence import is_lesson_view_event as check
+    # 绝不给未验证的接触发复测 probe（M0）。真喂队列（评审项 4：不复读常量）。
+    from deeptutor.services.learner_state.memory_lifecycle import evidence_level_rank
+    from deeptutor.services.learner_state.revalidation_queue import (
+        build_revalidation_queue_projection,
+    )
 
     event = _lesson_event()
-    assert check(event) is True
+    assert is_lesson_view_event(event) is True
     assert event.payload_json["evidence_level"] == "exposed"
-    from deeptutor.services.learner_state.memory_lifecycle import evidence_level_rank
+
+    projection = build_revalidation_queue_projection(user_id="student_demo", events=[event])
+    assert projection["items"] == []  # 零 probe：接触不触发复验
 
     assert evidence_level_rank("exposed") == -1  # 不参与掌握排序
+
+
+def test_lesson_view_dedupe_folds_in_real_service_ledger(tmp_path) -> None:
+    # 评审项 5：dedupe 不只测字符串格式——用真 LearnerStateService（tmp_path 存储）
+    # 证明同 (user, pack, stage) 同业务日两次写入折叠为账本 1 条；
+    # 不同 stage / 跨业务日各自成条。
+    from deeptutor.services.learner_state.service import LearnerStateService
+
+    class _PathServiceStub:
+        def __init__(self, root):
+            self._root = root
+
+        @property
+        def project_root(self):
+            return self._root
+
+        def get_user_root(self):
+            return self._root
+
+        def get_learner_state_root(self):
+            return self._root / "learner_state"
+
+        def get_learner_state_outbox_db(self):
+            return self._root / "runtime" / "outbox.db"
+
+        def get_guide_dir(self):
+            path = self._root / "workspace" / "guide"
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+
+    class _DisabledCoreStore:
+        is_configured = False
+
+    service = LearnerStateService(
+        path_service=_PathServiceStub(tmp_path),
+        member_service=object(),
+        core_store=_DisabledCoreStore(),
+    )
+
+    def _record(*, stage: str, now: datetime) -> None:
+        record_lesson_view_evidence(
+            service,
+            user_id="student_dedupe",
+            pack_id="N01",
+            watched_stage=stage,
+            card_sha="sha256:card",
+            now=now,
+        )
+
+    same_day = datetime(2026, 7, 3, 2, 0, tzinfo=timezone.utc)  # 北京 10:00
+    _record(stage="lesson", now=same_day)
+    _record(stage="lesson", now=datetime(2026, 7, 3, 3, 0, tzinfo=timezone.utc))  # 同业务日重看
+    events = service.list_memory_events("student_dedupe", limit=None)
+    assert len(events) == 1, "同 (user, pack, stage) 同业务日必须折叠为 1 条"
+
+    _record(stage="practice", now=same_day)  # 换幕 → 新条
+    events = service.list_memory_events("student_dedupe", limit=None)
+    assert len(events) == 2
+
+    _record(stage="lesson", now=datetime(2026, 7, 4, 2, 0, tzinfo=timezone.utc))  # 跨业务日 → 新条
+    events = service.list_memory_events("student_dedupe", limit=None)
+    assert len(events) == 3
 
 
 def test_is_lesson_view_event_rejects_other_sources() -> None:

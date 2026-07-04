@@ -71,8 +71,10 @@ def test_cold_start_fallback_is_never_blank() -> None:
         pack_lifecycle={"packs": {}},
         green_lessons=_GREEN,
     )
-    # 零证据时 pack 无状态 = 未学 → learn 臂直接兜住。
-    assert step["mode"] in {MODE_LEARN, MODE_FALLBACK}
+    # 冷启动是全确定性的：零证据 → 绿灯包全「未学」→ 必然 learn 臂
+    # （评审项 2：钉死，析取会遮蔽误入 fallback 的回归）。
+    assert step["mode"] == MODE_LEARN
+    assert step["source_authority"] == "pack_lifecycle_projection"
     assert step["source_ref"] == "A01"
     assert step["reason"]
 
@@ -115,7 +117,8 @@ def test_no_green_supply_is_honest_unavailable() -> None:
 
 
 def test_module_is_pure_no_ledger_write_no_intent_generation() -> None:
-    # 铁律源码 pin：禁写 ledger / 禁生成 training_intent / 禁改 revalidation。
+    # 铁律源码 pin（廉价 tripwire，保留）：禁写 ledger / 禁生成 training_intent /
+    # 禁改 revalidation。
     source = Path("deeptutor/services/learner_state/home_next_step_projection.py").read_text(
         encoding="utf-8"
     )
@@ -125,15 +128,62 @@ def test_module_is_pure_no_ledger_write_no_intent_generation() -> None:
     # 只读组合：不 import 任何 service 单例。
     assert "get_learner_state_service" not in source
 
+    # 行为级不变异断言（评审项 3：grep 只是 tripwire，真权威是行为）：
+    # sentinel 输入 deepcopy 前后逐字节相同 → 仲裁器不改 caller 的数据。
+    import copy
+
+    arm_inputs = [
+        # 全供给（review 臂早退路径）与 learn 臂路径都要证明不变异。
+        dict(
+            revalidation_items=[copy.deepcopy(_REVIEW_ITEM)],
+            active_training_intents=[copy.deepcopy(_ACTIVE_INTENT)],
+            pack_lifecycle=_lifecycle({"A01": "unlearned"}),
+            green_lessons=copy.deepcopy(_GREEN),
+        ),
+        dict(
+            revalidation_items=[],
+            active_training_intents=[],
+            pack_lifecycle=_lifecycle({"A01": "practiced", "N01": "unlearned"}),
+            green_lessons=copy.deepcopy(_GREEN),
+        ),
+    ]
+    for kwargs in arm_inputs:
+        snapshot = copy.deepcopy(kwargs)
+        build_home_next_step_projection(**kwargs)
+        assert kwargs == snapshot, "build_home_next_step_projection must not mutate its inputs"
+
+
+class _FakeEnvStore:
+    """env_flag 经 get_env_store 先读磁盘 .env（磁盘值遮蔽 os.environ），
+    monkeypatch os.environ 清不掉——按仓内既有范式
+    （tests/services/config/test_runtime_env.py）stub get_env_store 单一读点。"""
+
+    def __init__(self, values: dict[str, str]) -> None:
+        self._values = values
+
+    def get(self, key: str, default: str = "") -> str:
+        return self._values.get(key, default)
+
+
+def _stub_env_store(monkeypatch, values: dict[str, str]) -> None:
+    store = _FakeEnvStore({"DEEPTUTOR_ENV": "local", **values})
+    monkeypatch.setattr(
+        "deeptutor.services.config.env_store.get_env_store",
+        lambda: store,
+    )
+
 
 def test_home_dashboard_gates_next_step_behind_flag(tmp_path, monkeypatch) -> None:
-    from pathlib import Path as _P
     from types import SimpleNamespace
 
     from deeptutor.services.member_console.service import MemberConsoleService
 
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+
+    # 评审项 1：unset 用例 env store 里无 flag（get 返回 ""）——不再依赖开发机
+    # 磁盘 .env 状态；os.environ 的 delenv/setenv 对 env_store 是无效操作。
+    _stub_env_store(monkeypatch, {})
     service.get_profile("student_next_step")
 
     class _FakeLearnerStateService:
@@ -148,15 +198,15 @@ def test_home_dashboard_gates_next_step_behind_flag(tmp_path, monkeypatch) -> No
 
     monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
 
-    monkeypatch.delenv("DEEPTUTOR_HOME_NEXT_STEP_ENABLED", raising=False)
     dashboard = service.get_home_dashboard("student_next_step")
     assert "next_step" not in dashboard  # flag 默认 off
 
-    monkeypatch.setenv("DEEPTUTOR_HOME_NEXT_STEP_ENABLED", "1")
+    _stub_env_store(monkeypatch, {"DEEPTUTOR_HOME_NEXT_STEP_ENABLED": "1"})
     dashboard = service.get_home_dashboard("student_next_step")
     step = dashboard.get("next_step") or {}
-    # 冷启动零证据 → learn/fallback 兜底非空。
-    assert step.get("mode") in {MODE_LEARN, MODE_FALLBACK}
+    # 冷启动零证据 → 绿灯注册表全「未学」→ 必然 learn 臂（评审项 2 同款钉死）。
+    assert step.get("mode") == MODE_LEARN
+    assert step.get("source_authority") == "pack_lifecycle_projection"
     for field in _FOUR_FIELDS:
         assert step.get(field) is not None
 
