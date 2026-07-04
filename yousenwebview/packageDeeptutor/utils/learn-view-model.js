@@ -153,19 +153,30 @@ function buildLearnViewModel(args) {
   var dueCount = _safeArr(reval.items).length;
 
   // ── 今日任务(next_step practice 臂 / 处方;缺则 day-0 通用兜底,不塌空) ──
+  // prompt = 直达半写训练的作答意图(案例题+采分点批改,非选择题);
+  // 交 chat/TutorBot 单一答题权威消费(runtime.setPendingChatIntent),前端不判分。
   var todayTask = null;
   if (nextStep.mode === "practice_active" && nsRef) {
+    var concept = nsMeta.title || "你的薄弱点";
     todayTask = {
-      title: (nsMeta.title || "薄弱点") + " · 半写训练",
+      title: concept + " · 半写训练",
       reason: _str(nextStep.reason),
       cta: "开始半写训练",
+      concept: concept,
+      prompt:
+        "针对『" + concept + "』给我一道案例题做半写训练。我先真实作答,你再按采分点逐条批改并定位我的盲点,不要提前给答案和解析。",
     };
   } else if (nextStation) {
     // 有站可学即给通用今日任务(设计始终显示此卡);诚实=通用摸底,非编造具体处方
+    var seed = nextStation.title || "";
     todayTask = {
       title: "先做一题摸底,补齐可诊断证据",
       reason: "先完成一题真实作答,系统再按题目、选项和错因生成专项训练。",
       cta: "开始摸底",
+      concept: seed,
+      prompt:
+        (seed ? "针对『" + seed + "』给我一道案例摸底题。" : "给我一道一建建筑实务案例摸底题。") +
+        "我先真实作答,你再按采分点批改并补齐可诊断证据,不要提前给答案和解析。",
     };
   }
 

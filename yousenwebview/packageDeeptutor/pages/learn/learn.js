@@ -5,6 +5,8 @@
 // 全程降级:任一 read model 字段缺(test2 后端未部署常态)不崩,走空态。
 const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
+const runtime = require("../../utils/runtime");
+const route = require("../../utils/route");
 const { buildLearnViewModel } = require("../../utils/learn-view-model");
 
 // H2:Long Cang 只许 CDN 子集化,禁内嵌。子集托管后填此常量;
@@ -36,6 +38,8 @@ const PREVIEW_VM = {
     title: "工期索赔 · 半写训练 1 题",
     reason: "你最近 3 次都漏写「是否影响关键线路」,这类题通常丢 2–4 分。",
     cta: "开始半写训练",
+    concept: "工期索赔",
+    prompt: "针对『工期索赔』给我一道案例题做半写训练。我先真实作答,你再按采分点逐条批改并定位我的盲点,不要提前给答案和解析。",
   },
   stats: { recent_practice: 8, pending_errors: 3, mastery_trend: 72 },
   hasSupply: true,
@@ -143,8 +147,17 @@ Page({
   goReview() {
     this._navTo("/packageDeeptutor/pages/mistake-book/mistake-book");
   },
-  // 今日任务「开始半写训练/摸底」→ 练习中心(练三档真答题流后续片,先落练习中心)
+  // 今日任务「开始半写训练/摸底」→ 直达半写训练:复用唯一答题流
+  // (runtime.setPendingChatIntent → chat/TutorBot 生成案例题并按采分点批改)。
+  // 前端只投递作答意图,不判分、不造第二套答题入口。缺 prompt 才退练习中心。
   goPractice() {
+    var task = this.data.vm && this.data.vm.todayTask;
+    var prompt = task && task.prompt;
+    if (prompt && typeof wx !== "undefined" && wx.reLaunch) {
+      runtime.setPendingChatIntent(prompt, "AUTO");
+      wx.reLaunch({ url: route.chat() });
+      return;
+    }
     this._navTo("/packageDeeptutor/pages/practice/practice");
   },
 

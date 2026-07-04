@@ -134,6 +134,10 @@ ok("practice_active arm → today task card", () => {
   assert.ok(vm.todayTask);
   assert.strictEqual(vm.todayTask.cta, "开始半写训练");
   assert.ok(vm.todayTask.title.indexOf("网络计划关键线路") === 0);
+  // 直达半写训练:prompt 带考点 + 案例半写 + 采分点批改语义(交唯一答题流)
+  assert.ok(vm.todayTask.prompt.indexOf("网络计划关键线路") >= 0);
+  assert.ok(vm.todayTask.prompt.indexOf("采分点") >= 0);
+  assert.ok(vm.todayTask.prompt.indexOf("不要提前给答案") >= 0);
 });
 
 
