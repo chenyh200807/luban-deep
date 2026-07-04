@@ -130,3 +130,37 @@ def test_retest_pool_wraps_when_exhausted(tmp_path):
     _bank(tmp_path, n_core=2)
     items = build_retest_items("S05", user_id="u", day_index=99, limit=5, manifest_path=mp)
     assert len(items) == 2, "池小于 limit 时只发池内不重复项(复用旧变体, 绝不现编)"
+
+
+def test_manifest_cache_hits_by_stat_and_invalidates_on_change(tmp_path, monkeypatch):
+    # 病B-3（事件循环纪律）：manifest 每请求全量重读+重解析曾是纯浪费；
+    # (mtime_ns,size) 键缓存命中零解析，产物更新自动失效，失败不缓存。
+    import deeptutor.services.luban_lesson.read_model as rm
+
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    rm._MANIFEST_CACHE.clear()
+    parses = {"n": 0}
+    original_loads = json.loads
+
+    def counting_loads(*args, **kwargs):
+        parses["n"] += 1
+        return original_loads(*args, **kwargs)
+
+    monkeypatch.setattr(rm.json, "loads", counting_loads)
+
+    assert rm.list_all_pack_ids(manifest_path=mp) == ["S05"]
+    first = parses["n"]
+    assert rm.list_all_pack_ids(manifest_path=mp) == ["S05"]
+    assert parses["n"] == first  # 第二次命中缓存，零解析
+
+    # 产物更新（内容变 → stat 键变）自动失效
+    _write_manifest(tmp_path, [_S05, _X99], ["S05"])
+    assert rm.list_all_pack_ids(manifest_path=mp) == ["S05", "X99"]
+    assert parses["n"] > first
+
+    # 损坏文件 fail-closed 且不落缓存：修好后同进程恢复
+    mp.write_text("{broken", encoding="utf-8")
+    assert rm.list_all_pack_ids(manifest_path=mp) == []
+    _write_manifest(tmp_path, [_S05], ["S05"])
+    assert rm.list_all_pack_ids(manifest_path=mp) == ["S05"]
+    rm._MANIFEST_CACHE.clear()

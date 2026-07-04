@@ -2615,7 +2615,7 @@ async def profile_badges(authorization: str | None = Header(default=None)) -> di
 
 
 @router.get("/bi/radar/{user_id}")
-async def bi_radar(
+def bi_radar(  # 同步 def:内含 read_snapshot 同步账本读,走线程池(病B-4)
     user_id: str,
     current_user: AuthContext = Depends(require_self_or_admin),
 ) -> dict[str, Any]:
@@ -2624,7 +2624,8 @@ async def bi_radar(
 
 
 @router.get("/plan/mastery-dashboard")
-async def mastery_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+def mastery_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    # 同步 def:内含 read_snapshot 同步账本读,走线程池(病B-4)
     return member_service.get_mastery_dashboard(_resolve_authenticated_user_id(authorization))
 
 

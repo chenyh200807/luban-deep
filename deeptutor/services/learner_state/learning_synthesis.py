@@ -19,6 +19,16 @@ from deeptutor.services.learner_state.canonical_truth_policy import (
 )
 from deeptutor.services.learner_state.service import LearnerStateEvent
 
+# source_feature 白名单的单一 authority(每个词汇一个 authority,病D-3):
+# - PRACTICE_EVIDENCE_SOURCE_FEATURES = 判分级练-evidence 子集
+#   (pack_lifecycle_projection._is_practice_evidence 等读侧引用,禁手工拷贝)
+# - LEARNING_EVIDENCE_SOURCE_FEATURES = 证据编译器认的全集(练 + 对话合成);
+#   写侧 auto-synthesis 触发过滤(learner_state/service.py)引用同一份。
+PRACTICE_EVIDENCE_SOURCE_FEATURES = frozenset({"construction_grading", "assessment_testset"})
+LEARNING_EVIDENCE_SOURCE_FEATURES = PRACTICE_EVIDENCE_SOURCE_FEATURES | frozenset(
+    {"conversation_synthesis"}
+)
+
 _ALLOWED_EDGE_TYPES = {
     "question_tests_concept",
     "submission_answered_question",
@@ -354,7 +364,7 @@ def _is_learning_evidence(event: LearnerStateEvent) -> bool:
     payload = dict(event.payload_json or {})
     return (
         event.memory_kind == "learning_evidence"
-        and event.source_feature in {"construction_grading", "assessment_testset", "conversation_synthesis"}
+        and event.source_feature in LEARNING_EVIDENCE_SOURCE_FEATURES
         and (event.source_feature == "construction_grading" or payload.get("event_type") == "learning_evidence")
     )
 

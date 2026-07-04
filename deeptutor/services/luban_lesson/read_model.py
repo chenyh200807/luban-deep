@@ -33,15 +33,31 @@ class LessonNotAvailable(Exception):
     """pack 不存在或未过投影门——两者对外同形（fail-closed，不泄漏未签发存在性）。"""
 
 
+# manifest 模块级缓存(照 pack_lifecycle_projection 的 (mtime_ns, size) 模式,
+# 病B-3):命中零解析;产物更新(stat 键变)自动失效;失败(缺文件/损坏)
+# fail-closed 且**不缓存**——修好文件后同进程下次调用即恢复。
+_MANIFEST_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
+_MANIFEST_UNAVAILABLE: dict[str, Any] = {"projection_green": [], "packs": []}
+
+
 def _load_manifest(manifest_path: Path | None = None) -> dict[str, Any]:
     path = manifest_path or _MANIFEST_PATH
-    if not path.exists():
-        # manifest 缺失 = 供给面不可用，整体 fail-closed
-        return {"projection_green": [], "packs": []}
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        stat = path.stat()
+        stat_key = (stat.st_mtime_ns, stat.st_size)
+    except OSError:
+        # manifest 缺失 = 供给面不可用，整体 fail-closed
+        return dict(_MANIFEST_UNAVAILABLE)
+    cache_key = str(path)
+    cached = _MANIFEST_CACHE.get(cache_key)
+    if cached is not None and cached[0] == stat_key:
+        return cached[1]
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
-        return {"projection_green": [], "packs": []}
+        return dict(_MANIFEST_UNAVAILABLE)
+    _MANIFEST_CACHE[cache_key] = (stat_key, manifest)
+    return manifest
 
 
 def _card_url(pack_id: str) -> str:

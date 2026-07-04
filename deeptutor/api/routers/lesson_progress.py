@@ -31,10 +31,12 @@ class LessonProgressRequest(BaseModel):
         Depends(route_rate_limit("lesson_progress_post", default_max_requests=60, default_window_seconds=60.0))
     ],
 )
-async def post_lesson_progress(
+def post_lesson_progress(
     body: LessonProgressRequest,
     current_user: AuthContext = Depends(get_current_user),
 ) -> dict:
+    # 同步 def(非 async):端点内是同步账本 I/O(JSONL append + outbox
+    # sqlite),FastAPI 自动放线程池执行,不阻塞事件循环(病B-1)。
     try:
         event = record_lesson_view_evidence(
             get_learner_state_service(),
