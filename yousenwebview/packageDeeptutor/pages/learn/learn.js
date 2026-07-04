@@ -143,9 +143,9 @@ Page({
     this._navTo("/packageDeeptutor/pages/luban/stations/stations");
   },
 
-  // 复习到期条 → 复习(错题本);今日任务 → 现有 practice/chat(练三档真答题流后续片)
+  // 复习到期条 → 复习页(10c 回炉屏, 归位);今日任务 → 现有 practice/chat
   goReview() {
-    this._navTo("/packageDeeptutor/pages/mistake-book/mistake-book");
+    this._navTo(route.lubanReview());
   },
   // 今日任务「开始半写训练/摸底」→ 直达半写训练:复用唯一答题流
   // (runtime.setPendingChatIntent → chat/TutorBot 生成案例题并按采分点批改)。
@@ -163,7 +163,7 @@ Page({
 
   // 底部 tab 路由(设计 5tab → 现有页;归位后续片)
   tabReview() {
-    this._navTo("/packageDeeptutor/pages/mistake-book/mistake-book");
+    this._navTo(route.lubanReview());
   },
   tabAsk() {
     this._navTo("/packageDeeptutor/pages/chat/chat");
