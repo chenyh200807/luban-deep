@@ -1,0 +1,19 @@
+[
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":0,"tier":"Tier-0确定性核验+Tier-2事实类确认",
+   "actions":["adjudicate.py G01: UNDECIDED; verify_exam_anchors exit 0",
+     "exam_evidence 直读: {2019,第7题} analysis='降水管井（管井井点）适用于渗透系数较大的砂砾层，不宜用于渗透系数较小的填土、黏土层' — jury 断言'缺真题quote直接支撑'在真题语料层面不成立, 前轮已把论断改挂真题锚并声明教材库无独立卡",
+     "GLM-5.2: satisfied=true(真题单锚🟢+缺口区分声明=D11/S07先例合法路径); Fable-5 复签同意",
+     "结论: status=fixed(前轮已改, 本轮补凭据), 升色=0, 新增🟢=0"],
+   "panel":{"GLM-5.2":{"satisfied":true},"Fable-5":"复签同意(flaggers=DeepSeek/Qwen/Codex 全部回避, GLM+Fable 均非 flagger)"}},
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":1,"tier":"Tier-0确定性核验+Tier-2确认",
+   "actions":["kc:1A413000_082_0154:0 quote 直读=概括句(验算突涌/封底减压), 不含具体措施 — jury 现象为真",
+     "前轮已按 fix 原方向拆卡(§1 L1提醒/§5 B2/§3): 教材锚承载概括句, {2016,第24题}(BE)承载具体措施",
+     "GLM-5.2: satisfied=true; Fable-5 复签同意",
+     "结论: status=fixed(前轮已改, 本轮补凭据)"],
+   "panel":{"GLM-5.2":{"satisfied":true},"Fable-5":"复签同意"}},
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":2,"tier":"Tier-0确定性核验+Tier-2确认(措辞类)",
+   "actions":["字符串定位: '永远在考'采分正文 0 残留(仅§9留痕); §3/§4意图④/L4 S4 全部已降🔵备料+'无独立真题单问'声明",
+     "GLM-5.2: satisfied=true; Fable-5 复签同意",
+     "结论: status=fixed(前轮已改, 本轮补凭据)"],
+   "panel":{"GLM-5.2":{"satisfied":true},"Fable-5":"复签同意"}}
+]

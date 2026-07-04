@@ -531,6 +531,28 @@ Overlay 必须支持：
    evidence rank 判定并保留组内最高 level（`L2_real_retest` 不得被字面
    `L2_confirmed` 比较降档）——真懂信号不在聚合层丢失。
 
+### Review Due Projection（双轮 §6 复习模块，2026-07-05 登记，`LUBAN_REVIEW_MODULE_ENABLED` 后）
+
+1. `learner_signal` 第三类 `station_completed`（双轮复习到期收权）：站点完成
+   （交接时刻/复测完成）的触发事实，`concept_id`=pack_id；仍非 promoting
+   （source_feature=learner_signal，证据编译器排除）。旗标关 = 该类型被拒
+   （与收权前行为一致）。
+2. 到期/间隔语义唯一权威=`revalidation_queue`：新增新学相 `state="fresh"`
+   首跳按 **UTC+8 日历日次日**（§6.1 分相最小实现 + §9-D2「天」=日历日，
+   「明天见」承诺的调度载体；满 24h 判定被否——昨晚学的今早即到期）。
+   §6.1 地平线参数同居本模块：间隔上限 cap ≤14 天恒生效；`exam_date`
+   已设且距考 ≤40 天 → 确定性线性压缩、且间隔永不超过距考天数
+   （考前一周结构上不可能出现「21 天后复习」）；考后不压缩（队列语义
+   切换归后续阶段）。`exam_date` 唯一读源 = member profile，读侧透传、不复制。
+3. pack 级到期投影 `luban_lesson/review_due.py`（GET `/api/v1/luban/review-due`）
+   只做粒度桥接与绿灯 join，零调度逻辑（禁第二调度器）；`retest_available=false`
+   的站客户端必须 fail-closed 隐藏「换皮」承诺句。
+4. `mistake_book` 的 `review_due_at` 是**读侧投影**（`derive_review_due_at`，
+   错题=lapse 走 weak 相），零落库、零间隔常量在 mistake_book 内——写侧
+   `record_review` 继续清空存量 `review_due_at`（防第二调度权威复活）。
+5. 「标记掌握」仍是呈现层旗标（见 `mark_mastered` 条款）；复测/变体挑战
+   完成只发 `station_completed` 重排到期，**绝不**直写掌握态。
+
 ## 单一写入职责
 
 ### Session State

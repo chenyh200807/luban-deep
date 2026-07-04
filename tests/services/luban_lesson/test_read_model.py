@@ -63,16 +63,43 @@ def test_green_only_in_listing(tmp_path):
     assert [r["pack_id"] for r in rows] == ["S05"]
 
 
-def test_variant_summary_from_bank_sidecar(tmp_path):
+def test_variant_summary_signed_sha_match_passes(tmp_path):
     mp = _write_manifest(tmp_path, [_S05], ["S05"])
     (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
-        "status": "candidate", "source_pack_sha256": "abc123",
+        "status": "signed", "source_pack_sha256": "abc123",
         "variants": [{"variant_id": "S05-B-000"}, {"variant_id": "S05-B-001"}],
     }), encoding="utf-8")
     vm = build_lesson_viewmodel("S05", manifest_path=mp)
     assert vm["variant_retest"]["available"] is True
     assert vm["variant_retest"]["count"] == 2
-    assert vm["variant_retest"]["bank_status"] == "candidate"
+    assert vm["variant_retest"]["bank_status"] == "signed"
+    assert vm["variant_retest"]["source_pack_sha256"] == "abc123"
+
+
+def test_variant_bank_candidate_rejected_same_as_missing(tmp_path):
+    """签发闸①：candidate（未签发）bank 与缺失同形——不直通真实考生。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
+        "status": "candidate", "source_pack_sha256": "abc123",
+        "variants": [{"variant_id": "S05-B-000"}],
+    }), encoding="utf-8")
+    vm = build_lesson_viewmodel("S05", manifest_path=mp)
+    assert vm["variant_retest"] == {"available": False, "count": 0}
+    assert build_retest_items("S05", user_id="u", day_index=1, manifest_path=mp) == []
+
+
+def test_variant_bank_sha_drift_rejected_same_as_missing(tmp_path):
+    """签发闸②：pack 正文修订后（sha 漂移）旧签发变体失效——与缺失同形。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
+        "status": "signed", "source_pack_sha256": "stale-old-sha",
+        "variants": [{"variant_id": "S05-B-000"}],
+    }), encoding="utf-8")
+    vm = build_lesson_viewmodel("S05", manifest_path=mp)
+    assert vm["variant_retest"] == {"available": False, "count": 0}
+    assert build_retest_items("S05", user_id="u", day_index=1, manifest_path=mp) == []
 
 
 def test_no_card_base_env_degrades_to_empty_url(tmp_path, monkeypatch):
@@ -101,7 +128,8 @@ def _bank(tmp_path, n_core=6, n_ext=2):
                   "correct_statement": "s", "anchor": "{2017,第2题}", "extension": True}
                  for i in range(n_ext)]
     (tmp_path / "_S05_variant_bank.v0.json").write_text(
-        json.dumps({"status": "candidate", "variants": variants}), encoding="utf-8")
+        json.dumps({"status": "signed", "source_pack_sha256": "abc123",
+                    "variants": variants}), encoding="utf-8")
 
 
 def test_retest_items_deterministic_and_core_only(tmp_path):

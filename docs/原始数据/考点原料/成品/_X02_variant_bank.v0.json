@@ -1,0 +1,267 @@
+{
+ "schema_version": "luban-x02-variant-bank",
+ "pack_id": "X02",
+ "status": "signed",
+ "source_pack_sha256": "d3a4eec1f279c91dce1254ca27e09de0a4ece72c42f8bffbf6551f665ae94c01",
+ "generation_ms": 0.02,
+ "gate": {
+  "total": 20,
+  "passed": 20,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-dorm-aisle": 6,
+  "A-dorm-occupancy": 10,
+  "B-flammable-wind": 4
+ },
+ "variants": [
+  {
+   "variant_id": "X02-A-dorm-occupancy-000",
+   "rule_group": "A-dorm-occupancy",
+   "surface": "某住宅楼工地工人宿舍每间安排住宿 12 人",
+   "params": {
+    "occupancy": 12
+   },
+   "expected_ok": true,
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-occupancy-001",
+   "rule_group": "A-dorm-occupancy",
+   "surface": "某住宅楼工地工人宿舍每间安排住宿 16 人",
+   "params": {
+    "occupancy": 16
+   },
+   "expected_ok": true,
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-occupancy-002",
+   "rule_group": "A-dorm-occupancy",
+   "surface": "某住宅楼工地工人宿舍每间安排住宿 17 人",
+   "params": {
+    "occupancy": 17
+   },
+   "expected_ok": false,
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-occupancy-003",
+   "rule_group": "A-dorm-occupancy",
+   "surface": "某住宅楼工地工人宿舍每间安排住宿 18 人",
+   "params": {
+    "occupancy": 18
+   },
+   "expected_ok": false,
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-occupancy-004",
+   "rule_group": "A-dorm-occupancy",
+   "surface": "某住宅楼工地工人宿舍每间安排住宿 20 人",
+   "params": {
+    "occupancy": 20
+   },
+   "expected_ok": false,
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-occupancy-005",
+   "rule_group": "A-dorm-occupancy",
+   "surface": "某厂房项目现场工人宿舍每间安排住宿 12 人",
+   "params": {
+    "occupancy": 12
+   },
+   "expected_ok": true,
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-occupancy-006",
+   "rule_group": "A-dorm-occupancy",
+   "surface": "某厂房项目现场工人宿舍每间安排住宿 16 人",
+   "params": {
+    "occupancy": 16
+   },
+   "expected_ok": true,
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-occupancy-007",
+   "rule_group": "A-dorm-occupancy",
+   "surface": "某厂房项目现场工人宿舍每间安排住宿 17 人",
+   "params": {
+    "occupancy": 17
+   },
+   "expected_ok": false,
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-occupancy-008",
+   "rule_group": "A-dorm-occupancy",
+   "surface": "某厂房项目现场工人宿舍每间安排住宿 18 人",
+   "params": {
+    "occupancy": 18
+   },
+   "expected_ok": false,
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-occupancy-009",
+   "rule_group": "A-dorm-occupancy",
+   "surface": "某厂房项目现场工人宿舍每间安排住宿 20 人",
+   "params": {
+    "occupancy": 20
+   },
+   "expected_ok": false,
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-aisle-010",
+   "rule_group": "A-dorm-aisle",
+   "surface": "某住宅楼工地工人宿舍室内通道宽度为 0.8m",
+   "params": {
+    "aisle_m": 0.8
+   },
+   "expected_ok": false,
+   "correct_statement": "宿舍室内通道宽度不得小于0.9m",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-aisle-011",
+   "rule_group": "A-dorm-aisle",
+   "surface": "某住宅楼工地工人宿舍室内通道宽度为 0.9m",
+   "params": {
+    "aisle_m": 0.9
+   },
+   "expected_ok": true,
+   "correct_statement": "宿舍室内通道宽度不得小于0.9m",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-aisle-012",
+   "rule_group": "A-dorm-aisle",
+   "surface": "某住宅楼工地工人宿舍室内通道宽度为 1.0m",
+   "params": {
+    "aisle_m": 1.0
+   },
+   "expected_ok": true,
+   "correct_statement": "宿舍室内通道宽度不得小于0.9m",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-aisle-013",
+   "rule_group": "A-dorm-aisle",
+   "surface": "某厂房项目现场工人宿舍室内通道宽度为 0.8m",
+   "params": {
+    "aisle_m": 0.8
+   },
+   "expected_ok": false,
+   "correct_statement": "宿舍室内通道宽度不得小于0.9m",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-aisle-014",
+   "rule_group": "A-dorm-aisle",
+   "surface": "某厂房项目现场工人宿舍室内通道宽度为 0.9m",
+   "params": {
+    "aisle_m": 0.9
+   },
+   "expected_ok": true,
+   "correct_statement": "宿舍室内通道宽度不得小于0.9m",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-A-dorm-aisle-015",
+   "rule_group": "A-dorm-aisle",
+   "surface": "某厂房项目现场工人宿舍室内通道宽度为 1.0m",
+   "params": {
+    "aisle_m": 1.0
+   },
+   "expected_ok": true,
+   "correct_statement": "宿舍室内通道宽度不得小于0.9m",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-B-flammable-wind-016",
+   "rule_group": "B-flammable-wind",
+   "surface": "某住宅楼工地将易燃材料仓库设置在现场下风方向",
+   "params": {
+    "direction": "下风方向"
+   },
+   "expected_ok": true,
+   "correct_statement": "易燃材料仓库应设在现场下风方向（下风向）、水源充足处",
+   "anchor": "kc:1A437000_146_0235:0 + {2015,第30题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-B-flammable-wind-017",
+   "rule_group": "B-flammable-wind",
+   "surface": "某住宅楼工地将易燃材料仓库设置在现场上风方向",
+   "params": {
+    "direction": "上风方向"
+   },
+   "expected_ok": false,
+   "correct_statement": "易燃材料仓库应设在现场下风方向（下风向）、水源充足处",
+   "anchor": "kc:1A437000_146_0235:0 + {2015,第30题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-B-flammable-wind-018",
+   "rule_group": "B-flammable-wind",
+   "surface": "某厂房项目现场将易燃材料仓库设置在现场下风方向",
+   "params": {
+    "direction": "下风方向"
+   },
+   "expected_ok": true,
+   "correct_statement": "易燃材料仓库应设在现场下风方向（下风向）、水源充足处",
+   "anchor": "kc:1A437000_146_0235:0 + {2015,第30题}",
+   "extension": false
+  },
+  {
+   "variant_id": "X02-B-flammable-wind-019",
+   "rule_group": "B-flammable-wind",
+   "surface": "某厂房项目现场将易燃材料仓库设置在现场上风方向",
+   "params": {
+    "direction": "上风方向"
+   },
+   "expected_ok": false,
+   "correct_statement": "易燃材料仓库应设在现场下风方向（下风向）、水源充足处",
+   "anchor": "kc:1A437000_146_0235:0 + {2015,第30题}",
+   "extension": false
+  }
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:49+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
+}

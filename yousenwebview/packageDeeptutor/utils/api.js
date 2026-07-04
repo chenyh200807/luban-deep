@@ -873,6 +873,31 @@ function postLessonProgress(packId, watchedStage, cardSha, opts) {
   );
 }
 
+/** 鲁班 — 复习到期投影(到期语义权威=revalidation_queue, 双轮 §6)。
+ * 旗标(LUBAN_REVIEW_MODULE_ENABLED)关时服务端返空清单(enabled=false), 页面走诚实空态。 */
+function getLubanReviewDue(opts) {
+  return requestStateGet("/api/v1/luban/review-due", opts);
+}
+
+/** 鲁班 — 站完成信号(非 promoting): 复测调度的触发事实——交接时刻/复测完成时上报。
+ * 走唯一 learner-signal 写入口, 不写掌握、不进证据编译器(contracts/learner-state.md)。 */
+function postStationCompleted(packId, packTitle, opts) {
+  return request(
+    Object.assign(
+      {
+        url: "/api/v1/learner-signal/signal",
+        method: "POST",
+        data: {
+          signal_type: "station_completed",
+          concept_id: String(packId || "").trim(),
+          concept_label: String(packTitle || "").trim(),
+        },
+      },
+      opts || {},
+    ),
+  );
+}
+
 /** 鲁班 — 次日变体复测题面（服务端确定性抽取，客户端本地判分） */
 function getLubanRetestItems(packId, limit, opts) {
   var n = Number(limit || 5);
@@ -990,6 +1015,8 @@ module.exports = {
   getLubanLessons: getLubanLessons,
   getLubanLessonDetail: getLubanLessonDetail,
   getLubanRetestItems: getLubanRetestItems,
+  getLubanReviewDue: getLubanReviewDue,
+  postStationCompleted: postStationCompleted,
   postLessonProgress: postLessonProgress,
   getAssessmentProfile: getAssessmentProfile,
   getAssessmentTopics: getAssessmentTopics,

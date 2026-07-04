@@ -7,6 +7,8 @@
 """
 from __future__ import annotations
 
+import os
+
 from fastapi import Depends, HTTPException
 
 from deeptutor.api._secure_router import secure_router
@@ -68,3 +70,48 @@ async def retest_items(
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
     return {"pack_id": pack_id.upper(), "items": items, "day_index": day_index}
+
+
+# 复习模块灰度旗标（register-before-use: contracts/env_registry.yaml + .env.example）。
+# 关 = 空投影（fail-closed 空清单, 页面走诚实空态）, 不 404——路由形状稳定。
+_REVIEW_MODULE_FLAG = "LUBAN_REVIEW_MODULE_ENABLED"
+
+
+def _review_module_enabled() -> bool:
+    return str(os.getenv(_REVIEW_MODULE_FLAG, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _exam_date_for(user_id: str) -> str:
+    """§6.1 地平线参数: exam_date 唯一读源 = member profile（不复制真值）。
+    读取失败/未设置 → ""（引擎按无地平线运转, 不阻塞到期投影）。"""
+    try:
+        from deeptutor.services.member_console import get_member_console_service
+
+        return str(get_member_console_service().get_profile(user_id).get("exam_date") or "").strip()
+    except Exception:
+        return ""
+
+
+@router.get(
+    "/review-due",
+    dependencies=[
+        Depends(route_rate_limit("luban_review_due", default_max_requests=30, default_window_seconds=60.0))
+    ],
+)
+async def review_due(current_user: AuthContext = Depends(get_current_user)) -> dict:
+    """复习到期投影——到期语义唯一权威=revalidation_queue(§3 C4), 替代前端 N+1 探测。"""
+    if not _review_module_enabled():
+        return {"due": [], "learned_count": 0, "authority": "revalidation_queue", "enabled": False}
+    from deeptutor.services.learner_state.service import get_learner_state_service
+    from deeptutor.services.luban_lesson.review_due import build_review_due_projection
+
+    events = get_learner_state_service().list_memory_events(
+        current_user.user_id, limit=200
+    )
+    projection = build_review_due_projection(
+        user_id=current_user.user_id,
+        events=events,
+        exam_date_iso=_exam_date_for(current_user.user_id),
+    )
+    projection["enabled"] = True
+    return projection

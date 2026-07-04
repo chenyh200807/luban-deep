@@ -608,6 +608,8 @@ domains:
       - tests/services/learner_state/test_scoring_point_focus.py
       - tests/api/test_learner_signal_endpoint.py
       - tests/services/learner_state/test_home_personalization_imports.py
+      # 复习模块(双轮 §6)——到期收权 revalidation_queue 的域测试
+      - tests/services/luban_lesson/test_review_due.py
     schema_files:
       - deeptutor/contracts/learner_state.py
       - supabase/migrations/20260415000100_learner_state_core.sql

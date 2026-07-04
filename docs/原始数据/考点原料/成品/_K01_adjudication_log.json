@@ -1,0 +1,169 @@
+[
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 0,
+    "tier": "Tier-0证真+Tier-2事实类(教材出处)+Tier-1",
+    "retrieval": "tbsearch 关键线路+工期索赔→CET_1A432000_P0048_001 P48 三分支①②③逐字命中",
+    "actions": [
+      "Tier-0: 048_0068:1 quote仅覆盖③(现象为真)",
+      "GLM-5.2: modify(判教材+真题双锚足以升🟢)",
+      "主控裁决: 取保守方向保🔵+出处+可升级说明(红旗纪律升色=0),分歧登记owner升级清单",
+      "Tier-1: §1/§2/§5 四处编辑,两闸绿"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "modify",
+        "wants": "upgrade_to_green"
+      },
+      "Fable-5": "复签保守方向(保🔵留owner)"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 1,
+    "tier": "Tier-1措辞收窄(GLM单审)",
+    "actions": [
+      "§3母规则+§2闸门标题加资格/程序前提",
+      "GLM-5.2: approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 2,
+    "tier": "Tier-0检索证真+Tier-1降级",
+    "retrieval": "_K01_exam_evidence.json 全量检索:无『工期成立但费用不成立』锚例",
+    "actions": [
+      "反向半句显式🔵待锚+推论依据(ca:1A432000_047_0067核验)",
+      "GLM-5.2: modify(要求核验推论出处)→已吸收"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "modify",
+        "resolved": true
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 3,
+    "tier": "Tier-0证真+Tier-1邻接降级(§4/B镜头内容,GLM单审降级方向)",
+    "retrieval": "tbsearch 压缩+关键线路→CET_1A433000_P0056_001 P56优选因素(无'不影响后续');{2017,案例一}官方答案逐字含'压缩成本较低且不影响后续工作'",
+    "actions": [
+      "§1行降🔵邻接+真题出处改挂",
+      "GLM-5.2: approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 4,
+    "tier": "Tier-1邻接降级(GLM单审)",
+    "actions": [
+      "T2降🔵工具层/前置能力+伴生注明",
+      "GLM-5.2: approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 5,
+    "tier": "Tier-1措辞精确化(GLM单审)",
+    "actions": [
+      "三处『不成立』→『不全额成立/只部分成立』,对齐2015案例1官方口径",
+      "GLM-5.2: approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 6,
+    "tier": "Tier-2事实类(保🟢补出处)+Tier-1",
+    "retrieval": "tbsearch 利润+索赔→CET_1A435000_P0046_001 P46『还可索赔利润』逐字;CET_1A432000_P0047_001 P47『但不包括利润』反向限定",
+    "actions": [
+      "fix降🔵前提失效(C01先例),三处保🟢补P46出处+P47限定注",
+      "GLM-5.2: approve; Fable-5 复签(§2/§5非B镜头)"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "Fable-5": "复签同意"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 7,
+    "tier": "Tier-2错因码语义类",
+    "actions": [
+      "registry直读:E06/E09弃用,重映射案例E10/客观题M08",
+      "jury的E09建议被registry直读证伪",
+      "GLM-5.2: approve; Fable-5 复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "Fable-5": "复签同意"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 8,
+    "tier": "Tier-0对账+确认",
+    "actions": [
+      "表头矛盾前轮autofix已消(字符串定位)",
+      "整表对账11/11合法(adjudicate.py)",
+      "保持🔴候选不升色",
+      "GLM-5.2: approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 9,
+    "tier": "Tier-0证真(方向反转)+Tier-2事实类(保🟢补出处)+Tier-1",
+    "retrieval": "tbsearch 索赔+核实→CET_1A432002_P0031_001 P31四步逐字全命中",
+    "actions": [
+      "Tier-0: 031_0041:3 quote实际覆盖前两步(jury『仅后两步有锚』方向说反,截断现象为真)",
+      "fix降级前提失效保🟢补P31出处",
+      "GLM-5.2: approve; Fable-5 复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "Fable-5": "复签同意"
+    }
+  }
+]

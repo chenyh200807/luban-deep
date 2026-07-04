@@ -2,97 +2,195 @@
   {
     "issue": "含泥量过大应从大体积温控采分点剔除，属邻接材料质量控制",
     "location": "§5 B5",
-    "flagged_by": ["DeepSeek", "Qwen", "GPT-5.5"],
+    "flagged_by": [
+      "DeepSeek",
+      "Qwen",
+      "GPT-5.5"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "将含泥量相关项从大体积温控配合比组移出，归入邻接“材料质量控制”考点"
+    "fix": "将含泥量相关项从大体积温控配合比组移出，归入邻接“材料质量控制”考点",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §5组B(B5拆分:含泥量项移出组B改表下🔵邻接注·归裂缝通病/材料质量)",
+      "verified": "kc:1A434000_073_0114:0 quote 直读含「混凝土收缩裂缝」(裂缝通病章,非大体积温控条文);B5现文仅保留骨料含水率雨期项(kc:1A438000_156_0304:1);GLM-5.2 approve"
+    }
   },
   {
     "issue": "R8 W1 错误码E10/E07边界模糊，且源料锚间接性未同步降级",
     "location": "§6 R8表行W1",
-    "flagged_by": ["DeepSeek", "Qwen", "GPT-5.5"],
+    "flagged_by": [
+      "DeepSeek",
+      "Qwen",
+      "GPT-5.5"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "默认主标E10，E07作为二级解释/条件触发；锚定栏补充“🔵间接锚”标注"
+    "fix": "默认主标E10，E07作为二级解释/条件触发；锚定栏补充“🔵间接锚”标注",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §6 W1(E10主码+E07二级条件触发;锚定栏🟢改🔵间接锚与§1行1/行2既有降级同步)",
+      "verified": "ERROR_CODE_REGISTRY直读:E10=规范适用错误、E07=概念混淆;§1行1已降🔵间接推论而W1锚栏原仍🟢=文内双权威,现已同步;GLM-5.2 approve+Fable-5复签"
+    }
   },
   {
     "issue": "R8 W5 错误码E05审题错误不贴切，本质为采分点遗漏或规范适用错误",
     "location": "§6 R8表行W5",
-    "flagged_by": ["Qwen", "GPT-5.5"],
+    "flagged_by": [
+      "Qwen",
+      "GPT-5.5"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "改为E02或E10，按题型确定主码"
+    "fix": "改为E02或E10，按题型确定主码",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §6 W5(E05弃用;E02主码·简答漏三层位+E10布点不符规范)",
+      "verified": "ERROR_CODE_REGISTRY直读:E02=采分点遗漏(漏层位/点位贴合)、E05=审题错误(漏答非审题问题,弃用)、E10=规范适用错误;GLM-5.2 approve+Fable-5复签"
+    }
   },
   {
     "issue": "R8 W8 错误码E06不贴切/不宜唯一化，应区分题型",
     "location": "§6 R8表行W8",
-    "flagged_by": ["DeepSeek", "GPT-5.5"],
+    "flagged_by": [
+      "DeepSeek",
+      "GPT-5.5"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "方案找错题用E10，简答题漏项用E02，按题型拆解"
+    "fix": "方案找错题用E10，简答题漏项用E02，按题型拆解",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §6 W8(按题型拆:E10方案找错题/E02简答漏项;保留原标E06不贴切注)",
+      "verified": "ERROR_CODE_REGISTRY直读:E10=规范适用错误、E02=采分点遗漏;W8前轮已改E10(字符串定位:原标E06不贴切),本轮按fix补题型拆解;GLM-5.2 approve"
+    }
   },
   {
     "issue": "R8 W7 错误码E10/E07边界不明确",
     "location": "§6 R8表行W7",
-    "flagged_by": ["Qwen", "GPT-5.5"],
+    "flagged_by": [
+      "Qwen",
+      "GPT-5.5"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "默认E10，仅当学生理由为“早强=好”时触发E07"
+    "fix": "默认E10，仅当学生理由为“早强=好”时触发E07",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §6 W7(E10主码+E07条件触发·仅当理由为早强=好)",
+      "verified": "ERROR_CODE_REGISTRY直读:E10=规范适用错误、E07=概念混淆;kc:1A412010_049_0086:0 quote 直读含「早强剂」禁用依据;GLM-5.2 approve"
+    }
   },
   {
     "issue": "厚大体积宜选四类水泥且水化热小，quote仅为比选表，不支持直接论断",
     "location": "§1表行2",
-    "flagged_by": ["DeepSeek", "Qwen"],
+    "flagged_by": [
+      "DeepSeek",
+      "Qwen"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "降级🔵，注明依据为比选表间接推论而非独立规范条文"
+    "fix": "降级🔵，注明依据为比选表间接推论而非独立规范条文",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §1行2(前轮已降🔵+『依据比选表非独立条文』注,本轮机器复核补凭据)",
+      "verified": "字符串定位:§1行2现文=「🔵 `ca:1A412010_043_0075`（🔴 依据比选表非独立条文;…Codex异源复验降级）」——fix要求的降级+间接推论标注前轮已落实;GLM-5.2 approve"
+    }
   },
   {
     "issue": "大体积禁选硅酸盐/普硅水泥，quote缺禁选表述，证据不足",
     "location": "§1表行1",
-    "flagged_by": ["DeepSeek", "Qwen"],
+    "flagged_by": [
+      "DeepSeek",
+      "Qwen"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "降级🔵，补充明确禁选表述或标注为间接推论"
+    "fix": "降级🔵，补充明确禁选表述或标注为间接推论",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §1行1(前轮已降🔵+间接推论待核直锚注,本轮机器复核补凭据)",
+      "verified": "字符串定位:§1行1现文=「🔵 `kc:1A412010_043_0074:0`（🔵 间接推论,待核直锚;…Codex异源复验降级）」——fix要求的降级前轮已落实;GLM-5.2 approve"
+    }
   },
   {
     "issue": "测温频次（每轴≥4点/每昼夜≥4次/每台班≥2次）原quote未完整支持",
     "location": "§1表行11 / §5 D7",
-    "flagged_by": ["DeepSeek", "Qwen"],
+    "flagged_by": [
+      "DeepSeek",
+      "Qwen"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补全包含频次要求的完整quote，或保留🔵待核"
+    "fix": "补全包含频次要求的完整quote，或保留🔵待核",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §1行11+§5 D7(保🔵+补教材P97逐字出处+可升级说明·升级权留owner)",
+      "verified": "kc:1A413030_097_0182:0 quote 直读含「监测点应按平面分层布置」但无频次数字(现象为真);教材CET_1A413030_P0097_001 P97逐字命中「监测点位不宜少于4处」「每昼夜不应少于4次」「每台班不应少于2次」;GLM-5.2判可升🟢,按红旗纪律(升色=0)保🔵留owner(K01#0同型)"
+    }
   },
   {
     "issue": "R2核心不变量场景声明过度，非基础底板场景未证实绝对适用",
     "location": "§3 R2",
-    "flagged_by": ["DeepSeek", "GPT-5.5"],
+    "flagged_by": [
+      "DeepSeek",
+      "GPT-5.5"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "限定场景至基础底板/筏基，其余场景降级🔵并分层标色"
+    "fix": "限定场景至基础底板/筏基，其余场景降级🔵并分层标色",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §3 R2(前轮已附条件限定+场景表五行分层标色,本轮机器复核补凭据)",
+      "verified": "字符串定位:R2现文含「(🔵养护≥14d附条件,场景限定已证基础底板)」;场景表五行=基础底板🟢/筏板🟢/承台🔵/转换层🔵/大坝🔴分层标色——fix要求前轮已落实;GLM-5.2 approve"
+    }
   },
   {
     "issue": "入模温度下限5℃未在原quote中明确体现",
     "location": "§1#9 / §5 C3",
-    "flagged_by": ["Qwen", "GPT-5.5"],
+    "flagged_by": [
+      "Qwen",
+      "GPT-5.5"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充下限5℃的规范原文，或标注仅上限30℃有直锚"
+    "fix": "补充下限5℃的规范原文，或标注仅上限30℃有直锚",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §1行9+§5 C3(保🟢补教材P96(4)逐字出处)",
+      "verified": "kc:1A413030_096_0181:0 quote 直读截断于「位置」无入模温度(现象为真);教材CET_1A413030_P0096_001 P96逐字「混凝土入模温度宜控制在 5～30℃」——fix『仅上限有直锚』前提失效,含5℃下限,保🟢补出处(C01先例);GLM-5.2 approve+Fable-5复签"
+    }
   },
   {
     "issue": "设计龄期60d/90d从防水大体积外推到普通大体积，条件不清",
     "location": "§5 B4 / R6",
-    "flagged_by": ["Qwen", "GPT-5.5"],
+    "flagged_by": [
+      "Qwen",
+      "GPT-5.5"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "限定为防水大体积或设计许可时适用，普通大体积降为条件项🔵"
+    "fix": "限定为防水大体积或设计许可时适用，普通大体积降为条件项🔵",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §5.2 R6第2条(补『限防水大体积/设计许可时』限定;B4已含防水大体积限定)",
+      "verified": "kc:1A413030_131_0250:2 quote 直读含「在设计许可的情况下」+「大体积防水混凝土」语境——60d/90d限定条件教材直证;GLM-5.2 approve"
+    }
   },
   {
     "issue": "用收缩裂缝材料支撑大体积温度裂缝形态过度外推",
     "location": "§1表行15 / §2",
-    "flagged_by": ["Qwen", "GPT-5.5"],
+    "flagged_by": [
+      "Qwen",
+      "GPT-5.5"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "温度裂缝结论降级🔵，收缩裂缝列为旁证，勿作直接证据"
+    "fix": "温度裂缝结论降级🔵，收缩裂缝列为旁证，勿作直接证据",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "Q02_大体积混凝土温控.md §1行15(收缩裂缝🟢直锚/温度裂缝🔵类比旁证拆注)+§2因果链两处(🟢形态归→🔵形态类比)",
+      "verified": "kc:1A434000_073_0114:0 quote 直读含「混凝土收缩裂缝」全为收缩系(塑性/沉陷/干燥/碳化),无温度裂缝;教材全文检索「温度裂缝」仅P96控制规定一处,通病章无温度裂缝形态条文;温度裂缝形态降🔵类比;GLM-5.2 approve"
+    }
   }
 ]

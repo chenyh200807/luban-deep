@@ -4396,6 +4396,45 @@ def test_mobile_mistake_book_save_list_remove_and_conflict(
         assert delete_response.json()["is_bookmarked"] is False
 
 
+def test_mobile_mistake_book_projects_review_due_behind_review_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """review_due_at 读侧投影(复习模块旗标后): 到期真值=revalidation_queue 派生,
+    exam_date 从 member profile 读取失败时静默降级(引擎按无地平线运转)。"""
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.mistake_book import InMemoryMistakeBookStore, MistakeBookService
+
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    monkeypatch.setattr(mobile_module, "mistake_book_service", service)
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_ENABLED", "true")
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED", "true")
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    attempt_ref = sign_attempt_ref(user_id="student_demo", event_id="evt_due_api", question_id="q1")
+    with TestClient(_build_app()) as client:
+        save_response = client.post(
+            "/api/v1/mobile/mistake-book/items",
+            json={"attempt_ref": attempt_ref, "subject_id": "construction_exam_1"},
+        )
+        assert save_response.status_code == 200
+
+        list_response = client.get("/api/v1/mobile/mistake-book?subject_id=construction_exam_1")
+        assert list_response.status_code == 200
+        item = list_response.json()["items"][0]
+        assert item["review_due_at"], "旗标开: review_due_at 从 revalidation_queue 派生"
+        assert item["review_due_at"] > item["saved_at"], "weak 相首跳在观测之后"
+
+        # 旗标关 = 收权后现状(恒 None)
+        monkeypatch.delenv("LUBAN_REVIEW_MODULE_ENABLED", raising=False)
+        list_response = client.get("/api/v1/mobile/mistake-book?subject_id=construction_exam_1")
+        assert list_response.json()["items"][0]["review_due_at"] is None
+
+
 def test_mobile_mistake_book_flags_fail_closed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
