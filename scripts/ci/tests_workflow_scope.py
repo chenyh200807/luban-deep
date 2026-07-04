@@ -20,10 +20,12 @@ SECRET_SCAN_EXCLUDED_PREFIXES = (
     ".playwright-mcp/",
     ".superpowers/",
     "artifacts/",
+    "deeptutor/services/benchmark/fixtures/",
     "deeptutor/services/construction_grading/runtime_supply/",
     "deeptutor/services/taxonomy/compiled/",
     "dist/",
     "output/",
+    "tests/fixtures/",
     "tmp/",
 )
 

@@ -61,8 +61,10 @@ def test_secret_scan_files_keep_source_and_skip_generated_heavy_inputs() -> None
             "artifacts/student_army_eval.json",
             "tmp/diagnostic-report-target-state.png",
             "docs/营销/鲁班智考销售训练手册.docx",
+            "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_no_human_v1_5.json",
             "deeptutor/services/construction_grading/runtime_supply/v/foo.json",
             "deeptutor/services/taxonomy/compiled/construction.json",
+            "tests/fixtures/luban_m35_fastapi_mcq_20q_100a/manifest.json",
             "web/public/luban-preview/c02/C02_progress_payment.lesson.mp3",
         ]
     ) == [
