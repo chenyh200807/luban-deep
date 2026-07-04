@@ -1,0 +1,25 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-1(降级·扣分规则收归R7)",
+    "actions": [
+      "前轮 HI#1 已改封闭性自检; D2 批发现 §4 总述残留'越界即不妥'——GLM-5.2 产编辑对对齐自检口径, unique-match 1/1",
+      "升色=0, 新增🟢=0"
+    ],
+    "panel": "方向=降级(扣分断言→🔴待评分artifact), 计划§2 允许直接 Tier-1; GLM-5.2 编辑(§4 生产源=Opus, GLM 非生产源)"
+  },
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 1,
+    "tier": "Tier-0(源料quote直读)+Tier-1(锚拆分标注)",
+    "actions": [
+      "kc:1A434000_076_0118:0 quote 直读=仅中等三法(机器证实 HI#2 前轮定性)",
+      "§5 R5 前轮已拆; D2 批补 §7 Aha 第4条残留错误教材锚——GLM-5.2 产编辑对移除并注明, unique-match 1/1",
+      "真题锚保留, 升色=0, 新增🟢=0"
+    ],
+    "panel": "GLM-5.2 编辑(§7 生产源=Qwen, GLM 非生产源); 事实面全部机器可核(quote直读)"
+  }
+]
