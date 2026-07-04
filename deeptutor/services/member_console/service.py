@@ -6369,6 +6369,12 @@ class MemberConsoleService:
                 base_items = self._mastery_items_in_member_scope(member, mastery_items)
             else:
                 base_items = self._build_provisional_mastery_items(member)
+        if not env_flag(_HOME_NEXT_STEP_ENABLED):
+            # C-flag(owner 拍板):DEEPTUTOR_HOME_NEXT_STEP_ENABLED 升格为
+            # 「home 生命周期融合面」总开关——off = 全走旧静态分 + 无
+            # next_step(现状不变);on = mastery blend + next_step 一起生效。
+            # 门只此一处(首页/雷达/章节盘同走本方法),不再各自判 flag。
+            return base_items
         return self._blend_mastery_with_evidence(base_items, evidence_events=evidence_events)
 
     @staticmethod

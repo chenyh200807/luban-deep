@@ -504,7 +504,13 @@ Overlay 必须支持：
 4. 冷启动兜底：新用户零证据 → 前三臂空 → fallback 必须非空（day-0 不白屏），
    理由文案用群体理由（诚实版，不伪装个性化）。
 5. 接入面：home dashboard，受 `DEEPTUTOR_HOME_NEXT_STEP_ENABLED`（默认 off）
-   门控；退路（若被证明越权）= learn 只作路线图固有语义。
+   门控；退路（若被证明越权）= learn 只作路线图固有语义。该 flag 是
+   「home 生命周期融合面」**总开关**（2026-07-04 owner 拍板）：off = 全走
+   旧静态分 + 无 next_step（现状不变）；on = next_step 与 mastery 证据
+   blend（首页/雷达/章节盘 `_report_mastery_items` 路径）一起生效——
+   不设第二个 blend 专用 flag。内部空态 `mode="unavailable"`
+   （`MODE_UNAVAILABLE` / `unavailable_next_step()` 工厂）是投影层哨兵，
+   **永不外泄**到 dashboard payload：上层见此 mode 一律不挂 `next_step`。
 6. 输入供给禁断供（2026-07-03，Codex SEV-1 治本）：caller 组装输入时**禁止
    硬编码空供给**冒充"该权威无输出"。首页接线口径 = 活跃练从同一份
    snapshot events 纯派生处方 outcomes（`status != "verified"` 即活跃），

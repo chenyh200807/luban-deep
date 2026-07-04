@@ -87,7 +87,7 @@ feature_flags:
   - {name: DEEPTUTOR_CONTEXT_ORCHESTRATION_ENABLED, default: true, kind: killswitch}
   - {name: DEEPTUTOR_ENABLE_API_DOCS, default: false, kind: config}
   - {name: DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA, default: false, kind: dev}
-  - {name: DEEPTUTOR_HOME_NEXT_STEP_ENABLED, default: false, kind: rollout}  # 融合计划 §3 home_next_step_projection
+  - {name: DEEPTUTOR_HOME_NEXT_STEP_ENABLED, default: false, kind: rollout}  # home 生命周期融合面总开关:next_step 仲裁 + mastery 证据 blend(首页/雷达/章节盘)一起开关
   - {name: DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT, default: false, kind: killswitch}  # security
   - {name: DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK, default: false, kind: fallback}
   - {name: DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED, default: false, kind: dev}

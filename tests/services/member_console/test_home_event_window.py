@@ -105,3 +105,42 @@ def test_blend_sees_all_grading_evidence_behind_lesson_flood() -> None:
     assert blended[0]["name"] == _CHAPTER
     # 5 条全对判分证据必须驱动掌握分离开 legacy 值（证据没被挤出）。
     assert blended[0]["mastery"] != 10
+
+
+class _EnvStoreStub:
+    def __init__(self, values: dict):
+        self._values = values
+
+    def get(self, name, default=""):
+        return self._values.get(name, default)
+
+
+def _stub_flag(monkeypatch, enabled: bool) -> None:
+    # 本仓地雷:env_store 读磁盘 .env,monkeypatch os.environ 清不掉——
+    # flag 测试必须 stub get_env_store 汇点。
+    import deeptutor.services.config.env_store as env_store_module
+
+    monkeypatch.setattr(
+        env_store_module,
+        "get_env_store",
+        lambda: _EnvStoreStub(
+            {"DEEPTUTOR_HOME_NEXT_STEP_ENABLED": "true" if enabled else "false"}
+        ),
+    )
+
+
+def test_mastery_blend_gated_by_home_next_step_flag(monkeypatch) -> None:
+    # C-flag(owner 拍板):DEEPTUTOR_HOME_NEXT_STEP_ENABLED = home 生命周期
+    # 融合面总开关。off = 旧静态分(blend 不生效);on = blend 生效。
+    service = object.__new__(MemberConsoleService)
+    member = {"chapter_mastery": {"ch_1": {"name": _CHAPTER, "mastery": 10}}}
+    events = _mixed_events()
+
+    _stub_flag(monkeypatch, enabled=False)
+    off_items = service._report_mastery_items(member, evidence_events=events)
+    assert [item["mastery"] for item in off_items if item["name"] == _CHAPTER] == [10]
+
+    _stub_flag(monkeypatch, enabled=True)
+    on_items = service._report_mastery_items(member, evidence_events=events)
+    on_score = next(item["mastery"] for item in on_items if item["name"] == _CHAPTER)
+    assert on_score != 10  # 5 条全对判分证据驱动 blend 离开 legacy 静态分
