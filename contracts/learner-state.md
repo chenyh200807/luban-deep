@@ -186,6 +186,10 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   微信手机号快速登录或注册去重时，必须先通过可信 `phone` alias 解析到 canonical UUID，再绑定或
   合并 member identity。`member_console` 本地 `member.phone` 只能作为兼容读模型和低风险补充，
   不得绕过 `public.user_identity_aliases` 另建第二个手机号账号 authority。
+- 账号密码注册必须在 `MemberConsoleService` 层先校验有效大陆手机号，再创建 external auth
+  用户；手机号验证码登录、微信 `getPhoneNumber` 快速登录 / 绑定和账号密码登录必须共同收敛到
+  同一个 canonical member identity，一个手机号只能对应一个账号，不得让用户名、openid、设备号或
+  未验证手机号获得独立免费试用 / billing / learner-state 身份。
 - 微信手机号强制绑定策略上线前签发的 `wechat_mp` token 不得继续作为正式会员态刷新或访问会员
   资源；服务端必须让这类旧会话重新走 `getPhoneNumber phone_code`，避免旧 wx-only session
   长期绕过手机号 canonical identity。

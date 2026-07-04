@@ -7939,8 +7939,8 @@ class MemberConsoleService:
 
     def register_with_external_auth(self, username: str, password: str, phone: str) -> dict[str, Any]:
         normalized_phone = _normalize_phone_input(phone)
-        if not normalized_phone:
-            raise ValueError("手机号格式不正确")
+        if not normalized_phone or not self._is_cn_mainland_mobile(normalized_phone):
+            raise ValueError("请输入有效的大陆手机号")
         try:
             existing_alias_ids = self._trusted_phone_alias_user_ids(normalized_phone)
         except ValueError as exc:

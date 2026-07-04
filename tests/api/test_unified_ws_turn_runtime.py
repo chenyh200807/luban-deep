@@ -9356,6 +9356,46 @@ def test_turn_runtime_internal_qa_billing_bypass_skips_wallet_capture(
     }
 
 
+def test_turn_runtime_free_trial_reservation_skips_wallet_capture(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+
+    class FailingWalletService:
+        def record_usage_points(self, **_kwargs):
+            raise AssertionError("wallet capture must not run for reserved free-trial turns")
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FailingWalletService(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "student_demo",
+            "free_trial": "reserved",
+            "free_trial_reservation_key": "free_trial:wallet_demo:client-1",
+        },
+        "这是一次免费试用回复。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_tokens": 123, "total_calls": 1},
+    )
+
+    assert result == {
+        "status": "metered_not_charged",
+        "reason": "free_trial",
+        "wallet_user_id": "wallet_demo",
+        "idempotency_key": "mini_program_capture:turn-1",
+        "free_trial_reservation_key": "free_trial:wallet_demo:client-1",
+    }
+
+
 def test_turn_runtime_internal_qa_billing_bypass_keeps_non_qa_wallet_capture(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
