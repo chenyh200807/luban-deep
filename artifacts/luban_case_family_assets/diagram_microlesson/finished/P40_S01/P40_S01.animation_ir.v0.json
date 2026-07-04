@@ -1,0 +1,938 @@
+{
+  "schema_version": "luban_animation_ir.v0",
+  "ir_id": "P40_S01_animation_ir_v0",
+  "card_id": "P40_S01",
+  "display": {
+    "kicker": "鲁班深母题 · S01 验收放行",
+    "title": "脚手架/高大模板支架验收"
+  },
+  "main_exam_action": "把脚手架/高大模板支架题写成三步采分链：取数分档 → 构造稳定 → 验收放行。",
+  "teaching_spine": {
+    "source_pack": "docs/原始数据/考点原料/成品/S01_脚手架模板支架验收.md",
+    "archetype": "decision_branch_reveal",
+    "warm_correction": "验收题不是写“合格”，而是证明这套临时支撑先过数值门、构造门、验收门。"
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/S01_脚手架模板支架验收.md",
+    "timing": "P40_S01.lesson.timing.json",
+    "audio": "P40_S01.lesson.mp3"
+  },
+  "render_contract": {
+    "renderer": "render_animation_ir_preview.py",
+    "html_preview": "P40_S01.animation_ir_preview.html",
+    "remotion_renderer": "remotion_demo/src/P40_S01AnimationIrPreview.tsx",
+    "remotion_composition": "P40_S01AnimationIrPreview",
+    "practice_href": "P40_S01.practice.html",
+    "max_visible_nodes": 4,
+    "archetype_visual_required": [
+      "decision_tree"
+    ],
+    "teaching_scene_ids": [
+      "hook",
+      "load_path",
+      "threshold_gate",
+      "structure_gate",
+      "acceptance_gate",
+      "trap",
+      "score"
+    ],
+    "min_diagrammatic_teaching_scenes": 7,
+    "challenge_unlock_sec": 144,
+    "one_active_scene": true,
+    "one_active_keycard": true,
+    "theater_requires_challenge_cta": true,
+    "ai_ask_required": true,
+    "quality_status": "single_card_review_candidate",
+    "student_ready": false,
+    "audio_total_sec": 209.208
+  },
+  "taxonomy_alignment": {
+    "priority_slot": 2,
+    "pack_id": "S01",
+    "status": "composite",
+    "canonical_taxonomy_refs": [
+      "1A436032",
+      "1A436000-B005",
+      "1A413046-R03"
+    ],
+    "note": "脚手架安全、模板支架检查、脚手架构造三类节点合并"
+  },
+  "ai_context": {
+    "context_id": "P40_S01",
+    "title": "脚手架/高大模板支架验收",
+    "main_exam_action": "取数分档 → 构造稳定 → 验收放行",
+    "safe_summary": "S01 训练的是脚手架/模板支架验收放行：先取 H/跨/荷载分档，再看扫地杆、连墙件、剪刀撑等构造稳定，最后用材料、支承固定、搭设质量、技术资料四件套写采分句。",
+    "key_points": [
+      "取数分档",
+      "构造稳定",
+      "验收四件套",
+      "采分句:合格后方可使用"
+    ],
+    "handoff_mode": "context_id_plus_current_scene",
+    "api_base": "https://test2.yousenjiaoyu.com"
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0
+    },
+    {
+      "id": "load_path",
+      "label": "传力",
+      "start_sec": 16.936
+    },
+    {
+      "id": "threshold_gate",
+      "label": "取数",
+      "start_sec": 36.272
+    },
+    {
+      "id": "structure_gate",
+      "label": "构造",
+      "start_sec": 62.496
+    },
+    {
+      "id": "acceptance_gate",
+      "label": "验收",
+      "start_sec": 85.456
+    },
+    {
+      "id": "trap",
+      "label": "错法",
+      "start_sec": 106.568
+    },
+    {
+      "id": "score",
+      "label": "采分",
+      "start_sec": 125.112
+    },
+    {
+      "id": "qa_closure",
+      "label": "答疑",
+      "start_sec": 144.4
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 193.936
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0,
+      "end_sec": 16.936,
+      "scene": "s01_hook",
+      "focus": "support_system",
+      "enter": [
+        "scene.fade_in",
+        "support_system.reveal"
+      ],
+      "hold": [
+        "support_system.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "support_system",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "support_system",
+        "wrong_note"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "support_system",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "support_system",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "wrong_note",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "support_system",
+          "start": 0.28,
+          "end": 0.86
+        }
+      ],
+      "keycard": "常见丢分:只写“验收合格”",
+      "coach": "先别急着写合格。考场问的是这套临时支撑，能不能安全放行。"
+    },
+    {
+      "id": "load_path",
+      "label": "传力",
+      "start_sec": 16.936,
+      "end_sec": 36.272,
+      "scene": "s01_load_path",
+      "focus": "load_path_frame",
+      "enter": [
+        "scene.fade_in",
+        "load_path_frame.reveal"
+      ],
+      "hold": [
+        "load_path_frame.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "load_path_frame",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "load_path_frame",
+        "load_arrow"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "load_path_frame",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "load_path_frame",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "load_arrow",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "load_path_frame",
+          "start": 0.28,
+          "end": 0.86
+        }
+      ],
+      "keycard": "先看它会不会倒",
+      "coach": "脚手架和支架先是一套临时受力系统，不是普通设施清单。"
+    },
+    {
+      "id": "threshold_gate",
+      "label": "取数",
+      "start_sec": 36.272,
+      "end_sec": 62.496,
+      "scene": "s01_threshold_gate",
+      "focus": "threshold_tree",
+      "enter": [
+        "scene.fade_in",
+        "threshold_tree.reveal"
+      ],
+      "hold": [
+        "threshold_tree.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "threshold_tree",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "threshold_tree",
+        "threshold_meter"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "threshold_tree",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "threshold_tree",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "threshold_meter",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "threshold_tree",
+          "start": 0.28,
+          "end": 0.86
+        }
+      ],
+      "keycard": "第一刀:取数分档",
+      "coach": "先取 H、跨度、面荷载、线荷载，再比论证阈值。"
+    },
+    {
+      "id": "structure_gate",
+      "label": "构造",
+      "start_sec": 62.496,
+      "end_sec": 85.456,
+      "scene": "s01_structure_gate",
+      "focus": "structure_frame",
+      "enter": [
+        "scene.fade_in",
+        "structure_frame.reveal"
+      ],
+      "hold": [
+        "structure_frame.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "structure_frame",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "structure_frame",
+        "structure_note"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "structure_frame",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "structure_frame",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "structure_note",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "structure_frame",
+          "start": 0.28,
+          "end": 0.86
+        }
+      ],
+      "keycard": "第二刀:构造稳定",
+      "coach": "扫地杆、连墙件、剪刀撑、拆除顺序，是放行前的稳定证据。"
+    },
+    {
+      "id": "acceptance_gate",
+      "label": "验收",
+      "start_sec": 85.456,
+      "end_sec": 106.568,
+      "scene": "s01_acceptance_gate",
+      "focus": "acceptance_flow",
+      "enter": [
+        "scene.fade_in",
+        "acceptance_flow.reveal"
+      ],
+      "hold": [
+        "acceptance_flow.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "acceptance_flow",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "acceptance_flow",
+        "acceptance_note"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "acceptance_flow",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "acceptance_flow",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "acceptance_note",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "acceptance_flow",
+          "start": 0.28,
+          "end": 0.86
+        }
+      ],
+      "keycard": "第三刀:验收四件套",
+      "coach": "材料、支承固定、搭设质量、技术资料，四件套齐了才放行。"
+    },
+    {
+      "id": "trap",
+      "label": "错法",
+      "start_sec": 106.568,
+      "end_sec": 125.112,
+      "scene": "s01_trap",
+      "focus": "trap_pair",
+      "enter": [
+        "scene.fade_in",
+        "trap_pair.reveal"
+      ],
+      "hold": [
+        "trap_pair.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "trap_pair",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "trap_pair",
+        "trap_arrow"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "trap_pair",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "trap_pair",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "trap_arrow",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "trap_pair",
+          "start": 0.28,
+          "end": 0.86
+        }
+      ],
+      "keycard": "错法:把结论当答案",
+      "coach": "只写验收合格是结论，不是采分句。"
+    },
+    {
+      "id": "score",
+      "label": "采分",
+      "start_sec": 125.112,
+      "end_sec": 144.4,
+      "scene": "s01_score",
+      "focus": "score_sheet",
+      "enter": [
+        "scene.fade_in",
+        "score_sheet.reveal"
+      ],
+      "hold": [
+        "score_sheet.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "score_sheet",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "score_sheet"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "score_sheet",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "score_sheet",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "highlight",
+          "target": "score_sheet",
+          "start": 0.28,
+          "end": 0.86
+        }
+      ],
+      "keycard": "落答题纸",
+      "coach": "把对象、时点、检查项目和结论写成一句能给分的话。"
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 144.4,
+      "end_sec": 193.936,
+      "scene": "s01_qa_closure",
+      "focus": "student_q1",
+      "enter": [
+        "scene.fade_in",
+        "student_q1.reveal"
+      ],
+      "hold": [
+        "student_q1.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "student_q1",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "student_q1",
+        "student_q2",
+        "student_q3"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "student_q1",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "student_q1",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "student_q2",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "reveal",
+          "target": "student_q3",
+          "start": 0.36,
+          "end": 0.54
+        },
+        {
+          "kind": "highlight",
+          "target": "student_q1",
+          "start": 0.28,
+          "end": 0.86
+        }
+      ],
+      "keycard": "后置三问",
+      "coach": "学生常卡的不是概念，而是写到什么粒度才给分。"
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 193.936,
+      "end_sec": 209.208,
+      "scene": "s01_closing_challenge",
+      "focus": "closing_sentence",
+      "enter": [
+        "scene.fade_in",
+        "closing_sentence.reveal"
+      ],
+      "hold": [
+        "closing_sentence.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "closing_sentence",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "closing_sentence",
+        "challenge_cta"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "closing_sentence",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "closing_sentence",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "challenge_cta",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "closing_sentence",
+          "start": 0.28,
+          "end": 0.86
+        }
+      ],
+      "keycard": "收束到闯关",
+      "coach": "最后回到三步：取数分档、构造稳定、验收放行。"
+    }
+  ],
+  "visual_library": {
+    "hook": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "support_system",
+          "kind": "scaffold_frame",
+          "text": "别只写验收合格",
+          "x": 38,
+          "y": 50,
+          "w": 284,
+          "h": 170,
+          "tone": "blue",
+          "labels": [
+            "临时受力系统",
+            "荷载→立杆→地基",
+            "构造防失稳",
+            "验收才放行"
+          ]
+        },
+        {
+          "id": "wrong_note",
+          "kind": "note",
+          "text": "只写“合格”=没交代验收对象",
+          "x": 54,
+          "y": 204,
+          "w": 252,
+          "h": 34,
+          "tone": "danger"
+        }
+      ]
+    },
+    "load_path": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "load_path_frame",
+          "kind": "scaffold_frame",
+          "text": "荷载怎么传",
+          "x": 38,
+          "y": 50,
+          "w": 284,
+          "h": 170,
+          "tone": "success",
+          "labels": [
+            "荷载先落架体",
+            "立杆传到底座",
+            "地基承载要稳",
+            "侧向靠拉结"
+          ]
+        },
+        {
+          "id": "load_arrow",
+          "kind": "flow_arrow",
+          "text": "荷载路径",
+          "x1": 78,
+          "x2": 284,
+          "y": 222,
+          "tone": "success"
+        }
+      ]
+    },
+    "threshold_gate": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "threshold_tree",
+          "kind": "decision_tree",
+          "text": "第一道门:取数",
+          "x": 34,
+          "y": 42,
+          "w": 292,
+          "h": 150,
+          "tone": "blue",
+          "labels": [
+            "支架/脚手架",
+            "H/跨/荷载",
+            "比阈值",
+            "命中=论证"
+          ]
+        },
+        {
+          "id": "threshold_meter",
+          "kind": "threshold_meter",
+          "text": "H≥8m / 跨≥18m / 15 / 20",
+          "x": 48,
+          "y": 210,
+          "w": 264,
+          "value": 0.72,
+          "tone": "amber"
+        }
+      ]
+    },
+    "structure_gate": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "structure_frame",
+          "kind": "scaffold_frame",
+          "text": "第二道门:构造",
+          "x": 38,
+          "y": 50,
+          "w": 284,
+          "h": 170,
+          "tone": "amber",
+          "labels": [
+            "立杆高宽比",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "id": "structure_note",
+          "kind": "note",
+          "text": "少一项=不放行理由",
+          "x": 68,
+          "y": 204,
+          "w": 224,
+          "h": 34,
+          "tone": "danger"
+        }
+      ]
+    },
+    "acceptance_gate": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "acceptance_flow",
+          "kind": "process_flow",
+          "text": "第三道门:验收四件套",
+          "x": 30,
+          "y": 50,
+          "w": 300,
+          "h": 170,
+          "tone": "success",
+          "labels": [
+            "材料",
+            "支承固定",
+            "搭设质量",
+            "技术资料"
+          ]
+        },
+        {
+          "id": "acceptance_note",
+          "kind": "note",
+          "text": "四件套齐了才写放行",
+          "x": 58,
+          "y": 204,
+          "w": 244,
+          "h": 34,
+          "tone": "success"
+        }
+      ]
+    },
+    "trap": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "trap_pair",
+          "kind": "contrast_pair",
+          "text": "错法 vs 正解",
+          "x": 30,
+          "y": 48,
+          "w": 300,
+          "h": 168,
+          "tone": "danger",
+          "labels": [
+            "只写验收合格",
+            "对象+项目+结论",
+            "漏依据",
+            "补采分句"
+          ]
+        },
+        {
+          "id": "trap_arrow",
+          "kind": "flow_arrow",
+          "text": "从结论退回依据",
+          "x1": 70,
+          "x2": 292,
+          "y": 222,
+          "tone": "danger"
+        }
+      ]
+    },
+    "score": {
+      "board": "paper",
+      "nodes": [
+        {
+          "id": "score_sheet",
+          "kind": "answer_scan",
+          "text": "答题纸采分句",
+          "x": 28,
+          "y": 58,
+          "w": 304,
+          "h": 170,
+          "tone": "success",
+          "labels": [
+            "对象:脚手架/支架",
+            "时点:使用前/分阶段",
+            "项目:材料+支承+搭设+资料",
+            "结论:合格后使用"
+          ]
+        }
+      ]
+    },
+    "qa_closure": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "student_q1",
+          "kind": "dialogue_box",
+          "text": "老师,只写合格能拿分不?",
+          "x": 38,
+          "y": 50,
+          "w": 284,
+          "h": 42,
+          "tone": "blue"
+        },
+        {
+          "id": "student_q2",
+          "kind": "dialogue_box",
+          "text": "这块是不是一到8米就论证?",
+          "x": 38,
+          "y": 108,
+          "w": 284,
+          "h": 42,
+          "tone": "amber"
+        },
+        {
+          "id": "student_q3",
+          "kind": "dialogue_box",
+          "text": "扫地杆连墙件要不要都写?",
+          "x": 38,
+          "y": 166,
+          "w": 284,
+          "h": 42,
+          "tone": "success"
+        }
+      ]
+    },
+    "closing_challenge": {
+      "board": "closing",
+      "nodes": [
+        {
+          "id": "closing_sentence",
+          "kind": "closing_text",
+          "text": "三步带走",
+          "x": 0,
+          "y": 0,
+          "tone": "success",
+          "subtext": "取数分档 → 构造稳定 → 验收放行"
+        },
+        {
+          "id": "challenge_cta",
+          "kind": "challenge_button",
+          "text": "开始闯关",
+          "x": 90,
+          "y": 166,
+          "w": 180,
+          "h": 44,
+          "tone": "amber"
+        }
+      ]
+    }
+  }
+}

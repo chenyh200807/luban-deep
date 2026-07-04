@@ -1,0 +1,155 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "C02_jdk",
+  "derived_from": "C02_jdk.json",
+  "archetype_master_ref": "C02_jdk.master.json",
+  "style": "teach_then_qa",
+  "title": "进度款与计量计价 · 老师带你看懂一条资金链",
+  "subtitle": "老师边讲边把'综合单价→量×价→预付款→起扣点→逐月进度款→质保金'这条单向资金链画出来,讲完帮你答疑",
+  "_design_note": "用 teaching-animation-journey 把 C02(计算/判读类·进度款计量计价)造成讲懂幕。舞台=单向资金链流水线(综合单价价签→量×价→满桶预付款→起扣点水位线→进度条→80%底线→3%质保保险箱;stage 外置 svg+states+css+banner;CSS 用 reached-<state> 累进揭示)。reveal 严格沿 C02.md §7 镜头 reveal 顺序(价签→量×价挖空→满水桶预付款→起扣点水位舀回→80%底线→质保箱)。beat 旁白事实/公式/数值全部 anchor 回 C02_jdk.json 真实字段(防漂移闸),公式回 §2/§5 教材锚,不手写新数值;计算类题面输入数值在闯关给,讲懂只讲公式与口径。先讲后问双人答疑;迁移铺垫 beat anchor master:R2_invariant。pack §5.3 R7 缺口与 §8/§9 自审不在旁白冒充。",
+  "boundary": "这是培训机构教研的讲解,不是官方阅卷;图为教学示意,具体口径(综合单价税前、起扣点公式、当期应付公式、未约定不宜低于80%、质保金≤结算总价3%)以现行教材、清单计价规范和你的考试大纲为准;pack 已自曝 R7 六边界为待裁决候选、材料占比非固定常数等缺口。",
+  "authority_label": "培训机构教研整理,非官方阅卷;判分归 signed artifact,错因归 error_codes 注册表,学情归 LearnerStateService",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "Tingting", "side": "right"},
+    "S": {"name": "小问", "role": "模拟学生", "voice": "Meijia", "side": "left"}
+  },
+  "stage": {
+    "banner": "进度款不是'套公式',是一条单向资金链 → 量口径→价口径→时点口径→扣减口径四道门同时过;基数不扣暂列金/起扣点公式反/累计当当期/质保金按合同价,任何一处用错口径整条链全错。",
+    "states": [
+      {"id": "intro", "label": "起因"},
+      {"id": "price", "label": "综合单价"},
+      {"id": "prepay", "label": "预付款"},
+      {"id": "deduct", "label": "起扣点"},
+      {"id": "progress", "label": "逐月进度款"},
+      {"id": "warranty", "label": "结算质保"},
+      {"id": "gates", "label": "四道门"}
+    ],
+    "css": ".s-price,.s-qty,.s-bucket,.s-waterline,.s-bar,.s-floor80,.s-safe,.s-gates{opacity:0;transition:opacity .45s ease-out,transform .45s ease-out} .s-price{transform:translateY(6px)} .reached-price .s-price{opacity:1;transform:none} .s-qty{transform:translateY(6px)} .reached-price .s-qty{opacity:1;transform:none;transition-delay:.14s} .s-bucket{transform:translateY(8px)} .reached-prepay .s-bucket{opacity:1;transform:none} .s-waterline{transform:translateX(-6px)} .reached-deduct .s-waterline{opacity:1;transform:none} .s-bar{transform:translateY(6px)} .reached-progress .s-bar{opacity:1;transform:none} .s-floor80{transform:translateY(-4px)} .reached-progress .s-floor80{opacity:1;transform:none;transition-delay:.18s} .s-safe{transform:translateY(6px)} .reached-warranty .s-safe{opacity:1;transform:none} .s-gates{transform:translateY(6px)} .reached-gates .s-gates{opacity:1;transform:none} .s-lbl{fill:#9fb0c2;font-size:10px} .s-note{font-size:11px;font-weight:700} .s-note.price{fill:#7fc7ff}.s-note.prepay{fill:#ffd27f}.s-note.deduct{fill:#ff7f50}.s-note.progress{fill:#7fe6ab}.s-note.warranty{fill:#bff0d4}.s-note.gates{fill:#bff0d4} .s-vtxt{fill:#cfe0f0;font-size:9px;font-weight:700} .s-ttxt{fill:#cfe0f0;font-size:8.5px;font-weight:700}",
+    "svg": "<svg viewBox='0 0 360 250' role='img' aria-label='进度款单向资金链流水线剖面'><rect x='20' y='214' width='320' height='8' rx='2' fill='#5d6f86' data-visual-node-id='chain.base'/><text class='s-lbl' x='24' y='240'>单向资金链:报价单价→已完工程量→当期应得→扣预付/扣质保→当期实付</text><g class='s-price' data-visual-node-id='price.tag'><rect x='26' y='40' width='80' height='30' rx='4' fill='#15273a' stroke='#7fc7ff' stroke-width='1.2'/><text class='s-vtxt' x='66' y='52' text-anchor='middle'>综合单价</text><text class='s-ttxt' x='66' y='64' text-anchor='middle'>税前全费用·税末计</text><text class='s-note price' x='66' y='84' text-anchor='middle'>C1 价口径:税在最末盖一次</text></g><g class='s-qty' data-visual-node-id='quantity.netsize'><rect x='118' y='44' width='40' height='26' fill='none' stroke='#7fc7ff' stroke-width='1.4'/><rect x='126' y='50' width='24' height='14' fill='#15273a' stroke='#7fc7ff' stroke-dasharray='3 2'/><text class='s-note price' x='138' y='86' text-anchor='middle'>量×价·净尺寸</text></g><g class='s-bucket' data-visual-node-id='prepay.bucket'><rect x='180' y='108' width='44' height='40' rx='3' fill='#3a2f18' stroke='#ffd27f' stroke-width='1.2'/><rect x='182' y='120' width='40' height='26' fill='#caa256'/><text class='s-vtxt' x='202' y='102' text-anchor='middle'>预付款</text><text class='s-note prepay' x='202' y='162' text-anchor='middle'>C2 先扣暂列金×比例</text></g><g class='s-waterline' data-visual-node-id='deduct.waterline'><path d='M170 124 H236' stroke='#ff7f50' stroke-width='2' stroke-dasharray='5 3'/><circle cx='236' cy='124' r='3' fill='#ff7f50'/><text class='s-note deduct' x='265' y='118' text-anchor='middle'>C3 起扣点:累计达线才舀回</text><text class='s-ttxt' x='202' y='180' text-anchor='middle'>T=合同价−预付款÷材料占比</text></g><g class='s-bar' data-visual-node-id='progress.bar'><rect x='250' y='118' width='86' height='14' rx='3' fill='#16321f' stroke='#7fe6ab' stroke-width='1'/><rect x='250' y='118' width='52' height='14' rx='3' fill='#3f7d57'/><text class='s-vtxt' x='293' y='110' text-anchor='middle'>逐月进度款</text><text class='s-note progress' x='293' y='148' text-anchor='middle'>C4 累计×比例−扣回−已付</text></g><g class='s-floor80' data-visual-node-id='floor.eighty'><path d='M250 136 H336' stroke='#7fe6ab' stroke-width='1.4' stroke-dasharray='4 2'/><text class='s-ttxt' x='293' y='166' text-anchor='middle'>未约定·法定下限</text><text class='s-note progress' x='293' y='178' text-anchor='middle'>C5 不宜低于80%</text></g><g class='s-safe' data-visual-node-id='warranty.safe'><rect x='150' y='190' width='60' height='20' rx='3' fill='#102820' stroke='#bff0d4' stroke-width='1.2'/><text class='s-vtxt' x='180' y='203' text-anchor='middle'>质保金 ≤3%</text><text class='s-note warranty' x='180' y='186' text-anchor='middle'>C6 基数=结算总价</text></g><g class='s-gates' data-visual-node-id='gate.four'><circle cx='60' cy='150' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='60' y='153' text-anchor='middle'>量口径</text><circle cx='60' cy='112' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='60' y='115' text-anchor='middle'>价口径</text><circle cx='102' cy='150' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='102' y='153' text-anchor='middle'>时点口径</text><circle cx='102' cy='112' r='13' fill='#16321f' stroke='#7fe6ab' stroke-width='1.6'/><text class='s-vtxt' x='102' y='115' text-anchor='middle'>扣减口径</text><text class='s-note gates' x='80' y='96' text-anchor='middle'>四门同时过=合法价款</text></g></svg>"
+  },
+  "teach": {
+    "voice": "Tingting",
+    "beats": [
+      {
+        "id": "intro",
+        "stage": "intro",
+        "claim": false,
+        "keycard": {"text": "进度款丢分,在只背公式不认口径:哪笔钱、什么口径、哪个时点、扣多少", "tone": "q"},
+        "sync_keyword": "资金链",
+        "animation_action": [
+          {"type": "camera", "target": "data-id:chain.base"},
+          {"type": "keycard", "target": "data-id:keycard.intro"}
+        ],
+        "narration": "进度款这题,很多人背公式就上场,一换情形就用错口径。今天沿一条资金链走清四道门。"
+      },
+      {
+        "id": "price",
+        "stage": "price",
+        "claim": true,
+        "anchor": "causal_chain.c1_unit_price_pretax.claim",
+        "keycard": {"text": "C1 综合单价是税前全费用,税在最末整体盖一次;量×价,量错价对也白搭", "tone": "a"},
+        "sync_keyword": "税前",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:price.tag"},
+          {"type": "reveal", "target": "data-id:quantity.netsize"},
+          {"type": "keycard", "target": "data-id:keycard.price"}
+        ],
+        "narration": "起点是价。综合单价是不含增值税的税前全费用价,税在最末盖一次;塞进单价再盖就是双重计税。钱等于量乘价,量错也白搭。"
+      },
+      {
+        "id": "prepay",
+        "stage": "prepay",
+        "claim": true,
+        "anchor": "causal_chain.c2_prepay_base.claim",
+        "keycard": {"text": "C2 预付款=合同价(先扣暂列金)×预付比例;暂列金不一定发生,不进基数", "tone": "a"},
+        "sync_keyword": "暂列金",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:prepay.bucket"},
+          {"type": "keycard", "target": "data-id:keycard.prepay"}
+        ],
+        "narration": "接着发预付款。基数要先扣暂列金额再乘预付比例;暂列金是不一定发生的备用金,直接用合同总价乘就错。"
+      },
+      {
+        "id": "deduct",
+        "stage": "deduct",
+        "claim": true,
+        "anchor": "causal_chain.c3_deduct_point.claim",
+        "keycard": {"text": "C3 起扣点=合同价−预付款÷材料占比;累计达起扣点才开始扣回,占比是题面给定值", "tone": "a"},
+        "sync_keyword": "起扣点",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:deduct.waterline"},
+          {"type": "keycard", "target": "data-id:keycard.deduct"}
+        ],
+        "narration": "预付款后期要原路扣回,触发时点叫起扣点:合同价减预付款除以材料占比。累计达到这条线才开始扣,占比是题面给的。"
+      },
+      {
+        "id": "progress",
+        "stage": "progress",
+        "claim": true,
+        "anchor": "causal_chain.c4_progress_formula.claim",
+        "keycard": {"text": "C4 当期应付=累计已完×支付比例−累计扣回−前期已付−扣款;别把累计当当期", "tone": "a"},
+        "sync_keyword": "累计",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:progress.bar"},
+          {"type": "keycard", "target": "data-id:keycard.progress"}
+        ],
+        "narration": "中段是逐月进度款。当期应付等于累计已完乘支付比例,再减扣回、减前期已付、减扣款。只算当月不走累计,就是把累计当当期。"
+      },
+      {
+        "id": "floor",
+        "stage": "progress",
+        "claim": true,
+        "anchor": "causal_chain.c5_floor_80.claim",
+        "keycard": {"text": "C5 未约定支付比例→不宜低于累计完成总值80%(法定下限),先写清'未约定'前提", "tone": "a"},
+        "sync_keyword": "未约定",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:floor.eighty"},
+          {"type": "keycard", "target": "data-id:keycard.floor"}
+        ],
+        "narration": "要是合同没约定支付比例,不是按百分之百,是不宜低于累计完成总值八成。八成是法定下限,答题先点明未约定前提。"
+      },
+      {
+        "id": "warranty",
+        "stage": "warranty",
+        "claim": true,
+        "anchor": "causal_chain.c6_warranty_3pct.claim",
+        "keycard": {"text": "C6 质保金累计预留≤结算总价3%;基数咬死结算总价,不按合同价/预付款算", "tone": "a"},
+        "sync_keyword": "结算总价",
+        "animation_action": [
+          {"type": "reveal", "target": "data-id:warranty.safe"},
+          {"type": "keycard", "target": "data-id:keycard.warranty"}
+        ],
+        "narration": "末端是结算质保金:累计预留不得超过结算总价的百分之三,基数咬死结算总价,不能拿合同价去算。这是法定上限。"
+      },
+      {
+        "id": "gates",
+        "stage": "gates",
+        "claim": true,
+        "anchor": "master:R2_invariant",
+        "keycard": {"text": "采分词:综合单价税前·先扣暂列金·起扣点公式·累计减扣回减已付·未约定80%·质保金结算总价3%;资金链量口径→价口径→时点口径→扣减口径,四门同时过才合法", "tone": "concl"},
+        "sync_keyword": "四门",
+        "animation_action": [
+          {"type": "highlight", "target": "data-id:score.keywords"},
+          {"type": "reveal", "target": "data-id:gate.four"},
+          {"type": "keycard", "target": "data-id:keycard.gates"},
+          {"type": "camera", "target": "data-id:stage.conclude"}
+        ],
+        "narration": "收成一条资金链:量口径、价口径、时点口径、扣减口径,四门同时过才合法。采分盯综合单价税前、先扣暂列金、起扣点公式、未约定八成、质保金结算总价三点;换情形链不变、判据切。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "q": {"speaker": "S", "claim": false, "text": "老师,累计完成都过半了,这个月是不是就该扣预付款了?"},
+      "a": {"speaker": "T", "claim": true, "anchor": "common_errors[1].why", "sync_keyword": "起扣点", "text": "不一定,过半不等于到起扣点。先算起扣点,累计真过了那条线才扣,差一点也别扣。"}
+    },
+    {
+      "q": {"speaker": "S", "claim": false, "text": "进度款是不是直接拿累计完成乘支付比例就行?"},
+      "a": {"speaker": "T", "claim": true, "anchor": "common_errors[2].why", "sync_keyword": "前期已付", "text": "不行,那只是累计应付。当期应付还要减扣回、减前期已付、减扣款,别把累计当当期。"}
+    },
+    {
+      "q": {"speaker": "S", "claim": false, "text": "质保金上限按合同价的百分之三算对吧?"},
+      "a": {"speaker": "T", "claim": true, "anchor": "common_errors[4].why", "sync_keyword": "结算总价", "text": "不对,基数是结算总价不是合同价,基数错上限就错。"}
+    }
+  ]
+}
