@@ -18,6 +18,7 @@
 //   object_id="<pack>:<tier>"）
 const api = require("../../../utils/api");
 const telemetry = require("../../../utils/surface-telemetry");
+const helpers = require("../../../utils/helpers");
 
 var TIER_LESSON = "lesson";
 var TIER_PRACTICE = "practice";
@@ -31,6 +32,7 @@ function practiceUrlFrom(cardUrl) {
 Page({
   data: {
     packId: "",
+    isDark: true,
     title: "",
     loading: true,
     errorText: "",
@@ -44,7 +46,7 @@ Page({
 
   onLoad(query) {
     var packId = String((query && query.pack_id) || "").trim();
-    this.setData({ packId: packId });
+    this.setData({ packId: packId, isDark: helpers.isDark() });
     // 站进入（任务稿 luban_station_enter 的登记名）
     telemetry.trackProductBehavior("module_viewed", {
       module: "learning",

@@ -53,7 +53,8 @@ function _litCount(packs) {
   return n;
 }
 
-// 课程架海报列表:推荐站置顶,再已学,再未学;标题来自绿灯 lessons,缺则占位
+// 课程架/路线图海报:推荐站置顶,再已学,再未学;并入绿灯 lessons
+// (无 lifecycle 时 test2 仍显真实绿灯站,不空)。标题来自绿灯 lessons,缺则占位。
 function _posters(packs, titleIdx, recommendedId) {
   var rows = [];
   var seen = {};
@@ -80,9 +81,13 @@ function _posters(packs, titleIdx, recommendedId) {
     var s = _str(_safeObj(packs[k]).lifecycle_state);
     if (s === "practiced" || s === "mastered" || s === "dormant") push(k, s);
   });
-  // 其余(未学/纸)
+  // lifecycle 其余(未学/纸)
   Object.keys(packs).forEach(function (k) {
     push(k, _str(_safeObj(packs[k]).lifecycle_state));
+  });
+  // 并入绿灯 lessons(lifecycle 缺失时的真实站源;已 seen 的跳过)
+  Object.keys(titleIdx).forEach(function (id) {
+    push(id, _str(_safeObj(packs[id]).lifecycle_state));
   });
   return rows;
 }

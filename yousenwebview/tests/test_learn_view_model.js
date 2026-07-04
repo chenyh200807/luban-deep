@@ -133,4 +133,21 @@ ok("practice_active arm → today task card", () => {
   assert.ok(vm.todayTask.title.indexOf("网络计划关键线路") === 0);
 });
 
+
+// ── 增强:无 lifecycle 时并入绿灯 lessons(test2 常态,route map 不空) ──
+ok("green lessons appear as posters even without lifecycle", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: {},
+    report: {}, // 无 pack_lifecycle
+    lessons: { lessons: [
+      { pack_id: "A01", title: "检验批验收程序", content_sha256: "s1" },
+      { pack_id: "N01", title: "网络计划关键线路", content_sha256: "s2" },
+    ] },
+  });
+  assert.strictEqual(vm.posters.length, 2);
+  assert.ok(vm.posters.every((p) => p.green === true));
+  assert.ok(vm.posters.every((p) => p.state === "paper")); // 无 lifecycle → 未学纸
+  assert.strictEqual(vm.hasSupply, true); // 有绿灯站即有供给
+});
+
 console.log("\nlearn-view-model: " + passed + " passed");
