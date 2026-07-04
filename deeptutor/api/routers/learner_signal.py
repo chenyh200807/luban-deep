@@ -23,7 +23,7 @@ router = secure_router(tags=["learner_signal"])
 
 
 class LearnerSignalRequest(BaseModel):
-    signal_type: str            # "subjective_focus" | "user_dispute"
+    signal_type: str            # "subjective_focus" | "user_dispute" | "station_completed"(复习模块旗标后)
     concept_id: str
     concept_label: str = ""
     error_code: str = ""

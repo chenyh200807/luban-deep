@@ -2996,13 +2996,23 @@ async def mobile_mistake_book(
 ) -> dict[str, Any]:
     _require_mistake_book_read_enabled()
     user_id = _resolve_authenticated_user_id(authorization)
-    try:
-        return await run_in_threadpool(
-            mistake_book_service.list_items,
+
+    def _list_with_schedule_context() -> dict[str, Any]:
+        # §6.1 地平线参数: exam_date 唯一读源 = member profile（读失败→""，
+        # 引擎按无地平线运转）。仅供 review_due_at 读侧派生，不复制真值。
+        try:
+            exam_date_iso = str(member_service.get_profile(user_id).get("exam_date") or "").strip()
+        except Exception:
+            exam_date_iso = ""
+        return mistake_book_service.list_items(
             user_id=user_id,
             subject_id=subject_id,
             include_mastered=include_mastered,
+            exam_date_iso=exam_date_iso,
         )
+
+    try:
+        return await run_in_threadpool(_list_with_schedule_context)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
