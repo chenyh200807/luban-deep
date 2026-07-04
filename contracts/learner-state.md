@@ -511,6 +511,11 @@ Overlay 必须支持：
    不设第二个 blend 专用 flag。内部空态 `mode="unavailable"`
    （`MODE_UNAVAILABLE` / `unavailable_next_step()` 工厂）是投影层哨兵，
    **永不外泄**到 dashboard payload：上层见此 mode 一律不挂 `next_step`。
+   范围裁决（2026-07-04，Codex 终审 P2 → 主控裁决）：本条款的「章节盘」=
+   `get_mastery_dashboard`（掌握度盘）；`/api/v1/practice/chapter-progress` →
+   `get_chapter_progress` 是练习页 legacy 进度列表，**不在本轮融合面内**、
+   刻意不受此 flag 门控（其 mastery 字段仍读 member 静态分）。其收口
+   （改读单一算子或下线该字段）登记为独立后续工单，不得在无裁决时顺手改。
 6. 输入供给禁断供（2026-07-03，Codex SEV-1 治本）：caller 组装输入时**禁止
    硬编码空供给**冒充"该权威无输出"。首页接线口径 = 活跃练从同一份
    snapshot events 纯派生处方 outcomes（`status != "verified"` 即活跃），

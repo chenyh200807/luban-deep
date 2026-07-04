@@ -24,7 +24,9 @@ class LessonProgressRequest(BaseModel):
     # 输入边界(病E):长度上限 schema 级拒绝;pack 存在性在 handler 对
     # manifest 全集(list_all_pack_ids,唯一 pack 枚举权威)校验。
     pack_id: str = Field(min_length=1, max_length=64)
-    watched_stage: str  # "lesson"（讲懂幕）| "practice"（闯关幕）
+    # schema 级长度上限(Codex P3):非法值仍由 writer 白名单拒 400,
+    # 此处只防超长串进 handler 被原样拼进 error detail。
+    watched_stage: str = Field(min_length=1, max_length=32)  # "lesson"（讲懂幕）| "practice"（闯关幕）
     card_sha: str = Field(default="", max_length=128)
 
 
