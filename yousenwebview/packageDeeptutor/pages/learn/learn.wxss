@@ -46,14 +46,32 @@
 .lr-lesson-headtxt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3rpx; }
 .lr-lesson-title { font-size: 28rpx; }
 
-/* 宣纸舞台 */
-.lr-stage { position: relative; height: 360rpx; border-bottom: 1rpx solid var(--pk-bd); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.lr-stage-badge { position: absolute; top: 20rpx; left: 22rpx; padding: 8rpx 20rpx; border-radius: 999rpx; background: var(--pk-red); font-size: 21rpx; font-weight: 800; color: #fff; }
-.lr-stage-cal { font-family: "Long Cang", "Kaiti SC", serif; font-size: 60rpx; color: var(--pk-red); line-height: 1; margin-top: 20rpx; }
-.lr-stage-sub { font-size: 24rpx; font-weight: 800; color: var(--pk-t1); margin-top: 14rpx; }
+/* 宣纸舞台 · 原色宣纸(永远浅色,不随主题;设计:动画卡=原色宣纸舞台) */
+.lr-stage {
+  position: relative;
+  height: 380rpx;
+  border-bottom: 1rpx solid var(--pk-bd);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f4f3ec;
+  background-image: radial-gradient(#e4e2d7 1.3rpx, transparent 1.3rpx);
+  background-size: 32rpx 32rpx;
+}
+.lr-stage-badge { position: absolute; top: 22rpx; left: 24rpx; padding: 8rpx 20rpx; border-radius: 999rpx; background: var(--pk-red); font-size: 21rpx; font-weight: 800; color: #fff; box-shadow: 0 4rpx 12rpx rgba(207,68,54,0.25); }
+/* 全屏按钮(右上,四角括号) */
+.lr-stage-fs { position: absolute; top: 22rpx; right: 24rpx; width: 44rpx; height: 44rpx; border-radius: 12rpx; background: #23282b; }
+.lr-fs-corner { position: absolute; width: 12rpx; height: 12rpx; border: 2.5rpx solid #f4f3ec; }
+.lr-fs-corner { top: 10rpx; left: 10rpx; border-right: none; border-bottom: none; }
+.lr-fs-tr { left: auto; right: 10rpx; border-left: none; border-right: 2.5rpx solid #f4f3ec; border-top: 2.5rpx solid #f4f3ec; border-bottom: none; }
+.lr-fs-bl { top: auto; bottom: 10rpx; border-top: none; border-left: 2.5rpx solid #f4f3ec; border-bottom: 2.5rpx solid #f4f3ec; border-right: none; }
+.lr-fs-br { top: auto; left: auto; bottom: 10rpx; right: 10rpx; border-top: none; border-left: none; border-right: 2.5rpx solid #f4f3ec; border-bottom: 2.5rpx solid #f4f3ec; }
+.lr-stage-cal { font-family: "Long Cang", "Kaiti SC", serif; font-size: 64rpx; color: var(--pk-red); line-height: 1; margin-top: 20rpx; }
+.lr-stage-sub { font-size: 24rpx; font-weight: 800; color: #23282b; margin-top: 14rpx; }
 .lr-stage-play { width: 88rpx; height: 88rpx; border-radius: 50%; margin-top: 22rpx; }
 .lr-play-tri { width: 0; height: 0; border-style: solid; border-width: 16rpx 0 16rpx 26rpx; border-color: transparent transparent transparent #fff; margin-left: 6rpx; }
-.lr-stage-hint { font-size: 21rpx; color: var(--pk-t3); letter-spacing: 2rpx; margin-top: 16rpx; }
+.lr-stage-hint { font-size: 21rpx; color: #9aa0a3; letter-spacing: 2rpx; margin-top: 16rpx; }
 
 /* 路线线 + 课程架 */
 .lr-route-line { display: flex; align-items: center; justify-content: space-between; padding: 20rpx 28rpx 6rpx; }
@@ -74,8 +92,15 @@
 
 /* ── 今日任务卡 ── */
 .lr-task { padding: 30rpx; display: flex; flex-direction: column; gap: 20rpx; }
-.lr-task-main { display: flex; flex-direction: column; gap: 10rpx; }
+.lr-task-head { display: flex; gap: 24rpx; align-items: flex-start; }
+.lr-task-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10rpx; }
 .lr-task-title { font-size: 36rpx; font-weight: 800; line-height: 1.35; color: var(--pk-t1); }
+/* 掌握可信度圆环(conic-gradient) */
+.lr-conf { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
+.lr-conf-ring { width: 116rpx; height: 116rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.lr-conf-hole { width: 88rpx; height: 88rpx; border-radius: 50%; background: var(--pk-card); display: flex; align-items: center; justify-content: center; }
+.lr-conf-num { font-size: 28rpx; font-weight: 800; color: var(--pk-t1); }
+.lr-conf-label { font-size: 20rpx; color: var(--pk-t3); }
 .lr-task-cta { display: flex; align-items: center; gap: 17rpx; }
 .lr-task-btn { flex: 1; }
 .lr-task-ghost { flex-shrink: 0; }

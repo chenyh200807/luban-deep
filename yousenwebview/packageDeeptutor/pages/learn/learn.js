@@ -11,6 +11,36 @@ const { buildLearnViewModel } = require("../../utils/learn-view-model");
 // 空/失败 → 降级 'Kaiti SC', serif(paper-ink.wxss font-family 已兜底)。
 const LONG_CANG_FONT_URL = "";
 
+// 设计预览数据(?preview=1):镜像第 10 版 10a 的代表性数据,专供视觉审核
+// (后端未部署时看完整设计:三态海报/舞台/72% 掌握环/今日任务/复习条)。
+// 仅审核用,非 live 数据;真数据走 _load 的后端 read model。
+const PREVIEW_VM = {
+  litCount: 12,
+  packUniverse: 40,
+  nextStation: {
+    pack_id: "S07",
+    title: "安全事故等级判定与上报",
+    reason: "你最近 3 次都漏写「是否影响关键线路」,这类题通常丢 2–4 分。",
+    mode: "learn_next",
+    green: true,
+    card_sha: "preview",
+  },
+  posters: [
+    { pack_id: "S07", title: "安全事故", slot: "S07", green: true, state: "red", recommended: true, locked: false },
+    { pack_id: "S02", title: "工期索赔", slot: "S02", green: true, state: "ink", recommended: false, locked: false },
+    { pack_id: "A01", title: "质量验收", slot: "A01", green: true, state: "ink", recommended: false, locked: false },
+    { pack_id: "B08", title: "基坑支护", slot: "B08", green: false, state: "paper", recommended: false, locked: true },
+  ],
+  dueCount: 3,
+  todayTask: {
+    title: "工期索赔 · 半写训练 1 题",
+    reason: "你最近 3 次都漏写「是否影响关键线路」,这类题通常丢 2–4 分。",
+    cta: "开始半写训练",
+  },
+  stats: { recent_practice: 8, pending_errors: 3, mastery_trend: 72 },
+  hasSupply: true,
+};
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -21,18 +51,23 @@ Page({
     whyOpen: false,
   },
 
-  onLoad() {
+  onLoad(query) {
     var info =
       typeof wx !== "undefined" && wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
     var sbh = info.statusBarHeight || 0;
     this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: helpers.isDark() });
     this._loadLongCangFont();
+    // 设计预览模式:?preview=1 用镜像第 10 版的数据渲染完整设计(审核用,不打后端)
+    if (query && String(query.preview) === "1") {
+      this.setData({ vm: PREVIEW_VM, loading: false, _preview: true });
+      return;
+    }
     this._load();
   },
 
   onShow() {
-    // 从站点/复习返回时刷新点亮态
-    if (!this.data.loading) this._load();
+    // 从站点/复习返回时刷新点亮态(预览模式不打后端,保持镜像数据)
+    if (!this.data.loading && !this.data._preview) this._load();
   },
 
   onPullDownRefresh() {

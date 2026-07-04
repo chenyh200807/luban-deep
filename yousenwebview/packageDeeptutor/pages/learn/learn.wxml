@@ -56,9 +56,13 @@
           </view>
         </view>
 
-        <!-- 宣纸舞台(播放键) -->
-        <view class="lr-stage pk-paper-bg" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}">
+        <!-- 宣纸舞台(播放键)· 原色宣纸,不随主题变(设计:动画卡=原色宣纸舞台) -->
+        <view class="lr-stage" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}">
           <text class="lr-stage-badge">旁白·开</text>
+          <view class="lr-stage-fs">
+            <view class="lr-fs-corner"></view><view class="lr-fs-corner lr-fs-tr"></view>
+            <view class="lr-fs-corner lr-fs-bl"></view><view class="lr-fs-corner lr-fs-br"></view>
+          </view>
           <text class="lr-stage-cal">鲁班智考</text>
           <text class="lr-stage-sub">动画精讲 · 讲懂这一站</text>
           <view class="lr-stage-play pk-seal">
@@ -102,9 +106,17 @@
 
       <!-- 今日任务卡 -->
       <view class="lr-task pk-card" wx:if="{{vm.todayTask}}">
-        <view class="lr-task-main">
-          <text class="pk-kicker">今天最该完成</text>
-          <text class="lr-task-title">{{vm.todayTask.title}}</text>
+        <view class="lr-task-head">
+          <view class="lr-task-main">
+            <text class="pk-kicker">今天最该完成</text>
+            <text class="lr-task-title">{{vm.todayTask.title}}</text>
+          </view>
+          <view class="lr-conf">
+            <view class="lr-conf-ring" style="background: conic-gradient(var(--pk-grn) {{(vm.stats.mastery_trend || 72) * 3.6}}deg, var(--pk-gauge) 0deg);">
+              <view class="lr-conf-hole"><text class="lr-conf-num">{{vm.stats.mastery_trend || 72}}%</text></view>
+            </view>
+            <text class="lr-conf-label">掌握可信度</text>
+          </view>
         </view>
         <view class="lr-task-cta">
           <view class="pk-btn-ink lr-task-btn" bindtap="goPractice">{{vm.todayTask.cta}}</view>
