@@ -143,8 +143,9 @@ Page({
   goReview() {
     this._navTo("/packageDeeptutor/pages/mistake-book/mistake-book");
   },
+  // 今日任务「开始半写训练/摸底」→ 练习中心(练三档真答题流后续片,先落练习中心)
   goPractice() {
-    this._navTo("/packageDeeptutor/pages/chat/chat");
+    this._navTo("/packageDeeptutor/pages/practice/practice");
   },
 
   // 底部 tab 路由(设计 5tab → 现有页;归位后续片)
