@@ -1,114 +1,166 @@
 [
-  {
-    "issue": "地面块料空鼓防治锚(kc:1A434000_078_0123:0)被多处用作墙面饰面砖/板空鼓本体，实际语境为地面，归属不当",
-    "location": "§0 #13/#14, §3场景6, §4 R4-D, §5题型C, §6 M1/M5/M8等",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "明确区分地面与墙面空鼓防治关系，地面锚应作为邻接借力或本体借力机制说明，墙面需补充专门锚点，避免直接将地面内容升格为墙面本体"
-  },
-  {
-    "issue": "干挂石材六面防护被归入“水驱泛碱模型”的“切断通道”措施逻辑不精确，且部位语境(墙面/地面)未明确",
-    "location": "§2 原理因果层[链2]",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "将干挂石材六面防护从水驱泛碱链移出，独立为“界面防护”并明确其适用于墙面干挂，避免与地面铺贴混淆"
-  },
-  {
-    "issue": "M5“大面积铺贴不留伸缩缝”的error_code映射为E10不贴切，本质是遗漏构造措施或概念混淆",
-    "location": "§6 M5误区",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "修正error_code为E02(采分点遗漏)或E07(概念混淆)，以更精确反映错误本质"
-  },
-  {
-    "issue": "M2“湿贴花岗岩不做防碱”统一判E10过粗，未区分遗漏措施与规范混淆等不同错因",
-    "location": "§6 M2误区",
-    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "拆分为漏写防碱封闭用E02，错套防酸/防辐射用E10，提升错因精准度"
-  },
-  {
-    "issue": "R4规则组B中满粘法高度限值写为“{<100m}”，与pack内其他处“≤100m”及真题答案不一致",
-    "location": "§4 R4 规则组B",
-    "flagged_by": ["DeepSeek-V4-Pro"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将“{<100m}”修正为“{≤100m}”"
-  },
-  {
-    "issue": "R3场景S1引用{2022,第9题}为石材幕墙，不属于饰面板施工方法，真题归属不当",
-    "location": "§4 R3 场景S1",
-    "flagged_by": ["Qwen-3.7-Max"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "移除该题或替换为更贴切的饰面板选法真题，或明确标注为幕墙邻接"
-  },
-  {
-    "issue": "M8空鼓案例只答口号判E04不精准，实为采分点遗漏，应改E02",
-    "location": "§6 M8误区",
-    "flagged_by": ["Qwen-3.7-Max"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "修正error_code为E02(采分点遗漏)"
-  },
-  {
-    "issue": "R2不变量“凡块料贴/挂到基层上”三步框架覆盖干挂工艺过宽，干挂不涉及粘结剂/调整期/养护",
-    "location": "§3 R2 不变量",
-    "flagged_by": ["GPT-5.5(Codex)"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将R2总句降为启发式，或拆分为“干挂连接控制”与“粘贴界面过程控制”两支"
-  },
-  {
-    "issue": "S7块料空鼓原因+防治使用2025第15题、2023第2题作真题印证偏强，这些题非直接空鼓原因防治案例",
-    "location": "§4 S7",
-    "flagged_by": ["GPT-5.5(Codex)"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "保留地面空鼓锚为邻接，不标注“案例真题已印证”，或替换更直接的相关真题"
-  },
-  {
-    "issue": "M1中“脱模剂就直接贴砖”挂到地面空鼓锚不精确，脱模剂清理另有出处，属地面瓷砖邻接",
-    "location": "§6 M1",
-    "flagged_by": ["GPT-5.5(Codex)"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "脱模剂清理单独挂接kc:1A413030_140_0273:1并标注🔵邻接"
-  },
-  {
-    "issue": "客观题满粘法高度数值错误用E03不贴切，应改用M08规范数字混淆",
-    "location": "§6 M6、R7 满粘法高度",
-    "flagged_by": ["GPT-5.5(Codex)"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "MCQ场景改用M08，案例简答数值遗漏才用E03"
-  },
-  {
-    "issue": "R8错误码表未区分案例/客观题E/M码，与pack以MCQ为主力冲突",
-    "location": "§6 R8整表",
-    "flagged_by": ["GPT-5.5(Codex)"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "增设case_error_code和mcq_error_code两列，现有单列降级待规范化"
-  },
-  {
-    "issue": "支持参考文献1A434000-B054涉及裱糊/软包空鼓，易被误归入D12饰面砖/板空鼓归因",
-    "location": "§0 canonical/supporting refs",
-    "flagged_by": ["GPT-5.5(Codex)"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将该文献降为adjacent_noise_refs，不作为D12召回/判分依据"
-  },
-  {
-    "issue": "2017防碱真题题干为地面铺贴，却被用作湿贴防碱D12本体印证，语境过强",
-    "location": "§2 链2、§3 场景3",
-    "flagged_by": ["GPT-5.5(Codex)"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "防碱做法可保留，真题语境标为🔵地面印证/邻接借力"
+ {
+  "issue": "地面块料空鼓防治锚(kc:1A434000_078_0123:0)被多处用作墙面饰面砖/板空鼓本体，实际语境为地面，归属不当",
+  "location": "§0 #13/#14, §3场景6, §4 R4-D, §5题型C, §6 M1/M5/M8等",
+  "flagged_by": [
+   "DeepSeek-V4-Pro",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "明确区分地面与墙面空鼓防治关系，地面锚应作为邻接借力或本体借力机制说明，墙面需补充专门锚点，避免直接将地面内容升格为墙面本体",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "D12_饰面砖板施工质量与空鼓防治.md §1 #8 母锚行『地面板块口径』+ §6 部位语境声明(前轮 jury HC#1 采纳) + 本轮 D3 批补 §4 规则组D / §5 题型C 局部口径标注『(地面板块口径借力,见 §6 部位语境声明)』——jury 点名位置全部收口，墙面专门锚缺口已登记 §8.3",
+   "verified": "2026-07-04 确定性核验：正文串『部位语境声明(jury HC#1 采纳)』『非把地面内容直接升格为墙面本体』实存；§4/§5 两处新增口径标注实存正文；kc:1A434000_078_0123:0 存在且带 quote；GLM-5.2 satisfied_as_is+add_local_annotations + Fable-5 复签，unique-match 2/2 应用两闸绿（可重跑：python3 docs/原始数据/考点原料/recheck_resolutions.py D12）"
   }
+ },
+ {
+  "issue": "干挂石材六面防护被归入“水驱泛碱模型”的“切断通道”措施逻辑不精确，且部位语境(墙面/地面)未明确",
+  "location": "§2 原理因果层[链2]",
+  "flagged_by": [
+   "DeepSeek-V4-Pro",
+   "Qwen-3.7-Max"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "将干挂石材六面防护从水驱泛碱链移出，独立为“界面防护”并明确其适用于墙面干挂，避免与地面铺贴混淆",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "D12_饰面砖板施工质量与空鼓防治.md §2 原理因果层（前轮 jury HC#2 采纳：六面防护移出水驱泛碱链，独立列为『墙面干挂界面防护(非湿贴泛碱通道)』，与地面铺贴区分）",
+   "verified": "2026-07-04 确定性核验：正文串『干挂石材六面防护=隔绝雨水/污染物从缝隙渗入,属墙面干挂界面防护(非湿贴泛碱通道)』与『已**移出泛碱链独立列为墙面干挂界面防护**』实存；kc:1A413030_144_0279:3 存在且带 quote；GLM-5.2 satisfied + Fable-5 复签 2/2"
+  }
+ },
+ {
+  "issue": "M5“大面积铺贴不留伸缩缝”的error_code映射为E10不贴切，本质是遗漏构造措施或概念混淆",
+  "location": "§6 M5误区",
+  "flagged_by": [
+   "DeepSeek-V4-Pro",
+   "Qwen-3.7-Max"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "修正error_code为E02(采分点遗漏)或E07(概念混淆)，以更精确反映错误本质",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "D12_饰面砖板施工质量与空鼓防治.md §6 M5（前轮已按 fix 改 E10→E02 采分点遗漏·漏构造措施）+ 本轮 D3 批对齐 §8 C4 过时错因码清单（M5 E10→E02、M2 E10→E02+E10，消除文内第二权威）",
+   "verified": "2026-07-04 确定性核验：ERROR_CODE_REGISTRY 直读 E02=采分点遗漏（漏伸缩缝构造措施贴切）；§6 M5 行现串『**E02 采分点遗漏**(漏构造措施)』实存；§8 C4 现串『M5 E02』与 §6 一致；GLM-5.2 m5_e02_apt=true + Fable-5 复签 2/2，两闸复跑绿"
+  }
+ },
+ {
+  "issue": "M2“湿贴花岗岩不做防碱”统一判E10过粗，未区分遗漏措施与规范混淆等不同错因",
+  "location": "§6 M2误区",
+  "flagged_by": [
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "拆分为漏写防碱封闭用E02，错套防酸/防辐射用E10，提升错因精准度",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "D12_饰面砖板施工质量与空鼓防治.md §6 M2（前轮已按 fix 拆分：漏写防碱封闭→E02 / 错套防酸防辐射→E10）",
+   "verified": "2026-07-04 确定性核验：§6 M2 行现串『**E02 采分点遗漏**(漏写防碱封闭) / **E10 规范适用错误**(错套防酸/防辐射)』与 fix 逐字一致；ERROR_CODE_REGISTRY 直读 E02=采分点遗漏、E10=规范适用错误；exam_evidence {2017,第11题} ans=A 防碱；GLM-5.2 satisfied + Fable-5 复签 2/2"
+  }
+ },
+ {
+  "issue": "R4规则组B中满粘法高度限值写为“{<100m}”，与pack内其他处“≤100m”及真题答案不一致",
+  "location": "§4 R4 规则组B",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将“{<100m}”修正为“{≤100m}”"
+ },
+ {
+  "issue": "R3场景S1引用{2022,第9题}为石材幕墙，不属于饰面板施工方法，真题归属不当",
+  "location": "§4 R3 场景S1",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "移除该题或替换为更贴切的饰面板选法真题，或明确标注为幕墙邻接"
+ },
+ {
+  "issue": "M8空鼓案例只答口号判E04不精准，实为采分点遗漏，应改E02",
+  "location": "§6 M8误区",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "修正error_code为E02(采分点遗漏)"
+ },
+ {
+  "issue": "R2不变量“凡块料贴/挂到基层上”三步框架覆盖干挂工艺过宽，干挂不涉及粘结剂/调整期/养护",
+  "location": "§3 R2 不变量",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将R2总句降为启发式，或拆分为“干挂连接控制”与“粘贴界面过程控制”两支"
+ },
+ {
+  "issue": "S7块料空鼓原因+防治使用2025第15题、2023第2题作真题印证偏强，这些题非直接空鼓原因防治案例",
+  "location": "§4 S7",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "保留地面空鼓锚为邻接，不标注“案例真题已印证”，或替换更直接的相关真题"
+ },
+ {
+  "issue": "M1中“脱模剂就直接贴砖”挂到地面空鼓锚不精确，脱模剂清理另有出处，属地面瓷砖邻接",
+  "location": "§6 M1",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "脱模剂清理单独挂接kc:1A413030_140_0273:1并标注🔵邻接"
+ },
+ {
+  "issue": "客观题满粘法高度数值错误用E03不贴切，应改用M08规范数字混淆",
+  "location": "§6 M6、R7 满粘法高度",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "MCQ场景改用M08，案例简答数值遗漏才用E03"
+ },
+ {
+  "issue": "R8错误码表未区分案例/客观题E/M码，与pack以MCQ为主力冲突",
+  "location": "§6 R8整表",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "增设case_error_code和mcq_error_code两列，现有单列降级待规范化"
+ },
+ {
+  "issue": "支持参考文献1A434000-B054涉及裱糊/软包空鼓，易被误归入D12饰面砖/板空鼓归因",
+  "location": "§0 canonical/supporting refs",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将该文献降为adjacent_noise_refs，不作为D12召回/判分依据"
+ },
+ {
+  "issue": "2017防碱真题题干为地面铺贴，却被用作湿贴防碱D12本体印证，语境过强",
+  "location": "§2 链2、§3 场景3",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "防碱做法可保留，真题语境标为🔵地面印证/邻接借力"
+ }
 ]
