@@ -48,10 +48,6 @@ _CLAIM_STATUS_TO_EVIDENCE_LEVEL = {
     "confirmed": "L2_confirmed",
 }
 
-# 保留旧私有名，避免历史 reader 破裂；新代码一律用公开名。
-_STABLE_LEVELS = STABLE_EVIDENCE_LEVELS
-
-
 def _text(level: Any) -> str:
     return str(level or "").strip()
 

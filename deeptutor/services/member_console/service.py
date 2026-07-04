@@ -6501,7 +6501,12 @@ class MemberConsoleService:
                 learner_user_id=learner_user_id,
                 snapshot=snapshot,
             )
-            if next_step.get("mode") and next_step.get("mode") != "unavailable":
+            from deeptutor.services.learner_state.home_next_step_projection import (
+                MODE_UNAVAILABLE,
+            )
+
+            # 契约:内部 unavailable 空态 mode 永不外泄到 dashboard。
+            if next_step.get("mode") and next_step.get("mode") != MODE_UNAVAILABLE:
                 dashboard["next_step"] = next_step
         return dashboard
 
@@ -6559,7 +6564,11 @@ class MemberConsoleService:
             )
         except Exception:
             logger.warning("Failed to build home next step projection", exc_info=True)
-            return {"mode": "unavailable", "source_authority": "", "source_ref": "", "reason": ""}
+            from deeptutor.services.learner_state.home_next_step_projection import (
+                unavailable_next_step,
+            )
+
+            return unavailable_next_step()
 
     @staticmethod
     def _apply_home_learning_projection(dashboard: dict[str, Any], projection: dict[str, Any]) -> None:

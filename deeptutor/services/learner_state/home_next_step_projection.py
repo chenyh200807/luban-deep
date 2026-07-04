@@ -22,6 +22,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from deeptutor.services.learner_state.pack_lifecycle_projection import (
+    LIFECYCLE_UNLEARNED,
+)
 from deeptutor.services.taxonomy.construction_learning_graph import (
     order_packs_with_prerequisites,
 )
@@ -30,6 +33,19 @@ MODE_REVIEW = "review_due"
 MODE_PRACTICE = "practice_active"
 MODE_LEARN = "learn_next"
 MODE_FALLBACK = "learn_fallback"
+# 内部空态哨兵(病D-1:每个词汇一个 authority)。契约:unavailable 永不
+# 外泄到 dashboard payload——上层见此 mode 一律不挂 next_step 字段。
+MODE_UNAVAILABLE = "unavailable"
+
+
+def unavailable_next_step(*, source_authority: str = "") -> dict[str, Any]:
+    """空态工厂——「下一步不可用」四字段形状的唯一出处(禁手搓镜像 dict)。"""
+    return {
+        "mode": MODE_UNAVAILABLE,
+        "source_authority": source_authority,
+        "source_ref": "",
+        "reason": "",
+    }
 
 
 def _text(value: Any) -> str:
@@ -80,7 +96,7 @@ def build_home_next_step_projection(
 
     titles = {_text(item.get("pack_id")): _text(item.get("title")) for item in green}
     ordered_ids = [_text(item.get("pack_id")) for item in green]  # registry 静态序
-    unlearned = {pack_id for pack_id in ordered_ids if _state(pack_id) in ("", "unlearned")}
+    unlearned = {pack_id for pack_id in ordered_ids if _state(pack_id) in ("", LIFECYCLE_UNLEARNED)}
     # §4-2 前置过滤：未学前置 A 时不把后继 B 排到 A 前（学序=registry+前置边，
     # 规则归 construction_learning_graph 教研 authority；不设前置锁，可跳站不变）。
     ordered_ids = order_packs_with_prerequisites(ordered_ids, unlearned_pack_ids=unlearned)
@@ -106,12 +122,7 @@ def build_home_next_step_projection(
         }
 
     # 供给面完全不可用（无绿灯站）——如实空态，交由上层降级文案。
-    return {
-        "mode": "unavailable",
-        "source_authority": "pack_manifest.registry_order",
-        "source_ref": "",
-        "reason": "",
-    }
+    return unavailable_next_step(source_authority="pack_manifest.registry_order")
 
 
 __all__ = [
@@ -119,5 +130,7 @@ __all__ = [
     "MODE_LEARN",
     "MODE_PRACTICE",
     "MODE_REVIEW",
+    "MODE_UNAVAILABLE",
     "build_home_next_step_projection",
+    "unavailable_next_step",
 ]

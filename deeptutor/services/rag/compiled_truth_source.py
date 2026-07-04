@@ -41,14 +41,6 @@ def _text(value: Any) -> str:
     return str(value or "").strip()
 
 
-def _evidence_level_rank(level: str) -> int:
-    return evidence_level_rank(level)
-
-
-def _evidence_level_from_claim_status(status: Any) -> str:
-    return evidence_level_from_claim_status(status)
-
-
 def _sanitize_compiled_truth_text(value: Any, *, max_chars: int) -> tuple[str, int, bool]:
     raw = _text(value)
     if not raw:
@@ -174,7 +166,7 @@ def _projection_with_personalization_claims(projection: dict[str, Any]) -> dict[
         evidence_refs = _as_list(claim.get("evidence_refs") or claim.get("supporting_event_ids"))
         if not evidence_refs:
             continue
-        evidence_level = _text(claim.get("evidence_level")) or _evidence_level_from_claim_status(claim.get("claim_status"))
+        evidence_level = _text(claim.get("evidence_level")) or evidence_level_from_claim_status(claim.get("claim_status"))
         compiled_objects[f"personalization:{claim_id}"] = {
             "object_type": _text(claim.get("object_type")) or "personalization_claim",
             "current_truth": claim.get("label") or claim.get("current_truth") or claim.get("claim"),
@@ -277,7 +269,7 @@ def _weak_point_documents(
         if _is_stale_or_superseded(item):
             continue
         level = _text(item.get("evidence_level"))
-        if _evidence_level_rank(level) < min_rank:
+        if evidence_level_rank(level) < min_rank:
             continue
         concept_id = _text(item.get("concept_id"))
         error_code = _text(item.get("error_code"))
@@ -347,7 +339,7 @@ def materialize_compiled_truth_documents(
     if not compiled_objects and not weak_points:
         return []
 
-    min_rank = _evidence_level_rank(min_evidence_level)
+    min_rank = evidence_level_rank(min_evidence_level)
     docs: list[dict[str, Any]] = _weak_point_documents(
         projection,
         min_rank=min_rank,
@@ -359,7 +351,7 @@ def materialize_compiled_truth_documents(
         if _is_stale_or_superseded(item):
             continue
         level = _text(item.get("evidence_level"))
-        if _evidence_level_rank(level) < min_rank:
+        if evidence_level_rank(level) < min_rank:
             continue
         current_truth, redaction_count, heavily_sanitized = _sanitize_compiled_truth_text(
             item.get("current_truth") or item.get("claim") or item.get("summary"),
@@ -399,7 +391,7 @@ def materialize_compiled_truth_documents(
 
     docs.sort(
         key=lambda item: (
-            _evidence_level_rank(_text(item.get("evidence_level"))),
+            evidence_level_rank(_text(item.get("evidence_level"))),
             len(_as_list(item.get("supporting_event_ids"))),
             _text(item.get("chunk_id")),
         ),

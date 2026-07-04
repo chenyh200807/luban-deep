@@ -6,7 +6,7 @@
 白名单 **之外**——学-evidence 绝不进证据编译器/claim）+ 只被定向读侧消费
 （生命周期投影的「已学·待验证」态）。
 
-契约硬要求（contracts/learner-state.md:397-404）：payload **必须**带
+契约硬要求（contracts/learner-state.md §learner_memory_events 学-evidence 条款）：payload **必须**带
 ``event_type="learning_evidence"``。带上它的代价 = 两个显式小改（都已做）：
 ① ``home_personalization`` 的最近事件选择器过滤 ``lesson_viewed``（看动画
 不顶替 today_focus）；② ``learning_state_projection`` 给 luban_lesson 显式

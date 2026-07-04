@@ -153,10 +153,12 @@ def _is_practice_evidence(event: Any) -> bool:
         return False
     if str(payload.get("evidence_source") or "") == "conversation_synthesis":
         return False
-    return str(getattr(event, "source_feature", "") or "") in {
-        "construction_grading",
-        "assessment_testset",
-    }
+    # 判分级白名单唯一 authority 在 learning_synthesis(病D-3),此处只引用。
+    from deeptutor.services.learner_state.learning_synthesis import (
+        PRACTICE_EVIDENCE_SOURCE_FEATURES,
+    )
+
+    return str(getattr(event, "source_feature", "") or "") in PRACTICE_EVIDENCE_SOURCE_FEATURES
 
 
 def _claim_packs(claims: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
