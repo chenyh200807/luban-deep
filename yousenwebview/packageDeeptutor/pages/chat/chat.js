@@ -3156,9 +3156,11 @@ Page({
 
   _isBillingBlockedMessage: function (message) {
     var legacyQuotaText = "额" + "度不足";
-    return new RegExp(legacyQuotaText + "|开通|续费|billing_quota_exceeded|wallet balance", "i").test(
-      String(message || ""),
-    );
+    return new RegExp(
+      legacyQuotaText +
+        "|权益不足|充值|开通|续费|billing_quota_exceeded|free_trial_|wallet balance",
+      "i",
+    ).test(String(message || ""));
   },
 
   onHeroMoreActions: function () {
