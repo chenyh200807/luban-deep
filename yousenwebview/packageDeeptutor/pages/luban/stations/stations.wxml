@@ -1,49 +1,58 @@
-<view class="luban-page {{isDark ? '' : 'light'}}">
-  <view class="lb-nav" style="padding-top: {{statusBarHeight}}px">
-    <view class="lb-nav-inner">
-      <view class="lb-back" bindtap="goBack">
-        <text class="lb-back-arrow">‹</text>
-        <text class="lb-back-text">返回</text>
+<!-- 提分路线 · 纸墨朱竹书法海报路线图(五模块第 10 轮定稿) -->
+<view class="paper {{isDark ? '' : 'light'}} sr-page pk-paper-bg">
+  <view class="sr-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="sr-nav-inner">
+      <view class="sr-back" bindtap="goBack">
+        <text class="sr-back-arrow">‹</text>
+        <text class="sr-back-text">返回</text>
       </view>
-      <text class="lb-nav-title">提分路线</text>
+      <text class="sr-nav-title">提分路线</text>
     </view>
   </view>
 
-  <scroll-view class="lb-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px">
-    <view class="lb-inner">
-      <view class="lb-hero">
-        <text class="lb-kicker">鲁班学习双轮</text>
-        <text class="lb-title">你的提分路线——每天走一站</text>
+  <scroll-view class="sr-scroll" scroll-y enhanced show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="sr-inner">
+      <view class="sr-hero">
+        <text class="pk-kicker">鲁班学习双轮</text>
+        <text class="sr-title">你的提分路线 · 每天走一站</text>
+        <text class="sr-lit">已点亮 {{litCount}} / {{packUniverse}} 站</text>
       </view>
 
-      <view class="lb-error" wx:if="{{errorText}}">
+      <view class="sr-error" wx:if="{{errorText}}">
         <text>{{errorText}}</text>
-        <view class="lb-retry" bindtap="retry">重试</view>
+        <view class="sr-retry pk-btn-ghost" bindtap="retry">重试</view>
       </view>
 
-      <view class="lb-loading" wx:if="{{loading}}">
-        <text class="lb-loading-text">正在为你铺路…</text>
+      <view class="sr-loading" wx:if="{{loading}}">
+        <text class="sr-loading-text">正在为你铺路…</text>
       </view>
 
       <block wx:if="{{!loading && !errorText}}">
-        <view
-          class="lb-station-card"
-          wx:for="{{lessons}}"
-          wx:key="pack_id"
-          data-pack-id="{{item.pack_id}}"
-          bindtap="openStation"
-        >
-          <view class="lb-station-main">
-            <text class="lb-station-title">{{item.title}}</text>
-            <text class="lb-station-id">{{item.pack_id}}</text>
+        <!-- 书法海报网格三态 -->
+        <view class="sr-grid" wx:if="{{posters.length}}">
+          <view
+            wx:for="{{posters}}"
+            wx:key="pack_id"
+            class="pk-poster pk-poster--{{item.state}} sr-poster"
+            bindtap="openStation"
+            data-pack-id="{{item.pack_id}}"
+            data-green="{{item.green}}"
+          >
+            <text class="pk-poster__name">{{item.title}}</text>
+            <view class="pk-poster__slot sr-slot--{{item.state}}">{{item.slot}}</view>
+            <view class="pk-poster__foot">
+              <text class="sr-tag sr-tag--{{item.state}}">{{item.recommended ? '匹配薄弱' : (item.state === 'ink' ? '已学完' : (item.locked ? '会员解锁' : '未学'))}}</text>
+            </view>
+            <view class="pk-poster__bar" style="background: {{item.state === 'red' ? 'rgba(255,255,255,.25)' : (item.state === 'ink' ? 'rgba(244,243,236,.15)' : 'rgba(38,36,31,.12)')}}"></view>
           </view>
-          <text class="lb-station-arrow">›</text>
         </view>
 
-        <view class="lb-empty" wx:if="{{!lessons.length}}">
-          <text>站点正在建设中，很快就能开走第一站。</text>
+        <view class="sr-empty" wx:if="{{!posters.length}}">
+          <text>站点正在建设中,很快就能开走第一站。</text>
         </view>
       </block>
+
+      <view class="sr-bottom-space"></view>
     </view>
   </scroll-view>
 </view>

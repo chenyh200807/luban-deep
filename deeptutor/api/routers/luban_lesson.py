@@ -2,7 +2,8 @@
 
 与 ``luban_preview``（匿名、单卡沙盒）的分界：本路由走 ``secure_router`` 默认
 鉴权，只投影 manifest 绿灯包；未签发/不存在一律 404 同形（fail-closed）。
-本路由**零写入**——学习证据归 learner_signal（档位①②）与判分链路（档位③）。
+本路由**零写入**——学习证据归 learner_signal（档位①②）、判分链路（档位③）
+与 lesson_progress（学-evidence lesson_viewed，融合计划 §2.1）。
 """
 from __future__ import annotations
 

@@ -674,6 +674,7 @@ from deeptutor.api.routers import (
     knowledge,
     learner_signal,
     learning_brain,
+    lesson_progress,
     luban_lesson,
     luban_preview,
     member,
@@ -713,6 +714,7 @@ app.include_router(invite_test.router, prefix="/api/v1/invite-test", tags=["invi
 app.include_router(luban_preview.router, prefix="/api/v1/luban-preview", tags=["luban-preview"])
 app.include_router(luban_lesson.router, prefix="/api/v1/luban", tags=["luban_lesson"])
 app.include_router(learner_signal.router, prefix="/api/v1/learner-signal", tags=["learner_signal"])
+app.include_router(lesson_progress.router, prefix="/api/v1/lesson-progress", tags=["lesson_progress"])
 if runtime_environment() == "local" and env_flag("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", default=False):
     app.include_router(learning_brain.router, prefix="/api/v1/learning-brain", tags=["learning-brain"])
 

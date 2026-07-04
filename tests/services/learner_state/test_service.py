@@ -1993,3 +1993,44 @@ def test_list_local_memory_event_user_ids_enumerates_users_with_events(tmp_path)
     service.read_profile("stu_gamma_no_events")
 
     assert service.list_local_memory_event_user_ids() == ["stu_alpha", "stu_beta"]
+
+
+def test_lesson_view_evidence_does_not_trigger_auto_synthesis(tmp_path, monkeypatch) -> None:
+    # 病B-2（事件循环纪律）：luban_lesson 学-evidence 在
+    # learning_synthesis 证据白名单之外——写入时触发 auto synthesis
+    # 只会做一次保证无效的全账本重算。写侧按同一份白名单过滤，不触发。
+    monkeypatch.setenv("LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED", "1")
+    service = _make_service(tmp_path, core_store=_CoreStoreStub())
+    calls = 0
+    original = service.synthesize_learning_truth
+
+    def counted(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return original(*args, **kwargs)
+
+    service.synthesize_learning_truth = counted  # type: ignore[method-assign]
+
+    from deeptutor.services.learner_state.lesson_evidence import record_lesson_view_evidence
+
+    record_lesson_view_evidence(
+        service, user_id="qa_auto_synthesis_user", pack_id="N01", watched_stage="lesson"
+    )
+    assert calls == 0
+
+    # 对照臂（防恒真断言）：白名单内 source_feature 仍触发。
+    service.append_memory_event(
+        "qa_auto_synthesis_user",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "case-1",
+            "score_awarded": 0,
+            "max_score": 1,
+            "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+        },
+        dedupe_key="turn-1",
+    )
+    assert calls == 1

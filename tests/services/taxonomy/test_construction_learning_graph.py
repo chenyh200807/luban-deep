@@ -131,3 +131,44 @@ def test_seed_remains_small_under_phase_minus1_scope() -> None:
     clusters = list_learning_graph_clusters()
     total_nodes = sum(len(c["node_ids"]) for c in clusters)
     assert total_nodes <= 25, f"seed has {total_nodes} nodes — bigger than Phase -1 scope allows"
+
+
+def test_pack_prerequisite_edges_carry_evidence_and_pending_review() -> None:
+    # §4-2:禁全量 DAG——只登记有 jury/教研证据的边;教研确认前必须标 pending。
+    from deeptutor.services.taxonomy.construction_learning_graph import (
+        list_pack_prerequisite_edges,
+        pack_prerequisites,
+    )
+
+    edges = list_pack_prerequisite_edges()
+    assert len(edges) == 3  # N01→N02 / N01→N04 / N01→K01,一条不多
+    for edge in edges:
+        assert edge["relation"] == "prerequisite"
+        assert edge["evidence"], f"edge {edge} missing data signature"
+        assert edge["pending_review"] is True
+    assert pack_prerequisites("K01") == ["N01"]
+    assert pack_prerequisites("N02") == ["N01"]
+    assert pack_prerequisites("N04") == ["N01"]
+    assert pack_prerequisites("A01") == []
+
+
+def test_order_packs_with_prerequisites_is_stable_and_lock_free() -> None:
+    from deeptutor.services.taxonomy.construction_learning_graph import (
+        order_packs_with_prerequisites,
+    )
+
+    # 章序陷阱:K01 在 N01 前,两者都未学 → N01 提到 K01 前;其余序稳定。
+    ordered = order_packs_with_prerequisites(
+        ["A01", "K01", "L01", "N01"],
+        unlearned_pack_ids={"A01", "K01", "L01", "N01"},
+    )
+    assert ordered.index("N01") < ordered.index("K01")
+    assert ordered[0] == "A01"  # 无关站不受扰动
+    assert set(ordered) == {"A01", "K01", "L01", "N01"}  # 不是锁:不移除任何站
+
+    # 前置已学 → 不重排。
+    ordered = order_packs_with_prerequisites(
+        ["K01", "N01"],
+        unlearned_pack_ids={"K01"},
+    )
+    assert ordered == ["K01", "N01"]

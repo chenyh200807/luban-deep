@@ -31,6 +31,10 @@ from deeptutor.services.construction_grading.deep_question_adapter import (
     attach_deep_question_grading_result,
 )
 from deeptutor.services.construction_grading.writeback import write_grading_error_events
+from deeptutor.services.learner_state.memory_lifecycle import (
+    evidence_level_rank,
+    is_stable_evidence_level,
+)
 from deeptutor.services.question_followup import (
     answers_match,
     apply_followup_action_to_context,
@@ -204,9 +208,13 @@ def _compiled_training_signal_text_from_context(question_context: dict[str, Any]
         if item.get("superseded_by_event_ids"):
             continue
         evidence_level = _compact_text(item.get("evidence_level"))
-        if evidence_level not in {"L1_repeated", "L2_confirmed", "L3_mastery_signal"}:
+        if not is_stable_evidence_level(evidence_level):
             continue
-        policy_action = "stable_personalization" if evidence_level in {"L2_confirmed", "L3_mastery_signal"} else "diagnostic_hint"
+        policy_action = (
+            "stable_personalization"
+            if evidence_level_rank(evidence_level) >= evidence_level_rank("L2_confirmed")
+            else "diagnostic_hint"
+        )
         concept = _compact_text(item.get("concept_id"))
         error_code = _compact_text(item.get("error_code"))
         training = item.get("recommended_training") if isinstance(item.get("recommended_training"), dict) else {}

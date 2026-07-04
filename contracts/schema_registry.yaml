@@ -62,11 +62,11 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 210            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts + M35 R4 cached AB artifact)
+  full_set_count: 212            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts + M35 R4 cached AB artifact; +fusion stage0 pack taxonomy registry + question->pack map)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 30      # tier2_canonical_contracts below (+lecture answer pack/shard + PGO runtime-supply slot)
+    tier2_runtime_canonical: 32      # tier2_canonical_contracts below (+lecture answer pack/shard + PGO runtime-supply slot; +fusion stage0 two compiled read-only artifacts)
     tier3_ephemeral_artifact: 171    # covered by tier3_carve_out rule (+PGO runtime-supply verification report; lecture answer shard promoted out to T2; +M35 R4 cached AB artifact)
   # Closure invariant (asserted by the test): T1 ∪ T2 ∪ T3 == full_set, with
   # T1, T2 disjoint and exhaustive over the non-T3 remainder; every full-set id
@@ -700,3 +700,33 @@ tier2_canonical_contracts:
     module: deeptutor/services/observability/causal_oa.py
     consumed_by: deeptutor/services/observability/oa_runner.py (emits kind=causal_oa_v1; cross-consumer observability contract)
     needs_field_canonicalization: true
+
+  # — fusion stage0: compiled read-only join artifacts (learner-state side, never grading authority) —
+  - name: luban_pack_taxonomy_registry.v0
+    status: runtime_canonical
+    owner: luban_deep_pack
+    canonical_for: machine-readable pack->taxonomy anchors compiled from the 60-slot registry md (primary_taxonomy_ref = mechanical first ref, provisional; reverse-lookup disambiguation only, never grading authority)
+    module: scripts/compile_luban_pack_taxonomy_registry.py
+    consumed_by: question->pack mapping compiler + lifecycle projection reverse lookup (fusion plan §2.4 / §6-4 / §6-5); deterministic rebuild byte-matches on-disk artifact (tests/scripts/test_luban_pack_taxonomy_registry.py)
+    needs_field_canonicalization: false
+    canonical_fields:
+      - schema
+      - source_registry
+      - source_registry_sha256
+      - authority_note
+      - packs
+
+  - name: luban_question_pack_map.v0
+    status: runtime_canonical
+    owner: luban_deep_pack
+    canonical_for: deterministic question->pack mapping compiled from 37 exam_evidence files joined to the exam bank; question key = "year:chunk_id" (bank chunk_id is NOT unique across years); weak-anchor ambiguity and unmatched rows reported honestly, never force-linked; learner-state join only, never grading authority
+    module: scripts/compile_luban_question_pack_map.py
+    consumed_by: lifecycle projection practice-evidence join (fusion plan §2.4 path 1 / §6-5); deterministic rebuild matches on-disk artifact (tests/scripts/test_luban_question_pack_map.py)
+    needs_field_canonicalization: false
+    canonical_fields:
+      - schema
+      - authority_note
+      - question_key_format
+      - sources
+      - packs
+      - reverse_index

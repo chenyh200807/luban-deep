@@ -1,0 +1,170 @@
+<!-- 学习 tab · 纸墨朱竹宣纸驾驶舱(五模块第 10 轮定稿 10a 亮 / 10b 夜) -->
+<view class="paper {{isDark ? '' : 'light'}} lr-page pk-paper-bg">
+
+  <!-- 顶栏:logo 章 + 设置点(status bar 占位) -->
+  <view class="lr-topbar" style="padding-top: {{statusBarHeight + 20}}px">
+    <view class="lr-brand">
+      <view class="lr-brand-seal pk-seal">
+        <image class="lr-brand-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" />
+      </view>
+      <text class="lr-brand-name">鲁班智考</text>
+    </view>
+    <view class="lr-topbar-dots">
+      <view class="lr-dot"></view><view class="lr-dot"></view><view class="lr-dot"></view>
+    </view>
+  </view>
+
+  <scroll-view class="lr-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="lr-inner">
+
+      <!-- 三枚状态卡:距考 / 路线 X/40 / 今日 -->
+      <view class="lr-status-row">
+        <view class="lr-status pk-card">
+          <view class="lr-gauge-sm">
+            <text class="lr-gauge-sm-num">—</text>
+          </view>
+          <view class="lr-status-txt"><text class="pk-kicker">距考试</text><text class="lr-status-unit">待设置</text></view>
+        </view>
+        <view class="lr-status pk-card lr-status-col">
+          <text class="pk-kicker">路线 <text class="lr-status-strong">{{vm.litCount || 0}}/{{vm.packUniverse || 40}} 站</text></text>
+          <view class="pk-progress"><view class="pk-progress__fill" style="width: {{(vm.litCount ? (vm.litCount / (vm.packUniverse || 40) * 100) : 0)}}%"></view></view>
+        </view>
+        <view class="lr-status pk-card lr-status-col">
+          <text class="pk-kicker">今日 <text class="lr-status-strong">练起来</text></text>
+          <view class="pk-progress"><view class="pk-progress__fill" style="width: 0%"></view></view>
+        </view>
+      </view>
+
+      <!-- 动画精讲卡:下一站 header + 宣纸舞台 + 横滑课程架 -->
+      <view class="lr-lesson pk-card">
+        <!-- header -->
+        <view class="lr-lesson-head" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}">
+          <view class="lr-lesson-seal pk-seal">
+            <image class="lr-lesson-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" />
+          </view>
+          <view class="lr-lesson-headtxt">
+            <text class="pk-kicker">下一站 · {{vm.nextStation.pack_id}}</text>
+            <text class="pk-title lr-lesson-title">{{vm.nextStation.title}}</text>
+          </view>
+          <text class="pk-chip pk-chip--grn">匹配你的薄弱</text>
+        </view>
+        <!-- header 空态(后端未部署/无供给) -->
+        <view class="lr-lesson-head lr-lesson-head--empty" wx:else>
+          <view class="lr-lesson-headtxt">
+            <text class="pk-kicker">下一站</text>
+            <text class="pk-title lr-lesson-title">微课即将上线</text>
+          </view>
+        </view>
+
+        <!-- 宣纸舞台(播放键)· 原色宣纸,不随主题变(设计:动画卡=原色宣纸舞台) -->
+        <view class="lr-stage" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}">
+          <text class="lr-stage-badge">旁白·开</text>
+          <view class="lr-stage-fs">
+            <view class="lr-fs-corner"></view><view class="lr-fs-corner lr-fs-tr"></view>
+            <view class="lr-fs-corner lr-fs-bl"></view><view class="lr-fs-corner lr-fs-br"></view>
+          </view>
+          <text class="lr-stage-cal">鲁班智考</text>
+          <text class="lr-stage-sub">动画精讲 · 讲懂这一站</text>
+          <view class="lr-stage-play pk-seal">
+            <view class="lr-play-tri"></view>
+          </view>
+          <text class="lr-stage-hint">点击播放 · 讲懂 → 闯关</text>
+        </view>
+
+        <!-- 你的路线 + 完整地图 -->
+        <view class="lr-route-line">
+          <text class="lr-route-lit">你的路线 · 已点亮 {{vm.litCount || 0}} / {{vm.packUniverse || 40}} 站</text>
+          <text class="lr-route-more" bindtap="openStations">查看完整地图 →</text>
+        </view>
+
+        <!-- 横滑课程架(书法海报三态) -->
+        <scroll-view class="lr-rack" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{vm.posters.length}}">
+          <view class="lr-rack-inner">
+            <view
+              wx:for="{{vm.posters}}"
+              wx:key="pack_id"
+              class="pk-poster pk-poster--{{item.state}} lr-poster"
+              bindtap="openStation"
+              data-pack-id="{{item.pack_id}}"
+              data-green="{{item.green}}"
+            >
+              <text class="pk-poster__name">{{item.title}}</text>
+              <view class="pk-poster__slot lr-poster-slot--{{item.state}}">{{item.slot}}</view>
+              <view class="pk-poster__foot">
+                <text class="lr-poster-tag lr-poster-tag--{{item.state}}">{{item.recommended ? '匹配薄弱' : (item.state === 'ink' ? '已学完' : (item.locked ? '会员解锁' : '未学'))}}</text>
+              </view>
+              <view class="pk-poster__bar" style="background: {{item.state === 'red' ? 'rgba(255,255,255,.25)' : (item.state === 'ink' ? 'rgba(244,243,236,.15)' : 'rgba(38,36,31,.12)')}}"></view>
+            </view>
+            <!-- 尾卡:完整路线 -->
+            <view class="lr-poster-tail" bindtap="openStations">
+              <text class="lr-poster-tail-txt">完整路线</text>
+              <text class="lr-poster-tail-txt">{{vm.packUniverse || 40}} 站 →</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 今日任务卡 -->
+      <view class="lr-task pk-card" wx:if="{{vm.todayTask}}">
+        <view class="lr-task-head">
+          <view class="lr-task-main">
+            <text class="pk-kicker">今天最该完成</text>
+            <text class="lr-task-title">{{vm.todayTask.title}}</text>
+          </view>
+          <view class="lr-conf">
+            <view class="lr-conf-ring" style="background: conic-gradient(var(--pk-grn) {{(vm.stats.mastery_trend || 72) * 3.6}}deg, var(--pk-gauge) 0deg);">
+              <view class="lr-conf-hole"><text class="lr-conf-num">{{vm.stats.mastery_trend || 72}}%</text></view>
+            </view>
+            <text class="lr-conf-label">掌握可信度</text>
+          </view>
+        </view>
+        <view class="lr-task-cta">
+          <view class="pk-btn-ink lr-task-btn" bindtap="goPractice">{{vm.todayTask.cta}}</view>
+          <view class="pk-btn-ghost lr-task-ghost" bindtap="goPractice">换轻练</view>
+        </view>
+        <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.todayTask.reason}}">
+          <text class="lr-why-label">为什么推荐</text>
+          <text class="lr-why-chev">{{whyOpen ? '▾' : '▸'}}</text>
+        </view>
+        <text class="pk-desc lr-why-text" wx:if="{{whyOpen && vm.todayTask.reason}}">{{vm.todayTask.reason}}</text>
+      </view>
+
+      <!-- 复习到期条 -->
+      <view class="lr-review pk-card" wx:if="{{vm.dueCount}}" bindtap="goReview">
+        <view class="lr-review-bolt"></view>
+        <text class="lr-review-txt">复习 {{vm.dueCount}} 张到期</text>
+        <text class="lr-review-go">去复习 →</text>
+      </view>
+
+      <!-- 三枚指标卡 -->
+      <view class="lr-metric-row">
+        <view class="lr-metric pk-card">
+          <text class="pk-kicker">近 3 天练习</text>
+          <text class="lr-metric-num">{{vm.stats.recent_practice || 0}} 次</text>
+        </view>
+        <view class="lr-metric pk-card">
+          <text class="pk-kicker">待补错因</text>
+          <text class="lr-metric-num">{{vm.stats.pending_errors || 0}} 个</text>
+        </view>
+        <view class="lr-metric pk-card">
+          <text class="pk-kicker">掌握趋势</text>
+          <text class="lr-metric-num lr-metric-grn">{{vm.stats.mastery_trend ? '↗ ' + vm.stats.mastery_trend + '%' : '—'}}</text>
+        </view>
+      </view>
+
+      <view class="lr-bottom-space"></view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部 tab:学习(当前)/复习/问鲁班(红章)/学情/我的 -->
+  <view class="lr-tabbar">
+    <view class="lr-tab lr-tab--active"><view class="lr-tab-ico lr-ico-learn"></view><text class="lr-tab-txt">学习</text></view>
+    <view class="lr-tab" bindtap="tabReview"><view class="lr-tab-ico lr-ico-review"></view><text class="lr-tab-txt">复习</text></view>
+    <view class="lr-tab lr-tab--center" bindtap="tabAsk">
+      <view class="lr-tab-seal pk-seal"><image class="lr-tab-seal-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" /></view>
+      <text class="lr-tab-txt">问鲁班</text>
+    </view>
+    <view class="lr-tab" bindtap="tabReport"><view class="lr-tab-ico lr-ico-report"></view><text class="lr-tab-txt">学情</text></view>
+    <view class="lr-tab" bindtap="tabProfile"><view class="lr-tab-ico lr-ico-me"></view><text class="lr-tab-txt">我的</text></view>
+  </view>
+</view>

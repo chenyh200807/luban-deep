@@ -2271,5 +2271,17 @@
       "S02 must use engineering threshold comparison and crane/object state, not A02 process-flow reuse"
     ],
     "release_bar": "workflow_candidate only; student_ready requires screenshot wall judged first-view diagrammatic, not text-card narration."
+  },
+  "taxonomy_alignment": {
+    "priority_slot": 40,
+    "pack_id": "A02",
+    "status": "composite",
+    "canonical_taxonomy_refs": [
+      "1A434020-B018",
+      "1A422000-B061",
+      "1A422000-B150",
+      "1A438000-B060"
+    ],
+    "note": "验收、见证取样、材料进场合并包（2026-07-03 §6-3 数据修：照 60-slot registry slot 40 回填）"
   }
 }

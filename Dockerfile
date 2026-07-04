@@ -216,6 +216,10 @@ COPY contracts/ ./contracts/
 # 不拷整个 docs/——manifest 绿灯投影 fail-closed，缺文件=供给面全空）
 COPY ["docs/原始数据/考点原料/成品/_pack_manifest.json", "./docs/原始数据/考点原料/成品/"]
 COPY ["docs/原始数据/考点原料/成品/_S05_variant_bank.v0.json", "./docs/原始数据/考点原料/成品/"]
+# 生命周期投影的两条确定性 join 映射（pack_lifecycle_projection 只读；
+# 缺文件 = 投影 degraded=True + warning，学员全显示未练过——必须随镜像供给）
+COPY ["docs/原始数据/考点原料/成品/_question_pack_map.v0.json", "./docs/原始数据/考点原料/成品/"]
+COPY ["docs/原始数据/考点原料/成品/_pack_taxonomy_registry.v0.json", "./docs/原始数据/考点原料/成品/"]
 COPY scripts/ ./scripts/
 COPY pyproject.toml ./
 COPY requirements/ ./requirements/

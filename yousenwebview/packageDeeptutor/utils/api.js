@@ -853,6 +853,26 @@ function getLubanLessonDetail(packId, opts) {
   );
 }
 
+/** 鲁班 — 学-evidence 上报（lesson_viewed，融合计划 §2.1 唯一 writer）。
+ * 看完讲懂/闯关幕后调用；后端 progress_countable=false、evidence_level=exposed，
+ * 绝不算掌握(M0)。watched_stage: "lesson"(讲懂) | "practice"(闯关)。 */
+function postLessonProgress(packId, watchedStage, cardSha, opts) {
+  return request(
+    Object.assign(
+      {
+        url: "/api/v1/lesson-progress/progress",
+        method: "POST",
+        data: {
+          pack_id: String(packId || ""),
+          watched_stage: String(watchedStage || "lesson"),
+          card_sha: String(cardSha || ""),
+        },
+      },
+      opts || {},
+    ),
+  );
+}
+
 /** 鲁班 — 次日变体复测题面（服务端确定性抽取，客户端本地判分） */
 function getLubanRetestItems(packId, limit, opts) {
   var n = Number(limit || 5);
@@ -970,6 +990,7 @@ module.exports = {
   getLubanLessons: getLubanLessons,
   getLubanLessonDetail: getLubanLessonDetail,
   getLubanRetestItems: getLubanRetestItems,
+  postLessonProgress: postLessonProgress,
   getAssessmentProfile: getAssessmentProfile,
   getAssessmentTopics: getAssessmentTopics,
   createAssessment: createAssessment,

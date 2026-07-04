@@ -403,6 +403,18 @@ Overlay 必须支持：
   仅通过 `payload.evidence_source="conversation_synthesis"` 和
   `payload.learning_signal_type` 区分。conversation evidence 不得直接提升 mastery，
   只能进入 recent observation / needs confirmation，直到后续 grading evidence 验证。
+- 学-evidence（`learning_signal_type="lesson_viewed"`，融合计划 §2.1）：唯一 writer =
+  `learner_state/lesson_evidence.record_lesson_view_evidence()`（经 `/api/v1/lesson-progress`
+  路由），仍走 `append_memory_event` 唯一 sink。payload 必须带
+  `event_type="learning_evidence"`（本 contract 硬要求）+ `evidence_level="exposed"`
+  （ladder 外 level，不参与掌握排序）+ `quality.progress_countable=false`（report
+  attempt/streak 与 mastery attempts 全部跳过）；`source_feature="luban_lesson"` 必须
+  保持在 `learning_synthesis._is_learning_evidence` 白名单**之外**——看动画绝不进
+  claim/weak point/mastery（M0）。dedupe_key 按（用户, pack, watched_stage, 业务日）
+  折叠。消费边界：只被生命周期投影（「已学·待验证」态）等定向读侧消费；
+  `home_personalization` 的最近事件选择器必须过滤 `lesson_viewed`（不顶替
+  today_focus）；`learning_state_projection` 以 `lesson_view_count` 显式分类（不计入
+  legacy_count）。
 - 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
   `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
   读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
@@ -478,6 +490,46 @@ Overlay 必须支持：
 职责：
 
 - 学员级 heartbeat 调度主表
+
+### Home Next-Step Projection（融合计划 §3，2026-07-03 登记）
+
+`home_next_step_projection` 是跨模式「下一步」的**呈现仲裁 read-model authority**
+（display arbitration，register-before-use 显式登记——不是第二练习处方）。
+
+1. 组合规则只存在这一份（`learner_state/home_next_step_projection.py`）：
+   `到期复（revalidation_queue 有 due probe）> 活跃练（training_intent 有
+   active intent）> 下一学（路线上第一个 未学∧绿灯签发 的站）> fallback
+   （registry 静态序第一个绿灯站 + 群体理由）`。**禁前端/各 tab 再拼一次。**
+2. 输出必须带 `mode / source_authority / source_ref / reason` 四字段——每个
+   「下一步」可审计来自哪个权威。
+3. 铁律：禁写 ledger、禁生成/修改 `training_intent`、禁改 revalidation 状态。
+   它不生成任何「该练什么」的内容判断——练的内容仍完全由 `training_intent`
+   说了算，复由 `revalidation_queue`，学序由 registry+前置边。
+4. 冷启动兜底：新用户零证据 → 前三臂空 → fallback 必须非空（day-0 不白屏），
+   理由文案用群体理由（诚实版，不伪装个性化）。
+5. 接入面：home dashboard，受 `DEEPTUTOR_HOME_NEXT_STEP_ENABLED`（默认 off）
+   门控；退路（若被证明越权）= learn 只作路线图固有语义。该 flag 是
+   「home 生命周期融合面」**总开关**（2026-07-04 owner 拍板）：off = 全走
+   旧静态分 + 无 next_step（现状不变）；on = next_step 与 mastery 证据
+   blend（首页/雷达/章节盘 `_report_mastery_items` 路径）一起生效——
+   不设第二个 blend 专用 flag。内部空态 `mode="unavailable"`
+   （`MODE_UNAVAILABLE` / `unavailable_next_step()` 工厂）是投影层哨兵，
+   **永不外泄**到 dashboard payload：上层见此 mode 一律不挂 `next_step`。
+   范围裁决（2026-07-04，Codex 终审 P2 → 主控裁决）：本条款的「章节盘」=
+   `get_mastery_dashboard`（掌握度盘）；`/api/v1/practice/chapter-progress` →
+   `get_chapter_progress` 是练习页 legacy 进度列表，**不在本轮融合面内**、
+   刻意不受此 flag 门控（其 mastery 字段仍读 member 静态分）。其收口
+   （改读单一算子或下线该字段）登记为独立后续工单，不得在无裁决时顺手改。
+6. 输入供给禁断供（2026-07-03，Codex SEV-1 治本）：caller 组装输入时**禁止
+   硬编码空供给**冒充"该权威无输出"。首页接线口径 = 活跃练从同一份
+   snapshot events 纯派生处方 outcomes（`status != "verified"` 即活跃），
+   同一份 outcomes 必须同时传入 `revalidation_queue`（已验证抑制，与
+   learning-report 路径同口径）；claims 从 `read_compiled_learning_truth`
+   的 `weak_points` 读取（miss 时空列表如实降级，**不**跑在线 dry-run
+   合成——此为对上文 cache-miss 回退条款在首页在线路径的显式最小偏离）。
+7. weak_points 聚合保真（同日）：`learning_synthesis` 的 L2 档聚合按
+   evidence rank 判定并保留组内最高 level（`L2_real_retest` 不得被字面
+   `L2_confirmed` 比较降档）——真懂信号不在聚合层丢失。
 
 ## 单一写入职责
 

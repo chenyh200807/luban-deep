@@ -10,7 +10,9 @@ Thin 投影层（§3 所有权表）：本模块**只读投影、零生成**—�
 - ``content_sha256`` 透传给客户端作缓存键（§9-D7/D8：pack 升版 → sha 变 → 重取）。
 
 学习证据边界（防第四 builder）：本模块**不写任何学习证据**。档位①②轻练走既有
-``learner_signal`` 路由（非 promoting），档位③走判分链路——写侧一个不加。
+``learner_signal`` 路由（非 promoting），档位③走判分链路；学-evidence
+（lesson_viewed）唯一 writer = ``learner_state/lesson_evidence.py``（经
+``lesson_progress`` 路由，融合计划 §2.1）——本投影模块仍零写入。
 """
 from __future__ import annotations
 
@@ -31,15 +33,31 @@ class LessonNotAvailable(Exception):
     """pack 不存在或未过投影门——两者对外同形（fail-closed，不泄漏未签发存在性）。"""
 
 
+# manifest 模块级缓存(照 pack_lifecycle_projection 的 (mtime_ns, size) 模式,
+# 病B-3):命中零解析;产物更新(stat 键变)自动失效;失败(缺文件/损坏)
+# fail-closed 且**不缓存**——修好文件后同进程下次调用即恢复。
+_MANIFEST_CACHE: dict[str, tuple[tuple[int, int], dict[str, Any]]] = {}
+_MANIFEST_UNAVAILABLE: dict[str, Any] = {"projection_green": [], "packs": []}
+
+
 def _load_manifest(manifest_path: Path | None = None) -> dict[str, Any]:
     path = manifest_path or _MANIFEST_PATH
-    if not path.exists():
-        # manifest 缺失 = 供给面不可用，整体 fail-closed
-        return {"projection_green": [], "packs": []}
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        stat = path.stat()
+        stat_key = (stat.st_mtime_ns, stat.st_size)
+    except OSError:
+        # manifest 缺失 = 供给面不可用，整体 fail-closed
+        return dict(_MANIFEST_UNAVAILABLE)
+    cache_key = str(path)
+    cached = _MANIFEST_CACHE.get(cache_key)
+    if cached is not None and cached[0] == stat_key:
+        return cached[1]
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
-        return {"projection_green": [], "packs": []}
+        return dict(_MANIFEST_UNAVAILABLE)
+    _MANIFEST_CACHE[cache_key] = (stat_key, manifest)
+    return manifest
 
 
 def _card_url(pack_id: str) -> str:
@@ -64,6 +82,19 @@ def _variant_summary(pack_id: str, manifest_dir: Path) -> dict[str, Any]:
         "bank_status": str(bank.get("status") or ""),
         "source_pack_sha256": str(bank.get("source_pack_sha256") or ""),
     }
+
+
+def list_all_pack_ids(*, manifest_path: Path | None = None) -> list[str]:
+    """40 pack 全集（pack_id 排序，非 manifest 登记序；消费者当集合用）
+    ——生命周期投影「未学」态的枚举范围
+    （融合计划 §1.1：考点全集 = 60-slot 注册表的 40 pack，不是 1976 叶）。
+    只读 manifest，绿灯与否不影响「未学」枚举（锁定站也如实是未学）。"""
+    manifest = _load_manifest(manifest_path)
+    return sorted(
+        str(pack.get("pack_id") or "").strip()
+        for pack in manifest.get("packs") or []
+        if str(pack.get("pack_id") or "").strip()
+    )
 
 
 def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, Any]]:
