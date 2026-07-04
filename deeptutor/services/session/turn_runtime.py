@@ -1741,6 +1741,14 @@ def _normalize_billing_context(raw: dict[str, Any] | None) -> dict[str, str] | N
     # cannot author billing_context, so honouring it downstream is safe.
     if str(raw.get("eval_bypass", "") or "").strip().lower() == "verified":
         normalized["eval_bypass"] = "verified"
+    # Preserve the server-authored free-trial reservation marker stamped by the
+    # mobile start-turn gate. The client cannot author billing_context, so this
+    # marker is safe to use for post-turn wallet-capture bypass.
+    if str(raw.get("free_trial", "") or "").strip().lower() == "reserved":
+        normalized["free_trial"] = "reserved"
+        reservation_key = str(raw.get("free_trial_reservation_key", "") or "").strip()
+        if reservation_key:
+            normalized["free_trial_reservation_key"] = reservation_key
     return normalized
 
 
@@ -2618,6 +2626,16 @@ class TurnRuntimeManager:
                 "reason": "eval_billing_bypass",
                 "wallet_user_id": user_id,
                 "idempotency_key": idempotency_key,
+            }
+        if str(billing_context.get("free_trial") or "").strip().lower() == "reserved":
+            return {
+                "status": "metered_not_charged",
+                "reason": "free_trial",
+                "wallet_user_id": user_id,
+                "idempotency_key": idempotency_key,
+                "free_trial_reservation_key": str(
+                    billing_context.get("free_trial_reservation_key") or ""
+                ).strip(),
             }
         amount_points, billing_metadata = _billing_capture_amount_from_usage_summary(usage_summary)
         capture_metadata = {

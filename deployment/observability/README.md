@@ -82,6 +82,10 @@ bash scripts/verify_aliyun_observability_stack.sh
 （端到端证明 scrape + metrics_token 字节匹配）、6 条规则加载且 health=ok、Prometheus→Alertmanager
 投递通路、worker_metrics 新鲜度（Step 2 dump loop 活体）。硬失败退出 1，软问题 WARN。
 
+> **兼容性**：生产宿主的 python 是 **3.6.8**，脚本刻意零变量注解（PEP 585 `list[str]` 在
+> 3.6 运行时不可下标，`from __future__ import annotations` 也要 3.7+）。改这个脚本时保持
+> 3.6 兼容，别加 `x: list[str]` 之类的注解。
+
 > **告警交付（重要）**：`alertmanager.yml` 默认是 `example.com` 占位——规则会计算、在 UI 可见，
 > 但**不会真正外发通知**。验证脚本会以 WARN 提示"ALERT DELIVERY NOT CONFIGURED"。配好真实
 > SMTP/飞书/企微出口前，**不要把绿状态读成"会被 page"**。
