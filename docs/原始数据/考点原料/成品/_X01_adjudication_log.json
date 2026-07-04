@@ -1,0 +1,34 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-0/1(确定性收口，前轮已删/降)",
+    "actions": [
+      "§2 机理段已在'讲解性🔵不充判分'标题下",
+      "自造情节(7.5m/心理学)已删仅审计引用残留",
+      "零新编辑"
+    ],
+    "panel": "无需面板——机器可核"
+  },
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 1,
+    "tier": "Tier-0(整表对账)+Tier-2(错因码语义确认)",
+    "actions": [
+      "Tier-0: 16码全合法0自造残留",
+      "GLM-5.2 逐条单审 M1-M9: all_apt=true, m9_apt=true, remap_needed=[]",
+      "Fable-5 复签: 逐条对 registry ability_dimension 复核一致",
+      "零新编辑"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "all_apt": true,
+        "m9_apt": true,
+        "remap_needed": []
+      },
+      "Fable-5": "复签同意"
+    }
+  }
+]
