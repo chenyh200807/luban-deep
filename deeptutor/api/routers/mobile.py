@@ -121,6 +121,10 @@ _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
 _LOCAL_WALLET_FALLBACK = "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"
 _LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK = "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"
+_FREE_TRIAL_USAGE_STATUS = "free_trial_reserved"
+_FREE_TRIAL_DAILY_QUESTION_LIMIT = 3
+_FREE_TRIAL_WEEKLY_QUESTION_LIMIT = 12
+_FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT = 3
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 _BILLING_PLAN_REFERENCE_POINTS = {
@@ -456,6 +460,213 @@ def _is_ai_usage_debit(entry: WalletLedgerEntry) -> bool:
     return entry.event_type == "debit" or entry.reference_type == "ai_usage" or reason == "capture"
 
 
+def _minimum_turn_charge_micros() -> int:
+    return int(_MINI_PROGRAM_CAPTURE_COST) * 1_000_000
+
+
+def _wallet_available_micros(snapshot: WalletSnapshot | None) -> int:
+    if snapshot is None:
+        return 0
+    return int(snapshot.balance_micros) - int(snapshot.frozen_micros)
+
+
+def _insufficient_wallet_balance_exception(available_micros: int) -> HTTPException:
+    return HTTPException(
+        status_code=429,
+        detail={
+            "code": "billing_quota_exceeded",
+            "message": "Insufficient wallet balance for this turn.",
+            "limited_by": "balance",
+            "available_micros": max(int(available_micros or 0), 0),
+            "required_micros": _minimum_turn_charge_micros(),
+        },
+    )
+
+
+def _usage_event_datetime(event: Any, *, now: datetime | None = None) -> datetime | None:
+    created_at = getattr(event, "created_at", None)
+    if isinstance(created_at, (int, float)):
+        return datetime.fromtimestamp(float(created_at), tz=_BILLING_USAGE_TZ)
+    parsed = _parse_ledger_datetime(str(created_at or ""))
+    if parsed is not None:
+        return parsed
+    return now
+
+
+def _is_free_trial_usage_event(event: Any) -> bool:
+    status_value = str(getattr(event, "status", "") or "").strip().lower()
+    if status_value == _FREE_TRIAL_USAGE_STATUS:
+        return True
+    metadata = getattr(event, "metadata", {}) or {}
+    if not isinstance(metadata, dict):
+        return False
+    return str(metadata.get("reason") or "").strip().lower() == "free_trial"
+
+
+def _free_trial_quota_row(
+    *,
+    key: str,
+    label: str,
+    used: int,
+    limit: int,
+    reset_at: str,
+) -> dict[str, Any]:
+    bounded_limit = max(1, int(limit or 0))
+    bounded_used = max(0, int(used or 0))
+    remaining = max(0, bounded_limit - bounded_used)
+    remaining_percent = int(round((remaining / bounded_limit) * 100))
+    return {
+        "key": key,
+        "label": label,
+        "used": bounded_used,
+        "limit": bounded_limit,
+        "remaining": remaining,
+        "remaining_percent": max(0, min(100, remaining_percent)),
+        "reset_at": reset_at,
+    }
+
+
+def _build_free_trial_usage_payload(
+    events: Iterable[Any],
+    *,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
+    today = current.date()
+    week_start = (current - timedelta(days=6)).date()
+    next_midnight = (current + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    counts_by_day: dict[Any, int] = {}
+    weekly_event_times: list[datetime] = []
+
+    for event in events:
+        if not _is_free_trial_usage_event(event):
+            continue
+        created_at = _usage_event_datetime(event, now=current)
+        if created_at is None:
+            continue
+        event_day = created_at.astimezone(_BILLING_USAGE_TZ).date()
+        if week_start <= event_day <= today:
+            counts_by_day[event_day] = counts_by_day.get(event_day, 0) + 1
+            weekly_event_times.append(created_at)
+
+    today_used = counts_by_day.get(today, 0)
+    weekly_used = sum(counts_by_day.values())
+    previous_full_day_streak = 0
+    cursor = today - timedelta(days=1)
+    while counts_by_day.get(cursor, 0) >= _FREE_TRIAL_DAILY_QUESTION_LIMIT:
+        previous_full_day_streak += 1
+        cursor = cursor - timedelta(days=1)
+
+    weekly_reset_at = (
+        (min(weekly_event_times).astimezone(_BILLING_USAGE_TZ) + timedelta(days=7)).isoformat()
+        if weekly_event_times
+        else next_midnight.isoformat()
+    )
+    rows = [
+        _free_trial_quota_row(
+            key="free_trial_daily",
+            label="今日免费提问",
+            used=today_used,
+            limit=_FREE_TRIAL_DAILY_QUESTION_LIMIT,
+            reset_at=next_midnight.isoformat(),
+        ),
+        _free_trial_quota_row(
+            key="free_trial_weekly",
+            label="7日免费提问",
+            used=weekly_used,
+            limit=_FREE_TRIAL_WEEKLY_QUESTION_LIMIT,
+            reset_at=weekly_reset_at,
+        ),
+        _free_trial_quota_row(
+            key="free_trial_streak",
+            label="连续满额天数",
+            used=previous_full_day_streak,
+            limit=_FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT,
+            reset_at=next_midnight.isoformat(),
+        ),
+    ]
+    limited_by = ""
+    if today_used >= _FREE_TRIAL_DAILY_QUESTION_LIMIT:
+        limited_by = "free_trial_daily"
+    elif weekly_used >= _FREE_TRIAL_WEEKLY_QUESTION_LIMIT:
+        limited_by = "free_trial_weekly"
+    elif previous_full_day_streak >= _FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT:
+        limited_by = "free_trial_streak"
+
+    return {
+        "status": "ok",
+        "limited_by": limited_by,
+        "quota": {
+            "rows": rows,
+        },
+    }
+
+
+def _free_trial_limit_exception(payload: dict[str, Any]) -> HTTPException | None:
+    limited_by = str(payload.get("limited_by") or "").strip()
+    if not limited_by:
+        return None
+    rows = ((payload.get("quota") or {}).get("rows") or []) if isinstance(payload, dict) else []
+    primary = next(
+        (row for row in rows if isinstance(row, dict) and str(row.get("key") or "") == limited_by),
+        {},
+    )
+    return HTTPException(
+        status_code=429,
+        detail={
+            "code": "billing_quota_exceeded",
+            "message": "Free trial quota exceeded. Please recharge to continue.",
+            "limited_by": limited_by,
+            "reset_at": str(primary.get("reset_at") or ""),
+            "quota": rows,
+        },
+    )
+
+
+def _load_free_trial_usage_events(*, wallet_user_id: str, limit: int) -> list[Any]:
+    return get_member_usage_meter().list_usage_events(
+        wallet_user_id,
+        limit=limit,
+        offset=0,
+    )
+
+
+def _reserve_free_trial_usage(
+    *,
+    wallet_user_id: str,
+    authenticated_user_id: str,
+    client_turn_id: str,
+    session_id: str,
+) -> dict[str, str]:
+    normalized_wallet_user_id = str(wallet_user_id or "").strip()
+    normalized_client_turn_id = str(client_turn_id or "").strip()
+    reservation_key = (
+        f"free_trial:{normalized_wallet_user_id}:{normalized_client_turn_id}"
+        if normalized_client_turn_id
+        else f"free_trial:{normalized_wallet_user_id}:{uuid4().hex}"
+    )
+    get_member_usage_meter().record_usage_event(
+        wallet_user_id=normalized_wallet_user_id,
+        learning_user_id=str(authenticated_user_id or "").strip(),
+        source="wx_miniprogram",
+        session_id=str(session_id or "").strip(),
+        turn_id="",
+        amount_points=int(_MINI_PROGRAM_CAPTURE_COST),
+        dedupe_key=reservation_key,
+        status=_FREE_TRIAL_USAGE_STATUS,
+        metadata={
+            "reason": "free_trial",
+            "daily_limit": _FREE_TRIAL_DAILY_QUESTION_LIMIT,
+            "weekly_limit": _FREE_TRIAL_WEEKLY_QUESTION_LIMIT,
+            "consecutive_full_days_limit": _FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT,
+        },
+    )
+    return {
+        "free_trial": "reserved",
+        "free_trial_reservation_key": reservation_key,
+    }
+
+
 def _build_billing_usage_payload(
     entries: list[WalletLedgerEntry],
     *,
@@ -716,23 +927,10 @@ def _assert_wallet_balance_available(wallet_user_id: str) -> None:
     if not is_billing_enforcement_enabled():
         return
     snapshot = wallet_service.get_wallet(wallet_user_id)
-    if snapshot is None:
-        available_micros = 0
-    else:
-        available_micros = int(snapshot.balance_micros) - int(snapshot.frozen_micros)
-    minimum_charge_micros = int(_MINI_PROGRAM_CAPTURE_COST) * 1_000_000
-    if available_micros >= minimum_charge_micros:
+    available_micros = _wallet_available_micros(snapshot)
+    if available_micros >= _minimum_turn_charge_micros():
         return
-    raise HTTPException(
-        status_code=429,
-        detail={
-            "code": "billing_quota_exceeded",
-            "message": "Insufficient wallet balance for this turn.",
-            "limited_by": "balance",
-            "available_micros": max(available_micros, 0),
-            "required_micros": minimum_charge_micros,
-        },
-    )
+    raise _insufficient_wallet_balance_exception(available_micros)
 
 
 def _eval_bypass_identity_candidates(*user_ids: str) -> list[str]:
@@ -798,9 +996,11 @@ def _assert_billing_quota_available(
     wallet_user_id: str,
     authenticated_user_id: str = "",
     eval_bypass_verified: bool = False,
-) -> None:
+    client_turn_id: str = "",
+    session_id: str = "",
+) -> dict[str, str]:
     if not is_billing_enforcement_enabled():
-        return
+        return {}
     if eval_bypass_verified:
         # Key-gated eval bypass already verified at the request boundary against a
         # QA-cohort identity. Audit every grant so abuse of a leaked key is visible.
@@ -809,7 +1009,7 @@ def _assert_billing_quota_available(
             _log_safe_id(authenticated_user_id),
             _log_safe_id(wallet_user_id),
         )
-        return
+        return {}
     identity_candidates = [
         authenticated_user_id,
         wallet_user_id,
@@ -819,7 +1019,7 @@ def _assert_billing_quota_available(
     if internal_qa_billing_bypass_allowed(
         *identity_candidates,
     ):
-        return
+        return {}
     normalized_user_id = str(wallet_user_id or "").strip()
     if not normalized_user_id or not getattr(wallet_service, "is_configured", False):
         raise HTTPException(
@@ -830,7 +1030,40 @@ def _assert_billing_quota_available(
                 "limited_by": "wallet_service",
             },
         )
-    _assert_wallet_balance_available(normalized_user_id)
+    snapshot = wallet_service.get_wallet(normalized_user_id)
+    available_micros = _wallet_available_micros(snapshot)
+    if available_micros < _minimum_turn_charge_micros():
+        if (
+            snapshot is None
+            or available_micros > 0
+            or int(getattr(snapshot, "balance_micros", 0) or 0) > 0
+        ):
+            raise _insufficient_wallet_balance_exception(available_micros)
+        try:
+            free_trial_payload = _build_free_trial_usage_payload(
+                _load_free_trial_usage_events(
+                    wallet_user_id=normalized_user_id,
+                    limit=_BILLING_USAGE_LEDGER_WINDOW,
+                )
+            )
+            free_trial_error = _free_trial_limit_exception(free_trial_payload)
+            if free_trial_error is not None:
+                raise free_trial_error
+            return _reserve_free_trial_usage(
+                wallet_user_id=normalized_user_id,
+                authenticated_user_id=authenticated_user_id,
+                client_turn_id=client_turn_id,
+                session_id=session_id,
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.warning(
+                "free trial quota gate unavailable: wallet_user_id=%s error=%s",
+                _log_safe_id(normalized_user_id),
+                exc,
+            )
+            raise _insufficient_wallet_balance_exception(available_micros) from exc
     try:
         usage_payload = _build_billing_usage_payload(
             _load_billing_usage_entries(
@@ -848,7 +1081,7 @@ def _assert_billing_quota_available(
             status_code,
             exc,
         )
-        return
+        return {}
     rows = ((usage_payload.get("quota") or {}).get("rows") or []) if isinstance(usage_payload, dict) else []
     exhausted = [
         row
@@ -856,7 +1089,7 @@ def _assert_billing_quota_available(
         if isinstance(row, dict) and int(row.get("remaining_percent") or 0) <= 0
     ]
     if not exhausted:
-        return
+        return {}
     primary = min(exhausted, key=lambda row: int(row.get("remaining_percent") or 0))
     raise HTTPException(
         status_code=429,
@@ -1925,6 +2158,7 @@ def _build_mobile_turn_payload(
     wallet_user_id: str,
     query: str,
     eval_bypass_verified: bool = False,
+    billing_context_overrides: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     requested_tools = [
         str(item).strip()
@@ -1957,18 +2191,27 @@ def _build_mobile_turn_payload(
     capability = str(body.capability or "").strip() or None
     if capability == "tutorbot":
         capability = None
+    billing_context = {
+        "source": "wx_miniprogram",
+        "user_id": authenticated_user_id,
+        "wallet_user_id": wallet_user_id or authenticated_user_id,
+        "learning_user_id": authenticated_user_id,
+        # Server-authored only; the client cannot inject billing_context, so
+        # this verified marker safely carries the eval-bypass decision to the
+        # post-turn capture path.
+        **({"eval_bypass": "verified"} if eval_bypass_verified else {}),
+    }
+    if billing_context_overrides:
+        billing_context.update(
+            {
+                str(key): str(value)
+                for key, value in billing_context_overrides.items()
+                if str(key or "").strip() and value is not None
+            }
+        )
     config: dict[str, Any] = {
         "interaction_hints": interaction_hints,
-        "billing_context": {
-            "source": "wx_miniprogram",
-            "user_id": authenticated_user_id,
-            "wallet_user_id": wallet_user_id or authenticated_user_id,
-            "learning_user_id": authenticated_user_id,
-            # Server-authored only; the client cannot inject billing_context, so
-            # this verified marker safely carries the eval-bypass decision to the
-            # post-turn capture path.
-            **({"eval_bypass": "verified"} if eval_bypass_verified else {}),
-        },
+        "billing_context": billing_context,
         "interaction_profile": interaction_profile,
     }
     if capability in (None, "chat"):
@@ -3322,11 +3565,13 @@ async def mobile_chat_start_turn(
             eval_bypass,
             *_eval_bypass_identity_candidates(resolved_user_id, resolved_wallet_user_id),
         )
-    _assert_billing_quota_available(
+    billing_context_overrides = _assert_billing_quota_available(
         authorization,
         wallet_user_id=resolved_wallet_user_id,
         authenticated_user_id=resolved_user_id,
         eval_bypass_verified=eval_bypass_verified,
+        client_turn_id=str(body.client_turn_id or "").strip(),
+        session_id=str(body.conversation_id or "").strip(),
     )
     runtime_session_id, public_conversation_id = await _resolve_mobile_runtime_session_id(
         body.conversation_id,
@@ -3338,6 +3583,7 @@ async def mobile_chat_start_turn(
         wallet_user_id=resolved_wallet_user_id,
         query=query,
         eval_bypass_verified=eval_bypass_verified,
+        billing_context_overrides=billing_context_overrides,
     )
     if runtime_session_id:
         payload["session_id"] = runtime_session_id
