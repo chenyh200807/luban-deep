@@ -10,8 +10,12 @@
 - 掌握判定只引用既有 claim（``learning_synthesis`` 产出的 evidence_level /
   decay_state），mastery 算子仍只有 ``mastery_estimator``；本模块不重算分数。
 - M0：``exposed``（看动画）永远停在蓝环（接触轨），绝不进掌握轨；真懂
-  （mastered）只认客观复测级证据（``L2_real_retest`` 及以上 rank）——远迁移
-  变体属性（R4）尚未进事件流，达标前 fail-closed 停在 practiced，不虚标。
+  （mastered）只认**显式正向信号** ``verified_concepts``（prescription_outcome
+  verified 的 concept/taxonomy codes，由 caller 传入）——弱点 claim 的
+  evidence_level 只说明「弱点有多可信」，复测确认弱点绝不能翻成已掌握
+  （病G 语义反转防护）。正向信号尚未接线前 caller 传空，fail-closed 停在
+  practiced，不虚标。dormant = 真懂过 + 记忆衰减（``stale``）；``improving``
+  = 弱点仍在改善 ≠ 该休眠，不进 dormant。
 - 练-evidence → pack 的 join 只走两条确定性路径（§2.4）：
   ① question_id ∈ 题→pack 编译映射（``_question_pack_map.v0.json``）；
   ② canonical_topic.taxonomy_code ∈ pack refs（``_pack_taxonomy_registry.v0.json``，
@@ -28,7 +32,6 @@ from typing import Any
 from loguru import logger
 
 from deeptutor.services.learner_state.lesson_evidence import is_lesson_view_event
-from deeptutor.services.learner_state.memory_lifecycle import evidence_level_rank
 
 _REPO = Path(__file__).resolve().parents[3]
 _ARTIFACT_DIR = _REPO / "docs" / "原始数据" / "考点原料" / "成品"
@@ -40,8 +43,6 @@ LIFECYCLE_EXPOSED = "exposed"
 LIFECYCLE_PRACTICED = "practiced"
 LIFECYCLE_MASTERED = "mastered"
 LIFECYCLE_DORMANT = "dormant"
-
-_MASTERY_RANK_FLOOR = evidence_level_rank("L2_real_retest")
 
 # 编译产物的单一 loader 汇点（照 m35_artifact_query 的 (mtime_ns, size) 模式）：
 # 失败（缺文件/损坏）**绝不写缓存**——修好文件后同进程下次调用即恢复；
@@ -178,10 +179,8 @@ def _claim_packs(claims: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         if not hits:
             continue
         pack_id = hits[0]
-        rank = evidence_level_rank(claim.get("evidence_level"))
-        slot = by_pack.setdefault(pack_id, {"max_rank": -1, "decay_states": set(), "claim_count": 0})
+        slot = by_pack.setdefault(pack_id, {"decay_states": set(), "claim_count": 0})
         slot["claim_count"] += 1
-        slot["max_rank"] = max(slot["max_rank"], rank)
         decay = str(claim.get("decay_state") or "").strip()
         if decay:
             slot["decay_states"].add(decay)
@@ -193,9 +192,13 @@ def project_pack_lifecycle(
     events: list[Any] | None,
     claims: list[dict[str, Any]] | None = None,
     pack_ids: list[str] | None = None,
+    verified_concepts: set[str] | frozenset[str] = frozenset(),
 ) -> dict[str, Any]:
     """派生每 pack 生命周期状态。``claims`` 传 compiled truth 的
-    weak_points/claim 列表（含 concept_id/evidence_level/decay_state）。"""
+    weak_points/claim 列表（含 concept_id/evidence_level/decay_state）——
+    只用于 practiced 归位与 dormant 的衰减判定，**绝不**当正向掌握信号。
+    ``verified_concepts`` = prescription_outcome verified 的 concept/taxonomy
+    codes（显式正向信号）；pack refs ∩ verified_concepts 非空才 mastered。"""
     if pack_ids is None:
         from deeptutor.services.luban_lesson import list_all_pack_ids
 
@@ -232,6 +235,14 @@ def project_pack_lifecycle(
 
     mastery_by_pack = _claim_packs(list(claims or []))
 
+    # 显式正向信号 → pack（refs ∩ verified_concepts，join 走同一份注册表）。
+    verified_packs: set[str] = set()
+    verified_codes = {str(code or "").strip() for code in (verified_concepts or ()) if str(code or "").strip()}
+    if verified_codes:
+        (_, any_ref), _ = _taxonomy_to_packs()
+        for code in verified_codes:
+            verified_packs.update(any_ref.get(code) or ())
+
     # 病A 契约：编译产物加载失败（容器缺文件/损坏）必须显式降级——
     # 空映射会把所有练-evidence 打进未归位桶，绝不能看起来健康。
     _, question_map_ok = _question_to_packs()
@@ -241,14 +252,14 @@ def project_pack_lifecycle(
     packs: dict[str, dict[str, Any]] = {}
     for pack_id in pack_ids:
         mastery = mastery_by_pack.get(pack_id) or {}
-        max_rank = int(mastery.get("max_rank", -1))
         decay_states = mastery.get("decay_states") or set()
         has_practice = pack_id in practiced_packs or bool(mastery)
         has_exposure = pack_id in exposed_packs
 
-        if max_rank >= _MASTERY_RANK_FLOOR:
-            dormant = bool(decay_states & {"stale", "improving"})
-            state = LIFECYCLE_DORMANT if dormant else LIFECYCLE_MASTERED
+        if pack_id in verified_packs:
+            # dormant = 真懂过 + 记忆衰减（stale）。improving = 弱点仍在
+            # 改善 ≠ 该休眠（病G 裁决：improving 移出 dormant 判定）。
+            state = LIFECYCLE_DORMANT if "stale" in decay_states else LIFECYCLE_MASTERED
         elif has_practice:
             state = LIFECYCLE_PRACTICED
         elif has_exposure:

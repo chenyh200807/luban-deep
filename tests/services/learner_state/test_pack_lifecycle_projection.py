@@ -89,18 +89,53 @@ def test_practice_evidence_promotes_to_practiced_via_taxonomy_join() -> None:
     assert n01["practice_event_count"] == 1
 
 
-def test_real_retest_claim_promotes_to_mastered_and_stale_to_dormant() -> None:
-    mastered_claim = {
+def test_weak_point_claim_never_promotes_to_mastered() -> None:
+    # 病G(语义反转地雷):mastered 地板曾 key 在**弱点 claim** 的
+    # evidence_level rank 上——复测「确认弱点」(L2_real_retest)反而翻成
+    # 「已掌握」。弱点证据强度只说明弱点可信,绝不是正向掌握信号。
+    weak_claim = {
         "concept_id": "1A433000-B041",
         "evidence_level": "L2_real_retest",
         "decay_state": "active",
     }
-    projection = project_pack_lifecycle(events=[], claims=[mastered_claim], pack_ids=_PACK_IDS)
-    assert projection["packs"]["N01"]["lifecycle_state"] == LIFECYCLE_MASTERED
+    projection = project_pack_lifecycle(events=[], claims=[weak_claim], pack_ids=_PACK_IDS)
+    assert projection["packs"]["N01"]["lifecycle_state"] == LIFECYCLE_PRACTICED
 
-    dormant_claim = {**mastered_claim, "decay_state": "stale"}
-    projection = project_pack_lifecycle(events=[], claims=[dormant_claim], pack_ids=_PACK_IDS)
+
+def test_verified_concepts_are_the_only_mastered_signal() -> None:
+    # mastered 只认显式正向信号:prescription_outcome verified 的 concept
+    # codes(verified_concepts 入参)∩ pack refs 非空。
+    projection = project_pack_lifecycle(
+        events=[],
+        claims=[],
+        pack_ids=_PACK_IDS,
+        verified_concepts={"1A433000-B041"},
+    )
+    assert projection["packs"]["N01"]["lifecycle_state"] == LIFECYCLE_MASTERED
+    assert projection["packs"]["A01"]["lifecycle_state"] == LIFECYCLE_UNLEARNED
+
+
+def test_dormant_requires_verified_plus_stale_and_improving_stays_mastered() -> None:
+    # dormant = 真懂过 + 记忆衰减(stale)。improving = 弱点仍在改善,
+    # 不是「该休眠」——从 dormant 判定移除(病G 裁决)。
+    stale_claim = {
+        "concept_id": "1A433000-B041",
+        "evidence_level": "L1_repeated",
+        "decay_state": "stale",
+    }
+    projection = project_pack_lifecycle(
+        events=[], claims=[stale_claim], pack_ids=_PACK_IDS, verified_concepts={"1A433000-B041"}
+    )
     assert projection["packs"]["N01"]["lifecycle_state"] == LIFECYCLE_DORMANT
+
+    improving_claim = {**stale_claim, "decay_state": "improving"}
+    projection = project_pack_lifecycle(
+        events=[],
+        claims=[improving_claim],
+        pack_ids=_PACK_IDS,
+        verified_concepts={"1A433000-B041"},
+    )
+    assert projection["packs"]["N01"]["lifecycle_state"] == LIFECYCLE_MASTERED
 
 
 def test_confirmed_without_retest_stays_practiced_m0() -> None:
