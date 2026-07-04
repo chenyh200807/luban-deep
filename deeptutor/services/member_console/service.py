@@ -6398,14 +6398,25 @@ class MemberConsoleService:
         if not attempts_by_label:
             return items
         blended: list[dict[str, Any]] = []
+        matched_names: set[str] = set()
         for item in items:
             name = str(item.get("name") or "").strip()
             attempts = attempts_by_label.get(name) or []
             if not attempts:
                 blended.append(item)
                 continue
+            matched_names.add(name)
             estimate = estimate_mastery(attempts=attempts, legacy_score=item.get("mastery"))
             blended.append({**item, "mastery": int(estimate.get("score") or 0)})
+        # 病H-2 可观测性:区分「无作答」vs「label 对不上」(join 静默丢证据)。
+        # 只进日志,不进对外 payload。
+        unmatched_labels = sorted(set(attempts_by_label) - matched_names)
+        logger.debug(
+            "mastery blend_stats: matched=%s unmatched_labels=%s items_without_evidence=%s",
+            len(matched_names),
+            unmatched_labels,
+            len(items) - len(matched_names),
+        )
         return blended
 
     def _mastery_evidence_events(self, member: dict[str, Any], user_id: str) -> list[Any]:

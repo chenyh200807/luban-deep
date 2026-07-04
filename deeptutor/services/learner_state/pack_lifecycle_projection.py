@@ -73,21 +73,37 @@ def _load_compiled_artifact(path: Path, project: Any) -> tuple[Any, bool]:
     return projected, True
 
 
-def _project_question_index(compiled: dict[str, Any] | None) -> dict[str, tuple[str, ...]]:
+def _project_question_index(
+    compiled: dict[str, Any] | None,
+) -> tuple[dict[str, tuple[str, ...]], frozenset[str]]:
     """双键索引：qualified `year:chunk_id` 精确键 + 裸 chunk_id 键（合并跨年，
     仅唯一 pack 时才可 join——歧义由 resolver fail-closed 处理）。零碰撞：
-    qualified 键恒有 `^\\d{4}:` 前缀，裸键不含 `:`（专家 B 实测 252/234 键验证）。"""
+    qualified 键恒有 `^\\d{4}:` 前缀，裸键不含 `:`（专家 B 实测 252/234 键验证）。
+
+    第二返回值 = 跨年碰撞黑名单（病H-1 审计实测 14 个）：同一裸 chunk_id
+    出现在 >1 个年份且各年 pack fan-out **不同**——裸键 join 对这些 id
+    永远歧义，resolver 专用 reason="cross_year_ambiguous" fail-closed。"""
     if not isinstance(compiled, dict):
-        return {}
+        return {}, frozenset()
     index: dict[str, set[str]] = {}
+    year_sets: dict[str, dict[str, frozenset[str]]] = {}
     for qualified, packs in (compiled.get("reverse_index") or {}).items():
         index.setdefault(qualified, set()).update(packs)
-        bare = qualified.split(":", 1)[-1]
+        year, _, bare = qualified.partition(":")
         index.setdefault(bare, set()).update(packs)
-    return {key: tuple(sorted(value)) for key, value in index.items()}
+        year_sets.setdefault(bare, {})[year] = frozenset(packs)
+    cross_year_ambiguous = frozenset(
+        bare
+        for bare, by_year in year_sets.items()
+        if len(by_year) > 1 and len(set(by_year.values())) > 1
+    )
+    return (
+        {key: tuple(sorted(value)) for key, value in index.items()},
+        cross_year_ambiguous,
+    )
 
 
-def _question_to_packs() -> tuple[dict[str, tuple[str, ...]], bool]:
+def _question_to_packs() -> tuple[tuple[dict[str, tuple[str, ...]], frozenset[str]], bool]:
     return _load_compiled_artifact(_QUESTION_PACK_MAP_PATH, _project_question_index)
 
 
@@ -120,7 +136,7 @@ def _taxonomy_to_packs() -> tuple[tuple[dict[str, tuple[str, ...]], dict[str, tu
 def _resolve_pack_for_practice(payload: dict[str, Any]) -> tuple[str, str]:
     """返回 (pack_id, join_path)；无法唯一归位 → ("", 原因)。"""
     question_id = str(payload.get("question_id") or "").strip()
-    question_index, _ = _question_to_packs()
+    (question_index, cross_year_ambiguous), _ = _question_to_packs()
     if question_id:
         packs = question_index.get(question_id) or ()
         if len(packs) == 1:
@@ -139,6 +155,9 @@ def _resolve_pack_for_practice(payload: dict[str, Any]) -> tuple[str, str]:
             return ref_hits[0], "taxonomy_ref"
         if ref_hits:
             return "", "taxonomy_ambiguous"
+    if question_id and question_id in cross_year_ambiguous:
+        # 跨年 fan-out 碰撞(病H-1):裸 id join 永远歧义,专用 reason 可观测。
+        return "", "cross_year_ambiguous"
     if question_id and question_index.get(question_id):
         return "", "question_ambiguous"
     return "", "unmapped"

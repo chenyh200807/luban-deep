@@ -215,13 +215,13 @@ def test_artifact_loader_never_caches_failure(tmp_path, monkeypatch) -> None:
     plp._ARTIFACT_CACHE.clear()
 
     # 文件缺失 → 空索引(降级 ok=False),但不落缓存
-    index, ok = plp._question_to_packs()
-    assert index == {} and ok is False
+    (index, cross_year), ok = plp._question_to_packs()
+    assert index == {} and cross_year == frozenset() and ok is False
 
     artifact.write_text(
         '{"reverse_index": {"2015:EXAM_XW2015_MU_30": ["N01"]}}', encoding="utf-8"
     )
-    index, ok = plp._question_to_packs()
+    (index, _), ok = plp._question_to_packs()
     # 同进程恢复:qualified 精确键 + 裸键都可查
     assert ok is True
     assert index["2015:EXAM_XW2015_MU_30"] == ("N01",)
@@ -231,7 +231,7 @@ def test_artifact_loader_never_caches_failure(tmp_path, monkeypatch) -> None:
     artifact.write_text(
         '{"reverse_index": {"2016:EXAM_XW2016_SI_01": ["A01"]}}', encoding="utf-8"
     )
-    index, ok = plp._question_to_packs()
+    (index, _), ok = plp._question_to_packs()
     assert "EXAM_XW2016_SI_01" in index and "EXAM_XW2015_MU_30" not in index
     plp._ARTIFACT_CACHE.clear()
 
@@ -292,7 +292,49 @@ def test_question_index_serves_qualified_and_unique_bare_keys(tmp_path, monkeypa
         "N01",
         "question_map",
     )
-    # 裸键跨年属不同 pack → 歧义,禁硬塞
+    # 裸键跨年 fan-out 不同 → fail-closed,专用 reason 可观测(病H-1)
     pack, reason = plp._resolve_pack_for_practice({"question_id": "EXAM_1A411001_P0001_01"})
+    assert pack == "" and reason == "cross_year_ambiguous"
+    plp._ARTIFACT_CACHE.clear()
+
+
+def test_same_year_multi_pack_stays_question_ambiguous(tmp_path, monkeypatch) -> None:
+    # 对照臂:同年一题多 pack 不是跨年碰撞,保留原 question_ambiguous。
+    import deeptutor.services.learner_state.pack_lifecycle_projection as plp
+
+    artifact = tmp_path / "map.json"
+    artifact.write_text(
+        '{"reverse_index": {"2022:EXAM_MULTI_01": ["A01", "N01"]}}', encoding="utf-8"
+    )
+    monkeypatch.setattr(plp, "_QUESTION_PACK_MAP_PATH", artifact)
+    plp._ARTIFACT_CACHE.clear()
+    pack, reason = plp._resolve_pack_for_practice({"question_id": "EXAM_MULTI_01"})
     assert pack == "" and reason == "question_ambiguous"
     plp._ARTIFACT_CACHE.clear()
+
+
+def test_repo_artifact_cross_year_collision_audit_is_fail_closed() -> None:
+    """病H-1 数据锚定审计:真实编译产物中「裸 chunk_id 跨年碰撞且 pack
+    fan-out 不同」实测 >0(2026-07-04 审计 = 14 个)——按规格走运行时
+    fail-closed 分支:每个碰撞裸 id 必须落 unassigned,
+    reason="cross_year_ambiguous",禁硬塞任何一个 pack。"""
+    import json as _json
+    from collections import defaultdict
+
+    import deeptutor.services.learner_state.pack_lifecycle_projection as plp
+
+    compiled = _json.loads(plp._QUESTION_PACK_MAP_PATH.read_text(encoding="utf-8"))
+    year_sets: dict[str, dict[str, frozenset]] = defaultdict(dict)
+    for qualified, packs in (compiled.get("reverse_index") or {}).items():
+        year, _, bare = qualified.partition(":")
+        year_sets[bare][year] = frozenset(packs)
+    collisions = sorted(
+        bare
+        for bare, by_year in year_sets.items()
+        if len(by_year) > 1 and len(set(by_year.values())) > 1
+    )
+    assert collisions, "审计前提失效:产物已无跨年 fan-out 碰撞,应改走编译期 guard 分支"
+    plp._ARTIFACT_CACHE.clear()
+    for bare in collisions:
+        pack, reason = plp._resolve_pack_for_practice({"question_id": bare})
+        assert (pack, reason) == ("", "cross_year_ambiguous"), bare
