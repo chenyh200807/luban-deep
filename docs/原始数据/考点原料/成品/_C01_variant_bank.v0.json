@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-c01-variant-bank",
  "pack_id": "C01",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
  "generation_ms": 0.02,
  "gate": {
@@ -573,5 +573,10 @@
    "anchor": "{2015,第26题}",
    "extension": false
   }
- ]
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:47+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
 }

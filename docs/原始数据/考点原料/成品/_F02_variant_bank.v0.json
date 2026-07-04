@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-f02-variant-bank",
  "pack_id": "F02",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
  "generation_ms": 0.02,
  "gate": {
@@ -515,5 +515,10 @@
    "anchor": "kc:1A413030_125_0237:0 + {2015,案例2}",
    "extension": false
   }
- ]
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:47+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
 }

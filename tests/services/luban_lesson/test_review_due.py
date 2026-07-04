@@ -49,12 +49,13 @@ def test_retest_completion_resets_next_day():
 
 def test_variantless_green_pack_marks_retest_unavailable():
     """无变体池的绿灯站照常到期, 但 retest_available=False——客户端据此
-    fail-closed 隐藏'换皮'承诺句(现状仅 2 池, 禁对无池站承诺换皮复测)。"""
+    fail-closed 隐藏'换皮'承诺句(F05 为 wave1 如实跳过建池的绿灯站:
+    其 pack 自检把机械扣分判断收归 R7 🔴, 结构性无池, 是本断言的稳定 fixture)。"""
     out = build_review_due_projection(
         user_id="u1",
-        events=[_ev("2026-07-03T09:00:00+08:00", "A01")],
+        events=[_ev("2026-07-03T09:00:00+08:00", "F05")],
         now_iso="2026-07-04T09:00:00+08:00")
-    assert [d["pack_id"] for d in out["due"]] == ["A01"]
+    assert [d["pack_id"] for d in out["due"]] == ["F05"]
     assert out["due"][0]["retest_available"] is False
 
 

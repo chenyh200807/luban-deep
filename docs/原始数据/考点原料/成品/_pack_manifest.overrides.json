@@ -78,5 +78,37 @@
   "R01": {
     "published": true,
     "note": "2026-07-04 owner 批次签发（信心批 Batch A，owner 抽检通过后明文指令'抽检通过，合并 #364，出批量 override PR'）。依据：裁决流水线 PR#364 全部高可信 issue 收口 jury_clean=true；主控独立核验=15包 recheck 联跑 exit 0+🟢 delta 全 0+红旗三项零异常。本包机器核验数字（签发分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 5 个, 案例锚 1 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。"
+  },
+  "K01": {
+    "published": true,
+    "note": "2026-07-05 owner 批次签发（重尾批 Batch C，owner 明文'通过，全按建议来'）。依据：裁决流水线 D4 全部高可信 issue 收口 jury_clean=true（99 条/123 处编辑/零升色）；本包机器核验（集成分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 2 个, 案例锚 3 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。"
+  },
+  "S06": {
+    "published": true,
+    "note": "2026-07-05 owner 批次签发（重尾批 Batch C，owner 明文'通过，全按建议来'）。依据：裁决流水线 D4 全部高可信 issue 收口 jury_clean=true（99 条/123 处编辑/零升色）；本包机器核验（集成分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 4 个, 案例锚 4 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。"
+  },
+  "Q02": {
+    "published": true,
+    "note": "2026-07-05 owner 批次签发（重尾批 Batch C，owner 明文'通过，全按建议来'）。依据：裁决流水线 D4 全部高可信 issue 收口 jury_clean=true（99 条/123 处编辑/零升色）；本包机器核验（集成分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 0 个, 案例锚 0 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。"
+  },
+  "C04": {
+    "published": true,
+    "note": "2026-07-05 owner 批次签发（重尾批 Batch C，owner 明文'通过，全按建议来'）。依据：裁决流水线 D4 全部高可信 issue 收口 jury_clean=true（99 条/123 处编辑/零升色）；本包机器核验（集成分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 6 个, 案例锚 2 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。"
+  },
+  "N02": {
+    "published": true,
+    "note": "2026-07-05 owner 批次签发（重尾批 Batch C，owner 明文'通过，全按建议来'）。依据：裁决流水线 D4 全部高可信 issue 收口 jury_clean=true（99 条/123 处编辑/零升色）；本包机器核验（集成分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 3 个, 案例锚 5 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。"
+  },
+  "Q01": {
+    "published": true,
+    "note": "2026-07-05 owner 批次签发（重尾批 Batch C，owner 明文'通过，全按建议来'）。依据：裁决流水线 D4 全部高可信 issue 收口 jury_clean=true（99 条/123 处编辑/零升色）；本包机器核验（集成分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 10 个, 案例锚 3 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。"
+  },
+  "S02": {
+    "published": true,
+    "note": "2026-07-05 owner 批次签发（重尾批 Batch C，owner 明文'通过，全按建议来'）。依据：裁决流水线 D4 全部高可信 issue 收口 jury_clean=true（99 条/123 处编辑/零升色）；本包机器核验（集成分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 5 个, 案例锚 3 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。"
+  },
+  "S01": {
+    "published": true,
+    "note": "2026-07-05 owner 批次签发（重尾批 Batch C，owner 明文'通过，全按建议来'）。依据：裁决流水线 D4 全部高可信 issue 收口 jury_clean=true（99 条/123 处编辑/零升色）；本包机器核验（集成分支实跑）：verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 7 个, 案例锚 13 个; 题号漂移/不符/缺失 0 个）；recheck_resolutions exit 0。"
   }
 }

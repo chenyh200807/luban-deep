@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-c02-variant-bank",
  "pack_id": "C02",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
  "generation_ms": 0.02,
  "gate": {
@@ -623,5 +623,10 @@
    "anchor": "kc:1A432000_047_0067:0 + R4维度6（不可抗力→工期可顺延）",
    "extension": false
   }
- ]
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:47+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
 }
