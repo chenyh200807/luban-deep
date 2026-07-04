@@ -22,5 +22,9 @@
   "F16": {
     "published": true,
     "note": "2026-07-03 owner 人工签发（本轮对话明文批准：'F16 直接批签发，把那 2 条 jury 收口掉'）。依据：2 条高可信 jury 正文早已采纳（HI#1 M2=E02主码+E06条件码 / HI#2 排气孔推断降🔵），本次补机器可读 resolution；工程窗口独立核验=锚 2/2 确定性命中+registry 语义核对；finished 成品教学卡(teach/practice+audio)已托管 web/public/luban-preview/f16/。"
+  },
+  "G03": {
+    "published": true,
+    "note": "2026-07-04 owner 签发（裁决流水线 D1 签发路径 dry-run；本 override 随 PR 交 owner，owner 合并 PR 即签发动作本身）。依据：jury_clean=true（jury 6 条 findings 全存疑、0 高可信、零裁决成本）。机器核验数字（2026-07-04 D1 分支实跑）：verify_pack PASS（🟢75/🔵42/🔴15，point_id/error_code 零非法）；verify_exam_anchors 12/12 确定性命中（单选多选 8 + 案例 4，题号漂移/缺失 0）；recheck_resolutions.py G03 exit 0（resolution 重放 + 双闸绿 + manifest --check 零漂移）。"
   }
 }
