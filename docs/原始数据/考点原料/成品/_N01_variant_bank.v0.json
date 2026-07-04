@@ -1,0 +1,610 @@
+{
+ "schema_version": "luban-n01-variant-bank",
+ "pack_id": "N01",
+ "status": "candidate",
+ "source_pack_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+ "generation_ms": 0.02,
+ "gate": {
+  "total": 43,
+  "passed": 43,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-line": 7,
+  "B-expr": 3,
+  "C-delay": 6,
+  "D-adjust": 10,
+  "E-monitor": 10,
+  "F-procedure": 3,
+  "G-logic": 4
+ },
+ "variants": [
+  {
+   "variant_id": "N01-A-line-000",
+   "rule_group": "A-line",
+   "surface": "网络计划有两条并列关键线路，项目部将两条线路全部列出，节点连续无跳号",
+   "params": {
+    "lines_total": 2,
+    "lines_listed": 2,
+    "concrete_path": true,
+    "nodes_continuous": true
+   },
+   "expected_ok": true,
+   "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
+   "anchor": "kc:1A433000_056_0085:1 + {2015,案例1} + {2020,案例二问题2}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-A-line-001",
+   "rule_group": "A-line",
+   "surface": "网络计划有两条并列关键线路，项目部只列出其中一条",
+   "params": {
+    "lines_total": 2,
+    "lines_listed": 1,
+    "concrete_path": true,
+    "nodes_continuous": true
+   },
+   "expected_ok": false,
+   "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
+   "anchor": "kc:1A433000_056_0085:1 + {2015,案例1} + {2020,案例二问题2}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-A-line-002",
+   "rule_group": "A-line",
+   "surface": "项目部答题只写「最长的线路就是关键线路」，未写出具体线路",
+   "params": {
+    "lines_total": 1,
+    "lines_listed": 1,
+    "concrete_path": false,
+    "nodes_continuous": true
+   },
+   "expected_ok": false,
+   "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
+   "anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-A-line-003",
+   "rule_group": "A-line",
+   "surface": "项目部写出的关键线路节点跳号、前后不连续",
+   "params": {
+    "lines_total": 1,
+    "lines_listed": 1,
+    "concrete_path": true,
+    "nodes_continuous": false
+   },
+   "expected_ok": false,
+   "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
+   "anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-A-line-004",
+   "rule_group": "A-line",
+   "surface": "网络计划关键线路为单条，项目部完整写出该线路，节点连续无跳号",
+   "params": {
+    "lines_total": 1,
+    "lines_listed": 1,
+    "concrete_path": true,
+    "nodes_continuous": true
+   },
+   "expected_ok": true,
+   "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
+   "anchor": "kc:1A433000_056_0085:1 + {2017,案例一}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-A-line-005",
+   "rule_group": "A-line",
+   "surface": "项目部以「总时差最小」作为关键工作判定依据，并落到具体工作",
+   "params": {
+    "criterion": "总时差最小",
+    "grounded": true
+   },
+   "expected_ok": true,
+   "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
+   "anchor": "kc:1A433000_056_0085:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-A-line-006",
+   "rule_group": "A-line",
+   "surface": "项目部只写「关键工作 = 总时差最小的工作」，未落到本网络图的具体工作",
+   "params": {
+    "criterion": "总时差最小",
+    "grounded": false
+   },
+   "expected_ok": false,
+   "correct_statement": "并列最长路径必须全部列出（2015/2020 均两条）；线路须落到具体线路且节点连续无跳号；关键工作按「总时差最小」判据判定并落到具体工作",
+   "anchor": "kc:1A433000_056_0085:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-B-expr-007",
+   "rule_group": "B-expr",
+   "surface": "项目部按「关键线路 + 算式 + 单位」给出总工期：T=5+7+5+4+4=25 个月",
+   "params": {
+    "sum_along": "critical",
+    "has_path": true,
+    "has_formula": true,
+    "has_unit": true
+   },
+   "expected_ok": true,
+   "correct_statement": "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」三件齐全",
+   "anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-B-expr-008",
+   "rule_group": "B-expr",
+   "surface": "项目部计算总工期时，沿一条非关键线路将各工作持续时间求和",
+   "params": {
+    "sum_along": "noncritical",
+    "has_path": true,
+    "has_formula": true,
+    "has_unit": true
+   },
+   "expected_ok": false,
+   "correct_statement": "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」三件齐全",
+   "anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-B-expr-009",
+   "rule_group": "B-expr",
+   "surface": "项目部的总工期答案只写一个数字，不给出线路与算式",
+   "params": {
+    "sum_along": "critical",
+    "has_path": false,
+    "has_formula": false,
+    "has_unit": true
+   },
+   "expected_ok": false,
+   "correct_statement": "总工期 = 关键线路上各工作持续时间之和，答案须「线路 + 算式 + 单位」三件齐全",
+   "anchor": "{2015,案例1} + {2017,案例一} + kc:1A433000_056_0085:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-C-delay-010",
+   "rule_group": "C-delay",
+   "surface": "甲供电缆安装有 3 个月总时差（非关键工作），实际延误 1 个月，项目部判定该延误不影响总工期",
+   "params": {
+    "on_critical": false,
+    "tf": 3,
+    "delay": 1,
+    "claim_affects": false
+   },
+   "expected_ok": true,
+   "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
+   "anchor": "{2018,案例分析(二)问题1-4}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-C-delay-011",
+   "rule_group": "C-delay",
+   "surface": "甲供电缆安装有 3 个月总时差（非关键工作），实际延误 1 个月，项目部据此判定总工期将被拖延",
+   "params": {
+    "on_critical": false,
+    "tf": 3,
+    "delay": 1,
+    "claim_affects": true
+   },
+   "expected_ok": false,
+   "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
+   "anchor": "{2018,案例分析(二)问题1-4}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-C-delay-012",
+   "rule_group": "C-delay",
+   "surface": "D 工作有 3 天总时差（非关键工作），实际延误 2 天，项目部判定该延误不影响总工期",
+   "params": {
+    "on_critical": false,
+    "tf": 3,
+    "delay": 2,
+    "claim_affects": false
+   },
+   "expected_ok": true,
+   "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
+   "anchor": "{2020,案例二问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-C-delay-013",
+   "rule_group": "C-delay",
+   "surface": "D 工作有 3 天总时差（非关键工作），实际延误 2 天，项目部据此判定总工期将被拖延",
+   "params": {
+    "on_critical": false,
+    "tf": 3,
+    "delay": 2,
+    "claim_affects": true
+   },
+   "expected_ok": false,
+   "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
+   "anchor": "{2020,案例二问题3}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-C-delay-014",
+   "rule_group": "C-delay",
+   "surface": "管道安装位于关键线路上（总时差为 0），项目部判定其延误将影响总工期",
+   "params": {
+    "on_critical": true,
+    "tf": 0,
+    "delay": null,
+    "claim_affects": true
+   },
+   "expected_ok": true,
+   "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
+   "anchor": "{2018,案例分析(二)问题1-4} + kc:1A433000_056_0085:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-C-delay-015",
+   "rule_group": "C-delay",
+   "surface": "管道安装位于关键线路上（总时差为 0），项目部认为其仍有机动时间，延误不影响总工期",
+   "params": {
+    "on_critical": true,
+    "tf": 0,
+    "delay": null,
+    "claim_affects": false
+   },
+   "expected_ok": false,
+   "correct_statement": "延误 ≤ 该工作总时差则不影响总工期；延误工作在关键线路上（总时差为 0）或延误超过总时差则影响总工期，必须比较「延误 vs 总时差」后下结论",
+   "anchor": "{2018,案例分析(二)问题1-4} + kc:1A433000_056_0085:1",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-D-adjust-016",
+   "rule_group": "D-adjust",
+   "surface": "进度检查发现偏差需调整计划，项目部将「关键工作调整」列为可用的调整方法",
+   "params": {
+    "method": "关键工作调整",
+    "listed_as_method": true
+   },
+   "expected_ok": true,
+   "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+   "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-D-adjust-017",
+   "rule_group": "D-adjust",
+   "surface": "项目部认为「关键工作调整」不属于进度计划的调整方法",
+   "params": {
+    "method": "关键工作调整",
+    "listed_as_method": false
+   },
+   "expected_ok": false,
+   "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+   "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-D-adjust-018",
+   "rule_group": "D-adjust",
+   "surface": "进度检查发现偏差需调整计划，项目部将「逻辑关系调整」列为可用的调整方法",
+   "params": {
+    "method": "逻辑关系调整",
+    "listed_as_method": true
+   },
+   "expected_ok": true,
+   "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+   "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-D-adjust-019",
+   "rule_group": "D-adjust",
+   "surface": "项目部认为「逻辑关系调整」不属于进度计划的调整方法",
+   "params": {
+    "method": "逻辑关系调整",
+    "listed_as_method": false
+   },
+   "expected_ok": false,
+   "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+   "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-D-adjust-020",
+   "rule_group": "D-adjust",
+   "surface": "进度检查发现偏差需调整计划，项目部将「重新编制计划」列为可用的调整方法",
+   "params": {
+    "method": "重新编制计划",
+    "listed_as_method": true
+   },
+   "expected_ok": true,
+   "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+   "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-D-adjust-021",
+   "rule_group": "D-adjust",
+   "surface": "项目部认为「重新编制计划」不属于进度计划的调整方法",
+   "params": {
+    "method": "重新编制计划",
+    "listed_as_method": false
+   },
+   "expected_ok": false,
+   "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+   "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-D-adjust-022",
+   "rule_group": "D-adjust",
+   "surface": "进度检查发现偏差需调整计划，项目部将「非关键工作调整」列为可用的调整方法",
+   "params": {
+    "method": "非关键工作调整",
+    "listed_as_method": true
+   },
+   "expected_ok": true,
+   "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+   "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-D-adjust-023",
+   "rule_group": "D-adjust",
+   "surface": "项目部认为「非关键工作调整」不属于进度计划的调整方法",
+   "params": {
+    "method": "非关键工作调整",
+    "listed_as_method": false
+   },
+   "expected_ok": false,
+   "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+   "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-D-adjust-024",
+   "rule_group": "D-adjust",
+   "surface": "进度检查发现偏差需调整计划，项目部将「资源调整」列为可用的调整方法",
+   "params": {
+    "method": "资源调整",
+    "listed_as_method": true
+   },
+   "expected_ok": true,
+   "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+   "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-D-adjust-025",
+   "rule_group": "D-adjust",
+   "surface": "项目部认为「资源调整」不属于进度计划的调整方法",
+   "params": {
+    "method": "资源调整",
+    "listed_as_method": false
+   },
+   "expected_ok": false,
+   "correct_statement": "进度计划调整方法为封闭五类：关键工作调整（重点）/逻辑关系调整/重新编制计划/非关键工作调整/资源调整",
+   "anchor": "kc:1A433000_061_0092:0 + {2025,参考答案(二)}",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-E-monitor-026",
+   "rule_group": "E-monitor",
+   "surface": "进度计划实施监测中，项目部将「记录实际时间」列入监测内容",
+   "params": {
+    "item": "记录实际时间",
+    "listed_as_content": true
+   },
+   "expected_ok": true,
+   "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+   "anchor": "kc:1A433000_061_0091:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-E-monitor-027",
+   "rule_group": "E-monitor",
+   "surface": "项目部认为「记录实际时间」不属于进度计划实施监测的内容",
+   "params": {
+    "item": "记录实际时间",
+    "listed_as_content": false
+   },
+   "expected_ok": false,
+   "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+   "anchor": "kc:1A433000_061_0091:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-E-monitor-028",
+   "rule_group": "E-monitor",
+   "surface": "进度计划实施监测中，项目部将「观测关键线路」列入监测内容",
+   "params": {
+    "item": "观测关键线路",
+    "listed_as_content": true
+   },
+   "expected_ok": true,
+   "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+   "anchor": "kc:1A433000_061_0091:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-E-monitor-029",
+   "rule_group": "E-monitor",
+   "surface": "项目部认为「观测关键线路」不属于进度计划实施监测的内容",
+   "params": {
+    "item": "观测关键线路",
+    "listed_as_content": false
+   },
+   "expected_ok": false,
+   "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+   "anchor": "kc:1A433000_061_0091:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-E-monitor-030",
+   "rule_group": "E-monitor",
+   "surface": "进度计划实施监测中，项目部将「检查非关键工作」列入监测内容",
+   "params": {
+    "item": "检查非关键工作",
+    "listed_as_content": true
+   },
+   "expected_ok": true,
+   "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+   "anchor": "kc:1A433000_061_0091:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-E-monitor-031",
+   "rule_group": "E-monitor",
+   "surface": "项目部认为「检查非关键工作」不属于进度计划实施监测的内容",
+   "params": {
+    "item": "检查非关键工作",
+    "listed_as_content": false
+   },
+   "expected_ok": false,
+   "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+   "anchor": "kc:1A433000_061_0091:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-E-monitor-032",
+   "rule_group": "E-monitor",
+   "surface": "进度计划实施监测中，项目部将「核查逻辑关系」列入监测内容",
+   "params": {
+    "item": "核查逻辑关系",
+    "listed_as_content": true
+   },
+   "expected_ok": true,
+   "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+   "anchor": "kc:1A433000_061_0091:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-E-monitor-033",
+   "rule_group": "E-monitor",
+   "surface": "项目部认为「核查逻辑关系」不属于进度计划实施监测的内容",
+   "params": {
+    "item": "核查逻辑关系",
+    "listed_as_content": false
+   },
+   "expected_ok": false,
+   "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+   "anchor": "kc:1A433000_061_0091:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-E-monitor-034",
+   "rule_group": "E-monitor",
+   "surface": "进度计划实施监测中，项目部将「收集变更」列入监测内容",
+   "params": {
+    "item": "收集变更",
+    "listed_as_content": true
+   },
+   "expected_ok": true,
+   "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+   "anchor": "kc:1A433000_061_0091:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-E-monitor-035",
+   "rule_group": "E-monitor",
+   "surface": "项目部认为「收集变更」不属于进度计划实施监测的内容",
+   "params": {
+    "item": "收集变更",
+    "listed_as_content": false
+   },
+   "expected_ok": false,
+   "correct_statement": "进度监测内容为封闭枚举：记录实际时间/观测关键线路/检查非关键工作/核查逻辑关系/收集变更",
+   "anchor": "kc:1A433000_061_0091:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-F-procedure-036",
+   "rule_group": "F-procedure",
+   "surface": "项目部按「绘图（含补虚工作）→ 计算时间参数 → 确定关键线路 → 编制/实施」顺序应用网络计划",
+   "params": {
+    "violation": null
+   },
+   "expected_ok": true,
+   "correct_statement": "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
+   "anchor": "kc:1A433000_055_0084:0 + kc:LEC_1A433000_P0018_001:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-F-procedure-037",
+   "rule_group": "F-procedure",
+   "surface": "项目部未绘图、未补全网络逻辑，就直接套公式计算时间参数",
+   "params": {
+    "violation": "未绘图先算参数"
+   },
+   "expected_ok": false,
+   "correct_statement": "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
+   "anchor": "kc:1A433000_055_0084:0 + kc:LEC_1A433000_P0018_001:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-F-procedure-038",
+   "rule_group": "F-procedure",
+   "surface": "项目部跳过「计算时间参数」阶段，直接确定关键线路",
+   "params": {
+    "violation": "跳过计算参数"
+   },
+   "expected_ok": false,
+   "correct_statement": "应按「绘图（含补虚工作）→ 计算时间参数（各路径长/时差）→ 确定关键线路→ 编制/实施」顺序进行，顺序不可乱",
+   "anchor": "kc:1A433000_055_0084:0 + kc:LEC_1A433000_P0018_001:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-G-logic-039",
+   "rule_group": "G-logic",
+   "surface": "某住宅楼工程双代号网络计划中新增紧前关系：工作 F 须 B、C 均完成后方可开始。项目部在 3—4 节点间增设虚工作补全逻辑后，再计算关键线路",
+   "params": {
+    "logic_added": true,
+    "graph_adjusted": true
+   },
+   "expected_ok": true,
+   "correct_statement": "题干紧前逻辑不全应先补虚工作/调节点（2015：3—4 之间增加一个虚工作），再在正确的网络图上计算关键线路",
+   "anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-G-logic-040",
+   "rule_group": "G-logic",
+   "surface": "某住宅楼工程双代号网络计划中新增紧前关系：工作 F 须 B、C 均完成后方可开始。项目部未调整网络图，直接在原图上计算关键线路",
+   "params": {
+    "logic_added": true,
+    "graph_adjusted": false
+   },
+   "expected_ok": false,
+   "correct_statement": "题干紧前逻辑不全应先补虚工作/调节点（2015：3—4 之间增加一个虚工作），再在正确的网络图上计算关键线路",
+   "anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-G-logic-041",
+   "rule_group": "G-logic",
+   "surface": "某厂房工程双代号网络计划中新增紧前关系：工作 F 须 B、C 均完成后方可开始。项目部在 3—4 节点间增设虚工作补全逻辑后，再计算关键线路",
+   "params": {
+    "logic_added": true,
+    "graph_adjusted": true
+   },
+   "expected_ok": true,
+   "correct_statement": "题干紧前逻辑不全应先补虚工作/调节点（2015：3—4 之间增加一个虚工作），再在正确的网络图上计算关键线路",
+   "anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
+   "extension": false
+  },
+  {
+   "variant_id": "N01-G-logic-042",
+   "rule_group": "G-logic",
+   "surface": "某厂房工程双代号网络计划中新增紧前关系：工作 F 须 B、C 均完成后方可开始。项目部未调整网络图，直接在原图上计算关键线路",
+   "params": {
+    "logic_added": true,
+    "graph_adjusted": false
+   },
+   "expected_ok": false,
+   "correct_statement": "题干紧前逻辑不全应先补虚工作/调节点（2015：3—4 之间增加一个虚工作），再在正确的网络图上计算关键线路",
+   "anchor": "{2015,案例1} + kc:LEC_1A433000_P0018_001:0",
+   "extension": false
+  }
+ ]
+}
