@@ -123,23 +123,49 @@ function buildLearnViewModel(args) {
     };
   }
 
+  // ── day-0 兜底(设计 §3 fallback 臂:next_step 缺时落 registry 首个绿灯站)──
+  // 让宣纸舞台/下一站卡始终显示(不因无 next_step 塌成空态);诚实=真实绿灯站+群体理由。
+  var fallbackUsed = false;
+  if (!nextStation) {
+    var greenIds = Object.keys(titleIdx);
+    if (greenIds.length) {
+      var firstGreen = greenIds.sort()[0];
+      nextStation = {
+        pack_id: firstGreen,
+        title: titleIdx[firstGreen].title || "即将开通",
+        reason: "从这一站开始 · 点亮你的提分路线",
+        mode: "learn_fallback",
+        green: true,
+        card_sha: titleIdx[firstGreen].sha || "",
+      };
+      fallbackUsed = true;
+    }
+  }
+
   // ── 路线 X/40 ──
   var lit = _litCount(packs);
 
-  // ── 课程架海报 ──
+  // ── 课程架海报(推荐站=nextStation → 朱红) ──
   var posters = _posters(packs, titleIdx, nextStation ? nextStation.pack_id : "");
 
   // ── 复习到期(revalidation_queue items) ──
   var reval = _safeObj(report.revalidation_queue);
   var dueCount = _safeArr(reval.items).length;
 
-  // ── 今日任务(next_step practice 臂 / 处方;降级隐藏) ──
+  // ── 今日任务(next_step practice 臂 / 处方;缺则 day-0 通用兜底,不塌空) ──
   var todayTask = null;
   if (nextStep.mode === "practice_active" && nsRef) {
     todayTask = {
       title: (nsMeta.title || "薄弱点") + " · 半写训练",
       reason: _str(nextStep.reason),
       cta: "开始半写训练",
+    };
+  } else if (nextStation) {
+    // 有站可学即给通用今日任务(设计始终显示此卡);诚实=通用摸底,非编造具体处方
+    todayTask = {
+      title: "先做一题摸底,补齐可诊断证据",
+      reason: "先完成一题真实作答,系统再按题目、选项和错因生成专项训练。",
+      cta: "开始摸底",
     };
   }
 

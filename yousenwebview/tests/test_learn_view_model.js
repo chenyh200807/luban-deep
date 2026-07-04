@@ -111,14 +111,17 @@ ok("H3: non-green pack shows 即将开通 + locked, never fabricated", () => {
   assert.strictEqual(z.title, "即将开通");
 });
 
-// ── next_step=unavailable → 无下一站卡(空态) ──
-ok("next_step unavailable → no next station card", () => {
+// ── next_step=unavailable 但有绿灯站 → day-0 兜底到首个绿灯站(舞台始终显示) ──
+ok("unavailable but green lessons → day-0 fallback station renders stage", () => {
   const vm = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "unavailable", source_ref: "", reason: "" } },
     report: FULL.report,
     lessons: FULL.lessons,
   });
-  assert.strictEqual(vm.nextStation, null);
+  assert.ok(vm.nextStation, "fallback station must render the stage");
+  assert.strictEqual(vm.nextStation.mode, "learn_fallback");
+  assert.strictEqual(vm.nextStation.green, true);
+  assert.ok(vm.todayTask, "today task card must also render");
 });
 
 // ── practice_active → 今日任务卡出现 ──
@@ -146,8 +149,11 @@ ok("green lessons appear as posters even without lifecycle", () => {
   });
   assert.strictEqual(vm.posters.length, 2);
   assert.ok(vm.posters.every((p) => p.green === true));
-  assert.ok(vm.posters.every((p) => p.state === "paper")); // 无 lifecycle → 未学纸
-  assert.strictEqual(vm.hasSupply, true); // 有绿灯站即有供给
+  // day-0 兜底:首站=推荐(朱红),其余未学(纸)
+  assert.strictEqual(vm.posters[0].state, "red");
+  assert.strictEqual(vm.posters[0].recommended, true);
+  assert.ok(vm.posters.slice(1).every((p) => p.state === "paper"));
+  assert.strictEqual(vm.hasSupply, true);
 });
 
 console.log("\nlearn-view-model: " + passed + " passed");
