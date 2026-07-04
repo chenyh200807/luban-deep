@@ -3,7 +3,7 @@
  "pack_dir": "docs/原始数据/考点原料/成品",
  "packs": [
   {
-   "card_hosted": true,
+   "card_hosted": false,
    "content_sha256": "23593d60ab10292ab5b2e9dac8ce767f0ed111e4b5fc669051aa5cf1824e92f1",
    "explicitly_barred_default_entry": false,
    "file": "A01_检验批验收程序.md",
@@ -85,7 +85,7 @@
    "title": "施工缝留置与处理"
   },
   {
-   "card_hosted": true,
+   "card_hosted": false,
    "content_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
    "explicitly_barred_default_entry": false,
    "file": "C02_进度款与计量计价.md",
@@ -496,7 +496,7 @@
    "title": "地基验槽与地基处理"
   },
   {
-   "card_hosted": true,
+   "card_hosted": false,
    "content_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
    "explicitly_barred_default_entry": false,
    "file": "J01_危大工程专项方案专家论证.md",
@@ -538,7 +538,7 @@
    "title": "索赔成立与计算"
   },
   {
-   "card_hosted": true,
+   "card_hosted": false,
    "content_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
    "explicitly_barred_default_entry": false,
    "file": "N01_网络计划关键线路.md",
@@ -726,7 +726,7 @@
    "title": "起重吊装安全"
   },
   {
-   "card_hosted": true,
+   "card_hosted": false,
    "content_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
    "explicitly_barred_default_entry": false,
    "file": "S05_临时用电三级配电.md",
