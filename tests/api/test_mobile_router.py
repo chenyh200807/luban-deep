@@ -5868,6 +5868,28 @@ def test_mobile_chat_start_turn_free_trial_blocks_after_three_full_previous_days
     assert meter.recorded == []
 
 
+def test_mobile_chat_start_turn_free_trial_blocks_after_any_three_full_days_in_week(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    events = [_trial_event(day, idx) for day in range(2, 5) for idx in range(3)]
+    meter = _FakeFreeTrialMeter(events)
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/chat/start-turn", json={"query": "隔天后继续问"})
+
+    assert response.status_code == 429
+    detail = response.json()["detail"]
+    assert detail["code"] == "billing_quota_exceeded"
+    assert detail["limited_by"] == "free_trial_streak"
+    assert started == []
+    assert meter.recorded == []
+
+
 def test_mobile_chat_start_turn_hard_balance_gate_rejects_when_enforced_and_insufficient(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -551,17 +551,32 @@ def _build_free_trial_usage_payload(
 
     today_used = counts_by_day.get(today, 0)
     weekly_used = sum(counts_by_day.values())
-    previous_full_day_streak = 0
-    cursor = today - timedelta(days=1)
-    while counts_by_day.get(cursor, 0) >= _FREE_TRIAL_DAILY_QUESTION_LIMIT:
-        previous_full_day_streak += 1
-        cursor = cursor - timedelta(days=1)
+    max_full_day_streak = 0
+    current_full_day_streak = 0
+    latest_blocking_streak_end = None
+    cursor = week_start
+    while cursor <= today:
+        if counts_by_day.get(cursor, 0) >= _FREE_TRIAL_DAILY_QUESTION_LIMIT:
+            current_full_day_streak += 1
+            max_full_day_streak = max(max_full_day_streak, current_full_day_streak)
+            if current_full_day_streak >= _FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT:
+                latest_blocking_streak_end = cursor
+        else:
+            current_full_day_streak = 0
+        cursor = cursor + timedelta(days=1)
 
     weekly_reset_at = (
         (min(weekly_event_times).astimezone(_BILLING_USAGE_TZ) + timedelta(days=7)).isoformat()
         if weekly_event_times
         else next_midnight.isoformat()
     )
+    streak_reset_at = next_midnight.isoformat()
+    if latest_blocking_streak_end is not None:
+        streak_reset_at = datetime.combine(
+            latest_blocking_streak_end + timedelta(days=5),
+            datetime.min.time(),
+            tzinfo=_BILLING_USAGE_TZ,
+        ).isoformat()
     rows = [
         _free_trial_quota_row(
             key="free_trial_daily",
@@ -580,9 +595,9 @@ def _build_free_trial_usage_payload(
         _free_trial_quota_row(
             key="free_trial_streak",
             label="连续满额天数",
-            used=previous_full_day_streak,
+            used=max_full_day_streak,
             limit=_FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT,
-            reset_at=next_midnight.isoformat(),
+            reset_at=streak_reset_at,
         ),
     ]
     limited_by = ""
@@ -590,7 +605,7 @@ def _build_free_trial_usage_payload(
         limited_by = "free_trial_daily"
     elif weekly_used >= _FREE_TRIAL_WEEKLY_QUESTION_LIMIT:
         limited_by = "free_trial_weekly"
-    elif previous_full_day_streak >= _FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT:
+    elif max_full_day_streak >= _FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT:
         limited_by = "free_trial_streak"
 
     return {
