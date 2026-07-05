@@ -7,6 +7,7 @@ const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
 const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
+const flags = require("../../utils/flags");
 const { buildLearnViewModel } = require("../../utils/learn-view-model");
 
 // H2:Long Cang 只许 CDN 子集化,禁内嵌。子集托管后填此常量;
@@ -70,6 +71,11 @@ Page({
   },
 
   onShow() {
+    // 五 tab 壳:学习 index=0;本页第 10 版定稿=宣纸亮,壳跟页面主题
+    helpers.syncTabBar(this, 0, {
+      isDark: this.data.isDark,
+      hidden: !flags.shouldShowWorkspaceShell(),
+    });
     // 从站点/复习返回时刷新点亮态(预览模式不打后端,保持镜像数据)
     if (!this.data.loading && !this.data._preview) this._load();
   },
@@ -170,20 +176,6 @@ Page({
       return;
     }
     this._navTo("/packageDeeptutor/pages/practice/practice");
-  },
-
-  // 底部 tab 路由(设计 5tab → 现有页;归位后续片)
-  tabReview() {
-    this._navTo(route.lubanReview());
-  },
-  tabAsk() {
-    this._navTo("/packageDeeptutor/pages/chat/chat");
-  },
-  tabReport() {
-    this._navTo("/packageDeeptutor/pages/report/report");
-  },
-  tabProfile() {
-    this._navTo("/packageDeeptutor/pages/profile/profile");
   },
 
   _navTo(url) {
