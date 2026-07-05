@@ -9,10 +9,12 @@
   1. **没有声音**：F16 托管漏了 ``audio/``（根因链 = ``.gitignore`` 全局 ``*.mp3``
      把 11 段配音静默挡在 commit df688f571 之外 → 线上 404 → 回落 webSpeak 在微信
      web-view 静默失败）。本脚本无条件拷贝 audio/，.gitignore 已加窄豁免。
-  2. **默认真全屏 + 自适应**：把 owner 参考实现（起重吊装安全 S02 卡 +
+  2. **按钮触发真全屏 + 自适应**：把 owner 参考实现（起重吊装安全 S02 卡 +
      ``全屏播放_回灌母版.md`` §B）的「模拟全屏 + 舞台 min(vw/390,vh/462) 等比缩放 +
      点屏唤出控制条」机制以锚定替换（fail-closed：锚不中即报错退出）回灌进每张
-     teach 卡，并在进入时自动进入全屏（进入即贴满载体）。
+     teach 卡。2026-07-05 owner 澄清推翻"进入即自动全屏"：入场保持原正常版式，
+     只有点卡内既有「全屏」按钮（stage 角标 + 控制条各一枚，均绑 ``{{ fullscreen }}``）
+     才进入全屏，再点退回正常版式（同一 toggle 方法双向接管，不新增第二按钮）。
 - 微信 web-view 外链字体静默失败：fonts.googleapis.com 三行外链替换为共享自托管
   子集 ``../fonts/fonts.css``（Noto Sans SC 可变字重 + Long Cang，子集覆盖全部
   finished 卡出现过的字符；生成命令见 web/public/luban-preview/fonts/README.md）。
@@ -115,8 +117,7 @@ _DIDMOUNT_APPEND = (
     "document.head.appendChild(s); }\n"
     "    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };\n"
     "    window.addEventListener('resize', this._onResize);\n"
-    "    window.addEventListener('orientationchange', this._onResize);\n"
-    "    if(!this.state.fs) this.fullscreen();"
+    "    window.addEventListener('orientationchange', this._onResize);"
 )
 
 _UNMOUNT_NEW = (
