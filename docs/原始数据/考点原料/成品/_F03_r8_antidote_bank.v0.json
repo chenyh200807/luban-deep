@@ -1,0 +1,164 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "F03",
+ "status": "candidate",
+ "source_pack_sha256": "12b0066ad4ed932dd0ccdebf292cafb5fa005970a9108b808d4bfed705ff12e7",
+ "generation_ms": 1.04,
+ "gate": {
+  "total": 8,
+  "passed": 8,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 8,
+ "dropped_rows": [
+  {
+   "r8_id": "F03:R8-M3",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "M03": [
+   {
+    "r8_id": "F03:R8-M1",
+    "mental_model": "屋面防水等级分三级(一/二/三)；地下工程防水等级分四级(一/二/三/四)——分级数不同，禁混",
+    "textbook_ref": "kc:1A413030_122_0230:0",
+    "phenomenon": "屋面/地下防水等级分级数搞混（屋面套四级/地下套三级）",
+    "wrong_model": "以为屋面地下分级一样"
+   },
+   {
+    "r8_id": "F03:R8-M5",
+    "mental_model": "种植屋面10层(基层→绝热→找平→普通防水→耐根穿刺防水→保护→排水→过滤→种植土→植被)；耐根穿刺防根系破坏防水层",
+    "textbook_ref": "kc:1A413030_127_0240:1",
+    "phenomenon": "种植屋面漏耐根穿刺层/层序错",
+    "wrong_model": "以为种植屋面与普通屋面层次相同"
+   }
+  ],
+  "E07": [
+   {
+    "r8_id": "F03:R8-M1",
+    "mental_model": "屋面防水等级分三级(一/二/三)；地下工程防水等级分四级(一/二/三/四)——分级数不同，禁混",
+    "textbook_ref": "kc:1A413030_122_0230:0",
+    "phenomenon": "屋面/地下防水等级分级数搞混（屋面套四级/地下套三级）",
+    "wrong_model": "以为屋面地下分级一样"
+   }
+  ],
+  "M08": [
+   {
+    "r8_id": "F03:R8-M2",
+    "mental_model": "屋面一级防水≥3道(其中卷材≥1道)；多道设防=破坏容错，水突破一道仍有后手",
+    "textbook_ref": "kc:1A413030_122_0230:0",
+    "phenomenon": "一级防水只设一道卷材",
+    "wrong_model": "以为一道卷材已足够"
+   },
+   {
+    "r8_id": "F03:R8-M4",
+    "mental_model": "隔汽层在结构层上、保温层下；沿周边墙面向上连续铺设高出保温层≥150mm；切断室内湿汽冷凝路径",
+    "textbook_ref": "kc:1A413030_125_0238:0",
+    "phenomenon": "隔汽层铺在防水层上/漏高出150mm",
+    "wrong_model": "以为隔汽层只要在保温层下即可"
+   },
+   {
+    "r8_id": "F03:R8-M6",
+    "mental_model": "地下一级≥3道=防水混凝土1道(应选)+外设防水层≥2道(卷材/涂料≥1道)+抗渗≥P8；缺一不可",
+    "textbook_ref": "kc:1A413030_130_0247:0",
+    "phenomenon": "地下一级只写\"防水混凝土P8\"漏外设防水层",
+    "wrong_model": "以为防水混凝土够了"
+   },
+   {
+    "r8_id": "F03:R8-M7",
+    "mental_model": "试配抗渗比设计提高0.2MPa(设计P8则试配P10)；预留施工离散富余，现场实测才不低于设计",
+    "textbook_ref": "kc:1A413030_130_0249:0",
+    "phenomenon": "防水混凝土试配抗渗仍按设计值(P8写P8)",
+    "wrong_model": "以为试配=设计值即可"
+   },
+   {
+    "r8_id": "F03:R8-M8",
+    "mental_model": "施工缝防水设防≥2种(后浇带≥1种)；单一止水条失效则中埋止水带/外贴卷材兜底",
+    "textbook_ref": "kc:1A413030_130_0248:0",
+    "phenomenon": "施工缝只设一种防水措施",
+    "wrong_model": "以为一种防水措施够"
+   },
+   {
+    "r8_id": "F03:R8-M9",
+    "mental_model": "水平施工缝高出底板≥300mm；淋浴区墙面防水翻起≥2000mm(盥洗≥1200mm/其他≥250mm)",
+    "textbook_ref": "kc:1A413030_131_0250:0",
+    "phenomenon": "水平施工缝设在底板表面以下/淋浴翻起写1800mm",
+    "wrong_model": "以为缝位置/翻起高度可随意"
+   }
+  ],
+  "E03": [
+   {
+    "r8_id": "F03:R8-M2",
+    "mental_model": "屋面一级防水≥3道(其中卷材≥1道)；多道设防=破坏容错，水突破一道仍有后手",
+    "textbook_ref": "kc:1A413030_122_0230:0",
+    "phenomenon": "一级防水只设一道卷材",
+    "wrong_model": "以为一道卷材已足够"
+   },
+   {
+    "r8_id": "F03:R8-M9",
+    "mental_model": "水平施工缝高出底板≥300mm；淋浴区墙面防水翻起≥2000mm(盥洗≥1200mm/其他≥250mm)",
+    "textbook_ref": "kc:1A413030_131_0250:0",
+    "phenomenon": "水平施工缝设在底板表面以下/淋浴翻起写1800mm",
+    "wrong_model": "以为缝位置/翻起高度可随意"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "F03:R8-M4",
+    "mental_model": "隔汽层在结构层上、保温层下；沿周边墙面向上连续铺设高出保温层≥150mm；切断室内湿汽冷凝路径",
+    "textbook_ref": "kc:1A413030_125_0238:0",
+    "phenomenon": "隔汽层铺在防水层上/漏高出150mm",
+    "wrong_model": "以为隔汽层只要在保温层下即可"
+   },
+   {
+    "r8_id": "F03:R8-M6",
+    "mental_model": "地下一级≥3道=防水混凝土1道(应选)+外设防水层≥2道(卷材/涂料≥1道)+抗渗≥P8；缺一不可",
+    "textbook_ref": "kc:1A413030_130_0247:0",
+    "phenomenon": "地下一级只写\"防水混凝土P8\"漏外设防水层",
+    "wrong_model": "以为防水混凝土够了"
+   },
+   {
+    "r8_id": "F03:R8-M8",
+    "mental_model": "施工缝防水设防≥2种(后浇带≥1种)；单一止水条失效则中埋止水带/外贴卷材兜底",
+    "textbook_ref": "kc:1A413030_130_0248:0",
+    "phenomenon": "施工缝只设一种防水措施",
+    "wrong_model": "以为一种防水措施够"
+   }
+  ],
+  "E06": [
+   {
+    "r8_id": "F03:R8-M4",
+    "mental_model": "隔汽层在结构层上、保温层下；沿周边墙面向上连续铺设高出保温层≥150mm；切断室内湿汽冷凝路径",
+    "textbook_ref": "kc:1A413030_125_0238:0",
+    "phenomenon": "隔汽层铺在防水层上/漏高出150mm",
+    "wrong_model": "以为隔汽层只要在保温层下即可"
+   },
+   {
+    "r8_id": "F03:R8-M5",
+    "mental_model": "种植屋面10层(基层→绝热→找平→普通防水→耐根穿刺防水→保护→排水→过滤→种植土→植被)；耐根穿刺防根系破坏防水层",
+    "textbook_ref": "kc:1A413030_127_0240:1",
+    "phenomenon": "种植屋面漏耐根穿刺层/层序错",
+    "wrong_model": "以为种植屋面与普通屋面层次相同"
+   }
+  ],
+  "E10": [
+   {
+    "r8_id": "F03:R8-M7",
+    "mental_model": "试配抗渗比设计提高0.2MPa(设计P8则试配P10)；预留施工离散富余，现场实测才不低于设计",
+    "textbook_ref": "kc:1A413030_130_0249:0",
+    "phenomenon": "防水混凝土试配抗渗仍按设计值(P8写P8)",
+    "wrong_model": "以为试配=设计值即可"
+   },
+   {
+    "r8_id": "F03:R8-M9",
+    "mental_model": "水平施工缝高出底板≥300mm；淋浴区墙面防水翻起≥2000mm(盥洗≥1200mm/其他≥250mm)",
+    "textbook_ref": "kc:1A413030_131_0250:0",
+    "phenomenon": "水平施工缝设在底板表面以下/淋浴翻起写1800mm",
+    "wrong_model": "以为缝位置/翻起高度可随意"
+   }
+  ]
+ }
+}

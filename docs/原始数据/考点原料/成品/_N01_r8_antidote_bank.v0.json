@@ -1,0 +1,77 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "N01",
+ "status": "candidate",
+ "source_pack_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+ "generation_ms": 0.99,
+ "gate": {
+  "total": 5,
+  "passed": 5,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 5,
+ "dropped_rows": [
+  {
+   "r8_id": "N01:R8-M1",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "N01:R8-M3",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "N01:R8-M4",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "E07": [
+   {
+    "r8_id": "N01:R8-M2",
+    "mental_model": "关键工作 = 总时差最小(计划=计算工期时 TF=0);TF≠FF,FF≤TF,关键工作两者皆 0",
+    "textbook_ref": "kc:1A433000_056_0085:1",
+    "phenomenon": "把「总时差为零」之外的非关键工作也当关键工作,或反之混淆",
+    "wrong_model": "以为只要 TF=0 就一定在关键线路、TF 与 FF 不分"
+   }
+  ],
+  "E08": [
+   {
+    "r8_id": "N01:R8-M5",
+    "mental_model": "先读全题干逻辑,逻辑不全补虚工作/调节点,再在正确图上算关键线路",
+    "textbook_ref": "kc:LEC_1A433000_P0018_001:0",
+    "phenomenon": "题干新增紧前关系(F 须 B、C 完成)不处理,直接算",
+    "wrong_model": "以为给的图就是最终图,不补虚工作"
+   }
+  ],
+  "E10": [
+   {
+    "r8_id": "N01:R8-M6",
+    "mental_model": "救总工期只能压关键线路上的关键工作;调整方法首选关键工作调整",
+    "textbook_ref": "kc:1A433000_061_0092:0",
+    "phenomenon": "进度滞后去压缩非关键工作,或只写「加班赶工」",
+    "wrong_model": "以为压哪个工作都能缩工期"
+   }
+  ],
+  "E04": [
+   {
+    "r8_id": "N01:R8-M7",
+    "mental_model": "必须落到「关键线路 + 时差数值 + 判读结论」可判分内容,口号不得分",
+    "textbook_ref": "kc:1A433000_056_0085:1",
+    "phenomenon": "答案空泛「加强进度管理、合理安排施工」",
+    "wrong_model": "以为方向对就给分"
+   }
+  ],
+  "E06": [
+   {
+    "r8_id": "N01:R8-M8",
+    "mental_model": "按应用程序:绘图(含补虚工作) → 计算参数(各路径长/时差) → 确定关键线路 → 编制/实施,顺序不可乱(jury #2 高可信:已补具体错误步骤示例)",
+    "textbook_ref": "kc:1A433000_055_0084:0",
+    "phenomenon": "程序顺序错:未绘图/未补全逻辑就直接套公式算时间参数,或跳过「计算参数」阶段直接定关键线路",
+    "wrong_model": "以为步骤可随意"
+   }
+  ]
+ }
+}

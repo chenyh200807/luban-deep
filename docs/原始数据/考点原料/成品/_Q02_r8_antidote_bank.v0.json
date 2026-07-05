@@ -1,0 +1,99 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "Q02",
+ "status": "candidate",
+ "source_pack_sha256": "81d50133b6f7f8f7b777d40c46a67bd6a69096d6a7f4d69a546fdb8af7f639c4",
+ "generation_ms": 1.13,
+ "gate": {
+  "total": 6,
+  "passed": 6,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 6,
+ "dropped_rows": [
+  {
+   "r8_id": "Q02:R8-W5",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "Q02:R8-W8",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "E10": [
+   {
+    "r8_id": "Q02:R8-W1",
+    "mental_model": "厚大体积忌硅酸盐,优先矿渣/火山灰/粉煤灰/复合;高温宜选水化热较低水泥",
+    "textbook_ref": "kc:1A412010_043_0074:0",
+    "phenomenon": "大体积/高温却选\"早强高、水化热大\"的硅酸盐/普通水泥",
+    "wrong_model": "\"强度高=好混凝土\",抗压当唯一目标,无视放热"
+   },
+   {
+    "r8_id": "Q02:R8-W4",
+    "mental_model": "拆保温层须查表面与环境温差≤20℃才能拆,否则表面急冷开裂",
+    "textbook_ref": "kc:1A413030_096_0181:0",
+    "phenomenon": "拆保温/拆模只看\"够 7d 了\"\"强度到了\",不查里表温差",
+    "wrong_model": "\"养护就是等时间\",到点就拆"
+   },
+   {
+    "r8_id": "Q02:R8-W6",
+    "mental_model": "水胶比≤0.45;粉煤灰≤50%、矿渣粉≤40%、总和≤50%;坍落度≤180mm;掺缓凝剂",
+    "textbook_ref": "kc:1A413030_095_0180:0",
+    "phenomenon": "配合比照搬普通混凝土:水胶比大、胶材高、坍落度大",
+    "wrong_model": "\"混凝土都一样\",忽视大体积要降水化热源头"
+   },
+   {
+    "r8_id": "Q02:R8-W7",
+    "mental_model": "早强剂不宜用于大体积、蒸养混凝土;大体积要缓凝、削峰,不是催熟",
+    "textbook_ref": "kc:1A412010_049_0086:0",
+    "phenomenon": "给大体积加早强剂\"让它快点硬\"",
+    "wrong_model": "\"早强=进度快=好\",不知早强剂加速水化=放热更猛更集中"
+   }
+  ],
+  "E07": [
+   {
+    "r8_id": "Q02:R8-W1",
+    "mental_model": "厚大体积忌硅酸盐,优先矿渣/火山灰/粉煤灰/复合;高温宜选水化热较低水泥",
+    "textbook_ref": "kc:1A412010_043_0074:0",
+    "phenomenon": "大体积/高温却选\"早强高、水化热大\"的硅酸盐/普通水泥",
+    "wrong_model": "\"强度高=好混凝土\",抗压当唯一目标,无视放热"
+   },
+   {
+    "r8_id": "Q02:R8-W3",
+    "mental_model": "危险的是里表温差(梯度),不是绝对温度;保温让表面慢冷、缩小梯度,降温≤2.0℃/d",
+    "textbook_ref": "kc:1A413030_096_0181:0",
+    "phenomenon": "内 vs 表降温不分,以为\"快点降温拆模省事\"安全",
+    "wrong_model": "把\"里表温差\"误读成\"内外都要降一样快\";只盯绝对温度不盯温度梯度"
+   },
+   {
+    "r8_id": "Q02:R8-W7",
+    "mental_model": "早强剂不宜用于大体积、蒸养混凝土;大体积要缓凝、削峰,不是催熟",
+    "textbook_ref": "kc:1A412010_049_0086:0",
+    "phenomenon": "给大体积加早强剂\"让它快点硬\"",
+    "wrong_model": "\"早强=进度快=好\",不知早强剂加速水化=放热更猛更集中"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "Q02:R8-W2",
+    "mental_model": "三件套:温升≤50℃、里表温差≤25℃、降温速率≤2.0℃/d,缺一不可",
+    "textbook_ref": "kc:1A413030_096_0181:0",
+    "phenomenon": "把\"温升值\"当唯一温控指标,漏答里表温差/降温速率",
+    "wrong_model": "以为\"温控=控总温升\",不知是三指标并列"
+   }
+  ],
+  "E06": [
+   {
+    "r8_id": "Q02:R8-W4",
+    "mental_model": "拆保温层须查表面与环境温差≤20℃才能拆,否则表面急冷开裂",
+    "textbook_ref": "kc:1A413030_096_0181:0",
+    "phenomenon": "拆保温/拆模只看\"够 7d 了\"\"强度到了\",不查里表温差",
+    "wrong_model": "\"养护就是等时间\",到点就拆"
+   }
+  ]
+ }
+}

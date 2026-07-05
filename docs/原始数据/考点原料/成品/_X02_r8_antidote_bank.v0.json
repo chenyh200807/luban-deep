@@ -1,0 +1,158 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "X02",
+ "status": "candidate",
+ "source_pack_sha256": "d3a4eec1f279c91dce1254ca27e09de0a4ece72c42f8bffbf6551f665ae94c01",
+ "generation_ms": 0.79,
+ "gate": {
+  "total": 7,
+  "passed": 7,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 7,
+ "dropped_rows": [
+  {
+   "r8_id": "X02:R8-M8",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "E04": [
+   {
+    "r8_id": "X02:R8-M1",
+    "mental_model": "落到具体规格数字：间距15m/道路4m6m/面积30m²/高度1.5m/每间16人",
+    "textbook_ref": "kc:1A431011_012_0013:0",
+    "phenomenon": "临设布置只写「合理布置/加强管理」无任何数字",
+    "wrong_model": "以为定性描述即可、不背规格数值"
+   }
+  ],
+  "E03": [
+   {
+    "r8_id": "X02:R8-M1",
+    "mental_model": "落到具体规格数字：间距15m/道路4m6m/面积30m²/高度1.5m/每间16人",
+    "textbook_ref": "kc:1A431011_012_0013:0",
+    "phenomenon": "临设布置只写「合理布置/加强管理」无任何数字",
+    "wrong_model": "以为定性描述即可、不背规格数值"
+   }
+  ],
+  "E10": [
+   {
+    "r8_id": "X02:R8-M2",
+    "mental_model": "易燃材料仓库应设下风向、水源充足处，与明火区≥30m",
+    "textbook_ref": "kc:1A437000_146_0235:0",
+    "phenomenon": "易燃材料仓库设「上风向」",
+    "wrong_model": "以为仓库方向无所谓"
+   },
+   {
+    "r8_id": "X02:R8-M7",
+    "mental_model": "不合格材料按流程退场：申请→审批→通知→见证退场→记录确认→报告提交",
+    "textbook_ref": "kc:1A438000_150_0241:2",
+    "phenomenon": "不合格材料直接使用/降级使用/漏见证退场",
+    "wrong_model": "以为不合格材料可自行处理"
+   }
+  ],
+  "M10": [
+   {
+    "r8_id": "X02:R8-M2",
+    "mental_model": "易燃材料仓库应设下风向、水源充足处，与明火区≥30m",
+    "textbook_ref": "kc:1A437000_146_0235:0",
+    "phenomenon": "易燃材料仓库设「上风向」",
+    "wrong_model": "以为仓库方向无所谓"
+   }
+  ],
+  "M08": [
+   {
+    "r8_id": "X02:R8-M3",
+    "mental_model": "区分：单行≥4m·双行≥6m·消防车道≥4m·木材场通道≥6m·露天易燃仓库消防通道≥6m",
+    "textbook_ref": "kc:1A431011_012_0013:1",
+    "phenomenon": "道路宽度记成「4m 万能」（消防车道4m套到木材场/露天仓库）",
+    "wrong_model": "以为道路宽度一个数通用"
+   },
+   {
+    "r8_id": "X02:R8-M5",
+    "mental_model": "每500m²防火墙·可燃≤30m²·易燃易爆≤20m²·房门≥0.8m·任一点到疏散门≤10m",
+    "textbook_ref": "kc:1A437000_147_0236:0",
+    "phenomenon": "仓库消防分区面积/疏散数字写错或漏",
+    "wrong_model": "以为防火墙可有可无、面积越大越好"
+   }
+  ],
+  "E07": [
+   {
+    "r8_id": "X02:R8-M3",
+    "mental_model": "区分：单行≥4m·双行≥6m·消防车道≥4m·木材场通道≥6m·露天易燃仓库消防通道≥6m",
+    "textbook_ref": "kc:1A431011_012_0013:1",
+    "phenomenon": "道路宽度记成「4m 万能」（消防车道4m套到木材场/露天仓库）",
+    "wrong_model": "以为道路宽度一个数通用"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "X02:R8-M4",
+    "mental_model": "每间≤16人、通道≥0.9m、净高≥2.5m、人均≥2.5m²（案例改错明锚）",
+    "textbook_ref": "kc:1A431011_012_0013:2",
+    "phenomenon": "宿舍住18人/通道0.8m不认为不妥",
+    "wrong_model": "以为「能住人就行」忽略卫生标准"
+   },
+   {
+    "r8_id": "X02:R8-M5",
+    "mental_model": "每500m²防火墙·可燃≤30m²·易燃易爆≤20m²·房门≥0.8m·任一点到疏散门≤10m",
+    "textbook_ref": "kc:1A437000_147_0236:0",
+    "phenomenon": "仓库消防分区面积/疏散数字写错或漏",
+    "wrong_model": "以为防火墙可有可无、面积越大越好"
+   },
+   {
+    "r8_id": "X02:R8-M6",
+    "mental_model": "凭证/数量规格/外观验收·挂牌标识·建立收料台账",
+    "textbook_ref": "kc:1A438000_150_0241:0",
+    "phenomenon": "材料验收只写「验收合格后使用」漏要素",
+    "wrong_model": "以为验收=合格即用"
+   },
+   {
+    "r8_id": "X02:R8-M7",
+    "mental_model": "不合格材料按流程退场：申请→审批→通知→见证退场→记录确认→报告提交",
+    "textbook_ref": "kc:1A438000_150_0241:2",
+    "phenomenon": "不合格材料直接使用/降级使用/漏见证退场",
+    "wrong_model": "以为不合格材料可自行处理"
+   }
+  ],
+  "E01": [
+   {
+    "r8_id": "X02:R8-M4",
+    "mental_model": "每间≤16人、通道≥0.9m、净高≥2.5m、人均≥2.5m²（案例改错明锚）",
+    "textbook_ref": "kc:1A431011_012_0013:2",
+    "phenomenon": "宿舍住18人/通道0.8m不认为不妥",
+    "wrong_model": "以为「能住人就行」忽略卫生标准"
+   }
+  ],
+  "E05": [
+   {
+    "r8_id": "X02:R8-M4",
+    "mental_model": "每间≤16人、通道≥0.9m、净高≥2.5m、人均≥2.5m²（案例改错明锚）",
+    "textbook_ref": "kc:1A431011_012_0013:2",
+    "phenomenon": "宿舍住18人/通道0.8m不认为不妥",
+    "wrong_model": "以为「能住人就行」忽略卫生标准"
+   }
+  ],
+  "M01": [
+   {
+    "r8_id": "X02:R8-M6",
+    "mental_model": "凭证/数量规格/外观验收·挂牌标识·建立收料台账",
+    "textbook_ref": "kc:1A438000_150_0241:0",
+    "phenomenon": "材料验收只写「验收合格后使用」漏要素",
+    "wrong_model": "以为验收=合格即用"
+   }
+  ],
+  "E06": [
+   {
+    "r8_id": "X02:R8-M7",
+    "mental_model": "不合格材料按流程退场：申请→审批→通知→见证退场→记录确认→报告提交",
+    "textbook_ref": "kc:1A438000_150_0241:2",
+    "phenomenon": "不合格材料直接使用/降级使用/漏见证退场",
+    "wrong_model": "以为不合格材料可自行处理"
+   }
+  ]
+ }
+}
