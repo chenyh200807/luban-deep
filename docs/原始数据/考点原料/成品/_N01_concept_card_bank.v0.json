@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-concept-card-bank",
  "pack_id": "N01",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
  "generation_ms": 0.56,
  "gate": {
@@ -113,5 +113,10 @@
    },
    "leaf_name_path": "施工进度管理 > 施工进度计划的调整依据"
   }
- ]
+ ],
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-05T18:17:03+08:00",
+  "basis": "gate 100% + sha 三方锚定当前pack + 集成包244测试绿(owner拍板A=诚实薄上线含34卡签发)"
+ }
 }

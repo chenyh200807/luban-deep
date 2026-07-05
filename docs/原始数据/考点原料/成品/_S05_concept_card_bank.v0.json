@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-concept-card-bank",
  "pack_id": "S05",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
  "generation_ms": 0.57,
  "gate": {
@@ -163,5 +163,10 @@
    },
    "leaf_name_path": "施工安全管理 > 危险性较大的分部分项工程未编制、未审核专项施"
   }
- ]
+ ],
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-05T18:17:03+08:00",
+  "basis": "gate 100% + sha 三方锚定当前pack + 集成包244测试绿(owner拍板A=诚实薄上线含34卡签发)"
+ }
 }

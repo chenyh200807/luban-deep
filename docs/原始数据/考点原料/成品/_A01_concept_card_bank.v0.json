@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-concept-card-bank",
  "pack_id": "A01",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "23593d60ab10292ab5b2e9dac8ce767f0ed111e4b5fc669051aa5cf1824e92f1",
  "generation_ms": 1.7,
  "gate": {
@@ -186,5 +186,10 @@
    },
    "leaf_name_path": "施工资源管理 > 材料试验检验"
   }
- ]
+ ],
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-05T18:17:03+08:00",
+  "basis": "gate 100% + sha 三方锚定当前pack + 集成包244测试绿(owner拍板A=诚实薄上线含34卡签发)"
+ }
 }
