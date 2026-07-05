@@ -18,6 +18,20 @@
 - 微信 web-view 外链字体静默失败：fonts.googleapis.com 三行外链替换为共享自托管
   子集 ``../fonts/fonts.css``（Noto Sans SC 可变字重 + Long Cang，子集覆盖全部
   finished 卡出现过的字符；生成命令见 web/public/luban-preview/fonts/README.md）。
+- 2026-07-05 owner 真机反馈（第三轮）普通模式两问题在打包层治本：
+  3. **普通态没铺满 + 露纯黑底**：卡源 max-width:390px + body #101315 → 宽视口两侧
+     /下方露近黑底。治法 = ``.lz-card{zoom:var(--lz-fit)}``（zoom 参与布局：滚动高度
+     /点击热区随缩放走，无 transform 的热区漂移/滚动截断问题），JS 按
+     ``min(innerWidth/390, 2.0)`` 设 --lz-fit（cap 2.0：768 iPad 竖屏 1.97 仍满铺，
+     >780px 桌面封顶居中防过度放大）；html/body 背景改为卡自身 .lz-card 深墨底色
+     （逐卡运行时提取，锚不中即 fail-closed），残留边距与卡浑然一体。全屏态
+     ``body.luban-fs .lz-card{zoom:1!important}`` 归位，退出全屏回到宽度自适应态。
+  4. **「问追AI」接通问鲁班**：唯一聊天入口铁律——不在卡内做第二套聊天。注入自托管
+     ``../vendor/jweixin.js``；小程序 web-view 环境（__wxjs_environment / UA 双检 +
+     wx.miniProgram 在场）下 openAsk 改跳
+     ``/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=<pack>``
+     （scene_title 取当前幕 beats[bi][3]，取不到省略）；非微信环境保持原卡内追问
+     浮层，不报错。
 
 用法::
 
@@ -41,6 +55,7 @@ REPO = Path(__file__).resolve().parents[1]
 FINISHED = REPO / "artifacts" / "luban_case_family_assets" / "diagram_microlesson" / "finished"
 HOST = REPO / "web" / "public" / "luban-preview"
 FONTS_CSS = HOST / "fonts" / "fonts.css"
+JWEIXIN_JS = HOST / "vendor" / "jweixin.js"
 
 
 @dataclass(frozen=True)
@@ -97,6 +112,30 @@ _FONT_LINKS_OLD = (
 )
 _FONT_LINKS_NEW = '<link href="../fonts/fonts.css" rel="stylesheet"/>'
 
+# teach 卡额外注入微信 JSSDK（自托管，避免外链依赖；practice 卡不需要）
+_JWEIXIN_TAG = '<script src="../vendor/jweixin.js"></script>'
+
+# ─────────────── 普通态宽度自适应 + 深墨底色（teach 卡 · 打包层） ───────────────
+#
+# zoom 而非 transform:scale：zoom 参与布局（文档滚动高度、点击热区、margin:0 auto
+# 居中全部随缩放自然生效），transform 需要手动补偿滚动高度且易热区漂移。
+# WKWebView（微信 iOS）/ XWeb（Android）/ 桌面 Chromium 均支持 zoom。
+_FIT_ZOOM_CAP = 2.0  # 768 iPad 竖屏 (1.97) 仍满铺；>780px 桌面封顶居中防过度放大
+
+_BODY_CSS_OLD = "html,body{margin:0;padding:0;}"
+
+
+def _fit_css(card_bg: str) -> str:
+    return (
+        f"html,body{{margin:0;padding:0;background:{card_bg};}}\n"
+        "  .lz-card{zoom:var(--lz-fit,1);margin:0 auto;}\n"
+        "  body.luban-fs .lz-card{zoom:1!important;}"
+    )
+
+
+_CARD_BG_RE = re.compile(r'class="lz-card"[^>]*?background:(#[0-9a-fA-F]{3,8})')
+_BODY_BG_RE = re.compile(r"body\{background:#[0-9a-fA-F]{3,8};font-family")
+
 # ──────────────────── 全屏回灌（teach 卡 · 参考 S02/§B） ────────────────────
 
 _FS_CSS_NEW = (
@@ -115,7 +154,8 @@ _FS_CSS_NEW = (
 
 _DIDMOUNT_APPEND = (
     "document.head.appendChild(s); }\n"
-    "    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };\n"
+    "    this.updateFitZoom();\n"
+    "    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); this.updateFitZoom(); };\n"
     "    window.addEventListener('resize', this._onResize);\n"
     "    window.addEventListener('orientationchange', this._onResize);"
 )
@@ -134,7 +174,19 @@ _FULLSCREEN_NEW = """  fullscreen(){ const n=!this.state.fs; this.setState({fs:n
       if(p&&p.catch)p.catch(function(){}); }catch(e){} }
   updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
   scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
-  tapToggle(){ if(!this.state.fs)return; const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }"""
+  tapToggle(){ if(!this.state.fs)return; const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  updateFitZoom(){ try{ const z=Math.min(window.innerWidth/390, __LZ_FIT_CAP__); document.body.style.setProperty('--lz-fit', String(z)); }catch(e){} }
+  wxAsk(){ try{
+      const wxm=window.wx&&window.wx.miniProgram;
+      const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+      if(!wxm||!inMini) return false;
+      let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
+      if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
+      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=__LZ_PACK__'+(st?'&scene_title='+encodeURIComponent(st):'')});
+      return true; }catch(e){ return false; } }"""
+
+_OPENASK_OLD = "openAsk(){ this.setState({askOpen:true,playing:false}); }"
+_OPENASK_NEW = "openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }"
 
 _RVALS_APPEND = (
     'fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),'
@@ -219,9 +271,17 @@ _CAPSULE_RE = re.compile(
 _AUTOSTART_RE = re.compile(r"^\s*this\._autoTimer=setTimeout\([^\n]*\n", re.M)
 
 
-def transform_teach(text: str) -> str:
-    # 1. 字体自托管
-    text = _sub(text, _FONT_LINKS_OLD, _FONT_LINKS_NEW, "font-links")
+def transform_teach(text: str, pack_id: str) -> str:
+    # 1. 字体自托管 + 微信 JSSDK（自托管）
+    text = _sub(text, _FONT_LINKS_OLD, _FONT_LINKS_NEW + "\n" + _JWEIXIN_TAG, "font-links")
+    # 1b. 普通态宽度自适应 + html/body 底色改为卡自身深墨（逐卡提取，fail-closed）
+    bg_m = _CARD_BG_RE.search(text)
+    if not bg_m:
+        raise TransformError("anchor [card-bg] not found on .lz-card")
+    card_bg = bg_m.group(1)
+    text = _sub(text, _BODY_CSS_OLD, _fit_css(card_bg), "fit-css")
+    text = _sub(text, _BODY_BG_RE, f"body{{background:{card_bg};font-family",
+                "body-bg", literal_pattern=False)
     # 2. 全屏 CSS（保留原缩进）
     m = _FS_CSS_LINE_RE.search(text)
     if not m:
@@ -234,8 +294,13 @@ def transform_teach(text: str) -> str:
                 "state-ctrlHidden", literal_pattern=False)
     # 5. componentWillUnmount 清理
     text = _sub(text, _UNMOUNT_OLD_RE, _UNMOUNT_NEW, "unmount", literal_pattern=False)
-    # 6. fullscreen() 替换 + 三个新方法
-    text = _sub(text, _FULLSCREEN_OLD_RE, _FULLSCREEN_NEW, "fullscreen-method", literal_pattern=False)
+    # 6. fullscreen() 替换 + 新方法（updateFsScale/scheduleHide/tapToggle/updateFitZoom/wxAsk）
+    fs_methods = (_FULLSCREEN_NEW
+                  .replace("__LZ_FIT_CAP__", str(_FIT_ZOOM_CAP))
+                  .replace("__LZ_PACK__", pack_id))
+    text = _sub(text, _FULLSCREEN_OLD_RE, fs_methods, "fullscreen-method", literal_pattern=False)
+    # 6b. openAsk：小程序 web-view 内改跳问鲁班 chat 页（非微信环境保持原浮层）
+    text = _sub(text, _OPENASK_OLD, _OPENASK_NEW, "openask-wx")
     # 7. toggle() 播放后调度自动隐藏
     text = _sub(text, _TOGGLE_END_OLD, _TOGGLE_END_NEW, "toggle-schedulehide")
     # 8. renderVals 补键
@@ -290,7 +355,7 @@ def publish(station_id: str, st: Station) -> list[str]:
 
     for hosted_name, src_name in st.teach.items():
         text = (src / src_name).read_text(encoding="utf-8")
-        text = transform_teach(text)
+        text = transform_teach(text, st.pack_dir)
         text = _rewrite_hrefs(text, st.href_map)
         (dst / hosted_name).write_text(text, encoding="utf-8")
         written.append(hosted_name)
@@ -313,6 +378,10 @@ def publish(station_id: str, st: Station) -> list[str]:
 def main(argv: list[str]) -> int:
     if not FONTS_CSS.is_file():
         print(f"publish: 缺共享字体 {FONTS_CSS}（先提交自托管字体子集）", file=sys.stderr)
+        return 1
+    if not JWEIXIN_JS.is_file():
+        print(f"publish: 缺自托管微信 JSSDK {JWEIXIN_JS}（curl res.wx.qq.com/open/js/jweixin-1.6.0.js）",
+              file=sys.stderr)
         return 1
     targets = argv or sorted(STATIONS)
     unknown = [t for t in targets if t not in STATIONS]
