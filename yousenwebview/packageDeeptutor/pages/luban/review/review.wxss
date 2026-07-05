@@ -410,6 +410,21 @@
   text-decoration: underline;
 }
 
+/* 到期行内的实务闯关入口(复习二期, 变体池 fail-closed 才渲染) */
+.rv-row-gauntlet {
+  margin-top: 6rpx;
+  align-self: flex-start;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: rgba(72, 128, 106, 0.1);
+}
+.rv-row-gauntlet text {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-grn);
+}
+
 /* ── 资产入口卡 ─────────────────────────────── */
 .rv-asset {
   border-radius: 28rpx;
