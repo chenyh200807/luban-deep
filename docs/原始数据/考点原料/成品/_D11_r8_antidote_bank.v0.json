@@ -1,0 +1,107 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "D11",
+ "status": "candidate",
+ "source_pack_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
+ "generation_ms": 0.74,
+ "gate": {
+  "total": 5,
+  "passed": 5,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 5,
+ "dropped_rows": [
+  {
+   "r8_id": "D11:R8-M3",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "D11:R8-M4",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "D11:R8-M7",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "M08": [
+   {
+    "r8_id": "D11:R8-M1",
+    "mental_model": "总厚度≥35mm即须采取加强措施(分层+挂网)",
+    "textbook_ref": "kc:1A422000_042_0068:0",
+    "phenomenon": "抹灰总厚度达35mm/40mm 未加强",
+    "wrong_model": "以为更厚(>40mm)才需加强"
+   },
+   {
+    "r8_id": "D11:R8-M2",
+    "mental_model": "不同材料基体交接处加强网搭接宽度≥100mm",
+    "textbook_ref": "kc:1A422000_043_0069:0",
+    "phenomenon": "交接处加强网搭接仅50mm/80mm",
+    "wrong_model": "以为搭接>50mm即可"
+   },
+   {
+    "r8_id": "D11:R8-M5",
+    "mental_model": "溶剂型≤8%/乳液型≤10%/木材≤12%，分对象",
+    "textbook_ref": "kc:1A422000_043_0069:1",
+    "phenomenon": "溶剂型涂料基层含水率10% 即涂",
+    "wrong_model": "以为含水率高点不影响"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "D11:R8-M1",
+    "mental_model": "总厚度≥35mm即须采取加强措施(分层+挂网)",
+    "textbook_ref": "kc:1A422000_042_0068:0",
+    "phenomenon": "抹灰总厚度达35mm/40mm 未加强",
+    "wrong_model": "以为更厚(>40mm)才需加强"
+   }
+  ],
+  "E03": [
+   {
+    "r8_id": "D11:R8-M2",
+    "mental_model": "不同材料基体交接处加强网搭接宽度≥100mm",
+    "textbook_ref": "kc:1A422000_043_0069:0",
+    "phenomenon": "交接处加强网搭接仅50mm/80mm",
+    "wrong_model": "以为搭接>50mm即可"
+   }
+  ],
+  "E07": [
+   {
+    "r8_id": "D11:R8-M5",
+    "mental_model": "溶剂型≤8%/乳液型≤10%/木材≤12%，分对象",
+    "textbook_ref": "kc:1A422000_043_0069:1",
+    "phenomenon": "溶剂型涂料基层含水率10% 即涂",
+    "wrong_model": "以为含水率高点不影响"
+   },
+   {
+    "r8_id": "D11:R8-M6",
+    "mental_model": "厨房/卫生间/地下室潮湿处找平层应用耐水腻子",
+    "textbook_ref": "kc:1A422000_043_0069:2",
+    "phenomenon": "厨卫墙面找平用普通腻子",
+    "wrong_model": "以为普通腻子也能用"
+   }
+  ],
+  "M03": [
+   {
+    "r8_id": "D11:R8-M6",
+    "mental_model": "厨房/卫生间/地下室潮湿处找平层应用耐水腻子",
+    "textbook_ref": "kc:1A422000_043_0069:2",
+    "phenomenon": "厨卫墙面找平用普通腻子",
+    "wrong_model": "以为普通腻子也能用"
+   }
+  ],
+  "E06": [
+   {
+    "r8_id": "D11:R8-M8",
+    "mental_model": "涂饰工程应在抹灰、吊顶、地面湿作业等完成后进行",
+    "textbook_ref": "kc:1A413030_141_0276:0",
+    "phenomenon": "涂饰抢在抹灰湿作业前做",
+    "wrong_model": "以为工序无先后"
+   }
+  ]
+ }
+}

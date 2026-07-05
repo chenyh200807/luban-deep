@@ -1,0 +1,115 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "N03",
+ "status": "candidate",
+ "source_pack_sha256": "ae9e5525c4f86bda1a0868a65663b2b56dcd4bd48846f8aa7e5a62af9999b590",
+ "generation_ms": 0.77,
+ "gate": {
+  "total": 8,
+  "passed": 8,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 8,
+ "dropped_rows": [],
+ "antidotes": {
+  "E07": [
+   {
+    "r8_id": "N03:R8-M1",
+    "mental_model": "等节奏 t 全等且 K=t，前队完成=后队进入，必然连续无空闲；「过程间可能有间隔」是无节奏的特点",
+    "textbook_ref": "kc:1A433000_052_0077:0",
+    "phenomenon": "等节奏特点选项把「连续无空闲」反读成「不能连续作业」当对",
+    "wrong_model": "以为等节奏会有停工等待"
+   },
+   {
+    "r8_id": "N03:R8-M2",
+    "mental_model": "等步距异节奏 K=各节拍最大公约数；{2023} gcd(3,6)=3 个月，取错 K 连锁错队数与工期",
+    "textbook_ref": "kc:1A433000_053_0078:1",
+    "phenomenon": "成倍节拍 K 取成最大节拍/平均节拍",
+    "wrong_model": "以为步距随便取一个节拍值"
+   },
+   {
+    "r8_id": "N03:R8-M3",
+    "mental_model": "成倍节拍要拆队：各过程队数=节拍/K，故队数>过程数；{2019} 3/3/9/6/6÷3=1/1/3/2/2=9 队",
+    "textbook_ref": "kc:1A433000_053_0078:1",
+    "phenomenon": "成倍节拍每过程仍只设 1 队",
+    "wrong_model": "以为专业队数永远=施工过程数"
+   },
+   {
+    "r8_id": "N03:R8-M6",
+    "mental_model": "t = 某队在一段的施工时间；K = 相邻两队进入流水的间隔，二者不同维度",
+    "textbook_ref": "kc:1A433000_052_0075:0",
+    "phenomenon": "把流水节拍 t 与流水步距 K 定义互换",
+    "wrong_model": "以为 t、K 是一回事"
+   },
+   {
+    "r8_id": "N03:R8-M8",
+    "mental_model": "参数三体系：工艺(施工过程/施工段数·流水强度) / 时间(节拍/步距/工期) / 空间(施工段/施工层)",
+    "textbook_ref": "kc:1A433000_052_0075:0",
+    "phenomenon": "参数分类把节拍/步距错归工艺参数",
+    "wrong_model": "以为所有参数一锅烩"
+   }
+  ],
+  "M04": [
+   {
+    "r8_id": "N03:R8-M1",
+    "mental_model": "等节奏 t 全等且 K=t，前队完成=后队进入，必然连续无空闲；「过程间可能有间隔」是无节奏的特点",
+    "textbook_ref": "kc:1A433000_052_0077:0",
+    "phenomenon": "等节奏特点选项把「连续无空闲」反读成「不能连续作业」当对",
+    "wrong_model": "以为等节奏会有停工等待"
+   }
+  ],
+  "E09": [
+   {
+    "r8_id": "N03:R8-M2",
+    "mental_model": "等步距异节奏 K=各节拍最大公约数；{2023} gcd(3,6)=3 个月，取错 K 连锁错队数与工期",
+    "textbook_ref": "kc:1A433000_053_0078:1",
+    "phenomenon": "成倍节拍 K 取成最大节拍/平均节拍",
+    "wrong_model": "以为步距随便取一个节拍值"
+   },
+   {
+    "r8_id": "N03:R8-M4",
+    "mental_model": "流水工期体现搭接：(M+N'−1)×K 型/Σ步距+末工序节拍；{2023} (2+5-1)×3=18 个月，非机械相加",
+    "textbook_ref": "kc:1A433000_055_0083:0",
+    "phenomenon": "总工期把所有施工过程节拍机械相加",
+    "wrong_model": "以为工期=Σ所有节拍，不体现搭接"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "N03:R8-M5",
+    "mental_model": "必须展示累加数列→错位相减→取最大值三动作，缺一丢分",
+    "textbook_ref": "kc:1A433000_054_0081:0",
+    "phenomenon": "大差法只写「用大差法计算」不展开过程",
+    "wrong_model": "以为报方法名即可"
+   },
+   {
+    "r8_id": "N03:R8-M5",
+    "mental_model": "必须展示累加数列→错位相减→取最大值三动作，缺一丢分",
+    "textbook_ref": "kc:1A433000_054_0081:0",
+    "phenomenon": "大差法只写「用大差法计算」不展开过程",
+    "wrong_model": "以为报方法名即可"
+   }
+  ],
+  "E06": [
+   {
+    "r8_id": "N03:R8-M5",
+    "mental_model": "必须展示累加数列→错位相减→取最大值三动作，缺一丢分",
+    "textbook_ref": "kc:1A433000_054_0081:0",
+    "phenomenon": "大差法只写「用大差法计算」不展开过程",
+    "wrong_model": "以为报方法名即可"
+   }
+  ],
+  "E08": [
+   {
+    "r8_id": "N03:R8-M7",
+    "mental_model": "施工段划分须满足劳动量差异≤15% + 界限与结构缝吻合 + 段数合理，保证节拍均衡",
+    "textbook_ref": "kc:1A433000_051_0074:1",
+    "phenomenon": "施工段划分不看劳动量差异，只看工作面",
+    "wrong_model": "以为分段只要够干就行"
+   }
+  ]
+ }
+}

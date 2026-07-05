@@ -1,0 +1,161 @@
+{
+ "schema_version": "luban-cloze-bank",
+ "pack_id": "A01",
+ "status": "candidate",
+ "source_pack_sha256": "23593d60ab10292ab5b2e9dac8ce767f0ed111e4b5fc669051aa5cf1824e92f1",
+ "generation_ms": 1.67,
+ "gate": {
+  "total": 16,
+  "passed": 16,
+  "pass_rate": 1.0,
+  "anchor_unresolved": [],
+  "term_not_in_sentence": [],
+  "forbidden_words": []
+ },
+ "recall_prompt": "想一想：每个采分点的关键词，你能默写全吗？",
+ "cloze_count": 16,
+ "dropped_rows": [
+  {
+   "cloze_id": "A01:C3-1",
+   "reason": "term_not_in_sentence"
+  },
+  {
+   "cloze_id": "A01:C3-4",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "cloze_id": "A01:C4-4",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "cloze_id": "A01:C5-2",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "cloze_id": "A01:C5-3",
+   "reason": "term_not_in_sentence"
+  },
+  {
+   "cloze_id": "A01:C6-3",
+   "reason": "term_not_in_sentence"
+  },
+  {
+   "cloze_id": "A01:C6-4",
+   "reason": "term_not_in_sentence"
+  }
+ ],
+ "skeleton_sentences": [
+  {
+   "cloze_id": "A01:C1-1",
+   "point_id": "kc:1A422000_021_0029:1",
+   "text_before": "验收四级体系：",
+   "blank_hint": "检验批 / 单位工程",
+   "text_after": ""
+  },
+  {
+   "cloze_id": "A01:C1-2",
+   "point_id": "kc:1A422000_021_0029:1",
+   "text_before": "检验批划分条件：",
+   "blank_hint": "工程量 / 楼层 / 施工段 / 变形缝",
+   "text_after": ""
+  },
+  {
+   "cloze_id": "A01:C1-3",
+   "point_id": "kc:1A422000_021_0029:1",
+   "text_before": "分项工程划分条件：主要",
+   "blank_hint": "工种 / 材料 / 工艺",
+   "text_after": "、设备类别"
+  },
+  {
+   "cloze_id": "A01:C1-4",
+   "point_id": "kc:1A422000_021_0029:1",
+   "text_before": "分部按",
+   "blank_hint": "专业性质 / 工程部位",
+   "text_after": "划分；单位工程=独立使用功能单元"
+  },
+  {
+   "cloze_id": "A01:C2-1",
+   "point_id": "kc:1A422000_045_0071:1",
+   "text_before": "",
+   "blank_hint": "主控项目 / 全部合格",
+   "text_after": "（100%）"
+  },
+  {
+   "cloze_id": "A01:C2-2",
+   "point_id": "kc:1A422000_045_0071:1",
+   "text_before": "",
+   "blank_hint": "一般项目 / 合格率 / 80%",
+   "text_after": "（且超差不大于规定值）"
+  },
+  {
+   "cloze_id": "A01:C2-3",
+   "point_id": "kc:1A422000_045_0071:1",
+   "text_before": "",
+   "blank_hint": "技术资料 / 见证取样",
+   "text_after": "/抽样检验结果满足设计"
+  },
+  {
+   "cloze_id": "A01:C3-2",
+   "point_id": "kc:1A434020_085_0138:0",
+   "text_before": "装饰装修主要隐蔽项目：",
+   "blank_hint": "龙骨 / 钢筋绑扎 / 防水",
+   "text_after": ""
+  },
+  {
+   "cloze_id": "A01:C3-3",
+   "point_id": "kc:1A438000_151_0243:0",
+   "text_before": "",
+   "blank_hint": "见证取样",
+   "text_after": "送检：建设/监理见证下试验员现场取样送检"
+  },
+  {
+   "cloze_id": "A01:C4-1",
+   "point_id": "kc:1A434020_085_0136:0",
+   "text_before": "实体检验四内容：",
+   "blank_hint": "混凝土强度 / 钢筋保护层 / 尺寸偏差",
+   "text_after": "、合同约定项目"
+  },
+  {
+   "cloze_id": "A01:C4-2",
+   "point_id": "kc:1A434020_085_0136:1",
+   "text_before": "实体检验由监理组织、施工实施、监理见证；",
+   "blank_hint": "专项方案",
+   "text_after": "经监理审批"
+  },
+  {
+   "cloze_id": "A01:C4-3",
+   "point_id": "kc:1A434020_085_0136:2",
+   "text_before": "混凝土强度优先",
+   "blank_hint": "同条件养护 / 回弹—取芯法",
+   "text_after": ""
+  },
+  {
+   "cloze_id": "A01:C5-1",
+   "point_id": "kc:1A434020_085_0137:0",
+   "text_before": "分部由",
+   "blank_hint": "总监理工程师 / 建设单位 / 施工单位",
+   "text_after": "项目负责人、技术负责人参加"
+  },
+  {
+   "cloze_id": "A01:C6-1",
+   "point_id": "kc:1A434020_082_0131:0",
+   "text_before": "地基与基础验收五步：施工企业自评→设计认可→",
+   "blank_hint": "监理核定",
+   "text_after": "→业主验收→政府监督"
+  },
+  {
+   "cloze_id": "A01:C6-2",
+   "point_id": "kc:1A422000_021_0029:2",
+   "text_before": "单位工程竣工验收流程：施工自检→监理",
+   "blank_hint": "预验收 / 整改 / 竣工报告 / 组织",
+   "text_after": "正式验收"
+  },
+  {
+   "cloze_id": "A01:C6-5",
+   "point_id": "kc:1A434020_088_0146:1",
+   "text_before": "验收不合格处理：资料缺→委托检测",
+   "blank_hint": "实体检验 / 严禁验收",
+   "text_after": ""
+  }
+ ]
+}
