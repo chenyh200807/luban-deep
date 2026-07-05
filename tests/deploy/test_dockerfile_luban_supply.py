@@ -47,6 +47,9 @@ def test_dockerignore_allowlists_luban_supply_files() -> None:
     assert "!docs/原始数据/考点原料/成品/_*_variant_bank.v0.json" in dockerignore
     # 考点卡池(复习模块 §6.2)——同 F16 漏拷教训, 通配白名单进镜像
     assert "!docs/原始数据/考点原料/成品/_*_concept_card_bank.v0.json" in dockerignore
+    # R8 解药 / R6 挖空池——漏反选致容器 antidote=0(本次修的部署假绿, 同型第三次)
+    assert "!docs/原始数据/考点原料/成品/_*_r8_antidote_bank.v0.json" in dockerignore
+    assert "!docs/原始数据/考点原料/成品/_*_r6_cloze_bank.v0.json" in dockerignore
     # fusion-a(生命周期 join 工件)——缺任一则生产投影静默全空(Codex P3 回归缺口)
     assert "!docs/原始数据/考点原料/成品/_question_pack_map.v0.json" in dockerignore
     assert "!docs/原始数据/考点原料/成品/_pack_taxonomy_registry.v0.json" in dockerignore
@@ -62,6 +65,11 @@ def test_dockerignore_wildcard_covers_all_variant_banks_on_disk() -> None:
     card_banks = sorted(p.name for p in supply.glob("_*_concept_card_bank.v0.json"))
     assert len(card_banks) >= 5, f"首批五站考点卡池(S05/A01/F16/J01/N01), 实际: {card_banks}"
     targets += card_banks
+    # R8 解药 / R6 挖空池——任何在盘 bank 漏 .dockerignore 反选即容器缺供给(防同型第四次)
+    antidote_banks = sorted(p.name for p in supply.glob("_*_r8_antidote_bank.v0.json"))
+    assert antidote_banks, f"R8 解药池应已产(23 包), 实际: {antidote_banks}"
+    targets += antidote_banks
+    targets += sorted(p.name for p in supply.glob("_*_r6_cloze_bank.v0.json"))
     for name in targets + [
         "_pack_manifest.json",
         "_question_pack_map.v0.json",
