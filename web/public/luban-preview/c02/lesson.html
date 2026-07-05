@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <div class="lz-stagewrap" onClick="{{ tapToggle }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:104px;right:52px;z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);white-space:nowrap;overflow:hidden;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：合同价资金块 + 两个红章淘汰 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ t0 }}</div>
+        <div style="position:absolute;left:30px;top:64px;width:300px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:11px 14px;font-size:13px;font-weight:700;color:#23282b;line-height:1.45;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bubbleO }};transform:scale({{ b0_bubbleS }});">预付款 = 5800×20%？起扣点 = 合同价×占比 − 预付款？
+          <div style="position:absolute;left:40px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:40px;top:150px;width:310px;height:30px;opacity:{{ b0_barO }};">
+          <div style="position:absolute;left:0;top:0;width:278px;height:30px;background:#2f6db0;border-radius:5px 0 0 5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">合同价 5800万</div>
+          <div style="position:absolute;left:278px;top:0;width:32px;height:30px;background:repeating-linear-gradient(45deg,#8a9296,#8a9296 5px,#9aa0a3 5px,#9aa0a3 10px);border-radius:0 5px 5px 0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">暂列580</div>
+        </div>
+        <div style="position:absolute;left:40px;top:202px;font-size:15px;font-weight:800;color:#23282b;opacity:{{ b0_eq1O }};">预付款 = 5800 × 20% = 1160万</div>
+        <div style="position:absolute;left:252px;top:194px;z-index:20;color:#cf4436;border:3.5px solid #cf4436;border-radius:9px;padding:2px 9px;font-size:14px;font-weight:900;letter-spacing:1px;transform-origin:50% 50%;opacity:{{ b0_st1O }};transform:scale({{ b0_st1S }}) rotate(-12deg);">✕ 基数错</div>
+        <div style="position:absolute;left:40px;top:252px;font-size:15px;font-weight:800;color:#23282b;opacity:{{ b0_eq2O }};">起扣点 = 合同价 × 占比 − 预付款</div>
+        <div style="position:absolute;left:252px;top:286px;z-index:20;color:#cf4436;border:3.5px solid #cf4436;border-radius:9px;padding:2px 9px;font-size:14px;font-weight:900;letter-spacing:1px;transform-origin:50% 50%;opacity:{{ b0_st2O }};transform:scale({{ b0_st2S }}) rotate(-12deg);">✕ 公式反</div>
+        <div style="position:absolute;left:0;right:0;top:322px;text-align:center;font-size:12px;font-weight:800;color:#cf8a44;opacity:{{ b0_st2O }};">基数没扣暂列金 · 起扣点公式整个拧反</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 扣暂列金 → 预付款 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ t1 }}</div>
+        <div style="position:absolute;left:40px;top:96px;width:278px;height:36px;background:#2f6db0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;opacity:{{ b1_barO }};">基数 5220万</div>
+        <div style="position:absolute;left:318px;top:96px;width:32px;height:36px;border-radius:6px;background:repeating-linear-gradient(45deg,#8a9296,#8a9296 5px,#9aa0a3 5px,#9aa0a3 10px);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;opacity:{{ b1_barO }};transform:translateY({{ b1_zlY }}px);">暂列580</div>
+        <div style="position:absolute;left:40px;top:140px;font-size:11px;font-weight:700;color:#8a9296;opacity:{{ b1_zlGray }};">暂列金 580 不进基数 · 5800 − 580 = 5220</div>
+        <div style="position:absolute;left:0;right:0;top:178px;text-align:center;font-size:16px;font-weight:900;color:#cf8a44;opacity:{{ b1_arrO }};">× 预付比例 20% ↓</div>
+        <div style="position:absolute;left:50%;top:222px;transform:translateX(-50%) translateY({{ b1_coinY }}px);opacity:{{ b1_coinO }};">
+          <div style="background:#2c8a5b;color:#fff;border-radius:14px;padding:13px 22px;font-size:18px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.25);white-space:nowrap;">预付款 = 5220 × 20% = 1044万</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:298px;text-align:center;font-size:12px;font-weight:800;color:#2f6db0;opacity:{{ b1_coinO }};">先扣暂列金、再乘比例 —— 基数对了才不连锁错</div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 起扣点 = 累计轴上一条线 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ t2 }}</div>
+        <div style="position:absolute;left:40px;top:96px;width:2px;height:204px;background:#bdb8a8;opacity:{{ b2_axisO }};"></div>
+        <div style="position:absolute;left:40px;top:300px;width:300px;height:2px;background:#bdb8a8;opacity:{{ b2_axisO }};"></div>
+        <div style="position:absolute;left:6px;top:90px;font-size:9px;font-weight:800;color:#8b9398;opacity:{{ b2_axisO }};">累计/万</div>
+        <div style="position:absolute;left:40px;top:120px;width:300px;border-top:2.5px dashed #cf4436;opacity:{{ b2_lineO }};transform:translateX({{ b2_lineX }}px);"></div>
+        <div style="position:absolute;left:210px;top:102px;background:#cf4436;color:#fff;font-size:11px;font-weight:800;border-radius:10px;padding:3px 10px;opacity:{{ b2_lineLabO }};">起扣点 3480万</div>
+        <div style="position:absolute;left:64px;top:152px;font-size:13.5px;font-weight:800;color:#23282b;opacity:{{ b2_f1O }};">起扣点 = 基数 − 预付款 ÷ 材料占比</div>
+        <div style="position:absolute;left:64px;top:192px;font-size:13.5px;font-weight:800;color:#23282b;opacity:{{ b2_f2O }};">= 5220 − 1044 ÷ 60% = 5220 − 1740</div>
+        <div style="position:absolute;left:64px;top:230px;background:#2c8a5b;color:#fff;border-radius:11px;padding:8px 16px;font-size:16px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.25);opacity:{{ b2_f3O }};">= 3480万</div>
+        <div style="position:absolute;left:0;right:0;top:318px;text-align:center;font-size:11px;font-weight:700;color:#cf8a44;opacity:{{ b2_f3O }};">把它当横在累计轴上的一条线，公式就不写反</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 逐月累计，过起扣点才扣回 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ t3 }}</div>
+        <div style="position:absolute;left:60px;top:96px;width:2px;height:204px;background:#bdb8a8;opacity:{{ b3_axisO }};"></div>
+        <div style="position:absolute;left:60px;top:300px;width:280px;height:2px;background:#bdb8a8;opacity:{{ b3_axisO }};"></div>
+        <div style="position:absolute;left:60px;top:120px;width:280px;border-top:2.5px dashed #cf4436;opacity:{{ b3_lineO }};"></div>
+        <div style="position:absolute;left:62px;top:103px;background:#cf4436;color:#fff;font-size:10px;font-weight:800;border-radius:9px;padding:2px 8px;opacity:{{ b3_lineO }};">起扣点 3480万</div>
+        <sc-for list="{{ b3segs }}" as="s" hint-placeholder-count="5">
+          <div style="position:absolute;left:{{ s.x }}px;top:{{ s.y }}px;width:{{ s.w }}px;height:{{ s.h }}px;background:{{ s.bg }};opacity:{{ s.op }};border:1px solid #fff;"></div>
+        </sc-for>
+        <sc-for list="{{ b3labs }}" as="l" hint-placeholder-count="5">
+          <div style="position:absolute;left:{{ l.x }}px;top:{{ l.top }}px;font-size:10px;font-weight:800;color:{{ l.c }};opacity:{{ l.op }};white-space:nowrap;">{{ l.lab }}</div>
+        </sc-for>
+        <div style="position:absolute;left:150px;top:305px;width:66px;text-align:center;font-size:9px;font-weight:700;color:#5c6469;opacity:{{ b3_axisO }};">1→5月累计</div>
+        <div style="position:absolute;left:34px;top:62px;right:14px;background:#cf4436;color:#fff;border-radius:11px;padding:7px 12px;font-size:11.5px;font-weight:900;box-shadow:3px 3px 0 rgba(207,68,54,.22);opacity:{{ b3_trigO }};text-align:center;">5月累计 3830 &gt; 3480 → 触发扣回预付款</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 未到扣一刀 / 到了扣两刀 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ t4 }}</div>
+        <div style="position:absolute;left:16px;top:104px;font-size:11px;font-weight:800;color:#5c6469;opacity:{{ b4_r1O }};">3月</div>
+        <div style="position:absolute;left:50px;top:100px;width:150px;height:24px;background:#2f6db0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;opacity:{{ b4_r1O }};">产值 750</div>
+        <div style="position:absolute;left:204px;top:100px;width:30px;height:24px;background:#cf8a44;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;opacity:{{ b4_s1O }};">−3%</div>
+        <div style="position:absolute;left:244px;top:104px;font-size:12px;font-weight:800;color:#2c8a5b;opacity:{{ b4_res1O }};">= 727.5万 · 一刀</div>
+        <div style="position:absolute;left:16px;top:160px;font-size:11px;font-weight:800;color:#5c6469;opacity:{{ b4_r2O }};">4月</div>
+        <div style="position:absolute;left:50px;top:156px;width:150px;height:24px;background:#2f6db0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;opacity:{{ b4_r2O }};">产值 1000</div>
+        <div style="position:absolute;left:204px;top:156px;width:30px;height:24px;background:#cf8a44;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;opacity:{{ b4_s2O }};">−3%</div>
+        <div style="position:absolute;left:244px;top:160px;font-size:12px;font-weight:800;color:#2c8a5b;opacity:{{ b4_res2O }};">= 970万 · 一刀</div>
+        <div style="position:absolute;left:16px;top:222px;font-size:11px;font-weight:800;color:#cf4436;opacity:{{ b4_r3O }};">5月</div>
+        <div style="position:absolute;left:50px;top:218px;width:150px;height:24px;background:#2f6db0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;opacity:{{ b4_r3O }};">产值 1400</div>
+        <div style="position:absolute;left:204px;top:218px;width:30px;height:24px;background:#cf8a44;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;opacity:{{ b4_s3aO }};">−3%</div>
+        <div style="position:absolute;left:238px;top:218px;width:36px;height:24px;background:#cf4436;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:800;color:#fff;opacity:{{ b4_s3bO }};">扣回预付</div>
+        <div style="position:absolute;left:50px;right:14px;top:250px;font-size:12px;font-weight:800;color:#cf4436;opacity:{{ b4_res3O }};">5月达起扣点 → 质保 + 扣回预付，扣两刀</div>
+        <div style="position:absolute;left:0;right:0;top:302px;text-align:center;font-size:11.5px;font-weight:700;color:#cf8a44;opacity:{{ b4_res3O }};">未到起扣点扣一刀 · 到了起扣点扣两刀</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 合同条款体检：诱饵值 vs 规范钉死值 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ t5 }}</div>
+        <div style="position:absolute;left:18px;top:80px;width:218px;height:32px;background:#fff;border:1.5px solid #ddd2bb;border-radius:9px;display:flex;align-items:center;padding:0 12px;font-size:12.5px;font-weight:700;color:#23282b;opacity:{{ b5_c1O }};">题面：质量保修金 5%</div>
+        <div style="position:absolute;left:150px;top:76px;z-index:20;color:#cf4436;border:3.5px solid #cf4436;border-radius:9px;padding:2px 9px;font-size:13px;font-weight:900;transform-origin:50% 50%;opacity:{{ b5_st1O }};transform:scale({{ b5_st1S }}) rotate(-11deg);">✕ 不妥</div>
+        <div style="position:absolute;left:18px;top:118px;font-size:11.5px;font-weight:800;color:#2c8a5b;opacity:{{ b5_fix1O }};">→ 规范：不超工程结算总价 3%</div>
+        <div style="position:absolute;left:18px;top:156px;width:218px;height:32px;background:#fff;border:1.5px solid #ddd2bb;border-radius:9px;display:flex;align-items:center;padding:0 12px;font-size:12.5px;font-weight:700;color:#23282b;opacity:{{ b5_c2O }};">题面：履约保证金 15%</div>
+        <div style="position:absolute;left:150px;top:152px;z-index:20;color:#cf4436;border:3.5px solid #cf4436;border-radius:9px;padding:2px 9px;font-size:13px;font-weight:900;transform-origin:50% 50%;opacity:{{ b5_st2O }};transform:scale({{ b5_st2S }}) rotate(-11deg);">✕ 不妥</div>
+        <div style="position:absolute;left:18px;top:194px;font-size:11.5px;font-weight:800;color:#2c8a5b;opacity:{{ b5_fix2O }};">→ 规范：不超中标合同金额 10%</div>
+        <div style="position:absolute;left:18px;top:232px;width:218px;height:32px;background:#fff;border:1.5px solid #ddd2bb;border-radius:9px;display:flex;align-items:center;padding:0 12px;font-size:12.5px;font-weight:700;color:#23282b;opacity:{{ b5_c3O }};">题面：指定本市某钢厂供货</div>
+        <div style="position:absolute;left:150px;top:228px;z-index:20;color:#cf4436;border:3.5px solid #cf4436;border-radius:9px;padding:2px 9px;font-size:13px;font-weight:900;transform-origin:50% 50%;opacity:{{ b5_st3O }};transform:scale({{ b5_st3S }}) rotate(-11deg);">✕ 不妥</div>
+        <div style="position:absolute;left:18px;top:270px;font-size:11.5px;font-weight:800;color:#2c8a5b;opacity:{{ b5_fix3O }};">→ 规范：不得指定供应商 / 分包人</div>
+        <div style="position:absolute;left:0;right:0;top:312px;text-align:center;font-size:11px;font-weight:700;color:#cf8a44;opacity:{{ b5_fix3O }};">写规范钉死值，别顺着题面诱饵值写</div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 一条资金链 · 采分四步 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ t6 }}</div>
+        <div style="position:absolute;left:8px;top:150px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c0 }};"><div style="font-size:13px;font-weight:900;color:#2f6db0;">1 预付款</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">(合同−暂列)×比例</div></div>
+        <div style="position:absolute;left:100px;top:150px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf8a44;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c1 }};"><div style="font-size:13px;font-weight:900;color:#cf8a44;">2 起扣点</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">基数−预付÷占比</div></div>
+        <div style="position:absolute;left:192px;top:150px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c2 }};"><div style="font-size:13px;font-weight:900;color:#2c8a5b;">3 判起扣</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">逐月累计过线</div></div>
+        <div style="position:absolute;left:284px;top:150px;width:90px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #d9a521;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c3 }};"><div style="font-size:13px;font-weight:900;color:#d9a521;">4 当期</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">扣质保+扣回</div></div>
+        <div style="position:absolute;left:90px;top:188px;font-size:18px;color:#b3a692;opacity:{{ c1 }};">→</div>
+        <div style="position:absolute;left:182px;top:188px;font-size:18px;color:#b3a692;opacity:{{ c2 }};">→</div>
+        <div style="position:absolute;left:274px;top:188px;font-size:18px;color:#b3a692;opacity:{{ c3 }};">→</div>
+        <div style="position:absolute;left:16px;right:16px;top:258px;text-align:center;font-size:12.5px;font-weight:900;color:#23282b;opacity:{{ c6endO }};">亮公式 → 代入列式 → 数值带单位 → 回判定性</div>
+        <div style="position:absolute;left:0;right:0;top:288px;text-align:center;font-size:11px;font-weight:700;color:#cf8a44;opacity:{{ c6endO }};">四步走全，过程分一句不少</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="practice.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+      <a href="lesson2.html" style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:9px;border:1.5px solid #cf8a44;border-radius:11px;padding:10px;font-size:12px;font-weight:800;cursor:pointer;background:rgba(207,138,68,.1);color:#cf8a44;text-decoration:none;">下集 · 责任与口径（清单责任 / 风险划分 / 调整事项 / 综合单价 / 80%下限 / 资料移交）→</a>
+    </div>
+
+    <!-- FULLSCREEN 浮层控制条（点屏显隐 · 播放时自动隐藏 · 发布层回灌） -->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ═══════════════════════════════════════════════════════════════════════════
+   鲁班智考 · 动画学习卡 母版（讲解页）
+   ───────────────────────────────────────────────────────────────────────────
+   做新考点时，fork 本文件改名 <考点名>_讲解.dc.html，只改【内容区】，骨架别动。
+
+   ▼ 内容区（每张卡都要换）：
+     · examTitle / examCode / examCat / posterSub / posterMeta / KNOWLEDGE
+     · DUR（总秒数，≈每页旁白 6–8 秒累加）
+     · beats[]（≥6 主讲 + ≥4 问答，[id,起,止,短标题]）
+     · keycards[]（每主讲 beat 一句记忆点）
+     · narr[]（每主讲 beat 旁白，老师 longanhuan_v3 口语）
+     · qa[]（≥4 问，每问含 figLabel + fig 类型 + q + a）
+     · qaFig() 里 4 种迷你图 / figFor 的领域图（按新考点重画）
+     · 模板里 6 个 BEAT 块的领域对象 SVG/CSS（这是唯一要手画的部分）
+
+   ▲ 骨架（禁止改，改了就丢功能）：
+     · RAF 时间轴 loop / toggle / seek / jump
+     · paginate() + 旁白条 ≤3 行分页（capPages/capText/captionPage）
+     · QA 师生气泡 + 老师气泡内嵌 qaFig 迷你领域图
+     · 问追AI 弹层 + window.claude.complete
+     · 视口/全屏注入 componentDidMount
+
+   规则速记：动画讲知识不用文字讲；先判 6+1 认知结构再画领域对象；
+   每 beat 一个对象级动作、不堆画面；旁白条一页 ≤3 行（QA 气泡可整段显示）；
+   logo 用 assets/mark-white.png(暗底) / mark-red.png(亮底)，不用 emoji。
+   ═══════════════════════════════════════════════════════════════════════════ */
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/up/";
+  audioVersion="20260703-batch-tts1";
+  DUR = 308.516;
+  examTitle="进度款与计量计价·上集"; examCode="C02"; examCat="资金链";
+  posterSub="上集·资金链：扣暂列金 → 预付款 → 起扣点 → 逐月累计 → 两刀扣款"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 54 秒 · 续看下集";
+  KNOWLEDGE="进度款与计量计价(计算判定链主样板,真题{2019第1题}资金链)。题面:中标价5800万、暂列金580万、主要材料占比60%、预付款为造价20%、质保金3%每月扣、进度款逐月计算;1-5月产值180/500/750/1000/1400万。①预付款=(合同价−暂列金)×预付比例=(5800−580)×20%=1044万(基数先扣暂列金)。②起扣点=合同价基数−预付款÷主要材料占比=(5800−580)−1044/60%=3480万(累计达此线才扣回预付款)。③逐月列累计:180/680/1430/2430/3830,判累计是否≥起扣点;3月付750×(1−3%)=727.5万、4月付1000×0.97=970万(未达起扣点只扣3%质保一刀)。④5月累计3830>3480,除扣3%质保金外还扣回预付款(两刀)。质保金以工程结算总价为基数累计≤3%(2022题面5%是诱饵,规范钉死3%;履约金≤10%、不得指定供应商/分包同理)。综合单价是不含增值税的税前全费用价,税只在最末整体计提一次,单价里再乘(1+税率)=双重计税错。合同未约定支付比例时,进度款不宜低于累计完成工程总值的80%(未约定是前提)。采分按第9类计算判定链四步:亮公式→代入题面列式→数值结论带单位→回判规范阈值/定性。常见失分:基数不扣暂列金(E08/E09)、起扣点公式写反成'合同价×占比−预付款'(E09)、只算当月不列累计漏判起扣点(E02/E05)、漏写3%质保金扣减、5月漏扣回预付款、写题面诱饵值5%当上限(M08/E10)。";
+  beats=[["b0",0,25.676,"破误区"],["b1",25.676,50.704,"扣暂列"],["b2",50.704,80.028,"起扣点"],["b3",80.028,106.472,"逐月累计"],["b4",106.472,134.98,"两刀扣款"],["b5",134.98,158.76,"条款体检"],["b6",158.76,179.444,"四步链"],["q0",179.444,213.44,"问答"],["q1",213.44,244.94,"问答"],["q2",244.94,275.192,"问答"],["q3",275.192,308.516,"问答"]];
+  keycards=[
+    "预付款基数要先扣暂列金，别拿合同价直接乘",
+    "预付款 =（合同价−暂列金）× 预付比例 = 1044 万",
+    "起扣点 = 基数 − 预付款÷材料占比 = 3480 万，是条线",
+    "累计达起扣点那条线，才开始扣回预付款",
+    "未到起扣点扣一刀（质保），到了扣两刀（+预付）",
+    "诱饵值不是规范值：质保≤3% 履约≤10% 不得指定",
+    "亮公式→代入列式→数值带单位→回判，四步一句不少"
+  ];
+  narr=[
+    "来，看这道进度款的题。好些同学栽在第一步——预付款张嘴就是 5800 乘 20%。注意哈，这就掉坑里了：合同价里那 580 万暂列金是还没定用途的备用钱，不算已发包工程，得先扣出去。还有人把起扣点公式写反成“合同价乘占比减预付款”，这俩坑，先给它划掉。",
+    "正经走法第一步，求预付款。基数得先把暂列金扣干净：5800 减 580，剩 5220 万才是基数。再乘预付比例 20%——预付款等于 5220 乘 20%，等于 1044 万。记住这个动作：先扣暂列金、再乘比例，基数错了后头全错。",
+    "第二步求起扣点。起扣点是啥？是累计干到这条线、预付款就该开始往回扣了。公式是基数减去预付款除以材料占比：5220 减 1044 除以 60%，1044 除 60% 是 1740，5220 减 1740，等于 3480 万。你把它当成横在累计轴上的一条线记，公式就不会写反。",
+    "第三步逐月往上累计，看哪个月够着起扣点这条线。一月 180、累计 180；二月累计 680；三月 1430；四月 2430——还在线下边；五月再加 1400，累计 3830，越过 3480 这条线了。所以是第五月才触发扣回预付款，前头几个月够不着、不扣。",
+    "够着线之后怎么扣，这是关键。没到起扣点的月，比如三月四月，只切一刀——扣 3% 质保金：三月 750 乘 0.97 等于 727.5 万，四月 1000 乘 0.97 等于 970 万。到了第五月够着线了，在 3% 质保金之外，还得再切一刀，把预付款扣回来。一刀变两刀，这刀数可不能漏。",
+    "再带一眼合同条款的红线，专治判断纠错。题面给你质保金 5%、履约金 15%、还指定本市钢厂——全是诱饵。规范钉死的是：质保金不超结算总价 3%、履约金不超 10%、不得指定供应商。盖个“不妥”的章，写规范值，别顺着题面诱饵值写。",
+    "最后把这条资金链串牢：先扣暂列金算预付款，再算起扣点这条线，逐月累计看够没够着线，够着了当期就扣两刀。每一步都按这四下写——亮公式、代入列式、数值带单位、回判定性。记住哈，四步走全，过程分一分不丢。"
+  ];
+  qa=[
+    { figLabel:"合同价 5800 切掉暂列金 580 → 基数 5220", fig:"base", q:"老师我寻思着，这暂列金 580 为啥非得先扣啊？不扣直接拿 5800 乘不也算个数么？", a:"算是算个数，可那数是错的哈。暂列金是甲方先攥着、还没定干啥用的备用钱，没发包出去，预付款只对已经发包的工程预付。所以基数必须先把 580 抠出去，5800 减 580 等于 5220，再乘 20%。少扣这一步，基数就大了、预付款也跟着错。" },
+    { figLabel:"起扣点 = 基数 − 预付款 ÷ 占比 = 3480（一条线）", fig:"line", q:"那起扣点这公式我老记反，一会儿乘一会儿除的，到底咋记不混啊？", a:"你别背公式，记成一条线。起扣点是累计干到这儿、垫的预付款正好该开始还了。算法就一句：基数减去预付款除以材料占比——5220 减 1044 除 60% 等于 3480。千万别写成“合同价乘占比减预付款”，那是把结构整个拧反了，阅卷直接判公式错。" },
+    { figLabel:"未约定 → 进度款 ≥ 累计完成总值 80%", fig:"floor80", q:"那要是合同压根没写支付比例，这进度款该按多少付啊？", a:"没约定的，规范给了个下限：进度款不宜低于累计完成工程总值的 80%。注意“未约定”是前提哈——合同写了比例就按合同来，没写才用这 80%。可别把 80% 当成固定支付比例到处套，也别跟质保金 3%、材料占比 60% 那些数字串味了。" },
+    { figLabel:"采分四步 + 综合单价税只乘一次", fig:"score", q:"整明白了！那真到阅卷，我得咋写才能把分都拿全呢？", a:"按四步写、一步一句：一，亮公式；二，代入题面数据列式；三，写数值、带单位‘万元’；四，回判——累计够没够起扣点、这月切一刀还是两刀。再捎一句计价口径：综合单价是不含税的全费用价，税只在最末整体乘一次，单价里别再乘一遍(1+税率)，那是重复计税。四步写全，分就齐了。" }
+  ];
+  
+  qaCue=[{"answerStart":9.702},{"answerStart":6.673},{"answerStart":5.522},{"answerStart":5.865}];
+  askPresets=["暂列金为什么要先扣？","起扣点公式怎么记不反？","采分四步怎么写全？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+    if(!this.state.fs) this.fullscreen();
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true; }); a.addEventListener("ended",()=>{ if(this._audio===a)this._audio=null; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audio=null;this.webSpeak(text);} }); }catch(e){ this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt;
+      const ab=this._activeBeat;
+      if(ab!=null&&this.beats[ab]){ const curEnd=this.beats[ab][2]; if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02); }
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.stopSpeak();this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ if(!this.beats[i])return; this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  tapToggle(){ if(!this.state.fs)return; const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="base"){ h=46;
+      els.push(D({x:0,top:2,w:150,h:18,bg:"#2f6db0",r:4,fg:"#fff",fs:8.5,lab:"合同价 5800"}));
+      els.push(D({x:152,top:2,w:50,h:18,bg:"#8a9296",r:4,fg:"#fff",fs:8,lab:"暂列580"}));
+      els.push(D({x:206,top:2,w:14,h:18,fg:"#a8997a",fs:12,lab:"→"}));
+      els.push(D({x:0,top:26,w:250,h:14,fg:"#2c8a5b",fs:9.5,jc:"flex-start",lab:"基数 5220 × 20% = 预付款 1044 万"})); }
+    else if(it.fig==="line"){ h=52;
+      els.push(D({x:0,top:8,w:250,h:0,bd:"1.5px dashed #cf4436"}));
+      els.push(D({x:0,top:-5,w:140,h:12,fg:"#cf4436",fs:9,jc:"flex-start",lab:"起扣点 = 一条线"}));
+      els.push(D({x:0,top:20,w:250,h:14,fg:"#2c8a5b",fs:9.5,jc:"flex-start",lab:"基数5220 − 预付款1044 ÷ 60% = 3480万"}));
+      els.push(D({x:0,top:38,w:250,h:12,fg:"#c0392b",fs:8.5,jc:"flex-start",lab:"✕ 别写成 合同价×占比 − 预付款"})); }
+    else if(it.fig==="floor80"){ h=46;
+      els.push(D({x:0,top:4,w:250,h:18,bg:"#e9e7da",r:5}));
+      els.push(D({x:0,top:4,w:200,h:18,bg:"#cf8a44",r:5,fg:"#fff",fs:8.5,lab:"进度款 ≥ 80%"}));
+      els.push(D({x:204,top:6,w:46,h:14,fg:"#8b9398",fs:8,jc:"flex-start",lab:"累计完成"}));
+      els.push(D({x:0,top:28,w:250,h:14,fg:"#5c6469",fs:8.5,jc:"flex-start",lab:"前提：合同未约定支付比例时"})); }
+    else if(it.fig==="score"){ h=46; const s=[["①公式","#2f6db0"],["②列式","#cf8a44"],["③数值","#2c8a5b"],["④回判","#d9a521"]];
+      s.forEach((p,i)=>els.push(D({x:i*62,top:2,w:56,h:18,bg:"transparent",bd:"1.5px solid "+p[1],r:6,fg:p[1],fs:9.5,lab:p[0]})));
+      els.push(D({x:0,top:26,w:250,h:14,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"综合单价不含税 · 税只在最末乘一次"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      t0:"误区 · 别拿合同价直接乘、别把起扣点公式写反",
+      t1:"第一步 · 先扣暂列金，再求预付款",
+      t2:"第二步 · 起扣点＝累计轴上的一条线",
+      t3:"第三步 · 逐月累计，看哪月够着起扣点",
+      t4:"够着线之后 · 未到扣一刀、到了扣两刀",
+      t5:"合同条款体检 · 题面诱饵 vs 规范钉死值",
+      t6:"一条资金链 · 采分四步走全",
+      b0_bubbleO:0,b0_bubbleS:.6, b0_barO:0,
+      b0_eq1O:0,b0_st1O:0,b0_st1S:1.7, b0_eq2O:0,b0_st2O:0,b0_st2S:1.7,
+      b1_barO:0, b1_zlY:0,b1_zlGray:0, b1_baseO:0, b1_arrO:0, b1_coinO:0,b1_coinY:24,
+      b2_axisO:0, b2_f1O:0,b2_f2O:0,b2_f3O:0, b2_lineX:210,b2_lineO:0,b2_lineLabO:0,
+      b3segs:[],b3labs:[], b3_axisO:0,b3_lineO:0,b3_hitO:0,b3_trigO:0,
+      b4_r1O:0,b4_s1O:0,b4_res1O:0, b4_r2O:0,b4_s2O:0,b4_res2O:0, b4_r3O:0,b4_s3aO:0,b4_s3bO:0,b4_res3O:0,
+      b5_c1O:0,b5_st1O:0,b5_st1S:1.7,b5_fix1O:0, b5_c2O:0,b5_st2O:0,b5_st2S:1.7,b5_fix2O:0, b5_c3O:0,b5_st3O:0,b5_st3S:1.7,b5_fix3O:0,
+      c0:0,c1:0,c2:0,c3:0,c6endO:0 };
+
+    if(A(0)){ const bu=W(0,.18); v.b0_bubbleO=bu; v.b0_bubbleS=this.lp(.6,1,bu);
+      v.b0_barO=W(.2,.34);
+      v.b0_eq1O=W(.36,.5); const s1=W(.5,.62); v.b0_st1O=s1; v.b0_st1S=this.lp(1.7,1,s1);
+      v.b0_eq2O=W(.64,.78); const s2=W(.78,.9); v.b0_st2O=s2; v.b0_st2S=this.lp(1.7,1,s2); }
+    if(A(1)){ v.b1_barO=W(0,.16);
+      const zl=W(.22,.46); v.b1_zlY=this.lp(0,56,zl); v.b1_zlGray=zl;
+      v.b1_baseO=W(.42,.58); v.b1_arrO=W(.6,.72);
+      const co=W(.72,.92); v.b1_coinO=co; v.b1_coinY=this.lp(24,0,co); }
+    if(A(2)){ v.b2_axisO=W(0,.14);
+      v.b2_f1O=W(.16,.32); v.b2_f2O=W(.38,.54); v.b2_f3O=W(.58,.72);
+      const ln=W(.72,.9); v.b2_lineO=ln; v.b2_lineX=this.lp(210,0,ln); v.b2_lineLabO=W(.86,1); }
+    if(A(3)){ v.b3_axisO=W(0,.1); v.b3_lineO=W(.06,.2);
+      const mon=[180,500,750,1000,1400], cum=[180,680,1430,2430,3830];
+      const cols=["#9cc0e6","#7aa6d6","#4d86c0","#2f6db0","#235a96"];
+      const s=0.051, yB=300; const rev=this.cl(W(.14,.96)*5.6,0,5.6);
+      const segs=[],labs=[]; let topY=yB;
+      for(let i=0;i<5;i++){ const h=mon[i]*s; topY-=h; const op=this.cl(rev-i,0,1);
+        segs.push({x:150,y:Math.round(topY),w:66,h:Math.round(h),bg:cols[i],op});
+        labs.push({x:224,top:Math.round(topY)-7,op,lab:cum[i]+"万",c:cum[i]>3480?"#cf4436":"#5c6469"}); }
+      v.b3segs=segs; v.b3labs=labs;
+      v.b3_hitO=W(.86,.98); v.b3_trigO=W(.9,1); }
+    if(A(4)){ v.b4_r1O=W(0,.16); v.b4_s1O=W(.12,.26); v.b4_res1O=W(.2,.34);
+      v.b4_r2O=W(.3,.44); v.b4_s2O=W(.4,.52); v.b4_res2O=W(.46,.6);
+      v.b4_r3O=W(.6,.72); v.b4_s3aO=W(.7,.8); v.b4_s3bO=W(.82,.94); v.b4_res3O=W(.9,1); }
+    if(A(5)){ v.b5_c1O=W(0,.14); const a1=W(.14,.26); v.b5_st1O=a1; v.b5_st1S=this.lp(1.7,1,a1); v.b5_fix1O=W(.26,.38);
+      v.b5_c2O=W(.34,.46); const a2=W(.46,.56); v.b5_st2O=a2; v.b5_st2S=this.lp(1.7,1,a2); v.b5_fix2O=W(.56,.66);
+      v.b5_c3O=W(.62,.74); const a3=W(.74,.84); v.b5_st3O=a3; v.b5_st3S=this.lp(1.7,1,a3); v.b5_fix3O=W(.84,.96); }
+    if(A(6)){ v.c0=W(.06,.3); v.c1=W(.24,.48); v.c2=W(.42,.66); v.c3=W(.6,.82); v.c6endO=W(.78,.98); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaPageInfo="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ const cue=(this.qaCue&&this.qaCue[ai-NB]&&this.qaCue[ai-NB].answerStart)||((cur[2]-cur[1])*.38); const ansStart=this.cl(cue/(cur[2]-cur[1]),.12,.86); const ansEnd=this.cl(ansStart+.12,ansStart+.04,.98); qaLayerO=1; qa_so=W(0,Math.min(.24,ansStart*.6)); qa_sx=this.lp(-40,0,qa_so); qa_to=W(ansStart,ansEnd); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaFigLabel=it.figLabel||""; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaPageInfo,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",fs:this.state.fs,capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,tapToggle:()=>this.tapToggle(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none"
+    });
+  }
+}
+</script>
+</body>
+</html>
