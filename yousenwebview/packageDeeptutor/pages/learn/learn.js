@@ -107,10 +107,21 @@ Page({
         }
       );
     };
+    var lessonsPromise = settle(api.getLubanLessons(opt));
+    // 首屏快通道:绿灯站列表是静态 manifest 投影(live 实测 ~0.15s),
+    // dashboard/learning-report 是重 read model(live 实测 3-5s)。
+    // 冷启动先用 lessons 画出舞台+课程架(view-model 对缺 dashboard/report
+    // 本就降级),整页数据到齐后再覆盖——不发明数据,只是分两拍投影。
+    lessonsPromise.then(function (lessonsRes) {
+      if (that.data.vm) return; // 已有整页数据(onShow 静默刷新),不做部分回退
+      var lessons = api.unwrapResponse(lessonsRes) || {};
+      var fast = buildLearnViewModel({ homeDashboard: {}, report: {}, lessons: lessons });
+      if (fast.hasSupply) that.setData({ vm: fast, loading: false });
+    });
     return Promise.all([
       settle(api.getHomeDashboard(opt)),
       settle(api.getLearningReport(100, opt)),
-      settle(api.getLubanLessons(opt)),
+      lessonsPromise,
     ]).then(function (res) {
       var homeDashboard = api.unwrapResponse(res[0]) || {};
       var report = api.unwrapResponse(res[1]) || {};
