@@ -3,7 +3,7 @@
  "pack_dir": "docs/原始数据/考点原料/成品",
  "packs": [
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "23593d60ab10292ab5b2e9dac8ce767f0ed111e4b5fc669051aa5cf1824e92f1",
    "explicitly_barred_default_entry": false,
    "file": "A01_检验批验收程序.md",
