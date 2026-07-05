@@ -15,7 +15,19 @@
   </view>
 
   <scroll-view class="lr-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view class="lr-inner">
+
+    <!-- 骨架屏:首拍数据(绿灯站,~0.2s)到达前不渲染误导性空数据(0/40 等) -->
+    <view class="lr-inner" wx:if="{{loading}}">
+      <view class="lr-status-row">
+        <view class="lr-status pk-card lr-skel-block"></view>
+        <view class="lr-status pk-card lr-skel-block"></view>
+        <view class="lr-status pk-card lr-skel-block"></view>
+      </view>
+      <view class="pk-card lr-skel-stage lr-skel-block"></view>
+      <view class="pk-card lr-skel-task lr-skel-block"></view>
+    </view>
+
+    <view class="lr-inner" wx:else>
 
       <!-- 三枚状态卡:距考 / 路线 X/40 / 今日 -->
       <view class="lr-status-row">
