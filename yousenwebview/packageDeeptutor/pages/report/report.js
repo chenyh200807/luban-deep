@@ -1461,7 +1461,8 @@ Page({
       navBackLabel: workspaceBack ? workspaceBack.label : "对话",
       assessmentEnabled: flags.isFeatureEnabled("assessment"),
     });
-    helpers.syncTabBar(this, 2, {
+    // 五 tab 壳:学情 index=3
+    helpers.syncTabBar(this, 3, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
     if (!auth.isLoggedIn()) {
