@@ -10,6 +10,7 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/login/reset-password": true,
   "pages/learn/learn": true,
   "pages/luban/concept-cards/concept-cards": true,
+  "pages/luban/errorbank/errorbank": true,
   "pages/luban/review/review": true,
   "pages/luban/stations/stations": true,
   "pages/mistake-book/mistake-book": true,
@@ -114,6 +115,12 @@ module.exports = {
   },
   lubanConceptCards: function (query) {
     return withQuery("pages/luban/concept-cards/concept-cards", query);
+  },
+  lubanErrorbank: function (query) {
+    return withQuery("pages/luban/errorbank/errorbank", query);
+  },
+  lubanGauntlet: function (query) {
+    return withQuery("pages/luban/gauntlet/gauntlet", query);
   },
   profile: function () {
     return resolve("pages/profile/profile");

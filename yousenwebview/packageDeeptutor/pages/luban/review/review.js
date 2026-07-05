@@ -131,9 +131,29 @@ Page({
   },
 
   // 错因银行归位入口（唯一入口在复习页，不再挂别处 tab 位）
+  // 复习二期: 指向新错因银行列表页(四段瀑布详情), 旧 mistake-book 页保留给其他深链
   openMistakeBook: function () {
     if (typeof wx === "undefined" || !wx.navigateTo) return;
-    wx.navigateTo({ url: route.mistakeBook() });
+    wx.navigateTo({ url: route.lubanErrorbank() });
+  },
+
+  // 到期清单行 → 实务闯关(回忆→半写→核对); vm 单一判定点 gauntletAvailable
+  // (变体池 fail-closed)控制入口渲染, 本 handler 只路由
+  openGauntlet: function (event) {
+    var dataset =
+      (event && event.currentTarget && event.currentTarget.dataset) || {};
+    var vm = this.data.vm;
+    var entries = (vm && vm.dueEntries) || [];
+    for (var i = 0; i < entries.length; i++) {
+      var entry = entries[i];
+      if (entry.packId !== dataset.packId) continue;
+      if (!entry.gauntletAvailable) return;
+      if (typeof wx === "undefined" || !wx.navigateTo) return;
+      wx.navigateTo({
+        url: route.lubanGauntlet({ pack_id: entry.packId, title: entry.title }),
+      });
+      return;
+    }
   },
 
   // 考点卡库入口（vm 单一判定点：signed 卡池真有卡才可点，占位态不接线）

@@ -43,6 +43,8 @@
         "pages/luban/handoff/handoff",
         "pages/luban/retest/retest",
         "pages/luban/concept-cards/concept-cards",
+        "pages/luban/errorbank/errorbank",
+        "pages/luban/gauntlet/gauntlet",
         "pages/internal/diagramWebviewTest/diagramWebviewTest"
       ]
     },
