@@ -2307,6 +2307,44 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
 
 
 @pytest.mark.asyncio
+async def test_start_turn_does_not_persist_free_trial_marker_in_preferences(tmp_path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "考我一道题",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "user_id": "student_demo",
+                    "wallet_user_id": "wallet_demo",
+                    "learning_user_id": "student_demo",
+                    "free_trial": "reserved",
+                    "free_trial_reservation_key": "free_trial:wallet_demo:client-1",
+                }
+            },
+        }
+    )
+    await runtime.cancel_turn(turn["id"])
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    preferences = detail["preferences"]
+    assert preferences["source"] == "wx_miniprogram"
+    assert preferences["wallet_user_id"] == "wallet_demo"
+    assert "free_trial" not in preferences
+    assert "free_trial_reservation_key" not in preferences
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_extracts_document_attachments_into_context(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -9371,6 +9409,17 @@ def test_turn_runtime_free_trial_reservation_skips_wallet_capture(
         "deeptutor.services.wallet.get_wallet_service",
         lambda: FailingWalletService(),
     )
+    updates: list[dict[str, object]] = []
+
+    class RecordingUsageMeter:
+        def finalize_free_trial_reservation(self, dedupe_key, **kwargs):
+            updates.append({"dedupe_key": dedupe_key, **kwargs})
+            return True
+
+    monkeypatch.setattr(
+        "deeptutor.services.member_usage_meter.get_member_usage_meter",
+        lambda: RecordingUsageMeter(),
+    )
 
     result = runtime._capture_mobile_points(
         {
@@ -9393,6 +9442,113 @@ def test_turn_runtime_free_trial_reservation_skips_wallet_capture(
         "wallet_user_id": "wallet_demo",
         "idempotency_key": "mini_program_capture:turn-1",
         "free_trial_reservation_key": "free_trial:wallet_demo:client-1",
+    }
+    assert updates == [
+        {
+            "dedupe_key": "free_trial:wallet_demo:client-1",
+            "chargeable": True,
+            "turn_id": "turn-1",
+            "metadata_updates": {
+                "final_session_id": "session-1",
+                "final_turn_id": "turn-1",
+            },
+        }
+    ]
+
+
+def test_turn_runtime_releases_free_trial_reservation_for_non_chargeable_answer(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+    updates: list[dict[str, object]] = []
+
+    class RecordingUsageMeter:
+        def finalize_free_trial_reservation(self, dedupe_key, **kwargs):
+            updates.append({"dedupe_key": dedupe_key, **kwargs})
+            return True
+
+    monkeypatch.setattr(
+        "deeptutor.services.member_usage_meter.get_member_usage_meter",
+        lambda: RecordingUsageMeter(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "student_demo",
+            "free_trial": "reserved",
+            "free_trial_reservation_key": "free_trial:wallet_demo:client-provider-error",
+        },
+        "模型调用失败，请稍后重试。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_tokens": 0, "total_calls": 0},
+        chargeable_assistant_content=False,
+    )
+
+    assert result == {
+        "status": "released",
+        "reason": "free_trial_not_charged",
+        "wallet_user_id": "wallet_demo",
+        "idempotency_key": "mini_program_capture:turn-1",
+        "free_trial_reservation_key": "free_trial:wallet_demo:client-provider-error",
+    }
+    assert updates == [
+        {
+            "dedupe_key": "free_trial:wallet_demo:client-provider-error",
+            "chargeable": False,
+            "turn_id": "turn-1",
+            "metadata_updates": {
+                "final_session_id": "session-1",
+                "final_turn_id": "turn-1",
+                "release_reason": "non_chargeable_assistant_content",
+            },
+        }
+    ]
+
+
+def test_turn_runtime_reports_free_trial_finalize_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+
+    class FailingUsageMeter:
+        def finalize_free_trial_reservation(self, *_args, **_kwargs):
+            return False
+
+    monkeypatch.setattr(
+        "deeptutor.services.member_usage_meter.get_member_usage_meter",
+        lambda: FailingUsageMeter(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "student_demo",
+            "free_trial": "reserved",
+            "free_trial_reservation_key": "free_trial:wallet_demo:client-provider-error",
+        },
+        "模型调用失败，请稍后重试。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_tokens": 0, "total_calls": 0},
+        chargeable_assistant_content=False,
+    )
+
+    assert result == {
+        "status": "free_trial_update_failed",
+        "reason": "free_trial_reservation_not_finalized",
+        "wallet_user_id": "wallet_demo",
+        "idempotency_key": "mini_program_capture:turn-1",
+        "free_trial_reservation_key": "free_trial:wallet_demo:client-provider-error",
     }
 
 

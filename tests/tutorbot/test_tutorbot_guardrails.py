@@ -282,6 +282,46 @@ async def test_agent_loop_answers_creator_probe_before_llm(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_agent_loop_provider_error_uses_public_fallback(tmp_path) -> None:
+    class ErrorProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__(api_key="fake")
+
+        async def chat(
+            self,
+            messages,
+            tools=None,
+            model=None,
+            max_tokens=4096,
+            temperature=0.7,
+            reasoning_effort=None,
+            tool_choice=None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            return LLMResponse(
+                content="Error calling LLM: connection reset by upstream provider",
+                finish_reason="error",
+            )
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=ErrorProvider(),
+        workspace=tmp_path,
+    )
+
+    content = await loop.process_direct(
+        "建筑构造是什么？",
+        session_key="test:provider-error",
+    )
+
+    assert content == "模型调用失败，请稍后重试。"
+    assert "connection reset" not in content
+
+
+@pytest.mark.asyncio
 async def test_agent_loop_sanitizes_tool_results_before_second_llm_call(tmp_path) -> None:
     class InjectedRagTool(Tool):
         @property
