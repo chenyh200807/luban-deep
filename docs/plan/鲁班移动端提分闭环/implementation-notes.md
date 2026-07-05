@@ -6,6 +6,14 @@
 
 ## Deviations
 
+### 2026-07-05（复习闭环诚实薄上线里程碑 · 上线 main 4daaaf6d1 · 即时入账）
+- **[签发闸补建·真根因] 考点卡签发路径从没接通**：`docs/原始数据/考点原料/promote_variant_bank.py` 是 variant 专用（`_BANK_TEMPLATE=_{pack_id}_variant_bank.v0.json`）。34 卡卡在 candidate 的真根因不是"没签"而是"没法签"。治本=把该工具泛化 `--kind {variant,concept_cards}`（variant 行为零回归）+补测试；concept 分支模板 `_{pack_id}_concept_card_bank.v0.json` + gate 重跑 `build_luban_concept_card_bank.py {pid} --check`；四关校验（status==candidate / sha 三方一致 / bank gate 干净 / builder --check exit 0）对两 kind 同构。concept builder 早把 status 标为"promote 人闸独占的翻牌字段"=设计本就该有此闸只是没建。5 包（A01/F16/J01/N01/S05=34 卡）签发后容器内活体 total 0→34。
+- **[owner 拍板 A=诚实薄上线]** 能用的先让学员用上；R8 解药 / R6 精确挖空 content bank 未产→页面诚实占位"整理中"（接口位形状已钉死，bank 一喂零改动点亮），不等齐再上。真机验后再暴露下批内容优先级。
+- **[部署路径守门有效非故障] redeploy_fast 拒 web/public 资产**：教学卡 png 触发"需镜像/前端/依赖重建，请改用 deploy_aliyun.sh"→改全量。`docs/原始数据/考点原料/成品/` 的 JSON 被 `.dockerignore:153-157` 反选 + `Dockerfile:222 COPY` **烘焙进镜像**（docs/ 不挂载卷）→改了这些数据**必须 rebuild**，sync 不够（sync 了容器仍旧数据=假绿）。部署后在容器内实测 grep status / 亲跑 build_concept_card_library 确认真进容器，不信脚本自证。
+- **[真机验收 caveat] dueCount=0**：QA 账号今天无到期回炉→"到期行→点闯关入口"UI 路径无数据可走；但 gauntlet 页直达渲染出 S05 真变体（带教材+真题锚）已坐实=账号数据面非功能缺陷。
+- **[R5 框架纠错·独立 agent 推翻主控初判]** 主控一度判"R5 是收入闸让'每分都有教材出处'变真"——错。判分两通道：R5（5705 点，仅 205=3.6% m35_artifact 官方带分值）喂**通道②支撑上下文**，架构上进不了**通道①官方分值通道**（`assert_supporting_only`+`resolve_grading_point_authority` 强制 `official_score_allowed:False`）。真收入闸=通道①（`v_case_rubric_scored`）覆盖扩容；`installed_runtime_supply` 是无 runtime 读的死 flag、`grading=True` 生产路径没接线；两通道都卡 **governed gold**（现唯一"gold"是合成 fixture+AI 面板 `fleiss_kappa=-0.05`）。那件事=攒 J01 ~100-180 条人工逐采分点金标。
+- **[局外人审计纠正主控 ×2]** 会话"改造审计架构与落地计划"局外人审视推翻两处过度声称：①深 pack 大 MD 今天 0 runtime 消费者且 `.dockerignore:20` 不进生产镜像（"MD 撑爆 context"对生产不成立）；②真 context 肥仔=TutorBot 长会话 bot 历史（65536 token 才压缩）+ case_grading 48KB skill 栈，非任何 MD。四步合闸中前三步（变体签发门 read_model.py:74 已合 / 卡门 card_hosted 已接 / wave1）基本收口，唯 R5 那步是通道②升级非收入闸。
+
 ### 2026-07-05（复习二期·两屏实现，即时入账）
 - **[供给真相 ×3] mistake-book 记账行无 pack_id/error_code/分值字段**：pack 归属只能诚实匹配 lessons read model（对不上=无换皮 CTA）；"到期×分值排序"降级为按到期先后；"你当时的作答"对照 chips 无列表级供给→深链 attempt-detail 替代不伪造。前端原本也无 ERROR_CODE_REGISTRY 镜像（新建呈现层镜像，注明权威=error_codes.py）。
 - **[禁假声明] 漏点"已记进错因银行"文案不落**：前端无记账签发权（attempt_ref 服务端签名），改暖提示，测试钉死禁该句——宁少一句爽文案不造一个假承诺。
