@@ -65,6 +65,7 @@ Page({
     }
     this._pendingRetest = null; // {packId, itemKey, leftAt}
     this._probeCache = {}; // packId -> {available: bool}
+    this._antidoteCache = {}; // "packId::errorCode" -> {mental_model, textbook_ref} | null
     this._loadAll();
   },
 
@@ -188,15 +189,63 @@ Page({
     }
   },
 
+  // 解药查询键: 只有 packId 可诚实归属 ∧ errorCode 是注册表错因码才成立
+  // (deriveRetestPackId / humanizeErrorLabel 对不上=空串)。任一空 = 不查, 保持
+  // 「解药整理中」占位, 绝不拿半个键瞎猜。
+  _antidoteKey: function (entry) {
+    var e = entry || {};
+    if (!e.packId || !e.errorCode) return "";
+    return e.packId + "::" + e.errorCode;
+  },
+
   _openDetailAt: function (entry, index, total) {
     var probe = this._probeCache[entry.packId] || null;
+    var antidoteKey = this._antidoteKey(entry);
+    // 命中缓存(含已探为 null 的负缓存)即用; 未探过 = null → vm 走 pending 占位。
+    var antidote =
+      antidoteKey && Object.prototype.hasOwnProperty.call(this._antidoteCache, antidoteKey)
+        ? this._antidoteCache[antidoteKey]
+        : null;
     var detail = errorbankViewModel.buildErrorbankDetail(entry, {
-      antidote: null, // R8 解药 bank 无 runtime 供给(fail-closed), 供给后接入此位
+      antidote: antidote, // R8 解药 bank 供给(签发后 GET /luban/antidotes); 无=fail-closed 占位
       retestProbe: probe,
       position: { index: index, total: total },
     });
     this.setData({ mode: "detail", detail: detail, justSettledKey: "" });
     if (entry.packId && !probe) this._probeRetestPool(entry, index, total);
+    if (
+      antidoteKey &&
+      !Object.prototype.hasOwnProperty.call(this._antidoteCache, antidoteKey)
+    ) {
+      this._probeAntidote(entry, index, total);
+    }
+  },
+
+  // R8 解药单条探测: 详情页打开时按 {pack_id, error_code} 一次 GET(与错因银行
+  // 同一只读投影, 非第二权威)。404/失败 = 负缓存 null → 保持「解药整理中」占位,
+  // 绝不自造讲解(fail-closed, 与 _probeRetestPool 同款异步回填结构)。
+  _probeAntidote: function (entry, index, total) {
+    var that = this;
+    var key = this._antidoteKey(entry);
+    if (!key) return;
+    api
+      .getLubanAntidote(entry.packId, entry.errorCode, { silent: true })
+      .then(function (resp) {
+        var body = api.unwrapResponse(resp) || {};
+        // 供给形状: {mental_model, textbook_ref}; 缺正文 = 视同无供给(负缓存)。
+        that._antidoteCache[key] =
+          body && body.mental_model
+            ? { mental_model: body.mental_model, textbook_ref: body.textbook_ref || "" }
+            : null;
+      })
+      .catch(function () {
+        that._antidoteCache[key] = null; // 未签发/无此码/旗标关一律 404 → 占位
+      })
+      .then(function () {
+        var detail = that.data.detail;
+        if (that.data.mode !== "detail" || !detail || detail.key !== entry.key) return;
+        that._openDetailAt(entry, index, total);
+      });
   },
 
   // 变体池单站探测: 详情页打开时一次 GET(与 retest 页同一 read model,

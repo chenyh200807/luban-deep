@@ -925,6 +925,19 @@ function getLubanConceptCards(packId, opts) {
   );
 }
 
+/** 鲁班 — 单条 R8 解药(错因银行 detail「解药位」; 按 {pack_id, error_code} 取
+ * signed 解药, 响应 {mental_model, textbook_ref}。未签发/无此码/非绿灯/旗标关一律
+ * 404 同形——前端据此保持「解药整理中」诚实占位, 绝不自造讲解)。 */
+function getLubanAntidote(packId, errorCode, opts) {
+  return requestStateGet(
+    "/api/v1/luban/antidotes/" +
+      encodeURIComponent(String(packId || "")) +
+      "/" +
+      encodeURIComponent(String(errorCode || "")),
+    opts,
+  );
+}
+
 /** 摸底测试 — 获取诊断档案 */
 function getAssessmentProfile(opts) {
   return requestStateGet("/api/v1/assessment/profile", opts);
@@ -1032,6 +1045,7 @@ module.exports = {
   getLubanReviewDue: getLubanReviewDue,
   getLubanConceptCardLibrary: getLubanConceptCardLibrary,
   getLubanConceptCards: getLubanConceptCards,
+  getLubanAntidote: getLubanAntidote,
   postStationCompleted: postStationCompleted,
   postLessonProgress: postLessonProgress,
   getAssessmentProfile: getAssessmentProfile,

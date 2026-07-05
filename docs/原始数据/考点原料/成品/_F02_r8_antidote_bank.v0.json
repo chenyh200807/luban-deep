@@ -1,0 +1,145 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "F02",
+ "status": "signed",
+ "source_pack_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
+ "generation_ms": 0.79,
+ "gate": {
+  "total": 7,
+  "passed": 7,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 7,
+ "dropped_rows": [
+  {
+   "r8_id": "F02:R8-M6",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "E06": [
+   {
+    "r8_id": "F02:R8-M1",
+    "mental_model": "先细部构造处理后大面积铺贴；由屋面最低标高向上、由低向高铺贴",
+    "textbook_ref": "kc:1A413030_123_0234:0",
+    "phenomenon": "先大面后细部 / 由高向低铺贴",
+    "wrong_model": "以为铺贴顺序对防水效果影响不大"
+   }
+  ],
+  "M10": [
+   {
+    "r8_id": "F02:R8-M1",
+    "mental_model": "先细部构造处理后大面积铺贴；由屋面最低标高向上、由低向高铺贴",
+    "textbook_ref": "kc:1A413030_123_0234:0",
+    "phenomenon": "先大面后细部 / 由高向低铺贴",
+    "wrong_model": "以为铺贴顺序对防水效果影响不大"
+   },
+   {
+    "r8_id": "F02:R8-M2",
+    "mental_model": "搭接缝必须顺流水方向、卷材宜平行屋脊，使缝与水流同行不对冲",
+    "textbook_ref": "kc:1A413030_123_0234:0",
+    "phenomenon": "搭接缝逆流水方向 / 形成迎水缝",
+    "wrong_model": "以为搭接缝方向不影响防水"
+   },
+   {
+    "r8_id": "F02:R8-M7",
+    "mental_model": "厚度<3mm的卷材严禁热熔法施工（薄卷材易烤穿）；热熔法加热温度180~200℃",
+    "textbook_ref": "kc:1A422000_041_0065:0",
+    "phenomenon": "厚度<3mm卷材仍用热熔法",
+    "wrong_model": "以为薄卷材也能热熔"
+   }
+  ],
+  "E07": [
+   {
+    "r8_id": "F02:R8-M2",
+    "mental_model": "搭接缝必须顺流水方向、卷材宜平行屋脊，使缝与水流同行不对冲",
+    "textbook_ref": "kc:1A413030_123_0234:0",
+    "phenomenon": "搭接缝逆流水方向 / 形成迎水缝",
+    "wrong_model": "以为搭接缝方向不影响防水"
+   },
+   {
+    "r8_id": "F02:R8-M3",
+    "mental_model": "上下层不得相互垂直铺贴，平行铺贴并错缝，避免双层接缝正交成\"十字漏点\"",
+    "textbook_ref": "kc:1A422000_041_0065:0",
+    "phenomenon": "上下两层卷材垂直铺贴",
+    "wrong_model": "以为垂直铺贴可增强或不影响防水"
+   }
+  ],
+  "M07": [
+   {
+    "r8_id": "F02:R8-M3",
+    "mental_model": "上下层不得相互垂直铺贴，平行铺贴并错缝，避免双层接缝正交成\"十字漏点\"",
+    "textbook_ref": "kc:1A422000_041_0065:0",
+    "phenomenon": "上下两层卷材垂直铺贴",
+    "wrong_model": "以为垂直铺贴可增强或不影响防水"
+   }
+  ],
+  "M08": [
+   {
+    "r8_id": "F02:R8-M4",
+    "mental_model": "短边搭接错缝≥500mm；长边/上下层错开≥1/3幅宽，把连续薄弱带打散",
+    "textbook_ref": "kc:1A422000_029_0049:0",
+    "phenomenon": "短边错缝<500mm / 长边错开<1/3幅宽",
+    "wrong_model": "以为搭接量可随意调整"
+   },
+   {
+    "r8_id": "F02:R8-M8",
+    "mental_model": "女儿墙泛水增设附加层（平立面≥250mm）、泛水高度≥250mm、阴阳角45°/圆弧、收头金属压条钉压密封+鹰嘴滴水槽",
+    "textbook_ref": "kc:1A413030_125_0237:0",
+    "phenomenon": "女儿墙泛水未做附加层 / 泛水高度不足 / 阴阳角直角 / 收头未钉压",
+    "wrong_model": "把细部节点当大面随意处理"
+   }
+  ],
+  "E03": [
+   {
+    "r8_id": "F02:R8-M4",
+    "mental_model": "短边搭接错缝≥500mm；长边/上下层错开≥1/3幅宽，把连续薄弱带打散",
+    "textbook_ref": "kc:1A422000_029_0049:0",
+    "phenomenon": "短边错缝<500mm / 长边错开<1/3幅宽",
+    "wrong_model": "以为搭接量可随意调整"
+   }
+  ],
+  "E10": [
+   {
+    "r8_id": "F02:R8-M5",
+    "mental_model": "立面/大坡面应满粘法；屋面坡度>25%需满粘+钉压固定",
+    "textbook_ref": "kc:1A422000_041_0065:0",
+    "phenomenon": "立面/大坡面用空铺/点粘",
+    "wrong_model": "以为大坡面也能空铺省料"
+   },
+   {
+    "r8_id": "F02:R8-M7",
+    "mental_model": "厚度<3mm的卷材严禁热熔法施工（薄卷材易烤穿）；热熔法加热温度180~200℃",
+    "textbook_ref": "kc:1A422000_041_0065:0",
+    "phenomenon": "厚度<3mm卷材仍用热熔法",
+    "wrong_model": "以为薄卷材也能热熔"
+   }
+  ],
+  "M01": [
+   {
+    "r8_id": "F02:R8-M5",
+    "mental_model": "立面/大坡面应满粘法；屋面坡度>25%需满粘+钉压固定",
+    "textbook_ref": "kc:1A422000_041_0065:0",
+    "phenomenon": "立面/大坡面用空铺/点粘",
+    "wrong_model": "以为大坡面也能空铺省料"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "F02:R8-M8",
+    "mental_model": "女儿墙泛水增设附加层（平立面≥250mm）、泛水高度≥250mm、阴阳角45°/圆弧、收头金属压条钉压密封+鹰嘴滴水槽",
+    "textbook_ref": "kc:1A413030_125_0237:0",
+    "phenomenon": "女儿墙泛水未做附加层 / 泛水高度不足 / 阴阳角直角 / 收头未钉压",
+    "wrong_model": "把细部节点当大面随意处理"
+   }
+  ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:21+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
+ }
+}

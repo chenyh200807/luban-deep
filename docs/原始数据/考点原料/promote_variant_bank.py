@@ -19,12 +19,14 @@
 4. gate 数字重跑：``scripts/build_luban_{pid}_variant_bank.py --check`` 退出 0
    （确定性重建变体 + 重跑一致性门，不写文件）。
 
-本工具同时是**考点卡池**的签发人闸（``--kind concept_cards``，复用优先——
-不另造第二个 promote authority）：bank 由
-``scripts/build_luban_concept_card_bank.py`` 编译期生成，同样恒写 candidate，
-runtime 消费端（``deeptutor/services/luban_lesson/concept_cards.py``）同样
-signed+sha 双 fail-closed。两种 bank 的差异只有文件模板 / builder 命令 /
-gate 违规键名，校验语义逐条同构。
+本工具同时是**考点卡池 / R8 解药池 / R6 挖空池**的签发人闸（``--kind
+concept_cards|antidote|cloze``，复用优先——不另造第二个 promote authority）：
+bank 分别由 ``scripts/build_luban_concept_card_bank.py`` /
+``scripts/build_luban_r8_antidote_bank.py`` / ``scripts/build_luban_r6_cloze_bank.py``
+编译期生成，同样恒写 candidate，runtime 消费端（``concept_cards.py`` /
+``antidotes.py`` / ``cloze.py``）同样 signed+sha 双 fail-closed。各类 bank 的差异
+只有文件模板 / builder 命令 / gate 违规键名（``_BANK_KINDS`` 一张表收敛），
+校验语义逐条同构。
 
 用法::
 
@@ -69,6 +71,18 @@ _BANK_KINDS: dict[str, dict[str, Any]] = {
         "builder": ("scripts/build_luban_concept_card_bank.py", "{pid}", "--check"),
         "violation_keys": ("quote_mismatches", "duplicate_cards", "forbidden_words"),
         "label": "考点卡 bank",
+    },
+    "antidote": {
+        "template": "_{pack_id}_r8_antidote_bank.v0.json",
+        "builder": ("scripts/build_luban_r8_antidote_bank.py", "{pid}", "--check"),
+        "violation_keys": ("code_unregistered", "anchor_unresolved", "forbidden_words"),
+        "label": "R8 解药 bank",
+    },
+    "cloze": {
+        "template": "_{pack_id}_r6_cloze_bank.v0.json",
+        "builder": ("scripts/build_luban_r6_cloze_bank.py", "{pid}", "--check"),
+        "violation_keys": ("term_not_in_sentence", "anchor_unresolved", "forbidden_words"),
+        "label": "R6 挖空 bank",
     },
 }
 
@@ -211,7 +225,8 @@ def main() -> int:
     parser.add_argument("--who", default=getpass.getuser(), help="签发人（默认当前系统用户）")
     parser.add_argument(
         "--kind", default="variant", choices=sorted(_BANK_KINDS),
-        help="bank 类型：variant=变体池（默认）/ concept_cards=考点卡池",
+        help="bank 类型：variant=变体池（默认）/ concept_cards=考点卡池 / "
+             "antidote=R8 解药池 / cloze=R6 挖空池",
     )
     args = parser.parse_args()
     try:
