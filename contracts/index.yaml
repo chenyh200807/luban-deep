@@ -282,6 +282,7 @@ domains:
       - tests/api/test_unified_ws_connection_cap.py
       - tests/services/citations/test_quality.py
       - tests/api/test_mobile_router.py
+      - tests/api/test_mobile_event_loop_discipline.py
       - tests/api/test_mobile_eval_bypass.py
       - tests/services/session/test_context_builder.py
       - tests/services/session/test_prompt_partition.py
@@ -360,6 +361,7 @@ domains:
       - tests/api/test_unified_ws_connection_cap.py
       - tests/api/test_rate_limit.py
       - tests/api/test_mobile_router.py
+      - tests/api/test_mobile_event_loop_discipline.py
       - tests/services/test_question_lifecycle_skills.py
       - tests/services/test_question_lifecycle_scene_derivation.py
       - tests/services/test_forward_family_reachability.py
