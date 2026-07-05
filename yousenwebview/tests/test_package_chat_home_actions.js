@@ -67,16 +67,18 @@ assert(
   "package chat more menu should reuse existing archive and delete conversation APIs",
 );
 assert(
-  chatWxml.indexOf("class=\"nav-logo {{hasMessages ? 'nav-logo-chat' : ''}}\"") <
-    chatWxml.indexOf("class=\"nav-back-pill\""),
-  "package chat navbar should place the logo before the back-home pill",
+  chatWxml.indexOf('class="nav-title-stack"') >= 0 &&
+    chatWxml.indexOf('class="nav-title-stack"') <
+      chatWxml.indexOf('bindtap="goHistoryPage"') &&
+    chatWxml.indexOf("<text class=\"nav-title\">问鲁班</text>") >= 0 &&
+    chatWxml.indexOf("续着上次聊 · 问完就练") >= 0,
+  "package chat 10d navbar should place the 问鲁班 title stack before the history clock",
 );
 assert(
-  chatWxml.indexOf('class="nav-back-pill" wx:if="{{hasMessages}}"') >= 0 &&
-    chatWxml.indexOf("workspaceBackLabel") < 0 &&
+  chatWxml.indexOf("workspaceBackLabel") < 0 &&
     chatWxml.indexOf("workspaceBackVisible || hasMessages") < 0 &&
-    chatWxml.indexOf("<text class=\"nav-back-label\">返回首页</text>") >= 0,
-  "package chat hero should not show a contextual workspace-back pill such as 我的",
+    chatWxml.indexOf('bindtap="goHome" aria-role="button"') >= 0,
+  "package chat hero should not show a contextual workspace-back pill; title stack taps home",
 );
 assert(
   /\.nav-brand-stack\s*\{[\s\S]*flex-direction:\s*row;[\s\S]*align-items:\s*center;/.test(chatWxss),
