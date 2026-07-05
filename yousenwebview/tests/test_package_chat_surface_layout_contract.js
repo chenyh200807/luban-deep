@@ -78,8 +78,8 @@ assert(
 assert(
   /\.profile-page\.light \.user-name-edit\s*\{\s*color:\s*#64748b;/.test(profileWxss) &&
     /\.practice-page\.light \.link-arrow\s*\{\s*color:\s*#64748b;/.test(practiceWxss) &&
-    /\.report-page\.light \.assess-entry-arrow\s*\{\s*color:\s*#64748b;/.test(reportWxss),
-  "package light secondary action arrows should keep enough contrast on white cards",
+    /\.lr-card-link\s*\{[^}]*color:\s*var\(--pk-t1\);/.test(reportWxss),
+  "package light secondary action arrows/links should keep enough contrast on white cards",
 );
 assert(
   reportWxml.indexOf("overallMastery || diagnosticScore") === -1,
