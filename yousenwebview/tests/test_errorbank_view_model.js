@@ -179,6 +179,16 @@ var vmSource = fs.readFileSync(vmPath, "utf8");
 assert.strictEqual(pageJs.indexOf("markMistakeBookItemMastered"), -1, "错因银行销账禁写 mastered 旗标(销账=本地+既有信号)");
 assert.strictEqual(pageJs.indexOf("saveMistakeBookItem"), -1, "错因银行禁前端造记账(记账真值=判分内核 writeback)");
 assert.strictEqual(pageJs.indexOf("postStationCompleted"), -1, "错因银行只呈现, 信号归 retest 链路");
+// R8 解药接线: 详情页按 {pack_id, error_code} 取 signed 解药, 供给后点亮占位。
+assert.ok(pageJs.indexOf("getLubanAntidote") >= 0, "错因银行详情须接 R8 解药 GET(供给后点亮)");
+var apiSource = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/utils/api.js"),
+  "utf8",
+);
+assert.ok(
+  apiSource.indexOf("/api/v1/luban/antidotes/") >= 0,
+  "api.js 须收录 R8 解药只读投影端点(错因银行 detail 消费)",
+);
 
 // ── 7. 文案铁律: 禁审视揭短词 ─────────────────────────────────
 var FORBIDDEN = ["看穿", "识破", "揭穿", "露馅", "拆穿"];
