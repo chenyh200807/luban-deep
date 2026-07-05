@@ -99,6 +99,15 @@
               <view class="rv-row-body">
                 <text class="rv-row-title">{{item.title}}</text>
                 <text class="rv-row-sub">{{item.sub}}</text>
+                <!-- 实务闯关入口: vm 单一判定点(变体池 fail-closed), catchtap 不抢行点击 -->
+                <view
+                  class="rv-row-gauntlet"
+                  wx:if="{{item.gauntletAvailable}}"
+                  data-pack-id="{{item.packId}}"
+                  catchtap="openGauntlet"
+                >
+                  <text>实务闯关 · 回忆→半写→核对 ›</text>
+                </view>
               </view>
               <text class="rv-row-link">{{item.retestAvailable ? '复测' : '回站'}}</text>
             </view>
