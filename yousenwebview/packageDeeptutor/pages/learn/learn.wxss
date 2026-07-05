@@ -47,7 +47,7 @@
 .lr-status { flex: 1; min-width: 0; padding: 22rpx 18rpx; display: flex; align-items: center; gap: 15rpx; }
 .lr-status-col { flex-direction: column; align-items: stretch; justify-content: space-between; gap: 13rpx; }
 .lr-status-txt { display: flex; flex-direction: column; gap: 2rpx; }
-.lr-status-unit { font-size: 22rpx; font-weight: 700; color: var(--pk-t1); }
+.lr-status-unit { font-size: 24rpx; font-weight: 700; color: var(--pk-t1); }
 .lr-status-strong { font-weight: 800; color: var(--pk-t1); }
 .lr-gauge-sm { width: 74rpx; height: 74rpx; border-radius: 50%; border: 6rpx solid var(--pk-gauge); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .lr-gauge-sm-num { font-size: 24rpx; font-weight: 700; color: var(--pk-t3); }
@@ -59,7 +59,7 @@
 .lr-lesson-seal { width: 62rpx; height: 62rpx; border-radius: 16rpx; flex-shrink: 0; }
 .lr-lesson-logo { width: 38rpx; height: 38rpx; }
 .lr-lesson-headtxt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3rpx; }
-.lr-lesson-title { font-size: 28rpx; }
+.lr-lesson-title { font-size: 30rpx; }  /* 10a: 15px */
 
 /* 宣纸舞台 · 原色宣纸(永远浅色,不随主题;设计:动画卡=原色宣纸舞台) */
 .lr-stage {
@@ -74,7 +74,7 @@
   background-image: radial-gradient(#e4e2d7 1.3rpx, transparent 1.3rpx);
   background-size: 32rpx 32rpx;
 }
-.lr-stage-badge { position: absolute; top: 22rpx; left: 24rpx; padding: 8rpx 20rpx; border-radius: 999rpx; background: var(--pk-red); font-size: 21rpx; font-weight: 800; color: #fff; box-shadow: 0 4rpx 12rpx rgba(207,68,54,0.25); }
+.lr-stage-badge { position: absolute; top: 22rpx; left: 24rpx; padding: 8rpx 20rpx; border-radius: 999rpx; background: var(--pk-red); font-size: 24rpx; font-weight: 800; color: #fff; box-shadow: 0 4rpx 12rpx rgba(207,68,54,0.25); }
 /* 全屏按钮(右上,四角括号) */
 .lr-stage-fs { position: absolute; top: 22rpx; right: 24rpx; width: 44rpx; height: 44rpx; border-radius: 12rpx; background: #23282b; }
 .lr-fs-corner { position: absolute; width: 12rpx; height: 12rpx; border: 2.5rpx solid #f4f3ec; }
@@ -82,28 +82,28 @@
 .lr-fs-tr { left: auto; right: 10rpx; border-left: none; border-right: 2.5rpx solid #f4f3ec; border-top: 2.5rpx solid #f4f3ec; border-bottom: none; }
 .lr-fs-bl { top: auto; bottom: 10rpx; border-top: none; border-left: 2.5rpx solid #f4f3ec; border-bottom: 2.5rpx solid #f4f3ec; border-right: none; }
 .lr-fs-br { top: auto; left: auto; bottom: 10rpx; right: 10rpx; border-top: none; border-left: none; border-right: 2.5rpx solid #f4f3ec; border-bottom: 2.5rpx solid #f4f3ec; }
-.lr-stage-cal { font-family: "Long Cang", "Kaiti SC", serif; font-size: 64rpx; color: var(--pk-red); line-height: 1; margin-top: 20rpx; }
-.lr-stage-sub { font-size: 24rpx; font-weight: 800; color: #23282b; margin-top: 14rpx; }
+.lr-stage-cal { font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive; /* slice1 §3:cursive 兜底;serif 在 Android 落黑体 */ font-size: 64rpx; color: var(--pk-red); line-height: 1; margin-top: 20rpx; }
+.lr-stage-sub { font-size: 26rpx; /* 10a: 13px */ font-weight: 800; color: #23282b; margin-top: 14rpx; }
 .lr-stage-play { width: 88rpx; height: 88rpx; border-radius: 50%; margin-top: 22rpx; }
 .lr-play-tri { width: 0; height: 0; border-style: solid; border-width: 16rpx 0 16rpx 26rpx; border-color: transparent transparent transparent #fff; margin-left: 6rpx; }
-.lr-stage-hint { font-size: 21rpx; color: #9aa0a3; letter-spacing: 2rpx; margin-top: 16rpx; }
+.lr-stage-hint { font-size: 24rpx; color: #9aa0a3; letter-spacing: 2rpx; margin-top: 16rpx; }
 
 /* 路线线 + 课程架 */
 .lr-route-line { display: flex; align-items: center; justify-content: space-between; padding: 20rpx 28rpx 6rpx; }
-.lr-route-lit { font-size: 23rpx; font-weight: 800; color: var(--pk-t2); }
-.lr-route-more { font-size: 23rpx; font-weight: 700; color: var(--pk-grn); }
+.lr-route-lit { font-size: 24rpx; font-weight: 800; color: var(--pk-t2); }
+.lr-route-more { font-size: 24rpx; font-weight: 700; color: var(--pk-grn); }
 .lr-rack { width: 100%; white-space: nowrap; }
 .lr-rack-inner { display: inline-flex; gap: 17rpx; padding: 14rpx 28rpx 26rpx; }
 .lr-poster { }
 .lr-poster-slot--ink { background: var(--pk-red); color: #fff; }
 .lr-poster-slot--red { background: rgba(255, 255, 255, 0.92); color: var(--pk-red); }
 .lr-poster-slot--paper { border: 3rpx solid var(--pk-red); color: var(--pk-red); box-sizing: border-box; }
-.lr-poster-tag { font-size: 18rpx; font-weight: 800; line-height: 1.3; }
+.lr-poster-tag { font-size: 24rpx; font-weight: 800; line-height: 1.3; }
 .lr-poster-tag--ink { color: #8fbfa8; }
 .lr-poster-tag--red { color: #ffe1ba; }
 .lr-poster-tag--paper { color: var(--pk-t3); }
 .lr-poster-tail { flex-shrink: 0; width: 128rpx; height: 209rpx; border-radius: 19rpx; border: 3rpx dashed #cbc6b4; display: flex; align-items: center; justify-content: center; }
-.lr-poster-tail-txt { font-size: 21rpx; font-weight: 800; color: var(--pk-t2); text-align: center; line-height: 1.5; }
+.lr-poster-tail-txt { font-size: 24rpx; font-weight: 800; color: var(--pk-t2); text-align: center; line-height: 1.5; }
 
 /* ── 今日任务卡 ── */
 .lr-task { padding: 30rpx; display: flex; flex-direction: column; gap: 20rpx; }
@@ -115,13 +115,13 @@
 .lr-conf-ring { width: 116rpx; height: 116rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .lr-conf-hole { width: 88rpx; height: 88rpx; border-radius: 50%; background: var(--pk-card); display: flex; align-items: center; justify-content: center; }
 .lr-conf-num { font-size: 28rpx; font-weight: 800; color: var(--pk-t1); }
-.lr-conf-label { font-size: 20rpx; color: var(--pk-t3); }
+.lr-conf-label { font-size: 24rpx; color: var(--pk-t3); }
 .lr-task-cta { display: flex; align-items: center; gap: 17rpx; }
 .lr-task-btn { flex: 1; }
 .lr-task-ghost { flex-shrink: 0; }
 .lr-why { display: flex; align-items: center; gap: 9rpx; }
-.lr-why-label { font-size: 23rpx; font-weight: 700; color: var(--pk-grn); }
-.lr-why-chev { font-size: 20rpx; color: var(--pk-grn); }
+.lr-why-label { font-size: 24rpx; font-weight: 700; color: var(--pk-grn); }
+.lr-why-chev { font-size: 24rpx; color: var(--pk-grn); }
 .lr-why-text { margin-top: -6rpx; }
 
 /* ── 复习条 ── */
@@ -143,7 +143,7 @@
 .lr-tab { display: flex; flex-direction: column; align-items: center; gap: 6rpx; min-width: 96rpx; color: var(--pk-t3); }
 .lr-tab--active { color: var(--pk-t1); }
 .lr-tab--active .lr-tab-txt { font-weight: 800; }
-.lr-tab-txt { font-size: 22rpx; }
+.lr-tab-txt { font-size: 24rpx; }
 /* 线性图标:SVG 作 mask,颜色跟 currentColor(主题+激活态自适应) */
 .lr-tab-ico {
   width: 44rpx; height: 44rpx;
