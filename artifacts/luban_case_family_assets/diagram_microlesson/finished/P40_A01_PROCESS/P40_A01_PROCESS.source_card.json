@@ -1,0 +1,470 @@
+{
+  "card_id": "P40_A01_PROCESS",
+  "title": "A01 检验批/分部分项工程质量验收程序",
+  "status": "candidate_teaching_prototype",
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/A01_检验批验收程序.md",
+    "visual_prototype_inventory": "docs/原始数据/数据盘点/2026-06-22-成品考点视觉原型盘点.md",
+    "source_boundary": "A01 candidate teaching prototype; GB50300 generic step wording and several R7 grading boundaries remain candidate/needs authority review as declared in the pack."
+  },
+  "main_exam_action": "把质量验收题写成“施工自检合格 → 报监理/建设 → 现场检查验收 → 形成记录 → 下级合格托起上级”的程序采分句，并能判断主控/一般、不合格分支和单位工程收口。",
+  "wrong_idea": "学生容易把验收程序背成四个名词框，或者凭行政直觉从单位工程往下拆；真正考试要看的是报验单、检验批、检查人员、验收记录如何按顺序流转，哪一步漏了就不能进入下一道或上一级。",
+  "visual_archetype_decision": {
+    "primary_archetype": "process_step_reveal",
+    "secondary_archetype": "scoring_diagnosis_reveal",
+    "visual_primitive": "process_flow",
+    "motion_grammar": "site_object_trace_then_answer_scan",
+    "why_this_visual": "本卡最难的不是记住四级名词，而是看见质量风险如何被最小检验批先拦住，再由合格记录托起分项、分部、单位工程。",
+    "why_not_text": "纯文字流程框会让学生误以为“报验、检查、验收、记录”只是背诵顺序。必须看见报验单推动检验批小车进现场闸门、检查人员签认、记录表归档、合格结论向上堆层，才知道为什么漏前置会导致上一级悬空。",
+    "must_show_domain_objects": true,
+    "domain_visual_plan": [
+      {
+        "scene": "hook",
+        "domain_objects": ["施工现场", "检验批小车", "报验单", "下道工序遮盖层"],
+        "visual_action": "检验批小车带着报验单从现场入口进入，未验收就想进入下道工序的遮盖层被红色闸门挡回。",
+        "why_object_not_box": "只写“验收前置”四个字，学生看不见缺陷被覆盖后为什么不可逆。"
+      },
+      {
+        "scene": "self_check",
+        "domain_objects": ["施工单位自检章", "检验批", "报验单", "整改回路线"],
+        "visual_action": "施工单位先在检验批上盖自检章；未盖章的报验单被退回整改，盖章后才沿蓝色路径报监理。",
+        "why_object_not_box": "自检是责任闭环，不是流程框中的一个词；必须看见未自检的报验单被退回。"
+      },
+      {
+        "scene": "site_acceptance",
+        "domain_objects": ["监理/建设检查人员", "主控项目红闸", "一般项目80%标尺", "现场检验批"],
+        "visual_action": "检查人员进入现场，主控闸必须全部亮绿，一般项目沿80%标尺通过；主控不合格的检验批被挡住。",
+        "why_object_not_box": "主控与一般是不同判定机制，文字框会把它们误压成同一个百分比条件。"
+      },
+      {
+        "scene": "record_lift",
+        "domain_objects": ["验收记录表", "签认笔", "检验批砖块", "分项工程层"],
+        "visual_action": "通过的检验批生成验收记录表，记录表归档后检验批砖块升起并拼入分项工程层。",
+        "why_object_not_box": "记录不是附属文书，而是上一级验收消费的证据；要看见记录把砖块托起。"
+      },
+      {
+        "scene": "level_stack",
+        "domain_objects": ["检验批砖", "分项层", "分部层", "单位工程封顶", "悬空屋顶"],
+        "visual_action": "检验批砖自下而上堆成分项、分部、单位；镜头尝试先放单位工程屋顶，屋顶悬空闪红并退出。",
+        "why_object_not_box": "四级名词若只排成列表，学生仍可能从大往小写；建筑堆层能直接证伪倒装。"
+      },
+      {
+        "scene": "reject_branch",
+        "domain_objects": ["不合格小车", "返修/返工轨", "实体检验补证轨", "严禁验收终止轨"],
+        "visual_action": "红灯小车不直接销毁，而是分流到返修重验、补证、加固评估，只有仍不满足安全/重要使用要求才进入严禁验收终止轨。",
+        "why_object_not_box": "不合格处理是分支轨道，不能用一句“不合格返工”替代。"
+      },
+      {
+        "scene": "score",
+        "domain_objects": ["最终答题纸", "流程箭头", "四级堆层缩略图", "采分句扫描笔"],
+        "visual_action": "扫描笔把流程对象压成答题纸采分句：先自检报验、再现场验收记录、再下级合格托起上级。",
+        "why_object_not_box": "最终训练的是主观题输出，必须从现场对象落到答题纸，不是再给学生看一张文字总结。"
+      }
+    ],
+    "pure_text_allowed": false
+  },
+  "storyboard": [
+    {
+      "beat": "hook",
+      "visual_action": "检验批小车带报验单冲向下道工序，未验收遮盖闸门弹出并挡停。",
+      "spoken_sentence": "验收程序不是背四个名词，而是在缺陷被盖住前把它拦住。",
+      "exit_before_next": "退出遮盖层红叉，只保留检验批小车和报验单。"
+    },
+    {
+      "beat": "self_check",
+      "visual_action": "施工单位自检章先落到检验批上，未盖章报验单沿整改回路线退回。",
+      "spoken_sentence": "第一步一定是施工单位自检合格，再把成果报出去。",
+      "exit_before_next": "退回路线淡出，只留下盖章报验单进入检查现场。"
+    },
+    {
+      "beat": "site_acceptance",
+      "visual_action": "检查人员进入现场，主控项目闸全绿，一般项目80%标尺达线后放行。",
+      "spoken_sentence": "主控项目是全合格闸，一般项目才看合格率门槛。",
+      "exit_before_next": "一般项目标尺收起，保留通过的检验批和签认动作。"
+    },
+    {
+      "beat": "record_lift",
+      "visual_action": "签认笔生成验收记录表，检验批砖块被记录表托起进入分项层。",
+      "spoken_sentence": "记录不是装饰，它是上一级能继续验收的证据。",
+      "exit_before_next": "签认笔退出，砖块继续向上堆层。"
+    },
+    {
+      "beat": "level_stack",
+      "visual_action": "检验批堆成分项、分项堆成分部、分部托起单位工程；悬空屋顶尝试先放后塌回。",
+      "spoken_sentence": "验收方向是自下而上，下面没合格，上面就悬空。",
+      "exit_before_next": "悬空屋顶红影退出，只保留合格堆层。"
+    },
+    {
+      "beat": "reject_branch",
+      "visual_action": "不合格小车进入分岔铁轨，返修重验、补证、加固评估依次亮起，严禁验收在末端红亮。",
+      "spoken_sentence": "不合格不是一句返工了事，要沿处理分支重新判断，安全底线不满足才严禁验收。",
+      "exit_before_next": "分岔铁轨缩成一个红色提醒角标。"
+    },
+    {
+      "beat": "score",
+      "visual_action": "最终答题纸逐句扫描，把现场流程压成三句采分表达。",
+      "spoken_sentence": "考试就写三件事：先自检报验，再验收记录，再下级合格托上级。",
+      "exit_before_next": "现场对象缩为缩略图，闯关入口出现。"
+    }
+  ],
+  "teaching_spine": [
+    {
+      "id": "hook",
+      "state": "hook",
+      "anchor_md": "§2.1 主因果链 + §2.3 一句话压缩",
+      "visual_fact": "缺陷必须在还看得见、够得着、没被盖住时被验收拦截。",
+      "bridge_from_previous": "首幕建立考试任务。",
+      "answer_move": "先把验收题看成现场对象流转，不先背四级名词。"
+    },
+    {
+      "id": "self_check",
+      "state": "self_check",
+      "anchor_md": "§2.1 主因果链第4点 + R6 骨架C",
+      "visual_fact": "施工方先自检合格，监理验的是已自检合格的成果，不是替施工方查错。",
+      "bridge_from_previous": "既然要拦在覆盖前，第一道动作必须是施工方自己先闭环。",
+      "answer_move": "写“施工单位自检合格后报验/报监理”。"
+    },
+    {
+      "id": "site_acceptance",
+      "state": "site_acceptance",
+      "anchor_md": "§2.1 主因果链第3点 + R5 C2",
+      "visual_fact": "主控项目走全部合格的一票否决逻辑，一般项目才看合格率门槛。",
+      "bridge_from_previous": "有了报验单，现场检查就要先分清哪类项目用哪种闸门。",
+      "answer_move": "写主控项目全部合格、一般项目合格率达到要求，不把80%套到主控。"
+    },
+    {
+      "id": "record_lift",
+      "state": "record_lift",
+      "anchor_md": "§2.1 主因果链第4点 + §5.1 C6-2",
+      "visual_fact": "验收记录把现场结果固化成上一级可消费的证据，合格才进入下一道或上一级。",
+      "bridge_from_previous": "检查通过后，不能只口头放行，必须把结果落成记录。",
+      "answer_move": "写验收合格并形成记录后，方可进入下道工序或上一级验收。"
+    },
+    {
+      "id": "level_stack",
+      "state": "level_stack",
+      "anchor_md": "§1 四级验收层级 + §3 R2 不变量",
+      "visual_fact": "检验批、分项、分部、单位工程是自下而上累积的台阶，下级合格托起上级验收。",
+      "bridge_from_previous": "记录归档后，合格结论不是停在本级，而是托起下一层。",
+      "answer_move": "按检验批→分项→分部→单位工程写层级，避免倒装。"
+    },
+    {
+      "id": "reject_branch",
+      "state": "reject_branch",
+      "anchor_md": "§4.1 examiner_intent ③ + §5.1 C6-5 + §8.1 缺口",
+      "visual_fact": "不合格后存在返修/返工后重验、资料缺失补证、加固评估等分支；返修加固后仍不满足安全或重要使用要求才严禁验收。",
+      "bridge_from_previous": "如果某一层没过，不能继续堆层，要回到处理分支。",
+      "answer_move": "不把不合格简单写成“返工即可”，要写处理后复验和严禁验收红线。"
+    },
+    {
+      "id": "score",
+      "state": "score",
+      "anchor_md": "§5.2 R6 答案骨架C + §2.3 一句话压缩",
+      "visual_fact": "程序题最终要落成答题纸动作：谁先做、谁组织验收、何时形成记录、如何逐级合格。",
+      "bridge_from_previous": "流程、层级、分支都看完后，最后压成可写采分句。",
+      "answer_move": "写“施工自检合格→监理/建设验收→形成记录→下级合格托起上级；不合格按分支处理”。"
+    }
+  ],
+  "facts": [
+    {
+      "id": "quality_window",
+      "text": "验收要在缺陷还看得见、够得着、没被覆盖时拦截，隐蔽节点未经验收不得进入下道工序。"
+    },
+    {
+      "id": "self_check_first",
+      "text": "施工方先自检合格，再把成果报监理或建设单位验收；监理验的是已自检合格的成果。"
+    },
+    {
+      "id": "control_vs_general",
+      "text": "主控项目按全部合格的否决逻辑，一般项目才看合格率门槛；本 pack 对普适合格标准仍保留候选/需规范复核边界。"
+    },
+    {
+      "id": "record_evidence",
+      "text": "验收记录把现场验收结果固化为上一级可消费的证据，合格后才可进入下道工序或上一级验收。"
+    },
+    {
+      "id": "level_order",
+      "text": "验收层级按检验批→分项工程→分部工程→单位工程自下而上累积，不能从单位工程倒着写。"
+    },
+    {
+      "id": "reject_handling",
+      "text": "不合格并不等于直接终止；可返修/返工后重验、资料缺失可委托检测补证，返修或加固后仍不满足安全或重要使用要求才严禁验收。"
+    },
+    {
+      "id": "score_sentence",
+      "text": "可写成采分句：施工单位自检合格后报验，由监理或建设单位按规定组织验收并形成验收记录；检验批合格后方可进入分项、分部、单位工程逐级验收，不合格按返修重验、补证或严禁验收红线处理。"
+    },
+    {
+      "id": "memory_hook",
+      "text": "报验单走流程，记录表托上级；先自检，再验收，合格才上楼。"
+    }
+  ],
+  "common_errors": [
+    {
+      "id": "top_down_order",
+      "student": "单位工程→分部→分项→检验批。",
+      "why": "按行政直觉从大到小拆，漏掉了质量是从最小检验批向上累积的逻辑。"
+    },
+    {
+      "id": "skip_self_check",
+      "student": "直接通知监理验收现场。",
+      "why": "把监理验收当成替施工方检查，漏了施工单位自检合格这个责任闭环。"
+    },
+    {
+      "id": "control_rate_mix",
+      "student": "主控项目和一般项目合格率都达到80%即可。",
+      "why": "把主控项目的一票否决逻辑误套成一般项目百分比逻辑。"
+    },
+    {
+      "id": "record_as_formality",
+      "student": "验收通过后口头同意进入下道。",
+      "why": "忽略验收记录是上一级/下道工序消费的证据，导致程序链断开。"
+    },
+    {
+      "id": "reject_equals_demolish",
+      "student": "不合格就全部返工，不用再分情况。",
+      "why": "把不合格处理压成单一路径，漏掉返修重验、补证、加固评估和严禁验收红线。"
+    }
+  ],
+  "practice_blueprint": [
+    {
+      "id": "q1",
+      "stageLabel": "找第一步",
+      "skill": "程序前置识别",
+      "scene_gap": "施工班组完成一个检验批后，想直接叫监理到场验收。",
+      "student": "现场说法：我们已经做完了，直接让监理来验吧。",
+      "stem": "这时最像能拿程序分的第一句应怎么写？",
+      "answer": "self_check_then_report",
+      "visual": {
+        "kind": "process_flow",
+        "title": "报验单先盖自检章",
+        "before": ["检验批", "直接报验", "监理到场", "下道工序"],
+        "after": ["施工自检", "报验单", "监理验收", "记录归档"],
+        "hotIndex": 0
+      },
+      "options": [
+        {
+          "id": "self_check_then_report",
+          "label": "施工单位先自检合格，形成报验资料后再报监理或建设单位验收。",
+          "reason": "先补责任闭环，再进入外部验收。"
+        },
+        {
+          "id": "supervision_first",
+          "label": "直接通知监理到场检查，发现问题再由施工单位整改。",
+          "reason": "把监理验收前置成替施工方查错。"
+        },
+        {
+          "id": "owner_final",
+          "label": "直接请建设单位组织最终验收，减少中间环节。",
+          "reason": "跳过检验批/分项级别的逐级验收。"
+        },
+        {
+          "id": "record_after_next",
+          "label": "先进入下道工序，等后续统一补齐验收记录。",
+          "reason": "把记录当成事后文书，破坏覆盖前验收窗口。"
+        }
+      ],
+      "optionFeedback": {
+        "supervision_first": "容易选，因为监理确实要验。但验收对象应是施工方已自检合格的成果，不是让监理替施工单位做初检。",
+        "owner_final": "建设单位最终验收不是这一格。检验批没有合格记录，上级验收没有证据可消费。",
+        "record_after_next": "这会错过覆盖前的验收窗口。记录不是补手续，而是放行证据。"
+      },
+      "correct": "对。第一句必须把“施工自检合格后报验”写出来。",
+      "wrong": "这题先补第一步。未自检、未报验、未记录，就不能直接进入外部验收或下道工序。",
+      "basis_anchor": "§2.1 主因果链第4点"
+    },
+    {
+      "id": "q2",
+      "stageLabel": "分清闸门",
+      "skill": "主控/一般判定",
+      "scene_gap": "学生把主控项目和一般项目都写成80%合格率。",
+      "student": "学生答：检验批主控项目和一般项目合格率均达到80%即可。",
+      "stem": "这句话最主要应该怎么改？",
+      "answer": "control_all_general_rate",
+      "visual": {
+        "kind": "process_flow",
+        "title": "两道现场闸门",
+        "before": ["主控80%", "一般80%", "放行", "记录"],
+        "after": ["主控全合格", "一般达标", "验收通过", "记录归档"],
+        "hotIndex": 0
+      },
+      "options": [
+        {
+          "id": "control_all_general_rate",
+          "label": "改为主控项目必须全部合格；一般项目才看合格率达到要求。",
+          "reason": "把否决项和容差项分开。"
+        },
+        {
+          "id": "both_rate",
+          "label": "保留两个80%，但补一句资料完整即可。",
+          "reason": "资料完整不能修正主控项目判定逻辑。"
+        },
+        {
+          "id": "only_control",
+          "label": "只写主控项目合格即可，一般项目不影响验收。",
+          "reason": "一般项目也要满足合格率等要求，不能直接删掉。"
+        },
+        {
+          "id": "only_record",
+          "label": "不写主控和一般，直接写形成验收记录。",
+          "reason": "记录必须建立在判定通过之后。"
+        }
+      ],
+      "optionFeedback": {
+        "both_rate": "这是原错法的轻微包装。主控项目不能用80%合格率替代全部合格。",
+        "only_control": "主控重要，但一般项目不是无关项；一般项目仍要按合格率门槛判。",
+        "only_record": "先判定后记录，跳过判定直接写记录会丢依据分。"
+      },
+      "correct": "对。主控是全合格闸，一般才走合格率门槛。",
+      "wrong": "先分清两道闸门：主控项目全合格，一般项目合格率达到要求。",
+      "basis_anchor": "§5.1 C2"
+    },
+    {
+      "id": "q3",
+      "stageLabel": "堆层顺序",
+      "skill": "四级层级排序",
+      "scene_gap": "学生按工程体量从大到小写层级。",
+      "student": "学生答：单位工程验收通过后，再验分部、分项和检验批。",
+      "stem": "正确的层级采分动作是哪一句？",
+      "answer": "batch_to_unit",
+      "visual": {
+        "kind": "process_flow",
+        "title": "合格砖块自下而上",
+        "before": ["单位", "分部", "分项", "检验批"],
+        "after": ["检验批", "分项", "分部", "单位"],
+        "hotIndex": 0
+      },
+      "options": [
+        {
+          "id": "batch_to_unit",
+          "label": "按检验批→分项工程→分部工程→单位工程，自下而上逐级验收。",
+          "reason": "质量结论从最小颗粒向上累积。"
+        },
+        {
+          "id": "unit_to_batch",
+          "label": "按单位工程→分部工程→分项工程→检验批，从整体到局部验收。",
+          "reason": "行政视角顺，但质量证据方向反了。"
+        },
+        {
+          "id": "skip_batch",
+          "label": "从分项工程开始验收，检验批只在资料中体现。",
+          "reason": "漏掉最小验收颗粒。"
+        },
+        {
+          "id": "parallel_levels",
+          "label": "四级验收可并行开展，只要最终资料齐全即可。",
+          "reason": "把逐级合格关系改成了并行资料收集。"
+        }
+      ],
+      "optionFeedback": {
+        "unit_to_batch": "容易选，因为单位工程听起来最大。但质量验收不是行政拆分，而是底层证据向上托举。",
+        "skip_batch": "检验批是最小验收颗粒，不是资料里的附属项。",
+        "parallel_levels": "资料齐全不能替代逐级合格。下面没过，上面就悬空。"
+      },
+      "correct": "对。验收层级从检验批往上堆，不能倒着写。",
+      "wrong": "这题看砖块堆层：下级合格，才托起上级验收。",
+      "basis_anchor": "§1 四级验收层级"
+    },
+    {
+      "id": "q4",
+      "stageLabel": "处理不合格",
+      "skill": "不合格分支",
+      "scene_gap": "学生把不合格处理写成单一返工结论。",
+      "student": "学生答：验收不合格的工程一律返工，返工后即可验收。",
+      "stem": "下面哪句更像完整的不合格处理表达？",
+      "answer": "branch_then_redline",
+      "visual": {
+        "kind": "decision_tree",
+        "title": "不合格小车分岔",
+        "before": ["不合格", "返工", "通过", "结束"],
+        "after": ["返修重验", "补证检测", "加固评估", "严禁验收红线"],
+        "hotIndex": 3
+      },
+      "options": [
+        {
+          "id": "branch_then_redline",
+          "label": "不合格应按返修/返工后重验、资料缺失补证、加固后评估等分支处理；仍不满足安全或重要使用要求的严禁验收。",
+          "reason": "既写处理分支，也写安全红线。"
+        },
+        {
+          "id": "always_demolish",
+          "label": "只要不合格就全部拆除返工，避免后续风险。",
+          "reason": "过度简化，不区分可修复、可补证和安全红线。"
+        },
+        {
+          "id": "always_accept",
+          "label": "经参建各方协商同意即可验收，保证工期。",
+          "reason": "把安全红线让位给协商，风险最大。"
+        },
+        {
+          "id": "paper_only",
+          "label": "补齐质量控制资料即可验收，实体问题后续处理。",
+          "reason": "资料补证不能替代安全和重要使用功能要求。"
+        }
+      ],
+      "optionFeedback": {
+        "always_demolish": "容易选，因为最保险。但考试要的是处理分支，不是把所有不合格都压成拆除。",
+        "always_accept": "协商不能越过安全底线。返修加固后仍不满足安全或重要使用要求，严禁验收。",
+        "paper_only": "资料缺失可以补证，但实体安全问题不能靠资料掩盖。"
+      },
+      "correct": "对。不合格处理要写分支，更要写最终安全红线。",
+      "wrong": "别把红灯当成单一路径。先分支处理，再看能否重新验收，最后守住严禁验收红线。",
+      "basis_anchor": "§5.1 C6-5"
+    },
+    {
+      "id": "q5",
+      "stageLabel": "输出采分句",
+      "skill": "程序采分句输出",
+      "scene_gap": "最后训练学生把现场对象流转压成答题纸句子。",
+      "student": "题干：某检验批完成后，施工单位未自检即报监理，未形成验收记录即进入下道工序；问指出不妥并改正。",
+      "stem": "下面哪一句最像完整采分句？",
+      "answer": "score_sentence",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "验收程序答题纸扫描",
+        "before": ["检验批完成", "报监理", "进下道", "资料后补"],
+        "after": ["施工自检合格", "报验并组织验收", "形成验收记录", "合格后进下道/上级"],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "score_sentence",
+          "label": "应先由施工单位自检合格并报验，再由监理或建设单位按规定组织验收，形成验收记录；检验批合格后方可进入下道工序或上一级验收。",
+          "reason": "先自检、再验收、形成记录、合格放行四个动作齐全。"
+        },
+        {
+          "id": "only_supervise",
+          "label": "应由监理单位加强检查，发现问题后要求施工单位整改。",
+          "reason": "只写监理检查，漏自检、报验、记录和放行条件。"
+        },
+        {
+          "id": "only_record",
+          "label": "应补办验收记录，资料齐全后即可继续施工。",
+          "reason": "把验收程序降成资料后补，没有说覆盖前验收和合格放行。"
+        },
+        {
+          "id": "top_level",
+          "label": "应待单位工程竣工时统一组织验收，避免重复验收。",
+          "reason": "把底层检验批验收推迟到单位工程，破坏逐级合格。"
+        }
+      ],
+      "optionFeedback": {
+        "only_supervise": "监理检查只是其中一环。案例改错要把施工自检、报验、记录和合格放行都补上。",
+        "only_record": "记录不是后补手续，而是验收合格的证据；未验收不能先进下道。",
+        "top_level": "单位工程验收消费的是下级合格结论，不能替代检验批现场验收。"
+      },
+      "correct": "对。这句把现场对象流转成完整程序采分句。",
+      "wrong": "最终句不能只修一个角色或一张表。程序题要交付“先自检、再验收、成记录、合格放行”。",
+      "basis_anchor": "§5.2 R6 答案骨架C"
+    }
+  ],
+  "memory_hook": "先自检，再验收；记录托上级，合格才放行。"
+}

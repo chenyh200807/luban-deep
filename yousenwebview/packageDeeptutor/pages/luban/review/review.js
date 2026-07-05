@@ -174,12 +174,28 @@ Page({
         // 计数拿不到时入口降级为无计数（不阻塞页面、不造数）
         return null;
       });
-    return Promise.all([api.getLubanLessons(), api.getLubanReviewDue(), mistakePromise])
+    // 点亮真值 = pack_lifecycle（与学习页同一读源 getLearningReport, 单一权威）。
+    // 拿不到时降级为 null——view model 不造数（既不标已点亮也不标未点亮）。
+    var reportPromise = api
+      .getLearningReport(100, { silent: true, suppressAuthRedirect: true })
+      .then(function (resp) {
+        return api.unwrapResponse(resp) || {};
+      })
+      .catch(function () {
+        return null;
+      });
+    return Promise.all([
+      api.getLubanLessons(),
+      api.getLubanReviewDue(),
+      mistakePromise,
+      reportPromise,
+    ])
       .then(function (results) {
         var vm = reviewViewModel.buildReviewViewModel({
           lessons: api.unwrapResponse(results[0]) || {},
           reviewDue: api.unwrapResponse(results[1]) || {},
           mistakeBook: results[2],
+          report: results[3],
         });
         that.setData({ vm: vm, loading: false });
       })

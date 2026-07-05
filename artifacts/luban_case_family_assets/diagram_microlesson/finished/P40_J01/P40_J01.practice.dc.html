@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="P40_J01.teach.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="5">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11.5px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="P40_J01.teach.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍（重新随机抽题）</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 随堂练 · 危大工程专项方案专家论证 ░░░
+   fork 自 随堂练母版；只改 examTitle/KNOWLEDGE/Q[]/codeMap/moreText + figFor()。
+   Q[] 候选 16 道（覆盖 R5-1..R5-11 五维不同角度）；每次随机抽 4 道 + 末题(采分诊断)固定压轴，共 5 道。
+   每错项三段解析(为什么容易选/为什么扣分+错因码/正确补哪句)；末题训练采分句诊断与补写。 */
+class Component extends DCLogic {
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null };
+  examTitle="危大工程专项方案专家论证";
+  KNOWLEDGE="危大工程专项方案与专家论证。判档(条件维):基坑≥3m/模板≥5m/起重≥10kN/脚手架≥24m·危大,编专项方案;深基坑≥5m/模板≥8m或跨≥18m/起重≥100kN/脚手架落地≥50m/幕墙≥50m·超过一定规模,除编方案还须专家论证。编制主体(主体维):施工总承包单位组织编制;起重安拆/深基坑/附着升降脚手架等专业工程可由专业承包单位编制。前置程序(程序维):先施工单位审核、再总监理工程师审查,方可组织论证,顺序不可颠倒。组织(主体维):超规模由施工总承包单位组织召开论证会。方案八项(记录维):工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施;模板支撑另加计算书及相关施工图纸。专家组(主体维+记录维):5人以上、与本工程无利害关系,参建各方人员不得以专家身份参加(回避),报告须签字。论证内容三项(记录维):完整可行/计算书验算依据施工图符合规范/满足现场实际确保安全;非经济性、非分包资质。实施(后果维):公示、编制人交底,不得擅自修改,确需修改须重新审核/论证。需单独编专项方案的工程:深基坑支护/降水/土方开挖/模板及支撑体系/建筑幕墙安装。";
+  moreText="补两道：① 给「建设单位组织论证、专家 4 人」的场景，把「组织主体=施工总承包单位 + 专家 5 人以上 + 参建方回避」一次写全，专治漏回避；② 给「方案编制后直接论证、未经总监审查」的场景，练前置程序箭头链：施工单位审核 · 总监理工程师审查 · 专家论证，补齐程序维。";
+  Q=[
+    { tag:"判档·条件维", typeHint:"单选 · 选出最完整、能得分的作答", fig:"depth", dep:4, figLabel:"题给：基坑开挖深度", figCaption:"基坑开挖深度 4m · 判档？",
+      stem:"某工程基坑开挖深度 4m。就危大工程判定，选出最完整、能得分的作答。",
+      model:"开挖深度 4m（≥3m）属危险性较大的分部分项工程，应编制专项施工方案；未达 5m，尚不需专家论证。",
+      opts:[
+        { t:"基坑开挖深度 4m，达到 3m 及以上，属危险性较大的分部分项工程，应编制专项施工方案（未达 5m，暂不需专家论证）。", ok:true, fix:"阈值 3m + 「危大·编专项方案」结论 + 说明未到论证档，判档链完整。", code:"" },
+        { t:"基坑深度 4m 已超过 3m，属超过一定规模的危大工程，应组织专家论证。", ok:false, code:"E10", tempt:"看到「超过 3m」就直接联想到最严的专家论证。", lose:"混档：3m 是危大线、5m 才是超规模论证线，4m 未达论证档。", fix:"4m 达危大应编方案；未达 5m，不需论证。" },
+        { t:"基坑较深，施工时加强安全防护即可。", ok:false, code:"E02", tempt:"当成一般「注意安全」的施工问题。", lose:"漏掉「达危大·编专项方案」这一核心采分点。", fix:"应写「达 3m 属危大，须编制专项施工方案」。" },
+        { t:"基坑深度 4m 未达 5m，不属于危大工程，无需专项方案。", ok:false, code:"M08", tempt:"把 5m 当成危大起算线。", lose:"记错阈值：危大基坑起算 3m 不是 5m，4m 已属危大。", fix:"危大基坑≥3m，4m 已属危大，须编专项方案。" }
+      ] },
+    { tag:"判档·条件维", typeHint:"单选 · 选出最完整、能得分的作答", fig:"depth", dep:6, figLabel:"题给：深基坑开挖深度", figCaption:"深基坑开挖深度 6m · 判档？",
+      stem:"某深基坑开挖深度 6m。就危大工程判定，选出最完整、能得分的作答。",
+      model:"深基坑 6m（≥5m）属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。",
+      opts:[
+        { t:"深基坑开挖深度 6m，达到 5m 及以上，属超过一定规模的危大工程，除编制专项施工方案外，还应组织专家论证。", ok:true, fix:"阈值 5m + 「超规模」定性 + 「编方案 + 专家论证」两件事写全。", code:"" },
+        { t:"深基坑 6m 属危险性较大工程，应编制专项施工方案。", ok:false, code:"E02", tempt:"答对了危大档，但停在编方案。", lose:"漏了「超规模·还应专家论证」，只答半档。", fix:"6m≥5m 属超规模，除编方案外还应组织专家论证。" },
+        { t:"深基坑 6m，应由建设单位组织专家论证。", ok:false, code:"E07", tempt:"知道要论证，但组织主体张冠李戴。", lose:"论证会应由施工总承包单位组织，不是建设单位。", fix:"超规模应由施工总承包单位组织召开专家论证会。" },
+        { t:"深基坑 6m 未超过 8m，不需要专家论证。", ok:false, code:"M08", tempt:"把模板支撑 8m 的阈值套到深基坑上。", lose:"混阈值：深基坑超规模线是 5m，6m 已达。", fix:"深基坑≥5m 即超规模，6m 应论证。" }
+      ] },
+    { tag:"混档辨析·条件维", typeHint:"单选 · 选出最准确的判断与纠正", fig:"depth", figLabel:"题给：判断对错", figCaption:"「基坑一过 3m 就要专家论证」对吗？",
+      stem:"有人说：「基坑只要开挖深度超过 3m，就必须组织专家论证。」选出最准确的判断与纠正。",
+      model:"说法错误。3m 是危大线（编专项方案），5m 才是超规模线（专家论证）；3～5m 之间只需编方案、不需论证。",
+      opts:[
+        { t:"错误。开挖深度达 3m 属危大、应编专项方案；达 5m 才属超规模、才需专家论证。3～5m 之间编方案不论证。", ok:true, fix:"两条线两档说清楚，纠正到位。", code:"" },
+        { t:"正确。超过 3m 就是危大工程，危大工程都要专家论证。", ok:false, code:"E10", tempt:"以为「危大」和「要论证」是一回事。", lose:"危大不等于超规模；只有超规模档才论证。", fix:"3m 编方案、5m 才论证，别把两档并成一档。" },
+        { t:"错误。应该是超过 2m 就要专家论证。", ok:false, code:"E07", tempt:"记了个更小的数当阈值。", lose:"阈值错且档次错，论证是 5m 档不是 2m。", fix:"论证是超规模 5m 档。" },
+        { t:"这属于施工方案编制问题，与论证无关。", ok:false, code:"E05", tempt:"回避了「档次」这个考点。", lose:"答非所问，没判两条线。", fix:"要点明 3m 危大、5m 超规模两档。" }
+      ] },
+    { tag:"编制主体·主体维", typeHint:"单选 · 选出能得分的作答", fig:"subject", figLabel:"题给：谁来组织编制专项方案", figCaption:"总承包 / 监理 / 建设 · 谁编？",
+      stem:"某超规模危大工程需编制专项施工方案。该方案应由谁组织编制？选出能得分的作答。",
+      model:"专项施工方案由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。",
+      opts:[
+        { t:"由施工总承包单位组织编制；起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制。", ok:true, fix:"精确到「施工总承包单位」，并补专业分包可编的情形，主体写全。", code:"" },
+        { t:"由施工单位编制即可。", ok:false, code:"E06", tempt:"顺口写「施工单位」，感觉没错。", lose:"「施工单位」含糊，阅卷要「施工总承包单位」才给主体分。", fix:"应写「施工总承包单位组织编制」。" },
+        { t:"由建设单位组织编制专项方案。", ok:false, code:"E06", tempt:"觉得建设单位是甲方、负总责。", lose:"编制主体是施工总承包单位，不是建设单位。", fix:"施工总承包单位组织编制。" },
+        { t:"由监理单位编制专项方案后交施工单位执行。", ok:false, code:"E06", tempt:"把监理的「审查」误当「编制」。", lose:"监理是审查方不是编制方，主体错。", fix:"施工总承包单位编、总监理工程师审查。" }
+      ] },
+    { tag:"编制主体·主体维", typeHint:"单选 · 选出能得分的作答", fig:"subject", figLabel:"题给：专业工程方案编制", figCaption:"深基坑 / 起重安拆 · 谁可编？",
+      stem:"起重机械安装拆卸、深基坑等专业工程的专项方案，除总包外还可由谁编制？选出能得分的作答。",
+      model:"起重安拆、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。",
+      opts:[
+        { t:"起重机械安装拆卸、深基坑、附着升降脚手架等专业工程，可由专业承包单位编制专项方案。", ok:true, fix:"点出「专业承包单位」及适用的专业工程范围。", code:"" },
+        { t:"必须一律由施工总承包单位编制，专业分包无权编制。", ok:false, code:"E06", tempt:"记住「总包组织」就以为分包一概不能编。", lose:"专业工程可由专业承包单位编制，说「一律总包」不全。", fix:"专业工程可由专业承包单位编制。" },
+        { t:"可由设备租赁单位编制。", ok:false, code:"E07", tempt:"起重设备联想到租赁单位。", lose:"编制主体是专业承包单位，不是租赁单位。", fix:"专业承包单位编制。" },
+        { t:"由专业承包单位编制，无需总包过问。", ok:false, code:"E02", tempt:"抓住分包可编就忽略总包。", lose:"总包仍要组织、施工单位仍要审核，漏了总包职责。", fix:"专业承包编制，仍由总包组织、施工单位审核。" }
+      ] },
+    { tag:"前置程序·程序维", typeHint:"单选 · 选出能得分的作答", fig:"pipe", figLabel:"题给：论证前的程序", figCaption:"编制 · ？ · ？ · 论证",
+      stem:"专项方案编制完成后到组织专家论证之前，正确的程序顺序是？选出能得分的作答。",
+      model:"专项方案应先经施工单位审核、再经总监理工程师审查，方可组织专家论证；顺序不可颠倒。",
+      opts:[
+        { t:"方案编制后，先经施工单位审核、再经总监理工程师审查，方可组织专家论证。", ok:true, fix:"审核·审查·论证顺序写全，主体各归各位。", code:"" },
+        { t:"方案编制后直接组织专家论证。", ok:false, code:"E06", tempt:"觉得编完就能上会论证。", lose:"漏了施工单位审核、总监审查两道前置程序。", fix:"先审核、再审查，方可论证。" },
+        { t:"方案编制后，先专家论证，再由总监理工程师审查。", ok:false, code:"E06", tempt:"顺序记反，觉得先论证权威。", lose:"顺序颠倒：审查在论证之前，不能先论证。", fix:"审核·审查·论证，论证在最后。" },
+        { t:"方案编制后，经建设单位审批即可论证。", ok:false, code:"E06", tempt:"以为甲方审批就够。", lose:"前置是施工单位审核 + 总监审查，不是建设单位审批。", fix:"施工单位审核、总监理工程师审查。" }
+      ] },
+    { tag:"程序纠错·程序维", typeHint:"单选 · 指出不妥并纠正", fig:"pipe", figLabel:"题给：找出程序不妥", figCaption:"编制 · 审核 ·（漏了谁？）· 论证",
+      stem:"某项目专项方案经施工单位审核后，直接组织了专家论证。指出程序不妥并纠正，选出能得分的作答。",
+      model:"不妥：审核后未经总监理工程师审查即论证。正确：应先经总监理工程师审查，方可组织专家论证。",
+      opts:[
+        { t:"不妥之处：审核后未经总监理工程师审查即组织论证。正确做法：应先经总监理工程师审查，方可组织专家论证。", ok:true, fix:"照抄不妥点 + 补上总监审查这一步，三段式到位。", code:"" },
+        { t:"程序没有问题，审核过就能论证。", ok:false, code:"E08", tempt:"只看到「审核」就以为程序齐了。", lose:"没抓题干埋点：缺了总监理工程师审查这一步。", fix:"应指出缺总监理工程师审查。" },
+        { t:"不妥：应由建设单位审查后再论证。", ok:false, code:"E06", tempt:"知道缺一步，但补错了主体。", lose:"审查主体是总监理工程师，不是建设单位。", fix:"缺的是总监理工程师审查。" },
+        { t:"不妥：专家论证应在方案编制前进行。", ok:false, code:"E05", tempt:"乱调顺序凑「不妥」。", lose:"论证必在编制、审核、审查之后，说编前论证错。", fix:"顺序是编制·审核·审查·论证。" }
+      ] },
+    { tag:"组织主体·主体维", typeHint:"单选 · 选出能得分的作答", fig:"pipe", figLabel:"题给：谁组织召开论证会", figCaption:"总承包 / 建设 / 监理 · 谁召集？",
+      stem:"某超规模危大工程的专家论证会应由谁组织召开？选出能得分的作答。",
+      model:"本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。",
+      opts:[
+        { t:"本工程属超规模危大工程，专家论证会应由施工总承包单位组织召开。", ok:true, fix:"点出「超规模」触发 + 「施工总承包单位组织召开」。", code:"" },
+        { t:"应由建设单位组织召开专家论证会。", ok:false, code:"E07", tempt:"甲方牵头开会看着合理。", lose:"组织召开主体是施工总承包单位，不是建设单位。", fix:"施工总承包单位组织召开。" },
+        { t:"应由监理单位组织召开专家论证会。", ok:false, code:"E07", tempt:"监理管现场，像是组织者。", lose:"监理是审查方，不组织论证会。", fix:"施工总承包单位组织召开。" },
+        { t:"组织专家进行论证。", ok:false, code:"E02", tempt:"答了论证却没写谁组织。", lose:"漏了组织主体这个采分点。", fix:"应写「由施工总承包单位组织召开」。" }
+      ] },
+    { tag:"方案内容·记录维", typeHint:"单选 · 选出最完整、能得分的作答", fig:"checklist", figLabel:"题给：基坑专项方案内容", figCaption:"八项内容 · 你补全了吗",
+      stem:"基坑工程专项施工方案应包含哪些内容？选出最完整、能得分的作答。",
+      model:"应含：①工程概况②编制依据③施工计划④施工工艺技术⑤施工保证措施⑥施工管理及人员配备⑦验收要求⑧应急处置措施。",
+      opts:[
+        { t:"工程概况、编制依据、施工计划、施工工艺技术、施工保证措施、施工管理及人员配备、验收要求、应急处置措施，共八项。", ok:true, fix:"八项写全，尤其验收要求、应急处置不漏。", code:"" },
+        { t:"工程概况、编制依据、施工计划、施工工艺技术、施工保证措施、施工管理及人员配备。", ok:false, code:"E02", tempt:"前六项顺手写完就收笔。", lose:"漏了⑦验收要求、⑧应急处置措施两项。", fix:"补上验收要求、应急处置措施。" },
+        { t:"就是一份施工组织设计的主要内容。", ok:false, code:"E07", tempt:"把专项方案当成施工组织设计。", lose:"混淆文件：专项方案有其固定八项内容。", fix:"按专项方案八项内容写。" },
+        { t:"工程概况、施工工艺、安全措施三大块。", ok:false, code:"E02", tempt:"归成三大块图省事。", lose:"笼统三块，漏编制依据、验收、应急等采分项。", fix:"按八项逐项写全。" }
+      ] },
+    { tag:"模板方案·记录维", typeHint:"单选 · 选出能得分的作答", fig:"checklist", figLabel:"题给：模板支撑方案特有内容", figCaption:"比基坑方案多了哪一项？",
+      stem:"模板工程及支撑体系专项方案，除常规内容外，特别应包含哪一项（最易漏）？选出能得分的作答。",
+      model:"模板支撑方案应含工程概况、技术参数、工艺流程、施工方法、检查要求，特别是计算书及相关施工图纸。",
+      opts:[
+        { t:"除工程概况、技术参数、工艺流程、施工方法、检查要求外，特别应包含计算书及相关施工图纸。", ok:true, fix:"点出模板支撑特有的「计算书及相关施工图纸」。", code:"" },
+        { t:"与基坑方案一样的八项内容即可。", ok:false, code:"E02", tempt:"以为所有方案内容都一样。", lose:"漏了模板支撑特有的计算书及施工图纸。", fix:"必须含计算书及相关施工图纸。" },
+        { t:"工程概况、技术参数、工艺流程、施工方法、检查要求。", ok:false, code:"E02", tempt:"写了五项看着挺全。", lose:"恰恰漏掉最关键、最易丢分的计算书及施工图纸。", fix:"补上计算书及相关施工图纸。" },
+        { t:"应包含专家论证报告。", ok:false, code:"E07", tempt:"把后续论证材料塞进方案内容。", lose:"论证报告是论证环节产物，非方案编制内容。", fix:"方案内容应含计算书及施工图纸。" }
+      ] },
+    { tag:"编案清单·记录维", typeHint:"单选 · 选出列举完整、能得分的作答", fig:"worklist", figLabel:"题给：需单独编专项方案的工程", figCaption:"哪些工程要单独编案？",
+      stem:"下列需单独编制专项施工方案的工程，选出列举完整、能得分的作答。",
+      model:"深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装等。",
+      opts:[
+        { t:"深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装等，均需单独编制专项方案。", ok:true, fix:"五类列全，降水、幕墙不漏。", code:"" },
+        { t:"深基坑支护、土方开挖、模板工程及支撑体系。", ok:false, code:"E02", tempt:"记住几个大项。", lose:"漏了降水、建筑幕墙安装。", fix:"补上降水、建筑幕墙安装。" },
+        { t:"深基坑支护、砌筑工程、抹灰工程。", ok:false, code:"E07", tempt:"把普通分项工程混进来。", lose:"砌筑/抹灰非危大，不需单独专项方案。", fix:"应为深基坑/降水/土方/模板支撑/幕墙等危大工程。" },
+        { t:"只有深基坑支护需要单独编案。", ok:false, code:"E02", tempt:"只记了最典型的一项。", lose:"清单不全，漏了降水、土方、模板、幕墙。", fix:"按五类列全。" }
+      ] },
+    { tag:"专家组·主体维", typeHint:"单选 · 选出能得分的作答", fig:"group", figLabel:"题给：专家组人数要求", figCaption:"5 人？还是 5 人以上？",
+      stem:"专家论证会的专家组人数应如何表述才准确、能得分？选出能得分的作答。",
+      model:"专家组成员应为 5 人以上，且与本工程无利害关系。",
+      opts:[
+        { t:"专家组成人员应为 5 人以上，且与本工程无利害关系。", ok:true, fix:"写「5 人以上」（含下限）+ 无利害关系，两点齐。", code:"" },
+        { t:"专家组由 5 名专家组成即可。", ok:false, code:"E10", tempt:"「5 人」脱口而出，觉得数字对了。", lose:"应为「5 人以上」，写死「5 名」漏了「以上」。", fix:"应写「5 人以上」。" },
+        { t:"专家人数越多越好，不少于 3 人。", ok:false, code:"E02", tempt:"凭印象给个下限。", lose:"下限记错（应 5 人以上），且漏无利害关系。", fix:"5 人以上且无利害关系。" },
+        { t:"5 人以上即可。", ok:false, code:"E02", tempt:"写对了人数就收笔。", lose:"漏了「与本工程无利害关系」这一并列采分点。", fix:"补上「与本工程无利害关系」。" }
+      ] },
+    { tag:"专家回避·主体维", typeHint:"单选 · 指出不妥并纠正", fig:"group", figLabel:"题给：找出专家组织不妥", figCaption:"含总包技术负责人的 5 名专家",
+      stem:"某基坑论证组织了「包括总承包单位技术负责人在内的 5 名专家」。指出不妥并纠正，选出能得分的作答。",
+      model:"不妥：本项目参建各方人员不得以专家身份参加，总包技术负责人属参建方、不能当专家；且专家应为 5 人以上。",
+      opts:[
+        { t:"不妥：总承包单位技术负责人属本项目参建方、不得以专家身份参加论证；且专家组应为 5 人以上。应更换为无利害关系的外部专家并补足 5 人以上。", ok:true, fix:"回避 + 5 人以上两点都点到，照抄不妥点后给正确做法。", code:"" },
+        { t:"没有不妥，5 名专家符合要求。", ok:false, code:"E02", tempt:"只数人数够 5，就以为合规。", lose:"漏了核心不妥：参建方人员不得当专家（回避）。", fix:"应指出参建方人员不得以专家身份参加。" },
+        { t:"不妥仅在于专家人数，应增加到 6 人。", ok:false, code:"E10", tempt:"抓到人数感觉，却没抓回避。", lose:"关键是回避而非单纯加人；参建方当专家才是问题。", fix:"核心是参建方不得当专家，须更换。" },
+        { t:"不妥：应由建设单位而非总包组织论证。", ok:false, code:"E08", tempt:"看到「总承包」就往组织主体上想。", lose:"没抓题干埋点「技术负责人当专家」，组织主体本身没错。", fix:"不妥在参建方人员当专家（回避）。" }
+      ] },
+    { tag:"论证内容·记录维", typeHint:"单选 · 选出准确、能得分的作答", fig:"trio", figLabel:"题给：专家论证的内容", figCaption:"专家论证到底论什么？",
+      stem:"专家论证的主要内容包括哪三项？选出准确、能得分的作答。",
+      model:"①方案是否完整、可行②计算书及验算依据、施工图是否符合标准规范③是否满足现场实际、确保施工安全。",
+      opts:[
+        { t:"①方案是否完整、可行；②计算书及验算依据、施工图是否符合规范；③是否满足现场实际、能否确保施工安全。", ok:true, fix:"三项论证内容写全，不掺经济性、资质。", code:"" },
+        { t:"论证方案的经济性与造价是否合理。", ok:false, code:"E05", tempt:"觉得论证也该管省钱。", lose:"经济性不是论证内容，审题偏了。", fix:"论证只看完整可行、计算书施工图、确保安全。" },
+        { t:"论证专业分包单位的资质是否合格。", ok:false, code:"E07", tempt:"把资质审查混进论证。", lose:"分包资质非论证内容，概念混淆。", fix:"论证内容是三项技术与安全性内容。" },
+        { t:"论证方案是否完整可行即可。", ok:false, code:"E02", tempt:"答对一项就停。", lose:"漏了计算书施工图、确保安全两项。", fix:"补齐三项内容。" }
+      ] },
+    { tag:"实施控制·后果维", typeHint:"单选 · 选出最完整、能得分的作答", fig:"loop", figLabel:"题给：方案实施与修改", figCaption:"施工中能不能改方案？",
+      stem:"专项方案实施过程中如需修改，正确的处理是？选出最完整、能得分的作答。",
+      model:"施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证后方可执行。",
+      opts:[
+        { t:"施工中不得擅自修改专项方案；确需修改的，应重新审核、重新论证，通过后方可执行。", ok:true, fix:"「不得擅自修改」+「确需改须重新论证」后果维两句都写。", code:"" },
+        { t:"施工中不得擅自修改专项方案。", ok:false, code:"E06", tempt:"写了「不能改」就以为答完。", lose:"漏了「确需修改须重新审核/论证」后半句，后果维半分。", fix:"补上「确需修改须重新论证后执行」。" },
+        { t:"经项目经理同意后即可修改。", ok:false, code:"E06", tempt:"觉得内部签字就能改。", lose:"属擅自修改，未走重新审核论证程序。", fix:"确需修改须重新审核、重新论证。" },
+        { t:"方案实施前公示、交底即可，修改无特别要求。", ok:false, code:"E02", tempt:"答了实施前程序，避开修改问题。", lose:"漏了「不得擅自修改 + 须重新论证」这一核心。", fix:"施工中不得擅自修改，确需改须重新论证。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 数值可能蒙对，诊断失分并给正确补写", fig:"sheet", figLabel:"真题 · 模拟学生作答（待诊断）", figCaption:"记得「专家 5 人」，但漏了要害",
+      stem:"真题背景：基坑深 7.6m，基坑支护专业施工单位编制方案并履行审批签字后，组织「包括总承包单位技术负责人在内的 5 名专家」论证。学生答：「论证不妥。专家应有 5 人，够了。让施工单位再仔细检查方案。」选出最准确的诊断与补写。",
+      model:"漏点：①未指出参建方人员（总包技术负责人）不得当专家（回避）②「5 人够了」应为「5 人以上」③「再检查方案」答非所问。补写：不妥在组织含总承包单位技术负责人在内的 5 名专家论证；专家应为 5 人以上，且本项目参建各方人员不得以专家身份参加。",
+      opts:[
+        { t:"漏了核心不妥：总包技术负责人属参建方、不得当专家（回避）；「5 人够了」应为「5 人以上」；「再检查方案」答非所问。补写：不妥之处是组织含总承包单位技术负责人在内的 5 名专家论证；正确做法是专家应为 5 人以上，且本项目参建各方人员不得以专家身份参加。", ok:true, fix:"三处失分全揪出，补写即可上答题纸——这就是「会写答案」。", code:"" },
+        { t:"学生答得基本对，专家 5 人符合要求，只需再补充审查程序。", ok:false, code:"E08", tempt:"只看「5 人」和「检查」，觉得方向对。", lose:"没抓题干埋点：参建方技术负责人当专家（回避）才是第一失分点。", fix:"应先指出参建方不得当专家、且专家 5 人以上。" },
+        { t:"只是人数写法问题，把「5 人」改成「6 人」即可。", ok:false, code:"E10", tempt:"抓到人数一处就以为只此一错。", lose:"漏诊回避（核心）+「5 人以上」表述 + 答非所问。", fix:"核心是回避，且应写「5 人以上」。" },
+        { t:"应诊断为方案编制主体错误，改由建设单位编制即可。", ok:false, code:"E05", tempt:"往编制主体上带偏。", lose:"本题失分在专家组回避与人数，编制主体非本问考点。", fix:"按回避 + 5 人以上诊断并补写。" }
+      ] }
+  ];
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"档次/主体/专家/内容/后果逐维写全，缺一维扣一维。"},
+    E05:{label:"审题错误",advice:"看清问的是判档/主体/内容还是诊断，别答非所问。"},
+    E06:{label:"程序·主体错误",advice:"编制归总包、审查归总监；审核·审查·论证顺序不可颠倒。"},
+    E07:{label:"概念混淆",advice:"分清危大档与超规模档、组织主体与审查主体、论证内容与资质经济性。"},
+    E08:{label:"背景提取失败",advice:"照抄题干埋点（如参建方当专家）作为不妥点，别放过。"},
+    E10:{label:"规范适用错误",advice:"专家「5 人以上」含下限、参建方回避，别写死「5 人」。"},
+    M08:{label:"规范数字混淆",advice:"危大基坑 3m、超规模 5m、模板 8m，阈值分清别串档。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    this.setState({order:this.pickOrder()});
+  }
+  // 抽题：前 15 道洗牌取 (SHOW_COUNT-1) 道 + 末题(采分诊断, 索引15)固定压轴。
+  pickOrder(){ const last=this.Q.length-1; const idx=this.Q.map((_,i)=>i).filter(i=>i!==last);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    const pick=idx.slice(0, Math.max(0,(this.SHOW_COUNT||5)-1)); pick.push(last); return pick; }
+  fallbackOrder(){ const last=this.Q.length-1; const a=this.Q.map((_,i)=>i).filter(i=>i!==last).slice(0,(this.SHOW_COUNT||5)-1); a.push(last); return a; }
+  ord(){ return (this.state.order && this.state.order.length) ? this.state.order : this.fallbackOrder(); }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi];
+    if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&q.opts[s]&&q.opts[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false,order:this.pickOrder()}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const q=this.qAt(qi),type=q.fig, els=[]; let figH=100;
+    if(type==="depth"){ figH=78; const xOf=m=>10+m*37.5;
+      els.push(D({x:0,top:0,w:300,h:12,fg:"#5c6469",fs:9.5,ta:"left",jc:"flex-start",lab:"基坑开挖深度（m）"}));
+      els.push(D({x:10,top:42,w:112,h:9,bg:"#cfe6d8",r:0}));
+      els.push(D({x:122,top:42,w:75,h:9,bg:"#f3ddc0"}));
+      els.push(D({x:197,top:42,w:113,h:9,bg:"#f2ccc4"}));
+      els.push(D({x:121,top:36,w:2,h:22,bg:"#cf8a44"})); els.push(D({x:105,top:20,w:34,h:12,fg:"#cf8a44",fs:9.5,lab:"3m"}));
+      els.push(D({x:196,top:36,w:2,h:22,bg:"#cf4436"})); els.push(D({x:180,top:20,w:34,h:12,fg:"#cf4436",fs:9.5,lab:"5m"}));
+      els.push(D({x:26,top:56,w:92,h:14,fg:"#cf8a44",fs:9,lab:"危大 · 编方案"}));
+      els.push(D({x:200,top:56,w:104,h:14,fg:"#cf4436",fs:9,lab:"超规模 · +论证"}));
+      if(typeof q.dep==="number") els.push(D({x:Math.round(xOf(q.dep))-30,top:22,w:60,h:14,fg:"#23282b",fs:10,fw:"900",lab:"▼本题 "+q.dep+"m"})); }
+    else if(type==="pipe"){ figH=76; const st=[["编制","总承包","#cf8a44"],["审核","施工单位","#2f6db0"],["审查","总监理","#2f6db0"],["论证","总包组织","#2c8a5b"]];
+      st.forEach((s,i)=>{ const x=i*80; els.push(D({x:x,top:8,w:66,h:24,bg:"transparent",bd:"2px solid "+s[2],r:8,fg:s[2],fs:11,lab:s[0]}));
+        els.push(D({x:x,top:36,w:66,h:14,fg:"#8b9398",fs:8.5,lab:s[1]}));
+        if(i<3)els.push(D({x:x+66,top:8,w:14,h:24,fg:"#b3a692",fs:13,lab:"·"})); });
+      els.push(D({x:0,top:58,w:320,h:14,fg:"#5c6469",fs:9,ta:"left",jc:"flex-start",lab:"顺序不可颠倒：审核 · 审查 · 论证"})); }
+    else if(type==="subject"){ figH=80;
+      els.push(D({x:0,top:6,w:40,h:48,bg:"#fff",bd:"1.5px solid #cf8a44",r:5,fg:"#cf8a44",fs:9,lab:"方案"}));
+      const r=[["施工总承包单位","#2c8a5b","编制",true],["总监理工程师","#cf8a44","审查",false],["建设单位","#8b9398","甲方",false]];
+      r.forEach((c,i)=>{ const x=58+i*88; els.push(D({x:x,top:6,w:82,h:26,bg:c[3]?"#eef7f1":"#f4f2ea",bd:"1.5px solid "+c[1],r:8,fg:c[1],fs:10,lab:c[0]}));
+        els.push(D({x:x,top:34,w:82,h:14,fg:c[3]?"#2c8a5b":"#9aa0a3",fs:9,lab:c[2]})); });
+      els.push(D({x:0,top:58,w:320,h:16,fg:"#5c6469",fs:9,ta:"left",jc:"flex-start",lab:"编制主体 = 施工总承包单位（专业工程可专业承包编）"})); }
+    else if(type==="checklist"){ figH=104; const items=["①工程概况","②编制依据","③施工计划","④施工工艺","⑤保证措施","⑥管理配备","⑦验收要求","⑧应急处置"];
+      items.forEach((it,i)=>{ const col=i<4?0:1, row=i%4; const x=col*162, y=row*24; const hl=(i===6||i===7);
+        els.push(D({x:x,top:y,w:150,h:20,bg:hl?"#fff3e6":"#f7f5ee",bd:"1px solid "+(hl?"#cf8a44":"#ddd2bb"),r:6,fg:hl?"#cf8a44":"#3a3f42",fs:10,ta:"left",jc:"flex-start",p:"0 8px",lab:it})); }); }
+    else if(type==="worklist"){ figH=92; const w=["深基坑支护","降水","土方开挖","模板及支撑","建筑幕墙"];
+      const pos=[[0,4],[110,4],[176,4],[0,34],[130,34]], ww=[104,60,72,124,116];
+      w.forEach((tk,i)=>els.push(D({x:pos[i][0],top:pos[i][1],w:ww[i],h:24,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:8,fg:"#2f6db0",fs:10,lab:tk})));
+      els.push(D({x:0,top:66,w:320,h:14,fg:"#5c6469",fs:9,ta:"left",jc:"flex-start",lab:"降水、幕墙最易漏——五类列全"})); }
+    else if(type==="group"){ figH=76; const dots=[["专","#2c8a5b"],["专","#2c8a5b"],["专","#2c8a5b"],["专","#2c8a5b"],["专","#2c8a5b"],["参","#2f6db0"]];
+      dots.forEach((d,i)=>{ const x=i*40+10; els.push(D({x:x,top:6,w:28,h:28,bg:d[1],r:14,fg:"#fff",fs:12,lab:d[0]}));
+        if(i===5){ els.push(D({x:x,top:2,w:28,h:36,fg:"#cf4436",fs:22,lab:"✕"})); els.push(D({x:x-8,top:38,w:44,h:12,fg:"#cf4436",fs:8.5,lab:"参建方"})); } });
+      els.push(D({x:0,top:56,w:320,h:16,fg:"#5c6469",fs:9,ta:"left",jc:"flex-start",lab:"5 人以上 · 无利害关系；参建方回避（第 6 颗踢出）"})); }
+    else if(type==="trio"){ figH=96; const t3=[["①","完整、可行"],["②","计算书·施工图符规范"],["③","满足现场·确保安全"]];
+      t3.forEach((c,i)=>{ const y=i*22; els.push(D({x:0,top:y,w:230,h:18,bg:"#eef7f1",bd:"1px solid #2c8a5b",r:6,fg:"#2c8a5b",fs:9.5,ta:"left",jc:"flex-start",p:"0 8px",lab:c[0]+" "+c[1]})); });
+      els.push(D({x:0,top:70,w:230,h:20,bg:"#faf3f1",bd:"1px dashed #cf4436",r:6,fg:"#a3271c",fs:9.5,ta:"left",jc:"flex-start",p:"0 8px",lab:"经济性 / 分包资质"}));
+      els.push(D({x:150,top:68,w:34,h:24,fg:"#cf4436",fs:18,lab:"✕"})); }
+    else if(type==="loop"){ figH=100; const n=[["公示","方案公示"],["交底","编制人交底"],["施工","方可施工"]];
+      n.forEach((c,i)=>{ const x=i*84; els.push(D({x:x,top:4,w:74,h:30,bg:"#eef3f7",bd:"1.5px solid #2f6db0",r:8,fg:"#2f6db0",fs:11,lab:c[0]}));
+        els.push(D({x:x,top:36,w:74,h:12,fg:"#8b9398",fs:8,lab:c[1]}));
+        if(i<2)els.push(D({x:x+74,top:4,w:10,h:30,fg:"#b3a692",fs:12,lab:"·"})); });
+      els.push(D({x:60,top:56,w:120,h:20,bg:"#23282b",r:8,fg:"#ffd24a",fs:9.5,lab:"不得擅自修改"}));
+      els.push(D({x:0,top:80,w:230,h:16,bg:"#faf3f1",bd:"1px solid #cf4436",r:6,fg:"#cf4436",fs:9.5,ta:"left",jc:"flex-start",p:"0 8px",lab:"确需改 · 重新审核、重新论证后执行"})); }
+    else if(type==="sheet"){ figH=96; const lines=["① 论证不妥。专家应有 5 人，够了。","② 让施工单位再仔细检查方案。","③（漏了参建方回避 / 5 人以上 / 组织主体）"];
+      lines.forEach((l,i)=>els.push(D({x:0,top:6+i*29,w:320,h:24,bg:i<2?"#fffdf8":"#faf3f1",bd:"1px dashed "+(i<2?"#d8ccaa":"#cf4436"),r:6,fg:i<2?"#23282b":"#a3271c",fs:11,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l}))); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+{
+  "schema_version": "luban_workflow_review_packet.v0",
+  "card_id": "P40_A01",
+  "generated_at": "2026-06-22T10:23:17.371Z",
+  "official_score_allowed": false,
+  "grading_authority": false,
+  "learner_state_write_allowed": false,
+  "verdict": "PASS",
+  "machine_gates": [
+    {
+      "name": "validate_lesson_source_workflow",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "build_aliyun_lesson_narration_print",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "build_aliyun_lesson_narration_tts",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_contract",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "render_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "render_animation_ir_practice",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_practice_interactions",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "practice_click_smoke",
+      "status": "PASS",
+      "warn": 0
+    }
+  ],
+  "screenshots": [
+    {
+      "viewport": "preview_390x844",
+      "path": "P40_A01.preview.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 255164,
+      "sha256": "2d8505b749b9cc235870b37c667b9e93a15e74ff6e31745107e30e678dd5bdeb"
+    },
+    {
+      "viewport": "practice_390x925",
+      "path": "P40_A01.practice.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 201102,
+      "sha256": "f31c2eb9e2df0fe87501339bc314221251563e39d66a767ade1750a14c4d50a5"
+    }
+  ],
+  "judge": {
+    "verdict": "PASS",
+    "issues": []
+  },
+  "root_cause_triage": [],
+  "revision_scope": {
+    "allowed": [
+      "animation_ir.v0表现字段",
+      "renderer primitive",
+      "gate",
+      "skill anti-pattern",
+      "learning-stage shell"
+    ],
+    "forbidden": [
+      "改母题事实",
+      "改采分点",
+      "改答案",
+      "只调单卡 CSS 后宣布治本"
+    ]
+  },
+  "blocking_failures": []
+}

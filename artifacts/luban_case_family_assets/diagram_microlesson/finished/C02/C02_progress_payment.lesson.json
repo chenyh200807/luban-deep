@@ -1,0 +1,108 @@
+{
+  "schema_version": "luban_teaching_animation.v0",
+  "card_id": "C02_progress_payment",
+  "derived_from": "C02_progress_payment.animation_ir.v0.json",
+  "speakers": {
+    "T": {"name": "鲁班老师", "role": "主讲", "voice": "longanhuan_v3", "voice_name": "龙安欢（V3）", "side": "right"},
+    "S": {"name": "龙老铁", "role": "学生追问", "voice": "longlaotie_v3", "voice_name": "龙老铁", "side": "left"}
+  },
+  "teach": {
+    "voice": "longanhuan_v3",
+    "beats": [
+      {
+        "state": "hook",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine.warm_correction",
+        "narration": "注意哈，价款题最可惜的丢分，往往不是算术错，而是口径先错。今天只练一个动作：把进度款题先写成四口径资金链。"
+      },
+      {
+        "state": "trap",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine.wrong_idea",
+        "narration": "先停手。含税、累计、暂列金、前期已付，都可能把这道题带偏。直接套公式，会把钱算到另一条链上。"
+      },
+      {
+        "state": "four_mouth",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "main_exam_action",
+        "narration": "先判哪笔钱：预付款、进度款、结算款，还是质保金。再锁量价、时点和扣减。四个口径缺一，整条链都错。"
+      },
+      {
+        "state": "advance",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "visual_library.advance.nodes[advance_base].text",
+        "narration": "预付款先看基数。按题干，从合同价里扣掉暂列金额，再乘预付比例。"
+      },
+      {
+        "state": "advance",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "visual_library.advance.nodes[deduction_point].text",
+        "narration": "起扣点不是固定百分比。公式是合同价减去预付款除以主要材料占比。材料占比必须看题干给值。"
+      },
+      {
+        "state": "advance",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "visual_library.advance.nodes[trigger].text",
+        "narration": "累计完成达到起扣点以后，才开始逐步扣回预付款。"
+      },
+      {
+        "state": "progress",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "visual_library.progress.nodes[pay_formula].text",
+        "narration": "进度款别只看当月。先算累计应得，再倒扣累计预付款扣回、前期已付和发包人扣款，剩下才是本期实付。"
+      },
+      {
+        "state": "limits",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "visual_library.limits.nodes[floor80].text",
+        "narration": "两条红线要单独写。没有约定支付比例时，不宜低于累计完成工程价款的百分之八十。"
+      },
+      {
+        "state": "limits",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "visual_library.limits.nodes[retention3].text",
+        "narration": "质保金看结算总价，累计预留不得超过百分之三。别把基数换成合同价或当期款。"
+      },
+      {
+        "state": "score",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine.exam_phrase",
+        "narration": "答题纸上，先写口径，再写公式。标准动作是：判哪笔钱，写量价和累计时点，说明扣回规则，最后落到当期实付。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "state": "qa_boundary",
+      "q": {"speaker": "S", "claim": false, "text": "老师，那我看见合同价和比例，直接一乘不就得了吗？"},
+      "a": {"speaker": "T", "claim": true, "anchor": "main_exam_action", "text": "不行。你得先判这到底是哪笔钱，再看量价、时点和扣减。钱的口径没判，公式越熟越容易算偏。"}
+    },
+    {
+      "state": "qa_boundary",
+      "q": {"speaker": "S", "claim": false, "text": "那预付款起扣点，我是不是背个固定比例就完事儿？"},
+      "a": {"speaker": "T", "claim": true, "anchor": "visual_library.advance.nodes[deduction_point].text", "text": "不是。起扣点要看合同价、预付款和主要材料占比。题干给什么占比，就用什么占比。"}
+    },
+    {
+      "state": "qa_boundary",
+      "q": {"speaker": "S", "claim": false, "text": "我把公式写出来，是不是就够用了？"},
+      "a": {"speaker": "T", "claim": true, "anchor": "teaching_spine.exam_phrase", "text": "还差一句采分表达。考试不是只看公式，要让阅卷人看见你先判口径、再扣回、最后落到当期实付。"}
+    }
+  ],
+  "closing": {
+    "state": "closing_challenge",
+    "speaker": "T",
+    "claim": true,
+    "anchor": "teaching_spine.warm_correction",
+    "text": "最后收束一句哈：价款题别先抢公式，先把钱链走顺。现在进闯关，换个题干看你能不能稳住口径。"
+  }
+}

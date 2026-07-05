@@ -1,0 +1,1099 @@
+{
+  "schema_version": "luban_animation_ir.v0",
+  "ir_id": "P40_S07B_animation_ir_v0",
+  "card_id": "P40_S07B",
+  "display": {
+    "kicker": "鲁班深母题 · 安全事故",
+    "title": "安全事故等级判定与上报"
+  },
+  "main_exam_action": "判定事故等级并写出上报程序与调查处理链条：先定性，再用三把尺子取最高定级，报本单位负责人逐级上报、30天补报，调查组建议政府批复、直接加领导双追责。",
+  "teaching_spine": {
+    "source_pack": "docs/原始数据/考点原料/成品/S07_案例题作答层样板.md",
+    "archetype": "decision_branch_reveal",
+    "warm_correction": "安全事故定级不是凭感觉，而是把题干数据放到三把尺子上量，取命中的最高档。"
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/S07_案例题作答层样板.md",
+    "timing": "P40_S07B.lesson.timing.json"
+  },
+  "render_contract": {
+    "renderer": "render_animation_ir_preview.py",
+    "html_preview": "P40_S07B.animation_ir_preview.html",
+    "remotion_renderer": "remotion_demo/src/P40_S07BAnimationIrPreview.tsx",
+    "remotion_composition": "P40-S07B-AnimationIrPreview",
+    "practice_href": "P40_S07B.practice.html",
+    "quality_status": "single_card_review_candidate",
+    "student_ready": false,
+    "max_visible_nodes": 4,
+    "archetype_visual_required": [
+      "grade_threshold_board"
+    ],
+    "teaching_scene_ids": [
+      "b0",
+      "b1",
+      "b2",
+      "b3",
+      "b4",
+      "score"
+    ],
+    "challenge_unlock_sec": 148.376,
+    "one_active_scene": true,
+    "one_active_keycard": true,
+    "theater_requires_challenge_cta": true,
+    "ai_ask_required": true
+  },
+  "taxonomy_alignment": {
+    "priority_slot": 19,
+    "pack_id": "S07",
+    "status": "coarse_review",
+    "note": "事故等级/分类可锚,上报与调查程序为真题侧待补规范锚,official_score_allowed=false"
+  },
+  "ai_context": {
+    "context_id": "P40_S07B",
+    "title": "安全事故等级判定与上报",
+    "main_exam_action": "判定事故等级并写出上报程序与调查处理链条。",
+    "safe_summary": "学习重点：先定性识别伤害类型与原因性质，再用死亡人数、重伤人数、直接经济损失三把尺子取最高档定级，写对上报主体时限内容，写全调查处理与双追责采分句。",
+    "key_points": [
+      "事故类型不等于事故等级，先定性再定级",
+      "死亡/重伤/直接经济损失三指标任一达更高级即按更高级，不平均不取最低",
+      "现场人员立即向本单位负责人报告并逐级上报，30天内伤亡变化补报",
+      "调查组建议→政府批复→单位执行，直接责任人加领导责任双追责"
+    ],
+    "handoff_mode": "context_id_plus_current_scene",
+    "api_base": "https://test2.yousenjiaoyu.com"
+  },
+  "chapters": [
+    {
+      "id": "b0",
+      "label": "别拍脑袋",
+      "start_sec": 0
+    },
+    {
+      "id": "b1",
+      "label": "先定性",
+      "start_sec": 7.48
+    },
+    {
+      "id": "b2",
+      "label": "量三把尺子",
+      "start_sec": 17.192
+    },
+    {
+      "id": "b3",
+      "label": "报给谁",
+      "start_sec": 32.256
+    },
+    {
+      "id": "b4",
+      "label": "谁查谁担责",
+      "start_sec": 49.432
+    },
+    {
+      "id": "score",
+      "label": "写成分",
+      "start_sec": 68.336
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 76.272
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 148.376
+    }
+  ],
+  "scenes": [
+    {
+      "id": "b0",
+      "label": "别拍脑袋",
+      "start_sec": 0,
+      "end_sec": 7.48,
+      "scene": "decision_branch_reveal_b0",
+      "focus": "site_contrast",
+      "enter": [
+        "scene.fade_in",
+        "site_contrast.reveal"
+      ],
+      "hold": [
+        "site_contrast.spotlight",
+        "red ✗ stamps the gut bubble"
+      ],
+      "exit": [
+        "site_contrast.fade_out",
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "site_contrast",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "site_contrast"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "site_contrast",
+          "start": 0.0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "site_contrast",
+          "start": 0.05,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "site_contrast.eliminate_gut",
+          "start": 0.45,
+          "end": 0.85
+        }
+      ],
+      "keycard": "感觉不是定级依据",
+      "coach": "出了事别急着拍脑袋定级，感觉严重不算数，定级得量三把尺子。"
+    },
+    {
+      "id": "b1",
+      "label": "先定性",
+      "start_sec": 7.48,
+      "end_sec": 17.192,
+      "scene": "decision_branch_reveal_b1",
+      "focus": "classify_axes",
+      "enter": [
+        "scene.fade_in",
+        "classify_axes.reveal"
+      ],
+      "hold": [
+        "classify_axes.spotlight",
+        "highlight 类型不等于等级"
+      ],
+      "exit": [
+        "classify_axes.fade_out",
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "two_columns",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "static-drift",
+        "target": "classify_axes",
+        "duration_sec": 0.4
+      },
+      "visible_nodes": [
+        "classify_axes"
+      ],
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "classify_axes",
+          "start": 0.04,
+          "end": 0.2
+        },
+        {
+          "kind": "annotate",
+          "target": "classify_axes",
+          "start": 0.5,
+          "end": 0.74
+        },
+        {
+          "kind": "highlight",
+          "target": "classify_axes",
+          "start": 0.74,
+          "end": 0.94
+        },
+        {
+          "kind": "camera",
+          "verb": "static-drift",
+          "target": "classify_axes",
+          "start": 0.0,
+          "end": 0.16
+        }
+      ],
+      "keycard": "事故类型不等于等级",
+      "coach": "先定性：按伤害类型这是高处坠落，按原因性质算生产事故，但类型不等于等级。"
+    },
+    {
+      "id": "b2",
+      "label": "量三把尺子",
+      "start_sec": 17.192,
+      "end_sec": 32.256,
+      "scene": "decision_branch_reveal_b2",
+      "focus": "threshold_board",
+      "enter": [
+        "scene.fade_in",
+        "threshold_board.reveal"
+      ],
+      "hold": [
+        "threshold_board.spotlight",
+        "probes slide to bands",
+        "highest wins lights up"
+      ],
+      "exit": [
+        "threshold_board.fade_out",
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "stacked_rulers",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "threshold_board",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "threshold_board"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "threshold_board",
+          "start": 0.0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "threshold_board",
+          "start": 0.05,
+          "end": 0.2
+        },
+        {
+          "kind": "primitive_step",
+          "target": "threshold_board.slide_death",
+          "start": 0.2,
+          "end": 0.45
+        },
+        {
+          "kind": "primitive_step",
+          "target": "threshold_board.slide_injury",
+          "start": 0.4,
+          "end": 0.6
+        },
+        {
+          "kind": "primitive_step",
+          "target": "threshold_board.slide_loss",
+          "start": 0.55,
+          "end": 0.75
+        },
+        {
+          "kind": "primitive_step",
+          "target": "threshold_board.hit_general",
+          "start": 0.75,
+          "end": 0.95
+        }
+      ],
+      "keycard": "三把尺子取最高",
+      "coach": "三把尺子：死亡、重伤、直接经济损失。死1人没到3人落一般档，哪把最高听哪把。"
+    },
+    {
+      "id": "b3",
+      "label": "报给谁",
+      "start_sec": 32.256,
+      "end_sec": 49.432,
+      "scene": "decision_branch_reveal_b3",
+      "focus": "report_pipeline",
+      "enter": [
+        "scene.fade_in",
+        "report_pipeline.reveal"
+      ],
+      "hold": [
+        "report_pipeline.spotlight",
+        "envelope travels",
+        "clock ticks"
+      ],
+      "exit": [
+        "report_pipeline.fade_out",
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "horizontal_pipeline",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "follow",
+        "target": "report_pipeline",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "report_pipeline"
+      ],
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "report_pipeline",
+          "start": 0.05,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "report_pipeline.move_envelope",
+          "start": 0.22,
+          "end": 0.52
+        },
+        {
+          "kind": "primitive_step",
+          "target": "report_pipeline.cross_wrong_branch",
+          "start": 0.52,
+          "end": 0.72
+        },
+        {
+          "kind": "primitive_step",
+          "target": "report_pipeline.tick_clock",
+          "start": 0.72,
+          "end": 0.96
+        },
+        {
+          "kind": "camera",
+          "verb": "follow",
+          "target": "report_pipeline",
+          "start": 0.0,
+          "end": 0.2
+        }
+      ],
+      "keycard": "报本单位负责人·30天补报",
+      "coach": "现场人员立即向本单位负责人报告再逐级上报市级住建，别报应急建设；30天内伤亡变化补报。"
+    },
+    {
+      "id": "b4",
+      "label": "谁来查",
+      "start_sec": 49.432,
+      "end_sec": 68.336,
+      "scene": "decision_branch_reveal_b4",
+      "focus": "investigation_group",
+      "enter": [
+        "scene.fade_in",
+        "investigation_group.reveal"
+      ],
+      "hold": [
+        "investigation_group.spotlight",
+        "approval doc flows",
+        "two blame stamps"
+      ],
+      "exit": [
+        "investigation_group.fade_out",
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "group_circle_chain",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "static-drift",
+        "target": "investigation_group",
+        "duration_sec": 0.42
+      },
+      "visible_nodes": [
+        "investigation_group"
+      ],
+      "actions": [
+        {
+          "kind": "reveal",
+          "target": "investigation_group",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "investigation_group.assemble_members",
+          "start": 0.22,
+          "end": 0.5
+        },
+        {
+          "kind": "primitive_step",
+          "target": "investigation_group.flow_approval",
+          "start": 0.5,
+          "end": 0.72
+        },
+        {
+          "kind": "primitive_step",
+          "target": "investigation_group.eliminate_self_handle",
+          "start": 0.72,
+          "end": 0.86
+        },
+        {
+          "kind": "primitive_step",
+          "target": "investigation_group.stamp_blame",
+          "start": 0.86,
+          "end": 0.98
+        },
+        {
+          "kind": "camera",
+          "verb": "static-drift",
+          "target": "investigation_group",
+          "start": 0.0,
+          "end": 0.18
+        }
+      ],
+      "keycard": "建议→批复→执行·双追责",
+      "coach": "调查组得有政府安监公安监察工会检察院专家，建议到政府批复到单位执行，直接加领导双追责，单位不自裁。"
+    },
+    {
+      "id": "score",
+      "label": "写成分",
+      "start_sec": 68.336,
+      "end_sec": 76.272,
+      "scene": "decision_branch_reveal_score",
+      "focus": "answer_sheet",
+      "enter": [
+        "scene.fade_in",
+        "answer_sheet.reveal"
+      ],
+      "hold": [
+        "answer_sheet.spotlight",
+        "highlighter sweeps keywords"
+      ],
+      "exit": [
+        "answer_sheet.freeze",
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "answer_sheet",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "scan",
+        "target": "answer_sheet",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "answer_sheet"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "scan",
+          "target": "answer_sheet",
+          "start": 0.0,
+          "end": 0.2
+        },
+        {
+          "kind": "reveal",
+          "target": "answer_sheet",
+          "start": 0.05,
+          "end": 0.22
+        },
+        {
+          "kind": "primitive_step",
+          "target": "answer_sheet.scan_keywords",
+          "start": 0.24,
+          "end": 0.9
+        }
+      ],
+      "keycard": "会看答案→会写成分",
+      "coach": "会看不算数，得会写成分。把四步串成采分句，关键词一个不漏，分就拿到手了。"
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 76.272,
+      "end_sec": 148.376,
+      "scene": "decision_branch_reveal_qa",
+      "focus": "a_ruler",
+      "enter": [
+        "scene.fade_in",
+        "q_feel.reveal"
+      ],
+      "hold": [
+        "a_ruler.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "q_feel",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "q_feel",
+        "q_report",
+        "a_ruler"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "q_feel",
+          "start": 0.0,
+          "end": 0.2
+        },
+        {
+          "kind": "reveal",
+          "target": "q_feel",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "q_report",
+          "start": 0.22,
+          "end": 0.4
+        },
+        {
+          "kind": "reveal",
+          "target": "a_ruler",
+          "start": 0.42,
+          "end": 0.6
+        },
+        {
+          "kind": "highlight",
+          "target": "a_ruler",
+          "start": 0.6,
+          "end": 0.95
+        }
+      ],
+      "keycard": "三问只问边界",
+      "coach": "学生常问：死1人咋一般、出事先打给谁、能不能自己处理——都回到量尺子和走程序。"
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 148.376,
+      "end_sec": 164.464,
+      "scene": "decision_branch_reveal_closing_challenge",
+      "focus": "challenge_cta",
+      "enter": [
+        "scene.fade_in",
+        "closing_sentence.reveal"
+      ],
+      "hold": [
+        "closing_sentence.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "closing_sentence",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "closing_sentence",
+        "challenge_cta"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "closing_sentence",
+          "start": 0.0,
+          "end": 0.2
+        },
+        {
+          "kind": "reveal",
+          "target": "closing_sentence",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "challenge_cta",
+          "start": 0.24,
+          "end": 0.4
+        },
+        {
+          "kind": "highlight",
+          "target": "closing_sentence",
+          "start": 0.4,
+          "end": 0.95
+        }
+      ],
+      "keycard": "收束到闯关",
+      "coach": "先定性，三把尺子取最高定级，报本单位负责人、30天补报，政府批复、直接加领导双追责。开始闯关。"
+    }
+  ],
+  "visual_archetype_decision": {
+    "cognitive_structure_6plus1": "计算判定链（阈值分级）为主 + 程序流程链为辅",
+    "primary_archetype": "标尺分级带命中：把题干数值作为探针在三条阈值标尺上滑动命中档位，取最高档为最终等级。",
+    "secondary_archetype": "流程管道箭头链：上报路径与调查处理批复链作为有向管道，报告信封与批复公文在节点间流转。",
+    "why_not_text": "学生不是不知道有等级，是凭感觉定级、不去量阈值。文字框把结论摆出来，恰恰省略了测量这个唯一该被训练的动作。必须让三个数值探针真的在标尺上滑动、命中、最高者胜出，学生才会把量三把尺子记成肌肉记忆。",
+    "pure_text_allowed": false,
+    "domain_visual_plan": [
+      {
+        "scene": "b0",
+        "objects": [
+          "脚手架剪影",
+          "坠落人员",
+          "死亡1人标签",
+          "直觉气泡红叉"
+        ],
+        "motion": "现场升起，直觉气泡弹出后被红叉盖章淘汰"
+      },
+      {
+        "scene": "b1",
+        "objects": [
+          "伤害类型12类",
+          "原因性质四类",
+          "类型不等于等级横幅"
+        ],
+        "motion": "两列分类芯片飞入，高亮横幅划出类型≠等级"
+      },
+      {
+        "scene": "b2",
+        "objects": [
+          "死亡人数轴",
+          "重伤人数轴",
+          "直接经济损失轴",
+          "数值探针",
+          "一般档命中灯"
+        ],
+        "motion": "三探针沿子轴滑动命中，最高档点亮最终等级灯"
+      },
+      {
+        "scene": "b3",
+        "objects": [
+          "报告信封",
+          "错误支路红叉",
+          "30天补报时钟",
+          "报告三项内容芯片"
+        ],
+        "motion": "信封沿管道流转，错误支路红叉划掉，时钟走动"
+      },
+      {
+        "scene": "b4",
+        "objects": [
+          "调查组成员芯片",
+          "批复公文token",
+          "单位自裁红叉",
+          "直接加领导责任双印章"
+        ],
+        "motion": "成员芯片围合，批复公文三节点流转，双印章盖下"
+      },
+      {
+        "scene": "score",
+        "objects": [
+          "四步采分句卡",
+          "高亮扫描笔",
+          "必写关键词"
+        ],
+        "motion": "高亮笔从左扫到右逐个点亮必写关键词"
+      }
+    ]
+  },
+  "visual_library": {
+    "b0": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "site_contrast",
+          "kind": "contrast_pair",
+          "text": "凭感觉vs量尺子",
+          "x": 30,
+          "y": 42,
+          "w": 300,
+          "h": 200,
+          "tone": "danger",
+          "domain_objects": [
+            "脚手架剪影",
+            "坠落人员",
+            "死亡1人标签",
+            "直觉气泡红叉"
+          ],
+          "left_label": "凭感觉=重大✗",
+          "right_label": "量三把尺子✓",
+          "primitive_steps": [
+            {
+              "id": "eliminate_gut",
+              "kind": "cross_out",
+              "domain_object": "直觉气泡红叉",
+              "start": 0.4,
+              "end": 0.9,
+              "state_after": "主观定级气泡被红叉淘汰，只留现场剪影作锚点"
+            }
+          ]
+        }
+      ]
+    },
+    "b1": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "classify_axes",
+          "kind": "memory_table",
+          "text": "先定性两分类轴",
+          "x": 30,
+          "y": 42,
+          "w": 300,
+          "h": 196,
+          "tone": "blue",
+          "domain_objects": [
+            "伤害类型12类",
+            "原因性质四类",
+            "类型不等于等级横幅"
+          ],
+          "columns": [
+            "伤害类型12类",
+            "原因性质四类"
+          ],
+          "banner": "事故类型不等于事故等级",
+          "primitive_steps": [
+            {
+              "id": "fill_harm",
+              "kind": "reveal_object",
+              "domain_object": "伤害类型12类",
+              "start": 0.2,
+              "end": 0.5,
+              "state_after": "左列伤害类型12类显现，定位高处坠落"
+            },
+            {
+              "id": "fill_cause",
+              "kind": "reveal_object",
+              "domain_object": "原因性质四类",
+              "start": 0.5,
+              "end": 0.74,
+              "state_after": "右列原因性质四类显现，定位生产事故"
+            }
+          ]
+        }
+      ]
+    },
+    "b2": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "threshold_board",
+          "kind": "grade_threshold_board",
+          "text": "量三把尺子·取最高档",
+          "x": 24,
+          "y": 36,
+          "w": 312,
+          "h": 222,
+          "tone": "success",
+          "rule_main": "任一达高级即按高级",
+          "domain_objects": [
+            "死亡人数轴",
+            "重伤人数轴",
+            "直接经济损失轴",
+            "死亡探针",
+            "重伤探针",
+            "损失探针",
+            "一般档命中灯"
+          ],
+          "axes": [
+            {
+              "name": "死亡人数",
+              "bands": [
+                "一般<3",
+                "较大3-10",
+                "重大10-30",
+                "特大≥30"
+              ],
+              "probe": "死1人",
+              "hit_index": 0
+            },
+            {
+              "name": "重伤人数",
+              "bands": [
+                "一般<10",
+                "较大10-50",
+                "重大50-100",
+                "特大≥100"
+              ],
+              "probe": "0重伤",
+              "hit_index": 0
+            },
+            {
+              "name": "直接经济损失",
+              "bands": [
+                "一般<1千万",
+                "较大1-5千万",
+                "重大5千万-1亿",
+                "特大≥1亿"
+              ],
+              "probe": "—",
+              "hit_index": 0
+            }
+          ],
+          "result": {
+            "label": "一般事故"
+          },
+          "primitive_steps": [
+            {
+              "id": "title",
+              "kind": "reveal_object",
+              "domain_object": "标尺标题",
+              "start": 0.0,
+              "end": 0.15,
+              "state_after": "三把尺子标题显现"
+            },
+            {
+              "id": "slide_death",
+              "kind": "move_object",
+              "domain_object": "死亡探针",
+              "start": 0.2,
+              "end": 0.45,
+              "state_after": "死亡探针滑到一般<3档命中"
+            },
+            {
+              "id": "slide_injury",
+              "kind": "move_object",
+              "domain_object": "重伤探针",
+              "start": 0.4,
+              "end": 0.6,
+              "state_after": "重伤探针落一般<10档"
+            },
+            {
+              "id": "slide_loss",
+              "kind": "move_object",
+              "domain_object": "损失探针",
+              "start": 0.55,
+              "end": 0.75,
+              "state_after": "损失探针落一般<1千万档"
+            },
+            {
+              "id": "hit_general",
+              "kind": "reveal_object",
+              "domain_object": "一般档命中灯",
+              "start": 0.75,
+              "end": 0.95,
+              "state_after": "三探针皆落一般档，取最高命中档=一般事故，较大重大档淘汰"
+            }
+          ]
+        }
+      ]
+    },
+    "b3": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "report_pipeline",
+          "kind": "process_flow",
+          "text": "上报管道",
+          "x": 28,
+          "y": 40,
+          "w": 304,
+          "h": 198,
+          "tone": "blue",
+          "domain_objects": [
+            "报告信封",
+            "错误支路红叉",
+            "30天补报时钟",
+            "报告三项内容芯片"
+          ],
+          "nodes_chain": [
+            "现场人员",
+            "本单位负责人",
+            "市级住建主管"
+          ],
+          "primitive_steps": [
+            {
+              "id": "move_envelope",
+              "kind": "move_object",
+              "domain_object": "报告信封",
+              "start": 0.22,
+              "end": 0.52,
+              "state_after": "信封沿现场人员→本单位负责人→市级住建主管流转"
+            },
+            {
+              "id": "cross_wrong_branch",
+              "kind": "cross_out",
+              "domain_object": "错误支路红叉",
+              "start": 0.52,
+              "end": 0.72,
+              "state_after": "报应急建设劳动的错误支路被红叉划掉"
+            },
+            {
+              "id": "tick_clock",
+              "kind": "reveal_object",
+              "domain_object": "30天补报时钟",
+              "start": 0.72,
+              "end": 0.96,
+              "state_after": "30天补报时钟走动，标注伤亡变化补报期限"
+            }
+          ]
+        }
+      ]
+    },
+    "b4": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "investigation_group",
+          "kind": "network_graph",
+          "text": "调查组围合与批复",
+          "x": 26,
+          "y": 38,
+          "w": 308,
+          "h": 210,
+          "tone": "success",
+          "domain_objects": [
+            "调查组成员芯片",
+            "批复公文token",
+            "单位自裁红叉",
+            "直接加领导责任双印章"
+          ],
+          "members": [
+            "政府",
+            "安监",
+            "监察",
+            "公安",
+            "工会",
+            "检察院",
+            "专家"
+          ],
+          "primitive_steps": [
+            {
+              "id": "assemble_members",
+              "kind": "reveal_object",
+              "domain_object": "调查组成员芯片",
+              "start": 0.22,
+              "end": 0.5,
+              "state_after": "法定成员芯片飞入围合成组"
+            },
+            {
+              "id": "flow_approval",
+              "kind": "move_object",
+              "domain_object": "批复公文token",
+              "start": 0.5,
+              "end": 0.72,
+              "state_after": "批复公文在调查组建议→政府批复→单位执行三节点流转"
+            },
+            {
+              "id": "eliminate_self_handle",
+              "kind": "cross_out",
+              "domain_object": "单位自裁红叉",
+              "start": 0.72,
+              "end": 0.86,
+              "state_after": "单位自裁被红叉淘汰"
+            },
+            {
+              "id": "stamp_blame",
+              "kind": "reveal_object",
+              "domain_objects": [
+                "直接责任印章",
+                "领导责任印章"
+              ],
+              "start": 0.86,
+              "end": 0.98,
+              "state_after": "直接责任人和领导责任双印章盖下"
+            }
+          ]
+        }
+      ]
+    },
+    "score": {
+      "board": "paper",
+      "nodes": [
+        {
+          "id": "answer_sheet",
+          "kind": "answer_scan",
+          "text": "四步采分句扫描",
+          "x": 28,
+          "y": 40,
+          "w": 304,
+          "h": 196,
+          "tone": "success",
+          "domain_objects": [
+            "四步采分句卡",
+            "高亮扫描笔",
+            "必写关键词"
+          ],
+          "steps_labels": [
+            "定性",
+            "定级",
+            "上报",
+            "调查处理"
+          ],
+          "keywords": [
+            "一般事故",
+            "死1人<3",
+            "本单位负责人",
+            "30天",
+            "调查组法定成员",
+            "政府批复",
+            "直接加领导责任"
+          ],
+          "primitive_steps": [
+            {
+              "id": "scan_keywords",
+              "kind": "scan_row",
+              "domain_object": "高亮扫描笔",
+              "start": 0.24,
+              "end": 0.9,
+              "state_after": "高亮笔从左扫到右逐个点亮必写关键词"
+            }
+          ]
+        }
+      ]
+    },
+    "qa_closure": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "q_feel",
+          "kind": "dialogue_box",
+          "text": "死1人咋是一般事故？",
+          "x": 42,
+          "y": 58,
+          "w": 276,
+          "h": 44,
+          "tone": "blue"
+        },
+        {
+          "id": "q_report",
+          "kind": "dialogue_box",
+          "text": "出事先打给谁？",
+          "x": 42,
+          "y": 114,
+          "w": 276,
+          "h": 44,
+          "tone": "amber"
+        },
+        {
+          "id": "a_ruler",
+          "kind": "dialogue_box",
+          "text": "量三把尺子，报本单位负责人",
+          "x": 42,
+          "y": 170,
+          "w": 276,
+          "h": 46,
+          "tone": "success"
+        }
+      ]
+    },
+    "closing_challenge": {
+      "board": "closing",
+      "nodes": [
+        {
+          "id": "closing_sentence",
+          "kind": "closing_text",
+          "text": "量三尺取最高",
+          "subtext": "走程序拿满分",
+          "tone": "success"
+        },
+        {
+          "id": "challenge_cta",
+          "kind": "challenge_button",
+          "text": "开始闯关",
+          "tone": "amber"
+        }
+      ]
+    }
+  }
+}

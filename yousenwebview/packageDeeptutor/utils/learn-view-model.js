@@ -37,20 +37,37 @@ function _titleIndex(lessonsResp) {
   return idx;
 }
 
+// 点亮判定唯一权威(学习页/复习页共用, 禁第二套判定):
+// 点亮 = 练过及以上(practiced/mastered/dormant)。exposed(只看过讲懂)是
+// M0 蓝环接触态, 不算点亮——与 pack_lifecycle_projection 掌握轨口径一致。
+function isLitLifecycleState(state) {
+  var s = _str(state);
+  return s === "practiced" || s === "mastered" || s === "dormant";
+}
+
 // lifecycle_state -> 海报三态(墨已学 / 朱推荐 / 纸未学)
 function _posterState(state, isRecommended, isGreen) {
   if (isRecommended) return "red";
-  if (state === "mastered" || state === "practiced" || state === "dormant") return "ink";
+  if (isLitLifecycleState(state)) return "ink";
   return "paper"; // unlearned / 未知 → 纸(未学);非绿灯叠锁
 }
 
 function _litCount(packs) {
   var n = 0;
   Object.keys(packs).forEach(function (k) {
-    var s = _str(_safeObj(packs[k]).lifecycle_state);
-    if (s === "practiced" || s === "mastered" || s === "dormant") n += 1;
+    if (isLitLifecycleState(_safeObj(packs[k]).lifecycle_state)) n += 1;
   });
   return n;
+}
+
+// 海报竖排书法名:单列容量 6 字(84×112 海报 / stations 210×280 实测上限),
+// 超长截断防溢出——live 绿灯站 26/28 标题 >6 字,不截会折出第二竖列压住 slot 徽标。
+// 设计稿(10a)用的是 4 字精选短名;后端无 short_title 字段(对账表已标缺口),
+// 截断是显示层止血,不改 title 本身(下一站卡/详情仍用全名)。
+var POSTER_NAME_MAX = 6;
+function _posterName(title) {
+  var t = _str(title);
+  return t.length > POSTER_NAME_MAX ? t.slice(0, POSTER_NAME_MAX) : t;
 }
 
 // 课程架/路线图海报:推荐站置顶,再已学,再未学;并入绿灯 lessons
@@ -67,6 +84,7 @@ function _posters(packs, titleIdx, recommendedId) {
     rows.push({
       pack_id: up,
       title: meta.title || "即将开通",
+      name: _posterName(meta.title || "即将开通"),
       slot: up,
       green: !!meta.green,
       state: _posterState(state, isRec, !!meta.green),
@@ -207,4 +225,8 @@ function buildLearnViewModel(args) {
   };
 }
 
-module.exports = { buildLearnViewModel: buildLearnViewModel, PACK_UNIVERSE: PACK_UNIVERSE };
+module.exports = {
+  buildLearnViewModel: buildLearnViewModel,
+  isLitLifecycleState: isLitLifecycleState,
+  PACK_UNIVERSE: PACK_UNIVERSE,
+};

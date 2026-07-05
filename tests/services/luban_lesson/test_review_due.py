@@ -11,6 +11,29 @@ def _ev(created, pack, sig="station_completed"):
                            payload_json={"learning_signal_type": sig, "concept_id": pack})
 
 
+def _lesson_viewed_ev(created, pack, stage="lesson"):
+    """学-evidence（lesson_viewed）事件——经真实唯一 writer 产出，
+    保证 payload/source_feature 形状与生产一致（禁手搓假形状）。"""
+    from deeptutor.services.learner_state.lesson_evidence import record_lesson_view_evidence
+
+    class _Capture:
+        def append_memory_event(self, user_id, *, source_feature, source_id,
+                                memory_kind, payload_json, dedupe_key=None, **_kw):
+            self.event = SimpleNamespace(
+                event_id="evt_lv",
+                created_at=created,
+                source_feature=source_feature,
+                memory_kind=memory_kind,
+                payload_json=payload_json,
+            )
+            return self.event
+
+    svc = _Capture()
+    record_lesson_view_evidence(
+        svc, user_id="u1", pack_id=pack, watched_stage=stage)
+    return svc.event
+
+
 def test_learned_yesterday_due_today_learned_today_not_due():
     out = build_review_due_projection(
         user_id="u1",
@@ -21,6 +44,37 @@ def test_learned_yesterday_due_today_learned_today_not_due():
     assert out["due"][0]["retest_available"] is True, "F16 有变体池"
     assert out["learned_count"] == 2
     assert out["authority"] == "revalidation_queue"
+
+
+def test_lesson_viewed_counts_as_learned_but_not_due():
+    """真机验收回归（问题1）：讲懂幕看完 → lesson_viewed 已落账，
+    learned_count 必须把它算进「已学」（融合计划 §1「已学·待验证 exposed」）；
+    但绝不产生到期（复测调度触发事实仍只有 station_completed，禁第二调度器）。"""
+    out = build_review_due_projection(
+        user_id="u1",
+        events=[_lesson_viewed_ev("2026-07-04T21:00:00+08:00", "F16")],
+        now_iso="2026-07-05T09:00:00+08:00")
+    assert out["learned_count"] == 1, "lesson_viewed 落账后 learned_count 必须可见"
+    assert out["due"] == [], "只看讲懂不触发复测到期(调度权威=station_completed)"
+
+
+def test_lesson_viewed_ungreen_pack_not_counted():
+    """非绿灯 pack 的 lesson_viewed 不进 learned_count（与 station_completed 同口径）。"""
+    out = build_review_due_projection(
+        user_id="u1",
+        events=[_lesson_viewed_ev("2026-07-04T21:00:00+08:00", "X99")],
+        now_iso="2026-07-05T09:00:00+08:00")
+    assert out["learned_count"] == 0
+
+
+def test_lesson_viewed_and_completion_same_pack_counted_once():
+    """同一 pack 既看过讲懂又完成过站 → learned_count 只算一次（pack 粒度去重）。"""
+    out = build_review_due_projection(
+        user_id="u1",
+        events=[_lesson_viewed_ev("2026-07-03T21:00:00+08:00", "F16"),
+                _ev("2026-07-04T09:00:00+08:00", "F16")],
+        now_iso="2026-07-04T10:00:00+08:00")
+    assert out["learned_count"] == 1
 
 
 def test_no_completions_means_empty_not_all_green():

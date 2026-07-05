@@ -65,6 +65,56 @@ var flagOff = vm.buildReviewViewModel({
 assert.strictEqual(flagOff.isEmpty, false, "有点亮站但旗标关→非空态,到期清单为空");
 assert.strictEqual(flagOff.dueCount, 0);
 
+// ── 3.5 点亮语义(问题2回归): 绿灯(published)≠点亮(learned) ─────
+// 点亮真值 = pack_lifecycle（与学习页同一 lit 判定, 单一权威）;
+// 绿灯只是可学, 未点亮站显示中性态, 禁把 28 个绿灯站全标「已点亮」。
+var litBuilt = vm.buildReviewViewModel({
+  lessons: { lessons: [{ pack_id: "F16", title: "屋面防水" }, { pack_id: "A01", title: "检验批" }] },
+  reviewDue: { due: [], learned_count: 1 },
+  report: {
+    pack_lifecycle: {
+      packs: {
+        F16: { lifecycle_state: "practiced" },
+        A01: { lifecycle_state: "unlearned" },
+      },
+    },
+  },
+});
+var litRow = litBuilt.lessons.filter(function (l) { return l.pack_id === "F16"; })[0];
+var unlitRow = litBuilt.lessons.filter(function (l) { return l.pack_id === "A01"; })[0];
+assert.strictEqual(litRow.lit, true, "practiced 站=点亮");
+assert.ok(litRow.sub.indexOf("已点亮") >= 0, "点亮站保留回站重看文案");
+assert.strictEqual(unlitRow.lit, false, "unlearned 站≠点亮");
+assert.strictEqual(unlitRow.sub.indexOf("已点亮"), -1, "未点亮站禁标已点亮(语义与学习页一致)");
+assert.ok(unlitRow.sub.length > 0, "未点亮站给中性态文案");
+
+// exposed(只看过讲懂, M0 蓝环)与学习页口径一致: 不算点亮
+var exposedBuilt = vm.buildReviewViewModel({
+  lessons: { lessons: [{ pack_id: "F16", title: "屋面防水" }] },
+  reviewDue: { due: [], learned_count: 1 },
+  report: { pack_lifecycle: { packs: { F16: { lifecycle_state: "exposed" } } } },
+});
+assert.strictEqual(exposedBuilt.lessons[0].lit, false, "exposed 不算点亮(M0: 看动画不算掌握)");
+
+// lifecycle 不可用(旧后端/接口失败)→ 不造数: 既不标已点亮也不标未开始
+var noLifecycle = vm.buildReviewViewModel({
+  lessons: { lessons: [{ pack_id: "F16", title: "屋面防水" }] },
+  reviewDue: { due: [], learned_count: 0 },
+});
+assert.strictEqual(noLifecycle.lessons[0].lit, false);
+assert.strictEqual(noLifecycle.lessons[0].sub.indexOf("已点亮"), -1, "lifecycle 缺失时禁自造点亮态");
+assert.strictEqual(noLifecycle.lessons[0].sub.indexOf("未点亮"), -1, "lifecycle 缺失时也禁断言未点亮(不造数)");
+
+// 单一 lit 判定权威: review-view-model 必须复用 learn-view-model 的判定, wxml 禁硬编码点亮文案
+var vmSource = fs.readFileSync(vmPath, "utf8");
+assert.ok(
+  vmSource.indexOf("learn-view-model") >= 0 && vmSource.indexOf("isLitLifecycleState") >= 0,
+  "review-view-model 必须复用 learn-view-model 的 isLitLifecycleState(禁第二套点亮判定)",
+);
+var reviewWxml = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/luban/review/review.wxml"), "utf8");
+assert.strictEqual(reviewWxml.indexOf("已点亮"), -1, "wxml 禁硬编码「已点亮」——点亮态只来自 view model");
+
 // ── 4. 文案铁律: 复习面禁审视揭短词 ───────────────────────────
 var FORBIDDEN = ["看穿", "识破", "揭穿", "露馅", "拆穿"];
 var surfaces = [

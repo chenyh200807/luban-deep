@@ -1,0 +1,118 @@
+{
+  "schema_version": "luban_workflow_review_packet.v0",
+  "card_id": "P40_S05",
+  "generated_at": "2026-06-22T11:43:55.026Z",
+  "official_score_allowed": false,
+  "grading_authority": false,
+  "learner_state_write_allowed": false,
+  "verdict": "PASS",
+  "machine_gates": [
+    {
+      "name": "validate_lesson_source_workflow",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "build_aliyun_lesson_narration_print",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_contract",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "render_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_preview",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "remotion_animation_ir_renderer_narrow_tsc",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "render_animation_ir_practice",
+      "status": "PASS",
+      "warn": 0
+    },
+    {
+      "name": "validate_animation_ir_practice_smoke",
+      "status": "PASS",
+      "warn": 0
+    }
+  ],
+  "screenshots": [
+    {
+      "viewport": "hook_390",
+      "path": "P40_S05.hook.390.fixed.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 280414,
+      "sha256": "b20727a2f11310db9b450af1273525a9a5b3334fdca3a0f800fee5756a79bcce"
+    },
+    {
+      "viewport": "hook_1082",
+      "path": "P40_S05.hook.1082.fixed.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 373160,
+      "sha256": "4eb2336ef5cd8295c90a1d3aa477b508d2cf74756a31a475a46145060555a30a"
+    },
+    {
+      "viewport": "practice_390",
+      "path": "P40_S05.practice.390.png",
+      "exists": true,
+      "looked": true,
+      "issue": "",
+      "bytes": 203743,
+      "sha256": "62482c2435c9ceb4bad943883e9ac8aa6194b915eb143ced3f9b83bc662086a3"
+    }
+  ],
+  "judge": {
+    "verdict": "PASS",
+    "issues": []
+  },
+  "root_cause_triage": [
+    {
+      "symptom": "shared switch red branch covered switch label",
+      "shared_failure_shape": "path-label overlap in domain primitive",
+      "one_authority": "animation_ir renderer primitive is the visual authority",
+      "broken_contract": "branch geometry must not collide with domain-object labels",
+      "fix_layer": "renderer+preview gate",
+      "new_gate_or_antipattern": "runtime_shared_switch_branch_label_clearance"
+    },
+    {
+      "symptom": "paused center play covered whiteboard label",
+      "shared_failure_shape": "control overlay collided with protected teaching visual",
+      "one_authority": "preview renderer is the overlay authority",
+      "broken_contract": "player controls must not cover active scene visual/caption/coach content",
+      "fix_layer": "preview css+gate",
+      "new_gate_or_antipattern": "runtime_center_play_occlusion"
+    }
+  ],
+  "revision_scope": {
+    "allowed": [
+      "animation_ir.v0表现字段",
+      "renderer primitive",
+      "gate",
+      "skill anti-pattern",
+      "learning-stage shell"
+    ],
+    "forbidden": [
+      "改母题事实",
+      "改采分点",
+      "改答案",
+      "只调单卡 CSS 后宣布治本"
+    ]
+  },
+  "blocking_failures": []
+}
