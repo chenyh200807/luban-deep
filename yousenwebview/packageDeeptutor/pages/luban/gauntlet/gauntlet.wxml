@@ -1,0 +1,208 @@
+<!-- 实务闯关 · 回忆→半写→核对（第10轮宣纸补稿 practice-gauntlet.html 逐态照做） -->
+<view class="paper {{isDark ? '' : 'light'}} gt-page pk-paper-bg">
+  <view class="gt-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="gt-nav-inner">
+      <view class="gt-back" bindtap="goBack">
+        <text class="gt-back-arrow">‹</text>
+      </view>
+      <view class="gt-nav-titles">
+        <text class="gt-nav-title">实务闯关</text>
+        <text class="gt-nav-sub">{{title || packId}}</text>
+      </view>
+      <!-- 安全感前置: 常驻草稿态 -->
+      <view class="gt-draftnote {{draftSaved ? 'saved' : ''}}">
+        <text>{{draftSaved ? '✓ 草稿已存' : '退出留草稿'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view class="gt-scroll" scroll-y enhanced show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="gt-inner">
+
+      <!-- 三步进度 stepper(贯穿三态) -->
+      <view class="gt-stepper" wx:if="{{!loading && !errorText && total}}">
+        <view class="gt-step {{step > 1 ? 'done' : 'active'}}">
+          <view class="gt-step-dot"><text>{{step > 1 ? '✓' : '1'}}</text></view>
+          <text class="gt-step-nm">回忆</text>
+        </view>
+        <view class="gt-steplink {{step > 1 ? 'done' : ''}}"></view>
+        <view class="gt-step {{step > 2 ? 'done' : step === 2 ? 'active' : ''}}">
+          <view class="gt-step-dot"><text>{{step > 2 ? '✓' : '2'}}</text></view>
+          <text class="gt-step-nm">半写</text>
+        </view>
+        <view class="gt-steplink {{step > 2 ? 'done' : ''}}"></view>
+        <view class="gt-step {{step === 3 ? 'active' : ''}}">
+          <view class="gt-step-dot"><text>3</text></view>
+          <text class="gt-step-nm">核对</text>
+        </view>
+      </view>
+
+      <view class="gt-error" wx:if="{{errorText}}">
+        <text>{{errorText}}</text>
+        <view class="gt-retry" bindtap="retry">重试</view>
+      </view>
+
+      <view class="gt-loading" wx:if="{{loading}}">
+        <text>正在备这一关的题…</text>
+      </view>
+
+      <!-- 空供给: 诚实空态(变体池没货, 不造题) -->
+      <view class="gt-empty pk-card" wx:if="{{!loading && !errorText && !total}}">
+        <text class="gt-empty-title">这一站的闯关题还在准备中</text>
+        <text class="gt-empty-desc">先回站里把考点卡再过一遍，题备好了这里就能闯。</text>
+        <view class="gt-ghost" bindtap="goStation"><text>回到这一站</text></view>
+      </view>
+
+      <block wx:if="{{!loading && !errorText && total}}">
+
+        <!-- ════════ ① 回忆 ════════ -->
+        <block wx:if="{{step === 1}}">
+          <view class="gt-card pk-card">
+            <view class="gt-card-head">
+              <text class="gt-kicker">场景 · 变体题干</text>
+              <text class="gt-chip line">已签发变体</text>
+            </view>
+            <view class="gt-quote" wx:for="{{items}}" wx:key="key">
+              <text class="gt-quote-index">{{index + 1}}.</text>
+              <text class="gt-quote-text">{{item.surface}}</text>
+            </view>
+            <view class="gt-divider"></view>
+            <text class="gt-kicker muted">设问</text>
+            <text class="gt-ask">上面每一条做法，妥当还是不妥当？先在心里给出判断和依据。</text>
+          </view>
+
+          <view class="gt-card pk-card">
+            <view class="gt-card-head-left">
+              <view class="gt-iconbox"><text>?</text></view>
+              <text class="gt-kicker">先在心里过一遍，别急着写</text>
+            </view>
+            <text class="gt-guide">{{pointCountLine}}</text>
+            <text class="gt-guide-sub">想不全没关系——下一步把你的判断理由写下来</text>
+          </view>
+
+          <view class="gt-spacer"></view>
+          <view class="gt-btn" bindtap="startHalfWrite"><text>想好了 · 开始半写</text></view>
+          <view class="gt-ghost" bindtap="goStation"><text>完全想不起来？先回炉这一站的考点卡</text></view>
+        </block>
+
+        <!-- ════════ ② 半写(R6 挖空无供给 → 自由默写降级) ════════ -->
+        <block wx:if="{{step === 2}}">
+          <view class="gt-card pk-card slim">
+            <text class="gt-collapsed">{{items[0].surface}}</text>
+          </view>
+
+          <view class="gt-card pk-card">
+            <view class="gt-card-head">
+              <text class="gt-kicker">把你的判断理由写下来</text>
+              <text class="gt-card-hint">{{total}} 个判断点 · 自由默写</text>
+            </view>
+            <textarea
+              class="gt-writearea"
+              value="{{draftText}}"
+              placeholder="写下你的要点——每条做法妥不妥当、依据是什么…"
+              maxlength="2000"
+              auto-height
+              bindinput="onDraftInput"
+              bindblur="onDraftBlur"
+            ></textarea>
+            <view class="gt-write-foot">
+              <text class="gt-write-note">写不出终稿没关系，先把关键词放上去</text>
+              <text class="gt-chip line disabled">拍照写字板 · 即将开通</text>
+            </view>
+            <text class="gt-degrade-note">精确挖空练习正在准备中——先用默写打底，一样扎实</text>
+          </view>
+
+          <view class="gt-spacer"></view>
+          <view class="gt-btn" bindtap="startVerify"><text>写完了 · 逐条核对</text></view>
+        </block>
+
+        <!-- ════════ ③ 核对(本地确定性判分, 命中竹青/漏点赭暖) ════════ -->
+        <block wx:if="{{step === 3}}">
+
+          <!-- 结果 hero(全部答完) -->
+          <view class="gt-card pk-card hero" wx:if="{{verdict && verdict.done}}">
+            <view
+              class="gt-gauge"
+              style="background: conic-gradient(var(--pk-grn) {{verdict.percent}}%, var(--pk-gauge) 0)"
+            >
+              <view class="gt-gauge-core">
+                <text class="gt-gauge-num">{{verdict.hitLabel}}</text>
+                <text class="gt-gauge-label">命中</text>
+              </view>
+            </view>
+            <view class="gt-hero-body">
+              <text class="gt-hero-title">{{verdict.heroTitle}}</text>
+              <text class="gt-hero-desc">{{verdict.heroDesc}}</text>
+            </view>
+          </view>
+
+          <!-- 你写的要点(半写草稿对照, 自我核对) -->
+          <view class="gt-card pk-card" wx:if="{{draftText}}">
+            <text class="gt-kicker muted">你写的要点 · 对照着核</text>
+            <view class="gt-draft-box"><text>{{draftText}}</text></view>
+          </view>
+
+          <!-- 逐条核对 -->
+          <view class="gt-card pk-card list">
+            <view class="gt-card-head pad">
+              <text class="gt-kicker">逐条核对 · 判分内核给的</text>
+              <text class="gt-card-hint">判断点 {{total}} 条</text>
+            </view>
+            <view
+              class="gt-check-row {{item.answered && !item.correct ? 'missed' : ''}}"
+              wx:for="{{items}}"
+              wx:key="key"
+            >
+              <view class="gt-check-body">
+                <text class="gt-check-surface">{{item.surface}}</text>
+
+                <view class="gt-choices" wx:if="{{!item.answered}}">
+                  <view class="gt-choice" data-index="{{index}}" data-choice="ok" bindtap="onChoiceTap">
+                    <text>这样做妥当</text>
+                  </view>
+                  <view class="gt-choice warn" data-index="{{index}}" data-choice="not_ok" bindtap="onChoiceTap">
+                    <text>不妥当</text>
+                  </view>
+                </view>
+
+                <block wx:if="{{item.answered}}">
+                  <view class="gt-verdict-line">
+                    <text class="gt-chip {{item.correct ? 'grn' : 'och'}}">{{item.correct ? '✓ 命中' : '漏了这条'}}</text>
+                    <text class="gt-verdict-text">{{item.correct ? '你判断对了——这条给分点在你手里' : '再看一眼就稳了'}}</text>
+                  </view>
+                  <text class="gt-correct-statement" wx:if="{{!item.correct && item.correct_statement}}">{{item.correct_statement}}</text>
+                  <text class="gt-anchor" wx:if="{{item.anchor}}">{{item.anchor}}</text>
+                </block>
+              </view>
+            </view>
+          </view>
+
+          <!-- 明天的约定(全部答完) -->
+          <block wx:if="{{verdict && verdict.done}}">
+            <view class="gt-card pk-card pact">
+              <view class="gt-pact-stamp"><text>约</text></view>
+              <view class="gt-pact-body">
+                <text class="gt-kicker grn">明天的约定 · 已排上</text>
+                <text class="gt-pact-desc">明天换个皮再考你一次：数字和场景变，判别逻辑不变——过了就是真掌握</text>
+              </view>
+            </view>
+
+            <view class="gt-btn" bindtap="goReview"><text>回到复习</text></view>
+            <view class="gt-ghost" bindtap="openRetest"><text>换个皮再练一遍</text></view>
+          </block>
+        </block>
+
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 退出挽留 sheet: 主按钮给退出(尊重决定), 继续作答是 ghost -->
+  <view class="gt-sheetmask" wx:if="{{showExitSheet}}" bindtap="dismissExitSheet">
+    <view class="gt-sheet" catchtap="noop">
+      <text class="gt-sheet-title">先退出？</text>
+      <text class="gt-sheet-desc">{{draftText ? '你写的要点会存成草稿，回来能从这里接着写——进度一个字不丢。' : '这一关会记住你走到哪一步，回来接着闯。'}}</text>
+      <view class="gt-btn" catchtap="exitWithDraft"><text>保留草稿 · 先退出</text></view>
+      <view class="gt-ghost" catchtap="dismissExitSheet"><text>继续作答</text></view>
+    </view>
+  </view>
+</view>

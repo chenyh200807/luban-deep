@@ -16,6 +16,8 @@ from deeptutor.api.dependencies import AuthContext, get_current_user
 from deeptutor.api.dependencies.rate_limit import route_rate_limit
 from deeptutor.services.luban_lesson import (
     LessonNotAvailable,
+    build_concept_card_library,
+    build_concept_cards,
     build_lesson_viewmodel,
     build_retest_items,
     list_green_lessons,
@@ -115,3 +117,40 @@ async def review_due(current_user: AuthContext = Depends(get_current_user)) -> d
     )
     projection["enabled"] = True
     return projection
+
+
+@router.get(
+    "/concept-cards",
+    dependencies=[
+        Depends(route_rate_limit("luban_concept_card_library", default_max_requests=30, default_window_seconds=60.0))
+    ],
+)
+async def concept_card_library(_: AuthContext = Depends(get_current_user)) -> dict:
+    """考点卡库总览（复习页资产入口张数真值）——只数 signed+sha 双闸通过的卡池。
+
+    旗标关 = 空投影（total=0, enabled=false），路由形状稳定（同 review-due 惯例）；
+    复习页据此保持「即将开通」诚实占位，不 404。
+    """
+    if not _review_module_enabled():
+        return {"total": 0, "packs": [], "enabled": False}
+    library = build_concept_card_library()
+    library["enabled"] = True
+    return library
+
+
+@router.get(
+    "/concept-cards/{pack_id}",
+    dependencies=[
+        Depends(route_rate_limit("luban_concept_card_deck", default_max_requests=60, default_window_seconds=60.0))
+    ],
+)
+async def concept_card_deck(pack_id: str, _: AuthContext = Depends(get_current_user)) -> dict:
+    """单站考点卡（翻卡页）。旗标关 / 非绿灯 / 未签发 / sha 漂移一律 404 同形
+    （fail-closed，不泄漏未签发存在性）。本路由零写入——「记住了/再看一眼」
+    是客户端纯本地呈现态，绝不写掌握。"""
+    if not _review_module_enabled():
+        raise HTTPException(status_code=404, detail="concept cards not found")
+    try:
+        return build_concept_cards(pack_id)
+    except LessonNotAvailable:
+        raise HTTPException(status_code=404, detail="concept cards not found")

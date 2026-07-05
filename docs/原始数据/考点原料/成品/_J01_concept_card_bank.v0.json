@@ -1,0 +1,139 @@
+{
+ "schema_version": "luban-concept-card-bank",
+ "pack_id": "J01",
+ "status": "signed",
+ "source_pack_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
+ "generation_ms": 0.66,
+ "gate": {
+  "total": 6,
+  "passed": 6,
+  "pass_rate": 1.0,
+  "quote_mismatches": [],
+  "duplicate_cards": [],
+  "forbidden_words": []
+ },
+ "card_count": 6,
+ "dropped_rows": [
+  {
+   "row": "专项方案编制主体",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "危大工程管理制度",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "专家论证触发条件",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "论证前置程序",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "专家组要求",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "方案交底主体",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "方案执行",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "公示要求",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "未编/未审专项方案=重大事故隐患",
+   "reason": "not_green"
+  }
+ ],
+ "cards": [
+  {
+   "card_id": "J01:kc:1A436000_008_0011:0",
+   "front": "危大工程范围(一般档)阈值",
+   "key_gist": "基坑≥3m / 模板搭设高度≥5m / 起重吊装单件≥10kN / 脚手架≥24m",
+   "quote": "开挖深度≥3m的基坑工程；模板搭设高度≥5m；起重吊装单件重量≥10kN；脚手架搭设高度≥24m。",
+   "point_id": "kc:1A436000_008_0011:0",
+   "source_ref": {
+    "chunk_id": "1A436000_008_0011",
+    "page_num": 8,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "施工安全管理 > 危大工程范围"
+  },
+  {
+   "card_id": "J01:kc:1A436000_009_0012:0",
+   "front": "超过一定规模危大工程阈值",
+   "key_gist": "深基坑≥5m / 模板支撑高度≥8m或跨≥18m或荷载≥15kN/m²或线荷载≥20kN/m / 承重支撑单点荷载≥7kN / 起重吊装单件≥100kN或总重≥300kN或高度≥200m / 脚手架落地≥50m或附着≥150m或悬挑≥20m / 幕墙≥50m / 钢结构跨≥36m或网架≥60m / 挖孔桩≥16m / 大型结构≥1000kN",
+   "quote": "超过一定规模的危大工程需满足以下任一条件：\n- 深基坑：开挖深度 ≥ 5m\n- 模板支撑：高度 ≥ 8m 或跨度 ≥ 18m 或荷载 ≥ 15kN/m² 或线荷载 ≥ 20kN/m\n- 承重支撑：单点荷载 ≥ 7kN\n- 起重吊装：单件 ≥ 100kN 或总重 ≥ 300kN 或高度 ≥ 200m\n- 脚手架：落地 ≥ 50m 或附着 ≥ 150m 或悬挑 ≥ 20m\n- 幕墙：高度 ≥ 50m\n- 钢结构：跨度 ≥ 36m 或网架 ≥ 60m\n- 挖孔桩：深度 ≥ 16m\n- 大型结构：重量 ≥ 1000kN",
+   "point_id": "kc:1A436000_009_0012:0",
+   "source_ref": {
+    "chunk_id": "1A436000_009_0012",
+    "page_num": 9,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "施工安全管理 > 超过一定规模的危大工程范围"
+  },
+  {
+   "card_id": "J01:kc:1A431000_008_0008:0",
+   "front": "基坑专项方案八大内容",
+   "key_gist": "工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施",
+   "quote": "基坑工程专项施工方案必须包含：1) 工程概况；2) 编制依据；3) 施工计划；4) 施工工艺技术；5) 施工保证措施；6) 施工管理及人员配备；7) 验收要求；8) 应急处置措施。",
+   "point_id": "kc:1A431000_008_0008:0",
+   "source_ref": {
+    "chunk_id": "1A431000_008_0008",
+    "page_num": 8,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "建筑工程项目管理实务 > 基坑工程专项施工方案编制要求"
+  },
+  {
+   "card_id": "J01:kc:1A431000_009_0009:0",
+   "front": "模板支撑专项方案核心内容",
+   "key_gist": "工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸",
+   "quote": "模板支撑体系专项施工方案应包含：工程概况、技术参数、工艺流程、施工方法、检查要求、计算书及相关施工图纸。",
+   "point_id": "kc:1A431000_009_0009:0",
+   "source_ref": {
+    "chunk_id": "1A431000_009_0009",
+    "page_num": 9,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "建筑工程项目管理实务 > 专项施工方案编制要求"
+  },
+  {
+   "card_id": "J01:kc:1A437000_010_0013:0",
+   "front": "专家论证组织主体",
+   "key_gist": "实行施工总承包的，由施工总承包单位组织召开",
+   "quote": "专家论证会应由施工总承包单位组织，专家不少于5人，且不得与工程有利害关系。论证前方案须经施工单位审核和总监理工程师审查。",
+   "point_id": "kc:1A437000_010_0013:0",
+   "source_ref": {
+    "chunk_id": "1A437000_010_0013",
+    "page_num": 10,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "绿色建造及施工现场环境管理 > 危大工程专家论证——主要内容"
+  },
+  {
+   "card_id": "J01:kc:1A436000_010_0011:0",
+   "front": "危大六项现场管理要求",
+   "key_gist": "公示 / 方案交底 / 严禁擅自修改方案 / 人员登记与监督 / 监测与巡视 / 第三方监测",
+   "quote": "危大工程安全管理六大要点：1. 公示；2. 方案交底；3. 严禁擅自修改方案；4. 人员登记与监督；5. 监测与巡视；6. 第三方监测。",
+   "point_id": "kc:1A436000_010_0011:0",
+   "source_ref": {
+    "chunk_id": "1A436000_010_0011",
+    "page_num": 10,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "施工安全管理 > 人员登记与监督"
+  }
+ ],
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-05T18:17:03+08:00",
+  "basis": "gate 100% + sha 三方锚定当前pack + 集成包244测试绿(owner拍板A=诚实薄上线含34卡签发)"
+ }
+}
