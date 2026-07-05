@@ -8,7 +8,9 @@
 <body>
 <x-dc>
 <helmet>
-<link href="../fonts/fonts.css" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -28,7 +30,7 @@
         <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
         <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
       </div>
-      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+      <a href="P40_S05.teach.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
     </div>
 
     <!-- QUIZ VIEW -->
@@ -130,14 +132,14 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 内容清单、组织主体、判定依据、采分句都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 架构、末端、顺序、参数、采分句都拿到了，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
         <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
       </div>
-      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+      <a href="P40_S05.teach.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
         <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
         <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
       </a>
@@ -196,66 +198,64 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
   state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"" };
-  examTitle="结构实体检验答案诊断";
-  KNOWLEDGE="检验批验收·案例题作答层(A01,真题锚{2017·案例·问4})。本层训练把知识写成阅卷友好的采分句,采分点从A01知识层派生,不新增官方判分权威。内容清单:结构实体检验除混凝土强度外,还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目(漏项=E02)。组织主体:由监理单位组织、施工单位实施、监理见证全过程,施工单位编制专项方案报监理审批(写施工单位组织=E07概念混淆)。判定依据:C35实体强度应满足平均值≥设计值×88%且最小值≥设计值×80%,不能直接拿平均值比35(=E10);本题芯样28.5/31/32MPa,平均值30.8MPa,35×88%=30.8MPa恰为临界,最小值28.5MPa>35×80%=28MPa;临界取舍以评分细则或教研裁定为准,只指漏不定分。作答结构:先编号写检验内容,再写主体链,最后亮双阈值判据、代入回判。禁口号化表达(E04)。记忆钩:扫答案,补三格——内容清单、组织主体、判定依据。";
-  moreText="补两道：① 主体分部工程验收“应有哪些单位和人员参加”的场景题（{2015·第28题}/{2023·案例·问4}）——练「组织主体 + 必参加人员」一次写全，防再漏设计单位和技术质量负责人；② 验收不合格如何处理的决策分支题——练「返修/返工后重新验收 → 资料缺失可委托检测 → 加固后仍不满足安全要求严禁验收」三档，补上后果维。";
-
-  // ── 题库：扫答案 → 改主体 → 跑双阈值 → 重排三格 → 输出采分句（5 题，来自 pack practice_blueprint）──
+  examTitle="临时用电三级配电两级保护";
+  KNOWLEDGE="临时用电三级配电两级保护(S05)。三大系统:三级配电系统+TN-S接零保护系统+二级剩余电流动作保护系统,缺一不可(只写三级配电=E01/E02)。三级配电装置:总配电箱→分配电箱→开关箱,设备逐级接入不得越级。末端:每台设备专用开关箱,不得一箱控制两台及以上;配电箱、开关箱电源进线端严禁插头插座活动连接(=E10/M10)。顺序:送电总→分→开,停电开→分→总(写反=E06)。参数:潮湿/隧道/人防≤36V,易触及带电体≤24V,金属容器/锅炉≤12V(=M08);电缆直接埋地≥0.7m;N线蓝色、PE线黄绿双色。管理:电工持证,50kW及以上编制临时用电组织设计,装饰装修阶段补编单项用电方案。真题锚:{2023第1题}/{2017第2题}/{2016第13题}/{2018第17题}。禁口号化表达(E04)。";
+  moreText="补两道：① 现场多台设备接入同一开关箱的纠错题（{2023第1题}）——练「每台设备专用开关箱 + 进线端禁插头插座活动连接」两句一起写；② 停送电顺序题（{2017第2题}）——练「送电总→分→开、停电开→分→总」互逆链，方向别写反。";
+  // ── 题库：供电树 → 一机一闸 → 顺序 → 参数 → 采分句诊断（5 题，来自 pack practice_blueprint）──
   Q=[
-    { tag:"扫学生答案·补清单", typeHint:"单选 · 选出最能补齐采分动作的做法", figLabel:"图示：答题纸逐句扫描", figCaption:"混凝土强度 hit · 保护层 partial · 尺寸偏差 / 合同项目待补", fig:"scan1",
-      stem:"学生答：“结构实体检验还要测一下钢筋保护层。”这句话在实体检验项目上最主要缺哪一类采分动作？",
-      model:"补“结构位置与尺寸偏差、合同约定项目”，把实体检验内容从一项补成完整清单：混凝土强度 + 钢筋保护层厚度 + 结构位置与尺寸偏差 + 合同约定项目。",
+    { tag:"看供电树·架构", typeHint:"单选 · 选出最完整、能拿分的作答", figLabel:"图示：三级配电供电树", figCaption:"总配电箱 → 分配电箱 → 开关箱 → 用电设备 · 逐级接入", fig:"tree",
+      stem:"现场从分配电箱直接给用电设备供电，学生答案只写“应加强临时用电管理”。如果要求指出不妥并改正，第一句最稳应该怎么写？",
+      model:"不妥；临时用电应按总配电箱→分配电箱→开关箱→用电设备逐级配电，不能越级接设备。",
       opts:[
-        { t:"补“结构位置与尺寸偏差、合同约定项目”，把实体检验内容从一项补成完整清单。", ok:true, fix:"四件套逐项编号写：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目。", code:"" },
-        { t:"把“测一下”改成“必须检测”，让语气更强即可。", ok:false, code:"E04", tempt:"“必须检测”听起来更规范、更像标准答案。", lose:"阅卷缺的是项目不是语气，语气变强补不了缺项，口号化表达。", fix:"把结构位置与尺寸偏差、合同约定项目补进清单。" },
-        { t:"先改成监理单位组织，内容清单可以后面再写。", ok:false, code:"E02", tempt:"主体错位也是本题真实漏分口，先修它看着更要紧。", lose:"主体要改，但这一句首先卡在检验项目不全；清单缺口不补仍是采分点遗漏。", fix:"先补齐四件套清单，主体链另起一句单独写。" },
-        { t:"只保留混凝土强度，因为题干已经是强度判定题。", ok:false, code:"E05", tempt:"题干确实围着 C35 强度转，聚焦强度显得干脆。", lose:"题干第一问明确问“除混凝土强度外”还包括哪些项目，只答强度是审题错误。", fix:"按问法答强度以外的三项：保护层厚度、尺寸偏差、合同约定项目。" }
+        { t:"不妥；临时用电应按总配电箱→分配电箱→开关箱→用电设备逐级配电，不能越级接设备。", ok:true, fix:"把现场接法改成三级配电拓扑：先指出越级不妥，再写逐级配电正确路径。", code:"" },
+        { t:"不妥；应加强安全管理，安排电工每天巡视。", ok:false, code:"E04", tempt:"安全题常见“加强管理”，听着稳妥。", lose:"有管理动作但没有改供电路径，扣分点在越级供电，口号化表达不得分。", fix:"改成总配电箱→分配电箱→开关箱→设备逐级配电。" },
+        { t:"应设置总配电箱、分配电箱、开关箱，三个箱名写全即可。", ok:false, code:"E02", tempt:"三个箱名背得熟，以为写全就够。", lose:"箱名是必要但不够：没指出越级供电这处不妥，也没写逐级接入的正确路径，采分点遗漏。", fix:"补「设备必须逐级接入、不得越级」并点出题干越级错法。" },
+        { t:"应先按36V、24V、12V安全电压分档，再决定如何配电。", ok:false, code:"E10", tempt:"记得安全电压数值，想先把参数摆出来。", lose:"安全电压是特殊场所照明参数，不是这道越级供电题的第一刀，规范适用错位。", fix:"先修配电拓扑（总→分→开→设备），参数题再谈 36/24/12V。" }
       ] },
-    { tag:"改主体错位·组织权", typeHint:"单选 · 选出最像能拿主体分的改正动作", figLabel:"图示：组织主体箭头纠正", figCaption:"✗ 施工组织 → ✓ 监理组织 · 施工实施 · 监理见证", fig:"org",
-      stem:"学生答：“结构实体检验由施工单位组织检验。”下面哪一句改正动作最像能拿主体分？",
-      model:"改为“由监理单位组织、施工单位实施，监理见证全过程”；施工单位编制专项方案报监理审批。",
+    { tag:"拆共箱错法·一机一闸", typeHint:"单选 · 选出案例题可给分的改正动作", figLabel:"图示：共用开关箱（待纠错）", figCaption:"电锯 + 砂轮机共用一箱 ✗ → 各自专用开关箱 ✓", fig:"shared",
+      stem:"电锯和砂轮机共用一个开关箱，开关箱进线端采用插头插座活动连接。下面哪句最像案例题可给分的改正动作？",
+      model:"不妥；每台设备应使用专用开关箱，不得一箱控制两台及以上设备，进线端严禁采用插头插座活动连接。",
       opts:[
-        { t:"改为“由监理单位组织、施工单位实施，监理见证全过程”。", ok:true, fix:"组织、实施、见证三个角色拆清，主体精确到单位。", code:"" },
-        { t:"写施工单位自检合格后自行组织，体现谁施工谁负责。", ok:false, code:"E07", tempt:"施工单位确实实施检验，“谁施工谁负责”顺口又好记。", lose:"把实施主体当成组织主体，“谁施工谁验收”正是主体错位的错误心智，概念混淆。", fix:"组织写监理单位，施工单位只是实施主体。" },
-        { t:"直接写建设单位组织即可，避免监理和施工责任混乱。", ok:false, code:"M10", tempt:"拿不准就交给更高一级，听着最保险。", lose:"这是用常识推责任分配；结构实体检验的组织主体是监理单位，不是建设单位。", fix:"按主体链写：监理组织、施工实施、监理见证。" },
-        { t:"只写施工单位编制专项方案报监理审批，不再写组织主体。", ok:false, code:"E02", tempt:"专项方案报审批也是真实考点，写它显得懂流程。", lose:"专项方案是补充点；组织、实施、见证的主体分没写，就是采分点遗漏。", fix:"主体链写全后，再补专项方案报监理审批。" }
+        { t:"不妥；每台设备应使用专用开关箱，不得一箱控制两台及以上设备，进线端严禁采用插头插座活动连接。", ok:true, fix:"两个采分动作一起写：一机一闸专用开关箱 + 进线端禁插头插座活动连接。", code:"" },
+        { t:"可以共用，但应由专人看护开关箱，发生异常立即断电。", ok:false, code:"M10", tempt:"听起来安全，有人盯着总比没人强。", lose:"共用开关箱本身不符合一机一闸，规范禁令不能靠人盯来补，用常识替代规范。", fix:"每台设备使用专用开关箱，不得一箱控制两台及以上。" },
+        { t:"只要在共用开关箱上贴清楚设备名称，避免误操作即可。", ok:false, code:"E10", tempt:"贴标签好操作，像是管理到位了。", lose:"标签只帮识别，不能实现故障设备就近独立断电，仍然是一箱控两机，规范适用错误。", fix:"改成设备和开关箱一一对应的专用开关箱。" },
+        { t:"只需取消插头插座活动连接，共用开关箱本身可以保留。", ok:false, code:"E02", tempt:"进线端禁插接记住了，以为修完就齐。", lose:"题干还有共用开关箱这处不妥，只修连接方式漏掉一机一闸，采分点遗漏。", fix:"补「每台设备专用开关箱，不得一箱控两台及以上」。" }
       ] },
-    { tag:"跑双阈值·计算判定", typeHint:"单选 · 选出最稳的计算判定链", figLabel:"图示：芯样进入双阈值标尺", figCaption:"平均 30.8 ↔ 35×88%=30.8 · 最小 28.5 ＞ 35×80%=28", fig:"chain",
-      stem:"C35 构件芯样 28.5、31、32MPa，学生答：“平均值比 35 小，所以不合格。”这一步最稳的计算判定链应该怎么写？",
-      model:"先亮判据“平均值≥设计值×88%、最小值≥设计值×80%”，再代入：平均值 30.8MPa、35×88%=30.8MPa（临界），最小值 28.5MPa＞35×80%=28MPa，回判；临界取舍以评分细则或教研裁定为准。",
+    { tag:"判顺序·停送电", typeHint:"单选 · 诊断学生作答并补正", figLabel:"图示：停送电互逆链", figCaption:"送电 总→分→开（正向） · 停电 开→分→总（反向）", fig:"seq",
+      stem:"学生答：“送电时先合开关箱，停电时先断总配电箱。”这句话应该怎么诊断并补正？",
+      model:"判为顺序错误；送电应总配电箱→分配电箱→开关箱，停电应开关箱→分配电箱→总配电箱。",
       opts:[
-        { t:"先亮判据“平均值≥设计×88%、最小值≥设计×80%”，再代入平均值30.8和最小值28.5回判。", ok:true, fix:"判据、代入、回判三步交付；临界不擅自定官方分，但阈值链必须写对。", code:"" },
-        { t:"平均值小于35MPa，直接判不合格即可，过程越短越清楚。", ok:false, code:"E10", tempt:"直接比设计值最直观，答案还短。", lose:"实体强度判定不是直接比35，而是先把设计值乘88%和80%，规范适用错误。", fix:"先写双阈值判据，再代入回判。" },
-        { t:"只要平均值达到88%即可，最小值不用再看。", ok:false, code:"E05", tempt:"平均值那条线最出名，算一条省事。", lose:"问法要的是完整判定依据，判定步骤缺最小值那条门，审题不全。", fix:"平均值≥88%和最小值≥80%两条同时满足才回判。" },
-        { t:"只看28.5大于28，所以不用算平均值。", ok:false, code:"M08", tempt:"最小值刚好过线，看着已经安全。", lose:"把双阈值记成单阈值：88%对平均值、80%对最小值，两条规则少套一条，规范数字混淆。", fix:"两条门都亮出来：平均值看88%，最小值看80%。" }
+        { t:"判为顺序错误；送电应总配电箱→分配电箱→开关箱，停电应开关箱→分配电箱→总配电箱。", ok:true, fix:"正向送电和反向停电都写全：送总→分→开，停开→分→总。", code:"" },
+        { t:"送电和停电都按总配电箱→分配电箱→开关箱，便于统一管理。", ok:false, code:"E06", tempt:"三级箱顺序看似固定，统一方向好记。", lose:"停电是反向链，写成同方向就是程序顺序错误。", fix:"停电从末端开始：开关箱→分配电箱→总配电箱。" },
+        { t:"顺序可由现场电工根据方便程度决定，只要最终断电即可。", ok:false, code:"M10", tempt:"觉得现场灵活处理更实际。", lose:"停送电是封闭有序链，不能交给现场随意决定，用经验方便替代程序顺序。", fix:"按规定顺序写：送总→分→开，停开→分→总。" },
+        { t:"只需写停电从开关箱开始，送电顺序一般不作为采分点。", ok:false, code:"E02", tempt:"记得停电考过，以为送电不用写。", lose:"送电总→分→开同样是教材给出的顺序，漏写就漏分，采分点遗漏。", fix:"送电、停电两个方向一并写全。" }
       ] },
-    { tag:"重排标准答·三格", typeHint:"单选 · 选出阅卷友好的组织顺序", figLabel:"图示：三格改写答题纸", figCaption:"散乱原答 → 内容清单 · 主体链 · 双阈值回判", fig:"regrid",
-      stem:"现在要把学生样本改成答题纸答案。下面哪种组织顺序最像阅卷友好的主观题答案？",
-      model:"先编号写检验内容，再写监理组织、施工实施、监理见证，最后亮88%/80%判据并代入回判——内容、主体、依据三格连续写。",
+    { tag:"补参数·电压与电缆", typeHint:"单选 · 选出参数落到对象的补法", figLabel:"图示：安全电压分档 + 电缆埋地剖面", figCaption:"潮湿≤36V · 易触及≤24V · 金属容器≤12V · 埋地≥0.7m", fig:"volt",
+      stem:"金属容器内用 36V 照明灯；现场电缆浅埋，学生答案写“应采用安全电压并保护电缆”。哪句补法更像完整采分动作？",
+      model:"金属容器内照明电压不应大于12V；电缆直接埋地敷设深度不应小于0.7m，并按N线蓝色、PE线黄绿双色识别。",
       opts:[
-        { t:"先编号写检验内容，再写监理组织、施工实施、监理见证，最后亮88%/80%判据并代入回判。", ok:true, fix:"内容清单、组织主体、判定依据三格齐全，阅卷顺着格子给分。", code:"" },
-        { t:"先写平均值计算，再补一句“其余内容按规范验收”。", ok:false, code:"E02", tempt:"数值题最显眼，先把计算写了最有安全感。", lose:"计算有了，但“其余按规范验收”把内容清单和主体格空着，采分点遗漏。", fix:"把检验四项和主体链补成显式采分句。" },
-        { t:"先解释结构实体检验的概念，再写本题结论。", ok:false, code:"E04", tempt:"先讲概念显得基础扎实。", lose:"案例题不是名词解释：概念加结论没有具体采分对象，口号化表达。", fix:"直接答题干要的内容、主体、判定三格。" },
-        { t:"先给合格或不合格结论，再根据篇幅补理由。", ok:false, code:"E05", tempt:"结论先行看着干脆利落。", lose:"问法要求写判定依据，把依据当篇幅富余才补的东西是审题错误；本题还有临界处置，更不能只写结论。", fix:"先亮判据、代入、回判，结论跟在链条后面。" }
+        { t:"金属容器内照明电压不应大于12V；电缆直接埋地敷设深度不应小于0.7m，并按N线蓝色、PE线黄绿双色识别。", ok:true, fix:"把场所、电压、剖面和标识色都落到参数：金属容器12V、埋地0.7m、N蓝PE黄绿。", code:"" },
+        { t:"应采用安全电压，并对电缆采取可靠保护措施。", ok:false, code:"E04", tempt:"方向没错，写起来最顺手。", lose:"太虚：没有场所分档数值，也没有 0.7m 埋深，口号化表达拿不到数值分。", fix:"补「金属容器≤12V」和「直接埋地≥0.7m」两个数。" },
+        { t:"特殊场所照明统一不超过36V，电缆埋地深度按现场情况确定。", ok:false, code:"M08", tempt:"36V 最常见，想统一记一个数。", lose:"金属容器不是 36V 档，应降到 12V；埋深也有 0.7m 定值，规范数字混淆。", fix:"分档写：潮湿36V、易触及24V、金属容器12V；埋地≥0.7m。" },
+        { t:"重点写五芯电缆N线为蓝色、PE线为黄绿双色，其他参数可略。", ok:false, code:"E02", tempt:"标识色记得牢，想突出细节。", lose:"标识色是采分点之一，但题干给了金属容器和浅埋电缆，只写颜色漏两处，采分点遗漏。", fix:"补「金属容器≤12V」和「埋地≥0.7m」再带标识色。" }
       ] },
-    { tag:"输出采分句·终稿", typeHint:"单选 · 选出最完整的采分句", figLabel:"图示：最终答题纸扫描", figCaption:"内容清单 hit · 组织主体 hit · 判定依据 hit", fig:"final",
-      stem:"考试要求：结构实体检验除混凝土强度外还包括哪些项目？由谁组织？强度是否合格，写依据。下面哪一句最像完整采分句？",
-      model:"除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；由监理单位组织、施工单位实施、监理见证；强度按平均值≥设计×88%且最小值≥设计×80%回判。",
+    { tag:"写采分句·末题诊断", typeHint:"单选 · 诊断口号答案并补成采分句", figLabel:"图示：答题纸四行扫描", figCaption:"架构 · 末端 · 顺序参数 · 管理 · 四行写全", fig:"scan",
+      stem:"综合案例同时出现越级接电、共用开关箱、顺序写反和装饰阶段用电方案缺失，学生答：“现场临时用电管理不到位，应按规范整改，保证用电安全。”哪一项最能补成完整采分句？",
+      model:"答案应补成：采用三级配电、TN-S接零和二级漏保；总→分→开逐级配电；每台设备专用开关箱且进线端禁插接；送电总→分→开、停电开→分→总，并落实安全电压、电缆埋地、持证和用电方案要求。",
       opts:[
-        { t:"除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；由监理组织、施工实施、监理见证；强度按平均≥88%、最小≥80%回判。", ok:true, fix:"内容、主体、依据三格都交付，阅卷一扫全命中。", code:"" },
-        { t:"还包括钢筋保护层，施工单位组织；平均值不达设计值，所以不合格。", ok:false, code:"E07", tempt:"每个格子都碰到了，看着像答完了。", lose:"这几乎就是学生错答：把施工单位写成组织方是概念混淆，清单和双阈值也没写全。", fix:"主体改成监理组织、施工实施、监理见证，再补清单和双阈值。" },
-        { t:"实体检验内容很多，应按规范逐项检测，确保质量合格。", ok:false, code:"E04", tempt:"“按规范、确保质量”怎么写都不会错。", lose:"阅卷无法定位保护层、尺寸偏差、合同项目和双阈值，空泛表达拿不到对象分，口号化表达。", fix:"把四件套、主体链、88%/80%写成显式对象。" },
-        { t:"应由监理单位组织，施工单位配合即可。", ok:false, code:"E02", tempt:"监理组织这句最有把握，先把它写上。", lose:"只拿到主体格的一部分，内容清单和判定依据两格空白，采分点遗漏。", fix:"三格连续写：清单、主体链、双阈值回判。" }
+        { t:"答案应补成：采用三级配电、TN-S接零和二级漏保；总→分→开逐级配电；每台设备专用开关箱且进线端禁插接；送电总→分→开、停电开→分→总，并落实安全电压、电缆埋地、持证和用电方案要求。", ok:true, fix:"把架构、末端、顺序参数和管理闭环四行全部交付，题干每处错法都被扫进采分句。", code:"" },
+        { t:"答案只需补“项目部应建立用电管理制度，定期检查并落实责任人”。", ok:false, code:"E04", tempt:"管理制度听着更完整、更像总结。", lose:"这是原口号的升级版：仍然没有改越级接电、共用开关箱和顺序错误，口号化表达。", fix:"按架构、末端、顺序参数、管理四行补成可判分措施。" },
+        { t:"答案重点补“采用三级配电系统、TN-S系统和二级漏保”，其他可略。", ok:false, code:"E02", tempt:"三大系统是最出名的采分句。", lose:"架构命中，但综合案例还有末端错法和顺序参数，只写架构会 partial，采分点遗漏。", fix:"补一机一闸、禁插接、停送电顺序和参数管理行。" },
+        { t:"答案重点补36/24/12V、0.7m、N蓝PE黄绿这些数字，说明参数记得牢。", ok:false, code:"E02", tempt:"数字最像干货，写上显得专业。", lose:"参数命中，但没有三级配电、一机一闸和顺序链，题干错法没被诊断，采分点遗漏。", fix:"先写架构和末端改正句，再落参数数字。" }
       ] }
   ];
   codeMap={
-    E02:{label:"采分点遗漏",advice:"四件套逐项编号写：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；题干每一问都要对上格，缺一扣一。"},
-    E04:{label:"口号化表达",advice:"别写“按规范、确保质量”：落到保护层厚度、尺寸偏差、合同项目、监理组织、88%/80% 这些阅卷能扫到的对象。"},
-    E05:{label:"审题错误",advice:"题干问几问答几问：“除混凝土强度外”“由谁组织”“写依据”逐问对格；判定链平均值和最小值两条都要给。"},
-    E07:{label:"概念混淆",advice:"“谁施工谁验收”是错心智：监理单位组织、施工单位实施、监理见证全过程，施工单位编制专项方案报监理审批。"},
-    E10:{label:"规范适用错误",advice:"实体强度不直接比设计值：平均值≥设计值×88% 且最小值≥设计值×80%，两条同时满足才回判。"},
-    M08:{label:"规范数字混淆",advice:"88% 对平均值、80% 对最小值，别记反也别只套一条；本题 35×88%=30.8、35×80%=28。"},
-    M10:{label:"用常识替代规范",advice:"责任分配不能靠常识往上推：组织主体按教材写监理单位，不是建设单位也不是施工单位。"}
+    E02:{label:"采分点遗漏",advice:"架构、末端、顺序、参数逐项写，题干每处错法都要点到，缺一扣一。"},
+    E04:{label:"口号化表达",advice:"别写“加强管理、确保安全”：落到三级配电+TN-S+二级漏保、一机一闸、36/24/12V、0.7m 这些可判分措施。"},
+    E06:{label:"程序顺序错误",advice:"送电总→分→开，停电开→分→总，互逆链方向不可颠倒。"},
+    E10:{label:"规范适用错误",advice:"一机一闸、进线端禁插接是规范禁令，不能用看护、标签、先谈参数来替代。"},
+    M08:{label:"规范数字混淆",advice:"潮湿36V、易触及24V、金属容器12V、埋地0.7m，分档数字别混。"},
+    M10:{label:"用常识替代规范",advice:"专人看护、现场灵活决定都不是采分句；按规范写专用开关箱和停送电顺序。"}
   };
 
   componentDidMount(){
@@ -296,28 +296,47 @@ class Component extends DCLogic {
   figFor(qi){
     const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
     const type=this.Q[qi].fig, els=[]; let figH=100;
-    if(type==="scan1"){ figH=108; const rows=[["① 混凝土强度（题干已考）","#2c8a5b","hit ✓"],["② 钢筋保护层 · 只写到一格","#cf8a44","partial ⚠"],["③ 结构位置与尺寸偏差 · 待补","#cf4436","miss ✗"],["④ 合同约定项目 · 待补","#cf4436","miss ✗"]];
-      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*27,w:246,h:23,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); els.push(D({x:252,top:i*27,w:68,h:23,fg:r[1],fs:9.5,jc:"flex-start",ta:"left",lab:r[2]})); }); }
-    else if(type==="org"){ figH=92;
-      els.push(D({x:0,top:0,w:230,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 施工单位组织（实施主体 ≠ 组织主体）"}));
-      els.push(D({x:0,top:22,w:96,h:34,bg:"#46627e",bd:"2px solid #2c8a5b",r:6,fg:"#fff",fs:9,lab:"监理单位组织"}));
-      els.push(D({x:96,top:36,w:16,h:5,bg:"#2c8a5b"}));
-      els.push(D({x:112,top:22,w:96,h:34,bg:"#46627e",bd:"2px solid #2c8a5b",r:6,fg:"#fff",fs:9,lab:"施工单位实施"}));
-      els.push(D({x:208,top:36,w:16,h:5,bg:"#2c8a5b"}));
-      els.push(D({x:224,top:22,w:96,h:34,bg:"#46627e",bd:"2px solid #2c8a5b",r:6,fg:"#fff",fs:9,lab:"监理见证全过程"}));
-      els.push(D({x:0,top:68,w:320,h:14,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"✓ 施工单位编制专项方案报监理审批"})); }
-    else if(type==="chain"){ figH=110;
-      els.push(D({x:0,top:0,w:60,h:30,bg:"#fff",bd:"1.5px solid #cdd9e2",r:15,fg:"#2f6db0",fs:10.5,lab:"28.5"}));
-      els.push(D({x:68,top:0,w:60,h:30,bg:"#fff",bd:"1.5px solid #cdd9e2",r:15,fg:"#2f6db0",fs:10.5,lab:"31"}));
-      els.push(D({x:136,top:0,w:60,h:30,bg:"#fff",bd:"1.5px solid #cdd9e2",r:15,fg:"#2f6db0",fs:10.5,lab:"32"}));
-      els.push(D({x:204,top:6,w:116,h:18,fg:"#5c6469",fs:9,jc:"flex-start",ta:"left",lab:"三个芯样 · MPa"}));
-      els.push(D({x:0,top:38,w:320,h:22,bg:"#fff",bd:"1.5px solid #cdd9e2",r:7,fg:"#2f6db0",fs:9.5,fw:"800",ta:"left",jc:"flex-start",p:"0 8px",lab:"平均值 30.8 ↔ 35×88% = 30.8（临界）"}));
-      els.push(D({x:0,top:64,w:320,h:22,bg:"#fff",bd:"1.5px solid #a9cdb8",r:7,fg:"#2c8a5b",fs:9.5,fw:"800",ta:"left",jc:"flex-start",p:"0 8px",lab:"最小值 28.5 ＞ 35×80% = 28"}));
-      els.push(D({x:0,top:92,w:320,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 直接拿平均值比 35 = 跳过双阈值"})); }
-    else if(type==="regrid"){ figH=84; const rows=[["第一段 内容清单：保护层厚度 · 尺寸偏差 · 合同约定项目","#2f6db0"],["第二段 主体链：监理组织 · 施工实施 · 监理见证","#2c8a5b"],["第三段 判定链：亮判据 → 代入 → 回判","#cf8a44"]];
-      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*28,w:320,h:24,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); }); }
-    else if(type==="final"){ figH=84; const rows=[["① 内容清单 · 四件套齐","#2f6db0"],["② 组织主体 · 监理组织施工实施见证","#2c8a5b"],["③ 判定依据 · 88%/80% 双阈值回判","#cf8a44"]];
-      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*28,w:250,h:24,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); els.push(D({x:256,top:i*28,w:64,h:24,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"hit ✓"})); }); }
+    if(type==="tree"){ figH=96;
+      els.push(D({x:4,top:22,w:74,h:38,bg:"#2f6db0",r:5,fg:"#fff",fs:9.5,lab:"总配电箱"}));
+      els.push(D({x:78,top:38,w:16,h:5,bg:"#2f6db0"}));
+      els.push(D({x:94,top:24,w:70,h:34,bg:"#3a5168",r:5,fg:"#fff",fs:9.5,lab:"分配电箱"}));
+      els.push(D({x:164,top:38,w:16,h:5,bg:"#2f6db0"}));
+      els.push(D({x:180,top:26,w:62,h:30,bg:"#46627e",r:5,fg:"#fff",fs:9.5,lab:"开关箱"}));
+      els.push(D({x:242,top:38,w:16,h:5,bg:"#2f6db0"}));
+      els.push(D({x:258,top:28,w:62,h:26,bg:"#b9a88a",r:5,fg:"#3a3325",fs:9.5,lab:"设备"}));
+      els.push(D({x:94,top:68,w:200,h:4,bg:"repeating-linear-gradient(90deg,#cf4436,#cf4436 8px,transparent 8px,transparent 14px)"}));
+      els.push(D({x:94,top:78,w:226,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 分配电箱直接拖线给设备 = 越级"}));
+      els.push(D({x:4,top:2,w:220,h:14,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"✓ 逐级接入 · 不缺级不越级"})); }
+    else if(type==="shared"){ figH=100;
+      els.push(D({x:0,top:0,w:120,h:12,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 一箱控两机"}));
+      els.push(D({x:30,top:16,w:60,h:26,bg:"#46627e",bd:"2px solid #cf4436",r:4,fg:"#fff",fs:8.5,lab:"开关箱"}));
+      els.push(D({x:6,top:58,w:52,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"电锯"}));
+      els.push(D({x:66,top:58,w:52,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"砂轮机"}));
+      els.push(D({x:40,top:42,w:4,h:16,bg:"#cf4436"}));
+      els.push(D({x:80,top:42,w:4,h:16,bg:"#cf4436"}));
+      els.push(D({x:172,top:0,w:130,h:12,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"✓ 一机一箱 · 进线端禁插接"}));
+      els.push(D({x:172,top:16,w:64,h:26,bg:"#46627e",bd:"2px solid #2c8a5b",r:4,fg:"#fff",fs:8,lab:"专用开关箱"}));
+      els.push(D({x:246,top:16,w:64,h:26,bg:"#46627e",bd:"2px solid #2c8a5b",r:4,fg:"#fff",fs:8,lab:"专用开关箱"}));
+      els.push(D({x:200,top:42,w:4,h:16,bg:"#2c8a5b"}));
+      els.push(D({x:274,top:42,w:4,h:16,bg:"#2c8a5b"}));
+      els.push(D({x:174,top:58,w:56,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"电锯"}));
+      els.push(D({x:250,top:58,w:56,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"砂轮机"})); }
+    else if(type==="seq"){ figH=84;
+      els.push(D({x:4,top:4,w:312,h:14,fg:"#2c8a5b",fs:10,jc:"flex-start",ta:"left",lab:"送电 ⟶ 总配电箱 → 分配电箱 → 开关箱"}));
+      els.push(D({x:4,top:26,w:312,h:3,bg:"rgba(44,138,91,.55)"}));
+      els.push(D({x:4,top:42,w:312,h:14,fg:"#2f6db0",fs:10,jc:"flex-start",ta:"left",lab:"停电 ⟵ 开关箱 → 分配电箱 → 总配电箱"}));
+      els.push(D({x:4,top:64,w:312,h:14,fg:"#cf4436",fs:9,jc:"flex-start",ta:"left",lab:"✗ 先合开关箱送电 / 先断总箱停电 = 顺序反"})); }
+    else if(type==="volt"){ figH=104;
+      els.push(D({x:0,top:4,w:100,h:40,bg:"#fff",bd:"1.5px solid #cdd9e2",r:7,fg:"#2f6db0",fs:10.5,lab:"潮湿/隧道\n≤36V"}));
+      els.push(D({x:110,top:4,w:100,h:40,bg:"#fff",bd:"1.5px solid #e7c9a0",r:7,fg:"#cf8a44",fs:10.5,lab:"易触及\n≤24V"}));
+      els.push(D({x:220,top:4,w:100,h:40,bg:"#fff",bd:"1.5px solid #e2b6ae",r:7,fg:"#cf4436",fs:10.5,lab:"金属容器\n≤12V"}));
+      els.push(D({x:0,top:56,w:150,h:4,bg:"#8a7d63"}));
+      els.push(D({x:64,top:76,w:16,h:16,bg:"#3a5168",r:16}));
+      els.push(D({x:86,top:58,w:2,h:36,bg:"#cf4436"}));
+      els.push(D({x:94,top:66,w:70,h:14,fg:"#cf4436",fs:10,jc:"flex-start",ta:"left",lab:"≥0.7m"}));
+      els.push(D({x:180,top:62,w:140,h:28,fg:"#5c6469",fs:9.5,jc:"flex-start",ta:"left",lab:"电缆直接埋地剖面\nN线蓝色 · PE线黄绿双色"})); }
+    else if(type==="scan"){ figH=104; const rows=[["① 架构：三级配电+TN-S+二级漏保","#2f6db0"],["② 末端：一机一箱 · 进线端禁插接","#cf8a44"],["③ 顺序参数：送总分开·停开分总·36/24/12·0.7m","#2c8a5b"],["④ 管理：电工持证 · 用电组织设计/补方案","#d9a521"]];
+      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*26,w:320,h:22,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); }); }
     return {els,figH};
   }
   renderVals(){

@@ -1,50 +1,382 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="data:,"><title>临时用电: 三级配电两级保护 · 闯关</title>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
 <style>
-*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{background:#eef5fb;color:#132033;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}button{font:inherit}.practice{max-width:430px;margin:0 auto;min-height:100dvh;padding:10px 10px calc(24px + env(safe-area-inset-bottom))}header{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;margin-bottom:10px}header a{min-height:42px;display:flex;align-items:center;border:1px solid #c9d9e8;border-radius:999px;background:#fff;color:#176b7a;text-decoration:none;font-size:12px;font-weight:900;padding:0 12px;white-space:nowrap}header span{font-size:11px;color:#176b7a;font-weight:900}h1{margin:2px 0 0;font-size:19px;line-height:1.18;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.progress{height:6px;border-radius:99px;background:#d8e5f0;overflow:hidden;margin:10px 0 12px}.progress i{display:block;width:0;height:100%;background:#ff7a1a;transition:width .2s ease}.card{background:#fff;border:1px solid #cdddeb;border-radius:20px;padding:13px;box-shadow:0 16px 40px rgba(30,58,87,.12)}.qtop{display:flex;justify-content:space-between;gap:10px;color:#176b7a;font-size:12px;font-weight:900}.qtop em{font-style:normal;color:#60758c;text-align:right;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.diagram{margin:10px 0 12px;background:#fffdf7;border:2px solid #eadfcb;border-radius:18px;padding:13px;overflow:hidden}.flow{display:grid;grid-template-columns:1fr;gap:8px}.practiceVisual{width:100%;height:auto;display:block;max-height:260px}.practiceVisual text{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}.dot{min-height:46px;border:2px solid #c9d9e8;border-radius:14px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;font-weight:900;line-height:1.25;padding:8px 10px;background:#f8fafc;color:#24364b}.dot.hot{border-color:#ff7a1a;background:#fff7ed;color:#b45309;box-shadow:0 0 0 3px rgba(249,115,22,.1)}.student{border-left:4px solid #f97316;background:#fff7ed;border-radius:13px;padding:9px 10px;margin-bottom:10px}.student b{display:block;color:#176b7a;font-size:12px}.student p{margin:4px 0 0;font-size:15px;line-height:1.45;font-weight:900}.stem{font-size:18px;line-height:1.38;font-weight:900;margin:0 0 12px}.options{display:grid;gap:9px}.option{width:100%;min-height:56px;text-align:left;border:1px solid #d6e2ed;border-radius:15px;background:#fff;padding:10px 12px;color:#172437;display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;align-items:center}.option b{width:30px;height:30px;border-radius:999px;background:#eef4f8;color:#176b7a;display:grid;place-items:center;font-size:14px}.option span{font-size:15px;line-height:1.32;font-weight:900;overflow-wrap:anywhere}.option small{display:block;color:#60758c;font-size:12px;line-height:1.3;margin-top:3px;font-weight:800}.option.correct{border-color:#73c596;background:#ecf9f2}.option.correct b{background:#16a34a;color:#fff}.option.wrong{border-color:#fb923c;background:#fff3e9}.option.wrong b{background:#f97316;color:#fff}.option:disabled{opacity:1}.feedback{display:none;margin-top:10px;border-radius:14px;padding:11px 12px;font-size:14px;font-weight:850;line-height:1.55}.feedback.show.correct{display:block;background:#ecf9f2;border:1px solid #73c596;color:#0f6b4f}.feedback.show.wrong{display:block;background:#fff3e9;border:1px solid #fb923c;color:#9a3412}.feedback.show.wait{display:block;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412}.done{display:none;background:#fff;border:1px solid #d2dee9;border-radius:20px;padding:16px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.done.show{display:block}.done h2{font-size:24px;margin:0 0 10px;text-align:center;color:#176b7a}.scoreBox{border:1px solid #cfe0ee;background:#f8fbfe;border-radius:16px;padding:12px;margin-bottom:12px}.scoreBox p{margin:0;color:#1d2f44;font-size:15px;line-height:1.5;font-weight:900}.scoreBadge{display:inline-flex;align-items:center;min-height:30px;border-radius:999px;background:#fff7ed;color:#b45309;border:1px solid #fed7aa;padding:4px 10px;margin-top:8px;font-size:12px;font-weight:900}.resultBlock{margin-top:12px}.resultBlock h3{margin:0 0 8px;color:#176b7a;font-size:15px;line-height:1.3}.analysisGrid{display:grid;gap:8px}.insight{border-left:4px solid #176b7a;background:#f7fafc;border-radius:12px;padding:9px 10px}.insight.warn{border-left-color:#f97316;background:#fff7ed}.insight b{display:block;font-size:12px;color:#60758c;margin-bottom:3px}.insight p{margin:0;font-size:14px;line-height:1.45;font-weight:900;color:#223248}.reviewList{display:grid;gap:7px}.reviewItem{border:1px solid #d8e4ef;border-radius:12px;padding:9px 10px;background:#fff}.reviewItem.good{background:#f0fdf4;border-color:#bbf7d0}.reviewItem.miss{background:#fff7ed;border-color:#fed7aa}.reviewItem b{display:block;font-size:13px;line-height:1.35;color:#1d2f44}.reviewItem small{display:block;margin-top:4px;color:#60758c;font-size:12px;line-height:1.4;font-weight:800}.resultActions{display:grid;gap:9px;margin:14px 0}.resultActions button,.done a{min-height:46px;border-radius:14px;font-weight:900;text-decoration:none}.resultActions button{border:1px solid #cdddeb;background:#fff;color:#24364b}.resultActions .ask{background:#176b7a;color:#fff;border-color:#176b7a}.resultActions .drill{background:#ff7a1a;color:#fff;border-color:#ff7a1a}.done a{display:flex;align-items:center;justify-content:center;background:#fff;color:#176b7a;border:1px solid #c9d9e8}.aiPanel{display:none;border:1px solid #d6e2ed;border-radius:16px;background:#0f1e2d;color:#eaf2fb;padding:12px;margin-top:10px}.aiPanel.show{display:block}.aiStatus{margin:0 0 8px;color:#fed27a;font-size:12px;font-weight:900}.aiResult{font-size:14px;line-height:1.55;font-weight:850}.aiResult p{margin:0 0 8px}.aiResult ul{margin:6px 0 0;padding-left:18px}.atoms{display:grid;gap:7px;margin:12px 0}.atoms span{border-left:3px solid #176b7a;background:#f7fafc;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:900;color:#34465b}nav{position:sticky;bottom:0;width:min(430px,calc(100% - 20px));margin:12px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.97);border:1px solid #d2dee9;border-bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -10px 28px rgba(31,41,55,.12)}nav button{min-height:48px;border-radius:14px;border:1px solid #cfdae6;background:#fff;color:#24364b;font-weight:900}nav button.primary{background:#176b7a;color:#fff;border-color:#176b7a}nav button:disabled{background:#eef4f8;color:#7b8da1;border-color:#cfdae6}nav button.blocked{border-color:#fb923c;background:#fff7ed;color:#9a3412}@media(orientation:landscape){.practice{max-width:920px;padding-bottom:24px}.card{display:grid;grid-template-columns:minmax(280px,1fr) minmax(340px,.85fr);gap:14px;align-items:start}.qtop{grid-column:1/-1}.diagram{margin:0}.flow{grid-template-columns:1fr 1fr}.flow:has(.practiceVisual){grid-template-columns:1fr}.student,.stem,.options,.feedback{grid-column:2}.done{max-width:760px;margin:0 auto}.analysisGrid{grid-template-columns:1fr 1fr}.resultActions{grid-template-columns:1fr 1fr 1fr}nav{width:min(720px,calc(100% - 20px));grid-template-columns:180px 1fr}}
-</style></head><body><main class="practice" data-practice-shell="animation-ir-practice"><header><a id="backLink" href="P40_S05.animation_ir_preview.html">返回讲解</a><div><span>鲁班深母题 · Slot 17</span><h1>临时用电: 三级配电两级保护</h1></div></header><div class="progress" aria-hidden="true"><i id="progressBar"></i></div><section class="card" id="quizCard"><div class="qtop"><span id="qCount"></span><em id="qFocus"></em></div><div class="diagram"><div class="flow" id="flow"></div></div><div class="student"><b>学生答</b><p id="studentAnswer"></p></div><p class="stem" id="stem"></p><div class="options" id="options"></div><div class="feedback" id="practiceFeedback" role="status"></div></section><section class="done" id="done"><h2>闯关完成</h2><div class="scoreBox"><p id="scoreText"></p><span class="scoreBadge" id="levelBadge"></span></div><div class="resultBlock"><h3>表现分析</h3><div class="analysisGrid" id="insights"></div></div><div class="resultBlock"><h3>逐题复盘</h3><div class="reviewList" id="reviewList"></div></div><div class="resultActions"><button class="ask" id="aiCoachBtn" type="button" data-answer-action="ask-luban-followup">带着疑问问鲁班</button><button class="drill" id="drillBtn" type="button" data-answer-action="drill-weak-points">继续补练薄弱点</button><a href="P40_S05.animation_ir_preview.html">回看白板讲解</a></div><div class="aiPanel" id="aiPanel"><p class="aiStatus" id="aiStatus"></p><div class="aiResult" id="aiResult"></div></div><div class="atoms" id="atoms"></div></section></main><nav><button id="prevBtn" type="button">上一题</button><button id="primaryBtn" class="primary" type="button" data-answer-action="submit-or-next">先作答</button></nav><script type="application/json" id="practiceData">{"cardId": "P40_S05", "title": "临时用电: 三级配电两级保护", "kicker": "鲁班深母题 · Slot 17", "previewHref": "P40_S05.animation_ir_preview.html", "aiContext": {"context_id": "P40_S05", "title": "临时用电: 三级配电两级保护", "main_exam_action": "把临时用电题写成“架构完整 → 末端专用 → 顺序参数 → 管理闭环”的采分句: 三级配电、TN-S、二级漏保、一机一闸、停送电顺序和关键参数都要落到现场对象上。", "safe_summary": "S05 的主线是把现场临时用电画成供电树: 总配电箱、分配电箱、开关箱逐级到设备；保护链补 TN-S 和二级漏保；末端一台设备一个开关箱；最后把停送电顺序、安全电压、电缆埋地和管理动作写成采分句。", "key_points": ["三级配电: 总配电箱→分配电箱→开关箱→设备", "保护链: TN-S 接零保护 + 二级剩余电流动作保护", "末端控制: 每台设备专用开关箱，进线端禁插头插座活动连接", "答题纸: 架构、末端、顺序参数、管理闭环四行扫描"], "handoff_mode": "context_id_plus_current_scene", "api_base": "https://test2.yousenjiaoyu.com"}, "mainExamAction": "把临时用电题写成“架构完整 → 末端专用 → 顺序参数 → 管理闭环”的采分句: 三级配电、TN-S、二级漏保、一机一闸、停送电顺序和关键参数都要落到现场对象上。", "keyPoints": ["三级配电: 总配电箱→分配电箱→开关箱→设备", "保护链: TN-S 接零保护 + 二级剩余电流动作保护", "末端控制: 每台设备专用开关箱，进线端禁插头插座活动连接", "答题纸: 架构、末端、顺序参数、管理闭环四行扫描"], "questions": [{"id": "q1", "stageLabel": "看供电树", "skill": "三级配电架构", "scene_gap": "学生把三级配电当成三个词，没有看出设备应从总配、分配、开关箱逐级接出。", "student": "题干: 现场从分配电箱直接给用电设备供电，答案只写“应加强临时用电管理”。", "stem": "如果要求指出不妥并改正，第一句最稳应该怎么写？", "answer": "three_level_path", "visual": {"kind": "s05_power_tree", "title": "设备必须逐级接入", "before": ["总配", "分配", "开关", "设备"], "after": ["总配电箱", "分配电箱", "开关箱", "用电设备"], "hotIndex": 2, "items": ["总配电箱", "分配电箱", "开关箱", "用电设备"]}, "options": [{"id": "three_level_path", "label": "不妥；临时用电应按总配电箱→分配电箱→开关箱→用电设备逐级配电，不能越级接设备。", "reason": "把现场接法改成三级配电拓扑。"}, {"id": "manage_general", "label": "不妥；应加强安全管理，安排电工每天巡视。", "reason": "有管理动作，但没有改供电路径。"}, {"id": "only_name_boxes", "label": "应设置总配电箱、分配电箱、开关箱，三个箱名写全即可。", "reason": "箱名有了，但没有说明逐级接入和越级错误。"}, {"id": "voltage_first", "label": "应先按36V、24V、12V安全电压分档，再决定如何配电。", "reason": "把特殊照明参数提前到了主供电架构前面。"}], "optionFeedback": {"manage_general": "容易选，因为安全题常见“加强管理”。但这题的扣分点在供电路径，必须改成总→分→开→设备。", "only_name_boxes": "三个箱名是必要但不够。阅卷要看你有没有指出越级供电，并写逐级配电的正确路径。", "voltage_first": "安全电压是特殊场所照明参数，不是这道越级供电题的第一刀。先修配电拓扑。"}, "correct": "对。第一句要把现场设备放回三级供电树，写出总配电箱、分配电箱、开关箱逐级配电。", "wrong": "这道题不是考安全态度，而是考供电拓扑。只写管理、箱名或安全电压，都没有改掉越级接设备。", "basis_anchor": "§5 R6 答案骨架 2"}, {"id": "q2", "stageLabel": "拆共箱错法", "skill": "一机一闸", "scene_gap": "现场两台设备共用一个开关箱，学生容易只写“开关箱设置不规范”。", "student": "题干: 电锯和砂轮机共用一个开关箱，开关箱进线端采用插头插座活动连接。", "stem": "下面哪句最像案例题可给分的改正动作？", "answer": "dedicated_fixed", "visual": {"kind": "s05_shared_switch", "before": ["分配箱", "共用开关箱", "电锯", "砂轮机"], "after": ["分配箱", "专用开关箱", "电锯", "砂轮机"], "hotIndex": 1, "items": ["分配箱", "专用开关箱", "电锯", "砂轮机"]}, "options": [{"id": "dedicated_fixed", "label": "不妥；每台设备应使用专用开关箱，不得一箱控制两台及以上设备，进线端严禁采用插头插座活动连接。", "reason": "同时补齐一机一闸和进线端禁插接。"}, {"id": "add_monitor", "label": "可以共用，但应由专人看护开关箱，发生异常立即断电。", "reason": "把规范禁令误改成管理加强。"}, {"id": "label_box", "label": "只要在共用开关箱上贴清楚设备名称，避免误操作即可。", "reason": "标签不能替代专用控制。"}, {"id": "replace_socket_only", "label": "只需取消插头插座活动连接，共用开关箱本身可以保留。", "reason": "只修了连接方式，漏掉一箱控多机。"}], "optionFeedback": {"add_monitor": "容易选，因为它听起来安全。但共用开关箱本身不符合一机一闸，不能靠人盯来补。", "label_box": "设备标签只能帮助识别，不能实现故障设备就近独立断电。仍然是一箱控两机。", "replace_socket_only": "进线端禁插接是一个采分点，但题干还有共用开关箱。只修插头会漏一机一闸。"}, "correct": "对。这个题眼有两个动作: 每台设备专用开关箱，且进线端不能用插头插座活动连接。", "wrong": "错项都漏了至少一个现场对象: 不是只看人、标签或插头，而是设备和开关箱必须一一对应。", "basis_anchor": "§5 R5 B1/B2"}, {"id": "q3", "stageLabel": "判顺序", "skill": "停送电顺序", "scene_gap": "学生知道有总、分、开三级箱，但把送电和停电方向写反。", "student": "学生答: “送电时先合开关箱，停电时先断总配电箱。”", "stem": "这句话应该怎么诊断并补正？", "answer": "reverse_chain", "visual": {"kind": "s05_sequence", "before": ["总箱", "分箱", "开箱"], "after": ["送电:总→分→开", "停电:开→分→总"], "hotIndex": 1, "items": ["总箱", "分箱", "开箱"]}, "options": [{"id": "reverse_chain", "label": "判为顺序错误；送电应总配电箱→分配电箱→开关箱，停电应开关箱→分配电箱→总配电箱。", "reason": "把正向送电和反向停电都写全。"}, {"id": "same_direction", "label": "送电和停电都按总配电箱→分配电箱→开关箱，便于统一管理。", "reason": "把停电也写成送电方向。"}, {"id": "operator_decide", "label": "顺序可由现场电工根据方便程度决定，只要最终断电即可。", "reason": "用经验方便替代程序顺序。"}, {"id": "only_shutdown", "label": "只需写停电从开关箱开始，送电顺序一般不作为采分点。", "reason": "漏掉送电总→分→开。"}], "optionFeedback": {"same_direction": "容易选，因为三级箱顺序看似固定。但停电是反向链，写成同方向就是顺序错误。", "operator_decide": "这不是便捷操作题。停送电是封闭有序链，不能交给现场随意决定。", "only_shutdown": "2017案例问过停电顺序，但教材也给出送电顺序。答题最好一并写全，避免漏分。因为漏掉这个动作会扣分，正确答案要补完整采分句。"}, "correct": "对。送电和停电是互逆链: 送电总→分→开，停电开→分→总。因为这句话把现场对象写成了采分动作。", "wrong": "顺序题不要写成“最终断电就行”。它考的是操作链，方向错就容易失分。", "basis_anchor": "§5 R5 C1/C2"}, {"id": "q4", "stageLabel": "补参数", "skill": "安全电压与电缆", "scene_gap": "学生能指出临电不妥，但参数写成“应符合规范要求”，没有落到场所/剖面。", "student": "题干: 金属容器内用36V照明灯；现场电缆浅埋，答案写“应采用安全电压并保护电缆”。", "stem": "哪句补法更像完整采分动作？", "answer": "specific_params", "visual": {"kind": "s05_voltage_cable", "before": ["潮湿场所", "易触及", "金属容器"], "after": ["≤36V", "≤24V", "≤12V"], "hotIndex": 2, "items": ["≤36V", "≤24V", "≤12V"]}, "options": [{"id": "specific_params", "label": "金属容器内照明电压不应大于12V；电缆直接埋地敷设深度不应小于0.7m，并按N线蓝色、PE线黄绿双色识别。", "reason": "把场所、电压、剖面和标识色都落到参数。"}, {"id": "safe_voltage_general", "label": "应采用安全电压，并对电缆采取可靠保护措施。", "reason": "方向对，但没有场所分档和埋地数值。"}, {"id": "thirtysix_all", "label": "特殊场所照明统一不超过36V，电缆埋地深度按现场情况确定。", "reason": "把金属容器和潮湿场所混成一档。"}, {"id": "color_only", "label": "重点写五芯电缆N线为蓝色、PE线为黄绿双色，其他参数可略。", "reason": "只命中标识色，漏电压和埋地深度。"}], "optionFeedback": {"safe_voltage_general": "这句话容易写，但太虚。特殊场所要把36、24、12V对到场所，电缆还要写0.7m。", "thirtysix_all": "金属容器不是36V档，应降到12V。把所有场所统一36V会扣关键数值分。", "color_only": "标识色是采分点之一，但题干还给了金属容器和浅埋电缆，只写颜色不够。"}, "correct": "对。参数题要把数字挂到现场对象上: 金属容器12V，埋地0.7m，N蓝、PE黄绿。", "wrong": "错项的问题不是方向完全错，而是没有给阅卷人可判分的数字和对象。", "basis_anchor": "§5 R5 D1/E1/F2"}, {"id": "q5", "stageLabel": "写采分句", "skill": "答案诊断", "scene_gap": "综合案例同时出现越级接电、共用开关箱、顺序写反和装饰阶段用电方案缺失，学生只写“加强管理”。", "student": "学生答: “现场临时用电管理不到位，应按规范整改，保证用电安全。”", "stem": "如果让你诊断这份答案，哪一项最能补成完整采分句？", "answer": "full_score_sentence", "visual": {"kind": "s05_answer_scan", "before": ["架构", "末端", "顺序参数", "管理"], "after": ["三级+TN-S+二级漏保", "一机一闸禁插接", "送停电+36/24/12+0.7m", "持证+组织设计/补方案"], "hotIndex": 0, "items": ["三级+TN-S+二级漏保", "一机一闸禁插接", "送停电+36/24/12+0.7m", "持证+组织设计/补方案"]}, "options": [{"id": "full_score_sentence", "label": "答案应补成: 采用三级配电、TN-S接零和二级漏保；总→分→开逐级配电；每台设备专用开关箱且进线端禁插接；送电总→分→开、停电开→分→总，并落实安全电压、电缆埋地、持证和用电方案要求。", "reason": "把架构、末端、顺序参数和管理闭环都交付。"}, {"id": "more_management", "label": "答案只需补“项目部应建立用电管理制度，定期检查并落实责任人”。", "reason": "管理更完整，但仍然没有现场采分对象。"}, {"id": "only_three_systems", "label": "答案重点补“采用三级配电系统、TN-S系统和二级漏保”，其他可略。", "reason": "架构命中，但漏末端和题干具体错法。"}, {"id": "only_params", "label": "答案重点补36/24/12V、0.7m、N蓝PE黄绿这些数字，说明参数记得牢。", "reason": "参数命中，但漏供电拓扑和一机一闸。"}], "optionFeedback": {"more_management": "这就是原答案的升级版口号。它仍然没有改越级接电、共用开关箱和顺序错误。因为漏掉这个动作会扣分，正确答案要补完整采分句。", "only_three_systems": "三大系统是第一行，但综合案例还会给末端错法和顺序参数。只写架构会 partial。因为漏掉这个动作会扣分，正确答案要补完整采分句。", "only_params": "数字很重要，但 S05 不是纯记忆表。没有三级配电、一机一闸和顺序链，仍然不完整。"}, "correct": "对。最后一题训练的是采分句诊断: 把口号答案补成架构、末端、顺序参数、管理四行。", "wrong": "这份答案的问题是口号化。补救不能只加管理、架构或数字，而要把题干现场对象全部扫进采分句。", "basis_anchor": "§5 R6 答案骨架 + §6 M8"}]}</script><script>
-const DATA=JSON.parse(document.getElementById('practiceData').textContent);
-const $=id=>document.getElementById(id);
-const els={card:$('quizCard'),done:$('done'),progress:$('progressBar'),qCount:$('qCount'),qFocus:$('qFocus'),flow:$('flow'),student:$('studentAnswer'),stem:$('stem'),options:$('options'),feedback:$('practiceFeedback'),prev:$('prevBtn'),primary:$('primaryBtn'),score:$('scoreText'),level:$('levelBadge'),insights:$('insights'),review:$('reviewList'),aiCoach:$('aiCoachBtn'),drill:$('drillBtn'),aiPanel:$('aiPanel'),aiStatus:$('aiStatus'),aiResult:$('aiResult'),atoms:$('atoms')};
-let index=0;
-const answers=new Array(DATA.questions.length).fill(null);
-function safe(s){return String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
-function current(){return DATA.questions[index];}
-function answered(){return answers[index];}
-function setFeedback(kind,text){els.feedback.className='feedback show '+kind;els.feedback.textContent=text;}
-function clearFeedback(){els.feedback.className='feedback';els.feedback.textContent='';}
-function renderDots(items,hotIndex){return (items||[]).map((p,i)=>`<div class="dot ${i===hotIndex?'hot':''}">${safe(p)}</div>`).join('');}
-function svgChip(text,x,y,w,fill='#f8fafc',stroke='#cbd5e1',color='#24364b',size=14){return `<rect x="${x}" y="${y}" width="${w}" height="42" rx="13" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/><text x="${x+w/2}" y="${y+27}" text-anchor="middle" font-size="${size}" font-weight="900" fill="${color}">${safe(text)}</text>`;}
-function renderVisual(q,a){const visual=q.visual||{};const v=visual;const answered=!!a;const before=Array.isArray(v.before)?v.before:[];const after=Array.isArray(v.after)?v.after:before;const labels=answered?after:before;const hotIndex = a ? Number(visual.hotIndex) : -1;const hot=hotIndex;
-  if(v.kind==='s02_danger_gate'){return `<svg class="practiceVisual" viewBox="0 0 360 238" role="img" aria-label="危大两层门判断图"><rect x="16" y="18" width="328" height="202" rx="20" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><text x="180" y="48" text-anchor="middle" font-size="17" font-weight="900" fill="#176b7a">${safe(v.lead||'题干重量')}</text><path d="M180 64 V91" stroke="#94a3b8" stroke-width="4"/><path d="M82 112 H278" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>${svgChip(labels[0]||'第1道门',42,92,128,answered?'#ecfdf5':'#f8fafc',answered?'#10b981':'#cbd5e1',answered?'#047857':'#24364b',answered?11:14)}${svgChip(labels[1]||'第2道门',190,92,128,answered?'#fff7ed':'#f8fafc',answered?'#f97316':'#cbd5e1',answered?'#9a3412':'#24364b',answered?11:14)}<text x="180" y="174" text-anchor="middle" font-size="14" font-weight="900" fill="${answered?'#9a3412':'#64748b'}">${answered?'先过危大门，不自动过论证门':'先判断两道门，不要直接跳结论'}</text><circle cx="${hot===0?106:254}" cy="113" r="${answered?8:0}" fill="#ff7a1a"/></svg>`;}
-  if(v.kind==='s02_wind_gate'){return `<svg class="practiceVisual" viewBox="0 0 360 238" role="img" aria-label="风线分场景图"><rect x="16" y="18" width="328" height="202" rx="20" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><text x="180" y="50" text-anchor="middle" font-size="17" font-weight="900" fill="#176b7a">先看题干动词</text><path d="M180 64 V86 M104 86 H256" stroke="#94a3b8" stroke-width="4" fill="none"/>{left} {right}<text x="180" y="184" text-anchor="middle" font-size="13" font-weight="900" fill="${answered?'#9a3412':'#64748b'}">${answered?'露天作业和安拆不是同一条风线':'答前先分场景，答后再看红线'}</text></svg>`.replace('{left}',svgChip(labels[0]||'露天作业',36,94,136,answered?'#eff6ff':'#f8fafc',answered?'#60a5fa':'#cbd5e1',answered?'#1d4ed8':'#24364b',answered?12:14)).replace('{right}',svgChip(labels[1]||'安装/拆卸',188,94,136,answered?'#fff7ed':'#f8fafc',answered?'#f97316':'#cbd5e1',answered?'#9a3412':'#24364b',answered?11:14));}
-  if(v.kind==='s02_trial_lift'){return `<svg class="practiceVisual" viewBox="0 0 360 238" role="img" aria-label="90%试吊动作图"><rect x="16" y="18" width="328" height="202" rx="20" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><text x="180" y="48" text-anchor="middle" font-size="17" font-weight="900" fill="#176b7a">${safe(v.load||'额定荷载')}</text><rect x="70" y="64" width="220" height="14" rx="7" fill="#dbe7f1"/><rect x="70" y="64" width="${answered?209:150}" height="14" rx="7" fill="#ff7a1a" opacity=".86"/><path d="M279 55 V88" stroke="#f97316" stroke-width="4" stroke-linecap="round"/><rect x="128" y="${answered?112:136}" width="104" height="34" rx="9" fill="#ecfdf5" stroke="#10b981" stroke-width="3"/><text x="180" y="${answered?134:158}" text-anchor="middle" font-size="14" font-weight="900" fill="#047857">吊物</text><path d="M72 178 H288" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/><text x="180" y="102" text-anchor="middle" font-size="13" font-weight="900" fill="${answered?'#9a3412':'#64748b'}">${answered?safe((after[0]||'离地200～500mm')):'先别正式起吊'}</text><text x="180" y="204" text-anchor="middle" font-size="13" font-weight="900" fill="${answered?'#047857':'#64748b'}">${answered?safe((after[1]||'机械/制动/平稳/绑扎')):'答后揭示四查清单'}</text></svg>`;}
-  if(v.kind==='s02_limit_gate'){return `<svg class="practiceVisual" viewBox="0 0 360 238" role="img" aria-label="限位禁令对照图"><rect x="16" y="18" width="328" height="202" rx="20" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><text x="180" y="50" text-anchor="middle" font-size="17" font-weight="900" fill="#176b7a">限位不是操作手柄</text>${svgChip(before[0]||'操作机构失灵',42,78,128,'#fff7ed','#f97316','#9a3412',12)}${svgChip(before[1]||'限位顶替',190,78,128,'#fff7ed','#f97316','#9a3412',12)}<path d="M165 99 H195" stroke="#ef4444" stroke-width="6" stroke-linecap="round"/><path d="M180 84 V114" stroke="#ef4444" stroke-width="6" stroke-linecap="round"/><text x="180" y="142" text-anchor="middle" font-size="15" font-weight="900" fill="${answered?'#047857':'#64748b'}">${answered?safe(after.join(' → ')):'选完后看正确处置链'}</text><path d="M92 164 H268" stroke="${answered?'#10b981':'#cbd5e1'}" stroke-width="7" stroke-linecap="round"/></svg>`;}
-  if(v.kind==='s02_answer_scan'){return `<svg class="practiceVisual" viewBox="0 0 360 238" role="img" aria-label="答题纸采分扫描图"><rect x="28" y="22" width="304" height="194" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><text x="56" y="54" font-size="15" font-weight="900" fill="#176b7a">答题纸闭环</text>${[0,1,2,3].map(i=>`<rect x="54" y="${72+i*32}" width="252" height="24" rx="8" fill="${answered?(i===hot?'#fff7ed':'#ecfdf5'):'#f8fafc'}" stroke="${answered?(i===hot?'#f97316':'#10b981'):'#cbd5e1'}" stroke-width="2"/><text x="66" y="${89+i*32}" font-size="12" font-weight="900" fill="${answered?(i===hot?'#9a3412':'#047857'):'#334155'}">${safe((answered?after:before)[i]||'')}</text>`).join('')}<text x="180" y="204" text-anchor="middle" font-size="12" font-weight="900" fill="${answered?'#9a3412':'#64748b'}">${answered?'把题干事实逐个落到采分句':'先判断，别提前背答案'}</text></svg>`;}
-  if(v.kind==='s05_power_tree'){return `<svg class="practiceVisual" viewBox="0 0 360 238" role="img" aria-label="三级配电供电树"><rect x="16" y="18" width="328" height="202" rx="20" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><text x="180" y="46" text-anchor="middle" font-size="16" font-weight="900" fill="#176b7a">${safe(v.title||'现场供电树')}</text><path d="M62 118 H298" stroke="${answered?'#10b981':'#cbd5e1'}" stroke-width="6" stroke-linecap="round"/><path d="M66 168 H294" stroke="${answered?'#16a34a':'#cbd5e1'}" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 6"/><text x="180" y="186" text-anchor="middle" font-size="12" font-weight="900" fill="${answered?'#047857':'#64748b'}">${answered?'TN-S PE线贯通，漏保随配电层级看':'答前只看现场对象，不提前高亮答案'}</text>${[0,1,2,3].map((i)=>{const xs=[52,126,200,274], names=labels.length?labels:['总配电箱','分配电箱','开关箱','设备'];const fill=answered?(i===3?'#fff7ed':'#ecfdf5'):'#f8fafc';const stroke=answered?(i===3?'#f97316':'#10b981'):'#cbd5e1';const color=answered?(i===3?'#9a3412':'#047857'):'#24364b';return svgChip(names[i]||'',xs[i]-32,96,64,fill,stroke,color,11);}).join('')}${answered?`<text x="52" y="82" text-anchor="middle" font-size="11" font-weight="900" fill="#b45309">漏保</text><text x="200" y="82" text-anchor="middle" font-size="11" font-weight="900" fill="#b45309">漏保</text>`:''}</svg>`;}
-  if(v.kind==='s05_shared_switch'){return `<svg class="practiceVisual" viewBox="0 0 360 238" role="img" aria-label="一箱控多机诊断图"><rect x="16" y="18" width="328" height="202" rx="20" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><text x="180" y="46" text-anchor="middle" font-size="16" font-weight="900" fill="#176b7a">${answered?'拆成“一机一闸”':'题干现场:共用开关箱'}</text><path d="M68 118 H186" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/><path d="M218 118 C238 92 258 84 288 84" stroke="${answered?'#10b981':'#ef4444'}" stroke-width="5" fill="none"/><path d="M218 118 C238 144 258 154 288 154" stroke="${answered?'#10b981':'#ef4444'}" stroke-width="5" fill="none"/>${svgChip(labels[0]||'分配箱',38,98,78,'#eff6ff','#60a5fa','#1d4ed8',12)}${svgChip(labels[1]||'开关箱',152,98,78,answered?'#ecfdf5':'#fff7ed',answered?'#10b981':'#f97316',answered?'#047857':'#9a3412',12)}${svgChip(labels[2]||'设备A',252,64,72,answered?'#ecfdf5':'#fff7ed',answered?'#10b981':'#f97316',answered?'#047857':'#9a3412',12)}${svgChip(labels[3]||'设备B',252,134,72,answered?'#ecfdf5':'#fff7ed',answered?'#10b981':'#f97316',answered?'#047857':'#9a3412',12)}<text x="180" y="198" text-anchor="middle" font-size="13" font-weight="900" fill="${answered?'#047857':'#b91c1c'}">${answered?'每台设备专用开关箱，不得一箱控两台及以上':'错法先出现，答后再改成专用箱'}</text></svg>`;}
-  if(v.kind==='s05_sequence'){return `<svg class="practiceVisual" viewBox="0 0 360 238" role="img" aria-label="停送电顺序图"><rect x="16" y="18" width="328" height="202" rx="20" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><text x="180" y="48" text-anchor="middle" font-size="16" font-weight="900" fill="#176b7a">${answered?'送电和停电是反向链':'先判断当前动作是送电还是停电'}</text><path d="M70 100 H290" stroke="${answered?'#10b981':'#cbd5e1'}" stroke-width="6" stroke-linecap="round"/><path d="M290 148 H70" stroke="${answered?'#60a5fa':'#cbd5e1'}" stroke-width="6" stroke-linecap="round"/><path d="M278 92 L294 100 L278 108 M82 140 L66 148 L82 156" stroke="${answered?'#334155':'#94a3b8'}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>${['总','分','开'].map((n,i)=>svgChip(n+'箱',[50,150,250][i],74,58,answered?'#ecfdf5':'#f8fafc',answered?'#10b981':'#cbd5e1',answered?'#047857':'#24364b',13)).join('')}${['开','分','总'].map((n,i)=>svgChip(n+'箱',[50,150,250][i],154,58,answered?'#eff6ff':'#f8fafc',answered?'#60a5fa':'#cbd5e1',answered?'#1d4ed8':'#24364b',13)).join('')}<text x="180" y="128" text-anchor="middle" font-size="13" font-weight="900" fill="${answered?'#047857':'#64748b'}">${answered?'送电:总→分→开；停电:开→分→总':'答前不标方向，先看题干动词'}</text></svg>`;}
-  if(v.kind==='s05_voltage_cable'){return `<svg class="practiceVisual" viewBox="0 0 360 238" role="img" aria-label="安全电压与电缆剖面图"><rect x="16" y="18" width="328" height="202" rx="20" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><text x="180" y="46" text-anchor="middle" font-size="16" font-weight="900" fill="#176b7a">${answered?'参数要落到现场对象':'先看环境和电缆剖面'}</text>${[0,1,2].map((i)=>svgChip((answered?after:before)[i]||['潮湿/隧道','易触及','金属容器'][i],[34,132,230][i],66,94,answered?['#eff6ff','#fffbeb','#fff7ed'][i]:'#f8fafc',answered?['#60a5fa','#f59e0b','#f97316'][i]:'#cbd5e1',answered?['#1d4ed8','#b45309','#9a3412'][i]:'#24364b',11)).join('')}<rect x="72" y="150" width="216" height="42" rx="12" fill="#d9c8a5" stroke="#8b7355" stroke-width="3"/><path d="M94 158 H266" stroke="#334155" stroke-width="6" stroke-linecap="round"/><text x="180" y="210" text-anchor="middle" font-size="13" font-weight="900" fill="${answered?'#047857':'#64748b'}">${answered?'电缆直接埋地深度≥0.7m；N蓝、PE黄绿':'答后揭示深度与标识色'}</text></svg>`;}
-  if(v.kind==='s05_answer_scan'){return `<svg class="practiceVisual" viewBox="0 0 360 238" role="img" aria-label="临时用电答题纸扫描图"><rect x="28" y="22" width="304" height="194" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><text x="56" y="54" font-size="15" font-weight="900" fill="#176b7a">答题纸扫描</text>${[0,1,2,3].map(i=>`<rect x="50" y="${72+i*31}" width="260" height="24" rx="8" fill="${answered?(i===hot?'#fff7ed':'#ecfdf5'):'#f8fafc'}" stroke="${answered?(i===hot?'#f97316':'#10b981'):'#cbd5e1'}" stroke-width="2"/><text x="62" y="${89+i*31}" font-size="12" font-weight="900" fill="${answered?(i===hot?'#9a3412':'#047857'):'#334155'}">${safe((answered?after:before)[i]||'')}</text>`).join('')}<text x="180" y="210" text-anchor="middle" font-size="12" font-weight="900" fill="${answered?'#9a3412':'#64748b'}">${answered?'不是口号，必须交付可给分动作':'先写答案，答后扫描命中点'}</text></svg>`;}
-  const visualItems=Array.isArray(v.items)&&v.items.length?v.items:DATA.keyPoints;
-  return renderDots(visualItems,hot);
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11.5px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 架构、末端、顺序、参数、采分句都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"" };
+  examTitle="临时用电三级配电两级保护";
+  KNOWLEDGE="临时用电三级配电两级保护(S05)。三大系统:三级配电系统+TN-S接零保护系统+二级剩余电流动作保护系统,缺一不可(只写三级配电=E01/E02)。三级配电装置:总配电箱→分配电箱→开关箱,设备逐级接入不得越级。末端:每台设备专用开关箱,不得一箱控制两台及以上;配电箱、开关箱电源进线端严禁插头插座活动连接(=E10/M10)。顺序:送电总→分→开,停电开→分→总(写反=E06)。参数:潮湿/隧道/人防≤36V,易触及带电体≤24V,金属容器/锅炉≤12V(=M08);电缆直接埋地≥0.7m;N线蓝色、PE线黄绿双色。管理:电工持证,50kW及以上编制临时用电组织设计,装饰装修阶段补编单项用电方案。真题锚:{2023第1题}/{2017第2题}/{2016第13题}/{2018第17题}。禁口号化表达(E04)。";
+  moreText="补两道：① 现场多台设备接入同一开关箱的纠错题（{2023第1题}）——练「每台设备专用开关箱 + 进线端禁插头插座活动连接」两句一起写；② 停送电顺序题（{2017第2题}）——练「送电总→分→开、停电开→分→总」互逆链，方向别写反。";
+  // ── 题库：供电树 → 一机一闸 → 顺序 → 参数 → 采分句诊断（5 题，来自 pack practice_blueprint）──
+  Q=[
+    { tag:"看供电树·架构", typeHint:"单选 · 选出最完整、能拿分的作答", figLabel:"图示：三级配电供电树", figCaption:"总配电箱 → 分配电箱 → 开关箱 → 用电设备 · 逐级接入", fig:"tree",
+      stem:"现场从分配电箱直接给用电设备供电，学生答案只写“应加强临时用电管理”。如果要求指出不妥并改正，第一句最稳应该怎么写？",
+      model:"不妥；临时用电应按总配电箱→分配电箱→开关箱→用电设备逐级配电，不能越级接设备。",
+      opts:[
+        { t:"不妥；临时用电应按总配电箱→分配电箱→开关箱→用电设备逐级配电，不能越级接设备。", ok:true, fix:"把现场接法改成三级配电拓扑：先指出越级不妥，再写逐级配电正确路径。", code:"" },
+        { t:"不妥；应加强安全管理，安排电工每天巡视。", ok:false, code:"E04", tempt:"安全题常见“加强管理”，听着稳妥。", lose:"有管理动作但没有改供电路径，扣分点在越级供电，口号化表达不得分。", fix:"改成总配电箱→分配电箱→开关箱→设备逐级配电。" },
+        { t:"应设置总配电箱、分配电箱、开关箱，三个箱名写全即可。", ok:false, code:"E02", tempt:"三个箱名背得熟，以为写全就够。", lose:"箱名是必要但不够：没指出越级供电这处不妥，也没写逐级接入的正确路径，采分点遗漏。", fix:"补「设备必须逐级接入、不得越级」并点出题干越级错法。" },
+        { t:"应先按36V、24V、12V安全电压分档，再决定如何配电。", ok:false, code:"E10", tempt:"记得安全电压数值，想先把参数摆出来。", lose:"安全电压是特殊场所照明参数，不是这道越级供电题的第一刀，规范适用错位。", fix:"先修配电拓扑（总→分→开→设备），参数题再谈 36/24/12V。" }
+      ] },
+    { tag:"拆共箱错法·一机一闸", typeHint:"单选 · 选出案例题可给分的改正动作", figLabel:"图示：共用开关箱（待纠错）", figCaption:"电锯 + 砂轮机共用一箱 ✗ → 各自专用开关箱 ✓", fig:"shared",
+      stem:"电锯和砂轮机共用一个开关箱，开关箱进线端采用插头插座活动连接。下面哪句最像案例题可给分的改正动作？",
+      model:"不妥；每台设备应使用专用开关箱，不得一箱控制两台及以上设备，进线端严禁采用插头插座活动连接。",
+      opts:[
+        { t:"不妥；每台设备应使用专用开关箱，不得一箱控制两台及以上设备，进线端严禁采用插头插座活动连接。", ok:true, fix:"两个采分动作一起写：一机一闸专用开关箱 + 进线端禁插头插座活动连接。", code:"" },
+        { t:"可以共用，但应由专人看护开关箱，发生异常立即断电。", ok:false, code:"M10", tempt:"听起来安全，有人盯着总比没人强。", lose:"共用开关箱本身不符合一机一闸，规范禁令不能靠人盯来补，用常识替代规范。", fix:"每台设备使用专用开关箱，不得一箱控制两台及以上。" },
+        { t:"只要在共用开关箱上贴清楚设备名称，避免误操作即可。", ok:false, code:"E10", tempt:"贴标签好操作，像是管理到位了。", lose:"标签只帮识别，不能实现故障设备就近独立断电，仍然是一箱控两机，规范适用错误。", fix:"改成设备和开关箱一一对应的专用开关箱。" },
+        { t:"只需取消插头插座活动连接，共用开关箱本身可以保留。", ok:false, code:"E02", tempt:"进线端禁插接记住了，以为修完就齐。", lose:"题干还有共用开关箱这处不妥，只修连接方式漏掉一机一闸，采分点遗漏。", fix:"补「每台设备专用开关箱，不得一箱控两台及以上」。" }
+      ] },
+    { tag:"判顺序·停送电", typeHint:"单选 · 诊断学生作答并补正", figLabel:"图示：停送电互逆链", figCaption:"送电 总→分→开（正向） · 停电 开→分→总（反向）", fig:"seq",
+      stem:"学生答：“送电时先合开关箱，停电时先断总配电箱。”这句话应该怎么诊断并补正？",
+      model:"判为顺序错误；送电应总配电箱→分配电箱→开关箱，停电应开关箱→分配电箱→总配电箱。",
+      opts:[
+        { t:"判为顺序错误；送电应总配电箱→分配电箱→开关箱，停电应开关箱→分配电箱→总配电箱。", ok:true, fix:"正向送电和反向停电都写全：送总→分→开，停开→分→总。", code:"" },
+        { t:"送电和停电都按总配电箱→分配电箱→开关箱，便于统一管理。", ok:false, code:"E06", tempt:"三级箱顺序看似固定，统一方向好记。", lose:"停电是反向链，写成同方向就是程序顺序错误。", fix:"停电从末端开始：开关箱→分配电箱→总配电箱。" },
+        { t:"顺序可由现场电工根据方便程度决定，只要最终断电即可。", ok:false, code:"M10", tempt:"觉得现场灵活处理更实际。", lose:"停送电是封闭有序链，不能交给现场随意决定，用经验方便替代程序顺序。", fix:"按规定顺序写：送总→分→开，停开→分→总。" },
+        { t:"只需写停电从开关箱开始，送电顺序一般不作为采分点。", ok:false, code:"E02", tempt:"记得停电考过，以为送电不用写。", lose:"送电总→分→开同样是教材给出的顺序，漏写就漏分，采分点遗漏。", fix:"送电、停电两个方向一并写全。" }
+      ] },
+    { tag:"补参数·电压与电缆", typeHint:"单选 · 选出参数落到对象的补法", figLabel:"图示：安全电压分档 + 电缆埋地剖面", figCaption:"潮湿≤36V · 易触及≤24V · 金属容器≤12V · 埋地≥0.7m", fig:"volt",
+      stem:"金属容器内用 36V 照明灯；现场电缆浅埋，学生答案写“应采用安全电压并保护电缆”。哪句补法更像完整采分动作？",
+      model:"金属容器内照明电压不应大于12V；电缆直接埋地敷设深度不应小于0.7m，并按N线蓝色、PE线黄绿双色识别。",
+      opts:[
+        { t:"金属容器内照明电压不应大于12V；电缆直接埋地敷设深度不应小于0.7m，并按N线蓝色、PE线黄绿双色识别。", ok:true, fix:"把场所、电压、剖面和标识色都落到参数：金属容器12V、埋地0.7m、N蓝PE黄绿。", code:"" },
+        { t:"应采用安全电压，并对电缆采取可靠保护措施。", ok:false, code:"E04", tempt:"方向没错，写起来最顺手。", lose:"太虚：没有场所分档数值，也没有 0.7m 埋深，口号化表达拿不到数值分。", fix:"补「金属容器≤12V」和「直接埋地≥0.7m」两个数。" },
+        { t:"特殊场所照明统一不超过36V，电缆埋地深度按现场情况确定。", ok:false, code:"M08", tempt:"36V 最常见，想统一记一个数。", lose:"金属容器不是 36V 档，应降到 12V；埋深也有 0.7m 定值，规范数字混淆。", fix:"分档写：潮湿36V、易触及24V、金属容器12V；埋地≥0.7m。" },
+        { t:"重点写五芯电缆N线为蓝色、PE线为黄绿双色，其他参数可略。", ok:false, code:"E02", tempt:"标识色记得牢，想突出细节。", lose:"标识色是采分点之一，但题干给了金属容器和浅埋电缆，只写颜色漏两处，采分点遗漏。", fix:"补「金属容器≤12V」和「埋地≥0.7m」再带标识色。" }
+      ] },
+    { tag:"写采分句·末题诊断", typeHint:"单选 · 诊断口号答案并补成采分句", figLabel:"图示：答题纸四行扫描", figCaption:"架构 · 末端 · 顺序参数 · 管理 · 四行写全", fig:"scan",
+      stem:"综合案例同时出现越级接电、共用开关箱、顺序写反和装饰阶段用电方案缺失，学生答：“现场临时用电管理不到位，应按规范整改，保证用电安全。”哪一项最能补成完整采分句？",
+      model:"答案应补成：采用三级配电、TN-S接零和二级漏保；总→分→开逐级配电；每台设备专用开关箱且进线端禁插接；送电总→分→开、停电开→分→总，并落实安全电压、电缆埋地、持证和用电方案要求。",
+      opts:[
+        { t:"答案应补成：采用三级配电、TN-S接零和二级漏保；总→分→开逐级配电；每台设备专用开关箱且进线端禁插接；送电总→分→开、停电开→分→总，并落实安全电压、电缆埋地、持证和用电方案要求。", ok:true, fix:"把架构、末端、顺序参数和管理闭环四行全部交付，题干每处错法都被扫进采分句。", code:"" },
+        { t:"答案只需补“项目部应建立用电管理制度，定期检查并落实责任人”。", ok:false, code:"E04", tempt:"管理制度听着更完整、更像总结。", lose:"这是原口号的升级版：仍然没有改越级接电、共用开关箱和顺序错误，口号化表达。", fix:"按架构、末端、顺序参数、管理四行补成可判分措施。" },
+        { t:"答案重点补“采用三级配电系统、TN-S系统和二级漏保”，其他可略。", ok:false, code:"E02", tempt:"三大系统是最出名的采分句。", lose:"架构命中，但综合案例还有末端错法和顺序参数，只写架构会 partial，采分点遗漏。", fix:"补一机一闸、禁插接、停送电顺序和参数管理行。" },
+        { t:"答案重点补36/24/12V、0.7m、N蓝PE黄绿这些数字，说明参数记得牢。", ok:false, code:"E02", tempt:"数字最像干货，写上显得专业。", lose:"参数命中，但没有三级配电、一机一闸和顺序链，题干错法没被诊断，采分点遗漏。", fix:"先写架构和末端改正句，再落参数数字。" }
+      ] }
+  ];
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"架构、末端、顺序、参数逐项写，题干每处错法都要点到，缺一扣一。"},
+    E04:{label:"口号化表达",advice:"别写“加强管理、确保安全”：落到三级配电+TN-S+二级漏保、一机一闸、36/24/12V、0.7m 这些可判分措施。"},
+    E06:{label:"程序顺序错误",advice:"送电总→分→开，停电开→分→总，互逆链方向不可颠倒。"},
+    E10:{label:"规范适用错误",advice:"一机一闸、进线端禁插接是规范禁令，不能用看护、标签、先谈参数来替代。"},
+    M08:{label:"规范数字混淆",advice:"潮湿36V、易触及24V、金属容器12V、埋地0.7m，分档数字别混。"},
+    M10:{label:"用常识替代规范",advice:"专人看护、现场灵活决定都不是采分句；按规范写专用开关箱和停送电顺序。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+  }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.Q[qi]; const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.Q[qi]; if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.Q[qi],s=this.state.sel[qi];
+    if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&q.opts[s]&&q.opts[s].ok; }
+  next(){ if(this.state.qi<this.Q.length-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.Q[qi].fig, els=[]; let figH=100;
+    if(type==="tree"){ figH=96;
+      els.push(D({x:4,top:22,w:74,h:38,bg:"#2f6db0",r:5,fg:"#fff",fs:9.5,lab:"总配电箱"}));
+      els.push(D({x:78,top:38,w:16,h:5,bg:"#2f6db0"}));
+      els.push(D({x:94,top:24,w:70,h:34,bg:"#3a5168",r:5,fg:"#fff",fs:9.5,lab:"分配电箱"}));
+      els.push(D({x:164,top:38,w:16,h:5,bg:"#2f6db0"}));
+      els.push(D({x:180,top:26,w:62,h:30,bg:"#46627e",r:5,fg:"#fff",fs:9.5,lab:"开关箱"}));
+      els.push(D({x:242,top:38,w:16,h:5,bg:"#2f6db0"}));
+      els.push(D({x:258,top:28,w:62,h:26,bg:"#b9a88a",r:5,fg:"#3a3325",fs:9.5,lab:"设备"}));
+      els.push(D({x:94,top:68,w:200,h:4,bg:"repeating-linear-gradient(90deg,#cf4436,#cf4436 8px,transparent 8px,transparent 14px)"}));
+      els.push(D({x:94,top:78,w:226,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 分配电箱直接拖线给设备 = 越级"}));
+      els.push(D({x:4,top:2,w:220,h:14,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"✓ 逐级接入 · 不缺级不越级"})); }
+    else if(type==="shared"){ figH=100;
+      els.push(D({x:0,top:0,w:120,h:12,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 一箱控两机"}));
+      els.push(D({x:30,top:16,w:60,h:26,bg:"#46627e",bd:"2px solid #cf4436",r:4,fg:"#fff",fs:8.5,lab:"开关箱"}));
+      els.push(D({x:6,top:58,w:52,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"电锯"}));
+      els.push(D({x:66,top:58,w:52,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"砂轮机"}));
+      els.push(D({x:40,top:42,w:4,h:16,bg:"#cf4436"}));
+      els.push(D({x:80,top:42,w:4,h:16,bg:"#cf4436"}));
+      els.push(D({x:172,top:0,w:130,h:12,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"✓ 一机一箱 · 进线端禁插接"}));
+      els.push(D({x:172,top:16,w:64,h:26,bg:"#46627e",bd:"2px solid #2c8a5b",r:4,fg:"#fff",fs:8,lab:"专用开关箱"}));
+      els.push(D({x:246,top:16,w:64,h:26,bg:"#46627e",bd:"2px solid #2c8a5b",r:4,fg:"#fff",fs:8,lab:"专用开关箱"}));
+      els.push(D({x:200,top:42,w:4,h:16,bg:"#2c8a5b"}));
+      els.push(D({x:274,top:42,w:4,h:16,bg:"#2c8a5b"}));
+      els.push(D({x:174,top:58,w:56,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"电锯"}));
+      els.push(D({x:250,top:58,w:56,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"砂轮机"})); }
+    else if(type==="seq"){ figH=84;
+      els.push(D({x:4,top:4,w:312,h:14,fg:"#2c8a5b",fs:10,jc:"flex-start",ta:"left",lab:"送电 ⟶ 总配电箱 → 分配电箱 → 开关箱"}));
+      els.push(D({x:4,top:26,w:312,h:3,bg:"rgba(44,138,91,.55)"}));
+      els.push(D({x:4,top:42,w:312,h:14,fg:"#2f6db0",fs:10,jc:"flex-start",ta:"left",lab:"停电 ⟵ 开关箱 → 分配电箱 → 总配电箱"}));
+      els.push(D({x:4,top:64,w:312,h:14,fg:"#cf4436",fs:9,jc:"flex-start",ta:"left",lab:"✗ 先合开关箱送电 / 先断总箱停电 = 顺序反"})); }
+    else if(type==="volt"){ figH=104;
+      els.push(D({x:0,top:4,w:100,h:40,bg:"#fff",bd:"1.5px solid #cdd9e2",r:7,fg:"#2f6db0",fs:10.5,lab:"潮湿/隧道\n≤36V"}));
+      els.push(D({x:110,top:4,w:100,h:40,bg:"#fff",bd:"1.5px solid #e7c9a0",r:7,fg:"#cf8a44",fs:10.5,lab:"易触及\n≤24V"}));
+      els.push(D({x:220,top:4,w:100,h:40,bg:"#fff",bd:"1.5px solid #e2b6ae",r:7,fg:"#cf4436",fs:10.5,lab:"金属容器\n≤12V"}));
+      els.push(D({x:0,top:56,w:150,h:4,bg:"#8a7d63"}));
+      els.push(D({x:64,top:76,w:16,h:16,bg:"#3a5168",r:16}));
+      els.push(D({x:86,top:58,w:2,h:36,bg:"#cf4436"}));
+      els.push(D({x:94,top:66,w:70,h:14,fg:"#cf4436",fs:10,jc:"flex-start",ta:"left",lab:"≥0.7m"}));
+      els.push(D({x:180,top:62,w:140,h:28,fg:"#5c6469",fs:9.5,jc:"flex-start",ta:"left",lab:"电缆直接埋地剖面\nN线蓝色 · PE线黄绿双色"})); }
+    else if(type==="scan"){ figH=104; const rows=[["① 架构：三级配电+TN-S+二级漏保","#2f6db0"],["② 末端：一机一箱 · 进线端禁插接","#cf8a44"],["③ 顺序参数：送总分开·停开分总·36/24/12·0.7m","#2c8a5b"],["④ 管理：电工持证 · 用电组织设计/补方案","#d9a521"]];
+      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*26,w:320,h:22,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.Q.length-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题 →"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果 →"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.Q.map((qq,i)=>{ const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.Q.forEach((qq,i)=>{ if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(this.Q.length*0.4)?0:score<this.Q.length-1?1:score<this.Q.length?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:this.Q.length, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/this.Q.length)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
 }
-function paintChoiceState(){const q=current(), a=answered();[...els.options.querySelectorAll('[data-option-id]')].forEach(btn=>{const id=btn.dataset.optionId;btn.classList.toggle('correct',!!a&&id===q.answer);btn.classList.toggle('wrong',!!a&&id===a.choice&&id!==q.answer);btn.disabled=!!a;});}
-function render(){const q=current(), a=answered();document.documentElement.dataset.practiceIndex=String(index+1);document.documentElement.dataset.practiceState=a?'answered':'waiting';els.card.style.display='grid';els.done.classList.remove('show');els.qCount.textContent=`第 ${index+1}/${DATA.questions.length} 问`;els.qFocus.textContent=q.stageLabel||q.skill||'本题练习';els.progress.style.width=`${((index+(a?1:0))/DATA.questions.length)*100}%`;els.flow.innerHTML=renderVisual(q,a);els.student.textContent=q.student;els.stem.textContent=q.stem;els.options.innerHTML=q.options.map((o,i)=>`<button class="option" type="button" data-option-id="${safe(o.id)}"><b>${String.fromCharCode(65+i)}</b><span>${safe(o.label)}<small>${safe(o.reason)}</small></span></button>`).join('');els.options.querySelectorAll('[data-option-id]').forEach(btn=>btn.addEventListener('click',()=>choose(btn.dataset.optionId)));els.prev.disabled=index===0;els.primary.textContent=a?(index===DATA.questions.length-1?'看结果':'下一题'):'先作答';els.primary.classList.remove('blocked');if(a){const feedbackText=a.correct?q.correct:((q.optionFeedback&&q.optionFeedback[a.choice])||q.wrong);setFeedback(a.correct?'correct':'wrong',feedbackText);}else{clearFeedback();}paintChoiceState();}
-function choose(choice){const q=current();if(answered())return;const correct=choice===q.answer;answers[index]={choice,correct};render();}
-function goNext(){if(!answered()){els.primary.classList.add('blocked');setFeedback('wait','先选一个判断，再进入下一题。');document.documentElement.dataset.practiceState='blocked';return;}if(index<DATA.questions.length-1){index+=1;render();return;}showDone();}
-function optionText(q,id){const hit=q.options.find(o=>o.id===id);return hit?hit.label:'未作答';}
-function answerRows(){return DATA.questions.map((q,i)=>{const a=answers[i];const ok=!!(a&&a.correct);const missFeedback=a&&q.optionFeedback?q.optionFeedback[a.choice]:'';return {index:i+1,questionId:q.id,focus:q.skill||q.stageLabel||DATA.keyPoints[q.focusIndex]||'',stem:q.stem,student:q.student,selected:optionText(q,a&&a.choice),correct:optionText(q,q.answer),isCorrect:ok,feedback:ok?q.correct:(missFeedback||q.wrong)};});}
-function buildDiagnosis(){const rows=answerRows();const total=rows.length||1;const score=rows.filter(r=>r.isCorrect).length;const misses=rows.filter(r=>!r.isCorrect);const rate=score/total;const strong=[...new Set(rows.filter(r=>r.isCorrect).map(r=>r.focus).filter(Boolean))];const weak=[...new Set(misses.map(r=>r.focus).filter(Boolean))];let level='可以进入下一卡';let action='本卡基本过关，可以进入下一张，但建议把采分句再口述一遍。';if(rate<0.6){level='需要补讲 + 补练';action='先回看白板，把错题对应的采分链补上，再重做薄弱题。';}else if(misses.length){level='建议补练薄弱点';action='主线已经成型，但薄弱点还会丢采分句，建议继续补练错题。';}return {rows,total,score,misses,rate,strong,weak,level,action,needsDrill:misses.length>0};}
-function renderDiagnosis(d){els.level.textContent=d.level;els.score.textContent=`你答对 ${d.score}/${d.total} 题。${d.action}`;const weakText=d.weak.length?d.weak.join('、'):'没有明显薄弱点';const strongText=d.strong.length?d.strong.join('、'):'还需要形成稳定命中点';els.insights.innerHTML=[`<div class="insight"><b>已经掌握</b><p>${safe(strongText)}</p></div>`,`<div class="insight ${d.needsDrill?'warn':''}"><b>需要盯住</b><p>${safe(weakText)}</p></div>`,`<div class="insight"><b>下一步</b><p>${safe(d.needsDrill?'继续做薄弱点，不要急着跳卡。':'可以进入下一卡，也可以问鲁班做延伸。')}</p></div>`].join('');els.review.innerHTML=d.rows.map(r=>`<div class="reviewItem ${r.isCorrect?'good':'miss'}"><b>第${r.index}问 · ${safe(r.focus)} · ${r.isCorrect?'命中':'未命中'}</b><small>你选：${safe(r.selected)}；标准：${safe(r.correct)}。${safe(r.feedback)}</small></div>`).join('');els.drill.textContent=d.needsDrill?'继续补练薄弱点':'再刷一遍巩固';}
-function buildAskPayload(d,question='我还有点不明白，帮我按采分点讲一下。'){return {type:'luban_practice_diagnosis',source:'animation_ir_practice',cardId:DATA.cardId,title:DATA.title,contextId:(DATA.aiContext&&DATA.aiContext.context_id)||DATA.cardId,mainExamAction:DATA.mainExamAction,keyPoints:DATA.keyPoints,aiContext:DATA.aiContext||{},score:{correct:d.score,total:d.total,rate:d.rate,level:d.level,needsDrill:d.needsDrill},weakPoints:d.weak,strongPoints:d.strong,answers:d.rows,question,expectedUse:'把本卡采分点、易错点、学生作答轨迹带给 TutorBot / 鲁班答疑，不跳转 chat 首页。'};}
-function notifyLuban(payload){document.documentElement.dataset.aiAskStatus='posted';try{window.wx&&window.wx.miniProgram&&window.wx.miniProgram.postMessage({data:payload});}catch(e){}try{if(window.parent&&window.parent!==window)window.parent.postMessage(payload,'*');}catch(e){}try{window.dispatchEvent(new CustomEvent('luban-practice-diagnosis',{detail:payload}));}catch(e){}}
-function localLubanPreview(d){const weak=d.weak.length?d.weak.join('、'):'暂无明显薄弱点';const firstMiss=d.misses[0];return `<p><b>鲁班预诊断：</b>${safe(d.level)}。</p><p>这次不是简单看分数，而是看采分链稳不稳。薄弱点：${safe(weak)}。</p>${firstMiss?`<p>最该追问的是第${firstMiss.index}问：你选了「${safe(firstMiss.selected)}」，标准应落到「${safe(firstMiss.correct)}」。可以问：为什么这一步会影响采分？</p>`:''}<ul><li>想搞清楚：直接问“我为什么错在这个采分点？”</li><li>想多练：点“继续补练薄弱点”。</li><li>想拔高：问鲁班要一个同类变式题。</li></ul>`;}
-function askLuban(){const d=buildDiagnosis();renderDiagnosis(d);const payload=buildAskPayload(d);notifyLuban(payload);els.aiPanel.classList.add('show');els.aiStatus.textContent='已带上本卡采分点、易错点和你的答题记录。小程序接入后会直接进入鲁班答疑；当前先显示预诊断。';els.aiResult.innerHTML=localLubanPreview(d);}
-function startDrill(){const target=answers.findIndex(a=>a&&!a.correct);if(target>=0){answers[target]=null;index=target;}else{answers.fill(null);index=0;}els.primary.disabled=false;render();}
-function showDone(){const diagnosis=buildDiagnosis();els.card.style.display='none';els.done.classList.add('show');els.progress.style.width='100%';document.documentElement.dataset.practiceState='done';document.documentElement.dataset.practiceScore=String(diagnosis.score);document.documentElement.dataset.practiceNeedsDrill=String(diagnosis.needsDrill);renderDiagnosis(diagnosis);els.atoms.innerHTML=DATA.keyPoints.map(p=>`<span>${safe(p)}</span>`).join('');els.primary.textContent='已完成';els.primary.disabled=true;els.prev.disabled=false;}
-els.primary.addEventListener('click',goNext);
-els.prev.addEventListener('click',()=>{if(els.done.classList.contains('show')){els.primary.disabled=false;index=DATA.questions.length-1;render();return;}if(index>0){index-=1;render();}});
-els.aiCoach.addEventListener('click',askLuban);
-els.drill.addEventListener('click',startDrill);
-render();
-</script></body></html>
+</script>
+</body>
+</html>
