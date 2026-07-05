@@ -127,3 +127,67 @@ def test_bad_pack_id_rejected(tmp_path):
 def test_real_repo_gate_rerun_wiring_f16():
     """活体接线断言：真 builder --check 可被 gate 重跑路径调起且 PASS（F16）。"""
     _mod._run_builder_gate_check("F16", REPO)
+
+
+# ── --kind concept_cards（考点卡池复用同一人闸，禁分叉第二 promote 工具） ──
+
+def _write_concept_fixture(tmp_path, *, bank_patch=None):
+    (tmp_path / "F16_屋面卷材防水.md").write_text(_PACK_TEXT, encoding="utf-8")
+    (tmp_path / "_pack_manifest.json").write_text(json.dumps({
+        "packs": [{"pack_id": "F16", "file": "F16_屋面卷材防水.md",
+                   "content_sha256": _PACK_SHA}],
+    }, ensure_ascii=False), encoding="utf-8")
+    bank = {
+        "schema_version": "luban-concept-card-bank",
+        "pack_id": "F16",
+        "status": "candidate",
+        "source_pack_sha256": _PACK_SHA,
+        "gate": {"total": 2, "passed": 2, "pass_rate": 1.0,
+                 "quote_mismatches": [], "duplicate_cards": [],
+                 "forbidden_words": []},
+        "cards": [{"card_id": "F16:kc:x:0"}],
+    }
+    bank.update(bank_patch or {})
+    path = tmp_path / "_F16_concept_card_bank.v0.json"
+    path.write_text(json.dumps(bank, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
+def _promote_concept(tmp_path, gate=_gate_ok, kind="concept_cards"):
+    return _mod.promote("F16", "gate 100% + owner 逐卡过目", "教研",
+                        pack_dir=tmp_path, repo=REPO, gate_check=gate, kind=kind)
+
+
+def test_concept_kind_happy_path_flips_signed(tmp_path):
+    bank_path = _write_concept_fixture(tmp_path)
+    _promote_concept(tmp_path)
+    bank = json.loads(bank_path.read_text(encoding="utf-8"))
+    assert bank["status"] == "signed"
+    assert bank["signoff"]["who"] == "教研"
+
+
+def test_concept_kind_reads_own_template_not_variant(tmp_path):
+    """--kind concept_cards 只认 _*_concept_card_bank.v0.json——
+    同目录存在变体池也不许被它顶包。"""
+    _write_fixture(tmp_path)  # 变体池在场
+    with pytest.raises(_mod.PromotionError, match="不存在"):
+        _promote_concept(tmp_path)  # 考点卡池缺失必须拒
+
+
+def test_concept_kind_dirty_gate_rejected(tmp_path):
+    _write_concept_fixture(tmp_path, bank_patch={"gate": {
+        "total": 2, "passed": 2, "pass_rate": 1.0,
+        "quote_mismatches": ["F16:kc:x:0"], "duplicate_cards": [],
+        "forbidden_words": []}})
+    with pytest.raises(_mod.PromotionError, match="quote_mismatches"):
+        _promote_concept(tmp_path)
+
+
+def test_unknown_kind_rejected(tmp_path):
+    with pytest.raises(_mod.PromotionError, match="未知 bank kind"):
+        _promote_concept(tmp_path, kind="nope")
+
+
+def test_real_repo_concept_gate_rerun_wiring_s05():
+    """活体接线断言：concept builder --check 可被 kind 化 gate 重跑调起且 PASS。"""
+    _mod._run_builder_gate_check("S05", REPO, "concept_cards")

@@ -114,8 +114,21 @@
             <text class="rv-asset-arrow">›</text>
           </view>
 
-          <!-- 资产入口：考点卡库（后端未供给字段，诚实占位不造文案） -->
-          <view class="rv-asset disabled">
+          <!-- 资产入口：考点卡库（张数=signed 卡池真值投影；
+               拿不到/旗标关/零签发池 → 诚实占位不造数） -->
+          <view
+            wx:if="{{vm.conceptCardsAvailable}}"
+            class="rv-asset"
+            bindtap="openConceptCards"
+          >
+            <view class="rv-row-icon icon-rv-book"></view>
+            <view class="rv-row-body">
+              <text class="rv-row-title">考点卡库 · {{vm.conceptCardTotal}} 张</text>
+              <text class="rv-row-sub">30 秒再认 · 教材原文并排</text>
+            </view>
+            <text class="rv-asset-arrow">›</text>
+          </view>
+          <view wx:else class="rv-asset disabled">
             <view class="rv-row-icon icon-rv-book"></view>
             <view class="rv-row-body">
               <text class="rv-row-title">考点卡库</text>

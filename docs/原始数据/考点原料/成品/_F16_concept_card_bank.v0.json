@@ -1,0 +1,70 @@
+{
+ "schema_version": "luban-concept-card-bank",
+ "pack_id": "F16",
+ "status": "candidate",
+ "source_pack_sha256": "51b0f455ad205b4ed9965720d9562861a4a2ef7e8e7aa4c690ca69b8d88fff2e",
+ "generation_ms": 0.62,
+ "gate": {
+  "total": 2,
+  "passed": 2,
+  "pass_rate": 1.0,
+  "quote_mismatches": [],
+  "duplicate_cards": [],
+  "forbidden_words": []
+ },
+ "card_count": 2,
+ "dropped_rows": [
+  {
+   "row": "起鼓割补·完整工序",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "起鼓根本成因",
+   "reason": "not_green"
+  },
+  {
+   "row": "卷材流淌治理",
+   "reason": "not_green"
+  },
+  {
+   "row": "室内防水基层/附加层",
+   "reason": "not_green"
+  },
+  {
+   "row": "细部附加层≥250mm/收头",
+   "reason": "not_green"
+  },
+  {
+   "row": "搭接封严150/100mm",
+   "reason": "not_green"
+  }
+ ],
+ "cards": [
+  {
+   "card_id": "F16:kc:1A434000_076_0119:0",
+   "front": "起鼓割补·按直径分档",
+   "key_gist": "<100mm抽气灌胶法；≥100mm斜十字形割开、清理、吹干、重贴(新贴方形卷材)",
+   "quote": "直径小于100mm用抽气灌胶法；大于等于100mm需割开、清理、吹干、重贴。",
+   "point_id": "kc:1A434000_076_0119:0",
+   "source_ref": {
+    "chunk_id": "1A434000_076_0119",
+    "page_num": 76,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "施工质量管理 > 屋面卷材起鼓"
+  },
+  {
+   "card_id": "F16:kc:1A434000_068_0104:0",
+   "front": "屋面施工过程检查/检验闭环",
+   "key_gist": "检查 基层状况/铺贴方向/搭接长度/泛水高度/排气孔/保护层/材料相容性/基层平整干燥/防潮防火",
+   "quote": "施工过程需检查：基层状况、铺贴方向、搭接长度、泛水高度、排气孔、保护层、材料相容性、基层平整干燥、防潮防火措施。",
+   "point_id": "kc:1A434000_068_0104:0",
+   "source_ref": {
+    "chunk_id": "1A434000_068_0104",
+    "page_num": 68,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "施工质量管理 > 屋面工程施工过程检查与检验"
+  }
+ ]
+}
