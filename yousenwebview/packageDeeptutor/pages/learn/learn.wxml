@@ -123,9 +123,10 @@
             <text class="pk-kicker">今天最该完成</text>
             <text class="lr-task-title">{{vm.todayTask.title}}</text>
           </view>
-          <view class="lr-conf">
-            <view class="lr-conf-ring" style="background: conic-gradient(var(--pk-grn) {{(vm.stats.mastery_trend || 72) * 3.6}}deg, var(--pk-gauge) 0deg);">
-              <view class="lr-conf-hole"><text class="lr-conf-num">{{vm.stats.mastery_trend || 72}}%</text></view>
+          <!-- 掌握可信度环:只投影 read model 真值;缺数据时隐藏,不捏造 72% -->
+          <view class="lr-conf" wx:if="{{vm.stats.mastery_trend}}">
+            <view class="lr-conf-ring" style="background: conic-gradient(var(--pk-grn) {{vm.stats.mastery_trend * 3.6}}deg, var(--pk-gauge) 0deg);">
+              <view class="lr-conf-hole"><text class="lr-conf-num">{{vm.stats.mastery_trend}}%</text></view>
             </view>
             <text class="lr-conf-label">掌握可信度</text>
           </view>
