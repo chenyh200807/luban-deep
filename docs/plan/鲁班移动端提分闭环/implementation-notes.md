@@ -6,6 +6,25 @@
 
 ## Deviations
 
+### 2026-07-05（部署与卡体验轮·补账）
+- **[假成功实锤] F16 卡"整包托管含 audio 3MB"的 commit 实际零 mp3 进仓**：`.gitignore:317` 全局 `*.mp3` 静默挡掉 11 段配音，线上 404→webSpeak 兜底在微信 web-view 又静默失败=全程无声。修=窄豁免 `!web/public/luban-preview/**/*.mp3`+管线无条件拷 audio。教训：声称"含 X"的 commit 要核 X 真在 git 里。
+- **[部署探针立功] card_url 机械派生 → 22 绿灯站 web-view 404**：CARD_BASE 一通电全站发链接而托管卡仅 6 站。治本=manifest 确定性扫描 `card_hosted` 标+read_model 门（非白名单硬编码）。教训：环境变量通电前先推演"字段对全集生效"的后果。
+- **[风格审计] 托管 6 卡仅 F16 是视频2类**，a01/c02/j01/n01/s05 全是旧 IR 预览模板（含 c02/n01 首帧画布残缺、3 张文案重复 bug）→ 按 owner 拍板封存下线（改名 .v1-deprecated 可回滚），诚实的空好过错误的满。
+- **[owner 口径二连澄清] 卡全屏行为**：①"进入即全屏"理解过度→纯删一行改为仅按钮触发；②普通态需等比填满宽度+任何时候不见纯黑（实现用 zoom 而非 transform——zoom 参与布局故热区/滚动天然正确，cap 2.0 保 iPad 竖屏满铺；底色逐卡运行时提取 #181b1e fail-closed）。三口径已固化进卡规范。
+- **[QA 凭据失效] .env 共享 QA 账号密码被服务端 401**→注册轮换 qa_owner_view_0705。**[重要教训] owner 口述"我要求 X"时先 grep X 是否已实现**：免费额度三规则（日3/周12/连续3日）owner 4 天前已 ship（mobile.py:125-127），误派实现 agent 被 owner 叫停（零污染）。
+- **[学习页慢真根因] dashboard 端点 async def 直调同步重服务**：单请求 3.2-4.6s 且占死事件循环（并发时邻请求 0.13s→7.2s 55x 饿死）→ 线程池化+防回退测试；前端首屏快通道 4.3s→0.3s+骨架屏。**[前端造假数据] learn.wxml 掌握环 `||72` 兜底**在无数据时显示假 72%（违"前端不算分"）→ 删除缺数即隐藏。
+- **[learned_count=authority drift 又一例] "学-evidence 没落账"是假警报**：写链路 E2E 健康，真凶=review_due 自建第二套"已学"判定只数 station_completed→收权唯一 classifier。复习页把"绿灯"渲染成"已点亮"同型→收权 isLitLifecycleState 唯一判定+回归钉死禁第二套。
+
+### 2026-07-05（五模块五 tab 战役·补账）
+- **[T3 问鲁班] 教学卡问追AI 承接刻意用 promptIntent 而非 followupQuestionContext**：后端 `_has_active_question_flow` 会把后者当活跃题目流路由，教学卡非题目流，误挂会误触 question-followup 语义。
+- **[T4 学情] 比对账表更深的真根因**：`_buildRadarViewModel` 把 score=0（未学）误归 weak→未学站渲染成"薄弱"红灯墙；按后端四态阈值对齐修正。蓝环第五态首次进前端。
+- **[T5 我的] 三个如实降级**：免费额度读接口不存在（后端计数齐全无 read 端点，静态说明降级，加只读端点即可点亮）；"免费 3 站"设计概念后端无对应物（按 lit/40 真实投影）；wx_miniprogram 是 shadow 树非生产面（任务描述纠偏）。
+- **[壳切换] 任务假设纠偏**：review 页原本无内联 tabbar（仅 learn 有）；history flag 分支 dead-but-harmless 保留（仍守页面访问门）；壳总高 140rpx 刻意不动（chat.js workspaceShellHeight 布局算式依赖）；三 flag 全关时五 tab 壳整体隐藏=沿用既有 kill-switch。
+- **[设计稿反哺] 两张补稿（错因银行详情/实务闯关）顺手纠 10c 原稿两处违规**：Long Cang 用在非品牌字、"看穿它=真懂"文案；10/11px 字号抬至 12px 铁律。
+- **[工具坑] DevTools 全新路径项目 headless 不初始化**（project2_ 注册缺失，须用 IDE 打开过的路径）；automator 0.12.1 对 IDE 2.01.2510290 需 checkVersion 空补丁；**API 断线三次全部靠"逐步 commit+SendMessage 恢复"零损失续跑**（断点保护=commit 粒度的又一实证）。
+- **[部署脚本三次正确拦截]**：detached HEAD 拒发布、脏树拒发布（两次：DevTools 编译模式改动/.codegraph pid）、fast 路径拒 web 资产变更——守门有效，代价是发布 worktree 必须专用且树干净；发布 worktree 曾被并行清理，已固定 /Users/yehongchen/worktrees/deeptutor-release。
+
+
 ### 2026-07-05（D4 重尾批收官）
 - **[模式反转] 重尾批 92% 条目需真实裁决**（前两批约半数只缺凭据）——"重尾"的重是真的；预算内消化（123 处编辑）。
 - **[整包体检首触发] S01 Tier-2 需求 10>8 触发 §5.5**：GLM 全包诊断=repair（同型机械截断病）而非系统性烂，按诊断批修复而非逐条——触发器语义按设计工作。
@@ -44,6 +63,9 @@
 - **[并行工作区纪律] fusion worktree 领先 origin 15 个未推送 commit 且有脏文件** → 不碰其工作区，基于其 HEAD 另开 worktree 推进，脏改动原样留给其主人。
 
 ## 惯例沉淀（复盘时升格为规则的候选）
+- 部署后必做独立探针（不信脚本自报）——本轮抓到 22 站 404 与 F16 无声两个上线级洞。
+- owner 口述需求先 grep 是否已实现再派工；agent 终态纪律=最终回复基于磁盘/线上实测，"等待中/等子报告"不是完成态。
+- owner 产出物过目制：卡/页/设计稿一律截图交 owner 拍板后再进下一步（"做出来了才知道是不是想要的"）。
 - （2026-07-05 owner 拍板）常设"局外人观察者"agent：每里程碑从第一性原理审视消费链/断链/系统性隐患，防头痛医头；机械批处理活分层给 Opus 4.8，判断密集活留 Fable+异源面板。
 - （2026-07-05 owner 二次修订用模准则）异源主力=Codex/GPT-5.5，GLM-5.2 降辅助（仅 4+大面板或回避补位）；**保留的例外=利益回避**：Codex 生产/flag 的条目由非 Codex 补位裁决。重尾批按原矩阵收尾（批内一致），新准则自粗粒包 leaf review 起。入仓计划文档的面板矩阵随下个里程碑 PR 修订。
 - （2026-07-05 owner 确认）UI 权威=《微信小程序前端设计》第10轮定稿；缺失屏（复习 3 流程屏/批改结果页/OCR 校对屏/变体挑战流/空态）后续按同风格补，不另起炉灶。
