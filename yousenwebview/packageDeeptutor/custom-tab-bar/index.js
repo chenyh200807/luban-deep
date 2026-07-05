@@ -1,3 +1,6 @@
+// 共享五 tab 纸墨壳(单一壳权威,禁页面内联第二套 tabbar):
+// 学习 / 复习 / 问鲁班(中央朱红章) / 学情 / 我的。
+// 历史不在壳中——历史入口收权到问鲁班顶栏时钟(chat 顶栏)。
 var route = require("../utils/route");
 var runtime = require("../utils/runtime");
 var flags = require("../utils/flags");
@@ -14,28 +17,29 @@ function resolveIsDark() {
 function getBaseList() {
   return [
     {
-      pagePath: route.chat(),
-      text: "对话",
-      icon: "tab-chat",
-      activeIcon: "tab-chat-active",
+      pagePath: route.learn(),
+      text: "学习",
+      icon: "tab-learn",
     },
     {
-      pagePath: route.history(),
-      text: "历史",
-      icon: "tab-history",
-      activeIcon: "tab-history-active",
+      pagePath: route.lubanReview(),
+      text: "复习",
+      icon: "tab-review",
+    },
+    {
+      pagePath: route.chat(),
+      text: "问鲁班",
+      seal: true,
     },
     {
       pagePath: route.report(),
       text: "学情",
       icon: "tab-report",
-      activeIcon: "tab-report-active",
     },
     {
       pagePath: route.profile(),
       text: "我的",
       icon: "tab-profile",
-      activeIcon: "tab-profile-active",
     },
   ];
 }
@@ -81,6 +85,7 @@ Component({
       if (current && current.pagePath) {
         runtime.setWorkspaceBack(current.pagePath, current.text);
       } else {
+        // selected=-1(如历史页挂壳但无选中态)时无来源 tab,清返回权威
         runtime.clearWorkspaceBack();
       }
       var self = this;
