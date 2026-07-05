@@ -27,6 +27,21 @@
 .lr-scroll { flex: 1; overflow: hidden; }
 .lr-inner { display: flex; flex-direction: column; gap: 20rpx; padding: 20rpx 26rpx 0; }
 
+/* ── 骨架屏(首拍数据到达前;宣纸底上呼吸微光) ── */
+.lr-skel-block {
+  position: relative;
+  overflow: hidden;
+  background: var(--pk-gauge);
+  animation: lr-skel-breathe 1.2s ease-in-out infinite;
+}
+.lr-skel-stage { height: 500rpx; }
+.lr-skel-task { height: 220rpx; }
+.lr-status-row .lr-skel-block { min-height: 118rpx; }
+@keyframes lr-skel-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
 /* ── 状态卡 ── */
 .lr-status-row { display: flex; gap: 15rpx; }
 .lr-status { flex: 1; min-width: 0; padding: 22rpx 18rpx; display: flex; align-items: center; gap: 15rpx; }
