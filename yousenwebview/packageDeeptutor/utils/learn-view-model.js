@@ -53,6 +53,16 @@ function _litCount(packs) {
   return n;
 }
 
+// 海报竖排书法名:单列容量 6 字(84×112 海报 / stations 210×280 实测上限),
+// 超长截断防溢出——live 绿灯站 26/28 标题 >6 字,不截会折出第二竖列压住 slot 徽标。
+// 设计稿(10a)用的是 4 字精选短名;后端无 short_title 字段(对账表已标缺口),
+// 截断是显示层止血,不改 title 本身(下一站卡/详情仍用全名)。
+var POSTER_NAME_MAX = 6;
+function _posterName(title) {
+  var t = _str(title);
+  return t.length > POSTER_NAME_MAX ? t.slice(0, POSTER_NAME_MAX) : t;
+}
+
 // 课程架/路线图海报:推荐站置顶,再已学,再未学;并入绿灯 lessons
 // (无 lifecycle 时 test2 仍显真实绿灯站,不空)。标题来自绿灯 lessons,缺则占位。
 function _posters(packs, titleIdx, recommendedId) {
@@ -67,6 +77,7 @@ function _posters(packs, titleIdx, recommendedId) {
     rows.push({
       pack_id: up,
       title: meta.title || "即将开通",
+      name: _posterName(meta.title || "即将开通"),
       slot: up,
       green: !!meta.green,
       state: _posterState(state, isRec, !!meta.green),

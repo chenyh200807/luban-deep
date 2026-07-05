@@ -15,7 +15,19 @@
   </view>
 
   <scroll-view class="lr-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view class="lr-inner">
+
+    <!-- 骨架屏:首拍数据(绿灯站,~0.2s)到达前不渲染误导性空数据(0/40 等) -->
+    <view class="lr-inner" wx:if="{{loading}}">
+      <view class="lr-status-row">
+        <view class="lr-status pk-card lr-skel-block"></view>
+        <view class="lr-status pk-card lr-skel-block"></view>
+        <view class="lr-status pk-card lr-skel-block"></view>
+      </view>
+      <view class="pk-card lr-skel-stage lr-skel-block"></view>
+      <view class="pk-card lr-skel-task lr-skel-block"></view>
+    </view>
+
+    <view class="lr-inner" wx:else>
 
       <!-- 三枚状态卡:距考 / 路线 X/40 / 今日 -->
       <view class="lr-status-row">
@@ -88,7 +100,7 @@
               data-pack-id="{{item.pack_id}}"
               data-green="{{item.green}}"
             >
-              <text class="pk-poster__name">{{item.title}}</text>
+              <text class="pk-poster__name">{{item.name}}</text>
               <view class="pk-poster__slot lr-poster-slot--{{item.state}}">{{item.slot}}</view>
               <view class="pk-poster__foot">
                 <text class="lr-poster-tag lr-poster-tag--{{item.state}}">{{item.recommended ? '匹配薄弱' : (item.state === 'ink' ? '已学完' : (item.locked ? '会员解锁' : '未学'))}}</text>
@@ -111,9 +123,10 @@
             <text class="pk-kicker">今天最该完成</text>
             <text class="lr-task-title">{{vm.todayTask.title}}</text>
           </view>
-          <view class="lr-conf">
-            <view class="lr-conf-ring" style="background: conic-gradient(var(--pk-grn) {{(vm.stats.mastery_trend || 72) * 3.6}}deg, var(--pk-gauge) 0deg);">
-              <view class="lr-conf-hole"><text class="lr-conf-num">{{vm.stats.mastery_trend || 72}}%</text></view>
+          <!-- 掌握可信度环:只投影 read model 真值;缺数据时隐藏,不捏造 72% -->
+          <view class="lr-conf" wx:if="{{vm.stats.mastery_trend}}">
+            <view class="lr-conf-ring" style="background: conic-gradient(var(--pk-grn) {{vm.stats.mastery_trend * 3.6}}deg, var(--pk-gauge) 0deg);">
+              <view class="lr-conf-hole"><text class="lr-conf-num">{{vm.stats.mastery_trend}}%</text></view>
             </view>
             <text class="lr-conf-label">掌握可信度</text>
           </view>

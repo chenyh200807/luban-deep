@@ -2863,7 +2863,11 @@ async def billing_checkout(
 
 
 @router.get("/homepage/dashboard")
-async def homepage_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+def homepage_dashboard(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    # 同步 def:内含 _load_member_snapshot 账本锁读 + read_snapshot/compiled_truth 等
+    # 同步 Supabase 读(实测 3-5s),走线程池(病B-4)。此前 async def 直接在事件循环上
+    # 跑这段同步 IO,会把同 worker 的其他请求饿死(live 探针:并发 dashboard 时
+    # /luban/lessons 0.13s → 7.2s)。
     return member_service.get_home_dashboard(_resolve_authenticated_user_id(authorization))
 
 
