@@ -3135,7 +3135,8 @@ Page({
 
   _setWorkspaceShellHidden: function (hidden) {
     this._syncWorkspaceChrome({ hidden: !!hidden });
-    helpers.syncTabBar(this, 0, {
+    // 五 tab 壳:问鲁班中央章 index=2
+    helpers.syncTabBar(this, 2, {
       hidden: !!hidden,
     });
   },
