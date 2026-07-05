@@ -232,7 +232,8 @@ Page({
       navBackLabel: workspaceBack ? workspaceBack.label : "对话",
       linkItems: buildLinkItems(workspaceFlags),
     });
-    helpers.syncTabBar(this, 3, {
+    // 五 tab 壳:我的 index=4
+    helpers.syncTabBar(this, 4, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
     if (!auth.isLoggedIn()) {
