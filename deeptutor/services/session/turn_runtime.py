@@ -1074,10 +1074,10 @@ def _build_turn_semantic_decision(
     active_object: dict[str, Any] | None,
     followup_question_action: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    if not isinstance(active_object, dict):
+    route = followup_action_route(followup_question_action)
+    if not isinstance(active_object, dict) and route != "practice_generation":
         return {}
 
-    route = followup_action_route(followup_question_action)
     intent = str((followup_question_action or {}).get("intent") or "").strip()
     confidence = (followup_question_action or {}).get("confidence")
     try:

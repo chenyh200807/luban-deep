@@ -927,6 +927,41 @@ def _promote_grading_key_correct_answer(item: dict[str, Any] | None) -> dict[str
     return promoted
 
 
+_REVEAL_AUTHORITY_KEYS = {
+    "correct_answer",
+    "answer",
+    "explanation",
+    "grading_key",
+    "grading_keys",
+    "answer_key_authority",
+    "official_slice",
+    "score_authority",
+}
+
+
+def _strip_reveal_authority_fields(value: dict[str, Any]) -> dict[str, Any]:
+    stripped = dict(value)
+    for key in _REVEAL_AUTHORITY_KEYS:
+        stripped.pop(key, None)
+    return stripped
+
+
+def _question_context_without_reveal_authority(
+    question_context: dict[str, Any] | None,
+) -> dict[str, Any]:
+    sanitized = normalize_question_followup_context(question_context) or {}
+    if not sanitized:
+        return {}
+    sanitized = _strip_reveal_authority_fields(sanitized)
+    items = sanitized.get("items")
+    if isinstance(items, list):
+        sanitized["items"] = [
+            _strip_reveal_authority_fields(item) if isinstance(item, dict) else item
+            for item in items
+        ]
+    return sanitized
+
+
 def _recover_missing_mcq_authority(
     question_context: dict[str, Any],
     metadata: dict[str, Any] | None,
@@ -5316,10 +5351,11 @@ class DeepQuestionCapability(BaseCapability):
             # **不含** reference answer/explanation(prompt 层无答案,无从泄露),且 followup
             # 渲染额外指示"答案隐藏时不得陈述/猜测正确答案"(防幻觉)。因此这里只按"是否揭示
             # 参考材料"分流,不再整轮拒答。
-            if _should_render_deterministic_reference_feedback(
+            should_reveal_reference = _should_render_deterministic_reference_feedback(
                 raw_user_message,
                 followup_question_context,
-            ):
+            )
+            if should_reveal_reference:
                 answer = _render_deterministic_reference_feedback(
                     followup_question_context,
                     user_message=raw_user_message,
@@ -5334,9 +5370,12 @@ class DeepQuestionCapability(BaseCapability):
                     api_version=llm_config.api_version,
                 )
                 agent.set_trace_callback(self._build_trace_bridge(stream))
+                agent_question_context = _question_context_without_reveal_authority(
+                    followup_question_context
+                )
                 answer = await agent.process(
                     user_message=raw_user_message,
-                    question_context=followup_question_context,
+                    question_context=agent_question_context,
                     history_context=str(
                         context.metadata.get("conversation_context_text", "") or ""
                     ).strip(),

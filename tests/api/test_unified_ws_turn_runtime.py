@@ -111,6 +111,27 @@ def test_turn_runtime_question_domain_decision_uses_canonical_semantic_shape() -
     }
 
 
+def test_turn_runtime_practice_generation_decision_does_not_require_active_object() -> None:
+    decision = _build_turn_semantic_decision(
+        active_object=None,
+        followup_question_action={
+            "route": "practice_generation",
+            "intent": "generate_more_questions",
+            "confidence": 0.91,
+            "reason": "首次练题生成",
+        },
+    )
+
+    assert decision == {
+        "relation_to_active_object": "continue_same_learning_flow",
+        "next_action": "route_to_generation",
+        "allowed_patch": ["set_active_object"],
+        "confidence": 0.91,
+        "reason": "首次练题生成",
+        "target_object_ref": {"object_type": "", "object_id": ""},
+    }
+
+
 def test_turn_runtime_unwraps_transport_content_envelope_for_case_grading() -> None:
     raw_case_submission = (
         "建设单位编制了投资兴建某工程的招标文件，部分要求有："
