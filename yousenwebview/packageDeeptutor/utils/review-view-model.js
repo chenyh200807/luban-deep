@@ -52,11 +52,14 @@ var UNKNOWN_SUB = "回站重看";
 
 /**
  * 组装复习页 data。
- * @param {object} args {lessons, reviewDue, mistakeBook, report}
+ * @param {object} args {lessons, reviewDue, mistakeBook, report, conceptCards}
  *   lessons    = GET /api/v1/luban/lessons 响应 body
  *   reviewDue  = GET /api/v1/luban/review-due 响应 body
  *   mistakeBook= mistake-book-view-model.buildMistakeBookViewModel 输出(可空)
  *   report     = GET /api/v1/learning/report 响应 body(pack_lifecycle 点亮真值,可空降级)
+ *   conceptCards = GET /api/v1/luban/concept-cards 响应 body(可空降级——
+ *                  张数真值=signed 卡池投影; 拿不到/旗标关/零签发池一律回
+ *                  「即将开通」占位, 前端绝不自造卡数)
  * @returns {object} setData payload
  */
 function buildReviewViewModel(args) {
@@ -64,6 +67,9 @@ function buildReviewViewModel(args) {
   var lessonsBody = _safeObj(a.lessons);
   var dueBody = _safeObj(a.reviewDue);
   var mistake = _safeObj(a.mistakeBook);
+  var conceptCards = _safeObj(a.conceptCards);
+  var conceptCardTotal =
+    Number(conceptCards.total) > 0 ? Math.round(Number(conceptCards.total)) : 0;
   var lifecyclePacks = _safeObj(_safeObj(_safeObj(a.report).pack_lifecycle).packs);
   // lifecycle 供给可用才敢断言点亮/未点亮; 缺失(旧后端/请求失败)= unknown 不造数
   var litKnown = Object.keys(lifecyclePacks).length > 0;
@@ -103,6 +109,10 @@ function buildReviewViewModel(args) {
         ? mistake.activeCount
         : -1,
     errorBars: _safeArr(mistake.errorBars),
+    // 考点卡库入口(单一判定点): 只有 signed 卡池真有卡才开门,
+    // 其余(旗标关/请求失败/零签发)一律回「即将开通」占位——fail-closed。
+    conceptCardsAvailable: conceptCardTotal > 0,
+    conceptCardTotal: conceptCardTotal,
   };
 }
 
