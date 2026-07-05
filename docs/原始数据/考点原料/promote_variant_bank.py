@@ -19,11 +19,20 @@
 4. gate 数字重跑：``scripts/build_luban_{pid}_variant_bank.py --check`` 退出 0
    （确定性重建变体 + 重跑一致性门，不写文件）。
 
+本工具同时是**考点卡池**的签发人闸（``--kind concept_cards``，复用优先——
+不另造第二个 promote authority）：bank 由
+``scripts/build_luban_concept_card_bank.py`` 编译期生成，同样恒写 candidate，
+runtime 消费端（``deeptutor/services/luban_lesson/concept_cards.py``）同样
+signed+sha 双 fail-closed。两种 bank 的差异只有文件模板 / builder 命令 /
+gate 违规键名，校验语义逐条同构。
+
 用法::
 
     python3 docs/原始数据/考点原料/promote_variant_bank.py F16 \
         --basis "gate 100% + 随 pack 签发使用过（微信真机复测链路核验）" \
         --who 教研张三
+    python3 docs/原始数据/考点原料/promote_variant_bank.py S05 --kind concept_cards \
+        --basis "gate 100% + owner 逐卡过目" --who 教研张三
 """
 from __future__ import annotations
 
@@ -43,8 +52,25 @@ PACK_DIR = TOOL_DIR / "成品"
 REPO = TOOL_DIR.parents[2]
 
 _PACK_ID_RE = re.compile(r"^[A-Z]\d{2}$")
-_BANK_TEMPLATE = "_{pack_id}_variant_bank.v0.json"
-_GATE_VIOLATION_KEYS = ("verdict_mismatches", "contested_leaks", "duplicate_surfaces")
+
+# 两类 bank 的形态差异收敛在这一张表里（校验流程完全同构，禁分叉第二工具）：
+# - template: 成品目录里的 bank 文件名模板
+# - builder:  gate 重跑命令模板（相对 repo 根；{pid}/{pid_lower} 由 pack_id 派生）
+# - violation_keys: bank.gate 里必须全空的违规清单键
+_BANK_KINDS: dict[str, dict[str, Any]] = {
+    "variant": {
+        "template": "_{pack_id}_variant_bank.v0.json",
+        "builder": ("scripts/build_luban_{pid_lower}_variant_bank.py", "--check"),
+        "violation_keys": ("verdict_mismatches", "contested_leaks", "duplicate_surfaces"),
+        "label": "变体 bank",
+    },
+    "concept_cards": {
+        "template": "_{pack_id}_concept_card_bank.v0.json",
+        "builder": ("scripts/build_luban_concept_card_bank.py", "{pid}", "--check"),
+        "violation_keys": ("quote_mismatches", "duplicate_cards", "forbidden_words"),
+        "label": "考点卡 bank",
+    },
+}
 
 
 class PromotionError(Exception):
@@ -64,13 +90,17 @@ def _load_json(path: Path, what: str) -> Any:
         raise PromotionError(f"{what} 解析失败: {path} ({exc})")
 
 
-def _run_builder_gate_check(pack_id: str, repo: Path) -> None:
+def _run_builder_gate_check(pack_id: str, repo: Path, kind: str = "variant") -> None:
     """gate 数字重跑：调对应 builder 的 --check（确定性重建 + 重跑门，零写入）。"""
-    script = repo / "scripts" / f"build_luban_{pack_id.lower()}_variant_bank.py"
+    parts = [
+        p.format(pid=pack_id, pid_lower=pack_id.lower())
+        for p in _BANK_KINDS[kind]["builder"]
+    ]
+    script = repo / parts[0]
     if not script.exists():
         raise PromotionError(f"找不到 bank builder（无法重跑 gate）: {script}")
     proc = subprocess.run(
-        [sys.executable, str(script), "--check"],
+        [sys.executable, str(script), *parts[1:]],
         capture_output=True, text=True, timeout=300,
     )
     if proc.returncode != 0:
@@ -80,14 +110,14 @@ def _run_builder_gate_check(pack_id: str, repo: Path) -> None:
         )
 
 
-def _check_stored_gate(bank: dict[str, Any]) -> None:
+def _check_stored_gate(bank: dict[str, Any], kind: str = "variant") -> None:
     gate = bank.get("gate")
     if not isinstance(gate, dict):
         raise PromotionError("bank 缺 gate 字段，无法核验一致性门数字")
     total, passed = gate.get("total"), gate.get("passed")
     if not isinstance(total, int) or total <= 0 or passed != total:
         raise PromotionError(f"bank 登记的 gate 数字不干净: passed={passed}/total={total}")
-    for key in _GATE_VIOLATION_KEYS:
+    for key in _BANK_KINDS[kind]["violation_keys"]:
         if gate.get(key):
             raise PromotionError(f"bank 登记的 gate 有未清违规 {key}: {gate[key]}")
 
@@ -99,9 +129,16 @@ def promote(
     *,
     pack_dir: Path = PACK_DIR,
     repo: Path = REPO,
-    gate_check: Callable[[str, Path], None] = _run_builder_gate_check,
+    gate_check: Callable[[str, Path], None] | None = None,
+    kind: str = "variant",
 ) -> Path:
     """校验全过则把 bank status 翻 signed 并写签发记录；任一不过抛 PromotionError。"""
+    if kind not in _BANK_KINDS:
+        raise PromotionError(f"未知 bank kind: {kind!r}（可选 {sorted(_BANK_KINDS)}）")
+    label = _BANK_KINDS[kind]["label"]
+    if gate_check is None:
+        def gate_check(pid: str, r: Path) -> None:  # noqa: ANN001 — 同签名默认闸
+            _run_builder_gate_check(pid, r, kind)
     pack_id = str(pack_id or "").strip().upper()
     if not _PACK_ID_RE.match(pack_id):
         raise PromotionError(f"非法 pack_id（应形如 F16）: {pack_id!r}")
@@ -112,10 +149,10 @@ def promote(
     if not who:
         raise PromotionError("签发人 --who 不能为空")
 
-    bank_path = pack_dir / _BANK_TEMPLATE.format(pack_id=pack_id)
-    bank = _load_json(bank_path, "变体 bank")
+    bank_path = pack_dir / _BANK_KINDS[kind]["template"].format(pack_id=pack_id)
+    bank = _load_json(bank_path, label)
     if not isinstance(bank, dict):
-        raise PromotionError(f"变体 bank 形状非法（应为对象）: {bank_path}")
+        raise PromotionError(f"{label} 形状非法（应为对象）: {bank_path}")
     status = str(bank.get("status") or "")
     if status == "signed":
         raise PromotionError(
@@ -142,13 +179,16 @@ def promote(
             f"actual={actual_sha}）"
         )
     if str(bank.get("source_pack_sha256") or "") != actual_sha:
+        rebuild = _BANK_KINDS[kind]["builder"][0].format(
+            pid=pack_id, pid_lower=pack_id.lower()
+        )
         raise PromotionError(
             f"bank source_pack_sha256 与当前 pack 正文不一致（pack 已修订），"
-            f"先重跑 scripts/build_luban_{pack_id.lower()}_variant_bank.py 重建 bank"
+            f"先重跑 {rebuild} 重建 bank"
             f"（bank={bank.get('source_pack_sha256')} actual={actual_sha}）"
         )
 
-    _check_stored_gate(bank)
+    _check_stored_gate(bank, kind)
     gate_check(pack_id, repo)  # gate 数字重跑（builder --check）
 
     bank["status"] = "signed"
@@ -165,13 +205,17 @@ def promote(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="变体池签发（candidate → signed，人闸）")
+    parser = argparse.ArgumentParser(description="供给池签发（candidate → signed，人闸）")
     parser.add_argument("pack_id", help="pack id，如 F16")
     parser.add_argument("--basis", required=True, help="签发依据（留痕，必填）")
     parser.add_argument("--who", default=getpass.getuser(), help="签发人（默认当前系统用户）")
+    parser.add_argument(
+        "--kind", default="variant", choices=sorted(_BANK_KINDS),
+        help="bank 类型：variant=变体池（默认）/ concept_cards=考点卡池",
+    )
     args = parser.parse_args()
     try:
-        path = promote(args.pack_id, args.basis, args.who)
+        path = promote(args.pack_id, args.basis, args.who, kind=args.kind)
     except PromotionError as exc:
         print(f"promote-variant-bank: FAIL — {exc}", file=sys.stderr)
         return 1
