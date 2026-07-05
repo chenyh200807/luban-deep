@@ -1,0 +1,189 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>进度款与计量计价(单向资金链四口径) · 独立闯关</title><style>
+*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{background:#eaf1f6;color:#17202a;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}.practice{max-width:430px;margin:0 auto;min-height:100dvh;padding:8px 10px 12px}header{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;margin-bottom:8px}header a{border:1px solid #cad8e5;border-radius:999px;padding:0 12px;background:#fff;color:#176b7a;text-decoration:none;font-weight:900;font-size:12px;white-space:nowrap;min-height:44px;display:flex;align-items:center}header span{color:#176b7a;font-size:11px;font-weight:900}h1{font-size:17px;margin:2px 0 0;line-height:1.18;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.progress{height:5px;border-radius:999px;background:#d6e2ec;margin-bottom:9px;overflow:hidden}.progress div{height:100%;width:0;background:#f97316}.q{display:none}.q.active{display:flex;min-height:calc(100dvh - 152px);flex-direction:column;gap:10px}.qtop{display:flex;justify-content:space-between;gap:10px;color:#176b7a;font-size:12px;font-weight:900}.qtop em{font-style:normal;color:#607287;text-align:right;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.diagram{height:clamp(250px,36dvh,330px);background:#fffdf7;border:1px solid #eadfcb;border-radius:22px;display:grid;place-items:center;overflow:hidden;box-shadow:0 16px 36px rgba(31,41,55,.1)}.diagram svg{width:100%;height:100%}.gate rect,.step rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.gate.hot rect,.step.hot rect{fill:#fff7ed;stroke:#f97316;stroke-width:5}.gate.soft rect,.step.soft rect{fill:#f8fafc;stroke:#cbd9e6;stroke-width:3}.prompt-card,.answer-zone{min-width:0;overflow-wrap:anywhere;word-break:break-word;background:rgba(255,255,255,.96);border:1px solid #d2dee9;border-radius:18px;padding:11px 12px;box-shadow:0 10px 24px rgba(31,41,55,.08)}.student-answer{border-left:4px solid #f97316;background:#fff7ed;border-radius:12px;padding:8px 10px;margin-bottom:8px}.student-answer span,.choice-label,.score-write span{display:block;font-size:12px;font-weight:900;color:#176b7a}.student-answer p{margin:3px 0 0;font-size:15px;line-height:1.45;font-weight:900;color:#24364b}.q h2{font-size:17px;line-height:1.32;margin:0}.stem-toggle{margin-top:8px;min-height:44px;border:0;background:transparent;color:#176b7a;font-weight:900;padding:0}.full-stem{display:none;margin:8px 0 0;color:#55677a;font-size:13px;line-height:1.5;font-weight:800}.q.show-stem .full-stem{display:block}.options{display:grid;gap:8px;margin-top:7px}.option{text-align:left;min-height:52px;border:1px solid #cfdae6;background:#fff;border-radius:15px;padding:8px 10px;color:#24364b;font-size:15px;font-weight:900;line-height:1.24;display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:6px}.option b{display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:#eef4f8;color:#176b7a}.option.correct{border-color:#73c596;background:#ecf9f2}.option.correct b{background:#16a34a;color:#fff}.option.wrong{border-color:#fb923c;background:#fff3e9}.option.wrong b{background:#f97316;color:#fff}.option:disabled{opacity:1}.option-drawer{margin-top:8px;border-top:1px solid #e4edf5;padding-top:8px}.option-drawer summary{min-height:44px;color:#607287;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center}.option-drawer ol{margin:6px 0 0;padding-left:20px;color:#34465b;font-size:13px;line-height:1.55;font-weight:800}.score-write{display:grid;gap:10px}.score-write label{display:grid;gap:5px}.score-write input{min-height:48px;border:1px solid #cfdae6;border-radius:13px;padding:0 12px;font-size:15px;font-weight:800;color:#17202a;background:#fff}.score-write input.ok{border-color:#73c596;background:#ecf9f2}.score-write input.no{border-color:#fb923c;background:#fff3e9}.check-score{min-height:48px;border:1px solid #176b7a;border-radius:14px;background:#176b7a;color:#fff;font-weight:900;font-size:15px}.feedback{display:none;margin-top:0;border-radius:15px;padding:12px;font-size:14px;font-weight:850;line-height:1.55}.feedback.show.correct{display:block;background:#ecf9f2;border:1px solid #73c596;color:#0f6b4f}.feedback.show.wrong{display:block;background:#fff3e9;border:1px solid #fb923c;color:#9a3412}.feedback .basis{display:block;margin-top:7px;color:#56677c;font-size:12px;font-weight:800}.done{display:none;background:#fff;border:1px solid #d2dee9;border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(31,41,55,.08)}.done.show{display:block}.done h2{font-size:24px;margin:0 0 10px;text-align:center;color:#176b7a}.done p{font-size:15px;line-height:1.65;font-weight:800;color:#34465b}.atoms{display:grid;gap:7px;margin:12px 0}.atoms span{border-left:3px solid #176b7a;background:#f7fafc;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:900;color:#34465b}.done a{display:flex;align-items:center;justify-content:center;background:#176b7a;color:#fff;border-radius:14px;min-height:46px;text-decoration:none;font-weight:900}nav{width:min(430px,calc(100% - 20px));display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px auto calc(10px + env(safe-area-inset-bottom));padding:10px;background:rgba(255,255,255,.96);border:1px solid #d2dee9;border-radius:18px;box-shadow:0 10px 28px rgba(31,41,55,.1)}nav button{min-height:48px;border-radius:14px;border:1px solid #cfdae6;background:#fff;color:#24364b;font-weight:900}nav button:last-child{background:#176b7a;color:#fff;border-color:#176b7a}nav button:disabled{background:#eef4f8!important;color:#7b8da1!important;border-color:#cfdae6!important}nav button.blocked{border-color:#fb923c;background:#fff7ed;color:#9a3412}@media(max-height:720px){.diagram{height:clamp(230px,34dvh,300px)}.student-answer p{font-size:14px}.prompt-card,.answer-zone{padding:9px 10px}.option{min-height:48px}}@media(orientation:landscape){.practice{max-width:none;padding:8px 10px 12px}.q.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,.76fr);grid-template-rows:auto 1fr auto;align-items:start}.qtop{grid-column:1/-1}.diagram{height:min(calc(100dvh - 154px),520px)}.prompt-card{grid-column:2}.answer-zone{grid-column:2}.feedback{grid-column:1/-1}nav{width:min(720px,calc(100% - 20px));grid-template-columns:180px 1fr}}
+</style></head>
+<body><main class="practice" data-practice-shell="challenge-theater">
+<header><a href="C02_jdk.journey.html">返回讲解</a><div><span>鲁班深母题 · 独立闯关</span><h1>进度款与计量计价(单向资金链四口径)</h1></div></header>
+<div class="progress"><div id="progressFill"></div></div>
+<section class="q" data-practice-id="q1" data-qid="q1">
+  <div class="qtop"><span>第 1/5 问</span><em>中间边界陷阱(累计略低于起扣点)·关键鉴别</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="预付款 + 起扣点(链起点:先扣暂列金、达起扣点再回扣)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">预付款 + 起扣点(链起点:先扣暂列金、达起扣点再回扣) · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">起扣点是扣回预付款的触发时点,不是&#x27;过半&#x27;&#x27;差不多&#x27;就扣。先用公式算出起扣点=合同价−预付款÷材料占比=660−132÷60%=440 万,再拿累计完成产值 420 万去比——420&lt;440,没到起扣点,这个月一分预付款都不扣回。这正是计算类最爱设的中间边界陷阱:累计刚好略低于起扣点,凭感觉&#x27;过半了&#x27;就扣是典型时点口径错(B 对)。材料占比 60% 是本题题面给定输入,不是固定常数</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>某合同价 660 万(无暂列金额),预付款 132 万,主要材料?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">某合同价 660 万(无暂列金额),预付款 132 万,主要材料所占比重 60%,起扣点已按公式算出。到本月底累计完成产值 420 万。问:本月进度款里要不要开始扣回预付款?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>要扣:已经完成 420 万,过半了就该开始原路…</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>不扣:先算起扣点=660−132÷60%=44…</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>扣一半:按完成比例 420÷660 折算扣回预…</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 要扣:已经完成 420 万,过半了就该开始原路扣回预付款；错因：没有按本题不变量完整判断</li><li><b>B.</b> 不扣:先算起扣点=660−132÷60%=440 万,累计 420 万还没到 440 万的起扣点,这个月不扣预付款；判断依据：起扣点是扣回预付款的触发时点,不是&#x27;过半&#x27;&#x27;差不多&#x27;就扣。先用公式算出起扣点=合同价−预付款÷材料占比=660−132÷60%=440 万,再拿累计完成产值 420 万去比——420&lt;440,没到起扣点,这个月一分预付款都不扣回。这正是计算类最爱设的中间边界陷阱:累计刚好略低于起扣点,凭感觉&#x27;过半了&#x27;就扣是典型时点口径错(B 对)。材料占比 60% 是本题题面给定输入,不是固定常数</li><li><b>C.</b> 扣一半:按完成比例 420÷660 折算扣回预付款；错因：没有按本题不变量完整判断</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q1"></div>
+</section><section class="q" data-practice-id="q2" data-qid="q2">
+  <div class="qtop"><span>第 2/5 问</span><em>数值分档(累计vs当期计算)</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="逐月进度款(链中段:当期实付公式)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">逐月进度款(链中段:当期实付公式) · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">进度款是单向资金链的中段,公式必须走累计口径再减前期已付:当期应付=[累计已完×支付比例−累计预付扣回−前期已付]−发包人扣款=1000×90%−700=200 万。A 的错在把&#x27;累计已完×比例&#x27;当成&#x27;当期应付&#x27;,忘了减前期已付(把累计当当期);C 的错在没乘支付比例直接拿完成减已付。区分当月完成/累计完成/累计已付/当期应付是计算类的核心口径(B 对)。支付比例 90% 是本题题面给定输入</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>某月累计已完工程款 1000 万,合同约定支付比例 90%,到上?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">某月累计已完工程款 1000 万,合同约定支付比例 90%,到上月止累计已付进度款 700 万,本期无预付扣回、无发包人扣款。问:本月当期应付进度款是多少?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>900 万:本期完成额直接按 1000×90%…</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>200 万:当期应付=累计已完×支付比例−前期…</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>300 万:1000−700=300 万,完成…</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 900 万:本期完成额直接按 1000×90% 算就是应付；错因：直接覆盖没有先处理气、水汽和基层病因</li><li><b>B.</b> 200 万:当期应付=累计已完×支付比例−前期已付=1000×90%−700=200 万；判断依据：进度款是单向资金链的中段,公式必须走累计口径再减前期已付:当期应付=[累计已完×支付比例−累计预付扣回−前期已付]−发包人扣款=1000×90%−700=200 万。A 的错在把&#x27;累计已完×比例&#x27;当成&#x27;当期应付&#x27;,忘了减前期已付(把累计当当期);C 的错在没乘支付比例直接拿完成减已付。区分当月完成/累计完成/累计已付/当期应付是计算类的核心口径(B 对)。支付比例 90% 是本题题面给定输入</li><li><b>C.</b> 300 万:1000−700=300 万,完成多少减已付多少；错因：没有按本题不变量完整判断</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q2"></div>
+</section><section class="q" data-practice-id="q3" data-qid="q3">
+  <div class="qtop"><span>第 3/5 问</span><em>迁移档(预付款→结算质保金·判据切换)</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="竣工结算质保金(链终点:法定上限3%)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">竣工结算质保金(链终点:法定上限3%) · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">资金链走到终点,判据从&#x27;预付款按起扣点扣&#x27;切换到&#x27;质保金按结算总价封顶&#x27;:累计预留质保金或保函≤工程结算总价的3%,基数必须是结算总价(5000 万)不是合同价(4800 万),所以上限=5000×3%=150 万。A 的错在基数张冠李戴(用合同价);C 的错在以为质保金可协商无上限(3% 是规范钉死的法定上限)。换计价情形资金链不变,判据随情形切换(B 对)</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>换到资金链终点:工程竣工结算总价 5000 万,合同价 4800?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">换到资金链终点:工程竣工结算总价 5000 万,合同价 4800 万,发包人想从结算款里预留质保金。问:质保金最多能留多少、基数按哪个算?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>按合同价 4800 万×3%=144 万,合同…</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>按结算总价 5000 万×3%=150 万:质…</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>质保金没有上限,发包人和承包人协商留多少都行</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 按合同价 4800 万×3%=144 万,合同价是双方约定的基准最稳；错因：没有按本题不变量完整判断</li><li><b>B.</b> 按结算总价 5000 万×3%=150 万:质保金累计预留不得超过工程结算总价的 3%,基数是结算总价；判断依据：资金链走到终点,判据从&#x27;预付款按起扣点扣&#x27;切换到&#x27;质保金按结算总价封顶&#x27;:累计预留质保金或保函≤工程结算总价的3%,基数必须是结算总价(5000 万)不是合同价(4800 万),所以上限=5000×3%=150 万。A 的错在基数张冠李戴(用合同价);C 的错在以为质保金可协商无上限(3% 是规范钉死的法定上限)。换计价情形资金链不变,判据随情形切换(B 对)</li><li><b>C.</b> 质保金没有上限,发包人和承包人协商留多少都行；错因：没有按本题不变量完整判断</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q3"></div>
+</section><section class="q" data-practice-id="q4" data-qid="q4">
+  <div class="qtop"><span>第 4/5 问</span><em>迁移档(进度款→未约定法定下限·判据切换)·关键鉴别</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="未约定支付比例下限(法定地基:80%)判断图">
+  <rect x="18" y="18" width="354" height="184" rx="18" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/>
+  <text x="42" y="50" fill="#176b7a" font-size="16" font-weight="900">未约定支付比例下限(法定地基:80%) · 0m</text>
+  <g class="gate hot">
+    <rect x="42" y="72" width="136" height="68" rx="14"/>
+    <text x="110" y="99" text-anchor="middle" font-size="15" font-weight="900">第一道闸</text>
+    <text x="110" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 危大</text>
+  </g>
+  <g class="gate hot">
+    <rect x="212" y="72" width="136" height="68" rx="14"/>
+    <text x="280" y="99" text-anchor="middle" font-size="15" font-weight="900">第二道闸</text>
+    <text x="280" y="122" text-anchor="middle" font-size="14" font-weight="900">≥0.0m 超规模</text>
+  </g>
+  <path d="M178 106 H212" stroke="#8aa0b6" stroke-width="5" stroke-linecap="round"/>
+  <text x="195" y="174" text-anchor="middle" fill="#24364b" font-size="15" font-weight="900">这是换计价情形迁移的关键鉴别:从&#x27;按约定比例算进度款&#x27;切换到&#x27;未约定&#x27;情形,判据切到法定下限——合同未约定支付比例时,不宜低于累计完成工程总值的80%(1000×80%=800 万),既不是全额100%(A,那是把未约定当无限制),也不是不付(C,那是漏了进度款逐期支付义务)。&#x27;未约定&#x27;这个前提是触发80%法定下限的开关,背过的人只记&#x27;80%&#x27;却不知它专用于未约定情形(B 对)。80% 是规范钉死的法定下限不是题面可调输入</text>
+</svg></div>
+  <div class="prompt-card">
+
+    <h2>又换一种情形:这份合同没有约定每期进度款的支付比例,本期累计完成?</h2>
+    <button type="button" class="stem-toggle" data-toggle-stem="1">展开完整题干</button>
+    <p class="full-stem">又换一种情形:这份合同没有约定每期进度款的支付比例,本期累计完成工程总值 1000 万。承包人问&#x27;那这个月最少该付我多少&#x27;。该按什么口径判?</p>
+  </div>
+  <div class="answer-zone">
+    <div class="choice-label">点一个判断</div>
+    <div class="options"><button type="button" class="option" data-opt="A"><b>A</b><span>没约定就全额付:累计完成 1000 万就该付 …</span></button><button type="button" class="option" data-opt="B"><b>B</b><span>未约定时按法定下限:不宜低于累计完成工程总值的…</span></button><button type="button" class="option" data-opt="C"><b>C</b><span>没约定就不用付,等竣工结算一次性结清</span></button></div>
+    <details class="option-drawer"><summary>看完整选项与依据</summary><ol><li><b>A.</b> 没约定就全额付:累计完成 1000 万就该付 1000 万；错因：没有按本题不变量完整判断</li><li><b>B.</b> 未约定时按法定下限:不宜低于累计完成工程总值的 80%,即不低于 1000×80%=800 万；判断依据：这是换计价情形迁移的关键鉴别:从&#x27;按约定比例算进度款&#x27;切换到&#x27;未约定&#x27;情形,判据切到法定下限——合同未约定支付比例时,不宜低于累计完成工程总值的80%(1000×80%=800 万),既不是全额100%(A,那是把未约定当无限制),也不是不付(C,那是漏了进度款逐期支付义务)。&#x27;未约定&#x27;这个前提是触发80%法定下限的开关,背过的人只记&#x27;80%&#x27;却不知它专用于未约定情形(B 对)。80% 是规范钉死的法定下限不是题面可调输入</li><li><b>C.</b> 没约定就不用付,等竣工结算一次性结清；错因：没有按本题不变量完整判断</li></ol></details>
+  </div>
+  <div class="feedback" id="fb-q4"></div>
+</section><section class="q" data-practice-id="q5" data-qid="q5">
+  <div class="qtop"><span>第 5/5 问</span><em>采分句输出</em></div>
+  <div class="diagram"><svg viewBox="0 0 390 220" role="img" aria-label="采分句答题纸">
+    <rect x="28" y="30" width="334" height="154" rx="18" fill="#fff" stroke="#d8e2ec" stroke-width="4"/>
+    <text x="58" y="72" fill="#176b7a" font-size="17" font-weight="900">答题纸三件套</text>
+    <text x="58" y="112" fill="#17202a" font-size="16" font-weight="900">对象/阈值 + 判断结果 + 处理结论</text>
+    <path d="M58 138h274" stroke="#f97316" stroke-width="7" stroke-linecap="round"/>
+  </svg></div>
+  <h2>把这类题写成一句能拿分的话。</h2>
+  <div class="score-write">
+    <label><span>对象/阈值</span><input data-field="field1" placeholder="如:基坑开挖深度5.5m"></label>
+<label><span>判断结果</span><input data-field="field2" placeholder="危大且超过一定规模"></label>
+<label><span>处理结论</span><input data-field="field3" placeholder="专项施工方案应组织专家论证"></label>
+    <button type="button" class="check-score" data-check-score="1">检查采分句</button>
+  </div>
+  <div class="feedback" id="fb-q5"></div>
+</section>
+<section class="done" id="done"><h2>看穿结果</h2><p id="scoreText"></p><div class="atoms" id="atoms"></div><a href="C02_jdk.journey.html">回看白板讲解</a></section>
+</main><nav><button type="button" id="prevQ">上一题</button><button type="button" id="nextQ">下一题</button></nav>
+<script type="application/json" id="practiceData">{"practice": [{"id": "q1", "answer": "B", "correct_feedback": "对:不扣。这道题的钩子在时点边界——别看完成 420 万过半了就以为该扣,先把起扣点算出来:起扣点=合同价−预付款÷主要材料所占比重=660−132÷60%=440 万。累计完成 420 万 < 440 万,还没踩到起扣点这条线,这个月预付款一分不扣;等累计过了 440 万,才开始从进度款里按超额扣回。记住:扣不扣预付款看累计有没有达起扣点,不是看完成没完成一半。", "basis": "起扣点是扣回预付款的触发时点,不是'过半''差不多'就扣。先用公式算出起扣点=合同价−预付款÷材料占比=660−132÷60%=440 万,再拿累计完成产值 420 万去比——420<440,没到起扣点,这个月一分预付款都不扣回。这正是计算类最爱设的中间边界陷阱:累计刚好略低于起扣点,凭感觉'过半了'就扣是典型时点口径错(B 对)。材料占比 60% 是本题题面给定输入,不是固定常数", "tier": "中间边界陷阱(累计略低于起扣点)·关键鉴别", "options": [{"id": "A", "text": "要扣:已经完成 420 万,过半了就该开始原路扣回预付款；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "B", "text": "不扣:先算起扣点=660−132÷60%=440 万,累计 420 万还没到 440 万的起扣点,这个月不扣预付款；判断依据：起扣点是扣回预付款的触发时点,不是'过半''差不多'就扣。先用公式算出起扣点=合同价−预付款÷材料占比=660−132÷60%=440 万,再拿累计完成产值 420 万去比——420<440,没到起扣点,这个月一分预付款都不扣回。这正是计算类最爱设的中间边界陷阱:累计刚好略低于起扣点,凭感觉'过半了'就扣是典型时点口径错(B 对)。材料占比 60% 是本题题面给定输入,不是固定常数", "feedback": "对:不扣。这道题的钩子在时点边界——别看完成 420 万过半了就以为该扣,先把起扣点算出来:起扣点=合同价−预付款÷主要材料所占比重=660−132÷60%=440 万。累计完成 420 万 < 440 万,还没踩到起扣点这条线,这个月预付款一分不扣;等累计过了 440 万,才开始从进度款里按超额扣回。记住:扣不扣预付款看累计有没有达起扣点,不是看完成没完成一半。"}, {"id": "C", "text": "扣一半:按完成比例 420÷660 折算扣回预付款；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}]}, {"id": "q2", "answer": "B", "correct_feedback": "对:200 万。进度款不能只看当月、要走累计口径:当期应付=累计已完×支付比例−累计扣回−前期已付−扣款=1000×90%−700=200 万。最常见的错是把'累计已完×比例'(900 万)当成本月就该付的,忘了前面已经付了 700 万——那是把累计当当期。也别忘了乘支付比例(直接 1000−700=300 是漏了比例)。先乘比例算累计应付,再减已付,才是当期。", "basis": "进度款是单向资金链的中段,公式必须走累计口径再减前期已付:当期应付=[累计已完×支付比例−累计预付扣回−前期已付]−发包人扣款=1000×90%−700=200 万。A 的错在把'累计已完×比例'当成'当期应付',忘了减前期已付(把累计当当期);C 的错在没乘支付比例直接拿完成减已付。区分当月完成/累计完成/累计已付/当期应付是计算类的核心口径(B 对)。支付比例 90% 是本题题面给定输入", "tier": "数值分档(累计vs当期计算)", "options": [{"id": "A", "text": "900 万:本期完成额直接按 1000×90% 算就是应付；错因：直接覆盖没有先处理气、水汽和基层病因", "feedback": "错因：直接覆盖没有先处理气、水汽和基层病因"}, {"id": "B", "text": "200 万:当期应付=累计已完×支付比例−前期已付=1000×90%−700=200 万；判断依据：进度款是单向资金链的中段,公式必须走累计口径再减前期已付:当期应付=[累计已完×支付比例−累计预付扣回−前期已付]−发包人扣款=1000×90%−700=200 万。A 的错在把'累计已完×比例'当成'当期应付',忘了减前期已付(把累计当当期);C 的错在没乘支付比例直接拿完成减已付。区分当月完成/累计完成/累计已付/当期应付是计算类的核心口径(B 对)。支付比例 90% 是本题题面给定输入", "feedback": "对:200 万。进度款不能只看当月、要走累计口径:当期应付=累计已完×支付比例−累计扣回−前期已付−扣款=1000×90%−700=200 万。最常见的错是把'累计已完×比例'(900 万)当成本月就该付的,忘了前面已经付了 700 万——那是把累计当当期。也别忘了乘支付比例(直接 1000−700=300 是漏了比例)。先乘比例算累计应付,再减已付,才是当期。"}, {"id": "C", "text": "300 万:1000−700=300 万,完成多少减已付多少；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}]}, {"id": "q3", "answer": "B", "correct_feedback": "对:150 万,按结算总价算。同一条资金链走到竣工结算这一端,判据换了:质保金累计预留不得超过工程结算总价的3%,基数咬死结算总价 5000 万,不是合同价 4800 万——5000×3%=150 万。别用合同价(那是另一个口径),也别以为能协商无上限(3% 是规范钉死的法定上限)。这就是迁移:链子不变,但走到哪一笔钱,就用哪一笔钱的口径和阈值。", "basis": "资金链走到终点,判据从'预付款按起扣点扣'切换到'质保金按结算总价封顶':累计预留质保金或保函≤工程结算总价的3%,基数必须是结算总价(5000 万)不是合同价(4800 万),所以上限=5000×3%=150 万。A 的错在基数张冠李戴(用合同价);C 的错在以为质保金可协商无上限(3% 是规范钉死的法定上限)。换计价情形资金链不变,判据随情形切换(B 对)", "tier": "迁移档(预付款→结算质保金·判据切换)", "options": [{"id": "A", "text": "按合同价 4800 万×3%=144 万,合同价是双方约定的基准最稳；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "B", "text": "按结算总价 5000 万×3%=150 万:质保金累计预留不得超过工程结算总价的 3%,基数是结算总价；判断依据：资金链走到终点,判据从'预付款按起扣点扣'切换到'质保金按结算总价封顶':累计预留质保金或保函≤工程结算总价的3%,基数必须是结算总价(5000 万)不是合同价(4800 万),所以上限=5000×3%=150 万。A 的错在基数张冠李戴(用合同价);C 的错在以为质保金可协商无上限(3% 是规范钉死的法定上限)。换计价情形资金链不变,判据随情形切换(B 对)", "feedback": "对:150 万,按结算总价算。同一条资金链走到竣工结算这一端,判据换了:质保金累计预留不得超过工程结算总价的3%,基数咬死结算总价 5000 万,不是合同价 4800 万——5000×3%=150 万。别用合同价(那是另一个口径),也别以为能协商无上限(3% 是规范钉死的法定上限)。这就是迁移:链子不变,但走到哪一笔钱,就用哪一笔钱的口径和阈值。"}, {"id": "C", "text": "质保金没有上限,发包人和承包人协商留多少都行；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}]}, {"id": "q4", "answer": "B", "correct_feedback": "对:不低于 800 万。这道题的钩子是'没有约定支付比例'这六个字——它是开关,一旦触发,判据就从'按约定比例'切到法定下限:未约定的,不宜低于累计完成工程总值的80%,所以本月至少付 1000×80%=800 万。别以为没约定就全额付(那是把未约定当无限制),也别以为没约定就不用付(进度款是逐期义务)。80% 专门为'未约定'这种情形兜底,这就是会迁移:认出情形,切对判据。", "basis": "这是换计价情形迁移的关键鉴别:从'按约定比例算进度款'切换到'未约定'情形,判据切到法定下限——合同未约定支付比例时,不宜低于累计完成工程总值的80%(1000×80%=800 万),既不是全额100%(A,那是把未约定当无限制),也不是不付(C,那是漏了进度款逐期支付义务)。'未约定'这个前提是触发80%法定下限的开关,背过的人只记'80%'却不知它专用于未约定情形(B 对)。80% 是规范钉死的法定下限不是题面可调输入", "tier": "迁移档(进度款→未约定法定下限·判据切换)·关键鉴别", "options": [{"id": "A", "text": "没约定就全额付:累计完成 1000 万就该付 1000 万；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}, {"id": "B", "text": "未约定时按法定下限:不宜低于累计完成工程总值的 80%,即不低于 1000×80%=800 万；判断依据：这是换计价情形迁移的关键鉴别:从'按约定比例算进度款'切换到'未约定'情形,判据切到法定下限——合同未约定支付比例时,不宜低于累计完成工程总值的80%(1000×80%=800 万),既不是全额100%(A,那是把未约定当无限制),也不是不付(C,那是漏了进度款逐期支付义务)。'未约定'这个前提是触发80%法定下限的开关,背过的人只记'80%'却不知它专用于未约定情形(B 对)。80% 是规范钉死的法定下限不是题面可调输入", "feedback": "对:不低于 800 万。这道题的钩子是'没有约定支付比例'这六个字——它是开关,一旦触发,判据就从'按约定比例'切到法定下限:未约定的,不宜低于累计完成工程总值的80%,所以本月至少付 1000×80%=800 万。别以为没约定就全额付(那是把未约定当无限制),也别以为没约定就不用付(进度款是逐期义务)。80% 专门为'未约定'这种情形兜底,这就是会迁移:认出情形,切对判据。"}, {"id": "C", "text": "没约定就不用付,等竣工结算一次性结清；错因：没有按本题不变量完整判断", "feedback": "错因：没有按本题不变量完整判断"}]}], "score_question_id": "q5", "score_terms": ["综合单价税前全费用", "不含增值税", "税在最末整体计提", "禁单价内重复计税", "预付款=合同价(扣暂列金)×比例", "起扣点=合同价−预付款÷材料占比", "累计达起扣点才扣回", "材料占比题面给定", "累计已完×支付比例", "减累计扣回", "减前期已付", "减发包人扣款", "未约定前提", "不宜低于80%", "累计完成工程总值", "法定下限", "质保金≤3%", "基数=结算总价", "禁按合同价/预付款算", "法定上限"], "sample_score_sentence": "综合单价税前全费用、不含增值税、税在最末整体计提、禁单价内重复计税、预付款=合同价(扣暂列金)×比例、起扣点=合同价−预付款÷材料占比", "warm_feedback": {"all_correct": "你是真的把这条资金链走通了——综合单价税前、量×价、预付款扣暂列金、起扣点这条临界线、逐月进度款的累计公式、未约定的80%法定下限、质保金的3%封顶,一笔不漏;碰到累计差一点会停手不乱扣,换到结算质保金、换到未约定情形会切对口径。这类题稳,换什么合同规模、什么比例、什么情形你都不慌。", "partial": "公式你算得对,就差边界判读和换情形那两处:扣不扣预付款先看累计有没有真的过起扣点(差一点点也别扣);质保金的基数咬死结算总价不是合同价;遇到'没约定支付比例'要立刻切到80%法定下限,别当通用比例。把这几处的'认情形、切判据'补上就齐了,你离真懂只差一步。", "rote_leaning": "先别急着背'达起扣点就扣''留80%''≤3%'这几个孤立数字。记这一条资金链:报价单价(税前)→ 已完工程量(量×价)→ 当期应得(累计×比例)→ 扣预付(累计过起扣点才扣)/扣质保(结算总价≤3%)→ 当期实付,未约定兜底80%。先认出题目走到链子哪一段、是哪一笔钱,再用那一段的口径和阈值——累计差一点就不扣、换情形就换判据,你都不慌。"}}</script>
+<script>
+const DATA=JSON.parse(document.getElementById('practiceData').textContent);
+const qs=[...document.querySelectorAll('.q')], selected={}, progress=document.getElementById('progressFill');
+const prevBtn=document.getElementById('prevQ'), nextBtn=document.getElementById('nextQ');
+let current=0, score=0;
+const qById=Object.fromEntries(DATA.practice.map(q=>[q.id,q]));
+const clean=s=>String(s||'').replace(/\s+/g,'').replace(/[，。；、,.;]/g,'').toLowerCase();
+function el(tag, cls, text){const node=document.createElement(tag);if(cls)node.className=cls;if(text!=null)node.textContent=String(text);return node;}
+function showFeedback(box, ok, mainText, basisText){box.className='feedback show '+(ok?'correct':'wrong');box.replaceChildren(document.createTextNode((ok?'对。':'再看判据。')+' '+mainText), el('span','basis',basisText));}
+function done(i){const qid=qs[i].dataset.qid;return !!selected[qid];}
+function updateNav(){prevBtn.disabled=current===0;const ready=done(current);nextBtn.disabled=!ready;nextBtn.textContent=ready?(current===qs.length-1?'查看结果':'下一题'):'先作答';}
+function show(i){current=Math.max(0,Math.min(qs.length-1,i));qs.forEach((q,idx)=>q.classList.toggle('active',idx===current));progress.style.width=((current+1)/qs.length*100)+'%';updateNav();}
+function needAnswer(){const btn=document.getElementById('nextQ'),old=btn.textContent;btn.textContent='先独立作答';btn.classList.add('blocked');setTimeout(()=>{btn.textContent=old;btn.classList.remove('blocked');},900);}
+document.querySelectorAll('.option').forEach(btn=>btn.addEventListener('click',()=>{
+  const qEl=btn.closest('.q'), qid=qEl.dataset.qid, q=qById[qid]; if(selected[qid])return;
+  const ok=btn.dataset.opt===q.answer; selected[qid]=btn.dataset.opt; if(ok)score++;
+  qEl.querySelectorAll('.option').forEach(o=>{o.disabled=true;if(o.dataset.opt===q.answer)o.classList.add('correct');else if(o===btn)o.classList.add('wrong');});
+	  const opt=(q.options||[]).find(o=>o.id===btn.dataset.opt)||{feedback:''};
+	  const fb=document.getElementById('fb-'+qid);
+	  showFeedback(fb, ok, ok?(q.correct_feedback||''):(opt.feedback||''), '判据:'+(q.basis||'')+(q.tier?' · '+q.tier:''));
+  updateNav();
+	}));
+document.querySelectorAll('[data-toggle-stem]').forEach(btn=>btn.addEventListener('click',()=>{
+  const q=btn.closest('.q'); q.classList.toggle('show-stem');
+  btn.textContent=q.classList.contains('show-stem')?'收起完整题干':'展开完整题干';
+}));
+document.querySelector('[data-check-score]').addEventListener('click',()=>{
+  const qEl=qs[qs.length-1], qid=qEl.dataset.qid, values=[...qEl.querySelectorAll('input')].map(i=>i.value).join('');
+  const terms=DATA.score_terms||[]; const hit=terms.filter(t=>clean(values).includes(clean(t))).length;
+  selected[qid]=true; if(hit>=3)score++;
+  qEl.querySelectorAll('input').forEach(i=>i.classList.toggle('ok',i.value.trim().length>0));
+	  const fb=document.getElementById('fb-'+qid);
+	  fb.className='feedback show '+(hit>=3?'correct':'wrong');
+	  fb.replaceChildren(document.createTextNode(hit>=3?'对。':'还不够像采分句。'), el('span','basis','可写:'+DATA.sample_score_sentence));
+  updateNav();
+	});
+prevBtn.addEventListener('click',()=>show(current-1));
+nextBtn.addEventListener('click',()=>{if(!done(current)){needAnswer();return;} if(current<qs.length-1)show(current+1);else showDone();});
+function showDone(){qs.forEach(q=>q.classList.remove('active'));document.getElementById('done').classList.add('show');document.querySelector('nav').style.display='none';progress.style.width='100%';const ratio=score+'/'+qs.length;document.getElementById('scoreText').textContent=ratio+'。'+((DATA.warm_feedback||{}).all_correct||'把判断链写成采分句,才算真正会拿分。');document.getElementById('atoms').replaceChildren(...(DATA.score_terms||[]).slice(0,6).map(t=>{const s=document.createElement('span');s.textContent=t;return s;}));}
+show(0);
+</script></body></html>

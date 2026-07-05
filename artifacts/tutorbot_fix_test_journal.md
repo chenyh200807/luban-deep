@@ -9,6 +9,27 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-04 - 未作答"讲考点"排除法泄露答案（authority drift 收权，source 已改 / live 验证待部署）
+
+**问题（业务事实 + 症状）**：学生明确"未作答 + 先别告诉我答案"时，bot 讲考点却**逐条否定 A/B/C + 确认 D 正确 = 排除法实质泄露**未作答题答案。证据：加固后的 `sev_regression._leak` 双判官探针 test2 实跑 3/3 复现（run3 DeepSeek CLEAN 但 GLM LEAK，fail-closed 兜住）；`leak_boundary` 维度反而 GO（假绿）。
+
+**根因（断点 + shared failure shape）= `duplicate decision / authority drift`**：
+- 单一 authority = `construction-question-review/SKILL.md:53-61` 三档矩阵，`pre_answer` 档 line 59 硬禁止"正确选项 / 任何能反推答案的提示"。
+- 违反点 = `construction-exam-tutor/references/mcq-review.md:16,35` 无条件"必须逐项判断：正确项为什么对""必须逐项给判定"——**无 pre/post 档位**，在未作答也生效 → 逐项定性 → 排除法泄露。line 15 的"排除思路"一词本身诱导。
+- `leak_boundary` 假绿的次根因：其主裁 `REVEAL` 正则只拦 literal label（"答案是X/应选X"），语义级排除法泄露结构上拦不住 = green-by-omission（确定性静态闸只拦 literal 的通病）。
+
+**失败的尝试 / 被否决的方案**：
+- ❌ 加确定性守卫（扩 `guard_output` / 加 REVEAL 正则抓排除法）。否决理由：排除法是语义级泄露，正则打地鼠 + 制造第二套 authority；root-cause 铁律"语义问题不降级成模式匹配"。leak_boundary 正则已用此路失败（假绿）。
+- ❌ 第一直觉"sev_regression BLOCK = S3 倒诬复发"。证伪：双判官重放 4/4 CLEAN + surface_stable=True，倒诬是**单判官方差假阳**，真 SEV 是 _leak 泄露。
+
+**成功修法（收权，非加层）**：`mcq-review.md` 单文件收权到 question-review 三档矩阵——① 顶部加"档位前提（单一 authority）"总约束覆盖全文件所有"给答案/逐项"表述；② `:16` 逐项判断加 `post_answer` 前提；③ `:35` 多选题逐项判定加档位前提；④ `:15` 删"排除思路"诱导词，明确未作答不评判任何具体选项对错。
+
+**验证（诚实：未完成，受阻于 workspace 遮蔽坑）**：
+- ⚠️ `_seed_skills`（manager.py:538）是 `if not target.exists()` 目录级 seed，**已存在不覆盖** → test2 容器旧 workspace 拷贝会遮蔽 source（[[tutorbot-skills-source-runtime-sync]]）。本地 `data/tutorbot/.../workspace/skills/` 拷贝亦为旧版（diff 证实）。
+- **live 生效前提**：同步/删除容器 workspace 拷贝让重 seed + 部署 → 再用 `sev_regression._leak` 双判官探针复测 3 轮 0 泄露才算修好。**未做，不宣称已修**。
+
+**教训**：改 TutorBot skill 文本治本，source 改完 ≠ 生效——workspace 目录级 `if not exists` seed 会永久遮蔽；且验证必须 live 探针复测，不能只读改后文本自证。
+
 ## 2026-06-26 - Study assistant no-evidence terminal gate blocks fabricated learner state
 
 - 问题：
