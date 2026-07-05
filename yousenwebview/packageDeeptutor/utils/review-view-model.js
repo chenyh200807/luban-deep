@@ -42,6 +42,8 @@ function _dueEntry(item) {
     // action 由 vm 定死: 前端页面只按此路由, 不再各处判一次(单一判定点)
     action: retestAvailable ? "retest" : "station",
     sub: retestAvailable ? PROMISE_SUB : FALLBACK_SUB,
+    // 实务闯关(回忆→半写→核对)题面/判分都来自变体池 → 无池站 fail-closed 不给入口
+    gauntletAvailable: retestAvailable,
   };
 }
 
