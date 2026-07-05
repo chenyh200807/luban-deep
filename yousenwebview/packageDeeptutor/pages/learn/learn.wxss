@@ -136,38 +136,5 @@
 .lr-metric-num { font-size: 38rpx; font-weight: 800; color: var(--pk-t1); line-height: 1; }
 .lr-metric-grn { color: var(--pk-grn); }
 
-.lr-bottom-space { height: 40rpx; }
-
-/* ── 底部 tab ── */
-.lr-tabbar { display: flex; align-items: flex-end; justify-content: space-around; padding: 16rpx 12rpx 56rpx; background: var(--pk-card); border-top: 1rpx solid var(--pk-bd); }
-.lr-tab { display: flex; flex-direction: column; align-items: center; gap: 6rpx; min-width: 96rpx; color: var(--pk-t3); }
-.lr-tab--active { color: var(--pk-t1); }
-.lr-tab--active .lr-tab-txt { font-weight: 800; }
-.lr-tab-txt { font-size: 24rpx; }
-/* 线性图标:SVG 作 mask,颜色跟 currentColor(主题+激活态自适应) */
-.lr-tab-ico {
-  width: 44rpx; height: 44rpx;
-  background-color: currentColor;
-  -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;
-  mask-size: contain; mask-repeat: no-repeat; mask-position: center;
-}
-.lr-ico-learn {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2.1'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%205a2%202%200%200%201%202-2h13v18H6a2%202%200%200%201-2-2z'/%3E%3Cpath%20d='M19%2017H6a2%202%200%200%200-2%202'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2.1'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%205a2%202%200%200%201%202-2h13v18H6a2%202%200%200%201-2-2z'/%3E%3Cpath%20d='M19%2017H6a2%202%200%200%200-2%202'/%3E%3C/svg%3E");
-}
-.lr-ico-review {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.9'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M3%2012a9%209%200%201%201%202.6%206.4'/%3E%3Cpath%20d='M3%2015v6h6'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.9'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M3%2012a9%209%200%201%201%202.6%206.4'/%3E%3Cpath%20d='M3%2015v6h6'/%3E%3C/svg%3E");
-}
-.lr-ico-report {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.9'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%2020V10'/%3E%3Cpath%20d='M12%2020V4'/%3E%3Cpath%20d='M20%2020v-7'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.9'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%2020V10'/%3E%3Cpath%20d='M12%2020V4'/%3E%3Cpath%20d='M20%2020v-7'/%3E%3C/svg%3E");
-}
-.lr-ico-me {
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.9'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='12'%20cy='8'%20r='4'/%3E%3Cpath%20d='M4%2021c0-4%203.6-6.5%208-6.5s8%202.5%208%206.5'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='1.9'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='12'%20cy='8'%20r='4'/%3E%3Cpath%20d='M4%2021c0-4%203.6-6.5%208-6.5s8%202.5%208%206.5'/%3E%3C/svg%3E");
-}
-.lr-tab--center { margin-top: -56rpx; min-width: 118rpx; }
-.lr-tab-seal { width: 100rpx; height: 100rpx; border-radius: 50%; border: 8rpx solid var(--pk-paper); }
-.lr-tab-seal-logo { width: 48rpx; height: 48rpx; }
-.lr-tab--center .lr-tab-txt { color: var(--pk-t1); font-weight: 800; }
+/* 底部留白 = 共享五 tab 壳高(140rpx)+ safe-area + 呼吸(壳为 fixed 覆层) */
+.lr-bottom-space { height: calc(180rpx + env(safe-area-inset-bottom)); }
