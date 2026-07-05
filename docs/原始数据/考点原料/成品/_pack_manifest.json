@@ -85,7 +85,7 @@
    "title": "施工缝留置与处理"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
    "explicitly_barred_default_entry": false,
    "file": "C02_进度款与计量计价.md",
@@ -311,7 +311,7 @@
    "title": "挣值法偏差分析"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
    "explicitly_barred_default_entry": false,
    "file": "F02_卷材防水施工顺序与搭接方向.md",
@@ -415,7 +415,7 @@
    "title": "屋面防水起鼓割补"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "3455920218f604373887e790d80419451e2877fbcd8a37dce3da206c7f0afa35",
    "explicitly_barred_default_entry": false,
    "file": "G01_基坑开挖与降水方法选择.md",
@@ -496,7 +496,7 @@
    "title": "地基验槽与地基处理"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
    "explicitly_barred_default_entry": false,
    "file": "J01_危大工程专项方案专家论证.md",
@@ -538,7 +538,7 @@
    "title": "索赔成立与计算"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
    "explicitly_barred_default_entry": false,
    "file": "N01_网络计划关键线路.md",
@@ -768,7 +768,7 @@
    "title": "高处作业临边洞口防护"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "4f4bb9138304e1a874ad07961d268a322f3fe87be4ac04312425ec381eeb497e",
    "explicitly_barred_default_entry": true,
    "file": "S07_安全事故等级判定与上报.md",
