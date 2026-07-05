@@ -126,6 +126,10 @@ function loadProfilePage(submitFeedback) {
           },
         };
       }
+      if (request === "../../utils/learn-view-model") {
+        // 纯函数视图模型（点亮判定单一权威），直接用真模块
+        return require("../packageDeeptutor/utils/learn-view-model");
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {
@@ -169,7 +173,7 @@ function loadProfilePage(submitFeedback) {
 }
 
 assert(
-  /id:\s*["']feedback["'][\s\S]*title:\s*["']意见反馈["']/.test(profileJs) &&
+  /id:\s*["']feedback["'],\s*title:\s*["']客服与反馈["']/.test(profileJs) &&
     profileJs.indexOf("nativeOpenType") < 0,
   "package profile feedback item should be a first-party row, not native WeChat feedback",
 );

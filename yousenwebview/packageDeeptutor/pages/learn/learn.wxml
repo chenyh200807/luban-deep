@@ -169,15 +169,6 @@
     </view>
   </scroll-view>
 
-  <!-- 底部 tab:学习(当前)/复习/问鲁班(红章)/学情/我的 -->
-  <view class="lr-tabbar">
-    <view class="lr-tab lr-tab--active"><view class="lr-tab-ico lr-ico-learn"></view><text class="lr-tab-txt">学习</text></view>
-    <view class="lr-tab" bindtap="tabReview"><view class="lr-tab-ico lr-ico-review"></view><text class="lr-tab-txt">复习</text></view>
-    <view class="lr-tab lr-tab--center" bindtap="tabAsk">
-      <view class="lr-tab-seal pk-seal"><image class="lr-tab-seal-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" /></view>
-      <text class="lr-tab-txt">问鲁班</text>
-    </view>
-    <view class="lr-tab" bindtap="tabReport"><view class="lr-tab-ico lr-ico-report"></view><text class="lr-tab-txt">学情</text></view>
-    <view class="lr-tab" bindtap="tabProfile"><view class="lr-tab-ico lr-ico-me"></view><text class="lr-tab-txt">我的</text></view>
-  </view>
+  <!-- 底部五 tab = 共享壳组件(单一壳权威,禁内联 tabbar) -->
+  <workspace-shell id="workspaceShell"></workspace-shell>
 </view>

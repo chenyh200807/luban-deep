@@ -73,6 +73,45 @@ function normalizePendingTurn(raw) {
   };
 }
 
+/**
+ * 10d 上下文带入条文案：只读既有载体（followupQuestionContext / promptIntent），
+ * 不新增任何请求字段；派生不出对象名时返回空串（无上下文不渲染）。
+ */
+function buildContextBannerLabel(followupQuestionContext, promptIntent) {
+  var ctx =
+    followupQuestionContext && typeof followupQuestionContext === "object"
+      ? followupQuestionContext
+      : null;
+  var intent = promptIntent && typeof promptIntent === "object" ? promptIntent : null;
+  if (ctx) {
+    if (Array.isArray(ctx.items) && ctx.items.length > 1) {
+      return "已带入：本组 " + ctx.items.length + " 题作答";
+    }
+    var stem = String(ctx.question || "").replace(/\s+/g, " ").trim();
+    if (stem) {
+      return "已带入：" + (stem.length > 14 ? stem.slice(0, 14) + "…" : stem);
+    }
+    if (ctx.question_id) return "已带入：当前题目";
+  }
+  if (intent && String(intent.source || "") === "teach_card") {
+    var label = String(
+      intent.concept_label || intent.scene_title || intent.concept_id || "",
+    ).trim();
+    if (label) return "已带入：" + label + " · 讲懂卡";
+  }
+  return "";
+}
+
+function safeDecodeURIComponent(value) {
+  var text = String(value || "");
+  if (!text) return "";
+  try {
+    return decodeURIComponent(text);
+  } catch (_) {
+    return text;
+  }
+}
+
 function getNavRightInset(info) {
   try {
     if (wx && typeof wx.getMenuButtonBoundingClientRect === "function") {
@@ -305,6 +344,10 @@ Page({
     recommendedPrompts: [],
     showStaticExamples: true,
     entrySource: "",
+    // 10d 重铺：上下文带入条（数据源=既有 followupContext/promptIntent 载体，可见化而已）
+    contextBanner: "",
+    // 教学卡「问追AI」入口可预置占位文案；默认与原 placeholder 一致
+    inputPlaceholder: "直接问：考点、真题、规范、错题",
     workspaceBackVisible: false,
     workspaceBackLabel: "返回",
     profileEnabled: true,
@@ -399,6 +442,25 @@ Page({
     var entrySource =
       (options && (options.entrySource || options.entry_source || options.source)) ||
       "";
+    // 教学卡「问追AI」深链承接：归并到既有 entrySource 体系，不建第二套参数。
+    // 上下文并入既有 promptIntent 载体（concept_id/concept_label 与学习证据字段对齐），
+    // 随首问一次性发出后即清，不新建通道。
+    var teachPackId = safeDecodeURIComponent(
+      options && (options.pack_id || options.packId),
+    ).trim();
+    var teachSceneTitle = safeDecodeURIComponent(
+      options && (options.scene_title || options.sceneTitle),
+    ).trim();
+    var isTeachCardEntry =
+      String(entrySource || "").trim() === "teach_card" && !!(teachPackId || teachSceneTitle);
+    this._teachEntryIntent = isTeachCardEntry
+      ? {
+          source: "teach_card",
+          concept_id: teachPackId,
+          concept_label: teachSceneTitle || teachPackId,
+          scene_title: teachSceneTitle,
+        }
+      : null;
     var statusBarHeight = info.statusBarHeight || 44;
     var viewportWidth = info.windowWidth || info.screenWidth || 375;
     var navRightInset = getNavRightInset(info);
@@ -431,7 +493,16 @@ Page({
       webSearchAvailable: DEFAULT_WEB_SEARCH_AVAILABLE,
       enableWebSearch: DEFAULT_WEB_SEARCH_AVAILABLE && !!savedToolPrefs.enableWebSearch,
       entrySource: String(entrySource || "").trim(),
+      contextBanner: this._teachEntryIntent
+        ? buildContextBannerLabel(null, this._teachEntryIntent)
+        : "",
+      inputPlaceholder: isTeachCardEntry
+        ? "针对这一站提问…"
+        : "直接问：考点、真题、规范、错题",
     });
+    if (isTeachCardEntry && teachPackId) {
+      this._resolveTeachEntryTitle(teachPackId);
+    }
     if (savedToolPrefs.enableReason) {
       this._saveToolPrefs(false, DEFAULT_WEB_SEARCH_AVAILABLE && !!savedToolPrefs.enableWebSearch);
     }
@@ -2412,6 +2483,12 @@ Page({
   _doSend: function (query, extraOpts) {
     var self = this;
     var sendOptions = extraOpts && typeof extraOpts === "object" ? extraOpts : {};
+    // 教学卡入口上下文：并入既有 promptIntent 载体随首问发出（一次性，发完即清），
+    // 不与显式传入的 promptIntent（如摸底错题训练）竞争。
+    if (self._teachEntryIntent && !sendOptions.promptIntent) {
+      sendOptions.promptIntent = self._teachEntryIntent;
+      self._teachEntryIntent = null;
+    }
     var reuseUserMessage = !!sendOptions.reuseUserMessage;
     var autoWebSearch =
       self._isWebSearchAvailable() && !self.data.enableWebSearch && self._shouldAutoEnableWebSearch(query);
@@ -2454,7 +2531,7 @@ Page({
       mcqReviewMode: false,
       originalContent: "",
       originalExpanded: false,
-      thinkingStatus: "AI 正在分析你的问题...",
+      thinkingStatus: "鲁班正在按采分点琢磨…",
       thinkingBadge: "",
       thinkingSub: "",
       thinkingTone: "",
@@ -2528,6 +2605,14 @@ Page({
       canStopStream: true,
       scrollToId: "msg-bottom",
       chatScrollWithAnimation: false,
+      // 10d 带入条：本轮携带上下文时可见化；无新上下文时保留会话内已有条
+      contextBanner:
+        buildContextBannerLabel(
+          sendOptions.followupQuestionContext,
+          sendOptions.promptIntent,
+        ) ||
+        self.data.contextBanner ||
+        "",
     });
     self._syncWorkspaceChrome({ hasMessages: true });
     // 建立 IntersectionObserver 懒解析（延迟一帧确保 DOM 已渲染）
@@ -2743,7 +2828,10 @@ Page({
       canStopStream: false,
       scrollToId: "",
       chatScrollWithAnimation: false,
+      contextBanner: "",
+      inputPlaceholder: "直接问：考点、真题、规范、错题",
     });
+    this._teachEntryIntent = null;
     this._syncWorkspaceChrome({ hasMessages: false });
     this._cancelDeferredWrites();
     this._sid = "s_" + Date.now();
@@ -2974,6 +3062,61 @@ Page({
     wx.navigateTo({ url: route.profile() });
   },
 
+  /* 10d 三种历史归属①：会话历史 = 顶栏时钟图标二级页（复用 pages/history） */
+  goHistoryPage: function () {
+    if (!flags.isFeatureEnabled("history")) {
+      wx.showToast({ title: "历史暂未开放", icon: "none" });
+      return;
+    }
+    helpers.vibrate("light");
+    wx.navigateTo({ url: route.history() });
+  },
+
+  /* 10d 快捷入口①：出几道题 —— 只预填出题意图，由用户确认后发送，不代发 */
+  onQuickComposeQuestions: function () {
+    if (this.data.canStopStream) return;
+    helpers.vibrate("light");
+    var query = "根据我的薄弱点出几道题让我练练";
+    this._inputText = query;
+    this.setData({ inputText: query });
+  },
+
+  /* 10d 快捷入口②：看动画讲解 —— 前端静态入口深链学习页有卡站，不造后端 */
+  onQuickAnimLesson: function () {
+    helpers.vibrate("light");
+    wx.navigateTo({ url: route.lubanStations() });
+  },
+
+  /* 教学卡入口：pack 标题从 lessons API 兜底解析，失败保留 scene_title/pack_id */
+  _resolveTeachEntryTitle: function (packId) {
+    var self = this;
+    if (typeof api.getLubanLessonDetail !== "function") return;
+    api
+      .getLubanLessonDetail(packId)
+      .then(function (resp) {
+        var body = unwrap(resp) || {};
+        var title = String(body.title || "").trim();
+        if (!title || !self._teachEntryIntent) return;
+        self._teachEntryIntent = Object.assign({}, self._teachEntryIntent, {
+          concept_label: title,
+        });
+        self.setData({
+          contextBanner: buildContextBannerLabel(null, self._teachEntryIntent),
+        });
+      })
+      .catch(function (err) {
+        log.warn(
+          "Chat",
+          "teach entry title resolve degraded: " + ((err && err.message) || err),
+        );
+      });
+  },
+
+  /* 供测试触达文件内派生函数；运行时行为与直接调用等价 */
+  _buildContextBannerLabel: function (followupQuestionContext, promptIntent) {
+    return buildContextBannerLabel(followupQuestionContext, promptIntent);
+  },
+
   _syncWorkspaceBack: function () {
     var workspaceBack = runtime.getWorkspaceBack(route.chat());
     if (workspaceBack && !flags.isRouteEnabled(workspaceBack.url)) {
@@ -2992,7 +3135,8 @@ Page({
 
   _setWorkspaceShellHidden: function (hidden) {
     this._syncWorkspaceChrome({ hidden: !!hidden });
-    helpers.syncTabBar(this, 0, {
+    // 五 tab 壳:问鲁班中央章 index=2
+    helpers.syncTabBar(this, 2, {
       hidden: !!hidden,
     });
   },

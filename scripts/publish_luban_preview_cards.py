@@ -189,7 +189,10 @@ _OPENASK_OLD = "openAsk(){ this.setState({askOpen:true,playing:false}); }"
 _OPENASK_NEW = "openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }"
 
 _RVALS_APPEND = (
-    'fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),'
+    # stopPropagation:角标在 lz-stagewrap(tapToggle 点屏显隐)内,不截断冒泡则
+    # 点角标进全屏的同一击会立即把控制条切成隐藏(owner 真机复现)。
+    'fullscreen:(e)=>{if(e&&e.stopPropagation)e.stopPropagation();this.fullscreen();},'
+    'phoneRef:el=>this.phoneRef(el),'
     'fsIcon:this.state.fs?"⊠":"⛶",'
     "fs:this.state.fs,"
     "capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,"

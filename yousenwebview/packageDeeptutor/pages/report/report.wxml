@@ -1,5 +1,5 @@
-<!-- pages/report/report.wxml — 学情页：诊断 + AI作战方案 + 进步反馈 -->
-<view class="report-page {{isDark?'':'light'}}">
+<!-- pages/report/report.wxml — 学情页(10e 诊断单):照镜子,只诊断不做题 -->
+<view class="report-page paper {{isDark?'':'light'}}">
 
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
@@ -14,68 +14,21 @@
 
   <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" scroll-top="{{reportScrollTop}}" style="top: {{navHeight}}px; bottom: 0">
     <view class="page-inner">
-      <view class="overview-hero glass-card" wx:if="{{reportDetailView == 'home'}}">
-        <view class="overview-hero-main">
-          <view class="overview-copy">
-            <text class="overview-kicker">今日处方</text>
-            <text class="overview-title">{{battlePlan.focusTopic || learningReviewSummary.primaryFocus || focusHint || '先完成一轮定向训练'}}</text>
-            <text class="overview-sub">{{battlePlan.timeBudget || '约 10 分钟'}} · {{learningReviewSummary.recentThreeDone || 0}} 次证据 · {{learningNextAction.title || '复测薄弱点'}}</text>
-            <view class="overview-action-row">
-              <view class="overview-primary-btn" bindtap="goPractice" hover-class="metric-chip-hover">
-                <text>开始定向训练</text>
-              </view>
-              <view class="overview-secondary-btn" data-detail="evidence" bindtap="openReportDetail" hover-class="metric-chip-hover">
-                <text>为什么推荐</text>
-              </view>
-            </view>
-          </view>
-          <view class="overview-donut">
-            <view class="overview-donut-ring" style="{{overviewDonutStyle}}"></view>
-            <view class="overview-donut-cut"></view>
-            <view class="overview-donut-center">
-              <text class="overview-score">{{overallMastery}}%</text>
-            </view>
-            <text class="overview-donut-label">掌握可信度</text>
-            <text class="overview-donut-status">{{masteryStatusLabel}}</text>
-          </view>
-        </view>
+      <!-- ══════════ 10e 诊断单(第 10 轮定稿 + round11 增量①④) ══════════
+           照镜子页铁律:只诊断不做题,全部字段来自 learning-report read model,
+           缺字段降级不造数;全页唯一行动键=把诊断喂回本周计划(深链学习页)。 -->
+      <block wx:if="{{reportDetailView == 'home'}}">
+
+      <view class="lr-head">
+        <text class="lr-head-title">学情 · 诊断单</text>
+        <text class="lr-head-sub">先看结论 · 想深入再点开</text>
       </view>
 
-      <view class="overview-metrics" wx:if="{{reportDetailView == 'home'}}">
-        <view class="metric-chip metric-chip-progress">
-          <text class="metric-label">近 3 天</text>
-          <text class="metric-num">{{learningReviewSummary.recentThreeDone || 0}}次练习</text>
-          <view class="metric-sparkline">
-            <view class="metric-spark one"></view>
-            <view class="metric-spark two"></view>
-            <view class="metric-spark three"></view>
-          </view>
-        </view>
-        <view class="metric-chip metric-chip-warn">
-          <text class="metric-label">待补错因</text>
-          <text class="metric-num">{{learningReviewSummary.weakCount || weakNodeCount}}个</text>
-          <view class="metric-mini-bars">
-            <view class="metric-mini-bar warn-one"></view>
-            <view class="metric-mini-bar warn-two"></view>
-          </view>
-        </view>
-        <view class="metric-chip metric-chip-good">
-          <text class="metric-label">掌握趋势</text>
-          <text class="metric-num">{{overallMastery}}%</text>
-          <view class="metric-trend-bars">
-            <view></view>
-            <view></view>
-            <view></view>
-            <view></view>
-          </view>
-        </view>
-      </view>
-
-      <view class="degraded-hint" wx:if="{{reportDetailView == 'home' && degradedHint}}">
+      <view class="degraded-hint" wx:if="{{degradedHint}}">
         <text class="degraded-hint-text">{{degradedHint}}</text>
       </view>
 
-      <view class="guest-report-card" wx:if="{{reportDetailView == 'home' && isGuestPreview}}">
+      <view class="guest-report-card pk-card" wx:if="{{isGuestPreview}}">
         <view class="guest-report-copy">
           <text class="guest-report-kicker">先看学情模块</text>
           <text class="guest-report-title">开始训练后自动生成你的个人学情</text>
@@ -86,190 +39,131 @@
         </view>
       </view>
 
-      <view class="today-task-strip" wx:if="{{reportDetailView == 'home' && todayTasks.length}}">
-        <view class="today-task-controls">
-          <text class="today-task-control" catchtap="compressTodayTasks">今天时间少</text>
-          <text class="today-task-control" catchtap="rotateTodayTasks">换一组</text>
-        </view>
-        <view class="today-task-item" wx:for="{{todayTasks}}" wx:key="key" data-taskid="{{item.taskId || item.key}}" bindtap="startTodayTask">
-          <view>
-            <text class="today-task-title">{{item.title}}</text>
-            <text class="today-task-sub">{{item.subtitle || '来自你的学习卡片'}}</text>
+      <block wx:if="{{!isGuestPreview}}">
+
+      <!-- ① 轻量诊断卡:风险档位词(非精确百分比)+ 主要差距 + 进步叙述,折叠单版式 -->
+      <view class="lr-card lr-diag-card">
+        <view class="lr-diag-main" bindtap="toggleDiagFold" hover-class="lr-pressed">
+          <view class="lr-risk-ring lr-risk-{{riskGearTone}}">
+            <text class="lr-risk-gear">{{riskGearLabel}}</text>
+            <text class="lr-risk-label">综合风险</text>
           </view>
-          <text class="today-task-action">{{item.action.label || '开始'}}</text>
+          <view class="lr-diag-copy">
+            <text class="lr-diag-headline" wx:if="{{diagnosisHeadline}}">主要差距：{{diagnosisHeadline}}</text>
+            <text class="lr-diag-headline" wx:elif="{{learningBrainEmpty}}">完成一轮练习后，这里会给出你的诊断结论</text>
+            <text class="lr-diag-headline" wx:else>暂时没有待补的盲点，保持复测节奏</text>
+            <text class="lr-diag-progress" wx:if="{{trendNarrative}}">{{trendNarrative}}</text>
+            <view class="lr-diag-meta-row">
+              <text class="lr-diag-meta" wx:if="{{learningReviewSummary.weakCount || weakNodeCount}}">待补盲点 {{learningReviewSummary.weakCount || weakNodeCount}} 个</text>
+              <text class="lr-diag-meta lr-diag-meta-warn" wx:if="{{recurrentErrorCount}}">反复出现的还有 {{recurrentErrorCount}} 个</text>
+            </view>
+            <text class="lr-diag-fold-toggle" wx:if="{{learningDiagnosisCards.length}}">{{diagFoldOpen ? '收起' : '点开看每一条'}}</text>
+          </view>
+        </view>
+        <view class="lr-diag-fold" wx:if="{{diagFoldOpen && learningDiagnosisCards.length}}">
+          <view class="lr-diag-fold-row" wx:for="{{learningDiagnosisCards}}" wx:key="key">
+            <text class="lr-diag-fold-level">{{item.levelLabel}}</text>
+            <view class="lr-diag-fold-body">
+              <text class="lr-diag-fold-title">{{item.title}}</text>
+              <text class="lr-diag-fold-meta">{{item.meta}}</text>
+              <text class="lr-diag-fold-detail" wx:if="{{item.detail}}">{{item.detail}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="lr-card-link" data-detail="evidence" bindtap="openReportDetail" hover-class="lr-pressed">
+          <text>完整诊断报告 →</text>
+        </view>
+      </view>
+
+      <!-- ⑤ 分数账本:后端无路线级聚合,轻占位一行,不喧宾、不造数 -->
+      <view class="lr-ledger-line">
+        <text>分数账本 · 路线覆盖分即将开通</text>
+      </view>
+
+      <!-- ② 掌握地图:40 站全景,四态暖色 + 蓝环第五态(本页核心) -->
+      <view class="lr-card lr-map-card">
+        <view class="lr-card-head">
+          <text class="lr-card-title">掌握地图 · {{masteryMap.packUniverse || 40}} 站全景</text>
+          <text class="lr-card-note">点任意格 · 深链学习站</text>
+        </view>
+        <block wx:if="{{masteryMap.available}}">
+          <view class="lr-map-grid">
+            <view
+              wx:for="{{masteryMap.cells}}"
+              wx:key="packId"
+              class="lr-cell lr-cell--{{item.state}}"
+              data-pack-id="{{item.packId}}"
+              data-green="{{item.green}}"
+              bindtap="openMasteryCell"
+              aria-role="button"
+              aria-label="{{item.packId}} {{item.stateLabel}}"
+            >
+              <text wx:if="{{item.blueRing}}" class="lr-cell-bluecheck">✓</text>
+            </view>
+          </view>
+          <view class="lr-map-legend">
+            <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--stable"></view><text>稳了 {{masteryMap.counts.stable}}</text></view>
+            <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--watch"></view><text>再看一眼 {{masteryMap.counts.watch}}</text></view>
+            <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--reverify"></view><text>待复验 {{masteryMap.counts.reverify}}</text></view>
+            <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--unlearned"></view><text>未学 {{masteryMap.counts.unlearned}}</text></view>
+          </view>
+          <!-- 蓝环=接触轨,单独一行,绝不混入上面的掌握色阶 -->
+          <view class="lr-map-legend lr-map-legend-blue">
+            <view class="lr-legend-item"><view class="lr-legend-dot lr-cell--blue"><text class="lr-cell-bluecheck">✓</text></view><text>已学·待验证 {{masteryMap.counts.blue}} · 看过讲解，还没考过换皮变体</text></view>
+          </view>
+          <text class="lr-map-degraded" wx:if="{{masteryMap.degraded}}">部分站点数据暂时不可用，以上按已有记录显示</text>
+        </block>
+        <block wx:else>
+          <text class="lr-map-empty">完成一次学习或作答后，这里会点亮你的 40 站全景</text>
+        </block>
+        <view class="lr-card-link" data-detail="map" bindtap="openReportDetail" hover-class="lr-pressed">
+          <text>看章节强弱 →</text>
         </view>
       </view>
 
-      <view class="report-home-shell" wx:if="{{reportDetailView == 'home'}}">
-        <view class="home-section-head">
-          <view>
-            <text class="home-section-kicker">关键结论</text>
-            <text class="home-section-title">先看结论，再决定是否深入</text>
-          </view>
-          <text class="home-section-note">可点开验证</text>
+      <!-- ④ 趋势:后端无数值时间序列,降级为方向性描述,不画假曲线 -->
+      <view class="lr-card lr-trend-card">
+        <view class="lr-card-head">
+          <text class="lr-card-title">最近趋势</text>
+          <text class="lr-card-note">方向判断来自错因记录</text>
         </view>
-
-        <view class="conclusion-stack">
-          <view class="conclusion-card conclusion-card-primary">
-            <view>
-              <text class="conclusion-kicker">今天先做</text>
-              <text class="conclusion-title">{{battlePlan.priorityTask || learningNextAction.title || '完成一轮定向训练'}}</text>
-              <text class="conclusion-desc">{{battlePlan.studyMethod || '先诊断，再补弱，最后用一题复测确认。'}}</text>
-            </view>
-            <text class="conclusion-badge">处方</text>
-          </view>
-          <view class="conclusion-card">
-            <view>
-              <text class="conclusion-kicker">为什么这样判断</text>
-              <text class="conclusion-title">{{learningReviewSummary.headline || '结论来自作答、错因和采分点'}}</text>
-              <text class="conclusion-desc">{{learningAttemptCards.length || 0}} 条作答 · {{learningDiagnosisCards.length || learningBrainTruths.length || 0}} 个诊断 · {{scoringPointMapItems.length || 0}} 个采分点</text>
-            </view>
-            <text class="conclusion-badge">依据</text>
-          </view>
-        </view>
-
-        <view class="home-section-head deep-dive-head">
-          <view>
-            <text class="home-section-kicker">深入查看</text>
-            <text class="home-section-title">按问题进入细节页</text>
-          </view>
-          <text class="home-section-note">模块是工具箱</text>
-        </view>
-
-        <view class="module-onboarding-tip" wx:if="{{reportModuleHintVisible}}">
-          <view>
-            <text class="module-tip-title">点开卡片看具体依据</text>
-            <text class="module-tip-desc">证据、强弱、训练、错题和变化卡片会进入细节页；摸底测试会直接重新校准画像。</text>
-          </view>
-          <view class="module-tip-dismiss" bindtap="dismissReportModuleHint" hover-class="module-tip-dismiss-pressed">
-            <text>知道了</text>
-          </view>
-        </view>
-
-        <view class="report-module-grid">
-          <view class="report-module-card module-evidence" data-detail="evidence" bindtap="openReportDetail" hover-class="report-module-card-pressed">
-            <view class="module-card-head">
-              <view>
-                <text class="module-card-kicker">追溯证据链</text>
-                <text class="module-card-title">学情证据</text>
-              </view>
-              <text class="module-card-arrow">›</text>
-            </view>
-            <text class="module-card-desc">作答、错因、采分点一起解释结论</text>
-            <view class="mini-evidence-flow">
-              <view class="mini-evidence-node active"></view>
-              <view class="mini-evidence-line"></view>
-              <view class="mini-evidence-node"></view>
-              <view class="mini-evidence-line"></view>
-              <view class="mini-evidence-node"></view>
-            </view>
-            <view class="module-mini-stats">
-              <text>{{learningAttemptCards.length || 0}} 条作答</text>
-              <text>{{learningDiagnosisCards.length || learningBrainTruths.length || 0}} 个诊断</text>
-            </view>
-          </view>
-
-          <view class="report-module-card module-map" data-detail="map" bindtap="openReportDetail" hover-class="report-module-card-pressed">
-            <view class="module-card-head">
-              <view>
-                <text class="module-card-kicker">看强弱结构</text>
-                <text class="module-card-title">掌握地图 {{overallMastery}}%</text>
-              </view>
-              <text class="module-card-arrow">›</text>
-            </view>
-            <view class="mini-radar">
-              <view class="mini-radar-ring ring-one"></view>
-              <view class="mini-radar-ring ring-two"></view>
-              <view class="mini-radar-dot dot-one"></view>
-              <view class="mini-radar-dot dot-two"></view>
-              <view class="mini-radar-dot dot-three"></view>
-            </view>
-            <view class="module-mini-stats">
-              <text>强 {{strongCount}}</text>
-              <text>弱 {{weakCount}}</text>
-            </view>
-          </view>
-
-          <view class="report-module-card module-training" data-detail="training" bindtap="openReportDetail" hover-class="report-module-card-pressed">
-            <view class="module-card-head">
-              <view>
-                <text class="module-card-kicker">执行今日处方</text>
-                <text class="module-card-title">今日训练</text>
-              </view>
-              <text class="module-card-arrow">›</text>
-            </view>
-            <text class="module-card-desc">{{battlePlan.priorityTask}}</text>
-            <view class="module-chip-row">
-              <text>诊断</text>
-              <text>补弱</text>
-              <text>验证</text>
-            </view>
-          </view>
-
-          <view class="report-module-card module-mistake-book" bindtap="openMistakeBook" hover-class="report-module-card-pressed">
-            <view class="module-card-head">
-              <view>
-                <text class="module-card-kicker">按错因补弱</text>
-                <text class="module-card-title">错题归因</text>
-              </view>
-              <text class="module-card-arrow">›</text>
-            </view>
-            <text class="module-card-desc">按错因、知识点和复习压力整理，点开看 AI 分析</text>
-            <view class="mini-mistake-chart">
-              <view class="mini-mistake-line high"></view>
-              <view class="mini-mistake-line mid"></view>
-              <view class="mini-mistake-line low"></view>
-            </view>
-            <view class="module-mini-stats">
-              <text>{{learningAttemptCards.length || 0}} 条证据</text>
-              <text>AI分析</text>
-            </view>
-          </view>
-
-          <view class="report-module-card module-progress" data-detail="progress" bindtap="openReportDetail" hover-class="report-module-card-pressed">
-            <view class="module-card-head">
-              <view>
-                <text class="module-card-kicker">看最近变化</text>
-                <text class="module-card-title">变化记录</text>
-              </view>
-              <text class="module-card-arrow">›</text>
-            </view>
-            <text class="module-card-desc">{{progressSummary}}</text>
-            <view class="mini-bars">
-              <view class="mini-bar today"></view>
-              <view class="mini-bar recent"></view>
-              <view class="mini-bar streak"></view>
-            </view>
-            <view class="module-mini-stats">
-              <text>今日 {{todayDone}}</text>
-              <text>近3天 {{learningReviewSummary.recentThreeDone || 0}}</text>
-            </view>
-          </view>
-
-          <view class="report-module-card module-assessment" wx:if="{{assessmentEnabled}}" bindtap="goAssessment" hover-class="report-module-card-pressed">
-            <view class="module-card-head">
-              <view>
-                <text class="module-card-kicker">重新校准画像</text>
-                <text class="module-card-title">摸底测试</text>
-              </view>
-              <text class="module-card-arrow">›</text>
-            </view>
-            <text class="module-card-desc">当处方不够具体时，用一次小测补齐稳定诊断依据</text>
-            <view class="mini-assessment-card">
-              <view class="mini-assessment-badge"><text>AI</text></view>
-              <view class="mini-assessment-copy">
-                <text>诊断</text>
-                <text>校准</text>
-                <text>生成处方</text>
-              </view>
-            </view>
-            <view class="module-mini-stats">
-              <text>{{prescriptionEvidenceCount || 0}} 条证据</text>
-              <text>去测评</text>
-            </view>
-          </view>
+        <text class="lr-trend-text" wx:if="{{trendNarrative}}">{{trendNarrative}}</text>
+        <text class="lr-trend-text lr-trend-empty" wx:else>完成更多练习后，这里会给出趋势方向</text>
+        <view class="lr-card-link" data-detail="progress" bindtap="openReportDetail" hover-class="lr-pressed">
+          <text>看变化记录 →</text>
         </view>
       </view>
+
+      <!-- ⑦ 错因结构:入口保留,深链错题本 -->
+      <view class="lr-card lr-error-card">
+        <view class="lr-card-head">
+          <text class="lr-card-title">错因结构</text>
+          <text class="lr-card-note">由判分内核判定</text>
+        </view>
+        <block wx:if="{{learningDiagnosisCards.length}}">
+          <view class="lr-error-row" wx:for="{{learningDiagnosisCards}}" wx:key="key">
+            <text class="lr-error-name">{{item.title}}</text>
+            <text class="lr-error-count">{{item.meta}}</text>
+          </view>
+        </block>
+        <text class="lr-error-empty" wx:else>暂时没有反复出现的错因</text>
+        <view class="lr-card-link" bindtap="openMistakeBook" hover-class="lr-pressed">
+          <text>想逐笔清掉？去错题本 →</text>
+        </view>
+      </view>
+
+      <!-- ⑥ 全页唯一行动键:把诊断喂回本周计划(深链学习页) -->
+      <view class="lr-absorb-btn" bindtap="absorbDiagnosisIntoPlan" hover-class="lr-absorb-pressed" aria-role="button">
+        <text>让本周计划吸收这份诊断</text>
+      </view>
+
+      <!-- ③ 产品宣言(round11 增量①) -->
+      <view class="lr-manifesto">
+        <text>我们不给你假绿——考过换皮变体才算数。</text>
+      </view>
+
+      </block>
+      </block>
 
       <!-- Batch C Task 8: today prescription + 3-layer learning state + scoring point map -->
       <block wx:if="{{reportDetailView == 'evidence'}}">
@@ -595,9 +489,10 @@
             <view class="map-summary-bar weak"></view>
           </view>
           <view class="module-mini-stats">
-            <text>强项 {{strongCount}}</text>
-            <text>一般 {{normalCount}}</text>
-            <text>薄弱 {{weakCount}}</text>
+            <text>稳了 {{strongCount}}</text>
+            <text>再看一眼 {{normalCount}}</text>
+            <text>待复验 {{weakCount}}</text>
+            <text>未学 {{observedCount}}</text>
           </view>
         </view>
       </view>
@@ -641,22 +536,27 @@
           <image wx:if="{{radarImage}}" class="radar-image" src="{{radarImage}}" mode="aspectFit"></image>
         </view>
 
-        <!-- 强项/一般/薄弱 统计 -->
+        <!-- 四态统计:稳了/再看一眼/待复验/未学(对齐后端 _score_status,禁红灯墙) -->
         <view class="radar-summary">
           <view class="radar-stat">
             <view class="stat-dot dot-strong"></view>
             <text class="stat-num">{{strongCount}}</text>
-            <text class="stat-label">强项</text>
+            <text class="stat-label">稳了</text>
           </view>
           <view class="radar-stat">
             <view class="stat-dot dot-normal"></view>
             <text class="stat-num">{{normalCount}}</text>
-            <text class="stat-label">一般</text>
+            <text class="stat-label">再看一眼</text>
           </view>
           <view class="radar-stat">
             <view class="stat-dot dot-weak"></view>
             <text class="stat-num">{{weakCount}}</text>
-            <text class="stat-label">薄弱</text>
+            <text class="stat-label">待复验</text>
+          </view>
+          <view class="radar-stat">
+            <view class="stat-dot dot-observed"></view>
+            <text class="stat-num">{{observedCount}}</text>
+            <text class="stat-label">未学</text>
           </view>
         </view>
 
@@ -676,11 +576,11 @@
             <text class="dim-name">{{item.name}}</text>
             <view class="dim-bar">
               <view
-                class="dim-bar-fill"
-                style="width: {{item.pct}}%; background: {{item.color}}"
+                class="dim-bar-fill lr-fill-{{item.status}}"
+                style="width: {{item.pct}}%"
               ></view>
             </view>
-            <text class="dim-pct" style="color: {{item.color}}">{{item.pct}}%</text>
+            <text class="dim-pct lr-state-{{item.status}}">{{item.stateLabel}}</text>
           </view>
         </view>
       </view>
@@ -797,11 +697,11 @@
               <text class="ch-name">{{ch.name}}</text>
               <view class="ch-bar">
                 <view
-                  class="ch-bar-fill"
-                  style="width: {{ch.mastery}}%; background: {{ch.color}}"
+                  class="ch-bar-fill lr-fill-{{ch.status}}"
+                  style="width: {{ch.mastery}}%"
                 ></view>
               </view>
-              <text class="ch-pct" style="color: {{ch.color}}">{{ch.mastery}}%</text>
+              <text class="ch-pct lr-state-{{ch.status}}">{{ch.mastery}}%</text>
             </view>
           </view>
         </view>
