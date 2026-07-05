@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
+from deeptutor.services.learner_state.lesson_evidence import is_lesson_view_event
 from deeptutor.services.learner_state.revalidation_queue import (
     build_revalidation_queue_projection,
 )
@@ -42,6 +43,24 @@ def _station_completions(events: Iterable[Any]) -> dict[str, str]:
     return latest
 
 
+def _lesson_view_packs(events: Iterable[Any]) -> set[str]:
+    """学-evidence（lesson_viewed）→ 已学 pack 集合。
+
+    判别复用唯一 classifier ``is_lesson_view_event``（与 pack_lifecycle_projection
+    的「已学·待验证 exposed」同一权威），本模块不自建第二套判别。
+    只进 ``learned_count``（已学口径），**绝不**进 due candidates——
+    复测调度的触发事实仍只有 station_completed（禁第二调度器）。"""
+    packs: set[str] = set()
+    for event in list(events or []):
+        if not is_lesson_view_event(event):
+            continue
+        payload = getattr(event, "payload_json", None) or {}
+        pack_id = str(payload.get("pack_id") or "").strip().upper()
+        if pack_id:
+            packs.add(pack_id)
+    return packs
+
+
 def build_review_due_projection(
     *,
     user_id: str,
@@ -49,7 +68,9 @@ def build_review_due_projection(
     now_iso: str = "",
     exam_date_iso: str = "",
 ) -> dict[str, Any]:
-    completions = _station_completions(events or [])
+    events = list(events or [])
+    completions = _station_completions(events)
+    viewed_packs = _lesson_view_packs(events)
     green = {row["pack_id"]: row for row in list_green_lessons()}
     candidates = [
         {
@@ -88,7 +109,9 @@ def build_review_due_projection(
         )
     return {
         "due": due_items,
-        "learned_count": len([p for p in completions if p in green]),
+        # 已学口径 = 融合计划 §1「已学·待验证(exposed)」∪ 站完成，pack 粒度去重、
+        # 绿灯 join（讲懂幕看完即已学可见；到期调度仍只认 station_completed）。
+        "learned_count": len({p for p in (set(completions) | viewed_packs) if p in green}),
         # 诚实旗标: 结论完整(读到了全部事件), 区别于旧探测的降级语义
         "authority": "revalidation_queue",
     }

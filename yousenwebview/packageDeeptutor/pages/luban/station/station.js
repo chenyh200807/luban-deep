@@ -101,11 +101,17 @@ Page({
   _reportLessonViewed() {
     if (this.data._lessonReported || !this.data.packId) return;
     this.setData({ _lessonReported: true });
+    var packId = this.data.packId;
+    // fire-and-forget 但绝不静默吞：失败必留 console 痕迹（真机验收可观测）。
     try {
-      var p = api.postLessonProgress(this.data.packId, TIER_LESSON, this.data.cardSha, { silent: true });
-      if (p && typeof p.catch === "function") p.catch(function () {});
+      var p = api.postLessonProgress(packId, TIER_LESSON, this.data.cardSha, { silent: true });
+      if (p && typeof p.catch === "function") {
+        p.catch(function (err) {
+          console.warn("[station] lesson_viewed 上报失败(不打断学习流)", packId, err);
+        });
+      }
     } catch (e) {
-      /* 上报绝不打断学习流 */
+      console.warn("[station] lesson_viewed 上报异常(不打断学习流)", packId, e);
     }
   },
 

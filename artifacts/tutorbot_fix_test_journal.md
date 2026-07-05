@@ -9,6 +9,32 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-05 - 学-evidence「疑似未落账」= review-due learned_count 口径缺口；复习页点亮语义失真 = 绿灯≠点亮
+
+- 问题：
+  - 问题1（重）：真机验收 F16 讲懂幕点「看完了，去闯关」触发 `postLessonProgress(F16, lesson)` 后，`/api/v1/luban/review-due` 仍返回 `learned_count:0`，疑似学-evidence 未落账（三候选：①写入失败被空 catch 吞 ②投影口径 ③前端没发请求）。
+  - 问题2（轻）：复习 tab 按母题检索把 28 个绿灯站全标「已点亮·回站重看」，学习页却显示 0/40 点亮。
+- 根因：
+  - 问题1 真凶=候选②（查询口径），①③均证伪。E2E 探针（真 HTTP 栈 + 真账本）：POST 200、事件落账（`luban_lesson/lesson_viewed/F16`）、`pack_lifecycle_projection` 正确产出 `exposed`——写链路健康。断点在读侧：`review_due.py` 的 `learned_count` 只数 `station_completed`（`_SIGNAL_TYPE`，review_due.py:24/91），`lesson_viewed` 落了账却永远进不了它。shared failure shape=第二「已学」decider（review_due 从原始事件自建已学口径，与 pack_lifecycle 的「已学·待验证 exposed」权威脱节）。
+  - 问题2 根因=`review-view-model.js` 把 `/luban/lessons` 的绿灯（published）全集直接映射成检索列表，`review.wxml:158` 硬编码「已点亮 · 回站重看」——绿灯（可学）被当成点亮（learned）渲染；点亮真值（pack_lifecycle）根本没进复习页数据流。
+- 失败尝试及原因：
+  - 初始假设「F16 不在 manifest 白名单被 400 拒」被证伪：origin/main manifest 41 pack 含 F16 且 green；`WATCHED_STAGES` 含 lesson；lesson-progress 写端点无 flag 门（`LUBAN_REVIEW_MODULE_ENABLED` 只门 review-due 读侧）。
+  - codegraph 首查返回了另一分支工作区的旧 station.js（无 postLessonProgress），提醒：多 worktree 下索引/import 会漂移，必须 `PYTHONPATH=worktree` 锚定。
+- 成功修法：
+  - `review_due.py`：新增 `_lesson_view_packs`（判别复用唯一 classifier `is_lesson_view_event`，不建第二套），`learned_count = |(station_completed ∪ lesson_viewed) ∩ green|`（pack 粒度去重）；due candidates 零改动——复测调度触发事实仍只有 station_completed（禁第二调度器）。
+  - `station.js`：fire-and-forget 空 catch 补 console.warn 可观测（不打断学习流语义不变）。
+  - `learn-view-model.js`：抽出并导出 `isLitLifecycleState`（点亮=practiced/mastered/dormant，exposed 是 M0 蓝环不算点亮）作为唯一点亮判定；`review-view-model.js` 复用它，检索行按 `report.pack_lifecycle` 真值标 lit；lifecycle 缺失时不造数（既不标已点亮也不标未点亮，中性「回站重看」）；`review.wxml` 改绑 `{{item.sub}}/{{item.linkText}}`，回归测试钉死「wxml 禁硬编码已点亮」。
+- 验证：
+  - RED→GREEN：`test_review_due.py` 新增 3 测（lesson_viewed 计入 learned 且不产生 due/非绿灯不计/同 pack 去重）先红后绿，全文件 10 passed；JS `test_review_view_model.js` 新增点亮语义断言先红（`lit undefined`）后绿。
+  - 域测试：luban_lesson + lesson_progress + lesson_evidence + pack_lifecycle + revalidation_queue 共 68 passed；JS 全套 `yousenwebview/tests/test_*.js` 0 FAIL；contract guard 全 PASS（review_due.py 非 protected，test_review_due.py 已登记 index.yaml:612）。
+  - E2E 探针修后复跑：同一 F16 lesson_viewed 写入 → `learned_count:1, due:[]`，lifecycle 仍 `exposed`。
+- 残留/边界：
+  - 学习页 0/40 点亮在只看讲懂时是 by design（M0：exposed 不点亮），learn-view-model 未消费 blue_ring 字段——蓝环接触态可视化是独立后续，不在本次 scope。
+  - 复习页 hero 文案「你点亮的站都稳着」在 0 点亮时略失真；`isEmpty` 仍= 无绿灯站（非无点亮站），按 surgical 原则未动，登记为后续。
+- 教训：
+  - 「疑似未落账」类问题先用真栈 E2E 探针把写链路定性（落没落账是单值可证伪事实），再看读侧口径——本例写侧完全健康，症状全部来自读投影的第二口径。
+  - read model 各自从原始事件重新分类「已学」= authority drift 温床；判别函数（is_lesson_view_event / isLitLifecycleState）必须单点导出复用。
+
 ## 2026-06-26 - Study assistant no-evidence terminal gate blocks fabricated learner state
 
 - 问题：

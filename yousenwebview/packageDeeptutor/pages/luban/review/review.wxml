@@ -155,9 +155,10 @@
                 <view class="rv-row-icon icon-rv-card"></view>
                 <view class="rv-row-body">
                   <text class="rv-row-title">{{item.title}}</text>
-                  <text class="rv-row-sub">已点亮 · 回站重看</text>
+                  <!-- 点亮态只来自 view model(pack_lifecycle 真值), 禁硬编码 -->
+                  <text class="rv-row-sub">{{item.sub}}</text>
                 </view>
-                <text class="rv-row-link">回看</text>
+                <text class="rv-row-link">{{item.linkText}}</text>
               </view>
             </block>
 
