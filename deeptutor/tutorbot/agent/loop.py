@@ -49,7 +49,7 @@ from deeptutor.services.security.tutorbot_guardrails import (
     guard_tutorbot_output,
     sanitize_untrusted_context,
 )
-from deeptutor.services.security.tool_access import filter_end_user_tools, is_end_user_tool_allowed
+from deeptutor.services.security.tool_access import is_end_user_tool_allowed
 from deeptutor.tutorbot.agent.context import ContextBuilder
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator
 from deeptutor.tutorbot.agent.team import TeamManager
@@ -103,6 +103,7 @@ class AgentLoop:
     _RAG_STOP_QUERY_SIMILARITY_THRESHOLD = 0.85
     _RAG_STOP_SOURCE_OVERLAP_THRESHOLD = 0.6
     _USER_VISIBLE_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
+    _USER_VISIBLE_MODEL_ERROR_MESSAGE = "模型调用失败，请稍后重试。"
     _VISIBLE_ANSWER_REPAIR_PROMPTS = (
         "上一轮模型调用没有返回用户可见正文。请直接用中文给出最终答案，"
         "不要输出思考过程、后台过程或占位说明。",
@@ -2179,7 +2180,7 @@ class AgentLoop:
                 # poison the context and cause permanent 400 loops (#1303).
                 if response.finish_reason == "error":
                     logger.error("LLM returned error: {}", (clean or "")[:200])
-                    final_content = clean or "模型调用失败，请稍后重试。"
+                    final_content = self._USER_VISIBLE_MODEL_ERROR_MESSAGE
                     break
                 if not self._is_user_visible_final_answer(clean):
                     retry_messages = list(messages)
@@ -2210,7 +2211,7 @@ class AgentLoop:
                     clean = self._strip_think(response.content) or "".join(retry_parts).strip() or None
                     if response.finish_reason == "error":
                         logger.error("LLM retry returned error: {}", (clean or "")[:200])
-                        final_content = clean or "模型调用失败，请稍后重试。"
+                        final_content = self._USER_VISIBLE_MODEL_ERROR_MESSAGE
                         break
                     if not self._is_user_visible_final_answer(clean):
                         logger.error("LLM returned no user-visible final answer after retry")
@@ -2930,7 +2931,7 @@ class AgentLoop:
             clean = self._strip_think(response.content)
             candidate = clean or "".join(streamed_parts).strip()
             if response.finish_reason == "error":
-                final_content = clean or "模型调用失败，请稍后重试。"
+                final_content = self._USER_VISIBLE_MODEL_ERROR_MESSAGE
                 break
             if self._is_user_visible_final_answer(candidate):
                 final_content = candidate

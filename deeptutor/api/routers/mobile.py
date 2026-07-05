@@ -37,7 +37,13 @@ from deeptutor.services.internal_qa import (
     internal_qa_billing_bypass_enabled,
 )
 from deeptutor.services.member_console import get_member_console_service
-from deeptutor.services.member_usage_meter import get_member_usage_meter
+from deeptutor.services.member_usage_meter import (
+    FREE_TRIAL_CONSUMED_STATUS,
+    FREE_TRIAL_REASON,
+    FREE_TRIAL_RELEASED_STATUS,
+    FREE_TRIAL_RESERVED_STATUS,
+    get_member_usage_meter,
+)
 from deeptutor.services.assessment import AssessmentBlueprintUnavailable
 from deeptutor.services.assessment.session_repository import (
     AssessmentLeaseConflict,
@@ -121,10 +127,13 @@ _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
 _LOCAL_WALLET_FALLBACK = "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"
 _LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK = "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"
-_FREE_TRIAL_USAGE_STATUS = "free_trial_reserved"
+_FREE_TRIAL_USAGE_STATUS = FREE_TRIAL_RESERVED_STATUS
+_FREE_TRIAL_CONSUMED_STATUS = FREE_TRIAL_CONSUMED_STATUS
+_FREE_TRIAL_RELEASED_STATUS = FREE_TRIAL_RELEASED_STATUS
 _FREE_TRIAL_DAILY_QUESTION_LIMIT = 3
 _FREE_TRIAL_WEEKLY_QUESTION_LIMIT = 12
 _FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT = 3
+_FREE_TRIAL_RESERVED_TTL = timedelta(minutes=20)
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 _BILLING_PLAN_REFERENCE_POINTS = {
@@ -495,12 +504,16 @@ def _usage_event_datetime(event: Any, *, now: datetime | None = None) -> datetim
 
 def _is_free_trial_usage_event(event: Any) -> bool:
     status_value = str(getattr(event, "status", "") or "").strip().lower()
+    if status_value == _FREE_TRIAL_RELEASED_STATUS:
+        return False
     if status_value == _FREE_TRIAL_USAGE_STATUS:
         return True
     metadata = getattr(event, "metadata", {}) or {}
     if not isinstance(metadata, dict):
         return False
-    return str(metadata.get("reason") or "").strip().lower() == "free_trial"
+    if str(metadata.get("reason") or "").strip().lower() != FREE_TRIAL_REASON:
+        return False
+    return status_value in {"", _FREE_TRIAL_CONSUMED_STATUS}
 
 
 def _free_trial_quota_row(
@@ -543,6 +556,12 @@ def _build_free_trial_usage_payload(
             continue
         created_at = _usage_event_datetime(event, now=current)
         if created_at is None:
+            continue
+        status_value = str(getattr(event, "status", "") or "").strip().lower()
+        if (
+            status_value == _FREE_TRIAL_USAGE_STATUS
+            and current - created_at.astimezone(_BILLING_USAGE_TZ) > _FREE_TRIAL_RESERVED_TTL
+        ):
             continue
         event_day = created_at.astimezone(_BILLING_USAGE_TZ).date()
         if week_start <= event_day <= today:
@@ -660,7 +679,13 @@ def _reserve_free_trial_usage(
         if normalized_client_turn_id
         else f"free_trial:{normalized_wallet_user_id}:{uuid4().hex}"
     )
-    get_member_usage_meter().record_usage_event(
+    def _check_free_trial_quota(events: list[Any]) -> None:
+        free_trial_payload = _build_free_trial_usage_payload(events)
+        free_trial_error = _free_trial_limit_exception(free_trial_payload)
+        if free_trial_error is not None:
+            raise free_trial_error
+
+    reserved = get_member_usage_meter().record_usage_event_after_check(
         wallet_user_id=normalized_wallet_user_id,
         learning_user_id=str(authenticated_user_id or "").strip(),
         source="wx_miniprogram",
@@ -670,16 +695,58 @@ def _reserve_free_trial_usage(
         dedupe_key=reservation_key,
         status=_FREE_TRIAL_USAGE_STATUS,
         metadata={
-            "reason": "free_trial",
+            "reason": FREE_TRIAL_REASON,
             "daily_limit": _FREE_TRIAL_DAILY_QUESTION_LIMIT,
             "weekly_limit": _FREE_TRIAL_WEEKLY_QUESTION_LIMIT,
             "consecutive_full_days_limit": _FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT,
         },
+        existing_events_limit=_BILLING_USAGE_LEDGER_WINDOW,
+        check_existing_events=_check_free_trial_quota,
     )
+    if not reserved:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "free_trial_reservation_conflict",
+                "message": "Free trial turn reservation already exists.",
+                "limited_by": "free_trial_reservation",
+            },
+        )
     return {
         "free_trial": "reserved",
         "free_trial_reservation_key": reservation_key,
     }
+
+
+def _release_free_trial_reservation(
+    billing_context_overrides: dict[str, str] | None,
+    *,
+    turn_id: str = "",
+    reason: str,
+) -> None:
+    if not isinstance(billing_context_overrides, dict):
+        return
+    if str(billing_context_overrides.get("free_trial") or "").strip().lower() != "reserved":
+        return
+    reservation_key = str(
+        billing_context_overrides.get("free_trial_reservation_key") or ""
+    ).strip()
+    if not reservation_key:
+        return
+    try:
+        get_member_usage_meter().finalize_free_trial_reservation(
+            reservation_key,
+            chargeable=False,
+            turn_id=str(turn_id or "").strip(),
+            metadata_updates={"release_reason": reason},
+        )
+    except Exception as exc:
+        logger.warning(
+            "Failed to release free trial reservation after start-turn error: key=%s error=%s",
+            reservation_key,
+            exc,
+            exc_info=True,
+        )
 
 
 def _build_billing_usage_payload(
@@ -1048,22 +1115,16 @@ def _assert_billing_quota_available(
     snapshot = wallet_service.get_wallet(normalized_user_id)
     available_micros = _wallet_available_micros(snapshot)
     if available_micros < _minimum_turn_charge_micros():
+        balance_micros = int(getattr(snapshot, "balance_micros", 0) or 0)
+        frozen_micros = int(getattr(snapshot, "frozen_micros", 0) or 0)
         if (
             snapshot is None
             or available_micros > 0
-            or int(getattr(snapshot, "balance_micros", 0) or 0) > 0
+            or balance_micros != 0
+            or frozen_micros != 0
         ):
             raise _insufficient_wallet_balance_exception(available_micros)
         try:
-            free_trial_payload = _build_free_trial_usage_payload(
-                _load_free_trial_usage_events(
-                    wallet_user_id=normalized_user_id,
-                    limit=_BILLING_USAGE_LEDGER_WINDOW,
-                )
-            )
-            free_trial_error = _free_trial_limit_exception(free_trial_payload)
-            if free_trial_error is not None:
-                raise free_trial_error
             return _reserve_free_trial_usage(
                 wallet_user_id=normalized_user_id,
                 authenticated_user_id=authenticated_user_id,
@@ -3595,17 +3656,17 @@ async def mobile_chat_start_turn(
             eval_bypass,
             *_eval_bypass_identity_candidates(resolved_user_id, resolved_wallet_user_id),
         )
+    runtime_session_id, public_conversation_id = await _resolve_mobile_runtime_session_id(
+        body.conversation_id,
+        resolved_user_id,
+    )
     billing_context_overrides = _assert_billing_quota_available(
         authorization,
         wallet_user_id=resolved_wallet_user_id,
         authenticated_user_id=resolved_user_id,
         eval_bypass_verified=eval_bypass_verified,
         client_turn_id=str(body.client_turn_id or "").strip(),
-        session_id=str(body.conversation_id or "").strip(),
-    )
-    runtime_session_id, public_conversation_id = await _resolve_mobile_runtime_session_id(
-        body.conversation_id,
-        resolved_user_id,
+        session_id=str(runtime_session_id or body.conversation_id or "").strip(),
     )
     payload = _build_mobile_turn_payload(
         body=body,
@@ -3617,7 +3678,14 @@ async def mobile_chat_start_turn(
     )
     if runtime_session_id:
         payload["session_id"] = runtime_session_id
-    session, turn = await turn_runtime.start_turn(payload)
+    try:
+        session, turn = await turn_runtime.start_turn(payload)
+    except Exception:
+        _release_free_trial_reservation(
+            billing_context_overrides,
+            reason="start_turn_failed",
+        )
+        raise
     response_conversation_id = (
         public_conversation_id
         or _normalize_mobile_conversation_id(session)
