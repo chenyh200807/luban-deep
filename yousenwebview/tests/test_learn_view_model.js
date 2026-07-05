@@ -160,4 +160,22 @@ ok("green lessons appear as posters even without lifecycle", () => {
   assert.strictEqual(vm.hasSupply, true);
 });
 
+// ── 海报竖排书法名:>6 字截断为单列显示名(live 绿灯站 26/28 标题超长),
+//    title 保留全名(下一站卡/详情消费) ──
+ok("poster name clamps to 6 chars, title keeps full text", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: {},
+    report: {},
+    lessons: { lessons: [
+      { pack_id: "F02", title: "卷材防水施工顺序与搭接方向", content_sha256: "s1" },
+      { pack_id: "F05", title: "渗漏治理诊断", content_sha256: "s2" },
+    ] },
+  });
+  const f02 = vm.posters.find((p) => p.pack_id === "F02");
+  assert.strictEqual(f02.name, "卷材防水施工");
+  assert.strictEqual(f02.title, "卷材防水施工顺序与搭接方向");
+  const f05 = vm.posters.find((p) => p.pack_id === "F05");
+  assert.strictEqual(f05.name, "渗漏治理诊断"); // 恰 6 字不截
+});
+
 console.log("\nlearn-view-model: " + passed + " passed");
