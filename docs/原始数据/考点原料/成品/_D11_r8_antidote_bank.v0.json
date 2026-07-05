@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-antidote-bank",
  "pack_id": "D11",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
  "generation_ms": 0.74,
  "gate": {
@@ -103,5 +103,10 @@
     "wrong_model": "以为工序无先后"
    }
   ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:20+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
  }
 }

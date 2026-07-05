@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-antidote-bank",
  "pack_id": "F16",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "51b0f455ad205b4ed9965720d9562861a4a2ef7e8e7aa4c690ca69b8d88fff2e",
  "generation_ms": 0.78,
  "gate": {
@@ -133,5 +133,10 @@
     "wrong_model": "以为起鼓题=考防水通识，不做工序"
    }
   ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:21+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
  }
 }

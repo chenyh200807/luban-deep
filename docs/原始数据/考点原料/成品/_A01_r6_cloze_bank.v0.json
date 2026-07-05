@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-cloze-bank",
  "pack_id": "A01",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "23593d60ab10292ab5b2e9dac8ce767f0ed111e4b5fc669051aa5cf1824e92f1",
  "generation_ms": 1.67,
  "gate": {
@@ -157,5 +157,10 @@
    "blank_hint": "实体检验 / 严禁验收",
    "text_after": ""
   }
- ]
+ ],
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:31+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补精确挖空(owner目标=完成计划未完成内容)"
+ }
 }

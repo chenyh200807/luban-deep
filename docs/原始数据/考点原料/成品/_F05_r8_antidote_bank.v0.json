@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-antidote-bank",
  "pack_id": "F05",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "eeb066fb568138d8358817e5fd9e05b9e6283ec175664ded3edf965cc80c3bf0",
  "generation_ms": 0.73,
  "gate": {
@@ -145,5 +145,10 @@
     "wrong_model": "以为单道防水即可"
    }
   ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:21+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
  }
 }

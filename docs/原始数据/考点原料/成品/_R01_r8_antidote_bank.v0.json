@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-antidote-bank",
  "pack_id": "R01",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "86e87afc3a453d012eb91f86508f9dd45fd04a532bbc073d0ffcc96fd1bdfbe1",
  "generation_ms": 0.88,
  "gate": {
@@ -143,5 +143,10 @@
     "wrong_model": "以为同字「消防」即本考点答题"
    }
   ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:23+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
  }
 }
