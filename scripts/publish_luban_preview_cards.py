@@ -87,6 +87,8 @@ STATIONS: dict[str, Station] = {
     # S07B 是 S07 pack 的成品卡变体（manifest 无独立 S07B slot）：托管在 s07 站位，
     # S07 当前未签发（published=False + barred），卡就绪等签发。
     "s07": _p40("P40_S07B"),
+    # wave3 batch1（2026-07-05）：绿灯站补视频2类教学卡（teach+practice）
+    "s05": _p40("P40_S05"),
     "c02": Station(
         pack_dir="C02",
         teach={

@@ -726,7 +726,7 @@
    "title": "起重吊装安全"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
    "explicitly_barred_default_entry": false,
    "file": "S05_临时用电三级配电.md",
