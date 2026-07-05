@@ -42,6 +42,8 @@
         "pages/luban/station/station",
         "pages/luban/handoff/handoff",
         "pages/luban/retest/retest",
+        "pages/luban/errorbank/errorbank",
+        "pages/luban/gauntlet/gauntlet",
         "pages/internal/diagramWebviewTest/diagramWebviewTest"
       ]
     },
