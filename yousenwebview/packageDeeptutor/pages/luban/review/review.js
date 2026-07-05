@@ -5,7 +5,8 @@
 // - 变体池空的站 fail-closed 隐藏「换皮」承诺句（review-view-model 单一判定点），
 //   回炉动作降级为回站重看；
 // - 错因银行计数/错因聚合 = 云端错题集 read model（只读）；
-// - 考点卡区后端未供给字段 → 「即将开通」占位（禁前端自造卡文案）；
+// - 考点卡库 = /api/v1/luban/concept-cards 只读投影（张数=signed 卡池真值；
+//   旗标关/请求失败/零签发池 → 「即将开通」占位，禁前端自造卡数与文案）；
 // - 自主检索 = 纯前端过滤已加载数据（按母题=点亮站 / 按错因=错题错因聚合）。
 // 零学习证据写入（学习证据归 learner_signal / 判分链路，本页不碰）。
 var api = require("../../../utils/api");
@@ -135,6 +136,14 @@ Page({
     wx.navigateTo({ url: route.mistakeBook() });
   },
 
+  // 考点卡库入口（vm 单一判定点：signed 卡池真有卡才可点，占位态不接线）
+  openConceptCards: function () {
+    var vm = this.data.vm;
+    if (!vm || !vm.conceptCardsAvailable) return;
+    if (typeof wx === "undefined" || !wx.navigateTo) return;
+    wx.navigateTo({ url: route.lubanConceptCards() });
+  },
+
   setSearchMode: function (event) {
     var dataset =
       (event && event.currentTarget && event.currentTarget.dataset) || {};
@@ -194,11 +203,21 @@ Page({
       .catch(function () {
         return null;
       });
+    // 考点卡库张数(signed 卡池投影)——拿不到降级 null, 入口回「即将开通」占位
+    var conceptCardsPromise = api
+      .getLubanConceptCardLibrary({ suppressAuthRedirect: true })
+      .then(function (resp) {
+        return api.unwrapResponse(resp) || {};
+      })
+      .catch(function () {
+        return null;
+      });
     return Promise.all([
       api.getLubanLessons(),
       api.getLubanReviewDue(),
       mistakePromise,
       reportPromise,
+      conceptCardsPromise,
     ])
       .then(function (results) {
         var vm = reviewViewModel.buildReviewViewModel({
@@ -206,6 +225,7 @@ Page({
           reviewDue: api.unwrapResponse(results[1]) || {},
           mistakeBook: results[2],
           report: results[3],
+          conceptCards: results[4],
         });
         that.setData({ vm: vm, loading: false });
       })
