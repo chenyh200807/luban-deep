@@ -1,0 +1,37 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-2(证据等级语义类·前轮已改的充分性裁决)",
+    "retrieval": "tbsearch '事故+补报'=0命中——上报程序教材锚确缺, pack 声明诚实",
+    "panel": {
+      "GLM-5.2": {
+        "issue0_satisfied": true,
+        "further_edit_needed": false,
+        "reason": "证据等级诚实/去绝对化/松绑封闭三诉求已落实; fix 未绝对禁止保🟢; D11 先例认可真题单锚🟢+区分声明"
+      },
+      "Fable-5": "复签同意——coarse_review+不进默认入口+真题锚区分声明构成完整诚实链",
+      "vote": "2/2 无需进一步修改"
+    },
+    "edits": "零新编辑, 升色=0, 新增🟢=0"
+  },
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 1,
+    "tier": "Tier-0/2(确定性复核+双签确认)",
+    "actions": [
+      "'凡/永远沿四步链'正文 0 残留(仅§9引文)",
+      "骨架已标🔵教学启发式+非每题跑满",
+      "GLM-5.2+Fable-5 双签 2/2 确认满足",
+      "零新编辑"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "issue1_satisfied": true
+      },
+      "Fable-5": "复签同意"
+    }
+  }
+]

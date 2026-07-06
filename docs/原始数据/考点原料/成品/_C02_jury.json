@@ -2,55 +2,108 @@
   {
     "issue": "R2不变量'量/价/时点/扣减四维同时正确'过度约束，不适用于合同条款体检等场景",
     "location": "§3 R2不变量",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "改为'支付链不变量'，或拆分为支付链四维与法定红线/责任归属邻接规则，各子项可独立采分"
+    "fix": "改为'支付链不变量'，或拆分为支付链四维与法定红线/责任归属邻接规则，各子项可独立采分",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "C02_进度款与计量计价.md §3 R2(不变量适用边界注：四维只约束支付链计算场景1-5，责任归属/条款体检独立采分，两硬地基全场景成立)",
+      "verified": "2026-07-02 裁决：场景6/7 真题(2018第4题/2022第(四)题)确为责任归类与红线记忆题、非四维计算链，拆分成立"
+    }
   },
   {
     "issue": "误区3（索赔时限）错因码映射不完整，漏E07时间数值混淆或E08不贴",
     "location": "§6误区3",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "补充E07覆盖时间数值混淆，或将E08改为E03/M08，并强调28天数值"
+    "fix": "补充E07覆盖时间数值混淆，或将E08改为E03/M08，并强调28天数值",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "C02_进度款与计量计价.md §6 误区3(错因码改 E06/E03/M08，移除 E08)",
+      "verified": "2026-07-02 registry 直读：E07=概念混淆(jury 文本'E07时间数值混淆'系码义误引)；数值维度按实义挂 E03(案例漏写28天)/M08(MCQ数字混淆)；E08=背景信息提取失败不贴移除"
+    }
   },
   {
     "issue": "安全生产费50%在§1标为邻接噪声但在§4纳入C02封闭法定阈值，分类矛盾",
     "location": "§1/§4",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "统一分类：若为C02采分项则移入本体标🟢，否则从R4维度5移除或标为🔵邻接参考"
+    "fix": "统一分类：若为C02采分项则移入本体标🟢，否则从R4维度5移除或标为🔵邻接参考",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "C02_进度款与计量计价.md §4 R4 维度5(安全生产费移出封闭集，与 §1 🔵 邻接噪声定位统一；G-5 口径消解记录保留)",
+      "verified": "2026-07-02 确定性核验：_C02_exam_evidence.json 74 条证据 0 命中'安全生产费'，非 C02 判分本体；锚 kc:1A436000_100_0164:0 属安全科目(436)"
+    }
   },
   {
     "issue": "因果链③由SV<0推导'发包人可降低当期支付比例'过度，挣值法仅判断进度偏差，不直接授权调整支付比例",
     "location": "§2因果链③",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "删除或降级为🔵'可作为进度风险判断信号，具体扣款/违约按合同约定'"
+    "fix": "删除或降级为🔵'可作为进度风险判断信号，具体扣款/违约按合同约定'",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "C02_进度款与计量计价.md §2 因果链③(降 🔵'进度风险判断信号'，具体扣款/违约按合同约定)",
+      "verified": "2026-07-02 确定性核验：_C02_compiled_source.json 0 命中'降低当期支付比例'，原表述无 point_id 支撑"
+    }
   },
   {
     "issue": "材料占比60%等题干变量被当作固定常数，未明确声明为变量",
     "location": "§6误区1/R3场景表",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "标注60%为2019题示例，材料占比/起扣点阈值等由题干给定，非固定值"
+    "fix": "标注60%为2019题示例，材料占比/起扣点阈值等由题干给定，非固定值",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "C02_进度款与计量计价.md §2 因果链②公式旁 + §5 R6 骨架A步骤3(补'题面给定变量非常数'声明，例值 60%/65%/70%)",
+      "verified": "2026-07-02 核验：2019=60%、2015=65%、2021案例四=70%，变量性质由真题例证实；§6 误区1 的 G-4 修正早已剔除'固定60%'"
+    }
   },
   {
     "issue": "examiner_intent'算对数字不给分'表述过于绝对，实际评分需口径与数字同时正确",
     "location": "§4 examiner_intent意图1",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "修改为'口径错则关键采分点丢失，算术正确也不得分；数字错而口径对也会失分'"
+    "fix": "修改为'口径错则关键采分点丢失，算术正确也不得分；数字错而口径对也会失分'",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "C02_进度款与计量计价.md §4 examiner_intent 意图1 潜台词(改'口径与数字须同时正确'双向表述)",
+      "verified": "2026-07-02 采纳 jury 建议措辞，语义对齐评分实务(口径错丢关键采分点、数字错按步骤失分)"
+    }
   },
   {
     "issue": "泄洪沟净拆除量公式缺少2020案例四完整真题quote与逐行验证",
     "location": "§2因果链④泄洪沟公式",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "补全2020案例四真题题干与答案链接，展示完整中间推导过程"
@@ -58,7 +111,9 @@
   {
     "issue": "误区8质保金一次性扣除挂E09过泛，实为程序认知错误，应挂E06",
     "location": "§6误区8",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "E09改为E06，与M08/E10组合成E06+M08+E10"
@@ -66,7 +121,9 @@
   {
     "issue": "挣值法在§1标为🟢本体但同时承认非判分，定位矛盾",
     "location": "§1/§8",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "改为🔵邻接判断工具/支撑信号，不作为C02直接判分本体"
@@ -74,7 +131,9 @@
   {
     "issue": "R4声称题型封闭仅凭经验覆盖，不足以证明未来题型不会超出",
     "location": "§4 R4封闭性声明",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "改为'当前题库高频覆盖集，新增变体需回源判断'"
@@ -82,7 +141,9 @@
   {
     "issue": "不可抗力自担损失列入扣减项不贴，应属于索赔/责任归属扰动事件",
     "location": "§4 R4维度2",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "从扣减项移入维度6扰动事件，扣减项保留预付款扣回、质保金等"
@@ -90,7 +151,9 @@
   {
     "issue": "建安费六要素疑似漏列‘规费’，与R4维度4五层顺序冲突",
     "location": "§1建安费六要素",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "核实原quote，补充规费项以保持口径一致"
@@ -98,7 +161,9 @@
   {
     "issue": "起扣点公式中‘合同价’未区分含暂列/不含，可能与预付款基数扣暂列冲突",
     "location": "§2因果链②/R6骨架A",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "明确公式使用的合同价为扣除暂列金额后的基数或按题干约定"
@@ -106,7 +171,9 @@
   {
     "issue": "R7边界2起扣点代数公式结构错误仍挂E06不够贴切，应主挂E09",
     "location": "§5 R7边界2",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "E06降级，主挂E09计算错误，客观题可挂M08数字混淆"
@@ -114,7 +181,9 @@
   {
     "issue": "误区7未考虑措施项目费调整挂E11偏泛，更贴近规范适用错误E10",
     "location": "§6误区7",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "E11改为E10，保留E02"

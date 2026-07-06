@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <style>
+    body { margin:0; background:#05070E; }
+    @keyframes dtPulse { 0%,100%{opacity:.55} 50%{opacity:.9} }
+  </style>
+</helmet>
+
+<section style="display:flex; flex-direction:column; gap:28px; padding:48px 56px; margin-bottom:32px; background:#F1EEE4; border-radius:32px; font-family:-apple-system,'PingFang SC','Helvetica Neue',sans-serif; color:#26241f;">
+
+  <div style="display:flex; flex-direction:column; gap:8px; max-width:980px;">
+    <div style="font-size:13px; letter-spacing:2px; color:#b04a3c; font-weight:800;">第 10 轮 · 宣纸亮色（我的选色）</div>
+    <div style="font-size:30px; font-weight:800;">纸 · 墨 · 朱 · 竹</div>
+    <div style="font-size:15px; line-height:1.7; color:#5b584e;">版式与你截图完全一致，颜色按我的审美定：页面底就是动画卡的宣纸（含同款点阵纹理），动画舞台与页面无缝融为一体；数字用墨色，朱红只做「印章」——logo、播放键、一颗主按钮；正向数据用<span style="color:#48806a; font-weight:800;">竹青</span>，警示才用赭红。文房四色，天然高级。</div>
+  </div>
+
+  <div style="display:flex; gap:40px; align-items:flex-start; flex-wrap:wrap;">
+
+    <div id="10a" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="background:#26241f; color:#f5f3ec; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;">10a</span>
+        <span style="font-size:15px; font-weight:700;">学习 · 宣纸驾驶舱</span>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ false }}" hint-size="402px,874px">
+        <div style="position:relative; height:874px; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; --card:#fffdf8; --bd:#e7e3d5; --t1:#26241f; --t2:#5b584e; --t3:#96917e; --red:#cf4436; --grn:#48806a; --gauge:#e9e5d7;">
+          <div style="height:100%; display:flex; flex-direction:column; background-color:#f5f3ec; background-image:radial-gradient(#e4e0d0 0.7px, transparent 0.7px); background-size:18px 18px;">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:66px 20px 0;">
+              <div style="display:flex; align-items:center; gap:9px;">
+                <div style="width:30px; height:30px; border-radius:8px; background:#cf4436; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 10px rgba(207,68,54,0.2);"><img src="uploads/logo-mark-white.png" style="width:18px; height:18px; object-fit:contain;"></div>
+                <span style="font-size:16px; font-weight:800; color:var(--t1); letter-spacing:0.5px;">鲁班智考</span>
+              </div>
+              <div style="display:flex; align-items:center; height:30px; border-radius:999px; background:rgba(38,36,31,0.06); padding:0 4px;">
+                <div style="width:38px; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span></div>
+                <div style="width:0.5px; height:16px; background:rgba(38,36,31,0.18);"></div>
+                <div style="width:38px; display:flex; align-items:center; justify-content:center;"><span style="width:14px; height:14px; border-radius:50%; border:1.5px solid var(--t1); display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:4px; border-radius:50%; background:var(--t1);"></span></span></div>
+              </div>
+            </div>
+
+            <div style="flex:1; overflow:auto; padding:16px 14px 0; display:flex; flex-direction:column; gap:10px;">
+
+              <!-- 三枚状态卡 -->
+              <div style="flex-shrink:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;">
+                <div style="padding:12px 10px; border-radius:16px; background:var(--card); border:1px solid var(--bd); box-shadow:0 1px 6px rgba(38,36,31,0.05); display:flex; align-items:center; gap:8px;">
+                  <div style="position:relative; width:40px; height:40px; flex-shrink:0;">
+                    <svg width="40" height="40" viewBox="0 0 40 40">
+                      <circle cx="20" cy="20" r="16" fill="none" stroke="var(--gauge)" stroke-width="3.5"></circle>
+                      <circle cx="20" cy="20" r="16" fill="none" stroke="#26241f" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="70 100" transform="rotate(-90 20 20)"></circle>
+                    </svg>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;"><span style="font-size:13px; font-weight:700; color:var(--t1);">87</span></div>
+                  </div>
+                  <div style="display:flex; flex-direction:column; gap:1px;"><span style="font-size:11px; color:var(--t3);">距考试</span><span style="font-size:12px; font-weight:700; color:var(--t1);">天</span></div>
+                </div>
+                <div style="padding:12px 10px; border-radius:16px; background:var(--card); border:1px solid var(--bd); box-shadow:0 1px 6px rgba(38,36,31,0.05); display:flex; flex-direction:column; justify-content:space-between; gap:7px;">
+                  <span style="font-size:11px; color:var(--t3);">路线 <span style="font-weight:700; color:var(--t1);">12/40 站</span></span>
+                  <div style="height:10px; border-radius:5px; background:var(--gauge); overflow:hidden;"><div style="width:30%; height:100%; border-radius:5px; background:var(--grn);"></div></div>
+                </div>
+                <div style="padding:12px 10px; border-radius:16px; background:var(--card); border:1px solid var(--bd); box-shadow:0 1px 6px rgba(38,36,31,0.05); display:flex; flex-direction:column; justify-content:space-between; gap:7px;">
+                  <span style="font-size:11px; color:var(--t3);">今日 <span style="font-weight:700; color:var(--t1);">18/30 分钟</span></span>
+                  <div style="height:10px; border-radius:5px; background:var(--gauge); overflow:hidden;"><div style="width:60%; height:100%; border-radius:5px; background:var(--grn);"></div></div>
+                </div>
+              </div>
+
+              <!-- 动画精讲：今日推荐大卡 + 横滑课程架 -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); overflow:hidden; box-shadow:0 2px 12px rgba(38,36,31,0.06);">
+                <div onClick="{{ toggleMuti }}" style="display:flex; align-items:center; gap:10px; padding:13px 15px; cursor:pointer; border-bottom:1px solid var(--bd);">
+                  <div style="width:34px; height:34px; border-radius:9px; background:#cf4436; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><img src="uploads/logo-mark-white.png" style="width:20px; height:20px; object-fit:contain;"></div>
+                  <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:1px;">
+                    <span style="font-size:11px; letter-spacing:1.5px; color:var(--t3); font-weight:700;">下一站 · 安全质量线 S07</span>
+                    <span style="font-size:15px; font-weight:800; color:var(--t1); line-height:1.3;">安全事故等级判定与上报</span>
+                  </div>
+                  <span style="flex-shrink:0; padding:3px 8px; border-radius:999px; background:rgba(72,128,106,0.1); font-size:11px; font-weight:800; color:var(--grn);">匹配你的薄弱</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="{{ mutiChevron }}"><path d="M6 9l6 6 6-6"></path></svg>
+                </div>
+                <sc-if value="{{ mutiOpen }}" hint-placeholder-val="{{ true }}">
+                  <div style="position:relative; height:196px; background-color:#f4f3ec; background-image:radial-gradient(#e4e2d7 0.7px, transparent 0.7px); background-size:16px 16px; border-bottom:1px solid var(--bd); display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                    <span style="position:absolute; top:11px; left:12px; padding:5px 11px; border-radius:999px; background:#cf4436; font-size:11px; font-weight:800; color:#fff; box-shadow:0 3px 9px rgba(207,68,54,0.25);">旁白·开</span>
+                    <span style="position:absolute; top:11px; right:12px; width:26px; height:26px; border-radius:8px; background:#23282b; display:flex; align-items:center; justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f4f3ec" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5"></path><path d="M20 9V4h-5"></path><path d="M4 15v5h5"></path><path d="M20 15v5h-5"></path></svg></span>
+                    <span style="font-family:'Long Cang','Kaiti SC',cursive; font-size:32px; color:#cf4436; line-height:1; margin-top:14px;">鲁班智考</span>
+                    <span style="font-size:13px; font-weight:800; color:#23282b; margin-top:7px;">动画精讲 · 量三把尺子，写满采分句</span>
+                    <div style="width:46px; height:46px; border-radius:50%; background:#cf4436; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(207,68,54,0.28); margin-top:12px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M8 5.5v13l11-6.5z"></path></svg></div>
+                    <span style="font-size:11px; color:#9aa0a3; letter-spacing:1px; margin-top:9px;">点击播放 · 6 幕精讲 + 4 追问 · 约 3 分 18 秒</span>
+                  </div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 15px 4px;">
+                    <span style="font-size:12px; font-weight:800; color:var(--t2);">你的路线 · 已点亮 12 / 40 站</span>
+                    <span style="font-size:12px; font-weight:700; color:var(--grn);">查看完整地图 →</span>
+                  </div>
+                  <div style="display:flex; gap:9px; padding:8px 15px 14px; overflow-x:auto;">
+                    <!-- 墨色海报 · 已学 -->
+                    <div style="flex-shrink:0; position:relative; width:84px; height:112px; border-radius:10px; overflow:hidden; background-color:#26241f; background-image:radial-gradient(rgba(244,243,236,0.08) 0.7px, transparent 0.7px); background-size:14px 14px; box-shadow:0 3px 10px rgba(38,36,31,0.18);">
+                      <span style="position:absolute; top:8px; right:8px; writing-mode:vertical-rl; font-family:'Long Cang','Kaiti SC',cursive; font-size:14px; letter-spacing:2px; color:#f4f3ec; line-height:1;">工期索赔</span>
+                      <span style="position:absolute; top:8px; left:8px; width:16px; height:16px; border-radius:4px; background:#cf4436; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff;">S2</span>
+                      <div style="position:absolute; left:8px; bottom:8px; display:flex; flex-direction:column; gap:2px;">
+                        <span style="display:flex; align-items:center; gap:4px; font-size:9px; font-weight:800; color:#8fbfa8;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>已学完</span>
+                        <span style="font-size:10px; font-weight:700; color:rgba(244,243,236,0.85); line-height:1.3;">索赔成立三条件</span>
+                      </div>
+                      <div style="position:absolute; left:0; right:0; bottom:0; height:3px; background:rgba(244,243,236,0.15);"><div style="width:100%; height:100%; background:#8fbfa8;"></div></div>
+                    </div>
+                    <!-- 朱红海报 · 推荐 -->
+                    <div style="flex-shrink:0; position:relative; width:84px; height:112px; border-radius:10px; overflow:hidden; background-color:#cf4436; background-image:radial-gradient(rgba(255,255,255,0.14) 0.7px, transparent 0.7px); background-size:14px 14px; box-shadow:0 4px 14px rgba(207,68,54,0.3);">
+                      <span style="position:absolute; top:8px; right:8px; writing-mode:vertical-rl; font-family:'Long Cang','Kaiti SC',cursive; font-size:14px; letter-spacing:2px; color:#fff; line-height:1;">质量验收</span>
+                      <span style="position:absolute; top:8px; left:8px; width:16px; height:16px; border-radius:4px; background:rgba(255,255,255,0.92); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#cf4436;">S4</span>
+                      <div style="position:absolute; left:8px; bottom:8px; display:flex; flex-direction:column; gap:2px;">
+                        <span style="display:flex; align-items:center; gap:4px; font-size:10px; font-weight:800; color:#ffe1ba;"><span style="width:12px; height:12px; border-radius:50%; background:rgba(255,255,255,0.95); display:flex; align-items:center; justify-content:center;"><svg width="7" height="7" viewBox="0 0 24 24" fill="#cf4436"><path d="M8 5.5v13l11-6.5z"></path></svg></span>匹配薄弱</span>
+                        <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.92); line-height:1.3;">验收程序五步走</span>
+                      </div>
+                      <div style="position:absolute; left:0; right:0; bottom:0; height:3px; background:rgba(255,255,255,0.25);"></div>
+                    </div>
+                    <!-- 宣纸海报 · 未学 -->
+                    <div style="flex-shrink:0; position:relative; width:84px; height:112px; border-radius:10px; overflow:hidden; background-color:#f4f3ec; background-image:radial-gradient(#e4e2d7 0.7px, transparent 0.7px); background-size:14px 14px; border:1px solid var(--bd);">
+                      <span style="position:absolute; top:8px; right:8px; writing-mode:vertical-rl; font-family:'Long Cang','Kaiti SC',cursive; font-size:14px; letter-spacing:2px; color:#cf4436; line-height:1;">基坑支护</span>
+                      <span style="position:absolute; top:8px; left:8px; width:16px; height:16px; border-radius:4px; border:1.5px solid #cf4436; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#cf4436;">S8</span>
+                      <div style="position:absolute; left:8px; bottom:8px; display:flex; flex-direction:column; gap:2px;">
+                        <span style="display:flex; align-items:center; gap:4px; font-size:10px; font-weight:800; color:var(--t3);"><span style="width:12px; height:12px; border-radius:50%; background:#26241f; display:flex; align-items:center; justify-content:center;"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#f4f3ec" stroke-width="2.6" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span>会员解锁</span>
+                        <span style="font-size:10px; font-weight:700; color:var(--t1); line-height:1.3;">监测报警三指标</span>
+                      </div>
+                      <div style="position:absolute; left:0; right:0; bottom:0; height:3px; background:rgba(38,36,31,0.12);"></div>
+                    </div>
+                    <!-- 尾卡 · 全部 -->
+                    <div style="flex-shrink:0; position:relative; width:68px; height:112px; border-radius:10px; border:1.5px dashed #cbc6b4; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
+                      <div style="display:flex; flex-wrap:wrap; gap:3px; width:27px;">
+                        <span style="width:12px; height:12px; border-radius:3px; background:#26241f;"></span><span style="width:12px; height:12px; border-radius:3px; background:#cf4436;"></span><span style="width:12px; height:12px; border-radius:3px; background:#c9c4b2;"></span><span style="width:12px; height:12px; border-radius:3px; border:1.5px dashed #cbc6b4; box-sizing:border-box;"></span>
+                      </div>
+                      <span style="font-size:11px; font-weight:800; color:var(--t2); text-align:center; line-height:1.5;">完整路线<br>40 站 →</span>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+
+              <!-- 今日任务卡 -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:16px; display:flex; flex-direction:column; gap:11px;">
+                <div style="display:flex; gap:14px;">
+                  <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
+                    <span style="font-size:12px; font-weight:800; color:var(--t3); letter-spacing:1.5px;">今天最该完成</span>
+                    <span style="font-size:19px; font-weight:800; line-height:1.35; color:var(--t1);">工期索赔 · 半写训练 1 题</span>
+                    <span style="font-size:12px; line-height:1.6; color:var(--t2);">预计 15 分钟 · 做完可降「关键词缺失」风险</span>
+                  </div>
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0;">
+                    <div style="position:relative; width:62px; height:62px;">
+                      <svg width="62" height="62" viewBox="0 0 62 62">
+                        <circle cx="31" cy="31" r="26" fill="none" stroke="var(--gauge)" stroke-width="5"></circle>
+                        <circle cx="31" cy="31" r="26" fill="none" stroke="var(--grn)" stroke-width="5" stroke-linecap="round" stroke-dasharray="118 163" transform="rotate(-90 31 31)"></circle>
+                      </svg>
+                      <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;"><span style="font-size:15px; font-weight:800; color:var(--t1);">72%</span></div>
+                    </div>
+                    <span style="font-size:11px; color:var(--t3);">掌握可信度</span>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:9px;">
+                  <div style="flex:1; min-height:46px; border-radius:12px; background:#26241f; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(38,36,31,0.25);"><span style="font-size:14px; font-weight:800; color:#f5f3ec; letter-spacing:1px;">开始半写训练</span></div>
+                  <span style="flex-shrink:0; min-height:46px; padding:0 14px; border-radius:12px; border:1px solid var(--bd); background:rgba(38,36,31,0.02); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--t2);">换轻练</span>
+                </div>
+                <div onClick="{{ toggleWhy }}" style="display:flex; align-items:center; gap:5px; cursor:pointer; min-height:22px;">
+                  <span style="font-size:12px; font-weight:700; color:var(--grn);">为什么推荐</span>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="{{ whyChev }}"><path d="M6 9l6 6 6-6"></path></svg>
+                </div>
+                <sc-if value="{{ whyOpen }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:12px; line-height:1.65; color:var(--t2); margin-top:-5px;">你最近 3 次都漏写「是否影响关键线路」，这类题通常丢 2–4 分。</span>
+                </sc-if>
+              </div>
+
+              <div style="flex-shrink:0; display:flex; align-items:center; gap:10px; min-height:48px; padding:0 16px; border-radius:14px; background:var(--card); border:1px solid var(--bd); box-shadow:0 1px 6px rgba(38,36,31,0.05);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11L9.5 22 19 10h-6.5z"></path></svg>
+                <span style="flex:1; font-size:13px; font-weight:700; color:var(--t1);">复习 3 张到期 <span style="font-weight:400; color:var(--t3);">· 约 6 分钟</span></span>
+                <span style="font-size:13px; font-weight:700; color:var(--grn);">去复习 →</span>
+              </div>
+
+              <!-- 三枚指标卡 -->
+              <div style="flex-shrink:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:10px;">
+                <div style="min-height:88px; padding:12px 11px; border-radius:16px; background:var(--card); border:1px solid var(--bd); box-shadow:0 1px 6px rgba(38,36,31,0.05); display:flex; flex-direction:column; justify-content:space-between; gap:5px;">
+                  <span style="font-size:11px; color:var(--t3);">近 3 天练习</span>
+                  <span style="font-size:20px; font-weight:800; color:var(--t1); line-height:1;">8 次</span>
+                  <div style="display:flex; gap:4px; align-items:flex-end;"><span style="width:16px; height:6px; border-radius:3px; background:var(--grn); opacity:0.4;"></span><span style="width:20px; height:6px; border-radius:3px; background:var(--grn); opacity:0.65;"></span><span style="width:26px; height:9px; border-radius:5px; background:var(--grn);"></span></div>
+                </div>
+                <div style="min-height:88px; padding:12px 11px; border-radius:16px; background:var(--card); border:1px solid var(--bd); box-shadow:0 1px 6px rgba(38,36,31,0.05); display:flex; flex-direction:column; justify-content:space-between; gap:5px;">
+                  <span style="font-size:11px; color:var(--t3);">待补错因</span>
+                  <span style="font-size:20px; font-weight:800; color:var(--t1); line-height:1;">3 个</span>
+                  <div style="display:flex; flex-direction:column; gap:3px;"><span style="width:78%; height:5px; border-radius:3px; background:#c26555;"></span><span style="width:52%; height:5px; border-radius:3px; background:#c9c4b2;"></span><span style="width:34%; height:5px; border-radius:3px; background:#c9c4b2;"></span></div>
+                </div>
+                <div style="min-height:88px; padding:12px 11px; border-radius:16px; background:var(--card); border:1px solid var(--bd); box-shadow:0 1px 6px rgba(38,36,31,0.05); display:flex; flex-direction:column; justify-content:space-between; gap:5px;">
+                  <span style="font-size:11px; color:var(--t3);">掌握趋势</span>
+                  <span style="font-size:20px; font-weight:800; color:var(--grn); line-height:1;">↗ 72%</span>
+                  <div style="display:flex; gap:3px; align-items:flex-end;"><span style="width:7px; height:6px; border-radius:2px; background:var(--grn); opacity:0.4;"></span><span style="width:7px; height:9px; border-radius:2px; background:var(--grn); opacity:0.6;"></span><span style="width:7px; height:12px; border-radius:2px; background:var(--grn); opacity:0.8;"></span><span style="width:7px; height:15px; border-radius:2px; background:var(--grn);"></span></div>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; height:24px;"></div>
+            </div>
+
+            <div style="position:relative; display:flex; align-items:flex-end; justify-content:space-around; padding:10px 8px 34px; background:rgba(255,253,248,0.95); border-top:1px solid var(--bd);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#26241f; min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M19 17H6a2 2 0 0 0-2 2"></path></svg><span style="font-size:12px; font-weight:800;">学习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"></path><path d="M3 15v6h6"></path></svg><span style="font-size:12px;">复习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:64px; margin-top:-30px;">
+                <div style="width:54px; height:54px; border-radius:50%; background:#cf4436; border:4px solid #fffdf8; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(207,68,54,0.35);"><img src="uploads/logo-mark-white.png" style="width:26px; height:26px; object-fit:contain;"></div>
+                <span style="font-size:12px; font-weight:800; color:var(--t1);">问鲁班</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg><span style="font-size:12px;">学情</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg><span style="font-size:12px;">我的</span></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="width:402px; font-size:13px; line-height:1.7; color:#5b584e;">选色逻辑：宣纸底 #f5f3ec + 点阵 = 动画卡的纸直接铺满全 app，舞台展开时与页面零边界；卡片用暖白 #fffdf8 浮在纸上；墨色做所有数字；竹青 #48806a 做正向进度（打卡、掌握、趋势）；朱红只留品牌四处——logo 章、播放键、红海报、问鲁班，UI 控件一律不用红：主按钮/倒计时/当前 tab 用墨色，警示用赭 #c26555。</div>
+    </div>
+
+    <div id="10b" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="background:#f0ede1; color:#26241f; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;">10b</span>
+        <span style="font-size:15px; font-weight:700;">学习 · 夜宣纸（深色模式）</span>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+        <div style="position:relative; height:874px; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; --card:#26231d; --bd:#37332a; --t1:#f0ede1; --t2:#b7b2a2; --t3:#8a8574; --red:#cf4436; --grn:#7fb99d; --gauge:#3a362c;">
+          <div style="height:100%; display:flex; flex-direction:column; background-color:#1c1a15;">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:66px 20px 0;">
+              <div style="display:flex; align-items:center; gap:9px;">
+                <div style="width:30px; height:30px; border-radius:8px; background:#cf4436; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 10px rgba(0,0,0,0.3);"><img src="uploads/logo-mark-white.png" style="width:18px; height:18px; object-fit:contain;"></div>
+                <span style="font-size:16px; font-weight:800; color:var(--t1); letter-spacing:0.5px;">鲁班智考</span>
+              </div>
+              <div style="display:flex; align-items:center; height:30px; border-radius:999px; background:rgba(240,237,225,0.08); padding:0 4px;">
+                <div style="width:38px; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span></div>
+                <div style="width:0.5px; height:16px; background:rgba(240,237,225,0.2);"></div>
+                <div style="width:38px; display:flex; align-items:center; justify-content:center;"><span style="width:14px; height:14px; border-radius:50%; border:1.5px solid var(--t1); display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:4px; border-radius:50%; background:var(--t1);"></span></span></div>
+              </div>
+            </div>
+
+            <div style="flex:1; overflow:auto; padding:16px 14px 0; display:flex; flex-direction:column; gap:10px;">
+
+              <div style="flex-shrink:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;">
+                <div style="padding:12px 10px; border-radius:16px; background:var(--card); border:1px solid var(--bd); display:flex; align-items:center; gap:8px;">
+                  <div style="position:relative; width:40px; height:40px; flex-shrink:0;">
+                    <svg width="40" height="40" viewBox="0 0 40 40">
+                      <circle cx="20" cy="20" r="16" fill="none" stroke="var(--gauge)" stroke-width="3.5"></circle>
+                      <circle cx="20" cy="20" r="16" fill="none" stroke="#f0ede1" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="70 100" transform="rotate(-90 20 20)"></circle>
+                    </svg>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;"><span style="font-size:13px; font-weight:700; color:var(--t1);">87</span></div>
+                  </div>
+                  <div style="display:flex; flex-direction:column; gap:1px;"><span style="font-size:11px; color:var(--t3);">距考试</span><span style="font-size:12px; font-weight:700; color:var(--t1);">天</span></div>
+                </div>
+                <div style="padding:12px 10px; border-radius:16px; background:var(--card); border:1px solid var(--bd); display:flex; flex-direction:column; justify-content:space-between; gap:7px;">
+                  <span style="font-size:11px; color:var(--t3);">路线 <span style="font-weight:700; color:var(--t1);">12/40 站</span></span>
+                  <div style="height:10px; border-radius:5px; background:var(--gauge); overflow:hidden;"><div style="width:30%; height:100%; border-radius:5px; background:var(--grn);"></div></div>
+                </div>
+                <div style="padding:12px 10px; border-radius:16px; background:var(--card); border:1px solid var(--bd); display:flex; flex-direction:column; justify-content:space-between; gap:7px;">
+                  <span style="font-size:11px; color:var(--t3);">今日 <span style="font-weight:700; color:var(--t1);">18/30 分钟</span></span>
+                  <div style="height:10px; border-radius:5px; background:var(--gauge); overflow:hidden;"><div style="width:60%; height:100%; border-radius:5px; background:var(--grn);"></div></div>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); overflow:hidden; box-shadow:0 4px 18px rgba(0,0,0,0.3);">
+                <div style="display:flex; align-items:center; gap:10px; padding:13px 15px; border-bottom:1px solid var(--bd);">
+                  <div style="width:34px; height:34px; border-radius:9px; background:#cf4436; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><img src="uploads/logo-mark-white.png" style="width:20px; height:20px; object-fit:contain;"></div>
+                  <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:1px;">
+                    <span style="font-size:11px; letter-spacing:1.5px; color:var(--t3); font-weight:700;">下一站 · 安全质量线 S07</span>
+                    <span style="font-size:15px; font-weight:800; color:var(--t1); line-height:1.3;">安全事故等级判定与上报</span>
+                  </div>
+                  <span style="flex-shrink:0; padding:3px 8px; border-radius:999px; background:rgba(127,185,157,0.12); font-size:11px; font-weight:800; color:var(--grn);">匹配你的薄弱</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+                </div>
+                <div style="position:relative; height:196px; background-color:#f4f3ec; background-image:radial-gradient(#e4e2d7 0.7px, transparent 0.7px); background-size:16px 16px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                  <span style="position:absolute; top:11px; left:12px; padding:5px 11px; border-radius:999px; background:#cf4436; font-size:11px; font-weight:800; color:#fff; box-shadow:0 3px 9px rgba(207,68,54,0.25);">旁白·开</span>
+                  <span style="position:absolute; top:11px; right:12px; width:26px; height:26px; border-radius:8px; background:#23282b; display:flex; align-items:center; justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f4f3ec" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5"></path><path d="M20 9V4h-5"></path><path d="M4 15v5h5"></path><path d="M20 15v5h-5"></path></svg></span>
+                  <span style="font-family:'Long Cang','Kaiti SC',cursive; font-size:32px; color:#cf4436; line-height:1; margin-top:14px;">鲁班智考</span>
+                  <span style="font-size:13px; font-weight:800; color:#23282b; margin-top:7px;">动画精讲 · 量三把尺子，写满采分句</span>
+                  <div style="width:46px; height:46px; border-radius:50%; background:#cf4436; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(207,68,54,0.28); margin-top:12px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><path d="M8 5.5v13l11-6.5z"></path></svg></div>
+                  <span style="font-size:11px; color:#9aa0a3; letter-spacing:1px; margin-top:9px;">点击播放 · 6 幕精讲 + 4 追问 · 约 3 分 18 秒</span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:11px 15px 4px;">
+                  <span style="font-size:12px; font-weight:800; color:var(--t2);">你的路线 · 已点亮 12 / 40 站</span>
+                  <span style="font-size:12px; font-weight:700; color:var(--grn);">查看完整地图 →</span>
+                </div>
+                <div style="display:flex; gap:9px; padding:8px 15px 14px; overflow-x:auto;">
+                  <div style="flex-shrink:0; position:relative; width:84px; height:112px; border-radius:10px; overflow:hidden; background-color:#26241f; border:1px solid var(--bd); background-image:radial-gradient(rgba(244,243,236,0.08) 0.7px, transparent 0.7px); background-size:14px 14px;">
+                    <span style="position:absolute; top:8px; right:8px; writing-mode:vertical-rl; font-family:'Long Cang','Kaiti SC',cursive; font-size:14px; letter-spacing:2px; color:#f4f3ec; line-height:1;">工期索赔</span>
+                    <span style="position:absolute; top:8px; left:8px; width:16px; height:16px; border-radius:4px; background:#cf4436; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff;">S2</span>
+                    <div style="position:absolute; left:8px; bottom:8px; display:flex; flex-direction:column; gap:2px;">
+                      <span style="display:flex; align-items:center; gap:4px; font-size:9px; font-weight:800; color:#8fbfa8;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>已学完</span>
+                      <span style="font-size:10px; font-weight:700; color:rgba(244,243,236,0.85); line-height:1.3;">索赔成立三条件</span>
+                    </div>
+                    <div style="position:absolute; left:0; right:0; bottom:0; height:3px; background:rgba(244,243,236,0.15);"><div style="width:100%; height:100%; background:#8fbfa8;"></div></div>
+                  </div>
+                  <div style="flex-shrink:0; position:relative; width:84px; height:112px; border-radius:10px; overflow:hidden; background-color:#cf4436; background-image:radial-gradient(rgba(255,255,255,0.14) 0.7px, transparent 0.7px); background-size:14px 14px; box-shadow:0 4px 14px rgba(0,0,0,0.35);">
+                    <span style="position:absolute; top:8px; right:8px; writing-mode:vertical-rl; font-family:'Long Cang','Kaiti SC',cursive; font-size:14px; letter-spacing:2px; color:#fff; line-height:1;">质量验收</span>
+                    <span style="position:absolute; top:8px; left:8px; width:16px; height:16px; border-radius:4px; background:rgba(255,255,255,0.92); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#cf4436;">S4</span>
+                    <div style="position:absolute; left:8px; bottom:8px; display:flex; flex-direction:column; gap:2px;">
+                      <span style="display:flex; align-items:center; gap:4px; font-size:10px; font-weight:800; color:#ffe1ba;"><span style="width:12px; height:12px; border-radius:50%; background:rgba(255,255,255,0.95); display:flex; align-items:center; justify-content:center;"><svg width="7" height="7" viewBox="0 0 24 24" fill="#cf4436"><path d="M8 5.5v13l11-6.5z"></path></svg></span>匹配薄弱</span>
+                      <span style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.92); line-height:1.3;">验收程序五步走</span>
+                    </div>
+                    <div style="position:absolute; left:0; right:0; bottom:0; height:3px; background:rgba(255,255,255,0.25);"></div>
+                  </div>
+                  <div style="flex-shrink:0; position:relative; width:84px; height:112px; border-radius:10px; overflow:hidden; background-color:#f4f3ec; background-image:radial-gradient(#e4e2d7 0.7px, transparent 0.7px); background-size:14px 14px;">
+                    <span style="position:absolute; top:8px; right:8px; writing-mode:vertical-rl; font-family:'Long Cang','Kaiti SC',cursive; font-size:14px; letter-spacing:2px; color:#cf4436; line-height:1;">基坑支护</span>
+                    <span style="position:absolute; top:8px; left:8px; width:16px; height:16px; border-radius:4px; border:1.5px solid #cf4436; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#cf4436;">S8</span>
+                    <div style="position:absolute; left:8px; bottom:8px; display:flex; flex-direction:column; gap:2px;">
+                      <span style="display:flex; align-items:center; gap:4px; font-size:10px; font-weight:800; color:#96917e;"><span style="width:12px; height:12px; border-radius:50%; background:#26241f; display:flex; align-items:center; justify-content:center;"><svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#f4f3ec" stroke-width="2.6" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span>会员解锁</span>
+                      <span style="font-size:10px; font-weight:700; color:#26241f; line-height:1.3;">监测报警三指标</span>
+                    </div>
+                    <div style="position:absolute; left:0; right:0; bottom:0; height:3px; background:rgba(38,36,31,0.12);"></div>
+                  </div>
+                  <div style="flex-shrink:0; position:relative; width:68px; height:112px; border-radius:10px; border:1.5px dashed #55503f; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
+                    <div style="display:flex; flex-wrap:wrap; gap:3px; width:27px;">
+                      <span style="width:12px; height:12px; border-radius:3px; background:#f0ede1;"></span><span style="width:12px; height:12px; border-radius:3px; background:#cf4436;"></span><span style="width:12px; height:12px; border-radius:3px; background:#55503f;"></span><span style="width:12px; height:12px; border-radius:3px; border:1.5px dashed #55503f; box-sizing:border-box;"></span>
+                    </div>
+                    <span style="font-size:11px; font-weight:800; color:var(--t2); text-align:center; line-height:1.5;">完整路线<br>40 站 →</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:16px; display:flex; flex-direction:column; gap:11px;">
+                <div style="display:flex; gap:14px;">
+                  <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
+                    <span style="font-size:12px; font-weight:800; color:var(--t3); letter-spacing:1.5px;">今天最该完成</span>
+                    <span style="font-size:19px; font-weight:800; line-height:1.35; color:var(--t1);">工期索赔 · 半写训练 1 题</span>
+                    <span style="font-size:12px; line-height:1.6; color:var(--t2);">预计 15 分钟 · 做完可降「关键词缺失」风险</span>
+                  </div>
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0;">
+                    <div style="position:relative; width:62px; height:62px;">
+                      <svg width="62" height="62" viewBox="0 0 62 62">
+                        <circle cx="31" cy="31" r="26" fill="none" stroke="var(--gauge)" stroke-width="5"></circle>
+                        <circle cx="31" cy="31" r="26" fill="none" stroke="var(--grn)" stroke-width="5" stroke-linecap="round" stroke-dasharray="118 163" transform="rotate(-90 31 31)"></circle>
+                      </svg>
+                      <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;"><span style="font-size:15px; font-weight:800; color:var(--t1);">72%</span></div>
+                    </div>
+                    <span style="font-size:11px; color:var(--t3);">掌握可信度</span>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:9px;">
+                  <div style="flex:1; min-height:46px; border-radius:12px; background:#f0ede1; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(0,0,0,0.3);"><span style="font-size:14px; font-weight:800; color:#26241f; letter-spacing:1px;">开始半写训练</span></div>
+                  <span style="flex-shrink:0; min-height:46px; padding:0 14px; border-radius:12px; border:1px solid var(--bd); background:rgba(240,237,225,0.04); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--t2);">换轻练</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:5px; min-height:22px;">
+                  <span style="font-size:12px; font-weight:700; color:var(--grn);">为什么推荐</span>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:10px;">
+                <div style="min-height:88px; padding:12px 11px; border-radius:16px; background:var(--card); border:1px solid var(--bd); display:flex; flex-direction:column; justify-content:space-between; gap:5px;">
+                  <span style="font-size:11px; color:var(--t3);">近 3 天练习</span>
+                  <span style="font-size:20px; font-weight:800; color:var(--t1); line-height:1;">8 次</span>
+                  <div style="display:flex; gap:4px; align-items:flex-end;"><span style="width:16px; height:6px; border-radius:3px; background:var(--grn); opacity:0.4;"></span><span style="width:20px; height:6px; border-radius:3px; background:var(--grn); opacity:0.65;"></span><span style="width:26px; height:9px; border-radius:5px; background:var(--grn);"></span></div>
+                </div>
+                <div style="min-height:88px; padding:12px 11px; border-radius:16px; background:var(--card); border:1px solid var(--bd); display:flex; flex-direction:column; justify-content:space-between; gap:5px;">
+                  <span style="font-size:11px; color:var(--t3);">待补错因</span>
+                  <span style="font-size:20px; font-weight:800; color:var(--t1); line-height:1;">3 个</span>
+                  <div style="display:flex; flex-direction:column; gap:3px;"><span style="width:78%; height:5px; border-radius:3px; background:#d98a77;"></span><span style="width:52%; height:5px; border-radius:3px; background:#55503f;"></span><span style="width:34%; height:5px; border-radius:3px; background:#55503f;"></span></div>
+                </div>
+                <div style="min-height:88px; padding:12px 11px; border-radius:16px; background:var(--card); border:1px solid var(--bd); display:flex; flex-direction:column; justify-content:space-between; gap:5px;">
+                  <span style="font-size:11px; color:var(--t3);">掌握趋势</span>
+                  <span style="font-size:20px; font-weight:800; color:var(--grn); line-height:1;">↗ 72%</span>
+                  <div style="display:flex; gap:3px; align-items:flex-end;"><span style="width:7px; height:6px; border-radius:2px; background:var(--grn); opacity:0.4;"></span><span style="width:7px; height:9px; border-radius:2px; background:var(--grn); opacity:0.6;"></span><span style="width:7px; height:12px; border-radius:2px; background:var(--grn); opacity:0.8;"></span><span style="width:7px; height:15px; border-radius:2px; background:var(--grn);"></span></div>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; height:24px;"></div>
+            </div>
+
+            <div style="position:relative; display:flex; align-items:flex-end; justify-content:space-around; padding:10px 8px 34px; background:rgba(28,26,21,0.95); border-top:1px solid var(--bd);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#f0ede1; min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M19 17H6a2 2 0 0 0-2 2"></path></svg><span style="font-size:12px; font-weight:800;">学习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"></path><path d="M3 15v6h6"></path></svg><span style="font-size:12px;">复习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:64px; margin-top:-30px;">
+                <div style="width:54px; height:54px; border-radius:50%; background:#cf4436; border:4px solid #26231d; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(0,0,0,0.45);"><img src="uploads/logo-mark-white.png" style="width:26px; height:26px; object-fit:contain;"></div>
+                <span style="font-size:12px; font-weight:800; color:var(--t1);">问鲁班</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg><span style="font-size:12px;">学情</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg><span style="font-size:12px;">我的</span></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="width:402px; font-size:13px; line-height:1.7; color:#5b584e;">夜宣纸：底 #1c1a15 暖黑 + 同款点阵；主按钮反转为宣纸色（深色里最亮的就是纸）；竹青提亮为 #7fb99d；动画舞台保持原纸色不随主题变——像暗房里亮着的一块银幕，天然聚焦。</div>
+    </div>
+
+    <!-- ══════════ 10c · 复习 ══════════ -->
+    <div id="10c" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="background:#26241f; color:#f5f3ec; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;">10c</span>
+        <span style="font-size:15px; font-weight:700;">复习 · 遗忘对抗引擎</span>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ false }}" hint-size="402px,874px">
+        <div style="position:relative; height:874px; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; --card:#fffdf8; --bd:#e7e3d5; --t1:#26241f; --t2:#5b584e; --t3:#96917e; --red:#cf4436; --grn:#48806a; --gauge:#e9e5d7;">
+          <div style="height:100%; display:flex; flex-direction:column; background-color:#f5f3ec; background-image:radial-gradient(#e4e0d0 0.7px, transparent 0.7px); background-size:18px 18px;">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:66px 20px 0;">
+              <div style="display:flex; flex-direction:column;">
+                <span style="font-size:16px; font-weight:800; color:var(--t1);">复习</span>
+                <span style="font-size:11px; color:var(--t3);">学过的 · 到期回炉</span>
+              </div>
+              <div style="display:flex; align-items:center; height:30px; border-radius:999px; background:rgba(38,36,31,0.06); padding:0 4px;">
+                <div style="width:38px; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span></div>
+                <div style="width:0.5px; height:16px; background:rgba(38,36,31,0.18);"></div>
+                <div style="width:38px; display:flex; align-items:center; justify-content:center;"><span style="width:14px; height:14px; border-radius:50%; border:1.5px solid var(--t1); display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:4px; border-radius:50%; background:var(--t1);"></span></span></div>
+              </div>
+            </div>
+
+            <div style="flex:1; overflow:auto; padding:16px 14px 0; display:flex; flex-direction:column; gap:10px;">
+
+              <!-- 今日到期 hero -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:16px; display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; align-items:center; gap:14px;">
+                  <div style="position:relative; width:62px; height:62px; flex-shrink:0;">
+                    <svg width="62" height="62" viewBox="0 0 62 62">
+                      <circle cx="31" cy="31" r="26" fill="none" stroke="var(--gauge)" stroke-width="5"></circle>
+                      <circle cx="31" cy="31" r="26" fill="none" stroke="var(--grn)" stroke-width="5" stroke-linecap="round" stroke-dasharray="65 163" transform="rotate(-90 31 31)"></circle>
+                    </svg>
+                    <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><span style="font-size:19px; font-weight:800; color:var(--t1); line-height:1;">5</span><span style="font-size:10px; color:var(--t3);">到期</span></div>
+                  </div>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:3px;">
+                    <span style="font-size:17px; font-weight:800; color:var(--t1);">今日回炉 5 个 · 约 12 分钟</span>
+                    <span style="font-size:12px; line-height:1.6; color:var(--t2);">已按你今天的 30 分钟压缩，低价值的先静音了</span>
+                  </div>
+                </div>
+                <div style="min-height:46px; border-radius:12px; background:#26241f; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(38,36,31,0.25);"><span style="font-size:14px; font-weight:800; color:#f5f3ec; letter-spacing:1px;">开始回炉</span></div>
+                <span style="font-size:11px; color:var(--t3); text-align:center;">考前 87 天 · 间隔引擎已知道你的考试日期</span>
+              </div>
+
+              <!-- 昨天的约定 · 换皮复测 -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:14px 16px; display:flex; align-items:center; gap:12px;">
+                <div style="width:40px; height:40px; border-radius:10px; background-color:#f4f3ec; background-image:radial-gradient(#e4e2d7 0.7px, transparent 0.7px); background-size:10px 10px; border:1px solid var(--bd); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="font-family:'Long Cang','Kaiti SC',cursive; font-size:20px; color:#cf4436; line-height:1;">变</span></div>
+                <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;">
+                  <span style="font-size:11px; font-weight:800; color:var(--grn); letter-spacing:1px;">昨天的约定 · 换皮复测</span>
+                  <span style="font-size:14px; font-weight:800; color:var(--t1);">安全事故等级判定 · 变体 1 题</span>
+                  <span style="font-size:11px; line-height:1.5; color:var(--t2);">数字和主体换了皮，判别逻辑没变——看穿它 = 真懂</span>
+                </div>
+                <span style="flex-shrink:0; font-size:13px; font-weight:700; color:var(--t1); text-decoration:underline; text-underline-offset:3px;">复测</span>
+              </div>
+
+              <!-- 到期清单 -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); overflow:hidden;">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px 8px;">
+                  <span style="font-size:12px; font-weight:800; color:var(--t2);">到期清单</span>
+                  <span style="font-size:11px; color:var(--t3);">按分值 × 缺口排序</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:56px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <span style="width:30px; height:30px; border-radius:8px; background:rgba(72,128,106,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M7 9h10"></path><path d="M7 13h6"></path></svg></span>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                    <span style="font-size:14px; font-weight:700; color:var(--t1);">基坑监测三指标 <span style="padding:1px 6px; border-radius:5px; background:rgba(194,101,85,0.12); font-size:10px; font-weight:800; color:#c26555;">再看就稳 ↺</span></span>
+                    <span style="font-size:11px; color:var(--t3);">考点卡 · 30 秒 · 教材原文并排</span>
+                  </div>
+                  <span style="font-size:13px; font-weight:700; color:var(--t1); text-decoration:underline; text-underline-offset:3px;">回炉</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:56px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <span style="width:30px; height:30px; border-radius:8px; background:rgba(38,36,31,0.06); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--t1)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></span>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                    <span style="font-size:14px; font-weight:700; color:var(--t1);">工期索赔 · 实务闯关</span>
+                    <span style="font-size:11px; color:var(--t3);">回忆采分点 → 半写 → 内核逐条核对 · 5 分钟</span>
+                  </div>
+                  <span style="font-size:13px; font-weight:700; color:var(--t1); text-decoration:underline; text-underline-offset:3px;">回炉</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:56px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <span style="width:30px; height:30px; border-radius:8px; background:rgba(72,128,106,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M7 9h10"></path><path d="M7 13h6"></path></svg></span>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                    <span style="font-size:14px; font-weight:700; color:var(--t1);">验收程序五步走</span>
+                    <span style="font-size:11px; color:var(--t3);">考点卡 · 30 秒 · 上次已答对，稳一下</span>
+                  </div>
+                  <span style="font-size:13px; font-weight:700; color:var(--t1); text-decoration:underline; text-underline-offset:3px;">回炉</span>
+                </div>
+              </div>
+
+              <!-- 错因银行 -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:14px 16px; display:flex; align-items:center; gap:12px;">
+                <span style="width:30px; height:30px; border-radius:8px; background:rgba(194,101,85,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c26555" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M3 12h18"></path><path d="M12 6V4"></path></svg></span>
+                <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                  <span style="font-size:14px; font-weight:700; color:var(--t1);">错因银行 · 3 笔待还</span>
+                  <span style="font-size:11px; color:var(--t3);">每笔都带解药，还清一笔销一笔</span>
+                </div>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:14px 16px; display:flex; align-items:center; gap:12px;">
+                <span style="width:30px; height:30px; border-radius:8px; background:rgba(72,128,106,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
+                <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                  <span style="font-size:14px; font-weight:700; color:var(--t1);">考点卡库 · 26 张</span>
+                  <span style="font-size:11px; color:var(--t3);">教材原文并排 · 你的助记只加不改</span>
+                </div>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </div>
+
+              <!-- 自主检索 -->
+              <div style="flex-shrink:0; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
+                <span style="font-size:12px; font-weight:800; color:var(--t3); letter-spacing:1px; padding:2px 2px 0;">想自己翻？按维度检索</span>
+                <div style="display:flex; gap:7px; flex-wrap:wrap;">
+                  <span style="padding:7px 13px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">按母题</span>
+                  <span style="padding:7px 13px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">按章节</span>
+                  <span style="padding:7px 13px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">按错因</span>
+                  <span style="padding:7px 13px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">按掌握态</span>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; height:24px;"></div>
+            </div>
+
+            <div style="position:relative; display:flex; align-items:flex-end; justify-content:space-around; padding:10px 8px 34px; background:rgba(255,253,248,0.95); border-top:1px solid var(--bd);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M19 17H6a2 2 0 0 0-2 2"></path></svg><span style="font-size:12px;">学习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#26241f; min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"></path><path d="M3 15v6h6"></path></svg><span style="font-size:12px; font-weight:800;">复习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:64px; margin-top:-30px;">
+                <div style="width:54px; height:54px; border-radius:50%; background:#cf4436; border:4px solid #fffdf8; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(207,68,54,0.35);"><img src="uploads/logo-mark-white.png" style="width:26px; height:26px; object-fit:contain;"></div>
+                <span style="font-size:12px; font-weight:800; color:var(--t1);">问鲁班</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg><span style="font-size:12px;">学情</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg><span style="font-size:12px;">我的</span></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="width:402px; font-size:13px; line-height:1.7; color:#5b584e;">按 v3 契约：到期推送（按分值×缺口排序、每日上限、考期地平线）+ 换皮复测（「昨天的约定」兑现交接时刻）+ 错因银行（带解药）+ 自主检索四维度。只放「学过的」，新站一律回学习 tab。</div>
+    </div>
+
+    <!-- ══════════ 10c2 · 复习 ══════════ -->
+    <div id="10c2" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="background:#f0ede1; color:#26241f; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;">10c·暗</span>
+        <span style="font-size:15px; font-weight:700;">复习 · 夜宣纸</span>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+        <div style="position:relative; height:874px; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; --card:#26231d; --bd:#37332a; --t1:#f0ede1; --t2:#b7b2a2; --t3:#8a8574; --red:#cf4436; --grn:#7fb99d; --gauge:#3a362c;">
+          <div style="height:100%; display:flex; flex-direction:column; background-color:#1c1a15;">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:66px 20px 0;">
+              <div style="display:flex; flex-direction:column;">
+                <span style="font-size:16px; font-weight:800; color:var(--t1);">复习</span>
+                <span style="font-size:11px; color:var(--t3);">学过的 · 到期回炉</span>
+              </div>
+              <div style="display:flex; align-items:center; height:30px; border-radius:999px; background:rgba(240,237,225,0.08); padding:0 4px;">
+                <div style="width:38px; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span></div>
+                <div style="width:0.5px; height:16px; background:rgba(240,237,225,0.2);"></div>
+                <div style="width:38px; display:flex; align-items:center; justify-content:center;"><span style="width:14px; height:14px; border-radius:50%; border:1.5px solid var(--t1); display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:4px; border-radius:50%; background:var(--t1);"></span></span></div>
+              </div>
+            </div>
+
+            <div style="flex:1; overflow:auto; padding:16px 14px 0; display:flex; flex-direction:column; gap:10px;">
+
+              <!-- 今日到期 hero -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:16px; display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; align-items:center; gap:14px;">
+                  <div style="position:relative; width:62px; height:62px; flex-shrink:0;">
+                    <svg width="62" height="62" viewBox="0 0 62 62">
+                      <circle cx="31" cy="31" r="26" fill="none" stroke="var(--gauge)" stroke-width="5"></circle>
+                      <circle cx="31" cy="31" r="26" fill="none" stroke="var(--grn)" stroke-width="5" stroke-linecap="round" stroke-dasharray="65 163" transform="rotate(-90 31 31)"></circle>
+                    </svg>
+                    <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;"><span style="font-size:19px; font-weight:800; color:var(--t1); line-height:1;">5</span><span style="font-size:10px; color:var(--t3);">到期</span></div>
+                  </div>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:3px;">
+                    <span style="font-size:17px; font-weight:800; color:var(--t1);">今日回炉 5 个 · 约 12 分钟</span>
+                    <span style="font-size:12px; line-height:1.6; color:var(--t2);">已按你今天的 30 分钟压缩，低价值的先静音了</span>
+                  </div>
+                </div>
+                <div style="min-height:46px; border-radius:12px; background:#f0ede1; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(0,0,0,0.35);"><span style="font-size:14px; font-weight:800; color:#26241f; letter-spacing:1px;">开始回炉</span></div>
+                <span style="font-size:11px; color:var(--t3); text-align:center;">考前 87 天 · 间隔引擎已知道你的考试日期</span>
+              </div>
+
+              <!-- 昨天的约定 · 换皮复测 -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:14px 16px; display:flex; align-items:center; gap:12px;">
+                <div style="width:40px; height:40px; border-radius:10px; background-color:#f4f3ec; background-image:radial-gradient(#e4e2d7 0.7px, transparent 0.7px); background-size:10px 10px; border:1px solid var(--bd); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="font-family:'Long Cang','Kaiti SC',cursive; font-size:20px; color:#cf4436; line-height:1;">变</span></div>
+                <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;">
+                  <span style="font-size:11px; font-weight:800; color:var(--grn); letter-spacing:1px;">昨天的约定 · 换皮复测</span>
+                  <span style="font-size:14px; font-weight:800; color:var(--t1);">安全事故等级判定 · 变体 1 题</span>
+                  <span style="font-size:11px; line-height:1.5; color:var(--t2);">数字和主体换了皮，判别逻辑没变——看穿它 = 真懂</span>
+                </div>
+                <span style="flex-shrink:0; font-size:13px; font-weight:700; color:var(--t1); text-decoration:underline; text-underline-offset:3px;">复测</span>
+              </div>
+
+              <!-- 到期清单 -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); overflow:hidden;">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px 8px;">
+                  <span style="font-size:12px; font-weight:800; color:var(--t2);">到期清单</span>
+                  <span style="font-size:11px; color:var(--t3);">按分值 × 缺口排序</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:56px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <span style="width:30px; height:30px; border-radius:8px; background:rgba(72,128,106,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M7 9h10"></path><path d="M7 13h6"></path></svg></span>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                    <span style="font-size:14px; font-weight:700; color:var(--t1);">基坑监测三指标 <span style="padding:1px 6px; border-radius:5px; background:rgba(194,101,85,0.12); font-size:10px; font-weight:800; color:#c26555;">再看就稳 ↺</span></span>
+                    <span style="font-size:11px; color:var(--t3);">考点卡 · 30 秒 · 教材原文并排</span>
+                  </div>
+                  <span style="font-size:13px; font-weight:700; color:var(--t1); text-decoration:underline; text-underline-offset:3px;">回炉</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:56px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <span style="width:30px; height:30px; border-radius:8px; background:rgba(240,237,225,0.08); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--t1)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></span>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                    <span style="font-size:14px; font-weight:700; color:var(--t1);">工期索赔 · 实务闯关</span>
+                    <span style="font-size:11px; color:var(--t3);">回忆采分点 → 半写 → 内核逐条核对 · 5 分钟</span>
+                  </div>
+                  <span style="font-size:13px; font-weight:700; color:var(--t1); text-decoration:underline; text-underline-offset:3px;">回炉</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:56px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <span style="width:30px; height:30px; border-radius:8px; background:rgba(72,128,106,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M7 9h10"></path><path d="M7 13h6"></path></svg></span>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                    <span style="font-size:14px; font-weight:700; color:var(--t1);">验收程序五步走</span>
+                    <span style="font-size:11px; color:var(--t3);">考点卡 · 30 秒 · 上次已答对，稳一下</span>
+                  </div>
+                  <span style="font-size:13px; font-weight:700; color:var(--t1); text-decoration:underline; text-underline-offset:3px;">回炉</span>
+                </div>
+              </div>
+
+              <!-- 错因银行 -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:14px 16px; display:flex; align-items:center; gap:12px;">
+                <span style="width:30px; height:30px; border-radius:8px; background:rgba(194,101,85,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c26555" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M3 12h18"></path><path d="M12 6V4"></path></svg></span>
+                <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                  <span style="font-size:14px; font-weight:700; color:var(--t1);">错因银行 · 3 笔待还</span>
+                  <span style="font-size:11px; color:var(--t3);">每笔都带解药，还清一笔销一笔</span>
+                </div>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:14px 16px; display:flex; align-items:center; gap:12px;">
+                <span style="width:30px; height:30px; border-radius:8px; background:rgba(72,128,106,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
+                <div style="flex:1; display:flex; flex-direction:column; gap:1px;">
+                  <span style="font-size:14px; font-weight:700; color:var(--t1);">考点卡库 · 26 张</span>
+                  <span style="font-size:11px; color:var(--t3);">教材原文并排 · 你的助记只加不改</span>
+                </div>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </div>
+
+              <!-- 自主检索 -->
+              <div style="flex-shrink:0; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
+                <span style="font-size:12px; font-weight:800; color:var(--t3); letter-spacing:1px; padding:2px 2px 0;">想自己翻？按维度检索</span>
+                <div style="display:flex; gap:7px; flex-wrap:wrap;">
+                  <span style="padding:7px 13px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">按母题</span>
+                  <span style="padding:7px 13px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">按章节</span>
+                  <span style="padding:7px 13px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">按错因</span>
+                  <span style="padding:7px 13px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">按掌握态</span>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; height:24px;"></div>
+            </div>
+
+            <div style="position:relative; display:flex; align-items:flex-end; justify-content:space-around; padding:10px 8px 34px; background:rgba(28,26,21,0.95); border-top:1px solid var(--bd);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M19 17H6a2 2 0 0 0-2 2"></path></svg><span style="font-size:12px;">学习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#f0ede1; min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"></path><path d="M3 15v6h6"></path></svg><span style="font-size:12px; font-weight:800;">复习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:64px; margin-top:-30px;">
+                <div style="width:54px; height:54px; border-radius:50%; background:#cf4436; border:4px solid #26231d; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(207,68,54,0.35);"><img src="uploads/logo-mark-white.png" style="width:26px; height:26px; object-fit:contain;"></div>
+                <span style="font-size:12px; font-weight:800; color:var(--t1);">问鲁班</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg><span style="font-size:12px;">学情</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg><span style="font-size:12px;">我的</span></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="width:402px; font-size:13px; line-height:1.7; color:#5b584e;">按 v3 契约：到期推送（按分值×缺口排序、每日上限、考期地平线）+ 换皮复测（「昨天的约定」兑现交接时刻）+ 错因银行（带解药）+ 自主检索四维度。只放「学过的」，新站一律回学习 tab。</div>
+    </div>
+
+    <!-- ══════════ 10d · 问鲁班 ══════════ -->
+    <div id="10d" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="background:#26241f; color:#f5f3ec; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;">10d</span>
+        <span style="font-size:15px; font-weight:700;">问鲁班 · 救火后导回训练</span>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ false }}" hint-size="402px,874px">
+        <div style="position:relative; height:874px; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; --card:#fffdf8; --bd:#e7e3d5; --t1:#26241f; --t2:#5b584e; --t3:#96917e; --red:#cf4436; --grn:#48806a; --gauge:#e9e5d7;">
+          <div style="height:100%; display:flex; flex-direction:column; background-color:#f5f3ec; background-image:radial-gradient(#e4e0d0 0.7px, transparent 0.7px); background-size:18px 18px;">
+
+            <div style="display:flex; align-items:center; gap:8px; padding:66px 20px 0;">
+              <div style="flex:1; display:flex; flex-direction:column;">
+                <span style="font-size:16px; font-weight:800; color:var(--t1);">问鲁班</span>
+                <span style="font-size:11px; color:var(--t3);">续着上次聊 · 问完就练</span>
+              </div>
+              <div style="width:30px; height:30px; border-radius:50%; background:var(--card); border:1px solid var(--bd); display:flex; align-items:center; justify-content:center;" aria-label="会话历史"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div>
+              <div style="width:30px; height:30px; border-radius:50%; background:var(--card); border:1px solid var(--bd); display:flex; align-items:center; justify-content:center;" aria-label="新对话"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></div>
+              <div style="display:flex; align-items:center; height:30px; border-radius:999px; background:rgba(38,36,31,0.06); padding:0 4px;">
+                <div style="width:38px; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span></div>
+                <div style="width:0.5px; height:16px; background:rgba(38,36,31,0.18);"></div>
+                <div style="width:38px; display:flex; align-items:center; justify-content:center;"><span style="width:14px; height:14px; border-radius:50%; border:1.5px solid var(--t1); display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:4px; border-radius:50%; background:var(--t1);"></span></span></div>
+              </div>
+            </div>
+
+            <div style="flex:1; overflow:auto; padding:16px 14px 0; display:flex; flex-direction:column; gap:12px;">
+
+              <div style="flex-shrink:0; align-self:center; display:flex; align-items:center; gap:6px; padding:6px 13px; border-radius:999px; background:var(--card); border:1px solid var(--bd);">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>
+                <span style="font-size:11px; font-weight:700; color:var(--t2);">已带入：工期索赔 · 半写第 2 题</span>
+              </div>
+
+              <div style="flex-shrink:0; display:flex; justify-content:center; gap:7px;">
+                <span style="display:flex; align-items:center; gap:5px; padding:6px 11px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:11px; font-weight:700; color:var(--t2);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>拍照批改</span>
+                <span style="display:flex; align-items:center; gap:5px; padding:6px 11px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:11px; font-weight:700; color:var(--t2);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>出几道题</span>
+                <span style="display:flex; align-items:center; gap:5px; padding:6px 11px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:11px; font-weight:700; color:var(--t2);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M8 5v14"></path><path d="M16 5v14"></path></svg>看动画讲解</span>
+              </div>
+
+              <div style="flex-shrink:0; align-self:flex-end; max-width:80%; background:#26241f; border-radius:16px 16px 4px 16px; padding:11px 15px;">
+                <span style="font-size:14px; line-height:1.7; color:#f5f3ec;">为什么必须写「影响关键线路」？只写工期延误不行吗？</span>
+              </div>
+
+              <div style="flex-shrink:0; display:flex; gap:9px; align-items:flex-start;">
+                <div style="width:30px; height:30px; border-radius:8px; background:#cf4436; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;"><img src="uploads/logo-mark-white.png" style="width:17px; height:17px; object-fit:contain;"></div>
+                <div style="flex:1; border-radius:4px 16px 16px 16px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:14px 15px; display:flex; flex-direction:column; gap:10px;">
+                  <div style="position:relative; border-radius:12px; border:1px solid var(--bd); padding:9px 12px 9px 16px; display:flex; align-items:center; gap:8px;">
+                    <div style="position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:0 2px 2px 0; background:var(--t3);"></div>
+                    <span style="font-size:11px; font-weight:800; color:var(--t2);">深度思考 · 2 步完成 · 3.1s</span>
+                    <div style="flex:1;"></div>
+                    <span style="padding:2px 8px; border-radius:999px; border:1px solid var(--bd); font-size:10px; font-weight:700; color:var(--t3);">检索 · 组织</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+                  </div>
+                  <div style="position:relative; border-radius:14px; border:1px solid rgba(72,128,106,0.35); background:rgba(72,128,106,0.05); padding:11px 13px 11px 16px; display:flex; flex-direction:column; gap:7px;">
+                    <div style="position:absolute; left:0; top:9px; bottom:9px; width:3px; border-radius:0 2px 2px 0; background:var(--grn);"></div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                      <span style="font-size:13px; font-weight:800; color:var(--t1);">第 1 步 · 为什么是「关键线路」</span>
+                      <span style="flex-shrink:0; padding:3px 8px; border-radius:999px; background:rgba(72,128,106,0.14); font-size:10px; font-weight:800; color:var(--grn);">判别逻辑</span>
+                    </div>
+                    <span style="font-size:13px; line-height:1.8; color:var(--t1);">索赔成立的条件是延误发生在<span style="font-weight:800; border-bottom:2px solid #cf4436;">关键线路</span>上——非关键线路的延误会被总时差吸收，不影响总工期。只写「工期延误」<span style="font-weight:800; color:#c26555;">方向对但没踩到采分点</span>，按部分命中给一半分。</span>
+                  </div>
+                  <div style="position:relative; border-radius:14px; border:1px solid rgba(72,128,106,0.35); background:rgba(72,128,106,0.05); padding:11px 13px 11px 16px; display:flex; flex-direction:column; gap:8px;">
+                    <div style="position:absolute; left:0; top:9px; bottom:9px; width:3px; border-radius:0 2px 2px 0; background:var(--grn);"></div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                      <span style="font-size:13px; font-weight:800; color:var(--t1);">第 2 步 · 得分写法</span>
+                      <span style="flex-shrink:0; padding:3px 8px; border-radius:999px; background:rgba(72,128,106,0.14); font-size:10px; font-weight:800; color:var(--grn);">可直接背</span>
+                    </div>
+                    <div style="border-radius:10px; background-color:#f4f3ec; background-image:radial-gradient(#e4e2d7 0.7px, transparent 0.7px); background-size:12px 12px; padding:10px 12px; display:flex; align-items:flex-start; gap:8px;">
+                      <span style="flex:1; font-size:13px; line-height:1.7; color:#26241f;">「该延误发生在关键线路上，导致总工期顺延 5 天，故可索赔工期 5 天。」</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#96917e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <span style="padding:4px 9px; border-radius:7px; background:rgba(38,36,31,0.05); font-size:11px; font-weight:700; color:var(--t2);">依据 · 教材 P214 原文</span>
+                    <span style="padding:4px 9px; border-radius:7px; background:rgba(194,101,85,0.1); font-size:11px; font-weight:700; color:#c26555;">你的错因 · 关键词缺失 ×3</span>
+                  </div>
+                  <div style="position:relative; border-radius:14px; border:1px solid rgba(194,101,85,0.35); background:rgba(194,101,85,0.06); padding:10px 13px 10px 16px; display:flex; flex-direction:column; gap:4px;">
+                    <div style="position:absolute; left:0; top:9px; bottom:9px; width:3px; border-radius:0 2px 2px 0; background:#c26555;"></div>
+                    <span style="font-size:11px; font-weight:800; color:#c26555;">易错提醒</span>
+                    <span style="font-size:12px; line-height:1.7; color:var(--t2);">你最近 3 次都在这里丢分——落笔前先问自己：这条延误在不在关键线路上？</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:2px; padding-top:2px;">
+                    <span style="width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--t3);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>
+                    <span style="width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--t3);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z"></path><path d="M7 11l4-7a2.4 2.4 0 0 1 2.5 2.4V10h5.2a2 2 0 0 1 2 2.4l-1.2 6a2 2 0 0 1-2 1.6H7"></path></svg></span>
+                    <span style="width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--t3); transform:scaleY(-1);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z"></path><path d="M7 11l4-7a2.4 2.4 0 0 1 2.5 2.4V10h5.2a2 2 0 0 1 2 2.4l-1.2 6a2 2 0 0 1-2 1.6H7"></path></svg></span>
+                    <span style="width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--t3);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><path d="M21 3v6h-6"></path></svg></span>
+                    <div style="flex:1;"></div>
+                    <span style="padding:6px 12px; border-radius:9px; border:1px solid var(--bd); font-size:11px; font-weight:800; color:var(--t2);">收藏错题</span>
+                    <span style="padding:6px 12px; border-radius:9px; background:rgba(72,128,106,0.12); font-size:11px; font-weight:800; color:var(--grn); margin-left:6px;">测一下</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; margin-left:39px; border-radius:14px; border:1px solid rgba(72,128,106,0.3); background:rgba(72,128,106,0.06); padding:13px 15px; display:flex; flex-direction:column; gap:9px;">
+                <span style="font-size:12px; font-weight:800; color:var(--grn);">懂了不等于会写——现在练一下？</span>
+                <div style="display:flex; gap:7px; flex-wrap:wrap;">
+                  <span style="padding:9px 14px; border-radius:10px; background:#26241f; font-size:12px; font-weight:800; color:#f5f3ec;">练一道同类题</span>
+                  <span style="padding:9px 14px; border-radius:10px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">加入今日任务</span>
+                  <span style="padding:9px 14px; border-radius:10px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">我会了</span>
+                </div>
+                <span style="font-size:11px; line-height:1.5; color:var(--t3);">点「我会了」会触发一道换皮挑战——过了才让它长间隔休眠</span>
+              </div>
+
+              <div style="flex-shrink:0; height:24px;"></div>
+            </div>
+
+            <div style="padding:10px 14px 12px; display:flex; align-items:center; gap:8px; background:rgba(255,253,248,0.95); border-top:1px solid var(--bd);">
+              <div style="width:38px; height:38px; border-radius:50%; background:var(--card); border:1px solid var(--bd); display:flex; align-items:center; justify-content:center; color:var(--t2); flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></div>
+              <div style="flex:1; height:40px; border-radius:999px; background:var(--card); border:1px solid var(--bd); display:flex; align-items:center; padding:0 16px; font-size:13px; color:var(--t3);">追问：总时差被吸收是什么意思？</div>
+              <div style="width:40px; height:40px; border-radius:50%; background:#26241f; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f5f3ec" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></div>
+            </div>
+
+            <div style="position:relative; display:flex; align-items:flex-end; justify-content:space-around; padding:10px 8px 34px; background:rgba(255,253,248,0.95); border-top:1px solid var(--bd);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M19 17H6a2 2 0 0 0-2 2"></path></svg><span style="font-size:12px;">学习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"></path><path d="M3 15v6h6"></path></svg><span style="font-size:12px;">复习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:64px; margin-top:-30px;">
+                <div style="width:54px; height:54px; border-radius:50%; background:#cf4436; border:4px solid #fffdf8; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(207,68,54,0.4);"><img src="uploads/logo-mark-white.png" style="width:26px; height:26px; object-fit:contain;"></div>
+                <span style="font-size:12px; font-weight:800; color:var(--t1);">问鲁班</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg><span style="font-size:12px;">学情</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg><span style="font-size:12px;">我的</span></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="width:402px; font-size:13px; line-height:1.7; color:#5b584e;">三种「历史」各归其位：会话历史 = 顶栏时钟图标（二级页列表，条目带问答/出题/批改类型徽章），旁边是「新对话」；进 tab 默认续上最近会话。做题批改记录归学情证据链，学习轨迹归地图已点亮站——本页不做记录列表。答完导回训练三选一，「我会了」触发换皮挑战。</div>
+    </div>
+
+    <!-- ══════════ 10d2 · 问鲁班 ══════════ -->
+    <div id="10d2" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="background:#f0ede1; color:#26241f; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;">10d·暗</span>
+        <span style="font-size:15px; font-weight:700;">问鲁班 · 夜宣纸</span>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+        <div style="position:relative; height:874px; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; --card:#26231d; --bd:#37332a; --t1:#f0ede1; --t2:#b7b2a2; --t3:#8a8574; --red:#cf4436; --grn:#7fb99d; --gauge:#3a362c;">
+          <div style="height:100%; display:flex; flex-direction:column; background-color:#1c1a15;">
+
+            <div style="display:flex; align-items:center; gap:8px; padding:66px 20px 0;">
+              <div style="flex:1; display:flex; flex-direction:column;">
+                <span style="font-size:16px; font-weight:800; color:var(--t1);">问鲁班</span>
+                <span style="font-size:11px; color:var(--t3);">续着上次聊 · 问完就练</span>
+              </div>
+              <div style="width:30px; height:30px; border-radius:50%; background:var(--card); border:1px solid var(--bd); display:flex; align-items:center; justify-content:center;" aria-label="会话历史"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div>
+              <div style="width:30px; height:30px; border-radius:50%; background:var(--card); border:1px solid var(--bd); display:flex; align-items:center; justify-content:center;" aria-label="新对话"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></div>
+              <div style="display:flex; align-items:center; height:30px; border-radius:999px; background:rgba(240,237,225,0.08); padding:0 4px;">
+                <div style="width:38px; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span></div>
+                <div style="width:0.5px; height:16px; background:rgba(240,237,225,0.2);"></div>
+                <div style="width:38px; display:flex; align-items:center; justify-content:center;"><span style="width:14px; height:14px; border-radius:50%; border:1.5px solid var(--t1); display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:4px; border-radius:50%; background:var(--t1);"></span></span></div>
+              </div>
+            </div>
+
+            <div style="flex:1; overflow:auto; padding:16px 14px 0; display:flex; flex-direction:column; gap:12px;">
+
+              <div style="flex-shrink:0; align-self:center; display:flex; align-items:center; gap:6px; padding:6px 13px; border-radius:999px; background:var(--card); border:1px solid var(--bd);">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--grn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"></path><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"></path></svg>
+                <span style="font-size:11px; font-weight:700; color:var(--t2);">已带入：工期索赔 · 半写第 2 题</span>
+              </div>
+
+              <div style="flex-shrink:0; display:flex; justify-content:center; gap:7px;">
+                <span style="display:flex; align-items:center; gap:5px; padding:6px 11px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:11px; font-weight:700; color:var(--t2);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>拍照批改</span>
+                <span style="display:flex; align-items:center; gap:5px; padding:6px 11px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:11px; font-weight:700; color:var(--t2);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>出几道题</span>
+                <span style="display:flex; align-items:center; gap:5px; padding:6px 11px; border-radius:999px; background:var(--card); border:1px solid var(--bd); font-size:11px; font-weight:700; color:var(--t2);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M8 5v14"></path><path d="M16 5v14"></path></svg>看动画讲解</span>
+              </div>
+
+              <div style="flex-shrink:0; align-self:flex-end; max-width:80%; background:#f0ede1; border-radius:16px 16px 4px 16px; padding:11px 15px;">
+                <span style="font-size:14px; line-height:1.7; color:#26241f;">为什么必须写「影响关键线路」？只写工期延误不行吗？</span>
+              </div>
+
+              <div style="flex-shrink:0; display:flex; gap:9px; align-items:flex-start;">
+                <div style="width:30px; height:30px; border-radius:8px; background:#cf4436; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;"><img src="uploads/logo-mark-white.png" style="width:17px; height:17px; object-fit:contain;"></div>
+                <div style="flex:1; border-radius:4px 16px 16px 16px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:14px 15px; display:flex; flex-direction:column; gap:10px;">
+                  <div style="position:relative; border-radius:12px; border:1px solid var(--bd); padding:9px 12px 9px 16px; display:flex; align-items:center; gap:8px;">
+                    <div style="position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:0 2px 2px 0; background:var(--t3);"></div>
+                    <span style="font-size:11px; font-weight:800; color:var(--t2);">深度思考 · 2 步完成 · 3.1s</span>
+                    <div style="flex:1;"></div>
+                    <span style="padding:2px 8px; border-radius:999px; border:1px solid var(--bd); font-size:10px; font-weight:700; color:var(--t3);">检索 · 组织</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+                  </div>
+                  <div style="position:relative; border-radius:14px; border:1px solid rgba(72,128,106,0.35); background:rgba(72,128,106,0.05); padding:11px 13px 11px 16px; display:flex; flex-direction:column; gap:7px;">
+                    <div style="position:absolute; left:0; top:9px; bottom:9px; width:3px; border-radius:0 2px 2px 0; background:var(--grn);"></div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                      <span style="font-size:13px; font-weight:800; color:var(--t1);">第 1 步 · 为什么是「关键线路」</span>
+                      <span style="flex-shrink:0; padding:3px 8px; border-radius:999px; background:rgba(72,128,106,0.14); font-size:10px; font-weight:800; color:var(--grn);">判别逻辑</span>
+                    </div>
+                    <span style="font-size:13px; line-height:1.8; color:var(--t1);">索赔成立的条件是延误发生在<span style="font-weight:800; border-bottom:2px solid #cf4436;">关键线路</span>上——非关键线路的延误会被总时差吸收，不影响总工期。只写「工期延误」<span style="font-weight:800; color:#c26555;">方向对但没踩到采分点</span>，按部分命中给一半分。</span>
+                  </div>
+                  <div style="position:relative; border-radius:14px; border:1px solid rgba(72,128,106,0.35); background:rgba(72,128,106,0.05); padding:11px 13px 11px 16px; display:flex; flex-direction:column; gap:8px;">
+                    <div style="position:absolute; left:0; top:9px; bottom:9px; width:3px; border-radius:0 2px 2px 0; background:var(--grn);"></div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                      <span style="font-size:13px; font-weight:800; color:var(--t1);">第 2 步 · 得分写法</span>
+                      <span style="flex-shrink:0; padding:3px 8px; border-radius:999px; background:rgba(72,128,106,0.14); font-size:10px; font-weight:800; color:var(--grn);">可直接背</span>
+                    </div>
+                    <div style="border-radius:10px; background-color:#f4f3ec; background-image:radial-gradient(#e4e2d7 0.7px, transparent 0.7px); background-size:12px 12px; padding:10px 12px; display:flex; align-items:flex-start; gap:8px;">
+                      <span style="flex:1; font-size:13px; line-height:1.7; color:#26241f;">「该延误发生在关键线路上，导致总工期顺延 5 天，故可索赔工期 5 天。」</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#96917e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <span style="padding:4px 9px; border-radius:7px; background:rgba(38,36,31,0.05); font-size:11px; font-weight:700; color:var(--t2);">依据 · 教材 P214 原文</span>
+                    <span style="padding:4px 9px; border-radius:7px; background:rgba(194,101,85,0.1); font-size:11px; font-weight:700; color:#c26555;">你的错因 · 关键词缺失 ×3</span>
+                  </div>
+                  <div style="position:relative; border-radius:14px; border:1px solid rgba(194,101,85,0.35); background:rgba(194,101,85,0.06); padding:10px 13px 10px 16px; display:flex; flex-direction:column; gap:4px;">
+                    <div style="position:absolute; left:0; top:9px; bottom:9px; width:3px; border-radius:0 2px 2px 0; background:#c26555;"></div>
+                    <span style="font-size:11px; font-weight:800; color:#c26555;">易错提醒</span>
+                    <span style="font-size:12px; line-height:1.7; color:var(--t2);">你最近 3 次都在这里丢分——落笔前先问自己：这条延误在不在关键线路上？</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:2px; padding-top:2px;">
+                    <span style="width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--t3);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>
+                    <span style="width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--t3);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z"></path><path d="M7 11l4-7a2.4 2.4 0 0 1 2.5 2.4V10h5.2a2 2 0 0 1 2 2.4l-1.2 6a2 2 0 0 1-2 1.6H7"></path></svg></span>
+                    <span style="width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--t3); transform:scaleY(-1);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z"></path><path d="M7 11l4-7a2.4 2.4 0 0 1 2.5 2.4V10h5.2a2 2 0 0 1 2 2.4l-1.2 6a2 2 0 0 1-2 1.6H7"></path></svg></span>
+                    <span style="width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--t3);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"></path><path d="M21 3v6h-6"></path></svg></span>
+                    <div style="flex:1;"></div>
+                    <span style="padding:6px 12px; border-radius:9px; border:1px solid var(--bd); font-size:11px; font-weight:800; color:var(--t2);">收藏错题</span>
+                    <span style="padding:6px 12px; border-radius:9px; background:rgba(72,128,106,0.12); font-size:11px; font-weight:800; color:var(--grn); margin-left:6px;">测一下</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; margin-left:39px; border-radius:14px; border:1px solid rgba(72,128,106,0.3); background:rgba(72,128,106,0.06); padding:13px 15px; display:flex; flex-direction:column; gap:9px;">
+                <span style="font-size:12px; font-weight:800; color:var(--grn);">懂了不等于会写——现在练一下？</span>
+                <div style="display:flex; gap:7px; flex-wrap:wrap;">
+                  <span style="padding:9px 14px; border-radius:10px; background:#f0ede1; font-size:12px; font-weight:800; color:#26241f;">练一道同类题</span>
+                  <span style="padding:9px 14px; border-radius:10px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">加入今日任务</span>
+                  <span style="padding:9px 14px; border-radius:10px; background:var(--card); border:1px solid var(--bd); font-size:12px; font-weight:700; color:var(--t2);">我会了</span>
+                </div>
+                <span style="font-size:11px; line-height:1.5; color:var(--t3);">点「我会了」会触发一道换皮挑战——过了才让它长间隔休眠</span>
+              </div>
+
+              <div style="flex-shrink:0; height:24px;"></div>
+            </div>
+
+            <div style="padding:10px 14px 12px; display:flex; align-items:center; gap:8px; background:rgba(28,26,21,0.95); border-top:1px solid var(--bd);">
+              <div style="width:38px; height:38px; border-radius:50%; background:var(--card); border:1px solid var(--bd); display:flex; align-items:center; justify-content:center; color:var(--t2); flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></div>
+              <div style="flex:1; height:40px; border-radius:999px; background:var(--card); border:1px solid var(--bd); display:flex; align-items:center; padding:0 16px; font-size:13px; color:var(--t3);">追问：总时差被吸收是什么意思？</div>
+              <div style="width:40px; height:40px; border-radius:50%; background:#f0ede1; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#26241f" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></div>
+            </div>
+
+            <div style="position:relative; display:flex; align-items:flex-end; justify-content:space-around; padding:10px 8px 34px; background:rgba(28,26,21,0.95); border-top:1px solid var(--bd);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M19 17H6a2 2 0 0 0-2 2"></path></svg><span style="font-size:12px;">学习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"></path><path d="M3 15v6h6"></path></svg><span style="font-size:12px;">复习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:64px; margin-top:-30px;">
+                <div style="width:54px; height:54px; border-radius:50%; background:#cf4436; border:4px solid #26231d; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(207,68,54,0.4);"><img src="uploads/logo-mark-white.png" style="width:26px; height:26px; object-fit:contain;"></div>
+                <span style="font-size:12px; font-weight:800; color:var(--t1);">问鲁班</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg><span style="font-size:12px;">学情</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg><span style="font-size:12px;">我的</span></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="width:402px; font-size:13px; line-height:1.7; color:#5b584e;">三种「历史」各归其位：会话历史 = 顶栏时钟图标（二级页列表，条目带问答/出题/批改类型徽章），旁边是「新对话」；进 tab 默认续上最近会话。做题批改记录归学情证据链，学习轨迹归地图已点亮站——本页不做记录列表。答完导回训练三选一，「我会了」触发换皮挑战。</div>
+    </div>
+
+    <!-- ══════════ 10e · 学情 ══════════ -->
+    <div id="10e" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="background:#26241f; color:#f5f3ec; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;">10e</span>
+        <span style="font-size:15px; font-weight:700;">学情 · 诊断单</span>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ false }}" hint-size="402px,874px">
+        <div style="position:relative; height:874px; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; --card:#fffdf8; --bd:#e7e3d5; --t1:#26241f; --t2:#5b584e; --t3:#96917e; --red:#cf4436; --grn:#48806a; --gauge:#e9e5d7;">
+          <div style="height:100%; display:flex; flex-direction:column; background-color:#f5f3ec; background-image:radial-gradient(#e4e0d0 0.7px, transparent 0.7px); background-size:18px 18px;">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:66px 20px 0;">
+              <div style="display:flex; flex-direction:column;">
+                <span style="font-size:16px; font-weight:800; color:var(--t1);">学情</span>
+                <span style="font-size:11px; color:var(--t3);">先看结论 · 想深入再点开</span>
+              </div>
+              <div style="display:flex; align-items:center; height:30px; border-radius:999px; background:rgba(38,36,31,0.06); padding:0 4px;">
+                <div style="width:38px; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span></div>
+                <div style="width:0.5px; height:16px; background:rgba(38,36,31,0.18);"></div>
+                <div style="width:38px; display:flex; align-items:center; justify-content:center;"><span style="width:14px; height:14px; border-radius:50%; border:1.5px solid var(--t1); display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:4px; border-radius:50%; background:var(--t1);"></span></span></div>
+              </div>
+            </div>
+
+            <div style="flex:1; overflow:auto; padding:16px 14px 0; display:flex; flex-direction:column; gap:10px;">
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:16px; display:flex; align-items:center; gap:16px;">
+                <div style="position:relative; width:76px; height:76px; flex-shrink:0;">
+                  <svg width="76" height="76" viewBox="0 0 76 76">
+                    <circle cx="38" cy="38" r="32" fill="none" stroke="var(--gauge)" stroke-width="6"></circle>
+                    <circle cx="38" cy="38" r="32" fill="none" stroke="#c26555" stroke-width="6" stroke-linecap="round" stroke-dasharray="130 201" transform="rotate(-90 38 38)"></circle>
+                  </svg>
+                  <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;">
+                    <span style="font-size:16px; font-weight:800; color:#c26555;">中高</span>
+                    <span style="font-size:10px; color:var(--t3);">写作风险</span>
+                  </div>
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:14px; line-height:1.5; font-weight:800; color:var(--t1);">主要差距：采分词缺失、结构不清</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; align-items:flex-end; gap:3px; height:24px;"><span style="width:11px; height:14px; border-radius:3px 3px 1px 1px; background:var(--gauge);"></span><span style="width:11px; height:20px; border-radius:3px 3px 1px 1px; background:var(--grn);"></span></div>
+                    <span style="font-size:12px; line-height:1.5; color:var(--t2);"><span style="font-weight:800; color:var(--grn);">11 → 14 分</span> · 结构更完整了</span>
+                  </div>
+                  <span style="font-size:12px; line-height:1.6; color:var(--t2);">本周补掉 <span style="font-weight:800; color:var(--grn);">3 个盲点</span> · 反复漏的还有 <span style="font-weight:800; color:#c26555;">2 个</span></span>
+                  <span style="font-size:12px; font-weight:700; color:var(--t1); text-decoration:underline; text-underline-offset:3px;">完整诊断报告 →</span>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:14px 16px; display:flex; flex-direction:column; gap:9px;">
+                <div style="display:flex; align-items:baseline; justify-content:space-between;">
+                  <span style="font-size:13px; font-weight:800; color:var(--t1);">你的路线 · 已点亮 3 / 40 站</span>
+                  <span style="font-size:12px; font-weight:800; color:var(--grn);">已覆盖案例题约 11 分</span>
+                </div>
+                <div style="height:8px; border-radius:4px; background:var(--gauge); overflow:hidden; display:flex;">
+                  <div style="width:8%; background:var(--grn);"></div>
+                  <div style="width:5%; background:rgba(72,128,106,0.35);"></div>
+                </div>
+                <span style="font-size:11px; color:var(--t3);">覆盖分按真题采分点矩阵计算，可查证 · 不承诺提分</span>
+              </div>
+
+              <!-- 掌握地图 · 全量鸟瞰（学习/复习都没有的视角） -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:14px 16px; display:flex; flex-direction:column; gap:11px;">
+                <div style="display:flex; align-items:baseline; justify-content:space-between;">
+                  <span style="font-size:13px; font-weight:800; color:var(--t1);">掌握地图 · 40 站全景</span>
+                  <span style="font-size:11px; color:var(--t3);">点任意格 · 深链回当时讲解</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="width:52px; font-size:11px; color:var(--t3); flex-shrink:0;">地基基础</span>
+                  <div style="flex:1; display:grid; grid-template-columns:repeat(10,1fr); gap:4px;"><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span></div>
+                  <span style="width:30px; font-size:11px; font-weight:800; color:#c26555; text-align:right; flex-shrink:0;">复验 1</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="width:52px; font-size:11px; color:var(--t3); flex-shrink:0;">主体结构</span>
+                  <div style="flex:1; display:grid; grid-template-columns:repeat(10,1fr); gap:4px;"><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span></div>
+                  <span style="width:30px; font-size:11px; font-weight:800; color:#c26555; text-align:right; flex-shrink:0;">复验 2</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="width:52px; font-size:11px; color:var(--t3); flex-shrink:0;">施工管理</span>
+                  <div style="flex:1; display:grid; grid-template-columns:repeat(10,1fr); gap:4px;"><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span></div>
+                  <span style="width:30px; font-size:11px; font-weight:800; color:#c26555; text-align:right; flex-shrink:0;">复验 3</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="width:52px; font-size:11px; color:var(--t3); flex-shrink:0;">安全质量</span>
+                  <div style="flex:1; display:grid; grid-template-columns:repeat(10,1fr); gap:4px;"><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span></div>
+                  <span style="width:30px; font-size:11px; font-weight:800; color:#c26555; text-align:right; flex-shrink:0;">复验 2</span>
+                </div>
+                <div style="display:flex; gap:13px; padding-top:2px;">
+                  <span style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--t2);"><span style="width:8px; height:8px; border-radius:2px; background:var(--grn);"></span>稳了 12</span>
+                  <span style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--t2);"><span style="width:8px; height:8px; border-radius:2px; background:rgba(72,128,106,0.35);"></span>再看一眼 10</span>
+                  <span style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--t2);"><span style="width:8px; height:8px; border-radius:2px; background:#c26555;"></span>待复验 8</span>
+                  <span style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--t2);"><span style="width:8px; height:8px; border-radius:2px; background:var(--gauge);"></span>未学 10</span>
+                </div>
+              </div>
+
+              <!-- 四周趋势 -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:14px 16px; display:flex; gap:16px;">
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:var(--t3); letter-spacing:1px;">掌握可信度 · 4 周</span>
+                  <svg width="100%" height="34" viewBox="0 0 130 34" preserveAspectRatio="none">
+                    <polyline points="4,28 36,24 68,18 100,12 126,7" fill="none" stroke="var(--grn)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                    <circle cx="126" cy="7" r="3" fill="#fffdf8" stroke="var(--grn)" stroke-width="2"></circle>
+                  </svg>
+                  <span style="font-size:13px; font-weight:800; color:var(--grn);">58% → 72%</span>
+                </div>
+                <div style="width:1px; background:var(--bd);"></div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:var(--t3); letter-spacing:1px;">批改得分 · 近 4 次</span>
+                  <svg width="100%" height="34" viewBox="0 0 130 34" preserveAspectRatio="none">
+                    <polyline points="4,30 44,25 86,20 126,9" fill="none" stroke="#26241f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                    <circle cx="126" cy="9" r="3" fill="#fffdf8" stroke="#26241f" stroke-width="2"></circle>
+                  </svg>
+                  <span style="font-size:13px; font-weight:800; color:var(--t1);">8 → 14 分 / 20</span>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+                <span style="font-size:13px; font-weight:800; color:var(--t1);">错因结构 · 近 30 天</span>
+                <div style="display:flex; align-items:center; gap:10px;"><span style="flex:1; font-size:13px; color:var(--t1);">关键词缺失</span><div style="width:140px; height:5px; border-radius:3px; background:var(--gauge); overflow:hidden;"><div style="width:88%; height:100%; background:#c26555;"></div></div><span style="font-size:13px; font-weight:800; color:var(--t1); width:22px; text-align:right;">7</span></div>
+                <div style="display:flex; align-items:center; gap:10px;"><span style="flex:1; font-size:13px; color:var(--t1);">程序顺序错误</span><div style="width:140px; height:5px; border-radius:3px; background:var(--gauge); overflow:hidden;"><div style="width:38%; height:100%; background:#c99f3d;"></div></div><span style="font-size:13px; font-weight:800; color:var(--t1); width:22px; text-align:right;">3</span></div>
+                <span style="font-size:11px; color:var(--t3);">错因由判分内核判定 · 想逐笔清还？去复习 tab 的错因银行 →</span>
+              </div>
+
+              <div style="flex-shrink:0; min-height:46px; border-radius:12px; background:#26241f; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(38,36,31,0.25); margin-bottom:10px;"><span style="font-size:14px; font-weight:800; color:#f5f3ec; letter-spacing:1px;">让本周计划吸收这份诊断</span></div>
+
+              <div style="flex-shrink:0; height:24px;"></div>
+            </div>
+
+            <div style="position:relative; display:flex; align-items:flex-end; justify-content:space-around; padding:10px 8px 34px; background:rgba(255,253,248,0.95); border-top:1px solid var(--bd);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M19 17H6a2 2 0 0 0-2 2"></path></svg><span style="font-size:12px;">学习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"></path><path d="M3 15v6h6"></path></svg><span style="font-size:12px;">复习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:64px; margin-top:-30px;">
+                <div style="width:54px; height:54px; border-radius:50%; background:#cf4436; border:4px solid #fffdf8; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(207,68,54,0.35);"><img src="uploads/logo-mark-white.png" style="width:26px; height:26px; object-fit:contain;"></div>
+                <span style="font-size:12px; font-weight:800; color:var(--t1);">问鲁班</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#26241f; min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg><span style="font-size:12px; font-weight:800;">学情</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg><span style="font-size:12px;">我的</span></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="width:402px; font-size:13px; line-height:1.7; color:#5b584e;">与学习/复习的分工：那两页只给「下一个动作」，这页给「全貌与趋势」——40 站掌握地图（按章节路段鸟瞰，学习页永远不会一次给你 40 站）、4 周掌握/得分趋势曲线、错因结构占比。全页没有任何「去练」按钮，只有一颗深链把诊断喂回本周计划——照镜子的页不做题。</div>
+    </div>
+
+    <!-- ══════════ 10e2 · 学情 ══════════ -->
+    <div id="10e2" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="background:#f0ede1; color:#26241f; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;">10e·暗</span>
+        <span style="font-size:15px; font-weight:700;">学情 · 夜宣纸</span>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+        <div style="position:relative; height:874px; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; --card:#26231d; --bd:#37332a; --t1:#f0ede1; --t2:#b7b2a2; --t3:#8a8574; --red:#cf4436; --grn:#7fb99d; --gauge:#3a362c;">
+          <div style="height:100%; display:flex; flex-direction:column; background-color:#1c1a15;">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:66px 20px 0;">
+              <div style="display:flex; flex-direction:column;">
+                <span style="font-size:16px; font-weight:800; color:var(--t1);">学情</span>
+                <span style="font-size:11px; color:var(--t3);">先看结论 · 想深入再点开</span>
+              </div>
+              <div style="display:flex; align-items:center; height:30px; border-radius:999px; background:rgba(240,237,225,0.08); padding:0 4px;">
+                <div style="width:38px; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span></div>
+                <div style="width:0.5px; height:16px; background:rgba(240,237,225,0.2);"></div>
+                <div style="width:38px; display:flex; align-items:center; justify-content:center;"><span style="width:14px; height:14px; border-radius:50%; border:1.5px solid var(--t1); display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:4px; border-radius:50%; background:var(--t1);"></span></span></div>
+              </div>
+            </div>
+
+            <div style="flex:1; overflow:auto; padding:16px 14px 0; display:flex; flex-direction:column; gap:10px;">
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:16px; display:flex; align-items:center; gap:16px;">
+                <div style="position:relative; width:76px; height:76px; flex-shrink:0;">
+                  <svg width="76" height="76" viewBox="0 0 76 76">
+                    <circle cx="38" cy="38" r="32" fill="none" stroke="var(--gauge)" stroke-width="6"></circle>
+                    <circle cx="38" cy="38" r="32" fill="none" stroke="#c26555" stroke-width="6" stroke-linecap="round" stroke-dasharray="130 201" transform="rotate(-90 38 38)"></circle>
+                  </svg>
+                  <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;">
+                    <span style="font-size:16px; font-weight:800; color:#c26555;">中高</span>
+                    <span style="font-size:10px; color:var(--t3);">写作风险</span>
+                  </div>
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:14px; line-height:1.5; font-weight:800; color:var(--t1);">主要差距：采分词缺失、结构不清</span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; align-items:flex-end; gap:3px; height:24px;"><span style="width:11px; height:14px; border-radius:3px 3px 1px 1px; background:var(--gauge);"></span><span style="width:11px; height:20px; border-radius:3px 3px 1px 1px; background:var(--grn);"></span></div>
+                    <span style="font-size:12px; line-height:1.5; color:var(--t2);"><span style="font-weight:800; color:var(--grn);">11 → 14 分</span> · 结构更完整了</span>
+                  </div>
+                  <span style="font-size:12px; line-height:1.6; color:var(--t2);">本周补掉 <span style="font-weight:800; color:var(--grn);">3 个盲点</span> · 反复漏的还有 <span style="font-weight:800; color:#c26555;">2 个</span></span>
+                  <span style="font-size:12px; font-weight:700; color:var(--t1); text-decoration:underline; text-underline-offset:3px;">完整诊断报告 →</span>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:14px 16px; display:flex; flex-direction:column; gap:9px;">
+                <div style="display:flex; align-items:baseline; justify-content:space-between;">
+                  <span style="font-size:13px; font-weight:800; color:var(--t1);">你的路线 · 已点亮 3 / 40 站</span>
+                  <span style="font-size:12px; font-weight:800; color:var(--grn);">已覆盖案例题约 11 分</span>
+                </div>
+                <div style="height:8px; border-radius:4px; background:var(--gauge); overflow:hidden; display:flex;">
+                  <div style="width:8%; background:var(--grn);"></div>
+                  <div style="width:5%; background:rgba(72,128,106,0.35);"></div>
+                </div>
+                <span style="font-size:11px; color:var(--t3);">覆盖分按真题采分点矩阵计算，可查证 · 不承诺提分</span>
+              </div>
+
+              <!-- 掌握地图 · 全量鸟瞰（学习/复习都没有的视角） -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:14px 16px; display:flex; flex-direction:column; gap:11px;">
+                <div style="display:flex; align-items:baseline; justify-content:space-between;">
+                  <span style="font-size:13px; font-weight:800; color:var(--t1);">掌握地图 · 40 站全景</span>
+                  <span style="font-size:11px; color:var(--t3);">点任意格 · 深链回当时讲解</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="width:52px; font-size:11px; color:var(--t3); flex-shrink:0;">地基基础</span>
+                  <div style="flex:1; display:grid; grid-template-columns:repeat(10,1fr); gap:4px;"><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span></div>
+                  <span style="width:30px; font-size:11px; font-weight:800; color:#c26555; text-align:right; flex-shrink:0;">复验 1</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="width:52px; font-size:11px; color:var(--t3); flex-shrink:0;">主体结构</span>
+                  <div style="flex:1; display:grid; grid-template-columns:repeat(10,1fr); gap:4px;"><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span></div>
+                  <span style="width:30px; font-size:11px; font-weight:800; color:#c26555; text-align:right; flex-shrink:0;">复验 2</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="width:52px; font-size:11px; color:var(--t3); flex-shrink:0;">施工管理</span>
+                  <div style="flex:1; display:grid; grid-template-columns:repeat(10,1fr); gap:4px;"><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span></div>
+                  <span style="width:30px; font-size:11px; font-weight:800; color:#c26555; text-align:right; flex-shrink:0;">复验 3</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="width:52px; font-size:11px; color:var(--t3); flex-shrink:0;">安全质量</span>
+                  <div style="flex:1; display:grid; grid-template-columns:repeat(10,1fr); gap:4px;"><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--grn);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:rgba(72,128,106,0.35);"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:#c26555;"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span><span style="aspect-ratio:1; border-radius:3px; background:var(--gauge);"></span></div>
+                  <span style="width:30px; font-size:11px; font-weight:800; color:#c26555; text-align:right; flex-shrink:0;">复验 2</span>
+                </div>
+                <div style="display:flex; gap:13px; padding-top:2px;">
+                  <span style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--t2);"><span style="width:8px; height:8px; border-radius:2px; background:var(--grn);"></span>稳了 12</span>
+                  <span style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--t2);"><span style="width:8px; height:8px; border-radius:2px; background:rgba(72,128,106,0.35);"></span>再看一眼 10</span>
+                  <span style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--t2);"><span style="width:8px; height:8px; border-radius:2px; background:#c26555;"></span>待复验 8</span>
+                  <span style="display:flex; align-items:center; gap:5px; font-size:11px; color:var(--t2);"><span style="width:8px; height:8px; border-radius:2px; background:var(--gauge);"></span>未学 10</span>
+                </div>
+              </div>
+
+              <!-- 四周趋势 -->
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:14px 16px; display:flex; gap:16px;">
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:var(--t3); letter-spacing:1px;">掌握可信度 · 4 周</span>
+                  <svg width="100%" height="34" viewBox="0 0 130 34" preserveAspectRatio="none">
+                    <polyline points="4,28 36,24 68,18 100,12 126,7" fill="none" stroke="var(--grn)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                    <circle cx="126" cy="7" r="3" fill="#26231d" stroke="var(--grn)" stroke-width="2"></circle>
+                  </svg>
+                  <span style="font-size:13px; font-weight:800; color:var(--grn);">58% → 72%</span>
+                </div>
+                <div style="width:1px; background:var(--bd);"></div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:var(--t3); letter-spacing:1px;">批改得分 · 近 4 次</span>
+                  <svg width="100%" height="34" viewBox="0 0 130 34" preserveAspectRatio="none">
+                    <polyline points="4,30 44,25 86,20 126,9" fill="none" stroke="#f0ede1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                    <circle cx="126" cy="9" r="3" fill="#26231d" stroke="#f0ede1" stroke-width="2"></circle>
+                  </svg>
+                  <span style="font-size:13px; font-weight:800; color:var(--t1);">8 → 14 分 / 20</span>
+                </div>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+                <span style="font-size:13px; font-weight:800; color:var(--t1);">错因结构 · 近 30 天</span>
+                <div style="display:flex; align-items:center; gap:10px;"><span style="flex:1; font-size:13px; color:var(--t1);">关键词缺失</span><div style="width:140px; height:5px; border-radius:3px; background:var(--gauge); overflow:hidden;"><div style="width:88%; height:100%; background:#c26555;"></div></div><span style="font-size:13px; font-weight:800; color:var(--t1); width:22px; text-align:right;">7</span></div>
+                <div style="display:flex; align-items:center; gap:10px;"><span style="flex:1; font-size:13px; color:var(--t1);">程序顺序错误</span><div style="width:140px; height:5px; border-radius:3px; background:var(--gauge); overflow:hidden;"><div style="width:38%; height:100%; background:#c99f3d;"></div></div><span style="font-size:13px; font-weight:800; color:var(--t1); width:22px; text-align:right;">3</span></div>
+                <span style="font-size:11px; color:var(--t3);">错因由判分内核判定 · 想逐笔清还？去复习 tab 的错因银行 →</span>
+              </div>
+
+              <div style="flex-shrink:0; min-height:46px; border-radius:12px; background:#f0ede1; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(0,0,0,0.35); margin-bottom:10px;"><span style="font-size:14px; font-weight:800; color:#26241f; letter-spacing:1px;">让本周计划吸收这份诊断</span></div>
+
+              <div style="flex-shrink:0; height:24px;"></div>
+            </div>
+
+            <div style="position:relative; display:flex; align-items:flex-end; justify-content:space-around; padding:10px 8px 34px; background:rgba(28,26,21,0.95); border-top:1px solid var(--bd);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M19 17H6a2 2 0 0 0-2 2"></path></svg><span style="font-size:12px;">学习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"></path><path d="M3 15v6h6"></path></svg><span style="font-size:12px;">复习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:64px; margin-top:-30px;">
+                <div style="width:54px; height:54px; border-radius:50%; background:#cf4436; border:4px solid #26231d; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(207,68,54,0.35);"><img src="uploads/logo-mark-white.png" style="width:26px; height:26px; object-fit:contain;"></div>
+                <span style="font-size:12px; font-weight:800; color:var(--t1);">问鲁班</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#f0ede1; min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg><span style="font-size:12px; font-weight:800;">学情</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg><span style="font-size:12px;">我的</span></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="width:402px; font-size:13px; line-height:1.7; color:#5b584e;">与学习/复习的分工：那两页只给「下一个动作」，这页给「全貌与趋势」——40 站掌握地图（按章节路段鸟瞰，学习页永远不会一次给你 40 站）、4 周掌握/得分趋势曲线、错因结构占比。全页没有任何「去练」按钮，只有一颗深链把诊断喂回本周计划——照镜子的页不做题。</div>
+    </div>
+
+    <!-- ══════════ 10f · 我的 ══════════ -->
+    <div id="10f" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="background:#26241f; color:#f5f3ec; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;">10f</span>
+        <span style="font-size:15px; font-weight:700;">我的 · 权益透明</span>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ false }}" hint-size="402px,874px">
+        <div style="position:relative; height:874px; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; --card:#fffdf8; --bd:#e7e3d5; --t1:#26241f; --t2:#5b584e; --t3:#96917e; --red:#cf4436; --grn:#48806a; --gauge:#e9e5d7;">
+          <div style="height:100%; display:flex; flex-direction:column; background-color:#f5f3ec; background-image:radial-gradient(#e4e0d0 0.7px, transparent 0.7px); background-size:18px 18px;">
+
+            <div style="display:flex; align-items:center; justify-content:flex-end; padding:66px 20px 0;">
+              <div style="display:flex; align-items:center; height:30px; border-radius:999px; background:rgba(38,36,31,0.06); padding:0 4px;">
+                <div style="width:38px; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span></div>
+                <div style="width:0.5px; height:16px; background:rgba(38,36,31,0.18);"></div>
+                <div style="width:38px; display:flex; align-items:center; justify-content:center;"><span style="width:14px; height:14px; border-radius:50%; border:1.5px solid var(--t1); display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:4px; border-radius:50%; background:var(--t1);"></span></span></div>
+              </div>
+            </div>
+
+            <div style="flex:1; overflow:auto; padding:10px 14px 0; display:flex; flex-direction:column; gap:10px;">
+
+              <div style="flex-shrink:0; display:flex; align-items:center; gap:13px; padding:8px 6px;">
+                <div style="width:52px; height:52px; border-radius:50%; background:var(--card); border:2px solid rgba(72,128,106,0.4); display:flex; align-items:center; justify-content:center;"><span style="font-family:'Long Cang','Kaiti SC',cursive; font-size:24px; color:var(--grn);">鸿</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
+                  <span style="font-size:17px; font-weight:800; color:var(--t1);">阿鸿</span>
+                  <span style="font-size:12px; color:var(--t3);">一建建筑实务 · 考试日 9 月 19 日（剩 87 天）</span>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:16px; display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <span style="font-size:15px; font-weight:800; color:var(--t1);">我的路线</span>
+                  <div style="display:flex; gap:4px;">
+                    <span style="width:10px; height:10px; border-radius:50%; background:var(--grn);"></span>
+                    <span style="width:10px; height:10px; border-radius:50%; background:var(--grn);"></span>
+                    <span style="width:10px; height:10px; border-radius:50%; background:var(--grn);"></span>
+                    <span style="font-size:11px; color:var(--t3); margin-left:3px;">免费 3 站已点亮</span>
+                  </div>
+                </div>
+                <div style="height:8px; border-radius:4px; background:var(--gauge); overflow:hidden;"><div style="width:8%; height:100%; background:var(--grn);"></div></div>
+                <span style="font-size:12px; line-height:1.6; color:var(--t2);">剩余 37 站锁定露脸中——每站都标了「为什么对你重要」。会员解锁的是<span style="font-weight:800; color:var(--t1);">你这条路线的剩余部分</span>，不是题库。</span>
+                <div style="min-height:44px; border-radius:12px; background:#26241f; display:flex; align-items:center; justify-content:center;"><span style="font-size:13px; font-weight:800; color:#f5f3ec; letter-spacing:1px;">查看我的完整路线</span></div>
+                <span style="font-size:11px; color:var(--t3);">已点亮站点生成的复习单元永久可回炉，不计费</span>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:14px 16px; display:flex; flex-direction:column; gap:11px;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="display:flex; justify-content:space-between;"><span style="font-size:12px; font-weight:700; color:var(--t2);">AI 批改额度</span><span style="font-size:12px; font-weight:800; color:var(--t1);">12 / 20 次</span></div>
+                  <div style="height:6px; border-radius:3px; background:var(--gauge); overflow:hidden;"><div style="width:60%; height:100%; background:var(--grn);"></div></div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="display:flex; justify-content:space-between;"><span style="font-size:12px; font-weight:700; color:var(--t2);">拍照批改（OCR）</span><span style="font-size:12px; font-weight:800; color:var(--t1);">3 / 5 次</span></div>
+                  <div style="height:6px; border-radius:3px; background:var(--gauge); overflow:hidden;"><div style="width:60%; height:100%; background:var(--grn);"></div></div>
+                </div>
+                <span style="font-size:11px; line-height:1.5; color:var(--t3);">轻练与关键词填空不消耗额度；拍照前会先做图片质量检测，不浪费一次</span>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); padding:0 16px; display:flex; align-items:center; min-height:52px; gap:11px;">
+                <span style="width:8px; height:8px; border-radius:50%; background:var(--grn);"></span>
+                <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">「明天见」复测提醒</span>
+                <span style="font-size:12px; font-weight:700; color:var(--grn);">已开启</span>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 2px 12px rgba(38,36,31,0.06); overflow:hidden; margin-bottom:6px;">
+                <div style="display:flex; align-items:center; gap:11px; min-height:50px; padding:0 16px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M3 11h18"></path></svg>
+                  <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">考试日期</span>
+                  <span style="font-size:11px; color:var(--t3);">9 月 19 日 · 复习引擎按它排程</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:50px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3"></path><path d="M12 19v3"></path><path d="M2 12h3"></path><path d="M19 12h3"></path><path d="M4.9 4.9l2.1 2.1"></path><path d="M17 17l2.1 2.1"></path><path d="M19.1 4.9L17 7"></path><path d="M7 17l-2.1 2.1"></path></svg>
+                  <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">学习设置</span>
+                  <span style="font-size:11px; color:var(--t3);">时间预算：中档 · 30 分钟/天</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:50px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">数据与隐私</span>
+                  <span style="font-size:11px; color:var(--t3);">清除上传图片 · 导出记录</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:50px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.6 0-3.1-.4-4.4-1.2L3 20l1.2-5.1A8.5 8.5 0 1 1 21 11.5z"></path></svg>
+                  <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">客服与反馈</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:50px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <div style="width:17px; height:17px; border-radius:4px; background:#cf4436; display:flex; align-items:center; justify-content:center;"><img src="uploads/logo-mark-white.png" style="width:11px; height:11px; object-fit:contain;"></div>
+                  <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">关于鲁班智考</span>
+                  <span style="font-size:11px; color:var(--t3);">v2.0</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </div>
+              </div>
+
+              <span style="flex-shrink:0; font-size:11px; line-height:1.6; color:var(--t3); text-align:center; padding:0 8px;">不按题收费 · 会员 = 解锁你这条路线的剩余部分</span>
+              <div style="flex-shrink:0; height:24px;"></div>
+            </div>
+
+            <div style="position:relative; display:flex; align-items:flex-end; justify-content:space-around; padding:10px 8px 34px; background:rgba(255,253,248,0.95); border-top:1px solid var(--bd);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M19 17H6a2 2 0 0 0-2 2"></path></svg><span style="font-size:12px;">学习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"></path><path d="M3 15v6h6"></path></svg><span style="font-size:12px;">复习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:64px; margin-top:-30px;">
+                <div style="width:54px; height:54px; border-radius:50%; background:#cf4436; border:4px solid #fffdf8; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(207,68,54,0.35);"><img src="uploads/logo-mark-white.png" style="width:26px; height:26px; object-fit:contain;"></div>
+                <span style="font-size:12px; font-weight:800; color:var(--t1);">问鲁班</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg><span style="font-size:12px;">学情</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#26241f; min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg><span style="font-size:12px; font-weight:800;">我的</span></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="width:402px; font-size:13px; line-height:1.7; color:#5b584e;">按 v3/microlesson 契约：免费 3 站 ●●● 收集感 + 37 站锁定露脸；会员话术 =「解锁你这条路线的剩余部分」；复习永久免费（D11）写明；「明天见」订阅状态可见（D12）；额度透明 + 图片质检提示。</div>
+    </div>
+
+
+    <!-- ══════════ 10f2 · 我的 ══════════ -->
+    <div id="10f2" style="display:flex; flex-direction:column; gap:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="background:#f0ede1; color:#26241f; font-size:12px; font-weight:800; padding:3px 10px; border-radius:999px;">10f·暗</span>
+        <span style="font-size:15px; font-weight:700;">我的 · 夜宣纸</span>
+      </div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+        <div style="position:relative; height:874px; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; --card:#26231d; --bd:#37332a; --t1:#f0ede1; --t2:#b7b2a2; --t3:#8a8574; --red:#cf4436; --grn:#7fb99d; --gauge:#3a362c;">
+          <div style="height:100%; display:flex; flex-direction:column; background-color:#1c1a15;">
+
+            <div style="display:flex; align-items:center; justify-content:flex-end; padding:66px 20px 0;">
+              <div style="display:flex; align-items:center; height:30px; border-radius:999px; background:rgba(240,237,225,0.08); padding:0 4px;">
+                <div style="width:38px; display:flex; align-items:center; justify-content:center; gap:3px;"><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span><span style="width:3.5px; height:3.5px; border-radius:50%; background:var(--t1);"></span></div>
+                <div style="width:0.5px; height:16px; background:rgba(240,237,225,0.2);"></div>
+                <div style="width:38px; display:flex; align-items:center; justify-content:center;"><span style="width:14px; height:14px; border-radius:50%; border:1.5px solid var(--t1); display:flex; align-items:center; justify-content:center;"><span style="width:4px; height:4px; border-radius:50%; background:var(--t1);"></span></span></div>
+              </div>
+            </div>
+
+            <div style="flex:1; overflow:auto; padding:10px 14px 0; display:flex; flex-direction:column; gap:10px;">
+
+              <div style="flex-shrink:0; display:flex; align-items:center; gap:13px; padding:8px 6px;">
+                <div style="width:52px; height:52px; border-radius:50%; background:var(--card); border:2px solid rgba(72,128,106,0.4); display:flex; align-items:center; justify-content:center;"><span style="font-family:'Long Cang','Kaiti SC',cursive; font-size:24px; color:var(--grn);">鸿</span></div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:2px;">
+                  <span style="font-size:17px; font-weight:800; color:var(--t1);">阿鸿</span>
+                  <span style="font-size:12px; color:var(--t3);">一建建筑实务 · 考试日 9 月 19 日（剩 87 天）</span>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:16px; display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <span style="font-size:15px; font-weight:800; color:var(--t1);">我的路线</span>
+                  <div style="display:flex; gap:4px;">
+                    <span style="width:10px; height:10px; border-radius:50%; background:var(--grn);"></span>
+                    <span style="width:10px; height:10px; border-radius:50%; background:var(--grn);"></span>
+                    <span style="width:10px; height:10px; border-radius:50%; background:var(--grn);"></span>
+                    <span style="font-size:11px; color:var(--t3); margin-left:3px;">免费 3 站已点亮</span>
+                  </div>
+                </div>
+                <div style="height:8px; border-radius:4px; background:var(--gauge); overflow:hidden;"><div style="width:8%; height:100%; background:var(--grn);"></div></div>
+                <span style="font-size:12px; line-height:1.6; color:var(--t2);">剩余 37 站锁定露脸中——每站都标了「为什么对你重要」。会员解锁的是<span style="font-weight:800; color:var(--t1);">你这条路线的剩余部分</span>，不是题库。</span>
+                <div style="min-height:44px; border-radius:12px; background:#f0ede1; display:flex; align-items:center; justify-content:center;"><span style="font-size:13px; font-weight:800; color:#26241f; letter-spacing:1px;">查看我的完整路线</span></div>
+                <span style="font-size:11px; color:var(--t3);">已点亮站点生成的复习单元永久可回炉，不计费</span>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:14px 16px; display:flex; flex-direction:column; gap:11px;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="display:flex; justify-content:space-between;"><span style="font-size:12px; font-weight:700; color:var(--t2);">AI 批改额度</span><span style="font-size:12px; font-weight:800; color:var(--t1);">12 / 20 次</span></div>
+                  <div style="height:6px; border-radius:3px; background:var(--gauge); overflow:hidden;"><div style="width:60%; height:100%; background:var(--grn);"></div></div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <div style="display:flex; justify-content:space-between;"><span style="font-size:12px; font-weight:700; color:var(--t2);">拍照批改（OCR）</span><span style="font-size:12px; font-weight:800; color:var(--t1);">3 / 5 次</span></div>
+                  <div style="height:6px; border-radius:3px; background:var(--gauge); overflow:hidden;"><div style="width:60%; height:100%; background:var(--grn);"></div></div>
+                </div>
+                <span style="font-size:11px; line-height:1.5; color:var(--t3);">轻练与关键词填空不消耗额度；拍照前会先做图片质量检测，不浪费一次</span>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); padding:0 16px; display:flex; align-items:center; min-height:52px; gap:11px;">
+                <span style="width:8px; height:8px; border-radius:50%; background:var(--grn);"></span>
+                <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">「明天见」复测提醒</span>
+                <span style="font-size:12px; font-weight:700; color:var(--grn);">已开启</span>
+              </div>
+
+              <div style="flex-shrink:0; border-radius:18px; border:1px solid var(--bd); background:var(--card); box-shadow:0 4px 18px rgba(0,0,0,0.3); overflow:hidden; margin-bottom:6px;">
+                <div style="display:flex; align-items:center; gap:11px; min-height:50px; padding:0 16px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M3 11h18"></path></svg>
+                  <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">考试日期</span>
+                  <span style="font-size:11px; color:var(--t3);">9 月 19 日 · 复习引擎按它排程</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:50px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3"></path><path d="M12 19v3"></path><path d="M2 12h3"></path><path d="M19 12h3"></path><path d="M4.9 4.9l2.1 2.1"></path><path d="M17 17l2.1 2.1"></path><path d="M19.1 4.9L17 7"></path><path d="M7 17l-2.1 2.1"></path></svg>
+                  <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">学习设置</span>
+                  <span style="font-size:11px; color:var(--t3);">时间预算：中档 · 30 分钟/天</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:50px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">数据与隐私</span>
+                  <span style="font-size:11px; color:var(--t3);">清除上传图片 · 导出记录</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:50px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.6 0-3.1-.4-4.4-1.2L3 20l1.2-5.1A8.5 8.5 0 1 1 21 11.5z"></path></svg>
+                  <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">客服与反馈</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; min-height:50px; padding:0 16px; border-top:1px solid var(--bd);">
+                  <div style="width:17px; height:17px; border-radius:4px; background:#cf4436; display:flex; align-items:center; justify-content:center;"><img src="uploads/logo-mark-white.png" style="width:11px; height:11px; object-fit:contain;"></div>
+                  <span style="flex:1; font-size:14px; font-weight:700; color:var(--t1);">关于鲁班智考</span>
+                  <span style="font-size:11px; color:var(--t3);">v2.0</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </div>
+              </div>
+
+              <span style="flex-shrink:0; font-size:11px; line-height:1.6; color:var(--t3); text-align:center; padding:0 8px;">不按题收费 · 会员 = 解锁你这条路线的剩余部分</span>
+              <div style="flex-shrink:0; height:24px;"></div>
+            </div>
+
+            <div style="position:relative; display:flex; align-items:flex-end; justify-content:space-around; padding:10px 8px 34px; background:rgba(28,26,21,0.95); border-top:1px solid var(--bd);">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"></path><path d="M19 17H6a2 2 0 0 0-2 2"></path></svg><span style="font-size:12px;">学习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 2.6 6.4"></path><path d="M3 15v6h6"></path></svg><span style="font-size:12px;">复习</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:64px; margin-top:-30px;">
+                <div style="width:54px; height:54px; border-radius:50%; background:#cf4436; border:4px solid #26231d; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 24px rgba(207,68,54,0.35);"><img src="uploads/logo-mark-white.png" style="width:26px; height:26px; object-fit:contain;"></div>
+                <span style="font-size:12px; font-weight:800; color:var(--t1);">问鲁班</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--t3); min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"></path><path d="M12 20V4"></path><path d="M20 20v-7"></path></svg><span style="font-size:12px;">学情</span></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#f0ede1; min-width:52px; padding:4px 0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"></path></svg><span style="font-size:12px; font-weight:800;">我的</span></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+      <div style="width:402px; font-size:13px; line-height:1.7; color:#5b584e;">按 v3/microlesson 契约：免费 3 站 ●●● 收集感 + 37 站锁定露脸；会员话术 =「解锁你这条路线的剩余部分」；复习永久免费（D11）写明；「明天见」订阅状态可见（D12）；额度透明 + 图片质检提示。</div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;dark&quot;, &quot;light&quot;], &quot;default&quot;: &quot;dark&quot;, &quot;tsType&quot;: &quot;'dark'|'light'&quot;, &quot;section&quot;: &quot;主题（第 4/5 轮生效）&quot;},
+  &quot;palette&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;warm&quot;, &quot;bw&quot;, &quot;trend&quot;, &quot;bwy&quot;], &quot;default&quot;: &quot;warm&quot;, &quot;tsType&quot;: &quot;'warm'|'bw'|'trend'|'bwy'&quot;, &quot;section&quot;: &quot;主题（第 4/5 轮生效）&quot;},
+  &quot;showOrbs&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;性能分级&quot;},
+  &quot;expandAnalysis&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;练习页&quot;}
+}">
+class Component extends DCLogic {
+  state = { thinkingOpen: false, mutiOpen: true, whyOpen: false, weekOpen: false, mistakeOpen: 0 };
+  mkToggle(key) { return () => this.setState(s => ({ [key]: !s[key] })); }
+  chev(open) { return { transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }; }
+  renderVals() {
+    const open = this.state.thinkingOpen;
+    const mutiOpen = this.state.mutiOpen;
+    const theme = this.state.theme ?? this.props.theme ?? 'dark';
+    const isDark = theme === 'dark';
+    const lightVars = {
+      '--bg': '#f2f4f7', '--bar': 'rgba(255,255,255,0.94)', '--line': 'rgba(15,23,42,0.10)',
+      '--card': '#ffffff', '--bd': 'rgba(15,23,42,0.10)',
+      '--t1': '#0f172a', '--t2': 'rgba(15,23,42,0.68)', '--t3': 'rgba(15,23,42,0.46)',
+      '--chipbg': 'rgba(15,23,42,0.045)', '--chipbd': 'rgba(15,23,42,0.12)',
+      '--sky': '#0e7490', '--or': '#c2410c', '--gr': '#047857', '--am': '#b45309', '--rd': '#b91c1c', '--in': '#1d4ed8',
+      '--warmbg': '#fff7ed', '--warmbd': 'rgba(194,65,12,0.22)',
+      '--herobg': 'radial-gradient(circle at 92% 12%, rgba(56,189,248,0.14), transparent 34%), linear-gradient(145deg, #eef4ff, #dfeafc)', '--herobd': 'rgba(29,78,216,0.16)',
+    };
+    const wrapBase = { height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)' };
+    const palette = this.state.palette ?? this.props.palette ?? 'warm';
+    const bwDark = {
+      '--bg': '#0c0d0f', '--bar': 'rgba(12,13,15,0.95)', '--line': '#26282b',
+      '--card': '#17181b', '--bd': '#2b2d31',
+      '--t1': '#ffffff', '--t2': '#c3c7cc', '--t3': '#878c93',
+      '--chipbg': 'rgba(255,255,255,0.05)', '--chipbd': '#2b2d31',
+      '--redT': '#e0685a', '--gr': '#e0c283', '--bl': '#e0c283', '--yl': '#e0c283', '--oc': '#e0c283',
+      '--gauge': '#2b2d31', '--fgood': '#d4b263', '--fmid': '#6e747b', '--fbad': '#c05a4e',
+    };
+    const bwLight = {
+      '--bg': '#f5f6f7', '--bar': 'rgba(255,255,255,0.96)', '--line': '#e3e5e8',
+      '--card': '#ffffff', '--bd': '#e0e2e6',
+      '--t1': '#17181b', '--t2': '#45494e', '--t3': '#84898f',
+      '--chipbg': 'rgba(23,24,27,0.04)', '--chipbd': '#dcdee2',
+      '--redT': '#c2412f', '--gr': '#96762e', '--bl': '#96762e', '--yl': '#96762e', '--oc': '#96762e',
+      '--gauge': '#e6e8ea', '--fgood': '#b3924a', '--fmid': '#9aa1a8', '--fbad': '#c2493a',
+    };
+    const paperFills = { '--fgood': '#4e8f72', '--fmid': '#c2a45a', '--fbad': '#b9564a' };
+    const bwyDark = {
+      '--bg': '#131313', '--bar': 'rgba(19,19,19,0.95)', '--line': '#262626',
+      '--card': '#1c1c1e', '--bd': '#2b2b2d',
+      '--t1': '#f7f5f0', '--t2': '#c9c7c0', '--t3': '#8f8e88',
+      '--chipbg': 'rgba(247,245,240,0.05)', '--chipbd': '#2b2b2d',
+      '--redT': '#e0685a', '--gr': '#e6c374', '--bl': '#e6c374', '--yl': '#e6c374', '--oc': '#e6c374',
+      '--gauge': '#2b2b2d', '--fgood': '#d9b45b', '--fmid': '#6f7075', '--fbad': '#c05a4e',
+    };
+    const bwyLight = {
+      '--bg': '#faf9f6', '--bar': 'rgba(255,255,255,0.97)', '--line': '#e8e6e0',
+      '--card': '#ffffff', '--bd': '#e4e2db',
+      '--t1': '#1c1c1e', '--t2': '#4c4b47', '--t3': '#8b8a84',
+      '--chipbg': 'rgba(28,28,30,0.04)', '--chipbd': '#dfddd5',
+      '--redT': '#c2412f', '--gr': '#a4791f', '--bl': '#a4791f', '--yl': '#a4791f', '--oc': '#a4791f',
+      '--gauge': '#eceae3', '--fgood': '#c99f3d', '--fmid': '#a3a29c', '--fbad': '#c2493a',
+    };
+    const trendDark = {
+      '--bg': '#171815', '--bar': 'rgba(23,24,21,0.95)', '--line': '#2c2e28',
+      '--card': '#1f211d', '--bd': '#31332c',
+      '--t1': '#f0eee6', '--t2': '#bab8ad', '--t3': '#8c8b80',
+      '--chipbg': 'rgba(240,238,230,0.05)', '--chipbd': '#31332c',
+      '--redT': '#d98d80', '--gr': '#7fb5a8', '--bl': '#9db5c8', '--yl': '#c9ab6b', '--oc': '#c9ab6b',
+      '--gauge': '#31332c', '--fgood': '#4f9a8c', '--fmid': '#b3995f', '--fbad': '#bd5a4c',
+    };
+    const trendLight = {
+      '--bg': '#f1efe9', '--bar': 'rgba(251,250,247,0.96)', '--line': '#e2dfd4',
+      '--card': '#fbfaf7', '--bd': '#dfdccf',
+      '--t1': '#27281f', '--t2': '#54544a', '--t3': '#8c8b80',
+      '--chipbg': 'rgba(39,40,31,0.04)', '--chipbd': '#d9d6c8',
+      '--redT': '#b9564a', '--gr': '#22796c', '--bl': '#587a94', '--yl': '#96762e', '--oc': '#96762e',
+      '--gauge': '#e6e3d7', '--fgood': '#3f8a7c', '--fmid': '#ab904e', '--fbad': '#b9564a',
+    };
+    const paperVars = {
+      '--bg': '#faf9f5', '--bar': 'rgba(250,249,245,0.96)', '--line': '#e4e2d7',
+      '--card': '#ffffff', '--bd': '#e0ddd2',
+      '--t1': '#23282b', '--t2': '#4a4f52', '--t3': '#8b9398',
+      '--chipbg': 'rgba(35,40,43,0.04)', '--chipbd': '#ddd9cc',
+      '--redT': '#b9564a', '--gr': '#3d8266', '--bl': '#3d8266', '--yl': '#96762e', '--oc': '#96762e',
+      '--gauge': '#e9e6da',
+    };
+    return {
+      isDark,
+      themeWrap: isDark ? wrapBase : Object.assign({}, wrapBase, lightVars),
+      themeWrapTrend: isDark ? wrapBase : Object.assign({}, wrapBase, trendLight),
+      themeWrap5: palette === 'bw'
+        ? Object.assign({}, wrapBase, isDark ? bwDark : bwLight)
+        : palette === 'trend'
+          ? Object.assign({}, wrapBase, isDark ? trendDark : trendLight)
+          : palette === 'bwy'
+            ? Object.assign({}, wrapBase, isDark ? bwyDark : bwyLight)
+            : (isDark ? wrapBase : Object.assign({}, wrapBase, paperVars, paperFills)),
+      palLabel: palette === 'bw' ? '配色：黑红白 + 灰/黄 →' : palette === 'trend' ? '配色：2026 趋势（石墨暖灰 + 青瓷）→' : palette === 'bwy' ? '配色：白黑灰黄红（黄油黄 2026）→' : '配色：鲁班暖调 →',
+      togglePalette: () => this.setState({ palette: palette === 'warm' ? 'bw' : palette === 'bw' ? 'trend' : palette === 'trend' ? 'bwy' : 'warm' }),
+      toggleTheme: () => this.setState({ theme: isDark ? 'light' : 'dark' }),
+      themeLabel: isDark ? '☾ 暗色 · 点击切亮色' : '☀ 亮色 · 点击切暗色',
+      whyOpen: this.state.whyOpen, toggleWhy: this.mkToggle('whyOpen'), whyChev: this.chev(this.state.whyOpen),
+      weekOpen: this.state.weekOpen, toggleWeek: this.mkToggle('weekOpen'), weekChev: this.chev(this.state.weekOpen),
+      m0: this.state.mistakeOpen === 0, m1: this.state.mistakeOpen === 1, m2: this.state.mistakeOpen === 2,
+      toggleM0: () => this.setState(s => ({ mistakeOpen: s.mistakeOpen === 0 ? -1 : 0 })),
+      toggleM1: () => this.setState(s => ({ mistakeOpen: s.mistakeOpen === 1 ? -1 : 1 })),
+      toggleM2: () => this.setState(s => ({ mistakeOpen: s.mistakeOpen === 2 ? -1 : 2 })),
+      chevM0: this.chev(this.state.mistakeOpen === 0), chevM1: this.chev(this.state.mistakeOpen === 1), chevM2: this.chev(this.state.mistakeOpen === 2),
+      mutiOpen,
+      toggleMuti: () => this.setState({ mutiOpen: !mutiOpen }),
+      mutiChevron: { transform: mutiOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' },
+      showOrbs: this.props.showOrbs ?? true,
+      expandAnalysis: this.props.expandAnalysis ?? true,
+      thinkingOpen: open,
+      toggleThinking: () => this.setState({ thinkingOpen: !open }),
+      chevronStyle: { transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' },
+    };
+  }
+}
+</script>
+</body>
+</html>

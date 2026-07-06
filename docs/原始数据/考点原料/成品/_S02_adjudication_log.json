@@ -1,0 +1,203 @@
+[
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 0,
+    "tier": "Tier-0证真+Tier-2事实类(保色补出处)",
+    "retrieval": "tbsearch 水平夹角+45→P115③逐字",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 1,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 斜吊+垂直线→P119逐字",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 2,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 吊装+200～300→P119逐字",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 3,
+    "tier": "Tier-0+Tier-2逻辑修正",
+    "retrieval": "P8/P9两级条款逐字;非常规定义检索0命中",
+    "actions": [
+      "双机抬吊🔵通识+150kN结论修正为须论证",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 4,
+    "tier": "Tier-0证真(语义倒置)+Tier-1换锚",
+    "retrieval": "0188:0 quote=违规现象清单;P115②正面规程逐字",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 5,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处+限定词)",
+    "retrieval": "tbsearch 起重吊装+10kN→P8逐字含非常规限定",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 6,
+    "tier": "Tier-0证真+Tier-2事实类+口径收正",
+    "retrieval": "tbsearch 起重吊装+100kN→P9两子款逐字",
+    "actions": [
+      "300kN/200m归安拆条款",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 7,
+    "tier": "Tier-0证真+Tier-1锚点分离",
+    "retrieval": "tbsearch 垂直度+4/1000→P125(5)逐字",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 8,
+    "tier": "Tier-0证真+Tier-2事实类(保🔵补出处)",
+    "retrieval": "tbsearch 压型金属板+钢丝绳→P114(2)逐字",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 9,
+    "tier": "Tier-1补第④程序闸(GLM单审)",
+    "retrieval": null,
+    "actions": [
+      "008_0011:0 quote直证程序侧;检查分类🔵延伸",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 10,
+    "tier": "Tier-2错因码",
+    "retrieval": null,
+    "actions": [
+      "E07与M10并存;Fable复签",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 11,
+    "tier": "Tier-1一致性收正",
+    "retrieval": null,
+    "actions": [
+      "§1行13/14+P5-5组头统一🔵邻接+显式声明",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 12,
+    "tier": "Tier-0算术证真+Tier-1修正",
+    "retrieval": null,
+    "actions": [
+      "150<200假陈述两处收正",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  }
+]

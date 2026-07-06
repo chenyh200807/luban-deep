@@ -1,0 +1,35 @@
+<view class="luban-page {{isDark ? '' : 'light'}}">
+  <view class="lb-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="lb-nav-inner">
+      <view class="lb-back" bindtap="goBack">
+        <text class="lb-back-arrow">‹</text>
+        <text class="lb-back-text">路线</text>
+      </view>
+      <text class="lb-nav-title">今日一站 · 完成</text>
+    </view>
+  </view>
+
+  <scroll-view class="lb-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="lb-inner">
+      <view class="ho-hero">
+        <text class="ho-badge">✓</text>
+        <text class="ho-title">这一站你已经拿下。</text>
+        <text class="ho-desc">明天这个考点会换一身皮再来找你——你会一眼认出它。明天见。</text>
+      </view>
+
+      <view class="ho-reddot" wx:if="{{showRedDotHint}}">
+        <view class="ho-dot"></view>
+        <text>明天回来时首页会亮一个小红点</text>
+      </view>
+
+      <view class="ho-actions">
+        <view class="ho-btn primary {{remindRequested ? 'done' : ''}}" bindtap="onRemindTap">
+          <text>{{remindRequested ? '已记下，明天见' : '明天提醒我'}}</text>
+        </view>
+        <view class="ho-btn ghost" bindtap="onMistakeBankTap">
+          <text>查看我的错因银行</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

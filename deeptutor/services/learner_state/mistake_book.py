@@ -1,23 +1,26 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Protocol
 
 import httpx
 
 from deeptutor.services.learner_state.attempt_refs import verify_attempt_ref
+from deeptutor.services.learner_state.revalidation_queue import derive_review_due_at
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
-
 
 _TZ = timezone(timedelta(hours=8))
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 _MISTAKE_BOOK_LOCAL_FALLBACK = "DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK"
+# 复习模块灰度旗标(register-before-use): 开 = 列表读侧把 review_due_at 从
+# revalidation_queue 的派生函数投影出来(零写入); 关 = 维持收权后现状(恒 None)。
+_REVIEW_MODULE_FLAG = "LUBAN_REVIEW_MODULE_ENABLED"
 _LOCAL_FALLBACK_FILENAME = "MISTAKE_BOOK.json"
 
 
@@ -366,6 +369,11 @@ class MistakeBookService:
         return item
 
     def mark_mastered(self, *, user_id: str, attempt_ref: str, if_match: str | None = None) -> dict[str, Any]:
+        """写呈现层的用户隐藏旗标(mastered_at), 不是学情掌握真值。
+
+        掌握结论只能由客观复测证据经 learner truth 链路派生(M0 reality-lock);
+        本旗标仅用于错题列表的默认过滤/徽章展示, 禁止回流任何学情推断。
+        """
         _require_write_enabled()
         normalized_user = _require_text(user_id, "user_id")
         ref = _verify_ref(attempt_ref, user_id=normalized_user)
@@ -378,16 +386,21 @@ class MistakeBookService:
         return _public_item(updated or {})
 
     def record_review(self, *, user_id: str, attempt_ref: str, if_match: str | None = None) -> dict[str, Any]:
+        """记录一次复习观测(last_reviewed_at), 不产生任何调度结论。
+
+        到期/复习调度真值唯一归 revalidation_queue 投影(双轮设计 v3 §10-①);
+        本方法显式清空 review_due_at——既不新增伪日期, 也顺带清掉收权前
+        存量行里的历史硬编码日期(原实现固定 now+3d, 属第二调度权威)。
+        """
         _require_write_enabled()
         normalized_user = _require_text(user_id, "user_id")
         ref = _verify_ref(attempt_ref, user_id=normalized_user)
         self._require_current(normalized_user, ref["event_id"], if_match=if_match)
         reviewed_at = _now()
-        due_at = (datetime.now(_TZ) + timedelta(days=3)).isoformat()
         updated = self._store.update_item(
             normalized_user,
             ref["event_id"],
-            {"last_reviewed_at": reviewed_at, "review_due_at": due_at, "updated_at": reviewed_at},
+            {"last_reviewed_at": reviewed_at, "review_due_at": None, "updated_at": reviewed_at},
         )
         return _public_item(updated or {})
 
@@ -397,6 +410,7 @@ class MistakeBookService:
         user_id: str,
         subject_id: str = "",
         include_mastered: bool = False,
+        exam_date_iso: str = "",
     ) -> dict[str, Any]:
         _require_read_enabled()
         normalized_user = _require_text(user_id, "user_id")
@@ -409,6 +423,8 @@ class MistakeBookService:
                 include_mastered=include_mastered,
             )
         ]
+        if _flag_enabled(_REVIEW_MODULE_FLAG):
+            rows = [_with_projected_review_due(row, exam_date_iso=exam_date_iso) for row in rows]
         generated_at = _now()
         return {
             "ok": True,
@@ -482,6 +498,23 @@ def _etag(row: dict[str, Any]) -> str:
 def _collection_etag(rows: list[dict[str, Any]]) -> str:
     raw = "|".join(str(row.get("etag") or "") for row in rows)
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def _with_projected_review_due(item: dict[str, Any], *, exam_date_iso: str = "") -> dict[str, Any]:
+    """读侧投影 review_due_at——间隔真值唯一归 revalidation_queue.derive_review_due_at
+    （双轮 v3 §10-①/v3.2 §6.1）。本模块零间隔常量、零落库：错题=lapse 走 weak 相
+    （首跳 3 天, 受 cap ≤14 / exam_date 地平线压缩），观测锚 = 最近一次复习，缺则收藏时刻。
+    已标掌握（呈现层旗标）不再排期。"""
+    result = dict(item or {})
+    if result.get("mastered_at") or result.get("archived_at"):
+        return result
+    observed = str(result.get("last_reviewed_at") or result.get("saved_at") or "").strip()
+    due_at = derive_review_due_at(
+        last_observed_at=observed, state="weak", exam_date_iso=exam_date_iso
+    )
+    if due_at:
+        result["review_due_at"] = due_at
+    return result
 
 
 def _public_item(row: dict[str, Any]) -> dict[str, Any]:

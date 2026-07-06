@@ -1314,6 +1314,17 @@ async def _collect_events(run_coro) -> list[StreamEvent]:
     return events
 
 
+def _practice_generation_turn_decision() -> dict[str, Any]:
+    return {
+        "relation_to_active_object": "switch_to_new_object",
+        "next_action": "route_to_generation",
+        "allowed_patch": "set_active_object",
+        "confidence": 1.0,
+        "reason": "practice generation result",
+        "active_object": None,
+    }
+
+
 @pytest.mark.asyncio
 async def test_chat_capability_streams_content_and_geogebra_context(
     monkeypatch: pytest.MonkeyPatch,
@@ -1616,6 +1627,7 @@ async def test_deep_question_capability_clamps_generated_questions_to_requested_
         user_message="用 3 道题训练地基基础",
         config_overrides={"num_questions": 3, "mode": "custom", "topic": "地基基础"},
         language="zh",
+        metadata={"turn_semantic_decision": _practice_generation_turn_decision()},
     )
     capability = DeepQuestionCapability()
     events = await _collect_events(lambda bus: capability.run(context, bus))
@@ -1625,6 +1637,75 @@ async def test_deep_question_capability_clamps_generated_questions_to_requested_
     presentation = result_event.metadata["presentation"]
     assert len(presentation["blocks"][0]["questions"]) == 3
     assert "第4道题" not in result_event.metadata["response"]
+
+
+@pytest.mark.asyncio
+async def test_deep_question_run_explicit_question_count_overrides_training_intent_count(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+
+        def set_ws_callback(self, callback) -> None:
+            captured["ws_callback"] = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question": f"水泥训练第{i}题？",
+                            "question_type": "choice",
+                            "options": {"A": "对", "B": "错"},
+                            "correct_answer": "A",
+                            "explanation": "",
+                        }
+                    }
+                    for i in range(1, 4)
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="用 3 道题训练水泥",
+        config_overrides={
+            "mode": "custom",
+            "topic": "水泥",
+            "learning_training_intent": {
+                "source": "debug",
+                "training_intent_id": "intent-count-4",
+                "concept_label": "水泥",
+                "question_count": 4,
+            },
+        },
+        language="zh",
+        metadata={
+            "raw_user_message": "用 3 道题训练水泥",
+            "turn_semantic_decision": _practice_generation_turn_decision(),
+        },
+    )
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["topic_call"]["num_questions"] == 3
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    presentation = result_event.metadata["presentation"]
+    assert len(presentation["blocks"][0]["questions"]) == 3
+    assert "第 4 题" not in result_event.metadata["response"]
 
 
 @pytest.mark.asyncio
@@ -8383,6 +8464,7 @@ async def test_deep_question_capability_promotes_personalization_context_to_trai
         },
         language="zh",
         metadata={
+            "turn_semantic_decision": _practice_generation_turn_decision(),
             "personalization_context": {
                 "authority": {"claims": "learning_synthesis", "prescription": "training_intent"},
                 "active_training_intent": {
@@ -8475,6 +8557,7 @@ async def test_deep_question_capability_config_training_intent_beats_personaliza
         },
         language="zh",
         metadata={
+            "turn_semantic_decision": _practice_generation_turn_decision(),
             "personalization_context": {
                 "active_training_intent": {
                     "training_intent_id": "lti_pcp",

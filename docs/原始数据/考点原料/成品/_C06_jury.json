@@ -2,23 +2,41 @@
   {
     "issue": "R2不变量覆盖不足且过度普遍化：缺填充墙连接项，且“五者任一缺/错即不妥”过于绝对",
     "location": "§3 R2不变量",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充填充墙连接进入不变量骨架，并将总括句改为“按触发场景命中对应判据”，避免无条件普遍化"
+    "fix": "补充填充墙连接进入不变量骨架，并将总括句改为“按触发场景命中对应判据”，避免无条件普遍化",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "C06_砌体留槎与构造柱.md §3 不变量（前轮已应用并记录于 §9 HI#1：填充墙连接补入骨架成六项，总括句改'按触发场景命中对应判据逐项裁决，不作无条件普遍化'；D2 裁决批确定性复核收口）",
+      "verified": "2026-07-04 确定性复核：pack §3 grep 命中'填充墙与主体可靠连接'与'按**触发场景命中对应判据**逐项裁决'，正文'五者任一缺/错即不妥'0 处残留（仅 §9 审计引用原文 2 处）；填充墙连接锚 kc:1A413030_109_0212:0 存在且带 quote；verify_pack+verify_exam_anchors exit=0（可重跑：grep -c '五者任一' 成品/C06_砌体留槎与构造柱.md = 2 且均在§9）"
+    }
   },
   {
     "issue": "空心砖斜槎高度规则组A存在语体升格（不宜→不妥）且与轻骨料砌块合并表述，可能导致硬判分",
     "location": "L4 R4 规则组 A / §5 A4",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "拆分为两条规则分别对应空心砖和轻骨料，保留quote原语体“不宜”，判分时避免绝对化“不妥”"
+    "fix": "拆分为两条规则分别对应空心砖和轻骨料，保留quote原语体“不宜”，判分时避免绝对化“不妥”",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "C06_砌体留槎与构造柱.md §4 规则组A（前轮已拆三行+标'不宜'，§9 HI#2 记录）+ §5 A4（D2 裁决批补最后一处残留：'空心砖斜槎高≤1.2m'改'**不宜**大于1.2m'+语体括注，GLM-5.2 复签 approve）",
+      "verified": "2026-07-04 确定性复核：kc:1A413030_109_0213:3 quote 直读含「斜槎高度不宜大于1.2m」（原语体=不宜）；pack §4 规则组A grep 命中'语体\"不宜\"非\"不应\"'、§5 A4 grep 命中'**不宜**大于1.2m(quote原语体'，绝对化'≤1.2m'裸表述 0 处残留于判分行；verify_pack+verify_exam_anchors 改后 exit=0（可重跑：grep -n '不宜大于1.2m' 成品/C06_砌体留槎与构造柱.md）"
+    }
   },
   {
     "issue": "构造柱施工顺序“先砌墙后浇柱”简化表述存在轻微歧义，无教材三步原文支持",
     "location": "L4 R4 规则组 C",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "标注为教材外简化推理，不作为教材锚引用"
@@ -26,7 +44,9 @@
   {
     "issue": "M3误区双码中E11（迁移失败）证据偏弱，场景未充分显示前学基础",
     "location": "§6 M3",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "保留E10为主码，E11降为参考或改为“E10+可能E11”"
@@ -34,7 +54,9 @@
   {
     "issue": "填充墙连接构造的quote支持过宽：化学植筋保绿，但“设计同意/严禁剔凿”未提供对应quote",
     "location": "§1 #4 / §5 D1",
-    "flagged_by": ["GPT-5.5"],
+    "flagged_by": [
+      "GPT-5.5"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "化学植筋保持绿，后两句降红待补quote或单独挂原文再升绿"
@@ -42,7 +64,9 @@
   {
     "issue": "马牙槎凹凸60mm将“宜”硬化成机械硬错，偏离即不妥缺乏评分细则支持",
     "location": "§4 R4 B / §5 B2",
-    "flagged_by": ["GPT-5.5"],
+    "flagged_by": [
+      "GPT-5.5"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "60mm事实保留绿，将“偏离即不妥”判分降红等待评分细则，或改为提示性建议"
@@ -50,7 +74,9 @@
   {
     "issue": "临时施工洞口过梁/挑砖封口将“宜设”硬化为必错判分",
     "location": "§4 R4 D / §5 E1 / R6 题型 D",
-    "flagged_by": ["GPT-5.5"],
+    "flagged_by": [
+      "GPT-5.5"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "净宽、距离、拉结筋保绿，封口作为硬判分降红，作为建议做法可保留蓝"
@@ -58,7 +84,9 @@
   {
     "issue": "砂浆饱满度80%/90%混入C06 R5采分点，存在本体泄漏/外延混入风险",
     "location": "§5 F1",
-    "flagged_by": ["GPT-5.5"],
+    "flagged_by": [
+      "GPT-5.5"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "从C06 R5采分点移出，保留为验收外延背景标记"
@@ -66,7 +94,9 @@
   {
     "issue": "顶砌14d从填充墙裂缝外延混入C06核心场景，边界偏宽",
     "location": "§3 场景3 / §5 D3 / R6 题型 C",
-    "flagged_by": ["GPT-5.5"],
+    "flagged_by": [
+      "GPT-5.5"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "标为同案附带采分/外延，不进入C06不变量核心"
@@ -74,7 +104,9 @@
   {
     "issue": "R8全表E/M系列error_code使用口径不一致，案例与客观题混用",
     "location": "§6 R8 全表",
-    "flagged_by": ["GPT-5.5"],
+    "flagged_by": [
+      "GPT-5.5"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "按题型拆主码：案例用E系列，客观题另给M系列或明确E06作语义标签非emit code"

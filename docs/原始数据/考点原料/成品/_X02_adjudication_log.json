@@ -1,0 +1,33 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-0(确定性收口，前轮已改)",
+    "actions": [
+      "源料quote直读=任一点到疏散门≤10m",
+      "pack 截断表述 0 残留(8处全带前缀)",
+      "零新编辑"
+    ],
+    "panel": "无需面板——机器可核"
+  },
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 1,
+    "tier": "Tier-2(错因码语义类·前轮已改的确认)",
+    "actions": [
+      "M4 现状=E02默认/E01并列/E05条件限定(HI#2 前轮应用)",
+      "GLM-5.2: satisfied=true",
+      "Fable-5 复签: 同意——'不认为不妥'=能力缺失非题面误读",
+      "零新编辑"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "satisfied": true,
+        "further_edit_needed": false
+      },
+      "Fable-5": "复签同意"
+    }
+  }
+]

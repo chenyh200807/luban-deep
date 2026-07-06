@@ -242,6 +242,11 @@ _STANDARD_CODE_RE = re.compile(
     re.IGNORECASE,
 )
 
+# content_truth ② 盲点补齐(2026-07-01 封板复现):bot 常引"《法规/条例名》第N条"这类**具名
+# 法规**断言具体条文数值(如《建设工程质量管理条例》第40条),而非 GB/JGJ 规范编号。早期抽取器
+# 只认规范编号 → 具名法规断言漏 hedge。这里补抽《》具名依据(法规/条例/办法/教材名)。
+_LAW_CITATION_RE = re.compile(r"《[^》]{2,40}》")
+
 
 def _normalize_standard_code(token: str) -> str:
     """规范化一个标准编号 token：去空白、统一破折号、字母大写。
@@ -267,6 +272,13 @@ def extract_standard_clause_claims(text: str | None) -> list[str]:
             continue
         seen.add(code)
         out.append(code)
+    # 具名法规/依据《》:不要求数字编号(第N条可选),按出现序去重追加。
+    for match in _LAW_CITATION_RE.findall(str(text or "")):
+        law = _normalize_standard_code(match)
+        if len(law) < 4 or law in seen:
+            continue
+        seen.add(law)
+        out.append(law)
     return out
 
 
@@ -294,7 +306,13 @@ def assess_unverifiable_standard_codes(
     if rag_degraded:
         return list(codes)
     evidence = _normalize_standard_code(standard_evidence_text)
-    return [code for code in codes if code not in evidence]
+    # 具名法规/条文《》属**版本敏感**断言:即便本轮召回到法规名,也不代表召回了该条文的现行
+    # 数值,故 fail-closed 恒视为核不到 → 恒 hedge(以现行官方规范为准),与 ② 护栏一致。
+    # 规范编号(GB/JGJ…)仍按本轮 standard 召回逐条核(在证据里=放行)。
+    return [
+        code for code in codes
+        if ("《" in code) or (code not in evidence)
+    ]
 
 
 def render_content_truth_hedge(
@@ -308,11 +326,11 @@ def render_content_truth_hedge(
     codes = "、".join(unverifiable_codes)
     if rag_degraded:
         return (
-            f"ℹ️ 小提示：本轮题库检索暂不可用，以上内容由 AI 生成（含规范编号「{codes}」），"
+            f"ℹ️ 小提示：本轮题库检索暂不可用，以上内容由 AI 生成（含规范/条文依据「{codes}」），"
             "建议你以教材或官方规范原文核对，我不保证 100% 准确；题面思路与判断方向仍可参考。"
         )
     return (
-        f"ℹ️ 小提示：以上内容由 AI 生成，其中规范编号「{codes}」建议你以教材或官方规范原文核对，"
+        f"ℹ️ 小提示：以上内容由 AI 生成，其中规范/条文依据「{codes}」建议你以教材或官方规范原文核对，"
         "我不保证 100% 准确；题面思路与判断方向仍可参考。"
     )
 
@@ -360,7 +378,7 @@ def build_content_truth_review_records(
         records.append(
             {
                 "claim": _normalize_standard_code(code),
-                "claim_kind": "standard_code",
+                "claim_kind": "regulation_citation" if "《" in code else "standard_code",
                 "confidence_signal": signal,
                 "context_excerpt": _context_excerpt_around_code(response, code),
             }
@@ -547,7 +565,7 @@ _PRACTICE_GENERATION_ACTION_STRIP_PATTERNS = (
     r"做题",
     r"做",
     r"一下",
-    r"[0-9一二两三四五六七八九十几]+(?:道题|道|题|个题|个题目|个小题|个练习题)?",
+    r"[0-9一二两三四五六七八九十几]+(?:道题目|道题|道|题目|题|个题|个题目|个小题|个练习题)?",
     r"单选题",
     r"多选题",
     r"选择题",

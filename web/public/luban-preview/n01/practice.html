@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.15;padding:{{ e.p }};transform:{{ e.tf }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11.5px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null };
+  examTitle="网络计划关键线路";
+  KNOWLEDGE="网络计划关键线路(计算/判读型,真题{2024,案例题(二)})。判据:关键工作=总时差最小(计划工期=计算工期时TF=0);关键线路=由全部关键工作组成的最长线路,长度=计算工期,并列最长须全列;非关键工作总时差TF=LS−ES(FF≤TF)。四步:补虚工作全逻辑→逐路径求长取最长→定关键线路+总工期(线路+算式+单位)→回判索赔(责任+时差/是否在关键线路两步)。本卡自洽网络工期(周)A3/B6/C5/D3/E8/F2/G4/H6/I6,关键线路B→E→I=20周(唯一),A时差2周、F时差3周,G时差1周。事件①设计变更E+2周,E在关键线路→影响→工期索赔成立;事件②机械故障G+1周,G不在关键线路、1≤时差→不影响→不成立(费用另议)。常见失分:随手挑最长路径不逐路径求和、只写数字不给线路算式单位、TF与FF混淆、只看责任方判索赔漏时差比较、非关键工作压缩救工期。";
+  moreText="补两道：① {2020,案例二问题2} 两条并列关键线路 B→E→G→K→P / B→E→G→J→P，T=16天——练并列全列 + 总工期线路算式单位；② {2018,案例分析(二)问题1-4} 电缆 3 月总时差、延误 1 月工期索赔不成立——练索赔「责任 + 时差比较」两步链。";
+
+  Q=[
+    { tag:"关键工作·条件维", typeHint:"单选 · 选最能拿分的判据表述", fig:"floats", figLabel:"三道工作的总时差（谁关键？）", figCaption:"关键与否看总时差，不看单个工期长短",
+      stem:"关于「关键工作」的判据，选出最准确、能得分的表述。",
+      model:"关键工作是总时差最小的工作；当计划工期=计算工期时，其总时差 TF=0。",
+      opts:[
+        { t:"关键工作是总时差最小的工作；计划工期=计算工期时，其总时差 TF=0。", ok:true, code:"", fix:"抓住判据词「总时差最小 / TF=0」，别用「在长线路上」绕。" },
+        { t:"只要在某条较长的线路上，工作就是关键工作。", ok:false, code:"E07", tempt:"感觉长线路上的工作都关键。", lose:"关键判据是总时差最小，不是「在长线路上」；较长非最长线路上的工作总时差 >0。", fix:"关键工作=总时差最小(TF=0)。" },
+        { t:"持续时间最长的那道工作就是关键工作。", ok:false, code:"E07", tempt:"把「工作时间长」当「关键」。", lose:"关键与否看总时差，不看单道工作持续时间长短。", fix:"总时差最小才关键，与单道工期长短无关。" },
+        { t:"关键工作就是不能延误的工作，不用算时差。", ok:false, code:"E03", tempt:"记了结论没记判据。", lose:"漏了「总时差最小 / TF=0」这个采分判据词。", fix:"补判据「总时差最小、TF=0」。" }
+      ] },
+    { tag:"关键线路·条件维", typeHint:"单选 · 选定义完整的作答", fig:"netplain", figLabel:"双代号网络图（工期见图，周）", figCaption:"回想「关键线路」的完整定义再选",
+      stem:"「关键线路」的完整定义，选能拿分的作答。",
+      model:"关键线路由全部关键工作组成，是网络图中最长的线路，其长度等于计算工期。",
+      opts:[
+        { t:"关键线路由全部关键工作组成，是最长的线路，长度等于计算工期。", ok:true, code:"", fix:"三要素齐：全部关键工作 + 最长 + 长度=计算工期。" },
+        { t:"关键线路就是最长的那条线路。", ok:false, code:"E02", tempt:"只记住「最长」。", lose:"漏「由全部关键工作组成」「长度=计算工期」，采分点不全。", fix:"补「全部关键工作组成、长度=计算工期」。" },
+        { t:"关键线路是总时差最大的线路。", ok:false, code:"E07", tempt:"把关键工作(时差最小)记反成最大。", lose:"关键=时差最小，不是最大；概念记反。", fix:"关键线路由时差最小(=0)的关键工作组成。" },
+        { t:"从起点到终点的任意一条完整线路都算关键线路。", ok:false, code:"E02", tempt:"以为任意贯通线路都算。", lose:"必须是最长、由关键工作组成的那条。", fix:"限定「最长、全部关键工作、=计算工期」。" }
+      ] },
+    { tag:"定关键线路·计算表达维", typeHint:"单选 · 逐路径求长选能得分的作答", fig:"netplain", figLabel:"双代号网络图（工期见图，周）", figCaption:"工作 A–I / 节点 ①–⑦ · 逐路径求长后，关键线路是哪条？",
+      stem:"下图网络计划，逐路径求长后，关键线路及依据，选能得分的作答。",
+      model:"逐路径求长取最长：B→E→I=6+8+6=20 周最长，关键线路为 B→E→I。",
+      opts:[
+        { t:"逐路径求长，B→E→I=6+8+6=20 周为最长，关键线路为 B→E→I。", ok:true, code:"", fix:"逐路径求和 + 落到具体线路 + 带算式，稳拿分。" },
+        { t:"看图挑一条较长的 B→D→G→H 当关键线路。", ok:false, code:"E09", tempt:"眼一扫觉得这条绕得长。", lose:"没逐路径求和；B→D→G→H=19<20，不是最长。", fix:"逐条求和，20 周的 B→E→I 才是关键线路。" },
+        { t:"关键线路是 B→E→I，工期最长。", ok:false, code:"E02", tempt:"线路蒙对就交卷。", lose:"结论对但没写「逐路径求长=20 周」的依据，过程分丢。", fix:"补「逐路径求和 B→E→I=6+8+6=20 周」的依据。" },
+        { t:"A→C→G→H 最长，是关键线路。", ok:false, code:"E09", tempt:"从 A 起、路径看着绕。", lose:"A→C→G→H=18<20，求错。", fix:"B→E→I=20 最长。" }
+      ] },
+    { tag:"写全线路·记录表达维", typeHint:"单选 · 并列最长时怎么写", fig:"paths2", figLabel:"两条并列最长线路（工期相等）", figCaption:"并列最长 —— 全列还是只写一条？",
+      stem:"某网络计划存在两条并列最长线路。写关键线路时，最能得分的做法是？",
+      model:"两条并列最长线路必须全部列出，节点连续、工期相等，缺一不可。",
+      opts:[
+        { t:"两条并列最长线路全部列出（节点连续、工期相等），缺一不可。", ok:true, code:"", fix:"并列全列 + 节点连续，一条都不漏。" },
+        { t:"写出其中一条最长线路即可。", ok:false, code:"E02", tempt:"以为关键线路只有一条。", lose:"漏掉另一条并列关键线路，采分点遗漏。", fix:"并列最长必须全部列出。" },
+        { t:"只用文字说「有两条最长线路」，不写具体节点。", ok:false, code:"E03", tempt:"懒得逐节点写。", lose:"没写出节点连续的具体线路，关键词缺失。", fix:"逐条写出节点连续的线路 ①→…→⑦。" },
+        { t:"两条一样长时，再挑持续时间总和大的一条。", ok:false, code:"E07", tempt:"以为还要再比一次。", lose:"工期相等即并列关键，无需再挑，概念错。", fix:"工期相等即并列，全部列出。" }
+      ] },
+    { tag:"总工期·计算表达维", typeHint:"单选 · 选可得分的工期算式", fig:"gantt", figLabel:"关键线路 B→E→I（6/8/6 周）", figCaption:"总工期 T = ？（线路+算式+单位）",
+      stem:"已知关键线路 B→E→I（6、8、6 周）。写总工期，能得分的作答是？",
+      model:"总工期 T=（沿 B→E→I）6+8+6=20 周，线路+算式+单位齐。",
+      opts:[
+        { t:"总工期 T=（沿 B→E→I）6+8+6=20 周。", ok:true, code:"", fix:"线路 + 算式 + 单位三件齐，换题也不丢分。" },
+        { t:"总工期是 20 周。", ok:false, code:"E03", tempt:"算出数就写数。", lose:"只写数字，漏线路和算式，压线扣分。", fix:"补「沿 B→E→I，6+8+6=20 周」。" },
+        { t:"T=各工作持续时间之和=3+6+5+3+8+2+4+6+6=43 周。", ok:false, code:"E09", tempt:"把所有工作加起来。", lose:"总工期沿关键线路求和，不是所有工作相加。", fix:"只沿关键线路：6+8+6=20 周。" },
+        { t:"T=6+8+6=20。", ok:false, code:"E03", tempt:"算式有了就行。", lose:"漏单位「周」，记录/计算表达维扣分。", fix:"带单位写「20 周」。" }
+      ] },
+    { tag:"总时差·计算表达维", typeHint:"单选 · TF=LS−ES，选能得分的作答", fig:"float", figLabel:"非关键工作 A、F 的可滑动余量", figCaption:"实心=工作本身｜斜纹=可滑动的时差",
+      stem:"非关键工作 A、F 的总时差（TF=LS−ES）。能得分的作答是？",
+      model:"工作 A 总时差=2 周、工作 F 总时差=3 周，数值绑定到具体工作。",
+      opts:[
+        { t:"工作 A 总时差 TF=LS−ES=2 周；工作 F 总时差=3 周（数值绑定到工作）。", ok:true, code:"", fix:"TF 公式 + 数值 + 绑定工作名，阅卷能对应。" },
+        { t:"总时差是 2 周和 3 周。", ok:false, code:"E03", tempt:"算出俩数就并排写。", lose:"没说哪个是 A、哪个是 F，阅卷无法确认对应。", fix:"绑定「A=2 周、F=3 周」。" },
+        { t:"A、F 是非关键工作，总时差都是 0。", ok:false, code:"E07", tempt:"把非关键当关键。", lose:"总时差为 0 的是关键工作；A、F 非关键，TF>0。", fix:"非关键 TF>0，A=2、F=3 周。" },
+        { t:"A 总时差=最早开始−最晚开始=0−2=−2 周。", ok:false, code:"E09", tempt:"公式方向记反。", lose:"TF=LS−ES（最晚减最早），不是反过来，不会是负。", fix:"TF=LS−ES=2−0=2 周。" }
+      ] },
+    { tag:"时差辨析·概念维", typeHint:"单选 · 分清 TF 与 FF", fig:"tffq", figLabel:"某工作的时差（TF 与 FF）", figCaption:"两种时差的大小关系，你来判",
+      stem:"关于总时差 TF 与自由时差 FF 的关系，能得分的表述是？",
+      model:"FF≤TF；关键工作 TF=FF=0；TF 是不影响总工期、FF 是不影响紧后工作最早开始的机动时间。",
+      opts:[
+        { t:"自由时差 FF ≤ 总时差 TF；关键工作两者都为 0。", ok:true, code:"", fix:"抓住「FF≤TF」「关键工作皆 0」两个判据。" },
+        { t:"自由时差 FF 一定大于总时差 TF。", ok:false, code:"E07", tempt:"把大小关系记反。", lose:"恒有 FF≤TF，不会大于。", fix:"FF≤TF。" },
+        { t:"TF 和 FF 是一回事，数值总相等。", ok:false, code:"E07", tempt:"觉得都叫「时差」。", lose:"非关键工作 FF 常小于 TF，不总相等；含义也不同。", fix:"FF≤TF，仅在关键工作时相等(都为 0)。" },
+        { t:"自由时差就是能随便延误不影响工期的时间。", ok:false, code:"E03", tempt:"笼统记了个印象。", lose:"漏了「不影响紧后工作最早开始」这个 FF 的准确含义。", fix:"FF=不影响紧后工作最早开始的机动时间，FF≤TF。" }
+      ] },
+    { tag:"补虚工作·程序维", typeHint:"单选 · 逻辑不全先做什么", fig:"dummy", figLabel:"紧前逻辑不全 → 怎么处理", figCaption:"先补虚工作全逻辑，再在调整后的图上算",
+      stem:"网络图中某工作的紧前逻辑没画全，先做什么才对（能得分）？",
+      model:"逻辑不全先增加虚工作补全紧前紧后关系，在调整后的图上再算关键线路；虚工作不耗时间资源。",
+      opts:[
+        { t:"先增加虚工作补全逻辑关系，在调整后的图上再算关键线路（虚工作不耗时间资源）。", ok:true, code:"", fix:"先补虚、再计算，程序不能颠倒。" },
+        { t:"不管逻辑，直接在原图上算关键线路。", ok:false, code:"E06", tempt:"图省事直接算。", lose:"逻辑不全就算，程序顺序错，结果不可靠。", fix:"先补虚工作，再在调整后的图上算。" },
+        { t:"增加一道有持续时间的实工作来补逻辑。", ok:false, code:"E07", tempt:"觉得补条线就得给时间。", lose:"补逻辑用虚工作(0 时间)，给实工作会改变工期。", fix:"用不耗时间资源的虚工作补逻辑。" },
+        { t:"逻辑不全时把该工作删掉再算。", ok:false, code:"E02", tempt:"想让图简单点。", lose:"删工作丢背景信息，不是补逻辑。", fix:"补虚工作，不删工作。" }
+      ] },
+    { tag:"延误判读·条件维", typeHint:"单选 · 先比时差再下结论", fig:"claimA", figLabel:"非关键工作：延误 1 周 vs 总时差 3 周", figCaption:"延误 ≤ 总时差 → 被时差吸收",
+      stem:"某非关键工作总时差 3 周，因故延误 1 周。对总工期的影响，能得分的判读是？",
+      model:"延误 1 周未超其总时差 3 周 → 不影响总工期。",
+      opts:[
+        { t:"该工作延误 1 周未超其总时差 3 周，不影响总工期。", ok:true, code:"", fix:"显式比较「延误 vs 总时差」再下结论。" },
+        { t:"只要工作延误了，总工期就一定往后拖。", ok:false, code:"E05", tempt:"一听延误就慌。", lose:"没比时差；延误≤总时差时不影响总工期。", fix:"先比延误(1)和总时差(3)，未超→不影响。" },
+        { t:"非关键工作延误也必然影响总工期。", ok:false, code:"E07", tempt:"把非关键当关键。", lose:"非关键有时差，延误在时差内不影响。", fix:"延误 1≤时差 3，不影响。" },
+        { t:"延误 1 周，总工期就延长 1 周。", ok:false, code:"E09", tempt:"直接把延误加到工期上。", lose:"没考虑时差可吸收，机械相加。", fix:"延误在时差内被吸收，总工期不变。" }
+      ] },
+    { tag:"索赔两步·后果维", typeHint:"单选 · 责任+时差两步", fig:"claimA", figLabel:"甲方责任 + 时差比较", figCaption:"责任 ≠ 自动成立工期索赔",
+      stem:"甲供材料延迟（甲方责任）致某工作延误，该工作总时差 3 周、延误 1 周。工期索赔判读，能得分的是？",
+      model:"①责任属甲方；②延误 1 周未超总时差 3 周→不影响总工期，工期索赔不成立（费用索赔另议）。",
+      opts:[
+        { t:"①责任属甲方；②延误 1 周未超总时差 3 周→不影响总工期，工期索赔不成立（费用另议）。", ok:true, code:"", fix:"责任 + 时差两步都写，工期与费用分开判。" },
+        { t:"是甲方责任，所以工期索赔成立。", ok:false, code:"E11", tempt:"只看责任方就下结论。", lose:"漏时差比较；责任方≠自动成立工期索赔。", fix:"补第二步「延误未超时差→不影响→不成立」。" },
+        { t:"承包人自己没耽误，索赔一定成立。", ok:false, code:"E05", tempt:"凭「不是我的错」判。", lose:"仍要比是否影响总工期，不是只看谁的责任。", fix:"先责任再比时差，未超时差不成立。" },
+        { t:"工期索赔不成立，费用也一定不能索赔。", ok:false, code:"E07", tempt:"把工期和费用捆一起判。", lose:"工期与费用分开判，工期不成立不代表费用不可另议。", fix:"工期索赔不成立，费用另议。" }
+      ] },
+    { tag:"索赔·在关键线路·后果维", typeHint:"单选 · 在关键线路→影响", fig:"net", figLabel:"关键线路 B→E→I · 关键工作 E 延长 2 周", figCaption:"E 在关键线路上、无时差",
+      stem:"关键线路 B→E→I。设计变更（甲方责任）致关键工作 E 延长 2 周。判工期索赔，能得分的是？",
+      model:"①甲方设计变更；②E 在关键线路上、无时差，延长 2 周直接影响总工期→工期索赔成立。",
+      opts:[
+        { t:"①甲方设计变更；②E 在关键线路上、无时差，延长 2 周直接影响总工期→工期索赔成立。", ok:true, code:"", fix:"先责任、再「在关键线路→影响」，两步齐。" },
+        { t:"工期索赔成立。", ok:false, code:"E02", tempt:"知道成立就写结论。", lose:"没写「E 在关键线路、无时差、影响总工期」的判据，过程分丢。", fix:"补两步判据。" },
+        { t:"E 延长 2 周，但 E 有时差可以吸收，不成立。", ok:false, code:"E07", tempt:"套用非关键的时差逻辑。", lose:"关键工作 TF=0，没有时差可吸收。", fix:"E 在关键线路无时差，延长直接影响→成立。" },
+        { t:"甲方责任，直接成立，不用管在不在关键线路。", ok:false, code:"E11", tempt:"只看责任方。", lose:"仍需说明「在关键线路→影响总工期」。", fix:"责任 + 是否影响关键线路两步都要写。" }
+      ] },
+    { tag:"进度调整·程序维", typeHint:"单选 · 救工期优先压谁", fig:"list", figLabel:"要压缩计算工期，动哪里", figCaption:"救总工期，通常优先动关键工作",
+      stem:"施工中总工期滞后，要压缩计算工期，能得分的调整方向是？",
+      model:"优先压缩关键线路上的关键工作；方法含关键工作调整/逻辑关系调整/重新编制/非关键工作调整/资源调整。",
+      opts:[
+        { t:"优先压缩关键线路上的关键工作（可配合逻辑关系调整、资源调整等）。", ok:true, code:"", fix:"救总工期通常优先动关键工作，方向对。" },
+        { t:"压缩非关键工作来抢回总工期。", ok:false, code:"E07", tempt:"觉得哪道工作都能压。", lose:"非关键工作压缩不缩短总工期，救不了工期。", fix:"救工期优先压关键线路上的关键工作。" },
+        { t:"只写「加班赶工、增加资源」。", ok:false, code:"E02", tempt:"凭经验答赶工。", lose:"没回到「调整关键工作/关键线路」这个采分方向。", fix:"落到关键工作调整，再谈资源。" },
+        { t:"把工期滞后的那道工作直接删掉。", ok:false, code:"E07", tempt:"图省事。", lose:"删工作改变计划，不是调整方法。", fix:"调整关键工作，不删工作。" }
+      ] },
+    { tag:"进度监测·记录维·多选", typeHint:"多选 · 选属于监测内容的采分项", fig:"list", figLabel:"进度监测应包括哪些内容", figCaption:"含干扰项，多选",
+      stem:"【多选】进度监测的内容包括哪些？选出属于监测内容的采分项。",
+      model:"记录实际时间、观测关键线路、检查非关键工作、核查逻辑关系、收集变更信息。",
+      opts:[
+        { t:"记录各工作的实际开始/完成时间。", ok:true, code:"", fix:"实际时间是监测的基础。" },
+        { t:"观测关键线路的执行情况。", ok:true, code:"", fix:"关键线路必盯。" },
+        { t:"检查非关键工作、核查逻辑关系、收集变更信息。", ok:true, code:"", fix:"非关键、逻辑与变更都在监测内。" },
+        { t:"编制资金使用计划、审批分包合同。", ok:false, code:"E02", tempt:"听着像项目管理都往里塞。", lose:"不属进度监测内容，是别的管理动作，MCQ 干扰项。", fix:"监测内容限于：实际时间/关键线路/非关键工作/逻辑关系/变更信息。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 会算但写不全/判断错，诊断并补写", fig:"sheet", figLabel:"模拟学生作答（待诊断）", figCaption:"线路蒙错、时差没绑定、索赔只看责任",
+      stem:"学生作答：(1) 关键线路 A→D→E→H；(2) 总时差 2 周和 3 周；(3) 事件①甲方责任索赔成立、事件②自己责任不成立。选最准确的诊断与补写。",
+      model:"(1) 关键线路判断错(应逐路径求长得 B→E→I=20周)；(2) 时差没绑定工作(应 A=2周、F=3周)；(3) 索赔理由用错(应看是否在关键线路，非只看责任方)。补写按「逐路径定线路→TF 绑定工作→责任+时差两步」。",
+      opts:[
+        { t:"(1) 关键线路判断错，应逐路径求长得 B→E→I=20 周；(2) 时差没绑定工作，应写 A=2 周、F=3 周；(3) 索赔不能只看责任方，应看 E/G 在不在关键线路。补：B→E→I=20 周、A=2/F=3 周、索赔责任+时差两步。", ok:true, code:"", fix:"地基(线路)先纠，再纠时差绑定与索赔理由，三处补齐 —— 这才是「会写答案」。" },
+        { t:"只是总时差没写单位，补个「周」就行，其余都对。", ok:false, code:"E02", tempt:"只挑到一个小毛病。", lose:"漏诊关键线路判断错(地基错)和索赔理由错两处大失分。", fix:"先纠关键线路 B→E→I，再纠时差绑定与索赔判据。" },
+        { t:"结论(3)①成立②不成立正确，说明整题作答正确，可给满分。", ok:false, code:"E07", tempt:"看结论碰巧对就以为全对。", lose:"线路错、时差没绑定、理由靠责任方，结论属蒙对非判对；阅卷看过程采分。", fix:"过程全要重写：线路、时差绑定、索赔两步判据。" },
+        { t:"只要把关键线路改成 B→E→I，其它照抄即可。", ok:false, code:"E09", tempt:"抓到地基错就以为改一处够。", lose:"时差未绑定工作、索赔理由错仍未补。", fix:"线路 + 时差绑定 + 索赔两步，三处都补。" }
+      ] },
+    { tag:"关键线路特征·多选", typeHint:"多选 · 选正确的表述", fig:"netplain", figLabel:"双代号网络图（工期见图，周）", figCaption:"对照网络，判断哪些表述正确（多选）",
+      stem:"【多选】关于关键线路与关键工作，下列表述正确的有？",
+      model:"关键工作总时差最小(TF=0)；关键线路是最长线路、长度=计算工期；并列最长要全列；关键工作延误直接影响总工期。",
+      opts:[
+        { t:"关键工作是总时差最小的工作，计划工期=计算工期时 TF=0。", ok:true, code:"", fix:"判据词「总时差最小」。" },
+        { t:"关键线路是最长的线路，其长度等于计算工期。", ok:true, code:"", fix:"最长 + 长度=计算工期。" },
+        { t:"存在并列最长线路时，须全部列为关键线路。", ok:true, code:"", fix:"并列全列。" },
+        { t:"关键工作有较大的总时差，可以随意延误。", ok:false, code:"E07", tempt:"把关键工作当有富余。", lose:"关键工作 TF=0，不能延误，记反了。", fix:"关键工作 TF=0，延误直接影响总工期。" }
+      ] }
+  ];
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"关键线路三要素、时差绑定、索赔两步逐项写，缺一扣一。"},
+    E03:{label:"关键词缺失",advice:"线路+算式+单位、判据词(总时差最小/最长)一个不能省。"},
+    E05:{label:"审题错误",advice:"延误先比时差再下结论，别一听延误就判影响。"},
+    E06:{label:"程序顺序错误",advice:"逻辑不全先补虚工作，再在调整后的图上算。"},
+    E07:{label:"概念混淆",advice:"分清关键=时差最小、TF≠FF、非关键有时差、关键工作 TF=0。"},
+    E09:{label:"计算错误",advice:"逐路径求和取最长，总工期沿关键线路，TF=LS−ES。"},
+    E11:{label:"迁移失败",advice:"责任方≠索赔成立，必须再比是否在关键线路/超时差。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    this.setState({order:this.pickOrder()});
+  }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ return (this.state.order && this.state.order.length) ? this.state.order : this.fallbackOrder(); }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi];
+    if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&q.opts[s]&&q.opts[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false,order:this.pickOrder()}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  PN={1:[16,76],2:[86,24],3:[86,128],4:[166,66],5:[172,128],6:[248,24],7:[300,80]};
+  PE=[["A",1,2,3,false],["B",1,3,6,true],["C",2,4,5,false],["D",3,4,3,false],["E",3,5,8,true],["F",4,5,2,false],["G",4,6,4,false],["H",6,7,6,false],["I",5,7,6,true]];
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",tf:"none",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="net"||type==="netplain"){ figH=150; const r=11,head=6; const showCrit=(type==="net");
+      this.PE.forEach(e=>{ const n1=this.PN[e[1]],n2=this.PN[e[2]]; const dx=n2[0]-n1[0],dy=n2[1]-n1[1],len=Math.hypot(dx,dy),ang=Math.atan2(dy,dx)*180/Math.PI; const ux=dx/len,uy=dy/len;
+        const sx=n1[0]+ux*r,sy=n1[1]+uy*r,ex=n2[0]-ux*(r+head),ey=n2[1]-uy*(r+head),tl=len-r-(r+head),mx=(sx+ex)/2,my=(sy+ey)/2;
+        const cr=e[4]&&showCrit; const col=cr?"#cf4436":"#b9b3a2"; const sw=cr?2.6:1.8;
+        els.push(D({x:Math.round(mx-tl/2),top:Math.round(my-sw/2),w:Math.round(tl),h:sw,bg:col,r:1,tf:"rotate("+ang.toFixed(1)+"deg)"}));
+        els.push(D({x:Math.round(mx-7),top:Math.round(my-7),w:14,h:11,fg:cr?"#cf4436":"#7d7563",fs:8.5,lab:e[0]+String(e[3])})); });
+      Object.keys(this.PN).forEach(k=>{ const p=this.PN[k]; const cN={"1":1,"3":1,"5":1,"7":1}; const lit=cN[k]&&showCrit;
+        els.push(D({x:p[0]-11,top:p[1]-11,w:22,h:22,bg:"#fff",bd:"2px solid "+(lit?"#cf4436":"#c9c3b2"),r:11,fg:lit?"#cf4436":"#464b4e",fs:10,lab:"①②③④⑤⑥⑦"[k-1]})); }); }
+    else if(type==="tffq"){ figH=86; const u=15;
+      els.push(D({x:6,top:8,w:36,h:14,fg:"#5c6469",fs:9.5,ta:"right",jc:"flex-end",lab:"最早"}));
+      els.push(D({x:48,top:6,w:4*u,h:18,bg:"#2f6db0",r:3,fg:"#fff",fs:9,lab:"工作"}));
+      els.push(D({x:48+4*u+2,top:6,w:2*u,h:18,bg:"transparent",bd:"1.5px solid #9fbf8f",r:3,fg:"#3f8a5b",fs:9,lab:"FF ?"}));
+      els.push(D({x:6,top:40,w:36,h:14,fg:"#5c6469",fs:9.5,ta:"right",jc:"flex-end",lab:"最晚"}));
+      els.push(D({x:48+3*u,top:38,w:4*u,h:18,bg:"#2f6db0",r:3,fg:"#fff",fs:9,lab:"工作"}));
+      els.push(D({x:48,top:64,w:3*u,h:16,bg:"transparent",bd:"1.5px dashed #cbb488",r:3,fg:"#a8862b",fs:9,lab:"TF ?"}));
+      els.push(D({x:48+4*u+2,top:64,w:130,h:16,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:"TF、FF 哪个大？"})); }
+    else if(type==="floats"){ figH=96; const v=[["工作①",2,"#2f6db0"],["工作②",0,"#cf4436"],["工作③",3,"#cf8a44"]];
+      v.forEach((r,i)=>{ const y=8+i*28; els.push(D({x:6,top:y+2,w:44,h:16,fg:r[2],fs:10.5,ta:"right",jc:"flex-end",lab:r[0]}));
+        els.push(D({x:58,top:y,w:Math.max(14,r[1]*30+14),h:18,bg:r[2],r:4,fg:"#fff",fs:10,lab:"TF="+r[1]}));
+        els.push(D({x:58+Math.max(14,r[1]*30+14)+8,top:y+2,w:120,h:16,fg:"#8b9398",fs:11,ta:"left",jc:"flex-start",lab:r[1]===0?"?":""})); }); }
+    else if(type==="concept"){ figH=86; const rows=this.qAt(qi).fig==="concept"?[["关键工作","总时差最小 · TF=0","#cf4436"],["关键线路","最长线路 · 长度=计算工期","#2c8a5b"],["并列最长","全部列出","#cf8a44"]]:[];
+      rows.forEach((r,i)=>{ const y=6+i*26; els.push(D({x:6,top:y,w:78,h:20,bg:"#f4f1e8",bd:"1.5px solid "+r[2],r:7,fg:r[2],fs:10,lab:r[0]}));
+        els.push(D({x:92,top:y,w:14,h:20,fg:"#b3a692",fs:11,lab:"→"}));
+        els.push(D({x:110,top:y,w:196,h:20,fg:"#5c6469",fs:10.5,ta:"left",jc:"flex-start",lab:r[1]})); }); }
+    else if(type==="paths2"){ figH=80; const rows=[["线路①  B→E→G→K→P",20],["线路②  B→E→G→J→P",20]];
+      rows.forEach((r,i)=>{ const y=12+i*32; els.push(D({x:4,top:y,w:150,h:20,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:r[0]}));
+        els.push(D({x:158,top:y+2,w:120,h:15,bg:"#cf4436",r:3}));
+        els.push(D({x:282,top:y,w:34,h:20,fg:"#cf4436",fs:10.5,ta:"left",jc:"flex-start",lab:r[1]+"周"})); });
+      els.push(D({x:158,top:66,w:160,h:12,fg:"#cf8a44",fs:9.5,ta:"left",jc:"flex-start",lab:"工期相等 → 并列，全部列出"})); }
+    else if(type==="gantt"){ figH=92; const seg=[["B",6,"#cf4436"],["E",8,"#cf4436"],["I",6,"#cf4436"]]; const u=11; let x=8;
+      seg.forEach(s=>{ els.push(D({x:x,top:22,w:s[1]*u,h:20,bg:s[2],r:3,fg:"#fff",fs:10,lab:s[0]+s[1]})); x+=s[1]*u+2; });
+      els.push(D({x:8,top:6,w:200,h:14,fg:"#8b6a1f",fs:9.5,ta:"left",jc:"flex-start",lab:"沿关键线路 B→E→I"}));
+      els.push(D({x:8,top:50,w:x-8,h:0,bd:"1.5px solid #cf4436",bg:"transparent"}));
+      els.push(D({x:8,top:58,w:220,h:16,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"T = 6+8+6 = ? 周"})); }
+    else if(type==="float"){ figH=92; const u=13;
+      els.push(D({x:6,top:16,w:44,h:16,fg:"#2f6db0",fs:10.5,ta:"right",jc:"flex-end",lab:"工作 A"}));
+      els.push(D({x:56,top:14,w:3*u,h:18,bg:"#2f6db0",r:3}));
+      els.push(D({x:56+3*u,top:14,w:2*u,h:18,bg:"repeating-linear-gradient(45deg,#cfe0f0,#cfe0f0 4px,#e3eef8 4px,#e3eef8 8px)",bd:"1px solid #9fc0e0",r:3,fg:"#2f6db0",fs:8,lab:"TF2"}));
+      els.push(D({x:6,top:52,w:44,h:16,fg:"#cf8a44",fs:10.5,ta:"right",jc:"flex-end",lab:"工作 F"}));
+      els.push(D({x:56,top:50,w:2*u,h:18,bg:"#cf8a44",r:3}));
+      els.push(D({x:56+2*u,top:50,w:3*u,h:18,bg:"repeating-linear-gradient(45deg,#f3e0cb,#f3e0cb 4px,#f8ecdd 4px,#f8ecdd 8px)",bd:"1px solid #dcba8a",r:3,fg:"#cf8a44",fs:8,lab:"TF3"})); }
+    else if(type==="dummy"){ figH=72; 
+      els.push(D({x:6,top:24,w:24,h:24,bg:"#fff",bd:"2px solid #2f6db0",r:12,fg:"#2f6db0",fs:11,lab:"B"}));
+      els.push(D({x:34,top:34,w:40,h:3,bg:"#2f6db0",r:1}));
+      els.push(D({x:78,top:24,w:24,h:24,bg:"#fff",bd:"2px solid #23282b",r:12,fg:"#23282b",fs:11,lab:"③"}));
+      els.push(D({x:110,top:34,w:44,h:3,bg:"repeating-linear-gradient(to right,#cf4436 0 5px,transparent 5px 10px)",r:1}));
+      els.push(D({x:112,top:14,w:60,h:12,fg:"#cf4436",fs:9,ta:"left",jc:"flex-start",lab:"虚工作(0)"}));
+      els.push(D({x:158,top:24,w:24,h:24,bg:"#fff",bd:"2px solid #23282b",r:12,fg:"#23282b",fs:11,lab:"④"}));
+      els.push(D({x:196,top:26,w:118,h:20,fg:"#8b6a1f",fs:10,ta:"left",jc:"flex-start",lab:"补虚 → 逻辑补齐 → 再算"})); }
+    else if(type==="claimA"){ figH=72; const u=52;
+      els.push(D({x:6,top:10,w:70,h:16,fg:"#cf8a44",fs:10,ta:"left",jc:"flex-start",lab:"总时差 3 周"}));
+      els.push(D({x:80,top:8,w:3*u/3*3,h:0,bd:"none",bg:"transparent"}));
+      els.push(D({x:80,top:9,w:156,h:18,bg:"transparent",bd:"1.5px dashed #cbb488",r:3,fg:"#a8862b",fs:9,lab:"可滑动 3 周"}));
+      els.push(D({x:80,top:38,w:52,h:18,bg:"#2c8a5b",r:3,fg:"#fff",fs:9.5,lab:"延误1周"}));
+      els.push(D({x:138,top:40,w:170,h:14,fg:"#2c8a5b",fs:9.5,ta:"left",jc:"flex-start",lab:"1 ≤ 3 → 落进时差，不影响"})); }
+    else if(type==="list"){ figH=104; const toks=this.qAt(qi).fig==="list"?["记录实际时间","观测关键线路","检查非关键工作","核查逻辑关系","收集变更信息","（资金/合同=干扰）"]:[];
+      const pos=[[6,6],[162,6],[6,40],[162,40],[6,74],[162,74]]; const dz=[0,0,0,0,0,1];
+      toks.forEach((tk,i)=>{ els.push(D({x:pos[i][0],top:pos[i][1],w:148,h:28,bg:dz[i]?"#fbeeeb":"#eef3f7",bd:"1.5px solid "+(dz[i]?"#e0b3aa":"#cdd9e2"),r:8,fg:dz[i]?"#cf4436":"#2f6db0",fs:10,lab:tk})); }); }
+    else if(type==="sheet"){ figH=96; const lines=["(1) 关键线路 A→D→E→H","(2) 总时差 2 周和 3 周","(3) ①甲方责任→成立 ②自己责任→不成立"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*28,w:308,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11.5,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题 →"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果 →"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

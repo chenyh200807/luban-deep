@@ -328,6 +328,20 @@ async def _stop_learner_state_runtime(app: FastAPI) -> None:
     await runtime.stop()
 
 
+async def _release_startup_orphaned_free_trial_reservations(
+    *,
+    cutoff_created_at: float,
+) -> int:
+    from deeptutor.services.member_usage_meter import get_member_usage_meter
+
+    return await asyncio.to_thread(
+        get_member_usage_meter().release_free_trial_reservations_before,
+        cutoff_created_at,
+        reason="orphaned_on_restart",
+        finalized_by="startup_orphan_recovery",
+    )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -373,15 +387,30 @@ async def lifespan(app: FastAPI):
     # ``running`` row in SQLite is provably orphaned — its _run_turn finally
     # block never ran. Sweep them to ``failed`` once, before TutorBots start,
     # so global active/billing views are not polluted. Idempotent.
+    orphan_recovery_cutoff = time.time()
+    orphan_turn_recovery_succeeded = False
     try:
         from deeptutor.services.session import get_sqlite_session_store
 
         recovered = await get_sqlite_session_store().recover_all_orphaned_turns(
             "orphaned_on_restart"
         )
+        orphan_turn_recovery_succeeded = True
         logger.info(f"Recovered {recovered} orphaned running turn(s) on startup")
     except Exception as e:
         logger.warning(f"Failed to recover orphaned running turns at startup: {e}")
+    if orphan_turn_recovery_succeeded:
+        try:
+            released = await _release_startup_orphaned_free_trial_reservations(
+                cutoff_created_at=orphan_recovery_cutoff
+            )
+            logger.info(
+                f"Released {released} orphaned free trial reservation(s) on startup"
+            )
+        except Exception as e:
+            logger.warning(
+                f"Failed to release orphaned free trial reservations at startup: {e}"
+            )
 
     try:
         from deeptutor.services.tutorbot import get_tutorbot_manager
@@ -674,6 +703,8 @@ from deeptutor.api.routers import (
     knowledge,
     learner_signal,
     learning_brain,
+    lesson_progress,
+    luban_lesson,
     luban_preview,
     member,
     memory,
@@ -710,7 +741,9 @@ else:
 app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledge"])
 app.include_router(invite_test.router, prefix="/api/v1/invite-test", tags=["invite-test"])
 app.include_router(luban_preview.router, prefix="/api/v1/luban-preview", tags=["luban-preview"])
+app.include_router(luban_lesson.router, prefix="/api/v1/luban", tags=["luban_lesson"])
 app.include_router(learner_signal.router, prefix="/api/v1/learner-signal", tags=["learner_signal"])
+app.include_router(lesson_progress.router, prefix="/api/v1/lesson-progress", tags=["lesson_progress"])
 if runtime_environment() == "local" and env_flag("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", default=False):
     app.include_router(learning_brain.router, prefix="/api/v1/learning-brain", tags=["learning-brain"])
 

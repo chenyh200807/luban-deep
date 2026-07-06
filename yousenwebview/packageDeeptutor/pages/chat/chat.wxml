@@ -11,28 +11,21 @@ module.exports = {
   has: has
 };
 </wxs>
-<view class="page {{isDark?'':'light'}}">
+<view class="page paper pk-paper-bg {{isDark?'':'light'}}">
 
-  <!-- 呼吸极光背景（低端设备跳过以节省 GPU） -->
-  <view class="aurora-layer" wx:if="{{enableOrbs}}">
-    <view class="orb orb1"></view>
-    <view class="orb orb2"></view>
-    <view class="orb orb3"></view>
-    <view class="orb orb4"></view>
-  </view>
-  <image class="bg-horizon" src="../../images/bg_horizon.jpg" mode="aspectFill" />
-
-  <!-- 顶栏 — 仅 logo + 新对话 -->
+  <!-- 10d 顶栏 — 标题（续着上次聊）+ 会话历史时钟二级页 + 新对话 -->
   <view class="navbar {{hasMessages ? 'navbar-chat' : ''}}" style="padding-top:{{statusBarHeight}}px">
     <view class="navbar-inner" style="padding-right:{{navRightInset}}px">
-      <view class="nav-brand-stack">
-        <image class="nav-logo {{hasMessages ? 'nav-logo-chat' : ''}}" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" aria-role="button" aria-label="回到首页" />
-        <view class="nav-back-pill" wx:if="{{hasMessages}}" bindtap="onNavBackTap" aria-role="button" aria-label="返回首页">
-          <text class="nav-back-arrow">‹</text>
-          <text class="nav-back-label">返回首页</text>
+      <view class="nav-brand-stack" bindtap="goHome" aria-role="button" aria-label="回到问鲁班首页">
+        <view class="nav-title-stack">
+          <text class="nav-title">问鲁班</text>
+          <text class="nav-sub">续着上次聊 · 问完就练</text>
         </view>
       </view>
       <view style="flex:1"></view>
+      <view class="nav-icon-btn nav-history-chat" bindtap="goHistoryPage" aria-role="button" aria-label="会话历史">
+        <view class="nav-clock-icon"></view>
+      </view>
       <view class="nav-chat-actions" wx:if="{{hasMessages}}">
         <view class="nav-icon-btn nav-new-chat" bindtap="clearMessages" aria-role="button" aria-label="新建对话">
           <view class="nav-compose-icon"></view>
@@ -89,6 +82,14 @@ module.exports = {
       </view>
     </view>
 
+    <!-- 10d 上下文带入条（无上下文不渲染；数据源=既有 followupContext/promptIntent 载体） -->
+    <view class="ctx-chip-row" wx:if="{{contextBanner}}">
+      <view class="ctx-chip">
+        <view class="ctx-chip-icon"></view>
+        <text class="ctx-chip-text" user-select>{{contextBanner}}</text>
+      </view>
+    </view>
+
     <!-- 输入卡片 -->
     <view class="input-card">
       <textarea
@@ -96,7 +97,7 @@ module.exports = {
         value="{{inputText}}"
         bindinput="onInput"
         bindconfirm="sendMessage"
-        placeholder="直接问：考点、真题、规范、错题"
+        placeholder="{{inputPlaceholder}}"
         placeholder-class="input-ph"
         auto-height
         maxlength="2000"
@@ -121,6 +122,18 @@ module.exports = {
 			          <text class="send-icon">▶</text>
 			        </view>
 			      </view>
+    </view>
+
+    <!-- 10d 快捷入口：出几道题（预填意图）/ 看动画讲解（深链有卡站）。拍照批改 owner 已拍板后置，不做。 -->
+    <view class="quick-row">
+      <view class="quick-pill" bindtap="onQuickComposeQuestions" aria-role="button" aria-label="出几道题">
+        <view class="quick-ico quick-ico-compose"></view>
+        <text class="quick-pill-txt">出几道题</text>
+      </view>
+      <view class="quick-pill" bindtap="onQuickAnimLesson" aria-role="button" aria-label="看动画讲解">
+        <view class="quick-ico quick-ico-anim"></view>
+        <text class="quick-pill-txt">看动画讲解</text>
+      </view>
     </view>
 
     <text class="example-label" wx:if="{{recommendedPrompts && recommendedPrompts.length}}">根据你的学情，建议这样问</text>
@@ -214,6 +227,24 @@ module.exports = {
     bindscrolltolower="_onChatScrollToLower"
   >
     <view class="msg-list">
+      <!-- 10d 上下文带入条（会话态；无上下文不渲染） -->
+      <view class="ctx-chip-row" wx:if="{{contextBanner}}">
+        <view class="ctx-chip">
+          <view class="ctx-chip-icon"></view>
+          <text class="ctx-chip-text" user-select>{{contextBanner}}</text>
+        </view>
+      </view>
+      <!-- 10d 快捷入口（会话态）。拍照批改 owner 已拍板后置，不做。 -->
+      <view class="quick-row quick-row-chat">
+        <view class="quick-pill" bindtap="onQuickComposeQuestions" aria-role="button" aria-label="出几道题">
+          <view class="quick-ico quick-ico-compose"></view>
+          <text class="quick-pill-txt">出几道题</text>
+        </view>
+        <view class="quick-pill" bindtap="onQuickAnimLesson" aria-role="button" aria-label="看动画讲解">
+          <view class="quick-ico quick-ico-anim"></view>
+          <text class="quick-pill-txt">看动画讲解</text>
+        </view>
+      </view>
       <view class="msg {{item.role}} {{enableMsgAnim?'':'no-anim'}}" wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
 
         <!-- 用户消息 -->
@@ -239,7 +270,7 @@ module.exports = {
               <view class="thinking-head">
                 <view class="thinking-badge thinking-badge-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}">
                   <view class="dots-bounce"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
-                  <text class="thinking-badge-text" user-select>{{item.thinkingBadge ? item.thinkingBadge : 'AI 正在分析'}}</text>
+                  <text class="thinking-badge-text" user-select>{{item.thinkingBadge ? item.thinkingBadge : '鲁班琢磨中'}}</text>
                 </view>
                 <view class="thinking-scan thinking-scan-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}"></view>
               </view>
@@ -292,20 +323,6 @@ module.exports = {
                 </view>
                 <text class="workflow-step-detail" user-select wx:if="{{wf.detail}}">{{wf.detail}}</text>
               </view>
-            </view>
-          </view>
-
-          <!-- Grading-to-Brain：next_best_action 个性化下一步训练；端上只读展示服务端投影字段 -->
-          <view class="nba-card" wx:if="{{item.nextBestAction && item.nextBestAction.title}}">
-            <text class="nba-badge" user-select>下一步训练</text>
-            <text class="nba-title" user-select>{{item.nextBestAction.title}}</text>
-            <text class="nba-why" user-select wx:if="{{item.nextBestAction.whyThisNow}}">{{item.nextBestAction.whyThisNow}}</text>
-            <view class="nba-materials" wx:if="{{item.nextBestAction.materials && item.nextBestAction.materials.length}}">
-              <text class="nba-material" wx:for="{{item.nextBestAction.materials}}" wx:for-item="material" wx:for-index="materialIndex" wx:key="materialIndex" user-select>· {{material}}</text>
-            </view>
-            <text class="nba-measure" user-select wx:if="{{item.nextBestAction.successMeasure}}">达成标准：{{item.nextBestAction.successMeasure}}</text>
-            <view class="nba-go" data-msgid="{{item.id}}" bindtap="onNextBestActionTap" aria-role="button" aria-label="按推荐去练习">
-              <text class="nba-go-label" user-select>去练这个 ›</text>
             </view>
           </view>
 
@@ -612,6 +629,23 @@ module.exports = {
 	            </view>
 	          </view>
 	          <text class="runtime-meta-text" user-select wx:if="{{item.runtimeMetaText}}">{{item.runtimeMetaText}}</text>
+        </view>
+        <!-- 10d 导回钩子：next_best_action 服务端投影单 CTA，「练一道同类题」由它承载。
+             设计里的另两选项「加入今日任务 / 我会了→换皮挑战」后端无投影，不做不造。
+             TODO(10d 导回三选一): 待任务/换皮挑战投影落地后在此补齐。 -->
+        <view class="nba-card" wx:if="{{item.role !== 'user' && item.nextBestAction && item.nextBestAction.title}}">
+          <text class="nba-badge" user-select>懂了不等于会写——现在练一下？</text>
+          <text class="nba-title" user-select>{{item.nextBestAction.title}}</text>
+          <text class="nba-why" user-select wx:if="{{item.nextBestAction.whyThisNow}}">{{item.nextBestAction.whyThisNow}}</text>
+          <view class="nba-materials" wx:if="{{item.nextBestAction.materials && item.nextBestAction.materials.length}}">
+            <text class="nba-material" wx:for="{{item.nextBestAction.materials}}" wx:for-item="material" wx:for-index="materialIndex" wx:key="materialIndex" user-select>· {{material}}</text>
+          </view>
+          <text class="nba-measure" user-select wx:if="{{item.nextBestAction.successMeasure}}">达成标准：{{item.nextBestAction.successMeasure}}</text>
+          <view class="nba-actions">
+            <view class="nba-go" data-msgid="{{item.id}}" bindtap="onNextBestActionTap" aria-role="button" aria-label="练一道同类题">
+              <text class="nba-go-label" user-select>练一道同类题</text>
+            </view>
+          </view>
         </view>
         <!-- AI 操作栏 — 气泡外部，左对齐 -->
         <view class="msg-actions msg-actions-left" wx:if="{{item.role !== 'user' && !item.streaming && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}">

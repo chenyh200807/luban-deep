@@ -1,4 +1,9 @@
-// pages/profile/profile.js — 个人中心
+// pages/profile/profile.js — 我的 tab（第10轮 10f：权益透明 · 纸墨朱竹）
+//
+// 前端只展示后端 read model：exam_date / review_reminder / daily_target 等经
+// PATCH /api/v1/auth/profile/settings 落 member_console，回显走 GET /api/v1/auth/profile。
+// 点亮判定唯一权威 = utils/learn-view-model（pack_lifecycle 投影），本页零第二套判定。
+// IA 铁律（五模块 Brief §2/§3）：历史与学习统计绝不放本页；学习统计入口只指向学情页。
 
 var api = require("../../utils/api");
 var helpers = require("../../utils/helpers");
@@ -6,41 +11,29 @@ var runtime = require("../../utils/runtime");
 var route = require("../../utils/route");
 var flags = require("../../utils/flags");
 var auth = require("../../utils/auth");
+var learnViewModel = require("../../utils/learn-view-model");
 
 // [W5-3] Debounce timer for settings save
 var _saveTimer = null;
 var SAVE_DEBOUNCE_MS = 500;
-var BADGE_DESC_BY_ID = {
-  1: "完成首次练习或摸底测试",
-  2: "连续多题答对，保持稳定正确率",
-  3: "覆盖多个章节并形成学习记录",
-  4: "连续学习多天，形成复习节奏",
-  5: "完成高质量解析或错题复盘",
-  6: "在阶段测评中达到优秀表现",
-  7: "在限定时间内完成练习任务",
-  8: "持续完成学习目标并保持高掌握度",
-};
-
-function _normalizeBadges(remoteBadges, fallbackEarnedIds, currentBadges) {
-  var earned = new Set(fallbackEarnedIds || []);
-  var hasRemote = Array.isArray(remoteBadges) && remoteBadges.length;
-  var source = hasRemote ? remoteBadges : currentBadges;
-  return (source || []).map(function (badge) {
-    var id = Number(badge.id);
-    return {
-      id: id,
-      icon: badge.icon,
-      name: badge.name,
-      desc: badge.desc || BADGE_DESC_BY_ID[id] || "完成对应学习目标后自动点亮",
-      earned: hasRemote && typeof badge.earned === "boolean" ? badge.earned : earned.has(id),
-    };
-  });
-}
 
 function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
   var data = api.unwrapResponse ? api.unwrapResponse(raw) || raw || {} : raw || {};
   var balance = Number(data.balance || data.points || data.display_balance || 0);
   if (!isFinite(balance)) balance = 0;
+  // 计费真值 = 钱包 points（Supabase 钱包按 canonical_uid）。
+  // balance <= 0 即后端免费试用三规则生效（mobile.py：每日 3 问 / 7 日 12 问 /
+  // 连续 3 日满额提示充值）。后端没有暴露已用计数的读接口（quota 只出现在
+  // 429 detail 与 start-turn 预约路径），本页不自算、不造数——降级为静态规则说明。
+  if (balance <= 0) {
+    return {
+      freeTier: true,
+      usagePrimaryLabel: "免费体验中",
+      usageRows: [],
+      usageDetailShow: false,
+      usageLoading: false,
+    };
+  }
   var percent = _walletPercent(balance, ledgerRaw);
   var percentLabel = "剩余 " + _formatPercent(percent);
   var percentWidth = Math.max(0, Math.min(100, Math.round(percent)));
@@ -73,6 +66,7 @@ function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
     });
   }
   return {
+    freeTier: false,
     usagePrimaryLabel: percentLabel,
     usageRows: rows,
     usageDetailShow: false,
@@ -100,18 +94,75 @@ function _formatPercent(value) {
   return rounded.toFixed(1) + "%";
 }
 
+/**
+ * 考试日期 → 头部副标题文案（10f：「考试日 9 月 19 日（剩 87 天）」）。
+ * 纯展示派生，不做任何调度/掌握度计算——exam_date 真值喂后端复习调度引擎。
+ */
+function _examDateLabel(examDate) {
+  var raw = String(examDate || "").trim();
+  if (!raw) return "考试日期待设置";
+  var parts = raw.split("-");
+  if (parts.length !== 3) return "考试日 " + raw;
+  var month = Number(parts[1]);
+  var day = Number(parts[2]);
+  var dateLabel = month + " 月 " + day + " 日";
+  var target = new Date(Number(parts[0]), month - 1, day);
+  var now = new Date();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var days = Math.round((target.getTime() - today.getTime()) / 86400000);
+  if (!isFinite(days)) return "考试日 " + dateLabel;
+  if (days > 0) return "考试日 " + dateLabel + "（剩 " + days + " 天）";
+  if (days === 0) return "考试日 " + dateLabel + "（就是今天）";
+  return "考试日 " + dateLabel + "（已过期，点这里更新）";
+}
+
+/**
+ * 我的路线卡投影：点亮数 = learn-view-model 单一权威（pack_lifecycle），
+ * 总站数 = PACK_UNIVERSE(40)。learning-report 读不到时返回 null——
+ * 卡片只保留会员口径文案，不声称任何点亮数（缺字段降级不造数）。
+ */
+function _normalizeRouteCard(reportRaw, lessonsRaw) {
+  if (!reportRaw) return null;
+  var report = api.unwrapResponse ? api.unwrapResponse(reportRaw) || reportRaw : reportRaw;
+  var lessons = lessonsRaw
+    ? api.unwrapResponse
+      ? api.unwrapResponse(lessonsRaw) || lessonsRaw
+      : lessonsRaw
+    : {};
+  if (!report || typeof report !== "object") return null;
+  var vm = learnViewModel.buildLearnViewModel({
+    homeDashboard: {},
+    report: report,
+    lessons: lessons || {},
+  });
+  var total = Number(vm.packUniverse) || 0;
+  if (total <= 0) return null;
+  var lit = Math.max(0, Math.min(total, Number(vm.litCount) || 0));
+  var percent = Math.round((lit / total) * 100);
+  // 已点亮但占比 <4% 时给最小可见宽度（纯视觉，不改数字口径）
+  if (lit > 0 && percent < 4) percent = 4;
+  return {
+    lit: lit,
+    total: total,
+    label: "路线 " + lit + " / " + total + " 站已点亮",
+    barStyle: "width:" + percent + "%",
+  };
+}
+
 function buildLinkItems(workspaceFlags) {
   var flagsValue = workspaceFlags && typeof workspaceFlags === "object" ? workspaceFlags : {};
   var items = [];
   if (flagsValue.assessmentEnabled !== false) {
-    items.push({ id: "assessment", icon: "📊", title: "摸底测试" });
+    items.push({ id: "assessment", title: "摸底测试" });
   }
   if (flagsValue.reportEnabled !== false) {
-    items.push({ id: "diagnostic", icon: "🔍", title: "摸底报告" });
+    // IA 铁律：学习统计并入学情，不在我的单列——本行只做去学情页的入口
+    items.push({ id: "diagnostic", title: "学习统计" });
   }
-  items.push({ id: "membership", icon: "👑", title: "权益充值" });
-  items.push({ id: "feedback", icon: "💬", title: "意见反馈" });
-  items.push({ id: "terms", icon: "📄", title: "服务条款" });
+  items.push({ id: "membership", title: "权益充值" });
+  items.push({ id: "feedback", title: "客服与反馈" });
+  items.push({ id: "terms", title: "服务条款与隐私" });
+  items.push({ id: "about", title: "关于鲁班智考" });
   return items;
 }
 
@@ -122,15 +173,21 @@ Page({
     username: "用户",
     avatarChar: "U",
     avatarUrl: "",
-    level: 1,
-    xp: 0,
     isDark: true,
     usageLoading: true,
     usagePrimaryLabel: "剩余 --",
     usageRows: [],
     usageDetailShow: false,
+    freeTier: false,
 
     examDate: "",
+    examDateLabel: "考试日期待设置",
+    // 我的路线（null → 只显示会员口径文案，不声称点亮数）
+    routeCard: null,
+    // 时间预算轻/中/重是设计目标形态；后端 member_console 尚无 time_budget
+    // 字段（缺口），先保留 daily_target 控件按新视觉重铺。
+    // TODO(time_budget): 后端落 time_budget(light/medium/heavy) 后，
+    // 本控件换三档映射（约 15/30/60 分钟每天），daily_target 退役。
     dailyTarget: 30,
     dailyTargetOptions: [10, 30, 50],
     difficultyPref: "medium",
@@ -148,18 +205,6 @@ Page({
     reviewReminder: false,
     navBackLabel: "对话",
 
-    badges: [
-      { id: 1, icon: "🏆", name: "首战告捷", desc: "完成首次练习或摸底测试", earned: false },
-      { id: 2, icon: "🎯", name: "连胜达人", desc: "连续多题答对，保持稳定正确率", earned: false },
-      { id: 3, icon: "📚", name: "博览群书", desc: "覆盖多个章节并形成学习记录", earned: false },
-      { id: 4, icon: "🔥", name: "坚持之星", desc: "连续学习多天，形成复习节奏", earned: false },
-      { id: 5, icon: "💡", name: "解题高手", desc: "完成高质量解析或错题复盘", earned: false },
-      { id: 6, icon: "🌟", name: "满分王者", desc: "在阶段测评中达到优秀表现", earned: false },
-      { id: 7, icon: "⚡", name: "速战速决", desc: "在限定时间内完成练习任务", earned: false },
-      { id: 8, icon: "🎖️", name: "精英学员", desc: "持续完成学习目标并保持高掌握度", earned: false },
-    ],
-
-    // 隐藏了"学习计划"（后期开发）
     linkItems: buildLinkItems(flags.getWorkspaceFlags()),
     isGuestPreview: false,
   },
@@ -187,7 +232,8 @@ Page({
       navBackLabel: workspaceBack ? workspaceBack.label : "对话",
       linkItems: buildLinkItems(workspaceFlags),
     });
-    helpers.syncTabBar(this, 3, {
+    // 五 tab 壳:我的 index=4
+    helpers.syncTabBar(this, 4, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
     if (!auth.isLoggedIn()) {
@@ -197,6 +243,7 @@ Page({
     this.setData({ isGuestPreview: false });
     this._loadUserInfo();
     this._loadUsage();
+    this._loadRoute();
   },
 
   _loadUsage: function () {
@@ -223,6 +270,41 @@ Page({
       });
   },
 
+  // 我的路线：绿灯站列表（轻）+ learning-report（重 read model，静默拉，
+  // 失败/缺字段 → routeCard=null，卡片降级为纯口径文案）
+  _loadRoute: function () {
+    if (!auth.isLoggedIn()) return;
+    var self = this;
+    var opt = { silent: true };
+    var settle = function (make) {
+      return Promise.resolve()
+        .then(make)
+        .catch(function () {
+          return null;
+        });
+    };
+    Promise.all([
+      settle(function () {
+        return api.getLearningReport(100, opt);
+      }),
+      settle(function () {
+        return api.getLubanLessons(opt);
+      }),
+    ]).then(function (res) {
+      self.setData({ routeCard: _normalizeRouteCard(res[0], res[1]) });
+    });
+  },
+
+  goRoute: function () {
+    helpers.vibrate("light");
+    wx.navigateTo({
+      url: route.learn(),
+      fail: function () {
+        if (wx.reLaunch) wx.reLaunch({ url: route.learn() });
+      },
+    });
+  },
+
   openUsageDetail: function () {
     if (!auth.isLoggedIn()) {
       this._requireLogin();
@@ -246,12 +328,12 @@ Page({
       .getUserInfo()
       .then(function (info) {
         var name = info.display_name || info.username || "用户";
+        var examDate = info.exam_date || "";
         var update = {
           username: name,
           avatarChar: name.charAt(0).toUpperCase(),
-          level: info.level || 1,
-          xp: info.xp || 0,
-          examDate: info.exam_date || "",
+          examDate: examDate,
+          examDateLabel: _examDateLabel(examDate),
           dailyTarget: info.daily_target || 30,
           difficultyPref: info.difficulty_preference || "medium",
           explainStyle: info.explanation_style || "detailed",
@@ -262,43 +344,10 @@ Page({
           update.avatarUrl = info.avatar_url;
         }
         self.setData(update);
-
-        self._loadBadges(info.earned_badge_ids || []);
       })
       .catch(function () {
         // getUserInfo 失败，保持默认值
       });
-  },
-
-  _loadBadges: function (fallbackEarnedIds) {
-    var self = this;
-    api
-      .getBadges()
-      .then(function (raw) {
-        var data = api.unwrapResponse ? api.unwrapResponse(raw) || raw || {} : raw || {};
-        self.setData({
-          badges: _normalizeBadges(data.badges, fallbackEarnedIds, self.data.badges),
-        });
-      })
-      .catch(function () {
-        self.setData({
-          badges: _normalizeBadges(null, fallbackEarnedIds, self.data.badges),
-        });
-      });
-  },
-
-  onBadgeTap: function (e) {
-    var id = Number(e.currentTarget.dataset.id);
-    var badge = this.data.badges.find(function (item) {
-      return item.id === id;
-    });
-    if (!badge) return;
-    wx.showModal({
-      title: badge.name,
-      content: (badge.earned ? "已获得：" : "未获得：") + badge.desc,
-      showCancel: false,
-      confirmText: "知道了",
-    });
   },
 
   // ── 修改昵称 ──────────────────────────────────
@@ -377,8 +426,12 @@ Page({
       this._requireLogin();
       return;
     }
-    this.setData({ examDate: e.detail.value });
-    this._saveSettings({ exam_date: e.detail.value });
+    var value = e.detail.value;
+    this.setData({
+      examDate: value,
+      examDateLabel: _examDateLabel(value),
+    });
+    this._saveSettings({ exam_date: value });
   },
 
   setDailyTarget: function (e) {
@@ -476,24 +529,34 @@ Page({
       isGuestPreview: true,
       username: "未登录用户",
       avatarChar: "游",
-      level: 1,
-      xp: 0,
       usageLoading: false,
       usagePrimaryLabel: "登录后查看权益",
       usageRows: [],
       usageDetailShow: false,
+      freeTier: false,
       examDate: "",
+      examDateLabel: "考试日期待设置",
+      routeCard: null,
       dailyTarget: 30,
       difficultyPref: "medium",
       explainStyle: "detailed",
       reviewReminder: false,
-      badges: _normalizeBadges(null, [], this.data.badges),
     });
   },
 
   openFeedbackPage: function () {
     helpers.vibrate("light");
     wx.navigateTo({ url: route.feedback({ source: "profile" }) });
+  },
+
+  openAbout: function () {
+    wx.showModal({
+      title: "关于鲁班智考",
+      content:
+        "鲁班智考 · 一建建筑实务备考助手。不按题收费，会员解锁的是你这条路线的剩余部分；已点亮站点生成的复习单元永久可回炉。",
+      showCancel: false,
+      confirmText: "知道了",
+    });
   },
 
   openLink: function (e) {
@@ -507,6 +570,7 @@ Page({
       if (!flags.ensureFeatureEnabled("assessment", { redirect: false })) return;
       wx.navigateTo({ url: route.assessment() });
     } else if (id === "diagnostic") {
+      // 学习统计归学情页（IA 铁律：不在我的单列，只做去学情的入口）
       if (!flags.ensureFeatureEnabled("report", { redirect: false })) return;
       runtime.setWorkspaceBack(route.profile(), "我的");
       wx.navigateTo({ url: route.report() });
@@ -516,6 +580,8 @@ Page({
       this.openFeedbackPage();
     } else if (id === "terms") {
       wx.navigateTo({ url: route.terms() });
+    } else if (id === "about") {
+      this.openAbout();
     }
   },
 
@@ -524,7 +590,7 @@ Page({
       wx.showModal({
         title: "退出体验",
         content: "确定要退出先体验导学吗？",
-        confirmColor: "#ef4444",
+        confirmColor: "#bf5b4e",
         success: function (res) {
           if (res.confirm) {
             runtime.logout();
@@ -536,7 +602,7 @@ Page({
     wx.showModal({
       title: "退出登录",
       content: "确定要退出登录吗？",
-      confirmColor: "#ef4444",
+      confirmColor: "#bf5b4e",
       success: function (res) {
         if (res.confirm) {
           runtime.logout();

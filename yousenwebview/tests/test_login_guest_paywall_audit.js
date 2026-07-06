@@ -172,6 +172,12 @@ assert(
   "billing quota errors should surface a paywall instead of a generic error",
 );
 assert(
+  chatJs.indexOf("权益不足") >= 0 &&
+    chatJs.indexOf("充值") >= 0 &&
+    chatJs.indexOf("free_trial_") >= 0,
+  "paywall detector should catch normalized recharge copy and free-trial quota keys",
+);
+assert(
   wsStream.indexOf("billing_quota_exceeded") >= 0 &&
     wsStream.indexOf("权益不足，请先充值后继续使用") >= 0,
   "start-turn billing quota errors should normalize to user-facing paywall copy",

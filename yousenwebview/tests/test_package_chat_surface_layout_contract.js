@@ -76,10 +76,12 @@ assert(
   "package light history row archive/delete glyphs should remain visible on white cards",
 );
 assert(
-  /\.profile-page\.light \.user-name-edit\s*\{\s*color:\s*#64748b;/.test(profileWxss) &&
+  // profile 已切第10轮纸墨 token：编辑箭头走 --pk-t3，亮态 token 由 .light 作用域给定
+  /\.user-name-edit\s*\{[^}]*color:\s*var\(--pk-t3\);/.test(profileWxss) &&
+    /\.profile-page\.light\s*\{[^}]*--pk-t3:\s*#96917e/.test(profileWxss) &&
     /\.practice-page\.light \.link-arrow\s*\{\s*color:\s*#64748b;/.test(practiceWxss) &&
-    /\.report-page\.light \.assess-entry-arrow\s*\{\s*color:\s*#64748b;/.test(reportWxss),
-  "package light secondary action arrows should keep enough contrast on white cards",
+    /\.lr-card-link\s*\{[^}]*color:\s*var\(--pk-t1\);/.test(reportWxss),
+  "package light secondary action arrows/links should keep enough contrast on white cards",
 );
 assert(
   reportWxml.indexOf("overallMastery || diagnosticScore") === -1,

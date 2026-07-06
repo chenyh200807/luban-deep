@@ -1,0 +1,166 @@
+{
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "derived_from": "P40_A01_PROCESS.source_card.json",
+  "speakers": {
+    "T": {
+      "role": "teacher",
+      "voice": "longanhuan_v3"
+    },
+    "S": {
+      "role": "student",
+      "voice": "longlaotie_v3"
+    }
+  },
+  "opening": {
+    "exam_scene": "题干给一个检验批或分部分项验收现场，问程序是否妥当、应如何改正，或者要求写验收层级和不合格处理。",
+    "why_learn": "A01 验收程序题很容易写成四个名词框，但阅卷真正扫的是谁先做、谁来验、记录何时形成、合格结论如何托起上一级。",
+    "promise": "看完只练一个动作：让报验单走完现场流程，再把流程压成答题纸采分句。"
+  },
+  "teach": {
+    "voice": "longanhuan_v3",
+    "beats": [
+      {
+        "state": "hook",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[hook]",
+        "keycard": "验收程序是在覆盖前拦缺陷",
+        "bridge": "首幕先把这类题的本质定准。",
+        "exam_task": "把验收程序看成现场对象流转，而不是四级名词背诵。",
+        "visual_explanation": "检验批小车带着报验单进场，未验收就想进入下道工序的遮盖层，被红色闸门挡回。",
+        "answer_move": "先写缺陷必须在覆盖前验收拦截，不直接背“检验批、分项、分部”。",
+        "narration": "注意哈，A01 验收程序不是让你背一串名词。它真正考的是现场怎么把缺陷拦在还看得见、够得着、没被盖住的时候。你看这辆检验批小车，如果没有验收就想进下道工序，红闸门会把它挡回来。因为一旦被覆盖，后面再补程序就已经晚了。"
+      },
+      {
+        "state": "self_check",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[self_check]",
+        "keycard": "先施工自检合格，再报验",
+        "bridge": "所以，既然要在现场放行前拦住风险，第一道动作必须先落到施工单位。",
+        "exam_task": "指出未自检就直接报验或进入下道工序的程序错误。",
+        "visual_explanation": "施工单位自检章落在检验批上；没有盖章的报验单沿整改回路线退回，盖章后才报监理或建设单位。",
+        "answer_move": "写“施工单位自检合格后报验”。",
+        "narration": "第一步先看报验单有没有自检章。施工单位是质量第一责任人，必须先自检合格，再把成果报出去。监理不是替施工方做初检，监理验的是已经自检合格的成果。画面里没有自检章的报验单会被退回，盖了章才沿蓝色路径往外走。"
+      },
+      {
+        "state": "site_acceptance",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[site_acceptance]",
+        "keycard": "主控全合格，一般看门槛",
+        "bridge": "有了自检合格的报验单，接着才到现场验收闸门。",
+        "exam_task": "区分主控项目和一般项目的合格判定表达。",
+        "visual_explanation": "检查人员进入现场，主控项目红闸必须全部亮绿，一般项目沿80%标尺达线后才放行。",
+        "answer_move": "写主控项目全部合格，一般项目合格率达到要求，不把80%套到主控项目。",
+        "narration": "第二步看现场闸门。主控项目不是百分之八十这种口径，它是全合格闸；只要主控项目没过，就不能放行。一般项目才看合格率门槛。这里要诚实一点，具体普适条文边界还要回规范核，但考试表达上，主控和一般必须分开写，不能都写成一个百分比。"
+      },
+      {
+        "state": "record_lift",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[record_lift]",
+        "keycard": "验收记录是上一级证据",
+        "bridge": "现场闸门通过以后，再看结果怎么留下来。",
+        "exam_task": "说明验收记录和进入下道工序、上一级验收之间的关系。",
+        "visual_explanation": "签认笔生成验收记录表，记录表归档后，检验批砖块被托起并拼入分项工程层。",
+        "answer_move": "写验收合格并形成记录后，方可进入下道工序或上一级验收。",
+        "narration": "第三步不要把记录当成后补文书。验收记录是上一级能继续验收的证据。画面里签认笔一落，记录表归档，检验批砖块才会升起来，拼进分项工程层。没有记录，下一层就没有证据可消费。"
+      },
+      {
+        "state": "level_stack",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[level_stack]",
+        "keycard": "下级合格，才托起上级",
+        "bridge": "有了记录，合格结论就开始向上托举。",
+        "exam_task": "把验收层级按正确方向写出来，避免从大到小倒装。",
+        "visual_explanation": "检验批砖自下而上堆成分项、分部、单位工程；镜头尝试先放单位工程屋顶，屋顶悬空闪红并退出。",
+        "answer_move": "按检验批、分项工程、分部工程、单位工程自下而上写。",
+        "narration": "第四步看层级。质量不是从单位工程往下拆，而是从最小的检验批往上垒。检验批合格，托起分项；分项合格，托起分部；分部合格，最后才托起单位工程。你看白板上如果先把屋顶放上去，它是悬空的。下面没合格，上面就没有验收基础。"
+      },
+      {
+        "state": "reject_branch",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[reject_branch]",
+        "keycard": "红灯后走处理分支",
+        "bridge": "但现场不可能每一车都一次绿灯，所以还要看红灯怎么处理。",
+        "exam_task": "写出不合格处理不是单一路径，并守住严禁验收红线。",
+        "visual_explanation": "不合格小车进入分岔铁轨，返修重验、补证检测、加固评估逐条亮起，严禁验收红线停在最后。",
+        "answer_move": "写返修/返工后重验、资料缺失可补证，仍不满足安全或重要使用要求的严禁验收。",
+        "narration": "第五步看不合格分支。红灯不等于一句全部拆掉，也不等于协商一下就放行。它要分流：能返修返工的，处理后重新验；资料缺失的，可以按规定补证检测；加固后还要重新评估。只有经返修或加固后仍不满足安全或重要使用要求，才走到严禁验收这条终止轨。"
+      },
+      {
+        "state": "score",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[score]",
+        "keycard": "现场流程压成三句采分话",
+        "bridge": "流程和分支都走完后，最后把它压成答题纸。",
+        "exam_task": "把验收程序、逐级层级和不合格处理写成可扫到的主观题答案。",
+        "visual_explanation": "最终答题纸逐句扫描，现场小车、记录表、堆层图缩成右侧缩略图，采分句三行依次命中。",
+        "answer_move": "写先自检报验、再验收记录、合格才进下道或上级，不合格按分支处理。",
+        "narration": "最后落到答题纸。第一句，施工单位自检合格后报验。第二句，由监理或建设单位按规定组织验收，形成验收记录。第三句，检验批合格后才进入分项、分部、单位工程逐级验收；不合格要按分支处理，并守住严禁验收红线。这样写，阅卷扫到的是程序动作，不是一串空名词。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，我直接写检验批、分项、分部、单位，这块能拿分不？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[top_down_order]",
+        "text": "能碰到层级名，但不够稳。程序题要写方向和条件：检验批先合格，再托起分项、分部、单位。只列名词，很容易漏掉“下级合格才上级”这个动作。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "那我让监理先来查，施工单位后面整改，行不行？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[skip_self_check]",
+        "text": "不行。监理验的是施工单位已经自检合格的成果。你把监理放到第一步，就把施工单位的质量责任闭环漏掉了，案例改错会扣程序分。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "整明白了，但不合格我写返工重验，是不是就够了？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[reject_equals_demolish]",
+        "text": "还差一截。返工重验只是一个分支。资料缺失、补证检测、返修加固后评估都可能出现；真正的硬红线是仍不满足安全或重要使用要求的，严禁验收。"
+      }
+    }
+  ],
+  "closing": {
+    "state": "closing_challenge",
+    "speaker": "T",
+    "claim": true,
+    "anchor": "memory_hook",
+    "text": "记住哈，这张卡就一条线：报验单走流程，记录表托上级。先自检，再验收，成记录，合格才放行。现在进闯关，按现场对象流转来练采分句。"
+  }
+}

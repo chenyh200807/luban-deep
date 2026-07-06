@@ -424,6 +424,65 @@ def test_turn_runtime_result_context_does_not_parse_presentation_read_model() ->
     assert _result_active_object(metadata) is None
 
 
+def test_turn_runtime_blocked_practice_generation_result_does_not_become_active_question() -> None:
+    blocked_text = (
+        "我还没有拿到本轮出题的具体考点，不能只按“出三道题”这类动作词生成题目。"
+        "请指定要围绕哪个知识点出题，或先回到刚才的学习主题后再让我出题。"
+    )
+    metadata = {
+        "response": blocked_text,
+        "practice_generation_blocked_reason": "missing_topic_anchor",
+        "question_lifecycle_scene": "practice_generation",
+        "question_followup_context": {
+            "question_id": "q_blocked",
+            "question": blocked_text,
+            "question_type": "written",
+        },
+        "active_object": {
+            "object_type": "single_question",
+            "object_id": "q_blocked",
+            "state_snapshot": {
+                "question_id": "q_blocked",
+                "question": blocked_text,
+                "question_type": "written",
+            },
+        },
+        "metadata": {
+            "question_followup_context": {
+                "question_id": "q_nested_blocked",
+                "question": blocked_text,
+                "question_type": "written",
+            }
+        },
+    }
+
+    assert _result_question_followup_context(metadata) is None
+    assert _result_active_object(metadata) is None
+
+    nested_blocked_metadata = {
+        "metadata": {
+            "practice_generation_blocked_reason": "missing_topic_anchor",
+            "question_followup_context": {
+                "question_id": "q_nested_blocked",
+                "question": blocked_text,
+                "question_type": "written",
+            },
+            "active_object": {
+                "object_type": "single_question",
+                "object_id": "q_nested_blocked",
+                "state_snapshot": {
+                    "question_id": "q_nested_blocked",
+                    "question": blocked_text,
+                    "question_type": "written",
+                },
+            },
+        }
+    }
+
+    assert _result_question_followup_context(nested_blocked_metadata) is None
+    assert _result_active_object(nested_blocked_metadata) is None
+
+
 def test_billing_capture_amount_records_estimated_cost_but_charges_standard_turn() -> None:
     amount, metadata = _billing_capture_amount_from_usage_summary(
         {
@@ -2307,6 +2366,44 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
 
 
 @pytest.mark.asyncio
+async def test_start_turn_does_not_persist_free_trial_marker_in_preferences(tmp_path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "考我一道题",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "user_id": "student_demo",
+                    "wallet_user_id": "wallet_demo",
+                    "learning_user_id": "student_demo",
+                    "free_trial": "reserved",
+                    "free_trial_reservation_key": "free_trial:wallet_demo:client-1",
+                }
+            },
+        }
+    )
+    await runtime.cancel_turn(turn["id"])
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    preferences = detail["preferences"]
+    assert preferences["source"] == "wx_miniprogram"
+    assert preferences["wallet_user_id"] == "wallet_demo"
+    assert "free_trial" not in preferences
+    assert "free_trial_reservation_key" not in preferences
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_extracts_document_attachments_into_context(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -3545,6 +3642,114 @@ async def test_turn_runtime_routes_tutorbot_practice_generation_to_deep_question
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_carries_prior_tutorbot_topic_to_action_only_practice_generation(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, Any] = {}
+
+    class FakeOrchestrator:
+        async def _select_capability(self, context):
+            if "出几道题目" in context.user_message:
+                captured["second_history"] = list(context.conversation_history)
+                captured["second_context_text"] = context.metadata.get(
+                    "conversation_context_text"
+                )
+                captured["second_turn_semantic_decision"] = context.metadata.get(
+                    "turn_semantic_decision"
+                )
+                context.config_overrides["force_generate_questions"] = True
+                context.config_overrides["topic"] = context.metadata.get(
+                    "raw_user_message"
+                ) or context.user_message
+                context.config_overrides["question_type"] = "choice"
+                return "deep_question"
+            return "tutorbot"
+
+        async def handle(self, context):
+            if context.active_capability == "tutorbot":
+                yield StreamEvent(
+                    type=StreamEventType.RESULT,
+                    source="tutorbot",
+                    metadata={
+                        "response": "一建建筑实务核心考点总览：工程设计、工程材料、施工技术。"
+                    },
+                )
+                yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+                return
+
+            captured["second_active_capability"] = context.active_capability
+            captured["second_config_overrides"] = dict(context.config_overrides)
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="deep_question",
+                metadata={
+                    "response": "第1题",
+                    "question_followup_context": {
+                        "question_id": "q_1",
+                        "question": "施工技术选择题",
+                        "question_type": "choice",
+                        "correct_answer": "B",
+                    },
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, first_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "帮我梳理一建建筑实务的核心考点",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {"bot_id": "construction-exam-coach"},
+        }
+    )
+    async for _event in runtime.subscribe_turn(first_turn["id"], after_seq=0):
+        pass
+
+    _session, second_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "出几道题目",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {"bot_id": "construction-exam-coach"},
+        }
+    )
+    async for _event in runtime.subscribe_turn(second_turn["id"], after_seq=0):
+        pass
+
+    history_text = "\n".join(
+        str(item.get("content") or "") for item in captured["second_history"]
+    )
+    assert captured["second_active_capability"] == "deep_question"
+    assert captured["second_config_overrides"]["topic"] == "出几道题目"
+    assert captured["second_turn_semantic_decision"]["next_action"] == "route_to_generation"
+    assert "一建建筑实务核心考点" in history_text
+    assert "一建建筑实务核心考点" in str(captured["second_context_text"])
 
 
 @pytest.mark.asyncio
@@ -9356,6 +9561,164 @@ def test_turn_runtime_internal_qa_billing_bypass_skips_wallet_capture(
     }
 
 
+def test_turn_runtime_free_trial_reservation_skips_wallet_capture(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+
+    class FailingWalletService:
+        def record_usage_points(self, **_kwargs):
+            raise AssertionError("wallet capture must not run for reserved free-trial turns")
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FailingWalletService(),
+    )
+    updates: list[dict[str, object]] = []
+
+    class RecordingUsageMeter:
+        def finalize_free_trial_reservation(self, dedupe_key, **kwargs):
+            updates.append({"dedupe_key": dedupe_key, **kwargs})
+            return True
+
+    monkeypatch.setattr(
+        "deeptutor.services.member_usage_meter.get_member_usage_meter",
+        lambda: RecordingUsageMeter(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "student_demo",
+            "free_trial": "reserved",
+            "free_trial_reservation_key": "free_trial:wallet_demo:client-1",
+        },
+        "这是一次免费试用回复。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_tokens": 123, "total_calls": 1},
+    )
+
+    assert result == {
+        "status": "metered_not_charged",
+        "reason": "free_trial",
+        "wallet_user_id": "wallet_demo",
+        "idempotency_key": "mini_program_capture:turn-1",
+        "free_trial_reservation_key": "free_trial:wallet_demo:client-1",
+    }
+    assert updates == [
+        {
+            "dedupe_key": "free_trial:wallet_demo:client-1",
+            "chargeable": True,
+            "turn_id": "turn-1",
+            "metadata_updates": {
+                "final_session_id": "session-1",
+                "final_turn_id": "turn-1",
+            },
+        }
+    ]
+
+
+def test_turn_runtime_releases_free_trial_reservation_for_non_chargeable_answer(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+    updates: list[dict[str, object]] = []
+
+    class RecordingUsageMeter:
+        def finalize_free_trial_reservation(self, dedupe_key, **kwargs):
+            updates.append({"dedupe_key": dedupe_key, **kwargs})
+            return True
+
+    monkeypatch.setattr(
+        "deeptutor.services.member_usage_meter.get_member_usage_meter",
+        lambda: RecordingUsageMeter(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "student_demo",
+            "free_trial": "reserved",
+            "free_trial_reservation_key": "free_trial:wallet_demo:client-provider-error",
+        },
+        "模型调用失败，请稍后重试。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_tokens": 0, "total_calls": 0},
+        chargeable_assistant_content=False,
+    )
+
+    assert result == {
+        "status": "released",
+        "reason": "free_trial_not_charged",
+        "wallet_user_id": "wallet_demo",
+        "idempotency_key": "mini_program_capture:turn-1",
+        "free_trial_reservation_key": "free_trial:wallet_demo:client-provider-error",
+    }
+    assert updates == [
+        {
+            "dedupe_key": "free_trial:wallet_demo:client-provider-error",
+            "chargeable": False,
+            "turn_id": "turn-1",
+            "metadata_updates": {
+                "final_session_id": "session-1",
+                "final_turn_id": "turn-1",
+                "release_reason": "non_chargeable_assistant_content",
+            },
+        }
+    ]
+
+
+def test_turn_runtime_reports_free_trial_finalize_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+
+    class FailingUsageMeter:
+        def finalize_free_trial_reservation(self, *_args, **_kwargs):
+            return False
+
+    monkeypatch.setattr(
+        "deeptutor.services.member_usage_meter.get_member_usage_meter",
+        lambda: FailingUsageMeter(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "student_demo",
+            "free_trial": "reserved",
+            "free_trial_reservation_key": "free_trial:wallet_demo:client-provider-error",
+        },
+        "模型调用失败，请稍后重试。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_tokens": 0, "total_calls": 0},
+        chargeable_assistant_content=False,
+    )
+
+    assert result == {
+        "status": "free_trial_update_failed",
+        "reason": "free_trial_reservation_not_finalized",
+        "wallet_user_id": "wallet_demo",
+        "idempotency_key": "mini_program_capture:turn-1",
+        "free_trial_reservation_key": "free_trial:wallet_demo:client-provider-error",
+    }
+
+
 def test_turn_runtime_internal_qa_billing_bypass_keeps_non_qa_wallet_capture(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -12373,33 +12736,3 @@ async def test_grading_merge_single_item_result_reads_store_once() -> None:
     assert store.get_active_object_calls == 1
     # prior is None → no set to preserve → result passes through unchanged.
     assert out is single
-
-
-
-def test_sanitize_public_terminal_event_appends_regulatory_hedge() -> None:
-    """content_truth ②: 终态 RESULT 投影对'具名规范+具体条款数值却无 hedge'的答案,
-    确定性追加标准免责(把 hedge 从 LLM 概率产出降级为终态确定性兜底)。"""
-    from deeptutor.services.user_visible_output import HEDGE_NOTICE
-
-    event = StreamEvent(type=StreamEventType.RESULT, source="tutorbot")
-    metadata: dict[str, Any] = {
-        "response": (
-            "## 结论\n建筑工程最低保修期限见 **《建设工程质量管理条例》第40条**：\n"
-            "屋面防水工程为 5 年。"
-        )
-    }
-    out = _sanitize_public_terminal_event(event, metadata)
-    assert out["response"].endswith(HEDGE_NOTICE)
-    assert "以现行有效的官方规范" in out["response"]
-
-
-def test_sanitize_public_terminal_event_no_double_hedge_when_present() -> None:
-    """已带 hedge 的终态答案不二次追加(幂等,避免双重免责)。"""
-    event = StreamEvent(type=StreamEventType.RESULT, source="tutorbot")
-    body = (
-        "现行规范依据是 **《建筑与市政工程施工质量控制通用规范》GB 55032-2022**，"
-        "未直接给出各分部具体保修年限数值，具体请以现行规范为准。"
-    )
-    metadata: dict[str, Any] = {"response": body}
-    out = _sanitize_public_terminal_event(event, metadata)
-    assert out["response"].count("📌") == 0

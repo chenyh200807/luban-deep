@@ -1,0 +1,761 @@
+{
+  "authority_note": "primary_taxonomy_ref 为注册表 refs 首项机械取值（provisional，待教研复核），只用于 taxonomy_code→pack 反查消歧，不充判分 authority；判分归 signed grading artifact。",
+  "packs": {
+    "A01": {
+      "alignment_status": "direct",
+      "note": "检验批、分项、分部、主体结构验收",
+      "primary_taxonomy_ref": "1A434020-B018",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "7",
+      "student_title": "检验批/分部分项验收程序",
+      "supporting_taxonomy_refs": [
+        "1A434020-B006",
+        "1A434020-B001"
+      ]
+    },
+    "A02": {
+      "alignment_status": "composite",
+      "note": "验收、见证取样、材料进场合并包",
+      "primary_taxonomy_ref": "1A434020-B018",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "40",
+      "student_title": "隐蔽工程验收 + 材料进场复验/见证取样",
+      "supporting_taxonomy_refs": [
+        "1A422000-B061",
+        "1A422000-B150",
+        "1A438000-B060"
+      ]
+    },
+    "B02": {
+      "alignment_status": "composite",
+      "note": "支护、监测、降水、报警条件组合包",
+      "primary_taxonomy_ref": "1A413022",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "5",
+      "student_title": "基坑支护选型与降水/监测",
+      "supporting_taxonomy_refs": [
+        "1A413034",
+        "1A413036",
+        "1A413000-B033"
+      ]
+    },
+    "C01": {
+      "alignment_status": "direct",
+      "note": "已有 C01 原型;施工缝/后浇带和接槎通病",
+      "primary_taxonomy_ref": "1A413040-R20",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "13",
+      "student_title": "施工缝留置与处理",
+      "supporting_taxonomy_refs": [
+        "1A413040-R29",
+        "1A434000-B037"
+      ]
+    },
+    "C02": {
+      "alignment_status": "direct",
+      "note": "进度款支付与计算公式",
+      "primary_taxonomy_ref": "1A432000-C17",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "4",
+      "student_title": "进度款/计量计价",
+      "supporting_taxonomy_refs": [
+        "1A432000-C19",
+        "1A432000-C24"
+      ]
+    },
+    "C04": {
+      "alignment_status": "direct",
+      "note": "拆除要求、要点、顺序和安全控制",
+      "primary_taxonomy_ref": "1A413040-R25",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "11",
+      "student_title": "模板拆除顺序与条件",
+      "supporting_taxonomy_refs": [
+        "1A413040-R26",
+        "1A413040-R27",
+        "1A436000-B114"
+      ]
+    },
+    "C05": {
+      "alignment_status": "direct",
+      "note": "钢筋连接与质量控制",
+      "primary_taxonomy_ref": "1A413040-R44",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "14",
+      "student_title": "钢筋连接选用",
+      "supporting_taxonomy_refs": [
+        "1A434000-B063"
+      ]
+    },
+    "C06": {
+      "alignment_status": "coarse_review",
+      "note": "留槎/构造柱缺精确 leaf;只能先锚砖砌体/填充墙/洞口留置",
+      "primary_taxonomy_ref": "1A413081",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "15",
+      "student_title": "砌体留槎与构造柱",
+      "supporting_taxonomy_refs": [
+        "1A413083",
+        "1A413042-R03",
+        "1A413030-G01"
+      ]
+    },
+    "C07": {
+      "alignment_status": "direct",
+      "note": "钢结构施工、构件连接、高强螺栓安装与主控",
+      "primary_taxonomy_ref": "1A413043",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "16",
+      "student_title": "钢结构连接: 焊接/高强螺栓",
+      "supporting_taxonomy_refs": [
+        "1A413084",
+        "1A413040-R33",
+        "1A413040-R64",
+        "1A434000-B082"
+      ]
+    },
+    "D11": {
+      "alignment_status": "direct",
+      "note": "抹灰工程与交接处防裂",
+      "primary_taxonomy_ref": "1A434030-E01",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "21",
+      "student_title": "抹灰工序与质量控制",
+      "supporting_taxonomy_refs": [
+        "1A422000-B012"
+      ]
+    },
+    "D12": {
+      "alignment_status": "composite",
+      "note": "饰面工程、饰面砖、装饰质量通病",
+      "primary_taxonomy_ref": "1A413064",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "22",
+      "student_title": "饰面砖/板施工质量与空鼓防治",
+      "supporting_taxonomy_refs": [
+        "1A413130",
+        "1A434000-B054",
+        "1A434034"
+      ]
+    },
+    "D13": {
+      "alignment_status": "direct",
+      "note": "幕墙防火、防雷、构造要求",
+      "primary_taxonomy_ref": "1A413134",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "23",
+      "student_title": "幕墙防火/防雷/层间封堵构造",
+      "supporting_taxonomy_refs": [
+        "1A413065-R10",
+        "1A413065-R11",
+        "1A413065-R12"
+      ]
+    },
+    "D14": {
+      "alignment_status": "composite",
+      "note": "综合包;细拆 D15/D16 前不得混成一个评分点",
+      "primary_taxonomy_ref": "1A413062",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "24",
+      "student_title": "吊顶/门窗/地面装饰质量综合",
+      "supporting_taxonomy_refs": [
+        "1A413063",
+        "1A413061-R10",
+        "1A434034"
+      ]
+    },
+    "D15": {
+      "alignment_status": "conditional_split",
+      "note": "从 D14 拆分需 source_ref",
+      "primary_taxonomy_ref": "1A413061-R10",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "59",
+      "student_title": "门窗安装、防渗漏质量控制细分候选",
+      "supporting_taxonomy_refs": [
+        "1A422000-B156",
+        "1A422000-B157",
+        "1A434000-B066"
+      ]
+    },
+    "D16": {
+      "alignment_status": "conditional_split",
+      "note": "从 D14 拆分需 source_ref",
+      "primary_taxonomy_ref": "1A413063",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "60",
+      "student_title": "地面基层与面层质量细分候选",
+      "supporting_taxonomy_refs": [
+        "1A413063-R02",
+        "1A413063-R03",
+        "1A434000-B011"
+      ]
+    },
+    "D17": {
+      "alignment_status": "merged_child",
+      "note": "默认并入 A02",
+      "primary_taxonomy_ref": "1A422000-B061",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "57",
+      "student_title": "装饰材料进场复验与见证取样",
+      "supporting_taxonomy_refs": [
+        "1A422000-B150",
+        "1A422000-B157",
+        "1A434020-B022"
+      ]
+    },
+    "E01": {
+      "alignment_status": "direct",
+      "note": "清单计价方式",
+      "primary_taxonomy_ref": "1A432000-B037",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "41",
+      "student_title": "工程量清单计价",
+      "supporting_taxonomy_refs": [
+        "1A432000-B053"
+      ]
+    },
+    "E02": {
+      "alignment_status": "direct",
+      "note": "预付款、进度款、结算款计算",
+      "primary_taxonomy_ref": "1A432000-C19",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "42",
+      "student_title": "预付款、起扣点、进度款细分",
+      "supporting_taxonomy_refs": [
+        "1A432000-C20",
+        "1A432000-C17",
+        "1A432000-C24"
+      ]
+    },
+    "E03": {
+      "alignment_status": "coarse_review",
+      "note": "暂列/暂估未命中精确 leaf;需计价 source_ref",
+      "primary_taxonomy_ref": "1A432000-C08",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "43",
+      "student_title": "措施费、暂列金额、暂估价判断",
+      "supporting_taxonomy_refs": [
+        "1A432000-C35",
+        "1A435000"
+      ]
+    },
+    "E04": {
+      "alignment_status": "direct",
+      "note": "竣工结算、价款确定与调整",
+      "primary_taxonomy_ref": "1A432000-C29",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "44",
+      "student_title": "竣工结算与价款调整",
+      "supporting_taxonomy_refs": [
+        "1A432000-C30",
+        "1A432000-C08",
+        "1A432000-C35"
+      ]
+    },
+    "E05": {
+      "alignment_status": "direct",
+      "note": "挣值法应用、计算、核心概念",
+      "primary_taxonomy_ref": "1A435020-B010",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "39",
+      "student_title": "挣值法/偏差分析",
+      "supporting_taxonomy_refs": [
+        "1A435020-B011",
+        "1A435020-B017"
+      ]
+    },
+    "F02": {
+      "alignment_status": "direct",
+      "note": "屋面/卷材防水层施工",
+      "primary_taxonomy_ref": "1A413103",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "30",
+      "student_title": "卷材防水施工顺序与搭接方向",
+      "supporting_taxonomy_refs": [
+        "1A413051-R03",
+        "1A413112",
+        "1A422000-B021"
+      ]
+    },
+    "F03": {
+      "alignment_status": "composite",
+      "note": "防水等级、基本要求、构造层次",
+      "primary_taxonomy_ref": "1A413100",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "31",
+      "student_title": "防水构造层次: 屋面/地下",
+      "supporting_taxonomy_refs": [
+        "1A413102",
+        "1A413050-R20",
+        "1A413050-R21",
+        "1A413112"
+      ]
+    },
+    "F04": {
+      "alignment_status": "coarse_review",
+      "note": "细部节点缺专门 leaf;需 source_ref 明确节点",
+      "primary_taxonomy_ref": "1A413050-R07",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "32",
+      "student_title": "防水细部节点: 阴阳角/管根/女儿墙",
+      "supporting_taxonomy_refs": [
+        "1A413050-R20",
+        "1A413050-R21",
+        "1A413050-R23"
+      ]
+    },
+    "F05": {
+      "alignment_status": "direct",
+      "note": "屋面防水通病、防水施工缝渗漏",
+      "primary_taxonomy_ref": "1A434033",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "33",
+      "student_title": "渗漏治理诊断",
+      "supporting_taxonomy_refs": [
+        "1A434000-B016",
+        "1A434000-B067"
+      ]
+    },
+    "F06": {
+      "alignment_status": "merged_child",
+      "note": "默认并入 A02,防水为场景",
+      "primary_taxonomy_ref": "1A412031",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "56",
+      "student_title": "防水材料性能与进场复验",
+      "supporting_taxonomy_refs": [
+        "1A412010-B053",
+        "1A412010-B148",
+        "1A412010-B149",
+        "1A422000-B061"
+      ]
+    },
+    "F16": {
+      "alignment_status": "composite",
+      "note": "已有 F16 样板;现有 JSON 粗锚 `1A434000`,需补割补 source_ref",
+      "primary_taxonomy_ref": "1A434000",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "29",
+      "student_title": "屋面防水起鼓割补",
+      "supporting_taxonomy_refs": [
+        "1A434000-B016",
+        "1A413103"
+      ]
+    },
+    "G01": {
+      "alignment_status": "direct",
+      "note": "土方开挖、降水技术、深基坑开挖",
+      "primary_taxonomy_ref": "1A413037",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "25",
+      "student_title": "基坑开挖与降水方法选择",
+      "supporting_taxonomy_refs": [
+        "1A413036",
+        "1A413000-B081",
+        "1A413000-B071"
+      ]
+    },
+    "G02": {
+      "alignment_status": "direct",
+      "note": "回填、填筑压实、安全措施",
+      "primary_taxonomy_ref": "1A413039",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "26",
+      "student_title": "土方回填压实与检测",
+      "supporting_taxonomy_refs": [
+        "1A413000-B020",
+        "1A436000-B043"
+      ]
+    },
+    "G03": {
+      "alignment_status": "direct",
+      "note": "桩基础、预制桩、灌注桩、检测",
+      "primary_taxonomy_ref": "1A413032",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "27",
+      "student_title": "桩基施工与质量问题",
+      "supporting_taxonomy_refs": [
+        "1A413067",
+        "1A413068",
+        "1A413069"
+      ]
+    },
+    "G04": {
+      "alignment_status": "direct",
+      "note": "天然地基验槽与基坑验槽",
+      "primary_taxonomy_ref": "1A413048",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "28",
+      "student_title": "地基验槽与地基处理",
+      "supporting_taxonomy_refs": [
+        "1A413000-B041",
+        "1A413025"
+      ]
+    },
+    "G05": {
+      "alignment_status": "direct",
+      "note": "基坑监测、报警条件、测量监测",
+      "primary_taxonomy_ref": "1A413034",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "51",
+      "student_title": "支护结构监测报警与处置",
+      "supporting_taxonomy_refs": [
+        "1A413000-B033",
+        "1A413000-B036"
+      ]
+    },
+    "J01": {
+      "alignment_status": "direct",
+      "note": "已有 J01 原型;主锚点用专家论证,范围/超过一定规模作辅锚",
+      "primary_taxonomy_ref": "1A431030-E01",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "1",
+      "student_title": "危大工程范围 + 专项方案 + 专家论证",
+      "supporting_taxonomy_refs": [
+        "1A436000-B029",
+        "1A436000-B158"
+      ]
+    },
+    "K01": {
+      "alignment_status": "composite",
+      "note": "工期索赔、费用索赔、发包人原因、索赔计算",
+      "primary_taxonomy_ref": "1A432000-B001",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "9",
+      "student_title": "索赔成立与工期/费用计算",
+      "supporting_taxonomy_refs": [
+        "1A432000-B002",
+        "1A432000-B015",
+        "1A432000-B057"
+      ]
+    },
+    "K02": {
+      "alignment_status": "merged_child",
+      "note": "默认并入 K06",
+      "primary_taxonomy_ref": "1A432000-B004",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "53",
+      "student_title": "不可抗力责任划分",
+      "supporting_taxonomy_refs": []
+    },
+    "K03": {
+      "alignment_status": "coarse_review",
+      "note": "工程变更有节点,签证需 source_ref 补证",
+      "primary_taxonomy_ref": "1A432000-C14",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "45",
+      "student_title": "工程变更与签证",
+      "supporting_taxonomy_refs": [
+        "1A432000-B056",
+        "1A432000-B058"
+      ]
+    },
+    "K04": {
+      "alignment_status": "direct",
+      "note": "默认从 E04/K05 条件拆分",
+      "primary_taxonomy_ref": "1A432000-C08",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "52",
+      "student_title": "合同价款调整触发与计算边界",
+      "supporting_taxonomy_refs": [
+        "1A432000-C09",
+        "1A432000-C35"
+      ]
+    },
+    "K05": {
+      "alignment_status": "composite",
+      "note": "默认作为 K01/K06 的迁移包",
+      "primary_taxonomy_ref": "1A432000-B001",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "46",
+      "student_title": "工期顺延与费用补偿边界",
+      "supporting_taxonomy_refs": [
+        "1A432000-B002",
+        "1A432000-B015",
+        "1A432000-B057"
+      ]
+    },
+    "K06": {
+      "alignment_status": "composite",
+      "note": "责任事件矩阵,吸收 K02",
+      "primary_taxonomy_ref": "1A432000-B004",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "47",
+      "student_title": "合同责任事件归属矩阵",
+      "supporting_taxonomy_refs": [
+        "1A432000-B015",
+        "1A432000-B016",
+        "1A432000-C13"
+      ]
+    },
+    "N01": {
+      "alignment_status": "direct",
+      "note": "已有 N01 原型;关键线路/时间参数主锚",
+      "primary_taxonomy_ref": "1A433000-B041",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "8",
+      "student_title": "双代号网络计划关键线路/总时差",
+      "supporting_taxonomy_refs": [
+        "1A433000-G03"
+      ]
+    },
+    "N02": {
+      "alignment_status": "direct",
+      "note": "网络计划优化及关键线路基础",
+      "primary_taxonomy_ref": "1A433000-B042",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "20",
+      "student_title": "网络计划工期优化与赶工费用",
+      "supporting_taxonomy_refs": [
+        "1A433012",
+        "1A433000-B041"
+      ]
+    },
+    "N03": {
+      "alignment_status": "direct",
+      "note": "流水参数、组织形式、计算",
+      "primary_taxonomy_ref": "1A433011",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "38",
+      "student_title": "流水施工参数与工期",
+      "supporting_taxonomy_refs": [
+        "1A433000-B030",
+        "1A433000-B031",
+        "1A433000-B014"
+      ]
+    },
+    "N04": {
+      "alignment_status": "composite",
+      "note": "前锋线有节点,时标网络需 source_ref",
+      "primary_taxonomy_ref": "1A433000-G02",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "50",
+      "student_title": "时标网络计划与前锋线判断",
+      "supporting_taxonomy_refs": [
+        "1A433000-B041",
+        "1A433000-B042"
+      ]
+    },
+    "Q01": {
+      "alignment_status": "direct",
+      "note": "养护与温度测量,裂缝防治 source_ref 需补",
+      "primary_taxonomy_ref": "1A413040-R28",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "6",
+      "student_title": "混凝土养护与裂缝防治",
+      "supporting_taxonomy_refs": [
+        "1A413000-C10"
+      ]
+    },
+    "Q02": {
+      "alignment_status": "direct",
+      "note": "大体积混凝土施工、测温与温控",
+      "primary_taxonomy_ref": "1A413074",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "12",
+      "student_title": "大体积混凝土温控裂缝",
+      "supporting_taxonomy_refs": [
+        "1A413033-R05",
+        "1A413033-R08",
+        "1A413033-R09"
+      ]
+    },
+    "Q03": {
+      "alignment_status": "coarse_review",
+      "note": "通病节点存在,蜂窝麻面缺精确 leaf;不得直接 production",
+      "primary_taxonomy_ref": "1A434030",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "10",
+      "student_title": "质量通病: 蜂窝麻面/空鼓裂缝",
+      "supporting_taxonomy_refs": [
+        "1A434032",
+        "1A434000-B037",
+        "1A434000-B011"
+      ]
+    },
+    "R01": {
+      "alignment_status": "composite",
+      "note": "施工现场消防 + 消防审查验收规定",
+      "primary_taxonomy_ref": "1A437030",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "37",
+      "student_title": "现场消防布置、动火、检查、验收流程",
+      "supporting_taxonomy_refs": [
+        "1A437031",
+        "1A437032",
+        "1A437000-B060",
+        "1A437000-B061",
+        "1A422026"
+      ]
+    },
+    "R02/R03": {
+      "alignment_status": "coarse_review",
+      "note": "疏散/防火构造有节点,耐火等级/防火分区缺精确 leaf",
+      "primary_taxonomy_ref": "1A411020-R16",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "48",
+      "student_title": "耐火等级、疏散距离、防火分区基础数值判断",
+      "supporting_taxonomy_refs": [
+        "1A411020-R15",
+        "1A411020-R22"
+      ]
+    },
+    "R04": {
+      "alignment_status": "composite",
+      "note": "可与 D13 联动,封堵需补 source_ref",
+      "primary_taxonomy_ref": "1A413134",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "49",
+      "student_title": "防火封堵与幕墙层间防火",
+      "supporting_taxonomy_refs": [
+        "1A413065-R11",
+        "1A413065-R12",
+        "1A412010-B152"
+      ]
+    },
+    "R05": {
+      "alignment_status": "conditional_split",
+      "note": "默认并入 R01;独立需验收流程 source_ref",
+      "primary_taxonomy_ref": "1A422026",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "54",
+      "student_title": "消防验收流程",
+      "supporting_taxonomy_refs": [
+        "1A437032",
+        "1A437000-B061"
+      ]
+    },
+    "S01": {
+      "alignment_status": "composite",
+      "note": "脚手架安全、模板支架检查、脚手架构造三类节点合并",
+      "primary_taxonomy_ref": "1A436032",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "2",
+      "student_title": "脚手架/高大模板支架验收",
+      "supporting_taxonomy_refs": [
+        "1A436000-B005",
+        "1A413046-R03"
+      ]
+    },
+    "S02": {
+      "alignment_status": "direct",
+      "note": "起重吊装检查、作业安全、安装拆卸范围",
+      "primary_taxonomy_ref": "1A436000-B006",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "3",
+      "student_title": "起重吊装安全",
+      "supporting_taxonomy_refs": [
+        "1A436000-B153",
+        "1A436000-B155"
+      ]
+    },
+    "S05": {
+      "alignment_status": "direct",
+      "note": "临电组织设计、管理、安全技术",
+      "primary_taxonomy_ref": "1A431050",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "17",
+      "student_title": "临时用电: 三级配电两级保护",
+      "supporting_taxonomy_refs": [
+        "1A431051",
+        "1A431052",
+        "1A431010-C03"
+      ]
+    },
+    "S06": {
+      "alignment_status": "direct",
+      "note": "高处作业基本要求和隐患",
+      "primary_taxonomy_ref": "1A436035",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "18",
+      "student_title": "高处作业/临边洞口防护",
+      "supporting_taxonomy_refs": [
+        "1A436000-B177",
+        "1A436000-B180"
+      ]
+    },
+    "S07": {
+      "alignment_status": "coarse_review",
+      "note": "事故等级/分类可锚,上报程序需补 source_ref",
+      "primary_taxonomy_ref": "1A436000-B023",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "19",
+      "student_title": "安全事故等级判定与上报",
+      "supporting_taxonomy_refs": [
+        "1A436000-B066",
+        "1A436040",
+        "1A436041"
+      ]
+    },
+    "X01": {
+      "alignment_status": "direct",
+      "note": "平面布置图设计和管理",
+      "primary_taxonomy_ref": "1A431040",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "34",
+      "student_title": "施工平面布置原则",
+      "supporting_taxonomy_refs": [
+        "1A431041",
+        "1A431042"
+      ]
+    },
+    "X02": {
+      "alignment_status": "composite",
+      "note": "平面布置叠加仓库/堆场/材料进场",
+      "primary_taxonomy_ref": "1A431040",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "35",
+      "student_title": "临设、道路、材料堆场布置",
+      "supporting_taxonomy_refs": [
+        "1A437000-B011",
+        "1A437000-B026",
+        "1A438000-B060"
+      ]
+    },
+    "X03": {
+      "alignment_status": "composite",
+      "note": "文明施工、绿色施工、环保要求合并",
+      "primary_taxonomy_ref": "1A437020",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "36",
+      "student_title": "文明/绿色/环保施工措施",
+      "supporting_taxonomy_refs": [
+        "1A437021",
+        "1A437023",
+        "1A437000-B071",
+        "1A437000-B087"
+      ]
+    },
+    "X04": {
+      "alignment_status": "merged_child",
+      "note": "默认并入 X03",
+      "primary_taxonomy_ref": "1A437013",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "58",
+      "student_title": "绿色施工措施",
+      "supporting_taxonomy_refs": [
+        "1A437020",
+        "1A437021",
+        "1A437000-B087",
+        "1A437000-B091"
+      ]
+    },
+    "X05": {
+      "alignment_status": "conditional_split",
+      "note": "场景变体,默认不独立锁定",
+      "primary_taxonomy_ref": "1A413080",
+      "primary_taxonomy_ref_provisional": true,
+      "slot": "55",
+      "student_title": "季节性施工措施: 雨期/冬期/高温",
+      "supporting_taxonomy_refs": [
+        "1A413000-C03",
+        "1A413000-C26",
+        "1A413000-C28",
+        "1A413000-C19"
+      ]
+    }
+  },
+  "schema": "luban_pack_taxonomy_registry.v0",
+  "source_registry": "docs/plan/鲁班移动端提分闭环/2026-06-19-luban-animation-pack-taxonomy-alignment-registry.md",
+  "source_registry_sha256": "c6f6d017123ccf835ecd3b757bedccca8cc6a063f63fba4b9cf26ef24330340a"
+}

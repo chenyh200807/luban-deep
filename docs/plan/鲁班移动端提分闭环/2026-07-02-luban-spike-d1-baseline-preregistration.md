@@ -1,0 +1,42 @@
+# 双轮 spike 判据预登记：真实 D1 基线 + 成功判据（乙案 owner-approved 2026-07-02）
+
+> 双轮 v3.2 §12 阶段1 spike 的「判据预登记防挪门柱」交付物（P0-⑥/F 项）。
+> 铁律：基线只用**拉取时刻已存在的真实数据**，本文写定后 spike 期间不得回改基线口径。
+
+## 1. 数据源裁决（如实上报）
+
+| 候选源 | 现状 | 裁决 |
+|---|---|---|
+| BI 行为库 | 0 行（历史已知） | 不可用 |
+| 客户端埋点 `product_behavior.db` | 生产仅 **16 行**事件 | 不可用（埋点未接） |
+| **服务端 turn 活动**（`chat_history.db`: sessions 3981 / turns 6120 / turn_events 633070） | 真实、连续、带 owner_key | **采用（替代度量）** |
+
+**D1 定义（替代度量）**：以 `sessions.owner_key`（`user:<uuid>`）为用户，`turns.created_at`（unixepoch，UTC+8 取日）为活动日；用户首个活动日为 D0，D0+1 当天有任意 turn 即 D1 留存。首访=当天的用户不入 cohort（窗口未过）。
+
+## 2. 实测基线（2026-07-02 拉取，生产容器 `deeptutor` 直查）
+
+| 口径 | cohort | D1 留存 | **D1** |
+|---|---|---|---|
+| 全部 owner_key 用户 | 421 | 26 | **6.2%** |
+| 剔除疑似内部账号（turns>50，共 13 个） | 409 | 19 | **4.6%** |
+
+- 用户总数 436，首访分布集中在 2026-06（421 人），峰值日 06-29（139 人，疑似投放/分享脉冲）。
+- **诚实声明**：本地库无法区分 QA/内部账号（owner_key 是 uuid，qa_ 用户名映射在 Supabase member 侧），故给双口径；重度账号剔除是启发式非 ground truth。复算脚本口径固定为本文 §1 定义，任何人可在容器内重跑核对。
+
+## 3. spike 成功判据（**乙案 owner-approved 2026-07-02**）
+
+以「剔除疑似内部」口径 D1=4.6% 为基线 B：
+
+- **判据（乙案，正式生效）**：spike 参与用户（走完 ≥1 个站点闭环者）D1 ≥ **15%**（对标工具类小程序次留中位），cohort ≥ 30 人方可读数（防小样本假阳）。
+- **观察指标（原甲案，降级不作判据）**：spike 参与用户 D1 相对基线倍数（2×B≈9.2% 为参考线），只随报告披露、不参与成败裁决。
+- 共同护栏：读数窗口 ≥ 7 天；QA/内部账号进 allowlist 剔除；不达 cohort 门槛只报「未达读数条件」不报成败。
+- **QA allowlist 口径（硬前置，已接通 2026-07-02）**：唯一权威 = `MemberConsoleService.list_internal_test_user_ids()`（复用既有 `_looks_like_test_member` 分类器，本地 store+Supabase directory 双源，含 user_id/external_auth_user_id/alias 三键位）；读数执行口径 = `scripts/report_luban_spike_d1.py`（D1，乙案判据内置）与 `scripts/report_luban_spike_events.py`（D15 事件双计数 total/real/qa_excluded），两脚本共用同一权威、绝不各自维护名单。§2 的「turns>50 启发式」自此降级为对照披露。
+
+## 4. 复算命令（独立可证伪）
+
+```bash
+scp scratchpad/d1_baseline.py Aliyun-ECS-2:/tmp/ \
+  && ssh Aliyun-ECS-2 'docker cp /tmp/d1_baseline.py deeptutor:/tmp/ && docker exec deeptutor python3 /tmp/d1_baseline.py'
+```
+
+（脚本逻辑即 §1 定义的直译：join sessions×turns → 按用户聚合活动日 → D0+1 命中率。）

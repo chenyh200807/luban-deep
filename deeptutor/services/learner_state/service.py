@@ -835,6 +835,16 @@ class LearnerStateService:
     def _maybe_auto_synthesize_learning_truth(self, event: LearnerStateEvent) -> None:
         if event.memory_kind != "learning_evidence":
             return
+        from deeptutor.services.learner_state.learning_synthesis import (
+            LEARNING_EVIDENCE_SOURCE_FEATURES,
+        )
+
+        if event.source_feature not in LEARNING_EVIDENCE_SOURCE_FEATURES:
+            # 编译器白名单外的证据(如 luban_lesson 学-evidence)对
+            # learning_synthesis 不可见——触发只是一次保证无效的全账本
+            # 重算(病B-2,事件循环纪律)。白名单唯一 authority 在
+            # learning_synthesis,此处只引用不复制。
+            return
         if not _auto_synthesis_enabled_for_user(event.user_id):
             return
         try:

@@ -270,3 +270,34 @@ def test_practice_path_public_projection_is_shared_seam_source_pin() -> None:
         "public_grading_to_brain_meta", ""
     ) or True  # 旧私有名已删除
     assert "def _public_grading_to_brain_meta" not in src_text
+
+
+def test_compiled_training_signal_admits_real_retest_as_stable_personalization() -> None:
+    # §6-1 收权回归：L2_real_retest 曾不在本函数的字面稳定集合里，
+    # 真实复测确认的弱点会被个性化信号直接丢弃；收权后按单一 rank 判级。
+    from deeptutor.capabilities.deep_question import _compiled_training_signal_text_from_context
+
+    def _weak_point(level: str) -> dict:
+        return {
+            "concept_id": "1A432000",
+            "error_code": "E02",
+            "evidence_level": level,
+            "decay_state": "active",
+            "recommended_training": {"focus": "专家论证程序", "mode": "case_repair"},
+        }
+
+    retest_text = _compiled_training_signal_text_from_context(
+        {"compiled_learning_truth": {"weak_points": [_weak_point("L2_real_retest")]}}
+    )
+    assert "evidence_level=L2_real_retest" in retest_text
+    assert "policy_action=stable_personalization" in retest_text
+
+    observed_text = _compiled_training_signal_text_from_context(
+        {"compiled_learning_truth": {"weak_points": [_weak_point("L0_observed")]}}
+    )
+    assert observed_text == ""
+
+    repeated_text = _compiled_training_signal_text_from_context(
+        {"compiled_learning_truth": {"weak_points": [_weak_point("L1_repeated")]}}
+    )
+    assert "policy_action=diagnostic_hint" in repeated_text

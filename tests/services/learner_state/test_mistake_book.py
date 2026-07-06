@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 import httpx
+import pytest
 
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.learner_state.mistake_book import (
@@ -74,12 +74,60 @@ def test_mistake_book_mastered_and_review_updates_are_filtered_by_default() -> N
     saved = service.save_item(user_id="u1", attempt_ref=attempt_ref, subject_id="construction_exam_1")
     reviewed = service.record_review(user_id="u1", attempt_ref=attempt_ref, if_match=saved["etag"])
     assert reviewed["last_reviewed_at"]
-    assert reviewed["review_due_at"]
+    assert reviewed["review_due_at"] is None
 
     mastered = service.mark_mastered(user_id="u1", attempt_ref=attempt_ref, if_match=reviewed["etag"])
     assert mastered["mastered_at"]
     assert service.list_items(user_id="u1")["count"] == 0
     assert service.list_items(user_id="u1", include_mastered=True)["count"] == 1
+
+
+def test_record_review_does_not_fabricate_schedule_and_clears_stale_due() -> None:
+    """record_review 只写观测(last_reviewed_at), 不产调度结论。
+
+    到期/调度真值唯一归 revalidation_queue 投影; 本服务硬编码 due 日期
+    属第二调度权威(双轮设计 v3 §10-①), 本测试钉死收权后的行为:
+    1) 复习不再捏造 review_due_at;
+    2) 存量行里的历史假日期在下一次复习时被清空。
+    """
+    store = InMemoryMistakeBookStore()
+    service = MistakeBookService(store=store)
+    attempt_ref = sign_attempt_ref(user_id="u1", event_id="evt1", question_id="q1")
+
+    saved = service.save_item(user_id="u1", attempt_ref=attempt_ref, subject_id="construction_exam_1")
+    assert saved["review_due_at"] is None
+
+    # 模拟收权前遗留的假调度日期(生产存量行)。
+    store.update_item("u1", "evt1", {"review_due_at": "2020-01-01T08:00:00+08:00"})
+
+    reviewed = service.record_review(user_id="u1", attempt_ref=attempt_ref)
+    assert reviewed["last_reviewed_at"]
+    assert reviewed["review_due_at"] is None
+
+    listed = service.list_items(user_id="u1")["items"][0]
+    assert listed["review_due_at"] is None
+
+
+def test_mistake_book_module_never_touches_learner_truth_writers() -> None:
+    """mastered_at/复习动作只是呈现层旗标, 不得写学情/证据/掌握真值。
+
+    静态钉死: 本模块源码不得引用证据写入口或掌握推断器
+    (防止未来把"标记掌握"按钮接回 learner truth, 违反 M0 reality-lock)。
+    """
+    import re
+
+    source = (
+        Path(__file__).resolve().parents[3]
+        / "deeptutor"
+        / "services"
+        / "learner_state"
+        / "mistake_book.py"
+    ).read_text(encoding="utf-8")
+    forbidden = re.compile(
+        r"append_memory_event|build_learning_evidence|mastery_estimator|refresh_from_turn"
+    )
+    match = forbidden.search(source)
+    assert match is None, f"mistake_book.py 不得触碰学情真值写入口: {match.group(0)}"
 
 
 def test_mistake_book_stale_etag_raises_conflict() -> None:
@@ -167,7 +215,7 @@ def test_supabase_mistake_book_store_uses_user_event_authority_filters() -> None
     client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://example.supabase.co")
     store = SupabaseMistakeBookStore(
         base_url="https://example.supabase.co",
-        service_key="service-key",
+        service_key="service-key",  # pragma: allowlist secret
         client=client,
     )
     saved = store.upsert_item({"user_id": "u1", "event_id": "evt1", "attempt_ref": "ref", "saved_at": "t"})
@@ -228,3 +276,36 @@ def test_supabase_mistake_book_list_items_include_mastered_does_not_filter_maste
     assert requests[0]["params"]["subject_id"] == "eq.construction_exam_1"
     assert requests[0]["params"]["archived_at"] == "is.null"
     assert "mastered_at" not in requests[0]["params"]
+
+
+def test_review_due_at_read_side_projection_behind_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+    """review_due_at = 读侧投影(derive_review_due_at, 双轮 v3.2 §6.1)——
+    旗标关: 恒 None(收权后现状); 旗标开: 从 last_reviewed_at/saved_at 派生 weak 相
+    到期时刻, 零落库(store 内仍是 None)。已标掌握不再排期。"""
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    attempt_ref = sign_attempt_ref(user_id="u1", event_id="evt_due", question_id="q1")
+    service.save_item(user_id="u1", attempt_ref=attempt_ref, subject_id="construction_exam_1")
+
+    monkeypatch.delenv("LUBAN_REVIEW_MODULE_ENABLED", raising=False)
+    listed = service.list_items(user_id="u1")
+    assert listed["items"][0]["review_due_at"] is None, "旗标关=收权后现状(不排期)"
+
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
+    listed = service.list_items(user_id="u1")
+    item = listed["items"][0]
+    saved_at = item["saved_at"]
+    assert item["review_due_at"], "旗标开: 读侧派生计划复习时刻"
+    assert item["review_due_at"] > saved_at, "weak 相首跳=观测后 3 天(>收藏时刻)"
+
+    # 复习一次后: 观测锚切到 last_reviewed_at, review_due_at 随之后移且不落库
+    service.record_review(user_id="u1", attempt_ref=attempt_ref)
+    listed = service.list_items(user_id="u1")
+    item = listed["items"][0]
+    assert item["review_due_at"] and item["review_due_at"] > item["last_reviewed_at"]
+    raw = service._store.get_item("u1", "evt_due")  # 落库真值仍空(防第二调度权威)
+    assert raw["review_due_at"] is None
+
+    # 标掌握(呈现层旗标)后不再排期
+    service.mark_mastered(user_id="u1", attempt_ref=attempt_ref)
+    listed = service.list_items(user_id="u1", include_mastered=True)
+    assert listed["items"][0]["review_due_at"] is None

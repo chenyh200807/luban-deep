@@ -1,0 +1,17 @@
+/* 鲁班智考教学卡自托管字体子集 — 微信 web-view 外链 fonts.googleapis.com 静默失败，
+   故自托管。子集字符集 = finished 全部卡出现过的字符 ∪ ASCII 可打印 ∪ 常用中文标点。
+   生成方法见同目录 README.md。 */
+@font-face {
+  font-family: "Noto Sans SC";
+  font-style: normal;
+  font-weight: 100 900; /* 可变字重轴保留 */
+  font-display: swap;
+  src: url(NotoSansSC-luban-subset.woff2) format("woff2");
+}
+@font-face {
+  font-family: "Long Cang";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(LongCang-luban-subset.woff2) format("woff2");
+}

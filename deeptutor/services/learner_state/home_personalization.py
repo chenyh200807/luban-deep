@@ -501,6 +501,10 @@ def _projection_from_recent_learning_events(
         payload = _payload_from_event(event)
         if str(payload.get("event_type") or "") != "learning_evidence":
             continue
+        # §2.1 显式拍板：看动画（lesson_viewed 学-evidence）不顶替 today_focus——
+        # 学→练连续性由 home_next_step_projection 组合层显式做，不靠事件顶替。
+        if str(payload.get("learning_signal_type") or "") == "lesson_viewed":
+            continue
         if not str(payload.get("event_id") or "").strip():
             event_id = _event_field(event, "event_id")
             if event_id:

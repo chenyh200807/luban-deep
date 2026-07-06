@@ -22,6 +22,7 @@ owner 原则：信当下 LLM 能力，宁可大方输出 + 诚实声明，也不
 
 from __future__ import annotations
 
+from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.tutorbot.agent.loop import AgentLoop
 from deeptutor.tutorbot.teaching_modes import (
     assess_unverifiable_standard_codes,
@@ -227,6 +228,18 @@ def test_export_content_truth_metadata_noop_when_absent():
     assert response_metadata == {"keep": 1}  # nothing to export → untouched
 
 
+def test_llm_provider_arrearage_error_uses_public_fallback():
+    raw_error = (
+        "Error: {'message': 'Access denied, please make sure your account is in good standing. "
+        "For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment', "
+        "'type': 'Arrearage', 'param': None, 'code': 'Arrearage'}"
+    )
+    public_fallback = "模型调用失败，请稍后重试。"
+
+    assert coerce_user_visible_answer(raw_error, fallback=public_fallback) == public_fallback
+    assert AgentLoop._is_user_visible_final_answer(public_fallback) is True
+
+
 # ---- eval-design #5 metric self-test: clean passes AND fabricated caught ----
 
 def test_metric_self_test_clean_passes_and_fabricated_caught():
@@ -248,3 +261,52 @@ def test_metric_self_test_clean_passes_and_fabricated_caught():
     assert fabricated.startswith("依据 JGJ 999-2099 第99条，必须如此。")
     assert _is_honest_hedge(fabricated)
     assert "JGJ999-2099" in fabricated
+
+
+# ---- ② 具名法规《》盲点补齐 (2026-07-01 封板复现: 《法规名》第N条 无 GB 码时漏 hedge) ----
+
+def test_extract_finds_named_regulation_citations():
+    # 具名法规/条例/办法《》 与 GB 编号并存时都要抽到。
+    codes = extract_standard_clause_claims(
+        "依据《建设工程质量管理条例》第40条和《房屋建筑工程质量保修办法》，另见 GB 50300-2013。"
+    )
+    assert "《建设工程质量管理条例》" in codes
+    assert "《房屋建筑工程质量保修办法》" in codes
+    assert "GB50300-2013" in codes
+
+
+def test_assess_failcloses_named_regulation_even_with_evidence():
+    # 具名法规《》版本敏感 → 即便召回证据里出现该法规名，也 fail-closed 恒核不到 → 恒 hedge。
+    out = assess_unverifiable_standard_codes(
+        response="建筑工程最低保修期限见《建设工程质量管理条例》第40条。",
+        standard_evidence_text="召回正文提到《建设工程质量管理条例》相关条款。",
+        rag_degraded=False,
+    )
+    assert out == ["《建设工程质量管理条例》"]
+
+
+def test_named_regulation_citation_without_gb_code_gets_hedge():
+    # 封板复现根因: 引《法规名》断言具体条文数值、无 GB 码 → 必须 append 诚实 hedge。
+    resp = (
+        "## 结论\n建筑工程的最低保修期限在《建设工程质量管理条例》第40条规定：屋面防水工程为 5 年。"
+    )
+    out = content_truth_guard_response(
+        user_message="工程质量保修期具体年限",
+        response=resp,
+        standard_evidence_text="一些无关的教材召回正文，未直接给出各分部具体年限。",
+        rag_degraded=False,
+    )
+    assert out.startswith(resp.rstrip())  # 正文逐字保留，绝不抑制
+    assert _is_honest_hedge(out)
+    assert "《建设工程质量管理条例》" in out
+
+
+def test_review_record_marks_named_regulation_kind():
+    resp = "见《建设工程质量管理条例》第40条。"
+    unverifiable = assess_unverifiable_standard_codes(
+        response=resp, standard_evidence_text="", rag_degraded=False
+    )
+    records = build_content_truth_review_records(
+        response=resp, unverifiable_codes=unverifiable, rag_degraded=False
+    )
+    assert records and records[0]["claim_kind"] == "regulation_citation"

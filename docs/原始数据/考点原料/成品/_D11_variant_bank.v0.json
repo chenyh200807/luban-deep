@@ -1,0 +1,602 @@
+{
+ "schema_version": "luban-d11-variant-bank",
+ "pack_id": "D11",
+ "status": "signed",
+ "source_pack_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
+ "generation_ms": 0.02,
+ "gate": {
+  "total": 42,
+  "passed": 42,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-layer": 6,
+  "A-policy": 1,
+  "A-thick": 5,
+  "B-lap": 6,
+  "B-mesh": 1,
+  "C-moist": 9,
+  "D-putty": 10,
+  "D-temp": 4
+ },
+ "variants": [
+  {
+   "variant_id": "D11-A-thick-000",
+   "rule_group": "A-thick",
+   "surface": "墙面抹灰总厚度 20mm，项目部未采取加强措施",
+   "params": {
+    "thickness_mm": 20,
+    "reinforced": false
+   },
+   "expected_ok": true,
+   "correct_statement": "抹灰总厚度≥35mm时应采取加强措施",
+   "anchor": "kc:1A422000_042_0068:0 + {2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-thick-001",
+   "rule_group": "A-thick",
+   "surface": "墙面抹灰总厚度 35mm，项目部采取了加强措施",
+   "params": {
+    "thickness_mm": 35,
+    "reinforced": true
+   },
+   "expected_ok": true,
+   "correct_statement": "抹灰总厚度≥35mm时应采取加强措施",
+   "anchor": "kc:1A422000_042_0068:0 + {2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-thick-002",
+   "rule_group": "A-thick",
+   "surface": "墙面抹灰总厚度 35mm，项目部未采取加强措施",
+   "params": {
+    "thickness_mm": 35,
+    "reinforced": false
+   },
+   "expected_ok": false,
+   "correct_statement": "抹灰总厚度≥35mm时应采取加强措施",
+   "anchor": "kc:1A422000_042_0068:0 + {2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-thick-003",
+   "rule_group": "A-thick",
+   "surface": "墙面抹灰总厚度 40mm，项目部采取了加强措施",
+   "params": {
+    "thickness_mm": 40,
+    "reinforced": true
+   },
+   "expected_ok": true,
+   "correct_statement": "抹灰总厚度≥35mm时应采取加强措施",
+   "anchor": "kc:1A422000_042_0068:0 + {2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-thick-004",
+   "rule_group": "A-thick",
+   "surface": "墙面抹灰总厚度 40mm，项目部未采取加强措施",
+   "params": {
+    "thickness_mm": 40,
+    "reinforced": false
+   },
+   "expected_ok": false,
+   "correct_statement": "抹灰总厚度≥35mm时应采取加强措施",
+   "anchor": "kc:1A422000_042_0068:0 + {2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-policy-005",
+   "rule_group": "A-policy",
+   "surface": "项目部规定：墙面抹灰不论总厚度大小，一律不采取加强措施",
+   "params": {
+    "uniform_no_reinforce": true
+   },
+   "expected_ok": false,
+   "correct_statement": "抹灰总厚度≥35mm时应采取加强措施",
+   "anchor": "kc:1A422000_042_0068:0 + {2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-layer-006",
+   "rule_group": "A-layer",
+   "surface": "内墙普通抹灰工程，抹灰层平均总厚度做到 20mm",
+   "params": {
+    "grade": "普通",
+    "layer_mm": 20,
+    "limit_mm": 20
+   },
+   "expected_ok": true,
+   "correct_statement": "内墙普通抹灰层平均总厚度不大于20mm；高级抹灰层平均总厚度不大于25mm",
+   "anchor": "{2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-layer-007",
+   "rule_group": "A-layer",
+   "surface": "内墙普通抹灰工程，抹灰层平均总厚度做到 25mm",
+   "params": {
+    "grade": "普通",
+    "layer_mm": 25,
+    "limit_mm": 20
+   },
+   "expected_ok": false,
+   "correct_statement": "内墙普通抹灰层平均总厚度不大于20mm；高级抹灰层平均总厚度不大于25mm",
+   "anchor": "{2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-layer-008",
+   "rule_group": "A-layer",
+   "surface": "内墙普通抹灰工程，抹灰层平均总厚度做到 30mm",
+   "params": {
+    "grade": "普通",
+    "layer_mm": 30,
+    "limit_mm": 20
+   },
+   "expected_ok": false,
+   "correct_statement": "内墙普通抹灰层平均总厚度不大于20mm；高级抹灰层平均总厚度不大于25mm",
+   "anchor": "{2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-layer-009",
+   "rule_group": "A-layer",
+   "surface": "内墙高级抹灰工程，抹灰层平均总厚度做到 20mm",
+   "params": {
+    "grade": "高级",
+    "layer_mm": 20,
+    "limit_mm": 25
+   },
+   "expected_ok": true,
+   "correct_statement": "内墙普通抹灰层平均总厚度不大于20mm；高级抹灰层平均总厚度不大于25mm",
+   "anchor": "{2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-layer-010",
+   "rule_group": "A-layer",
+   "surface": "内墙高级抹灰工程，抹灰层平均总厚度做到 25mm",
+   "params": {
+    "grade": "高级",
+    "layer_mm": 25,
+    "limit_mm": 25
+   },
+   "expected_ok": true,
+   "correct_statement": "内墙普通抹灰层平均总厚度不大于20mm；高级抹灰层平均总厚度不大于25mm",
+   "anchor": "{2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-A-layer-011",
+   "rule_group": "A-layer",
+   "surface": "内墙高级抹灰工程，抹灰层平均总厚度做到 30mm",
+   "params": {
+    "grade": "高级",
+    "layer_mm": 30,
+    "limit_mm": 25
+   },
+   "expected_ok": false,
+   "correct_statement": "内墙普通抹灰层平均总厚度不大于20mm；高级抹灰层平均总厚度不大于25mm",
+   "anchor": "{2023,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-B-mesh-012",
+   "rule_group": "B-mesh",
+   "surface": "混凝土柱与砖墙交接处抹灰，项目部未设加强网",
+   "params": {
+    "has_mesh": false,
+    "lap_mm": null
+   },
+   "expected_ok": false,
+   "correct_statement": "不同材料基体交接处应设加强网，加强网与各基体搭接宽度不应小于100mm",
+   "anchor": "kc:1A422000_042_0068:0 + kc:1A422000_043_0069:0 + {2023,第26题}C",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-B-lap-013",
+   "rule_group": "B-lap",
+   "surface": "某住宅楼工地混凝土柱与砖墙交接处抹灰设加强网，加强网与各基体搭接宽度 50mm",
+   "params": {
+    "has_mesh": true,
+    "lap_mm": 50
+   },
+   "expected_ok": false,
+   "correct_statement": "不同材料基体交接处应设加强网，加强网与各基体搭接宽度不应小于100mm",
+   "anchor": "kc:1A422000_042_0068:0 + kc:1A422000_043_0069:0 + {2023,第26题}C",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-B-lap-014",
+   "rule_group": "B-lap",
+   "surface": "某住宅楼工地混凝土柱与砖墙交接处抹灰设加强网，加强网与各基体搭接宽度 80mm",
+   "params": {
+    "has_mesh": true,
+    "lap_mm": 80
+   },
+   "expected_ok": false,
+   "correct_statement": "不同材料基体交接处应设加强网，加强网与各基体搭接宽度不应小于100mm",
+   "anchor": "kc:1A422000_042_0068:0 + kc:1A422000_043_0069:0 + {2023,第26题}C",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-B-lap-015",
+   "rule_group": "B-lap",
+   "surface": "某住宅楼工地混凝土柱与砖墙交接处抹灰设加强网，加强网与各基体搭接宽度 100mm",
+   "params": {
+    "has_mesh": true,
+    "lap_mm": 100
+   },
+   "expected_ok": true,
+   "correct_statement": "不同材料基体交接处应设加强网，加强网与各基体搭接宽度不应小于100mm",
+   "anchor": "kc:1A422000_042_0068:0 + kc:1A422000_043_0069:0 + {2023,第26题}C",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-B-lap-016",
+   "rule_group": "B-lap",
+   "surface": "某办公楼项目混凝土柱与砖墙交接处抹灰设加强网，加强网与各基体搭接宽度 50mm",
+   "params": {
+    "has_mesh": true,
+    "lap_mm": 50
+   },
+   "expected_ok": false,
+   "correct_statement": "不同材料基体交接处应设加强网，加强网与各基体搭接宽度不应小于100mm",
+   "anchor": "kc:1A422000_042_0068:0 + kc:1A422000_043_0069:0 + {2023,第26题}C",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-B-lap-017",
+   "rule_group": "B-lap",
+   "surface": "某办公楼项目混凝土柱与砖墙交接处抹灰设加强网，加强网与各基体搭接宽度 80mm",
+   "params": {
+    "has_mesh": true,
+    "lap_mm": 80
+   },
+   "expected_ok": false,
+   "correct_statement": "不同材料基体交接处应设加强网，加强网与各基体搭接宽度不应小于100mm",
+   "anchor": "kc:1A422000_042_0068:0 + kc:1A422000_043_0069:0 + {2023,第26题}C",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-B-lap-018",
+   "rule_group": "B-lap",
+   "surface": "某办公楼项目混凝土柱与砖墙交接处抹灰设加强网，加强网与各基体搭接宽度 100mm",
+   "params": {
+    "has_mesh": true,
+    "lap_mm": 100
+   },
+   "expected_ok": true,
+   "correct_statement": "不同材料基体交接处应设加强网，加强网与各基体搭接宽度不应小于100mm",
+   "anchor": "kc:1A422000_042_0068:0 + kc:1A422000_043_0069:0 + {2023,第26题}C",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-C-moist-019",
+   "rule_group": "C-moist",
+   "surface": "混凝土墙面基层拟涂刷溶剂型涂料，实测基层含水率 8%，随即进行下道施工",
+   "params": {
+    "obj": "溶剂型涂料基层",
+    "surface_pct": 8,
+    "limit_pct": 8
+   },
+   "expected_ok": true,
+   "correct_statement": "基层含水率分对象控制：混凝土/抹灰基层用溶剂型涂料≤8%、乳液型涂料≤10%、木材基层≤12%",
+   "anchor": "kc:1A422000_043_0069:1",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-C-moist-020",
+   "rule_group": "C-moist",
+   "surface": "混凝土墙面基层拟涂刷溶剂型涂料，实测基层含水率 10%，随即进行下道施工",
+   "params": {
+    "obj": "溶剂型涂料基层",
+    "surface_pct": 10,
+    "limit_pct": 8
+   },
+   "expected_ok": false,
+   "correct_statement": "基层含水率分对象控制：混凝土/抹灰基层用溶剂型涂料≤8%、乳液型涂料≤10%、木材基层≤12%",
+   "anchor": "kc:1A422000_043_0069:1",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-C-moist-021",
+   "rule_group": "C-moist",
+   "surface": "混凝土墙面基层拟涂刷溶剂型涂料，实测基层含水率 12%，随即进行下道施工",
+   "params": {
+    "obj": "溶剂型涂料基层",
+    "surface_pct": 12,
+    "limit_pct": 8
+   },
+   "expected_ok": false,
+   "correct_statement": "基层含水率分对象控制：混凝土/抹灰基层用溶剂型涂料≤8%、乳液型涂料≤10%、木材基层≤12%",
+   "anchor": "kc:1A422000_043_0069:1",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-C-moist-022",
+   "rule_group": "C-moist",
+   "surface": "抹灰基层拟涂刷乳液型涂料，实测基层含水率 8%，随即进行下道施工",
+   "params": {
+    "obj": "乳液型涂料基层",
+    "surface_pct": 8,
+    "limit_pct": 10
+   },
+   "expected_ok": true,
+   "correct_statement": "基层含水率分对象控制：混凝土/抹灰基层用溶剂型涂料≤8%、乳液型涂料≤10%、木材基层≤12%",
+   "anchor": "kc:1A422000_043_0069:1",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-C-moist-023",
+   "rule_group": "C-moist",
+   "surface": "抹灰基层拟涂刷乳液型涂料，实测基层含水率 10%，随即进行下道施工",
+   "params": {
+    "obj": "乳液型涂料基层",
+    "surface_pct": 10,
+    "limit_pct": 10
+   },
+   "expected_ok": true,
+   "correct_statement": "基层含水率分对象控制：混凝土/抹灰基层用溶剂型涂料≤8%、乳液型涂料≤10%、木材基层≤12%",
+   "anchor": "kc:1A422000_043_0069:1",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-C-moist-024",
+   "rule_group": "C-moist",
+   "surface": "抹灰基层拟涂刷乳液型涂料，实测基层含水率 12%，随即进行下道施工",
+   "params": {
+    "obj": "乳液型涂料基层",
+    "surface_pct": 12,
+    "limit_pct": 10
+   },
+   "expected_ok": false,
+   "correct_statement": "基层含水率分对象控制：混凝土/抹灰基层用溶剂型涂料≤8%、乳液型涂料≤10%、木材基层≤12%",
+   "anchor": "kc:1A422000_043_0069:1",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-C-moist-025",
+   "rule_group": "C-moist",
+   "surface": "木材基层，实测基层含水率 8%，随即进行下道施工",
+   "params": {
+    "obj": "木材基层",
+    "surface_pct": 8,
+    "limit_pct": 12
+   },
+   "expected_ok": true,
+   "correct_statement": "基层含水率分对象控制：混凝土/抹灰基层用溶剂型涂料≤8%、乳液型涂料≤10%、木材基层≤12%",
+   "anchor": "kc:1A422000_043_0069:1",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-C-moist-026",
+   "rule_group": "C-moist",
+   "surface": "木材基层，实测基层含水率 10%，随即进行下道施工",
+   "params": {
+    "obj": "木材基层",
+    "surface_pct": 10,
+    "limit_pct": 12
+   },
+   "expected_ok": true,
+   "correct_statement": "基层含水率分对象控制：混凝土/抹灰基层用溶剂型涂料≤8%、乳液型涂料≤10%、木材基层≤12%",
+   "anchor": "kc:1A422000_043_0069:1",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-C-moist-027",
+   "rule_group": "C-moist",
+   "surface": "木材基层，实测基层含水率 12%，随即进行下道施工",
+   "params": {
+    "obj": "木材基层",
+    "surface_pct": 12,
+    "limit_pct": 12
+   },
+   "expected_ok": true,
+   "correct_statement": "基层含水率分对象控制：混凝土/抹灰基层用溶剂型涂料≤8%、乳液型涂料≤10%、木材基层≤12%",
+   "anchor": "kc:1A422000_043_0069:1",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-temp-028",
+   "rule_group": "D-temp",
+   "surface": "某住宅楼工地室内抹灰在环境温度 0℃ 条件下施工",
+   "params": {
+    "temp_c": 0,
+    "threshold_c": 5
+   },
+   "expected_ok": false,
+   "correct_statement": "室内抹灰环境温度一般不低于5℃",
+   "anchor": "{2023,第26题}A",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-temp-029",
+   "rule_group": "D-temp",
+   "surface": "某住宅楼工地室内抹灰在环境温度 5℃ 条件下施工",
+   "params": {
+    "temp_c": 5,
+    "threshold_c": 5
+   },
+   "expected_ok": true,
+   "correct_statement": "室内抹灰环境温度一般不低于5℃",
+   "anchor": "{2023,第26题}A",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-temp-030",
+   "rule_group": "D-temp",
+   "surface": "某办公楼项目室内抹灰在环境温度 0℃ 条件下施工",
+   "params": {
+    "temp_c": 0,
+    "threshold_c": 5
+   },
+   "expected_ok": false,
+   "correct_statement": "室内抹灰环境温度一般不低于5℃",
+   "anchor": "{2023,第26题}A",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-temp-031",
+   "rule_group": "D-temp",
+   "surface": "某办公楼项目室内抹灰在环境温度 5℃ 条件下施工",
+   "params": {
+    "temp_c": 5,
+    "threshold_c": 5
+   },
+   "expected_ok": true,
+   "correct_statement": "室内抹灰环境温度一般不低于5℃",
+   "anchor": "{2023,第26题}A",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-putty-032",
+   "rule_group": "D-putty",
+   "surface": "厨房墙面找平层使用耐水腻子",
+   "params": {
+    "place": "厨房",
+    "material": "耐水腻子",
+    "mandate_waterproof": false
+   },
+   "expected_ok": true,
+   "correct_statement": "厨房/卫生间/地下室等潮湿部位墙面找平层应使用耐水腻子",
+   "anchor": "kc:1A422000_043_0069:2 + {2018,第24题} + {2022,第21题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-putty-033",
+   "rule_group": "D-putty",
+   "surface": "厨房墙面找平层使用普通腻子",
+   "params": {
+    "place": "厨房",
+    "material": "普通腻子",
+    "mandate_waterproof": false
+   },
+   "expected_ok": false,
+   "correct_statement": "厨房/卫生间/地下室等潮湿部位墙面找平层应使用耐水腻子",
+   "anchor": "kc:1A422000_043_0069:2 + {2018,第24题} + {2022,第21题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-putty-034",
+   "rule_group": "D-putty",
+   "surface": "卫生间墙面找平层使用耐水腻子",
+   "params": {
+    "place": "卫生间",
+    "material": "耐水腻子",
+    "mandate_waterproof": false
+   },
+   "expected_ok": true,
+   "correct_statement": "厨房/卫生间/地下室等潮湿部位墙面找平层应使用耐水腻子",
+   "anchor": "kc:1A422000_043_0069:2 + {2018,第24题} + {2022,第21题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-putty-035",
+   "rule_group": "D-putty",
+   "surface": "卫生间墙面找平层使用普通腻子",
+   "params": {
+    "place": "卫生间",
+    "material": "普通腻子",
+    "mandate_waterproof": false
+   },
+   "expected_ok": false,
+   "correct_statement": "厨房/卫生间/地下室等潮湿部位墙面找平层应使用耐水腻子",
+   "anchor": "kc:1A422000_043_0069:2 + {2018,第24题} + {2022,第21题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-putty-036",
+   "rule_group": "D-putty",
+   "surface": "地下室墙面找平层使用耐水腻子",
+   "params": {
+    "place": "地下室",
+    "material": "耐水腻子",
+    "mandate_waterproof": false
+   },
+   "expected_ok": true,
+   "correct_statement": "厨房/卫生间/地下室等潮湿部位墙面找平层应使用耐水腻子",
+   "anchor": "kc:1A422000_043_0069:2 + {2018,第24题} + {2022,第21题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-putty-037",
+   "rule_group": "D-putty",
+   "surface": "地下室墙面找平层使用普通腻子",
+   "params": {
+    "place": "地下室",
+    "material": "普通腻子",
+    "mandate_waterproof": false
+   },
+   "expected_ok": false,
+   "correct_statement": "厨房/卫生间/地下室等潮湿部位墙面找平层应使用耐水腻子",
+   "anchor": "kc:1A422000_043_0069:2 + {2018,第24题} + {2022,第21题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-putty-038",
+   "rule_group": "D-putty",
+   "surface": "卧室墙面找平层使用普通腻子",
+   "params": {
+    "place": "卧室",
+    "material": "普通腻子",
+    "mandate_waterproof": false
+   },
+   "expected_ok": true,
+   "correct_statement": "耐水腻子用于厨房/卫生间/地下室等潮湿部位；卧室/客厅等一般环境可用普通腻子，强行要求耐水腻子属过度",
+   "anchor": "kc:1A422000_043_0069:2 + {2018,第24题} + {2022,第21题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-putty-039",
+   "rule_group": "D-putty",
+   "surface": "项目部规定：卧室墙面找平层必须使用耐水腻子",
+   "params": {
+    "place": "卧室",
+    "material": "耐水腻子",
+    "mandate_waterproof": true
+   },
+   "expected_ok": false,
+   "correct_statement": "耐水腻子用于厨房/卫生间/地下室等潮湿部位；卧室/客厅等一般环境可用普通腻子，强行要求耐水腻子属过度",
+   "anchor": "kc:1A422000_043_0069:2 + {2018,第24题} + {2022,第21题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-putty-040",
+   "rule_group": "D-putty",
+   "surface": "客厅墙面找平层使用普通腻子",
+   "params": {
+    "place": "客厅",
+    "material": "普通腻子",
+    "mandate_waterproof": false
+   },
+   "expected_ok": true,
+   "correct_statement": "耐水腻子用于厨房/卫生间/地下室等潮湿部位；卧室/客厅等一般环境可用普通腻子，强行要求耐水腻子属过度",
+   "anchor": "kc:1A422000_043_0069:2 + {2018,第24题} + {2022,第21题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D11-D-putty-041",
+   "rule_group": "D-putty",
+   "surface": "项目部规定：客厅墙面找平层必须使用耐水腻子",
+   "params": {
+    "place": "客厅",
+    "material": "耐水腻子",
+    "mandate_waterproof": true
+   },
+   "expected_ok": false,
+   "correct_statement": "耐水腻子用于厨房/卫生间/地下室等潮湿部位；卧室/客厅等一般环境可用普通腻子，强行要求耐水腻子属过度",
+   "anchor": "kc:1A422000_043_0069:2 + {2018,第24题} + {2022,第21题}",
+   "extension": false
+  }
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:47+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
+}

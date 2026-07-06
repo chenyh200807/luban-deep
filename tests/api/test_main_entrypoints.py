@@ -879,6 +879,88 @@ def test_local_startup_keeps_process_alive_when_fail_fast_disabled(
     assert payload["checks"]["learner_state_runtime_ready"] is True
 
 
+def test_startup_releases_orphaned_free_trial_reservations_after_turn_recovery(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "DEEPTUTOR_STARTUP_FAIL_FAST": "0",
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+
+    calls: list[tuple[str, float]] = []
+
+    class _FakeSessionStore:
+        async def recover_all_orphaned_turns(self, reason: str) -> int:
+            calls.append(("turn_recovery", 0.0 if reason == "orphaned_on_restart" else -1.0))
+            return 1
+
+    async def _release_orphaned_reservations(*, cutoff_created_at: float) -> int:
+        calls.append(("reservation_release", cutoff_created_at))
+        return 1
+
+    session_module = importlib.import_module("deeptutor.services.session")
+    monkeypatch.setattr(session_module, "get_sqlite_session_store", lambda: _FakeSessionStore())
+    monkeypatch.setattr(
+        module,
+        "_release_startup_orphaned_free_trial_reservations",
+        _release_orphaned_reservations,
+    )
+
+    with TestClient(module.app):
+        pass
+
+    assert calls[0] == ("turn_recovery", 0.0)
+    assert calls[1][0] == "reservation_release"
+    assert calls[1][1] > 0
+
+
+def test_startup_does_not_release_free_trial_reservations_when_turn_recovery_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "DEEPTUTOR_STARTUP_FAIL_FAST": "0",
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+
+    release_calls = 0
+
+    class _FailingSessionStore:
+        async def recover_all_orphaned_turns(self, _reason: str) -> int:
+            raise RuntimeError("chat store unavailable")
+
+    async def _release_orphaned_reservations(*, cutoff_created_at: float) -> int:
+        nonlocal release_calls
+        release_calls += 1
+        return int(cutoff_created_at)
+
+    session_module = importlib.import_module("deeptutor.services.session")
+    monkeypatch.setattr(session_module, "get_sqlite_session_store", lambda: _FailingSessionStore())
+    monkeypatch.setattr(
+        module,
+        "_release_startup_orphaned_free_trial_reservations",
+        _release_orphaned_reservations,
+    )
+
+    with TestClient(module.app):
+        pass
+
+    assert release_calls == 0
+
+
 def test_startup_marks_placeholder_llm_endpoint_not_ready(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

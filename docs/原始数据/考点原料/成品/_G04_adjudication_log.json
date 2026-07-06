@@ -1,0 +1,21 @@
+[
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":0,"tier":"Tier-2(错因码语义类)+Tier-1手术编辑",
+   "actions":["前轮已改主码 M10; GLM-5.2 单审(flaggers=DeepSeek/Qwen, GLM未flag): satisfied=false — fix 明列 M10/E10, 辅码 M03 不能等效替代 E10",
+     "Fable-5 复签同意(保守方向=保多码并注): 补 E10(案例表达)不删 M03",
+     "Tier-1: unique-match 1/1 应用, 两闸绿","结论: status=fixed(本轮补辅码 E10)"],
+   "panel":{"GLM-5.2":{"satisfied_before":false,"m03_as_secondary_ok":false},"Fable-5":"复签同意并注E10",
+     "edits_applied":[{"ref":"§6 M2","add":"E10 规范适用错误(案例表达)"}]}},
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":1,"tier":"Tier-2(错因码语义类)确认",
+   "actions":["字符串定位: M4 现挂 M04/M08·去E02, 与 fix 逐字一致 — 前轮已改",
+     "GLM-5.2: satisfied=true; Fable-5 复签同意","结论: status=fixed(前轮已改, 本轮补凭据)"],
+   "panel":{"GLM-5.2":{"satisfied":true},"Fable-5":"复签同意"}},
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":2,"tier":"Tier-2(错因码语义类)确认",
+   "actions":["字符串定位: M6 现挂 M10/M03(补M系列) — 前轮已改; fix 的 E10/E07 为'可保留'非必须",
+     "GLM-5.2: satisfied=true(emit按题型定码全局声明覆盖案例场景); Fable-5 复签同意","结论: status=fixed(前轮已改, 本轮补凭据)"],
+   "panel":{"GLM-5.2":{"satisfied":true},"Fable-5":"复签同意"}},
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":3,"tier":"Tier-2(错因码语义类)+Tier-1手术编辑",
+   "actions":["前轮已改主码 E10; GLM-5.2: satisfied=false — fix 要求 MCQ 辅 M03/M10, 缺 M10",
+     "Fable-5 复签同意(保守=补齐并注); Tier-1: unique-match 1/1 应用, 两闸绿","结论: status=fixed(本轮补辅码 M10)"],
+   "panel":{"GLM-5.2":{"satisfied_before":false},"Fable-5":"复签同意补M10",
+     "edits_applied":[{"ref":"§6 M7","add":"M10 用常识替代规范判断(MCQ)"}]}}
+]

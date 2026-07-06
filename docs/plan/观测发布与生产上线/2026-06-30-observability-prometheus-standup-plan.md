@@ -110,3 +110,21 @@ TDD 测试（含真实渲染器 shape 契约）。
 - `scripts/verify_runtime_assets.py` + `.github/workflows/runtime-ops.yml` CI 门（已删 paths）
 - `scripts/verify_aliyun_observability_stack.sh` 可重复栈健康验证
 - `deployment/observability/` 全部新增/改动文件（含 `prometheus.alerts.test.yml`）
+
+### Step 4（2026-07-04）质量 eval north-star 通电 — Phase 1
+
+把"AI 有没有变笨"从盲区变成 live 邮件告警（此前是最大伪安全感：exam_quality eval 抓过真实
+6–14pp 回归却从未接 gate）。
+
+- **无需新材料**：337 道真题（`deeptutor/services/benchmark/fixtures/exam_quality_bank.json`）
+  + 双 provider key（容器内 `DEEPSEEK_API_KEY`/`DASHSCOPE_API_KEY`）+ python 3.11（容器）全已就位。
+- **baseline（2026-07-04 实跑）**：线上模型 `dashscope:deepseek-v4-flash` 对 337 题
+  closed-book = **0.8635（291/337）**，0 错误。
+- **Phase 1（本次，无需 rebuild）**：`scripts/exam_quality_nightly_check.sh` 由宿主 crontab
+  每晚跑，容器内 eval → 解析准确率 → 跌破地板（0.81 ≈ −5pp）POST 告警到 Alertmanager →
+  邮件（复用已验通的 Gmail 出口，单一告警权威）；eval 本身产不出数也告警（瞎了≠静默放行）；
+  每次写 `data/runtime/observability/exam_quality_history.log` 留准确率趋势。
+- **Phase 2（随下次 deeptutor 镜像 rebuild）**：把准确率导出成 Prometheus gauge
+  `deeptutor_exam_quality_accuracy` + rule 告警 + staleness 告警，供 at-a-glance 看板。
+- **仍 GATED（不假绿）**：跨模型 A/B 升级判定（要不要换模型）暂不开；RAG golden 标注、
+  客户端埋点等内容真相病仍需外部素材。
