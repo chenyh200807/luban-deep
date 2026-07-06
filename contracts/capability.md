@@ -87,6 +87,8 @@
 
 32. `ChatOrchestrator` 在路由决策点就地把本轮 routing 消息写入 `context.metadata["semantic_router_captured_input"]`，作为 semantic-router 决策遥测的 in-place 输入捕获（供 turn 完成时落 `semantic_router_telemetry` internal 事件，免事后 session+time join）。这是**纯 additive、只读观测**，**绝不改变任何 capability 路由判决**（behavior-preserving）；任何 capability/路由判定不得读取或依赖该字段做决策。
 
+43. capability / TutorBot / provider 可以把 `llm_stream_telemetry`、provider timing、first-useful-content timing、`latency_timeline`、`latency_max_stall` 等写入 runtime/session metadata，供 `turn_runtime` terminal observer 和内部诊断消费；这些字段不得进入 `/api/v1/ws` outbound public copy，不属于 capability public result contract，也不得成为客户端展示、capability route、评分、计费或 learner-state authority。公开 WS redaction 只能删除 public copy 中的内部观测字段，不能改写持久化 turn event、canonical final answer 或 terminal observer truth。
+
 ## Schema
 
 - 机器可读 schema：`deeptutor/capabilities/request_contracts.py`

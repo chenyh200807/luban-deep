@@ -2331,7 +2331,12 @@ async def test_orchestrator_treats_explicit_choice_type_as_generation_with_activ
     assert context.metadata["question_followup_context"]["user_answer"] == ""
     assert context.metadata["question_followup_context"]["is_correct"] is None
     assert context.metadata["question_followup_action"]["intent"] == "generate_more_questions"
-    assert context.metadata["turn_semantic_decision"]["next_action"] == "route_to_generation"
+    decision = context.metadata["turn_semantic_decision"]
+    assert decision["relation_to_active_object"] == "continue_same_learning_flow"
+    assert decision["next_action"] == "route_to_generation"
+    assert decision["allowed_patch"] == ["set_active_object"]
+    assert decision["target_object_ref"]["object_type"] == "single_question"
+    assert decision["target_object_ref"]["object_id"] == "q_prev"
     result = next(event for event in events if event.type.value == "result")
     assert result.metadata["question_type"] == "choice"
 
@@ -2500,6 +2505,46 @@ async def test_orchestrator_preselected_deep_question_uses_cached_generation_act
     assert registry.captured[0] == "deep_question"
     assert context.config_overrides["force_generate_questions"] is True
     assert context.config_overrides["topic"] == "继续出同考点题目帮我巩固一下"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_preselected_generation_reuses_canonical_semantic_decision_schema() -> None:
+    orchestrator = ChatOrchestrator()
+
+    context = UnifiedContext(
+        session_id="s-preselected-generation-canonical-decision",
+        user_message="要",
+        config_overrides={},
+        metadata={
+            "raw_user_message": "要",
+            "question_followup_action": {
+                "intent": "generate_more_questions",
+                "topic": "继续出同考点题目帮我巩固一下",
+            },
+            "question_followup_context": {
+                "question_id": "q_prev",
+                "question": "上一道题：楼梯平台净高下限是多少？",
+                "question_type": "choice",
+                "options": {"A": "2.0m", "B": "2.2m", "C": "2.4m", "D": "2.6m"},
+                "correct_answer": "B",
+            },
+        },
+        language="zh",
+        active_capability="deep_question",
+    )
+
+    cap = await orchestrator._select_capability_after_lifecycle(context, "要")
+
+    assert cap == "deep_question"
+    decision = context.metadata["turn_semantic_decision"]
+    assert decision["relation_to_active_object"] == "continue_same_learning_flow"
+    assert decision["next_action"] == "route_to_generation"
+    assert decision["allowed_patch"] == ["set_active_object"]
+    assert decision["target_object_ref"]["object_type"] == "single_question"
+    assert decision["target_object_ref"]["object_id"] == "q_prev"
+    assert context.metadata["turn_semantic_decision_writer_chain"] == [
+        "orchestrator_practice_context"
+    ]
 
 
 @pytest.mark.asyncio

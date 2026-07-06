@@ -1090,21 +1090,25 @@ class ChatOrchestrator:
         practice_active_object = normalize_active_object(
             context.metadata.get("active_object")
         )
-        context.metadata.setdefault(
-            "turn_semantic_decision",
-            build_turn_semantic_decision(
-                relation_to_active_object=(
-                    "continue_same_learning_flow"
-                    if practice_active_object
-                    else "switch_to_new_object"
+        if not context.metadata.get("turn_semantic_decision"):
+            context.metadata.setdefault(
+                "turn_semantic_decision",
+                build_turn_semantic_decision(
+                    relation_to_active_object=(
+                        "continue_same_learning_flow"
+                        if practice_active_object
+                        else "switch_to_new_object"
+                    ),
+                    next_action="route_to_generation",
+                    allowed_patch="set_active_object",
+                    confidence=1.0,
+                    reason="practice generation result",
+                    active_object=practice_active_object,
                 ),
-                next_action="route_to_generation",
-                allowed_patch="set_active_object",
-                confidence=1.0,
-                reason="practice generation result",
-                active_object=practice_active_object,
-            ),
-        )
+            )
+            context.metadata["turn_semantic_decision_writer_chain"] = [
+                "orchestrator_practice_context"
+            ]
         skill_names = list(select_question_lifecycle_skill_names("practice_generation"))
         context.metadata["question_lifecycle_skill_names"] = skill_names
         interaction_hints = (

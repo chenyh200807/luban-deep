@@ -5172,6 +5172,15 @@ async def test_turn_runtime_observer_breaks_down_start_setup_and_capability_stre
     assert "first_content" in metadata["capability_stream_stage_timings_ms"]
     assert "first_result" in metadata["capability_stream_stage_timings_ms"]
     assert "event_persist_total" in metadata["capability_stream_stage_timings_ms"]
+    assert metadata["first_useful_content_event_type"] == "content"
+    assert metadata["first_useful_content_content_source"] == "content.delta"
+    assert metadata["first_useful_content_source"] == "chat"
+    assert metadata["server_turn_start_to_first_useful_content_ms"] >= 0
+    assert any(
+        item.get("stage") == "server_turn_start_to_first_useful_content"
+        for item in metadata["latency_timeline"]
+    )
+    assert metadata["latency_max_stall"]["duration_ms"] >= 0
     assert metadata["capability_stream_event_counts"]["content"] == 1
     assert metadata["capability_stream_event_counts"]["result"] == 1
     assert metadata["capability_stream_event_counts"]["done"] == 1

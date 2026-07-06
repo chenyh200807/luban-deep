@@ -36,6 +36,13 @@ def test_primary_mode_marks_decision_as_having_driven_route() -> None:
     assert telemetry["semantic_decision"]["next_action"] == "route_to_grading"
     assert telemetry["semantic_decision"]["confidence"] == 0.92
     assert telemetry["is_default_template"] is False
+    assert telemetry["decision_writer_chain"] == ["semantic_router"]
+    assert telemetry["decision_writer_chain_source"] == "inferred"
+    assert telemetry["final_decision_writer"] == "semantic_router"
+    assert telemetry["decision_authority_count"] == 1
+    assert telemetry["decision_overwrite_count"] == 0
+    assert telemetry["legacy_selector_used"] is False
+    assert telemetry["preselected_bypass_used"] is False
 
 
 def test_lifecycle_override_marks_decision_as_not_driving_route() -> None:
@@ -92,6 +99,7 @@ def test_default_template_reason_is_flagged() -> None:
     )
 
     assert telemetry["is_default_template"] is True
+    assert telemetry["fallback_decision_reason_prefix"].startswith("当前 session 仍在开放对话")
 
 
 def test_deterministic_fallback_reason_is_flagged() -> None:
@@ -140,6 +148,75 @@ def test_missing_decision_is_safe() -> None:
     assert telemetry["semantic_decision"] == {}
     assert telemetry["is_default_template"] is False
     assert telemetry["captured_raw_input"] == "你好"
+    assert telemetry["decision_writer_chain"] == []
+    assert telemetry["decision_writer_chain_source"] == "none"
+    assert telemetry["decision_schema_valid"] is False
+
+
+def test_preselected_and_legacy_modes_surface_competing_authority() -> None:
+    preselected = build_semantic_router_telemetry(
+        context_metadata={
+            "semantic_router_mode": "preselected",
+            "turn_semantic_decision": {
+                "next_action": "route_to_generation",
+                "confidence": 0.5,
+                "reason": "request hint selected capability",
+            },
+        },
+        final_executed_capability="deep_question",
+        captured_raw_input="出题",
+    )
+    assert preselected["preselected_bypass_used"] is True
+    assert preselected["decision_writer_chain"] == ["preselected_capability"]
+    assert preselected["decision_writer_chain_source"] == "inferred"
+    assert preselected["deep_question_canonical_decision_missing"] is True
+
+    legacy = build_semantic_router_telemetry(
+        context_metadata={
+            "semantic_router_mode": "disabled",
+            "turn_semantic_decision": {
+                "next_action": "route_to_followup_explainer",
+                "confidence": 0.55,
+                "reason": "deterministic fallback 命中题目追问特征，作为语义降级保底。",
+            },
+        },
+        final_executed_capability="chat",
+        captured_raw_input="为什么",
+    )
+    assert legacy["legacy_selector_used"] is True
+    assert legacy["decision_writer_chain"] == ["legacy_selector"]
+    assert legacy["fallback_decision_reason_prefix"].startswith("deterministic fallback")
+
+
+def test_explicit_writer_chain_reports_overwrites_without_deciding_route() -> None:
+    telemetry = build_semantic_router_telemetry(
+        context_metadata={
+            "semantic_router_mode": "primary",
+            "turn_semantic_decision_writer_chain": [
+                "turn_runtime_question_domain_adapter",
+                "semantic_router",
+            ],
+            "turn_semantic_decision": {
+                "next_action": "route_to_grading",
+                "confidence": 0.92,
+                "reason": "canonical",
+                "relation_to_active_object": "answer_active_object",
+                "allowed_patch": "update_answer_slot",
+            },
+        },
+        final_executed_capability="deep_question",
+        captured_raw_input="B",
+    )
+
+    assert telemetry["decision_writer_chain"] == [
+        "turn_runtime_question_domain_adapter",
+        "semantic_router",
+    ]
+    assert telemetry["decision_writer_chain_source"] == "recorded"
+    assert telemetry["decision_authority_count"] == 2
+    assert telemetry["decision_overwrite_count"] == 1
+    assert telemetry["decision_schema_valid"] is True
+    assert telemetry["deep_question_canonical_decision_missing"] is False
 
 
 def test_build_telemetry_event_payload_is_internal_turn_event() -> None:
