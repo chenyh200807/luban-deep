@@ -244,6 +244,65 @@ class MemberUsageMeter:
             metadata_updates=metadata_updates,
         )
 
+    def release_free_trial_reservations_before(
+        self,
+        cutoff_created_at: float,
+        *,
+        reason: str,
+        finalized_by: str = "startup_orphan_recovery",
+    ) -> int:
+        self._ensure_schema()
+        cutoff = float(cutoff_created_at)
+        release_reason = str(reason or "").strip() or "orphaned_on_restart"
+        released_at = datetime.now(timezone.utc).isoformat()
+        with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            rows = conn.execute(
+                """
+                SELECT id, metadata_json
+                FROM member_usage_events
+                WHERE status = ?
+                  AND created_at < ?
+                """,
+                (FREE_TRIAL_RESERVED_STATUS, cutoff),
+            ).fetchall()
+            released_count = 0
+            for row in rows:
+                try:
+                    metadata = json.loads(str(row["metadata_json"] or "{}"))
+                except json.JSONDecodeError:
+                    metadata = {}
+                if not isinstance(metadata, dict):
+                    metadata = {}
+                if str(metadata.get("reason") or "").strip().lower() != FREE_TRIAL_REASON:
+                    continue
+                metadata.update(
+                    {
+                        "release_reason": release_reason,
+                        "finalized_by": str(finalized_by or "").strip()
+                        or "startup_orphan_recovery",
+                        "released_at": released_at,
+                    }
+                )
+                cursor = conn.execute(
+                    """
+                    UPDATE member_usage_events
+                    SET status = ?,
+                        metadata_json = ?
+                    WHERE id = ?
+                      AND status = ?
+                    """,
+                    (
+                        FREE_TRIAL_RELEASED_STATUS,
+                        json.dumps(metadata, ensure_ascii=False, sort_keys=True),
+                        int(row["id"]),
+                        FREE_TRIAL_RESERVED_STATUS,
+                    ),
+                )
+                released_count += int(cursor.rowcount or 0)
+            conn.commit()
+        return released_count
+
     def list_usage_events(
         self,
         wallet_user_id: str,
