@@ -9,6 +9,27 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-06 - 启动 orphan recovery 未释放免费试用 reservation，导致“2 次后像满 3 次”
+
+- 问题：
+  - test2 微信真机账号线上配置确认是每天免费 3 条、7 日 12 条、任意连续 3 个自然日每天满 3 条后下一问拦截，但用户第 2 条成功后就感到被拦。
+  - 线上 `member_usage_events` 显示该 wallet 当天存在 2 条 `metered_not_charged` 成功免费 turn，另有 1 条 `free_trial_reserved` 遗留预占；对应 chat turn 在部署/重启时被标记为 `failed / orphaned_on_restart`。
+- 根因：
+  - 最后正确点：startup `recover_all_orphaned_turns("orphaned_on_restart")` 能把进程重启前残留的 running turn 写成 terminal failed。
+  - 第一个错误点：同一 startup recovery 没有把这些重启前遗留的 `free_trial_reserved` 交回 `MemberUsageMeter` 释放；`mobile._build_free_trial_usage_payload()` 在 20 分钟 TTL 内会把 reserved 计入 free-trial 用量。
+  - shared failure shape：terminal truth split。chat turn 已经失败终态，commerce reservation 仍停留在 in-flight 状态，两个 authority 没有在重启恢复路径收敛。
+- 成功修法：
+  - `MemberUsageMeter.release_free_trial_reservations_before()` 成为 startup orphan reservation 释放 authority，只释放 `status=free_trial_reserved`、`metadata.reason=free_trial`、且 `created_at < startup_cutoff` 的记录；已消费、已释放、非 free-trial、启动后的新预占均不动。
+  - `main.lifespan()` 在原有 running turn recovery 后调用 thin wrapper `_release_startup_orphaned_free_trial_reservations()`，补齐重启恢复的 commerce terminal path；释放失败只 warning，不把可恢复额度清理问题升级成启动阻断。
+  - 线上即时修复：定向把遗留 reservation id=485 改为 `free_trial_released`，该账号当天有效计数从 3 降回 2。
+- 验证：
+  - 新增 meter 矩阵测试：只释放 cutoff 前 free-trial reserved，不碰未来 reserved、非 free-trial reserved、consumed。
+  - 新增 startup 测试：`lifespan` 在 `recover_all_orphaned_turns` 后调用 reservation release helper。
+  - 聚焦回归：`tests/services/test_member_usage_meter.py` + startup helper + orphan turn recovery `10 passed`；`tests/api/test_mobile_router.py -k free_trial` `9 passed, 137 deselected`；`tests/api/test_main_entrypoints.py` `33 passed`；`py_compile` 与 `ruff F821/F811` 通过。
+- 教训：
+  - daily limit 设置正确不等于用户体感正确；in-flight reservation 在 TTL 内就是可见用量，所有 terminal failure path 必须同步释放。
+  - 启动恢复也是 terminal path，不能只恢复 chat turn 而漏掉 commerce state。
+
 ## 2026-07-05 - 免费试用 reservation 失败占用导致“权益不足”
 
 - 问题：
