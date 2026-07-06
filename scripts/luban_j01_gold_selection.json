@@ -1,0 +1,66 @@
+{
+  "slice_version": "j01-governed-gold-v1",
+  "topic": "J01 危大工程专项方案专家论证",
+  "authority_note": "采分点 = 官方真题答案的逐字切片(verbatim slice)，源 = FINAL_CLEANED_EXAM_V{year}.json 快照。本文件不是第二 authority：build 脚本对每个 point_text 做 verbatim-substring 校验(去空白后)，非逐字即 fail-closed。gold 真值 = 教研人工 hit/miss，非本文件、非任何 AI。",
+  "student_md": "docs/原始数据/2026_副本/题库/近三年案例题_按学生答卷排版.md",
+  "exam_snapshot_dir": "docs/原始数据/考点原料/题库快照",
+  "j01_evidence_pack": "docs/原始数据/考点原料/_J01_exam_evidence.json",
+  "honest_scope_note": "2023-2025 拟真答卷全量扫描后，仅这 4 个小问 J01-topical 且官方答案非空。J01 canonical 的纯『专家论证程序』(专家组5人/回避/编制主体审核审查顺序, R5-7..R5-11) 在 2023-2025 完全缺席(属 2019 考点)，故本 slice 是『危大工程专项方案(编制/内容/危大判定)』家族，专家论证程序需另补 2015-2019 题源。",
+  "selections": [
+    {
+      "qid": "Q2024-02",
+      "year": 2024,
+      "sub_no": "2",
+      "j01_relevance": "core",
+      "sub_question": "答出项目部基坑专项施工方案中不妥之处的正确做法。",
+      "official_source": {"chunk_id": "EXAM_1A433000_P0012_02", "exercise_index": 0, "blob_section": "2"},
+      "scoring_points": [
+        {"point_id": "J01-Q2024-02-S2-P1", "point_text": "排桩混凝土灌注桩身混凝土强度不应低于C25", "required_terms": ["C25", "不应低于"], "j01_relevance": "core", "dimension": "记录维", "r5_anchor": "R5-5/R5-6 方案内容"},
+        {"point_id": "J01-Q2024-02-S2-P2", "point_text": "应先施工灌注桩，后施工截水帷幕", "required_terms": ["先施工灌注桩", "后施工截水帷幕"], "j01_relevance": "core", "dimension": "程序维", "r5_anchor": "R5-5/R5-6 方案内容"},
+        {"point_id": "J01-Q2024-02-S2-P3", "point_text": "灌注桩顶部泛浆高度不应小于500mm", "required_terms": ["泛浆高度", "500mm"], "j01_relevance": "core", "dimension": "记录维", "r5_anchor": "R5-5/R5-6 方案内容"},
+        {"point_id": "J01-Q2024-02-S2-P4", "point_text": "基坑内支撑的拆除顺序应与支撑结构的设计工况一致", "required_terms": ["拆除顺序", "设计工况"], "j01_relevance": "core", "dimension": "程序维", "r5_anchor": "R5-5/R5-6 方案内容"},
+        {"point_id": "J01-Q2024-02-S2-P5", "point_text": "应由建设方委托具备相应资质的第三方进行基坑监测", "required_terms": ["建设方委托", "第三方", "基坑监测"], "j01_relevance": "core", "dimension": "主体维", "r5_anchor": "R5-11 实施控制/第三方监测"}
+      ]
+    },
+    {
+      "qid": "Q2025-02",
+      "year": 2025,
+      "sub_no": "3",
+      "j01_relevance": "core",
+      "sub_question": "深基坑工程专项施工方案中技术保证措施还有哪些内容？",
+      "official_source": {"chunk_id": "EXAM_1A433000_P0011_01", "exercise_index": 0, "blob_section": "3"},
+      "scoring_points": [
+        {"point_id": "J01-Q2025-02-S3-P1", "point_text": "安全保证措施", "required_terms": ["安全保证措施"], "j01_relevance": "core", "dimension": "记录维", "r5_anchor": "R5-5 方案八项内容/保证措施"},
+        {"point_id": "J01-Q2025-02-S3-P2", "point_text": "质量技术保证措施", "required_terms": ["质量技术保证措施"], "j01_relevance": "core", "dimension": "记录维", "r5_anchor": "R5-5 方案八项内容/保证措施"},
+        {"point_id": "J01-Q2025-02-S3-P3", "point_text": "季节性施工保证措施", "required_terms": ["季节性施工保证措施"], "j01_relevance": "core", "dimension": "记录维", "r5_anchor": "R5-5 方案八项内容/保证措施"}
+      ]
+    },
+    {
+      "qid": "Q2025-05",
+      "year": 2025,
+      "sub_no": "4",
+      "j01_relevance": "adjacent",
+      "sub_question": "按照施工活动专业分类的危险源类型还有哪些？判定为安全管理重大事故隐患的条件还有哪些？",
+      "official_source": {"chunk_id": "EXAM_1A436000_P0017_01", "exercise_index": 3},
+      "scoring_points": [
+        {"point_id": "J01-Q2025-05-S4-P5", "point_text": "施工企业未取得安全生产许可证，擅自从事建筑施工活动", "required_terms": ["安全生产许可证", "擅自"], "j01_relevance": "adjacent", "dimension": "后果维", "r5_anchor": "重大事故隐患判定"},
+        {"point_id": "J01-Q2025-05-S4-P6", "point_text": "施工单位主要负责人、项目负责人、专职安全生产管理人员未取得安全生产考核合格证书，从事相关工作", "required_terms": ["安全生产考核合格证书"], "j01_relevance": "adjacent", "dimension": "主体维", "r5_anchor": "重大事故隐患判定"},
+        {"point_id": "J01-Q2025-05-S4-P7", "point_text": "特种作业人员未取得特种作业人员操作资格证书上岗作业", "required_terms": ["特种作业", "操作资格证书"], "j01_relevance": "adjacent", "dimension": "主体维", "r5_anchor": "重大事故隐患判定"},
+        {"point_id": "J01-Q2025-05-S4-P8", "point_text": "危险性较大的分部分项工程未编制、未审核专项施工方案", "required_terms": ["危险性较大", "未编制", "未审核", "专项施工方案"], "j01_relevance": "core", "dimension": "程序维", "r5_anchor": "R5-1 危大判定/R5-8 前置审核审查"}
+      ]
+    },
+    {
+      "qid": "Q2023-02",
+      "year": 2023,
+      "sub_no": "3",
+      "j01_relevance": "extension",
+      "sub_question": "指出雨期施工专项方案中的不妥之处，并写出正确做法。（本小题3项不妥，多答不得分）",
+      "official_source": {"chunk_id": "EXAM_1A433000_P0012_02", "exercise_index": 2},
+      "scoring_points": [
+        {"point_id": "J01-Q2023-02-S3-P1", "point_text": "袋装水泥应存入仓库", "required_terms": ["袋装水泥", "仓库"], "j01_relevance": "extension", "dimension": "记录维", "r5_anchor": "专项方案(非危大)内容纠错"},
+        {"point_id": "J01-Q2023-02-S3-P2", "point_text": "室外露天采光井全部用盖板盖严并固定，同时铺上塑料薄膜", "required_terms": ["采光井", "盖板", "塑料薄膜"], "j01_relevance": "extension", "dimension": "记录维", "r5_anchor": "专项方案(非危大)内容纠错"},
+        {"point_id": "J01-Q2023-02-S3-P3", "point_text": "每天砌筑高度不得超过1.2m", "required_terms": ["砌筑高度", "1.2m"], "j01_relevance": "extension", "dimension": "记录维", "r5_anchor": "专项方案(非危大)内容纠错"}
+      ]
+    }
+  ]
+}

@@ -4931,6 +4931,26 @@ def test_bi_member_read_model_excludes_qa_accounts_from_operational_counts(
                 phone="13908255519",
             ),
             _member(
+                "54c7a871-3c15-4111-a1ea-855e99c7ba31",
+                display_name="cceval2_090626",
+                phone="15558866514",
+            ),
+            _member(
+                "c0f859c6-f3d8-4625-8e1a-36ed4ce83053",
+                display_name="releaseb478_1783263768",
+                phone="15558866515",
+            ),
+            _member(
+                "ab8e8479-f04c-4862-aea0-6c6f4218cd4b",
+                display_name="practiceanchor_1783314798",
+                phone="15558866516",
+            ),
+            _member(
+                "cf0b152e-3d33-48f8-ac21-45dc82fab87a",
+                display_name="army_p6_8a7ff01f",
+                phone="15558866517",
+            ),
+            _member(
                 "047b7b7f-8316-4f95-8bf7-71973c102be7",
                 display_name="真实快速登录会员",
                 phone="15558866508",
@@ -5404,6 +5424,12 @@ def test_dashboard_counts_recent_registered_member_windows(
     directory = _FakeMemberDirectory(
         [
             _member("member_today", days_ago=0),
+            _member(
+                "member_previous_local_day_within_24h",
+                days_ago=0,
+                phone="15558866514",
+                created_at="2026-06-29T21:00:00+08:00",
+            ),
             _member("member_3d", days_ago=3, phone="15558866509"),
             _member("member_8d", days_ago=8, phone="15558866510"),
             _member("member_40d", days_ago=40, phone="15558866511"),
@@ -5417,10 +5443,10 @@ def test_dashboard_counts_recent_registered_member_windows(
 
     dashboard = service.get_dashboard()
 
-    assert dashboard["total_count"] == 4
+    assert dashboard["total_count"] == 5
     assert dashboard["new_today_count"] == 1
-    assert dashboard["new_7d_count"] == 2
-    assert dashboard["new_30d_count"] == 3
+    assert dashboard["new_7d_count"] == 3
+    assert dashboard["new_30d_count"] == 4
 
 
 def test_member_directory_merges_member_console_overlay_without_owning_member_pool(tmp_path: Path) -> None:

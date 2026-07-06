@@ -98,6 +98,23 @@ content_asset_contracts:
     official_score_allowed: false
     runtime_canonical: false
     grading_authority: false
+  - name: luban_concept_card_bank.v0
+    owner: luban_lesson
+    contract_for: >-
+      review-module concept-card bank (双轮 §6.2 30秒再认卡) — deterministic
+      compile-time projection of a signed pack's §1 knowledge panorama joined to
+      compiled_source verbatim quotes (point_id provenance; no-quote rows
+      fail-closed). Persisted as
+      docs/原始数据/考点原料/成品/_{pack_id}_concept_card_bank.v0.json. Follows the
+      variant-bank precedent — dash-namespaced schema_version literal
+      ("luban-concept-card-bank", deliberately outside the grading closure) and the
+      same candidate→signed human promotion gate
+      (promote_variant_bank.py --kind concept_cards).
+    validation_gate: scripts/build_luban_concept_card_bank.py --check (rerun derive + quote-verbatim/dedupe/forbidden-word gate, zero-write)
+    consumed_by: deeptutor/services/luban_lesson/concept_cards.py (read-only projection behind the signed+sha double fail-closed loader; flag-gated review read model — never grading / learner-brain input)
+    official_score_allowed: false
+    runtime_canonical: false
+    grading_authority: false
 
 # ── Tier3 carve-out: ephemeral one-shot artifacts (rule, NOT 1:1 registration) ─
 #

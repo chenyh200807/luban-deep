@@ -22,6 +22,7 @@ owner 原则：信当下 LLM 能力，宁可大方输出 + 诚实声明，也不
 
 from __future__ import annotations
 
+from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.tutorbot.agent.loop import AgentLoop
 from deeptutor.tutorbot.teaching_modes import (
     assess_unverifiable_standard_codes,
@@ -225,6 +226,18 @@ def test_export_content_truth_metadata_noop_when_absent():
     response_metadata: dict = {"keep": 1}
     AgentLoop._export_content_truth_metadata({"rag_retrieval_degraded": False}, response_metadata)
     assert response_metadata == {"keep": 1}  # nothing to export → untouched
+
+
+def test_llm_provider_arrearage_error_uses_public_fallback():
+    raw_error = (
+        "Error: {'message': 'Access denied, please make sure your account is in good standing. "
+        "For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment', "
+        "'type': 'Arrearage', 'param': None, 'code': 'Arrearage'}"
+    )
+    public_fallback = "模型调用失败，请稍后重试。"
+
+    assert coerce_user_visible_answer(raw_error, fallback=public_fallback) == public_fallback
+    assert AgentLoop._is_user_visible_final_answer(public_fallback) is True
 
 
 # ---- eval-design #5 metric self-test: clean passes AND fabricated caught ----

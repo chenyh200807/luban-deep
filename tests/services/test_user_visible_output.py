@@ -79,6 +79,11 @@ def test_coerce_user_visible_answer_blocks_rag_xml_and_provider_errors() -> None
         "Error: {'message': 'Authentication Fails, Your api key: ****486e is invalid', "
         "'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}"
     )
+    arrearage_error = (
+        "Error: {'message': 'Access denied, please make sure your account is in good standing. "
+        "For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment', "
+        "'type': 'Arrearage', 'param': None, 'code': 'Arrearage'}"
+    )
     html_error = (
         '<!doctype html><html lang="en"><head><title>Example Domain</title></head>'
         "<body><h1>Example Domain</h1></body></html>"
@@ -87,6 +92,7 @@ def test_coerce_user_visible_answer_blocks_rag_xml_and_provider_errors() -> None
     assert coerce_user_visible_answer(rag_text) == "暂时未生成适合直接展示的答案，请重试一次。"
     assert coerce_user_visible_answer(provider_error) == "暂时未生成适合直接展示的答案，请重试一次。"
     assert coerce_user_visible_answer(auth_error) == "暂时未生成适合直接展示的答案，请重试一次。"
+    assert coerce_user_visible_answer(arrearage_error) == "暂时未生成适合直接展示的答案，请重试一次。"
     assert coerce_user_visible_answer(html_error) == "暂时未生成适合直接展示的答案，请重试一次。"
 
 

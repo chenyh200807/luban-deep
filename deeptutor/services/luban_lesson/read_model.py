@@ -72,15 +72,19 @@ def _card_url(pack_id: str) -> str:
 
 
 def _load_signed_bank(
-    pack_id: str, manifest_dir: Path, expected_sha: str
+    pack_id: str,
+    manifest_dir: Path,
+    expected_sha: str,
+    filename_template: str = _VARIANT_BANK_TEMPLATE,
 ) -> dict[str, Any] | None:
-    """变体池签发闸（双 fail-closed，本文件所有 bank 读取的唯一入口）。
+    """供给池签发闸（双 fail-closed，所有 bank 读取的唯一入口——含考点卡池，
+    ``concept_cards.py`` 传自己的 ``filename_template`` 复用同一闸，禁分叉第二 loader）。
 
     只放行 ``status=="signed"`` 且 ``source_pack_sha256`` == manifest 该 pack
     ``content_sha256`` 的 bank；candidate 未签发、pack 正文修订后的 sha 漂移、
     文件缺失/损坏，一律返回 None（对外与 bank 缺失同形，不泄漏未签发存在性）。
     """
-    path = manifest_dir / _VARIANT_BANK_TEMPLATE.format(pack_id=pack_id)
+    path = manifest_dir / filename_template.format(pack_id=pack_id)
     try:
         bank = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
