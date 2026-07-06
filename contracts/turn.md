@@ -241,6 +241,30 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
     → 照常 demote，reveal 路径放行答案（anti-peek 只压隐式求助，不抑制显式 —— 尊重"不能不输出"）。已作答题
     （attempt 存在 → `should_block=False`）不命中。证据见 `tests/services/test_turn_start_demote_canonical_pipeline.py`
     （carve-out 谓词）+ live 红队 `给点提示/还是不会` 3/3 `structured_hint=True/leak=False`。
+  - **已批改题的下一步训练承接（2026-07-06）是同相位、同形的 forward-reachability carve-out**：
+    当上一轮批改已经把 `construction_grading_result.next_training_signal` / `is_correct + user_answer`
+    写进 active question object，而本轮用户用 "下一步" / "继续" / "按你说的做" 接受系统上一轮
+    巩固建议时，不能先把该 graded active_object 压进 suspended stack；否则 QTPK 虽可恢复 followup
+    context，但 DeepQuestion 读不到原 active_object 上的 next_training_signal，且 TutorBot 容易因
+    `study_assistant` 无证据误降级为 "当前记录不足"。单一判定权威 =
+    `question_turn_policy._message_accepts_next_training_for_stored_set` /
+    `_practice_generation_action_for_recent_grading_acceptance`：必须同时满足**短 action-only 接受语**
+    与**已批改题目证据**，且当前消息不能被 `resolve_submission_attempt` 识别为作答提交。turn_runtime
+    demote 守卫只读该谓词，不重新解释文本；真正的 action 解析优先交给
+    `interpret_question_followup_action`，其 prompt 必须携带 history_context、已批改状态与
+    `construction_grading_result.next_training_signal`，允许 LLM 结合上下文理解 "好的，按这个安排"
+    等非固定表达；确定性短语只作为 LLM 不可用时的窄 fallback。后续 capability route 仍由
+    `question_followup_action.intent=generate_more_questions` →
+    `turn_semantic_decision.next_action=route_to_generation` 统一承接。
+    `ChatOrchestrator._resolve_turn_semantic_decision` 必须优先读取 turn_runtime/QTPK 已写入的
+    强 canonical `turn_semantic_decision`（grading / generation / followup / clarify），不得在
+    lifecycle `practice_generation` 分支对同一输入二次调用 semantic router 并覆盖为
+    `route_to_general_chat`；但 `route_to_general_chat` / `hold_and_wait` 这类弱占位不能阻断
+    后续 context-aware semantic router / LLM 对 history offer 的理解。
+    **不误伤边界**：未批改 / 未作答题不命中；"我选A，下一步" 仍由提交单一权威先判分；裸 "好/可以/要"
+    不凭 active graded context 直接生成题。证据见
+    `tests/api/test_unified_ws_turn_runtime.py::test_graded_active_question_accepts_next_step_as_generation_action`
+    与 `test_turn_runtime_routes_graded_next_step_acceptance_to_deep_question_authority`。
 - **routing 相位**（单一权威 = `deeptutor/services/semantic_router.py::apply_active_object_transition`）：
   orchestrator 经 `metadata.suspended_object_stack` 读到 turn-START 压栈的对象，在 `resume_suspended_object`
   决策下**恢复（出栈）**。canonical **只出栈、从不在 turn-START 那个输入上重做压栈决策**。

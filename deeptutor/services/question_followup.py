@@ -2778,7 +2778,17 @@ def _build_followup_action_prompt(
                 "question": str(item.get("question") or "").strip(),
                 "options": item.get("options") or {},
                 "user_answer": str(item.get("user_answer") or "").strip(),
+                "is_correct": item.get("is_correct"),
                 "multi_select": bool(item.get("multi_select", False)),
+                "has_grading_result": isinstance(
+                    item.get("construction_grading_result"), dict
+                )
+                and bool(item.get("construction_grading_result")),
+                "next_training_signal": (
+                    (item.get("construction_grading_result") or {}).get("next_training_signal")
+                    if isinstance(item.get("construction_grading_result"), dict)
+                    else {}
+                ),
             }
         )
 
@@ -2810,6 +2820,11 @@ def _build_followup_action_prompt(
         "③history_context 里找不到被指的那道题——用 unknown，不要猜。\n"
         "   ask_other_question 只用于讲解/追问，绝不用于作答或改答。\n"
         "4. 如果用户是在要求继续出题/再来几题，intent=generate_more_questions。\n"
+        "   如果 active_question_set 显示题目已经完成批改（有 is_correct/user_answer 或 "
+        "construction_grading_result.next_training_signal），且用户在承接上一轮老师给出的"
+        "下一步巩固建议（如“下一步”“继续”“好的，按这个来”“照你说的做”），"
+        "也应判为 generate_more_questions；此时要利用 history_context 和 next_training_signal，"
+        "不要只按用户短句字面判断。若没有已批改证据，不要把低信息短句猜成出题。\n"
         "5. 如果无法有把握地判断为题目 follow-up，返回 unknown 或 unrelated，不要猜。\n"
         "6. 只有在上下文足够支持时，才能把紧凑字母串解释成答案。\n"
         "7. 如果需要输出答案，请放在 answers 数组里，每项包含 question_index、question_id、answer。\n"

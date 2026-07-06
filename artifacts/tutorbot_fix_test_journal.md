@@ -247,3 +247,23 @@
 - **坑2 只动 .dockerignore 的 PR 永久 BLOCKED**：必需检查（Contract Guard/Test Summary）被 tests.yml 路径过滤跳过、永不上报。修=PR 里带上会触发 CI 的实文件（如守卫测试）。
 - **坑3 复合命令夹带 git stash pop 弹出他人旧 stash**：与 memory「merge中严禁复合命令夹带 git stash」同类复发——红绿验证想用 stash 保存现场，pop 时弹出栈里别人的 WIP 造成 unmerged。修=红绿验证用 `git checkout <rev> -- <file>` 定点还原，禁 stash。
 - **坑4 automator 三层排障**：①`automator.launch` 解析此版 CLI `-v` 输出崩（'split' undefined）→ 改 `cli auto --auto-port` + `automator.connect`；②reLaunch 全超时=隐私同意弹窗挡导航+登录页在**分包**（`/packageDeeptutor/pages/login/login`，非主包 pages/login/*）→ 截图诊断破案；③方法链=handlePrivacyCheckboxTap→switchLoginMode→onUsernameInput/onPasswordInput→handlePasswordLogin。验证数字：三轮 ALL PASS、D15 retest_item_answered=15 入生产库。
+
+## 2026-07-06 - Graded "next step" acceptance must use context-aware question authority
+
+- 问题：
+  - 生产 session `unified_1783317640123_3b2cf2db`：deep_question 批改 3 题后明确提示“请按‘下一步’操作巩固”，用户回复“下一步”，下一轮却进入 TutorBot `study_assistant_degraded_no_evidence`，回答“当前记录不足”。
+- 根因：
+  - “下一步巩固”只有 assistant 文案投影，没有被 question-turn 控制面归一成 `question_followup_action.intent=generate_more_questions`。
+  - turn_runtime 写出的弱 `hold_and_wait` / `route_to_general_chat` 占位会被 orchestrator 当成强 authority，阻断 history/context-aware semantic router。
+  - lifecycle scene 可先把“下一步”截成 `study_assistant`，导致语义 action 没机会进入 `practice_generation`。
+- 成功修法：
+  - QTPK `_resolve_question_followup_context_and_action` 优先调用 LLM follow-up interpreter；prompt 携带 history_context、已批改状态、`construction_grading_result.next_training_signal`，让 LLM 结合上下文理解“好的，按这个安排”等非固定表达。
+  - 确定性“下一步/继续”只作为 LLM 不可用时的窄 fallback，且必须有已批改题目证据、无当前作答提交。
+  - lifecycle scene 只读 `question_followup_action=generate_more_questions`，优先归入 `practice_generation`，避免被 `study_assistant` 抢走。
+  - orchestrator 只优先尊重强 canonical decision（grading/generation/followup/clarify）；弱占位继续交给 context-aware semantic router/LLM。
+- 验证：
+  - RED：新增生产形态测试旧代码 2/2 fail（resolver 返回 None；runtime 最终 capability=tutorbot）。
+  - GREEN：相关目标测试 7/7 passed；`test_question_followup.py` 169/169 passed；`test_question_lifecycle_skills.py` + routing collapse/preselect 37/37 passed；`test_orchestrator_autoroute.py` 95/95 passed。
+  - `scripts/check_contract_guard.py ...` passed；`ruff --select F821 ...` passed；`git diff --check` clean。
+- 教训：
+  - action-only follow-up 不能靠裸词表治标；必须把结构化上下文交给 LLM/semantic authority。确定性代码只做证据门和 fail-safe，不能覆盖上下文语义。

@@ -62,6 +62,7 @@ from deeptutor.services.question_followup import (
 )
 from deeptutor.services.question_turn_policy import (
     _active_object_ref,
+    _message_accepts_next_training_for_stored_set,
     _message_is_submission_for_stored_set,
     _message_references_stored_question_set_item,
     _message_requests_active_mcq_represent,
@@ -101,7 +102,10 @@ from deeptutor.services.session.sqlite_store import (
     normalize_active_object,
     normalize_suspended_object_stack,
 )
-from deeptutor.services.user_visible_output import coerce_user_visible_answer, looks_like_unsafe_visible_output
+from deeptutor.services.user_visible_output import (
+    coerce_user_visible_answer,
+    looks_like_unsafe_visible_output,
+)
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
     active_object_requires_deep_mode,
@@ -4507,6 +4511,14 @@ class TurnRuntimeManager:
             stored_set_unanswered_implicit_help = should_block_unanswered_reference_reveal(
                 raw_user_content, stored_followup_question_context
             )
+            # 批改后 "下一步" / "继续" 是同一类 forward-reachability 引用：用户接受
+            # active graded question 写出的 next training action。单一判定仍在 QTPK；
+            # turn-start 只读该 predicate，避免先把可供 deep_question 消费的 graded
+            # active_object 压栈成 suspended。
+            stored_set_next_training_referenced = _message_accepts_next_training_for_stored_set(
+                raw_user_content,
+                stored_followup_question_context,
+            )
             if (
                 stored_active_object is not None
                 and stored_followup_question_context is not None
@@ -4516,6 +4528,7 @@ class TurnRuntimeManager:
                 and not stored_active_mcq_represent_referenced
                 and not stored_set_submission_referenced
                 and not stored_set_unanswered_implicit_help
+                and not stored_set_next_training_referenced
             ):
                 stored_suspended_object_stack = _prepend_suspended_object(
                     stored_suspended_object_stack,

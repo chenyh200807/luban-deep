@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 
 import yaml
@@ -10,6 +11,7 @@ from deeptutor.services.question_lifecycle_skills import (
     build_question_lifecycle_skill_context_from_legacy_scene,
     case_grading_context_from_full_submission,
     project_question_lifecycle_scene_from_metadata,
+    resolve_question_lifecycle_scene_decision,
     select_question_lifecycle_skill_names,
     study_assistant_has_learning_evidence,
 )
@@ -56,6 +58,37 @@ def test_study_assistant_learning_evidence_accepts_evidence_refs() -> None:
             "weak_points": [{"name": "屋面防水保修期限", "evidence_refs": ["evt_1"]}],
         },
     }) is True
+
+
+def test_question_followup_generation_action_wins_over_next_step_study_assistant_phrase() -> None:
+    ctx = UnifiedContext(
+        user_message="下一步",
+        metadata={
+            "question_followup_action": {
+                "intent": "generate_more_questions",
+                "confidence": 0.84,
+                "answers": [],
+            },
+            "question_followup_context": {
+                "question_id": "q_graded",
+                "question": "基础工程质量检查分类题",
+                "question_type": "choice",
+                "user_answer": "C",
+                "is_correct": False,
+                "construction_grading_result": {
+                    "authority": "construction_grading",
+                    "next_training_signal": {
+                        "concept": "项目施工质量检查与检验",
+                        "focus": "基础检查分类混淆",
+                    },
+                },
+            },
+        },
+    )
+
+    decision = asyncio.run(resolve_question_lifecycle_scene_decision(ctx, enable_llm=False))
+
+    assert decision.scene == "practice_generation"
 
 
 def test_build_question_lifecycle_skill_context_loads_question_review() -> None:

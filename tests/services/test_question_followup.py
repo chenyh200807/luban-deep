@@ -5,9 +5,10 @@ import json
 import pytest
 
 from deeptutor.services.question_followup import (
+    _build_followup_action_prompt,
     annotate_batch_submission_context,
-    apply_followup_action_to_context,
     answers_match,
+    apply_followup_action_to_context,
     build_canonical_represent_response,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
@@ -21,9 +22,9 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     resolve_submission,
     resolve_submission_attempt,
-    submission_confidence,
     should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
+    submission_confidence,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
 
@@ -42,6 +43,43 @@ def test_detect_requested_question_count_marks_explicitness() -> None:
     assert detect_requested_question_count("用三道题训练水泥") == (3, True)
     assert detect_requested_question_count("再出几道") == (3, False)
     assert detect_requested_question_count("训练水泥") == (1, False)
+
+
+def test_followup_action_prompt_carries_grading_context_for_semantic_next_step() -> None:
+    prompt = _build_followup_action_prompt(
+        user_message="好的，按这个安排",
+        history_context="上一轮老师说：请按下一步操作巩固。",
+        question_context={
+            "question_id": "quiz_quality_inspection",
+            "question": "项目施工质量检查与检验训练题组",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_quality_1",
+                    "question": "基础工程质量检查分类题",
+                    "question_type": "single_choice",
+                    "options": {"A": "自检", "B": "互检", "C": "专检", "D": "抽检"},
+                    "correct_answer": "B",
+                    "user_answer": "C",
+                    "is_correct": False,
+                    "construction_grading_result": {
+                        "authority": "construction_grading",
+                        "next_training_signal": {
+                            "concept": "项目施工质量检查与检验",
+                            "focus": "基础检查分类混淆",
+                            "mode": "practice",
+                        },
+                    },
+                }
+            ],
+        },
+    )
+
+    assert "history_context" in prompt
+    assert "has_grading_result" in prompt
+    assert "next_training_signal" in prompt
+    assert "基础检查分类混淆" in prompt
+    assert "不要只按用户短句字面判断" in prompt
 
 
 def test_detect_answer_reveal_preference_respects_suppress_request() -> None:
@@ -2579,6 +2617,7 @@ def test_submission_confidence_none_when_no_submission() -> None:
 # 真作答永不降(不伤硬约束40)。skill 铁律:确定性 > 纯 prompt。
 
 import asyncio as _asyncio
+
 from deeptutor.services import question_followup as _qf
 
 _S45_CTX = {
