@@ -23,7 +23,8 @@ def _write_manifest(tmp_path: Path, packs, green) -> Path:
 
 
 _S05 = {"pack_id": "S05", "title": "临时用电三级配电", "content_sha256": "abc123",
-        "published": True, "jury_clean": True, "explicitly_barred_default_entry": False}
+        "published": True, "jury_clean": True, "explicitly_barred_default_entry": False,
+        "card_hosted": True}
 _X99 = {"pack_id": "X99", "title": "未签发包", "content_sha256": "def456",
         "published": False, "jury_clean": False, "explicitly_barred_default_entry": False}
 
@@ -38,6 +39,16 @@ def test_green_pack_projects_viewmodel(tmp_path, monkeypatch):
     assert vm["evidence_channels"] == {
         "light_practice": "learner_signal", "full_answer": "case_grading",
     }
+
+
+def test_unhosted_green_pack_gets_no_card_url(tmp_path, monkeypatch):
+    """card_hosted 缺失/False 的绿灯站不发 card_url——防 web-view 打开 404
+    (2026-07-05 部署探针实证: base 一配, 28 绿灯站里 22 站无托管卡)。"""
+    monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
+    unhosted = dict(_S05, pack_id="G03", title="桩基", card_hosted=False)
+    mp = _write_manifest(tmp_path, [unhosted], ["G03"])
+    vm = build_lesson_viewmodel("g03", manifest_path=mp)
+    assert vm["card_url"] == ""
 
 
 def test_unpublished_pack_fail_closed_same_as_missing(tmp_path):
@@ -63,16 +74,43 @@ def test_green_only_in_listing(tmp_path):
     assert [r["pack_id"] for r in rows] == ["S05"]
 
 
-def test_variant_summary_from_bank_sidecar(tmp_path):
+def test_variant_summary_signed_sha_match_passes(tmp_path):
     mp = _write_manifest(tmp_path, [_S05], ["S05"])
     (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
-        "status": "candidate", "source_pack_sha256": "abc123",
+        "status": "signed", "source_pack_sha256": "abc123",
         "variants": [{"variant_id": "S05-B-000"}, {"variant_id": "S05-B-001"}],
     }), encoding="utf-8")
     vm = build_lesson_viewmodel("S05", manifest_path=mp)
     assert vm["variant_retest"]["available"] is True
     assert vm["variant_retest"]["count"] == 2
-    assert vm["variant_retest"]["bank_status"] == "candidate"
+    assert vm["variant_retest"]["bank_status"] == "signed"
+    assert vm["variant_retest"]["source_pack_sha256"] == "abc123"
+
+
+def test_variant_bank_candidate_rejected_same_as_missing(tmp_path):
+    """签发闸①：candidate（未签发）bank 与缺失同形——不直通真实考生。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
+        "status": "candidate", "source_pack_sha256": "abc123",
+        "variants": [{"variant_id": "S05-B-000"}],
+    }), encoding="utf-8")
+    vm = build_lesson_viewmodel("S05", manifest_path=mp)
+    assert vm["variant_retest"] == {"available": False, "count": 0}
+    assert build_retest_items("S05", user_id="u", day_index=1, manifest_path=mp) == []
+
+
+def test_variant_bank_sha_drift_rejected_same_as_missing(tmp_path):
+    """签发闸②：pack 正文修订后（sha 漂移）旧签发变体失效——与缺失同形。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
+        "status": "signed", "source_pack_sha256": "stale-old-sha",
+        "variants": [{"variant_id": "S05-B-000"}],
+    }), encoding="utf-8")
+    vm = build_lesson_viewmodel("S05", manifest_path=mp)
+    assert vm["variant_retest"] == {"available": False, "count": 0}
+    assert build_retest_items("S05", user_id="u", day_index=1, manifest_path=mp) == []
 
 
 def test_no_card_base_env_degrades_to_empty_url(tmp_path, monkeypatch):
@@ -101,7 +139,8 @@ def _bank(tmp_path, n_core=6, n_ext=2):
                   "correct_statement": "s", "anchor": "{2017,第2题}", "extension": True}
                  for i in range(n_ext)]
     (tmp_path / "_S05_variant_bank.v0.json").write_text(
-        json.dumps({"status": "candidate", "variants": variants}), encoding="utf-8")
+        json.dumps({"status": "signed", "source_pack_sha256": "abc123",
+                    "variants": variants}), encoding="utf-8")
 
 
 def test_retest_items_deterministic_and_core_only(tmp_path):
@@ -130,3 +169,37 @@ def test_retest_pool_wraps_when_exhausted(tmp_path):
     _bank(tmp_path, n_core=2)
     items = build_retest_items("S05", user_id="u", day_index=99, limit=5, manifest_path=mp)
     assert len(items) == 2, "池小于 limit 时只发池内不重复项(复用旧变体, 绝不现编)"
+
+
+def test_manifest_cache_hits_by_stat_and_invalidates_on_change(tmp_path, monkeypatch):
+    # 病B-3（事件循环纪律）：manifest 每请求全量重读+重解析曾是纯浪费；
+    # (mtime_ns,size) 键缓存命中零解析，产物更新自动失效，失败不缓存。
+    import deeptutor.services.luban_lesson.read_model as rm
+
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    rm._MANIFEST_CACHE.clear()
+    parses = {"n": 0}
+    original_loads = json.loads
+
+    def counting_loads(*args, **kwargs):
+        parses["n"] += 1
+        return original_loads(*args, **kwargs)
+
+    monkeypatch.setattr(rm.json, "loads", counting_loads)
+
+    assert rm.list_all_pack_ids(manifest_path=mp) == ["S05"]
+    first = parses["n"]
+    assert rm.list_all_pack_ids(manifest_path=mp) == ["S05"]
+    assert parses["n"] == first  # 第二次命中缓存，零解析
+
+    # 产物更新（内容变 → stat 键变）自动失效
+    _write_manifest(tmp_path, [_S05, _X99], ["S05"])
+    assert rm.list_all_pack_ids(manifest_path=mp) == ["S05", "X99"]
+    assert parses["n"] > first
+
+    # 损坏文件 fail-closed 且不落缓存：修好后同进程恢复
+    mp.write_text("{broken", encoding="utf-8")
+    assert rm.list_all_pack_ids(manifest_path=mp) == []
+    _write_manifest(tmp_path, [_S05], ["S05"])
+    assert rm.list_all_pack_ids(manifest_path=mp) == ["S05"]
+    rm._MANIFEST_CACHE.clear()

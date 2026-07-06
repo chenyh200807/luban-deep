@@ -8,7 +8,10 @@ from deeptutor.services.taxonomy.construction_taxonomy import (
     student_facing_label,
     student_taxonomy_label,
 )
-from deeptutor.services.learner_state.memory_lifecycle import lifecycle_stage_for_evidence_level
+from deeptutor.services.learner_state.memory_lifecycle import (
+    EVIDENCE_LEVEL_LABELS,
+    lifecycle_stage_for_evidence_level,
+)
 
 LEARNING_BRAIN_SUBJECT = "construction_exam_learning_truth"
 _ERROR_LABELS = {
@@ -39,13 +42,7 @@ _ERROR_HINTS = {
     "M06": "多选题遗漏了应选项，需要回到题干条件逐项核对。",
     "M07": "多选题选入了干扰项，需要辨别选项是否偷换主体、条件或数字。",
 }
-_EVIDENCE_LEVEL_LABELS = {
-    "L0_observed": "单次观察",
-    "L1_repeated": "重复出现",
-    "L2_confirmed": "已确认",
-    "L3_mastery_signal": "改善信号",
-    "unclassified": "待确认",
-}
+_EVIDENCE_LEVEL_LABELS = EVIDENCE_LEVEL_LABELS
 _MEMORY_LIFECYCLE_LABELS = {
     "evidence_ledger": "证据账本",
     "short_term_learning_memory": "短期观察",

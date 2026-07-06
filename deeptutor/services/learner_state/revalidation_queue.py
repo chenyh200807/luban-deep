@@ -20,6 +20,12 @@ from deeptutor.services.learner_state.training_intent import (
 _TZ = timezone(timedelta(hours=8))
 _DEFAULT_SCHEDULE = (3, 7)
 
+# ── 复习引擎地平线参数（双轮设计 v3.2 §6.1，调度真值唯一归本模块）──
+# 间隔上限：早期 cap ≤14 天（FSRS 实战教训——过长间隔让用户觉得"App 把我忘了"）。
+_INTERVAL_CAP_DAYS = 14
+# 考试日期地平线：考前 40 天起确定性压缩间隔（线性缩放，无 AI 无随机）。
+_EXAM_COMPRESSION_WINDOW_DAYS = 40
+
 
 def build_revalidation_queue_projection(
     *,
@@ -32,6 +38,7 @@ def build_revalidation_queue_projection(
     prescription_outcomes: Iterable[dict[str, Any]] | None = None,
     declined_probe_ids: Iterable[str] | None = None,
     now_iso: str = "",
+    exam_date_iso: str = "",
 ) -> dict[str, Any]:
     now = _parse_iso(now_iso) or datetime.now(_TZ)
     rows = _candidate_rows(
@@ -55,7 +62,7 @@ def build_revalidation_queue_projection(
         if probe_id in verified:
             blocked_reasons.add("already_verified")
             continue
-        if not _is_due(row, now=now):
+        if not _is_due(row, now=now, exam_date_iso=exam_date_iso):
             blocked_reasons.add("not_due")
             continue
         item = _queue_item(
@@ -265,17 +272,27 @@ def _queue_item(
     }
 
 
-def _is_due(row: dict[str, Any], *, now: datetime) -> bool:
+def _is_due(row: dict[str, Any], *, now: datetime, exam_date_iso: str = "") -> bool:
     observed_at = _parse_iso(
         str(row.get("last_observed_at") or row.get("last_practiced_at") or "")
     )
     if observed_at is None:
         return True
+    if row.get("state") == "fresh":
+        # 新学相"明天见"按日历日(§9-D2: "天"=UTC+8 日历日, 服务端折算)——
+        # 昨晚学的今早即到期; 满 24h 判定会把它拖到晚上, 违背次日承诺。
+        return now.astimezone(_TZ).date() > observed_at.astimezone(_TZ).date()
     age_days = (now - observed_at).total_seconds() / 86400
-    return age_days >= _first_interval_days(row)
+    return age_days >= effective_interval_days(
+        _first_interval_days(row), now=now, exam_date_iso=exam_date_iso
+    )
 
 
 def _first_interval_days(row: dict[str, Any]) -> int:
+    # "fresh" = 新学相(双轮 §6.1 分相: 刚学的走短间隔, 首跳次日)——
+    # 交接时刻"明天见"承诺的调度语义载体; 巩固后转常规 schedule 是阶段 2。
+    if row.get("state") == "fresh":
+        return 1
     if row.get("state") == "weak":
         return 3
     ability = str(row.get("ability_dimension") or "").strip()
@@ -285,6 +302,56 @@ def _first_interval_days(row: dict[str, Any]) -> int:
         return int(list(schedule)[0])
     except (TypeError, ValueError, IndexError):
         return 3
+
+
+def effective_interval_days(base_days: int, *, now: datetime, exam_date_iso: str = "") -> int:
+    """§6.1 地平线折算：base 间隔 → 生效间隔（纯确定性，无 AI）。
+
+    1. 间隔上限 cap ≤14 天（恒生效）。
+    2. exam_date 已设且 0 < 距考天数 ≤40：线性压缩 ``base × 距考/40``（考前 40 天
+       起确定性压缩）；再钳到不超过距考天数——**考前一周结构上不可能出现
+       "21 天后复习"**（§6.1 硬边界）。
+    3. 考后（距考 ≤0）不压缩（队列语义切换归后续阶段，不在此发明）。
+    """
+    days = max(1, _safe_int(base_days) or 1)
+    days = min(days, _INTERVAL_CAP_DAYS)
+    exam_date = _parse_iso(str(exam_date_iso or ""))
+    if exam_date is None:
+        return days
+    days_to_exam = (exam_date.astimezone(_TZ).date() - now.astimezone(_TZ).date()).days
+    if days_to_exam <= 0:
+        return days
+    if days_to_exam <= _EXAM_COMPRESSION_WINDOW_DAYS:
+        days = max(1, round(days * days_to_exam / _EXAM_COMPRESSION_WINDOW_DAYS))
+    return min(days, days_to_exam)
+
+
+def derive_review_due_at(
+    *,
+    last_observed_at: str,
+    state: str = "weak",
+    ability_dimension: str = "",
+    now_iso: str = "",
+    exam_date_iso: str = "",
+) -> str:
+    """读侧派生「计划复习时刻」——到期/间隔真值唯一归本模块（双轮 v3 §10-①）。
+
+    ``mistake_book`` 等 read model 只准调用此函数取 ``review_due_at``，禁自算
+    间隔（防第二调度权威）。零写入：返回 ISO 字符串由调用方投影，不落库。
+    ``fresh`` 走日历日次日；其余 = 观测时刻 + 生效间隔（含 §6.1 cap/考期压缩）。
+    """
+    observed = _parse_iso(str(last_observed_at or ""))
+    if observed is None:
+        return ""
+    now = _parse_iso(now_iso) or datetime.now(_TZ)
+    row = {"state": str(state or "").strip(), "ability_dimension": str(ability_dimension or "").strip()}
+    if row["state"] == "fresh":
+        next_day = observed.astimezone(_TZ).date() + timedelta(days=1)
+        return datetime(next_day.year, next_day.month, next_day.day, tzinfo=_TZ).isoformat()
+    days = effective_interval_days(
+        _first_interval_days(row), now=now, exam_date_iso=exam_date_iso
+    )
+    return (observed + timedelta(days=days)).isoformat()
 
 
 def _probe_id(*, user_id: str, row: dict[str, Any]) -> str:
@@ -335,4 +402,9 @@ def _safe_dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-__all__ = ["build_revalidation_queue_projection", "dispute_candidates_from_events"]
+__all__ = [
+    "build_revalidation_queue_projection",
+    "derive_review_due_at",
+    "dispute_candidates_from_events",
+    "effective_interval_days",
+]

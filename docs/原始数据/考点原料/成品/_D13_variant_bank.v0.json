@@ -1,0 +1,559 @@
+{
+ "schema_version": "luban-d13-variant-bank",
+ "pack_id": "D13",
+ "status": "signed",
+ "source_pack_sha256": "6745894a27086c053065b63739bd0fb66eee75a32a56ec5679fb8467cc9bbcf3",
+ "generation_ms": 0.03,
+ "gate": {
+  "total": 34,
+  "passed": 34,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-board": 3,
+  "A-canopy": 2,
+  "A-cavity": 2,
+  "A-wall": 2,
+  "A-zone": 2,
+  "B-seal": 12,
+  "C-lightning": 11
+ },
+ "variants": [
+  {
+   "variant_id": "D13-A-wall-000",
+   "rule_group": "A-wall",
+   "surface": "幕墙上下层开口之间设置高度 1.2m 的实体墙，未另设防火挑檐",
+   "params": {
+    "wall_height_m": 1.2,
+    "has_canopy": false
+   },
+   "expected_ok": true,
+   "correct_statement": "上下层开口间应设高度不小于1.2m的实体墙；或设防火挑檐，宽度不小于1.0m且长度不小于开口宽度",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-A-wall-001",
+   "rule_group": "A-wall",
+   "surface": "幕墙上下层开口之间设置高度 1.0m 的实体墙，未另设防火挑檐",
+   "params": {
+    "wall_height_m": 1.0,
+    "has_canopy": false
+   },
+   "expected_ok": false,
+   "correct_statement": "上下层开口间应设高度不小于1.2m的实体墙；或设防火挑檐，宽度不小于1.0m且长度不小于开口宽度",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-A-canopy-002",
+   "rule_group": "A-canopy",
+   "surface": "实体墙高度不足时设防火挑檐，宽度 1.0m 且长度不小于开口宽度",
+   "params": {
+    "canopy_width_m": 1.0,
+    "length_ge_opening": true
+   },
+   "expected_ok": true,
+   "correct_statement": "上下层开口间应设高度不小于1.2m的实体墙；或设防火挑檐，宽度不小于1.0m且长度不小于开口宽度",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-A-canopy-003",
+   "rule_group": "A-canopy",
+   "surface": "实体墙高度不足时设防火挑檐，宽度 1.0m 但长度小于开口宽度",
+   "params": {
+    "canopy_width_m": 1.0,
+    "length_ge_opening": false
+   },
+   "expected_ok": false,
+   "correct_statement": "上下层开口间应设高度不小于1.2m的实体墙；或设防火挑檐，宽度不小于1.0m且长度不小于开口宽度",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-A-cavity-004",
+   "rule_group": "A-cavity",
+   "surface": "窗槛墙内幕墙与墙体间空腔的上下沿用矿物棉填塞，填塞高度 200mm",
+   "params": {
+    "cavity_fill_mm": 200
+   },
+   "expected_ok": true,
+   "correct_statement": "窗槛墙空腔上下沿矿物棉填塞高度不应小于200mm（楼板缝隙封堵100mm为不同部位尺寸）",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-A-cavity-005",
+   "rule_group": "A-cavity",
+   "surface": "窗槛墙内幕墙与墙体间空腔的上下沿用矿物棉填塞，填塞高度 100mm",
+   "params": {
+    "cavity_fill_mm": 100
+   },
+   "expected_ok": false,
+   "correct_statement": "窗槛墙空腔上下沿矿物棉填塞高度不应小于200mm（楼板缝隙封堵100mm为不同部位尺寸）",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-A-board-006",
+   "rule_group": "A-board",
+   "surface": "防火层采用厚度 1.5mm 的镀锌钢板承托",
+   "params": {
+    "material": "镀锌钢板",
+    "thickness_spec": "1.5mm"
+   },
+   "expected_ok": true,
+   "correct_statement": "钢质承托板厚度不小于1.5mm（不得写成1.5m，不得用铝板）",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题} + {2017,第12题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-A-board-007",
+   "rule_group": "A-board",
+   "surface": "防火层采用厚度 1.5m 的钢板承托",
+   "params": {
+    "material": "钢板",
+    "thickness_spec": "1.5m"
+   },
+   "expected_ok": false,
+   "correct_statement": "钢质承托板厚度不小于1.5mm（不得写成1.5m，不得用铝板）",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题} + {2017,第12题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-A-board-008",
+   "rule_group": "A-board",
+   "surface": "防火层采用厚度 1.5mm 的铝板承托",
+   "params": {
+    "material": "铝板",
+    "thickness_spec": "1.5mm"
+   },
+   "expected_ok": false,
+   "correct_statement": "钢质承托板厚度不小于1.5mm（不得写成1.5m，不得用铝板）",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题} + {2017,第12题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-A-zone-009",
+   "rule_group": "A-zone",
+   "surface": "幕墙玻璃单元按防火分区分格，同一玻璃单元不跨越两个防火分区",
+   "params": {
+    "crosses_zones": false
+   },
+   "expected_ok": true,
+   "correct_statement": "同一幕墙玻璃单元不应跨越两个防火分区",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-A-zone-010",
+   "rule_group": "A-zone",
+   "surface": "同一幕墙玻璃单元跨越了两个防火分区",
+   "params": {
+    "crosses_zones": true
+   },
+   "expected_ok": false,
+   "correct_statement": "同一幕墙玻璃单元不应跨越两个防火分区",
+   "anchor": "kc:1A413030_148_0286:0 + {2019,第29题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-011",
+   "rule_group": "B-seal",
+   "surface": "某高层办公楼幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用不燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；满足设计的耐火极限要求；楼层间形成水平防火烟带；防火层采用厚度不小于1.5mm的镀锌钢板承托；承托板缝隙采用防火密封胶密封",
+   "params": {
+    "elements": [
+     "采用不燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "满足设计的耐火极限要求",
+     "楼层间形成水平防火烟带",
+     "防火层采用厚度不小于1.5mm的镀锌钢板承托",
+     "承托板缝隙采用防火密封胶密封"
+    ],
+    "case": "complete"
+   },
+   "expected_ok": true,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-012",
+   "rule_group": "B-seal",
+   "surface": "某高层办公楼幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用不燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；满足设计的耐火极限要求；防火层采用厚度不小于1.5mm的镀锌钢板承托；承托板缝隙采用防火密封胶密封",
+   "params": {
+    "elements": [
+     "采用不燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "满足设计的耐火极限要求",
+     "防火层采用厚度不小于1.5mm的镀锌钢板承托",
+     "承托板缝隙采用防火密封胶密封"
+    ],
+    "case": "omit:水平防火烟带"
+   },
+   "expected_ok": false,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-013",
+   "rule_group": "B-seal",
+   "surface": "某高层办公楼幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用不燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；满足设计的耐火极限要求；楼层间形成水平防火烟带；防火层采用厚度不小于1.5mm的镀锌钢板承托",
+   "params": {
+    "elements": [
+     "采用不燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "满足设计的耐火极限要求",
+     "楼层间形成水平防火烟带",
+     "防火层采用厚度不小于1.5mm的镀锌钢板承托"
+    ],
+    "case": "omit:防火密封胶"
+   },
+   "expected_ok": false,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-014",
+   "rule_group": "B-seal",
+   "surface": "某高层办公楼幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用不燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；楼层间形成水平防火烟带；防火层采用厚度不小于1.5mm的镀锌钢板承托；承托板缝隙采用防火密封胶密封",
+   "params": {
+    "elements": [
+     "采用不燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "楼层间形成水平防火烟带",
+     "防火层采用厚度不小于1.5mm的镀锌钢板承托",
+     "承托板缝隙采用防火密封胶密封"
+    ],
+    "case": "omit:耐火极限"
+   },
+   "expected_ok": false,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-015",
+   "rule_group": "B-seal",
+   "surface": "某高层办公楼幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用不燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；满足设计的耐火极限要求；楼层间形成水平防火烟带；防火层采用铝板承托；承托板缝隙采用防火密封胶密封",
+   "params": {
+    "elements": [
+     "采用不燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "满足设计的耐火极限要求",
+     "楼层间形成水平防火烟带",
+     "防火层采用铝板承托",
+     "承托板缝隙采用防火密封胶密封"
+    ],
+    "case": "swap:铝板承托"
+   },
+   "expected_ok": false,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2} + {2017,第12题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-016",
+   "rule_group": "B-seal",
+   "surface": "某高层办公楼幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用可燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；满足设计的耐火极限要求；楼层间形成水平防火烟带；防火层采用厚度不小于1.5mm的镀锌钢板承托；承托板缝隙采用防火密封胶密封",
+   "params": {
+    "elements": [
+     "采用可燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "满足设计的耐火极限要求",
+     "楼层间形成水平防火烟带",
+     "防火层采用厚度不小于1.5mm的镀锌钢板承托",
+     "承托板缝隙采用防火密封胶密封"
+    ],
+    "case": "swap:可燃材料"
+   },
+   "expected_ok": false,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-017",
+   "rule_group": "B-seal",
+   "surface": "某商业综合体幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用不燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；满足设计的耐火极限要求；楼层间形成水平防火烟带；防火层采用厚度不小于1.5mm的镀锌钢板承托；承托板缝隙采用防火密封胶密封",
+   "params": {
+    "elements": [
+     "采用不燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "满足设计的耐火极限要求",
+     "楼层间形成水平防火烟带",
+     "防火层采用厚度不小于1.5mm的镀锌钢板承托",
+     "承托板缝隙采用防火密封胶密封"
+    ],
+    "case": "complete"
+   },
+   "expected_ok": true,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-018",
+   "rule_group": "B-seal",
+   "surface": "某商业综合体幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用不燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；满足设计的耐火极限要求；防火层采用厚度不小于1.5mm的镀锌钢板承托；承托板缝隙采用防火密封胶密封",
+   "params": {
+    "elements": [
+     "采用不燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "满足设计的耐火极限要求",
+     "防火层采用厚度不小于1.5mm的镀锌钢板承托",
+     "承托板缝隙采用防火密封胶密封"
+    ],
+    "case": "omit:水平防火烟带"
+   },
+   "expected_ok": false,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-019",
+   "rule_group": "B-seal",
+   "surface": "某商业综合体幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用不燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；满足设计的耐火极限要求；楼层间形成水平防火烟带；防火层采用厚度不小于1.5mm的镀锌钢板承托",
+   "params": {
+    "elements": [
+     "采用不燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "满足设计的耐火极限要求",
+     "楼层间形成水平防火烟带",
+     "防火层采用厚度不小于1.5mm的镀锌钢板承托"
+    ],
+    "case": "omit:防火密封胶"
+   },
+   "expected_ok": false,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-020",
+   "rule_group": "B-seal",
+   "surface": "某商业综合体幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用不燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；楼层间形成水平防火烟带；防火层采用厚度不小于1.5mm的镀锌钢板承托；承托板缝隙采用防火密封胶密封",
+   "params": {
+    "elements": [
+     "采用不燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "楼层间形成水平防火烟带",
+     "防火层采用厚度不小于1.5mm的镀锌钢板承托",
+     "承托板缝隙采用防火密封胶密封"
+    ],
+    "case": "omit:耐火极限"
+   },
+   "expected_ok": false,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-021",
+   "rule_group": "B-seal",
+   "surface": "某商业综合体幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用不燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；满足设计的耐火极限要求；楼层间形成水平防火烟带；防火层采用铝板承托；承托板缝隙采用防火密封胶密封",
+   "params": {
+    "elements": [
+     "采用不燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "满足设计的耐火极限要求",
+     "楼层间形成水平防火烟带",
+     "防火层采用铝板承托",
+     "承托板缝隙采用防火密封胶密封"
+    ],
+    "case": "swap:铝板承托"
+   },
+   "expected_ok": false,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2} + {2017,第12题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-B-seal-022",
+   "rule_group": "B-seal",
+   "surface": "某商业综合体幕墙工程对幕墙与各层楼板、隔墙外沿间缝隙实施层间封堵，做法：采用可燃材料封堵；填充材料采用岩棉或矿棉；厚度不小于100mm；满足设计的耐火极限要求；楼层间形成水平防火烟带；防火层采用厚度不小于1.5mm的镀锌钢板承托；承托板缝隙采用防火密封胶密封",
+   "params": {
+    "elements": [
+     "采用可燃材料封堵",
+     "填充材料采用岩棉或矿棉",
+     "厚度不小于100mm",
+     "满足设计的耐火极限要求",
+     "楼层间形成水平防火烟带",
+     "防火层采用厚度不小于1.5mm的镀锌钢板承托",
+     "承托板缝隙采用防火密封胶密封"
+    ],
+    "case": "swap:可燃材料"
+   },
+   "expected_ok": false,
+   "correct_statement": "层间缝隙应采用不燃材料（岩棉或矿棉）封堵，厚度不小于100mm并满足设计耐火极限，楼层间形成水平防火烟带；防火层用不小于1.5mm镀锌钢板承托（不得用铝板），承托板缝隙用防火密封胶密封",
+   "anchor": "{2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-023",
+   "rule_group": "C-lightning",
+   "surface": "幕墙金属框架与主体结构防雷体系可靠连接",
+   "params": {
+    "aspect": "frame",
+    "done": true
+   },
+   "expected_ok": true,
+   "correct_statement": "幕墙金属框架应与主体结构防雷体系可靠连接",
+   "anchor": "kc:1A413030_148_0287:0 + {2019,第29题} + {2020,第23题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-024",
+   "rule_group": "C-lightning",
+   "surface": "幕墙金属框架未与主体结构防雷体系连接",
+   "params": {
+    "aspect": "frame",
+    "done": false
+   },
+   "expected_ok": false,
+   "correct_statement": "幕墙金属框架应与主体结构防雷体系可靠连接",
+   "anchor": "kc:1A413030_148_0287:0 + {2019,第29题} + {2020,第23题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-025",
+   "rule_group": "C-lightning",
+   "surface": "铝合金立柱每 10m 范围内用一根柔性导线连通上下柱",
+   "params": {
+    "aspect": "wire",
+    "done": true
+   },
+   "expected_ok": true,
+   "correct_statement": "铝合金立柱≤10m范围内宜一根柔性导线连通上下柱（全程不设即漏防雷连通要点）",
+   "anchor": "kc:1A413030_148_0287:0",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-026",
+   "rule_group": "C-lightning",
+   "surface": "铝合金立柱全程未设柔性导线连通上下柱",
+   "params": {
+    "aspect": "wire",
+    "done": false
+   },
+   "expected_ok": false,
+   "correct_statement": "铝合金立柱≤10m范围内宜一根柔性导线连通上下柱（全程不设即漏防雷连通要点）",
+   "anchor": "kc:1A413030_148_0287:0",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-027",
+   "rule_group": "C-lightning",
+   "surface": "有均压环楼层的预埋件用圆钢与均压环焊接连通",
+   "params": {
+    "aspect": "ring",
+    "done": true
+   },
+   "expected_ok": true,
+   "correct_statement": "有均压环楼层预埋件应用圆钢/扁钢与均压环焊接连通",
+   "anchor": "kc:1A413030_148_0287:0",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-028",
+   "rule_group": "C-lightning",
+   "surface": "有均压环楼层的预埋件未与均压环焊接连通",
+   "params": {
+    "aspect": "ring",
+    "done": false
+   },
+   "expected_ok": false,
+   "correct_statement": "有均压环楼层预埋件应用圆钢/扁钢与均压环焊接连通",
+   "anchor": "kc:1A413030_148_0287:0",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-029",
+   "rule_group": "C-lightning",
+   "surface": "有镀膜的构件上做防雷连接前除去其镀膜层",
+   "params": {
+    "aspect": "coating",
+    "done": true
+   },
+   "expected_ok": true,
+   "correct_statement": "有镀膜构件防雷连接应除去镀膜层",
+   "anchor": "{2020,第23题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-030",
+   "rule_group": "C-lightning",
+   "surface": "有镀膜的构件上直接做防雷连接，未除去镀膜层",
+   "params": {
+    "aspect": "coating",
+    "done": false
+   },
+   "expected_ok": false,
+   "correct_statement": "有镀膜构件防雷连接应除去镀膜层",
+   "anchor": "{2020,第23题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-031",
+   "rule_group": "C-lightning",
+   "surface": "防雷构造连接完成后进行隐蔽工程验收",
+   "params": {
+    "aspect": "concealed",
+    "done": true
+   },
+   "expected_ok": true,
+   "correct_statement": "防雷构造连接必须做隐蔽工程验收",
+   "anchor": "{2020,第23题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-032",
+   "rule_group": "C-lightning",
+   "surface": "项目部认为防雷构造连接不必进行隐蔽工程验收",
+   "params": {
+    "aspect": "concealed",
+    "done": false
+   },
+   "expected_ok": false,
+   "correct_statement": "防雷构造连接必须做隐蔽工程验收",
+   "anchor": "{2020,第23题}",
+   "extension": false
+  },
+  {
+   "variant_id": "D13-C-lightning-033",
+   "rule_group": "C-lightning",
+   "surface": "避雷接地一般每三层与均压环连接",
+   "params": {
+    "aspect": "ring_every_three_floors",
+    "done": true
+   },
+   "expected_ok": true,
+   "correct_statement": "避雷接地一般每三层与均压环连接（真题侧口径）",
+   "anchor": "{2020,第23题}",
+   "extension": false
+  }
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:47+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
+}

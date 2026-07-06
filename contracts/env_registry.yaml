@@ -87,6 +87,7 @@ feature_flags:
   - {name: DEEPTUTOR_CONTEXT_ORCHESTRATION_ENABLED, default: true, kind: killswitch}
   - {name: DEEPTUTOR_ENABLE_API_DOCS, default: false, kind: config}
   - {name: DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA, default: false, kind: dev}
+  - {name: DEEPTUTOR_HOME_NEXT_STEP_ENABLED, default: false, kind: rollout}  # home 生命周期融合面总开关:next_step 仲裁 + mastery 证据 blend(首页/雷达/章节盘)一起开关
   - {name: DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT, default: false, kind: killswitch}  # security
   - {name: DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK, default: false, kind: fallback}
   - {name: DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED, default: false, kind: dev}
@@ -128,6 +129,12 @@ feature_flags:
   - {name: LUBAN_V1_BETA_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
   - {name: LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
   - {name: LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  # 复习模块(双轮 §6 回炉屏)灰度: review-due 投影 / station_completed 信号 /
+  # mistake_book review_due_at 读侧派生, 三处同旗标; 关 = 与收权前行为一致。
+  - {name: LUBAN_REVIEW_MODULE_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  # 讲懂卡托管基址: read_model 派生 card_url={base}/{pack_id小写}/lesson.html;
+  # 未设置 = 全站 card_url 空串走原生占位降级(fail-closed), 局外人审计断链②的合闸键。
+  - {name: LUBAN_LESSON_CARD_BASE, default: "", kind: config, read: hand_rolled}
   - {name: LUBAN_M35_ARTIFACT_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
   - {name: LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED, default: false, kind: rollout, read: hand_rolled}
@@ -400,6 +407,8 @@ grandfathered_envs:
   - LUBAN_M35_ARTIFACT_SHADOW_ENABLED
   - LUBAN_OBJECTIVE_CANDIDATE_COHORT
   - LUBAN_OBJECTIVE_V2_DEV_SUPPLY_DIR
+  - LUBAN_LESSON_CARD_BASE
+  - LUBAN_REVIEW_MODULE_ENABLED
   - LUBAN_RUBRIC_EXTRACTION_CACHE_MAX_ENTRIES
   - LUBAN_RUBRIC_EXTRACTION_CACHE_TTL_SECONDS
   - LUBAN_SEMANTIC_EDGES

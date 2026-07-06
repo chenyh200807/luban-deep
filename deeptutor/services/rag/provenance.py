@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from deeptutor.services.learner_state.memory_lifecycle import evidence_level_rank
 
 _AUTHORITY_RANK = {
     "exact_question": 100,
@@ -17,14 +18,6 @@ _AUTHORITY_RANK = {
     "textbook": 45,
     "exam": 40,
 }
-
-_EVIDENCE_RANK = {
-    "L0_observed": 0,
-    "L1_repeated": 1,
-    "L2_confirmed": 2,
-    "L3_mastery_signal": 3,
-}
-
 
 def _text(value: Any) -> str:
     return str(value or "").strip()
@@ -45,7 +38,7 @@ def extract_provenance_features(doc: dict[str, Any]) -> dict[str, Any]:
         "source_type": _text(doc.get("source_type")),
         "authority_rank": authority_rank,
         "evidence_level": evidence_level,
-        "evidence_level_rank": _EVIDENCE_RANK.get(evidence_level, -1),
+        "evidence_level_rank": evidence_level_rank(evidence_level),
         "manual_confirmed": evidence_level == "L2_confirmed",
         "stale": bool(doc.get("stale") or metadata.get("stale")),
         "supporting_event_ids": list(doc.get("supporting_event_ids") or metadata.get("supporting_event_ids") or []),

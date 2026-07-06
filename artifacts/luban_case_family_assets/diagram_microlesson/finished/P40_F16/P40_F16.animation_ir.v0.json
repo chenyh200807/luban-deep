@@ -1,0 +1,1103 @@
+{
+  "schema_version": "luban_animation_ir.v0",
+  "ir_id": "P40_F16_animation_ir_v0",
+  "card_id": "P40_F16",
+  "display": {
+    "kicker": "鲁班深母题 · Slot 29",
+    "title": "屋面防水起鼓割补"
+  },
+  "main_exam_action": "把屋面卷材起鼓修补写成采分闭环:治病因 → 恢复闭合 → 检验",
+  "teaching_spine": {
+    "source_pack": "docs/原始数据/考点原料/成品/F16_屋面防水起鼓割补.md",
+    "archetype": "section_or_spatial_reveal",
+    "warm_correction": "不是背八个动作,而是用剖面把起鼓病因、割开放气、干燥清基、附加封严和检验闭环讲清楚。"
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/F16_屋面防水起鼓割补.md",
+    "timing": "P40_F16.lesson.timing.json",
+    "audio": "P40_F16.lesson.mp3"
+  },
+  "render_contract": {
+    "renderer": "render_animation_ir_preview.py",
+    "html_preview": "P40_F16.animation_ir_preview.html",
+    "remotion_renderer": "remotion_demo/src/P40_F16AnimationIrPreview.tsx",
+    "remotion_composition": "P40_F16AnimationIrPreview",
+    "practice_href": "P40_F16.practice.html",
+    "max_visible_nodes": 4,
+    "archetype_visual_required": [
+      "layer_stack",
+      "roof_section"
+    ],
+    "teaching_scene_ids": [
+      "disease",
+      "cut",
+      "dry",
+      "add",
+      "seal",
+      "test",
+      "score"
+    ],
+    "min_diagrammatic_teaching_scenes": 7,
+    "challenge_unlock_sec": 69.712,
+    "one_active_scene": true,
+    "one_active_keycard": true,
+    "theater_requires_challenge_cta": true,
+    "ai_ask_required": true,
+    "quality_status": "single_card_review_candidate",
+    "student_ready": false
+  },
+  "taxonomy_alignment": {
+    "priority_slot": 29,
+    "pack_id": "F16",
+    "status": "composite",
+    "canonical_taxonomy_refs": [
+      "1A434000",
+      "1A434000-B016",
+      "1A413103"
+    ],
+    "note": "已有 F16 样板;现有 JSON 粗锚 1A434000,需补割补 source_ref"
+  },
+  "ai_context": {
+    "context_id": "P40_F16",
+    "title": "屋面防水起鼓割补",
+    "main_exam_action": "把「屋面防水起鼓割补」写成采分链：先判对象，再判条件，最后写判断依据。",
+    "safe_summary": "屋面防水起鼓割补 的学习重点是：先按直径分档：<100mm 抽气灌胶法；≥100mm…; 用刀将鼓泡卷材割开（斜十字形），放出鼓内气体; 擦干水分、清除旧胶结料；喷灯烘烤槎口、分层剥开除旧胶; 重新粘贴新卷材（新贴方形卷材），周边压实刮平，重做保护层。",
+    "key_points": [
+      "先按直径分档：<100mm 抽气灌胶法；≥100mm…",
+      "用刀将鼓泡卷材割开（斜十字形），放出鼓内气体",
+      "擦干水分、清除旧胶结料；喷灯烘烤槎口、分层剥开除旧胶",
+      "重新粘贴新卷材（新贴方形卷材），周边压实刮平，重做保护层"
+    ],
+    "handoff_mode": "context_id_plus_current_scene",
+    "api_base": "https://test2.yousenjiaoyu.com",
+    "contextId": "P40_F16",
+    "mainExamAction": "把屋面卷材起鼓修补写成采分闭环:治病因 → 恢复闭合 → 检验",
+    "safeSummary": "屋面卷材起鼓修补的关键是先释放气/水汽病因,再干燥清基,恢复防水层闭合,最后蓄水或淋水检验不渗漏。",
+    "keyPoints": [
+      "割开放气",
+      "排气干燥",
+      "清理基层",
+      "附加层/搭接封严",
+      "蓄水或淋水检验"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0
+    },
+    {
+      "id": "disease",
+      "label": "认起鼓",
+      "start_sec": 13.216
+    },
+    {
+      "id": "cut",
+      "label": "放气",
+      "start_sec": 23.048
+    },
+    {
+      "id": "dry",
+      "label": "干燥",
+      "start_sec": 31.488
+    },
+    {
+      "id": "add",
+      "label": "附加",
+      "start_sec": 41.08
+    },
+    {
+      "id": "seal",
+      "label": "封严",
+      "start_sec": 51.08
+    },
+    {
+      "id": "test",
+      "label": "检验",
+      "start_sec": 61.728
+    },
+    {
+      "id": "score",
+      "label": "采分",
+      "start_sec": 69.712
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 126.8
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0,
+      "end_sec": 13.216,
+      "scene": "hook_board",
+      "focus": "wrong_phrase",
+      "enter": [
+        "board.fade_in",
+        "wrong_phrase.slide_in",
+        "score_goal.reveal"
+      ],
+      "hold": [
+        "wrong_phrase.spotlight",
+        "background.dim"
+      ],
+      "exit": [
+        "wrong_phrase.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "wrong_phrase",
+        "duration_sec": 0.55
+      },
+      "visible_nodes": [
+        "wrong_phrase",
+        "score_goal"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "wrong_phrase",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "wrong_phrase",
+          "start": 0.03,
+          "end": 0.2
+        },
+        {
+          "kind": "highlight",
+          "target": "wrong_phrase",
+          "start": 0.18,
+          "end": 0.56
+        },
+        {
+          "kind": "reveal",
+          "target": "score_goal",
+          "start": 0.42,
+          "end": 0.62
+        },
+        {
+          "kind": "highlight",
+          "target": "score_goal",
+          "start": 0.62,
+          "end": 0.92
+        }
+      ],
+      "keycard": "常见丢分:只写“修补防水层”",
+      "coach": "先别急着背工序。考场扣的是你有没有写出修补闭环。"
+    },
+    {
+      "id": "disease",
+      "label": "认起鼓",
+      "start_sec": 13.216,
+      "end_sec": 23.048,
+      "scene": "section_disease",
+      "focus": "bulge",
+      "enter": [
+        "section.draw_layers",
+        "bulge.grow",
+        "vapour_arrows.trace"
+      ],
+      "hold": [
+        "bulge.spotlight",
+        "layers.dim_except_membrane"
+      ],
+      "exit": [
+        "vapour_arrows.fade_out",
+        "bulge.keep_context"
+      ],
+      "layout": {
+        "portrait": "section_closeup",
+        "landscape": "section_left_notes_right",
+        "theater": "section_clean"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "bulge",
+        "duration_sec": 0.4
+      },
+      "visible_nodes": [
+        "roof_section",
+        "bulge",
+        "vapour_arrows"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "bulge",
+          "start": 0,
+          "end": 0.28
+        },
+        {
+          "kind": "reveal",
+          "target": "roof_section",
+          "start": 0.02,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "bulge",
+          "start": 0.18,
+          "end": 0.36
+        },
+        {
+          "kind": "highlight",
+          "target": "bulge",
+          "start": 0.34,
+          "end": 0.76
+        },
+        {
+          "kind": "reveal",
+          "target": "vapour_arrows",
+          "start": 0.48,
+          "end": 0.66
+        }
+      ],
+      "keycard": "先认病:气/水汽顶起卷材",
+      "coach": "起鼓不是表面破了,是卷材下有气或水汽。先认病,后面措施才有对象。"
+    },
+    {
+      "id": "cut",
+      "label": "放气",
+      "start_sec": 23.048,
+      "end_sec": 31.488,
+      "scene": "cut_release",
+      "focus": "cut_cross",
+      "enter": [
+        "cut_cross.draw",
+        "gas_escape.trace_up"
+      ],
+      "hold": [
+        "cut_cross.spotlight",
+        "new_membrane.ghost_red_cross"
+      ],
+      "exit": [
+        "new_membrane.ghost_red_cross.fade_out",
+        "gas_escape.fade_out"
+      ],
+      "layout": {
+        "portrait": "section_closeup",
+        "landscape": "section_left_coach_right",
+        "theater": "section_clean"
+      },
+      "camera": {
+        "verb": "freeze-frame",
+        "target": "direct_cover_trap",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "roof_section",
+        "cut_cross",
+        "gas_escape",
+        "direct_cover_trap"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "freeze-frame",
+          "target": "cut_cross",
+          "start": 0,
+          "end": 0.26
+        },
+        {
+          "kind": "reveal",
+          "target": "roof_section",
+          "start": 0.02,
+          "end": 0.14
+        },
+        {
+          "kind": "reveal",
+          "target": "cut_cross",
+          "start": 0.18,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "cut_cross",
+          "start": 0.32,
+          "end": 0.62
+        },
+        {
+          "kind": "reveal",
+          "target": "gas_escape",
+          "start": 0.44,
+          "end": 0.58
+        },
+        {
+          "kind": "reveal",
+          "target": "direct_cover_trap",
+          "start": 0.68,
+          "end": 0.86
+        }
+      ],
+      "keycard": "治因① 沿鼓泡割开放气",
+      "coach": "第一刀是治病因。不放气就直接盖新卷材,问题还在里面。"
+    },
+    {
+      "id": "dry",
+      "label": "干燥",
+      "start_sec": 31.488,
+      "end_sec": 41.08,
+      "scene": "dry_clean",
+      "focus": "dry_zone",
+      "enter": [
+        "moisture.fade_out",
+        "dry_zone.reveal",
+        "old_glue.sweep"
+      ],
+      "hold": [
+        "dry_zone.spotlight",
+        "base_layer.visible"
+      ],
+      "exit": [
+        "old_glue.fade_out"
+      ],
+      "layout": {
+        "portrait": "section_closeup",
+        "landscape": "section_left_coach_right",
+        "theater": "section_clean"
+      },
+      "camera": {
+        "verb": "wipe/reveal",
+        "target": "dry_zone",
+        "duration_sec": 0.7
+      },
+      "visible_nodes": [
+        "roof_section",
+        "dry_zone",
+        "old_glue"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "wipe/reveal",
+          "target": "dry_zone",
+          "start": 0,
+          "end": 0.3
+        },
+        {
+          "kind": "reveal",
+          "target": "roof_section",
+          "start": 0.02,
+          "end": 0.14
+        },
+        {
+          "kind": "reveal",
+          "target": "dry_zone",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "dry_zone",
+          "start": 0.36,
+          "end": 0.68
+        },
+        {
+          "kind": "reveal",
+          "target": "old_glue",
+          "start": 0.58,
+          "end": 0.78
+        }
+      ],
+      "keycard": "治因② 排气干燥 + 清基层",
+      "coach": "这一步最容易漏。基层没干、旧胶没清,新卷材就粘不牢。"
+    },
+    {
+      "id": "add",
+      "label": "附加层",
+      "start_sec": 41.08,
+      "end_sec": 51.08,
+      "scene": "add_reinforcement",
+      "focus": "reinforcement_layer",
+      "enter": [
+        "reinforcement_layer.wipe_in",
+        "edge_coverage.show"
+      ],
+      "hold": [
+        "reinforcement_layer.spotlight",
+        "edge_coverage.bracket"
+      ],
+      "exit": [
+        "edge_coverage.fade_out"
+      ],
+      "layout": {
+        "portrait": "exploded_section",
+        "landscape": "section_left_coach_right",
+        "theater": "section_clean"
+      },
+      "camera": {
+        "verb": "exploded-section",
+        "target": "reinforcement_layer",
+        "duration_sec": 0.65
+      },
+      "visible_nodes": [
+        "roof_section",
+        "reinforcement_layer",
+        "edge_coverage"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "exploded-section",
+          "target": "reinforcement_layer",
+          "start": 0,
+          "end": 0.32
+        },
+        {
+          "kind": "reveal",
+          "target": "roof_section",
+          "start": 0.02,
+          "end": 0.14
+        },
+        {
+          "kind": "reveal",
+          "target": "reinforcement_layer",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "reinforcement_layer",
+          "start": 0.36,
+          "end": 0.7
+        },
+        {
+          "kind": "reveal",
+          "target": "edge_coverage",
+          "start": 0.56,
+          "end": 0.78
+        }
+      ],
+      "keycard": "恢复① 附加层盖过病害边缘",
+      "coach": "附加层不是小补丁,要盖过病害边缘,把薄弱区重新包住。"
+    },
+    {
+      "id": "seal",
+      "label": "封严",
+      "start_sec": 51.08,
+      "end_sec": 61.728,
+      "scene": "seal_membrane",
+      "focus": "new_membrane_lap",
+      "enter": [
+        "new_membrane.slide_in",
+        "lap_joint.trace"
+      ],
+      "hold": [
+        "lap_joint.spotlight",
+        "seal_edge.glow"
+      ],
+      "exit": [
+        "lap_joint.keep_context",
+        "seal_edge.fade_out"
+      ],
+      "layout": {
+        "portrait": "section_closeup",
+        "landscape": "section_left_coach_right",
+        "theater": "section_clean"
+      },
+      "camera": {
+        "verb": "trace",
+        "target": "lap_joint",
+        "duration_sec": 0.8
+      },
+      "visible_nodes": [
+        "roof_section",
+        "new_membrane_lap",
+        "lap_joint",
+        "seal_edge"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "trace",
+          "target": "lap_joint",
+          "start": 0,
+          "end": 0.34
+        },
+        {
+          "kind": "reveal",
+          "target": "roof_section",
+          "start": 0.02,
+          "end": 0.14
+        },
+        {
+          "kind": "reveal",
+          "target": "new_membrane_lap",
+          "start": 0.18,
+          "end": 0.34
+        },
+        {
+          "kind": "reveal",
+          "target": "lap_joint",
+          "start": 0.36,
+          "end": 0.58
+        },
+        {
+          "kind": "highlight",
+          "target": "lap_joint",
+          "start": 0.56,
+          "end": 0.82
+        },
+        {
+          "kind": "reveal",
+          "target": "seal_edge",
+          "start": 0.7,
+          "end": 0.9
+        }
+      ],
+      "keycard": "恢复② 新卷材搭接封严",
+      "coach": "新卷材要和原防水层搭接压实,边缘封严,防水层才重新闭合。"
+    },
+    {
+      "id": "test",
+      "label": "检验",
+      "start_sec": 61.728,
+      "end_sec": 69.712,
+      "scene": "water_test",
+      "focus": "water_layer",
+      "enter": [
+        "water_layer.fill",
+        "leak_check.tick"
+      ],
+      "hold": [
+        "water_layer.spotlight",
+        "result.tick"
+      ],
+      "exit": [
+        "water_layer.fade_to_context"
+      ],
+      "layout": {
+        "portrait": "section_closeup",
+        "landscape": "section_left_result_right",
+        "theater": "section_clean"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "water_layer",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "roof_section",
+        "water_layer",
+        "result_tick"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "water_layer",
+          "start": 0,
+          "end": 0.3
+        },
+        {
+          "kind": "reveal",
+          "target": "roof_section",
+          "start": 0.02,
+          "end": 0.14
+        },
+        {
+          "kind": "reveal",
+          "target": "water_layer",
+          "start": 0.18,
+          "end": 0.42
+        },
+        {
+          "kind": "highlight",
+          "target": "water_layer",
+          "start": 0.38,
+          "end": 0.68
+        },
+        {
+          "kind": "reveal",
+          "target": "result_tick",
+          "start": 0.62,
+          "end": 0.82
+        }
+      ],
+      "keycard": "检验 蓄水/淋水确认不渗漏",
+      "coach": "铺完不等于结束。蓄水或淋水确认不渗漏,才算闭环。"
+    },
+    {
+      "id": "score",
+      "label": "采分",
+      "start_sec": 69.712,
+      "end_sec": 81.2,
+      "scene": "answer_paper",
+      "focus": "score_sheet",
+      "enter": [
+        "answer_paper.slide_up",
+        "score_atoms.scan"
+      ],
+      "hold": [
+        "score_sentence.reveal",
+        "atoms.spotlight_one_by_one"
+      ],
+      "exit": [
+        "answer_paper.keep_until_challenge"
+      ],
+      "layout": {
+        "portrait": "answer_paper",
+        "landscape": "paper_left_atoms_right",
+        "theater": "paper_clean"
+      },
+      "camera": {
+        "verb": "answer-paper",
+        "target": "score_sentence",
+        "duration_sec": 0.75
+      },
+      "visible_nodes": [
+        "score_sheet"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "score_sheet",
+          "verb": "answer-paper",
+          "start": 0,
+          "end": 0.25
+        },
+        {
+          "kind": "reveal",
+          "target": "score_sheet",
+          "start": 0.05,
+          "end": 0.82
+        },
+        {
+          "kind": "highlight",
+          "target": "score_sheet",
+          "start": 0.18,
+          "end": 0.92
+        }
+      ],
+      "keycard": "采分句:放气、干燥、清基、封严检验",
+      "coach": "最后别写成一句修补。答题纸按四段写:割开放气、排气干燥、清理基层、搭接封严并检验。"
+    },
+    {
+      "id": "qa_closure",
+      "label": "答疑",
+      "start_sec": 81.2,
+      "end_sec": 126.8,
+      "scene": "misconception_cards",
+      "focus": "missing_closure",
+      "enter": [
+        "misconception_cards.show_one",
+        "section.mini_context"
+      ],
+      "hold": [
+        "current_question.spotlight",
+        "irrelevant_cards.hide"
+      ],
+      "exit": [
+        "misconception_cards.fade_out"
+      ],
+      "layout": {
+        "portrait": "coach_dialogue",
+        "landscape": "dialogue_right_section_left",
+        "theater": "dialogue_minimal"
+      },
+      "camera": {
+        "verb": "focus-shift",
+        "target": "current_question",
+        "duration_sec": 0.35
+      },
+      "visible_nodes": [
+        "mini_section",
+        "current_question",
+        "teacher_answer"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "focus-shift",
+          "target": "current_question",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "kind": "reveal",
+          "target": "mini_section",
+          "start": 0.02,
+          "end": 0.16
+        },
+        {
+          "kind": "reveal",
+          "target": "current_question",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "kind": "highlight",
+          "target": "current_question",
+          "start": 0.36,
+          "end": 0.64
+        },
+        {
+          "kind": "reveal",
+          "target": "teacher_answer",
+          "start": 0.56,
+          "end": 0.78
+        }
+      ],
+      "keycard": "答疑:漏基层、附加层、搭接封严都扣分",
+      "coach": "学生常问的是能不能省步骤。答案很简单:漏闭合,就漏分。"
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 126.8,
+      "end_sec": 137.896,
+      "scene": "closing_challenge",
+      "focus": "challenge_cta",
+      "enter": [
+        "closing_sentence.reveal",
+        "challenge_cta.pulse"
+      ],
+      "hold": [
+        "challenge_cta.spotlight"
+      ],
+      "exit": [
+        "none"
+      ],
+      "layout": {
+        "portrait": "final_board",
+        "landscape": "final_board",
+        "theater": "final_board_clean"
+      },
+      "camera": {
+        "verb": "pull-back",
+        "target": "whole_loop",
+        "duration_sec": 0.55
+      },
+      "visible_nodes": [
+        "closing_sentence",
+        "challenge_cta"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "pull-back",
+          "target": "closing_sentence",
+          "start": 0,
+          "end": 0.3
+        },
+        {
+          "kind": "reveal",
+          "target": "closing_sentence",
+          "start": 0.08,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "closing_sentence",
+          "start": 0.32,
+          "end": 0.62
+        },
+        {
+          "kind": "reveal",
+          "target": "challenge_cta",
+          "start": 0.58,
+          "end": 0.82
+        },
+        {
+          "kind": "highlight",
+          "target": "challenge_cta",
+          "start": 0.78,
+          "end": 0.98
+        }
+      ],
+      "keycard": "收尾:先治因 → 恢复闭合 → 检验",
+      "coach": "收个尾:以后见到卷材起鼓,只写这条闭环。现在进闯关,看你能不能写成分。"
+    }
+  ],
+  "visual_library": {
+    "hook": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "wrong_phrase",
+          "kind": "pill",
+          "tone": "danger",
+          "x": 42,
+          "y": 58,
+          "w": 276,
+          "h": 54,
+          "text": "错觉:只写“修补防水层”"
+        },
+        {
+          "id": "score_goal",
+          "kind": "pill",
+          "tone": "success",
+          "x": 64,
+          "y": 134,
+          "w": 232,
+          "h": 66,
+          "text": "目标:写出修补闭环",
+          "subtext": "治因 → 闭合 → 检验"
+        }
+      ]
+    },
+    "disease": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "roof_section",
+          "kind": "roof_section",
+          "x": 32,
+          "y": 150,
+          "w": 296
+        },
+        {
+          "id": "bulge",
+          "kind": "bulge",
+          "x": 180,
+          "base_y": 150,
+          "text": "气/水汽顶起卷材"
+        },
+        {
+          "id": "vapour_arrows",
+          "kind": "up_arrows",
+          "x": 180,
+          "y": 142,
+          "tone": "amber"
+        }
+      ]
+    },
+    "cut": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "roof_section",
+          "kind": "roof_section",
+          "x": 32,
+          "y": 150,
+          "w": 296
+        },
+        {
+          "id": "cut_cross",
+          "kind": "cut_cross",
+          "x": 180,
+          "y": 146,
+          "text": "割开放气"
+        },
+        {
+          "id": "gas_escape",
+          "kind": "up_arrow",
+          "x": 180,
+          "y": 130,
+          "h": 54
+        },
+        {
+          "id": "direct_cover_trap",
+          "kind": "note",
+          "tone": "danger",
+          "x": 60,
+          "y": 218,
+          "w": 240,
+          "text": "不先放气,直接盖层还会再鼓"
+        }
+      ]
+    },
+    "dry": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "roof_section",
+          "kind": "roof_section",
+          "x": 32,
+          "y": 150,
+          "w": 296
+        },
+        {
+          "id": "dry_zone",
+          "kind": "dry_zone",
+          "x": 122,
+          "y": 132,
+          "w": 116,
+          "h": 44,
+          "text": "排气干燥"
+        },
+        {
+          "id": "old_glue",
+          "kind": "sweep_line",
+          "x": 126,
+          "y": 190,
+          "w": 108,
+          "text": "清旧胶 / 清基层"
+        }
+      ]
+    },
+    "add": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "roof_section",
+          "kind": "roof_section",
+          "x": 32,
+          "y": 150,
+          "w": 296
+        },
+        {
+          "id": "reinforcement_layer",
+          "kind": "membrane_strip",
+          "tone": "success",
+          "x": 112,
+          "y": 132,
+          "w": 136,
+          "text": "增铺附加层"
+        },
+        {
+          "id": "edge_coverage",
+          "kind": "coverage_bracket",
+          "x1": 112,
+          "x2": 248,
+          "y": 168,
+          "text": "盖过病害边缘"
+        }
+      ]
+    },
+    "seal": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "roof_section",
+          "kind": "roof_section",
+          "x": 32,
+          "y": 150,
+          "w": 296
+        },
+        {
+          "id": "new_membrane_lap",
+          "kind": "membrane_strip",
+          "tone": "blue",
+          "x": 88,
+          "y": 128,
+          "w": 184,
+          "text": "新卷材搭接"
+        },
+        {
+          "id": "lap_joint",
+          "kind": "lap_curve",
+          "x1": 88,
+          "x2": 272,
+          "y": 156
+        },
+        {
+          "id": "seal_edge",
+          "kind": "note",
+          "tone": "blue",
+          "x": 78,
+          "y": 204,
+          "w": 204,
+          "text": "边缘和搭接缝封严"
+        }
+      ]
+    },
+    "test": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "roof_section",
+          "kind": "roof_section",
+          "x": 32,
+          "y": 150,
+          "w": 296
+        },
+        {
+          "id": "water_layer",
+          "kind": "water_layer",
+          "x": 32,
+          "y": 114,
+          "w": 296,
+          "text": "蓄水 / 淋水检验"
+        },
+        {
+          "id": "result_tick",
+          "kind": "check_badge",
+          "x": 180,
+          "y": 202
+        }
+      ]
+    },
+    "score": {
+      "board": "paper",
+      "nodes": [
+        {
+          "id": "score_sheet",
+          "kind": "answer_scan",
+          "text": "答题纸采分",
+          "x": 30,
+          "y": 42,
+          "w": 300,
+          "h": 178,
+          "tone": "success",
+          "labels": [
+            "割开放气",
+            "排气干燥",
+            "清理基层",
+            "封严检验"
+          ]
+        }
+      ]
+    },
+    "qa_closure": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "mini_section",
+          "kind": "roof_section",
+          "x": 46,
+          "y": 150,
+          "w": 268
+        },
+        {
+          "id": "current_question",
+          "kind": "dialogue_box",
+          "tone": "danger",
+          "x": 46,
+          "y": 54,
+          "w": 268,
+          "text": "能不能省掉基层/附加层/检验?"
+        },
+        {
+          "id": "teacher_answer",
+          "kind": "dialogue_box",
+          "tone": "success",
+          "x": 62,
+          "y": 110,
+          "w": 236,
+          "text": "漏闭合,就漏分"
+        }
+      ]
+    },
+    "closing_challenge": {
+      "board": "closing",
+      "nodes": [
+        {
+          "id": "closing_sentence",
+          "kind": "closing_text",
+          "text": "三步闭环",
+          "subtext": "治病因 → 恢复闭合 → 检验"
+        },
+        {
+          "id": "challenge_cta",
+          "kind": "challenge_button",
+          "text": "开始闯关"
+        }
+      ]
+    }
+  }
+}

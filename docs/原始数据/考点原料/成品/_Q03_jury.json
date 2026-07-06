@@ -1,48 +1,68 @@
 [
-  {
-    "issue": "组A中A2、A3成因拆分将麻面、蜂窝、孔洞等与模板、振捣不实/离析、配筋过密一一对应缺乏原文逐项支持，quote只列通用原因",
-    "location": "组A A2、A3",
-    "flagged_by": [
-      "DeepSeek-V4-Pro",
-      "Qwen-3.7-Max",
-      "GPT-5.5(Codex)"
-    ],
-    "count": 3,
-    "confidence": "高可信",
-    "fix": "将一对一成因对应降为🔵逻辑推理，保留表面缺陷总类通用原因为🟢，并注明教材原文归纳"
-  },
-  {
-    "issue": "组F F4防治措施（伸缩缝、水泥基粘结材料、界面剂+背砂等）引用kc:1A434000_078_0123:0标🟢，但quote仅包含原因分析，无防治内容",
-    "location": "组F F4",
-    "flagged_by": [
-      "DeepSeek-V4-Pro",
-      "Qwen-3.7-Max",
-      "GPT-5.5(Codex)"
-    ],
-    "count": 3,
-    "confidence": "高可信",
-    "fix": "换锚至包含防治措施的教材位置，或将其降为🔵工程通识"
-  },
-  {
-    "issue": "R2不变量断言任何通病都必须四件套答题，过强且不能覆盖纯识别/列举题，与pack意图存在冲突",
-    "location": "R2不变量",
-    "flagged_by": [
-      "Qwen-3.7-Max",
-      "GPT-5.5(Codex)"
-    ],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "将R2从🟢不变量降为🔵答题框架，并增加‘以题问为准’的灵活说明"
-  },
-  {
-    "issue": "组D D3中‘初凝前二次抹压’作为收缩裂缝防治措施未在引用quote中出现，不能标为🟢逐字锚定",
-    "location": "组D D3",
-    "flagged_by": [
-      "Qwen-3.7-Max",
-      "GPT-5.5(Codex)"
-    ],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "降级为🔵或补充包含‘二次抹压’表述的教材引用"
+ {
+  "issue": "组A中A2、A3成因拆分将麻面、蜂窝、孔洞等与模板、振捣不实/离析、配筋过密一一对应缺乏原文逐项支持，quote只列通用原因",
+  "location": "组A A2、A3",
+  "flagged_by": [
+   "DeepSeek-V4-Pro",
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 3,
+  "confidence": "高可信",
+  "fix": "将一对一成因对应降为🔵逻辑推理，保留表面缺陷总类通用原因为🟢，并注明教材原文归纳",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "Q03_质量通病防治.md 组A A2/A3 行（本轮 D3 批改：证据色 🟢→🔵，括注『按缺陷一一对应=教材原文归纳派生,quote为表面缺陷类通列』；A1 总类通用原因与组A表头锚保🟢不动）",
+   "verified": "2026-07-04 确定性核验：kc:1A434000_072_0112:0 quote 直读为表面缺陷类通列原因（麻面/露筋/蜂窝/孔洞并列后统一列原因），无按缺陷逐项对应——jury 现象为真；A2/A3 行现串『教材原文归纳派生』实存正文；方向=降级（合法）；GLM-5.2 direction_ok + Fable-5 复签，unique-match 2/2 两闸绿（可重跑：python3 docs/原始数据/考点原料/recheck_resolutions.py Q03）"
   }
+ },
+ {
+  "issue": "组F F4防治措施（伸缩缝、水泥基粘结材料、界面剂+背砂等）引用kc:1A434000_078_0123:0标🟢，但quote仅包含原因分析，无防治内容",
+  "location": "组F F4",
+  "flagged_by": [
+   "DeepSeek-V4-Pro",
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 3,
+  "confidence": "高可信",
+  "fix": "换锚至包含防治措施的教材位置，或将其降为🔵工程通识",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "Q03_质量通病防治.md 组F F4 行（本轮 D3 批改：🟢→『🔵 compiled statement 派生〔quote 仅原因分析无防治内容,同 D3 SEV-1 口径〕』，走 fix 的降🔵分支）",
+   "verified": "2026-07-04 确定性核验：kc:1A434000_078_0123:0 在本 pack 编译源的 quote 直读仅含原因分析段（防治五要点在 compiled statement 字段非 quote）——jury 现象为真；F4 行现串『compiled statement 派生』实存正文；GLM-5.2 direction_ok + Fable-5 复签，两闸绿"
+  }
+ },
+ {
+  "issue": "R2不变量断言任何通病都必须四件套答题，过强且不能覆盖纯识别/列举题，与pack意图存在冲突",
+  "location": "R2不变量",
+  "flagged_by": [
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "将R2从🟢不变量降为🔵答题框架，并增加‘以题问为准’的灵活说明",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "Q03_质量通病防治.md §3 R2 不变量主句（本轮 D3 批改：降『🔵答题框架·以题问为准』，完整分析题四件套对齐+纯识别/列举题只答所问不强套，治理工艺句保留）",
+   "verified": "2026-07-04 确定性核验：R2 主句现串『不变量（🔵答题框架·以题问为准）』与『纯识别/列举题以题问为准，只答所问，不强套四件套』实存正文，原『任何…缺一即失分』绝对化表述 0 残留；方向=降级+豁免口径（合法）；GLM-5.2 direction_ok + Fable-5 复签，两闸绿"
+  }
+ },
+ {
+  "issue": "组D D3中‘初凝前二次抹压’作为收缩裂缝防治措施未在引用quote中出现，不能标为🟢逐字锚定",
+  "location": "组D D3",
+  "flagged_by": [
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "降级为🔵或补充包含‘二次抹压’表述的教材引用",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "Q03_质量通病防治.md 组D D3 行及 §1/§2/§3/§8 共 6 处（前轮 Codex SEV-1 已按 fix 降级：『二次抹压=statement 派生🔵』，禁标教材 quote 逐字🟢）",
+   "verified": "2026-07-04 确定性核验：正文串『二次抹压=statement派生🔵』与『为🔵转写/派生，非🟢逐字』实存；kc:1A434000_073_0114:0 quote 直读无二次抹压字样（该词在 statement/required_terms）；GLM-5.2 satisfied + Fable-5 复签 2/2"
+  }
+ }
 ]

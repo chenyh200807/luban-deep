@@ -1,0 +1,202 @@
+[
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 0,
+    "tier": "Tier-0直读+Tier-1邻接拆分",
+    "retrieval": null,
+    "actions": [
+      "0114=收缩裂缝章直读,含泥量项移出组B",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 1,
+    "tier": "Tier-2错因码+Tier-1同步降锚",
+    "retrieval": null,
+    "actions": [
+      "E10主+E07二级条件触发",
+      "W1锚栏与§1行1降级同步(消文内双权威)",
+      "GLM approve; Fable复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "Fable-5": "复签同意"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 2,
+    "tier": "Tier-2错因码",
+    "retrieval": null,
+    "actions": [
+      "E05弃用,E02主+E10",
+      "GLM approve; Fable复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "Fable-5": "复签同意"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 3,
+    "tier": "Tier-0收口+Tier-2错因码",
+    "retrieval": null,
+    "actions": [
+      "前轮已E10,本轮按题型拆E10/E02",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 4,
+    "tier": "Tier-2错因码",
+    "retrieval": null,
+    "actions": [
+      "E10主+E07条件触发(早强=好)",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 5,
+    "tier": "Tier-0确认(前轮已改)",
+    "retrieval": null,
+    "actions": [
+      "字符串定位:行2已降🔵+比选表注",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 6,
+    "tier": "Tier-0确认(前轮已改)",
+    "retrieval": null,
+    "actions": [
+      "字符串定位:行1已降🔵+间接推论注",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 7,
+    "tier": "Tier-0证真+Tier-2事实类(保🔵+出处)",
+    "retrieval": "tbsearch 每昼夜→CET_1A413030_P0097_001 三频次逐字",
+    "actions": [
+      "编译quote无频次(证真)",
+      "P97逐字4处/4次/2次",
+      "GLM modify(判可升🟢)→主控取保守保🔵留owner,分歧登记owner升级清单"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "modify",
+        "wants": "upgrade_to_green"
+      },
+      "Fable-5": "复签保守方向"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 8,
+    "tier": "Tier-0确认(前轮已改)",
+    "retrieval": null,
+    "actions": [
+      "R2附条件+场景表分层标色字符串定位",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 9,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 入模温度+大体积→CET_1A413030_P0096_001 P96(4)逐字5~30℃",
+    "actions": [
+      "fix『仅上限有直锚』前提失效(5℃下限教材逐字)",
+      "GLM approve; Fable复签(§1/§5非B镜头)"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "Fable-5": "复签同意"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 10,
+    "tier": "Tier-1限定补全",
+    "retrieval": null,
+    "actions": [
+      "R6补防水大体积/设计许可限定(131_0250:2语境直证)",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 11,
+    "tier": "Tier-0证真+Tier-1降级",
+    "retrieval": "tbsearch 温度裂缝→仅P96控制规定一处,通病章0命中",
+    "actions": [
+      "0114纯收缩裂缝直读",
+      "温度裂缝形态降🔵类比旁证(行15+§2两处)",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  }
+]

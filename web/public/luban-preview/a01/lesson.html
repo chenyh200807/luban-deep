@@ -1,293 +1,518 @@
-<!doctype html><html lang="zh-CN"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>结构实体检验答案诊断 · IR 预览</title><style>
-*{box-sizing:border-box}
-:root{--player-h:132px}
-html,body{margin:0;max-width:100%;overflow-x:hidden}
-body{background:#0d1723;color:#eef3f8;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}
-.lesson{max-width:460px;margin:0 auto;min-height:100dvh;padding:14px 12px calc(var(--player-h) + 14px + env(safe-area-inset-bottom))}
-.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.kicker{font-size:12px;font-weight:900;color:#ffd27f;margin:0 0 6px}.top h1{font-size:22px;line-height:1.2;margin:0}
-.time{border:1px solid #31445c;border-radius:999px;padding:7px 10px;color:#cfe0f0;font-size:12px;font-weight:900;white-space:nowrap}
-.subtitle{margin:10px 0 12px;color:#9fb0c2;font-size:13px;font-weight:800;line-height:1.5}
-.stage{--camera-scale:1;--camera-x:0px;--camera-y:0px;position:relative;background:#13202e;border:1px solid #24364b;border-radius:20px;min-height:430px;display:grid;align-items:center;overflow:hidden;cursor:pointer;touch-action:manipulation}
-.stage:focus-visible{outline:3px solid #ffd27f;outline-offset:3px}
-.scene{display:none;min-width:0;padding:16px}.scene.active{display:grid;min-width:0;gap:12px;padding-bottom:88px;animation:sceneIn .2s ease-out}
-.visual{position:relative;min-width:0;max-width:100%;min-height:270px;display:grid;place-items:center;transform:translate3d(var(--camera-x),var(--camera-y),0) scale(var(--camera-scale));transition:transform .12s linear;will-change:transform}
-.visual svg{width:100%;max-width:100%;height:auto;display:block}
-.visual svg.visual-svg-wide{display:none}
-[data-visible-node]{opacity:0;transform-box:fill-box;transform-origin:center;will-change:opacity,transform,filter}.node-focus{filter:drop-shadow(0 0 9px rgba(255,210,127,.75))}
-.coach-card{min-width:0;max-width:100%;overflow-wrap:anywhere;border-left:4px solid #ffd27f;background:#172434;border-radius:14px;padding:12px 13px;box-shadow:0 12px 30px rgba(0,0,0,.22);transition:opacity .18s,transform .18s}
-.coach-card b{display:block;color:#ffd27f;font-size:15px;line-height:1.35;margin-bottom:6px}.coach-card span{display:block;color:#dbe6f1;font-size:14px;line-height:1.55;font-weight:800}
-.caption-line{position:relative;z-index:4;min-height:0;max-height:48px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding:9px 12px;border-radius:13px;background:rgba(9,17,27,.84);border:1px solid rgba(207,224,240,.18);box-shadow:0 14px 32px rgba(0,0,0,.28);color:#eef6ff;font-size:14px;font-weight:900;line-height:1.35;text-align:center;backdrop-filter:blur(8px)}
-.caption-line[data-speaker="S"]{color:#d7e9ff;border-color:rgba(96,165,250,.35)}
-.center-play{display:none}
-.lesson.started .center-play{display:none}
-.top-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:0 0 auto;flex-wrap:wrap}
-.ask-ai{position:relative;z-index:7;min-width:52px;min-height:44px;border:1px solid rgba(255,210,127,.52);border-radius:999px;background:rgba(13,23,35,.82);color:#ffd27f;font-size:13px;font-weight:900;box-shadow:0 14px 32px rgba(0,0,0,.28);backdrop-filter:blur(8px)}
-.ask-ai:focus-visible,.ask-send:focus-visible,.ask-copy:focus-visible,.ask-close:focus-visible{outline:3px solid #ffd27f;outline-offset:2px}
-.ask-panel[hidden]{display:none}.ask-panel{position:fixed;inset:0;z-index:65;display:grid;align-items:end;background:rgba(2,6,12,.5);padding:14px}
-.ask-sheet{width:min(560px,100%);margin:0 auto;border:1px solid #2f4560;border-radius:20px;background:#101b2a;box-shadow:0 24px 70px rgba(0,0,0,.48);padding:14px;color:#eef6ff}
-.ask-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}.ask-head b{display:block;font-size:16px;line-height:1.35}.ask-head span{display:block;margin-top:4px;color:#9fb0c2;font-size:12px;font-weight:800;line-height:1.45}
-.ask-close{width:44px;height:44px;border:1px solid #31445c;border-radius:999px;background:#162234;color:#dceafe;font-weight:900}.ask-current{border-left:4px solid #ffd27f;border-radius:12px;background:#172434;padding:10px 12px;color:#dbeafe;font-size:13px;font-weight:850;line-height:1.45;margin-bottom:10px}
-.ask-input{width:100%;min-height:86px;resize:vertical;border:1px solid #31445c;border-radius:14px;background:#0d1723;color:#eef6ff;padding:11px 12px;font:inherit;font-size:14px;line-height:1.5}
-.ask-actions{display:flex;gap:10px;margin-top:10px}.ask-send,.ask-copy{flex:1;min-height:46px;border-radius:14px;border:1px solid #31445c;font-weight:900}.ask-send{background:#ffd27f;color:#101826;border-color:#ffd27f}.ask-copy{background:#162234;color:#dceafe}.ask-status{min-height:18px;margin:8px 2px 0;color:#9fb0c2;font-size:12px;font-weight:800;line-height:1.35}
-.ask-answer{margin-top:10px;border:1px solid rgba(255,210,127,.3);border-radius:14px;background:#0d1723;padding:11px 12px;color:#eef6ff;font-size:13px;font-weight:800;line-height:1.55;white-space:pre-wrap}
-.challenge-inline{display:none;align-items:center;justify-content:center;margin:12px 0 0;min-height:48px;border-radius:14px;border:1px dashed #3a4a60;color:#9fb0c2;text-decoration:none;font-weight:900}
-.challenge-inline.ready{color:#ffd27f;border-color:#6d5327;background:#1a150c}
-.theater-hint{position:fixed;left:50%;bottom:calc(var(--player-h) + 18px + env(safe-area-inset-bottom));z-index:45;transform:translateX(-50%) translateY(8px);opacity:0;pointer-events:none;border:1px solid rgba(207,224,240,.2);border-radius:999px;background:rgba(9,17,27,.78);color:#eaf3ff;font-size:13px;font-weight:900;padding:8px 13px;transition:opacity .18s,transform .18s}
-.lesson.theater.show-hint .theater-hint{opacity:1;transform:translateX(-50%)}
-.player{position:fixed;left:0;right:0;bottom:0;background:rgba(13,23,35,.96);border-top:1px solid #233148;backdrop-filter:blur(10px);padding:10px 12px calc(10px + env(safe-area-inset-bottom));z-index:20;transition:opacity .18s ease,transform .18s ease}
-.player-inner{max-width:460px;margin:0 auto}.row{display:flex;align-items:center;gap:10px}
-.play,.theater,.challenge{border:1px solid #3a4a60;background:#162234;color:#cfe0f0;font-weight:900;border-radius:999px;height:48px;min-width:48px}
-.play{width:58px;border:0;background:#ffd27f;color:#0f1722;font-size:20px}.theater{width:60px}
-.challenge{flex:0 0 68px;min-width:68px;text-decoration:none;display:flex;align-items:center;justify-content:center;color:#8fa3b8;border-color:#2b3b50;background:#172434;font-size:13px;white-space:nowrap}
-.challenge.ready{color:#ffd27f;border-color:#5a421c;background:#211a0c}
-.progress{flex:1;min-width:0}.ptime{display:flex;justify-content:space-between;color:#9fb0c2;font-size:12px;font-weight:800;margin-bottom:2px}
-.bar{height:8px;border-radius:999px;background:#26344a;overflow:hidden}.fill{height:100%;width:0;background:#ffd27f}
-.scrubber{width:100%;height:44px;accent-color:#ffd27f;margin:0}
-.chapters{display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:1px;scrollbar-width:none}.chapters::-webkit-scrollbar{display:none}
-.chapter{flex:0 0 auto;min-width:64px;border:1px solid #2b3b50;background:#172434;color:#9fb0c2;border-radius:12px;min-height:44px;padding:0 9px;font-weight:900}
-.chapter.on{background:#ffd27f;color:#0f1722;border-color:#ffd27f}
-@keyframes sceneIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.lesson.theater{max-width:none;padding:0;background:#0d1723}
-.lesson.theater .top,.lesson.theater .subtitle,.lesson.theater .challenge-inline{display:none}
-.lesson.theater .stage{position:fixed;inset:0;border:0;border-radius:0;min-height:0;transition:inset .18s ease}
-.lesson.theater.controls-visible .stage{inset:0 0 calc(var(--player-h) + env(safe-area-inset-bottom)) 0}
-.lesson.theater .scene{height:100%;align-content:center;padding:clamp(18px,6vh,52px) 18px 18px}
-.lesson.theater .visual{min-height:0}.lesson.theater .visual svg{max-height:min(52dvh,460px)}
-.lesson.theater .coach-card{margin-top:4px}
-.lesson.theater .caption-line{font-size:15px}
-.lesson.theater.controls-visible .caption-line,.lesson.theater.controls-visible .coach-card{display:none}
-.lesson.theater:not(.controls-visible) .ask-ai{opacity:0;pointer-events:none}
-.lesson.theater .player{z-index:40;opacity:0;transform:translateY(105%);pointer-events:none}
-.lesson.theater.controls-visible .player{opacity:1;transform:none;pointer-events:auto}
-@media (min-width:1120px){
-  .lesson{max-width:980px}.stage{min-height:420px}
-  .scene.active{grid-template-columns:minmax(0,1fr) minmax(230px,320px);grid-template-rows:minmax(0,1fr) auto;align-items:center}
-  .visual{grid-column:1;grid-row:1 / span 2}.caption-line{grid-column:2;grid-row:1;align-self:end}.coach-card{grid-column:2;grid-row:2;align-self:start}
-  .visual{min-height:330px}
-  .lesson.theater .scene.active{grid-template-columns:minmax(0,1fr) minmax(220px,300px)}
-  .lesson.theater .visual svg{max-height:min(68dvh,620px)}.lesson.theater .caption-line{left:8%;right:8%;bottom:20px}
-}
-@media (max-width:1119px) and (min-height:521px){
-  .lesson{padding-bottom:0}
-  .player{position:relative;margin:10px -12px 0;transform:none;opacity:1;pointer-events:auto}
-  .player-inner{max-width:none}.lesson.theater .player{position:fixed;margin:0}
-}
-@media (orientation:landscape) and (max-height:520px){
-  .lesson{max-width:none;min-height:auto;padding:8px 10px 0}.subtitle{display:none}.top h1{font-size:20px}
-  .stage{min-height:calc(100dvh - var(--player-h) - 54px)}
-  .scene.active{padding:8px 12px;gap:8px}
-  .visual{min-height:0}.visual svg{max-height:calc(100dvh - var(--player-h) - 72px)}
-  .caption-line{min-height:0;max-height:42px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding:7px 9px;font-size:12px;line-height:1.35}.coach-card{padding:8px 10px}.coach-card b{font-size:13px}.coach-card span{font-size:12px;line-height:1.4}
-  .player{position:relative;margin:10px -12px 0;transform:none;opacity:1;pointer-events:auto}
-  .player-inner{max-width:none}.lesson.theater .player{position:fixed;margin:0}
-  .lesson.theater .scene{padding:14px 18px}.lesson.theater .visual svg{max-height:58dvh}
-}
-@media(max-width:420px){
-  .lesson{padding:12px 12px 0}
-  .top h1{font-size:20px}.subtitle{margin:8px 0 10px;font-size:12px;line-height:1.35}
-  .stage{min-height:410px}.scene.active{gap:8px;padding:10px 10px 18px}
-  .visual{min-height:250px}.visual svg{max-height:258px}
-  .coach-card{padding:8px 10px}.coach-card b{font-size:13px;line-height:1.25;margin-bottom:3px}.coach-card span{font-size:12px;line-height:1.35}
-  .caption-line{min-height:0;padding:7px 9px;font-size:12px;line-height:1.35}.chapter{font-size:12px}
-  .player{position:relative;margin:10px -12px 0;transform:none;opacity:1;pointer-events:auto}
-  .player-inner{max-width:none}.lesson.theater .player{position:fixed;margin:0}
-}
-@media(max-width:370px){
-  .stage{min-height:410px}.visual{min-height:235px}.visual svg{max-height:244px}
-}
-.lesson[data-caption-mode="visual_brief"] .subtitle{margin:6px 0 8px;font-size:12px;line-height:1.35;color:#8fa8bc}
-.lesson[data-caption-mode="visual_brief"] .scene.active{gap:8px;padding:10px 10px 16px}
-.lesson[data-caption-mode="visual_brief"] .visual{min-height:300px}
-.lesson[data-caption-mode="visual_brief"] .caption-line{max-height:34px;padding:6px 9px;border-radius:10px;font-size:12px;line-height:1.3}
-.lesson[data-caption-mode="visual_brief"] .coach-card{border-left-width:3px;border-radius:10px;padding:7px 10px}
-.lesson[data-caption-mode="visual_brief"] .coach-card b{font-size:12px;line-height:1.2;margin-bottom:2px}.lesson[data-caption-mode="visual_brief"] .coach-card span{font-size:11.5px;line-height:1.28}
-@media(max-width:420px){
-  .lesson[data-caption-mode="visual_brief"] .stage{min-height:430px}
-  .lesson[data-caption-mode="visual_brief"] .visual{min-height:286px}
-  .lesson[data-caption-mode="visual_brief"] .visual svg{max-height:294px}
-}
-@media(min-width:1120px){
-  .lesson[data-caption-mode="visual_brief"] .visual{min-height:380px}
-  .lesson[data-caption-mode="visual_brief"] .visual svg{max-height:420px}
-}
-@media (orientation:landscape) and (max-height:520px){
-  .lesson[data-caption-mode="visual_brief"] .stage{min-height:calc(100dvh - var(--player-h) - 54px)}
-  .lesson[data-caption-mode="visual_brief"] .visual{min-height:0}
-  .lesson[data-caption-mode="visual_brief"] .visual svg{max-height:calc(100dvh - var(--player-h) - 86px)}
-}
-.lesson.theater:not(.controls-visible) .scene.active{align-content:start;padding:clamp(12px,2.2vh,20px) 18px 18px}
-.lesson.theater:not(.controls-visible) .visual{min-height:0;place-items:start center}
-.lesson.theater:not(.controls-visible) .visual svg{max-height:min(60dvh,520px)}
-@media(max-width:420px){
-  .lesson.theater:not(.controls-visible) .scene.active{padding:12px 18px 18px}
-  .lesson.theater:not(.controls-visible) .visual{min-height:0}
-  .lesson.theater:not(.controls-visible) .visual svg{max-height:55dvh}
-}
-.lesson[data-layout-mode="blueprint_poster"] .subtitle{display:none}
-.lesson[data-layout-mode="blueprint_poster"] .top{margin-bottom:8px}
-.lesson[data-layout-mode="blueprint_poster"] .stage{height:calc(100dvh - var(--player-h) - 116px);min-height:430px;background:#071f2e}
-.lesson[data-layout-mode="blueprint_poster"] .scene.active{position:relative;width:100%;height:100%;min-height:0;overflow:hidden;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr);align-content:stretch;align-items:stretch;gap:0;padding:0}
-.lesson[data-layout-mode="blueprint_poster"] .visual{grid-column:1;grid-row:1;min-height:0;overflow:hidden;width:100%;height:100%;align-self:stretch;place-items:center;padding:0}
-.lesson[data-layout-mode="blueprint_poster"] .visual svg{width:auto;height:100%;max-width:100%;max-height:100%;object-fit:contain}
-.lesson[data-layout-mode="blueprint_poster"] .caption-line{grid-column:1;grid-row:1;align-self:auto;justify-self:auto;position:absolute;z-index:6;left:50%;right:auto;bottom:76px;width:min(520px,calc(100% - 28px));transform:translateX(-50%);max-height:28px;padding:5px 9px;border-radius:999px;font-size:11.5px;line-height:1.25;background:rgba(6,19,30,.78)}
-.lesson[data-layout-mode="blueprint_poster"] .coach-card{grid-column:1;grid-row:1;align-self:auto;justify-self:auto;position:absolute;z-index:5;left:14px;right:14px;bottom:14px;max-width:none;min-height:52px;padding:7px 11px 7px 13px;border-left-width:4px;border-radius:12px;background:rgba(6,24,36,.86)}
-.lesson[data-layout-mode="blueprint_poster"] .coach-card b{display:inline;color:#ffb832;font-size:13px;line-height:1.2;margin:0 10px 0 0}
-.lesson[data-layout-mode="blueprint_poster"] .coach-card span{display:inline;color:#d9efff;font-size:12px;line-height:1.25}
-@media (orientation:landscape) and (max-height:520px){
-  .lesson[data-layout-mode="blueprint_poster"] .stage{height:calc(100dvh - var(--player-h) - 86px);min-height:172px}
-  .lesson[data-layout-mode="blueprint_poster"] .scene.active{grid-template-columns:1fr;grid-template-rows:1fr;padding:0;gap:0}
-  .lesson[data-layout-mode="blueprint_poster"] .visual{grid-column:1;grid-row:1}
-  .lesson[data-layout-mode="blueprint_poster"] .visual svg.visual-svg-portrait{display:none}
-  .lesson[data-layout-mode="blueprint_poster"] .visual svg.visual-svg-wide{display:block}
-  .lesson[data-layout-mode="blueprint_poster"] .visual svg{width:auto;height:100%;max-width:100%;max-height:100%}
-  .lesson[data-layout-mode="blueprint_poster"] .caption-line{left:auto;right:18px;bottom:80px;width:min(300px,30vw);transform:none}
-  .lesson[data-layout-mode="blueprint_poster"] .coach-card{left:auto;right:18px;bottom:18px;width:min(330px,32vw)}
-  .lesson[data-layout-mode="blueprint_poster"] .coach-card span{display:none}
-}
-@media (min-width:1120px){
-  .lesson[data-layout-mode="blueprint_poster"] .visual svg.visual-svg-portrait{display:none}
-  .lesson[data-layout-mode="blueprint_poster"] .visual svg.visual-svg-wide{display:block}
-}
-.lesson.theater[data-layout-mode="blueprint_poster"] .stage{height:100dvh;min-height:100dvh}
-.lesson.theater[data-layout-mode="blueprint_poster"]:not(.controls-visible) .scene.active{align-content:stretch;align-items:stretch;padding:0}
-.lesson.theater[data-layout-mode="blueprint_poster"]:not(.controls-visible) .visual{place-items:stretch center}
-.lesson.theater[data-layout-mode="blueprint_poster"]:not(.controls-visible) .visual svg{width:100%;height:100%;max-height:none}
-.lesson.theater[data-layout-mode="blueprint_poster"]:not(.controls-visible) .caption-line,
-.lesson.theater[data-layout-mode="blueprint_poster"]:not(.controls-visible) .coach-card{display:none}
-</style></head>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
 <body>
-<main class="lesson orientation-adaptive" data-card-id="P40_A01" data-caption-mode="timing" data-layout-mode="" data-stage-shell="animation-ir-preview" data-animation-ir-preview="v0">
-  <div class="top"><div><p class="kicker">鲁班深母题 · A01 作答层</p><h1>结构实体检验答案诊断</h1></div><div class="top-actions"><div class="time"><span id="cur">0:00</span> / <span id="tot">0:00</span></div><button class="ask-ai" id="askAi" type="button" data-ai-ask-entry="1" aria-label="带当前画面问 AI">问 AI</button></div></div>
-  <p class="subtitle">把结构实体检验案例答案写成“对象清单 → 组织主体 → 双阈值计算 → 回判结论”的采分句，并能诊断学生答案命中、半命中和漏点。</p>
-  <div class="stage" id="stage" data-stage-shell="visual-stage" tabindex="0" aria-label="动画学习舞台，轻点显示或隐藏控制">
-    <section class="scene" data-scene-id="hook" data-focus="student_answer_scan" data-visible-count="1">
-  <div class="visual"><svg viewBox="0 0 360 270" role="img" aria-label="先扫缺口"><rect x="12" y="18" width="336" height="234" rx="22" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><path d="M44 66 H316 M44 120 H316 M44 174 H316 M88 40 V230 M180 40 V230 M272 40 V230" stroke="#f0e7d8" stroke-width="1.2"/><g data-visible-node="student_answer_scan" data-visual-node-id="student_answer_scan" data-visual-kind="answer_scan" data-visual-mode="default" data-visual-signature="answer_scan:default"><g data-primitive-step="0"><text x="180.0" y="58.0" text-anchor="middle" font-size="16" font-weight="900" fill="#b45309">学生答案扫描</text></g><g data-primitive-step="1"><rect x="56.0" y="86.0" width="248.0" height="28" rx="9" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/><text x="70.0" y="105.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">强度结论</text><text x="288.0" y="105.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">命中</text></g><g data-primitive-step="2"><rect x="56.0" y="124.0" width="248.0" height="28" rx="9" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/><text x="70.0" y="143.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">保护层半中</text><text x="288.0" y="143.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">半中</text></g><g data-primitive-step="3"><rect x="56.0" y="162.0" width="248.0" height="28" rx="9" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/><text x="70.0" y="181.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">主体漏点</text><text x="288.0" y="181.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">漏</text></g><g data-primitive-step="4"><rect x="56.0" y="200.0" width="248.0" height="28" rx="9" fill="#eff6ff" stroke="#60a5fa" stroke-width="2"/><text x="70.0" y="219.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">阈值漏点</text><text x="288.0" y="219.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">补</text></g></g></svg></div>
-  <div class="coach-card" data-info-node="keycard"><b>这不是背答案，是扫缺口</b><span>先看学生答题纸哪一行命中、哪一行漏分。</span></div>
-</section>
-<section class="scene" data-scene-id="answer_sheet" data-focus="student_answer_scan" data-visible-count="1">
-  <div class="visual"><svg viewBox="0 0 360 270" role="img" aria-label="扫学生答题纸"><rect x="12" y="18" width="336" height="234" rx="22" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><path d="M44 66 H316 M44 120 H316 M44 174 H316 M88 40 V230 M180 40 V230 M272 40 V230" stroke="#f0e7d8" stroke-width="1.2"/><g data-visible-node="student_answer_scan" data-visual-node-id="student_answer_scan" data-visual-kind="answer_scan" data-visual-mode="default" data-visual-signature="answer_scan:default"><g data-primitive-step="0"><text x="180.0" y="58.0" text-anchor="middle" font-size="16" font-weight="900" fill="#b45309">逐句扫描学生答案</text></g><g data-primitive-step="1"><rect x="56.0" y="86.0" width="248.0" height="28" rx="9" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/><text x="70.0" y="105.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">保护层半中</text><text x="288.0" y="105.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">命中</text></g><g data-primitive-step="2"><rect x="56.0" y="124.0" width="248.0" height="28" rx="9" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/><text x="70.0" y="143.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">施工组织漏点</text><text x="288.0" y="143.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">半中</text></g><g data-primitive-step="3"><rect x="56.0" y="162.0" width="248.0" height="28" rx="9" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/><text x="70.0" y="181.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">直接比35漏点</text><text x="288.0" y="181.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">漏</text></g><g data-primitive-step="4"><rect x="56.0" y="200.0" width="248.0" height="28" rx="9" fill="#eff6ff" stroke="#60a5fa" stroke-width="2"/><text x="70.0" y="219.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">补三格</text><text x="288.0" y="219.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">补</text></g></g></svg></div>
-  <div class="coach-card" data-info-node="keycard"><b>命中、半中、漏点先标出来</b><span>保护层是半中，主体和阈值是漏点。</span></div>
-</section>
-<section class="scene" data-scene-id="score_atoms" data-focus="content_slots" data-visible-count="1">
-  <div class="visual"><svg viewBox="0 0 360 270" role="img" aria-label="补实体检验清单"><rect x="12" y="18" width="336" height="234" rx="22" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><path d="M44 66 H316 M44 120 H316 M44 174 H316 M88 40 V230 M180 40 V230 M272 40 V230" stroke="#f0e7d8" stroke-width="1.2"/><g data-visible-node="content_slots" data-visual-node-id="content_slots" data-visual-kind="answer_scan" data-visual-mode="default" data-visual-signature="answer_scan:default"><g data-primitive-step="0"><text x="180.0" y="58.0" text-anchor="middle" font-size="16" font-weight="900" fill="#1d4ed8">实体检验对象进槽</text></g><g data-primitive-step="1"><rect x="56.0" y="86.0" width="248.0" height="28" rx="9" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/><text x="70.0" y="105.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">混凝土强度</text><text x="288.0" y="105.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">命中</text></g><g data-primitive-step="2"><rect x="56.0" y="124.0" width="248.0" height="28" rx="9" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/><text x="70.0" y="143.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">保护层厚度</text><text x="288.0" y="143.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">半中</text></g><g data-primitive-step="3"><rect x="56.0" y="162.0" width="248.0" height="28" rx="9" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/><text x="70.0" y="181.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">位置尺寸偏差</text><text x="288.0" y="181.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">漏</text></g><g data-primitive-step="4"><rect x="56.0" y="200.0" width="248.0" height="28" rx="9" fill="#eff6ff" stroke="#60a5fa" stroke-width="2"/><text x="70.0" y="219.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">合同约定项目</text><text x="288.0" y="219.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">补</text></g></g></svg></div>
-  <div class="coach-card" data-info-node="keycard"><b>清单要补成工程对象</b><span>让保护层、尺寸偏差、合同项目逐项进入采分槽。</span></div>
-</section>
-<section class="scene" data-scene-id="organization_gap" data-focus="organization_flow" data-visible-count="1">
-  <div class="visual"><svg viewBox="0 0 360 270" role="img" aria-label="纠正组织主体"><rect x="12" y="18" width="336" height="234" rx="22" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><path d="M44 66 H316 M44 120 H316 M44 174 H316 M88 40 V230 M180 40 V230 M272 40 V230" stroke="#f0e7d8" stroke-width="1.2"/><g data-visible-node="organization_flow" data-visual-node-id="organization_flow" data-visual-kind="process_flow" data-visual-mode="default" data-visual-signature="process_flow:default"><g data-primitive-step="0"><text x="180.0" y="60.0" text-anchor="middle" font-size="15" font-weight="900" fill="#047857">组织箭头纠正</text></g><g data-primitive-step="1" data-trace="1"><path d="M58.0 118.0 H302.0" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/></g><g data-primitive-step="2"><circle cx="63.0" cy="118.0" r="31" fill="#eff6ff" stroke="#60a5fa" stroke-width="4"/><text x="63.0" y="123.0" text-anchor="middle" font-size="12" font-weight="900" fill="#1d4ed8">监理组织</text><text x="63.0" y="172.0" text-anchor="middle" font-size="12" font-weight="900" fill="#64748b">第1步</text></g><g data-primitive-step="3"><circle cx="141.0" cy="118.0" r="31" fill="#ecfdf5" stroke="#10b981" stroke-width="4"/><text x="141.0" y="123.0" text-anchor="middle" font-size="12" font-weight="900" fill="#047857">施工实施</text><text x="141.0" y="172.0" text-anchor="middle" font-size="12" font-weight="900" fill="#64748b">第2步</text></g><g data-primitive-step="4"><circle cx="219.0" cy="118.0" r="31" fill="#fffbeb" stroke="#f59e0b" stroke-width="4"/><text x="219.0" y="123.0" text-anchor="middle" font-size="12" font-weight="900" fill="#b45309">监理见证</text><text x="219.0" y="172.0" text-anchor="middle" font-size="12" font-weight="900" fill="#64748b">第3步</text></g><g data-primitive-step="5"><circle cx="297.0" cy="118.0" r="31" fill="#f8fafc" stroke="#cbd5e1" stroke-width="4"/><text x="297.0" y="123.0" text-anchor="middle" font-size="12" font-weight="900" fill="#334155">方案审批</text><text x="297.0" y="172.0" text-anchor="middle" font-size="12" font-weight="900" fill="#64748b">第4步</text></g></g></svg></div>
-  <div class="coach-card" data-info-node="keycard"><b>施工实施，不等于施工组织</b><span>错误箭头退出，监理组织、施工实施、监理见证亮起。</span></div>
-</section>
-<section class="scene" data-scene-id="calculation_gap" data-focus="strength_threshold_chain" data-visible-count="1">
-  <div class="visual"><svg viewBox="0 0 360 270" role="img" aria-label="芯样跑双阈值"><rect x="12" y="18" width="336" height="234" rx="22" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><path d="M44 66 H316 M44 120 H316 M44 174 H316 M88 40 V230 M180 40 V230 M272 40 V230" stroke="#f0e7d8" stroke-width="1.2"/><g data-visible-node="strength_threshold_chain" data-visual-node-id="strength_threshold_chain" data-visual-kind="formula_chain" data-visual-mode="default" data-visual-signature="formula_chain:default"><g data-primitive-step="0"><text x="180.0" y="78.0" text-anchor="middle" font-size="16" font-weight="900" fill="#b45309">芯样进入双阈值</text></g><g data-primitive-step="1" data-trace="1"><rect x="54.0" y="116.0" width="57.0" height="48" rx="14" fill="#fff7ed" stroke="#f59e0b" stroke-width="3"/><text x="82.5" y="146.0" text-anchor="middle" font-size="10" font-weight="900" fill="#b45309">平均30.8</text><path d="M114.0 140.0 H124.0" stroke="#f97316" stroke-width="4" stroke-linecap="round"/></g><g data-primitive-step="2" data-trace="1"><rect x="123.0" y="116.0" width="57.0" height="48" rx="14" fill="#fff7ed" stroke="#f59e0b" stroke-width="3"/><text x="151.5" y="146.0" text-anchor="middle" font-size="10" font-weight="900" fill="#b45309">35×88%=30.8</text><path d="M183.0 140.0 H193.0" stroke="#f97316" stroke-width="4" stroke-linecap="round"/></g><g data-primitive-step="3" data-trace="1"><rect x="192.0" y="116.0" width="57.0" height="48" rx="14" fill="#fff7ed" stroke="#f59e0b" stroke-width="3"/><text x="220.5" y="146.0" text-anchor="middle" font-size="10" font-weight="900" fill="#b45309">最小28.5</text><path d="M252.0 140.0 H262.0" stroke="#f97316" stroke-width="4" stroke-linecap="round"/></g><g data-primitive-step="4"><rect x="261.0" y="116.0" width="57.0" height="48" rx="14" fill="#fff7ed" stroke="#f59e0b" stroke-width="3"/><text x="289.5" y="146.0" text-anchor="middle" font-size="10" font-weight="900" fill="#b45309">35×80%=28</text></g><g data-primitive-step="5" data-trace="1"><path d="M76.0 204.0 H284.0" stroke="#f97316" stroke-width="6" stroke-linecap="round"/></g></g></svg></div>
-  <div class="coach-card" data-info-node="keycard"><b>不能直接平均值比 35</b><span>三个芯样进入平均值和最小值两条阈值线。</span></div>
-</section>
-<section class="scene" data-scene-id="rewrite" data-focus="rewrite_scan" data-visible-count="1">
-  <div class="visual"><svg viewBox="0 0 360 270" role="img" aria-label="三格重排答案"><rect x="12" y="18" width="336" height="234" rx="22" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><path d="M44 66 H316 M44 120 H316 M44 174 H316 M88 40 V230 M180 40 V230 M272 40 V230" stroke="#f0e7d8" stroke-width="1.2"/><g data-visible-node="rewrite_scan" data-visual-node-id="rewrite_scan" data-visual-kind="answer_scan" data-visual-mode="default" data-visual-signature="answer_scan:default"><g data-primitive-step="0"><text x="180.0" y="58.0" text-anchor="middle" font-size="16" font-weight="900" fill="#047857">原答案重排成三格</text></g><g data-primitive-step="1"><rect x="56.0" y="86.0" width="248.0" height="28" rx="9" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/><text x="70.0" y="105.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">内容清单</text><text x="288.0" y="105.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">命中</text></g><g data-primitive-step="2"><rect x="56.0" y="124.0" width="248.0" height="28" rx="9" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/><text x="70.0" y="143.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">组织主体</text><text x="288.0" y="143.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">半中</text></g><g data-primitive-step="3"><rect x="56.0" y="162.0" width="248.0" height="28" rx="9" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/><text x="70.0" y="181.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">判定依据</text><text x="288.0" y="181.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">漏</text></g><g data-primitive-step="4"><rect x="56.0" y="200.0" width="248.0" height="28" rx="9" fill="#eff6ff" stroke="#60a5fa" stroke-width="2"/><text x="70.0" y="219.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">回判结论</text><text x="288.0" y="219.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">补</text></g></g></svg></div>
-  <div class="coach-card" data-info-node="keycard"><b>原答案迁移到三格采分句</b><span>把可保留内容移动，把漏项补齐，再重排。</span></div>
-</section>
-<section class="scene" data-scene-id="score" data-focus="final_answer_scan" data-visible-count="1">
-  <div class="visual"><svg viewBox="0 0 360 270" role="img" aria-label="最终采分扫描"><rect x="12" y="18" width="336" height="234" rx="22" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><path d="M44 66 H316 M44 120 H316 M44 174 H316 M88 40 V230 M180 40 V230 M272 40 V230" stroke="#f0e7d8" stroke-width="1.2"/><g data-visible-node="final_answer_scan" data-visual-node-id="final_answer_scan" data-visual-kind="answer_scan" data-visual-mode="default" data-visual-signature="answer_scan:default"><g data-primitive-step="0"><text x="180.0" y="58.0" text-anchor="middle" font-size="16" font-weight="900" fill="#047857">最终答题纸扫描</text></g><g data-primitive-step="1"><rect x="56.0" y="86.0" width="248.0" height="28" rx="9" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/><text x="70.0" y="105.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">内容清单命中</text><text x="288.0" y="105.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">命中</text></g><g data-primitive-step="2"><rect x="56.0" y="124.0" width="248.0" height="28" rx="9" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/><text x="70.0" y="143.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">主体链命中</text><text x="288.0" y="143.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">半中</text></g><g data-primitive-step="3"><rect x="56.0" y="162.0" width="248.0" height="28" rx="9" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/><text x="70.0" y="181.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">双阈值命中</text><text x="288.0" y="181.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">漏</text></g><g data-primitive-step="4"><rect x="56.0" y="200.0" width="248.0" height="28" rx="9" fill="#eff6ff" stroke="#60a5fa" stroke-width="2"/><text x="70.0" y="219.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">临界备注</text><text x="288.0" y="219.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">补</text></g></g></svg></div>
-  <div class="coach-card" data-info-node="keycard"><b>以后先扫答案，再补三格</b><span>最终答题纸要让三格都能被扫描到。</span></div>
-</section>
-<section class="scene" data-scene-id="qa_closure" data-focus="qa_scan" data-visible-count="1">
-  <div class="visual"><svg viewBox="0 0 360 270" role="img" aria-label="学生三问"><rect x="12" y="18" width="336" height="234" rx="22" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><path d="M44 66 H316 M44 120 H316 M44 174 H316 M88 40 V230 M180 40 V230 M272 40 V230" stroke="#f0e7d8" stroke-width="1.2"/><g data-visible-node="qa_scan" data-visual-node-id="qa_scan" data-visual-kind="answer_scan" data-visual-mode="default" data-visual-signature="answer_scan:default"><g data-primitive-step="0"><text x="180.0" y="58.0" text-anchor="middle" font-size="16" font-weight="900" fill="#1d4ed8">三问回到三格</text></g><g data-primitive-step="1"><rect x="56.0" y="86.0" width="248.0" height="28" rx="9" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/><text x="70.0" y="105.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">保护层只半中</text><text x="288.0" y="105.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">命中</text></g><g data-primitive-step="2"><rect x="56.0" y="124.0" width="248.0" height="28" rx="9" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/><text x="70.0" y="143.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">监理组织</text><text x="288.0" y="143.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">半中</text></g><g data-primitive-step="3"><rect x="56.0" y="162.0" width="248.0" height="28" rx="9" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/><text x="70.0" y="181.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">双阈值</text><text x="288.0" y="181.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">漏</text></g><g data-primitive-step="4"><rect x="56.0" y="200.0" width="248.0" height="28" rx="9" fill="#eff6ff" stroke="#60a5fa" stroke-width="2"/><text x="70.0" y="219.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">补采分句</text><text x="288.0" y="219.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">补</text></g></g></svg></div>
-  <div class="coach-card" data-info-node="keycard"><b>三个追问都回到答题纸</b><span>保护层、主体、阈值三个疑问都落回采分动作。</span></div>
-</section>
-<section class="scene" data-scene-id="closing_challenge" data-focus="challenge_scan" data-visible-count="1">
-  <div class="visual"><svg viewBox="0 0 360 270" role="img" aria-label="闯关入口"><rect x="12" y="18" width="336" height="234" rx="22" fill="#fffdf7" stroke="#eadfcb" stroke-width="3"/><path d="M44 66 H316 M44 120 H316 M44 174 H316 M88 40 V230 M180 40 V230 M272 40 V230" stroke="#f0e7d8" stroke-width="1.2"/><g data-visible-node="challenge_scan" data-visual-node-id="challenge_scan" data-visual-kind="answer_scan" data-visual-mode="default" data-visual-signature="answer_scan:default"><g data-primitive-step="0"><text x="180.0" y="58.0" text-anchor="middle" font-size="16" font-weight="900" fill="#b45309">闯关答题纸</text></g><g data-primitive-step="1"><rect x="56.0" y="86.0" width="248.0" height="28" rx="9" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/><text x="70.0" y="105.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">先扫答案</text><text x="288.0" y="105.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">命中</text></g><g data-primitive-step="2"><rect x="56.0" y="124.0" width="248.0" height="28" rx="9" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/><text x="70.0" y="143.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">补内容</text><text x="288.0" y="143.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">半中</text></g><g data-primitive-step="3"><rect x="56.0" y="162.0" width="248.0" height="28" rx="9" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/><text x="70.0" y="181.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">补主体</text><text x="288.0" y="181.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">漏</text></g><g data-primitive-step="4"><rect x="56.0" y="200.0" width="248.0" height="28" rx="9" fill="#eff6ff" stroke="#60a5fa" stroke-width="2"/><text x="70.0" y="219.0" text-anchor="start" font-size="12" font-weight="900" fill="#172033">补依据</text><text x="288.0" y="219.0" text-anchor="middle" font-size="11" font-weight="900" fill="#64748b">补</text></g></g></svg></div>
-  <div class="coach-card" data-info-node="keycard"><b>扫答案，补三格</b><span>现在进闯关，用诊断图练采分句输出。</span></div>
-</section>
-    <div class="caption-line" id="captionLine" data-caption="1" data-speaker="T" role="status" aria-live="polite"></div>
-    <div class="theater-hint" id="theaterHint" aria-hidden="true">轻点显示控制</div>
-    <button class="center-play" id="centerPlay" type="button" aria-label="播放讲解">播放讲解</button>
-  </div>
-  <div class="ask-panel" id="askPanel" data-ai-ask-panel="1" hidden>
-    <div class="ask-sheet" role="dialog" aria-modal="true" aria-labelledby="askTitle">
-      <div class="ask-head"><div><b id="askTitle">带着当前画面问 AI</b><span>会自动带上本卡考点、当前画面、字幕和采分主线。</span></div><button class="ask-close" id="askClose" type="button" aria-label="关闭 AI 答疑">×</button></div>
-      <div class="ask-current" id="askCurrent"></div>
-      <textarea class="ask-input" id="askInput" placeholder="比如：这一步为什么要先判口径？"></textarea>
-      <div class="ask-actions"><button class="ask-copy" id="askCopy" type="button">复制上下文</button><button class="ask-send" id="askSend" type="button">发送到答疑</button></div>
-      <div class="ask-status" id="askStatus" role="status" aria-live="polite"></div>
-      <div class="ask-answer" id="askAnswer" hidden></div>
-    </div>
-  </div>
-  <a class="challenge-inline" href="P40_A01.practice.html" data-challenge-cta="inline" aria-disabled="true">先看采分句再闯关 →</a>
-  <div class="player controls" id="player">
-    <div class="player-inner">
-      <div class="row">
-        <button class="play" id="play" type="button" aria-label="播放讲解" aria-pressed="false">▶</button>
-        <button class="theater" id="theaterToggle" data-theater-toggle="1" type="button" aria-label="进入全屏学习模式" aria-pressed="false">全屏</button>
-        <div class="progress"><div class="ptime"><span id="cur2">0:00</span><span id="tot2">0:00</span></div><div class="bar"><div class="fill" id="fill"></div></div><input class="scrubber" id="scrubber" type="range" min="0" max="237.936" value="0" step="0.05" aria-label="拖动播放进度"></div>
-        <a class="challenge" href="P40_A01.practice.html" data-challenge-cta="controls" aria-disabled="true">采分后闯关</a>
+<x-dc>
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;background:#181b1e;}
+  .lz-card{zoom:var(--lz-fit,1);margin:0 auto;}
+  body.luban-fs .lz-card{zoom:1!important;}
+  body{background:#181b1e;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
       </div>
-      <div class="chapters"><button class="chapter" type="button" data-t="0">扫缺口</button><button class="chapter" type="button" data-t="22.648">扫答题纸</button><button class="chapter" type="button" data-t="44.528">补清单</button><button class="chapter" type="button" data-t="63.168">改主体</button><button class="chapter" type="button" data-t="83.992">跑阈值</button><button class="chapter" type="button" data-t="118.184">重排答案</button><button class="chapter" type="button" data-t="147.816">采分扫描</button><button class="chapter" type="button" data-t="169.552">三问</button><button class="chapter" type="button" data-t="224.128">闯关</button></div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
     </div>
+
+    <!-- STAGE -->
+    <div class="lz-stagewrap" onClick="{{ tapToggle }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:330px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 扫缺口：题面 + 学生答题纸进场 + 扫描笔首扫 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b0_title }}</div>
+        <div style="position:absolute;left:20px;right:20px;top:66px;background:#fff;border:1.5px solid #cdd9e2;border-left:5px solid #2f6db0;border-radius:9px;padding:7px 11px;font-size:10.5px;font-weight:700;color:#2f6db0;line-height:1.5;opacity:{{ a0_qO }};transform:translateY({{ a0_qY }}px);">题面 · 结构实体检验：除混凝土强度外还包括哪些项目？由谁组织？C35 强度是否满足并说明依据</div>
+        <div style="position:absolute;left:24px;right:24px;top:140px;background:#fffdf6;border:1.5px solid #dddacb;border-radius:10px;padding:9px 12px;opacity:{{ a0_sO }};transform:translateY({{ a0_sY }}px);">
+          <div style="font-size:9px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:6px;">学生答题纸</div>
+          <div style="font-size:11.5px;font-weight:600;color:#23282b;line-height:1.6;border-bottom:1px dashed #e2e0d5;padding:3px 0;">还要测一下<span style="background:rgba(217,165,33,{{ a0_hl }});border-radius:3px;padding:0 2px;">钢筋保护层</span></div>
+          <div style="font-size:11.5px;font-weight:600;color:#23282b;line-height:1.6;border-bottom:1px dashed #e2e0d5;padding:3px 0;">由施工单位组织<span style="display:inline-block;margin-left:6px;width:{{ a0_gap1W }}px;height:3px;background:#cf4436;border-radius:2px;vertical-align:middle;"></span></div>
+          <div style="font-size:11.5px;font-weight:600;color:#23282b;line-height:1.6;padding:3px 0;">平均值小于 35，所以不合格<span style="display:inline-block;margin-left:6px;width:{{ a0_gap2W }}px;height:3px;background:#cf4436;border-radius:2px;vertical-align:middle;"></span></div>
+        </div>
+        <div style="position:absolute;left:{{ a0_penX }}px;top:134px;width:3px;height:126px;background:rgba(207,68,54,.5);border-radius:2px;opacity:{{ a0_penO }};"></div>
+        <div style="position:absolute;left:24px;right:24px;top:282px;background:#fadcd6;border:1.5px solid #cf4436;border-radius:9px;padding:7px 11px;font-size:10.5px;font-weight:800;color:#a3271c;opacity:{{ a0_vO }};">一扫描就见三处缺口：内容清单不全 · 组织主体错位 · 计算判据跑偏</div>
+        <div style="position:absolute;left:0;right:0;top:330px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a0_vO }};">这张卡不背答案 · 练的是看出自己差哪句</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 判命中：答题纸四行逐行标 hit / partial / miss ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b1_title }}</div>
+        <div style="position:absolute;left:22px;right:22px;top:76px;background:#fff;border-radius:9px;border-left:5px solid #2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a1_r0 }};"><span style="font-size:11.5px;font-weight:900;color:#2c8a5b;">① 混凝土强度</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　题干给了芯样数据，这行在考</span><span style="float:right;font-size:11px;font-weight:900;color:#2c8a5b;">hit ✓</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:122px;background:#fff;border-radius:9px;border-left:5px solid #cf8a44;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a1_r1 }};"><span style="font-size:11.5px;font-weight:900;color:#cf8a44;">② 钢筋保护层</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　词没错 · 但只写了一个项目</span><span style="float:right;font-size:11px;font-weight:900;color:#cf8a44;">partial ⚠</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:168px;background:#fff;border-radius:9px;border-left:5px solid #cf4436;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a1_r2 }};"><span style="font-size:11.5px;font-weight:900;color:#cf4436;">③ 由施工单位组织</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　主体错了</span><span style="float:right;font-size:11px;font-weight:900;color:#cf4436;">miss ✗</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:214px;background:#fff;border-radius:9px;border-left:5px solid #cf4436;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a1_r3 }};"><span style="font-size:11.5px;font-weight:900;color:#cf4436;">④ 平均值&lt;35 → 不合格</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　直接比设计值 · 跳过双阈值</span><span style="float:right;font-size:11px;font-weight:900;color:#cf4436;">miss ✗</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:{{ a1_penY }}px;height:3px;background:rgba(207,68,54,.5);border-radius:2px;opacity:{{ a1_penO }};"></div>
+        <div style="position:absolute;left:24px;right:24px;top:266px;background:#fadcd6;border:1.5px solid #cf4436;border-radius:9px;padding:7px 11px;font-size:10.5px;font-weight:800;color:#a3271c;opacity:{{ a1_noteO }};">最危险是第 ④ 行：拿平均强度直接比设计值，双阈值整条链没了</div>
+        <div style="position:absolute;left:0;right:0;top:318px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a1_noteO }};">熟词 ≠ 得分：partial 要补全，miss 要重写</div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 补清单：实体检验四件套逐项放回采分槽 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b2_title }}</div>
+        <div style="position:absolute;left:20px;top:84px;width:92px;height:170px;background:#b8b2a3;border:2px solid #6b6455;border-radius:6px;opacity:{{ a2_obj }};">
+          <div style="position:absolute;left:8px;right:8px;top:10px;height:4px;background:#8a8375;border-radius:2px;"></div>
+          <div style="position:absolute;left:8px;right:8px;top:20px;height:4px;background:#8a8375;border-radius:2px;"></div>
+          <div style="position:absolute;left:0;right:0;top:64px;text-align:center;font-size:11px;font-weight:900;color:#3a3325;line-height:1.5;">C35<br/>混凝土<br/>构件</div>
+        </div>
+        <div style="position:absolute;left:128px;right:20px;top:84px;height:38px;border:1.5px dashed #ccc7b8;border-radius:8px;opacity:{{ a2_obj }};"></div>
+        <div style="position:absolute;left:128px;right:20px;top:128px;height:38px;border:1.5px dashed #ccc7b8;border-radius:8px;opacity:{{ a2_obj }};"></div>
+        <div style="position:absolute;left:128px;right:20px;top:172px;height:38px;border:1.5px dashed #ccc7b8;border-radius:8px;opacity:{{ a2_obj }};"></div>
+        <div style="position:absolute;left:128px;right:20px;top:216px;height:38px;border:1.5px dashed #ccc7b8;border-radius:8px;opacity:{{ a2_obj }};"></div>
+        <div style="position:absolute;left:128px;right:20px;top:84px;height:38px;background:#fff;border:1.5px solid #cdd9e2;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:10.5px;font-weight:800;color:#2f6db0;opacity:{{ a2_s0 }};">① 混凝土强度<span style="margin-left:auto;font-size:9px;color:#9aa0a3;">题干已考</span></div>
+        <div style="position:absolute;left:128px;right:20px;top:128px;height:38px;background:#fff;border:1.5px solid #a9cdb8;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:10.5px;font-weight:800;color:#2c8a5b;opacity:{{ a2_s1 }};transform:translateX({{ a2_x1 }}px);">② 钢筋保护层厚度</div>
+        <div style="position:absolute;left:128px;right:20px;top:172px;height:38px;background:#fff;border:1.5px solid #a9cdb8;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:10.5px;font-weight:800;color:#2c8a5b;opacity:{{ a2_s2 }};transform:translateX({{ a2_x2 }}px);">③ 结构位置与尺寸偏差</div>
+        <div style="position:absolute;left:128px;right:20px;top:216px;height:38px;background:#fff;border:1.5px solid #a9cdb8;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:10.5px;font-weight:800;color:#2c8a5b;opacity:{{ a2_s3 }};transform:translateX({{ a2_x3 }}px);">④ 合同约定项目</div>
+        <div style="position:absolute;left:24px;right:24px;top:272px;background:#fff;border:1.5px solid #cdd9e2;border-left:5px solid #2f6db0;border-radius:9px;padding:7px 10px;font-size:10px;font-weight:700;color:#2f6db0;line-height:1.4;opacity:{{ a2_noteO }};">动作不是把“项目很多”写得更响，而是把漏掉的工程对象逐项放回采分槽</div>
+        <div style="position:absolute;left:0;right:0;top:326px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a2_noteO }};">四件套写全，第一格才算补齐</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 改主体：施工组织箭头淘汰 → 监理组织/施工实施/见证链点亮 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b3_title }}</div>
+        <div style="position:absolute;left:105px;top:74px;width:180px;height:34px;background:#23282b;border-radius:8px;color:#f1efe8;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;">结构实体检验</div>
+        <div style="position:absolute;left:34px;top:158px;width:104px;height:40px;background:#3a5168;border-radius:6px;color:#fff;font-size:10.5px;font-weight:900;display:flex;align-items:center;justify-content:center;">施工单位</div>
+        <div style="position:absolute;left:252px;top:158px;width:104px;height:40px;background:#2f6db0;border-radius:6px;color:#fff;font-size:10.5px;font-weight:900;display:flex;align-items:center;justify-content:center;">监理单位</div>
+        <div style="position:absolute;left:104px;top:120px;width:56px;height:4px;background:#cf4436;transform:rotate(-38deg);transform-origin:0 50%;opacity:{{ a3_badO }};"></div>
+        <div style="position:absolute;left:46px;top:122px;font-size:10px;font-weight:900;color:#cf4436;opacity:{{ a3_badO }};">组织？</div>
+        <div style="position:absolute;left:118px;top:118px;z-index:20;color:#cf4436;border:3px solid #cf4436;border-radius:8px;padding:2px 10px;font-size:15px;font-weight:900;letter-spacing:2px;transform-origin:50% 50%;opacity:{{ a3_so }};transform:scale({{ a3_ss }}) rotate(-12deg);">主体错位 ✗</div>
+        <div style="position:absolute;left:286px;top:120px;width:56px;height:4px;background:#2c8a5b;transform:rotate(-142deg);transform-origin:0 50%;opacity:{{ a3_c0 }};"></div>
+        <div style="position:absolute;left:300px;top:122px;font-size:10px;font-weight:900;color:#2c8a5b;opacity:{{ a3_c0 }};">组织 ✓</div>
+        <div style="position:absolute;left:22px;right:22px;top:216px;background:#fff;border-radius:9px;border-left:5px solid #2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a3_c0 }};"><span style="font-size:11.5px;font-weight:900;color:#2c8a5b;">① 监理单位</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　组织</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:256px;background:#fff;border-radius:9px;border-left:5px solid #2f6db0;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a3_c1 }};"><span style="font-size:11.5px;font-weight:900;color:#2f6db0;">② 施工单位</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　实施</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:296px;background:#fff;border-radius:9px;border-left:5px solid #cf8a44;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a3_c2 }};"><span style="font-size:11.5px;font-weight:900;color:#cf8a44;">③ 监理单位</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　见证全过程</span></div>
+        <div style="position:absolute;left:0;right:0;top:340px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a3_noteO }};">阅卷要扫到的主体动作：监理单位组织</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 双阈值：三个芯样进公式链 · 88%/80% 两条线 · 直接比35被淘汰 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b4_title }}</div>
+        <div style="position:absolute;left:30px;top:72px;width:56px;height:56px;border-radius:50%;background:#8f9aa3;border:3px solid #5c6b76;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;opacity:{{ a4_s0 }};">28.5</div>
+        <div style="position:absolute;left:102px;top:72px;width:56px;height:56px;border-radius:50%;background:#8f9aa3;border:3px solid #5c6b76;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;opacity:{{ a4_s1 }};">31</div>
+        <div style="position:absolute;left:174px;top:72px;width:56px;height:56px;border-radius:50%;background:#8f9aa3;border:3px solid #5c6b76;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;opacity:{{ a4_s2 }};">32</div>
+        <div style="position:absolute;left:244px;top:92px;font-size:10px;font-weight:800;color:#5c6469;opacity:{{ a4_s2 }};">三个芯样 · MPa</div>
+        <div style="position:absolute;left:24px;right:24px;top:140px;border:1.5px dashed #cf4436;border-radius:9px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#cf4436;opacity:{{ a4_badO }};">平均值直接比 35 → 跳过双阈值</div>
+        <div style="position:absolute;left:132px;top:132px;z-index:20;color:#cf4436;border:3px solid #cf4436;border-radius:8px;padding:2px 12px;font-size:16px;font-weight:900;letter-spacing:2px;transform-origin:50% 50%;opacity:{{ a4_bx }};transform:scale({{ a4_bs }}) rotate(-12deg);">淘汰 ✗</div>
+        <div style="position:absolute;left:24px;top:186px;width:{{ a4_l1W }}px;height:4px;background:#2f6db0;border-radius:2px;"></div>
+        <div style="position:absolute;left:24px;right:24px;top:194px;background:#fff;border:1.5px solid #cdd9e2;border-left:5px solid #2f6db0;border-radius:9px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#2f6db0;line-height:1.5;opacity:{{ a4_f1O }};">平均值 = <b>30.8</b>MPa（三芯样均值）　线：35×88% = <b>30.8</b> · 命中 ✓</div>
+        <div style="position:absolute;left:24px;top:244px;width:{{ a4_l2W }}px;height:4px;background:#2c8a5b;border-radius:2px;"></div>
+        <div style="position:absolute;left:24px;right:24px;top:252px;background:#fff;border:1.5px solid #a9cdb8;border-left:5px solid #2c8a5b;border-radius:9px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#2c8a5b;line-height:1.5;opacity:{{ a4_f2O }};">最小值 = <b>28.5</b>　线：35×80% = <b>28</b> · 高于 ✓</div>
+        <div style="position:absolute;left:24px;right:24px;top:302px;background:#fff;border:1.5px solid #dddacb;border-left:5px solid #cf8a44;border-radius:9px;padding:6px 10px;font-size:10px;font-weight:700;color:#6b5f49;line-height:1.45;opacity:{{ a4_critO }};">30.8 恰为临界 · 官方给分看评分细则或教研裁定，但双阈值链必须写在答题纸上</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 重排：原答案保留块迁移 · 三段采分句装配 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b5_title }}</div>
+        <div style="position:absolute;left:24px;right:24px;top:66px;background:#fffdf6;border:1.5px solid #dddacb;border-radius:10px;padding:8px 10px;opacity:{{ a5_srcO }};">
+          <div style="font-size:9px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:5px;">学生原答案 · 可保留的搬走，错位的划掉</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <span style="position:relative;font-size:10px;font-weight:800;color:#23282b;border:1.5px solid #ccc7b8;border-radius:6px;padding:3px 7px;">钢筋保护层<span style="position:absolute;inset:0;border:2px solid #2c8a5b;border-radius:6px;opacity:{{ a5_k0 }};"></span></span>
+            <span style="position:relative;font-size:10px;font-weight:800;color:#23282b;border:1.5px solid #ccc7b8;border-radius:6px;padding:3px 7px;">施工单位组织<span style="position:absolute;left:2px;right:2px;top:50%;height:2.5px;background:#cf4436;opacity:{{ a5_x0 }};"></span></span>
+            <span style="position:relative;font-size:10px;font-weight:800;color:#23282b;border:1.5px solid #ccc7b8;border-radius:6px;padding:3px 7px;">平均值直接比 35<span style="position:absolute;left:2px;right:2px;top:50%;height:2.5px;background:#cf4436;opacity:{{ a5_x0 }};"></span></span>
+            <span style="position:relative;font-size:10px;font-weight:800;color:#23282b;border:1.5px solid #ccc7b8;border-radius:6px;padding:3px 7px;">芯样 28.5 / 31 / 32<span style="position:absolute;inset:0;border:2px solid #2c8a5b;border-radius:6px;opacity:{{ a5_k0 }};"></span></span>
+          </div>
+        </div>
+        <div style="position:absolute;left:22px;right:22px;top:162px;background:#fff;border-radius:9px;border-left:5px solid #2f6db0;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a5_p0 }};transform:translateY({{ a5_p0Y }}px);"><div style="font-size:11px;font-weight:900;color:#2f6db0;">第一段 · 内容清单</div><div style="font-size:9.5px;color:#6b6358;font-weight:600;line-height:1.45;">除混凝土强度外：钢筋保护层厚度 · 结构位置与尺寸偏差 · 合同约定项目</div></div>
+        <div style="position:absolute;left:22px;right:22px;top:214px;background:#fff;border-radius:9px;border-left:5px solid #2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a5_p1 }};transform:translateY({{ a5_p1Y }}px);"><div style="font-size:11px;font-weight:900;color:#2c8a5b;">第二段 · 主体链</div><div style="font-size:9.5px;color:#6b6358;font-weight:600;line-height:1.45;">由监理单位组织 · 施工单位实施 · 监理见证全过程</div></div>
+        <div style="position:absolute;left:22px;right:22px;top:266px;background:#fff;border-radius:9px;border-left:5px solid #cf8a44;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a5_p2 }};transform:translateY({{ a5_p2Y }}px);"><div style="font-size:11px;font-weight:900;color:#cf8a44;">第三段 · 判定链</div><div style="font-size:9.5px;color:#6b6358;font-weight:600;line-height:1.45;">平均值≥设计值×88% · 最小值≥设计值×80% · 代入回判</div></div>
+        <div style="position:absolute;left:0;right:0;top:322px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a5_noteO }};">不是更啰嗦 · 是每一格都能被扫描到</div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 再扫描：成品答案三格依次 hit · miss 标记退出 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b6_title }}</div>
+        <div style="position:absolute;right:26px;top:46px;border:1.5px dashed #ccc7b8;border-radius:8px;padding:2px 9px;font-size:10px;font-weight:900;color:#cf4436;text-decoration:line-through;opacity:{{ a6_missO }};">miss ✗</div>
+        <div style="position:absolute;left:22px;right:22px;top:84px;background:#fff;border-radius:9px;border-left:5px solid #2f6db0;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ a6_r0 }};"><span style="font-size:11.5px;font-weight:900;color:#2f6db0;">① 内容清单</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　四件套写全</span><span style="float:right;font-size:11px;font-weight:900;color:#2c8a5b;">hit ✓</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:138px;background:#fff;border-radius:9px;border-left:5px solid #2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ a6_r1 }};"><span style="font-size:11.5px;font-weight:900;color:#2c8a5b;">② 组织主体</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　监理组织 · 施工实施 · 见证</span><span style="float:right;font-size:11px;font-weight:900;color:#2c8a5b;">hit ✓</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:192px;background:#fff;border-radius:9px;border-left:5px solid #cf8a44;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ a6_r2 }};"><span style="font-size:11.5px;font-weight:900;color:#cf8a44;">③ 判定依据</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　88% / 80% 双阈值回判</span><span style="float:right;font-size:11px;font-weight:900;color:#2c8a5b;">hit ✓</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:{{ a6_penY }}px;height:3px;background:rgba(207,68,54,.5);border-radius:2px;opacity:{{ a6_penO }};"></div>
+        <div style="position:absolute;left:24px;right:24px;top:250px;background:#fff;border:1.5px solid #cdd9e2;border-left:5px solid #2f6db0;border-radius:9px;padding:7px 10px;font-size:10px;font-weight:700;color:#2f6db0;line-height:1.45;opacity:{{ a6_okO }};">带走的不是一段死记答案，而是一个作答动作：看到实体检验案例，先扫自己的答题纸，问三格齐不齐</div>
+        <div style="position:absolute;left:0;right:0;top:316px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a6_okO }};">内容清单 · 组织主体 · 判定依据</div>
+      </div>
+
+      <!-- ░░ BEAT 7 · 收官：记忆钩 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo7 }};transition:opacity .4s ease;pointer-events:{{ lpe7 }};">
+        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">{{ c_title }}</div>
+        <div style="position:absolute;left:22px;right:22px;top:80px;background:#fff;border-radius:9px;border-left:5px solid #2f6db0;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ c0 }};"><span style="font-size:12px;font-weight:900;color:#2f6db0;">① 先扫答案</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　逐行标 hit · partial · miss</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:130px;background:#fff;border-radius:9px;border-left:5px solid #2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ c1 }};"><span style="font-size:12px;font-weight:900;color:#2c8a5b;">② 再补三格</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　内容清单 · 组织主体 · 判定依据</span></div>
+        <div style="position:absolute;left:22px;right:22px;top:180px;background:#fff;border-radius:9px;border-left:5px solid #cf8a44;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ c2 }};"><span style="font-size:12px;font-weight:900;color:#cf8a44;">③ 判定链落纸</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　平均≥设计×88% · 最小≥设计×80%</span></div>
+        <div style="position:absolute;left:0;right:0;top:250px;text-align:center;font-family:'Long Cang',cursive;font-size:26px;color:#cf4436;opacity:{{ c3 }};">扫答案，补三格</div>
+        <div style="position:absolute;left:0;right:0;top:294px;text-align:center;font-size:12px;font-weight:800;color:#23282b;opacity:{{ c4 }};">少一格都不是完整采分句</div>
+        <div style="position:absolute;left:0;right:0;top:322px;text-align:center;font-size:12px;font-weight:800;color:#23282b;opacity:{{ c4 }};">进闯关：按答题纸扫描来练</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="practice.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- FULLSCREEN 浮层控制条（点屏显隐 · 播放时自动隐藏 · 发布层回灌） -->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
   </div>
-  <audio id="au" preload="metadata" src="P40_A01.lesson.mp3?v=1782123368"></audio>
-</main>
-<script type="application/json" id="irPreviewData">{"title": "结构实体检验答案诊断", "kicker": "鲁班深母题 · A01 作答层", "subtitle": "把结构实体检验案例答案写成“对象清单 → 组织主体 → 双阈值计算 → 回判结论”的采分句，并能诊断学生答案命中、半命中和漏点。", "captionMode": "timing", "layoutMode": "", "totalSec": 237.936, "challengeUnlockSec": 147.816, "audio": "P40_A01.lesson.mp3?v=1782123368", "practiceHref": "P40_A01.practice.html", "maxVisibleNodes": 4, "aiAskRequired": true, "aiContext": {"contextId": "P40_A01", "title": "结构实体检验答案诊断", "mainExamAction": "把结构实体检验案例答案写成“对象清单 → 组织主体 → 双阈值计算 → 回判结论”的采分句，并能诊断学生答案命中、半命中和漏点。", "safeSummary": "本卡训练结构实体检验案例题的作答层：先扫学生答案，再补内容清单、组织主体、判定依据三格，避免只写熟词和结论。", "keyPoints": ["扫答题纸找命中/半命中/漏点", "内容清单补保护层、尺寸偏差、合同项目", "主体写监理组织、施工实施、监理见证", "强度判定写平均88%和最小80%双阈值"], "handoffMode": "context_id_plus_current_scene", "apiBase": "https://test2.yousenjiaoyu.com"}, "chapters": [{"id": "hook", "label": "扫缺口", "start_sec": 0}, {"id": "answer_sheet", "label": "扫答题纸", "start_sec": 22.648}, {"id": "score_atoms", "label": "补清单", "start_sec": 44.528}, {"id": "organization_gap", "label": "改主体", "start_sec": 63.168}, {"id": "calculation_gap", "label": "跑阈值", "start_sec": 83.992}, {"id": "rewrite", "label": "重排答案", "start_sec": 118.184}, {"id": "score", "label": "采分扫描", "start_sec": 147.816}, {"id": "qa_closure", "label": "三问", "start_sec": 169.552}, {"id": "closing_challenge", "label": "闯关", "start_sec": 224.128}], "segments": [{"start": 0, "end": 22.248, "text": "注意哈，这张卡不训练你背一整段标准答案，而是训练你看一份学生答案到底差哪句。题干问结构实体检验，学生写了钢筋保护层，又算了平均强度，还下了不合格结论。看起来会一点，但白板一扫描就会发现：内容清单不全，组织主体错位，计算判据也跑偏。", "speaker": "T", "kind": "teach"}, {"start": 22.648, "end": 44.128, "text": "第一笔，扫答案。钢筋保护层这个词不是完全错，它是部分命中；问题是它只写了一个项目。由施工单位组织这一句，主体错了。平均值比三十五小，所以不合格，这一句更危险，因为它直接拿平均强度去比设计值，跳过了实体强度的双阈值。", "speaker": "T", "kind": "teach"}, {"start": 44.528, "end": 62.768, "text": "结构实体检验不是只写混凝土强度。学生写保护层，只补到了一格。答题纸上还要看见结构位置与尺寸偏差，再看见合同约定项目。这里的动作不是把“项目很多”写得更响，而是把漏掉的工程对象逐项放回采分槽。", "speaker": "T", "kind": "teach"}, {"start": 63.168, "end": 83.592, "text": "第二格看主体。施工单位当然参与，但它在这条链里是实施主体，不是组织主体。要写成监理单位组织，施工单位实施，监理见证全过程。你看白板上，施工单位组织这条箭头退出，监理组织这条箭头才是阅卷要扫到的主体动作。", "speaker": "T", "kind": "teach"}, {"start": 83.992, "end": 117.784, "text": "第三格是判定依据。C35 这里不能直接拿平均值和三十五比。实体强度要看两条线：平均值不小于设计值的百分之八十八，最小值不小于设计值的百分之八十。本题三个芯样算平均值是三十点八，三十五乘百分之八十八也是三十点八；最小值二十八点五，也高于三十五乘百分之八十的二十八。临界怎么给官方分，要看评分细则或教研裁定，但你的答题纸必须把这条双阈值链写出来。", "speaker": "T", "kind": "teach"}, {"start": 118.184, "end": 147.416, "text": "现在才进入改写。第一段，结构实体检验除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目。第二段，由监理单位组织，施工单位实施，监理见证全过程。第三段，强度按平均值不小于设计值百分之八十八、最小值不小于设计值百分之八十回判。这样写，不是更啰嗦，而是每一格都能被扫描到。", "speaker": "T", "kind": "teach"}, {"start": 147.816, "end": 169.152, "text": "最后扫一遍成品答案。内容清单命中，主体链命中，判定依据命中。你真正要带走的不是一段死记答案，而是一个作答动作：看到结构实体检验案例，先扫自己的答题纸，问三格齐不齐。内容清单有没有完整，组织主体有没有写对，计算判据有没有亮出来。", "speaker": "T", "kind": "teach"}, {"start": 169.552, "end": 173.77599999999998, "text": "老师，我写了钢筋保护层，这块能拿分不？", "speaker": "S", "kind": "q"}, {"start": 174.176, "end": 187.39999999999998, "text": "能拿一点方向分，但不稳。因为这只命中保护层，漏了结构位置与尺寸偏差和合同约定项目。主观题不是看你有没有碰到熟词，而是看清单有没有补完整。", "speaker": "T", "kind": "a"}, {"start": 187.8, "end": 192.024, "text": "那我直接写施工单位组织，咋就不行呢？", "speaker": "S", "kind": "q"}, {"start": 192.424, "end": 203.392, "text": "因为你把实施主体写成组织主体了。施工单位实施检验，但组织要写监理单位，过程还要有监理见证。主体错位，阅卷会直接扣。", "speaker": "T", "kind": "a"}, {"start": 203.792, "end": 209.768, "text": "整明白了，但平均值这块我能不能直接跟 C35 比？", "speaker": "S", "kind": "q"}, {"start": 210.168, "end": 223.728, "text": "不能。实体强度不是直接比设计值，而是平均值看百分之八十八，最小值看百分之八十。你可以不替官方抢判临界分，但公式、代入、回判这条链必须写。", "speaker": "T", "kind": "a"}, {"start": 224.128, "end": 237.136, "text": "记住哈，A01 作答层就一句话：扫答案，补三格。内容清单、组织主体、判定依据，少一格都不是完整采分句。现在进闯关，按答题纸扫描来练。", "speaker": "T", "kind": "a"}], "scenes": [{"id": "hook", "label": "先扫缺口", "start": 0, "end": 22.248, "focus": "student_answer_scan", "camera": "push-in", "keycard": "这不是背答案，是扫缺口", "caption": "先看学生答题纸哪一行命中、哪一行漏分。", "coach": "先看学生答题纸哪一行命中、哪一行漏分。", "visibleNodes": ["student_answer_scan"], "visual": {"nodes": [{"id": "student_answer_scan", "kind": "answer_scan", "text": "学生答案扫描", "labels": ["强度结论", "保护层半中", "主体漏点", "阈值漏点"], "x": 26, "y": 24, "w": 308, "h": 196, "tone": "amber", "domain_visual": true, "domain_objects": ["答题纸", "扫描笔", "学生答案片段", "实体检验题面"]}]}, "actions": [{"kind": "camera", "verb": "push-in", "target": "student_answer_scan", "start": 0, "end": 0.18}, {"kind": "reveal", "target": "student_answer_scan", "start": 0.04, "end": 0.24}, {"kind": "highlight", "target": "student_answer_scan", "start": 0.32, "end": 0.74}, {"kind": "exit", "target": "student_answer_scan", "start": 0.88, "end": 1}]}, {"id": "answer_sheet", "label": "扫学生答题纸", "start": 22.648, "end": 44.128, "focus": "student_answer_scan", "camera": "push-in", "keycard": "命中、半中、漏点先标出来", "caption": "保护层是半中，主体和阈值是漏点。", "coach": "保护层是半中，主体和阈值是漏点。", "visibleNodes": ["student_answer_scan"], "visual": {"nodes": [{"id": "student_answer_scan", "kind": "answer_scan", "text": "逐句扫描学生答案", "labels": ["保护层半中", "施工组织漏点", "直接比35漏点", "补三格"], "x": 26, "y": 24, "w": 308, "h": 196, "tone": "amber", "domain_visual": true, "domain_objects": ["学生答题纸", "混凝土强度行", "钢筋保护层行", "空白漏项行"]}]}, "actions": [{"kind": "camera", "verb": "push-in", "target": "student_answer_scan", "start": 0, "end": 0.18}, {"kind": "reveal", "target": "student_answer_scan", "start": 0.04, "end": 0.24}, {"kind": "highlight", "target": "student_answer_scan", "start": 0.32, "end": 0.74}, {"kind": "exit", "target": "student_answer_scan", "start": 0.88, "end": 1}]}, {"id": "score_atoms", "label": "补实体检验清单", "start": 44.528, "end": 62.768, "focus": "content_slots", "camera": "push-in", "keycard": "清单要补成工程对象", "caption": "让保护层、尺寸偏差、合同项目逐项进入采分槽。", "coach": "让保护层、尺寸偏差、合同项目逐项进入采分槽。", "visibleNodes": ["content_slots"], "visual": {"nodes": [{"id": "content_slots", "kind": "answer_scan", "text": "实体检验对象进槽", "labels": ["混凝土强度", "保护层厚度", "位置尺寸偏差", "合同约定项目"], "x": 26, "y": 24, "w": 308, "h": 196, "tone": "blue", "domain_visual": true, "domain_objects": ["混凝土构件", "钢筋保护层", "尺寸偏差尺", "合同约定项目标签"]}]}, "actions": [{"kind": "camera", "verb": "push-in", "target": "content_slots", "start": 0, "end": 0.18}, {"kind": "reveal", "target": "content_slots", "start": 0.04, "end": 0.24}, {"kind": "highlight", "target": "content_slots", "start": 0.32, "end": 0.74}, {"kind": "exit", "target": "content_slots", "start": 0.88, "end": 1}]}, {"id": "organization_gap", "label": "纠正组织主体", "start": 63.168, "end": 83.592, "focus": "organization_flow", "camera": "push-in", "keycard": "施工实施，不等于施工组织", "caption": "错误箭头退出，监理组织、施工实施、监理见证亮起。", "coach": "错误箭头退出，监理组织、施工实施、监理见证亮起。", "visibleNodes": ["organization_flow"], "visual": {"nodes": [{"id": "organization_flow", "kind": "process_flow", "text": "组织箭头纠正", "labels": ["监理组织", "施工实施", "监理见证", "方案审批"], "x": 24, "y": 30, "w": 312, "h": 178, "tone": "success", "domain_visual": true, "domain_objects": ["监理单位", "施工单位", "见证标记", "组织箭头"]}]}, "actions": [{"kind": "camera", "verb": "push-in", "target": "organization_flow", "start": 0, "end": 0.18}, {"kind": "reveal", "target": "organization_flow", "start": 0.04, "end": 0.24}, {"kind": "highlight", "target": "organization_flow", "start": 0.32, "end": 0.74}, {"kind": "exit", "target": "organization_flow", "start": 0.88, "end": 1}]}, {"id": "calculation_gap", "label": "芯样跑双阈值", "start": 83.992, "end": 117.784, "focus": "strength_threshold_chain", "camera": "track", "keycard": "不能直接平均值比 35", "caption": "三个芯样进入平均值和最小值两条阈值线。", "coach": "三个芯样进入平均值和最小值两条阈值线。", "visibleNodes": ["strength_threshold_chain"], "visual": {"nodes": [{"id": "strength_threshold_chain", "kind": "formula_chain", "text": "芯样进入双阈值", "labels": ["平均30.8", "35×88%=30.8", "最小28.5", "35×80%=28"], "x": 20, "y": 34, "w": 320, "h": 176, "tone": "amber", "domain_visual": true, "domain_objects": ["C35构件", "三个芯样28.5/31/32", "平均值标尺", "最小值标尺", "88%/80%阈值线"]}]}, "actions": [{"kind": "camera", "verb": "track", "target": "strength_threshold_chain", "start": 0, "end": 0.18}, {"kind": "reveal", "target": "strength_threshold_chain", "start": 0.04, "end": 0.24}, {"kind": "highlight", "target": "strength_threshold_chain", "start": 0.32, "end": 0.74}, {"kind": "exit", "target": "strength_threshold_chain", "start": 0.88, "end": 1}]}, {"id": "rewrite", "label": "三格重排答案", "start": 118.184, "end": 147.416, "focus": "rewrite_scan", "camera": "push-in", "keycard": "原答案迁移到三格采分句", "caption": "把可保留内容移动，把漏项补齐，再重排。", "coach": "把可保留内容移动，把漏项补齐，再重排。", "visibleNodes": ["rewrite_scan"], "visual": {"nodes": [{"id": "rewrite_scan", "kind": "answer_scan", "text": "原答案重排成三格", "labels": ["内容清单", "组织主体", "判定依据", "回判结论"], "x": 26, "y": 24, "w": 308, "h": 196, "tone": "success", "domain_visual": true, "domain_objects": ["标准答题纸", "内容清单格", "组织主体格", "判定依据格"]}]}, "actions": [{"kind": "camera", "verb": "push-in", "target": "rewrite_scan", "start": 0, "end": 0.18}, {"kind": "reveal", "target": "rewrite_scan", "start": 0.04, "end": 0.24}, {"kind": "highlight", "target": "rewrite_scan", "start": 0.32, "end": 0.74}, {"kind": "exit", "target": "rewrite_scan", "start": 0.88, "end": 1}]}, {"id": "score", "label": "最终采分扫描", "start": 147.816, "end": 169.152, "focus": "final_answer_scan", "camera": "push-in", "keycard": "以后先扫答案，再补三格", "caption": "最终答题纸要让三格都能被扫描到。", "coach": "最终答题纸要让三格都能被扫描到。", "visibleNodes": ["final_answer_scan"], "visual": {"nodes": [{"id": "final_answer_scan", "kind": "answer_scan", "text": "最终答题纸扫描", "labels": ["内容清单命中", "主体链命中", "双阈值命中", "临界备注"], "x": 26, "y": 24, "w": 308, "h": 196, "tone": "success", "domain_visual": true, "domain_objects": ["最终答题纸", "命中标记", "漏点标记", "补写句"]}]}, "actions": [{"kind": "camera", "verb": "push-in", "target": "final_answer_scan", "start": 0, "end": 0.18}, {"kind": "reveal", "target": "final_answer_scan", "start": 0.04, "end": 0.24}, {"kind": "highlight", "target": "final_answer_scan", "start": 0.32, "end": 0.74}, {"kind": "exit", "target": "final_answer_scan", "start": 0.88, "end": 1}]}, {"id": "qa_closure", "label": "学生三问", "start": 169.552, "end": 223.728, "focus": "qa_scan", "camera": "push-in", "keycard": "三个追问都回到答题纸", "caption": "保护层、主体、阈值三个疑问都落回采分动作。", "coach": "保护层、主体、阈值三个疑问都落回采分动作。", "visibleNodes": ["qa_scan"], "visual": {"nodes": [{"id": "qa_scan", "kind": "answer_scan", "text": "三问回到三格", "labels": ["保护层只半中", "监理组织", "双阈值", "补采分句"], "x": 26, "y": 24, "w": 308, "h": 196, "tone": "blue", "domain_visual": true, "domain_objects": ["学生追问卡", "答题纸三格", "扫描笔", "补写句"]}]}, "actions": [{"kind": "camera", "verb": "push-in", "target": "qa_scan", "start": 0, "end": 0.18}, {"kind": "reveal", "target": "qa_scan", "start": 0.04, "end": 0.24}, {"kind": "highlight", "target": "qa_scan", "start": 0.32, "end": 0.74}, {"kind": "exit", "target": "qa_scan", "start": 0.88, "end": 1}]}, {"id": "closing_challenge", "label": "闯关入口", "start": 224.128, "end": 237.936, "focus": "challenge_scan", "camera": "push-in", "keycard": "扫答案，补三格", "caption": "现在进闯关，用诊断图练采分句输出。", "coach": "现在进闯关，用诊断图练采分句输出。", "visibleNodes": ["challenge_scan"], "visual": {"nodes": [{"id": "challenge_scan", "kind": "answer_scan", "text": "闯关答题纸", "labels": ["先扫答案", "补内容", "补主体", "补依据"], "x": 26, "y": 24, "w": 308, "h": 196, "tone": "amber", "domain_visual": true, "domain_objects": ["闯关答题纸", "扫描笔", "三格采分槽", "练习入口"]}]}, "actions": [{"kind": "camera", "verb": "push-in", "target": "challenge_scan", "start": 0, "end": 0.18}, {"kind": "reveal", "target": "challenge_scan", "start": 0.04, "end": 0.24}, {"kind": "highlight", "target": "challenge_scan", "start": 0.32, "end": 0.74}, {"kind": "exit", "target": "challenge_scan", "start": 0.88, "end": 1}]}]}</script>
-<script>
-const DATA=JSON.parse(document.getElementById('irPreviewData').textContent);
-const lesson=document.querySelector('.lesson'),au=document.getElementById('au'),play=document.getElementById('play'),centerPlay=document.getElementById('centerPlay'),scrubber=document.getElementById('scrubber'),fill=document.getElementById('fill');
-const cur=document.getElementById('cur'),cur2=document.getElementById('cur2'),tot=document.getElementById('tot'),tot2=document.getElementById('tot2'),theaterToggle=document.getElementById('theaterToggle'),stage=document.getElementById('stage'),player=document.getElementById('player'),captionLine=document.getElementById('captionLine');
-const askAi=document.getElementById('askAi'),askPanel=document.getElementById('askPanel'),askClose=document.getElementById('askClose'),askCurrent=document.getElementById('askCurrent'),askInput=document.getElementById('askInput'),askCopy=document.getElementById('askCopy'),askSend=document.getElementById('askSend'),askStatus=document.getElementById('askStatus'),askAnswer=document.getElementById('askAnswer');
-const scenes=[...document.querySelectorAll('.scene')],chapters=[...document.querySelectorAll('.chapter')];
-const challengeLinks=[...document.querySelectorAll('[data-challenge-cta]')];
-const fmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
-const hasAudio=Boolean(DATA.audio);
-let raf=0,hideTimer=0,hintTimer=0,lastScene='',virtualTime=0,virtualPlaying=false,lastTick=0;
-const getTime=()=>hasAudio?Number(au.currentTime||0):virtualTime;
-const isPaused=()=>hasAudio?au.paused:!virtualPlaying;
-const setTime=t=>{const next=Math.max(0,Math.min(DATA.totalSec,Number(t)||0));if(hasAudio)au.currentTime=next;else virtualTime=next;return next;};
-const audioReadyPromise=hasAudio&&location.protocol.startsWith('http')?fetch(DATA.audio).then(r=>{if(!r.ok)throw new Error('audio fetch '+r.status);return r.blob();}).then(blob=>new Promise(resolve=>{const url=URL.createObjectURL(blob);au.addEventListener('loadedmetadata',resolve,{once:true});au.src=url;au.load();})).catch(()=>undefined):Promise.resolve();
-tot.textContent=tot2.textContent=fmt(DATA.totalSec);
-const scoreStart=Number(DATA.challengeUnlockSec??(DATA.scenes.find(s=>s.id==='score')||DATA.scenes.at(-2)||DATA.scenes.at(-1)).start);
-const clamp01=x=>Math.max(0,Math.min(1,x));
-const ease=x=>{x=clamp01(x);return 1-Math.pow(1-x,3);};
-function sceneAt(t){return DATA.scenes.find(s=>t>=s.start-0.05&&t<s.end-0.05)||DATA.scenes[DATA.scenes.length-1];}
-function segmentAt(t){return (DATA.segments||[]).find(s=>t>=s.start-0.18&&t<s.end+0.18)||null;}
-function annotatePrimitiveSteps(){DATA.scenes.forEach(scene=>{const sceneEl=scenes.find(el=>el.dataset.sceneId===scene.id);const visualNodes=Array.isArray(scene.visual?.nodes)?scene.visual.nodes:[];if(!sceneEl||!visualNodes.length)return;visualNodes.forEach(nodeDef=>{const nodeEls=[...sceneEl.querySelectorAll('[data-visible-node]')].filter(el=>el.dataset.visibleNode===nodeDef.id);const stepDefs=Array.isArray(nodeDef.primitive_steps)?nodeDef.primitive_steps:[];if(!nodeEls.length||!stepDefs.length)return;nodeEls.forEach(nodeEl=>{[...nodeEl.querySelectorAll('[data-primitive-step]')].forEach((stepEl,index)=>{const declaredId=String(stepEl.dataset.primitiveStepId||'');const declaredIndex=Number(stepEl.dataset.primitiveStep);const stepDef=(declaredId&&stepDefs.find(step=>String(step.id||'')===declaredId))||stepDefs[Number.isFinite(declaredIndex)?declaredIndex:index];if(!stepDef)return;const domainObjects=Array.isArray(stepDef.domain_objects)?stepDef.domain_objects.join(' / '):String(stepDef.domain_object||'');stepEl.dataset.primitiveStepId=String(stepDef.id||'');stepEl.dataset.stepKind=String(stepDef.kind||'');stepEl.dataset.domainObject=domainObjects;stepEl.dataset.stepTarget=`${nodeDef.id}.${stepDef.id}`;stepEl.dataset.stepConsumed='0';});});});});}
-function primitiveStepTrace(active,activeEl,p){if(!active||!activeEl)return[];const actions=(active.actions||[]).filter(action=>action.kind==='primitive_step');return actions.map(action=>{const target=String(action.target||'');const step=activeEl.querySelector(`[data-step-target="${target}"]`);const start=Number(action.start??0),end=Number(action.end??start+.01);const activeNow=p>=start&&p<=end;return{target,kind:step?.dataset.stepKind||'',domainObject:step?.dataset.domainObject||'',status:step?'consumed':'missing',active:step?activeNow:false,opacity:step?Number(getComputedStyle(step).opacity||0):0};});}
-function syncPlayerHeight(){lesson.style.setProperty('--player-h',Math.ceil(player.getBoundingClientRect().height||132)+'px');}
-if('ResizeObserver' in window)new ResizeObserver(syncPlayerHeight).observe(player);
-window.addEventListener('resize',syncPlayerHeight);
-function scoreReady(t=Number(getTime()||scrubber.value||0)){return t>=scoreStart-0.1||t>=DATA.totalSec-0.5;}
-function updateChallenge(t){const ready=scoreReady(t);lesson.classList.toggle('challenge-ready',ready);challengeLinks.forEach(link=>{link.classList.toggle('ready',ready);link.setAttribute('aria-disabled',ready?'false':'true');link.textContent=link.dataset.challengeCta==='inline'?(ready?'用采分句闯关 →':'先看采分句再闯关 →'):'闯关';});}
-function showHint(){if(!lesson.classList.contains('theater'))return;clearTimeout(hintTimer);lesson.classList.add('show-hint');hintTimer=setTimeout(()=>lesson.classList.remove('show-hint'),1400);}
-function setControls(visible=true,auto=true){clearTimeout(hideTimer);lesson.classList.toggle('controls-visible',visible);if(visible)lesson.classList.remove('show-hint');else showHint();if(visible&&auto&&lesson.classList.contains('theater')&&!isPaused())hideTimer=setTimeout(()=>setControls(false,false),2600);}
-function setPlayState(isPlaying){play.textContent=isPlaying?'⏸':'▶';play.setAttribute('aria-label',isPlaying?'暂停讲解':'播放讲解');play.setAttribute('aria-pressed',isPlaying?'true':'false');}
-function applyMotion(activeEl,active,t){if(!activeEl)return;const dur=Math.max(.001,active.end-active.start),p=clamp01((t-active.start)/dur),nodes=[...activeEl.querySelectorAll('[data-visible-node]')],actions=active.actions||[];const cameraAction=actions.find(a=>a.kind==='camera')||{verb:active.camera,start:0,end:.28},cameraVerb=cameraAction.verb||active.camera;const cameraPush=cameraVerb==='push-in'||cameraVerb==='spotlight'||cameraVerb==='answer-paper'||cameraVerb==='trace';const cameraP=ease((p-(cameraAction.start||0))/Math.max(.05,(cameraAction.end||.28)-(cameraAction.start||0)));stage.style.setProperty('--camera-scale',String(1+(cameraPush?0.035*cameraP:0)));stage.style.setProperty('--camera-y',(cameraVerb==='pull-back'?String(-8*ease(p)):'0')+'px');nodes.forEach((node,i)=>{const name=node.dataset.visibleNode||'';const reveal=actions.find(a=>a.kind==='reveal'&&a.target===name)||{start:.04+i*.14,end:.22+i*.14};const v=ease((p-reveal.start)/Math.max(.05,reveal.end-reveal.start));const highlighted=actions.some(a=>a.kind==='highlight'&&(a.target===name||name===a.target||name.includes(a.target))&&p>=a.start&&p<=a.end)||name===active.focus||name.includes(active.focus);const steps=[...node.querySelectorAll('[data-primitive-step]')];if(steps.length){node.style.opacity=v>.01?'1':'0';node.style.transform=`translateY(${(1-v)*8}px) scale(${0.98+v*0.02})`;steps.forEach((step,si)=>{const stepIndex=Number.isFinite(Number(step.dataset.primitiveStep))?Number(step.dataset.primitiveStep):si;const stepAction=actions.find(action=>action.kind==='primitive_step'&&action.target===step.dataset.stepTarget);const sv=stepAction?ease((p-Number(stepAction.start||0))/Math.max(.03,Number(stepAction.end||0)-Number(stepAction.start||0))):ease((v-stepIndex*.16)/.24);const activeStep=stepAction?p>=Number(stepAction.start||0)&&p<=Number(stepAction.end||0):sv>.05;step.dataset.stepConsumed=stepAction?'1':'fallback';step.dataset.stepActive=activeStep?'1':'0';step.style.opacity=String(sv);step.style.transformBox='fill-box';step.style.transformOrigin=step.dataset.trace==='1'?'left center':'center';step.style.transform=step.dataset.trace==='1'?`scaleX(${sv})`: `translateY(${(1-sv)*7}px) scale(${0.97+sv*0.03})`;});}else{node.style.opacity=String(v);node.style.transform=`translateY(${(1-v)*10}px) scale(${0.96+v*0.04})`;}node.classList.toggle('node-focus',highlighted);});if(active.id!==lastScene){scenes.forEach(scene=>{if(scene!==activeEl)scene.querySelectorAll('[data-visible-node]').forEach(node=>{node.style.opacity='0';node.style.transform='translateY(10px) scale(.96)';node.classList.remove('node-focus');node.querySelectorAll('[data-primitive-step]').forEach(step=>{step.style.opacity='0';step.style.transform='translateY(7px) scale(.97)';step.dataset.stepActive='0';});});});lastScene=active.id;}}
-function paint(){const t=Number(getTime()||scrubber.value||0);const active=sceneAt(t);const seg=segmentAt(t);lesson.classList.toggle('paused',isPaused());lesson.classList.toggle('playing',!isPaused());let activeEl=null;scenes.forEach(el=>{const on=el.dataset.sceneId===active.id;el.classList.toggle('active',on);if(on)activeEl=el;});const coach=activeEl?.querySelector('.coach-card');if(activeEl&&coach&&captionLine.parentElement!==activeEl)activeEl.insertBefore(captionLine,coach);const motionT=!lesson.classList.contains('started')&&t<0.05?active.start+Math.max(1,(active.end-active.start)*0.55):t;applyMotion(activeEl,active,motionT);chapters.forEach(el=>el.classList.toggle('on',t>=Number(el.dataset.t)&&Number(el.dataset.t)>=active.start-0.1));fill.style.width=(Math.min(t,DATA.totalSec)/DATA.totalSec*100)+'%';scrubber.value=String(Math.min(t,DATA.totalSec));cur.textContent=cur2.textContent=fmt(t);const visualBrief=DATA.captionMode==='visual_brief';const captionText=visualBrief?(active.caption||seg?.text||''):(seg?.text||'');captionLine.hidden=!captionText;captionLine.textContent=captionText;captionLine.dataset.speaker=visualBrief?'T':(seg?.speaker||'T');updateChallenge(t);syncPlayerHeight();}
-function tickVirtualClock(){if(!hasAudio&&virtualPlaying){const now=performance.now();if(lastTick)virtualTime+=Math.max(0,(now-lastTick)/1000);lastTick=now;if(virtualTime>=DATA.totalSec){virtualTime=DATA.totalSec;virtualPlaying=false;setPlayState(false);setControls(true,false);}}}
-function loop(){tickVirtualClock();paint();if(!isPaused())raf=requestAnimationFrame(loop);}
-function startLoop(){cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);}
-function seek(t){const next=setTime(t);if(next>0.2)lesson.classList.add('started');scrubber.value=String(next);paint();setControls(true);}
-async function playAudio(){lesson.classList.add('started');if(!hasAudio){virtualPlaying=true;lastTick=performance.now();setPlayState(true);setControls(true);startLoop();return Promise.resolve();}await audioReadyPromise;return au.play().then(()=>{setPlayState(true);setControls(true);startLoop();}).catch(()=>{paint();});}
-function toggle(){if(isPaused())playAudio();else{if(hasAudio)au.pause();else virtualPlaying=false;setPlayState(false);setControls(true,false);paint();}}
-function pauseForAsk(){if(hasAudio)au.pause();else virtualPlaying=false;setPlayState(false);setControls(true,false);paint();}
-function currentAskContext(){const t=Number(getTime()||0);const active=sceneAt(t);const seg=segmentAt(t);return {type:'luban_ai_ask',cardId:lesson.dataset.cardId||'',contextId:DATA.aiContext?.contextId||lesson.dataset.cardId||'',title:DATA.aiContext?.title||DATA.title,mainExamAction:DATA.aiContext?.mainExamAction||DATA.subtitle,currentScene:{id:active.id,label:active.label,focus:active.focus,keycard:active.keycard,coach:active.coach},currentCaption:seg?{speaker:seg.speaker,text:seg.text,start:seg.start,end:seg.end}:null,safeSummary:DATA.aiContext?.safeSummary||'',keyPoints:DATA.aiContext?.keyPoints||[],time:t};}
-function askTextPayload(context){return ['【当前画面】'+context.currentScene.label+' · '+context.currentScene.keycard,'【字幕】'+(context.currentCaption?.text||'暂无'),'【本卡主线】'+context.mainExamAction,'【安全上下文】'+context.safeSummary,'【我的问题】'+(askInput.value.trim()||'请解释我当前画面容易卡住的点。')].join('\n');}
-function openAskPanel(){pauseForAsk();const context=currentAskContext();askCurrent.textContent=`当前: ${context.currentScene.label}｜${context.currentScene.keycard}｜${context.currentCaption?.text||context.currentScene.coach}`;askInput.value='';askStatus.textContent='';askAnswer.hidden=true;askAnswer.textContent='';askPanel.hidden=false;setControls(true,false);requestAnimationFrame(()=>askInput.focus());}
-function closeAskPanel(){askPanel.hidden=true;askStatus.textContent='';askAnswer.hidden=true;askAnswer.textContent='';stage.focus();}
-async function copyAskContext(){const context=currentAskContext();const text=askTextPayload(context);try{await navigator.clipboard.writeText(text);askStatus.textContent='已复制当前画面上下文，可以粘贴给答疑。';}catch{askStatus.textContent='复制失败，请长按选中文本后手动复制。';}}
-function previewAskAnswer(context){const points=(context.keyPoints||[]).slice(0,3).map(point=>'• '+point).join('\n');const question=askInput.value.trim()||'我现在最容易卡在哪里？';return `预览答疑：你问「${question}」\n\n先看当前画面：${context.currentScene.label}。这一幕抓的是「${context.currentScene.keycard}」。\n${context.currentScene.coach}\n\n答题主线：${context.mainExamAction}\n${points?'\n可带走的依据：\n'+points:''}\n\n正式小程序里，这个入口会把 contextId、当前画面和问题发给 TutorBot，由后端读取母题数据继续追问。`;}
-function askApiUrl(){const base=String(DATA.aiContext?.apiBase||'').replace(/\/$/,'');return base?base+'/api/v1/luban-preview/ai-ask':'/api/v1/luban-preview/ai-ask';}
-async function sendAskContext(){const payload=currentAskContext();payload.question=askInput.value.trim();const message={type:'luban_ai_ask',payload};try{window.wx?.miniProgram?.postMessage({data:message});}catch{}try{window.parent?.postMessage(message,'*');}catch{}askSend.disabled=true;askStatus.textContent='正在带着当前画面问 AI...';askAnswer.hidden=true;try{const res=await fetch(askApiUrl(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'AI 答疑暂时不可用');askAnswer.textContent=data.answer||previewAskAnswer(payload);askAnswer.hidden=false;askStatus.textContent=data.source==='tutorbot_runtime'?'已接入 TutorBot 实时答疑。':'实时 AI 暂时降级，先给你本卡答疑。';}catch(err){askAnswer.textContent=previewAskAnswer(payload);askAnswer.hidden=false;askStatus.textContent='实时 AI 暂不可用，先显示本卡预览答疑。';}finally{askSend.disabled=false;}}
-play.addEventListener('click',toggle);centerPlay.addEventListener('click',playAudio);au.addEventListener('timeupdate',paint);au.addEventListener('play',()=>setPlayState(true));au.addEventListener('pause',()=>setPlayState(false));au.addEventListener('ended',()=>{setPlayState(false);seek(DATA.totalSec);setControls(true,false);});
-scrubber.addEventListener('input',()=>seek(scrubber.value));chapters.forEach(btn=>btn.addEventListener('click',()=>{seek(btn.dataset.t);playAudio();}));
-stage.addEventListener('click',e=>{if(e.target===centerPlay)return;if(lesson.classList.contains('theater'))setControls(true);});
-stage.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&lesson.classList.contains('theater')){e.preventDefault();setControls(true);}});
-player.addEventListener('click',e=>e.stopPropagation());
-askAi.addEventListener('click',e=>{e.stopPropagation();openAskPanel();});
-askClose.addEventListener('click',closeAskPanel);askCopy.addEventListener('click',copyAskContext);askSend.addEventListener('click',sendAskContext);
-askPanel.addEventListener('click',e=>{if(e.target===askPanel)closeAskPanel();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!askPanel.hidden)closeAskPanel();});
-challengeLinks.forEach(link=>link.addEventListener('click',e=>{if(scoreReady())return;e.preventDefault();seek(scoreStart);playAudio();}));
-async function setTheater(on){lesson.classList.toggle('theater',on);theaterToggle.textContent=on?'退出':'全屏';theaterToggle.setAttribute('aria-label',on?'退出全屏学习模式':'进入全屏学习模式');theaterToggle.setAttribute('aria-pressed',on?'true':'false');if(on){showHint();try{await stage.requestFullscreen?.();}catch{}}else{lesson.classList.remove('show-hint');if(document.fullscreenElement){try{await document.exitFullscreen();}catch{}}}setControls(true);syncPlayerHeight();paint();}
-theaterToggle.addEventListener('click',()=>setTheater(!lesson.classList.contains('theater')));
-document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&lesson.classList.contains('theater')){lesson.classList.remove('theater');theaterToggle.textContent='全屏';theaterToggle.setAttribute('aria-label','进入全屏学习模式');theaterToggle.setAttribute('aria-pressed','false');setControls(true,false);paint();}});
-window.__IR_PLAYER__={seek,paint,state:()=>{const t=Number(getTime()||0),active=sceneAt(t),activeEl=scenes.find(el=>el.dataset.sceneId===active.id),dur=Math.max(.001,active.end-active.start),p=clamp01((t-active.start)/dur);return{time:t,scene:active.id,hasAudio,playing:!isPaused(),primitiveTrace:primitiveStepTrace(active,activeEl,p)};}};
-annotatePrimitiveSteps();syncPlayerHeight();seek(0);setPlayState(false);setControls(false,false);
-</script></body></html>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/";
+  audioVersion="20260705-a01-tts1";
+  DUR = 236.548;
+  examTitle="结构实体检验答案诊断"; examCode="A01"; examCat="案例·作答层";
+  posterSub="先扫答题纸，再补三格：内容清单 · 组织主体 · 判定依据"; posterMeta="点击播放 · 8 幕精讲 + 3 追问 · 约 3 分 57 秒";
+  KNOWLEDGE="检验批验收·案例题作答层(A01,真题锚{2017·案例·问4})。本层只训练把知识写成阅卷友好的采分句,采分点从A01知识层派生,不新增官方判分权威。学生样本:只写“还要测钢筋保护层,由施工单位组织;平均值小于35所以不合格”,典型问题=清单不全+组织主体错位+判定依据错误。内容清单:结构实体检验除混凝土强度外,还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目(漏项=E02采分点遗漏)。组织主体:由监理单位组织、施工单位实施、监理见证全过程,施工单位编制专项方案报监理审批(写施工单位组织=E07概念混淆,“谁施工谁验收”是错误心智)。判定依据:C35实体强度应满足平均值不小于设计值88%且最小值不小于设计值80%,不能直接拿平均值比35(=E10规范适用错误);本题芯样28.5/31/32MPa,平均值30.8MPa,35×88%=30.8MPa恰为临界,最小值28.5MPa>35×80%=28MPa;临界取舍以评分细则或教研裁定为准,只指漏不替官方定分。改写结构:先编号写检验内容,再写监理组织、施工实施、监理见证,最后亮双阈值判据、代入平均值和最小值并回判。作答纪律:按内容清单、组织主体、判定依据三格自检,禁口号化表达(E04)。记忆钩:扫答案,补三格。";
+  beats=[["b0",0,22.604,"扫缺口"],["b1",22.604,44.44,"判命中"],["b2",44.44,63.036,"补清单"],["b3",63.036,83.792,"改主体"],["b4",83.792,117.916,"双阈值"],["b5",117.916,147.504,"重排"],["b6",147.504,169.172,"再扫描"],["b7",169.172,182.776,"收官"],["q0",182.776,200.836,"问答"],["q1",200.836,216.616,"问答"],["q2",216.616,236.548,"问答"]];
+  keycards=[
+    "这不是背答案，是扫缺口",
+    "先把每一行标成 hit、partial、miss",
+    "实体检验项目要补成完整清单",
+    "施工单位实施，不等于施工单位组织",
+    "实体强度判定跑双阈值",
+    "把原答案重排成三格采分句",
+    "以后先扫答案，再补三格",
+    "扫答案，补三格：内容清单 · 组织主体 · 判定依据"
+  ];
+  narr=[
+    "注意哈，这张卡不训练你背一整段标准答案，而是训练你看一份学生答案到底差哪句。题干问结构实体检验，学生写了钢筋保护层，又算了平均强度，还下了不合格结论。看起来会一点，但白板一扫描就会发现：内容清单不全，组织主体错位，计算判据也跑偏。",
+    "第一笔，扫答案。钢筋保护层这个词不是完全错，它是部分命中；问题是它只写了一个项目。由施工单位组织这一句，主体错了。平均值比三十五小，所以不合格，这一句更危险，因为它直接拿平均强度去比设计值，跳过了实体强度的双阈值。",
+    "结构实体检验不是只写混凝土强度。学生写保护层，只补到了一格。答题纸上还要看见结构位置与尺寸偏差，再看见合同约定项目。这里的动作不是把“项目很多”写得更响，而是把漏掉的工程对象逐项放回采分槽。",
+    "第二格看主体。施工单位当然参与，但它在这条链里是实施主体，不是组织主体。要写成监理单位组织，施工单位实施，监理见证全过程。你看白板上，施工单位组织这条箭头退出，监理组织这条箭头才是阅卷要扫到的主体动作。",
+    "第三格是判定依据。C35 这里不能直接拿平均值和三十五比。实体强度要看两条线：平均值不小于设计值的百分之八十八，最小值不小于设计值的百分之八十。本题三个芯样算平均值是三十点八，三十五乘百分之八十八也是三十点八；最小值二十八点五，也高于三十五乘百分之八十的二十八。临界怎么给官方分，要看评分细则或教研裁定，但你的答题纸必须把这条双阈值链写出来。",
+    "现在才进入改写。第一段，结构实体检验除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目。第二段，由监理单位组织，施工单位实施，监理见证全过程。第三段，强度按平均值不小于设计值百分之八十八、最小值不小于设计值百分之八十回判。这样写，不是更啰嗦，而是每一格都能被扫描到。",
+    "最后扫一遍成品答案。内容清单命中，主体链命中，判定依据命中。你真正要带走的不是一段死记答案，而是一个作答动作：看到结构实体检验案例，先扫自己的答题纸，问三格齐不齐。内容清单有没有完整，组织主体有没有写对，计算判据有没有亮出来。",
+    "记住哈，检验批验收作答层就一句话：扫答案，补三格。内容清单、组织主体、判定依据，少一格都不是完整采分句。现在进闯关，按答题纸扫描来练。"
+  ];
+  qa=[
+    { figLabel:"实体检验四件套 · 清单补完整", fig:"fouritem", q:"老师，我写了钢筋保护层，这块能拿分不？", a:"能拿一点方向分，但不稳。因为这只命中保护层，漏了结构位置与尺寸偏差和合同约定项目。主观题不是看你有没有碰到熟词，而是看清单有没有补完整。" },
+    { figLabel:"组织 · 实施 · 见证", fig:"orgchain", q:"那我直接写施工单位组织，咋就不行呢？", a:"因为你把实施主体写成组织主体了。施工单位实施检验，但组织要写监理单位，过程还要有监理见证。主体错位，阅卷会直接扣。" },
+    { figLabel:"88% / 80% 双阈值", fig:"dualthr", q:"整明白了，但平均值这块我能不能直接跟 C35 比？", a:"不能。实体强度不是直接比设计值，而是平均值看百分之八十八，最小值看百分之八十。你可以不替官方抢判临界分，但公式、代入、回判这条链必须写。" }
+  ];
+  qaCue=[{answerStart:4.58},{answerStart:4.58},{answerStart:6.14}];
+  askPresets=["实体检验四项清单咋写全？","组织主体那句怎么改才对？","88%和80%的判定链怎么写？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this.updateFitZoom();
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); this.updateFitZoom(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ this._audioStarted=false; try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true; this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false; this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  tapToggle(){ if(!this.state.fs)return; const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  updateFitZoom(){ try{ const z=Math.min(window.innerWidth/390, 2.0); document.body.style.setProperty('--lz-fit', String(z)); }catch(e){} }
+  wxAsk(){ try{
+      const wxm=window.wx&&window.wx.miniProgram;
+      const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+      if(!wxm||!inMini) return false;
+      let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
+      if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
+      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=P40_A01'+(st?'&scene_title='+encodeURIComponent(st):'')});
+      return true; }catch(e){ return false; } }
+  phoneRef(el){ if(el) this._phone=el; }
+  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="fouritem"){ h=68;
+      els.push(D({x:0,top:2,w:118,h:22,bd:"1.5px solid #9fc7e0",r:11,fg:"#9fc7e0",fs:8.5,lab:"混凝土强度"}));
+      els.push(D({x:126,top:2,w:118,h:22,bd:"1.5px solid #9fd3b4",r:11,fg:"#9fd3b4",fs:8.5,lab:"钢筋保护层厚度"}));
+      els.push(D({x:0,top:30,w:118,h:22,bd:"1.5px solid #e0c89f",r:11,fg:"#e0c89f",fs:8,lab:"结构位置与尺寸偏差"}));
+      els.push(D({x:126,top:30,w:118,h:22,bd:"1.5px solid #e0a89f",r:11,fg:"#e0a89f",fs:8.5,lab:"合同约定项目"}));
+      els.push(D({x:0,top:58,w:248,h:10,fg:"#9fd3b4",fs:8.5,jc:"flex-start",lab:"四件套一起写，缺一不稳"})); }
+    else if(it.fig==="orgchain"){ h=58;
+      els.push(D({x:0,top:0,w:220,h:12,fg:"#e0a89f",fs:8.5,jc:"flex-start",lab:"✗ 施工单位组织（它是实施主体）"}));
+      els.push(D({x:0,top:18,w:76,h:18,bg:"#46627e",bd:"1px solid #3fa06a",r:2,fg:"#9fd3b4",fs:8,lab:"监理组织"}));
+      els.push(D({x:86,top:18,w:76,h:18,bg:"#46627e",bd:"1px solid #3fa06a",r:2,fg:"#9fd3b4",fs:8,lab:"施工实施"}));
+      els.push(D({x:172,top:18,w:76,h:18,bg:"#46627e",bd:"1px solid #3fa06a",r:2,fg:"#9fd3b4",fs:8,lab:"监理见证"}));
+      els.push(D({x:0,top:44,w:248,h:10,fg:"#9fd3b4",fs:8.5,jc:"flex-start",lab:"✓ 组织、实施、见证三个角色拆清"})); }
+    else if(it.fig==="dualthr"){ h=58;
+      els.push(D({x:0,top:2,w:248,h:14,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"平均值 30.8 ↔ 35×88% = 30.8（临界）"}));
+      els.push(D({x:0,top:20,w:248,h:14,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"最小值 28.5 ＞ 35×80% = 28"}));
+      els.push(D({x:0,top:40,w:248,h:12,fg:"#e0a89f",fs:8.5,jc:"flex-start",lab:"✗ 直接拿平均值比 35 = 跳过双阈值"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={ b0_title:"扫缺口 · 先看学生答案差哪句，不背标准答案",
+      a0_qO:0,a0_qY:14,a0_sO:0,a0_sY:14,a0_hl:0,a0_gap1W:0,a0_gap2W:0,a0_penX:26,a0_penO:0,a0_vO:0,
+      b1_title:"逐行判定 · hit 命中 / partial 半命中 / miss 漏点",
+      a1_r0:0,a1_r1:0,a1_r2:0,a1_r3:0,a1_penY:74,a1_penO:0,a1_noteO:0,
+      b2_title:"补清单 · 实体检验四件套逐项放回采分槽",
+      a2_obj:0,a2_s0:0,a2_s1:0,a2_s2:0,a2_s3:0,a2_x1:30,a2_x2:30,a2_x3:30,a2_noteO:0,
+      b3_title:"改主体 · 监理组织 · 施工实施 · 监理见证",
+      a3_badO:0,a3_so:0,a3_ss:1.6,a3_c0:0,a3_c1:0,a3_c2:0,a3_noteO:0,
+      b4_title:"双阈值 · 平均值看 88% · 最小值看 80%",
+      a4_s0:0,a4_s1:0,a4_s2:0,a4_badO:0,a4_bx:0,a4_bs:1.5,a4_l1W:0,a4_f1O:0,a4_l2W:0,a4_f2O:0,a4_critO:0,
+      b5_title:"重排 · 原答案装配成三格采分句",
+      a5_srcO:0,a5_x0:0,a5_k0:0,a5_p0:0,a5_p0Y:16,a5_p1:0,a5_p1Y:16,a5_p2:0,a5_p2Y:16,a5_noteO:0,
+      b6_title:"再扫描 · 三格依次 hit，缺口清零",
+      a6_r0:0,a6_r1:0,a6_r2:0,a6_penY:80,a6_penO:0,a6_missO:0,a6_okO:0,
+      c_title:"记忆钩：扫答案，补三格", c0:0,c1:0,c2:0,c3:0,c4:0 };
+
+    if(A(0)){ const q0=W(0,.1); v.a0_qO=q0; v.a0_qY=this.lp(14,0,q0); const sh=W(.1,.22); v.a0_sO=sh; v.a0_sY=this.lp(14,0,sh);
+      v.a0_penO=W(.24,.3)*(1-W(.6,.68)); v.a0_penX=Math.round(this.lp(26,346,W(.26,.62)));
+      v.a0_hl=0.55*W(.32,.42); v.a0_gap1W=Math.round(34*W(.44,.54)); v.a0_gap2W=Math.round(34*W(.54,.64)); v.a0_vO=W(.7,.84); }
+    if(A(1)){ v.a1_penO=W(0,.08)*(1-W(.84,.94)); v.a1_penY=Math.round(this.lp(74,252,W(.06,.8)));
+      v.a1_r0=W(.04,.16); v.a1_r1=W(.2,.34); v.a1_r2=W(.4,.54); v.a1_r3=W(.58,.72); v.a1_noteO=W(.76,.9); }
+    if(A(2)){ v.a2_obj=W(0,.14); v.a2_s0=W(.14,.26);
+      const c1=W(.3,.44); v.a2_s1=c1; v.a2_x1=this.lp(30,0,c1);
+      const c2=W(.46,.6); v.a2_s2=c2; v.a2_x2=this.lp(30,0,c2);
+      const c3=W(.62,.76); v.a2_s3=c3; v.a2_x3=this.lp(30,0,c3); v.a2_noteO=W(.8,.94); }
+    if(A(3)){ v.a3_badO=W(0,.14)*(1-.5*W(.3,.42)); const st=W(.18,.3); v.a3_so=st; v.a3_ss=this.lp(1.6,1,st);
+      v.a3_c0=W(.36,.5); v.a3_c1=W(.52,.66); v.a3_c2=W(.66,.8); v.a3_noteO=W(.84,.96); }
+    if(A(4)){ v.a4_s0=W(0,.08); v.a4_s1=W(.05,.13); v.a4_s2=W(.1,.18);
+      v.a4_badO=W(.16,.26); const bx=W(.26,.36); v.a4_bx=bx; v.a4_bs=this.lp(1.5,1,bx);
+      v.a4_l1W=Math.round(340*W(.4,.52)); v.a4_f1O=W(.44,.58);
+      v.a4_l2W=Math.round(340*W(.6,.7)); v.a4_f2O=W(.62,.74); v.a4_critO=W(.82,.94); }
+    if(A(5)){ v.a5_srcO=W(0,.12); v.a5_x0=W(.14,.26); v.a5_k0=W(.2,.32);
+      const p0=W(.32,.46); v.a5_p0=p0; v.a5_p0Y=this.lp(16,0,p0);
+      const p1=W(.48,.62); v.a5_p1=p1; v.a5_p1Y=this.lp(16,0,p1);
+      const p2=W(.62,.78); v.a5_p2=p2; v.a5_p2Y=this.lp(16,0,p2); v.a5_noteO=W(.82,.94); }
+    if(A(6)){ v.a6_penO=W(0,.08)*(1-W(.8,.9)); v.a6_penY=Math.round(this.lp(80,236,W(.06,.72)));
+      v.a6_r0=W(.08,.22); v.a6_r1=W(.3,.44); v.a6_r2=W(.5,.64); v.a6_missO=W(.08,.2)*(1-W(.34,.48)); v.a6_okO=W(.72,.88); }
+    if(A(7)){ v.c0=W(.05,.22); v.c1=W(.2,.4); v.c2=W(.38,.58); v.c3=W(.56,.76); v.c4=W(.74,.92); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ const qaElapsed=t-cur[1]; const cue=this.qaCue[ai-NB]||{answerStart:(cur[2]-cur[1])*.28}; qaLayerO=1; qa_so=this.eo(this.cl((qaElapsed-.15)/.6,0,1)); qa_sx=this.lp(-40,0,qa_so); qa_to=this.eo(this.cl((qaElapsed-(cue.answerStart-.18))/.75,0,1)); qa_ty=this.lp(24,0,qa_to); qaQ=it.q; qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:(e)=>{if(e&&e.stopPropagation)e.stopPropagation();this.fullscreen();},phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",fs:this.state.fs,capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,tapToggle:()=>this.tapToggle(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none"
+    });
+  }
+}
+</script>
+</body>
+</html>

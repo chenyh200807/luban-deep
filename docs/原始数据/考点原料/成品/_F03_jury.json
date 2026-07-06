@@ -2,15 +2,25 @@
   {
     "issue": "§6 误区·解药中多个错误码映射不够精准，与 error_codes 注册表语义不贴（如 M2→E03 偏窄、M3/M5→E06 不如 E08、M4/M9 混合映射欠拆分）",
     "location": "§6 R8 误区·解药",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "参照 error_codes 注册表逐条重映射：M2 案例码优先用 E02；M3/M5 案例码改用 E08；M4/M9 按层位错与数值错拆为 E06/E10 与 E02/M08"
+    "fix": "参照 error_codes 注册表逐条重映射：M2 案例码优先用 E02；M3/M5 案例码改用 E08；M4/M9 按层位错与数值错拆为 E06/E10 与 E02/M08",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "F03_防水构造层次屋面地下.md §6 M4/M9（D2 裁决批拆分并注：M4 层位错补挂 E06 程序顺序错误(案例·层位)，M9 缝位置错补挂 E10 规范适用错误(案例·缝位)，原码 E02/M08/E03 全保留）；M2 维持 E03、M3/M5 维持 E06 ——jury 建议的 E08 经 registry 直读证伪（前轮§9驳回 + D2 批 GLM-5.2+Fable-5 双签一致维持）",
+      "verified": "2026-07-04 确定性复核：ERROR_CODE_REGISTRY 直读 E06=程序顺序错误、E10=规范适用错误、E08=背景信息提取失败（E08 属 question_reading 维与'层序排错'语义不符，jury 建议 E08 不成立）；pack §6 M4 行 grep 命中'E06 程序顺序错误**(案例·层位)'、M9 行 grep 命中'E10 规范适用错误**(案例·缝位)'；verify_pack + verify_exam_anchors 双闸改后复跑均 exit=0（可重跑：grep -n '案例·层位\\|案例·缝位' 成品/F03_防水构造层次屋面地下.md）"
+    }
   },
   {
     "issue": "§1 #22 保温层选材被标为蓝色邻接，但其材料选择标准可能直接影响防水构造层次判定",
     "location": "§1 跨章知识点全景 #22",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "回源核确认保温层选材是否可进入判分点，若常有交叉考察则升级为 🟢"
@@ -18,7 +28,9 @@
   {
     "issue": "§1 #24 卷材防水性能/施工工艺被标为蓝色邻接，但真题涉及卷材防水性能，可能应归入本体",
     "location": "§1 跨章知识点全景 #24",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "回真题库核卷材防水性能出现频率，若多次与构造层次同题出现则升级为 🟢"
@@ -26,7 +38,9 @@
   {
     "issue": "§2 机理解释部分标记为蓝色，但一些解释（如“多道设防→破坏容错”）可能在案例题中作为判分要点",
     "location": "§2 原理因果层",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "检查近年真题是否有直接考察机理的题型，若有则局部升级为 🟢"
@@ -34,7 +48,9 @@
   {
     "issue": "§4 S8 卷材材料性能/施工工艺被标为蓝色邻接，但关联真题且与防水构造层次可能直接相关",
     "location": "§4 R4 规则组 / S8",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "核实该知识点在构造层次题目中的相关性，若得分点常涉及则升级为 🟢"
@@ -42,7 +58,9 @@
   {
     "issue": "§6 M5 种植屋面层次顺序被标为蓝色邻接，但具体层次序列可能在判分点范围内",
     "location": "§6 误区 + 解药 M5",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "确认种植屋面完整层次序列的考察频率，若频繁作为采分点则升级为 🟢"
@@ -50,7 +68,9 @@
   {
     "issue": "2023 真题锚被用于支撑室内翻起高度等数值，引用过宽；相关高度数值宜改用 kc 直接支撑",
     "location": "§1 #20, §3 S7, §4 S7, §5 R5#12",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "将高度数值的支撑锚从 2023 真题切换至 kc:1A413030_133_0256:0，真题锚降为 🔵 或拆分"
@@ -58,7 +78,9 @@
   {
     "issue": "§4 examiner_intent③ 称“接缝设防种数+抗渗/翻起为案例侧主力”证据偏强，与 pack 自述真题分布不符",
     "location": "§4 examiner_intent ③",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "将“案例侧主力/高频”降为 🔵，修正为“教材高风险判分点/候选案例化点”"
@@ -66,7 +88,9 @@
   {
     "issue": "§4 R4 规则组 C 地下防水“封闭等级+道数+抗渗表”覆盖不全，仅给出一级、三级，却声称封闭表",
     "location": "§4 R4 规则组 C",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "标注“仅封闭一级/三级已给变量”，补充或降级规则组 C 的“封闭”表述为 🔵"
@@ -74,7 +98,9 @@
   {
     "issue": "§4 地下三级判分边界表述过于绝对，写 P8 未必错，只有答最低要求时才不妥",
     "location": "§4 R4 地下三级判分边界",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "将判分边界改为“若问最低等级/表格值，写 P8 不妥；工程提高等级需看题干”，降 🔵"
@@ -82,7 +108,9 @@
   {
     "issue": "多处将规范中“宜/不宜”硬化为越界即错，如坡度、胶凝用量、坍落度判定",
     "location": "§4 R4, §5 R5#6/#9",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "保留原文数值为 🟢，但硬性判错边界降 🔵，注明规范措辞为“宜/不宜”"
@@ -90,7 +118,9 @@
   {
     "issue": "§1 #3 防水材料选择原则标为 F03 本体，与 pack 自身“不考材料配方/卷材工艺”边界口径冲突",
     "location": "§1 #3",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "从“本体”降 🔵 为“屋面防水讲解性/按部位选材邻接”，不进核心判分眼"

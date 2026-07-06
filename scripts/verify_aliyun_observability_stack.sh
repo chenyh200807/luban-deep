@@ -37,9 +37,12 @@ prom = f"http://127.0.0.1:{os.environ.get('PROM_PORT', '9090').strip()}"
 am = f"http://127.0.0.1:{os.environ.get('ALERTMANAGER_PORT', '9093').strip()}"
 staleness = float(os.environ.get("STALENESS_SECONDS", "60") or "60")
 
-errors: list[str] = []
-warnings: list[str] = []
-oks: list[str] = []
+# NOTE: no variable annotations — the production host runs python 3.6.8, where PEP 585
+# `list[str]` is not subscriptable at runtime and `from __future__ import annotations`
+# is unavailable. Keep this script 3.6-compatible (matches verify_aliyun_observability.sh).
+errors = []
+warnings = []
+oks = []
 
 EXPECTED_RULES = {
     "DeepTutorNotReady", "DeepTutorServerErrors", "DeepTutorProviderThresholdExceeded",

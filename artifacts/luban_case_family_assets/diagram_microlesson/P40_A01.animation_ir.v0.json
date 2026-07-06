@@ -138,10 +138,16 @@
     "pure_text_allowed": false
   },
   "taxonomy_alignment": {
-    "priority_slot": "P40_A01",
+    "priority_slot": 7,
     "pack_id": "A01",
     "source_kind": "case_answer_layer",
-    "note": "2026-06-22 visual inventory maps A01 answer-layer prototype to scoring_diagnosis_reveal / answer_scan."
+    "note": "2026-06-22 visual inventory maps A01 answer-layer prototype to scoring_diagnosis_reveal / answer_scan.（2026-07-03 §6-3 数据修：status/refs 照 60-slot registry slot 7 回填）",
+    "status": "direct",
+    "canonical_taxonomy_refs": [
+      "1A434020-B018",
+      "1A434020-B006",
+      "1A434020-B001"
+    ]
   },
   "ai_context": {
     "context_id": "P40_A01",

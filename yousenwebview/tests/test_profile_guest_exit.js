@@ -126,6 +126,10 @@ function loadProfilePage() {
           },
         };
       }
+      if (request === "../../utils/learn-view-model") {
+        // 纯函数视图模型（点亮判定单一权威），直接用真模块
+        return require("../packageDeeptutor/utils/learn-view-model");
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {

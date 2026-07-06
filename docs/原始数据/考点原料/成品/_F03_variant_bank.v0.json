@@ -1,0 +1,792 @@
+{
+ "schema_version": "luban-f03-variant-bank",
+ "pack_id": "F03",
+ "status": "signed",
+ "source_pack_sha256": "12b0066ad4ed932dd0ccdebf292cafb5fa005970a9108b808d4bfed705ff12e7",
+ "generation_ms": 0.04,
+ "gate": {
+  "total": 53,
+  "passed": 53,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-roof-basic": 4,
+  "A-roof-grade": 11,
+  "B-layer-seq": 4,
+  "B-root-thickness": 9,
+  "B-vapor": 4,
+  "C-concrete": 6,
+  "C-joint": 7,
+  "C-underground": 8
+ },
+ "variants": [
+  {
+   "variant_id": "F03-A-roof-grade-000",
+   "rule_group": "A-roof-grade",
+   "surface": "作答：屋面防水等级分为三级",
+   "params": {
+    "item": "分级数",
+    "claimed_levels": 3
+   },
+   "expected_ok": true,
+   "correct_statement": "屋面防水等级分三级（一/二/三级）；地下工程防水等级才分四级，禁混",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-grade-001",
+   "rule_group": "A-roof-grade",
+   "surface": "作答：屋面防水等级分为四级",
+   "params": {
+    "item": "分级数",
+    "claimed_levels": 4
+   },
+   "expected_ok": false,
+   "correct_statement": "屋面防水等级分三级（一/二/三级）；地下工程防水等级才分四级，禁混",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-grade-002",
+   "rule_group": "A-roof-grade",
+   "surface": "作答：屋面一级防水设防道数不少于3道",
+   "params": {
+    "item": "道数",
+    "grade": "一级",
+    "claimed_min": 3
+   },
+   "expected_ok": true,
+   "correct_statement": "屋面防水等级↔道数：一级≥3道(卷材≥1道)；二级≥2道(卷材≥1道)；三级≥1道(可任选卷材/涂料)",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-grade-003",
+   "rule_group": "A-roof-grade",
+   "surface": "作答：屋面一级防水设防道数不少于2道",
+   "params": {
+    "item": "道数",
+    "grade": "一级",
+    "claimed_min": 2
+   },
+   "expected_ok": false,
+   "correct_statement": "屋面防水等级↔道数：一级≥3道(卷材≥1道)；二级≥2道(卷材≥1道)；三级≥1道(可任选卷材/涂料)",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-grade-004",
+   "rule_group": "A-roof-grade",
+   "surface": "作答：屋面一级防水设防道数不少于1道",
+   "params": {
+    "item": "道数",
+    "grade": "一级",
+    "claimed_min": 1
+   },
+   "expected_ok": false,
+   "correct_statement": "屋面防水等级↔道数：一级≥3道(卷材≥1道)；二级≥2道(卷材≥1道)；三级≥1道(可任选卷材/涂料)",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-grade-005",
+   "rule_group": "A-roof-grade",
+   "surface": "作答：屋面二级防水设防道数不少于2道",
+   "params": {
+    "item": "道数",
+    "grade": "二级",
+    "claimed_min": 2
+   },
+   "expected_ok": true,
+   "correct_statement": "屋面防水等级↔道数：一级≥3道(卷材≥1道)；二级≥2道(卷材≥1道)；三级≥1道(可任选卷材/涂料)",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-grade-006",
+   "rule_group": "A-roof-grade",
+   "surface": "作答：屋面二级防水设防道数不少于1道",
+   "params": {
+    "item": "道数",
+    "grade": "二级",
+    "claimed_min": 1
+   },
+   "expected_ok": false,
+   "correct_statement": "屋面防水等级↔道数：一级≥3道(卷材≥1道)；二级≥2道(卷材≥1道)；三级≥1道(可任选卷材/涂料)",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-grade-007",
+   "rule_group": "A-roof-grade",
+   "surface": "作答：屋面三级防水设防道数不少于1道",
+   "params": {
+    "item": "道数",
+    "grade": "三级",
+    "claimed_min": 1
+   },
+   "expected_ok": true,
+   "correct_statement": "屋面防水等级↔道数：一级≥3道(卷材≥1道)；二级≥2道(卷材≥1道)；三级≥1道(可任选卷材/涂料)",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-grade-008",
+   "rule_group": "A-roof-grade",
+   "surface": "屋面一级防水设防3道，其中卷材防水层1道",
+   "params": {
+    "item": "卷材道数",
+    "grade": "一级",
+    "total": 3,
+    "membrane": 1
+   },
+   "expected_ok": true,
+   "correct_statement": "屋面防水等级↔道数：一级≥3道(卷材≥1道)；二级≥2道(卷材≥1道)；三级≥1道(可任选卷材/涂料)",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-grade-009",
+   "rule_group": "A-roof-grade",
+   "surface": "屋面一级防水设防3道，全部采用涂料防水层、未设卷材防水层",
+   "params": {
+    "item": "卷材道数",
+    "grade": "一级",
+    "total": 3,
+    "membrane": 0
+   },
+   "expected_ok": false,
+   "correct_statement": "屋面防水等级↔道数：一级≥3道(卷材≥1道)；二级≥2道(卷材≥1道)；三级≥1道(可任选卷材/涂料)",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-grade-010",
+   "rule_group": "A-roof-grade",
+   "surface": "屋面二级防水设防2道，其中卷材防水层1道",
+   "params": {
+    "item": "卷材道数",
+    "grade": "二级",
+    "total": 2,
+    "membrane": 1
+   },
+   "expected_ok": true,
+   "correct_statement": "屋面防水等级↔道数：一级≥3道(卷材≥1道)；二级≥2道(卷材≥1道)；三级≥1道(可任选卷材/涂料)",
+   "anchor": "kc:1A413030_122_0230:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-basic-011",
+   "rule_group": "A-roof-basic",
+   "surface": "屋面防水工程中，屋面防水坚持以防为主、以排为辅",
+   "params": {
+    "item": "防排方针",
+    "practice": "屋面防水坚持以防为主、以排为辅"
+   },
+   "expected_ok": true,
+   "correct_statement": "屋面防水应以防为主、以排为辅",
+   "anchor": "kc:1A413030_122_0230:2",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-basic-012",
+   "rule_group": "A-roof-basic",
+   "surface": "屋面防水工程中，屋面防水设计使用年限不低于20年",
+   "params": {
+    "item": "设计年限",
+    "practice": "屋面防水设计使用年限不低于20年"
+   },
+   "expected_ok": true,
+   "correct_statement": "屋面防水设计使用年限≥20年",
+   "anchor": "kc:1A413030_122_0230:2",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-basic-013",
+   "rule_group": "A-roof-basic",
+   "surface": "屋面防水工程中，天沟、檐沟、变形缝和泛水部位增设附加层",
+   "params": {
+    "item": "附加层",
+    "practice": "天沟、檐沟、变形缝和泛水部位增设附加层"
+   },
+   "expected_ok": true,
+   "correct_statement": "天沟/檐沟/变形缝/泛水部位应增设附加层（漏附加层=不妥）",
+   "anchor": "kc:1A413030_122_0230:2",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-A-roof-basic-014",
+   "rule_group": "A-roof-basic",
+   "surface": "屋面防水工程中，泛水部位未增设附加层",
+   "params": {
+    "item": "附加层",
+    "practice": "泛水部位未增设附加层"
+   },
+   "expected_ok": false,
+   "correct_statement": "天沟/檐沟/变形缝/泛水部位应增设附加层（漏附加层=不妥）",
+   "anchor": "kc:1A413030_122_0230:2",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-layer-seq-015",
+   "rule_group": "B-layer-seq",
+   "surface": "倒置式屋面构造层次自下而上为：结构层→找坡层→找平层→防水层→保温层→保护层",
+   "params": {
+    "seq": "倒置式",
+    "steps": [
+     "结构层",
+     "找坡层",
+     "找平层",
+     "防水层",
+     "保温层",
+     "保护层"
+    ],
+    "case": "complete"
+   },
+   "expected_ok": true,
+   "correct_statement": "倒置式屋面构造层次自下而上：结构层→找坡层→找平层→防水层→保温层→保护层（口诀「结构找坡再找平，防水保温后保护」），保温层在防水层之上",
+   "anchor": "{2020,第12题}(真题锚🟢·ans=B)",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-layer-seq-016",
+   "rule_group": "B-layer-seq",
+   "surface": "倒置式屋面构造层次自下而上为：结构层→找坡层→找平层→保温层→防水层→保护层",
+   "params": {
+    "seq": "倒置式",
+    "steps": [
+     "结构层",
+     "找坡层",
+     "找平层",
+     "保温层",
+     "防水层",
+     "保护层"
+    ],
+    "case": "order:保温在防水之下"
+   },
+   "expected_ok": false,
+   "correct_statement": "倒置式屋面构造层次自下而上：结构层→找坡层→找平层→防水层→保温层→保护层（口诀「结构找坡再找平，防水保温后保护」），保温层在防水层之上",
+   "anchor": "{2020,第12题}(真题锚🟢·ans=B)",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-layer-seq-017",
+   "rule_group": "B-layer-seq",
+   "surface": "种植屋面构造层次自下而上为：基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层",
+   "params": {
+    "seq": "种植屋面",
+    "steps": [
+     "基层",
+     "绝热层",
+     "找平层",
+     "普通防水层",
+     "耐根穿刺防水层",
+     "保护层",
+     "排(蓄)水层",
+     "过滤层",
+     "种植土层",
+     "植被层"
+    ],
+    "case": "complete"
+   },
+   "expected_ok": true,
+   "correct_statement": "种植屋面构造层次共10层：基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层，不得漏耐根穿刺防水层",
+   "anchor": "kc:1A413030_127_0240:1",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-layer-seq-018",
+   "rule_group": "B-layer-seq",
+   "surface": "种植屋面构造层次自下而上为：基层→绝热层→找平层→普通防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层",
+   "params": {
+    "seq": "种植屋面",
+    "steps": [
+     "基层",
+     "绝热层",
+     "找平层",
+     "普通防水层",
+     "保护层",
+     "排(蓄)水层",
+     "过滤层",
+     "种植土层",
+     "植被层"
+    ],
+    "case": "omit:耐根穿刺防水层"
+   },
+   "expected_ok": false,
+   "correct_statement": "种植屋面构造层次共10层：基层→绝热层→找平层→普通防水层→耐根穿刺防水层→保护层→排(蓄)水层→过滤层→种植土层→植被层，不得漏耐根穿刺防水层",
+   "anchor": "kc:1A413030_127_0240:1",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-vapor-019",
+   "rule_group": "B-vapor",
+   "surface": "屋面保温工程中，隔汽层设置在结构层之上、保温层之下",
+   "params": {
+    "kind": "位置",
+    "practice": "隔汽层设置在结构层之上、保温层之下"
+   },
+   "expected_ok": true,
+   "correct_statement": "隔汽层应设在结构层之上、保温层之下，气密性好，沿周边墙面向上连续铺设、高出保温层不小于150mm",
+   "anchor": "kc:1A413030_125_0238:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-vapor-020",
+   "rule_group": "B-vapor",
+   "surface": "屋面保温工程中，隔汽层设置在防水层之上",
+   "params": {
+    "kind": "位置",
+    "practice": "隔汽层设置在防水层之上"
+   },
+   "expected_ok": false,
+   "correct_statement": "隔汽层应设在结构层之上、保温层之下，气密性好，沿周边墙面向上连续铺设、高出保温层不小于150mm",
+   "anchor": "kc:1A413030_125_0238:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-vapor-021",
+   "rule_group": "B-vapor",
+   "surface": "隔汽层沿周边墙面向上连续铺设，高出保温层150mm",
+   "params": {
+    "kind": "rise",
+    "rise_mm": 150
+   },
+   "expected_ok": true,
+   "correct_statement": "隔汽层应设在结构层之上、保温层之下，气密性好，沿周边墙面向上连续铺设、高出保温层不小于150mm",
+   "anchor": "kc:1A413030_125_0238:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-vapor-022",
+   "rule_group": "B-vapor",
+   "surface": "隔汽层仅铺至保温层底面周边，未沿周边墙面向上铺设高出保温层",
+   "params": {
+    "kind": "rise",
+    "rise_mm": 0
+   },
+   "expected_ok": false,
+   "correct_statement": "隔汽层应设在结构层之上、保温层之下，气密性好，沿周边墙面向上连续铺设、高出保温层不小于150mm",
+   "anchor": "kc:1A413030_125_0238:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-root-thickness-023",
+   "rule_group": "B-root-thickness",
+   "surface": "种植屋面采用改性沥青类耐根穿刺防水卷材，厚度 4mm",
+   "params": {
+    "material": "改性沥青类耐根穿刺防水卷材",
+    "thickness_mm": 4.0
+   },
+   "expected_ok": true,
+   "correct_statement": "耐根穿刺材料厚度：改性沥青类≥4mm；PVC/TPO/HDPE/EPDM≥1.2mm；喷涂聚脲≥2mm（厚度写少=不妥）",
+   "anchor": "kc:1A413030_127_0240:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-root-thickness-024",
+   "rule_group": "B-root-thickness",
+   "surface": "种植屋面采用改性沥青类耐根穿刺防水卷材，厚度 1.2mm",
+   "params": {
+    "material": "改性沥青类耐根穿刺防水卷材",
+    "thickness_mm": 1.2
+   },
+   "expected_ok": false,
+   "correct_statement": "耐根穿刺材料厚度：改性沥青类≥4mm；PVC/TPO/HDPE/EPDM≥1.2mm；喷涂聚脲≥2mm（厚度写少=不妥）",
+   "anchor": "kc:1A413030_127_0240:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-root-thickness-025",
+   "rule_group": "B-root-thickness",
+   "surface": "种植屋面采用改性沥青类耐根穿刺防水卷材，厚度 2mm",
+   "params": {
+    "material": "改性沥青类耐根穿刺防水卷材",
+    "thickness_mm": 2.0
+   },
+   "expected_ok": false,
+   "correct_statement": "耐根穿刺材料厚度：改性沥青类≥4mm；PVC/TPO/HDPE/EPDM≥1.2mm；喷涂聚脲≥2mm（厚度写少=不妥）",
+   "anchor": "kc:1A413030_127_0240:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-root-thickness-026",
+   "rule_group": "B-root-thickness",
+   "surface": "种植屋面采用PVC/TPO/HDPE/EPDM耐根穿刺防水卷材，厚度 4mm",
+   "params": {
+    "material": "PVC/TPO/HDPE/EPDM耐根穿刺防水卷材",
+    "thickness_mm": 4.0
+   },
+   "expected_ok": true,
+   "correct_statement": "耐根穿刺材料厚度：改性沥青类≥4mm；PVC/TPO/HDPE/EPDM≥1.2mm；喷涂聚脲≥2mm（厚度写少=不妥）",
+   "anchor": "kc:1A413030_127_0240:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-root-thickness-027",
+   "rule_group": "B-root-thickness",
+   "surface": "种植屋面采用PVC/TPO/HDPE/EPDM耐根穿刺防水卷材，厚度 1.2mm",
+   "params": {
+    "material": "PVC/TPO/HDPE/EPDM耐根穿刺防水卷材",
+    "thickness_mm": 1.2
+   },
+   "expected_ok": true,
+   "correct_statement": "耐根穿刺材料厚度：改性沥青类≥4mm；PVC/TPO/HDPE/EPDM≥1.2mm；喷涂聚脲≥2mm（厚度写少=不妥）",
+   "anchor": "kc:1A413030_127_0240:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-root-thickness-028",
+   "rule_group": "B-root-thickness",
+   "surface": "种植屋面采用PVC/TPO/HDPE/EPDM耐根穿刺防水卷材，厚度 2mm",
+   "params": {
+    "material": "PVC/TPO/HDPE/EPDM耐根穿刺防水卷材",
+    "thickness_mm": 2.0
+   },
+   "expected_ok": true,
+   "correct_statement": "耐根穿刺材料厚度：改性沥青类≥4mm；PVC/TPO/HDPE/EPDM≥1.2mm；喷涂聚脲≥2mm（厚度写少=不妥）",
+   "anchor": "kc:1A413030_127_0240:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-root-thickness-029",
+   "rule_group": "B-root-thickness",
+   "surface": "种植屋面采用喷涂聚脲防水层，厚度 4mm",
+   "params": {
+    "material": "喷涂聚脲防水层",
+    "thickness_mm": 4.0
+   },
+   "expected_ok": true,
+   "correct_statement": "耐根穿刺材料厚度：改性沥青类≥4mm；PVC/TPO/HDPE/EPDM≥1.2mm；喷涂聚脲≥2mm（厚度写少=不妥）",
+   "anchor": "kc:1A413030_127_0240:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-root-thickness-030",
+   "rule_group": "B-root-thickness",
+   "surface": "种植屋面采用喷涂聚脲防水层，厚度 1.2mm",
+   "params": {
+    "material": "喷涂聚脲防水层",
+    "thickness_mm": 1.2
+   },
+   "expected_ok": false,
+   "correct_statement": "耐根穿刺材料厚度：改性沥青类≥4mm；PVC/TPO/HDPE/EPDM≥1.2mm；喷涂聚脲≥2mm（厚度写少=不妥）",
+   "anchor": "kc:1A413030_127_0240:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-B-root-thickness-031",
+   "rule_group": "B-root-thickness",
+   "surface": "种植屋面采用喷涂聚脲防水层，厚度 2mm",
+   "params": {
+    "material": "喷涂聚脲防水层",
+    "thickness_mm": 2.0
+   },
+   "expected_ok": true,
+   "correct_statement": "耐根穿刺材料厚度：改性沥青类≥4mm；PVC/TPO/HDPE/EPDM≥1.2mm；喷涂聚脲≥2mm（厚度写少=不妥）",
+   "anchor": "kc:1A413030_127_0240:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-underground-032",
+   "rule_group": "C-underground",
+   "surface": "作答：地下工程防水等级分为四级",
+   "params": {
+    "item": "分级数",
+    "claimed_levels": 4
+   },
+   "expected_ok": true,
+   "correct_statement": "地下工程防水等级分四级（一/二/三/四级）；屋面防水等级才分三级，禁混",
+   "anchor": "{2019,第12题}(真题锚🟢·ans=C)",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-underground-033",
+   "rule_group": "C-underground",
+   "surface": "作答：地下工程防水等级分为五级",
+   "params": {
+    "item": "分级数",
+    "claimed_levels": 5
+   },
+   "expected_ok": false,
+   "correct_statement": "地下工程防水等级分四级（一/二/三/四级）；屋面防水等级才分三级，禁混",
+   "anchor": "{2019,第12题}(真题锚🟢·ans=C)",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-underground-034",
+   "rule_group": "C-underground",
+   "surface": "作答：地下工程防水等级分为三级",
+   "params": {
+    "item": "分级数",
+    "claimed_levels": 3
+   },
+   "expected_ok": false,
+   "correct_statement": "地下工程防水等级分四级（一/二/三/四级）；屋面防水等级才分三级，禁混",
+   "anchor": "{2019,第12题}(真题锚🟢·ans=C)",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-underground-035",
+   "rule_group": "C-underground",
+   "surface": "地下工程防水等级一级：防水做法3道，防水混凝土1道（应选），外设防水层2道（其中卷材或涂料防水层1道），防水混凝土抗渗等级P8",
+   "params": {
+    "item": "一级做法",
+    "total": 3,
+    "concrete": 1,
+    "external": 2,
+    "imperm": "P8"
+   },
+   "expected_ok": true,
+   "correct_statement": "地下一级防水：防水做法≥3道；防水混凝土1道(应选)；外设防水层≥2道(卷材或涂料≥1道)；抗渗等级≥P8，缺一不可",
+   "anchor": "kc:1A413030_130_0247:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-underground-036",
+   "rule_group": "C-underground",
+   "surface": "地下工程防水等级一级：仅采用抗渗等级P8的防水混凝土，不再外设防水层",
+   "params": {
+    "item": "一级做法",
+    "total": 1,
+    "concrete": 1,
+    "external": 0,
+    "imperm": "P8"
+   },
+   "expected_ok": false,
+   "correct_statement": "地下一级防水：防水做法≥3道；防水混凝土1道(应选)；外设防水层≥2道(卷材或涂料≥1道)；抗渗等级≥P8，缺一不可",
+   "anchor": "kc:1A413030_130_0247:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-underground-037",
+   "rule_group": "C-underground",
+   "surface": "地下工程防水等级一级：防水做法3道，外设防水层仅1道，防水混凝土抗渗等级P8",
+   "params": {
+    "item": "一级做法",
+    "total": 3,
+    "concrete": 1,
+    "external": 1,
+    "imperm": "P8"
+   },
+   "expected_ok": false,
+   "correct_statement": "地下一级防水：防水做法≥3道；防水混凝土1道(应选)；外设防水层≥2道(卷材或涂料≥1道)；抗渗等级≥P8，缺一不可",
+   "anchor": "kc:1A413030_130_0247:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-underground-038",
+   "rule_group": "C-underground",
+   "surface": "地下工程防水等级一级：防水做法3道，防水混凝土1道、外设防水层2道，防水混凝土抗渗等级P6",
+   "params": {
+    "item": "一级做法",
+    "total": 3,
+    "concrete": 1,
+    "external": 2,
+    "imperm": "P6"
+   },
+   "expected_ok": false,
+   "correct_statement": "地下一级防水：防水做法≥3道；防水混凝土1道(应选)；外设防水层≥2道(卷材或涂料≥1道)；抗渗等级≥P8，缺一不可",
+   "anchor": "kc:1A413030_130_0247:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-underground-039",
+   "rule_group": "C-underground",
+   "surface": "地下工程防水等级三级：防水做法1道，防水混凝土1道（应选），外设防水层不作要求，防水混凝土抗渗等级P6",
+   "params": {
+    "item": "三级做法",
+    "total": 1,
+    "concrete": 1,
+    "external_required": false,
+    "imperm": "P6"
+   },
+   "expected_ok": true,
+   "correct_statement": "地下三级防水：防水做法≥1道；防水混凝土1道(应选)；外设防水层不作要求；抗渗等级≥P6（负例档 jury#10 争议不入，仅正例）",
+   "anchor": "kc:1A413030_130_0247:1",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-concrete-040",
+   "rule_group": "C-concrete",
+   "surface": "防水混凝土抗渗等级不低于P6",
+   "params": {
+    "kind": "imperm_floor",
+    "value": "P6"
+   },
+   "expected_ok": true,
+   "correct_statement": "防水混凝土：抗渗等级≥P6；试配抗渗比设计提高0.2MPa(设计P8则试配P10)；水胶比不得大于0.50；分层连续浇筑、分层厚度≤500mm",
+   "anchor": "kc:1A413030_130_0249:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-concrete-041",
+   "rule_group": "C-concrete",
+   "surface": "防水混凝土设计抗渗等级P8，试配抗渗等级按P10",
+   "params": {
+    "kind": "trial",
+    "design": "P8",
+    "trial": "P10"
+   },
+   "expected_ok": true,
+   "correct_statement": "防水混凝土：抗渗等级≥P6；试配抗渗比设计提高0.2MPa(设计P8则试配P10)；水胶比不得大于0.50；分层连续浇筑、分层厚度≤500mm",
+   "anchor": "kc:1A413030_130_0249:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-concrete-042",
+   "rule_group": "C-concrete",
+   "surface": "防水混凝土设计抗渗等级P8，试配抗渗等级仍按P8",
+   "params": {
+    "kind": "trial",
+    "design": "P8",
+    "trial": "P8"
+   },
+   "expected_ok": false,
+   "correct_statement": "防水混凝土：抗渗等级≥P6；试配抗渗比设计提高0.2MPa(设计P8则试配P10)；水胶比不得大于0.50；分层连续浇筑、分层厚度≤500mm",
+   "anchor": "kc:1A413030_130_0249:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-concrete-043",
+   "rule_group": "C-concrete",
+   "surface": "防水混凝土水胶比不大于0.50",
+   "params": {
+    "kind": "ratio",
+    "relation": "不大于0.50"
+   },
+   "expected_ok": true,
+   "correct_statement": "防水混凝土：抗渗等级≥P6；试配抗渗比设计提高0.2MPa(设计P8则试配P10)；水胶比不得大于0.50；分层连续浇筑、分层厚度≤500mm",
+   "anchor": "kc:1A413030_130_0249:1",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-concrete-044",
+   "rule_group": "C-concrete",
+   "surface": "防水混凝土水胶比大于0.50",
+   "params": {
+    "kind": "ratio",
+    "relation": "大于0.50"
+   },
+   "expected_ok": false,
+   "correct_statement": "防水混凝土：抗渗等级≥P6；试配抗渗比设计提高0.2MPa(设计P8则试配P10)；水胶比不得大于0.50；分层连续浇筑、分层厚度≤500mm",
+   "anchor": "kc:1A413030_130_0249:1",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-concrete-045",
+   "rule_group": "C-concrete",
+   "surface": "防水混凝土分层连续浇筑，分层厚度500mm",
+   "params": {
+    "kind": "layer",
+    "layer_mm": 500
+   },
+   "expected_ok": true,
+   "correct_statement": "防水混凝土：抗渗等级≥P6；试配抗渗比设计提高0.2MPa(设计P8则试配P10)；水胶比不得大于0.50；分层连续浇筑、分层厚度≤500mm",
+   "anchor": "kc:1A413030_130_0249:2",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-joint-046",
+   "rule_group": "C-joint",
+   "surface": "地下工程施工缝防水设防采用2种防水措施（遇水膨胀止水条+中埋式止水带）",
+   "params": {
+    "item": "设防种数",
+    "joint": "施工缝",
+    "kinds": 2
+   },
+   "expected_ok": true,
+   "correct_statement": "接缝防水设防种数：施工缝≥2种、后浇带≥1种（中埋式止水带/遇水膨胀止水条胶/预埋注浆管/外贴卷材外涂涂料/补偿收缩混凝土等，施工缝写1种=不妥）",
+   "anchor": "kc:1A413030_130_0248:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-joint-047",
+   "rule_group": "C-joint",
+   "surface": "地下工程施工缝防水设防仅采用1种防水措施",
+   "params": {
+    "item": "设防种数",
+    "joint": "施工缝",
+    "kinds": 1
+   },
+   "expected_ok": false,
+   "correct_statement": "接缝防水设防种数：施工缝≥2种、后浇带≥1种（中埋式止水带/遇水膨胀止水条胶/预埋注浆管/外贴卷材外涂涂料/补偿收缩混凝土等，施工缝写1种=不妥）",
+   "anchor": "kc:1A413030_130_0248:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-joint-048",
+   "rule_group": "C-joint",
+   "surface": "地下工程后浇带防水设防采用1种防水措施（补偿收缩混凝土）",
+   "params": {
+    "item": "设防种数",
+    "joint": "后浇带",
+    "kinds": 1
+   },
+   "expected_ok": true,
+   "correct_statement": "接缝防水设防种数：施工缝≥2种、后浇带≥1种（中埋式止水带/遇水膨胀止水条胶/预埋注浆管/外贴卷材外涂涂料/补偿收缩混凝土等，施工缝写1种=不妥）",
+   "anchor": "kc:1A413030_130_0248:1",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-joint-049",
+   "rule_group": "C-joint",
+   "surface": "墙体水平施工缝留置在高出底板表面300mm的墙体上",
+   "params": {
+    "kind": "h_rise",
+    "rise_mm": 300
+   },
+   "expected_ok": true,
+   "correct_statement": "施工缝设置：水平缝应高出底板表面≥300mm、距孔洞边缘≥300mm；遇水膨胀止水条最终膨胀率≥220%（7d净膨胀率≤60%最终）",
+   "anchor": "kc:1A413030_131_0250:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-joint-050",
+   "rule_group": "C-joint",
+   "surface": "墙体水平施工缝设在底板表面以下",
+   "params": {
+    "kind": "h_rise",
+    "rise_mm": 0
+   },
+   "expected_ok": false,
+   "correct_statement": "施工缝设置：水平缝应高出底板表面≥300mm、距孔洞边缘≥300mm；遇水膨胀止水条最终膨胀率≥220%（7d净膨胀率≤60%最终）",
+   "anchor": "kc:1A413030_131_0250:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-joint-051",
+   "rule_group": "C-joint",
+   "surface": "施工缝距孔洞边缘300mm",
+   "params": {
+    "kind": "hole_dist",
+    "dist_mm": 300
+   },
+   "expected_ok": true,
+   "correct_statement": "施工缝设置：水平缝应高出底板表面≥300mm、距孔洞边缘≥300mm；遇水膨胀止水条最终膨胀率≥220%（7d净膨胀率≤60%最终）",
+   "anchor": "kc:1A413030_131_0250:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F03-C-joint-052",
+   "rule_group": "C-joint",
+   "surface": "采用遇水膨胀止水条，最终膨胀率220%",
+   "params": {
+    "kind": "swell",
+    "rate_pct": 220
+   },
+   "expected_ok": true,
+   "correct_statement": "施工缝设置：水平缝应高出底板表面≥300mm、距孔洞边缘≥300mm；遇水膨胀止水条最终膨胀率≥220%（7d净膨胀率≤60%最终）",
+   "anchor": "kc:1A413030_131_0250:1",
+   "extension": false
+  }
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:48+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
+}

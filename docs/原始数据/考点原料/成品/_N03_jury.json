@@ -2,15 +2,26 @@
   {
     "issue": "M5误区中“只写用大差法不展开过程”应归类为采分点遗漏(E02)而非程序顺序错误(E06)，且需明确是否涵盖其他程序顺序错误",
     "location": "§6/L6 误区 M5",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "将M5主码改为E02，仅在步骤顺序确实错乱时保留E06；同时补充说明M5不限于仅缺三步骤，避免定义局限"
+    "fix": "将M5主码改为E02，仅在步骤顺序确实错乱时保留E06；同时补充说明M5不限于仅缺三步骤，避免定义局限",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "N03_流水施工参数与工期.md §6 M5（主码 E06→E02 前轮已应用并记录于§9；D2 裁决批按 GLM-5.2+Fable-5 双签结论补范围括注：E02 覆盖漏任一中间过程/只报方法名或结果，E06 覆盖三动作及之外的步骤次序错乱——'不限于仅缺三步骤'定义局限已消除）",
+      "verified": "2026-07-04 确定性复核：ERROR_CODE_REGISTRY 直读 E02=采分点遗漏、E06=程序顺序错误；pack §6 M5 行 grep 命中'漏任一中间过程、只报方法名或只报结果均属 E02'与'三动作及三动作之外的步骤次序错乱均按 **E06'；verify_pack+verify_exam_anchors 改后复跑 exit=0（可重跑：grep -n '漏任一中间过程' 成品/N03_流水施工参数与工期.md）"
+    }
   },
   {
     "issue": "施工段划分原则中劳动量差异≤15%的普适性未验证，可能并非所有情况均适用",
     "location": "L1 #2",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "需进一步确认规范或教材是否声明无条件适用，必要时增加例外或条件说明"
@@ -18,7 +29,9 @@
   {
     "issue": "成倍节拍总工期公式(2+5-1)×3=18月的普遍适用性未验证，可能仅适用于特定条件",
     "location": "L3 场景印证 #4",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "补充公式适用范围或注明条件假设，避免隐含无例外"
@@ -26,7 +39,9 @@
   {
     "issue": "变量规则R4要求总工期T必须体现搭接过程的必要性未充分证实，可能过于绝对",
     "location": "L4 R4 变量规则 组C",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "验证是否所有题型均需详细展示搭接过程，否则将该要求改为条件性或降级为建议"
@@ -34,7 +49,9 @@
   {
     "issue": "{2023,第2题}中correct_answer支持K=3，但analysis包含冲突表述，pack将其作为无条件的支撑未作区分",
     "location": "§3场景4/§4意图①/§6 M2",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "将论断明确基于correct_answer，标注analysis冲突不可作为支撑，避免过度泛化"
@@ -42,7 +59,9 @@
   {
     "issue": "“无节奏/异步距用大差法”被评为🟢过度，现有引用仅支持异节奏场景，不充分支撑无节奏",
     "location": "§1#10/§4 S5/§5 骨架3",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "大差法三动作保留🟢，“无节奏/异步距适用场景”降为🔵，待原教材或评分细则补强"
@@ -50,7 +69,9 @@
   {
     "issue": "“节拍不等时增加专业队数”表述过于宽泛，可能错误覆盖非成倍数的不等节拍",
     "location": "§1#11/§7 拆队",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "改为“节拍不等且成倍数时”保留🟢，单独“节拍不等”降🔵"
@@ -58,7 +79,9 @@
   {
     "issue": "“四者缺一即不妥”要求过于绝对，对仅要求K/队数不问工期的题目显得过强",
     "location": "§3 R2 不变量",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "修改为“题目要求的链条环节缺一即不妥”，绝对化表述降🔵"
@@ -66,7 +89,9 @@
   {
     "issue": "“机械加所有节拍=0分”属评分档位判断，不宜在R4中作为封闭判分标准直接使用",
     "location": "§4 规则组C/§5 R7",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "保留“机械相加语义错误”🟢，将“0分”档位降🔴，作为待真人/专家裁决的边界候选"
@@ -74,7 +99,9 @@
   {
     "issue": "M7误区“不看劳动量差异，只看工作面”目前挂E08偏题干提取，作为通用误区应归属于概念混淆或知识点缺失",
     "location": "§6 M7",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "通用误区改挂E07/E01🟢；具体题干明确给出劳动量数据却被忽略时保留E08🔵"
@@ -82,7 +109,9 @@
   {
     "issue": "横道图在注册表primary_taxonomy_ref中设为判分主权威，与正文“横道图非判分眼”存在矛盾",
     "location": "注册表对齐块/§1#12",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "若仅作为分类定位锚可保留并加注说明，若作为判分主依据则降🔵以消除歧义"

@@ -23,6 +23,10 @@ _INTERNAL_OUTPUT_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"(?:InternalError\.Algo\.DataInspectionFailed|DataInspectionFailed|Request timed out)", re.IGNORECASE),
     re.compile(r"(?:provider error|raw provider|HTTP_?40[04]|HTTP_?50[023])", re.IGNORECASE),
     re.compile(
+        r"(?:Access denied.{0,120}account is in good standing|overdue-payment|\bArrearage\b|Error:\s*\{['\"]message['\"])",
+        re.IGNORECASE,
+    ),
+    re.compile(
         r"(?:Authentication Fails|authentication_error|invalid_request_error|api key.{0,40}invalid|Error code:\s*401)",
         re.IGNORECASE,
     ),

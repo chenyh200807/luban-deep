@@ -1,0 +1,19 @@
+[
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":0,"tier":"Tier-0确定性核验+Tier-2确认(三色类)",
+   "actions":["字符串定位: §1 #8b 已拆行降🔵邻接吊装工序 — 前轮已按fix改","GLM-5.2: satisfied=true; Fable-5 复签同意","结论: status=fixed(前轮已改, 本轮补凭据)"],
+   "panel":{"GLM-5.2":{"satisfied":true},"Fable-5":"复签同意"}},
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":1,"tier":"Tier-0确定性核验+Tier-2事实类确认",
+   "actions":["kc:1A434000_074_0116:0 quote 直读仅清坡口/摆条/返修 — jury 现象为真",
+     "exam_evidence 直读: {2021,第8题} analysis 逐字含全部被质疑成因(电流太小/速度太快/熔渣密度太大/熔渣未清除/夹钨) — 前轮以真题解析锚+判别表降级收口(非降🔵删除的合法替代路径)",
+     "GLM-5.2: satisfied=true(fix 精神=有锚保🟢/无锚降, 成因已有真题锚); Fable-5 复签同意","结论: status=fixed(前轮已改, 本轮补凭据)"],
+   "panel":{"GLM-5.2":{"satisfied":true},"Fable-5":"复签同意"}},
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":2,"tier":"Tier-2(错因码语义类)确认",
+   "actions":["§6 M3 前轮已按 fix『统一改E10』分支改; registry 直读 E10=规范适用错误",
+     "GLM-5.2 单审: e10_apt=true, satisfied=true; Fable-5 复签同意(不得作标记是规范强制要求, 违规=E10)","结论: status=fixed(前轮已改, 双签确认)"],
+   "panel":{"GLM-5.2":{"satisfied":true,"e10_apt":true},"Fable-5":"复签同意"}},
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":3,"tier":"Tier-2(错因码+锚)确认",
+   "actions":["§6 M7 前轮已按 fix『保留E07但补锚』分支: 挂{2017,第23题}真题锚",
+     "exam_evidence 直读: {2017,第23题} ans=ABCD, analysis 'E项错误:焊缝内部缺陷难以检查,需借助探伤手段'",
+     "GLM-5.2: e07_apt=true(优点误套=概念混淆); Fable-5 复签同意","结论: status=fixed(前轮已改, 双签确认)"],
+   "panel":{"GLM-5.2":{"satisfied":true,"e07_apt":true},"Fable-5":"复签同意"}}
+]

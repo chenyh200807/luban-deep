@@ -150,7 +150,9 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   是批量迁移 / 测试污染高风险来源，不得计入真实运营会员。`public.v_members` 只负责为这些
   phone-backed identities 补充钱包、画像和聊天汇总 read model。`member_console` 本地 JSON
   只能作为运营备注、审计流水、conversation view audit 和低风险动作记录的 overlay；不得再作为
-  生产会员池、注册手机号池、钱包存在性或学习事实的 canonical source。
+  生产会员池、注册手机号池、钱包存在性或学习事实的 canonical source。BI 默认会员列表和经营总量
+  必须展示真实运营会员：可信手机号身份仍需先排除 QA、eval、release smoke、practice anchor、
+  army 类模拟账号和其它 `_looks_like_test_member` 标记账号。
 - `member_console` 可以提供会员套餐展示 read model 和运营包配置投影，但新注册用户的默认权益必须是
   0 点；充值到账、扣费、冻结余额和钱包存在性仍只属于 `WalletService` / wallet ledger
   authority。套餐展示中的原价、现价、点数和可用轮次只是 commerce read model，不得写入 learner
@@ -163,7 +165,8 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   `wallet_ledger` purchase 流水，前端和 BI commerce 不得自造收入表或把人工开通写成 learner-state
   事实。若 wallet service 不可用，人工付费开通必须 fail-closed，不能只改会员到期时间。
 - BI 会员运营新增窗口指标（例如今日、近 7 天、近 30 天新增）只能在上述可信会员目录内按
-  canonical member `created_at` 计算；它们是 dashboard read model，不得从前端分页结果、
+  canonical member `created_at` 计算；“今日新增”按 UTC+8 自然日计算，近 7 天 / 近 30 天
+  仍是相对当前时间的滚动窗口。它们是 dashboard read model，不得从前端分页结果、
   行为事件、钱包流水、运营备注或 learner-state projection 反推，也不得写入
   `learner_summaries`、`learner_memory_events`、profile、progress、goals 或 heartbeat。
 - BI 会员列表的 `last_active_at` 可以用 canonical session store 的真实会话更新时间做
@@ -186,6 +189,10 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   微信手机号快速登录或注册去重时，必须先通过可信 `phone` alias 解析到 canonical UUID，再绑定或
   合并 member identity。`member_console` 本地 `member.phone` 只能作为兼容读模型和低风险补充，
   不得绕过 `public.user_identity_aliases` 另建第二个手机号账号 authority。
+- 账号密码注册必须在 `MemberConsoleService` 层先校验有效大陆手机号，再创建 external auth
+  用户；手机号验证码登录、微信 `getPhoneNumber` 快速登录 / 绑定和账号密码登录必须共同收敛到
+  同一个 canonical member identity，一个手机号只能对应一个账号，不得让用户名、openid、设备号或
+  未验证手机号获得独立免费试用 / billing / learner-state 身份。
 - 微信手机号强制绑定策略上线前签发的 `wechat_mp` token 不得继续作为正式会员态刷新或访问会员
   资源；服务端必须让这类旧会话重新走 `getPhoneNumber phone_code`，避免旧 wx-only session
   长期绕过手机号 canonical identity。
@@ -399,6 +406,18 @@ Overlay 必须支持：
   仅通过 `payload.evidence_source="conversation_synthesis"` 和
   `payload.learning_signal_type` 区分。conversation evidence 不得直接提升 mastery，
   只能进入 recent observation / needs confirmation，直到后续 grading evidence 验证。
+- 学-evidence（`learning_signal_type="lesson_viewed"`，融合计划 §2.1）：唯一 writer =
+  `learner_state/lesson_evidence.record_lesson_view_evidence()`（经 `/api/v1/lesson-progress`
+  路由），仍走 `append_memory_event` 唯一 sink。payload 必须带
+  `event_type="learning_evidence"`（本 contract 硬要求）+ `evidence_level="exposed"`
+  （ladder 外 level，不参与掌握排序）+ `quality.progress_countable=false`（report
+  attempt/streak 与 mastery attempts 全部跳过）；`source_feature="luban_lesson"` 必须
+  保持在 `learning_synthesis._is_learning_evidence` 白名单**之外**——看动画绝不进
+  claim/weak point/mastery（M0）。dedupe_key 按（用户, pack, watched_stage, 业务日）
+  折叠。消费边界：只被生命周期投影（「已学·待验证」态）等定向读侧消费；
+  `home_personalization` 的最近事件选择器必须过滤 `lesson_viewed`（不顶替
+  today_focus）；`learning_state_projection` 以 `lesson_view_count` 显式分类（不计入
+  legacy_count）。
 - 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
   `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
   读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
@@ -474,6 +493,68 @@ Overlay 必须支持：
 职责：
 
 - 学员级 heartbeat 调度主表
+
+### Home Next-Step Projection（融合计划 §3，2026-07-03 登记）
+
+`home_next_step_projection` 是跨模式「下一步」的**呈现仲裁 read-model authority**
+（display arbitration，register-before-use 显式登记——不是第二练习处方）。
+
+1. 组合规则只存在这一份（`learner_state/home_next_step_projection.py`）：
+   `到期复（revalidation_queue 有 due probe）> 活跃练（training_intent 有
+   active intent）> 下一学（路线上第一个 未学∧绿灯签发 的站）> fallback
+   （registry 静态序第一个绿灯站 + 群体理由）`。**禁前端/各 tab 再拼一次。**
+2. 输出必须带 `mode / source_authority / source_ref / reason` 四字段——每个
+   「下一步」可审计来自哪个权威。
+3. 铁律：禁写 ledger、禁生成/修改 `training_intent`、禁改 revalidation 状态。
+   它不生成任何「该练什么」的内容判断——练的内容仍完全由 `training_intent`
+   说了算，复由 `revalidation_queue`，学序由 registry+前置边。
+4. 冷启动兜底：新用户零证据 → 前三臂空 → fallback 必须非空（day-0 不白屏），
+   理由文案用群体理由（诚实版，不伪装个性化）。
+5. 接入面：home dashboard，受 `DEEPTUTOR_HOME_NEXT_STEP_ENABLED`（默认 off）
+   门控；退路（若被证明越权）= learn 只作路线图固有语义。该 flag 是
+   「home 生命周期融合面」**总开关**（2026-07-04 owner 拍板）：off = 全走
+   旧静态分 + 无 next_step（现状不变）；on = next_step 与 mastery 证据
+   blend（首页/雷达/章节盘 `_report_mastery_items` 路径）一起生效——
+   不设第二个 blend 专用 flag。内部空态 `mode="unavailable"`
+   （`MODE_UNAVAILABLE` / `unavailable_next_step()` 工厂）是投影层哨兵，
+   **永不外泄**到 dashboard payload：上层见此 mode 一律不挂 `next_step`。
+   范围裁决（2026-07-04，Codex 终审 P2 → 主控裁决）：本条款的「章节盘」=
+   `get_mastery_dashboard`（掌握度盘）；`/api/v1/practice/chapter-progress` →
+   `get_chapter_progress` 是练习页 legacy 进度列表，**不在本轮融合面内**、
+   刻意不受此 flag 门控（其 mastery 字段仍读 member 静态分）。其收口
+   （改读单一算子或下线该字段）登记为独立后续工单，不得在无裁决时顺手改。
+6. 输入供给禁断供（2026-07-03，Codex SEV-1 治本）：caller 组装输入时**禁止
+   硬编码空供给**冒充"该权威无输出"。首页接线口径 = 活跃练从同一份
+   snapshot events 纯派生处方 outcomes（`status != "verified"` 即活跃），
+   同一份 outcomes 必须同时传入 `revalidation_queue`（已验证抑制，与
+   learning-report 路径同口径）；claims 从 `read_compiled_learning_truth`
+   的 `weak_points` 读取（miss 时空列表如实降级，**不**跑在线 dry-run
+   合成——此为对上文 cache-miss 回退条款在首页在线路径的显式最小偏离）。
+7. weak_points 聚合保真（同日）：`learning_synthesis` 的 L2 档聚合按
+   evidence rank 判定并保留组内最高 level（`L2_real_retest` 不得被字面
+   `L2_confirmed` 比较降档）——真懂信号不在聚合层丢失。
+
+### Review Due Projection（双轮 §6 复习模块，2026-07-05 登记，`LUBAN_REVIEW_MODULE_ENABLED` 后）
+
+1. `learner_signal` 第三类 `station_completed`（双轮复习到期收权）：站点完成
+   （交接时刻/复测完成）的触发事实，`concept_id`=pack_id；仍非 promoting
+   （source_feature=learner_signal，证据编译器排除）。旗标关 = 该类型被拒
+   （与收权前行为一致）。
+2. 到期/间隔语义唯一权威=`revalidation_queue`：新增新学相 `state="fresh"`
+   首跳按 **UTC+8 日历日次日**（§6.1 分相最小实现 + §9-D2「天」=日历日，
+   「明天见」承诺的调度载体；满 24h 判定被否——昨晚学的今早即到期）。
+   §6.1 地平线参数同居本模块：间隔上限 cap ≤14 天恒生效；`exam_date`
+   已设且距考 ≤40 天 → 确定性线性压缩、且间隔永不超过距考天数
+   （考前一周结构上不可能出现「21 天后复习」）；考后不压缩（队列语义
+   切换归后续阶段）。`exam_date` 唯一读源 = member profile，读侧透传、不复制。
+3. pack 级到期投影 `luban_lesson/review_due.py`（GET `/api/v1/luban/review-due`）
+   只做粒度桥接与绿灯 join，零调度逻辑（禁第二调度器）；`retest_available=false`
+   的站客户端必须 fail-closed 隐藏「换皮」承诺句。
+4. `mistake_book` 的 `review_due_at` 是**读侧投影**（`derive_review_due_at`，
+   错题=lapse 走 weak 相），零落库、零间隔常量在 mistake_book 内——写侧
+   `record_review` 继续清空存量 `review_due_at`（防第二调度权威复活）。
+5. 「标记掌握」仍是呈现层旗标（见 `mark_mastered` 条款）；复测/变体挑战
+   完成只发 `station_completed` 重排到期，**绝不**直写掌握态。
 
 ## 单一写入职责
 
@@ -825,3 +906,7 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
 ## member display_name 真值（2026-06-24）
 
 `member_console` 投影的 `display_name` **不得回落为 `user_id`**：微信快捷登录曾把 `display_name` 误置为内部 `user_id`（退化态），导致学员台账把内部 uid 当昵称展示。修复后单点约束：当 `display_name` 缺失或等于 `user_id` 时，统一回落为 `微信用户{user_id 后4位}`（`member_console/service.py` 的 directory 投影与绑定路径同口径）。`display_name` 是**展示字段**，不是 learner identity authority——identity 仍按 `canonical_uid` 单点（见上文「单一权威」），display_name 退化不得污染 identity 解析。
+
+## QA/内部账号 allowlist 导出（2026-07-02）
+
+`MemberConsoleService.list_internal_test_user_ids()` 是 QA/内部账号名单的**唯一读权威**（spike D1 度量与 D15 埋点读侧共用）：判据复用 `_looks_like_test_member`，禁止在度量脚本里另建启发式名单（`turns>50` 等只能作对照披露）。实现注意：不得经 `_load_member_directory_members_for_bi` 取数——其 BI 过滤会先剔除测试账号，生产恒为空集；必须遍历本地 store + Supabase directory 原始成员。该导出是只读投影，不是第二 identity authority——identity 仍按 `canonical_uid` 单点。

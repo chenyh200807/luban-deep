@@ -152,14 +152,14 @@
   "taxonomy_alignment": {
     "priority_slot": 25,
     "pack_id": "G01",
-    "status": "answer_layer",
+    "status": "direct",
     "canonical_taxonomy_refs": [
       "1A413037",
       "1A413036",
       "1A413000-B081",
       "1A413000-B071"
     ],
-    "note": "G01 answer layer: 基坑开挖与降水案例题作答句式"
+    "note": "G01 answer layer: 基坑开挖与降水案例题作答句式（2026-07-03 §6-3 数据修：脏状态值 answer_layer → direct，照 registry slot 25）"
   },
   "ai_context": {
     "context_id": "P40_G01",

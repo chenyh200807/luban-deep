@@ -1,0 +1,16 @@
+[
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":0,"tier":"Tier-0确定性核验+Tier-2确认(F04首次裁决·D1修复后sidecar)",
+   "actions":["adjudicate.py F04: UNDECIDED; verify_exam_anchors exit 0; jury sidecar 已为合法单 JSON 数组(D1 修复核真)",
+     "exam_evidence 直读: {2015,案例2} correct_answer 逐字含'做成 45 度角或圆弧型' — 45度真题支撑成立",
+     "字符串定位: §4 R4 A/封闭性自检/R5#2/§6 M1/§1#1 五处已按 fix 落实(真题锚标注+宜还原+宜应区分声明)",
+     "GLM-5.2: satisfied=true, residual_ying_ok=true(2 处'应'在纠错正确做法语境=官方答案口径); Fable-5 复签同意",
+     "结论: status=fixed(前轮已改, 本轮补凭据), 升色=0 新增🟢=0"],
+   "panel":{"GLM-5.2":{"satisfied":true,"residual_ying_ok":true},"Fable-5":"复签同意"}},
+  {"ts":"2026-07-04","batch":"D3-medium","issue_idx":1,"tier":"Tier-2(错因码语义类)确认",
+   "actions":["字符串定位: §6 M4 现挂 E02(案例)/M01(客观·做法遗漏类,非数字问题), M08 已移除 — 与 fix 逐字一致(前轮已改)",
+     "GLM-5.2 单审(flaggers=DeepSeek/GPT-5.5, GLM未flag): satisfied=true; Fable-5 复签同意",
+     "结论: status=fixed(前轮已改, 本轮补凭据)"],
+   "panel":{"GLM-5.2":{"satisfied":true},"Fable-5":"复签同意"}},
+  {"ts":"2026-07-04","batch":"D3-medium","note":"pack级设计门(Tier-3登记·不硬裁)",
+   "detail":"F04 为 coarse_review 包(needs_leaf_review=true, explicitly_barred_default_entry=true——taxonomy 无防水细部节点专属叶子), leaf review 设计门归 owner, 本批 2 条 issue 裁决不解除该门, 已列入 owner 升级清单(与 Q03 同批)"}
+]

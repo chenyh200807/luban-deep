@@ -1,0 +1,154 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "S05",
+ "status": "signed",
+ "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
+ "generation_ms": 0.81,
+ "gate": {
+  "total": 8,
+  "passed": 8,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 8,
+ "dropped_rows": [],
+ "antidotes": {
+  "E06": [
+   {
+    "r8_id": "S05:R8-M1",
+    "mental_model": "送电总→分→开；停电开→分→总，禁逆",
+    "textbook_ref": "kc:1A431011_015_0016:1",
+    "phenomenon": "停送电顺序颠倒(先开开关箱送电/先断总箱停电)",
+    "wrong_model": "以为从末端开始更快"
+   }
+  ],
+  "M08": [
+   {
+    "r8_id": "S05:R8-M1",
+    "mental_model": "送电总→分→开；停电开→分→总，禁逆",
+    "textbook_ref": "kc:1A431011_015_0016:1",
+    "phenomenon": "停送电顺序颠倒(先开开关箱送电/先断总箱停电)",
+    "wrong_model": "以为从末端开始更快"
+   },
+   {
+    "r8_id": "S05:R8-M4",
+    "mental_model": "电缆直接埋地敷设深度 ≥0.7m",
+    "textbook_ref": "kc:1A431011_014_0015:0",
+    "phenomenon": "电缆直接埋地深度 <0.7m",
+    "wrong_model": "以为浅埋减少施工难度"
+   },
+   {
+    "r8_id": "S05:R8-M5",
+    "mental_model": "潮湿/隧道 ≤36V；易触及 ≤24V；金属容器/锅炉 ≤12V",
+    "textbook_ref": "kc:1A431011_015_0016:2",
+    "phenomenon": "特殊场所用超 36V/24V/12V 照明",
+    "wrong_model": "以为常规电压够安全"
+   }
+  ],
+  "E10": [
+   {
+    "r8_id": "S05:R8-M2",
+    "mental_model": "一机一闸：每台设备专用开关箱，不得一箱控 2 台及以上(含插座)；进线端禁插头插座活动连接",
+    "textbook_ref": "kc:1A431011_014_0015:2",
+    "phenomenon": "多台设备共用一个开关箱 / 插头插座活动连接",
+    "wrong_model": "以为省成本省空间"
+   },
+   {
+    "r8_id": "S05:R8-M3",
+    "mental_model": "动力/照明配电箱宜分设；合并须分路；动力开关箱与照明开关箱必分设",
+    "textbook_ref": "kc:1A431011_014_0015:3",
+    "phenomenon": "动力与照明配电合并且不分路",
+    "wrong_model": "以为合并更好管"
+   },
+   {
+    "r8_id": "S05:R8-M5",
+    "mental_model": "潮湿/隧道 ≤36V；易触及 ≤24V；金属容器/锅炉 ≤12V",
+    "textbook_ref": "kc:1A431011_015_0016:2",
+    "phenomenon": "特殊场所用超 36V/24V/12V 照明",
+    "wrong_model": "以为常规电压够安全"
+   },
+   {
+    "r8_id": "S05:R8-M6",
+    "mental_model": "电工经职业资格考试合格持证上岗；用电设备拆除应由电工完成",
+    "textbook_ref": "kc:1A431011_014_0015:4",
+    "phenomenon": "电工无证上岗 / 用电设备由安全员拆除",
+    "wrong_model": "以为经验丰富可免证"
+   }
+  ],
+  "M10": [
+   {
+    "r8_id": "S05:R8-M2",
+    "mental_model": "一机一闸：每台设备专用开关箱，不得一箱控 2 台及以上(含插座)；进线端禁插头插座活动连接",
+    "textbook_ref": "kc:1A431011_014_0015:2",
+    "phenomenon": "多台设备共用一个开关箱 / 插头插座活动连接",
+    "wrong_model": "以为省成本省空间"
+   },
+   {
+    "r8_id": "S05:R8-M6",
+    "mental_model": "电工经职业资格考试合格持证上岗；用电设备拆除应由电工完成",
+    "textbook_ref": "kc:1A431011_014_0015:4",
+    "phenomenon": "电工无证上岗 / 用电设备由安全员拆除",
+    "wrong_model": "以为经验丰富可免证"
+   }
+  ],
+  "E03": [
+   {
+    "r8_id": "S05:R8-M3",
+    "mental_model": "动力/照明配电箱宜分设；合并须分路；动力开关箱与照明开关箱必分设",
+    "textbook_ref": "kc:1A431011_014_0015:3",
+    "phenomenon": "动力与照明配电合并且不分路",
+    "wrong_model": "以为合并更好管"
+   },
+   {
+    "r8_id": "S05:R8-M4",
+    "mental_model": "电缆直接埋地敷设深度 ≥0.7m",
+    "textbook_ref": "kc:1A431011_014_0015:0",
+    "phenomenon": "电缆直接埋地深度 <0.7m",
+    "wrong_model": "以为浅埋减少施工难度"
+   }
+  ],
+  "E01": [
+   {
+    "r8_id": "S05:R8-M7",
+    "mental_model": "三大系统缺一不可：三级配电 + TN-S 接零 + 二级漏保",
+    "textbook_ref": "kc:1A431011_015_0016:0",
+    "phenomenon": "答系统只写\"三级配电\"漏 TN-S/二级漏保",
+    "wrong_model": "以为说了配电就够"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "S05:R8-M7",
+    "mental_model": "三大系统缺一不可：三级配电 + TN-S 接零 + 二级漏保",
+    "textbook_ref": "kc:1A431011_015_0016:0",
+    "phenomenon": "答系统只写\"三级配电\"漏 TN-S/二级漏保",
+    "wrong_model": "以为说了配电就够"
+   }
+  ],
+  "E04": [
+   {
+    "r8_id": "S05:R8-M8",
+    "mental_model": "必须落到\"架构(三级二级)+参数(36/24/12V/0.7m)+管理(一机一闸/持证)\"可判分措施，口号不得分",
+    "textbook_ref": "kc:1A436000_107_0174:0",
+    "phenomenon": "答案空泛\"加强用电管理、做好防护\"",
+    "wrong_model": "以为方向对就给分"
+   }
+  ],
+  "E12": [
+   {
+    "r8_id": "S05:R8-M8",
+    "mental_model": "必须落到\"架构(三级二级)+参数(36/24/12V/0.7m)+管理(一机一闸/持证)\"可判分措施，口号不得分",
+    "textbook_ref": "kc:1A436000_107_0174:0",
+    "phenomenon": "答案空泛\"加强用电管理、做好防护\"",
+    "wrong_model": "以为方向对就给分"
+   }
+  ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:23+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
+ }
+}

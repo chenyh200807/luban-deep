@@ -153,3 +153,23 @@ def test_materialize_compiled_truth_documents_excludes_stale_or_superseded_claim
     )
 
     assert docs == []
+
+
+def test_real_retest_claims_survive_default_min_evidence_gate() -> None:
+    # §6-1 收权回归：L2_real_retest 曾在本模块字面 rank map 里缺席（rank=-1，
+    # 比 L0 还低），真实复测确认的弱点会被默认 L1 门静默过滤出召回。
+    docs = materialize_compiled_truth_documents(
+        {
+            "subject": "construction_exam_learning_truth",
+            "compiled_objects": {
+                "error:1A432000:E02": {
+                    "current_truth": "复测确认该弱点已被真实作答验证。",
+                    "evidence_level": "L2_real_retest",
+                    "supporting_event_ids": ["retest_evt"],
+                },
+            },
+        }
+    )
+
+    assert len(docs) == 1
+    assert docs[0]["evidence_level"] == "L2_real_retest"

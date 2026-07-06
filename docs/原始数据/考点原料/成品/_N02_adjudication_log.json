@@ -1,0 +1,210 @@
+[
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 0,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch→CET_1A433000_P0056_001 三因素逐字",
+    "actions": [
+      "GLM-5.2 approve",
+      "并列无优先序限定注"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 1,
+    "tier": "Tier-0证真+Tier-2事实类+Tier-1降级",
+    "retrieval": "{2017,案例一}官方答案直读",
+    "actions": [
+      "GLM-5.2 approve",
+      "不影响后续=真题逐字;给分规则降🔵"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 2,
+    "tier": "Tier-1邻接降级(GLM单审)",
+    "retrieval": null,
+    "actions": [
+      "GLM-5.2 approve",
+      "场景7移出印证,🟢→🔵(-1)"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 3,
+    "tier": "Tier-1归类修正",
+    "retrieval": null,
+    "actions": [
+      "GLM-5.2 approve",
+      "邻接噪声→邻接·合同责任核心"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 4,
+    "tier": "Tier-1措辞收窄",
+    "retrieval": null,
+    "actions": [
+      "GLM-5.2 approve",
+      "唯一判据→工期影响主判据+责任/合同并联"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 5,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 提前竣工+赶工→CET_1A432000_P0047_001 两情形逐字",
+    "actions": [
+      "GLM-5.2 approve",
+      "跨切片注"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 6,
+    "tier": "Tier-0检索证真+Tier-1",
+    "retrieval": "tbsearch 风险评估+赶工→0命中",
+    "actions": [
+      "GLM-5.2 approve",
+      "保持🔴;非标🟡清理"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 7,
+    "tier": "Tier-1措辞收窄",
+    "retrieval": null,
+    "actions": [
+      "GLM-5.2 approve",
+      "穷举→样本域覆盖"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 8,
+    "tier": "Tier-1规则修正",
+    "retrieval": null,
+    "actions": [
+      "GLM-5.2 approve",
+      "贪心→有效筛选+组合总费最低"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 9,
+    "tier": "Tier-2错因码",
+    "retrieval": null,
+    "actions": [
+      "GLM-5.2 approve",
+      "E06限子场景+补E02/E03/E09;Fable复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 10,
+    "tier": "Tier-0整表对账",
+    "retrieval": null,
+    "actions": [
+      "GLM-5.2 approve",
+      "12/12合法登记;§6🔴占位不动"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 11,
+    "tier": "Tier-1归类修正",
+    "retrieval": null,
+    "actions": [
+      "GLM-5.2 approve",
+      "噪声→邻接·合同程序"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 12,
+    "tier": "Tier-0证真+Tier-1确定性换锚",
+    "retrieval": null,
+    "actions": [
+      "GLM-5.2 approve",
+      ":3 quote直证分类句;:2证伪"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  }
+]

@@ -1,0 +1,229 @@
+{
+  "schema_version": "luban_teaching_lesson.v0",
+  "lesson_id": "P40_S07B",
+  "derived_from": "P40_S07B.source_card.json",
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "opening": {
+    "exam_scene": "题干给一个事故场景（脚手架/屋面坍塌或高处坠落，附死亡、重伤、直接经济损失数据），要求判定事故等级，并写出上报程序和调查处理链条。",
+    "why_learn": "这类题最容易丢分的不是不知道有等级，而是凭感觉拍脑袋定级、上报报错对象、漏掉30天补报、调查组漏法定成员、只追直接责任人漏领导责任。",
+    "promise": "看完只练一条能拿分的链：先定性，再用三把尺子取最高定级，然后写对上报主体时限内容，最后写全调查处理与双追责采分句。"
+  },
+  "speakers": {
+    "T": {
+      "name": "鲁班老师",
+      "voice": "longanhuan_v3"
+    },
+    "S": {
+      "name": "龙老铁",
+      "voice": "longlaotie_v3"
+    }
+  },
+  "teach": {
+    "voice": "longanhuan_v3",
+    "beats": [
+      {
+        "state": "b0",
+        "claim": true,
+        "anchor": "common_errors[feel_grade].why",
+        "keycard": "感觉不是定级依据",
+        "bridge": "首幕先把考试任务说清楚：定级不是凭感觉，是量出来的。",
+        "exam_task": "把“感觉严重”这种主观判断挡在定级之外，先认清等级要量。",
+        "visual_explanation": "白板升起工地现场：脚手架剪影、坠落小人、‘死亡1人’标签，学生‘性质严重，肯定重大’的直觉气泡弹出后被红叉盖章淘汰。",
+        "answer_move": "先锁定“量三阈值定级”这个动作，不先写主观结论。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "脚手架剪影",
+            "坠落人员",
+            "死亡1人标签",
+            "直觉气泡红叉"
+          ],
+          "visual_action": "现场从底部升起，直觉气泡弹出后被红叉盖章淘汰",
+          "state_change": "主观定级气泡被红叉淘汰，画面只留事故现场缩到角落",
+          "difference_from_previous": "首幕无上一幕，直觉气泡退出后下一幕换成分类轴对象，不沿用现场剪影"
+        },
+        "narration": "注意哈，出了事别急着拍脑袋定级——“感觉严重”不是定级的依据，定级得靠尺子量。"
+      },
+      {
+        "state": "b1",
+        "claim": true,
+        "anchor": "facts[classify_axes].text",
+        "keycard": "事故类型不等于等级",
+        "bridge": "先定性再定级，所以这一步先把事故类型和事故等级两件事分清。",
+        "exam_task": "把事故按伤害类型和原因性质先定性，并强调类型不等于等级。",
+        "visual_explanation": "事故卡居中，两列分类芯片飞入：按伤害类型12类、按原因性质四类，高亮条划出‘事故类型≠事故等级’横幅。",
+        "answer_move": "先写它属于哪类伤害、哪类原因，再提醒类型不是等级。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "伤害类型12类",
+            "原因性质四类",
+            "类型不等于等级横幅"
+          ],
+          "visual_action": "两列分类芯片分别飞入，高亮横幅划出类型≠等级",
+          "state_change": "两列芯片收起，只留一张‘安全生产事故’结论牌",
+          "difference_from_previous": "上一幕是现场剪影与淘汰气泡，本幕换成两列分类芯片表，对象不同"
+        },
+        "narration": "先定性：按伤害类型这是“高处坠落”，按原因性质算“生产事故”。但记住，事故类型不等于事故等级。"
+      },
+      {
+        "state": "b2",
+        "claim": true,
+        "anchor": "facts[highest_rule].text",
+        "keycard": "三把尺子取最高",
+        "bridge": "定性完了才进定级，所以这一步把三把尺子摆出来逐一命中。",
+        "exam_task": "把题干死亡、重伤、损失分别落到三条标尺，取命中的最高档。",
+        "visual_explanation": "三条阈值标尺画出，四档分级带乘三条子轴；死亡/重伤/损失三个探针滑入各自子轴，死亡探针停在‘<3=一般’段高亮，做一次损失跳到3000万→较大的what-if再退回，本题三探针皆落一般。",
+        "answer_move": "把三个数值代入标尺，写出命中档位并取最高档为最终等级。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "死亡人数轴",
+            "重伤人数轴",
+            "直接经济损失轴",
+            "数值探针",
+            "一般档命中灯"
+          ],
+          "visual_action": "三探针沿子轴滑动命中，命中段高亮脉冲，最高档点亮最终等级灯",
+          "state_change": "标尺与探针淡出，留‘一般事故’判定牌和一行判据链",
+          "difference_from_previous": "上一幕是分类芯片表，本幕换成可滑动的三条标尺与探针，动作是测量命中"
+        },
+        "narration": "定级靠三把尺子：死亡人数、重伤人数、直接经济损失。本事故死亡 1 人，没到 3 人，落“一般”档——三把尺子哪把最高就听哪把，不平均、不取最低。"
+      },
+      {
+        "state": "b3",
+        "claim": true,
+        "anchor": "facts[report_target].text",
+        "keycard": "报本单位负责人·30天补报",
+        "bridge": "等级定下来，接着写上报：报给谁、什么时限、报哪些内容。",
+        "exam_task": "写对上报主体、逐级路径、报告内容和30天补报，避开报应急/建设/劳动的陷阱。",
+        "visual_explanation": "上报管道展开：现场人员→本单位负责人→市级住建主管；报告信封沿管道流转，错误支路‘应急/建设/劳动’被红叉划掉，报告三项内容芯片贴上信封，30天补报时钟走动。",
+        "answer_move": "先写报本单位负责人逐级上报，再补报告三项内容和30天补报。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "报告信封",
+            "错误支路红叉",
+            "30天补报时钟",
+            "报告三项内容芯片"
+          ],
+          "visual_action": "信封沿管道节点位移，错误支路被红叉划掉，时钟走动",
+          "state_change": "管道淡出，只留‘报本单位负责人’和‘30天补报’两张要害牌",
+          "difference_from_previous": "上一幕是标尺探针，本幕换成有向上报管道与信封载体，动作是流转"
+        },
+        "narration": "上报这步，现场人员是立即向“本单位负责人”报告，别一上来就报应急或建设单位，这是高频陷阱。再逐级上报到市级住建主管，报告含初步原因、联系人、其他；伤亡有变化，30 天内补报。"
+      },
+      {
+        "state": "b4",
+        "claim": true,
+        "anchor": "facts[investigation_chain].text",
+        "keycard": "建议→批复→执行·双追责",
+        "bridge": "上报之后才是调查处理，所以这一步写谁来查、怎么批复、谁担责。",
+        "exam_task": "写全调查组法定成员，写清建议→批复→执行三层，并同时追直接责任人和领导责任。",
+        "visual_explanation": "调查组成员芯片错位飞入围成一组（政府/安监/负有安监职责部门/监察/公安/工会/检察院/专家），批复公文在‘调查组建议→政府批复→单位执行’三节点流转，‘单位自裁’被红叉淘汰，直接责任人和领导责任双印章盖下。",
+        "answer_move": "写全法定成员，写清三层流转，并强调直接加领导双追责、单位不得自裁。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "调查组成员芯片",
+            "批复公文token",
+            "单位自裁红叉",
+            "直接加领导责任双印章"
+          ],
+          "visual_action": "成员芯片飞入围合，批复公文三节点流转，双印章盖下",
+          "state_change": "调查组与批复链淡出，留双追责印章作锚点",
+          "difference_from_previous": "上一幕是线性上报管道，本幕换成成员围合群与批复流转，结构是网状围合"
+        },
+        "narration": "查事故不是单位说了算。调查组得有政府、安监、公安、监察、工会、检察院和专家。处理走调查组建议→政府批复→单位执行，单位不能自裁；既追直接责任人，也追领导责任，漏了领导责任要扣分。"
+      },
+      {
+        "state": "b5",
+        "claim": true,
+        "anchor": "memory_hook",
+        "keycard": "会看答案→会写成分",
+        "bridge": "最后把定性、定级、上报、调查处理四步压成能写的采分句。",
+        "exam_task": "把四步串成采分句，必写关键词逐个写出，做到会写而不只是会看。",
+        "visual_explanation": "答题纸卡展开四步采分句（定性→定级→上报→调查处理），高亮笔从左扫到右逐个点亮必写关键词：一般事故、死1人<3、本单位负责人、30天、调查组法定成员、政府批复、直接责任人加领导责任。",
+        "answer_move": "按四步输出采分句，逐个写出必写关键词不漏。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "四步采分句卡",
+            "高亮扫描笔",
+            "必写关键词"
+          ],
+          "visual_action": "高亮笔从左扫到右，逐个点亮必写关键词",
+          "state_change": "全画面定格在采分句卡，关键词全部点亮",
+          "difference_from_previous": "上一幕是调查组围合群，本幕换成答题纸与扫描笔，动作是逐词扫描收束"
+        },
+        "narration": "会看答案不算数，得会写成分。把这四步串成采分句，关键词一个不漏，分就拿到手了。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，死了1人，我咋觉得挺严重的，咋就一般事故了呢？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "facts[grade_thresholds].text",
+        "text": "严重不严重不归你感觉管，归三把尺子管。死亡1人没到3人，经济损失也没到1000万，就落“一般”档。别拍脑袋，量尺子。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，那要是死1人、可损失2000万呢？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "facts[highest_rule].text",
+        "text": "好问题。三指标任一达更高级就按更高级。2000万落“较大”档（1000万~5000万），那就按较大事故——不平均、不取最低，哪把尺子最高听哪把。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，出了事我第一个电话打给谁？是打119还是报政府？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "facts[report_target].text",
+        "text": "救人当然先救。但“报告”这步，现场人员是立即向本单位负责人报告，再由单位逐级上报到市级住建主管。一上来就报应急或建设单位，是高频陷阱，扣分。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "责任人是不是我们单位自己处理就行？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "facts[investigation_chain].text",
+        "text": "不行，单位不得自裁。得调查组提建议→政府批复→单位执行，而且既追直接责任人，也追领导责任，漏了领导责任照样扣分。"
+      }
+    }
+  ],
+  "closing": {
+    "state": "closing_challenge",
+    "speaker": "T",
+    "claim": true,
+    "anchor": "memory_hook",
+    "text": "最后记住哈：先定性，再用三把尺子取最高定级，报本单位负责人逐级上报、30天补报，调查组建议政府批复、直接加领导双追责。现在开始闯关，把题干的数据放回三把尺子。"
+  }
+}

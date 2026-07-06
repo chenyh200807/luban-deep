@@ -1,130 +1,186 @@
 [
-  {
-    "issue": "M2 误区“以为天然地基必须触探”的错因码主次不当，核心应为 M10 常识替代而非 E10",
-    "location": "§6 误区 → error_code → 解药 M2",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "主码调整为 M10 常识替代 / E10 规范适用错误"
-  },
-  {
-    "issue": "M4 误区“以为接缝位置时间不影响”的错因码误用 E02 采分点遗漏，应改用 M04/M08",
-    "location": "§6 误区 → error_code → 解药 M4",
-    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "主码改为 M04 选项陷阱 / M08 规范数字混淆，删除 E02"
-  },
-  {
-    "issue": "M6 误区“灰土挤密桩用于地下水位以下/不试验”的错因码缺乏 M 系列，应补充 M10/M03",
-    "location": "§6 误区 → error_code → 解药 M6",
-    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "MCQ 场景主码用 M10/M03；案例表达可保留 E10/E07"
-  },
-  {
-    "issue": "M7 误区“地下水流动仍用单液浆/搅拌桩用于密实砂”的错因码偏泛，应聚焦 E10 规范适用错误",
-    "location": "§6 误区 → error_code → 解药 M7",
-    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "主码改为 E10 规范适用错误；MCQ 场景可辅以 M03/M10"
-  },
-  {
-    "issue": "M1 误区“以为验槽靠仪器探为主”的错因码含 E07，客观题宜只用 M 系列",
-    "location": "§6 误区 → error_code → 解药 M1",
-    "flagged_by": ["Qwen-3.7-Max"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "统一为 M03 概念混淆"
-  },
-  {
-    "issue": "M3 误区“以为起算面是终夯后地面”的错因码同时挂 M03 与 M08，应简化为 M03",
-    "location": "§6 误区 → error_code → 解药 M3",
-    "flagged_by": ["Qwen-3.7-Max"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "统一为 M03 概念混淆"
-  },
-  {
-    "issue": "M5 误区“以为参数无所谓”的错因码含 E02 采分点遗漏，建议统一为 M08",
-    "location": "§6 误区 → error_code → 解药 M5",
-    "flagged_by": ["Qwen-3.7-Max"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "统一为 M08 规范数字混淆"
-  },
-  {
-    "issue": "M8 误区“以为复合地基验槽同天然地基”的错因码建议只用 M04 选项陷阱",
-    "location": "§6 误区 → error_code → 解药 M8",
-    "flagged_by": ["Qwen-3.7-Max"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "统一为 M04 选项陷阱"
-  },
-  {
-    "issue": "M9 误区“以为验槽/地基处理含桩基/支护”的错因码建议统一为 E11 迁移失败",
-    "location": "§6 误区 → error_code → 解药 M9",
-    "flagged_by": ["Qwen-3.7-Max"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "统一为 E11 迁移失败"
-  },
-  {
-    "issue": "“可不触探”条件中“持力层砾石/卵石层>1m”省略关键连接词，表述可精化",
-    "location": "§1 跨章知识点全景 #2",
-    "flagged_by": ["DeepSeek-V4-Pro"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "改为“持力层为砾石或卵石层且厚度大于1m”"
-  },
-  {
-    "issue": "“可不触探”因果链中混入风险驱动机理（🔵讲解），易被误读为判分点",
-    "location": "§2 原理因果层及 L7 动画分镜",
-    "flagged_by": ["DeepSeek-V4-Pro"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将讲解性内容与🟢结论明确分割，L7删除错误动画效果"
-  },
-  {
-    "issue": "R4 压实系数判分边界未区分材料类型（灰土/粉煤灰≥0.95，其他≥0.97）",
-    "location": "§4 R4 规则组 B “压实系数”判分边界",
-    "flagged_by": ["DeepSeek-V4-Pro"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "细化判分边界，体现不同材料类型的压实系数标准"
-  },
-  {
-    "issue": "A2“可不触探”采分点常见错因码可增补 E02（采分点遗漏）",
-    "location": "§5 R5 采分点 A2 常见错因码",
-    "flagged_by": ["DeepSeek-V4-Pro"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "增补 E02 至常见错因码列表"
-  },
-  {
-    "issue": "因果链“松散厚层→强夯”选型结论缺乏规范锚支撑，仅支持参数",
-    "location": "§2 核心因果链 / §5 R6 背诵版",
-    "flagged_by": ["GPT-5.5(Codex)"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将选型句降为🔵，只保留参数为🟢，或补充强夯适用条件锚后再升绿"
-  },
-  {
-    "issue": "因果链“软土/饱和土→水泥土搅拌桩/CFG桩/注浆”概括过宽，部分工法缺少直接锚支持",
-    "location": "§2 核心因果链 / §5 R6 背诵版",
-    "flagged_by": ["GPT-5.5(Codex)"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "拆分为具体工法适用条件，泛化总句降为🔵"
-  },
-  {
-    "issue": "R2 不变量“最后验收”中混入强夯休止后检，将专属规定泛化为全体 G04 不变量",
-    "location": "§3 R2 不变量",
-    "flagged_by": ["GPT-5.5(Codex)"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "强夯休止移到分支变量，总不变量只保留“按触发场景验收”，该句降🔵"
+ {
+  "issue": "M2 误区“以为天然地基必须触探”的错因码主次不当，核心应为 M10 常识替代而非 E10",
+  "location": "§6 误区 → error_code → 解药 M2",
+  "flagged_by": [
+   "DeepSeek-V4-Pro",
+   "Qwen-3.7-Max"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "主码调整为 M10 常识替代 / E10 规范适用错误",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "G04_地基验槽与地基处理.md §6 M2（前轮已改主码 M10·jury HI 校正；本轮 D3 批按 GLM 终审补辅码 E10 规范适用错误(案例表达)，与 fix 的 M10/E10 完整对齐，保多码并注）",
+   "verified": "2026-07-04 确定性核验：ERROR_CODE_REGISTRY 直读 M10=用常识替代规范判断、E10=规范适用错误、M03=概念混淆；§6 M2 行现串『M10 用常识替代规范判断**(主·jury HI 校正) / M03 概念混淆 / E10 规范适用错误(案例表达)』实存正文；kc:1A413000_086_0159:1 存在且带 quote；GLM-5.2 单审+Fable-5 复签，两闸复跑绿（可重跑：python3 docs/原始数据/考点原料/recheck_resolutions.py G04）"
   }
+ },
+ {
+  "issue": "M4 误区“以为接缝位置时间不影响”的错因码误用 E02 采分点遗漏，应改用 M04/M08",
+  "location": "§6 误区 → error_code → 解药 M4",
+  "flagged_by": [
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "主码改为 M04 选项陷阱 / M08 规范数字混淆，删除 E02",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "G04_地基验槽与地基处理.md §6 M4（前轮汇编已按 fix 逐字采纳：主码 M04 选项陷阱 / M08 规范数字混淆，去 E02）",
+   "verified": "2026-07-04 确定性核验：§6 M4 行现串『**M04 选项陷阱 / M08 规范数字混淆**(jury HI 校正·去 E02)』实存；ERROR_CODE_REGISTRY 直读 M04=选项陷阱、M08=规范数字混淆；GLM-5.2 satisfied + Fable-5 复签 2/2"
+  }
+ },
+ {
+  "issue": "M6 误区“灰土挤密桩用于地下水位以下/不试验”的错因码缺乏 M 系列，应补充 M10/M03",
+  "location": "§6 误区 → error_code → 解药 M6",
+  "flagged_by": [
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "MCQ 场景主码用 M10/M03；案例表达可保留 E10/E07",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "G04_地基验槽与地基处理.md §6 M6（前轮汇编已按 fix 采纳：MCQ 主码补 M 系列 M10/M03；E 码为 fix 中『可保留』非必须，未保留不违反，emit 按题型定码全局声明覆盖）",
+   "verified": "2026-07-04 确定性核验：§6 M6 行现串『**M10 用常识替代规范判断 / M03 概念混淆**(jury HI 校正·补 M 系列)』实存；kc:1A413030_089_0164:0 存在且带 quote；GLM-5.2 satisfied + Fable-5 复签 2/2"
+  }
+ },
+ {
+  "issue": "M7 误区“地下水流动仍用单液浆/搅拌桩用于密实砂”的错因码偏泛，应聚焦 E10 规范适用错误",
+  "location": "§6 误区 → error_code → 解药 M7",
+  "flagged_by": [
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "主码改为 E10 规范适用错误；MCQ 场景可辅以 M03/M10",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "G04_地基验槽与地基处理.md §6 M7（前轮已改主码 E10·jury HI 聚焦；本轮 D3 批按 GLM 终审补 MCQ 辅码 M10，与 fix 的 E10 主 + M03/M10 辅完整对齐）",
+   "verified": "2026-07-04 确定性核验：§6 M7 行现串『**E10 规范适用错误**(主·jury HI 聚焦) / M03 概念混淆 · M10 用常识替代规范判断(MCQ)』实存正文；ERROR_CODE_REGISTRY 直读 E10=规范适用错误；kc:1A413030_089_0164:3 存在且带 quote；GLM-5.2 单审+Fable-5 复签，两闸复跑绿"
+  }
+ },
+ {
+  "issue": "M1 误区“以为验槽靠仪器探为主”的错因码含 E07，客观题宜只用 M 系列",
+  "location": "§6 误区 → error_code → 解药 M1",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "统一为 M03 概念混淆"
+ },
+ {
+  "issue": "M3 误区“以为起算面是终夯后地面”的错因码同时挂 M03 与 M08，应简化为 M03",
+  "location": "§6 误区 → error_code → 解药 M3",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "统一为 M03 概念混淆"
+ },
+ {
+  "issue": "M5 误区“以为参数无所谓”的错因码含 E02 采分点遗漏，建议统一为 M08",
+  "location": "§6 误区 → error_code → 解药 M5",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "统一为 M08 规范数字混淆"
+ },
+ {
+  "issue": "M8 误区“以为复合地基验槽同天然地基”的错因码建议只用 M04 选项陷阱",
+  "location": "§6 误区 → error_code → 解药 M8",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "统一为 M04 选项陷阱"
+ },
+ {
+  "issue": "M9 误区“以为验槽/地基处理含桩基/支护”的错因码建议统一为 E11 迁移失败",
+  "location": "§6 误区 → error_code → 解药 M9",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "统一为 E11 迁移失败"
+ },
+ {
+  "issue": "“可不触探”条件中“持力层砾石/卵石层>1m”省略关键连接词，表述可精化",
+  "location": "§1 跨章知识点全景 #2",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "改为“持力层为砾石或卵石层且厚度大于1m”"
+ },
+ {
+  "issue": "“可不触探”因果链中混入风险驱动机理（🔵讲解），易被误读为判分点",
+  "location": "§2 原理因果层及 L7 动画分镜",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将讲解性内容与🟢结论明确分割，L7删除错误动画效果"
+ },
+ {
+  "issue": "R4 压实系数判分边界未区分材料类型（灰土/粉煤灰≥0.95，其他≥0.97）",
+  "location": "§4 R4 规则组 B “压实系数”判分边界",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "细化判分边界，体现不同材料类型的压实系数标准"
+ },
+ {
+  "issue": "A2“可不触探”采分点常见错因码可增补 E02（采分点遗漏）",
+  "location": "§5 R5 采分点 A2 常见错因码",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "增补 E02 至常见错因码列表"
+ },
+ {
+  "issue": "因果链“松散厚层→强夯”选型结论缺乏规范锚支撑，仅支持参数",
+  "location": "§2 核心因果链 / §5 R6 背诵版",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将选型句降为🔵，只保留参数为🟢，或补充强夯适用条件锚后再升绿"
+ },
+ {
+  "issue": "因果链“软土/饱和土→水泥土搅拌桩/CFG桩/注浆”概括过宽，部分工法缺少直接锚支持",
+  "location": "§2 核心因果链 / §5 R6 背诵版",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "拆分为具体工法适用条件，泛化总句降为🔵"
+ },
+ {
+  "issue": "R2 不变量“最后验收”中混入强夯休止后检，将专属规定泛化为全体 G04 不变量",
+  "location": "§3 R2 不变量",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "强夯休止移到分支变量，总不变量只保留“按触发场景验收”，该句降🔵"
+ }
 ]
