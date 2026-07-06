@@ -59,9 +59,16 @@ def test_jury_clean_counts_only_unresolved_high_confidence() -> None:
     # 但未签发时仍不得进绿灯(published 恒 False, 除非 overrides 人工置 true)
     if not _mod.OVERRIDES_PATH.exists():
         assert "S05" not in manifest["projection_green"]
-    # 对照组: 仍有未解决高可信 issue 的 pack 必须保持 jury_clean=False
+    # 派生不变量(对全体 pack 恒成立, 不依赖是否存在未收口对照包):
+    # jury_clean 当且仅当 有 jury 文件 且 无未解决高可信 issue(fail-closed 派生)。
+    # 注: 2026-07-06 D14 收口后全 41 包已裁决, 不再硬性要求存在未收口对照包;
+    # unresolved→非clean 的形状级 fail-closed 另由 test_is_resolved_fail_closed_shapes 直测。
+    for p in manifest["packs"]:
+        assert p["jury_clean"] is (
+            bool(p["jury_file"]) and p["jury_high_confidence_unresolved"] == 0
+        ), f"{p['pack_id']} jury_clean 与 (jury_file ∧ unresolved==0) 派生不一致"
+    # 若仍存在未收口 pack, 必须 fail-closed 保持 jury_clean=False
     dirty = [p for p in manifest["packs"] if p["jury_high_confidence_unresolved"] > 0]
-    assert dirty, "应存在未收口 pack(否则本断言失效需更新)"
     assert all(p["jury_clean"] is False for p in dirty)
 
 
