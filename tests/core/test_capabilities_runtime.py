@@ -1564,6 +1564,7 @@ async def test_deep_question_capability_uses_user_message_as_topic(
         user_message="linear algebra fundamentals",
         config_overrides={},
         language="en",
+        metadata={"turn_semantic_decision": _practice_generation_turn_decision()},
     )
     capability = DeepQuestionCapability()
     events = await _collect_events(lambda bus: capability.run(context, bus))
@@ -1759,6 +1760,7 @@ async def test_deep_question_capability_anchors_deictic_generation_topic_to_open
         },
         language="zh",
         metadata={
+            "turn_semantic_decision": _practice_generation_turn_decision(),
             "active_object": {
                 "object_type": "open_chat_topic",
                 "object_id": "session-1",
@@ -1844,6 +1846,7 @@ async def test_deep_question_generation_hides_answers_but_keeps_hidden_authority
             "reveal_explanations": False,
         },
         language="zh",
+        metadata={"turn_semantic_decision": _practice_generation_turn_decision()},
     )
 
     capability = DeepQuestionCapability()
@@ -1912,6 +1915,7 @@ async def test_deep_question_capability_does_not_leak_old_open_chat_anchor_into_
         config_overrides={"topic": explicit_topic, "question_type": "choice"},
         language="zh",
         metadata={
+            "turn_semantic_decision": _practice_generation_turn_decision(),
             "active_object": {
                 "object_type": "open_chat_topic",
                 "object_id": "session-1",
@@ -1987,6 +1991,7 @@ async def test_deep_question_capability_prefers_broader_anchor_over_current_ques
         },
         language="zh",
         metadata={
+            "turn_semantic_decision": _practice_generation_turn_decision(),
             "active_object": {
                 "object_type": "single_question",
                 "object_id": "quiz-check-1",
@@ -2107,6 +2112,7 @@ async def test_deep_question_capability_uses_followup_anchor_fast_generation_for
         },
         language="zh",
         metadata={
+            "turn_semantic_decision": _practice_generation_turn_decision(),
             "selected_mode": "fast",
             "question_followup_context": {
                 "question_id": "set_1",
@@ -2224,6 +2230,7 @@ async def test_deep_question_capability_uses_lightweight_topic_generation_for_fa
         },
         language="zh",
         metadata={
+            "turn_semantic_decision": _practice_generation_turn_decision(),
             "selected_mode": "fast",
             "active_object": {
                 "object_type": "open_chat_topic",
@@ -2391,6 +2398,7 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             captured["send"] = {
                 "bot_id": bot_id,
@@ -2554,6 +2562,7 @@ async def test_tutorbot_capability_prefers_canonical_chat_mode_over_legacy_hints
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             captured["mode"] = mode
             captured["session_metadata"] = session_metadata
@@ -2621,6 +2630,7 @@ async def test_tutorbot_capability_fast_mode_does_not_override_config_model(
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             captured["mode"] = mode
             captured["session_metadata"] = session_metadata
@@ -2682,6 +2692,7 @@ async def test_tutorbot_capability_deep_mode_does_not_override_config_model(
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             captured["mode"] = mode
             captured["session_metadata"] = session_metadata
@@ -2747,6 +2758,7 @@ async def test_tutorbot_capability_streams_safe_public_deltas_without_final_dupl
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             if on_content_delta is not None:
                 await on_content_delta("最终答案：防水等级")
@@ -2817,6 +2829,7 @@ async def test_tutorbot_capability_streams_public_deltas_when_citations_are_enab
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             if on_tool_result is not None:
                 await on_tool_result(
@@ -2904,6 +2917,7 @@ async def test_tutorbot_capability_does_not_emit_internal_process_deltas(
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             if on_content_delta is not None:
                 await on_content_delta(
@@ -3131,6 +3145,7 @@ async def test_tutorbot_capability_does_not_turn_exact_authority_answer_into_mcq
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             if on_tool_result is not None:
                 await on_tool_result(
@@ -3244,6 +3259,7 @@ async def test_tutorbot_authority_response_not_rebuilt_by_freetext_parser(
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             if on_tool_result is not None:
                 await on_tool_result(
@@ -3454,6 +3470,7 @@ async def test_tutorbot_practice_generation_keeps_scenario_before_problem_marker
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             return "\n".join(
                 [
@@ -3510,7 +3527,10 @@ async def test_tutorbot_practice_generation_keeps_scenario_before_problem_marker
     assert result_event.metadata["presentation"]["blocks"][0]["questions"][0]["stem"].startswith(
         "某办公楼装修工程施工中"
     )
-    assert "question_followup_context" not in result_event.metadata
+    assert result_event.metadata["question_followup_context"]["question"].startswith(
+        "某办公楼装修工程施工中"
+    )
+    assert result_event.metadata["active_object"]["object_type"] == "single_question"
 
 
 @pytest.mark.parametrize(
@@ -3518,7 +3538,7 @@ async def test_tutorbot_practice_generation_keeps_scenario_before_problem_marker
     [
         ("给我一道题并带答案解析", {}, True, True),
         ("给我一道题测试一下这个知识点", {"reveal_answers": True, "reveal_explanations": True}, True, True),
-        ("给我一道题测试一下这个知识点", {"reveal_answers": False, "reveal_explanations": True}, False, True),
+        ("给我一道题测试一下这个知识点", {"reveal_answers": False, "reveal_explanations": True}, False, False),
         ("给我一道题测试一下这个知识点，只出题，不要给答案或解析", {"reveal_answers": True, "reveal_explanations": True}, False, False),
     ],
 )
@@ -3558,6 +3578,7 @@ async def test_tutorbot_capability_reveals_answers_for_explicit_practice_generat
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             return "\n".join(
                 [
@@ -3606,8 +3627,8 @@ async def test_tutorbot_capability_reveals_answers_for_explicit_practice_generat
     question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
     expected_answer = "C" if answer_visible else ""
     assert question["followup_context"]["correct_answer"] == expected_answer
-    assert "question_followup_context" not in result_event.metadata
-    assert "active_object" not in result_event.metadata
+    assert result_event.metadata["question_followup_context"]["question"].startswith("关于混凝土养护开始时间")
+    assert result_event.metadata["active_object"]["object_type"] == "single_question"
 
 
 @pytest.mark.asyncio
@@ -3644,6 +3665,7 @@ async def test_tutorbot_capability_keeps_fast_mode_for_question_set_practice_gen
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             captured["mode"] = mode
             captured["session_metadata"] = session_metadata
@@ -3726,6 +3748,7 @@ async def test_tutorbot_capability_keeps_fast_mode_for_question_set_submission_u
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             captured["mode"] = mode
             captured["session_metadata"] = session_metadata
@@ -3775,10 +3798,12 @@ async def test_tutorbot_capability_keeps_fast_mode_for_question_set_submission_u
     )
 
     capability = TutorBotCapability()
-    await _collect_events(lambda bus: capability.run(context, bus))
+    events = await _collect_events(lambda bus: capability.run(context, bus))
 
-    assert captured["mode"] == "fast"
-    assert captured["session_metadata"]["selected_mode"] == "fast"
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert captured == {}
+    assert result_event.metadata["selected_mode"] == "fast"
+    assert result_event.metadata["execution_path"] == "tutorbot_unanswered_reference_reprompt"
 
 
 @pytest.mark.asyncio
@@ -3813,6 +3838,7 @@ async def test_tutorbot_capability_hides_case_reference_sections_when_user_expli
             mode: str = "smart",
             session_key: str | None = None,
             session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
         ) -> str:
             return "\n".join(
                 [
@@ -8537,6 +8563,7 @@ async def test_deep_question_capability_skips_followup_agent_for_forced_generati
         },
         language="zh",
         metadata={
+            "turn_semantic_decision": _practice_generation_turn_decision(),
             "question_followup_context": {
                 "question_id": "q_1",
                 "question": "屋面防水卷材搭接要求旧题",
@@ -8777,6 +8804,7 @@ async def test_deep_question_capability_does_not_guess_training_intent_from_pers
         },
         language="zh",
         metadata={
+            "turn_semantic_decision": _practice_generation_turn_decision(),
             # Provide a construction question context so _resolve_generation_topic
             # finds a non-empty topic anchor ("再给我相关题" needs one).
             "question_followup_context": {
