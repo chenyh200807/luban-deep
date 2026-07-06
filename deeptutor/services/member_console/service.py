@@ -194,6 +194,22 @@ def _is_created_within_days(value: str | None, *, now: datetime, days: int) -> b
     return timedelta(0) <= age <= timedelta(days=days)
 
 
+def _is_created_on_local_date(value: str | None, *, now: datetime) -> bool:
+    if not value:
+        return False
+    try:
+        created_at = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=_TZ)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=_TZ)
+    created_local = created_at.astimezone(_TZ)
+    now_local = now.astimezone(_TZ)
+    return created_local <= now_local and created_local.date() == now_local.date()
+
+
 def is_bi_operational_at(value: Any) -> bool:
     text = str(value or "").strip()
     if not text:
@@ -1697,6 +1713,7 @@ class MemberConsoleService:
                 "user_id",
                 "display_name",
                 "auth_username",
+                "external_auth_user_id",
                 "external_auth_provider",
                 "wx_openid",
                 "wx_unionid",
@@ -1704,6 +1721,7 @@ class MemberConsoleService:
         )
         test_markers = (
             "test",
+            "eval",
             "qa_",
             "qa-",
             "qa.",
@@ -1714,6 +1732,7 @@ class MemberConsoleService:
             "prelaunch",
             "prelaunchsmoke",
             "preflight",
+            "release",
             "smoke",
             "soak",
             "debug",
@@ -1721,6 +1740,9 @@ class MemberConsoleService:
             "dummy",
             "fake",
             "compiled_shadow",
+            "practiceanchor",
+            "practice_anchor",
+            "army_",
             "synthetic",
             "测试",
         )
@@ -3939,7 +3961,7 @@ class MemberConsoleService:
         new_today_count = sum(
             1
             for item in members
-            if _is_created_within_days(item.get("created_at"), now=now, days=1)
+            if _is_created_on_local_date(item.get("created_at"), now=now)
         )
         new_7d_count = sum(
             1
