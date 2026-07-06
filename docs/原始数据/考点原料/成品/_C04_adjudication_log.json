@@ -1,0 +1,217 @@
+[
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 0,
+    "tier": "Tier-0直读+Tier-1(R2四门)",
+    "retrieval": null,
+    "actions": [
+      "0190:2/:3 quote直证警戒线/禁塌落",
+      "过早/违章后果拆分",
+      "GLM modify(警戒线疑虑)系prompt摘录截断,全quote直读化解"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "modify",
+        "resolved_by": "0190:2全quote直读"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 1,
+    "tier": "Tier-0证真+Tier-1锚角色修正",
+    "retrieval": null,
+    "actions": [
+      "0190:0 quote=程序②(jury断言证真)",
+      "顺序主锚收敛0187:0+P116④出处,四处修正"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 2,
+    "tier": "Tier-2错因码(自造码重映射)",
+    "retrieval": null,
+    "actions": [
+      "ERR_NUMERIC_TABLE_MISMATCH→E10/M08",
+      "GLM approve; Fable复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "Fable-5": "复签同意"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 3,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch→CET_1A413030_P0099_001 P99(2) 1N/mm²逐字",
+    "actions": [
+      "降级前提失效",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 4,
+    "tier": "Tier-0证真(切片错位)+Tier-1+Tier-2事实类",
+    "retrieval": "tbsearch→CET_1A413030_P0105_001 P105 75%/7d/5d/30N逐字",
+    "actions": [
+      "0201:0 quote=成孔材料(错位证真)",
+      "删不实🟢已验证声明(-1🟢)",
+      "C30=30N/mm²口径一致,删GB50300待核注",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 5,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch→P99(4)快拆全条文逐字",
+    "actions": [
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 6,
+    "tier": "Tier-0确认(前轮已改)",
+    "retrieval": null,
+    "actions": [
+      "形态E已🔵教学构造字符串定位",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 7,
+    "tier": "Tier-1补鉴别点(GLM单审+机器闸)",
+    "retrieval": null,
+    "actions": [
+      "intent 3点→4点,程序/作业安全,无新增🟢emoji",
+      "GLM modify(警戒线)由0190:2全quote化解"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "modify",
+        "resolved_by": "0190:2全quote直读"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 8,
+    "tier": "Tier-0锚定核真+Tier-2错因码",
+    "retrieval": null,
+    "actions": [
+      "{2016,案例2}四条件逐条吻合",
+      "ERR_CONDITION_EXTRACTION_INCOMPLETE→E02/M09",
+      "GLM approve; Fable复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "Fable-5": "复签同意"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 9,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch→P99表3.4-1全值逐字",
+    "actions": [
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 10,
+    "tier": "Tier-1邻接降级注",
+    "retrieval": null,
+    "actions": [
+      "夹渣/麻面/蜂窝→🔵邻接通病语境注",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 11,
+    "tier": "Tier-2错因码(自造码重映射)",
+    "retrieval": null,
+    "actions": [
+      "ERR_COMMONSENSE_OVER_SPEC→E10/M09",
+      "GLM approve; Fable复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "Fable-5": "复签同意"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 12,
+    "tier": "Tier-1一致性标注",
+    "retrieval": null,
+    "actions": [
+      "S8加🔵邻接·延伸例与§1统一",
+      "GLM approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  }
+]

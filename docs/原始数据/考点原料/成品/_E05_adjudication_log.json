@@ -1,0 +1,23 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-2(错因码语义类)",
+    "actions": [
+      "adjudicate.py E05: UNDECIDED; 错因码对账15码全在registry",
+      "pack §6 M6 现状直读: 主码已=E07(前轮应用, §9 审计'✅已应用 E05→E07'); '只算不判'由§5压线区 E02/E03 行覆盖",
+      "GLM-5.2 单审(异源终审锚, 未flag本条): satisfied=true, further_edit_needed=false",
+      "Fable-5 复签(非生产源/非flagger): 同意——'记反正负号含义'是概念层错误(code_application), 非题面读取错误(question_reading), E07 正确。2/2 通过",
+      "结论: status=fixed(前轮已改, 本轮双签确认收口), 零新编辑, 升色=0, 新增🟢=0"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "satisfied": true,
+        "further_edit_needed": false,
+        "reason": "M6 方向判反=E07 概念混淆语义贴切; 只算不判已由压线区E02/E03覆盖"
+      },
+      "Fable-5": "复签同意, ability_dimension 对账: 方向判读错误发生在概念应用层而非审题层"
+    }
+  }
+]

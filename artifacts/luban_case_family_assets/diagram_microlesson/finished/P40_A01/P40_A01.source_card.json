@@ -1,0 +1,417 @@
+{
+  "card_id": "P40_A01",
+  "title": "A01 案例题作答层: 结构实体检验答案诊断",
+  "status": "candidate_answer_layer_prototype",
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/A01_案例题作答层样板.md",
+    "visual_prototype_inventory": "docs/原始数据/数据盘点/2026-06-22-成品考点视觉原型盘点.md",
+    "source_boundary": "A01 answer-layer candidate teaching source; it points漏点 and expression quality, not official scoring."
+  },
+  "main_exam_action": "把结构实体检验案例答案写成“对象清单 → 组织主体 → 双阈值计算 → 回判结论”的采分句，并能诊断学生答案命中、半命中和漏点。",
+  "wrong_idea": "学生以为自己只要写到“混凝土强度”和一个结论就差不多；实际案例题扣分常发生在漏实体检验后三项、把监理组织写成施工组织、只算平均值或直接拿强度和设计值比较。",
+  "visual_archetype_decision": {
+    "primary_archetype": "scoring_diagnosis_reveal",
+    "secondary_archetype": "calculation_structure",
+    "visual_primitive": "answer_scan",
+    "motion_grammar": "scan_hit_partial_miss_then_formula_chain_then_rewrite",
+    "why_this_visual": "本卡的核心难点不是知道验收知识，而是看见一份学生答案逐句被扫描后，哪句命中、哪句半命中、哪句完全漏掉，并把缺口补成可写采分句。",
+    "why_not_text": "纯文字解析会让学生继续觉得“我只是少写了一点”。答题纸扫描能把钢筋保护层、结构位置尺寸偏差、合同约定项目、监理组织和88/80双阈值这些漏点逐行显出来，才能训练主观题输出。",
+    "must_show_domain_objects": true,
+    "domain_visual_plan": [
+      {
+        "scene": "hook",
+        "domain_objects": ["答题纸", "扫描笔", "学生答案片段", "实体检验题面"],
+        "visual_action": "题面和学生答案先进入白板，扫描笔从第一行扫过，告诉学生这不是背答案，而是查采分缺口。",
+        "why_object_not_box": "只用“采分点/漏点”文字框，学生看不见自己的答案哪一行在丢分。"
+      },
+      {
+        "scene": "answer_sheet",
+        "domain_objects": ["学生答题纸", "混凝土强度行", "钢筋保护层行", "空白漏项行"],
+        "visual_action": "答题纸逐行扫描：强度命中、保护层部分命中，结构位置尺寸偏差和合同约定项目以漏项红线退出。",
+        "why_object_not_box": "实体检验四项是清单对象，必须在答题纸上逐项看见命中和漏项，不能只写“内容不全”。"
+      },
+      {
+        "scene": "score_atoms",
+        "domain_objects": ["混凝土构件", "钢筋保护层", "尺寸偏差尺", "合同约定项目标签"],
+        "visual_action": "四个实体检验对象从构件旁逐个进入采分槽，缺失对象被红色占位提示补写。",
+        "why_object_not_box": "如果只列四个词，学生仍会把后三项当可有可无；对象进入采分槽才能说明每项都是得分物。"
+      },
+      {
+        "scene": "organization_gap",
+        "domain_objects": ["监理单位", "施工单位", "见证标记", "组织箭头"],
+        "visual_action": "施工单位组织箭头被淘汰，监理组织、施工实施、监理见证三段箭头按顺序亮起。",
+        "why_object_not_box": "主体错是单位角色错位，不画监理/施工对象，就会退化成“主体不准确”的空话。"
+      },
+      {
+        "scene": "calculation_gap",
+        "domain_objects": ["C35 构件", "三个芯样 28.5/31/32", "平均值标尺", "最小值标尺", "88%/80%阈值线"],
+        "visual_action": "三个芯样进入公式链，平均值和最小值分别命中88%和80%阈值线，直接比35的错误路径被划掉。",
+        "why_object_not_box": "计算判定必须看见芯样数值如何进入两条阈值线，文字框不能解释“为什么不能直接比设计值”。"
+      },
+      {
+        "scene": "rewrite",
+        "domain_objects": ["标准答题纸", "内容清单格", "组织主体格", "判定依据格"],
+        "visual_action": "三个采分格按扫描结果补齐，学生原答案中可保留的行被迁移到标准答题纸，漏项格逐个填入。",
+        "why_object_not_box": "作答层最终训练的是改写动作，必须看见原答案如何移动、补齐、重排到标准答案。"
+      },
+      {
+        "scene": "score",
+        "domain_objects": ["最终答题纸", "命中/半命中/漏点标记", "补写句"],
+        "visual_action": "扫描笔最后从上到下扫完整答题纸，hit/partial/miss 收束成“补这三句”的采分动作。",
+        "why_object_not_box": "最终不是记知识点，而是产出能拿分的句子；必须落在答题纸对象上。"
+      }
+    ],
+    "pure_text_allowed": false
+  },
+  "teaching_spine": [
+    {
+      "id": "hook",
+      "state": "hook",
+      "anchor_md": "§0 第一性原理 + §3.2 模拟学生作答",
+      "visual_fact": "学生答案看似写了强度和结论，但答题纸扫描后会暴露“会一点但写不成分”的缺口。",
+      "bridge_from_previous": "首幕建立考试任务。",
+      "answer_move": "先把案例题看成答题纸诊断任务，不先背整段标准答案。"
+    },
+    {
+      "id": "answer_sheet",
+      "state": "answer_sheet",
+      "anchor_md": "§3.2 模拟学生作答 + §3.3 逐点判命中",
+      "visual_fact": "学生答题纸中“钢筋保护层”只算部分命中；组织主体和双阈值判定没有命中。",
+      "bridge_from_previous": "既然题目是作答层，先扫描学生真实答案。",
+      "answer_move": "把学生每一行标成命中、部分命中或漏点。"
+    },
+    {
+      "id": "score_atoms",
+      "state": "score_atoms",
+      "anchor_md": "§3.3 参考采分点 P1",
+      "visual_fact": "结构实体检验项目不能只写混凝土强度，还要补钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目。",
+      "bridge_from_previous": "扫描出第一处半命中后，先补实体检验清单。",
+      "answer_move": "除混凝土强度外，把后三项逐项编号写出。"
+    },
+    {
+      "id": "organization_gap",
+      "state": "organization_gap",
+      "anchor_md": "§3.3 参考采分点 P2",
+      "visual_fact": "结构实体检验由监理单位组织、施工单位实施、监理见证；写成施工单位组织属于主体错位。",
+      "bridge_from_previous": "内容清单补齐后，第二处丢分在组织主体。",
+      "answer_move": "把“施工单位组织”改成“监理单位组织、施工单位实施、监理见证”。"
+    },
+    {
+      "id": "calculation_gap",
+      "state": "calculation_gap",
+      "anchor_md": "§3.3 参考采分点 P3 + 临界处置",
+      "visual_fact": "C35 强度判定应同时看平均值不小于设计值的88%和最小值不小于设计值的80%，不能直接拿平均强度比35。",
+      "bridge_from_previous": "主体纠正后，最后一处大漏点在计算判定链。",
+      "answer_move": "亮判据、代入计算平均值和最小值，再回判双阈值；临界取舍按教研裁定，不擅自定分。"
+    },
+    {
+      "id": "rewrite",
+      "state": "rewrite",
+      "anchor_md": "§3.3 更像标准答案的改写",
+      "visual_fact": "标准改写不是全文背诵，而是把内容清单、组织主体、双阈值依据三格补齐。",
+      "bridge_from_previous": "三个漏分口都定位后，把它们重排成阅卷友好答案。",
+      "answer_move": "按编号枚举 + 主体定位 + 计算判定链写成答题纸段落。"
+    },
+    {
+      "id": "score",
+      "state": "score",
+      "anchor_md": "§3.4 验证闭环",
+      "visual_fact": "作答层跃迁成立的标志是学生知道“差哪句”，并能把差句补到答题纸上。",
+      "bridge_from_previous": "改写完成后，最后收束到可复练的采分动作。",
+      "answer_move": "以后遇到实体检验案例题，先扫答案缺口，再补内容、主体、依据三格。"
+    }
+  ],
+  "facts": [
+    {
+      "id": "answer_layer_boundary",
+      "text": "A01 作答层只训练“怎么把知识写成阅卷友好、能拿分的句子”，采分点仍从 A01 知识层派生，本层不新增官方判分权威。"
+    },
+    {
+      "id": "student_sample",
+      "text": "学生答案只写了“还要测钢筋保护层，由施工单位组织；平均值小于35所以不合格”，典型问题是清单不全、组织主体错位、判定依据错误。"
+    },
+    {
+      "id": "content_items",
+      "text": "结构实体检验除混凝土强度外，还应包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目。"
+    },
+    {
+      "id": "organization_rule",
+      "text": "结构实体检验由监理单位组织、施工单位实施，监理见证全过程；施工单位编制专项方案报监理审批。"
+    },
+    {
+      "id": "calculation_rule",
+      "text": "C35 实体混凝土强度判定应满足平均值不小于设计值的88%，且最小值不小于设计值的80%；本题平均值30.8MPa，最小值28.5MPa，临界取舍以评分细则或教研裁定为准。"
+    },
+    {
+      "id": "rewrite_structure",
+      "text": "更稳的作答结构是：先编号写实体检验内容，再写监理组织、施工实施、监理见证，最后亮双阈值判据、代入平均值和最小值并回判。"
+    },
+    {
+      "id": "score_sentence",
+      "text": "可写成采分句：结构实体检验除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；由监理单位组织、施工单位实施、监理见证；强度按平均值不小于设计值88%且最小值不小于设计值80%回判。"
+    },
+    {
+      "id": "memory_hook",
+      "text": "先扫答题纸，再补三格：内容清单、组织主体、判定依据。"
+    }
+  ],
+  "common_errors": [
+    {
+      "id": "content_collapse",
+      "student": "结构实体检验还要测一下钢筋保护层。",
+      "why": "只命中钢筋保护层，漏掉结构位置与尺寸偏差、合同约定项目，清单从四项坍缩成最熟的一项。"
+    },
+    {
+      "id": "wrong_organizer",
+      "student": "由施工单位组织检验。",
+      "why": "施工单位是实施主体，不是组织主体；组织应写监理单位，且要写监理见证。"
+    },
+    {
+      "id": "direct_design_compare",
+      "student": "平均强度小于C35，所以不合格。",
+      "why": "实体强度判定不是直接比35，而是平均值看88%、最小值看80%，且要写判定依据。"
+    },
+    {
+      "id": "only_conclusion",
+      "student": "该构件不合格。",
+      "why": "案例题问判定依据时，只写结论不交付公式、代入和回判，阅卷无法给足过程分。"
+    }
+  ],
+  "practice_blueprint": [
+    {
+      "id": "q1",
+      "stageLabel": "扫学生答案",
+      "skill": "答案缺口诊断",
+      "scene_gap": "学生答案写了一个熟词，但没有形成完整清单。",
+      "student": "学生答：结构实体检验还要测一下钢筋保护层。",
+      "stem": "这句话在实体检验项目上最主要缺哪一类采分动作？",
+      "answer": "complete_items",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "答题纸逐句扫描",
+        "before": ["混凝土强度", "钢筋保护层", "空白", "空白"],
+        "after": ["混凝土强度", "钢筋保护层厚度", "结构位置与尺寸偏差", "合同约定项目"],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "complete_items",
+          "label": "补“结构位置与尺寸偏差、合同约定项目”，把实体检验内容从一项补成完整清单。",
+          "reason": "把半命中的清单补完整。"
+        },
+        {
+          "id": "write_stronger",
+          "label": "把“测一下”改成“必须检测”，让语气更强即可。",
+          "reason": "语气变强不能补缺项。"
+        },
+        {
+          "id": "organizer_now",
+          "label": "先改成监理单位组织，内容清单可以后面再写。",
+          "reason": "主体也要改，但本句首先卡在检验项目不全。"
+        },
+        {
+          "id": "strength_only",
+          "label": "只保留混凝土强度，因为题干已经是强度判定题。",
+          "reason": "题干第一问明确问强度以外还包括哪些项目。"
+        }
+      ],
+      "optionFeedback": {
+        "write_stronger": "容易选，因为“必须检测”听起来更规范。但阅卷缺的是项目，不是语气；要把尺寸偏差和合同约定项目补出来。",
+        "organizer_now": "监理组织是下一格主体分，不能替代内容清单。先把检验内容写完整。",
+        "strength_only": "这会回到题干已经给出的强度，反而漏掉问题问的“除混凝土强度外”。"
+      },
+      "correct": "对。学生只写到保护层，属于部分命中；正确补法是把结构位置与尺寸偏差、合同约定项目也写进清单。",
+      "wrong": "这题先看内容清单。只改语气、只改主体或只写强度，都没有补齐“除混凝土强度外”的采分对象。",
+      "basis_anchor": "§3.3 参考采分点 P1"
+    },
+    {
+      "id": "q2",
+      "stageLabel": "改主体错位",
+      "skill": "组织主体定位",
+      "scene_gap": "学生把实施主体写成组织主体。",
+      "student": "学生答：结构实体检验由施工单位组织检验。",
+      "stem": "下面哪一句改正动作最像能拿主体分？",
+      "answer": "supervision_organizes",
+      "visual": {
+        "kind": "process_flow",
+        "title": "组织主体箭头纠正",
+        "before": ["施工组织", "监理缺位", "见证缺失"],
+        "after": ["监理组织", "施工实施", "监理见证"],
+        "hotIndex": 0
+      },
+      "options": [
+        {
+          "id": "supervision_organizes",
+          "label": "改为“由监理单位组织、施工单位实施，监理见证全过程”。",
+          "reason": "把组织、实施、见证三个角色拆清。"
+        },
+        {
+          "id": "construction_self_check",
+          "label": "写施工单位自检合格后自行组织，体现谁施工谁负责。",
+          "reason": "把自检和组织验收混在一起。"
+        },
+        {
+          "id": "owner_organizes",
+          "label": "直接写建设单位组织即可，避免监理和施工责任混乱。",
+          "reason": "把实体检验组织主体改成了另一个不对应主体。"
+        },
+        {
+          "id": "only_special_plan",
+          "label": "只写施工单位编制专项方案报监理审批，不再写组织主体。",
+          "reason": "专项方案是补充点，不能替代组织、实施、见证。"
+        }
+      ],
+      "optionFeedback": {
+        "construction_self_check": "容易选，因为施工单位确实实施检验。但组织主体不是施工单位，答案要把监理组织写出来。",
+        "owner_organizes": "建设单位不是本题结构实体检验的组织主体。盲目改成更高一级，会继续主体错位。",
+        "only_special_plan": "专项方案报监理审批可以补，但主体分还要写监理组织、施工实施、监理见证。"
+      },
+      "correct": "对。主体分要拆角色：监理单位组织，施工单位实施，监理见证全过程。",
+      "wrong": "主体题不能用“谁施工谁组织”或“建设单位兜底”来猜；要按监理组织、施工实施、监理见证写。"
+    },
+    {
+      "id": "q3",
+      "stageLabel": "跑双阈值",
+      "skill": "计算判定链",
+      "scene_gap": "学生直接把平均强度和设计值比较，跳过88%/80%双阈值。",
+      "student": "题干：C35 构件芯样 28.5、31、32MPa。学生答：平均值比35小，所以不合格。",
+      "stem": "这一步最稳的计算判定链应该怎么写？",
+      "answer": "dual_threshold",
+      "visual": {
+        "kind": "formula_chain",
+        "title": "芯样进入双阈值标尺",
+        "before": ["28.5", "31", "32", "直接比35"],
+        "after": ["平均值30.8", "35×88%=30.8", "最小28.5", "35×80%=28"],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "dual_threshold",
+          "label": "先亮判据“平均值≥设计×88%、最小值≥设计×80%”，再代入平均值30.8和最小值28.5回判。",
+          "reason": "完整交付公式、代入和回判。"
+        },
+        {
+          "id": "direct_compare",
+          "label": "平均值小于35MPa，直接判不合格即可，过程越短越清楚。",
+          "reason": "把实体判定误写成直接比设计值。"
+        },
+        {
+          "id": "average_only",
+          "label": "只要平均值达到88%即可，最小值不用再看。",
+          "reason": "漏掉最小值80%的另一条门。"
+        },
+        {
+          "id": "min_only",
+          "label": "只看28.5大于28，所以不用算平均值。",
+          "reason": "漏掉平均值88%的另一条门。"
+        }
+      ],
+      "optionFeedback": {
+        "direct_compare": "这是学生样本的核心错法。实体强度不是直接比35，而是先把设计值乘88%和80%。",
+        "average_only": "平均值是第一条门，但最小值也要同时满足；只算平均会漏判最弱芯样。",
+        "min_only": "最小值过线不代表平均值自动过线。两条门都要亮出来。"
+      },
+      "correct": "对。计算题要交付“判据、代入、回判”三步；临界取舍不擅自定官方分，但阈值链必须写对。",
+      "wrong": "这题不是比谁算得快，而是看你有没有把实体强度的双阈值判据写出来。"
+    },
+    {
+      "id": "q4",
+      "stageLabel": "重排标准答",
+      "skill": "三格改写",
+      "scene_gap": "学生答案的内容、主体、依据散乱，需要重排成阅卷结构。",
+      "student": "现在要把学生样本改成答题纸答案。",
+      "stem": "下面哪种组织顺序最像阅卷友好的主观题答案？",
+      "answer": "three_grids",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "三格改写答题纸",
+        "before": ["测保护层", "施工单位组织", "平均比35", "不合格"],
+        "after": ["内容清单", "监理组织/施工实施/见证", "88%/80%双阈值", "回判结论"],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "three_grids",
+          "label": "先编号写检验内容，再写监理组织、施工实施、监理见证，最后亮88%/80%判据并代入回判。",
+          "reason": "内容、主体、依据三格齐全。"
+        },
+        {
+          "id": "calculation_first",
+          "label": "先写平均值计算，再补一句“其余内容按规范验收”。",
+          "reason": "计算有了，但内容清单和主体仍然空。"
+        },
+        {
+          "id": "definition_first",
+          "label": "先解释结构实体检验的概念，再写本题结论。",
+          "reason": "概念解释不能替代采分动作。"
+        },
+        {
+          "id": "conclusion_first",
+          "label": "先给合格或不合格结论，再根据篇幅补理由。",
+          "reason": "主观题不能把依据放成可有可无。"
+        }
+      ],
+      "optionFeedback": {
+        "calculation_first": "这是把最显眼的数值题放在前面，但第一问的内容清单和主体会继续漏。",
+        "definition_first": "案例题不是名词解释。阅卷要看你有没有把题干要求的采分动作写出来。",
+        "conclusion_first": "结论冲太快会丢过程和依据。尤其本题有临界处置，更不能只写结论。"
+      },
+      "correct": "对。阅卷友好的顺序就是内容清单、组织主体、双阈值依据三格连续写。",
+      "wrong": "这道题不是靠一个结论拿分。你要让阅卷人看见内容、主体、依据三个格子都齐。"
+    },
+    {
+      "id": "q5",
+      "stageLabel": "输出采分句",
+      "skill": "采分句输出",
+      "scene_gap": "最后训练学生把诊断结果压成完整可写句。",
+      "student": "考试要求：结构实体检验除混凝土强度外还包括哪些项目？由谁组织？强度是否合格，写依据。",
+      "stem": "下面哪一句最像完整采分句？",
+      "answer": "score_sentence",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "最终答题纸扫描",
+        "before": ["内容", "主体", "依据", "结论"],
+        "after": ["保护层/尺寸偏差/合同项目", "监理组织施工实施见证", "平均≥88%且最小≥80%", "按细则回判"],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "score_sentence",
+          "label": "除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；由监理组织、施工实施、监理见证；强度按平均≥88%、最小≥80%回判。",
+          "reason": "内容、主体、依据都交付。"
+        },
+        {
+          "id": "short_strength",
+          "label": "还包括钢筋保护层，施工单位组织；平均值不达设计值，所以不合格。",
+          "reason": "基本重复学生错答。"
+        },
+        {
+          "id": "content_only",
+          "label": "实体检验内容很多，应按规范逐项检测，确保质量合格。",
+          "reason": "空泛表达，没有具体采分对象和判据。"
+        },
+        {
+          "id": "organizer_only",
+          "label": "应由监理单位组织，施工单位配合即可。",
+          "reason": "只命中主体的一部分，漏内容和计算依据。"
+        }
+      ],
+      "optionFeedback": {
+        "short_strength": "这几乎就是学生错答：清单不全、主体错位、判定依据错。",
+        "content_only": "“很多、逐项、确保质量”听着稳，但阅卷无法定位保护层、尺寸偏差、合同项目和双阈值。",
+        "organizer_only": "监理组织是对的，但只拿到一个格子；内容清单和判定依据仍然没交付。"
+      },
+      "correct": "对。最终答案要让阅卷人扫到三格：内容清单、组织主体、判定依据。",
+      "wrong": "最终句不能只修一个点。A01 作答层训练的是把所有漏点压成完整采分表达。"
+    }
+  ],
+  "memory_hook": "扫答案，补三格。"
+}

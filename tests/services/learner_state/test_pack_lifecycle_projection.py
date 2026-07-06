@@ -161,7 +161,7 @@ def test_unmappable_practice_falls_into_unassigned_bucket() -> None:
 
 def test_full_40_pack_set_is_the_default_universe() -> None:
     projection = project_pack_lifecycle(events=[], claims=[])
-    assert len(projection["packs"]) == 40
+    assert len(projection["packs"]) == 41  # 40+D14(2026-07-04)——manifest 全集,加站时有意识 bump
 
 
 def test_revalidation_queue_emits_zero_probe_for_unlearned_and_exposed() -> None:
@@ -241,7 +241,6 @@ def test_missing_artifacts_mark_projection_degraded_and_recover(tmp_path, monkey
     # 契约:加载失败 → degraded=True + warning 可观测;修好文件后同进程恢复
     # (失败不落缓存),degraded 回 False。
     import deeptutor.services.learner_state.pack_lifecycle_projection as plp
-    from loguru import logger as _loguru
 
     map_path = tmp_path / "map.json"
     registry_path = tmp_path / "registry.json"
@@ -249,12 +248,19 @@ def test_missing_artifacts_mark_projection_degraded_and_recover(tmp_path, monkey
     monkeypatch.setattr(plp, "_PACK_TAXONOMY_REGISTRY_PATH", registry_path)
     plp._ARTIFACT_CACHE.clear()
 
+    # 不挂真 loguru sink:同 shard 的 tutorbot 测试会在 sys.modules 顶层塞假 loguru
+    # (无 .add),直接替换模块级 logger 才不吃隔离污染。
     warnings: list[str] = []
-    sink_id = _loguru.add(lambda message: warnings.append(str(message)), level="WARNING")
-    try:
-        projection = project_pack_lifecycle(events=[], claims=[], pack_ids=_PACK_IDS)
-    finally:
-        _loguru.remove(sink_id)
+
+    class _CaptureLogger:
+        def warning(self, message: str, *args: object, **kwargs: object) -> None:
+            warnings.append(str(message).format(*args, **kwargs) if args or kwargs else str(message))
+
+        def __getattr__(self, _name: str):
+            return lambda *args, **kwargs: None
+
+    monkeypatch.setattr(plp, "logger", _CaptureLogger())
+    projection = project_pack_lifecycle(events=[], claims=[], pack_ids=_PACK_IDS)
     assert projection["degraded"] is True
     assert any("pack lifecycle artifact" in text for text in warnings)
 

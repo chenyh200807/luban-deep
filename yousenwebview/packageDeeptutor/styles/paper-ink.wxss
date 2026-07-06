@@ -58,8 +58,9 @@
 }
 
 /* ── 层级: kicker → 标题 → 说明 ───────────────────────── */
+/* 辅助字号下限 24rpx(评审要点摘要 §27 + round11 继续生效硬约束) */
 .pk-kicker {
-  font-size: 21rpx;
+  font-size: 24rpx;
   letter-spacing: 3rpx;
   color: var(--pk-t3);
   font-weight: 700;
@@ -71,7 +72,7 @@
   line-height: 1.3;
 }
 .pk-desc {
-  font-size: 22rpx;
+  font-size: 24rpx;
   line-height: 1.65;
   color: var(--pk-t2);
 }
@@ -80,7 +81,7 @@
 .pk-chip {
   padding: 6rpx 15rpx;
   border-radius: 999rpx;
-  font-size: 21rpx;
+  font-size: 24rpx;
   font-weight: 800;
 }
 .pk-chip--grn {
@@ -140,12 +141,14 @@
   overflow: hidden;
   box-shadow: 0 3rpx 10rpx var(--pk-shadow);
 }
-.pk-poster__name {   /* 竖排书法考点名 */
+.pk-poster__name {   /* 竖排书法考点名(≤6 字,view-model 截断保证单列) */
   position: absolute;
   top: 15rpx;
   right: 15rpx;
   writing-mode: vertical-rl;
-  font-family: "Long Cang", "Kaiti SC", serif;
+  /* 书法链按 slice1 §3 规范收敛 cursive;补 Android/Win 楷体名,serif 在
+     Android WebView 落默认黑体,书法感全失(10a 设计=Long Cang 手写体) */
+  font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive;
   font-size: 26rpx;
   letter-spacing: 4rpx;
   line-height: 1;

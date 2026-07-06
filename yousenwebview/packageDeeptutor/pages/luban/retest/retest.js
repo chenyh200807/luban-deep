@@ -103,6 +103,19 @@ Page({
     this.setData(patch);
 
     if (done) {
+      // 复测终态本地记录: 错因银行呈现层销账用(本地 storage, 非学情真值,
+      // 不写掌握态——掌握结论只归 learner truth 链路)
+      if (typeof wx !== "undefined" && wx.setStorageSync) {
+        try {
+          wx.setStorageSync("luban_retest_last:" + (this.data.packId || ""), {
+            correct: correctCount,
+            total: this.data.total,
+            at: Date.now(),
+          });
+        } catch (_err) {}
+      }
+      // 复测完成 → 站完成信号(非 promoting, 重排下一跳到期; 旗标关=服务端拒收, 静默)
+      api.postStationCompleted(this.data.packId || "", "").catch(function () {});
       // 复测完成（任务稿 luban_retest_complete 的登记名）
       telemetry.trackProductBehavior("learning_action_completed", {
         module: "practice",

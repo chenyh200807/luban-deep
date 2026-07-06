@@ -7,6 +7,7 @@ const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
 const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
+const flags = require("../../utils/flags");
 const { buildLearnViewModel } = require("../../utils/learn-view-model");
 
 // H2:Long Cang 只许 CDN 子集化,禁内嵌。子集托管后填此常量;
@@ -70,6 +71,11 @@ Page({
   },
 
   onShow() {
+    // 五 tab 壳:学习 index=0;本页第 10 版定稿=宣纸亮,壳跟页面主题
+    helpers.syncTabBar(this, 0, {
+      isDark: this.data.isDark,
+      hidden: !flags.shouldShowWorkspaceShell(),
+    });
     // 从站点/复习返回时刷新点亮态(预览模式不打后端,保持镜像数据)
     if (!this.data.loading && !this.data._preview) this._load();
   },
@@ -107,10 +113,21 @@ Page({
         }
       );
     };
+    var lessonsPromise = settle(api.getLubanLessons(opt));
+    // 首屏快通道:绿灯站列表是静态 manifest 投影(live 实测 ~0.15s),
+    // dashboard/learning-report 是重 read model(live 实测 3-5s)。
+    // 冷启动先用 lessons 画出舞台+课程架(view-model 对缺 dashboard/report
+    // 本就降级),整页数据到齐后再覆盖——不发明数据,只是分两拍投影。
+    lessonsPromise.then(function (lessonsRes) {
+      if (that.data.vm) return; // 已有整页数据(onShow 静默刷新),不做部分回退
+      var lessons = api.unwrapResponse(lessonsRes) || {};
+      var fast = buildLearnViewModel({ homeDashboard: {}, report: {}, lessons: lessons });
+      if (fast.hasSupply) that.setData({ vm: fast, loading: false });
+    });
     return Promise.all([
       settle(api.getHomeDashboard(opt)),
       settle(api.getLearningReport(100, opt)),
-      settle(api.getLubanLessons(opt)),
+      lessonsPromise,
     ]).then(function (res) {
       var homeDashboard = api.unwrapResponse(res[0]) || {};
       var report = api.unwrapResponse(res[1]) || {};
@@ -143,9 +160,9 @@ Page({
     this._navTo("/packageDeeptutor/pages/luban/stations/stations");
   },
 
-  // 复习到期条 → 复习(错题本);今日任务 → 现有 practice/chat(练三档真答题流后续片)
+  // 复习到期条 → 复习页(10c 回炉屏, 归位);今日任务 → 现有 practice/chat
   goReview() {
-    this._navTo("/packageDeeptutor/pages/mistake-book/mistake-book");
+    this._navTo(route.lubanReview());
   },
   // 今日任务「开始半写训练/摸底」→ 直达半写训练:复用唯一答题流
   // (runtime.setPendingChatIntent → chat/TutorBot 生成案例题并按采分点批改)。
@@ -159,20 +176,6 @@ Page({
       return;
     }
     this._navTo("/packageDeeptutor/pages/practice/practice");
-  },
-
-  // 底部 tab 路由(设计 5tab → 现有页;归位后续片)
-  tabReview() {
-    this._navTo("/packageDeeptutor/pages/mistake-book/mistake-book");
-  },
-  tabAsk() {
-    this._navTo("/packageDeeptutor/pages/chat/chat");
-  },
-  tabReport() {
-    this._navTo("/packageDeeptutor/pages/report/report");
-  },
-  tabProfile() {
-    this._navTo("/packageDeeptutor/pages/profile/profile");
   },
 
   _navTo(url) {

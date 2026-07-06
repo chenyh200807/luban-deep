@@ -1,130 +1,186 @@
 [
-  {
-    "issue": "钢梁＞21m 吊点/安装工序被错标为本体连接判分眼",
-    "location": "§1 #8 及 §8.2 C4",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5-Codex"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "将钢梁吊点相关内容标注改为邻接安装工序（🔵），移出连接本体判分眼。"
-  },
-  {
-    "issue": "夹渣成因封闭对照过强，quote 仅支持清坡口/摆条让熔渣浮出/严重夹渣返修，不支持电流太小/速度太快/熔渣密度大/夹钨等全枚举",
-    "location": "§4 规则组A",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5-Codex"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "仅将 quote 直接支持的内容保留为判分眼（🟢），额外成因若缺真题或教材 quote 支撑则降级为🔵或删除。"
-  },
-  {
-    "issue": "M3 摩擦面相关误区的 error_code E07 不贴切",
-    "location": "§6 M3",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5-Codex"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "拆分为两条：摩擦面未处理/有杂质属遗漏类→E02/E03；在摩擦面违规作标记属规范适用错误→E10，或统一改为 E10。"
-  },
-  {
-    "issue": "M7“焊接易于检查”陷阱挂点 quote 不含优缺点，且 error_code E07 可能不当",
-    "location": "§6 M7",
-    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5-Codex"],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "改为挂载具体考察该知识点的真题锚（如2017第23题），并重新评估 error_code（建议考虑 E01 或保留 E07 但补充锚）。"
-  },
-  {
-    "issue": "高强螺栓“母材不因开孔削弱 / 母材零开孔损伤”表述与自身引用的 quote 冲突",
-    "location": "§2 / §7",
-    "flagged_by": ["GPT-5.5-Codex"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "删除“零开孔损伤”等错误表述，保留“摩擦面传力无滑移”等正确机理。"
-  },
-  {
-    "issue": "“首次采用钢材/焊材/焊接方法/位置须工艺评定”缺少所挂 point_id 的直接 quote 支持",
-    "location": "§3 R2#7 / §4 规则组E / §5 R6#6",
-    "flagged_by": ["GPT-5.5-Codex"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "若无教材或真题原文支撑则降🔴或删除；或在案例锚支援下保留但注明非 point quote 直接支持。"
-  },
-  {
-    "issue": "“主控验收：焊缝无损检测+抗滑移”错挂 point_id，应挂 1A434000_068_0102:0 而非 0101:0",
-    "location": "§5 R6#6",
-    "flagged_by": ["GPT-5.5-Codex"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将无损检测+抗滑移验收项改挂 kc:1A434000_068_0102:0，安装检查部分单独列为🔵。"
-  },
-  {
-    "issue": "钢结构安装主控检查被标为本体过宽",
-    "location": "§1 #10",
-    "flagged_by": ["GPT-5.5-Codex"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "降级为🔵邻接，标记为安装验收备料而非焊接/螺栓连接核心判分眼。"
-  },
-  {
-    "issue": "M8 将“终拧后随时检查”与“漏抗滑移试验”合并成 E03 不够贴切",
-    "location": "§6 M8",
-    "flagged_by": ["GPT-5.5-Codex"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "拆为两条：终拧时间错误（1~48h 混淆）和漏做抗滑移试验（E02/E03）。"
-  },
-  {
-    "issue": "疲劳验算禁用接头声明为“封闭可判分”证据不足，quote 未体现外延封闭",
-    "location": "§4 R4 规则组B",
-    "flagged_by": ["DeepSeek-V4-Pro"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将封闭性声明改为工程通识（🔵），或严格限定封闭域仅为 quote 列出的四种接头。"
-  },
-  {
-    "issue": "高强螺栓承压型判分边界可能溢出教材范围",
-    "location": "§4 R4 规则组B",
-    "flagged_by": ["DeepSeek-V4-Pro"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "降级为🔵，仅注明实务含承压型但一建教材本考点以摩擦型为主。"
-  },
-  {
-    "issue": "安装螺栓“≥2个且≥安装孔1/3”中的“且”字可能将分号解读为严格∩关系，存在模糊地带",
-    "location": "§3 R2 #6",
-    "flagged_by": ["DeepSeek-V4-Pro"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将“且”改为“，”或谨慎使用，避免过度解读。"
-  },
-  {
-    "issue": "M1 高强螺栓兼作安装螺栓的 error_code 建议叠加 E12",
-    "location": "§6 M1",
-    "flagged_by": ["DeepSeek-V4-Pro"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "保留 E10，可选叠加 [E10, E12] 更精准。"
-  },
-  {
-    "issue": "钢梁吊点语句中的“平衡梁”在 quote 中的匹配度存疑",
-    "location": "L1 表格第 8 行",
-    "flagged_by": ["Qwen-3.7-Max"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "核实 quote 中确含“或用平衡梁吊装”，若一致则保留，否则调整表述。"
-  },
-  {
-    "issue": "R2 不变量第6条“冲钉≤安装螺栓30%”语境不符，原文为“不宜多于”",
-    "location": "§3 R2 #6",
-    "flagged_by": ["Qwen-3.7-Max"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将 pack 中的≤改为与 quote 一致的“不宜多于”，避免判定逻辑误导。"
-  },
-  {
-    "issue": "M5“动荷疲劳构件用禁用接头”的 error_code E07 可能应改为 E10",
-    "location": "§6 M5",
-    "flagged_by": ["Qwen-3.7-Max"],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将 error_code 改为 E10（规范适用错误），或补充说明。"
+ {
+  "issue": "钢梁＞21m 吊点/安装工序被错标为本体连接判分眼",
+  "location": "§1 #8 及 §8.2 C4",
+  "flagged_by": [
+   "DeepSeek-V4-Pro",
+   "GPT-5.5-Codex"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "将钢梁吊点相关内容标注改为邻接安装工序（🔵），移出连接本体判分眼。",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "C07_钢结构连接.md §1 #8b（前轮汇编已按 fix 降级：钢梁>21m吊点拆为 #8b 标🔵『邻接(吊装工序,非连接判分眼·jury高可信改)』，移出连接本体判分眼）",
+   "verified": "2026-07-04 确定性核验：§1 #8b 行实存串『🔵 | 邻接(吊装工序,非连接判分眼·jury高可信改)』；kc:1A413030_112_0220:1 存在且带 quote；方向=降级（合法）；GLM-5.2 satisfied + Fable-5 复签 2/2（可重跑：python3 docs/原始数据/考点原料/recheck_resolutions.py C07）"
   }
+ },
+ {
+  "issue": "夹渣成因封闭对照过强，quote 仅支持清坡口/摆条让熔渣浮出/严重夹渣返修，不支持电流太小/速度太快/熔渣密度大/夹钨等全枚举",
+  "location": "§4 规则组A",
+  "flagged_by": [
+   "DeepSeek-V4-Pro",
+   "GPT-5.5-Codex"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "仅将 quote 直接支持的内容保留为判分眼（🟢），额外成因若缺真题或教材 quote 支撑则降级为🔵或删除。",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "C07_钢结构连接.md §4 规则组A（前轮汇编已改：封闭对照降级为『高频判别表』，夹渣成因清单改锚真题解析 🟢{2021,第8题} analysis 并标注非 kc:1A434000_074_0116:0 quote 直接枚举）",
+   "verified": "2026-07-04 确定性核验：exam_evidence {2021,第8题} analysis 原文『产生夹渣的主要原因是焊接材料质量不好焊接电流太小、焊接速度太快、熔渣密度太大、阻碍熔渣上浮、多层焊时熔渣未清除干净』逐字支撑全部被质疑成因；kc:1A434000_074_0116:0 quote 直读仅含清坡口/摆动/返修（jury 现象为真，已按真题锚路径收口）；verify_exam_anchors exit 0；GLM-5.2+Fable-5 双签 2/2"
+  }
+ },
+ {
+  "issue": "M3 摩擦面相关误区的 error_code E07 不贴切",
+  "location": "§6 M3",
+  "flagged_by": [
+   "DeepSeek-V4-Pro",
+   "GPT-5.5-Codex"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "拆分为两条：摩擦面未处理/有杂质属遗漏类→E02/E03；在摩擦面违规作标记属规范适用错误→E10，或统一改为 E10。",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "C07_钢结构连接.md §6 M3（前轮汇编已采纳 fix 的『统一改E10』分支：E07→E10 规范适用错误，括注『违规作标记/留杂质属规范适用错误,jury高可信由E07改E10』）",
+   "verified": "2026-07-04 确定性核验：ERROR_CODE_REGISTRY 直读 E10=规范适用错误；kc:1A413030_110_0217:2 quote 直读含「不得在摩擦面作标记」强制性要求；GLM-5.2 单审 e10_apt=true + Fable-5 复签 2/2（flaggers=DeepSeek/Codex，均回避）"
+  }
+ },
+ {
+  "issue": "M7“焊接易于检查”陷阱挂点 quote 不含优缺点，且 error_code E07 可能不当",
+  "location": "§6 M7",
+  "flagged_by": [
+   "Qwen-3.7-Max",
+   "GPT-5.5-Codex"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "改为挂载具体考察该知识点的真题锚（如2017第23题），并重新评估 error_code（建议考虑 E01 或保留 E07 但补充锚）。",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "C07_钢结构连接.md §6 M7（前轮汇编已按 fix『保留E07但补锚』分支：挂🟢真题锚 {2017,第23题}，E07 概念混淆维持）",
+   "verified": "2026-07-04 确定性核验：exam_evidence {2017,第23题} ans=ABCD，analysis 原文『E项错误：焊缝内部缺陷难以检查，需借助探伤手段』直接支撑陷阱内容；ERROR_CODE_REGISTRY 直读 E07=概念混淆（优点/缺点概念错位贴切）；GLM-5.2 e07_apt=true + Fable-5 复签 2/2"
+  }
+ },
+ {
+  "issue": "高强螺栓“母材不因开孔削弱 / 母材零开孔损伤”表述与自身引用的 quote 冲突",
+  "location": "§2 / §7",
+  "flagged_by": [
+   "GPT-5.5-Codex"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "删除“零开孔损伤”等错误表述，保留“摩擦面传力无滑移”等正确机理。"
+ },
+ {
+  "issue": "“首次采用钢材/焊材/焊接方法/位置须工艺评定”缺少所挂 point_id 的直接 quote 支持",
+  "location": "§3 R2#7 / §4 规则组E / §5 R6#6",
+  "flagged_by": [
+   "GPT-5.5-Codex"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "若无教材或真题原文支撑则降🔴或删除；或在案例锚支援下保留但注明非 point quote 直接支持。"
+ },
+ {
+  "issue": "“主控验收：焊缝无损检测+抗滑移”错挂 point_id，应挂 1A434000_068_0102:0 而非 0101:0",
+  "location": "§5 R6#6",
+  "flagged_by": [
+   "GPT-5.5-Codex"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将无损检测+抗滑移验收项改挂 kc:1A434000_068_0102:0，安装检查部分单独列为🔵。"
+ },
+ {
+  "issue": "钢结构安装主控检查被标为本体过宽",
+  "location": "§1 #10",
+  "flagged_by": [
+   "GPT-5.5-Codex"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "降级为🔵邻接，标记为安装验收备料而非焊接/螺栓连接核心判分眼。"
+ },
+ {
+  "issue": "M8 将“终拧后随时检查”与“漏抗滑移试验”合并成 E03 不够贴切",
+  "location": "§6 M8",
+  "flagged_by": [
+   "GPT-5.5-Codex"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "拆为两条：终拧时间错误（1~48h 混淆）和漏做抗滑移试验（E02/E03）。"
+ },
+ {
+  "issue": "疲劳验算禁用接头声明为“封闭可判分”证据不足，quote 未体现外延封闭",
+  "location": "§4 R4 规则组B",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将封闭性声明改为工程通识（🔵），或严格限定封闭域仅为 quote 列出的四种接头。"
+ },
+ {
+  "issue": "高强螺栓承压型判分边界可能溢出教材范围",
+  "location": "§4 R4 规则组B",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "降级为🔵，仅注明实务含承压型但一建教材本考点以摩擦型为主。"
+ },
+ {
+  "issue": "安装螺栓“≥2个且≥安装孔1/3”中的“且”字可能将分号解读为严格∩关系，存在模糊地带",
+  "location": "§3 R2 #6",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将“且”改为“，”或谨慎使用，避免过度解读。"
+ },
+ {
+  "issue": "M1 高强螺栓兼作安装螺栓的 error_code 建议叠加 E12",
+  "location": "§6 M1",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "保留 E10，可选叠加 [E10, E12] 更精准。"
+ },
+ {
+  "issue": "钢梁吊点语句中的“平衡梁”在 quote 中的匹配度存疑",
+  "location": "L1 表格第 8 行",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "核实 quote 中确含“或用平衡梁吊装”，若一致则保留，否则调整表述。"
+ },
+ {
+  "issue": "R2 不变量第6条“冲钉≤安装螺栓30%”语境不符，原文为“不宜多于”",
+  "location": "§3 R2 #6",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将 pack 中的≤改为与 quote 一致的“不宜多于”，避免判定逻辑误导。"
+ },
+ {
+  "issue": "M5“动荷疲劳构件用禁用接头”的 error_code E07 可能应改为 E10",
+  "location": "§6 M5",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将 error_code 改为 E10（规范适用错误），或补充说明。"
+ }
 ]

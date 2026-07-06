@@ -1,7 +1,7 @@
 {
  "schema_version": "luban-s05-variant-bank",
  "pack_id": "S05",
- "status": "candidate",
+ "status": "signed",
  "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
  "generation_ms": 0.05,
  "gate": {
@@ -1106,5 +1106,10 @@
    "anchor": "{2017,第2题}",
    "extension": true
   }
- ]
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:48+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
 }

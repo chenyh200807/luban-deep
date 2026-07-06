@@ -47,7 +47,7 @@ assert(
   "profile should own the wallet ledger usage endpoint and state",
 );
 assert(
-  profileWxml.indexOf('class="usage-card glass-card"') >= 0 &&
+  profileWxml.indexOf('class="pk-card usage-card"') >= 0 &&
     profileWxml.indexOf("{{usagePrimaryLabel}}") >= 0 &&
     profileWxml.indexOf('class="usage-summary-row"') >= 0 &&
     profileWxml.indexOf('class="usage-detail-sheet') >= 0 &&

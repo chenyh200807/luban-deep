@@ -1,0 +1,1700 @@
+{
+ "schema_version": "luban-j01-variant-bank",
+ "pack_id": "J01",
+ "status": "signed",
+ "source_pack_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
+ "generation_ms": 0.06,
+ "gate": {
+  "total": 123,
+  "passed": 123,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-hazard": 12,
+  "B-band": 2,
+  "B-super": 33,
+  "C-author": 6,
+  "D-content": 28,
+  "E-org": 3,
+  "E-panel": 9,
+  "E-proc": 4,
+  "F-site": 16,
+  "G-review": 10
+ },
+ "variants": [
+  {
+   "variant_id": "J01-A-hazard-000",
+   "rule_group": "A-hazard",
+   "surface": "某工程基坑工程开挖深度为2m，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "基坑工程开挖深度",
+    "value": 2.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": false,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-001",
+   "rule_group": "A-hazard",
+   "surface": "某工程基坑工程开挖深度为3m，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "基坑工程开挖深度",
+    "value": 3.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": true,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-002",
+   "rule_group": "A-hazard",
+   "surface": "某工程基坑工程开挖深度为4m，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "基坑工程开挖深度",
+    "value": 4.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": true,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-003",
+   "rule_group": "A-hazard",
+   "surface": "某工程模板工程搭设高度为4m，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "模板工程搭设高度",
+    "value": 4.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": false,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-004",
+   "rule_group": "A-hazard",
+   "surface": "某工程模板工程搭设高度为5m，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "模板工程搭设高度",
+    "value": 5.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": true,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-005",
+   "rule_group": "A-hazard",
+   "surface": "某工程模板工程搭设高度为6m，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "模板工程搭设高度",
+    "value": 6.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": true,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-006",
+   "rule_group": "A-hazard",
+   "surface": "某工程起重吊装单件起吊重量为8kN，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "起重吊装单件起吊重量",
+    "value": 8.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": false,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-007",
+   "rule_group": "A-hazard",
+   "surface": "某工程起重吊装单件起吊重量为10kN，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "起重吊装单件起吊重量",
+    "value": 10.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": true,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-008",
+   "rule_group": "A-hazard",
+   "surface": "某工程起重吊装单件起吊重量为15kN，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "起重吊装单件起吊重量",
+    "value": 15.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": true,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-009",
+   "rule_group": "A-hazard",
+   "surface": "某工程脚手架搭设高度为20m，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "脚手架搭设高度",
+    "value": 20.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": false,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-010",
+   "rule_group": "A-hazard",
+   "surface": "某工程脚手架搭设高度为24m，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "脚手架搭设高度",
+    "value": 24.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": true,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-A-hazard-011",
+   "rule_group": "A-hazard",
+   "surface": "某工程脚手架搭设高度为30m，项目部认定其属于危险性较大的分部分项工程并编制专项施工方案",
+   "params": {
+    "label": "脚手架搭设高度",
+    "value": 30.0,
+    "claim": "hazardous"
+   },
+   "expected_ok": true,
+   "correct_statement": "达一般危大档阈值（基坑开挖≥3m/模板搭设≥5m/起重单件≥10kN/脚手架≥24m）即属危大工程，须编制专项施工方案",
+   "anchor": "kc:1A436000_008_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-012",
+   "rule_group": "B-super",
+   "surface": "某工程深基坑开挖深度为3m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "深基坑开挖深度",
+    "value": 3.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1 + {2021,第5题} + {2022,第19题}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-013",
+   "rule_group": "B-super",
+   "surface": "某工程深基坑开挖深度为4m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "深基坑开挖深度",
+    "value": 4.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1 + {2021,第5题} + {2022,第19题}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-014",
+   "rule_group": "B-super",
+   "surface": "某工程深基坑开挖深度为5m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "深基坑开挖深度",
+    "value": 5.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1 + {2021,第5题} + {2022,第19题}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-015",
+   "rule_group": "B-super",
+   "surface": "某工程深基坑开挖深度为6m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "深基坑开挖深度",
+    "value": 6.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1 + {2021,第5题} + {2022,第19题}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-016",
+   "rule_group": "B-super",
+   "surface": "某工程深基坑开挖深度为8m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "深基坑开挖深度",
+    "value": 8.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1 + {2021,第5题} + {2022,第19题}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-017",
+   "rule_group": "B-super",
+   "surface": "某工程模板支撑搭设高度为5m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "模板支撑搭设高度",
+    "value": 5.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-018",
+   "rule_group": "B-super",
+   "surface": "某工程模板支撑搭设高度为8m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "模板支撑搭设高度",
+    "value": 8.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-019",
+   "rule_group": "B-super",
+   "surface": "某工程模板支撑搭设高度为9m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "模板支撑搭设高度",
+    "value": 9.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-020",
+   "rule_group": "B-super",
+   "surface": "某工程模板支撑跨度为12m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "模板支撑跨度",
+    "value": 12.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-021",
+   "rule_group": "B-super",
+   "surface": "某工程模板支撑跨度为18m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "模板支撑跨度",
+    "value": 18.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-022",
+   "rule_group": "B-super",
+   "surface": "某工程承重支撑单点荷载为5kN，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "承重支撑单点荷载",
+    "value": 5.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-023",
+   "rule_group": "B-super",
+   "surface": "某工程承重支撑单点荷载为7kN，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "承重支撑单点荷载",
+    "value": 7.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-024",
+   "rule_group": "B-super",
+   "surface": "某工程起重吊装单件起吊重量为10kN，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "起重吊装单件起吊重量",
+    "value": 10.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-025",
+   "rule_group": "B-super",
+   "surface": "某工程起重吊装单件起吊重量为100kN，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "起重吊装单件起吊重量",
+    "value": 100.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-026",
+   "rule_group": "B-super",
+   "surface": "某工程起重吊装单件起吊重量为120kN，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "起重吊装单件起吊重量",
+    "value": 120.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-027",
+   "rule_group": "B-super",
+   "surface": "某工程落地脚手架搭设高度为24m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "落地脚手架搭设高度",
+    "value": 24.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-028",
+   "rule_group": "B-super",
+   "surface": "某工程落地脚手架搭设高度为50m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "落地脚手架搭设高度",
+    "value": 50.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-029",
+   "rule_group": "B-super",
+   "surface": "某工程落地脚手架搭设高度为60m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "落地脚手架搭设高度",
+    "value": 60.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-030",
+   "rule_group": "B-super",
+   "surface": "某工程附着式脚手架架体高度为100m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "附着式脚手架架体高度",
+    "value": 100.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-031",
+   "rule_group": "B-super",
+   "surface": "某工程附着式脚手架架体高度为150m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "附着式脚手架架体高度",
+    "value": 150.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-032",
+   "rule_group": "B-super",
+   "surface": "某工程悬挑脚手架搭设高度为15m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "悬挑脚手架搭设高度",
+    "value": 15.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-033",
+   "rule_group": "B-super",
+   "surface": "某工程悬挑脚手架搭设高度为20m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "悬挑脚手架搭设高度",
+    "value": 20.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-034",
+   "rule_group": "B-super",
+   "surface": "某工程建筑幕墙安装高度为40m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "建筑幕墙安装高度",
+    "value": 40.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1 + {2021,第5题}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-035",
+   "rule_group": "B-super",
+   "surface": "某工程建筑幕墙安装高度为50m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "建筑幕墙安装高度",
+    "value": 50.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1 + {2021,第5题}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-036",
+   "rule_group": "B-super",
+   "surface": "某工程建筑幕墙安装高度为60m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "建筑幕墙安装高度",
+    "value": 60.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1 + {2021,第5题}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-037",
+   "rule_group": "B-super",
+   "surface": "某工程钢结构安装跨度为30m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "钢结构安装跨度",
+    "value": 30.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-038",
+   "rule_group": "B-super",
+   "surface": "某工程钢结构安装跨度为36m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "钢结构安装跨度",
+    "value": 36.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-039",
+   "rule_group": "B-super",
+   "surface": "某工程网架安装跨度为50m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "网架安装跨度",
+    "value": 50.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-040",
+   "rule_group": "B-super",
+   "surface": "某工程网架安装跨度为60m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "网架安装跨度",
+    "value": 60.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-041",
+   "rule_group": "B-super",
+   "surface": "某工程人工挖孔桩开挖深度为12m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "人工挖孔桩开挖深度",
+    "value": 12.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-042",
+   "rule_group": "B-super",
+   "surface": "某工程人工挖孔桩开挖深度为16m，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "人工挖孔桩开挖深度",
+    "value": 16.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-043",
+   "rule_group": "B-super",
+   "surface": "某工程大型结构整体提升重量为800kN，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "大型结构整体提升重量",
+    "value": 800.0,
+    "claim": "super"
+   },
+   "expected_ok": false,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-super-044",
+   "rule_group": "B-super",
+   "surface": "某工程大型结构整体提升重量为1000kN，项目部认为该工程需组织专家论证",
+   "params": {
+    "label": "大型结构整体提升重量",
+    "value": 1000.0,
+    "claim": "super"
+   },
+   "expected_ok": true,
+   "correct_statement": "达超规模档阈值（深基坑≥5m/模板支撑高≥8m或跨≥18m/承重支撑单点≥7kN/起重单件≥100kN/落地脚手架≥50m/附着≥150m/悬挑≥20m/幕墙≥50m/钢结构跨≥36m/网架≥60m/挖孔桩≥16m/大型结构≥1000kN）须组织专家论证",
+   "anchor": "kc:1A436000_009_0012:0 + cc:1A436000_009_0012:1",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-band-045",
+   "rule_group": "B-band",
+   "surface": "某基坑工程开挖深度4m，项目部认为不需组织专家论证、只需编制专项施工方案",
+   "params": {
+    "label": "基坑工程开挖深度",
+    "value": 4.0,
+    "claim": "only_plan"
+   },
+   "expected_ok": true,
+   "correct_statement": "基坑开挖深度≥3m须编制专项施工方案，≥5m方须组织专家论证；3m≤深度<5m 只需编案、不需论证",
+   "anchor": "kc:1A436000_008_0011:0 + kc:1A436000_009_0012:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-B-band-046",
+   "rule_group": "B-band",
+   "surface": "某基坑工程开挖深度6m，项目部认为不需组织专家论证、只需编制专项施工方案",
+   "params": {
+    "label": "基坑工程开挖深度",
+    "value": 6.0,
+    "claim": "only_plan"
+   },
+   "expected_ok": false,
+   "correct_statement": "基坑开挖深度≥3m须编制专项施工方案，≥5m方须组织专家论证；3m≤深度<5m 只需编案、不需论证",
+   "anchor": "kc:1A436000_008_0011:0 + kc:1A436000_009_0012:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-C-author-047",
+   "rule_group": "C-author",
+   "surface": "实行施工总承包，专项施工方案由施工总承包单位组织编制",
+   "params": {
+    "scenario": "总承包工程",
+    "author": "施工总承包单位"
+   },
+   "expected_ok": true,
+   "correct_statement": "实行施工总承包的，专项方案由施工总承包单位组织编制；起重机械安拆/深基坑/附着式升降脚手架等专业分包工程可由专业承包单位组织编制",
+   "anchor": "cc:1A436000_008_0011:3 + cc:1A436000_008_0011:4",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-C-author-048",
+   "rule_group": "C-author",
+   "surface": "实行施工总承包，专项施工方案由建设单位组织编制",
+   "params": {
+    "scenario": "总承包工程",
+    "author": "建设单位"
+   },
+   "expected_ok": false,
+   "correct_statement": "实行施工总承包的，专项方案由施工总承包单位组织编制；起重机械安拆/深基坑/附着式升降脚手架等专业分包工程可由专业承包单位组织编制",
+   "anchor": "cc:1A436000_008_0011:3 + cc:1A436000_008_0011:4",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-C-author-049",
+   "rule_group": "C-author",
+   "surface": "实行施工总承包，专项施工方案由监理单位组织编制",
+   "params": {
+    "scenario": "总承包工程",
+    "author": "监理单位"
+   },
+   "expected_ok": false,
+   "correct_statement": "实行施工总承包的，专项方案由施工总承包单位组织编制；起重机械安拆/深基坑/附着式升降脚手架等专业分包工程可由专业承包单位组织编制",
+   "anchor": "cc:1A436000_008_0011:3 + cc:1A436000_008_0011:4",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-C-author-050",
+   "rule_group": "C-author",
+   "surface": "起重机械安拆工程实行专业分包，专项施工方案由专业承包单位组织编制",
+   "params": {
+    "scenario": "专业分包工程",
+    "author": "专业承包单位",
+    "kind": "起重机械安拆"
+   },
+   "expected_ok": true,
+   "correct_statement": "实行施工总承包的，专项方案由施工总承包单位组织编制；起重机械安拆/深基坑/附着式升降脚手架等专业分包工程可由专业承包单位组织编制",
+   "anchor": "cc:1A436000_008_0011:3 + cc:1A436000_008_0011:4",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-C-author-051",
+   "rule_group": "C-author",
+   "surface": "深基坑工程实行专业分包，专项施工方案由专业承包单位组织编制",
+   "params": {
+    "scenario": "专业分包工程",
+    "author": "专业承包单位",
+    "kind": "深基坑"
+   },
+   "expected_ok": true,
+   "correct_statement": "实行施工总承包的，专项方案由施工总承包单位组织编制；起重机械安拆/深基坑/附着式升降脚手架等专业分包工程可由专业承包单位组织编制",
+   "anchor": "cc:1A436000_008_0011:3 + cc:1A436000_008_0011:4",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-C-author-052",
+   "rule_group": "C-author",
+   "surface": "附着式升降脚手架工程实行专业分包，专项施工方案由专业承包单位组织编制",
+   "params": {
+    "scenario": "专业分包工程",
+    "author": "专业承包单位",
+    "kind": "附着式升降脚手架"
+   },
+   "expected_ok": true,
+   "correct_statement": "实行施工总承包的，专项方案由施工总承包单位组织编制；起重机械安拆/深基坑/附着式升降脚手架等专业分包工程可由专业承包单位组织编制",
+   "anchor": "cc:1A436000_008_0011:3 + cc:1A436000_008_0011:4",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-053",
+   "rule_group": "D-content",
+   "surface": "基坑工程专项施工方案中编入「工程概况」",
+   "params": {
+    "plan": "基坑",
+    "item": "工程概况",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-054",
+   "rule_group": "D-content",
+   "surface": "认为「工程概况」无需编入基坑工程专项施工方案",
+   "params": {
+    "plan": "基坑",
+    "item": "工程概况",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-055",
+   "rule_group": "D-content",
+   "surface": "基坑工程专项施工方案中编入「编制依据」",
+   "params": {
+    "plan": "基坑",
+    "item": "编制依据",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-056",
+   "rule_group": "D-content",
+   "surface": "认为「编制依据」无需编入基坑工程专项施工方案",
+   "params": {
+    "plan": "基坑",
+    "item": "编制依据",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-057",
+   "rule_group": "D-content",
+   "surface": "基坑工程专项施工方案中编入「施工计划」",
+   "params": {
+    "plan": "基坑",
+    "item": "施工计划",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-058",
+   "rule_group": "D-content",
+   "surface": "认为「施工计划」无需编入基坑工程专项施工方案",
+   "params": {
+    "plan": "基坑",
+    "item": "施工计划",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-059",
+   "rule_group": "D-content",
+   "surface": "基坑工程专项施工方案中编入「施工工艺技术」",
+   "params": {
+    "plan": "基坑",
+    "item": "施工工艺技术",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-060",
+   "rule_group": "D-content",
+   "surface": "认为「施工工艺技术」无需编入基坑工程专项施工方案",
+   "params": {
+    "plan": "基坑",
+    "item": "施工工艺技术",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-061",
+   "rule_group": "D-content",
+   "surface": "基坑工程专项施工方案中编入「施工保证措施」",
+   "params": {
+    "plan": "基坑",
+    "item": "施工保证措施",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-062",
+   "rule_group": "D-content",
+   "surface": "认为「施工保证措施」无需编入基坑工程专项施工方案",
+   "params": {
+    "plan": "基坑",
+    "item": "施工保证措施",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-063",
+   "rule_group": "D-content",
+   "surface": "基坑工程专项施工方案中编入「施工管理及人员配备」",
+   "params": {
+    "plan": "基坑",
+    "item": "施工管理及人员配备",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-064",
+   "rule_group": "D-content",
+   "surface": "认为「施工管理及人员配备」无需编入基坑工程专项施工方案",
+   "params": {
+    "plan": "基坑",
+    "item": "施工管理及人员配备",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-065",
+   "rule_group": "D-content",
+   "surface": "基坑工程专项施工方案中编入「验收要求」",
+   "params": {
+    "plan": "基坑",
+    "item": "验收要求",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-066",
+   "rule_group": "D-content",
+   "surface": "认为「验收要求」无需编入基坑工程专项施工方案",
+   "params": {
+    "plan": "基坑",
+    "item": "验收要求",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-067",
+   "rule_group": "D-content",
+   "surface": "基坑工程专项施工方案中编入「应急处置措施」",
+   "params": {
+    "plan": "基坑",
+    "item": "应急处置措施",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-068",
+   "rule_group": "D-content",
+   "surface": "认为「应急处置措施」无需编入基坑工程专项施工方案",
+   "params": {
+    "plan": "基坑",
+    "item": "应急处置措施",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "基坑专项方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施，缺项应补全",
+   "anchor": "kc:1A431000_008_0008:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-069",
+   "rule_group": "D-content",
+   "surface": "模板支撑工程专项施工方案中编入「工程概况」",
+   "params": {
+    "plan": "模板支撑",
+    "item": "工程概况",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-070",
+   "rule_group": "D-content",
+   "surface": "认为「工程概况」无需编入模板支撑工程专项施工方案",
+   "params": {
+    "plan": "模板支撑",
+    "item": "工程概况",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-071",
+   "rule_group": "D-content",
+   "surface": "模板支撑工程专项施工方案中编入「技术参数」",
+   "params": {
+    "plan": "模板支撑",
+    "item": "技术参数",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-072",
+   "rule_group": "D-content",
+   "surface": "认为「技术参数」无需编入模板支撑工程专项施工方案",
+   "params": {
+    "plan": "模板支撑",
+    "item": "技术参数",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-073",
+   "rule_group": "D-content",
+   "surface": "模板支撑工程专项施工方案中编入「工艺流程」",
+   "params": {
+    "plan": "模板支撑",
+    "item": "工艺流程",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-074",
+   "rule_group": "D-content",
+   "surface": "认为「工艺流程」无需编入模板支撑工程专项施工方案",
+   "params": {
+    "plan": "模板支撑",
+    "item": "工艺流程",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-075",
+   "rule_group": "D-content",
+   "surface": "模板支撑工程专项施工方案中编入「施工方法」",
+   "params": {
+    "plan": "模板支撑",
+    "item": "施工方法",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-076",
+   "rule_group": "D-content",
+   "surface": "认为「施工方法」无需编入模板支撑工程专项施工方案",
+   "params": {
+    "plan": "模板支撑",
+    "item": "施工方法",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-077",
+   "rule_group": "D-content",
+   "surface": "模板支撑工程专项施工方案中编入「检查要求」",
+   "params": {
+    "plan": "模板支撑",
+    "item": "检查要求",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-078",
+   "rule_group": "D-content",
+   "surface": "认为「检查要求」无需编入模板支撑工程专项施工方案",
+   "params": {
+    "plan": "模板支撑",
+    "item": "检查要求",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-079",
+   "rule_group": "D-content",
+   "surface": "模板支撑工程专项施工方案中编入「计算书及相关施工图纸」",
+   "params": {
+    "plan": "模板支撑",
+    "item": "计算书及相关施工图纸",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-D-content-080",
+   "rule_group": "D-content",
+   "surface": "认为「计算书及相关施工图纸」无需编入模板支撑工程专项施工方案",
+   "params": {
+    "plan": "模板支撑",
+    "item": "计算书及相关施工图纸",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "模板支撑专项方案内容：工程概况/技术参数/工艺流程/施工方法/检查要求/计算书及相关施工图纸（计算书及相关施工图纸为模板支撑特有、补全题易漏）",
+   "anchor": "kc:1A431000_009_0009:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-proc-081",
+   "rule_group": "E-proc",
+   "surface": "专项方案经施工单位审核和总监理工程师审查后，再召开专家论证会",
+   "params": {
+    "contractor_review": true,
+    "supervisor_review": true,
+    "before_panel": true
+   },
+   "expected_ok": true,
+   "correct_statement": "专家论证前专项方案应经施工单位审核和总监理工程师审查",
+   "anchor": "cc:1A437000_010_0013:3 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-proc-082",
+   "rule_group": "E-proc",
+   "surface": "专项方案未经总监理工程师审查即召开专家论证会",
+   "params": {
+    "contractor_review": true,
+    "supervisor_review": false,
+    "before_panel": true
+   },
+   "expected_ok": false,
+   "correct_statement": "专家论证前专项方案应经施工单位审核和总监理工程师审查",
+   "anchor": "cc:1A437000_010_0013:3 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-proc-083",
+   "rule_group": "E-proc",
+   "surface": "专项方案未经施工单位审核即召开专家论证会",
+   "params": {
+    "contractor_review": false,
+    "supervisor_review": true,
+    "before_panel": true
+   },
+   "expected_ok": false,
+   "correct_statement": "专家论证前专项方案应经施工单位审核和总监理工程师审查",
+   "anchor": "cc:1A437000_010_0013:3 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-proc-084",
+   "rule_group": "E-proc",
+   "surface": "专项方案先召开专家论证会，再报总监理工程师审查",
+   "params": {
+    "contractor_review": true,
+    "supervisor_review": true,
+    "before_panel": false
+   },
+   "expected_ok": false,
+   "correct_statement": "专家论证前专项方案应经施工单位审核和总监理工程师审查",
+   "anchor": "cc:1A437000_010_0013:3 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-org-085",
+   "rule_group": "E-org",
+   "surface": "实行施工总承包的项目，专家论证会由施工总承包单位组织召开",
+   "params": {
+    "organizer": "施工总承包单位"
+   },
+   "expected_ok": true,
+   "correct_statement": "实行施工总承包的，专家论证会由施工总承包单位组织召开",
+   "anchor": "cc:1A437000_010_0013:2 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-org-086",
+   "rule_group": "E-org",
+   "surface": "实行施工总承包的项目，专家论证会由建设单位组织召开",
+   "params": {
+    "organizer": "建设单位"
+   },
+   "expected_ok": false,
+   "correct_statement": "实行施工总承包的，专家论证会由施工总承包单位组织召开",
+   "anchor": "cc:1A437000_010_0013:2 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-org-087",
+   "rule_group": "E-org",
+   "surface": "实行施工总承包的项目，专家论证会由监理单位组织召开",
+   "params": {
+    "organizer": "监理单位"
+   },
+   "expected_ok": false,
+   "correct_statement": "实行施工总承包的，专家论证会由施工总承包单位组织召开",
+   "anchor": "cc:1A437000_010_0013:2 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-panel-088",
+   "rule_group": "E-panel",
+   "surface": "专家论证会组织3名专家进行论证",
+   "params": {
+    "panel_size": 3
+   },
+   "expected_ok": false,
+   "correct_statement": "专家组成人员应为5人以上",
+   "anchor": "ca:1A437000_010_0013 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-panel-089",
+   "rule_group": "E-panel",
+   "surface": "专家论证会组织4名专家进行论证",
+   "params": {
+    "panel_size": 4
+   },
+   "expected_ok": false,
+   "correct_statement": "专家组成人员应为5人以上",
+   "anchor": "ca:1A437000_010_0013 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-panel-090",
+   "rule_group": "E-panel",
+   "surface": "专家论证会组织5名专家进行论证",
+   "params": {
+    "panel_size": 5
+   },
+   "expected_ok": true,
+   "correct_statement": "专家组成人员应为5人以上",
+   "anchor": "ca:1A437000_010_0013 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-panel-091",
+   "rule_group": "E-panel",
+   "surface": "专家论证会组织7名专家进行论证",
+   "params": {
+    "panel_size": 7
+   },
+   "expected_ok": true,
+   "correct_statement": "专家组成人员应为5人以上",
+   "anchor": "ca:1A437000_010_0013 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-panel-092",
+   "rule_group": "E-panel",
+   "surface": "组织包括本项目总承包单位技术负责人在内的5名专家进行论证",
+   "params": {
+    "panel_size": 5,
+    "includes_project_party": true
+   },
+   "expected_ok": false,
+   "correct_statement": "专家不得与工程有利害关系，本项目参建各方的人员不得以专家身份参加专家论证",
+   "anchor": "ca:1A437000_010_0013 + {2019,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-panel-093",
+   "rule_group": "E-panel",
+   "surface": "邀请本项目监理单位人员以专家身份参加专家论证",
+   "params": {
+    "includes_project_party": true
+   },
+   "expected_ok": false,
+   "correct_statement": "专家不得与工程有利害关系，本项目参建各方的人员不得以专家身份参加专家论证",
+   "anchor": "ca:1A437000_010_0013 + {2019,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-panel-094",
+   "rule_group": "E-panel",
+   "surface": "论证专家均与本工程无利害关系，且非本项目参建各方人员",
+   "params": {
+    "includes_project_party": false
+   },
+   "expected_ok": true,
+   "correct_statement": "专家不得与工程有利害关系，本项目参建各方的人员不得以专家身份参加专家论证",
+   "anchor": "ca:1A437000_010_0013 + {2019,案例二}",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-panel-095",
+   "rule_group": "E-panel",
+   "surface": "专家论证报告经全体专家签字确认",
+   "params": {
+    "report_signed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "专家论证报告需经专家签字确认",
+   "anchor": "ca:1A437000_010_0013 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-E-panel-096",
+   "rule_group": "E-panel",
+   "surface": "专家论证报告未经专家签字确认即归档",
+   "params": {
+    "report_signed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "专家论证报告需经专家签字确认",
+   "anchor": "ca:1A437000_010_0013 + kc:1A437000_010_0013:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-G-review-097",
+   "rule_group": "G-review",
+   "surface": "将「方案内容是否完整、可行」列入专家论证会的论证主要内容",
+   "params": {
+    "item": "方案内容是否完整、可行",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "专家论证主要内容三项：方案内容是否完整、可行；计算书和验算依据、施工图是否符合标准规范；是否满足现场实际并确保施工安全（方案经济性、分包单位资质不属论证内容）",
+   "anchor": "{2023,第28题} + ca:1A437000_010_0013",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-G-review-098",
+   "rule_group": "G-review",
+   "surface": "认为「方案内容是否完整、可行」不属于专家论证会的论证主要内容",
+   "params": {
+    "item": "方案内容是否完整、可行",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "专家论证主要内容三项：方案内容是否完整、可行；计算书和验算依据、施工图是否符合标准规范；是否满足现场实际并确保施工安全（方案经济性、分包单位资质不属论证内容）",
+   "anchor": "{2023,第28题} + ca:1A437000_010_0013",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-G-review-099",
+   "rule_group": "G-review",
+   "surface": "将「计算书和验算依据、施工图是否符合标准规范」列入专家论证会的论证主要内容",
+   "params": {
+    "item": "计算书和验算依据、施工图是否符合标准规范",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "专家论证主要内容三项：方案内容是否完整、可行；计算书和验算依据、施工图是否符合标准规范；是否满足现场实际并确保施工安全（方案经济性、分包单位资质不属论证内容）",
+   "anchor": "{2023,第28题} + ca:1A437000_010_0013",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-G-review-100",
+   "rule_group": "G-review",
+   "surface": "认为「计算书和验算依据、施工图是否符合标准规范」不属于专家论证会的论证主要内容",
+   "params": {
+    "item": "计算书和验算依据、施工图是否符合标准规范",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "专家论证主要内容三项：方案内容是否完整、可行；计算书和验算依据、施工图是否符合标准规范；是否满足现场实际并确保施工安全（方案经济性、分包单位资质不属论证内容）",
+   "anchor": "{2023,第28题} + ca:1A437000_010_0013",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-G-review-101",
+   "rule_group": "G-review",
+   "surface": "将「是否满足现场实际并确保施工安全」列入专家论证会的论证主要内容",
+   "params": {
+    "item": "是否满足现场实际并确保施工安全",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "专家论证主要内容三项：方案内容是否完整、可行；计算书和验算依据、施工图是否符合标准规范；是否满足现场实际并确保施工安全（方案经济性、分包单位资质不属论证内容）",
+   "anchor": "{2023,第28题} + ca:1A437000_010_0013",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-G-review-102",
+   "rule_group": "G-review",
+   "surface": "认为「是否满足现场实际并确保施工安全」不属于专家论证会的论证主要内容",
+   "params": {
+    "item": "是否满足现场实际并确保施工安全",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "专家论证主要内容三项：方案内容是否完整、可行；计算书和验算依据、施工图是否符合标准规范；是否满足现场实际并确保施工安全（方案经济性、分包单位资质不属论证内容）",
+   "anchor": "{2023,第28题} + ca:1A437000_010_0013",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-G-review-103",
+   "rule_group": "G-review",
+   "surface": "将「方案经济性」列入专家论证会的论证主要内容",
+   "params": {
+    "item": "方案经济性",
+    "listed": true
+   },
+   "expected_ok": false,
+   "correct_statement": "专家论证主要内容三项：方案内容是否完整、可行；计算书和验算依据、施工图是否符合标准规范；是否满足现场实际并确保施工安全（方案经济性、分包单位资质不属论证内容）",
+   "anchor": "{2023,第28题} + ca:1A437000_010_0013",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-G-review-104",
+   "rule_group": "G-review",
+   "surface": "认为「方案经济性」不属于专家论证会的论证主要内容",
+   "params": {
+    "item": "方案经济性",
+    "listed": false
+   },
+   "expected_ok": true,
+   "correct_statement": "专家论证主要内容三项：方案内容是否完整、可行；计算书和验算依据、施工图是否符合标准规范；是否满足现场实际并确保施工安全（方案经济性、分包单位资质不属论证内容）",
+   "anchor": "{2023,第28题} + ca:1A437000_010_0013",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-G-review-105",
+   "rule_group": "G-review",
+   "surface": "将「分包单位资质」列入专家论证会的论证主要内容",
+   "params": {
+    "item": "分包单位资质",
+    "listed": true
+   },
+   "expected_ok": false,
+   "correct_statement": "专家论证主要内容三项：方案内容是否完整、可行；计算书和验算依据、施工图是否符合标准规范；是否满足现场实际并确保施工安全（方案经济性、分包单位资质不属论证内容）",
+   "anchor": "{2023,第28题} + ca:1A437000_010_0013",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-G-review-106",
+   "rule_group": "G-review",
+   "surface": "认为「分包单位资质」不属于专家论证会的论证主要内容",
+   "params": {
+    "item": "分包单位资质",
+    "listed": false
+   },
+   "expected_ok": true,
+   "correct_statement": "专家论证主要内容三项：方案内容是否完整、可行；计算书和验算依据、施工图是否符合标准规范；是否满足现场实际并确保施工安全（方案经济性、分包单位资质不属论证内容）",
+   "anchor": "{2023,第28题} + ca:1A437000_010_0013",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-107",
+   "rule_group": "F-site",
+   "surface": "将「公示」列入危大工程现场管理要求并落实",
+   "params": {
+    "item": "公示",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-108",
+   "rule_group": "F-site",
+   "surface": "认为「公示」不属于危大工程现场管理要求",
+   "params": {
+    "item": "公示",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-109",
+   "rule_group": "F-site",
+   "surface": "将「方案交底」列入危大工程现场管理要求并落实",
+   "params": {
+    "item": "方案交底",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-110",
+   "rule_group": "F-site",
+   "surface": "认为「方案交底」不属于危大工程现场管理要求",
+   "params": {
+    "item": "方案交底",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-111",
+   "rule_group": "F-site",
+   "surface": "将「严禁擅自修改方案」列入危大工程现场管理要求并落实",
+   "params": {
+    "item": "严禁擅自修改方案",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-112",
+   "rule_group": "F-site",
+   "surface": "认为「严禁擅自修改方案」不属于危大工程现场管理要求",
+   "params": {
+    "item": "严禁擅自修改方案",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-113",
+   "rule_group": "F-site",
+   "surface": "将「人员登记与监督」列入危大工程现场管理要求并落实",
+   "params": {
+    "item": "人员登记与监督",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-114",
+   "rule_group": "F-site",
+   "surface": "认为「人员登记与监督」不属于危大工程现场管理要求",
+   "params": {
+    "item": "人员登记与监督",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-115",
+   "rule_group": "F-site",
+   "surface": "将「监测与巡视」列入危大工程现场管理要求并落实",
+   "params": {
+    "item": "监测与巡视",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-116",
+   "rule_group": "F-site",
+   "surface": "认为「监测与巡视」不属于危大工程现场管理要求",
+   "params": {
+    "item": "监测与巡视",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-117",
+   "rule_group": "F-site",
+   "surface": "将「第三方监测」列入危大工程现场管理要求并落实",
+   "params": {
+    "item": "第三方监测",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-118",
+   "rule_group": "F-site",
+   "surface": "认为「第三方监测」不属于危大工程现场管理要求",
+   "params": {
+    "item": "第三方监测",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "危大六项现场管理要求封闭集：公示/方案交底/严禁擅自修改方案/人员登记与监督/监测与巡视/第三方监测",
+   "anchor": "kc:1A436000_010_0011:0",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-119",
+   "rule_group": "F-site",
+   "surface": "施工中现场管理人员根据现场实际情况擅自修改专项施工方案",
+   "params": {
+    "unauthorized_modify": true
+   },
+   "expected_ok": false,
+   "correct_statement": "应严格按照专项施工方案组织施工，不得擅自修改",
+   "anchor": "cc:1A436000_010_0011:3",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-120",
+   "rule_group": "F-site",
+   "surface": "施工中严格按照专项施工方案组织施工，未擅自修改",
+   "params": {
+    "unauthorized_modify": false
+   },
+   "expected_ok": true,
+   "correct_statement": "应严格按照专项施工方案组织施工，不得擅自修改",
+   "anchor": "cc:1A436000_010_0011:3",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-121",
+   "rule_group": "F-site",
+   "surface": "方案实施前由方案编制人员向施工现场管理人员进行方案交底",
+   "params": {
+    "briefing_by": "方案编制人员"
+   },
+   "expected_ok": true,
+   "correct_statement": "方案实施前应由方案编制人员或项目技术负责人向施工现场管理人员进行方案交底",
+   "anchor": "cc:1A436000_010_0011:2",
+   "extension": false
+  },
+  {
+   "variant_id": "J01-F-site-122",
+   "rule_group": "F-site",
+   "surface": "方案实施前由项目技术负责人向施工现场管理人员进行方案交底",
+   "params": {
+    "briefing_by": "项目技术负责人"
+   },
+   "expected_ok": true,
+   "correct_statement": "方案实施前应由方案编制人员或项目技术负责人向施工现场管理人员进行方案交底",
+   "anchor": "cc:1A436000_010_0011:2",
+   "extension": false
+  }
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:48+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
+}

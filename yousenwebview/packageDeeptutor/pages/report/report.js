@@ -701,20 +701,38 @@ function _notebookCardPayloadFromAttempt(card) {
   };
 }
 
+// 四态口径对齐后端 _score_status(strong/normal/weak/observed):
+// 未学(observed)单独成态——旧三档会把"没学过"误归成"薄弱"(pct 0 → weak),
+// 形成红灯墙,违反 10e 暖色语义。兜底阈值 70/40/>0 与后端一致。
+function _radarDimStatus(d) {
+  var pct = Math.round(((d && d.value) || 0) * 100);
+  return (
+    (d && (d.status || d.level)) ||
+    (pct >= 70 ? "strong" : pct >= 40 ? "normal" : pct > 0 ? "weak" : "observed")
+  );
+}
+
+var _RADAR_STATE_LABELS = {
+  strong: "稳了",
+  normal: "再看一眼",
+  weak: "待复验",
+  observed: "未学",
+};
+
 function _buildRadarViewModel(dims) {
   var strong = 0;
   var normal = 0;
   var weak = 0;
+  var observed = 0;
   (dims || []).forEach(function (d) {
     // Prefer the upstream status if backend surfaces one (learning-state
     // engine emits mastered / developing / needs_attention); otherwise
     // derive from pct so chapter_mastery payloads still classify correctly.
-    var pct = Math.round((d.value || 0) * 100);
-    var status =
-      d.status || (pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak");
+    var status = _radarDimStatus(d);
     if (status === "strong" || status === "mastered") strong++;
     else if (status === "normal" || status === "developing") normal++;
     else if (status === "weak" || status === "needs_attention") weak++;
+    else if (status === "observed") observed++;
   });
   var avg = Math.round(
     ((dims || []).reduce(function (sum, d) {
@@ -730,22 +748,21 @@ function _buildRadarViewModel(dims) {
     })
     .map(function (d, index) {
       var pct = Math.round((d.value || 0) * 100);
-      var status =
-        d.status || (pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak");
+      var status = _radarDimStatus(d);
       return {
         rank: index + 1,
         name: d.name,
         pct: pct,
         cls: d.cls || status,
-        color:
-          d.color ||
-          (pct >= 70 ? "#34d399" : pct >= 40 ? "#fbbf24" : "#f87171"),
+        status: status,
+        stateLabel: _RADAR_STATE_LABELS[status] || _RADAR_STATE_LABELS.observed,
       };
     });
   return {
     strongCount: strong,
     normalCount: normal,
     weakCount: weak,
+    observedCount: observed,
     avgScore: avg,
     dimList: dimList,
   };
@@ -896,18 +913,6 @@ function _buildTrainingExecutionAction(input) {
       activeMethod +
       " 请先出第一组题，并在每题后按错因给出简短反馈。",
   };
-}
-
-function _buildOverviewDonutStyle(score) {
-  var pct = Math.max(0, Math.min(100, Math.round(Number(score) || 0)));
-  var degrees = Math.max(6, Math.round((pct / 100) * 360));
-  return (
-    "background: conic-gradient(#15978c 0 " +
-    degrees +
-    "deg, #ffe2ba " +
-    degrees +
-    "deg 360deg);"
-  );
 }
 
 function _buildProgressCards(input) {
@@ -1272,7 +1277,27 @@ Page({
     strongCount: 0,
     normalCount: 0,
     weakCount: 0,
+    observedCount: 0,
     avgScore: 0,
+
+    // ── 10e 诊断单(第 10 轮定稿 + round11 增量①) ──
+    // 掌握地图 40 格:全部字段来自 read model pack_lifecycle 投影,前端零判分
+    masteryMap: {
+      available: false,
+      degraded: false,
+      packUniverse: 0,
+      cells: [],
+      counts: { stable: 0, watch: 0, reverify: 0, unlearned: 0, blue: 0 },
+    },
+    // 风险档位词(非精确百分比)+ 主要差距 + 方向性趋势(不画假曲线)
+    riskGearLabel: "待评估",
+    riskGearTone: "none",
+    diagnosisHeadline: "",
+    trendDirection: "",
+    trendNarrative: "",
+    recurrentErrorCount: 0,
+    // 轻量诊断卡折叠单:默认收起,只给结论
+    diagFoldOpen: false,
 
     // 维度详情列表（按后端 projection 顺序展示）
     dimList: [],
@@ -1316,8 +1341,6 @@ Page({
     learningAttemptCards: [],
     noteAssets: [],
     todayTasks: [],
-    allTodayTasks: [],
-    todayTaskCompact: false,
     learningDiagnosisCards: [],
     learningTrainingLoops: [],
     learningNextAction: { title: "", subtitle: "", cta: "开始训练" },
@@ -1351,7 +1374,6 @@ Page({
       timeBudget: "",
       coachNote: "",
     },
-    overviewDonutStyle: _buildOverviewDonutStyle(0),
     progressSummary: "完成更多练习后，这里会出现更清晰的进步反馈",
     progressInsight: "先开始今天的练习，系统会逐步把你的变化沉淀成更清晰的反馈",
     progressCards: _buildProgressCards({}),
@@ -1439,7 +1461,8 @@ Page({
       navBackLabel: workspaceBack ? workspaceBack.label : "对话",
       assessmentEnabled: flags.isFeatureEnabled("assessment"),
     });
-    helpers.syncTabBar(this, 2, {
+    // 五 tab 壳:学情 index=3
+    helpers.syncTabBar(this, 3, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
     if (!auth.isLoggedIn()) {
@@ -1474,6 +1497,15 @@ Page({
   async _loadReportSnapshot() {
     var optionalReadOpts = { suppressAuthRedirect: true };
     optionalReadOpts.schemaVersion = 2;
+    // 掌握地图 40 格的绿灯站标题/深链元数据:复用既有 getLubanLessons,
+    // 与 unified report 并行拉;失败只降级(格子仍按 lifecycle 渲染,点击不深链)。
+    const lessonsPromise =
+      typeof api.getLubanLessons === "function"
+        ? _reportOptionalRead(
+            api.getLubanLessons({ suppressAuthRedirect: true }),
+            REPORT_UNIFIED_READ_TIMEOUT_MS,
+          )
+        : Promise.resolve(null);
     const report = _unwrapSnapshotItem(
       await _reportOptionalRead(api.getLearningReport(100, optionalReadOpts), REPORT_UNIFIED_READ_TIMEOUT_MS),
     );
@@ -1481,6 +1513,7 @@ Page({
       // 5xx / network failure / payload contract 断裂 → 返回 null 让 _loadReportPage 走显式 fallback
       return null;
     }
+    const lessons = api.unwrapResponse(await lessonsPromise) || null;
     const overview = report.overview || {};
     const mastery = report.mastery || {};
     const weakNodes = (
@@ -1530,6 +1563,7 @@ Page({
       mastery: mastery,
       learningBrain: report.learning_brain || {},
       learnerFacing: report.learner_facing || {},
+      lessons: lessons,
     };
   },
 
@@ -1587,18 +1621,14 @@ Page({
     var home = (snapshot && snapshot.home) || {};
     var sharedReport = reportViewModel.buildLearningReportViewModel(report);
     var sharedPageData = reportViewModel.toReportPageData(sharedReport);
-    if ((sharedPageData.todayTasks || []).length) {
-      this._trackLearningNoteBehavior("today_task_rendered", {
-        section: "today_tasks",
-        action: "render",
-        objectId: "today_tasks",
-        result: String((sharedPageData.todayTasks || []).length),
-      });
-    }
+    // 掌握地图 40 格(10e 核心):pack_lifecycle × 绿灯 lessons 纯投影
+    var masteryMap =
+      typeof reportViewModel.buildPackMasteryMap === "function"
+        ? reportViewModel.buildPackMasteryMap(report, snapshot && snapshot.lessons)
+        : this.data.masteryMap;
     this.setData(
       Object.assign({}, sharedPageData, {
-        allTodayTasks: sharedPageData.todayTasks || [],
-        todayTaskCompact: false,
+        masteryMap: masteryMap,
         todayDone: overview.today_done || 0,
         dailyTarget: overview.daily_target || 0,
         streakDays: overview.streak_days || 0,
@@ -1750,20 +1780,51 @@ Page({
     runtime.redirectToLogin(route.report());
   },
 
-  goAssessment() {
-    if (!auth.isLoggedIn()) {
-      this._requireLogin();
-      return;
-    }
-    if (!flags.ensureFeatureEnabled("assessment")) return;
-    helpers.vibrate("light");
-    wx.navigateTo({ url: route.assessment() });
-  },
-
   openMistakeBook() {
     helpers.vibrate("light");
     this._dismissReportModuleHint();
     wx.navigateTo({ url: route.mistakeBook() });
+  },
+
+  // ── 10e 诊断单交互(照镜子页:全部只读/深链,零写入) ─────────────
+
+  // 轻量诊断卡折叠单:展开/收起只是本地视图态
+  toggleDiagFold() {
+    helpers.vibrate("light");
+    this.setData({ diagFoldOpen: !this.data.diagFoldOpen });
+  },
+
+  // 掌握地图点格深链:绿灯站回学习页对应站;未开通站如实说,不装可点
+  openMasteryCell(event) {
+    var ds =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset
+        : {};
+    var packId = String(ds.packId || "").trim();
+    if (!packId) return;
+    helpers.vibrate("light");
+    if (!ds.green) {
+      wx.showToast({ title: "这一站即将开通", icon: "none", duration: 1400 });
+      return;
+    }
+    wx.navigateTo({
+      url:
+        "/packageDeeptutor/pages/luban/station/station?pack_id=" +
+        encodeURIComponent(packId),
+    });
+  },
+
+  // 全页唯一行动键:让本周计划吸收这份诊断 → 深链学习页(提分路线)
+  absorbDiagnosisIntoPlan() {
+    helpers.vibrate("light");
+    runtime.setWorkspaceBack(route.report(), "学情");
+    var url = route.lubanStations();
+    wx.navigateTo({
+      url: url,
+      fail: function () {
+        if (wx.reLaunch) wx.reLaunch({ url: url });
+      },
+    });
   },
 
   async _loadOverview(snapshot) {
@@ -1877,6 +1938,7 @@ Page({
         strongCount: viewModel.strongCount,
         normalCount: viewModel.normalCount,
         weakCount: viewModel.weakCount,
+        observedCount: viewModel.observedCount,
         avgScore: viewModel.avgScore,
         dimList: viewModel.dimList,
         radarLoading: false,
@@ -1909,6 +1971,7 @@ Page({
           strongCount: fallbackViewModel.strongCount,
           normalCount: fallbackViewModel.normalCount,
           weakCount: fallbackViewModel.weakCount,
+          observedCount: fallbackViewModel.observedCount,
           avgScore: fallbackViewModel.avgScore,
           dimList: fallbackViewModel.dimList,
           radarLoading: false,
@@ -2115,7 +2178,6 @@ Page({
         focusHint: this.data.focusHint,
         assessmentTrainingAction: this.data.assessmentTrainingAction,
       }),
-      overviewDonutStyle: _buildOverviewDonutStyle(this.data.overallMastery),
       progressSummary:
         (progressFeedback && progressFeedback.summary) ||
         _buildProgressSummary(sharedInput),
@@ -2474,68 +2536,6 @@ Page({
       null,
     );
     wx.reLaunch({ url: route.chat() });
-  },
-
-  startTodayTask(event) {
-    if (!auth.isLoggedIn()) {
-      this._requireLogin();
-      return;
-    }
-    var taskId =
-      event && event.currentTarget && event.currentTarget.dataset
-        ? event.currentTarget.dataset.taskid
-        : "";
-    var task = (this.data.todayTasks || []).find(function (item) {
-      return item.taskId === taskId || item.key === taskId;
-    });
-    if (!task) return;
-    this._trackLearningNoteBehavior("today_task_started", {
-      section: "today_tasks",
-      action: task.action && task.action.type === "reanswer" ? "start_retest" : "start_probe",
-      objectId: String(task.noteId || task.key || ""),
-    });
-    this.startNoteAssetAction({ currentTarget: { dataset: { noteid: task.noteId } } });
-  },
-
-  compressTodayTasks() {
-    helpers.vibrate("light");
-    var base = (this.data.allTodayTasks || []).length
-      ? this.data.allTodayTasks
-      : this.data.todayTasks || [];
-    if (!base.length) return;
-    this.setData({
-      todayTasks: base.slice(0, 1),
-      todayTaskCompact: true,
-    });
-    this._trackLearningNoteBehavior("today_task_rendered", {
-      section: "today_tasks",
-      action: "render",
-      objectId: "today_tasks",
-      result: "compressed:1",
-    });
-  },
-
-  rotateTodayTasks() {
-    helpers.vibrate("light");
-    var base = (this.data.allTodayTasks || []).length
-      ? this.data.allTodayTasks.slice()
-      : (this.data.todayTasks || []).slice();
-    if (base.length <= 1) {
-      wx.showToast({ title: "暂时只有这一项", icon: "none", duration: 1400 });
-      return;
-    }
-    var rotated = base.slice(1).concat(base[0]).slice(0, 3);
-    this.setData({
-      todayTasks: rotated,
-      allTodayTasks: rotated,
-      todayTaskCompact: false,
-    });
-    this._trackLearningNoteBehavior("today_task_rendered", {
-      section: "today_tasks",
-      action: "render",
-      objectId: "today_tasks",
-      result: "rotated:" + String(rotated.length),
-    });
   },
 
   challengeDiagnosis(event) {

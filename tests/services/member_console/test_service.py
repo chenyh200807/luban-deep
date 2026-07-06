@@ -1456,6 +1456,34 @@ def test_register_with_external_auth_creates_external_user_and_member(
     assert external_users["new_student"]["phone"] == "+8613812345678"
 
 
+def test_register_with_external_auth_rejects_non_cn_mobile_phone(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    called: list[tuple[object, ...]] = []
+
+    def _unexpected_create_external_auth_user(*args: object, **kwargs: object) -> dict[str, object]:
+        called.append(args)
+        raise AssertionError("register phone validation must run before external auth")
+
+    monkeypatch.setattr(
+        member_service_module,
+        "create_external_auth_user",
+        _unexpected_create_external_auth_user,
+    )
+
+    with pytest.raises(ValueError, match="大陆手机号"):
+        service.register_with_external_auth("new_student", "StrongPass123", "83090321728")
+
+    assert called == []
+    assert not users_file.exists()
+
+
 def test_register_with_external_auth_rejects_existing_verified_phone_alias(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

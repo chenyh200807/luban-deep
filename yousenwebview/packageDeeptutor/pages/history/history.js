@@ -433,7 +433,8 @@ Page({
   onShow: function () {
     this.setData({ isDark: helpers.isDark() });
     if (!flags.ensureFeatureEnabled("history")) return;
-    helpers.syncTabBar(this, 1, {
+    // 历史不在五 tab 壳中(入口=问鲁班顶栏时钟):挂壳但无选中态
+    helpers.syncTabBar(this, -1, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
     if (!auth.isLoggedIn()) {
@@ -683,7 +684,7 @@ Page({
       selectedCount: 0,
       allSelected: false,
     });
-    helpers.syncTabBar(this, 1, { hidden: true });
+    helpers.syncTabBar(this, -1, { hidden: true });
   },
 
   exitEditMode: function () {
@@ -698,7 +699,7 @@ Page({
       selectedCount: 0,
       allSelected: false,
     });
-    helpers.syncTabBar(this, 1, {
+    helpers.syncTabBar(this, -1, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
   },

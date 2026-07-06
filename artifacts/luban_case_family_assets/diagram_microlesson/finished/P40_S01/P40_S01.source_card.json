@@ -1,0 +1,111 @@
+{
+  "card_id": "P40_S01",
+  "title": "脚手架/高大模板支架验收",
+  "status": "candidate_teaching_prototype",
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/S01_脚手架模板支架验收.md",
+    "pack_sha256": "fb8f6b75a8b5e0bc348b9a9958dc1bc7c7ab791bd12d235d32282aed35c24dd5",
+    "source_boundary": "S01 Deep Pack candidate teaching source; signed grading authority is outside this prototype."
+  },
+  "wrong_idea": "以为脚手架/高大模板支架题只要写“验收合格”或“搭设牢固”，没有把对象、阈值、构造项目和放行条件写成采分句。",
+  "main_exam_action": "把脚手架/高大模板支架题写成三步采分链：取数分档 → 构造稳定 → 验收放行。",
+  "teaching_spine": [
+    {
+      "state": "hook",
+      "anchor_md": "§0 考点身份 + §3 R2 不变量",
+      "visual_fact": "先把题目改写成考试动作：问的不是“架子搭没搭完”，而是“这套临时支撑能不能安全放行”。",
+      "bridge_from_previous": "首幕建立主线。",
+      "answer_move": "答题时先写对象和放行任务，不先写空泛结论。"
+    },
+    {
+      "state": "load_path",
+      "anchor_md": "§2 失稳坍塌原理因果层",
+      "visual_fact": "脚手架/模板支架是临时受力系统：荷载经立杆、底座、地基传递，连墙件和剪刀撑负责抗侧向失稳。",
+      "bridge_from_previous": "既然问能不能放行，就先看它为什么可能不稳。",
+      "answer_move": "把“对象”写清楚：脚手架或模板支架，不用泛称设施。"
+    },
+    {
+      "state": "threshold_gate",
+      "anchor_md": "§3 R2 不变量 + §4 R4-A 危大判定",
+      "visual_fact": "先取 H、跨度、施工总荷载、集中线荷载，再比阈值；命中阈值说明进入高风险/论证口径。",
+      "bridge_from_previous": "知道它是受力系统后，第一刀不是看感觉，是取数比阈值。",
+      "answer_move": "写“取数分档”：H/跨/总荷载/线荷载命中哪一道门。"
+    },
+    {
+      "state": "structure_gate",
+      "anchor_md": "§5 R5 组1 搭设构造 + 组2 连墙件/剪刀撑",
+      "visual_fact": "命中风险不等于能用；扫地杆、连墙件、剪刀撑、拆除顺序决定构造稳定。",
+      "bridge_from_previous": "取数只判风险等级，能否放行还要看构造有没有把风险控制住。",
+      "answer_move": "写“构造稳定”：支承、连接、侧向约束、拆除时序符合要求。"
+    },
+    {
+      "state": "acceptance_gate",
+      "anchor_md": "§5 R5 组3 验收程序/检查评分表",
+      "visual_fact": "验收四要素是材料、支承固定、搭设质量、技术资料；没有记录签字，不能把“看着稳”当放行。",
+      "bridge_from_previous": "构造解决稳不稳，验收解决证据够不够。",
+      "answer_move": "写“验收放行”：材料、支承固定、搭设质量和技术资料验收合格后方可使用。"
+    },
+    {
+      "state": "trap",
+      "anchor_md": "§6 R8 误区",
+      "visual_fact": "错法只写“验收合格/搭设牢固”，漏对象、漏项目、漏放行条件，采分颗粒不够。",
+      "bridge_from_previous": "现在反过来看，为什么很多答案看起来对却不给分。",
+      "answer_move": "把错句改成“对象 + 检查项目 + 验收合格 + 方可使用”。"
+    },
+    {
+      "state": "score",
+      "anchor_md": "§5 R6 答案骨架 + §6 R8 解药",
+      "visual_fact": "最后切到答题纸，把前面三步压成一句采分句。",
+      "bridge_from_previous": "纠正错法后，必须落到能写上答题纸的最终句。",
+      "answer_move": "脚手架或模板支架经材料、支承固定、搭设质量和技术资料验收合格后，方可使用。"
+    }
+  ],
+  "facts": [
+    {
+      "id": "load_path",
+      "text": "脚手架/模板支架是临时受力系统，荷载经模板或作业面传到立杆、底座和地基，连墙件、剪刀撑、扫地杆等构造用于防整体失稳、侧向失稳和底部失稳。"
+    },
+    {
+      "id": "thresholds",
+      "text": "高大模板支撑专家论证常用阈值为高度 H≥8m、跨度≥18m、施工总荷载≥15kN/m²、集中线荷载≥20kN/m；S01负责取数和命中判断，J01负责论证程序。"
+    },
+    {
+      "id": "structure_gate",
+      "text": "搭设/拆除违规常看扫地杆位置、刚性连墙件、剪刀撑、一次搭设高度、自由高度和连墙件随层拆除等构造/时序点。"
+    },
+    {
+      "id": "acceptance_four",
+      "text": "脚手架验收四要素包括材料、支承固定、搭设质量和技术资料；答案不能只写验收合格。"
+    },
+    {
+      "id": "score_phrase",
+      "text": "可写成采分句：脚手架或模板支架经材料、支承固定、搭设质量和技术资料验收合格后，方可使用。"
+    }
+  ],
+  "common_errors": [
+    {
+      "id": "only_conclusion",
+      "student": "验收合格，可以使用。",
+      "why": "只有结论，没有对象、验收项目和放行条件，采分颗粒不够。"
+    },
+    {
+      "id": "mix_thresholds",
+      "student": "看到 8m 就一律专家论证。",
+      "why": "阈值必须先判对象；模板支撑、落地脚手架等对象口径不同，不能混用。"
+    },
+    {
+      "id": "scatter_specs",
+      "student": "把扫地杆、连墙件等规范散点全堆上。",
+      "why": "散点不是答案；要按题问的对象和场景，组织成判断依据或验收放行句。"
+    }
+  ],
+  "memory_hook": "取数分档，构造稳定，验收放行。"
+}

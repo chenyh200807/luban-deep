@@ -34,6 +34,7 @@ from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
 PACK_DIR = REPO / "docs" / "原始数据" / "考点原料" / "成品"
+CARD_HOST_DIR = REPO / "web" / "public" / "luban-preview"  # 讲懂卡托管目录(确定性扫描)
 MANIFEST_PATH = PACK_DIR / "_pack_manifest.json"
 OVERRIDES_PATH = PACK_DIR / "_pack_manifest.overrides.json"
 
@@ -109,6 +110,9 @@ def _scan_pack(path: Path, pack_id: str, title: str) -> dict[str, Any]:
         "has_compiled_source": _companion_exists(pack_id, "compiled_source.json"),
         "has_exam_evidence": _companion_exists(pack_id, "exam_evidence.json"),
         "has_answer_layer": any(PACK_DIR.glob(f"{pack_id}_*作答层样板.md")),
+        # 讲懂卡托管存在性(确定性: web/public/luban-preview/<id小写>/lesson.html 实存)
+        # read_model 只对 card_hosted 的绿灯站派生 card_url——防 22 站 web-view 404(2026-07-05 部署探针实证)
+        "card_hosted": (CARD_HOST_DIR / pack_id.lower() / "lesson.html").is_file(),
         **jury,
         # 签发态: 脚本恒 False, 只能经 overrides 人工置 true
         "published": False,

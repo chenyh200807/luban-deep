@@ -1,116 +1,131 @@
 [
-  {
-    "issue": "管井井点适用条件中“砂砾层”、“黏土”等具体岩土类型缺乏教材卡或真题quote直接支撑，推断过强",
-    "location": "L1 #5, §2/§3/L4 R2, §4 R4-A, §6 M2",
-    "flagged_by": [
-      "DeepSeek-V4-Pro",
-      "Qwen-3.7-Max",
-      "GPT-5.5(Codex)"
-    ],
-    "count": 3,
-    "confidence": "高可信",
-    "fix": "将“砂砾层/黏土”降为🔵备料或删除，保留“渗透系数较大土层”和“填土不宜”为🟢，待教材/规范锚补齐"
-  },
-  {
-    "issue": "承压水突涌具体措施“钻孔减压/水平封底隔渗”被教材锚承载，但教材quote仅支持“验算突涌，必要时封底或减压”，具体选项应单独拆为真题锚",
-    "location": "L1 #8, §5 R5 B2, §8.2 C3",
-    "flagged_by": [
-      "Qwen-3.7-Max",
-      "GPT-5.5(Codex)"
-    ],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "拆卡：将“验算突涌/封底减压”标为🟢教材锚，“钻孔减压/水平封底隔渗”标为🟢真题锚，避免教材锚冒充具体措施"
-  },
-  {
-    "issue": "深基坑开挖控制数字被表述为“真题高频/永远在考”，但pack内自认无独立真题单问，意图措辞过强",
-    "location": "L4 S4, §3 R2, §4 examiner_intent 意图④",
-    "flagged_by": [
-      "Qwen-3.7-Max",
-      "GPT-5.5(Codex)"
-    ],
-    "count": 2,
-    "confidence": "高可信",
-    "fix": "数字规范点保留🟢教材锚；将“真题高频考法”、“永远在考”降为🔵备料，改为“近年无独立真题单问，以教材锚控制”"
-  },
-  {
-    "issue": "轻型井点降水深度规则仅写“单级≤6m”，省略教材同等重要的“多级可达6~10m”，覆盖不全",
-    "location": "§1 #2, R4 A组",
-    "flagged_by": [
-      "DeepSeek-V4-Pro"
-    ],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "补全为“单级≤6m，多级可6~10m”，使封闭取值与教材锚完全一致"
-  },
-  {
-    "issue": "≤3m且软土→集水明排的quote存在将“应”建议绝对化为强制规则的可能",
-    "location": "§1 #1, §2, R4 A组",
-    "flagged_by": [
-      "DeepSeek-V4-Pro"
-    ],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "修改措辞为“>3m宜用井点降水”，以契合quote原文的强制性程度"
-  },
-  {
-    "issue": "误区“中途停降水”映射为E06程序顺序错误不贴切，应为E02采分点遗漏或E10规范适用错误",
-    "location": "§6 M7",
-    "flagged_by": [
-      "DeepSeek-V4-Pro"
-    ],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "将error_code修改为E02或E10"
-  },
-  {
-    "issue": "无支护开挖方案缺少独立教材卡，仅靠真题承载",
-    "location": "L1 #13",
-    "flagged_by": [
-      "Qwen-3.7-Max"
-    ],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "该点降为🟢真题锚，或补充教材卡后恢复🟢"
-  },
-  {
-    "issue": "误区“管井井点用于填土/黏土降水”的error_code可能需要修正为E07和M03",
-    "location": "L6 M2",
-    "flagged_by": [
-      "Qwen-3.7-Max"
-    ],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "核对并修正error_code为E07概念混淆和M03概念混淆"
-  },
-  {
-    "issue": "误区“承压水突涌只答井点回灌”的error_code可能需要修正为E07和E10",
-    "location": "L6 M4",
-    "flagged_by": [
-      "Qwen-3.7-Max"
-    ],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "核对并修正error_code为E07概念混淆和E10规范适用错误"
-  },
-  {
-    "issue": "“MCQ高频·几乎逐年”表述过强，证据仅支持“近年重复出现”",
-    "location": "§4 examiner_intent 意图②",
-    "flagged_by": [
-      "GPT-5.5(Codex)"
-    ],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "降为🔵，改为“近年两次命中/重复考过”"
-  },
-  {
-    "issue": "外延卡1A422000_033_0055:0整体标为外延，但其内“水位低于坑底0.5m”与本体控制点重复，应拆卡",
-    "location": "§1 #15, §5 D1",
-    "flagged_by": [
-      "GPT-5.5(Codex)"
-    ],
-    "count": 1,
-    "confidence": "存疑",
-    "fix": "拆卡：水位0.5m保留🟢本体复核锚；井点间距/多级高差保留🔵外延"
+ {
+  "issue": "管井井点适用条件中“砂砾层”、“黏土”等具体岩土类型缺乏教材卡或真题quote直接支撑，推断过强",
+  "location": "L1 #5, §2/§3/L4 R2, §4 R4-A, §6 M2",
+  "flagged_by": [
+   "DeepSeek-V4-Pro",
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 3,
+  "confidence": "高可信",
+  "fix": "将“砂砾层/黏土”降为🔵备料或删除，保留“渗透系数较大土层”和“填土不宜”为🟢，待教材/规范锚补齐",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "G01_基坑开挖与降水方法选择.md §1 #5 + §4 规则组（前轮汇编已改：『砂砾层/填土黏土不宜』改挂🟢真题锚 {2015,第9题}/{2019,第7题}/{2023,第14题} 并显式声明『教材库无独立卡』，不降🔵而以真题 analysis 直接支撑，D11/S07 先例路径）",
+   "verified": "2026-07-04 确定性核验：exam_evidence {2019,第7题} analysis 原文『降水管井（管井井点）适用于渗透系数较大的砂砾层，不宜用于渗透系数较小的填土、黏土层』直接支持全部被质疑 token；{2015,第9题} analysis 含『要求渗透系数较大(1.0~200.0m/d)』；verify_exam_anchors exit 0；GLM-5.2+Fable-5 双签 2/2（可重跑：python3 docs/原始数据/考点原料/recheck_resolutions.py G01）"
   }
+ },
+ {
+  "issue": "承压水突涌具体措施“钻孔减压/水平封底隔渗”被教材锚承载，但教材quote仅支持“验算突涌，必要时封底或减压”，具体选项应单独拆为真题锚",
+  "location": "L1 #8, §5 R5 B2, §8.2 C3",
+  "flagged_by": [
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "拆卡：将“验算突涌/封底减压”标为🟢教材锚，“钻孔减压/水平封底隔渗”标为🟢真题锚，避免教材锚冒充具体措施",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "G01_基坑开挖与降水方法选择.md §1 L1三色提醒 + §5 B2 + §3 意图③（前轮汇编已按 fix 拆卡：概括句『验算突涌·封底减压』标🟢教材锚 kc:1A413000_082_0154:0，具体措施『钻孔减压/水平封底隔渗』标🟢真题锚 {2016,第24题}，声明『教材锚未到具体措施粒度』）",
+   "verified": "2026-07-04 确定性核验：kc:1A413000_082_0154:0 quote 直读含「验算突涌」概括句（不含具体措施）；exam_evidence {2016,第24题} correct_answer=BE（钻孔减压/水平封底隔渗），analysis 原文『必要时可采取水平封底隔渗或钻孔减压措施』；GLM-5.2+Fable-5 双签 2/2"
+  }
+ },
+ {
+  "issue": "深基坑开挖控制数字被表述为“真题高频/永远在考”，但pack内自认无独立真题单问，意图措辞过强",
+  "location": "L4 S4, §3 R2, §4 examiner_intent 意图④",
+  "flagged_by": [
+   "Qwen-3.7-Max",
+   "GPT-5.5(Codex)"
+  ],
+  "count": 2,
+  "confidence": "高可信",
+  "fix": "数字规范点保留🟢教材锚；将“真题高频考法”、“永远在考”降为🔵备料，改为“近年无独立真题单问，以教材锚控制”",
+  "resolution": {
+   "status": "fixed",
+   "fixed_in": "G01_基坑开挖与降水方法选择.md §3 不变量 + §4 意图④ + L4 S4（前轮汇编已按 fix 降措辞：数字保🟢教材锚，真题侧标🔵备料『无独立真题单问，教材锚承载』『不冒充🟢真题单问』）",
+   "verified": "2026-07-04 确定性核验：『永远在考』在采分正文 0 残留（仅 §9 审计留痕引用 issue 原文）；S4 行实存串『🔵(无独立真题单问，教材锚承载)』；方向=降级（合法）；GLM-5.2+Fable-5 双签 2/2"
+  }
+ },
+ {
+  "issue": "轻型井点降水深度规则仅写“单级≤6m”，省略教材同等重要的“多级可达6~10m”，覆盖不全",
+  "location": "§1 #2, R4 A组",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "补全为“单级≤6m，多级可6~10m”，使封闭取值与教材锚完全一致"
+ },
+ {
+  "issue": "≤3m且软土→集水明排的quote存在将“应”建议绝对化为强制规则的可能",
+  "location": "§1 #1, §2, R4 A组",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "修改措辞为“>3m宜用井点降水”，以契合quote原文的强制性程度"
+ },
+ {
+  "issue": "误区“中途停降水”映射为E06程序顺序错误不贴切，应为E02采分点遗漏或E10规范适用错误",
+  "location": "§6 M7",
+  "flagged_by": [
+   "DeepSeek-V4-Pro"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "将error_code修改为E02或E10"
+ },
+ {
+  "issue": "无支护开挖方案缺少独立教材卡，仅靠真题承载",
+  "location": "L1 #13",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "该点降为🟢真题锚，或补充教材卡后恢复🟢"
+ },
+ {
+  "issue": "误区“管井井点用于填土/黏土降水”的error_code可能需要修正为E07和M03",
+  "location": "L6 M2",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "核对并修正error_code为E07概念混淆和M03概念混淆"
+ },
+ {
+  "issue": "误区“承压水突涌只答井点回灌”的error_code可能需要修正为E07和E10",
+  "location": "L6 M4",
+  "flagged_by": [
+   "Qwen-3.7-Max"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "核对并修正error_code为E07概念混淆和E10规范适用错误"
+ },
+ {
+  "issue": "“MCQ高频·几乎逐年”表述过强，证据仅支持“近年重复出现”",
+  "location": "§4 examiner_intent 意图②",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "降为🔵，改为“近年两次命中/重复考过”"
+ },
+ {
+  "issue": "外延卡1A422000_033_0055:0整体标为外延，但其内“水位低于坑底0.5m”与本体控制点重复，应拆卡",
+  "location": "§1 #15, §5 D1",
+  "flagged_by": [
+   "GPT-5.5(Codex)"
+  ],
+  "count": 1,
+  "confidence": "存疑",
+  "fix": "拆卡：水位0.5m保留🟢本体复核锚；井点间距/多级高差保留🔵外延"
+ }
 ]

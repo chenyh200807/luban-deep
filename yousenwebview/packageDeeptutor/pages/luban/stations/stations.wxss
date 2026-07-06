@@ -63,7 +63,7 @@
 .sr-slot--ink { background: var(--pk-red); color: #fff; }
 .sr-slot--red { background: rgba(255, 255, 255, 0.92); color: var(--pk-red); }
 .sr-slot--paper { border: 3rpx solid var(--pk-red); color: var(--pk-red); box-sizing: border-box; }
-.sr-tag { font-size: 20rpx; font-weight: 800; line-height: 1.3; }
+.sr-tag { font-size: 24rpx; font-weight: 800; line-height: 1.3; }
 .sr-tag--ink { color: #8fbfa8; }
 .sr-tag--red { color: #ffe1ba; }
 .sr-tag--paper { color: var(--pk-t3); }

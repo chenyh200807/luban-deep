@@ -1,0 +1,74 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "Q01",
+ "status": "signed",
+ "source_pack_sha256": "be6eae789509f1b0c19c808b1a6b822e8d6181553fcda4fcfd60f7c183f56354",
+ "generation_ms": 3.06,
+ "gate": {
+  "total": 2,
+  "passed": 2,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 2,
+ "dropped_rows": [
+  {
+   "r8_id": "Q01:R8-M1",
+   "reason": "antidote_amber_red"
+  },
+  {
+   "r8_id": "Q01:R8-M4",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "Q01:R8-M5",
+   "reason": "antidote_amber_red"
+  },
+  {
+   "r8_id": "Q01:R8-M6",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "Q01:R8-M7",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "Q01:R8-M8",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "E10": [
+   {
+    "r8_id": "Q01:R8-M2",
+    "mental_model": "🟢 普硅类≥7d；抗渗/C60+/后浇带≥14d（kc:1A413030_104_0197:0）。真题2015·第26题防水给 7d 即错",
+    "textbook_ref": "kc:1A413030_104_0197:0",
+    "phenomenon": "养护时间不足（<7d）",
+    "wrong_model": "养护几天就够"
+   },
+   {
+    "r8_id": "Q01:R8-M3",
+    "mental_model": "🟢 高温→早晚施工+喷雾+覆盖（真题2016·第30题）；大体积→里表≤25℃、降温≤2℃/d（kc:1A413030_096_0181:0）；冬期→表面-大气≤20℃、温降≤3℃/d（真题2019·第1题）",
+    "textbook_ref": "kc:1A413030_096_0181:0",
+    "phenomenon": "忽视温度控制",
+    "wrong_model": "按时浇水即可，无需管温度"
+   }
+  ],
+  "E03": [
+   {
+    "r8_id": "Q01:R8-M2",
+    "mental_model": "🟢 普硅类≥7d；抗渗/C60+/后浇带≥14d（kc:1A413030_104_0197:0）。真题2015·第26题防水给 7d 即错",
+    "textbook_ref": "kc:1A413030_104_0197:0",
+    "phenomenon": "养护时间不足（<7d）",
+    "wrong_model": "养护几天就够"
+   }
+  ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:22+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
+ }
+}

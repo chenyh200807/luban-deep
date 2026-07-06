@@ -1,0 +1,29 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-2(错因码语义类)+Tier-1手术编辑",
+    "actions": [
+      "adjudicate.py N03: UNDECIDED; pack §6 M5 主码已=E02(前轮应用,§9记录)",
+      "GLM-5.2 单审(异源终审锚, 未flag本条): satisfied=false——主码改E02已落实, 但'不限于仅缺三步骤'与'其他程序顺序错误界定'两诉求未落地",
+      "Fable-5 复签: 同意——'缺一丢分'表述确将 E02 局限于三动作, 需范围括注; 保守方向=括注不动锚不升色",
+      "GLM-5.2 兼任 §6 手术编辑员(§6 生产源=Qwen): 产出 1 组编辑对, unique-match 应用 1/1, 两闸复跑绿",
+      "结论: status=fixed(前轮主码重映射+本轮范围括注), 升色=0, 新增🟢=0"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "satisfied": false,
+        "further_edit_needed": true,
+        "reason": "E02范围与E06界定两项诉求未落地"
+      },
+      "Fable-5": "复签同意补范围括注",
+      "edits_applied": [
+        {
+          "ref": "M5",
+          "note": "E02范围括注+E06适用范围界定"
+        }
+      ]
+    }
+  }
+]

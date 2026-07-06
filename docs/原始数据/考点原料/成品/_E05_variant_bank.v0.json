@@ -1,0 +1,587 @@
+{
+ "schema_version": "luban-e05-variant-bank",
+ "pack_id": "E05",
+ "status": "candidate",
+ "source_pack_sha256": "8c29ebca6b36692f9006175958152ba3f31e447e20f209b8f6582956dfa281c9",
+ "generation_ms": 0.02,
+ "gate": {
+  "total": 40,
+  "passed": 40,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-param": 12,
+  "B-formula": 8,
+  "C-reading": 16,
+  "D-mother": 4
+ },
+ "variants": [
+  {
+   "variant_id": "E05-A-param-000",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 BCWP（已完成工作预算成本(挣值)）取为「已完成工程量×预算单价」",
+   "params": {
+    "param": "BCWP",
+    "qty": "已完成工程量",
+    "price": "预算单价"
+   },
+   "expected_ok": true,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-001",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 BCWP（已完成工作预算成本(挣值)）取为「已完成工程量×实际单价」",
+   "params": {
+    "param": "BCWP",
+    "qty": "已完成工程量",
+    "price": "实际单价"
+   },
+   "expected_ok": false,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-002",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 BCWP（已完成工作预算成本(挣值)）取为「计划工程量×预算单价」",
+   "params": {
+    "param": "BCWP",
+    "qty": "计划工程量",
+    "price": "预算单价"
+   },
+   "expected_ok": false,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-003",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 BCWP（已完成工作预算成本(挣值)）取为「计划工程量×实际单价」",
+   "params": {
+    "param": "BCWP",
+    "qty": "计划工程量",
+    "price": "实际单价"
+   },
+   "expected_ok": false,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-004",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 BCWS（计划完成工作预算成本）取为「已完成工程量×预算单价」",
+   "params": {
+    "param": "BCWS",
+    "qty": "已完成工程量",
+    "price": "预算单价"
+   },
+   "expected_ok": false,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-005",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 BCWS（计划完成工作预算成本）取为「已完成工程量×实际单价」",
+   "params": {
+    "param": "BCWS",
+    "qty": "已完成工程量",
+    "price": "实际单价"
+   },
+   "expected_ok": false,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-006",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 BCWS（计划完成工作预算成本）取为「计划工程量×预算单价」",
+   "params": {
+    "param": "BCWS",
+    "qty": "计划工程量",
+    "price": "预算单价"
+   },
+   "expected_ok": true,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-007",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 BCWS（计划完成工作预算成本）取为「计划工程量×实际单价」",
+   "params": {
+    "param": "BCWS",
+    "qty": "计划工程量",
+    "price": "实际单价"
+   },
+   "expected_ok": false,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-008",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 ACWP（已完成工作实际成本）取为「已完成工程量×预算单价」",
+   "params": {
+    "param": "ACWP",
+    "qty": "已完成工程量",
+    "price": "预算单价"
+   },
+   "expected_ok": false,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-009",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 ACWP（已完成工作实际成本）取为「已完成工程量×实际单价」",
+   "params": {
+    "param": "ACWP",
+    "qty": "已完成工程量",
+    "price": "实际单价"
+   },
+   "expected_ok": true,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-010",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 ACWP（已完成工作实际成本）取为「计划工程量×预算单价」",
+   "params": {
+    "param": "ACWP",
+    "qty": "计划工程量",
+    "price": "预算单价"
+   },
+   "expected_ok": false,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-A-param-011",
+   "rule_group": "A-param",
+   "surface": "某项目用挣值法做偏差分析，作答将 ACWP（已完成工作实际成本）取为「计划工程量×实际单价」",
+   "params": {
+    "param": "ACWP",
+    "qty": "计划工程量",
+    "price": "实际单价"
+   },
+   "expected_ok": false,
+   "correct_statement": "三个基本参数构成不得互换：BCWP=已完成工程量×预算单价；BCWS=计划工程量×预算单价；ACWP=已完成工程量×实际单价",
+   "anchor": "kc:1A435020_095_0156:0 + kc:1A435020_096_0158:0",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-B-formula-012",
+   "rule_group": "B-formula",
+   "surface": "作答将成本偏差公式写为 CV=BCWP−ACWP",
+   "params": {
+    "indicator": "CV",
+    "written": "BCWP−ACWP"
+   },
+   "expected_ok": true,
+   "correct_statement": "CV=BCWP−ACWP；CV>0 成本节支、CV<0 成本超支；写成 ACWP−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-B-formula-013",
+   "rule_group": "B-formula",
+   "surface": "作答将成本偏差公式写为 CV=ACWP−BCWP",
+   "params": {
+    "indicator": "CV",
+    "written": "ACWP−BCWP"
+   },
+   "expected_ok": false,
+   "correct_statement": "CV=BCWP−ACWP；CV>0 成本节支、CV<0 成本超支；写成 ACWP−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-B-formula-014",
+   "rule_group": "B-formula",
+   "surface": "作答将进度偏差公式写为 SV=BCWP−BCWS",
+   "params": {
+    "indicator": "SV",
+    "written": "BCWP−BCWS"
+   },
+   "expected_ok": true,
+   "correct_statement": "SV=BCWP−BCWS；SV>0 进度提前、SV<0 进度延误；写成 BCWS−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-B-formula-015",
+   "rule_group": "B-formula",
+   "surface": "作答将进度偏差公式写为 SV=BCWS−BCWP",
+   "params": {
+    "indicator": "SV",
+    "written": "BCWS−BCWP"
+   },
+   "expected_ok": false,
+   "correct_statement": "SV=BCWP−BCWS；SV>0 进度提前、SV<0 进度延误；写成 BCWS−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-B-formula-016",
+   "rule_group": "B-formula",
+   "surface": "作答将成本绩效指数公式写为 CPI=BCWP/ACWP",
+   "params": {
+    "indicator": "CPI",
+    "written": "BCWP/ACWP"
+   },
+   "expected_ok": true,
+   "correct_statement": "CPI=BCWP/ACWP；CPI>1 成本节支、CPI<1 成本超支；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_095_0156:2 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-B-formula-017",
+   "rule_group": "B-formula",
+   "surface": "作答将成本绩效指数公式写为 CPI=ACWP/BCWP",
+   "params": {
+    "indicator": "CPI",
+    "written": "ACWP/BCWP"
+   },
+   "expected_ok": false,
+   "correct_statement": "CPI=BCWP/ACWP；CPI>1 成本节支、CPI<1 成本超支；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_095_0156:2 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-B-formula-018",
+   "rule_group": "B-formula",
+   "surface": "作答将进度绩效指数公式写为 SPI=BCWP/BCWS",
+   "params": {
+    "indicator": "SPI",
+    "written": "BCWP/BCWS"
+   },
+   "expected_ok": true,
+   "correct_statement": "SPI=BCWP/BCWS；SPI>1 进度提前、SPI<1 进度延误；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_096_0157:0 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-B-formula-019",
+   "rule_group": "B-formula",
+   "surface": "作答将进度绩效指数公式写为 SPI=BCWS/BCWP",
+   "params": {
+    "indicator": "SPI",
+    "written": "BCWS/BCWP"
+   },
+   "expected_ok": false,
+   "correct_statement": "SPI=BCWP/BCWS；SPI>1 进度提前、SPI<1 进度延误；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_096_0157:0 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-020",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 CV>0，作答判读为「成本节支」",
+   "params": {
+    "indicator": "CV",
+    "condition": "CV>0",
+    "claim": "成本节支"
+   },
+   "expected_ok": true,
+   "correct_statement": "CV=BCWP−ACWP；CV>0 成本节支、CV<0 成本超支；写成 ACWP−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-021",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 CV>0，作答判读为「成本超支」",
+   "params": {
+    "indicator": "CV",
+    "condition": "CV>0",
+    "claim": "成本超支"
+   },
+   "expected_ok": false,
+   "correct_statement": "CV=BCWP−ACWP；CV>0 成本节支、CV<0 成本超支；写成 ACWP−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-022",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 CV<0，作答判读为「成本超支」",
+   "params": {
+    "indicator": "CV",
+    "condition": "CV<0",
+    "claim": "成本超支"
+   },
+   "expected_ok": true,
+   "correct_statement": "CV=BCWP−ACWP；CV>0 成本节支、CV<0 成本超支；写成 ACWP−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-023",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 CV<0，作答判读为「成本节支」",
+   "params": {
+    "indicator": "CV",
+    "condition": "CV<0",
+    "claim": "成本节支"
+   },
+   "expected_ok": false,
+   "correct_statement": "CV=BCWP−ACWP；CV>0 成本节支、CV<0 成本超支；写成 ACWP−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-024",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 SV>0，作答判读为「进度提前」",
+   "params": {
+    "indicator": "SV",
+    "condition": "SV>0",
+    "claim": "进度提前"
+   },
+   "expected_ok": true,
+   "correct_statement": "SV=BCWP−BCWS；SV>0 进度提前、SV<0 进度延误；写成 BCWS−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-025",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 SV>0，作答判读为「进度延误」",
+   "params": {
+    "indicator": "SV",
+    "condition": "SV>0",
+    "claim": "进度延误"
+   },
+   "expected_ok": false,
+   "correct_statement": "SV=BCWP−BCWS；SV>0 进度提前、SV<0 进度延误；写成 BCWS−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-026",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 SV<0，作答判读为「进度延误」",
+   "params": {
+    "indicator": "SV",
+    "condition": "SV<0",
+    "claim": "进度延误"
+   },
+   "expected_ok": true,
+   "correct_statement": "SV=BCWP−BCWS；SV>0 进度提前、SV<0 进度延误；写成 BCWS−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-027",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 SV<0，作答判读为「进度提前」",
+   "params": {
+    "indicator": "SV",
+    "condition": "SV<0",
+    "claim": "进度提前"
+   },
+   "expected_ok": false,
+   "correct_statement": "SV=BCWP−BCWS；SV>0 进度提前、SV<0 进度延误；写成 BCWS−BCWP 即方向反，不妥",
+   "anchor": "kc:1A435020_095_0156:1 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-028",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 CPI>1，作答判读为「成本节支」",
+   "params": {
+    "indicator": "CPI",
+    "condition": "CPI>1",
+    "claim": "成本节支"
+   },
+   "expected_ok": true,
+   "correct_statement": "CPI=BCWP/ACWP；CPI>1 成本节支、CPI<1 成本超支；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_095_0156:2 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-029",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 CPI>1，作答判读为「成本超支」",
+   "params": {
+    "indicator": "CPI",
+    "condition": "CPI>1",
+    "claim": "成本超支"
+   },
+   "expected_ok": false,
+   "correct_statement": "CPI=BCWP/ACWP；CPI>1 成本节支、CPI<1 成本超支；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_095_0156:2 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-030",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 CPI<1，作答判读为「成本超支」",
+   "params": {
+    "indicator": "CPI",
+    "condition": "CPI<1",
+    "claim": "成本超支"
+   },
+   "expected_ok": true,
+   "correct_statement": "CPI=BCWP/ACWP；CPI>1 成本节支、CPI<1 成本超支；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_095_0156:2 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-031",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 CPI<1，作答判读为「成本节支」",
+   "params": {
+    "indicator": "CPI",
+    "condition": "CPI<1",
+    "claim": "成本节支"
+   },
+   "expected_ok": false,
+   "correct_statement": "CPI=BCWP/ACWP；CPI>1 成本节支、CPI<1 成本超支；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_095_0156:2 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-032",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 SPI>1，作答判读为「进度提前」",
+   "params": {
+    "indicator": "SPI",
+    "condition": "SPI>1",
+    "claim": "进度提前"
+   },
+   "expected_ok": true,
+   "correct_statement": "SPI=BCWP/BCWS；SPI>1 进度提前、SPI<1 进度延误；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_096_0157:0 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-033",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 SPI>1，作答判读为「进度延误」",
+   "params": {
+    "indicator": "SPI",
+    "condition": "SPI>1",
+    "claim": "进度延误"
+   },
+   "expected_ok": false,
+   "correct_statement": "SPI=BCWP/BCWS；SPI>1 进度提前、SPI<1 进度延误；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_096_0157:0 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-034",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 SPI<1，作答判读为「进度延误」",
+   "params": {
+    "indicator": "SPI",
+    "condition": "SPI<1",
+    "claim": "进度延误"
+   },
+   "expected_ok": true,
+   "correct_statement": "SPI=BCWP/BCWS；SPI>1 进度提前、SPI<1 进度延误；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_096_0157:0 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-C-reading-035",
+   "rule_group": "C-reading",
+   "surface": "某项目挣值分析算得 SPI<1，作答判读为「进度提前」",
+   "params": {
+    "indicator": "SPI",
+    "condition": "SPI<1",
+    "claim": "进度提前"
+   },
+   "expected_ok": false,
+   "correct_statement": "SPI=BCWP/BCWS；SPI>1 进度提前、SPI<1 进度延误；分子分母颠倒不妥",
+   "anchor": "kc:1A435020_096_0157:0 + kc:1A435020_097_0160:1",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-D-mother-036",
+   "rule_group": "D-mother",
+   "surface": "第20周末 BCWP=6370万元、ACWP=6240万元、BCWS=5340万元，作答 CV=BCWP−ACWP=6370−6240=130万元，判读成本节支",
+   "params": {
+    "indicator": "CV",
+    "value": 130,
+    "claim": "成本节支",
+    "bcwp": 6370,
+    "acwp": 6240,
+    "bcws": 5340
+   },
+   "expected_ok": true,
+   "correct_statement": "母题四指标（R6 骨架）：CV=BCWP−ACWP=6370−6240=130万元(节支)；SV=BCWP−BCWS=6370−5340=1030万元(提前)；CPI=6370/6240≈1.02(节支)；SPI=6370/5340≈1.19(提前)——本项目第20周末成本节支、进度提前",
+   "anchor": "ca:1A435020_095_0156 + ca:1A435020_097_0160",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-D-mother-037",
+   "rule_group": "D-mother",
+   "surface": "第20周末 BCWP=6370万元、ACWP=6240万元、BCWS=5340万元，作答 SV=BCWP−BCWS=6370−5340=1030万元，判读进度提前",
+   "params": {
+    "indicator": "SV",
+    "value": 1030,
+    "claim": "进度提前",
+    "bcwp": 6370,
+    "acwp": 6240,
+    "bcws": 5340
+   },
+   "expected_ok": true,
+   "correct_statement": "母题四指标（R6 骨架）：CV=BCWP−ACWP=6370−6240=130万元(节支)；SV=BCWP−BCWS=6370−5340=1030万元(提前)；CPI=6370/6240≈1.02(节支)；SPI=6370/5340≈1.19(提前)——本项目第20周末成本节支、进度提前",
+   "anchor": "ca:1A435020_095_0156 + ca:1A435020_097_0160",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-D-mother-038",
+   "rule_group": "D-mother",
+   "surface": "第20周末 BCWP=6370万元、ACWP=6240万元、BCWS=5340万元，作答 CPI=BCWP/ACWP=6370/6240≈1.02，判读成本节支",
+   "params": {
+    "indicator": "CPI",
+    "value_2dp": 1.02,
+    "claim": "成本节支",
+    "bcwp": 6370,
+    "acwp": 6240,
+    "bcws": 5340
+   },
+   "expected_ok": true,
+   "correct_statement": "母题四指标（R6 骨架）：CV=BCWP−ACWP=6370−6240=130万元(节支)；SV=BCWP−BCWS=6370−5340=1030万元(提前)；CPI=6370/6240≈1.02(节支)；SPI=6370/5340≈1.19(提前)——本项目第20周末成本节支、进度提前",
+   "anchor": "ca:1A435020_095_0156 + ca:1A435020_097_0160",
+   "extension": false
+  },
+  {
+   "variant_id": "E05-D-mother-039",
+   "rule_group": "D-mother",
+   "surface": "第20周末 BCWP=6370万元、ACWP=6240万元、BCWS=5340万元，作答 SPI=BCWP/BCWS=6370/5340≈1.19，判读进度提前",
+   "params": {
+    "indicator": "SPI",
+    "value_2dp": 1.19,
+    "claim": "进度提前",
+    "bcwp": 6370,
+    "acwp": 6240,
+    "bcws": 5340
+   },
+   "expected_ok": true,
+   "correct_statement": "母题四指标（R6 骨架）：CV=BCWP−ACWP=6370−6240=130万元(节支)；SV=BCWP−BCWS=6370−5340=1030万元(提前)；CPI=6370/6240≈1.02(节支)；SPI=6370/5340≈1.19(提前)——本项目第20周末成本节支、进度提前",
+   "anchor": "ca:1A435020_095_0156 + ca:1A435020_097_0160",
+   "extension": false
+  }
+ ]
+}

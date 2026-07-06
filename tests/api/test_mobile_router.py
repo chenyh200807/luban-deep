@@ -4396,6 +4396,45 @@ def test_mobile_mistake_book_save_list_remove_and_conflict(
         assert delete_response.json()["is_bookmarked"] is False
 
 
+def test_mobile_mistake_book_projects_review_due_behind_review_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """review_due_at 读侧投影(复习模块旗标后): 到期真值=revalidation_queue 派生,
+    exam_date 从 member profile 读取失败时静默降级(引擎按无地平线运转)。"""
+    from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+    from deeptutor.services.learner_state.mistake_book import InMemoryMistakeBookStore, MistakeBookService
+
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    monkeypatch.setattr(mobile_module, "mistake_book_service", service)
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_ENABLED", "true")
+    monkeypatch.setenv("DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED", "true")
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    attempt_ref = sign_attempt_ref(user_id="student_demo", event_id="evt_due_api", question_id="q1")
+    with TestClient(_build_app()) as client:
+        save_response = client.post(
+            "/api/v1/mobile/mistake-book/items",
+            json={"attempt_ref": attempt_ref, "subject_id": "construction_exam_1"},
+        )
+        assert save_response.status_code == 200
+
+        list_response = client.get("/api/v1/mobile/mistake-book?subject_id=construction_exam_1")
+        assert list_response.status_code == 200
+        item = list_response.json()["items"][0]
+        assert item["review_due_at"], "旗标开: review_due_at 从 revalidation_queue 派生"
+        assert item["review_due_at"] > item["saved_at"], "weak 相首跳在观测之后"
+
+        # 旗标关 = 收权后现状(恒 None)
+        monkeypatch.delenv("LUBAN_REVIEW_MODULE_ENABLED", raising=False)
+        list_response = client.get("/api/v1/mobile/mistake-book?subject_id=construction_exam_1")
+        assert list_response.json()["items"][0]["review_due_at"] is None
+
+
 def test_mobile_mistake_book_flags_fail_closed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -5746,6 +5785,312 @@ def _install_start_turn_stubs(
     )
 
 
+def _trial_event(
+    days_ago: int,
+    index: int,
+    *,
+    now: datetime | None = None,
+    status: str = "metered_not_charged",
+) -> SimpleNamespace:
+    current = now or mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ)
+    created_at = current - timedelta(days=days_ago, minutes=index)
+    return SimpleNamespace(
+        event_id=index,
+        wallet_user_id="wallet_demo",
+        learning_user_id="student_demo",
+        source="wx_miniprogram",
+        session_id=f"session-{days_ago}-{index}",
+        turn_id=f"turn-{days_ago}-{index}",
+        amount_points=mobile_module._MINI_PROGRAM_CAPTURE_COST,
+        status=status,
+        metadata={"reason": "free_trial"},
+        created_at=created_at.timestamp(),
+    )
+
+
+class _FakeFreeTrialMeter:
+    def __init__(
+        self,
+        events: list[SimpleNamespace] | None = None,
+        *,
+        record_result: bool = True,
+    ) -> None:
+        self.events = list(events or [])
+        self.record_result = record_result
+        self.recorded: list[dict[str, object]] = []
+        self.finalized: list[dict[str, object]] = []
+
+    def list_usage_events(self, wallet_user_id: str, *, limit: int = 100, offset: int = 0):
+        del wallet_user_id, limit, offset
+        return list(self.events)
+
+    def record_usage_event(self, **kwargs):
+        self.recorded.append(dict(kwargs))
+        return self.record_result
+
+    def record_usage_event_after_check(self, **kwargs):
+        check_existing_events = kwargs.pop("check_existing_events", None)
+        kwargs.pop("existing_events_limit", None)
+        if check_existing_events is not None:
+            check_existing_events(list(self.events))
+        return self.record_usage_event(**kwargs)
+
+    def finalize_free_trial_reservation(self, dedupe_key, **kwargs):
+        self.finalized.append({"dedupe_key": dedupe_key, **kwargs})
+        return True
+
+
+def test_mobile_chat_start_turn_allows_zero_balance_inside_free_trial_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    meter = _FakeFreeTrialMeter()
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "client_turn_id": "client-free-trial-1"},
+        )
+
+    assert response.status_code == 200
+    assert len(started) == 1
+    billing_context = started[0]["config"]["billing_context"]
+    assert billing_context["free_trial"] == "reserved"
+    assert billing_context["free_trial_reservation_key"] == "free_trial:wallet_demo:client-free-trial-1"
+    assert meter.recorded
+    assert meter.recorded[0]["status"] == "free_trial_reserved"
+    assert meter.recorded[0]["dedupe_key"] == "free_trial:wallet_demo:client-free-trial-1"
+
+
+def test_mobile_chat_start_turn_free_trial_blocks_fourth_question_in_same_day(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    meter = _FakeFreeTrialMeter([_trial_event(0, idx) for idx in range(3)])
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/chat/start-turn", json={"query": "继续问"})
+
+    assert response.status_code == 429
+    detail = response.json()["detail"]
+    assert detail["code"] == "billing_quota_exceeded"
+    assert detail["limited_by"] == "free_trial_daily"
+    assert started == []
+    assert meter.recorded == []
+
+
+def test_mobile_chat_start_turn_free_trial_ignores_released_reservations(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    meter = _FakeFreeTrialMeter(
+        [
+            _trial_event(0, 0),
+            _trial_event(0, 1),
+            _trial_event(0, 2, status="free_trial_released"),
+        ]
+    )
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "第三次有效免费问答", "client_turn_id": "client-free-trial-3"},
+        )
+
+    assert response.status_code == 200
+    assert len(started) == 1
+    assert meter.recorded[0]["dedupe_key"] == "free_trial:wallet_demo:client-free-trial-3"
+
+
+def test_mobile_chat_start_turn_free_trial_ignores_stale_reserved_reservations(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    now = mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ)
+    meter = _FakeFreeTrialMeter(
+        [
+            _trial_event(0, 0, now=now),
+            _trial_event(0, 1, now=now),
+            _trial_event(
+                0,
+                60,
+                now=now,
+                status="free_trial_reserved",
+            ),
+        ]
+    )
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "第三次有效免费问答", "client_turn_id": "client-free-trial-3"},
+        )
+
+    assert response.status_code == 200
+    assert len(started) == 1
+    assert meter.recorded[0]["dedupe_key"] == "free_trial:wallet_demo:client-free-trial-3"
+
+
+def test_mobile_chat_start_turn_free_trial_duplicate_reservation_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    meter = _FakeFreeTrialMeter(record_result=False)
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "client_turn_id": "client-free-trial-1"},
+        )
+
+    assert response.status_code == 409
+    assert response.json()["detail"]["code"] == "free_trial_reservation_conflict"
+    assert started == []
+
+
+def test_mobile_chat_start_turn_free_trial_requires_exact_zero_balance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    meter = _FakeFreeTrialMeter()
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=-1))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "client_turn_id": "client-free-trial-1"},
+        )
+
+    assert response.status_code == 429
+    assert response.json()["detail"]["code"] == "billing_quota_exceeded"
+    assert started == []
+    assert meter.recorded == []
+
+
+def test_mobile_chat_start_turn_releases_reservation_when_runtime_start_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+
+    class FailingTurnRuntime:
+        async def start_turn(self, payload):
+            started.append(payload)
+            raise RuntimeError("runtime unavailable")
+
+    meter = _FakeFreeTrialMeter()
+    monkeypatch.setattr(mobile_module, "turn_runtime", FailingTurnRuntime())
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with pytest.raises(RuntimeError, match="runtime unavailable"):
+        with TestClient(_build_app()) as client:
+            client.post(
+                "/api/v1/chat/start-turn",
+                json={"query": "考我一道题", "client_turn_id": "client-free-trial-1"},
+            )
+
+    assert len(started) == 1
+    assert meter.finalized == [
+        {
+            "dedupe_key": "free_trial:wallet_demo:client-free-trial-1",
+            "chargeable": False,
+            "turn_id": "",
+            "metadata_updates": {"release_reason": "start_turn_failed"},
+        }
+    ]
+
+
+def test_mobile_chat_start_turn_free_trial_blocks_after_twelve_questions_in_week(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    events = [_trial_event(day, idx) for day in range(1, 7) for idx in range(2)]
+    meter = _FakeFreeTrialMeter(events)
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/chat/start-turn", json={"query": "本周继续问"})
+
+    assert response.status_code == 429
+    detail = response.json()["detail"]
+    assert detail["code"] == "billing_quota_exceeded"
+    assert detail["limited_by"] == "free_trial_weekly"
+    assert started == []
+    assert meter.recorded == []
+
+
+def test_mobile_chat_start_turn_free_trial_blocks_after_three_full_previous_days(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    events = [_trial_event(day, idx) for day in range(1, 4) for idx in range(3)]
+    meter = _FakeFreeTrialMeter(events)
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/chat/start-turn", json={"query": "连续三天后再问"})
+
+    assert response.status_code == 429
+    detail = response.json()["detail"]
+    assert detail["code"] == "billing_quota_exceeded"
+    assert detail["limited_by"] == "free_trial_streak"
+    assert started == []
+    assert meter.recorded == []
+
+
+def test_mobile_chat_start_turn_free_trial_blocks_after_any_three_full_days_in_week(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    events = [_trial_event(day, idx) for day in range(2, 5) for idx in range(3)]
+    meter = _FakeFreeTrialMeter(events)
+    monkeypatch.setattr(mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0))
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: meter)
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/chat/start-turn", json={"query": "隔天后继续问"})
+
+    assert response.status_code == 429
+    detail = response.json()["detail"]
+    assert detail["code"] == "billing_quota_exceeded"
+    assert detail["limited_by"] == "free_trial_streak"
+    assert started == []
+    assert meter.recorded == []
+
+
 def test_mobile_chat_start_turn_hard_balance_gate_rejects_when_enforced_and_insufficient(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -5753,7 +6098,8 @@ def test_mobile_chat_start_turn_hard_balance_gate_rejects_when_enforced_and_insu
     started: list[object] = []
     _install_start_turn_stubs(monkeypatch, started)
     # Available balance (balance - frozen) below the per-turn minimum charge
-    # (20 points = 20_000_000 micros).
+    # (20 points = 20_000_000 micros). Positive-but-insufficient balance stays
+    # on the canonical paid-balance fail-closed path.
     monkeypatch.setattr(
         mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=1_000_000)
     )
@@ -5770,6 +6116,31 @@ def test_mobile_chat_start_turn_hard_balance_gate_rejects_when_enforced_and_insu
     assert detail["limited_by"] == "balance"
     assert detail["required_micros"] == 20_000_000
     # Fail-closed before delivery: no pending turn was ever created.
+    assert started == []
+
+
+def test_mobile_chat_start_turn_hard_balance_gate_rejects_fully_frozen_positive_balance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    monkeypatch.setattr(
+        mobile_module,
+        "wallet_service",
+        _FakeBalanceWalletService(balance_micros=20_000_000, frozen_micros=20_000_000),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 429
+    detail = response.json()["detail"]
+    assert detail["code"] == "billing_quota_exceeded"
+    assert detail["limited_by"] == "balance"
     assert started == []
 
 
@@ -5932,6 +6303,11 @@ def test_mobile_chat_start_turn_internal_qa_billing_bypass_keeps_non_qa_gate(
     _install_start_turn_stubs(monkeypatch, started)
     monkeypatch.setattr(
         mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=1_000_000)
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "get_member_usage_meter",
+        lambda: _FakeFreeTrialMeter([_trial_event(0, idx) for idx in range(3)]),
     )
 
     with TestClient(_build_app()) as client:

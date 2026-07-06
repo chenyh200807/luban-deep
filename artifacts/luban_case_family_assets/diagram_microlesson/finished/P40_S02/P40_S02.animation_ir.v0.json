@@ -1,0 +1,859 @@
+{
+  "schema_version": "luban_animation_ir.v0",
+  "ir_id": "P40_S02_animation_ir_v0",
+  "card_id": "P40_S02",
+  "display": {
+    "kicker": "鲁班深母题 · S02 起重吊装",
+    "title": "正式起吊先过四道门"
+  },
+  "main_exam_action": "把起重吊装安全题写成四道门采分链：先判危大/论证门槛 → 再查作业条件 → 90%以上先试吊四查 → 合格后方可正式起吊。",
+  "teaching_spine": {
+    "source_pack": "docs/原始数据/考点原料/成品/S02_起重吊装安全.md",
+    "source_card": "P40_S02.source_card.json",
+    "archetype": "decision_branch_reveal",
+    "warm_correction": "起重吊装安全不是安全口号题，而是正式起吊前的四道门判断。"
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/S02_起重吊装安全.md",
+    "source_card": "P40_S02.source_card.json",
+    "lesson": "P40_S02.lesson.json",
+    "timing": "P40_S02.lesson.timing.json",
+    "audio": "P40_S02.lesson.mp3"
+  },
+  "render_contract": {
+    "renderer": "render_animation_ir_preview.py",
+    "html_preview": "P40_S02.animation_ir_preview.html",
+    "remotion_renderer": "remotion_demo/src/P40_S02AnimationIrPreview.tsx",
+    "remotion_composition": "P40_S02AnimationIrPreview",
+    "practice_href": "P40_S02.practice.html",
+    "max_visible_nodes": 4,
+    "archetype_visual_required": [
+      "decision_tree"
+    ],
+    "teaching_scene_ids": [
+      "hook",
+      "gate_map",
+      "danger_gate",
+      "precheck_gate",
+      "trial_lift",
+      "limit_gate",
+      "score"
+    ],
+    "min_diagrammatic_teaching_scenes": 7,
+    "challenge_unlock_sec": 267.664,
+    "one_active_scene": true,
+    "one_active_keycard": true,
+    "theater_requires_challenge_cta": true,
+    "ai_ask_required": true
+  },
+  "taxonomy_alignment": {
+    "priority_slot": 3,
+    "pack_id": "S02",
+    "status": "direct",
+    "canonical_taxonomy_refs": [
+      "1A436000",
+      "1A436000-B018",
+      "1A436000-B034"
+    ],
+    "note": "起重吊装危大门槛、作业条件、90%试吊和限位禁令"
+  },
+  "ai_context": {
+    "context_id": "P40_S02",
+    "title": "起重吊装安全",
+    "main_exam_action": "把起重吊装安全题写成四道门采分链：先判危大/论证门槛 → 再查作业条件 → 90%以上先试吊四查 → 合格后方可正式起吊。",
+    "safe_summary": "S02 的主线是正式起吊前的四道门：10kN危大线与100/300/200论证线分清；作业前查气象、基础、索具、吊点、装置；90%及以上先离地200～500mm四查；合格后才正式起吊。",
+    "key_points": [
+      "10kN进危大，100/300/200才看论证",
+      "风线先看动词：露天作业6级，安拆>9.0m/s",
+      "90%及以上先离地200～500mm再四查",
+      "限位不能代替操作机构，合格后方可起吊"
+    ],
+    "handoff_mode": "context_id_plus_current_scene",
+    "api_base": "https://test2.yousenjiaoyu.com"
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0
+    },
+    {
+      "id": "gate_map",
+      "label": "四道门",
+      "start_sec": 23.224
+    },
+    {
+      "id": "danger_gate",
+      "label": "危大线",
+      "start_sec": 54.872
+    },
+    {
+      "id": "precheck_gate",
+      "label": "条件门",
+      "start_sec": 87.336
+    },
+    {
+      "id": "trial_lift",
+      "label": "试吊",
+      "start_sec": 125.488
+    },
+    {
+      "id": "limit_gate",
+      "label": "禁令",
+      "start_sec": 158.864
+    },
+    {
+      "id": "score",
+      "label": "采分句",
+      "start_sec": 187.416
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 216.112
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 267.664
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "label": "先避坑",
+      "start_sec": 0,
+      "end_sec": 23.224,
+      "scene": "decision_branch_reveal_hook",
+      "focus": "hook_tree",
+      "enter": [
+        "scene.fade_in",
+        "hook_tree.reveal"
+      ],
+      "hold": [
+        "hook_tree.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "hook_tree",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "hook_tree"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "hook_tree",
+          "start": 0,
+          "end": 0.25
+        },
+        {
+          "kind": "reveal",
+          "target": "hook_tree",
+          "start": 0.04,
+          "end": 0.28
+        },
+        {
+          "kind": "highlight",
+          "target": "hook_tree",
+          "start": 0.32,
+          "end": 0.95
+        }
+      ],
+      "keycard": "不是安全口号题",
+      "coach": "考场问的是正式起吊前哪道门没过。"
+    },
+    {
+      "id": "gate_map",
+      "label": "四道门",
+      "start_sec": 23.224,
+      "end_sec": 54.872,
+      "scene": "decision_branch_reveal_map",
+      "focus": "four_gates",
+      "enter": [
+        "scene.fade_in",
+        "four_gates.reveal"
+      ],
+      "hold": [
+        "four_gates.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "trace",
+        "target": "four_gates",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "four_gates"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "trace",
+          "target": "four_gates",
+          "start": 0,
+          "end": 0.3
+        },
+        {
+          "kind": "reveal",
+          "target": "four_gates",
+          "start": 0.04,
+          "end": 0.32
+        },
+        {
+          "kind": "highlight",
+          "target": "four_gates",
+          "start": 0.36,
+          "end": 1
+        }
+      ],
+      "keycard": "四道门先立住",
+      "coach": "门槛、条件、试吊、放行，按这个顺序写。"
+    },
+    {
+      "id": "danger_gate",
+      "label": "危大线",
+      "start_sec": 54.872,
+      "end_sec": 87.336,
+      "scene": "decision_branch_reveal_threshold",
+      "focus": "danger_tree",
+      "enter": [
+        "scene.fade_in",
+        "danger_tree.reveal"
+      ],
+      "hold": [
+        "danger_tree.spotlight",
+        "danger_meter.trace"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "danger_tree",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "danger_tree",
+        "danger_meter"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "danger_tree",
+          "start": 0,
+          "end": 0.25
+        },
+        {
+          "kind": "reveal",
+          "target": "danger_tree",
+          "start": 0.04,
+          "end": 0.28
+        },
+        {
+          "kind": "reveal",
+          "target": "danger_meter",
+          "start": 0.34,
+          "end": 0.56
+        },
+        {
+          "kind": "highlight",
+          "target": "danger_tree",
+          "start": 0.58,
+          "end": 1
+        }
+      ],
+      "keycard": "10kN不是论证线",
+      "coach": "10kN进危大；专家论证还要另看100、300、200。"
+    },
+    {
+      "id": "precheck_gate",
+      "label": "条件门",
+      "start_sec": 87.336,
+      "end_sec": 125.488,
+      "scene": "decision_branch_reveal_precheck",
+      "focus": "site_tree",
+      "enter": [
+        "scene.fade_in",
+        "site_tree.reveal"
+      ],
+      "hold": [
+        "site_tree.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "trace",
+        "target": "site_tree",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "site_tree",
+        "wind_arrow"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "trace",
+          "target": "site_tree",
+          "start": 0,
+          "end": 0.28
+        },
+        {
+          "kind": "reveal",
+          "target": "site_tree",
+          "start": 0.04,
+          "end": 0.3
+        },
+        {
+          "kind": "reveal",
+          "target": "wind_arrow",
+          "start": 0.34,
+          "end": 0.52
+        },
+        {
+          "kind": "highlight",
+          "target": "site_tree",
+          "start": 0.56,
+          "end": 1
+        }
+      ],
+      "keycard": "条件门看现场",
+      "coach": "气象、基础、索具、吊点、装置，逐个对红线。"
+    },
+    {
+      "id": "trial_lift",
+      "label": "试吊",
+      "start_sec": 125.488,
+      "end_sec": 158.864,
+      "scene": "process_step_reveal_trial",
+      "focus": "trial_flow",
+      "enter": [
+        "scene.fade_in",
+        "trial_flow.reveal"
+      ],
+      "hold": [
+        "trial_flow.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "trace",
+        "target": "trial_flow",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "trial_flow",
+        "trial_meter"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "trace",
+          "target": "trial_flow",
+          "start": 0,
+          "end": 0.26
+        },
+        {
+          "kind": "reveal",
+          "target": "trial_meter",
+          "start": 0.04,
+          "end": 0.22
+        },
+        {
+          "kind": "reveal",
+          "target": "trial_flow",
+          "start": 0.24,
+          "end": 0.56
+        },
+        {
+          "kind": "highlight",
+          "target": "trial_flow",
+          "start": 0.58,
+          "end": 1
+        }
+      ],
+      "keycard": "90%以上先试吊",
+      "coach": "先离地200～500mm，再查机械、制动、平稳、绑扎。"
+    },
+    {
+      "id": "limit_gate",
+      "label": "禁令",
+      "start_sec": 158.864,
+      "end_sec": 187.416,
+      "scene": "contrast_reveal_limit",
+      "focus": "limit_contrast",
+      "enter": [
+        "scene.fade_in",
+        "limit_contrast.reveal"
+      ],
+      "hold": [
+        "limit_contrast.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "clean_board"
+      },
+      "camera": {
+        "verb": "push-in",
+        "target": "limit_contrast",
+        "duration_sec": 0.42
+      },
+      "visible_nodes": [
+        "limit_contrast"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "push-in",
+          "target": "limit_contrast",
+          "start": 0,
+          "end": 0.25
+        },
+        {
+          "kind": "reveal",
+          "target": "limit_contrast",
+          "start": 0.04,
+          "end": 0.3
+        },
+        {
+          "kind": "highlight",
+          "target": "limit_contrast",
+          "start": 0.35,
+          "end": 1
+        }
+      ],
+      "keycard": "限位不能顶替操作",
+      "coach": "绝对禁令不能被“加强管理”洗白。"
+    },
+    {
+      "id": "score",
+      "label": "采分句",
+      "start_sec": 187.416,
+      "end_sec": 216.112,
+      "scene": "scoring_diagnosis_reveal",
+      "focus": "answer_scan",
+      "enter": [
+        "scene.fade_in",
+        "answer_scan.reveal"
+      ],
+      "hold": [
+        "answer_scan.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "answer_paper"
+      },
+      "camera": {
+        "verb": "answer-paper",
+        "target": "answer_scan",
+        "duration_sec": 0.5
+      },
+      "visible_nodes": [
+        "answer_scan"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "answer-paper",
+          "target": "answer_scan",
+          "start": 0,
+          "end": 0.28
+        },
+        {
+          "kind": "reveal",
+          "target": "answer_scan",
+          "start": 0.04,
+          "end": 0.42
+        },
+        {
+          "kind": "highlight",
+          "target": "answer_scan",
+          "start": 0.45,
+          "end": 1
+        }
+      ],
+      "keycard": "答题纸要交闭环",
+      "coach": "门槛、条件、试吊、放行，连成一句采分句。"
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 216.112,
+      "end_sec": 267.664,
+      "scene": "qa_boundary_questions",
+      "focus": "qa_scan",
+      "enter": [
+        "scene.fade_in",
+        "qa_scan.reveal"
+      ],
+      "hold": [
+        "qa_scan.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "qa_board"
+      },
+      "camera": {
+        "verb": "spotlight",
+        "target": "qa_scan",
+        "duration_sec": 0.42
+      },
+      "visible_nodes": [
+        "qa_scan"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "spotlight",
+          "target": "qa_scan",
+          "start": 0,
+          "end": 0.25
+        },
+        {
+          "kind": "reveal",
+          "target": "qa_scan",
+          "start": 0.04,
+          "end": 0.32
+        },
+        {
+          "kind": "highlight",
+          "target": "qa_scan",
+          "start": 0.36,
+          "end": 1
+        }
+      ],
+      "keycard": "三问只问边界",
+      "coach": "12kN、风线、慢慢吊，是最容易错的三处。"
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 267.664,
+      "end_sec": 279.552,
+      "scene": "closing_challenge",
+      "focus": "challenge_cta",
+      "enter": [
+        "scene.fade_in",
+        "closing_sentence.reveal",
+        "challenge_cta.reveal"
+      ],
+      "hold": [
+        "challenge_cta.spotlight"
+      ],
+      "exit": [
+        "scene.fade_out"
+      ],
+      "layout": {
+        "portrait": "centered_board",
+        "landscape": "stage_left_coach_right",
+        "theater": "closing"
+      },
+      "camera": {
+        "verb": "pull-back",
+        "target": "challenge_cta",
+        "duration_sec": 0.45
+      },
+      "visible_nodes": [
+        "closing_sentence",
+        "challenge_cta"
+      ],
+      "actions": [
+        {
+          "kind": "camera",
+          "verb": "pull-back",
+          "target": "challenge_cta",
+          "start": 0,
+          "end": 0.28
+        },
+        {
+          "kind": "reveal",
+          "target": "closing_sentence",
+          "start": 0.04,
+          "end": 0.28
+        },
+        {
+          "kind": "reveal",
+          "target": "challenge_cta",
+          "start": 0.36,
+          "end": 0.56
+        },
+        {
+          "kind": "highlight",
+          "target": "challenge_cta",
+          "start": 0.58,
+          "end": 1
+        }
+      ],
+      "keycard": "先过门，再试吊，合格才放行",
+      "coach": "现在闯关，把风险放回四道门。"
+    }
+  ],
+  "visual_library": {
+    "hook": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "hook_tree",
+          "kind": "decision_tree",
+          "x": 30,
+          "y": 42,
+          "w": 300,
+          "h": 190,
+          "text": "正式起吊前",
+          "labels": [
+            "题干现场",
+            "门槛",
+            "条件",
+            "采分句"
+          ],
+          "tone": "blue"
+        }
+      ]
+    },
+    "gate_map": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "four_gates",
+          "kind": "process_flow",
+          "x": 24,
+          "y": 42,
+          "w": 312,
+          "h": 190,
+          "text": "四道门",
+          "labels": [
+            "危大",
+            "条件",
+            "试吊",
+            "放行"
+          ],
+          "tone": "success"
+        }
+      ]
+    },
+    "danger_gate": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "danger_tree",
+          "kind": "decision_tree",
+          "x": 24,
+          "y": 42,
+          "w": 312,
+          "h": 180,
+          "text": "两层门槛",
+          "labels": [
+            "单件吊装",
+            "≥10kN",
+            "专项方案",
+            "论证另判"
+          ],
+          "tone": "amber"
+        },
+        {
+          "id": "danger_meter",
+          "kind": "threshold_meter",
+          "x": 54,
+          "y": 214,
+          "w": 252,
+          "h": 18,
+          "value": 0.38,
+          "text": "12kN: 过危大门，未自动论证",
+          "tone": "danger"
+        }
+      ]
+    },
+    "precheck_gate": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "site_tree",
+          "kind": "decision_tree",
+          "x": 26,
+          "y": 40,
+          "w": 308,
+          "h": 178,
+          "text": "作业前条件",
+          "labels": [
+            "能起吊?",
+            "天气",
+            "基础/索具",
+            "吊点/装置"
+          ],
+          "tone": "success"
+        },
+        {
+          "id": "wind_arrow",
+          "kind": "flow_arrow",
+          "x1": 58,
+          "x2": 302,
+          "y": 222,
+          "text": "先看动词",
+          "tone": "blue"
+        }
+      ]
+    },
+    "trial_lift": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "trial_meter",
+          "kind": "threshold_meter",
+          "x": 50,
+          "y": 54,
+          "w": 260,
+          "h": 18,
+          "value": 0.95,
+          "label_y": 44,
+          "text": "95%触发试吊",
+          "tone": "danger"
+        },
+        {
+          "id": "trial_flow",
+          "kind": "process_flow",
+          "x": 20,
+          "y": 82,
+          "w": 320,
+          "h": 150,
+          "text": "试吊顺序",
+          "labels": [
+            "≥90%",
+            "离地",
+            "四查",
+            "放行"
+          ],
+          "tone": "blue"
+        }
+      ]
+    },
+    "limit_gate": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "limit_contrast",
+          "kind": "contrast_pair",
+          "x": 26,
+          "y": 38,
+          "w": 308,
+          "h": 184,
+          "text": "限位禁令",
+          "labels": [
+            "限位顶替",
+            "停用排故",
+            "错:继续吊",
+            "对:再作业"
+          ],
+          "tone": "danger"
+        }
+      ]
+    },
+    "score": {
+      "board": "paper",
+      "nodes": [
+        {
+          "id": "answer_scan",
+          "kind": "answer_scan",
+          "x": 26,
+          "y": 44,
+          "w": 308,
+          "h": 178,
+          "text": "答题纸闭环",
+          "labels": [
+            "判门槛",
+            "查条件",
+            "离地四查",
+            "合格起吊"
+          ],
+          "tone": "success"
+        }
+      ]
+    },
+    "qa_closure": {
+      "board": "warm_grid",
+      "nodes": [
+        {
+          "id": "qa_scan",
+          "kind": "answer_scan",
+          "x": 26,
+          "y": 42,
+          "w": 308,
+          "h": 178,
+          "text": "三处边界",
+          "labels": [
+            "12kN",
+            "风线",
+            "慢慢吊",
+            "问鲁班"
+          ],
+          "tone": "amber"
+        }
+      ]
+    },
+    "closing_challenge": {
+      "board": "closing",
+      "nodes": [
+        {
+          "id": "closing_sentence",
+          "kind": "closing_text",
+          "text": "先过门，再试吊",
+          "subtext": "合格才放行",
+          "tone": "success"
+        },
+        {
+          "id": "challenge_cta",
+          "kind": "challenge_button",
+          "text": "开始闯关",
+          "tone": "amber"
+        }
+      ]
+    }
+  }
+}

@@ -27,6 +27,7 @@ from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
     batch_answer_action_for_numbered_single,
     detect_answer_reveal_preference,
+    detect_requested_question_count,
     detect_requested_question_type,
     followup_action_route,
     interpret_question_followup_action,
@@ -1055,31 +1056,7 @@ class ChatOrchestrator:
 
     @staticmethod
     def _infer_question_count(message: str) -> int:
-        text = str(message or "").strip().lower()
-        if not text:
-            return 1
-        digit_match = re.search(r"(\d{1,2})\s*(?:道|题|个题目|个小题)", text)
-        if digit_match:
-            return max(1, min(50, int(digit_match.group(1))))
-        zh_num_map = {
-            "一": 1,
-            "二": 2,
-            "两": 2,
-            "三": 3,
-            "四": 4,
-            "五": 5,
-            "六": 6,
-            "七": 7,
-            "八": 8,
-            "九": 9,
-            "十": 10,
-        }
-        zh_match = re.search(r"([一二两三四五六七八九十])\s*(?:道|题|个题目|个小题)", text)
-        if zh_match:
-            return zh_num_map.get(zh_match.group(1), 1)
-        if "几道" in text or "几题" in text:
-            return 3
-        return 1
+        return detect_requested_question_count(message)[0]
 
     def _prepare_practice_request_context(self, context: UnifiedContext, message: str) -> None:
         if not isinstance(context.config_overrides, dict):
@@ -1144,7 +1121,9 @@ class ChatOrchestrator:
             message
         )
         reveal_preference = detect_answer_reveal_preference(message)
-        inferred_question_count = self._infer_question_count(message)
+        inferred_question_count, has_explicit_question_count = detect_requested_question_count(
+            message
+        )
         learning_training_intent = context.config_overrides.get("learning_training_intent")
         learning_prompt_intent = context.config_overrides.get("learning_prompt_intent")
         if not isinstance(learning_training_intent, dict) and isinstance(learning_prompt_intent, dict):
@@ -1172,7 +1151,11 @@ class ChatOrchestrator:
             context.config_overrides.get("num_questions"),
             default=1,
         )
-        if intent_question_count:
+        if has_explicit_question_count:
+            context.config_overrides["num_questions"] = inferred_question_count
+        elif current_question_count != 1:
+            context.config_overrides["num_questions"] = current_question_count
+        elif intent_question_count:
             context.config_overrides["num_questions"] = intent_question_count
         elif current_question_count == 1 and inferred_question_count != 1:
             context.config_overrides["num_questions"] = inferred_question_count

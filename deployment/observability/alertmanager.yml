@@ -1,17 +1,17 @@
 # DeepTutor Alertmanager 配置。
 #
-# 默认出口 = 邮件（与现有 nightly cron 告警同渠道）。SMTP 口令走 *_file，secret 不入库。
-# 下面 smtp_smarthost / smtp_from / to 都是占位，部署前必须改成真实值并创建 secret 文件。
+# 出口 = 邮件（Gmail SMTP 中继）。App Password 走 smtp_auth_password_file，不入库
+# （挂载在宿主 data/observability-secrets/，被 sync_to_aliyun.sh 排除，不会被抹）。
+# 发件 = cainkyking@gmail.com（Gmail App Password，非登录密码）；收件 = chenyh2008@msn.com。
 #
 # 部署前自检：
 #   docker run --rm -v "$PWD/alertmanager.yml:/c.yml:ro" prom/alertmanager:v0.27.0 \
 #     amtool check-config /c.yml
 global:
   resolve_timeout: 5m
-  # —— 占位，部署前替换 ——
-  smtp_smarthost: 'smtp.example.com:587'
-  smtp_from: 'deeptutor-alerts@example.com'
-  smtp_auth_username: 'deeptutor-alerts@example.com'
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'cainkyking@gmail.com'
+  smtp_auth_username: 'cainkyking@gmail.com'
   smtp_auth_password_file: /etc/alertmanager/secrets/smtp_password
   smtp_require_tls: true
 
@@ -32,8 +32,7 @@ route:
 receivers:
   - name: deeptutor-email
     email_configs:
-      # —— 占位，部署前替换为 oncall 邮箱 ——
-      - to: 'oncall@example.com'
+      - to: 'chenyh2008@msn.com'
         send_resolved: true
 
   # 飞书自定义机器人（可选）：Alertmanager 原生 webhook 的 JSON schema 与飞书的
