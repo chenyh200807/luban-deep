@@ -1,0 +1,236 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
+/* 考点卡翻卡页 · 纸墨朱竹（--pk-* token 单一权威，禁第二套 token 词汇） */
+
+.cc-page {
+  min-height: 100vh;
+  font-family: -apple-system, "PingFang SC", sans-serif;
+  color: var(--pk-t1);
+}
+
+/* ── 导航（与 review 同构） ─────────────────── */
+.cc-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--pk-card);
+  border-bottom: 1rpx solid var(--pk-bd);
+}
+.cc-nav-inner {
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.cc-back {
+  position: absolute;
+  left: 26rpx;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  color: var(--pk-t2);
+}
+.cc-back-arrow { font-size: 40rpx; line-height: 1; }
+.cc-back-text { font-size: 26rpx; }
+.cc-nav-title { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); }
+
+/* ── 滚动 ── */
+.cc-scroll { position: fixed; left: 0; right: 0; bottom: 0; }
+.cc-inner {
+  padding: 24rpx 24rpx 0;
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  box-sizing: border-box;
+}
+
+/* ── 错误 / 加载 / 空态 ─────────────────────── */
+.cc-error {
+  border-radius: 22rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
+  padding: 26rpx 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  font-size: 26rpx;
+  color: var(--pk-warn);
+}
+.cc-retry {
+  flex-shrink: 0;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--pk-bd);
+  color: var(--pk-t2);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+.cc-loading {
+  padding: 40rpx 24rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--pk-t3);
+}
+.cc-empty {
+  padding: 40rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  text-align: center;
+  align-items: center;
+}
+.cc-empty-title { font-size: 32rpx; font-weight: 800; color: var(--pk-t1); }
+.cc-empty-desc { font-size: 25rpx; line-height: 1.7; color: var(--pk-t2); }
+.cc-empty-cta { margin-top: 10rpx; width: 70%; }
+
+/* ── 顶栏 + 站点条 ──────────────────────────── */
+.cc-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  padding: 8rpx 4rpx 0;
+}
+.cc-head-sub { font-size: 24rpx; color: var(--pk-t3); }
+.cc-packs {
+  white-space: nowrap;
+  width: 100%;
+}
+.cc-pack-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 14rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-t2);
+}
+.cc-pack-chip.active {
+  background: var(--pk-ink-btn);
+  border-color: var(--pk-ink-btn);
+  color: var(--pk-ink-btn-t);
+}
+
+/* ── 进度 ───────────────────────────────────── */
+.cc-progress-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 6rpx;
+}
+.cc-progress-text { font-size: 26rpx; font-weight: 800; color: var(--pk-t1); }
+.cc-progress-hint { font-size: 24rpx; color: var(--pk-t3); }
+
+/* ── 翻卡主体 ───────────────────────────────── */
+.cc-card {
+  min-height: 560rpx;
+  padding: 40rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  justify-content: center;
+}
+.cc-card-kicker {
+  font-size: 24rpx;
+  letter-spacing: 3rpx;
+  font-weight: 700;
+  color: var(--pk-t3);
+}
+.cc-card-front {
+  font-size: 44rpx;
+  line-height: 1.45;
+  font-weight: 850;
+  color: var(--pk-t1);
+  font-family: "Long Cang", "Kaiti SC", "STKaiti", "KaiTi", "楷体", cursive;
+}
+.cc-card-prompt { font-size: 26rpx; line-height: 1.6; color: var(--pk-t2); }
+.cc-card-fliphint {
+  margin-top: 26rpx;
+  font-size: 24rpx;
+  color: var(--pk-t3);
+  text-align: center;
+}
+
+/* 翻面：教材原文并排（竹青左轨 = 正向权威） */
+.cc-quote {
+  border-left: 6rpx solid var(--pk-grn);
+  background: var(--pk-paper);
+  border-radius: 0 18rpx 18rpx 0;
+  padding: 22rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+.cc-quote-label {
+  font-size: 24rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--pk-grn);
+}
+.cc-quote-text {
+  font-size: 28rpx;
+  line-height: 1.75;
+  color: var(--pk-t1);
+}
+.cc-quote-source {
+  font-size: 24rpx;
+  color: var(--pk-t3);
+  word-break: break-all;
+}
+.cc-gist {
+  border-radius: 18rpx;
+  border: 1rpx dashed var(--pk-bd);
+  padding: 18rpx 22rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.cc-gist-label {
+  font-size: 24rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--pk-t3);
+}
+.cc-gist-text { font-size: 26rpx; line-height: 1.65; color: var(--pk-t2); }
+
+/* ── 两枚按钮（纯本地牌序） ─────────────────── */
+.cc-actions {
+  display: flex;
+  gap: 18rpx;
+}
+.cc-btn-again { flex: 1; }
+.cc-btn-got { flex: 1.4; }
+.cc-btn-again.dim,
+.cc-btn-got.dim { opacity: 0.4; }
+.cc-actions-note {
+  font-size: 24rpx;
+  color: var(--pk-t3);
+  text-align: center;
+}
+
+/* ── 完场 ───────────────────────────────────── */
+.cc-done {
+  padding: 44rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14rpx;
+  text-align: center;
+}
+.cc-done-title { font-size: 34rpx; font-weight: 850; color: var(--pk-t1); }
+.cc-done-desc { font-size: 25rpx; line-height: 1.7; color: var(--pk-t2); }
+.cc-done-actions {
+  margin-top: 12rpx;
+  width: 100%;
+  display: flex;
+  gap: 18rpx;
+}
+.cc-done-restart { flex: 1.4; }
+.cc-done-back { flex: 1; }

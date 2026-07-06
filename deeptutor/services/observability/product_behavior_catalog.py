@@ -19,6 +19,14 @@ PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
         "module_returned",
         "module_exited",
         "event_error",
+        # 双轮 spike D15（2026-07-02 登记）：交接曝光/变体命中/订阅授权结果。
+        # 维度约定: object_type=station|variant|retest, object_id=pack_id|variant_id,
+        # result=granted|red_dot|correct|incorrect|"<n>/<N>"。其余 D15 指标复用既有名:
+        # 站进入=module_viewed, 档位=learning_action_started(start_training,
+        # object_id="<pack>:<tier>"), 站完成/复测完成=learning_action_completed。
+        "handoff_rendered",
+        "retest_item_answered",
+        "subscribe_prompt_result",
     }
 )
 

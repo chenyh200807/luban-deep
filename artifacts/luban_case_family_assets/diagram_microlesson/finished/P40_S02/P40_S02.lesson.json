@@ -1,0 +1,161 @@
+{
+  "schema_version": "luban_teaching_lesson.v0",
+  "lesson_id": "P40_S02_lesson",
+  "derived_from": "P40_S02.source_card.json",
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "opening": {
+    "exam_scene": "题干出现塔吊、起重吊装、90%额定荷载、风级、限位装置或钢丝绳，要求指出不妥并改正。",
+    "why_learn": "S02 最容易丢分的不是不会说安全，而是把两层门槛、风线场景、试吊动作和放行句写散了。",
+    "promise": "看完只练一个动作：把起重吊装题写成四道门采分链。"
+  },
+  "speakers": {
+    "T": {
+      "name": "鲁班老师",
+      "voice": "longanhuan_v3"
+    },
+    "S": {
+      "name": "龙老铁",
+      "voice": "longlaotie_v3"
+    }
+  },
+  "teach": {
+    "voice": "longanhuan_v3",
+    "beats": [
+      {
+        "state": "hook",
+        "claim": true,
+        "anchor": "wrong_idea",
+        "keycard": "不是安全口号题",
+        "bridge": "首幕先把考试任务说清楚。",
+        "exam_task": "把“起重吊装安全”翻译成“正式起吊前哪道门没过”。",
+        "visual_explanation": "白板先出现塔吊现场和“正式起吊”按钮，中间横着四道门，告诉学生这不是散点背诵。",
+        "answer_move": "先锁正式起吊前的判断链，不先写泛泛安全管理。",
+        "narration": "注意哈，S02 这类题别一上来写“加强安全管理”。考场问的不是你会不会喊安全口号，而是这台吊机、这次吊装，正式起吊前哪一道门没过。今天我们只练一条能拿分的链：先判危大和论证门槛，再查作业条件，90% 以上先试吊四查，最后合格才放行。"
+      },
+      {
+        "state": "gate_map",
+        "claim": true,
+        "anchor": "facts[gate_loop].text",
+        "keycard": "四道门先立住",
+        "bridge": "既然目标是正式起吊，先把起吊前要过的门画出来。",
+        "exam_task": "把题干中的塔吊、荷载、天气、装置等信息放进对应门。",
+        "visual_explanation": "画面从左到右依次点亮危大门槛、人证设备、90%试吊、放行采分句四个闸门。",
+        "answer_move": "答案按门槛、条件、动作、放行顺序组织。",
+        "narration": "先看大图。起重吊装安全题，最好不要按章节散背，要画成四道门。第一道是门槛：它是不是危大，要不要专家论证。第二道是条件：人、设备、基础、天气、索具、吊点有没有问题。第三道是动作：荷载达到 90% 及以上时，不能直接正式起吊，要先试吊检查。第四道才是放行：检查合格后方可正式起吊。你按这四道门写，答案就不会散。"
+      },
+      {
+        "state": "danger_gate",
+        "claim": true,
+        "anchor": "facts[danger_two_level].text",
+        "keycard": "10kN不是论证线",
+        "bridge": "四道门里第一道最容易丢分，因为这里有两层门槛。",
+        "exam_task": "区分一般危大和超危大专家论证。",
+        "visual_explanation": "吊钩拉着12kN的构件先过10kN危大门，再被100/300/200论证门拦住，形成两层判断。",
+        "answer_move": "先写单件≥10kN属危大、需专项方案；再判断是否达到专家论证线。",
+        "narration": "第一道门是最容易混的。10 千牛，是一般危大的下限。单件起吊重量达到 10 千牛，就要按危大工程管理，编制专项方案。但这不等于专家论证。专家论证还要再过第二层：非常规设备且单件达到 100 千牛，或者总重达到 300 千牛，或者起升高度达到 200 米。你看，一个 12 千牛构件，过了危大门，但还没自动过论证门。把这两层写清，分就稳了一半。"
+      },
+      {
+        "state": "precheck_gate",
+        "claim": true,
+        "anchor": "facts[precheck_conditions].text",
+        "keycard": "条件门看现场",
+        "bridge": "所以门槛判完，只说明管理口径，还不能说明能起吊。",
+        "exam_task": "从现场条件里找违规点，而不是用经验判断危险不危险。",
+        "visual_explanation": "白板切到吊装现场，风标、基础、钢丝绳、吊点、限位装置依次亮起，错项变红。",
+        "answer_move": "把气象、基础、索具、吊点和安全装置写成作业前核查依据。",
+        "narration": "第二道门看现场条件。塔机不是想吊就吊，作业前要把硬条件过一遍。天气上，露天塔机作业遇 6 级及以上大风，或者大雨、雪、雾，要停；如果题干说的是大型起重机械安装拆卸，则看风速大于 9.0 米每秒，或者低能见度。基础要设计、验收；钢丝绳断丝、磨损、死弯要报废；吊点要在重心同一垂直线上，严禁斜吊；安全保护装置要完整灵敏。这里的关键不是写“注意安全”，而是把题干给的现场事实，放进对应红线。"
+      },
+      {
+        "state": "trial_lift",
+        "claim": true,
+        "anchor": "facts[trial_lift].text",
+        "keycard": "90%以上先试吊",
+        "bridge": "条件门过了，也不能一把进入正式吊装，因为临界荷载还要先试稳。",
+        "exam_task": "看到90%或95%额定起吊时，写出前置动作和四查。",
+        "visual_explanation": "荷载仪表升到95%，吊物先离地200～500mm，机械、制动、平稳、绑扎四个检查点逐个打勾。",
+        "answer_move": "写“先吊离地200～500mm，再查机械、制动、平稳、绑扎，合格后正式起吊”。",
+        "narration": "第三道门是 90% 试吊。题干写 90% 及以上，或者写 95% 额定起吊，这不是提醒你“安排专人盯着”，而是触发固定动作。先把吊物吊离地面 200 到 500 毫米，再查四件事：机械状况，制动性能，重物是否平稳，绑扎是否牢固。四查合格，再正式起吊。很多答案丢分，就是把这个动作写成“缓慢起吊、加强旁站”，听着安全，但没有踩中采分点。"
+      },
+      {
+        "state": "limit_gate",
+        "claim": true,
+        "anchor": "facts[limit_device].text",
+        "keycard": "限位不能顶替操作",
+        "bridge": "接着从动作顺序转到绝对禁令：有些东西不能替代。",
+        "exam_task": "识别限位装置代替操作机构的绝对禁令。",
+        "visual_explanation": "操作手柄变灰，限位装置旁边出现禁止替代符号，正确动作切到停止、排故、复查。",
+        "answer_move": "判不妥，并写停止使用、排除故障后再作业。",
+        "narration": "再看一个高频绝对禁令：限位装置不能代替操作机构。限位是最后一道保护边界，不是让你拿来操作吊机的。题干如果写操作机构失灵，临时用限位装置顶替，先完成吊装，这就是不妥。正确写法是停止使用，排除故障，确认安全保护装置完整灵敏后，再恢复作业。安全题里，绝对禁令不能被“降低速度、加强监护”这种管理词洗白。"
+      },
+      {
+        "state": "score",
+        "claim": true,
+        "anchor": "facts[score_sentence].text",
+        "keycard": "答题纸要交闭环",
+        "bridge": "把门槛、条件、动作都过完，最后必须落成能写的采分句。",
+        "exam_task": "把图示链压成主观题答案。",
+        "visual_explanation": "答题纸从上到下扫描：门槛判断、作业条件、90%试吊、合格放行，命中项变绿，泛泛安全口号变灰。",
+        "answer_move": "输出对象 + 判断依据 + 正确做法 + 合格后方可正式起吊。",
+        "narration": "最后落到答题纸。遇到起重吊装安全题，你可以这样组织：先判危大和专家论证门槛；作业前核查气象、基础、吊索具、吊点和安全装置；起吊达到 90% 及以上时，先离地 200 到 500 毫米检查机械、制动、重物平稳和绑扎牢固；检查合格后，方可正式起吊。它不是一句口号，而是一条闭环，阅卷人能顺着给分。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，那我看到单件十二千牛，直接写专家论证，能拿分不？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[mix_gates].why",
+        "text": "不能直接跳。十二千牛只说明它过了十千牛的一般危大线，应写专项方案；专家论证还要另看非常规且一百千牛、总重三百千牛或高度二百米。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "这块风大，我是不是统一写六级风停就行？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[mix_wind].why",
+        "text": "先看题干动词。露天塔机作业看六级及以上大风；安装拆卸看风速大于九点零米每秒和低能见度。动作不同，红线不同。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "那我写加强旁站、慢慢吊，这样行不行？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[skip_trial].why",
+        "text": "这类词太虚。看到九十以上额定荷载，你要写固定动作：先离地二百到五百毫米，再查机械、制动、平稳和绑扎。"
+      }
+    }
+  ],
+  "closing": {
+    "state": "closing_challenge",
+    "speaker": "T",
+    "claim": true,
+    "anchor": "memory_hook",
+    "text": "最后记住哈：起重吊装安全题，先过门，再试吊，合格才放行。现在进闯关，别背口号，直接把题干里的风险放回四道门。"
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "audio": "C02_jdk.lesson.mp3",
+  "totalSec": 150.143,
+  "teachEndSec": 109.103,
+  "style": "teach_then_qa",
+  "segments": [
+    {
+      "idx": 0,
+      "kind": "teach",
+      "state": "intro",
+      "qaIndex": null,
+      "keycard": {
+        "text": "进度款丢分,在只背公式不认口径:哪笔钱、什么口径、哪个时点、扣多少",
+        "tone": "q"
+      },
+      "speaker": "T",
+      "anchor": null,
+      "claim": false,
+      "text": "进度款这题,很多人背公式就上场,一换情形就用错口径。今天沿一条资金链走清四道门。",
+      "startSec": 0,
+      "durSec": 9.63
+    },
+    {
+      "idx": 1,
+      "kind": "teach",
+      "state": "price",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C1 综合单价是税前全费用,税在最末整体盖一次;量×价,量错价对也白搭",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c1_unit_price_pretax.claim",
+      "claim": true,
+      "text": "起点是价。综合单价是不含增值税的税前全费用价,税在最末盖一次;塞进单价再盖就是双重计税。钱等于量乘价,量错也白搭。",
+      "startSec": 10.03,
+      "durSec": 13.775
+    },
+    {
+      "idx": 2,
+      "kind": "teach",
+      "state": "prepay",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C2 预付款=合同价(先扣暂列金)×预付比例;暂列金不一定发生,不进基数",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c2_prepay_base.claim",
+      "claim": true,
+      "text": "接着发预付款。基数要先扣暂列金额再乘预付比例;暂列金是不一定发生的备用金,直接用合同总价乘就错。",
+      "startSec": 24.204,
+      "durSec": 10.652
+    },
+    {
+      "idx": 3,
+      "kind": "teach",
+      "state": "deduct",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C3 起扣点=合同价−预付款÷材料占比;累计达起扣点才开始扣回,占比是题面给定值",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c3_deduct_point.claim",
+      "claim": true,
+      "text": "预付款后期要原路扣回,触发时点叫起扣点:合同价减预付款除以材料占比。累计达到这条线才开始扣,占比是题面给的。",
+      "startSec": 35.256,
+      "durSec": 13.03
+    },
+    {
+      "idx": 4,
+      "kind": "teach",
+      "state": "progress",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C4 当期应付=累计已完×支付比例−累计扣回−前期已付−扣款;别把累计当当期",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c4_progress_formula.claim",
+      "claim": true,
+      "text": "中段是逐月进度款。当期应付等于累计已完乘支付比例,再减扣回、减前期已付、减扣款。只算当月不走累计,就是把累计当当期。",
+      "startSec": 48.686,
+      "durSec": 13.675
+    },
+    {
+      "idx": 5,
+      "kind": "teach",
+      "state": "progress",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C5 未约定支付比例→不宜低于累计完成总值80%(法定下限),先写清'未约定'前提",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c5_floor_80.claim",
+      "claim": true,
+      "text": "要是合同没约定支付比例,不是按百分之百,是不宜低于累计完成总值八成。八成是法定下限,答题先点明未约定前提。",
+      "startSec": 62.76,
+      "durSec": 12.078
+    },
+    {
+      "idx": 6,
+      "kind": "teach",
+      "state": "warranty",
+      "qaIndex": null,
+      "keycard": {
+        "text": "C6 质保金累计预留≤结算总价3%;基数咬死结算总价,不按合同价/预付款算",
+        "tone": "a"
+      },
+      "speaker": "T",
+      "anchor": "causal_chain.c6_warranty_3pct.claim",
+      "claim": true,
+      "text": "末端是结算质保金:累计预留不得超过结算总价的百分之三,基数咬死结算总价,不能拿合同价去算。这是法定上限。",
+      "startSec": 75.238,
+      "durSec": 11.962
+    },
+    {
+      "idx": 7,
+      "kind": "teach",
+      "state": "gates",
+      "qaIndex": null,
+      "keycard": {
+        "text": "采分词:综合单价税前·先扣暂列金·起扣点公式·累计减扣回减已付·未约定80%·质保金结算总价3%;资金链量口径→价口径→时点口径→扣减口径,四门同时过才合法",
+        "tone": "concl"
+      },
+      "speaker": "T",
+      "anchor": "master:R2_invariant",
+      "claim": true,
+      "text": "收成一条资金链:量口径、价口径、时点口径、扣减口径,四门同时过才合法。采分盯综合单价税前、先扣暂列金、起扣点公式、未约定八成、质保金结算总价三点;换情形链不变、判据切。",
+      "startSec": 87.6,
+      "durSec": 21.503
+    },
+    {
+      "idx": 8,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "老师,累计完成都过半了,这个月是不是就该扣预付款了?",
+      "startSec": 109.503,
+      "durSec": 5.464
+    },
+    {
+      "idx": 9,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 0,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[1].why",
+      "claim": true,
+      "text": "不一定,过半不等于到起扣点。先算起扣点,累计真过了那条线才扣,差一点也别扣。",
+      "startSec": 115.367,
+      "durSec": 9.056
+    },
+    {
+      "idx": 10,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "进度款是不是直接拿累计完成乘支付比例就行?",
+      "startSec": 124.823,
+      "durSec": 4.49
+    },
+    {
+      "idx": 11,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 1,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[2].why",
+      "claim": true,
+      "text": "不行,那只是累计应付。当期应付还要减扣回、减前期已付、减扣款,别把累计当当期。",
+      "startSec": 129.713,
+      "durSec": 9.45
+    },
+    {
+      "idx": 12,
+      "kind": "q",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "S",
+      "anchor": null,
+      "claim": false,
+      "text": "质保金上限按合同价的百分之三算对吧?",
+      "startSec": 139.563,
+      "durSec": 3.795
+    },
+    {
+      "idx": 13,
+      "kind": "a",
+      "state": "conclude",
+      "qaIndex": 2,
+      "keycard": null,
+      "speaker": "T",
+      "anchor": "common_errors[4].why",
+      "claim": true,
+      "text": "不对,基数是结算总价不是合同价,基数错上限就错。",
+      "startSec": 143.759,
+      "durSec": 5.584
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-2(趋势判断语义类·前轮已改的确认)",
+    "panel": {
+      "GLM-5.2": {
+        "issue0_satisfied": true
+      },
+      "Fable-5": "复签同意——降备料/待验证/🔴标签三件套全落地",
+      "vote": "2/2"
+    },
+    "edits": "零新编辑, 升色=0, 新增🟢=0"
+  },
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 1,
+    "tier": "Tier-2(错因码语义类·前轮已改的确认)",
+    "panel": {
+      "GLM-5.2": {
+        "issue1_satisfied": true,
+        "further_edit_needed": false
+      },
+      "Fable-5": "复签同意——M5a语境化+M5b独立映射精确实现fix"
+    },
+    "edits": "零新编辑"
+  }
+]

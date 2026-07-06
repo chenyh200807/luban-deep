@@ -9,6 +9,11 @@
   （防"库建好没通电"与"脚本自签发"两个历史坑）。
 - 人工签发 = 在 ``_pack_manifest.overrides.json`` 里对具体 pack_id 置
   ``published: true``；本脚本重跑时合并 overrides，其余字段永远以扫描为准。
+- ``jury_clean`` = jury sidecar 存在且**无未解决的高可信 issue**（双轮设计 §7
+  投影门③「jury issue 已 fix 或不涉该簇」的机器可读载体）：解决状态由人工/汇编
+  在 jury sidecar 行内登记 ``resolution: {status: fixed|not_applicable, fixed_in,
+  verified}``，本脚本只确定性读取、不做语义裁决；无 resolution 的高可信 issue
+  一律计为未解决（fail-closed）。
 - 消费侧（投影门）只认本 manifest 绿灯：``published and jury_clean and
   not explicitly_barred_default_entry``。
 
@@ -29,6 +34,7 @@ from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
 PACK_DIR = REPO / "docs" / "原始数据" / "考点原料" / "成品"
+CARD_HOST_DIR = REPO / "web" / "public" / "luban-preview"  # 讲懂卡托管目录(确定性扫描)
 MANIFEST_PATH = PACK_DIR / "_pack_manifest.json"
 OVERRIDES_PATH = PACK_DIR / "_pack_manifest.overrides.json"
 
@@ -40,18 +46,48 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+_RESOLVED_STATUSES = {"fixed", "not_applicable"}
+
+
+def _is_resolved(row: dict[str, Any]) -> bool:
+    resolution = row.get("resolution")
+    return isinstance(resolution, dict) and resolution.get("status") in _RESOLVED_STATUSES
+
+
 def _jury_stats(pack_id: str) -> dict[str, Any]:
     path = PACK_DIR / f"_{pack_id}_jury.json"
     if not path.exists():
-        return {"jury_file": False, "jury_total": 0, "jury_high_confidence": 0}
+        return {
+            "jury_file": False,
+            "jury_total": 0,
+            "jury_high_confidence": 0,
+            "jury_high_confidence_unresolved": 0,
+        }
     try:
         rows = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
-        return {"jury_file": True, "jury_total": -1, "jury_high_confidence": -1}
+        return {
+            "jury_file": True,
+            "jury_total": -1,
+            "jury_high_confidence": -1,
+            "jury_high_confidence_unresolved": -1,
+        }
     if not isinstance(rows, list):
         rows = []
-    high = sum(1 for r in rows if isinstance(r, dict) and r.get("confidence") == "高可信")
-    return {"jury_file": True, "jury_total": len(rows), "jury_high_confidence": high}
+    high_rows = [r for r in rows if isinstance(r, dict) and r.get("confidence") == "高可信"]
+    unresolved = sum(1 for r in high_rows if not _is_resolved(r))
+    return {
+        "jury_file": True,
+        "jury_total": len(rows),
+        "jury_high_confidence": len(high_rows),
+        "jury_high_confidence_unresolved": unresolved,
+    }
+
+
+def _companion_exists(pack_id: str, suffix: str) -> bool:
+    # 配套件分布在成品目录与其上级挖矿目录两处, 只查成品会漏报(S05 实证)
+    name = f"_{pack_id}_{suffix}"
+    return (PACK_DIR / name).exists() or (PACK_DIR.parent / name).exists()
 
 
 def _scan_pack(path: Path, pack_id: str, title: str) -> dict[str, Any]:
@@ -71,14 +107,19 @@ def _scan_pack(path: Path, pack_id: str, title: str) -> dict[str, Any]:
         "explicitly_barred_default_entry": barred,
         "red_marker_count": text.count("🔴"),
         # 配套件存在性
-        "has_compiled_source": (PACK_DIR / f"_{pack_id}_compiled_source.json").exists(),
-        "has_exam_evidence": (PACK_DIR / f"_{pack_id}_exam_evidence.json").exists(),
+        "has_compiled_source": _companion_exists(pack_id, "compiled_source.json"),
+        "has_exam_evidence": _companion_exists(pack_id, "exam_evidence.json"),
         "has_answer_layer": any(PACK_DIR.glob(f"{pack_id}_*作答层样板.md")),
+        # 讲懂卡托管存在性(确定性: web/public/luban-preview/<id小写>/lesson.html 实存)
+        # read_model 只对 card_hosted 的绿灯站派生 card_url——防 22 站 web-view 404(2026-07-05 部署探针实证)
+        "card_hosted": (CARD_HOST_DIR / pack_id.lower() / "lesson.html").is_file(),
         **jury,
         # 签发态: 脚本恒 False, 只能经 overrides 人工置 true
         "published": False,
     }
-    entry["jury_clean"] = bool(jury["jury_file"]) and jury["jury_high_confidence"] == 0
+    entry["jury_clean"] = (
+        bool(jury["jury_file"]) and jury["jury_high_confidence_unresolved"] == 0
+    )
     return entry
 
 

@@ -2,15 +2,25 @@
   {
     "issue": "M6 的 error_code 映射不贴，'方向判反' 核心是概念混淆而非审题错误",
     "location": "§6 R8 误区 M6",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "将主要 error_code 由 E05 审题错误改为 E07 概念混淆；'只算不判' 情形可并列 E02/E03"
+    "fix": "将主要 error_code 由 E05 审题错误改为 E07 概念混淆；'只算不判' 情形可并列 E02/E03",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "E05_挣值法偏差分析.md §6 M6（主码 E05→E07 概念混淆，前轮已应用并记录于 §9；'只算不判'情形在 §5 压线区以 E02/E03 覆盖；D2 裁决批经 GLM-5.2+Fable-5 异源双签 2/2 确认无需进一步修改）",
+      "verified": "2026-07-04 确定性复核：ERROR_CODE_REGISTRY 直读 E07=概念混淆、E05=审题错误、E02=采分点遗漏、E03=关键词缺失；pack §6 M6 行 grep 命中'**E07 概念混淆**'且不含 E05 主码，§5 压线区 grep 命中'漏算 CPI/SPI | E02'与'未写「节支/提前」 | E03'（可重跑：grep -n 'E07 概念混淆' 成品/E05_挣值法偏差分析.md；python3 docs/原始数据/考点原料/adjudicate.py E05 错因码对账全绿）"
+    }
   },
   {
     "issue": "M5 的 error_code 映射不当，SPI 分子分母颠倒应与 M4 的 CPI 错误归类一致",
     "location": "§6 R8 误区 M5",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "统一改为 E07 概念混淆 / E09 计算错误，避免使用不存在的 M08 等 MCQ 专用码"
@@ -18,7 +28,9 @@
   {
     "issue": "'BCWP 居于 ACWP 与 BCWS 之间 / 居中' 作为事实图不成立，与母题数值矛盾",
     "location": "§1 #9 / §2 三线曲线 / §7 视觉隐喻",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "降为 🔴 或改为 🔵 '三线相对位置随数值变化，BCWP 是比较标尺'"
@@ -26,7 +38,9 @@
   {
     "issue": "'6240 < 计划 5340' 算术错误，会误导学生先按计划成本判断",
     "location": "§7 Aha 时刻",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "修文为 '实际花费 6240 > 计划 5340，但不能直接判超支/延期，还要看 BCWP=6370'"
@@ -34,7 +48,9 @@
   {
     "issue": "'4 场景全部回到取三值→套四公式→判方向' 覆盖过强，SPI 小问不需要 ACWP",
     "location": "§3 R2 不变量场景印证",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "降为 🔵：母题用完整三步链；SPI 小问是子链 '取 BCWP/BCWS→SPI→判方向'"
@@ -42,7 +58,9 @@
   {
     "issue": "examiner_intent 中 '最高频 / 与计算同等高分 / 只考不考叙述' 证据不足",
     "location": "§4 examiner_intent",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "频次/高分眼降 🔴 待真题或评分细则；'教学备料推断' 可留 🔵"
@@ -50,7 +68,9 @@
   {
     "issue": "用 kc:1A435020_097_0160:1 支撑规范过强，quote 仅含四公式，不含成组表达细节",
     "location": "§4 R4 规则组 C / §5 R6 #7",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "保留 🔵 工程通识，但去掉 🟢 锚感；若要判分，降 🔴 待评分细则"
@@ -58,7 +78,9 @@
   {
     "issue": "R8 全用 E 系列，未按题型分流客观题 M 码",
     "location": "§6 R8 总体",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "增加题型分支：案例计算用 E07/E09/E08，客观题（如公式辨析）用 M03/M04/M09"

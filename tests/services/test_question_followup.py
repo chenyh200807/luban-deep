@@ -13,6 +13,7 @@ from deeptutor.services.question_followup import (
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
+    detect_requested_question_count,
     detect_requested_question_type,
     extract_choice_result_summary_from_text,
     looks_like_question_followup,
@@ -34,6 +35,13 @@ def test_detect_requested_question_type_prefers_explicit_written_case() -> None:
 
     assert question_type == "written"
     assert is_explicit is True
+
+
+def test_detect_requested_question_count_marks_explicitness() -> None:
+    assert detect_requested_question_count("用 3 道题训练水泥") == (3, True)
+    assert detect_requested_question_count("用三道题训练水泥") == (3, True)
+    assert detect_requested_question_count("再出几道") == (3, False)
+    assert detect_requested_question_count("训练水泥") == (1, False)
 
 
 def test_detect_answer_reveal_preference_respects_suppress_request() -> None:

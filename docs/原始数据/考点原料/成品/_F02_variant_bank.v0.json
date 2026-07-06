@@ -1,0 +1,524 @@
+{
+ "schema_version": "luban-f02-variant-bank",
+ "pack_id": "F02",
+ "status": "signed",
+ "source_pack_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
+ "generation_ms": 0.02,
+ "gate": {
+  "total": 38,
+  "passed": 38,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-order": 10,
+  "B-lap-direction": 5,
+  "C-lap-amount": 5,
+  "D-underground": 8,
+  "E-detail": 10
+ },
+ "variants": [
+  {
+   "variant_id": "F02-A-order-000",
+   "rule_group": "A-order",
+   "surface": "屋面卷材防水层施工中，项目部先进行细部构造处理，后大面积铺贴",
+   "params": {
+    "item": "施工先后",
+    "practice": "先进行细部构造处理，后大面积铺贴"
+   },
+   "expected_ok": true,
+   "correct_statement": "应先细部构造处理，后大面积铺贴（先大面后细部=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + {2016,第27题} + {2019,第1题第3问}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-A-order-001",
+   "rule_group": "A-order",
+   "surface": "屋面卷材防水层施工中，项目部先大面积铺贴，后进行细部构造处理",
+   "params": {
+    "item": "施工先后",
+    "practice": "先大面积铺贴，后进行细部构造处理"
+   },
+   "expected_ok": false,
+   "correct_statement": "应先细部构造处理，后大面积铺贴（先大面后细部=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + {2016,第27题} + {2019,第1题第3问}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-A-order-002",
+   "rule_group": "A-order",
+   "surface": "屋面卷材防水层施工中，项目部从屋面最低标高处开始，由低向高铺贴",
+   "params": {
+    "item": "铺贴起止",
+    "practice": "从屋面最低标高处开始，由低向高铺贴"
+   },
+   "expected_ok": true,
+   "correct_statement": "应由屋面最低标高处开始、由低向高铺贴（由高向低=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + {2016,第27题} + {2019,第1题第3问}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-A-order-003",
+   "rule_group": "A-order",
+   "surface": "屋面卷材防水层施工中，项目部从屋面最高处开始，由高向低铺贴",
+   "params": {
+    "item": "铺贴起止",
+    "practice": "从屋面最高处开始，由高向低铺贴"
+   },
+   "expected_ok": false,
+   "correct_statement": "应由屋面最低标高处开始、由低向高铺贴（由高向低=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + {2016,第27题} + {2019,第1题第3问}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-A-order-004",
+   "rule_group": "A-order",
+   "surface": "屋面卷材防水层施工中，项目部卷材平行屋脊铺贴",
+   "params": {
+    "item": "铺贴方向",
+    "practice": "卷材平行屋脊铺贴"
+   },
+   "expected_ok": true,
+   "correct_statement": "卷材宜平行屋脊铺贴",
+   "anchor": "kc:1A413030_123_0234:0 + {2016,第27题} + {2019,第1题第3问}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-A-order-005",
+   "rule_group": "A-order",
+   "surface": "屋面卷材防水层施工中，项目部立面及大坡面铺贴卷材采用满粘法",
+   "params": {
+    "item": "立面大坡面铺贴法",
+    "practice": "立面及大坡面铺贴卷材采用满粘法"
+   },
+   "expected_ok": true,
+   "correct_statement": "立面/大坡面应采用满粘法（空铺/点粘=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + {2016,第27题} + {2019,第1题第3问}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-A-order-006",
+   "rule_group": "A-order",
+   "surface": "屋面卷材防水层施工中，项目部立面及大坡面铺贴卷材采用空铺法",
+   "params": {
+    "item": "立面大坡面铺贴法",
+    "practice": "立面及大坡面铺贴卷材采用空铺法"
+   },
+   "expected_ok": false,
+   "correct_statement": "立面/大坡面应采用满粘法（空铺/点粘=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + {2016,第27题} + {2019,第1题第3问}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-A-order-007",
+   "rule_group": "A-order",
+   "surface": "屋面卷材防水层施工中，项目部立面及大坡面铺贴卷材采用点粘法",
+   "params": {
+    "item": "立面大坡面铺贴法",
+    "practice": "立面及大坡面铺贴卷材采用点粘法"
+   },
+   "expected_ok": false,
+   "correct_statement": "立面/大坡面应采用满粘法（空铺/点粘=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + {2016,第27题} + {2019,第1题第3问}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-A-order-008",
+   "rule_group": "A-order",
+   "surface": "屋面卷材防水层施工中，项目部屋面坡度大于25%，铺贴卷材采用满粘法并用钉压固定",
+   "params": {
+    "item": "坡度大于25%固定",
+    "practice": "屋面坡度大于25%，铺贴卷材采用满粘法并用钉压固定"
+   },
+   "expected_ok": true,
+   "correct_statement": "屋面坡度>25%时应满粘并加钉压固定（仅满粘不钉压=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + {2016,第27题} + {2019,第1题第3问}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-A-order-009",
+   "rule_group": "A-order",
+   "surface": "屋面卷材防水层施工中，项目部屋面坡度大于25%，铺贴卷材仅满粘、未做钉压固定",
+   "params": {
+    "item": "坡度大于25%固定",
+    "practice": "屋面坡度大于25%，铺贴卷材仅满粘、未做钉压固定"
+   },
+   "expected_ok": false,
+   "correct_statement": "屋面坡度>25%时应满粘并加钉压固定（仅满粘不钉压=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + {2016,第27题} + {2019,第1题第3问}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-B-lap-direction-010",
+   "rule_group": "B-lap-direction",
+   "surface": "屋面卷材防水层施工中，搭接缝顺流水方向",
+   "params": {
+    "item": "搭接缝方向",
+    "practice": "搭接缝顺流水方向"
+   },
+   "expected_ok": true,
+   "correct_statement": "搭接缝应顺流水方向、卷材宜平行屋脊铺贴（逆流水/迎水缝=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + kc:1A422000_041_0065:0 + kc:1A422000_029_0049:0 + {2016,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-B-lap-direction-011",
+   "rule_group": "B-lap-direction",
+   "surface": "屋面卷材防水层施工中，搭接缝逆流水方向",
+   "params": {
+    "item": "搭接缝方向",
+    "practice": "搭接缝逆流水方向"
+   },
+   "expected_ok": false,
+   "correct_statement": "搭接缝应顺流水方向、卷材宜平行屋脊铺贴（逆流水/迎水缝=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + kc:1A422000_041_0065:0 + kc:1A422000_029_0049:0 + {2016,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-B-lap-direction-012",
+   "rule_group": "B-lap-direction",
+   "surface": "屋面卷材防水层施工中，搭接缝形成迎水缝",
+   "params": {
+    "item": "搭接缝方向",
+    "practice": "搭接缝形成迎水缝"
+   },
+   "expected_ok": false,
+   "correct_statement": "搭接缝应顺流水方向、卷材宜平行屋脊铺贴（逆流水/迎水缝=不妥）",
+   "anchor": "kc:1A413030_123_0234:0 + kc:1A422000_041_0065:0 + kc:1A422000_029_0049:0 + {2016,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-B-lap-direction-013",
+   "rule_group": "B-lap-direction",
+   "surface": "屋面卷材防水层施工中，上下两层卷材不相互垂直铺贴",
+   "params": {
+    "item": "上下层关系",
+    "practice": "上下两层卷材不相互垂直铺贴"
+   },
+   "expected_ok": true,
+   "correct_statement": "上下两层卷材不得相互垂直铺贴（2016 D错项/2018 D错项）",
+   "anchor": "kc:1A413030_123_0234:0 + kc:1A422000_041_0065:0 + kc:1A422000_029_0049:0 + {2016,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-B-lap-direction-014",
+   "rule_group": "B-lap-direction",
+   "surface": "屋面卷材防水层施工中，上下两层卷材相互垂直铺贴",
+   "params": {
+    "item": "上下层关系",
+    "practice": "上下两层卷材相互垂直铺贴"
+   },
+   "expected_ok": false,
+   "correct_statement": "上下两层卷材不得相互垂直铺贴（2016 D错项/2018 D错项）",
+   "anchor": "kc:1A413030_123_0234:0 + kc:1A422000_041_0065:0 + kc:1A422000_029_0049:0 + {2016,第27题}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-C-lap-amount-015",
+   "rule_group": "C-lap-amount",
+   "surface": "同层相邻两幅卷材短边搭接错缝距离 500mm",
+   "params": {
+    "edge": "short",
+    "offset_mm": 500
+   },
+   "expected_ok": true,
+   "correct_statement": "同层相邻两幅卷材短边搭接错缝距离不应小于500mm（写50mm/不错缝=不妥）",
+   "anchor": "kc:1A422000_029_0049:0 + kc:1A422000_041_0065:0 + {2016,第27题}(E正项)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-C-lap-amount-016",
+   "rule_group": "C-lap-amount",
+   "surface": "同层相邻两幅卷材短边搭接错缝距离 50mm",
+   "params": {
+    "edge": "short",
+    "offset_mm": 50
+   },
+   "expected_ok": false,
+   "correct_statement": "同层相邻两幅卷材短边搭接错缝距离不应小于500mm（写50mm/不错缝=不妥）",
+   "anchor": "kc:1A422000_029_0049:0 + kc:1A422000_041_0065:0 + {2016,第27题}(E正项)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-C-lap-amount-017",
+   "rule_group": "C-lap-amount",
+   "surface": "同层相邻两幅卷材短边搭接未错缝",
+   "params": {
+    "edge": "short",
+    "offset_mm": 0
+   },
+   "expected_ok": false,
+   "correct_statement": "同层相邻两幅卷材短边搭接错缝距离不应小于500mm（写50mm/不错缝=不妥）",
+   "anchor": "kc:1A422000_029_0049:0 + kc:1A422000_041_0065:0 + {2016,第27题}(E正项)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-C-lap-amount-018",
+   "rule_group": "C-lap-amount",
+   "surface": "双层铺贴时，上下两层及相邻两幅卷材长边接缝错开1/3幅宽",
+   "params": {
+    "edge": "long",
+    "offset": "错开1/3幅宽"
+   },
+   "expected_ok": true,
+   "correct_statement": "双层铺贴时上下两层及相邻两幅卷材长边接缝应错开至少1/3幅宽（不错开=不妥）",
+   "anchor": "kc:1A422000_029_0049:0 + kc:1A422000_041_0065:0 + {2016,第27题}(E正项)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-C-lap-amount-019",
+   "rule_group": "C-lap-amount",
+   "surface": "双层铺贴时，上下两层及相邻两幅卷材长边接缝上下对齐、不错开",
+   "params": {
+    "edge": "long",
+    "offset": "不错开"
+   },
+   "expected_ok": false,
+   "correct_statement": "双层铺贴时上下两层及相邻两幅卷材长边接缝应错开至少1/3幅宽（不错开=不妥）",
+   "anchor": "kc:1A422000_029_0049:0 + kc:1A422000_041_0065:0 + {2016,第27题}(E正项)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-D-underground-020",
+   "rule_group": "D-underground",
+   "surface": "地下室防水工程中，卷材铺设在混凝土结构迎水面",
+   "params": {
+    "item": "铺贴面",
+    "practice": "卷材铺设在混凝土结构迎水面"
+   },
+   "expected_ok": true,
+   "correct_statement": "地下室卷材应铺设在混凝土结构迎水面（铺背水面=不妥）",
+   "anchor": "{2018,第14题}(真题侧🟢) + kc:1A422000_029_0049:0(教材屋面侧)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-D-underground-021",
+   "rule_group": "D-underground",
+   "surface": "地下室防水工程中，卷材铺设在混凝土结构背水面",
+   "params": {
+    "item": "铺贴面",
+    "practice": "卷材铺设在混凝土结构背水面"
+   },
+   "expected_ok": false,
+   "correct_statement": "地下室卷材应铺设在混凝土结构迎水面（铺背水面=不妥）",
+   "anchor": "{2018,第14题}(真题侧🟢) + kc:1A422000_029_0049:0(教材屋面侧)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-D-underground-022",
+   "rule_group": "D-underground",
+   "surface": "地下室防水工程中，外墙外侧卷材采用满贴法",
+   "params": {
+    "item": "外墙外侧粘贴",
+    "practice": "外墙外侧卷材采用满贴法"
+   },
+   "expected_ok": true,
+   "correct_statement": "外墙外侧应采用满贴法（空铺法=不妥）",
+   "anchor": "{2018,第14题}(真题侧🟢)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-D-underground-023",
+   "rule_group": "D-underground",
+   "surface": "地下室防水工程中，外墙外侧卷材采用空铺法",
+   "params": {
+    "item": "外墙外侧粘贴",
+    "practice": "外墙外侧卷材采用空铺法"
+   },
+   "expected_ok": false,
+   "correct_statement": "外墙外侧应采用满贴法（空铺法=不妥）",
+   "anchor": "{2018,第14题}(真题侧🟢)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-D-underground-024",
+   "rule_group": "D-underground",
+   "surface": "地下室防水工程中，外防内贴法铺贴卷材，先铺立面、后铺平面",
+   "params": {
+    "item": "外防内贴法顺序",
+    "practice": "外防内贴法铺贴卷材，先铺立面、后铺平面"
+   },
+   "expected_ok": true,
+   "correct_statement": "外防内贴法宜先铺立面、后铺平面（先平面后立面=不妥）",
+   "anchor": "{2025,第13题}(真题侧🟢)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-D-underground-025",
+   "rule_group": "D-underground",
+   "surface": "地下室防水工程中，外防内贴法铺贴卷材，先铺平面、后铺立面",
+   "params": {
+    "item": "外防内贴法顺序",
+    "practice": "外防内贴法铺贴卷材，先铺平面、后铺立面"
+   },
+   "expected_ok": false,
+   "correct_statement": "外防内贴法宜先铺立面、后铺平面（先平面后立面=不妥）",
+   "anchor": "{2025,第13题}(真题侧🟢)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-D-underground-026",
+   "rule_group": "D-underground",
+   "surface": "地下室防水工程中，双层卷材铺贴，两层不相互垂直",
+   "params": {
+    "item": "双层关系",
+    "practice": "双层卷材铺贴，两层不相互垂直"
+   },
+   "expected_ok": true,
+   "correct_statement": "铺贴双层卷材时两层不得相互垂直（双层垂直=不妥）",
+   "anchor": "{2018,第14题}(真题侧🟢) + kc:1A422000_029_0049:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-D-underground-027",
+   "rule_group": "D-underground",
+   "surface": "地下室防水工程中，双层卷材铺贴，两层相互垂直",
+   "params": {
+    "item": "双层关系",
+    "practice": "双层卷材铺贴，两层相互垂直"
+   },
+   "expected_ok": false,
+   "correct_statement": "铺贴双层卷材时两层不得相互垂直（双层垂直=不妥）",
+   "anchor": "{2018,第14题}(真题侧🟢) + kc:1A422000_029_0049:0",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-E-detail-028",
+   "rule_group": "E-detail",
+   "surface": "屋面女儿墙防水节点泛水高度做至 250mm",
+   "params": {
+    "kind": "泛水高度",
+    "height_mm": 250
+   },
+   "expected_ok": true,
+   "correct_statement": "泛水高度应≥250mm（泛水200mm=不妥，2015案例2）",
+   "anchor": "{2015,案例2}(真题侧🟢)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-E-detail-029",
+   "rule_group": "E-detail",
+   "surface": "屋面女儿墙防水节点泛水高度做至 200mm",
+   "params": {
+    "kind": "泛水高度",
+    "height_mm": 200
+   },
+   "expected_ok": false,
+   "correct_statement": "泛水高度应≥250mm（泛水200mm=不妥，2015案例2）",
+   "anchor": "{2015,案例2}(真题侧🟢)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-E-detail-030",
+   "rule_group": "E-detail",
+   "surface": "女儿墙泛水部位增设附加层，平面和立面宽度均为 250mm",
+   "params": {
+    "kind": "附加层",
+    "added": true,
+    "width_mm": 250
+   },
+   "expected_ok": true,
+   "correct_statement": "女儿墙泛水应增设附加层，平面和立面宽度均≥250mm（漏附加层=不妥）",
+   "anchor": "kc:1A413030_125_0237:1 + {2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-E-detail-031",
+   "rule_group": "E-detail",
+   "surface": "女儿墙泛水部位未增设附加层",
+   "params": {
+    "kind": "附加层",
+    "added": false
+   },
+   "expected_ok": false,
+   "correct_statement": "女儿墙泛水应增设附加层，平面和立面宽度均≥250mm（漏附加层=不妥）",
+   "anchor": "kc:1A413030_125_0237:1 + {2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-E-detail-032",
+   "rule_group": "E-detail",
+   "surface": "屋面女儿墙防水节点施工中，阴阳角基层做成45°斜面",
+   "params": {
+    "kind": "阴阳角基层",
+    "practice": "阴阳角基层做成45°斜面"
+   },
+   "expected_ok": true,
+   "correct_statement": "阴阳角基层应做成45°或圆弧（直角=不妥，2015案例2）",
+   "anchor": "{2015,案例2}(真题侧🟢)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-E-detail-033",
+   "rule_group": "E-detail",
+   "surface": "屋面女儿墙防水节点施工中，阴阳角基层做成圆弧",
+   "params": {
+    "kind": "阴阳角基层",
+    "practice": "阴阳角基层做成圆弧"
+   },
+   "expected_ok": true,
+   "correct_statement": "阴阳角基层应做成45°或圆弧（直角=不妥，2015案例2）",
+   "anchor": "{2015,案例2}(真题侧🟢)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-E-detail-034",
+   "rule_group": "E-detail",
+   "surface": "屋面女儿墙防水节点施工中，阴阳角基层做成直角",
+   "params": {
+    "kind": "阴阳角基层",
+    "practice": "阴阳角基层做成直角"
+   },
+   "expected_ok": false,
+   "correct_statement": "阴阳角基层应做成45°或圆弧（直角=不妥，2015案例2）",
+   "anchor": "{2015,案例2}(真题侧🟢)",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-E-detail-035",
+   "rule_group": "E-detail",
+   "surface": "屋面女儿墙防水节点施工中，卷材收头用金属压条钉压固定并用密封材料密封，压顶做鹰嘴和滴水槽",
+   "params": {
+    "kind": "收头",
+    "practice": "卷材收头用金属压条钉压固定并用密封材料密封，压顶做鹰嘴和滴水槽"
+   },
+   "expected_ok": true,
+   "correct_statement": "收头应用金属压条钉压固定并密封，压顶檐口下端做鹰嘴和滴水槽（不钉压/未密封/无滴水槽=不妥）",
+   "anchor": "kc:1A413030_125_0237:0 + {2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-E-detail-036",
+   "rule_group": "E-detail",
+   "surface": "屋面女儿墙防水节点施工中，卷材收头未用金属压条钉压固定",
+   "params": {
+    "kind": "收头",
+    "practice": "卷材收头未用金属压条钉压固定"
+   },
+   "expected_ok": false,
+   "correct_statement": "收头应用金属压条钉压固定并密封，压顶檐口下端做鹰嘴和滴水槽（不钉压/未密封/无滴水槽=不妥）",
+   "anchor": "kc:1A413030_125_0237:0 + {2015,案例2}",
+   "extension": false
+  },
+  {
+   "variant_id": "F02-E-detail-037",
+   "rule_group": "E-detail",
+   "surface": "屋面女儿墙防水节点施工中，压顶檐口下端未做鹰嘴和滴水槽",
+   "params": {
+    "kind": "收头",
+    "practice": "压顶檐口下端未做鹰嘴和滴水槽"
+   },
+   "expected_ok": false,
+   "correct_statement": "收头应用金属压条钉压固定并密封，压顶檐口下端做鹰嘴和滴水槽（不钉压/未密封/无滴水槽=不妥）",
+   "anchor": "kc:1A413030_125_0237:0 + {2015,案例2}",
+   "extension": false
+  }
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:47+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
+}

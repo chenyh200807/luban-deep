@@ -30,11 +30,14 @@ function loadTabBar(selected) {
     reLaunch: [],
   };
   var routeMock = {
+    learn: function () {
+      return "/packageDeeptutor/pages/learn/learn";
+    },
+    lubanReview: function () {
+      return "/packageDeeptutor/pages/luban/review/review";
+    },
     chat: function () {
       return "/packageDeeptutor/pages/chat/chat";
-    },
-    history: function () {
-      return "/packageDeeptutor/pages/history/history";
     },
     report: function () {
       return "/packageDeeptutor/pages/report/report";
@@ -96,12 +99,13 @@ function loadTabBar(selected) {
   return { component: component, calls: calls };
 }
 
-var fromChat = loadTabBar(0);
-fromChat.component.switchTab({ currentTarget: { dataset: { index: 2 } } });
+// 五 tab 壳顺序: 学习0 / 复习1 / 问鲁班2 / 学情3 / 我的4
+var fromChat = loadTabBar(2);
+fromChat.component.switchTab({ currentTarget: { dataset: { index: 3 } } });
 assert(
   fromChat.calls.setWorkspaceBack.length === 1 &&
     fromChat.calls.setWorkspaceBack[0].url === "/packageDeeptutor/pages/chat/chat" &&
-    fromChat.calls.setWorkspaceBack[0].label === "对话",
+    fromChat.calls.setWorkspaceBack[0].label === "问鲁班",
   "leaving an active chat should preserve chat as the return target",
 );
 assert(fromChat.calls.clearWorkspaceBack === 0, "leaving chat should not clear return authority");
@@ -111,13 +115,27 @@ assert(
   "shell should still relaunch to the selected page",
 );
 
-var fromReport = loadTabBar(2);
-fromReport.component.switchTab({ currentTarget: { dataset: { index: 0 } } });
+var fromReport = loadTabBar(3);
+fromReport.component.switchTab({ currentTarget: { dataset: { index: 2 } } });
 assert(
   fromReport.calls.setWorkspaceBack.length === 1 &&
     fromReport.calls.setWorkspaceBack[0].url === "/packageDeeptutor/pages/report/report" &&
     fromReport.calls.setWorkspaceBack[0].label === "学情",
   "returning from report to chat should preserve report as chat back target",
+);
+
+// 历史页挂壳但无选中态(selected=-1):离开时无来源 tab,应清返回权威而非误设
+var fromHistory = loadTabBar(-1);
+fromHistory.component.switchTab({ currentTarget: { dataset: { index: 2 } } });
+assert(
+  fromHistory.calls.setWorkspaceBack.length === 0 &&
+    fromHistory.calls.clearWorkspaceBack === 1,
+  "leaving a shell-less page (selected=-1) should clear return authority instead of faking one",
+);
+assert(
+  fromHistory.calls.reLaunch.length === 1 &&
+    fromHistory.calls.reLaunch[0].url === "/packageDeeptutor/pages/chat/chat",
+  "shell-less page tab tap should still navigate to the target tab",
 );
 
 if (fail) {

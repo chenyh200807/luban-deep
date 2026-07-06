@@ -1,5 +1,5 @@
 {
-  "pages":[
+  "pages": [
     "pages/freeCourse/freeCourse",
     "pages/index/index",
     "pages/view/view",
@@ -21,6 +21,7 @@
       "root": "packageDeeptutor",
       "pages": [
         "pages/chat/chat",
+        "pages/learn/learn",
         "pages/history/history",
         "pages/report/report",
         "pages/mistake-book/mistake-book",
@@ -36,6 +37,14 @@
         "pages/practice/practice",
         "pages/assessment/assessment",
         "pages/legal/terms",
+        "pages/luban/stations/stations",
+        "pages/luban/review/review",
+        "pages/luban/station/station",
+        "pages/luban/handoff/handoff",
+        "pages/luban/retest/retest",
+        "pages/luban/concept-cards/concept-cards",
+        "pages/luban/errorbank/errorbank",
+        "pages/luban/gauntlet/gauntlet",
         "pages/internal/diagramWebviewTest/diagramWebviewTest"
       ]
     },
@@ -51,11 +60,11 @@
       ]
     }
   ],
-  "window":{
-    "backgroundTextStyle":"light",
+  "window": {
+    "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
     "navigationBarTitleText": "佑森咨询",
-    "navigationBarTextStyle":"black"
+    "navigationBarTextStyle": "black"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
@@ -64,7 +73,9 @@
   "preloadRule": {
     "pages/freeCourse/freeCourse": {
       "network": "wifi",
-      "packages": ["packageDeeptutor"]
+      "packages": [
+        "packageDeeptutor"
+      ]
     }
   }
 }

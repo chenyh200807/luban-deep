@@ -9,6 +9,86 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-06 - 启动 orphan recovery 未释放免费试用 reservation，导致“2 次后像满 3 次”
+
+- 问题：
+  - test2 微信真机账号线上配置确认是每天免费 3 条、7 日 12 条、任意连续 3 个自然日每天满 3 条后下一问拦截，但用户第 2 条成功后就感到被拦。
+  - 线上 `member_usage_events` 显示该 wallet 当天存在 2 条 `metered_not_charged` 成功免费 turn，另有 1 条 `free_trial_reserved` 遗留预占；对应 chat turn 在部署/重启时被标记为 `failed / orphaned_on_restart`。
+- 根因：
+  - 最后正确点：startup `recover_all_orphaned_turns("orphaned_on_restart")` 能把进程重启前残留的 running turn 写成 terminal failed。
+  - 第一个错误点：同一 startup recovery 没有把这些重启前遗留的 `free_trial_reserved` 交回 `MemberUsageMeter` 释放；`mobile._build_free_trial_usage_payload()` 在 20 分钟 TTL 内会把 reserved 计入 free-trial 用量。
+  - shared failure shape：terminal truth split。chat turn 已经失败终态，commerce reservation 仍停留在 in-flight 状态，两个 authority 没有在重启恢复路径收敛。
+- 成功修法：
+  - `MemberUsageMeter.release_free_trial_reservations_before()` 成为 startup orphan reservation 释放 authority，只释放 `status=free_trial_reserved`、`metadata.reason=free_trial`、且 `created_at < startup_cutoff` 的记录；已消费、已释放、非 free-trial、启动后的新预占均不动。
+  - `main.lifespan()` 在原有 running turn recovery 后调用 thin wrapper `_release_startup_orphaned_free_trial_reservations()`，补齐重启恢复的 commerce terminal path；释放失败只 warning，不把可恢复额度清理问题升级成启动阻断。
+  - 线上即时修复：定向把遗留 reservation id=485 改为 `free_trial_released`，该账号当天有效计数从 3 降回 2。
+- 验证：
+  - 新增 meter 矩阵测试：只释放 cutoff 前 free-trial reserved，不碰未来 reserved、非 free-trial reserved、consumed。
+  - 新增 startup 测试：`lifespan` 在 `recover_all_orphaned_turns` 后调用 reservation release helper。
+  - 聚焦回归：`tests/services/test_member_usage_meter.py` + startup helper + orphan turn recovery `10 passed`；`tests/api/test_mobile_router.py -k free_trial` `9 passed, 137 deselected`；`tests/api/test_main_entrypoints.py` `33 passed`；`py_compile` 与 `ruff F821/F811` 通过。
+- 教训：
+  - daily limit 设置正确不等于用户体感正确；in-flight reservation 在 TTL 内就是可见用量，所有 terminal failure path 必须同步释放。
+  - 启动恢复也是 terminal path，不能只恢复 chat turn 而漏掉 commerce state。
+
+## 2026-07-05 - 免费试用 reservation 失败占用导致“权益不足”
+
+- 问题：
+  - test2 微信真机用户在 2026-07-05 20:49/21:01 连续提问时，前两轮阿里云百炼返回 `Arrearage / overdue-payment` raw provider error，第三轮成功回答后，下一问弹出“权益不足，请先充值后继续使用”。
+  - 业务事实要求：新注册/免费账号每天可问 3 个问题；7 日累计 12 个或任意连续 3 个自然日每天问满 3 个后，下一问才拦截；免费试用必须绑定 canonical 手机号身份，一个手机号只能绑定一个账号。
+- 根因：
+  - 最后正确点：`/api/v1/chat/start-turn` 在 0 余额且 wallet snapshot 存在时，先写 `MemberUsageMeter` 的 `free_trial_reserved` reservation，防止并发超领。
+  - 第一个错误点：`turn_runtime` 只在成功 completed path 里跳过 wallet capture，没有用统一 terminal truth 把 reservation 终结为“成功消耗”或“失败释放”；`mobile._is_free_trial_usage_event()` 又把 `free_trial_reserved` 当窗口用量。
+  - 进一步断点：`free_trial` / `free_trial_reservation_key` 曾可落到 session preferences，后续 turn 可能不用 fresh start-turn gate 复用旧 marker；重复 `client_turn_id` 的 insert failure 也曾被忽略。
+  - shared failure shape：terminal truth missing / in-flight reservation promoted to consumed usage。provider raw error 泄漏是同一终端事实缺口的可见症状；DeepSeek 官方 fallback 未生效是独立的线上 provider/env release 面，不是微信包上传问题。
+- 失败尝试及原因：
+  - “上传微信开发者工具新版本”被证伪：拦截来自后端 429 commerce gate，不是小程序 UI 旧包。
+  - “只把 provider error 文案净化”不够：即使不再泄漏 raw error，失败 turn 仍会继续消耗免费次数。
+  - “在 mobile start-turn 放宽每日 3 次”不可取：那会绕开并发 reservation authority，让失败和成功混在同一计数里。
+- 成功修法：
+  - `MemberUsageMeter.finalize_free_trial_reservation()` 成为唯一 reservation 状态转换 authority，只允许 `free_trial_reserved + reason=free_trial -> metered_not_charged/free_trial_released`，拒绝已 released、已 consumed、非 free_trial 或重复 client_turn_id 旧行翻写。
+  - `turn_runtime` 增加统一 free-trial terminal finalizer：completed 且可展示答案才消耗；security guardrail、server busy、timeout、cancel、exception、provider/raw error/failure fallback 都释放；finalize 失败显式返回/记录 `free_trial_update_failed`，不假装成功。
+  - `mobile` 先解析/校验 conversation，再做 free-trial reservation；quota check + reservation insert 由 `MemberUsageMeter.record_usage_event_after_check()` 在同一个 SQLite `BEGIN IMMEDIATE` 事务内完成，避免并发请求都读到旧计数后一起放行；`turn_runtime.start_turn` 失败立即释放；`record_usage_event=False` 对 duplicate reservation fail-closed；负余额 / frozen 非零不进入免费试用；超过 TTL 的历史 `free_trial_reserved` 不再永久占用窗口。
+  - `turn_runtime` 不再把 `free_trial` / `free_trial_reservation_key` 持久化到 session preferences，防止后续 turn 通过 preferences fallback 复用旧 reservation marker 跳过钱包扣费。
+  - `AgentLoop` 的 `finish_reason=error` 分支不再把 raw provider content 交给公开输出，而是无条件输出 `模型调用失败，请稍后重试。`；`user_visible_output` 仍保留 Arrearage pattern 作为下游 sink 的 defense-in-depth。
+  - `contracts/turn.md` / `contracts/capability.md` 明确 reservation 生命周期、TTL、conditional finalize 和 `free_trial_update_failed` 只属于 commerce 边界，不得参与 capability / TutorBot / learner-state / grading authority。
+- 验证：
+  - 聚焦回归：`217 passed in 38.52s`，覆盖 mobile free-trial daily/weekly/streak、released/stale reserved ignored、transactional quota-check+reserve、duplicate reservation fail-closed、负余额拒绝、runtime start-turn 失败释放、session preferences 不保存 marker、terminal consume/release/update_failed、member meter conditional finalize、provider error public fallback。
+  - 更早宽 mobile/API 回归：`165 passed in 29.99s`。
+  - 静态：`py_compile` 5 个生产文件通过；窄范围 `ruff --select F821,F811,F401` 通过；`git diff --check` 通过。
+  - 待提交后复跑：`python scripts/check_contract_guard.py --base origin/main --head HEAD`，确认 contract-sensitive 文件已被新增 contract/test surface 覆盖。
+- 残留/边界：
+  - 线上已产生的两条失败 reservation 需要在 `/root/deeptutor/data/user/member_usage_meter.db` 定向改为 `free_trial_released`，否则该用户今天仍会被历史错误占用影响。
+  - DeepSeek 官方 fallback 需要单独确认线上 `.env` / provider factory 配置和发布，不应伪装成本次 reservation 代码修复已经解决。
+- 教训：
+  - 预占状态不是消耗事实；凡是有 reservation，就必须有 terminal finalize/release 的单一 authority。
+  - 公开错误净化和权益计数是两条验证线：不泄漏 raw error 不等于不扣免费次数。
+
+## 2026-07-05 - 学-evidence「疑似未落账」= review-due learned_count 口径缺口；复习页点亮语义失真 = 绿灯≠点亮
+
+- 问题：
+  - 问题1（重）：真机验收 F16 讲懂幕点「看完了，去闯关」触发 `postLessonProgress(F16, lesson)` 后，`/api/v1/luban/review-due` 仍返回 `learned_count:0`，疑似学-evidence 未落账（三候选：①写入失败被空 catch 吞 ②投影口径 ③前端没发请求）。
+  - 问题2（轻）：复习 tab 按母题检索把 28 个绿灯站全标「已点亮·回站重看」，学习页却显示 0/40 点亮。
+- 根因：
+  - 问题1 真凶=候选②（查询口径），①③均证伪。E2E 探针（真 HTTP 栈 + 真账本）：POST 200、事件落账（`luban_lesson/lesson_viewed/F16`）、`pack_lifecycle_projection` 正确产出 `exposed`——写链路健康。断点在读侧：`review_due.py` 的 `learned_count` 只数 `station_completed`（`_SIGNAL_TYPE`，review_due.py:24/91），`lesson_viewed` 落了账却永远进不了它。shared failure shape=第二「已学」decider（review_due 从原始事件自建已学口径，与 pack_lifecycle 的「已学·待验证 exposed」权威脱节）。
+  - 问题2 根因=`review-view-model.js` 把 `/luban/lessons` 的绿灯（published）全集直接映射成检索列表，`review.wxml:158` 硬编码「已点亮 · 回站重看」——绿灯（可学）被当成点亮（learned）渲染；点亮真值（pack_lifecycle）根本没进复习页数据流。
+- 失败尝试及原因：
+  - 初始假设「F16 不在 manifest 白名单被 400 拒」被证伪：origin/main manifest 41 pack 含 F16 且 green；`WATCHED_STAGES` 含 lesson；lesson-progress 写端点无 flag 门（`LUBAN_REVIEW_MODULE_ENABLED` 只门 review-due 读侧）。
+  - codegraph 首查返回了另一分支工作区的旧 station.js（无 postLessonProgress），提醒：多 worktree 下索引/import 会漂移，必须 `PYTHONPATH=worktree` 锚定。
+- 成功修法：
+  - `review_due.py`：新增 `_lesson_view_packs`（判别复用唯一 classifier `is_lesson_view_event`，不建第二套），`learned_count = |(station_completed ∪ lesson_viewed) ∩ green|`（pack 粒度去重）；due candidates 零改动——复测调度触发事实仍只有 station_completed（禁第二调度器）。
+  - `station.js`：fire-and-forget 空 catch 补 console.warn 可观测（不打断学习流语义不变）。
+  - `learn-view-model.js`：抽出并导出 `isLitLifecycleState`（点亮=practiced/mastered/dormant，exposed 是 M0 蓝环不算点亮）作为唯一点亮判定；`review-view-model.js` 复用它，检索行按 `report.pack_lifecycle` 真值标 lit；lifecycle 缺失时不造数（既不标已点亮也不标未点亮，中性「回站重看」）；`review.wxml` 改绑 `{{item.sub}}/{{item.linkText}}`，回归测试钉死「wxml 禁硬编码已点亮」。
+- 验证：
+  - RED→GREEN：`test_review_due.py` 新增 3 测（lesson_viewed 计入 learned 且不产生 due/非绿灯不计/同 pack 去重）先红后绿，全文件 10 passed；JS `test_review_view_model.js` 新增点亮语义断言先红（`lit undefined`）后绿。
+  - 域测试：luban_lesson + lesson_progress + lesson_evidence + pack_lifecycle + revalidation_queue 共 68 passed；JS 全套 `yousenwebview/tests/test_*.js` 0 FAIL；contract guard 全 PASS（review_due.py 非 protected，test_review_due.py 已登记 index.yaml:612）。
+  - E2E 探针修后复跑：同一 F16 lesson_viewed 写入 → `learned_count:1, due:[]`，lifecycle 仍 `exposed`。
+- 残留/边界：
+  - 学习页 0/40 点亮在只看讲懂时是 by design（M0：exposed 不点亮），learn-view-model 未消费 blue_ring 字段——蓝环接触态可视化是独立后续，不在本次 scope。
+  - 复习页 hero 文案「你点亮的站都稳着」在 0 点亮时略失真；`isEmpty` 仍= 无绿灯站（非无点亮站），按 surgical 原则未动，登记为后续。
+- 教训：
+  - 「疑似未落账」类问题先用真栈 E2E 探针把写链路定性（落没落账是单值可证伪事实），再看读侧口径——本例写侧完全健康，症状全部来自读投影的第二口径。
+  - read model 各自从原始事件重新分类「已学」= authority drift 温床；判别函数（is_lesson_view_event / isLitLifecycleState）必须单点导出复用。
+
 ## 2026-06-26 - Study assistant no-evidence terminal gate blocks fabricated learner state
 
 - 问题：
@@ -153,3 +233,17 @@
   - case grading 的 marked reference 是当前题面事实，必须在共享 projection 层进入评分 ctx；让 TutorBot wrapper 补字符串会长出第二套 authority。
   - pre-stamped scene 是前置事实，不是永久事实；每个 turn 仍要由当前 submission authority 证明。
   - visible leak 要收在单一 public sink，不能在每条 emit path 补脱敏。
+
+## 2026-07-02 · luban_lesson router F821（并行窗口代修，本窗复盘）
+- 问题：`luban_lesson.py` retest-items endpoint 引用 `build_retest_items` 未 import，CI F821。
+- 根因：endpoint 用 heredoc 追加进文件，只顾函数体没回看头部 import 块；本地只跑了 pytest（测试直接 import service 层，不经 router），没跑 import check——**测试路径与故障路径不同层**。
+- 失败尝试：无（并行窗口先于我发现并修复）。
+- 修法：`from deeptutor.services.luban_lesson import (...)` 补 `build_retest_items`（commit 665f8e3e7）。
+- 验证：10 域测试 passed + `python3 -c "import deeptutor.api.main"` 通过。
+- 教训：给已有文件追加代码后，验证必须覆盖"该文件自身被加载"的路径（import check / app 装配），单测绿≠模块可加载。
+
+## 2026-07-02 · spike 点火段三连坑（部署链+并行协调+automator）
+- **坑1 镜像供给缺失**：#344 给 Dockerfile 加 COPY 但 .dockerignore `docs/` 挡住 build context，远端 build 必败且 CI 抓不到（不 build 生产 stage）。修=反排除两行（#345，签发窗口先合；我的 #346 重复被关但守卫测试思路可复用）。教训：**Dockerfile COPY 必须连 .dockerignore 一起改一起验**；CI 对镜像层变更无覆盖是已知洞（需 workflow scope 把 Dockerfile/.dockerignore 加进 tests.yml paths）。
+- **坑2 只动 .dockerignore 的 PR 永久 BLOCKED**：必需检查（Contract Guard/Test Summary）被 tests.yml 路径过滤跳过、永不上报。修=PR 里带上会触发 CI 的实文件（如守卫测试）。
+- **坑3 复合命令夹带 git stash pop 弹出他人旧 stash**：与 memory「merge中严禁复合命令夹带 git stash」同类复发——红绿验证想用 stash 保存现场，pop 时弹出栈里别人的 WIP 造成 unmerged。修=红绿验证用 `git checkout <rev> -- <file>` 定点还原，禁 stash。
+- **坑4 automator 三层排障**：①`automator.launch` 解析此版 CLI `-v` 输出崩（'split' undefined）→ 改 `cli auto --auto-port` + `automator.connect`；②reLaunch 全超时=隐私同意弹窗挡导航+登录页在**分包**（`/packageDeeptutor/pages/login/login`，非主包 pages/login/*）→ 截图诊断破案；③方法链=handlePrivacyCheckboxTap→switchLoginMode→onUsernameInput/onPasswordInput→handlePasswordLogin。验证数字：三轮 ALL PASS、D15 retest_item_answered=15 入生产库。

@@ -57,8 +57,14 @@ Page({
       wx.navigateBack();
       return;
     }
-    if (typeof wx !== "undefined" && wx.navigateTo) {
-      wx.navigateTo({ url: route.report() });
+    // 归位：错题本唯一入口在复习页（五模块 IA），兜底回复习首页
+    if (typeof wx !== "undefined" && wx.redirectTo) {
+      wx.redirectTo({
+        url: route.lubanReview(),
+        fail: function () {
+          if (wx.reLaunch) wx.reLaunch({ url: route.lubanReview() });
+        },
+      });
     }
   },
 

@@ -8,11 +8,26 @@ from typing import Any, Iterable
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
 )
-from deeptutor.services.learner_state.memory_lifecycle import lifecycle_stage_for_evidence_level
+from deeptutor.services.learner_state.memory_lifecycle import (
+    confidence_for_evidence_level,
+    evidence_level_rank,
+    lifecycle_stage_for_evidence_level,
+    max_evidence_level,
+)
 from deeptutor.services.learner_state.canonical_truth_policy import (
     trusted_adjudication_from_quality,
 )
 from deeptutor.services.learner_state.service import LearnerStateEvent
+
+# source_feature 白名单的单一 authority(每个词汇一个 authority,病D-3):
+# - PRACTICE_EVIDENCE_SOURCE_FEATURES = 判分级练-evidence 子集
+#   (pack_lifecycle_projection._is_practice_evidence 等读侧引用,禁手工拷贝)
+# - LEARNING_EVIDENCE_SOURCE_FEATURES = 证据编译器认的全集(练 + 对话合成);
+#   写侧 auto-synthesis 触发过滤(learner_state/service.py)引用同一份。
+PRACTICE_EVIDENCE_SOURCE_FEATURES = frozenset({"construction_grading", "assessment_testset"})
+LEARNING_EVIDENCE_SOURCE_FEATURES = PRACTICE_EVIDENCE_SOURCE_FEATURES | frozenset(
+    {"conversation_synthesis"}
+)
 
 _ALLOWED_EDGE_TYPES = {
     "question_tests_concept",
@@ -90,8 +105,13 @@ def synthesize_learning_truth(
     raw_weak_points: list[dict[str, Any]] = []
     for (concept_id, error_code), items in sorted(grouped.items()):
         candidate = _candidate_from_items(concept_id, error_code, items)
-        if any(_clean_text(item.get("evidence_level")) == "L2_confirmed" for item in items):
-            raw_weak_points.append({**candidate, "evidence_level": "L2_confirmed"})
+        top_level = ""
+        for item in items:
+            top_level = max_evidence_level(top_level, _clean_text(item.get("evidence_level")))
+        if evidence_level_rank(top_level) >= evidence_level_rank("L2_confirmed"):
+            # §6-1 同族:字面 == "L2_confirmed" 曾把 L2_real_retest 降档;
+            # 按 rank 判 L2 档并保真最高 level(真懂信号不在聚合层丢失)。
+            raw_weak_points.append({**candidate, "evidence_level": top_level})
         elif len(items) >= 2:
             raw_weak_points.append({**candidate, "evidence_level": "L1_repeated"})
         else:
@@ -344,7 +364,7 @@ def _is_learning_evidence(event: LearnerStateEvent) -> bool:
     payload = dict(event.payload_json or {})
     return (
         event.memory_kind == "learning_evidence"
-        and event.source_feature in {"construction_grading", "assessment_testset", "conversation_synthesis"}
+        and event.source_feature in LEARNING_EVIDENCE_SOURCE_FEATURES
         and (event.source_feature == "construction_grading" or payload.get("event_type") == "learning_evidence")
     )
 
@@ -815,7 +835,7 @@ def _put_object(
             *superseded_by_event_ids,
         ])
         timeline_refs = [*previous.get("timeline_refs", []), *timeline_refs]
-    final_evidence_level = _max_level(previous.get("evidence_level") if previous else "", evidence_level)
+    final_evidence_level = max_evidence_level(previous.get("evidence_level") if previous else "", evidence_level)
     final_decay_state = decay_state if decay_state != "active" else (previous or {}).get("decay_state", "active")
     final_supporting_event_ids = _dedupe(supporting_event_ids)
     claim_status = _claim_status(final_evidence_level, final_decay_state)
@@ -824,7 +844,7 @@ def _put_object(
         "object_id": object_id,
         "current_truth": current_truth,
         "evidence_level": final_evidence_level,
-        "confidence": _confidence_for_level(final_evidence_level),
+        "confidence": confidence_for_evidence_level(final_evidence_level),
         "supporting_event_ids": final_supporting_event_ids,
         "evidence_refs": final_supporting_event_ids,
         "conflicting_event_ids": _dedupe(conflicting_event_ids),
@@ -867,7 +887,7 @@ def _claim_status(evidence_level: str, decay_state: str) -> str:
         return "superseded"
     if decay_state in {"improving", "stale"}:
         return "stale"
-    if evidence_level in {"L2_confirmed", "L3_mastery_signal"}:
+    if evidence_level_rank(evidence_level) >= evidence_level_rank("L2_confirmed"):
         return "confirmed"
     if evidence_level == "L1_repeated":
         return "repeated"
@@ -1183,15 +1203,6 @@ def _first_training_signal(items: list[dict[str, Any]]) -> dict[str, Any]:
         if isinstance(signal, dict) and signal:
             return dict(signal)
     return {}
-
-
-def _max_level(previous: str, current: str) -> str:
-    order = {"": 0, "L0_observed": 1, "L1_repeated": 2, "L2_confirmed": 3}
-    return previous if order.get(previous, 0) >= order.get(current, 0) else current
-
-
-def _confidence_for_level(level: str) -> float:
-    return {"L2_confirmed": 0.9, "L1_repeated": 0.72, "L0_observed": 0.45}.get(level, 0.3)
 
 
 def _first_observed(timeline_refs: list[dict[str, Any]]) -> str:

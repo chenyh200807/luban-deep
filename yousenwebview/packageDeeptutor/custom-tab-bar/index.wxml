@@ -1,6 +1,6 @@
-<view class="tab-bar {{isDark?'':'light'}}" wx:if="{{!hidden}}" aria-role="tablist">
+<view class="tab-bar paper {{isDark?'':'light'}}" wx:if="{{!hidden}}" aria-role="tablist">
   <view
-    class="tab-item {{selected === index ? 'active' : ''}}"
+    class="tab-item {{item.seal ? 'tab-item--center' : ''}} {{selected === index ? 'active' : ''}}"
     wx:for="{{list}}"
     wx:key="pagePath"
     wx:if="{{!item.hidden}}"
@@ -10,9 +10,14 @@
     aria-label="{{item.text}}"
     aria-selected="{{selected === index}}"
   >
-    <view
-      class="tab-icon icon-{{selected === index ? item.activeIcon : item.icon}}"
-    ></view>
+    <view wx:if="{{item.seal}}" class="tab-seal pk-seal">
+      <image
+        class="tab-seal-logo"
+        src="/packageDeeptutor/images/logo-mark-white.png"
+        mode="aspectFit"
+      />
+    </view>
+    <view wx:else class="tab-icon icon-{{item.icon}}"></view>
     <text class="tab-text">{{item.text}}</text>
   </view>
 </view>

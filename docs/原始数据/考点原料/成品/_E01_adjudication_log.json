@@ -1,0 +1,23 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-2(错因码语义类)",
+    "actions": [
+      "adjudicate.py E01: UNDECIDED(token 在真题/正文侧非源料quote侧); 错因码对账16码全在registry",
+      "pack §6 M8 现状直读: 拆分挂码已在前轮应用(§9 审计记录'✅已应用'), 与 issue fix 首选项(E10)逐字一致",
+      "GLM-5.2 单审(异源终审锚, 未flag本条): satisfied=true, E10 比 E07 贴切('误用结算规则'对应规范适用错误), further_edit_needed=false",
+      "Fable-5 复签(非生产源/非flagger): 同意——E10(code_application)覆盖结算规则误用, E07仅命名其背后误解, 现行拆分映射正确。2/2 通过",
+      "结论: status=fixed(前轮已改, 本轮双签确认收口), 零新编辑, 升色=0, 新增🟢=0"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "satisfied": true,
+        "e10_vs_e07": "E10更贴切:不按确认单价调整直接套原价本质是误用结算规则,对应E10规范适用错误,而非单纯E07概念混淆",
+        "further_edit_needed": false
+      },
+      "Fable-5": "复签同意, 依据 registry ability_dimension: E10=code_application 与错误性质(规则适用)一致"
+    }
+  }
+]

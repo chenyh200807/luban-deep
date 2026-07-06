@@ -5,6 +5,10 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from deeptutor.services.learner_state.memory_lifecycle import (
+    evidence_level_from_claim_status,
+    evidence_level_rank,
+)
 
 _DEFAULT_MAX_CHARS_PER_DOC = 700
 _DEFAULT_MAX_TOTAL_CHARS = 2400
@@ -35,25 +39,6 @@ def _as_list(value: Any) -> list[Any]:
 
 def _text(value: Any) -> str:
     return str(value or "").strip()
-
-
-def _evidence_level_rank(level: str) -> int:
-    order = {
-        "L0_observed": 0,
-        "L1_repeated": 1,
-        "L2_confirmed": 2,
-        "L3_mastery_signal": 3,
-    }
-    return order.get(_text(level), -1)
-
-
-def _evidence_level_from_claim_status(status: Any) -> str:
-    normalized = _text(status)
-    return {
-        "observed": "L0_observed",
-        "repeated": "L1_repeated",
-        "confirmed": "L2_confirmed",
-    }.get(normalized, "")
 
 
 def _sanitize_compiled_truth_text(value: Any, *, max_chars: int) -> tuple[str, int, bool]:
@@ -181,7 +166,7 @@ def _projection_with_personalization_claims(projection: dict[str, Any]) -> dict[
         evidence_refs = _as_list(claim.get("evidence_refs") or claim.get("supporting_event_ids"))
         if not evidence_refs:
             continue
-        evidence_level = _text(claim.get("evidence_level")) or _evidence_level_from_claim_status(claim.get("claim_status"))
+        evidence_level = _text(claim.get("evidence_level")) or evidence_level_from_claim_status(claim.get("claim_status"))
         compiled_objects[f"personalization:{claim_id}"] = {
             "object_type": _text(claim.get("object_type")) or "personalization_claim",
             "current_truth": claim.get("label") or claim.get("current_truth") or claim.get("claim"),
@@ -284,7 +269,7 @@ def _weak_point_documents(
         if _is_stale_or_superseded(item):
             continue
         level = _text(item.get("evidence_level"))
-        if _evidence_level_rank(level) < min_rank:
+        if evidence_level_rank(level) < min_rank:
             continue
         concept_id = _text(item.get("concept_id"))
         error_code = _text(item.get("error_code"))
@@ -354,7 +339,7 @@ def materialize_compiled_truth_documents(
     if not compiled_objects and not weak_points:
         return []
 
-    min_rank = _evidence_level_rank(min_evidence_level)
+    min_rank = evidence_level_rank(min_evidence_level)
     docs: list[dict[str, Any]] = _weak_point_documents(
         projection,
         min_rank=min_rank,
@@ -366,7 +351,7 @@ def materialize_compiled_truth_documents(
         if _is_stale_or_superseded(item):
             continue
         level = _text(item.get("evidence_level"))
-        if _evidence_level_rank(level) < min_rank:
+        if evidence_level_rank(level) < min_rank:
             continue
         current_truth, redaction_count, heavily_sanitized = _sanitize_compiled_truth_text(
             item.get("current_truth") or item.get("claim") or item.get("summary"),
@@ -406,7 +391,7 @@ def materialize_compiled_truth_documents(
 
     docs.sort(
         key=lambda item: (
-            _evidence_level_rank(_text(item.get("evidence_level"))),
+            evidence_level_rank(_text(item.get("evidence_level"))),
             len(_as_list(item.get("supporting_event_ids"))),
             _text(item.get("chunk_id")),
         ),

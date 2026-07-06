@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from deeptutor.services.config.env_store import get_env_store
+from deeptutor.services.learner_state.memory_lifecycle import is_stable_evidence_level
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 CANONICAL_TRUTH_PRODUCTION_WRITE_FLAG = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED"
@@ -192,7 +193,7 @@ def _has_stable_learner_claim(projection: dict[str, Any]) -> bool:
         if stage == "stable_learner_claim":
             return True
         level = _text(claim.get("evidence_level"))
-        if level in {"L1_repeated", "L2_confirmed", "L2_real_retest", "L3_mastery_signal"}:
+        if is_stable_evidence_level(level):
             return True
     return False
 

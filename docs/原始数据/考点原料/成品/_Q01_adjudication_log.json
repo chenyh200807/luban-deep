@@ -1,0 +1,203 @@
+[
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 0,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 间接作用+徐变→P29逐字",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 1,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 裂缝控制+三个等级→P25三级全文",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 2,
+    "tier": "Tier-0证真+Tier-1措辞收正+Tier-2",
+    "retrieval": "tbsearch 用水量+和易性→P46『最主要因素』",
+    "actions": [
+      "pack『决定性』按教材原语收正",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 3,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 初凝时间+45→P42数值逐字",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 4,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 早强剂/缓凝剂+大体积→P49两条逐字",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 5,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "P96(S06/Q02同源已核)全套数值",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 6,
+    "tier": "Tier-0证真+Tier-2事实类(分项补出处)",
+    "retrieval": "tbsearch 防水混凝土→P130/P131逐字",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 7,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 后浇带+微膨胀→P103④逐字;28d=P131",
+    "actions": [
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 8,
+    "tier": "Tier-1邻接标注(GLM单审)",
+    "retrieval": null,
+    "actions": [
+      "场景6加🔵邻接标注",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 9,
+    "tier": "Tier-2错因码",
+    "retrieval": null,
+    "actions": [
+      "E10主/E07去除;Fable复签",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 10,
+    "tier": "Tier-2错因码",
+    "retrieval": null,
+    "actions": [
+      "E02主/E10弃用(前轮跳过项收口);Fable复签",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 11,
+    "tier": "Tier-2错因码",
+    "retrieval": null,
+    "actions": [
+      "E02主+E07兼收;Fable复签",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 12,
+    "tier": "Tier-1降级旁注(GLM单审)",
+    "retrieval": null,
+    "actions": [
+      "场景4🔵旁注,不扩增R2",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  }
+]

@@ -2,87 +2,169 @@
   {
     "issue": "洞口分尺寸防护的多个尺寸段(<500mm封堵、20~40cm刚性盖板、40~150cm脚手架满铺板等)无完整教材quote支撑，不应全标🟢",
     "location": "§1 洞口防护规则 / #11",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补全各尺寸段的完整教材原文quote，无quote区间暂降🔴或🟡，仅保留已有quote明确的区间为🟢"
+    "fix": "补全各尺寸段的完整教材原文quote，无quote区间暂降🔴或🟡，仅保留已有quote明确的区间为🟢",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S06_高处作业临边洞口防护.md §1行3/行11+§4规则组B(保🟢补教材P121洞口①~④、P117钢结构口径逐字出处+竖向/非竖向限定词)",
+      "verified": "kc:1A436000_121_0195:1 quote 直读含「临边作业」但无任何洞口分档数字(jury现象为真)；教材零LLM检索 CET_1A436000_P0121_001 P121 逐字命中洞口①~④全档、CET_1A436000_P0117_001 P117 逐字命中钢结构20~40/40~150/>150cm三档；fix降🔴前提失效走C01先例保🟢补出处；GLM-5.2 approve+Codex对抗复核(其对③④档的OBJECT系提示词摘录截断，全chunk直读含③④，机器闸凌驾)"
+    }
   },
   {
     "issue": "防护栏杆构造数字(上杆1.2m、立杆间距≤2m、挡脚板≥180mm、承1kN等)整组无教材quote支撑，pack标🟢属编造嫌疑",
     "location": "§1#4, §5#4, §7",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充包含这些数字的完整教材quote，否则整体降🔴，1.2m可在洞口临边语境独立保留🟢"
+    "fix": "补充包含这些数字的完整教材quote，否则整体降🔴，1.2m可在洞口临边语境独立保留🟢",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S06_高处作业临边洞口防护.md §1行4+§4规则组A+R5行4+R6第3条(保🟢补教材P121防护栏杆(1)(2)逐字出处)",
+      "verified": "kc:1A436000_121_0195:2 quote 直读含「楼梯口、楼梯平台和梯段边」但无1.2m/2m/180mm/1kN(jury现象为真)；教材CET_1A436000_P0121_001 P121逐字命中上杆1.2m/立杆间距≤2m/挡脚板≥180mm/任何部位任何方向1kN全部数字；降🔴前提失效保🟢补出处；GLM-5.2 approve"
+    }
   },
   {
     "issue": "攀登作业“>3m宜设护笼”“>8m必设梯间平台”两个高度档无教材quote支撑",
     "location": "§1#5, §4规则D",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补全quote，未补充前将这两个高度档降🔴，已由quote支撑的梯子作业项保留🟢"
+    "fix": "补全quote，未补充前将这两个高度档降🔴，已由quote支撑的梯子作业项保留🟢",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S06_高处作业临边洞口防护.md §1行5+§4规则组D(保🟢补教材P121攀登(2)逐字出处+『固定式直梯』限定词+『必设』改『应设』)",
+      "verified": "kc:1A436000_121_0195:3 quote 直读含「同一梯子上不得两人同时作业」但无>3m/>8m分档(jury现象为真)；教材CET_1A436000_P0121_001 P121逐字「使用固定式直梯攀登作业时，当攀登高度超过3m时，宜加设护笼；当攀登高度超过8m时，应设置梯间平台」；GLM-5.2 approve+Codex CONFIRM(要求固定式直梯限定+宜/应区分，已落实)"
+    }
   },
   {
     "issue": "严禁行为中“座板式单人吊具/自制吊篮”未被给定教材quote支持",
     "location": "§1#8, §5#8",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "吊具/吊篮项降🔴，钢筋骨架攀登项保留🟢，若有其他quote支撑再恢复"
+    "fix": "吊具/吊篮项降🔴，钢筋骨架攀登项保留🟢，若有其他quote支撑再恢复",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S06_高处作业临边洞口防护.md §1行8+R5行8(保🟢补教材P122外墙作业(2)逐字出处)",
+      "verified": "kc:1A436000_122_0196:2 quote 直读含「不得沿钢筋骨架攀登或站在骨架上作业」但无吊具/吊篮(jury现象为真)；教材CET_1A436000_P0122_001 P122逐字「高处作业不得使用座板式单人吊具，不得使用自制吊篮」；降🔴前提失效保🟢补出处；GLM-5.2 approve"
+    }
   },
   {
     "issue": "交叉作业/防护棚关键数字(坠落半径5m/6m、非机动≥3m/机动≥4m、双层间距≥700mm、木板厚≥50mm等)无教材quote支撑",
     "location": "§1#9-10, §4规则E, §7",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充完整quote，否则将具体数字项降🔴，保留“设防护棚/隔离措施”等描述性语句为🟢"
+    "fix": "补充完整quote，否则将具体数字项降🔴，保留“设防护棚/隔离措施”等描述性语句为🟢",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S06_高处作业临边洞口防护.md §1行9/行10+§4规则组E(保🟢补教材P124表11.3-1+防护棚①~③逐字出处+全四档枚举补全+边界端点改教材口径15<h₀≤30)",
+      "verified": "kc:1A436000_124_0198:0 quote 直读含「坠落半径之外」但到表头即断无5m/6m(jury现象为真)；教材CET_1A436000_P0124_001 P124逐字命中表11.3-1全四档(15<h₀≤30→5/h₀>30→6/2≤h₀≤5→3/5<h₀≤15→4)及非机动≥3m/机动≥4m/双层间距≥700mm/木板厚≥50mm；GLM-5.2 approve+Codex OBJECT(边界端点15m归4m档)已吸收改教材精确口径"
+    }
   },
   {
     "issue": "高处作业吊篮教材锚语境严重不符(引用了脚手架检查评分表内容)，且吊篮纳入S06本体过宽",
     "location": "§1#17, §4 S7",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "撤换/修正教材锚；吊篮做法标注🔵外延，明确为MCQ扩展，不作为判分核心本体"
+    "fix": "撤换/修正教材锚；吊篮做法标注🔵外延，明确为MCQ扩展，不作为判分核心本体",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S06_高处作业临边洞口防护.md §1行17(撤106_0173:1错误教材锚+真题单锚声明+本体列改🔵外延)+§4 S7行(同步撤锚注)",
+      "verified": "kc:1A436000_106_0173:1 quote 直读含「脚手架检查评分表」与吊篮做法语境严重不符(jury全对)；教材检索吊篮做法条文0命中(仅P8危大清单/P106评分表名)；{2021,第8题}真题锚经verify_exam_anchors exit 0核真；D11/S07真题单锚+区分声明先例；GLM-5.2 approve"
+    }
   },
   {
     "issue": "R2不变量表述“不考工艺本身”过满，与后文纳入的操作平台参数、防护棚构造等冲突",
     "location": "§3 R2 / §4 examiner_intent",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "改为“核心不考主体施工工艺，但会考安全防护的构造参数与尺寸门槛”"
+    "fix": "改为“核心不考主体施工工艺，但会考安全防护的构造参数与尺寸门槛”",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S06_高处作业临边洞口防护.md §3 R2不变量(『不考工艺本身』改『核心不考主体施工工艺本身，但会考安全防护设施的构造参数与尺寸门槛』)",
+      "verified": "字符串定位:§3现文已含「核心不考主体施工工艺本身，但会考安全防护设施的构造参数与尺寸门槛」；与§4规则组A~F收录防护构造参数的事实自洽；GLM-5.2 approve"
+    }
   },
   {
     "issue": "误区M8“空泛加强管理”挂E12表达冗余不够贴切，核心是口号化不可判分",
     "location": "§6 M8 error_code",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "保留E04口号化为主码，E12降为secondary或删除"
+    "fix": "保留E04口号化为主码，E12降为secondary或删除",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S06_高处作业临边洞口防护.md §6 M8行(E04标主码,E12降次码并注适用条件)",
+      "verified": "ERROR_CODE_REGISTRY直读: E04=口号化表达(主码贴合『空泛加强管理』)、E12=表达冗余(降次码·表达绕弯不落判分点时)；GLM-5.2 approve+Fable-5复签"
+    }
   },
   {
     "issue": "建筑业12类事故/事故等级被标为S06本体，实为事故复盘外延，不宜作为采分核心",
     "location": "§0 / §1#15",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "保持事实🟢，将S06本体标签改为🔵外延"
+    "fix": "保持事实🟢，将S06本体标签改为🔵外延",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S06_高处作业临边洞口防护.md §1行15(本体/邻接列改🔵外延·事故复盘/等级题借用,三色列🟢不动)",
+      "verified": "kc:1A436000_129_0207:0 quote 直读含「高处坠落」12类事故清单(事实锚真,保🟢)；本体标签降🔵外延为归属修正非事实降级；GLM-5.2 approve"
+    }
   },
   {
     "issue": "R2不变量“钢梁水平通道纠错”中安全绳规则缺少S06本体直接point_id支撑，有钢结构专项外溢嫌疑",
     "location": "§3 场景3",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "将该条从R2不变量核心降级为🔵工程通识旁注，或补充独立point_id后恢复"
+    "fix": "将该条从R2不变量核心降级为🔵工程通识旁注，或补充独立point_id后恢复",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S06_高处作业临边洞口防护.md §3场景3(补教材P122悬空(3)安全绳规则逐字出处,walk fix的补锚恢复分支)",
+      "verified": "教材CET_1A436000_P0122_001 P122逐字「当利用钢梁作为水平通道时，应在钢梁一侧设置连续的安全绳，安全绳宜采用钢丝绳」属1A436000悬空作业本体条文(非钢结构专项外溢)；fix降🔵前提失效走补锚分支；{2023,第1题}真题锚已核真；GLM-5.2 approve"
+    }
   },
   {
     "issue": "误区M4“≥500mm洞口只盖板覆盖”与pack自身规则B“500~1500mm盖板或栏杆”矛盾",
     "location": "§6 M4",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "将M4修正为约束≥1500mm才适用，避免与规则B冲突"
@@ -90,7 +172,9 @@
   {
     "issue": "误区M5 error_code同时挂E07和E10冗余，核心是概念混淆",
     "location": "§6 M5",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "精简为E07为主码，E10删除或降为备选"
@@ -98,7 +182,9 @@
   {
     "issue": "误区M6 error_code E05审题错误不贴切，核心是记忆偏差/背景提取失败",
     "location": "§6 M6",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "保留E08背景提取失败为主码，删除E05"
@@ -106,7 +192,9 @@
   {
     "issue": "屋面作业“密目网全封闭”无教材quote支撑，不应标🟢",
     "location": "§1#7",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "补全quote或将该点降🔴"
@@ -114,7 +202,9 @@
   {
     "issue": "悬空作业“模板/钢筋/浇筑等≥2m必设操作平台”覆盖面偏宽，供核quote仅支持构件吊装和钢筋作业",
     "location": "§1#6, §3场景5, §5#7",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "收紧为“按已引quote覆盖的构件吊装/钢筋作业需设操作平台”，泛化部分降🔵或🔴"
@@ -122,7 +212,9 @@
   {
     "issue": "高处作业十大隐患列表无教材quote支撑",
     "location": "§1#14",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "补充完整隐患列表quote后再升标🟢"
@@ -130,7 +222,9 @@
   {
     "issue": "操作平台参数中悬挑式、落地式平台参数无教材quote支撑，供核quote仅支持移动式",
     "location": "§1#13",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "移动式参数保留🟢，悬挑/落地参数降🔴"

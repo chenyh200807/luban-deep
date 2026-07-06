@@ -203,7 +203,7 @@ run("workflow copy should use student-facing learning progress wording", functio
   var summary = workflowStatus.summarizeWorkflow([], true);
 
   assert(chatSource.indexOf("AI 正在准备") === -1, "chat page should not seed preparation wording");
-  assert(chatSource.indexOf("AI 正在分析你的问题...") !== -1, "chat page should seed active analysis wording");
+  assert(chatSource.indexOf("鲁班正在按采分点琢磨…") !== -1, "chat page should seed active luban analysis wording (10d copy)");
   assert(workflowSource.indexOf("后台") === -1, "workflow copy should not expose backend wording");
   assert(summary.badge === "AI 正在分析", "default workflow badge should feel already in progress");
   assert(summary.headline === "正在分析你的问题", "default workflow headline should be learner-facing");
@@ -404,7 +404,7 @@ run("chat page should not seed preparation wording for first-frame thinking stat
   var source = loadChatSource();
 
   assert(source.indexOf("AI 正在准备") === -1, "chat page should not contain preparation wording");
-  assert(source.indexOf("AI 正在分析你的问题...") !== -1, "chat page should seed active analysis wording");
+  assert(source.indexOf("鲁班正在按采分点琢磨…") !== -1, "chat page should seed active luban analysis wording (10d copy)");
 });
 
 if (fail) {

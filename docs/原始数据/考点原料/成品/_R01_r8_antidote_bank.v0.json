@@ -1,0 +1,152 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "R01",
+ "status": "signed",
+ "source_pack_sha256": "86e87afc3a453d012eb91f86508f9dd45fd04a532bbc073d0ffcc96fd1bdfbe1",
+ "generation_ms": 0.88,
+ "gate": {
+  "total": 8,
+  "passed": 8,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 8,
+ "dropped_rows": [],
+ "antidotes": {
+  "E10": [
+   {
+    "r8_id": "R01:R8-M1",
+    "mental_model": "所有动火必须事先分级审批：一级报企业安全部门、二级项目安全部门+负责人、三级责任工程师+安全部门",
+    "textbook_ref": "kc:1A437000_145_0231:0",
+    "phenomenon": "动火作业未办审批手续就焊割",
+    "wrong_model": "以为有经验即可、无需审批"
+   },
+   {
+    "r8_id": "R01:R8-M2",
+    "mental_model": "动火证当日开具当日有效；地点变化须重新办理审批",
+    "textbook_ref": "kc:1A437000_145_0231:1",
+    "phenomenon": "动火证过期或地点变更后继续作业",
+    "wrong_model": "以为一次许可可无限期/跨地点用"
+   },
+   {
+    "r8_id": "R01:R8-M3",
+    "mental_model": "气焊电石起火必须用干砂或二氧化碳；严禁水、泡沫、四氯化碳",
+    "textbook_ref": "kc:1A436000_127_0203:0",
+    "phenomenon": "电石起火用水或泡沫灭火",
+    "wrong_model": "以为任何灭火器/水都通用"
+   },
+   {
+    "r8_id": "R01:R8-M7",
+    "mental_model": "油漆料库与调料间必须分开设置并保持防火间距；木工间阻燃材料搭建+断电后离开",
+    "textbook_ref": "kc:1A437000_147_0238:0",
+    "phenomenon": "油漆料库内设调料间/木工间非阻燃",
+    "wrong_model": "以为方便管理而忽略火灾风险"
+   }
+  ],
+  "M10": [
+   {
+    "r8_id": "R01:R8-M1",
+    "mental_model": "所有动火必须事先分级审批：一级报企业安全部门、二级项目安全部门+负责人、三级责任工程师+安全部门",
+    "textbook_ref": "kc:1A437000_145_0231:0",
+    "phenomenon": "动火作业未办审批手续就焊割",
+    "wrong_model": "以为有经验即可、无需审批"
+   },
+   {
+    "r8_id": "R01:R8-M3",
+    "mental_model": "气焊电石起火必须用干砂或二氧化碳；严禁水、泡沫、四氯化碳",
+    "textbook_ref": "kc:1A436000_127_0203:0",
+    "phenomenon": "电石起火用水或泡沫灭火",
+    "wrong_model": "以为任何灭火器/水都通用"
+   }
+  ],
+  "M08": [
+   {
+    "r8_id": "R01:R8-M2",
+    "mental_model": "动火证当日开具当日有效；地点变化须重新办理审批",
+    "textbook_ref": "kc:1A437000_145_0231:1",
+    "phenomenon": "动火证过期或地点变更后继续作业",
+    "wrong_model": "以为一次许可可无限期/跨地点用"
+   },
+   {
+    "r8_id": "R01:R8-M5",
+    "mental_model": "焊割点与气瓶≥10m·与易燃易爆≥30m·乙炔氧气存放≥2m使用≥5m",
+    "textbook_ref": "kc:1A437000_147_0237:1",
+    "phenomenon": "气瓶距离/存放间距写错或漏",
+    "wrong_model": "以为分开放即可、不记米数"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "R01:R8-M4",
+    "mental_model": "落到数字：临建100㎡2只10L·木料油漆间25㎡1只·超1200㎡设太平桶；顶部≤1.5m",
+    "textbook_ref": "kc:1A437000_146_0233:0",
+    "phenomenon": "灭火器配置只写\"足够数量\"无数字",
+    "wrong_model": "以为定性即可、不背配置率"
+   },
+   {
+    "r8_id": "R01:R8-M5",
+    "mental_model": "焊割点与气瓶≥10m·与易燃易爆≥30m·乙炔氧气存放≥2m使用≥5m",
+    "textbook_ref": "kc:1A437000_147_0237:1",
+    "phenomenon": "气瓶距离/存放间距写错或漏",
+    "wrong_model": "以为分开放即可、不记米数"
+   },
+   {
+    "r8_id": "R01:R8-M6",
+    "mental_model": "义务消防队≥总人数10%；现场消防布置六要素(通道/水源/设施/器材/标志/责任人)列全",
+    "textbook_ref": "kc:1A437000_144_0230:1",
+    "phenomenon": "义务消防队人数/消防布置六要素漏",
+    "wrong_model": "以为定性\"加强消防\"即可、不会规范"
+   },
+   {
+    "r8_id": "R01:R8-M7",
+    "mental_model": "油漆料库与调料间必须分开设置并保持防火间距；木工间阻燃材料搭建+断电后离开",
+    "textbook_ref": "kc:1A437000_147_0238:0",
+    "phenomenon": "油漆料库内设调料间/木工间非阻燃",
+    "wrong_model": "以为方便管理而忽略火灾风险"
+   }
+  ],
+  "E04": [
+   {
+    "r8_id": "R01:R8-M4",
+    "mental_model": "落到数字：临建100㎡2只10L·木料油漆间25㎡1只·超1200㎡设太平桶；顶部≤1.5m",
+    "textbook_ref": "kc:1A437000_146_0233:0",
+    "phenomenon": "灭火器配置只写\"足够数量\"无数字",
+    "wrong_model": "以为定性即可、不背配置率"
+   }
+  ],
+  "E01": [
+   {
+    "r8_id": "R01:R8-M6",
+    "mental_model": "义务消防队≥总人数10%；现场消防布置六要素(通道/水源/设施/器材/标志/责任人)列全",
+    "textbook_ref": "kc:1A437000_144_0230:1",
+    "phenomenon": "义务消防队人数/消防布置六要素漏",
+    "wrong_model": "以为定性\"加强消防\"即可、不会规范"
+   }
+  ],
+  "E05": [
+   {
+    "r8_id": "R01:R8-M8",
+    "mental_model": "仓库分区面积=X02、环保管理=X03；R01 答案回到现场消防布置/动火/检查/验收",
+    "textbook_ref": "kc:1A436000_101_0166:0",
+    "phenomenon": "把仓库防火分区/环保管理当 R01 答案",
+    "wrong_model": "以为同字「消防」即本考点答题"
+   }
+  ],
+  "E11": [
+   {
+    "r8_id": "R01:R8-M8",
+    "mental_model": "仓库分区面积=X02、环保管理=X03；R01 答案回到现场消防布置/动火/检查/验收",
+    "textbook_ref": "kc:1A436000_101_0166:0",
+    "phenomenon": "把仓库防火分区/环保管理当 R01 答案",
+    "wrong_model": "以为同字「消防」即本考点答题"
+   }
+  ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:23+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
+ }
+}

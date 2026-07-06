@@ -1,0 +1,225 @@
+{
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "derived_from": "P40_G01.source_card.json",
+  "speakers": {
+    "T": {
+      "role": "teacher",
+      "voice": "longanhuan_v3"
+    },
+    "S": {
+      "role": "student",
+      "voice": "longlaotie_v3"
+    }
+  },
+  "opening": {
+    "exam_scene": "题干给出基坑开挖深度6m、上部填土、地下水丰富、下有承压水, 方案写管井降水、回灌防突涌、分层5m, 要求指出不妥并改正。",
+    "why_learn": "G01 作答层最容易丢分的不是不会背降水方法, 而是把题干现场对象写不成采分句: 管井为什么不行、6m该怎么回判、回灌到底防什么、5m分层哪里超限。",
+    "promise": "看完只练一个动作: 先把基坑降水题画成剖面对象和阈值线, 再写成“不妥-理由-正确做法”的采分答案。"
+  },
+  "teach": {
+    "voice": "longanhuan_v3",
+    "beats": [
+      {
+        "state": "hook",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[hook]",
+        "keycard": "先看工程剖面怎么暴露失分",
+        "bridge": "首幕先把这道题从知识背诵切到答案诊断。",
+        "exam_task": "识别学生原答案中管井、回灌、5m分层三处不妥。",
+        "visual_explanation": "深色蓝图板出现: 地面线、U形基坑、填土层、地下水线、承压水层先画出; 3m和6m虚线落下, 管井被红叉淘汰, 轻型井点贴到坑边。",
+        "answer_move": "先把错答行贴回题干对象, 不先背一串降水方法名。",
+        "narration": "注意哈，先别看答题纸，先看工程剖面。基坑深六米，上部是填土，地下水丰富，下面还有承压水。图上先落两条线：超过三米就不能停在明排，本题六米要回到井点选型。再看土层，填土直接把管井淘汰。你把这些对象看出来，后面答案才不是几个空话。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "基坑剖面",
+            "填土层",
+            "地下水线",
+            "承压水层",
+            "管井井点",
+            "轻型井点",
+            "3m/6m阈值线"
+          ],
+          "visual_action": "深色蓝图工程对象进入, 地面线和U形基坑先显现, 3m/6m阈值线命中后管井被淘汰, 轻型井点贴到坑边。",
+          "difference_from_previous": "这是第一幕, 不沿用答题纸扫描开场; 下一幕退出错答语义, 专注阈值选型。"
+        }
+      },
+      {
+        "state": "threshold_map",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[threshold_map]",
+        "keycard": "题干工况先在图上淘汰管井",
+        "bridge": "所以第一处错法, 先让题干工况自己说话。",
+        "exam_task": "用深度和土质阈值排除管井, 选出本题应写的井点类型。",
+        "visual_explanation": "开挖深度H轴从地面向下扫描, 黄色>3m线先做分流, 红色6m线回判轻型井点; 填土层命中管井并让管井退出。",
+        "answer_move": "写“填土不宜管井; 6m工况宜改用轻型井点”, 不写泛泛的“换一种方法”。",
+        "narration": "第一行先看选型。管井不是“常用就能用”, 它要看土层。题干给的是填土层, 填土、黏土不宜采用管井井点, 这一步先把管井淘汰。再看深度, 这里是六米, 单级轻型井点的降水深度正好到六米, 多级还能到六到十米。所以本题改正句要写具体：填土层采用管井不妥, 应按六米工况改用轻型井点。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "开挖深度H轴",
+            "3m分流线",
+            "6m本题线",
+            "填土层",
+            "管井井管",
+            "轻型井点管列"
+          ],
+          "visual_action": "H轴向下扫描, >3m线先分流, 6m线回判轻型井点, 填土层红线命中管井并让它退出。",
+          "difference_from_previous": "上一幕看错因全貌, 本幕换成深度和土层的选型命中; 下一幕保留剖面并把对象 trace 到答案句。"
+        }
+      },
+      {
+        "state": "scan_method",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[scan_method]",
+        "keycard": "采分句从剖面对象 trace 出来",
+        "bridge": "所以方法选出来后, 还要把它落成阅卷能扫到的句子。",
+        "exam_task": "把“填土不宜管井、6m宜轻型井点”写成不妥、理由、正确做法三段。",
+        "visual_explanation": "剖面对象保留, 从填土层、6m深度线、管井淘汰叉和轻型井点拉线到底部规则卡, 组成不妥、理由、正确做法。",
+        "answer_move": "写出“不妥: 填土层采用管井; 理由: 填土不宜管井; 正确做法: 改用轻型井点”。",
+        "narration": "这一句别写成“降水方法不妥, 应换一种”。阅卷人看不到你到底会不会选型。三段式这样扫：不妥之处, 填土层采用管井井点；理由, 管井适用于渗透系数较大的砂砾层, 填土不宜管井；正确做法, 本题六米工况宜改用轻型井点。你看, 对象、理由、改法都齐了, 才像案例题答案。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "基坑剖面",
+            "填土层",
+            "6m深度线",
+            "管井淘汰叉",
+            "轻型井点",
+            "采分句落点"
+          ],
+          "visual_action": "填土层、6m线、轻型井点分别拉线 trace 到底部规则卡, 形成对象、条件、排除、改法的扫描路径。",
+          "difference_from_previous": "上一幕只判选型, 本幕把工程对象移动到作答层; 下一幕退出选型 trace, 切换承压水职能路径。"
+        }
+      },
+      {
+        "state": "trap_inrush",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[trap_inrush]",
+        "keycard": "回灌防沉降, 不进突涌口",
+        "bridge": "第二处错法不是方法名记错, 而是工程职能混在一起。",
+        "exam_task": "区分回灌的周边保护职能和承压水坑底突涌措施。",
+        "visual_explanation": "回灌井箭头只导向坑外沉降控制; 承压水突涌箭头从坑底向上顶, 钻孔减压和水平封底隔渗进入突涌口。",
+        "answer_move": "写“回灌防周边沉降, 不防突涌; 承压水应验算突涌并采取钻孔减压或水平封底隔渗”。",
+        "narration": "再看承压水。学生说, 回灌能把水位平衡住, 所以能防突涌。这个心智模型很危险。回灌的职能是维持地下水位平衡, 防止周边沉降；承压水坑底突涌要写的是验算突涌, 必要时钻孔减压, 或者水平封底隔渗。所以答案要把两个对象分开：回灌不防突涌, 突涌用减压和封底隔渗。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "回灌井",
+            "周边沉降路径",
+            "承压水突涌箭头",
+            "钻孔减压线",
+            "水平封底隔渗线"
+          ],
+          "visual_action": "回灌井路径移动到坑外沉降, 承压水突涌箭头从坑底上顶, 减压和封底隔渗命中突涌口。",
+          "difference_from_previous": "上一幕解释选型采分句, 本幕换成水压职能分叉; 下一幕退出回灌路径, 进入分层厚度数字。"
+        }
+      },
+      {
+        "state": "correction_sentence",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[correction_sentence]",
+        "keycard": "5m分层要改成≤3m",
+        "bridge": "所以降水写对还不够, 题干同时埋了一个开挖控制数字。",
+        "exam_task": "识别分层厚度5m不妥, 并写出深基坑分层≤3m的正确做法。",
+        "visual_explanation": "红色5m段落在开挖厚度尺上显示超限, 绿色≤3m段覆盖到正确控制厚度, 底部规则卡把错误数字和正确门槛连成一句。",
+        "answer_move": "补“分层厚度5m不妥; 深基坑分层厚度宜≤3m; 应按≤3m控制”。",
+        "narration": "第三处是五米分层。别被“分层开挖”四个字骗了, 关键是厚度。深基坑开挖分层厚度宜控制在三米以内, 题干写五米就是超了。改写也按三段式：不妥, 分层厚度按五米控制；理由, 深基坑分层厚度宜不超过三米；正确做法, 应按不大于三米分层开挖。这个数字不写, 这行很难拿满。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "基坑深度尺",
+            "5m红色超限段",
+            "≤3m绿色控制段",
+            "地面线",
+            "分层开挖剖面"
+          ],
+          "visual_action": "红色5m段显现并命中超限, 绿色≤3m控制段覆盖到正确分层厚度, 底部规则卡扫描补句。",
+          "difference_from_previous": "上一幕处理承压水职能, 本幕换成空间尺度数字; 下一幕把所有对象合并为最终答案追溯图。"
+        }
+      },
+      {
+        "state": "score",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[score]",
+        "keycard": "最终按四个现场对象交卷",
+        "bridge": "前面三个错误都改成现场动作了, 最后把它们合成一份能交卷的答案。",
+        "exam_task": "输出选型、分层、突涌措施和回灌职能区分四行采分句。",
+        "visual_explanation": "最终蓝图同时保留管井淘汰、轻型井点、≤3m分层、承压水措施和回灌沉降路径; 底部规则卡汇总四行采分句。",
+        "answer_move": "完整写出四行, 避免只写“加强处理”或只答其中一处。",
+        "narration": "最后把四行交给阅卷人。第一行, 填土层采用管井不妥, 填土不宜管井, 六米工况宜改用轻型井点。第二行, 分层厚度五米不妥, 深基坑分层厚度宜控制在三米以内。第三行, 以回灌控制承压水突涌不妥, 承压水应验算坑底突涌, 采取钻孔减压或水平封底隔渗。第四行, 回灌的作用是防止周边沉降, 不是防突涌。这样写, 每一个现场对象都有答案行承接。",
+        "scene_visual_brief": {
+          "domain_objects": [
+            "完整基坑剖面",
+            "管井淘汰标记",
+            "轻型井点",
+            "≤3m分层段",
+            "承压水突涌措施",
+            "回灌沉降路径"
+          ],
+          "visual_action": "所有工程对象同时保留, 底部规则卡逐行扫描选型、分层、突涌、回灌职能, 每行都回追到图中对象。",
+          "difference_from_previous": "上一幕只看分层数字, 本幕合并四类对象; 下一幕退出主讲蓝图, 进入学生三问。"
+        }
+      }
+    ]
+  },
+  "qa": [
+    {
+      "state": "threshold_map",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，我写“管井不合适，换别的井点”，能拿分不？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[vague_change_method]",
+        "text": "不稳。你指出方向了, 但改正句没落地。要补“填土不宜管井”和“6m工况宜轻型井点”, 阅卷人才知道你会按工况选型。"
+      }
+    },
+    {
+      "state": "trap_inrush",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "那回灌不是也跟地下水有关吗，咋就不能写防突涌呢？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[recharge_for_inrush]",
+        "text": "因为它服务的对象不一样。回灌是防周边沉降, 承压水坑底突涌要验算, 再写钻孔减压或水平封底隔渗。对象错了, 措施分就丢。"
+      }
+    },
+    {
+      "state": "correction_sentence",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，五米我写“适当减小分层厚度”行不行？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[five_meter_layer_ok]",
+        "text": "还差数字。案例题考的是门槛, 要写深基坑分层厚度宜控制在3m以内, 并把题干5m改成≤3m。只写适当减小, 太虚。"
+      }
+    }
+  ],
+  "closing": {
+    "state": "closing_challenge",
+    "speaker": "T",
+    "claim": true,
+    "anchor": "memory_hook",
+    "text": "记住哈: G01 作答层不是先堆文字, 是题干对象先入蓝图, 阈值和职能线命中后, 再扫成不妥、理由、正确做法。现在进练习, 直接看哪句话能被阅卷扫描命中。"
+  }
+}

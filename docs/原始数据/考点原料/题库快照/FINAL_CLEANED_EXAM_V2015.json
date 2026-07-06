@@ -1,0 +1,1995 @@
+{
+  "meta": {
+    "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+    "generated_at": "2026-02-20T10:29:16.545214",
+    "version": "V1.0 (XW PDF Extracted)",
+    "note": "从【一建建筑】XW-历年真题解析（2015-2020）.pdf 提取，使用 PyMuPDF + 正则解析"
+  },
+  "stats": {
+    "total_chunks": 35,
+    "total_exercises": 52,
+    "single_choice": 20,
+    "multiple_choice": 10,
+    "case_study": 22
+  },
+  "chunks": [
+    {
+      "chunk_id": "EXAM_XW2015_SI_01",
+      "source_meta": {
+        "original_anchor": "第1题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 40
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "某厂房在经历强烈地震后，其结构仍能保持必要的整体性而不发生倒塌，此项功能属于\n结构的(  )。\nA. 安全性\nB. 适用性\nC. 耐久性\nD. 稳定性",
+            "options": [
+              {
+                "key": "A",
+                "value": "安全性"
+              },
+              {
+                "key": "B",
+                "value": "适用性"
+              },
+              {
+                "key": "C",
+                "value": "耐久性"
+              },
+              {
+                "key": "D",
+                "value": "稳定性"
+              }
+            ],
+            "correct_answer": "A",
+            "analysis": "【解析】本题考查的是建筑结构的可靠性。安全性指在正常施工和正常使用的条件下，结构应能承受\n可能出现的各种荷载作用和变形而不发生破坏；在偶然事件发生后，结构仍能保持必要的整体稳定性。例\n如，厂房结构平时受自重、吊车、风和积雪等荷载作用时，均应坚固不坏，而在遇到强烈地震、爆炸等偶\n然事件时，容许有局部的损伤，但应保持结构的整体稳定而不发生倒塌。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_02",
+      "source_meta": {
+        "original_anchor": "第2题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 40
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "某构件受力简图如下图，则点O 的力矩MO 为(  )。\nA. P·a\nB. P·b\nC. P·c\nD. P·d",
+            "options": [
+              {
+                "key": "A",
+                "value": "P·a"
+              },
+              {
+                "key": "B",
+                "value": "P·b"
+              },
+              {
+                "key": "C",
+                "value": "P·c"
+              },
+              {
+                "key": "D",
+                "value": "P·d"
+              }
+            ],
+            "correct_answer": "B",
+            "analysis": "【解析】本题考查的是力偶、力矩的特性。力矩= 力× 力臂。力臂是力矩中心点O 至力P 的作用线\n的垂直距离。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_03",
+      "source_meta": {
+        "original_anchor": "第3题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 40
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "关于一般环境条件下建筑结构混凝土板构造要求的说法，错误的是(  )。\nA. 屋面板厚度一般不小于60mm\nB. 楼板厚度一般不小于80mm\nC. 楼板的保护层厚度不小于35mm\nD. 楼板受力钢筋间距不宜大于250mm",
+            "options": [
+              {
+                "key": "A",
+                "value": "屋面板厚度一般不小于60mm"
+              },
+              {
+                "key": "B",
+                "value": "楼板厚度一般不小于80mm"
+              },
+              {
+                "key": "C",
+                "value": "楼板的保护层厚度不小于35mm"
+              },
+              {
+                "key": "D",
+                "value": "楼板受力钢筋间距不宜大于250mm"
+              }
+            ],
+            "correct_answer": "C",
+            "analysis": "【解析】本题考查的是建筑结构的构造要求。板的厚度与计算跨度有关，屋面板一般不小于60mm, 楼\n板一般不小于80mm，板的支承长度不能小于规范规定的长度，板的保护层厚度一般为15-30mm。受力钢\n筋直径常用6、8、10、12mm。间距不宜大于250mm。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_04",
+      "source_meta": {
+        "original_anchor": "第4题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 41
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "代号为P·O 的通用硅酸盐水泥是(  )。\nA. 硅酸盐水泥\nB. 普通硅酸盐水泥\nC. 粉煤灰硅酸盐水泥\nD. 复合硅酸盐水泥",
+            "options": [
+              {
+                "key": "A",
+                "value": "硅酸盐水泥"
+              },
+              {
+                "key": "B",
+                "value": "普通硅酸盐水泥"
+              },
+              {
+                "key": "C",
+                "value": "粉煤灰硅酸盐水泥"
+              },
+              {
+                "key": "D",
+                "value": "复合硅酸盐水泥"
+              }
+            ],
+            "correct_answer": "B",
+            "analysis": "【解析】本题考查的是水泥的性能和应用。普通硅酸盐水泥的代号为P·O，参见表1A412011—1。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_05",
+      "source_meta": {
+        "original_anchor": "第5题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 41
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "在工程应用中，钢筋的塑性指标通常用(\n) 表示。\nA. 抗拉强度\nB. 屈服强度\nC. 强屈比\nD. 伸长率",
+            "options": [
+              {
+                "key": "A",
+                "value": "抗拉强度"
+              },
+              {
+                "key": "B",
+                "value": "屈服强度"
+              },
+              {
+                "key": "C",
+                "value": "强屈比"
+              },
+              {
+                "key": "D",
+                "value": "伸长率"
+              }
+            ],
+            "correct_answer": "D",
+            "analysis": "【解析】本题考查的是建筑钢材的力学性能。钢材在受力破坏前可以经受永久变形的性能，称为塑性。\n在工程应用中，钢材的塑性指标通常用伸长率表示。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_06",
+      "source_meta": {
+        "original_anchor": "第6题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 41
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "下列混凝土外加剂中，不能显著改善混凝土拌合物流变性能的是(\n)。\nA. 减水剂\nB. 引气剂\nC. 膨胀剂\nD. 泵送剂",
+            "options": [
+              {
+                "key": "A",
+                "value": "减水剂"
+              },
+              {
+                "key": "B",
+                "value": "引气剂"
+              },
+              {
+                "key": "C",
+                "value": "膨胀剂"
+              },
+              {
+                "key": "D",
+                "value": "泵送剂"
+              }
+            ],
+            "correct_answer": "C",
+            "analysis": "【解析】本题考查的是混凝土外加剂的功能、种类与应用。混凝土中掺入减水剂，若不减少拌合用水量，\n能显著提高拌合物的流动性；引气剂可改善混凝土拌合物的和易性，减少泌水离析；泵送剂是用于改善混\n凝土泵送性能的外加剂，它是由减水剂、调凝剂、引气剂润滑剂等多种复合而成，也可以改善混凝土拌合\n物的流变性能。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_07",
+      "source_meta": {
+        "original_anchor": "第7题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 42
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "木材的干缩湿胀变形在各个方向上有所不同，变形量从小到大依次是(  )。\nA. 顺纹、径向、弦向\nB. 径向、顺纹、弦向\nC. 径向、弦向、顺纹\nD. 弦向、径向、顺纹",
+            "options": [
+              {
+                "key": "A",
+                "value": "顺纹、径向、弦向"
+              },
+              {
+                "key": "B",
+                "value": "径向、顺纹、弦向"
+              },
+              {
+                "key": "C",
+                "value": "径向、弦向、顺纹"
+              },
+              {
+                "key": "D",
+                "value": "弦向、径向、顺纹"
+              }
+            ],
+            "correct_answer": "A",
+            "analysis": "【解析】本题考查的是木材的基本知识。由于木材构造的不均匀性，木材的变形在各个方向上也不同；\n顺纹方向最小，径向较大，弦向最大。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_08",
+      "source_meta": {
+        "original_anchor": "第8题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 42
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "在进行土方平衡调配时，需要重点考虑的性能参数是(  )。\nA. 天然含水量\nB. 天然密度\nC. 密实度\nD. 可松性",
+            "options": [
+              {
+                "key": "A",
+                "value": "天然含水量"
+              },
+              {
+                "key": "B",
+                "value": "天然密度"
+              },
+              {
+                "key": "C",
+                "value": "密实度"
+              },
+              {
+                "key": "D",
+                "value": "可松性"
+              }
+            ],
+            "correct_answer": "D",
+            "analysis": "【解析】本题考查的是岩土的工程性能。土的可松性：天然土经开挖后，其体积因松散而增加，虽经\n振动夯实，仍不能完全恢复到原来的体积，这种性质称为土的可松性。它是挖填土方时，计算土方机械生\n产率、回填土方量、运输机具数量、进行场地平整规划竖向设计、土方平衡调配的重要参数。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_09",
+      "source_meta": {
+        "original_anchor": "第9题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 42
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "针对渗透系数较大的土层，适宜采用的降水技术是(  ) 降水。\nA. 真空井点\nB. 轻型井点\nC. 喷射井点\nD. 管井井点",
+            "options": [
+              {
+                "key": "A",
+                "value": "真空井点"
+              },
+              {
+                "key": "B",
+                "value": "轻型井点"
+              },
+              {
+                "key": "C",
+                "value": "喷射井点"
+              },
+              {
+                "key": "D",
+                "value": "管井井点"
+              }
+            ],
+            "correct_answer": "D",
+            "analysis": "【解析】本题考查的是人工降低地下水位施工技术。真空( 轻型) 井点适于渗透系数为0.1 ～20.0m/\nd 的土以及土层中含有大量的细砂和粉砂的土或明沟排水易引起流沙、坍方等情况使用。喷射井点降水适\n于基坑开挖较深、降水深度大于6m、土渗透系数为0.1 ～20.0m/d 的填土、粉土、黏性土、砂土中使用。\n管井井点属于重力排水范畴，吸程高度受到一定限制，要求渗透系数较大(1.0~200.0m/d)。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_10",
+      "source_meta": {
+        "original_anchor": "第10题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 43
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "某跨度8m 的混凝土楼板，设计强度等级C30，模板采用快拆支架体系，支架立杆间距\n2m，拆模时混凝土的最低强度是(  )MPa。\nA. 15\nB. 22.5\nC. 25.5\nD. 30",
+            "options": [
+              {
+                "key": "A",
+                "value": "15"
+              },
+              {
+                "key": "B",
+                "value": "22.5"
+              },
+              {
+                "key": "C",
+                "value": "25.5"
+              },
+              {
+                "key": "D",
+                "value": "30"
+              }
+            ],
+            "correct_answer": "A",
+            "analysis": "【解析】本题考查的是模板工程。快拆支架体系的支架立杆间距不应大于2m。拆模时应保留立杆并\n顶托支承楼板，拆模时的混凝土强度可取构件跨度为2m，拆模时的最低强度为设计强度的50%，所以选\n项A 正确。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_11",
+      "source_meta": {
+        "original_anchor": "第11题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 43
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "冬期浇筑的没有抗冻耐久性要求的C50 混凝土，其受冻临界强度不宜低于设计强度等\n级的(  )。\nA. 20%\nB. 30%\nC. 40%\nD. 50%",
+            "options": [
+              {
+                "key": "A",
+                "value": "20%"
+              },
+              {
+                "key": "B",
+                "value": "30%"
+              },
+              {
+                "key": "C",
+                "value": "40%"
+              },
+              {
+                "key": "D",
+                "value": "50%"
+              }
+            ],
+            "correct_answer": "B",
+            "analysis": "【解析】本题考查的是混凝土冬期施工的受冻临界强度。冬期浇筑的混凝土强度等级等于或高于C50\n的，其受冻临界强度不宜低于设计混凝土强度等级值的30%。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_12",
+      "source_meta": {
+        "original_anchor": "第12题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 43
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "关于砖砌体施工要点的说法，正确的是(\n)。\nA. 半盲孔多孔砖的封底面应朝下砌筑\nB. 多孔砖的孔洞应垂直于受压面砌筑\nC. 马牙槎从每层柱脚开始先进后退设置\nD. 多孔砖应饱和吸水后进行砌筑",
+            "options": [
+              {
+                "key": "A",
+                "value": "半盲孔多孔砖的封底面应朝下砌筑"
+              },
+              {
+                "key": "B",
+                "value": "多孔砖的孔洞应垂直于受压面砌筑"
+              },
+              {
+                "key": "C",
+                "value": "马牙槎从每层柱脚开始先进后退设置"
+              },
+              {
+                "key": "D",
+                "value": "多孔砖应饱和吸水后进行砌筑"
+              }
+            ],
+            "correct_answer": "B",
+            "analysis": "【解析】本题考查的是砖砌体工程。选项A：半盲孔多孔的封底面应朝上砌筑；选项C：马牙槎从每\n层柱脚开始，应先退后进；选项D：砌筑烧结普通砖、烧结多孔砖、蒸压灰砂砖、蒸压粉煤灰砖砌体时，\n砖应提前适度湿润，严禁采用干砖或处于吸水饱和状态的砖砌筑。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_13",
+      "source_meta": {
+        "original_anchor": "第13题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 44
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "关于型钢混凝土组合结构特点的说法，错误的是(  )。\nA. 型钢不受含钢率限制\nB. 抗震性能好\nC. 构件截面大\nD. 承载能力高",
+            "options": [
+              {
+                "key": "A",
+                "value": "型钢不受含钢率限制"
+              },
+              {
+                "key": "B",
+                "value": "抗震性能好"
+              },
+              {
+                "key": "C",
+                "value": "构件截面大"
+              },
+              {
+                "key": "D",
+                "value": "承载能力高"
+              }
+            ],
+            "correct_answer": "C",
+            "analysis": "【解析】本题考查的是型钢混凝土组合结构的特点与应用。型钢混凝土构件的承载能力可以高于同样\n外形的钢筋混凝土构件的承载能力一倍以上，因而可以减小构件截面。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_14",
+      "source_meta": {
+        "original_anchor": "第14题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 44
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "关于钢筋加工的说法，正确的是(  )。\nA. 不得采用冷拉调直\nB. 不得采用喷砂除锈\nC. 不得反复弯折\nD. 不得采用手动液压切断下料",
+            "options": [
+              {
+                "key": "A",
+                "value": "不得采用冷拉调直"
+              },
+              {
+                "key": "B",
+                "value": "不得采用喷砂除锈"
+              },
+              {
+                "key": "C",
+                "value": "不得反复弯折"
+              },
+              {
+                "key": "D",
+                "value": "不得采用手动液压切断下料"
+              }
+            ],
+            "correct_answer": "C",
+            "analysis": "【解析】本题考查的是钢筋工程。选项A：钢筋宜采用无延伸功能的机械设备进行调直，也可采用冷\n拉调直；选项B：\n钢筋除锈：一是在钢筋冷拉或调直过程中除锈；二是可采用机械除锈机除锈、喷砂除锈、酸洗除锈和\n手工除锈等。\n选项C：钢筋弯折应一次完成，不得反复弯折。选项D：钢筋下料切断可采用钢筋切断机或手动液压\n切断器进行。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_15",
+      "source_meta": {
+        "original_anchor": "第15题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 44
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "通常情况下，玻璃幕墙上悬开启窗最大的开启角度是(  )。\nA. 30°\nB. 40°\nC. 50°\nD. 60°",
+            "options": [
+              {
+                "key": "A",
+                "value": "30°"
+              },
+              {
+                "key": "B",
+                "value": "40°"
+              },
+              {
+                "key": "C",
+                "value": "50°"
+              },
+              {
+                "key": "D",
+                "value": "60°"
+              }
+            ],
+            "correct_answer": "A",
+            "analysis": "【解析】本题考查的是玻璃幕墙工程施工方法和技术要求。幕墙开启窗的开启角度不宜大于30°，开\n启距离不宜大于300mm。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_16",
+      "source_meta": {
+        "original_anchor": "第16题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 45
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "关于等节奏流水施工的说法，错误的是(\n)。\nA. 各施工过程在各个施工段流水节拍相等\nB. 相邻施工过程的流水步距相等\nC. 专业工作队数等于施工过程数\nD. 各专业工作队在各施工段上不能连续作业",
+            "options": [
+              {
+                "key": "A",
+                "value": "各施工过程在各个施工段流水节拍相等"
+              },
+              {
+                "key": "B",
+                "value": "相邻施工过程的流水步距相等"
+              },
+              {
+                "key": "C",
+                "value": "专业工作队数等于施工过程数"
+              },
+              {
+                "key": "D",
+                "value": "各专业工作队在各施工段上不能连续作业"
+              }
+            ],
+            "correct_answer": "D",
+            "analysis": "【解析】本题考查的是流水施工方法的应用。等节奏流水施工特点：(1) 所有施工过程在各个施工段上的\n流水节拍均相等；选项A 正确。(2) 相邻施工过程的流水步距相等，且等于流水节拍；选项B 正确。(3) 专业\n工作队数等于施工过程数，即每一个施工过程成立一个专业工作队，由该队完成相应施工过程所有施工任务；\n选项C 正确。(4) 各个专业工作队在各施工段上能够连续作业，施工段之间没有空闲时间。选项D 错误。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_17",
+      "source_meta": {
+        "original_anchor": "第17题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 45
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "防水砂浆施工时，其环境温度最低限制为(  )。\nA. 0℃\nB. 5℃\nC. 10℃\nD. 15℃",
+            "options": [
+              {
+                "key": "A",
+                "value": "0℃"
+              },
+              {
+                "key": "B",
+                "value": "5℃"
+              },
+              {
+                "key": "C",
+                "value": "10℃"
+              },
+              {
+                "key": "D",
+                "value": "15℃"
+              }
+            ],
+            "correct_answer": "B",
+            "analysis": "【解析】本题考查的是水泥砂浆防水层施工。冬期施工时，气温不应低于5° C。所以，选项B 是正确的。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_18",
+      "source_meta": {
+        "original_anchor": "第18题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 45
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "气焊电石起火时，可以采用的灭火材料或器材是(  )。\nA. 干砂\nB. 水\nC. 四氯化碳灭火器\nD. 泡沫灭火器",
+            "options": [
+              {
+                "key": "A",
+                "value": "干砂"
+              },
+              {
+                "key": "B",
+                "value": "水"
+              },
+              {
+                "key": "C",
+                "value": "四氯化碳灭火器"
+              },
+              {
+                "key": "D",
+                "value": "泡沫灭火器"
+              }
+            ],
+            "correct_answer": "A",
+            "analysis": "【解析】本题考查的是铆焊设备的安全控制要点。气焊电石起火时必须用干砂或二氧化碳灭火器，严\n禁用泡沫、四氯化碳灭火器或水灭火。所以，选项A 是正确的。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_19",
+      "source_meta": {
+        "original_anchor": "第19题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 46
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "自坍塌事故发生之日起(  ) 天内，事故造成的伤亡人数发生变化的，应当及时补报。\nA. 7\nB. 14\nC. 15\nD. 30",
+            "options": [
+              {
+                "key": "A",
+                "value": "7"
+              },
+              {
+                "key": "B",
+                "value": "14"
+              },
+              {
+                "key": "C",
+                "value": "15"
+              },
+              {
+                "key": "D",
+                "value": "30"
+              }
+            ],
+            "correct_answer": "D",
+            "analysis": "【解析】本题考查的是事故报告。自事故发生之日起30 天内，事故造成的伤亡人数发生变化的，应\n当及时补报。",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_SI_20",
+      "source_meta": {
+        "original_anchor": "第20题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 46
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "single_choice",
+          "question_data": {
+            "stem": "燃烧性能等级为B1 级的装修材料其燃烧性为(  )。\nA. 不燃\nB. 难燃\nC. 可燃\nD. 易燃",
+            "options": [
+              {
+                "key": "A",
+                "value": "不燃"
+              },
+              {
+                "key": "B",
+                "value": "难燃"
+              },
+              {
+                "key": "C",
+                "value": "可燃"
+              },
+              {
+                "key": "D",
+                "value": "易燃"
+              }
+            ],
+            "correct_answer": "B",
+            "analysis": "【解析】本题考查的是装修材料的分类和分级。A 类为不燃，B1 类为难燃，B2 类为可燃，B3 类为易燃。\n二、多选题",
+            "score": 1.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_MU_21",
+      "source_meta": {
+        "original_anchor": "第21题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 46
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "multiple_choice",
+          "question_data": {
+            "stem": "关于钢化玻璃特性的说法，正确的有(  )。\nA. 使用时可以切割\nB. 可能发生爆炸\nC. 碎后易伤人\nD. 热稳定性差\nE. 机械强度高",
+            "options": [
+              {
+                "key": "A",
+                "value": "使用时可以切割"
+              },
+              {
+                "key": "B",
+                "value": "可能发生爆炸"
+              },
+              {
+                "key": "C",
+                "value": "碎后易伤人"
+              },
+              {
+                "key": "D",
+                "value": "热稳定性差"
+              },
+              {
+                "key": "E",
+                "value": "机械强度高"
+              }
+            ],
+            "correct_answer": "BE",
+            "analysis": "【解析】本题考查的是安全玻璃，钢化玻璃的特性包括：机械强度高；弹性好；热稳定性好；碎后不\n易伤人；可发生自爆。",
+            "score": 2.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_MU_22",
+      "source_meta": {
+        "original_anchor": "第22题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 47
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "multiple_choice",
+          "question_data": {
+            "stem": "根据《建筑施工安全检查标准》\n（JGJ59—2011），\n《模板支架检查评分表》保证项目有(  )。\nA. 施工方案\nB. 支架构造\nC. 底座与托撑\nD. 构配件材质\nE. 支架稳定",
+            "options": [
+              {
+                "key": "A",
+                "value": "施工方案"
+              },
+              {
+                "key": "B",
+                "value": "支架构造"
+              },
+              {
+                "key": "C",
+                "value": "底座与托撑"
+              },
+              {
+                "key": "D",
+                "value": "构配件材质"
+              },
+              {
+                "key": "E",
+                "value": "支架稳定"
+              }
+            ],
+            "correct_answer": "ABE",
+            "analysis": "【解析】本题考查的是《安全检查评分表》。《模板支架检查评分表》检查评定保证项目包括：施工方案、\n支架基础、支架构造、支架稳定、施工荷载、交底与验收。一般项目包括：杆件链接、底座与拖撑、构配\n件材质、支架拆除。",
+            "score": 2.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_MU_23",
+      "source_meta": {
+        "original_anchor": "第23题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 47
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "multiple_choice",
+          "question_data": {
+            "stem": "关于有机防火封堵材料特点的说法，正确的有(  )。\nA. 不能重复使用\nB. 遇火时发泡膨胀\nC. 优异的水密性能\nD. 优异的气密性能\nE. 可塑性好",
+            "options": [
+              {
+                "key": "A",
+                "value": "不能重复使用"
+              },
+              {
+                "key": "B",
+                "value": "遇火时发泡膨胀"
+              },
+              {
+                "key": "C",
+                "value": "优异的水密性能"
+              },
+              {
+                "key": "D",
+                "value": "优异的气密性能"
+              },
+              {
+                "key": "E",
+                "value": "可塑性好"
+              }
+            ],
+            "correct_answer": "BCDE",
+            "analysis": "【解析】本题考查的是防火堵料。有机防火堵料又称可塑性防火堵料，它是以合成树脂为胶粘剂，并\n配以防火助剂、填料制成的。此类堵料在使用过程长期不硬化，可塑性好，容易封堵各种不规则形状的孔\n洞，能够重复使用。遇火时发泡膨胀，因此具有优异的防火、水密、气密性能。施工操作和更换较为方便，\n因此尤其适合需经常更换或增减电缆、管道的场合。",
+            "score": 2.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_MU_24",
+      "source_meta": {
+        "original_anchor": "第24题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 47
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "multiple_choice",
+          "question_data": {
+            "stem": "关于钢筋混凝土预制桩锤击沉桩顺序的说法，正确的有(  )。\nA. 基坑不大时，打桩可逐排打设\nB. 对于密集桩群，从中间开始分头向四周或两边对称施打\nC. 当一侧毗邻建筑物时，由毗邻建筑物处向另一方向施打\nD. 对基础标高不一的桩，宜先浅后深\nE. 对不同规格的桩，宜先小后大",
+            "options": [
+              {
+                "key": "A",
+                "value": "基坑不大时，打桩可逐排打设"
+              },
+              {
+                "key": "B",
+                "value": "对于密集桩群，从中间开始分头向四周或两边对称施打"
+              },
+              {
+                "key": "C",
+                "value": "当一侧毗邻建筑物时，由毗邻建筑物处向另一方向施打"
+              },
+              {
+                "key": "D",
+                "value": "对基础标高不一的桩，宜先浅后深"
+              },
+              {
+                "key": "E",
+                "value": "对不同规格的桩，宜先小后大"
+              }
+            ],
+            "correct_answer": "ABC",
+            "analysis": "【解析】本题考查的是钢筋混凝土预制桩基础施工技术。当基坑不大时，打桩应逐排打设或从中间开\n始分头向四周或两边进行；对于密集桩群，从中间开始分头向四周或两边对称施打；当一侧毗邻建筑物时，\n由毗邻建筑物处向另一方向施打；当基坑较大时，宜将基坑分为数段，然后在各段范围内分别施打，但打\n桩应避免自外向内或从周边向中间进行，以避免中间土体被挤密，桩难以打人；或虽勉强打入，但使邻桩\n侧移或上冒；对基础标高不一的桩，宜先深后浅；对不同规格的桩，宜先大后小、先长后短。这样可使土\n层挤密均匀，以防止位移或偏斜。",
+            "score": 2.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_MU_25",
+      "source_meta": {
+        "original_anchor": "第25题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 48
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "multiple_choice",
+          "question_data": {
+            "stem": "下列连接节点中，使用于网架结构的有(  )。\nA. 拉铆节点\nB. 螺栓球节点\nC. 板节点\nD. 焊接空心球节点\nE. 相贯节点",
+            "options": [
+              {
+                "key": "A",
+                "value": "拉铆节点"
+              },
+              {
+                "key": "B",
+                "value": "螺栓球节点"
+              },
+              {
+                "key": "C",
+                "value": "板节点"
+              },
+              {
+                "key": "D",
+                "value": "焊接空心球节点"
+              },
+              {
+                "key": "E",
+                "value": "相贯节点"
+              }
+            ],
+            "correct_answer": "BCDE",
+            "analysis": "【解析】本题考查的是网架结构施工技术。网架节点形式有：焊接空心球节点、螺栓球节点、板节点、\n毂节点、相贯节点。",
+            "score": 2.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_MU_26",
+      "source_meta": {
+        "original_anchor": "第26题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 48
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "multiple_choice",
+          "question_data": {
+            "stem": "关于防水混凝土施工的说法，正确的有(  )。\nA. 连续性浇筑，少留施工缝\nB. 宜采用高频机械分层振捣密实\nC. 施工缝宜留置在受剪力较大部位\nD. 养护时间不少于7 天\nE. 冬期施工入模温度不应低于5℃",
+            "options": [
+              {
+                "key": "A",
+                "value": "连续性浇筑，少留施工缝"
+              },
+              {
+                "key": "B",
+                "value": "宜采用高频机械分层振捣密实"
+              },
+              {
+                "key": "C",
+                "value": "施工缝宜留置在受剪力较大部位"
+              },
+              {
+                "key": "D",
+                "value": "养护时间不少于7 天"
+              },
+              {
+                "key": "E",
+                "value": "冬期施工入模温度不应低于5℃"
+              }
+            ],
+            "correct_answer": "ABE",
+            "analysis": "【解析】本题考查的是防水混凝土。防水混凝土应连续浇筑，宜少留施工缝。当留设施工缝时，不应\n留在剪力最大处或底板与侧墙的交接处。防水混凝土应分层连续浇筑，分层厚度不得大于500mm，并应\n采用机械振捣，避免漏振、欠振和超振。防水混凝土冬期施工时，其入模温度不应低于5℃。防水混凝土\n养护时间不得少于14d。",
+            "score": 2.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_MU_27",
+      "source_meta": {
+        "original_anchor": "第27题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 48
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "multiple_choice",
+          "question_data": {
+            "stem": "混凝土振捣作业易发的职业病有(  )。\nA. 电光性眼炎\nB. 一氧化碳中毒\nC. 噪声致聋\nD. 手臂振动病\nE. 苯致白血病",
+            "options": [
+              {
+                "key": "A",
+                "value": "电光性眼炎"
+              },
+              {
+                "key": "B",
+                "value": "一氧化碳中毒"
+              },
+              {
+                "key": "C",
+                "value": "噪声致聋"
+              },
+              {
+                "key": "D",
+                "value": "手臂振动病"
+              },
+              {
+                "key": "E",
+                "value": "苯致白血病"
+              }
+            ],
+            "correct_answer": "CD",
+            "analysis": "【解析】本题考查的是职业病防范。混凝土振捣会导致的常见职业病有：噪声致聋、手臂振动病。电\n光性眼炎和一氧化碳中毒一般是手工电弧焊、电渣焊和气割作业导致的；苯致白血病常在油漆作业和防腐\n作业中致病。",
+            "score": 2.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_MU_28",
+      "source_meta": {
+        "original_anchor": "第28题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 49
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "multiple_choice",
+          "question_data": {
+            "stem": "根据《建筑工程施工质量验收统一标准》(GB50300—2013)，施工单位技术、质量部门\n负责人必须参加验收的分部工程有(  )。\nA. 地基与基础\nB. 主体结构\nC. 建筑装饰装修\nD. 屋面\nE. 建筑节能",
+            "options": [
+              {
+                "key": "A",
+                "value": "地基与基础"
+              },
+              {
+                "key": "B",
+                "value": "主体结构"
+              },
+              {
+                "key": "C",
+                "value": "建筑装饰装修"
+              },
+              {
+                "key": "D",
+                "value": "屋面"
+              },
+              {
+                "key": "E",
+                "value": "建筑节能"
+              }
+            ],
+            "correct_answer": "ABE",
+            "analysis": "【解析】本题考查的是建筑工程质量验收要求。地基与基础工程、主体结构、建筑节能验收时需要施\n工单位技术、质量部门负责人参加。",
+            "score": 2.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_MU_29",
+      "source_meta": {
+        "original_anchor": "第29题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 49
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "multiple_choice",
+          "question_data": {
+            "stem": "下列施工方法中，属于绿色施工的是(  )。\nA. 使用商品混凝土\nB. 采用人造板材模板\nC. 降低机械的满载率\nD. 面砖施工前进行总体排版策划\nE. 采用专业加工配送的钢筋",
+            "options": [
+              {
+                "key": "A",
+                "value": "使用商品混凝土"
+              },
+              {
+                "key": "B",
+                "value": "采用人造板材模板"
+              },
+              {
+                "key": "C",
+                "value": "降低机械的满载率"
+              },
+              {
+                "key": "D",
+                "value": "面砖施工前进行总体排版策划"
+              },
+              {
+                "key": "E",
+                "value": "采用专业加工配送的钢筋"
+              }
+            ],
+            "correct_answer": "ABDE",
+            "analysis": "【解析】本题考查的是绿色建筑与绿色施工。推广使用商品混凝土和预拌砂浆、高强钢筋和高性能混\n凝土，减少资源消耗。推广钢筋专业化加工和配送，优化钢结构制作和安装方案，装饰贴面类材料在施工前，\n应进行总体排版策划，减少资源损耗。采用非木质的新材料或人造板材代替木质板材。",
+            "score": 2.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_MU_30",
+      "source_meta": {
+        "original_anchor": "第30题",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 49
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "multiple_choice",
+          "question_data": {
+            "stem": "关于施工现场消防管理的说法，正确的有(  )。\nA. 动火证当日有效\nB. 施工现场严禁吸烟\nC. 应配备义务消防人员\nD. 易燃材料仓库应设在上风方向\nE. 油漆料库内应设置调料间",
+            "options": [
+              {
+                "key": "A",
+                "value": "动火证当日有效"
+              },
+              {
+                "key": "B",
+                "value": "施工现场严禁吸烟"
+              },
+              {
+                "key": "C",
+                "value": "应配备义务消防人员"
+              },
+              {
+                "key": "D",
+                "value": "易燃材料仓库应设在上风方向"
+              },
+              {
+                "key": "E",
+                "value": "油漆料库内应设置调料间"
+              }
+            ],
+            "correct_answer": "ABC",
+            "analysis": "【解析】本题考查的是施工现场消防管理。动火证当日有效并按规定开具，动火地点变换，要重新办\n理动火证手续；施工现场严禁吸烟；项目部应根据工程规模、施工人数，建立相应的消防组织，配备足够\n的义务消防员。D 易燃材料仓库应该设置在下风向；E 油漆料库与调料间应分开设置。\n三、案例分析题\n【案例一】参考答案：\n1. 施工总进度计划的内容包括：编制说明，施工总进度计划表( 图)，分期( 分批) 实施工程的开、\n竣工日期及工期一览表，资源需要量及供应平衡表等。( 注：只需写出题目上缺少的即可)。\n2. 调整后的施工进度计划网络图如下所示：\n( 注：只需要将 3—4 之间增加一个虚工作即可)\n网络图中关键线路有两条，分别是 A →B →F →H →I 和 A →D →G →H →I。总工期为\nT=5+7+5+4+4=25 或 T=5+8+4+4+4=25 个月。\n3. (1) 工期索赔：索赔不成立。\n理由：因为 C 为非关键工作，总时差为 1 个月，设计变更后导致工期延误 2 个月，对总工期影响只\n有 1 个月， 所以，C 工作的工期索赔为 1 个月。\n费用索赔：索赔成立。C 工作索赔费用 27.2 万合理。\n理由：因为设计变更是非承包商原因导致的承包商自身经济损失，承包商有权对建设单位提出费用\n索赔。\n(2) 工期索赔：索赔不成立。E 工作索赔 3 个月的工期不合理。\n理由：因为 E 为非关键工作，总时差为 4 个月，不可抗力导致了工期延误 3 个月，延误时长未超过\n总时差， 所以工期索赔不成立。\n费用索赔：索赔不成立。E 工作索赔 32.7 万费用不合理。\n理由：在 32.7 万中，有 8.2 万是不可抗力导致施工设备损失的费用。在不可抗力后，施工单位人员和\n机械是损失，不能向建设单位索赔，需要施工单位自己承担。而 24.5 万的清理和修复费用是可以索赔的，\n因为在不可抗力后的清理和维修费用，应该由建设单位承担的。\n4. (1) 不需要组织专家论证，只需要编制模板工程专项施工方案。需要编制专项施工方案和组织专家\n论证的梁跨度分别为 10m 以上、18m 以上。\n(2) 长度超过 4m 的梁板应按照设计起拱，若设计无要求时，可以按照梁跨度的 1/1000~3/1000 起拱。\n因此梁的起拱高度为 10.5mm-31.5mm，所以最小起拱高度为 10.5mm\n(3) 混凝土的浇筑高度为 900mm。\n【案例二】参考答案：\n1. 还应检查钢构件预检和配套、定位轴线及标高和地脚螺栓的检查、安装机械的选择、安装流水段的\n划分和安装顺序的确定等。\n钢构件现场堆场具备的基本条件：场地平整、坚实，无水坑、冰层；地面干燥，有较好的排水设施，\n同时车辆进出方便，方便起吊构件。\n2. 幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度\n不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小\n于 1.5mm 的镀锌钢板承托，不得采用铝板。承托板与主体结构、幕墙结构及承托板之间的缝隙应采用防\n火密封胶密封。\n\n\n幕墙工程中有关安全和功能的检测项目有：硅酮结构胶的相容性试验；幕墙后置埋件的现场拉拔强度；\n幕墙的抗风压性能、空气渗透性能、雨水渗漏性能及平面变形性能。\n3. 错误之一：泛水高度为 200mm。正确做法：泛水高度至少为 250mm。\n错误之二：阴阳角基层卷材防水为直角形式。\n正确做法：阴阳角基层卷材做成 45 度角或圆弧型。\n错误之三：女儿墙泛水处防水层没有做附加层。\n正确做法：女儿墙泛水处的防水层下应增设附加层，附加层在平面和立面的宽度均不应小于\n250mm。\n错误之四：压顶檐口下端未做处理。\n正确做法：压顶檐口下端应做鹰嘴和滴水槽。\n错误之五：卷材收头未作处理。\n正确做法：卷材收头应用金属压条钉压固定，并应用密封材料封严。\n4. 保温隔热材料，其导热系数、密度、抗压强度或压缩强度、燃烧性能应符合设计要求。对其检验时\n应核查质量证明文件及进场复验报告( 复验应为见证取样送检)。并对保温材料的导热系数、密度、抗压\n强度或压缩强度，粘结材料的粘结强度，增强网的力学性能、抗腐蚀性能等进行复验。\n节能分部工程验收组织不妥之处：施工单位项目负责人组织不妥。应该是总监理工程师组织。组织参\n加的人员不妥当。设计单位项目负责人和施工单位技术、质量部门负责人应参加节能分部工程验收。\n【案例三】参考答案：\n1. 还应单独编制的专项施工方案包括：深基坑支护工程、降水工程、土方开挖工程、模板工程及支撑\n体系， 建筑幕墙安装工程。\n2.“三违”还包括违章指挥、违反劳动纪律。\n混凝土内支撑拆除还可以采用：机械拆除、爆破拆除和静力破碎拆除。\n3. 不妥之处一：施工员进行安全技术交底。\n正确做法：应由项目技术负责人或专业技术人员进行技术交底。\n不妥之处二：在卸料平台三个侧边设置 1200mm 高的固定式安全防护栏杆。\n正确做法：应在卸料平台两侧设置固定的防护栏杆，底部设置 200mm 高挡脚板。\n悬挑式钢平台必须符合下列规定：\n(1) 悬挑式钢平台应按现行的相应规范进行设计，其结构构造应能防止左右晃动，计算书及图纸应编\n入施工组织设计。\n(2) 悬挑式钢平台的搁支点与上部拉结点，必须位于建筑物上，不得设置在脚手架等施工设备上。\n(3) 斜拉杆或钢丝绳，构造上宜两边各设前后两道，两道中的每一道均应作单道受力计算。\n(4) 应设置 4 个经过验算的吊环。吊运平台时应使用卡环，不得使吊钩直接钩挂吊环。吊环应用甲类\n3 号沸腾钢制作。\n(5) 钢平台安装时，钢丝绳应采用专用的挂钩挂牢，采取其他方式时卡头的卡子不得少于 3 个，建筑\n物锐角利口围系钢丝绳处应加衬软垫物，钢平台外口应略高于内口。\n(6) 钢平台左右两侧必须装置固定的防护栏杆。\n(7) 钢平台吊装，需待横梁支撑点电焊固定，接好钢丝绳，且调整完毕，经过检查验收后，方可松开\n起重吊钩，进行上下操作。\n(8) 钢平台使用时，应有专人进行检查，发现钢丝绳有锈蚀损坏应及时调换，焊缝脱焊应及时修复。\n(9) 操作平台上应显著地标明容许荷载值。操作平台上人员和物料的总重，严禁超过设计的容许荷载，\n应配备专人加以监督。\n4. 施工单位对事故责任人的处理不妥，应由事故调查组提交对事故责任人的处理建议，由负责调查事\n故的人民政府作出批复，事故发生单位应当按照该批复，对本单位负有事故责任的人员进行处理。对事故\n责任者严格按照安全事故责任追究的法律法规的规定进行严肃处理，不仅要追究事故直接责任人的责任，\n同时要追究有关负责人的领导责任。\n事故调查组还应有公安机关、劳动保障行政部门、工会和人民检察院派员参加。\n【案例四】参考答案：\n1. 为配合建设单位办理施工许可证，总承包单位应编制的施工组织设计中有根据建筑工程特点制定的\n相应质量、安全技术措施，专业性较强的工程项，编制了专项质重、安全施工组织设计。另外还需有施工\n现场总平面布置图、临时设施规划方案和已搭建情况，施工现场安全防护设施搭设( 设置) 计划、施工进\n度计划、安全措施费用计划，专项安全施工组织设计( 方案、措施)，拟进入施工现场使用的施工起重机\n械设备( 塔式起重机、物料提升机、外用电梯) 的型号、数量，工程项目负责人、安全管理人员及特种作\n业人员持证上岗情况，建设单位安全监督人员名册、工程监理单位人员名册，以及其他应提交的材料。\n2. 不妥之处：项目经理编制了项目管理规划大纲和项目管理实施规划。\n正确做法：项目管理规划大纲是总包单位领导层编制的文件，项目经理根据项目管理规划大纲编制项\n目管理实施规划。\n编制项目管理目标责任书应依据下列资料：(1) 项目合同文件；(2) 组织的管理制度；(3) 项目管理规\n划大纲；(4) 组织的经营方针和目标。\n3. 方案一：\n采购成本=320×6=1920 元；\n存储成本=0.5×(1800÷6)×3500×4‰ ×6=12600 元；\n采购和存储费用之和为 1920+12600=14520 元。\n方案二：\n采购成本=330×3=990 元；\n存储成本=0.5×(1800÷3)×3450×3‰ ×6=18630 元；\n采购和存储费用之和为 990+18630=19620 元。\n由此可见，方案一采购费和储存费之和较小，总承包单位应选择方案一。\n现金流量表的内容应当包括经营活动、投资活动和筹资活动产生的现金流量。\n4. (1) 按 2013 年清单规范，考虑扣除暂列金额：\n预付款：(31922.13 －1000)×15%=30922.13×5%=4638.32\n起扣点：31922.13 －4638.32/65%=24786.25\n(2) 总包单位索赔：资金占用费 1.88 万元，利润 18.26 万元。\n5. (1) 不妥之一：劳务分包单位进场后进行备案工作；\n正确做法：劳务分包单位进场前进行备案工作。\n(2) 不妥之二：木工班长代领工人工资；\n正确做法：劳务公司直接发给工人。\n(3) 除身份证外，还应将施工人员花名册、劳动合同文本、岗位技能证书的复印件及时报送总承包单位。\n【案例五】参考答案：\n1. 资源管理还包括人力资源管理、机械设备管理、技术管理和资金管理。资源管理计划应包括建立资\n源管理制度，编制资源使用计划、供应计划和处置计划，规定控制程序和责任体系。\n2. 不妥之处一：材料加工场地布置在场外。\n\n\n正确做法：材料加工场地布置在场内，应使材料和构件的运输量最小，垂直运输设备发挥较大的作用；\n有关联的加工厂适当集中。\n不妥之处二：现场设置一个出入口。\n正确做法：施工现场宜考虑设置两个以上大门。\n不妥之处三：场地附近设置 3.8m 宽环形载重单车道主干道( 兼消防车道)，并进行硬化，转弯半径\n10m。\n正确做法：施工现场的主要道路应进行硬化处理，主干道应有排水措施。主干道宽度单行道不小于\n4m，双行道不小于 6m。消防车道不小于 4m，载重车转弯半径不宜小于 15m。\n不妥之处四：在干道外侧开挖 400×600mm 管沟，将临时供电线缆，临时用水管线置于管沟内。\n正确做法：管网一般沿道路布置，供电线路应避免与其他管道设在同一侧，同时支线应引到所有用电\n设备使用地点。\n硬化方式：混凝土硬化，沥青路面硬化。\n裸露的场地应采取覆盖、固化或绿化等措施。\n3. 不妥之处一：项目经理安排土建技术人员编制了《现场施工用电组织设计》，经相关部门审核、项\n目技术负责人批准，总监理工程师签认。\n正确做法：《现场施工用电组织设计》必须由电气工程技术人员编制，相关部门审核，并经具有法人\n资格企业的技术负责人批准，现场监理签认后实施。\n临电使用前参加验收的部门有：编制部门、审核部门、批准部门和使用部门共同参加。\n4.可以推广与应用的新技术有：高强钢筋应用技术、钢筋焊接网应用技术、大直径钢筋直螺纹连接技术、\n无粘结预应力技术、有粘结预应力技术、索结构预应力施工技术、建筑用成型钢筋制品加工与配送技术、\n钢筋机械锚固技术。\n5. (1) 不符合规定之处：①经项目负责人安全验算后批准用塔吊起吊。理由：应经企业技术负责人批准；\n②超载6%；理由：塔吊机械不得超荷载和起吊不明质量的物件。特殊情况下必须使用时，必须经过验算\n与批准，不超过10%\n(2) 在试吊时应进行下列项检查：起重机的稳定性、制动器的可靠注、重物的平稳性、绑扎的牢固性。",
+            "score": 2.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_CASE_1",
+      "source_meta": {
+        "original_anchor": "案例1",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 50
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工。监理工程师要求施工\n单位对该进度计划网络图进行调整。\n事件三：施工过程中发生索赔事件如下：\n1. 由于项目功能调整变更设计，导致工作C 中途出现停歇，持续时间比原计划超出2\n个月，造成施工人员窝工损失13.6 万元/ 月×2 月=27.2 万元；\n2. 当地发生百年一遇大暴雨引发泥石流，导致工作E 停工、清理恢复施工共用时3 个月，\n造成施工设备损失费用8.2 万元、清理和修复工程费用24.5 万元。\n针对上述(1)、(2) 事件，施工单位在有效时限内分别向建设单位提出2 个月、3 个月\n的工期索赔，27.2 万元、32.7 万元的费用索赔( 所有事项均与实际相符)。\n事件四：某单体工程会议室主梁跨度为10.5m，截面尺寸(b×h) 为450mm×900mm。\n施工单位按规定编制了模板工程专项方案。",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工。监理工程师要求施工\n单位对该进度计划网络图进行调整。\n事件三：施工过程中发生索赔事件如下：\n1. 由于项目功能调整变更设计，导致工作C 中途出现停歇，持续时间比原计划超出2\n个月，造成施工人员窝工损失13.6 万元/ 月×2 月=27.2 万元；\n2. 当地发生百年一遇大暴雨引发泥石流，导致工作E 停工、清理恢复施工共用时3 个月，\n造成施工设备损失费用8.2 万元、清理和修复工程费用24.5 万元。\n针对上述(1)、(2) 事件，施工单位在有效时限内分别向建设单位提出2 个月、3 个月\n的工期索赔，27.2 万元、32.7 万元的费用索赔( 所有事项均与实际相符)。\n事件四：某单体工程会议室主梁跨度为10.5m，截面尺寸(b×h) 为450mm×900mm。\n施工单位按规定编制了模板工程专项方案。\n\n【问题】事件一中，施工单位对施工总进度计划还需补充哪些内容？",
+            "options": [],
+            "correct_answer": "施工总进度计划的内容包括：编制说明，施工总进度计划表( 图)，分期( 分批) 实施工程的开、\n竣工日期及工期一览表，资源需要量及供应平衡表等。( 注：只需写出题目上缺少的即可)。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工。监理工程师要求施工\n单位对该进度计划网络图进行调整。\n事件三：施工过程中发生索赔事件如下：\n1. 由于项目功能调整变更设计，导致工作C 中途出现停歇，持续时间比原计划超出2\n个月，造成施工人员窝工损失13.6 万元/ 月×2 月=27.2 万元；\n2. 当地发生百年一遇大暴雨引发泥石流，导致工作E 停工、清理恢复施工共用时3 个月，\n造成施工设备损失费用8.2 万元、清理和修复工程费用24.5 万元。\n针对上述(1)、(2) 事件，施工单位在有效时限内分别向建设单位提出2 个月、3 个月\n的工期索赔，27.2 万元、32.7 万元的费用索赔( 所有事项均与实际相符)。\n事件四：某单体工程会议室主梁跨度为10.5m，截面尺寸(b×h) 为450mm×900mm。\n施工单位按规定编制了模板工程专项方案。\n\n【问题】绘制事件二中调整后的施工进度计划网络图( 双代号)，指出其关键线路( 用工作\n表示)，并计算其总工期( 单位：月)。",
+            "options": [],
+            "correct_answer": "调整后的施工进度计划网络图如下所示：\n( 注：只需要将 3—4 之间增加一个虚工作即可)\n网络图中关键线路有两条，分别是 A →B →F →H →I 和 A →D →G →H →I。总工期为\nT=5+7+5+4+4=25 或 T=5+8+4+4+4=25 个月。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工。监理工程师要求施工\n单位对该进度计划网络图进行调整。\n事件三：施工过程中发生索赔事件如下：\n1. 由于项目功能调整变更设计，导致工作C 中途出现停歇，持续时间比原计划超出2\n个月，造成施工人员窝工损失13.6 万元/ 月×2 月=27.2 万元；\n2. 当地发生百年一遇大暴雨引发泥石流，导致工作E 停工、清理恢复施工共用时3 个月，\n造成施工设备损失费用8.2 万元、清理和修复工程费用24.5 万元。\n针对上述(1)、(2) 事件，施工单位在有效时限内分别向建设单位提出2 个月、3 个月\n的工期索赔，27.2 万元、32.7 万元的费用索赔( 所有事项均与实际相符)。\n事件四：某单体工程会议室主梁跨度为10.5m，截面尺寸(b×h) 为450mm×900mm。\n施工单位按规定编制了模板工程专项方案。\n\n【问题】事件三中，分别指出施工单位提出的两项工期索赔和两项费用索赔是否成立，并说\n明理由。",
+            "options": [],
+            "correct_answer": "(1) 工期索赔：索赔不成立。\n理由：因为 C 为非关键工作，总时差为 1 个月，设计变更后导致工期延误 2 个月，对总工期影响只\n有 1 个月， 所以，C 工作的工期索赔为 1 个月。\n费用索赔：索赔成立。C 工作索赔费用 27.2 万合理。\n理由：因为设计变更是非承包商原因导致的承包商自身经济损失，承包商有权对建设单位提出费用\n索赔。\n(2) 工期索赔：索赔不成立。E 工作索赔 3 个月的工期不合理。\n理由：因为 E 为非关键工作，总时差为 4 个月，不可抗力导致了工期延误 3 个月，延误时长未超过\n总时差， 所以工期索赔不成立。\n费用索赔：索赔不成立。E 工作索赔 32.7 万费用不合理。\n理由：在 32.7 万中，有 8.2 万是不可抗力导致施工设备损失的费用。在不可抗力后，施工单位人员和\n机械是损失，不能向建设单位索赔，需要施工单位自己承担。而 24.5 万的清理和修复费用是可以索赔的，\n因为在不可抗力后的清理和维修费用，应该由建设单位承担的。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某群体工程，主楼地下二层，地上八层，总建筑面积26800m2，现浇钢筋\n混凝土框剪结构。建设单位分别与施工单位、监理单位按照《建筑工程施工合同(示范文本)》\n(GF—2013—0201)、《建设工程监理合同( 示范文本)》(GF—2012—0202) 签订了施工合同\n和监理合同。合同履行过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织总设计时，发现其总进度计划部分仅有网络图和\n编制说明。监理工程师认为该部分内容不全，要求补充完善。\n事件二：某单位工程的施工进度计划网络图如图1 所示（单位：月）。因工艺设计采\n用某专利技术，工作F 需要工作B 和工作C 完成以后才能开始施工。监理工程师要求施工\n单位对该进度计划网络图进行调整。\n事件三：施工过程中发生索赔事件如下：\n1. 由于项目功能调整变更设计，导致工作C 中途出现停歇，持续时间比原计划超出2\n个月，造成施工人员窝工损失13.6 万元/ 月×2 月=27.2 万元；\n2. 当地发生百年一遇大暴雨引发泥石流，导致工作E 停工、清理恢复施工共用时3 个月，\n造成施工设备损失费用8.2 万元、清理和修复工程费用24.5 万元。\n针对上述(1)、(2) 事件，施工单位在有效时限内分别向建设单位提出2 个月、3 个月\n的工期索赔，27.2 万元、32.7 万元的费用索赔( 所有事项均与实际相符)。\n事件四：某单体工程会议室主梁跨度为10.5m，截面尺寸(b×h) 为450mm×900mm。\n施工单位按规定编制了模板工程专项方案。\n\n【问题】事件四中，该专项方案是否需要组织专家论证？该梁跨中底模的最小起拱高度、跨\n中混凝土浇筑高度分别是多少( 单位：mm)。",
+            "options": [],
+            "correct_answer": "(1) 不需要组织专家论证，只需要编制模板工程专项施工方案。需要编制专项施工方案和组织专家\n论证的梁跨度分别为 10m 以上、18m 以上。\n(2) 长度超过 4m 的梁板应按照设计起拱，若设计无要求时，可以按照梁跨度的 1/1000~3/1000 起拱。\n因此梁的起拱高度为 10.5mm-31.5mm，所以最小起拱高度为 10.5mm\n(3) 混凝土的浇筑高度为 900mm。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_CASE_2",
+      "source_meta": {
+        "original_anchor": "案例2",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 50
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护\n结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板，\n防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件：\n事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构\n件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求，\n责令施工单位进行整改。\n图2 女儿墙防水节点施工做法示意图\n事件二：施工中，施工单位对幕墙与各楼层楼板间的缝隙防火隔离处理进行了检查，\n对幕墙的抗风压性能、空气渗透性能、雨水渗透性能，平面变形性能等有关安全和功能检\n测项目进行了见证取样或抽样检查。\n事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防\n水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。\n事件四：工程采用新型保温材料，按规定进行了材料评审，鉴定并备案，同时施工单\n位完成相应程序性工作后，经监理工程师批准投入使用。施工完成后，由施工单位项目负\n责人主持，组织总监理工程师、建设单位项目负责人、施工单位技术负责人、相关专业质\n量员和施工员进行了节能工程分布验收。",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护\n结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板，\n防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件：\n事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构\n件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求，\n责令施工单位进行整改。\n图2 女儿墙防水节点施工做法示意图\n事件二：施工中，施工单位对幕墙与各楼层楼板间的缝隙防火隔离处理进行了检查，\n对幕墙的抗风压性能、空气渗透性能、雨水渗透性能，平面变形性能等有关安全和功能检\n测项目进行了见证取样或抽样检查。\n事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防\n水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。\n事件四：工程采用新型保温材料，按规定进行了材料评审，鉴定并备案，同时施工单\n位完成相应程序性工作后，经监理工程师批准投入使用。施工完成后，由施工单位项目负\n责人主持，组织总监理工程师、建设单位项目负责人、施工单位技术负责人、相关专业质\n量员和施工员进行了节能工程分布验收。\n\n【问题】事件一中，高层钢结构安装前现场的施工准备还应检查哪些工作？钢构件现场堆场\n应具备哪些基本条件？",
+            "options": [],
+            "correct_answer": "还应检查钢构件预检和配套、定位轴线及标高和地脚螺栓的检查、安装机械的选择、安装流水段的\n划分和安装顺序的确定等。\n钢构件现场堆场具备的基本条件：场地平整、坚实，无水坑、冰层；地面干燥，有较好的排水设施，\n同时车辆进出方便，方便起吊构件。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护\n结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板，\n防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件：\n事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构\n件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求，\n责令施工单位进行整改。\n图2 女儿墙防水节点施工做法示意图\n事件二：施工中，施工单位对幕墙与各楼层楼板间的缝隙防火隔离处理进行了检查，\n对幕墙的抗风压性能、空气渗透性能、雨水渗透性能，平面变形性能等有关安全和功能检\n测项目进行了见证取样或抽样检查。\n事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防\n水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。\n事件四：工程采用新型保温材料，按规定进行了材料评审，鉴定并备案，同时施工单\n位完成相应程序性工作后，经监理工程师批准投入使用。施工完成后，由施工单位项目负\n责人主持，组织总监理工程师、建设单位项目负责人、施工单位技术负责人、相关专业质\n量员和施工员进行了节能工程分布验收。\n\n【问题】事件二中，建筑幕墙与各楼层楼板间的缝隙隔离的主要防火构造做法是什么？幕墙\n工程中有关安全和功能的检测项目有哪些？",
+            "options": [],
+            "correct_answer": "幕墙与各层楼板、隔墙外沿间的缝隙，应采用不燃材料封堵，填充材料可采用岩棉或矿棉，其厚度\n不应小于 100mm，并应满足设计的耐火极限要求，在楼层间形成水平防火烟带。防火层应采用厚度不小\n于 1.5mm 的镀锌钢板承托，不得采用铝板。承托板与主体结构、幕墙结构及承托板之间的缝隙应采用防\n火密封胶密封。\n\n\n幕墙工程中有关安全和功能的检测项目有：硅酮结构胶的相容性试验；幕墙后置埋件的现场拉拔强度；\n幕墙的抗风压性能、空气渗透性能、雨水渗漏性能及平面变形性能。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护\n结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板，\n防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件：\n事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构\n件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求，\n责令施工单位进行整改。\n图2 女儿墙防水节点施工做法示意图\n事件二：施工中，施工单位对幕墙与各楼层楼板间的缝隙防火隔离处理进行了检查，\n对幕墙的抗风压性能、空气渗透性能、雨水渗透性能，平面变形性能等有关安全和功能检\n测项目进行了见证取样或抽样检查。\n事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防\n水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。\n事件四：工程采用新型保温材料，按规定进行了材料评审，鉴定并备案，同时施工单\n位完成相应程序性工作后，经监理工程师批准投入使用。施工完成后，由施工单位项目负\n责人主持，组织总监理工程师、建设单位项目负责人、施工单位技术负责人、相关专业质\n量员和施工员进行了节能工程分布验收。\n\n【问题】事件三中，指出防水节点施工图做法图示中的错误？",
+            "options": [],
+            "correct_answer": "错误之一：泛水高度为 200mm。正确做法：泛水高度至少为 250mm。\n错误之二：阴阳角基层卷材防水为直角形式。\n正确做法：阴阳角基层卷材做成 45 度角或圆弧型。\n错误之三：女儿墙泛水处防水层没有做附加层。\n正确做法：女儿墙泛水处的防水层下应增设附加层，附加层在平面和立面的宽度均不应小于\n250mm。\n错误之四：压顶檐口下端未做处理。\n正确做法：压顶檐口下端应做鹰嘴和滴水槽。\n错误之五：卷材收头未作处理。\n正确做法：卷材收头应用金属压条钉压固定，并应用密封材料封严。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某高层钢结构工程，建筑面积28000m2，地下一层，地上十二层，外围护\n结构为玻璃幕墙和石材幕墙，外墙保温材料为新型保温材料；屋面为现烧钢筋混凝土板，\n防水等级为1 级。采用卷材防水。在施工过程中，发生了下列事件：\n事件一：钢结构安装施工前，监理工程师对现场的施工准备工作进行检查，发现钢构\n件现场堆放存在问题。现场堆放应具备的基本条件不够完善。劳动力进场情况不符合要求，\n责令施工单位进行整改。\n图2 女儿墙防水节点施工做法示意图\n事件二：施工中，施工单位对幕墙与各楼层楼板间的缝隙防火隔离处理进行了检查，\n对幕墙的抗风压性能、空气渗透性能、雨水渗透性能，平面变形性能等有关安全和功能检\n测项目进行了见证取样或抽样检查。\n事件三：监理工程师对屋面卷材防水进行了检查，发现屋面女儿墙墙根处等部位的防\n水做法存在问题( 节点施工做法如图2 所示)，责令施工单位整改。\n事件四：工程采用新型保温材料，按规定进行了材料评审，鉴定并备案，同时施工单\n位完成相应程序性工作后，经监理工程师批准投入使用。施工完成后，由施工单位项目负\n责人主持，组织总监理工程师、建设单位项目负责人、施工单位技术负责人、相关专业质\n量员和施工员进行了节能工程分布验收。\n\n【问题】事件四中，新型保温材料使用前还应有哪些程序性工程？节能分部工程的验收组织\n有什么不妥？",
+            "options": [],
+            "correct_answer": "保温隔热材料，其导热系数、密度、抗压强度或压缩强度、燃烧性能应符合设计要求。对其检验时\n应核查质量证明文件及进场复验报告( 复验应为见证取样送检)。并对保温材料的导热系数、密度、抗压\n强度或压缩强度，粘结材料的粘结强度，增强网的力学性能、抗腐蚀性能等进行复验。\n节能分部工程验收组织不妥之处：施工单位项目负责人组织不妥。应该是总监理工程师组织。组织参\n加的人员不妥当。设计单位项目负责人和施工单位技术、质量部门负责人应参加节能分部工程验收。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_CASE_3",
+      "source_meta": {
+        "original_anchor": "案例3",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 50
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "【背景资料】某新建钢筋混凝土框架结构工程，地下二层，地上十五层，建筑总高\n58m，玻璃幕墙外立面，钢筋混凝土叠合楼板，预制钢筋混凝土楼梯。基坑挖土深度为\n8m，地下水位位于地表以下8m，采用钢筋混凝土排桩+ 钢筋混凝土内支撑支护体系。\n在履约过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织设计时，发现需要单独编制专项施工方案的分项\n工程清单内列有塔吊安装拆除，施工电梯安装拆除、外脚手架工程。监理工程师要求补充\n完善清单内容。\n事件二：项目专职安全员在安全“三违”巡视检查时，发现人工拆除钢筋混凝土内支\n撑施工的安全措施不到位，有违章作业现象，要求立即停止拆除作业。\n事件三：施工员在楼层悬挑式钢质卸料平台安装技术交底中，要求使用卡环进行钢平\n台吊运与安装，并在卸料平台三个侧边设置1200mm 高的固定式安全防护栏杆架子工对此\n提出异议。\n事件四：主体结构施工过程中发生塔吊倒塌事故，当地县级人民政府接到事故报告后，\n按规定组织安全生产监督管理部门。负有安全生产监督管理职责的有关部门等派出的相关\n人员组成了事故调查组，对事故展开调查、施工单位按照事故调查组移交的事故调查报告\n中对事故责任者的处理建议对事故责任人进行处理。",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某新建钢筋混凝土框架结构工程，地下二层，地上十五层，建筑总高\n58m，玻璃幕墙外立面，钢筋混凝土叠合楼板，预制钢筋混凝土楼梯。基坑挖土深度为\n8m，地下水位位于地表以下8m，采用钢筋混凝土排桩+ 钢筋混凝土内支撑支护体系。\n在履约过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织设计时，发现需要单独编制专项施工方案的分项\n工程清单内列有塔吊安装拆除，施工电梯安装拆除、外脚手架工程。监理工程师要求补充\n完善清单内容。\n事件二：项目专职安全员在安全“三违”巡视检查时，发现人工拆除钢筋混凝土内支\n撑施工的安全措施不到位，有违章作业现象，要求立即停止拆除作业。\n事件三：施工员在楼层悬挑式钢质卸料平台安装技术交底中，要求使用卡环进行钢平\n台吊运与安装，并在卸料平台三个侧边设置1200mm 高的固定式安全防护栏杆架子工对此\n提出异议。\n事件四：主体结构施工过程中发生塔吊倒塌事故，当地县级人民政府接到事故报告后，\n按规定组织安全生产监督管理部门。负有安全生产监督管理职责的有关部门等派出的相关\n人员组成了事故调查组，对事故展开调查、施工单位按照事故调查组移交的事故调查报告\n中对事故责任者的处理建议对事故责任人进行处理。\n\n【问题】事件一中。按照《危险性较大的部门分项工程安全管理办法》( 建质[2009]87 号)\n规定，本工程还应单独编制哪些专项施工方案？",
+            "options": [],
+            "correct_answer": "还应单独编制的专项施工方案包括：深基坑支护工程、降水工程、土方开挖工程、模板工程及支撑\n体系， 建筑幕墙安装工程。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某新建钢筋混凝土框架结构工程，地下二层，地上十五层，建筑总高\n58m，玻璃幕墙外立面，钢筋混凝土叠合楼板，预制钢筋混凝土楼梯。基坑挖土深度为\n8m，地下水位位于地表以下8m，采用钢筋混凝土排桩+ 钢筋混凝土内支撑支护体系。\n在履约过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织设计时，发现需要单独编制专项施工方案的分项\n工程清单内列有塔吊安装拆除，施工电梯安装拆除、外脚手架工程。监理工程师要求补充\n完善清单内容。\n事件二：项目专职安全员在安全“三违”巡视检查时，发现人工拆除钢筋混凝土内支\n撑施工的安全措施不到位，有违章作业现象，要求立即停止拆除作业。\n事件三：施工员在楼层悬挑式钢质卸料平台安装技术交底中，要求使用卡环进行钢平\n台吊运与安装，并在卸料平台三个侧边设置1200mm 高的固定式安全防护栏杆架子工对此\n提出异议。\n事件四：主体结构施工过程中发生塔吊倒塌事故，当地县级人民政府接到事故报告后，\n按规定组织安全生产监督管理部门。负有安全生产监督管理职责的有关部门等派出的相关\n人员组成了事故调查组，对事故展开调查、施工单位按照事故调查组移交的事故调查报告\n中对事故责任者的处理建议对事故责任人进行处理。\n\n【问题】事件二中，除违章作业外，针对操作行为检查的“三违”巡查还应包括哪些内容？\n混凝土内支撑还可以采用哪几类拆除方法？",
+            "options": [],
+            "correct_answer": "“三违”还包括违章指挥、违反劳动纪律。\n混凝土内支撑拆除还可以采用：机械拆除、爆破拆除和静力破碎拆除。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某新建钢筋混凝土框架结构工程，地下二层，地上十五层，建筑总高\n58m，玻璃幕墙外立面，钢筋混凝土叠合楼板，预制钢筋混凝土楼梯。基坑挖土深度为\n8m，地下水位位于地表以下8m，采用钢筋混凝土排桩+ 钢筋混凝土内支撑支护体系。\n在履约过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织设计时，发现需要单独编制专项施工方案的分项\n工程清单内列有塔吊安装拆除，施工电梯安装拆除、外脚手架工程。监理工程师要求补充\n完善清单内容。\n事件二：项目专职安全员在安全“三违”巡视检查时，发现人工拆除钢筋混凝土内支\n撑施工的安全措施不到位，有违章作业现象，要求立即停止拆除作业。\n事件三：施工员在楼层悬挑式钢质卸料平台安装技术交底中，要求使用卡环进行钢平\n台吊运与安装，并在卸料平台三个侧边设置1200mm 高的固定式安全防护栏杆架子工对此\n提出异议。\n事件四：主体结构施工过程中发生塔吊倒塌事故，当地县级人民政府接到事故报告后，\n按规定组织安全生产监督管理部门。负有安全生产监督管理职责的有关部门等派出的相关\n人员组成了事故调查组，对事故展开调查、施工单位按照事故调查组移交的事故调查报告\n中对事故责任者的处理建议对事故责任人进行处理。\n\n【问题】写出事件三中技术交底的不妥之处，并说明楼层卸料平台上安全防护与管理的具体\n措施。",
+            "options": [],
+            "correct_answer": "不妥之处一：施工员进行安全技术交底。\n正确做法：应由项目技术负责人或专业技术人员进行技术交底。\n不妥之处二：在卸料平台三个侧边设置 1200mm 高的固定式安全防护栏杆。\n正确做法：应在卸料平台两侧设置固定的防护栏杆，底部设置 200mm 高挡脚板。\n悬挑式钢平台必须符合下列规定：\n(1) 悬挑式钢平台应按现行的相应规范进行设计，其结构构造应能防止左右晃动，计算书及图纸应编\n入施工组织设计。\n(2) 悬挑式钢平台的搁支点与上部拉结点，必须位于建筑物上，不得设置在脚手架等施工设备上。\n(3) 斜拉杆或钢丝绳，构造上宜两边各设前后两道，两道中的每一道均应作单道受力计算。\n(4) 应设置 4 个经过验算的吊环。吊运平台时应使用卡环，不得使吊钩直接钩挂吊环。吊环应用甲类\n3 号沸腾钢制作。\n(5) 钢平台安装时，钢丝绳应采用专用的挂钩挂牢，采取其他方式时卡头的卡子不得少于 3 个，建筑\n物锐角利口围系钢丝绳处应加衬软垫物，钢平台外口应略高于内口。\n(6) 钢平台左右两侧必须装置固定的防护栏杆。\n(7) 钢平台吊装，需待横梁支撑点电焊固定，接好钢丝绳，且调整完毕，经过检查验收后，方可松开\n起重吊钩，进行上下操作。\n(8) 钢平台使用时，应有专人进行检查，发现钢丝绳有锈蚀损坏应及时调换，焊缝脱焊应及时修复。\n(9) 操作平台上应显著地标明容许荷载值。操作平台上人员和物料的总重，严禁超过设计的容许荷载，\n应配备专人加以监督。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某新建钢筋混凝土框架结构工程，地下二层，地上十五层，建筑总高\n58m，玻璃幕墙外立面，钢筋混凝土叠合楼板，预制钢筋混凝土楼梯。基坑挖土深度为\n8m，地下水位位于地表以下8m，采用钢筋混凝土排桩+ 钢筋混凝土内支撑支护体系。\n在履约过程中，发生了下列事件：\n事件一：监理工程师在审查施工组织设计时，发现需要单独编制专项施工方案的分项\n工程清单内列有塔吊安装拆除，施工电梯安装拆除、外脚手架工程。监理工程师要求补充\n完善清单内容。\n事件二：项目专职安全员在安全“三违”巡视检查时，发现人工拆除钢筋混凝土内支\n撑施工的安全措施不到位，有违章作业现象，要求立即停止拆除作业。\n事件三：施工员在楼层悬挑式钢质卸料平台安装技术交底中，要求使用卡环进行钢平\n台吊运与安装，并在卸料平台三个侧边设置1200mm 高的固定式安全防护栏杆架子工对此\n提出异议。\n事件四：主体结构施工过程中发生塔吊倒塌事故，当地县级人民政府接到事故报告后，\n按规定组织安全生产监督管理部门。负有安全生产监督管理职责的有关部门等派出的相关\n人员组成了事故调查组，对事故展开调查、施工单位按照事故调查组移交的事故调查报告\n中对事故责任者的处理建议对事故责任人进行处理。\n\n【问题】事件四中，施工单位对事故责任人的处理做法是否妥当？并说明理由。事故调查组\n应还有哪些单位派员参加？",
+            "options": [],
+            "correct_answer": "施工单位对事故责任人的处理不妥，应由事故调查组提交对事故责任人的处理建议，由负责调查事\n故的人民政府作出批复，事故发生单位应当按照该批复，对本单位负有事故责任的人员进行处理。对事故\n责任者严格按照安全事故责任追究的法律法规的规定进行严肃处理，不仅要追究事故直接责任人的责任，\n同时要追究有关负责人的领导责任。\n事故调查组还应有公安机关、劳动保障行政部门、工会和人民检察院派员参加。",
+            "analysis": "",
+            "score": 5.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_CASE_4",
+      "source_meta": {
+        "original_anchor": "案例4",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 51
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按照相关规定办理施工许可证，要求总承包单位\n做好制定施工组织设计中的各项技术措施，编制专项施工组织设计，并及时办理政府专项\n管理手续等相关配合工作。\n事件二：总承包单位进场前与项目部签订了《项目管理目标责任书》，授权项目经理\n实施全面管理，项目经理组织编制了项目管理规划大纲和项目管理实施规划。\n事件三：项目实行资金预算管理，并编制了工程项目现金流量表，其中2013 年度需\n要采购钢筋总量为1800t，按照工程款收支情况，提出两种采购方案：\n方案一：以一个月为单位采购周期。一次性采购费用为320 元，钢筋单位为3500 元/t，\n仓库月储存率为4‰。\n方案二：以二个月为单位采购周期。一次性采购费用为330 元，钢筋单位为3450 元/t，\n仓库月储存率为3‰。\n事件四：总承包单位于合同约定之日正式开工，截止2013 年7 月8 日建设单位仍未\n支付工程预付款，于是总承包单位向建设单位提出如下索赔：购置钢筋资金占用费用1.88\n万元、利润18.26 万元、税金0.58 万元，监理工程师签认情况属实。\n事件五：总承包单位将工程主体劳务分给某劳务公司，双方签订了劳务分包合同，劳\n务分包单位进场后，总承包单位劳务分包单位将劳务施工人员的身份证等资料的复印件上\n报备案。某月总承包单位将劳务分包款拨付给劳务公司，劳务公司自行发放，其中木工班\n\n\n长代领伐木工工人工资后下落不明。",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按照相关规定办理施工许可证，要求总承包单位\n做好制定施工组织设计中的各项技术措施，编制专项施工组织设计，并及时办理政府专项\n管理手续等相关配合工作。\n事件二：总承包单位进场前与项目部签订了《项目管理目标责任书》，授权项目经理\n实施全面管理，项目经理组织编制了项目管理规划大纲和项目管理实施规划。\n事件三：项目实行资金预算管理，并编制了工程项目现金流量表，其中2013 年度需\n要采购钢筋总量为1800t，按照工程款收支情况，提出两种采购方案：\n方案一：以一个月为单位采购周期。一次性采购费用为320 元，钢筋单位为3500 元/t，\n仓库月储存率为4‰。\n方案二：以二个月为单位采购周期。一次性采购费用为330 元，钢筋单位为3450 元/t，\n仓库月储存率为3‰。\n事件四：总承包单位于合同约定之日正式开工，截止2013 年7 月8 日建设单位仍未\n支付工程预付款，于是总承包单位向建设单位提出如下索赔：购置钢筋资金占用费用1.88\n万元、利润18.26 万元、税金0.58 万元，监理工程师签认情况属实。\n事件五：总承包单位将工程主体劳务分给某劳务公司，双方签订了劳务分包合同，劳\n务分包单位进场后，总承包单位劳务分包单位将劳务施工人员的身份证等资料的复印件上\n报备案。某月总承包单位将劳务分包款拨付给劳务公司，劳务公司自行发放，其中木工班\n\n\n长代领伐木工工人工资后下落不明。\n\n【问题】事件一中，为配合建设单位办理施工许可证，总承包单位需要完成哪些保证工程质\n量和安全的技术文件与手续？",
+            "options": [],
+            "correct_answer": "为配合建设单位办理施工许可证，总承包单位应编制的施工组织设计中有根据建筑工程特点制定的\n相应质量、安全技术措施，专业性较强的工程项，编制了专项质重、安全施工组织设计。另外还需有施工\n现场总平面布置图、临时设施规划方案和已搭建情况，施工现场安全防护设施搭设( 设置) 计划、施工进\n度计划、安全措施费用计划，专项安全施工组织设计( 方案、措施)，拟进入施工现场使用的施工起重机\n械设备( 塔式起重机、物料提升机、外用电梯) 的型号、数量，工程项目负责人、安全管理人员及特种作\n业人员持证上岗情况，建设单位安全监督人员名册、工程监理单位人员名册，以及其他应提交的材料。",
+            "analysis": "",
+            "score": 4.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按照相关规定办理施工许可证，要求总承包单位\n做好制定施工组织设计中的各项技术措施，编制专项施工组织设计，并及时办理政府专项\n管理手续等相关配合工作。\n事件二：总承包单位进场前与项目部签订了《项目管理目标责任书》，授权项目经理\n实施全面管理，项目经理组织编制了项目管理规划大纲和项目管理实施规划。\n事件三：项目实行资金预算管理，并编制了工程项目现金流量表，其中2013 年度需\n要采购钢筋总量为1800t，按照工程款收支情况，提出两种采购方案：\n方案一：以一个月为单位采购周期。一次性采购费用为320 元，钢筋单位为3500 元/t，\n仓库月储存率为4‰。\n方案二：以二个月为单位采购周期。一次性采购费用为330 元，钢筋单位为3450 元/t，\n仓库月储存率为3‰。\n事件四：总承包单位于合同约定之日正式开工，截止2013 年7 月8 日建设单位仍未\n支付工程预付款，于是总承包单位向建设单位提出如下索赔：购置钢筋资金占用费用1.88\n万元、利润18.26 万元、税金0.58 万元，监理工程师签认情况属实。\n事件五：总承包单位将工程主体劳务分给某劳务公司，双方签订了劳务分包合同，劳\n务分包单位进场后，总承包单位劳务分包单位将劳务施工人员的身份证等资料的复印件上\n报备案。某月总承包单位将劳务分包款拨付给劳务公司，劳务公司自行发放，其中木工班\n\n\n长代领伐木工工人工资后下落不明。\n\n【问题】指出事件中的不妥之处，并说明正确做法，编制《项目管理目标责任书》的依据有\n哪些？",
+            "options": [],
+            "correct_answer": "不妥之处：项目经理编制了项目管理规划大纲和项目管理实施规划。\n正确做法：项目管理规划大纲是总包单位领导层编制的文件，项目经理根据项目管理规划大纲编制项\n目管理实施规划。\n编制项目管理目标责任书应依据下列资料：(1) 项目合同文件；(2) 组织的管理制度；(3) 项目管理规\n划大纲；(4) 组织的经营方针和目标。",
+            "analysis": "",
+            "score": 4.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按照相关规定办理施工许可证，要求总承包单位\n做好制定施工组织设计中的各项技术措施，编制专项施工组织设计，并及时办理政府专项\n管理手续等相关配合工作。\n事件二：总承包单位进场前与项目部签订了《项目管理目标责任书》，授权项目经理\n实施全面管理，项目经理组织编制了项目管理规划大纲和项目管理实施规划。\n事件三：项目实行资金预算管理，并编制了工程项目现金流量表，其中2013 年度需\n要采购钢筋总量为1800t，按照工程款收支情况，提出两种采购方案：\n方案一：以一个月为单位采购周期。一次性采购费用为320 元，钢筋单位为3500 元/t，\n仓库月储存率为4‰。\n方案二：以二个月为单位采购周期。一次性采购费用为330 元，钢筋单位为3450 元/t，\n仓库月储存率为3‰。\n事件四：总承包单位于合同约定之日正式开工，截止2013 年7 月8 日建设单位仍未\n支付工程预付款，于是总承包单位向建设单位提出如下索赔：购置钢筋资金占用费用1.88\n万元、利润18.26 万元、税金0.58 万元，监理工程师签认情况属实。\n事件五：总承包单位将工程主体劳务分给某劳务公司，双方签订了劳务分包合同，劳\n务分包单位进场后，总承包单位劳务分包单位将劳务施工人员的身份证等资料的复印件上\n报备案。某月总承包单位将劳务分包款拨付给劳务公司，劳务公司自行发放，其中木工班\n\n\n长代领伐木工工人工资后下落不明。\n\n【问题】事件三中，列出计算采购费用和储存费用之和，并确定总承包单位应选择哪种采购\n方案？现金流量表中应包括哪些活动产生的现金流量？",
+            "options": [],
+            "correct_answer": "方案一：\n采购成本=320×6=1920 元；\n存储成本=0.5×(1800÷6)×3500×4‰ ×6=12600 元；\n采购和存储费用之和为 1920+12600=14520 元。\n方案二：\n采购成本=330×3=990 元；\n存储成本=0.5×(1800÷3)×3450×3‰ ×6=18630 元；\n采购和存储费用之和为 990+18630=19620 元。\n由此可见，方案一采购费和储存费之和较小，总承包单位应选择方案一。\n现金流量表的内容应当包括经营活动、投资活动和筹资活动产生的现金流量。",
+            "analysis": "",
+            "score": 4.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按照相关规定办理施工许可证，要求总承包单位\n做好制定施工组织设计中的各项技术措施，编制专项施工组织设计，并及时办理政府专项\n管理手续等相关配合工作。\n事件二：总承包单位进场前与项目部签订了《项目管理目标责任书》，授权项目经理\n实施全面管理，项目经理组织编制了项目管理规划大纲和项目管理实施规划。\n事件三：项目实行资金预算管理，并编制了工程项目现金流量表，其中2013 年度需\n要采购钢筋总量为1800t，按照工程款收支情况，提出两种采购方案：\n方案一：以一个月为单位采购周期。一次性采购费用为320 元，钢筋单位为3500 元/t，\n仓库月储存率为4‰。\n方案二：以二个月为单位采购周期。一次性采购费用为330 元，钢筋单位为3450 元/t，\n仓库月储存率为3‰。\n事件四：总承包单位于合同约定之日正式开工，截止2013 年7 月8 日建设单位仍未\n支付工程预付款，于是总承包单位向建设单位提出如下索赔：购置钢筋资金占用费用1.88\n万元、利润18.26 万元、税金0.58 万元，监理工程师签认情况属实。\n事件五：总承包单位将工程主体劳务分给某劳务公司，双方签订了劳务分包合同，劳\n务分包单位进场后，总承包单位劳务分包单位将劳务施工人员的身份证等资料的复印件上\n报备案。某月总承包单位将劳务分包款拨付给劳务公司，劳务公司自行发放，其中木工班\n\n\n长代领伐木工工人工资后下落不明。\n\n【问题】事件四中，列式计算工程预付款、工程预付款起扣点( 单位：万元，保留小数点后\n两位)。总承包单位的哪些索赔成立。",
+            "options": [],
+            "correct_answer": "(1) 按 2013 年清单规范，考虑扣除暂列金额：\n预付款：(31922.13 －1000)×15%=30922.13×5%=4638.32\n起扣点：31922.13 －4638.32/65%=24786.25\n(2) 总包单位索赔：资金占用费 1.88 万元，利润 18.26 万元。",
+            "analysis": "",
+            "score": 4.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】某新建办公楼工程，建筑面积48000m2，地下二层，地上六层，中庭高度\n为9m，钢筋混凝土框架结构。经公开招投标，总承包单位以31922.13 万元中标，其中暂\n定金额1000 万元。双方依据《建设工程合同( 示范文本)》(GF—2013—0201) 签订了施工\n总承包合同，合同工期为2013 年7 月1 日起至2015 年5 月30 日止，并约定在项目开工\n前7 天支付工程预付款。预付比例为15%，从未完施工工程尚需的主要材料的价值相当于\n工程预付款额时开始扣回，主要材料所占比重为65%。\n自工程招标开始至工程竣工结算的过程中，发生了下列事件：\n事件一：在项目开工之前，建设单位按照相关规定办理施工许可证，要求总承包单位\n做好制定施工组织设计中的各项技术措施，编制专项施工组织设计，并及时办理政府专项\n管理手续等相关配合工作。\n事件二：总承包单位进场前与项目部签订了《项目管理目标责任书》，授权项目经理\n实施全面管理，项目经理组织编制了项目管理规划大纲和项目管理实施规划。\n事件三：项目实行资金预算管理，并编制了工程项目现金流量表，其中2013 年度需\n要采购钢筋总量为1800t，按照工程款收支情况，提出两种采购方案：\n方案一：以一个月为单位采购周期。一次性采购费用为320 元，钢筋单位为3500 元/t，\n仓库月储存率为4‰。\n方案二：以二个月为单位采购周期。一次性采购费用为330 元，钢筋单位为3450 元/t，\n仓库月储存率为3‰。\n事件四：总承包单位于合同约定之日正式开工，截止2013 年7 月8 日建设单位仍未\n支付工程预付款，于是总承包单位向建设单位提出如下索赔：购置钢筋资金占用费用1.88\n万元、利润18.26 万元、税金0.58 万元，监理工程师签认情况属实。\n事件五：总承包单位将工程主体劳务分给某劳务公司，双方签订了劳务分包合同，劳\n务分包单位进场后，总承包单位劳务分包单位将劳务施工人员的身份证等资料的复印件上\n报备案。某月总承包单位将劳务分包款拨付给劳务公司，劳务公司自行发放，其中木工班\n\n\n长代领伐木工工人工资后下落不明。\n\n【问题】支出事件五中的不妥之处，并说明正确做饭，按照劳务实名制管理劳务公司还应该\n将哪些资料的复印件报总承包单位备案？",
+            "options": [],
+            "correct_answer": "(1) 不妥之一：劳务分包单位进场后进行备案工作；\n正确做法：劳务分包单位进场前进行备案工作。\n(2) 不妥之二：木工班长代领工人工资；\n正确做法：劳务公司直接发给工人。\n(3) 除身份证外，还应将施工人员花名册、劳动合同文本、岗位技能证书的复印件及时报送总承包单位。",
+            "analysis": "",
+            "score": 4.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    },
+    {
+      "chunk_id": "EXAM_XW2015_CASE_5",
+      "source_meta": {
+        "original_anchor": "案例5",
+        "subject": "建筑实务",
+        "source": "2015年一级建造师《建筑实务》考试真题及答案解析",
+        "exam_year": 2015,
+        "page_num": 51
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null
+      },
+      "content_type": "exercise",
+      "content_markdown": "【背景资料】",
+      "key_parameters": [],
+      "structured_rules": [],
+      "exercises": [
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "[题干缺失] 2015年案例5第1问",
+            "options": [],
+            "correct_answer": "资源管理还包括人力资源管理、机械设备管理、技术管理和资金管理。资源管理计划应包括建立资\n源管理制度，编制资源使用计划、供应计划和处置计划，规定控制程序和责任体系。",
+            "analysis": "",
+            "score": 4.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "[题干缺失] 2015年案例5第2问",
+            "options": [],
+            "correct_answer": "不妥之处一：材料加工场地布置在场外。\n\n\n正确做法：材料加工场地布置在场内，应使材料和构件的运输量最小，垂直运输设备发挥较大的作用；\n有关联的加工厂适当集中。\n不妥之处二：现场设置一个出入口。\n正确做法：施工现场宜考虑设置两个以上大门。\n不妥之处三：场地附近设置 3.8m 宽环形载重单车道主干道( 兼消防车道)，并进行硬化，转弯半径\n10m。\n正确做法：施工现场的主要道路应进行硬化处理，主干道应有排水措施。主干道宽度单行道不小于\n4m，双行道不小于 6m。消防车道不小于 4m，载重车转弯半径不宜小于 15m。\n不妥之处四：在干道外侧开挖 400×600mm 管沟，将临时供电线缆，临时用水管线置于管沟内。\n正确做法：管网一般沿道路布置，供电线路应避免与其他管道设在同一侧，同时支线应引到所有用电\n设备使用地点。\n硬化方式：混凝土硬化，沥青路面硬化。\n裸露的场地应采取覆盖、固化或绿化等措施。",
+            "analysis": "",
+            "score": 4.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "【背景资料】\n\n【问题】8m 宽环形载重单车",
+            "options": [],
+            "correct_answer": "不妥之处一：项目经理安排土建技术人员编制了《现场施工用电组织设计》，经相关部门审核、项\n目技术负责人批准，总监理工程师签认。\n正确做法：《现场施工用电组织设计》必须由电气工程技术人员编制，相关部门审核，并经具有法人\n资格企业的技术负责人批准，现场监理签认后实施。\n临电使用前参加验收的部门有：编制部门、审核部门、批准部门和使用部门共同参加。",
+            "analysis": "",
+            "score": 4.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "[题干缺失] 2015年案例5第4问",
+            "options": [],
+            "correct_answer": "可以推广与应用的新技术有：高强钢筋应用技术、钢筋焊接网应用技术、大直径钢筋直螺纹连接技术、\n无粘结预应力技术、有粘结预应力技术、索结构预应力施工技术、建筑用成型钢筋制品加工与配送技术、\n钢筋机械锚固技术。",
+            "analysis": "",
+            "score": 4.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        },
+        {
+          "type": "case_study",
+          "question_data": {
+            "stem": "[题干缺失] 2015年案例5第5问",
+            "options": [],
+            "correct_answer": "(1) 不符合规定之处：①经项目负责人安全验算后批准用塔吊起吊。理由：应经企业技术负责人批准；\n②超载6%；理由：塔吊机械不得超荷载和起吊不明质量的物件。特殊情况下必须使用时，必须经过验算\n与批准，不超过10%\n(2) 在试吊时应进行下列项检查：起重机的稳定性、制动器的可靠注、重物的平稳性、绑扎的牢固性。",
+            "analysis": "",
+            "score": 4.0,
+            "difficulty": "medium",
+            "logic_chain": ""
+          },
+          "predicted_node": null,
+          "option_reasoning": {}
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+<view class="luban-page {{isDark ? '' : 'light'}}">
+  <view class="lb-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="lb-nav-inner">
+      <view class="lb-back" bindtap="goBack">
+        <text class="lb-back-arrow">‹</text>
+        <text class="lb-back-text">路线</text>
+      </view>
+      <text class="lb-nav-title">换皮复测</text>
+    </view>
+  </view>
+
+  <scroll-view class="lb-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="lb-inner">
+      <view class="rt-hero">
+        <text class="rt-kicker">昨天的考点，换了一身皮</text>
+        <text class="rt-title">看看你能不能一眼认出它</text>
+      </view>
+
+      <view class="rt-error" wx:if="{{errorText}}">
+        <text>{{errorText}}</text>
+        <view class="rt-retry" bindtap="retry">重试</view>
+      </view>
+
+      <view class="rt-loading" wx:if="{{loading}}">
+        <text>正在取今天的题…</text>
+      </view>
+
+      <block wx:if="{{!loading && !errorText}}">
+        <view class="rt-empty" wx:if="{{!items.length}}">
+          <text>今天这一站暂时没有复测题，明天再来。</text>
+        </view>
+
+        <view class="rt-card" wx:for="{{items}}" wx:key="key">
+          <text class="rt-index">第 {{index + 1}} 题 · 共 {{total}} 题</text>
+          <text class="rt-surface">{{item.surface}}</text>
+
+          <view class="rt-choices" wx:if="{{!item.answered}}">
+            <view
+              class="rt-choice ok"
+              data-index="{{index}}"
+              data-choice="ok"
+              bindtap="onChoiceTap"
+            >
+              <text>这样做妥当</text>
+            </view>
+            <view
+              class="rt-choice not-ok"
+              data-index="{{index}}"
+              data-choice="not_ok"
+              bindtap="onChoiceTap"
+            >
+              <text>不妥当</text>
+            </view>
+          </view>
+
+          <view class="rt-feedback {{item.correct ? 'good' : 'warm'}}" wx:if="{{item.answered}}">
+            <block wx:if="{{item.correct}}">
+              <text class="rt-feedback-main">对——你是真懂了</text>
+            </block>
+            <block wx:else>
+              <text class="rt-feedback-main">再看一眼就稳了：{{item.correct_statement}}</text>
+            </block>
+            <text class="rt-anchor" wx:if="{{item.anchor}}">{{item.anchor}}</text>
+          </view>
+        </view>
+
+        <view class="rt-done" wx:if="{{done}}">
+          <text class="rt-done-title">今天的回炉完成 {{correctCount}}/{{total}}</text>
+          <text class="rt-done-desc">这个考点在你这儿越来越稳了。明天见。</text>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>

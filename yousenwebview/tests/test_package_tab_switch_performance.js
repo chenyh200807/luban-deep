@@ -42,8 +42,9 @@ function loadShell(overrides) {
     require: function (request) {
       if (request === "../utils/route") {
         return {
+          learn: function () { return "/packageDeeptutor/pages/learn/learn"; },
+          lubanReview: function () { return "/packageDeeptutor/pages/luban/review/review"; },
           chat: function () { return "/packageDeeptutor/pages/chat/chat"; },
-          history: function () { return "/packageDeeptutor/pages/history/history"; },
           report: function () { return "/packageDeeptutor/pages/report/report"; },
           profile: function () { return "/packageDeeptutor/pages/profile/profile"; },
         };
@@ -120,9 +121,10 @@ run("package tab switch gives immediate feedback and uses redirectTo", function 
   var loaded = loadShell();
   var shell = createInstance(loaded.def);
 
-  shell.switchTab({ currentTarget: { dataset: { index: 3 } } });
+  // 五 tab 壳: 学习0 / 复习1 / 问鲁班2 / 学情3 / 我的4;默认 selected=0(学习)
+  shell.switchTab({ currentTarget: { dataset: { index: 4 } } });
 
-  assert(shell.data.selected === 3, "selected tab should update before navigation completes");
+  assert(shell.data.selected === 4, "selected tab should update before navigation completes");
   assert(loaded.redirectCalls.length === 1, "tab switch should use redirectTo as the primary path");
   assert(
     loaded.redirectCalls[0].url === "/packageDeeptutor/pages/profile/profile",
@@ -131,7 +133,7 @@ run("package tab switch gives immediate feedback and uses redirectTo", function 
   assert(loaded.reLaunchCalls.length === 0, "tab switch should not relaunch the whole package on the happy path");
   assert(
     loaded.getWorkspaceBack() &&
-      loaded.getWorkspaceBack().url === "/packageDeeptutor/pages/chat/chat",
+      loaded.getWorkspaceBack().url === "/packageDeeptutor/pages/learn/learn",
     "tab switch should preserve workspace back target",
   );
 });
@@ -145,7 +147,7 @@ run("package tab switch falls back to reLaunch only when redirectTo fails", func
   assert(loaded.redirectCalls.length === 1, "redirectTo should still be attempted first");
   assert(loaded.reLaunchCalls.length === 1, "reLaunch should only be used as a fallback");
   assert(
-    loaded.reLaunchCalls[0].url === "/packageDeeptutor/pages/history/history",
+    loaded.reLaunchCalls[0].url === "/packageDeeptutor/pages/luban/review/review",
     "fallback reLaunch should preserve the selected destination",
   );
 });

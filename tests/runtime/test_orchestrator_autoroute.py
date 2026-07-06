@@ -188,6 +188,38 @@ async def test_orchestrator_routes_training_by_question_count_as_practice_genera
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_explicit_question_count_overrides_training_intent_count() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    training_intent = {
+        "source": "debug",
+        "training_intent_id": "intent-count-4",
+        "concept_label": "水泥",
+        "question_count": 4,
+    }
+    context = UnifiedContext(
+        session_id="s-explicit-count-overrides-intent",
+        user_message="用 3 道题训练水泥",
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "learning_training_intent": training_intent,
+        },
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "practice_generation"
+    assert context.config_overrides["num_questions"] == 3
+    trace_meta = context.metadata.get("trace_metadata") or {}
+    assert trace_meta["practice_generation.question_count"] == 3
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_supplies_canonical_decision_on_practice_when_router_disabled() -> None:
     """Disabled-router practice generation (no active object) must still receive a
     canonical turn_semantic_decision from the orchestrator, not leave it absent for

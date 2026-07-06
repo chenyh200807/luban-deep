@@ -1,0 +1,29 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-2(错因码语义类·前轮已改的确认)",
+    "panel": {
+      "GLM-5.2": {
+        "issue0_satisfied": true
+      },
+      "Fable-5": "复签同意——答非所问=题面理解错误(question_reading)非迁移错误(transfer)"
+    },
+    "edits": "零新编辑"
+  },
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 1,
+    "tier": "Tier-2(邻接/标注类·前轮已改的确认)",
+    "panel": {
+      "GLM-5.2": {
+        "issue1_satisfied": true,
+        "further_edit_needed": false
+      },
+      "Fable-5": "复签同意——降🔵邻接+缺口五处登记为 fix 认可分支; 补 record 属编译管道工作留 §8.3 待办"
+    },
+    "edits": "零新编辑, 升色=0, 新增🟢=0"
+  }
+]

@@ -1,0 +1,632 @@
+{
+ "schema_version": "luban-c02-variant-bank",
+ "pack_id": "C02",
+ "status": "signed",
+ "source_pack_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
+ "generation_ms": 0.02,
+ "gate": {
+  "total": 47,
+  "passed": 47,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-bond": 3,
+  "A-floor": 3,
+  "A-retention": 3,
+  "B-base": 4,
+  "C-noncompete": 6,
+  "D-elements": 10,
+  "E-advance": 4,
+  "E-qikou": 3,
+  "F-price": 4,
+  "G-designate": 3,
+  "H-claim": 4
+ },
+ "variants": [
+  {
+   "variant_id": "C02-A-retention-000",
+   "rule_group": "A-retention",
+   "surface": "合同约定按工程结算总价累计预留 2% 质量保证金",
+   "params": {
+    "pct": 2,
+    "cap_pct": 3
+   },
+   "expected_ok": true,
+   "correct_statement": "累计预留质量保证金（或保函）不得超过工程结算总价的 3%",
+   "anchor": "kc:1A435000_044_0059:0 + 2022第(四)题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-A-retention-001",
+   "rule_group": "A-retention",
+   "surface": "合同约定按工程结算总价累计预留 3% 质量保证金",
+   "params": {
+    "pct": 3,
+    "cap_pct": 3
+   },
+   "expected_ok": true,
+   "correct_statement": "累计预留质量保证金（或保函）不得超过工程结算总价的 3%",
+   "anchor": "kc:1A435000_044_0059:0 + 2022第(四)题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-A-retention-002",
+   "rule_group": "A-retention",
+   "surface": "合同约定按工程结算总价累计预留 5% 质量保证金",
+   "params": {
+    "pct": 5,
+    "cap_pct": 3
+   },
+   "expected_ok": false,
+   "correct_statement": "累计预留质量保证金（或保函）不得超过工程结算总价的 3%",
+   "anchor": "kc:1A435000_044_0059:0 + 2022第(四)题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-A-bond-003",
+   "rule_group": "A-bond",
+   "surface": "招标文件要求中标人提交中标价 8% 的履约保证金",
+   "params": {
+    "pct": 8,
+    "cap_pct": 10
+   },
+   "expected_ok": true,
+   "correct_statement": "履约保证金不得超过中标价的 10%",
+   "anchor": "2022第(四)题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-A-bond-004",
+   "rule_group": "A-bond",
+   "surface": "招标文件要求中标人提交中标价 10% 的履约保证金",
+   "params": {
+    "pct": 10,
+    "cap_pct": 10
+   },
+   "expected_ok": true,
+   "correct_statement": "履约保证金不得超过中标价的 10%",
+   "anchor": "2022第(四)题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-A-bond-005",
+   "rule_group": "A-bond",
+   "surface": "招标文件要求中标人提交中标价 15% 的履约保证金",
+   "params": {
+    "pct": 15,
+    "cap_pct": 10
+   },
+   "expected_ok": false,
+   "correct_statement": "履约保证金不得超过中标价的 10%",
+   "anchor": "2022第(四)题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-A-floor-006",
+   "rule_group": "A-floor",
+   "surface": "合同未约定进度款支付比例，发包人按累计完成工程总值的 70% 支付",
+   "params": {
+    "pct": 70,
+    "floor_pct": 80
+   },
+   "expected_ok": false,
+   "correct_statement": "合同未约定支付比例的，进度款不宜低于累计完成工程总值的 80%",
+   "anchor": "kc:1A435000_042_0056:1",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-A-floor-007",
+   "rule_group": "A-floor",
+   "surface": "合同未约定进度款支付比例，发包人按累计完成工程总值的 80% 支付",
+   "params": {
+    "pct": 80,
+    "floor_pct": 80
+   },
+   "expected_ok": true,
+   "correct_statement": "合同未约定支付比例的，进度款不宜低于累计完成工程总值的 80%",
+   "anchor": "kc:1A435000_042_0056:1",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-A-floor-008",
+   "rule_group": "A-floor",
+   "surface": "合同未约定进度款支付比例，发包人按累计完成工程总值的 90% 支付",
+   "params": {
+    "pct": 90,
+    "floor_pct": 80
+   },
+   "expected_ok": true,
+   "correct_statement": "合同未约定支付比例的，进度款不宜低于累计完成工程总值的 80%",
+   "anchor": "kc:1A435000_042_0056:1",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-B-base-009",
+   "rule_group": "B-base",
+   "surface": "项目按工程结算总价的 3% 控制质量保证金累计预留上限",
+   "params": {
+    "base": "工程结算总价"
+   },
+   "expected_ok": true,
+   "correct_statement": "质保金上限应以工程结算总价为基数，不得按合同价/当期进度款/预付款计算",
+   "anchor": "kc:1A435000_044_0059:0",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-B-base-010",
+   "rule_group": "B-base",
+   "surface": "项目按签约合同价的 3% 控制质量保证金累计预留上限",
+   "params": {
+    "base": "签约合同价"
+   },
+   "expected_ok": false,
+   "correct_statement": "质保金上限应以工程结算总价为基数，不得按合同价/当期进度款/预付款计算",
+   "anchor": "kc:1A435000_044_0059:0",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-B-base-011",
+   "rule_group": "B-base",
+   "surface": "项目按当期进度款的 3% 控制质量保证金累计预留上限",
+   "params": {
+    "base": "当期进度款"
+   },
+   "expected_ok": false,
+   "correct_statement": "质保金上限应以工程结算总价为基数，不得按合同价/当期进度款/预付款计算",
+   "anchor": "kc:1A435000_044_0059:0",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-B-base-012",
+   "rule_group": "B-base",
+   "surface": "项目按预付款的 3% 控制质量保证金累计预留上限",
+   "params": {
+    "base": "预付款"
+   },
+   "expected_ok": false,
+   "correct_statement": "质保金上限应以工程结算总价为基数，不得按合同价/当期进度款/预付款计算",
+   "anchor": "kc:1A435000_044_0059:0",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-C-noncompete-013",
+   "rule_group": "C-noncompete",
+   "surface": "投标报价时将「安全文明施工费」作为竞争性费用予以下浮",
+   "params": {
+    "item": "安全文明施工费",
+    "competitive": true
+   },
+   "expected_ok": false,
+   "correct_statement": "「安全文明施工费」不得作为竞争性费用",
+   "anchor": "m35:Q19-1A432000:P4 + 2018第3题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-C-noncompete-014",
+   "rule_group": "C-noncompete",
+   "surface": "「安全文明施工费」按规定计取，不作为竞争性费用参与报价竞争",
+   "params": {
+    "item": "安全文明施工费",
+    "competitive": false
+   },
+   "expected_ok": true,
+   "correct_statement": "「安全文明施工费」不得作为竞争性费用",
+   "anchor": "m35:Q19-1A432000:P4 + 2018第3题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-C-noncompete-015",
+   "rule_group": "C-noncompete",
+   "surface": "投标报价时将「规费」作为竞争性费用予以下浮",
+   "params": {
+    "item": "规费",
+    "competitive": true
+   },
+   "expected_ok": false,
+   "correct_statement": "「规费」不得作为竞争性费用",
+   "anchor": "m35:Q19-1A432000:P4 + 2018第3题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-C-noncompete-016",
+   "rule_group": "C-noncompete",
+   "surface": "「规费」按规定计取，不作为竞争性费用参与报价竞争",
+   "params": {
+    "item": "规费",
+    "competitive": false
+   },
+   "expected_ok": true,
+   "correct_statement": "「规费」不得作为竞争性费用",
+   "anchor": "m35:Q19-1A432000:P4 + 2018第3题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-C-noncompete-017",
+   "rule_group": "C-noncompete",
+   "surface": "投标报价时将「税金」作为竞争性费用予以下浮",
+   "params": {
+    "item": "税金",
+    "competitive": true
+   },
+   "expected_ok": false,
+   "correct_statement": "「税金」不得作为竞争性费用",
+   "anchor": "m35:Q19-1A432000:P4 + 2018第3题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-C-noncompete-018",
+   "rule_group": "C-noncompete",
+   "surface": "「税金」按规定计取，不作为竞争性费用参与报价竞争",
+   "params": {
+    "item": "税金",
+    "competitive": false
+   },
+   "expected_ok": true,
+   "correct_statement": "「税金」不得作为竞争性费用",
+   "anchor": "m35:Q19-1A432000:P4 + 2018第3题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-D-elements-019",
+   "rule_group": "D-elements",
+   "surface": "招标人将「项目编码」列为分部分项工程量清单的必备要素",
+   "params": {
+    "element": "项目编码",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "「项目编码」属于工程量清单五要素（项目编码/项目名称/项目特征/计量单位/工程量）",
+   "anchor": "m35:Q19-1A432000:P4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-D-elements-020",
+   "rule_group": "D-elements",
+   "surface": "招标人认为「项目编码」不属于工程量清单五要素",
+   "params": {
+    "element": "项目编码",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "「项目编码」属于工程量清单五要素（项目编码/项目名称/项目特征/计量单位/工程量）",
+   "anchor": "m35:Q19-1A432000:P4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-D-elements-021",
+   "rule_group": "D-elements",
+   "surface": "招标人将「项目名称」列为分部分项工程量清单的必备要素",
+   "params": {
+    "element": "项目名称",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "「项目名称」属于工程量清单五要素（项目编码/项目名称/项目特征/计量单位/工程量）",
+   "anchor": "m35:Q19-1A432000:P4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-D-elements-022",
+   "rule_group": "D-elements",
+   "surface": "招标人认为「项目名称」不属于工程量清单五要素",
+   "params": {
+    "element": "项目名称",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "「项目名称」属于工程量清单五要素（项目编码/项目名称/项目特征/计量单位/工程量）",
+   "anchor": "m35:Q19-1A432000:P4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-D-elements-023",
+   "rule_group": "D-elements",
+   "surface": "招标人将「项目特征」列为分部分项工程量清单的必备要素",
+   "params": {
+    "element": "项目特征",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "「项目特征」属于工程量清单五要素（项目编码/项目名称/项目特征/计量单位/工程量）",
+   "anchor": "m35:Q19-1A432000:P4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-D-elements-024",
+   "rule_group": "D-elements",
+   "surface": "招标人认为「项目特征」不属于工程量清单五要素",
+   "params": {
+    "element": "项目特征",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "「项目特征」属于工程量清单五要素（项目编码/项目名称/项目特征/计量单位/工程量）",
+   "anchor": "m35:Q19-1A432000:P4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-D-elements-025",
+   "rule_group": "D-elements",
+   "surface": "招标人将「计量单位」列为分部分项工程量清单的必备要素",
+   "params": {
+    "element": "计量单位",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "「计量单位」属于工程量清单五要素（项目编码/项目名称/项目特征/计量单位/工程量）",
+   "anchor": "m35:Q19-1A432000:P4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-D-elements-026",
+   "rule_group": "D-elements",
+   "surface": "招标人认为「计量单位」不属于工程量清单五要素",
+   "params": {
+    "element": "计量单位",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "「计量单位」属于工程量清单五要素（项目编码/项目名称/项目特征/计量单位/工程量）",
+   "anchor": "m35:Q19-1A432000:P4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-D-elements-027",
+   "rule_group": "D-elements",
+   "surface": "招标人将「工程量」列为分部分项工程量清单的必备要素",
+   "params": {
+    "element": "工程量",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "「工程量」属于工程量清单五要素（项目编码/项目名称/项目特征/计量单位/工程量）",
+   "anchor": "m35:Q19-1A432000:P4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-D-elements-028",
+   "rule_group": "D-elements",
+   "surface": "招标人认为「工程量」不属于工程量清单五要素",
+   "params": {
+    "element": "工程量",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "「工程量」属于工程量清单五要素（项目编码/项目名称/项目特征/计量单位/工程量）",
+   "anchor": "m35:Q19-1A432000:P4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-E-qikou-029",
+   "rule_group": "E-qikou",
+   "surface": "项目按「起扣点 ＝ 合同价 − 预付款 ÷ 主要材料所占比重」计算预付款起扣点",
+   "params": {
+    "formula": "合同价 − 预付款 ÷ 主要材料所占比重"
+   },
+   "expected_ok": true,
+   "correct_statement": "起扣点＝合同价 − 预付款 ÷ 主要材料所占比重；主要材料所占比重为题面给定变量、非常数",
+   "anchor": "kc:1A435000_043_0058:1",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-E-qikou-030",
+   "rule_group": "E-qikou",
+   "surface": "项目按「起扣点 ＝ 合同价 × 主要材料所占比重 − 预付款」计算预付款起扣点",
+   "params": {
+    "formula": "合同价 × 主要材料所占比重 − 预付款"
+   },
+   "expected_ok": false,
+   "correct_statement": "起扣点＝合同价 − 预付款 ÷ 主要材料所占比重；主要材料所占比重为题面给定变量、非常数",
+   "anchor": "kc:1A435000_043_0058:1",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-E-qikou-031",
+   "rule_group": "E-qikou",
+   "surface": "项目按「起扣点 ＝ 预付款 ÷ 合同价」计算预付款起扣点",
+   "params": {
+    "formula": "预付款 ÷ 合同价"
+   },
+   "expected_ok": false,
+   "correct_statement": "起扣点＝合同价 − 预付款 ÷ 主要材料所占比重；主要材料所占比重为题面给定变量、非常数",
+   "anchor": "kc:1A435000_043_0058:1",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-E-advance-032",
+   "rule_group": "E-advance",
+   "surface": "某住宅楼项目以扣除暂列金额后的签约合同价乘以预付款比例计算工程预付款",
+   "params": {
+    "deduct_provisional_sum": true
+   },
+   "expected_ok": true,
+   "correct_statement": "预付款＝合同价（扣除暂列金额后）×预付款比例",
+   "anchor": "kc:1A435000_043_0058:0 + 2015案例4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-E-advance-033",
+   "rule_group": "E-advance",
+   "surface": "某住宅楼项目以含暂列金额的签约合同价直接乘以预付款比例计算工程预付款",
+   "params": {
+    "deduct_provisional_sum": false
+   },
+   "expected_ok": false,
+   "correct_statement": "预付款＝合同价（扣除暂列金额后）×预付款比例",
+   "anchor": "kc:1A435000_043_0058:0 + 2015案例4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-E-advance-034",
+   "rule_group": "E-advance",
+   "surface": "某厂房项目以扣除暂列金额后的签约合同价乘以预付款比例计算工程预付款",
+   "params": {
+    "deduct_provisional_sum": true
+   },
+   "expected_ok": true,
+   "correct_statement": "预付款＝合同价（扣除暂列金额后）×预付款比例",
+   "anchor": "kc:1A435000_043_0058:0 + 2015案例4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-E-advance-035",
+   "rule_group": "E-advance",
+   "surface": "某厂房项目以含暂列金额的签约合同价直接乘以预付款比例计算工程预付款",
+   "params": {
+    "deduct_provisional_sum": false
+   },
+   "expected_ok": false,
+   "correct_statement": "预付款＝合同价（扣除暂列金额后）×预付款比例",
+   "anchor": "kc:1A435000_043_0058:0 + 2015案例4",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-F-price-036",
+   "rule_group": "F-price",
+   "surface": "综合单价按不含增值税的税前全费用价（含人工费/材料费/机械费/管理费/利润及一定风险费用）确定",
+   "params": {
+    "tax_in_unit_price": false,
+    "tax_applied_once_at_end": true
+   },
+   "expected_ok": true,
+   "correct_statement": "综合单价＝不含增值税的税前全费用价（含人/材/机/管/利+一定风险）；增值税只在结算最末整体计提一次，不得双重计税",
+   "anchor": "kc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-F-price-037",
+   "rule_group": "F-price",
+   "surface": "综合单价中计入增值税再参与计价",
+   "params": {
+    "tax_in_unit_price": true,
+    "tax_applied_once_at_end": false
+   },
+   "expected_ok": false,
+   "correct_statement": "综合单价＝不含增值税的税前全费用价（含人/材/机/管/利+一定风险）；增值税只在结算最末整体计提一次，不得双重计税",
+   "anchor": "kc:1A432002_035_0046:0 + 2020案例四",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-F-price-038",
+   "rule_group": "F-price",
+   "surface": "增值税在结算最末按整体计提一次，综合单价内不含税",
+   "params": {
+    "tax_in_unit_price": false,
+    "tax_applied_once_at_end": true
+   },
+   "expected_ok": true,
+   "correct_statement": "综合单价＝不含增值税的税前全费用价（含人/材/机/管/利+一定风险）；增值税只在结算最末整体计提一次，不得双重计税",
+   "anchor": "kc:1A432002_035_0046:0",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-F-price-039",
+   "rule_group": "F-price",
+   "surface": "综合单价内已含增值税，结算时再整体乘以(1+增值税率)",
+   "params": {
+    "tax_in_unit_price": true,
+    "tax_applied_once_at_end": true
+   },
+   "expected_ok": false,
+   "correct_statement": "综合单价＝不含增值税的税前全费用价（含人/材/机/管/利+一定风险）；增值税只在结算最末整体计提一次，不得双重计税",
+   "anchor": "kc:1A432002_035_0046:0 + 2020案例四",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-G-designate-040",
+   "rule_group": "G-designate",
+   "surface": "建设单位在合同中指定钢材供应商",
+   "params": {
+    "owner_designates": true
+   },
+   "expected_ok": false,
+   "correct_statement": "建设单位不得指定供应商/品牌、不得指定分包人",
+   "anchor": "2022第(四)题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-G-designate-041",
+   "rule_group": "G-designate",
+   "surface": "建设单位指定专业工程分包人",
+   "params": {
+    "owner_designates": true
+   },
+   "expected_ok": false,
+   "correct_statement": "建设单位不得指定供应商/品牌、不得指定分包人",
+   "anchor": "2022第(四)题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-G-designate-042",
+   "rule_group": "G-designate",
+   "surface": "主要材料由承包人按合同约定标准自行采购选择供应商",
+   "params": {
+    "owner_designates": false
+   },
+   "expected_ok": true,
+   "correct_statement": "建设单位不得指定供应商/品牌、不得指定分包人",
+   "anchor": "2022第(四)题",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-H-claim-043",
+   "rule_group": "H-claim",
+   "surface": "因发包人图纸延误造成停工，承包人就工期和费用提出索赔",
+   "params": {
+    "cause": "发包人责任",
+    "claim_item": "工期和费用"
+   },
+   "expected_ok": true,
+   "correct_statement": "发包人责任（图纸延误/甲供材不合格/甲方指令）造成的损失可索赔工期和费用",
+   "anchor": "2018第4题 + 2021案例四（R4维度6·发包人责任档）",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-H-claim-044",
+   "rule_group": "H-claim",
+   "surface": "承包人自有设备故障造成停工，承包人向发包人索赔停工费用",
+   "params": {
+    "cause": "承包人自身原因",
+    "claim_item": "费用"
+   },
+   "expected_ok": false,
+   "correct_statement": "承包人自身原因（自有设备故障）造成的损失不可索赔",
+   "anchor": "2018第4题（R4维度6·承包人自身原因档）",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-H-claim-045",
+   "rule_group": "H-claim",
+   "surface": "不可抗力造成承包人机具损失，承包人向发包人索赔机具损失",
+   "params": {
+    "cause": "不可抗力",
+    "claim_item": "机具损失"
+   },
+   "expected_ok": false,
+   "correct_statement": "不可抗力造成的承包人机具损失由承包人自担",
+   "anchor": "kc:1A432000_047_0067:0",
+   "extension": false
+  },
+  {
+   "variant_id": "C02-H-claim-046",
+   "rule_group": "H-claim",
+   "surface": "不可抗力造成工期延误，承包人提出工期顺延",
+   "params": {
+    "cause": "不可抗力",
+    "claim_item": "工期顺延"
+   },
+   "expected_ok": true,
+   "correct_statement": "不可抗力造成的工期延误可顺延工期",
+   "anchor": "kc:1A432000_047_0067:0 + R4维度6（不可抗力→工期可顺延）",
+   "extension": false
+  }
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:47+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
+}
