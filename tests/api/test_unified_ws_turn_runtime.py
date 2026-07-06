@@ -424,6 +424,65 @@ def test_turn_runtime_result_context_does_not_parse_presentation_read_model() ->
     assert _result_active_object(metadata) is None
 
 
+def test_turn_runtime_blocked_practice_generation_result_does_not_become_active_question() -> None:
+    blocked_text = (
+        "我还没有拿到本轮出题的具体考点，不能只按“出三道题”这类动作词生成题目。"
+        "请指定要围绕哪个知识点出题，或先回到刚才的学习主题后再让我出题。"
+    )
+    metadata = {
+        "response": blocked_text,
+        "practice_generation_blocked_reason": "missing_topic_anchor",
+        "question_lifecycle_scene": "practice_generation",
+        "question_followup_context": {
+            "question_id": "q_blocked",
+            "question": blocked_text,
+            "question_type": "written",
+        },
+        "active_object": {
+            "object_type": "single_question",
+            "object_id": "q_blocked",
+            "state_snapshot": {
+                "question_id": "q_blocked",
+                "question": blocked_text,
+                "question_type": "written",
+            },
+        },
+        "metadata": {
+            "question_followup_context": {
+                "question_id": "q_nested_blocked",
+                "question": blocked_text,
+                "question_type": "written",
+            }
+        },
+    }
+
+    assert _result_question_followup_context(metadata) is None
+    assert _result_active_object(metadata) is None
+
+    nested_blocked_metadata = {
+        "metadata": {
+            "practice_generation_blocked_reason": "missing_topic_anchor",
+            "question_followup_context": {
+                "question_id": "q_nested_blocked",
+                "question": blocked_text,
+                "question_type": "written",
+            },
+            "active_object": {
+                "object_type": "single_question",
+                "object_id": "q_nested_blocked",
+                "state_snapshot": {
+                    "question_id": "q_nested_blocked",
+                    "question": blocked_text,
+                    "question_type": "written",
+                },
+            },
+        }
+    }
+
+    assert _result_question_followup_context(nested_blocked_metadata) is None
+    assert _result_active_object(nested_blocked_metadata) is None
+
+
 def test_billing_capture_amount_records_estimated_cost_but_charges_standard_turn() -> None:
     amount, metadata = _billing_capture_amount_from_usage_summary(
         {
@@ -3583,6 +3642,114 @@ async def test_turn_runtime_routes_tutorbot_practice_generation_to_deep_question
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_carries_prior_tutorbot_topic_to_action_only_practice_generation(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, Any] = {}
+
+    class FakeOrchestrator:
+        async def _select_capability(self, context):
+            if "出几道题目" in context.user_message:
+                captured["second_history"] = list(context.conversation_history)
+                captured["second_context_text"] = context.metadata.get(
+                    "conversation_context_text"
+                )
+                captured["second_turn_semantic_decision"] = context.metadata.get(
+                    "turn_semantic_decision"
+                )
+                context.config_overrides["force_generate_questions"] = True
+                context.config_overrides["topic"] = context.metadata.get(
+                    "raw_user_message"
+                ) or context.user_message
+                context.config_overrides["question_type"] = "choice"
+                return "deep_question"
+            return "tutorbot"
+
+        async def handle(self, context):
+            if context.active_capability == "tutorbot":
+                yield StreamEvent(
+                    type=StreamEventType.RESULT,
+                    source="tutorbot",
+                    metadata={
+                        "response": "一建建筑实务核心考点总览：工程设计、工程材料、施工技术。"
+                    },
+                )
+                yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+                return
+
+            captured["second_active_capability"] = context.active_capability
+            captured["second_config_overrides"] = dict(context.config_overrides)
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="deep_question",
+                metadata={
+                    "response": "第1题",
+                    "question_followup_context": {
+                        "question_id": "q_1",
+                        "question": "施工技术选择题",
+                        "question_type": "choice",
+                        "correct_answer": "B",
+                    },
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, first_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "帮我梳理一建建筑实务的核心考点",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {"bot_id": "construction-exam-coach"},
+        }
+    )
+    async for _event in runtime.subscribe_turn(first_turn["id"], after_seq=0):
+        pass
+
+    _session, second_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "出几道题目",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {"bot_id": "construction-exam-coach"},
+        }
+    )
+    async for _event in runtime.subscribe_turn(second_turn["id"], after_seq=0):
+        pass
+
+    history_text = "\n".join(
+        str(item.get("content") or "") for item in captured["second_history"]
+    )
+    assert captured["second_active_capability"] == "deep_question"
+    assert captured["second_config_overrides"]["topic"] == "出几道题目"
+    assert captured["second_turn_semantic_decision"]["next_action"] == "route_to_generation"
+    assert "一建建筑实务核心考点" in history_text
+    assert "一建建筑实务核心考点" in str(captured["second_context_text"])
 
 
 @pytest.mark.asyncio

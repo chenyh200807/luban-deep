@@ -426,6 +426,26 @@ def _conversation_generation_anchor(conversation_context_text: str) -> str:
     return f"最近对话摘要：{text}"
 
 
+def _conversation_history_context_text(
+    conversation_history: list[dict[str, Any]] | None,
+) -> str:
+    if not isinstance(conversation_history, list):
+        return ""
+    lines: list[str] = []
+    for item in conversation_history[-4:]:
+        if not isinstance(item, dict):
+            continue
+        role = str(item.get("role") or "").strip().lower()
+        if role not in {"user", "assistant"}:
+            continue
+        content = _clip_text(item.get("content"), limit=180)
+        if not content or content.lower() in {"新对话", "untitled", "new chat"}:
+            continue
+        label = "用户" if role == "user" else "助手"
+        lines.append(f"{label}: {content}")
+    return "\n".join(lines)
+
+
 def _current_question_exclusion_generation_topic(
     topic: str,
     broader_anchor: str,
@@ -4243,6 +4263,7 @@ class DeepQuestionCapability(BaseCapability):
                 part
                 for part in [
                     str(context.metadata.get("conversation_context_text", "") or "").strip(),
+                    _conversation_history_context_text(context.conversation_history),
                     str(context.memory_context or "").strip(),
                 ]
                 if part
