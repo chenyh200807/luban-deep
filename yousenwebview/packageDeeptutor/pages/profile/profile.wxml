@@ -1,4 +1,4 @@
-<!-- pages/profile/profile.wxml — 个人中心 -->
+<!-- pages/profile/profile.wxml — 我的 tab（第10轮 10f：权益透明 · 纸墨朱竹） -->
 <view class="profile-page {{isDark?'':'light'}}">
 
   <!-- 自定义导航栏 -->
@@ -15,8 +15,8 @@
   <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
     <view class="page-inner">
 
-      <!-- ── 用户信息卡片 ──────────────────────────── -->
-      <view class="user-card glass-card">
+      <!-- ── 用户行：头像 + 昵称 + 考试日副标题 ─────────── -->
+      <view class="user-row">
         <view class="user-avatar" bindtap="onChangeAvatar">
           <image
             wx:if="{{avatarUrl}}"
@@ -29,35 +29,43 @@
             <text class="avatar-edit-icon">+</text>
           </view>
         </view>
-        <view class="user-info">
-          <view class="user-name-row" bindtap="onChangeName">
+        <view class="user-info" bindtap="onChangeName">
+          <view class="user-name-row">
             <text class="user-name">{{username}}</text>
             <text class="user-name-edit">›</text>
           </view>
-          <view class="user-stats">
-            <view class="stat-chip">
-              <text class="stat-label">Lv.{{level}}</text>
-            </view>
-            <view class="stat-chip">
-              <text class="stat-val">{{xp}} XP</text>
-            </view>
-          </view>
+          <text class="user-sub">一建建筑实务 · {{examDateLabel}}</text>
         </view>
       </view>
 
-      <view class="guest-profile-card glass-card" wx:if="{{isGuestPreview}}">
-        <view class="guest-profile-copy">
-          <text class="guest-profile-kicker">浏览模式</text>
-          <text class="guest-profile-title">登录后同步你的权益和学习档案</text>
-          <text class="guest-profile-desc">当前可以查看个人中心结构；修改设置、同步权益和保存学习记录时再快速登录。</text>
-        </view>
-        <view class="guest-profile-action" bindtap="goQuickLogin" aria-role="button" aria-label="快速登录">
-          <text class="guest-profile-action-txt">快速登录</text>
+      <!-- ── 浏览模式提示 ───────────────────────────── -->
+      <view class="pk-card guest-card" wx:if="{{isGuestPreview}}">
+        <text class="guest-kicker">浏览模式</text>
+        <text class="guest-title">登录后同步你的权益和学习档案</text>
+        <text class="guest-desc">当前可以查看个人中心结构；修改设置、同步权益和保存学习记录时再快速登录。</text>
+        <view class="guest-action" bindtap="goQuickLogin" aria-role="button" aria-label="快速登录">
+          <text class="guest-action-txt">快速登录</text>
         </view>
       </view>
 
-      <!-- ── 使用情况 ───────────────────────────────── -->
-      <view class="usage-card glass-card" bindtap="openUsageDetail" aria-role="button" aria-label="查看权益详情">
+      <!-- ── 我的路线（点亮数=learn-view-model 单一权威；读不到只留口径文案） ── -->
+      <view class="pk-card route-card">
+        <view class="route-head">
+          <text class="route-title">我的路线</text>
+          <text class="route-count" wx:if="{{routeCard}}">{{routeCard.label}}</text>
+        </view>
+        <view class="route-meter" wx:if="{{routeCard}}">
+          <view class="route-meter-fill" style="{{routeCard.barStyle}}"></view>
+        </view>
+        <text class="route-copy">每一站都标了「为什么对你重要」。会员解锁的是<text class="route-copy-strong">你这条路线的剩余部分</text>，不是题库。</text>
+        <view class="route-cta" bindtap="goRoute" aria-role="button" aria-label="查看我的完整路线">
+          <text class="route-cta-txt">查看我的完整路线</text>
+        </view>
+        <text class="route-note">已点亮站点生成的复习单元永久可回炉，不计费</text>
+      </view>
+
+      <!-- ── 学习权益（会员=钱包 read model；免费=静态规则说明，不自算计数） ── -->
+      <view class="pk-card usage-card" bindtap="openUsageDetail" aria-role="button" aria-label="查看权益详情">
         <view class="usage-head">
           <view>
             <text class="usage-kicker">学习权益</text>
@@ -67,48 +75,75 @@
             <text class="usage-action-txt">充值</text>
           </view>
         </view>
-        <view class="usage-summary-list" wx:if="{{usageRows.length}}">
-          <view class="usage-summary-row" wx:for="{{usageRows}}" wx:key="key">
-            <text class="usage-summary-label">{{item.label}}</text>
-            <text class="usage-summary-detail">{{item.detailLabel}}</text>
+        <!-- 免费档：后端免费试用三规则的静态说明（无已用计数读接口，不造数） -->
+        <view class="usage-summary-list" wx:if="{{freeTier}}">
+          <view class="usage-summary-row">
+            <text class="usage-summary-label">每日免费提问</text>
+            <text class="usage-summary-detail">3 次（每天重置）</text>
           </view>
-          <view class="usage-more-row">
-            <text class="usage-more-text">查看详情</text>
-            <text class="usage-more-arrow">›</text>
+          <view class="usage-summary-row">
+            <text class="usage-summary-label">7 日累计上限</text>
+            <text class="usage-summary-detail">12 次</text>
           </view>
+          <text class="usage-free-note">已生成的复习内容不计费，永久可回炉</text>
         </view>
+        <block wx:elif="{{usageRows.length}}">
+          <view class="usage-summary-list">
+            <view class="usage-summary-row" wx:for="{{usageRows}}" wx:key="key">
+              <text class="usage-summary-label">{{item.label}}</text>
+              <text class="usage-summary-detail">{{item.detailLabel}}</text>
+            </view>
+            <view class="usage-more-row">
+              <text class="usage-more-text">查看详情</text>
+              <text class="usage-more-arrow">›</text>
+            </view>
+          </view>
+        </block>
         <view class="usage-empty" wx:elif="{{!usageLoading}}">
           <text class="usage-empty-txt">暂无使用数据</text>
         </view>
       </view>
 
-      <!-- ── 学习设置 ───────────────────────────────── -->
-      <view class="section-header">
-        <text class="section-title">学习设置</text>
+      <!-- ── 复习提醒（review_reminder 偏好开关，如实文案） ── -->
+      <view class="pk-card remind-card">
+        <view class="remind-row">
+          <text class="remind-dot {{reviewReminder ? 'on' : ''}}"></text>
+          <text class="remind-title">复习提醒</text>
+          <switch
+            class="remind-switch"
+            checked="{{reviewReminder}}"
+            bindchange="onReminderChange"
+            color="#48806a"
+          />
+        </view>
+        <text class="remind-note">开启后，「明天见」复测到点时提醒你回来</text>
       </view>
 
-      <view class="settings-card glass-card">
-        <!-- 考试日期 -->
-        <view class="setting-row">
-          <text class="setting-label">考试日期</text>
-          <picker mode="date" value="{{examDate}}" bindchange="onExamDateChange">
+      <!-- ── 学习设置 ───────────────────────────────── -->
+      <view class="section-title">学习设置</view>
+      <view class="pk-card settings-card">
+        <!-- 考试日期（picker → PATCH exam_date → 回显；真值喂复习调度引擎） -->
+        <picker mode="date" value="{{examDate}}" bindchange="onExamDateChange">
+          <view class="setting-row">
+            <text class="setting-label">考试日期</text>
             <view class="setting-value-row">
               <text class="setting-value">{{examDate || '待设置'}}</text>
               <text class="setting-arrow">›</text>
             </view>
-          </picker>
-        </view>
+          </view>
+          <text class="setting-note">用于安排你的复习节奏</text>
+        </picker>
 
         <view class="divider"></view>
 
-        <!-- 每日目标 -->
+        <!-- 每日目标（TODO(time_budget)：后端落轻/中/重后换三档映射） -->
         <view class="setting-row">
           <text class="setting-label">每日目标</text>
           <view class="chips-row">
             <view
               class="chip {{dailyTarget === item ? 'chip-active' : ''}}"
               wx:for="{{dailyTargetOptions}}"
-              wx:key="index"
+              wx:key="*this"
               bindtap="setDailyTarget"
               data-val="{{item}}"
             >
@@ -152,65 +187,27 @@
             </view>
           </view>
         </view>
-
-        <view class="divider"></view>
-
-        <!-- 复习提醒 -->
-        <view class="setting-row">
-          <text class="setting-label">复习提醒</text>
-          <switch
-            class="setting-switch"
-            checked="{{reviewReminder}}"
-            bindchange="onReminderChange"
-            color="#3b82f6"
-          />
-        </view>
       </view>
 
-      <!-- ── 我的成就 ───────────────────────────────── -->
-      <view class="section-header">
-        <text class="section-title">我的成就</text>
-      </view>
-
-      <view class="badges-grid glass-card">
-        <view
-          class="badge-item {{item.earned ? '' : 'badge-locked'}}"
-          wx:for="{{badges}}"
-          wx:key="id"
-          bindtap="onBadgeTap"
-          data-id="{{item.id}}"
-        >
-          <text class="badge-icon">{{item.icon}}</text>
-          <text class="badge-name">{{item.name}}</text>
-        </view>
-      </view>
-
-      <!-- ── 链接列表 ───────────────────────────────── -->
-      <view class="links-card glass-card">
-        <block
-          wx:for="{{linkItems}}"
-          wx:key="id"
-        >
-          <view
-            class="link-row"
-            bindtap="openLink"
-            data-id="{{item.id}}"
-          >
-            <view class="link-left">
-              <text class="link-icon">{{item.icon}}</text>
-              <text class="link-title">{{item.title}}</text>
-            </view>
+      <!-- ── 聚合入口（历史/学习统计绝不落本页：学习统计只做去学情的入口） ── -->
+      <view class="pk-card links-card">
+        <block wx:for="{{linkItems}}" wx:key="id">
+          <view class="link-row" bindtap="openLink" data-id="{{item.id}}">
+            <text class="link-title">{{item.title}}</text>
             <text class="link-arrow">›</text>
           </view>
         </block>
       </view>
+
+      <!-- 商业化口径（10f 底部铭牌） -->
+      <text class="footnote">不按题收费 · 会员 = 解锁你这条路线的剩余部分</text>
 
       <!-- 退出登录 / 退出体验 -->
       <view class="logout-btn" bindtap="logout" aria-role="button" aria-label="{{isGuestPreview ? '退出体验' : '退出登录'}}">
         <text class="logout-btn-txt">{{isGuestPreview ? '退出体验' : '退出登录'}}</text>
       </view>
 
-      <view style="height: 240rpx"></view>
+      <view class="tail-spacer"></view>
     </view>
   </scroll-view>
 

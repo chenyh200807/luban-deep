@@ -1,0 +1,125 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "E05",
+ "status": "signed",
+ "source_pack_sha256": "8c29ebca6b36692f9006175958152ba3f31e447e20f209b8f6582956dfa281c9",
+ "generation_ms": 0.73,
+ "gate": {
+  "total": 8,
+  "passed": 8,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 8,
+ "dropped_rows": [],
+ "antidotes": {
+  "E07": [
+   {
+    "r8_id": "E05:R8-M1",
+    "mental_model": "BCWP=已完成量×预算单价、BCWS=计划量×预算单价、ACWP=已完成量×实际单价，三者量/价来源各不同",
+    "textbook_ref": "kc:1A435020_095_0156:0",
+    "phenomenon": "计算时混淆 BCWP/BCWS/ACWP 含义",
+    "wrong_model": "以为三值都基于实际成本或计划成本算"
+   },
+   {
+    "r8_id": "E05:R8-M2",
+    "mental_model": "正确 CV=BCWP−ACWP；CV>0 节支、CV<0 超支（「挣的 − 实花的」，正数即省钱）",
+    "textbook_ref": "kc:1A435020_095_0156:1",
+    "phenomenon": "CV 公式记反，写成 ACWP−BCWP",
+    "wrong_model": "记不住被减数是「挣值」"
+   },
+   {
+    "r8_id": "E05:R8-M3",
+    "mental_model": "正确 SV=BCWP−BCWS；SV>0 提前、SV<0 延误（「挣的 − 计划应挣的」，正数即超前）",
+    "textbook_ref": "kc:1A435020_095_0156:1",
+    "phenomenon": "SV 公式记反，写成 BCWS−BCWP",
+    "wrong_model": "混淆减数顺序"
+   },
+   {
+    "r8_id": "E05:R8-M4",
+    "mental_model": "正确 CPI=BCWP/ACWP；CPI>1 节支、CPI<1 超支",
+    "textbook_ref": "kc:1A435020_095_0156:2",
+    "phenomenon": "CPI 分子分母颠倒，写成 ACWP/BCWP",
+    "wrong_model": "不分相对效率的方向"
+   },
+   {
+    "r8_id": "E05:R8-M5",
+    "mental_model": "正确 SPI=BCWP/BCWS；SPI>1 提前、SPI<1 滞后",
+    "textbook_ref": "kc:1A435020_096_0157:0",
+    "phenomenon": "SPI 分子分母颠倒，写成 BCWS/BCWP",
+    "wrong_model": "同 CPI 方向混淆"
+   },
+   {
+    "r8_id": "E05:R8-M6",
+    "mental_model": "牢记「正数都是好（节支/提前）、指数>1 都是好」；算完必标方向",
+    "textbook_ref": "kc:1A435020_095_0156:1",
+    "phenomenon": "算对数值但方向判反（CV>0 说成超支）",
+    "wrong_model": "记反正负号的含义（把「正数=好」记成「正数=差」）"
+   }
+  ],
+  "E09": [
+   {
+    "r8_id": "E05:R8-M2",
+    "mental_model": "正确 CV=BCWP−ACWP；CV>0 节支、CV<0 超支（「挣的 − 实花的」，正数即省钱）",
+    "textbook_ref": "kc:1A435020_095_0156:1",
+    "phenomenon": "CV 公式记反，写成 ACWP−BCWP",
+    "wrong_model": "记不住被减数是「挣值」"
+   },
+   {
+    "r8_id": "E05:R8-M3",
+    "mental_model": "正确 SV=BCWP−BCWS；SV>0 提前、SV<0 延误（「挣的 − 计划应挣的」，正数即超前）",
+    "textbook_ref": "kc:1A435020_095_0156:1",
+    "phenomenon": "SV 公式记反，写成 BCWS−BCWP",
+    "wrong_model": "混淆减数顺序"
+   },
+   {
+    "r8_id": "E05:R8-M4",
+    "mental_model": "正确 CPI=BCWP/ACWP；CPI>1 节支、CPI<1 超支",
+    "textbook_ref": "kc:1A435020_095_0156:2",
+    "phenomenon": "CPI 分子分母颠倒，写成 ACWP/BCWP",
+    "wrong_model": "不分相对效率的方向"
+   },
+   {
+    "r8_id": "E05:R8-M5",
+    "mental_model": "正确 SPI=BCWP/BCWS；SPI>1 提前、SPI<1 滞后",
+    "textbook_ref": "kc:1A435020_096_0157:0",
+    "phenomenon": "SPI 分子分母颠倒，写成 BCWS/BCWP",
+    "wrong_model": "同 CPI 方向混淆"
+   }
+  ],
+  "E03": [
+   {
+    "r8_id": "E05:R8-M7",
+    "mental_model": "必须落到规范判读词，且公式+代入+结果+方向成组，口号不得分",
+    "textbook_ref": "kc:1A435020_097_0160:1",
+    "phenomenon": "只写「成本好/进度好」不写规范词「节支/超支/提前/延误」",
+    "wrong_model": "以为意思到了就给分"
+   }
+  ],
+  "E04": [
+   {
+    "r8_id": "E05:R8-M7",
+    "mental_model": "必须落到规范判读词，且公式+代入+结果+方向成组，口号不得分",
+    "textbook_ref": "kc:1A435020_097_0160:1",
+    "phenomenon": "只写「成本好/进度好」不写规范词「节支/超支/提前/延误」",
+    "wrong_model": "以为意思到了就给分"
+   }
+  ],
+  "E08": [
+   {
+    "r8_id": "E05:R8-M8",
+    "mental_model": "先看清给的是「量与价」还是「成本值」，必要时先 BCWP=量×预算单价求出三值再代入",
+    "textbook_ref": "kc:1A435020_095_0156:0",
+    "phenomenon": "题干给「已完成量×单价」却直接当成 BCWP，漏算 / 三值提取不全",
+    "wrong_model": "以为三值都现成给好"
+   }
+  ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:20+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
+ }
+}

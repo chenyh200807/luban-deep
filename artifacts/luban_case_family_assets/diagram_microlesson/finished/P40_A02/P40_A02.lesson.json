@@ -1,0 +1,166 @@
+{
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "derived_from": "P40_A02.source_card.json",
+  "speakers": {
+    "T": {
+      "role": "teacher",
+      "voice": "longanhuan_v3"
+    },
+    "S": {
+      "role": "student",
+      "voice": "longlaotie_v3"
+    }
+  },
+  "opening": {
+    "exam_scene": "题干给材料进场、见证取样或隐蔽覆盖场景，让你判断说法正误、指出不妥并改正，或者列出复验项目和隐蔽验收内容。",
+    "why_learn": "A02 很容易被写成资料补办题，但阅卷真正扫的是样品有没有复验、见证链有没有断、隐蔽部位是不是覆盖前验收。",
+    "promise": "看完只练一个动作：让材料样品带着见证过闸，让隐蔽剖面在覆盖前留下记录，再把它写成采分句。"
+  },
+  "teach": {
+    "voice": "longanhuan_v3",
+    "beats": [
+      {
+        "state": "hook",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[hook]",
+        "keycard": "A02 是覆盖前过滤器",
+        "bridge": "首幕先把 A02 和 A01 分开。",
+        "exam_task": "先识别题干命中的环节：材料进场、复验见证，还是隐蔽验收。",
+        "visual_explanation": "隐蔽剖面打开，覆盖板准备合上；只有合格证的材料托盘冲向现场，被复验闸挡住。",
+        "answer_move": "先写这是覆盖前过滤器，不把答案写成 A01 层级验收。",
+        "narration": "注意哈，A02 不是让你背检验批、分项、分部那套层级程序。它考的是覆盖前过滤器：材料缺陷要在使用前拦住，隐蔽缺陷要在盖板合上前看见。你看白板上，覆盖板一合，里面的基层、保温层、热桥处理就看不见了；只有合格证的材料托盘，也不能直接冲进现场。"
+      },
+      {
+        "state": "material_gate",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[material_gate]",
+        "keycard": "有合格证不等于复验合格",
+        "bridge": "刚才看到材料托盘被挡住，所以第一道闸就从材料进场开始。",
+        "exam_task": "指出有合格证即使用、未复验就投入施工的不妥。",
+        "visual_explanation": "材料托盘先点亮质量证明、数量、规格、外观四盏灯；涉及安全节能的样品从托盘抽出，进入复验通道。",
+        "answer_move": "写核查质量证明和外观等，需复验材料经见证取样复验合格后使用。",
+        "narration": "第一道材料闸，先查质量证明、数量、规格和外观，还要做标识和台账。可是合格证只是一张进场凭证，不等于复验已经合格。涉及安全、节能、环保的主要材料，还要按要求复验，经认可合格后才能使用。这里的画面动作很重要：证书点亮的是第一盏灯，样品还要被抽出去复验。"
+      },
+      {
+        "state": "retest_list",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[retest_list]",
+        "keycard": "按材料对象列复验格",
+        "bridge": "材料样品离开托盘以后，下一步不是写一句按规定复验，而是列清检测格。",
+        "exam_task": "训练钢筋、水泥、保温材料等复验项目的列项意识，并处理成型钢筋例外。",
+        "visual_explanation": "钢筋、水泥和保温板样品落入复验清单；普通钢筋五格亮起，成型钢筋的弯曲格灰掉。",
+        "answer_move": "写普通钢筋五项、成型钢筋免弯曲；材料不同，复验项目不同。",
+        "narration": "第二道复验闸，按材料对象列格子。普通钢筋要写屈服强度、抗拉强度、伸长率、弯曲性能、重量偏差五项。水泥又是胶砂强度、氯离子、安定性、凝结时间。保温材料要看导热系数、密度、燃烧性能等题面对象。注意成型钢筋的弯曲格会灰掉，它进场可不检弯曲性能。"
+      },
+      {
+        "state": "witness_chain",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[witness_chain]",
+        "keycard": "见证链看主体、时机、记录",
+        "bridge": "复验样品不是自己悄悄送走，样品一离开现场，就必须带着见证链。",
+        "exam_task": "纠正见证人由监理确认、试验员填写见证记录、送检后通知等常见错法。",
+        "visual_explanation": "现场取样台上样品被抽取，建设单位见证人章、见证记录表、检测机构核验章依次落下，错误章被弹开。",
+        "answer_move": "写现场内抽取、送检前通知见证人、见证人记录、检测机构核验。",
+        "narration": "第三道见证链，看三个动作。试样应在施工现场内抽取，送检前通知见证人；见证人由建设单位书面确认；见证记录由见证人填写，检测机构还要核实见证人。把见证人写成监理确认，或者把记录写成试验员填，画面上都会被弹开，因为主体一错，见证链就断了。"
+      },
+      {
+        "state": "hidden_shutter",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[hidden_shutter]",
+        "keycard": "隐蔽先验收记录，再覆盖",
+        "bridge": "接着画面回到现场剖面，下一件事是在覆盖前完成验收记录。",
+        "exam_task": "指出隐蔽部位覆盖后补验或只用材料复验代替隐蔽验收的不妥。",
+        "visual_explanation": "节能隐蔽剖面展开，基层、保温材料、热桥、隔汽层被扫描；隐检记录快门拍下后，覆盖板才允许合上。",
+        "answer_move": "写隐蔽部位应在被后续工序覆盖前验收并形成记录，合格后再覆盖。",
+        "narration": "第四道隐蔽闸，只有覆盖前有效。节能隐蔽不是一句资料归档，要看基层及表面处理、保温材料种类和厚度、热桥处理、隔汽层这些部位。白板上的快门先拍下隐检记录，覆盖板才合上。如果先盖住再补记录，那就不是验收窗口里的现场验收了。"
+      },
+      {
+        "state": "branch_trap",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[branch_trap]",
+        "keycard": "找错沿三条支路淘汰",
+        "bridge": "隐蔽快门拍完之后，再看题干常把哪些错法塞进现场。",
+        "exam_task": "把有证即用、自取自送、覆盖后补验三类错法逐项指出并改正。",
+        "visual_explanation": "有证即用、自取自送、覆盖后补验三条支路从主流程分出来，被红叉淘汰；复验、见证、隐检齐全的主线亮绿。",
+        "answer_move": "案例改错写“不妥 + 正确动作”，不能只写按规范处理。",
+        "narration": "第五步把常见错支路一次淘汰。第一条，有合格证就直接用，错在把凭证当复验。第二条，施工单位自取自送，送检后才通知，错在见证链断。第三条，隐蔽部位已经覆盖后补记录，错在时机已经晚了。案例题要逐项写不妥，再逐项补正确动作。"
+      },
+      {
+        "state": "score",
+        "speaker": "T",
+        "claim": true,
+        "anchor": "teaching_spine[score]",
+        "keycard": "定环节、列复验、写见证、覆盖前验收",
+        "bridge": "所有对象和错支路都看完后，最后压成答题纸。",
+        "exam_task": "把材料复验、见证取样和隐蔽验收写成完整案例改错句。",
+        "visual_explanation": "答题纸逐句扫描，材料样品、见证章和隐蔽剖面缩成右侧缩略图，四行采分动作依次命中。",
+        "answer_move": "写先定环节，再写复验见证和覆盖前隐蔽验收，合格后使用或覆盖。",
+        "narration": "最后写到答题纸。第一句，先按题面定环节。第二句，材料进场应核查质量证明和外观等，需要复验的材料要见证取样送检，经认可合格后使用。第三句，试样现场内抽取，送检前通知见证人，见证记录由见证人填写并由检测机构核验。第四句，隐蔽部位覆盖前验收并形成记录，合格后再覆盖。"
+      }
+    ]
+  },
+  "qa": [
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "老师，那材料有合格证，我再写外观看过了，这块能拿分不？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[cert_equals_ok]",
+        "text": "能拿到一点进场凭证意识，但不够。A02 要把“有证”和“复验合格”分开，涉及安全、节能、环保的材料还要按要求见证取样复验，经认可后才能使用。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "这块我老整混，见证人是不是监理确认，记录让试验员填也行不？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[witness_supervisor]",
+        "text": "不行。按这张源卡的训练口径，见证人由建设单位书面确认，见证记录由见证人填写。你写成监理确认或试验员记录，主体就错了，见证链会断。"
+      }
+    },
+    {
+      "state": "qa_closure",
+      "q": {
+        "speaker": "S",
+        "claim": false,
+        "text": "那隐蔽部位已经盖上了，我让他们补张隐检记录，这么改行不？"
+      },
+      "a": {
+        "speaker": "T",
+        "claim": true,
+        "anchor": "common_errors[hidden_after_cover]",
+        "text": "不能这么写。隐蔽验收的关键就是覆盖前，看得见、够得着、能检查。覆盖后补记录，只是在补资料，不是把现场隐蔽验收补回来了。"
+      }
+    }
+  ],
+  "closing": {
+    "state": "closing_challenge",
+    "speaker": "T",
+    "claim": true,
+    "anchor": "facts[memory_hook]",
+    "text": "记住哈，A02 就一句话：材料先过门，样品带见证，隐蔽先拍再盖。现在进闯关，别背空话，按材料样品、见证章、隐蔽剖面这三个对象写采分句。"
+  }
+}

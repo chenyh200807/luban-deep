@@ -54,6 +54,17 @@ async def _collect_events(run_coro) -> list[StreamEvent]:
     return events
 
 
+def _practice_generation_turn_decision() -> dict[str, Any]:
+    return {
+        "relation_to_active_object": "switch_to_new_object",
+        "next_action": "route_to_generation",
+        "allowed_patch": "set_active_object",
+        "confidence": 0.91,
+        "reason": "用户要求基于当前会话主题出题。",
+        "target_object_ref": {"object_type": "question_set", "object_id": ""},
+    }
+
+
 def test_deep_question_builds_case_context_from_full_submission() -> None:
     raw_case_submission = (
         "建设单位编制了投资兴建某工程的招标文件。\n"
@@ -2133,7 +2144,7 @@ async def test_deep_question_writes_grading_errors_to_learner_state(
 
 
 def test_plain_count_generation_request_requires_authoritative_anchor() -> None:
-    for user_topic in ("出三道题", "出3道题", "来两道题", "给我三道题"):
+    for user_topic in ("出三道题", "出3道题", "出几道题目", "来两道题", "给我三道题"):
         assert deep_question_module._topic_needs_authoritative_anchor(user_topic) is True
 
 
@@ -2406,6 +2417,7 @@ async def test_deep_question_blocks_action_only_generation_without_anchor_before
         metadata={
             "question_lifecycle_scene": "practice_generation",
             "selected_mode": "deep",
+            "turn_semantic_decision": _practice_generation_turn_decision(),
         },
     )
 
@@ -2416,6 +2428,88 @@ async def test_deep_question_blocks_action_only_generation_without_anchor_before
     assert "具体考点" in result_event.metadata["response"]
     assert result_event.metadata["question_followup_context"] == {}
     assert result_event.metadata["practice_generation_blocked_reason"] == "missing_topic_anchor"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_uses_conversation_history_anchor_for_action_only_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, callback: Any) -> None:
+            captured["ws_callback"] = callback
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["generate_from_topic"] = kwargs
+            return {
+                "source": "topic",
+                "requested": kwargs.get("num_questions", 0),
+                "completed": 0,
+                "failed": 0,
+                "results": [],
+                "trace": {
+                    "lightweight_generation": kwargs.get("lightweight_generation", False),
+                    "lightweight_counters": {
+                        "llm_calls": 0,
+                        "retriever_calls": 0,
+                        "bank_hits": 0,
+                        "lightweight_batch_fallback": "none",
+                        "generated_explanation": False,
+                    },
+                },
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="出几道题目",
+        conversation_history=[
+            {"role": "user", "content": "帮我梳理一建建筑实务的核心考点"},
+            {
+                "role": "assistant",
+                "content": "一建建筑实务核心考点总览：工程设计、工程材料、施工技术。",
+            },
+        ],
+        config_overrides={
+            "mode": "custom",
+            "topic": "出几道题目",
+            "num_questions": 3,
+            "question_type": "choice",
+            "force_generate_questions": True,
+            "lightweight_generation": False,
+        },
+        language="zh",
+        metadata={
+            "question_lifecycle_scene": "practice_generation",
+            "selected_mode": "deep",
+            "turn_semantic_decision": _practice_generation_turn_decision(),
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert captured["generate_from_topic"]["num_questions"] == 3
+    assert "当前学习锚点" in captured["generate_from_topic"]["user_topic"]
+    assert "一建建筑实务核心考点" in captured["generate_from_topic"]["user_topic"]
+    assert "practice_generation_blocked_reason" not in result_event.metadata
 
 
 @pytest.mark.asyncio
@@ -2451,6 +2545,7 @@ async def test_deep_question_blocks_non_construction_generation_before_coordinat
         metadata={
             "question_lifecycle_scene": "practice_generation",
             "selected_mode": "deep",
+            "turn_semantic_decision": _practice_generation_turn_decision(),
         },
     )
 
@@ -2527,6 +2622,7 @@ async def test_deep_question_allows_explicit_construction_generation_topic(
         metadata={
             "question_lifecycle_scene": "practice_generation",
             "selected_mode": "deep",
+            "turn_semantic_decision": _practice_generation_turn_decision(),
         },
     )
 
@@ -2605,6 +2701,7 @@ async def test_deep_question_different_topic_request_does_not_inherit_question_a
         metadata={
             "question_lifecycle_scene": "practice_generation",
             "selected_mode": "fast",
+            "turn_semantic_decision": _practice_generation_turn_decision(),
             "active_object": {
                 "object_type": "single_question",
                 "object_id": "q_hot_work",

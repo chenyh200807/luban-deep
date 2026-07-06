@@ -214,13 +214,13 @@ async def test_login_with_wechat_code_promotes_phone_backed_member_to_canonical_
                 **service._build_default_member("wx_O4aNJg7O_wRk"),
                 "user_id": "wx_O4aNJg7O_wRk",
                 "phone": "34277511499",
-                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             }
         ]
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
-            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             "unionid": "unionid_live_user",
             "session_key": "session_key_value",
         }
@@ -262,7 +262,7 @@ async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical
 
         @staticmethod
         def resolve_alias(*, alias_type: str, alias_value: str):
-            if alias_type == "wx_openid" and alias_value == "oTHl5610QTUB2maCO4aNJg7O-wRk":
+            if alias_type == "wx_openid" and alias_value == "oTHl5610QTUB2maCO4aNJg7O-wRk":  # pragma: allowlist secret
                 return {"user_id": canonical_uid}
             return None
 
@@ -272,13 +272,13 @@ async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical
                 **service._build_default_member("wx_O4aNJg7O_wRk"),
                 "user_id": "wx_O4aNJg7O_wRk",
                 "phone": "34277511499",
-                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+                "wx_openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             }
         ]
 
     async def _fake_exchange(_code: str) -> dict[str, str]:
         return {
-            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",
+            "openid": "oTHl5610QTUB2maCO4aNJg7O-wRk",  # pragma: allowlist secret
             "unionid": "",
             "session_key": "session_key_value",
         }
@@ -301,7 +301,7 @@ async def test_login_with_wechat_code_uses_existing_wx_openid_alias_as_canonical
     assert wallet_service.calls[0]["user_id"] == canonical_uid
     assert canonical_snapshot["display_name"] != "wx_O4aNJg7O_wRk"
     assert canonical_snapshot["display_name"].startswith("微信用户")
-    assert canonical_snapshot["wx_openid"] == "oTHl5610QTUB2maCO4aNJg7O-wRk"
+    assert canonical_snapshot["wx_openid"] == "oTHl5610QTUB2maCO4aNJg7O-wRk"  # pragma: allowlist secret
     assert legacy_snapshot["external_auth_user_id"] == canonical_uid
 
 
@@ -725,7 +725,12 @@ def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from
     class _FakeLearnerStateService:
         def read_snapshot(self, user_id: str, *, event_limit: int = 5):
             assert user_id == "student_plan"
-            assert event_limit == 20
+            # 接线断言钉命名常量而非魔数：首页读窗权威 = _HOME_LEARNER_EVENT_LIMIT
+            # （fusion-c a66fe1c3f 把 20 升到 100 后旧魔数 pin 在 try/except 里
+            # 静默降级 snapshot，正是本测试要防的假绿形态）。
+            from deeptutor.services.member_console import service as _mc_service
+
+            assert event_limit == _mc_service._HOME_LEARNER_EVENT_LIMIT
             return type(
                 "Snapshot",
                 (),
@@ -1108,7 +1113,7 @@ def test_login_with_password_does_not_fail_when_wallet_bootstrap_is_unavailable(
     users_file = tmp_path / "users.json"
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     username = "wallet_quota_user"
-    password = "SyntheticPass123"
+    password = "SyntheticPass123"  # pragma: allowlist secret
     password_hash = bcrypt.hashpw(
         hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8"),
         bcrypt.gensalt(),
@@ -1164,7 +1169,7 @@ def test_internal_qa_billing_bypass_skips_wallet_bootstrap(
     users_file = tmp_path / "users.json"
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     username = "qa_wallet_bypass_user"
-    password = "SyntheticPass123"
+    password = "SyntheticPass123"  # pragma: allowlist secret
     password_hash = bcrypt.hashpw(
         hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8"),
         bcrypt.gensalt(),
@@ -1449,6 +1454,34 @@ def test_register_with_external_auth_creates_external_user_and_member(
     assert result["user"]["username"] == "new_student"
     assert "new_student" in external_users
     assert external_users["new_student"]["phone"] == "+8613812345678"
+
+
+def test_register_with_external_auth_rejects_non_cn_mobile_phone(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    called: list[tuple[object, ...]] = []
+
+    def _unexpected_create_external_auth_user(*args: object, **kwargs: object) -> dict[str, object]:
+        called.append(args)
+        raise AssertionError("register phone validation must run before external auth")
+
+    monkeypatch.setattr(
+        member_service_module,
+        "create_external_auth_user",
+        _unexpected_create_external_auth_user,
+    )
+
+    with pytest.raises(ValueError, match="大陆手机号"):
+        service.register_with_external_auth("new_student", "StrongPass123", "83090321728")
+
+    assert called == []
+    assert not users_file.exists()
 
 
 def test_register_with_external_auth_rejects_existing_verified_phone_alias(
@@ -3035,9 +3068,25 @@ def test_submit_assessment_counts_only_answered_questions_as_progress(tmp_path: 
     assert sum(item["done"] for item in chapters) - before_chapters == 5
 
 
+
+class _EmptyLearnerStateService:
+    """§6-2 起 radar/mastery 面会读 learner snapshot 证据;静态口径测试
+    必须显式声明"无学习证据",防止共享磁盘 store 的跨测试污染。"""
+
+    def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+        return SimpleNamespace(profile={}, progress={}, summary="", memory_events=[])
+
+    def list_heartbeat_jobs(self, user_id: str):
+        return []
+
+    def list_heartbeat_history(self, user_id: str, *, limit: int = 3):
+        return []
+
+
 def test_submit_assessment_persists_measured_profile_including_zero_mastery(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    service._get_learner_state_service = lambda: _EmptyLearnerStateService()  # type: ignore[method-assign]
 
     payload = service.create_assessment("student_demo", count=5)
     stored = service._load()["assessment_sessions"][payload["quiz_id"]]["questions"]
@@ -3551,6 +3600,7 @@ def test_assessment_deep_explanation_checks_balance_before_llm_generation(
 def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    service._get_learner_state_service = lambda: _EmptyLearnerStateService()  # type: ignore[method-assign]
 
     def _seed(data: dict[str, object]) -> None:
         member = service._ensure_member(data, "student_demo")
@@ -3579,6 +3629,7 @@ def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_pat
 def test_sparse_last_assessment_score_cannot_promote_global_mastery_to_advanced(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
+    service._get_learner_state_service = lambda: _EmptyLearnerStateService()  # type: ignore[method-assign]
 
     def _seed(data: dict[str, object]) -> None:
         member = service._ensure_member(data, "student_demo")
@@ -6546,3 +6597,265 @@ async def test_bind_phone_wechat_persists_wechat_openid_identity(
     p = wechat_persisted[0]
     assert p["openid"] == "oid_test_openid_1", "应传入该 member 的 wx_openid"
     assert p["unionid"] == "uid_test_unionid_1", "应传入该 member 的 wx_unionid"
+
+
+def test_list_internal_test_user_ids_uses_test_member_classifier(tmp_path: Path) -> None:
+    """QA allowlist 导出：唯一权威=既有 _looks_like_test_member，含 alias/external 键位。"""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_members(data):
+        data["members"] = [
+            {
+                "user_id": "11111111-1111-1111-1111-111111111111",
+                "auth_username": "qa_spike_probe",
+                "display_name": "QA probe",
+                "external_auth_user_id": "22222222-2222-2222-2222-222222222222",
+                "alias_user_ids": ["33333333-3333-3333-3333-333333333333"],
+            },
+            {
+                "user_id": "44444444-4444-4444-4444-444444444444",
+                "auth_username": "realstudent01",
+                "display_name": "真实学员",
+                "phone": "13712345678",
+            },
+        ]
+
+    service._mutate(_seed_members)
+    ids = service.list_internal_test_user_ids()
+    assert "11111111-1111-1111-1111-111111111111" in ids
+    assert "22222222-2222-2222-2222-222222222222" in ids
+    assert "33333333-3333-3333-3333-333333333333" in ids
+    assert "44444444-4444-4444-4444-444444444444" not in ids
+
+
+def test_spike_d1_report_excludes_allowlisted_users() -> None:
+    """D1 度量脚本：allowlist 用户不入 cohort；乙案 cohort 门槛生效。"""
+    import datetime as _dt
+
+    from scripts.report_luban_spike_d1 import compute_d1
+
+    days = {
+        "user:aaaa": {"2026-06-01", "2026-06-02"},
+        "user:bbbb": {"2026-06-01"},
+        "user:qa-uuid": {"2026-06-01", "2026-06-02"},
+    }
+    report = compute_d1(days, {"qa-uuid"}, today=_dt.date(2026, 7, 2))
+    assert report["cohort"] == 2
+    assert report["retained"] == 1
+    assert report["excluded_internal_accounts"] == 1
+    assert report["d1"] == 0.5
+    assert report["cohort_gate_met"] is False
+    assert "未达读数条件" in report["verdict"]
+
+
+def _mastery_evidence_event(index: int, *, label: str = "网络计划", correct: bool = True) -> SimpleNamespace:
+    return SimpleNamespace(
+        memory_kind="learning_evidence",
+        source_feature="construction_grading",
+        event_id=f"mastery_evt_{index}",
+        source_id=f"turn_mastery_{index}",
+        dedupe_key=f"mastery_evt_{index}",
+        created_at=f"2026-07-0{1 + index}T10:00:00+08:00",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": f"mastery_q_{index}",
+            "score_awarded": 1.0 if correct else 0.0,
+            "max_score": 1.0,
+            "canonical_topic": {"label": label},
+            "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+        },
+    )
+
+
+def _seed_static_chapter_mastery(service: MemberConsoleService, user_id: str, *, mastery: int) -> None:
+    def _apply(data: dict[str, object]) -> None:
+        for member in data["members"]:
+            if member["user_id"] != user_id:
+                continue
+            member["chapter_mastery"] = {
+                "网络计划": {"name": "网络计划", "mastery": mastery},
+            }
+            break
+
+    service._mutate(_apply)
+
+
+class _FakeEnvStore:
+    """env_flag 经 get_env_store 先读磁盘 .env（磁盘值遮蔽 os.environ），
+    monkeypatch os.environ 无效——按 tests/services/config/test_runtime_env.py
+    既有范式 stub get_env_store 单一读点。"""
+
+    def __init__(self, values: dict[str, str]) -> None:
+        self._values = values
+
+    def get(self, key: str, default: str = "") -> str:
+        return self._values.get(key, default)
+
+
+def _stub_env_store(monkeypatch: pytest.MonkeyPatch, values: dict[str, str]) -> None:
+    store = _FakeEnvStore({"DEEPTUTOR_ENV": "local", **values})
+    monkeypatch.setattr(
+        "deeptutor.services.config.env_store.get_env_store",
+        lambda: store,
+    )
+
+
+def _make_blend_service(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    user_id: str,
+    legacy_mastery: int,
+    corrects: list[bool],
+) -> MemberConsoleService:
+    # 融合面总开关置开（mastery blend 正在被收进 DEEPTUTOR_HOME_NEXT_STEP_ENABLED）。
+    _stub_env_store(monkeypatch, {"DEEPTUTOR_HOME_NEXT_STEP_ENABLED": "1"})
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile(user_id)
+    _seed_static_chapter_mastery(service, user_id, mastery=legacy_mastery)
+
+    events = [_mastery_evidence_event(i, correct=correct) for i, correct in enumerate(corrects)]
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            return SimpleNamespace(profile={}, progress={}, summary="", memory_events=list(events))
+
+        def read_compiled_learning_truth(self, user_id: str):
+            return {}
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 3):
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+    return service
+
+
+def test_radar_and_mastery_dashboard_blend_estimate_mastery_from_learning_evidence(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # §6-2 首页 mastery 收口：首页/雷达/章节盘必须经 estimate_mastery（唯一 mastery 算子）
+    # 聚合 learner-state 证据，不再裸读静态 member.chapter_mastery。
+    service = _make_blend_service(
+        tmp_path,
+        monkeypatch,
+        user_id="student_mastery_blend",
+        legacy_mastery=40,
+        corrects=[True, True, True],
+    )
+
+    radar = service.get_radar_data("student_mastery_blend")
+    dimension = next(item for item in radar["dimensions"] if item["key"] == "网络计划")
+    # 3 次全对的近期证据必须把 40 的静态分抬起来（estimate_mastery 贝叶斯混合）。
+    assert dimension["score"] > 40
+
+    mastery_dashboard = service.get_mastery_dashboard("student_mastery_blend")
+    chapters = [
+        chapter
+        for group in mastery_dashboard["groups"]
+        for chapter in group["chapters"]
+        if chapter["name"] == "网络计划"
+    ]
+    assert chapters and chapters[0]["mastery"] == dimension["score"]
+
+    # 评审项 6（排除路径，确定性）：legacy 40 + 3 全对 → 混合分确定越过 60，
+    # 必然被 weak_nodes（<60 才入）排除——显式断言，不再用 if 守出死代码。
+    assert dimension["score"] >= 60
+    home = service.get_home_dashboard("student_mastery_blend")
+    weak_names = {item["name"]: item["mastery"] for item in home["mastery"]["weak_nodes"]}
+    assert "网络计划" not in weak_names
+
+
+def test_home_weak_nodes_carry_blended_score_when_evidence_keeps_chapter_weak(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 评审项 6（保留路径，确定性）：legacy 40 + 3 全错 → 混合分确定下压且 <60，
+    # 章节必然留在 weak_nodes，且首页展示的必须是混合值（与雷达同一算子同一数）。
+    service = _make_blend_service(
+        tmp_path,
+        monkeypatch,
+        user_id="student_mastery_weak",
+        legacy_mastery=40,
+        corrects=[False, False, False],
+    )
+
+    radar = service.get_radar_data("student_mastery_weak")
+    dimension = next(item for item in radar["dimensions"] if item["key"] == "网络计划")
+    assert dimension["score"] < 40  # 全错证据必须把静态 40 往下混
+
+    home = service.get_home_dashboard("student_mastery_weak")
+    weak_names = {item["name"]: item["mastery"] for item in home["mastery"]["weak_nodes"]}
+    assert "网络计划" in weak_names, "混合后 <60 的章节必须留在 weak_nodes"
+    assert weak_names["网络计划"] == dimension["score"]
+
+
+def test_mastery_faces_keep_legacy_scores_when_no_evidence_in_window(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 证据窗为空时保持 legacy 值（含摸底测评优先契约），不得因窗口小被 cap 降级。
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("student_mastery_legacy")
+    _seed_static_chapter_mastery(service, "student_mastery_legacy", mastery=80)
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            return SimpleNamespace(profile={}, progress={}, summary="", memory_events=[])
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 3):
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _FakeLearnerStateService())
+
+    radar = service.get_radar_data("student_mastery_legacy")
+    dimension = next(item for item in radar["dimensions"] if item["key"] == "网络计划")
+    assert dimension["score"] == 80
+
+
+def test_snapshot_read_count_is_pinned_per_surface(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Codex #5:mastery 三面 + report 组合曾有冗余 snapshot 读风险。
+    # 钉住每面恰好 1 次 read_snapshot(计数回归,防未来叠加);
+    # report 组合路径的整体减法归独立 PR(踢重 legacy source)。
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("student_read_count")
+
+    calls = {"count": 0}
+
+    class _CountingLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            calls["count"] += 1
+            return SimpleNamespace(profile={}, progress={}, summary="", memory_events=[])
+
+        def read_compiled_learning_truth(self, user_id: str):
+            return {}
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, *, limit: int = 3):
+            return []
+
+    monkeypatch.setattr(service, "_get_learner_state_service", lambda: _CountingLearnerStateService())
+
+    calls["count"] = 0
+    service.get_home_dashboard("student_read_count")
+    assert calls["count"] == 1, f"home dashboard must read snapshot exactly once, got {calls['count']}"
+
+    calls["count"] = 0
+    service.get_radar_data("student_read_count")
+    assert calls["count"] == 1, f"radar must read snapshot exactly once, got {calls['count']}"
+
+    calls["count"] = 0
+    service.get_mastery_dashboard("student_read_count")
+    assert calls["count"] == 1, f"mastery dashboard must read snapshot exactly once, got {calls['count']}"

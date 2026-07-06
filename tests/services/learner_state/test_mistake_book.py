@@ -276,3 +276,36 @@ def test_supabase_mistake_book_list_items_include_mastered_does_not_filter_maste
     assert requests[0]["params"]["subject_id"] == "eq.construction_exam_1"
     assert requests[0]["params"]["archived_at"] == "is.null"
     assert "mastered_at" not in requests[0]["params"]
+
+
+def test_review_due_at_read_side_projection_behind_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+    """review_due_at = 读侧投影(derive_review_due_at, 双轮 v3.2 §6.1)——
+    旗标关: 恒 None(收权后现状); 旗标开: 从 last_reviewed_at/saved_at 派生 weak 相
+    到期时刻, 零落库(store 内仍是 None)。已标掌握不再排期。"""
+    service = MistakeBookService(store=InMemoryMistakeBookStore())
+    attempt_ref = sign_attempt_ref(user_id="u1", event_id="evt_due", question_id="q1")
+    service.save_item(user_id="u1", attempt_ref=attempt_ref, subject_id="construction_exam_1")
+
+    monkeypatch.delenv("LUBAN_REVIEW_MODULE_ENABLED", raising=False)
+    listed = service.list_items(user_id="u1")
+    assert listed["items"][0]["review_due_at"] is None, "旗标关=收权后现状(不排期)"
+
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
+    listed = service.list_items(user_id="u1")
+    item = listed["items"][0]
+    saved_at = item["saved_at"]
+    assert item["review_due_at"], "旗标开: 读侧派生计划复习时刻"
+    assert item["review_due_at"] > saved_at, "weak 相首跳=观测后 3 天(>收藏时刻)"
+
+    # 复习一次后: 观测锚切到 last_reviewed_at, review_due_at 随之后移且不落库
+    service.record_review(user_id="u1", attempt_ref=attempt_ref)
+    listed = service.list_items(user_id="u1")
+    item = listed["items"][0]
+    assert item["review_due_at"] and item["review_due_at"] > item["last_reviewed_at"]
+    raw = service._store.get_item("u1", "evt_due")  # 落库真值仍空(防第二调度权威)
+    assert raw["review_due_at"] is None
+
+    # 标掌握(呈现层旗标)后不再排期
+    service.mark_mastered(user_id="u1", attempt_ref=attempt_ref)
+    listed = service.list_items(user_id="u1", include_mastered=True)
+    assert listed["items"][0]["review_due_at"] is None

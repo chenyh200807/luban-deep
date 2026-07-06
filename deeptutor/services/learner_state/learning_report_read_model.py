@@ -71,6 +71,31 @@ def _build_prescription_outcomes_from(*, events: list[Any]) -> list[dict[str, An
     return build_prescription_outcomes_read_projection(events=events)
 
 
+def aggregate_attempts_by_label(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
+    """§6-2 首页 mastery 收口的公开 seam：同一份 learning-evidence 过滤 +
+    聚合逻辑喂 estimate_mastery（唯一 mastery 算子）。member_console 的
+    首页/雷达/章节盘必须复用这里，不得自建第二套 attempts 聚合。"""
+    return _aggregate_learning_evidence(_learning_evidence_events(list(events or [])))["attempts_by_label"]
+
+
+def _build_pack_lifecycle_from(*, events: list[Any], weak_points: list[dict[str, Any]]) -> dict[str, Any]:
+    """融合计划 §1：per-pack 生命周期投影（蓝环/掌握双轨）——thin composer。
+    投影数据文件缺失时降级为空投影，不拖垮整份 report。"""
+    try:
+        from deeptutor.services.learner_state.pack_lifecycle_projection import (
+            project_pack_lifecycle,
+        )
+
+        return project_pack_lifecycle(events=events, claims=weak_points)
+    except Exception:
+        return {
+            "authority": "pack_lifecycle_projection.read_model",
+            "packs": {},
+            "unassigned_practice": [],
+            "degraded": True,
+        }
+
+
 _TZ = timezone(timedelta(hours=8))
 # Canonical schema id for register-before-use (schema-governance P2: this read model is
 # this module's single schema authority — contracts/learning-report.md). The wire payload
@@ -402,6 +427,9 @@ def build_learning_report_read_model(
         # state -> reason -> action -> evidence without traversing into
         # learning_brain internals.
         "learning_state": learning_state,
+        # 融合计划 §1：per-pack 生命周期（未学/已学·待验证/练过/真懂/休眠）——
+        # 蓝环（接触轨）与红黄绿（掌握轨）拆开，供前端第 11 轮增量稿消费。
+        "pack_lifecycle": _build_pack_lifecycle_from(events=events, weak_points=weak_points),
         # D-class: student-visible long-term analytics (recurrent errors + trend).
         # Pure read projection — derived from learning_brain.weak_points.occurrence_timeline.
         "long_term_analytics": _build_long_term_analytics(learning_brain),

@@ -1,0 +1,128 @@
+{
+  "card_id": "P40_S02",
+  "title": "起重吊装安全",
+  "status": "candidate_teaching_prototype",
+  "workflow_contract": {
+    "name": "luban_openmaic_animation_ir_workflow",
+    "version": "lesson_source_workflow.v1",
+    "strict_source": true,
+    "requires_bridge": true,
+    "clarity_first": true,
+    "target_total_sec_max": 300
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/S02_起重吊装安全.md",
+    "source_boundary": "S02 Deep Pack candidate teaching source; signed grading authority is outside this prototype."
+  },
+  "wrong_idea": "以为起重吊装安全题就是背几个安全口号，或者一看到起重吊装就直接写专家论证，没有先分清危大门槛、作业条件、试吊动作和放行采分句。",
+  "main_exam_action": "把起重吊装安全题写成四道门采分链：先判危大/论证门槛 → 再查作业条件 → 90%以上先试吊四查 → 合格后方可正式起吊。",
+  "teaching_spine": [
+    {
+      "state": "hook",
+      "anchor_md": "§3 R2 不变量",
+      "visual_fact": "考场不是问你会不会说安全，而是问正式起吊前哪一道门没过。",
+      "bridge_from_previous": "首幕建立考试任务。",
+      "answer_move": "先把题干翻译成“能不能正式起吊”，不要先写泛泛安全管理。"
+    },
+    {
+      "state": "gate_map",
+      "anchor_md": "§3 R2 不变量",
+      "visual_fact": "S02 的判分内核可以画成四道门：危大门槛、人证设备、90%试吊、合格放行。",
+      "bridge_from_previous": "既然问正式起吊，先把起吊前的门画出来。",
+      "answer_move": "每条答案都按“门槛/条件/动作/放行”组织，不散写。"
+    },
+    {
+      "state": "danger_gate",
+      "anchor_md": "§5.1 组 P5-3 起重吊装危大两层门槛",
+      "visual_fact": "10kN 是一般危大下限，100kN/300kN/200m 是超危大专家论证线，两层不能合并。",
+      "bridge_from_previous": "四道门里第一道最容易错，因为学生会把两层门槛压成一层。",
+      "answer_move": "先写单件≥10kN属危大、需专项方案，再另判是否达到专家论证线。"
+    },
+    {
+      "state": "precheck_gate",
+      "anchor_md": "§5.1 组 P5-1 + P5-2 + P5-4",
+      "visual_fact": "正式作业前要看气象、基础、吊索具、吊点、限位装置等硬条件，不能用经验感觉替代规范红线。",
+      "bridge_from_previous": "门槛判完，只说明项目进入哪种管理口径，还不能说明能起吊。",
+      "answer_move": "把风线、基础、钢丝绳、吊点和安全装置写成作业前核查依据。"
+    },
+    {
+      "state": "trial_lift",
+      "anchor_md": "§5.1 组 P5-1 起吊≥90%四查",
+      "visual_fact": "起吊达到额定90%及以上时，要先吊离地200～500mm，再查机械、制动、重物平稳和绑扎。",
+      "bridge_from_previous": "条件合格后，还不能一把拉到正式吊装，临界荷载要先试稳。",
+      "answer_move": "看到90%或95%，先写离地试吊和四查，合格后才正式起吊。"
+    },
+    {
+      "state": "limit_gate",
+      "anchor_md": "§5.1 组 P5-1b 安全装置禁令",
+      "visual_fact": "限位装置是保护边界，不是操作机构；操作机构失灵时必须停用排故，不能用限位顶替。",
+      "bridge_from_previous": "试吊讲的是动作顺序，禁令题讲的是绝对不能替代。",
+      "answer_move": "把“用限位代替操作机构”判为不妥，并写停止使用、排除故障后再作业。"
+    },
+    {
+      "state": "score",
+      "anchor_md": "§5.2 R6 答案骨架",
+      "visual_fact": "最终答题纸不是散点清单，而是一句“先判门槛、再查条件、试吊合格、方可起吊”的采分句。",
+      "bridge_from_previous": "把门槛、条件、动作都过完，最后必须落成能写在答题纸上的表达。",
+      "answer_move": "输出对象 + 判断依据 + 正确做法 + 合格后方可正式起吊。"
+    }
+  ],
+  "facts": [
+    {
+      "id": "gate_loop",
+      "text": "S02 判分内核是三道闸并扩展成四步作答：危大判定、作业前条件、作业中规程、合格后放行。"
+    },
+    {
+      "id": "danger_two_level",
+      "text": "起重吊装单件≥10kN属于一般危大，应编制专项方案；非常规且单件≥100kN，或总重≥300kN，或高度≥200m，才进入超危大专家论证口径。"
+    },
+    {
+      "id": "precheck_conditions",
+      "text": "作业前条件包括气象、基础、吊索具、吊点、安全保护装置等。露天塔机6级及以上大风或雨雪雾停，安拆风速>9.0m/s或低能见度停。"
+    },
+    {
+      "id": "trial_lift",
+      "text": "起吊达到额定90%及以上时，应先吊离地200～500mm，再检查机械状况、制动性能、重物平稳和绑扎牢固。"
+    },
+    {
+      "id": "limit_device",
+      "text": "安全保护装置必须完整灵敏，严禁用限位装置代替操作机构；操作机构失灵时应停止使用并排除故障后再作业。"
+    },
+    {
+      "id": "score_sentence",
+      "text": "可写成采分句：先判危大/专家论证门槛；作业前核查气象、基础、吊索具、吊点和安全装置；起吊达到90%及以上时先离地200～500mm四查，合格后方可正式起吊。"
+    },
+    {
+      "id": "rigging_lines",
+      "text": "钢丝绳一节距内断丝>10%、表面磨损达40%或死弯、结构变形、绳芯挤出应报废；吊点应与重心在同一垂直线并位于重心上方，严禁斜吊。"
+    }
+  ],
+  "common_errors": [
+    {
+      "id": "mix_gates",
+      "student": "单件12kN已经算起重吊装危大，所以直接写专家论证。",
+      "why": "12kN过的是10kN一般危大线，只能推出专项方案；专家论证还要另看非常规且100kN、总重300kN或高度200m。"
+    },
+    {
+      "id": "mix_wind",
+      "student": "风大统一写6级停，安拆和正常吊装差不多。",
+      "why": "风线要先看题干动词：露天塔机作业看6级及以上，安装拆卸看>9.0m/s和低能见度。"
+    },
+    {
+      "id": "skip_trial",
+      "student": "95%额定起吊时加强旁站、缓慢正式起吊。",
+      "why": "90%及以上的题眼不是态度词，而是固定动作：先离地200～500mm，再做机械、制动、平稳、绑扎四查。"
+    },
+    {
+      "id": "limit_replace",
+      "student": "操作机构失灵时可暂用限位装置代替。",
+      "why": "限位装置是安全保护边界，不是操作机构；用它顶替属于绝对禁令。"
+    },
+    {
+      "id": "general_safety",
+      "student": "起重吊装应加强安全管理，经检查后施工。",
+      "why": "这类表述没有门槛、阈值、动作和放行条件，不能稳定命中采分点。"
+    }
+  ],
+  "memory_hook": "先过门，再试吊，合格才放行。"
+}

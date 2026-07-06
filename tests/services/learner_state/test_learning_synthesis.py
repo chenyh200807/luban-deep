@@ -957,3 +957,69 @@ def test_release_eligible_evidence_is_not_in_candidate_observations() -> None:
     proj = synthesize_learning_truth([_learning_event("ok1"), _learning_event("ok2")])
     assert proj["candidate_observations"] == []
     assert "error:1A432000:E02" in proj["compiled_objects"]
+
+
+def test_put_object_merge_does_not_downgrade_real_retest_level() -> None:
+    # §6-1 地雷复现：真懂级证据（L2_real_retest / L3_mastery_signal）被后续 L0 观察覆盖。
+    from deeptutor.services.learner_state.learning_synthesis import _put_object
+
+    objects: dict[str, dict] = {}
+    common = {
+        "object_type": "error",
+        "object_id": "1A432000:E02",
+        "current_truth": "复测已确认改善。",
+        "conflicting_event_ids": [],
+        "superseded_by_event_ids": [],
+        "decay_state": "active",
+    }
+    _put_object(
+        objects,
+        evidence_level="L2_real_retest",
+        supporting_event_ids=["retest_evt"],
+        timeline_refs=[{"event_id": "retest_evt", "observed_at": "2026-05-18T10:00:00+08:00"}],
+        **common,
+    )
+    _put_object(
+        objects,
+        evidence_level="L0_observed",
+        supporting_event_ids=["later_l0_evt"],
+        timeline_refs=[{"event_id": "later_l0_evt", "observed_at": "2026-05-19T10:00:00+08:00"}],
+        **common,
+    )
+
+    merged = objects["error:1A432000:E02"]
+    assert merged["evidence_level"] == "L2_real_retest"
+    assert merged["confidence"] > 0.9
+    assert merged["claim_status"] == "confirmed"
+
+
+def test_claim_status_treats_real_retest_as_confirmed() -> None:
+    from deeptutor.services.learner_state.learning_synthesis import _claim_status
+
+    assert _claim_status("L2_real_retest", "active") == "confirmed"
+    assert _claim_status("L3_mastery_signal", "active") == "confirmed"
+    assert _claim_status("L2_confirmed", "active") == "confirmed"
+    assert _claim_status("L1_repeated", "active") == "repeated"
+    assert _claim_status("L0_observed", "active") == "observed"
+
+
+def test_weak_point_aggregation_preserves_real_retest_level() -> None:
+    # 1a 同族残留地雷:weak_points 聚合曾用字面 == "L2_confirmed" 判 L2 档,
+    # L2_real_retest 级 item 会被降到 repeated/observed——真懂信号在聚合层丢失。
+    retest_events = [
+        _learning_event(
+            f"retest_evt_{i}",
+            observed_at=f"2026-05-1{8 + i}T10:00:00+08:00",
+            quality={
+                "evidence_level": "L2_real_retest",
+                "writeback_eligible": True,
+                "retest_happened": True,
+                "retest_authority": "real_student_retest",
+            },
+        )
+        for i in range(2)
+    ]
+    projection = synthesize_learning_truth(retest_events)
+    weak = projection["weak_points"][0]
+    assert weak["evidence_level"] == "L2_real_retest"
+    assert weak["claim_status"] == "confirmed"

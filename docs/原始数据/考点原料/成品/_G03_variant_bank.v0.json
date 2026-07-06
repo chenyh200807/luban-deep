@@ -1,0 +1,1478 @@
+{
+ "schema_version": "luban-g03-variant-bank",
+ "pack_id": "G03",
+ "status": "signed",
+ "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
+ "generation_ms": 0.06,
+ "gate": {
+  "total": 110,
+  "passed": 110,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "A-hammer": 5,
+  "A-hoist": 8,
+  "A-order": 10,
+  "A-static": 6,
+  "A-stop": 4,
+  "B-dig": 6,
+  "B-grout": 3,
+  "B-overpour": 3,
+  "B-seq": 4,
+  "B-slag": 9,
+  "B-slump": 5,
+  "C-class": 6,
+  "C-drillhole": 6,
+  "C-method": 5,
+  "C-precond": 4,
+  "C-sample": 5,
+  "D-broken": 10,
+  "D-collapse": 8,
+  "D-soil": 3
+ },
+ "variants": [
+  {
+   "variant_id": "G03-A-hoist-000",
+   "rule_group": "A-hoist",
+   "surface": "预制桩桩身混凝土强度达设计强度的50%时开始起吊",
+   "params": {
+    "pct": 50,
+    "action": "起吊"
+   },
+   "expected_ok": false,
+   "correct_statement": "桩身混凝土强度达设计强度的70%方可起吊，达100%方可运输、打桩",
+   "anchor": "kc:1A413030_090_0165:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hoist-001",
+   "rule_group": "A-hoist",
+   "surface": "预制桩桩身混凝土强度达设计强度的50%时开始运输打桩",
+   "params": {
+    "pct": 50,
+    "action": "运输打桩"
+   },
+   "expected_ok": false,
+   "correct_statement": "桩身混凝土强度达设计强度的70%方可起吊，达100%方可运输、打桩",
+   "anchor": "kc:1A413030_090_0165:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hoist-002",
+   "rule_group": "A-hoist",
+   "surface": "预制桩桩身混凝土强度达设计强度的70%时开始起吊",
+   "params": {
+    "pct": 70,
+    "action": "起吊"
+   },
+   "expected_ok": true,
+   "correct_statement": "桩身混凝土强度达设计强度的70%方可起吊，达100%方可运输、打桩",
+   "anchor": "kc:1A413030_090_0165:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hoist-003",
+   "rule_group": "A-hoist",
+   "surface": "预制桩桩身混凝土强度达设计强度的70%时开始运输打桩",
+   "params": {
+    "pct": 70,
+    "action": "运输打桩"
+   },
+   "expected_ok": false,
+   "correct_statement": "桩身混凝土强度达设计强度的70%方可起吊，达100%方可运输、打桩",
+   "anchor": "kc:1A413030_090_0165:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hoist-004",
+   "rule_group": "A-hoist",
+   "surface": "预制桩桩身混凝土强度达设计强度的90%时开始起吊",
+   "params": {
+    "pct": 90,
+    "action": "起吊"
+   },
+   "expected_ok": true,
+   "correct_statement": "桩身混凝土强度达设计强度的70%方可起吊，达100%方可运输、打桩",
+   "anchor": "kc:1A413030_090_0165:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hoist-005",
+   "rule_group": "A-hoist",
+   "surface": "预制桩桩身混凝土强度达设计强度的90%时开始运输打桩",
+   "params": {
+    "pct": 90,
+    "action": "运输打桩"
+   },
+   "expected_ok": false,
+   "correct_statement": "桩身混凝土强度达设计强度的70%方可起吊，达100%方可运输、打桩",
+   "anchor": "kc:1A413030_090_0165:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hoist-006",
+   "rule_group": "A-hoist",
+   "surface": "预制桩桩身混凝土强度达设计强度的100%时开始起吊",
+   "params": {
+    "pct": 100,
+    "action": "起吊"
+   },
+   "expected_ok": true,
+   "correct_statement": "桩身混凝土强度达设计强度的70%方可起吊，达100%方可运输、打桩",
+   "anchor": "kc:1A413030_090_0165:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hoist-007",
+   "rule_group": "A-hoist",
+   "surface": "预制桩桩身混凝土强度达设计强度的100%时开始运输打桩",
+   "params": {
+    "pct": 100,
+    "action": "运输打桩"
+   },
+   "expected_ok": true,
+   "correct_statement": "桩身混凝土强度达设计强度的70%方可起吊，达100%方可运输、打桩",
+   "anchor": "kc:1A413030_090_0165:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-order-008",
+   "rule_group": "A-order",
+   "surface": "预制桩沉桩顺序安排为「先深后浅」",
+   "params": {
+    "stated_rule": "先深后浅"
+   },
+   "expected_ok": true,
+   "correct_statement": "沉桩顺序应先深后浅、先大后小、先长后短、先密后疏；密集桩群应自中间向四周对称施打",
+   "anchor": "kc:1A413030_090_0165:0 + {2015,第24题} + {2024,第9题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-order-009",
+   "rule_group": "A-order",
+   "surface": "预制桩沉桩顺序安排为「先浅后深」",
+   "params": {
+    "stated_rule": "先浅后深"
+   },
+   "expected_ok": false,
+   "correct_statement": "沉桩顺序应先深后浅、先大后小、先长后短、先密后疏；密集桩群应自中间向四周对称施打",
+   "anchor": "kc:1A413030_090_0165:0 + {2015,第24题} + {2024,第9题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-order-010",
+   "rule_group": "A-order",
+   "surface": "预制桩沉桩顺序安排为「先大后小」",
+   "params": {
+    "stated_rule": "先大后小"
+   },
+   "expected_ok": true,
+   "correct_statement": "沉桩顺序应先深后浅、先大后小、先长后短、先密后疏；密集桩群应自中间向四周对称施打",
+   "anchor": "kc:1A413030_090_0165:0 + {2015,第24题} + {2024,第9题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-order-011",
+   "rule_group": "A-order",
+   "surface": "预制桩沉桩顺序安排为「先小后大」",
+   "params": {
+    "stated_rule": "先小后大"
+   },
+   "expected_ok": false,
+   "correct_statement": "沉桩顺序应先深后浅、先大后小、先长后短、先密后疏；密集桩群应自中间向四周对称施打",
+   "anchor": "kc:1A413030_090_0165:0 + {2015,第24题} + {2024,第9题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-order-012",
+   "rule_group": "A-order",
+   "surface": "预制桩沉桩顺序安排为「先长后短」",
+   "params": {
+    "stated_rule": "先长后短"
+   },
+   "expected_ok": true,
+   "correct_statement": "沉桩顺序应先深后浅、先大后小、先长后短、先密后疏；密集桩群应自中间向四周对称施打",
+   "anchor": "kc:1A413030_090_0165:0 + {2015,第24题} + {2024,第9题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-order-013",
+   "rule_group": "A-order",
+   "surface": "预制桩沉桩顺序安排为「先短后长」",
+   "params": {
+    "stated_rule": "先短后长"
+   },
+   "expected_ok": false,
+   "correct_statement": "沉桩顺序应先深后浅、先大后小、先长后短、先密后疏；密集桩群应自中间向四周对称施打",
+   "anchor": "kc:1A413030_090_0165:0 + {2015,第24题} + {2024,第9题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-order-014",
+   "rule_group": "A-order",
+   "surface": "预制桩沉桩顺序安排为「先密后疏」",
+   "params": {
+    "stated_rule": "先密后疏"
+   },
+   "expected_ok": true,
+   "correct_statement": "沉桩顺序应先深后浅、先大后小、先长后短、先密后疏；密集桩群应自中间向四周对称施打",
+   "anchor": "kc:1A413030_090_0165:0 + {2015,第24题} + {2024,第9题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-order-015",
+   "rule_group": "A-order",
+   "surface": "预制桩沉桩顺序安排为「先疏后密」",
+   "params": {
+    "stated_rule": "先疏后密"
+   },
+   "expected_ok": false,
+   "correct_statement": "沉桩顺序应先深后浅、先大后小、先长后短、先密后疏；密集桩群应自中间向四周对称施打",
+   "anchor": "kc:1A413030_090_0165:0 + {2015,第24题} + {2024,第9题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-order-016",
+   "rule_group": "A-order",
+   "surface": "预制桩沉桩顺序安排为「密集桩群自中间向四周对称施打」",
+   "params": {
+    "stated_rule": "密集桩群自中间向四周对称施打"
+   },
+   "expected_ok": true,
+   "correct_statement": "沉桩顺序应先深后浅、先大后小、先长后短、先密后疏；密集桩群应自中间向四周对称施打",
+   "anchor": "kc:1A413030_090_0165:0 + {2015,第24题} + {2024,第9题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-order-017",
+   "rule_group": "A-order",
+   "surface": "预制桩沉桩顺序安排为「密集桩群自四周向中间施打」",
+   "params": {
+    "stated_rule": "密集桩群自四周向中间施打"
+   },
+   "expected_ok": false,
+   "correct_statement": "沉桩顺序应先深后浅、先大后小、先长后短、先密后疏；密集桩群应自中间向四周对称施打",
+   "anchor": "kc:1A413030_090_0165:0 + {2015,第24题} + {2024,第9题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hammer-018",
+   "rule_group": "A-hammer",
+   "surface": "锤击沉桩采用重锤低击方式施打",
+   "params": {
+    "method": "重锤低击"
+   },
+   "expected_ok": true,
+   "correct_statement": "锤击法落锤方式宜为重锤低击（低锤重打）",
+   "anchor": "{2017,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hammer-019",
+   "rule_group": "A-hammer",
+   "surface": "锤击沉桩采用低锤重打方式施打",
+   "params": {
+    "method": "低锤重打"
+   },
+   "expected_ok": true,
+   "correct_statement": "锤击法落锤方式宜为重锤低击（低锤重打）",
+   "anchor": "{2017,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hammer-020",
+   "rule_group": "A-hammer",
+   "surface": "锤击沉桩采用重锤高击方式施打",
+   "params": {
+    "method": "重锤高击"
+   },
+   "expected_ok": false,
+   "correct_statement": "锤击法落锤方式宜为重锤低击（低锤重打）",
+   "anchor": "{2017,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hammer-021",
+   "rule_group": "A-hammer",
+   "surface": "锤击沉桩采用高锤重打方式施打",
+   "params": {
+    "method": "高锤重打"
+   },
+   "expected_ok": false,
+   "correct_statement": "锤击法落锤方式宜为重锤低击（低锤重打）",
+   "anchor": "{2017,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-hammer-022",
+   "rule_group": "A-hammer",
+   "surface": "锤击沉桩采用低垂轻打方式施打",
+   "params": {
+    "method": "低垂轻打"
+   },
+   "expected_ok": false,
+   "correct_statement": "锤击法落锤方式宜为重锤低击（低锤重打）",
+   "anchor": "{2017,第26题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-static-023",
+   "rule_group": "A-static",
+   "surface": "静力压桩施工前试压桩1根",
+   "params": {
+    "trial_piles": 1
+   },
+   "expected_ok": false,
+   "correct_statement": "静力压桩试压桩不应少于3根",
+   "anchor": "kc:1A413030_090_0165:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-static-024",
+   "rule_group": "A-static",
+   "surface": "静力压桩施工前试压桩2根",
+   "params": {
+    "trial_piles": 2
+   },
+   "expected_ok": false,
+   "correct_statement": "静力压桩试压桩不应少于3根",
+   "anchor": "kc:1A413030_090_0165:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-static-025",
+   "rule_group": "A-static",
+   "surface": "静力压桩施工前试压桩3根",
+   "params": {
+    "trial_piles": 3
+   },
+   "expected_ok": true,
+   "correct_statement": "静力压桩试压桩不应少于3根",
+   "anchor": "kc:1A413030_090_0165:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-static-026",
+   "rule_group": "A-static",
+   "surface": "静力压桩施工前试压桩5根",
+   "params": {
+    "trial_piles": 5
+   },
+   "expected_ok": true,
+   "correct_statement": "静力压桩试压桩不应少于3根",
+   "anchor": "kc:1A413030_090_0165:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-static-027",
+   "rule_group": "A-static",
+   "surface": "静力压桩施工与基坑开挖同时进行（边压桩边开挖）",
+   "params": {
+    "simultaneous_dig": true
+   },
+   "expected_ok": false,
+   "correct_statement": "静力压桩不得边压桩边开挖基坑（不得边压边挖）",
+   "anchor": "kc:1A413030_090_0165:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-static-028",
+   "rule_group": "A-static",
+   "surface": "静力压桩全部完成后再进行基坑开挖，未边压边挖",
+   "params": {
+    "simultaneous_dig": false
+   },
+   "expected_ok": true,
+   "correct_statement": "静力压桩不得边压桩边开挖基坑（不得边压边挖）",
+   "anchor": "kc:1A413030_090_0165:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-stop-029",
+   "rule_group": "A-stop",
+   "surface": "摩擦桩终止沉桩以标高控制为主、压力为辅",
+   "params": {
+    "pile": "摩擦桩",
+    "primary": "标高"
+   },
+   "expected_ok": true,
+   "correct_statement": "终止沉桩标准：摩擦桩以标高为主、压力为辅；端承桩以压力为主、标高为辅",
+   "anchor": "kc:1A413030_091_0166:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-stop-030",
+   "rule_group": "A-stop",
+   "surface": "摩擦桩终止沉桩以压力控制为主、标高为辅",
+   "params": {
+    "pile": "摩擦桩",
+    "primary": "压力"
+   },
+   "expected_ok": false,
+   "correct_statement": "终止沉桩标准：摩擦桩以标高为主、压力为辅；端承桩以压力为主、标高为辅",
+   "anchor": "kc:1A413030_091_0166:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-stop-031",
+   "rule_group": "A-stop",
+   "surface": "端承桩终止沉桩以标高控制为主、压力为辅",
+   "params": {
+    "pile": "端承桩",
+    "primary": "标高"
+   },
+   "expected_ok": false,
+   "correct_statement": "终止沉桩标准：摩擦桩以标高为主、压力为辅；端承桩以压力为主、标高为辅",
+   "anchor": "kc:1A413030_091_0166:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-A-stop-032",
+   "rule_group": "A-stop",
+   "surface": "端承桩终止沉桩以压力控制为主、标高为辅",
+   "params": {
+    "pile": "端承桩",
+    "primary": "压力"
+   },
+   "expected_ok": true,
+   "correct_statement": "终止沉桩标准：摩擦桩以标高为主、压力为辅；端承桩以压力为主、标高为辅",
+   "anchor": "kc:1A413030_091_0166:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slag-033",
+   "rule_group": "B-slag",
+   "surface": "端承型灌注桩清孔后实测孔底沉渣厚度50mm，判定满足要求",
+   "params": {
+    "pile_type": "端承型",
+    "measured_mm": 50,
+    "limit_mm": 50
+   },
+   "expected_ok": true,
+   "correct_statement": "孔底沉渣厚度：端承型≤50mm、摩擦型≤100mm、抗拔/抗水平力桩≤200mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slag-034",
+   "rule_group": "B-slag",
+   "surface": "端承型灌注桩清孔后实测孔底沉渣厚度100mm，判定满足要求",
+   "params": {
+    "pile_type": "端承型",
+    "measured_mm": 100,
+    "limit_mm": 50
+   },
+   "expected_ok": false,
+   "correct_statement": "孔底沉渣厚度：端承型≤50mm、摩擦型≤100mm、抗拔/抗水平力桩≤200mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slag-035",
+   "rule_group": "B-slag",
+   "surface": "端承型灌注桩清孔后实测孔底沉渣厚度200mm，判定满足要求",
+   "params": {
+    "pile_type": "端承型",
+    "measured_mm": 200,
+    "limit_mm": 50
+   },
+   "expected_ok": false,
+   "correct_statement": "孔底沉渣厚度：端承型≤50mm、摩擦型≤100mm、抗拔/抗水平力桩≤200mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slag-036",
+   "rule_group": "B-slag",
+   "surface": "摩擦型灌注桩清孔后实测孔底沉渣厚度50mm，判定满足要求",
+   "params": {
+    "pile_type": "摩擦型",
+    "measured_mm": 50,
+    "limit_mm": 100
+   },
+   "expected_ok": true,
+   "correct_statement": "孔底沉渣厚度：端承型≤50mm、摩擦型≤100mm、抗拔/抗水平力桩≤200mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slag-037",
+   "rule_group": "B-slag",
+   "surface": "摩擦型灌注桩清孔后实测孔底沉渣厚度100mm，判定满足要求",
+   "params": {
+    "pile_type": "摩擦型",
+    "measured_mm": 100,
+    "limit_mm": 100
+   },
+   "expected_ok": true,
+   "correct_statement": "孔底沉渣厚度：端承型≤50mm、摩擦型≤100mm、抗拔/抗水平力桩≤200mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slag-038",
+   "rule_group": "B-slag",
+   "surface": "摩擦型灌注桩清孔后实测孔底沉渣厚度200mm，判定满足要求",
+   "params": {
+    "pile_type": "摩擦型",
+    "measured_mm": 200,
+    "limit_mm": 100
+   },
+   "expected_ok": false,
+   "correct_statement": "孔底沉渣厚度：端承型≤50mm、摩擦型≤100mm、抗拔/抗水平力桩≤200mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slag-039",
+   "rule_group": "B-slag",
+   "surface": "抗拔/抗水平力灌注桩清孔后实测孔底沉渣厚度50mm，判定满足要求",
+   "params": {
+    "pile_type": "抗拔/抗水平力",
+    "measured_mm": 50,
+    "limit_mm": 200
+   },
+   "expected_ok": true,
+   "correct_statement": "孔底沉渣厚度：端承型≤50mm、摩擦型≤100mm、抗拔/抗水平力桩≤200mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slag-040",
+   "rule_group": "B-slag",
+   "surface": "抗拔/抗水平力灌注桩清孔后实测孔底沉渣厚度100mm，判定满足要求",
+   "params": {
+    "pile_type": "抗拔/抗水平力",
+    "measured_mm": 100,
+    "limit_mm": 200
+   },
+   "expected_ok": true,
+   "correct_statement": "孔底沉渣厚度：端承型≤50mm、摩擦型≤100mm、抗拔/抗水平力桩≤200mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slag-041",
+   "rule_group": "B-slag",
+   "surface": "抗拔/抗水平力灌注桩清孔后实测孔底沉渣厚度200mm，判定满足要求",
+   "params": {
+    "pile_type": "抗拔/抗水平力",
+    "measured_mm": 200,
+    "limit_mm": 200
+   },
+   "expected_ok": true,
+   "correct_statement": "孔底沉渣厚度：端承型≤50mm、摩擦型≤100mm、抗拔/抗水平力桩≤200mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slump-042",
+   "rule_group": "B-slump",
+   "surface": "灌注桩水下混凝土坍落度按160mm控制",
+   "params": {
+    "slump_mm": 160
+   },
+   "expected_ok": false,
+   "correct_statement": "水下混凝土坍落度宜为180~220mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slump-043",
+   "rule_group": "B-slump",
+   "surface": "灌注桩水下混凝土坍落度按180mm控制",
+   "params": {
+    "slump_mm": 180
+   },
+   "expected_ok": true,
+   "correct_statement": "水下混凝土坍落度宜为180~220mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slump-044",
+   "rule_group": "B-slump",
+   "surface": "灌注桩水下混凝土坍落度按200mm控制",
+   "params": {
+    "slump_mm": 200
+   },
+   "expected_ok": true,
+   "correct_statement": "水下混凝土坍落度宜为180~220mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slump-045",
+   "rule_group": "B-slump",
+   "surface": "灌注桩水下混凝土坍落度按220mm控制",
+   "params": {
+    "slump_mm": 220
+   },
+   "expected_ok": true,
+   "correct_statement": "水下混凝土坍落度宜为180~220mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-slump-046",
+   "rule_group": "B-slump",
+   "surface": "灌注桩水下混凝土坍落度按240mm控制",
+   "params": {
+    "slump_mm": 240
+   },
+   "expected_ok": false,
+   "correct_statement": "水下混凝土坍落度宜为180~220mm",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-overpour-047",
+   "rule_group": "B-overpour",
+   "surface": "水下灌注成桩后桩顶混凝土面仅超过设计标高500mm",
+   "params": {
+    "stated": "500mm"
+   },
+   "expected_ok": false,
+   "correct_statement": "水下灌注时桩顶混凝土面标高至少要比设计标高超灌0.8~1.0m，仅超500mm不妥",
+   "anchor": "{2016,案例1}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-overpour-048",
+   "rule_group": "B-overpour",
+   "surface": "水下灌注时按桩顶混凝土面比设计标高超灌0.8~1.0m控制",
+   "params": {
+    "stated": "0.8~1.0m"
+   },
+   "expected_ok": true,
+   "correct_statement": "水下灌注时桩顶混凝土面标高至少要比设计标高超灌0.8~1.0m",
+   "anchor": "{2016,案例1}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-overpour-049",
+   "rule_group": "B-overpour",
+   "surface": "泥浆护壁灌注桩按超灌高度不小于1m控制",
+   "params": {
+    "stated": "不小于1m"
+   },
+   "expected_ok": true,
+   "correct_statement": "泥浆护壁灌注桩超灌高度≥1m（一般口径）",
+   "anchor": "kc:1A413030_091_0169:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-seq-050",
+   "rule_group": "B-seq",
+   "surface": "沉管灌注桩成桩流程：桩机就位→锤击沉管→上料→边振边拔→下钢筋笼→继续浇筑→成桩",
+   "params": {
+    "steps": [
+     "桩机就位",
+     "锤击沉管",
+     "上料",
+     "边振边拔",
+     "下钢筋笼",
+     "继续浇筑",
+     "成桩"
+    ]
+   },
+   "expected_ok": true,
+   "correct_statement": "沉管灌注桩成桩流程应为：桩机就位→锤击沉管→上料→边振边拔→下钢筋笼→继续浇筑→成桩；工法除单打法外还包括复打法、反插法",
+   "anchor": "kc:1A413030_092_0171:0 + {2022,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-seq-051",
+   "rule_group": "B-seq",
+   "surface": "沉管灌注桩成桩流程：桩机就位→锤击沉管→上料→下钢筋笼→继续浇筑→成桩",
+   "params": {
+    "steps": [
+     "桩机就位",
+     "锤击沉管",
+     "上料",
+     "下钢筋笼",
+     "继续浇筑",
+     "成桩"
+    ]
+   },
+   "expected_ok": false,
+   "correct_statement": "沉管灌注桩成桩流程应为：桩机就位→锤击沉管→上料→边振边拔→下钢筋笼→继续浇筑→成桩；工法除单打法外还包括复打法、反插法",
+   "anchor": "kc:1A413030_092_0171:0 + {2022,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-seq-052",
+   "rule_group": "B-seq",
+   "surface": "认为沉管灌注桩成桩工法除单打法外，还包括复打法、反插法",
+   "params": {
+    "methods_acknowledged": [
+     "单打法",
+     "反插法",
+     "复打法"
+    ]
+   },
+   "expected_ok": true,
+   "correct_statement": "沉管灌注桩成桩流程应为：桩机就位→锤击沉管→上料→边振边拔→下钢筋笼→继续浇筑→成桩；工法除单打法外还包括复打法、反插法",
+   "anchor": "kc:1A413030_092_0171:0 + {2022,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-seq-053",
+   "rule_group": "B-seq",
+   "surface": "认为沉管灌注桩成桩工法只有单打法一种",
+   "params": {
+    "methods_acknowledged": [
+     "单打法"
+    ]
+   },
+   "expected_ok": false,
+   "correct_statement": "沉管灌注桩成桩流程应为：桩机就位→锤击沉管→上料→边振边拔→下钢筋笼→继续浇筑→成桩；工法除单打法外还包括复打法、反插法",
+   "anchor": "kc:1A413030_092_0171:0 + {2022,案例三}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-dig-054",
+   "rule_group": "B-dig",
+   "surface": "人工挖孔桩桩距2.0m，相邻两孔同时开挖",
+   "params": {
+    "pile_spacing_m": 2.0,
+    "simultaneous_adjacent": true
+   },
+   "expected_ok": false,
+   "correct_statement": "人工挖孔桩桩距<2.5m时应间隔开挖浇筑、最小施工间距≥5m；挖土先中间后周边",
+   "anchor": "kc:1A413030_092_0172:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-dig-055",
+   "rule_group": "B-dig",
+   "surface": "人工挖孔桩桩距2.0m，采取间隔开挖、间隔浇筑",
+   "params": {
+    "pile_spacing_m": 2.0,
+    "simultaneous_adjacent": false
+   },
+   "expected_ok": true,
+   "correct_statement": "人工挖孔桩桩距<2.5m时应间隔开挖浇筑、最小施工间距≥5m；挖土先中间后周边",
+   "anchor": "kc:1A413030_092_0172:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-dig-056",
+   "rule_group": "B-dig",
+   "surface": "人工挖孔桩间隔开挖时同时开挖孔的最小施工间距按4.0m控制",
+   "params": {
+    "min_gap_m": 4.0
+   },
+   "expected_ok": false,
+   "correct_statement": "人工挖孔桩桩距<2.5m时应间隔开挖浇筑、最小施工间距≥5m；挖土先中间后周边",
+   "anchor": "kc:1A413030_092_0172:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-dig-057",
+   "rule_group": "B-dig",
+   "surface": "人工挖孔桩间隔开挖时同时开挖孔的最小施工间距按5.0m控制",
+   "params": {
+    "min_gap_m": 5.0
+   },
+   "expected_ok": true,
+   "correct_statement": "人工挖孔桩桩距<2.5m时应间隔开挖浇筑、最小施工间距≥5m；挖土先中间后周边",
+   "anchor": "kc:1A413030_092_0172:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-dig-058",
+   "rule_group": "B-dig",
+   "surface": "人工挖孔桩间隔开挖时同时开挖孔的最小施工间距按6.0m控制",
+   "params": {
+    "min_gap_m": 6.0
+   },
+   "expected_ok": true,
+   "correct_statement": "人工挖孔桩桩距<2.5m时应间隔开挖浇筑、最小施工间距≥5m；挖土先中间后周边",
+   "anchor": "kc:1A413030_092_0172:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-dig-059",
+   "rule_group": "B-dig",
+   "surface": "人工挖孔桩挖土顺序为先中间后周边",
+   "params": {
+    "dig_order": "先中间后周边"
+   },
+   "expected_ok": true,
+   "correct_statement": "人工挖孔桩桩距<2.5m时应间隔开挖浇筑、最小施工间距≥5m；挖土先中间后周边",
+   "anchor": "kc:1A413030_092_0172:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-grout-060",
+   "rule_group": "B-grout",
+   "surface": "桩底注浆终止以注浆量为主控制",
+   "params": {
+    "primary_control": "注浆量"
+   },
+   "expected_ok": true,
+   "correct_statement": "桩底注浆终止应以注浆量为主控制：注浆总量达设计值，或注浆量≥80%且压力>设计值",
+   "anchor": "kc:1A413030_092_0170:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-grout-061",
+   "rule_group": "B-grout",
+   "surface": "桩底注浆终止以注浆压力为单一主控指标",
+   "params": {
+    "primary_control": "注浆压力"
+   },
+   "expected_ok": false,
+   "correct_statement": "桩底注浆终止应以注浆量为主控制：注浆总量达设计值，或注浆量≥80%且压力>设计值",
+   "anchor": "kc:1A413030_092_0170:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-B-grout-062",
+   "rule_group": "B-grout",
+   "surface": "注浆量已达设计值的80%且注浆压力超过设计值时终止注浆",
+   "params": {
+    "primary_control": "注浆量",
+    "ratio_pct": 80,
+    "pressure_over_design": true
+   },
+   "expected_ok": true,
+   "correct_statement": "桩底注浆终止应以注浆量为主控制：注浆总量达设计值，或注浆量≥80%且压力>设计值",
+   "anchor": "kc:1A413030_092_0170:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-method-063",
+   "rule_group": "C-method",
+   "surface": "采用钻芯法判定桩端持力层岩土性状",
+   "params": {
+    "purpose": "判定桩端持力层岩土性状",
+    "method": "钻芯法"
+   },
+   "expected_ok": true,
+   "correct_statement": "检测方法按目的匹配：持力层岩土性状用钻芯法；单桩竖向抗压承载力用静载试验（甲级或地质复杂必用静载）或高应变法，低应变法不能确定承载力",
+   "anchor": "kc:1A413030_093_0174:0 + {2021,第14题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-method-064",
+   "rule_group": "C-method",
+   "surface": "采用低应变法检验单桩竖向抗压承载力",
+   "params": {
+    "purpose": "检验单桩竖向抗压承载力",
+    "method": "低应变法"
+   },
+   "expected_ok": false,
+   "correct_statement": "检测方法按目的匹配：持力层岩土性状用钻芯法；单桩竖向抗压承载力用静载试验（甲级或地质复杂必用静载）或高应变法，低应变法不能确定承载力",
+   "anchor": "kc:1A413030_093_0174:0 + {2021,第14题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-method-065",
+   "rule_group": "C-method",
+   "surface": "采用静载试验检验单桩竖向抗压承载力",
+   "params": {
+    "purpose": "检验单桩竖向抗压承载力",
+    "method": "静载试验"
+   },
+   "expected_ok": true,
+   "correct_statement": "检测方法按目的匹配：持力层岩土性状用钻芯法；单桩竖向抗压承载力用静载试验（甲级或地质复杂必用静载）或高应变法，低应变法不能确定承载力",
+   "anchor": "kc:1A434000_065_0096:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-method-066",
+   "rule_group": "C-method",
+   "surface": "为设计提供依据的试验桩检测以确定单桩极限承载力为主要目的",
+   "params": {
+    "test_pile_purpose": "确定单桩极限承载力"
+   },
+   "expected_ok": true,
+   "correct_statement": "为设计提供依据的试验桩检测应主要确定单桩极限承载力",
+   "anchor": "{2018,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-method-067",
+   "rule_group": "C-method",
+   "surface": "为设计提供依据的试验桩检测以检测桩身完整性为主要目的",
+   "params": {
+    "test_pile_purpose": "检测桩身完整性"
+   },
+   "expected_ok": false,
+   "correct_statement": "为设计提供依据的试验桩检测应主要确定单桩极限承载力",
+   "anchor": "{2018,第8题}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-precond-068",
+   "rule_group": "C-precond",
+   "surface": "桩身混凝土强度达设计强度70%且不小于15MPa后进行低应变检测",
+   "params": {
+    "condition_met": true
+   },
+   "expected_ok": true,
+   "correct_statement": "低应变/声波透射检测要求桩身强度≥设计强度70%且≥15MPa；钻芯法要求龄期≥28d",
+   "anchor": "kc:1A413030_093_0174:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-precond-069",
+   "rule_group": "C-precond",
+   "surface": "桩身混凝土强度未达设计强度70%即进行低应变检测",
+   "params": {
+    "condition_met": false
+   },
+   "expected_ok": false,
+   "correct_statement": "低应变/声波透射检测要求桩身强度≥设计强度70%且≥15MPa；钻芯法要求龄期≥28d",
+   "anchor": "kc:1A413030_093_0174:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-precond-070",
+   "rule_group": "C-precond",
+   "surface": "受检桩混凝土龄期达28d后进行钻芯法检测",
+   "params": {
+    "condition_met": true
+   },
+   "expected_ok": true,
+   "correct_statement": "低应变/声波透射检测要求桩身强度≥设计强度70%且≥15MPa；钻芯法要求龄期≥28d",
+   "anchor": "kc:1A413030_093_0174:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-precond-071",
+   "rule_group": "C-precond",
+   "surface": "受检桩混凝土龄期未达28d即进行钻芯法检测",
+   "params": {
+    "condition_met": false
+   },
+   "expected_ok": false,
+   "correct_statement": "低应变/声波透射检测要求桩身强度≥设计强度70%且≥15MPa；钻芯法要求龄期≥28d",
+   "anchor": "kc:1A413030_093_0174:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-class-072",
+   "rule_group": "C-class",
+   "surface": "将「桩身完整」的桩判定为Ⅰ类",
+   "params": {
+    "cls": "Ⅰ类",
+    "desc": "桩身完整"
+   },
+   "expected_ok": true,
+   "correct_statement": "桩身完整性分类：Ⅰ类完整；Ⅱ类轻微缺陷不影响承载力；Ⅲ类明显缺陷影响承载力；Ⅳ类严重缺陷",
+   "anchor": "kc:1A413030_093_0174:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-class-073",
+   "rule_group": "C-class",
+   "surface": "将「桩身有轻微缺陷、不影响桩身结构承载力」的桩判定为Ⅱ类",
+   "params": {
+    "cls": "Ⅱ类",
+    "desc": "桩身有轻微缺陷、不影响桩身结构承载力"
+   },
+   "expected_ok": true,
+   "correct_statement": "桩身完整性分类：Ⅰ类完整；Ⅱ类轻微缺陷不影响承载力；Ⅲ类明显缺陷影响承载力；Ⅳ类严重缺陷",
+   "anchor": "kc:1A413030_093_0174:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-class-074",
+   "rule_group": "C-class",
+   "surface": "将「桩身有明显缺陷、对桩身结构承载力有影响」的桩判定为Ⅲ类",
+   "params": {
+    "cls": "Ⅲ类",
+    "desc": "桩身有明显缺陷、对桩身结构承载力有影响"
+   },
+   "expected_ok": true,
+   "correct_statement": "桩身完整性分类：Ⅰ类完整；Ⅱ类轻微缺陷不影响承载力；Ⅲ类明显缺陷影响承载力；Ⅳ类严重缺陷",
+   "anchor": "kc:1A413030_093_0174:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-class-075",
+   "rule_group": "C-class",
+   "surface": "将「桩身存在严重缺陷」的桩判定为Ⅳ类",
+   "params": {
+    "cls": "Ⅳ类",
+    "desc": "桩身存在严重缺陷"
+   },
+   "expected_ok": true,
+   "correct_statement": "桩身完整性分类：Ⅰ类完整；Ⅱ类轻微缺陷不影响承载力；Ⅲ类明显缺陷影响承载力；Ⅳ类严重缺陷",
+   "anchor": "kc:1A413030_093_0174:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-class-076",
+   "rule_group": "C-class",
+   "surface": "将「桩身有明显缺陷、对桩身结构承载力有影响」的桩判定为Ⅱ类",
+   "params": {
+    "cls": "Ⅱ类",
+    "desc": "桩身有明显缺陷、对桩身结构承载力有影响"
+   },
+   "expected_ok": false,
+   "correct_statement": "桩身完整性分类：Ⅰ类完整；Ⅱ类轻微缺陷不影响承载力；Ⅲ类明显缺陷影响承载力；Ⅳ类严重缺陷",
+   "anchor": "kc:1A413030_093_0174:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-class-077",
+   "rule_group": "C-class",
+   "surface": "将「桩身有轻微缺陷、不影响桩身结构承载力」的桩判定为Ⅲ类",
+   "params": {
+    "cls": "Ⅲ类",
+    "desc": "桩身有轻微缺陷、不影响桩身结构承载力"
+   },
+   "expected_ok": false,
+   "correct_statement": "桩身完整性分类：Ⅰ类完整；Ⅱ类轻微缺陷不影响承载力；Ⅲ类明显缺陷影响承载力；Ⅳ类严重缺陷",
+   "anchor": "kc:1A413030_093_0174:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-drillhole-078",
+   "rule_group": "C-drillhole",
+   "surface": "桩径1.0m的灌注桩钻芯法检测钻2孔",
+   "params": {
+    "diam_m": 1.0,
+    "holes": 2
+   },
+   "expected_ok": true,
+   "correct_statement": "钻芯法钻孔数量：桩径<1.2m为1~2孔；1.2~1.6m为2孔；>1.6m为3孔",
+   "anchor": "kc:1A413030_093_0174:2",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-drillhole-079",
+   "rule_group": "C-drillhole",
+   "surface": "桩径1.0m的灌注桩钻芯法检测钻3孔",
+   "params": {
+    "diam_m": 1.0,
+    "holes": 3
+   },
+   "expected_ok": false,
+   "correct_statement": "钻芯法钻孔数量：桩径<1.2m为1~2孔；1.2~1.6m为2孔；>1.6m为3孔",
+   "anchor": "kc:1A413030_093_0174:2",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-drillhole-080",
+   "rule_group": "C-drillhole",
+   "surface": "桩径1.4m的灌注桩钻芯法检测钻2孔",
+   "params": {
+    "diam_m": 1.4,
+    "holes": 2
+   },
+   "expected_ok": true,
+   "correct_statement": "钻芯法钻孔数量：桩径<1.2m为1~2孔；1.2~1.6m为2孔；>1.6m为3孔",
+   "anchor": "kc:1A413030_093_0174:2",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-drillhole-081",
+   "rule_group": "C-drillhole",
+   "surface": "桩径1.4m的灌注桩钻芯法检测钻3孔",
+   "params": {
+    "diam_m": 1.4,
+    "holes": 3
+   },
+   "expected_ok": false,
+   "correct_statement": "钻芯法钻孔数量：桩径<1.2m为1~2孔；1.2~1.6m为2孔；>1.6m为3孔",
+   "anchor": "kc:1A413030_093_0174:2",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-drillhole-082",
+   "rule_group": "C-drillhole",
+   "surface": "桩径1.8m的灌注桩钻芯法检测钻3孔",
+   "params": {
+    "diam_m": 1.8,
+    "holes": 3
+   },
+   "expected_ok": true,
+   "correct_statement": "钻芯法钻孔数量：桩径<1.2m为1~2孔；1.2~1.6m为2孔；>1.6m为3孔",
+   "anchor": "kc:1A413030_093_0174:2",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-drillhole-083",
+   "rule_group": "C-drillhole",
+   "surface": "桩径1.8m的灌注桩钻芯法检测钻2孔",
+   "params": {
+    "diam_m": 1.8,
+    "holes": 2
+   },
+   "expected_ok": false,
+   "correct_statement": "钻芯法钻孔数量：桩径<1.2m为1~2孔；1.2~1.6m为2孔；>1.6m为3孔",
+   "anchor": "kc:1A413030_093_0174:2",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-sample-084",
+   "rule_group": "C-sample",
+   "surface": "设计等级甲级工程采用静载试验检验承载力，检验桩数按不少于总桩数1%且不少于3根控制",
+   "params": {
+    "kind": "static_load",
+    "cohort": "甲级或地质复杂",
+    "claimed": {
+     "pct": 1,
+     "min_n": 3
+    }
+   },
+   "expected_ok": true,
+   "correct_statement": "承载力抽检：甲级或地质复杂用静载≥总桩数1%且≥3根（<50根时≥2根）；完整性抽检：一般≥20%且≥10根、每承台≥1根；甲级/地质复杂/成桩质量可靠性低的灌注桩≥30%且≥20根",
+   "anchor": "kc:1A434000_065_0096:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-sample-085",
+   "rule_group": "C-sample",
+   "surface": "总桩数少于50根的工程，静载检验桩数按不少于2根控制",
+   "params": {
+    "kind": "static_load",
+    "cohort": "总桩数<50根",
+    "claimed": {
+     "min_n": 2
+    }
+   },
+   "expected_ok": true,
+   "correct_statement": "承载力抽检：甲级或地质复杂用静载≥总桩数1%且≥3根（<50根时≥2根）；完整性抽检：一般≥20%且≥10根、每承台≥1根；甲级/地质复杂/成桩质量可靠性低的灌注桩≥30%且≥20根",
+   "anchor": "kc:1A434000_065_0096:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-sample-086",
+   "rule_group": "C-sample",
+   "surface": "一般工程桩桩身完整性检验按不少于总桩数20%且不少于10根、每根柱子承台下不少于1根抽检",
+   "params": {
+    "kind": "integrity",
+    "cohort": "一般工程桩",
+    "claimed": {
+     "pct": 20,
+     "min_n": 10
+    }
+   },
+   "expected_ok": true,
+   "correct_statement": "承载力抽检：甲级或地质复杂用静载≥总桩数1%且≥3根（<50根时≥2根）；完整性抽检：一般≥20%且≥10根、每承台≥1根；甲级/地质复杂/成桩质量可靠性低的灌注桩≥30%且≥20根",
+   "anchor": "kc:1A434000_065_0096:1 + {2023,办公楼案例}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-sample-087",
+   "rule_group": "C-sample",
+   "surface": "设计等级甲级、成桩质量可靠性低的灌注桩，桩身完整性按总桩数20%且10根抽检",
+   "params": {
+    "kind": "integrity",
+    "cohort": "甲级/地质复杂/成桩质量可靠性低的灌注桩",
+    "claimed": {
+     "pct": 20,
+     "min_n": 10
+    }
+   },
+   "expected_ok": false,
+   "correct_statement": "承载力抽检：甲级或地质复杂用静载≥总桩数1%且≥3根（<50根时≥2根）；完整性抽检：一般≥20%且≥10根、每承台≥1根；甲级/地质复杂/成桩质量可靠性低的灌注桩≥30%且≥20根",
+   "anchor": "{2016,案例1}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-C-sample-088",
+   "rule_group": "C-sample",
+   "surface": "设计等级甲级、地质条件复杂、成桩质量可靠性低的灌注桩，完整性抽检按不少于总数30%且不少于20根控制",
+   "params": {
+    "kind": "integrity",
+    "cohort": "甲级/地质复杂/成桩质量可靠性低的灌注桩",
+    "claimed": {
+     "pct": 30,
+     "min_n": 20
+    }
+   },
+   "expected_ok": true,
+   "correct_statement": "承载力抽检：甲级或地质复杂用静载≥总桩数1%且≥3根（<50根时≥2根）；完整性抽检：一般≥20%且≥10根、每承台≥1根；甲级/地质复杂/成桩质量可靠性低的灌注桩≥30%且≥20根",
+   "anchor": "{2016,案例1}",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-broken-089",
+   "rule_group": "D-broken",
+   "surface": "分析预制桩桩身断裂原因时，将「桩身弯曲」列为可能成因",
+   "params": {
+    "cause": "桩身弯曲",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "预制桩桩身断裂成因封闭集：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足",
+   "anchor": "kc:1A434000_070_0109:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-broken-090",
+   "rule_group": "D-broken",
+   "surface": "分析预制桩桩身断裂原因时，认为「桩身弯曲」与桩身断裂无关",
+   "params": {
+    "cause": "桩身弯曲",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "预制桩桩身断裂成因封闭集：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足",
+   "anchor": "kc:1A434000_070_0109:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-broken-091",
+   "rule_group": "D-broken",
+   "surface": "分析预制桩桩身断裂原因时，将「遇障碍物」列为可能成因",
+   "params": {
+    "cause": "遇障碍物",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "预制桩桩身断裂成因封闭集：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足",
+   "anchor": "kc:1A434000_070_0109:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-broken-092",
+   "rule_group": "D-broken",
+   "surface": "分析预制桩桩身断裂原因时，认为「遇障碍物」与桩身断裂无关",
+   "params": {
+    "cause": "遇障碍物",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "预制桩桩身断裂成因封闭集：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足",
+   "anchor": "kc:1A434000_070_0109:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-broken-093",
+   "rule_group": "D-broken",
+   "surface": "分析预制桩桩身断裂原因时，将「稳桩不直」列为可能成因",
+   "params": {
+    "cause": "稳桩不直",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "预制桩桩身断裂成因封闭集：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足",
+   "anchor": "kc:1A434000_070_0109:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-broken-094",
+   "rule_group": "D-broken",
+   "surface": "分析预制桩桩身断裂原因时，认为「稳桩不直」与桩身断裂无关",
+   "params": {
+    "cause": "稳桩不直",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "预制桩桩身断裂成因封闭集：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足",
+   "anchor": "kc:1A434000_070_0109:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-broken-095",
+   "rule_group": "D-broken",
+   "surface": "分析预制桩桩身断裂原因时，将「接桩偏心」列为可能成因",
+   "params": {
+    "cause": "接桩偏心",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "预制桩桩身断裂成因封闭集：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足",
+   "anchor": "kc:1A434000_070_0109:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-broken-096",
+   "rule_group": "D-broken",
+   "surface": "分析预制桩桩身断裂原因时，认为「接桩偏心」与桩身断裂无关",
+   "params": {
+    "cause": "接桩偏心",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "预制桩桩身断裂成因封闭集：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足",
+   "anchor": "kc:1A434000_070_0109:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-broken-097",
+   "rule_group": "D-broken",
+   "surface": "分析预制桩桩身断裂原因时，将「混凝土强度不足」列为可能成因",
+   "params": {
+    "cause": "混凝土强度不足",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "预制桩桩身断裂成因封闭集：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足",
+   "anchor": "kc:1A434000_070_0109:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-broken-098",
+   "rule_group": "D-broken",
+   "surface": "分析预制桩桩身断裂原因时，认为「混凝土强度不足」与桩身断裂无关",
+   "params": {
+    "cause": "混凝土强度不足",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "预制桩桩身断裂成因封闭集：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足",
+   "anchor": "kc:1A434000_070_0109:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-soil-099",
+   "rule_group": "D-soil",
+   "surface": "干作业成孔灌注桩孔底虚土厚度控制在100mm以内",
+   "params": {
+    "over_limit": false,
+    "action": "控制在限值内"
+   },
+   "expected_ok": true,
+   "correct_statement": "干作业成孔孔底虚土厚度应≤100mm，超过应二次投钻/勺钻清理/孔底压力灌浆处理",
+   "anchor": "kc:1A434000_071_0110:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-soil-100",
+   "rule_group": "D-soil",
+   "surface": "干作业成孔孔底虚土厚度超过100mm，未处理即浇筑混凝土",
+   "params": {
+    "over_limit": true,
+    "action": "不处理"
+   },
+   "expected_ok": false,
+   "correct_statement": "干作业成孔孔底虚土厚度应≤100mm，超过应二次投钻/勺钻清理/孔底压力灌浆处理",
+   "anchor": "kc:1A434000_071_0110:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-soil-101",
+   "rule_group": "D-soil",
+   "surface": "干作业成孔孔底虚土厚度超过100mm，采用二次投钻清理后再浇筑",
+   "params": {
+    "over_limit": true,
+    "action": "二次投钻清理"
+   },
+   "expected_ok": true,
+   "correct_statement": "干作业成孔孔底虚土厚度应≤100mm，超过应二次投钻/勺钻清理/孔底压力灌浆处理",
+   "anchor": "kc:1A434000_071_0110:0",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-collapse-102",
+   "rule_group": "D-collapse",
+   "surface": "将「护壁效果」列入泥浆护壁灌注桩防坍孔控制要点",
+   "params": {
+    "item": "护壁效果",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "泥浆护壁防坍孔控制要点封闭集：护壁效果+水头压力+钻进参数+孔口处理",
+   "anchor": "kc:1A434000_071_0110:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-collapse-103",
+   "rule_group": "D-collapse",
+   "surface": "认为「护壁效果」与泥浆护壁灌注桩防坍孔无关",
+   "params": {
+    "item": "护壁效果",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "泥浆护壁防坍孔控制要点封闭集：护壁效果+水头压力+钻进参数+孔口处理",
+   "anchor": "kc:1A434000_071_0110:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-collapse-104",
+   "rule_group": "D-collapse",
+   "surface": "将「水头压力」列入泥浆护壁灌注桩防坍孔控制要点",
+   "params": {
+    "item": "水头压力",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "泥浆护壁防坍孔控制要点封闭集：护壁效果+水头压力+钻进参数+孔口处理",
+   "anchor": "kc:1A434000_071_0110:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-collapse-105",
+   "rule_group": "D-collapse",
+   "surface": "认为「水头压力」与泥浆护壁灌注桩防坍孔无关",
+   "params": {
+    "item": "水头压力",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "泥浆护壁防坍孔控制要点封闭集：护壁效果+水头压力+钻进参数+孔口处理",
+   "anchor": "kc:1A434000_071_0110:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-collapse-106",
+   "rule_group": "D-collapse",
+   "surface": "将「钻进参数」列入泥浆护壁灌注桩防坍孔控制要点",
+   "params": {
+    "item": "钻进参数",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "泥浆护壁防坍孔控制要点封闭集：护壁效果+水头压力+钻进参数+孔口处理",
+   "anchor": "kc:1A434000_071_0110:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-collapse-107",
+   "rule_group": "D-collapse",
+   "surface": "认为「钻进参数」与泥浆护壁灌注桩防坍孔无关",
+   "params": {
+    "item": "钻进参数",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "泥浆护壁防坍孔控制要点封闭集：护壁效果+水头压力+钻进参数+孔口处理",
+   "anchor": "kc:1A434000_071_0110:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-collapse-108",
+   "rule_group": "D-collapse",
+   "surface": "将「孔口处理」列入泥浆护壁灌注桩防坍孔控制要点",
+   "params": {
+    "item": "孔口处理",
+    "listed": true
+   },
+   "expected_ok": true,
+   "correct_statement": "泥浆护壁防坍孔控制要点封闭集：护壁效果+水头压力+钻进参数+孔口处理",
+   "anchor": "kc:1A434000_071_0110:1",
+   "extension": false
+  },
+  {
+   "variant_id": "G03-D-collapse-109",
+   "rule_group": "D-collapse",
+   "surface": "认为「孔口处理」与泥浆护壁灌注桩防坍孔无关",
+   "params": {
+    "item": "孔口处理",
+    "listed": false
+   },
+   "expected_ok": false,
+   "correct_statement": "泥浆护壁防坍孔控制要点封闭集：护壁效果+水头压力+钻进参数+孔口处理",
+   "anchor": "kc:1A434000_071_0110:1",
+   "extension": false
+  }
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:48+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
+}

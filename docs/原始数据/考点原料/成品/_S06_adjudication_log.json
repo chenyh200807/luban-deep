@@ -1,0 +1,173 @@
+[
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 0,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 洞口+盖板→CET_1A436000_P0121_001/P0117_001 全档逐字",
+    "actions": [
+      "编译quote截断证实(临边句)",
+      "P121①~④+P117三档逐字命中,降🔴前提失效",
+      "GLM-5.2 approve; Codex第二签:对③④档OBJECT系提示词摘录截断,全chunk直读含③④(透明留痕,机器闸凌驾)",
+      "补竖向/非竖向限定词"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "GPT-5.5(Codex)": "partial-OBJECT(摘录截断所致,已由全chunk直读化解)"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 1,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 挡脚板+1.2→CET_1A436000_P0121_001 栏杆(1)(2)全数字逐字",
+    "actions": [
+      "quote无构造数字证实",
+      "1.2m/≤2m/≥180mm/1kN逐字命中",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 2,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 护笼→CET_1A436000_P0121_001 攀登(2)逐字",
+    "actions": [
+      ">3m宜护笼/>8m应设梯间平台逐字命中",
+      "补固定式直梯限定+宜/应区分",
+      "GLM-5.2 approve; Codex CONFIRM"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "GPT-5.5(Codex)": "CONFIRM(条件已落实)"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 3,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 座板式→CET_1A436000_P0122_001 外墙作业(2)逐字",
+    "actions": [
+      "座板式单人吊具/自制吊篮逐字命中",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 4,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 坠落半径/防护棚+双层→CET_1A436000_P0124_001 表11.3-1+防护棚①~③逐字",
+    "actions": [
+      "5m/6m/≥3m/≥4m/700mm/50mm全部逐字命中(计划预判的『教材可能查不到』未发生)",
+      "Codex OBJECT:边界端点15m归4m档→已改教材精确口径15<h₀≤30",
+      "补全四档枚举",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "GPT-5.5(Codex)": "OBJECT-boundary(已吸收)"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 5,
+    "tier": "Tier-0证真+Tier-1撤锚/降级",
+    "retrieval": "tbsearch 吊篮→仅P8危大清单/P106评分表名,做法条文0命中",
+    "actions": [
+      "106_0173:1语境不符证实(评分表)",
+      "撤锚+真题单锚声明+本体列🔵外延",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 6,
+    "tier": "Tier-1措辞收窄(GLM单审)",
+    "retrieval": null,
+    "actions": [
+      "R2按fix改写",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 7,
+    "tier": "Tier-2错因码语义类",
+    "retrieval": null,
+    "actions": [
+      "E04主码/E12次码,registry直读",
+      "GLM-5.2 approve; Fable-5复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      },
+      "Fable-5": "复签同意"
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 8,
+    "tier": "Tier-1归属降级(GLM单审)",
+    "retrieval": null,
+    "actions": [
+      "三色🟢不动+本体列🔵外延",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 9,
+    "tier": "Tier-2事实类(补锚恢复分支)",
+    "retrieval": "tbsearch 安全绳+钢梁→CET_1A436000_P0122_001 悬空(3)逐字",
+    "actions": [
+      "安全绳规则教材直证(1A436000悬空作业本体),fix降级前提失效",
+      "GLM-5.2 approve"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "approve"
+      }
+    }
+  }
+]

@@ -6,7 +6,10 @@ from typing import Any
 from deeptutor.contracts.error_codes import check_emitted_error_codes
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
-from deeptutor.services.taxonomy.taxonomy_authority import normalize_taxonomy_code
+from deeptutor.services.taxonomy.taxonomy_authority import (
+    normalize_taxonomy_code,
+    taxonomy_label,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +37,7 @@ class AssessmentWritebackService:
         home_projection_payload: dict[str, Any] | None = None
         home_projection_is_correct = True
         bot_id = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
+        discarded_node_codes = 0
         for item in items:
             question_id = str(item.get("question_id") or "").strip()
             knowledge_points = list(item.get("knowledge_points") or [])
@@ -63,10 +67,15 @@ class AssessmentWritebackService:
                 "measurement_confidence": item.get("measurement_confidence"),
                 "simple_explanation": item.get("simple_explanation"),
             }
+            # §6-6：normalize 只做形态归一不校验存在性，自由中文串曾照落
+            # node_code 污染 taxonomy join。写入侧收口：只有 resolver 真能
+            # 解析的 code 才允许写 node_code/taxonomy_code。
             taxonomy_code = normalize_taxonomy_code(concept_id)
-            if taxonomy_code:
+            if taxonomy_code and taxonomy_label(taxonomy_code):
                 payload_json["node_code"] = taxonomy_code
                 payload_json["taxonomy_code"] = taxonomy_code
+            else:
+                discarded_node_codes += 1
             payload_json["typed_edges"] = _typed_edges_from_assessment_item(
                 question_id=question_id,
                 submission_id=f"{quiz_id}:{question_id}",
@@ -122,6 +131,15 @@ class AssessmentWritebackService:
                         "attempt_ref": saved.get("attempt_ref"),
                     }
                 )
+        if discarded_node_codes:
+            # 病H-3 可观测性:resolver 解析不了的 concept_id 不写 node_code
+            # (写入侧收口不变)——按次汇总一行 info,不逐条 warning 刷屏。
+            logger.info(
+                "assessment writeback dropped %s unresolvable node_code(s): user_id=%s quiz_id=%s",
+                discarded_node_codes,
+                user_id,
+                quiz_id,
+            )
         _write_home_projection(
             learner_state_service=self._learner_state_service,
             user_id=user_id,

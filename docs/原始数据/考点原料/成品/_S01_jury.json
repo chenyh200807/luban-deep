@@ -2,127 +2,249 @@
   {
     "issue": "悬挑式操作平台参数错误关联到移动式操作平台的point_id",
     "location": "§1.2行32, §4.3-E, §5.1 4.6",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "将关联修正为正确的悬挑式point_id，或降级为🔴待取证"
+    "fix": "将关联修正为正确的悬挑式point_id，或降级为🔴待取证",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §1.2行32+§5.1 4.6(确定性换锚:kc:1A436000_123_0197:0→ca:1A436000_123_0197)",
+      "verified": "kc:1A436000_123_0197:0 quote 直读含「移动式操作平台」(10m²/5m/2:1/1.5kN/m²)＝移动式切片(jury断言证真)；ca:1A436000_123_0197 quote 直读含「悬挑长度不宜大于 5m」悬挑参数逐字直证；包内正确锚确定性换锚；GLM-5.2整包体检判repair"
+    }
   },
   {
     "issue": "安全等级Ⅰ级判定数值(8m/15kN/m²等)缺乏quote逐字支撑",
     "location": "§1.2行1, §2 F1, §4.1",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充逐字锚定数值的quote，或将🟢阈值部分降级为🟡"
+    "fix": "补充逐字锚定数值的quote，或将🟢阈值部分降级为🟡",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §1.2行1(保🟢补教材P120安全等级表逐字出处)",
+      "verified": "kc:1A413030_120_0228:0 quote 直读含「常用施工脚手架」但无阈值(现象为真)；教材CET_1A413030_P0120_001 P120安全等级表逐字(支撑脚手架>8m 或>15kN/m²/>20kN/m/>7kN点=Ⅰ级)；降级前提失效保🟢补出处(C01先例)；GLM-5.2判repair"
+    }
   },
   {
     "issue": "可调底座/托撑螺杆伸出≤200mm/≤500mm的数值无quote逐字支撑",
     "location": "§1.2行3, §5.1 1.5",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充包含200mm/500mm伸出限值的完整quote，或将数值部分降级为🟡"
+    "fix": "补充包含200mm/500mm伸出限值的完整quote，或将数值部分降级为🟡",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §1.2行3(保🟢补教材P121(6)①②逐字出处)",
+      "verified": "kc:1A413030_121_0229:0 quote 直读含「不应小于 150mm」但截断于①前(200/500mm缺,现象为真)；教材CET_1A413030_P0121_001 P121逐字「直径为 42mm 时，伸出长度不应大于 200mm」「48.3mm 及以上…不应大于 500mm」；保🟢补出处；GLM-5.2判repair"
+    }
   },
   {
     "issue": "连墙件间距≤3跨/≤3步/4m的quote被截断，未逐字支撑关键数值",
     "location": "§1.2行4, §2 F2, §5.1 2.1",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充间距要求的完整逐字quote，或将3跨/3步/4m部分降级为🟡"
+    "fix": "补充间距要求的完整逐字quote，或将3跨/3步/4m部分降级为🟡",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §1.2行4(保🟢补教材P121(3)②③逐字出处)",
+      "verified": "kc:1A413030_121_0229:1 quote 直读含「刚性构件」但截断于②前(3跨3步4m缺,现象为真)；教材P121逐字「水平间距不得超过 3 跨，竖向间距不得超过 3 步」「不应大于 4m」；保🟢补出处；GLM-5.2判repair"
+    }
   },
   {
     "issue": "危大工程判定阈值(基坑3m/模板5m/吊装10kN/脚手架24m)所引quote仅为管理总述，不含具体数值",
     "location": "§1.2行14, §4.1, §5.1 4.1",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "更换为包含具体阈值的point_id，或将阈值部分降级为🟡"
+    "fix": "更换为包含具体阈值的point_id，或将阈值部分降级为🟡",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §1.2行14/§5.1 4.1(保🟢补ca:1A436000_008_0011包内锚+教材P8逐字出处+吊装『非常规』限定词)",
+      "verified": "kc:1A436000_008_0011:0 quote 直读含「危大工程管理」管理总述无阈值(现象为真)；ca:1A436000_008_0011 quote 直读含「开挖深度超过 3m」；教材CET_1A436000_P0008_001 P8逐字含模板5m/吊装非常规10kN/脚手架24m全部阈值；保🟢补出处；GLM-5.2判repair"
+    }
   },
   {
     "issue": "kc:1A436000_009_0012:0的quote截断，模板支撑8m/18m/15kN/m²/20kN/m等🟢阈值缺乏逐字支撑",
     "location": "§1.2行15, §4.1, §7.1 A2, §8.1等",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充完整quote或将这些🟢阈值降级为🟡，与50m标注逻辑一致"
+    "fix": "补充完整quote或将这些🟢阈值降级为🟡，与50m标注逻辑一致",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §6 R8-6解药(保🟢补教材P9逐字出处+300kN/200m口径收正为起重机械安装拆卸条款,与S02同型)",
+      "verified": "kc:1A436000_009_0012:0 quote 直读截断于「深基坑…5m」(模板8m/18m等缺,现象为真)；教材CET_1A436000_P0009_001 P9逐字含模板支撑8m/18m/15kN/m²/20kN/m、承重支撑7kN、非常规100kN、300kN与200m属安拆条款、落地脚手架50m；保🟢补出处＋口径收正；GLM-5.2判repair"
+    }
   },
   {
     "issue": "落地式操作平台关键参数(高≤15m/高宽比≤3:1/荷载≤2.0kN/m²)无逐字quote支撑",
     "location": "§1.2行34, §4.3-E",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充包含这些参数的完整quote，或将参数部分降级为🟡"
+    "fix": "补充包含这些参数的完整quote，或将参数部分降级为🟡",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §1.2行34(保🟢补教材P123逐字出处)",
+      "verified": "kc:1A436000_123_0197:2 quote 直读仅含连墙件4m段(15m/3:1/2.0缺,现象为真)；教材CET_1A436000_P0123_001 P123逐字「操作平台高度不应大于 15m，高宽比不应大于 3:1」「不应大于 2.0kN/m²」；保🟢补出处；GLM-5.2判repair"
+    }
   },
   {
     "issue": "限禁用设备限高数值(轮扣15m/8m、龙门架25m、卸料平台10m等)无逐字quote支撑",
     "location": "§1.2行38, §4.3-F",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充对应限高标准的逐字quote，或将🟢数值降级为🟡"
+    "fix": "补充对应限高标准的逐字quote，或将🟢数值降级为🟡",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §1.2行38(保🟢补教材P15(3)(4)(5)逐字出处)",
+      "verified": "kc:1A421000_015_0021:1 quote 直读含「限制使用的施工设备」但截断于门式支撑架句(限高数值缺,现象为真)；教材CET_1A421000_P0015_001 P15逐字含龙门架25m/轮扣15m双排与8m满堂/卸料平台三层(或10m)全部限值；保🟢补出处；GLM-5.2判repair"
+    }
   },
   {
     "issue": "荷载单位格式误写为kN·m²、kN·m，与源料kN/m²、kN/m不一致",
     "location": "§5.1 4.2等全文多处",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "将全文荷载单位统一修正为kN/m²或kN/m，匹配规范源料"
+    "fix": "将全文荷载单位统一修正为kN/m²或kN/m，匹配规范源料",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md 全文荷载单位(前轮复核员已修:kN·m²→kN/m² 15处0残留,本轮机器复核补凭据)",
+      "verified": "字符串核验:pack正文0处kN·m²残留(仅审计记录引述原issue文本含该字样)；前轮复核记录明示『源料13处全用kN/m²/0处kN·m²…15处已改0残留』；status=fixed补凭据"
+    }
   },
   {
     "issue": "R2不变量‘每一个安全结论都是取数→比阈值→二值’过于绝对，拆除顺序、刚性连墙件等定性规则无法覆盖",
     "location": "§3",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "修正R2表述为‘主导不变量之一’或兼容定性规则的泛化描述"
+    "fix": "修正R2表述为‘主导不变量之一’或兼容定性规则的泛化描述",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §3 R2(『每一个安全结论』改『主导不变量』+定性规则程序/构造侧延伸声明)",
+      "verified": "字符串定位:R2现文=「主导不变量：…拆除顺序、刚性连墙件等定性规则是该不变量的程序/构造侧延伸（由 R3 场景覆盖），不走数值比对」；措辞收窄合法；GLM-5.2判repair"
+    }
   },
   {
     "issue": "R8-3使用客观单选题(2025第18题)作为证据，却映射为案例/主观系列E06，与E/M题型分工冲突",
     "location": "§6 R8-3",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "将错误码修正为M系列(如M03)，或更换为案例语境证据"
+    "fix": "将错误码修正为M系列(如M03)，或更换为案例语境证据",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §6 R8-3+挂载清单(题型双轨:案例E06保留/客观题2025第18改M10)",
+      "verified": "ERROR_CODE_REGISTRY直读: E06=程序顺序错误(案例)、M10=用常识替代规范判断(客观·拆序凭直觉=未回规范)；GLM-5.2裁M10非M03(拆序方向想反系未回规范非概念错认)+Fable-5复签"
+    }
   },
   {
     "issue": "R8-6使用案例题(2020案例一问4)证据，却映射为MCQ系列M10，与E/M分工冲突",
     "location": "§6 R8-6",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "将错误码修正为E系列(如E10)，或保留M10但修改证据为客观题"
+    "fix": "将错误码修正为E系列(如E10)，或保留M10但修改证据为客观题",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §6 R8-6+挂载清单(题型双轨:客观M10保留/案例2020案例一问4并注E10)",
+      "verified": "ERROR_CODE_REGISTRY直读: M10=用常识替代规范判断、E10=规范适用错误(案例不回规范阈值表)；GLM-5.2 approve+Fable-5复签"
+    }
   },
   {
     "issue": "R8-8将‘用柔性钢筋替刚性连墙件’映射为E01(知识点缺失)不够贴切，更宜归为E07(概念混淆)或E10(规范适用错误)",
     "location": "§6 R8-8",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "将错误码调整为E07，或在学生现象描述中增强‘完全缺失’场景以贴合E01"
+    "fix": "将错误码调整为E07，或在学生现象描述中增强‘完全缺失’场景以贴合E01",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §6 R8-8+挂载清单(E01弃用;E10主·柔性替刚性+E02并注·漏写)",
+      "verified": "ERROR_CODE_REGISTRY直读: E10=规范适用错误(教材P121『连墙件应采用能承受压力和拉力的刚性构件』明文,柔性钢筋替刚性=规范适用错误)、E02=采分点遗漏、E01=知识点缺失(考生非完全不知,弃用)；GLM-5.2 approve+Fable-5复签"
+    }
   },
   {
     "issue": "S01决策树将‘深基坑’列为与脚手架/模板支架并列的主分支，与S01本体聚焦声明冲突",
     "location": "§4.3-A, §7.1 决策树",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "将深基坑分支从主干中移除，或改为虚线‘邻接参见’"
+    "fix": "将深基坑分支从主干中移除，或改为虚线‘邻接参见’",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §7.1决策树A4+分支图(深基坑标🔵邻接参见·本体归J01,保守对齐§1边界声明;owner保留恢复主支权)",
+      "verified": "字符串定位:A4现文含「🔵邻接参见——深基坑本体归 J01，S01 边界声明外」,分支图含「(🔵邻接参见·本体归J01)」；对齐pack自身本体边界声明(降级方向永远合法)；GLM-5.2整包体检将本条列owner_items,已按保守方向执行并登记owner升级清单"
+    }
   },
   {
     "issue": "R3-F‘设备/材料限禁用与限高判定’作为S01封闭固定场景，但状态为🔴真题命中待取证，封闭性声明矛盾",
     "location": "§4.2 R3-F",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "将R3-F从‘封闭场景’降级为‘候选场景’，待真题取证完成后再封闭"
+    "fix": "将R3-F从‘封闭场景’降级为‘候选场景’，待真题取证完成后再封闭",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S01_脚手架模板支架验收.md §4.2 R3-F(封闭场景→🔵候选场景+取证后再入封闭集声明+教材P15出处)",
+      "verified": "字符串定位:R3-F现文含「🔵候选场景——真题命中待取证，取证完成后再入封闭集」；消除封闭声明与🔴待取证的矛盾(降级方向合法,owner可在取证后恢复封闭)；GLM-5.2整包体检将本条列owner_items,已按保守方向执行并登记owner升级清单"
+    }
   },
   {
     "issue": "模板拆除强度75%/100%分档表所引quote仅为定性引子，未逐字列出具体数值",
     "location": "§4.2-D, §4.3-D, §5.1 组4",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "补充逐字数值quote，或将🟢数值部分降级为🟡"
@@ -130,7 +252,9 @@
   {
     "issue": "梁底模最小起拱1/1000~3/1000的教材point_id在源料中无独立chunk，视为不存在",
     "location": "§6",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "查找正确point_id，或降级为🔴待取证"
@@ -138,7 +262,9 @@
   {
     "issue": "骨架F的quote不支撑完整拆除口诀(自上而下、先外后内、严禁交叉)",
     "location": "§5.2 骨架F",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "更换能覆盖完整拆除口诀的quote，或将缺失部分降级为🟡"

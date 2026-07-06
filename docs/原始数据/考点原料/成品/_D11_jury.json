@@ -2,15 +2,26 @@
   {
     "issue": "层厚（普通≤20mm/高级≤25mm）与温度（≥5℃）仅由真题侧锚支撑，缺乏教材锚，语义支撑较弱，且层厚被表述为‘底中面/单层’而非真题原文的‘平均总厚度’",
     "location": "§1行7-8，§4 R4规则组D，L1表格第7-8行",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "保留数值规则但将三色标记降级为🟢（真题单锚）或🔵，层厚表述改为‘平均总厚度’，并补充‘待补教材锚’说明"
+    "fix": "保留数值规则但将三色标记降级为🟢（真题单锚）或🔵，层厚表述改为‘平均总厚度’，并补充‘待补教材锚’说明",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "D11_抹灰工序与质量控制.md §0/§1行7-8/§4规则组A/§5 A2/§8.2 C5/§8.3/§9 HI#1（层厚统一为'平均总厚度'表述，三色统一标🟢真题单锚·教材库缺卡，补'待补GB50210教材锚'说明；汇编轮已应用，D2 裁决批确定性复核收口）",
+      "verified": "2026-07-04 确定性复核：_D11_exam_evidence.json 直读 {2023,第26题} correct_answer=BDE，D/E 选项原文为'内墙普通/高级抹灰层平均总厚度不大于20mm/25mm'，解析原文'室内抹灰的环境温度一般不低于 5℃'；pack 正文 grep '平均总厚'=20处、'底中面单层'仅2行且均为否定性引用(行6/行365)；讲义*_v8+2026教材零LLM全文检索'平均总厚度'与'高级抹灰'均0命中，证实教材锚确缺、'待补GB50210'标注诚实非冒充；verify_exam_anchors exit=0（可重跑：python3 docs/原始数据/考点原料/verify_exam_anchors.py 成品/D11_抹灰工序与质量控制.md + grep -c 平均总厚）"
+    }
   },
   {
     "issue": "R2不变量链尾句覆盖了标为🔵外延的涂饰衔接点，导致不变量逻辑泛化",
     "location": "§2原理因果链/§3不变量句尾",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "将涂饰衔接点从核心不变量移除或降级为衔接说明"
@@ -18,7 +29,9 @@
   {
     "issue": "R6‘可直接背诵版’将🔵外延（涂饰衔接）与🟢抹灰本体采分点平权罗列，易造成概念混淆",
     "location": "§5 R6答案骨架/§8.1",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "用🔵标记背诵版尾部的外延句，或将其移出到‘工序衔接提醒’独立标注"
@@ -26,7 +39,9 @@
   {
     "issue": "基层含水率场景S4被标为🔵，但实际有教材锚kc:1A422000_043_0069:1支撑，应标为🟢",
     "location": "L4 R3场景S4",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "三色降级：🔵→🟢"
@@ -34,7 +49,9 @@
   {
     "issue": "误区M7‘把外保温薄抹灰当一般抹灰答’未指明具体概念混淆点，描述模糊",
     "location": "L6误区M7",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "补充具体混淆点（如外保温薄抹灰系统与一般装饰抹灰工序的构造差异）"
@@ -42,7 +59,9 @@
   {
     "issue": "‘采取加强措施’被展开为‘分层+挂网’，但quote中无具体措施清单支撑",
     "location": "§2因果链/§6 M1解药",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "‘分层+挂网’降为讲解性内容，禁止作为采分点"
@@ -50,7 +69,9 @@
   {
     "issue": "规则组A中‘<35mm仍强行加强=不妥’属过封闭反向规则，缺乏教材依据",
     "location": "§4 R4规则组A",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "删除该反向规则或降为🔴，仅保留‘≥35mm不加强=不妥’"
@@ -58,7 +79,9 @@
   {
     "issue": "含水率数值被定位为D11抹灰本体主轴过强，语境更接近涂饰前基层控制",
     "location": "§1#3-#5、§3/R4含水率定位",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "将含水率定位降为🔵，标记为基层/涂饰衔接外延"
@@ -66,7 +89,9 @@
   {
     "issue": "搭接宽度误区（50/80mm）映射E03关键词缺失不够贴切，M08规范数字混淆更准确",
     "location": "§5 R5 B2、§6 M2",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "主码改为M08，E03降为条件码（仅在答案漏‘搭接宽度/不小于’等表达时使用）"

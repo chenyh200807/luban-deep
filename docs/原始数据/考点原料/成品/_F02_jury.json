@@ -2,15 +2,25 @@
   {
     "issue": "施工顺序“由低向高”判分眼缺乏充分源料支撑，证据链不闭环",
     "location": "§1 #1 及 R2 五步链相关断言",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补入 2019 真题第3问支撑或调整锚挂链，将当前主要 anchor 降为🔵/补充真题锚；在 R2 中标注证据等级"
+    "fix": "补入 2019 真题第3问支撑或调整锚挂链，将当前主要 anchor 降为🔵/补充真题锚；在 R2 中标注证据等级",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "F02_卷材防水施工顺序与搭接方向.md §3 场景1/R3 S1b/§8.2 C4/§9 HI#1（前轮已按 fix 首选项补入 {2019,第1题第3问} 真题锚，'由低向高'证据链=教材锚+2真题锚闭合；'缺源料支撑'半边断言被直读证伪；D2 裁决批确定性复核收口）",
+      "verified": "2026-07-04 确定性复核：kc:1A413030_123_0234:0 quote 直读含「由低向高」（原文'卷材防水层施工应先细部后大面积，由低向高铺贴'——jury '缺乏源料支撑'断言与源料直读矛盾）；_F02_exam_evidence.json 内 {2019,第1题} 第3问 answer 原文包含'应先进行细部构造处理，然后由屋面最低标高向上铺贴'与'搭接缝应顺流水方向'，补锚真实；verify_exam_anchors exit=0（可重跑：python3 docs/原始数据/考点原料/adjudicate.py F02——token「由低向高」命中）"
+    }
   },
   {
     "issue": "满粘法锚挂偏窄，“钉压”来源未独立拆分",
     "location": "§1 #6",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "补明确“钉压”出处（如 GB50345 或真题侧），避免 quote 悬浮"
@@ -18,7 +28,9 @@
   {
     "issue": "短边搭接错缝≥500mm 锚挂链引用不精准，主锚未前置关键源",
     "location": "§1 #3/#4 及本体边界锚挂",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "将主锚调整为 kc:1A422000_029_0049:0，原锚降为协同印证，消除循环推导"
@@ -26,7 +38,9 @@
   {
     "issue": "“双层不得相互垂直”/“上下层不得垂直”的锚挂 support 不完全闭合",
     "location": "§1 #10, §1 #11",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "降为🔵或补充更准确锚点/真题解析，使 quote 显式包含垂直禁止"
@@ -34,7 +48,9 @@
   {
     "issue": "R2 不变量中“细部节点是否到位”的逻辑覆盖可能不完整",
     "location": "§3 R2 不变量",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "补充或标注具体细部节点要求范围，避免以偏概全"
@@ -42,7 +58,9 @@
   {
     "issue": "R8 误区中 error_code 映射不完全贴切",
     "location": "§6 R8 误区 → error_code",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "重新校准误区现象与 error_code 的对应关系，必要时拆分或补注释"
@@ -50,7 +68,9 @@
   {
     "issue": "“2019 第1题”被整体误剔除为噪声，导致卷材铺贴真源丢失",
     "location": "§4 examiner_intent / §8 C4",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "拆分子问级剔除：保留第3问卷材铺贴部分作为🟢真题侧锚，其余🔵噪声"
@@ -58,7 +78,9 @@
   {
     "issue": "长边搭接错开“写1/2幅宽”被判0分过硬，与规范比对不符",
     "location": "§5 R7 长边错开评分边界",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "将“1/2幅宽”改为规范数字表述不准候选，不自动计0分"
@@ -66,7 +88,9 @@
   {
     "issue": "“上下两层垂直铺贴”的错因码 M07 泛化不当，单选场景误用多选码",
     "location": "§6 M3",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "M07 仅保留多选场景；单选改挂 M04/M03/M10，避免错因码混淆"
@@ -74,7 +98,9 @@
   {
     "issue": "短边<500/长边<1/3 的案例错误配码 E03 过窄",
     "location": "§6 M4",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "拆分为漏写数值→E03，写错/不足数值→E10，不将 E03 作为整类主码"

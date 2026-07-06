@@ -1,0 +1,1382 @@
+{
+  "schema_version": "luban_animation_ir.v0",
+  "ir_id": "P40_A02_animation_ir_v0",
+  "card_id": "P40_A02",
+  "display": {
+    "kicker": "鲁班深母题 · A02 隐蔽验收与材料复验",
+    "title": "材料先过门，隐蔽先拍再盖"
+  },
+  "main_exam_action": "把 A02 案例题写成“先定环节 → 材料进场验收/复验 → 见证取样送检 → 隐蔽部位覆盖前验收并记录 → 合格后使用或覆盖”的采分动作，并能指出有合格证即用、见证主体错、覆盖后补验、复验项目漏写等不妥。",
+  "wrong_idea": "学生容易把 A02 当成资料题：有合格证就能用、见证就是监理签个字、隐蔽验收可以覆盖后补记录、复验项目写一句“按规定复验”就够。真正考试看的是样品、见证人、检测记录、隐蔽剖面和覆盖板这些对象在覆盖前有没有走完。",
+  "teaching_spine": {
+    "source_pack": "docs/原始数据/考点原料/成品/A02_隐蔽验收材料复验见证取样.md",
+    "source_card": "P40_A02.source_card.json",
+    "archetype": "process_step_reveal",
+    "secondary_archetype": "decision_branch_reveal",
+    "warm_correction": "A02 不是资料补办题，而是材料样品、见证链和隐蔽剖面的覆盖前过滤题。"
+  },
+  "source_refs": {
+    "pack_markdown": "docs/原始数据/考点原料/成品/A02_隐蔽验收材料复验见证取样.md",
+    "source_card": "P40_A02.source_card.json",
+    "lesson": "P40_A02.lesson.json",
+    "timing": "P40_A02.lesson.timing.json",
+    "audio": "P40_A02.lesson.mp3"
+  },
+  "render_contract": {
+    "renderer": "render_animation_ir_preview.py",
+    "html_preview": "P40_A02.animation_ir_preview.html",
+    "remotion_renderer": "remotion_demo/src/P40_A02AnimationIrPreview.tsx",
+    "remotion_composition": "P40_A02AnimationIrPreview",
+    "practice_href": "P40_A02.practice.html",
+    "max_visible_nodes": 4,
+    "archetype_visual_required": [
+      "process_flow"
+    ],
+    "teaching_scene_ids": [
+      "hook",
+      "material_gate",
+      "retest_list",
+      "witness_chain",
+      "hidden_shutter",
+      "branch_trap",
+      "score"
+    ],
+    "min_diagrammatic_teaching_scenes": 7,
+    "min_domain_visual_teaching_scenes": 7,
+    "challenge_unlock_sec": 140.04,
+    "one_active_scene": true,
+    "one_active_keycard": true,
+    "theater_requires_challenge_cta": true,
+    "ai_ask_required": true
+  },
+  "visual_archetype_decision": {
+    "primary_archetype": "process_step_reveal",
+    "secondary_archetype": "decision_branch_reveal",
+    "visual_primitive": "process_flow",
+    "motion_grammar": "hidden_section_open_then_sample_branch_then_answer_scan",
+    "why_this_visual": "A02 的认知难点是先定位题干环节，再看材料样品和隐蔽部位是否在不可逆覆盖前通过复验、见证、隐蔽验收。流程 trace 能讲时机，分支淘汰能讲材料/见证/隐蔽三类陷阱。",
+    "why_not_text": "纯文字框会把“合格证、复验、见证、隐蔽验收”变成并列名词，学生仍看不见样品何时被抽走、见证链哪里断、墙体覆盖后为什么补验无效，也看不见 A02 与 A01 层级验收程序的边界。",
+    "must_show_domain_objects": true,
+    "domain_visual_plan": [
+      {
+        "scene": "hook",
+        "domain_objects": [
+          "隐蔽部位剖面",
+          "覆盖板",
+          "材料样品",
+          "合格证"
+        ],
+        "visual_action": "隐蔽剖面先打开，覆盖板试图合上；未复验的材料样品和只有合格证的托盘被红灯挡住。",
+        "why_object_not_box": "只写“隐蔽前验收”看不出覆盖后不可见；必须看见剖面被盖住前的窗口。"
+      },
+      {
+        "scene": "material_gate",
+        "domain_objects": [
+          "材料托盘",
+          "合格证",
+          "外观检查灯",
+          "复验闸门"
+        ],
+        "visual_action": "材料托盘先查凭证、数量、规格、外观；合格证只能点亮第一盏灯，涉及安全节能的样品被送进复验闸。",
+        "why_object_not_box": "合格证与复验是两道不同闸，文字框容易让学生误判有证即用。"
+      },
+      {
+        "scene": "retest_list",
+        "domain_objects": [
+          "钢筋样品",
+          "水泥袋",
+          "保温板样品",
+          "复验清单格"
+        ],
+        "visual_action": "样品逐个落到复验清单格；普通钢筋五格亮起，成型钢筋的弯曲格灰掉，保温板导热/密度/燃烧性能格亮起。",
+        "why_object_not_box": "复验项目是列全题，必须看见样品对应哪些检测格，而不是背一句“材料复验”。"
+      },
+      {
+        "scene": "witness_chain",
+        "domain_objects": [
+          "现场取样台",
+          "建设单位见证人章",
+          "见证记录表",
+          "检测机构核验章"
+        ],
+        "visual_action": "样品在现场取样台被抽取，建设单位见证人章、见证记录、检测机构核验章依次落下；监理确认章和试验员记录章被淘汰。",
+        "why_object_not_box": "见证取样考主体和时机，必须看见谁盖章、谁填记录、何时送检。"
+      },
+      {
+        "scene": "hidden_shutter",
+        "domain_objects": [
+          "节能隐蔽剖面",
+          "基层",
+          "保温层",
+          "热桥处理",
+          "隔汽层",
+          "隐检记录快门"
+        ],
+        "visual_action": "墙/屋面剖面保持打开，基层、保温材料、热桥、隔汽层逐项扫描；隐检记录快门先拍下，覆盖板才允许合上。",
+        "why_object_not_box": "隐蔽验收是覆盖前的实时见证，不能用“隐蔽验收”四个字替代剖面扫描。"
+      },
+      {
+        "scene": "branch_trap",
+        "domain_objects": [
+          "有证即用支路",
+          "自取自送支路",
+          "覆盖后补验支路",
+          "合格使用/覆盖主线"
+        ],
+        "visual_action": "三条错误支路从主流程分出并被红叉淘汰，合格使用/覆盖主线只在复验、见证、隐检记录齐全后亮绿。",
+        "why_object_not_box": "A02 是找错型，必须让错支路退出，学生才会知道每个错误为什么扣分。"
+      },
+      {
+        "scene": "score",
+        "domain_objects": [
+          "答题纸",
+          "采分扫描笔",
+          "材料样品缩略图",
+          "隐蔽剖面缩略图"
+        ],
+        "visual_action": "扫描笔把现场对象压成答题纸：先定环节、复验见证、覆盖前验收记录、合格后使用或覆盖。",
+        "why_object_not_box": "最终要训练主观题采分句，必须从样品和剖面落到答题纸，不是再给一页文字总结。"
+      }
+    ],
+    "pure_text_allowed": false
+  },
+  "ai_context": {
+    "context_id": "P40_A02",
+    "title": "A02 隐蔽验收、材料复验与见证取样",
+    "main_exam_action": "把 A02 案例题写成“先定环节 → 材料进场验收/复验 → 见证取样送检 → 隐蔽部位覆盖前验收并记录 → 合格后使用或覆盖”的采分动作，并能指出有合格证即用、见证主体错、覆盖后补验、复验项目漏写等不妥。",
+    "safe_summary": "A02 的主线是材料进场先核查，需复验的材料见证取样复验合格后使用；隐蔽部位必须覆盖前验收并形成记录；案例改错要写不妥和正确动作。",
+    "key_points": [
+      "材料进场先核查，再按要求复验",
+      "复验项目必须按材料对象列清",
+      "见证取样看主体、时机、记录、核验",
+      "隐蔽部位覆盖前验收并形成记录",
+      "案例改错写不妥 + 正确动作"
+    ],
+    "handoff_mode": "context_id_plus_current_scene",
+    "api_base": "https://test2.yousenjiaoyu.com"
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "label": "先看",
+      "start_sec": 0
+    },
+    {
+      "id": "material_gate",
+      "label": "材料闸",
+      "start_sec": 23.632
+    },
+    {
+      "id": "retest_list",
+      "label": "复验格",
+      "start_sec": 48.296
+    },
+    {
+      "id": "witness_chain",
+      "label": "见证链",
+      "start_sec": 72.84
+    },
+    {
+      "id": "hidden_shutter",
+      "label": "隐蔽闸",
+      "start_sec": 95.704
+    },
+    {
+      "id": "branch_trap",
+      "label": "错支路",
+      "start_sec": 117.776
+    },
+    {
+      "id": "score",
+      "label": "采分句",
+      "start_sec": 140.04
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问",
+      "start_sec": 167.248
+    },
+    {
+      "id": "closing_challenge",
+      "label": "闯关",
+      "start_sec": 226.144
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "label": "现场先拦缺陷",
+      "start_sec": 0,
+      "end_sec": 23.232,
+      "scene": "hook",
+      "focus": "hook_filter_flow",
+      "enter": [
+        "隐蔽剖面打开",
+        "材料托盘入场",
+        "复验闸拦截"
+      ],
+      "hold": [
+        "样品停在闸前",
+        "覆盖板悬停"
+      ],
+      "exit": [
+        "未验对象退出"
+      ],
+      "layout": {
+        "stage": "whiteboard",
+        "anchor": "domain_flow",
+        "safe_margin": 18
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "hook_filter_flow",
+        "duration_sec": 23.232
+      },
+      "visible_nodes": [
+        "hook_filter_flow"
+      ],
+      "keycard": "A02 是覆盖前过滤器",
+      "coach": "看见材料和隐蔽部位都被覆盖前过滤。",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "scene",
+          "verb": "push_in",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "hook_filter_flow",
+          "verb": "enter",
+          "start": 0.08,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "hook_filter_flow",
+          "verb": "trace",
+          "start": 0.34,
+          "end": 0.82
+        },
+        {
+          "kind": "exit",
+          "target": "hook_filter_flow",
+          "verb": "clean_exit",
+          "start": 0.86,
+          "end": 1
+        }
+      ],
+      "visual_library": "hook"
+    },
+    {
+      "id": "material_gate",
+      "label": "材料进场闸",
+      "start_sec": 23.632,
+      "end_sec": 47.896,
+      "scene": "material_gate",
+      "focus": "material_gate_flow",
+      "enter": [
+        "质量证明点亮",
+        "样品从托盘抽出",
+        "复验闸打开"
+      ],
+      "hold": [
+        "样品停在复验通道"
+      ],
+      "exit": [
+        "证书单独使用支路退出"
+      ],
+      "layout": {
+        "stage": "whiteboard",
+        "anchor": "domain_flow",
+        "safe_margin": 18
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "material_gate_flow",
+        "duration_sec": 24.264
+      },
+      "visible_nodes": [
+        "material_gate_flow"
+      ],
+      "keycard": "有合格证不等于复验合格",
+      "coach": "证书只点亮第一盏灯，样品还要抽去复验。",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "scene",
+          "verb": "push_in",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "material_gate_flow",
+          "verb": "enter",
+          "start": 0.08,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "material_gate_flow",
+          "verb": "trace",
+          "start": 0.34,
+          "end": 0.82
+        },
+        {
+          "kind": "exit",
+          "target": "material_gate_flow",
+          "verb": "clean_exit",
+          "start": 0.86,
+          "end": 1
+        }
+      ],
+      "visual_library": "material_gate"
+    },
+    {
+      "id": "retest_list",
+      "label": "复验项目格",
+      "start_sec": 48.296,
+      "end_sec": 72.44,
+      "scene": "retest_list",
+      "focus": "retest_grid_flow",
+      "enter": [
+        "样品落入清单",
+        "普通钢筋五格亮起",
+        "成型钢筋弯曲格灰掉"
+      ],
+      "hold": [
+        "材料对象分列停住"
+      ],
+      "exit": [
+        "空话“按规定复验”退出"
+      ],
+      "layout": {
+        "stage": "whiteboard",
+        "anchor": "domain_flow",
+        "safe_margin": 18
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "retest_grid_flow",
+        "duration_sec": 24.144
+      },
+      "visible_nodes": [
+        "retest_grid_flow"
+      ],
+      "keycard": "按材料对象列复验格",
+      "coach": "把钢筋、水泥、保温材料分别落到复验格。",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "scene",
+          "verb": "push_in",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "retest_grid_flow",
+          "verb": "enter",
+          "start": 0.08,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "retest_grid_flow",
+          "verb": "trace",
+          "start": 0.34,
+          "end": 0.82
+        },
+        {
+          "kind": "exit",
+          "target": "retest_grid_flow",
+          "verb": "clean_exit",
+          "start": 0.86,
+          "end": 1
+        }
+      ],
+      "visual_library": "retest_list"
+    },
+    {
+      "id": "witness_chain",
+      "label": "见证取样链",
+      "start_sec": 72.84,
+      "end_sec": 95.304,
+      "scene": "witness_chain",
+      "focus": "witness_chain_flow",
+      "enter": [
+        "现场取样",
+        "送检前通知",
+        "见证章与记录依次落下"
+      ],
+      "hold": [
+        "检测机构核验章压住"
+      ],
+      "exit": [
+        "监理确认和试验员记录错章退出"
+      ],
+      "layout": {
+        "stage": "whiteboard",
+        "anchor": "domain_flow",
+        "safe_margin": 18
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "witness_chain_flow",
+        "duration_sec": 22.464
+      },
+      "visible_nodes": [
+        "witness_chain_flow"
+      ],
+      "keycard": "见证链看主体、时机、记录",
+      "coach": "样品离开现场前，见证主体和记录必须跟上。",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "scene",
+          "verb": "push_in",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "witness_chain_flow",
+          "verb": "enter",
+          "start": 0.08,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "witness_chain_flow",
+          "verb": "trace",
+          "start": 0.34,
+          "end": 0.82
+        },
+        {
+          "kind": "exit",
+          "target": "witness_chain_flow",
+          "verb": "clean_exit",
+          "start": 0.86,
+          "end": 1
+        }
+      ],
+      "visual_library": "witness_chain"
+    },
+    {
+      "id": "hidden_shutter",
+      "label": "隐蔽验收快门",
+      "start_sec": 95.704,
+      "end_sec": 117.376,
+      "scene": "hidden_shutter",
+      "focus": "hidden_shutter_flow",
+      "enter": [
+        "剖面展开",
+        "基层保温热桥逐层扫描",
+        "隐检记录快门拍下"
+      ],
+      "hold": [
+        "覆盖板暂不合上"
+      ],
+      "exit": [
+        "盖后补记录退出"
+      ],
+      "layout": {
+        "stage": "whiteboard",
+        "anchor": "domain_flow",
+        "safe_margin": 18
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "hidden_shutter_flow",
+        "duration_sec": 21.672
+      },
+      "visible_nodes": [
+        "hidden_shutter_flow"
+      ],
+      "keycard": "隐蔽先验收记录，再覆盖",
+      "coach": "隐蔽剖面必须在覆盖前被扫描并形成记录。",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "scene",
+          "verb": "push_in",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "hidden_shutter_flow",
+          "verb": "enter",
+          "start": 0.08,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "hidden_shutter_flow",
+          "verb": "trace",
+          "start": 0.34,
+          "end": 0.82
+        },
+        {
+          "kind": "exit",
+          "target": "hidden_shutter_flow",
+          "verb": "clean_exit",
+          "start": 0.86,
+          "end": 1
+        }
+      ],
+      "visual_library": "hidden_shutter"
+    },
+    {
+      "id": "branch_trap",
+      "label": "错支路淘汰",
+      "start_sec": 117.776,
+      "end_sec": 139.64,
+      "scene": "branch_trap",
+      "focus": "trap_branch_tree",
+      "enter": [
+        "三条错支路分出",
+        "红叉命中错法",
+        "主线亮绿"
+      ],
+      "hold": [
+        "正确主线保留"
+      ],
+      "exit": [
+        "错支路淡出"
+      ],
+      "layout": {
+        "stage": "whiteboard",
+        "anchor": "domain_flow",
+        "safe_margin": 18
+      },
+      "camera": {
+        "verb": "branch_scan",
+        "target": "trap_branch_tree",
+        "duration_sec": 21.864
+      },
+      "visible_nodes": [
+        "trap_branch_tree"
+      ],
+      "keycard": "找错沿三条支路淘汰",
+      "coach": "把有证即用、自取自送、盖后补验三条错支路逐个打掉。",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "scene",
+          "verb": "push_in",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "trap_branch_tree",
+          "verb": "enter",
+          "start": 0.08,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "trap_branch_tree",
+          "verb": "trace",
+          "start": 0.34,
+          "end": 0.82
+        },
+        {
+          "kind": "exit",
+          "target": "trap_branch_tree",
+          "verb": "clean_exit",
+          "start": 0.86,
+          "end": 1
+        }
+      ],
+      "visual_library": "branch_trap"
+    },
+    {
+      "id": "score",
+      "label": "答题纸收口",
+      "start_sec": 140.04,
+      "end_sec": 166.848,
+      "scene": "score",
+      "focus": "score_answer_scan",
+      "enter": [
+        "答题纸出现",
+        "扫描笔逐句命中",
+        "对象缩略图归位"
+      ],
+      "hold": [
+        "四行采分句停住"
+      ],
+      "exit": [
+        "多余空话退出"
+      ],
+      "layout": {
+        "stage": "whiteboard",
+        "anchor": "answer_paper",
+        "safe_margin": 18
+      },
+      "camera": {
+        "verb": "scan_answer",
+        "target": "score_answer_scan",
+        "duration_sec": 26.808
+      },
+      "visible_nodes": [
+        "score_answer_scan"
+      ],
+      "keycard": "定环节、列复验、写见证、覆盖前验收",
+      "coach": "把对象动作压成案例题采分句。",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "scene",
+          "verb": "push_in",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "score_answer_scan",
+          "verb": "enter",
+          "start": 0.08,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "score_answer_scan",
+          "verb": "trace",
+          "start": 0.34,
+          "end": 0.82
+        },
+        {
+          "kind": "exit",
+          "target": "score_answer_scan",
+          "verb": "clean_exit",
+          "start": 0.86,
+          "end": 1
+        }
+      ],
+      "visual_library": "score"
+    },
+    {
+      "id": "qa_closure",
+      "label": "三问回扫",
+      "start_sec": 167.248,
+      "end_sec": 225.744,
+      "scene": "qa_closure",
+      "focus": "qa_answer_scan",
+      "enter": [
+        "答题纸回扫",
+        "错念头定位",
+        "正确补句出现"
+      ],
+      "hold": [
+        "三问三答停住"
+      ],
+      "exit": [
+        "未命中想法退出"
+      ],
+      "layout": {
+        "stage": "whiteboard",
+        "anchor": "answer_paper",
+        "safe_margin": 18
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "qa_answer_scan",
+        "duration_sec": 58.496
+      },
+      "visible_nodes": [
+        "qa_answer_scan"
+      ],
+      "keycard": "三问只回到对象",
+      "coach": "学生疑问都回到材料、见证和隐蔽三个对象。",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "scene",
+          "verb": "push_in",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "qa_answer_scan",
+          "verb": "enter",
+          "start": 0.08,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "qa_answer_scan",
+          "verb": "trace",
+          "start": 0.34,
+          "end": 0.82
+        },
+        {
+          "kind": "exit",
+          "target": "qa_answer_scan",
+          "verb": "clean_exit",
+          "start": 0.86,
+          "end": 1
+        }
+      ],
+      "visual_library": "qa_closure"
+    },
+    {
+      "id": "closing_challenge",
+      "label": "进入闯关",
+      "start_sec": 226.144,
+      "end_sec": 240.352,
+      "scene": "closing_challenge",
+      "focus": "challenge_scan",
+      "enter": [
+        "材料门亮起",
+        "见证章压下",
+        "隐蔽快门闪光"
+      ],
+      "hold": [
+        "闯关按钮出现"
+      ],
+      "exit": [
+        "讲解对象收束"
+      ],
+      "layout": {
+        "stage": "whiteboard",
+        "anchor": "answer_paper",
+        "safe_margin": 18
+      },
+      "camera": {
+        "verb": "object_trace",
+        "target": "challenge_scan",
+        "duration_sec": 14.208
+      },
+      "visible_nodes": [
+        "challenge_scan"
+      ],
+      "keycard": "材料先过门，样品带见证，隐蔽先拍再盖",
+      "coach": "把口诀压成闯关前的对象顺序。",
+      "actions": [
+        {
+          "kind": "camera",
+          "target": "scene",
+          "verb": "push_in",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "kind": "reveal",
+          "target": "challenge_scan",
+          "verb": "enter",
+          "start": 0.08,
+          "end": 0.34
+        },
+        {
+          "kind": "highlight",
+          "target": "challenge_scan",
+          "verb": "trace",
+          "start": 0.34,
+          "end": 0.82
+        },
+        {
+          "kind": "exit",
+          "target": "challenge_scan",
+          "verb": "clean_exit",
+          "start": 0.86,
+          "end": 1
+        }
+      ],
+      "visual_library": "closing_challenge"
+    }
+  ],
+  "visual_library": {
+    "hook": {
+      "board": "whiteboard",
+      "nodes": [
+        {
+          "id": "hook_filter_flow",
+          "kind": "process_flow",
+          "mode": "hidden_sample_objects",
+          "tone": "amber",
+          "text": "覆盖前过滤器",
+          "labels": [
+            "合格证",
+            "材料样品",
+            "复验闸",
+            "见证章",
+            "隐蔽剖面"
+          ],
+          "x": 22,
+          "y": 38,
+          "w": 316,
+          "h": 178,
+          "domain_visual": true,
+          "domain_objects": [
+            "隐蔽部位剖面",
+            "材料样品",
+            "复验闸",
+            "见证取样标签",
+            "覆盖板"
+          ]
+        }
+      ]
+    },
+    "material_gate": {
+      "board": "whiteboard",
+      "nodes": [
+        {
+          "id": "material_gate_flow",
+          "kind": "process_flow",
+          "mode": "hidden_sample_objects",
+          "tone": "blue",
+          "text": "有证不等于复验合格",
+          "labels": [
+            "质量证明",
+            "材料样品",
+            "复验闸",
+            "认可标签",
+            "现场使用"
+          ],
+          "x": 22,
+          "y": 38,
+          "w": 316,
+          "h": 178,
+          "domain_visual": true,
+          "domain_objects": [
+            "材料托盘",
+            "质量证明文件",
+            "材料样品",
+            "复验通道",
+            "使用前认可标签"
+          ]
+        }
+      ]
+    },
+    "retest_list": {
+      "board": "whiteboard",
+      "nodes": [
+        {
+          "id": "retest_grid_flow",
+          "kind": "process_flow",
+          "mode": "hidden_sample_objects",
+          "tone": "success",
+          "text": "按材料对象列复验格",
+          "labels": [
+            "钢筋样品",
+            "五项复验",
+            "水泥四项",
+            "保温三项",
+            "成型例外"
+          ],
+          "x": 22,
+          "y": 38,
+          "w": 316,
+          "h": 178,
+          "domain_visual": true,
+          "domain_objects": [
+            "钢筋样品",
+            "水泥样品",
+            "保温材料样品",
+            "复验清单格",
+            "成型钢筋弯曲灰格"
+          ]
+        }
+      ]
+    },
+    "witness_chain": {
+      "board": "whiteboard",
+      "nodes": [
+        {
+          "id": "witness_chain_flow",
+          "kind": "process_flow",
+          "mode": "hidden_sample_objects",
+          "tone": "amber",
+          "text": "样品必须带见证链",
+          "labels": [
+            "现场取样",
+            "送检前通知",
+            "见证记录",
+            "机构核验",
+            "断链退出"
+          ],
+          "x": 22,
+          "y": 38,
+          "w": 316,
+          "h": 178,
+          "domain_visual": true,
+          "domain_objects": [
+            "现场取样台",
+            "材料试样",
+            "建设单位见证人章",
+            "见证记录表",
+            "检测机构核验章"
+          ]
+        }
+      ]
+    },
+    "hidden_shutter": {
+      "board": "whiteboard",
+      "nodes": [
+        {
+          "id": "hidden_shutter_flow",
+          "kind": "process_flow",
+          "mode": "hidden_sample_objects",
+          "tone": "neutral",
+          "text": "隐蔽先拍再盖",
+          "labels": [
+            "基层",
+            "保温层",
+            "热桥",
+            "隐检记录",
+            "覆盖板"
+          ],
+          "x": 22,
+          "y": 38,
+          "w": 316,
+          "h": 178,
+          "domain_visual": true,
+          "domain_objects": [
+            "隐蔽剖面",
+            "基层",
+            "保温层",
+            "热桥处理",
+            "隐蔽验收记录",
+            "覆盖板"
+          ]
+        }
+      ]
+    },
+    "branch_trap": {
+      "board": "whiteboard",
+      "nodes": [
+        {
+          "id": "trap_branch_tree",
+          "kind": "decision_tree",
+          "tone": "danger",
+          "text": "三条错支路淘汰",
+          "labels": [
+            "有证即用",
+            "自取自送",
+            "盖后补验",
+            "主线通过"
+          ],
+          "x": 26,
+          "y": 38,
+          "w": 308,
+          "h": 180,
+          "domain_visual": true,
+          "domain_objects": [
+            "材料合格证",
+            "复验样品",
+            "见证送检链",
+            "已覆盖隐蔽部位",
+            "正确主流程"
+          ]
+        }
+      ]
+    },
+    "score": {
+      "board": "answer_paper",
+      "nodes": [
+        {
+          "id": "score_answer_scan",
+          "kind": "answer_scan",
+          "tone": "success",
+          "text": "答题纸四句扫描",
+          "labels": [
+            "定环节",
+            "列复验项目",
+            "写见证链",
+            "覆盖前隐检"
+          ],
+          "x": 32,
+          "y": 34,
+          "w": 296,
+          "h": 184,
+          "domain_visual": true,
+          "domain_objects": [
+            "答题纸",
+            "材料样品缩略图",
+            "见证章缩略图",
+            "隐蔽剖面缩略图",
+            "扫描笔"
+          ]
+        }
+      ]
+    },
+    "qa_closure": {
+      "board": "answer_paper",
+      "nodes": [
+        {
+          "id": "qa_answer_scan",
+          "kind": "answer_scan",
+          "tone": "success",
+          "text": "三问回到对象",
+          "labels": [
+            "有证≠复验",
+            "见证主体别错",
+            "补记录不补现场",
+            "对象写进句子"
+          ],
+          "x": 32,
+          "y": 34,
+          "w": 296,
+          "h": 184,
+          "domain_visual": true,
+          "domain_objects": [
+            "材料合格证",
+            "复验样品",
+            "建设单位见证人章",
+            "覆盖后的隐蔽剖面"
+          ]
+        }
+      ]
+    },
+    "closing_challenge": {
+      "board": "answer_paper",
+      "nodes": [
+        {
+          "id": "challenge_scan",
+          "kind": "answer_scan",
+          "tone": "success",
+          "text": "闯关前压成口诀",
+          "labels": [
+            "材料先过门",
+            "样品带见证",
+            "隐蔽先拍",
+            "再盖"
+          ],
+          "x": 32,
+          "y": 34,
+          "w": 296,
+          "h": 184,
+          "domain_visual": true,
+          "domain_objects": [
+            "材料样品",
+            "复验闸",
+            "见证章",
+            "隐蔽剖面",
+            "闯关答题纸"
+          ]
+        }
+      ]
+    }
+  },
+  "practice_blueprint": [
+    {
+      "id": "q1",
+      "stageLabel": "先拦材料",
+      "skill": "材料进场与复验前置",
+      "scene_gap": "保温材料进场，有合格证和外观检查记录，施工单位准备直接用于墙体保温。",
+      "student": "学生答：材料有合格证，外观看着也没问题，可以直接使用。",
+      "stem": "这时最像能拿程序分的改正动作是哪一句？",
+      "answer": "entry_then_retest",
+      "visual": {
+        "kind": "process_flow",
+        "mode": "hidden_sample_objects",
+        "title": "有证不等于复验合格",
+        "before": [
+          "合格证",
+          "直接使用",
+          "墙体保温",
+          "覆盖"
+        ],
+        "after": [
+          "进场验收",
+          "抽样复验",
+          "监理认可",
+          "合格使用"
+        ],
+        "items": [
+          "合格证",
+          "材料样品",
+          "复验闸",
+          "合格使用"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "entry_then_retest",
+          "label": "先核查质量证明、规格数量和外观；按要求对保温材料见证取样复验，经认可合格后再使用。",
+          "reason": "把进场验收和复验放在使用前。"
+        },
+        {
+          "id": "cert_enough",
+          "label": "保留合格证和外观检查记录，材料可先使用，复验资料后续补齐。",
+          "reason": "把合格证当成复验合格。"
+        },
+        {
+          "id": "owner_accept",
+          "label": "请建设单位确认材料品牌后即可使用，检测报告不影响施工。",
+          "reason": "用业主确认替代复验和监理认可。"
+        },
+        {
+          "id": "a01_level",
+          "label": "按检验批、分项、分部、单位工程逐级验收后再使用。",
+          "reason": "把 A02 材料复验题误写成 A01 层级验收。"
+        }
+      ],
+      "optionFeedback": {
+        "cert_enough": "容易选，因为合格证看起来像凭证。但 A02 正是要把“有证”与“复验合格”分开；直接使用会漏复验动作。",
+        "owner_accept": "建设单位确认品牌不能替代材料复验。阅卷要看样品复验、见证取样和认可合格这些动作。",
+        "a01_level": "逐级验收是 A01 的层级程序，不是这道材料进场题的第一采分动作。这里要先拦材料样品。"
+      },
+      "correct": "对。先过进场验收，再按要求见证取样复验，合格后才使用。",
+      "wrong": "这题先补材料前置闸。只写有证、业主确认或层级验收，都没有交代材料样品如何复验合格。",
+      "basis_anchor": "§5 R6 答案骨架1-2"
+    },
+    {
+      "id": "q2",
+      "stageLabel": "列复验格",
+      "skill": "材料复验项目列全",
+      "scene_gap": "题干问普通钢筋进场复试项目，学生只写屈服、抗拉、伸长率。",
+      "student": "学生答：钢筋复试屈服强度、抗拉强度、伸长率即可。",
+      "stem": "这句话最主要应该补哪一个采分动作？",
+      "answer": "steel_five_items",
+      "visual": {
+        "kind": "process_flow",
+        "mode": "hidden_sample_objects",
+        "title": "钢筋样品进复验格",
+        "before": [
+          "屈服",
+          "抗拉",
+          "伸长",
+          "漏两格"
+        ],
+        "after": [
+          "屈服",
+          "抗拉",
+          "伸长",
+          "弯曲+重量偏差"
+        ],
+        "items": [
+          "钢筋样品",
+          "五格清单",
+          "成型例外",
+          "答题纸"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "steel_five_items",
+          "label": "普通钢筋复试应补弯曲性能和重量偏差，形成屈服、抗拉、伸长、弯曲、重量偏差五项。",
+          "reason": "把普通钢筋五格补齐。"
+        },
+        {
+          "id": "formed_bending",
+          "label": "成型钢筋也必须补弯曲性能，否则不能进场。",
+          "reason": "把普通钢筋和成型钢筋例外条件混了。"
+        },
+        {
+          "id": "general_retest",
+          "label": "补一句“钢筋应按规定复验”，不需要列具体项目。",
+          "reason": "口号化表达，不能替代列项。"
+        },
+        {
+          "id": "cement_items",
+          "label": "补胶砂强度、氯离子、安定性和凝结时间。",
+          "reason": "这是水泥复试项目，不是钢筋。"
+        }
+      ],
+      "optionFeedback": {
+        "formed_bending": "容易选，因为弯曲性能确实在普通钢筋五项里。但成型钢筋进场可不检弯曲性能，不能把例外条件套反。",
+        "general_retest": "“按规定复验”太空。复验项目题要列出具体格子，漏弯曲或重量偏差都会丢列项分。",
+        "cement_items": "这四项是水泥的口径。材料对象换了，复验格也要换，不能把项目串台。"
+      },
+      "correct": "对。普通钢筋要补成五项；如果是成型钢筋，再处理弯曲性能免检的例外。",
+      "wrong": "这题不是问要不要复验，而是问复验项目是否列全。先看材料对象，再补对应检测格。",
+      "basis_anchor": "§4 R4 规则组A + §6 M2"
+    },
+    {
+      "id": "q3",
+      "stageLabel": "修见证链",
+      "skill": "见证取样主体与时机",
+      "scene_gap": "施工单位自行在场外取样送检，送检后通知监理，见证记录由试验员填写。",
+      "student": "学生答：已送检并有试验员记录，所以见证取样有效。",
+      "stem": "下面哪句最像完整改正？",
+      "answer": "witness_chain_correct",
+      "visual": {
+        "kind": "decision_tree",
+        "title": "见证链三枚章",
+        "before": [
+          "场外取样",
+          "送检后通知",
+          "试验员记录",
+          "接收"
+        ],
+        "after": [
+          "现场内抽取",
+          "送检前通知",
+          "见证人记录",
+          "机构核验"
+        ],
+        "items": [
+          "现场取样",
+          "建设单位见证人",
+          "见证记录",
+          "检测机构核验"
+        ],
+        "hotIndex": 1
+      },
+      "options": [
+        {
+          "id": "witness_chain_correct",
+          "label": "试样应在施工现场内抽取，送检前通知见证人；见证人由建设单位书面确认，见证记录由见证人填写，检测机构核实见证人。",
+          "reason": "主体、时机、记录、核验都补齐。"
+        },
+        {
+          "id": "supervisor_confirm",
+          "label": "由监理工程师确认见证人，试验员完成见证记录后送检。",
+          "reason": "把建设单位确认和见证人记录写错。"
+        },
+        {
+          "id": "post_notice",
+          "label": "试样可先送检测机构，检测机构收样后再通知见证人补签。",
+          "reason": "把送检前通知改成送检后补签。"
+        },
+        {
+          "id": "only_lab",
+          "label": "只要检测机构出具合格报告，见证取样过程可不再追究。",
+          "reason": "用检测结果掩盖见证链断点。"
+        }
+      ],
+      "optionFeedback": {
+        "supervisor_confirm": "见证主体容易写成监理，但源卡强调见证人由建设单位书面确认，记录也由见证人填，不是试验员补写。",
+        "post_notice": "送检后补签正是常见错法。见证取样要在抽样和送检前把见证链建立起来。",
+        "only_lab": "报告合格不能修复取样过程违法。A02 考的是样品是否代表现场、是否可追溯，见证链断了要扣程序分。"
+      },
+      "correct": "对。见证链不是一个签名，而是现场取样、送检前通知、见证人记录、检测机构核验一起成立。",
+      "wrong": "这题要修见证链。只改一个主体或只看报告，都没有补齐见证取样的时机和记录。"
+    },
+    {
+      "id": "q4",
+      "stageLabel": "覆盖前快门",
+      "skill": "隐蔽验收时机与项目",
+      "scene_gap": "节能保温层和隔汽层已经被面层覆盖，项目部准备补一张隐蔽验收记录。",
+      "student": "学生答：后补隐检记录即可，反正材料已经复验合格。",
+      "stem": "最能拿分的改正动作是哪一句？",
+      "answer": "before_cover_record",
+      "visual": {
+        "kind": "process_flow",
+        "mode": "hidden_sample_objects",
+        "title": "隐蔽先拍再盖",
+        "before": [
+          "覆盖完成",
+          "补记录",
+          "看不见",
+          "放行"
+        ],
+        "after": [
+          "剖面打开",
+          "逐项验收",
+          "形成记录",
+          "再覆盖"
+        ],
+        "items": [
+          "基层",
+          "保温层",
+          "热桥/隔汽",
+          "隐检记录"
+        ],
+        "hotIndex": 2
+      },
+      "options": [
+        {
+          "id": "before_cover_record",
+          "label": "应在隐蔽部位被后续工序覆盖前，对基层、保温材料、热桥、隔汽层等进行验收并形成隐检记录，合格后再覆盖。",
+          "reason": "把时机、对象、记录、放行条件写全。"
+        },
+        {
+          "id": "after_photo",
+          "label": "覆盖后拍照留存，并由项目技术负责人补签隐蔽验收记录。",
+          "reason": "照片和补签不能替代覆盖前验收。"
+        },
+        {
+          "id": "material_only",
+          "label": "材料复验合格即可，隐蔽验收可简化为资料归档。",
+          "reason": "材料合格不能替代现场隐蔽部位验收。"
+        },
+        {
+          "id": "a01_stack",
+          "label": "按检验批、分项、分部逐级验收，最后在单位工程验收时统一确认。",
+          "reason": "把隐蔽时机题拖到 A01 层级程序。"
+        }
+      ],
+      "optionFeedback": {
+        "after_photo": "补拍照片很诱人，但核心问题是验收窗口已经错过。覆盖前看得见、够得着时才叫隐蔽验收。",
+        "material_only": "材料复验只能证明材料样品，不能证明现场热桥、隔汽层、基层处理等隐蔽部位已经验收。",
+        "a01_stack": "逐级验收不能替代隐蔽覆盖前验收。A02 问的是盖板合上之前那一下，不是最终层级收口。"
+      },
+      "correct": "对。隐蔽验收是覆盖前快门，先验收并形成记录，合格后才覆盖。",
+      "wrong": "这题抓时机。覆盖后补记录、用复验替代隐检、拖到上级验收，都会错过隐蔽验收窗口。",
+      "basis_anchor": "§4 R4 规则组C + §6 M7/M8"
+    },
+    {
+      "id": "q5",
+      "stageLabel": "输出采分句",
+      "skill": "案例改错采分句输出",
+      "scene_gap": "题干：保温材料进场仅凭合格证使用；施工单位自行取样送检，见证记录由试验员填写；保温层覆盖后补隐检记录。问指出不妥并改正。",
+      "student": "学生答：材料和隐蔽工程应按规范验收，资料补齐后继续施工。",
+      "stem": "哪一句最像完整采分句？",
+      "answer": "full_score_sentence",
+      "visual": {
+        "kind": "answer_scan",
+        "title": "A02 答题纸扫描",
+        "before": [
+          "有证即用",
+          "自取自送",
+          "试验员记录",
+          "覆盖后补验"
+        ],
+        "after": [
+          "进场验收+复验",
+          "现场取样+送检前见证",
+          "见证人记录+机构核验",
+          "覆盖前隐验记录"
+        ],
+        "items": [
+          "材料复验",
+          "见证取样",
+          "隐蔽验收",
+          "合格使用/覆盖"
+        ],
+        "hotIndex": 3
+      },
+      "options": [
+        {
+          "id": "full_score_sentence",
+          "label": "不妥：仅凭合格证使用、施工单位自行取样送检、试验员填写见证记录、覆盖后补隐检记录。应先完成材料进场验收并按要求见证取样复验，经认可合格后使用；试样现场内抽取并送检前通知见证人，见证记录由见证人填写并由检测机构核验；隐蔽部位应覆盖前验收并形成记录，合格后再覆盖。",
+          "reason": "把三类错支路全部改成采分动作。"
+        },
+        {
+          "id": "only_documents",
+          "label": "不妥在资料不完整，应补齐合格证、检测报告和隐蔽验收记录后继续施工。",
+          "reason": "把现场动作降成资料补办。"
+        },
+        {
+          "id": "only_material",
+          "label": "不妥在材料未复验，只要补做保温材料复验合格即可继续施工。",
+          "reason": "只修材料闸，漏见证链和隐蔽时机。"
+        },
+        {
+          "id": "only_hidden",
+          "label": "不妥在隐蔽验收晚，应重新打开隐蔽部位检查；材料和见证送检不影响本题。",
+          "reason": "只修隐蔽闸，漏材料和见证取样。"
+        }
+      ],
+      "optionFeedback": {
+        "only_documents": "资料补齐不是万能药。A02 要看材料样品、见证链和覆盖前验收这些现场动作是否真实发生。",
+        "only_material": "材料复验是第一处错，但题干还明说自取自送、试验员记录、覆盖后补验，这些都要逐项改。",
+        "only_hidden": "隐蔽验收确实晚了，但材料复验和见证取样也是本体判分眼。只抓最后一处会漏分。"
+      },
+      "correct": "对。这句把材料、见证、隐蔽三条对象链都补成了可给分动作。",
+      "wrong": "最终题不能只写口号或只修一个闸门。要按题干三处错支路逐项指出并改正。",
+      "basis_anchor": "§5 R6 答案骨架"
+    }
+  ],
+  "timing_ref": "P40_A02.lesson.timing.json",
+  "audio_ref": "P40_A02.lesson.mp3"
+}

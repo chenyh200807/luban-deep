@@ -1,0 +1,72 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
+.sr-page {
+  min-height: 100vh;
+  font-family: -apple-system, "PingFang SC", sans-serif;
+}
+
+/* ── 导航 ── */
+.sr-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--pk-card);
+  border-bottom: 1rpx solid var(--pk-bd);
+}
+.sr-nav-inner {
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.sr-back {
+  position: absolute;
+  left: 26rpx;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  color: var(--pk-t2);
+}
+.sr-back-arrow { font-size: 40rpx; line-height: 1; }
+.sr-back-text { font-size: 26rpx; }
+.sr-nav-title { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); }
+
+/* ── 滚动 ── */
+.sr-scroll { position: fixed; left: 0; right: 0; bottom: 0; }
+.sr-inner { padding: 24rpx 26rpx 0; }
+
+.sr-hero { display: flex; flex-direction: column; gap: 8rpx; padding: 8rpx 4rpx 24rpx; }
+.sr-title { font-size: 38rpx; font-weight: 800; color: var(--pk-t1); line-height: 1.3; }
+.sr-lit { font-size: 24rpx; font-weight: 700; color: var(--pk-grn); }
+
+.sr-error { padding: 40rpx 0; display: flex; flex-direction: column; align-items: center; gap: 18rpx; color: var(--pk-t2); font-size: 26rpx; }
+.sr-retry { width: 200rpx; }
+.sr-loading { padding: 80rpx 0; text-align: center; }
+.sr-loading-text { font-size: 26rpx; color: var(--pk-t3); }
+
+/* ── 书法海报网格(84×112 → rpx,两列) ── */
+.sr-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 26rpx;
+  justify-content: space-between;
+  padding: 8rpx 0;
+}
+.sr-poster {
+  width: 210rpx;
+  height: 280rpx;
+}
+.sr-poster .pk-poster__name { font-size: 32rpx; }
+.sr-slot--ink { background: var(--pk-red); color: #fff; }
+.sr-slot--red { background: rgba(255, 255, 255, 0.92); color: var(--pk-red); }
+.sr-slot--paper { border: 3rpx solid var(--pk-red); color: var(--pk-red); box-sizing: border-box; }
+.sr-tag { font-size: 24rpx; font-weight: 800; line-height: 1.3; }
+.sr-tag--ink { color: #8fbfa8; }
+.sr-tag--red { color: #ffe1ba; }
+.sr-tag--paper { color: var(--pk-t3); }
+
+.sr-empty { padding: 60rpx 20rpx; text-align: center; color: var(--pk-t3); font-size: 26rpx; }
+.sr-bottom-space { height: 60rpx; }

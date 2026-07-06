@@ -1,0 +1,36 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-2(错因码语义类)+Tier-1手术编辑",
+    "actions": [
+      "adjudicate.py F03: UNDECIDED; 错因码对账12码全在registry",
+      "GLM-5.2 单审(异源终审锚, 未flag本条): prior_rejection_correct=false(部分)——M3/M5=E06 与 M2=E03 维持正确, 但 M4/M9 层位/缝位情形缺码, further_edit_needed=true",
+      "Fable-5 复签: 同意——M4 隔汽层层位错=E06(transfer·层序同 M3/M5 逻辑), M9 施工缝位置错=E10(规范适用); 保守方向=并注不替换",
+      "GLM-5.2 兼任 §6 手术编辑员(§6 生产源=Qwen, GLM 非生产源): 产出 2 组 old/new 编辑对, unique-match 应用 2/2, 两闸复跑绿",
+      "jury 建议 M3/M5→E08 被 registry 直读证伪(E08=question_reading 维), 与前轮§9驳回一致, 2/2 维持",
+      "结论: status=fixed(本轮并注 2 处错因码), 升色=0, 新增🟢=0"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "prior_rejection_correct": false,
+        "m3_m5_code": "E06",
+        "m2_e03_acceptable": true,
+        "m4_m9_split_ok": false,
+        "further_edit_needed": true
+      },
+      "Fable-5": "复签同意 M4+E06/M9+E10 并注; E08 建议驳回维持",
+      "edits_applied": [
+        {
+          "ref": "M4",
+          "add": "E06 程序顺序错误(案例·层位)"
+        },
+        {
+          "ref": "M9",
+          "add": "E10 规范适用错误(案例·缝位)"
+        }
+      ]
+    }
+  }
+]

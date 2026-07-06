@@ -58,8 +58,9 @@ assert(
   "assessment answer sheet should explain jump navigation",
 );
 assert(
-  reportWxml.indexOf("点开卡片看具体依据") >= 0,
-  "report page should keep its first-use module-card hint",
+  reportWxml.indexOf("先看结论 · 想深入再点开") >= 0 &&
+    reportWxml.indexOf("点任意格 · 深链学习站") >= 0,
+  "report 10e diagnosis sheet should explain its read-then-drill affordances (header + map cell hint)",
 );
 
 if (fail) {

@@ -1,0 +1,231 @@
+[
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": "PACK-LEVEL",
+    "tier": "§5.5 整包体检触发器",
+    "actions": [
+      "Tier-0后需Tier-2条目≈10>8,触发整包体检(计划§5.5)",
+      "GLM-5.2 全包系统性诊断: verdict=repair——与前7包完全同型的机械性quote截断病(7族数值全部教材逐字实存)+常规修正,非系统性烂",
+      "GLM owner_items: #13(决策树权威侧)/#14(封闭声明vs🔴)——两条fix均为纯保守降级方向(永远合法),已按保守方向执行并登记owner升级清单(owner保留恢复/升级权)",
+      "按诊断执行系统性批修复(17处编辑)后逐条写resolution"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair",
+        "owner_items": 2
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 0,
+    "tier": "Tier-0证真+Tier-1确定性换锚",
+    "retrieval": null,
+    "actions": [
+      "ca:1A436000_123_0197 quote直证悬挑参数"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 1,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 安全等级→P120表逐字",
+    "actions": [],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 2,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 调节螺杆+200→P121(6)①②逐字",
+    "actions": [],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 3,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 连墙件+3步→P121(3)②③逐字",
+    "actions": [],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 4,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处+非常规限定)",
+    "retrieval": "P8逐字(S02/C04同chunk已核)",
+    "actions": [],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 5,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处+口径收正)",
+    "retrieval": "P9逐字(300kN/200m属安拆条款,与S02同型收正)",
+    "actions": [],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 6,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 落地式操作平台+15→P123逐字",
+    "actions": [],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 7,
+    "tier": "Tier-0证真+Tier-2事实类(保🟢补出处)",
+    "retrieval": "tbsearch 轮扣/龙门架/卸料平台→P15逐字",
+    "actions": [],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 8,
+    "tier": "Tier-0确认(前轮已改)",
+    "retrieval": null,
+    "actions": [
+      "正文0残留字符串核验,补凭据"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 9,
+    "tier": "Tier-1措辞收窄",
+    "retrieval": null,
+    "actions": [
+      "主导不变量+定性规则延伸声明"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 10,
+    "tier": "Tier-2错因码(题型双轨)",
+    "retrieval": null,
+    "actions": [
+      "GLM裁M10非M03;Fable复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 11,
+    "tier": "Tier-2错因码(题型双轨)",
+    "retrieval": null,
+    "actions": [
+      "客观M10/案例E10;Fable复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 12,
+    "tier": "Tier-2错因码",
+    "retrieval": null,
+    "actions": [
+      "E01弃用,E10主+E02并注;Fable复签"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 13,
+    "tier": "Tier-1保守降级(owner_item·已登记升级清单)",
+    "retrieval": null,
+    "actions": [
+      "深基坑🔵邻接参见对齐边界声明"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  },
+  {
+    "ts": "2026-07-05",
+    "batch": "D4-heavy",
+    "issue_idx": 14,
+    "tier": "Tier-1保守降级(owner_item·已登记升级清单)",
+    "retrieval": null,
+    "actions": [
+      "R3-F封闭→候选"
+    ],
+    "panel": {
+      "GLM-5.2": {
+        "verdict": "repair-family"
+      }
+    }
+  }
+]

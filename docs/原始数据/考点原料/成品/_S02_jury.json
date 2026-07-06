@@ -2,111 +2,221 @@
   {
     "issue": "quote截断无法支撑60°/45°规范数值",
     "location": "L1#14 / P5-5a",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "补全quote，确保包含完整数值或降级为不可用"
+    "fix": "补全quote，确保包含完整数值或降级为不可用",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §1行14+P5-5组(保🟢原理色补教材P115③逐字出处;本体列统一🔵邻接见#11)",
+      "verified": "kc:1A413030_115_0223:0 quote 直读含「吊装要求」但截断于夹角句前(现象为真)；教材CET_1A413030_P0115_001 P115逐字「吊索水平夹角不宜小于 60°，不应小于 45°」；降级前提失效补出处；GLM-5.2 approve"
+    }
   },
   {
     "issue": "quote不支持‘严禁斜吊’及‘同一垂直线’完整论断",
     "location": "§1#8 / P5-2c",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "更换或补全quote，使其覆盖关键禁令"
+    "fix": "更换或补全quote，使其覆盖关键禁令",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §1行8(保🟢补教材P119逐字出处)",
+      "verified": "kc:1A436000_119_0193:2 quote 直读含「起重吊点」但截断于斜吊禁令前(现象为真)；教材CET_1A436000_P0119_001 P119逐字「吊点选择应与重物的重心在同一垂直线上…使重物垂直起吊，严禁斜吊」；GLM-5.2 approve"
+    }
   },
   {
     "issue": "quote缺失‘离地200~300mm全面检查’关键数值",
     "location": "§1#9 / P5-2d",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "补全quote或降级该采分点"
+    "fix": "补全quote或降级该采分点",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §1行9(保🟢补教材P119逐字出处)",
+      "verified": "kc:1A436000_119_0193:3 quote 直读截断(现象为真)；教材P119逐字「吊装物离地面 200～300mm 时，应进行全面检查」；GLM-5.2 approve"
+    }
   },
   {
     "issue": "危大判定场景中双机抬吊与非常规设备定义逻辑跳跃",
     "location": "R2场景1 / L3",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
     "count": 3,
     "confidence": "高可信",
-    "fix": "明确非常规起重设备/方法定义，修正推导逻辑"
+    "fix": "明确非常规起重设备/方法定义，修正推导逻辑",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §3 R2场景1(按教材P8/P9两级结构修正推导:两级均含非常规限定+双机抬吊🔵通识口径+P8(2)补注;150kN非常规→须论证)",
+      "verified": "教材CET_1A436000_P0008_001 P8逐字「采用非常规起重设备、方法，且单件起吊重量在 10kN 及以上」、CET_1A436000_P0009_001 P9逐字「…100kN 及以上的起重吊装工程」;教材无『非常规』显式定义(检索0命中),双机抬吊=非常规为工程通识🔵;GLM-5.2 approve"
+    }
   },
   {
     "issue": "quote语义倒置，将‘不重合’违规现象用作‘必须重合’规程",
     "location": "§1#13 / P5-5b",
-    "flagged_by": ["DeepSeek-V4-Pro", "Qwen-3.7-Max"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "Qwen-3.7-Max"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "更换为正面规程要求或调整采分点意向"
+    "fix": "更换为正面规程要求或调整采分点意向",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §1行13+P5-5b(正面规程改锚教材P115②逐字;0188:0降反例语境注)",
+      "verified": "kc:1A436000_114_0188:0 quote 直读=「预制混凝土构件吊装时起重设备主钩、吊具及构件重心不重合」违规现象清单(jury语义倒置断言证真)；教材P115②逐字「应采取保证起重设备的主钩位置、吊具及构件重心在竖直方向上重合的措施」正面规程;GLM-5.2 approve"
+    }
   },
   {
     "issue": "quote不支持‘≥10kN’危大起重门槛",
     "location": "L1#10 / P5-3a",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充完整quote或降级"
+    "fix": "补充完整quote或降级",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §1行10(保🟢补教材P8逐字出处+『非常规起重设备、方法』限定词+P8(2)补注)",
+      "verified": "kc:1A436000_008_0011:0 quote 直读为危大管理程序句无10kN(现象为真)；教材P8逐字含完整条款(非常规限定+10kN)；GLM-5.2 approve"
+    }
   },
   {
     "issue": "quote不支持100kN/300kN/200m三阈值",
     "location": "L1#11 / P5-3b",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补全包含阈值的完整quote或降级"
+    "fix": "补全包含阈值的完整quote或降级",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §1行11(保🟢补教材P9逐字出处+口径收正:100kN=非常规吊装工程/300kN与200m=起重机械安装拆卸工程条款)",
+      "verified": "kc:1A436000_009_0012:0 quote 直读截断于深基坑(现象为真)；教材CET_1A436000_P0009_001 P9逐字两子款——「单件起吊重量在 100kN 及以上的起重吊装工程」「起重量 300kN 及以上，或搭设总高度 200m 及以上…起重机械安装和拆卸工程」;原行三阈值均归吊装系口径错位已收正;GLM-5.2 approve"
+    }
   },
   {
     "issue": "‘≤4/1000’与‘基础设计验收’混绑，quote未独立支撑",
     "location": "V9 / P5-1d",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "分离垂直度与基础验收的锚点，补充对应quote"
+    "fix": "分离垂直度与基础验收的锚点，补充对应quote",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md V9+5-1d(垂直度与基础验收锚点分离:4/1000=教材P125(5)逐字;基础设计验收=125_0199:0 quote直证)",
+      "verified": "kc:1A436000_125_0199:0 quote 直读含「应对基础进行验收」但无4/1000(现象为真)；教材CET_1A436000_P0125_001 P125逐字「在无载荷情况下，塔身与地面的垂直度偏差不得超过 4/1000」;两锚分离;GLM-5.2 approve"
+    }
   },
   {
     "issue": "quote未触及‘严禁钢丝绳绑扎’禁令",
     "location": "§1#18",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "更换正确quote或确认邻接噪声属性"
+    "fix": "更换正确quote或确认邻接噪声属性",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §1行18(保🔵邻接+补教材P114(2)逐字出处)",
+      "verified": "kc:1A413030_114_0222:0 quote 直读为排板图句(现象为真)；教材CET_1A413030_P0114_001 P114逐字「应采用专用吊具装卸和转运，严禁直接采用钢丝绳绑扎吊装」;邻接属性确认不降级;GLM-5.2 approve"
+    }
   },
   {
     "issue": "R2三道闸覆盖不全，缺少审批链/检查标准分类等闸门",
     "location": "R2 / §4.2",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "增加对应闸门，使不变量体系覆盖完整考法"
+    "fix": "增加对应闸门，使不变量体系覆盖完整考法",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §3 R2(三道闸补第④程序闸·审批链,008_0011:0 quote直证程序侧;检查评定分类🔵延伸不单列)",
+      "verified": "kc:1A436000_008_0011:0 quote 直读含「危险性较大的分部分项工程清单和安全管理措施」程序内容;GLM-5.2 approve"
+    }
   },
   {
     "issue": "限位代替操作机构缺少E07功能概念混淆码",
     "location": "R8误区④",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "补充E07码，与M10并存以准确诊断"
+    "fix": "补充E07码，与M10并存以准确诊断",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §6误区④(补案例侧E07概念混淆与M10并存)",
+      "verified": "ERROR_CODE_REGISTRY直读: E07=概念混淆(限位装置与操作机构功能混同贴合)、M10=用常识替代规范判断;GLM-5.2 approve+Fable-5复签"
+    }
   },
   {
     "issue": "装配式吊装点在前文标为邻接原理，后文却作为采分点，矛盾",
     "location": "§1全景表 / P5-5",
-    "flagged_by": ["DeepSeek-V4-Pro", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "统一为邻接考点，移出安全判分核心或重新标注"
+    "fix": "统一为邻接考点，移出安全判分核心或重新标注",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md §1行13/14本体列改🔵邻接+P5-5组头加🔵邻接原理弹药显式声明(fix保留分支)",
+      "verified": "字符串定位:P5-5组头现文含「🔵邻接原理弹药——按§1边界声明不作 S02 判分核心采分点」;§1行13/14本体列=🔵邻接(装配式语境);与§1边界声明自洽;GLM-5.2 approve"
+    }
   },
   {
     "issue": "起吊离地200~500mm区间与真题常见150mm冲突",
     "location": "R7 / L4.3 / §5.1",
-    "flagged_by": ["Qwen-3.7-Max", "GPT-5.5(Codex)"],
+    "flagged_by": [
+      "Qwen-3.7-Max",
+      "GPT-5.5(Codex)"
+    ],
     "count": 2,
     "confidence": "高可信",
-    "fix": "核实真题背景，统一数值或注明适用范围"
+    "fix": "核实真题背景，统一数值或注明适用范围",
+    "resolution": {
+      "status": "fixed",
+      "fixed_in": "S02_起重吊装安全.md 数值口径留痕注+误区③解药(两处『150mm落区间内』算术假陈述收正为低于下限200mm+判分以源料为准)",
+      "verified": "算术直核:150<200,不落200~500mm区间(pack原文假陈述证真);kc:1A436000_125_0199:2 quote 直读含「200～500mm」源料标准;修正后声明真题背景值不得反写标准;GLM-5.2 approve"
+    }
   },
   {
     "issue": "R8误区③ E06映射不当，漏步应映射为E08而非E06",
     "location": "R8误区③",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "回真源核实，考虑改为E08或并存"
@@ -114,7 +224,9 @@
   {
     "issue": "R8误区⑤将‘可斜吊’与‘夹角＜60°’两个独立诱因混绑",
     "location": "R8误区⑤",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "拆分为两个独立卡片，分别映射E10和M04"
@@ -122,7 +234,9 @@
   {
     "issue": "S3-E危大判定场景与R2不协调，独立性存疑",
     "location": "S3-E",
-    "flagged_by": ["DeepSeek-V4-Pro"],
+    "flagged_by": [
+      "DeepSeek-V4-Pro"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "待R2不变量修订后重新评估"
@@ -130,7 +244,9 @@
   {
     "issue": "P5-1b严禁用限位代替操作机构缺乏独立真题锚定",
     "location": "P5-1b",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "查找真题验证，如无支撑则考虑降级"
@@ -138,7 +254,9 @@
   {
     "issue": "P5-2a钢丝绳断丝>10%/磨损40%报废缺乏独立真题锚定",
     "location": "P5-2a",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "查找真题验证"
@@ -146,7 +264,9 @@
   {
     "issue": "P5-2b缆风绳安全系数3.5缺乏独立真题锚定",
     "location": "P5-2b",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "查找真题验证"
@@ -154,7 +274,9 @@
   {
     "issue": "P5-4a安拆风速>9.0m/s缺乏独立真题锚定",
     "location": "P5-4a",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "查找真题验证"
@@ -162,7 +284,9 @@
   {
     "issue": "P5-4b清洁/保养/维修前断电停稳缺乏独立真题锚定",
     "location": "P5-4b",
-    "flagged_by": ["Qwen-3.7-Max"],
+    "flagged_by": [
+      "Qwen-3.7-Max"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "查找真题验证"
@@ -170,7 +294,9 @@
   {
     "issue": "R8误区②缺少E10动作场景选错规范的误用码",
     "location": "R8误区②",
-    "flagged_by": ["GPT-5.5(Codex)"],
+    "flagged_by": [
+      "GPT-5.5(Codex)"
+    ],
     "count": 1,
     "confidence": "存疑",
     "fix": "补充E10码以覆盖6级风场景"

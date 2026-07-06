@@ -281,3 +281,28 @@ def test_assessment_graph_edges_prefer_canonical_concept_id(monkeypatch: pytest.
     assert wrong_payload["concept_id"] == "1A432000"
     assert wrong_payload["error_events"][0]["concept_tag"] == "1A432000"
     assert action_edge["from"] == {"type": "error", "id": "1A432000:M01"}
+
+
+def test_node_code_requires_taxonomy_resolver_existence(monkeypatch: pytest.MonkeyPatch) -> None:
+    # §6-6:自由中文串经 normalize_taxonomy_code 只做形态归一不校验存在性,
+    # 曾照落 node_code 污染 taxonomy join;写入侧必须过 resolver 存在性校验。
+    service, learner, _mistake_book = _service(monkeypatch)
+    scored = _scored_result()
+    scored["items"][0]["node_code"] = "把防水节点再复习一遍"  # 自由串,resolver 不认识
+    scored["items"][1]["node_code"] = "1A413050"  # 真实 taxonomy code
+
+    service.writeback(
+        user_id="student_demo",
+        quiz_id="quiz_node_code",
+        form_id="form_1",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        scored_result=scored,
+    )
+
+    free_text = learner.events[0].payload_json
+    real_code = learner.events[1].payload_json
+    assert "node_code" not in free_text, f"free-text node_code leaked: {free_text.get('node_code')!r}"
+    assert "taxonomy_code" not in free_text
+    assert real_code["node_code"] == "1A413050"
+    assert real_code["taxonomy_code"] == "1A413050"

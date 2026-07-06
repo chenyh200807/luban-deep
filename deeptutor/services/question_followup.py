@@ -61,6 +61,19 @@ _CODING_MARKERS = (
     "coding",
     "code",
 )
+_ZH_QUESTION_COUNT_MAP = {
+    "一": 1,
+    "二": 2,
+    "两": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+    "十": 10,
+}
 _SUPPRESS_ANSWER_MARKERS = (
     "先别给答案",
     "先不要给答案",
@@ -742,6 +755,21 @@ def detect_requested_question_type(message: str) -> tuple[str, bool]:
     if any(marker in text for marker in _CHOICE_MARKERS):
         return "choice", True
     return "choice", False
+
+
+def detect_requested_question_count(message: str) -> tuple[int, bool]:
+    text = str(message or "").strip().lower()
+    if not text:
+        return 1, False
+    digit_match = re.search(r"(\d{1,2})\s*(?:道|题|个题目|个小题)", text)
+    if digit_match:
+        return max(1, min(50, int(digit_match.group(1)))), True
+    zh_match = re.search(r"([一二两三四五六七八九十])\s*(?:道|题|个题目|个小题)", text)
+    if zh_match:
+        return _ZH_QUESTION_COUNT_MAP.get(zh_match.group(1), 1), True
+    if "几道" in text or "几题" in text:
+        return 3, False
+    return 1, False
 
 
 def detect_answer_reveal_preference(message: str) -> bool | None:

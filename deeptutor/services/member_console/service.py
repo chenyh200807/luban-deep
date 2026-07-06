@@ -119,6 +119,13 @@ BI_OPERATION_START_AT = datetime(2026, 6, 22, 0, 0, tzinfo=_TZ)
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
+_HOME_NEXT_STEP_ENABLED = "DEEPTUTOR_HOME_NEXT_STEP_ENABLED"
+# 首页/雷达/章节盘共用的 learner 事件读窗(病C:窗口粒度)。容量推理:
+# lesson_viewed 按(pack,幕,日)折叠,40 pack × 2 幕 = 一天最多 ~80 条;
+# 判分/测评证据必须在同一窗内存活,100 = 80 条 lesson_viewed + 20 条判分
+# 证据仍全部放得下。窗只管容量;语义过滤在窗**之后**由各消费者做
+# (mastery blend 只吃 progress_countable=true 的,生命周期投影全吃)。
+_HOME_LEARNER_EVENT_LIMIT = 100
 _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
     {
         "phone_backfill",
@@ -4198,6 +4205,41 @@ class MemberConsoleService:
             )
         )
 
+    def list_internal_test_user_ids(self) -> set[str]:
+        """QA/内部账号 allowlist 导出——spike D1 度量与 D15 埋点读侧口径的唯一权威。
+
+        判据完全复用 ``_looks_like_test_member``（不建第二套启发式）；返回集合
+        含 user_id / external_auth_user_id / alias_user_ids 三种键位，便于与
+        ``sessions.owner_key``（``user:<uuid>``）及埋点 user_id 直接比对。
+        注意不可走 ``_load_member_directory_members_for_bi``——其 BI 过滤会先剔除
+        测试账号，导致生产恒为空集；必须遍历原始成员。
+        """
+        data = self._load()
+        candidates: list[dict[str, Any]] = [
+            member for member in (data.get("members") or []) if isinstance(member, dict)
+        ]
+        directory = self._member_directory
+        if self._member_directory_enabled() and bool(getattr(directory, "is_configured", False)):
+            try:
+                candidates.extend(
+                    member for member in directory.list_members(limit=5000) if isinstance(member, dict)
+                )
+            except Exception:
+                logger.warning(
+                    "Failed to load Supabase member directory for QA allowlist", exc_info=True
+                )
+        ids: set[str] = set()
+        for member in candidates:
+            if not self._looks_like_test_member(member):
+                continue
+            keys = [member.get("user_id"), member.get("external_auth_user_id")]
+            keys.extend(member.get("alias_user_ids") or [])
+            for value in keys:
+                normalized = str(value or "").strip()
+                if normalized:
+                    ids.add(normalized)
+        return ids
+
     def get_member_360(self, user_id: str) -> dict[str, Any]:
         data = self._load()
         try:
@@ -6312,14 +6354,87 @@ class MemberConsoleService:
     def _build_provisional_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
         return []
 
-    def _report_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
+    def _report_mastery_items(
+        self,
+        member: dict[str, Any],
+        *,
+        evidence_events: list[Any] | None = None,
+    ) -> list[dict[str, Any]]:
         last_assessment_items = self._last_assessment_mastery_items(member)
         if last_assessment_items:
-            return self._mastery_items_in_member_scope(member, last_assessment_items)
-        mastery_items = self._chapter_mastery_items(member)
-        if any(int(item.get("mastery") or 0) > 0 for item in mastery_items):
-            return self._mastery_items_in_member_scope(member, mastery_items)
-        return self._build_provisional_mastery_items(member)
+            base_items = self._mastery_items_in_member_scope(member, last_assessment_items)
+        else:
+            mastery_items = self._chapter_mastery_items(member)
+            if any(int(item.get("mastery") or 0) > 0 for item in mastery_items):
+                base_items = self._mastery_items_in_member_scope(member, mastery_items)
+            else:
+                base_items = self._build_provisional_mastery_items(member)
+        if not env_flag(_HOME_NEXT_STEP_ENABLED):
+            # C-flag(owner 拍板):DEEPTUTOR_HOME_NEXT_STEP_ENABLED 升格为
+            # 「home 生命周期融合面」总开关——off = 全走旧静态分 + 无
+            # next_step(现状不变);on = mastery blend + next_step 一起生效。
+            # 门只此一处(首页/雷达/章节盘同走本方法),不再各自判 flag。
+            return base_items
+        return self._blend_mastery_with_evidence(base_items, evidence_events=evidence_events)
+
+    @staticmethod
+    def _blend_mastery_with_evidence(
+        items: list[dict[str, Any]],
+        *,
+        evidence_events: list[Any] | None,
+    ) -> list[dict[str, Any]]:
+        """§6-2 首页 mastery 收口：estimate_mastery（唯一 mastery 算子）聚合
+        learner-state 证据 → 旧形状 [{"name","mastery"}] adapter。
+
+        只对证据窗内有 attempts 的章节混合；窗内无证据的章节保持 legacy 分
+        （摸底测评优先契约不破，也避免 event_limit 小窗造成的假 insufficient 降级）。
+        """
+        if not items or not evidence_events:
+            return items
+        try:
+            from deeptutor.services.learner_state.learning_report_read_model import (
+                aggregate_attempts_by_label,
+            )
+            from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
+
+            attempts_by_label = aggregate_attempts_by_label(list(evidence_events))
+        except Exception:
+            logger.warning("Failed to aggregate mastery evidence for member console", exc_info=True)
+            return items
+        if not attempts_by_label:
+            return items
+        blended: list[dict[str, Any]] = []
+        matched_names: set[str] = set()
+        for item in items:
+            name = str(item.get("name") or "").strip()
+            attempts = attempts_by_label.get(name) or []
+            if not attempts:
+                blended.append(item)
+                continue
+            matched_names.add(name)
+            estimate = estimate_mastery(attempts=attempts, legacy_score=item.get("mastery"))
+            blended.append({**item, "mastery": int(estimate.get("score") or 0)})
+        # 病H-2 可观测性:区分「无作答」vs「label 对不上」(join 静默丢证据)。
+        # 只进日志,不进对外 payload。
+        unmatched_labels = sorted(set(attempts_by_label) - matched_names)
+        logger.debug(
+            "mastery blend_stats: matched=%s unmatched_labels=%s items_without_evidence=%s",
+            len(matched_names),
+            unmatched_labels,
+            len(items) - len(matched_names),
+        )
+        return blended
+
+    def _mastery_evidence_events(self, member: dict[str, Any], user_id: str) -> list[Any]:
+        learner_user_id = str(member.get("user_id") or user_id or "").strip()
+        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=_HOME_LEARNER_EVENT_LIMIT)
+        return self._snapshot_memory_events(snapshot)
+
+    @staticmethod
+    def _snapshot_memory_events(snapshot: Any | None) -> list[Any]:
+        if snapshot is None:
+            return []
+        return list(getattr(snapshot, "memory_events", []) or [])
 
     def get_chapter_progress(self, user_id: str) -> list[dict[str, Any]]:
         member = self._load_member_snapshot(user_id)["member"]
@@ -6349,7 +6464,11 @@ class MemberConsoleService:
         member = self._load_member_snapshot(user_id)["member"]
         learner_user_id = str(member.get("user_id") or user_id or "").strip()
         learning = self._ensure_learning_profile(member)
-        mastery_items = self._report_mastery_items(member)
+        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=_HOME_LEARNER_EVENT_LIMIT)
+        mastery_items = self._report_mastery_items(
+            member,
+            evidence_events=self._snapshot_memory_events(snapshot),
+        )
         weak_nodes = [
             {"name": item["name"], "mastery": item["mastery"]}
             for item in mastery_items
@@ -6360,7 +6479,6 @@ class MemberConsoleService:
             "overdue": max(0, member["review_due"] - 1),
             "due_today": 1 if member["review_due"] else 0,
         }
-        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=20)
         heartbeat_context = self._read_home_heartbeat_context(learner_user_id)
         study_plan = self._build_home_study_plan(
             member,
@@ -6395,7 +6513,79 @@ class MemberConsoleService:
             if is_canonical_home_personalization_projection(home_projection):
                 dashboard["home_projection"] = home_projection
                 self._apply_home_learning_projection(dashboard, home_projection)
+        if env_flag(_HOME_NEXT_STEP_ENABLED):
+            next_step = self._build_home_next_step(
+                learner_user_id=learner_user_id,
+                snapshot=snapshot,
+            )
+            from deeptutor.services.learner_state.home_next_step_projection import (
+                MODE_UNAVAILABLE,
+            )
+
+            # 契约:内部 unavailable 空态 mode 永不外泄到 dashboard。
+            if next_step.get("mode") and next_step.get("mode") != MODE_UNAVAILABLE:
+                dashboard["next_step"] = next_step
         return dashboard
+
+    def _build_home_next_step(self, *, learner_user_id: str, snapshot: Any | None) -> dict[str, Any]:
+        """融合计划 §3：跨模式「下一步」= home_next_step_projection 单一仲裁。
+
+        本方法只组装输入并委托，不做任何规则判断（禁在 member_console 再拼）。
+        三条输入全部真实接线（Codex SEV-1 治本，禁硬编码空供给）：
+        - 活跃练 = 同一份 snapshot events 纯派生的处方 outcomes（零新增 IO），
+          status != verified 即活跃；同一份 outcomes 同时喂 queue 做已验证抑制
+          （与 report 路径 learning_report_read_model 同口径，防已验证 probe 复活）。
+        - claims = read_compiled_learning_truth 的 weak_points（照 report 先例；
+          生产 = 1 次 Supabase 读，miss 返回空如实降级，不跑 dry-run 合成——
+          对 contracts/learner-state.md:52 cache-miss 回退条款的显式最小偏离）。
+        """
+        try:
+            from deeptutor.services.learner_state import home_next_step_projection as _hns
+            from deeptutor.services.learner_state import pack_lifecycle_projection as _plp
+            from deeptutor.services.learner_state import revalidation_queue as _rq
+            from deeptutor.services.learner_state.learning_state_projection import (
+                project_three_layer_learning_state,
+            )
+            from deeptutor.services.learner_state.prescription_outcome_read_model import (
+                build_prescription_outcomes_read_projection,
+            )
+            from deeptutor.services.luban_lesson import list_green_lessons
+
+            learner_state_service = self._get_learner_state_service()
+            events = self._snapshot_memory_events(snapshot)
+            learning_state = project_three_layer_learning_state(events=events)
+            outcomes = build_prescription_outcomes_read_projection(events=events)
+            active_intents = [
+                outcome
+                for outcome in outcomes
+                if str(outcome.get("training_intent_id") or "").strip()
+                and outcome.get("status") != "verified"
+            ]
+            try:
+                compiled = learner_state_service.read_compiled_learning_truth(learner_user_id)
+            except Exception:
+                logger.warning("Failed to read compiled truth for home next step", exc_info=True)
+                compiled = {}
+            claims = list((compiled or {}).get("weak_points") or [])
+            queue = _rq.build_revalidation_queue_projection(
+                user_id=learner_user_id,
+                events=events,
+                learning_state=learning_state,
+                prescription_outcomes=outcomes,
+            )
+            return _hns.build_home_next_step_projection(
+                revalidation_items=list(queue.get("items") or []),
+                active_training_intents=active_intents,
+                pack_lifecycle=_plp.project_pack_lifecycle(events=events, claims=claims),
+                green_lessons=list_green_lessons(),
+            )
+        except Exception:
+            logger.warning("Failed to build home next step projection", exc_info=True)
+            from deeptutor.services.learner_state.home_next_step_projection import (
+                unavailable_next_step,
+            )
+
+            return unavailable_next_step()
 
     @staticmethod
     def _apply_home_learning_projection(dashboard: dict[str, Any], projection: dict[str, Any]) -> None:
@@ -6876,7 +7066,10 @@ class MemberConsoleService:
 
     def get_radar_data(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
-        mastery_items = self._report_mastery_items(member)
+        mastery_items = self._report_mastery_items(
+            member,
+            evidence_events=self._mastery_evidence_events(member, user_id),
+        )
         dimensions = [
             {
                 "key": item["name"],
@@ -6890,7 +7083,10 @@ class MemberConsoleService:
 
     def get_mastery_dashboard(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
-        chapters = self._report_mastery_items(member)
+        chapters = self._report_mastery_items(
+            member,
+            evidence_events=self._mastery_evidence_events(member, user_id),
+        )
         if not chapters:
             return {
                 "overall_mastery": 0,
@@ -7904,8 +8100,8 @@ class MemberConsoleService:
 
     def register_with_external_auth(self, username: str, password: str, phone: str) -> dict[str, Any]:
         normalized_phone = _normalize_phone_input(phone)
-        if not normalized_phone:
-            raise ValueError("手机号格式不正确")
+        if not normalized_phone or not self._is_cn_mainland_mobile(normalized_phone):
+            raise ValueError("请输入有效的大陆手机号")
         try:
             existing_alias_ids = self._trusted_phone_alias_user_ids(normalized_phone)
         except ValueError as exc:

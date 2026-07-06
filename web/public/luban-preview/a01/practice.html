@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11.5px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 内容清单、组织主体、判定依据、采分句都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"" };
+  examTitle="结构实体检验答案诊断";
+  KNOWLEDGE="检验批验收·案例题作答层(A01,真题锚{2017·案例·问4})。本层训练把知识写成阅卷友好的采分句,采分点从A01知识层派生,不新增官方判分权威。内容清单:结构实体检验除混凝土强度外,还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目(漏项=E02)。组织主体:由监理单位组织、施工单位实施、监理见证全过程,施工单位编制专项方案报监理审批(写施工单位组织=E07概念混淆)。判定依据:C35实体强度应满足平均值≥设计值×88%且最小值≥设计值×80%,不能直接拿平均值比35(=E10);本题芯样28.5/31/32MPa,平均值30.8MPa,35×88%=30.8MPa恰为临界,最小值28.5MPa>35×80%=28MPa;临界取舍以评分细则或教研裁定为准,只指漏不定分。作答结构:先编号写检验内容,再写主体链,最后亮双阈值判据、代入回判。禁口号化表达(E04)。记忆钩:扫答案,补三格——内容清单、组织主体、判定依据。";
+  moreText="补两道：① 主体分部工程验收“应有哪些单位和人员参加”的场景题（{2015·第28题}/{2023·案例·问4}）——练「组织主体 + 必参加人员」一次写全，防再漏设计单位和技术质量负责人；② 验收不合格如何处理的决策分支题——练「返修/返工后重新验收 → 资料缺失可委托检测 → 加固后仍不满足安全要求严禁验收」三档，补上后果维。";
+
+  // ── 题库：扫答案 → 改主体 → 跑双阈值 → 重排三格 → 输出采分句（5 题，来自 pack practice_blueprint）──
+  Q=[
+    { tag:"扫学生答案·补清单", typeHint:"单选 · 选出最能补齐采分动作的做法", figLabel:"图示：答题纸逐句扫描", figCaption:"混凝土强度 hit · 保护层 partial · 尺寸偏差 / 合同项目待补", fig:"scan1",
+      stem:"学生答：“结构实体检验还要测一下钢筋保护层。”这句话在实体检验项目上最主要缺哪一类采分动作？",
+      model:"补“结构位置与尺寸偏差、合同约定项目”，把实体检验内容从一项补成完整清单：混凝土强度 + 钢筋保护层厚度 + 结构位置与尺寸偏差 + 合同约定项目。",
+      opts:[
+        { t:"补“结构位置与尺寸偏差、合同约定项目”，把实体检验内容从一项补成完整清单。", ok:true, fix:"四件套逐项编号写：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目。", code:"" },
+        { t:"把“测一下”改成“必须检测”，让语气更强即可。", ok:false, code:"E04", tempt:"“必须检测”听起来更规范、更像标准答案。", lose:"阅卷缺的是项目不是语气，语气变强补不了缺项，口号化表达。", fix:"把结构位置与尺寸偏差、合同约定项目补进清单。" },
+        { t:"先改成监理单位组织，内容清单可以后面再写。", ok:false, code:"E02", tempt:"主体错位也是本题真实漏分口，先修它看着更要紧。", lose:"主体要改，但这一句首先卡在检验项目不全；清单缺口不补仍是采分点遗漏。", fix:"先补齐四件套清单，主体链另起一句单独写。" },
+        { t:"只保留混凝土强度，因为题干已经是强度判定题。", ok:false, code:"E05", tempt:"题干确实围着 C35 强度转，聚焦强度显得干脆。", lose:"题干第一问明确问“除混凝土强度外”还包括哪些项目，只答强度是审题错误。", fix:"按问法答强度以外的三项：保护层厚度、尺寸偏差、合同约定项目。" }
+      ] },
+    { tag:"改主体错位·组织权", typeHint:"单选 · 选出最像能拿主体分的改正动作", figLabel:"图示：组织主体箭头纠正", figCaption:"✗ 施工组织 → ✓ 监理组织 · 施工实施 · 监理见证", fig:"org",
+      stem:"学生答：“结构实体检验由施工单位组织检验。”下面哪一句改正动作最像能拿主体分？",
+      model:"改为“由监理单位组织、施工单位实施，监理见证全过程”；施工单位编制专项方案报监理审批。",
+      opts:[
+        { t:"改为“由监理单位组织、施工单位实施，监理见证全过程”。", ok:true, fix:"组织、实施、见证三个角色拆清，主体精确到单位。", code:"" },
+        { t:"写施工单位自检合格后自行组织，体现谁施工谁负责。", ok:false, code:"E07", tempt:"施工单位确实实施检验，“谁施工谁负责”顺口又好记。", lose:"把实施主体当成组织主体，“谁施工谁验收”正是主体错位的错误心智，概念混淆。", fix:"组织写监理单位，施工单位只是实施主体。" },
+        { t:"直接写建设单位组织即可，避免监理和施工责任混乱。", ok:false, code:"M10", tempt:"拿不准就交给更高一级，听着最保险。", lose:"这是用常识推责任分配；结构实体检验的组织主体是监理单位，不是建设单位。", fix:"按主体链写：监理组织、施工实施、监理见证。" },
+        { t:"只写施工单位编制专项方案报监理审批，不再写组织主体。", ok:false, code:"E02", tempt:"专项方案报审批也是真实考点，写它显得懂流程。", lose:"专项方案是补充点；组织、实施、见证的主体分没写，就是采分点遗漏。", fix:"主体链写全后，再补专项方案报监理审批。" }
+      ] },
+    { tag:"跑双阈值·计算判定", typeHint:"单选 · 选出最稳的计算判定链", figLabel:"图示：芯样进入双阈值标尺", figCaption:"平均 30.8 ↔ 35×88%=30.8 · 最小 28.5 ＞ 35×80%=28", fig:"chain",
+      stem:"C35 构件芯样 28.5、31、32MPa，学生答：“平均值比 35 小，所以不合格。”这一步最稳的计算判定链应该怎么写？",
+      model:"先亮判据“平均值≥设计值×88%、最小值≥设计值×80%”，再代入：平均值 30.8MPa、35×88%=30.8MPa（临界），最小值 28.5MPa＞35×80%=28MPa，回判；临界取舍以评分细则或教研裁定为准。",
+      opts:[
+        { t:"先亮判据“平均值≥设计×88%、最小值≥设计×80%”，再代入平均值30.8和最小值28.5回判。", ok:true, fix:"判据、代入、回判三步交付；临界不擅自定官方分，但阈值链必须写对。", code:"" },
+        { t:"平均值小于35MPa，直接判不合格即可，过程越短越清楚。", ok:false, code:"E10", tempt:"直接比设计值最直观，答案还短。", lose:"实体强度判定不是直接比35，而是先把设计值乘88%和80%，规范适用错误。", fix:"先写双阈值判据，再代入回判。" },
+        { t:"只要平均值达到88%即可，最小值不用再看。", ok:false, code:"E05", tempt:"平均值那条线最出名，算一条省事。", lose:"问法要的是完整判定依据，判定步骤缺最小值那条门，审题不全。", fix:"平均值≥88%和最小值≥80%两条同时满足才回判。" },
+        { t:"只看28.5大于28，所以不用算平均值。", ok:false, code:"M08", tempt:"最小值刚好过线，看着已经安全。", lose:"把双阈值记成单阈值：88%对平均值、80%对最小值，两条规则少套一条，规范数字混淆。", fix:"两条门都亮出来：平均值看88%，最小值看80%。" }
+      ] },
+    { tag:"重排标准答·三格", typeHint:"单选 · 选出阅卷友好的组织顺序", figLabel:"图示：三格改写答题纸", figCaption:"散乱原答 → 内容清单 · 主体链 · 双阈值回判", fig:"regrid",
+      stem:"现在要把学生样本改成答题纸答案。下面哪种组织顺序最像阅卷友好的主观题答案？",
+      model:"先编号写检验内容，再写监理组织、施工实施、监理见证，最后亮88%/80%判据并代入回判——内容、主体、依据三格连续写。",
+      opts:[
+        { t:"先编号写检验内容，再写监理组织、施工实施、监理见证，最后亮88%/80%判据并代入回判。", ok:true, fix:"内容清单、组织主体、判定依据三格齐全，阅卷顺着格子给分。", code:"" },
+        { t:"先写平均值计算，再补一句“其余内容按规范验收”。", ok:false, code:"E02", tempt:"数值题最显眼，先把计算写了最有安全感。", lose:"计算有了，但“其余按规范验收”把内容清单和主体格空着，采分点遗漏。", fix:"把检验四项和主体链补成显式采分句。" },
+        { t:"先解释结构实体检验的概念，再写本题结论。", ok:false, code:"E04", tempt:"先讲概念显得基础扎实。", lose:"案例题不是名词解释：概念加结论没有具体采分对象，口号化表达。", fix:"直接答题干要的内容、主体、判定三格。" },
+        { t:"先给合格或不合格结论，再根据篇幅补理由。", ok:false, code:"E05", tempt:"结论先行看着干脆利落。", lose:"问法要求写判定依据，把依据当篇幅富余才补的东西是审题错误；本题还有临界处置，更不能只写结论。", fix:"先亮判据、代入、回判，结论跟在链条后面。" }
+      ] },
+    { tag:"输出采分句·终稿", typeHint:"单选 · 选出最完整的采分句", figLabel:"图示：最终答题纸扫描", figCaption:"内容清单 hit · 组织主体 hit · 判定依据 hit", fig:"final",
+      stem:"考试要求：结构实体检验除混凝土强度外还包括哪些项目？由谁组织？强度是否合格，写依据。下面哪一句最像完整采分句？",
+      model:"除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；由监理单位组织、施工单位实施、监理见证；强度按平均值≥设计×88%且最小值≥设计×80%回判。",
+      opts:[
+        { t:"除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；由监理组织、施工实施、监理见证；强度按平均≥88%、最小≥80%回判。", ok:true, fix:"内容、主体、依据三格都交付，阅卷一扫全命中。", code:"" },
+        { t:"还包括钢筋保护层，施工单位组织；平均值不达设计值，所以不合格。", ok:false, code:"E07", tempt:"每个格子都碰到了，看着像答完了。", lose:"这几乎就是学生错答：把施工单位写成组织方是概念混淆，清单和双阈值也没写全。", fix:"主体改成监理组织、施工实施、监理见证，再补清单和双阈值。" },
+        { t:"实体检验内容很多，应按规范逐项检测，确保质量合格。", ok:false, code:"E04", tempt:"“按规范、确保质量”怎么写都不会错。", lose:"阅卷无法定位保护层、尺寸偏差、合同项目和双阈值，空泛表达拿不到对象分，口号化表达。", fix:"把四件套、主体链、88%/80%写成显式对象。" },
+        { t:"应由监理单位组织，施工单位配合即可。", ok:false, code:"E02", tempt:"监理组织这句最有把握，先把它写上。", lose:"只拿到主体格的一部分，内容清单和判定依据两格空白，采分点遗漏。", fix:"三格连续写：清单、主体链、双阈值回判。" }
+      ] }
+  ];
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"四件套逐项编号写：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；题干每一问都要对上格，缺一扣一。"},
+    E04:{label:"口号化表达",advice:"别写“按规范、确保质量”：落到保护层厚度、尺寸偏差、合同项目、监理组织、88%/80% 这些阅卷能扫到的对象。"},
+    E05:{label:"审题错误",advice:"题干问几问答几问：“除混凝土强度外”“由谁组织”“写依据”逐问对格；判定链平均值和最小值两条都要给。"},
+    E07:{label:"概念混淆",advice:"“谁施工谁验收”是错心智：监理单位组织、施工单位实施、监理见证全过程，施工单位编制专项方案报监理审批。"},
+    E10:{label:"规范适用错误",advice:"实体强度不直接比设计值：平均值≥设计值×88% 且最小值≥设计值×80%，两条同时满足才回判。"},
+    M08:{label:"规范数字混淆",advice:"88% 对平均值、80% 对最小值，别记反也别只套一条；本题 35×88%=30.8、35×80%=28。"},
+    M10:{label:"用常识替代规范",advice:"责任分配不能靠常识往上推：组织主体按教材写监理单位，不是建设单位也不是施工单位。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+  }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.Q[qi]; const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.Q[qi]; if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.Q[qi],s=this.state.sel[qi];
+    if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&q.opts[s]&&q.opts[s].ok; }
+  next(){ if(this.state.qi<this.Q.length-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.Q[qi].fig, els=[]; let figH=100;
+    if(type==="scan1"){ figH=108; const rows=[["① 混凝土强度（题干已考）","#2c8a5b","hit ✓"],["② 钢筋保护层 · 只写到一格","#cf8a44","partial ⚠"],["③ 结构位置与尺寸偏差 · 待补","#cf4436","miss ✗"],["④ 合同约定项目 · 待补","#cf4436","miss ✗"]];
+      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*27,w:246,h:23,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); els.push(D({x:252,top:i*27,w:68,h:23,fg:r[1],fs:9.5,jc:"flex-start",ta:"left",lab:r[2]})); }); }
+    else if(type==="org"){ figH=92;
+      els.push(D({x:0,top:0,w:230,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 施工单位组织（实施主体 ≠ 组织主体）"}));
+      els.push(D({x:0,top:22,w:96,h:34,bg:"#46627e",bd:"2px solid #2c8a5b",r:6,fg:"#fff",fs:9,lab:"监理单位组织"}));
+      els.push(D({x:96,top:36,w:16,h:5,bg:"#2c8a5b"}));
+      els.push(D({x:112,top:22,w:96,h:34,bg:"#46627e",bd:"2px solid #2c8a5b",r:6,fg:"#fff",fs:9,lab:"施工单位实施"}));
+      els.push(D({x:208,top:36,w:16,h:5,bg:"#2c8a5b"}));
+      els.push(D({x:224,top:22,w:96,h:34,bg:"#46627e",bd:"2px solid #2c8a5b",r:6,fg:"#fff",fs:9,lab:"监理见证全过程"}));
+      els.push(D({x:0,top:68,w:320,h:14,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"✓ 施工单位编制专项方案报监理审批"})); }
+    else if(type==="chain"){ figH=110;
+      els.push(D({x:0,top:0,w:60,h:30,bg:"#fff",bd:"1.5px solid #cdd9e2",r:15,fg:"#2f6db0",fs:10.5,lab:"28.5"}));
+      els.push(D({x:68,top:0,w:60,h:30,bg:"#fff",bd:"1.5px solid #cdd9e2",r:15,fg:"#2f6db0",fs:10.5,lab:"31"}));
+      els.push(D({x:136,top:0,w:60,h:30,bg:"#fff",bd:"1.5px solid #cdd9e2",r:15,fg:"#2f6db0",fs:10.5,lab:"32"}));
+      els.push(D({x:204,top:6,w:116,h:18,fg:"#5c6469",fs:9,jc:"flex-start",ta:"left",lab:"三个芯样 · MPa"}));
+      els.push(D({x:0,top:38,w:320,h:22,bg:"#fff",bd:"1.5px solid #cdd9e2",r:7,fg:"#2f6db0",fs:9.5,fw:"800",ta:"left",jc:"flex-start",p:"0 8px",lab:"平均值 30.8 ↔ 35×88% = 30.8（临界）"}));
+      els.push(D({x:0,top:64,w:320,h:22,bg:"#fff",bd:"1.5px solid #a9cdb8",r:7,fg:"#2c8a5b",fs:9.5,fw:"800",ta:"left",jc:"flex-start",p:"0 8px",lab:"最小值 28.5 ＞ 35×80% = 28"}));
+      els.push(D({x:0,top:92,w:320,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 直接拿平均值比 35 = 跳过双阈值"})); }
+    else if(type==="regrid"){ figH=84; const rows=[["第一段 内容清单：保护层厚度 · 尺寸偏差 · 合同约定项目","#2f6db0"],["第二段 主体链：监理组织 · 施工实施 · 监理见证","#2c8a5b"],["第三段 判定链：亮判据 → 代入 → 回判","#cf8a44"]];
+      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*28,w:320,h:24,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); }); }
+    else if(type==="final"){ figH=84; const rows=[["① 内容清单 · 四件套齐","#2f6db0"],["② 组织主体 · 监理组织施工实施见证","#2c8a5b"],["③ 判定依据 · 88%/80% 双阈值回判","#cf8a44"]];
+      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*28,w:250,h:24,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); els.push(D({x:256,top:i*28,w:64,h:24,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"hit ✓"})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.Q.length-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题 →"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果 →"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.Q.map((qq,i)=>{ const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.Q.forEach((qq,i)=>{ if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(this.Q.length*0.4)?0:score<this.Q.length-1?1:score<this.Q.length?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:this.Q.length, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/this.Q.length)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -223,7 +223,12 @@ function normalizeRadar(dimensions) {
   var weak = dims.filter(function (item) {
     return ["weak", "unstable", "needs_revalidation"].indexOf(item.level) >= 0;
   }).length;
-  var normal = Math.max(0, dims.length - strong - weak);
+  // 四态对齐后端 _score_status(strong/normal/weak/observed):observed=未学,
+  // 单独成态——不再折进 normal(丢一态会把"未学"渲染成"再看一眼")。
+  var observed = dims.filter(function (item) {
+    return item.level === "observed";
+  }).length;
+  var normal = Math.max(0, dims.length - strong - weak - observed);
   var avg = scores.length
     ? Math.round(
         scores.reduce(function (sum, score) {
@@ -236,6 +241,7 @@ function normalizeRadar(dimensions) {
     strongCount: strong,
     normalCount: normal,
     weakCount: weak,
+    observedCount: observed,
     avgScore: avg,
     dimList: dims.map(function (item) {
       var score = Math.round(asNumber(item.score, asNumber(item.value, 0) * 100));
@@ -284,6 +290,9 @@ function normalizeMastery(source) {
         name: topic.name,
         mastery: rate,
         color: String(c.color || ""),
+        // 四态权威=后端 _score_status(strong/normal/weak/observed),
+        // 前端只透传作暖色语义 class,不用分数二次归档。
+        status: String(c.status || ""),
         taxonomyPath: topic.taxonomyPath,
         textbookChapterNo: topic.textbookChapterNo,
         textbookChapterName: topic.textbookChapterName,
@@ -321,6 +330,15 @@ function normalizeMastery(source) {
             name: chapter.chapterName,
             mastery: score,
             color: score >= 70 ? "#40d99d" : score >= 40 ? "#7fd9ff" : "#ff7185",
+            // 与后端 _score_status 同阈值(70/40/>0)的兜底归档,仅此降级臂使用
+            status:
+              score >= 70
+                ? "strong"
+                : score >= 40
+                  ? "normal"
+                  : score > 0
+                    ? "weak"
+                    : "observed",
             textbookChapterNo: chapter.chapterNo,
             textbookChapterName: chapter.chapterName,
             textbookSectionName: "",
@@ -1170,6 +1188,104 @@ function normalizeGraphChains(learningBrain) {
     .slice(0, 4);
 }
 
+// ── 10e 学情诊断单投影(第 10 轮定稿 + round11 增量①) ──────────────
+// pack_lifecycle(read model 唯一权威) → 40 格掌握地图 cell 视图。
+// 双轨铁律(round11 增量 1 / v1.1 §1.3):
+// - 掌握轨四态 = mastered稳了 / practiced再看一眼 / dormant待复验 / unlearned未学;
+// - 蓝环=接触轨(exposed),第五态「已学·待验证」,绝不进红黄绿掌握色阶;
+//   蓝态文案永远带"待验证"三字(v1.1 U4)。
+// 前端零判分:只翻译 lifecycle_state / blue_ring 字段,不算分不算掌握。
+var PACK_LIFECYCLE_DISPLAY = {
+  mastered: { key: "stable", label: "稳了" },
+  practiced: { key: "watch", label: "再看一眼" },
+  dormant: { key: "reverify", label: "待复验" },
+  exposed: { key: "blue", label: "已学·待验证" },
+  unlearned: { key: "unlearned", label: "未学" },
+};
+
+function buildPackMasteryMap(report, lessonsResp) {
+  var body = asObject(report);
+  var lifecycle = asObject(body.pack_lifecycle);
+  var packs = asObject(lifecycle.packs);
+  var titleIdx = {};
+  asList(asObject(lessonsResp).lessons).forEach(function (lesson) {
+    var row = asObject(lesson);
+    var id = String(row.pack_id || "").trim().toUpperCase();
+    if (id) titleIdx[id] = { title: String(row.title || ""), green: true };
+  });
+  var counts = { stable: 0, watch: 0, reverify: 0, unlearned: 0, blue: 0 };
+  var cells = Object.keys(packs)
+    .map(function (id) {
+      return String(id || "").trim().toUpperCase();
+    })
+    .filter(Boolean)
+    .sort()
+    .map(function (id) {
+      var pack = asObject(packs[id]);
+      var state = String(pack.lifecycle_state || "unlearned");
+      var display =
+        PACK_LIFECYCLE_DISPLAY[state] || PACK_LIFECYCLE_DISPLAY.unlearned;
+      counts[display.key] += 1;
+      var meta = titleIdx[id] || {};
+      return {
+        packId: id,
+        state: display.key,
+        stateLabel: display.label,
+        // 蓝环只在掌握轨未动时呈现(lifecycle_state=exposed);
+        // 练过及以上由掌握轨接管,蓝环不再显示。
+        blueRing: display.key === "blue",
+        green: Boolean(meta.green),
+        title: String(meta.title || ""),
+      };
+    });
+  return {
+    // packs 空(后端未部署/降级)= 不可用,页面走空态,禁造格子
+    available: cells.length > 0,
+    degraded: Boolean(lifecycle.degraded),
+    packUniverse: cells.length,
+    cells: cells,
+    counts: counts,
+  };
+}
+
+// D-class long_term_analytics → 方向性叙述(10e 对账表④:后端无数值时间
+// 序列,趋势卡降级为方向描述,不画假曲线、不造数)。
+function normalizeLongTermAnalytics(source) {
+  var payload = asObject(source);
+  var summary = asObject(payload.progression_summary);
+  var direction = String(summary.trend_direction || "");
+  var narrative = "";
+  if (direction === "improving") {
+    narrative = "反复出现的错因在减少，方向是对的";
+  } else if (direction === "stable") {
+    narrative = "错因结构基本稳定，保持当前节奏";
+  } else if (direction === "declining") {
+    narrative = "有几个错因最近反复出现，先把它们排进本周计划";
+  }
+  return {
+    direction: direction,
+    narrative: narrative,
+    recurrentErrorCount: asNumber(summary.recurrent_error_count, 0),
+    activeWeakCount: asNumber(summary.active_weak_count, 0),
+    recurrentErrors: asList(payload.recurrent_errors),
+  };
+}
+
+// 风险档位词(10e 对账表①:档位词非精确百分比)——只翻译后端
+// mastery.overall_mastery.status(_score_status 四态),前端不重新算档。
+var RISK_GEAR_BY_STATUS = {
+  strong: { label: "低", tone: "good" },
+  normal: { label: "中", tone: "mid" },
+  weak: { label: "中高", tone: "warn" },
+  observed: { label: "待评估", tone: "none" },
+};
+
+function riskGearFromStatus(status) {
+  return (
+    RISK_GEAR_BY_STATUS[String(status || "")] || RISK_GEAR_BY_STATUS.observed
+  );
+}
+
 function buildLearningReportViewModel(report) {
   var body = asObject(report);
   var overview = asObject(body.overview);
@@ -1210,8 +1326,11 @@ function buildLearningReportViewModel(report) {
   );
   var noteAssets = normalizeNoteAssets(body.note_assets);
   var todayTasks = normalizeTodayTasks(body.today_tasks);
+  var longTermAnalytics = normalizeLongTermAnalytics(body.long_term_analytics);
   return {
     schemaVersion: asNumber(body.schema_version, 1),
+    longTermAnalytics: longTermAnalytics,
+    riskGear: riskGearFromStatus(mastery.overallStatus),
     hero: {
       stageLabel: String(
         hero.stage_label ||
@@ -1417,11 +1536,14 @@ function normalizeRadarFromLearningState(learningState) {
         }, 0) / dims.length,
       )
     : 0;
+  // 学情状态臂无 observed 语义(state 来自 learning_state 引擎),四态口径下
+  // observedCount 恒为 0——normal 不再吞"未学"是 radar_dimensions 臂的职责。
   return {
     dims: dims,
     strongCount: strong,
     normalCount: Math.max(0, dims.length - strong - weak),
     weakCount: weak,
+    observedCount: 0,
     avgScore: avg,
     dimList: dims.map(function (item) {
       return {
@@ -1806,6 +1928,7 @@ function toReportPageData(model) {
     strongCount: radar.strongCount || 0,
     normalCount: radar.normalCount || 0,
     weakCount: radar.weakCount || 0,
+    observedCount: radar.observedCount || 0,
     avgScore: radar.avgScore || 0,
     overviewScore: hasMasteryOverall
       ? mastery.overall
@@ -1841,6 +1964,18 @@ function toReportPageData(model) {
     todayTasks: asList(vm.todayTasks),
     mistakeHistoryCards: asList(vm.mistakeHistoryCards),
     learningDiagnosisCards: asList(brain.diagnoses),
+    // 10e 诊断单:档位词/主要差距/方向性趋势(全部来自 read model 字段翻译)
+    riskGearLabel: String(asObject(vm.riskGear).label || "待评估"),
+    riskGearTone: String(asObject(vm.riskGear).tone || "none"),
+    diagnosisHeadline: String(
+      asObject(asList(brain.diagnoses)[0]).title || "",
+    ),
+    trendDirection: String(asObject(vm.longTermAnalytics).direction || ""),
+    trendNarrative: String(asObject(vm.longTermAnalytics).narrative || ""),
+    recurrentErrorCount: asNumber(
+      asObject(vm.longTermAnalytics).recurrentErrorCount,
+      0,
+    ),
     learningTrainingLoops: asList(brain.chains),
     learningNextAction: asObject(brain.nextAction),
     engineEvidenceSummary: String(
@@ -1892,4 +2027,5 @@ function toReportPageData(model) {
 module.exports = {
   buildLearningReportViewModel: buildLearningReportViewModel,
   toReportPageData: toReportPageData,
+  buildPackMasteryMap: buildPackMasteryMap,
 };

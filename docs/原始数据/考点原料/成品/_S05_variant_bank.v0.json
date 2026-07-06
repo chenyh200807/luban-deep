@@ -1,0 +1,1115 @@
+{
+ "schema_version": "luban-s05-variant-bank",
+ "pack_id": "S05",
+ "status": "signed",
+ "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
+ "generation_ms": 0.05,
+ "gate": {
+  "total": 75,
+  "passed": 75,
+  "pass_rate": 1.0,
+  "verdict_mismatches": [],
+  "contested_leaks": [],
+  "duplicate_surfaces": []
+ },
+ "per_group_counts": {
+  "B-send": 12,
+  "B-stop": 12,
+  "C-voltage": 18,
+  "D-one-switch": 13,
+  "E-bury": 6,
+  "E-color": 3,
+  "F-mgmt": 5,
+  "X-distance": 6
+ },
+ "variants": [
+  {
+   "variant_id": "S05-B-send-000",
+   "rule_group": "B-send",
+   "surface": "某住宅楼工地送电操作顺序：总配电箱→分配电箱→开关箱",
+   "params": {
+    "order": [
+     "总配电箱",
+     "分配电箱",
+     "开关箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": true,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-001",
+   "rule_group": "B-stop",
+   "surface": "某住宅楼工地停电操作顺序：总配电箱→分配电箱→开关箱",
+   "params": {
+    "order": [
+     "总配电箱",
+     "分配电箱",
+     "开关箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": false,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-002",
+   "rule_group": "B-send",
+   "surface": "某住宅楼工地送电操作顺序：总配电箱→开关箱→分配电箱",
+   "params": {
+    "order": [
+     "总配电箱",
+     "开关箱",
+     "分配电箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": false,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-003",
+   "rule_group": "B-stop",
+   "surface": "某住宅楼工地停电操作顺序：总配电箱→开关箱→分配电箱",
+   "params": {
+    "order": [
+     "总配电箱",
+     "开关箱",
+     "分配电箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": false,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-004",
+   "rule_group": "B-send",
+   "surface": "某住宅楼工地送电操作顺序：分配电箱→总配电箱→开关箱",
+   "params": {
+    "order": [
+     "分配电箱",
+     "总配电箱",
+     "开关箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": false,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-005",
+   "rule_group": "B-stop",
+   "surface": "某住宅楼工地停电操作顺序：分配电箱→总配电箱→开关箱",
+   "params": {
+    "order": [
+     "分配电箱",
+     "总配电箱",
+     "开关箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": false,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-006",
+   "rule_group": "B-send",
+   "surface": "某住宅楼工地送电操作顺序：分配电箱→开关箱→总配电箱",
+   "params": {
+    "order": [
+     "分配电箱",
+     "开关箱",
+     "总配电箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": false,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-007",
+   "rule_group": "B-stop",
+   "surface": "某住宅楼工地停电操作顺序：分配电箱→开关箱→总配电箱",
+   "params": {
+    "order": [
+     "分配电箱",
+     "开关箱",
+     "总配电箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": false,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-008",
+   "rule_group": "B-send",
+   "surface": "某住宅楼工地送电操作顺序：开关箱→总配电箱→分配电箱",
+   "params": {
+    "order": [
+     "开关箱",
+     "总配电箱",
+     "分配电箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": false,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-009",
+   "rule_group": "B-stop",
+   "surface": "某住宅楼工地停电操作顺序：开关箱→总配电箱→分配电箱",
+   "params": {
+    "order": [
+     "开关箱",
+     "总配电箱",
+     "分配电箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": false,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-010",
+   "rule_group": "B-send",
+   "surface": "某住宅楼工地送电操作顺序：开关箱→分配电箱→总配电箱",
+   "params": {
+    "order": [
+     "开关箱",
+     "分配电箱",
+     "总配电箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": false,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-011",
+   "rule_group": "B-stop",
+   "surface": "某住宅楼工地停电操作顺序：开关箱→分配电箱→总配电箱",
+   "params": {
+    "order": [
+     "开关箱",
+     "分配电箱",
+     "总配电箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": true,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-012",
+   "rule_group": "B-send",
+   "surface": "某办公楼项目现场送电操作顺序：总配电箱→分配电箱→开关箱",
+   "params": {
+    "order": [
+     "总配电箱",
+     "分配电箱",
+     "开关箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": true,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-013",
+   "rule_group": "B-stop",
+   "surface": "某办公楼项目现场停电操作顺序：总配电箱→分配电箱→开关箱",
+   "params": {
+    "order": [
+     "总配电箱",
+     "分配电箱",
+     "开关箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": false,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-014",
+   "rule_group": "B-send",
+   "surface": "某办公楼项目现场送电操作顺序：总配电箱→开关箱→分配电箱",
+   "params": {
+    "order": [
+     "总配电箱",
+     "开关箱",
+     "分配电箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": false,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-015",
+   "rule_group": "B-stop",
+   "surface": "某办公楼项目现场停电操作顺序：总配电箱→开关箱→分配电箱",
+   "params": {
+    "order": [
+     "总配电箱",
+     "开关箱",
+     "分配电箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": false,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-016",
+   "rule_group": "B-send",
+   "surface": "某办公楼项目现场送电操作顺序：分配电箱→总配电箱→开关箱",
+   "params": {
+    "order": [
+     "分配电箱",
+     "总配电箱",
+     "开关箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": false,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-017",
+   "rule_group": "B-stop",
+   "surface": "某办公楼项目现场停电操作顺序：分配电箱→总配电箱→开关箱",
+   "params": {
+    "order": [
+     "分配电箱",
+     "总配电箱",
+     "开关箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": false,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-018",
+   "rule_group": "B-send",
+   "surface": "某办公楼项目现场送电操作顺序：分配电箱→开关箱→总配电箱",
+   "params": {
+    "order": [
+     "分配电箱",
+     "开关箱",
+     "总配电箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": false,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-019",
+   "rule_group": "B-stop",
+   "surface": "某办公楼项目现场停电操作顺序：分配电箱→开关箱→总配电箱",
+   "params": {
+    "order": [
+     "分配电箱",
+     "开关箱",
+     "总配电箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": false,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-020",
+   "rule_group": "B-send",
+   "surface": "某办公楼项目现场送电操作顺序：开关箱→总配电箱→分配电箱",
+   "params": {
+    "order": [
+     "开关箱",
+     "总配电箱",
+     "分配电箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": false,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-021",
+   "rule_group": "B-stop",
+   "surface": "某办公楼项目现场停电操作顺序：开关箱→总配电箱→分配电箱",
+   "params": {
+    "order": [
+     "开关箱",
+     "总配电箱",
+     "分配电箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": false,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-send-022",
+   "rule_group": "B-send",
+   "surface": "某办公楼项目现场送电操作顺序：开关箱→分配电箱→总配电箱",
+   "params": {
+    "order": [
+     "开关箱",
+     "分配电箱",
+     "总配电箱"
+    ],
+    "op": "send"
+   },
+   "expected_ok": false,
+   "correct_statement": "送电顺序应为总配电箱→分配电箱→开关箱",
+   "anchor": "kc:1A431011_015_0016:1",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-B-stop-023",
+   "rule_group": "B-stop",
+   "surface": "某办公楼项目现场停电操作顺序：开关箱→分配电箱→总配电箱",
+   "params": {
+    "order": [
+     "开关箱",
+     "分配电箱",
+     "总配电箱"
+    ],
+    "op": "stop"
+   },
+   "expected_ok": true,
+   "correct_statement": "停电顺序应为开关箱→分配电箱→总配电箱",
+   "anchor": "kc:1A431011_015_0016:1 + {2017,第2题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-024",
+   "rule_group": "C-voltage",
+   "surface": "金属容器内使用 6V 照明",
+   "params": {
+    "place": "金属容器内",
+    "surface_v": 6,
+    "limit_v": 12
+   },
+   "expected_ok": true,
+   "correct_statement": "金属容器内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-025",
+   "rule_group": "C-voltage",
+   "surface": "金属容器内使用 12V 照明",
+   "params": {
+    "place": "金属容器内",
+    "surface_v": 12,
+    "limit_v": 12
+   },
+   "expected_ok": true,
+   "correct_statement": "金属容器内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-026",
+   "rule_group": "C-voltage",
+   "surface": "金属容器内使用 24V 照明",
+   "params": {
+    "place": "金属容器内",
+    "surface_v": 24,
+    "limit_v": 12
+   },
+   "expected_ok": false,
+   "correct_statement": "金属容器内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-027",
+   "rule_group": "C-voltage",
+   "surface": "金属容器内使用 36V 照明",
+   "params": {
+    "place": "金属容器内",
+    "surface_v": 36,
+    "limit_v": 12
+   },
+   "expected_ok": false,
+   "correct_statement": "金属容器内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-028",
+   "rule_group": "C-voltage",
+   "surface": "金属容器内使用 48V 照明",
+   "params": {
+    "place": "金属容器内",
+    "surface_v": 48,
+    "limit_v": 12
+   },
+   "expected_ok": false,
+   "correct_statement": "金属容器内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-029",
+   "rule_group": "C-voltage",
+   "surface": "金属容器内使用 220V 照明",
+   "params": {
+    "place": "金属容器内",
+    "surface_v": 220,
+    "limit_v": 12
+   },
+   "expected_ok": false,
+   "correct_statement": "金属容器内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2 + {2016,第13题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-030",
+   "rule_group": "C-voltage",
+   "surface": "锅炉内使用 6V 照明",
+   "params": {
+    "place": "锅炉内",
+    "surface_v": 6,
+    "limit_v": 12
+   },
+   "expected_ok": true,
+   "correct_statement": "锅炉内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-031",
+   "rule_group": "C-voltage",
+   "surface": "锅炉内使用 12V 照明",
+   "params": {
+    "place": "锅炉内",
+    "surface_v": 12,
+    "limit_v": 12
+   },
+   "expected_ok": true,
+   "correct_statement": "锅炉内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-032",
+   "rule_group": "C-voltage",
+   "surface": "锅炉内使用 24V 照明",
+   "params": {
+    "place": "锅炉内",
+    "surface_v": 24,
+    "limit_v": 12
+   },
+   "expected_ok": false,
+   "correct_statement": "锅炉内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-033",
+   "rule_group": "C-voltage",
+   "surface": "锅炉内使用 36V 照明",
+   "params": {
+    "place": "锅炉内",
+    "surface_v": 36,
+    "limit_v": 12
+   },
+   "expected_ok": false,
+   "correct_statement": "锅炉内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-034",
+   "rule_group": "C-voltage",
+   "surface": "锅炉内使用 48V 照明",
+   "params": {
+    "place": "锅炉内",
+    "surface_v": 48,
+    "limit_v": 12
+   },
+   "expected_ok": false,
+   "correct_statement": "锅炉内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-035",
+   "rule_group": "C-voltage",
+   "surface": "锅炉内使用 220V 照明",
+   "params": {
+    "place": "锅炉内",
+    "surface_v": 220,
+    "limit_v": 12
+   },
+   "expected_ok": false,
+   "correct_statement": "锅炉内照明电压不得大于 12V",
+   "anchor": "kc:1A431011_015_0016:2",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-036",
+   "rule_group": "C-voltage",
+   "surface": "手持灯具使用 6V 照明",
+   "params": {
+    "place": "手持灯具",
+    "surface_v": 6,
+    "limit_v": 36
+   },
+   "expected_ok": true,
+   "correct_statement": "手持灯具照明电压不得大于 36V",
+   "anchor": "kc:1A436000_130_0209:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-037",
+   "rule_group": "C-voltage",
+   "surface": "手持灯具使用 12V 照明",
+   "params": {
+    "place": "手持灯具",
+    "surface_v": 12,
+    "limit_v": 36
+   },
+   "expected_ok": true,
+   "correct_statement": "手持灯具照明电压不得大于 36V",
+   "anchor": "kc:1A436000_130_0209:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-038",
+   "rule_group": "C-voltage",
+   "surface": "手持灯具使用 24V 照明",
+   "params": {
+    "place": "手持灯具",
+    "surface_v": 24,
+    "limit_v": 36
+   },
+   "expected_ok": true,
+   "correct_statement": "手持灯具照明电压不得大于 36V",
+   "anchor": "kc:1A436000_130_0209:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-039",
+   "rule_group": "C-voltage",
+   "surface": "手持灯具使用 36V 照明",
+   "params": {
+    "place": "手持灯具",
+    "surface_v": 36,
+    "limit_v": 36
+   },
+   "expected_ok": true,
+   "correct_statement": "手持灯具照明电压不得大于 36V",
+   "anchor": "kc:1A436000_130_0209:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-040",
+   "rule_group": "C-voltage",
+   "surface": "手持灯具使用 48V 照明",
+   "params": {
+    "place": "手持灯具",
+    "surface_v": 48,
+    "limit_v": 36
+   },
+   "expected_ok": false,
+   "correct_statement": "手持灯具照明电压不得大于 36V",
+   "anchor": "kc:1A436000_130_0209:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-C-voltage-041",
+   "rule_group": "C-voltage",
+   "surface": "手持灯具使用 220V 照明",
+   "params": {
+    "place": "手持灯具",
+    "surface_v": 220,
+    "limit_v": 36
+   },
+   "expected_ok": false,
+   "correct_statement": "手持灯具照明电压不得大于 36V",
+   "anchor": "kc:1A436000_130_0209:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-042",
+   "rule_group": "D-one-switch",
+   "surface": "电锯单独设置专用开关箱",
+   "params": {
+    "machine": "电锯",
+    "share_count": 1
+   },
+   "expected_ok": true,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-043",
+   "rule_group": "D-one-switch",
+   "surface": "2 台电锯共用一个开关箱",
+   "params": {
+    "machine": "电锯",
+    "share_count": 2
+   },
+   "expected_ok": false,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-044",
+   "rule_group": "D-one-switch",
+   "surface": "3 台电锯共用一个开关箱",
+   "params": {
+    "machine": "电锯",
+    "share_count": 3
+   },
+   "expected_ok": false,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-045",
+   "rule_group": "D-one-switch",
+   "surface": "钢筋切断机单独设置专用开关箱",
+   "params": {
+    "machine": "钢筋切断机",
+    "share_count": 1
+   },
+   "expected_ok": true,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-046",
+   "rule_group": "D-one-switch",
+   "surface": "2 台钢筋切断机共用一个开关箱",
+   "params": {
+    "machine": "钢筋切断机",
+    "share_count": 2
+   },
+   "expected_ok": false,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-047",
+   "rule_group": "D-one-switch",
+   "surface": "3 台钢筋切断机共用一个开关箱",
+   "params": {
+    "machine": "钢筋切断机",
+    "share_count": 3
+   },
+   "expected_ok": false,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-048",
+   "rule_group": "D-one-switch",
+   "surface": "混凝土搅拌机单独设置专用开关箱",
+   "params": {
+    "machine": "混凝土搅拌机",
+    "share_count": 1
+   },
+   "expected_ok": true,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-049",
+   "rule_group": "D-one-switch",
+   "surface": "2 台混凝土搅拌机共用一个开关箱",
+   "params": {
+    "machine": "混凝土搅拌机",
+    "share_count": 2
+   },
+   "expected_ok": false,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-050",
+   "rule_group": "D-one-switch",
+   "surface": "3 台混凝土搅拌机共用一个开关箱",
+   "params": {
+    "machine": "混凝土搅拌机",
+    "share_count": 3
+   },
+   "expected_ok": false,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-051",
+   "rule_group": "D-one-switch",
+   "surface": "电焊机单独设置专用开关箱",
+   "params": {
+    "machine": "电焊机",
+    "share_count": 1
+   },
+   "expected_ok": true,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-052",
+   "rule_group": "D-one-switch",
+   "surface": "2 台电焊机共用一个开关箱",
+   "params": {
+    "machine": "电焊机",
+    "share_count": 2
+   },
+   "expected_ok": false,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-053",
+   "rule_group": "D-one-switch",
+   "surface": "3 台电焊机共用一个开关箱",
+   "params": {
+    "machine": "电焊机",
+    "share_count": 3
+   },
+   "expected_ok": false,
+   "correct_statement": "每台用电设备必须有各自专用的开关箱，严禁 2 台及以上共用",
+   "anchor": "kc:1A431011_014_0015:2 + {2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-D-one-switch-054",
+   "rule_group": "D-one-switch",
+   "surface": "配电箱电源进线端采用插头插座做活动连接",
+   "params": {
+    "plug_socket_inlet": true
+   },
+   "expected_ok": false,
+   "correct_statement": "配电箱、开关箱电源进线端严禁采用插头插座做活动连接",
+   "anchor": "{2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-E-bury-055",
+   "rule_group": "E-bury",
+   "surface": "电缆直接埋地敷设，埋深 0.4m",
+   "params": {
+    "depth_m": 0.4,
+    "threshold_m": 0.7
+   },
+   "expected_ok": false,
+   "correct_statement": "电缆直接埋地敷设深度不应小于 0.7m",
+   "anchor": "kc:1A431011_014_0015:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-E-bury-056",
+   "rule_group": "E-bury",
+   "surface": "电缆直接埋地敷设，埋深 0.5m",
+   "params": {
+    "depth_m": 0.5,
+    "threshold_m": 0.7
+   },
+   "expected_ok": false,
+   "correct_statement": "电缆直接埋地敷设深度不应小于 0.7m",
+   "anchor": "kc:1A431011_014_0015:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-E-bury-057",
+   "rule_group": "E-bury",
+   "surface": "电缆直接埋地敷设，埋深 0.6m",
+   "params": {
+    "depth_m": 0.6,
+    "threshold_m": 0.7
+   },
+   "expected_ok": false,
+   "correct_statement": "电缆直接埋地敷设深度不应小于 0.7m",
+   "anchor": "kc:1A431011_014_0015:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-E-bury-058",
+   "rule_group": "E-bury",
+   "surface": "电缆直接埋地敷设，埋深 0.7m",
+   "params": {
+    "depth_m": 0.7,
+    "threshold_m": 0.7
+   },
+   "expected_ok": true,
+   "correct_statement": "电缆直接埋地敷设深度不应小于 0.7m",
+   "anchor": "kc:1A431011_014_0015:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-E-bury-059",
+   "rule_group": "E-bury",
+   "surface": "电缆直接埋地敷设，埋深 0.8m",
+   "params": {
+    "depth_m": 0.8,
+    "threshold_m": 0.7
+   },
+   "expected_ok": true,
+   "correct_statement": "电缆直接埋地敷设深度不应小于 0.7m",
+   "anchor": "kc:1A431011_014_0015:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-E-bury-060",
+   "rule_group": "E-bury",
+   "surface": "电缆直接埋地敷设，埋深 1.0m",
+   "params": {
+    "depth_m": 1.0,
+    "threshold_m": 0.7
+   },
+   "expected_ok": true,
+   "correct_statement": "电缆直接埋地敷设深度不应小于 0.7m",
+   "anchor": "kc:1A431011_014_0015:0",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-E-color-061",
+   "rule_group": "E-color",
+   "surface": "五芯电缆 N 线采用蓝色、PE 线采用黄绿双色",
+   "params": {
+    "n": "蓝色",
+    "pe": "黄绿双色"
+   },
+   "expected_ok": true,
+   "correct_statement": "N 线必须为蓝色、PE 线必须为黄绿双色，不得混用",
+   "anchor": "kc:1A431011_014_0015:1 + {2019,第14题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-E-color-062",
+   "rule_group": "E-color",
+   "surface": "五芯电缆 N 线采用黄绿双色、PE 线采用蓝色",
+   "params": {
+    "n": "黄绿双色",
+    "pe": "蓝色"
+   },
+   "expected_ok": false,
+   "correct_statement": "N 线必须为蓝色、PE 线必须为黄绿双色，不得混用",
+   "anchor": "kc:1A431011_014_0015:1 + {2019,第14题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-E-color-063",
+   "rule_group": "E-color",
+   "surface": "五芯电缆 N 线采用蓝色、PE 线采用蓝色",
+   "params": {
+    "n": "蓝色",
+    "pe": "蓝色"
+   },
+   "expected_ok": false,
+   "correct_statement": "N 线必须为蓝色、PE 线必须为黄绿双色，不得混用",
+   "anchor": "kc:1A431011_014_0015:1 + {2019,第14题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-F-mgmt-064",
+   "rule_group": "F-mgmt",
+   "surface": "电工张某未取得职业资格证即上岗接线",
+   "params": {
+    "raw": "电工张某未取得职业资格证即上岗接线"
+   },
+   "expected_ok": false,
+   "correct_statement": "电工须经职业资格考试合格后持证上岗",
+   "anchor": "kc:1A431011_014_0015:4 + {2018,第17题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-F-mgmt-065",
+   "rule_group": "F-mgmt",
+   "surface": "用电设备拆除由安全员完成",
+   "params": {
+    "raw": "用电设备拆除由安全员完成"
+   },
+   "expected_ok": false,
+   "correct_statement": "用电设备拆除应由电工完成",
+   "anchor": "{2018,第17题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-F-mgmt-066",
+   "rule_group": "F-mgmt",
+   "surface": "现场用电总容量 60kW，未编制用电组织设计",
+   "params": {
+    "raw": "现场用电总容量 60kW，未编制用电组织设计"
+   },
+   "expected_ok": false,
+   "correct_statement": "总容量 50kW 及以上应编制用电组织设计",
+   "anchor": "{2018,第17题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-F-mgmt-067",
+   "rule_group": "F-mgmt",
+   "surface": "现场用电总容量 40kW，编制了安全用电和电气防火措施",
+   "params": {
+    "raw": "现场用电总容量 40kW，编制了安全用电和电气防火措施"
+   },
+   "expected_ok": true,
+   "correct_statement": "50kW 以下编制安全用电和电气防火措施即可",
+   "anchor": "{2018,第17题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-F-mgmt-068",
+   "rule_group": "F-mgmt",
+   "surface": "进入装饰装修阶段未补充编制单项施工用电方案",
+   "params": {
+    "raw": "进入装饰装修阶段未补充编制单项施工用电方案"
+   },
+   "expected_ok": false,
+   "correct_statement": "装饰装修阶段应补充编制单项施工用电方案",
+   "anchor": "{2023,第1题}",
+   "extension": false
+  },
+  {
+   "variant_id": "S05-X-distance-069",
+   "rule_group": "X-distance",
+   "surface": "电锯开关箱距堆场配电箱 25.0m",
+   "params": {
+    "dist_m": 25.0,
+    "threshold_m": 30.0
+   },
+   "expected_ok": true,
+   "correct_statement": "开关箱与配电箱的间距不得大于 30m",
+   "anchor": "{2017,第2题}",
+   "extension": true
+  },
+  {
+   "variant_id": "S05-X-distance-070",
+   "rule_group": "X-distance",
+   "surface": "电锯开关箱距堆场配电箱 28.0m",
+   "params": {
+    "dist_m": 28.0,
+    "threshold_m": 30.0
+   },
+   "expected_ok": true,
+   "correct_statement": "开关箱与配电箱的间距不得大于 30m",
+   "anchor": "{2017,第2题}",
+   "extension": true
+  },
+  {
+   "variant_id": "S05-X-distance-071",
+   "rule_group": "X-distance",
+   "surface": "电锯开关箱距堆场配电箱 30.0m",
+   "params": {
+    "dist_m": 30.0,
+    "threshold_m": 30.0
+   },
+   "expected_ok": true,
+   "correct_statement": "开关箱与配电箱的间距不得大于 30m",
+   "anchor": "{2017,第2题}",
+   "extension": true
+  },
+  {
+   "variant_id": "S05-X-distance-072",
+   "rule_group": "X-distance",
+   "surface": "电锯开关箱距堆场配电箱 30.5m",
+   "params": {
+    "dist_m": 30.5,
+    "threshold_m": 30.0
+   },
+   "expected_ok": false,
+   "correct_statement": "开关箱与配电箱的间距不得大于 30m",
+   "anchor": "{2017,第2题}",
+   "extension": true
+  },
+  {
+   "variant_id": "S05-X-distance-073",
+   "rule_group": "X-distance",
+   "surface": "电锯开关箱距堆场配电箱 32.0m",
+   "params": {
+    "dist_m": 32.0,
+    "threshold_m": 30.0
+   },
+   "expected_ok": false,
+   "correct_statement": "开关箱与配电箱的间距不得大于 30m",
+   "anchor": "{2017,第2题}",
+   "extension": true
+  },
+  {
+   "variant_id": "S05-X-distance-074",
+   "rule_group": "X-distance",
+   "surface": "电锯开关箱距堆场配电箱 35.0m",
+   "params": {
+    "dist_m": 35.0,
+    "threshold_m": 30.0
+   },
+   "expected_ok": false,
+   "correct_statement": "开关箱与配电箱的间距不得大于 30m",
+   "anchor": "{2017,第2题}",
+   "extension": true
+  }
+ ],
+ "signoff": {
+  "who": "owner(陈业鸿)授权-主控代执行",
+  "when": "2026-07-05T02:09:48+08:00",
+  "basis": "gate 100% 确定性重跑通过+sha三方一致;owner 2026-07-05 明文'通过,全按建议来'批量签发(E05留owner亲审)"
+ }
+}

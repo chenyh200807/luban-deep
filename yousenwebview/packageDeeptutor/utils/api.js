@@ -838,6 +838,106 @@ function getHomeDashboard(opts) {
   return requestStateGet("/api/v1/homepage/dashboard", opts);
 }
 
+// ── 鲁班学习双轮（站点卡 lesson viewmodel，只读投影，零学习证据写入） ──
+
+/** 鲁班 — 绿灯站点列表 */
+function getLubanLessons(opts) {
+  return requestStateGet("/api/v1/luban/lessons", opts);
+}
+
+/** 鲁班 — 单站 viewmodel（card_url / variant_retest 等） */
+function getLubanLessonDetail(packId, opts) {
+  return requestStateGet(
+    "/api/v1/luban/lessons/" + encodeURIComponent(String(packId || "")),
+    opts,
+  );
+}
+
+/** 鲁班 — 学-evidence 上报（lesson_viewed，融合计划 §2.1 唯一 writer）。
+ * 看完讲懂/闯关幕后调用；后端 progress_countable=false、evidence_level=exposed，
+ * 绝不算掌握(M0)。watched_stage: "lesson"(讲懂) | "practice"(闯关)。 */
+function postLessonProgress(packId, watchedStage, cardSha, opts) {
+  return request(
+    Object.assign(
+      {
+        url: "/api/v1/lesson-progress/progress",
+        method: "POST",
+        data: {
+          pack_id: String(packId || ""),
+          watched_stage: String(watchedStage || "lesson"),
+          card_sha: String(cardSha || ""),
+        },
+      },
+      opts || {},
+    ),
+  );
+}
+
+/** 鲁班 — 复习到期投影(到期语义权威=revalidation_queue, 双轮 §6)。
+ * 旗标(LUBAN_REVIEW_MODULE_ENABLED)关时服务端返空清单(enabled=false), 页面走诚实空态。 */
+function getLubanReviewDue(opts) {
+  return requestStateGet("/api/v1/luban/review-due", opts);
+}
+
+/** 鲁班 — 站完成信号(非 promoting): 复测调度的触发事实——交接时刻/复测完成时上报。
+ * 走唯一 learner-signal 写入口, 不写掌握、不进证据编译器(contracts/learner-state.md)。 */
+function postStationCompleted(packId, packTitle, opts) {
+  return request(
+    Object.assign(
+      {
+        url: "/api/v1/learner-signal/signal",
+        method: "POST",
+        data: {
+          signal_type: "station_completed",
+          concept_id: String(packId || "").trim(),
+          concept_label: String(packTitle || "").trim(),
+        },
+      },
+      opts || {},
+    ),
+  );
+}
+
+/** 鲁班 — 次日变体复测题面（服务端确定性抽取，客户端本地判分） */
+function getLubanRetestItems(packId, limit, opts) {
+  var n = Number(limit || 5);
+  if (!Number.isFinite(n) || n <= 0) n = 5;
+  return requestStateGet(
+    "/api/v1/luban/lessons/" +
+      encodeURIComponent(String(packId || "")) +
+      "/retest-items?limit=" +
+      Math.min(Math.round(n), 10),
+    opts,
+  );
+}
+
+/** 鲁班 — 考点卡库总览(张数真值=signed 卡池投影; 旗标关返 total=0/enabled=false,
+ * 复习页据此保持「即将开通」诚实占位, 前端绝不自造卡数)。 */
+function getLubanConceptCardLibrary(opts) {
+  return requestStateGet("/api/v1/luban/concept-cards", opts);
+}
+
+/** 鲁班 — 单站考点卡(翻卡页数据; 未签发/非绿灯/旗标关一律 404 同形)。 */
+function getLubanConceptCards(packId, opts) {
+  return requestStateGet(
+    "/api/v1/luban/concept-cards/" + encodeURIComponent(String(packId || "")),
+    opts,
+  );
+}
+
+/** 鲁班 — 单条 R8 解药(错因银行 detail「解药位」; 按 {pack_id, error_code} 取
+ * signed 解药, 响应 {mental_model, textbook_ref}。未签发/无此码/非绿灯/旗标关一律
+ * 404 同形——前端据此保持「解药整理中」诚实占位, 绝不自造讲解)。 */
+function getLubanAntidote(packId, errorCode, opts) {
+  return requestStateGet(
+    "/api/v1/luban/antidotes/" +
+      encodeURIComponent(String(packId || "")) +
+      "/" +
+      encodeURIComponent(String(errorCode || "")),
+    opts,
+  );
+}
+
 /** 摸底测试 — 获取诊断档案 */
 function getAssessmentProfile(opts) {
   return requestStateGet("/api/v1/assessment/profile", opts);
@@ -939,6 +1039,15 @@ module.exports = {
   submitFeedback: submitFeedback,
   uploadFeedbackAttachment: uploadFeedbackAttachment,
   getHomeDashboard: getHomeDashboard,
+  getLubanLessons: getLubanLessons,
+  getLubanLessonDetail: getLubanLessonDetail,
+  getLubanRetestItems: getLubanRetestItems,
+  getLubanReviewDue: getLubanReviewDue,
+  getLubanConceptCardLibrary: getLubanConceptCardLibrary,
+  getLubanConceptCards: getLubanConceptCards,
+  getLubanAntidote: getLubanAntidote,
+  postStationCompleted: postStationCompleted,
+  postLessonProgress: postLessonProgress,
   getAssessmentProfile: getAssessmentProfile,
   getAssessmentTopics: getAssessmentTopics,
   createAssessment: createAssessment,

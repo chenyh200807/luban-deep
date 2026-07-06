@@ -1,0 +1,33 @@
+[
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 0,
+    "tier": "Tier-2(事实类·保🟢需完整quote)",
+    "retrieval": "tbsearch '1.2N/mm'→教材CET_1A413030_P0103_001(P103,规范类)完整①②③④句+讲义LEC_1A413040_P0013_001(主体结构p13)同义句",
+    "panel": {
+      "GLM-5.2": {
+        "quote_supports": true,
+        "disposition": "keep_green_with_textbook_provenance"
+      },
+      "DeepSeek-V4-Pro(第二签,§4/B镜头回避Claude)": {
+        "quote_supports": true,
+        "disposition": "keep_green_with_textbook_provenance"
+      },
+      "vote": "2/2 通过"
+    },
+    "edits": "GLM-5.2 产 3 组编辑对(§1 #4/§3 场景4/§8.2 C5), unique-match 3/3 应用, 两闸绿; 升色=0, 新增🟢=0(原🟢维持,仅补出处)"
+  },
+  {
+    "ts": "2026-07-04",
+    "batch": "D2-confidence",
+    "issue_idx": 1,
+    "tier": "Tier-1(冲突锚隔离·降级括注方向)",
+    "actions": [
+      "前轮已定性: §1 #6 标🔵冲突锚+§8.2 C4 留痕+判分以真题为准; 但 §2/§3/§4 S3/§5 D3 五处仍裸🟢引用 098_0184 未隔离(jury 指控核实为真)",
+      "GLM-5.2 产 5 组编辑对(§2 因果链处 old_string 因'└'vs'└─'不唯一跳过一次, 以行级精确 old_string 重试成功), 共 5/5 应用",
+      "改法=挂(🔵冲突锚·C4)标注+因果链支路括注'不参与采分', 不删锚不升色, 其余锚原样"
+    ],
+    "panel": "结构/邻接类·方向=降级隔离, 按计划§2 可直接 Tier-1; GLM-5.2 为编辑员(全节非生产源)"
+  }
+]

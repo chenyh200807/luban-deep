@@ -29,6 +29,7 @@ from collections import defaultdict
 from typing import Any, Iterable
 
 from deeptutor.contracts.error_codes import ERROR_CODE_REGISTRY
+from deeptutor.services.learner_state.lesson_evidence import is_lesson_view_event
 from deeptutor.services.learner_state.service import LearnerStateEvent
 from deeptutor.services.taxonomy.construction_learning_graph import (
     get_learning_graph_node,
@@ -76,8 +77,14 @@ def project_three_layer_learning_state(
     grading_facts: list[dict[str, Any]] = []
     conversation_signals: list[dict[str, Any]] = []
     legacy_count = 0
+    lesson_view_count = 0
 
     for event in ordered:
+        # §2.1 显式分类：luban_lesson 学-evidence（lesson_viewed）不是 grading
+        # fact 也不是 legacy——单独计数，防 legacy_count 观测口径虚高。
+        if is_lesson_view_event(event):
+            lesson_view_count += 1
+            continue
         fact = _extract_grading_fact(event)
         if fact is not None:
             grading_facts.extend(fact)
@@ -106,6 +113,7 @@ def project_three_layer_learning_state(
             "legacy_count": legacy_count,
             "grading_fact_count": len(grading_facts),
             "conversation_signal_count": len(conversation_signals),
+            "lesson_view_count": lesson_view_count,
         },
     }
 

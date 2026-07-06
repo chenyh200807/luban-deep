@@ -1,0 +1,27 @@
+<view class="station-page paper {{isDark ? '' : 'light'}} pk-paper-bg">
+  <view class="st-loading" wx:if="{{loading}}">
+    <text>正在打开这一站…</text>
+  </view>
+
+  <view class="st-error" wx:elif="{{errorText}}">
+    <text>{{errorText}}</text>
+    <view class="st-retry" bindtap="retry">重试</view>
+    <view class="st-retry ghost" bindtap="goBack">返回路线</view>
+  </view>
+
+  <block wx:else>
+    <!-- 两幕 web-view；currentUrl 为空（托管未配置）时降级为原生占位，按钮流程不变 -->
+    <web-view wx:if="{{currentUrl}}" src="{{currentUrl}}"></web-view>
+    <view class="st-fallback" wx:else>
+      <text class="st-fallback-title">{{title}}</text>
+      <text class="st-fallback-hint">这一站的卡片正在准备中，先往下走也没问题。</text>
+    </view>
+
+    <!-- 底部常驻按钮（见 station.js 顶部 caveat：真机可能被 web-view 覆盖） -->
+    <view class="st-footer">
+      <view class="st-primary" bindtap="onPrimaryTap">
+        <text>{{tier === 'lesson' ? '看完了，去闯关' : '闯关完成'}}</text>
+      </view>
+    </view>
+  </block>
+</view>

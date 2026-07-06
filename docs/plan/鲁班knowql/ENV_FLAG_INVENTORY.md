@@ -38,6 +38,7 @@
 | `DEEPTUTOR_SEMANTIC_ROUTER_ENABLED` | True | killswitch | ✅ | |
 | `DEEPTUTOR_SEMANTIC_ROUTER_SHADOW_MODE` | False | shadow | ✅ | |
 | `QUESTION_LIFECYCLE_DECISION_AUTHORITY` | True | killswitch | ✅ | 无 `_ENABLED` 后缀,靠 env_flag 抓到 |
+| `DEEPTUTOR_HOME_NEXT_STEP_ENABLED` | False | rollout | ✅ | home 生命周期融合面总开关(2026-07-04 owner 拍板):next_step 仲裁 + mastery 证据 blend(首页/雷达/章节盘)一起开关,默认 off,已登记 env_registry.yaml |
 | `KBV5_RAG_ENABLED` | (无显式 default) | rollout | ✅ | **KB v5 灰度核心**,拼错=假灰度 |
 | `SUPABASE_RAG_ENABLED` | False | rollout | ✅ | |
 | `SUPABASE_RAG_COMPILED_TRUTH_ENABLED` | (无) | rollout | ✅ | |
