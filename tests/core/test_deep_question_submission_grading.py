@@ -54,6 +54,18 @@ async def _collect_events(run_coro) -> list[StreamEvent]:
     return events
 
 
+def _canonical_generation_decision(
+    *, allowed_patch: str = "set_active_object"
+) -> dict[str, Any]:
+    return {
+        "relation_to_active_object": "continue_same_learning_flow",
+        "next_action": "route_to_generation",
+        "allowed_patch": allowed_patch,
+        "confidence": 1.0,
+        "reason": "orchestrator canonical practice_generation decision",
+    }
+
+
 def test_deep_question_builds_case_context_from_full_submission() -> None:
     raw_case_submission = (
         "建设单位编制了投资兴建某工程的招标文件。\n"
@@ -929,7 +941,7 @@ async def test_deep_question_reveals_written_reference_without_followup_llm(
 
 
 @pytest.mark.asyncio
-async def test_deep_question_blocks_unanswered_direct_answer_reveal(
+async def test_deep_question_hides_unanswered_reference_from_followup_agent(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class FakeCoordinator:
@@ -947,6 +959,11 @@ async def test_deep_question_blocks_unanswered_direct_answer_reveal(
             pass
 
         async def process(self, **_kwargs: Any) -> str:
+            question_context = _kwargs["question_context"]
+            assert "correct_answer" not in question_context
+            assert "answer" not in question_context
+            assert "explanation" not in question_context
+            assert "grading_key" not in question_context
             return "这道题你还没作答,我先帮你理解题意,先不直接公布答案,你可以试着选一个。"
 
     _install_module(
@@ -966,7 +983,7 @@ async def test_deep_question_blocks_unanswered_direct_answer_reveal(
     )
 
     context = UnifiedContext(
-        user_message="直接告诉我答案",
+        user_message="给点提示",
         language="zh",
         metadata={
             "turn_semantic_decision": {
@@ -2406,6 +2423,9 @@ async def test_deep_question_blocks_action_only_generation_without_anchor_before
         metadata={
             "question_lifecycle_scene": "practice_generation",
             "selected_mode": "deep",
+            "turn_semantic_decision": _canonical_generation_decision(
+                allowed_patch="no_state_change"
+            ),
         },
     )
 
@@ -2451,6 +2471,9 @@ async def test_deep_question_blocks_non_construction_generation_before_coordinat
         metadata={
             "question_lifecycle_scene": "practice_generation",
             "selected_mode": "deep",
+            "turn_semantic_decision": _canonical_generation_decision(
+                allowed_patch="no_state_change"
+            ),
         },
     )
 
@@ -2527,6 +2550,7 @@ async def test_deep_question_allows_explicit_construction_generation_topic(
         metadata={
             "question_lifecycle_scene": "practice_generation",
             "selected_mode": "deep",
+            "turn_semantic_decision": _canonical_generation_decision(),
         },
     )
 
@@ -2605,6 +2629,7 @@ async def test_deep_question_different_topic_request_does_not_inherit_question_a
         metadata={
             "question_lifecycle_scene": "practice_generation",
             "selected_mode": "fast",
+            "turn_semantic_decision": _canonical_generation_decision(),
             "active_object": {
                 "object_type": "single_question",
                 "object_id": "q_hot_work",

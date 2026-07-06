@@ -150,6 +150,43 @@ def _clip_text(value: Any, *, limit: int = 280) -> str:
     return text[: max(0, limit - 3)].rstrip() + "..."
 
 
+_REVEAL_AUTHORITY_KEYS = {
+    "answer",
+    "answers",
+    "correct_answer",
+    "answer_key_authority",
+    "explanation",
+    "explanations",
+    "grading_key",
+    "grading_keys",
+    "official_slice",
+    "reference_answer",
+    "reference_answers",
+    "score_authority",
+    "solution",
+    "standard_answer",
+}
+
+
+def _strip_reveal_authority_fields(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: _strip_reveal_authority_fields(child)
+            for key, child in value.items()
+            if str(key) not in _REVEAL_AUTHORITY_KEYS
+        }
+    if isinstance(value, list):
+        return [_strip_reveal_authority_fields(item) for item in value]
+    return value
+
+
+def _question_context_without_reveal_authority(
+    question_context: dict[str, Any],
+) -> dict[str, Any]:
+    stripped = _strip_reveal_authority_fields(question_context)
+    return stripped if isinstance(stripped, dict) else {}
+
+
 def _append_unique(parts: list[str], candidate: Any) -> None:
     text = _compact_text(candidate)
     if not text or text in parts:
@@ -5358,6 +5395,9 @@ class DeepQuestionCapability(BaseCapability):
             else:
                 from deeptutor.agents.question.agents.followup_agent import FollowupAgent
 
+                agent_question_context = _question_context_without_reveal_authority(
+                    followup_question_context
+                )
                 agent = FollowupAgent(
                     language=context.language,
                     api_key=llm_config.api_key,
@@ -5367,7 +5407,7 @@ class DeepQuestionCapability(BaseCapability):
                 agent.set_trace_callback(self._build_trace_bridge(stream))
                 answer = await agent.process(
                     user_message=raw_user_message,
-                    question_context=followup_question_context,
+                    question_context=agent_question_context,
                     history_context=str(
                         context.metadata.get("conversation_context_text", "") or ""
                     ).strip(),
