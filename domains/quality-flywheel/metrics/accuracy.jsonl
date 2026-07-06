@@ -10,3 +10,9 @@
 {"ts": "2026-07-01T10:59:12.457888", "deployed_sha": "a19114d398fcb0406505030db1d96acc11b27bc7", "dim": "sev_regression", "fail_rate": 0.3333333333333333, "reproduced": true, "conclusive": true, "gate_verdict": "BLOCK"}
 {"ts": "2026-07-01T10:59:12.457888", "deployed_sha": "a19114d398fcb0406505030db1d96acc11b27bc7", "dim": "forward_liveness", "fail_rate": 0.16666666666666666, "reproduced": true, "conclusive": true, "gate_verdict": "BLOCK"}
 {"ts": "2026-07-01T10:59:12.457888", "deployed_sha": "a19114d398fcb0406505030db1d96acc11b27bc7", "dim": "content_truth", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
+{"ts": "2026-07-02T11:18:54.697779", "deployed_sha": "0666173ebee1323626c8a3d5f757637e99c1be79", "dim": "daowu", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
+{"ts": "2026-07-02T11:18:54.697779", "deployed_sha": "0666173ebee1323626c8a3d5f757637e99c1be79", "dim": "huizhi", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
+{"ts": "2026-07-02T11:18:54.697779", "deployed_sha": "0666173ebee1323626c8a3d5f757637e99c1be79", "dim": "leak_boundary", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
+{"ts": "2026-07-02T11:18:54.697779", "deployed_sha": "0666173ebee1323626c8a3d5f757637e99c1be79", "dim": "sev_regression", "fail_rate": 0.3333333333333333, "reproduced": true, "conclusive": true, "gate_verdict": "BLOCK"}
+{"ts": "2026-07-02T11:18:54.697779", "deployed_sha": "0666173ebee1323626c8a3d5f757637e99c1be79", "dim": "forward_liveness", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
+{"ts": "2026-07-02T11:18:54.697779", "deployed_sha": "0666173ebee1323626c8a3d5f757637e99c1be79", "dim": "content_truth", "fail_rate": 0.0, "reproduced": false, "conclusive": true, "gate_verdict": "GO"}
