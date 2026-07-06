@@ -43,6 +43,7 @@ from deeptutor.services.question_followup import (
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
+    detect_requested_question_count,
     normalize_question_followup_context,
     requested_question_item_index,
     resolve_reveal_decision,
@@ -423,6 +424,26 @@ def _conversation_generation_anchor(conversation_context_text: str) -> str:
     if not text:
         return ""
     return f"最近对话摘要：{text}"
+
+
+def _conversation_history_context_text(
+    conversation_history: list[dict[str, Any]] | None,
+) -> str:
+    if not isinstance(conversation_history, list):
+        return ""
+    lines: list[str] = []
+    for item in conversation_history[-4:]:
+        if not isinstance(item, dict):
+            continue
+        role = str(item.get("role") or "").strip().lower()
+        if role not in {"user", "assistant"}:
+            continue
+        content = _clip_text(item.get("content"), limit=180)
+        if not content or content.lower() in {"新对话", "untitled", "new chat"}:
+            continue
+        label = "用户" if role == "user" else "助手"
+        lines.append(f"{label}: {content}")
+    return "\n".join(lines)
 
 
 def _current_question_exclusion_generation_topic(
@@ -3648,6 +3669,26 @@ class DeepQuestionCapability(BaseCapability):
         return intent
 
     @staticmethod
+    def _resolve_generation_question_count(
+        *,
+        overrides: dict[str, Any],
+        learning_training_intent: dict[str, Any],
+        raw_user_message: str,
+    ) -> int:
+        explicit_count, has_explicit_count = detect_requested_question_count(raw_user_message)
+        if has_explicit_count:
+            return explicit_count
+        try:
+            override_count = int(overrides.get("num_questions", 1) or 1)
+        except (TypeError, ValueError):
+            override_count = 1
+        if override_count != 1:
+            return override_count
+        if learning_training_intent.get("question_count"):
+            return int(learning_training_intent["question_count"])
+        return override_count
+
+    @staticmethod
     def _learning_training_intent_from_personalization_context(
         personalization_context: dict[str, Any] | None,
     ) -> dict[str, Any]:
@@ -4222,6 +4263,7 @@ class DeepQuestionCapability(BaseCapability):
                 part
                 for part in [
                     str(context.metadata.get("conversation_context_text", "") or "").strip(),
+                    _conversation_history_context_text(context.conversation_history),
                     str(context.memory_context or "").strip(),
                 ]
                 if part
@@ -4240,9 +4282,11 @@ class DeepQuestionCapability(BaseCapability):
                 trace_meta = context.metadata.setdefault("trace_metadata", {})
                 if isinstance(trace_meta, dict):
                     trace_meta["learning_training_intent_id"] = learning_training_intent.get("training_intent_id")
-        num_questions = int(overrides.get("num_questions", 1) or 1)
-        if learning_training_intent.get("question_count"):
-            num_questions = int(learning_training_intent["question_count"])
+        num_questions = self._resolve_generation_question_count(
+            overrides=overrides,
+            learning_training_intent=learning_training_intent,
+            raw_user_message=raw_user_message,
+        )
         difficulty = str(overrides.get("difficulty", "") or "")
         question_type = str(overrides.get("question_type", "") or "")
         preference = str(overrides.get("preference", "") or "")

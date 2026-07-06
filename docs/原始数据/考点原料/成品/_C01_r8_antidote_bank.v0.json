@@ -1,0 +1,117 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "C01",
+ "status": "signed",
+ "source_pack_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
+ "generation_ms": 0.99,
+ "gate": {
+  "total": 6,
+  "passed": 6,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 6,
+ "dropped_rows": [
+  {
+   "r8_id": "C01:R8-M2",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "C01:R8-M5",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "E10": [
+   {
+    "r8_id": "C01:R8-M1",
+    "mental_model": "留受剪力较小处：柱墙 0~300mm、次梁跨中 1/3、墙交接处；防水混凝土不留剪力最大处",
+    "textbook_ref": "kc:1A413030_103_0196:0",
+    "phenomenon": "施工缝留在受剪力较大部位 / 墙任意位置",
+    "wrong_model": "以为留哪都行不影响结构"
+   },
+   {
+    "r8_id": "C01:R8-M4",
+    "mental_model": "后浇带用微膨胀混凝土、强度提高一级、养护≥14d、接缝按施工缝处理",
+    "textbook_ref": "kc:1A413030_103_0196:1",
+    "phenomenon": "后浇带用普通同强度混凝土 / 不加强养护",
+    "wrong_model": "以为后浇带=普通施工缝"
+   },
+   {
+    "r8_id": "C01:R8-M6",
+    "mental_model": "钢丝网应保留防漏浆；施工缝/接槎必须清理干净避免粘结不良渗漏",
+    "textbook_ref": "kc:1A434000_074_0116:0",
+    "phenomenon": "后浇带钢丝网剔除 / 接槎不清理",
+    "wrong_model": "以为钢丝网无用、清理多余"
+   }
+  ],
+  "M04": [
+   {
+    "r8_id": "C01:R8-M1",
+    "mental_model": "留受剪力较小处：柱墙 0~300mm、次梁跨中 1/3、墙交接处；防水混凝土不留剪力最大处",
+    "textbook_ref": "kc:1A413030_103_0196:0",
+    "phenomenon": "施工缝留在受剪力较大部位 / 墙任意位置",
+    "wrong_model": "以为留哪都行不影响结构"
+   }
+  ],
+  "E06": [
+   {
+    "r8_id": "C01:R8-M3",
+    "mental_model": "强度达 1.2N/mm² → 凿毛 → 清理 → 铺 30mm 砂浆 → 再浇",
+    "textbook_ref": "kc:1A434000_074_0116:0",
+    "phenomenon": "旧缝不达强度 / 先浇后凿 / 不铺砂浆直接接",
+    "wrong_model": "以为接上就行不讲工序"
+   }
+  ],
+  "E03": [
+   {
+    "r8_id": "C01:R8-M3",
+    "mental_model": "强度达 1.2N/mm² → 凿毛 → 清理 → 铺 30mm 砂浆 → 再浇",
+    "textbook_ref": "kc:1A434000_074_0116:0",
+    "phenomenon": "旧缝不达强度 / 先浇后凿 / 不铺砂浆直接接",
+    "wrong_model": "以为接上就行不讲工序"
+   },
+   {
+    "r8_id": "C01:R8-M6",
+    "mental_model": "钢丝网应保留防漏浆；施工缝/接槎必须清理干净避免粘结不良渗漏",
+    "textbook_ref": "kc:1A434000_074_0116:0",
+    "phenomenon": "后浇带钢丝网剔除 / 接槎不清理",
+    "wrong_model": "以为钢丝网无用、清理多余"
+   }
+  ],
+  "E07": [
+   {
+    "r8_id": "C01:R8-M4",
+    "mental_model": "后浇带用微膨胀混凝土、强度提高一级、养护≥14d、接缝按施工缝处理",
+    "textbook_ref": "kc:1A413030_103_0196:1",
+    "phenomenon": "后浇带用普通同强度混凝土 / 不加强养护",
+    "wrong_model": "以为后浇带=普通施工缝"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "C01:R8-M7",
+    "mental_model": "完整答：整理钢筋/冲洗/微膨胀/提高一级/≥14d/≥28d/接缝按施工缝处理",
+    "textbook_ref": "kc:1A413030_103_0196:1",
+    "phenomenon": "后浇带答案漏项(只写微膨胀/提高一级)",
+    "wrong_model": "以为说了主料就够"
+   }
+  ],
+  "E04": [
+   {
+    "r8_id": "C01:R8-M8",
+    "mental_model": "必须落到可判分措施(位置 1/3/0~300mm、1.2N/mm²/凿毛/30mm、微膨胀/提高一级/14d/28d)，口号不得分",
+    "textbook_ref": "kc:1A413030_103_0196:1",
+    "phenomenon": "答案空泛\"处理好施工缝、做好养护\"",
+    "wrong_model": "以为方向对就给分"
+   }
+  ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:19+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
+ }
+}

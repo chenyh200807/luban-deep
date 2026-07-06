@@ -5,6 +5,11 @@
 > 只 append，新条在**上**。详细复盘仍在 `artifacts/tutorbot_fix_test_journal.md`（倒序），
 > 本 LOG 只留「飞轮活动」一行结论 + 链接，不复制 journal 正文。
 
+## 2026-07-01 · 调度 accuracy_gate · #scheduled
+
+What: SHA=a19114d398fc, exit=3(BLOCK), 六维: daowu, huizhi, leak_boundary, sev_regression, forward_liveness, content_truth; 复现阻断维度: sev_regression, forward_liveness。metrics/accuracy.jsonl 的 append 由 accuracy_gate.py 自身完成(单一 collector 权威), 本行只记调度活动。
+Refs: `/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor-v2-live-verify/artifacts/quality_gate/scheduled/20260701_101724/report.md`
+
 ## 2026-07-01 · 飞轮 V2 shared brain 落地 + metrics 时序缺口补齐 · #flywheel #shared-brain
 
 What: 把 v1 散件按 loop-engineer-template shared-brain 结构系统化（charter / signals 频次 /

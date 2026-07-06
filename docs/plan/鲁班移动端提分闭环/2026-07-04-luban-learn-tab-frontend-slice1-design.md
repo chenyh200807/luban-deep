@@ -88,7 +88,8 @@
 - 本片新建的只有**学习 home**(`pages/learn/learn`,纸墨朱竹宣纸驾驶舱),它的下一站卡「播放」/ 课程架 / 完整路线 → navigate 进现有 `luban/station`、`luban/stations`
 - **lesson-progress 接进现有 `luban/station` 讲懂幕**(补上缺的学-evidence writer),不在新页做
 
-**由此产生一个新决策(待用户)**:spike 的 `station/stations` 是可用但**旧设计形态**(非纸墨朱竹)。本片是 (a) 保留 station/stations 原样、只建纸墨朱竹学习 home + 接 lesson-progress,还是 (b) 顺带把 station/stations 也重塑成纸墨朱竹?推荐 (a)——先让学习 home 这个"驾驶舱"立起来消费后端,播放器视觉统一放后续片,避免第一片摊太大。
+**决策(用户 2026-07-04 拍板 = (b)-深)**:station/stations 现用旧板岩靛蓝(原 report 那套 #818cf8/#7dd3fc),本片**顺带重塑成纸墨朱竹,按第 10 轮定稿原则,视觉一次到位**。深度=**深**:stations 站点列表改成设计的**竖排书法海报路线图**(84×112,墨/朱/纸三色轮替,Long Cang 竖排考点名),复用学习 home 的"课程架"同一组件;station 播放页 native 壳(loading/error/footer)刷纸墨朱竹色。逻辑/结构不动,只换视觉层 + 列表→海报重构。
+- **诚实边界**:(b) 让 native 外壳一路纸墨朱竹不换脸;但 web-view 里加载的**卡内容本身**(讲懂/闯关 HTML)仍是旧 luban-preview,换成纸墨朱竹新卡=独立内容任务(发进 luban-preview 托管)。"视觉一次到位"= 外壳一次到位,卡内容待内容任务。
 
 ## 4. 文件结构(新建学习 home + 复用 spike 播放器)
 

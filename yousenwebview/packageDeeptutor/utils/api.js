@@ -911,6 +911,33 @@ function getLubanRetestItems(packId, limit, opts) {
   );
 }
 
+/** 鲁班 — 考点卡库总览(张数真值=signed 卡池投影; 旗标关返 total=0/enabled=false,
+ * 复习页据此保持「即将开通」诚实占位, 前端绝不自造卡数)。 */
+function getLubanConceptCardLibrary(opts) {
+  return requestStateGet("/api/v1/luban/concept-cards", opts);
+}
+
+/** 鲁班 — 单站考点卡(翻卡页数据; 未签发/非绿灯/旗标关一律 404 同形)。 */
+function getLubanConceptCards(packId, opts) {
+  return requestStateGet(
+    "/api/v1/luban/concept-cards/" + encodeURIComponent(String(packId || "")),
+    opts,
+  );
+}
+
+/** 鲁班 — 单条 R8 解药(错因银行 detail「解药位」; 按 {pack_id, error_code} 取
+ * signed 解药, 响应 {mental_model, textbook_ref}。未签发/无此码/非绿灯/旗标关一律
+ * 404 同形——前端据此保持「解药整理中」诚实占位, 绝不自造讲解)。 */
+function getLubanAntidote(packId, errorCode, opts) {
+  return requestStateGet(
+    "/api/v1/luban/antidotes/" +
+      encodeURIComponent(String(packId || "")) +
+      "/" +
+      encodeURIComponent(String(errorCode || "")),
+    opts,
+  );
+}
+
 /** 摸底测试 — 获取诊断档案 */
 function getAssessmentProfile(opts) {
   return requestStateGet("/api/v1/assessment/profile", opts);
@@ -1016,6 +1043,9 @@ module.exports = {
   getLubanLessonDetail: getLubanLessonDetail,
   getLubanRetestItems: getLubanRetestItems,
   getLubanReviewDue: getLubanReviewDue,
+  getLubanConceptCardLibrary: getLubanConceptCardLibrary,
+  getLubanConceptCards: getLubanConceptCards,
+  getLubanAntidote: getLubanAntidote,
   postStationCompleted: postStationCompleted,
   postLessonProgress: postLessonProgress,
   getAssessmentProfile: getAssessmentProfile,

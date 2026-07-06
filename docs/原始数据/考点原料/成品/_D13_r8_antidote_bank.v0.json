@@ -1,0 +1,86 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "D13",
+ "status": "signed",
+ "source_pack_sha256": "6745894a27086c053065b63739bd0fb66eee75a32a56ec5679fb8467cc9bbcf3",
+ "generation_ms": 1.03,
+ "gate": {
+  "total": 4,
+  "passed": 4,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 4,
+ "dropped_rows": [
+  {
+   "r8_id": "D13:R8-M2",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "D13:R8-M4",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "D13:R8-M6",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "D13:R8-M7",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "D13:R8-M9",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "M08": [
+   {
+    "r8_id": "D13:R8-M1",
+    "mental_model": "钢质承托板厚度≥1.5mm（毫米）；1.5m 是 1.5mm 的 1000 倍，幕墙构造无 1.5m 钢板",
+    "textbook_ref": "kc:1A413030_148_0286:0",
+    "phenomenon": "把承托板厚度 1.5mm 写成 1.5m",
+    "wrong_model": "单位失察，m/mm 混"
+   },
+   {
+    "r8_id": "D13:R8-M3",
+    "mental_model": "窗槛墙空腔填塞高度≥200mm（教材）；楼板/隔墙缝隙封堵岩棉/矿棉厚度≥100mm（真题）——不同部位不同尺寸",
+    "textbook_ref": "kc:1A413030_148_0286:0",
+    "phenomenon": "把空腔填塞 200mm 与楼板缝隙 100mm 混",
+    "wrong_model": "以为是同一个尺寸"
+   },
+   {
+    "r8_id": "D13:R8-M5",
+    "mental_model": "立柱每 10m 范围内宜一根柔性导线连通上下柱（教材\"宜\"=推荐性）；通段不设柔性导线即漏防雷连通要点",
+    "textbook_ref": "kc:1A413030_148_0287:0",
+    "phenomenon": "铝合金立柱通段无柔性导线连通",
+    "wrong_model": "以为立柱距离不影响防雷"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "D13:R8-M5",
+    "mental_model": "立柱每 10m 范围内宜一根柔性导线连通上下柱（教材\"宜\"=推荐性）；通段不设柔性导线即漏防雷连通要点",
+    "textbook_ref": "kc:1A413030_148_0287:0",
+    "phenomenon": "铝合金立柱通段无柔性导线连通",
+    "wrong_model": "以为立柱距离不影响防雷"
+   }
+  ],
+  "M03": [
+   {
+    "r8_id": "D13:R8-M8",
+    "mental_model": "同一幕墙玻璃单元不应跨越两个防火分区，否则火灾沿幕墙串区",
+    "textbook_ref": "kc:1A413030_148_0286:0",
+    "phenomenon": "玻璃单元跨两个防火分区",
+    "wrong_model": "以为玻璃幕墙整片连续即可"
+   }
+  ]
+ },
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-06T00:09:20+08:00",
+  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
+ }
+}
