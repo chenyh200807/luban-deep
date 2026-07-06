@@ -56,6 +56,7 @@ from deeptutor.services.question_followup import (
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     followup_action_route,
+    looks_like_practice_generation_request,
     normalize_question_followup_context,
     should_block_unanswered_reference_reveal,
 )
@@ -1090,8 +1091,18 @@ def _build_turn_semantic_decision(
     *,
     active_object: dict[str, Any] | None,
     followup_question_action: dict[str, Any] | None,
+    user_message: str = "",
 ) -> dict[str, Any]:
     if not isinstance(active_object, dict):
+        if looks_like_practice_generation_request(user_message):
+            return build_semantic_turn_decision(
+                relation_to_active_object="switch_to_new_object",
+                next_action="route_to_generation",
+                allowed_patch="set_active_object",
+                confidence=0.66,
+                reason="当前无 active object，deterministic fallback 命中新练题请求。",
+                target_object_ref={"object_type": "question_set", "object_id": ""},
+            )
         return {}
 
     route = followup_action_route(followup_question_action)
@@ -1116,6 +1127,17 @@ def _build_turn_semantic_decision(
         relation = "continue_same_learning_flow"
         next_action = "route_to_generation"
         allowed_patch = "set_active_object"
+    elif looks_like_practice_generation_request(user_message):
+        relation = (
+            "switch_to_new_object"
+            if str(active_object.get("object_type") or "").strip() == "open_chat_topic"
+            else "continue_same_learning_flow"
+        )
+        next_action = "route_to_generation"
+        allowed_patch = "set_active_object"
+        normalized_confidence = (
+            normalized_confidence if normalized_confidence is not None else 0.7
+        )
     return build_semantic_turn_decision(
         relation_to_active_object=relation,
         next_action=next_action,
@@ -1147,8 +1169,24 @@ def _question_lifecycle_metadata_from_config(config: dict[str, Any] | None) -> d
     }
 
 
+def _practice_generation_result_is_blocked(metadata: dict[str, Any] | None) -> bool:
+    if not isinstance(metadata, dict):
+        return False
+    nested_metadata = (
+        metadata.get("metadata") if isinstance(metadata.get("metadata"), dict) else {}
+    )
+    reason = str(
+        metadata.get("practice_generation_blocked_reason")
+        or nested_metadata.get("practice_generation_blocked_reason")
+        or ""
+    ).strip()
+    return bool(reason)
+
+
 def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
     normalized_metadata = dict(metadata or {})
+    if _practice_generation_result_is_blocked(normalized_metadata):
+        return None
     explicit = normalize_question_followup_context(
         normalized_metadata.get("question_followup_context")
     )
@@ -1171,6 +1209,8 @@ def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[s
 
 def _result_active_object(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
     normalized_metadata = dict(metadata or {})
+    if _practice_generation_result_is_blocked(normalized_metadata):
+        return None
     explicit = normalize_active_object(normalized_metadata.get("active_object"))
     if explicit is not None:
         return explicit
@@ -4599,6 +4639,7 @@ class TurnRuntimeManager:
             turn_semantic_decision = _build_turn_semantic_decision(
                 active_object=active_object,
                 followup_question_action=followup_question_action,
+                user_message=raw_user_content,
             )
             if followup_question_context:
                 self._set_volatile_question_context(session_id, dict(followup_question_context))
