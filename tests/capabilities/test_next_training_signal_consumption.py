@@ -84,3 +84,63 @@ def test_learning_training_intent_updates_topic_and_active_object_state() -> Non
     assert "case_repair" in topic
     assert active_object["state_snapshot"]["training_intent_id"] == "lti_123"
     assert active_object["state_snapshot"]["learning_training_intent"]["concept_label"] == "主体结构"
+
+
+def test_explicit_user_question_count_overrides_training_intent_count() -> None:
+    intent = DeepQuestionCapability._normalize_learning_training_intent(
+        {
+            "source": "debug",
+            "training_intent_id": "intent-count-4",
+            "concept_label": "水泥",
+            "question_count": 4,
+        }
+    )
+
+    assert (
+        DeepQuestionCapability._resolve_generation_question_count(
+            overrides={"num_questions": 4},
+            learning_training_intent=intent,
+            raw_user_message="用 3 道题训练水泥",
+        )
+        == 3
+    )
+
+
+def test_existing_generation_question_count_overrides_training_intent_count() -> None:
+    intent = DeepQuestionCapability._normalize_learning_training_intent(
+        {
+            "source": "debug",
+            "training_intent_id": "intent-count-4",
+            "concept_label": "水泥",
+            "question_count": 4,
+        }
+    )
+
+    assert (
+        DeepQuestionCapability._resolve_generation_question_count(
+            overrides={"num_questions": 3},
+            learning_training_intent=intent,
+            raw_user_message="训练水泥",
+        )
+        == 3
+    )
+
+
+def test_training_intent_question_count_applies_when_user_count_is_not_explicit() -> None:
+    intent = DeepQuestionCapability._normalize_learning_training_intent(
+        {
+            "source": "debug",
+            "training_intent_id": "intent-count-4",
+            "concept_label": "水泥",
+            "question_count": 4,
+        }
+    )
+
+    assert (
+        DeepQuestionCapability._resolve_generation_question_count(
+            overrides={"num_questions": 1},
+            learning_training_intent=intent,
+            raw_user_message="训练水泥",
+        )
+        == 4
+    )

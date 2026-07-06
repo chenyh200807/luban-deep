@@ -150,7 +150,9 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   是批量迁移 / 测试污染高风险来源，不得计入真实运营会员。`public.v_members` 只负责为这些
   phone-backed identities 补充钱包、画像和聊天汇总 read model。`member_console` 本地 JSON
   只能作为运营备注、审计流水、conversation view audit 和低风险动作记录的 overlay；不得再作为
-  生产会员池、注册手机号池、钱包存在性或学习事实的 canonical source。
+  生产会员池、注册手机号池、钱包存在性或学习事实的 canonical source。BI 默认会员列表和经营总量
+  必须展示真实运营会员：可信手机号身份仍需先排除 QA、eval、release smoke、practice anchor、
+  army 类模拟账号和其它 `_looks_like_test_member` 标记账号。
 - `member_console` 可以提供会员套餐展示 read model 和运营包配置投影，但新注册用户的默认权益必须是
   0 点；充值到账、扣费、冻结余额和钱包存在性仍只属于 `WalletService` / wallet ledger
   authority。套餐展示中的原价、现价、点数和可用轮次只是 commerce read model，不得写入 learner
@@ -163,7 +165,8 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   `wallet_ledger` purchase 流水，前端和 BI commerce 不得自造收入表或把人工开通写成 learner-state
   事实。若 wallet service 不可用，人工付费开通必须 fail-closed，不能只改会员到期时间。
 - BI 会员运营新增窗口指标（例如今日、近 7 天、近 30 天新增）只能在上述可信会员目录内按
-  canonical member `created_at` 计算；它们是 dashboard read model，不得从前端分页结果、
+  canonical member `created_at` 计算；“今日新增”按 UTC+8 自然日计算，近 7 天 / 近 30 天
+  仍是相对当前时间的滚动窗口。它们是 dashboard read model，不得从前端分页结果、
   行为事件、钱包流水、运营备注或 learner-state projection 反推，也不得写入
   `learner_summaries`、`learner_memory_events`、profile、progress、goals 或 heartbeat。
 - BI 会员列表的 `last_active_at` 可以用 canonical session store 的真实会话更新时间做

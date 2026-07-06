@@ -9,6 +9,60 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-06 - 启动 orphan recovery 未释放免费试用 reservation，导致“2 次后像满 3 次”
+
+- 问题：
+  - test2 微信真机账号线上配置确认是每天免费 3 条、7 日 12 条、任意连续 3 个自然日每天满 3 条后下一问拦截，但用户第 2 条成功后就感到被拦。
+  - 线上 `member_usage_events` 显示该 wallet 当天存在 2 条 `metered_not_charged` 成功免费 turn，另有 1 条 `free_trial_reserved` 遗留预占；对应 chat turn 在部署/重启时被标记为 `failed / orphaned_on_restart`。
+- 根因：
+  - 最后正确点：startup `recover_all_orphaned_turns("orphaned_on_restart")` 能把进程重启前残留的 running turn 写成 terminal failed。
+  - 第一个错误点：同一 startup recovery 没有把这些重启前遗留的 `free_trial_reserved` 交回 `MemberUsageMeter` 释放；`mobile._build_free_trial_usage_payload()` 在 20 分钟 TTL 内会把 reserved 计入 free-trial 用量。
+  - shared failure shape：terminal truth split。chat turn 已经失败终态，commerce reservation 仍停留在 in-flight 状态，两个 authority 没有在重启恢复路径收敛。
+- 成功修法：
+  - `MemberUsageMeter.release_free_trial_reservations_before()` 成为 startup orphan reservation 释放 authority，只释放 `status=free_trial_reserved`、`metadata.reason=free_trial`、且 `created_at < startup_cutoff` 的记录；已消费、已释放、非 free-trial、启动后的新预占均不动。
+  - `main.lifespan()` 在原有 running turn recovery 后调用 thin wrapper `_release_startup_orphaned_free_trial_reservations()`，补齐重启恢复的 commerce terminal path；释放失败只 warning，不把可恢复额度清理问题升级成启动阻断。
+  - 线上即时修复：定向把遗留 reservation id=485 改为 `free_trial_released`，该账号当天有效计数从 3 降回 2。
+- 验证：
+  - 新增 meter 矩阵测试：只释放 cutoff 前 free-trial reserved，不碰未来 reserved、非 free-trial reserved、consumed。
+  - 新增 startup 测试：`lifespan` 在 `recover_all_orphaned_turns` 后调用 reservation release helper。
+  - 聚焦回归：`tests/services/test_member_usage_meter.py` + startup helper + orphan turn recovery `10 passed`；`tests/api/test_mobile_router.py -k free_trial` `9 passed, 137 deselected`；`tests/api/test_main_entrypoints.py` `33 passed`；`py_compile` 与 `ruff F821/F811` 通过。
+- 教训：
+  - daily limit 设置正确不等于用户体感正确；in-flight reservation 在 TTL 内就是可见用量，所有 terminal failure path 必须同步释放。
+  - 启动恢复也是 terminal path，不能只恢复 chat turn 而漏掉 commerce state。
+
+## 2026-07-05 - 免费试用 reservation 失败占用导致“权益不足”
+
+- 问题：
+  - test2 微信真机用户在 2026-07-05 20:49/21:01 连续提问时，前两轮阿里云百炼返回 `Arrearage / overdue-payment` raw provider error，第三轮成功回答后，下一问弹出“权益不足，请先充值后继续使用”。
+  - 业务事实要求：新注册/免费账号每天可问 3 个问题；7 日累计 12 个或任意连续 3 个自然日每天问满 3 个后，下一问才拦截；免费试用必须绑定 canonical 手机号身份，一个手机号只能绑定一个账号。
+- 根因：
+  - 最后正确点：`/api/v1/chat/start-turn` 在 0 余额且 wallet snapshot 存在时，先写 `MemberUsageMeter` 的 `free_trial_reserved` reservation，防止并发超领。
+  - 第一个错误点：`turn_runtime` 只在成功 completed path 里跳过 wallet capture，没有用统一 terminal truth 把 reservation 终结为“成功消耗”或“失败释放”；`mobile._is_free_trial_usage_event()` 又把 `free_trial_reserved` 当窗口用量。
+  - 进一步断点：`free_trial` / `free_trial_reservation_key` 曾可落到 session preferences，后续 turn 可能不用 fresh start-turn gate 复用旧 marker；重复 `client_turn_id` 的 insert failure 也曾被忽略。
+  - shared failure shape：terminal truth missing / in-flight reservation promoted to consumed usage。provider raw error 泄漏是同一终端事实缺口的可见症状；DeepSeek 官方 fallback 未生效是独立的线上 provider/env release 面，不是微信包上传问题。
+- 失败尝试及原因：
+  - “上传微信开发者工具新版本”被证伪：拦截来自后端 429 commerce gate，不是小程序 UI 旧包。
+  - “只把 provider error 文案净化”不够：即使不再泄漏 raw error，失败 turn 仍会继续消耗免费次数。
+  - “在 mobile start-turn 放宽每日 3 次”不可取：那会绕开并发 reservation authority，让失败和成功混在同一计数里。
+- 成功修法：
+  - `MemberUsageMeter.finalize_free_trial_reservation()` 成为唯一 reservation 状态转换 authority，只允许 `free_trial_reserved + reason=free_trial -> metered_not_charged/free_trial_released`，拒绝已 released、已 consumed、非 free_trial 或重复 client_turn_id 旧行翻写。
+  - `turn_runtime` 增加统一 free-trial terminal finalizer：completed 且可展示答案才消耗；security guardrail、server busy、timeout、cancel、exception、provider/raw error/failure fallback 都释放；finalize 失败显式返回/记录 `free_trial_update_failed`，不假装成功。
+  - `mobile` 先解析/校验 conversation，再做 free-trial reservation；quota check + reservation insert 由 `MemberUsageMeter.record_usage_event_after_check()` 在同一个 SQLite `BEGIN IMMEDIATE` 事务内完成，避免并发请求都读到旧计数后一起放行；`turn_runtime.start_turn` 失败立即释放；`record_usage_event=False` 对 duplicate reservation fail-closed；负余额 / frozen 非零不进入免费试用；超过 TTL 的历史 `free_trial_reserved` 不再永久占用窗口。
+  - `turn_runtime` 不再把 `free_trial` / `free_trial_reservation_key` 持久化到 session preferences，防止后续 turn 通过 preferences fallback 复用旧 reservation marker 跳过钱包扣费。
+  - `AgentLoop` 的 `finish_reason=error` 分支不再把 raw provider content 交给公开输出，而是无条件输出 `模型调用失败，请稍后重试。`；`user_visible_output` 仍保留 Arrearage pattern 作为下游 sink 的 defense-in-depth。
+  - `contracts/turn.md` / `contracts/capability.md` 明确 reservation 生命周期、TTL、conditional finalize 和 `free_trial_update_failed` 只属于 commerce 边界，不得参与 capability / TutorBot / learner-state / grading authority。
+- 验证：
+  - 聚焦回归：`217 passed in 38.52s`，覆盖 mobile free-trial daily/weekly/streak、released/stale reserved ignored、transactional quota-check+reserve、duplicate reservation fail-closed、负余额拒绝、runtime start-turn 失败释放、session preferences 不保存 marker、terminal consume/release/update_failed、member meter conditional finalize、provider error public fallback。
+  - 更早宽 mobile/API 回归：`165 passed in 29.99s`。
+  - 静态：`py_compile` 5 个生产文件通过；窄范围 `ruff --select F821,F811,F401` 通过；`git diff --check` 通过。
+  - 待提交后复跑：`python scripts/check_contract_guard.py --base origin/main --head HEAD`，确认 contract-sensitive 文件已被新增 contract/test surface 覆盖。
+- 残留/边界：
+  - 线上已产生的两条失败 reservation 需要在 `/root/deeptutor/data/user/member_usage_meter.db` 定向改为 `free_trial_released`，否则该用户今天仍会被历史错误占用影响。
+  - DeepSeek 官方 fallback 需要单独确认线上 `.env` / provider factory 配置和发布，不应伪装成本次 reservation 代码修复已经解决。
+- 教训：
+  - 预占状态不是消耗事实；凡是有 reservation，就必须有 terminal finalize/release 的单一 authority。
+  - 公开错误净化和权益计数是两条验证线：不泄漏 raw error 不等于不扣免费次数。
+
 ## 2026-07-05 - 学-evidence「疑似未落账」= review-due learned_count 口径缺口；复习页点亮语义失真 = 绿灯≠点亮
 
 - 问题：

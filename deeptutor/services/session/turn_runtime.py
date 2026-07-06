@@ -56,6 +56,7 @@ from deeptutor.services.question_followup import (
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     followup_action_route,
+    looks_like_practice_generation_request,
     normalize_question_followup_context,
     should_block_unanswered_reference_reveal,
 )
@@ -100,7 +101,7 @@ from deeptutor.services.session.sqlite_store import (
     normalize_active_object,
     normalize_suspended_object_stack,
 )
-from deeptutor.services.user_visible_output import coerce_user_visible_answer
+from deeptutor.services.user_visible_output import coerce_user_visible_answer, looks_like_unsafe_visible_output
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
     active_object_requires_deep_mode,
@@ -537,6 +538,23 @@ def _safe_terminal_assistant_content(
     return normalize_markdown_for_tutorbot(
         coerce_user_visible_answer(source, fallback=fallback)
     ) or fallback
+
+
+def _is_chargeable_mobile_assistant_content(raw_content: str | None, public_content: str | None) -> bool:
+    raw_source = str(raw_content or "").strip()
+    public_source = str(public_content or "").strip()
+    if not public_source:
+        return False
+    if raw_source and looks_like_unsafe_visible_output(raw_source):
+        return False
+    if public_source in {
+        _PUBLIC_FAILED_MESSAGE,
+        _PUBLIC_CANCELLED_MESSAGE,
+        "暂时未生成适合直接展示的答案，请重试一次。",
+        "模型调用失败，请稍后重试。",
+    }:
+        return False
+    return True
 
 
 def _looks_like_learning_plan_request(text: str | None) -> bool:
@@ -1073,8 +1091,18 @@ def _build_turn_semantic_decision(
     *,
     active_object: dict[str, Any] | None,
     followup_question_action: dict[str, Any] | None,
+    user_message: str = "",
 ) -> dict[str, Any]:
     if not isinstance(active_object, dict):
+        if looks_like_practice_generation_request(user_message):
+            return build_semantic_turn_decision(
+                relation_to_active_object="switch_to_new_object",
+                next_action="route_to_generation",
+                allowed_patch="set_active_object",
+                confidence=0.66,
+                reason="当前无 active object，deterministic fallback 命中新练题请求。",
+                target_object_ref={"object_type": "question_set", "object_id": ""},
+            )
         return {}
 
     route = followup_action_route(followup_question_action)
@@ -1099,6 +1127,17 @@ def _build_turn_semantic_decision(
         relation = "continue_same_learning_flow"
         next_action = "route_to_generation"
         allowed_patch = "set_active_object"
+    elif looks_like_practice_generation_request(user_message):
+        relation = (
+            "switch_to_new_object"
+            if str(active_object.get("object_type") or "").strip() == "open_chat_topic"
+            else "continue_same_learning_flow"
+        )
+        next_action = "route_to_generation"
+        allowed_patch = "set_active_object"
+        normalized_confidence = (
+            normalized_confidence if normalized_confidence is not None else 0.7
+        )
     return build_semantic_turn_decision(
         relation_to_active_object=relation,
         next_action=next_action,
@@ -1130,8 +1169,24 @@ def _question_lifecycle_metadata_from_config(config: dict[str, Any] | None) -> d
     }
 
 
+def _practice_generation_result_is_blocked(metadata: dict[str, Any] | None) -> bool:
+    if not isinstance(metadata, dict):
+        return False
+    nested_metadata = (
+        metadata.get("metadata") if isinstance(metadata.get("metadata"), dict) else {}
+    )
+    reason = str(
+        metadata.get("practice_generation_blocked_reason")
+        or nested_metadata.get("practice_generation_blocked_reason")
+        or ""
+    ).strip()
+    return bool(reason)
+
+
 def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
     normalized_metadata = dict(metadata or {})
+    if _practice_generation_result_is_blocked(normalized_metadata):
+        return None
     explicit = normalize_question_followup_context(
         normalized_metadata.get("question_followup_context")
     )
@@ -1154,6 +1209,8 @@ def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[s
 
 def _result_active_object(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
     normalized_metadata = dict(metadata or {})
+    if _practice_generation_result_is_blocked(normalized_metadata):
+        return None
     explicit = normalize_active_object(normalized_metadata.get("active_object"))
     if explicit is not None:
         return explicit
@@ -2591,6 +2648,7 @@ class TurnRuntimeManager:
         session_id: str = "",
         turn_id: str = "",
         usage_summary: dict[str, Any] | None = None,
+        chargeable_assistant_content: bool = True,
     ) -> dict[str, Any] | None:
         if not billing_context:
             return None
@@ -2628,15 +2686,14 @@ class TurnRuntimeManager:
                 "idempotency_key": idempotency_key,
             }
         if str(billing_context.get("free_trial") or "").strip().lower() == "reserved":
-            return {
-                "status": "metered_not_charged",
-                "reason": "free_trial",
-                "wallet_user_id": user_id,
-                "idempotency_key": idempotency_key,
-                "free_trial_reservation_key": str(
-                    billing_context.get("free_trial_reservation_key") or ""
-                ).strip(),
-            }
+            return self._finalize_free_trial_reservation(
+                billing_context,
+                session_id=session_id,
+                turn_id=turn_id,
+                idempotency_key=idempotency_key,
+                chargeable=chargeable_assistant_content,
+                release_reason="non_chargeable_assistant_content",
+            )
         amount_points, billing_metadata = _billing_capture_amount_from_usage_summary(usage_summary)
         capture_metadata = {
             "source": "wx_miniprogram",
@@ -2831,6 +2888,81 @@ class TurnRuntimeManager:
             "session_budget": session_budget,
             "learner_budget": learner_budget,
             "evidence_budget": evidence_budget,
+        }
+
+    def _finalize_free_trial_reservation(
+        self,
+        billing_context: dict[str, str] | None,
+        *,
+        session_id: str = "",
+        turn_id: str = "",
+        idempotency_key: str | None = None,
+        chargeable: bool,
+        release_reason: str,
+    ) -> dict[str, Any] | None:
+        if not billing_context:
+            return None
+        if billing_context.get("source") != "wx_miniprogram":
+            return None
+        if str(billing_context.get("free_trial") or "").strip().lower() != "reserved":
+            return None
+        wallet_user_id = str(billing_context.get("wallet_user_id") or "").strip()
+        reservation_key = str(
+            billing_context.get("free_trial_reservation_key") or ""
+        ).strip()
+        if not reservation_key:
+            return {
+                "status": "free_trial_update_failed",
+                "reason": "missing_free_trial_reservation_key",
+                "wallet_user_id": wallet_user_id,
+                "idempotency_key": idempotency_key or f"mini_program_capture:{turn_id}",
+            }
+        metadata_updates = {
+            "final_session_id": str(session_id or "").strip(),
+            "final_turn_id": str(turn_id or "").strip(),
+        }
+        if not chargeable:
+            metadata_updates["release_reason"] = str(release_reason or "").strip()
+        try:
+            from deeptutor.services.member_usage_meter import get_member_usage_meter
+
+            updated = get_member_usage_meter().finalize_free_trial_reservation(
+                reservation_key,
+                chargeable=chargeable,
+                turn_id=str(turn_id or "").strip(),
+                metadata_updates=metadata_updates,
+            )
+        except Exception as exc:
+            updated = False
+            logger.warning(
+                "Failed to finalize free trial reservation turn_id=%s key=%s: %s",
+                str(turn_id or "").strip(),
+                reservation_key,
+                exc,
+                exc_info=True,
+            )
+        if not updated:
+            return {
+                "status": "free_trial_update_failed",
+                "reason": "free_trial_reservation_not_finalized",
+                "wallet_user_id": wallet_user_id,
+                "idempotency_key": idempotency_key or f"mini_program_capture:{turn_id}",
+                "free_trial_reservation_key": reservation_key,
+            }
+        if chargeable:
+            return {
+                "status": "metered_not_charged",
+                "reason": "free_trial",
+                "wallet_user_id": wallet_user_id,
+                "idempotency_key": idempotency_key or f"mini_program_capture:{turn_id}",
+                "free_trial_reservation_key": reservation_key,
+            }
+        return {
+            "status": "released",
+            "reason": "free_trial_not_charged",
+            "wallet_user_id": wallet_user_id,
+            "idempotency_key": idempotency_key or f"mini_program_capture:{turn_id}",
+            "free_trial_reservation_key": reservation_key,
         }
 
     async def _build_orchestrated_context_payload(
@@ -3650,11 +3782,15 @@ class TurnRuntimeManager:
             ),
             **({"capability": capability} if capability else {}),
             **({"llm_selection": payload.get("llm_selection")} if payload.get("llm_selection") else {}),
-            # The eval-bypass marker is a per-turn decision verified at the request
-            # boundary; it must NEVER be persisted to session preferences, or the
-            # preferences fallback would re-grant a free turn on every later turn
-            # without a fresh signature. Strip it before persisting.
-            **{k: v for k, v in (billing_context or {}).items() if k != "eval_bypass"},
+            # Per-turn billing markers must NEVER be persisted to session
+            # preferences, or the preferences fallback would re-grant a bypass or
+            # reuse a consumed free-trial reservation without a fresh start-turn
+            # gate.
+            **{
+                k: v
+                for k, v in (billing_context or {}).items()
+                if k not in {"eval_bypass", "free_trial", "free_trial_reservation_key"}
+            },
         }
         if explicit_exam_track:
             preference_updates["exam_track"] = explicit_exam_track
@@ -3981,6 +4117,10 @@ class TurnRuntimeManager:
         terminal_status = "failed"
         turn_slot_acquired = False
         llm_selection_token = None
+        request_config: dict[str, Any] = dict(payload.get("config", {}) or {})
+        billing_context: dict[str, str] | None = _normalize_billing_context(
+            request_config.get("billing_context")
+        )
         turn_started_at = time.perf_counter()
         latency_stages = _TurnLatencyStages()
         deadline_task = self._schedule_turn_deadline(execution)
@@ -4150,6 +4290,16 @@ class TurnRuntimeManager:
                 "completed",
                 default=False,
             )
+            billing_capture = await asyncio.to_thread(
+                self._finalize_free_trial_reservation,
+                billing_context,
+                session_id=session_id,
+                turn_id=turn_id,
+                chargeable=False,
+                release_reason="security_guardrail",
+            )
+            if billing_capture:
+                trace_metadata["billing_capture"] = billing_capture
             terminal_status = "completed"
 
         try:
@@ -4190,6 +4340,16 @@ class TurnRuntimeManager:
                     "server_busy",
                     default=False,
                 )
+                billing_capture = await asyncio.to_thread(
+                    self._finalize_free_trial_reservation,
+                    billing_context,
+                    session_id=session_id,
+                    turn_id=turn_id,
+                    chargeable=False,
+                    release_reason="server_busy",
+                )
+                if billing_capture:
+                    trace_metadata["billing_capture"] = billing_capture
                 logger.warning(
                     "turn shed (server busy): no concurrency slot within %.1fs (cap=%d) turn_id=%s",
                     _TURN_QUEUE_TIMEOUT_S, _MAX_CONCURRENT_TURNS, turn_id,
@@ -4206,7 +4366,6 @@ class TurnRuntimeManager:
             from deeptutor.services.security.tutorbot_guardrails import classify_tutorbot_user_input
             from deeptutor.services.session.context_builder import ContextBuilder
 
-            request_config = dict(payload.get("config", {}) or {})
             raw_user_content = str(payload.get("content", "") or "")
             entry_capability_hint = str(request_config.pop("_entry_capability_hint", "") or "").strip()
             notebook_references = payload.get("notebook_references", []) or []
@@ -4480,6 +4639,7 @@ class TurnRuntimeManager:
             turn_semantic_decision = _build_turn_semantic_decision(
                 active_object=active_object,
                 followup_question_action=followup_question_action,
+                user_message=raw_user_content,
             )
             if followup_question_context:
                 self._set_volatile_question_context(session_id, dict(followup_question_context))
@@ -5450,9 +5610,13 @@ class TurnRuntimeManager:
                     )
                 elif "question_followup_context" in trace_metadata:
                     trace_metadata.pop("question_followup_context", None)
-                assistant_content = authoritative_assistant_content or assistant_content
+                raw_assistant_content = authoritative_assistant_content or assistant_content
                 assistant_content = normalize_markdown_for_tutorbot(
-                    coerce_user_visible_answer(assistant_content)
+                    coerce_user_visible_answer(raw_assistant_content)
+                )
+                chargeable_assistant_content = _is_chargeable_mobile_assistant_content(
+                    raw_assistant_content,
+                    assistant_content,
                 )
                 execution.terminal_commit_started = True
                 await self._safe_store_call(
@@ -5482,6 +5646,7 @@ class TurnRuntimeManager:
                     session_id=session_id,
                     turn_id=turn_id,
                     usage_summary=usage_summary,
+                    chargeable_assistant_content=chargeable_assistant_content,
                 )
                 if billing_capture and billing_capture.get("status") == "captured":
                     with contextlib.suppress(Exception):
@@ -5630,6 +5795,16 @@ class TurnRuntimeManager:
                     metadata={"status": cancelled_status},
                 ),
             )
+            billing_capture = await asyncio.to_thread(
+                self._finalize_free_trial_reservation,
+                billing_context,
+                session_id=session_id,
+                turn_id=turn_id,
+                chargeable=False,
+                release_reason="turn_timeout" if timed_out else "turn_cancelled",
+            )
+            if billing_capture:
+                trace_metadata["billing_capture"] = billing_capture
             terminal_status = cancelled_status
             if not timed_out:
                 raise
@@ -5696,6 +5871,16 @@ class TurnRuntimeManager:
                     metadata={"status": "failed"},
                 ),
             )
+            billing_capture = await asyncio.to_thread(
+                self._finalize_free_trial_reservation,
+                billing_context,
+                session_id=session_id,
+                turn_id=turn_id,
+                chargeable=False,
+                release_reason="turn_exception",
+            )
+            if billing_capture:
+                trace_metadata["billing_capture"] = billing_capture
         finally:
             if turn_slot_acquired:
                 _release_turn_slot()
