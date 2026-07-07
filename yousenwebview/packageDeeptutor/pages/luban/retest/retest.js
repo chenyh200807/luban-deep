@@ -103,8 +103,6 @@ Page({
     this.setData(patch);
 
     if (done) {
-      // 复测完成 → 站完成信号(非 promoting, 重排下一跳到期; 旗标关=服务端拒收, 静默)
-      api.postStationCompleted(this.data.packId || "", "").catch(function () {});
       // 复测完成（任务稿 luban_retest_complete 的登记名）
       telemetry.trackProductBehavior("learning_action_completed", {
         module: "practice",

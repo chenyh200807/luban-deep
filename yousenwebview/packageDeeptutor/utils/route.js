@@ -8,9 +8,6 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/login/login": true,
   "pages/login/manual": true,
   "pages/login/reset-password": true,
-  "pages/learn/learn": true,
-  "pages/luban/review/review": true,
-  "pages/luban/stations/stations": true,
   "pages/mistake-book/mistake-book": true,
   "pages/onboarding/onboarding": true,
   "pages/practice/practice": true,
@@ -101,15 +98,6 @@ module.exports = {
   },
   mistakeBook: function () {
     return resolve("pages/mistake-book/mistake-book");
-  },
-  learn: function (query) {
-    return withQuery("pages/learn/learn", query);
-  },
-  lubanStations: function (query) {
-    return withQuery("pages/luban/stations/stations", query);
-  },
-  lubanReview: function (query) {
-    return withQuery("pages/luban/review/review", query);
   },
   profile: function () {
     return resolve("pages/profile/profile");

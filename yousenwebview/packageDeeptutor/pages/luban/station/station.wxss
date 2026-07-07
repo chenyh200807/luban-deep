@@ -1,6 +1,10 @@
-@import "/packageDeeptutor/styles/paper-ink.wxss";
+@import "/packageDeeptutor/theme.wxss";
 
-/* 站点播放页 native 壳 · 纸墨朱竹(web-view 内容为讲懂/闯关卡,归内容任务) */
+page {
+  height: 100%;
+  background: var(--bg-primary);
+}
+
 .station-page {
   height: 100vh;
 }
@@ -20,40 +24,39 @@ web-view {
   gap: 24rpx;
   padding: 80rpx 48rpx;
   height: 60vh;
-  color: var(--pk-t2);
+  color: var(--text-secondary);
   font-size: 28rpx;
   text-align: center;
 }
 
 .st-error text {
-  color: var(--pk-warn);
+  color: #fca5a5;
 }
 
 .st-retry {
   padding: 16rpx 48rpx;
   border-radius: 999rpx;
-  background: var(--pk-ink-btn);
-  color: var(--pk-ink-btn-t);
+  background: rgba(129, 140, 248, 0.18);
+  color: #a5b4fc;
   font-size: 28rpx;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .st-retry.ghost {
   background: transparent;
-  border: 1rpx solid var(--pk-bd);
-  color: var(--pk-t2);
+  border: 1rpx solid rgba(148, 163, 184, 0.3);
+  color: var(--text-tertiary);
 }
 
 .st-fallback-title {
-  font-family: "Long Cang", "Kaiti SC", serif;
-  font-size: 44rpx;
+  font-size: 34rpx;
   font-weight: 800;
-  color: var(--pk-red);
+  color: var(--text-primary);
 }
 
 .st-fallback-hint {
   font-size: 26rpx;
-  color: var(--pk-t3);
+  color: var(--text-tertiary);
 }
 
 .st-footer {
@@ -63,8 +66,8 @@ web-view {
   bottom: 0;
   z-index: 100;
   padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: var(--pk-card);
-  border-top: 1rpx solid var(--pk-bd);
+  background: rgba(10, 14, 24, 0.94);
+  border-top: 1rpx solid var(--border);
 }
 
 .st-primary {
@@ -72,12 +75,11 @@ web-view {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 22rpx;
-  background: var(--pk-ink-btn);
-  color: var(--pk-ink-btn-t);
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
   font-size: 30rpx;
-  font-weight: 800;
-  letter-spacing: 2rpx;
+  font-weight: 700;
 }
 
 .st-primary:active {

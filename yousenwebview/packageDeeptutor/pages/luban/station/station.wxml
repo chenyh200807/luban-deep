@@ -1,4 +1,4 @@
-<view class="station-page paper {{isDark ? '' : 'light'}} pk-paper-bg">
+<view class="station-page">
   <view class="st-loading" wx:if="{{loading}}">
     <text>正在打开这一站…</text>
   </view>

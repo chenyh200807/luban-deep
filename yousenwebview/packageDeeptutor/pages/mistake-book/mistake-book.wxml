@@ -3,7 +3,7 @@
     <view class="mb-nav-inner">
       <view class="mb-back" bindtap="goBack">
         <text class="mb-back-arrow">‹</text>
-        <text class="mb-back-text">复习</text>
+        <text class="mb-back-text">学情</text>
       </view>
       <text class="mb-nav-title">错题集</text>
     </view>
