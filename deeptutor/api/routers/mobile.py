@@ -147,6 +147,8 @@ _FREE_TRIAL_RESERVED_TTL = timedelta(minutes=20)
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 _BILLING_PLAN_REFERENCE_POINTS = {
+    "starter_19": 800,
+    "light_98": 4400,
     "vip": 9000,
     "svip": 28000,
     "supreme_svip": 50000,
@@ -154,6 +156,11 @@ _BILLING_PLAN_REFERENCE_POINTS = {
 _BILLING_PLAN_ALIASES = {
     "": "vip",
     "trial": "vip",
+    "starter_19": "starter_19",
+    "light_98": "light_98",
+    "light_99": "light_98",
+    "lite_99": "light_98",
+    "99": "light_98",
     "vip": "vip",
     "standard": "vip",
     "starter": "vip",
@@ -252,13 +259,26 @@ def _wallet_packages() -> list[dict[str, Any]]:
     return []
 
 
+def _canonical_billing_package_id(package_id: str | None) -> str:
+    canonicalizer = getattr(member_service, "canonical_membership_package_id", None)
+    if callable(canonicalizer):
+        try:
+            return str(canonicalizer(package_id) or "").strip()
+        except Exception:
+            return str(package_id or "").strip()
+    return str(package_id or "").strip()
+
+
 def _billing_package_by_id(package_id: str) -> dict[str, Any] | None:
-    normalized_package_id = str(package_id or "").strip()
+    normalized_package_id = _canonical_billing_package_id(package_id)
     if not normalized_package_id:
         return None
     for package in _wallet_packages():
-        if str(package.get("id") or "").strip() == normalized_package_id:
-            return dict(package)
+        if _canonical_billing_package_id(package.get("id")) == normalized_package_id:
+            canonical = dict(package)
+            canonical["id"] = normalized_package_id
+            canonical["tier"] = _canonical_billing_package_id(canonical.get("tier") or normalized_package_id)
+            return canonical
     return None
 
 
@@ -394,6 +414,10 @@ def _wallet_snapshot_or_zero(
 def _serialize_wallet_snapshot(snapshot: WalletSnapshot) -> dict[str, Any]:
     balance_points = _micros_to_points(snapshot.balance_micros)
     frozen_points = _micros_to_points(snapshot.frozen_micros)
+    entitlement = _billing_entitlement_payload(
+        plan_id=snapshot.plan_id,
+        balance_micros=int(snapshot.balance_micros),
+    )
     return {
         "user_id": snapshot.user_id,
         "balance": balance_points,
@@ -406,6 +430,7 @@ def _serialize_wallet_snapshot(snapshot: WalletSnapshot) -> dict[str, Any]:
         "tier": snapshot.plan_id or "",
         "version": int(snapshot.version),
         "created_at": snapshot.created_at,
+        "entitlement": entitlement,
         "packages": _wallet_packages(),
     }
 
@@ -451,12 +476,74 @@ def _serialize_wallet_ledger_entry(entry: WalletLedgerEntry) -> dict[str, Any]:
 
 def _normalize_billing_plan_id(plan_id: str | None) -> str:
     raw = str(plan_id or "").strip().lower()
-    return _BILLING_PLAN_ALIASES.get(raw, "vip")
+    normalized = _BILLING_PLAN_ALIASES.get(raw)
+    if normalized:
+        return normalized
+    canonical_package_id = _canonical_billing_package_id(raw)
+    if canonical_package_id and _billing_package_by_id(canonical_package_id) is not None:
+        return canonical_package_id
+    return "vip"
 
 
 def _billing_usage_reference_points_for_plan(plan_id: str | None) -> int:
     normalized = _normalize_billing_plan_id(plan_id)
+    package = _billing_package_by_id(normalized)
+    if package is not None:
+        try:
+            points = int(package.get("points") or 0)
+        except (TypeError, ValueError):
+            points = 0
+        if points > 0:
+            return points
     return int(_BILLING_PLAN_REFERENCE_POINTS.get(normalized) or _BILLING_PLAN_REFERENCE_POINTS["vip"])
+
+
+def _billing_usage_reference_turns_for_plan(plan_id: str | None) -> int:
+    package = _billing_package_by_id(_normalize_billing_plan_id(plan_id))
+    if package is None:
+        return 0
+    try:
+        return max(0, int(package.get("turns") or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _billing_entitlement_payload(
+    *,
+    plan_id: str | None,
+    balance_micros: int | None,
+    reference_micros: int | None = None,
+) -> dict[str, Any]:
+    normalized_plan_id = _normalize_billing_plan_id(plan_id)
+    reference_points = _billing_usage_reference_points_for_plan(normalized_plan_id)
+    reference_micros_value = max(
+        1,
+        int(reference_micros or 0),
+        reference_points * 1_000_000,
+    )
+    remaining_micros = max(0, int(balance_micros or 0))
+    remaining_percent = _billing_remaining_percent(
+        remaining_micros=remaining_micros,
+        reference_micros=reference_micros_value,
+    )
+    return {
+        "plan_id": normalized_plan_id,
+        "reference_points": _micros_to_points(reference_micros_value),
+        "reference_micros": reference_micros_value,
+        "reference_turns": _billing_usage_reference_turns_for_plan(normalized_plan_id),
+        "remaining_percent": remaining_percent,
+        "balance_points": _micros_to_points(remaining_micros),
+        "limited_by": "membership_balance",
+    }
+
+
+def _billing_remaining_percent(*, remaining_micros: int, reference_micros: int) -> int | float:
+    reference = max(1, int(reference_micros or 0))
+    value = max(0.0, min(100.0, (max(0, int(remaining_micros or 0)) / reference) * 100))
+    rounded = round(value, 1)
+    if abs(rounded - round(rounded)) < 0.001:
+        return int(round(rounded))
+    return rounded
 
 
 def _parse_ledger_datetime(value: str) -> datetime | None:
@@ -500,6 +587,60 @@ def _insufficient_wallet_balance_exception(available_micros: int) -> HTTPExcepti
             "required_micros": _minimum_turn_charge_micros(),
         },
     )
+
+
+def _billing_membership_expired_exception(expire_at: str) -> HTTPException:
+    return HTTPException(
+        status_code=429,
+        detail={
+            "code": "billing_quota_exceeded",
+            "message": "Membership entitlement has expired.",
+            "limited_by": "membership_expired",
+            "expire_at": str(expire_at or "").strip(),
+        },
+    )
+
+
+def _paid_billing_plan(plan_id: str | None) -> bool:
+    raw = str(plan_id or "").strip().lower()
+    if raw in {"", "trial", "free", "local", "internal_qa"}:
+        return False
+    normalized = _BILLING_PLAN_ALIASES.get(raw, raw)
+    return normalized in _BILLING_PLAN_REFERENCE_POINTS or _billing_package_by_id(normalized) is not None
+
+
+def _billing_membership_expiry_info(
+    user_ids: Iterable[str],
+    *,
+    plan_id: str | None,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
+    checked: set[str] = set()
+    for user_id in user_ids:
+        normalized_user_id = str(user_id or "").strip()
+        if not normalized_user_id or normalized_user_id in checked:
+            continue
+        checked.add(normalized_user_id)
+        try:
+            profile = member_service.get_profile(normalized_user_id)
+        except Exception:
+            continue
+        if not isinstance(profile, dict):
+            continue
+        expire_at = str(profile.get("expire_at") or "").strip()
+        expire_dt = _parse_ledger_datetime(expire_at)
+        if expire_dt is None:
+            continue
+        profile_tier = str(profile.get("tier") or "").strip()
+        if not _paid_billing_plan(profile_tier):
+            continue
+        return {
+            "user_id": normalized_user_id,
+            "expire_at": expire_at,
+            "expired": expire_dt < current,
+        }
+    return {}
 
 
 def _usage_event_datetime(event: Any, *, now: datetime | None = None) -> datetime | None:
@@ -764,6 +905,7 @@ def _build_billing_usage_payload(
     *,
     now: datetime | None = None,
     plan_id: str | None = None,
+    balance_micros: int | None = None,
     limit_points_by_window: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
@@ -786,6 +928,10 @@ def _build_billing_usage_payload(
         elif int(entry.delta_micros or 0) > 0:
             total_credit_micros += int(entry.delta_micros or 0)
 
+    snapshot_balance_micros = max(0, int(balance_micros or 0)) if balance_micros is not None else 0
+    if snapshot_balance_micros > 0:
+        latest_balance_micros = snapshot_balance_micros
+
     observed_reference_micros = max(
         1,
         total_credit_micros,
@@ -793,18 +939,23 @@ def _build_billing_usage_payload(
         latest_balance_micros,
     )
     package_reference_micros = int(_billing_usage_reference_points_for_plan(plan_id)) * 1_000_000
-    reference_micros = (
-        observed_reference_micros
-        if observed_reference_micros > total_used_micros
-        else max(1, package_reference_micros)
-    )
+    reference_micros = max(1, package_reference_micros)
+    if not _paid_billing_plan(plan_id):
+        reference_micros = observed_reference_micros
     remaining_basis_micros = (
         latest_balance_micros
         if latest_balance_micros > 0 or total_credit_micros > 0
         else max(0, reference_micros - total_used_micros)
     )
-    remaining_percent = int(round((remaining_basis_micros / reference_micros) * 100)) if entries else 100
-    remaining_percent = max(0, min(100, remaining_percent))
+    remaining_percent = _billing_remaining_percent(
+        remaining_micros=remaining_basis_micros,
+        reference_micros=reference_micros,
+    )
+    entitlement = _billing_entitlement_payload(
+        plan_id=plan_id,
+        balance_micros=remaining_basis_micros,
+        reference_micros=reference_micros,
+    )
     return {
         "status": "ok",
         "display": {
@@ -812,10 +963,13 @@ def _build_billing_usage_payload(
             "primary_percent": remaining_percent,
             "limited_by": "membership_balance",
             "plan_id": _normalize_billing_plan_id(plan_id),
+            "reference_points": entitlement["reference_points"],
+            "reference_turns": entitlement["reference_turns"],
         },
         "quota": {
             "rows": [],
         },
+        "entitlement": entitlement,
     }
 
 
@@ -974,6 +1128,7 @@ def _build_local_checkout_payload(
             "price": price,
             "points": int(package.get("points") or 0),
             "turns": int(package.get("turns") or 0),
+            "days": _billing_package_days(package),
             "original_price": str(package.get("original_price") or ""),
         },
         "amount_fen": amount_fen,
@@ -1103,6 +1258,7 @@ def _apply_wechat_payment_success(transaction: dict[str, Any]) -> dict[str, Any]
     package = _billing_package_by_id(attach["package_id"])
     if package is None:
         raise WechatPayNotificationError("unknown package")
+    canonical_package_id = str(package.get("id") or "").strip()
     expected_fen = _price_to_fen(str(package.get("price") or ""))
     actual_fen = int((transaction.get("amount") or {}).get("total") or 0)
     if expected_fen <= 0 or actual_fen != expected_fen or int(attach.get("amount_fen") or 0) != expected_fen:
@@ -1112,8 +1268,8 @@ def _apply_wechat_payment_success(transaction: dict[str, Any]) -> dict[str, Any]
         raise WechatPayNotificationError("missing transaction id")
     return member_service.manual_membership_purchase(
         user_id=attach["user_id"],
-        package_id=attach["package_id"],
-        days=int(attach.get("days") or 365),
+        package_id=canonical_package_id,
+        days=_billing_package_days(package),
         operator="wechat_pay",
         reason="wechat_pay_success",
         idempotency_key=f"wechat_pay:{transaction_id}",
@@ -1264,6 +1420,12 @@ def _assert_billing_quota_available(
                 exc,
             )
             raise _insufficient_wallet_balance_exception(available_micros) from exc
+    expiry_info = _billing_membership_expiry_info(
+        [authenticated_user_id, normalized_user_id, *_resolve_legacy_ledger_candidate_user_ids(authorization)],
+        plan_id=getattr(snapshot, "plan_id", ""),
+    )
+    if bool(expiry_info.get("expired")):
+        raise _billing_membership_expired_exception(str(expiry_info.get("expire_at") or ""))
     try:
         usage_payload = _build_billing_usage_payload(
             _load_billing_usage_entries(
@@ -1271,7 +1433,8 @@ def _assert_billing_quota_available(
                 wallet_user_id=normalized_user_id,
                 limit=_BILLING_USAGE_LEDGER_WINDOW,
             ),
-            plan_id=_wallet_snapshot_or_zero(normalized_user_id).plan_id,
+            plan_id=getattr(snapshot, "plan_id", ""),
+            balance_micros=int(getattr(snapshot, "balance_micros", 0) or 0),
         )
     except Exception as exc:
         status_code = getattr(getattr(exc, "response", None), "status_code", None)
@@ -2978,6 +3141,7 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
     return _build_billing_usage_payload(
         entries,
         plan_id=snapshot.plan_id,
+        balance_micros=snapshot.balance_micros,
     )
 
 

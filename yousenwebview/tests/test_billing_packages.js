@@ -79,7 +79,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
           },
           getWallet: function () {
             walletCalls++;
-            return Promise.resolve(walletPayload || { balance: 9000 });
+            return Promise.resolve(walletPayload || {
+              balance: 8980,
+              plan_id: "vip",
+              entitlement: { reference_points: 9000 },
+            });
           },
           getLedger: function () {
             ledgerCalls++;
@@ -294,7 +298,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing should render wallet debit as percent-only usage",
     );
     assert(
-      page.data.ledgerRows[0].balanceLabel === "剩余 99.6%",
+      page.data.ledgerRows[0].balanceLabel === "剩余 99.8%",
       "billing should render remaining wallet percent after debit",
     );
     assert(
@@ -303,23 +307,28 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     );
     assert(
       page.data.selectedPackageId === "vip",
-      "billing fallback should default to VIP after pricing migration",
+      "billing fallback should keep VIP as the default selection for stable usage display",
     );
     assert(
-      page.data.packages.length === 3,
-      "billing fallback should expose all three launch packages",
+      page.data.packages.length === 5,
+      "billing fallback should expose the new starter/light packages plus existing launch packages",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "vip,svip,supreme_svip",
-      "billing fallback package ids should match backend launch packages",
+      page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_98,vip,svip,supreme_svip",
+      "billing fallback package ids should match backend canonical packages",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.name; }).join(",") === "VIP,SVIP,至尊SVIP",
+      page.data.packages.map(function (pkg) { return pkg.name; }).join(",") === "体验包,轻量包,VIP,SVIP,至尊SVIP",
       "billing fallback package names should use public labels",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
-      "billing fallback prices should match launch pricing",
+      page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,98,198,598,998",
+      "billing fallback prices should match canonical package pricing",
+    );
+    page.selectPackage({ currentTarget: { dataset: { id: "starter_19" } } });
+    assert(
+      page.data.selectedPackageId === "starter_19",
+      "billing should allow selecting the 19 yuan starter package",
     );
     await page.openCheckout();
     assert(
@@ -331,9 +340,9 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing open action should create one checkout order after user action",
     );
     assert(
-      loaded.checkoutCalls[0].package_id === "vip" &&
+      loaded.checkoutCalls[0].package_id === "starter_19" &&
         loaded.checkoutCalls[0].channel === "wechat",
-      "billing open action should submit the selected launch package to WeChat checkout",
+      "billing open action should submit the selected starter package to WeChat checkout",
     );
     assert(
       loaded.paymentCalls.length === 1,
@@ -368,10 +377,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       balance: 0,
       packages: [
         {
-          id: "advance",
-          name: "精学版",
+          id: "light_99",
+          name: "轻量包旧价",
           price: "99",
           points: 4400,
+          turns: 220,
         },
         {
           id: "sprint",
@@ -383,12 +393,12 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     });
     await staleWallet.page._loadUsage();
     assert(
-      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "vip,svip,supreme_svip",
-      "billing should ignore stale backend package ids and keep launch packages",
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_98,vip,svip,supreme_svip",
+      "billing should ignore stale backend package ids and keep canonical packages",
     );
     assert(
-      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
-      "billing should not show stale backend prices",
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,98,198,598,998",
+      "billing should not show stale backend alias prices",
     );
 
     var degraded = loadBillingPage({

@@ -79,6 +79,8 @@ class _FakeWalletBootstrapService:
                 created_at="2026-04-21T10:00:00+08:00",
             )
             self.snapshots[user_id] = snapshot
+        elif str(kwargs.get("plan_id") or ""):
+            snapshot.plan_id = str(kwargs.get("plan_id") or "")
         return snapshot
 
     def grant_points(self, **kwargs):
@@ -596,10 +598,16 @@ def test_production_bootstrap_starts_without_demo_members(
 
     assert data["members"] == []
     assert data["audit_log"] == []
-    assert [package["id"] for package in data["packages"]] == ["vip", "svip", "supreme_svip"]
-    assert [package["price"] for package in data["packages"]] == ["198", "598", "998"]
-    assert [package["turns"] for package in data["packages"]] == [450, 1400, 2500]
-    assert [package["points"] for package in data["packages"]] == [9000, 28000, 50000]
+    assert [package["id"] for package in data["packages"]] == [
+        "starter_19",
+        "light_98",
+        "vip",
+        "svip",
+        "supreme_svip",
+    ]
+    assert [package["price"] for package in data["packages"]] == ["19", "98", "198", "598", "998"]
+    assert [package["turns"] for package in data["packages"]] == [40, 220, 450, 1400, 2500]
+    assert [package["points"] for package in data["packages"]] == [800, 4400, 9000, 28000, 50000]
 
 
 def test_load_preserves_persisted_packages_and_backfills_canonical_defaults(
@@ -640,6 +648,8 @@ def test_load_preserves_persisted_packages_and_backfills_canonical_defaults(
         "standard",
         "pro",
         "ultimate",
+        "starter_19",
+        "light_98",
         "vip",
         "svip",
         "supreme_svip",
@@ -1252,6 +1262,38 @@ def test_internal_qa_billing_bypass_keeps_non_qa_wallet_bootstrap(
     assert auth_identity["canonical_uid"] == canonical_uid
     assert len(wallet_calls) == 1
     assert wallet_calls[0]["user_id"] == canonical_uid
+
+
+def test_wallet_bootstrap_does_not_seed_legacy_member_points_balance(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    canonical_uid = "a5732af1-496b-4643-a23c-e74ec7216b94"
+    wallet_service = _FakeWalletBootstrapService()
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"].append(
+            {
+                **service._build_default_member("legacy_paid_shadow"),
+                "tier": "supreme_svip",
+                "points_balance": 997_486,
+                "external_auth_user_id": canonical_uid,
+            }
+        )
+
+    service._mutate(_seed)
+
+    auth_identity = service._auth_identity_for_member("legacy_paid_shadow")
+
+    assert auth_identity["canonical_uid"] == canonical_uid
+    assert wallet_service.calls[-1]["user_id"] == canonical_uid
+    assert wallet_service.calls[-1]["opening_points"] == 0
+    assert wallet_service.calls[-1]["plan_id"] == ""
+    assert wallet_service.snapshots[canonical_uid].balance_micros == 0
+    assert service.get_wallet("legacy_paid_shadow")["balance"] == 0
 
 
 def test_production_without_supabase_sessions_only_blocks_assessment_paths(
@@ -5866,6 +5908,65 @@ def test_manual_membership_purchase_records_wallet_revenue_and_entitlement(
     audit = service.get_audit_log(action="manual_membership_purchase")["items"][0]
     assert audit["target_user"] == "manual_user_1"
     assert audit["after"]["ledger_event_id"] == "ledger_manual_1"
+
+
+def test_manual_membership_purchase_normalizes_light_package_alias(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    result = service.manual_membership_purchase(
+        user_id="manual_user_light",
+        package_id="light_99",
+        days=180,
+        operator="wechat_pay",
+        reason="wechat_pay_success",
+        idempotency_key="manual-light-alias-1",
+        amount_cny=98,
+    )
+
+    assert result["member"]["tier"] == "light_98"
+    assert result["package"]["id"] == "light_98"
+    assert result["amount_cny"] == 98
+    assert result["points"] == 4400
+    assert wallet_service.grants[0]["amount_micros"] == 4_400_000_000
+    assert wallet_service.grants[0]["metadata"]["package_id"] == "light_98"
+    assert wallet_service.grants[0]["metadata"]["amount_cny"] == 98
+    assert wallet_service.grants[0]["metadata"]["days"] == 180
+
+
+def test_manual_membership_purchase_updates_existing_wallet_plan(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    wallet_service.snapshots["manual_user_1"] = SimpleNamespace(
+        user_id="manual_user_1",
+        balance_micros=0,
+        frozen_micros=0,
+        plan_id="trial",
+        version=1,
+        created_at="2026-04-21T10:00:00+08:00",
+    )
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    result = service.manual_membership_purchase(
+        user_id="manual_user_1",
+        package_id="vip",
+        days=180,
+        operator="admin_demo",
+        reason="线下收款",
+        idempotency_key="manual-purchase-existing-wallet",
+    )
+
+    assert result["member"]["tier"] == "vip"
+    assert wallet_service.snapshots["manual_user_1"].plan_id == "vip"
+    assert wallet_service.calls[-1]["plan_id"] == "vip"
+    assert wallet_service.grants[-1]["amount_micros"] == 9_000_000_000
 
 
 def test_managed_membership_package_persists_and_can_be_purchased(

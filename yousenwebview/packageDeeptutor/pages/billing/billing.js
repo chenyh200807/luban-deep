@@ -132,7 +132,7 @@ function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
   var balance = Number(wallet.balance || wallet.points || wallet.display_balance || 0);
   if (isNaN(balance)) balance = 0;
   balance = Math.max(0, Math.round(balance));
-  var denominator = _displayDenominator(balance, ledgerEntries);
+  var denominator = _displayDenominator(balance, wallet, data, selected);
   var remainingPercent = _percent(balance, denominator);
   var remainingLabel = "剩余 " + _formatPrimaryPercent(remainingPercent);
   return {
@@ -146,7 +146,7 @@ function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
         key: "wallet_percent",
         label: "当前权益",
         remainingLabel: remainingLabel,
-        barStyle: "width:" + Math.max(0, Math.min(100, Math.round(remainingPercent))) + "%",
+        barStyle: "width:" + _barPercent(remainingPercent) + "%",
       },
       {
         key: "usage_record",
@@ -166,12 +166,31 @@ function _normalizePackages(rawPackages) {
   var normalized = source.map(_normalizePackageItem).filter(function (pkg) {
     return !!pkg.id && _isLaunchPackageId(pkg.id);
   });
-  if (normalized.length) return normalized;
-  return _launchPackages().map(_normalizePackageItem);
+  return _mergeLaunchPackages(normalized);
 }
 
 function _launchPackages() {
   return [
+    {
+      id: "starter_19",
+      name: "体验包",
+      price: "19",
+      original_price: "",
+      points: 800,
+      turns: 40,
+      desc: "适合先体验 AI 答疑、案例批改和错因专训。",
+      badge: "体验",
+    },
+    {
+      id: "light_98",
+      name: "轻量包",
+      price: "98",
+      original_price: "",
+      points: 4400,
+      turns: 220,
+      desc: "适合轻量日常训练、答疑和阶段复习。",
+      badge: "轻量",
+    },
     {
       id: "vip",
       name: "VIP",
@@ -207,14 +226,46 @@ function _launchPackages() {
 
 function _isLaunchPackageId(packageId) {
   return {
+    starter_19: true,
+    light_98: true,
     vip: true,
     svip: true,
     supreme_svip: true,
-  }[String(packageId || "").trim()] === true;
+  }[_canonicalPackageId(packageId)] === true;
+}
+
+function _canonicalPackageId(packageId) {
+  var id = String(packageId || "").trim();
+  var lower = id.toLowerCase();
+  if (lower === "light_99" || lower === "lite_99" || lower === "99") return "light_98";
+  return id;
+}
+
+function _launchPackageById(packageId) {
+  var id = _canonicalPackageId(packageId);
+  var list = _launchPackages();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id === id) return list[i];
+  }
+  return null;
+}
+
+function _mergeLaunchPackages(packages) {
+  var byId = {};
+  (Array.isArray(packages) ? packages : []).forEach(function (pkg) {
+    if (!pkg || !_isLaunchPackageId(pkg.id) || byId[pkg.id]) return;
+    byId[pkg.id] = pkg;
+  });
+  return _launchPackages().map(function (fallback) {
+    return byId[fallback.id] || _normalizePackageItem(fallback);
+  });
 }
 
 function _normalizePackageItem(pkg) {
-  var id = String(pkg.id || pkg.package_id || "").trim();
+  var rawId = String(pkg.id || pkg.package_id || "").trim();
+  var id = _canonicalPackageId(rawId);
+  var launchPackage = rawId && rawId !== id ? _launchPackageById(id) : null;
+  if (launchPackage) return _normalizePackageItem(launchPackage);
   var price = String(pkg.price || pkg.price_yuan || "").trim();
   var points = Number(pkg.points || pkg.balance || 0) || 0;
   return {
@@ -236,6 +287,16 @@ function _selectPackage(packages, packageId) {
     if (String(list[i].id || "") === target) return list[i];
   }
   return list[0] || null;
+}
+
+function _findPackage(packages, packageId) {
+  var list = Array.isArray(packages) ? packages : [];
+  var target = String(packageId || "").trim();
+  if (!target) return null;
+  for (var i = 0; i < list.length; i++) {
+    if (String(list[i].id || "") === target) return list[i];
+  }
+  return null;
 }
 
 function _requestWechatPayment(params) {
@@ -280,15 +341,31 @@ function _ledgerEntries(raw) {
   return Array.isArray(data.entries) ? data.entries : [];
 }
 
-function _displayDenominator(balance, entries) {
-  var positive = 0;
-  var debits = 0;
-  (Array.isArray(entries) ? entries : []).forEach(function (entry) {
-    var delta = Number(entry.delta || 0);
-    if (delta > 0) positive += delta;
-    if (delta < 0) debits += Math.abs(delta);
-  });
-  return Math.max(1, Math.round(positive), Math.round(balance + debits), Math.round(balance));
+function _displayDenominator(balance, wallet, usage, selectedPackage) {
+  var entitlement = _entitlementPayload(wallet, usage);
+  var reference = Number(entitlement.reference_points || 0);
+  if (reference > 0) return Math.max(1, Math.round(reference));
+  var packageRef = _packageReferencePoints(wallet, selectedPackage);
+  if (packageRef > 0) return Math.max(1, Math.round(packageRef));
+  return Math.max(1, Math.round(balance));
+}
+
+function _entitlementPayload(wallet, usage) {
+  var walletData = wallet && typeof wallet === "object" ? wallet : {};
+  var usageData = usage && typeof usage === "object" ? usage : {};
+  if (walletData.entitlement && typeof walletData.entitlement === "object") return walletData.entitlement;
+  if (usageData.entitlement && typeof usageData.entitlement === "object") return usageData.entitlement;
+  var display = usageData.display && typeof usageData.display === "object" ? usageData.display : {};
+  return display;
+}
+
+function _packageReferencePoints(wallet, selectedPackage) {
+  var walletData = wallet && typeof wallet === "object" ? wallet : {};
+  var packages = _normalizePackages(walletData.packages);
+  var planId = String(walletData.plan_id || walletData.tier || "").trim();
+  var pkg = _findPackage(packages, planId);
+  if (pkg && Number(pkg.points || 0) > 0) return Number(pkg.points || 0);
+  return Number((selectedPackage && selectedPackage.points) || 0) || 0;
 }
 
 function _percent(value, denominator) {
@@ -310,7 +387,12 @@ function _formatRecordPercent(value) {
 }
 
 function _formatGaugePercent(value) {
-  return String(Math.max(0, Math.min(100, Math.round(Number(value || 0)))));
+  return _formatPrimaryPercent(value).replace("%", "");
+}
+
+function _barPercent(value) {
+  var bounded = Math.max(0, Math.min(100, Number(value || 0)));
+  return String(Math.round(bounded * 10) / 10);
 }
 
 function _normalizeLedgerRows(entries, denominator) {

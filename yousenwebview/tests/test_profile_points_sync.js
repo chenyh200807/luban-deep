@@ -57,7 +57,11 @@ function loadProfilePage(overrides) {
         return Promise.resolve({ username: "chenyh2008", points: 0 });
       },
       getWallet: function () {
-        return Promise.resolve({ balance: 88 });
+        return Promise.resolve({
+          balance: 88,
+          plan_id: "vip",
+          entitlement: { reference_points: 100 },
+        });
       },
       getPoints: function () {
         return Promise.resolve({ points: 0 });
@@ -256,7 +260,11 @@ function loadProfilePage(overrides) {
             return Promise.resolve({ username: "chenyh2008" });
           },
           getWallet: function () {
-            return Promise.resolve({ balance: 144 });
+            return Promise.resolve({
+              balance: 144,
+              plan_id: "vip",
+              entitlement: { reference_points: 200 },
+            });
           },
           getPoints: function () {
             legacyPointsCalls += 1;
