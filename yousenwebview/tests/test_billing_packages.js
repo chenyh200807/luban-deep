@@ -364,6 +364,44 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       staleWallet.page.data.packages.map(function (pkg) { return pkg.originalPrice; }).join(",") === "29,149,298,798,1298",
       "billing should keep canonical original prices after stale backend package filtering",
     );
+    var incompleteLaunchCatalog = loadBillingPage(null, {
+      balance: 9000,
+      packages: [
+        {
+          id: "vip",
+          name: "VIP",
+          price: "198",
+          original_price: "298",
+          points: 9000,
+          turns: 450,
+        },
+        {
+          id: "svip",
+          name: "SVIP",
+          price: "598",
+          original_price: "798",
+          points: 28000,
+          turns: 1400,
+        },
+        {
+          id: "supreme_svip",
+          name: "至尊SVIP",
+          price: "998",
+          original_price: "1298",
+          points: 50000,
+          turns: 2500,
+        },
+      ],
+    });
+    await incompleteLaunchCatalog.page._loadUsage();
+    assert(
+      incompleteLaunchCatalog.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_99,vip,svip,supreme_svip",
+      "billing should treat an old valid three-package backend catalog as incomplete",
+    );
+    assert(
+      incompleteLaunchCatalog.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,99,198,598,998",
+      "billing should restore entry packages when backend catalog is incomplete",
+    );
 
     var degraded = loadBillingPage({
       status: "degraded",

@@ -160,14 +160,50 @@ function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
 }
 
 function _normalizePackages(rawPackages) {
-  var source = Array.isArray(rawPackages) && rawPackages.length
-    ? rawPackages
-    : _launchPackages();
-  var normalized = source.map(_normalizePackageItem).filter(function (pkg) {
+  var fallback = _launchPackages().map(_normalizePackageItem);
+  if (!Array.isArray(rawPackages) || !rawPackages.length) return fallback;
+  var normalized = rawPackages.map(_normalizePackageItem).filter(function (pkg) {
     return !!pkg.id && _isLaunchPackageId(pkg.id);
   });
-  if (normalized.length) return normalized;
-  return _launchPackages().map(_normalizePackageItem);
+  if (!_hasCompleteLaunchCatalog(normalized)) return fallback;
+  return _mergePackagesInLaunchOrder(fallback, normalized);
+}
+
+function _hasCompleteLaunchCatalog(packages) {
+  var seen = {};
+  (Array.isArray(packages) ? packages : []).forEach(function (pkg) {
+    if (pkg && pkg.id) seen[String(pkg.id)] = true;
+  });
+  return _launchPackages().every(function (pkg) {
+    return seen[String(pkg.id)] === true;
+  });
+}
+
+function _mergePackagesInLaunchOrder(fallback, packages) {
+  var byId = {};
+  packages.forEach(function (pkg) {
+    byId[String(pkg.id)] = pkg;
+  });
+  return fallback.map(function (base) {
+    var pkg = byId[String(base.id)] || {};
+    return {
+      id: base.id,
+      name: _packageText(pkg.name, base.name),
+      price: _packageText(pkg.price, base.price),
+      originalPrice: _packageText(pkg.originalPrice, base.originalPrice),
+      points: Number(pkg.points || base.points || 0) || 0,
+      turns: Number(pkg.turns || base.turns || 0) || 0,
+      desc: _packageText(pkg.desc, base.desc),
+      badge: Object.prototype.hasOwnProperty.call(pkg, "badge")
+        ? String(pkg.badge || "").trim()
+        : String(base.badge || "").trim(),
+    };
+  });
+}
+
+function _packageText(value, fallback) {
+  var text = String(value || "").trim();
+  return text || String(fallback || "").trim();
 }
 
 function _launchPackages() {
