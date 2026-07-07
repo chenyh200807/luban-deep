@@ -140,6 +140,10 @@ feature_flags:
   - {name: LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_LECTURE_ANSWER_METHOD_CONTEXT_ENABLED, default: true, kind: killswitch, read: hand_rolled}
   - {name: LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED, default: false, kind: killswitch, read: hand_rolled}
+  # 交接时刻「明天见」次日复测订阅消息模板 ID（双轮 v3.2 §9-D12）:owner 在小程序
+  # 后台申请模板后填入;wechat_subscribe/service.py:TEMPLATE_ENV_KEYS 读。未配置=""=
+  # 链路建成前的合法态(send_subscribe_message 返 degraded_red_dot,不 raise、不阻断闭环)。
+  - {name: WECHAT_SUBSCRIBE_TMPL_NEXT_DAY_RETEST, default: "", kind: config, read: hand_rolled}
   - {name: DEEPTUTOR_DEMO_TOKENS_ENABLED, default: false, kind: dev, read: hand_rolled}
 
 # ── Credentials (secret kind — 并入此 registry，不另建凭据系统) ───────────────
