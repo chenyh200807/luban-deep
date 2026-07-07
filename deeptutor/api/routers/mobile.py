@@ -128,6 +128,8 @@ _FREE_TRIAL_CONSECUTIVE_FULL_DAYS_LIMIT = 3
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 _BILLING_PLAN_REFERENCE_POINTS = {
+    "starter_19": 800,
+    "light_99": 4400,
     "vip": 9000,
     "svip": 28000,
     "supreme_svip": 50000,
@@ -135,6 +137,18 @@ _BILLING_PLAN_REFERENCE_POINTS = {
 _BILLING_PLAN_ALIASES = {
     "": "vip",
     "trial": "vip",
+    "starter_19": "starter_19",
+    "starter19": "starter_19",
+    "experience_19": "starter_19",
+    "experience19": "starter_19",
+    "体验包": "starter_19",
+    "19": "starter_19",
+    "light_99": "light_99",
+    "light99": "light_99",
+    "lite_99": "light_99",
+    "lite99": "light_99",
+    "轻量包": "light_99",
+    "99": "light_99",
     "vip": "vip",
     "standard": "vip",
     "starter": "vip",

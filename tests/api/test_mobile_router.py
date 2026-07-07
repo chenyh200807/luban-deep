@@ -1230,12 +1230,16 @@ def test_mobile_chat_start_turn_does_not_block_on_removed_usage_windows(monkeypa
 
 
 def test_billing_usage_defaults_follow_membership_balance_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    starter = mobile_module._build_billing_usage_payload([], plan_id="starter_19")
+    light = mobile_module._build_billing_usage_payload([], plan_id="light_99")
     vip = mobile_module._build_billing_usage_payload([], plan_id="vip")
     svip = mobile_module._build_billing_usage_payload([], plan_id="svip")
     supreme = mobile_module._build_billing_usage_payload([], plan_id="supreme_svip")
     legacy_advance = mobile_module._build_billing_usage_payload([], plan_id="advance")
     legacy_sprint = mobile_module._build_billing_usage_payload([], plan_id="sprint")
 
+    assert starter["display"]["plan_id"] == "starter_19"
+    assert light["display"]["plan_id"] == "light_99"
     assert vip["display"]["plan_id"] == "vip"
     assert svip["display"]["plan_id"] == "svip"
     assert supreme["display"]["plan_id"] == "supreme_svip"
@@ -1246,9 +1250,13 @@ def test_billing_usage_defaults_follow_membership_balance_model(monkeypatch: pyt
     assert vip["quota"]["rows"] == []
     assert svip["quota"]["rows"] == []
     assert supreme["quota"]["rows"] == []
+    assert mobile_module._billing_usage_reference_points_for_plan("starter_19") == 800
+    assert mobile_module._billing_usage_reference_points_for_plan("light_99") == 4400
     assert mobile_module._billing_usage_reference_points_for_plan("vip") == 9000
     assert mobile_module._billing_usage_reference_points_for_plan("svip") == 28000
     assert mobile_module._billing_usage_reference_points_for_plan("supreme_svip") == 50000
+    assert mobile_module._billing_usage_reference_points_for_plan("19") == 800
+    assert mobile_module._billing_usage_reference_points_for_plan("99") == 4400
     assert mobile_module._billing_usage_reference_points_for_plan("advance") == 9000
     assert mobile_module._billing_usage_reference_points_for_plan("sprint") == 28000
 

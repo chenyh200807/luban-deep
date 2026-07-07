@@ -28,8 +28,10 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
   var checkoutCalls = [];
   var sandbox = {
     console: console,
-    setTimeout: setTimeout,
-    clearTimeout: clearTimeout,
+    setTimeout: function () {
+      return 0;
+    },
+    clearTimeout: function () {},
     Page: function (def) {
       pageDef = def;
     },
@@ -195,11 +197,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     );
     assert(
       typeof page.openCheckout === "function",
-      "billing page should expose openCheckout for contacting sales",
+      "billing page should expose openCheckout for direct WeChat Pay",
     );
     assert(
       !("submitCheckout" in page),
-      "billing page should not expose direct checkout submission before sales contact",
+      "billing page should not expose legacy checkout submission",
     );
     var billingWxml = fs.readFileSync(
       path.join(__dirname, "../packageDeeptutor/pages/billing/billing.wxml"),
@@ -222,9 +224,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing package cards should render original price",
     );
     assert(
-      billingWxml.indexOf("sales-contact-qr.png") >= 0 &&
-        fs.existsSync(path.join(__dirname, "../packageDeeptutor/images/sales-contact-qr.png")),
-      "billing contact sheet should render the sales contact QR asset",
+      billingWxml.indexOf("sales-contact-qr.png") < 0 &&
+        billingWxml.indexOf("联系销售") < 0 &&
+        billingJs.indexOf("createBillingCheckout") >= 0 &&
+        billingJs.indexOf("requestPayment") >= 0,
+      "billing should use direct WeChat Pay without sales QR fallback",
     );
     assert(
       billingWxml.indexOf("item.turns") >= 0 &&
@@ -293,46 +297,42 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing fallback should default to VIP after pricing migration",
     );
     assert(
-      page.data.packages.length === 3,
-      "billing fallback should expose all three launch packages",
+      page.data.packages.length === 5,
+      "billing fallback should expose all five launch packages",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "vip,svip,supreme_svip",
+      page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_99,vip,svip,supreme_svip",
       "billing fallback package ids should match backend launch packages",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.name; }).join(",") === "VIP,SVIP,至尊SVIP",
+      page.data.packages.map(function (pkg) { return pkg.name; }).join(",") === "体验包,轻量包,VIP,SVIP,至尊SVIP",
       "billing fallback package names should use public labels",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
+      page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,99,198,598,998",
       "billing fallback prices should match launch pricing",
     );
-    page.openCheckout();
     assert(
-      page.data.contactSalesVisible === true,
-      "billing open action should show the sales contact QR sheet first",
+      page.data.packages.map(function (pkg) { return pkg.originalPrice; }).join(",") === "29,149,298,798,1298",
+      "billing fallback original prices should keep the launch discount ladder",
+    );
+    await page.openCheckout();
+    assert(
+      loaded.checkoutCalls.length === 1,
+      "billing open action should create one checkout order",
     );
     assert(
-      loaded.checkoutCalls.length === 0,
-      "billing open action should not create a checkout order before sales contact",
+      loaded.checkoutCalls[0].package_id === "vip" &&
+        loaded.checkoutCalls[0].channel === "wechat",
+      "billing open action should submit the selected package id to WeChat checkout",
     );
     assert(
-      loaded.paymentCalls.length === 0,
-      "billing open action should not invoke WeChat payment before sales contact",
+      loaded.paymentCalls.length === 1,
+      "billing open action should invoke WeChat payment after checkout creation",
     );
     assert(
       loaded.previewImageCalls.length === 0,
-      "billing open action should keep the QR visible in-page instead of jumping to preview",
-    );
-    page.closeContactSales();
-    assert(
-      page.data.contactSalesVisible === false,
-      "billing contact sheet should be closable",
-    );
-    assert(
-      loaded.checkoutCalls.length === 0,
-      "billing contact-first flow should not submit a launch package id directly",
+      "billing open action should not jump to preview image",
     );
     var staleWallet = loadBillingPage(null, {
       balance: 0,
@@ -353,12 +353,16 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     });
     await staleWallet.page._loadUsage();
     assert(
-      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "vip,svip,supreme_svip",
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_99,vip,svip,supreme_svip",
       "billing should ignore stale backend package ids and keep launch packages",
     );
     assert(
-      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,99,198,598,998",
       "billing should not show stale backend prices",
+    );
+    assert(
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.originalPrice; }).join(",") === "29,149,298,798,1298",
+      "billing should keep canonical original prices after stale backend package filtering",
     );
 
     var degraded = loadBillingPage({
@@ -370,6 +374,14 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     assert(
       degraded.page.data.usagePrimaryLabel === "权益暂不可用",
       "billing degraded terminal state should normalize stale quota wording",
+    );
+    assert(
+      degraded.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_99,vip,svip,supreme_svip",
+      "billing degraded state should still keep the launch package discount ladder",
+    );
+    assert(
+      degraded.page.data.packages.map(function (pkg) { return pkg.originalPrice; }).join(",") === "29,149,298,798,1298",
+      "billing degraded state should still render original prices for discount perception",
     );
   } catch (err) {
     fail++;

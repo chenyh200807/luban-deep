@@ -53,7 +53,7 @@ Page({
       state.ledgerLoading = false;
       this.setData(state);
     } catch (_) {
-      var degraded = _degradedUsageState();
+      var degraded = _degradedUsageState(null, this.data.selectedPackageId);
       degraded.ledgerLoading = false;
       this.setData(degraded);
     }
@@ -124,7 +124,7 @@ function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
   var wallet = api.unwrapResponse ? api.unwrapResponse(walletRaw) : walletRaw || {};
   var ledgerEntries = _ledgerEntries(ledgerRaw);
   if (data && data.status === "degraded") {
-    return _degradedUsageState(data.display);
+    return _degradedUsageState(data.display, selectedPackageId);
   }
   var packages = _normalizePackages(wallet.packages);
   var selectedId = selectedPackageId || (packages[0] && packages[0].id) || "";
@@ -173,6 +173,26 @@ function _normalizePackages(rawPackages) {
 function _launchPackages() {
   return [
     {
+      id: "starter_19",
+      name: "体验包",
+      price: "19",
+      original_price: "29",
+      points: 800,
+      turns: 40,
+      desc: "适合首次体验，覆盖少量答疑和批改。",
+      badge: "新手体验",
+    },
+    {
+      id: "light_99",
+      name: "轻量包",
+      price: "99",
+      original_price: "149",
+      points: 4400,
+      turns: 220,
+      desc: "适合阶段备考，覆盖稳定答疑和训练。",
+      badge: "轻量优选",
+    },
+    {
       id: "vip",
       name: "VIP",
       price: "198",
@@ -207,6 +227,8 @@ function _launchPackages() {
 
 function _isLaunchPackageId(packageId) {
   return {
+    starter_19: true,
+    light_99: true,
     vip: true,
     svip: true,
     supreme_svip: true,
@@ -260,16 +282,21 @@ function _paymentErrorMessage(err) {
   return "支付暂不可用，请稍后再试";
 }
 
-function _degradedUsageState(display) {
+function _degradedUsageState(display, selectedPackageId) {
   var payload = display && typeof display === "object" ? display : {};
   var primaryPercent = Number(payload.primary_percent);
   if (isNaN(primaryPercent)) primaryPercent = 100;
   var label = String(payload.primary_label || "权益暂不可用")
     .replace(new RegExp("额" + "度", "g"), "权益")
     .replace(new RegExp("点" + "数", "g"), "权益");
+  var packages = _normalizePackages([]);
+  var selected = _selectPackage(packages, selectedPackageId || "vip");
   return {
     usagePrimaryLabel: label,
     usageGaugeLabel: "%",
+    packages: packages,
+    selectedPackageId: selected ? selected.id : "",
+    selectedPackage: selected,
     usageRows: [],
     ledgerRows: [],
   };

@@ -818,6 +818,32 @@ class MemberConsoleService:
     def _default_packages() -> list[dict[str, Any]]:
         return [
             {
+                "id": "starter_19",
+                "label": "体验包",
+                "points": 800,
+                "turns": 40,
+                "price": "19",
+                "original_price": "29",
+                "badge": "新手体验",
+                "per": "40 次 AI 学习额度",
+                "per_turn_price": "0.475",
+                "audience": "刚开始体验、偶尔答疑的考生",
+                "desc": "AI智能答疑、AI案例批改、错因专训、学习记录",
+            },
+            {
+                "id": "light_99",
+                "label": "轻量包",
+                "points": 4400,
+                "turns": 220,
+                "price": "99",
+                "original_price": "149",
+                "badge": "轻量优选",
+                "per": "220 次 AI 学习额度",
+                "per_turn_price": "0.45",
+                "audience": "阶段备考、需要稳定答疑的考生",
+                "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、学习报告",
+            },
+            {
                 "id": "vip",
                 "label": "VIP",
                 "points": 9000,

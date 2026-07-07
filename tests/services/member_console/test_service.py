@@ -596,10 +596,17 @@ def test_production_bootstrap_starts_without_demo_members(
 
     assert data["members"] == []
     assert data["audit_log"] == []
-    assert [package["id"] for package in data["packages"]] == ["vip", "svip", "supreme_svip"]
-    assert [package["price"] for package in data["packages"]] == ["198", "598", "998"]
-    assert [package["turns"] for package in data["packages"]] == [450, 1400, 2500]
-    assert [package["points"] for package in data["packages"]] == [9000, 28000, 50000]
+    assert [package["id"] for package in data["packages"]] == [
+        "starter_19",
+        "light_99",
+        "vip",
+        "svip",
+        "supreme_svip",
+    ]
+    assert [package["price"] for package in data["packages"]] == ["19", "99", "198", "598", "998"]
+    assert [package["original_price"] for package in data["packages"]] == ["29", "149", "298", "798", "1298"]
+    assert [package["turns"] for package in data["packages"]] == [40, 220, 450, 1400, 2500]
+    assert [package["points"] for package in data["packages"]] == [800, 4400, 9000, 28000, 50000]
 
 
 def test_load_preserves_persisted_packages_and_backfills_canonical_defaults(
@@ -640,6 +647,8 @@ def test_load_preserves_persisted_packages_and_backfills_canonical_defaults(
         "standard",
         "pro",
         "ultimate",
+        "starter_19",
+        "light_99",
         "vip",
         "svip",
         "supreme_svip",
