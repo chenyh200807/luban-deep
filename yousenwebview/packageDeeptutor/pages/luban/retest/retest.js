@@ -15,12 +15,46 @@ const helpers = require("../../../utils/helpers");
 
 var RETEST_LIMIT = 5;
 
+// 两种取题模式共用本页（复用同一 retest 页/内核，不建第二答题页）：
+// - review（默认，复习轮换皮复测）；
+// - forward（学习轮 2 分钟正向轻练，对刚学完 pack 覆盖不同 rule_group 取一组）。
+// 差别只在题面选序（后端 build_retest_items(mode) 决定）+ 文案，判分/证据链路完全一致：
+// 本地确定性判分（选择==expected_ok）+ 完成发 station_completed（非 promoting）。
+var COPY = {
+  review: {
+    navTitle: "换皮复测",
+    heroKicker: "昨天的考点，换了一身皮",
+    heroTitle: "看看你能不能一眼认出它",
+    loadingText: "正在取今天的题…",
+    emptyText: "今天这一站暂时没有复测题，明天再来。",
+    doneTitlePrefix: "今天的回炉完成",
+    doneDesc: "这个考点在你这儿越来越稳了。明天见。",
+  },
+  forward: {
+    navTitle: "2 分钟轻练",
+    heroKicker: "刚学完，趁热练一练",
+    heroTitle: "这一考点的不同考法，你能答对几道",
+    loadingText: "正在给你抽题…",
+    emptyText: "这一站的轻练题即将开通，先去把它讲懂。",
+    doneTitlePrefix: "轻练完成",
+    doneDesc: "先热了个身。明天这个考点会换身皮再来考你一次，明天见。",
+  },
+};
+
 Page({
   data: {
     statusBarHeight: 0,
     navHeight: 96,
     isDark: true,
     packId: "",
+    mode: "review",
+    navTitle: COPY.review.navTitle,
+    heroKicker: COPY.review.heroKicker,
+    heroTitle: COPY.review.heroTitle,
+    loadingText: COPY.review.loadingText,
+    emptyText: COPY.review.emptyText,
+    doneTitlePrefix: COPY.review.doneTitlePrefix,
+    doneDesc: COPY.review.doneDesc,
     loading: true,
     errorText: "",
     items: [],
@@ -37,11 +71,21 @@ Page({
         : {};
     var statusBarHeight = info.statusBarHeight || 0;
     var packId = String((query && query.pack_id) || "").trim();
+    var mode = String((query && query.mode) || "review") === "forward" ? "forward" : "review";
+    var copy = COPY[mode];
     this.setData({
       statusBarHeight: statusBarHeight,
       navHeight: statusBarHeight + 48,
       isDark: helpers.isDark(),
       packId: packId,
+      mode: mode,
+      navTitle: copy.navTitle,
+      heroKicker: copy.heroKicker,
+      heroTitle: copy.heroTitle,
+      loadingText: copy.loadingText,
+      emptyText: copy.emptyText,
+      doneTitlePrefix: copy.doneTitlePrefix,
+      doneDesc: copy.doneDesc,
     });
     if (!packId) {
       this.setData({ loading: false, errorText: "缺少站点参数，请从提分路线进入" });
@@ -130,7 +174,7 @@ Page({
   _loadItems() {
     var that = this;
     return api
-      .getLubanRetestItems(this.data.packId, RETEST_LIMIT)
+      .getLubanRetestItems(this.data.packId, RETEST_LIMIT, this.data.mode)
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var raw = Array.isArray(body.items) ? body.items : [];

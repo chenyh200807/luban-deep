@@ -179,21 +179,54 @@ def build_lesson_viewmodel(
     }
 
 
+def _forward_rule_group_spread(
+    core: list[dict[str, Any]], seed: int, limit: int
+) -> list[dict[str, Any]]:
+    """正向轻练选序：确定性广度优先 round-robin 覆盖不同 ``rule_group``——
+    对刚学完的 pack 先各考法采样一题、再回填（学习轮"先广后深"）。
+
+    与复测的扁平轮换的唯一差别是**选序**：纯签发池内确定性重排，零生成、
+    零新供给（不派生任何题面字段，§8 红线）。组内起点按同一 ``seed`` 轮换
+    （多端幂等）；组间按轮次交错；题数 ≤ 核心变体数（耗尽即止）。
+    """
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for variant in core:
+        groups.setdefault(str(variant.get("rule_group") or ""), []).append(variant)
+    keys = list(groups.keys())  # 保持首次出现序，确定性
+    interleaved: list[dict[str, Any]] = []
+    round_idx = 0
+    while any(round_idx < len(groups[k]) for k in keys):
+        for k in keys:
+            members = groups[k]
+            if round_idx < len(members):
+                interleaved.append(members[(seed + round_idx) % len(members)])
+        round_idx += 1
+    return interleaved[: min(limit, len(core))]
+
+
 def build_retest_items(
     pack_id: str,
     *,
     user_id: str,
     day_index: int,
     limit: int = 5,
+    mode: str = "review",
     manifest_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """次日变体复测题面投影——runtime 只从编译期预生成池**抽取**（§8 红线）。
+    """变体题面投影——runtime 只从编译期预生成池**抽取**（§8 红线）。
 
-    确定性轮换：同一用户同一天取同一切片（多端幂等，§9-D3）；跨天按
-    ``day_index``（服务端本地日，§9-D2）前进，池耗尽自动回绕复用旧变体
-    （产能报告的降级预案①，绝不 runtime 现编）。只发核心变体
-    （extension=false）；judge 所需的期望判定随题下发（判断题二选一，
-    本地确定性判分=档位①，D5 离线可用）。
+    两种取题模式共用**同一签发池、同一 builder**（不分叉第二 builder）：
+    - ``mode="review"``（默认，复习轮换皮复测）：跨天扁平确定性轮换，同一用户
+      同一天取同一切片（多端幂等，§9-D3）；跨天按 ``day_index``（服务端本地日，
+      §9-D2）前进，池耗尽自动回绕复用旧变体（产能降级预案①，绝不 runtime 现编）。
+    - ``mode="forward"``（学习轮 2 分钟轻练，对刚学完的 pack 立即练一遍）：广度
+      优先 round-robin 覆盖不同 ``rule_group``（见 ``_forward_rule_group_spread``）。
+      仅**选序**不同，证据仍走 learner_signal 非 promoting（轻练不关闭弱点，PRD 红线）。
+
+    两模式都只发核心变体（extension=false）；judge 所需期望判定随题下发（判断题
+    二选一，本地确定性判分，D5 离线可用）。对外只投影签发字段
+    {variant_id, rule_group, surface, expected_ok, correct_statement, anchor}——
+    绝不派生 scoring_point 文本 / exam_refs / chapter（变体池无此供给=不臆造）。
 
     签发闸（双 fail-closed）：只从 ``status=="signed"`` 且 sha 锚定当前 pack
     正文的 bank 抽取——不满足与 bank 缺失同形返回 ``[]``（既有降级）。
@@ -210,8 +243,11 @@ def build_retest_items(
         return []
     limit = max(1, min(int(limit), 10))
     seed = sum(ord(c) for c in str(user_id)) + int(day_index)
-    start = seed % len(core)
-    picked = [core[(start + i) % len(core)] for i in range(min(limit, len(core)))]
+    if str(mode or "").strip().lower() == "forward":
+        picked = _forward_rule_group_spread(core, seed, limit)
+    else:
+        start = seed % len(core)
+        picked = [core[(start + i) % len(core)] for i in range(min(limit, len(core)))]
     return [
         {
             "variant_id": v["variant_id"],

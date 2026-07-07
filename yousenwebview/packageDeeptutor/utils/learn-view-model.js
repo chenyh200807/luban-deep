@@ -171,8 +171,12 @@ function buildLearnViewModel(args) {
   var dueCount = _safeArr(reval.items).length;
 
   // ── 今日任务(next_step practice 臂 / 处方;缺则 day-0 通用兜底,不塌空) ──
-  // prompt = 直达半写训练的作答意图(案例题+采分点批改,非选择题);
-  // 交 chat/TutorBot 单一答题权威消费(runtime.setPendingChatIntent),前端不判分。
+  // 两类任务,由 task_type 决定 learn.js goPractice 的入口(不新建第二答题页):
+  // - half_write(处方臂):特定薄弱点半写训练,prompt=作答意图,交 chat/TutorBot
+  //   单一答题权威消费(runtime.setPendingChatIntent),前端不判分;
+  // - light_practice(通用/冷启动臂):2 分钟正向轻练,带 pack_id → 复用 retest 页
+  //   forward 模式(build_retest_items mode=forward,本地判分、证据非 promoting)。
+  //   题面只投影签发字段,前端不造采分点/真题/章节。
   var todayTask = null;
   if (nextStep.mode === "practice_active" && nsRef) {
     var concept = nsMeta.title || "你的薄弱点";
@@ -181,17 +185,25 @@ function buildLearnViewModel(args) {
       reason: _str(nextStep.reason),
       cta: "开始半写训练",
       concept: concept,
+      task_type: "half_write",
+      pack_id: nsRef,
+      mode: "prescription",
       prompt:
         "针对『" + concept + "』给我一道案例题做半写训练。我先真实作答,你再按采分点逐条批改并定位我的盲点,不要提前给答案和解析。",
     };
   } else if (nextStation) {
-    // 有站可学即给通用今日任务(设计始终显示此卡);诚实=通用摸底,非编造具体处方
+    // 有站可学即给通用今日任务(设计始终显示此卡);2 分钟轻练=学习轮头牌低摩擦入口。
+    // pack_id=推荐站;无签发变体池时 retest 页 fail-closed 空态(不伪造题)。
     var seed = nextStation.title || "";
     todayTask = {
-      title: "先做一题摸底,补齐可诊断证据",
-      reason: "先完成一题真实作答,系统再按题目、选项和错因生成专项训练。",
-      cta: "开始摸底",
+      title: (seed ? seed + " · " : "") + "先花 2 分钟轻练",
+      reason: "先快速过一遍这一考点的不同考法,答完系统按错因帮你定位盲点。",
+      cta: "开始 2 分钟轻练",
       concept: seed,
+      task_type: "light_practice",
+      pack_id: nextStation.pack_id,
+      mode: "topic",
+      // 兜底 prompt:若 pack_id 缺失无法进 retest 正向练,goPractice 退回 chat 摸底。
       prompt:
         (seed ? "针对『" + seed + "』给我一道案例摸底题。" : "给我一道一建建筑实务案例摸底题。") +
         "我先真实作答,你再按采分点批改并补齐可诊断证据,不要提前给答案和解析。",

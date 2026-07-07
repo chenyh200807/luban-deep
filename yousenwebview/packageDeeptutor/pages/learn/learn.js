@@ -164,11 +164,22 @@ Page({
   goReview() {
     this._navTo(route.lubanReview());
   },
-  // 今日任务「开始半写训练/摸底」→ 直达半写训练:复用唯一答题流
-  // (runtime.setPendingChatIntent → chat/TutorBot 生成案例题并按采分点批改)。
-  // 前端只投递作答意图,不判分、不造第二套答题入口。缺 prompt 才退练习中心。
+  // 今日任务入口(由 task_type 分流,不新建第二答题页):
+  // - light_practice:2 分钟正向轻练 → 复用 retest 页 forward 模式(带 pack_id);
+  //   本地判分、证据非 promoting、完成发 station_completed 交接次日复习。
+  // - half_write / 摸底:直达半写训练,复用唯一答题流
+  //   (runtime.setPendingChatIntent → chat/TutorBot 案例题+采分点批改)。
+  // 前端只投递作答意图或跳转,不判分、不造第二套答题入口。
   goPractice() {
     var task = this.data.vm && this.data.vm.todayTask;
+    if (task && task.task_type === "light_practice" && task.pack_id) {
+      this._navTo(
+        "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
+          encodeURIComponent(String(task.pack_id)) +
+          "&mode=forward",
+      );
+      return;
+    }
     var prompt = task && task.prompt;
     if (prompt && typeof wx !== "undefined" && wx.reLaunch) {
       runtime.setPendingChatIntent(prompt, "AUTO");
