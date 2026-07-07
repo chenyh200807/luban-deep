@@ -24,11 +24,21 @@ PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
         # result=granted|red_dot|correct|incorrect|"<n>/<N>"。其余 D15 指标复用既有名:
         # 站进入=module_viewed, 档位=learning_action_started(start_training,
         # object_id="<pack>:<tier>"), 站完成/复测完成=learning_action_completed。
+        # practice_mode 判别位（2026-07-07 登记，spike 命门）：变体练题两取题模式
+        # (forward=学习轮当天正向轻练 / review=复习轮次日换皮复测) 在埋点里必须可分——
+        # 否则 D1 留存(GO 门=人次日回来做换皮复测)读不出。给 retest_item_answered /
+        # learning_action_completed(object_type=retest) 加 property practice_mode,
+        # 不新造事件名。
         "handoff_rendered",
         "retest_item_answered",
         "subscribe_prompt_result",
     }
 )
+
+# practice_mode 允许值(register-before-use，单一 authority)：forward=学习轮 2 分钟
+# 正向轻练(build_retest_items mode=forward)、review=复习轮次日换皮复测(mode=review)。
+# 与 read_model.build_retest_items 的 mode 同口径;白名单外值 ingest 拒收(防拼写漂移)。
+PRODUCT_BEHAVIOR_PRACTICE_MODES = frozenset({"forward", "review"})
 
 PRODUCT_BEHAVIOR_MODULES = frozenset(
     {
@@ -149,6 +159,10 @@ def validate_product_behavior_event(event_name: str, metadata: dict[str, Any]) -
     if not visit_id and normalized_event != "event_error":
         raise ValueError("visit_id is required for product behavior events")
 
+    practice_mode = _clean_string(metadata.get("practice_mode"), max_length=32)
+    if practice_mode and practice_mode not in PRODUCT_BEHAVIOR_PRACTICE_MODES:
+        raise ValueError(f"Unsupported practice_mode: {practice_mode!r}")
+
     return {
         "event_name": normalized_event,
         "visit_id": visit_id,
@@ -156,6 +170,7 @@ def validate_product_behavior_event(event_name: str, metadata: dict[str, Any]) -
         "section": section,
         "action": action,
         "surface": surface,
+        "practice_mode": practice_mode,
         "object_type": _clean_string(metadata.get("object_type"), max_length=64),
         "object_id": _clean_string(metadata.get("object_id"), max_length=128),
         "entry_source": _clean_string(metadata.get("entry_source"), max_length=64),

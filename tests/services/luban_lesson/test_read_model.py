@@ -171,6 +171,96 @@ def test_retest_pool_wraps_when_exhausted(tmp_path):
     assert len(items) == 2, "池小于 limit 时只发池内不重复项(复用旧变体, 绝不现编)"
 
 
+_SIGNED_ITEM_FIELDS = {
+    "variant_id", "rule_group", "surface", "expected_ok", "correct_statement", "anchor",
+}
+
+
+def test_items_project_only_signed_fields_no_fabrication(tmp_path):
+    """红线(投影不生成):对外题卡只投影签发字段,绝不派生 scoring_point 文本 /
+    exam_refs(真题)/ chapter(章节)——变体池无此供给。两模式同守。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _bank(tmp_path)
+    for mode in ("review", "forward"):
+        items = build_retest_items(
+            "S05", user_id="u1", day_index=738000, limit=3, mode=mode, manifest_path=mp
+        )
+        assert items, mode
+        for item in items:
+            assert set(item.keys()) == _SIGNED_ITEM_FIELDS, (
+                f"{mode} 模式题卡出现未签发派生字段: {set(item.keys()) - _SIGNED_ITEM_FIELDS}"
+            )
+
+
+def _multi_group_bank(tmp_path):
+    """核心变体分布在 3 个 rule_group(A×3 / B×2 / C×1),验证 forward 广度覆盖。"""
+    variants = []
+    for grp, n in (("A-order", 3), ("B-scope", 2), ("C-voltage", 1)):
+        for i in range(n):
+            variants.append({
+                "variant_id": f"S05-{grp}-{i:03d}", "rule_group": grp,
+                "surface": f"{grp}表面{i}", "expected_ok": i % 2 == 0,
+                "correct_statement": "s", "anchor": "kc:x", "extension": False,
+            })
+    variants.append({"variant_id": "S05-E-0", "rule_group": "A-order", "surface": "外延",
+                     "expected_ok": True, "correct_statement": "s", "anchor": "kc:x",
+                     "extension": True})
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(
+        json.dumps({"status": "signed", "source_pack_sha256": "abc123",
+                    "variants": variants}), encoding="utf-8")
+
+
+def test_forward_mode_covers_distinct_rule_groups(tmp_path):
+    """forward 广度优先:limit ≤ 组数时,取到的题必落在不同 rule_group(先广后深)。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _multi_group_bank(tmp_path)
+    items = build_retest_items(
+        "S05", user_id="u1", day_index=738000, limit=3, mode="forward", manifest_path=mp
+    )
+    assert len(items) == 3
+    assert len({i["rule_group"] for i in items}) == 3, "前 3 题应覆盖 3 个不同考法"
+    assert all(not i["variant_id"].startswith("S05-E") for i in items), "外延变体禁入"
+
+
+def test_forward_mode_deterministic(tmp_path):
+    """forward 同用户同日幂等(多端一致,§9-D3)。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _multi_group_bank(tmp_path)
+    a = build_retest_items("S05", user_id="u1", day_index=738000, limit=4, mode="forward", manifest_path=mp)
+    b = build_retest_items("S05", user_id="u1", day_index=738000, limit=4, mode="forward", manifest_path=mp)
+    assert a == b and len(a) == 4
+
+
+def test_forward_and_review_are_same_builder_same_pool(tmp_path):
+    """forward 不是第二 builder:同一 build_retest_items、同一签发池,仅选序不同。
+    未识别 mode 归一为 review 行为。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _multi_group_bank(tmp_path)
+    review = build_retest_items("S05", user_id="u1", day_index=738000, limit=6, mode="review", manifest_path=mp)
+    forward = build_retest_items("S05", user_id="u1", day_index=738000, limit=6, mode="forward", manifest_path=mp)
+    # 同池:取满时(limit≥核心数)两模式是同一集合的重排
+    assert {i["variant_id"] for i in review} == {i["variant_id"] for i in forward}
+    unknown = build_retest_items("S05", user_id="u1", day_index=738000, limit=6, mode="banana", manifest_path=mp)
+    assert unknown == review, "未识别 mode 归一 review"
+
+
+def test_forward_mode_fail_closed_on_unsigned(tmp_path):
+    """forward 与 review 同一签发闸:candidate/未签发 → 空(不伪造轻练题)。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
+        "status": "candidate", "source_pack_sha256": "abc123",
+        "variants": [{"variant_id": "S05-A-000", "rule_group": "A", "surface": "s",
+                      "expected_ok": True, "correct_statement": "s", "anchor": "kc:x",
+                      "extension": False}],
+    }), encoding="utf-8")
+    assert build_retest_items("S05", user_id="u", day_index=1, mode="forward", manifest_path=mp) == []
+
+
 def test_manifest_cache_hits_by_stat_and_invalidates_on_change(tmp_path, monkeypatch):
     # 病B-3（事件循环纪律）：manifest 每请求全量重读+重解析曾是纯浪费；
     # (mtime_ns,size) 键缓存命中零解析，产物更新自动失效，失败不缓存。

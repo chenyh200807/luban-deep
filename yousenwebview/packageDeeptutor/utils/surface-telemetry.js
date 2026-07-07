@@ -101,6 +101,9 @@ function trackProductBehavior(eventName, payload) {
       platform: data.platform || "",
       device_model: data.deviceModel || "",
       network_type: data.networkType || "",
+      // spike 命门判别位：forward(学习轮当天轻练)/review(复习轮次日复测)。
+      // 必须在此跳显式导出,否则固定 metadata 会静默丢掉——D1 留存即读不出。
+      practice_mode: data.practiceMode || "",
     },
   });
 }

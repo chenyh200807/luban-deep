@@ -5,15 +5,15 @@
         <text class="lb-back-arrow">‹</text>
         <text class="lb-back-text">路线</text>
       </view>
-      <text class="lb-nav-title">换皮复测</text>
+      <text class="lb-nav-title">{{navTitle}}</text>
     </view>
   </view>
 
   <scroll-view class="lb-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px">
     <view class="lb-inner">
       <view class="rt-hero">
-        <text class="rt-kicker">昨天的考点，换了一身皮</text>
-        <text class="rt-title">看看你能不能一眼认出它</text>
+        <text class="rt-kicker">{{heroKicker}}</text>
+        <text class="rt-title">{{heroTitle}}</text>
       </view>
 
       <view class="rt-error" wx:if="{{errorText}}">
@@ -22,12 +22,12 @@
       </view>
 
       <view class="rt-loading" wx:if="{{loading}}">
-        <text>正在取今天的题…</text>
+        <text>{{loadingText}}</text>
       </view>
 
       <block wx:if="{{!loading && !errorText}}">
         <view class="rt-empty" wx:if="{{!items.length}}">
-          <text>今天这一站暂时没有复测题，明天再来。</text>
+          <text>{{emptyText}}</text>
         </view>
 
         <view class="rt-card" wx:for="{{items}}" wx:key="key">
@@ -65,8 +65,8 @@
         </view>
 
         <view class="rt-done" wx:if="{{done}}">
-          <text class="rt-done-title">今天的回炉完成 {{correctCount}}/{{total}}</text>
-          <text class="rt-done-desc">这个考点在你这儿越来越稳了。明天见。</text>
+          <text class="rt-done-title">{{doneTitlePrefix}} {{correctCount}}/{{total}}</text>
+          <text class="rt-done-desc">{{doneDesc}}</text>
         </view>
       </block>
     </view>
