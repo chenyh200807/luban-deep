@@ -122,6 +122,7 @@ services:
       # REAL client, not the docker gateway IP (else all anon users share one bucket).
       # Safe here: nginx sets X-Real-IP=$remote_addr (overwrites client value).
       - DEEPTUTOR_TRUST_PROXY_HEADERS=${DEEPTUTOR_TRUST_PROXY_HEADERS:-false}
+      - WECHAT_PAY_PRIVATE_KEY_PATH=/app/secrets/wechat-pay/apiclient_key.pem
 
     volumes:
       # Mount local data directory for persistence (read-write)
@@ -132,6 +133,9 @@ services:
       # queue) and observability control-plane archives live here. Without this
       # mount a --force-recreate release silently drops all pending/dead events.
       - ./data/runtime:/app/data/runtime
+      # Merchant certificates/private keys stay outside the image and are mounted
+      # read-only for native WeChat Pay signing.
+      - ./secrets/wechat-pay:/app/secrets/wechat-pay:ro
 
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:${BACKEND_PORT:-8001}/readyz"]

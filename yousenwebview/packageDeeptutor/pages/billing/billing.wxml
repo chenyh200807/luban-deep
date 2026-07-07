@@ -119,53 +119,18 @@
         <view class="pay-dock-copy">
           <text class="pay-dock-label">当前选择：{{selectedPackage.name}}</text>
           <text class="pay-dock-original" wx:if="{{selectedPackage.originalPrice}}">原价 ¥{{selectedPackage.originalPrice}}</text>
-          <text class="pay-dock-meta">开通前先联系销售确认班型和权益，前端不直接开通。</text>
+          <text class="pay-dock-meta">微信支付成功后自动开通学习权益。</text>
         </view>
-        <view class="pay-dock-action" bindtap="openCheckout" aria-role="button" aria-label="开通权益">
+        <view class="pay-dock-action {{checkoutLoading ? 'loading' : ''}}" bindtap="openCheckout" aria-role="button" aria-label="开通权益">
           <view class="pay-dock-price-group">
             <text class="pay-dock-yen">¥</text>
             <text class="pay-dock-price">{{selectedPackage.price}}</text>
           </view>
-          <text class="pay-dock-cta">开通</text>
+          <text class="pay-dock-cta">{{checkoutLoading ? '支付中' : '开通'}}</text>
         </view>
       </view>
 
       <view style="height: 60rpx"></view>
     </view>
   </scroll-view>
-
-  <view class="contact-sales-mask" wx:if="{{contactSalesVisible}}" catchtap="closeContactSales">
-    <view class="contact-sales-sheet" catchtap="noop">
-      <view class="contact-sales-handle"></view>
-      <view class="contact-sales-head">
-        <view>
-          <text class="contact-sales-kicker">销售顾问</text>
-          <text class="contact-sales-title">联系销售开通{{selectedPackage.name}}</text>
-        </view>
-        <view class="contact-sales-close" catchtap="closeContactSales">×</view>
-      </view>
-      <view class="contact-sales-summary">
-        <view class="contact-sales-package">
-          <text class="contact-sales-summary-main">{{selectedPackage.turns}} 次学习权益</text>
-          <text class="contact-sales-summary-sub">用于 AI 答疑、深度解析、批改和复测闭环。</text>
-        </view>
-        <view class="contact-sales-price">
-          <text class="contact-sales-original" wx:if="{{selectedPackage.originalPrice}}">原价 ¥{{selectedPackage.originalPrice}}</text>
-          <view class="contact-sales-current-price">
-            <text class="contact-sales-yen">¥</text>
-            <text class="contact-sales-amount">{{selectedPackage.price}}</text>
-          </view>
-        </view>
-      </view>
-      <view class="contact-sales-qr-card">
-        <image class="contact-sales-qr" src="../../images/sales-contact-qr.png" mode="aspectFit" show-menu-by-longpress="{{true}}" />
-        <text class="contact-sales-qr-title">长按识别二维码</text>
-        <text class="contact-sales-qr-sub">添加销售顾问后确认开通名额与服务。</text>
-      </view>
-      <view class="contact-sales-submit" catchtap="closeContactSales" aria-role="button" aria-label="我知道了">
-        <text class="contact-sales-submit-text">我知道了</text>
-      </view>
-    </view>
-  </view>
-
 </view>

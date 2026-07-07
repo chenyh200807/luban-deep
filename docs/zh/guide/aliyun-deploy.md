@@ -109,6 +109,12 @@ python scripts/verify_runtime_assets.py
 - 生产 `.env` 中禁止把 `DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE` / `DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE` 指到 `/root/luban`
 - 发布脚本会在远端重启前自动执行 `validate_aliyun_release_env.sh`；缺少 `DEEPTUTOR_AUTH_SECRET` 或 `DEEPTUTOR_ADMIN_USER_IDS` 会直接拒绝发布
 
+微信支付直连上线额外约束：
+
+- 商户私钥只允许放在 `/root/deeptutor/secrets/wechat-pay/apiclient_key.pem`，并通过 `docker-compose.yml` 只读挂载到 `/app/secrets/wechat-pay/apiclient_key.pem`。
+- `sync_to_aliyun.sh` 必须排除 `secrets/`，防止 `rsync --delete` 删除商户私钥。
+- 容器内服务以 UID/GID `10001:10001` 运行；宿主机 `/root/deeptutor/secrets` 与 `secrets/wechat-pay` 目录必须对 `10001` 可进入，私钥文件必须对 `10001` 可读，例如目录 `700`、文件 `400`、owner `10001:10001`。如果宿主机可见但容器内报 `WECHAT_PAY_PRIVATE_KEY_PATH does not exist`，先查这个权限。
+
 模板里还默认给了阿里云构建加速参数：
 
 - `APT_MIRROR=https://mirrors.aliyun.com/debian`

@@ -18,7 +18,7 @@ Page({
     packages: [],
     selectedPackageId: "vip",
     selectedPackage: null,
-    contactSalesVisible: false,
+    checkoutLoading: false,
   },
 
   onLoad() {
@@ -82,16 +82,41 @@ Page({
     });
   },
 
-  openCheckout() {
-    if (!this.data.selectedPackage) return;
-    this.setData({ contactSalesVisible: true });
+  async openCheckout() {
+    var selected = this.data.selectedPackage;
+    if (!selected || this.data.checkoutLoading) return;
+    this.setData({ checkoutLoading: true });
+    try {
+      var raw = await api.createBillingCheckout({
+        package_id: selected.id,
+        channel: "wechat",
+      });
+      var checkout = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};
+      var payment = checkout && checkout.payment ? checkout.payment : {};
+      var params = payment.params || null;
+      if (!params) {
+        throw new Error(checkout.message || "PAYMENT_UNAVAILABLE");
+      }
+      await _requestWechatPayment(params);
+      wx.showToast({ title: "支付成功", icon: "success" });
+      this._refreshUsageAfterPayment();
+    } catch (err) {
+      wx.showToast({ title: _paymentErrorMessage(err), icon: "none" });
+    } finally {
+      this.setData({ checkoutLoading: false });
+    }
   },
 
-  closeContactSales() {
-    this.setData({ contactSalesVisible: false });
+  _refreshUsageAfterPayment() {
+    var page = this;
+    page._loadUsage();
+    [1500, 4000].forEach(function (delayMs) {
+      setTimeout(function () {
+        page._loadUsage();
+      }, delayMs);
+    });
   },
 
-  noop() {},
 });
 
 function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
@@ -211,6 +236,28 @@ function _selectPackage(packages, packageId) {
     if (String(list[i].id || "") === target) return list[i];
   }
   return list[0] || null;
+}
+
+function _requestWechatPayment(params) {
+  var payload = params && typeof params === "object" ? params : {};
+  return new Promise(function (resolve, reject) {
+    wx.requestPayment({
+      timeStamp: String(payload.timeStamp || ""),
+      nonceStr: String(payload.nonceStr || ""),
+      package: String(payload.package || ""),
+      signType: String(payload.signType || "RSA"),
+      paySign: String(payload.paySign || ""),
+      success: resolve,
+      fail: reject,
+    });
+  });
+}
+
+function _paymentErrorMessage(err) {
+  var text = String((err && (err.errMsg || err.message)) || "").trim();
+  if (text.indexOf("cancel") >= 0) return "已取消支付";
+  if (text.indexOf("required") >= 0 || text.indexOf("openid") >= 0) return "请先完成微信登录";
+  return "支付暂不可用，请稍后再试";
 }
 
 function _degradedUsageState(display) {
