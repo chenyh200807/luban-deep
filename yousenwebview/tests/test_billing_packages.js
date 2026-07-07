@@ -26,6 +26,9 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
   var paymentCalls = [];
   var previewImageCalls = [];
   var checkoutCalls = [];
+  var usageCalls = 0;
+  var walletCalls = 0;
+  var ledgerCalls = 0;
   var sandbox = {
     console: console,
     setTimeout: function () {
@@ -57,6 +60,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       if (request === "../../utils/api") {
         return {
           getUsage: function () {
+            usageCalls++;
             return Promise.resolve(
               usagePayload || {
                 display: { primary_label: "剩余 75%", primary_percent: 75 },
@@ -73,9 +77,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
             );
           },
           getWallet: function () {
+            walletCalls++;
             return Promise.resolve(walletPayload || { balance: 9000 });
           },
           getLedger: function () {
+            ledgerCalls++;
             return Promise.resolve(
               ledgerPayload || {
                 entries: [
@@ -166,6 +172,9 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     paymentCalls: paymentCalls,
     previewImageCalls: previewImageCalls,
     checkoutCalls: checkoutCalls,
+    usageCalls: function () { return usageCalls; },
+    walletCalls: function () { return walletCalls; },
+    ledgerCalls: function () { return ledgerCalls; },
   };
 }
 
@@ -234,7 +243,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       billingWxml.indexOf("item.turns") >= 0 &&
         billingWxml.indexOf("{{item.points}}") === -1 &&
         billingWxml.indexOf("selectedPackage.points") === -1,
-      "billing package cards and contact sheet should expose promised usage counts, not internal points",
+      "billing package cards and payment dock should expose promised usage counts, not internal points",
     );
     var staleWeeklyCopy =
       billingWxml + billingJs + profileWxml + profileJs;
