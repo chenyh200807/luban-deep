@@ -164,13 +164,15 @@ Page({
     var fallback = route.chat(source ? { entry_source: source } : null);
     var target = route.resolveInternalUrl(this.data.returnTo, fallback);
     // Task C 入口收权(双轮 spike):登录后落地的单一收口点。护栏1=flags 默认关时
-    // resolvePostAuthLanding 原样返回(host 逐字节不变);flag 开且目标是问鲁班(chat)
+    // 整个分支跳过(不碰 route.learn),host 落地逐字节不变;flag 开且目标是问鲁班(chat)
     // 才翻到学习双轮页(护栏2:仅翻 chat→learn,不动其它显式深链;chat 仍五 tab 一键可达、
     // learn 冷启动有骨架、关 flag 即回滚)。只影响登录后落地=spike 新用户 cohort。
-    target = flags.resolvePostAuthLanding(
-      target,
-      route.learn(source ? { entry_source: source } : null),
-    );
+    if (flags.shouldLandOnDoubleWheel()) {
+      target = flags.resolvePostAuthLanding(
+        target,
+        route.learn(source ? { entry_source: source } : null),
+      );
+    }
     wx.reLaunch({ url: target });
   },
   _trackLoginSuccess: function (method) {

@@ -28,7 +28,7 @@ from deeptutor.services.luban_lesson.full_answer_grading import (
 _PACK_ID = "T01"
 _VARIANT_ID = "T01-A-hoist-000"
 _NODE = "1A413030"
-_SHA = "deadbeefcafefeed0011223344556677"
+_SHA = "deadbeefcafefeed0011223344556677"  # pragma: allowlist secret  (假 fixture sha,非真 secret)
 
 
 class _PathServiceStub:
