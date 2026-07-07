@@ -26,9 +26,15 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
   var paymentCalls = [];
   var previewImageCalls = [];
   var checkoutCalls = [];
+  var usageCalls = 0;
+  var walletCalls = 0;
+  var ledgerCalls = 0;
   var sandbox = {
     console: console,
-    setTimeout: setTimeout,
+    setTimeout: function (callback) {
+      if (typeof callback === "function") callback();
+      return 1;
+    },
     clearTimeout: clearTimeout,
     Page: function (def) {
       pageDef = def;
@@ -55,6 +61,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       if (request === "../../utils/api") {
         return {
           getUsage: function () {
+            usageCalls++;
             return Promise.resolve(
               usagePayload || {
                 display: { primary_label: "剩余 75%", primary_percent: 75 },
@@ -71,9 +78,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
             );
           },
           getWallet: function () {
+            walletCalls++;
             return Promise.resolve(walletPayload || { balance: 9000 });
           },
           getLedger: function () {
+            ledgerCalls++;
             return Promise.resolve(
               ledgerPayload || {
                 entries: [
@@ -164,6 +173,9 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     paymentCalls: paymentCalls,
     previewImageCalls: previewImageCalls,
     checkoutCalls: checkoutCalls,
+    usageCalls: function () { return usageCalls; },
+    walletCalls: function () { return walletCalls; },
+    ledgerCalls: function () { return ledgerCalls; },
   };
 }
 
@@ -195,11 +207,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     );
     assert(
       typeof page.openCheckout === "function",
-      "billing page should expose openCheckout for contacting sales",
+      "billing page should expose openCheckout for WeChat payment",
     );
     assert(
       !("submitCheckout" in page),
-      "billing page should not expose direct checkout submission before sales contact",
+      "billing page should not expose a separate legacy checkout submission",
     );
     var billingWxml = fs.readFileSync(
       path.join(__dirname, "../packageDeeptutor/pages/billing/billing.wxml"),
@@ -222,15 +234,16 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing package cards should render original price",
     );
     assert(
-      billingWxml.indexOf("sales-contact-qr.png") >= 0 &&
-        fs.existsSync(path.join(__dirname, "../packageDeeptutor/images/sales-contact-qr.png")),
-      "billing contact sheet should render the sales contact QR asset",
+      billingWxml.indexOf("sales-contact-qr.png") === -1 &&
+        billingWxml.indexOf("二维码") === -1 &&
+        billingWxml.indexOf("联系销售") === -1,
+      "billing direct payment page should not render sales QR checkout",
     );
     assert(
       billingWxml.indexOf("item.turns") >= 0 &&
         billingWxml.indexOf("{{item.points}}") === -1 &&
         billingWxml.indexOf("selectedPackage.points") === -1,
-      "billing package cards and contact sheet should expose promised usage counts, not internal points",
+      "billing package cards and payment dock should expose promised usage counts, not internal points",
     );
     var staleWeeklyCopy =
       billingWxml + billingJs + profileWxml + profileJs;
@@ -308,31 +321,48 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
       "billing fallback prices should match launch pricing",
     );
-    page.openCheckout();
+    await page.openCheckout();
     assert(
-      page.data.contactSalesVisible === true,
-      "billing open action should show the sales contact QR sheet first",
+      !("contactSalesVisible" in page.data),
+      "billing direct payment flow should not keep legacy contact sales state",
     );
     assert(
-      loaded.checkoutCalls.length === 0,
-      "billing open action should not create a checkout order before sales contact",
+      loaded.checkoutCalls.length === 1,
+      "billing open action should create one checkout order after user action",
     );
     assert(
-      loaded.paymentCalls.length === 0,
-      "billing open action should not invoke WeChat payment before sales contact",
+      loaded.checkoutCalls[0].package_id === "vip" &&
+        loaded.checkoutCalls[0].channel === "wechat",
+      "billing open action should submit the selected launch package to WeChat checkout",
+    );
+    assert(
+      loaded.paymentCalls.length === 1,
+      "billing open action should invoke WeChat payment after checkout order is created",
+    );
+    assert(
+      loaded.paymentCalls[0].package === "prepay_id=wx123" &&
+        loaded.paymentCalls[0].signType === "RSA",
+      "billing payment payload should be forwarded to wx.requestPayment",
+    );
+    assert(
+      loaded.toastCalls.some(function (item) { return item && item.title === "支付成功"; }),
+      "billing should show a success toast after requestPayment succeeds",
+    );
+    assert(
+      page.data.checkoutLoading === false,
+      "billing should clear checkout loading after payment returns",
     );
     assert(
       loaded.previewImageCalls.length === 0,
-      "billing open action should keep the QR visible in-page instead of jumping to preview",
-    );
-    page.closeContactSales();
-    assert(
-      page.data.contactSalesVisible === false,
-      "billing contact sheet should be closable",
+      "billing open action should not preview or display a QR image",
     );
     assert(
-      loaded.checkoutCalls.length === 0,
-      "billing contact-first flow should not submit a launch package id directly",
+      loaded.usageCalls() === 4 && loaded.walletCalls() === 4 && loaded.ledgerCalls() === 4,
+      "billing should refresh usage, wallet, and ledger repeatedly after requestPayment succeeds",
+    );
+    assert(
+      loaded.checkoutCalls.length === 1,
+      "billing direct payment flow should submit only once for one user action",
     );
     var staleWallet = loadBillingPage(null, {
       balance: 0,

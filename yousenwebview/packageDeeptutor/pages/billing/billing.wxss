@@ -804,6 +804,7 @@
   background: linear-gradient(135deg, #f6c04f, #f59e0b);
   box-shadow: 0 16rpx 36rpx rgba(245, 158, 11, 0.24);
 }
+.pay-dock-action.loading { opacity: 0.72; }
 .pay-dock-action:active { transform: scale(0.985); }
 .pay-dock-price-group {
   display: flex;
@@ -815,144 +816,14 @@
 .pay-dock-yen { font-size: 21rpx; line-height: 1; font-weight: 800; color: #141414; }
 .pay-dock-price { font-size: 35rpx; line-height: 1; font-weight: 900; color: #141414; }
 .pay-dock-cta { font-size: 25rpx; line-height: 1; font-weight: 800; color: #141414; flex-shrink: 0; }
-.contact-sales-mask {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  z-index: 100;
-  display: flex;
-  align-items: flex-end;
-  background: rgba(0,0,0,0.52);
-}
-.contact-sales-sheet {
-  width: 100%;
-  padding: 16rpx 28rpx 44rpx;
-  border-radius: 34rpx 34rpx 0 0;
-  background: #0d1522;
-  border-top: 1rpx solid rgba(255,255,255,0.12);
-  box-shadow: 0 -24rpx 80rpx rgba(0,0,0,0.36);
-}
-.contact-sales-handle {
-  width: 72rpx;
-  height: 8rpx;
-  border-radius: 999rpx;
-  margin: 0 auto 26rpx;
-  background: rgba(255,255,255,0.18);
-}
-.contact-sales-head, .contact-sales-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24rpx;
-}
-.contact-sales-kicker, .contact-sales-summary-sub {
-  display: block;
-  font-size: 22rpx;
-  color: rgba(255,255,255,0.46);
-}
-.contact-sales-title {
-  display: block;
-  margin-top: 4rpx;
-  font-size: 38rpx;
-  line-height: 1.15;
-  font-weight: 900;
-  color: #fff;
-}
-.contact-sales-close {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255,255,255,0.72);
-  font-size: 40rpx;
-  background: rgba(255,255,255,0.08);
-}
-.contact-sales-summary {
-  margin-top: 28rpx;
-  padding: 24rpx 0;
-  border-top: 1rpx solid rgba(255,255,255,0.08);
-  border-bottom: 1rpx solid rgba(255,255,255,0.08);
-}
-.contact-sales-package { min-width: 0; }
-.contact-sales-summary-main { display: block; font-size: 28rpx; font-weight: 800; color: #fff; }
-.contact-sales-summary-sub { margin-top: 8rpx; }
-.contact-sales-price { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
-.contact-sales-current-price { display: flex; align-items: baseline; }
-.contact-sales-original {
-  margin-bottom: 4rpx;
-  font-size: 20rpx;
-  line-height: 1;
-  color: rgba(255,255,255,0.38);
-  text-decoration: line-through;
-  font-variant-numeric: tabular-nums;
-}
-.contact-sales-yen { font-size: 24rpx; font-weight: 800; color: #f6c04f; }
-.contact-sales-amount { font-size: 52rpx; line-height: 1; font-weight: 900; color: #f6c04f; }
-.contact-sales-qr-card {
-  margin-top: 26rpx;
-  padding: 26rpx 24rpx 24rpx;
-  border-radius: 26rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(255,255,255,0.045);
-  border: 1rpx solid rgba(255,255,255,0.08);
-}
-.contact-sales-qr {
-  width: 420rpx;
-  height: 420rpx;
-  max-width: 100%;
-  border-radius: 18rpx;
-  background: #fff;
-}
-.contact-sales-qr-title {
-  margin-top: 18rpx;
-  font-size: 28rpx;
-  line-height: 1.3;
-  font-weight: 900;
-  color: #fff;
-}
-.contact-sales-qr-sub {
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  line-height: 1.45;
-  color: rgba(255,255,255,0.48);
-  text-align: center;
-}
-.contact-sales-submit {
-  height: 88rpx;
-  margin-top: 26rpx;
-  border-radius: 999rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f6c04f, #f59e0b);
-}
-.contact-sales-submit-text { font-size: 30rpx; font-weight: 900; color: #111827; }
-.billing-page.light .balance-card, .billing-page.light .contact-sales-sheet { background: #fff; }
+.billing-page.light .balance-card { background: #fff; }
 .billing-page.light .balance-gauge-ring { background: #fff; }
 .billing-page.light .balance-gauge-num,
-.billing-page.light .contact-sales-title,
-.billing-page.light .contact-sales-summary-main,
-.billing-page.light .contact-sales-qr-title,
 .billing-page.light .pay-dock-label { color: #0f172a; }
 .billing-page.light .pay-dock { background: rgba(255,255,255,0.92); border-color: #dbe6f5; }
 .billing-page.light .pay-dock-meta,
 .billing-page.light .pay-dock-original,
-.billing-page.light .pkg-original-price,
-.billing-page.light .contact-sales-original,
-.billing-page.light .contact-sales-kicker,
-.billing-page.light .contact-sales-summary-sub,
-.billing-page.light .contact-sales-qr-sub { color: #64748b; }
-.billing-page.light .contact-sales-close { background: #eef2f7; color: #334155; }
-.billing-page.light .contact-sales-qr-card {
-  background: #f8fbff;
-  border-color: #dbe6f5;
-}
+.billing-page.light .pkg-original-price { color: #64748b; }
 .billing-page.light .ledger-card {
   background: #fff;
   border-color: #dbe6f5;
