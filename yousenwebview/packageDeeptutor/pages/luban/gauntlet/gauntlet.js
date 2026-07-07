@@ -47,6 +47,10 @@ Page({
     draftText: "",
     draftSaved: false,
     showExitSheet: false,
+    // 档位③全量作答(自由文本→判分内核 seam)。前端零判分, verdict 全由后端给。
+    fullAnswer: null,
+    fullAnswerLoading: false,
+    fullAnswerNote: "", // 旗标关/未签发/失败时的诚实占位, 绝不本地伪造判分
   },
 
   onLoad: function (query) {
@@ -133,7 +137,13 @@ Page({
 
   onDraftInput: function (event) {
     var value = (event && event.detail && event.detail.value) || "";
-    this.setData({ draftText: value, draftSaved: false });
+    // 改了答案 → 旧的全量作答 verdict 作废(不留陈旧判分误导)
+    this.setData({
+      draftText: value,
+      draftSaved: false,
+      fullAnswer: null,
+      fullAnswerNote: "",
+    });
   },
 
   onDraftBlur: function () {
@@ -144,6 +154,50 @@ Page({
   startVerify: function () {
     this._saveDraft();
     this.setData({ step: 3 });
+  },
+
+  // ②档位③全量作答: 自由默写文本 → 既有判分内核 seam(前端零判分、零改分)。
+  // 唯一投递 { variant_id, answer_text }; 逐采分点 verdict 全由后端内核给回。
+  submitFullAnswer: function () {
+    var answer = String(this.data.draftText || "").trim();
+    if (!answer) {
+      this.setData({ fullAnswerNote: "先把你的判断理由写下来，再交给判分内核批" });
+      return;
+    }
+    var items = this.data.items || [];
+    var primary = items[0] || {};
+    var variantId = String(primary.variant_id || "").trim();
+    if (!variantId) {
+      this.setData({ fullAnswerNote: "这一站暂无可判分的变体，先用逐条核对打底" });
+      return;
+    }
+    this._saveDraft();
+    // 等待态行内(判分要时间), 不做全屏遮罩
+    this.setData({ fullAnswerLoading: true, fullAnswerNote: "", fullAnswer: null });
+    var that = this;
+    api
+      .postLubanFullAnswer(this.data.packId, variantId, answer)
+      .then(function (resp) {
+        var body = api.unwrapResponse(resp) || {};
+        var verdict = gauntletViewModel.buildFullAnswerVerdict(body);
+        that.setData({ fullAnswer: verdict, fullAnswerLoading: false });
+        // 已登记完成埋点(register-before-use): 全量作答是一次学习动作完成
+        telemetry.trackProductBehavior("learning_action_completed", {
+          module: "practice",
+          action: "complete",
+          objectType: "full_answer",
+          objectId: that.data.packId,
+          result: verdict.scoreLine || verdict.evidenceLevel,
+        });
+      })
+      .catch(function (err) {
+        // fail-closed: 旗标关/未签发 → 404 同形, 如实标「即将开通」, 绝不本地伪造判分
+        var note =
+          err && err.statusCode === 404
+            ? "全量作答判分即将开通——先用下面逐条核对打底，一样扎实"
+            : api.describeRequestError(err, "判分内核忙不过来，稍后再交一次");
+        that.setData({ fullAnswerLoading: false, fullAnswerNote: note });
+      });
   },
 
   // ③ 逐条核对: retest 同款本地确定性判分(唯一判分机制, 零学情写入)
@@ -252,6 +306,9 @@ Page({
           pointCountLine: vm.pointCountLine,
           answeredCount: 0,
           verdict: null,
+          fullAnswer: null,
+          fullAnswerLoading: false,
+          fullAnswerNote: "",
           loading: false,
           errorText: "",
         });

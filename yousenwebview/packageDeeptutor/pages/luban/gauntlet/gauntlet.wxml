@@ -112,8 +112,42 @@
             <text class="gt-degrade-note">精确挖空练习正在准备中——先用默写打底，一样扎实</text>
           </view>
 
+          <!-- 档位③全量作答: 自由文本交判分内核批(前端零判分, verdict 后端给) -->
+          <view class="gt-card pk-card fa" wx:if="{{fullAnswer || fullAnswerLoading || fullAnswerNote}}">
+            <text class="gt-kicker">判分内核 · 全量作答</text>
+
+            <!-- 等待态行内(判分要时间, 不做全屏遮罩) -->
+            <text class="gt-fa-wait" wx:if="{{fullAnswerLoading}}">判分内核正在逐条批改你的作答…</text>
+
+            <!-- fail-closed / 出错: 诚实占位, 绝不本地伪造判分 -->
+            <text class="gt-fa-note" wx:if="{{!fullAnswerLoading && fullAnswerNote}}">{{fullAnswerNote}}</text>
+
+            <block wx:if="{{!fullAnswerLoading && fullAnswer && fullAnswer.graded}}">
+              <view class="gt-fa-scoreline" wx:if="{{fullAnswer.scoreLine}}">
+                <text class="gt-fa-score">{{fullAnswer.scoreLine}}</text>
+                <text class="gt-fa-score-label">采分点得分</text>
+              </view>
+
+              <!-- 逐采分点 verdict: 命中竹青 / 漏点赭暖(criterion 为判后反馈, 非输入提示) -->
+              <view class="gt-fa-point" wx:for="{{fullAnswer.points}}" wx:key="key">
+                <text class="gt-chip {{item.chipClass}}">{{item.statusLabel}}</text>
+                <text class="gt-fa-criterion">{{item.criterion}}</text>
+              </view>
+
+              <!-- 无签发采分点(open_skill): 如实说已记录, 不列空清单充数 -->
+              <text class="gt-fa-note" wx:if="{{!fullAnswer.hasPoints}}">这一题还没有权威采分点，先把你的作答完整记下了。</text>
+
+              <!-- 诚实封顶: L0_observed 不假装稳定掌握 -->
+              <text class="gt-fa-cap {{fullAnswer.stableEligible ? 'stable' : ''}}">{{fullAnswer.capNote}}</text>
+
+              <!-- 漏点入错因银行: 后端 writeback 兑现才转述(前端无记账签发权) -->
+              <text class="gt-fa-mistake" wx:if="{{fullAnswer.mistakeNote}}">{{fullAnswer.mistakeNote}}</text>
+            </block>
+          </view>
+
           <view class="gt-spacer"></view>
           <view class="gt-btn" bindtap="startVerify"><text>写完了 · 逐条核对</text></view>
+          <view class="gt-ghost" bindtap="submitFullAnswer"><text>{{fullAnswerLoading ? '判分内核批改中…' : '让判分内核批一次 · 全量作答'}}</text></view>
         </block>
 
         <!-- ════════ ③ 核对(本地确定性判分, 命中竹青/漏点赭暖) ════════ -->
