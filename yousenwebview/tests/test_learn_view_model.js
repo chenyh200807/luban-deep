@@ -178,4 +178,29 @@ ok("poster name clamps to 6 chars, title keeps full text", () => {
   assert.strictEqual(f05.name, "渗漏治理诊断"); // 恰 6 字不截
 });
 
+// ── task_type 路由字段:goPractice 按 task_type 分流(不新建第二答题页) ──
+ok("practice_active arm carries task_type=half_write + pack_id", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "N01", reason: "练:你漏的采分点" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.todayTask.task_type, "half_write");
+  assert.strictEqual(vm.todayTask.pack_id, "N01");
+});
+
+ok("general/fallback arm is light_practice with pack_id → forward retest entry", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "unavailable", source_ref: "", reason: "" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+  });
+  assert.strictEqual(vm.todayTask.task_type, "light_practice");
+  assert.strictEqual(vm.todayTask.mode, "topic");
+  // pack_id = 推荐/兜底站 → goPractice 据此进 retest forward 模式
+  assert.ok(vm.todayTask.pack_id, "light_practice 必须带 pack_id 才能进正向轻练");
+  assert.strictEqual(vm.todayTask.pack_id, vm.nextStation.pack_id);
+  assert.strictEqual(vm.todayTask.cta, "开始 2 分钟轻练");
+});
+
 console.log("\nlearn-view-model: " + passed + " passed");

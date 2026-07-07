@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 
 from fastapi import Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from deeptutor.api._secure_router import secure_router
 from deeptutor.api.dependencies import AuthContext, get_current_user
@@ -62,20 +63,33 @@ async def lesson_detail(pack_id: str, _: AuthContext = Depends(get_current_user)
 async def retest_items(
     pack_id: str,
     limit: int = 5,
+    mode: str = "review",
     current_user: AuthContext = Depends(get_current_user),
 ) -> dict:
+    """变体题面抽取（同一 builder / 同一签发池，两种取题模式）：
+    - ``mode=review``（默认，复习轮换皮复测）；
+    - ``mode=forward``（学习轮 2 分钟轻练：对刚学完的 pack 广度优先取一组，
+      覆盖不同 rule_group）。仅选序不同，均本地判分、证据非 promoting。
+
+    未识别的 mode 归一为 review（thin 归一，不新增第二 builder/第二端点）。
+    """
     from datetime import datetime, timedelta, timezone
 
     # §9-D2: "天"按服务端 UTC+8 日历日折算, 客户端不自算
     now = datetime.now(timezone(timedelta(hours=8)))
     day_index = now.year * 1000 + now.timetuple().tm_yday
+    mode = "forward" if str(mode or "").strip().lower() == "forward" else "review"
     try:
         items = build_retest_items(
-            pack_id, user_id=current_user.user_id, day_index=day_index, limit=limit
+            pack_id,
+            user_id=current_user.user_id,
+            day_index=day_index,
+            limit=limit,
+            mode=mode,
         )
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
-    return {"pack_id": pack_id.upper(), "items": items, "day_index": day_index}
+    return {"pack_id": pack_id.upper(), "items": items, "day_index": day_index, "mode": mode}
 
 
 # 复习模块灰度旗标（register-before-use: contracts/env_registry.yaml + .env.example）。
@@ -230,3 +244,52 @@ async def cloze_deck(pack_id: str, _: AuthContext = Depends(get_current_user)) -
         return build_cloze(pack_id)
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="cloze not found")
+
+
+class FullAnswerRequest(BaseModel):
+    """档位③全量作答提交体。变体池题面权威 = 已签发 variant bank，答案 = 自由默写文本。"""
+
+    variant_id: str = Field(..., min_length=1, max_length=128)
+    answer_text: str = Field(..., min_length=1, max_length=8000)
+
+
+@router.post(
+    "/lessons/{pack_id}/full-answer",
+    dependencies=[
+        Depends(route_rate_limit("luban_full_answer", default_max_requests=20, default_window_seconds=60.0))
+    ],
+)
+async def full_answer(
+    pack_id: str,
+    payload: FullAnswerRequest,
+    current_user: AuthContext = Depends(get_current_user),
+) -> dict:
+    """实务闯关「全量作答」档（档位③）——自由默写文本接既有判分内核链路。
+
+    与档位①②（关键词填空/默写走 ``learner_signal``，非 promoting）的分界：本档
+    走判分内核 + ``write_grading_error_events``（``source_feature=construction_grading``，
+    判分级 promoting 白名单）→ auto-synthesize weak_points / 复测密度 / 错因银行。
+
+    thin：本路由自身零判分、零写入真值——只把鉴权上下文的 user_id 接到既有
+    ``grade_full_answer`` 编排（resolve→内核→唯一 sink）。旗标关一律 404 同形
+    （fail-closed，路由形状稳定，不泄漏未签发存在性）。现有 node 型变体包无签发
+    采分点供给 → 内核 open_skill 兜底 → 证据 L0 封顶（如实，非 bug）。
+    """
+    if not _review_module_enabled():
+        raise HTTPException(status_code=404, detail="full answer grading not found")
+    from deeptutor.services.learner_state.service import get_learner_state_service
+    from deeptutor.services.luban_lesson.full_answer_grading import (
+        FullAnswerNotAvailable,
+        grade_full_answer,
+    )
+
+    try:
+        return grade_full_answer(
+            pack_id=pack_id,
+            variant_id=payload.variant_id,
+            answer_text=payload.answer_text,
+            user_id=current_user.user_id,
+            learner_state_service=get_learner_state_service(),
+        )
+    except (LessonNotAvailable, FullAnswerNotAvailable):
+        raise HTTPException(status_code=404, detail="full answer grading not found")

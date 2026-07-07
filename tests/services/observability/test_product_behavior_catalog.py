@@ -28,6 +28,36 @@ def test_product_behavior_catalog_includes_p0_events() -> None:
     }.issubset(PRODUCT_BEHAVIOR_EVENT_NAMES)
 
 
+def test_validate_accepts_and_gates_practice_mode() -> None:
+    """spike 命门判别位:forward/review 合法进 validated dict;白名单外值拒收
+    (register-before-use,防拼写漂移);缺省=空(既有事件不受影响)。"""
+    for mode in ("forward", "review"):
+        out = validate_product_behavior_event(
+            event_name="learning_action_completed",
+            metadata={
+                "visit_id": "v1", "module": "practice", "action": "complete",
+                "surface": "wechat_yousenwebview", "object_type": "retest",
+                "practice_mode": mode,
+            },
+        )
+        assert out["practice_mode"] == mode
+    with pytest.raises(ValueError, match="practice_mode"):
+        validate_product_behavior_event(
+            event_name="learning_action_completed",
+            metadata={
+                "visit_id": "v1", "module": "practice", "action": "complete",
+                "surface": "wechat_yousenwebview", "practice_mode": "frwrd",
+            },
+        )
+    # 缺省不带 practice_mode 的既有事件仍合法(空串)
+    out = validate_product_behavior_event(
+        event_name="module_viewed",
+        metadata={"visit_id": "v1", "module": "learning", "action": "view",
+                  "surface": "web"},
+    )
+    assert out["practice_mode"] == ""
+
+
 def test_validate_product_behavior_event_accepts_learning_report_section() -> None:
     event = validate_product_behavior_event(
         event_name="section_viewed",
