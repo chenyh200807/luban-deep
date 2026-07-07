@@ -338,6 +338,25 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       loaded.previewImageCalls.length === 0,
       "billing open action should not jump to preview image",
     );
+    var selectedLaunchPackage = loadBillingPage();
+    await selectedLaunchPackage.page._loadUsage();
+    selectedLaunchPackage.page.selectPackage({
+      currentTarget: { dataset: { id: "starter_19" } },
+    });
+    assert(
+      selectedLaunchPackage.page.data.selectedPackageId === "starter_19",
+      "billing should allow selecting the launch starter package for checkout",
+    );
+    assert(
+      selectedLaunchPackage.page.data.usagePrimaryLabel === "剩余 99.8%",
+      "billing should not use the selected future package as the current balance denominator",
+    );
+    await selectedLaunchPackage.page.openCheckout();
+    assert(
+      selectedLaunchPackage.checkoutCalls.length === 1 &&
+        selectedLaunchPackage.checkoutCalls[0].package_id === "starter_19",
+      "billing should still submit the selected launch package to checkout",
+    );
     var staleWallet = loadBillingPage(null, {
       balance: 0,
       packages: [

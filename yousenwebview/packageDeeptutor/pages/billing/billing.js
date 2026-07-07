@@ -132,7 +132,7 @@ function _normalizeUsage(raw, walletRaw, ledgerRaw, selectedPackageId) {
   var balance = Number(wallet.balance || wallet.points || wallet.display_balance || 0);
   if (isNaN(balance)) balance = 0;
   balance = Math.max(0, Math.round(balance));
-  var denominator = _displayDenominator(balance, wallet, data, selected);
+  var denominator = _displayDenominator(balance, wallet, data);
   var remainingPercent = _percent(balance, denominator);
   var remainingLabel = "剩余 " + _formatPrimaryPercent(remainingPercent);
   return {
@@ -362,11 +362,11 @@ function _ledgerEntries(raw) {
   return Array.isArray(data.entries) ? data.entries : [];
 }
 
-function _displayDenominator(balance, wallet, usage, selectedPackage) {
+function _displayDenominator(balance, wallet, usage) {
   var entitlement = _entitlementPayload(wallet, usage);
   var reference = Number(entitlement.reference_points || 0);
   if (reference > 0) return Math.max(1, Math.round(reference));
-  var packageRef = _packageReferencePoints(wallet, selectedPackage);
+  var packageRef = _packageReferencePoints(wallet);
   if (packageRef > 0) return Math.max(1, Math.round(packageRef));
   return Math.max(1, Math.round(balance));
 }
@@ -380,13 +380,14 @@ function _entitlementPayload(wallet, usage) {
   return display;
 }
 
-function _packageReferencePoints(wallet, selectedPackage) {
+function _packageReferencePoints(wallet) {
   var walletData = wallet && typeof wallet === "object" ? wallet : {};
-  var packages = _normalizePackages(walletData.packages);
-  var planId = String(walletData.plan_id || walletData.tier || "").trim();
+  var packages = Array.isArray(walletData.packages) && walletData.packages.length
+    ? walletData.packages
+    : _launchPackages();
+  var planId = _canonicalPackageId(walletData.plan_id || walletData.tier);
   var pkg = _findPackage(packages, planId);
-  if (pkg && Number(pkg.points || 0) > 0) return Number(pkg.points || 0);
-  return Number((selectedPackage && selectedPackage.points) || 0) || 0;
+  return Number((pkg && (pkg.points || pkg.balance)) || 0) || 0;
 }
 
 function _findPackage(packages, packageId) {
