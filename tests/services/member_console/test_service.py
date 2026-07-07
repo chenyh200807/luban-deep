@@ -598,12 +598,12 @@ def test_production_bootstrap_starts_without_demo_members(
     assert data["audit_log"] == []
     assert [package["id"] for package in data["packages"]] == [
         "starter_19",
-        "light_99",
+        "light_98",
         "vip",
         "svip",
         "supreme_svip",
     ]
-    assert [package["price"] for package in data["packages"]] == ["19", "99", "198", "598", "998"]
+    assert [package["price"] for package in data["packages"]] == ["19", "98", "198", "598", "998"]
     assert [package["original_price"] for package in data["packages"]] == ["29", "149", "298", "798", "1298"]
     assert [package["turns"] for package in data["packages"]] == [40, 220, 450, 1400, 2500]
     assert [package["points"] for package in data["packages"]] == [800, 4400, 9000, 28000, 50000]
@@ -648,7 +648,7 @@ def test_load_preserves_persisted_packages_and_backfills_canonical_defaults(
         "pro",
         "ultimate",
         "starter_19",
-        "light_99",
+        "light_98",
         "vip",
         "svip",
         "supreme_svip",
@@ -1465,6 +1465,72 @@ def test_register_with_external_auth_creates_external_user_and_member(
     assert external_users["new_student"]["phone"] == "+8613812345678"
 
 
+def test_eval_runner_external_auth_identity_propagates_to_bi_filter(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    external_auth_module.ensure_external_auth_user(
+        "plain_runner",
+        "StrongPass123",
+        phone="13912345678",
+        identity_metadata={
+            "account_kind": "eval_runner",
+            "actor_type": "machine",
+            "created_by": "eval_runner",
+            "is_internal_test": True,
+        },
+    )
+
+    result = service.login_with_password("plain_runner", "StrongPass123")
+    member = next(item for item in service._load()["members"] if item.get("auth_username") == "plain_runner")
+    payload = service.list_members(page=1, page_size=20)
+    dashboard = service.get_dashboard()
+
+    assert result["token"].startswith("dtm.")
+    assert member["account_kind"] == "eval_runner"
+    assert member["actor_type"] == "machine"
+    assert member["created_by"] == "eval_runner"
+    assert member["is_internal_test"] is True
+    assert payload["total"] == 0
+    assert dashboard["total_count"] == 0
+    assert dashboard["new_today_count"] == 0
+
+
+def test_student_army_external_auth_account_auto_tags_eval_runner_for_bi(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    created = external_auth_module.ensure_external_auth_user(
+        "qa_studentarmy_1",
+        "StrongPass123",
+        phone="13912345679",
+    )
+
+    result = service.login_with_password("qa_studentarmy_1", "StrongPass123")
+    member = next(item for item in service._load()["members"] if item.get("auth_username") == "qa_studentarmy_1")
+    dashboard = service.get_dashboard()
+
+    assert created["account_kind"] == "eval_runner"
+    assert created["actor_type"] == "machine"
+    assert created["created_by"] == "eval_runner"
+    assert created["is_internal_test"] is True
+    assert result["token"].startswith("dtm.")
+    assert member["account_kind"] == "eval_runner"
+    assert member["actor_type"] == "machine"
+    assert dashboard["total_count"] == 0
+    assert dashboard["new_today_count"] == 0
+
+
 def test_register_with_external_auth_rejects_non_cn_mobile_phone(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -1691,6 +1757,10 @@ def test_ensure_external_auth_user_resets_seeded_test_password(
     )
 
     assert created["id"] == updated["id"]
+    assert updated["account_kind"] == "eval_runner"
+    assert updated["actor_type"] == "machine"
+    assert updated["created_by"] == "eval_runner"
+    assert updated["is_internal_test"] is True
     assert external_auth_module.verify_external_auth_user("qa_tutorbot_mcq", "OldPass123") is None
     assert external_auth_module.verify_external_auth_user("qa_tutorbot_mcq", "NewPass123") is not None
 
@@ -4906,8 +4976,8 @@ def test_bi_member_read_model_excludes_qa_accounts_from_operational_counts(
     now = datetime(2026, 6, 22, 15, 0, tzinfo=timezone(timedelta(hours=8)))
     monkeypatch.setattr(member_service_module, "_now", lambda: now)
 
-    def _member(user_id: str, *, display_name: str, phone: str) -> dict[str, object]:
-        return {
+    def _member(user_id: str, *, display_name: str, phone: str, **overrides: object) -> dict[str, object]:
+        member = {
             "user_id": user_id,
             "canonical_user_id": user_id,
             "alias_user_ids": [user_id, f"auth_{user_id.replace('-', '')[:24]}"],
@@ -4926,6 +4996,8 @@ def test_bi_member_read_model_excludes_qa_accounts_from_operational_counts(
             "review_due": 0,
             "member_directory_source": "supabase.phone_identity_aliases+v_members",
         }
+        member.update(overrides)
+        return member
 
     directory = _FakeMemberDirectory(
         [
@@ -4938,6 +5010,35 @@ def test_bi_member_read_model_excludes_qa_accounts_from_operational_counts(
                 "3c08282e-d2a4-4bfe-a6d2-c6d5ed4d0788",
                 display_name="qa_pool_11_1782108255519",
                 phone="13908255519",
+            ),
+            _member(
+                "54c7a871-3c15-4111-a1ea-855e99c7ba31",
+                display_name="cceval2_090626",
+                phone="15558866514",
+            ),
+            _member(
+                "c0f859c6-f3d8-4625-8e1a-36ed4ce83053",
+                display_name="releaseb478_1783263768",
+                phone="15558866515",
+            ),
+            _member(
+                "ab8e8479-f04c-4862-aea0-6c6f4218cd4b",
+                display_name="practiceanchor_1783314798",
+                phone="15558866516",
+            ),
+            _member(
+                "cf0b152e-3d33-48f8-ac21-45dc82fab87a",
+                display_name="army_p6_8a7ff01f",
+                phone="15558866517",
+            ),
+            _member(
+                "8c763218-7934-4714-a97c-641f9fd0c8b6",
+                display_name="真实样式机器账号",
+                phone="15558866518",
+                account_kind="eval_runner",
+                actor_type="machine",
+                created_by="eval_runner",
+                is_internal_test=True,
             ),
             _member(
                 "047b7b7f-8316-4f95-8bf7-71973c102be7",
@@ -5413,6 +5514,12 @@ def test_dashboard_counts_recent_registered_member_windows(
     directory = _FakeMemberDirectory(
         [
             _member("member_today", days_ago=0),
+            _member(
+                "member_previous_local_day_within_24h",
+                days_ago=0,
+                phone="15558866514",
+                created_at="2026-06-29T21:00:00+08:00",
+            ),
             _member("member_3d", days_ago=3, phone="15558866509"),
             _member("member_8d", days_ago=8, phone="15558866510"),
             _member("member_40d", days_ago=40, phone="15558866511"),
@@ -5426,10 +5533,10 @@ def test_dashboard_counts_recent_registered_member_windows(
 
     dashboard = service.get_dashboard()
 
-    assert dashboard["total_count"] == 4
+    assert dashboard["total_count"] == 5
     assert dashboard["new_today_count"] == 1
-    assert dashboard["new_7d_count"] == 2
-    assert dashboard["new_30d_count"] == 3
+    assert dashboard["new_7d_count"] == 3
+    assert dashboard["new_30d_count"] == 4
 
 
 def test_member_directory_merges_member_console_overlay_without_owning_member_pool(tmp_path: Path) -> None:
@@ -6623,6 +6730,17 @@ def test_list_internal_test_user_ids_uses_test_member_classifier(tmp_path: Path)
                 "alias_user_ids": ["33333333-3333-3333-3333-333333333333"],
             },
             {
+                "user_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "auth_username": "realistic_runner",
+                "display_name": "真实样式机器账号",
+                "external_auth_user_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                "alias_user_ids": ["cccccccc-cccc-cccc-cccc-cccccccccccc"],
+                "account_kind": "eval_runner",
+                "actor_type": "machine",
+                "created_by": "eval_runner",
+                "is_internal_test": True,
+            },
+            {
                 "user_id": "44444444-4444-4444-4444-444444444444",
                 "auth_username": "realstudent01",
                 "display_name": "真实学员",
@@ -6635,6 +6753,9 @@ def test_list_internal_test_user_ids_uses_test_member_classifier(tmp_path: Path)
     assert "11111111-1111-1111-1111-111111111111" in ids
     assert "22222222-2222-2222-2222-222222222222" in ids
     assert "33333333-3333-3333-3333-333333333333" in ids
+    assert "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" in ids
+    assert "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb" in ids
+    assert "cccccccc-cccc-cccc-cccc-cccccccccccc" in ids
     assert "44444444-4444-4444-4444-444444444444" not in ids
 
 

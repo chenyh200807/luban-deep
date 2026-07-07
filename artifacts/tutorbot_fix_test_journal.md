@@ -193,3 +193,29 @@
 - **坑2 只动 .dockerignore 的 PR 永久 BLOCKED**：必需检查（Contract Guard/Test Summary）被 tests.yml 路径过滤跳过、永不上报。修=PR 里带上会触发 CI 的实文件（如守卫测试）。
 - **坑3 复合命令夹带 git stash pop 弹出他人旧 stash**：与 memory「merge中严禁复合命令夹带 git stash」同类复发——红绿验证想用 stash 保存现场，pop 时弹出栈里别人的 WIP 造成 unmerged。修=红绿验证用 `git checkout <rev> -- <file>` 定点还原，禁 stash。
 - **坑4 automator 三层排障**：①`automator.launch` 解析此版 CLI `-v` 输出崩（'split' undefined）→ 改 `cli auto --auto-port` + `automator.connect`；②reLaunch 全超时=隐私同意弹窗挡导航+登录页在**分包**（`/packageDeeptutor/pages/login/login`，非主包 pages/login/*）→ 截图诊断破案；③方法链=handlePrivacyCheckboxTap→switchLoginMode→onUsernameInput/onPasswordInput→handlePasswordLogin。验证数字：三轮 ALL PASS、D15 retest_item_answered=15 入生产库。
+
+## 2026-07-07 - Wallet entitlement must be the billing authority
+
+- 问题：
+  - 线上学员对话后权益仍显示 100%，近期扣费看起来没有减少；新加 19 元/98 元套餐点击开通时前端只显示「支付暂不可用」。
+  - 业务事实应是：一次购买产生一个固定套餐权益对象，例如 198 元 VIP = 9000 points / 450 turns / 180 days；后续 AI 对话只能扣减钱包余额，剩余比例只能从 wallet balance / package reference 派生。
+- 根因：
+  - 登录/会员入口把旧 `member.points_balance` 当作钱包开仓金额写入 wallet bootstrap，历史 shadow balance 会把真实扣费淹没。
+  - 购买时若 wallet 已存在，`ensure_wallet_seeded` 只返回旧 snapshot，不更新 `plan_id`，导致 reader 仍把用户当 trial/free 或旧 plan。
+  - `/billing/usage` 和微信前端用近期 ledger 或当前余额反推 denominator；一旦近期 ledger 缺失或 denominator 取当前余额，UI 就会回到 100%。
+  - 19/98 新套餐没有进入后端 canonical package catalog；checkout/notify 金额校验都不认识 `starter_19/light_98` 或旧 alias `light_99`。
+- 成功修法：
+  - wallet bootstrap 停止用 legacy `points_balance` 开仓；会员购买通过 wallet service 更新既有 wallet `plan_id`，再发放对应 points。
+  - mobile billing reader 输出 `wallet.entitlement` / `display.reference_points` / `reference_turns`，paid plan 永远按 package catalog reference 计算剩余百分比。
+  - 微信权益页和个人页优先读后端 entitlement；本地 fallback 只用于 catalog reference，且认识 `starter_19/light_98` 与 `light_99 -> light_98`。
+  - canonical package catalog 增加 `starter_19`、`light_98`，WeChat checkout/notify 统一归一到 canonical package id 和 98 元金额。
+  - paid membership expiry 进入 chat start-turn gate；过期 paid profile 即使 wallet 还有余额也 fail-closed。
+- 验证：
+  - `PYTHONDONTWRITEBYTECODE=1 pytest -q tests/api/test_mobile_router.py`：156 passed。
+  - `PYTHONDONTWRITEBYTECODE=1 pytest -q tests/services/wallet/test_service.py::test_ensure_wallet_seeded_creates_wallet_and_signup_bonus_ledger tests/services/wallet/test_service.py::test_ensure_wallet_seeded_backfills_missing_opening_ledger_for_existing_wallet tests/services/wallet/test_service.py::test_ensure_wallet_seeded_updates_existing_wallet_plan_without_granting_points tests/services/member_console/test_service.py::test_production_bootstrap_starts_without_demo_members tests/services/member_console/test_service.py::test_load_preserves_persisted_packages_and_backfills_canonical_defaults tests/services/member_console/test_service.py::test_wallet_bootstrap_does_not_seed_legacy_member_points_balance tests/services/member_console/test_service.py::test_manual_membership_purchase_records_wallet_revenue_and_entitlement tests/services/member_console/test_service.py::test_manual_membership_purchase_normalizes_light_package_alias tests/services/member_console/test_service.py::test_manual_membership_purchase_updates_existing_wallet_plan`：9 passed。
+  - `node yousenwebview/tests/test_billing_packages.js && node wx_miniprogram/tests/test_billing_payment_availability.js && node yousenwebview/tests/test_package_profile_capability_status_contract.js && node yousenwebview/tests/test_chat_points_sync.js && node wx_miniprogram/tests/test_profile_capability_status_contract.js && node yousenwebview/tests/test_profile_points_sync.js`：all PASS。
+  - `python scripts/check_contract_guard.py contracts/index.yaml deeptutor/contracts/index.yaml deeptutor/api/routers/mobile.py deeptutor/services/member_console/service.py tests/api/test_mobile_router.py tests/services/member_console/test_service.py tests/services/wallet/test_service.py`：passed。
+  - `PYTHONDONTWRITEBYTECODE=1 python -m py_compile deeptutor/api/routers/mobile.py deeptutor/services/member_console/service.py deeptutor/services/wallet/service.py`：passed。
+- 剩余风险：
+  - 代码阻止未来 legacy shadow balance 继续污染 wallet，但线上已经被污染的 wallet 余额不会被这次 commit 自动改小；部署后需要基于 purchase ledger / membership purchase 做一次只读审计，再决定是否执行数据修正。
+  - 若所有套餐仍显示「支付暂不可用」，优先查阿里云 `/root/deeptutor/.env` 的 `WECHAT_PAY_*` 和 `DEEPTUTOR_PAYMENT_GATEWAY_URL` 是否让 native JSAPI 配置缺失或被 gateway short-circuit。

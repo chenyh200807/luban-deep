@@ -44,13 +44,16 @@ function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
     data.balance || data.points || data.display_balance || 0,
   );
   if (!isFinite(balance)) balance = 0;
-  var percent = _walletPercent(balance, ledgerRaw);
+  var percent = _walletPercent(balance, data, usageFallback);
   var percentLabel = "剩余 " + _formatPercent(percent);
+  var percentWidth = _barPercent(percent);
   var rows = [
     {
       key: "wallet_percent",
       label: "当前权益",
       detailLabel: percentLabel,
+      remainingLabel: percentLabel,
+      barStyle: "width:" + percentWidth + "%",
     },
   ];
   if (usageFallback || Array.isArray(data.packages)) {
@@ -58,6 +61,8 @@ function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
       key: "usage_record",
       label: "使用记录",
       detailLabel: "按使用记录",
+      remainingLabel: "按使用记录",
+      barStyle: "width:100%",
     });
   }
   return {
@@ -68,25 +73,60 @@ function _normalizeWalletUsage(raw, usageFallback, ledgerRaw) {
   };
 }
 
-function _walletPercent(balance, ledgerRaw) {
-  var data = api.unwrapResponse
-    ? api.unwrapResponse(ledgerRaw)
-    : ledgerRaw || {};
-  var entries = Array.isArray(data.entries) ? data.entries : [];
-  var debits = 0;
-  var positive = 0;
-  entries.forEach(function (entry) {
-    var delta = Number(entry.delta || 0);
-    if (delta > 0) positive += delta;
-    if (delta < 0) debits += Math.abs(delta);
-  });
-  var denominator = Math.max(
-    1,
-    Math.round(positive),
-    Math.round(balance + debits),
-    Math.round(balance),
-  );
+function _walletPercent(balance, walletRaw, usageRaw) {
+  var denominator = _walletDenominator(balance, walletRaw, usageRaw);
   return Math.max(0, Math.min(100, (Number(balance || 0) / denominator) * 100));
+}
+
+function _walletDenominator(balance, walletRaw, usageRaw) {
+  var entitlement = _entitlementPayload(walletRaw, usageRaw);
+  var reference = Number(entitlement.reference_points || 0);
+  if (reference > 0) return Math.max(1, Math.round(reference));
+  var packageRef = _packageReferencePoints(walletRaw);
+  if (packageRef > 0) return Math.max(1, Math.round(packageRef));
+  return Math.max(1, Math.round(balance));
+}
+
+function _entitlementPayload(walletRaw, usageRaw) {
+  var wallet = walletRaw && typeof walletRaw === "object" ? walletRaw : {};
+  var usage = usageRaw && typeof usageRaw === "object" ? usageRaw : {};
+  if (wallet.entitlement && typeof wallet.entitlement === "object") return wallet.entitlement;
+  if (usage.entitlement && typeof usage.entitlement === "object") return usage.entitlement;
+  var display = usage.display && typeof usage.display === "object" ? usage.display : {};
+  return display;
+}
+
+function _packageReferencePoints(walletRaw) {
+  var wallet = walletRaw && typeof walletRaw === "object" ? walletRaw : {};
+  var packages = Array.isArray(wallet.packages) && wallet.packages.length
+    ? wallet.packages
+    : _launchPackages();
+  var planId = _canonicalPackageId(wallet.plan_id || wallet.tier);
+  if (!planId) return 0;
+  for (var i = 0; i < packages.length; i++) {
+    var pkg = packages[i] || {};
+    if (_canonicalPackageId(pkg.id || pkg.package_id) === planId) {
+      return Number(pkg.points || pkg.balance || 0) || 0;
+    }
+  }
+  return 0;
+}
+
+function _launchPackages() {
+  return [
+    { id: "starter_19", points: 800 },
+    { id: "light_98", points: 4400 },
+    { id: "vip", points: 9000 },
+    { id: "svip", points: 28000 },
+    { id: "supreme_svip", points: 50000 },
+  ];
+}
+
+function _canonicalPackageId(packageId) {
+  var id = String(packageId || "").trim();
+  var lower = id.toLowerCase();
+  if (lower === "light_99" || lower === "lite_99" || lower === "99") return "light_98";
+  return id;
 }
 
 function _formatPercent(value) {
@@ -94,6 +134,11 @@ function _formatPercent(value) {
   if (Math.abs(rounded - Math.round(rounded)) < 0.001)
     return String(Math.round(rounded)) + "%";
   return rounded.toFixed(1) + "%";
+}
+
+function _barPercent(value) {
+  var bounded = Math.max(0, Math.min(100, Number(value || 0)));
+  return String(Math.round(bounded * 10) / 10);
 }
 
 Page({

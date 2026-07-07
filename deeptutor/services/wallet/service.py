@@ -192,6 +192,10 @@ class SupabaseWalletService:
         if snapshot is None:
             return None
 
+        normalized_plan_id = _normalize_text(plan_id)
+        if normalized_plan_id and snapshot.plan_id != normalized_plan_id:
+            snapshot = self.set_wallet_plan(normalized_user_id, plan_id=normalized_plan_id) or snapshot
+
         normalized_idempotency_key = _normalize_text(idempotency_key) or f"signup_bonus:{normalized_user_id}"
         if opening_micros > 0:
             existing_entry = self.find_wallet_ledger_by_idempotency_key(
@@ -217,6 +221,31 @@ class SupabaseWalletService:
                     }
                 )
         return snapshot
+
+    def set_wallet_plan(self, user_id: str, *, plan_id: str) -> WalletSnapshot | None:
+        normalized_user_id = _normalize_text(user_id)
+        normalized_plan_id = _normalize_text(plan_id)
+        if not normalized_user_id or not normalized_plan_id:
+            return self.get_wallet(normalized_user_id) if normalized_user_id else None
+        if not self.is_configured:
+            raise RuntimeError("Supabase wallet service is not configured")
+
+        rows = self._patch_rows(
+            table="wallets",
+            params={"user_id": f"eq.{normalized_user_id}"},
+            payload={"plan_id": normalized_plan_id},
+        )
+        if rows:
+            row = rows[0]
+            return WalletSnapshot(
+                user_id=_normalize_text(row.get("user_id")),
+                balance_micros=_coerce_int(row.get("balance_micros")),
+                frozen_micros=_coerce_int(row.get("frozen_micros")),
+                plan_id=_normalize_text(row.get("plan_id")),
+                version=_coerce_int(row.get("version")),
+                created_at=_normalize_text(row.get("created_at")),
+            )
+        return self.get_wallet(normalized_user_id)
 
     def list_wallet_ledger(
         self,

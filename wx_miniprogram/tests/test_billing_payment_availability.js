@@ -56,7 +56,11 @@ function loadBillingPage(walletPayload, ledgerPayload, usagePayload) {
             });
           },
           getWallet: function () {
-            return Promise.resolve(walletPayload || { balance: 9000 });
+            return Promise.resolve(walletPayload || {
+              balance: 8980,
+              plan_id: "vip",
+              entitlement: { reference_points: 9000 },
+            });
           },
           getLedger: function () {
             return Promise.resolve(

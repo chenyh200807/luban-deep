@@ -137,6 +137,7 @@ class _SeedWalletRestClient:
         self.wallets: dict[str, dict[str, object]] = {}
         self.ledger: list[dict[str, object]] = []
         self.post_calls: list[tuple[str, list[dict[str, object]]]] = []
+        self.patch_calls: list[tuple[str, dict[str, object], dict[str, object]]] = []
 
     def get(self, url: str, headers=None, params=None):
         del headers
@@ -180,6 +181,20 @@ class _SeedWalletRestClient:
                 inserted.append(dict(item))
             return _FakeResponse(inserted)
         raise AssertionError(f"unexpected POST url: {url}")
+
+    def patch(self, url: str, headers=None, params=None, json=None):
+        del headers
+        payload = dict(json or {})
+        query = dict(params or {})
+        self.patch_calls.append((url, query, payload))
+        if not url.endswith("/rest/v1/wallets"):
+            raise AssertionError(f"unexpected PATCH url: {url}")
+        user_id = str(query.get("user_id", "")).removeprefix("eq.")
+        wallet = self.wallets.get(user_id)
+        if not wallet:
+            return _FakeResponse([])
+        wallet.update(payload)
+        return _FakeResponse([dict(wallet)])
 
 
 def test_capture_points_writes_wallet_and_ledger() -> None:
@@ -489,6 +504,39 @@ def test_ensure_wallet_seeded_backfills_missing_opening_ledger_for_existing_wall
     assert client.ledger[0]["idempotency_key"] == (
         "signup_bonus:2d9eac15-5d26-4e93-941b-9ec6345ce6d9:member_console_bootstrap"
     )
+
+
+def test_ensure_wallet_seeded_updates_existing_wallet_plan_without_granting_points() -> None:
+    client = _SeedWalletRestClient()
+    client.wallets["2d9eac15-5d26-4e93-941b-9ec6345ce6d9"] = {
+        "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+        "balance_micros": 120_000_000,
+        "frozen_micros": 0,
+        "plan_id": "trial",
+        "version": 1,
+        "created_at": "2026-04-21T10:00:00+08:00",
+    }
+    service = SupabaseWalletService(
+        base_url="https://example.supabase.co",
+        service_key="service-role-key",
+        client=client,
+    )
+
+    snapshot = service.ensure_wallet_seeded(
+        user_id="2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+        opening_points=0,
+        plan_id="vip",
+        reference_type="manual_membership_purchase",
+        reference_id="purchase_1",
+        idempotency_key="wallet_seed:manual_membership:purchase_1",
+        metadata={"source": "bi_manual_membership"},
+    )
+
+    assert snapshot is not None
+    assert snapshot.plan_id == "vip"
+    assert client.wallets[snapshot.user_id]["plan_id"] == "vip"
+    assert client.patch_calls[-1][2] == {"plan_id": "vip"}
+    assert client.ledger == []
 
 
 def test_debit_points_posts_rpc_and_normalizes_mutation_result() -> None:

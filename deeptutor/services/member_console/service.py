@@ -116,6 +116,54 @@ from deeptutor.services.wallet.identity import is_uuid_like
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
 BI_OPERATION_START_AT = datetime(2026, 6, 22, 0, 0, tzinfo=_TZ)
+_CANONICAL_PAYMENT_PACKAGES: dict[str, dict[str, Any]] = {
+    "starter_19": {
+        "id": "starter_19",
+        "label": "体验包",
+        "tier": "starter_19",
+        "points": 800,
+        "turns": 40,
+        "days": 180,
+        "price": "19",
+        "original_price": "",
+        "badge": "体验",
+        "per": "40 次 AI 学习额度",
+        "per_turn_price": "0.475",
+        "audience": "想先体验 AI 答疑和案例讲评的新用户",
+        "desc": "AI智能答疑、AI案例批改、错因专训、学习报告",
+        "status": "active",
+    },
+    "light_98": {
+        "id": "light_98",
+        "label": "轻量包",
+        "tier": "light_98",
+        "points": 4400,
+        "turns": 220,
+        "days": 180,
+        "price": "98",
+        "original_price": "",
+        "badge": "轻量",
+        "per": "220 次 AI 学习额度",
+        "per_turn_price": "0.445",
+        "audience": "轻量日常训练、答疑和阶段复习用户",
+        "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、学习报告",
+        "status": "active",
+    },
+}
+_MEMBERSHIP_PACKAGE_ALIASES = {
+    "light_99": "light_98",
+    "lite_99": "light_98",
+    "99": "light_98",
+}
+
+
+def _canonical_membership_package_id(package_id: str | None) -> str:
+    raw = str(package_id or "").strip()
+    if not raw:
+        return ""
+    return _MEMBERSHIP_PACKAGE_ALIASES.get(raw.lower(), raw)
+
+
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
@@ -815,8 +863,14 @@ class MemberConsoleService:
             logger.warning("Failed to write assessment teaching-policy overlay: user_id=%s quiz_id=%s", user_id, quiz_id, exc_info=True)
 
     @staticmethod
+    def canonical_membership_package_id(package_id: str | None) -> str:
+        return _canonical_membership_package_id(package_id)
+
+    @staticmethod
     def _default_packages() -> list[dict[str, Any]]:
         return [
+            deepcopy(_CANONICAL_PAYMENT_PACKAGES["starter_19"]),
+            deepcopy(_CANONICAL_PAYMENT_PACKAGES["light_98"]),
             {
                 "id": "starter_19",
                 "label": "体验包",
@@ -848,6 +902,7 @@ class MemberConsoleService:
                 "label": "VIP",
                 "points": 9000,
                 "turns": 450,
+                "days": 180,
                 "price": "198",
                 "original_price": "298",
                 "badge": "",
@@ -861,6 +916,7 @@ class MemberConsoleService:
                 "label": "SVIP",
                 "points": 28000,
                 "turns": 1400,
+                "days": 180,
                 "price": "598",
                 "original_price": "798",
                 "badge": "班主任督学",
@@ -874,6 +930,7 @@ class MemberConsoleService:
                 "label": "至尊SVIP",
                 "points": 50000,
                 "turns": 2500,
+                "days": 180,
                 "price": "998",
                 "original_price": "1298",
                 "badge": "最高性价比",
@@ -886,9 +943,9 @@ class MemberConsoleService:
 
     @staticmethod
     def _normalize_membership_package(item: dict[str, Any]) -> dict[str, Any]:
-        package_id = str(item.get("id") or item.get("package_id") or "").strip()
+        package_id = _canonical_membership_package_id(item.get("id") or item.get("package_id"))
         label = str(item.get("label") or item.get("name") or package_id).strip()
-        tier = str(item.get("tier") or item.get("plan") or package_id).strip()
+        tier = _canonical_membership_package_id(item.get("tier") or item.get("plan") or package_id)
         if not package_id:
             raise ValueError("package id is required")
         try:
@@ -899,6 +956,10 @@ class MemberConsoleService:
             turns = int(item.get("turns") or 0)
         except (TypeError, ValueError):
             turns = 0
+        try:
+            days = int(item.get("days") or item.get("duration_days") or item.get("durationDays") or 180)
+        except (TypeError, ValueError):
+            days = 180
         price = str(item.get("price") or item.get("price_cny") or item.get("priceCny") or "0").strip()
         status = str(item.get("status") or item.get("state") or "active").strip() or "active"
         if status not in {"active", "draft", "archived"}:
@@ -909,6 +970,7 @@ class MemberConsoleService:
             "tier": tier or package_id,
             "points": max(0, points),
             "turns": max(0, turns),
+            "days": max(1, days),
             "price": price or "0",
             "original_price": str(item.get("original_price") or item.get("originalPrice") or "").strip(),
             "badge": str(item.get("badge") or "").strip(),
@@ -926,6 +988,9 @@ class MemberConsoleService:
                 package["per_turn_price"] = f"{per_turn_price:.3f}".rstrip("0").rstrip(".")
             except (TypeError, ValueError, ZeroDivisionError):
                 package["per_turn_price"] = ""
+        canonical_payment_package = _CANONICAL_PAYMENT_PACKAGES.get(package["id"])
+        if canonical_payment_package is not None:
+            package.update(deepcopy(canonical_payment_package))
         return package
 
     @classmethod
@@ -2761,8 +2826,8 @@ class MemberConsoleService:
                 try:
                     snapshot = wallet_service.ensure_wallet_seeded(
                         user_id=canonical_uid,
-                        opening_points=int(member.get("points_balance") or 0),
-                        plan_id=str(member.get("tier") or "").strip(),
+                        opening_points=0,
+                        plan_id="",
                         reference_type="signup_bonus",
                         reference_id=str(member.get("user_id") or canonical_uid).strip(),
                         idempotency_key=f"signup_bonus:{canonical_uid}:member_console_bootstrap",
@@ -5301,16 +5366,17 @@ class MemberConsoleService:
         data: dict[str, Any],
         package_id: str,
     ) -> dict[str, Any]:
-        normalized_package_id = str(package_id or "").strip()
+        normalized_package_id = _canonical_membership_package_id(package_id)
         if not normalized_package_id:
             raise ValueError("package_id is required")
         for item in list(data.get("packages") or self._default_packages()):
             if not isinstance(item, dict):
                 continue
-            if str(item.get("id") or "").strip() == normalized_package_id:
-                if str(item.get("status") or "active").strip() != "active":
+            if _canonical_membership_package_id(item.get("id")) == normalized_package_id:
+                package = self._normalize_membership_package(item)
+                if str(package.get("status") or "active").strip() != "active":
                     raise ValueError(f"Membership package is not active: {normalized_package_id}")
-                return dict(item)
+                return package
         raise ValueError(f"Unknown membership package: {normalized_package_id}")
 
     @staticmethod

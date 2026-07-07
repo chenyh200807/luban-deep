@@ -27,9 +27,10 @@ assert(!/title:\s*"思维导图"/.test(profileJs), "mind map should not appear o
 assert(!/bindtap="onCapabilityTap"/.test(profileWxml), "package profile should not render removed capability rows");
 assert(!/扩展能力/.test(profileWxml), "package profile should not render the advanced abilities section");
 assert(/\.getWallet\(\)/.test(profileJs), "package profile should own wallet loading");
-assert(/\.getLedger\(20\)/.test(profileJs), "package profile should own wallet ledger loading");
+assert(/\.getLedger\(20\)/.test(profileJs), "package profile should own wallet ledger loading for records");
 assert(/usagePrimaryLabel/.test(profileJs) && /usageRows/.test(profileJs), "package profile should keep usage percentage state");
-assert(/_walletPercent\(balance, ledgerRaw\)/.test(profileJs), "package profile should read canonical wallet ledger payload");
+assert(/_walletPercent\(balance, data, usageFallback\)/.test(profileJs), "package profile should read wallet entitlement payload");
+assert(/reference_points/.test(profileJs), "package profile should use backend entitlement reference points");
 assert(/openUsageDetail/.test(profileJs) && /closeUsageDetail/.test(profileJs), "package profile should expose usage detail interactions");
 assert(/class="usage-card glass-card"/.test(profileWxml), "package profile should render the usage card");
 assert(/class="usage-summary-row"/.test(profileWxml), "package profile should render compact five-hour and weekly usage rows");
