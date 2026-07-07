@@ -61,11 +61,26 @@ roots.forEach(function (files) {
   var js = fs.readFileSync(files.js, "utf8");
   var config = JSON.parse(fs.readFileSync(files.json, "utf8"));
   var primary = blockFor(css, ".btn-wechat-primary");
+  var privacyButton = blockFor(css, ".privacy-consent-button,\n.privacy-consent-toggle");
 
   if (primary) {
     assert(
       /background:\s*transparent\s*!important;/.test(primary),
       files.wxss + " should keep the native button surface transparent",
+    );
+  }
+  if (wxml.indexOf("privacy-consent-button") >= 0) {
+    assert(
+      /hero-line-single/.test(wxml) && /hero-line-single/.test(css),
+      files.wxml + " should keep the compact one-line login headline",
+    );
+    assert(
+      /background:\s*transparent\s*!important;/.test(privacyButton),
+      files.wxss + " should keep the privacy consent native button transparent",
+    );
+    assert(
+      /width:\s*auto;/.test(privacyButton) && /min-width:\s*0;/.test(privacyButton),
+      files.wxss + " should prevent the privacy consent native button from stretching into a white block",
     );
   }
   assert(
