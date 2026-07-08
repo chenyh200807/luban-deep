@@ -62,11 +62,11 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 212            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts + M35 R4 cached AB artifact; +fusion stage0 pack taxonomy registry + question->pack map)
+  full_set_count: 213            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts + M35 R4 cached AB artifact; +fusion stage0 pack taxonomy registry + question->pack map; +case light-practice scoring-point read-view)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 32      # tier2_canonical_contracts below (+lecture answer pack/shard + PGO runtime-supply slot; +fusion stage0 two compiled read-only artifacts)
+    tier2_runtime_canonical: 33      # tier2_canonical_contracts below (+lecture answer pack/shard + PGO runtime-supply slot; +fusion stage0 two compiled read-only artifacts; +case light-practice scoring-point read-view PINNED)
     tier3_ephemeral_artifact: 171    # covered by tier3_carve_out rule (+PGO runtime-supply verification report; lecture answer shard promoted out to T2; +M35 R4 cached AB artifact)
   # Closure invariant (asserted by the test): T1 ∪ T2 ∪ T3 == full_set, with
   # T1, T2 disjoint and exhaustive over the non-T3 remainder; every full-set id
@@ -747,3 +747,40 @@ tier2_canonical_contracts:
       - sources
       - packs
       - reverse_index
+
+  # ── Case light-practice P-1 atomic scoring-point READ-VIEW (PINNED) ─────────
+  # A projection over the compiled rubric library (v_case_rubric_scored) + signed
+  # answer layer, enriched with the sub-question dimension (sub_no) and the
+  # light-practice generator metadata. NOT a T1 canonical grading object and NOT a
+  # second grading authority: scoring authority stays with luban_grading_object.v1
+  # + rubric_grader_v1. Registered T2 (runtime-canonical) so it can be field-pinned
+  # WITHOUT joining the "one usable grading typed-object" T1 list (single-authority
+  # preserved). Claim ceiling is structural: official_score_allowed / canonical_write
+  # / runtime_install are all const False in the module. See plan §2.5②/③.
+  - name: luban_case_scoring_point.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: the atomic scoring-point read-view feeding case light-practice runtime generation + whitelist gate (READ-VIEW / projection only — no official score, no canonical/LearnerState write, no runtime install)
+    module: deeptutor/services/construction_grading/case_light_practice_contract.py
+    consumed_by: case light-practice runtime generator + whitelist gate (P-1 skeleton; generator itself is P0); binds correct_options[].source_scoring_point_id (RTG5) and the conjunction-group scorer
+    needs_field_canonicalization: false   # PINNED: canonical_fields = LubanCaseScoringPoint dataclass; introspection reconciliation is BLOCKING (tests/services/construction_grading/test_case_light_practice_schema.py)
+    canonical_fields:
+      - point_id
+      - sub_no
+      - qid
+      - sub_qid
+      - statement
+      - authority_source
+      - point_type
+      - required_terms
+      - acceptable_variants
+      - max_score
+      - textbook_source_refs
+      - answer_key_authority
+      - ordering_group
+      - conjunction_group
+      - list_cap
+    required_tests:
+      - tests/services/construction_grading/test_case_light_practice_schema.py
+      - tests/services/construction_grading/test_case_light_practice_whitelist_gate.py
+      - tests/services/construction_grading/test_case_light_practice_conjunction_scoring.py

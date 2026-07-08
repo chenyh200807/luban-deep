@@ -1,0 +1,14 @@
+{
+  "artifact": "case_light_practice_whitelist",
+  "version": "v0",
+  "binds": "luban_case_scoring_point.v1",
+  "description": "P-1 placeholder. The set of qids allowed to enter case light-practice runtime generation. A qid enters ONLY after: 已切小问(有子题 qid) + 每采分点带 sub_no + authority_source==official_answer(通道①) + 过 Pre-gen 一致性闸 + 两名教研独立验收(见 docs/原始数据/考点原料/segmentation_gold/<qid>.review.json). EMPTY until双教研验收 passes — the gate fails CLOSED, so an empty whitelist refuses every qid.",
+  "entry_shape": {
+    "qid": "str — the atomized (sub)question qid",
+    "status": "allowed | pending | rejected — only 'allowed' passes the gate",
+    "sub_qids": ["str — child sub-question qids after切分"],
+    "segmentation_gold_ref": "str — path to the双教研 review record",
+    "approved_by": ["str — 教研 reviewers who signed consensus"]
+  },
+  "entries": []
+}
