@@ -154,6 +154,12 @@ _EXPLICIT_IDENTITY_METADATA_FIELDS = (
     "is_internal_test",
     "is_test_account",
 )
+_EVAL_RUNNER_IDENTITY_METADATA = {
+    "account_kind": "eval_runner",
+    "actor_type": "machine",
+    "created_by": "eval_runner",
+    "is_internal_test": True,
+}
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
@@ -1840,6 +1846,15 @@ class MemberConsoleService:
         return False
 
     @classmethod
+    def _explicit_identity_metadata(cls, member: dict[str, Any]) -> dict[str, Any]:
+        metadata: dict[str, Any] = {}
+        for source in cls._identity_metadata_sources(member):
+            for field in _EXPLICIT_IDENTITY_METADATA_FIELDS:
+                if field in source:
+                    metadata[field] = source.get(field)
+        return metadata
+
+    @classmethod
     def _looks_like_test_member(cls, member: dict[str, Any]) -> bool:
         if cls._has_explicit_non_human_identity(member):
             return True
@@ -2786,6 +2801,7 @@ class MemberConsoleService:
             external_user = ensure_external_auth_user_for_phone(
                 phone,
                 user_id=desired_user_id or None,
+                identity_metadata=self._explicit_identity_metadata(member) or None,
             )
         except ValueError as exc:
             logger.warning(
@@ -8564,11 +8580,17 @@ class MemberConsoleService:
         if not raw_code:
             raise ValueError("valid phone_code is required")
 
-        # 微信 phone_code 是授权码（非手机号），禁止把授权码里的数字截取当手机号使用。
-        # 仅当 raw_code 本身已是合法大陆手机号（开发/测试环境直传）才直接使用，
-        # 否则置空，强制调用微信 API 换取真实号码。
         _maybe_direct = _normalize_phone_input(raw_code)
-        normalized = _maybe_direct if self._is_cn_mainland_mobile(_maybe_direct) else ""
+        is_direct_phone = self._is_cn_mainland_mobile(_maybe_direct)
+        normalized = ""
+        phone_binding_method = "wechat_phone_code"
+        identity_metadata: dict[str, Any] = {}
+        if is_direct_phone:
+            if is_production_environment():
+                raise ValueError("WeChat phone authorization code is required")
+            normalized = _maybe_direct
+            phone_binding_method = "direct_phone"
+            identity_metadata = dict(_EVAL_RUNNER_IDENTITY_METADATA)
         if len(normalized) != 11:
             try:
                 normalized = await self._exchange_wechat_phone_code(raw_code)
@@ -8583,6 +8605,8 @@ class MemberConsoleService:
                 if not self._supports_dev_wechat_login(raw_code):
                     raise normalized_exc
                 normalized = _normalize_phone_input("13800000000" + raw_code[-4:])
+                phone_binding_method = "dev_wechat_phone_fallback"
+                identity_metadata = dict(_EVAL_RUNNER_IDENTITY_METADATA)
         if len(normalized) != 11:
             raise ValueError("valid phone_code is required")
 
@@ -8590,6 +8614,11 @@ class MemberConsoleService:
             verified_phone_canonical_uid = self._resolve_verified_phone_canonical_uid(normalized)
         except ValueError as exc:
             raise ValueError("手机号身份冲突，请联系客服") from exc
+
+        def _apply_binding_metadata(member: dict[str, Any]) -> None:
+            member["phone_binding_method"] = phone_binding_method
+            if identity_metadata:
+                member.update(identity_metadata)
 
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             current = self._ensure_member(data, user_id)
@@ -8612,6 +8641,7 @@ class MemberConsoleService:
                 target = self._find_member(data, str(merge.get("target_user_id") or target["user_id"]))
                 target["phone"] = normalized
                 target["last_active_at"] = _iso()
+                _apply_binding_metadata(target)
                 return {
                     "bound": True,
                     "merged": True,
@@ -8624,6 +8654,7 @@ class MemberConsoleService:
             before = deepcopy(current)
             current["phone"] = normalized
             current["last_active_at"] = _iso()
+            _apply_binding_metadata(current)
             _bind_display = str(current.get("display_name") or "").strip()
             _bind_uid = str(current.get("user_id") or "").strip()
             if not _bind_display or _bind_display == _bind_uid:

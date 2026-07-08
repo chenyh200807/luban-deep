@@ -4822,6 +4822,7 @@ async def test_bind_phone_wechat_valid_cn_mobile_skips_wx_api(
 ) -> None:
     """dev/test 模式直传合法大陆号时不应调微信 API（兼容旧 legacy 客户端行为）。"""
     users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
     monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
@@ -4840,6 +4841,43 @@ async def test_bind_phone_wechat_valid_cn_mobile_skips_wx_api(
 
     assert not wx_api_called, "合法大陆号直传时不应调用微信 API"
     assert result["phone"] == "13911112222"
+    data = service._load()
+    member = service._find_member(data, result["user_id"])
+    assert member["phone_binding_method"] == "direct_phone"
+    assert member["account_kind"] == "eval_runner"
+    assert member["actor_type"] == "machine"
+    assert member["created_by"] == "eval_runner"
+    assert member["is_internal_test"] is True
+    external_user = external_auth_module.get_external_auth_user_by_phone("13911112222")
+    assert external_user is not None
+    assert external_user["account_kind"] == "eval_runner"
+    assert external_user["actor_type"] == "machine"
+    assert external_user["created_by"] == "eval_runner"
+    assert external_user["is_internal_test"] is True
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_wechat_rejects_direct_cn_mobile_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """生产微信绑定必须使用 getPhoneNumber 返回的 phone_code，不能直传手机号伪装真人。"""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    wx_api_called = []
+
+    async def _should_not_be_called(phone_code: str) -> str:
+        wx_api_called.append(phone_code)
+        return "13911112222"
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _should_not_be_called)
+
+    with pytest.raises(ValueError, match="phone authorization code"):
+        await service.bind_phone_for_wechat("student_demo", "13911112222")
+
+    assert not wx_api_called
 
 
 def test_persist_phone_identity_rejects_non_cn_mobile(
@@ -5089,6 +5127,10 @@ async def test_wechat_phone_quick_login_counts_as_new_bi_member(
 
     assert result["bound"] is True
     assert result["phone"] == "15558866508"
+    data = service._load()
+    member = service._find_member(data, result["user_id"])
+    assert member["phone_binding_method"] == "wechat_phone_code"
+    assert "account_kind" not in member
     assert dashboard["total_count"] == 1
     assert dashboard["new_today_count"] == 1
 
