@@ -88,6 +88,9 @@ pkill -KILL -f 'next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next
 - `member_console` / BI 默认只展示真实会员；eval runner、机器账号、release smoke、synthetic、QA、mock、dummy、army、practice anchor 等测试账号不得计入会员总数、今日新增、近 7 / 30 天新增、活跃用户或行为指标。
 - 新增测试 helper、seed 脚本、eval runner、Claude/Codex 自动化脚本时，必须复用上述字段或调用会自动写入上述字段的 `external_auth.ensure_external_auth_user()` / `create_external_auth_user()` 路径。
 - 旧账号名 marker 只能作为历史污染兜底；新测试账号必须有显式机器身份字段。
+- Codex 跑线上/准线上 eval 前必须设置 `DEEPTUTOR_EVAL_RUNNER_AGENT=codex`；Claude Code 必须设置 `DEEPTUTOR_EVAL_RUNNER_AGENT=claude_code`。能设置 run id 时同时设置 `DEEPTUTOR_EVAL_RUN_ID=<agent>-<YYYYMMDDHHMMSS>-<shortsha>`。
+- 自动生成账号必须使用 `qa_eval_<agent>_...` 前缀；手工指定 `DEEPTUTOR_QA_USERNAME` 时也必须含 `qa_` / `eval` / `smoke` / `codex` / `claude` 等机器 marker。没有 eval runner marker 的账号不得用于 eval/smoke/QA 登录。
+- `scripts/run_mobile_login_smoke.py`、`scripts/run_student_turn.py` 以及复用这些 helper 的质量门会在登录前执行 eval runner 身份检查；不要用普通手机号昵称或真人用户名绕过。
 
 ## Contract Discipline
 

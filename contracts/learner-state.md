@@ -155,6 +155,11 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   `actor_type='machine'`、`created_by='eval_runner'`、`is_internal_test=true` 等显式机器身份的账号；
   QA、eval、release smoke、practice anchor、army 类历史模拟账号和其它 `_looks_like_test_member`
   marker 只能作为旧污染兜底。
+- 显式机器身份不得只停留在本地 external auth / member-console overlay。任何会把手机号身份写入
+  `public.user_identity_aliases` 的 eval / smoke / QA 路径，必须把上述机器身份同步写入该 alias 的
+  `metadata`；Supabase member directory 读取 phone alias 时也必须把这些 metadata 透传到
+  member `identity_metadata`，让 BI 在 display name / identifier 已变成 UUID 或学员昵称时仍能排除
+  机器账号。
 - `member_console` 可以提供会员套餐展示 read model 和运营包配置投影，但新注册用户的默认权益必须是
   0 点；充值到账、扣费、冻结余额和钱包存在性仍只属于 `WalletService` / wallet ledger
   authority。套餐展示中的原价、现价、点数和可用轮次只是 commerce read model，不得写入 learner

@@ -153,6 +153,10 @@ _EXPLICIT_IDENTITY_METADATA_FIELDS = (
     "created_by",
     "is_internal_test",
     "is_test_account",
+    "runner",
+    "agent_tool",
+    "eval_run_id",
+    "phone_binding_method",
 )
 _EVAL_RUNNER_IDENTITY_METADATA = {
     "account_kind": "eval_runner",
@@ -8300,6 +8304,7 @@ class MemberConsoleService:
         self._persist_phone_identity(
             phone=normalized_phone,
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+            identity_metadata=self._explicit_identity_metadata(external_user) or None,
         )
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
@@ -8702,6 +8707,7 @@ class MemberConsoleService:
         self._persist_phone_identity(
             phone=normalized,
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+            identity_metadata=identity_metadata or None,
         )
         # openid / unionid 持久化：canonical_uid 已确立后写入，
         # 使同一 WeChat Open Platform 下的跨产品登录可通过 unionid 直接命中同一身份。
@@ -8805,7 +8811,13 @@ class MemberConsoleService:
         resolved = self._resolve_password_reset_account(username, phone)
         return self.send_phone_code(str(resolved["phone"]))
 
-    def _persist_phone_identity(self, *, phone: str, canonical_uid: str) -> None:
+    def _persist_phone_identity(
+        self,
+        *,
+        phone: str,
+        canonical_uid: str,
+        identity_metadata: dict[str, Any] | None = None,
+    ) -> None:
         """把手机号持久化到 user_identity_aliases 和 users.phone，best-effort 不阻塞认证流程。"""
         if not phone or not canonical_uid or not is_uuid_like(canonical_uid):
             return
@@ -8838,6 +8850,7 @@ class MemberConsoleService:
         if not db_url:
             logger.warning("phone identity persist skipped: DB_URL not configured")
             return
+        metadata_json = json.dumps(identity_metadata or {}, ensure_ascii=False)
         try:
             try:
                 import psycopg
@@ -8859,16 +8872,18 @@ class MemberConsoleService:
                 cur.execute(
                     """
                     INSERT INTO public.user_identity_aliases
-                        (alias_type, alias_value, user_id, source, confidence, verified_at)
-                    VALUES (%s, %s, %s::uuid, %s, %s, now())
+                        (alias_type, alias_value, user_id, source, confidence, verified_at, metadata)
+                    VALUES (%s, %s, %s::uuid, %s, %s, now(), %s::jsonb)
                     ON CONFLICT (alias_type, alias_value) DO UPDATE SET
                         confidence  = EXCLUDED.confidence,
                         verified_at = EXCLUDED.verified_at,
+                        metadata    = COALESCE(public.user_identity_aliases.metadata, '{}'::jsonb)
+                                      || EXCLUDED.metadata,
                         updated_at  = now()
                     WHERE public.user_identity_aliases.user_id = EXCLUDED.user_id
                     RETURNING user_id
                     """,
-                    ("phone", phone, canonical_uid, "phone_verification", 1.0),
+                    ("phone", phone, canonical_uid, "phone_verification", 1.0, metadata_json),
                 )
                 persisted = cur.fetchone()
                 if not persisted:

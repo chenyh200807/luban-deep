@@ -73,6 +73,7 @@ def _phone_alias(
     phone: str | None = None,
     created_at: str = "",
     verified_at: str = "",
+    metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     row = {
         "user_id": f"user-{index:04d}",
@@ -83,6 +84,8 @@ def _phone_alias(
         row["created_at"] = created_at
     if verified_at:
         row["verified_at"] = verified_at
+    if metadata is not None:
+        row["metadata"] = metadata
     return row
 
 
@@ -173,6 +176,39 @@ def test_member_directory_uses_verified_phone_alias_time_as_registration_time() 
 
     assert len(members) == 1
     assert members[0]["created_at"] == "2026-06-21T09:01:00+00:00"
+
+
+def test_member_directory_propagates_phone_alias_identity_metadata() -> None:
+    client = _PagedClient(
+        member_rows=[],
+        alias_rows=[
+            _phone_alias(
+                1,
+                source="phone_verification",
+                phone="15558860001",
+                metadata={
+                    "account_kind": "eval_runner",
+                    "actor_type": "machine",
+                    "created_by": "eval_runner",
+                    "is_internal_test": True,
+                    "runner": "codex",
+                    "eval_run_id": "codex-20260708",
+                },
+            )
+        ],
+    )
+
+    members = _directory(client).list_members(limit=10)
+
+    assert len(members) == 1
+    assert members[0]["identity_metadata"] == {
+        "account_kind": "eval_runner",
+        "actor_type": "machine",
+        "created_by": "eval_runner",
+        "is_internal_test": True,
+        "runner": "codex",
+        "eval_run_id": "codex-20260708",
+    }
 
 
 def test_member_directory_does_not_count_backfill_alias_created_at_as_registration_time() -> None:

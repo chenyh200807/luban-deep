@@ -1501,6 +1501,35 @@ def test_eval_runner_external_auth_identity_propagates_to_bi_filter(
     assert dashboard["new_today_count"] == 0
 
 
+def test_eval_runner_register_persists_phone_alias_identity_metadata(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    persisted: dict[str, object] = {}
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+
+    service.register_with_external_auth("qa_eval_codex_smoke_1", "StrongPass123", "13812345678")
+
+    assert persisted["phone"] == "13812345678"
+    assert persisted["identity_metadata"] == {
+        "account_kind": "eval_runner",
+        "actor_type": "machine",
+        "created_by": "eval_runner",
+        "is_internal_test": True,
+        "runner": "codex",
+        "agent_tool": "codex",
+    }
+
+
 def test_student_army_external_auth_account_auto_tags_eval_runner_for_bi(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -1631,14 +1660,26 @@ def test_register_with_external_auth_persists_new_phone_identity(
     monkeypatch.setattr(
         service,
         "_persist_phone_identity",
-        lambda *, phone, canonical_uid: persisted.append({"phone": phone, "canonical_uid": canonical_uid}),
+        lambda *, phone, canonical_uid, identity_metadata=None: persisted.append(
+            {
+                "phone": phone,
+                "canonical_uid": canonical_uid,
+                "identity_metadata": identity_metadata,
+            }
+        ),
     )
 
     result = service.register_with_external_auth("new_student", "StrongPass123", "13812345678")
     claims = service.verify_access_token(result["token"])
 
     assert claims is not None
-    assert persisted == [{"phone": "13812345678", "canonical_uid": claims["canonical_uid"]}]
+    assert persisted == [
+        {
+            "phone": "13812345678",
+            "canonical_uid": claims["canonical_uid"],
+            "identity_metadata": None,
+        }
+    ]
 
 
 def test_register_with_external_auth_does_not_match_existing_display_name(
