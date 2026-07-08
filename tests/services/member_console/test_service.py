@@ -6807,10 +6807,10 @@ def test_list_internal_test_user_ids_uses_test_member_classifier(tmp_path: Path)
         data["members"] = [
             {
                 "user_id": "11111111-1111-1111-1111-111111111111",
-                "auth_username": "qa_spike_probe",
-                "display_name": "QA probe",
+                "auth_username": "realistic_wrapper",
+                "display_name": "真实样式别名账号",
                 "external_auth_user_id": "22222222-2222-2222-2222-222222222222",
-                "alias_user_ids": ["33333333-3333-3333-3333-333333333333"],
+                "alias_user_ids": ["qa_eval_codex_alias_20260708"],
             },
             {
                 "user_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -6835,7 +6835,7 @@ def test_list_internal_test_user_ids_uses_test_member_classifier(tmp_path: Path)
     ids = service.list_internal_test_user_ids()
     assert "11111111-1111-1111-1111-111111111111" in ids
     assert "22222222-2222-2222-2222-222222222222" in ids
-    assert "33333333-3333-3333-3333-333333333333" in ids
+    assert "qa_eval_codex_alias_20260708" in ids
     assert "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" in ids
     assert "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb" in ids
     assert "cccccccc-cccc-cccc-cccc-cccccccccccc" in ids

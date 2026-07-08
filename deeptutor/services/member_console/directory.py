@@ -81,6 +81,13 @@ def _identity_metadata_from_mapping(value: Any) -> dict[str, Any]:
     return metadata
 
 
+def _merge_identity_metadata(*values: Any) -> dict[str, Any]:
+    metadata: dict[str, Any] = {}
+    for value in values:
+        metadata.update(_identity_metadata_from_mapping(value))
+    return metadata
+
+
 class SupabaseMemberDirectoryReadModel:
     """Canonical read model for BI/member-ops member directory rows.
 
@@ -139,13 +146,29 @@ class SupabaseMemberDirectoryReadModel:
             limit=len(alias_user_ids),
         )
         rows_by_user_id = {_normalize_text(row.get("user_id")): row for row in rows}
+        user_rows = self._select_rows_paginated(
+            table="users",
+            params={
+                "select": "id,identifier,createdAt,metadata,phone",
+                "id": uid_in_filter,
+            },
+            limit=len(alias_user_ids),
+        )
+        users_by_id = {_normalize_text(row.get("id")): row for row in user_rows}
         eligible_rows: list[dict[str, Any]] = []
         for user_id, phone_alias in eligible_phone_aliases.items():
-            row = dict(rows_by_user_id.get(user_id) or {"user_id": user_id, "identifier": user_id})
+            user_row = users_by_id.get(user_id) or {}
+            row = dict(rows_by_user_id.get(user_id) or {})
+            row.setdefault("user_id", user_id)
+            row["identifier"] = _normalize_text(row.get("identifier")) or _normalize_text(
+                user_row.get("identifier")
+            ) or user_id
             row["phone"] = phone_alias["phone"]
             row["phone_alias_source"] = phone_alias["source"]
             row["phone_alias_created_at"] = phone_alias["created_at"]
             row["phone_verified_at"] = phone_alias["verified_at"]
+            row["user_created_at"] = _normalize_text(user_row.get("createdAt"))
+            row["user_metadata"] = user_row.get("metadata") or {}
             row["identity_metadata"] = phone_alias.get("identity_metadata") or {}
             eligible_rows.append(row)
         members = [self._member_from_row(row) for row in eligible_rows]
@@ -211,9 +234,9 @@ class SupabaseMemberDirectoryReadModel:
             params={
                 "select": "user_id,alias_value,source,created_at,verified_at,metadata",
                 "alias_type": "eq.phone",
-                # Stable sort: earliest registration wins for users with multiple phone aliases;
-                # user_id.asc breaks ties so results are deterministic across requests.
-                "order": "created_at.asc,user_id.asc",
+                # Recent phone registrations must not be starved by old backfill
+                # aliases when the alias table exceeds the read cap.
+                "order": "created_at.desc,user_id.asc",
             },
             limit=min(limit * 4, _MAX_MEMBER_DIRECTORY_ROWS),
         )
@@ -252,14 +275,22 @@ class SupabaseMemberDirectoryReadModel:
         phone_alias_created_at = _normalize_text(row.get("phone_alias_created_at"))
         phone_verified_at = _normalize_text(row.get("phone_verified_at"))
         identity_metadata = _identity_metadata_from_mapping(row.get("identity_metadata"))
+        identity_metadata = _merge_identity_metadata(row.get("user_metadata"), identity_metadata)
         wallet_created_at = _normalize_text(row.get("wallet_created_at"))
         first_chat_at = _normalize_text(row.get("first_chat_at"))
+        user_created_at = _normalize_text(row.get("user_created_at"))
         wallet_updated_at = _normalize_text(row.get("wallet_updated_at"))
         last_chat_at = _normalize_text(row.get("last_chat_at"))
         phone_registered_at = ""
         if phone_alias_source == "phone_verification":
             phone_registered_at = phone_verified_at or phone_alias_created_at
-        created_at = phone_registered_at or wallet_created_at or first_chat_at or _UNKNOWN_CREATED_AT
+        created_at = (
+            phone_registered_at
+            or wallet_created_at
+            or first_chat_at
+            or user_created_at
+            or _UNKNOWN_CREATED_AT
+        )
         last_active_at = last_chat_at or wallet_updated_at or first_chat_at or wallet_created_at or _UNKNOWN_CREATED_AT
         aliases = sorted({value for value in (user_id, identifier) if value})
         has_user_record = _coerce_bool(row.get("has_user_record"))
