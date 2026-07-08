@@ -9,6 +9,51 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-08 - V2 scheduled_run 被 sev_regression 倒诬假阳阻断
+
+- 问题：
+  - 本地真实 V2 scheduled run 在三方 SHA 对齐后完整跑完六维，`scheduled_run.py --runs 3`
+    返回 `exit=3(BLOCK)`。
+  - 持久化 evidence 显示阻断维度是 `sev_regression`，其中 `content_truth` 已是 GO；
+    阻断 row 集中在倒诬子场景。
+  - 一条失败 row 自身矛盾：`judge=DAOWU`，但 `why` 写“判分正确，不存在倒诬”，且
+    `o1 == o2`，没有学生看到的选项面分叉。
+- 根因：
+  - 最后正确点：`dim_daowu` 已把倒诬主裁收敛为确定性 option-surface 观察：只有真实
+    选项面分叉且异源 judge 确认，才算倒诬复现。
+  - 第一个错误点：`dim_sev_regression._daowu()` 仍把 DeepSeek `verdict == "DAOWU"`
+    直接作为 `pass=False` authority，`surface_stable` 只在 judge degraded 时生效。
+  - shared failure shape：duplicate decision / authority drift。异源 LLM judge 从辅助审计越权成主裁，
+    与 `_probe_common` “主裁决永远是确定性断言，异源 LLM 仅附加盲点检测”的约束冲突。
+- 失败尝试 / 被否决方案：
+  - 不修产品判分主链路：本次证据没有会话终态字段证明产品真实倒诬，且两条失败 row 都
+    `surface_stable=true`，其中 run3 明写“不存在倒诬”。
+  - 不加 reason regex：用“为什么里含不存在倒诬”去覆盖 verdict 会把语义问题降级成中文
+    字符串模式，仍让 LLM judge 成为第二 authority。
+  - 不改 scheduled_run/accuracy_gate 退出码：退出码正确反映了 probe 给出的 `reproduced=true`；
+    问题在倒诬 row 的单维裁决 authority。
+- 成功修法：
+  - `scripts/quality_gate/probes/dim_sev_regression.py` 对齐 `dim_daowu`：新增
+    `represented_new_order = len(o1) == 4 and len(o2) == 4 and o2 != o1`，只有
+    `represented_new_order and judge.verdict == "DAOWU"` 才 `pass=False`。
+  - `surface_stable` 场景即使 judge 假阳 `DAOWU` 也不阻断；真实 surface 分叉且 judge
+    确认仍然阻断。
+  - 顶部注释去掉“口径一字不改”，明确这是对齐 `dim_daowu` 的确定性主裁纪律。
+- 验证：
+  - RED：`tests/scripts/test_quality_gate_sev_regression.py` 新增
+    `test_daowu_surface_stable_is_deterministic_pass_even_if_judge_false_positive`
+    先失败，当前实现把 surface-stable + judge false-positive 计为 `pass=False`。
+  - GREEN：同文件两测 `2 passed in 0.07s`，覆盖 false-positive 不阻断和真实分叉仍阻断。
+  - 相关回归：`pytest tests/scripts/test_quality_gate_sev_regression.py
+    tests/services/test_r1_option_surface_grading.py
+    tests/capabilities/test_tutorbot_canonical_represent_short_circuit.py
+    tests/capabilities/test_deep_question_canonical_represent.py -q`
+    结果 `12 passed in 0.92s`。
+- 教训：
+  - Eval gate 的“红灯可信”也要服从单一 authority：LLM judge 可以发现盲点，但不能越权替代
+    可确定观测的主裁事实。
+  - 修 gate 假阳时不能削弱真实红灯；必须同时钉死“无分叉不阻断”和“真分叉仍阻断”两边。
+
 ## 2026-07-06 - 启动 orphan recovery 未释放免费试用 reservation，导致“2 次后像满 3 次”
 
 - 问题：

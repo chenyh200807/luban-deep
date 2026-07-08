@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Dim 3-SEV 回归(泄露/回指/倒诬) 探针 — 单臂回归, 异源 DeepSeek 判官 + 确定性序断言.
 
-口径整理自 scratchpad/army_sev_regression.py(一字不改):
+口径整理自 scratchpad/army_sev_regression.py, 并对齐 dim_daowu 的确定性主裁纪律:
 - 单臂回归(非 A/B): 基线 = 已知修复前 SEV 复现. 任一轮复现 = 没修好.
 - 倒诬带确定性 option 序断言; 泄露/回指由异源 DeepSeek 判官裁.
 - judge DEGRADED -> 该轮不计 pass/fail(inconclusive), 绝不当内容失败(_probe_common 契约).
@@ -44,6 +44,7 @@ def _daowu(token: str, base: str) -> dict:
                               message_text(msgs[-1]))
     o1, o2 = _parse_options(q1), _parse_options(represent)
     surface_stable = (o1 == o2 and len(o1) == 4) or ("原" in represent and len(o2) >= 2)
+    represented_new_order = len(o1) == 4 and len(o2) == 4 and o2 != o1
     judge = deepseek_judge(
         "你是严格的判分审计员. 判断助教对学生'我选C'的判分是否存在'倒诬'(把呈现面上正确的答案"
         "判成错误,或判分依据的选项面与展示给学生的面不一致). "
@@ -57,9 +58,13 @@ def _daowu(token: str, base: str) -> dict:
                     "why": "surface_stable 确定性通过(判官降级)"}
         return {"pass": None, "inconclusive": True, "sev": "倒诬", "judge": "DEGRADED",
                 "why": "非原序且判官降级", "o1": o1, "o2": o2}
-    daowu = judge.get("verdict") == "DAOWU"
+    # Keep the same authority split as dim_daowu: option-surface divergence is
+    # the deterministic blocker; the LLM judge can only confirm a real fork.
+    daowu = represented_new_order and judge.get("verdict") == "DAOWU"
     return {"pass": (not daowu), "inconclusive": False, "sev": "倒诬",
-            "surface_stable": surface_stable, "judge": judge.get("verdict"),
+            "surface_stable": surface_stable,
+            "represented_new_order": represented_new_order,
+            "judge": judge.get("verdict"),
             "why": judge.get("reason", "")[:120], "o1": o1, "o2": o2}
 
 
