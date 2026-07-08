@@ -425,7 +425,12 @@ def _generate_auto_password() -> str:
     return "Aa" + secrets.token_hex(8) + "9"
 
 
-def ensure_external_auth_user_for_phone(phone: str, *, user_id: str | None = None) -> dict[str, Any]:
+def ensure_external_auth_user_for_phone(
+    phone: str,
+    *,
+    user_id: str | None = None,
+    identity_metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     normalized_phone = normalize_external_phone(phone)
     desired_user_id = _normalize_optional_user_id(user_id)
     users_file = _resolve_users_file_for_write()
@@ -456,6 +461,18 @@ def ensure_external_auth_user_for_phone(phone: str, *, user_id: str | None = Non
                     user_data["updated_at"] = datetime.now(timezone.utc).isoformat()
                     users[username] = user_data
                     _write_json_mapping(users_file, users)
+                metadata = _identity_metadata_for_user(str(username), identity_metadata)
+                if metadata:
+                    user_data = dict(user_data)
+                    changed = False
+                    for field, value in metadata.items():
+                        if user_data.get(field) != value:
+                            user_data[field] = value
+                            changed = True
+                    if changed:
+                        user_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+                        users[username] = user_data
+                        _write_json_mapping(users_file, users)
                 result = _merge_user(username, user_data)
                 break
 
@@ -471,6 +488,7 @@ def ensure_external_auth_user_for_phone(phone: str, *, user_id: str | None = Non
                 "phone": normalized_phone,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             }
+            payload.update(_identity_metadata_for_user(candidate, identity_metadata))
             users[candidate] = payload
             _write_json_mapping(users_file, users)
             result = _merge_user(candidate, payload)

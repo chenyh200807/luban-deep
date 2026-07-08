@@ -195,6 +195,11 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   用户；手机号验证码登录、微信 `getPhoneNumber` 快速登录 / 绑定和账号密码登录必须共同收敛到
   同一个 canonical member identity，一个手机号只能对应一个账号，不得让用户名、openid、设备号或
   未验证手机号获得独立免费试用 / billing / learner-state 身份。
+- 生产环境微信手机号快速登录 / 绑定必须使用 `getPhoneNumber` 返回的 `phone_code` 并经微信
+  `getuserphonenumber` 换号；直传 11 位手机号只允许作为非生产 eval / legacy QA 兼容路径，且必须
+  写入并同步到 external auth 的机器身份元数据：`account_kind='eval_runner'`、
+  `actor_type='machine'`、`created_by='eval_runner'`、`is_internal_test=true`。这类账号不得计入
+  BI 默认真实会员、今日新增、活跃或行为指标。
 - 微信手机号强制绑定策略上线前签发的 `wechat_mp` token 不得继续作为正式会员态刷新或访问会员
   资源；服务端必须让这类旧会话重新走 `getPhoneNumber phone_code`，避免旧 wx-only session
   长期绕过手机号 canonical identity。
