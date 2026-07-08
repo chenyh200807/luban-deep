@@ -22,11 +22,13 @@ class _PagedClient:
         *,
         member_rows: list[dict[str, Any]],
         alias_rows: list[dict[str, Any]],
+        user_rows: list[dict[str, Any]] | None = None,
         page_cap: int = 1000,
     ) -> None:
         self.rows_by_table = {
             "v_members": member_rows,
             "user_identity_aliases": alias_rows,
+            "users": user_rows or [],
         }
         self.page_cap = page_cap
         self.calls: list[dict[str, Any]] = []
@@ -35,7 +37,15 @@ class _PagedClient:
         del headers
         table = url.rstrip("/").rsplit("/", 1)[-1]
         self.calls.append({"table": table, **dict(params)})
-        rows = self.rows_by_table[table]
+        rows = list(self.rows_by_table[table])
+        order = str(params.get("order") or "")
+        if table == "user_identity_aliases" and any("created_at" in row for row in rows):
+            rows = sorted(rows, key=lambda row: str(row.get("user_id") or ""))
+            rows = sorted(
+                rows,
+                key=lambda row: str(row.get("created_at") or ""),
+                reverse="created_at.desc" in order,
+            )
         offset = int(params.get("offset") or 0)
         requested_limit = int(params.get("limit") or self.page_cap)
         capped_limit = min(requested_limit, self.page_cap)
@@ -156,6 +166,69 @@ def test_member_directory_uses_phone_alias_when_member_view_has_no_row() -> None
     assert members[0]["user_id"] == "user-0001"
     assert members[0]["phone"] == "15558860001"
     assert members[0]["member_directory_source"] == "supabase.phone_identity_aliases+v_members"
+
+
+def test_member_directory_prefers_recent_phone_alias_candidates_past_read_cap() -> None:
+    client = _PagedClient(
+        member_rows=[],
+        alias_rows=[
+            *[
+                _phone_alias(
+                    index,
+                    source="phone_backfill",
+                    phone=f"1555886{index:04d}",
+                    created_at=f"2026-06-01T00:{index:02d}:00+00:00",
+                )
+                for index in range(10)
+            ],
+            _phone_alias(
+                99,
+                source="phone_verification",
+                phone="15558860099",
+                created_at="2026-07-08T12:00:00+00:00",
+                verified_at="2026-07-08T12:01:00+00:00",
+            ),
+        ],
+        page_cap=4,
+    )
+
+    members = _directory(client).list_members(limit=1)
+
+    assert [member["user_id"] for member in members] == ["user-0099"]
+    assert members[0]["created_at"] == "2026-07-08T12:01:00+00:00"
+    alias_calls = [call for call in client.calls if call["table"] == "user_identity_aliases"]
+    assert alias_calls[0]["order"] == "created_at.desc,user_id.asc"
+
+
+def test_member_directory_hydrates_user_identifier_and_metadata_for_alias_only_member() -> None:
+    client = _PagedClient(
+        member_rows=[],
+        alias_rows=[
+            _phone_alias(
+                1,
+                source="phone_verification",
+                phone="15558860001",
+                created_at="2026-07-08T12:00:00+00:00",
+            )
+        ],
+        user_rows=[
+            {
+                "id": "user-0001",
+                "identifier": "qa_eval_codex_20260708",
+                "createdAt": "2026-07-08T12:00:00+00:00",
+                "metadata": {"account_kind": "eval_runner", "actor_type": "machine"},
+            }
+        ],
+    )
+
+    members = _directory(client).list_members(limit=10)
+
+    assert members[0]["display_name"] == "qa_eval_codex_20260708"
+    assert "qa_eval_codex_20260708" in members[0]["alias_user_ids"]
+    assert members[0]["identity_metadata"] == {
+        "account_kind": "eval_runner",
+        "actor_type": "machine",
+    }
 
 
 def test_member_directory_uses_verified_phone_alias_time_as_registration_time() -> None:

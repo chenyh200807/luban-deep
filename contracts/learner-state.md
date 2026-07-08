@@ -160,6 +160,11 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   `metadata`；Supabase member directory 读取 phone alias 时也必须把这些 metadata 透传到
   member `identity_metadata`，让 BI 在 display name / identifier 已变成 UUID 或学员昵称时仍能排除
   机器账号。
+- Supabase member directory 读取 trusted phone alias 时，必须优先覆盖最近注册 / 最近验证的手机号身份，
+  不能因为历史 backfill alias 数量超过读取上限而漏掉当天新增会员。若 `v_members` 暂无对应行，读取层必须
+  hydrate `public.users.identifier`、`createdAt` 和 `metadata`，并把 `public.users.metadata` 与 alias
+  `metadata` 合并为 member `identity_metadata`；历史 QA / eval marker 也必须进入
+  `_looks_like_test_member` 的 alias / search 兜底，避免 alias-only 机器账号被误计入真实会员。
 - `member_console` 可以提供会员套餐展示 read model 和运营包配置投影，但新注册用户的默认权益必须是
   0 点；充值到账、扣费、冻结余额和钱包存在性仍只属于 `WalletService` / wallet ledger
   authority。套餐展示中的原价、现价、点数和可用轮次只是 commerce read model，不得写入 learner

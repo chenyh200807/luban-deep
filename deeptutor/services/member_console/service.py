@@ -1872,6 +1872,8 @@ class MemberConsoleService:
                 "external_auth_provider",
                 "wx_openid",
                 "wx_unionid",
+                "alias_user_ids",
+                "search_aliases",
             )
         )
         test_markers = (
