@@ -27,6 +27,7 @@ from deeptutor.services.question_followup import (
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
     extract_choice_result_summary_from_text,
+    looks_like_safe_study_aid_request,
     normalize_question_followup_context,
     requested_question_item_index,
     resolve_reveal_decision,
@@ -204,6 +205,19 @@ class TutorBotCapability(BaseCapability):
         )
         if active_object:
             session_metadata["active_object"] = dict(active_object)
+        if (
+            looks_like_safe_study_aid_request(context.user_message)
+            and active_object
+            and extract_question_context_from_active_object(active_object) is not None
+        ):
+            for metadata_key in (
+                "active_object",
+                "question_followup_context",
+                "followup_question_context",
+                "_prefetched_exact_question",
+            ):
+                session_metadata[metadata_key] = {}
+            session_metadata["question_context_redacted_for_safe_study_aid"] = True
         conversation_context_text = str(
             (context.metadata or {}).get("conversation_context_text") if isinstance(context.metadata, dict) else ""
         ).strip()

@@ -78,6 +78,7 @@ def test_unanswered_implicit_help_is_demote_carveout_explicit_passes() -> None:
     """
     from deeptutor.services.question_followup import (
         should_block_unanswered_reference_reveal,
+        should_keep_unanswered_question_active_for_followup,
     )
 
     unanswered_ctx = _question_set_context()  # 无 user_answer / is_correct = 未作答
@@ -89,6 +90,22 @@ def test_unanswered_implicit_help_is_demote_carveout_explicit_passes() -> None:
     # 显式要答案 → 不命中 carve-out（should_block=False → 照常 demote → reveal 放行）。
     for message in ("公布答案", "直接告诉我答案", "把答案给我"):
         assert should_block_unanswered_reference_reveal(message, unanswered_ctx) is False, message
+        assert should_keep_unanswered_question_active_for_followup(message, unanswered_ctx) is False, message
+
+    # 具体未答题显式 reveal 仍要保活，让下游 anti-peek 短路可达，不能因 preference=True 被 demote。
+    for message in ("第2题答案是什么", "直接说第2题哪个对"):
+        assert should_block_unanswered_reference_reveal(message, unanswered_ctx) is True, message
+        assert should_keep_unanswered_question_active_for_followup(message, unanswered_ctx) is True, message
+
+    # 安全学习辅助不走 anti-peek 短路，但仍保留活动题连续性，避免下一轮作答绑不到题。
+    message = "给我整理一建建筑实务记忆口诀"
+    assert should_block_unanswered_reference_reveal(message, unanswered_ctx) is False
+    assert should_keep_unanswered_question_active_for_followup(message, unanswered_ctx) is True
+
+    # 指向当前题的口诀仍属于当前未答题求助，不开放到自由 LLM。
+    message = "给我整理这道题的记忆口诀"
+    assert should_block_unanswered_reference_reveal(message, unanswered_ctx) is True
+    assert should_keep_unanswered_question_active_for_followup(message, unanswered_ctx) is True
 
     # 已作答题不命中（attempt 存在 → should_block=False，不属本 carve-out）。
     answered_ctx = _question_set_context()
@@ -97,6 +114,7 @@ def test_unanswered_implicit_help_is_demote_carveout_explicit_passes() -> None:
     answered_ctx["items"][1]["user_answer"] = "B"
     answered_ctx["items"][1]["is_correct"] = True
     assert should_block_unanswered_reference_reveal("给点提示", answered_ctx) is False
+    assert should_keep_unanswered_question_active_for_followup("给我整理记忆口诀", answered_ctx) is False
 
 
 def _resume_decision(active_object: dict[str, Any]) -> dict[str, Any]:
