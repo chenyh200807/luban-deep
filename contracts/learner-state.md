@@ -151,8 +151,10 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   phone-backed identities 补充钱包、画像和聊天汇总 read model。`member_console` 本地 JSON
   只能作为运营备注、审计流水、conversation view audit 和低风险动作记录的 overlay；不得再作为
   生产会员池、注册手机号池、钱包存在性或学习事实的 canonical source。BI 默认会员列表和经营总量
-  必须展示真实运营会员：可信手机号身份仍需先排除 QA、eval、release smoke、practice anchor、
-  army 类模拟账号和其它 `_looks_like_test_member` 标记账号。
+  必须展示真实运营会员：可信手机号身份仍需先排除带有 `account_kind='eval_runner'`、
+  `actor_type='machine'`、`created_by='eval_runner'`、`is_internal_test=true` 等显式机器身份的账号；
+  QA、eval、release smoke、practice anchor、army 类历史模拟账号和其它 `_looks_like_test_member`
+  marker 只能作为旧污染兜底。
 - `member_console` 可以提供会员套餐展示 read model 和运营包配置投影，但新注册用户的默认权益必须是
   0 点；充值到账、扣费、冻结余额和钱包存在性仍只属于 `WalletService` / wallet ledger
   authority。套餐展示中的原价、现价、点数和可用轮次只是 commerce read model，不得写入 learner
@@ -909,4 +911,4 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
 
 ## QA/内部账号 allowlist 导出（2026-07-02）
 
-`MemberConsoleService.list_internal_test_user_ids()` 是 QA/内部账号名单的**唯一读权威**（spike D1 度量与 D15 埋点读侧共用）：判据复用 `_looks_like_test_member`，禁止在度量脚本里另建启发式名单（`turns>50` 等只能作对照披露）。实现注意：不得经 `_load_member_directory_members_for_bi` 取数——其 BI 过滤会先剔除测试账号，生产恒为空集；必须遍历本地 store + Supabase directory 原始成员。该导出是只读投影，不是第二 identity authority——identity 仍按 `canonical_uid` 单点。
+`MemberConsoleService.list_internal_test_user_ids()` 是 QA/内部账号名单的**唯一读权威**（spike D1 度量与 D15 埋点读侧共用）：判据复用 `_looks_like_test_member`，优先识别 `account_kind='eval_runner'`、`actor_type='machine'`、`created_by='eval_runner'`、`is_internal_test=true` 等显式机器身份，再使用旧账号名 marker 兜底；禁止在度量脚本里另建启发式名单（`turns>50` 等只能作对照披露）。实现注意：不得经 `_load_member_directory_members_for_bi` 取数——其 BI 过滤会先剔除测试账号，生产恒为空集；必须遍历本地 store + Supabase directory 原始成员。该导出是只读投影，不是第二 identity authority——identity 仍按 `canonical_uid` 单点。

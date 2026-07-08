@@ -77,6 +77,18 @@ pkill -KILL -f 'next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next
 
 - `/Users/yehongchen/.codex/reports/2026-06-06-codex-desktop-memory-incident.md`
 
+## Eval Runner Identity Discipline
+
+所有 Codex、Claude Code 或其它 AI agent 跑会创建、登录、绑定手机号、产生会话活跃或写入会员读模型的 eval / smoke / QA 测试时，必须以 **eval runner** 身份运行，不得使用真人样式账号冒充测试身份。
+
+最低要求：
+
+- 账号名优先使用 `qa_eval_...`、`eval_...`、`qa_...` 或其它明显测试前缀；不要用普通真人姓名、真实手机号主人姓名或生产用户昵称跑自动化。
+- 能传身份元数据的路径必须写入：`account_kind="eval_runner"`、`actor_type="machine"`、`created_by="eval_runner"`、`is_internal_test=true`。
+- `member_console` / BI 默认只展示真实会员；eval runner、机器账号、release smoke、synthetic、QA、mock、dummy、army、practice anchor 等测试账号不得计入会员总数、今日新增、近 7 / 30 天新增、活跃用户或行为指标。
+- 新增测试 helper、seed 脚本、eval runner、Claude/Codex 自动化脚本时，必须复用上述字段或调用会自动写入上述字段的 `external_auth.ensure_external_auth_user()` / `create_external_auth_user()` 路径。
+- 旧账号名 marker 只能作为历史污染兜底；新测试账号必须有显式机器身份字段。
+
 ## Contract Discipline
 
 凡是涉及 turn/session/stream/replay/resume、聊天入口、TutorBot 接入、trace/observability 的改动，必须先遵守：
