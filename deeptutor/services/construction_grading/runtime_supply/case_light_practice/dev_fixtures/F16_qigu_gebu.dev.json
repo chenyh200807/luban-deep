@@ -1,0 +1,19 @@
+{
+  "artifact": "case_light_practice_dev_fixture",
+  "version": "v0",
+  "dev_fixture": true,
+  "official_score_allowed": false,
+  "binds": "luban_case_scoring_point.v1",
+  "source_qid": "EXAM_1A434000_P0011_01::E0",
+  "sub_no": "起鼓割补",
+  "provenance": "docs/原始数据/数据盘点/2026-07-08-采分点原子化切分修复样板v0.md §3 — 手工原子化 + live A/B 验证的 7 点起鼓割补 rubric(工序原文源自编译库同题 sp_275f/sp_c4e4)。DEV ONLY:不是教研门后的 production 采分点,绝不进 production whitelist,official_score_allowed=false。",
+  "points": [
+    {"point_id": "a1", "sub_no": "起鼓割补", "qid": "EXAM_1A434000_P0011_01::E0", "sub_qid": "EXAM_1A434000_P0011_01::E0::起鼓割补", "statement": "用刀将鼓泡卷材割开,放出鼓泡内气体", "point_type": "程序", "required_terms": ["割开", "放气"], "max_score": 0.25},
+    {"point_id": "a2", "sub_no": "起鼓割补", "qid": "EXAM_1A434000_P0011_01::E0", "sub_qid": "EXAM_1A434000_P0011_01::E0::起鼓割补", "statement": "擦干水分", "point_type": "程序", "required_terms": ["擦干"], "max_score": 0.15},
+    {"point_id": "a3", "sub_no": "起鼓割补", "qid": "EXAM_1A434000_P0011_01::E0", "sub_qid": "EXAM_1A434000_P0011_01::E0::起鼓割补", "statement": "清除旧胶结料", "point_type": "程序", "required_terms": ["清除旧胶结料"], "max_score": 0.20},
+    {"point_id": "a4", "sub_no": "起鼓割补", "qid": "EXAM_1A434000_P0011_01::E0", "sub_qid": "EXAM_1A434000_P0011_01::E0::起鼓割补", "statement": "喷灯烘烤旧卷材槎口", "point_type": "程序", "required_terms": ["喷灯烘烤"], "max_score": 0.20},
+    {"point_id": "a5", "sub_no": "起鼓割补", "qid": "EXAM_1A434000_P0011_01::E0", "sub_qid": "EXAM_1A434000_P0011_01::E0::起鼓割补", "statement": "分层剥开旧卷材(关键区分点)", "point_type": "程序", "required_terms": ["分层剥开"], "max_score": 0.30},
+    {"point_id": "a6", "sub_no": "起鼓割补", "qid": "EXAM_1A434000_P0011_01::E0", "sub_qid": "EXAM_1A434000_P0011_01::E0::起鼓割补", "statement": "重新粘贴新卷材", "point_type": "程序", "required_terms": ["重新粘贴", "重贴新卷材"], "max_score": 0.25},
+    {"point_id": "a7", "sub_no": "起鼓割补", "qid": "EXAM_1A434000_P0011_01::E0", "sub_qid": "EXAM_1A434000_P0011_01::E0::起鼓割补", "statement": "周边压实刮平", "point_type": "程序", "required_terms": ["压实", "刮平"], "max_score": 0.15}
+  ]
+}

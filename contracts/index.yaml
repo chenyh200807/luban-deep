@@ -632,6 +632,7 @@ domains:
       - deeptutor/services/construction_grading/learning_evidence.py
       - deeptutor/services/construction_grading/case_light_practice_contract.py
       - deeptutor/services/construction_grading/case_light_practice_rtg.py
+      - deeptutor/services/construction_grading/case_light_practice_generator.py
       - scripts/build_luban_pgo_runtime_supply.py
       - scripts/verify_luban_pgo_runtime_supply.py
       - scripts/run_luban_pgo_stage5_canary_gate.py
@@ -663,6 +664,7 @@ domains:
       - tests/services/construction_grading/test_case_light_practice_whitelist_gate.py
       - tests/services/construction_grading/test_case_light_practice_conjunction_scoring.py
       - tests/services/construction_grading/test_case_light_practice_rtg.py
+      - tests/services/construction_grading/test_case_light_practice_generator.py
     schema_files: []
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn
