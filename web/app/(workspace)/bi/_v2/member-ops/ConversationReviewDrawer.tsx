@@ -166,6 +166,11 @@ export function ConversationReviewDrawer({
   const normalizedSessions = sessions.map(normalizeSession)
   const totalMessages = normalizedSessions.reduce((sum, session) => sum + session.count, 0)
   const latestSession = normalizedSessions[0]
+  const reasonBlockedMessage = !reason
+    ? '选择原因后，“查看全文”会解锁并写入 audit。'
+    : reason === 'other' && reasonNote.trim().length < 4
+      ? '请补充至少 4 字的其他原因后再查看全文。'
+      : ''
 
   async function tryReveal(sessionId: string) {
     if (!member) return
@@ -341,6 +346,11 @@ export function ConversationReviewDrawer({
               />
             ) : null}
           </fieldset>
+          {reasonBlockedMessage ? (
+            <p className="mt-2 text-[11px] leading-5 text-amber-100/75">
+              {reasonBlockedMessage}
+            </p>
+          ) : null}
         </section>
 
         {loadingSessions ? (
@@ -403,11 +413,13 @@ export function ConversationReviewDrawer({
                     onClick={() => {
                       void tryReveal(session.id)
                     }}
+                    className="shrink-0 whitespace-nowrap"
                     disabled={
                       !reason ||
                       (reason === 'other' && reasonNote.trim().length < 4) ||
                       auditState === 'writing'
                     }
+                    title={reasonBlockedMessage || `查看 ${session.title} 全文`}
                     variant="secondary"
                     size="xs"
                     aria-label={`查看 ${session.title} 全文，将写入 audit`}
