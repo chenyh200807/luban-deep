@@ -226,18 +226,18 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
     `derive_rubric_from_stem` 诊断（`official_score_allowed=False` + 诊断 hedge）。**SEV 安全**：①标记紧扣提交框架不吃问句；
     ②V1 判分事件基线即 `official_score_allowed=False`，未签名参考被抑制后更不可能凭空给官方分；③保活不等于判分，下游
     把关不动。证据见 `tests/services/test_question_followup_case_submission.py` + `tests/tutorbot/test_case_grading_forward_reachability.py`。
-  - **anti-peek 隐式求助（2026-06-30）是同相位、同形的安全 SEV carve-out —— 答案泄露入口侧不变量，不可删**：
-    当本轮是对一道**未作答活跃题的隐式求助**（"给点提示" / "还是不会" / "这题怎么想"，
-    `should_block_unanswered_reference_reveal=True`）时**不压栈**（`stored_set_unanswered_implicit_help=True`），
-    让未答题保持 active；否则 active_object 被换成 open_chat_topic，下游 anti-peek 消费点（tutorbot 确定性结构化
-    提示短路 / reveal 决策）读不到活跃未答题 → fail-safe 落 free LLM → LLM 从对话历史看到题、用领域知识**自推答案
-    泄底**（Langfuse + DB 取证定位真断点：出题后 `active_object=single_question`，"给点提示"后变 `open_chat_topic`、
-    题被压栈；live 红队 5/6 复现，软指令/遮蔽已证伪，唯结构上不走 free LLM 可靠）。单一 anti-peek 权威 =
-    `question_followup.should_block_unanswered_reference_reveal`（reveal/anti-peek 同一权威），demote 守卫只读不重判，
-    不新增第二决策点。**SEV 安全 + 不误伤显式**：显式要答案（"公布答案"，`should_block=False`）不命中本 carve-out
-    → 照常 demote，reveal 路径放行答案（anti-peek 只压隐式求助，不抑制显式 —— 尊重"不能不输出"）。已作答题
-    （attempt 存在 → `should_block=False`）不命中。证据见 `tests/services/test_turn_start_demote_canonical_pipeline.py`
-    （carve-out 谓词）+ live 红队 `给点提示/还是不会` 3/3 `structured_hint=True/leak=False`。
+  - **unanswered active-question keep gate（2026-07-08）是同相位、同形的安全 / 连续性 carve-out —— 不可删**：
+    turn-start demote 不再直接消费 `question_followup.should_block_unanswered_reference_reveal` 这个 reveal/anti-peek
+    boolean；它只读 `question_followup.should_keep_unanswered_question_active_for_followup`。两者边界必须保持清楚：
+    `should_block_unanswered_reference_reveal` 只回答"本轮是否必须阻断 free LLM / reveal，改走确定性题面或结构化提示"；
+    `should_keep_unanswered_question_active_for_followup` 只回答"turn-start 是否要保留未作答活动题连续性，避免下一轮作答
+    绑不到题"。该 keep gate 对三类未作答上下文返回 True：隐式求助（"给点提示" / "还是不会" / "这题怎么想"）、
+    具体题项 reveal / 助记引用（"第2题答案是什么" / "第2题记忆口诀"），以及不消费当前题答案的安全学习辅助 detour
+    （"给我整理一建建筑实务记忆口诀"）。泛化显式要答案（"公布答案" / "直接告诉我答案"）仍不保活，照常 demote 并由 reveal
+    路径放行；已作答题不命中。TutorBot 对安全学习辅助 detour 可以进入正常生成，但必须在 manager session metadata
+    中清掉 `active_object` / `question_followup_context` / `_prefetched_exact_question` 等当前题上下文字段，避免自由 LLM
+    消费未作答题隐藏答案材料。证据见 `tests/services/test_turn_start_demote_canonical_pipeline.py` 与
+    `tests/capabilities/test_tutorbot_unanswered_reference_short_circuit.py`。
 - **routing 相位**（单一权威 = `deeptutor/services/semantic_router.py::apply_active_object_transition`）：
   orchestrator 经 `metadata.suspended_object_stack` 读到 turn-START 压栈的对象，在 `resume_suspended_object`
   决策下**恢复（出栈）**。canonical **只出栈、从不在 turn-START 那个输入上重做压栈决策**。

@@ -118,6 +118,33 @@ def test_should_block_passes_explicit_answer_request_on_unanswered() -> None:
         assert should_block_unanswered_reference_reveal(message, ctx) is True, message
 
 
+def test_should_block_allows_learning_support_mnemonic_requests_on_unanswered_question_set() -> None:
+    ctx = {
+        "question_id": "q1",
+        "question": "屋面防水正确的是",
+        "options": {"A": "x", "B": "y", "C": "z", "D": "w"},
+        "items": [
+            {
+                "question_id": "q1",
+                "question": "屋面防水",
+                "options": {"A": "x", "B": "y", "C": "z", "D": "w"},
+                "grading_key": {"correct_answer": "D"},
+            }
+        ],
+    }
+    for message in (
+        "给我整理记忆口诀",
+        "给我整理一建建筑实务记忆口诀",
+        "帮我做个助记",
+        "给我一些记忆技巧",
+    ):
+        assert should_block_unanswered_reference_reveal(message, ctx) is False, message
+        assert should_reveal_reference_material(message, ctx) is False, message
+    for message in ("给我整理这道题的记忆口诀", "给我整理本题的记忆技巧"):
+        assert should_block_unanswered_reference_reveal(message, ctx) is True, message
+        assert should_reveal_reference_material(message, ctx) is False, message
+
+
 def test_resolve_submission_attempt_extracts_numbered_batch_with_wo_xuan_prefix() -> None:
     question_set = {
         "question_id": "quiz_generated",
@@ -254,11 +281,24 @@ def test_unanswered_question_set_blocks_indexed_reference_reveal_until_attempt()
         "现在公布第2题答案和解析，不要批第1题。",
         attempted_context,
     ) is False
+    for message in ("第2题答案是什么？", "第2题参考答案", "直接说第2题哪个对"):
+        assert should_block_unanswered_reference_reveal(message, attempted_context) is False, message
 
     assert should_block_unanswered_reference_reveal(
         "第2题参考哪个规范？先不要公布答案。",
         question_context,
     ) is True
+    for message in ("第2题答案是什么？", "第2题参考答案", "直接说第2题哪个对"):
+        assert should_block_unanswered_reference_reveal(message, question_context) is True, message
+        assert should_reveal_reference_material(message, question_context) is False, message
+    assert should_block_unanswered_reference_reveal("第2题记忆口诀", question_context) is True
+    assert (
+        should_block_unanswered_reference_reveal(
+            "第2题我不会，先别告诉我答案",
+            question_context,
+        )
+        is True
+    )
 
     assert should_block_unanswered_reference_reveal(
         "现在公布第3题答案和解析。",
