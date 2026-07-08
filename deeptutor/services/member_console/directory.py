@@ -20,6 +20,18 @@ _TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
         "phone_verification",
     }
 )
+_IDENTITY_METADATA_FIELDS = (
+    "account_kind",
+    "member_account_kind",
+    "actor_type",
+    "created_by",
+    "is_internal_test",
+    "is_test_account",
+    "runner",
+    "agent_tool",
+    "eval_run_id",
+    "phone_binding_method",
+)
 
 
 def _normalize_text(value: Any) -> str:
@@ -52,6 +64,21 @@ def _is_cn_mainland_mobile(value: Any) -> bool:
         "18888888888",
         "19999999999",
     } and not re.fullmatch(r"1380000000\d", phone)
+
+
+def _identity_metadata_from_mapping(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    metadata: dict[str, Any] = {}
+    for field in _IDENTITY_METADATA_FIELDS:
+        raw = value.get(field)
+        if raw in (None, "", [], {}):
+            continue
+        if field in {"is_internal_test", "is_test_account"}:
+            metadata[field] = _coerce_bool(raw)
+        else:
+            metadata[field] = _normalize_text(raw)
+    return metadata
 
 
 class SupabaseMemberDirectoryReadModel:
@@ -119,6 +146,7 @@ class SupabaseMemberDirectoryReadModel:
             row["phone_alias_source"] = phone_alias["source"]
             row["phone_alias_created_at"] = phone_alias["created_at"]
             row["phone_verified_at"] = phone_alias["verified_at"]
+            row["identity_metadata"] = phone_alias.get("identity_metadata") or {}
             eligible_rows.append(row)
         members = [self._member_from_row(row) for row in eligible_rows]
         return [member for member in members if member.get("user_id")]
@@ -177,11 +205,11 @@ class SupabaseMemberDirectoryReadModel:
             offset += batch_limit
         return rows
 
-    def _eligible_phone_aliases(self, *, limit: int) -> dict[str, dict[str, str]]:
+    def _eligible_phone_aliases(self, *, limit: int) -> dict[str, dict[str, Any]]:
         rows = self._select_rows_paginated(
             table="user_identity_aliases",
             params={
-                "select": "user_id,alias_value,source,created_at,verified_at",
+                "select": "user_id,alias_value,source,created_at,verified_at,metadata",
                 "alias_type": "eq.phone",
                 # Stable sort: earliest registration wins for users with multiple phone aliases;
                 # user_id.asc breaks ties so results are deterministic across requests.
@@ -189,7 +217,7 @@ class SupabaseMemberDirectoryReadModel:
             },
             limit=min(limit * 4, _MAX_MEMBER_DIRECTORY_ROWS),
         )
-        aliases: dict[str, dict[str, str]] = {}
+        aliases: dict[str, dict[str, Any]] = {}
         for row in rows:
             user_id = _normalize_text(row.get("user_id"))
             source = _normalize_text(row.get("source"))
@@ -207,6 +235,7 @@ class SupabaseMemberDirectoryReadModel:
                     "source": source,
                     "created_at": _normalize_text(row.get("created_at")),
                     "verified_at": _normalize_text(row.get("verified_at")),
+                    "identity_metadata": _identity_metadata_from_mapping(row.get("metadata")),
                 },
             )
             if len(aliases) >= limit:
@@ -222,6 +251,7 @@ class SupabaseMemberDirectoryReadModel:
         phone_alias_source = _normalize_text(row.get("phone_alias_source"))
         phone_alias_created_at = _normalize_text(row.get("phone_alias_created_at"))
         phone_verified_at = _normalize_text(row.get("phone_verified_at"))
+        identity_metadata = _identity_metadata_from_mapping(row.get("identity_metadata"))
         wallet_created_at = _normalize_text(row.get("wallet_created_at"))
         first_chat_at = _normalize_text(row.get("first_chat_at"))
         wallet_updated_at = _normalize_text(row.get("wallet_updated_at"))
@@ -266,6 +296,7 @@ class SupabaseMemberDirectoryReadModel:
             "notes": [],
             "badges": [],
             "earned_badge_ids": [],
+            "identity_metadata": identity_metadata,
             "member_directory_source": "supabase.phone_identity_aliases+v_members",
             "member_directory_metrics": {
                 "total_conversations": _coerce_int(row.get("total_conversations")),

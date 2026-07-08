@@ -29,6 +29,15 @@
 
 **AGENTS.md 的硬约束在 Claude Code 上一字不动地生效。** 不要因为换了 agent 平台就放松。
 
+Claude Code 跑任何会登录、注册、绑定手机号、写会员读模型或产生会员活跃的 eval / smoke / QA 前，必须先导出：
+
+```bash
+export DEEPTUTOR_EVAL_RUNNER_AGENT=claude_code
+export DEEPTUTOR_EVAL_RUN_ID="claude_code-$(date +%Y%m%d%H%M%S)-$(git rev-parse --short HEAD 2>/dev/null || echo nogit)"
+```
+
+并且只能使用 `qa_eval_...`、`qa_...`、`eval_...`、`smoke_...` 等机器账号。真人样式用户名或手机号昵称不得用于自动化测试。
+
 ## 与 Codex 的关系
 
 本项目长期由 Codex 主导开发。Codex 沉淀的所有经验都已经写进 AGENTS.md。Claude Code 接手时：

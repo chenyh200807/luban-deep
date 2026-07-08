@@ -75,16 +75,26 @@ class _FakeWebSocket:
 
 def test_generated_credentials_meet_contract(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(MODULE.time, "time", lambda: 1_776_857_000)
+    monkeypatch.setenv("DEEPTUTOR_EVAL_RUNNER_AGENT", "codex")
 
-    username, password, phone = MODULE._generated_credentials("smoke")
+    username, password, phone = MODULE._generated_credentials()
 
-    assert username == "smoke_1776857000"
+    assert username == "qa_eval_codex_smoke_1776857000"
     assert password.startswith("SmokeA")
     assert any(ch.islower() for ch in password)
     assert any(ch.isupper() for ch in password)
     assert any(ch.isdigit() for ch in password)
     assert len(phone) == 11
     assert phone.startswith("139")
+
+
+def test_generated_credentials_reject_non_eval_prefix(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(MODULE.time, "time", lambda: 1_776_857_000)
+
+    with pytest.raises(RuntimeError, match="eval_runner_identity_required"):
+        MODULE._generated_credentials("human")
 
 
 @pytest.mark.asyncio
@@ -203,7 +213,7 @@ async def test_run_mobile_login_smoke_registers_two_turns_and_cleans_up(monkeypa
 
     payload = await MODULE.run_mobile_login_smoke(
         api_base_url="https://example.com",
-        username="smoke_user",
+        username="qa_eval_codex_smoke_user",
         password="SmokeA123456",
         phone="13900001234",
         register=True,
@@ -317,7 +327,7 @@ async def test_run_mobile_login_smoke_falls_back_to_login_when_register_conflict
 
     payload = await MODULE.run_mobile_login_smoke(
         api_base_url="https://example.com",
-        username="existing",
+        username="qa_existing",
         password="SmokeA123456",
         phone="13900001234",
         register=True,

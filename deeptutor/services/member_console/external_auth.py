@@ -53,7 +53,14 @@ _EVAL_RUNNER_USERNAME_MARKERS = (
     "-test",
     "测试",
 )
-_IDENTITY_METADATA_TEXT_FIELDS = ("account_kind", "actor_type", "created_by")
+_IDENTITY_METADATA_TEXT_FIELDS = (
+    "account_kind",
+    "actor_type",
+    "created_by",
+    "runner",
+    "agent_tool",
+    "eval_run_id",
+)
 _IDENTITY_METADATA_BOOL_FIELDS = ("is_internal_test", "is_test_account")
 _STORE_LOCK = Lock()
 _PRIMARY_USERS_FILE = Path("/app/data/user/external_auth/users.json")
@@ -235,12 +242,17 @@ def _eval_runner_identity_from_username(username: str) -> dict[str, Any]:
         return {}
     if not any(marker in normalized for marker in _EVAL_RUNNER_USERNAME_MARKERS):
         return {}
-    return {
+    metadata = {
         "account_kind": _EVAL_RUNNER_ACCOUNT_KIND,
         "actor_type": _EVAL_RUNNER_ACTOR_TYPE,
         "created_by": _EVAL_RUNNER_CREATED_BY,
         "is_internal_test": True,
     }
+    if "claude" in normalized:
+        metadata.update({"runner": "claude_code", "agent_tool": "claude_code"})
+    elif "codex" in normalized:
+        metadata.update({"runner": "codex", "agent_tool": "codex"})
+    return metadata
 
 
 def _identity_metadata_for_user(
