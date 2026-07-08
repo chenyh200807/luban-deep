@@ -182,6 +182,14 @@
 
 **验证证据(反自证,真跑)**:3 测试 **17 passed**;`check_schema_registry.py --closure` = **CLOSED**(full_set=213 tier1=9 tier2=33 tier3=171 orphans=0);`test_schema_registry.py` **37 passed**;`check_contract_guard.py --base spike/main-base-v2 --head HEAD` = **passed**,且 `[luban_grading_engine] protected=case_light_practice_contract.py | tests=(3 域测试)` —— protected 域真触发、域测试满足(非 trivial skip)。
 
+**第 2 轮(2026-07-09,同分支,已 push;教研-independent 工作推进)**:
+- **第 0 件复核**:P-1 对真 `origin/main` base 全绿(diff 恰 8 文件 / 闭包 CLOSED / contract_guard `--base origin/main` 真门通过),**非 spike 特例**,合 main 计数正确。
+- **RTG1–RTG8 Post-gen 门**(`case_light_practice_rtg.py`,commit 79cf9a222):纯确定性 8 门(撞车/去重/错因码/候选/结构/形态/一致性/反编造)+ RTG9 异源接口;未跑到的门显式 `NOT_EXERCISED`(反假绿)。12 测试。
+- **运行时生成器**(`case_light_practice_generator.py`,commit 491e66924):LLM = **注入式 `complete_fn` seam**(单测 stub / 阿里云真 DeepSeek);correct 选项 = 采分点原文逐字(LLM 只造干扰项);出题过 RTG 门重生成 ≤2、仍 BLOCK→degraded。F16 起鼓割补 **dev fixture**(7 点,`dev_fixture=true` 不进 production whitelist)。7 测试。
+- **静态 HTML demo**(`scripts/build_case_light_practice_demo.py`,commit 9d7f652dd,已交付 owner):真跑链路(真采分点→生成器→真 RTG 门→真确定性判分),复现 live 验证 **A 漏 a5 分层剥开=1.2 / B 写了=1.5(满分 1.5)**。唯一 stub = 干扰项来源。
+- **块 A 切分 review 骨架**(`scripts/build_case_segmentation_review_skeletons.py`,commit 25ee67698):为 owner 已确认的 5 题各产一份 `docs/原始数据/考点原料/segmentation_gold/<qid>.review.json` 骨架(预填当前采分点 + 空 verdict 槽,教研**审而非写**)。
+- **阻塞**:真 LLM 生成 / LLM 切分边界检测需 DeepSeek 凭据(本地无)或**部署阿里云**(§6 owner-stop)。**剩余教研-independent 纯工作 = 块 C 引擎**(CPM solver / DAG+ECF / OCR 骨架 / 认→写档2-4 / flaw_correction,均纯代码,可续)。
+
 **T2-PINNED 裁断理由(单一权威 vs 字段保护,记录以备审)**:§1.5C 要求采分点 schema 有字段级保护、不许 T2 挂名。核查 `check_schema_registry.py:455` 后确认:本仓 guard 的 drift/authority 字段检查**硬编码只对 `luban_grading_object.v1` 跑**——真正的字段保护来自"frozen dataclass + 内省对账测试"(P2#9 给 context_pack/evidence_bundle 上 T2 PINNED 的同一手法),不来自 guard。故:**不往 T1"唯一 grading 对象"列表加第二个 canonical(守单一权威,不与 `luban_grading_object.v1` 竞争),改用 T2 PINNED(canonical_fields + `needs_field_canonicalization:false` + 内省对账)给字段保护。**这既满足 §1.5C(是"独立 typed schema"非"T2 挂名"),又不僭越成第二判分权威——采分点只读视图,判分权威仍归 `rubric_grader_v1`。
 
 ## §2.7 P-1 优先清单提案(证据版 · 待 owner + 双教研确认才切)
