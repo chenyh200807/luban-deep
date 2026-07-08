@@ -1,0 +1,250 @@
+{
+  "artifact": "segmentation_review",
+  "version": "v0",
+  "status": "pending_dual_review",
+  "official_score_allowed": false,
+  "qid": "EXAM_1A434000_P0013_01::E0",
+  "current_point_count": 13,
+  "current_total_score": 5.5,
+  "instructions": "两名教研**独立**填每点的 proposed_sub_no(小问号)+ is_atomic(独立可判/互斥/可证伪)+ anchor_ok(锚到教材或真题原文)+ 非平点结构(conjunction_group 找错∧改正 / ordering_group 顺序敏感 / list_cap 答N给M)。审而非写:当前点已列出,你只标切分。不一致→arbitration→consensus。consensus 过后才由填白名单步接手。",
+  "points": [
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P1",
+      "statement": "不妥一：由项目技术负责人组织编写项目质量计划书；正确做法：应由项目经理组织编写",
+      "current_score": 0.39,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "项目技术负责人",
+        "不妥",
+        "项目经理"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P10",
+      "statement": "等电位改正：截面积2.5mm²错误，不应小于4mm²",
+      "current_score": 0.48,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "4mm²",
+        "截面积"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P11",
+      "statement": "等电位改正：黄色标错误，应采用黄绿色标",
+      "current_score": 0.29,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "黄绿色"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P12",
+      "statement": "等电位改正：单根铜芯导线错误，应采用多股铜芯导线",
+      "current_score": 0.29,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "多股",
+        "铜芯导线"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P13",
+      "statement": "等电位改正：串联连接错误，应不得串联（应并联/单独连接）",
+      "current_score": 0.27,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "不得",
+        "串联"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P2",
+      "statement": "不妥二：报请施工单位质量管理部门审批后实施；正确做法：应报企业相关管理部门批准并得到发包方和监理方认可后实施",
+      "current_score": 0.39,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "质量管理部门",
+        "发包方",
+        "监理方",
+        "认可"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P3",
+      "statement": "质量管理记录还应有：施工日记和专项施工记录、交底记录、上岗培训记录和岗位资格证明",
+      "current_score": 0.39,
+      "policy": "list",
+      "required_terms": [
+        "施工日记",
+        "交底记录",
+        "上岗培训记录"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P4",
+      "statement": "不妥（填充墙与柱连接钢筋2φ6@600伸入墙内500mm）；正确做法：柱边设间距不大于500mm的2φ6钢筋，砌体内锚固长度不小于1000mm",
+      "current_score": 0.58,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "500mm",
+        "2φ6",
+        "锚固",
+        "1000mm"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P5",
+      "statement": "不妥（梁下最后三皮砖砌筑7d后两边对称斜砌）；正确做法：应在下部墙砌完14d后砌筑，由中间向两边斜砌",
+      "current_score": 0.58,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "14d",
+        "中间",
+        "两边斜砌"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P6",
+      "statement": "不妥（化学植筋拉拔试验非破坏承载力检验值设为5.0kN，持荷2min符合即合格）；正确做法：应进行实体检测，检验值应为6.0kN，基材无裂缝钢筋无滑移，持荷2min荷载降低不大于5%",
+      "current_score": 0.58,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "6.0kN",
+        "实体检测",
+        "持荷2min",
+        "降低不大于5%"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P7",
+      "statement": "防水卷材铺贴方法还有：冷粘法、热熔法、自粘法、焊接法、机械固定法",
+      "current_score": 0.48,
+      "policy": "list",
+      "required_terms": [
+        "冷粘法",
+        "热熔法",
+        "自粘法",
+        "焊接法",
+        "机械固定法"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P8",
+      "statement": "铺贴顺序方向要求：先进行细部构造处理，然后由屋面最低标高向上铺贴",
+      "current_score": 0.39,
+      "policy": "qualitative",
+      "required_terms": [
+        "细部构造",
+        "最低标高",
+        "向上铺贴"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0013_01::E0::P9",
+      "statement": "铺贴顺序方向要求：檐沟天沟宜顺沟方向铺贴，搭接缝顺流水方向",
+      "current_score": 0.39,
+      "policy": "qualitative",
+      "required_terms": [
+        "檐沟",
+        "天沟",
+        "搭接缝",
+        "流水方向"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    }
+  ],
+  "reviewers": [],
+  "consensus": null,
+  "arbitration": null
+}

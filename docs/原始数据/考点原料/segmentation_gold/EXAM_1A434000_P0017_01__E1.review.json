@@ -1,0 +1,217 @@
+{
+  "artifact": "segmentation_review",
+  "version": "v0",
+  "status": "pending_dual_review",
+  "official_score_allowed": false,
+  "qid": "EXAM_1A434000_P0017_01::E1",
+  "current_point_count": 12,
+  "current_total_score": 6.0,
+  "instructions": "两名教研**独立**填每点的 proposed_sub_no(小问号)+ is_atomic(独立可判/互斥/可证伪)+ anchor_ok(锚到教材或真题原文)+ 非平点结构(conjunction_group 找错∧改正 / ordering_group 顺序敏感 / list_cap 答N给M)。审而非写:当前点已列出,你只标切分。不一致→arbitration→consensus。consensus 过后才由填白名单步接手。",
+  "points": [
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_1",
+      "statement": "不妥1:模板应放入室内或敞棚内;露天堆放时底部应垫高100mm,顶面遮盖防水篷布或塑料布",
+      "current_score": 0.5,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "模板",
+        "垫高",
+        "遮盖"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_10",
+      "statement": "停电顺序:先开关箱",
+      "current_score": 0.5,
+      "policy": "exact_required",
+      "required_terms": [
+        "开关箱"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_11",
+      "statement": "停电顺序:再分配电箱",
+      "current_score": 0.5,
+      "policy": "exact_required",
+      "required_terms": [
+        "分配电箱"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_12",
+      "statement": "停电顺序:最后总配电箱",
+      "current_score": 0.5,
+      "policy": "exact_required",
+      "required_terms": [
+        "总配电箱"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_2",
+      "statement": "不妥2:电杆高5m,距模板堆垛4.5m距离不够;应不小于7.5m(5×1.5)",
+      "current_score": 0.5,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "电杆",
+        "7.5",
+        "距离"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_3",
+      "statement": "不妥3:仓库或堆料场严禁使用碘钨灯",
+      "current_score": 0.5,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "碘钨灯"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_4",
+      "statement": "不妥4:开关箱距配电箱30.5m,间距不得大于30m",
+      "current_score": 0.5,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "开关箱",
+        "配电箱",
+        "30"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_5",
+      "statement": "不妥5:木模板堆场(可燃物)应与电锯距离至少10m",
+      "current_score": 0.5,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "电锯",
+        "10",
+        "距离"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_6",
+      "statement": "不妥6:开关箱安装在电线杆上(不妥)",
+      "current_score": 0.5,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "开关箱",
+        "电线杆"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_7",
+      "statement": "不妥7:电锯部位敞开,应采用密封式",
+      "current_score": 0.5,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "电锯",
+        "密封"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_8",
+      "statement": "不妥8:未设置灭火器",
+      "current_score": 0.5,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "灭火器"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0017_01::E1::E1_9",
+      "statement": "不妥9:未设置消防水箱/消防水桶/消防用水等",
+      "current_score": 0.5,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "消防"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    }
+  ],
+  "reviewers": [],
+  "consensus": null,
+  "arbitration": null
+}

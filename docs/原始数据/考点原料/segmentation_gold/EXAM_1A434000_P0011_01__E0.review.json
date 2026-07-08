@@ -1,0 +1,291 @@
+{
+  "artifact": "segmentation_review",
+  "version": "v0",
+  "status": "pending_dual_review",
+  "official_score_allowed": false,
+  "qid": "EXAM_1A434000_P0011_01::E0",
+  "current_point_count": 16,
+  "current_total_score": 10.0,
+  "instructions": "两名教研**独立**填每点的 proposed_sub_no(小问号)+ is_atomic(独立可判/互斥/可证伪)+ anchor_ok(锚到教材或真题原文)+ 非平点结构(conjunction_group 找错∧改正 / ordering_group 顺序敏感 / list_cap 答N给M)。审而非写:当前点已列出,你只标切分。不一致→arbitration→consensus。consensus 过后才由填白名单步接手。",
+  "points": [
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-1",
+      "statement": "质量计划做法不妥当",
+      "current_score": 0.57,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "不妥"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-10",
+      "statement": "粘结材料复试:粘结强度",
+      "current_score": 0.48,
+      "policy": "list",
+      "required_terms": [
+        "粘结强度"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-11",
+      "statement": "增强材料复试:力学性能、抗腐蚀性能",
+      "current_score": 0.76,
+      "policy": "list",
+      "required_terms": [
+        "力学性能",
+        "抗腐蚀"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-12",
+      "statement": "割补法工序:用刀将鼓泡卷材割开,放出气体,擦干水分,清除旧胶结料",
+      "current_score": 0.95,
+      "policy": "list",
+      "required_terms": [
+        "割开",
+        "放出",
+        "气体",
+        "擦干",
+        "旧胶结料"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-13",
+      "statement": "割补法工序:用喷灯烘烤旧卷材槎口,分层剥开,除去旧胶结材料",
+      "current_score": 0.95,
+      "policy": "list",
+      "required_terms": [
+        "喷灯烘烤",
+        "槎口",
+        "分层剥开"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-14",
+      "statement": "割补法工序:依次将旧卷材分片重新粘贴,再新贴新卷材",
+      "current_score": 0.48,
+      "policy": "list",
+      "required_terms": [
+        "重新粘贴",
+        "新卷材"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-15",
+      "statement": "割补法工序:周边压实刮平",
+      "current_score": 0.38,
+      "policy": "list",
+      "required_terms": [
+        "压实",
+        "刮平"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-16",
+      "statement": "割补法工序:重做保护层",
+      "current_score": 0.48,
+      "policy": "list",
+      "required_terms": [
+        "保护层"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-2",
+      "statement": "管理记录还应包含:施工日志",
+      "current_score": 0.38,
+      "policy": "list",
+      "required_terms": [
+        "施工日志"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-3",
+      "statement": "管理记录还应包含:专项施工记录",
+      "current_score": 0.38,
+      "policy": "list",
+      "required_terms": [
+        "专项施工记录"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-4",
+      "statement": "管理记录还应包含:交底记录",
+      "current_score": 0.38,
+      "policy": "list",
+      "required_terms": [
+        "交底记录"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-5",
+      "statement": "管理记录还应包含:上岗培训记录、岗位资格证明",
+      "current_score": 0.48,
+      "policy": "list",
+      "required_terms": [
+        "上岗培训",
+        "岗位资格"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-6",
+      "statement": "管理记录还应包含:图纸变更设计接收和发放记录",
+      "current_score": 0.48,
+      "policy": "list",
+      "required_terms": [
+        "图纸",
+        "变更设计",
+        "发放"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-7",
+      "statement": "分项工程划分条件:主要工种、材料、施工工艺、设备类别",
+      "current_score": 0.95,
+      "policy": "list",
+      "required_terms": [
+        "工种",
+        "材料",
+        "施工工艺",
+        "设备类别"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-8",
+      "statement": "检验批划分条件:工程量、楼层、施工段、变形缝",
+      "current_score": 0.95,
+      "policy": "list",
+      "required_terms": [
+        "工程量",
+        "施工段",
+        "变形缝"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0011_01::E0::163-9",
+      "statement": "保温材料复试:导热系数、燃烧性能、密度、抗压强度或压缩强度",
+      "current_score": 0.95,
+      "policy": "list",
+      "required_terms": [
+        "导热系数",
+        "燃烧性能",
+        "密度",
+        "抗压强度"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    }
+  ],
+  "reviewers": [],
+  "consensus": null,
+  "arbitration": null
+}

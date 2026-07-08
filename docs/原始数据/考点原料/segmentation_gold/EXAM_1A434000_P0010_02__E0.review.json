@@ -1,0 +1,322 @@
+{
+  "artifact": "segmentation_review",
+  "version": "v0",
+  "status": "pending_dual_review",
+  "official_score_allowed": false,
+  "qid": "EXAM_1A434000_P0010_02::E0",
+  "current_point_count": 18,
+  "current_total_score": 15.0,
+  "instructions": "两名教研**独立**填每点的 proposed_sub_no(小问号)+ is_atomic(独立可判/互斥/可证伪)+ anchor_ok(锚到教材或真题原文)+ 非平点结构(conjunction_group 找错∧改正 / ordering_group 顺序敏感 / list_cap 答N给M)。审而非写:当前点已列出,你只标切分。不一致→arbitration→consensus。consensus 过后才由填白名单步接手。",
+  "points": [
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-1",
+      "statement": "质量计划做法不妥当;应由项目负责人/项目经理组织编制,经企业组织管理层审核后报监理单位审批",
+      "current_score": 1.06,
+      "policy": "boolean_judgment",
+      "required_terms": [
+        "不妥",
+        "项目经理",
+        "企业",
+        "审核"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-10",
+      "statement": "分项工程划分条件:按设备类别",
+      "current_score": 0.53,
+      "policy": "list",
+      "required_terms": [
+        "设备类别"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-11",
+      "statement": "检验批划分条件:按工程量",
+      "current_score": 0.53,
+      "policy": "list",
+      "required_terms": [
+        "工程量"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-12",
+      "statement": "检验批划分条件:按施工段",
+      "current_score": 0.63,
+      "policy": "list",
+      "required_terms": [
+        "施工段"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-13",
+      "statement": "检验批划分条件:按变形缝",
+      "current_score": 0.63,
+      "policy": "list",
+      "required_terms": [
+        "变形缝"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-14",
+      "statement": "保温材料复试项目:导热系数、燃烧性能、密度、抗压强度或压缩强度",
+      "current_score": 1.37,
+      "policy": "list",
+      "required_terms": [
+        "导热系数",
+        "燃烧性能",
+        "密度",
+        "抗压强度"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-15",
+      "statement": "粘结材料复试项目:粘结强度",
+      "current_score": 0.74,
+      "policy": "list",
+      "required_terms": [
+        "粘结强度"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-16",
+      "statement": "增强材料复试项目:增强网的力学性能、抗腐蚀性能",
+      "current_score": 1.06,
+      "policy": "list",
+      "required_terms": [
+        "力学性能",
+        "抗腐蚀"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-17",
+      "statement": "割补法工序:用刀将鼓泡卷材割开,放出气体,擦干水分,清除旧胶结料",
+      "current_score": 1.58,
+      "policy": "list",
+      "required_terms": [
+        "割开",
+        "放出",
+        "气体",
+        "擦干",
+        "清除旧胶结料"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-18",
+      "statement": "割补法工序:用喷灯烘烤旧卷材槎口,分层剥开,除去旧胶结材料后重新粘贴新卷材",
+      "current_score": 1.6,
+      "policy": "list",
+      "required_terms": [
+        "喷灯烘烤",
+        "槎口",
+        "分层剥开",
+        "新卷材"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-2",
+      "statement": "管理记录还应包括:施工日记和专项施工记录",
+      "current_score": 0.74,
+      "policy": "list",
+      "required_terms": [
+        "施工日记",
+        "专项施工记录"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-3",
+      "statement": "管理记录还应包括:交底记录",
+      "current_score": 0.63,
+      "policy": "list",
+      "required_terms": [
+        "交底记录"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-4",
+      "statement": "管理记录还应包括:上岗培训记录和岗位资格证明",
+      "current_score": 0.74,
+      "policy": "list",
+      "required_terms": [
+        "上岗培训",
+        "岗位资格"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-5",
+      "statement": "管理记录还应包括:图纸、变更设计接收和发放的有关记录",
+      "current_score": 0.74,
+      "policy": "list",
+      "required_terms": [
+        "图纸",
+        "变更设计",
+        "接收",
+        "发放"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-6",
+      "statement": "管理记录还应包括:质量管理策划结果中规定的其他记录",
+      "current_score": 0.63,
+      "policy": "list",
+      "required_terms": [
+        "其他记录"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-7",
+      "statement": "分项工程划分条件:按主要工种",
+      "current_score": 0.63,
+      "policy": "list",
+      "required_terms": [
+        "工种"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-8",
+      "statement": "分项工程划分条件:按材料",
+      "current_score": 0.53,
+      "policy": "list",
+      "required_terms": [
+        "材料"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0010_02::E0::162-9",
+      "statement": "分项工程划分条件:按施工工艺",
+      "current_score": 0.63,
+      "policy": "list",
+      "required_terms": [
+        "施工工艺"
+      ],
+      "proposed_sub_no": null,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": ""
+    }
+  ],
+  "reviewers": [],
+  "consensus": null,
+  "arbitration": null
+}
