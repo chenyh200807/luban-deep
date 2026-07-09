@@ -204,7 +204,10 @@
 **C3 · DAG+ECF 计算图引擎全绿**(commit bf7a23b1a):`case_calc_dag.py` —— 每步 `{step_id, formula, depends_on, tolerance, rounding, points, role}`,**安全 AST 求值**(禁 eval/调用/属性/Pow,界深度,包异常,查有限)+ 顺推官方值(每步取整供下游)+ **ECF 重算**(上游错、下游在其错值上自洽 → 给过程分,不连坐)。schema `luban_case_calc_step.v1` 注册 T2 PINNED(闭包 214 CLOSED)。
 - **真题金标验**:编译库直读 EXAM_1A432000_P0016_02 造价费用构成 6 步链官方值(分部分项 48000 → 措施 7200 → 其他 2736 → 规费 1274.59 → 税金 5328.95 → 合同价 64539.54)全对上;ECF 实测学员上游错、下游自洽给分。
 - **Codex 异源对抗核**(task-mrd7lxus)揪出**一批真 bug,全治本修**:①ECF 缺上游回落官方值(学员只填下游官方值拿分)→ 缺/非数字上游判错、决不回落;②ECF 未按上游 rounding 传播 → 上游按其步 rounding 归一(合官方口径);③formula 引用未声明 step → 名一致性 fail-closed;④inf/nan tolerance 拒;⑤role 传字符串账目错分 → 必须 CalcRole 实例;⑥非数字学生值崩溃 → 判错不崩;⑦除零/溢出/Pow DoS/深表达式/非有限 → CalcError。7 回归测试锁死。
-- **剩余块 C**:C4 OCR 解耦骨架(读图↔判分解耦契约 + 证据回显)/ C5 认→写档2-4(交互形态)—— 这两件非纯数值判分引擎。**一轮一个,判分类必派 Codex**。当前 case 测试 **73 passed**,闭包 CLOSED 214,contract_guard `--base origin/main` 全绿。
+**C4 · 拍照诊断解耦骨架全绿**(commit 5b283fecd,非评分引擎):`case_photo_diagnosis.py` —— OCR 是上游注入/stub 边界;本模块只做 OCR **之后**的实体标准化 + 采分点确定性匹配(required_terms/acceptable_variants,复用 rtg normalize)+ 证据回显(命中词 + 原图 region + 置信度)。**解耦即构造**:`diagnose_photo` 只吃 `PhotoExtraction`(文本+span),绝不吃图;判分=f(识别文本),识别错→学员纠正识别文本(修前链)→重跑即对,评分逻辑一字未变。诊断非评分 `official_score_allowed=False`。不碰生产 photo_answer(review-only),无新 schema。Codex 复核 async 进行中(C4 是诊断非评分,已提交;findings 走 follow-up)。
+- **剩余块 C:仅 C5 认→写档2-4**(交互形态:竞争性点选/半写关键词/句式积木/成段拍照 —— 最轻,非判分引擎)。当前 case 测试 **79 passed**,闭包 CLOSED 214,contract_guard `--base origin/main` 全绿。
+
+> **本 session 累计交付**:P-1 契约骨架 + 块A/B(真 DeepSeek 链路 + 5 题切分候选)+ C1 CPM + C2 合取门 + C3 DAG+ECF + C4 拍照诊断骨架。三个评分引擎(C1/C2/C3)各派 Codex 异源对抗核,**共揪出并治本修 12 个会误判学员的真 bug**(CPM 1 / 合取门 4 / DAG+ECF 7)。人门前准备(教研指南 + 切分候选 + 白名单填充器)全备齐。
 
 **T2-PINNED 裁断理由(单一权威 vs 字段保护,记录以备审)**:§1.5C 要求采分点 schema 有字段级保护、不许 T2 挂名。核查 `check_schema_registry.py:455` 后确认:本仓 guard 的 drift/authority 字段检查**硬编码只对 `luban_grading_object.v1` 跑**——真正的字段保护来自"frozen dataclass + 内省对账测试"(P2#9 给 context_pack/evidence_bundle 上 T2 PINNED 的同一手法),不来自 guard。故:**不往 T1"唯一 grading 对象"列表加第二个 canonical(守单一权威,不与 `luban_grading_object.v1` 竞争),改用 T2 PINNED(canonical_fields + `needs_field_canonicalization:false` + 内省对账)给字段保护。**这既满足 §1.5C(是"独立 typed schema"非"T2 挂名"),又不僭越成第二判分权威——采分点只读视图,判分权威仍归 `rubric_grader_v1`。
 
