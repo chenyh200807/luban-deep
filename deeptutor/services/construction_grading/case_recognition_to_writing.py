@@ -32,9 +32,22 @@ class LadderTier(IntEnum):
 _PRODUCTION_FLOOR = LadderTier.HALF_WRITE  # 档≥2 才是"空手产出";档1 只是再认
 
 
+class LadderError(TypeError):
+    """Raised when a tier argument is not a LadderTier (裸 int/bool 会绕过铁律门)。"""
+
+
+def _require_tier(tier: object, name: str) -> LadderTier:
+    """Fail-closed:非 LadderTier(裸 int 5 / bool / None …)一律拒绝。
+    2026-07-09 Codex 对抗核证伪:``is_production_tier(5)`` 曾用 IntEnum 比较绕过铁律,
+    让非法档位写进掌握态。铁律门的入参必须是真档位枚举。"""
+    if not isinstance(tier, LadderTier):
+        raise LadderError(f"{name} must be a LadderTier, got {tier!r} ({type(tier).__name__})")
+    return tier
+
+
 def is_production_tier(tier: LadderTier) -> bool:
     """该档是否"空手产出"(档≥2);档1 竞争性点选是再认,不是产出。"""
-    return tier >= _PRODUCTION_FLOOR
+    return _require_tier(tier, "tier") >= _PRODUCTION_FLOOR
 
 
 def _delay_ok(gap_days: int) -> bool:
@@ -63,9 +76,19 @@ def can_advance_tier(
 ) -> bool:
     """能否升下一档。升档只由「当前档隔 3-7 天延时**空手产出**通过」兑现,不由点选分。
     档1→档2 也要求一次延时产出(把再认掺进提取后,用产出兑现跨越)。已在档4 不再升。"""
-    if current >= LadderTier.FULL_WRITE:
+    if _require_tier(current, "current") >= LadderTier.FULL_WRITE:
         return False
     return delayed_production_passed and _delay_ok(gap_days)
+
+
+def next_tier(current: LadderTier) -> LadderTier | None:
+    """当前档的**下一档**(只升一档,杜绝跳档);已在档4 返回 None。
+    调用方升档必须用它推进,不得自行跳到任意档(2026-07-09 Codex 对抗核:模块需能表达
+    '只加一档',否则调用方可从档1 直接跳档4)。"""
+    _require_tier(current, "current")
+    if current >= LadderTier.FULL_WRITE:
+        return None
+    return LadderTier(int(current) + 1)
 
 
 def target_tier(
@@ -87,8 +110,10 @@ __all__ = [
     "DELAY_MIN_DAYS",
     "DELAY_MAX_DAYS",
     "LadderTier",
+    "LadderError",
     "is_production_tier",
     "can_write_mastery",
     "can_advance_tier",
+    "next_tier",
     "target_tier",
 ]
