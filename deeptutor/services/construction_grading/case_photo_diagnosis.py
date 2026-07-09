@@ -26,6 +26,11 @@ from deeptutor.services.construction_grading.case_light_practice_rtg import norm
 
 OFFICIAL_SCORE_ALLOWED = False  # 诊断非评分(结构性常量)
 
+# 否定前缀:命中词紧前窗口内出现这些字 → 视为否定语境,不算命中(2026-07-09 Codex
+# 对抗核:"没有分层剥开"曾误命中"分层剥开")。启发式;诊断非评分,宁保守不送分。
+_NEGATIONS = frozenset("不没未无非")
+_NEG_WINDOW = 4
+
 
 @dataclass(frozen=True)
 class RecognizedSpan:
@@ -74,11 +79,25 @@ class PhotoDiagnosisResult:
         return [d.point_id for d in self.diagnoses if not d.matched]
 
 
-def _terms_for(point: LubanCaseScoringPoint) -> list[str]:
-    """采分点的可接受命中词:required_terms + acceptable_variants 术语。"""
-    terms = list(point.required_terms)
-    terms.extend(v.term for v in point.acceptable_variants)
-    return [t for t in terms if t]
+def _negated(norm_text: str, idx: int) -> bool:
+    """命中位置 ``idx`` 紧前 ``_NEG_WINDOW`` 字内是否有否定字(否定语境不算命中)。"""
+    return any(c in _NEGATIONS for c in norm_text[max(0, idx - _NEG_WINDOW):idx])
+
+
+def _best_span(term: str, extraction: PhotoExtraction, normalize_fn: Callable[[str], str]) -> RecognizedSpan | None:
+    """含 ``term`` 的**最高置信** span(否定语境跳过);无则 None。多 span 命中不再取第一个。"""
+    nt = normalize_fn(term)
+    if not nt:
+        return None
+    best: RecognizedSpan | None = None
+    for s in extraction.spans:
+        ns = normalize_fn(s.text)
+        idx = ns.find(nt)
+        if idx == -1 or _negated(ns, idx):
+            continue
+        if best is None or s.confidence > best.confidence:
+            best = s
+    return best
 
 
 def diagnose_photo(
@@ -87,27 +106,43 @@ def diagnose_photo(
     *,
     normalize_fn: Callable[[str], str] = normalize,
 ) -> PhotoDiagnosisResult:
-    """对每个采分点,在识别文本里确定性找 required_terms/acceptable_variants;命中则记
-    证据 span(原图区域 + 置信度)供回显纠错。**只吃文本,不吃图** —— 解耦即构造。"""
+    """对每个采分点确定性判命中(2026-07-09 Codex 对抗核加固):
+
+      - **required_terms 全需**(都出现才算命中,避免"只写部分要素"假阳送分);
+        **acceptable_variants 任一**(替代全句表达,任一出现即命中)。
+      - **否定守卫**:命中词紧前窗口有否定字(不/没/未/无/非)→ 不算命中。
+      - **最高置信 span**:多 span 含命中词时取置信度最高的(而非第一个)作证据,
+        避免题干复述/低质量 span 抢占证据回显。
+
+    只吃 ``PhotoExtraction``(文本+span),绝不吃图 —— 解耦即构造。诊断非评分。"""
     diagnoses: list[PointDiagnosis] = []
     for p in points:
-        terms = _terms_for(p)
         matched_term: str | None = None
         evidence: RecognizedSpan | None = None
-        # 找第一个命中的词及其所在 span(确定性,子串归一化匹配)
-        for term in terms:
-            nt = normalize_fn(term)
-            if not nt:
-                continue
-            span = next((s for s in extraction.spans if nt in normalize_fn(s.text)), None)
-            if span is not None:
-                matched_term, evidence = term, span
-                break
-        matched = evidence is not None
+
+        required = [t for t in p.required_terms if t]
+        variants = [v.term for v in p.acceptable_variants if v.term]
+
+        # ① required_terms 全需:每个都要有(否定守卫的)最高置信 span
+        if required:
+            spans = {t: _best_span(t, extraction, normalize_fn) for t in required}
+            if all(spans.values()):
+                # 证据取全体命中里置信度最高的那段;matched_term 记该词
+                matched_term, evidence = max(
+                    ((t, s) for t, s in spans.items()), key=lambda ts: ts[1].confidence
+                )
+        # ② 未凭 required 命中 → acceptable_variants 任一命中即可
+        if evidence is None:
+            for term in variants:
+                s = _best_span(term, extraction, normalize_fn)
+                if s is not None:
+                    matched_term, evidence = term, s
+                    break
+
         diagnoses.append(
             PointDiagnosis(
                 point_id=p.point_id,
-                matched=matched,
+                matched=evidence is not None,
                 matched_term=matched_term,
                 evidence_span=evidence,
                 confidence=(evidence.confidence if evidence else 0.0),
