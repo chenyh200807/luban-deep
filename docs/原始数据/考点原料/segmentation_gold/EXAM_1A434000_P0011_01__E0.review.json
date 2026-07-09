@@ -16,13 +16,14 @@
       "required_terms": [
         "不妥"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-10",
@@ -32,13 +33,14 @@
       "required_terms": [
         "粘结强度"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 6,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-11",
@@ -49,13 +51,14 @@
         "力学性能",
         "抗腐蚀"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 6,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": "可拆为力学性能和抗腐蚀性能两个原子点"
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-12",
@@ -69,13 +72,14 @@
         "擦干",
         "旧胶结料"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 7,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-13",
@@ -87,13 +91,14 @@
         "槎口",
         "分层剥开"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 7,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-14",
@@ -104,13 +109,14 @@
         "重新粘贴",
         "新卷材"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 7,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-15",
@@ -121,13 +127,14 @@
         "压实",
         "刮平"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 7,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-16",
@@ -137,13 +144,14 @@
       "required_terms": [
         "保护层"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 7,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-2",
@@ -153,13 +161,14 @@
       "required_terms": [
         "施工日志"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-3",
@@ -169,13 +178,14 @@
       "required_terms": [
         "专项施工记录"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-4",
@@ -185,13 +195,14 @@
       "required_terms": [
         "交底记录"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-5",
@@ -202,13 +213,14 @@
         "上岗培训",
         "岗位资格"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-6",
@@ -220,13 +232,14 @@
         "变更设计",
         "发放"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-7",
@@ -239,13 +252,14 @@
         "施工工艺",
         "设备类别"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 3,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-8",
@@ -257,13 +271,14 @@
         "施工段",
         "变形缝"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 4,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0011_01::E0::163-9",
@@ -276,16 +291,19 @@
         "密度",
         "抗压强度"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 5,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     }
   ],
   "reviewers": [],
   "consensus": null,
-  "arbitration": null
+  "arbitration": null,
+  "candidate_source": "DeepSeek deepseek-chat temp=0 (阿里云容器只读,2026-07-09);仅切分候选,教研 verdict 为真值",
+  "candidate_sub_count": 7
 }

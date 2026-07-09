@@ -16,13 +16,14 @@
       "required_terms": [
         "自检"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-10",
@@ -34,13 +35,14 @@
         "梁底",
         "门窗洞口"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 4,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-11",
@@ -51,13 +53,14 @@
         "最后3皮砖",
         "14d"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 5,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-12",
@@ -69,13 +72,14 @@
         "细石混凝土",
         "加配钢筋"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 5,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-13",
@@ -86,13 +90,14 @@
         "接触面",
         "加强网片"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 5,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-14",
@@ -104,13 +109,14 @@
         "掉角",
         "脱皮"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 6,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-15",
@@ -122,13 +128,14 @@
         "槽式预埋件",
         "现场拉拔力"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 7,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-16",
@@ -139,13 +146,14 @@
         "耐风压性能",
         "层间变形性能"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 7,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-17",
@@ -155,13 +163,14 @@
       "required_terms": [
         "幕墙节能"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 8,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-18",
@@ -171,13 +180,14 @@
       "required_terms": [
         "门窗节能"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 8,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-19",
@@ -187,13 +197,14 @@
       "required_terms": [
         "屋面节能"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 8,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-2",
@@ -203,13 +214,14 @@
       "required_terms": [
         "互检"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-20",
@@ -219,13 +231,14 @@
       "required_terms": [
         "地面节能"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 8,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-3",
@@ -235,13 +248,14 @@
       "required_terms": [
         "专检"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-4",
@@ -251,13 +265,14 @@
       "required_terms": [
         "理化试验"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-5",
@@ -267,13 +282,14 @@
       "required_terms": [
         "无损检测"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-6",
@@ -283,13 +299,14 @@
       "required_terms": [
         "受力钢筋数量"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 3,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-7",
@@ -299,13 +316,14 @@
       "required_terms": [
         "间距"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 3,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-8",
@@ -315,13 +333,14 @@
       "required_terms": [
         "保护层厚度"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 3,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0014_02::E0::29-9",
@@ -331,16 +350,19 @@
       "required_terms": [
         "混凝土强度"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 3,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     }
   ],
   "reviewers": [],
   "consensus": null,
-  "arbitration": null
+  "arbitration": null,
+  "candidate_source": "DeepSeek deepseek-chat temp=0 (阿里云容器只读,2026-07-09);仅切分候选,教研 verdict 为真值",
+  "candidate_sub_count": 8
 }

@@ -18,13 +18,14 @@
         "不妥",
         "项目经理"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P10",
@@ -35,13 +36,14 @@
         "4mm²",
         "截面积"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 4,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P11",
@@ -51,13 +53,14 @@
       "required_terms": [
         "黄绿色"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 4,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P12",
@@ -68,13 +71,14 @@
         "多股",
         "铜芯导线"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 4,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P13",
@@ -85,13 +89,14 @@
         "不得",
         "串联"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 4,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P2",
@@ -104,13 +109,14 @@
         "监理方",
         "认可"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P3",
@@ -122,13 +128,14 @@
         "交底记录",
         "上岗培训记录"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": "可拆为施工日记和专项施工记录、交底记录、上岗培训记录和岗位资格证明"
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P4",
@@ -141,13 +148,14 @@
         "锚固",
         "1000mm"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P5",
@@ -159,13 +167,14 @@
         "中间",
         "两边斜砌"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P6",
@@ -178,13 +187,14 @@
         "持荷2min",
         "降低不大于5%"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": "可拆为检验值6.0kN、基材无裂缝钢筋无滑移、持荷2min荷载降低不大于5%"
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P7",
@@ -198,13 +208,14 @@
         "焊接法",
         "机械固定法"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 3,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": "可拆为冷粘法、热熔法、自粘法、焊接法、机械固定法"
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P8",
@@ -216,13 +227,14 @@
         "最低标高",
         "向上铺贴"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 3,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0013_01::E0::P9",
@@ -235,16 +247,19 @@
         "搭接缝",
         "流水方向"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 3,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     }
   ],
   "reviewers": [],
   "consensus": null,
-  "arbitration": null
+  "arbitration": null,
+  "candidate_source": "DeepSeek deepseek-chat temp=0 (阿里云容器只读,2026-07-09);仅切分候选,教研 verdict 为真值",
+  "candidate_sub_count": 4
 }

@@ -18,13 +18,14 @@
         "垫高",
         "遮盖"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_10",
@@ -34,13 +35,14 @@
       "required_terms": [
         "开关箱"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_11",
@@ -50,13 +52,14 @@
       "required_terms": [
         "分配电箱"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_12",
@@ -66,13 +69,14 @@
       "required_terms": [
         "总配电箱"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 2,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_2",
@@ -84,13 +88,14 @@
         "7.5",
         "距离"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_3",
@@ -100,13 +105,14 @@
       "required_terms": [
         "碘钨灯"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_4",
@@ -118,13 +124,14 @@
         "配电箱",
         "30"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_5",
@@ -136,13 +143,14 @@
         "10",
         "距离"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_6",
@@ -153,13 +161,14 @@
         "开关箱",
         "电线杆"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_7",
@@ -170,13 +179,14 @@
         "电锯",
         "密封"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_8",
@@ -186,13 +196,14 @@
       "required_terms": [
         "灭火器"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     },
     {
       "point_id": "EXAM_1A434000_P0017_01::E1::E1_9",
@@ -202,16 +213,19 @@
       "required_terms": [
         "消防"
       ],
-      "proposed_sub_no": null,
+      "proposed_sub_no": 1,
       "is_atomic": null,
       "anchor_ok": null,
       "conjunction_group": null,
       "ordering_group": null,
       "list_cap": null,
-      "notes": ""
+      "notes": "",
+      "split_suggestion": ""
     }
   ],
   "reviewers": [],
   "consensus": null,
-  "arbitration": null
+  "arbitration": null,
+  "candidate_source": "DeepSeek deepseek-chat temp=0 (阿里云容器只读,2026-07-09);仅切分候选,教研 verdict 为真值",
+  "candidate_sub_count": 2
 }
