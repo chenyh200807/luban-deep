@@ -76,6 +76,43 @@ def test_missing_bin_and_order_and_normalization():
     assert r.total_awarded == 1.0
 
 
+# ── 2026-07-09 Codex 对抗核回归 ──────────────────────────────────────────────
+
+
+def test_dict_selection_does_not_score_full():
+    # dict 只迭代 key、忽略 False 值 → 曾把"全未选"判满分。现 fail-closed 判错。
+    student = {"底面模板承载力": {"G1": False, "G2": False, "G3": False, "Q1": False}}
+    r = grade_set_membership(_golden(), student)
+    assert r.verdicts["底面模板承载力"].correct is False
+
+
+def test_str_selection_fails_closed():
+    # 字符串会被逐字符拆 → 明确 fail-closed 判错(不逐字符匹配)。
+    r = grade_set_membership(_golden(), {"底面模板承载力": "G1G2G3Q1"})
+    assert r.verdicts["底面模板承载力"].correct is False
+
+
+def test_non_setmembershippoint_rejected():
+    from types import SimpleNamespace
+    fake = SimpleNamespace(bin="底面模板承载力", correct_set={"G1"}, points=1.0)  # 绕过 __post_init__
+    with pytest.raises(SetMembershipError):
+        grade_set_membership([fake], {"底面模板承载力": ["G1"]})
+
+
+def test_zero_width_chars_normalized():
+    # 零宽/BOM 视觉同一 chip 应判等
+    student = {"底面模板承载力": ["G1", "G2", "G3", "Q​1"]}  # Q1 带零宽空格
+    r = grade_set_membership(_golden(), student)
+    assert r.verdicts["底面模板承载力"].correct is True
+
+
+def test_empty_bin_name_rejected():
+    with pytest.raises(SetMembershipError):
+        SetMembershipPoint("", frozenset({"G1"}), 1.0)
+    with pytest.raises(SetMembershipError):
+        SetMembershipPoint("   ", frozenset({"G1"}), 1.0)
+
+
 def test_malformed_points_raise():
     with pytest.raises(SetMembershipError):  # 空集合
         SetMembershipPoint("x", frozenset(), 1.0)

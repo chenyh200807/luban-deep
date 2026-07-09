@@ -22,12 +22,27 @@ class SetMembershipError(ValueError):
 
 
 def _norm_chip(chip: str) -> str:
-    """归一化一个荷载 chip(G1/Q1…):NFKC + 去空白 + casefold,防全半角/大小写/空格误判。"""
-    return "".join(unicodedata.normalize("NFKC", str(chip)).split()).casefold()
+    """归一化一个荷载 chip(G1/Q1…):NFKC + 去空白 + 去零宽/控制字符 + casefold。
+    2026-07-09 Codex 对抗核:零宽/BOM(Q\\u200b1)曾让视觉同一 chip 判不等。"""
+    s = unicodedata.normalize("NFKC", str(chip))
+    # 去所有空白 + Cf(格式,含零宽/BOM)+ Cc(控制)字符
+    s = "".join(c for c in s if not c.isspace() and unicodedata.category(c) not in ("Cf", "Cc"))
+    return s.casefold()
 
 
-def _norm_set(chips: Iterable[str]) -> frozenset[str]:
-    return frozenset(_norm_chip(c) for c in chips if str(c).strip())
+def _coerce_selection(raw: object) -> frozenset[str]:
+    """把学员对某 bin 的选择归一成 chip 集合。**只接受 chip 序列(list/tuple/set)**;
+    str/bytes(会被逐字符拆)、Mapping(dict 只迭代 key、忽略 False 值)、None → 空集
+    (fail-closed 判错)。2026-07-09 Codex 对抗核:``{"G1":False,...}`` 曾被判满分。"""
+    from collections.abc import Mapping as _Mapping
+
+    if raw is None or isinstance(raw, (str, bytes, _Mapping)):
+        return frozenset()
+    try:
+        items = list(raw)  # type: ignore[arg-type]
+    except TypeError:
+        return frozenset()
+    return frozenset(_norm_chip(c) for c in items if str(c).strip())
 
 
 @dataclass(frozen=True)
@@ -39,12 +54,14 @@ class SetMembershipPoint:
     points: float
 
     def __post_init__(self) -> None:
-        if self.points < 0:
+        if not isinstance(self.bin, str) or not self.bin.strip():
+            raise SetMembershipError(f"bin must be a non-empty str, got {self.bin!r}")
+        if not isinstance(self.points, (int, float)) or self.points < 0:
             raise SetMembershipError(f"bin {self.bin!r}: points must be non-negative")
-        if not self.correct_set:
-            raise SetMembershipError(f"bin {self.bin!r}: correct_set must be non-empty")
         if not isinstance(self.correct_set, frozenset):
             raise SetMembershipError(f"bin {self.bin!r}: correct_set must be a frozenset")
+        if not self.correct_set:
+            raise SetMembershipError(f"bin {self.bin!r}: correct_set must be non-empty")
 
 
 @dataclass(frozen=True)
@@ -72,14 +89,17 @@ def grade_set_membership(
     verdicts: dict[str, BinVerdict] = {}
     total = 0.0
     for p in points:
+        # authority integrity:非 SetMembershipPoint(duck-typed 绕过 __post_init__ 的
+        # 空集/负分/mutable set)一律拒绝(2026-07-09 Codex 对抗核)。
+        if not isinstance(p, SetMembershipPoint):
+            raise SetMembershipError(f"points must be SetMembershipPoint, got {type(p).__name__}")
         if p.bin in seen:
             raise SetMembershipError(f"duplicate bin {p.bin!r}")
         seen.add(p.bin)
 
-        expected = _norm_set(p.correct_set)
-        raw = student_selections.get(p.bin)
-        student = _norm_set(raw) if raw is not None else frozenset()
-        correct = raw is not None and student == expected
+        expected = frozenset(_norm_chip(c) for c in p.correct_set)
+        student = _coerce_selection(student_selections.get(p.bin))
+        correct = student == expected and bool(expected)
         awarded = p.points if correct else 0.0
         verdicts[p.bin] = BinVerdict(
             bin=p.bin, correct=correct, awarded=awarded, expected=expected, student=student
