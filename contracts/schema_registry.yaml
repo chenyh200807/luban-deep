@@ -62,11 +62,11 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 213            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts + M35 R4 cached AB artifact; +fusion stage0 pack taxonomy registry + question->pack map; +case light-practice scoring-point read-view)
+  full_set_count: 214            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts + M35 R4 cached AB artifact; +fusion stage0 pack taxonomy registry + question->pack map; +case light-practice scoring-point read-view; +case calc-step DAG+ECF)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 33      # tier2_canonical_contracts below (+lecture answer pack/shard + PGO runtime-supply slot; +fusion stage0 two compiled read-only artifacts; +case light-practice scoring-point read-view PINNED)
+    tier2_runtime_canonical: 34      # tier2_canonical_contracts below (+lecture answer pack/shard + PGO runtime-supply slot; +fusion stage0 two compiled read-only artifacts; +case light-practice scoring-point read-view PINNED; +case calc-step DAG+ECF PINNED)
     tier3_ephemeral_artifact: 171    # covered by tier3_carve_out rule (+PGO runtime-supply verification report; lecture answer shard promoted out to T2; +M35 R4 cached AB artifact)
   # Closure invariant (asserted by the test): T1 ∪ T2 ∪ T3 == full_set, with
   # T1, T2 disjoint and exhaustive over the non-T3 remainder; every full-set id
@@ -784,3 +784,26 @@ tier2_canonical_contracts:
       - tests/services/construction_grading/test_case_light_practice_schema.py
       - tests/services/construction_grading/test_case_light_practice_whitelist_gate.py
       - tests/services/construction_grading/test_case_light_practice_conjunction_scoring.py
+
+  # ── Case calc-step (DAG+ECF 计算图判分引擎的每步结构, PINNED) ────────────────
+  # 计算类采分点的每步 typed 表示,喂 DAG+ECF 引擎(顺推官方值 + ECF 重算判分)。
+  # NOT a grading typed object / official-score authority: 计算判分绝不走 LLM,采分点
+  # 真值仍归编译库;本 schema 只是"每步 formula/依赖/容差/取整/分值/角色"的确定性契约。
+  # register-before-use(§2 硬门:计算类 steps[] 进代码前先注册)。字段 == CalcStep dataclass。
+  - name: luban_case_calc_step.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: the per-step calc structure feeding the DAG+ECF grading engine (formula/depends_on/tolerance/rounding/points/role) — deterministic compute contract, no official-score authority, no LLM
+    module: deeptutor/services/construction_grading/case_calc_dag.py
+    consumed_by: solve_calc_dag (canonical value) + grade_calc_dag (ECF per-step grading)
+    needs_field_canonicalization: false   # PINNED: canonical_fields = CalcStep dataclass; introspection reconciliation BLOCKING (test_case_calc_dag.py)
+    canonical_fields:
+      - step_id
+      - formula
+      - depends_on
+      - tolerance
+      - rounding
+      - points
+      - role
+    required_tests:
+      - tests/services/construction_grading/test_case_calc_dag.py
