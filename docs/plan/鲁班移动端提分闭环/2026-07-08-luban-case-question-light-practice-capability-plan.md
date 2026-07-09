@@ -209,6 +209,8 @@
 
 > **✅ 块 C 全部 5 件 done**:C1 CPM / C2 合取门 / C3 DAG+ECF(三个评分引擎,Codex 对抗核共修 **12 个会误判学员的真 bug**)/ C4 拍照诊断解耦骨架(Codex 修 3 诊断 bug)/ C5 认→写阶梯(Codex 修 3 红线 bug)。**5 引擎共 Codex 对抗核修 18 真 bug。**当前 case 测试 **88 passed**,闭包 CLOSED 214,`contract_guard --base origin/main` 全绿。**剩余通往上线 = 双教研填 review.json verdict(人门,准备全备齐)+ 后续接线(生成器/判分/学情接进 live 路径,属 P0-P2 接线)。**
 
+**追加(2026-07-09 续):§1① 计算类判分器补齐**——荷载组合集合判分(`case_load_combination.py`,真题金标 EXAM_1A434020_P0009_01,Codex 修 5 bug:dict 输入判满分/duck-typed 绕过/零宽/空 bin)+ 工序排序判分(`case_process_ordering.py`,真题金标 EXAM_1A434000_P0010_02 工艺流程,拓扑序校验紧前,Codex 核 async)。**至此案例题轻练的全部确定性判分引擎建完**:CPM / 合取门 / DAG+ECF / 荷载组合 / 工序排序 + 生成器 + RTG1-8 门 + 拍照诊断骨架 + 认→写阶梯。全套 case 测试 **108 passed**,闭包 CLOSED 215,contract_guard 全绿。**全 session 经 Codex 异源对抗核共揪治本修 23 个会误判学员的真 bug**(CPM1/合取门4/DAG+ECF7/拍照3/认→写3/荷载组合5)。**教研-independent 新建工作至此全部完成;剩余=双教研 verdict(人门)+ 接线(碰生产判官 review-only + 教研 verdict 前不出给学员,故 gated)。**
+
 > **本 session 累计交付**:P-1 契约骨架 + 块A/B(真 DeepSeek 链路 + 5 题切分候选)+ C1 CPM + C2 合取门 + C3 DAG+ECF + C4 拍照诊断骨架。三个评分引擎(C1/C2/C3)各派 Codex 异源对抗核,**共揪出并治本修 12 个会误判学员的真 bug**(CPM 1 / 合取门 4 / DAG+ECF 7)。人门前准备(教研指南 + 切分候选 + 白名单填充器)全备齐。
 
 **T2-PINNED 裁断理由(单一权威 vs 字段保护,记录以备审)**:§1.5C 要求采分点 schema 有字段级保护、不许 T2 挂名。核查 `check_schema_registry.py:455` 后确认:本仓 guard 的 drift/authority 字段检查**硬编码只对 `luban_grading_object.v1` 跑**——真正的字段保护来自"frozen dataclass + 内省对账测试"(P2#9 给 context_pack/evidence_bundle 上 T2 PINNED 的同一手法),不来自 guard。故:**不往 T1"唯一 grading 对象"列表加第二个 canonical(守单一权威,不与 `luban_grading_object.v1` 竞争),改用 T2 PINNED(canonical_fields + `needs_field_canonicalization:false` + 内省对账)给字段保护。**这既满足 §1.5C(是"独立 typed schema"非"T2 挂名"),又不僭越成第二判分权威——采分点只读视图,判分权威仍归 `rubric_grader_v1`。
