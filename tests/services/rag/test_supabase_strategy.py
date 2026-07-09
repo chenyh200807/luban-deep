@@ -8,6 +8,7 @@ from deeptutor.services.rag.pipelines.supabase_strategy import (
     build_second_pass_queries,
     classify_query_shape,
     dedupe_ranked_results,
+    exact_question_stem_corresponds,
     expand_query_variants,
     extract_case_subquestion_items,
     extract_standard_codes,
@@ -314,6 +315,21 @@ def test_prepare_exact_question_probe_skips_low_information_exam_query(query: st
     assert prepare_exact_question_probe(query) is None
 
 
+def test_prepare_exact_question_probe_bounds_calculation_authority_types() -> None:
+    query = (
+        "背景：某工程到第6个月末：计划完成工程量8000m²，预算单价500元/m²；"
+        "实际完成工程量7500m²，实际单价520元/m²。\n"
+        "问题：计算BCWS、BCWP、ACWP，帮我算出答案"
+    )
+
+    probe = prepare_exact_question_probe(query)
+
+    assert classify_query_shape(query) == "calc_like"
+    assert probe is not None
+    assert probe.allowed_question_types == ["calculation", "single", "multi", "free_text"]
+    assert "calc_allowed_types" in probe.reason
+
+
 def test_prepare_exact_question_probe_extracts_case_focus_query() -> None:
     query = """
 背景资料：
@@ -431,6 +447,7 @@ def test_validate_exact_question_options_accepts_short_chinese_option_overlap() 
 def test_matches_allowed_question_type_uses_alias_table_not_substring_match() -> None:
     assert matches_allowed_question_type("single_choice", ["single"])
     assert not matches_allowed_question_type("case_study_followup", ["case_study"])
+    assert not matches_allowed_question_type("single_choice", [])
 
 
 @pytest.mark.asyncio
@@ -544,10 +561,6 @@ def test_stem_correspondence_rejects_incidental_keyword_match() -> None:
 
 
 def test_stem_correspondence_accepts_real_paraphrase_or_paste() -> None:
-    from deeptutor.services.rag.pipelines.supabase_strategy import (
-        exact_question_stem_corresponds,
-    )
-
     assert exact_question_stem_corresponds(
         original_query="防水混凝土的适用环境温度不得高于多少？",
         matched_stem=_FALSE_STEM,
@@ -560,11 +573,77 @@ def test_stem_correspondence_accepts_real_paraphrase_or_paste() -> None:
     )
 
 
-def test_stem_correspondence_skips_case_study_and_empty() -> None:
-    from deeptutor.services.rag.pipelines.supabase_strategy import (
-        exact_question_stem_corresponds,
+def test_calculation_stem_correspondence_rejects_different_numeric_identity() -> None:
+    query = (
+        "背景：某工程到第6个月末：计划完成工程量8000m²，预算单价500元/m²；"
+        "实际完成工程量7500m²，实际单价520元/m²。"
+        "问题：计算BCWS、BCWP、ACWP，帮我算出答案"
+    )
+    bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
+
+    assert not exact_question_stem_corresponds(
+        original_query=query,
+        matched_stem=bank_stem,
+        question_type="single_choice",
     )
 
+
+def test_calculation_stem_correspondence_rejects_same_numbers_different_target() -> None:
+    query = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时费用偏差为多少万元？"
+    bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
+
+    assert not exact_question_stem_corresponds(
+        original_query=query,
+        matched_stem=bank_stem,
+        question_type="single_choice",
+    )
+
+
+def test_calculation_stem_correspondence_rejects_same_numbers_swapped_roles() -> None:
+    query = "某工程计划完成工程量3000m3，预算成本单价150元/m3，现已完成5000m3，实际价是200元/m3，此时进度偏差为多少万元？"
+    bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
+
+    assert not exact_question_stem_corresponds(
+        original_query=query,
+        matched_stem=bank_stem,
+        question_type="single_choice",
+    )
+
+
+def test_calculation_stem_correspondence_accepts_target_alias() -> None:
+    query = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时CV为多少万元？"
+    bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时费用偏差为（　　）万元。"
+
+    assert exact_question_stem_corresponds(
+        original_query=query,
+        matched_stem=bank_stem,
+        question_type="single_choice",
+    )
+
+
+def test_calculation_stem_correspondence_accepts_role_aliases() -> None:
+    query = "某工程计划完成工程量5000m3，预算单价150元/m3，实际完成工程量3000m3，实际单价200元/m3，此时进度偏差为多少万元？"
+    bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
+
+    assert exact_question_stem_corresponds(
+        original_query=query,
+        matched_stem=bank_stem,
+        question_type="single_choice",
+    )
+
+
+def test_calculation_stem_correspondence_accepts_same_calculation_question() -> None:
+    query = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为多少万元？"
+    bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
+
+    assert exact_question_stem_corresponds(
+        original_query=query,
+        matched_stem=bank_stem,
+        question_type="single_choice",
+    )
+
+
+def test_stem_correspondence_skips_case_study_and_empty() -> None:
     # case_study matches use bundle coverage, not surface overlap — never gated here
     assert exact_question_stem_corresponds(
         original_query="背景资料：某项目……问题一：……",
