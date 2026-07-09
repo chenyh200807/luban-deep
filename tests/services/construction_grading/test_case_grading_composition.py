@@ -141,3 +141,36 @@ def test_ordering_rank_must_be_positive():
     from deeptutor.services.construction_grading.case_light_practice_contract import ScoringPointError
     with pytest.raises(ScoringPointError):
         _p("a", order="o", rank=0)
+
+
+# ── 自审对抗核(2026-07-09)揪出的两个作用域判分错,治本修的回归锁 ──
+
+def test_ordering_two_distinct_groups_not_merged_into_one_false_sequence():
+    # BUG①:一个小问两个不同 ordering_group(不重叠 rank)曾被误合并成一条 4 序 a→b→c→d。
+    # 治本(按 (qid,sub_qid,group) scope)后:多组 → 拒,不再假序。
+    pts = [_p("a", order="o1", rank=1), _p("b", order="o1", rank=2),
+           _p("c", order="o2", rank=3), _p("d", order="o2", rank=4)]
+    with pytest.raises(CompositionError):
+        assemble_ordering_spec(pts)
+
+
+def test_conjunction_same_group_name_across_subquestions_not_merged():
+    # BUG②:两个小问各有一对同名 g1(flaw,correction),按裸组名分组曾误判"4 成员"。
+    # 治本(按 (qid,sub_qid,group) scope)后:各成对 → 2 对。
+    def _cm2(pid, sub_qid, sub_no, role):
+        return LubanCaseScoringPoint(
+            point_id=pid, sub_no=sub_no, qid="Q::E0", sub_qid=sub_qid,
+            statement="s", authority_source="official_answer", point_type=PointType.CONJUNCTION_MEMBER,
+            required_terms=(), acceptable_variants=(AcceptableVariant("_", _REF),), max_score=0.5,
+            textbook_source_refs=(_REF,), answer_key_authority="official_answer",
+            conjunction_group="g1", conjunction_role=role,
+        )
+    pts = [
+        _cm2("a", "Q::E0::sub1", "1", ConjunctionRole.FLAW),
+        _cm2("b", "Q::E0::sub1", "1", ConjunctionRole.CORRECTION),
+        _cm2("c", "Q::E0::sub2", "2", ConjunctionRole.FLAW),
+        _cm2("d", "Q::E0::sub2", "2", ConjunctionRole.CORRECTION),
+    ]
+    pairs = assemble_conjunction_pairs(pts)
+    assert len(pairs) == 2
+    assert {p.flaw.point_id for p in pairs} == {"a", "c"}

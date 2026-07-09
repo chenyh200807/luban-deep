@@ -80,6 +80,14 @@ def assemble_ordering_spec(points: Sequence[LubanCaseScoringPoint]) -> OrderingS
     ranked = [p for p in points if p.ordering_group]
     if not ranked:
         raise CompositionError("no ordering-group points to assemble")
+    # 一个工序小问 = 单一序。多个不同 ordering_group 混在一起会被误合并成一条假序
+    # (2026-07-09 自审对抗核证伪:o1[1,2]+o2[3,4] → a→b→c→d 假序)。按 (qid,sub_qid,group)
+    # 题作用域收紧:多组 → 拒(要分别装配),别用裸组名(同 C2 合取门教训)。
+    scopes = {(p.qid, p.sub_qid, p.ordering_group) for p in ranked}
+    if len(scopes) > 1:
+        raise CompositionError(
+            f"一个工序小问应是单一 (qid,sub_qid,ordering_group),得 {sorted(scopes)}(多序请分别装配)"
+        )
     if any(p.ordering_rank is None for p in ranked):
         raise CompositionError("每个工序采分点都需教研标 ordering_rank(缺失无法定次序)")
     ranks = [p.ordering_rank for p in ranked]
@@ -100,22 +108,24 @@ def assemble_conjunction_pairs(
     fail-closed:组员≠2 / 缺 role / 两个同 role → CompositionError(装错对 = 诊断错/判分错)。
     组内顺序稳定(按 conjunction_group 名排序),便于可复现。
     """
-    groups: dict[str, list[LubanCaseScoringPoint]] = {}
+    # 按 (qid,sub_qid,group) 题作用域分组:跨小问/跨题复用同一组名不会被误合并
+    # (2026-07-09 自审对抗核证伪:两小问各一对 g1 被裸组名合并成 4 员误判)。同 C2 教训。
+    groups: dict[tuple[str, str, str], list[LubanCaseScoringPoint]] = {}
     for p in points:
         if p.conjunction_group:
-            groups.setdefault(p.conjunction_group, []).append(p)
+            groups.setdefault((p.qid, p.sub_qid, p.conjunction_group), []).append(p)
     if not groups:
         raise CompositionError("no conjunction-group points to assemble")
 
     pairs: list[FlawCorrectionPair] = []
-    for group in sorted(groups):
-        members = groups[group]
+    for key in sorted(groups):
+        members = groups[key]
         if len(members) != 2:
-            raise CompositionError(f"合取组 {group!r} 须恰 2 成员(找错+改正),得 {len(members)}")
+            raise CompositionError(f"合取组 {key!r} 须恰 2 成员(找错+改正),得 {len(members)}")
         by_role = {m.conjunction_role: m for m in members}
         if ConjunctionRole.FLAW not in by_role or ConjunctionRole.CORRECTION not in by_role:
             raise CompositionError(
-                f"合取组 {group!r} 须一个 FLAW 一个 CORRECTION,得 "
+                f"合取组 {key!r} 须一个 FLAW 一个 CORRECTION,得 "
                 f"{sorted(str(m.conjunction_role) for m in members)}"
             )
         # FlawCorrectionPair 自身再校验同 (qid,sub_qid,sub_no)+同组+正分(Codex 已加固)。
