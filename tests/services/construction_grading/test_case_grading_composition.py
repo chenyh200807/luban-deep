@@ -10,6 +10,7 @@ from deeptutor.services.construction_grading.case_grading_composition import (
     assemble_conjunction_pairs,
     assemble_ordering_spec,
     derive_grading_kind,
+    grade_ready_subquestion,
 )
 from deeptutor.services.construction_grading.case_light_practice_contract import (
     AcceptableVariant,
@@ -174,3 +175,39 @@ def test_conjunction_same_group_name_across_subquestions_not_merged():
     pairs = assemble_conjunction_pairs(pts)
     assert len(pairs) == 2
     assert {p.flaw.point_id for p in pairs} == {"a", "c"}
+
+
+# ── 编排器 grade_ready_subquestion:derive→assemble→dispatch→汇总(层③会调用的单元)──
+
+def test_orchestrator_ordering_end_to_end():
+    pts = [_p("清理表面", order="o", rank=1), _p("支设模板", order="o", rank=2),
+           _p("洒水湿润", order="o", rank=3)]
+    r_ok = grade_ready_subquestion(pts, ["清理表面", "支设模板", "洒水湿润"])
+    assert r_ok.awarded == r_ok.max_score > 0 and r_ok.official_score_allowed is False
+    r_bad = grade_ready_subquestion(pts, ["支设模板", "清理表面", "洒水湿润"])
+    assert r_bad.awarded == 0.0
+
+
+def test_orchestrator_conjunction_multi_pair_aggregates():
+    # 两对判断改正:第一对都命中(给分),第二对只找错不改正(合取门 0)。
+    pts = [
+        _cm("g1_flaw", "g1", ConjunctionRole.FLAW), _cm("g1_fix", "g1", ConjunctionRole.CORRECTION),
+        _cm("g2_flaw", "g2", ConjunctionRole.FLAW), _cm("g2_fix", "g2", ConjunctionRole.CORRECTION),
+    ]
+    hits = {"g1_flaw": True, "g1_fix": True, "g2_flaw": True, "g2_fix": False}
+    r = grade_ready_subquestion(pts, hits)
+    # g1 满分(0.5+0.5=1.0),g2 合取门 0;总分上限 = 两对之和;实得 = 只 g1
+    assert r.max_score == pytest.approx(2.0) and r.awarded == pytest.approx(1.0)
+    assert len(r.detail) == 2 and r.official_score_allowed is False
+
+
+def test_orchestrator_defers_calc_cpm_set_pending_q4():
+    # spec 作者来源未就位的 kind → 清晰报错,不静默、不猜。
+    pts = [_p("a", kind=PracticeGradingKind.CALC_DAG)]
+    with pytest.raises(CompositionError):
+        grade_ready_subquestion(pts, {})
+
+
+def test_orchestrator_plain_points_return_none_for_coverage_default():
+    # 无 tag 无结构 → None(交给 coverage/点选,不进确定性编排器)。
+    assert grade_ready_subquestion([_p("a"), _p("b")], {}) is None

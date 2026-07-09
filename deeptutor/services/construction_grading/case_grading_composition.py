@@ -21,7 +21,13 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from collections.abc import Mapping
+
 from deeptutor.services.construction_grading.case_flaw_correction import FlawCorrectionPair
+from deeptutor.services.construction_grading.case_grading_dispatch import (
+    DispatchResult,
+    dispatch_grade,
+)
 from deeptutor.services.construction_grading.case_light_practice_contract import (
     ConjunctionRole,
     LubanCaseScoringPoint,
@@ -135,10 +141,62 @@ def assemble_conjunction_pairs(
     return pairs
 
 
+def grade_ready_subquestion(
+    points: Sequence[LubanCaseScoringPoint],
+    student_answer: object,
+) -> DispatchResult | None:
+    """把一个小问的确定性判分**编排成一次调用**:derive kind → assemble spec → dispatch → 汇总。
+
+    这是层③(生产判官)会调用的**红线安全单元**——只组合已测引擎,不碰 `deep_question`/
+    `rubric_grader`。仅 spec 可从 review 自动建的 kind(ORDERING/CONJUNCTION)自动判;
+    CALC/CPM/SET 的 spec 作者来源未就位(接线 Q4)→ CompositionError(不静默、不猜);
+    kind=None(采分点点选/漏点补全默认)→ None(交给 coverage,不进本编排器)。
+
+    student_answer 约定(从各引擎既有 contract 派生,非新造):
+      - ORDERING:    学员排列 = point_id 序列(Sequence[str])
+      - CONJUNCTION: 学员命中 = {point_id: 是否命中}(Mapping[str, bool]);逐对判合取门后汇总
+
+    official_score_allowed 恒 False(诊断/候选证据,金标 kappa 转正前不铸官方分)。
+    """
+    kind = derive_grading_kind(points)
+    if kind is None:
+        return None
+    if not SPEC_BUILDABLE_FROM_REVIEW.get(kind, False):
+        raise CompositionError(
+            f"{kind.value} 的结构化 spec 作者来源未就位(接线 Q4);本编排器不对它自动判分"
+        )
+
+    if kind is PracticeGradingKind.ORDERING:
+        spec = assemble_ordering_spec(points)
+        total = sum(p.max_score for p in points if p.ordering_group)
+        return dispatch_grade(kind, spec=spec, student=list(student_answer or []), points=total)
+
+    # CONJUNCTION:一个小问可有多对判断改正 → 逐对判合取门,汇总成单一 DispatchResult
+    # (detail=逐对结果;单一权威,不造第二套结果类型)。
+    if kind is PracticeGradingKind.CONJUNCTION:
+        hits: Mapping[str, object] = student_answer if isinstance(student_answer, Mapping) else {}
+        pairs = assemble_conjunction_pairs(points)
+        awarded = 0.0
+        maximum = 0.0
+        per_pair: list[DispatchResult] = []
+        for pair in pairs:
+            r = dispatch_grade(
+                kind, spec=pair,
+                student=(bool(hits.get(pair.flaw.point_id)), bool(hits.get(pair.correction.point_id))),
+            )
+            awarded += r.awarded
+            maximum += r.max_score
+            per_pair.append(r)
+        return DispatchResult(kind, awarded, maximum, False, tuple(per_pair))
+
+    raise CompositionError(f"unreachable ready kind {kind!r}")  # 防御:SPEC_BUILDABLE 与分支不同步
+
+
 __all__ = [
     "CompositionError",
     "derive_grading_kind",
     "SPEC_BUILDABLE_FROM_REVIEW",
     "assemble_ordering_spec",
     "assemble_conjunction_pairs",
+    "grade_ready_subquestion",
 ]
