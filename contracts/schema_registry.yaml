@@ -783,6 +783,8 @@ tier2_canonical_contracts:
       - common_wrong_expressions
       - condition_tags
       - practice_grading_kind
+      - ordering_rank
+      - conjunction_role
     required_tests:
       - tests/services/construction_grading/test_case_light_practice_schema.py
       - tests/services/construction_grading/test_case_light_practice_whitelist_gate.py

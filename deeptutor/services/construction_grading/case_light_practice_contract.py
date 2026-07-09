@@ -87,6 +87,13 @@ class PracticeGradingKind(str, Enum):
     CPM_CRITICAL_PATH = "cpm_critical_path"  # 网络计划关键线路点选
 
 
+class ConjunctionRole(str, Enum):
+    """判断改正合取子的角色(教研标):判分对称,但**诊断**(找错/改正各差在哪)靠它。"""
+
+    FLAW = "flaw"              # 找错子:学员是否识别"哪里错"
+    CORRECTION = "correction"  # 改正子:学员是否给出"正确做法"
+
+
 class WhitelistError(RuntimeError):
     """Raised when a qid is not in the atomized-and-verified whitelist."""
 
@@ -146,6 +153,11 @@ class LubanCaseScoringPoint:
     # CONJUNCTION/ORDERING/列举可从上面结构字段派生)。None=未标/走默认点选。**注册但未接生产判官**
     # (接线待 owner 拍落点/灰度,§3 red line);此字段只被 review-only resolver 投影,不铸官方分。
     practice_grading_kind: PracticeGradingKind | None = None
+    # 组合层 spec 装配所需的教研标注(register-before-use;None=不适用):
+    #   ordering_rank: ordering_group 内 1-based 正确位次(工序题装配 OrderingSpec 用);
+    #   conjunction_role: 合取子是找错/改正(判断改正题装配 FlawCorrectionPair 用)。
+    ordering_rank: int | None = None
+    conjunction_role: ConjunctionRole | None = None
 
     def __post_init__(self) -> None:
         if self.authority_source != CHANNEL_ONE_SCORING_AUTHORITY:
@@ -163,6 +175,11 @@ class LubanCaseScoringPoint:
         if self.max_score < 0:
             raise ScoringPointError(
                 f"scoring point {self.point_id!r}: max_score {self.max_score!r} must be non-negative"
+            )
+        # Fail-closed: 1-based rank; 0/负 = 教研标错,拒(否则装配出错序 spec = 判分错)。
+        if self.ordering_rank is not None and self.ordering_rank < 1:
+            raise ScoringPointError(
+                f"scoring point {self.point_id!r}: ordering_rank {self.ordering_rank!r} must be >= 1"
             )
 
 
@@ -297,6 +314,7 @@ __all__ = [
     "WHITELIST_PATH",
     "PointType",
     "PracticeGradingKind",
+    "ConjunctionRole",
     "WhitelistError",
     "SourceBindingError",
     "AuthoritySourceError",

@@ -21,10 +21,13 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from deeptutor.services.construction_grading.case_flaw_correction import FlawCorrectionPair
 from deeptutor.services.construction_grading.case_light_practice_contract import (
+    ConjunctionRole,
     LubanCaseScoringPoint,
     PracticeGradingKind,
 )
+from deeptutor.services.construction_grading.case_process_ordering import OrderingSpec
 
 
 class CompositionError(ValueError):
@@ -68,4 +71,64 @@ SPEC_BUILDABLE_FROM_REVIEW: dict[PracticeGradingKind, bool] = {
 }
 
 
-__all__ = ["CompositionError", "derive_grading_kind", "SPEC_BUILDABLE_FROM_REVIEW"]
+def assemble_ordering_spec(points: Sequence[LubanCaseScoringPoint]) -> OrderingSpec:
+    """把一个工序小问的采分点(带 `ordering_rank`)装配成 `OrderingSpec`。
+
+    活动标识用 `point_id`(稳定唯一);正确次序由教研标的 `ordering_rank`(1-based)确定。
+    fail-closed:少 rank / rank 有重复 / rank 不是 1..n 连续 → CompositionError(装错序 = 判分错)。
+    """
+    ranked = [p for p in points if p.ordering_group]
+    if not ranked:
+        raise CompositionError("no ordering-group points to assemble")
+    if any(p.ordering_rank is None for p in ranked):
+        raise CompositionError("每个工序采分点都需教研标 ordering_rank(缺失无法定次序)")
+    ranks = [p.ordering_rank for p in ranked]
+    if len(set(ranks)) != len(ranks):
+        raise CompositionError(f"ordering_rank 有重复: {sorted(ranks)}")
+    if sorted(ranks) != list(range(1, len(ranks) + 1)):
+        raise CompositionError(f"ordering_rank 必须是 1..{len(ranks)} 连续: {sorted(ranks)}")
+    ordered = sorted(ranked, key=lambda p: p.ordering_rank)
+    return OrderingSpec.from_sequence([p.point_id for p in ordered])
+
+
+def assemble_conjunction_pairs(
+    points: Sequence[LubanCaseScoringPoint],
+) -> list[FlawCorrectionPair]:
+    """把一个判断改正小问的采分点按 `conjunction_group` 装配成一组 `FlawCorrectionPair`。
+
+    每组恰 2 个成员:一个 `conjunction_role=FLAW`(找错)、一个 `CORRECTION`(改正)。
+    fail-closed:组员≠2 / 缺 role / 两个同 role → CompositionError(装错对 = 诊断错/判分错)。
+    组内顺序稳定(按 conjunction_group 名排序),便于可复现。
+    """
+    groups: dict[str, list[LubanCaseScoringPoint]] = {}
+    for p in points:
+        if p.conjunction_group:
+            groups.setdefault(p.conjunction_group, []).append(p)
+    if not groups:
+        raise CompositionError("no conjunction-group points to assemble")
+
+    pairs: list[FlawCorrectionPair] = []
+    for group in sorted(groups):
+        members = groups[group]
+        if len(members) != 2:
+            raise CompositionError(f"合取组 {group!r} 须恰 2 成员(找错+改正),得 {len(members)}")
+        by_role = {m.conjunction_role: m for m in members}
+        if ConjunctionRole.FLAW not in by_role or ConjunctionRole.CORRECTION not in by_role:
+            raise CompositionError(
+                f"合取组 {group!r} 须一个 FLAW 一个 CORRECTION,得 "
+                f"{sorted(str(m.conjunction_role) for m in members)}"
+            )
+        # FlawCorrectionPair 自身再校验同 (qid,sub_qid,sub_no)+同组+正分(Codex 已加固)。
+        pairs.append(FlawCorrectionPair(
+            flaw=by_role[ConjunctionRole.FLAW], correction=by_role[ConjunctionRole.CORRECTION],
+        ))
+    return pairs
+
+
+__all__ = [
+    "CompositionError",
+    "derive_grading_kind",
+    "SPEC_BUILDABLE_FROM_REVIEW",
+    "assemble_ordering_spec",
+    "assemble_conjunction_pairs",
+]
