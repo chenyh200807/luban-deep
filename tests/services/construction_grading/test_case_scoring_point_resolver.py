@@ -117,3 +117,59 @@ def test_filled_verdict_lights_up_whole_chain_end_to_end(tmp_path):
     missing_key = score_conjunction_group(pts, {"s"})
     assert abs(full - 0.5) < 1e-9
     assert abs(missing_key - 0.2) < 1e-9  # 漏『分层剥开』只得 0.2 < 满分 0.5
+
+
+def test_resolver_to_orchestrator_conjunction_end_to_end(tmp_path):
+    """capstone:证明整条**红线安全**链 resolver→编排器 在白名单-OPEN 路径真跑通。
+
+    模拟教研 verdict(判断改正小问,带 conjunction_group/role/point_type=合取子)→ 白名单开 →
+    resolve_scoring_points 出真采分点 → grade_ready_subquestion 编排合取门判分。
+    证明:owner 一填 verdict(A)+确认 tag(E),从教研切分→采分点→确定性判分整条链活,
+    **只差层③那一个生产调用点**(§3 红线 + Q1/Q2,owner 门)。
+    """
+    from deeptutor.services.construction_grading.case_grading_composition import (
+        grade_ready_subquestion,
+    )
+
+    qid = "EXAM_CONJ_CAPSTONE::E0"
+    review_dir = tmp_path / "segmentation_gold"
+    review_dir.mkdir()
+    (review_dir / f"{qid.replace('::', '__')}.review.json").write_text(
+        json.dumps({
+            "qid": qid,
+            "consensus": {"status": "passed"},
+            "points": [
+                {"point_id": "flaw", "proposed_sub_no": 1, "point_type": "合取子",
+                 "conjunction_group": "g1", "conjunction_role": "flaw"},
+                {"point_id": "fix", "proposed_sub_no": 1, "point_type": "合取子",
+                 "conjunction_group": "g1", "conjunction_role": "correction"},
+            ],
+        }, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    rubric_file = tmp_path / "case_rubric_scored.json"
+    rubric_file.write_text(
+        json.dumps({"records": [
+            {"qid": qid, "point_id": "flaw", "text": "指出防水层未做附加层", "required_terms": [], "score": 0.5},
+            {"qid": qid, "point_id": "fix", "text": "阴阳角应做附加增强层", "required_terms": [], "score": 0.5},
+        ]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    whitelist_file = tmp_path / "whitelist.v0.json"
+    whitelist_file.write_text(
+        json.dumps({"entries": [{"qid": qid, "status": "allowed"}]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    pts = resolve_scoring_points(
+        qid, review_dir=review_dir, rubric_path=rubric_file, whitelist_path=whitelist_file,
+    )
+    assert {p.point_id for p in pts} == {"flaw", "fix"}
+    assert all(p.point_type is PointType.CONJUNCTION_MEMBER for p in pts)
+
+    # 编排器合取门:找错∧改正都命中给满分;只找错不改正 → 0(§4 红线)
+    both = grade_ready_subquestion(pts, {"flaw": True, "fix": True})
+    only_flaw = grade_ready_subquestion(pts, {"flaw": True, "fix": False})
+    assert both.awarded == pytest.approx(1.0) and both.max_score == pytest.approx(1.0)
+    assert only_flaw.awarded == 0.0
+    assert both.official_score_allowed is False  # 金标 kappa 转正前不铸官方分
