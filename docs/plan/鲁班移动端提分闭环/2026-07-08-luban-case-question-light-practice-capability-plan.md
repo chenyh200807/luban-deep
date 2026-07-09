@@ -221,6 +221,8 @@
 - **续4:采分点源 resolver 做完**(`case_scoring_point_resolver.py`,§3新造)——白名单门 + 教研 consensus 的 review.json(sub_no/原子/非平点)+ 编译库采分点原文 → 投影 LubanCaseScoringPoint。纯只读投影不改生产模块;fail-closed 到教研 verdict(编译库缺 sub_no 是欠切分,sub_no 是教研切分验收才产生的真值)。
 - **✅✅ 后端链完整可组合**:`resolve_scoring_points(qid)`[白名单+教研门] → `generate_point_select_item`[生成+RTG1-8] → `rtg9_triage`[异源分流] → `dispatch_grade`[7引擎判分]。全套 case **130 passed**,闭包 CLOSED 215,contract_guard 全绿,Codex 修 26 真 bug,真 DeepSeek+真 Qwen 异源阿里云实测过。
 - **教研-independent 后端代码 100% 写完。剩余全部被红线/人门/UI 挡住,不是我能单独写的**:①**双教研填 verdict**(唯一真阻塞);②**接线进生产判官**(改 `deep_question`/`rubric_grader` = §3 review-only 红线"不改生产判分逻辑",需 owner 拍架构);③**小程序 UI**(前端,且未过教研 verdict 不出给学员,做了也上不了);④部署/PR/5人验证(§6人门)。
+- **续5:全链路真 LLM 端到端 probe 固化**(commit 3dd150bbb,`scripts/aliyun_probes/case_e2e_real_llm_probe.py`)——把真 DeepSeek 生成 → 真 RTG1-8 → 真 Qwen 异源 RTG9 → 确定性判分**一条命令跑通**,阿里云容器只读实测 EXIT=0(生成 3 好干扰项无撞正确项 / RTG 全过 / 异源队列空 / A漏1.20 B1.50)。可复现真链路证据落盘,不再是一次性 harness。
+- **续6:「一填 verdict 整条链就亮」端到端证明**(commit 2a25ab924,`test_filled_verdict_lights_up_whole_chain_end_to_end`)——**人门前最后一块**:模拟教研 verdict passed → 白名单门**打开** → `resolve_scoring_points`[白名单门入口,非内层]出真采分点 → 合取门判分(漏关键点 0.2 < 满分 0.5)。与 fail-closed 空白名单测试**配对**,证明白名单门两侧都对。**兑现"让我一动手门就开"——从"声称"升为"证明"(反自证红线)。** 全套 case+fill **928 passed**,闭包 CLOSED 215,contract_guard 全绿。
 
 > **本 session 累计交付**:P-1 契约骨架 + 块A/B(真 DeepSeek 链路 + 5 题切分候选)+ C1 CPM + C2 合取门 + C3 DAG+ECF + C4 拍照诊断骨架。三个评分引擎(C1/C2/C3)各派 Codex 异源对抗核,**共揪出并治本修 12 个会误判学员的真 bug**(CPM 1 / 合取门 4 / DAG+ECF 7)。人门前准备(教研指南 + 切分候选 + 白名单填充器)全备齐。
 
