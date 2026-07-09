@@ -780,6 +780,8 @@ tier2_canonical_contracts:
       - ordering_group
       - conjunction_group
       - list_cap
+      - common_wrong_expressions
+      - condition_tags
     required_tests:
       - tests/services/construction_grading/test_case_light_practice_schema.py
       - tests/services/construction_grading/test_case_light_practice_whitelist_gate.py

@@ -123,6 +123,9 @@ class LubanCaseScoringPoint:
     ordering_group: str | None = None
     conjunction_group: str | None = None
     list_cap: int | None = None
+    # §1.5B 题型变体数据(register-before-use;默认空,向后兼容):
+    common_wrong_expressions: tuple[str, ...] = ()  # 喂"AI 错答挑错"负面示例(泛泛而谈)
+    condition_tags: tuple[str, ...] = ()            # 喂"题干关键词点选"(审题触发条件)
 
     def __post_init__(self) -> None:
         if self.authority_source != CHANNEL_ONE_SCORING_AUTHORITY:
