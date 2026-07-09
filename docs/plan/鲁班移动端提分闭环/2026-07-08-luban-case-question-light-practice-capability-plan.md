@@ -188,7 +188,13 @@
 - **运行时生成器**(`case_light_practice_generator.py`,commit 491e66924):LLM = **注入式 `complete_fn` seam**(单测 stub / 阿里云真 DeepSeek);correct 选项 = 采分点原文逐字(LLM 只造干扰项);出题过 RTG 门重生成 ≤2、仍 BLOCK→degraded。F16 起鼓割补 **dev fixture**(7 点,`dev_fixture=true` 不进 production whitelist)。7 测试。
 - **静态 HTML demo**(`scripts/build_case_light_practice_demo.py`,commit 9d7f652dd,已交付 owner):真跑链路(真采分点→生成器→真 RTG 门→真确定性判分),复现 live 验证 **A 漏 a5 分层剥开=1.2 / B 写了=1.5(满分 1.5)**。唯一 stub = 干扰项来源。
 - **块 A 切分 review 骨架**(`scripts/build_case_segmentation_review_skeletons.py`,commit 25ee67698):为 owner 已确认的 5 题各产一份 `docs/原始数据/考点原料/segmentation_gold/<qid>.review.json` 骨架(预填当前采分点 + 空 verdict 槽,教研**审而非写**)。
-- **阻塞**:真 LLM 生成 / LLM 切分边界检测需 DeepSeek 凭据(本地无)或**部署阿里云**(§6 owner-stop)。**剩余教研-independent 纯工作 = 块 C 引擎**(CPM solver / DAG+ECF / OCR 骨架 / 认→写档2-4 / flaw_correction,均纯代码,可续)。
+- ~~阻塞:真 LLM~~ **(第3轮已解:真 DeepSeek 走阿里云已部署容器只读 `docker exec`,不算 owner-stop)**。
+
+**第 3 轮(2026-07-09,同分支,已 push;真 DeepSeek 只读实测)**:
+- **方法钉死**(可复现,probe 在 `scripts/aliyun_probes/`):自包含 harness → `base64` → `ssh Aliyun-ECS-2` → `docker cp deeptutor:/tmp` → `docker exec deeptutor sh -lc 'cd /app && PYTHONPATH=/app python /tmp/h.py'`;complete_fn = `partial(llm.factory.complete, base_url=deepseek, binding=deepseek)`,`temperature=0`,`api_key=容器 DEEPSEEK_API_KEY`;跑完清 /tmp。
+- **块 A · 真 DeepSeek 链路打通**(commit 93e2cb77a):F16 起鼓割补真跑 3 次 → 真采分点 → 真生成干扰项 → **全过真 RTG1-8 门** = 整条真链路转起来。**live 发现并治**:DeepSeek 曾生成「分层剥离旧卷材」(与正确「分层剥开」差一字近义)竟过确定性 RTG1-8 = RTG9 语义缺口;**加 RTG6 近义门**(干扰项对正确项字符包含率 ≥0.85 → SOFT 可疑/异源),live 复验现抓住,合法干扰项不误伤。**temp=0 观察**:多数稳定但非位级保证(一次 1/3 措辞抖动);**安全性稳定**(每次都过门)。
+- **块 B · 5 题切分候选真跑**(commit e0a4a6c92):DeepSeek(temp=0)按小问分段 5 优先题 → `proposed_sub_no` 候选回填 `segmentation_gold/*.review.json`(P0011_01 16点→**7小问** / P0010_02 18→6 / P0014_02 20→8 / P0013_01 13→4 / P0017_01_E1 12→2)。**红线守住:只产候选、LLM 不越权当真值;verdict/is_atomic/consensus 仍空——教研 verdict 才是真值,不填白名单、不出给学员。**
+- **剩余教研-independent 纯工作 = 块 C 引擎**:下一轮从 **C1 CPM solver**(关键路径 TF=0,判分正确性关键 → 建议派 Codex 异源对抗核)起,再 flaw_correction 合取门 / DAG+ECF / OCR 骨架 / 认→写档2-4。当前 case_light_practice 测试 **38 passed**,闭包 CLOSED 213,contract_guard `--base origin/main` 全绿。
 
 **T2-PINNED 裁断理由(单一权威 vs 字段保护,记录以备审)**:§1.5C 要求采分点 schema 有字段级保护、不许 T2 挂名。核查 `check_schema_registry.py:455` 后确认:本仓 guard 的 drift/authority 字段检查**硬编码只对 `luban_grading_object.v1` 跑**——真正的字段保护来自"frozen dataclass + 内省对账测试"(P2#9 给 context_pack/evidence_bundle 上 T2 PINNED 的同一手法),不来自 guard。故:**不往 T1"唯一 grading 对象"列表加第二个 canonical(守单一权威,不与 `luban_grading_object.v1` 竞争),改用 T2 PINNED(canonical_fields + `needs_field_canonicalization:false` + 内省对账)给字段保护。**这既满足 §1.5C(是"独立 typed schema"非"T2 挂名"),又不僭越成第二判分权威——采分点只读视图,判分权威仍归 `rubric_grader_v1`。
 
