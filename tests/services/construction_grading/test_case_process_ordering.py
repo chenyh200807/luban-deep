@@ -57,6 +57,28 @@ def test_normalization_whitespace_fullwidth():
     assert grade_ordering(spec, noisy).correct is True
 
 
+# ── 2026-07-09 Codex 对抗核回归 ──────────────────────────────────────────────
+
+
+def test_multi_hop_cycle_rejected_at_construction():
+    # 多跳环 A→B→C→A:无合法拓扑序,会把所有学员序判错 → 构造期拒绝坏 spec。
+    with pytest.raises(OrderingError):
+        OrderingSpec(activities=("A", "B", "C"),
+                     precedence=frozenset({("A", "B"), ("B", "C"), ("C", "A")}))
+
+
+def test_zero_width_and_internal_space_normalized():
+    spec = OrderingSpec.from_sequence(_FLOW)
+    noisy = ["清理​表面", "支设 模板", "洒水湿润", "涂抹混凝土界面剂"]  # 零宽+内部空格
+    assert grade_ordering(spec, noisy).correct is True
+
+
+def test_none_and_str_student_order_fail_closed():
+    spec = OrderingSpec.from_sequence(_FLOW)
+    assert grade_ordering(spec, None).correct is False       # 不崩
+    assert grade_ordering(spec, "清理表面支设模板").correct is False  # str 不逐字符拆
+
+
 def test_malformed_spec_raises():
     with pytest.raises(OrderingError):  # 重复工序
         OrderingSpec(activities=("A", "A"), precedence=frozenset())
