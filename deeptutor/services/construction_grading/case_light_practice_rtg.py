@@ -42,6 +42,12 @@ _RTG8_OVERLAP_FLOOR = 0.6
 # correct option it parallels (rough parity — cheap heuristic, SOFT only).
 _RTG6_MIN_RATIO = 0.3
 _RTG6_MAX_RATIO = 3.0
+# RTG6 near-correct: a distractor whose characters are ≥85% CONTAINED in a correct
+# option is a near-synonym paraphrase of the right answer (e.g. 分层剥离 vs 分层剥开 —
+# 差一字). Deterministic gates can't judge full semantic equivalence (that is RTG9's
+# cross-source job), but this high-containment subset is a cheap deterministic
+# pre-filter → 可疑队列. Surfaced by a 2026-07-09 live DeepSeek run.
+_RTG6_NEAR_CORRECT_CONTAINMENT = 0.85
 
 
 class GateStatus(str, Enum):
@@ -106,6 +112,19 @@ def _overlap_ratio(a: str, b: str) -> float:
     if not ta or not tb:
         return 0.0
     return len(ta & tb) / len(ta | tb)
+
+
+def _containment_in(inner: str, outer: str) -> float:
+    """Fraction of ``inner``'s characters that also appear in ``outer`` (directional).
+
+    Catches a near-synonym of the correct answer whose extra distinguishing chars
+    are few — Jaccard misses this when the correct option carries a long tail
+    (e.g. a parenthetical); containment normalizes by the shorter (distractor) side.
+    """
+    ti, to = _tokens(inner), _tokens(outer)
+    if not ti:
+        return 0.0
+    return len(ti & to) / len(ti)
 
 
 # ── The gates ──────────────────────────────────────────────────────────────────
@@ -267,6 +286,15 @@ def _rtg6_shape(correct, distractors) -> GateResult:
         for cn in correct_norm:
             if dn and dn in cn:
                 return GateResult("RTG6", GateStatus.SOFT_FAIL, "distractor is a substring of a correct option → 可疑")
+        # near-correct: distractor chars ≥85% contained in a correct option = 近义改写
+        # of the right answer (deterministic subset of RTG9). 2026-07-09 live-surfaced.
+        for opt in correct:
+            if _containment_in(dis.get("text"), opt.get("text")) >= _RTG6_NEAR_CORRECT_CONTAINMENT:
+                return GateResult(
+                    "RTG6",
+                    GateStatus.SOFT_FAIL,
+                    f"distractor ~近义 correct option (containment≥{_RTG6_NEAR_CORRECT_CONTAINMENT}) → 可疑/异源: {dis.get('text')!r}",
+                )
         # cheap negation ("不"/"无"/"未" prepended is a lazy flip)
         raw = str(dis.get("text") or "")
         if raw and raw.lstrip()[:1] in ("不", "无", "未", "非"):

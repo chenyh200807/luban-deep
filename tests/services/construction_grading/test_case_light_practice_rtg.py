@@ -143,6 +143,27 @@ def test_rtg7_not_exercised_without_group_and_block_with_outside_point():
     assert report2.verdict == Verdict.BLOCK
 
 
+def test_rtg6_near_synonym_of_correct_soft_fails():
+    # 2026-07-09 live DeepSeek surfaced this: 干扰项「分层剥离旧卷材」差一字近义正确项
+    # 「分层剥开旧卷材(关键区分点)」— 确定性高包含率子集,应软拒→可疑/异源,不放行。
+    item = _valid_item()
+    item["distractors"][0] = {"text": "分层剥离旧卷材", "error_code": "E12"}
+    report = run_post_gen_gates(item, _POINTS)
+    assert _gate(report, "RTG6").status == GateStatus.SOFT_FAIL
+    assert report.verdict == Verdict.SOFT_FAIL
+
+
+def test_rtg6_legit_distractor_not_flagged_near_correct():
+    # 合法干扰项(整体揭开)包含率低,不被近义门误伤
+    item = _valid_item()
+    item["distractors"] = [
+        {"text": "整体揭开旧卷材", "error_code": "E06"},
+        {"text": "用铲刀铲除旧卷材", "error_code": "E07"},
+    ]
+    report = run_post_gen_gates(item, _POINTS)
+    assert _gate(report, "RTG6").status == GateStatus.PASS
+
+
 def test_normalize_folds_fullwidth_and_symbols():
     assert normalize("分层剥开 。") == normalize("分层剥开")
     assert normalize("100㎡") == normalize("100m2")
