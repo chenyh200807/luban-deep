@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 from collections import Counter
 from dataclasses import dataclass, field
+from decimal import Decimal, InvalidOperation
 from http import HTTPStatus
 import os
 import re
@@ -138,7 +139,64 @@ _QUESTION_TYPE_ALIASES: dict[str, set[str]] = {
     "multi": {"multi", "multi_choice", "multiple_choice", "choice_multi"},
     "case": {"case", "case_study", "case_background"},
     "calculation": {"calculation", "calc", "written_calculation"},
+    "free_text": {"free_text", "free", "short_answer", "written"},
 }
+_CALC_NUMERIC_RE = re.compile(
+    r"(?P<value>\d+(?:\.\d+)?)(?:\s*(?P<unit>元/m²|元/m2|元/㎡|元/m³|元/m3|元/立方米|"
+    r"万元|亿元|元|m²|㎡|平方米|m2|m³|立方米|m3|%|％|t|吨|天|个月|月|年))?",
+    re.IGNORECASE,
+)
+_CALC_IDENTITY_MARKERS = (
+    "计算",
+    "求解",
+    "求",
+    "工程量",
+    "单价",
+    "预算",
+    "实际",
+    "造价",
+    "费用",
+    "成本",
+    "进度",
+    "偏差",
+    "工期",
+    "流水",
+    "索赔",
+    "面积",
+    "体积",
+    "荷载",
+    "承载力",
+    "BCWS",
+    "BCWP",
+    "ACWP",
+    "CPI",
+    "SPI",
+)
+_CALC_TARGET_PATTERNS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("bcws", ("BCWS", "计划工作预算费用", "计划工程预算费用")),
+    ("bcwp", ("BCWP", "已完工作预算费用", "已完工程预算费用")),
+    ("acwp", ("ACWP", "已完工作实际费用", "已完工程实际费用")),
+    ("cv", ("CV", "费用偏差", "成本偏差")),
+    ("sv", ("SV", "进度偏差")),
+    ("cpi", ("CPI", "费用绩效指数", "成本绩效指数")),
+    ("spi", ("SPI", "进度绩效指数")),
+    ("duration", ("总工期", "工期")),
+    ("step", ("流水步距", "流水节拍")),
+    ("quantity", ("工程量",)),
+    ("cost", ("造价", "总费用", "费用")),
+)
+_CALC_ROLE_ALIASES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("planned_quantity", ("计划完成工程量", "计划工程量")),
+    ("budget_unit_price", ("预算成本单价", "预算单价")),
+    ("actual_quantity", ("现已完成工程量", "实际完成工程量", "已完工程量", "现已完成", "实际完成", "完成工程量")),
+    ("actual_unit_price", ("实际成本单价", "实际单价", "实际价")),
+    ("quantity", ("工程量",)),
+    ("unit_price", ("单价",)),
+    ("cost", ("费用", "成本")),
+    ("area", ("面积",)),
+    ("volume", ("体积",)),
+    ("duration", ("工期", "时间")),
+)
 
 
 def _strip_exact_question_edge_noise(text: str, *, strip_trailing: bool = True) -> str:
@@ -147,6 +205,158 @@ def _strip_exact_question_edge_noise(text: str, *, strip_trailing: bool = True) 
     if strip_trailing:
         clean = re.sub(r"[^\w\u4e00-\u9fff]+$", "", clean, flags=re.UNICODE)
     return clean.strip()
+
+
+@dataclass(frozen=True, slots=True)
+class _CalculationNumericFact:
+    value: str
+    unit: str
+    role: str
+
+
+def _canonical_decimal(value: str) -> str:
+    try:
+        decimal = Decimal(str(value or "").strip())
+    except (InvalidOperation, ValueError):
+        return str(value or "").strip()
+    normalized = decimal.normalize()
+    return format(normalized, "f").rstrip("0").rstrip(".") or "0"
+
+
+def _canonical_unit(unit: str | None) -> str:
+    clean = str(unit or "").strip().lower()
+    replacements = {
+        "％": "%",
+        "㎡": "m2",
+        "m²": "m2",
+        "平方米": "m2",
+        "m³": "m3",
+        "立方米": "m3",
+        "元/㎡": "元/m2",
+        "元/m²": "元/m2",
+        "元/立方米": "元/m3",
+        "元/m³": "元/m3",
+        "吨": "t",
+    }
+    return replacements.get(clean, clean)
+
+
+def _extract_calculation_role(text: str, *, value_start: int) -> str:
+    prefix = str(text or "")[max(0, value_start - 24) : value_start]
+    prefix = re.sub(r"[\d\s,，。；;:：、（）()【】\[\]<>《》]+", "", prefix)
+    for canonical, aliases in _CALC_ROLE_ALIASES:
+        if any(alias in prefix for alias in aliases):
+            return canonical
+    return prefix[-8:]
+
+
+def _extract_calculation_numeric_facts(text: str) -> list[_CalculationNumericFact]:
+    facts: list[_CalculationNumericFact] = []
+    for match in _CALC_NUMERIC_RE.finditer(str(text or "")):
+        value = _canonical_decimal(match.group("value"))
+        unit = _canonical_unit(match.group("unit"))
+        if unit == "年" and len(value) == 4:
+            continue
+        role = _extract_calculation_role(text, value_start=match.start())
+        fact = _CalculationNumericFact(value=value, unit=unit, role=role)
+        if fact not in facts:
+            facts.append(fact)
+    return facts
+
+
+def _calculation_fact_covered(
+    expected: _CalculationNumericFact,
+    actual_facts: list[_CalculationNumericFact],
+) -> bool:
+    for actual in actual_facts:
+        if actual.value != expected.value:
+            continue
+        unit_matches = actual.unit == expected.unit or not actual.unit or not expected.unit
+        if not unit_matches:
+            continue
+        if not expected.role or not actual.role:
+            return True
+        if expected.role in actual.role or actual.role in expected.role:
+            return True
+    return False
+
+
+def _extract_calculation_targets(text: str) -> set[str]:
+    surface = str(text or "")
+    upper_surface = surface.upper()
+    targets: set[str] = set()
+    for canonical, aliases in _CALC_TARGET_PATTERNS:
+        for alias in aliases:
+            if alias.isascii():
+                pattern = rf"(?<![A-Z]){re.escape(alias.upper())}(?![A-Z])"
+                if re.search(pattern, upper_surface):
+                    targets.add(canonical)
+                    break
+            elif alias in surface:
+                targets.add(canonical)
+                break
+    return targets
+
+
+def _calculation_targets_compatible(query_targets: set[str], stem_targets: set[str]) -> bool:
+    if not query_targets and not stem_targets:
+        return True
+    generic_targets = {"quantity", "cost"}
+    query_specific = query_targets - generic_targets
+    stem_specific = stem_targets - generic_targets
+    if query_specific or stem_specific:
+        return bool(query_specific and stem_specific and query_specific.intersection(stem_specific))
+    return bool(query_targets.intersection(stem_targets))
+
+
+def _question_type_is_calculation(question_type: str | None) -> bool:
+    normalized = str(question_type or "").strip().lower()
+    return bool(normalized and matches_allowed_question_type(normalized, ["calculation"]))
+
+
+def _looks_like_calculation_identity(text: str, *, question_type: str | None = None) -> bool:
+    surface = str(text or "")
+    if not surface:
+        return False
+    if _question_type_is_calculation(question_type):
+        return True
+    upper_surface = surface.upper()
+    if _CALC_REQUEST_RE.search(surface):
+        return True
+    if _extract_calculation_targets(surface):
+        return True
+    facts = _extract_calculation_numeric_facts(surface)
+    if len(facts) >= 2 and any(marker in surface or marker in upper_surface for marker in _CALC_IDENTITY_MARKERS):
+        return True
+    return False
+
+
+def _calculation_question_identity_corresponds(
+    *,
+    original_query: str,
+    matched_stem: str,
+    question_type: str | None,
+) -> bool:
+    if not (
+        _looks_like_calculation_identity(original_query)
+        or _looks_like_calculation_identity(matched_stem, question_type=question_type)
+    ):
+        return True
+
+    query_facts = _extract_calculation_numeric_facts(original_query)
+    stem_facts = _extract_calculation_numeric_facts(matched_stem)
+    if stem_facts:
+        if not query_facts:
+            return False
+        if not all(_calculation_fact_covered(fact, query_facts) for fact in stem_facts):
+            return False
+
+    query_targets = _extract_calculation_targets(original_query)
+    stem_targets = _extract_calculation_targets(matched_stem)
+    if not _calculation_targets_compatible(query_targets, stem_targets):
+        return False
+
+    return True
 
 
 @dataclass(slots=True)
@@ -507,6 +717,9 @@ def prepare_exact_question_probe(query: str) -> ExactQuestionProbe | None:
             stripped_from_full_query = True
             reason_parts.append("case_question_focus")
         reason_parts.append("case_allowed_types")
+    elif query_shape == "calc_like":
+        allowed_types = ["calculation", "single", "multi", "free_text"]
+        reason_parts.append("calc_allowed_types")
 
     if has_options and len(stem.strip()) >= 10:
         stage_query = stem.strip()
@@ -610,7 +823,7 @@ def matches_allowed_question_type(
     allowed_question_types: list[str] | None,
 ) -> bool:
     if not allowed_question_types:
-        return True
+        return False
     normalized = str(question_type or "").strip().lower()
     if not normalized:
         return False
@@ -681,7 +894,6 @@ _EXACT_STEM_CASE_TYPES = {
     "case",
     "case_study",
     "case_background",
-    "calculation",
 }
 
 
@@ -715,6 +927,12 @@ def exact_question_stem_corresponds(
 
     if str(question_type or "").strip().lower() in _EXACT_STEM_CASE_TYPES:
         return True
+    if not _calculation_question_identity_corresponds(
+        original_query=original_query,
+        matched_stem=matched_stem,
+        question_type=question_type,
+    ):
+        return False
     stem_bigrams = _exact_question_surface_bigrams(matched_stem)
     if not stem_bigrams:
         return False

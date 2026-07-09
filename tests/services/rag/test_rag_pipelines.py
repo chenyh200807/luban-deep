@@ -1164,6 +1164,98 @@ async def test_supabase_search_promotes_option_matched_real_exam_question(
 
 
 @pytest.mark.asyncio
+async def test_supabase_exact_vector_rejects_calc_numeric_fingerprint_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+    bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
+
+    async def _fake_rpc(*args, **kwargs):
+        _ = (args, kwargs)
+        return [
+            {
+                "id": "calc-bank-mismatch",
+                "stem": bank_stem,
+                "question_type": "single_choice",
+                "options": [
+                    {"key": "A", "value": "45"},
+                    {"key": "B", "value": "45"},
+                    {"key": "C", "value": "-30"},
+                    {"key": "D", "value": "30"},
+                ],
+                "correct_answer": "C",
+                "analysis": "进度偏差=已完工程预算费用-计划工程预算费用=3000×150-5000×150=-300000元。",
+                "similarity": 0.98,
+                "source_type": "REAL_EXAM",
+            }
+        ]
+
+    monkeypatch.setattr(pipeline, "_rpc", _fake_rpc)
+
+    result = await pipeline._search_exact_question_vector(
+        client=object(),
+        vector_literal="[0.1,0.2,0.3]",
+        allowed_question_types=["calculation", "single", "multi", "free_text"],
+        original_query=(
+            "背景：某工程到第6个月末：计划完成工程量8000m²，预算单价500元/m²；"
+            "实际完成工程量7500m²，实际单价520元/m²。\n"
+            "问题：计算BCWS、BCWP、ACWP，帮我算出答案"
+        ),
+        option_validation_required=False,
+        config=_learning_fact_supabase_config(supabase_module),
+    )
+
+    assert result == []
+
+
+@pytest.mark.asyncio
+async def test_supabase_exact_vector_accepts_full_pasted_calculation_question(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+    bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
+
+    async def _fake_rpc(*args, **kwargs):
+        _ = (args, kwargs)
+        return [
+            {
+                "id": "calc-bank-exact",
+                "stem": bank_stem,
+                "question_type": "single_choice",
+                "options": [
+                    {"key": "A", "value": "45"},
+                    {"key": "B", "value": "45"},
+                    {"key": "C", "value": "-30"},
+                    {"key": "D", "value": "30"},
+                ],
+                "correct_answer": "C",
+                "analysis": "进度偏差=已完工程预算费用-计划工程预算费用=3000×150-5000×150=-300000元。",
+                "similarity": 0.98,
+                "source_type": "REAL_EXAM",
+            }
+        ]
+
+    monkeypatch.setattr(pipeline, "_rpc", _fake_rpc)
+
+    result = await pipeline._search_exact_question_vector(
+        client=object(),
+        vector_literal="[0.1,0.2,0.3]",
+        allowed_question_types=["calculation", "single", "multi", "free_text"],
+        original_query="某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为多少万元？",
+        option_validation_required=False,
+        config=_learning_fact_supabase_config(supabase_module),
+    )
+
+    assert len(result) == 1
+    assert result[0]["chunk_id"] == "question-calc-bank-exact"
+    assert result[0]["correct_answer"] == "C"
+
+
+@pytest.mark.asyncio
 async def test_supabase_search_emits_evidence_bundle_and_respects_routing_metadata(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -2096,6 +2096,12 @@ class SupabasePipeline:
                 option_validation_required=option_validation_required,
             ):
                 continue
+            if not exact_question_stem_corresponds(
+                original_query=original_query,
+                matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
+                question_type=row.get("question_type"),
+            ):
+                continue
             return [
                 self._normalize_question_result(
                     row,
@@ -2702,6 +2708,12 @@ class SupabasePipeline:
                 )
                 required_overlap = min(3, option_count) if option_count else 2
                 if overlap_count < required_overlap:
+                    continue
+                if not exact_question_stem_corresponds(
+                    original_query=original_query,
+                    matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
+                    question_type=row.get("question_type"),
+                ):
                     continue
                 score = float(row.get("similarity") or row.get("score") or 0.0)
                 if score < 0.55:
