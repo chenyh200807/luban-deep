@@ -83,6 +83,10 @@ class AuthoritySourceError(ValueError):
     """Raised when a scoring point does not carry the channel-① scoring authority."""
 
 
+class ScoringPointError(ValueError):
+    """Raised when a scoring point's numeric fields are malformed (e.g. negative score)."""
+
+
 @dataclass(frozen=True)
 class SourceRef:
     """教材/规范溯源锚(采分点与 acceptable_variant 都必须可溯源)。"""
@@ -130,6 +134,12 @@ class LubanCaseScoringPoint:
             raise AuthoritySourceError(
                 f"scoring point {self.point_id!r}: answer_key_authority "
                 f"{self.answer_key_authority!r} not in {sorted(LEGIT_ANSWER_KEY_AUTHORITY)}"
+            )
+        # Fail-closed: a negative max_score would make a full answer score LOWER than a
+        # missed one (2026-07-09 Codex 对抗核证伪). Scores are non-negative by construction.
+        if self.max_score < 0:
+            raise ScoringPointError(
+                f"scoring point {self.point_id!r}: max_score {self.max_score!r} must be non-negative"
             )
 
 
@@ -220,16 +230,27 @@ def score_conjunction_group(
 
     非合取采分点(``conjunction_group is None``)按各自 max_score 独立命中计分。
     Returns the total awarded score. Deterministic, no LLM.
+
+    Fail-closed on duplicate point_ids (一个命中不得满足两个成员);合取组按
+    ``(qid, sub_qid, conjunction_group)`` 作用域(同名组只在同一小问内合并——
+    跨题同名不合并,2026-07-09 Codex 对抗核证伪全局合并会误判)。
     """
     hits = set(hit_point_ids)
 
-    groups: dict[str, list[LubanCaseScoringPoint]] = {}
+    seen: set[str] = set()
+    for p in points:
+        if p.point_id in seen:
+            raise ScoringPointError(f"duplicate point_id {p.point_id!r} in scoring set")
+        seen.add(p.point_id)
+
+    groups: dict[tuple[str, str, str], list[LubanCaseScoringPoint]] = {}
     flat: list[LubanCaseScoringPoint] = []
     for p in points:
         if p.conjunction_group is None:
             flat.append(p)
         else:
-            groups.setdefault(p.conjunction_group, []).append(p)
+            key = (p.qid, p.sub_qid, p.conjunction_group)
+            groups.setdefault(key, []).append(p)
 
     awarded = 0.0
     for p in flat:

@@ -21,6 +21,7 @@ from deeptutor.services.construction_grading.case_light_practice_contract import
     AuthoritySourceError,
     LubanCaseScoringPoint,
     PointType,
+    ScoringPointError,
     SourceRef,
 )
 
@@ -99,3 +100,9 @@ def test_non_official_authority_source_is_rejected():
 def test_illegitimate_answer_key_authority_is_rejected():
     with pytest.raises(AuthoritySourceError):
         _valid_point(answer_key_authority="owner_freeform")
+
+
+def test_negative_max_score_is_rejected():
+    # 2026-07-09 Codex 对抗核证伪:负 max_score 会让满答得分低于漏答。
+    with pytest.raises(ScoringPointError):
+        _valid_point(max_score=-0.5)

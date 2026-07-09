@@ -11,6 +11,7 @@ from deeptutor.services.construction_grading.case_light_practice_contract import
     AcceptableVariant,
     LubanCaseScoringPoint,
     PointType,
+    ScoringPointError,
     SourceBindingError,
     SourceRef,
     score_conjunction_group,
@@ -20,12 +21,13 @@ from deeptutor.services.construction_grading.case_light_practice_contract import
 _REF = SourceRef("exam_reference_answer", "2019-一建建筑-案例三")
 
 
-def _point(point_id, *, score=1.0, conjunction_group=None, point_type=PointType.PROCEDURE):
+def _point(point_id, *, score=1.0, conjunction_group=None, point_type=PointType.PROCEDURE,
+           qid="q::sub1", sub_no="1"):
     return LubanCaseScoringPoint(
         point_id=point_id,
-        sub_no="1",
-        qid="q::sub1",
-        sub_qid="q::sub1",
+        sub_no=sub_no,
+        qid=qid,
+        sub_qid=qid,
         statement=f"statement-{point_id}",
         authority_source="official_answer",
         point_type=point_type,
@@ -48,6 +50,24 @@ def test_flaw_correction_needs_both_members_for_full_score():
     assert score_conjunction_group(points, {"fix"}) == 0.0
     # 找错∧改正 → 满分 2.0。
     assert score_conjunction_group(points, {"flaw", "fix"}) == 2.0
+
+
+def test_cross_question_same_group_name_not_merged():
+    # 2026-07-09 Codex 对抗核证伪:两道题各有一对同名 group "g",全局合并会把
+    # Q1 已挣的分拖成 0。作用域按 (qid,sub_qid,group) 后,命中 Q1 两半 → Q1 满分。
+    q1a = _point("q1a", score=0.5, conjunction_group="g", qid="Q1::s1")
+    q1b = _point("q1b", score=0.5, conjunction_group="g", qid="Q1::s1")
+    q2a = _point("q2a", score=0.5, conjunction_group="g", qid="Q2::s1")
+    q2b = _point("q2b", score=0.5, conjunction_group="g", qid="Q2::s1")
+    pts = [q1a, q1b, q2a, q2b]
+    assert score_conjunction_group(pts, {"q1a", "q1b"}) == 1.0  # Q1 full, Q2 zero
+    assert score_conjunction_group(pts, {"q1a", "q1b", "q2a", "q2b"}) == 2.0
+
+
+def test_duplicate_point_id_fails_closed():
+    # 2026-07-09 Codex 对抗核证伪:重复 point_id 会让一次命中满足两个成员。
+    with pytest.raises(ScoringPointError):
+        score_conjunction_group([_point("DUP"), _point("DUP")], {"DUP"})
 
 
 def test_non_conjunction_points_score_independently():
