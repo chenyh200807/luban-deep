@@ -216,7 +216,9 @@
 - §1.5B 两个新字段 `common_wrong_expressions`/`condition_tags` register-before-use(扩 LubanCaseScoringPoint 默认空 + T2 PINNED 内省对账)。
 - AI 错答挑错 `case_flaw_spotting.py`(复用 diagnose_photo 确定性算漏点)。
 - **§1.5B 全部 6 种题型现在都有确定性判分路径**:采分点点选→生成器+coverage / 题干关键词点选→set_membership(condition_tags)/ 漏点补全→diagnose_photo / 流程拖拽排序→ordering / AI 错答挑错→flaw_spotting / 判断改正→合取门。**判分侧教研-independent 代码全部写完。** 全套 case **122+ passed**,闭包 CLOSED 215,contract_guard 全绿。
-- **剩余真正 literally 可写**:各题型的**生成侧 item 组装变体**(薄,数据组装为主)+ RTG9 异源分流(LLM,需阿里云)。**判分/生成核心已全,再往下是生产接线(owner 拍架构)+ 双教研 verdict(人门)。**
+- **再追加(续3):RTG9 异源分流门做完**——`case_light_practice_rtg9.py`(确定性相似度预过滤 + 注入式异源 judge_fn,只分流不当真值)。**Qwen(dashscope)真异源阿里云只读实测通过**:近义干扰「分层剥离旧卷材」(RTG1-8 放过)→ 异源 Qwen 判"也对"→ 分流;跨厂 seam 端到端证明(生成器 DeepSeek / 校验器 Qwen)。
+- **✅ 教研-independent 后端代码全部写完**:P-1 契约 + 白名单门 + RTG1-8 门 + **RTG9 异源门** + 7 判分引擎(CPM/合取门/DAG+ECF/荷载/排序 + 拍照/认→写)+ 生成器 + 分发器 + §1.5B 全 6 题型判分。全套 case **126 passed**,闭包 CLOSED 215,contract_guard 全绿,Codex 对抗核修 26 真 bug,真 DeepSeek + 真 Qwen 异源阿里云实测通过。
+- **剩余全部要 owner / 人门**:①双教研填 verdict(唯一真阻塞);②接线进生产判分链(碰生产判官,需 owner 拍架构);③各题型生成侧 item 组装(薄,偏小程序 UI);④部署 / PR 合 main / 5 人需求验证。
 
 > **本 session 累计交付**:P-1 契约骨架 + 块A/B(真 DeepSeek 链路 + 5 题切分候选)+ C1 CPM + C2 合取门 + C3 DAG+ECF + C4 拍照诊断骨架。三个评分引擎(C1/C2/C3)各派 Codex 异源对抗核,**共揪出并治本修 12 个会误判学员的真 bug**(CPM 1 / 合取门 4 / DAG+ECF 7)。人门前准备(教研指南 + 切分候选 + 白名单填充器)全备齐。
 
