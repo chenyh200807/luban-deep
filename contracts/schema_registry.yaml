@@ -62,11 +62,11 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 214            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts + M35 R4 cached AB artifact; +fusion stage0 pack taxonomy registry + question->pack map; +case light-practice scoring-point read-view; +case calc-step DAG+ECF)
+  full_set_count: 215            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts + M35 R4 cached AB artifact; +fusion stage0 pack taxonomy registry + question->pack map; +case light-practice scoring-point read-view; +case calc-step DAG+ECF)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 34      # tier2_canonical_contracts below (+lecture answer pack/shard + PGO runtime-supply slot; +fusion stage0 two compiled read-only artifacts; +case light-practice scoring-point read-view PINNED; +case calc-step DAG+ECF PINNED)
+    tier2_runtime_canonical: 35      # tier2_canonical_contracts below (+lecture answer pack/shard + PGO runtime-supply slot; +fusion stage0 two compiled read-only artifacts; +case light-practice scoring-point read-view PINNED; +case calc-step DAG+ECF PINNED)
     tier3_ephemeral_artifact: 171    # covered by tier3_carve_out rule (+PGO runtime-supply verification report; lecture answer shard promoted out to T2; +M35 R4 cached AB artifact)
   # Closure invariant (asserted by the test): T1 ∪ T2 ∪ T3 == full_set, with
   # T1, T2 disjoint and exhaustive over the non-T3 remainder; every full-set id
@@ -807,3 +807,21 @@ tier2_canonical_contracts:
       - role
     required_tests:
       - tests/services/construction_grading/test_case_calc_dag.py
+
+  # ── Case set-membership(荷载组合矩阵勾选判分的每计算项结构, PINNED) ──────────
+  # 组合类计算题(荷载组合:整体稳定/立杆/底模各算哪些 G/Q)的每计算项(bin)正确荷载
+  # 集合 + 分值,喂集合精确匹配判分器。计算判分绝不走 LLM;采分点真值仍归编译库。
+  # register-before-use(§1① B:组合类 set_membership 进代码前先注册)。字段==SetMembershipPoint。
+  - name: luban_case_set_membership.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: the per-bin set-membership structure feeding the 荷载组合 matrix-select grader (bin/correct_set/points) — deterministic set-exact-match, no official-score authority, no LLM
+    module: deeptutor/services/construction_grading/case_load_combination.py
+    consumed_by: grade_set_membership (per-bin exact set match)
+    needs_field_canonicalization: false   # PINNED: canonical_fields = SetMembershipPoint dataclass; introspection reconciliation BLOCKING (test_case_load_combination.py)
+    canonical_fields:
+      - bin
+      - correct_set
+      - points
+    required_tests:
+      - tests/services/construction_grading/test_case_load_combination.py
