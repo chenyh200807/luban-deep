@@ -199,7 +199,9 @@
 - **真题金标验(非 self-test)**:N01 build-validated 网络逐工序 ES/EF/LS/LF/TF/FF **全对上 rendered SVG 官方值**(关键线路 START-A-C-E-END、总工期 10);两条并列关键线路 {2015} 型 T=25。(真题只有答案文本无机器网络,未编造网络。)
 - **Codex 异源对抗核**(codex-rescue,task-mrd47uhh):确认 **1 真 bug** —— `_EPS=1e-9` 绝对容差把 TF≈5e-10 的**真正非关键工作**误判为关键(假关键线路 = 误判学员)。**治本**:强制工期整数(一建 CPM 工期为整数天/月;非整构造期拒绝)+ 关键判据精确 `tf==0`,从源头除浮点 TF 歧义;回归测试锁死。Codex 其余攻击面(紧凑边枚举/FF/多起终点/畸形输入)**均无 bug**。
 - **人门前准备已备齐**:`segmentation_gold/_教研验收指南.md`(教研怎么填 review.json 一页纸)+ `scripts/fill_case_whitelist_from_review.py`(教研 consensus=passed 一键灌白名单,现 0 条 fail-closed)。
-- **剩余块 C**:C2 `flaw_correction` 合取门(`score_conjunction_group` 已有种子)/ C3 DAG+ECF / C4 OCR 骨架 / C5 认→写档2-4。**一轮一个判分引擎,必派 Codex**。当前 case 测试 **48 passed**(38 light-practice + 8 CPM + 2 填充器),闭包 CLOSED 213,contract_guard `--base origin/main` 全绿。
+**C2 · `flaw_correction` 合取门全绿**(commit 0d3950590):`case_flaw_correction.py` —— 找错子+改正子共享 conjunction_group,`judge_flaw_correction` 合取评分委托 `score_conjunction_group`(单一来源)+ 诊断状态(full/flaw_only/correction_only/miss,驱动"诊断挂误解")。不改生产判官(review-only 边界)。
+- **Codex 异源对抗核**(task-mrd4x93n)揪出 **4 个真判分 bug,全治本修**:①跨题/跨小问 pair 绕过校验拿满分 → 校验同 qid/sub_qid/sub_no;②`score_conjunction_group` 跨题**同名组全局合并**把一题分拖成 0 → group key 按 `(qid, sub_qid, group)` 作用域(§重要教训:合取/组判分必须按题作用域,别用全局字符串 key);③重复 point_id 一次命中满足两成员 → 输入去重 fail-closed;④负 max_score 满答得负分 → 构造期拒绝。5 回归测试锁死每个 bug 原输入。
+- **剩余块 C**:C3 DAG+ECF 计算图(最大引擎,新轮满上下文做)/ C4 OCR 骨架 / C5 认→写档2-4。**一轮一个判分引擎,必派 Codex**。当前 case 测试 **58 passed**,闭包 CLOSED 213,contract_guard `--base origin/main` 全绿。
 
 **T2-PINNED 裁断理由(单一权威 vs 字段保护,记录以备审)**:§1.5C 要求采分点 schema 有字段级保护、不许 T2 挂名。核查 `check_schema_registry.py:455` 后确认:本仓 guard 的 drift/authority 字段检查**硬编码只对 `luban_grading_object.v1` 跑**——真正的字段保护来自"frozen dataclass + 内省对账测试"(P2#9 给 context_pack/evidence_bundle 上 T2 PINNED 的同一手法),不来自 guard。故:**不往 T1"唯一 grading 对象"列表加第二个 canonical(守单一权威,不与 `luban_grading_object.v1` 竞争),改用 T2 PINNED(canonical_fields + `needs_field_canonicalization:false` + 内省对账)给字段保护。**这既满足 §1.5C(是"独立 typed schema"非"T2 挂名"),又不僭越成第二判分权威——采分点只读视图,判分权威仍归 `rubric_grader_v1`。
 
