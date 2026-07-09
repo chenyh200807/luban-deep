@@ -22,11 +22,15 @@ from deeptutor.services.construction_grading.case_light_practice_contract import
     AcceptableVariant,
     LubanCaseScoringPoint,
     PointType,
+    PracticeGradingKind,
     SourceRef,
     WHITELIST_PATH,
     assert_qid_allowed,
     load_whitelist,
 )
+
+# 教研在 review.json 标的确定性 kind(字符串 → 枚举);未标/非法 → None(走默认点选)。
+_KIND_BY_VALUE = {k.value: k for k in PracticeGradingKind}
 
 _RUBRIC_SUPPLY = (
     Path(__file__).resolve().parent
@@ -82,6 +86,7 @@ def project_scoring_points(
                 conjunction_group=(str(rp["conjunction_group"]) if rp.get("conjunction_group") else None),
                 ordering_group=(str(rp["ordering_group"]) if rp.get("ordering_group") else None),
                 list_cap=(int(rp["list_cap"]) if rp.get("list_cap") is not None else None),
+                practice_grading_kind=_KIND_BY_VALUE.get(str(rp.get("practice_grading_kind") or "")),
             )
         )
     return points

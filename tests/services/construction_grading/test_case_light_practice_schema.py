@@ -106,3 +106,25 @@ def test_negative_max_score_is_rejected():
     # 2026-07-09 Codex 对抗核证伪:负 max_score 会让满答得分低于漏答。
     with pytest.raises(ScoringPointError):
         _valid_point(max_score=-0.5)
+
+
+def test_practice_grading_kind_defaults_none_and_accepts_enum():
+    # register-before-use:新 tag 字段默认 None(不标=走默认点选),可标确定性 kind。
+    from deeptutor.services.construction_grading.case_light_practice_contract import (
+        PracticeGradingKind,
+    )
+    assert _valid_point().practice_grading_kind is None
+    p = _valid_point(practice_grading_kind=PracticeGradingKind.CPM_CRITICAL_PATH)
+    assert p.practice_grading_kind is PracticeGradingKind.CPM_CRITICAL_PATH
+
+
+def test_grading_kind_enum_is_single_authority():
+    # 单一权威:分发器暴露的 PracticeGradingKind 必须就是契约里那一个(同一对象),
+    # 不是第二套枚举 —— tag(采分点)与 dispatch(路由)共用同一权威。
+    from deeptutor.services.construction_grading.case_grading_dispatch import (
+        PracticeGradingKind as DispatchKind,
+    )
+    from deeptutor.services.construction_grading.case_light_practice_contract import (
+        PracticeGradingKind as ContractKind,
+    )
+    assert DispatchKind is ContractKind

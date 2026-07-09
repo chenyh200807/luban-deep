@@ -71,6 +71,22 @@ class PointType(str, Enum):
     CALCULATION_STEP = "计算步"
 
 
+class PracticeGradingKind(str, Enum):
+    """确定性判分引擎的题型分类学(**单一权威**:分发器与采分点 tag 共用同一枚举)。
+
+    小问级属性:一个小问整体是哪种确定性判分。CONJUNCTION / ORDERING / 列举封顶
+    可从采分点已有结构字段(conjunction_group/ordering_group/list_cap)派生;真正需要
+    教研在 review.json 显式标的只有 CALC_DAG / SET_MEMBERSHIP / CPM_CRITICAL_PATH
+    (policy 不足以判别——见 scripts/analyze_case_dispatch_policy.py 数据支撑)。
+    """
+
+    CALC_DAG = "calc_dag"                # 造价链式 / 挣值(DAG+ECF)
+    SET_MEMBERSHIP = "set_membership"    # 荷载组合(集合精确匹配)
+    ORDERING = "ordering"                # 工序排序(拓扑序)
+    CONJUNCTION = "conjunction"          # 判断改正(合取门)
+    CPM_CRITICAL_PATH = "cpm_critical_path"  # 网络计划关键线路点选
+
+
 class WhitelistError(RuntimeError):
     """Raised when a qid is not in the atomized-and-verified whitelist."""
 
@@ -126,6 +142,10 @@ class LubanCaseScoringPoint:
     # §1.5B 题型变体数据(register-before-use;默认空,向后兼容):
     common_wrong_expressions: tuple[str, ...] = ()  # 喂"AI 错答挑错"负面示例(泛泛而谈)
     condition_tags: tuple[str, ...] = ()            # 喂"题干关键词点选"(审题触发条件)
+    # 小问级确定性判分 kind(教研在 review.json 标 CALC_DAG/SET_MEMBERSHIP/CPM_CRITICAL_PATH;
+    # CONJUNCTION/ORDERING/列举可从上面结构字段派生)。None=未标/走默认点选。**注册但未接生产判官**
+    # (接线待 owner 拍落点/灰度,§3 red line);此字段只被 review-only resolver 投影,不铸官方分。
+    practice_grading_kind: PracticeGradingKind | None = None
 
     def __post_init__(self) -> None:
         if self.authority_source != CHANNEL_ONE_SCORING_AUTHORITY:
@@ -276,6 +296,7 @@ __all__ = [
     "LEGIT_ANSWER_KEY_AUTHORITY",
     "WHITELIST_PATH",
     "PointType",
+    "PracticeGradingKind",
     "WhitelistError",
     "SourceBindingError",
     "AuthoritySourceError",

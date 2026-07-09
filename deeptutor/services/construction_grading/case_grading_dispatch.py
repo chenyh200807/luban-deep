@@ -9,7 +9,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
 from typing import Any
 
 from deeptutor.services.construction_grading.case_calc_dag import grade_calc_dag
@@ -26,18 +25,14 @@ from deeptutor.services.construction_grading.case_process_ordering import (
     OrderingSpec,
     grade_ordering,
 )
+# 单一权威:题型枚举定义在契约模块,分发器复用(此处 re-export 保留既有 import 路径)。
+from deeptutor.services.construction_grading.case_light_practice_contract import (
+    PracticeGradingKind,
+)
 
 
 class DispatchError(ValueError):
     """Unknown grading kind or malformed payload for the routed engine."""
-
-
-class PracticeGradingKind(str, Enum):
-    CALC_DAG = "calc_dag"                # 造价链式 / 挣值(DAG+ECF)
-    SET_MEMBERSHIP = "set_membership"    # 荷载组合(集合精确匹配)
-    ORDERING = "ordering"                # 工序排序(拓扑序)
-    CONJUNCTION = "conjunction"          # 判断改正(合取门)
-    CPM_CRITICAL_PATH = "cpm_critical_path"  # 网络计划关键线路点选
 
 
 @dataclass(frozen=True)
