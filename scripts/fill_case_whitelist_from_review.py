@@ -17,6 +17,11 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from deeptutor.services.construction_grading.case_segmentation_quality_gate import (
+    passes_quality_gate,
+)
+
 _ROOT = Path(__file__).resolve().parents[1]
 _REVIEW_DIR = _ROOT / "docs/原始数据/考点原料/segmentation_gold"
 _WHITELIST = (
@@ -33,6 +38,8 @@ def _passed_entries(review_dir: Path = _REVIEW_DIR) -> list[dict]:
         consensus = d.get("consensus") or {}
         if consensus.get("status") != "passed":
             continue  # fail-closed: only教研-consensus-passed qids enter
+        if not passes_quality_gate(d):
+            continue  # §1限制② 切分质量闸:结构不过关(缺sub_no/合取组坏…)不进白名单
         qid = d["qid"]
         subs = sorted(
             {p.get("proposed_sub_no") for p in d.get("points") or [] if p.get("proposed_sub_no") is not None}
