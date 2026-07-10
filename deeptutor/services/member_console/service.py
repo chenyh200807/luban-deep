@@ -4398,12 +4398,17 @@ class MemberConsoleService:
         return " ".join(values).lower()
 
     def list_members_for_bi(self) -> list[dict[str, Any]]:
+        # 与 get_dashboard / list_members 同一 canonical 模式：对话活跃事实
+        # 只从 SQLite sessions 派生（v_members 的 chat 列来自死表，已弃读），
+        # 所以 BI 投影也必须过 _merge_session_activity_for_member_list。
         data = self._load()
         return deepcopy(
             self._filter_bi_operational_members(
-                self._load_member_directory_members_for_bi(
-                    data,
-                    include_session_activity_supplements=True,
+                self._merge_session_activity_for_member_list(
+                    self._load_member_directory_members_for_bi(
+                        data,
+                        include_session_activity_supplements=True,
+                    )
                 )
             )
         )

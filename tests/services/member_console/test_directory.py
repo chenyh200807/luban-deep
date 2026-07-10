@@ -65,14 +65,9 @@ def _member_row(index: int, *, phone: str = "") -> dict[str, Any]:
         "frozen_micros": 0,
         "wallet_created_at": "",
         "wallet_updated_at": "",
-        "first_chat_at": "",
-        "last_chat_at": "",
-        "total_conversations": 0,
-        "total_messages": 0,
         "has_user_record": True,
         "has_wallet": False,
         "has_profile": False,
-        "has_chat_history": False,
     }
 
 
@@ -302,3 +297,47 @@ def test_member_directory_does_not_count_backfill_alias_created_at_as_registrati
 
     assert len(members) == 1
     assert members[0]["created_at"] == "1970-01-01T00:00:00+00:00"
+
+
+def test_member_directory_does_not_read_dead_chat_conversation_columns() -> None:
+    """B 断点防回归：Postgres chat_conversations 是死表（真实对话在 SQLite
+    chat_history.db），v_members 的 chat 派生列全是空壳。目录读模型必须
+    完全不读这些列——宁缺毋假；真实对话活跃由 member_console service 的
+    _merge_session_activity_for_member_list 从 SQLite sessions 派生。"""
+    dead_columns = (
+        "first_chat_at",
+        "last_chat_at",
+        "total_conversations",
+        "total_messages",
+        "has_chat_history",
+    )
+    member = _member_row(1, phone="15558860001")
+    member["wallet_updated_at"] = "2026-07-01T10:00:00+00:00"
+    # 即使上游视图仍返回死列，也不得进入会员事实。
+    member["last_chat_at"] = "2026-07-09T10:00:00+00:00"
+    member["total_conversations"] = 99
+    member["total_messages"] = 999
+    member["has_chat_history"] = True
+    client = _PagedClient(
+        member_rows=[member],
+        alias_rows=[_phone_alias(1, source="phone_verification", phone="15558860001")],
+    )
+
+    members = _directory(client).list_members(limit=10)
+
+    v_members_calls = [call for call in client.calls if call["table"] == "v_members"]
+    assert v_members_calls, "expected at least one v_members query"
+    for call in v_members_calls:
+        select = str(call.get("select") or "")
+        order = str(call.get("order") or "")
+        for column in dead_columns:
+            assert column not in select, f"dead column {column} must not be selected"
+            assert column not in order, f"dead column {column} must not drive ordering"
+
+    assert len(members) == 1
+    metrics = members[0]["member_directory_metrics"]
+    for column in ("total_conversations", "total_messages", "has_chat_history"):
+        assert column not in metrics, f"dead column {column} must not appear in payload"
+    # last_active_at 不得吃死表的 last_chat_at；钱包时间是目录侧的保守回退，
+    # 真实对话活跃由 service 层 SQLite 合并覆盖。
+    assert members[0]["last_active_at"] == "2026-07-01T10:00:00+00:00"

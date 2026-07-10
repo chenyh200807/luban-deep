@@ -133,17 +133,21 @@ class SupabaseMemberDirectoryReadModel:
         # top-N-by-registration phone alias slice cover different user sets.
         alias_user_ids = list(eligible_phone_aliases.keys())
         uid_in_filter = f"in.({','.join(alias_user_ids)})"
+        # 注意：不要从 v_members 读任何 chat_conversations 派生列
+        # （first_chat_at/last_chat_at/total_conversations/total_messages/has_chat_history）。
+        # Postgres 的 chat_conversations 是死表（真实对话在宿主 SQLite chat_history.db），
+        # 这些列全是空壳/陈旧值。真实对话事实由 member_console service 的
+        # _merge_session_activity_for_member_list 从 SQLite sessions 派生。
         rows = self._select_rows_paginated(
             table="v_members",
             params={
                 "select": (
                     "user_id,identifier,phone,display_name,profession,exam_target,"
                     "plan_id,balance_micros,frozen_micros,wallet_created_at,wallet_updated_at,"
-                    "first_chat_at,last_chat_at,total_conversations,total_messages,"
-                    "has_user_record,has_wallet,has_profile,has_chat_history"
+                    "has_user_record,has_wallet,has_profile"
                 ),
                 "user_id": uid_in_filter,
-                "order": "last_chat_at.desc.nullslast,wallet_updated_at.desc.nullslast,user_id.asc",
+                "order": "wallet_updated_at.desc.nullslast,user_id.asc",
             },
             limit=len(alias_user_ids),
         )
@@ -279,26 +283,24 @@ class SupabaseMemberDirectoryReadModel:
         identity_metadata = _identity_metadata_from_mapping(row.get("identity_metadata"))
         identity_metadata = _merge_identity_metadata(row.get("user_metadata"), identity_metadata)
         wallet_created_at = _normalize_text(row.get("wallet_created_at"))
-        first_chat_at = _normalize_text(row.get("first_chat_at"))
         user_created_at = _normalize_text(row.get("user_created_at"))
         wallet_updated_at = _normalize_text(row.get("wallet_updated_at"))
-        last_chat_at = _normalize_text(row.get("last_chat_at"))
         phone_registered_at = ""
         if phone_alias_source == "phone_verification":
             phone_registered_at = phone_verified_at or phone_alias_created_at
         created_at = (
             phone_registered_at
             or wallet_created_at
-            or first_chat_at
             or user_created_at
             or _UNKNOWN_CREATED_AT
         )
-        last_active_at = last_chat_at or wallet_updated_at or first_chat_at or wallet_created_at or _UNKNOWN_CREATED_AT
+        # 对话活跃事实不在这里派生（chat_conversations 是死表）；
+        # last_active_at 的真实值由 SQLite session 活跃合并覆盖。
+        last_active_at = wallet_updated_at or wallet_created_at or _UNKNOWN_CREATED_AT
         aliases = sorted({value for value in (user_id, identifier) if value})
         has_user_record = _coerce_bool(row.get("has_user_record"))
         has_wallet = _coerce_bool(row.get("has_wallet"))
         has_profile = _coerce_bool(row.get("has_profile"))
-        has_chat_history = _coerce_bool(row.get("has_chat_history"))
         return {
             "user_id": user_id,
             "canonical_user_id": user_id,
@@ -307,7 +309,7 @@ class SupabaseMemberDirectoryReadModel:
             "display_name": _normalize_text(row.get("display_name")) or identifier or user_id,
             "phone": phone,
             "tier": plan_id or "trial",
-            "status": "active" if any((has_user_record, has_wallet, has_profile, has_chat_history, phone)) else "inactive",
+            "status": "active" if any((has_user_record, has_wallet, has_profile, phone)) else "inactive",
             "segment": _normalize_text(row.get("profession") or row.get("exam_target")) or "general",
             "risk_level": "low",
             "auto_renew": False,
@@ -331,13 +333,12 @@ class SupabaseMemberDirectoryReadModel:
             "earned_badge_ids": [],
             "identity_metadata": identity_metadata,
             "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            # 宁缺毋假：total_conversations/total_messages/has_chat_history 来自
+            # 死表 chat_conversations，已明确移除；真实对话统计走 SQLite sessions。
             "member_directory_metrics": {
-                "total_conversations": _coerce_int(row.get("total_conversations")),
-                "total_messages": _coerce_int(row.get("total_messages")),
                 "has_user_record": has_user_record,
                 "has_wallet": has_wallet,
                 "has_profile": has_profile,
-                "has_chat_history": has_chat_history,
             },
         }
 

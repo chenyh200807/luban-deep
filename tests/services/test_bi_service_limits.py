@@ -1023,3 +1023,130 @@ def test_tier_filter_uses_canonical_identity_values_not_only_user_id(
 
     assert overview["summary"]["total_sessions"] == 1
     assert overview["north_star"]["value"] == 1
+
+
+def _inject_internal_account_rows(service: BIService, rows: list[dict[str, object]]) -> None:
+    """在唯一 REST 读取边界（_supabase_internal_accounts）注入 bi_internal_accounts 行。
+
+    rows 语义与生产一致：审计流水按 created_at.desc 排列，
+    每个 user_id 的最新一行决定当前 is_internal 状态。
+    """
+
+    def _fake_rest(method: str, *, params: dict | None = None, body: dict | None = None):
+        assert method == "GET"
+        return rows
+
+    service._supabase_internal_accounts = _fake_rest  # type: ignore[method-assign]
+
+
+def test_member_dashboard_excludes_marked_internal_accounts(
+    store: SQLiteSessionStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A 断点防回归：bi_internal_accounts 里 is_internal=true 的账号必须从
+    会员统计口径（total/new_today/new_7d/new_30d）消失；排除逻辑唯一收口在
+    _load_all_members，最新一行为准（取消标记可恢复）。"""
+
+    class _FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            value = datetime(2026, 8, 1, 12, 0, tzinfo=timezone(timedelta(hours=8)))
+            return value.astimezone(tz) if tz else value
+
+    monkeypatch.setattr(bi_service_module, "datetime", _FixedDatetime)
+    service = BIService(
+        session_store=store,
+        member_service=_RecentMemberProjectionService(),
+        wallet_service=_UnconfiguredWalletService(),
+    )
+    _inject_internal_account_rows(
+        service,
+        [
+            # member_3d：最新一行 is_internal=true → 排除
+            {"user_id": "member_3d", "is_internal": True, "created_at": "2026-07-10T12:00:00+08:00"},
+            # member_20d：曾标记为内部，但最新一行取消标记 → 保留
+            {"user_id": "member_20d", "is_internal": False, "created_at": "2026-07-10T11:00:00+08:00"},
+            {"user_id": "member_20d", "is_internal": True, "created_at": "2026-07-01T10:00:00+08:00"},
+        ],
+    )
+
+    stats = asyncio.run(service.get_member_stats(days=30))
+
+    # 未标记基线（见 test_member_stats_counts_recent_registered_members_by_created_window）：
+    # total 4 / today 1 / 7d 2 / 30d 3。排除 member_3d 后：
+    assert stats["dashboard"]["total_count"] == 3
+    assert stats["dashboard"]["new_today_count"] == 1
+    assert stats["dashboard"]["new_7d_count"] == 1
+    assert stats["dashboard"]["new_30d_count"] == 2
+
+
+def test_growth_funnel_retention_and_active_learners_exclude_internal_accounts(
+    store: SQLiteSessionStore, tmp_path: Path
+) -> None:
+    """内部账号（按 alias 标记也算）不得出现在增长漏斗、留存 cohort 和活跃学习者里。"""
+
+    async def _seed() -> None:
+        session = await store.create_session(title="Internal Session", session_id="internal_session")
+        await store.update_session_preferences(
+            session["id"],
+            {"source": "wx_miniprogram", "user_id": "member_1"},
+        )
+        turn = await store.create_turn(session["id"], capability="chat")
+        await store.update_turn_status(turn["id"], "completed")
+
+    asyncio.run(_seed())
+
+    def _service() -> BIService:
+        return BIService(
+            session_store=store,
+            member_service=_RegisteredMemberService(),
+            usage_ledger=_seeded_ledger(tmp_path, 0.1),
+            wallet_service=_UnconfiguredWalletService(),
+        )
+
+    # 对照组（未标记）：会员计入漏斗，会话计入留存与活跃学习者。
+    control = _service()
+    _inject_internal_account_rows(control, [])
+    control_overview = asyncio.run(control.get_overview(days=7))
+    control_retention = asyncio.run(control.get_retention(days=7))
+    control_registered = next(
+        step for step in control_overview["growth_funnel"]["steps"] if step["id"] == "registered_members"
+    )
+    assert control_registered["value"] == 1
+    assert control_overview["summary"]["active_learners"] == 1
+    assert control_retention["cohorts"], "control cohorts must not be empty"
+
+    # 实验组：通过 alias（wx_member_1）标记 member_1 为内部账号。
+    marked = _service()
+    _inject_internal_account_rows(
+        marked,
+        [{"user_id": "wx_member_1", "is_internal": True, "created_at": "2026-07-10T12:00:00+08:00"}],
+    )
+    marked_overview = asyncio.run(marked.get_overview(days=7))
+    marked_retention = asyncio.run(marked.get_retention(days=7))
+    marked_registered = next(
+        step for step in marked_overview["growth_funnel"]["steps"] if step["id"] == "registered_members"
+    )
+    assert marked_registered["value"] == 0
+    assert marked_overview["summary"]["active_learners"] == 0
+    assert marked_retention["cohorts"] == []
+
+
+def test_internal_account_exclusion_fails_open_when_marker_table_unavailable(
+    store: SQLiteSessionStore,
+) -> None:
+    """标记表读失败必须 fail-open：BI 短暂回到未清洗口径并告警，不能整体不可用。"""
+    service = BIService(
+        session_store=store,
+        member_service=_RegisteredMemberService(),
+        wallet_service=_UnconfiguredWalletService(),
+    )
+
+    def _broken_rest(method: str, *, params: dict | None = None, body: dict | None = None):
+        raise RuntimeError("bi_internal_accounts unavailable")
+
+    service._supabase_internal_accounts = _broken_rest  # type: ignore[method-assign]
+
+    stats = asyncio.run(service.get_member_stats(days=30))
+
+    assert stats["dashboard"]["total_count"] == 1
