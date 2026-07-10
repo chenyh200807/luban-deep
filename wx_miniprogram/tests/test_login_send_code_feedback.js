@@ -100,6 +100,7 @@ function loadPage(relativePath, overrides) {
 
   var page = {
     data: Object.assign({}, (pageDef && pageDef.data) || {}),
+    _mounted: true,
     setData: function (next) {
       this.data = Object.assign({}, this.data, next || {});
     },

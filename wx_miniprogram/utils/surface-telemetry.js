@@ -18,7 +18,23 @@ function buildEventId() {
   );
 }
 
-function deliverEvent(eventName, data, collectedAtMs, token) {
+function enqueuePendingEvent(event) {
+  if (pendingEvents.length >= PENDING_EVENTS_MAX) {
+    pendingEvents.shift();
+  }
+  pendingEvents.push(event);
+}
+
+function buildEvent(eventName, data, collectedAtMs) {
+  return {
+    eventId: buildEventId(),
+    eventName: eventName,
+    data: data,
+    collectedAtMs: collectedAtMs,
+  };
+}
+
+function deliverEvent(event, token) {
   var baseUrl = endpoints.getPrimaryBaseUrl(false);
   if (!baseUrl) return;
   var headers = {
@@ -32,18 +48,22 @@ function deliverEvent(eventName, data, collectedAtMs, token) {
       method: "POST",
       header: headers,
       data: {
-        event_id: buildEventId(),
+        event_id: event.eventId,
         surface: "wechat_miniprogram",
-        event_name: String(eventName || "").trim(),
-        session_id: data.sessionId || "",
-        turn_id: data.turnId || "",
-        collected_at_ms: collectedAtMs,
+        event_name: String(event.eventName || "").trim(),
+        session_id: event.data.sessionId || "",
+        turn_id: event.data.turnId || "",
+        collected_at_ms: event.collectedAtMs,
         sent_at_ms: Date.now(),
-        metadata: data.metadata || {},
+        metadata: event.data.metadata || {},
       },
-      fail: function () {},
+      fail: function () {
+        enqueuePendingEvent(event);
+      },
     });
-  } catch (_) {}
+  } catch (_) {
+    enqueuePendingEvent(event);
+  }
 }
 
 function flushPendingEvents(token) {
@@ -51,12 +71,7 @@ function flushPendingEvents(token) {
   var queued = pendingEvents;
   pendingEvents = [];
   for (var i = 0; i < queued.length; i++) {
-    deliverEvent(
-      queued[i].eventName,
-      queued[i].data,
-      queued[i].collectedAtMs,
-      token,
-    );
+    deliverEvent(queued[i], token);
   }
 }
 
@@ -70,20 +85,14 @@ function track(eventName, payload) {
   }
   var collectedAtMs = Date.now();
   var data = payload && typeof payload === "object" ? payload : {};
+  var event = buildEvent(eventName, data, collectedAtMs);
   var token = auth.getToken();
   if (!token) {
-    if (pendingEvents.length >= PENDING_EVENTS_MAX) {
-      pendingEvents.shift();
-    }
-    pendingEvents.push({
-      eventName: eventName,
-      data: data,
-      collectedAtMs: collectedAtMs,
-    });
+    enqueuePendingEvent(event);
     return;
   }
   flushPendingEvents(token);
-  deliverEvent(eventName, data, collectedAtMs, token);
+  deliverEvent(event, token);
 }
 
 function trackOnce(uniqueKey, eventName, payload) {

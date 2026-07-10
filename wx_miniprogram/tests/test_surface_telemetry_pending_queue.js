@@ -49,6 +49,12 @@ function loadTelemetry(state) {
     wx: {
       request: function (options) {
         requests.push(options);
+        if (
+          state.networkOnline === false &&
+          typeof options.fail === "function"
+        ) {
+          options.fail({ errMsg: "request:fail network disconnected" });
+        }
       },
       getStorageSync: function (key) {
         return storage[key];
@@ -120,6 +126,41 @@ function loadTelemetry(state) {
       "collected_at_ms preserved and not after sent_at_ms",
     );
   }
+})();
+
+(function testNetworkFailureIsRetriedAfterRecoveryWithStableEventId() {
+  var state = { token: "tok", networkOnline: false };
+  var loaded = loadTelemetry(state);
+  loaded.telemetry.track("chat_message_sent", {
+    metadata: { module: "chat", action: "send", seq: 1 },
+  });
+  assert(loaded.requests.length === 1, "online-auth event attempts delivery");
+
+  state.networkOnline = true;
+  loaded.telemetry.track("module_viewed", {
+    metadata: { module: "chat", action: "view", seq: 2 },
+  });
+
+  assert(
+    loaded.requests.length === 3,
+    "failed event retries before the recovery event (got " +
+      loaded.requests.length +
+      ")",
+  );
+  assert(
+    loaded.requests[1].data.event_name === "chat_message_sent" &&
+      loaded.requests[2].data.event_name === "module_viewed",
+    "recovery flushes the failed event before the new event",
+  );
+  assert(
+    loaded.requests[0].data.event_id === loaded.requests[1].data.event_id,
+    "retry preserves event_id for server-side idempotency",
+  );
+  assert(
+    loaded.requests[0].data.collected_at_ms ===
+      loaded.requests[1].data.collected_at_ms,
+    "retry preserves the original collection timestamp",
+  );
 })();
 
 (function testQueueCapDropsOldest() {
