@@ -1,5 +1,6 @@
 // package/freeCourseDetails/freeCourseDetails.js
 var behavior = require('../../utils/behavior')
+var utilMd5 = require('../../utils/md5.js');
 
 let polyvModule = null;
 
@@ -10,22 +11,6 @@ function getPolyvModule() {
       loadedModule && loadedModule.default ? loadedModule.default : loadedModule;
   }
   return polyvModule;
-}
-
-function getPolyvSignature(source, vid) {
-  const payload = source && typeof source === 'object' ? source : {};
-  const signatureMap = payload.polyv_signatures || payload.video_signatures || {};
-  const mapped = vid && signatureMap && typeof signatureMap === 'object' ? signatureMap[vid] : null;
-  const signatureSource = mapped && typeof mapped === 'object' ? mapped : payload;
-  const ts = signatureSource.polyv_ts || signatureSource.video_ts || signatureSource.videoTs || signatureSource.ts;
-  const sign = signatureSource.polyv_sign || signatureSource.video_sign || signatureSource.videoSign || signatureSource.sign;
-  if (!ts || !sign) {
-    return null;
-  }
-  return {
-    ts: ts,
-    sign: String(sign)
-  };
 }
 
 Component({
@@ -184,7 +169,7 @@ Component({
         polyvModule.destroy();
       }
     },
-    requestVideoSrc: function(vid, shouldAutoPlay, signatureSource) {
+    requestVideoSrc: function(vid, shouldAutoPlay) {
       if (!vid) {
         return;
       }
@@ -198,17 +183,15 @@ Component({
       this.videoRequestSeq = requestSeq;
       this.pendingAutoPlaySeq = shouldAutoPlay ? requestSeq : 0;
       this.videoReady = false;
-      const signedRequest = getPolyvSignature(signatureSource, vid);
-      if (!signedRequest) {
-        this.pendingAutoPlaySeq = 0;
-        console.error('polyv signed request unavailable');
-        return;
-      }
+      const timestamp = Date.parse(new Date());
+      const secretKey = 'mnABa9XMn8';
+      const ts = timestamp;
+      const sign = utilMd5.hexMD5(secretKey + vid + ts);
       const that = this;
       polyv.getVideo({
         vid: vid,
-        ts: signedRequest.ts,
-        sign: signedRequest.sign,
+        ts: ts,
+        sign: sign,
         callback: function(videoInfo) {
           if (requestSeq !== that.videoRequestSeq) {
             return;
@@ -237,7 +220,7 @@ Component({
         return;
       }
       try {
-        this.requestVideoSrc(playId, true, initial && initial.item ? initial.item : detail);
+        this.requestVideoSrc(playId, true);
       } catch (error) {
         this.pendingAutoPlaySeq = 0;
         console.error('video init failed', error);
@@ -310,8 +293,8 @@ Component({
           wx.setNavigationBarTitle({
             title: detail.name || '佑森好课'
           });
-        //showvier
-          if (res.showvier == 32) {
+        //showvier 
+          if (res.showvier == 37) {
             wx.redirectTo({
               url: '/pages/freeCourseDetailsonline/freeCourseDetailsonline'
             });
@@ -384,7 +367,7 @@ Component({
         });
         this.scheduleBeishuHide();
         if (video_id) {
-          this.requestVideoSrc(video_id, true, currentChapter);
+          this.requestVideoSrc(video_id, true);
         }
       } else {
         const progressState = this.getProgressState(chapterList, currentChapter.displayIndex || (Number(index) + 1));
@@ -406,7 +389,7 @@ Component({
     },
     //第三方视频
     publicVideo: function(id) {
-      this.requestVideoSrc(id, true, this.data.gratisDetail);
+      this.requestVideoSrc(id, true);
     },
     staPlay: function() {
       this.pendingAutoPlaySeq = 0;
@@ -508,7 +491,7 @@ Component({
       }
       this.setData(nextState);
     },
-
+   
    //广告跳转
    goTooneggimageurl: function(){
     if(this.data.oneggimageurl){
