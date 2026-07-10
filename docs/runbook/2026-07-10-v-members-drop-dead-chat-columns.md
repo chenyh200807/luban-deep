@@ -93,12 +93,45 @@ select count(*) from public.v_members;
 
 - [ ] `/api/v1/bi/member/list` 正常返回，`last_active_at` 非空（来自 SQLite 会话合并或钱包时间回退）；
 - [ ] `/api/v1/bi/members`（get_member_stats）dashboard 正常；
-- [ ] `new_30d_count` 从 ~300 量级掉到 ~60 量级（2026-07-10 清洗后真值 = 61，含内部账号排除生效的联合验收，见下）。
+- [ ] `new_30d_count` 落入量级带 60±10（canonical 基线口径见下方待办，不用死数）。
 
 ## 关联生产验收待办（本次 P3 全量）
 
-1. 部署 `fix/p3-bi-honest-metrics` 后调 `/api/v1/bi/members?days=30`：断言 `dashboard.new_30d_count` ≈ 61（清洗后真值，2026-07-10 口径），不再是 ~300 量级；
-2. `/api/v1/bi/member-ops/internal-accounts` 端点仍能列出 426 条标记（展示端点复用同一读取核，不受影响）；
-3. 增长漏斗 `registered_members` 步与留存 cohort 数量同步收缩（同一 `_load_all_members` 收口，无需单独口径）;
-4. 执行本视图变更并跑上面的执行后验收；
-5. 观察一个整点内 BI 面板无 5xx（内部账号标记表读失败时 fail-open 已兜底，但需确认无意外）。
+> 口径裁定（指挥官 2026-07-10）：部署验收**不用死数**（61/62 都不用）。canonical 基线 =
+> 基线取证用的 phone-alias 复算脚本本身；验收时用**同一脚本同一时点**重跑 before/after。
+
+0. **【P3 数字读取前执行】P5 QA 账号标记（双保险）**：
+   P5 live 验证账号 `qa_eval_claude_code_p5honesty`（合成手机号 19900000731，
+   canonical uid `9d603677-bb1c-4fd7-867e-865cab268b61`）已形成
+   `phone_verification` 可信 phone alias（2026-07-10T02:47Z）。
+   已活体验证：其 alias metadata 带全套机器身份标记
+   （account_kind=eval_runner / actor_type=machine / is_internal_test=true），
+   既有 eligibility 层（`_has_explicit_non_human_identity`）在最坏情况（UUID 显示名、
+   无 qa_ 前缀可抓）下也会排除它，预期**不影响**基线。按指挥官裁决仍执行双保险标记
+   （审计表 append-only，重复执行只多一行同值流水，无副作用）：
+
+   ```sql
+   insert into public.bi_internal_accounts (user_id, is_internal, operator_id, reason)
+   values (
+     '9d603677-bb1c-4fd7-867e-865cab268b61',
+     true,
+     'claude_code_p3_acceptance_20260710',
+     'P5 live 验证 QA 账号 qa_eval_claude_code_p5honesty（合成手机号 19900000731，eval_runner 机器身份），防止污染 P3 部署验收基线'
+   );
+   ```
+
+1. **【顺序依赖】先执行 P4 迁移 `--apply`**：存量 1351 条 tutorbot 镜像行在迁移前仍带旧身份戳，
+   会继续污染 `_merge_session_activity_for_member_list` 的会话派生；P3 会话派生类数字验收必须在
+   P4 `--apply` 之后读取。P4+P3 合并部署后抽 3 名会员核 `last_active_at` 只来自 canonical 会话。
+2. 部署 `fix/p3-bi-honest-metrics` 后调 `/api/v1/bi/members?days=30`：用基线取证的 phone-alias
+   复算脚本同一时点重跑 before/after，断言 `dashboard.new_30d_count` 落入量级带 **60±10**，
+   且 before/after 差值可由三个已命名部件完全解释：
+   (a) 被排除的 bi_internal_accounts 内部账号数；(b) P5 qa 账号是否已被待办 0 标记；
+   (c) 窗口内新增自然注册数。不能解释的残差 = 验收不通过，先归因再放行；
+3. `/api/v1/bi/member-ops/internal-accounts` 端点仍能列出 426+ 条标记（展示端点复用同一读取核，不受影响）；
+4. 增长漏斗 `registered_members` 步与留存 cohort 数量同步收缩（同一 `_load_all_members` 收口，无需单独口径）;
+5. 执行本视图变更并跑上面的执行后验收；
+6. 观察一个整点内 BI 面板无 5xx；fail-open 告警实体已验证：logger
+   `deeptutor.services.bi_service`，WARNING 级，格式
+   `internal account exclusion unavailable, fail-open: <原因>`（这是容器 log 实体，
+   未接 Prometheus metric——验收期若看到该行，说明标记表读取在抖动，数字口径可能临时回退到未清洗）。

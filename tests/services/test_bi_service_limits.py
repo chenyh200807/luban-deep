@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -1038,8 +1039,12 @@ def test_growth_funnel_retention_and_active_learners_exclude_internal_accounts(
 
 def test_internal_account_exclusion_fails_open_when_marker_table_unavailable(
     store: SQLiteSessionStore,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """标记表读失败必须 fail-open：BI 短暂回到未清洗口径并告警，不能整体不可用。"""
+    """标记表读失败必须 fail-open：BI 短暂回到未清洗口径，不能整体不可用。
+
+    fail-open 的告警必须是可观测实体：断言 deeptutor.services.bi_service
+    logger 真的发出了含失败原因的 WARNING 记录，而不是注释里的"只告警"。"""
     service = BIService(
         session_store=store,
         member_service=_RegisteredMemberService(),
@@ -1051,6 +1056,16 @@ def test_internal_account_exclusion_fails_open_when_marker_table_unavailable(
 
     service._supabase_internal_accounts = _broken_rest  # type: ignore[method-assign]
 
-    stats = asyncio.run(service.get_member_stats(days=30))
+    with caplog.at_level(logging.WARNING, logger="deeptutor.services.bi_service"):
+        stats = asyncio.run(service.get_member_stats(days=30))
 
     assert stats["dashboard"]["total_count"] == 1
+    warning_records = [
+        record
+        for record in caplog.records
+        if record.name == "deeptutor.services.bi_service"
+        and record.levelno == logging.WARNING
+        and "internal account exclusion unavailable, fail-open" in record.getMessage()
+    ]
+    assert warning_records, "fail-open path must emit an observable WARNING"
+    assert "bi_internal_accounts unavailable" in warning_records[0].getMessage()
