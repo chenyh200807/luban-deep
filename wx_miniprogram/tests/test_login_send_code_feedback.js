@@ -66,6 +66,9 @@ function loadPage(relativePath, overrides) {
           trackProductBehavior: function () {},
         };
       }
+      if (request === "../../utils/first-run-entry") {
+        return { goHomeAfterAuth: function () {} };
+      }
       if (request === "../../utils/auth") return { isLoggedIn: function () { return false; } };
       if (request === "../../utils/helpers") {
         return {

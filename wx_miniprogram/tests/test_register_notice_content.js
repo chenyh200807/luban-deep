@@ -59,6 +59,9 @@ function loadRegisterPage(filePath, filename, options) {
           },
         };
       }
+      if (request === "../../utils/first-run-entry") {
+        return { goHomeAfterAuth: function () {} };
+      }
       if (request === "../../utils/analytics") return { track: function () {} };
       throw new Error("unexpected require: " + request);
     },
