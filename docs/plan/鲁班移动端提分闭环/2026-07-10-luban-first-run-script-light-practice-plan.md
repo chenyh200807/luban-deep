@@ -5,7 +5,7 @@
 > Parent authority: [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md)（PRD v1.3，留存闭环主菜）
 > 资产供给方: [2026-07-08-luban-case-question-light-practice-capability-plan.md](2026-07-08-luban-case-question-light-practice-capability-plan.md)（案例题轻练 v1.3，后端已建；本计划只消费其 1-3 道静态切片，不改其排期与红线）
 > 漏斗外侧兄弟计划: [2026-07-01-luban-microlesson-acquisition-conversion-plan.md](2026-07-01-luban-microlesson-acquisition-conversion-plan.md)（微课引流管获客=门外；本计划管进门第一分钟=门内，一外一内不重叠）
-> D1 判据锚: [2026-07-02-luban-spike-d1-baseline-preregistration.md](2026-07-02-luban-spike-d1-baseline-preregistration.md)（基线 6.2%，乙案判据 owner-approved）
+> D1 基线参考: [2026-07-02-luban-spike-d1-baseline-preregistration.md](2026-07-02-luban-spike-d1-baseline-preregistration.md)（基线 6.2% 仅作参照。**owner 拍板 2026-07-10 下午：撤销 spike 统计验证路线**——自然流量 2-3 人/天撑不起 cohort≥30 的统计判据，按实际调研+理解推理推进；效果读数以 G0 埋点后的**逐人回放**为主，统计口径只看长期趋势）
 > 发布锚: 老蓝版 `release/old-blue-frontend`（owner 已拍板 2026-07-10，不等五模块新前端）
 
 ## 0. 一句话总控
@@ -38,6 +38,13 @@
 ### 1.3 与埋点/BI 修复（硬依赖）
 
 2026-07-10 已派出的并行修复窗口中，**埋点通电（surface-telemetry → product_behavior_events）是本计划的 G0 前置门**；BI 内部账号管道消费修复决定效果数字是否可信。见 §4。
+
+### 1.4 与五模块学习页（owner 拍板 2026-07-10 下午：轻练=形态族，双挂载）
+
+- **概念收口**："轻练"是**形态族**不是单一题型——学习页轻练槽派发一切"低门槛、少打字、2 分钟内"的练习形态。族内两成员：**MCQ 变体轻练**（已实现，retest forward，供给可量产，日常主力）+ **案例点选轻练**（本计划建设的页面；供给稀缺，节奏化派发如"每周案例日"）。此定义**不推翻** PRD v1.3"案例题不当日常大菜"：案例点选进学习页是节奏化成员，MCQ 扛日常节奏——恰好也匹配供给天花板（5 道题当日常任务两天穿帮，当案例日能撑一个多月）。
+- **双挂载**：G2 建的案例点选页**一次建设、挂两处**——现在挂老蓝版首跑剧本（本计划主体）；同时预留学习页今日任务 `task_type=case_light_practice` 接口（register-before-use 登记），五模块发布后学习页即插即用，不做第二遍。
+- **判分权威不融合**：MCQ 走 `mcq.py`/前端本地判分，案例走确定性引擎，两链零交集；融合只发生在"今天派哪张卡"的任务卡调度层。
+- **供给账（中期）**：学习页"案例日"可持续需要供给从 5 道扩到 30-50 道（约 2-3 人周切分验收吞吐）；何时投这笔人力，由上线后逐人回放数据决定。
 
 ## 2. 证据基座（2026-07-10 生产活体调研，不是推断）
 
@@ -108,7 +115,7 @@
 | --- | --- | --- |
 | 注册 → 完成第一题（幕③） | —（现"注册→首条消息"仅 40%） | ≥60% |
 | 注册 → 首条价值体验（幕③或首条消息） | 40% | ≥70% |
-| organic D1 回访 | ≈0%（全量历史基线 6.2%） | 对齐 spike 乙案口径：绝对 ≥15%，cohort≥30，窗口≥7 天 |
+| organic D1 回访 | ≈0%（全量历史基线 6.2%） | **逐人回放为主**（2-3 人/天下每个新用户都是可读个案：进到第几幕/卡在哪/次日来没来）；≥15% 仅作长期趋势参考，cohort<30 不下统计结论（owner 2026-07-10 撤销 spike 统计路线） |
 
 效果读数以清洗后 BI 口径为准（内部账号排除管道修复 = 并行窗口 Prompt 3）。cohort 不足 30 时只读趋势不下结论。
 
