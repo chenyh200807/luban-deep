@@ -10,27 +10,39 @@
 
   <!-- 摸底 1/2 -->
   <view wx:if="{{act === 'war'}}" class="fr-act">
-    <view class="fr-chip">备考摸底 · 1/2</view>
-    <view class="fr-title">先认识一下——{{'\n'}}这是你第几次考一建？</view>
+    <view class="fr-chip">◆ 备考摸底 · 1/2</view>
+    <view class="fr-title">先认识一下——{{'\n'}}这是你<text class="hi">第几次</text>考一建？</view>
     <view class="fr-lead">不用打字，点一下就行。接下来 3 分钟，按你的情况来。</view>
     <view class="fr-opts">
-      <view wx:for="{{warOpts}}" wx:key="key" class="fr-opt" data-key="{{item.key}}" bindtap="onWarPick">
+      <view wx:for="{{warOpts}}" wx:key="key" class="fr-opt anim" style="animation-delay:{{index * 70}}ms"
+            data-key="{{item.key}}" bindtap="onWarPick">
         <text class="fr-opt-key">{{index === 0 ? 'A' : index === 1 ? 'B' : index === 2 ? 'C' : 'D'}}</text>
-        <text>{{item.text}}</text>
+        <text class="fr-opt-tx">{{item.text}}</text>
+        <text class="fr-arrow">›</text>
       </view>
+    </view>
+    <view class="fr-meta">
+      <text class="fr-meta-chip">📕 4 道真题</text>
+      <text class="fr-meta-chip">⏱ 全程 3 分钟</text>
+      <text class="fr-meta-chip">👆 零打字</text>
     </view>
   </view>
 
   <!-- 摸底 2/2 -->
   <view wx:if="{{act === 'mode'}}" class="fr-act">
-    <view class="fr-chip">备考摸底 · 2/2</view>
-    <view class="fr-title">案例题上，{{'\n'}}你最典型的状态是？</view>
+    <view class="fr-chip">◆ 备考摸底 · 2/2</view>
+    <view class="fr-title">案例题上，{{'\n'}}你最<text class="hi">典型的状态</text>是？</view>
     <view class="fr-lead">凭直觉选。这决定了系统先帮你补哪块，也会写进你等下的报告。</view>
     <view class="fr-opts">
-      <view wx:for="{{modeOpts}}" wx:key="key" class="fr-opt" data-key="{{item.key}}" bindtap="onModePick">
+      <view wx:for="{{modeOpts}}" wx:key="key" class="fr-opt anim" style="animation-delay:{{index * 70}}ms"
+            data-key="{{item.key}}" bindtap="onModePick">
         <text class="fr-opt-key">{{index === 0 ? 'A' : index === 1 ? 'B' : index === 2 ? 'C' : 'D'}}</text>
-        <text>{{item.text}}</text>
+        <text class="fr-opt-tx">{{item.text}}</text>
+        <text class="fr-arrow">›</text>
       </view>
+    </view>
+    <view class="fr-meta">
+      <text class="fr-meta-chip">答完直接上真题 · 不到 1 分钟</text>
     </view>
   </view>
 
@@ -45,9 +57,11 @@
     <view class="fr-stem"><rich-text nodes="{{q.stem}}"></rich-text></view>
     <view class="fr-hint">{{q.hint}}</view>
     <view class="fr-opts">
-      <view wx:for="{{q.opts}}" wx:key="key" class="fr-opt" data-key="{{item.key}}" bindtap="onAnswer">
+      <view wx:for="{{q.opts}}" wx:key="key" class="fr-opt anim" style="animation-delay:{{index * 70}}ms"
+            data-key="{{item.key}}" bindtap="onAnswer">
         <text class="fr-opt-key">{{item.key}}</text>
-        <text>{{item.text}}</text>
+        <text class="fr-opt-tx">{{item.text}}</text>
+        <text class="fr-arrow">›</text>
       </view>
     </view>
   </view>
@@ -112,9 +126,11 @@
     <view class="fr-title small">{{interTitle}}</view>
     <view class="fr-inter-note">和考试无关，10 秒——系统在学怎么教你。</view>
     <view class="fr-opts">
-      <view wx:for="{{inter.opts}}" wx:key="key" class="fr-opt itl" data-key="{{item.key}}" bindtap="onInterPick">
+      <view wx:for="{{inter.opts}}" wx:key="key" class="fr-opt itl anim" style="animation-delay:{{index * 70}}ms"
+            data-key="{{item.key}}" bindtap="onInterPick">
         <text class="fr-opt-key warm">{{item.key}}</text>
-        <text>{{item.text}}</text>
+        <text class="fr-opt-tx">{{item.text}}</text>
+        <text class="fr-arrow warm">›</text>
       </view>
     </view>
   </view>
