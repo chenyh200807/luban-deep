@@ -1078,3 +1078,96 @@ def test_tutorbot_engine_mirror_stays_engine_owned_across_repeat_saves(tmp_path)
     assert (mirror_owner or "") == ""
     assert mirror_source == "tutorbot"
     assert '"user_id"' not in (mirror_prefs or "")
+
+
+def test_tutorbot_engine_mirror_reused_after_stock_demotion(tmp_path) -> None:
+    """迁移身份断言：存量镜像行被 demote（剥 owner_key/user_id、source→tutorbot）后，
+    get_or_create(session_key) 仍命中同一行——匹配只按主键 id=tutorbot:<key>
+    （sqlite_adapter._load_sync → store._get_session_sync），不依赖任何被剥元数据。
+    若匹配依赖身份戳，迁移会诱发新一轮双写（新建第二条镜像行）。"""
+    from pathlib import Path as _Path
+    import sqlite3 as _sqlite3
+    import subprocess
+    import sys as _sys
+
+    db_path = tmp_path / "chat_history.db"
+    store = SQLiteSessionStore(db_path=db_path)
+    user_id = "u-stock"
+    key = f"bot:construction-exam-coach:user:{user_id}:chat:conv_stock"
+    mirror_id = f"tutorbot:{key}"
+
+    # 造一条 legacy 形状的存量镜像行（身份戳齐全，等价于旧代码产物）
+    asyncio.run(
+        store.create_session(
+            session_id=mirror_id,
+            owner_key=build_user_owner_key(user_id),
+            source="wx_miniprogram",
+            title="存量镜像",
+        )
+    )
+    asyncio.run(
+        store.update_session_preferences(
+            mirror_id,
+            {"source": "wx_miniprogram", "user_id": user_id, "conversation_id": "conv_stock"},
+        )
+    )
+    asyncio.run(
+        store.add_message(
+            session_id=mirror_id,
+            role="user",
+            content="存量第一问",
+            capability="tutorbot",
+            events=[{"_tutorbot_message": {"role": "user", "content": "存量第一问"}}],
+        )
+    )
+
+    # 跑存量迁移脚本 --apply
+    script = _Path(__file__).resolve().parents[3] / "scripts" / "demote_tutorbot_mirror_sessions.py"
+    result = subprocess.run(
+        [_sys.executable, str(script), "--db-path", str(db_path), "--apply"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "demoted: 1" in result.stdout
+
+    # 迁移后 get_or_create 必须命中同一行：历史消息完整恢复（证明没有新建空行）
+    adapter = SQLiteSessionAdapter(store)
+    restored = adapter.get_or_create(key)
+    assert [item["content"] for item in restored.messages] == ["存量第一问"]
+
+    # 且 sessions 表行数不变（没有第二条镜像行被创建）
+    conn = _sqlite3.connect(str(db_path))
+    try:
+        total = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
+        mirror_rows = conn.execute(
+            "SELECT COUNT(*) FROM sessions WHERE id LIKE 'tutorbot:%'"
+        ).fetchone()[0]
+    finally:
+        conn.close()
+    assert total == 1
+    assert mirror_rows == 1
+
+    # 续写一轮后仍保持 demoted 且仍是同一行
+    restored.metadata = {
+        "bot_id": "construction-exam-coach",
+        "conversation_id": "conv_stock",
+        "user_id": user_id,
+        "source": "wx_miniprogram",
+        "title": "存量镜像",
+        "archived": False,
+    }
+    restored.messages.append({"role": "assistant", "content": "续答"})
+    adapter.save(restored)
+
+    mirror = _session_columns(db_path, mirror_id)
+    assert mirror is not None
+    mirror_owner, mirror_source, _mirror_prefs = mirror
+    assert (mirror_owner or "") == ""
+    assert mirror_source == "tutorbot"
+    conn = _sqlite3.connect(str(db_path))
+    try:
+        total_after = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
+    finally:
+        conn.close()
+    assert total_after == 1
