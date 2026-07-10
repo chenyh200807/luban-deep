@@ -17,6 +17,7 @@
     --green:#34d399; --green-deep:#10b981;
     --red:#fb7185; --red-soft:rgba(251,113,133,.12);
     --gold:#fbbf24; --gold-soft:rgba(251,191,36,.10);
+    --purple:#a78bfa; --purple-deep:#8b5cf6; --purple-soft:rgba(139,92,246,.12);
     --t1:#ffffff; --t2:rgba(255,255,255,.72); --t3:rgba(255,255,255,.48);
     --shadow:0 12px 36px rgba(2,8,20,.6);
     --font:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI','Microsoft YaHei',sans-serif;
@@ -167,6 +168,23 @@
   .stepchip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:var(--cyan-hi);
     background:rgba(34,211,238,.08);border:1px solid var(--line-cyan);border-radius:99px;padding:5px 12px;margin:16px 0 8px;
     letter-spacing:.04em;align-self:flex-start}
+  /* 侧写间奏 */
+  .stepchip.purple{color:var(--purple);background:var(--purple-soft);border-color:rgba(139,92,246,.35)}
+  .itlnote{font-size:12px;color:var(--purple);font-weight:600;margin:0 0 16px}
+  .opt.itl{border-color:rgba(139,92,246,.22)}
+  .opt.itl .key{color:var(--purple);border-color:rgba(139,92,246,.3);background:var(--purple-soft)}
+  /* 画像揭晓 */
+  .typecard{background:linear-gradient(160deg,rgba(139,92,246,.18),rgba(34,211,238,.06));
+    border:1px solid rgba(139,92,246,.35);border-radius:20px;padding:22px 18px;margin:10px 0 14px;
+    text-align:center;box-shadow:var(--shadow)}
+  .typecard .tk{font-size:11.5px;font-weight:800;color:var(--purple);letter-spacing:.14em;margin:0 0 10px}
+  .typecard .tn{font-size:27px;font-weight:800;letter-spacing:.06em;line-height:1.3;
+    background:linear-gradient(100deg,var(--purple),var(--cyan-hi));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .typecard .td{font-size:13.5px;color:var(--t2);line-height:1.7;margin:10px 0 0}
+  .typecard .td b{color:var(--t1)}
+  .typetags{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin:14px 0 0}
+  .ttag{font-size:12px;font-weight:700;color:var(--purple);background:var(--purple-soft);
+    border:1px solid rgba(139,92,246,.3);border-radius:99px;padding:6px 13px}
   .bigmoment{text-align:center;margin:28px 0 6px;font-size:40px;line-height:1}
   .center{text-align:center}
   .spacer{flex:1}
@@ -234,6 +252,30 @@
     <div class="panelcard mnemo"><div class="ph gold">▍记忆口诀 · 收好</div>
       <div class="big" id="fMnBig"></div><div class="sub" id="fMnSub"></div></div>
     <button class="cta" id="fNext"></button>
+  </section>
+
+  <!-- 侧写间奏（复用，JS 填充） -->
+  <section class="scene" id="sI">
+    <span class="stepchip purple" id="iChip">了解你 · 1/4</span>
+    <h1 id="iTitle"></h1>
+    <p class="itlnote">和考试无关，10 秒——<b>系统在学怎么教你</b>。</p>
+    <div id="iOpts"></div>
+  </section>
+
+  <!-- 画像揭晓 -->
+  <section class="scene" id="sT">
+    <div class="eyebrow orange" style="margin-top:14px">4 道题 · 4 个信号 · 合成完毕</div>
+    <h1>你的<span class="hi">学习者画像</span></h1>
+    <div class="typecard">
+      <div class="tk">LEARNER TYPE</div>
+      <div class="tn" id="tName">画面派 · 稳手</div>
+      <div class="td" id="tDesc"></div>
+      <div class="typetags" id="tTags"></div>
+    </div>
+    <div class="eyebrow cyan">所以，系统会这样教你</div>
+    <div class="panelcard guide" style="margin-top:8px" id="tGuide"></div>
+    <p class="note" style="text-align:left;margin-top:4px">这是初版画像——你之后每答一题，它都会更准一点。</p>
+    <button class="cta" id="tGo">生成我的学习报告 →</button>
   </section>
 
   <!-- 学习报告（学情页样式） -->
@@ -355,8 +397,8 @@
   var cur = "s1", prevBeforeEsc = null;
   function seg(id){
     if(id==="s1"||id==="s1b") return 1;
-    if(id==="sQ"||id==="sF") return 2 + qi;   /* 题1..4 → 段2..5 */
-    if(id==="sR"||id==="s6") return 6;
+    if(id==="sQ"||id==="sF"||id==="sI") return 2 + qi;   /* 题1..4 → 段2..5 */
+    if(id==="sT"||id==="sR"||id==="s6") return 6;
     return 0;
   }
   function go(id){
@@ -458,9 +500,48 @@
           no:"这题专收「生活直觉」的分——为什么直觉是反的，拆给你看。"},
       mn:{big:"停电从末端 · 送电从源头", sub:"停：<b>开关箱</b> → 分配电箱 → 总配电箱；送电正好反过来"} }
   ];
-  var qi = 0, results = [];
+  var qi = 0, results = [], qShownAt = 0;
+
+  /* ---------- 侧写间奏（穿插在四道题之间） ---------- */
+  var profile = {};
+  var INTER = [
+    { key:"chan", chip:"了解你 · 1/4",
+      title:function(){ return "刚收了第一个口诀——<br>哪种方式最容易让它<span class=\"hi\">进你脑子</span>？"; },
+      opts:{A:"念出声，有节奏就记住了",B:"脑子里过一遍施工画面",C:"手抄一遍才踏实",D:"马上做道题，用一用才是我的"} },
+    { key:"style", chip:"了解你 · 2/4",
+      title:function(){ var s = results[1] ? results[1].secs : 10;
+        return "刚才这题你用了 <span class=\"hi\">"+s+" 秒</span>。<br>做选择题时，你更像——"; },
+      opts:{A:"直觉先锁定答案，再回头验证",B:"逐项排除，确定了才下手"} },
+    { key:"slot", chip:"了解你 · 3/4",
+      title:function(){ return "马上要给你排明天的复测了——<br>工作日你最可能的<span class=\"hi\">学习时段</span>是？"; },
+      opts:{A:"早起 30 分钟，脑子最清醒",B:"通勤、午休的碎片时间",C:"晚上下班后，整块 1-2 小时",D:"说不准，逮着空就学"} },
+    { key:"drive", chip:"了解你 · 4/4",
+      title:function(){ return "最后一问：哪种感觉最能让你<span class=\"hi\">坚持学下去</span>？"; },
+      opts:{A:"进度条又亮了一格",B:"错题清单一个个被划掉",C:"复测比昨天更快、更准",D:"考试倒计时逼出来的紧迫感"} }
+  ];
+  function showInter(i){
+    var it = INTER[i];
+    document.getElementById("iChip").textContent = it.chip;
+    document.getElementById("iTitle").innerHTML = it.title();
+    var box = document.getElementById("iOpts");
+    box.innerHTML = "";
+    Object.keys(it.opts).forEach(function(k){
+      var b = document.createElement("button");
+      b.className = "opt itl";
+      b.innerHTML = '<span class="key">'+k+'</span>' + it.opts[k];
+      b.addEventListener("click", function(){
+        profile[it.key] = k;
+        ev("侧写·"+it.key+" = " + k + "「" + it.opts[k] + "」");
+        if(qi < QS.length-1){ qi++; showQ(); }
+        else buildReveal();
+      }, {once:true});
+      box.appendChild(b);
+    });
+    go("sI");
+  }
 
   function showQ(){
+    qShownAt = Date.now();
     var q = QS[qi];
     document.getElementById("qBadges").innerHTML =
       '<span class="badge orange">'+q.src+'</span><span class="badge cyan">'+q.family+'</span>'
@@ -482,8 +563,9 @@
 
   function answer(k){
     var q = QS[qi], ok = (k === q.right);
-    results.push({name:q.name, ok:ok, mn:q.mn.big});
-    ev("第"+(qi+1)+"题「"+q.name+"」作答 = " + k + (ok?"（对）":"（差半步）"));
+    var secs = Math.max(1, Math.round((Date.now()-qShownAt)/1000));
+    results.push({name:q.name, ok:ok, mn:q.mn.big, secs:secs});
+    ev("第"+(qi+1)+"题「"+q.name+"」作答 = " + k + (ok?"（对）":"（差半步）") + " 用时"+secs+"s");
     document.getElementById("fRing").style.setProperty("--p", ok?100:55);
     document.getElementById("fRingTx").textContent = ok ? "命中" : "差半步";
     document.getElementById("fTitle").textContent = ok ? q.vt.ok : q.vt.no;
@@ -514,9 +596,38 @@
   }
 
   document.getElementById("fNext").addEventListener("click", function(){
-    if(qi < QS.length-1){ qi++; showQ(); }
-    else buildReport();
+    showInter(qi);   /* 每道题的判分卡之后，穿插一道侧写 */
   });
+
+  /* ---------- 画像揭晓 ---------- */
+  var CHAN = {A:{n:"声韵派",tag:"靠节奏记东西",teach:"口诀优先给你带节奏的版本——念两遍就上口，考场上嘴替你想起来"},
+              B:{n:"画面派",tag:"靠画面记东西",teach:"口诀尽量配施工画面和图解卡——先看见，再记住"},
+              C:{n:"笔尖派",tag:"手抄一遍才踏实",teach:"关键词给你默写卡——抄一遍胜过看十遍"},
+              D:{n:"实战派",tag:"用过一次才是自己的",teach:"每学一个点，立刻塞两道变体给你用出来"}};
+  var STYLE = {A:{n:"快枪手",tag:"直觉先行",teach:"复测给你限时抢答——保住你的快，练出你的准"},
+               B:{n:"稳手",tag:"排除法下手",teach:"复测给你强干扰项狙击练——保住你的准，练出你的快"}};
+  var SLOT = {A:"复测推送排在早晨，趁脑子最清醒",B:"任务切成 8-10 分钟一包，通勤也能吞下",
+              C:"晚间给你 25 分钟连续训练，一次进入状态",D:"所有任务支持断点续练，逮着空就能接上"};
+  var DRIVE = {A:"每天让你看见进度条又亮一格",B:"错题清单倒着数，消灭一个划一个",
+               C:"每次复测都给你和昨天的对比",D:"处方跟着考试倒计时排优先级"};
+  function buildReveal(){
+    var c = CHAN[profile.chan||"B"], s = STYLE[profile.style||"B"];
+    var typeName = c.n + " · " + s.n;
+    profile.typeName = typeName;
+    document.getElementById("tName").textContent = typeName;
+    document.getElementById("tDesc").innerHTML = "你<b>"+c.tag+"</b>，做题<b>"+s.tag+"</b>——这不是标签，是接下来系统给你排课、出题、做复测的<b>依据</b>。";
+    document.getElementById("tTags").innerHTML =
+      '<span class="ttag">'+c.tag+'</span><span class="ttag">'+s.tag+'</span>'
+      + '<span class="ttag">'+(profile.slot==="B"?"碎片时间型":profile.slot==="C"?"晚间整块型":profile.slot==="A"?"早晨型":"随时续练型")+'</span>';
+    document.getElementById("tGuide").innerHTML =
+      '<div class="row"><span class="ic">🧠</span><div><div class="gt">记忆方式</div><div class="gs">'+c.teach+'</div></div></div>'
+      + '<div class="row"><span class="ic">🎯</span><div><div class="gt">复测方式</div><div class="gs">'+s.teach+'</div></div></div>'
+      + '<div class="row"><span class="ic">⏰</span><div><div class="gt">排课节奏</div><div class="gs">'+(SLOT[profile.slot]||SLOT.D)+'</div></div></div>'
+      + '<div class="row"><span class="ic">🔥</span><div><div class="gt">坚持的燃料</div><div class="gs">'+(DRIVE[profile.drive]||DRIVE.A)+'</div></div></div>';
+    ev("画像揭晓 = " + typeName);
+    go("sT");
+  }
+  document.getElementById("tGo").addEventListener("click", function(){ buildReport(); });
 
   /* ---------- 学习报告 ---------- */
   var WAR_TX = {
@@ -554,10 +665,10 @@
       fear:    missN ? "你说「看到案例题就发怵」——刚才 3 分钟你做完了 4 道真题。怵的题拆到采分点，就是一步一步的事。"
                      : "你说「看到案例题就发怵」，结果 4 题全中——你比你以为的强得多。"
     };
-    document.getElementById("rModeT").textContent = (WAR_TX[war]||"") ;
+    document.getElementById("rModeT").textContent = (profile.typeName ? profile.typeName + " —— " : "") + (WAR_TX[war]||"");
     document.getElementById("rModeS").innerHTML = M[mode] || M.nopoint;
     document.getElementById("rBasis").innerHTML =
-      results.length + " 条作答 · " + missN + " 个错因命中 · " + results.length + " 个采分点逐条比对，全部溯源教材，不是 AI 现编";
+      results.length + " 条作答 · " + missN + " 个错因命中 · " + results.length + " 个采分点逐条比对（溯源教材）· 6 个画像信号";
     /* 四道题的账 */
     var g = "";
     results.forEach(function(r, i){
