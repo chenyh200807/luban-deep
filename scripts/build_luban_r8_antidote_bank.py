@@ -230,6 +230,27 @@ def _raw_from_table(pack_id: str, sec6: str) -> list[dict[str, Any]]:
     return raws
 
 
+_BLOCKLIST_PATH = RAW_DIR / "_antidote_blocklist.json"
+_blocklist_cache: set[str] | None = None
+# 尾部裸露 kc: 引用串(解药面板 B 级: C02 全站 8 条 mental_model 尾部带原始 chunk
+# 引用, 用户可见)——确定性剥除, 只动尾部纯引用记号不动正文文字
+_TRAILING_KC_RE = re.compile(r"[\s;；,，/]*(?:kc:[0-9A-Za-z_]+(?::\d+)?[\s;；,，/]*)+$")
+
+
+def _antidote_blocklist() -> set[str]:
+    """对抗验尸面板 A 级停发清单(r8_id 集合; 人审 editorial 记录, 缺文件=空集)。"""
+    global _blocklist_cache
+    if _blocklist_cache is None:
+        try:
+            data = json.loads(_BLOCKLIST_PATH.read_text(encoding="utf-8"))
+            _blocklist_cache = {
+                str(i.get("r8_id") or "") for i in data.get("antidotes") or []
+            }
+        except FileNotFoundError:
+            _blocklist_cache = set()
+    return _blocklist_cache
+
+
 def derive_antidotes(
     pack_id: str,
 ) -> tuple[dict[str, list[dict[str, Any]]], list[dict[str, Any]], list[dict[str, str]], str]:
@@ -285,10 +306,15 @@ def derive_antidotes(
         if not raw["mental_model"]:
             dropped.append({"r8_id": r8_id, "reason": "no_antidote_text"})
             continue
+        if r8_id in _antidote_blocklist():
+            # 对抗验尸面板 A 级人审剔除(2026-07-11)——内容错误停发,
+            # 修 pack §6 后重签并从 _antidote_blocklist.json 移除即复活
+            dropped.append({"r8_id": r8_id, "reason": "panel_reject"})
+            continue
 
         entry_obj = {
             "r8_id": r8_id,
-            "mental_model": raw["mental_model"],
+            "mental_model": _TRAILING_KC_RE.sub("", raw["mental_model"]).strip(),
             "textbook_ref": resolved,
             "phenomenon": raw["phenomenon"],
             "wrong_model": raw["wrong_model"],

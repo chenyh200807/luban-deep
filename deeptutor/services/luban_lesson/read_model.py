@@ -267,7 +267,12 @@ def build_retest_items(
     bank = _load_signed_bank(vm["pack_id"], manifest_dir, vm["content_sha256"])
     if bank is None:
         return []
-    core = [v for v in bank.get("variants") or [] if not v.get("extension")]
+    blocked = _variant_blocklist(manifest_dir)
+    core = [
+        v
+        for v in bank.get("variants") or []
+        if not v.get("extension") and str(v.get("variant_id") or "") not in blocked
+    ]
     if not core:
         return []
     limit = max(1, min(int(limit), 10))
@@ -302,6 +307,30 @@ def build_retest_items(
             row["textbook"] = textbook
         rows.append(row)
     return rows
+
+
+_VARIANT_BLOCKLIST_FILE = "_variant_blocklist.json"
+
+
+def _variant_blocklist(manifest_dir: Path) -> set[str]:
+    """对抗面板 A 级停发变体清单（serve 侧过滤, 签发 bank 原样不动）。
+
+    2026-07-11 变体 statement 验尸：9 条 A 级门道语句（旧真题官答与 2026 新
+    规范教材冲突为主——地下防水四级/超灌0.8~1.0m/钢丝网保留/变形缝依据等）
+    波及 40 变体。救活 = 教研按 2026 教材口径修 pack 后重签并从清单移除。
+    缺文件 = 空集（不改变既有行为）。"""
+    path = manifest_dir / _VARIANT_BLOCKLIST_FILE
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return set()
+    except Exception:
+        return set()  # 清单损坏时不放大故障(保守: 不过滤, 由测试盯格式)
+    return {
+        str(item.get("variant_id") or "")
+        for item in data.get("variants") or []
+        if item.get("variant_id")
+    }
 
 
 def _balance_expected_ok(

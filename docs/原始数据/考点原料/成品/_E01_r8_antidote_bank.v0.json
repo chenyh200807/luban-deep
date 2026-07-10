@@ -3,17 +3,22 @@
  "pack_id": "E01",
  "status": "signed",
  "source_pack_sha256": "302dc15016a0244315844c053dcf59338f477f7623c97dbfb13ab785039f9c87",
- "generation_ms": 0.78,
+ "generation_ms": 5.88,
  "gate": {
-  "total": 8,
-  "passed": 8,
+  "total": 7,
+  "passed": 7,
   "pass_rate": 1.0,
   "code_unregistered": [],
   "anchor_unresolved": [],
   "forbidden_words": []
  },
- "antidote_count": 8,
- "dropped_rows": [],
+ "antidote_count": 7,
+ "dropped_rows": [
+  {
+   "r8_id": "E01:R8-M6",
+   "reason": "panel_reject"
+  }
+ ],
  "antidotes": {
   "E07": [
    {
@@ -61,13 +66,6 @@
     "textbook_ref": "kc:1A432002_037_0048:0",
     "phenomenon": "编制依据漏招标文件/合同条款",
     "wrong_model": "以为只需图纸和技术规范"
-   },
-   {
-    "r8_id": "E01:R8-M6",
-    "mental_model": "五大组成逐项不漏：分部分项费+措施费+其他项目费+规费+税金；按结构清单逐项核对",
-    "textbook_ref": "kc:1A435000_040_0054:2",
-    "phenomenon": "造价汇总漏项（最常漏规费/其他项目费）",
-    "wrong_model": "以为分部分项费+措施费就是总造价"
    }
   ],
   "E10": [
@@ -120,8 +118,8 @@
   ]
  },
  "signoff": {
-  "who": "主控代owner执行",
-  "when": "2026-07-06T00:09:20+08:00",
-  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T02:09:08+08:00",
+  "basis": "对抗验尸面板A级停发(blocklist剔11条)+C02尾部kc串清洗+gate 100%; owner授权解药变体验尸治疗"
  }
 }
