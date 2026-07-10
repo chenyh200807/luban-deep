@@ -71,6 +71,16 @@ from deeptutor.services.wallet import (
     get_wallet_service,
     is_billing_enforcement_enabled,
 )
+from deeptutor.services.wechat_pay import (
+    WechatPayConfigError,
+    WechatPayNotificationError,
+    WechatPayUpstreamError,
+    build_wechat_pay_attach,
+    create_wechat_jsapi_order,
+    decrypt_wechat_pay_notification,
+    get_wechat_pay_config,
+    parse_wechat_pay_attach,
+)
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
 
 router = APIRouter()
@@ -129,7 +139,7 @@ _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 _BILLING_PLAN_REFERENCE_POINTS = {
     "starter_19": 800,
-    "light_99": 4400,
+    "light_98": 4400,
     "vip": 9000,
     "svip": 28000,
     "supreme_svip": 50000,
@@ -143,12 +153,17 @@ _BILLING_PLAN_ALIASES = {
     "experience19": "starter_19",
     "体验包": "starter_19",
     "19": "starter_19",
-    "light_99": "light_99",
-    "light99": "light_99",
-    "lite_99": "light_99",
-    "lite99": "light_99",
-    "轻量包": "light_99",
-    "99": "light_99",
+    "light_98": "light_98",
+    "light98": "light_98",
+    "lite_98": "light_98",
+    "lite98": "light_98",
+    "light_99": "light_98",
+    "light99": "light_98",
+    "lite_99": "light_98",
+    "lite99": "light_98",
+    "轻量包": "light_98",
+    "98": "light_98",
+    "99": "light_98",
     "vip": "vip",
     "standard": "vip",
     "starter": "vip",
@@ -247,13 +262,30 @@ def _wallet_packages() -> list[dict[str, Any]]:
     return []
 
 
+def _canonical_billing_package_id(package_id: str | None) -> str:
+    canonicalizer = getattr(member_service, "canonical_membership_package_id", None)
+    if callable(canonicalizer):
+        try:
+            return str(canonicalizer(package_id) or "").strip()
+        except Exception:
+            return str(package_id or "").strip()
+    raw = str(package_id or "").strip()
+    lowered = raw.lower()
+    if lowered in {"light_99", "light99", "lite_99", "lite99", "99"}:
+        return "light_98"
+    return raw
+
+
 def _billing_package_by_id(package_id: str) -> dict[str, Any] | None:
-    normalized_package_id = str(package_id or "").strip()
+    normalized_package_id = _canonical_billing_package_id(package_id)
     if not normalized_package_id:
         return None
     for package in _wallet_packages():
-        if str(package.get("id") or "").strip() == normalized_package_id:
-            return dict(package)
+        if _canonical_billing_package_id(package.get("id")) == normalized_package_id:
+            canonical = dict(package)
+            canonical["id"] = normalized_package_id
+            canonical["tier"] = _canonical_billing_package_id(canonical.get("tier") or normalized_package_id)
+            return canonical
     return None
 
 
@@ -389,6 +421,10 @@ def _wallet_snapshot_or_zero(
 def _serialize_wallet_snapshot(snapshot: WalletSnapshot) -> dict[str, Any]:
     balance_points = _micros_to_points(snapshot.balance_micros)
     frozen_points = _micros_to_points(snapshot.frozen_micros)
+    entitlement = _billing_entitlement_payload(
+        plan_id=snapshot.plan_id,
+        balance_micros=int(snapshot.balance_micros),
+    )
     return {
         "user_id": snapshot.user_id,
         "balance": balance_points,
@@ -401,6 +437,7 @@ def _serialize_wallet_snapshot(snapshot: WalletSnapshot) -> dict[str, Any]:
         "tier": snapshot.plan_id or "",
         "version": int(snapshot.version),
         "created_at": snapshot.created_at,
+        "entitlement": entitlement,
         "packages": _wallet_packages(),
     }
 
@@ -446,12 +483,82 @@ def _serialize_wallet_ledger_entry(entry: WalletLedgerEntry) -> dict[str, Any]:
 
 def _normalize_billing_plan_id(plan_id: str | None) -> str:
     raw = str(plan_id or "").strip().lower()
-    return _BILLING_PLAN_ALIASES.get(raw, "vip")
+    normalized = _BILLING_PLAN_ALIASES.get(raw)
+    if normalized:
+        return normalized
+    canonical_package_id = _canonical_billing_package_id(raw)
+    if canonical_package_id and _billing_package_by_id(canonical_package_id) is not None:
+        return canonical_package_id
+    return "vip"
 
 
 def _billing_usage_reference_points_for_plan(plan_id: str | None) -> int:
     normalized = _normalize_billing_plan_id(plan_id)
+    package = _billing_package_by_id(normalized)
+    if package is not None:
+        try:
+            points = int(package.get("points") or 0)
+        except (TypeError, ValueError):
+            points = 0
+        if points > 0:
+            return points
     return int(_BILLING_PLAN_REFERENCE_POINTS.get(normalized) or _BILLING_PLAN_REFERENCE_POINTS["vip"])
+
+
+def _billing_usage_reference_turns_for_plan(plan_id: str | None) -> int:
+    package = _billing_package_by_id(_normalize_billing_plan_id(plan_id))
+    if package is None:
+        return 0
+    try:
+        return max(0, int(package.get("turns") or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _paid_billing_plan(plan_id: str | None) -> bool:
+    raw = str(plan_id or "").strip().lower()
+    if raw in {"", "trial", "free", "local", "internal_qa"}:
+        return False
+    normalized = _BILLING_PLAN_ALIASES.get(raw, raw)
+    return normalized in _BILLING_PLAN_REFERENCE_POINTS or _billing_package_by_id(normalized) is not None
+
+
+def _billing_remaining_percent(*, remaining_micros: int, reference_micros: int) -> int | float:
+    reference = max(1, int(reference_micros or 0))
+    value = max(0.0, min(100.0, (max(0, int(remaining_micros or 0)) / reference) * 100))
+    rounded = round(value, 1)
+    if abs(rounded - round(rounded)) < 0.001:
+        return int(round(rounded))
+    return rounded
+
+
+def _billing_entitlement_payload(
+    *,
+    plan_id: str | None,
+    balance_micros: int | None,
+    reference_micros: int | None = None,
+) -> dict[str, Any]:
+    normalized_plan_id = _normalize_billing_plan_id(plan_id)
+    reference_points = _billing_usage_reference_points_for_plan(normalized_plan_id)
+    reference_micros_value = max(
+        1,
+        int(reference_micros or 0),
+        reference_points * 1_000_000,
+    )
+    remaining_micros = max(0, int(balance_micros or 0))
+    remaining_percent = _billing_remaining_percent(
+        remaining_micros=remaining_micros,
+        reference_micros=reference_micros_value,
+    )
+    return {
+        "plan_id": normalized_plan_id,
+        "reference_points": _micros_to_points(reference_micros_value),
+        "reference_micros": reference_micros_value,
+        "reference_turns": _billing_usage_reference_turns_for_plan(normalized_plan_id),
+        "remaining_percent": remaining_percent,
+        "balance_points": _micros_to_points(remaining_micros),
+        "limited_by": "membership_balance",
+    }
 
 
 def _parse_ledger_datetime(value: str) -> datetime | None:
@@ -701,6 +808,7 @@ def _build_billing_usage_payload(
     *,
     now: datetime | None = None,
     plan_id: str | None = None,
+    balance_micros: int | None = None,
     limit_points_by_window: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
@@ -723,6 +831,10 @@ def _build_billing_usage_payload(
         elif int(entry.delta_micros or 0) > 0:
             total_credit_micros += int(entry.delta_micros or 0)
 
+    snapshot_balance_micros = max(0, int(balance_micros or 0)) if balance_micros is not None else 0
+    if snapshot_balance_micros > 0:
+        latest_balance_micros = snapshot_balance_micros
+
     observed_reference_micros = max(
         1,
         total_credit_micros,
@@ -730,18 +842,23 @@ def _build_billing_usage_payload(
         latest_balance_micros,
     )
     package_reference_micros = int(_billing_usage_reference_points_for_plan(plan_id)) * 1_000_000
-    reference_micros = (
-        observed_reference_micros
-        if observed_reference_micros > total_used_micros
-        else max(1, package_reference_micros)
-    )
+    reference_micros = max(1, package_reference_micros)
+    if not _paid_billing_plan(plan_id):
+        reference_micros = observed_reference_micros
     remaining_basis_micros = (
         latest_balance_micros
         if latest_balance_micros > 0 or total_credit_micros > 0
         else max(0, reference_micros - total_used_micros)
     )
-    remaining_percent = int(round((remaining_basis_micros / reference_micros) * 100)) if entries else 100
-    remaining_percent = max(0, min(100, remaining_percent))
+    remaining_percent = _billing_remaining_percent(
+        remaining_micros=remaining_basis_micros,
+        reference_micros=reference_micros,
+    )
+    entitlement = _billing_entitlement_payload(
+        plan_id=plan_id,
+        balance_micros=remaining_basis_micros,
+        reference_micros=reference_micros,
+    )
     return {
         "status": "ok",
         "display": {
@@ -749,10 +866,13 @@ def _build_billing_usage_payload(
             "primary_percent": remaining_percent,
             "limited_by": "membership_balance",
             "plan_id": _normalize_billing_plan_id(plan_id),
+            "reference_points": entitlement["reference_points"],
+            "reference_turns": entitlement["reference_turns"],
         },
         "quota": {
             "rows": [],
         },
+        "entitlement": entitlement,
     }
 
 
@@ -911,6 +1031,7 @@ def _build_local_checkout_payload(
             "price": price,
             "points": int(package.get("points") or 0),
             "turns": int(package.get("turns") or 0),
+            "days": _billing_package_days(package),
             "original_price": str(package.get("original_price") or ""),
         },
         "amount_fen": amount_fen,
@@ -942,6 +1063,121 @@ async def _create_payment_gateway_order(payload: dict[str, Any]) -> dict[str, An
     if not isinstance(data, dict):
         raise HTTPException(status_code=502, detail="Payment gateway returned invalid payload")
     return data
+
+
+def _bearer_token(authorization: str | None) -> str:
+    value = str(authorization or "").strip()
+    if not value:
+        return ""
+    parts = value.split(None, 1)
+    if len(parts) == 2 and parts[0].lower() == "bearer":
+        return parts[1].strip()
+    return value
+
+
+def _resolve_wechat_checkout_openid(authorization: str | None, user_id: str) -> str:
+    token = _bearer_token(authorization)
+    if token:
+        verifier = getattr(member_service, "verify_access_token", None)
+        if callable(verifier):
+            try:
+                claims = verifier(token)
+            except Exception:
+                claims = {}
+            if isinstance(claims, dict):
+                openid = str(claims.get("openid") or claims.get("wx_openid") or "").strip()
+                if openid:
+                    return openid
+    identity_getter = getattr(member_service, "_auth_identity_for_member", None)
+    if callable(identity_getter):
+        try:
+            identity = identity_getter(user_id)
+        except Exception:
+            identity = {}
+        if isinstance(identity, dict):
+            openid = str(identity.get("openid") or identity.get("wx_openid") or "").strip()
+            if openid:
+                return openid
+    return ""
+
+
+def _billing_package_days(package: dict[str, Any]) -> int:
+    try:
+        return max(1, int(package.get("days") or package.get("duration_days") or 365))
+    except (TypeError, ValueError):
+        return 365
+
+
+async def _create_wechat_pay_order(
+    checkout_payload: dict[str, Any],
+    *,
+    authorization: str | None,
+    user_id: str,
+) -> dict[str, Any] | None:
+    if str(checkout_payload.get("channel") or "").strip().lower() != "wechat":
+        return None
+    try:
+        config = get_wechat_pay_config()
+    except WechatPayConfigError as exc:
+        logger.warning("wechat pay config invalid: %s", exc)
+        raise HTTPException(status_code=503, detail="WeChat Pay unavailable") from exc
+    if config is None:
+        return None
+    package = checkout_payload.get("package") if isinstance(checkout_payload.get("package"), dict) else {}
+    package_id = str(package.get("id") or "").strip()
+    openid = _resolve_wechat_checkout_openid(authorization, user_id)
+    if not openid:
+        raise HTTPException(status_code=400, detail="WeChat login required for WeChat Pay")
+    try:
+        attach = build_wechat_pay_attach(
+            user_id=user_id,
+            package_id=package_id,
+            amount_fen=int(checkout_payload.get("amount_fen") or 0),
+            days=_billing_package_days(package),
+        )
+        return await create_wechat_jsapi_order(
+            checkout_payload,
+            openid=openid,
+            attach=attach,
+        )
+    except WechatPayUpstreamError as exc:
+        logger.warning(
+            "wechat pay order creation failed: status=%s request_id=%s message=%s",
+            exc.status_code,
+            exc.request_id,
+            exc,
+        )
+        raise HTTPException(status_code=502, detail="WeChat Pay upstream unavailable") from exc
+    except WechatPayConfigError as exc:
+        logger.warning("wechat pay order creation blocked by config: %s", exc)
+        raise HTTPException(status_code=503, detail="WeChat Pay unavailable") from exc
+
+
+def _apply_wechat_payment_success(transaction: dict[str, Any]) -> dict[str, Any]:
+    trade_state = str(transaction.get("trade_state") or "").strip().upper()
+    if trade_state and trade_state != "SUCCESS":
+        return {"ignored": True, "trade_state": trade_state}
+    attach = parse_wechat_pay_attach(transaction.get("attach"))
+    package = _billing_package_by_id(attach["package_id"])
+    if package is None:
+        raise WechatPayNotificationError("unknown package")
+    canonical_package_id = str(package.get("id") or "").strip()
+    expected_fen = _price_to_fen(str(package.get("price") or ""))
+    actual_fen = int((transaction.get("amount") or {}).get("total") or 0)
+    if expected_fen <= 0 or actual_fen != expected_fen or int(attach.get("amount_fen") or 0) != expected_fen:
+        raise WechatPayNotificationError("amount mismatch")
+    transaction_id = str(transaction.get("transaction_id") or transaction.get("out_trade_no") or "").strip()
+    if not transaction_id:
+        raise WechatPayNotificationError("missing transaction id")
+    return member_service.manual_membership_purchase(
+        user_id=attach["user_id"],
+        package_id=canonical_package_id,
+        days=_billing_package_days(package),
+        operator="wechat_pay",
+        reason="wechat_pay_success",
+        idempotency_key=f"wechat_pay:{transaction_id}",
+        amount_cny=actual_fen / 100,
+    )
 
 
 def _assert_wallet_balance_available(wallet_user_id: str) -> None:
@@ -1100,7 +1336,8 @@ def _assert_billing_quota_available(
                 wallet_user_id=normalized_user_id,
                 limit=_BILLING_USAGE_LEDGER_WINDOW,
             ),
-            plan_id=_wallet_snapshot_or_zero(normalized_user_id).plan_id,
+            plan_id=getattr(snapshot, "plan_id", ""),
+            balance_micros=int(getattr(snapshot, "balance_micros", 0) or 0),
         )
     except Exception as exc:
         status_code = getattr(getattr(exc, "response", None), "status_code", None)
@@ -2807,6 +3044,7 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
     return _build_billing_usage_payload(
         entries,
         plan_id=snapshot.plan_id,
+        balance_micros=snapshot.balance_micros,
     )
 
 
@@ -2873,7 +3111,28 @@ async def billing_checkout(
     gateway_payload = await _create_payment_gateway_order(checkout_payload)
     if gateway_payload is not None:
         return gateway_payload
+    wechat_payload = await _create_wechat_pay_order(
+        checkout_payload,
+        authorization=authorization,
+        user_id=user_id,
+    )
+    if wechat_payload is not None:
+        return wechat_payload
     return checkout_payload
+
+
+@router.post("/billing/wechat/notify")
+async def billing_wechat_notify(payload: dict[str, Any]) -> dict[str, str]:
+    try:
+        transaction = decrypt_wechat_pay_notification(payload)
+        _apply_wechat_payment_success(transaction)
+    except WechatPayNotificationError as exc:
+        logger.warning("invalid wechat pay notification: %s", exc)
+        raise HTTPException(status_code=400, detail="Invalid WeChat Pay notification") from exc
+    except Exception as exc:
+        logger.warning("wechat pay notification processing failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=503, detail="WeChat Pay notification processing failed") from exc
+    return {"code": "SUCCESS", "message": "成功"}
 
 
 @router.get("/homepage/dashboard")

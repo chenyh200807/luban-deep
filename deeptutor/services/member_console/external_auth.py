@@ -21,6 +21,40 @@ logger = logging.getLogger(__name__)
 
 _PASSWORD_MAX_LENGTH = 128
 _CN_MOBILE_RE = re.compile(r"^1[3-9]\d{9}$")
+_EVAL_RUNNER_ACCOUNT_KIND = "eval_runner"
+_EVAL_RUNNER_ACTOR_TYPE = "machine"
+_EVAL_RUNNER_CREATED_BY = "eval_runner"
+_EVAL_RUNNER_USERNAME_MARKERS = (
+    "eval",
+    "qa_",
+    "qa-",
+    "qa.",
+    "casefix",
+    "codex",
+    "probe",
+    "audit",
+    "prelaunch",
+    "preflight",
+    "release",
+    "smoke",
+    "soak",
+    "debug",
+    "mock",
+    "dummy",
+    "fake",
+    "compiled_shadow",
+    "practiceanchor",
+    "practice_anchor",
+    "army_",
+    "synthetic",
+    "test_",
+    "_test",
+    "test-",
+    "-test",
+    "测试",
+)
+_IDENTITY_METADATA_TEXT_FIELDS = ("account_kind", "actor_type", "created_by")
+_IDENTITY_METADATA_BOOL_FIELDS = ("is_internal_test", "is_test_account")
 _STORE_LOCK = Lock()
 _PRIMARY_USERS_FILE = Path("/app/data/user/external_auth/users.json")
 _LEGACY_USERS_FILE = Path("/root/luban/.storage/users.json")
@@ -178,6 +212,46 @@ def _normalize_optional_user_id(user_id: str | None) -> str:
     return value
 
 
+def _normalize_identity_metadata(identity_metadata: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(identity_metadata, dict):
+        return {}
+    normalized: dict[str, Any] = {}
+    for field in _IDENTITY_METADATA_TEXT_FIELDS:
+        value = str(identity_metadata.get(field) or "").strip().lower().replace("-", "_")
+        if value:
+            normalized[field] = value[:64]
+    for field in _IDENTITY_METADATA_BOOL_FIELDS:
+        value = identity_metadata.get(field)
+        if isinstance(value, bool):
+            normalized[field] = value
+        elif str(value or "").strip().lower() in {"1", "true", "yes", "y"}:
+            normalized[field] = True
+    return normalized
+
+
+def _eval_runner_identity_from_username(username: str) -> dict[str, Any]:
+    normalized = str(username or "").strip().lower()
+    if not normalized:
+        return {}
+    if not any(marker in normalized for marker in _EVAL_RUNNER_USERNAME_MARKERS):
+        return {}
+    return {
+        "account_kind": _EVAL_RUNNER_ACCOUNT_KIND,
+        "actor_type": _EVAL_RUNNER_ACTOR_TYPE,
+        "created_by": _EVAL_RUNNER_CREATED_BY,
+        "is_internal_test": True,
+    }
+
+
+def _identity_metadata_for_user(
+    username: str,
+    identity_metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    explicit = _normalize_identity_metadata(identity_metadata)
+    detected = _eval_runner_identity_from_username(username)
+    return {**explicit, **detected}
+
+
 def _validate_password(password: str) -> None:
     if len(password) > _PASSWORD_MAX_LENGTH:
         raise ValueError(f"密码不能超过 {_PASSWORD_MAX_LENGTH} 个字符")
@@ -272,6 +346,7 @@ def create_external_auth_user(
     phone: str | None = None,
     security_question: str | None = None,
     security_answer_hash: str | None = None,
+    identity_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     normalized_username = _normalize_username(username)
     _validate_password(password)
@@ -294,6 +369,7 @@ def create_external_auth_user(
             "password_hash": _hash_password(password),
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
+        payload.update(_identity_metadata_for_user(normalized_username, identity_metadata))
         if normalized_phone:
             payload["phone"] = normalized_phone
         if security_question:
@@ -311,6 +387,7 @@ def ensure_external_auth_user(
     password: str,
     *,
     phone: str | None = None,
+    identity_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create or refresh a deterministic local QA auth user."""
 
@@ -335,6 +412,7 @@ def ensure_external_auth_user(
         payload["password_hash"] = _hash_password(password)
         payload.setdefault("created_at", now)
         payload["updated_at"] = now
+        payload.update(_identity_metadata_for_user(normalized_username, identity_metadata))
         if normalized_phone:
             payload["phone"] = normalized_phone
         users[normalized_username] = payload

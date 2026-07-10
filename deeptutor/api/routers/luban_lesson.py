@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 
 from fastapi import Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from deeptutor.api._secure_router import secure_router
 from deeptutor.api.dependencies import AuthContext, get_current_user
@@ -17,8 +18,11 @@ from deeptutor.api.dependencies.rate_limit import route_rate_limit
 from deeptutor.services.luban_lesson import (
     LessonNotAvailable,
     build_lesson_viewmodel,
+    build_light_practice_set,
     build_retest_items,
     list_green_lessons,
+    record_light_practice_evidence,
+    score_light_practice,
 )
 
 router = secure_router(tags=["luban_lesson"])
@@ -115,3 +119,77 @@ async def review_due(current_user: AuthContext = Depends(get_current_user)) -> d
     )
     projection["enabled"] = True
     return projection
+
+
+# ── PRD v1.3 §0.0 头牌: 2 分钟 per-考点 MCQ 轻练 ─────────────────────────────
+# 独立灰度旗标(register-before-use: contracts/env_registry.yaml + .env.example),
+# 默认关, 不扰生产。关 = 取题空集 / 交卷不写学情(诚实 disabled 态), 路由形状稳定。
+_LIGHT_PRACTICE_FLAG = "LUBAN_LIGHT_PRACTICE_ENABLED"
+
+
+def _light_practice_enabled() -> bool:
+    return str(os.getenv(_LIGHT_PRACTICE_FLAG, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+class LightPracticeAnswer(BaseModel):
+    variant_id: str
+    answer: bool
+
+
+class LightPracticeSubmitRequest(BaseModel):
+    pack_id: str
+    answers: list[LightPracticeAnswer] = Field(default_factory=list)
+
+
+@router.get(
+    "/light-practice",
+    dependencies=[
+        Depends(route_rate_limit("luban_light_practice", default_max_requests=30, default_window_seconds=60.0))
+    ],
+)
+async def light_practice(
+    pack_id: str,
+    n: int = 5,
+    _: AuthContext = Depends(get_current_user),
+) -> dict:
+    """取一份 per-考点 MCQ 轻练集(判断题, 纯投影自签发变体池)。
+    旗标关 → 空集诚实降级; pack 非绿灯/不存在 → 404 同形(fail-closed)。"""
+    if not _light_practice_enabled():
+        return {"pack_id": pack_id.upper(), "items": [], "enabled": False}
+    try:
+        items = build_light_practice_set(pack_id, n=n)
+    except LessonNotAvailable:
+        raise HTTPException(status_code=404, detail="lesson not found")
+    return {"pack_id": pack_id.upper(), "items": items, "enabled": True}
+
+
+@router.post(
+    "/light-practice/submit",
+    dependencies=[
+        Depends(route_rate_limit("luban_light_practice_submit", default_max_requests=30, default_window_seconds=60.0))
+    ],
+)
+async def light_practice_submit(
+    body: LightPracticeSubmitRequest,
+    current_user: AuthContext = Depends(get_current_user),
+) -> dict:
+    """交卷: 死判分(vs 签发池 expected_ok) + 诊断, 结果写既有 learning_evidence sink。
+    旗标关 → 不判不写(诚实 disabled 态)。pack 非绿灯/不存在 → 404 同形。"""
+    if not _light_practice_enabled():
+        return {"pack_id": body.pack_id.upper(), "enabled": False, "total": 0,
+                "correct_count": 0, "missed": [], "items": [], "learning_event_refs": []}
+    user_answers = {a.variant_id: a.answer for a in body.answers}
+    try:
+        scored = score_light_practice(body.pack_id, user_answers)
+    except LessonNotAvailable:
+        raise HTTPException(status_code=404, detail="lesson not found")
+    from deeptutor.services.learner_state.service import get_learner_state_service
+
+    refs = record_light_practice_evidence(
+        get_learner_state_service(),
+        user_id=current_user.user_id,
+        scored=scored,
+    )
+    scored["enabled"] = True
+    scored["learning_event_refs"] = refs
+    return scored

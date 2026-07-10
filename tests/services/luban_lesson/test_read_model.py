@@ -74,6 +74,37 @@ def test_green_only_in_listing(tmp_path):
     assert [r["pack_id"] for r in rows] == ["S05"]
 
 
+def _concept_bank(tmp_path, *, status="signed", sha="abc123", front="临时用电三大系统"):
+    (tmp_path / "_S05_concept_card_bank.v0.json").write_text(json.dumps({
+        "status": status, "source_pack_sha256": sha,
+        "cards": [{"card_id": "S05:kc:0", "front": front, "key_gist": "g", "quote": "q"}],
+    }, ensure_ascii=False), encoding="utf-8")
+
+
+def test_summary_from_signed_concept_bank_first_front(tmp_path):
+    """路线卡副标题 = 签发考点卡首卡 front 逐字（真源，零生成）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _concept_bank(tmp_path)
+    rows = list_green_lessons(manifest_path=mp)
+    assert rows[0]["summary"] == "临时用电三大系统"
+
+
+def test_summary_fail_closed_when_no_bank(tmp_path):
+    """无考点卡的绿灯站：summary=""（前端据此留空,不造词）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    rows = list_green_lessons(manifest_path=mp)
+    assert rows[0]["summary"] == ""
+
+
+def test_summary_fail_closed_on_candidate_or_sha_drift(tmp_path):
+    """考点卡池走同一签发闸：candidate/未签发、sha 漂移 → summary=""（与缺失同形）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _concept_bank(tmp_path, status="candidate")
+    assert list_green_lessons(manifest_path=mp)[0]["summary"] == ""
+    _concept_bank(tmp_path, status="signed", sha="stale-old-sha")
+    assert list_green_lessons(manifest_path=mp)[0]["summary"] == ""
+
+
 def test_variant_summary_signed_sha_match_passes(tmp_path):
     mp = _write_manifest(tmp_path, [_S05], ["S05"])
     (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
@@ -169,6 +200,154 @@ def test_retest_pool_wraps_when_exhausted(tmp_path):
     _bank(tmp_path, n_core=2)
     items = build_retest_items("S05", user_id="u", day_index=99, limit=5, manifest_path=mp)
     assert len(items) == 2, "池小于 limit 时只发池内不重复项(复用旧变体, 绝不现编)"
+
+
+# ── 复习模块三层母题集投影（双轮 v3 §6.2/§5.2/§6.4）───────────────────────────
+# 三层全部走 variant_retest 同一签发闸（signed + sha 双 fail-closed）：
+# 概念卡池已签发 → 逐字投影；挖空/解药池尚未签发（main 上不存在）→ fail-closed。
+
+def _concept_bank_multi(tmp_path, *, status="signed", sha="abc123"):
+    """两张考点卡的签发池——投影须逐字透传 §6.2 字段（front/key_gist/quote/出处）。"""
+    (tmp_path / "_S05_concept_card_bank.v0.json").write_text(json.dumps({
+        "status": status, "source_pack_sha256": sha,
+        "cards": [
+            {"card_id": "S05:kc:1", "front": "三级配电", "key_gist": "总-分-开关箱",
+             "quote": "施工现场临时用电应采用三级配电系统",
+             "point_id": "kc:1", "source_ref": {"chunk_id": "", "page_num": None},
+             "leaf_name_path": "安全 > 临时用电", "grade_weight": 5},
+            {"card_id": "S05:kc:2", "front": "两级保护", "key_gist": "总配+开关箱漏保",
+             "quote": "应设置两级漏电保护", "point_id": "kc:2",
+             "source_ref": {"chunk_id": "", "page_num": None},
+             "leaf_name_path": "安全 > 临时用电"},
+        ],
+    }, ensure_ascii=False), encoding="utf-8")
+
+
+def test_review_concept_cards_verbatim_projection_from_signed_bank(tmp_path):
+    """签发考点卡池 → 逐字投影 §6.2 字段列表（front/key_gist/quote/point/出处）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _concept_bank_multi(tmp_path)
+    vm = build_lesson_viewmodel("S05", manifest_path=mp)
+    cards = vm["review_concept_cards"]
+    assert len(cards) == 2
+    assert cards[0]["front"] == "三级配电"          # 考点，逐字
+    assert cards[0]["key_gist"] == "总-分-开关箱"     # 关键词颗粒，逐字
+    assert cards[0]["quote"] == "施工现场临时用电应采用三级配电系统"  # 教材原文，逐字
+    assert cards[0]["point_id"] == "kc:1"             # 出处
+    assert cards[0]["leaf_name_path"] == "安全 > 临时用电"
+    # 不在 §6.2 投影字段清单里的 bank 字段不出现（不新造、也不顺手带出）：
+    assert "grade_weight" not in cards[0]
+    assert cards[1]["front"] == "两级保护"
+
+
+def test_review_concept_cards_fail_closed_when_no_bank(tmp_path):
+    """无考点卡池的绿灯站 → 空列表（fail-closed，绝不现编考点卡）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    vm = build_lesson_viewmodel("S05", manifest_path=mp)
+    assert vm["review_concept_cards"] == []
+
+
+def test_review_concept_cards_fail_closed_on_candidate_or_sha_drift(tmp_path):
+    """考点卡池走同一签发闸：candidate/未签发、sha 漂移 → 空列表（与缺失同形）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _concept_bank_multi(tmp_path, status="candidate")
+    assert build_lesson_viewmodel("S05", manifest_path=mp)["review_concept_cards"] == []
+    _concept_bank_multi(tmp_path, status="signed", sha="stale-old-sha")
+    assert build_lesson_viewmodel("S05", manifest_path=mp)["review_concept_cards"] == []
+
+
+def _cloze_bank(tmp_path, *, status="signed", sha="abc123"):
+    (tmp_path / "_S05_r6_cloze_bank.v0.json").write_text(json.dumps({
+        "status": status, "source_pack_sha256": sha,
+        "items": [
+            {"cloze_id": "S05:cz:1", "skeleton": "临时用电应采用____配电系统",
+             "answer": "三级"},
+            {"cloze_id": "S05:cz:2", "skeleton": "应设置____级漏电保护", "answer": "两"},
+        ],
+    }, ensure_ascii=False), encoding="utf-8")
+
+
+def test_cloze_fill_verbatim_projection_from_signed_bank(tmp_path):
+    """签发挖空池 → available:true + items 逐字透传（§5.2 关键词填空）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _cloze_bank(tmp_path)
+    cf = build_lesson_viewmodel("S05", manifest_path=mp)["cloze_fill"]
+    assert cf["available"] is True
+    assert len(cf["items"]) == 2
+    assert cf["items"][0]["skeleton"] == "临时用电应采用____配电系统"
+    assert cf["items"][0]["answer"] == "三级"
+
+
+def test_cloze_fill_fail_closed_when_no_bank(tmp_path):
+    """无挖空池 → available:false（fail-closed；main 上挖空池尚未签发即此形）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    cf = build_lesson_viewmodel("S05", manifest_path=mp)["cloze_fill"]
+    assert cf == {"available": False, "items": []}
+
+
+def test_cloze_fill_fail_closed_on_candidate_or_sha_drift(tmp_path):
+    """挖空池走同一签发闸：candidate/未签发、sha 漂移 → available:false（同缺失）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _cloze_bank(tmp_path, status="candidate")
+    assert build_lesson_viewmodel("S05", manifest_path=mp)["cloze_fill"] == {
+        "available": False, "items": []}
+    _cloze_bank(tmp_path, status="signed", sha="stale-old-sha")
+    assert build_lesson_viewmodel("S05", manifest_path=mp)["cloze_fill"] == {
+        "available": False, "items": []}
+
+
+def _antidote_bank(tmp_path, *, status="signed", sha="abc123"):
+    (tmp_path / "_S05_r8_antidote_bank.v0.json").write_text(json.dumps({
+        "status": status, "source_pack_sha256": sha,
+        "antidotes": [
+            {"antidote_id": "S05:ad:1", "error_code": "E02",
+             "scoring_point": "三级配电", "antidote": "记忆口诀:总-分-开关箱"},
+            {"antidote_id": "S05:ad:2", "error_code": "E02",
+             "scoring_point": "开关箱一机一闸", "antidote": "一机一闸一漏一箱"},
+            {"antidote_id": "S05:ad:3", "error_code": "E07",
+             "scoring_point": "两级保护", "antidote": "总配+开关箱各一级漏保"},
+            {"antidote_id": "S05:ad:bad", "scoring_point": "无错因码"},  # 缺 error_code
+        ],
+    }, ensure_ascii=False), encoding="utf-8")
+
+
+def test_antidotes_grouped_by_error_code_verbatim(tmp_path):
+    """签发解药池 → 按 error_code 归组逐字投影（§6.4 同错因聚焦）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _antidote_bank(tmp_path)
+    ad = build_lesson_viewmodel("S05", manifest_path=mp)["antidotes"]
+    assert set(ad.keys()) == {"E02", "E07"}
+    assert len(ad["E02"]) == 2 and len(ad["E07"]) == 1
+    assert ad["E02"][0]["antidote"] == "记忆口诀:总-分-开关箱"
+    # 缺 error_code 的条目不投影（fail-closed:不虚构错因码归因）：
+    assert all("bad" not in a["antidote_id"] for codes in ad.values() for a in codes)
+
+
+def test_antidotes_fail_closed_when_no_bank(tmp_path):
+    """无解药池 → {}（fail-closed；main 上解药池尚未签发即此形）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    assert build_lesson_viewmodel("S05", manifest_path=mp)["antidotes"] == {}
+
+
+def test_antidotes_fail_closed_on_candidate_or_sha_drift(tmp_path):
+    """解药池走同一签发闸：candidate/未签发、sha 漂移 → {}（与缺失同形）。"""
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _antidote_bank(tmp_path, status="candidate")
+    assert build_lesson_viewmodel("S05", manifest_path=mp)["antidotes"] == {}
+    _antidote_bank(tmp_path, status="signed", sha="stale-old-sha")
+    assert build_lesson_viewmodel("S05", manifest_path=mp)["antidotes"] == {}
+
+
+def test_real_manifest_spike_packs_project_concept_cards():
+    """活体断言：A01/F16/J01/N01 签发考点卡真投影出来（10/2/6/5）;
+    挖空/解药池 main 上尚未签发 → 两层 fail-closed（空/false）。"""
+    expected = {"A01": 10, "F16": 2, "J01": 6, "N01": 5}
+    for pack_id, n in expected.items():
+        vm = build_lesson_viewmodel(pack_id)
+        assert len(vm["review_concept_cards"]) == n, f"{pack_id} 考点卡投影计数"
+        # 挖空/解药池未签发 → fail-closed（投影不生成铁律）：
+        assert vm["cloze_fill"] == {"available": False, "items": []}
+        assert vm["antidotes"] == {}
 
 
 def test_manifest_cache_hits_by_stat_and_invalidates_on_change(tmp_path, monkeypatch):

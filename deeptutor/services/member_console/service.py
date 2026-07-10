@@ -116,6 +116,44 @@ from deeptutor.services.wallet.identity import is_uuid_like
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
 BI_OPERATION_START_AT = datetime(2026, 6, 22, 0, 0, tzinfo=_TZ)
+_MEMBERSHIP_PACKAGE_ALIASES = {
+    "light_99": "light_98",
+    "light99": "light_98",
+    "lite_99": "light_98",
+    "lite99": "light_98",
+    "99": "light_98",
+}
+
+
+def _canonical_membership_package_id(package_id: str | None) -> str:
+    raw = str(package_id or "").strip()
+    if not raw:
+        return ""
+    return _MEMBERSHIP_PACKAGE_ALIASES.get(raw.lower(), raw)
+
+
+_NON_HUMAN_ACCOUNT_KINDS = {
+    "eval_runner",
+    "eval_bot",
+    "internal_test",
+    "machine",
+    "qa",
+    "release_smoke",
+    "synthetic",
+    "test",
+}
+_MACHINE_ACTOR_TYPES = {"machine", "bot", "eval_runner", "synthetic"}
+_EVAL_RUNNER_CREATORS = {"eval_runner", "deeptutor_eval_runner", "system_eval"}
+_EXPLICIT_TEST_FLAG_FIELDS = ("is_internal_test", "is_test_account")
+_EXPLICIT_ACCOUNT_KIND_FIELDS = ("account_kind", "member_account_kind")
+_EXPLICIT_IDENTITY_METADATA_FIELDS = (
+    "account_kind",
+    "member_account_kind",
+    "actor_type",
+    "created_by",
+    "is_internal_test",
+    "is_test_account",
+)
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
@@ -192,6 +230,22 @@ def _is_created_within_days(value: str | None, *, now: datetime, days: int) -> b
         created_at = created_at.replace(tzinfo=_TZ)
     age = now - created_at.astimezone(_TZ)
     return timedelta(0) <= age <= timedelta(days=days)
+
+
+def _is_created_on_local_date(value: str | None, *, now: datetime) -> bool:
+    if not value:
+        return False
+    try:
+        created_at = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=_TZ)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=_TZ)
+    created_local = created_at.astimezone(_TZ)
+    now_local = now.astimezone(_TZ)
+    return created_local <= now_local and created_local.date() == now_local.date()
 
 
 def is_bi_operational_at(value: Any) -> bool:
@@ -815,6 +869,10 @@ class MemberConsoleService:
             logger.warning("Failed to write assessment teaching-policy overlay: user_id=%s quiz_id=%s", user_id, quiz_id, exc_info=True)
 
     @staticmethod
+    def canonical_membership_package_id(package_id: str | None) -> str:
+        return _canonical_membership_package_id(package_id)
+
+    @staticmethod
     def _default_packages() -> list[dict[str, Any]]:
         return [
             {
@@ -822,6 +880,7 @@ class MemberConsoleService:
                 "label": "体验包",
                 "points": 800,
                 "turns": 40,
+                "days": 180,
                 "price": "19",
                 "original_price": "29",
                 "badge": "新手体验",
@@ -831,15 +890,16 @@ class MemberConsoleService:
                 "desc": "AI智能答疑、AI案例批改、错因专训、学习记录",
             },
             {
-                "id": "light_99",
+                "id": "light_98",
                 "label": "轻量包",
                 "points": 4400,
                 "turns": 220,
-                "price": "99",
+                "days": 180,
+                "price": "98",
                 "original_price": "149",
                 "badge": "轻量优选",
                 "per": "220 次 AI 学习额度",
-                "per_turn_price": "0.45",
+                "per_turn_price": "0.445",
                 "audience": "阶段备考、需要稳定答疑的考生",
                 "desc": "AI智能答疑、AI案例批改、错因专训、定制个人学习规划、学习报告",
             },
@@ -848,6 +908,7 @@ class MemberConsoleService:
                 "label": "VIP",
                 "points": 9000,
                 "turns": 450,
+                "days": 180,
                 "price": "198",
                 "original_price": "298",
                 "badge": "",
@@ -861,6 +922,7 @@ class MemberConsoleService:
                 "label": "SVIP",
                 "points": 28000,
                 "turns": 1400,
+                "days": 180,
                 "price": "598",
                 "original_price": "798",
                 "badge": "班主任督学",
@@ -874,6 +936,7 @@ class MemberConsoleService:
                 "label": "至尊SVIP",
                 "points": 50000,
                 "turns": 2500,
+                "days": 180,
                 "price": "998",
                 "original_price": "1298",
                 "badge": "最高性价比",
@@ -886,9 +949,9 @@ class MemberConsoleService:
 
     @staticmethod
     def _normalize_membership_package(item: dict[str, Any]) -> dict[str, Any]:
-        package_id = str(item.get("id") or item.get("package_id") or "").strip()
+        package_id = _canonical_membership_package_id(item.get("id") or item.get("package_id"))
         label = str(item.get("label") or item.get("name") or package_id).strip()
-        tier = str(item.get("tier") or item.get("plan") or package_id).strip()
+        tier = _canonical_membership_package_id(item.get("tier") or item.get("plan") or package_id)
         if not package_id:
             raise ValueError("package id is required")
         try:
@@ -899,6 +962,10 @@ class MemberConsoleService:
             turns = int(item.get("turns") or 0)
         except (TypeError, ValueError):
             turns = 0
+        try:
+            days = int(item.get("days") or item.get("duration_days") or item.get("durationDays") or 180)
+        except (TypeError, ValueError):
+            days = 180
         price = str(item.get("price") or item.get("price_cny") or item.get("priceCny") or "0").strip()
         status = str(item.get("status") or item.get("state") or "active").strip() or "active"
         if status not in {"active", "draft", "archived"}:
@@ -909,6 +976,7 @@ class MemberConsoleService:
             "tier": tier or package_id,
             "points": max(0, points),
             "turns": max(0, turns),
+            "days": max(1, days),
             "price": price or "0",
             "original_price": str(item.get("original_price") or item.get("originalPrice") or "").strip(),
             "badge": str(item.get("badge") or "").strip(),
@@ -926,6 +994,32 @@ class MemberConsoleService:
                 package["per_turn_price"] = f"{per_turn_price:.3f}".rstrip("0").rstrip(".")
             except (TypeError, ValueError, ZeroDivisionError):
                 package["per_turn_price"] = ""
+        if package["id"] == "starter_19":
+            package.update(
+                {
+                    "id": "starter_19",
+                    "tier": "starter_19",
+                    "label": "体验包",
+                    "points": 800,
+                    "turns": 40,
+                    "days": 180,
+                    "price": "19",
+                    "per_turn_price": "0.475",
+                }
+            )
+        elif package["id"] == "light_98":
+            package.update(
+                {
+                    "id": "light_98",
+                    "tier": "light_98",
+                    "label": "轻量包",
+                    "points": 4400,
+                    "turns": 220,
+                    "days": 180,
+                    "price": "98",
+                    "per_turn_price": "0.445",
+                }
+            )
         return package
 
     @classmethod
@@ -1716,13 +1810,46 @@ class MemberConsoleService:
         } and not re.fullmatch(r"1380000000\d", phone)
 
     @staticmethod
-    def _looks_like_test_member(member: dict[str, Any]) -> bool:
+    def _normalize_identity_marker(value: Any) -> str:
+        return str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+
+    @classmethod
+    def _identity_metadata_sources(cls, member: dict[str, Any]):
+        yield member
+        for field in ("identity_metadata", "account_metadata", "metadata", "traits"):
+            value = member.get(field)
+            if isinstance(value, dict):
+                yield value
+
+    @classmethod
+    def _has_explicit_non_human_identity(cls, member: dict[str, Any]) -> bool:
+        for source in cls._identity_metadata_sources(member):
+            for field in _EXPLICIT_TEST_FLAG_FIELDS:
+                value = source.get(field)
+                if value is True or str(value or "").strip().lower() in {"1", "true", "yes", "y"}:
+                    return True
+            if any(
+                cls._normalize_identity_marker(source.get(field)) in _NON_HUMAN_ACCOUNT_KINDS
+                for field in _EXPLICIT_ACCOUNT_KIND_FIELDS
+            ):
+                return True
+            if cls._normalize_identity_marker(source.get("actor_type")) in _MACHINE_ACTOR_TYPES:
+                return True
+            if cls._normalize_identity_marker(source.get("created_by")) in _EVAL_RUNNER_CREATORS:
+                return True
+        return False
+
+    @classmethod
+    def _looks_like_test_member(cls, member: dict[str, Any]) -> bool:
+        if cls._has_explicit_non_human_identity(member):
+            return True
         haystack = " ".join(
             str(member.get(key) or "").lower()
             for key in (
                 "user_id",
                 "display_name",
                 "auth_username",
+                "external_auth_user_id",
                 "external_auth_provider",
                 "wx_openid",
                 "wx_unionid",
@@ -1730,6 +1857,7 @@ class MemberConsoleService:
         )
         test_markers = (
             "test",
+            "eval",
             "qa_",
             "qa-",
             "qa.",
@@ -1740,6 +1868,7 @@ class MemberConsoleService:
             "prelaunch",
             "prelaunchsmoke",
             "preflight",
+            "release",
             "smoke",
             "soak",
             "debug",
@@ -1747,6 +1876,9 @@ class MemberConsoleService:
             "dummy",
             "fake",
             "compiled_shadow",
+            "practiceanchor",
+            "practice_anchor",
+            "army_",
             "synthetic",
             "测试",
         )
@@ -2093,6 +2225,7 @@ class MemberConsoleService:
             "external_auth_user_id",
             "wx_openid",
             "wx_unionid",
+            *_EXPLICIT_IDENTITY_METADATA_FIELDS,
         ):
             value = overlay.get(field)
             if value not in (None, "", [], {}):
@@ -2761,8 +2894,8 @@ class MemberConsoleService:
                 try:
                     snapshot = wallet_service.ensure_wallet_seeded(
                         user_id=canonical_uid,
-                        opening_points=int(member.get("points_balance") or 0),
-                        plan_id=str(member.get("tier") or "").strip(),
+                        opening_points=0,
+                        plan_id="",
                         reference_type="signup_bonus",
                         reference_id=str(member.get("user_id") or canonical_uid).strip(),
                         idempotency_key=f"signup_bonus:{canonical_uid}:member_console_bootstrap",
@@ -3965,7 +4098,7 @@ class MemberConsoleService:
         new_today_count = sum(
             1
             for item in members
-            if _is_created_within_days(item.get("created_at"), now=now, days=1)
+            if _is_created_on_local_date(item.get("created_at"), now=now)
         )
         new_7d_count = sum(
             1
@@ -5301,16 +5434,17 @@ class MemberConsoleService:
         data: dict[str, Any],
         package_id: str,
     ) -> dict[str, Any]:
-        normalized_package_id = str(package_id or "").strip()
+        normalized_package_id = _canonical_membership_package_id(package_id)
         if not normalized_package_id:
             raise ValueError("package_id is required")
         for item in list(data.get("packages") or self._default_packages()):
             if not isinstance(item, dict):
                 continue
-            if str(item.get("id") or "").strip() == normalized_package_id:
-                if str(item.get("status") or "active").strip() != "active":
+            if _canonical_membership_package_id(item.get("id")) == normalized_package_id:
+                package = self._normalize_membership_package(item)
+                if str(package.get("status") or "active").strip() != "active":
                     raise ValueError(f"Membership package is not active: {normalized_package_id}")
-                return dict(item)
+                return package
         raise ValueError(f"Unknown membership package: {normalized_package_id}")
 
     @staticmethod
@@ -8104,6 +8238,10 @@ class MemberConsoleService:
                 member["external_auth_user_id"] = external_user_id
             if external_phone:
                 member["phone"] = _slugify_phone(external_phone)
+            for field in _EXPLICIT_IDENTITY_METADATA_FIELDS:
+                value = user_data.get(field)
+                if value not in (None, "", [], {}):
+                    member[field] = deepcopy(value)
             member["last_active_at"] = _iso()
             self._ensure_learning_profile(member)
             return deepcopy(member)

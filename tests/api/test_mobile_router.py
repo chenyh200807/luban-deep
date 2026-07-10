@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 import importlib
 import tempfile
@@ -1239,7 +1240,7 @@ def test_billing_usage_defaults_follow_membership_balance_model(monkeypatch: pyt
     legacy_sprint = mobile_module._build_billing_usage_payload([], plan_id="sprint")
 
     assert starter["display"]["plan_id"] == "starter_19"
-    assert light["display"]["plan_id"] == "light_99"
+    assert light["display"]["plan_id"] == "light_98"
     assert vip["display"]["plan_id"] == "vip"
     assert svip["display"]["plan_id"] == "svip"
     assert supreme["display"]["plan_id"] == "supreme_svip"
@@ -1251,11 +1252,13 @@ def test_billing_usage_defaults_follow_membership_balance_model(monkeypatch: pyt
     assert svip["quota"]["rows"] == []
     assert supreme["quota"]["rows"] == []
     assert mobile_module._billing_usage_reference_points_for_plan("starter_19") == 800
+    assert mobile_module._billing_usage_reference_points_for_plan("light_98") == 4400
     assert mobile_module._billing_usage_reference_points_for_plan("light_99") == 4400
     assert mobile_module._billing_usage_reference_points_for_plan("vip") == 9000
     assert mobile_module._billing_usage_reference_points_for_plan("svip") == 28000
     assert mobile_module._billing_usage_reference_points_for_plan("supreme_svip") == 50000
     assert mobile_module._billing_usage_reference_points_for_plan("19") == 800
+    assert mobile_module._billing_usage_reference_points_for_plan("98") == 4400
     assert mobile_module._billing_usage_reference_points_for_plan("99") == 4400
     assert mobile_module._billing_usage_reference_points_for_plan("advance") == 9000
     assert mobile_module._billing_usage_reference_points_for_plan("sprint") == 28000
@@ -1360,8 +1363,10 @@ def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
-    assert body["display"]["primary_label"] == "剩余 100%"
+    assert body["display"]["primary_label"] == "剩余 1.1%"
+    assert body["display"]["primary_percent"] == 1.1
     assert body["display"]["plan_id"] == "vip"
+    assert body["display"]["reference_points"] == 9000
     assert body["display"]["limited_by"] == "membership_balance"
     assert body["quota"]["rows"] == []
 
@@ -1447,8 +1452,8 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
     assert body["status"] == "ok"
     assert body["usage_source"] == "member_usage_meter"
     assert body["charging_status"] == "metered_not_charged"
-    assert body["display"]["primary_label"] == "剩余 97%"
-    assert body["display"]["primary_percent"] == 97
+    assert body["display"]["primary_label"] == "剩余 96.8%"
+    assert body["display"]["primary_percent"] == 96.8
     assert "primary_used_uses" not in body["display"]
     assert "primary_limit_uses" not in body["display"]
     assert "primary_remaining_uses" not in body["display"]
@@ -1547,6 +1552,18 @@ def test_billing_checkout_creates_wechat_order_shell_without_gateway(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv("DEEPTUTOR_PAYMENT_GATEWAY_URL", raising=False)
+    for name in (
+        "WECHAT_PAY_MCH_ID",
+        "WECHAT_PAY_APP_ID",
+        "WECHAT_PAY_API_V3_KEY",
+        "WECHAT_PAY_CERT_SERIAL_NO",
+        "WECHAT_PAY_MCH_CERT_SERIAL_NO",
+        "WECHAT_PAY_PRIVATE_KEY_PATH",
+        "WECHAT_PAY_MCH_PRIVATE_KEY_PATH",
+        "WECHAT_PAY_NOTIFY_URL",
+        "WECHAT_PAY_API_BASE",
+    ):
+        monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(
         mobile_module,
         "_resolve_authenticated_user_id",
@@ -1574,6 +1591,120 @@ def test_billing_checkout_creates_wechat_order_shell_without_gateway(
     assert body["package"]["points"] == 9000
     assert body["amount_fen"] == 19800
     assert body["payment"]["type"] == "wechat_mp"
+
+
+def test_billing_checkout_creates_wechat_jsapi_order_when_native_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    async def fake_gateway(_payload: dict[str, object]) -> None:
+        return None
+
+    async def fake_create_wechat_order(
+        payload: dict[str, object],
+        *,
+        openid: str,
+        attach: str,
+    ) -> dict[str, object]:
+        captured["openid"] = openid
+        captured["attach"] = attach
+        return {
+            **payload,
+            "status": "pending_payment",
+            "payment": {
+                "type": "wechat_mp",
+                "params": {
+                    "timeStamp": "1770000000",
+                    "nonceStr": "nonce",
+                    "package": "prepay_id=wx123",
+                    "signType": "RSA",
+                    "paySign": "sign",
+                },
+                "qr_code_url": "",
+            },
+        }
+
+    monkeypatch.setattr(mobile_module, "_create_payment_gateway_order", fake_gateway)
+    monkeypatch.setattr(mobile_module, "get_wechat_pay_config", lambda: SimpleNamespace())
+    monkeypatch.setattr(mobile_module, "create_wechat_jsapi_order", fake_create_wechat_order)
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "verify_access_token",
+        lambda token: {"openid": "openid_123", "sub": "student_demo"},
+        raising=False,
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/billing/checkout",
+            json={"package_id": "vip", "channel": "wechat"},
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "pending_payment"
+    assert body["payment"]["params"]["package"] == "prepay_id=wx123"
+    assert captured["openid"] == "openid_123"
+    attach = json.loads(str(captured["attach"]))
+    assert attach == {"u": "student_demo", "p": "vip", "a": 19800, "d": 180}
+
+
+def test_billing_wechat_notify_grants_membership_purchase(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+    attach = mobile_module.build_wechat_pay_attach(
+        user_id="student_demo",
+        package_id="vip",
+        amount_fen=19800,
+        days=365,
+    )
+
+    monkeypatch.setattr(
+        mobile_module,
+        "decrypt_wechat_pay_notification",
+        lambda _payload: {
+            "trade_state": "SUCCESS",
+            "transaction_id": "420000000000",
+            "out_trade_no": "dtw_order_1",
+            "amount": {"total": 19800},
+            "attach": attach,
+        },
+    )
+
+    def fake_purchase(**kwargs: object) -> dict[str, object]:
+        captured.update(kwargs)
+        return {"deduped": False}
+
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "manual_membership_purchase",
+        fake_purchase,
+        raising=False,
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/billing/wechat/notify", json={"resource": {}})
+
+    assert response.status_code == 200
+    assert response.json() == {"code": "SUCCESS", "message": "成功"}
+    assert captured["user_id"] == "student_demo"
+    assert captured["package_id"] == "vip"
+    assert captured["operator"] == "wechat_pay"
+    assert captured["idempotency_key"] == "wechat_pay:420000000000"
+    assert captured["amount_cny"] == 198
 
 
 def test_billing_checkout_rejects_unknown_channel(monkeypatch: pytest.MonkeyPatch) -> None:

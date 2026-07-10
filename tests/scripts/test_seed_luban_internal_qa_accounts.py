@@ -40,6 +40,10 @@ def test_seed_luban_internal_qa_accounts_creates_fixed_users(
         "qa_tutorbot_weird",
         "qa_tutorbot_case",
     }.issubset(users)
+    assert users["qa_tutorbot_mcq"]["account_kind"] == "eval_runner"
+    assert users["qa_tutorbot_mcq"]["actor_type"] == "machine"
+    assert users["qa_tutorbot_mcq"]["created_by"] == "eval_runner"
+    assert users["qa_tutorbot_mcq"]["is_internal_test"] is True
     assert "qa_tutorbot_mcq" in result.stdout
     assert external_auth_module.verify_external_auth_user(
         "qa_tutorbot_mcq",

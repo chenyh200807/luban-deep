@@ -30,7 +30,23 @@ _MANIFEST_PATH = (
     _REPO / "docs" / "原始数据" / "考点原料" / "成品" / "_pack_manifest.json"
 )
 _VARIANT_BANK_TEMPLATE = "_{pack_id}_variant_bank.v0.json"
+_CONCEPT_CARD_BANK_TEMPLATE = "_{pack_id}_concept_card_bank.v0.json"
+_R6_CLOZE_BANK_TEMPLATE = "_{pack_id}_r6_cloze_bank.v0.json"
+_R8_ANTIDOTE_BANK_TEMPLATE = "_{pack_id}_r8_antidote_bank.v0.json"
 _CARD_BASE_ENV = "LUBAN_LESSON_CARD_BASE"
+
+# 复习考点卡逐字投影字段（§6.2：考点 front + 关键词颗粒 key_gist + 教材原文
+# quote + 出处 point_id/source_ref/leaf_name_path）——只从签发 bank 已有字段
+# 里挑选透传，一个字不新造/不改写；bank 缺某字段则该字段不出现（不补默认值）。
+_CONCEPT_CARD_PROJECT_FIELDS = (
+    "card_id",
+    "front",
+    "key_gist",
+    "quote",
+    "point_id",
+    "source_ref",
+    "leaf_name_path",
+)
 
 
 class LessonNotAvailable(Exception):
@@ -72,15 +88,19 @@ def _card_url(pack_id: str) -> str:
 
 
 def _load_signed_bank(
-    pack_id: str, manifest_dir: Path, expected_sha: str
+    pack_id: str,
+    manifest_dir: Path,
+    expected_sha: str,
+    filename_template: str = _VARIANT_BANK_TEMPLATE,
 ) -> dict[str, Any] | None:
-    """变体池签发闸（双 fail-closed，本文件所有 bank 读取的唯一入口）。
+    """供给池签发闸（双 fail-closed，所有 bank 读取的唯一入口——含考点卡池，
+    考点卡 loader 传自己的 ``filename_template`` 复用同一闸，禁分叉第二 loader）。
 
     只放行 ``status=="signed"`` 且 ``source_pack_sha256`` == manifest 该 pack
     ``content_sha256`` 的 bank；candidate 未签发、pack 正文修订后的 sha 漂移、
     文件缺失/损坏，一律返回 None（对外与 bank 缺失同形，不泄漏未签发存在性）。
     """
-    path = manifest_dir / _VARIANT_BANK_TEMPLATE.format(pack_id=pack_id)
+    path = manifest_dir / filename_template.format(pack_id=pack_id)
     try:
         bank = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
@@ -110,6 +130,96 @@ def _variant_summary(
     }
 
 
+def _concept_summary(pack_id: str, manifest_dir: Path, expected_sha: str) -> str:
+    """路线卡副标题真源：签发考点卡池首卡 ``front``（该 pack §1 第一个关键知识点，
+    ``build_luban_concept_card_bank.py`` 确定性派生自签发 pack + 教材逐字 quote）。
+
+    走 ``_load_signed_bank`` 单一签发闸（signed + sha 双 fail-closed，与变体池同闸）；
+    bank 缺失/未签发/sha 漂移/无卡 → 返回 ""（副标题该站留空，客户端 fail-closed
+    不造词）。零生成——只逐字透传首卡 ``front``，不摘要不改写。
+    """
+    bank = _load_signed_bank(
+        pack_id, manifest_dir, expected_sha, filename_template=_CONCEPT_CARD_BANK_TEMPLATE
+    )
+    if bank is None:
+        return ""
+    cards = bank.get("cards") or []
+    if not cards or not isinstance(cards[0], dict):
+        return ""
+    return str(cards[0].get("front") or "")
+
+
+def _review_concept_cards(
+    pack_id: str, manifest_dir: Path, expected_sha: str
+) -> list[dict[str, Any]]:
+    """复习模块考点卡投影（§6.2）——签发考点卡池逐字透传为复习列表。
+
+    走 ``_load_signed_bank`` 单一签发闸（signed + sha 双 fail-closed，与变体池
+    /副标题同闸，不分叉第二 loader）。bank 缺失/未签发/sha 漂移/无卡 → 返回 ``[]``
+    （fail-closed，复习模块该 pack 无考点卡，绝不现编）。零生成——只从每张卡
+    ``_CONCEPT_CARD_PROJECT_FIELDS`` 里已有的字段逐字挑选，不摘要不改写不补默认。
+    """
+    bank = _load_signed_bank(
+        pack_id, manifest_dir, expected_sha, filename_template=_CONCEPT_CARD_BANK_TEMPLATE
+    )
+    if bank is None:
+        return []
+    out: list[dict[str, Any]] = []
+    for card in bank.get("cards") or []:
+        if not isinstance(card, dict):
+            continue
+        out.append(
+            {k: card[k] for k in _CONCEPT_CARD_PROJECT_FIELDS if k in card}
+        )
+    return out
+
+
+def _cloze_fill(
+    pack_id: str, manifest_dir: Path, expected_sha: str
+) -> dict[str, Any]:
+    """关键词填空投影（§5.2 练档位①）——签发 r6 挖空池逐字透传。
+
+    走同一签发闸（signed + sha 双 fail-closed）。bank 缺失/未签发/sha 漂移 →
+    ``{"available": False, "items": []}``（fail-closed）。空池同形。items 逐字
+    透传 bank 已有条目（不对条目内部字段做任何生成/改写/schema 强加——挖空题面
+    的采分句骨架与关键词是签发期真值，runtime 只投影）。
+    """
+    bank = _load_signed_bank(
+        pack_id, manifest_dir, expected_sha, filename_template=_R6_CLOZE_BANK_TEMPLATE
+    )
+    if bank is None:
+        return {"available": False, "items": []}
+    items = [i for i in bank.get("items") or [] if isinstance(i, dict)]
+    return {"available": bool(items), "items": items}
+
+
+def _antidotes(
+    pack_id: str, manifest_dir: Path, expected_sha: str
+) -> dict[str, list[dict[str, Any]]]:
+    """错因银行解药投影（§6.4）——签发 r8 解药池按 ``error_code`` 逐字投影。
+
+    走同一签发闸（signed + sha 双 fail-closed）。bank 缺失/未签发/sha 漂移 →
+    ``{}``（fail-closed，无解药层）。解药条目按 ``error_code`` 归组（§6.4 同错因
+    聚焦），条目逐字透传 bank 已有字段（error_code + 采分点 + 原题背景 + 解药正文
+    均为签发期真值，禁二次 LLM 归因，§ 表 R8 行）。无 ``error_code`` 的条目跳过
+    （fail-closed：不虚构错因码）。
+    """
+    bank = _load_signed_bank(
+        pack_id, manifest_dir, expected_sha, filename_template=_R8_ANTIDOTE_BANK_TEMPLATE
+    )
+    if bank is None:
+        return {}
+    out: dict[str, list[dict[str, Any]]] = {}
+    for entry in bank.get("antidotes") or []:
+        if not isinstance(entry, dict):
+            continue
+        code = str(entry.get("error_code") or "").strip()
+        if not code:
+            continue  # 无错因码不投影(fail-closed,不虚构归因)
+        out.setdefault(code, []).append(entry)
+    return out
+
+
 def list_all_pack_ids(*, manifest_path: Path | None = None) -> list[str]:
     """40 pack 全集（pack_id 排序，非 manifest 登记序；消费者当集合用）
     ——生命周期投影「未学」态的枚举范围
@@ -127,15 +237,19 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
     """绿灯站点列表投影（地图/路线消费）；只含绿灯包，锁定站的露脸文案归上层。"""
     manifest = _load_manifest(manifest_path)
     green = set(manifest.get("projection_green") or [])
+    manifest_dir = (manifest_path or _MANIFEST_PATH).parent
     rows = []
     for pack in manifest.get("packs") or []:
         if pack.get("pack_id") not in green:
             continue
+        content_sha = str(pack.get("content_sha256") or "")
         rows.append(
             {
                 "pack_id": pack["pack_id"],
                 "title": str(pack.get("title") or ""),
-                "content_sha256": str(pack.get("content_sha256") or ""),
+                "content_sha256": content_sha,
+                # 副标题真源：签发考点卡首卡 front（无卡→""，前端 fail-closed 留空）
+                "summary": _concept_summary(pack["pack_id"], manifest_dir, content_sha),
             }
         )
     return sorted(rows, key=lambda r: r["pack_id"])
@@ -165,6 +279,18 @@ def build_lesson_viewmodel(
         # 非 hosted 站不发 URL——防 web-view 打开 404(部署探针实证 22/28 站无卡)
         "card_url": _card_url(pack_id) if pack.get("card_hosted") else "",
         "variant_retest": _variant_summary(
+            pack_id, manifest_dir, str(pack.get("content_sha256") or "")
+        ),
+        # 复习模块三层母题集投影（双轮 v3 §6.2/§5.2/§6.4）——全部走 variant_retest
+        # 同一签发闸（signed + sha 双 fail-closed），只读已签发逐字内容、零生成；
+        # 无签发池的层各自 fail-closed（考点卡/解药空、挖空 available:false）。
+        "review_concept_cards": _review_concept_cards(
+            pack_id, manifest_dir, str(pack.get("content_sha256") or "")
+        ),
+        "cloze_fill": _cloze_fill(
+            pack_id, manifest_dir, str(pack.get("content_sha256") or "")
+        ),
+        "antidotes": _antidotes(
             pack_id, manifest_dir, str(pack.get("content_sha256") or "")
         ),
         # 证据写入路径声明（客户端按此接线，防第四 builder）：
