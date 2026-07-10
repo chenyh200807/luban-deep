@@ -1,8 +1,20 @@
 // pages/assessment/assessment.js — 摸底测试
 
 var api = require("../../utils/api");
+var surfaceTelemetry = require("../../utils/surface-telemetry");
 
 var taxonomy = require("../../utils/taxonomy");
+
+// 首体验漏斗埋点（2026-07-10）：统一经 surface-telemetry 唯一通道。
+// 测试环境可能以部分对象 stub 该模块，故做存在性防御。
+function trackBehavior(eventName, payload) {
+  if (
+    surfaceTelemetry &&
+    typeof surfaceTelemetry.trackProductBehavior === "function"
+  ) {
+    surfaceTelemetry.trackProductBehavior(eventName, payload);
+  }
+}
 var LEVEL_NAMES = {
   beginner: "入门",
   intermediate: "中级",
@@ -299,11 +311,27 @@ Page({
 
   onUnload: function () {
     this._pageUnloaded = true;
+    // 漏斗：答题中途退出（提交成功后 _submitted 置位，不算退出）
+    if (this.data.stage === "quiz" && !this._submitted) {
+      trackBehavior("module_exited", {
+        module: "assessment",
+        action: "return",
+        objectType: "assessment_quiz",
+        objectId: String(this._quizId || ""),
+        result:
+          String(this.data.answeredCount || 0) +
+          "/" +
+          String((this.data.questions || []).length),
+        durationMs: this._startTime > 0 ? Date.now() - this._startTime : 0,
+      });
+    }
     clearTimeout(this._autoNextTimer);
   },
 
   onLoad: function () {
     this._pageUnloaded = false;
+    // 漏斗：assessment 页进入
+    trackBehavior("module_viewed", { module: "assessment", action: "view" });
     var info = helpers.getWindowInfo();
     this.setData({
       statusBarHeight: info.statusBarHeight,
@@ -321,6 +349,12 @@ Page({
   onStart: function () {
     if (this.data.starting) return;
     var self = this;
+    // 漏斗：开始摸底测试
+    trackBehavior("learning_action_started", {
+      module: "assessment",
+      action: "start_probe",
+      objectType: "assessment_quiz",
+    });
     helpers.vibrate("medium");
     self.setData({ stage: "loading", starting: true });
 
@@ -576,6 +610,19 @@ Page({
       .submitAssessment(self._quizId, answers, timeSpent)
       .then(function (resp) {
         if (self._pageUnloaded) return;
+        self._submitted = true;
+        // 漏斗：摸底提交成功（渲染失败不影响该事实）
+        trackBehavior("learning_action_completed", {
+          module: "assessment",
+          action: "complete",
+          objectType: "assessment_quiz",
+          objectId: String(self._quizId || ""),
+          result:
+            String(Object.keys(answers).length) +
+            "/" +
+            String((self.data.questions || []).length),
+          durationMs: timeSpent * 1000,
+        });
         var data = resp.data || resp;
         try {
           // 响应已收到
@@ -723,6 +770,13 @@ Page({
       })
       .catch(function (e) {
         if (self._pageUnloaded) return;
+        // 漏斗：摸底提交失败
+        trackBehavior("event_error", {
+          module: "assessment",
+          action: "error",
+          objectType: "assessment_quiz",
+          errorCode: String((e && e.message) || "submit_failed").slice(0, 60),
+        });
         // 提交失败已通过 toast 展示
         wx.showToast({ title: "提交失败，请重试", icon: "none" });
         self.setData({ stage: "quiz", submitting: false });
