@@ -560,6 +560,39 @@ def _question_context_has_completed_grading_evidence(
     return False
 
 
+def _next_training_topic_from_grading_context(
+    question_context: dict[str, Any] | None,
+) -> str:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return ""
+    nodes = [
+        *[
+            item
+            for item in normalized_context.get("items") or []
+            if isinstance(item, dict)
+        ],
+        normalized_context,
+    ]
+    for node in nodes:
+        grading_result = node.get("construction_grading_result")
+        signal = (
+            grading_result.get("next_training_signal")
+            if isinstance(grading_result, dict)
+            else None
+        )
+        if isinstance(signal, dict):
+            for key in ("concept", "focus"):
+                topic = str(signal.get(key) or "").strip()
+                if topic:
+                    return topic
+        for key in ("concentration", "topic"):
+            topic = str(node.get(key) or "").strip()
+            if topic:
+                return topic
+    return ""
+
+
 def _practice_generation_action_for_recent_grading_acceptance(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -574,10 +607,14 @@ def _practice_generation_action_for_recent_grading_acceptance(
         return None
     if not _question_context_has_completed_grading_evidence(normalized_context):
         return None
+    topic = _next_training_topic_from_grading_context(normalized_context)
+    if not topic:
+        return None
     return {
         "intent": "generate_more_questions",
         "confidence": 0.84,
         "answers": [],
+        "topic": topic,
         "reason": "用户用短回复接受上一轮批改后的下一步巩固建议，基于已批改题目上下文生成同考点练习。",
     }
 
@@ -596,6 +633,9 @@ def _contextual_generation_action_allowed(
         return False
     if looks_like_question_followup(user_message, normalized_context):
         return False
+    action_topic = str((action or {}).get("topic") or (action or {}).get("topic_hint") or "").strip()
+    if not action_topic and not _next_training_topic_from_grading_context(normalized_context):
+        return False
     _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
     if submission is not None:
         return False
@@ -603,6 +643,22 @@ def _contextual_generation_action_allowed(
         return float((action or {}).get("confidence") or 0.0) >= 0.65
     except (TypeError, ValueError):
         return False
+
+
+def _generation_action_with_grading_topic(
+    action: dict[str, Any] | None,
+    question_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if not isinstance(action, dict):
+        return None
+    enriched = dict(action)
+    topic = str(enriched.get("topic") or enriched.get("topic_hint") or "").strip()
+    if not topic:
+        topic = _next_training_topic_from_grading_context(question_context)
+    if not topic:
+        return None
+    enriched["topic"] = topic
+    return enriched
 
 
 def _message_accepts_next_training_for_stored_set(
@@ -1047,6 +1103,15 @@ async def _resolve_question_followup_context_and_action(
             normalized_explicit,
             normalized_action,
         )
+        if _contextual_generation_action_allowed(
+            user_message,
+            normalized_explicit,
+            normalized_action,
+        ):
+            normalized_action = _generation_action_with_grading_topic(
+                normalized_action,
+                normalized_explicit,
+            )
         return normalized_explicit, normalized_action
 
     for candidate in candidate_contexts:
@@ -1114,17 +1179,23 @@ async def _resolve_question_followup_context_and_action(
         candidate_route = followup_action_route(candidate_action)
         if candidate_route == "submission":
             return normalized_candidate, candidate_action
+        contextual_generation_action = None
+        if _contextual_generation_action_allowed(
+            user_message,
+            normalized_candidate,
+            candidate_action,
+        ):
+            contextual_generation_action = _generation_action_with_grading_topic(
+                candidate_action,
+                normalized_candidate,
+            )
         if candidate_route == "practice_generation" and (
             looks_like_practice_generation_request(user_message)
-            or _contextual_generation_action_allowed(
-                user_message,
-                normalized_candidate,
-                candidate_action,
-            )
+            or contextual_generation_action is not None
         ):
             return (
                 reset_question_submission_state(normalized_candidate) or normalized_candidate,
-                candidate_action,
+                contextual_generation_action or candidate_action,
             )
         if candidate_route == "followup" and deterministic_followup:
             return normalized_candidate, candidate_action
