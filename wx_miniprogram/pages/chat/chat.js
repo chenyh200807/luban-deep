@@ -342,7 +342,7 @@ Page({
       {
         icon: "▧",
         title: "知识地图",
-        desc: "一建考点梳理",
+        desc: "建筑实务考点梳理",
         bgDark: "rgba(245,158,11,0.16)",
         fgDark: "#fbbf24",
         bgLight: "#fff4e0",
