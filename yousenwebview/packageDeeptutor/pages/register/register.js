@@ -2,6 +2,7 @@ var api = require("../../utils/api");
 var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
+var firstRunEntry = require("../../utils/first-run-entry");
 var analytics = require("../../utils/analytics");
 
 var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -90,7 +91,7 @@ Page({
     } catch (_) {}
     this._captureEntryContext(options);
     if (auth.isLoggedIn()) {
-      this._reLaunchAfterAuth();
+      this._reLaunchAfterAuth(false);
       return;
     }
   },
@@ -125,11 +126,15 @@ Page({
       returnTo: returnTo,
     });
   },
-  _reLaunchAfterAuth: function () {
+  _reLaunchAfterAuth: function (isNewAccount) {
     var source = this.data.entrySource;
     var fallback = route.chat(source ? { entry_source: source } : null);
-    wx.reLaunch({
-      url: route.resolveInternalUrl(this.data.returnTo, fallback),
+    var target = route.resolveInternalUrl(this.data.returnTo, fallback);
+    // 首跑剧本：仅刚注册创建的新账号、且无深链 returnTo 时进「第一分钟」；
+    // 其余（含已登录返回用户、深链）落到 target。纯本地判据、非阻塞。
+    firstRunEntry.reLaunchAfterAuth(target, {
+      isNewAccount: !!isNewAccount,
+      hasDeepLink: !!this.data.returnTo,
     });
   },
   _trackLoginSuccess: function (method) {
@@ -216,7 +221,7 @@ Page({
         if (!token) throw new Error("服务端未返回凭证");
         auth.setToken(token, inner.expires_at, inner);
         self._trackLoginSuccess("register_password");
-        self._reLaunchAfterAuth();
+        self._reLaunchAfterAuth(true);
       })
       .catch(function (err) {
         var msg = self._describeAuthError(err, "注册失败，请重试", {
@@ -271,7 +276,7 @@ Page({
       .then(function (resp) {
         self._completeWechatAuth(resp);
         self._trackLoginSuccess("register_wechat_phone");
-        self._reLaunchAfterAuth();
+        self._reLaunchAfterAuth(true);
       })
       .catch(function (err) {
         var msg = self._describeAuthError(err, "快捷注册失败，请重试", {

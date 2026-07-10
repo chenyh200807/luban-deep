@@ -113,6 +113,8 @@ function loadPage(options) {
       }
       if (request === "../../utils/route") return createRouteMock();
       if (request === "../../utils/analytics") return { track: function () {} };
+      if (request === "../../utils/first-run-entry")
+        return { reLaunchAfterAuth: function (target) { sandbox.wx.reLaunch({ url: target }); } };
       throw new Error("unexpected require: " + request);
     },
     wx: {

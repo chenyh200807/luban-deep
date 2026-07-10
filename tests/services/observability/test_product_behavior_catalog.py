@@ -235,3 +235,31 @@ def test_first_experience_funnel_events_registered() -> None:
         assert record["event_name"] == name
         assert record["module"] == meta["module"]
         assert record["action"] == meta["action"]
+
+def test_first_run_script_events_registered():
+    """首跑剧本（2026-07-10 登记）：2 个新事件名 + first_run module 过 catalog 校验。"""
+    from deeptutor.services.observability.product_behavior_catalog import (
+        validate_product_behavior_event,
+    )
+
+    for name, meta in [
+        ("first_run_started", {"module": "first_run", "action": "view",
+                               "section": "act_war", "visit_id": "v1",
+                               "surface": "wechat_miniprogram"}),
+        ("first_run_question_completed", {"module": "first_run", "action": "complete",
+                                          "object_type": "question",
+                                          "object_id": "qigu_gebu",
+                                          "result": "correct", "duration_ms": 12000,
+                                          "visit_id": "v1"}),
+        # 复用既有名的三跳: 幕曝光 / 逃生舱 / 剧本完成
+        ("module_viewed", {"module": "first_run", "action": "view",
+                           "section": "act_report", "visit_id": "v1"}),
+        ("module_exited", {"module": "first_run", "action": "dismiss",
+                           "section": "act_question", "visit_id": "v1"}),
+        ("learning_action_completed", {"module": "first_run", "action": "complete",
+                                       "object_type": "script", "result": "remind",
+                                       "visit_id": "v1"}),
+    ]:
+        record = validate_product_behavior_event(name, meta)
+        assert record["event_name"] == name
+        assert record["module"] == "first_run"

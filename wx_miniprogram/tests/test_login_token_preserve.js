@@ -81,6 +81,13 @@ function loadPage(relativePath, overrides) {
           trackProductBehavior: function () {},
         };
       }
+      if (request === "../../utils/first-run-entry") {
+        return {
+          goHomeAfterAuth: function () {
+            sandbox.wx.switchTab({ url: "/pages/chat/chat" });
+          },
+        };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {

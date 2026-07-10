@@ -39,6 +39,11 @@
       "root": "pages/photo-answer",
       "name": "photoAnswer",
       "pages": ["capture", "confirm"]
+    },
+    {
+      "root": "pages/first-run",
+      "name": "firstRun",
+      "pages": ["first-run"]
     }
   ],
   "preloadRule": {
