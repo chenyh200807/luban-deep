@@ -138,6 +138,8 @@ function loadPage(apiOverrides) {
           vibrate: function () {},
         };
       }
+      if (request === "../../utils/surface-telemetry")
+        return { trackProductBehavior: function () {} };
       if (request === "../../utils/taxonomy") return require(path.join(__dirname, "../packageDeeptutor/utils/taxonomy"));
       throw new Error("unexpected require: " + request);
     },
