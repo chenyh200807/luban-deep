@@ -179,6 +179,7 @@ credentials:
   - {name: BAILIAN_BILLING_ACCESS_KEY_SECRET, owner: bailian_billing}
   - {name: BAILIAN_TELEMETRY_ACCESS_KEY_ID, owner: bailian_telemetry}
   - {name: BAILIAN_TELEMETRY_ACCESS_KEY_SECRET, owner: bailian_telemetry}
+  - {name: POLYV_SECRET_KEY, owner: polyv, needs_verification: true}   # polyv 视频签名密钥;缺省用历史值,生产应配并轮换
   - {name: WECHAT_MP_APP_SECRET, owner: wechat_mp}
   - {name: WECHAT_MP_TOKEN_SECRET, owner: wechat_mp}
   - {name: WECHAT_PAY_API_V3_KEY, owner: wechat_pay}

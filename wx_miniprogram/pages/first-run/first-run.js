@@ -5,8 +5,7 @@ var data = require("./script-data");
 var telemetry = require("../../utils/surface-telemetry");
 var subscribeMessage = require("../../utils/subscribe-message");
 
-var DONE_KEY = "deeptutor_first_run_done_v1";
-var PENDING_KEY = "deeptutor_first_run_pending_v1";
+var DONE_KEY = require("../../utils/first-run-entry").DONE_KEY;
 
 function behavior(action, extra) {
   var payload = { module: "first_run", action: action };
@@ -46,6 +45,10 @@ Page({
   qShownAt: 0,
 
   onLoad: function () {
+    // 重置页级可变态：微信不为非 data 自定义属性做每实例克隆，
+    // 从学情页再入本页时 this.results/profile 会残留上轮记录 → 报告分数翻倍。
+    this.profile = {};
+    this.results = [];
     this.setData({
       warOpts: this._optList(data.WAR_OPTS),
       modeOpts: this._optList(data.MODE_OPTS),
@@ -330,7 +333,6 @@ Page({
   _finish: function (how, url) {
     try {
       wx.setStorageSync(DONE_KEY, { at: Date.now(), how: how });
-      wx.removeStorageSync(PENDING_KEY);
     } catch (e) {}
     wx.switchTab({ url: url || "/pages/chat/chat" });
   },

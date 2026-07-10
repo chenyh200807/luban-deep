@@ -2,7 +2,6 @@ var api = require("../../utils/api");
 var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
-var firstRunEntry = require("../../utils/first-run-entry");
 var analytics = require("../../utils/analytics");
 
 function showSmsSentFeedback(message) {
@@ -162,10 +161,7 @@ Page({
   _reLaunchAfterAuth: function () {
     var source = this.data.entrySource;
     var fallback = route.chat(source ? { entry_source: source } : null);
-    // 首跑剧本：零会话新用户默认进「第一分钟」，其余走原目标（内部判据+fail-open）
-    firstRunEntry.reLaunchAfterAuth(
-      route.resolveInternalUrl(this.data.returnTo, fallback)
-    );
+    wx.reLaunch({ url: route.resolveInternalUrl(this.data.returnTo, fallback) });
   },
   _trackLoginSuccess: function (method) {
     analytics.track("deeptutor_login_success", {
