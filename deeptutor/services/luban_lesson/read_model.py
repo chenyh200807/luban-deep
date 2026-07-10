@@ -20,6 +20,7 @@ Thin 投影层（§3 所有权表）：本模块**只读投影、零生成**—�
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -261,10 +262,11 @@ def build_retest_items(
     limit = max(1, min(int(limit), 10))
     seed = sum(ord(c) for c in str(user_id)) + int(day_index)
     if str(mode or "").strip().lower() == "forward":
-        picked = _forward_rule_group_spread(core, seed, limit)
+        ordered = _forward_rule_group_spread(core, seed, len(core))
     else:
         start = seed % len(core)
-        picked = [core[(start + i) % len(core)] for i in range(min(limit, len(core)))]
+        ordered = [core[(start + i) % len(core)] for i in range(len(core))]
+    picked = _balance_expected_ok(ordered, seed, limit)
     textbook_by_point = _textbook_quote_index(
         vm["pack_id"], manifest_dir, vm["content_sha256"]
     )
@@ -283,6 +285,44 @@ def build_retest_items(
             row["textbook"] = textbook
         rows.append(row)
     return rows
+
+
+def _balance_expected_ok(
+    ordered: list[dict[str, Any]], seed: int, limit: int
+) -> list[dict[str, Any]]:
+    """答案模式防泄露（选题层能修的那一半；句式泄露归编译端内容工单）。
+
+    owner 实测抓到"整场点'不妥当'全对"。此前选题完全不看 ``expected_ok``，
+    可能送出整组同答案的 session。最小干预收口（不做硬配平——硬配平会挤掉
+    forward 的考法广度契约，且会过度复曝少数类变体）：
+
+    - **防全同**：送出的题全为同一答案类、且池子里存在对偶类时，把末位
+      确定性换成剩余序列中最早的对偶题（仅此一换，广度语义基本不动）；
+      单类池如实全送，不臆造对偶。
+    - **顺序确定性洗牌**：按 (seed, variant_id) 稳定散列重排出题序，杀掉
+      次序 tell；同 (user, day) 仍幂等（§9-D3 多端一致），跨用户/跨日不可预测。
+    """
+    picked = list(ordered[: min(limit, len(ordered))])
+    if len(picked) >= 2:
+        classes = {bool(v.get("expected_ok")) for v in picked}
+        if len(classes) == 1:
+            uniform = classes.pop()
+            swap_in = next(
+                (
+                    v
+                    for v in ordered[len(picked):]
+                    if bool(v.get("expected_ok")) != uniform
+                ),
+                None,
+            )
+            if swap_in is not None:
+                picked[-1] = swap_in
+    picked.sort(
+        key=lambda v: hashlib.sha256(
+            f"{seed}:{v.get('variant_id')}".encode("utf-8")
+        ).hexdigest()
+    )
+    return picked
 
 
 _CONCEPT_CARD_BANK_TEMPLATE = "_{pack_id}_concept_card_bank.v0.json"

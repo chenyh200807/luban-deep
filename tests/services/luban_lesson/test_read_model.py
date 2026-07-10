@@ -287,6 +287,38 @@ def test_forward_mode_covers_distinct_rule_groups(tmp_path):
     assert all(not i["variant_id"].startswith("S05-E") for i in items), "外延变体禁入"
 
 
+def test_retest_session_never_uniform_answer_key(tmp_path):
+    """防答案模式泄露: 池含两类时, 任一 (user,day,mode) 送出的 session 不得全同答案。
+
+    owner 实测抓到"整场点不妥当全对"——选题层收口为防全同+顺序洗牌(§9-D3 幂等保持)。
+    """
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _multi_group_bank(tmp_path)
+    for mode in ("forward", "review"):
+        for uid in ("u1", "u2", "attacker", "f16demo"):
+            for day in (738000, 738001, 738002):
+                items = build_retest_items(
+                    "S05", user_id=uid, day_index=day, limit=3,
+                    mode=mode, manifest_path=mp)
+                keys = {i["expected_ok"] for i in items}
+                assert len(keys) == 2, f"{mode}/{uid}/{day} 全同答案: {items}"
+
+
+def test_retest_uniform_pool_served_honestly(tmp_path):
+    """单类池(全 False)如实全送不臆造对偶——防全同只在对偶存在时生效。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    variants = [{"variant_id": f"S05-F-{i}", "rule_group": "A", "surface": f"s{i}",
+                 "expected_ok": False, "correct_statement": "c", "anchor": "kc:x",
+                 "extension": False} for i in range(4)]
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
+        "status": "signed", "source_pack_sha256": "abc123", "variants": variants,
+    }), encoding="utf-8")
+    items = build_retest_items("S05", user_id="u1", day_index=738000, limit=3, manifest_path=mp)
+    assert len(items) == 3 and all(i["expected_ok"] is False for i in items)
+
+
 def test_forward_mode_deterministic(tmp_path):
     """forward 同用户同日幂等(多端一致,§9-D3)。"""
     from deeptutor.services.luban_lesson import build_retest_items
