@@ -12747,3 +12747,295 @@ async def test_grading_merge_single_item_result_reads_store_once() -> None:
     assert store.get_active_object_calls == 1
     # prior is None → no set to preserve → result passes through unchanged.
     assert out is single
+@pytest.mark.asyncio
+async def test_graded_active_question_accepts_next_step_as_generation_action() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="下一步",
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "quiz_quality_inspection",
+                "question": "项目施工质量检查与检验训练题组",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_quality_1",
+                        "question": "基础工程质量检查分类题",
+                        "question_type": "single_choice",
+                        "options": {"A": "自检", "B": "互检", "C": "专检", "D": "抽检"},
+                        "correct_answer": "B",
+                        "user_answer": "C",
+                        "is_correct": False,
+                        "construction_grading_result": {
+                            "authority": "construction_grading",
+                            "score_awarded": 0.0,
+                            "max_score": 1.0,
+                            "next_training_signal": {
+                                "concept": "项目施工质量检查与检验",
+                                "focus": "基础检查分类混淆",
+                                "mode": "practice",
+                            },
+                        },
+                    }
+                ],
+            }
+        ],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["items"][0]["user_answer"] == ""
+    assert resolved_context["items"][0]["is_correct"] is None
+    assert (
+        resolved_context["items"][0]["construction_grading_result"][
+            "next_training_signal"
+        ]["focus"]
+        == "基础检查分类混淆"
+    )
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "generate_more_questions"
+    assert resolved_action["answers"] == []
+
+
+@pytest.mark.asyncio
+async def test_ungraded_active_question_does_not_treat_next_step_as_generation_action() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="下一步",
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "q_presented_only",
+                "question": "基础工程质量检查分类题",
+                "question_type": "single_choice",
+                "options": {"A": "自检", "B": "互检", "C": "专检", "D": "抽检"},
+                "correct_answer": "B",
+            }
+        ],
+    )
+
+    assert resolved_context is None
+    assert resolved_action is None
+
+
+@pytest.mark.asyncio
+async def test_graded_active_question_accepts_contextual_llm_generation_action(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _contextual_interpret(_message, question_context, **_kwargs):
+        assert str((question_context or {}).get("question_id") or "") == "quiz_quality_inspection"
+        return {
+            "intent": "generate_more_questions",
+            "confidence": 0.87,
+            "answers": [],
+            "reason": "结合上一轮批改和 next_training_signal，用户是在接受继续巩固安排。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.services.question_turn_policy.interpret_question_followup_action",
+        _contextual_interpret,
+    )
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="好的，按这个安排",
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "quiz_quality_inspection",
+                "question": "项目施工质量检查与检验训练题组",
+                "question_type": "choice",
+                "items": [
+                    {
+                        "question_id": "q_quality_1",
+                        "question": "基础工程质量检查分类题",
+                        "question_type": "single_choice",
+                        "options": {"A": "自检", "B": "互检", "C": "专检", "D": "抽检"},
+                        "correct_answer": "B",
+                        "user_answer": "C",
+                        "is_correct": False,
+                        "construction_grading_result": {
+                            "authority": "construction_grading",
+                            "score_awarded": 0.0,
+                            "max_score": 1.0,
+                            "next_training_signal": {
+                                "concept": "项目施工质量检查与检验",
+                                "focus": "基础检查分类混淆",
+                                "mode": "practice",
+                            },
+                        },
+                    }
+                ],
+            }
+        ],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["items"][0]["user_answer"] == ""
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "generate_more_questions"
+    assert resolved_action["reason"] == "结合上一轮批改和 next_training_signal，用户是在接受继续巩固安排。"
+@pytest.mark.asyncio
+async def test_turn_runtime_routes_graded_next_step_acceptance_to_deep_question_authority(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, Any] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeCapability:
+        async def run(self, context, bus) -> None:
+            captured["active_capability"] = context.active_capability
+            captured["handle_metadata"] = dict(context.metadata or {})
+            if context.active_capability == "deep_question":
+                await bus.result(
+                    {
+                        "response": "第1题：继续巩固基础检查分类。",
+                        "question_followup_context": {
+                            "question_id": "q_next",
+                            "question": "继续巩固基础检查分类。",
+                            "question_type": "choice",
+                            "correct_answer": "A",
+                        },
+                    },
+                    source="deep_question",
+                )
+                return
+
+            await bus.result(
+                {
+                    "response": "当前记录不足。",
+                    "execution_path": "tutorbot_study_assistant_degraded_no_evidence",
+                },
+                source="tutorbot",
+            )
+
+    class FakeRegistry:
+        def get(self, _name: str):
+            return FakeCapability()
+
+        def list_capabilities(self) -> list[str]:
+            return ["chat", "deep_question", "tutorbot"]
+
+        def get_manifests(self) -> list[dict[str, object]]:
+            return []
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_capability_registry",
+        lambda: FakeRegistry(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.get_tool_registry",
+        lambda: SimpleNamespace(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="session_graded_next_step")
+    await store.set_active_question_context(
+        session["id"],
+        {
+            "question_id": "quiz_quality_inspection",
+            "question": "项目施工质量检查与检验训练题组",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_quality_1",
+                    "question": "基础工程质量检查分类题",
+                    "question_type": "single_choice",
+                    "options": {"A": "自检", "B": "互检", "C": "专检", "D": "抽检"},
+                    "correct_answer": "B",
+                    "user_answer": "C",
+                    "is_correct": False,
+                    "construction_grading_result": {
+                        "authority": "construction_grading",
+                        "score_awarded": 0.0,
+                        "max_score": 1.0,
+                        "next_training_signal": {
+                            "concept": "项目施工质量检查与检验",
+                            "focus": "基础检查分类混淆",
+                            "mode": "practice",
+                        },
+                    },
+                },
+                {
+                    "question_id": "q_quality_2",
+                    "question": "检验批质量验收题",
+                    "question_type": "single_choice",
+                    "options": {"A": "主控项目", "B": "一般项目", "C": "观感质量", "D": "资料核查"},
+                    "correct_answer": "A",
+                    "user_answer": "C",
+                    "is_correct": False,
+                    "construction_grading_result": {
+                        "authority": "construction_grading",
+                        "score_awarded": 0.0,
+                        "max_score": 1.0,
+                    },
+                },
+            ],
+            "reveal_answers": False,
+            "reveal_explanations": False,
+        },
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "下一步",
+            "session_id": session["id"],
+            "capability": "tutorbot",
+            "tools": [],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+            },
+        }
+    )
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert turn["capability"] == "deep_question"
+    assert captured["active_capability"] == "deep_question"
+    metadata = captured["handle_metadata"]
+    assert metadata["question_followup_action"]["intent"] == "generate_more_questions"
+    assert metadata["turn_semantic_decision"]["next_action"] == "route_to_generation"
+    assert metadata["turn_semantic_decision"]["relation_to_active_object"] == "continue_same_learning_flow"
+    assert not metadata.get("suspended_object_stack")
+    assert metadata["active_object"]["object_type"] == "question_set"
+    first_item = metadata["active_object"]["state_snapshot"]["items"][0]
+    assert first_item["user_answer"] == ""
+    assert first_item["is_correct"] is None
+    assert (
+        first_item["construction_grading_result"]["next_training_signal"]["focus"]
+        == "基础检查分类混淆"
+    )
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assert "当前记录不足" not in detail["messages"][-1]["content"]
+    persisted_turn = await store.get_turn(turn["id"])
+    assert persisted_turn is not None
+    assert persisted_turn["capability"] == "deep_question"

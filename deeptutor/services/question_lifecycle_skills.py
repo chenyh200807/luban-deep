@@ -1210,6 +1210,7 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     """
     # Local imports avoid module-load circular deps.
     from deeptutor.services.question_followup import (  # noqa: WPS433
+        followup_action_route,
         looks_like_question_followup,
         normalize_question_followup_context,
         resolve_submission_attempt,
@@ -1239,6 +1240,8 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
         return "question_review"
 
     if isinstance(metadata, dict):
+        if followup_action_route(metadata.get("question_followup_action")) == "practice_generation":
+            return "practice_generation"
         clarification_intent = _resolve_clarification_option_intent(user_message, metadata)
         if clarification_intent == "exam_catalog_query":
             return "exam_catalog_query"

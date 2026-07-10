@@ -243,6 +243,12 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
     中清掉 `active_object` / `question_followup_context` / `_prefetched_exact_question` 等当前题上下文字段，避免自由 LLM
     消费未作答题隐藏答案材料。证据见 `tests/services/test_turn_start_demote_canonical_pipeline.py` 与
     `tests/capabilities/test_tutorbot_unanswered_reference_short_circuit.py`。
+  - **已批改题的下一步训练承接（2026-07-10）是同相位的 forward-reachability carve-out**：
+    当 active question 已有 `construction_grading_result.next_training_signal` 或确定性完成批改证据，且本轮不是作答提交，
+    用户用“下一步 / 继续 / 按你说的做”等接受上一轮巩固建议时，turn-start 必须保留该 active object；QTPK 的同一
+    predicate 负责生成 `question_followup_action.intent=generate_more_questions`，lifecycle 再投影为
+    `practice_generation`。未批改题、当前作答提交和无上下文低信息短句不得命中；turn runtime 只读该 predicate，
+    不自行解释文本。回归见 `tests/api/test_unified_ws_turn_runtime.py::test_turn_runtime_routes_graded_next_step_acceptance_to_deep_question_authority`。
 - **routing 相位**（单一权威 = `deeptutor/services/semantic_router.py::apply_active_object_transition`）：
   orchestrator 经 `metadata.suspended_object_stack` 读到 turn-START 压栈的对象，在 `resume_suspended_object`
   决策下**恢复（出栈）**。canonical **只出栈、从不在 turn-START 那个输入上重做压栈决策**。
