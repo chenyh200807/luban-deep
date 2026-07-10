@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>鲁班智考 · 第一分钟</title>
+<style>
+  :root{
+    --paper:#f3ede1; --card:#fbf7ef; --ink:#2b2621; --sub:#7c7266; --line:#e5dccb;
+    --zhu:#c0392b; --zhu-soft:#f4e2dd; --zhu-deep:#9e2b1e;
+    --bamboo:#3f7d5a; --bamboo-soft:#e4efe7;
+    --gold:#b98a2e; --goldbg:#f6ecd4;
+    --shadow:0 8px 30px rgba(60,45,25,.12);
+    --font:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI','Microsoft YaHei',sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --paper:#171310; --card:#211b16; --ink:#efe7d9; --sub:#a89a86; --line:#352c22;
+    --zhu:#e5705f; --zhu-soft:#33201c; --zhu-deep:#f08a78;
+    --bamboo:#63b088; --bamboo-soft:#18271e;
+    --gold:#e0b358; --goldbg:#2a2110;
+    --shadow:0 8px 30px rgba(0,0,0,.4);
+  }}
+  :root[data-theme=dark]{
+    --paper:#171310; --card:#211b16; --ink:#efe7d9; --sub:#a89a86; --line:#352c22;
+    --zhu:#e5705f; --zhu-soft:#33201c; --zhu-deep:#f08a78;
+    --bamboo:#63b088; --bamboo-soft:#18271e; --gold:#e0b358; --goldbg:#2a2110;
+    --shadow:0 8px 30px rgba(0,0,0,.4);
+  }
+  :root[data-theme=light]{
+    --paper:#f3ede1; --card:#fbf7ef; --ink:#2b2621; --sub:#7c7266; --line:#e5dccb;
+    --zhu:#c0392b; --zhu-soft:#f4e2dd; --zhu-deep:#9e2b1e;
+    --bamboo:#3f7d5a; --bamboo-soft:#e4efe7; --gold:#b98a2e; --goldbg:#f6ecd4;
+    --shadow:0 8px 30px rgba(60,45,25,.12);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{margin:0;background:
+      radial-gradient(1200px 400px at 50% -80px,rgba(192,57,43,.05),transparent),
+      var(--paper);
+    color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .app{max-width:420px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;padding:0 18px 28px}
+  /* top bar */
+  .top{display:flex;align-items:center;justify-content:space-between;padding:16px 2px 10px}
+  .brand{font-size:13px;font-weight:700;letter-spacing:.03em;display:flex;align-items:center;gap:6px}
+  .brand .dot{width:7px;height:7px;border-radius:9px;background:var(--zhu)}
+  .prog{display:flex;gap:5px}
+  .prog i{width:16px;height:4px;border-radius:9px;background:var(--line);display:block;transition:background .3s}
+  .prog i.on{background:var(--zhu)}
+  .skip{font-size:12.5px;color:var(--sub);font-weight:600;background:none;border:none;font-family:var(--font);padding:6px 0 6px 12px;cursor:pointer}
+  /* scenes */
+  .scene{display:none;flex-direction:column;flex:1;opacity:0;transform:translateY(14px)}
+  .scene.show{display:flex;animation:in .45s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes in{to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    .scene.show{animation:none;opacity:1;transform:none}
+    .opt,.cta{transition:none}
+  }
+  h1{font-size:22px;line-height:1.35;font-weight:700;margin:26px 0 8px;text-wrap:balance}
+  .lead{font-size:14.5px;color:var(--sub);line-height:1.65;margin:0 0 22px}
+  /* option cards */
+  .opt{display:flex;align-items:center;gap:11px;padding:15px 16px;border-radius:13px;
+    border:1.5px solid var(--line);background:var(--card);margin:9px 0;font-size:15.5px;
+    line-height:1.4;cursor:pointer;transition:transform .12s,border-color .12s,background .12s;
+    width:100%;text-align:left;font-family:var(--font);color:var(--ink)}
+  .opt:active{transform:scale(.985)}
+  .opt .key{width:25px;height:25px;border-radius:8px;border:1.5px solid var(--line);
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:12.5px;
+    color:var(--sub);font-weight:700}
+  .opt.pick{border-color:var(--zhu);background:var(--zhu-soft)}
+  .opt.pick .key{border-color:var(--zhu);background:var(--zhu);color:#fff}
+  .opt.right{border-color:var(--bamboo);background:var(--bamboo-soft)}
+  .opt.right .key{border-color:var(--bamboo);background:var(--bamboo);color:#fff}
+  .opt .tail{margin-left:auto;font-size:13px;font-weight:700;flex:0 0 auto}
+  .opt.pick .tail{color:var(--zhu)} .opt.right .tail{color:var(--bamboo)}
+  /* question */
+  .qtop{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--sub);margin:18px 0 12px;font-weight:600}
+  .qtop .dot{width:6px;height:6px;border-radius:9px;background:var(--zhu)}
+  .qcase{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:14px 15px;font-size:14px;color:var(--sub);line-height:1.7;margin:0 0 14px}
+  .qcase b{color:var(--ink)}
+  .qstem{font-size:17px;font-weight:700;line-height:1.5;margin:0 0 4px}
+  .qstem .zhu{color:var(--zhu)}
+  .qhint{font-size:12.5px;color:var(--bamboo);margin:2px 0 12px;font-weight:600}
+  /* feedback */
+  .scorechip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
+    color:var(--gold);background:var(--goldbg);border-radius:99px;padding:6px 13px;margin:16px 0 12px}
+  .praise{display:flex;gap:11px;align-items:flex-start;background:var(--goldbg);
+    border-radius:14px;padding:14px 15px;margin:0 0 12px}
+  .praise .em{font-size:22px;line-height:1}
+  .praise .tx{font-size:14.5px;line-height:1.6}
+  .praise .tx b{color:var(--gold)}
+  .justone{border-left:3px solid var(--zhu);padding:2px 0 2px 13px;margin:2px 0 14px}
+  .justone .lab{font-size:12px;font-weight:700;color:var(--zhu);letter-spacing:.04em;margin:0 0 4px}
+  .justone .tx{font-size:14.5px;line-height:1.6}
+  .justone .tx .k{color:var(--zhu-deep);font-weight:700;border-bottom:2px solid var(--zhu);padding-bottom:1px}
+  .why{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;font-size:13.5px;color:var(--sub);line-height:1.65;margin:0 0 14px}
+  .why b{color:var(--ink)}
+  .believe{text-align:center;font-size:14px;color:var(--bamboo);font-weight:650;margin:4px 0 16px}
+  /* station card */
+  .station{background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+    padding:18px 17px;margin:6px 0 16px;box-shadow:var(--shadow)}
+  .station .kicker{font-size:11.5px;font-weight:700;color:var(--zhu);letter-spacing:.06em;margin:0 0 7px}
+  .station .name{font-size:18px;font-weight:700;margin:0 0 6px}
+  .station .meta{font-size:13px;color:var(--sub);line-height:1.6}
+  .station .meta b{color:var(--ink)}
+  /* buttons */
+  .cta{display:block;width:100%;text-align:center;background:var(--zhu);color:#fff;font-weight:650;
+    font-size:15.5px;padding:15px;border-radius:13px;border:none;font-family:var(--font);cursor:pointer;
+    box-shadow:0 3px 10px rgba(192,57,43,.25);transition:transform .12s;margin:4px 0 0}
+  .cta:active{transform:scale(.985)}
+  .ghost{display:block;width:100%;text-align:center;color:var(--sub);font-size:13.5px;margin-top:14px;
+    font-weight:600;background:none;border:none;font-family:var(--font);cursor:pointer;padding:8px}
+  .row2{display:flex;gap:10px;margin-top:4px}
+  .row2 .cta{margin:0}
+  .cta.alt{background:var(--card);color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+  /* subscribe / contact */
+  .contact{display:flex;gap:9px;margin:14px 0 0}
+  .contact input{flex:1;border:1.5px solid var(--line);background:var(--card);color:var(--ink);
+    border-radius:12px;padding:13px 14px;font-size:14.5px;font-family:var(--font);min-width:0}
+  .contact input:focus{outline:none;border-color:var(--zhu)}
+  .contact button{flex:0 0 auto;background:var(--bamboo);color:#fff;border:none;border-radius:12px;
+    padding:0 18px;font-size:14px;font-weight:650;font-family:var(--font);cursor:pointer}
+  .note{font-size:12px;color:var(--sub);margin-top:9px;line-height:1.6}
+  .bigmoment{text-align:center;margin:34px 0 10px;font-size:44px;line-height:1}
+  .center{text-align:center}
+  /* observer panel */
+  .obs{position:fixed;inset:0;background:rgba(20,15,10,.55);display:none;align-items:flex-end;z-index:50}
+  .obs.show{display:flex}
+  .obs .panel{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:420px;margin:0 auto;
+    max-height:78dvh;display:flex;flex-direction:column;padding:18px}
+  .obs h2{font-size:15px;margin:0 0 4px}
+  .obs .sub{font-size:12px;color:var(--sub);margin:0 0 12px}
+  .obs textarea{flex:1;min-height:200px;border:1px solid var(--line);border-radius:10px;background:var(--paper);
+    color:var(--ink);font-size:11.5px;font-family:ui-monospace,Menlo,monospace;padding:10px;line-height:1.6;white-space:pre}
+  .obs .row2{margin-top:12px}
+  .spacer{flex:1}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top" id="topbar">
+    <span class="brand"><span class="dot"></span>鲁班智考</span>
+    <span class="prog" id="prog"><i></i><i></i><i></i><i></i><i></i></span>
+    <button class="skip" id="skipBtn">跳过</button>
+  </div>
+
+  <!-- 幕① 专业确认 -->
+  <section class="scene" id="s1">
+    <h1>开始前，只问一件事</h1>
+    <p class="lead">你考一建哪个专业？<br>接下来 90 秒，按你的专业来。</p>
+    <button class="opt" data-major="建筑实务"><span class="key">A</span>建筑实务</button>
+    <button class="opt" data-major="机电实务"><span class="key">B</span>机电实务</button>
+    <button class="opt" data-major="公路实务"><span class="key">C</span>公路实务</button>
+    <button class="opt" data-major="其他专业"><span class="key">D</span>其他专业</button>
+  </section>
+
+  <!-- 幕①b 非建筑的诚实声明 -->
+  <section class="scene" id="s1b">
+    <div class="bigmoment">🤝</div>
+    <h1 class="center">先说句实话</h1>
+    <p class="lead center">目前深度覆盖的是<b>建筑实务</b>，你的专业正在路上。<br><br>你的这一票我们记下了——<b>上线第一时间告诉你</b>。<br>今天先用一道建筑的经典考法，<br>感受一下这个教练是怎么帮人拿分的。</p>
+    <div class="spacer"></div>
+    <button class="cta" id="s1bGo">好，看看再说</button>
+  </section>
+
+  <!-- 幕② 题目 -->
+  <section class="scene" id="s2">
+    <div class="qtop"><span class="dot"></span>2014 真题 · 屋面防水 · 起鼓割补</div>
+    <div class="qcase">某屋面卷材防水层局部<b>起鼓</b>，项目部决定<b>割补</b>处理：割开鼓泡放出气体、烘烤旧卷材槎口，然后——</div>
+    <div class="qstem">下一步，旧卷材怎么处理才<span class="zhu">对</span>？</div>
+    <p class="qhint">👆 不用打字，点你觉得对的那个</p>
+    <button class="opt q1" data-a="A"><span class="key">A</span>分层剥开，除去旧胶结料</button>
+    <button class="opt q1" data-a="B"><span class="key">B</span>整体揭开，换新的</button>
+    <button class="opt q1" data-a="C"><span class="key">C</span>用铲刀把鼓泡处铲除干净</button>
+    <button class="opt q1" data-a="D"><span class="key">D</span>不用动，直接铺新卷材盖住</button>
+  </section>
+
+  <!-- 幕③ 判分卡 -->
+  <section class="scene" id="s3">
+    <div class="qtop"><span class="dot"></span>起鼓割补 · 你的这道</div>
+    <div id="fbOpts"></div>
+    <div id="fbBody"></div>
+    <button class="cta" id="s3Go">那我先学哪块？帮我排 →</button>
+  </section>
+
+  <!-- 幕④ 路径卡 -->
+  <section class="scene" id="s4">
+    <h1 id="s4Title">按你刚才的作答，路排好了</h1>
+    <p class="lead" id="s4Lead">不用你挑，先走这一站。</p>
+    <div class="station">
+      <div class="kicker" id="stKicker">第 1 站 · 为你排的</div>
+      <div class="name" id="stName">屋面防水 · 维修工艺</div>
+      <div class="meta" id="stMeta"><b>20 分钟</b> · 就是刚才这类题的老家<br>讲懂 → 练 3 道 → 当场验证</div>
+    </div>
+    <button class="cta" id="s4Go">好，就从这站开始</button>
+  </section>
+
+  <!-- 幕⑤ 明日钩子 -->
+  <section class="scene" id="s5">
+    <div class="bigmoment">📮</div>
+    <h1 class="center">明天，换个问法再考你一次</h1>
+    <p class="lead center">今天的「就差半步」，睡一觉最容易忘。<br>明天我出个新皮的同类题，60 秒验证它已经是你的了。</p>
+    <div class="spacer"></div>
+    <button class="cta" id="subYes">好，明天提醒我</button>
+    <button class="ghost" id="subNo">先不用</button>
+  </section>
+
+  <!-- 幕⑤b 收尾 -->
+  <section class="scene" id="s6">
+    <div class="bigmoment">👋</div>
+    <h1 class="center" id="s6Title">好，明天见</h1>
+    <p class="lead center" id="s6Lead">今天这半步，明天就是你的整分。</p>
+    <div class="contact" id="contactRow">
+      <input id="contactInput" type="text" inputmode="tel" placeholder="留个手机/微信，明天喊你" aria-label="联系方式">
+      <button id="contactSave">记下</button>
+    </div>
+    <p class="note center">（演示版：只记在这台手机上，不会上传）</p>
+    <div class="spacer"></div>
+    <button class="cta alt" id="moreQ">意犹未尽？再来一道 →</button>
+  </section>
+
+  <!-- 加练：停电顺序 -->
+  <section class="scene" id="s7">
+    <div class="qtop"><span class="dot"></span>加练 · 施工用电 · 停电顺序</div>
+    <div class="qcase">收工了，工地要断电。<b>总配电箱、分配电箱、开关箱</b>三级都在你面前——</div>
+    <div class="qstem">第一步，先断<span class="zhu">哪一级</span>？</div>
+    <p class="qhint">👆 还是那句话，点就行</p>
+    <button class="opt q2" data-a="A"><span class="key">A</span>开关箱</button>
+    <button class="opt q2" data-a="B"><span class="key">B</span>总配电箱</button>
+    <button class="opt q2" data-a="C"><span class="key">C</span>分配电箱</button>
+    <button class="opt q2" data-a="D"><span class="key">D</span>哪个顺手断哪个</button>
+  </section>
+
+  <!-- 加练判分 -->
+  <section class="scene" id="s8">
+    <div class="qtop"><span class="dot"></span>停电顺序 · 你的这道</div>
+    <div id="fb2Body"></div>
+    <button class="cta" id="s8Done">今天到这，明天见 👋</button>
+  </section>
+
+  <!-- 逃生舱落点 -->
+  <section class="scene" id="sEsc">
+    <div class="bigmoment">💬</div>
+    <h1 class="center">这里会进入对话</h1>
+    <p class="lead center">正式版里，跳过剧本就直接到「问鲁班」——想问什么随时问。<br>（演示版到此为止）</p>
+    <div class="spacer"></div>
+    <button class="cta alt" id="escBack">← 回到刚才</button>
+  </section>
+
+</div>
+
+<!-- 观察员面板：连点顶栏 3 次打开 -->
+<div class="obs" id="obs">
+  <div class="panel">
+    <h2>观察员面板（受试者 #<span id="pid">1</span>）</h2>
+    <p class="sub">每行：+秒 · 事件。测完一人 → 复制记录 → 换下一位。</p>
+    <textarea id="obsLog" readonly></textarea>
+    <div class="row2">
+      <button class="cta alt" id="obsCopy">复制记录</button>
+      <button class="cta" id="obsReset">换下一位受试者</button>
+    </div>
+    <button class="ghost" id="obsClose">关闭</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  /* ---------- 记录 ---------- */
+  var t0 = Date.now(), log = [], pid = +(localStorage.getItem("frs_pid")||1);
+  document.getElementById("pid").textContent = pid;
+  function ev(name){
+    var line = "+" + Math.round((Date.now()-t0)/1000) + "s · " + name;
+    log.push(line);
+    try{ localStorage.setItem("frs_log_p"+pid, log.join("\n")); }catch(e){}
+  }
+  ev("剧本开始");
+
+  /* ---------- 幕切换 ---------- */
+  var cur = "s1", prevBeforeEsc = null;
+  var progMap = {s1:1,s1b:1,s2:2,s3:3,s4:4,s5:5,s6:5,s7:5,s8:5,sEsc:0};
+  function go(id){
+    var from = document.getElementById(cur);
+    if(from) from.classList.remove("show");
+    cur = id;
+    document.getElementById(id).classList.add("show");
+    var dots = document.querySelectorAll("#prog i");
+    for(var i=0;i<dots.length;i++) dots[i].classList.toggle("on", i < progMap[id]);
+    window.scrollTo(0,0);
+    ev("进入幕 " + id);
+  }
+  document.getElementById("s1").classList.add("show");
+  document.querySelectorAll("#prog i")[0].classList.add("on");
+
+  /* ---------- 逃生舱 ---------- */
+  document.getElementById("skipBtn").addEventListener("click", function(){
+    if(cur === "sEsc") return;
+    prevBeforeEsc = cur; ev("点了跳过(逃生舱) @ " + cur); go("sEsc");
+  });
+  document.getElementById("escBack").addEventListener("click", function(){ go(prevBeforeEsc||"s1"); });
+
+  /* ---------- 幕① 专业 ---------- */
+  document.querySelectorAll("#s1 .opt").forEach(function(b){
+    b.addEventListener("click", function(){
+      var m = b.getAttribute("data-major");
+      ev("选专业 = " + m);
+      if(m === "建筑实务") go("s2");
+      else go("s1b");
+    });
+  });
+  document.getElementById("s1bGo").addEventListener("click", function(){ go("s2"); });
+
+  /* ---------- 幕② 主题目 ---------- */
+  var FB = {
+    A:{hit:true, chip:"采分点 1/1 · 全中",
+       praise:"这一步你是<b>稳的</b>——「分层剥开」正是这道题的采分点，考场上一大半人栽在这。",
+       half:null,
+       why:"整体揭开会连带把旁边<b>没起鼓</b>、还粘得好好的部分也带起来，反而扩大破坏面；分层剥开只动坏的、保住好的。你选对的正是这个分寸。",
+       believe:"有这个底子，往下走只会更稳 💪"},
+    B:{hit:false, chip:"差半步就满",
+       praise:"你已经<b>抓准了方向</b>——知道要先处理旧卷材，这一步的判断很稳。",
+       half:'旧卷材得<span class="k">分层剥开</span>，不是整体揭开。',
+       why:"整体揭开会连带把旁边<b>没起鼓</b>、还粘得好好的部分也带起来，反而扩大破坏面；分层剥开只处理鼓的那层，干净利落。",
+       believe:"记住这个「分层」，这类题下次你稳拿 💪"},
+    C:{hit:false, chip:"差半步就满",
+       praise:"你知道鼓泡的旧卷材<b>必须处理</b>，这个意识已经赢了不少人。",
+       half:'不是铲除，是<span class="k">分层剥开</span>。',
+       why:"割补的思路是「只动坏的、保住好的」——铲刀一铲，容易伤到下面还完好的防水层，破坏面就从一个鼓包变成一片。",
+       believe:"记住「剥」不「铲」，这 1 分下次是你的 💪"},
+    D:{hit:false, chip:"差半步就满",
+       praise:"想直接盖上省事——考场上<b>不少人</b>也这么想，你不是一个人。",
+       half:'鼓包里的气没放出来，得先<span class="k">分层剥开</span>处理旧卷材。',
+       why:"气体还闷在里面，直接盖新卷材，太阳一晒它还会顶起来——等于没修。先放气、分层剥开、再分片粘贴，才断根。",
+       believe:"记住「先放气、再分层」，这类题下次你稳拿 💪"}
+  };
+  var q1Answered = false;
+  document.querySelectorAll(".opt.q1").forEach(function(b){
+    b.addEventListener("click", function(){
+      if(q1Answered) return; q1Answered = true;
+      var a = b.getAttribute("data-a"), f = FB[a];
+      ev("主题目作答 = " + a + (f.hit ? "（对）" : "（差半步）"));
+      var opts = '<button class="opt right" disabled><span class="key">A</span>分层剥开，除去旧胶结料<span class="tail">✓ 正解</span></button>';
+      if(a !== "A"){
+        var txt = {B:"整体揭开，换新的",C:"用铲刀把鼓泡处铲除干净",D:"不用动，直接铺新卷材盖住"}[a];
+        opts += '<button class="opt pick" disabled><span class="key">'+a+'</span>'+txt+'<span class="tail">你的</span></button>';
+      }
+      document.getElementById("fbOpts").innerHTML = opts;
+      var body = '<div class="scorechip">'+(f.hit?"🎯":"✨")+' '+f.chip+'</div>'
+        + '<div class="praise"><span class="em">👏</span><span class="tx">'+f.praise+'</span></div>'
+        + (f.half ? '<div class="justone"><div class="lab">就差这半步</div><div class="tx">'+f.half+'</div></div>' : '')
+        + '<div class="why"><b>为什么？</b> '+f.why+'</div>'
+        + '<div class="believe">'+f.believe+'</div>';
+      document.getElementById("fbBody").innerHTML = body;
+      /* 路径卡按作答定 */
+      if(f.hit){
+        document.getElementById("stKicker").textContent = "第 1 站 · 为你排的";
+        document.getElementById("stName").textContent = "屋面防水 · 细部构造";
+        document.getElementById("stMeta").innerHTML = "<b>20 分钟</b> · 你有底子，这站把会做的变成稳拿的<br>讲懂 → 练 3 道 → 当场验证";
+      }
+      go("s3");
+    });
+  });
+  document.getElementById("s3Go").addEventListener("click", function(){ go("s4"); });
+  document.getElementById("s4Go").addEventListener("click", function(){ ev("接受路径卡"); go("s5"); });
+
+  /* ---------- 幕⑤ 钩子 ---------- */
+  document.getElementById("subYes").addEventListener("click", function(){ ev("订阅 = 好，明天提醒我"); go("s6"); });
+  document.getElementById("subNo").addEventListener("click", function(){
+    ev("订阅 = 先不用");
+    document.getElementById("s6Title").textContent = "行，随时回来";
+    document.getElementById("s6Lead").innerHTML = "明天的换皮题给你留着。<br>想练了，打开就是。";
+    go("s6");
+  });
+  document.getElementById("contactSave").addEventListener("click", function(){
+    var v = document.getElementById("contactInput").value.trim();
+    if(!v) return;
+    ev("留了联系方式 = " + v);
+    document.getElementById("contactRow").innerHTML = '<p class="believe" style="width:100%">记下了，明天见 ✅</p>';
+  });
+
+  /* ---------- 加练 ---------- */
+  document.getElementById("moreQ").addEventListener("click", function(){ ev("主动要求加练"); go("s7"); });
+  var FB2 = {
+    A:{hit:true, praise:"对——<b>停电从末端开始</b>：开关箱 → 分配电箱 → 总配电箱。你这个顺序感，安全员看了都点头。",
+       why:"先断总箱，末端设备还带着负荷突然失电，人和设备都危险；从开关箱开始，一级一级往上收，才是教材的标准答案。",
+       believe:"两道两个考点，你今天净赚 💪"},
+    other:{praise:"这题<b>八成的人</b>第一反应都是总闸——你和大多数人在同一个坑边上。",
+       half:'记住四个字：<span class="k">停电从末端</span>。开关箱 → 分配电箱 → 总配电箱；送电正好反过来。',
+       why:"先断总箱，末端设备带着负荷突然失电，人和设备都危险。这类「顺序题」一建每年都爱考。",
+       believe:"今天这两道的「半步」，明天都能变整分 💪"}
+  };
+  var q2Answered = false;
+  document.querySelectorAll(".opt.q2").forEach(function(b){
+    b.addEventListener("click", function(){
+      if(q2Answered) return; q2Answered = true;
+      var a = b.getAttribute("data-a"), f = (a==="A") ? FB2.A : FB2.other;
+      ev("加练作答 = " + a + (a==="A"?"（对）":"（差半步）"));
+      var body = '<div class="scorechip">'+(a==="A"?"🎯 采分点 1/1 · 全中":"✨ 差半步就满")+'</div>'
+        + '<div class="praise"><span class="em">👏</span><span class="tx">'+f.praise+'</span></div>'
+        + (f.half ? '<div class="justone"><div class="lab">就差这半步</div><div class="tx">'+f.half+'</div></div>' : '')
+        + '<div class="why"><b>为什么？</b> '+f.why+'</div>'
+        + '<div class="believe">'+f.believe+'</div>';
+      document.getElementById("fb2Body").innerHTML = body;
+      go("s8");
+    });
+  });
+  document.getElementById("s8Done").addEventListener("click", function(){
+    ev("剧本完成(含加练)");
+    document.getElementById("s6Title").textContent = "今天到这，明天见";
+    document.getElementById("s6Lead").innerHTML = "两道题的「半步」都记下了。<br>明天换皮复测，把它们变成你的分。";
+    document.getElementById("moreQ").style.display = "none";
+    go("s6");
+  });
+
+  /* ---------- 观察员面板：连点顶栏3次 ---------- */
+  var taps = 0, tapTimer = null;
+  document.getElementById("topbar").addEventListener("click", function(e){
+    if(e.target.id === "skipBtn") return;
+    taps++;
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(function(){ taps = 0; }, 600);
+    if(taps >= 3){
+      taps = 0;
+      document.getElementById("obsLog").value = log.join("\n");
+      document.getElementById("obs").classList.add("show");
+    }
+  });
+  document.getElementById("obsClose").addEventListener("click", function(){
+    document.getElementById("obs").classList.remove("show");
+  });
+  document.getElementById("obsCopy").addEventListener("click", function(){
+    var ta = document.getElementById("obsLog");
+    ta.removeAttribute("readonly"); ta.select();
+    try{ document.execCommand("copy"); }catch(e){}
+    ta.setAttribute("readonly","");
+    this.textContent = "已复制 ✓";
+  });
+  document.getElementById("obsReset").addEventListener("click", function(){
+    localStorage.setItem("frs_pid", String(pid+1));
+    location.reload();
+  });
+})();
+</script>
+</body>
+</html>
