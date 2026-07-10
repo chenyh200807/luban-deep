@@ -12,6 +12,7 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/onboarding/onboarding": true,
   "pages/practice/practice": true,
   "pages/feedback/feedback": true,
+  "pages/first-run/first-run": true,
   "pages/profile/profile": true,
   "pages/register/register": true,
   "pages/report/report": true,

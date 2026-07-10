@@ -1,5 +1,5 @@
 {
-  "pages":[
+  "pages": [
     "pages/freeCourse/freeCourse",
     "pages/index/index",
     "pages/view/view",
@@ -40,7 +40,8 @@
         "pages/luban/station/station",
         "pages/luban/handoff/handoff",
         "pages/luban/retest/retest",
-        "pages/internal/diagramWebviewTest/diagramWebviewTest"
+        "pages/internal/diagramWebviewTest/diagramWebviewTest",
+        "pages/first-run/first-run"
       ]
     },
     {
@@ -55,11 +56,11 @@
       ]
     }
   ],
-  "window":{
-    "backgroundTextStyle":"light",
+  "window": {
+    "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
     "navigationBarTitleText": "佑森咨询",
-    "navigationBarTextStyle":"black"
+    "navigationBarTextStyle": "black"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
@@ -68,7 +69,9 @@
   "preloadRule": {
     "pages/freeCourse/freeCourse": {
       "network": "wifi",
-      "packages": ["packageDeeptutor"]
+      "packages": [
+        "packageDeeptutor"
+      ]
     }
   }
 }
