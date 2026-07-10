@@ -119,6 +119,13 @@
 - **验证**：node 小程序测试 95 文件全过（learn-view-model 13 / seethrough-page 12 / app_runtime_base_selection 11）；pytest luban_lesson 域 55 passed；改动 JS 全 node --check；app.json JSON 校验过。
 - **消费提醒**：test2 现跑 `42681ace6` 无 seethrough 端点——审看穿体验仍需本地 8001 后端（上节 DevTools 复现法），或待下次阿里云里程碑部署本分支。
 
+### 2026-07-10（轻练/复习精细化一版 · 专家组审计五修复落地 · 即时入账）
+- **[承诺宽度收窄] 头牌轻练按供给真值路由**：40 站硬编码 F16 的临时态收口——`list_green_lessons` +`retest_available`（复用 `_load_signed_bank` 单一闸不建第二判定），vm `practice_kind` 单一裁决点（seethrough>retest>none），无供给站主按钮不渲染+诚实降级说明。live 实测 f16demo 任务卡=A01/retest（不再指 F16）。
+- **[断线①转活] R6 挖空死供给接通**：cloze 服务/端点/A01 signed bank 三段早已俱全但前端 api.js 零调用方（四专家组审计抓出）。补 `getLubanCloze` 唯一调用方 + gauntlet ②半写真消费（逐句默写+对照提示确定性自查，呈现层零学情写入；无供给站保持自由默写降级）。live 实测 A01 16 句挖空渲染+命中/对照反馈。**流程教训：验收一直验"存在"没验"闭环"——bank 类资产验收应加端到端消费探针。**
+- **[反馈精细化] retest 答对也给门道**（correct_statement 不只在错时出现）+定位 chip+完场分解仪式；errorbank 暖处方按错因码分文案（WARM_LINES 呈现层镜像，禁审视词测试钉死）；learn F16 入口去内联 hardcode style。
+- **验证**：pytest luban_lesson 56 passed；node 全量 0 fail（learn-vm 14 含供给路由三态/gauntlet 含挖空自查/errorbank 含分码文案）；live 三页 automator 实测（todayTask 路由/挖空 16 句/retest 反馈）。commit `33725280`。
+- **未动（按审计裁决留 owner/后续）**：retest 二元形态 off-spec 改档位①（需 recall 供给拍板）、考点卡 miss_count 红标（需 read model 投影）、深 pack→答疑注入、看穿模板衰减实验、R7/金标人门。
+
 ## 惯例沉淀（复盘时升格为规则的候选）
 - 部署后必做独立探针（不信脚本自报）——本轮抓到 22 站 404 与 F16 无声两个上线级洞。
 - owner 口述需求先 grep 是否已实现再派工；agent 终态纪律=最终回复基于磁盘/线上实测，"等待中/等子报告"不是完成态。
