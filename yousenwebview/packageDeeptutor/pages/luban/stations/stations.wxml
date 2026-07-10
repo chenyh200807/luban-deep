@@ -42,8 +42,10 @@
             <view class="pk-poster__slot sr-slot--{{item.state}}">{{item.slot}}</view>
             <view class="pk-poster__foot">
               <text class="sr-tag sr-tag--{{item.state}}">{{item.recommended ? '匹配薄弱' : (item.state === 'ink' ? '已学完' : (item.locked ? '会员解锁' : '未学'))}}</text>
+              <!-- 副标题:考点卡首卡 front 真源;无卡的站留空(fail-closed) -->
+              <text wx:if="{{item.subtitle}}" class="pk-poster__sub">{{item.subtitle}}</text>
             </view>
-            <view class="pk-poster__bar" style="background: {{item.state === 'red' ? 'rgba(255,255,255,.25)' : (item.state === 'ink' ? 'rgba(244,243,236,.15)' : 'rgba(38,36,31,.12)')}}"></view>
+            <view class="pk-poster__bar"></view>
           </view>
         </view>
 

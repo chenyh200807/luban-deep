@@ -45,6 +45,7 @@
         "pages/luban/concept-cards/concept-cards",
         "pages/luban/errorbank/errorbank",
         "pages/luban/gauntlet/gauntlet",
+        "pages/luban/seethrough/seethrough",
         "pages/internal/diagramWebviewTest/diagramWebviewTest"
       ]
     },
