@@ -36,6 +36,15 @@ full validation:
 - Repeated pushes to the same PR cancel older in-flight `Tests` runs. Debug the
   newest run for the current head SHA, not a cancelled older SHA.
 
+### Required checks absent for `domains/` changes
+
+If a PR changes only `domains/**` and branch protection reports missing
+`Contract Guard` / `Test Summary` contexts, first inspect the `Tests` workflow
+path filter and `scripts/ci/tests_workflow_scope.py`. Both surfaces must include
+`domains/`: the workflow filter starts the run, and the classifier selects the
+governance job that produces the required contract-guard context. Do not bypass
+branch protection or add an unrelated file merely to manufacture the checks.
+
 ## Deploy Gate Stale Workflow Runs
 
 `Deploy Gate` is triggered by `workflow_run` after a `Tests` run completes. When

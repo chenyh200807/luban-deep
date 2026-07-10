@@ -5,6 +5,16 @@
 > 只 append，新条在**上**。详细复盘仍在 `artifacts/tutorbot_fix_test_journal.md`（倒序），
 > 本 LOG 只留「飞轮活动」一行结论 + 链接，不复制 journal 正文。
 
+## 2026-07-08 · 调度 accuracy_gate · #scheduled
+
+What: SHA=953d64082ab5, exit=3(BLOCK), 六维: daowu, huizhi, leak_boundary, sev_regression, forward_liveness, content_truth; 复现阻断维度: sev_regression。metrics/accuracy.jsonl 的 append 由 accuracy_gate.py 自身完成(单一 collector 权威), 本行只记调度活动。
+Refs: `/private/tmp/deeptutor-release-main-953d640-20260708152525/artifacts/quality_gate/scheduled/20260708_152959/report.md`
+
+## 2026-07-08 · 调度 accuracy_gate · #scheduled
+
+What: SHA=0fb3092bf95a, exit=3(BLOCK), 六维: daowu, huizhi, leak_boundary, sev_regression, forward_liveness, content_truth; 复现阻断维度: sev_regression。metrics/accuracy.jsonl 的 append 由 accuracy_gate.py 自身完成(单一 collector 权威), 本行只记调度活动。
+Refs: `/private/tmp/deeptutor-v2-eval-20260708140901/artifacts/quality_gate/scheduled/20260708_141107/report.md`
+
 ## 2026-07-01 · 调度 accuracy_gate · #scheduled
 
 What: SHA=a19114d398fc, exit=3(BLOCK), 六维: daowu, huizhi, leak_boundary, sev_regression, forward_liveness, content_truth; 复现阻断维度: sev_regression, forward_liveness。metrics/accuracy.jsonl 的 append 由 accuracy_gate.py 自身完成(单一 collector 权威), 本行只记调度活动。
