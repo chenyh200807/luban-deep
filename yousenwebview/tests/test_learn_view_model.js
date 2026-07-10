@@ -43,7 +43,7 @@ const FULL = {
   lessons: {
     lessons: [
       { pack_id: "A01", title: "检验批验收程序", content_sha256: "sha_a01", summary: "四级验收层级" },
-      { pack_id: "N01", title: "网络计划关键线路", content_sha256: "sha_n01", summary: "关键工作判定" },
+      { pack_id: "N01", title: "网络计划关键线路", content_sha256: "sha_n01", summary: "关键工作判定", retest_available: true },
       { pack_id: "S05", title: "临时用电三级配电", content_sha256: "sha_s05" },
     ],
   },
@@ -149,6 +149,9 @@ ok("practice_active arm → today task is MCQ light practice (not case grading)"
   });
   assert.ok(vm.todayTask);
   assert.strictEqual(vm.todayTask.cta, "开始 2 分钟轻练");
+  // N01 fixture 有 signed 变体池 → practice_kind 按供给真值路由到 retest forward
+  assert.strictEqual(vm.todayTask.practice_kind, "retest");
+  assert.strictEqual(vm.todayTask.supplyNote, "");
   assert.strictEqual(vm.todayTask.task_type, "light_practice");
   assert.strictEqual(vm.todayTask.estimated_minutes, 2);
   assert.strictEqual(vm.todayTask.mode, "topic"); // 路由到 assessment 专题模式
@@ -172,6 +175,36 @@ ok("fallback arm → MCQ light practice carries next-station pack/concept", () =
   assert.strictEqual(vm.todayTask.mode, "topic");
   assert.strictEqual(vm.todayTask.pack_id, "N01");
   assert.strictEqual(vm.todayTask.prompt, undefined);
+});
+
+// ── 头牌按供给真值路由(承诺宽度收窄): seethrough > retest > none ──
+ok("practice_kind routes by signed supply: seethrough > retest > none", () => {
+  // ① 站有签发看穿包 → seethrough 优先(即使也有变体池)
+  const vmA = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "N01", reason: "r" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+    seethroughLibrary: { total: 1, packs: [{ pack_id: "N01", title: "网络计划关键线路" }] },
+  });
+  assert.strictEqual(vmA.todayTask.practice_kind, "seethrough");
+  // ② 无看穿有变体池 → retest(FULL 已断言)
+  // ③ 两者皆无 → none: 主按钮不渲染(cta 空) + 诚实降级说明
+  const vmC = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "A01", reason: "r" } },
+    report: FULL.report,
+    lessons: FULL.lessons, // A01 无 retest_available 字段 = 保守 false
+  });
+  assert.strictEqual(vmC.todayTask.practice_kind, "none");
+  assert.strictEqual(vmC.todayTask.cta, "");
+  assert.ok(vmC.todayTask.supplyNote.length > 0);
+  // 看穿库响应缺失/畸形 → 空集保守降级不抛
+  const vmD = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "N01", reason: "r" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+    seethroughLibrary: "garbage",
+  });
+  assert.strictEqual(vmD.todayTask.practice_kind, "retest");
 });
 
 

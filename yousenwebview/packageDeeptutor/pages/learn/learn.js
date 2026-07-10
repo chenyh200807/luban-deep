@@ -131,11 +131,19 @@ Page({
       settle(api.getHomeDashboard(opt)),
       settle(api.getLearningReport(100, opt)),
       lessonsPromise,
+      // 看穿库总览:头牌轻练 practice_kind 供给真值之一(失败=空集保守降级)
+      settle(api.getLubanSeethroughLibrary(opt)),
     ]).then(function (res) {
       var homeDashboard = api.unwrapResponse(res[0]) || {};
       var report = api.unwrapResponse(res[1]) || {};
       var lessons = api.unwrapResponse(res[2]) || {};
-      var vm = buildLearnViewModel({ homeDashboard: homeDashboard, report: report, lessons: lessons });
+      var seethroughLibrary = api.unwrapResponse(res[3]) || {};
+      var vm = buildLearnViewModel({
+        homeDashboard: homeDashboard,
+        report: report,
+        lessons: lessons,
+        seethroughLibrary: seethroughLibrary,
+      });
       that.setData({ vm: vm, loading: false });
     });
   },
@@ -167,11 +175,20 @@ Page({
   goReview() {
     this._navTo(route.lubanReview());
   },
-  // 今日主任务「开始 2 分钟轻练」→ 进 F16 看穿 5 天样本(spike 主体)。
-  // 计划:头牌 2 分钟轻练 = 看穿式 MCQ 留存闭环,F16 为当前唯一签发样本;
-  // 内容全部投影自已签发看穿包,前端不新造。(样本铺开后按 pack 路由到各自看穿包。)
+  // 今日主任务「开始 2 分钟轻练」→ 按供给真值路由(practice_kind 由 vm 单一裁决,
+  // 页面零判定):有签发看穿包 → 看穿 5 天;有 signed 变体池 → retest 正向轻练;
+  // 无供给 → 主按钮不渲染(WXML cta 空即隐藏),这里只兜底 noop。
   goPractice() {
-    this._navTo("/packageDeeptutor/pages/luban/seethrough/seethrough?pack_id=F16");
+    var task = (this.data.vm && this.data.vm.todayTask) || {};
+    var packId = encodeURIComponent(String(task.pack_id || ""));
+    if (task.practice_kind === "seethrough" && packId) {
+      this._navTo("/packageDeeptutor/pages/luban/seethrough/seethrough?pack_id=" + packId);
+      return;
+    }
+    if (task.practice_kind === "retest" && packId) {
+      this._navTo("/packageDeeptutor/pages/luban/retest/retest?pack_id=" + packId + "&mode=forward");
+      return;
+    }
   },
 
   // 今日任务副 CTA「换轻练」→ 换成更广/更轻的综合摸底(与主任务不同动作):

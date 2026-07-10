@@ -142,6 +142,11 @@
 .lr-review-bolt { width: 26rpx; height: 26rpx; border-radius: 6rpx; background: var(--pk-grn); flex-shrink: 0; }
 .lr-review-txt { flex: 1; font-size: 25rpx; font-weight: 700; color: var(--pk-t1); }
 .lr-review-go { font-size: 25rpx; font-weight: 700; color: var(--pk-grn); }
+/* F16 看穿雏形入口(spike 审阅):暖纸底+朱豆,收进 token 派生色,不再内联 hardcode */
+.lr-seethrough { background: var(--pk-warm-paper, #fff5ec); }
+.lr-seethrough-bolt { background: var(--pk-red-deep, #8a2b20); }
+/* 今日任务无供给降级说明(cta 空时渲染) */
+.lr-supply-note { margin-top: 14rpx; color: var(--pk-t2); }
 
 /* ── 指标卡 ── */
 .lr-metric-row { display: flex; gap: 15rpx; }

@@ -36,7 +36,8 @@ function _titleIndex(lessonsResp) {
     var o = _safeObj(l);
     var id = _str(o.pack_id).toUpperCase();
     // summary = 后端签发考点卡首卡 front(路线卡副标题真源);缺则 ""(fail-closed 留空)
-    if (id) idx[id] = { title: _str(o.title), sha: _str(o.content_sha256), green: true, summary: _str(o.summary) };
+    // retest = signed 变体池真值(list_green_lessons.retest_available;缺字段=false 保守降级)
+    if (id) idx[id] = { title: _str(o.title), sha: _str(o.content_sha256), green: true, summary: _str(o.summary), retest: o.retest_available === true };
   });
   return idx;
 }
@@ -116,17 +117,22 @@ function _posters(packs, titleIdx, recommendedId) {
   return rows;
 }
 
-// 今日主任务 = 针对推荐薄弱考点的 2 分钟 MCQ 轻练(PRD v1.3 §0.0 / §12.2 TodayMainTaskCard)。
-// 前端只投递路由意图,由学习页 handler 路由到 assessment 专题模式复用既有 MCQ 流;
-// 不含案例批改 prompt(那是已降级的深度层),不判分、不造第二套答题 authority。
-function _lightPracticeTask(concept, packId, reason) {
+// 今日主任务 = 针对推荐薄弱考点的 2 分钟轻练(PRD v1.3 §0.0 / §12.2 TodayMainTaskCard)。
+// 前端只投递路由意图,由学习页 handler 按 practice_kind 路由;不判分、不造第二套答题 authority。
+// practice_kind = 按签发供给真值路由(承诺宽度收窄,不对空池站渲染练不了的按钮):
+//   "seethrough"(该站有签发看穿包) > "retest"(有 signed 变体池 → retest?mode=forward) > "none"(降级)
+function _lightPracticeTask(concept, packId, reason, practiceKind) {
   var c = _str(concept) || "你的薄弱点";
+  var kind = practiceKind === "seethrough" || practiceKind === "retest" ? practiceKind : "none";
   return {
     title: c + " · 2 分钟轻练",
     reason: _str(reason),
-    cta: "开始 2 分钟轻练",       // primary_cta(WXML 消费 vm.todayTask.cta)
+    // primary_cta: 无供给站不渲染主按钮(cta 空 = WXML 隐藏),诚实降级为 supplyNote
+    cta: kind === "none" ? "" : "开始 2 分钟轻练",
     secondaryCta: "换轻练",        // secondary_cta:换成更广的综合摸底
+    supplyNote: kind === "none" ? "这一站的轻练正在教研签发中 · 先看讲解打底" : "",
     task_type: "light_practice",
+    practice_kind: kind,
     estimated_minutes: 2,
     concept: c,
     pack_id: _str(packId).toUpperCase(),
@@ -134,9 +140,27 @@ function _lightPracticeTask(concept, packId, reason) {
   };
 }
 
+// 看穿库总览 → 有签发看穿包的 pack_id 集合(缺响应/旗标关 = 空集,保守降级)
+function _seethroughSet(libraryResp) {
+  var set = {};
+  _safeArr(_safeObj(libraryResp).packs).forEach(function (p) {
+    var id = _str(_safeObj(p).pack_id).toUpperCase();
+    if (id) set[id] = true;
+  });
+  return set;
+}
+
+// 供给真值 → practice_kind 单一裁决点(禁在页面层再判一次)
+function _practiceKindFor(packId, titleIdx, seethroughSet) {
+  var id = _str(packId).toUpperCase();
+  if (seethroughSet[id]) return "seethrough";
+  if (_safeObj(titleIdx[id]).retest === true) return "retest";
+  return "none";
+}
+
 /**
  * 组装学习页 data。
- * @param {object} args {homeDashboard, report, lessons}
+ * @param {object} args {homeDashboard, report, lessons, seethroughLibrary}
  * @returns {object} setData payload
  */
 function buildLearnViewModel(args) {
@@ -206,15 +230,22 @@ function buildLearnViewModel(args) {
   // task_type=light_practice + mode=topic:前端只投递路由意图(→ assessment 专题模式),
   // 复用既有 MCQ 摸底流,不判分、不造第二套答题入口、不带案例批改 prompt。
   // 案例题批改按 v1.3 降级为深度护城河层,不再当今日任务默认。
+  var seethroughSet = _seethroughSet(a.seethroughLibrary);
   var todayTask = null;
   if (nextStep.mode === "practice_active" && nsRef) {
-    todayTask = _lightPracticeTask(nsMeta.title || "你的薄弱点", nsRef, _str(nextStep.reason));
+    todayTask = _lightPracticeTask(
+      nsMeta.title || "你的薄弱点",
+      nsRef,
+      _str(nextStep.reason),
+      _practiceKindFor(nsRef, titleIdx, seethroughSet),
+    );
   } else if (nextStation) {
     // 有站可学即给通用今日任务(设计始终显示此卡);诚实=针对该站的 2 分钟轻练
     todayTask = _lightPracticeTask(
       nextStation.title || "你的薄弱点",
       nextStation.pack_id,
       "先用一组 2 分钟选择题定位薄弱采分点,答完当场看盲点和教材章节定位。",
+      _practiceKindFor(nextStation.pack_id, titleIdx, seethroughSet),
     );
   }
 

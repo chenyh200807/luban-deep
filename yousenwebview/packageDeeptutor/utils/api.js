@@ -996,6 +996,16 @@ function getLubanSeethroughLibrary(opts) {
   return requestStateGet("/api/v1/luban/seethrough", opts);
 }
 
+/** 鲁班 — 单站 R6 精确挖空(实务闯关②半写数据: recall_prompt + skeleton_sentences
+ * [{text_before, blank_hint, text_after}]。签发真值=_{pack}_r6_cloze_bank(signed+sha
+ * 双闸); 未签发/非绿灯/旗标关一律 404 同形——闯关据此保持自由默写降级, 不伪装挖空)。 */
+function getLubanCloze(packId, opts) {
+  return requestStateGet(
+    "/api/v1/luban/cloze/" + encodeURIComponent(String(packId || "")),
+    opts,
+  );
+}
+
 /** 鲁班 — 单条 R8 解药(错因银行 detail「解药位」; 按 {pack_id, error_code} 取
  * signed 解药, 响应 {mental_model, textbook_ref}。未签发/无此码/非绿灯/旗标关一律
  * 404 同形——前端据此保持「解药整理中」诚实占位, 绝不自造讲解)。 */
@@ -1119,6 +1129,7 @@ module.exports = {
   getLubanConceptCards: getLubanConceptCards,
   getLubanSeethrough: getLubanSeethrough,
   getLubanSeethroughLibrary: getLubanSeethroughLibrary,
+  getLubanCloze: getLubanCloze,
   getLubanAntidote: getLubanAntidote,
   postLubanFullAnswer: postLubanFullAnswer,
   postStationCompleted: postStationCompleted,

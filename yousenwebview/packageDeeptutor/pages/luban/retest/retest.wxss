@@ -240,3 +240,11 @@
   font-size: 26rpx;
   color: var(--text-secondary);
 }
+
+/* ── 反馈精细化: 门道段 + 定位 chip + 完场分解 ── */
+.rt-feedback-why { display: block; font-size: 25rpx; line-height: 1.7; margin-top: 8rpx; color: var(--text-primary); }
+.rt-anchor-chip { display: inline-block; margin-top: 12rpx; font-size: 21rpx; padding: 4rpx 14rpx; border-radius: 99rpx; border: 2rpx solid rgba(128,128,128,.35); color: var(--text-muted); }
+.rt-done-break { display: flex; gap: 12rpx; justify-content: center; margin: 10rpx 0 4rpx; }
+.rt-done-chip { font-size: 22rpx; font-weight: 700; padding: 4rpx 16rpx; border-radius: 99rpx; }
+.rt-done-chip.good { background: rgba(110,231,183,.14); color: #6ee7b7; }
+.rt-done-chip.warm { background: rgba(240,180,100,.14); color: #f0b464; }

@@ -423,3 +423,16 @@
 }
 .gt-sheet-title { font-size: 32rpx; font-weight: 800; color: var(--pk-t1); }
 .gt-sheet-desc { font-size: 24rpx; line-height: 1.7; color: var(--pk-t2); }
+
+/* ── ②半写 · R6 精确挖空(签发骨架句 + 对照提示自查) ── */
+.gt-cloze-prompt { display: block; font-size: 24rpx; color: var(--pk-t2); margin: 6rpx 0 14rpx; }
+.gt-cloze-row { margin-bottom: 18rpx; }
+.gt-cloze-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6rpx; }
+.gt-cloze-txt { font-size: 26rpx; color: var(--pk-t1); line-height: 1.7; }
+.gt-cloze-input { min-width: 180rpx; max-width: 340rpx; height: 56rpx; padding: 0 16rpx; font-size: 25rpx; border: 2rpx dashed var(--pk-line, #d8d0bf); border-radius: 10rpx; background: transparent; }
+.gt-cloze-input.hit { border-color: var(--pk-grn); border-style: solid; }
+.gt-cloze-input.miss { border-color: var(--pk-warm, #b07a1a); border-style: solid; }
+.gt-cloze-hint { display: block; font-size: 22rpx; margin-top: 6rpx; }
+.gt-cloze-hint.hit { color: var(--pk-grn); }
+.gt-cloze-hint.miss { color: var(--pk-warm, #b07a1a); }
+.gt-cloze-check { margin: 8rpx 0 10rpx; text-align: center; }
