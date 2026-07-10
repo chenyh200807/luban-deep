@@ -87,6 +87,27 @@ Page({
           that.setData({ loading: false, errorText: "内容即将开通" });
           return;
         }
+        // 选项呈现序确定性洗牌(红队修复: bank 原序 correct_option_id 全在 A 位,
+        // "闭眼点第一个"=100%)。只动呈现序, 判定仍按 option_id 零语义改动;
+        // 同 day 幂等。根治(bank 生产随机化位置+判分收服务端)归内容/架构工单。
+        days = days.map(function (d) {
+          var opts = Array.isArray(d.options) ? d.options.slice() : null;
+          if (!opts || opts.length < 2) return d;
+          var scoreOf = function (o) {
+            var k = "st:" + d.day + ":" + String(o.option_id);
+            var s = 0;
+            for (var j = 0; j < k.length; j++) {
+              s = (s * 131 + k.charCodeAt(j)) >>> 0;
+              // xor-shift 雪崩: 线性散列对"仅末字符不同"单调(A<B<C<D 排完不动),
+              // 每步混洗破坏单调性
+              s ^= s >>> 13;
+              s = (s * 2654435761) >>> 0;
+            }
+            return (s ^ (s >>> 16)) >>> 0;
+          };
+          opts.sort(function (a, b) { return scoreOf(a) - scoreOf(b); });
+          return Object.assign({}, d, { options: opts });
+        });
         // 起始天 = 首个未完成天(呈现层),否则 Day1;雏形允许自由走 Day1→Day5
         var firstIncomplete = 0;
         for (var i = 0; i < days.length; i++) {
