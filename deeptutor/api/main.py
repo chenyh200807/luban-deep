@@ -709,6 +709,7 @@ from deeptutor.api.routers import (
     member,
     memory,
     mobile,
+    polyv,
     notebook,
     observability,
     photo_answer,
@@ -741,6 +742,7 @@ else:
 app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledge"])
 app.include_router(invite_test.router, prefix="/api/v1/invite-test", tags=["invite-test"])
 app.include_router(luban_preview.router, prefix="/api/v1/luban-preview", tags=["luban-preview"])
+app.include_router(polyv.router, prefix="/api/v1/polyv", tags=["polyv"])
 app.include_router(luban_lesson.router, prefix="/api/v1/luban", tags=["luban_lesson"])
 app.include_router(learner_signal.router, prefix="/api/v1/learner-signal", tags=["learner_signal"])
 app.include_router(lesson_progress.router, prefix="/api/v1/lesson-progress", tags=["lesson_progress"])
