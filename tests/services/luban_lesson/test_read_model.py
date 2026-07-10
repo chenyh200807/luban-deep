@@ -74,6 +74,44 @@ def test_green_only_in_listing(tmp_path):
     assert [r["pack_id"] for r in rows] == ["S05"]
 
 
+def test_retest_items_textbook_join_same_pack_signed_cards(tmp_path):
+    """textbook = 同 pack 签发考点卡按 anchor==point_id 精确 join(fail-closed)。
+
+    命中 → {quote, label, page_num} 逐字透传; 不命中/卡池 candidate → 字段缺省。
+    """
+    from deeptutor.services.luban_lesson.read_model import build_retest_items
+
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
+        "status": "signed", "source_pack_sha256": "abc123",
+        "variants": [
+            {"variant_id": "S05-B-000", "rule_group": "B", "surface": "s1",
+             "expected_ok": True, "correct_statement": "c1", "anchor": "kc:X:1"},
+            {"variant_id": "S05-B-001", "rule_group": "B", "surface": "s2",
+             "expected_ok": False, "correct_statement": "c2", "anchor": "kc:X:9"},
+        ],
+    }), encoding="utf-8")
+    # 卡池 candidate → 全部无 textbook(签发闸 fail-closed)
+    card_bank = {
+        "status": "candidate", "source_pack_sha256": "abc123",
+        "cards": [{"point_id": "kc:X:1", "front": "三级配电", "quote": "教材原文逐字",
+                   "source_ref": {"page_num": 208}}],
+    }
+    (tmp_path / "_S05_concept_card_bank.v0.json").write_text(
+        json.dumps(card_bank), encoding="utf-8")
+    items = build_retest_items("S05", user_id="u", day_index=0, limit=5, manifest_path=mp)
+    assert all("textbook" not in it for it in items)
+    # 签发后 → anchor 命中的那题带 textbook, 不命中的缺省
+    card_bank["status"] = "signed"
+    (tmp_path / "_S05_concept_card_bank.v0.json").write_text(
+        json.dumps(card_bank), encoding="utf-8")
+    items = build_retest_items("S05", user_id="u", day_index=0, limit=5, manifest_path=mp)
+    by_id = {it["variant_id"]: it for it in items}
+    assert by_id["S05-B-000"]["textbook"] == {
+        "quote": "教材原文逐字", "label": "三级配电", "page_num": 208}
+    assert "textbook" not in by_id["S05-B-001"]
+
+
 def test_listing_retest_available_follows_signed_bank(tmp_path):
     """retest_available = signed 变体池真值(单一闸复用)——头牌轻练按供给路由的依据。
 
