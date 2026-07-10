@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>高处作业安全 · 学员端</title>
+<style>
+  :root{
+    --paper:#f3ede1;--card:#fbf7ef;--ink:#2b2621;--sub:#7c7266;--line:#e5dccb;
+    --zhu:#c0392b;--zhu-soft:#f4e2dd;--bamboo:#3f7d5a;--bamboo-soft:#e4efe7;
+    --gold:#b98a2e;--goldbg:#f6ecd4;
+    --shadow:0 8px 30px rgba(60,45,25,.12);
+    --font:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI','Microsoft YaHei',sans-serif;
+  }
+  @media(prefers-color-scheme:dark){:root{
+    --paper:#171310;--card:#211b16;--ink:#efe7d9;--sub:#a89a86;--line:#352c22;
+    --zhu:#e5705f;--zhu-soft:#33201c;--bamboo:#63b088;--bamboo-soft:#18271e;
+    --gold:#e0b358;--goldbg:#2a2110;--shadow:0 8px 30px rgba(0,0,0,.4);}}
+  :root[data-theme=dark]{--paper:#171310;--card:#211b16;--ink:#efe7d9;--sub:#a89a86;--line:#352c22;--zhu:#e5705f;--zhu-soft:#33201c;--bamboo:#63b088;--bamboo-soft:#18271e;--gold:#e0b358;--goldbg:#2a2110;--shadow:0 8px 30px rgba(0,0,0,.4);}
+  :root[data-theme=light]{--paper:#f3ede1;--card:#fbf7ef;--ink:#2b2621;--sub:#7c7266;--line:#e5dccb;--zhu:#c0392b;--zhu-soft:#f4e2dd;--bamboo:#3f7d5a;--bamboo-soft:#e4efe7;--gold:#b98a2e;--goldbg:#f6ecd4;--shadow:0 8px 30px rgba(60,45,25,.12);}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 400px at 50% -80px,rgba(192,57,43,.05),transparent),var(--paper);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .head{text-align:center;padding:30px 16px 6px}
+  .head h1{font-size:19px;margin:0;font-weight:650}
+  .head p{font-size:13px;color:var(--sub);margin:6px 0 0}
+  .stage{display:flex;gap:26px;justify-content:center;align-items:flex-start;flex-wrap:wrap;padding:20px 16px 60px}
+  .phone{width:340px;max-width:92vw;background:var(--card);border-radius:34px;box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden}
+  .notch{height:26px;display:flex;align-items:center;justify-content:center}
+  .notch .bar{width:96px;height:5px;border-radius:9px;background:var(--line)}
+  .scr{padding:6px 20px 24px}
+  .slab{text-align:center;font-size:12.5px;color:var(--sub);margin:0 0 12px;font-weight:600}
+  .top{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--sub);padding:2px 2px 14px}
+  .dot{width:6px;height:6px;border-radius:9px;background:var(--zhu);display:inline-block;margin-right:5px}
+  .prog{display:flex;gap:4px}.prog i{width:16px;height:4px;border-radius:9px;background:var(--line)}.prog i.on{background:var(--zhu)}
+  .qcase{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-size:13.5px;color:var(--sub);line-height:1.6;margin:0 0 14px}
+  .qcase b{color:var(--ink)}
+  .qstem{font-size:16px;font-weight:650;line-height:1.5;margin:0 0 4px}
+  .qhint{font-size:12.5px;color:var(--bamboo);margin:0 0 14px;font-weight:600}
+  .chip{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);margin:8px 0;font-size:14.5px}
+  .chip .bx{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);flex:0 0 auto}
+  .chip.pick{border-color:var(--zhu);background:var(--zhu-soft)}
+  .chip.pick .bx{border-color:var(--zhu);background:var(--zhu);position:relative}
+  .chip.pick .bx::after{content:"✓";color:#fff;font-size:14px;position:absolute;left:3px;top:-1px}
+  .chip .tag{margin-left:auto;font-size:12px;color:var(--sub)}
+  /* diagnosis */
+  .praise{display:flex;gap:11px;align-items:flex-start;background:var(--goldbg);border-radius:14px;padding:14px 15px;margin:2px 0 12px}
+  .praise .em{font-size:22px;line-height:1}
+  .praise .tx{font-size:14.5px;line-height:1.55}
+  .praise .tx b{color:var(--gold)}
+  .res{display:flex;align-items:center;gap:9px;font-size:14px;padding:9px 12px;border-radius:10px;margin:6px 0;border:1px solid var(--line)}
+  .res.hit{background:var(--bamboo-soft)}.res.hit .m{color:var(--bamboo);font-weight:800}
+  .res.miss{background:var(--zhu-soft)}.res.miss .m{color:var(--zhu);font-weight:800}
+  .res .pt{margin-left:auto;font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
+  .miss-note{border-left:3px solid var(--zhu);padding:2px 0 2px 13px;margin:12px 0 14px}
+  .miss-note .lab{font-size:12px;font-weight:700;color:var(--zhu);margin:0 0 4px}
+  .miss-note .tx{font-size:14px;line-height:1.6}
+  .miss-note .k{color:var(--zhu);font-weight:700}
+  .believe{text-align:center;font-size:14px;color:var(--bamboo);font-weight:650;margin:2px 0 16px}
+  .cta{display:block;text-align:center;background:var(--zhu);color:#fff;font-weight:650;font-size:15px;padding:14px;border-radius:13px;text-decoration:none}
+  .ghost{display:block;text-align:center;color:var(--sub);font-size:13px;margin-top:12px;font-weight:600}
+  .cap{max-width:740px;margin:0 auto;padding:8px 20px 50px;text-align:center;font-size:13px;color:var(--sub);line-height:1.7}
+  .cap b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>换个主题 · 高处作业安全(不是防水)</h1>
+  <p>真题 1A436 · 6 个真采分点 · 同一套引擎,换主题即可</p>
+</div>
+<div class="stage">
+
+  <!-- 屏1 答题 -->
+  <div class="phone">
+    <div class="notch"><div class="bar"></div></div>
+    <div class="scr">
+      <p class="slab">① 漏点补全 · 点你想到的</p>
+      <div class="top"><span><span class="dot"></span>安全管理 · 高处作业</span><span class="prog"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></div>
+      <div class="qcase">某高层项目<b>多楼层同时施工</b>,安全员要排查所有需要<b>专项防护</b>的高处作业类别。</div>
+      <div class="qstem">你能想到哪几类高处作业?</div>
+      <p class="qhint">👆 点选你想到的(可多选)</p>
+      <div class="chip pick"><span class="bx"></span>临边作业</div>
+      <div class="chip pick"><span class="bx"></span>洞口作业</div>
+      <div class="chip pick"><span class="bx"></span>攀登与悬空作业</div>
+      <div class="chip"><span class="bx"></span>交叉作业<span class="tag">没点</span></div>
+      <div class="chip"><span class="bx"></span>操作平台<span class="tag">没点</span></div>
+      <div class="chip"><span class="bx"></span>安全防护网搭设<span class="tag">没点</span></div>
+    </div>
+  </div>
+
+  <!-- 屏2 诊断 -->
+  <div class="phone">
+    <div class="notch"><div class="bar"></div></div>
+    <div class="scr">
+      <p class="slab">② 暖心诊断 · 挂采分点</p>
+      <div class="top"><span><span class="dot"></span>高处作业 · 你的这道</span><span style="color:var(--gold);font-weight:700">3/6 · 差一点</span></div>
+      <div class="praise"><span class="em">👍</span><span class="tx">你已经点住了<b>临边、洞口、攀登悬空</b>三大类——这几类最容易出事,你都想到了,底子很稳。</span></div>
+
+      <div class="res hit"><span class="m">✓</span>临边作业<span class="pt">0.5</span></div>
+      <div class="res hit"><span class="m">✓</span>洞口作业<span class="pt">0.5</span></div>
+      <div class="res hit"><span class="m">✓</span>攀登与悬空作业<span class="pt">0.75</span></div>
+      <div class="res miss"><span class="m">＋</span>交叉作业<span class="pt">还差 0.5</span></div>
+      <div class="res miss"><span class="m">＋</span>操作平台<span class="pt">还差 0.5</span></div>
+      <div class="res miss"><span class="m">＋</span>安全防护网搭设<span class="pt">还差 0.75</span></div>
+
+      <div class="miss-note">
+        <div class="lab">补上这三类你就满分</div>
+        <div class="tx">多楼层同时干活,最容易漏的是 <span class="k">交叉作业</span>(上下层同时施工互相砸)和 <span class="k">操作平台</span>;<span class="k">安全防护网</span>是兜底,别忘。</div>
+      </div>
+
+      <div class="believe">高处作业六大类,你已经拿住一半的高分项 💪</div>
+      <a href="#" class="cta">再来一道 · 巩固「高处作业」</a>
+      <span class="ghost">收进「我的薄弱点」· 3 天后复练</span>
+    </div>
+  </div>
+
+</div>
+<div class="cap">
+  <b>和防水那道一模一样的体验,只是换了主题采分点。</b> 判分在后台是确定性的(点没点到 6 个采分点,查表即得,零 LLM),学员只感觉到<b>一句懂他、又给下一步的话</b>。<br>
+  引擎不在乎题目是防水还是高处作业安全——采分点换了,题就换了。
+</div>
+</body>
+</html>

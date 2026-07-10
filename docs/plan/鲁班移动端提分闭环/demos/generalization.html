@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>案例题轻练 · 泛化能力 + 生产 token 成本</title>
+<style>
+  :root{
+    --paper:#f3ede1;--card:#fbf7ef;--ink:#2b2621;--sub:#7c7266;--line:#e5dccb;
+    --zhu:#c0392b;--zhu-soft:#f4e2dd;--bamboo:#3f7d5a;--bamboo-soft:#e4efe7;
+    --gold:#b98a2e;--goldbg:#f6ecd4;--blue:#3a6ea5;--bluebg:#e6eef6;
+    --shadow:0 6px 24px rgba(60,45,25,.10);
+    --font:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI','Microsoft YaHei',sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  @media(prefers-color-scheme:dark){:root{
+    --paper:#171310;--card:#211b16;--ink:#efe7d9;--sub:#a89a86;--line:#352c22;
+    --zhu:#e5705f;--zhu-soft:#33201c;--bamboo:#63b088;--bamboo-soft:#18271e;
+    --gold:#e0b358;--goldbg:#2a2110;--blue:#7ba7d6;--bluebg:#15202c;
+    --shadow:0 6px 24px rgba(0,0,0,.4);}}
+  :root[data-theme=dark]{--paper:#171310;--card:#211b16;--ink:#efe7d9;--sub:#a89a86;--line:#352c22;--zhu:#e5705f;--zhu-soft:#33201c;--bamboo:#63b088;--bamboo-soft:#18271e;--gold:#e0b358;--goldbg:#2a2110;--blue:#7ba7d6;--bluebg:#15202c;--shadow:0 6px 24px rgba(0,0,0,.4);}
+  :root[data-theme=light]{--paper:#f3ede1;--card:#fbf7ef;--ink:#2b2621;--sub:#7c7266;--line:#e5dccb;--zhu:#c0392b;--zhu-soft:#f4e2dd;--bamboo:#3f7d5a;--bamboo-soft:#e4efe7;--gold:#b98a2e;--goldbg:#f6ecd4;--blue:#3a6ea5;--bluebg:#e6eef6;--shadow:0 6px 24px rgba(60,45,25,.10);}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.55}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 20px 60px}
+  h1{font-size:24px;margin:0 0 4px}
+  .lede{color:var(--sub);font-size:14.5px;margin:0 0 22px}
+  .sec{margin:26px 0 12px;font-size:13px;font-weight:750;letter-spacing:.04em;color:var(--sub);text-transform:uppercase}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow);margin:0 0 14px}
+  .topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px}
+  .tp{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;box-shadow:var(--shadow)}
+  .tp .n{font-family:var(--mono);font-weight:750;font-size:19px;color:var(--zhu)}
+  .tp .l{font-size:13px;margin-top:1px}
+  .tp .s{font-size:11.5px;color:var(--sub)}
+  .eng{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:6px 0}
+  .ck{color:var(--bamboo);font-weight:800}
+  .gold{font-family:var(--mono);font-size:12px;color:var(--sub);margin-left:auto}
+  .gold b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>你问的两件事:泛化能力 + 生产 token 成本</h1>
+  <p class="lede">2026-07-09 · 短答:①引擎泛化到任意主题(算法与主题无关);②生产判分<b>零 LLM</b>,Qwen 只在<b>出题入库时</b>、且只对近义干扰项触发。</p>
+
+  <div class="sec">① 编译库覆盖的主题(不止防水 · 174 真题 / 13 章节)</div>
+  <div class="topics">
+    <div class="tp"><div class="n">36</div><div class="l">安全管理</div><div class="s">题 · 76采分点</div></div>
+    <div class="tp"><div class="n">10</div><div class="l">消防</div><div class="s">题</div></div>
+    <div class="tp"><div class="n">7</div><div class="l">基坑/深基坑</div><div class="s">题</div></div>
+    <div class="tp"><div class="n">6</div><div class="l">塔吊布置</div><div class="s">题</div></div>
+    <div class="tp"><div class="n">5</div><div class="l">起重吊装</div><div class="s">题</div></div>
+    <div class="tp"><div class="n">5</div><div class="l">脚手架</div><div class="s">题</div></div>
+    <div class="tp"><div class="n">4</div><div class="l">高处作业</div><div class="s">题</div></div>
+    <div class="tp"><div class="n">77</div><div class="l">混凝土结构</div><div class="s">采分点</div></div>
+    <div class="tp"><div class="n">多</div><div class="l">造价/计算</div><div class="s">1A432/433</div></div>
+    <div class="tp"><div class="n">65</div><div class="l">施组/进度</div><div class="s">采分点</div></div>
+  </div>
+
+  <div class="sec">② 引擎和主题无关 —— 5 个引擎在不同章节真题上全部"算出==官方答案"</div>
+  <div class="card">
+    <div class="eng"><span class="ck">✓</span>造价链 DAG+ECF<span class="gold">1A432 · 合同价 <b>64539.54</b></span></div>
+    <div class="eng"><span class="ck">✓</span>关键线路 CPM<span class="gold">网络计划 · <b>START-A-C-E-END 工期10</b></span></div>
+    <div class="eng"><span class="ck">✓</span>荷载组合(勾选)<span class="gold">1A434 脚手架 · <b>多选一个即0</b></span></div>
+    <div class="eng"><span class="ck">✓</span>工序排序<span class="gold">1A434 混凝土 · <b>换序判错</b></span></div>
+    <div class="eng"><span class="ck">✓</span>判断改正(合取门)<span class="gold">安全/消防均可 · <b>找错∧改正缺一即0</b></span></div>
+    <p style="font-size:13px;color:var(--sub);margin:12px 0 0;padding-left:12px;border-left:3px solid var(--line)">
+    合取门不在乎题目是防水还是<b>吊装安全</b> —— 只要是"判断改正",它就成立。CPM 不在乎是哪个工程,只要有网络图。<b>引擎是主题无关的算法,内容(采分点)才分主题。</b>之前只演示防水,是因为我建的 dev 样例是起鼓割补,不是系统只会防水。</p>
+  </div>
+
+  <div class="sec">③ 生产 token:学员判分零 LLM,Qwen 只在出题时且只对近义项</div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:11px;background:var(--goldbg);border-radius:11px;padding:12px 14px">
+        <b style="color:var(--gold);font-size:13px;white-space:nowrap">出题入库<br>(一次性/离线)</b>
+        <span style="font-size:13.5px;line-height:1.5">真 DeepSeek 造干扰项 → 确定性门筛 → <b>只有与正确项相似度≥0.5 的近义干扰</b>才送 Qwen 异源复核。多数干扰明显不同 → <b>根本不触发 Qwen</b>。</span>
+      </div>
+      <div style="text-align:center;color:var(--sub);font-size:18px">↓ 一道题生成一次,存库</div>
+      <div style="display:flex;align-items:center;gap:11px;background:var(--bamboo-soft);border-radius:11px;padding:12px 14px">
+        <b style="color:var(--bamboo);font-size:13px;white-space:nowrap">学员作答<br>(每次/海量)</b>
+        <span style="font-size:13.5px;line-height:1.5"><b>零 LLM。</b>点一下 → 确定性判分(踩没踩到采分点,查表即得)→ 暖心诊断。<b>一个 token 都不烧。</b></span>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--sub);margin:14px 0 0;padding-left:12px;border-left:3px solid var(--zhu)">
+    <b>所以不费 token:</b>① 判分全程不走 LLM(红线:计算类判分绝不走 LLM);② Qwen 只在<b>出题时</b>做质检,且"先便宜后贵"——先用确定性相似度过滤,<b>只有像正确答案的近义干扰才送 Qwen</b>;③ 一道题生成一次、服务上万学员,异源成本被<b>彻底摊薄</b>。生产不是每次都调 Qwen。</p>
+  </div>
+</div>
+</body>
+</html>

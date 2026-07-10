@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>案例题轻练 · 学员端</title>
+<style>
+  :root{
+    --paper:#f3ede1; --card:#fbf7ef; --ink:#2b2621; --sub:#7c7266; --line:#e5dccb;
+    --zhu:#c0392b; --zhu-soft:#f4e2dd; --zhu-deep:#9e2b1e;
+    --bamboo:#3f7d5a; --bamboo-soft:#e4efe7;
+    --gold:#b98a2e; --goldbg:#f6ecd4;
+    --shadow:0 8px 30px rgba(60,45,25,.12);
+    --font:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI','Microsoft YaHei',sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --paper:#171310; --card:#211b16; --ink:#efe7d9; --sub:#a89a86; --line:#352c22;
+    --zhu:#e5705f; --zhu-soft:#33201c; --zhu-deep:#f08a78;
+    --bamboo:#63b088; --bamboo-soft:#18271e;
+    --gold:#e0b358; --goldbg:#2a2110;
+    --shadow:0 8px 30px rgba(0,0,0,.4);
+  }}
+  :root[data-theme=dark]{
+    --paper:#171310; --card:#211b16; --ink:#efe7d9; --sub:#a89a86; --line:#352c22;
+    --zhu:#e5705f; --zhu-soft:#33201c; --zhu-deep:#f08a78;
+    --bamboo:#63b088; --bamboo-soft:#18271e; --gold:#e0b358; --goldbg:#2a2110;
+    --shadow:0 8px 30px rgba(0,0,0,.4);
+  }
+  :root[data-theme=light]{
+    --paper:#f3ede1; --card:#fbf7ef; --ink:#2b2621; --sub:#7c7266; --line:#e5dccb;
+    --zhu:#c0392b; --zhu-soft:#f4e2dd; --zhu-deep:#9e2b1e;
+    --bamboo:#3f7d5a; --bamboo-soft:#e4efe7; --gold:#b98a2e; --goldbg:#f6ecd4;
+    --shadow:0 8px 30px rgba(60,45,25,.12);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(1200px 400px at 50% -80px,rgba(192,57,43,.05),transparent),
+      var(--paper);
+    color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .head{text-align:center;padding:30px 16px 6px}
+  .head h1{font-size:19px;margin:0;font-weight:650;letter-spacing:.02em}
+  .head p{font-size:13px;color:var(--sub);margin:6px 0 0}
+  .stage{display:flex;gap:26px;justify-content:center;align-items:flex-start;
+    flex-wrap:wrap;padding:20px 16px 60px}
+  /* phone */
+  .phone{width:330px;max-width:92vw;background:var(--card);border-radius:34px;
+    box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden;
+    display:flex;flex-direction:column}
+  .notch{height:26px;display:flex;align-items:center;justify-content:center}
+  .notch .bar{width:96px;height:5px;border-radius:9px;background:var(--line)}
+  .scr{padding:6px 20px 24px}
+  .screen-label{text-align:center;font-size:12.5px;color:var(--sub);margin:0 0 12px;font-weight:600}
+  .topbar{display:flex;align-items:center;justify-content:space-between;
+    font-size:12px;color:var(--sub);padding:2px 2px 14px}
+  .topbar .dot{width:6px;height:6px;border-radius:9px;background:var(--zhu);display:inline-block;margin-right:5px}
+  .prog{display:flex;gap:4px}
+  .prog i{width:16px;height:4px;border-radius:9px;background:var(--line);display:block}
+  .prog i.on{background:var(--zhu)}
+  /* question */
+  .qcase{background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    padding:13px 14px;font-size:13.5px;color:var(--sub);line-height:1.6;margin:0 0 14px}
+  .qcase b{color:var(--ink)}
+  .qstem{font-size:16.5px;font-weight:650;line-height:1.5;margin:0 0 4px}
+  .qhint{font-size:12.5px;color:var(--bamboo);margin:0 0 16px;font-weight:600}
+  .opt{display:flex;align-items:center;gap:11px;padding:14px 15px;border-radius:13px;
+    border:1.5px solid var(--line);background:var(--card);margin:9px 0;font-size:15px;
+    line-height:1.4;cursor:default;transition:.15s}
+  .opt .key{width:24px;height:24px;border-radius:8px;border:1.5px solid var(--line);
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:12.5px;
+    color:var(--sub);font-weight:700}
+  .opt.pick{border-color:var(--zhu);background:var(--zhu-soft)}
+  .opt.pick .key{border-color:var(--zhu);background:var(--zhu);color:#fff}
+  .opt.right{border-color:var(--bamboo);background:var(--bamboo-soft)}
+  .opt.right .key{border-color:var(--bamboo);background:var(--bamboo);color:#fff}
+  .opt .tail{margin-left:auto;font-size:13px;font-weight:700}
+  .opt.pick .tail{color:var(--zhu)} .opt.right .tail{color:var(--bamboo)}
+  /* feedback */
+  .fb{margin-top:4px}
+  .praise{display:flex;gap:11px;align-items:flex-start;background:var(--goldbg);
+    border-radius:14px;padding:14px 15px;margin:0 0 12px}
+  .praise .em{font-size:22px;line-height:1}
+  .praise .tx{font-size:14.5px;line-height:1.55}
+  .praise .tx b{color:var(--gold)}
+  .justone{border-left:3px solid var(--zhu);padding:2px 0 2px 13px;margin:2px 0 14px}
+  .justone .lab{font-size:12px;font-weight:700;color:var(--zhu);letter-spacing:.04em;margin:0 0 4px}
+  .justone .tx{font-size:14.5px;line-height:1.6}
+  .justone .tx .k{color:var(--zhu-deep);font-weight:700;
+    border-bottom:2px solid var(--zhu);padding-bottom:1px}
+  .why{background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;font-size:13.5px;color:var(--sub);line-height:1.6;margin:0 0 14px}
+  .why b{color:var(--ink)}
+  .believe{text-align:center;font-size:14px;color:var(--bamboo);font-weight:650;margin:2px 0 16px}
+  .cta{display:block;text-align:center;background:var(--zhu);color:#fff;font-weight:650;
+    font-size:15px;padding:14px;border-radius:13px;text-decoration:none;box-shadow:0 3px 10px rgba(192,57,43,.25)}
+  .ghost{display:block;text-align:center;color:var(--sub);font-size:13px;margin-top:12px;font-weight:600}
+  .cap{max-width:720px;margin:0 auto;padding:8px 20px 50px;text-align:center;
+    font-size:13px;color:var(--sub);line-height:1.7}
+  .cap b{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>学员在小程序里看到的样子</h1>
+  <p>一道案例题 → 一次点选(几乎不打字)→ 暖心诊断。学员看不到任何门/错因码/判分机器。</p>
+</div>
+
+<div class="stage">
+
+  <!-- 屏 1:答题 -->
+  <div class="phone">
+    <div class="notch"><div class="bar"></div></div>
+    <div class="scr">
+      <p class="screen-label">① 点一下就作答</p>
+      <div class="topbar">
+        <span><span class="dot"></span>屋面防水 · 起鼓割补</span>
+        <span class="prog"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+      </div>
+      <div class="qcase">
+        某屋面卷材防水层局部<b>起鼓</b>,项目部决定<b>割补</b>处理。<br>关于割补的施工做法——
+      </div>
+      <div class="qstem">下面哪一步做得<span style="color:var(--zhu)">对</span>?</div>
+      <p class="qhint">👆 直接点你觉得对的那个</p>
+
+      <div class="opt"><span class="key">A</span>分层剥开旧卷材</div>
+      <div class="opt pick"><span class="key">B</span>整体揭开旧卷材<span class="tail">你选了这个</span></div>
+      <div class="opt"><span class="key">C</span>用铲刀铲除鼓泡卷材</div>
+      <div class="opt"><span class="key">D</span>直接在新卷材上覆盖旧卷材</div>
+    </div>
+  </div>
+
+  <!-- 屏 2:诊断 -->
+  <div class="phone">
+    <div class="notch"><div class="bar"></div></div>
+    <div class="scr">
+      <p class="screen-label">② 立刻收到暖心诊断</p>
+      <div class="topbar">
+        <span><span class="dot"></span>起鼓割补 · 你的这道</span>
+        <span style="color:var(--gold);font-weight:700">差一步就满</span>
+      </div>
+
+      <div class="opt right"><span class="key">A</span>分层剥开旧卷材<span class="tail">✓ 正解</span></div>
+      <div class="opt pick"><span class="key">B</span>整体揭开旧卷材<span class="tail">你的</span></div>
+
+      <div class="fb" style="margin-top:16px">
+        <div class="praise">
+          <span class="em">👏</span>
+          <span class="tx">你已经<b>抓准了方向</b>——知道要先处理旧卷材,这一步的判断很稳。</span>
+        </div>
+
+        <div class="justone">
+          <div class="lab">就差这半步</div>
+          <div class="tx">旧卷材得<span class="k">分层剥开</span>,不是整体揭开。</div>
+        </div>
+
+        <div class="why">
+          <b>为什么?</b> 整体揭开会连带把旁边<b>没起鼓</b>、还粘得好好的部分也带起来,反而扩大破坏面;分层剥开只处理鼓的那层,干净利落。
+        </div>
+
+        <div class="believe">记住这个「分层」,这类题下次你稳拿 💪</div>
+
+        <a href="#" class="cta">再来一道同类型 · 巩固「起鼓割补」</a>
+        <span class="ghost">收进「我的薄弱点」,3 天后帮你复练</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="cap">
+  <b>基调:先捧 → 就差一步 → 我相信你</b> —— 复考的成年人一被"你错了/你不懂"戳中就流失,所以从头到尾是"帮你变强",不是"挑你的短"。<br>
+  判分是确定性的(踩没踩到「分层剥开」这个采分点,答案永远一样),但学员感受到的只是<b>一句懂他、又给他下一步的话</b>。
+</div>
+
+</body>
+</html>

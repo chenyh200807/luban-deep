@@ -491,3 +491,6 @@ rg -n "deeptutor/d[o]c/plan|`/d[o]c/plan|d[o]c/plan/[0-9]|d[o]cs/d[o]cs/plan" do
 - [forward-reachability collapse(fail-closed非对称)+② content-truth核验闸](题目生命周期与助教运行时/2026-06-28-forward-reachability-collapse-fail-closed-asymmetry-plan.md) — reachability/consumption病的forward+verification两半边:收权把"该拒"做完,"该ACT可达"+"内容真值核验"没做;4家族真码确诊。**全收口上线(2026-06-29, main live≥3全绿)**: S1对答案拒判(PR#299 turn-START demote submission carve-out)/goal2+3出题路由(PR#300科目锁+单一topic normalizer,18/18全建筑)/goal4主观判分(PR#301 case active_object进grading→Tier-3 grounded诊断)/② content-truth规范核验闸(PR#302 post-gen核GB/JGJ编号,核不到诚实降级,live 5/5 fired+DeepSeek证GB50500-2024编造被拦,见[闸-4 §8](评分引擎与金标工件/2026-06-24-scoring-point-provenance-verification-gate-plan.md));S3=#297部署后phantom。残留:S2乱码题上下文依赖/bug B regen active_object/(C)补内容长尾。红线全守不翻fail-open+SEV回归双绿。
 
 - [案例题轻练判分引擎接线架构提案](鲁班移动端提分闭环/2026-07-09-案例题轻练判分引擎接线架构提案.md) — 待 owner 拍架构:确定性引擎接进生产判分链的落点/灰度/policy映射
+- [**会话交接·案例题轻练能力(新窗口接续总纲)**](鲁班移动端提分闭环/2026-07-10-会话交接_案例题轻练能力.md) — **新窗口从这里接**:教研-independent 后端 100% 写完并验证(950测试/真题金标/Codex修34真bug/真DeepSeek+真Qwen阿里云实测);代码在 worktree `feat/luban-case-light-practice-p-1`;完成清单+验证复现命令+卡在哪(唯一真阻塞=双教研verdict,层③/CALC-CPM-SET=owner门)+演示HTML(demos/)+接续步骤
+- [案例题轻练·OWNER决策清单一页纸](鲁班移动端提分闭环/2026-07-09-案例题轻练_OWNER决策清单一页纸.md) — 6决策 A-F + 方向分歧(签完开所有门)
+- [案例题轻练·怎么测(一页纸)](鲁班移动端提分闭环/2026-07-09-案例题轻练怎么测(一页纸).md) — 4种测法从眼见为实到真LLM实测

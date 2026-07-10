@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>案例题轻练 · 真 LLM 端到端实测</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1b1f24; --sub:#5b6570; --line:#e3e7ec;
+    --ok:#1a7f4b; --okbg:#e7f6ee; --warn:#b26a00; --warnbg:#fdf2e0;
+    --ds:#4157ff; --dsbg:#eaeeff; --qw:#7a3ff0; --qwbg:#f0eaff; --bad:#c0392b;
+    --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0f1216; --card:#171b21; --ink:#e8ecf1; --sub:#9aa5b1; --line:#262c34;
+    --ok:#4ade80; --okbg:#12271a; --warn:#f0b458; --warnbg:#2a2010;
+    --ds:#8ea2ff; --dsbg:#181d33; --qw:#c4a5ff; --qwbg:#1e1830; --bad:#ff7b6b;
+  }}
+  :root[data-theme=dark]{
+    --bg:#0f1216; --card:#171b21; --ink:#e8ecf1; --sub:#9aa5b1; --line:#262c34;
+    --ok:#4ade80; --okbg:#12271a; --warn:#f0b458; --warnbg:#2a2010;
+    --ds:#8ea2ff; --dsbg:#181d33; --qw:#c4a5ff; --qwbg:#1e1830; --bad:#ff7b6b;
+  }
+  :root[data-theme=light]{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1b1f24; --sub:#5b6570; --line:#e3e7ec;
+    --ok:#1a7f4b; --okbg:#e7f6ee; --warn:#b26a00; --warnbg:#fdf2e0;
+    --ds:#4157ff; --dsbg:#eaeeff; --qw:#7a3ff0; --qwbg:#f0eaff; --bad:#c0392b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 20px 60px}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:-.01em}
+  .lede{color:var(--sub);font-size:14px;margin:0 0 6px}
+  .prov{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 26px}
+  .tag{font-size:12px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);
+    color:var(--sub);background:var(--card)}
+  .tag.live{color:var(--ok);border-color:var(--ok);font-weight:600}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:20px;margin:0 0 20px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .ct{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);
+    font-weight:700;margin:0 0 3px}
+  .ch{font-size:17px;font-weight:650;margin:0 0 16px}
+  .flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+  .step{flex:1;min-width:130px;border:1px solid var(--line);border-radius:10px;padding:11px 12px;
+    background:var(--bg)}
+  .step .n{font-size:11px;color:var(--sub);font-weight:700}
+  .step .t{font-size:13px;font-weight:600;margin-top:2px}
+  .step.ds{border-color:var(--ds);background:var(--dsbg)} .step.ds .t{color:var(--ds)}
+  .step.qw{border-color:var(--qw);background:var(--qwbg)} .step.qw .t{color:var(--qw)}
+  .step.det{border-color:var(--ok)} .step.det .t{color:var(--ok)}
+  .arrow{align-self:center;color:var(--sub);font-size:15px}
+  .opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;
+    margin:6px 0;font-size:14px;border:1px solid var(--line)}
+  .opt .badge{font-size:11px;font-family:var(--mono);padding:1px 7px;border-radius:6px;
+    border:1px solid var(--line);color:var(--sub);white-space:nowrap}
+  .opt.correct{background:var(--okbg);border-color:var(--ok)}
+  .opt.correct .mk{color:var(--ok);font-weight:700}
+  .opt.distract .mk{color:var(--bad);font-weight:700}
+  .opt .txt{flex:1;min-width:0}
+  .gate{display:flex;align-items:center;gap:8px;font-size:14px;margin:4px 0}
+  .pill{font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px}
+  .pill.pass{color:var(--ok);background:var(--okbg)}
+  .pill.flag{color:var(--warn);background:var(--warnbg)}
+  .score{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+  .sc{flex:1;min-width:150px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg)}
+  .sc .lbl{font-size:12px;color:var(--sub)}
+  .sc .val{font-size:26px;font-weight:750;font-family:var(--mono);margin-top:2px}
+  .sc.lo .val{color:var(--warn)} .sc.hi .val{color:var(--ok)}
+  .note{font-size:13px;color:var(--sub);margin-top:12px;padding-left:12px;border-left:3px solid var(--line)}
+  .kv{font-family:var(--mono);font-size:12px}
+  .hl{background:var(--warnbg);color:var(--warn);padding:0 5px;border-radius:4px;font-weight:600}
+  .foot{color:var(--sub);font-size:12.5px;margin-top:8px;text-align:center}
+  code{font-family:var(--mono);font-size:12.5px;background:var(--bg);padding:1px 5px;border-radius:5px;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>案例题轻练 · 真 LLM 端到端实测</h1>
+  <p class="lede">在阿里云已部署容器里<b>只读</b>跑真模型 —— 不部署、不碰宿主、跑完清理。判分绝不走 LLM。</p>
+  <div class="prov">
+    <span class="tag live">● LIVE · 阿里云 deeptutor 容器</span>
+    <span class="tag">生成:真 DeepSeek deepseek-chat</span>
+    <span class="tag">校验:真 Qwen qwen-plus(异源)</span>
+    <span class="tag">temperature=0</span>
+    <span class="tag">2026-07-09</span>
+  </div>
+
+  <!-- 场景 1 -->
+  <div class="card">
+    <p class="ct">场景 1 · 整条真链路</p>
+    <p class="ch">F16「起鼓割补」:真 DeepSeek 出题 → 确定性门 → 真 Qwen 异源 → 确定性判分</p>
+
+    <div class="flow">
+      <div class="step ds"><div class="n">① 生成</div><div class="t">真 DeepSeek</div></div>
+      <div class="arrow">→</div>
+      <div class="step det"><div class="n">② RTG1–8</div><div class="t">确定性门</div></div>
+      <div class="arrow">→</div>
+      <div class="step qw"><div class="n">③ RTG9</div><div class="t">真 Qwen 异源</div></div>
+      <div class="arrow">→</div>
+      <div class="step det"><div class="n">④ 判分</div><div class="t">确定性</div></div>
+    </div>
+
+    <p class="ct" style="margin-bottom:6px">① 真 DeepSeek 生成的选项</p>
+    <div class="opt correct"><span class="mk">✓</span><span class="txt">分层剥开旧卷材(关键区分点)</span><span class="badge">采分点原文 · 非 LLM 生成</span></div>
+    <div class="opt distract"><span class="mk">✗</span><span class="txt">整体揭开旧卷材</span><span class="badge">E07</span></div>
+    <div class="opt distract"><span class="mk">✗</span><span class="txt">用铲刀铲除鼓泡卷材</span><span class="badge">E07</span></div>
+    <div class="opt distract"><span class="mk">✗</span><span class="txt">直接在新卷材上覆盖旧卷材</span><span class="badge">E05</span></div>
+
+    <div style="margin-top:16px">
+      <div class="gate">② 真 RTG1–8 确定性门 <span class="pill pass">全过</span></div>
+      <div class="gate">③ 真 Qwen 异源 RTG9 <span class="pill pass">可疑队列:无</span><span style="font-size:12.5px;color:var(--sub)">(这批干扰项无近义,正确判无可疑)</span></div>
+    </div>
+
+    <p class="ct" style="margin:18px 0 6px">④ 确定性判分(两份学员作答)</p>
+    <div class="score">
+      <div class="sc lo"><div class="lbl">作答 A · 漏了「分层剥开」</div><div class="val">1.20</div></div>
+      <div class="sc hi"><div class="lbl">作答 B · 写了「分层剥开」</div><div class="val">1.50</div><div class="lbl">满分 1.50</div></div>
+    </div>
+    <p class="note">漏掉关键采分点判出<b>更低分</b> —— 这正是"污染 rubric 虚高被治好"的证据。判分是确定性的,同样作答永远同样分,不靠 LLM 蒙。</p>
+  </div>
+
+  <!-- 场景 2 -->
+  <div class="card">
+    <p class="ct">场景 2 · 异源门的价值(确定性门抓不到的,真 Qwen 兜住)</p>
+    <p class="ch">近义干扰「分层剥<span class="hl">离</span>」骗过确定性门,被真 Qwen 异源拦下</p>
+
+    <div class="opt distract" style="align-items:flex-start">
+      <span class="mk">✗</span>
+      <span class="txt">
+        <b>分层剥离旧卷材</b>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:3px">与正确采分点「分层剥<b>开</b>」只差一字 · <span class="kv">相似度 0.75</span></div>
+      </span>
+      <span class="badge">送异源=是</span>
+    </div>
+    <div class="gate" style="margin-top:8px">真 Qwen 判定 <span class="pill flag">"其实也对" → 进可疑队列</span></div>
+
+    <div class="opt distract" style="margin-top:14px">
+      <span class="mk">✗</span><span class="txt">用水泥砂浆抹平鼓泡即可 <span style="font-size:12.5px;color:var(--sub)">· <span class="kv">相似度 0.00</span></span></span>
+      <span class="badge">送异源=否</span>
+    </div>
+
+    <p class="note">
+      确定性门(字符级)放过了「分层剥离」,但<b>跨厂异源 Qwen</b> 认出它语义上≈正确答案 → 分流到人工复核队列。<br>
+      红线:<b>异源只分流、不当真值</b> —— LLM 永远不能改写采分点、不能自己拍板对错,只能提醒"这题可能有争议"。
+    </p>
+  </div>
+
+  <p class="foot">
+    生成器 DeepSeek / 校验器 Qwen 跨厂异源(同源会互相放过编造)· 判分全程零 LLM ·
+    <code>scripts/aliyun_probes/case_e2e_real_llm_probe.py</code> + <code>case_rtg9_cross_source_probe.py</code>
+  </p>
+</div>
+</body>
+</html>

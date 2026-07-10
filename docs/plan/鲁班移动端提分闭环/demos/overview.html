@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>案例题轻练 · 今天完成了什么</title>
+<style>
+  :root{
+    --paper:#f3ede1; --card:#fbf7ef; --ink:#2b2621; --sub:#7c7266; --line:#e5dccb;
+    --zhu:#c0392b; --zhu-soft:#f4e2dd; --bamboo:#3f7d5a; --bamboo-soft:#e4efe7;
+    --gold:#b98a2e; --goldbg:#f6ecd4; --blue:#3a6ea5; --bluebg:#e6eef6;
+    --shadow:0 6px 24px rgba(60,45,25,.10);
+    --font:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI','Microsoft YaHei',sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --paper:#171310; --card:#211b16; --ink:#efe7d9; --sub:#a89a86; --line:#352c22;
+    --zhu:#e5705f; --zhu-soft:#33201c; --bamboo:#63b088; --bamboo-soft:#18271e;
+    --gold:#e0b358; --goldbg:#2a2110; --blue:#7ba7d6; --bluebg:#15202c;
+    --shadow:0 6px 24px rgba(0,0,0,.4);
+  }}
+  :root[data-theme=dark]{
+    --paper:#171310; --card:#211b16; --ink:#efe7d9; --sub:#a89a86; --line:#352c22;
+    --zhu:#e5705f; --zhu-soft:#33201c; --bamboo:#63b088; --bamboo-soft:#18271e;
+    --gold:#e0b358; --goldbg:#2a2110; --blue:#7ba7d6; --bluebg:#15202c;
+    --shadow:0 6px 24px rgba(0,0,0,.4);
+  }
+  :root[data-theme=light]{
+    --paper:#f3ede1; --card:#fbf7ef; --ink:#2b2621; --sub:#7c7266; --line:#e5dccb;
+    --zhu:#c0392b; --zhu-soft:#f4e2dd; --bamboo:#3f7d5a; --bamboo-soft:#e4efe7;
+    --gold:#b98a2e; --goldbg:#f6ecd4; --blue:#3a6ea5; --bluebg:#e6eef6;
+    --shadow:0 6px 24px rgba(60,45,25,.10);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);
+    -webkit-font-smoothing:antialiased;line-height:1.55}
+  .wrap{max-width:920px;margin:0 auto;padding:30px 20px 70px}
+  h1{font-size:25px;margin:0 0 4px;letter-spacing:-.01em}
+  .lede{color:var(--sub);font-size:14.5px;margin:0 0 22px}
+  .banner{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 26px}
+  .stat{flex:1;min-width:150px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:15px 16px;box-shadow:var(--shadow)}
+  .stat .v{font-size:27px;font-weight:750;font-family:var(--mono);letter-spacing:-.02em}
+  .stat .l{font-size:12.5px;color:var(--sub);margin-top:2px}
+  .stat.g .v{color:var(--bamboo)} .stat.z .v{color:var(--zhu)} .stat.o .v{color:var(--gold)}
+  .sec{margin:0 0 12px;font-size:13px;font-weight:750;letter-spacing:.04em;color:var(--sub);
+    text-transform:uppercase}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:0 0 30px}
+  .eng{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px;
+    box-shadow:var(--shadow)}
+  .eng .top{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .eng .ck{color:var(--bamboo);font-weight:800;font-size:15px}
+  .eng .nm{font-size:14.5px;font-weight:650}
+  .eng .gold{font-size:12px;color:var(--sub);font-family:var(--mono)}
+  .eng .gold b{color:var(--ink)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:0 0 30px}
+  @media(max-width:680px){.two{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:18px 18px;
+    box-shadow:var(--shadow)}
+  .panel h3{margin:0 0 10px;font-size:16px}
+  .panel .sm{font-size:13.5px;color:var(--sub);line-height:1.6}
+  .row{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:7px 0}
+  .row .p{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}
+  .p.pass{color:var(--bamboo);background:var(--bamboo-soft)}
+  .p.flag{color:var(--gold);background:var(--goldbg)}
+  .p.wait{color:var(--zhu);background:var(--zhu-soft)}
+  a.open{display:inline-block;margin-top:12px;background:var(--zhu);color:#fff;font-weight:650;
+    font-size:14px;padding:11px 16px;border-radius:11px;text-decoration:none}
+  a.open.alt{background:var(--blue)}
+  /* topic map */
+  .cap-hero{background:linear-gradient(180deg,var(--bluebg),var(--card));
+    border:1px solid var(--line);border-radius:16px;padding:20px;margin:0 0 14px;box-shadow:var(--shadow)}
+  .cap-hero .big{font-size:15px;line-height:1.65}
+  .cap-hero .big b{color:var(--blue)}
+  .funnel{display:flex;flex-direction:column;gap:9px;margin:14px 0 0}
+  .fstep{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+    border-radius:11px;padding:11px 14px}
+  .fstep .num{font-family:var(--mono);font-weight:750;font-size:20px;min-width:56px}
+  .fstep .tx{font-size:13.5px;line-height:1.45}
+  .fstep .tx b{color:var(--ink)}
+  .fstep.a .num{color:var(--bamboo)} .fstep.b .num{color:var(--blue)}
+  .fstep.c .num{color:var(--gold)} .fstep.d .num{color:var(--zhu)}
+  .nodes{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+  .nchip{font-size:11.5px;font-family:var(--mono);color:var(--sub);background:var(--paper);
+    border:1px solid var(--line);border-radius:7px;padding:2px 8px}
+  .foot{font-size:12.5px;color:var(--sub);text-align:center;margin-top:14px;line-height:1.7}
+  .foot b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>案例题轻练 · 今天完成了什么</h1>
+  <p class="lede">2026-07-09 · 一句话:把"教研验收过的案例题 → 少打字轻练 + 确定性判分"这条链的<b>后端全建完并验过</b>。判分绝不靠 LLM 蒙。</p>
+
+  <div class="banner">
+    <div class="stat g"><div class="v">950</div><div class="l">自动化测试全过</div></div>
+    <div class="stat z"><div class="v">7</div><div class="l">确定性判分引擎(真题金标验)</div></div>
+    <div class="stat o"><div class="v">34</div><div class="l">对抗核揪出并治本的真判分 bug</div></div>
+    <div class="stat"><div class="v">真</div><div class="l">DeepSeek + Qwen 阿里云实测过</div></div>
+  </div>
+
+  <div class="sec">① 七个判分引擎 · 每个都拿真题官方答案验过(算出的 == 官方)</div>
+  <div class="grid">
+    <div class="eng"><div class="top"><span class="ck">✓</span><span class="nm">造价链 DAG+ECF</span></div><div class="gold">真题算出 <b>合同价 64539.54</b></div></div>
+    <div class="eng"><div class="top"><span class="ck">✓</span><span class="nm">关键线路 CPM</span></div><div class="gold">真题 <b>START-A-C-E-END 工期10</b></div></div>
+    <div class="eng"><div class="top"><span class="ck">✓</span><span class="nm">荷载组合(勾选)</span></div><div class="gold">集合精确匹配 <b>多选一个即0</b></div></div>
+    <div class="eng"><div class="top"><span class="ck">✓</span><span class="nm">工序排序</span></div><div class="gold">拓扑序 <b>换序判错</b></div></div>
+    <div class="eng"><div class="top"><span class="ck">✓</span><span class="nm">判断改正(合取门)</span></div><div class="gold"><b>找错∧改正 缺一即0</b></div></div>
+    <div class="eng"><div class="top"><span class="ck">✓</span><span class="nm">拍照纸笔诊断</span></div><div class="gold">识别↔判分解耦 <b>不铸官方分</b></div></div>
+    <div class="eng"><div class="top"><span class="ck">✓</span><span class="nm">认→写阶梯</span></div><div class="gold">点选永不写"掌握"</div></div>
+  </div>
+
+  <div class="sec">② 你能亲眼看的两样东西</div>
+  <div class="two">
+    <div class="panel">
+      <h3>🎓 学员看到的样子</h3>
+      <p class="sm">一道案例题 → 点一下作答(几乎不打字)→ 暖心诊断(先捧 → 就差一步 → 我相信你)。学员看不到任何门/错因码/判分机器。</p>
+      <span class="open" style="opacity:.85">学员端界面(另附单独页)</span>
+    </div>
+    <div class="panel">
+      <h3>🤖 真 LLM 实测(不是编的)</h3>
+      <div class="row"><span class="p pass">全过</span>真 DeepSeek 出题 → 确定性门</div>
+      <div class="row"><span class="p flag">分流</span>真 Qwen 异源抓到近义「分层剥离」</div>
+      <div class="row"><span class="p pass">1.20 / 1.50</span>确定性判分:漏关键点判更低</div>
+      <span class="open alt" style="opacity:.85">真 LLM 证据页(另附单独页)</span>
+    </div>
+  </div>
+
+  <div class="sec">③ 你问的:现在能出哪些主题的轻练?</div>
+  <div class="cap-hero">
+    <p class="big"><b>不是"任意主题随口就出"</b>,而是"任意<b>已教研验收</b>的真题 → 自动变轻练"。<br>
+    能出的<b>题目池</b>是编译好的采分点库,现在覆盖 <b>174 道真题小问 / 13 个考点章节</b>(基本是实务技术部分全覆盖)。</p>
+    <div class="nodes">
+      <span class="nchip">1A411 地基基础</span><span class="nchip">1A413 混凝土</span>
+      <span class="nchip">1A422 钢结构</span><span class="nchip">1A431·434 防水/屋面</span>
+      <span class="nchip">1A432 造价</span><span class="nchip">1A436 施组</span>
+      <span class="nchip">1A435·437·438</span><span class="nchip">…共 13 章</span>
+    </div>
+    <div class="funnel">
+      <div class="fstep a"><div class="num">174</div><div class="tx"><b>已编译采分点的真题</b> · 引擎能判、能出题的候选池(采分点带教材溯源)</div></div>
+      <div class="fstep c"><div class="num">5</div><div class="tx"><b>已排进首批切分</b> · 防水屋面(起鼓割补等),切分候选已产、等教研验收</div></div>
+      <div class="fstep d"><div class="num">0</div><div class="tx"><b>当前对学员真开放 = 0</b> · 白名单空(fail-closed):没过双教研验收的题,代码层直接拒绝出给学员(红线)</div></div>
+    </div>
+  </div>
+  <p class="foot">
+    换句话说:<b>技术上 174 道都能出</b>,但每道必须先过<b>双教研验收</b>(切分对不对、采分点原不原子)才允许对学员开放。<br>
+    这一步是<b>唯一真阻塞</b> —— 你拉两名教研按指南填 5 题 verdict,那 5 道当天就能对学员活起来。
+  </p>
+</div>
+</body>
+</html>
