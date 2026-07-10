@@ -5,7 +5,6 @@
 // 全程降级:任一 read model 字段缺(test2 后端未部署常态)不崩,走空态。
 const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
-const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
 const { buildLearnViewModel } = require("../../utils/learn-view-model");
@@ -36,11 +35,15 @@ const PREVIEW_VM = {
   ],
   dueCount: 3,
   todayTask: {
-    title: "工期索赔 · 半写训练 1 题",
+    title: "工期索赔 · 2 分钟轻练",
     reason: "你最近 3 次都漏写「是否影响关键线路」,这类题通常丢 2–4 分。",
-    cta: "开始半写训练",
+    cta: "开始 2 分钟轻练",
+    secondaryCta: "换轻练",
+    task_type: "light_practice",
+    estimated_minutes: 2,
     concept: "工期索赔",
-    prompt: "针对『工期索赔』给我一道案例题做半写训练。我先真实作答,你再按采分点逐条批改并定位我的盲点,不要提前给答案和解析。",
+    pack_id: "S02",
+    mode: "topic",
   },
   stats: { recent_practice: 8, pending_errors: 3, mastery_trend: 72 },
   hasSupply: true,
@@ -164,29 +167,23 @@ Page({
   goReview() {
     this._navTo(route.lubanReview());
   },
-  // 今日任务入口(由 task_type 分流,不新建第二答题页):
-  // - light_practice:2 分钟正向轻练 → 复用 retest 页 forward 模式(带 pack_id);
-  //   本地判分、证据非 promoting、完成发 station_completed 交接次日复习。
-  // - half_write / 摸底:直达半写训练,复用唯一答题流
-  //   (runtime.setPendingChatIntent → chat/TutorBot 案例题+采分点批改)。
-  // 前端只投递作答意图或跳转,不判分、不造第二套答题入口。
+  // 今日主任务「开始 2 分钟轻练」→ 进 F16 看穿 5 天样本(spike 主体)。
+  // 计划:头牌 2 分钟轻练 = 看穿式 MCQ 留存闭环,F16 为当前唯一签发样本;
+  // 内容全部投影自已签发看穿包,前端不新造。(样本铺开后按 pack 路由到各自看穿包。)
   goPractice() {
-    var task = this.data.vm && this.data.vm.todayTask;
-    if (task && task.task_type === "light_practice" && task.pack_id) {
-      this._navTo(
-        "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
-          encodeURIComponent(String(task.pack_id)) +
-          "&mode=forward",
-      );
-      return;
-    }
-    var prompt = task && task.prompt;
-    if (prompt && typeof wx !== "undefined" && wx.reLaunch) {
-      runtime.setPendingChatIntent(prompt, "AUTO");
-      wx.reLaunch({ url: route.chat() });
-      return;
-    }
-    this._navTo("/packageDeeptutor/pages/practice/practice");
+    this._navTo("/packageDeeptutor/pages/luban/seethrough/seethrough?pack_id=F16");
+  },
+
+  // 今日任务副 CTA「换轻练」→ 换成更广/更轻的综合摸底(与主任务不同动作):
+  // assessment 综合模式(mode=diagnostic),同样复用既有 MCQ 流,不判分。
+  goSwitchPractice() {
+    this._navTo(route.assessment({ mode: "diagnostic", source: "today_task_switch" }));
+  },
+
+  // F16 防水「5天留存闭环」雏形入口(spike 审阅):进原生 5 天体验,内容全部
+  // 投影自已签发看穿包,前端不新造。pack 暂定 F16(雏形单母题)。
+  goSeethrough() {
+    this._navTo("/packageDeeptutor/pages/luban/seethrough/seethrough?pack_id=F16");
   },
 
   _navTo(url) {

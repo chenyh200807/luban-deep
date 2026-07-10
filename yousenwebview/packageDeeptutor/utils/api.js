@@ -959,6 +959,20 @@ function getLubanConceptCards(packId, opts) {
   );
 }
 
+/** 鲁班 — F16 看穿 5天留存内容(表皮试探4选1 + 透视揭底4段 + 暖纠正 + 定位证据带延伸标注)。
+ * 全部编译期签发,前端只投影、一字不新造;旗标关 / 未签发 / 非绿灯一律 404 同形。 */
+function getLubanSeethrough(packId, opts) {
+  return requestStateGet(
+    "/api/v1/luban/seethrough/" + encodeURIComponent(String(packId || "")),
+    opts,
+  );
+}
+
+/** 鲁班 — 看穿库总览(天数真值; 旗标关返 total=0/enabled=false)。 */
+function getLubanSeethroughLibrary(opts) {
+  return requestStateGet("/api/v1/luban/seethrough", opts);
+}
+
 /** 鲁班 — 单条 R8 解药(错因银行 detail「解药位」; 按 {pack_id, error_code} 取
  * signed 解药, 响应 {mental_model, textbook_ref}。未签发/无此码/非绿灯/旗标关一律
  * 404 同形——前端据此保持「解药整理中」诚实占位, 绝不自造讲解)。 */
@@ -1079,6 +1093,8 @@ module.exports = {
   getLubanReviewDue: getLubanReviewDue,
   getLubanConceptCardLibrary: getLubanConceptCardLibrary,
   getLubanConceptCards: getLubanConceptCards,
+  getLubanSeethrough: getLubanSeethrough,
+  getLubanSeethroughLibrary: getLubanSeethroughLibrary,
   getLubanAntidote: getLubanAntidote,
   postLubanFullAnswer: postLubanFullAnswer,
   postStationCompleted: postStationCompleted,

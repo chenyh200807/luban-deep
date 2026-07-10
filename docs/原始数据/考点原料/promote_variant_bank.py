@@ -84,6 +84,12 @@ _BANK_KINDS: dict[str, dict[str, Any]] = {
         "violation_keys": ("term_not_in_sentence", "anchor_unresolved", "forbidden_words"),
         "label": "R6 挖空 bank",
     },
+    "seethrough": {
+        "template": "_{pack_id}_seethrough_bank.v0.json",
+        "builder": ("scripts/build_luban_seethrough_bank.py", "{pid}", "--check"),
+        "violation_keys": ("code_unregistered", "anchor_unresolved", "extension_unannotated", "forbidden_words"),
+        "label": "看穿 bank",
+    },
 }
 
 
