@@ -3336,6 +3336,102 @@ def test_wechat_login_forwards_channel_attribution(monkeypatch: pytest.MonkeyPat
     assert captured["scene"] == "1047"
 
 
+def test_wechat_login_client_wire_body_persists_channel_attribution(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """接缝闭环：请求体是客户端 node 测试
+    (wx_miniprogram/tests/test_channel_attribution_transmission.js) 实际序列化产物的
+    原文（stdout 的 SERIALIZED_LOGIN_BODY= 行，逐字粘贴，禁手拼），经真实路由 +
+    真实 pydantic 解析 + 真实 MemberConsoleService 走到 repository 边界
+    (_persist_phone_identity)，断言落库 metadata 含 reg_channel/reg_scene。
+    防"客户端字段名 ↔ 请求模型字段名"接缝静默丢。"""
+    client_wire_body = (
+        '{"code":"wx-code","phone_code":"phone-code-123","channel":"test1","scene":"1047"}'
+    )
+
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = mobile_module.member_service
+    monkeypatch.setattr(service, "_data_path", tmp_path / "member_console.json")
+
+    class _SeamFakeWallet:
+        is_configured = True
+
+        def __init__(self) -> None:
+            self.snapshots: dict[str, SimpleNamespace] = {}
+
+        def get_wallet(self, user_id: str):
+            return self.snapshots.get(str(user_id))
+
+        def ensure_wallet_seeded(self, **kwargs):
+            user_id = str(kwargs["user_id"])
+            snapshot = self.snapshots.get(user_id)
+            if snapshot is None:
+                snapshot = SimpleNamespace(
+                    user_id=user_id,
+                    balance_micros=0,
+                    frozen_micros=0,
+                    plan_id=str(kwargs.get("plan_id") or ""),
+                    version=1,
+                    created_at="2026-07-10T10:00:00+08:00",
+                )
+                self.snapshots[user_id] = snapshot
+            return snapshot
+
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: _SeamFakeWallet())
+
+    # Hermetic：本机 env 若带 Supabase 凭据，真实 alias store 会 live 连线；
+    # 打桩为未配置，保证"该手机号无既有 canonical alias"= 真·首次注册路径。
+    class _UnconfiguredAliasStore:
+        is_configured = False
+
+        @staticmethod
+        def resolve_alias(**_kwargs):
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _UnconfiguredAliasStore(),
+    )
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {
+            "openid": "openid_123456789012",
+            "unionid": "unionid_abcdef",
+            "session_key": "session_key_value",
+        }
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911112222"
+
+    persisted: dict[str, object] = {}
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+    monkeypatch.setattr(
+        service, "_persist_wechat_openid_identity", lambda **_kwargs: None
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/wechat/mp/login",
+            content=client_wire_body,
+            headers={"Content-Type": "application/json"},
+        )
+
+    assert response.status_code == 200
+    assert persisted["phone"] == "13911112222"
+    identity_metadata = persisted["identity_metadata"]
+    assert isinstance(identity_metadata, dict)
+    assert identity_metadata["reg_channel"] == "test1"
+    assert identity_metadata["reg_scene"] == "1047"
+
+
 def test_auth_reset_password_calls_member_service_without_issuing_token(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
