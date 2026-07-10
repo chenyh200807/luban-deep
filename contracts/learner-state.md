@@ -148,7 +148,11 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   `public.user_identity_aliases` 中 `alias_type='phone'` 且来源可信的手机号身份：
   `phone_backfill`、`member_console_backfill`、`phone_verification`。`public_users_backfill`
   是批量迁移 / 测试污染高风险来源，不得计入真实运营会员。`public.v_members` 只负责为这些
-  phone-backed identities 补充钱包、画像和聊天汇总 read model。`member_console` 本地 JSON
+  phone-backed identities 补充钱包和画像 read model；`public.chat_conversations` 是已确认死表
+  （真实对话在宿主 SQLite `chat_history.db`），`v_members` 的聊天派生列
+  （`first_chat_at`/`last_chat_at`/`total_conversations`/`total_messages`/`has_chat_history`）
+  不得再被任何读取方消费，会员对话活跃事实只能从 canonical session store 派生
+  （`_merge_session_activity_for_member_list`）。`member_console` 本地 JSON
   只能作为运营备注、审计流水、conversation view audit 和低风险动作记录的 overlay；不得再作为
   生产会员池、注册手机号池、钱包存在性或学习事实的 canonical source。BI 默认会员列表和经营总量
   必须展示真实运营会员：可信手机号身份仍需先排除带有 `account_kind='eval_runner'`、
@@ -181,6 +185,14 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   仍是相对当前时间的滚动窗口。它们是 dashboard read model，不得从前端分页结果、
   行为事件、钱包流水、运营备注或 learner-state projection 反推，也不得写入
   `learner_summaries`、`learner_memory_events`、profile、progress、goals 或 heartbeat。
+- 人工标记的内部/军团账号（`public.bi_internal_accounts` 审计流水中每个 user_id 最新一行
+  `is_internal=true`）必须从 BI 全部会员统计口径消失：会员总量、新增窗口、增长漏斗、
+  留存 cohort scoping、活跃学习者 scoping、commerce 会员基数。排除逻辑唯一收口在
+  `BIService._load_all_members`（按 member identity values 与标记集求交），消费点不得各自
+  再实现第二遍；标记表读取唯一走 `BIService._load_internal_account_states`。标记表读失败时
+  fail-open（沿用缓存或空集并告警），BI 可短暂回到未清洗口径但不得整体不可用。该标记是
+  BI 统计口径事实，不是 learner state，不得写入任何 learner 真相，也不影响会员运营
+  工作区（`/member/list`）对内部账号的可见性——运营需要看到并管理这些账号。
 - BI 会员列表的 `last_active_at` 可以用 canonical session store 的真实会话更新时间做
   read-model overlay；当 Supabase 目录暂时缺少一个本地已注册、手机号可信且有 session 活跃
   证据的会员时，`member_console` 可以把该会员作为

@@ -7072,3 +7072,61 @@ def test_snapshot_read_count_is_pinned_per_surface(tmp_path: Path, monkeypatch: 
     calls["count"] = 0
     service.get_mastery_dashboard("student_read_count")
     assert calls["count"] == 1, f"mastery dashboard must read snapshot exactly once, got {calls['count']}"
+
+
+def test_list_members_for_bi_derives_conversation_activity_from_sqlite_sessions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """B 断点防回归：Postgres chat_conversations 是死表，目录读模型已弃读其
+    chat 派生列；BI 会员投影的对话活跃事实必须与 get_dashboard/list_members
+    同源——从宿主 SQLite sessions 派生（_merge_session_activity_for_member_list）。"""
+    directory_member = {
+        "user_id": "dir_member_1",
+        "canonical_user_id": "dir_member_1",
+        "external_auth_user_id": "dir_member_1",
+        "alias_user_ids": ["dir_member_1"],
+        "display_name": "目录会员",
+        "phone": "15558860001",
+        "tier": "trial",
+        "status": "active",
+        "segment": "general",
+        "risk_level": "low",
+        "auto_renew": False,
+        "created_at": "2026-07-01T10:00:00+08:00",
+        # 目录侧只剩钱包时间这种保守回退；真实对话活跃必须由 SQLite 覆盖。
+        "last_active_at": "2026-07-01T10:00:00+08:00",
+        "expire_at": "2099-12-31T00:00:00+08:00",
+        "points_balance": 0,
+        "member_directory_source": "supabase.phone_identity_aliases+v_members",
+    }
+
+    class _FakeDirectory:
+        is_configured = True
+
+        def list_members(self, *, limit: int = 5000) -> list[dict[str, object]]:
+            del limit
+            return [dict(directory_member)]
+
+    service = MemberConsoleService(member_directory=_FakeDirectory())
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_member_directory_enabled", lambda: True)
+
+    import sqlite3
+
+    db_path = tmp_path / "chat_history.db"
+    session_ts = datetime(2026, 7, 9, 21, 30, tzinfo=timezone(timedelta(hours=8))).timestamp()
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            "CREATE TABLE sessions (owner_key TEXT, updated_at REAL, archived INTEGER DEFAULT 0)"
+        )
+        conn.execute(
+            "INSERT INTO sessions (owner_key, updated_at, archived) VALUES (?, ?, 0)",
+            (build_user_owner_key("dir_member_1"), session_ts),
+        )
+    service._store = SimpleNamespace(db_path=str(db_path))
+
+    members = service.list_members_for_bi()
+
+    assert [member["user_id"] for member in members] == ["dir_member_1"]
+    expected_iso = service._session_time_to_iso(session_ts)
+    assert members[0]["last_active_at"] == expected_iso
