@@ -246,7 +246,8 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
   - **已批改题的下一步训练承接（2026-07-10）是同相位的 forward-reachability carve-out**：
     当 active question 已有 `construction_grading_result.next_training_signal` 或确定性完成批改证据，且本轮不是作答提交，
     用户用“下一步 / 继续 / 按你说的做”等接受上一轮巩固建议时，turn-start 必须保留该 active object；QTPK 的同一
-    predicate 负责生成 `question_followup_action.intent=generate_more_questions`，lifecycle 再投影为
+    predicate 负责生成 `question_followup_action.intent=generate_more_questions`，其 `topic` 必须从 canonical
+    `next_training_signal.concept/focus` 或当前题 concentration 投影，不能退化成“下一步”原文；lifecycle 再投影为
     `practice_generation`。未批改题、当前作答提交和无上下文低信息短句不得命中；turn runtime 只读该 predicate，
     不自行解释文本。回归见 `tests/api/test_unified_ws_turn_runtime.py::test_turn_runtime_routes_graded_next_step_acceptance_to_deep_question_authority`。
 - **routing 相位**（单一权威 = `deeptutor/services/semantic_router.py::apply_active_object_transition`）：

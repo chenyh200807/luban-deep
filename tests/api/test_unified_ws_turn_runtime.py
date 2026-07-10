@@ -12795,6 +12795,7 @@ async def test_graded_active_question_accepts_next_step_as_generation_action() -
     assert resolved_action is not None
     assert resolved_action["intent"] == "generate_more_questions"
     assert resolved_action["answers"] == []
+    assert resolved_action["topic"] == "项目施工质量检查与检验"
 
 
 @pytest.mark.asyncio
@@ -12875,6 +12876,7 @@ async def test_graded_active_question_accepts_contextual_llm_generation_action(
     assert resolved_action is not None
     assert resolved_action["intent"] == "generate_more_questions"
     assert resolved_action["reason"] == "结合上一轮批改和 next_training_signal，用户是在接受继续巩固安排。"
+    assert resolved_action["topic"] == "项目施工质量检查与检验"
 @pytest.mark.asyncio
 async def test_turn_runtime_routes_graded_next_step_acceptance_to_deep_question_authority(
     monkeypatch: pytest.MonkeyPatch,
@@ -12901,6 +12903,7 @@ async def test_turn_runtime_routes_graded_next_step_acceptance_to_deep_question_
         async def run(self, context, bus) -> None:
             captured["active_capability"] = context.active_capability
             captured["handle_metadata"] = dict(context.metadata or {})
+            captured["config_overrides"] = dict(context.config_overrides or {})
             if context.active_capability == "deep_question":
                 await bus.result(
                     {
@@ -13019,6 +13022,7 @@ async def test_turn_runtime_routes_graded_next_step_acceptance_to_deep_question_
 
     assert turn["capability"] == "deep_question"
     assert captured["active_capability"] == "deep_question"
+    assert captured["config_overrides"]["topic"] == "项目施工质量检查与检验"
     metadata = captured["handle_metadata"]
     assert metadata["question_followup_action"]["intent"] == "generate_more_questions"
     assert metadata["turn_semantic_decision"]["next_action"] == "route_to_generation"
