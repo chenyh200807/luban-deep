@@ -198,20 +198,31 @@ def _forward_rule_group_spread(
     对刚学完的 pack 先各考法采样一题、再回填（学习轮"先广后深"）。
 
     与复测的扁平轮换的唯一差别是**选序**：纯签发池内确定性重排，零生成、
-    零新供给（不派生任何题面字段，§8 红线）。组内起点按同一 ``seed`` 轮换
-    （多端幂等）；组间按轮次交错；题数 ≤ 核心变体数（耗尽即止）。
+    零新供给（不派生任何题面字段，§8 红线）。组间顺序与组内起点均由 ``seed``
+    确定性散列派生（多端幂等）；组间按轮次交错；题数 ≤ 核心变体数（耗尽即止）。
+
+    红队修复（2026-07-10 owner 实测抓获"全同答案 session"）：旧实现对**所有组
+    施加同一个** ``(seed + round_idx) % len`` 偏移，而变体池按"每组对齐序"生成
+    （组内第 0 位=完整/正确情形），于是 limit ≤ 组数时 5 题全取自同一"位置列"
+    = 单一 expected_ok（实测 forward 全同率 17.2%，seed 奇偶直接翻全对/全错）。
+    现改为**每组独立散列偏移** + 组序进 seed（第 1 题不再永远同一考法）。
     """
     groups: dict[str, list[dict[str, Any]]] = {}
     for variant in core:
         groups.setdefault(str(variant.get("rule_group") or ""), []).append(variant)
-    keys = list(groups.keys())  # 保持首次出现序，确定性
+
+    def _h(tag: str, key: str) -> int:
+        digest = hashlib.sha256(f"{seed}:{tag}:{key}".encode("utf-8")).hexdigest()
+        return int(digest[:12], 16)
+
+    keys = sorted(groups.keys(), key=lambda k: _h("g", k))  # 组序确定性洗牌
     interleaved: list[dict[str, Any]] = []
     round_idx = 0
     while any(round_idx < len(groups[k]) for k in keys):
         for k in keys:
             members = groups[k]
             if round_idx < len(members):
-                interleaved.append(members[(seed + round_idx) % len(members)])
+                interleaved.append(members[(_h("o", k) + round_idx) % len(members)])
         round_idx += 1
     return interleaved[: min(limit, len(core))]
 
@@ -260,7 +271,13 @@ def build_retest_items(
     if not core:
         return []
     limit = max(1, min(int(limit), 10))
-    seed = sum(ord(c) for c in str(user_id)) + int(day_index)
+    # seed = 高熵确定性散列(红队修复: 旧 sum(ord)+day_index 在千级用户上碰撞 58%,
+    # 且 user/day 在整数轴上混叠——char-sum 差 1 的两人错一天拿同卷)。
+    # 同 (user, day) 仍幂等(§9-D3 多端一致)。
+    seed = int(
+        hashlib.sha256(f"{user_id}:{int(day_index)}".encode("utf-8")).hexdigest()[:12],
+        16,
+    )
     if str(mode or "").strip().lower() == "forward":
         ordered = _forward_rule_group_spread(core, seed, len(core))
     else:
