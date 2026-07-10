@@ -2,7 +2,6 @@ var api = require("../../utils/api");
 var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
 var surfaceTelemetry = require("../../utils/surface-telemetry");
-var firstRunEntry = require("../../utils/first-run-entry");
 
 // 首体验漏斗埋点（2026-07-10）：统一经 surface-telemetry 唯一通道。
 // 测试环境可能以部分对象 stub 该模块，故做存在性防御。
@@ -114,7 +113,7 @@ Page({
             : raw.data || raw;
           var phone = ((info && info.phone) || "").trim().replace(/\D/g, "");
           if (phone && phone.length >= 8) {
-            firstRunEntry.goHomeAfterAuth();
+            wx.switchTab({ url: "/pages/chat/chat" });
           } else {
             // 显示手机绑定专属模式
             self.setData({ loginMode: "bind_phone_only" });
@@ -269,7 +268,7 @@ Page({
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
         auth.setToken(token, inner.expires_at, inner);
         trackAuthResult("password", true);
-        firstRunEntry.goHomeAfterAuth();
+        wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
         trackAuthResult("password", false, err && err.message);
@@ -413,7 +412,7 @@ Page({
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
         auth.setToken(token, inner.expires_at, inner);
         trackAuthResult("sms_code", true);
-        firstRunEntry.goHomeAfterAuth();
+        wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
         trackAuthResult("sms_code", false, err && err.message);
@@ -500,7 +499,7 @@ Page({
           .then(function (resp) {
             self._completeWechatAuth(resp);
             trackAuthResult("phone_auth", true);
-            firstRunEntry.goHomeAfterAuth();
+            wx.switchTab({ url: "/pages/chat/chat" });
           })
           .catch(function (err) {
             trackAuthResult("phone_auth", false, err && err.message);
