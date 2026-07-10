@@ -96,7 +96,8 @@
                 </view>
               </view>
 
-              <text class="rt-anchor" wx:if="{{items[currentIndex].anchor}}">定位 {{items[currentIndex].anchor}}</text>
+              <!-- 原文卡在场时不再露 kc 坐标(信息重复); 无原文时保留定位可溯 -->
+              <text class="rt-anchor" wx:if="{{items[currentIndex].anchor && !items[currentIndex].textbook}}">定位 {{items[currentIndex].anchor}}</text>
 
               <view class="pk-btn-ink rt-next" bindtap="nextQuestion">
                 {{currentIndex + 1 < total ? '下一题' : '看今日收据'}}
