@@ -352,6 +352,7 @@ domains:
       - tests/services/test_active_object_family_first.py
       - tests/agents/question/test_coordinator_followup_anchor.py
       - tests/agents/question/test_coordinator_subject_scope_gate.py
+      - tests/agents/question/test_lightweight_anchor_block_topic_authority.py
       - tests/agents/question/test_generator_subject_lock.py
       - tests/agents/question/test_lightweight_topic_normalizer.py
       - tests/agents/question/test_practice_topic_context_inheritance.py
