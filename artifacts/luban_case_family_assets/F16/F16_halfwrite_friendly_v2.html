@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F16 半写案例 · 友好版 v2</title>
+<style>
+  :root{--paper:#f4efe6;--card:#fffdf8;--ink:#2a2320;--sub:#7a6f63;--line:#e4dac9;
+    --red:#8a2b20;--red-bg:#f7e9e4;--green:#4a6b3d;--green-bg:#eaf0e3;--gold:#c8962f;}
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#ded4c2;color:var(--ink);font-family:-apple-system,"PingFang SC","Kaiti SC","Microsoft YaHei",serif;
+    display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:22px 12px 60px}
+  .intro{max-width:560px;text-align:center;margin-bottom:14px}
+  .intro h1{font-size:17px;margin:0 0 6px;color:#3a2f28}
+  .intro p{font-size:13px;color:#6a5f52;line-height:1.75;margin:3px 0}
+  .phone{width:374px;background:#fffdf8;border-radius:34px;padding:11px;box-shadow:0 16px 46px rgba(60,40,25,.22);border:1px solid #e7ddcb}
+  .screen{background:var(--paper);border-radius:26px;overflow:hidden;min-height:720px;display:flex;flex-direction:column;
+    background-image:radial-gradient(rgba(180,160,130,.10) 1px,transparent 1px);background-size:15px 15px}
+  .statusbar{display:flex;justify-content:space-between;padding:12px 20px 4px;font-size:11.5px;color:#a89a84}
+  .topbar{padding:9px 18px 13px;border-bottom:1px solid var(--line);background:rgba(255,253,248,.7)}
+  .topbar .t{font-size:16px;font-weight:700}.topbar .sub{font-size:12px;color:var(--sub);margin-top:2px}
+  .body{padding:17px 17px 24px;overflow:auto;flex:1}
+  .label{font-size:12px;color:var(--sub);margin:2px 0 6px}
+  .answer{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 14px;font-size:14.5px;line-height:1.85;color:#3a2f24}
+  .praise{background:var(--green-bg);border:1px solid #cad8ba;border-radius:15px;padding:15px 16px;margin-top:16px;font-size:15.5px;line-height:1.8;color:#3a4a30;font-weight:600}
+  .praise .big{font-size:17px;color:var(--green)}
+  .think{background:#fbf4ec;border:1px solid #ecd9c4;border-radius:15px;padding:15px 16px;margin-top:14px;font-size:14.5px;line-height:1.85;color:#5a4a3a}
+  .think b{color:var(--red)}
+  .peek{display:block;width:100%;text-align:center;background:var(--red);color:#fbeee6;border:none;border-radius:14px;padding:15px;font-size:15.5px;font-weight:700;margin-top:14px;cursor:pointer;letter-spacing:.5px}
+  .softnote{text-align:center;font-size:12.5px;color:var(--sub);margin-top:9px}
+  .reveal{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px;margin-top:14px}
+  .reveal .step{font-size:17px;font-weight:800;color:var(--green);margin-bottom:8px}
+  .reveal .why{font-size:14px;line-height:1.85;color:#4a4038}
+  .reveal .why b{color:var(--red)}
+  .reveal .src{font-size:12.5px;color:#5d6b4a;margin-top:11px;padding-top:10px;border-top:1px dashed var(--line)}
+  .scoreline{display:flex;justify-content:space-between;align-items:baseline;background:#2a2320;color:#f4efe6;border-radius:14px;padding:14px 17px;margin-top:14px}
+  .scoreline .s{font-size:23px;font-weight:800}.scoreline .s .mx{font-size:14px;opacity:.7}
+  .later{display:flex;gap:10px;align-items:center;background:var(--red-bg);border:1px solid #e6cabf;border-radius:13px;padding:13px 14px;margin-top:14px;font-size:13.5px;line-height:1.7;color:var(--red)}
+  .later .ic{font-size:18px}
+  .note{font-size:12px;color:#9a8f80;margin-top:12px;line-height:1.6;text-align:center}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>F16 起鼓割补 · 半写案例(友好版 v2)</h1>
+  <p>先夸 → 只点那 1 个盲点、讲清为什么 → 得分 → 过几天再考你。<br>不逼打字、不逼猜;中间只留一个"零打字、一点就看"的自我回想。</p>
+</div>
+<div class="phone"><div class="screen">
+  <div class="statusbar"><span>9:41</span><span>鲁班智考</span><span>📶 🔋</span></div>
+  <div class="topbar"><div class="t">屋面卷材起鼓割补</div><div class="sub">半写作答 · 承接你刚看的微课</div></div>
+  <div class="body" id="body"></div>
+</div></div>
+<script>
+var b=document.getElementById('body');
+var ANSWER='<div class="label">你写的</div><div class="answer">先用刀把鼓泡卷材割开，放出气体，擦干水分，清除旧胶结料；然后喷灯烘烤，重贴新卷材，周边压实刮平。</div>';
+function step1(){
+  b.innerHTML=ANSWER+
+    '<div class="praise"><span class="big">写得不错 👍</span>　关键工序你踩到了 <b>6 处</b>：放气、擦干、清旧胶、烘烤、重贴、压实——顺序也对。</div>'+
+    '<div class="think">只有 <b>1 处</b>很多人会漏，也是评分和现场都卡的一步。<br>先不急着看——<b>在心里想一下</b>：烘烤之后、贴新卷材之前，那块翘起的旧卷材，还差一个什么动作？</div>'+
+    '<button class="peek" onclick="step2()">想好了(或想不起来)，看答案 →</button>'+
+    '<div class="softnote">不用打字，点一下就看。</div>';
+}
+function step2(){
+  b.innerHTML=ANSWER+
+    '<div class="praise"><span class="big">就差这一处 👇</span>　其余 6 步你都写对了。</div>'+
+    '<div class="reveal"><div class="step">分层剥开 ✅</div>'+
+    '<div class="why">贴新卷材前，要先把翘起的旧卷材<b>一层层剥开</b>、清理干净。<br>为什么卡这一步：鼓包下面是层间空鼓 + 残留旧胶，不剥开清净就直接盖新的，<b>层间还会再起鼓</b>——白补一次。补上这一句，这 0.3 分就到手了。</div>'+
+    '<div class="src">📖 教材原文：屋面防水 · 起鼓割补工序（1A434000 P.XX）</div></div>'+
+    '<div class="scoreline"><span>本题采分点得分</span><span class="s">1.2<span class="mx"> / 1.5</span></span></div>'+
+    '<div class="later"><span class="ic">🗓️</span><div>这一处我记下了 —— <b>过几天换个说法再考你一次</b>，帮你真正记牢，不占你现在时间。</div></div>'+
+    '<div class="note">对错是判分内核判的（真值在后台），AI 只负责怎么讲。training_org 估分 · 非官方 · 待金标校准。</div>';
+}
+step1();
+</script>
+</body>
+</html>

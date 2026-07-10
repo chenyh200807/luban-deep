@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>案例题轻练 · 运行时生成(Nexus+LLM)多题评审</title>
+<style>
+  :root{--paper:#f4efe6;--card:#fffdf8;--ink:#2a2320;--sub:#7a6f63;--line:#e4dac9;
+    --red:#8a2b20;--red-bg:#f7e9e4;--green:#4a6b3d;--green-bg:#eaf0e3;--amber:#a9741a;--amber-bg:#f6ecd6;}
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#ded4c2;color:var(--ink);font-family:-apple-system,"PingFang SC","Kaiti SC","Microsoft YaHei",serif;
+    display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px 12px 60px}
+  .intro{max-width:600px;text-align:center;margin-bottom:12px}
+  .intro h1{font-size:16px;margin:0 0 6px;color:#3a2f28}
+  .intro p{font-size:12px;color:#6a5f52;line-height:1.7;margin:3px 0}
+  .b{display:inline-block;background:#fffdf8;border:1px solid var(--line);border-radius:16px;padding:2px 9px;font-size:11px;color:var(--sub);margin:2px 3px}
+  .real{background:var(--green-bg);color:var(--green);border-color:#cad8ba;font-weight:700}
+  .sw{display:flex;gap:7px;max-width:600px;width:100%;margin:4px 0 12px;justify-content:center;flex-wrap:wrap}
+  .swb{border:1px solid var(--line);border-radius:16px;padding:7px 13px;font-size:12.5px;background:#fffdf8;cursor:pointer;color:var(--sub)}
+  .swb.on{border-color:var(--red);background:var(--red-bg);color:var(--red);font-weight:700}
+  .phone{width:376px;background:#fffdf8;border-radius:34px;padding:11px;box-shadow:0 16px 46px rgba(60,40,25,.22);border:1px solid #e7ddcb}
+  .screen{background:var(--paper);border-radius:26px;overflow:hidden;min-height:700px;display:flex;flex-direction:column;
+    background-image:radial-gradient(rgba(180,160,130,.10) 1px,transparent 1px);background-size:15px 15px}
+  .statusbar{display:flex;justify-content:space-between;padding:12px 20px 4px;font-size:11.5px;color:#a89a84}
+  .topbar{display:flex;align-items:center;gap:8px;padding:9px 17px 11px;border-bottom:1px solid var(--line);background:rgba(255,253,248,.7)}
+  .topbar .t{font-size:14.5px;font-weight:700}
+  .topbar .gen{margin-left:auto;font-size:10px;color:var(--green);background:var(--green-bg);border:1px solid #cad8ba;border-radius:14px;padding:3px 8px;white-space:nowrap}
+  .body{padding:15px 16px 24px;overflow:auto;flex:1}
+  .prov{font-size:11px;color:var(--sub);margin-bottom:8px;line-height:1.5}
+  .ask{font-size:15px;font-weight:700;color:#332a23;margin:2px 0 4px;line-height:1.55}
+  .hint{font-size:12px;color:var(--amber);background:var(--amber-bg);border:1px solid #e3cf9f;border-radius:10px;padding:8px 11px;margin:8px 0;line-height:1.55}
+  .chips{display:flex;flex-direction:column;gap:8px;margin:10px 0 2px}
+  .chip2{border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:11px 13px;font-size:13.5px;color:#3a2f24;cursor:pointer;transition:.12s;line-height:1.45}
+  .chip2.sel{border-color:var(--red);background:var(--red-bg);color:var(--red);font-weight:600}
+  .go{display:block;width:100%;text-align:center;background:var(--red);color:#fbeee6;border:none;border-radius:14px;padding:14px;font-size:15.5px;font-weight:700;margin-top:14px;cursor:pointer;letter-spacing:.5px}
+  .praise{background:var(--green-bg);border:1px solid #cad8ba;border-radius:13px;padding:12px 14px;font-size:14px;line-height:1.7;color:#3a4a30}
+  .praise b{color:var(--green)}
+  .res{border-radius:12px;padding:10px 13px;margin:8px 0;font-size:13px;line-height:1.6}
+  .res.miss{background:var(--amber-bg);border:1px solid #e3cf9f}.res.wrong{background:var(--red-bg);border:1px solid #e6cabf}
+  .res .h{font-weight:700;margin-bottom:2px}.res.miss .h{color:var(--amber)}.res.wrong .h{color:var(--red)}
+  .res .code{font-size:10px;font-family:ui-monospace,Menlo;background:#e6ddcb;color:#6a5a3e;border-radius:5px;padding:1px 5px;margin-left:4px}
+  .cover{display:flex;justify-content:space-between;align-items:baseline;background:#2a2320;color:#f4efe6;border-radius:12px;padding:12px 16px;margin-top:11px}
+  .cover .s{font-size:19px;font-weight:800}.cover .s small{font-size:12px;opacity:.7}
+  .note{font-size:11px;color:#9a8f80;margin-top:11px;line-height:1.6;text-align:center}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>案例题轻练 · 运行时生成(Nexus + LLM)—— 多题评审</h1>
+  <p><span class="b real">下面每道题 = Nexus 采分点 + LLM 当场生成</span><span class="b">非写死</span><span class="b">判分=确定性点选</span></p>
+  <p>切换上方三道<b>不同题</b>——都是运行时管线自动出的点选轻练,证明"别的题也马上能练"。判分不碰 LLM(确定性),LLM 只干出题+反馈。</p>
+</div>
+<div class="sw" id="sw"></div>
+<div class="phone"><div class="screen">
+  <div class="statusbar"><span>9:41</span><span>鲁班智考 · 案例轻练</span><span>📶 🔋</span></div>
+  <div class="topbar"><span class="t" id="tt"></span><span class="gen">⚡ 运行时生成</span></div>
+  <div class="body" id="body"></div>
+</div></div>
+<script>
+// ↓↓↓ 真实运行时管线输出(阿里云容器 Nexus load_rubric + DeepSeek temp=0 当场生成)
+var QS=[
+ {topic:"女儿墙泛水(防水·判断改正)", qid:"2015::EXAM_XW2015_CASE_2::E2", np:5,
+  stem:"指出女儿墙泛水及卷材防水施工的错误,并选出正确做法。",
+  correct:["泛水高度至少250mm","阴阳角基层卷材做45度","泛水处应增做附加层","压顶檐口下端做鹰嘴滴水槽","卷材收头用金属压条密封"],
+  distractors:[{t:"泛水高度200mm即可",c:"E02",w:"规范要求泛水高度≥250mm,200mm不满足。"},
+               {t:"阴阳角基层卷材做90度",c:"E07",w:"直角易导致卷材折裂渗漏,应做45度过渡。"},
+               {t:"卷材收头用水泥砂浆抹平",c:"E10",w:"水泥砂浆易开裂脱落,应金属压条钉压密封。"}]},
+ {topic:"进度计划内容(列举)", qid:"2015::EXAM_XW2015_CASE_1::E0", np:3,
+  stem:"施工总进度计划表应包含哪些内容?",
+  correct:["施工总进度计划表(图)","分期分批工程开竣工日期","资源需要量及供应平衡表"],
+  distractors:[{t:"施工方案及技术措施",c:"E02",w:"施工方案属技术组织措施,非进度计划表内容。"},
+               {t:"质量验收标准及方法",c:"E07",w:"质量验收属质量管理范畴,与进度计划无关。"},
+               {t:"安全生产责任制度",c:"E10",w:"安全制度属安全管理体系,非进度计划组成。"}]},
+ {topic:"专职安全员配置(判断改正)", qid:"2016::EXAM_XW2016_CASE_3::E0", np:3,
+  stem:"项目经理部专职安全员配置存在哪些问题?",
+  correct:["专职安全员配置不妥当","缺少机械类安全员","缺少综合类安全员","至少需配备2名专职安全员"],
+  distractors:[{t:"安全员数量足够",c:"E02",w:"实际至少需2名,当前配置不足。"},
+               {t:"安全员类别齐全",c:"E07",w:"仅配土建类,缺机械和综合类。"},
+               {t:"土建类安全员可兼管",c:"E10",w:"三类安全员职责不同,不可混用兼管。"}]},
+];
+var cur=0, picked={};
+var sw=document.getElementById('sw'), body=document.getElementById('body'), tt=document.getElementById('tt');
+QS.forEach(function(q,i){ var e=document.createElement('div'); e.className='swb'+(i===0?' on':''); e.textContent='题'+(i+1); e.onclick=function(){setQ(i);}; sw.appendChild(e); });
+function setQ(i){ cur=i; picked={}; [].forEach.call(sw.children,function(c,k){c.className='swb'+(k===i?' on':'');}); render(); }
+function pool(){ // 真选项 + 干扰,交错排列(固定顺序,可复现)
+  var q=QS[cur], arr=[], ci=0, di=0;
+  var order=[1,0,1,1,0,1,0,1]; // 交错
+  order.forEach(function(isReal){
+    if(isReal && ci<q.correct.length) arr.push({id:'c'+ci, t:q.correct[ci++], real:true});
+    else if(!isReal && di<q.distractors.length){ var d=q.distractors[di++]; arr.push({id:'d'+(di-1), t:d.t, real:false, c:d.c, w:d.w}); }
+  });
+  while(ci<q.correct.length) arr.push({id:'c'+ci, t:q.correct[ci++], real:true});
+  while(di<q.distractors.length){ var d=q.distractors[di++]; arr.push({id:'d'+(di-1), t:d.t, real:false, c:d.c, w:d.w}); }
+  return arr;
+}
+function render(){
+  var q=QS[cur]; tt.textContent=q.topic.split("(")[0];
+  var P=pool();
+  body.innerHTML='<div class="prov">来源 qid: <code>'+q.qid+'</code> · Nexus 采分点 '+q.np+' 个 · '+q.topic+'</div>'+
+    '<div class="ask">'+q.stem+'</div>'+
+    '<div class="hint">💡 零打字·点选你认为对的(含干扰项)。这道题的选项和干扰,都是 LLM 按 Nexus 采分点当场生成的。</div>'+
+    '<div class="chips" id="chips">'+P.map(function(o){return '<div class="chip2" id="k_'+o.id+'" onclick="tog(\''+o.id+'\')">'+o.t+'</div>';}).join('')+'</div>'+
+    '<button class="go" onclick="submit()">提交 · 看批改</button>';
+  window._P=P;
+}
+window.tog=function(id){ picked[id]=!picked[id]; document.getElementById('k_'+id).className='chip2'+(picked[id]?' sel':''); };
+window.submit=function(){
+  var P=window._P, q=QS[cur];
+  var reals=P.filter(function(o){return o.real;});
+  var hit=reals.filter(function(o){return picked[o.id];});
+  var miss=reals.filter(function(o){return !picked[o.id];});
+  var wrong=P.filter(function(o){return !o.real && picked[o.id];});
+  var h='<div class="praise"><b>踩到 '+hit.length+' 点 👍</b>　'+(hit.length?('选对:'+hit.map(function(o){return o.t;}).join('、')+'。'):'一起把要点理一遍。')+'</div>';
+  if(miss.length){ h+='<div style="font-size:11px;color:var(--sub);margin:13px 0 5px">漏的采分点(Nexus 真值)</div>';
+    miss.forEach(function(o){ h+='<div class="res miss"><div class="h">✗ '+o.t+'</div></div>'; }); }
+  if(wrong.length){ h+='<div style="font-size:11px;color:var(--sub);margin:13px 0 5px">选中的"坑"(LLM 生成的误解诊断)</div>';
+    wrong.forEach(function(o){ h+='<div class="res wrong"><div class="h">⚠ '+o.t+' <span class="code">'+o.c+'</span></div><div>'+o.w+'</div></div>'; }); }
+  h+='<div class="cover"><span>关键采分点</span><span class="s">踩到 '+hit.length+' / '+reals.length+'<small> 点</small></span></div>'+
+    '<div class="note">题/采分点=Nexus 编译库(qid '+q.qid.split("::")[0]+'…);干扰项+题干=LLM temp=0 当场生成;判分=确定性点选,不经判官。official_score_allowed=false·非官方·待金标。</div>'+
+    '<button class="go" style="background:#2a2320" onclick="render()">重做这道</button>';
+  body.innerHTML=h;
+};
+render();
+</script>
+</body>
+</html>

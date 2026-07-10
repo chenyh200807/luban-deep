@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F16 案例题轻练 · 点选踩点(依据母题作答层)</title>
+<style>
+  :root{--paper:#f4efe6;--card:#fffdf8;--ink:#2a2320;--sub:#7a6f63;--line:#e4dac9;
+    --red:#8a2b20;--red-bg:#f7e9e4;--green:#4a6b3d;--green-bg:#eaf0e3;--amber:#a9741a;--amber-bg:#f6ecd6;--gold:#c8962f;}
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#ded4c2;color:var(--ink);font-family:-apple-system,"PingFang SC","Kaiti SC","Microsoft YaHei",serif;
+    display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px 12px 60px}
+  .intro{max-width:600px;text-align:center;margin-bottom:12px}
+  .intro h1{font-size:16px;margin:0 0 6px;color:#3a2f28}
+  .intro p{font-size:12px;color:#6a5f52;line-height:1.7;margin:3px 0}
+  .b{display:inline-block;background:#fffdf8;border:1px solid var(--line);border-radius:16px;padding:2px 9px;font-size:11px;color:var(--sub);margin:2px 3px}
+  .real{background:var(--green-bg);color:var(--green);border-color:#cad8ba;font-weight:700}
+  .phone{width:376px;background:#fffdf8;border-radius:34px;padding:11px;box-shadow:0 16px 46px rgba(60,40,25,.22);border:1px solid #e7ddcb}
+  .screen{background:var(--paper);border-radius:26px;overflow:hidden;min-height:730px;display:flex;flex-direction:column;
+    background-image:radial-gradient(rgba(180,160,130,.10) 1px,transparent 1px);background-size:15px 15px}
+  .statusbar{display:flex;justify-content:space-between;padding:12px 20px 4px;font-size:11.5px;color:#a89a84}
+  .topbar{display:flex;align-items:center;gap:8px;padding:9px 17px 12px;border-bottom:1px solid var(--line);background:rgba(255,253,248,.7)}
+  .topbar .t{font-size:15px;font-weight:700}
+  .topbar .chip{margin-left:auto;font-size:11px;color:var(--red);background:var(--red-bg);border:1px solid #e6cabf;border-radius:16px;padding:3px 9px}
+  .body{padding:15px 16px 24px;overflow:auto;flex:1}
+  .tag{font-size:11px;color:var(--sub);font-weight:600;margin-bottom:6px}
+  .bg{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px;font-size:13.5px;line-height:1.8;color:#3a2f24}
+  .bg b{color:var(--red)}
+  .ask{font-size:14.5px;font-weight:700;color:#332a23;margin:14px 0 3px;line-height:1.55}
+  .hint{font-size:12px;color:var(--amber);background:var(--amber-bg);border:1px solid #e3cf9f;border-radius:10px;padding:8px 11px;margin:8px 0;line-height:1.55}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}
+  .chip2{border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:10px 13px;font-size:13.5px;color:#3a2f24;cursor:pointer;transition:.12s;line-height:1.4;flex:1 1 44%}
+  .chip2.sel{border-color:var(--red);background:var(--red-bg);color:var(--red);font-weight:600}
+  .go{display:block;width:100%;text-align:center;background:var(--red);color:#fbeee6;border:none;border-radius:14px;padding:14px;font-size:15.5px;font-weight:700;margin-top:14px;cursor:pointer;letter-spacing:.5px}
+  .go:disabled{background:#cdbfa9}
+  .praise{background:var(--green-bg);border:1px solid #cad8ba;border-radius:13px;padding:13px 14px;margin-top:2px;font-size:14px;line-height:1.75;color:#3a4a30}
+  .praise b{color:var(--green)}
+  .res{border-radius:12px;padding:11px 13px;margin:9px 0;font-size:13px;line-height:1.6}
+  .res.hit{background:var(--green-bg);border:1px solid #cad8ba}
+  .res.miss{background:var(--amber-bg);border:1px solid #e3cf9f}
+  .res.wrong{background:var(--red-bg);border:1px solid #e6cabf}
+  .res .h{font-weight:700;margin-bottom:3px}
+  .res.hit .h{color:var(--green)}.res.miss .h{color:var(--amber)}.res.wrong .h{color:var(--red)}
+  .res .d{color:#4a4038}
+  .res .code{font-size:10px;font-family:ui-monospace,Menlo;background:#e6ddcb;color:#6a5a3e;border-radius:5px;padding:1px 5px;margin-left:4px}
+  .cover{display:flex;justify-content:space-between;align-items:baseline;background:#2a2320;color:#f4efe6;border-radius:12px;padding:13px 16px;margin-top:12px}
+  .cover .s{font-size:19px;font-weight:800}.cover .s small{font-size:12px;opacity:.7}
+  .later{display:flex;gap:9px;align-items:center;background:var(--red-bg);border:1px solid #e6cabf;border-radius:12px;padding:12px 13px;margin-top:12px;font-size:13px;line-height:1.65;color:var(--red)}
+  .note{font-size:11px;color:#9a8f80;margin-top:11px;line-height:1.6;text-align:center}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>F16 案例题轻练 · 点选踩点(依据母题作答层)</h1>
+  <p><span class="b">题/采分点/误解=母题集真数据</span><span class="b real">判分=确定性点选(不经判官)</span><span class="b">零打字·微信丝滑</span></p>
+  <p>把"写案例"变成"点选工序积木":零打字 → 判分是确定性集合运算(判官不稳的 bug 从设计上绕开)→ 选错=按母题误解模型诊断(挂五维/错因码)。</p>
+</div>
+<div class="phone"><div class="screen">
+  <div class="statusbar"><span>9:41</span><span>鲁班智考 · 案例轻练</span><span>📶 🔋</span></div>
+  <div class="topbar"><span class="t">屋面卷材起鼓割补</span><span class="chip">刚看完微课 · 起鼓割补</span></div>
+  <div class="body" id="body"></div>
+</div></div>
+<script>
+// 依据母题作答层:采分点 P1分档 + P2/P3割补工序 + P4究因;干扰=母题误解模型
+var POOL=[
+ {id:"fen", t:"先按直径分档(≥100mm 才割补)", real:true, grp:"P1"},
+ {id:"ge",  t:"割开鼓泡、放出气体", real:true, grp:"P2"},
+ {id:"ca",  t:"擦干水分", real:true, grp:"P2"},
+ {id:"qing",t:"清除旧胶结料", real:true, grp:"P2"},
+ {id:"hong",t:"喷灯烘烤槎口、分层剥开旧卷材", real:true, grp:"P2"},
+ {id:"tie", t:"重贴新卷材、压实刮平", real:true, grp:"P3"},
+ {id:"bao", t:"重做保护层", real:true, grp:"P3"},
+ // 干扰项(母题误解模型)
+ {id:"si",  t:"整片撕掉旧卷材、重新满铺", real:false, err:"E10", why:"这是把大鼓/流淌的方法用错了档——起鼓割补是<b>局部</b>处理;整片撕会破坏周边好的搭接、给水留缝。"},
+ {id:"ding",t:"用钉钉子法固定处理", real:false, err:"E07", why:"钉钉子法是治<b>卷材流淌</b>的药方,不是治起鼓——起鼓是潮气受热鼓胀,两种病害不能混答。"},
+ {id:"chou",t:"一律抽气灌胶、不割开", real:false, err:"E10", why:"抽气灌胶法只适用<b>直径<100mm 的小鼓</b>;本题>100mm 大鼓只抽气=治标不治本,用错了分档。"},
+];
+// 母题级揭晓文案(漏的真点讲不变量/命门)
+var MISS_WHY={
+ fen:"最前面漏了<b>按 100mm 分档</b>——大鼓(≥100mm)才走割补、小鼓抽气灌胶。不分档就可能治错档。",
+ ge:"漏了<b>放气</b>——不排出鼓内气体直接贴,新卷材还会被顶起。",
+ ca:"漏了<b>擦干水分</b>——这是<b>防复发命门</b>,基层不干直接贴,水汽受热又把它顶鼓(原地二次起鼓)。",
+ qing:"漏了<b>清除旧胶结料</b>——残胶让新旧层粘不牢。",
+ hong:"漏了<b>喷灯烘烤、分层剥开</b>——把翘起的旧卷材逐层剥净,新旧才连成一体。",
+ tie:"漏了<b>重贴新卷材、压实刮平</b>这一收尾主步。",
+ bao:"漏了<b>重做保护层</b>——割补最易漏的收尾步。",
+};
+var b=document.getElementById('body');
+var picked={};
+function q(){
+  b.innerHTML=
+    '<div class="tag">案例 · 背景资料(真题 2017·案例二)</div>'+
+    '<div class="bg">某住宅屋面卷材防水层出现<b>起鼓(鼓泡直径>100mm)</b>。项目部拟:①对所有起鼓一律抽气灌胶;②大鼓包割开后直接重贴新卷材。监理认为方案有问题。</div>'+
+    '<div class="ask">问:屋面卷材起鼓(≥100mm)<b>割补法</b>该做哪几步?<br>点选你认为对的(可多选,含干扰项)。</div>'+
+    '<div class="hint">💡 零打字——点一下就选中,像给工序"挑积木"。</div>'+
+    '<div class="chips" id="chips">'+POOL.map(function(o){return '<div class="chip2" id="c_'+o.id+'" onclick="tog(\''+o.id+'\')">'+o.t+'</div>';}).join('')+'</div>'+
+    '<button class="go" id="sub" onclick="submit()">提交 · 看批改</button>';
+}
+window.tog=function(id){ picked[id]=!picked[id]; document.getElementById('c_'+id).className='chip2'+(picked[id]?' sel':''); };
+window.submit=function(){
+  var reals=POOL.filter(function(o){return o.real;});
+  var hit=reals.filter(function(o){return picked[o.id];});
+  var miss=reals.filter(function(o){return !picked[o.id];});
+  var wrong=POOL.filter(function(o){return !o.real && picked[o.id];});
+  var html='<div class="praise"><b>踩到 '+hit.length+' 步 👍</b>　'+(hit.length?('你选对了:'+hit.map(function(o){return o.t.replace(/、/g,'/');}).join('、')+'。'):'先别急,一起把工序理一遍。')+'</div>';
+  if(miss.length){ html+='<div class="tag" style="margin-top:14px">你漏的关键步(按母题采分点)</div>';
+    miss.forEach(function(o){ html+='<div class="res miss"><div class="h">✗ '+o.t+'</div><div class="d">'+(MISS_WHY[o.id]||'')+'</div></div>'; }); }
+  if(wrong.length){ html+='<div class="tag" style="margin-top:14px">这几个是"坑"(母题误解模型诊断)</div>';
+    wrong.forEach(function(o){ html+='<div class="res wrong"><div class="h">⚠ '+o.t+' <span class="code">'+o.err+'</span></div><div class="d">'+o.why+'</div></div>'; }); }
+  html+='<div class="cover"><span>关键采分点</span><span class="s">踩到 '+hit.length+' / '+reals.length+'<small> 步</small></span></div>';
+  if(wrong.length) html+='<div class="note" style="color:var(--amber)">工序题:选了"坑"会扣分(答错方法),不是多选多得。</div>';
+  html+='<div class="later"><span style="font-size:18px">🗓️</span><div>漏的步记进<b>复习本</b> —— 过几天换道起鼓题再考你,帮你把这条割补链走顺。</div></div>'+
+    '<div class="note">题面/采分点/误解均来自母题作答层(真题2017·案例二);判分=确定性点选,不经判官。official_score_allowed=false·非官方·待金标。</div>'+
+    '<button class="go" style="background:#2a2320" onclick="q()">再练一道同类 →</button>';
+  b.innerHTML=html;
+};
+q();
+</script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F16 看透 · 单日闭环重做原型 v1(纸墨朱竹)</title>
+<style>
+  :root{
+    --paper:#f4efe6; --paper2:# efe7d8; --card:#fffdf8; --ink:#2a2320; --sub:#7a6f63;
+    --line:#e4dac9; --red:#8a2b20; --red2:#b5433a; --red-bg:#f7e9e4;
+    --green:#4a6b3d; --green-bg:#eaf0e3; --amber:#a9741a; --amber-bg:#f6ecd6;
+    --gold:#c8962f; --bamboo:#5d6b4a;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#ded4c2;color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Kaiti SC","Microsoft YaHei",serif;
+    display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:22px 12px 60px}
+  .intro{max-width:600px;text-align:center;margin-bottom:16px}
+  .intro h1{font-size:18px;margin:0 0 6px;color:#3a2f28}
+  .intro p{font-size:12.5px;color:#6a5f52;line-height:1.65;margin:4px 0}
+  .badge{display:inline-block;background:#fffdf8;border:1px solid var(--line);border-radius:20px;
+    padding:3px 11px;font-size:11.5px;color:var(--sub);margin:2px 3px}
+  .phone{width:364px;background:#fffdf8;border-radius:34px;padding:11px;
+    box-shadow:0 16px 46px rgba(60,40,25,.22);border:1px solid #e7ddcb}
+  .screen{background:var(--paper);border-radius:26px;overflow:hidden;height:712px;display:flex;flex-direction:column;
+    background-image:radial-gradient(rgba(180,160,130,.10) 1px,transparent 1px);background-size:15px 15px}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;padding:11px 20px 4px;font-size:11.5px;color:#a89a84}
+  .navbar{padding:8px 18px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);background:rgba(255,253,248,.7)}
+  .navbar .back{font-size:14px;color:var(--red);font-weight:600}
+  .navbar .t{font-size:15px;font-weight:700;letter-spacing:.5px}
+  .navbar .day{margin-left:auto;font-size:11.5px;color:var(--sub)}
+  .body{padding:16px 16px 20px;overflow:auto;flex:1}
+  .streak{display:inline-flex;align-items:center;gap:5px;background:var(--red-bg);color:var(--red);
+    border:1px solid #e6cabf;border-radius:13px;padding:4px 11px;font-size:11.5px;font-weight:600;margin-bottom:10px}
+  .plan{font-size:11.5px;color:var(--sub);margin:2px 0 8px;line-height:1.5}
+  .lead{background:linear-gradient(135deg,#8a2b20,#6f2119);color:#fbeee6;border-radius:18px;padding:17px 18px;margin:8px 0 4px;
+    box-shadow:0 6px 18px rgba(120,40,25,.22)}
+  .lead .k{font-size:11.5px;opacity:.85;letter-spacing:.5px}
+  .lead .v{font-size:19px;font-weight:700;margin:7px 0 6px;line-height:1.4}
+  .lead .meta{font-size:11.5px;opacity:.82}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin:11px 0}
+  .hint{font-size:12px;color:var(--sub);line-height:1.65}
+  .cta{display:block;width:100%;text-align:center;background:var(--red);color:#fbeee6;border:none;border-radius:14px;
+    padding:14px;font-size:15px;font-weight:700;margin-top:14px;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 12px rgba(120,40,25,.2)}
+  .cta:disabled{background:#cdbfa9;color:#fff;box-shadow:none;cursor:not-allowed}
+  .cta.green{background:var(--green);box-shadow:0 4px 12px rgba(60,90,45,.2)}
+  .cta.ghost{background:transparent;color:var(--red);border:1px solid #d9b8ac;box-shadow:none}
+  .subtle{margin-top:10px;text-align:center;font-size:12px;color:var(--sub);text-decoration:underline;cursor:pointer}
+  .q-meta{font-size:11.5px;color:var(--sub);margin-bottom:7px;display:flex;align-items:center;gap:7px}
+  .vbadge{font-size:10px;border-radius:6px;padding:1px 7px}
+  .vbadge.ok{background:var(--green-bg);color:var(--green);border:1px solid #cad8ba}
+  .stem{font-size:15.5px;line-height:1.7;margin:4px 0 14px;font-weight:600;color:#332a23}
+  .opt{border:1px solid var(--line);border-radius:13px;padding:12px 14px;margin:9px 0;font-size:13.5px;
+    line-height:1.55;background:var(--card);display:flex;gap:10px;cursor:pointer;transition:.14s}
+  .opt:hover{border-color:#c9b79b}
+  .opt .lab{font-weight:800;color:var(--sub);flex:none}
+  .opt.sel{border-color:var(--red);background:var(--red-bg)}
+  .opt.wrong{border-color:var(--red2);background:var(--red-bg)}
+  .opt.right{border-color:var(--green);background:var(--green-bg)}
+  .opt.dim{opacity:.45}
+  .confi{background:var(--card);border:1px dashed #cdbfa9;border-radius:13px;padding:13px 14px;margin:14px 0}
+  .confi .q{font-size:12.5px;font-weight:700;margin-bottom:9px;color:#4a3f36}
+  .confi .qs{font-size:11px;color:var(--sub);margin-bottom:9px}
+  .stars{font-size:27px;letter-spacing:8px;color:#d8cbb4;cursor:pointer;user-select:none}
+  .stars span.lit{color:var(--gold)}
+  .diag{border-radius:16px;padding:16px;margin:13px 0}
+  .diag.bad{background:var(--amber-bg);border:1px solid #e3cf9f}
+  .diag.good{background:var(--green-bg);border:1px solid #cad8ba}
+  .diag h4{margin:0 0 9px;font-size:15px;color:#3a2f24}
+  .tag{display:inline-block;border-radius:7px;padding:2px 8px;font-size:11px;font-weight:700;margin-right:6px}
+  .tag.err{background:#eed6c6;color:#8a4a1e}
+  .tag.code{background:#e6ddcb;color:#6a5a3e;font-family:ui-monospace,Menlo,monospace}
+  .diag p{margin:8px 0;font-size:13px;line-height:1.68;color:#4a4038}
+  .diag .why{background:var(--card);border-radius:11px;padding:12px 13px;font-size:13px;line-height:1.7;margin-top:9px}
+  .seethru{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px;margin-top:10px}
+  .seethru .row{display:flex;gap:9px;padding:6px 0;font-size:12.5px;line-height:1.6;border-bottom:1px dashed #ece2d0}
+  .seethru .row:last-child{border:none}
+  .seethru .rk{color:var(--red);font-weight:700;flex:none;width:52px}
+  .src{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:10px 12px;font-size:12px;color:var(--bamboo);margin-top:10px;line-height:1.5}
+  .warm{background:#fbf4ec;border:1px solid #ecd9c4;border-radius:14px;padding:14px 15px;margin-top:12px;
+    font-size:13.5px;line-height:1.75;color:#5a4a3a}
+  .warm .lead-w{color:var(--red);font-weight:700}
+  .hook{background:var(--red-bg);border:1px solid #e6cabf;border-radius:13px;padding:13px 14px;
+    font-size:13px;color:#7a2b20;margin-top:12px;line-height:1.65}
+  .hook b{color:var(--red)}
+  .win{background:var(--green-bg);border:1px solid #cad8ba;border-radius:15px;padding:17px;text-align:center;margin:8px 0 4px}
+  .win .big{font-size:17px;font-weight:800;color:var(--green);margin-bottom:5px}
+  .win .sub{font-size:12.5px;color:#4f6340;line-height:1.6}
+  .streak-line{display:flex;justify-content:center;gap:6px;margin:12px 0 6px}
+  .sd{width:26px;height:26px;border-radius:8px;background:#e5dbc8;display:flex;align-items:center;justify-content:center;font-size:12px;color:#a89a84}
+  .sd.on{background:var(--red);color:#fbeee6;font-weight:700}
+  .sd.today{background:var(--gold);color:#3a2f24;font-weight:700;box-shadow:0 0 0 3px rgba(200,150,47,.25)}
+  /* 采分点逐点判分(觉晓式) */
+  .ptrow{display:flex;gap:11px;padding:13px 14px;border-radius:12px;margin:9px 0;font-size:13px;line-height:1.6;align-items:flex-start}
+  .ptrow.hit{background:var(--green-bg);border:1px solid #cad8ba}
+  .ptrow.miss{background:var(--amber-bg);border:1px solid #e3cf9f}
+  .ptrow .ic{font-weight:800;font-size:14px;white-space:nowrap;flex:none}
+  .ptrow .lbl{font-weight:700;color:#3a2f24}
+  .ptrow .tn{font-size:11px;color:var(--sub);margin-top:4px;line-height:1.5}
+  .scorebar{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;margin:11px 0}
+  .scorebar .s{font-size:22px;font-weight:800;color:var(--red)}
+  .ta{width:100%;min-height:96px;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;line-height:1.7;
+    font-family:inherit;background:var(--card);color:#3a2f24;resize:vertical}
+  .honest{max-width:600px;margin:22px auto 0;background:#fffdf8;border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+  .honest h3{margin:0 0 10px;font-size:15px;color:var(--red)}
+  .honest ul{margin:6px 0;padding-left:18px;line-height:1.85;font-size:12.5px;color:#4a4038}
+  .honest .warn{background:var(--amber-bg);border:1px solid #e3cf9f;border-radius:10px;padding:10px 13px;font-size:12px;margin-top:10px;line-height:1.65;color:#6a4a1e}
+  code{font-family:ui-monospace,Menlo,monospace;background:#ece2d0;border-radius:5px;padding:1px 5px;font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>F16 「看透」· 单日闭环 —— 重做原型 v1</h1>
+  <p>
+    <span class="badge">纸墨朱竹 · 对齐小程序现视觉</span>
+    <span class="badge">D1 顺水搭接真题 + Q18 采分点真数据</span>
+    <span class="badge">折入跨行业/同行调研结论</span>
+    <span class="badge">静态 HTML · 零依赖 · 手机可开</span>
+  </p>
+  <p>这是「先把一天做到极致」的目标质量条:今日一刀 → 诊断MCQ + 把握度埋点 → 选错即门道(错误码+因果+教材溯源) → 暖纠正 → 「今日到此·明天见」克制收尾 + 低调加练支线。再附一屏<b>差异化预览:采分点逐点判分(觉晓式)</b>。文案守暖、不毒舌、不泄漏关键词、不制造焦虑。</p>
+</div>
+
+<div class="phone"><div class="screen">
+  <div class="statusbar"><span id="clock">9:41</span><span>鲁班智考 · 屋面防水</span><span>📶 🔋</span></div>
+  <div class="navbar"><span class="back" id="back" onclick="goBack()" style="display:none">‹ 返回</span><span class="t" id="navt">今日一刀</span><span class="day" id="navd">第 1 天</span></div>
+  <div class="body" id="app"></div>
+</div></div>
+
+<div class="honest"><div class="honest">
+  <h3>诚实边界 · 给 owner 评估用(不给学员看)</h3>
+  <ul>
+    <li><b>内容真伪</b>:D1 题干/选项/干扰项误解/错误码(E11/E07/E10)/教材溯源(1A434000 P68)/暖纠正/明日约定 = 逐字取自已签发包 <code>_F16_seethrough_bank.v0.json</code>;采分点 P10/P11 及分值 = Q18 已签发工件真值。</li>
+    <li><b>本原型补的、签发包里还没有的</b>:①每个干扰项的「因果 why」(现包只有一句误解短语,富诊断需补 schema);②把握度埋点是客户端信号,不需后端存但现实现完全没采集;③进步呈现「这个误解你已连续 N 天没再犯」需学情回读,现为示意。</li>
+    <li><b>反再认泄漏</b>:采分点的 <code>required_terms</code>(放气/擦干…)<b>作答前绝不下发</b>;只在提交后作为「阅卷点」显示命中/漏点。这修掉了现实现 Day4 明文下发关键词的漏洞。</li>
+    <li><b>判分诚实</b>:采分点判分卡明确标「training_org 估分口径·非官方阅卷」;掌握结论归学情服务,前端不自算(修掉现实现 Day5 写死断言假装计算)。</li>
+  </ul>
+  <div class="warn"><b>招牌机制内容缺口(必须先补,与本原型的精致度无关):</b> spec 要验证「次日<b>换皮复测</b>而回来」,但签发包 Day2-5 是<b>全新考点</b>,没有一道「复测昨天同一考点」的换皮题——所以「昨错今对」现在演不出来,不是前端问题,是弹药缺口。本原型只把「一天」做透;真要跑「5 天次日留存」,还需:换皮复测题内容 + 跨天持久化 + 日历门(每天只能做当天)+ 订阅消息回访投递 + GO 埋点按天落库(forward/review 判别位)。</div>
+</div></div>
+
+<script>
+// ===== D1 真实内容(取自 _F16_seethrough_bank.v0.json) =====
+var D1 = {
+  cut:"2 分钟搞懂:卷材到底从哪头往哪头铺",
+  meta:"屋面防水 · 卷材铺贴",
+  stem:"某屋面北高南低,雨水北→南流,两名工人争论搭接方向,哪种最能解释「顺水搭接」的本质?",
+  opts:[
+    {k:"A",t:"让高处那张卷材压住低处那张的边缘,水从上层表面跨过缝口——谁压谁由水流方向定。"},
+    {k:"B",t:"从北高往南低铺,「后铺压先铺」总是对的。"},
+    {k:"C",t:"只要搭接宽度够,坡向和缝口方向都不影响。"},
+    {k:"D",t:"垂直屋脊铺,缝口方向由施工方便决定。"}
+  ],
+  ans:"A",
+  // per-distractor 因果 why 为本原型补写(示意富诊断该长什么样),误解短语+错误码取自签发包
+  diag:{
+    B:{err:"迁移失败",code:"E11",mm:"把「后铺压先铺」口诀当绝对规则",
+       why:"你记住了一句口诀,但没把<b>水流方向</b>代进去。水从北(高)流向南(低),要让水<b>跨过</b>缝口而不灌进缝里,必须是<b>上坡那张压住下坡那张</b>(高盖低)。坡向一反,「后铺压先铺」就把缝口正对来水了→渗漏。"},
+    C:{err:"概念混淆",code:"E07",mm:"只看搭接宽度不看方向/缝口",
+       why:"搭接够宽 ≠ 不渗漏。决定水是「跨过」还是「灌入」的是缝口<b>朝向</b>;方向错了,再宽的搭接也挡不住顺缝而下的水。"},
+    D:{err:"规范适用错误",code:"E10",mm:"用施工方便替代铺贴方向判断",
+       why:"「施工方便」是次要的。铺贴方向由排水坡向定——把方便凌驾于水流之上,就是拿工期赌渗漏。"}
+  },
+  right:"对了。水从高到低,让高处卷材压住低处上坡边,水从表面跨过缝口——这就是「顺水」两个字真正的意思,你是照着水流想通的,不是背的。",
+  seethru:[
+    {k:"表面",v:"题把坡向改成「北高南低」"},
+    {k:"不变量",v:"缝口要背向来水"},
+    {k:"出题人意图",v:"坡向一反,逼你代入水流,而不是背「顺水搭接」四个字"},
+    {k:"你的门道",v:"想通「谁压谁由水流定」,这类题换多少个坡向都骗不到你"}
+  ],
+  src:"教材依据:建筑实务 1A434000 P68 · 检查卷材铺贴方向及顺序、搭接长度及搭接缝位置(点开看原文)",
+  warm:"你方向感是对的——知道要顺水。就差最后一步:把「谁压谁」交给<b class='lead-w'>水流</b>来定,而不是交给「后铺」这个口诀。水从北来,就让北边那张压住南边那张的边。这步想通,这类题再骗不到你。",
+  tomorrow:"明天我换成地下室外墙,水从外面的土里来——还是「水从哪来」这个判断,换个场景测你。"
+};
+
+// ===== Q18 采分点(觉晓式逐点判分预览,真值) =====
+var CASE = {
+  cut:"屋面卷材起鼓了,你来写怎么割补",
+  stem:"某屋面高聚物改性沥青卷材防水层局部起鼓。请写出起鼓割补的施工工序。",
+  // required_terms 仅用于提交后判分,绝不在作答前展示(反再认泄漏)
+  sample:"先把鼓包割开放气,把里面擦干、把旧的胶结料清掉,再用喷灯烘烤、重新贴上新卷材,压实搭接。",
+  points:[
+    {id:"P10",label:"放气 / 擦干 / 清除旧胶结料",score:0.75,terms:["放气","擦干","清除旧胶结料"],hit:true,
+     tn:"你写到了「割开放气」「擦干」「清掉旧胶结料」→ 三个动作都踩到 P10"},
+    {id:"P11",label:"喷灯烘烤 / 分层剥开 / 重贴新卷材",score:0.75,terms:["喷灯烘烤","分层剥开","重贴新卷材"],hit:false,
+     tn:"你写到了「喷灯烘烤」「重贴新卷材」,但漏了「分层剥开」旧卷材——这是把新旧卷材连成一体的关键一步"}
+  ],
+  warm:"你已经写出了割补的大框架,这很不容易——很多人连「要先放气」都想不到。就差一个动作:重贴新卷材前要「<b class='lead-w'>分层剥开</b>」,这是把新旧卷材连成一体的关键。补上这一句,这 0.75 分稳稳到手。",
+  honesty:"判分锚 = Q18-1A434000 · training_org 估分口径 · 非官方阅卷;范围外采分点 not_evaluated,不算漏答。"
+};
+
+var app = document.getElementById('app');
+var navt = document.getElementById('navt');
+var navd = document.getElementById('navd');
+var back = document.getElementById('back');
+var S = {screen:"home", picked:null, confi:0, submitted:false, caseRevealed:false};
+
+function setNav(t,d,showBack){ navt.textContent=t; navd.textContent=d||''; back.style.display=showBack?'block':'none'; }
+function goBack(){ if(S.screen==="case"||S.screen==="mcq"){ render("home"); } else { render("home"); } }
+function render(scr){ if(scr) S.screen=scr; if(S.screen==="home") return renderHome();
+  if(S.screen==="mcq") return renderMcq(); if(S.screen==="done") return renderDone();
+  if(S.screen==="case") return renderCase(); }
+
+// —— 首页:今日一刀 ——
+function renderHome(){
+  setNav("今日一刀","第 1 天",false);
+  app.innerHTML =
+    '<span class="streak">🔥 已连续到场 3 天 · 攻克 2 个误解</span>'+
+    '<div class="plan">这是一个 5 天的留存实验,你在第 1 天。每天只给你一件最该做的事,约 2 分钟。</div>'+
+    '<div class="lead"><div class="k">今天只练你最常丢分的一块</div>'+
+      '<div class="v">'+D1.cut+'</div>'+
+      '<div class="meta">1 道 · 约 2 分钟 · 选错当场告诉你为什么</div></div>'+
+    '<div class="card"><div class="hint">第一天还没有「昨天的错题」。今天做完,明天第一题会换个场景,帮你复测今天想通的这一点。</div></div>'+
+    '<button class="cta" onclick="render(\'mcq\')">开始(约 2 分钟)</button>'+
+    '<div class="subtle" onclick="render(\'case\')">看看案例题是怎么「按采分点」批的 →</div>';
+}
+
+// —— MCQ:选项 + 把握度 + 诊断 ——
+function renderMcq(){
+  setNav("这一题","第 1 天 · 1/1",true);
+  var opts = D1.opts.map(function(o){ var cls='opt';
+    if(S.submitted){ if(o.k===D1.ans) cls+=' right'; else if(o.k===S.picked) cls+=' wrong'; else cls+=' dim'; }
+    else if(o.k===S.picked) cls+=' sel';
+    return '<div class="'+cls+'" onclick="pick(\''+o.k+'\')"><span class="lab">'+o.k+'</span><span>'+o.t+'</span></div>';
+  }).join('');
+  var confi='';
+  if(S.picked && !S.submitted){ var st='';
+    for(var i=1;i<=5;i++){ st+='<span class="'+(i<=S.confi?'lit':'')+'" onclick="setConfi('+i+')">★</span>'; }
+    confi='<div class="confi"><div class="q">提交前 —— 你几分把握?</div><div class="qs">这一步只花 2 秒,却能告诉我们:你是真懂,还是蒙的。</div><div class="stars">'+st+'</div></div>';
+  }
+  var after='',cta='';
+  if(!S.submitted){ var ready=S.picked&&S.confi>0;
+    cta='<button class="cta" '+(ready?'':'disabled')+' onclick="submit()">'+(S.picked?(S.confi>0?'提交':'给个把握度再提交'):'先选一个答案')+'</button>';
+  } else {
+    if(S.picked===D1.ans){ var calib = S.confi>=4
+        ? '你给了 '+S.confi+' 分把握又答对——这个点你是<b>真懂</b>,记牢了。'
+        : '你只有 '+S.confi+' 分把握却答对了——有点「蒙对」的成分,这个点建议明天再碰一次更稳。';
+      after='<div class="diag good"><h4>对了 👍 而且心里有数</h4><p>'+D1.right+'</p>'+
+        '<div class="why">'+calib+'</div></div>'+
+        seethruBlock()+ warmBlock()+ hookBlock();
+    } else { var d=D1.diag[S.picked];
+      after='<div class="diag bad"><h4>选 '+S.picked+' 的人很多——但都差在同一步</h4>'+
+        '<span class="tag err">'+d.err+'</span><span class="tag code">'+d.code+'</span>'+
+        '<div class="why">'+d.why+'</div>'+
+        '<div class="src">📖 '+D1.src+'</div></div>'+
+        seethruBlock()+ warmBlock()+ hookBlock();
+    }
+    cta='<button class="cta green" onclick="render(\'done\')">完成今天</button>';
+  }
+  app.innerHTML='<div class="q-meta">'+D1.meta+' <span class="vbadge ok">已多模型共识</span></div>'+
+    '<div class="stem">'+D1.stem+'</div>'+opts+confi+after+cta;
+}
+function seethruBlock(){ var rows=D1.seethru.map(function(r){
+    return '<div class="row"><span class="rk">'+r.k+'</span><span>'+r.v+'</span></div>'; }).join('');
+  return '<div class="seethru"><div style="font-size:12px;color:#7a6f63;margin-bottom:4px">这题的门道</div>'+rows+'</div>'; }
+function warmBlock(){ return '<div class="warm">'+D1.warm+'</div>'; }
+function hookBlock(){ return '<div class="hook"><b>明天见。</b>'+D1.tomorrow+'</div>'; }
+function pick(k){ if(S.submitted) return; S.picked=k; renderMcq(); }
+function setConfi(n){ if(S.submitted) return; S.confi=n; renderMcq(); }
+function submit(){ if(!S.picked||S.confi===0) return; S.submitted=true; renderMcq(); }
+
+// —— 收尾:今日到此·明天见 + 加练支线 ——
+function renderDone(){
+  setNav("今日完成","第 1 天",false);
+  var correct = S.picked===D1.ans;
+  app.innerHTML=
+    '<div class="win"><div class="big">今日 1 题 · 已完成</div>'+
+      '<div class="sub">'+(correct?'这一点你今天想通了 · ':'今天差的这一步已记下 · ')+'明天换个场景帮你复测</div></div>'+
+    '<div class="streak-line">'+
+      '<div class="sd on">1</div><div class="sd on">2</div><div class="sd on">3</div>'+
+      '<div class="sd today">4</div><div class="sd">5</div></div>'+
+    '<div class="plan" style="text-align:center">🔥 连续到场 4 天 —— 断了也没关系,回来接着攒</div>'+
+    '<div class="card"><div class="hint">「顺水搭接」这个误解,你已经 <b>连续 3 天没再犯</b>。这比正确率百分比更说明你真的会了。</div></div>'+
+    '<div class="hook" style="text-align:center"><b>明天的约定 ·</b> '+D1.tomorrow+'</div>'+
+    '<button class="cta ghost" onclick="render(\'home\')">今天到此,明天见</button>'+
+    '<div class="subtle" onclick="render(\'case\')">还想练?再看一道同类(不算今日任务)→</div>';
+}
+
+// —— 案例采分点逐点判分(觉晓式) ——
+function renderCase(){
+  setNav("案例 · 按采分点批","深度层预览",true);
+  if(!S.caseRevealed){
+    app.innerHTML=
+      '<div class="q-meta">'+CASE.cut+'</div>'+
+      '<div class="stem">'+CASE.stem+'</div>'+
+      '<div class="plan">这里不给选项,你自己写。提交后,AI 会<b>按真实阅卷采分点</b>逐条告诉你:哪句踩到分、哪句差一口气——采分点在你提交前不会显示,不是让你抄关键词。</div>'+
+      '<div class="q-meta" style="margin-top:10px">你的作答(原型已替你填一份示例)</div>'+
+      '<textarea class="ta">'+CASE.sample+'</textarea>'+
+      '<button class="cta" onclick="S.caseRevealed=true;renderCase()">提交,按采分点批改</button>';
+    return;
+  }
+  var got=0,full=0,rows='';
+  CASE.points.forEach(function(p){ full+=p.score; if(p.hit) got+=p.score;
+    rows += p.hit
+      ? '<div class="ptrow hit"><span class="ic">✓ +'+p.score+'</span><span><span class="lbl">'+p.label+'</span> <span class="tag code">'+p.id+'</span><div class="tn">'+p.tn+'</div></span></div>'
+      : '<div class="ptrow miss"><span class="ic">✗ 0</span><span><span class="lbl">'+p.label+'</span> <span class="tag code">'+p.id+'</span><div class="tn">'+p.tn+'</div></span></div>';
+  });
+  app.innerHTML=
+    '<div class="q-meta">'+CASE.cut+' · 采分点判分</div>'+
+    '<div class="scorebar"><span>本题采分点得分</span><span class="s">'+got+' / '+full+'</span></div>'+
+    rows+
+    '<div class="warm">'+CASE.warm+'</div>'+
+    '<div class="src">⚖️ '+CASE.honesty+'</div>'+
+    '<button class="cta green" onclick="S.caseRevealed=false;render(\'home\')">回到今日一刀</button>';
+}
+
+render("home");
+</script>
+</body>
+</html>

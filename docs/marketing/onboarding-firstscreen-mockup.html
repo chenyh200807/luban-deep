@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鲁班AI智考 · 理想首屏原型</title>
+<style>
+  :root{
+    --blue:#2563EB; --blue-deep:#1D4FD7; --blue-soft:#EAF1FF;
+    --ink:#1B2330; --ink2:#5A6474; --ink3:#9AA3B2;
+    --ok:#12A150; --ok-soft:#E7F7EE; --warn:#E8853B; --warn-soft:#FDF1E7;
+    --line:#EDF0F5; --bg:#F4F6FA; --card:#FFFFFF;
+    --gold:#E8B23B;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(160deg,#e9eef7,#dde5f2);min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;padding:24px 12px;color:var(--ink)}
+  .caption{color:#54607a;font-size:13px;margin-bottom:14px;text-align:center;line-height:1.6}
+  .caption b{color:#2b3960}
+
+  /* phone frame */
+  .phone{width:390px;max-width:100%;height:820px;background:var(--bg);border-radius:44px;
+    box-shadow:0 30px 70px rgba(24,40,80,.28),0 2px 0 #fff inset;position:relative;overflow:hidden;
+    border:10px solid #10151f}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:28px;
+    background:#10151f;border-radius:0 0 18px 18px;z-index:50}
+  .status{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;
+    justify-content:space-between;padding:0 24px;font-size:13px;font-weight:600;color:var(--ink);z-index:40}
+  .screen{position:absolute;inset:0;padding:52px 20px 20px;display:none;flex-direction:column;
+    animation:fade .38s ease-out}
+  .screen.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .brand{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:6px}
+  .brand .logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--blue),#4C86FF);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px}
+  .brand .name{font-weight:800;font-size:16px;letter-spacing:.5px}
+  .brand .name span{color:var(--blue)}
+
+  /* WELCOME */
+  .hero{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:18px}
+  .hero .kicker{color:var(--blue);font-weight:700;font-size:13px;letter-spacing:1px}
+  .hero h1{font-size:27px;line-height:1.35;font-weight:800;letter-spacing:.5px}
+  .hero h1 em{font-style:normal;color:var(--blue);position:relative}
+  .hero h1 em:after{content:"";position:absolute;left:0;right:0;bottom:2px;height:8px;
+    background:rgba(37,99,235,.16);border-radius:4px;z-index:-1}
+  .hero p{color:var(--ink2);font-size:15px;line-height:1.7}
+  .illus{width:150px;height:150px;margin:0 auto;border-radius:30px;
+    background:radial-gradient(120px 120px at 50% 35%,#fff,#EAF1FF);
+    display:flex;align-items:center;justify-content:center;position:relative;
+    box-shadow:0 12px 30px rgba(37,99,235,.14)}
+  .illus .big{font-size:64px}
+  .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 13px;
+    font-size:12.5px;color:var(--ink2);font-weight:600}
+  .chip b{color:var(--ok)}
+
+  .cta{background:linear-gradient(135deg,var(--blue),var(--blue-deep));color:#fff;border:none;
+    border-radius:16px;padding:17px;font-size:17px;font-weight:800;width:100%;cursor:pointer;
+    box-shadow:0 10px 24px rgba(37,99,235,.32);transition:transform .12s ease-out,box-shadow .12s;
+    letter-spacing:1px}
+  .cta:active{transform:scale(.975);box-shadow:0 6px 16px rgba(37,99,235,.28)}
+  .cta.ghost{background:#fff;color:var(--blue);border:1.5px solid #D7E3FF;box-shadow:none}
+  .subcta{text-align:center;color:var(--ink3);font-size:12.5px;margin-top:12px}
+
+  /* progress */
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .pbar{flex:1;height:8px;background:#E7ECF4;border-radius:99px;overflow:hidden}
+  .pfill{height:100%;background:linear-gradient(90deg,var(--blue),#5B93FF);border-radius:99px;
+    transition:width .5s cubic-bezier(.4,0,.2,1)}
+  .pnum{font-size:13px;font-weight:700;color:var(--ink2);white-space:nowrap}
+
+  /* QUESTION */
+  .qtag{display:inline-flex;align-items:center;gap:6px;background:var(--blue-soft);color:var(--blue);
+    font-size:12px;font-weight:700;padding:5px 11px;border-radius:8px;align-self:flex-start;margin-bottom:12px}
+  .qtext{font-size:19px;font-weight:700;line-height:1.5;margin-bottom:6px}
+  .qhint{color:var(--ink3);font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:6px}
+  .qhint .hand{animation:point 1.2s ease-in-out infinite}
+  @keyframes point{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+  .opts{display:flex;flex-direction:column;gap:11px;flex:1}
+  .opt{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:16px 15px;
+    font-size:15.5px;font-weight:600;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:12px;
+    transition:all .14s ease-out;text-align:left}
+  .opt:active{transform:scale(.98)}
+  .opt .key{width:26px;height:26px;border-radius:8px;background:#F1F4F9;color:var(--ink2);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+  .opt.sel{border-color:var(--blue);background:var(--blue-soft)}
+  .opt.sel .key{background:var(--blue);color:#fff}
+  .opt.correct{border-color:var(--ok);background:var(--ok-soft)}
+  .opt.correct .key{background:var(--ok);color:#fff}
+  .opt.wrong{border-color:#E9B4B4;background:#FBEEEE}
+  .opt.wrong .key{background:#D96B6B;color:#fff}
+
+  /* FEEDBACK sheet */
+  .fb{background:#fff;border-radius:20px 20px 0 0;padding:22px 20px 20px;margin:0 -20px -20px;
+    box-shadow:0 -8px 30px rgba(20,30,60,.10);animation:up .34s ease-out}
+  @keyframes up{from{transform:translateY(60px);opacity:.5}to{transform:none;opacity:1}}
+  .fb .head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .fb .badge{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-size:20px;flex-shrink:0}
+  .fb.good .badge{background:var(--ok-soft)}
+  .fb.miss .badge{background:var(--warn-soft)}
+  .fb .ttl{font-size:16px;font-weight:800}
+  .fb.good .ttl{color:var(--ok)}
+  .fb.miss .ttl{color:var(--warn)}
+  .fb .body{color:var(--ink2);font-size:14px;line-height:1.65;margin-bottom:16px}
+  .fb .body b{color:var(--ink)}
+
+  /* DIAGNOSIS */
+  .diag{flex:1;display:flex;flex-direction:column;gap:16px;overflow:auto}
+  .diag .cap{text-align:center}
+  .diag .cap .t{font-size:22px;font-weight:800;margin-bottom:4px}
+  .diag .cap .s{color:var(--ink2);font-size:14px}
+  .card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 6px 18px rgba(20,30,60,.06)}
+  .weak{border:1.5px solid #FFE0C2;background:linear-gradient(180deg,#FFF9F3,#fff)}
+  .weak .row1{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .weak .dot{width:10px;height:10px;border-radius:50%;background:var(--warn)}
+  .weak .lab{font-size:12.5px;font-weight:700;color:var(--warn);letter-spacing:.5px}
+  .weak h3{font-size:19px;font-weight:800;margin-bottom:8px}
+  .weak .meta{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .weak .m{background:#FFF1E3;color:#C4692A;font-size:12px;font-weight:700;padding:5px 10px;border-radius:8px}
+  .weak .warm{color:var(--ink2);font-size:14px;line-height:1.65;border-top:1px dashed #F0E2D2;padding-top:12px}
+  .weak .warm b{color:var(--warn)}
+  .map .maprow{display:flex;align-items:center;gap:12px}
+  .map .ring{width:64px;height:64px;border-radius:50%;flex-shrink:0;
+    background:conic-gradient(var(--blue) 0 33%,#E7ECF4 33% 100%);display:flex;align-items:center;justify-content:center}
+  .map .ring i{width:48px;height:48px;border-radius:50%;background:#fff;display:flex;align-items:center;
+    justify-content:center;font-style:normal;font-weight:800;font-size:16px;color:var(--blue)}
+  .map .mt{font-size:15px;font-weight:700;margin-bottom:3px}
+  .map .ms{color:var(--ink2);font-size:13px;line-height:1.5}
+  .social{display:flex;align-items:center;gap:8px;justify-content:center;color:var(--ink3);font-size:12.5px}
+  .social .av{display:flex}
+  .social .av span{width:20px;height:20px;border-radius:50%;border:2px solid #fff;margin-left:-6px;
+    background:#cdd8ec;display:inline-block}
+
+  .foot{padding-top:8px}
+  .restart{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:60;
+    background:rgba(16,21,31,.82);color:#fff;border:none;border-radius:99px;padding:8px 16px;font-size:12px;
+    cursor:pointer;backdrop-filter:blur(4px)}
+</style>
+</head>
+<body>
+  <div class="caption">
+    <b>鲁班AI智考 · 理想首屏原型</b><br>
+    第 1 屏就是"理想首页"。点绿色按钮一路走下去,感受 60 秒首答闭环。（这是静态原型,真实产品首答题需<b>预制秒开</b>）
+  </div>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status"><span>9:41</span><span>鲁班AI智考</span></div>
+
+    <!-- 1. WELCOME (理想首页) -->
+    <section class="screen active" id="s-welcome">
+      <div class="brand"><div class="logo">鲁</div><div class="name">鲁班<span>AI智考</span></div></div>
+      <div class="hero">
+        <div class="illus"><div class="big">🎯</div></div>
+        <div>
+          <div class="kicker">建筑实务 · 专属提分</div>
+          <h1>60秒，先帮你<br>看看<em>最该先补哪一块</em></h1>
+        </div>
+        <p>不用想问什么，先答一道题。<br>答完，你就有一份专属的薄弱点诊断。</p>
+        <div class="chips">
+          <div class="chip"><b>免费</b> 体验</div>
+          <div class="chip">不用注册</div>
+          <div class="chip">答完<b>就有结果</b></div>
+        </div>
+      </div>
+      <div class="foot">
+        <button class="cta" onclick="go('q1')">开始，先测一道 →</button>
+        <div class="subcta">已有 3,000+ 建筑实务考生用它找到薄弱点</div>
+      </div>
+    </section>
+
+    <!-- 2. Q1 -->
+    <section class="screen" id="s-q1">
+      <div class="topbar"><div class="pbar"><div class="pfill" style="width:33%"></div></div><div class="pnum">1 / 3</div></div>
+      <div class="qtag">🧱 高频考点 · 建筑分类</div>
+      <div class="qtext">建筑高度 27m 的住宅，属于下列哪一类？</div>
+      <div class="qhint"><span class="hand">👆</span> 轮到你了，点一个就行</div>
+      <div class="opts" id="q1opts">
+        <div class="opt" data-k="A" onclick="pick(this,'q1',false)"><span class="key">A</span>多层住宅</div>
+        <div class="opt" data-k="B" onclick="pick(this,'q1',true)"><span class="key">B</span>高层住宅</div>
+        <div class="opt" data-k="C" onclick="pick(this,'q1',false)"><span class="key">C</span>超高层建筑</div>
+        <div class="opt" data-k="D" onclick="pick(this,'q1',false)"><span class="key">D</span>低层住宅</div>
+      </div>
+      <div id="q1fb"></div>
+    </section>
+
+    <!-- 3. Q2 -->
+    <section class="screen" id="s-q2">
+      <div class="topbar"><div class="pbar"><div class="pfill" style="width:66%"></div></div><div class="pnum">2 / 3</div></div>
+      <div class="qtag">🧱 高频考点 · 易混淆</div>
+      <div class="qtext">下列建筑中，属于高层建筑的是？</div>
+      <div class="qhint"><span class="hand">👆</span> 这道很多人栽，凭第一感觉选</div>
+      <div class="opts" id="q2opts">
+        <div class="opt" data-k="A" onclick="pick(this,'q2',false)"><span class="key">A</span>建筑高度 24m 的普通住宅</div>
+        <div class="opt" data-k="B" onclick="pick(this,'q2',true)"><span class="key">B</span>建筑高度 25m 的省级广电楼（非单层公共建筑）</div>
+        <div class="opt" data-k="C" onclick="pick(this,'q2',false)"><span class="key">C</span>建筑高度 21m 的办公楼</div>
+        <div class="opt" data-k="D" onclick="pick(this,'q2',false)"><span class="key">D</span>建筑高度 18m 的厂房</div>
+      </div>
+      <div id="q2fb"></div>
+    </section>
+
+    <!-- 4. Q3 -->
+    <section class="screen" id="s-q3">
+      <div class="topbar"><div class="pbar"><div class="pfill" style="width:100%"></div></div><div class="pnum">3 / 3</div></div>
+      <div class="qtag">🧱 高频考点 · 超高层分界</div>
+      <div class="qtext">建筑高度超过多少米的民用建筑，为超高层建筑？</div>
+      <div class="qhint"><span class="hand">👆</span> 最后一道，答完就出你的诊断</div>
+      <div class="opts" id="q3opts">
+        <div class="opt" data-k="A" onclick="pick(this,'q3',false)"><span class="key">A</span>50m</div>
+        <div class="opt" data-k="B" onclick="pick(this,'q3',false)"><span class="key">B</span>80m</div>
+        <div class="opt" data-k="C" onclick="pick(this,'q3',true)"><span class="key">C</span>100m</div>
+        <div class="opt" data-k="D" onclick="pick(this,'q3',false)"><span class="key">D</span>150m</div>
+      </div>
+      <div id="q3fb"></div>
+    </section>
+
+    <!-- 5. DIAGNOSIS -->
+    <section class="screen" id="s-diag">
+      <div class="diag">
+        <div class="cap">
+          <div class="t">🎉 你的第一份诊断</div>
+          <div class="s">答了 3 题，我帮你看到 1 个最该先补的地方</div>
+        </div>
+
+        <div class="card map">
+          <div class="maprow">
+            <div class="ring"><i>33%</i></div>
+            <div>
+              <div class="mt">建筑分类 · 初步掌握度</div>
+              <div class="ms">3 题里答对 1 题。<br>不是你不行，是这块的分界点还没串稳。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card weak">
+          <div class="row1"><span class="dot"></span><span class="lab">最该先补的点</span></div>
+          <h3>高层 / 超高层的高度分界</h3>
+          <div class="meta">
+            <span class="m">近3年考了 4 次</span>
+            <span class="m">你刚好差一点</span>
+          </div>
+          <div class="warm">住宅 27m、公共建筑 24m、超高层 100m——<b>你只差把这几个数字串到一起</b>。补稳它，这类题就稳拿分了。</div>
+        </div>
+
+        <div class="social">
+          <span class="av"><span></span><span></span><span></span></span>
+          已有 <b>&nbsp;186&nbsp;</b> 位考生在这里补上了这个点
+        </div>
+
+        <div class="foot">
+          <button class="cta" onclick="go('welcome')">继续攻克这个薄弱点 →</button>
+          <button class="cta ghost" style="margin-top:10px" onclick="go('welcome')">看我的完整学习计划</button>
+        </div>
+      </div>
+    </section>
+
+    <button class="restart" onclick="go('welcome')">↻ 重新体验</button>
+  </div>
+
+<script>
+  function go(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('s-'+id).classList.add('active');
+    // reset question states when returning to welcome
+    if(id==='welcome'){ ['q1','q2','q3'].forEach(resetQ); }
+  }
+  function resetQ(q){
+    const box=document.getElementById(q+'opts');
+    box.querySelectorAll('.opt').forEach(o=>{o.className='opt';o.style.pointerEvents='auto';});
+    document.getElementById(q+'fb').innerHTML='';
+  }
+  const NEXT={q1:'q2',q2:'q3',q3:'diag'};
+  const FB={
+    q1:{good:'答对了 ✅ 你是真懂了，不是蒙的',
+        goodBody:'27m 是<b>住宅</b>高层的分界线。这个你拿得稳，继续。',
+        miss:'差一点点，再看一眼就稳了 👇',
+        missBody:'住宅超过 <b>27m</b> 就是高层了。记住这个数，下次就是你的送分题。'},
+    q2:{good:'漂亮 ✅ 这道一半人都会栽',
+        goodBody:'公共建筑的高层分界是 <b>24m</b>（不是住宅的 27m）。25m 的广电楼正好过线。',
+        miss:'别急，这道本来就绕 👇',
+        missBody:'关键在<b>公共建筑看 24m</b>、住宅看 27m。25m 的广电楼是公共建筑，已经算高层了。'},
+    q3:{good:'稳 ✅ 三个分界你差不多串起来了',
+        goodBody:'超高层的分界是 <b>100m</b>。住宅27 / 公共24 / 超高层100，就这三个数。',
+        miss:'就差这一下 👇',
+        missBody:'超高层是超过 <b>100m</b>。把它和 27m、24m 放一起记，这块就通了。'}
+  };
+  function pick(el,q,correct){
+    const box=document.getElementById(q+'opts');
+    box.querySelectorAll('.opt').forEach(o=>o.style.pointerEvents='none');
+    el.classList.add(correct?'correct':'wrong');
+    if(!correct){ // also show the correct one gently
+      box.querySelectorAll('.opt').forEach(o=>{
+        // mark correct answer
+        const map={q1:'B',q2:'B',q3:'C'};
+        if(o.dataset.k===map[q]) o.classList.add('correct');
+      });
+    }
+    const f=FB[q];
+    const cls=correct?'good':'miss';
+    const icon=correct?'✅':'🔍';
+    const ttl=correct?f.good:f.miss;
+    const body=correct?f.goodBody:f.missBody;
+    document.getElementById(q+'fb').innerHTML=
+      `<div class="fb ${cls}">
+         <div class="head"><div class="badge">${icon}</div><div class="ttl">${ttl}</div></div>
+         <div class="body">${body}</div>
+         <button class="cta" onclick="go('${NEXT[q]}')">${q==='q3'?'看我的诊断结果 →':'下一题 →'}</button>
+       </div>`;
+    // scroll feedback into view
+    document.getElementById(q+'fb').scrollIntoView({behavior:'smooth',block:'end'});
+  }
+</script>
+</body>
+</html>

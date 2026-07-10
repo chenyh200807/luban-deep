@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F16 半写案例 · 理想完整版 v3</title>
+<style>
+  :root{--paper:#f4efe6;--card:#fffdf8;--ink:#2a2320;--sub:#7a6f63;--line:#e4dac9;
+    --red:#8a2b20;--red-bg:#f7e9e4;--green:#4a6b3d;--green-bg:#eaf0e3;--amber:#a9741a;--amber-bg:#f6ecd6;--gold:#c8962f;}
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#ded4c2;color:var(--ink);font-family:-apple-system,"PingFang SC","Kaiti SC","Microsoft YaHei",serif;
+    display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:22px 12px 60px}
+  .intro{max-width:560px;text-align:center;margin-bottom:14px}
+  .intro h1{font-size:17px;margin:0 0 6px;color:#3a2f28}
+  .intro p{font-size:13px;color:#6a5f52;line-height:1.75;margin:3px 0}
+  .phone{width:376px;background:#fffdf8;border-radius:34px;padding:11px;box-shadow:0 16px 46px rgba(60,40,25,.22);border:1px solid #e7ddcb}
+  .screen{background:var(--paper);border-radius:26px;overflow:hidden;min-height:730px;display:flex;flex-direction:column;
+    background-image:radial-gradient(rgba(180,160,130,.10) 1px,transparent 1px);background-size:15px 15px}
+  .statusbar{display:flex;justify-content:space-between;padding:12px 20px 4px;font-size:11.5px;color:#a89a84}
+  .topbar{display:flex;align-items:center;gap:8px;padding:9px 17px 12px;border-bottom:1px solid var(--line);background:rgba(255,253,248,.7)}
+  .topbar .t{font-size:15.5px;font-weight:700}
+  .topbar .chip{margin-left:auto;font-size:11px;color:var(--red);background:var(--red-bg);border:1px solid #e6cabf;border-radius:20px;padding:3px 9px;white-space:nowrap}
+  .body{padding:16px 16px 24px;overflow:auto;flex:1}
+  .tag{font-size:11.5px;color:var(--sub);font-weight:600;letter-spacing:.5px;margin-bottom:6px}
+  .bg{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 14px;font-size:14px;line-height:1.85;color:#3a2f24}
+  .bg .h{font-weight:700;color:var(--red);font-size:12.5px;margin-bottom:5px}
+  .ask{font-size:15px;font-weight:700;color:#332a23;margin:15px 0 4px;line-height:1.6}
+  .hint{font-size:12.5px;color:var(--amber);background:var(--amber-bg);border:1px solid #e3cf9f;border-radius:10px;padding:9px 11px;margin:9px 0;line-height:1.6}
+  .ta{width:100%;min-height:88px;border:1.5px solid #d8c8ac;border-radius:13px;padding:13px;font-size:14.5px;font-family:inherit;background:var(--card);color:#3a2f24;line-height:1.85;resize:none}
+  .tanote{font-size:11.5px;color:var(--sub);text-align:right;margin-top:5px}
+  .go{display:block;width:100%;text-align:center;background:var(--red);color:#fbeee6;border:none;border-radius:14px;padding:15px;font-size:16px;font-weight:700;margin-top:12px;cursor:pointer;letter-spacing:.5px}
+  .praise{background:var(--green-bg);border:1px solid #cad8ba;border-radius:15px;padding:15px 16px;margin-top:4px;font-size:15px;line-height:1.8;color:#3a4a30}
+  .praise .big{font-size:16.5px;font-weight:800;color:var(--green)}
+  /* 工序图 */
+  .flow{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 2px;align-items:stretch}
+  .fstep{flex:1 1 30%;min-width:88px;border:1px solid #cad8ba;background:var(--green-bg);border-radius:10px;padding:8px 6px;text-align:center;font-size:12px;color:var(--green);position:relative}
+  .fstep .k{font-weight:700;display:block;font-size:12.5px}
+  .fstep .c{font-size:10px;color:#6a8055}
+  .fstep.miss{border:1.5px dashed var(--amber);background:var(--amber-bg);color:var(--amber)}
+  .fstep.miss .k{color:var(--amber)}
+  .fstep.miss .c{color:#a9741a;font-weight:700}
+  .why{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px;margin-top:14px}
+  .why .step{font-size:17px;font-weight:800;color:var(--amber);margin-bottom:8px}
+  .why .txt{font-size:14px;line-height:1.85;color:#4a4038}
+  .why .txt b{color:var(--red)}
+  .why .src{font-size:12.5px;color:#5d6b4a;margin-top:11px;padding-top:10px;border-top:1px dashed var(--line)}
+  .cover{display:flex;justify-content:space-between;align-items:baseline;background:#2a2320;color:#f4efe6;border-radius:14px;padding:14px 17px;margin-top:14px}
+  .cover .s{font-size:20px;font-weight:800}.cover .s small{font-size:12px;opacity:.7;font-weight:400}
+  .later{display:flex;gap:10px;align-items:center;background:var(--red-bg);border:1px solid #e6cabf;border-radius:13px;padding:13px 14px;margin-top:12px;font-size:13.5px;line-height:1.7;color:var(--red)}
+  .later .ic{font-size:18px;flex:none}
+  .note{font-size:11.5px;color:#9a8f80;margin-top:12px;line-height:1.65;text-align:center}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>F16 起鼓割补 · 半写案例(理想完整版 v3)</h1>
+  <p>真案例(带背景资料)→ 学员半写作答 → 友好反馈。<br>题目写清、"半写"这一步真出现、带一条工序图、分值诚实标注。</p>
+</div>
+<div class="phone"><div class="screen">
+  <div class="statusbar"><span>9:41</span><span>鲁班智考</span><span>📶 🔋</span></div>
+  <div class="topbar"><span class="t" id="tt">屋面防水 · 半写作答</span><span class="chip">刚看完微课：起鼓割补</span></div>
+  <div class="body" id="body"></div>
+</div></div>
+<script>
+var b=document.getElementById('body'), tt=document.getElementById('tt');
+function write(){
+  tt.textContent='屋面防水 · 半写作答';
+  b.innerHTML=
+    '<div class="tag">案例 · 背景资料</div>'+
+    '<div class="bg"><div class="h">【工程背景】</div>某住宅工程屋面采用<b>高聚物改性沥青卷材</b>防水层。竣工验收时发现：屋面局部出现数处直径约 30cm 的<b>鼓包</b>，按压有空鼓感。项目部决定对起鼓部位作<b>割补处理</b>。</div>'+
+    '<div class="ask">问：请写出起鼓部位卷材<b>割补的施工工序</b>。</div>'+
+    '<div class="hint">💡 半写：写关键工序词就行，不用整句（例：放气、擦干…按顺序列出）。</div>'+
+    '<div class="tag" style="margin-top:6px">你的作答</div>'+
+    '<textarea class="ta">割开放气、擦干水分、清除旧胶结料、喷灯烘烤、重新粘贴新卷材、周边压实刮平</textarea>'+
+    '<div class="tanote">原型已替你填一份示例作答 · 真机是空白，学员自己写</div>'+
+    '<button class="go" onclick="feedback()">提交，看批改</button>';
+}
+function feedback(){
+  tt.textContent='屋面防水 · 批改';
+  var STEPS=[
+    ['1 放气','割开鼓泡',true],['2 擦干','擦干水分',true],['3 清旧胶','清除旧胶结料',true],
+    ['4 烘烤','喷灯烘烤槎口',true],['5 分层剥开','← 你漏了',false],
+    ['6 重贴','重贴新卷材',true],['7 压实','周边压实刮平',true]
+  ];
+  var flow=STEPS.map(function(s){
+    return '<div class="fstep'+(s[2]?'':' miss')+'"><span class="k">'+s[0]+'</span><span class="c">'+s[1]+'</span></div>';
+  }).join('');
+  b.innerHTML=
+    '<div class="praise"><span class="big">写得不错 👍</span>　起鼓割补的关键工序，你踩到了 <b>6 处</b>：放气、擦干、清旧胶、烘烤、重贴、压实——顺序也对。</div>'+
+    '<div class="tag" style="margin-top:16px">标准工序 · 你漏的那步标黄</div>'+
+    '<div class="flow">'+flow+'</div>'+
+    '<div class="why"><div class="step">你漏了第 5 步：分层剥开</div>'+
+    '<div class="txt">贴新卷材前，要先把翘起的旧卷材<b>一层层剥开</b>、清理干净再贴。<br>为什么评分和现场都卡这一步：鼓包下面是<b>层间空鼓 + 残留旧胶</b>，不剥开清净就直接盖新的，层间还会<b>再次起鼓</b>——等于白补一次。</div>'+
+    '<div class="src">📖 教材原文：屋面防水 · 起鼓割补工序（1A434000 P.XX）</div></div>'+
+    '<div class="cover"><span>关键采分点</span><span class="s">踩到 6 / 7 <small>项</small></span></div>'+
+    '<div class="later"><span class="ic">🗓️</span><div>"分层剥开"这处记进你的<b>复习本</b> —— 过几天换道题再考你一次，帮你真正记牢，不占现在时间。</div></div>'+
+    '<div class="note">对错由判分内核判定（真值在后台），AI 只负责怎么讲。每项点值以官方评分标准为准；本演示的采分点切分为样例，非官方逐点分值 · training_org 估分 · 待金标校准。</div>';
+}
+write();
+</script>
+</body>
+</html>

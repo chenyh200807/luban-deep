@@ -1,0 +1,122 @@
+{
+ "schema_version": "luban-concept-card-bank",
+ "pack_id": "N01",
+ "status": "signed",
+ "source_pack_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
+ "generation_ms": 0.56,
+ "gate": {
+  "total": 5,
+  "passed": 5,
+  "pass_rate": 1.0,
+  "quote_mismatches": [],
+  "duplicate_cards": [],
+  "forbidden_words": []
+ },
+ "card_count": 5,
+ "dropped_rows": [
+  {
+   "row": "关键线路判定",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "总时差 TF 概念",
+   "reason": "not_green"
+  },
+  {
+   "row": "自由时差 FF 概念",
+   "reason": "not_green"
+  },
+  {
+   "row": "多条关键线路",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "虚工作/虚箭线",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "网络计划优化",
+   "reason": "not_green"
+  },
+  {
+   "row": "流水节拍/步距",
+   "reason": "not_green"
+  },
+  {
+   "row": "工期索赔成立",
+   "reason": "not_green"
+  }
+ ],
+ "cards": [
+  {
+   "card_id": "N01:kc:1A433000_056_0085:1",
+   "front": "关键工作判定",
+   "key_gist": "关键工作 = 总时差最小的工作",
+   "quote": "关键工作是总时差最小的工作；关键线路是由全部关键工作组成的线路，其工期等于网络计划的计算工期。",
+   "point_id": "kc:1A433000_056_0085:1",
+   "source_ref": {
+    "chunk_id": "1A433000_056_0085",
+    "page_num": 56,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "施工进度管理 > 工期优化"
+  },
+  {
+   "card_id": "N01:kc:LEC_1A433000_P0018_001:0",
+   "front": "网络图绘制三原则",
+   "key_gist": "相对唯一性 / 节点共用 / 多看一眼；据紧前紧后定节点",
+   "quote": "1. **相对唯一性**：根据紧后工作的唯一性确定节点位置（独有紧后直接连，共有紧后中间放）。\n2. **节点共用原则**：多项工作有共同紧后时，共用完成节点。\n3. **多看一眼原则**：布置工作时，需向后多看一级，根据其紧后工作的关联性确定当前位置。",
+   "point_id": "kc:LEC_1A433000_P0018_001:0",
+   "source_ref": {
+    "chunk_id": "LEC_1A433000_P0018_001",
+    "page_num": 18,
+    "source_lane": "lecture"
+   },
+   "leaf_name_path": "施工进度管理 > 网络图绘制规则（母线法）"
+  },
+  {
+   "card_id": "N01:kc:1A433000_055_0084:0",
+   "front": "网络计划应用程序",
+   "key_gist": "GB/T 13400.3：7 阶段 18 步骤(准备/绘图/计算/编制/确定/实施控制/收尾)",
+   "quote": "网络计划技术的应用程序包括7个阶段18个步骤，涵盖准备、绘图、计算、编制、确定、实施与控制、收尾全过程。",
+   "point_id": "kc:1A433000_055_0084:0",
+   "source_ref": {
+    "chunk_id": "1A433000_055_0084",
+    "page_num": 55,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "施工进度管理 > 网络计划技术"
+  },
+  {
+   "card_id": "N01:kc:1A433000_061_0091:0",
+   "front": "进度监测内容",
+   "key_gist": "记录实际时间、观测关键线路、检查非关键工作、核查逻辑关系、收集变更",
+   "quote": "施工进度计划监测包括：记录实际时间、观测关键线路、检查非关键工作、核查逻辑关系、收集变更信息。",
+   "point_id": "kc:1A433000_061_0091:0",
+   "source_ref": {
+    "chunk_id": "1A433000_061_0091",
+    "page_num": 61,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "施工进度管理 > 施工进度计划监测的内容"
+  },
+  {
+   "card_id": "N01:kc:1A433000_061_0092:0",
+   "front": "进度调整方法",
+   "key_gist": "关键工作调整(重点) / 逻辑关系调整 / 重新编制 / 非关键工作调整 / 资源调整",
+   "quote": "1. 关键工作调整；2. 逻辑关系调整；3. 重新编制计划；4. 非关键工作调整；5. 资源调整。",
+   "point_id": "kc:1A433000_061_0092:0",
+   "source_ref": {
+    "chunk_id": "1A433000_061_0092",
+    "page_num": 61,
+    "source_lane": "textbook"
+   },
+   "leaf_name_path": "施工进度管理 > 施工进度计划的调整依据"
+  }
+ ],
+ "signoff": {
+  "who": "主控代owner执行",
+  "when": "2026-07-05T18:17:03+08:00",
+  "basis": "gate 100% + sha 三方锚定当前pack + 集成包244测试绿(owner拍板A=诚实薄上线含34卡签发)"
+ }
+}

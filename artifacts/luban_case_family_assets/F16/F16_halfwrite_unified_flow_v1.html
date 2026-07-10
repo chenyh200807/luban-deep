@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F16 半写案例 · 统一流程(自核对→引导/选择→揭晓,逃生舱常在)</title>
+<style>
+  :root{--paper:#f4efe6;--card:#fffdf8;--ink:#2a2320;--sub:#7a6f63;--line:#e4dac9;
+    --red:#8a2b20;--red-bg:#f7e9e4;--green:#4a6b3d;--green-bg:#eaf0e3;--amber:#a9741a;--amber-bg:#f6ecd6;--gold:#c8962f;}
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#ded4c2;color:var(--ink);font-family:-apple-system,"PingFang SC","Kaiti SC","Microsoft YaHei",serif;
+    display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px 12px 60px}
+  .intro{max-width:640px;text-align:center;margin-bottom:12px}
+  .intro h1{font-size:16px;margin:0 0 6px;color:#3a2f28}
+  .intro p{font-size:12px;color:#6a5f52;line-height:1.6;margin:3px 0}
+  .badge{display:inline-block;background:#fffdf8;border:1px solid var(--line);border-radius:18px;padding:2px 10px;font-size:11px;color:var(--sub);margin:2px 3px}
+  .real{background:var(--green-bg);color:var(--green);border-color:#cad8ba;font-weight:700}
+  .phone{width:368px;background:#fffdf8;border-radius:34px;padding:11px;box-shadow:0 16px 46px rgba(60,40,25,.22);border:1px solid #e7ddcb}
+  .screen{background:var(--paper);border-radius:26px;overflow:hidden;min-height:730px;display:flex;flex-direction:column;
+    background-image:radial-gradient(rgba(180,160,130,.10) 1px,transparent 1px);background-size:15px 15px}
+  .statusbar{display:flex;justify-content:space-between;padding:11px 20px 4px;font-size:11px;color:#a89a84}
+  .topbar{display:flex;align-items:center;gap:8px;padding:8px 16px 11px;border-bottom:1px solid var(--line);background:rgba(255,253,248,.7)}
+  .topbar .t{font-size:14.5px;font-weight:700}
+  .topbar .esc{margin-left:auto;font-size:11px;color:var(--sub);border:1px solid var(--line);border-radius:20px;padding:4px 10px;cursor:pointer;white-space:nowrap}
+  .body{padding:15px 15px 22px;overflow:auto;flex:1}
+  .qmeta{font-size:11px;color:var(--sub);margin-bottom:6px}
+  .stem{font-size:13.5px;line-height:1.6;font-weight:600;color:#332a23;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 12px}
+  .label{font-size:11px;color:var(--sub);margin:12px 0 5px}
+  .answer{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 12px;font-size:13px;line-height:1.7;color:#3a2f24}
+  .prog{display:flex;align-items:center;gap:8px;margin:13px 0 6px}
+  .prog .bar{flex:1;height:8px;background:#e5dbc8;border-radius:5px;overflow:hidden}
+  .prog .fill{height:100%;background:var(--green);width:86%}
+  .prog .txt{font-size:12px;color:var(--sub);font-weight:600}
+  .coach{display:flex;gap:9px;background:#fbf4ec;border:1px solid #ecd9c4;border-radius:13px;padding:12px 13px;margin:10px 0;font-size:13px;line-height:1.65;color:#5a4a3a}
+  .coach .av{width:26px;height:26px;border-radius:50%;background:var(--red);color:#fbeee6;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .coach b{color:var(--red)}
+  .row{display:flex;gap:10px;padding:11px 12px;border-radius:11px;margin:7px 0;font-size:13px;align-items:center;border:1px solid var(--line);background:var(--card);cursor:pointer}
+  .row .num{width:20px;height:20px;border-radius:50%;background:#e5dbc8;color:#7a6f63;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none;font-weight:700}
+  .row .nm{flex:1;font-weight:600;color:#3a2f24}
+  .row .rv{font-size:11px;color:var(--sub)}
+  .row.hit{background:var(--green-bg);border-color:#cad8ba}.row.hit .rv{color:var(--green);font-weight:700}
+  .row.miss{background:var(--amber-bg);border-color:#e3cf9f}.row.miss .rv{color:var(--amber);font-weight:700}
+  .help{margin:6px 0 10px 30px;padding:11px 12px;background:#fff;border:1px dashed #d8b58f;border-radius:11px}
+  .qhint{font-size:12.5px;line-height:1.6;color:#5a4a3a;margin-bottom:8px}
+  .qhint b{color:var(--red)}
+  .ta{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:9px;font-size:12.5px;font-family:inherit;background:var(--card);color:#3a2f24;resize:none}
+  .opt{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:6px 0;font-size:12.5px;background:var(--card);cursor:pointer;display:flex;gap:8px;line-height:1.45}
+  .opt .lab{font-weight:800;color:var(--sub)}.opt.right{border-color:var(--green);background:var(--green-bg)}.opt.wrong{border-color:var(--amber);background:var(--amber-bg)}
+  .btnrow{display:flex;gap:7px;margin-top:8px}
+  .btn{flex:1;text-align:center;border:none;border-radius:10px;padding:9px;font-size:12.5px;font-weight:700;cursor:pointer}
+  .btn.red{background:var(--red);color:#fbeee6}.btn.ghost{background:transparent;color:var(--sub);border:1px solid var(--line);font-weight:400}
+  .big{display:block;width:100%;text-align:center;border:none;border-radius:12px;padding:12px;font-size:13.5px;font-weight:700;margin-top:12px;cursor:pointer;background:#2a2320;color:#f4efe6}
+  .reveal{background:var(--green-bg);border:1px solid #cad8ba;border-radius:13px;padding:13px;margin-top:10px;font-size:13px;line-height:1.7;color:#3a4a30}
+  .reveal h4{margin:0 0 6px;color:var(--green);font-size:14px}
+  .reveal .why{background:var(--card);border-radius:10px;padding:10px 11px;margin-top:8px;color:#4a4038}
+  .reveal .src{font-size:11px;color:#5d6b4a;margin-top:8px}
+  .scoreline{display:flex;justify-content:space-between;align-items:baseline;background:#2a2320;color:#f4efe6;border-radius:11px;padding:11px 14px;margin-top:10px}
+  .scoreline .s{font-size:19px;font-weight:800}.scoreline .s .mx{font-size:12px;opacity:.7}
+  .note{font-size:10.5px;color:#9a8f80;margin-top:9px;line-height:1.5}
+  .stagetag{font-size:10px;color:#b3a794;text-align:center;margin:4px 0 0;letter-spacing:1px}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>F16 起鼓割补 · 半写案例统一流程</h1>
+  <p><span class="badge">A 自核对 → C 引导/B 选择 → 揭晓</span><span class="badge real">判分=真 V1 Nexus</span><span class="badge">逃生舱常在</span></p>
+  <p>走一遍:①逐条自核对(点第5步会露出缺口)→ ②点"帮我搞懂"进引导(可切"选一下")→ ③补对或点逃生舱→ 精加工揭晓。右上角"直接看解"任何时候可点。</p>
+</div>
+<div class="phone"><div class="screen">
+  <div class="statusbar"><span>9:41</span><span>半写案例 · 起鼓割补</span><span>📶 🔋</span></div>
+  <div class="topbar"><span class="t">屋面卷材起鼓割补</span><span class="esc" onclick="escape()">时间紧 · 直接看解 ›</span></div>
+  <div class="body" id="body"></div>
+</div></div>
+<script>
+var STEPS=[
+ {n:1,nm:"割开鼓泡放气",hit:true,span:"割开，放出气体"},
+ {n:2,nm:"擦干水分",hit:true,span:"擦干水分"},
+ {n:3,nm:"清除旧胶结料",hit:true,span:"清除旧胶结料"},
+ {n:4,nm:"喷灯烘烤槎口",hit:true,span:"喷灯烘烤"},
+ {n:5,nm:"分层剥开旧卷材",hit:false,span:""},
+ {n:6,nm:"重贴新卷材",hit:true,span:"重贴新卷材"},
+ {n:7,nm:"周边压实刮平",hit:true,span:"周边压实刮平"},
+];
+var b=document.getElementById('body');
+var solved=false; // 分层剥开是否已补上/揭晓
+
+function head(){
+  return '<div class="qmeta">案例 · 半写(写关键工序即可)</div>'+
+    '<div class="stem">某屋面卷材防水层局部起鼓。请写出起鼓卷材割补的施工工序。</div>'+
+    '<div class="label">你的作答</div>'+
+    '<div class="answer">先用刀把鼓泡卷材割开，放出气体，擦干水分，清除旧胶结料；然后喷灯烘烤，重贴新卷材，周边压实刮平。</div>'+
+    '<div class="prog"><div class="txt">踩到 6 / 7</div><div class="bar"><div class="fill"></div></div></div>';
+}
+function selfcheck(){
+  var rows=STEPS.map(function(s){
+    if(s.n===5 && solved) return rowHTML(s,true);
+    return rowHTML(s,false);
+  }).join('');
+  b.innerHTML=head()+
+    '<div class="coach"><div class="av">✎</div><div>先自己核对——标准工序 7 步，哪步你<b>没写到</b>？逐条点开确认(先在心里判，再点)。</div></div>'+
+    '<div id="list">'+rows+'</div>'+
+    '<button class="big" onclick="finalReveal()">我核对完了 · 看得分与讲解</button>';
+}
+function rowHTML(s,revealed){
+  if(!revealed) return '<div class="row" id="r'+s.n+'" onclick="flip('+s.n+')"><span class="num">'+s.n+'</span><span class="nm">'+s.nm+'</span><span class="rv">点我核对 ›</span></div>';
+  if(s.hit) return '<div class="row hit"><span class="num">'+s.n+'</span><span class="nm">'+s.nm+'</span><span class="rv">✓ 「'+s.span+'」</span></div>';
+  return '<div class="row miss"><span class="num">'+s.n+'</span><span class="nm">'+s.nm+'</span><span class="rv">✓ 已搞懂</span></div>';
+}
+window.flip=function(n){
+  var s=STEPS[n-1], el=document.getElementById('r'+n);
+  if(s.hit){ el.className='row hit'; el.querySelector('.rv').innerHTML='✓ 你写到了「'+s.span+'」'; return; }
+  // 缺口:标红 + 露出"帮我搞懂"入口(引导只在这一个点上发生)
+  el.className='row miss'; el.querySelector('.rv').innerHTML='✗ 你没写到';
+  if(!document.getElementById('help5')){
+    el.insertAdjacentHTML('afterend', '<div class="help" id="help5">'+
+      '<div class="qhint">这一步你漏了。别急着看答案——我帮你想到它:</div>'+
+      '<div class="btnrow"><button class="btn red" onclick="guideC()">给我一句引导</button>'+
+      '<button class="btn ghost" onclick="guideB()">给我几个选项</button></div></div>');
+  }
+};
+// C 引导追问(一句 + 逃生舱)
+window.guideC=function(){
+  document.getElementById('help5').innerHTML=
+    '<div class="qhint">💬 就差这一步，它决定新卷材能不能真正粘牢:<b>烘烤之后、贴新卷材之前，鼓包那块翘起的旧卷材，你打算怎么处理它？</b></div>'+
+    '<textarea class="ta" placeholder="一句话说说你的想法…"></textarea>'+
+    '<div class="btnrow"><button class="btn red" onclick="solve()">说说我的想法</button>'+
+    '<button class="btn ghost" onclick="guideB()">换成选一下</button></div>'+
+    '<div class="note" style="margin-top:6px;text-align:center;cursor:pointer" onclick="solve()">还是想不起来，直接告诉我 ›</div>';
+};
+// B 选择题自诊断
+window.guideB=function(){
+  document.getElementById('help5').innerHTML=
+    '<div class="qhint">💬 就差 1 步——你觉得漏的是哪个?</div>'+
+    '<div id="opts">'+
+    '<div class="opt" onclick="pickB(this,0)"><span class="lab">A</span><span>先做一遍蓄水试验确认漏点</span></div>'+
+    '<div class="opt" onclick="pickB(this,1)"><span class="lab">B</span><span>把翘起的旧卷材<b>分层剥开</b>清理干净再贴</span></div>'+
+    '<div class="opt" onclick="pickB(this,0)"><span class="lab">C</span><span>基层重新做一遍找平层</span></div>'+
+    '<div class="opt" onclick="pickB(this,0)"><span class="lab">D</span><span>整片屋面重新满铺新卷材</span></div>'+
+    '</div>';
+};
+window.pickB=function(el,ok){
+  document.querySelectorAll('#opts .opt').forEach(function(o){o.style.pointerEvents='none';});
+  if(ok){ el.className='opt right'; el.querySelector('.lab').textContent='✓'; solve('你自己找出来了 👍 '); }
+  else { el.className='opt wrong'; document.querySelectorAll('#opts .opt')[1].className='opt right'; solve('提示:烘烤后、贴之前那一步——'); }
+};
+// 补对/放弃 → 该点的精加工揭晓,并把第5步标为已搞懂
+window.solve=function(pre){
+  solved=true;
+  document.getElementById('help5').innerHTML=
+    '<div class="reveal"><h4>'+(pre||'')+'关键就是「分层剥开」✅</h4>'+
+    '<div class="why"><b>为什么它是采分点:</b>鼓包下面是层间空鼓+残留旧胶。不把翘起的旧卷材<b>一层层剥开</b>清理干净就直接盖新卷材，层间还会再起鼓——评分和现场都卡这一步。</div>'+
+    '<div class="src">📖 教材原文:屋面防水·起鼓割补工序(1A434000 P.XX)</div></div>';
+  var r5=document.getElementById('r5'); if(r5){ r5.className='row hit'; r5.querySelector('.rv').innerHTML='✓ 已搞懂'; }
+};
+// 逃生舱:任何时候直接给解(平静、附机理、不评判)
+window.escape=function(){
+  solved=true;
+  b.innerHTML=head()+
+    '<div class="coach"><div class="av">✓</div><div>没问题，直接给你:你漏了<b>「分层剥开」</b>——其余 6 步都对了 👍。就一句为什么值得记:鼓包下面是层间空鼓，不分层剥开直接盖，新卷材还会再鼓。</div></div>'+
+    finalRevealHTML();
+};
+// 末尾统一揭晓(得分 + 完整对照 + 溯源)
+function finalRevealHTML(){
+  var rows=STEPS.map(function(s){
+    var hit = s.hit || solved;
+    return '<div class="row '+(hit?'hit':'miss')+'"><span class="num">'+s.n+'</span><span class="nm">'+s.nm+'</span><span class="rv">'+(s.hit?'✓ 命中':(solved?'✓ 已补上':'✗ 漏'))+'</span></div>';
+  }).join('');
+  return '<div class="label">完整工序对照</div>'+rows+
+    '<div class="scoreline"><span>本题采分点得分</span><span class="s">1.2<span class="mx"> / 1.5</span></span></div>'+
+    '<div class="reveal" style="margin-top:10px"><h4>下一步:过几天换道变式题，再默一遍"分层剥开"</h4>'+
+    '<div>这次温和揭晓，真正的记牢靠"间隔重取"——把提分压力放到下次，不占你现在时间。</div></div>'+
+    '<div class="note">对错判定来自判分引擎(后台真值)，AI 只负责怎么讲。training_org 估分·非官方·待金标校准。</div>';
+}
+window.finalReveal=function(){ b.innerHTML=head()+'<div class="label" style="margin-top:0"></div>'+finalRevealHTML(); };
+
+selfcheck();
+</script>
+</body>
+</html>

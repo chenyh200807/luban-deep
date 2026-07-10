@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F16 半写案例 · 采分点判分 demo(真判分数字)</title>
+<style>
+  :root{
+    --paper:#f4efe6; --card:#fffdf8; --ink:#2a2320; --sub:#7a6f63; --line:#e4dac9;
+    --red:#8a2b20; --red-bg:#f7e9e4; --green:#4a6b3d; --green-bg:#eaf0e3;
+    --amber:#a9741a; --amber-bg:#f6ecd6; --gold:#c8962f;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:#ded4c2;color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Kaiti SC","Microsoft YaHei",serif;
+    display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:22px 12px 60px}
+  .intro{max-width:600px;text-align:center;margin-bottom:14px}
+  .intro h1{font-size:17px;margin:0 0 6px;color:#3a2f28}
+  .intro p{font-size:12px;color:#6a5f52;line-height:1.6;margin:3px 0}
+  .badge{display:inline-block;background:#fffdf8;border:1px solid var(--line);border-radius:18px;padding:3px 10px;font-size:11px;color:var(--sub);margin:2px 3px}
+  .phone{width:366px;background:#fffdf8;border-radius:34px;padding:11px;box-shadow:0 16px 46px rgba(60,40,25,.22);border:1px solid #e7ddcb}
+  .screen{background:var(--paper);border-radius:26px;overflow:hidden;min-height:720px;display:flex;flex-direction:column;
+    background-image:radial-gradient(rgba(180,160,130,.10) 1px,transparent 1px);background-size:15px 15px}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;padding:11px 20px 4px;font-size:11px;color:#a89a84}
+  .navbar{padding:8px 18px 12px;border-bottom:1px solid var(--line);background:rgba(255,253,248,.7)}
+  .navbar .t{font-size:15px;font-weight:700;letter-spacing:.5px}
+  .navbar .sub{font-size:11px;color:var(--sub);margin-top:2px}
+  .body{padding:16px 16px 22px;overflow:auto;flex:1}
+  .lessonlink{display:flex;align-items:center;gap:9px;background:var(--red-bg);border:1px solid #e6cabf;border-radius:12px;padding:10px 12px;font-size:12px;color:var(--red);margin-bottom:12px}
+  .lessonlink .pl{width:22px;height:22px;border-radius:50%;background:var(--red);color:#fbeee6;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none}
+  .qmeta{font-size:11px;color:var(--sub);margin-bottom:6px}
+  .stem{font-size:14.5px;line-height:1.7;font-weight:600;color:#332a23;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+  .toggle{display:flex;gap:8px;margin:14px 0 4px}
+  .tg{flex:1;text-align:center;border:1px solid var(--line);border-radius:11px;padding:9px;font-size:12.5px;background:var(--card);cursor:pointer;color:var(--sub);line-height:1.4}
+  .tg.on{border-color:var(--red);background:var(--red-bg);color:var(--red);font-weight:700}
+  .tg small{display:block;font-size:10px;opacity:.8;font-weight:400}
+  .label{font-size:11px;color:var(--sub);margin:14px 0 5px}
+  .answer{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px;font-size:13.5px;line-height:1.75;color:#3a2f24}
+  .scorebar{display:flex;justify-content:space-between;align-items:baseline;background:#2a2320;color:#f4efe6;border-radius:13px;padding:14px 16px;margin:14px 0 8px}
+  .scorebar .s{font-size:24px;font-weight:800}
+  .scorebar .s .mx{font-size:14px;opacity:.7;font-weight:400}
+  .pt{display:flex;gap:10px;padding:11px 12px;border-radius:11px;margin:8px 0;font-size:13px;line-height:1.5;align-items:flex-start}
+  .pt.hit{background:var(--green-bg);border:1px solid #cad8ba}
+  .pt.miss{background:var(--amber-bg);border:1px solid #e3cf9f}
+  .pt .ic{font-weight:800;font-size:14px;white-space:nowrap;flex:none;width:52px}
+  .pt.hit .ic{color:var(--green)} .pt.miss .ic{color:var(--amber)}
+  .pt .lbl{font-weight:700;color:#3a2f24}
+  .pt .span{font-size:11px;color:var(--sub);margin-top:3px}
+  .pt.key{box-shadow:0 0 0 2px rgba(169,116,26,.3)}
+  .warm{background:#fbf4ec;border:1px solid #ecd9c4;border-radius:13px;padding:13px 14px;margin-top:12px;font-size:13px;line-height:1.75;color:#5a4a3a}
+  .warm b{color:var(--red)}
+  .compare{background:var(--card);border:1px dashed #cdbfa9;border-radius:12px;padding:11px 13px;margin-top:12px;font-size:11.5px;line-height:1.65;color:#6a5f52}
+  .compare b{color:var(--red)}
+  .honest{margin-top:10px;font-size:10.5px;color:#9a8f80;line-height:1.5}
+  .real{display:inline-block;background:var(--green-bg);color:var(--green);border:1px solid #cad8ba;border-radius:7px;padding:1px 7px;font-size:10px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="intro">
+  <h1>F16 屋面卷材起鼓割补 · 半写案例判分 demo</h1>
+  <p><span class="badge">承接已有教学微课 F16_qigu</span><span class="badge real">判分数字=真 V1 Nexus + 真 DeepSeek 实跑</span><span class="badge">原子化切分后</span></p>
+  <p>你刚看完"起鼓割补"微课 → 半写这道工序 → AI 按<b>原子采分点</b>逐点判"踩到没踩到"。切上方 A/B 看：漏一步 vs 写全，分数真的判得出来。</p>
+</div>
+
+<div class="phone"><div class="screen">
+  <div class="statusbar"><span>9:41</span><span>鲁班智考 · 半写案例</span><span>📶 🔋</span></div>
+  <div class="navbar"><div class="t">屋面卷材起鼓割补</div><div class="sub">半写作答 · AI 按采分点批 · 约 2 分钟</div></div>
+  <div class="body">
+    <div class="lessonlink"><div class="pl">▶</div><div>你刚看完的微课：<b>起鼓卷材怎么割补</b> —— 现在写一遍，看能不能踩到分</div></div>
+    <div class="qmeta">案例 · 屋面防水 · 半写(写关键工序即可，不用长篇)</div>
+    <div class="stem">某屋面高聚物改性沥青卷材防水层局部起鼓。请写出起鼓卷材割补的施工工序。</div>
+
+    <div class="toggle">
+      <div class="tg on" id="tgA" onclick="show('A')">作答 A<small>漏了"分层剥开"</small></div>
+      <div class="tg" id="tgB" onclick="show('B')">作答 B<small>写全(且换词表达)</small></div>
+    </div>
+
+    <div class="label">你的作答</div>
+    <div class="answer" id="answer"></div>
+
+    <div class="scorebar"><span>采分点得分</span><span class="s" id="total"></span></div>
+    <div id="points"></div>
+    <div class="warm" id="warm"></div>
+
+    <div class="compare" id="compare"></div>
+    <div class="honest">判分锚 = Q18-1A434000 起鼓割补工序 · training_org 估分口径 · 非官方阅卷 · 正式成绩待金标校准。逐点结果为真判分实跑投影。</div>
+  </div>
+</div></div>
+
+<script>
+// 真判分数据(2026-07-08 阿里云容器 真 V1 Nexus + 真 DeepSeek 实跑)
+var DATA = {
+  A: {
+    answer: "先用刀把鼓泡卷材割开，放出气体，擦干水分，清除旧胶结料；然后喷灯烘烤，重贴新卷材，周边压实刮平。",
+    total: "1.2",
+    warm: '你把割补的<b>大框架</b>写全了——很多人连"要先放气"都想不到。就差一个动作：重贴新卷材前要先<b>分层剥开</b>旧卷材，这是把新旧卷材连成一体的关键。补上这一句，这 <b>0.3 分</b>稳稳到手。',
+    points: [
+      ["hit","+0.25","割开鼓泡放气","割开，放出气体"],
+      ["hit","+0.15","擦干水分","擦干水分"],
+      ["hit","+0.2","清除旧胶结料","清除旧胶结料"],
+      ["hit","+0.2","喷灯烘烤槎口","喷灯烘烤"],
+      ["miss","0 / 0.3","分层剥开旧卷材（关键步）","你没写到这一步"],
+      ["hit","+0.25","重贴新卷材","重贴新卷材"],
+      ["hit","+0.15","周边压实刮平","周边压实刮平"],
+    ],
+  },
+  B: {
+    answer: "先把鼓包扎破放气，擦干净，清除旧胶结料；再用喷灯烘烤槎口，把旧卷材一层一层揭开分片，重新粘贴新卷材，周边压实刮平。",
+    total: "1.5",
+    warm: '全踩到了 👍 而且你用的是<b>自己的话</b>("扎破放气""一层层揭开分片")——AI 判的是<b>意思</b>不是抄字，换词一样得分。这道工序你是真会了。',
+    points: [
+      ["hit","+0.25","割开鼓泡放气","把鼓包扎破放气"],
+      ["hit","+0.15","擦干水分","擦干净"],
+      ["hit","+0.2","清除旧胶结料","清除旧胶结料"],
+      ["hit","+0.2","喷灯烘烤槎口","用喷灯烘烤槎口"],
+      ["hit","+0.3","分层剥开旧卷材（关键步）","把旧卷材一层一层揭开分片"],
+      ["hit","+0.25","重贴新卷材","重新粘贴新卷材"],
+      ["hit","+0.15","周边压实刮平","周边压实刮平"],
+    ],
+  }
+};
+var COMPARE = '<b>为什么这个 demo 重要：</b>同样这两份作答，<b>旧的整题级 rubric（22–28 个采分点揉一起）判 A=B=1.36</b>，漏了"分层剥开"也照样满分、学员不知道自己差在哪。<b>原子化切分后：A 1.2 / B 1.5</b>——漏哪一步一目了然，这才是"半写案例"能成立的前提。';
+
+function show(k){
+  var d = DATA[k];
+  document.getElementById('tgA').className = 'tg' + (k==='A'?' on':'');
+  document.getElementById('tgB').className = 'tg' + (k==='B'?' on':'');
+  document.getElementById('answer').textContent = d.answer;
+  document.getElementById('total').innerHTML = d.total + '<span class="mx"> / 1.5</span>';
+  document.getElementById('warm').innerHTML = d.warm;
+  document.getElementById('compare').innerHTML = COMPARE;
+  var html = '';
+  d.points.forEach(function(p){
+    var miss = p[0]==='miss';
+    var key = p[2].indexOf('分层剥开')>=0;
+    html += '<div class="pt '+p[0]+(key?' key':'')+'">'
+      + '<span class="ic">'+(miss?'✗':'✓')+' '+p[1]+'</span>'
+      + '<span><span class="lbl">'+p[2]+'</span>'
+      + '<div class="span">'+(miss?'—— ':'作答命中：「')+p[3]+(miss?'':'」')+'</div></span></div>';
+  });
+  document.getElementById('points').innerHTML = html;
+}
+show('A');
+</script>
+</body>
+</html>
