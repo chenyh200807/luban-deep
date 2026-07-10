@@ -1,0 +1,202 @@
+"""案例题轻练判分**组合适配器 on-ramp** —— 从教研验收的采分点集推导小问级判分 kind。
+
+这是"接线进生产判官"的**组合层第一步**,且**不碰任何生产判分模块**(deep_question /
+rubric_grader)——它只读采分点结构、输出该小问该走哪个确定性引擎。生产调用点(在
+`_grade_one_case_v1` 里按 owner 拍的落点/灰度调用组合层)仍是 §3 red line + owner 门,
+不在本模块。
+
+**kind 派生(单一权威,不造第二套)**:优先教研在 review.json 标的 `practice_grading_kind`
+(CALC_DAG/SET_MEMBERSHIP/CPM_CRITICAL_PATH);未标则从采分点已有结构字段派生
+——`conjunction_group`→CONJUNCTION、`ordering_group`→ORDERING;都没有 → None(默认
+采分点点选/漏点补全走 coverage,不进 dispatch 引擎)。这落实了 Q3 数据结论:policy 不判 kind,
+结构字段 + 最小 tag 才判。
+
+**spec 来源的诚实边界(为什么组合层还不能整条自动跑)**:dispatch 各 kind 需的 spec 来源不同——
+ORDERING/CONJUNCTION 的 spec 可从采分点+review 结构建;但 CALC_DAG(公式 DAG)/
+CPM_CRITICAL_PATH(活动网络)/SET_MEMBERSHIP(集合矩阵)的结构化 spec **不在采分点 rubric、
+也不在 review.json**,需一个尚未建立的**结构化命题作者产物**(见接线提案 §依赖)。所以本模块
+只做能确定性做的 kind 派生;spec 装配待作者来源就绪 + owner 拍落点。Deterministic: no LLM.
+"""
+from __future__ import annotations
+
+from collections.abc import Sequence
+
+from collections.abc import Mapping
+
+from deeptutor.services.construction_grading.case_flaw_correction import FlawCorrectionPair
+from deeptutor.services.construction_grading.case_grading_dispatch import (
+    DispatchResult,
+    dispatch_grade,
+)
+from deeptutor.services.construction_grading.case_light_practice_contract import (
+    ConjunctionRole,
+    LubanCaseScoringPoint,
+    PracticeGradingKind,
+)
+from deeptutor.services.construction_grading.case_process_ordering import OrderingSpec
+
+
+class CompositionError(ValueError):
+    """采分点集自相矛盾,无法确定单一判分 kind(如同一小问标了两种显式 kind)。"""
+
+
+def derive_grading_kind(
+    points: Sequence[LubanCaseScoringPoint],
+) -> PracticeGradingKind | None:
+    """推导**一个小问**(同 sub_no 的采分点集)该走哪个确定性判分 kind。
+
+    - 教研显式标的 `practice_grading_kind` 优先(同小问必须一致,冲突 → CompositionError);
+    - 未标则从结构字段派生:有 `conjunction_group` → CONJUNCTION;有 `ordering_group` → ORDERING;
+    - 都没有 → None(采分点点选/漏点补全默认走 coverage,不进 dispatch 引擎)。
+
+    纯函数,不判分、不改采分点、不碰生产判官。
+    """
+    explicit = {p.practice_grading_kind for p in points if p.practice_grading_kind is not None}
+    if len(explicit) > 1:
+        raise CompositionError(
+            f"同一小问采分点标了多个 practice_grading_kind: {sorted(k.value for k in explicit)}"
+        )
+    if explicit:
+        return next(iter(explicit))
+
+    if any(p.conjunction_group for p in points):
+        return PracticeGradingKind.CONJUNCTION
+    if any(p.ordering_group for p in points):
+        return PracticeGradingKind.ORDERING
+    return None
+
+
+# 各 kind 的 dispatch spec 能否从"采分点 + review.json 结构"确定性装配(无需新作者产物)。
+# True=组合层可自动建 spec;False=需结构化命题作者产物(公式 DAG / 活动网络 / 集合矩阵),尚无来源。
+SPEC_BUILDABLE_FROM_REVIEW: dict[PracticeGradingKind, bool] = {
+    PracticeGradingKind.CONJUNCTION: True,   # FlawCorrectionPair ← conjunction_group 两成员
+    PracticeGradingKind.ORDERING: True,      # OrderingSpec ← ordering_group + review 次序
+    PracticeGradingKind.SET_MEMBERSHIP: False,  # 需集合矩阵(每 bin 的合法集合)——作者产物
+    PracticeGradingKind.CALC_DAG: False,        # 需公式 DAG(steps+formula+depends_on)——作者产物
+    PracticeGradingKind.CPM_CRITICAL_PATH: False,  # 需活动网络(工期+紧前)——作者产物
+}
+
+
+def assemble_ordering_spec(points: Sequence[LubanCaseScoringPoint]) -> OrderingSpec:
+    """把一个工序小问的采分点(带 `ordering_rank`)装配成 `OrderingSpec`。
+
+    活动标识用 `point_id`(稳定唯一);正确次序由教研标的 `ordering_rank`(1-based)确定。
+    fail-closed:少 rank / rank 有重复 / rank 不是 1..n 连续 → CompositionError(装错序 = 判分错)。
+    """
+    ranked = [p for p in points if p.ordering_group]
+    if not ranked:
+        raise CompositionError("no ordering-group points to assemble")
+    # 一个工序小问 = 单一序。多个不同 ordering_group 混在一起会被误合并成一条假序
+    # (2026-07-09 自审对抗核证伪:o1[1,2]+o2[3,4] → a→b→c→d 假序)。按 (qid,sub_qid,group)
+    # 题作用域收紧:多组 → 拒(要分别装配),别用裸组名(同 C2 合取门教训)。
+    scopes = {(p.qid, p.sub_qid, p.ordering_group) for p in ranked}
+    if len(scopes) > 1:
+        raise CompositionError(
+            f"一个工序小问应是单一 (qid,sub_qid,ordering_group),得 {sorted(scopes)}(多序请分别装配)"
+        )
+    if any(p.ordering_rank is None for p in ranked):
+        raise CompositionError("每个工序采分点都需教研标 ordering_rank(缺失无法定次序)")
+    ranks = [p.ordering_rank for p in ranked]
+    if len(set(ranks)) != len(ranks):
+        raise CompositionError(f"ordering_rank 有重复: {sorted(ranks)}")
+    if sorted(ranks) != list(range(1, len(ranks) + 1)):
+        raise CompositionError(f"ordering_rank 必须是 1..{len(ranks)} 连续: {sorted(ranks)}")
+    ordered = sorted(ranked, key=lambda p: p.ordering_rank)
+    return OrderingSpec.from_sequence([p.point_id for p in ordered])
+
+
+def assemble_conjunction_pairs(
+    points: Sequence[LubanCaseScoringPoint],
+) -> list[FlawCorrectionPair]:
+    """把一个判断改正小问的采分点按 `conjunction_group` 装配成一组 `FlawCorrectionPair`。
+
+    每组恰 2 个成员:一个 `conjunction_role=FLAW`(找错)、一个 `CORRECTION`(改正)。
+    fail-closed:组员≠2 / 缺 role / 两个同 role → CompositionError(装错对 = 诊断错/判分错)。
+    组内顺序稳定(按 conjunction_group 名排序),便于可复现。
+    """
+    # 按 (qid,sub_qid,group) 题作用域分组:跨小问/跨题复用同一组名不会被误合并
+    # (2026-07-09 自审对抗核证伪:两小问各一对 g1 被裸组名合并成 4 员误判)。同 C2 教训。
+    groups: dict[tuple[str, str, str], list[LubanCaseScoringPoint]] = {}
+    for p in points:
+        if p.conjunction_group:
+            groups.setdefault((p.qid, p.sub_qid, p.conjunction_group), []).append(p)
+    if not groups:
+        raise CompositionError("no conjunction-group points to assemble")
+
+    pairs: list[FlawCorrectionPair] = []
+    for key in sorted(groups):
+        members = groups[key]
+        if len(members) != 2:
+            raise CompositionError(f"合取组 {key!r} 须恰 2 成员(找错+改正),得 {len(members)}")
+        by_role = {m.conjunction_role: m for m in members}
+        if ConjunctionRole.FLAW not in by_role or ConjunctionRole.CORRECTION not in by_role:
+            raise CompositionError(
+                f"合取组 {key!r} 须一个 FLAW 一个 CORRECTION,得 "
+                f"{sorted(str(m.conjunction_role) for m in members)}"
+            )
+        # FlawCorrectionPair 自身再校验同 (qid,sub_qid,sub_no)+同组+正分(Codex 已加固)。
+        pairs.append(FlawCorrectionPair(
+            flaw=by_role[ConjunctionRole.FLAW], correction=by_role[ConjunctionRole.CORRECTION],
+        ))
+    return pairs
+
+
+def grade_ready_subquestion(
+    points: Sequence[LubanCaseScoringPoint],
+    student_answer: object,
+) -> DispatchResult | None:
+    """把一个小问的确定性判分**编排成一次调用**:derive kind → assemble spec → dispatch → 汇总。
+
+    这是层③(生产判官)会调用的**红线安全单元**——只组合已测引擎,不碰 `deep_question`/
+    `rubric_grader`。仅 spec 可从 review 自动建的 kind(ORDERING/CONJUNCTION)自动判;
+    CALC/CPM/SET 的 spec 作者来源未就位(接线 Q4)→ CompositionError(不静默、不猜);
+    kind=None(采分点点选/漏点补全默认)→ None(交给 coverage,不进本编排器)。
+
+    student_answer 约定(从各引擎既有 contract 派生,非新造):
+      - ORDERING:    学员排列 = point_id 序列(Sequence[str])
+      - CONJUNCTION: 学员命中 = {point_id: 是否命中}(Mapping[str, bool]);逐对判合取门后汇总
+
+    official_score_allowed 恒 False(诊断/候选证据,金标 kappa 转正前不铸官方分)。
+    """
+    kind = derive_grading_kind(points)
+    if kind is None:
+        return None
+    if not SPEC_BUILDABLE_FROM_REVIEW.get(kind, False):
+        raise CompositionError(
+            f"{kind.value} 的结构化 spec 作者来源未就位(接线 Q4);本编排器不对它自动判分"
+        )
+
+    if kind is PracticeGradingKind.ORDERING:
+        spec = assemble_ordering_spec(points)
+        total = sum(p.max_score for p in points if p.ordering_group)
+        return dispatch_grade(kind, spec=spec, student=list(student_answer or []), points=total)
+
+    # CONJUNCTION:一个小问可有多对判断改正 → 逐对判合取门,汇总成单一 DispatchResult
+    # (detail=逐对结果;单一权威,不造第二套结果类型)。
+    if kind is PracticeGradingKind.CONJUNCTION:
+        hits: Mapping[str, object] = student_answer if isinstance(student_answer, Mapping) else {}
+        pairs = assemble_conjunction_pairs(points)
+        awarded = 0.0
+        maximum = 0.0
+        per_pair: list[DispatchResult] = []
+        for pair in pairs:
+            r = dispatch_grade(
+                kind, spec=pair,
+                student=(bool(hits.get(pair.flaw.point_id)), bool(hits.get(pair.correction.point_id))),
+            )
+            awarded += r.awarded
+            maximum += r.max_score
+            per_pair.append(r)
+        return DispatchResult(kind, awarded, maximum, False, tuple(per_pair))
+
+    raise CompositionError(f"unreachable ready kind {kind!r}")  # 防御:SPEC_BUILDABLE 与分支不同步
+
+
+__all__ = [
+    "CompositionError",
+    "derive_grading_kind",
+    "SPEC_BUILDABLE_FROM_REVIEW",
+    "assemble_ordering_spec",
+    "assemble_conjunction_pairs",
+    "grade_ready_subquestion",
+]

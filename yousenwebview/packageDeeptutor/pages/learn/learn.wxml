@@ -133,7 +133,7 @@
         </view>
         <view class="lr-task-cta">
           <view class="pk-btn-ink lr-task-btn" bindtap="goPractice">{{vm.todayTask.cta}}</view>
-          <view class="pk-btn-ghost lr-task-ghost" bindtap="goPractice">换轻练</view>
+          <view class="pk-btn-ghost lr-task-ghost" bindtap="goSwitchPractice">换轻练</view>
         </view>
         <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.todayTask.reason}}">
           <text class="lr-why-label">为什么推荐</text>

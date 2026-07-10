@@ -189,6 +189,12 @@ Page({
     this._navTo("/packageDeeptutor/pages/practice/practice");
   },
 
+  // 换轻练 = 换成更广的综合摸底(与 goPractice 的单考点 retest-forward 区分,
+  // 修复两按钮同绑 goPractice 的 bug;设计:轻练聚焦该站, 换轻练走综合练习)。
+  goSwitchPractice() {
+    this._navTo("/packageDeeptutor/pages/practice/practice");
+  },
+
   _navTo(url) {
     if (typeof wx !== "undefined" && wx.navigateTo) wx.navigateTo({ url: url });
   },

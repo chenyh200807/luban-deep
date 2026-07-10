@@ -1,0 +1,368 @@
+{
+  "artifact": "segmentation_review",
+  "version": "v0",
+  "status": "pending_dual_review",
+  "official_score_allowed": false,
+  "qid": "EXAM_1A434000_P0014_02::E0",
+  "current_point_count": 20,
+  "current_total_score": 5.0,
+  "instructions": "两名教研**独立**填每点的 proposed_sub_no(小问号)+ is_atomic(独立可判/互斥/可证伪)+ anchor_ok(锚到教材或真题原文)+ 非平点结构(conjunction_group 找错∧改正 / ordering_group 顺序敏感 / list_cap 答N给M)。审而非写:当前点已列出,你只标切分。不一致→arbitration→consensus。consensus 过后才由填白名单步接手。",
+  "points": [
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-1",
+      "statement": "“三检”制度：自检",
+      "current_score": 0.19,
+      "policy": "exact_required",
+      "required_terms": [
+        "自检"
+      ],
+      "proposed_sub_no": 1,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-10",
+      "statement": "裂缝出现部位：柱边、梁底、门窗洞口",
+      "current_score": 0.29,
+      "policy": "list",
+      "required_terms": [
+        "柱边",
+        "梁底",
+        "门窗洞口"
+      ],
+      "proposed_sub_no": 4,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-11",
+      "statement": "防治措施还有：填充墙下口最后3皮砖应在下部墙砌完14d后砌筑",
+      "current_score": 0.29,
+      "policy": "list",
+      "required_terms": [
+        "最后3皮砖",
+        "14d"
+      ],
+      "proposed_sub_no": 5,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-12",
+      "statement": "防治措施还有：外窗下为空心砖墙时，将窗台改为细石混凝土并加配钢筋",
+      "current_score": 0.29,
+      "policy": "list",
+      "required_terms": [
+        "窗台",
+        "细石混凝土",
+        "加配钢筋"
+      ],
+      "proposed_sub_no": 5,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-13",
+      "statement": "防治措施还有：柱与填充墙接触面应设加强网片",
+      "current_score": 0.29,
+      "policy": "list",
+      "required_terms": [
+        "接触面",
+        "加强网片"
+      ],
+      "proposed_sub_no": 5,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-14",
+      "statement": "装饰抹灰常见质量问题还有：色差、掉角、脱皮",
+      "current_score": 0.29,
+      "policy": "list",
+      "required_terms": [
+        "色差",
+        "掉角",
+        "脱皮"
+      ],
+      "proposed_sub_no": 6,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-15",
+      "statement": "幕墙安全和功能检验项目还有：幕墙后置埋件和槽式预埋件的现场拉拔力",
+      "current_score": 0.34,
+      "policy": "list",
+      "required_terms": [
+        "后置埋件",
+        "槽式预埋件",
+        "现场拉拔力"
+      ],
+      "proposed_sub_no": 7,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-16",
+      "statement": "幕墙安全和功能检验项目还有：幕墙的耐风压性能及层间变形性能",
+      "current_score": 0.34,
+      "policy": "list",
+      "required_terms": [
+        "耐风压性能",
+        "层间变形性能"
+      ],
+      "proposed_sub_no": 7,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-17",
+      "statement": "围护结构节能子分部其他分项工程：幕墙节能工程",
+      "current_score": 0.24,
+      "policy": "list",
+      "required_terms": [
+        "幕墙节能"
+      ],
+      "proposed_sub_no": 8,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-18",
+      "statement": "围护结构节能子分部其他分项工程：门窗节能工程",
+      "current_score": 0.24,
+      "policy": "list",
+      "required_terms": [
+        "门窗节能"
+      ],
+      "proposed_sub_no": 8,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-19",
+      "statement": "围护结构节能子分部其他分项工程：屋面节能工程",
+      "current_score": 0.24,
+      "policy": "list",
+      "required_terms": [
+        "屋面节能"
+      ],
+      "proposed_sub_no": 8,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-2",
+      "statement": "“三检”制度：互检",
+      "current_score": 0.19,
+      "policy": "exact_required",
+      "required_terms": [
+        "互检"
+      ],
+      "proposed_sub_no": 1,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-20",
+      "statement": "围护结构节能子分部其他分项工程：地面节能工程",
+      "current_score": 0.24,
+      "policy": "list",
+      "required_terms": [
+        "地面节能"
+      ],
+      "proposed_sub_no": 8,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-3",
+      "statement": "“三检”制度：专检",
+      "current_score": 0.19,
+      "policy": "exact_required",
+      "required_terms": [
+        "专检"
+      ],
+      "proposed_sub_no": 1,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-4",
+      "statement": "现场试验法检查的两种方法：理化试验",
+      "current_score": 0.19,
+      "policy": "exact_required",
+      "required_terms": [
+        "理化试验"
+      ],
+      "proposed_sub_no": 2,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-5",
+      "statement": "现场试验法检查的两种方法：无损检测",
+      "current_score": 0.19,
+      "policy": "exact_required",
+      "required_terms": [
+        "无损检测"
+      ],
+      "proposed_sub_no": 2,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-6",
+      "statement": "叠合板实体检验项目还有：受力钢筋数量",
+      "current_score": 0.24,
+      "policy": "list",
+      "required_terms": [
+        "受力钢筋数量"
+      ],
+      "proposed_sub_no": 3,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-7",
+      "statement": "叠合板实体检验项目还有：间距",
+      "current_score": 0.24,
+      "policy": "list",
+      "required_terms": [
+        "间距"
+      ],
+      "proposed_sub_no": 3,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-8",
+      "statement": "叠合板实体检验项目还有：保护层厚度",
+      "current_score": 0.24,
+      "policy": "list",
+      "required_terms": [
+        "保护层厚度"
+      ],
+      "proposed_sub_no": 3,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    },
+    {
+      "point_id": "EXAM_1A434000_P0014_02::E0::29-9",
+      "statement": "叠合板实体检验项目还有：混凝土强度",
+      "current_score": 0.24,
+      "policy": "list",
+      "required_terms": [
+        "混凝土强度"
+      ],
+      "proposed_sub_no": 3,
+      "is_atomic": null,
+      "anchor_ok": null,
+      "conjunction_group": null,
+      "ordering_group": null,
+      "list_cap": null,
+      "notes": "",
+      "split_suggestion": ""
+    }
+  ],
+  "reviewers": [],
+  "consensus": null,
+  "arbitration": null,
+  "candidate_source": "DeepSeek deepseek-chat temp=0 (阿里云容器只读,2026-07-09);仅切分候选,教研 verdict 为真值",
+  "candidate_sub_count": 8
+}
