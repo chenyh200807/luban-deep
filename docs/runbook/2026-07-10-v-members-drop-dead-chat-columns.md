@@ -100,15 +100,17 @@ select count(*) from public.v_members;
 > 口径裁定（指挥官 2026-07-10）：部署验收**不用死数**（61/62 都不用）。canonical 基线 =
 > 基线取证用的 phone-alias 复算脚本本身；验收时用**同一脚本同一时点**重跑 before/after。
 
-0. **【P3 数字读取前执行】P5 QA 账号标记（双保险）**：
+0. **【可选双保险，非硬前置】P5 QA 账号标记**：
    P5 live 验证账号 `qa_eval_claude_code_p5honesty`（合成手机号 19900000731，
    canonical uid `9d603677-bb1c-4fd7-867e-865cab268b61`）已形成
    `phone_verification` 可信 phone alias（2026-07-10T02:47Z）。
    已活体验证：其 alias metadata 带全套机器身份标记
    （account_kind=eval_runner / actor_type=machine / is_internal_test=true），
    既有 eligibility 层（`_has_explicit_non_human_identity`）在最坏情况（UUID 显示名、
-   无 qa_ 前缀可抓）下也会排除它，预期**不影响**基线。按指挥官裁决仍执行双保险标记
-   （审计表 append-only，重复执行只多一行同值流水，无副作用）：
+   无 qa_ 前缀可抓）下也会排除它，**不影响**基线。指挥官终裁（2026-07-10）：
+   本标记从"数字读取前必须执行"降级为**可选**——审计表排除与 eligibility 兜底是
+   两个不同事实层的 decider，非同一事实的双权威；若想让待办 2 的差值归因少一个
+   变量，可先执行（审计表 append-only，重复执行只多一行同值流水，无副作用）：
 
    ```sql
    insert into public.bi_internal_accounts (user_id, is_internal, operator_id, reason)
