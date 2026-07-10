@@ -1,0 +1,177 @@
+<view class="fr-page">
+  <!-- 顶栏：品牌 + 进度 + 逃生舱 -->
+  <view class="fr-topbar">
+    <view class="fr-brand">鲁班智考 · 一建建筑实务</view>
+    <view class="fr-prog">
+      <view wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this" class="fr-dot {{progressSeg >= item ? 'on' : ''}}"></view>
+    </view>
+    <view class="fr-skip" bindtap="onSkip">跳过</view>
+  </view>
+
+  <!-- 幕① 摸底 · 几战 -->
+  <view wx:if="{{act === 'war'}}" class="fr-act">
+    <view class="fr-chip">先认识一下 · 10 秒</view>
+    <view class="fr-title">这是你第几次考一建？</view>
+    <view class="fr-opts">
+      <view wx:for="{{warOpts}}" wx:key="key" class="fr-opt" data-key="{{item.key}}" bindtap="onWarPick">
+        <text class="fr-opt-key">{{item.key === 'first' ? '①' : item.key === 'second' ? '②' : item.key === 'veteran' ? '③' : '④'}}</text>
+        <text>{{item.text}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 幕① 摸底 · 丢分模式 -->
+  <view wx:if="{{act === 'mode'}}" class="fr-act">
+    <view class="fr-chip">先认识一下 · 10 秒</view>
+    <view class="fr-title">案例题上，你最典型的状态是——</view>
+    <view class="fr-opts">
+      <view wx:for="{{modeOpts}}" wx:key="key" class="fr-opt" data-key="{{item.key}}" bindtap="onModePick">
+        <text>{{item.text}}</text>
+      </view>
+    </view>
+    <view class="fr-foot">答完直接上真题——不到 1 分钟</view>
+  </view>
+
+  <!-- 幕② 真题 -->
+  <view wx:if="{{act === 'question'}}" class="fr-act">
+    <view class="fr-badges">
+      <view class="fr-badge orange">{{q.src}}</view>
+      <view class="fr-badge cyan">{{q.family}}</view>
+      <view class="fr-badge cyan right">第 {{qIndex + 1}} / {{qTotal}} 题</view>
+    </view>
+    <view class="fr-case"><rich-text nodes="{{q.cas}}"></rich-text></view>
+    <view class="fr-stem"><rich-text nodes="{{q.stem}}"></rich-text></view>
+    <view class="fr-hint">{{q.hint}}</view>
+    <view class="fr-opts">
+      <view wx:for="{{q.opts}}" wx:key="key" class="fr-opt" data-key="{{item.key}}" bindtap="onAnswer">
+        <text class="fr-opt-key">{{item.key}}</text>
+        <text>{{item.text}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 幕③ 判分卡 -->
+  <view wx:if="{{act === 'feedback'}}" class="fr-act">
+    <view class="fr-fb-head">
+      <view class="fr-ring {{fb.ok ? 'good' : 'half'}}">
+        <view class="fr-ring-tx">{{fb.ringTx}}</view>
+      </view>
+      <view class="fr-fb-head-tx">
+        <view class="fr-fb-title">{{fb.title}}</view>
+        <view class="fr-fb-sub">{{fb.sub}}</view>
+      </view>
+    </view>
+
+    <view class="fr-ans-list">
+      <view wx:for="{{fb.items}}" wx:key="key"
+            class="fr-ans {{item.isRight ? 'good' : (item.isMine ? 'bad' : '')}}">
+        <view class="fr-ans-l1">
+          <text class="fr-ans-key">{{item.isRight ? '✓' : item.key}}</text>
+          <text class="fr-ans-tx">{{item.text}}</text>
+          <view class="fr-ans-tags">
+            <text wx:if="{{item.isRight}}" class="fr-stag ok">✓ 正解{{item.isMine ? ' · 你的' : ''}}</text>
+            <text wx:if="{{item.isMine && !item.isRight}}" class="fr-stag mine">你的选择</text>
+            <text wx:if="{{item.isTrap && !item.isMine}}" class="fr-stag trap">⚠ 高频易错</text>
+            <text wx:if="{{item.isTrap && item.isMine}}" class="fr-stag trap">⚠ 最多人栽这</text>
+          </view>
+        </view>
+        <view class="fr-ans-rs">{{item.expl}}</view>
+      </view>
+    </view>
+
+    <view class="fr-point">
+      <view class="fr-point-cap">📋 阅卷怎么给分</view>
+      <rich-text nodes="{{fb.point}}"></rich-text>
+    </view>
+
+    <view class="fr-mn">
+      <view class="fr-mn-cap">🔑 记忆口诀 · 已入袋</view>
+      <view class="fr-mn-big">{{fb.mnBig}}</view>
+      <view class="fr-mn-sub"><rich-text nodes="{{fb.mnSub}}"></rich-text></view>
+    </view>
+
+    <view class="fr-cta" bindtap="onFeedbackNext">{{fb.nextTx}}</view>
+  </view>
+
+  <!-- 侧写间奏 -->
+  <view wx:if="{{act === 'interlude'}}" class="fr-act fr-inter">
+    <view class="fr-chip purple">{{inter.chip}}</view>
+    <view class="fr-inter-note">系统在学怎么教你</view>
+    <view class="fr-title small">{{interTitle}}</view>
+    <view class="fr-opts">
+      <view wx:for="{{inter.opts}}" wx:key="key" class="fr-opt purple" data-key="{{item.key}}" bindtap="onInterPick">
+        <text class="fr-opt-key">{{item.key}}</text>
+        <text>{{item.text}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 画像揭晓 -->
+  <view wx:if="{{act === 'reveal'}}" class="fr-act">
+    <view class="fr-chip purple">你的学习者画像 · 初版</view>
+    <view class="fr-type-name">{{reveal.typeName}}</view>
+    <view class="fr-type-desc">{{reveal.desc}}</view>
+    <view class="fr-type-tags">
+      <text wx:for="{{reveal.tags}}" wx:key="*this" class="fr-ttag">{{item}}</text>
+    </view>
+    <view class="fr-guide">
+      <view class="fr-guide-cap">所以，系统会这样教你</view>
+      <view wx:for="{{reveal.rows}}" wx:key="t" class="fr-guide-row">
+        <text class="fr-guide-ic">{{item.ic}}</text>
+        <view>
+          <view class="fr-guide-t">{{item.t}}</view>
+          <view class="fr-guide-s">{{item.s}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="fr-foot">初版画像——你每答一题，它都会更准</view>
+    <view class="fr-cta" bindtap="onRevealGo">看我的学习报告 →</view>
+  </view>
+
+  <!-- 学习报告 -->
+  <view wx:if="{{act === 'report'}}" class="fr-act">
+    <view class="fr-chip">你的首份学习报告</view>
+    <view class="fr-hero">
+      <view class="fr-ring big" style="--p:{{report.pct}}">
+        <view class="fr-ring-tx">{{report.pct}}%</view>
+      </view>
+      <view class="fr-hero-tx">
+        <view class="fr-hero-cap">今日处方</view>
+        <view class="fr-hero-rx">{{report.rx}}</view>
+        <view class="fr-hero-sub">{{report.rxSub}}</view>
+      </view>
+    </view>
+    <view class="fr-tiles">
+      <view class="fr-tile"><view class="fr-tile-n">{{report.ansN}}<text class="u">题</text></view><view class="fr-tile-cap">今日作答</view></view>
+      <view class="fr-tile"><view class="fr-tile-n">{{report.missN}}<text class="u">个</text></view><view class="fr-tile-cap">待补错因</view></view>
+      <view class="fr-tile"><view class="fr-tile-n">{{report.ansN}}<text class="u">条</text></view><view class="fr-tile-cap">口诀入袋</view></view>
+    </view>
+    <view class="fr-mode">
+      <view class="fr-mode-t">{{report.modeTitle}}</view>
+      <view class="fr-mode-s">{{report.modeText}}</view>
+      <view class="fr-basis">依据：{{report.basis}}</view>
+    </view>
+    <view class="fr-grid">
+      <view wx:for="{{report.rows}}" wx:key="name" class="fr-grid-row">
+        <text class="fr-st {{item.ok ? 'ok' : 'no'}}">{{item.ok ? '✓' : '补'}}</text>
+        <text class="fr-grid-nm">{{item.name}} · {{item.family}}</text>
+        <text class="fr-grid-tg">{{item.tag}}</text>
+      </view>
+    </view>
+    <view class="fr-mn slim">
+      <view class="fr-mn-cap">🔑 今天收下的口诀</view>
+      <view wx:for="{{report.mns}}" wx:key="*this" class="fr-mn-line">{{item}}</view>
+    </view>
+    <view class="fr-nav-note">这份报告，在产品里天天有：<text class="b">学情</text>=报告完整版 · <text class="b">对话</text>=想问就问 · 明日<text class="b">换皮复测</text></view>
+    <view class="fr-cta" bindtap="onReportGo">去学情页开始定向训练 →</view>
+    <view class="fr-cta ghost" bindtap="onReportRemind">明天提醒我复测</view>
+  </view>
+
+  <!-- 收尾 -->
+  <view wx:if="{{act === 'finale'}}" class="fr-act fr-final">
+    <view class="fr-final-ic">🎓</view>
+    <view class="fr-title">{{finale.title}}</view>
+    <view class="fr-final-lead">{{finale.lead}}</view>
+    <view class="fr-cta" bindtap="onFinale">进入鲁班智考 →</view>
+  </view>
+</view>

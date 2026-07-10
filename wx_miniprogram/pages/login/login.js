@@ -1,6 +1,7 @@
 var api = require("../../utils/api");
 var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
+var firstRunEntry = require("../../utils/first-run-entry");
 
 function showSmsSentFeedback(message) {
   wx.showToast({
@@ -89,7 +90,7 @@ Page({
             : raw.data || raw;
           var phone = ((info && info.phone) || "").trim().replace(/\D/g, "");
           if (phone && phone.length >= 8) {
-            wx.switchTab({ url: "/pages/chat/chat" });
+            firstRunEntry.goHomeAfterAuth();
           } else {
             // 显示手机绑定专属模式
             self.setData({ loginMode: "bind_phone_only" });
@@ -237,7 +238,7 @@ Page({
           user._token;
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
         auth.setToken(token, inner.expires_at, inner);
-        wx.switchTab({ url: "/pages/chat/chat" });
+        firstRunEntry.goHomeAfterAuth();
       })
       .catch(function (err) {
         var m = String(err.message || ""),
@@ -373,7 +374,7 @@ Page({
         var token = inner.token;
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
         auth.setToken(token, inner.expires_at, inner);
-        wx.switchTab({ url: "/pages/chat/chat" });
+        firstRunEntry.goHomeAfterAuth();
       })
       .catch(function (err) {
         var m = String(err.message || ""),
@@ -450,7 +451,7 @@ Page({
           .wxLoginWithPhone(loginRes.code, phoneCode)
           .then(function (resp) {
             self._completeWechatAuth(resp);
-            wx.switchTab({ url: "/pages/chat/chat" });
+            firstRunEntry.goHomeAfterAuth();
           })
           .catch(function (err) {
             var m = String((err && err.message) || "");
