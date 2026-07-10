@@ -63,6 +63,7 @@ module.exports = {
       <text class="greeting-time">{{timeGreeting}}</text>
     </view>
     <text class="greeting-sub">{{reviewCount > 0 ? '今天有 ' + reviewCount + ' 个逾期复习，TutorBot 已准备好带你过一遍' : '你的 TutorBot 已上线，随时开始今天的备考'}}</text>
+    <text class="greeting-sub">当前深度覆盖一建建筑实务，其他专业陆续上线</text>
 
     <!-- 今日焦点 -->
     <view class="focus-bar focus-bar-{{focusTone}} {{enableFocusPulse?'':'no-pulse'}}" wx:if="{{focusTitle || focusText}}" bindtap="onFocusTap">
@@ -86,7 +87,7 @@ module.exports = {
         value="{{inputText}}"
         bindinput="onInput"
         bindconfirm="sendMessage"
-        placeholder="直接问：考点、真题、规范、错题"
+        placeholder="直接问建筑实务：考点、真题、规范、错题"
         placeholder-class="input-ph"
         auto-height
         maxlength="2000"
