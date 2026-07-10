@@ -200,3 +200,38 @@ def test_luban_spike_d15_events_registered():
         record = validate_product_behavior_event(name, meta)
         assert record["event_name"] == name
         assert record["object_id"] == meta["object_id"]
+
+
+def test_first_experience_funnel_events_registered() -> None:
+    """首体验漏斗（2026-07-10 登记）：老蓝版小程序埋点通电的 5 个新事件名 +
+    login module + authorize/send action。60% 零消息流失的定位事件。"""
+    for name, meta in [
+        ("module_viewed", {"module": "login", "action": "view",
+                           "surface": "wechat_miniprogram", "visit_id": "v1"}),
+        ("auth_authorize_clicked", {"module": "login", "action": "authorize",
+                                    "object_type": "phone_auth",
+                                    "result": "granted",
+                                    "surface": "wechat_miniprogram",
+                                    "visit_id": "v1"}),
+        ("auth_result", {"module": "login", "action": "complete",
+                         "object_type": "phone_auth", "result": "success",
+                         "surface": "wechat_miniprogram", "visit_id": "v1"}),
+        ("chat_message_sent", {"module": "chat", "action": "send",
+                               "object_type": "chat_turn",
+                               "surface": "wechat_miniprogram",
+                               "visit_id": "v1"}),
+        ("chat_first_answer_rendered", {"module": "chat", "action": "render",
+                                        "object_type": "first_answer",
+                                        "duration_ms": 3200,
+                                        "surface": "wechat_miniprogram",
+                                        "visit_id": "v1"}),
+        ("assessment_prompt_result", {"module": "assessment",
+                                      "action": "dismiss", "result": "later",
+                                      "entry_source": "chat_home",
+                                      "surface": "wechat_miniprogram",
+                                      "visit_id": "v1"}),
+    ]:
+        record = validate_product_behavior_event(name, meta)
+        assert record["event_name"] == name
+        assert record["module"] == meta["module"]
+        assert record["action"] == meta["action"]

@@ -92,6 +92,8 @@ function createSandbox(sourcePath, apiMock, extras) {
         };
       }
       if (request === "../../utils/analytics") return { track: function () {} };
+      if (request === "../../utils/surface-telemetry")
+        return { trackProductBehavior: function () {} };
       if (request === "../../utils/flags")
         return { resolvePostAuthLanding: function (t) { return t; }, shouldLandOnDoubleWheel: function () { return false; } };
       throw new Error("unexpected require: " + request + " for " + sourcePath);

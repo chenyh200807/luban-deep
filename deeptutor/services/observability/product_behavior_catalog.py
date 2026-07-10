@@ -32,6 +32,28 @@ PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
         "handoff_rendered",
         "retest_item_answered",
         "subscribe_prompt_result",
+        # 首体验漏斗（2026-07-10 登记）：60% 新注册用户零消息流失的定位事件，
+        # 随老蓝版小程序埋点通电一起登记。维度约定:
+        # auth_authorize_clicked: module=login, action=authorize,
+        #   object_type=phone_auth|sms_code|password, result=granted|denied。
+        # auth_result: module=login, action=complete|error,
+        #   result=success|fail, error_code=分类短码。
+        # chat_message_sent: module=chat, action=send, object_type=chat_turn。
+        # chat_first_answer_rendered: module=chat, action=render,
+        #   object_type=first_answer, duration_ms=发送到首屏可见耗时。
+        # assessment_prompt_result: module=assessment, action=start_probe|dismiss,
+        #   result=start|later, entry_source=chat_home。
+        # 其余漏斗点复用既有名: 页面曝光=module_viewed(module=login|chat|assessment),
+        # 摸底弹窗曝光=section_viewed(module=assessment, section=entry_modal),
+        # 示例卡点击=learning_action_started(module=chat, action=open_detail),
+        # 测评开始=learning_action_started(action=start_probe),
+        # 测评提交=learning_action_completed(action=complete, result="<n>/<N>"),
+        # 测评中途退出=module_exited(action=return, result="<n>/<N>")。
+        "auth_authorize_clicked",
+        "auth_result",
+        "chat_message_sent",
+        "chat_first_answer_rendered",
+        "assessment_prompt_result",
     }
 )
 
@@ -50,6 +72,8 @@ PRODUCT_BEHAVIOR_MODULES = frozenset(
         "practice",
         "assessment",
         "profile",
+        # 首体验漏斗（2026-07-10 登记）：登录/授权页。
+        "login",
     }
 )
 
@@ -87,6 +111,9 @@ PRODUCT_BEHAVIOR_ACTIONS = frozenset(
         "return",
         "complete",
         "error",
+        # 首体验漏斗（2026-07-10 登记）：authorize=登录授权点击, send=聊天消息发送。
+        "authorize",
+        "send",
     }
 )
 

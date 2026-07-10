@@ -74,6 +74,13 @@ function loadPage(relativePath, overrides) {
       if (request === "../../utils/api") return apiMock;
       if (request === "../../utils/auth") return authMock;
       if (request === "../../utils/helpers") return helpersMock;
+      if (request === "../../utils/surface-telemetry") {
+        return {
+          track: function () {},
+          trackOnce: function () {},
+          trackProductBehavior: function () {},
+        };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {

@@ -131,6 +131,8 @@ function loadPage(relativePath, options) {
       if (request === "../../utils/helpers") return createHelpersMock();
       if (request === "../../utils/route") return createRouteMock();
       if (request === "../../utils/analytics") return { track: function () {} };
+      if (request === "../../utils/surface-telemetry")
+        return { trackProductBehavior: function () {} };
       if (request === "../../utils/flags")
         return { resolvePostAuthLanding: function (t) { return t; }, shouldLandOnDoubleWheel: function () { return false; } };
       throw new Error("unexpected require: " + request);
