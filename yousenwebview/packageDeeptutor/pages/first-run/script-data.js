@@ -10,6 +10,7 @@ var HITWORD = 'style="color:#34d399;font-weight:800"';
 var QUESTIONS = [
   {
     slug: "qigu_gebu",
+    srcNote: "采分点溯源：2023 真题官方参考答案 · 2026 版教材 1A434000 屋面防水",
     name: "起鼓割补",
     family: "1A434000 屋面防水",
     familyShort: "屋面防水",
@@ -46,6 +47,7 @@ var QUESTIONS = [
   },
   {
     slug: "zhiliang_jihua",
+    srcNote: "采分点溯源：2023 真题官方参考答案 · 2026 版教材 项目质量管理",
     name: "质量计划",
     family: "项目质量管理",
     familyShort: "项目质量管理",
@@ -82,6 +84,7 @@ var QUESTIONS = [
   },
   {
     slug: "tianchongqiang_fangbie",
+    srcNote: "采分点溯源：2024 真题官方参考答案 · 2026 版教材 砌体结构",
     name: "填充墙防裂",
     family: "砌体填充墙 · 裂缝防治",
     familyShort: "砌体填充墙",
@@ -118,6 +121,7 @@ var QUESTIONS = [
   },
   {
     slug: "zhuangpeishi_laji",
+    srcNote: "采分点溯源：2025 真题官方参考答案 · 绿色施工新增考点（知识库已同步 2026 版）",
     name: "装配式建筑垃圾",
     family: "绿色施工 · 新考点",
     familyShort: "绿色施工",
@@ -224,6 +228,33 @@ var DRIVE = {
   D: "处方跟着考试倒计时排优先级"
 };
 
+// 摸底第 3 问：资料年份（2026 教材改版时刻；数据来自
+// 《2026一级建造师建筑实务教材对比明细》：总体变化 107 处 / 实质变化 70 处）
+var MATERIAL_OPTS = {
+  y2026: "2026 版，刚换的新资料",
+  y2025: "2025 版，去年备考用的",
+  older: "更早的，一直沿用",
+  unknown: "说不清，网上攒的资料"
+};
+var MATERIAL_REVEAL = {
+  y2026: {
+    t: "资料够新——关键是改在哪",
+    s: "2026 版教材总体改了 107 处、实质变化 70 处。改的地方就是出题的地方——鲁班知识库已逐条标注修订点，等下第 4 题就考你一道新考法。"
+  },
+  y2025: {
+    t: "这里有 70 个坑要当心",
+    s: "2026 版教材改了 107 处、实质变化 70 处——住宅新规范、事故隐患判定标准、造价计量标准都动了。你手里的 2025 版，有 70 个地方可能教错你。鲁班知识库已逐条同步 2026 版。"
+  },
+  older: {
+    t: "教材已经改了不止一轮",
+    s: "光 2026 这一版就改了 107 处、实质 70 处，再叠上前几年的修订——旧资料上练得越熟，错得越牢。鲁班知识库已同步 2026 版全部修订，从今天起按新书练。"
+  },
+  unknown: {
+    t: "很多人栽在这里却不知道",
+    s: "2026 版教材改了 107 处、实质变化 70 处，网上的旧资料不会告诉你哪里变了。用鲁班不用操心这个——知识库已逐条同步 2026 版，改过的地方会在题里标出来。"
+  }
+};
+
 // 摸底两问（owner 指定版文案）
 var WAR_OPTS = {
   first: "第一次，刚开始准备",
@@ -266,6 +297,8 @@ var MODE_REPORT = {
 
 module.exports = {
   QUESTIONS: QUESTIONS,
+  MATERIAL_OPTS: MATERIAL_OPTS,
+  MATERIAL_REVEAL: MATERIAL_REVEAL,
   INTERLUDES: INTERLUDES,
   CHAN: CHAN,
   STYLE: STYLE,

@@ -46,6 +46,34 @@
     </view>
   </view>
 
+  <!-- 摸底 3/3：资料年份 -->
+  <view wx:if="{{act === 'material'}}" class="fr-act">
+    <view class="fr-chip">◆ 备考摸底 · 加时 1 问</view>
+    <view class="fr-title">你现在用的资料，{{'\n'}}是<text class="hi">哪一年</text>的？</view>
+    <view class="fr-lead">这个问题比你想的重要——答完你就知道为什么。</view>
+    <view class="fr-opts">
+      <view wx:for="{{materialOpts}}" wx:key="key" class="fr-opt anim" style="animation-delay:{{index * 70}}ms"
+            data-key="{{item.key}}" bindtap="onMaterialPick">
+        <text class="fr-opt-key">{{index === 0 ? 'A' : index === 1 ? 'B' : index === 2 ? 'C' : 'D'}}</text>
+        <text class="fr-opt-tx">{{item.text}}</text>
+        <text class="fr-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 2026 改版时刻 -->
+  <view wx:if="{{act === 'materialReveal'}}" class="fr-act">
+    <view class="fr-eyebrow orange">2026 版教材 · 改版实况</view>
+    <view class="fr-tiles">
+      <view class="fr-tile stat"><view class="fr-tile-n big">107<text class="u">处</text></view><view class="fr-tile-cap">总体变化</view></view>
+      <view class="fr-tile stat"><view class="fr-tile-n big warm">70<text class="u">处</text></view><view class="fr-tile-cap">实质内容变化</view></view>
+    </view>
+    <view class="fr-title small">{{materialReveal.t}}</view>
+    <view class="fr-lead">{{materialReveal.s}}</view>
+    <view class="fr-note left">数据来源：2026 版《建筑工程管理与实务》教材对比明细（依据 2024 年版考试大纲修订）</view>
+    <view class="fr-cta" bindtap="onMaterialGo">上真题，见真章 →</view>
+  </view>
+
   <!-- 幕② 真题 -->
   <view wx:if="{{act === 'question'}}" class="fr-act">
     <view class="fr-badges">
@@ -109,6 +137,7 @@
         <text wx:for="{{fb.terms}}" wx:key="text" class="fr-tchip {{item.state}}">{{item.text}}</text>
       </view>
       <view class="fr-libscale"><text class="ic">◈</text><text>{{fb.scale}}</text></view>
+      <view class="fr-srcnote"><text class="ic">📖</text><text>{{fb.srcNote}}</text></view>
     </view>
 
     <view class="fr-panel mnemo">
@@ -237,6 +266,13 @@
         <view>
           <view class="fr-guide-t">明天，<text class="loc">换个问法</text>再考你</view>
           <view class="fr-guide-s">今天错的题换皮复测，60 秒验证口诀还在不在。</view>
+        </view>
+      </view>
+      <view class="fr-guide-row">
+        <text class="fr-guide-ic">📷</text>
+        <view>
+          <view class="fr-guide-t">整题手写，<text class="loc">拍照批改</text></view>
+          <view class="fr-guide-s">点选是入门——你随时可以整题手写、拍照上传，AI 按阅卷采分点逐条给分。</view>
         </view>
       </view>
     </view>

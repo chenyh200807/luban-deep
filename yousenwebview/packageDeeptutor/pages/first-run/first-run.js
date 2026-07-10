@@ -50,6 +50,7 @@ Page({
     this.setData({
       warOpts: this._optList(data.WAR_OPTS),
       modeOpts: this._optList(data.MODE_OPTS),
+      materialOpts: this._optList(data.MATERIAL_OPTS),
     });
     telemetry.trackProductBehavior(
       "first_run_started",
@@ -100,6 +101,18 @@ Page({
   },
   onModePick: function (e) {
     this.mode = e.currentTarget.dataset.key;
+    this._go("material", 1);
+  },
+
+  /* ---------- 摸底第 3 问：资料年份 → 2026 改版时刻 ---------- */
+  onMaterialPick: function (e) {
+    var key = e.currentTarget.dataset.key;
+    this.profile.material = key;
+    var reveal = data.MATERIAL_REVEAL[key] || data.MATERIAL_REVEAL.unknown;
+    this.setData({ materialReveal: reveal });
+    this._go("materialReveal", 1);
+  },
+  onMaterialGo: function () {
     this._showQuestion(0);
   },
 
@@ -172,6 +185,7 @@ Page({
         sub: ok ? q.vs.ok : q.vs.no,
         items: items,
         point: q.point,
+        srcNote: q.srcNote,
         terms: terms,
         scale:
           "判分卡按 " + q.lib.year + " 官方参考答案编译 · 全题 " + q.lib.total +

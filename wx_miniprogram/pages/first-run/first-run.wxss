@@ -797,6 +797,32 @@
   color: rgba(255, 255, 255, 0.48);
 }
 
+/* 溯源角标 */
+.fr-srcnote {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  font-size: 22rpx;
+  color: rgba(253, 232, 200, 0.6);
+  margin-top: 14rpx;
+  padding-top: 14rpx;
+  border-top: 1rpx dashed rgba(148, 163, 184, 0.16);
+  line-height: 1.5;
+}
+
+/* 改版时刻大数字 */
+.fr-tile.stat {
+  text-align: center;
+  padding: 30rpx 24rpx;
+}
+.fr-tile-n.big {
+  font-size: 64rpx;
+  color: #67e8f9;
+}
+.fr-tile-n.big.warm {
+  color: #fb923c;
+}
+
 /* 口诀 chips */
 .fr-mnchips {
   display: flex;
