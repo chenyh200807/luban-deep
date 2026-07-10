@@ -14,7 +14,6 @@
 
 | 触发条件 | 必读章节 |
 |---|---|
-| 涉及 Web / BI / 前端 / 浏览器 / 截图 / `next dev` / Playwright | AGENTS §Claude / Codex Web Memory Guardrails |
 | 跑 eval / smoke / QA 且会创建、登录、绑定手机号或产生会员活跃 | AGENTS §Eval Runner Identity Discipline |
 | 涉及 turn / session / stream / replay / resume / 聊天入口 / TutorBot / trace | `CONTRACT.md` + `contracts/index.yaml` + AGENTS §Contract Discipline |
 | 写 PRD / 审 PRD / 判断能力是否落地 / 理解模块方向 | `docs/plan/INDEX.md` + AGENTS §Plan Directory Discipline |
