@@ -786,6 +786,21 @@ def test_grade_with_batch_judge_not_degraded_for_genuine_all_miss() -> None:
     assert ev["awarded_score"] == 0.0
 
 
+def test_batch_judges_force_zero_temperature() -> None:
+    calls: list[dict] = []
+
+    async def _complete(**kw):
+        calls.append(kw)
+        return '[{"idx":1,"status":"miss"}]'
+
+    point = [{"point_id": "P1", "text": "采分点", "score": 1.0, "policy": "list", "required_terms": []}]
+    G.batch_judge(point, "作答", _complete, api_key="k")
+    asyncio.run(G.batch_judge_async(point, "作答", _complete, api_key="k"))
+
+    assert len(calls) == 2
+    assert all(call.get("temperature") == 0 for call in calls)
+
+
 def test_grade_with_batch_judge_dynamic_parallel_splits_large_case_by_subquestion() -> None:
     points = [
         {
@@ -1387,10 +1402,11 @@ def test_make_llm_judge_escapes_injection_in_per_point_prompt():
 
     from deeptutor.services.construction_grading import rubric_grader_v1
 
-    captured: dict[str, str] = {}
+    captured: dict[str, object] = {}
 
     async def fake_complete(*, prompt: str, **_kw):
         captured["prompt"] = prompt
+        captured["temperature"] = _kw.get("temperature")
         return '{"status":"miss","low_confidence":true}'
 
     judge = rubric_grader_v1.make_llm_judge(fake_complete, api_key="k")
@@ -1398,6 +1414,7 @@ def test_make_llm_judge_escapes_injection_in_per_point_prompt():
     judge({"text": "x", "required_terms": [], "policy": "qualitative"}, injection)
     assert injection not in captured["prompt"]
     assert json.dumps(injection, ensure_ascii=False) in captured["prompt"]
+    assert captured["temperature"] == 0
 
 
 def test_to_learning_evidence_emits_error_events_without_node_code() -> None:
