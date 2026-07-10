@@ -201,8 +201,15 @@ function loadProfilePage(overrides) {
           },
           getUsage: function () {
             return Promise.resolve({
-              display: { primary_remaining_percent: 88 },
+              display: { primary_label: "剩余 88%", primary_percent: 88, reference_points: 100 },
               rows: [{ key: "weekly", remaining_percent: 88 }],
+            });
+          },
+          getWallet: function () {
+            return Promise.resolve({
+              balance: 88,
+              plan_id: "vip",
+              entitlement: { reference_points: 100 },
             });
           },
           getLedger: function () {

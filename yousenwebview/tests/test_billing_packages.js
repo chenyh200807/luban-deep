@@ -73,7 +73,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
             );
           },
           getWallet: function () {
-            return Promise.resolve(walletPayload || { balance: 9000 });
+            return Promise.resolve(walletPayload || {
+              balance: 8980,
+              plan_id: "vip",
+              entitlement: { reference_points: 9000 },
+            });
           },
           getLedger: function () {
             return Promise.resolve(
@@ -285,7 +289,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing should render wallet debit as percent-only usage",
     );
     assert(
-      page.data.ledgerRows[0].balanceLabel === "剩余 99.6%",
+      page.data.ledgerRows[0].balanceLabel === "剩余 99.8%",
       "billing should render remaining wallet percent after debit",
     );
     assert(
@@ -301,7 +305,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing fallback should expose all five launch packages",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_99,vip,svip,supreme_svip",
+      page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_98,vip,svip,supreme_svip",
       "billing fallback package ids should match backend launch packages",
     );
     assert(
@@ -309,7 +313,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing fallback package names should use public labels",
     );
     assert(
-      page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,99,198,598,998",
+      page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,98,198,598,998",
       "billing fallback prices should match launch pricing",
     );
     assert(
@@ -334,6 +338,25 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       loaded.previewImageCalls.length === 0,
       "billing open action should not jump to preview image",
     );
+    var selectedLaunchPackage = loadBillingPage();
+    await selectedLaunchPackage.page._loadUsage();
+    selectedLaunchPackage.page.selectPackage({
+      currentTarget: { dataset: { id: "starter_19" } },
+    });
+    assert(
+      selectedLaunchPackage.page.data.selectedPackageId === "starter_19",
+      "billing should allow selecting the launch starter package for checkout",
+    );
+    assert(
+      selectedLaunchPackage.page.data.usagePrimaryLabel === "剩余 99.8%",
+      "billing should not use the selected future package as the current balance denominator",
+    );
+    await selectedLaunchPackage.page.openCheckout();
+    assert(
+      selectedLaunchPackage.checkoutCalls.length === 1 &&
+        selectedLaunchPackage.checkoutCalls[0].package_id === "starter_19",
+      "billing should still submit the selected launch package to checkout",
+    );
     var staleWallet = loadBillingPage(null, {
       balance: 0,
       packages: [
@@ -353,11 +376,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     });
     await staleWallet.page._loadUsage();
     assert(
-      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_99,vip,svip,supreme_svip",
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_98,vip,svip,supreme_svip",
       "billing should ignore stale backend package ids and keep launch packages",
     );
     assert(
-      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,99,198,598,998",
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,98,198,598,998",
       "billing should not show stale backend prices",
     );
     assert(
@@ -395,11 +418,11 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
     });
     await incompleteLaunchCatalog.page._loadUsage();
     assert(
-      incompleteLaunchCatalog.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_99,vip,svip,supreme_svip",
+      incompleteLaunchCatalog.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_98,vip,svip,supreme_svip",
       "billing should treat an old valid three-package backend catalog as incomplete",
     );
     assert(
-      incompleteLaunchCatalog.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,99,198,598,998",
+      incompleteLaunchCatalog.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "19,98,198,598,998",
       "billing should restore entry packages when backend catalog is incomplete",
     );
 
@@ -414,7 +437,7 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       "billing degraded terminal state should normalize stale quota wording",
     );
     assert(
-      degraded.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_99,vip,svip,supreme_svip",
+      degraded.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "starter_19,light_98,vip,svip,supreme_svip",
       "billing degraded state should still keep the launch package discount ladder",
     );
     assert(
