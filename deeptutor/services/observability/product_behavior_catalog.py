@@ -54,6 +54,12 @@ PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
         "chat_message_sent",
         "chat_first_answer_rendered",
         "assessment_prompt_result",
+        # 首跑剧本（2026-07-10 登记，计划 §4 G0）：module=first_run。
+        # 维度约定: 幕曝光=module_viewed(section=act_*), 逃生舱=module_exited(dismiss),
+        # 剧本完成=learning_action_completed(object_type=script, result=go_report|remind),
+        # d1_return 由 BI 按用户×日期从任意事件派生, 不设独立事件名。
+        "first_run_started",
+        "first_run_question_completed",
     }
 )
 
@@ -74,6 +80,8 @@ PRODUCT_BEHAVIOR_MODULES = frozenset(
         "profile",
         # 首体验漏斗（2026-07-10 登记）：登录/授权页。
         "login",
+        # 首跑剧本（2026-07-10 登记，计划 §4 G0）。
+        "first_run",
     }
 )
 
