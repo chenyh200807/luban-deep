@@ -126,6 +126,13 @@
 - **验证**：pytest luban_lesson 56 passed；node 全量 0 fail（learn-vm 14 含供给路由三态/gauntlet 含挖空自查/errorbank 含分码文案）；live 三页 automator 实测（todayTask 路由/挖空 16 句/retest 反馈）。commit `33725280`。
 - **未动（按审计裁决留 owner/后续）**：retest 二元形态 off-spec 改档位①（需 recall 供给拍板）、考点卡 miss_count 红标（需 read model 投影）、深 pack→答疑注入、看穿模板衰减实验、R7/金标人门。
 
+### 2026-07-10（retest 纸墨版整页重做 · owner"要 wow 不要普通"返工 · 即时入账）
+- **[编译资产焊进反馈] 教材原文并排卡**：发现变体 `anchor` 与考点卡/挖空 bank 的 `point_id` 同为 kc: 坐标系 → `build_retest_items` 按 `anchor==point_id` join **同 pack** signed 考点卡（同一 `_load_signed_bank` 双闸，quote 逐字透传零生成，join 不中 fail-closed 缺省；跨包借 quote 红线不适用=只 join 自己 pack）。实测 121/1029 变体可翻出阅卷认的教材原句（A01 27/J01 52/N01 12/S05 30）——"答完一题翻出教材那一句"落地。
+- **[整页重做] retest 从深色题列表 → 纸墨单题聚焦流**：pk token 单一权威；墨点进度（对竹青/错赭/当前墨环）；印章反馈（真懂/差一步 衬线圆章 stamp-in）；门道段答对也给；书页样原文卡（朱红书脊+衬线引文+页码角注，有原文卡时不露 kc 坐标）；完场纸墨收据（大分数/考法覆盖/原文句数/错题"再看一眼"清单/明日换皮·回炉完成朱红章）。动效只动 transform/opacity（丝滑纪律）。
+- **[链路零漂移]**：telemetry（retest_item_answered/learning_action_completed + practice_mode 命门）、station_completed 信号、本地销账 storage、COPY 双模式全部原样；判分仍本地确定性 choice==expected_ok。
+- **验证**：pytest luban_lesson 57（含 join 签发闸/命中/缺省三态）；node 全量 0 fail；wxml 平衡自检；DevTools automator 全流程实测（5 题走完：反馈满配截图/收据 4/5·5 考法·1 原文）。commits `7bb4e1d7`+细节修。
+- **待铺（内容侧非工程）**：原文卡覆盖率吃考点卡签发面（现 5 站）——考点卡编译脚本跑其余绿灯 pack 即自动放大，无代码改动。
+
 ## 惯例沉淀（复盘时升格为规则的候选）
 - 部署后必做独立探针（不信脚本自报）——本轮抓到 22 站 404 与 F16 无声两个上线级洞。
 - owner 口述需求先 grep 是否已实现再派工；agent 终态纪律=最终回复基于磁盘/线上实测，"等待中/等子报告"不是完成态。
