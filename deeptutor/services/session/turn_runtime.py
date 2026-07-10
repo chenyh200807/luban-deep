@@ -62,6 +62,7 @@ from deeptutor.services.question_followup import (
 )
 from deeptutor.services.question_turn_policy import (
     _active_object_ref,
+    _message_accepts_next_training_for_stored_set,
     _message_is_submission_for_stored_set,
     _message_references_stored_question_set_item,
     _message_requests_active_mcq_represent,
@@ -4778,6 +4779,12 @@ class TurnRuntimeManager:
             stored_set_keep_unanswered_active = should_keep_unanswered_question_active_for_followup(
                 raw_user_content, stored_followup_question_context
             )
+            stored_set_next_training_referenced = (
+                _message_accepts_next_training_for_stored_set(
+                    raw_user_content,
+                    stored_followup_question_context,
+                )
+            )
             if (
                 stored_active_object is not None
                 and stored_followup_question_context is not None
@@ -4787,6 +4794,7 @@ class TurnRuntimeManager:
                 and not stored_active_mcq_represent_referenced
                 and not stored_set_submission_referenced
                 and not stored_set_keep_unanswered_active
+                and not stored_set_next_training_referenced
             ):
                 stored_suspended_object_stack = _prepend_suspended_object(
                     stored_suspended_object_stack,

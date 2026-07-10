@@ -2974,3 +2974,40 @@ def test_canonical_represent_fires_via_question_context_fallback() -> None:
     assert out2 is not None and "A. 1年" in out2
     # 两者都无 → None
     assert build_canonical_represent_response(None, "选项重新排列一下", question_context=None) is None
+def test_followup_action_prompt_carries_grading_context_for_semantic_next_step() -> None:
+    from deeptutor.services.question_followup import _build_followup_action_prompt
+
+    prompt = _build_followup_action_prompt(
+        user_message="好的，按这个安排",
+        history_context="上一轮老师说：请按下一步操作巩固。",
+        question_context={
+            "question_id": "quiz_quality_inspection",
+            "question": "项目施工质量检查与检验训练题组",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_quality_1",
+                    "question": "基础工程质量检查分类题",
+                    "question_type": "single_choice",
+                    "options": {"A": "自检", "B": "互检", "C": "专检", "D": "抽检"},
+                    "correct_answer": "B",
+                    "user_answer": "C",
+                    "is_correct": False,
+                    "construction_grading_result": {
+                        "authority": "construction_grading",
+                        "next_training_signal": {
+                            "concept": "项目施工质量检查与检验",
+                            "focus": "基础检查分类混淆",
+                            "mode": "practice",
+                        },
+                    },
+                }
+            ],
+        },
+    )
+
+    assert "history_context" in prompt
+    assert "has_grading_result" in prompt
+    assert "next_training_signal" in prompt
+    assert "基础检查分类混淆" in prompt
+    assert "不要只按用户短句字面判断" in prompt

@@ -509,6 +509,114 @@ def _practice_generation_action_for_explicit_request(
     }
 
 
+_NEXT_STEP_ACCEPTANCE_COMPACT_MARKERS = frozenset(
+    {
+        "下一步",
+        "下一步吧",
+        "继续",
+        "继续吧",
+        "按下一步",
+        "按你说的做",
+        "照你说的做",
+    }
+)
+
+
+def _compact_next_step_acceptance_text(value: str) -> str:
+    return re.sub(
+        r"[\s　，,。.!！?？；;：:、/／+\-—_（）()【】\[\]<>《》\"'“”‘’]+",
+        "",
+        str(value or "").strip().lower(),
+    )
+
+
+def _looks_like_next_step_action_acceptance(user_message: str) -> bool:
+    compact = _compact_next_step_acceptance_text(user_message)
+    if compact in _NEXT_STEP_ACCEPTANCE_COMPACT_MARKERS:
+        return True
+    return len(compact) <= 12 and "下一步" in compact and compact.startswith(("按", "照", "就按"))
+
+
+def _question_context_has_completed_grading_evidence(
+    question_context: dict[str, Any] | None,
+) -> bool:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return False
+    nodes = [
+        normalized_context,
+        *[
+            item
+            for item in normalized_context.get("items") or []
+            if isinstance(item, dict)
+        ],
+    ]
+    for node in nodes:
+        grading_result = node.get("construction_grading_result")
+        if isinstance(grading_result, dict) and grading_result:
+            return True
+        if node.get("is_correct") is not None and str(node.get("user_answer") or "").strip():
+            return True
+    return False
+
+
+def _practice_generation_action_for_recent_grading_acceptance(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return None
+    if not _looks_like_next_step_action_acceptance(user_message):
+        return None
+    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
+    if submission is not None:
+        return None
+    if not _question_context_has_completed_grading_evidence(normalized_context):
+        return None
+    return {
+        "intent": "generate_more_questions",
+        "confidence": 0.84,
+        "answers": [],
+        "reason": "用户用短回复接受上一轮批改后的下一步巩固建议，基于已批改题目上下文生成同考点练习。",
+    }
+
+
+def _contextual_generation_action_allowed(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+    action: dict[str, Any] | None,
+) -> bool:
+    if followup_action_route(action) != "practice_generation":
+        return False
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return False
+    if not _question_context_has_completed_grading_evidence(normalized_context):
+        return False
+    if looks_like_question_followup(user_message, normalized_context):
+        return False
+    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
+    if submission is not None:
+        return False
+    try:
+        return float((action or {}).get("confidence") or 0.0) >= 0.65
+    except (TypeError, ValueError):
+        return False
+
+
+def _message_accepts_next_training_for_stored_set(
+    message: str,
+    stored_question_context: dict[str, Any] | None,
+) -> bool:
+    """Return whether this turn accepts the stored graded object's next action."""
+
+    return _practice_generation_action_for_recent_grading_acceptance(
+        message,
+        stored_question_context,
+    ) is not None
+
+
 def _looks_like_batch_correction_reference(user_message: str) -> bool:
     return bool(
         re.search(r"第\s*[0-9一二两三四五六七八九十]+\s*[题问]?", user_message)
@@ -870,6 +978,11 @@ async def _resolve_question_followup_context_and_action(
         if (
             followup_action_route(normalized_action) == "practice_generation"
             and not looks_like_practice_generation_request(user_message)
+            and not _contextual_generation_action_allowed(
+                user_message,
+                normalized_explicit,
+                normalized_action,
+            )
         ):
             normalized_action = None
         if normalized_action is None:
@@ -897,13 +1010,36 @@ async def _resolve_question_followup_context_and_action(
                 if (
                     followup_action_route(normalized_action) == "practice_generation"
                     and not looks_like_practice_generation_request(user_message)
+                    and not _contextual_generation_action_allowed(
+                        user_message,
+                        normalized_explicit,
+                        normalized_action,
+                    )
                 ):
                     normalized_action = None
+                if normalized_action is None:
+                    fallback_practice_action = (
+                        _practice_generation_action_for_recent_grading_acceptance(
+                            user_message,
+                            normalized_explicit,
+                        )
+                    )
+                    if fallback_practice_action is not None:
+                        normalized_explicit = (
+                            reset_question_submission_state(normalized_explicit)
+                            or normalized_explicit
+                        )
+                        normalized_action = fallback_practice_action
         deterministic_followup = looks_like_question_followup(user_message, normalized_explicit)
         if (
             deterministic_followup
             and followup_action_route(normalized_action) == "practice_generation"
             and not looks_like_practice_generation_request(user_message)
+            and not _contextual_generation_action_allowed(
+                user_message,
+                normalized_explicit,
+                normalized_action,
+            )
         ):
             normalized_action = None
         normalized_action = _demote_submission_hint_when_deterministic_followup(
@@ -978,14 +1114,31 @@ async def _resolve_question_followup_context_and_action(
         candidate_route = followup_action_route(candidate_action)
         if candidate_route == "submission":
             return normalized_candidate, candidate_action
-        if candidate_route == "practice_generation" and looks_like_practice_generation_request(
-            user_message
+        if candidate_route == "practice_generation" and (
+            looks_like_practice_generation_request(user_message)
+            or _contextual_generation_action_allowed(
+                user_message,
+                normalized_candidate,
+                candidate_action,
+            )
         ):
-            return normalized_candidate, candidate_action
+            return (
+                reset_question_submission_state(normalized_candidate) or normalized_candidate,
+                candidate_action,
+            )
         if candidate_route == "followup" and deterministic_followup:
             return normalized_candidate, candidate_action
         if deterministic_followup:
             return normalized_candidate, None
+        fallback_practice_action = _practice_generation_action_for_recent_grading_acceptance(
+            user_message,
+            normalized_candidate,
+        )
+        if fallback_practice_action is not None:
+            return (
+                reset_question_submission_state(normalized_candidate) or normalized_candidate,
+                fallback_practice_action,
+            )
 
     if current_surface_context is not None:
         return current_surface_context, current_surface_action
