@@ -52,6 +52,15 @@
     tests/api/test_unified_ws_turn_runtime.py 178 passed。
   - 迁移脚本本地端到端：legacy 形状库 dry-run→apply→复保存，终态恰 1 条用户会话。
   - 存量安全性：生产只读核验 1351 条镜像的 canonical 行 0 缺失、0 零消息。
+  - live 实测（指挥官补证）：本地 uvicorn 起 worktree 代码，legacy 形状库先跑迁移
+    --apply，再经真实 /api/v1/chat/start-turn + /api/v1/ws（run_student_turn.py，
+    qa_ 身份 + eval bypass）同会话连打 3 轮：turn1 回复原文"小鲁，你刚才说想先聊
+    **防水工程**的考点"（该历史仅存于被迁移剥身份的镜像行→跨迁移承接 PASS）；
+    turn2 批改 turn1 出的题；turn3 压缩 turn2 要点。DB 终态：owner+wx 口径用户
+    会话恰 1 条、镜像行恰 1 条且 3 轮真实写入后仍 owner=''/source='tutorbot'/
+    无 user_id、turns completed×3 全在 canonical。
+  - 迁移身份断言：test_tutorbot_engine_mirror_reused_after_stock_demotion——
+    demote 后 get_or_create 命中同 id（消息完整恢复 + sessions 全表行数恒 1）。
 - 教训：
   - 引擎/内部持久化借用用户可见表时，必须在写入侧显式自我声明（source/身份），
     否则每个按身份/来源统计的 reader 都会把内部行当业务实体；读取层去重是止血带不是闭包。
