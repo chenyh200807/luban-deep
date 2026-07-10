@@ -37,8 +37,18 @@
           </view>
         </view>
 
+        <!-- 记账未开通(mistake-book flag 关): 诚实说明, 不冒充"都还清了" -->
+        <view class="eb-empty pk-card" wx:if="{{bookDisabled}}">
+          <view class="eb-empty-ring dim">
+            <view class="eb-empty-check">…</view>
+          </view>
+          <text class="eb-empty-title">错因记账 · 即将开通</text>
+          <text class="eb-empty-desc">开通后，练习里冒出来的每笔错因都会自动记在这里——配好解药，随还随销。现在先去练，一题都不会丢。</text>
+          <view class="eb-btn" bindtap="goLearn"><text>去学习页 · 点亮下一站</text></view>
+        </view>
+
         <!-- 空态(待还 0): 满环对勾 + 深链学习(D1 铁律) -->
-        <view class="eb-empty pk-card" wx:if="{{vm.allClear}}">
+        <view class="eb-empty pk-card" wx:elif="{{vm.allClear}}">
           <view class="eb-empty-ring">
             <view class="eb-empty-check">✓</view>
           </view>

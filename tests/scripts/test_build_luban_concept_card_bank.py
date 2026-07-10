@@ -44,19 +44,34 @@ def test_gate_100_percent_and_quote_verbatim(pack_id):
     assert gate["quote_mismatches"] == []
     assert gate["duplicate_cards"] == []
     assert gate["forbidden_words"] == []
-    # quote 逐字命中 compiled_source（独立于 run_gate 再核一遍，防 gate 自证）
+    # 2026-07-11 对抗质检 S3 两道新闸（Codex 复核抓的测试缺口：口径必须跟上实现）
+    assert gate["intent_misses"] == []
+    assert gate["gist_num_orphans"] == []
+    # quote 逐字命中（独立于 run_gate 再核一遍，防 gate 自证）：
+    # 教材 lane = 归一后必须是教材权威库 chunk 全文的逐字子串（意图对齐选句产物）；
+    # 其余 lane（讲义等）= 与 compiled_source 逐字相等（原口径）。
     points = _mod._point_index(pack_id)
+    textbook = _mod._load_textbook_index(_mod.TEXTBOOK_DIR)
     for card in cards:
-        assert card["quote"] == points[card["point_id"]]["quote"]
+        ref = card.get("source_ref") or {}
+        if str(ref.get("source_lane") or "") == _mod._TEXTBOOK_LANE:
+            chunk = textbook[str(ref.get("chunk_id"))]
+            assert _mod._norm(card["quote"]) in _mod._norm(chunk["md"])
+        else:
+            assert card["quote"] == points[card["point_id"]]["quote"]
         assert card["front"]
         assert card["point_id"].startswith("kc:")
 
 
 @pytest.mark.parametrize("pack_id", TARGET_PACKS)
 def test_fail_closed_drops_are_honest(pack_id):
-    """掉卡必须留痕且只许三种原因（无 quote / 非🟢 / point 重复）。"""
+    """掉卡必须留痕且只许五种原因（无 quote / 非🟢 / point 重复 /
+    面板人审剔除 / 意图对齐选不出真句——后两种为 2026-07-11 对抗质检新增）。"""
     _, dropped, _ = _mod.derive_cards(pack_id)
-    allowed = {"not_green", "no_verbatim_quote", "duplicate_point_id"}
+    allowed = {
+        "not_green", "no_verbatim_quote", "duplicate_point_id",
+        "panel_reject", "quote_unalignable",
+    }
     assert {d["reason"] for d in dropped} <= allowed
 
 

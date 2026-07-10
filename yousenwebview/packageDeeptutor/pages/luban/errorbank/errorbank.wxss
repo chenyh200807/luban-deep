@@ -402,3 +402,7 @@
   color: var(--pk-t3);
   text-align: center;
 }
+
+/* 记账未开通空态: 环降饱和(区别于全还清的竹青庆祝环) */
+.eb-empty-ring.dim { border-color: var(--pk-t3); opacity: .7; }
+.eb-empty-ring.dim .eb-empty-check { color: var(--pk-t3); }
