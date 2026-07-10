@@ -89,6 +89,20 @@
   .ptx .hitword{color:var(--green);font-weight:800}
   .ptx .missword{color:var(--red);font-weight:800}
   .pitfall{border-color:rgba(251,113,133,.25);background:linear-gradient(165deg,rgba(251,113,133,.08),rgba(251,113,133,.02))}
+  /* 编译库判分卡 */
+  .librow{display:flex;align-items:flex-start;gap:10px;margin:2px 0 10px}
+  .scorechip{flex:0 0 auto;font-size:13px;font-weight:800;color:var(--gold);background:var(--gold-soft);
+    border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:6px 10px;font-variant-numeric:tabular-nums}
+  .libtx{font-size:13.5px;color:var(--t2);line-height:1.6}
+  .libtx b{color:var(--t1)}
+  .termlab{font-size:11.5px;font-weight:700;color:var(--t3);margin:10px 0 7px}
+  .termchips{display:flex;flex-wrap:wrap;gap:6px}
+  .tchip{font-size:12.5px;font-weight:700;color:var(--cyan-hi);background:rgba(34,211,238,.08);
+    border:1px solid var(--line-cyan);border-radius:8px;padding:5px 10px}
+  .tchip.hit{color:var(--green);background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.35)}
+  .tchip.miss{color:var(--red);background:rgba(251,113,133,.08);border-color:rgba(251,113,133,.3)}
+  .libscale{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3);margin-top:11px;line-height:1.5}
+  .libscale .ic{color:var(--cyan-hi)}
   /* 逐项拆解 */
   .ans{padding:11px 0;border-top:1px solid rgba(255,255,255,.06)}
   .ans:first-of-type{border-top:none;padding-top:4px}
@@ -248,7 +262,12 @@
     <div class="verdict"><div class="ring" id="fRing" style="--p:50"><i id="fRingTx"></i></div>
       <div><div class="vt" id="fTitle"></div><div class="vs" id="fSub"></div></div></div>
     <div class="panelcard"><div class="ph cyan">▍逐项拆解 · 四个选项一个个说清</div><div id="fAns"></div></div>
-    <div class="panelcard"><div class="ph cyan">▍阅卷怎么给分 · 采分点</div><div class="ptx" id="fPoint"></div></div>
+    <div class="panelcard"><div class="ph cyan">▍阅卷怎么给分 · 这道题的判分卡</div>
+      <div class="librow"><span class="scorechip" id="fLibScore">≈1.6 分</span><div class="libtx" id="fPoint"></div></div>
+      <div class="termlab">阅卷认的词（写到才给分）：</div>
+      <div class="termchips" id="fTerms"></div>
+      <div class="libscale"><span class="ic">◈</span><span id="fScale">判分卡按官方参考答案折算 · 全题 15 分切成 18 条判分点 · 鲁班编译库已收录 174 个真题小问 / 1221 条判分点</span></div>
+    </div>
     <div class="panelcard mnemo"><div class="ph gold">▍记忆口诀 · 收好</div>
       <div class="big" id="fMnBig"></div><div class="sub" id="fMnSub"></div></div>
     <button class="cta" id="fNext"></button>
@@ -327,7 +346,7 @@
       <span class="chip">一割二烤三剥四贴</span>
       <span class="chip">经理编 · 企业审 · 监理批</span>
       <span class="chip">顶砖别急 · 先等十四</span>
-      <span class="chip">停电从末端 · 送电从源头</span>
+      <span class="chip">装配式垃圾 · 万平不过两百吨</span>
     </div>
 
     <div class="eyebrow cyan" style="margin-top:22px">这份报告，在产品里天天有</div>
@@ -439,7 +458,8 @@
 
   /* ---------- 题集（4 道，全部来自真题采分点） ---------- */
   var QS = [
-    { name:"起鼓割补", family:"1A434000 屋面防水", src:"真题 · 2014 案例",
+    { name:"起鼓割补", family:"1A434000 屋面防水", src:"真题 · 2023 案例",
+      lib:{score:"≈1.6 分", terms:["喷灯烘烤","槎口","分层剥开","新卷材"], hitTerm:"分层剥开", nPoints:18, total:15, year:2023},
       cas:"某屋面卷材防水层局部<b>起鼓</b>，项目部决定<b>割补</b>处理：割开鼓泡放出气体、烘烤旧卷材槎口，然后——",
       stem:'下一步，旧卷材怎么处理才<span class="hi">对</span>？',
       hint:"👆 阅卷老师只认关键动作词，点你觉得对的",
@@ -449,12 +469,13 @@
             B:"会把旁边没起鼓、还粘得好好的部分也带起来，破坏面越修越大。",
             C:"「剥」是分寸，「铲」是破坏——铲刀会伤到下面还完好的防水层。",
             D:"气还闷在里面，太阳一晒照样鼓起来——等于没修。"},
-      point:'看懂了每个选项，再看考试规则：这一问阅卷只认 <span class="hitword">「分层剥开」</span> 这个动作词——道理都对但词不对，一样不给分。',
+      point:'割补工序在判分卡里是一条 <b>≈1.6 分</b> 的采分点——四个词都写到才拿满，<span class="hitword">「分层剥开」</span>是其中的命门：道理都对但词不对，一样不给分。',
       vt:{ok:"这一步你是稳的",no:"方向对了，差半步"},
       vs:{ok:"「分层剥开」选得准——考场上一大半人栽在这，你没有。下面看看另外三个坑长什么样。",
           no:"你知道要先处理旧卷材，判断很稳——差在哪，四个选项逐个拆给你。"},
       mn:{big:"一割 二烤 三剥 四贴", sub:"<b>割</b>开放气 → <b>烤</b>软槎口 → 分层<b>剥</b>开 → 分片重<b>贴</b>"} },
-    { name:"质量计划", family:"1A420000 项目质量管理", src:"真题 · 案例改编",
+    { name:"质量计划", family:"项目质量管理", src:"真题 · 2023 案例",
+      lib:{score:"≈1.1 分", terms:["不妥","项目经理","企业","审核"], hitTerm:"项目经理", nPoints:18, total:15, year:2023},
       cas:"项目部要编制《项目质量计划》，会上几个人都说该自己牵头——",
       stem:'谁来<span class="hi">组织编制</span>才对？',
       hint:"👆 编、审、批是三拨人，点组织编制的那个",
@@ -464,12 +485,13 @@
             B:"听起来最专业，所以最多人选——但他只是参与编制，「组织」的责任在项目经理。",
             C:"企业管理层是第二步「审核」的人，不下场编。",
             D:"监理是最后一步「审批」的人，更不会替施工方编。"},
-      point:'四个人对应三个环节，阅卷认的是 <span class="hitword">「项目经理组织编制」</span>——再跟上企业管理层<b>审核</b>、监理<b>审批</b>，一问三分就齐了。',
+      point:'这条采分点要求「指出不妥 + 写对的人」两段都有：<span class="hitword">「项目经理」组织编制</span>，经<b>企业</b>管理层<b>审核</b>后报监理审批——四个词齐了，≈1.1 分到手。',
       vt:{ok:"人找对了",no:"差半步——人不对"},
       vs:{ok:"「项目经理」选得准。这题妙在四个选项其实是三个环节的人——逐个拆给你看。",
           no:"这题四个选项其实是三个环节的人，坑就藏在这——逐个拆给你看。"},
       mn:{big:"经理编 · 企业审 · 监理批", sub:"编制 → 审核 → 审批，三步<b>一个都不能换人</b>"} },
-    { name:"填充墙防裂", family:"1A415000 砌体结构", src:"真题 · 案例改编",
+    { name:"填充墙防裂", family:"砌体填充墙 · 裂缝防治", src:"真题 · 2024 案例",
+      lib:{score:"≈0.3 分", terms:["最后3皮砖","14d"], hitTerm:"14d", nPoints:20, total:5, year:2024},
       cas:"框架填充墙快砌到梁底了，工人问：最后这几皮砖——",
       stem:'怎么砌才<span class="hi">不裂</span>？',
       hint:"👆 想想墙砌完会发生什么",
@@ -479,26 +501,27 @@
             B:"看着利索，但墙一沉缩，梁底那道裂缝准时报到。",
             C:"方向对了但远不够——沉缩以「周」计，教材写死 14 天。",
             D:"缝还在那，抹灰迟早映出裂缝，糊弄不过去。"},
-      point:'这题的采分点带数字：<span class="hitword">「14 天后补砌顶紧」</span>——写「等几天」「过段时间」都不给分，就认这个 14。',
+      point:'2024 年这道题全问 5 分切成 20 条判分点，这一条只值 ≈0.3 分——但阅卷就认两个词：<span class="hitword">「最后 3 皮砖」+「14d」</span>。案例题的分，就是这样一小口一小口挣的。',
       vt:{ok:"连 14 天都记得，可以",no:"差半步——差在等多久"},
       vs:{ok:"你抓住了这题的魂：不是砌不砌，是等多久。四个选项就是四种等法，拆给你看。",
           no:"这题考的不是砌不砌，是等多久——四个选项就是四种等法，拆给你看。"},
       mn:{big:"顶砖别急 · 先等十四", sub:"下部墙砌完 <b>14 天</b>，再补砌顶紧"} },
-    { name:"停电顺序", family:"1A432000 施工用电安全", src:"真题 · 高频考点",
-      cas:"收工了，工地要断电。<b>总配电箱、分配电箱、开关箱</b>三级都在你面前——",
-      stem:'第一步，先断<span class="hi">哪一级</span>？',
-      hint:"👆 最后一题，还是点就行",
-      opts:{A:"开关箱",B:"总配电箱",C:"分配电箱",D:"哪个顺手断哪个"},
+    { name:"装配式建筑垃圾", family:"绿色施工 · 新考点", src:"真题 · 2025 案例",
+      lib:{score:"1.5 分", terms:["200","每万平方米"], hitTerm:"200", nPoints:21, total:5, year:2025},
+      cas:"新建装配式保障房项目，施工方案里写：<b>「建筑垃圾产生量控制在每万平方米不大于 300t」</b>——",
+      stem:'最后一题，2025 年的新考法：这个数<span class="hi">对吗</span>？',
+      hint:"👆 教材年年改，新增考点最爱出这种数",
+      opts:{A:"不对，装配式应不大于 200t",B:"对，300t 就是标准",C:"不对，应不大于 400t",D:"没有硬指标，分类处理就行"},
       right:"A", trap:"B",
-      expl:{A:"从末端断起，负荷一级一级卸掉——人和设备都安全。",
-            B:"生活直觉是先关总闸——但末端设备带着负荷突然失电，恰恰最危险。",
-            C:"它在顺序的中段，不是第一步。",
-            D:"用电安全里没有「顺手」两个字。"},
-      point:'这题的采分点是顺序本身：<span class="hitword">开关箱 → 分配电箱 → 总配电箱</span>——三级写全且不反，分才到手。',
-      vt:{ok:"你这顺序感，安全员都点头",no:"大多数人的第一反应和你一样"},
-      vs:{ok:"停电从末端开始——你答的就是教材原话。看看别人常掉的坑。",
-          no:"这题专收「生活直觉」的分——为什么直觉是反的，拆给你看。"},
-      mn:{big:"停电从末端 · 送电从源头", sub:"停：<b>开关箱</b> → 分配电箱 → 总配电箱；送电正好反过来"} }
+      expl:{A:"装配式建筑的垃圾控制指标比现浇更严——每万平方米不大于 200t。",
+            B:"300t 是<b>现浇</b>结构的口径——题干是装配式，方案照抄旧数，正是出题人埋的雷。",
+            C:"400t 哪个口径都不是——凭感觉放宽，考场最吃亏。",
+            D:"绿色施工章节就是冲着硬指标考的，「分类处理」躲不掉数字题。"},
+      point:'2025 年这条采分点值 <b>1.5 分</b>，阅卷认两个词：<span class="hitword">「200」+「每万平方米」</span>——新教材新增的考点，题库越老的资料越不会有它。',
+      vt:{ok:"新考点你都跟上了，厉害",no:"这就是「教材改了」的代价"},
+      vs:{ok:"装配式 200t 是近两年才进教材的硬指标——你答对说明你的资料够新。",
+          no:"选 300t 的人往往资料没更新——旧数字在新考卷上就是陷阱。拆给你看。"},
+      mn:{big:"装配式垃圾 · 万平不过两百吨", sub:"装配式 <b>≤200t</b>/万㎡（现浇口径是 300t，别搬错）"} }
   ];
   var qi = 0, results = [], qShownAt = 0;
 
@@ -587,7 +610,15 @@
             + '<div class="rs">'+q.expl[o]+'</div></div>';
     });
     document.getElementById("fAns").innerHTML = html;
+    /* 编译库判分卡 */
+    document.getElementById("fLibScore").textContent = q.lib.score;
     document.getElementById("fPoint").innerHTML = q.point;
+    document.getElementById("fTerms").innerHTML = q.lib.terms.map(function(t){
+      if(t === q.lib.hitTerm) return '<span class="tchip '+(ok?"hit":"miss")+'">'+(ok?"✓ ":"✗ ")+t+'</span>';
+      return '<span class="tchip">'+t+'</span>';
+    }).join("");
+    document.getElementById("fScale").textContent =
+      "判分卡按 "+q.lib.year+" 官方参考答案折算 · 全题 "+q.lib.total+" 分切成 "+q.lib.nPoints+" 条判分点 · 鲁班编译库已收录 174 个真题小问 / 1221 条判分点";
     document.getElementById("fMnBig").textContent = q.mn.big;
     document.getElementById("fMnSub").innerHTML = q.mn.sub;
     document.getElementById("fNext").textContent =
@@ -668,7 +699,7 @@
     document.getElementById("rModeT").textContent = (profile.typeName ? profile.typeName + " —— " : "") + (WAR_TX[war]||"");
     document.getElementById("rModeS").innerHTML = M[mode] || M.nopoint;
     document.getElementById("rBasis").innerHTML =
-      results.length + " 条作答 · " + missN + " 个错因命中 · " + results.length + " 个采分点逐条比对（溯源教材）· 6 个画像信号";
+      results.length + " 条作答 · " + missN + " 个错因命中 · " + results.length + " 个采分点比对鲁班编译库（174 个真题小问 / 1221 条判分点）· 6 个画像信号";
     /* 四道题的账 */
     var g = "";
     results.forEach(function(r, i){
