@@ -2,6 +2,7 @@ var api = require("../../utils/api");
 var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
+var firstRunEntry = require("../../utils/first-run-entry");
 var analytics = require("../../utils/analytics");
 var flags = require("../../utils/flags");
 var surfaceTelemetry = require("../../utils/surface-telemetry");
@@ -191,7 +192,9 @@ Page({
         route.learn(source ? { entry_source: source } : null),
       );
     }
-    wx.reLaunch({ url: target });
+    // 首跑剧本：零会话新用户默认进「第一分钟」，其余落到上面算好的 target
+    //（含双轮重定向）。判据在 firstRunEntry 内部，API 失败/超时 fail-open 到 target。
+    firstRunEntry.reLaunchAfterAuth(target);
   },
   _trackLoginSuccess: function (method) {
     analytics.track("deeptutor_login_success", {
