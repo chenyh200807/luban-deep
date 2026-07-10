@@ -87,6 +87,11 @@ def _date_bucket(timestamp: float) -> str:
     return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
 
 
+# 内部账号排除集的缓存 TTL：_load_all_members 每个 BI 请求会被调用 1-2 次，
+# 不能每次都打一遍 bi_internal_accounts REST。
+_INTERNAL_ACCOUNTS_EXCLUSION_TTL_SECONDS = 60.0
+
+
 def _round(value: float, digits: int = 2) -> float:
     return round(value, digits)
 
@@ -160,6 +165,8 @@ class BIService:
         self._deepseek_billing_client = deepseek_billing_client
         self._usage_ledger = usage_ledger or get_usage_ledger()
         self._wallet_service = wallet_service or get_wallet_service()
+        # (monotonic_ts, ids) — 内部账号排除集缓存，见 _internal_account_exclusion_ids。
+        self._internal_exclusion_cache: tuple[float, frozenset[str]] | None = None
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._store.db_path)
@@ -1160,26 +1167,29 @@ class BIService:
         return await self._load_context_since(self._window_start(days))
 
     def _load_all_members(self) -> list[dict[str, Any]]:
+        """BI 会员口径唯一入口。
+
+        所有会员统计（新增/漏斗/留存 scoping/活跃学习者/commerce）都从这里取数，
+        因此运营期过滤（is_bi_operational_at）和内部账号排除（bi_internal_accounts
+        is_internal=true）只在这一处收口，消费点不得各自再实现一遍。
+        """
+        internal_ids = self._internal_account_exclusion_ids()
+
+        def _operational(item: dict[str, Any]) -> bool:
+            if not is_bi_operational_at(item.get("created_at")):
+                return False
+            if internal_ids and self._member_identity_values(item) & internal_ids:
+                return False
+            return True
+
         list_members_for_bi = getattr(self._member_service, "list_members_for_bi", None)
         if callable(list_members_for_bi):
-            return [
-                item
-                for item in list_members_for_bi()
-                if is_bi_operational_at(item.get("created_at"))
-            ]
+            return [item for item in list_members_for_bi() if _operational(item)]
         first_page = self._member_service.list_members(page=1, page_size=200)
-        items = [
-            item
-            for item in first_page["items"]
-            if is_bi_operational_at(item.get("created_at"))
-        ]
+        items = [item for item in first_page["items"] if _operational(item)]
         for page in range(2, int(first_page.get("pages") or 1) + 1):
             current = self._member_service.list_members(page=page, page_size=200)
-            items.extend(
-                item
-                for item in current["items"]
-                if is_bi_operational_at(item.get("created_at"))
-            )
+            items.extend(item for item in current["items"] if _operational(item))
         return items
 
     @staticmethod
@@ -1848,6 +1858,22 @@ class BIService:
         risk_counter = Counter(member.get("risk_level") or "unknown" for member in members)
         status_counter = Counter(member.get("status") or "unknown" for member in members)
 
+        # 注册渠道归因维度（读 user_identity_aliases.metadata.reg_channel，
+        # 经 member directory 的 identity_metadata 透传）：总量 + 窗口内新增。
+        now = datetime.now(timezone.utc)
+        channel_counter: Counter[str] = Counter()
+        new_member_channel_counter: Counter[str] = Counter()
+        for member in members:
+            reg_channel = (
+                str((member.get("identity_metadata") or {}).get("reg_channel") or "").strip()
+                or "unknown"
+            )
+            channel_counter[reg_channel] += 1
+            if self._is_member_created_within_days(
+                str(member.get("created_at") or ""), now=now, days=days
+            ):
+                new_member_channel_counter[reg_channel] += 1
+
         expiring = sorted(
             members,
             key=lambda item: item.get("expire_at") or "",
@@ -1860,6 +1886,16 @@ class BIService:
                 {"label": "活跃会员", "metric_id": "member_active_count", "value": dashboard.get("active_count", 0), "hint": f"总会员 {dashboard.get('total_count', 0)}"},
                 {"label": "7 天内到期", "metric_id": "expiring_soon_members", "value": dashboard.get("expiring_soon_count", 0), "hint": "建议跟进续费"},
                 {"label": "流失预警", "metric_id": "renewal_risk_members", "value": dashboard.get("churn_risk_count", 0), "hint": f"健康分 {dashboard.get('health_score', 0)}"},
+            ],
+            "channels": [
+                {
+                    "channel": key,
+                    "count": value,
+                    "new_count": new_member_channel_counter.get(key, 0),
+                    "label": key,
+                    "value": value,
+                }
+                for key, value in channel_counter.most_common()
             ],
             "tiers": [{"tier": key, "count": value, "label": key, "value": value} for key, value in tier_counter.most_common()],
             "risks": [{"risk_level": key, "count": value, "label": key, "value": value} for key, value in risk_counter.most_common()],
@@ -3729,23 +3765,57 @@ class BIService:
         result = resp.json()
         return result if isinstance(result, list) else []
 
-    async def get_internal_account_states(self) -> dict[str, dict[str, Any]]:
-        """当前各 user_id 的内部账号状态（取每个 user_id 最新一条记录）。"""
-        try:
-            rows = self._supabase_internal_accounts(
-                "GET",
-                params={"select": "user_id,is_internal,operator_id,reason,created_at", "order": "created_at.desc", "limit": "2000"},
-            )
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("get_internal_account_states failed: %s", exc)
-            return {}
+    def _load_internal_account_states(self) -> dict[str, dict[str, Any]]:
+        """同步核心：各 user_id 的最新内部账号状态（bi_internal_accounts 唯一读取口径）。
 
+        展示端点（get_internal_account_states）和会员统计排除口径
+        （_internal_account_exclusion_ids）都必须走这里，不得各自解析审计表。
+        """
+        rows = self._supabase_internal_accounts(
+            "GET",
+            params={"select": "user_id,is_internal,operator_id,reason,created_at", "order": "created_at.desc", "limit": "2000"},
+        )
         states: dict[str, dict[str, Any]] = {}
         for row in rows:
             uid = str(row.get("user_id") or "").strip()
             if uid and uid not in states:
                 states[uid] = row
         return states
+
+    async def get_internal_account_states(self) -> dict[str, dict[str, Any]]:
+        """当前各 user_id 的内部账号状态（取每个 user_id 最新一条记录）。"""
+        try:
+            return self._load_internal_account_states()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("get_internal_account_states failed: %s", exc)
+            return {}
+
+    def _internal_account_exclusion_ids(self) -> frozenset[str]:
+        """会员统计排除集：最新状态 is_internal=true 的 user_id 集合。
+
+        fail-open：读不到标记表时沿用上次结果（或空集）并告警——BI 面板可以
+        短暂回到未清洗口径，但不能因标记表抖动而整体不可用。失败也写缓存，
+        避免 Supabase 故障期间每次会员加载都吃一次 8s 超时。
+        """
+        now = time.monotonic()
+        cached = self._internal_exclusion_cache
+        if cached is not None and now - cached[0] < _INTERNAL_ACCOUNTS_EXCLUSION_TTL_SECONDS:
+            return cached[1]
+        try:
+            states = self._load_internal_account_states()
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("internal account exclusion unavailable, fail-open: %s", exc)
+            ids = cached[1] if cached is not None else frozenset()
+            if getattr(self._wallet_service, "is_configured", False):
+                # 只有"配置了但读失败"才值得用缓存挡住重试风暴；
+                # 未配置（本地/测试）时保持零缓存零成本的快速失败。
+                self._internal_exclusion_cache = (now, ids)
+            return ids
+        ids = frozenset(
+            uid for uid, row in states.items() if bool(row.get("is_internal"))
+        )
+        self._internal_exclusion_cache = (now, ids)
+        return ids
 
     async def mark_internal_account(
         self,

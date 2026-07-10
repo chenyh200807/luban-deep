@@ -3059,7 +3059,7 @@ def test_get_conversation_messages_rejects_existing_non_mobile_session(
 
 
 def test_wechat_login_route_maps_service_errors(monkeypatch: pytest.MonkeyPatch) -> None:
-    async def _failing_login(_code: str, _phone_code: str):
+    async def _failing_login(_code: str, _phone_code: str, **_kwargs: object):
         raise RuntimeError("WeChat code2Session failed")
 
     monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_phone", _failing_login)
@@ -3075,7 +3075,7 @@ def test_wechat_login_route_maps_service_errors(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_wechat_login_route_requires_phone_code(monkeypatch: pytest.MonkeyPatch) -> None:
-    async def _unexpected_login(_code: str, _phone_code: str) -> dict[str, str]:
+    async def _unexpected_login(_code: str, _phone_code: str, **_kwargs: object) -> dict[str, str]:
         raise AssertionError("login_with_wechat_phone must not be called without phone_code")
 
     monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_phone", _unexpected_login)
@@ -3094,7 +3094,7 @@ def test_wechat_bind_phone_uses_bound_user(monkeypatch: pytest.MonkeyPatch) -> N
         lambda *_args, **_kwargs: "wx_user_1",
     )
     
-    async def _fake_bind_phone(user_id, phone_code):
+    async def _fake_bind_phone(user_id, phone_code, **_kwargs):
         return {
             "bound": True,
             "user_id": user_id,
@@ -3134,7 +3134,7 @@ def test_wechat_bind_phone_rate_limits_by_route_and_client_ip(
         lambda *_args, **_kwargs: "wx_user_1",
     )
 
-    async def _fake_bind_phone(_user_id: str, _phone_code: str) -> dict[str, object]:
+    async def _fake_bind_phone(_user_id: str, _phone_code: str, **_kwargs: object) -> dict[str, object]:
         return {"bound": True}
 
     monkeypatch.setattr(mobile_module.member_service, "bind_phone_for_wechat", _fake_bind_phone)
@@ -3212,7 +3212,7 @@ def test_auth_login_exposes_is_admin_without_profile_followup(monkeypatch: pytes
 
 
 def test_auth_register_maps_validation_error_to_400(monkeypatch: pytest.MonkeyPatch) -> None:
-    def _failing_register(_username: str, _password: str, _phone: str):
+    def _failing_register(_username: str, _password: str, _phone: str, **_kwargs: object):
         raise ValueError("用户名已存在")
 
     monkeypatch.setattr(mobile_module.member_service, "register_with_external_auth", _failing_register)
@@ -3233,7 +3233,7 @@ def test_auth_register_seeds_learner_state_when_user_id_present(monkeypatch: pyt
     monkeypatch.setattr(
         mobile_module.member_service,
         "register_with_external_auth",
-        lambda _username, _password, _phone: {"user_id": "student_demo", "token": "ok"},
+        lambda _username, _password, _phone, **_kwargs: {"user_id": "student_demo", "token": "ok"},
     )
     monkeypatch.setattr(
         mobile_module.learner_state_service,
@@ -3259,7 +3259,7 @@ def test_auth_register_seeds_learner_state_when_user_id_is_nested_under_user(
     monkeypatch.setattr(
         mobile_module.member_service,
         "register_with_external_auth",
-        lambda _username, _password, _phone: {
+        lambda _username, _password, _phone, **_kwargs: {
             "token": "ok",
             "user": {"user_id": "student_demo"},
         },
@@ -3278,6 +3278,158 @@ def test_auth_register_seeds_learner_state_when_user_id_is_nested_under_user(
 
     assert response.status_code == 200
     assert calls == ["student_demo"]
+
+
+def test_auth_register_forwards_channel_attribution(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+
+    def _fake_register(username: str, password: str, phone: str, **kwargs: object) -> dict[str, object]:
+        captured.update({"username": username, **kwargs})
+        return {"user_id": "student_demo", "token": "ok"}
+
+    monkeypatch.setattr(mobile_module.member_service, "register_with_external_auth", _fake_register)
+    monkeypatch.setattr(
+        mobile_module.learner_state_service,
+        "read_snapshot",
+        lambda user_id: {"user_id": user_id},
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/register",
+            json={
+                "username": "student_demo",
+                "password": "StrongPass123",
+                "phone": "13800000000",
+                "channel": "test1",
+                "scene": "1047",
+            },
+        )
+
+    assert response.status_code == 200
+    assert captured["channel"] == "test1"
+    assert captured["scene"] == "1047"
+
+
+def test_wechat_login_forwards_channel_attribution(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+
+    async def _fake_login(code: str, phone_code: str, **kwargs: object) -> dict[str, object]:
+        captured.update({"code": code, "phone_code": phone_code, **kwargs})
+        return {"bound": True, "token": "ok"}
+
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_phone", _fake_login)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/wechat/mp/login",
+            json={
+                "code": "abc",
+                "phone_code": "phone-code",
+                "channel": "test1",
+                "scene": "1047",
+            },
+        )
+
+    assert response.status_code == 200
+    assert captured["channel"] == "test1"
+    assert captured["scene"] == "1047"
+
+
+def test_wechat_login_client_wire_body_persists_channel_attribution(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """接缝闭环：请求体是客户端 node 测试
+    (wx_miniprogram/tests/test_channel_attribution_transmission.js) 实际序列化产物的
+    原文（stdout 的 SERIALIZED_LOGIN_BODY= 行，逐字粘贴，禁手拼），经真实路由 +
+    真实 pydantic 解析 + 真实 MemberConsoleService 走到 repository 边界
+    (_persist_phone_identity)，断言落库 metadata 含 reg_channel/reg_scene。
+    防"客户端字段名 ↔ 请求模型字段名"接缝静默丢。"""
+    client_wire_body = (
+        '{"code":"wx-code","phone_code":"phone-code-123","channel":"test1","scene":"1047"}'
+    )
+
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = mobile_module.member_service
+    monkeypatch.setattr(service, "_data_path", tmp_path / "member_console.json")
+
+    class _SeamFakeWallet:
+        is_configured = True
+
+        def __init__(self) -> None:
+            self.snapshots: dict[str, SimpleNamespace] = {}
+
+        def get_wallet(self, user_id: str):
+            return self.snapshots.get(str(user_id))
+
+        def ensure_wallet_seeded(self, **kwargs):
+            user_id = str(kwargs["user_id"])
+            snapshot = self.snapshots.get(user_id)
+            if snapshot is None:
+                snapshot = SimpleNamespace(
+                    user_id=user_id,
+                    balance_micros=0,
+                    frozen_micros=0,
+                    plan_id=str(kwargs.get("plan_id") or ""),
+                    version=1,
+                    created_at="2026-07-10T10:00:00+08:00",
+                )
+                self.snapshots[user_id] = snapshot
+            return snapshot
+
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: _SeamFakeWallet())
+
+    # Hermetic：本机 env 若带 Supabase 凭据，真实 alias store 会 live 连线；
+    # 打桩为未配置，保证"该手机号无既有 canonical alias"= 真·首次注册路径。
+    class _UnconfiguredAliasStore:
+        is_configured = False
+
+        @staticmethod
+        def resolve_alias(**_kwargs):
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _UnconfiguredAliasStore(),
+    )
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {
+            "openid": "openid_123456789012",
+            "unionid": "unionid_abcdef",
+            "session_key": "session_key_value",
+        }
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911112222"
+
+    persisted: dict[str, object] = {}
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+    monkeypatch.setattr(
+        service, "_persist_wechat_openid_identity", lambda **_kwargs: None
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/wechat/mp/login",
+            content=client_wire_body,
+            headers={"Content-Type": "application/json"},
+        )
+
+    assert response.status_code == 200
+    assert persisted["phone"] == "13911112222"
+    identity_metadata = persisted["identity_metadata"]
+    assert isinstance(identity_metadata, dict)
+    assert identity_metadata["reg_channel"] == "test1"
+    assert identity_metadata["reg_scene"] == "1047"
 
 
 def test_auth_reset_password_calls_member_service_without_issuing_token(
@@ -5243,7 +5395,7 @@ def test_auth_register_rate_limits_by_route_and_client_ip(monkeypatch: pytest.Mo
     monkeypatch.setattr(
         mobile_module.member_service,
         "register_with_external_auth",
-        lambda _username, _password, _phone: {"token": "ok"},
+        lambda _username, _password, _phone, **_kwargs: {"token": "ok"},
     )
 
     with TestClient(_build_app()) as client:
@@ -5393,7 +5545,7 @@ def test_wechat_login_rate_limits_by_route_and_client_ip(monkeypatch: pytest.Mon
         },
     )
 
-    async def _fake_login(_code: str, _phone_code: str) -> dict[str, str]:
+    async def _fake_login(_code: str, _phone_code: str, **_kwargs: object) -> dict[str, str]:
         return {"token": "ok"}
 
     monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_phone", _fake_login)

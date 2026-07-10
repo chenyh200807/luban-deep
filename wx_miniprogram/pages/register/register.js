@@ -109,6 +109,7 @@ Page({
     }
 
     self.setData({ loading: true, errorMsg: "" });
+    var attribution = api.regAttribution();
     api
       .request({
         url: "/api/v1/auth/register",
@@ -117,6 +118,8 @@ Page({
           username: username,
           password: password,
           phone: phone,
+          channel: attribution.channel,
+          scene: attribution.scene,
         },
         noAuth: true,
       })
