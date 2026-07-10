@@ -113,6 +113,12 @@
 - **待办**：① owner 亲手走完 5 天审 wow/不假/暖（人闸）→对了则 P4 抽模板批量铺 A01/J01/N01/S05→11 可上→60；② Day4 真判=治理 follow-on（解 Q18 score_sum block+接内核实判）；③ B-step2 material 摘取（card-fit 视觉增量，体验版上传前硬前置，已有对账表）；④ 订阅 tmplId（owner 后台，不阻塞）；⑤ F16 P0 审过后 commit + 上体验版真机。
 - **DevTools 复现**：项目根=`deeptutor-main2/yousenwebview`，编译启动页=`packageDeeptutor/pages/learn/learn`（project.private.config.json current 已设"学习页(双轮)"）；看不见改动清 WeappCache（退出→`rm -rf <hash>/{WeappCache,Weappdest,WeappMiniCode}`→重开，保留 WeappLocalData 登录态）；关/开 DevTools 用 `/Applications/wechatwebdevtools.app/Contents/MacOS/cli quit|open --project`（退出不干净=端口占用超时，需 pkill -9 -f wechatwebdevtools + lsof -ti:<port> 杀干净再 open）。
 
+### 2026-07-10（seethrough 视觉+F16 切片重放上 main 基座 · 即时入账）
+- **[重放] `luban/seethrough-visuals-on-main`（base=origin/main `918cf4aa`，含 first-run PR#439）**：cherry-pick `4d8d12aa`（换轻练绑定 goSwitchPractice）+ `3200ec19`（F16 seethrough 17 文件切片，即上节 P0 的 commit 化），解决"owner 要的纸墨 UI 与最新 main 功能分居两分支"。唯一冲突=app.json 子包页面双注册（main 加 first-run / 分支加 seethrough）→双保留。
+- **[自曝雷撤除] `3200ec19` 夹带 app.js `USE_LOCAL_DEVTOOLS` 默认 true**（作者自注"⚠️ 绝不 commit/发版——demo 后须改回 false"但已随切片 commit 入库）→ 被既有测试闸 `test_app_runtime_base_selection`（develop 候选默认仅 remote）当场抓住，重放分支已改回 false 单独成 commit。**教训：demo 期临时 hack 必须走本地不落库；"绝不 commit"注释挡不住 commit，测试闸挡得住。**
+- **验证**：node 小程序测试 95 文件全过（learn-view-model 13 / seethrough-page 12 / app_runtime_base_selection 11）；pytest luban_lesson 域 55 passed；改动 JS 全 node --check；app.json JSON 校验过。
+- **消费提醒**：test2 现跑 `42681ace6` 无 seethrough 端点——审看穿体验仍需本地 8001 后端（上节 DevTools 复现法），或待下次阿里云里程碑部署本分支。
+
 ## 惯例沉淀（复盘时升格为规则的候选）
 - 部署后必做独立探针（不信脚本自报）——本轮抓到 22 站 404 与 F16 无声两个上线级洞。
 - owner 口述需求先 grep 是否已实现再派工；agent 终态纪律=最终回复基于磁盘/线上实测，"等待中/等子报告"不是完成态。
