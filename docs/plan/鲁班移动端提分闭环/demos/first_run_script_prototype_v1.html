@@ -5,17 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>鲁班智考 · 第一分钟</title>
 <style>
-  /* ===== 老蓝版蓝黑 token（取自 wx_miniprogram/app.wxss）===== */
+  /* ===== 学情页蓝黑体系（参照生产学情 tab 截图）===== */
   :root{
-    --bg:#101622; --bg2:#1a2130; --bg3:#232d3f;
-    --card:rgba(26,33,48,.92); --elev:rgba(35,45,63,.95); --glass:rgba(255,255,255,.04);
-    --line:rgba(148,163,184,.18); --line-blue:rgba(47,107,255,.35);
-    --blue:#2f6bff; --blue-hi:#60a5fa; --blue-deep:#2563eb; --blue-soft:rgba(47,107,255,.12);
-    --gold:#f59e0b; --gold-soft:rgba(245,158,11,.12);
-    --green:#10b981; --green-soft:rgba(16,185,129,.12);
-    --red:#ef4444; --red-soft:rgba(239,68,68,.10);
-    --t1:#ffffff; --t2:rgba(255,255,255,.75); --t3:rgba(255,255,255,.52);
-    --shadow:0 10px 34px rgba(4,10,24,.55);
+    --bg:#0a0f1a; --bg2:#0d1520;
+    --card:linear-gradient(165deg,#122330,#0d1723);
+    --card-hero:linear-gradient(160deg,#14283a,#0c1826);
+    --line:rgba(148,163,184,.14); --line-cyan:rgba(34,211,238,.25);
+    --cyan:#22d3ee; --cyan-hi:#67e8f9; --cyan-deep:#0e7490;
+    --orange:#fb923c; --orange-deep:#f97316;
+    --cream:#fde8c8;
+    --green:#34d399; --green-deep:#10b981;
+    --red:#fb7185; --red-soft:rgba(251,113,133,.12);
+    --gold:#fbbf24; --gold-soft:rgba(251,191,36,.10);
+    --t1:#ffffff; --t2:rgba(255,255,255,.72); --t3:rgba(255,255,255,.48);
+    --shadow:0 12px 36px rgba(2,8,20,.6);
     --font:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI','Microsoft YaHei',sans-serif;
     color-scheme:dark;
   }
@@ -23,134 +26,136 @@
   html,body{height:100%}
   body{margin:0;color:var(--t1);font-family:var(--font);-webkit-font-smoothing:antialiased;
     background:
-      radial-gradient(900px 480px at 50% -140px,rgba(47,107,255,.22),transparent 65%),
-      radial-gradient(700px 420px at 100% 110%,rgba(6,182,212,.08),transparent 60%),
+      radial-gradient(800px 420px at 50% -120px,rgba(34,211,238,.10),transparent 65%),
+      radial-gradient(600px 380px at 100% 115%,rgba(251,146,60,.05),transparent 60%),
       var(--bg)}
   .app{max-width:420px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;padding:0 18px 26px}
-  /* top bar */
+  /* top */
   .top{display:flex;align-items:center;justify-content:space-between;padding:16px 2px 10px}
   .brand{font-size:13px;font-weight:700;letter-spacing:.03em;display:flex;align-items:center;gap:7px;color:var(--t2)}
-  .brand .logo{width:20px;height:20px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--blue-hi));
-    display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:800}
-  .prog{display:flex;gap:5px}
-  .prog i{width:16px;height:4px;border-radius:9px;background:rgba(255,255,255,.12);display:block;transition:background .3s}
-  .prog i.on{background:var(--blue)}
+  .brand .logo{width:20px;height:20px;border-radius:7px;background:linear-gradient(135deg,var(--cyan),var(--cyan-deep));
+    display:flex;align-items:center;justify-content:center;font-size:11px;color:#04222e;font-weight:800}
+  .prog{display:flex;gap:4px}
+  .prog i{width:13px;height:4px;border-radius:9px;background:rgba(255,255,255,.12);display:block;transition:background .3s}
+  .prog i.on{background:var(--cyan)}
   .skip{font-size:12px;color:var(--t3);font-weight:600;background:none;border:none;font-family:var(--font);padding:6px 0 6px 12px;cursor:pointer}
   /* scenes */
   .scene{display:none;flex-direction:column;flex:1;opacity:0;transform:translateY(14px)}
   .scene.show{display:flex;animation:in .45s cubic-bezier(.2,.7,.3,1) forwards}
   @keyframes in{to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:reduce){
-    .scene.show{animation:none;opacity:1;transform:none}
-    .opt,.cta{transition:none}
-  }
-  h1{font-size:22px;line-height:1.38;font-weight:700;margin:24px 0 8px;text-wrap:balance}
-  h1 .hi{color:var(--blue-hi)}
-  .lead{font-size:14px;color:var(--t2);line-height:1.7;margin:0 0 20px}
-  .stepchip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--blue-hi);
-    background:var(--blue-soft);border:1px solid var(--line-blue);border-radius:99px;padding:5px 12px;margin:18px 0 0;
-    letter-spacing:.04em;align-self:flex-start}
-  /* option cards */
-  .opt{display:flex;align-items:center;gap:11px;padding:15px 16px;border-radius:14px;
+  @media (prefers-reduced-motion:reduce){.scene.show{animation:none;opacity:1;transform:none}.opt,.cta{transition:none}}
+  h1{font-size:22px;line-height:1.38;font-weight:800;margin:8px 0 8px;text-wrap:balance}
+  h1 .hi{color:var(--cyan-hi)}
+  .lead{font-size:14px;color:var(--t2);line-height:1.7;margin:0 0 18px}
+  .eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em;margin:20px 0 4px}
+  .eyebrow.cyan{color:var(--cyan)} .eyebrow.orange{color:var(--orange)}
+  .secrow{display:flex;align-items:baseline;justify-content:space-between}
+  .secrow .hint{font-size:11.5px;color:var(--t3);font-weight:600}
+  /* options */
+  .opt{display:flex;align-items:center;gap:11px;padding:15px 16px;border-radius:16px;
     border:1px solid var(--line);background:var(--card);margin:8px 0;font-size:15px;
-    line-height:1.45;cursor:pointer;transition:transform .12s,border-color .12s,background .12s;
+    line-height:1.45;cursor:pointer;transition:transform .12s,border-color .12s;
     width:100%;text-align:left;font-family:var(--font);color:var(--t1)}
   .opt:active{transform:scale(.985)}
-  .opt .key{width:25px;height:25px;border-radius:8px;border:1px solid var(--line);
+  .opt .key{width:25px;height:25px;border-radius:9px;border:1px solid var(--line);
     flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:12.5px;
-    color:var(--t3);font-weight:700;background:var(--glass)}
-  .opt.pick{border-color:var(--blue);background:var(--blue-soft)}
-  .opt.pick .key{border-color:var(--blue);background:var(--blue);color:#fff}
-  .opt.right{border-color:var(--green);background:var(--green-soft)}
-  .opt.right .key{border-color:var(--green);background:var(--green);color:#fff}
-  .opt .tail{margin-left:auto;font-size:12.5px;font-weight:700;flex:0 0 auto}
-  .opt.pick .tail{color:var(--blue-hi)} .opt.right .tail{color:var(--green)}
+    color:var(--t3);font-weight:700;background:rgba(255,255,255,.03)}
   /* question */
-  .qtop{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t3);margin:18px 0 12px;font-weight:600;flex-wrap:wrap}
-  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;border-radius:7px;padding:4px 9px;letter-spacing:.02em}
-  .badge.blue{color:var(--blue-hi);background:var(--blue-soft);border:1px solid var(--line-blue)}
-  .badge.real{color:var(--gold);background:var(--gold-soft);border:1px solid rgba(245,158,11,.3)}
-  .qcase{background:var(--card);border:1px solid var(--line);border-radius:14px;
-    padding:14px 15px;font-size:14px;color:var(--t2);line-height:1.75;margin:0 0 14px}
+  .qtop{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t3);margin:14px 0 12px;font-weight:600;flex-wrap:wrap}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;border-radius:8px;padding:4px 9px;letter-spacing:.02em}
+  .badge.cyan{color:var(--cyan-hi);background:rgba(34,211,238,.10);border:1px solid var(--line-cyan)}
+  .badge.orange{color:var(--orange);background:rgba(251,146,60,.10);border:1px solid rgba(251,146,60,.28)}
+  .qcase{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:14px 15px;font-size:14px;color:var(--t2);line-height:1.75;margin:0 0 13px}
   .qcase b{color:var(--t1)}
-  .qstem{font-size:17px;font-weight:700;line-height:1.5;margin:0 0 4px}
-  .qstem .hi{color:var(--blue-hi)}
-  .qhint{font-size:12.5px;color:var(--blue-hi);margin:2px 0 10px;font-weight:600}
-  /* ===== 判分卡（产品亮点区）===== */
-  .verdict{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(47,107,255,.16),rgba(96,165,250,.06));
-    border:1px solid var(--line-blue);border-radius:16px;padding:15px 16px;margin:14px 0 12px}
-  .verdict .ring{width:52px;height:52px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
-    font-size:14px;font-weight:800;background:
-      conic-gradient(var(--blue) calc(var(--p)*1%),rgba(255,255,255,.1) 0)}
-  .verdict .ring i{width:42px;height:42px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;
-    justify-content:center;font-style:normal;font-size:13.5px;font-weight:800;color:var(--t1)}
-  .verdict .vt{font-size:15.5px;font-weight:700;line-height:1.4}
-  .verdict .vs{font-size:12.5px;color:var(--t2);margin-top:3px;line-height:1.5}
-  /* 采分点清单 */
-  .panelcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 15px;margin:0 0 12px}
-  .panelcard .ph{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;letter-spacing:.05em;margin:0 0 10px}
-  .ph.blue{color:var(--blue-hi)} .ph.red{color:var(--red)} .ph.gold{color:var(--gold)}
-  .sp{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid rgba(255,255,255,.06);font-size:13.5px;line-height:1.55}
-  .sp:first-of-type{border-top:none}
-  .sp .m{flex:0 0 auto;width:20px;height:20px;border-radius:7px;display:flex;align-items:center;justify-content:center;
-    font-size:11px;font-weight:800;margin-top:1px}
-  .sp.hit .m{background:var(--green-soft);color:var(--green);border:1px solid rgba(16,185,129,.35)}
-  .sp.miss .m{background:var(--red-soft);color:var(--red);border:1px solid rgba(239,68,68,.35)}
-  .sp.todo .m{background:var(--glass);color:var(--t3);border:1px solid var(--line)}
-  .sp .tx{color:var(--t2)} .sp .tx b{color:var(--t1)}
-  .sp .tag{margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:700}
-  .sp.hit .tag{color:var(--green)} .sp.miss .tag{color:var(--red)} .sp.todo .tag{color:var(--t3)}
-  .prov{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3);margin-top:10px}
-  .prov .ic{color:var(--blue-hi)}
-  /* 易错点 */
-  .pitfall{border:1px solid rgba(239,68,68,.28);background:var(--red-soft)}
-  .pitfall .tx{font-size:13.5px;color:var(--t2);line-height:1.65}
-  .pitfall .tx b{color:var(--t1)}
-  /* 口诀 */
-  .mnemo{border:1px solid rgba(245,158,11,.32);background:linear-gradient(135deg,rgba(245,158,11,.13),rgba(245,158,11,.04))}
-  .mnemo .big{font-size:19px;font-weight:800;letter-spacing:.12em;text-align:center;color:var(--gold);margin:6px 0 8px}
+  .qstem{font-size:17px;font-weight:800;line-height:1.5;margin:0 0 4px}
+  .qstem .hi{color:var(--cyan-hi)}
+  .qhint{font-size:12.5px;color:var(--cyan);margin:2px 0 8px;font-weight:600}
+  /* ===== 判分反馈 ===== */
+  .verdict{display:flex;align-items:center;gap:13px;background:var(--card-hero);
+    border:1px solid var(--line-cyan);border-radius:18px;padding:15px 16px;margin:12px 0 12px;box-shadow:var(--shadow)}
+  .ring{width:54px;height:54px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    background:conic-gradient(var(--cream) calc(var(--p)*1%),rgba(255,255,255,.08) 0)}
+  .ring i{width:42px;height:42px;border-radius:50%;background:#0c1826;display:flex;align-items:center;
+    justify-content:center;font-style:normal;font-size:13px;font-weight:800;color:var(--cyan-hi)}
+  .verdict .vt{font-size:15.5px;font-weight:800;line-height:1.4}
+  .verdict .vs{font-size:12.5px;color:var(--t2);margin-top:3px;line-height:1.55}
+  .panelcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 15px;margin:0 0 11px}
+  .ph{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;letter-spacing:.06em;margin:0 0 8px}
+  .ph.cyan{color:var(--cyan)} .ph.red{color:var(--red)} .ph.gold{color:var(--gold)}
+  .ptx{font-size:13.5px;color:var(--t2);line-height:1.65}
+  .ptx b{color:var(--t1)}
+  .ptx .hitword{color:var(--green);font-weight:800}
+  .ptx .missword{color:var(--red);font-weight:800}
+  .pitfall{border-color:rgba(251,113,133,.25);background:linear-gradient(165deg,rgba(251,113,133,.08),rgba(251,113,133,.02))}
+  .mnemo{border-color:rgba(251,191,36,.3);background:linear-gradient(160deg,rgba(251,191,36,.10),rgba(251,191,36,.02))}
+  .mnemo .big{font-size:18.5px;font-weight:800;letter-spacing:.12em;text-align:center;color:var(--gold);margin:5px 0 7px}
   .mnemo .sub{font-size:12.5px;color:var(--t2);text-align:center;line-height:1.7}
   .mnemo .sub b{color:var(--t1)}
-  /* 诊断卡 */
-  .diag{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px 15px;margin:0 0 12px}
-  .drow{display:flex;gap:11px;padding:13px 0;border-top:1px solid rgba(255,255,255,.06)}
-  .drow:first-child{border-top:none}
-  .drow .ic{flex:0 0 auto;width:34px;height:34px;border-radius:11px;background:var(--blue-soft);border:1px solid var(--line-blue);
-    display:flex;align-items:center;justify-content:center;font-size:16px}
-  .drow .dt{font-size:11.5px;font-weight:800;color:var(--t3);letter-spacing:.05em;margin:0 0 3px}
-  .drow .dd{font-size:13.5px;line-height:1.6;color:var(--t2)}
-  .drow .dd b{color:var(--t1)}
-  /* station */
-  .station{background:linear-gradient(135deg,rgba(47,107,255,.2),rgba(37,99,235,.07));border:1px solid var(--line-blue);
-    border-radius:16px;padding:17px;margin:2px 0 14px;box-shadow:var(--shadow)}
-  .station .kicker{font-size:11px;font-weight:800;color:var(--blue-hi);letter-spacing:.08em;margin:0 0 7px}
-  .station .name{font-size:18px;font-weight:800;margin:0 0 6px}
-  .station .meta{font-size:13px;color:var(--t2);line-height:1.65}
-  .station .meta b{color:var(--t1)}
+  /* ===== 学习报告（学情页样式）===== */
+  .hero{background:var(--card-hero);border:1px solid var(--line-cyan);border-radius:20px;padding:17px;margin:8px 0 12px;
+    box-shadow:var(--shadow);display:flex;gap:14px;align-items:center}
+  .hero .lft{flex:1;min-width:0}
+  .hero .eb{font-size:12px;font-weight:800;color:var(--orange);letter-spacing:.06em;margin:0 0 6px}
+  .hero .ht{font-size:19px;font-weight:800;line-height:1.35;margin:0 0 6px}
+  .hero .hs{font-size:12.5px;color:var(--t2);line-height:1.6}
+  .hero .ringwrap{text-align:center;flex:0 0 auto}
+  .hero .ring{width:74px;height:74px}
+  .hero .ring i{width:56px;height:56px;font-size:16px}
+  .hero .rlab{font-size:10.5px;color:var(--t3);margin-top:6px;font-weight:600}
+  .tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin:0 0 6px}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:12px 12px 11px}
+  .tile .tl{font-size:11px;color:var(--t3);font-weight:600;margin:0 0 5px}
+  .tile .tv{font-size:19px;font-weight:800;line-height:1.2}
+  .tile .tv small{font-size:12px;font-weight:700;color:var(--t3)}
+  .bars{display:flex;gap:3px;margin-top:8px;align-items:flex-end;height:12px}
+  .bars i{flex:1;border-radius:3px;display:block}
+  .kcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 15px;margin:8px 0;
+    display:flex;align-items:center;gap:12px}
+  .kcard .kc{flex:1;min-width:0}
+  .kcard .kk{font-size:11px;font-weight:800;letter-spacing:.05em;margin:0 0 4px;color:var(--orange)}
+  .kcard .kt{font-size:14.5px;font-weight:800;line-height:1.4;margin:0 0 3px}
+  .kcard .ks{font-size:12.5px;color:var(--t2);line-height:1.6}
+  .kcard .ks b{color:var(--t1)}
+  .pill{flex:0 0 auto;font-size:11.5px;font-weight:700;color:var(--cyan-hi);background:rgba(34,211,238,.08);
+    border:1px solid var(--line-cyan);border-radius:10px;padding:6px 11px}
+  .qgrid .row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);font-size:13.5px}
+  .qgrid .row:first-of-type{border-top:none}
+  .qgrid .st{flex:0 0 auto;width:22px;height:22px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-size:11.5px;font-weight:800}
+  .qgrid .ok{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+  .qgrid .no{background:rgba(251,146,60,.12);color:var(--orange);border:1px solid rgba(251,146,60,.3)}
+  .qgrid .nm{color:var(--t2)} .qgrid .nm b{color:var(--t1)}
+  .qgrid .tg{margin-left:auto;font-size:11px;font-weight:700;color:var(--t3)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+  .chip{font-size:12px;font-weight:700;color:var(--gold);background:var(--gold-soft);
+    border:1px solid rgba(251,191,36,.25);border-radius:99px;padding:6px 12px}
+  .guide .row{display:flex;gap:11px;padding:11px 0;border-top:1px solid rgba(255,255,255,.06)}
+  .guide .row:first-of-type{border-top:none}
+  .guide .ic{flex:0 0 auto;width:36px;height:36px;border-radius:12px;background:rgba(34,211,238,.08);
+    border:1px solid var(--line-cyan);display:flex;align-items:center;justify-content:center;font-size:16px}
+  .guide .gt{font-size:13.5px;font-weight:800;margin:0 0 2px}
+  .guide .gt .loc{color:var(--cyan-hi)}
+  .guide .gs{font-size:12.5px;color:var(--t2);line-height:1.6}
   /* buttons */
-  .cta{display:block;width:100%;text-align:center;color:#fff;font-weight:700;
-    font-size:15.5px;padding:15px;border-radius:14px;border:none;font-family:var(--font);cursor:pointer;
-    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
-    box-shadow:0 6px 20px rgba(47,107,255,.35);transition:transform .12s;margin:4px 0 0}
+  .cta{display:block;width:100%;text-align:center;font-weight:800;
+    font-size:15.5px;padding:15px;border-radius:15px;border:none;font-family:var(--font);cursor:pointer;
+    background:linear-gradient(135deg,var(--cyan-hi),var(--cyan));color:#062a38;
+    box-shadow:0 6px 22px rgba(34,211,238,.3);transition:transform .12s;margin:6px 0 0}
   .cta:active{transform:scale(.985)}
-  .cta.alt{background:var(--elev);color:var(--t1);border:1px solid var(--line);box-shadow:none}
-  .ghost{display:block;width:100%;text-align:center;color:var(--t3);font-size:13.5px;margin-top:13px;
+  .cta.alt{background:var(--bg2);color:var(--t1);border:1px solid var(--line);box-shadow:none;font-weight:700}
+  .cta.warm{background:none;border:1px solid rgba(251,146,60,.4);color:var(--orange);box-shadow:none;font-weight:700}
+  .ghost{display:block;width:100%;text-align:center;color:var(--t3);font-size:13.5px;margin-top:12px;
     font-weight:600;background:none;border:none;font-family:var(--font);cursor:pointer;padding:8px}
-  .believe{text-align:center;font-size:13.5px;color:var(--blue-hi);font-weight:650;margin:6px 0 14px}
-  /* contact */
-  .contact{display:flex;gap:9px;margin:14px 0 0}
-  .contact input{flex:1;border:1px solid var(--line);background:var(--bg3);color:var(--t1);
-    border-radius:12px;padding:13px 14px;font-size:14.5px;font-family:var(--font);min-width:0}
-  .contact input::placeholder{color:var(--t3)}
-  .contact input:focus{outline:none;border-color:var(--blue)}
-  .contact button{flex:0 0 auto;background:var(--green);color:#fff;border:none;border-radius:12px;
-    padding:0 18px;font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer}
-  .note{font-size:11.5px;color:var(--t3);margin-top:9px;line-height:1.6}
-  .bigmoment{text-align:center;margin:30px 0 8px;font-size:42px;line-height:1}
+  .stepchip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:var(--cyan-hi);
+    background:rgba(34,211,238,.08);border:1px solid var(--line-cyan);border-radius:99px;padding:5px 12px;margin:16px 0 8px;
+    letter-spacing:.04em;align-self:flex-start}
+  .bigmoment{text-align:center;margin:28px 0 6px;font-size:40px;line-height:1}
   .center{text-align:center}
   .spacer{flex:1}
+  .note{font-size:11.5px;color:var(--t3);margin-top:9px;line-height:1.6;text-align:center}
   /* observer */
-  .obs{position:fixed;inset:0;background:rgba(2,6,16,.7);display:none;align-items:flex-end;z-index:50}
+  .obs{position:fixed;inset:0;background:rgba(2,6,16,.75);display:none;align-items:flex-end;z-index:50}
   .obs.show{display:flex}
   .obs .panel{background:var(--bg2);border:1px solid var(--line);border-bottom:none;border-radius:20px 20px 0 0;
     width:100%;max-width:420px;margin:0 auto;max-height:78dvh;display:flex;flex-direction:column;padding:18px}
@@ -167,157 +172,136 @@
 
   <div class="top" id="topbar">
     <span class="brand"><span class="logo">鲁</span>鲁班智考 · 一建建筑实务</span>
-    <span class="prog" id="prog"><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="prog" id="prog"><i></i><i></i><i></i><i></i><i></i><i></i></span>
     <button class="skip" id="skipBtn">跳过</button>
   </div>
 
-  <!-- 幕①-1 备考摸底：几战 -->
+  <!-- 摸底 1/2 -->
   <section class="scene" id="s1">
     <span class="stepchip">备考摸底 · 1/2</span>
     <h1>先认识一下——<br>这是你第几次考一建？</h1>
-    <p class="lead">不用打字，点一下就行。接下来的每一步，都按你的情况来。</p>
+    <p class="lead">不用打字，点一下就行。接下来 3 分钟，按你的情况来。</p>
     <button class="opt" data-war="first"><span class="key">A</span>第一次，刚开始准备</button>
     <button class="opt" data-war="second"><span class="key">B</span>二战，去年差了几分</button>
     <button class="opt" data-war="veteran"><span class="key">C</span>考过几次了，就卡实务</button>
     <button class="opt" data-war="watch"><span class="key">D</span>还没报名，先看看</button>
   </section>
 
-  <!-- 幕①-2 备考摸底：丢分模式（心理/习惯侧写） -->
+  <!-- 摸底 2/2 -->
   <section class="scene" id="s1b">
     <span class="stepchip">备考摸底 · 2/2</span>
     <h1>案例题上，<br>你最典型的状态是？</h1>
-    <p class="lead">凭直觉选，这决定了系统先帮你补哪块。</p>
+    <p class="lead">凭直觉选。这决定了系统先帮你补哪块，也会写进你等下的报告。</p>
     <button class="opt" data-mode="blank"><span class="key">A</span>背了很多，一提笔就空白</button>
     <button class="opt" data-mode="nopoint"><span class="key">B</span>会做，但总踩不到得分点</button>
     <button class="opt" data-mode="slow"><span class="key">C</span>时间不够，大题写不完</button>
     <button class="opt" data-mode="fear"><span class="key">D</span>看到案例题就发怵</button>
   </section>
 
-  <!-- 幕② 真题 -->
-  <section class="scene" id="s2">
-    <div class="qtop">
-      <span class="badge real">真题 · 2014 案例</span>
-      <span class="badge blue">1A434000 屋面防水</span>
-    </div>
-    <div class="qcase">某屋面卷材防水层局部<b>起鼓</b>，项目部决定<b>割补</b>处理：割开鼓泡放出气体、烘烤旧卷材槎口，然后——</div>
-    <div class="qstem">下一步，旧卷材怎么处理才<span class="hi">对</span>？</div>
-    <p class="qhint">👆 阅卷老师只认关键动作词，点你觉得对的</p>
-    <button class="opt q1" data-a="A"><span class="key">A</span>分层剥开，除去旧胶结料</button>
-    <button class="opt q1" data-a="B"><span class="key">B</span>整体揭开，换新的</button>
-    <button class="opt q1" data-a="C"><span class="key">C</span>用铲刀把鼓泡处铲除干净</button>
-    <button class="opt q1" data-a="D"><span class="key">D</span>不用动，直接铺新卷材盖住</button>
+  <!-- 题目（复用，JS 填充） -->
+  <section class="scene" id="sQ">
+    <div class="qtop" id="qBadges"></div>
+    <div class="qcase" id="qCase"></div>
+    <div class="qstem" id="qStem"></div>
+    <p class="qhint" id="qHint"></p>
+    <div id="qOpts"></div>
   </section>
 
-  <!-- 幕③ 判分卡：采分点 / 易错点 / 口诀 / 溯源 -->
-  <section class="scene" id="s3">
-    <div class="qtop"><span class="badge blue">AI 采分点批改</span><span class="badge real">和阅卷同一把尺</span></div>
+  <!-- 判分（复用，JS 填充） -->
+  <section class="scene" id="sF">
+    <div class="qtop"><span class="badge cyan">AI 采分点批改</span><span class="badge orange">和阅卷同一把尺</span></div>
+    <div class="verdict"><div class="ring" id="fRing" style="--p:50"><i id="fRingTx"></i></div>
+      <div><div class="vt" id="fTitle"></div><div class="vs" id="fSub"></div></div></div>
+    <div class="panelcard"><div class="ph cyan">▍采分点 · 阅卷只认这几个字</div><div class="ptx" id="fPoint"></div></div>
+    <div class="panelcard pitfall"><div class="ph red">▍易错点</div><div class="ptx" id="fPit"></div></div>
+    <div class="panelcard mnemo"><div class="ph gold">▍记忆口诀 · 收好</div>
+      <div class="big" id="fMnBig"></div><div class="sub" id="fMnSub"></div></div>
+    <button class="cta" id="fNext"></button>
+  </section>
 
-    <div class="verdict" id="verdict">
-      <div class="ring" id="ring" style="--p:33"><i id="ringTx">1/3</i></div>
-      <div>
-        <div class="vt" id="vTitle">方向对了，差半步</div>
-        <div class="vs" id="vSub">你已经知道要先处理旧卷材——卡住你的只是一个动作词。</div>
+  <!-- 学习报告（学情页样式） -->
+  <section class="scene" id="sR">
+    <div class="eyebrow orange" style="margin-top:14px">首考诊断 · 刚出炉</div>
+    <div class="secrow"><h1 style="margin-top:2px">你的第一份<span class="hi">学习报告</span></h1></div>
+
+    <div class="hero">
+      <div class="lft">
+        <div class="eb">今日处方</div>
+        <div class="ht" id="rRx">先补「屋面防水 · 维修工艺」</div>
+        <div class="hs" id="rRxSub">约 20 分钟 · 4 条作答证据 · 明天复测薄弱点</div>
+      </div>
+      <div class="ringwrap">
+        <div class="ring" id="rRing" style="--p:50"><i id="rRingTx">50%</i></div>
+        <div class="rlab">采分点命中率</div>
       </div>
     </div>
 
-    <div class="panelcard">
-      <div class="ph blue">▍这道小问的采分点 · 阅卷就按这个给分</div>
-      <div class="sp" id="sp1"><span class="m">1</span><span class="tx"><b>割开鼓泡，放出气体</b>，擦干水分</span><span class="tag">题干已给</span></div>
-      <div class="sp" id="sp2"><span class="m">2</span><span class="tx">烘烤槎口，<b>分层剥开</b>旧卷材，除去旧胶结料</span><span class="tag"></span></div>
-      <div class="sp" id="sp3"><span class="m">3</span><span class="tx">旧卷材<b>分片重新粘贴</b>，再贴新卷材</span><span class="tag">下一步考你</span></div>
-      <div class="prov"><span class="ic">◈</span>采分点溯源：《建筑工程管理与实务》1A434000 · 防水工程 · 逐条对着教材编的，不是 AI 现编</div>
+    <div class="tiles">
+      <div class="tile"><div class="tl">今日作答</div><div class="tv" id="tAns">4<small> 题</small></div>
+        <div class="bars" id="tAnsBars"></div></div>
+      <div class="tile"><div class="tl">待补错因</div><div class="tv" id="tMiss">2<small> 个</small></div>
+        <div class="bars" id="tMissBars"></div></div>
+      <div class="tile"><div class="tl">口诀入袋</div><div class="tv">4<small> 个</small></div>
+        <div class="bars"><i style="height:5px;background:var(--gold)"></i><i style="height:8px;background:var(--gold)"></i><i style="height:10px;background:var(--gold)"></i><i style="height:12px;background:var(--gold)"></i></div></div>
     </div>
 
-    <div class="panelcard pitfall">
-      <div class="ph red">▍易错点 · 考生最常栽的地方</div>
-      <div class="tx" id="pitTx">最常见的错法就是<b>「整体揭开」</b>——把旁边没起鼓、还粘得好好的部分也带起来，破坏面越修越大。写了这四个字，这一问的分就没了。</div>
+    <div class="eyebrow cyan">关键结论</div>
+    <div class="secrow"><div style="font-size:16px;font-weight:800">先看结论，再决定是否深入</div></div>
+
+    <div class="kcard"><div class="kc">
+      <div class="kk">丢分模式 · 自评 × 实测</div>
+      <div class="kt" id="rModeT">自评和实测对上了</div>
+      <div class="ks" id="rModeS"></div>
+    </div><span class="pill">画像</span></div>
+
+    <div class="kcard"><div class="kc">
+      <div class="kk" style="color:var(--cyan)">为什么这样判断</div>
+      <div class="kt">结论来自作答、错因和采分点</div>
+      <div class="ks" id="rBasis">4 条作答 · 2 个错因命中 · 4 个采分点逐条比对，全部溯源教材 1A400000</div>
+    </div><span class="pill">依据</span></div>
+
+    <div class="eyebrow cyan">四道题的账</div>
+    <div class="panelcard qgrid" id="rGrid" style="margin-top:8px"></div>
+
+    <div class="eyebrow cyan">今天入袋的口诀</div>
+    <div class="chips">
+      <span class="chip">一割二烤三剥四贴</span>
+      <span class="chip">经理编 · 企业审 · 监理批</span>
+      <span class="chip">顶砖别急 · 先等十四</span>
+      <span class="chip">停电从末端 · 送电从源头</span>
     </div>
 
-    <div class="panelcard mnemo">
-      <div class="ph gold">▍记忆口诀 · 考前一秒也想得起来</div>
-      <div class="big">一割 二烤 三剥 四贴</div>
-      <div class="sub"><b>割</b>开放气 → <b>烤</b>软槎口 → 分层<b>剥</b>开 → 分片重<b>贴</b><br>四个字答全，这问满分。</div>
+    <div class="eyebrow cyan" style="margin-top:22px">这份报告，在产品里天天有</div>
+    <div class="panelcard guide" style="margin-top:8px">
+      <div class="row"><span class="ic">📊</span><div>
+        <div class="gt">「<span class="loc">学情</span>」就是这个页面的完整版</div>
+        <div class="gs">你每答一题，处方和命中率就更新一次——先看结论，再决定练什么。</div></div></div>
+      <div class="row"><span class="ic">💬</span><div>
+        <div class="gt">「<span class="loc">对话</span>」想问就问</div>
+        <div class="gs">考点、真题、规范条文，随时问；刚才没懂的地方，现在就能追问。</div></div></div>
+      <div class="row"><span class="ic">🔁</span><div>
+        <div class="gt">明天，<span class="loc">换个问法</span>再考你</div>
+        <div class="gs">今天错的 2 题换皮复测，60 秒验证口诀还在不在。</div></div></div>
     </div>
 
-    <button class="cta" id="s3Go">看我的诊断 →</button>
-  </section>
-
-  <!-- 幕④ 诊断 + 路径 -->
-  <section class="scene" id="s4">
-    <span class="stepchip">你的第一份诊断</span>
-    <h1>60 秒，看出了<span class="hi">三件事</span></h1>
-
-    <div class="diag">
-      <div class="drow"><span class="ic">🎯</span><div><div class="dt">备考画像</div><div class="dd" id="dWar">二战考生——最贵的是时间，只练丢分的地方。</div></div></div>
-      <div class="drow"><span class="ic">🔍</span><div><div class="dt">丢分模式 · 自评 × 实测</div><div class="dd" id="dMode">你说「踩不到得分点」，刚才实测吻合：方向对、差采分点半步。</div></div></div>
-      <div class="drow"><span class="ic">🗺️</span><div><div class="dt">系统处方</div><div class="dd" id="dRx">先补下面这一站，明天复测验证。</div></div></div>
-    </div>
-
-    <div class="station">
-      <div class="kicker" id="stKicker">第 1 站 · 按你的作答排的</div>
-      <div class="name" id="stName">屋面防水 · 维修工艺</div>
-      <div class="meta" id="stMeta"><b>20 分钟</b> · 刚才这类题的老家<br>讲懂 → 练 3 道 → 当场验证，每一步都对着采分点</div>
-    </div>
-
-    <button class="cta" id="s4Go">好，就从这站开始</button>
-  </section>
-
-  <!-- 幕⑤ 明日钩子 -->
-  <section class="scene" id="s5">
-    <div class="bigmoment">📮</div>
-    <h1 class="center">明天，换个问法<br>再考你一次</h1>
-    <p class="lead center">「一割二烤三剥四贴」睡一觉最容易忘。<br>明天我出道新皮的同类题，60 秒验证它已经是你的了。</p>
-    <div class="spacer"></div>
-    <button class="cta" id="subYes">好，明天提醒我</button>
-    <button class="ghost" id="subNo">先不用</button>
+    <button class="cta" id="rGo">去「学情」页 · 开始定向训练</button>
+    <button class="cta warm" id="rRemind" style="margin-top:10px">明天提醒我复测</button>
   </section>
 
   <!-- 收尾 -->
   <section class="scene" id="s6">
     <div class="bigmoment">🏗️</div>
-    <h1 class="center" id="s6Title">好，明天见</h1>
-    <p class="lead center" id="s6Lead">今天 60 秒的收获：<b style="color:var(--t1)">1 道真题 · 1 个口诀 · 1 份丢分诊断</b>。<br>明天这半步，就是你的整分。</p>
-    <div class="contact" id="contactRow">
-      <input id="contactInput" type="text" inputmode="tel" placeholder="留个手机/微信，明天喊你" aria-label="联系方式">
-      <button id="contactSave">记下</button>
-    </div>
-    <p class="note center">（演示版：只记在这台手机上，不会上传）</p>
+    <h1 class="center" id="s6Title">报告已存进你的「学情」</h1>
+    <p class="lead center" id="s6Lead">正式版里，底部第三个 tab 就是它。<br>4 道真题、4 个口诀、1 份处方——明天见。</p>
     <div class="spacer"></div>
-    <button class="cta alt" id="moreQ">意犹未尽？再来一道 →</button>
+    <p class="note">（演示到此为止；正式版此处直接落在学情页）</p>
   </section>
 
-  <!-- 加练：停电顺序 -->
-  <section class="scene" id="s7">
-    <div class="qtop">
-      <span class="badge real">加练 · 高频考点</span>
-      <span class="badge blue">施工用电安全</span>
-    </div>
-    <div class="qcase">收工了，工地要断电。<b>总配电箱、分配电箱、开关箱</b>三级都在你面前——</div>
-    <div class="qstem">第一步，先断<span class="hi">哪一级</span>？</div>
-    <p class="qhint">👆 还是那句话，点就行</p>
-    <button class="opt q2" data-a="A"><span class="key">A</span>开关箱</button>
-    <button class="opt q2" data-a="B"><span class="key">B</span>总配电箱</button>
-    <button class="opt q2" data-a="C"><span class="key">C</span>分配电箱</button>
-    <button class="opt q2" data-a="D"><span class="key">D</span>哪个顺手断哪个</button>
-  </section>
-
-  <!-- 加练判分 -->
-  <section class="scene" id="s8">
-    <div class="qtop"><span class="badge blue">AI 采分点批改</span></div>
-    <div id="fb2Body"></div>
-    <div class="panelcard mnemo">
-      <div class="ph gold">▍记忆口诀</div>
-      <div class="big">停电从末端 送电从源头</div>
-      <div class="sub">停：<b>开关箱</b> → 分配电箱 → 总配电箱；送电正好反过来。</div>
-    </div>
-    <button class="cta" id="s8Done">今天到这，明天见 👋</button>
-  </section>
-
-  <!-- 逃生舱落点 -->
+  <!-- 逃生舱 -->
   <section class="scene" id="sEsc">
     <div class="bigmoment">💬</div>
     <h1 class="center">这里会进入对话</h1>
-    <p class="lead center">正式版里，跳过剧本就直接到「问鲁班」——考点、真题、规范，想问什么随时问。<br>（演示版到此为止）</p>
+    <p class="lead center">正式版里，跳过剧本就直接到「对话」——考点、真题、规范，想问什么随时问。<br>（演示版到此为止）</p>
     <div class="spacer"></div>
     <button class="cta alt" id="escBack">← 回到刚才</button>
   </section>
@@ -352,15 +336,20 @@
 
   /* ---------- 幕切换 ---------- */
   var cur = "s1", prevBeforeEsc = null;
-  var progMap = {s1:1,s1b:1,s2:2,s3:3,s4:4,s5:5,s6:5,s7:5,s8:5,sEsc:0};
+  function seg(id){
+    if(id==="s1"||id==="s1b") return 1;
+    if(id==="sQ"||id==="sF") return 2 + qi;   /* 题1..4 → 段2..5 */
+    if(id==="sR"||id==="s6") return 6;
+    return 0;
+  }
   function go(id){
     document.getElementById(cur).classList.remove("show");
     cur = id;
     document.getElementById(id).classList.add("show");
-    var dots = document.querySelectorAll("#prog i");
-    for(var i=0;i<dots.length;i++) dots[i].classList.toggle("on", i < progMap[id]);
+    var n = seg(id), dots = document.querySelectorAll("#prog i");
+    for(var i=0;i<dots.length;i++) dots[i].classList.toggle("on", i < n);
     window.scrollTo(0,0);
-    ev("进入幕 " + id);
+    ev("进入幕 " + id + (id==="sQ" ? "(第"+(qi+1)+"题)" : ""));
   }
   document.getElementById("s1").classList.add("show");
   document.querySelectorAll("#prog i")[0].classList.add("on");
@@ -372,14 +361,8 @@
   });
   document.getElementById("escBack").addEventListener("click", function(){ go(prevBeforeEsc||"s1"); });
 
-  /* ---------- 幕① 摸底两问 ---------- */
+  /* ---------- 摸底 ---------- */
   var war = null, mode = null;
-  var WAR_TX = {
-    first:"第一次上考场——底子从零建最快，别人绕的弯路你直接跳过。",
-    second:"二战考生——最贵的是时间，只练丢分的地方，不重学会的。",
-    veteran:"老兵，就卡实务——差的从来不是努力，是采分点级别的精度。",
-    watch:"还在观望——那今天这 60 秒，就当看看这个教练的真本事。"
-  };
   document.querySelectorAll("#s1 .opt").forEach(function(b){
     b.addEventListener("click", function(){
       war = b.getAttribute("data-war");
@@ -391,123 +374,159 @@
     b.addEventListener("click", function(){
       mode = b.getAttribute("data-mode");
       ev("摸底·丢分模式 = " + b.textContent.trim());
-      go("s2");
+      qi = 0; showQ();
     });
   });
 
-  /* ---------- 幕② 主题目 ---------- */
-  /* 判分呈现：sp2 是本次考的点；sp1 题干已给；sp3 预告 */
-  var FB = {
-    A:{hit:true, p:100, ring:"3/3",
-       title:"这一步你是稳的",
-       sub:"「分层剥开」正是采分点动作词——考场上一大半人栽在这，你没有。"},
-    B:{hit:false, p:66, ring:"2/3",
-       title:"方向对了，差半步",
-       sub:"你知道要先处理旧卷材，判断很稳——卡住你的只是「分层」这两个字。"},
-    C:{hit:false, p:66, ring:"2/3",
-       title:"意识对了，动作差半步",
-       sub:"你知道鼓泡必须处理，这已经赢了不少人——但「铲」会伤到完好层，得「剥」。"},
-    D:{hit:false, p:66, ring:"2/3",
-       title:"想省事？考场不认",
-       sub:"气没放出来，盖上新卷材还会顶起——不过你现在知道了，这分明年是你的。"}
-  };
-  var PIT = {
-    B:'最常见的错法就是<b>「整体揭开」</b>——你刚才的选择。它会把旁边没起鼓、还粘得好好的部分也带起来，破坏面越修越大。好消息：你在这里错，比在考场上错值钱。',
-    C:'<b>「铲除」</b>是高频错法之一——铲刀会伤到下面还完好的防水层。割补的分寸是「只动坏的、保住好的」，所以是<b>剥</b>，不是铲。',
-    D:'<b>「直接覆盖」</b>是想省事考生的高频选择——气闷在里面，太阳一晒照样鼓。先放气、再分层，才断根。',
-    A:'最常见的错法是<b>「整体揭开」</b>——会把旁边完好的部分也带起来。你避开了这个坑，下面的口诀帮你把它焊死。'
-  };
-  var q1Answered = false, q1Result = null;
-  document.querySelectorAll(".opt.q1").forEach(function(b){
-    b.addEventListener("click", function(){
-      if(q1Answered) return; q1Answered = true;
-      var a = b.getAttribute("data-a"), f = FB[a];
-      q1Result = f.hit;
-      ev("主题目作答 = " + a + (f.hit ? "（对）" : "（差半步）"));
-      /* verdict */
-      document.getElementById("ring").style.setProperty("--p", f.p);
-      document.getElementById("ringTx").textContent = f.ring;
-      document.getElementById("vTitle").textContent = f.title;
-      document.getElementById("vSub").textContent = f.sub;
-      /* 采分点清单 */
-      var sp1 = document.getElementById("sp1"), sp2 = document.getElementById("sp2"), sp3 = document.getElementById("sp3");
-      sp1.className = "sp hit"; sp1.querySelector(".m").textContent = "✓"; sp1.querySelector(".tag").textContent = "题干已给";
-      sp2.className = "sp " + (f.hit ? "hit" : "miss");
-      sp2.querySelector(".m").textContent = f.hit ? "✓" : "✗";
-      sp2.querySelector(".tag").textContent = f.hit ? "你踩中了" : "你差的就是它";
-      sp3.className = "sp todo"; sp3.querySelector(".m").textContent = "○"; sp3.querySelector(".tag").textContent = "明天考你";
-      /* 易错点 */
-      document.getElementById("pitTx").innerHTML = PIT[a];
-      /* 幕④ 个性化 */
-      buildDiag(f.hit);
-      go("s3");
-    });
-  });
-  document.getElementById("s3Go").addEventListener("click", function(){ go("s4"); });
+  /* ---------- 题集（4 道，全部来自真题采分点） ---------- */
+  var QS = [
+    { name:"起鼓割补", family:"1A434000 屋面防水", src:"真题 · 2014 案例",
+      cas:"某屋面卷材防水层局部<b>起鼓</b>，项目部决定<b>割补</b>处理：割开鼓泡放出气体、烘烤旧卷材槎口，然后——",
+      stem:'下一步，旧卷材怎么处理才<span class="hi">对</span>？',
+      hint:"👆 阅卷老师只认关键动作词，点你觉得对的",
+      opts:{A:"分层剥开，除去旧胶结料",B:"整体揭开，换新的",C:"用铲刀把鼓泡处铲除干净",D:"不用动，直接铺新卷材盖住"},
+      right:"A", point:'这一问的采分点动作词是 <span class="hitword">「分层剥开」</span>——写别的词，这分就没了。',
+      vt:{ok:"这一步你是稳的",no:"方向对了，差半步"},
+      vs:{ok:"「分层剥开」正是采分点——考场上一大半人栽在这，你没有。",
+          no:"你知道要先处理旧卷材，判断很稳——卡住你的只是「分层」这两个字。"},
+      pit:'高频错法是<b>「整体揭开」</b>——把旁边没起鼓、还粘得好好的部分也带起来，破坏面越修越大。',
+      mn:{big:"一割 二烤 三剥 四贴", sub:"<b>割</b>开放气 → <b>烤</b>软槎口 → 分层<b>剥</b>开 → 分片重<b>贴</b>"} },
+    { name:"质量计划", family:"1A420000 项目质量管理", src:"真题 · 案例改编",
+      cas:"项目部要编制《项目质量计划》，会上几个人都说该自己牵头——",
+      stem:'谁来<span class="hi">组织编制</span>才对？',
+      hint:"👆 编、审、批是三拨人，点组织编制的那个",
+      opts:{A:"项目经理",B:"项目技术负责人",C:"企业质量管理部门",D:"总监理工程师"},
+      right:"A", point:'采分点是<span class="hitword">「项目经理组织编制」</span>，后面还跟着：企业管理层<b>审核</b>、监理<b>审批</b>。',
+      vt:{ok:"人找对了",no:"差半步——人不对"},
+      vs:{ok:"「项目经理组织编制」正是采分点。编、审、批三步的人你再对一遍，下面有口诀。",
+          no:"真题里最常见的坑就是写「技术负责人」——组织编制的必须是项目经理。"},
+      pit:'高频错法是<b>「技术负责人编制」</b>——听起来专业，但阅卷标准答案只认项目经理。',
+      mn:{big:"经理编 · 企业审 · 监理批", sub:"编制 → 审核 → 审批，三步<b>一个都不能换人</b>"} },
+    { name:"填充墙防裂", family:"1A415000 砌体结构", src:"真题 · 案例改编",
+      cas:"框架填充墙快砌到梁底了，工人问：最后这几皮砖——",
+      stem:'怎么砌才<span class="hi">不裂</span>？',
+      hint:"👆 想想墙砌完会发生什么",
+      opts:{A:"等下部墙砌完 14 天后，再补砌顶紧",B:"当天一口气砌到顶，省事",C:"隔一天就补上",D:"留着缝不管，抹灰盖住"},
+      right:"A", point:'采分点是<span class="hitword">「14 天后补砌」</span>——数字写错，整个点不得分。',
+      vt:{ok:"连 14 天都记得，可以",no:"差半步——差在等多久"},
+      vs:{ok:"墙体要沉缩，等它沉完再顶紧，梁底才不裂。这个 14 你记住了，很多人没有。",
+          no:"墙砌完会沉缩——不等它沉完就顶到梁底，梁底那道缝跑不掉。答案是等 14 天。"},
+      pit:'高频错法是<b>「一口气砌到顶」</b>——看着利索，墙体一沉缩，梁底裂缝准时报到。',
+      mn:{big:"顶砖别急 · 先等十四", sub:"下部墙砌完 <b>14 天</b>，再补砌顶紧"} },
+    { name:"停电顺序", family:"1A432000 施工用电安全", src:"真题 · 高频考点",
+      cas:"收工了，工地要断电。<b>总配电箱、分配电箱、开关箱</b>三级都在你面前——",
+      stem:'第一步，先断<span class="hi">哪一级</span>？',
+      hint:"👆 最后一题，还是点就行",
+      opts:{A:"开关箱",B:"总配电箱",C:"分配电箱",D:"哪个顺手断哪个"},
+      right:"A", point:'采分点是顺序本身：<span class="hitword">开关箱 → 分配电箱 → 总配电箱</span>，写反即零分。',
+      vt:{ok:"你这顺序感，安全员都点头",no:"八成的人和你选一样——都错了"},
+      vs:{ok:"停电从末端开始，一级一级往上收——这就是教材的标准答案。",
+          no:"先断总箱，末端设备带着负荷突然失电，人和设备都危险。顺序题一建年年考。"},
+      pit:'高频错法是<b>「先断总闸」</b>——生活直觉害人，考场上这题专收直觉分。',
+      mn:{big:"停电从末端 · 送电从源头", sub:"停：<b>开关箱</b> → 分配电箱 → 总配电箱；送电正好反过来"} }
+  ];
+  var qi = 0, results = [];
 
-  /* ---------- 幕④ 诊断个性化 ---------- */
-  function buildDiag(hit){
-    document.getElementById("dWar").textContent = WAR_TX[war] || WAR_TX.first;
-    var M = {
-      nopoint: hit ? "你说「踩不到得分点」，但刚才这题你踩得很准——你缺的不是能力，是把这种准铺到全部高频考点。"
-                   : "你说「踩不到得分点」——刚才实测<b>吻合</b>：方向对、差采分点半步。阅卷只认那几个字，我们就专练那几个字。",
-      blank:   hit ? "你说「一提笔就空白」，但刚才你判断得很准——你缺的不是知识，是把会的变成条件反射。"
-                   : "你说「一提笔就空白」——刚才这题你其实有方向，卡的是关键动作词。背书和采分点之间的那道缝，系统专门补这个。",
-      slow:    "你说「时间不够写不完」——写不完的根子是想太久。按采分点练，看到题 3 秒知道往哪落笔，速度自己就上来了。",
-      fear:    hit ? "你说「看到案例题就发怵」，但刚才你不光做完了，还踩中了——你比你以为的强。"
-                   : "你说「看到案例题就发怵」——刚才 60 秒你已经做完一道真题小问。怵的题拆到采分点，就是一步一步的事。"
-    };
-    document.getElementById("dMode").innerHTML = M[mode] || M.nopoint;
-    if(hit){
-      document.getElementById("stKicker").textContent = "第 1 站 · 按你的作答排的";
-      document.getElementById("stName").textContent = "屋面防水 · 细部构造";
-      document.getElementById("stMeta").innerHTML = "<b>20 分钟</b> · 你有底子，这站把会做的变成稳拿的<br>讲懂 → 练 3 道 → 当场验证，每一步都对着采分点";
-    }
+  function showQ(){
+    var q = QS[qi];
+    document.getElementById("qBadges").innerHTML =
+      '<span class="badge orange">'+q.src+'</span><span class="badge cyan">'+q.family+'</span>'
+      + '<span class="badge cyan" style="margin-left:auto">第 '+(qi+1)+' / '+QS.length+' 题</span>';
+    document.getElementById("qCase").innerHTML = q.cas;
+    document.getElementById("qStem").innerHTML = q.stem;
+    document.getElementById("qHint").textContent = q.hint;
+    var box = document.getElementById("qOpts");
+    box.innerHTML = "";
+    ["A","B","C","D"].forEach(function(k){
+      var b = document.createElement("button");
+      b.className = "opt";
+      b.innerHTML = '<span class="key">'+k+'</span>' + q.opts[k];
+      b.addEventListener("click", function(){ answer(k); }, {once:true});
+      box.appendChild(b);
+    });
+    go("sQ");
   }
-  document.getElementById("s4Go").addEventListener("click", function(){ ev("接受路径卡"); go("s5"); });
 
-  /* ---------- 幕⑤ 钩子 ---------- */
-  document.getElementById("subYes").addEventListener("click", function(){ ev("订阅 = 好，明天提醒我"); go("s6"); });
-  document.getElementById("subNo").addEventListener("click", function(){
-    ev("订阅 = 先不用");
-    document.getElementById("s6Title").textContent = "行，随时回来";
-    document.getElementById("s6Lead").innerHTML = "明天的换皮题给你留着，想练了打开就是。<br>今天 60 秒的收获：<b style='color:var(--t1)'>1 道真题 · 1 个口诀 · 1 份丢分诊断</b>。";
-    go("s6");
-  });
-  document.getElementById("contactSave").addEventListener("click", function(){
-    var v = document.getElementById("contactInput").value.trim();
-    if(!v) return;
-    ev("留了联系方式 = " + v);
-    document.getElementById("contactRow").innerHTML = '<p class="believe" style="width:100%">记下了，明天见 ✅</p>';
+  function answer(k){
+    var q = QS[qi], ok = (k === q.right);
+    results.push({name:q.name, ok:ok, mn:q.mn.big});
+    ev("第"+(qi+1)+"题「"+q.name+"」作答 = " + k + (ok?"（对）":"（差半步）"));
+    document.getElementById("fRing").style.setProperty("--p", ok?100:55);
+    document.getElementById("fRingTx").textContent = ok ? "命中" : "差半步";
+    document.getElementById("fTitle").textContent = ok ? q.vt.ok : q.vt.no;
+    document.getElementById("fSub").textContent = ok ? q.vs.ok : q.vs.no;
+    document.getElementById("fPoint").innerHTML = q.point;
+    document.getElementById("fPit").innerHTML = q.pit;
+    document.getElementById("fMnBig").textContent = q.mn.big;
+    document.getElementById("fMnSub").innerHTML = q.mn.sub;
+    document.getElementById("fNext").textContent =
+      (qi < QS.length-1) ? ("下一题（"+(qi+2)+"/"+QS.length+"）→") : "生成我的学习报告 →";
+    go("sF");
+  }
+
+  document.getElementById("fNext").addEventListener("click", function(){
+    if(qi < QS.length-1){ qi++; showQ(); }
+    else buildReport();
   });
 
-  /* ---------- 加练 ---------- */
-  document.getElementById("moreQ").addEventListener("click", function(){ ev("主动要求加练"); go("s7"); });
-  var q2Answered = false;
-  document.querySelectorAll(".opt.q2").forEach(function(b){
-    b.addEventListener("click", function(){
-      if(q2Answered) return; q2Answered = true;
-      var a = b.getAttribute("data-a"), right = (a === "A");
-      ev("加练作答 = " + a + (right ? "（对）" : "（差半步）"));
-      var body;
-      if(right){
-        body = '<div class="verdict"><div class="ring" style="--p:100"><i>1/1</i></div><div>'
-          + '<div class="vt">对——你这顺序感，安全员看了都点头</div>'
-          + '<div class="vs">停电从末端开始：开关箱 → 分配电箱 → 总配电箱。两道两个考点，你今天净赚。</div></div></div>';
-      }else{
-        body = '<div class="verdict"><div class="ring" style="--p:50"><i>0/1</i></div><div>'
-          + '<div class="vt">八成的人第一反应都是总闸</div>'
-          + '<div class="vs">你和大多数人在同一个坑边上——先断总箱，末端设备带着负荷突然失电，人和设备都危险。这类顺序题一建年年爱考。</div></div></div>';
-      }
-      document.getElementById("fb2Body").innerHTML = body;
-      go("s8");
+  /* ---------- 学习报告 ---------- */
+  var WAR_TX = {
+    first:"一战考生，底子从零建最快", second:"二战考生，只练丢分的地方",
+    veteran:"老兵，差的是采分点级精度", watch:"观望中——这就是产品的真本事"
+  };
+  function buildReport(){
+    var okN = results.filter(function(r){return r.ok}).length;
+    var missN = results.length - okN;
+    var pct = Math.round(okN / results.length * 100);
+    /* hero */
+    document.getElementById("rRing").style.setProperty("--p", pct);
+    document.getElementById("rRingTx").textContent = pct + "%";
+    var rx = missN >= 2 ? "先补「屋面防水 · 维修工艺」" : (missN === 1 ? "先复测错的那 1 题，再进新站" : "直接进「细部构造」拔高");
+    document.getElementById("rRx").textContent = rx;
+    document.getElementById("rRxSub").textContent = "约 20 分钟 · " + results.length + " 条作答证据 · 明天复测薄弱点";
+    /* tiles */
+    document.getElementById("tAns").innerHTML = results.length + "<small> 题</small>";
+    document.getElementById("tMiss").innerHTML = missN + "<small> 个</small>";
+    var ab = "", mb = "";
+    results.forEach(function(r){
+      ab += '<i style="height:'+(r.ok?12:7)+'px;background:'+(r.ok?"var(--green)":"var(--orange)")+'"></i>';
+      if(!r.ok) mb += '<i style="height:10px;background:var(--red)"></i>';
     });
+    if(!mb) mb = '<i style="height:4px;background:rgba(255,255,255,.15)"></i>';
+    document.getElementById("tAnsBars").innerHTML = ab;
+    document.getElementById("tMissBars").innerHTML = mb;
+    /* 画像 */
+    var M = {
+      nopoint: missN ? "你说「踩不到得分点」——实测吻合：4 题里 "+missN+" 题方向对、差采分点半步。阅卷只认那几个字，我们就专练那几个字。"
+                     : "你说「踩不到得分点」，但今天 4 题全中——你缺的不是能力，是把这种准铺到全部高频考点。",
+      blank:   missN ? "你说「一提笔就空白」——今天的题你其实都有方向，卡的是关键动作词。背书和采分点之间的缝，系统专门补。"
+                     : "你说「一提笔就空白」，但今天 4 题全中——你缺的不是知识，是把会的变成条件反射。",
+      slow:    "你说「时间不够写不完」——按采分点练，看到题 3 秒知道往哪落笔，速度自己就上来了。今天 4 题你已经在这么做了。",
+      fear:    missN ? "你说「看到案例题就发怵」——刚才 3 分钟你做完了 4 道真题。怵的题拆到采分点，就是一步一步的事。"
+                     : "你说「看到案例题就发怵」，结果 4 题全中——你比你以为的强得多。"
+    };
+    document.getElementById("rModeT").textContent = (WAR_TX[war]||"") ;
+    document.getElementById("rModeS").innerHTML = M[mode] || M.nopoint;
+    document.getElementById("rBasis").innerHTML =
+      results.length + " 条作答 · " + missN + " 个错因命中 · " + results.length + " 个采分点逐条比对，全部溯源教材，不是 AI 现编";
+    /* 四道题的账 */
+    var g = "";
+    results.forEach(function(r, i){
+      g += '<div class="row"><span class="st '+(r.ok?"ok":"no")+'">'+(r.ok?"✓":"补")+'</span>'
+         + '<span class="nm"><b>'+QS[i].name+'</b> · '+QS[i].family.split(" ")[1]+'</span>'
+         + '<span class="tg">'+(r.ok?"已命中":"明天复测")+'</span></div>';
+    });
+    document.getElementById("rGrid").innerHTML = g;
+    go("sR");
+  }
+
+  document.getElementById("rGo").addEventListener("click", function(){
+    ev("报告CTA = 去学情页开始定向训练"); go("s6");
   });
-  document.getElementById("s8Done").addEventListener("click", function(){
-    ev("剧本完成(含加练)");
-    document.getElementById("s6Title").textContent = "今天到这，明天见";
-    document.getElementById("s6Lead").innerHTML = "两道真题、两个口诀、一份诊断。<br>明天换皮复测，把「差半步」都变成你的分。";
-    document.getElementById("moreQ").style.display = "none";
+  document.getElementById("rRemind").addEventListener("click", function(){
+    ev("报告CTA = 明天提醒我复测");
+    document.getElementById("s6Title").textContent = "记下了，明天见";
+    document.getElementById("s6Lead").innerHTML = "明天的换皮复测题已排好。<br>报告存在「学情」tab——底部第三个。";
     go("s6");
   });
 
