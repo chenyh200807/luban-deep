@@ -1682,6 +1682,125 @@ def test_register_with_external_auth_persists_new_phone_identity(
     ]
 
 
+def test_channel_attribution_metadata_sanitizes_values() -> None:
+    assert member_service_module._channel_attribution_metadata("test1", "1047") == {
+        "reg_channel": "test1",
+        "reg_scene": "1047",
+    }
+    # 脏值：channel 只保留 [0-9A-Za-z_-]，scene 只保留数字
+    assert member_service_module._channel_attribution_metadata(
+        "推广'; DROP--x", "scene1047abc"
+    ) == {"reg_channel": "DROP--x", "reg_scene": "1047"}
+    assert member_service_module._channel_attribution_metadata("", "") == {}
+    assert member_service_module._channel_attribution_metadata(None, None) == {}
+
+
+def test_register_with_external_auth_persists_channel_attribution(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    persisted: dict[str, object] = {}
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+
+    service.register_with_external_auth(
+        "new_student", "StrongPass123", "13812345678", channel="test1", scene="1047"
+    )
+
+    assert persisted["phone"] == "13812345678"
+    assert persisted["identity_metadata"] == {"reg_channel": "test1", "reg_scene": "1047"}
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_for_wechat_first_registration_persists_channel_attribution(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    persisted: dict[str, object] = {}
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911112222"
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+
+    result = await service.bind_phone_for_wechat(
+        "student_demo", "phone-code-123", channel="test1", scene="1047"
+    )
+
+    assert result["bound"] is True
+    assert persisted["phone"] == "13911112222"
+    identity_metadata = persisted["identity_metadata"]
+    assert isinstance(identity_metadata, dict)
+    assert identity_metadata["reg_channel"] == "test1"
+    assert identity_metadata["reg_scene"] == "1047"
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_for_wechat_existing_member_login_does_not_write_channel(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """已注册用户复登录（手机号已有 canonical alias）不得覆盖注册渠道（first-touch 保护）。"""
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    persisted: dict[str, object] = {}
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13911112222":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911112222"
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+
+    def _seed(data: dict[str, object]) -> None:
+        canonical = service._ensure_member(data, canonical_uid)
+        canonical["phone"] = "13911112222"
+
+    service._mutate(_seed)
+
+    result = await service.bind_phone_for_wechat(
+        canonical_uid, "phone-code-123", channel="late_campaign", scene="1047"
+    )
+
+    assert result["bound"] is True
+    identity_metadata = persisted.get("identity_metadata")
+    assert identity_metadata is None or "reg_channel" not in identity_metadata
+
+
 def test_register_with_external_auth_does_not_match_existing_display_name(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

@@ -31,6 +31,8 @@ _IDENTITY_METADATA_FIELDS = (
     "agent_tool",
     "eval_run_id",
     "phone_binding_method",
+    "reg_channel",
+    "reg_scene",
 )
 
 
