@@ -14,7 +14,7 @@ import hashlib
 import os
 import time
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from pydantic import BaseModel
 
 from deeptutor.api._secure_router import public_router
@@ -22,12 +22,14 @@ from deeptutor.api.dependencies.rate_limit import route_rate_limit
 
 router = public_router(reason="anonymous polyv video signature for pre-login free-course pages (rate-limited)")
 
-# polyv 账号 secretkey。默认值兼容历史算法；生产应通过 env 覆盖并轮换。
-_DEFAULT_POLYV_SECRET = "mnABa9XMn8"
-
 
 def _polyv_secret() -> str:
-    return str(os.getenv("POLYV_SECRET_KEY", "") or "").strip() or _DEFAULT_POLYV_SECRET
+    # fail-closed：密钥只能来自 env，不在源码留任何默认值。
+    # 生产 .env 必须配 POLYV_SECRET_KEY（与 polyv 账号 secretkey 一致；应定期轮换）。
+    secret = str(os.getenv("POLYV_SECRET_KEY", "") or "").strip()
+    if not secret:
+        raise HTTPException(status_code=503, detail="polyv signing not configured")
+    return secret
 
 
 class PolyvSignResponse(BaseModel):
