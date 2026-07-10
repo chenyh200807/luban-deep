@@ -10101,10 +10101,12 @@ async def test_turn_runtime_does_not_block_done_on_background_memory_refresh(
             events.append(event)
         return events
 
-    events = await asyncio.wait_for(_collect(), timeout=0.5)
+    # Full CI shards can briefly starve the event loop; keep the assertion
+    # bounded without making scheduler latency the behavior under test.
+    events = await asyncio.wait_for(_collect(), timeout=2.0)
     assert _event_types_without_progress(events) == ["session", "content", "done"]
 
-    await asyncio.wait_for(refresh_started.wait(), timeout=0.5)
+    await asyncio.wait_for(refresh_started.wait(), timeout=2.0)
     release_refresh.set()
     await asyncio.sleep(0)
 
