@@ -4,8 +4,7 @@ import asyncio
 import contextlib
 import sys
 import types
-from types import MethodType
-from types import SimpleNamespace
+from types import MethodType, SimpleNamespace
 
 import pytest
 
@@ -23,10 +22,10 @@ fake_tiktoken = types.ModuleType("tiktoken")
 fake_tiktoken.get_encoding = lambda _name: SimpleNamespace(encode=lambda text: list(str(text or "")))  # type: ignore[attr-defined]
 sys.modules.setdefault("tiktoken", fake_tiktoken)
 
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
 import deeptutor.services.tutorbot.manager as tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig, TutorBotManager
-from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.tutorbot.session.manager import Session
 from deeptutor.tutorbot.session.sqlite_adapter import SQLiteSessionAdapter
 
@@ -70,8 +69,10 @@ def test_tutorbot_sqlite_adapter_persists_metadata_and_stable_messages(tmp_path)
     restored = adapter.get_or_create(key)
     assert restored.metadata["bot_id"] == "construction-exam-coach"
     assert restored.metadata["conversation_id"] == "c1"
-    assert restored.metadata["user_id"] == "u1"
-    assert restored.metadata["source"] == "wx_miniprogram"
+    # 引擎镜像行不得携带用户身份戳 / 客户端 source（2026-07 双会话根因）：
+    # user_id / source 每 turn 由 capability 重新注入，持久化副本必须剥离。
+    assert "user_id" not in restored.metadata
+    assert restored.metadata["source"] == "tutorbot"
     assert restored.metadata["title"] == "案例题会话"
     assert [item["role"] for item in restored.messages] == ["user", "assistant"]
     assert [item["content"] for item in restored.messages] == ["第一问", "最终答案"]
@@ -81,7 +82,7 @@ def test_tutorbot_sqlite_adapter_persists_metadata_and_stable_messages(tmp_path)
     assert row["title"] == "案例题会话"
     assert row["preferences"]["bot_id"] == "construction-exam-coach"
     assert row["preferences"]["conversation_id"] == "c1"
-    assert row["preferences"]["user_id"] == "u1"
+    assert "user_id" not in row["preferences"]
 
 
 def test_tutorbot_general_knowledge_context_respects_kill_switch(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -959,3 +960,121 @@ async def test_tutorbot_manager_injects_high_confidence_general_knowledge_contex
     assert session_metadata["luban_general_knowledge_context"] == pack
     assert "已有对话上下文" in str(captured_metadata["conversation_context_text"])
     assert "【编译教学上下文】" in str(captured_metadata["conversation_context_text"])
+
+
+def _session_columns(db_path, session_id: str) -> tuple[str, str, str] | None:
+    """Terminal-state read of (owner_key, source, preferences_json) straight from SQLite."""
+    import sqlite3 as _sqlite3
+
+    conn = _sqlite3.connect(str(db_path))
+    try:
+        row = conn.execute(
+            "SELECT owner_key, source, preferences_json FROM sessions WHERE id = ?",
+            (session_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+    return row
+
+
+def test_tutorbot_engine_mirror_row_is_not_a_user_conversation(tmp_path) -> None:
+    """复现生产双会话 bug 的确定性时序（2026-07 BI 会话数翻倍根因）。
+
+    一次移动端发送 = ① turn_runtime.ensure_session 建 canonical 会话行
+    （owner_key=user:...，source=wx_miniprogram）+ ② TutorBot 引擎经
+    SQLiteSessionAdapter 落 bot-side 镜像行 tutorbot:bot:...:chat:<conv_id>。
+    修复前镜像行同样被打上用户 owner_key + 客户端 source，导致
+    list_sessions_by_owner / BI 会员 scoping 把它当成第二个用户会话。
+    业务事实：一次用户对话 = sessions 表恰一条用户会话；引擎镜像行是
+    引擎私有历史，不得携带用户身份戳。
+    """
+    db_path = tmp_path / "chat_history.db"
+    store = SQLiteSessionStore(db_path=db_path)
+    user_id = "6cf455b1-a164-4858-bf3c-775974ab780e"
+    owner_key = build_user_owner_key(user_id)
+    conversation_id = "unified_1783406312729_d4cf4350"
+
+    # ① WS turn 开始：turn_runtime 建 canonical 会话行（唯一用户会话权威）
+    asyncio.run(store.ensure_session(conversation_id, owner_key=owner_key))
+    asyncio.run(
+        store.update_session_preferences(
+            conversation_id,
+            {"source": "wx_miniprogram", "user_id": user_id, "bot_id": "construction-exam-coach"},
+        )
+    )
+
+    # ② 同一 turn 内：TutorBot 引擎 get_or_create（先建空行）+ save（补 metadata）
+    adapter = SQLiteSessionAdapter(store)
+    key = f"bot:construction-exam-coach:user:{user_id}:chat:{conversation_id}"
+    engine_session = adapter.get_or_create(key)
+    engine_session.metadata = {
+        "bot_id": "construction-exam-coach",
+        "conversation_id": conversation_id,
+        "session_id": conversation_id,
+        "user_id": user_id,
+        "source": "wx_miniprogram",
+        "title": "一建建筑实务第一章考点",
+        "archived": False,
+    }
+    engine_session.messages = [
+        {"role": "user", "content": "一建建筑实务第一章考点"},
+        {"role": "assistant", "content": "第一章核心考点如下……"},
+    ]
+    adapter.save(engine_session)
+
+    # 终态断言：该用户的 wx_miniprogram 会话恰 1 条（canonical），无第二条
+    rows = asyncio.run(
+        store.list_sessions_by_owner(
+            owner_key, source="wx_miniprogram", archived=False, limit=50, offset=0
+        )
+    )
+    assert [row["id"] for row in rows] == [conversation_id]
+
+    # 镜像行仍存在（引擎历史不受影响），但结构上不是用户会话：
+    # 无 owner_key、source 为引擎源、preferences 不携带用户身份
+    mirror = _session_columns(db_path, f"tutorbot:{key}")
+    assert mirror is not None
+    mirror_owner, mirror_source, mirror_prefs = mirror
+    assert (mirror_owner or "") == ""
+    assert mirror_source == "tutorbot"
+    assert '"user_id"' not in (mirror_prefs or "")
+
+    # 引擎自身历史读写不受影响
+    adapter.invalidate(key)
+    restored = adapter.get_or_create(key)
+    assert [item["content"] for item in restored.messages] == [
+        "一建建筑实务第一章考点",
+        "第一章核心考点如下……",
+    ]
+
+
+def test_tutorbot_engine_mirror_stays_engine_owned_across_repeat_saves(tmp_path) -> None:
+    """multi-writer 生命周期防回归：第二次 save（update_session_preferences 路径）
+    不得把镜像行的 source 翻回客户端 source、也不得从 metadata 派生回 owner_key。"""
+    db_path = tmp_path / "chat_history.db"
+    store = SQLiteSessionStore(db_path=db_path)
+    adapter = SQLiteSessionAdapter(store)
+    user_id = "u-repeat"
+    key = f"bot:construction-exam-coach:user:{user_id}:chat:conv_repeat"
+
+    engine_session = adapter.get_or_create(key)
+    engine_session.metadata = {
+        "bot_id": "construction-exam-coach",
+        "conversation_id": "conv_repeat",
+        "user_id": user_id,
+        "source": "wx_miniprogram",
+        "title": "重复保存",
+        "archived": False,
+    }
+    engine_session.messages = [{"role": "user", "content": "第一问"}]
+    adapter.save(engine_session)
+
+    engine_session.messages.append({"role": "assistant", "content": "解析"})
+    adapter.save(engine_session)
+
+    mirror = _session_columns(db_path, f"tutorbot:{key}")
+    assert mirror is not None
+    mirror_owner, mirror_source, mirror_prefs = mirror
+    assert (mirror_owner or "") == ""
+    assert mirror_source == "tutorbot"
+    assert '"user_id"' not in (mirror_prefs or "")
