@@ -239,6 +239,12 @@ def build_retest_items(
     {variant_id, rule_group, surface, expected_ok, correct_statement, anchor}——
     绝不派生 scoring_point 文本 / exam_refs / chapter（变体池无此供给=不臆造）。
 
+    ``textbook``（可选字段）= **同 pack** 签发考点卡 bank 按 ``anchor == point_id``
+    精确 join 出的教材原文并排卡 {quote, label, page_num}。这不是派生/生成——
+    quote 逐字来自已签发考点卡（同一 ``_load_signed_bank`` 双闸），坐标系同为
+    kc: 锚。join 不中 / 卡池未签发 → 字段缺省（fail-closed，前端有原文才亮）。
+    跨包借 quote 红线不适用：只 join 自己 pack 的卡池。
+
     签发闸（双 fail-closed）：只从 ``status=="signed"`` 且 sha 锚定当前 pack
     正文的 bank 抽取——不满足与 bank 缺失同形返回 ``[]``（既有降级）。
     """
@@ -259,8 +265,12 @@ def build_retest_items(
     else:
         start = seed % len(core)
         picked = [core[(start + i) % len(core)] for i in range(min(limit, len(core)))]
-    return [
-        {
+    textbook_by_point = _textbook_quote_index(
+        vm["pack_id"], manifest_dir, vm["content_sha256"]
+    )
+    rows: list[dict[str, Any]] = []
+    for v in picked:
+        row: dict[str, Any] = {
             "variant_id": v["variant_id"],
             "rule_group": v["rule_group"],
             "surface": v["surface"],
@@ -268,5 +278,43 @@ def build_retest_items(
             "correct_statement": v["correct_statement"],
             "anchor": v["anchor"],
         }
-        for v in picked
-    ]
+        textbook = textbook_by_point.get(str(v.get("anchor") or ""))
+        if textbook:
+            row["textbook"] = textbook
+        rows.append(row)
+    return rows
+
+
+_CONCEPT_CARD_BANK_TEMPLATE = "_{pack_id}_concept_card_bank.v0.json"
+
+
+def _textbook_quote_index(
+    pack_id: str, manifest_dir: Path, expected_sha: str
+) -> dict[str, dict[str, Any]]:
+    """同 pack 签发考点卡 → {point_id: 教材原文并排卡}（retest join 用）。
+
+    quote/label 逐字透传签发卡字段（zero 生成）；卡池未签发/缺失 → 空 index
+    （fail-closed，retest 不带 textbook 字段照常工作）。
+    """
+    bank = _load_signed_bank(
+        pack_id,
+        manifest_dir,
+        expected_sha,
+        filename_template=_CONCEPT_CARD_BANK_TEMPLATE,
+    )
+    if bank is None:
+        return {}
+    index: dict[str, dict[str, Any]] = {}
+    for card in bank.get("cards") or []:
+        point_id = str(card.get("point_id") or "").strip()
+        quote = str(card.get("quote") or "").strip()
+        if not point_id or not quote:
+            continue
+        source_ref = card.get("source_ref") or {}
+        page_num = source_ref.get("page_num") if isinstance(source_ref, dict) else None
+        index[point_id] = {
+            "quote": quote,
+            "label": str(card.get("front") or ""),
+            "page_num": page_num if isinstance(page_num, int) else None,
+        }
+    return index
