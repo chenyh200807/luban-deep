@@ -1,0 +1,437 @@
+{
+ "schema_version": "luban-f16-seethrough-bank.v0",
+ "pack_id": "F16",
+ "status": "signed",
+ "source_pack_sha256": "51b0f455ad205b4ed9965720d9562861a4a2ef7e8e7aa4c690ca69b8d88fff2e",
+ "authored_from": "artifacts/luban_case_family_assets/F16/F16_5day_storyboard_spec.md",
+ "gate": {
+  "passed": 5,
+  "total": 5,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "extension_unannotated": [],
+  "forbidden_words": []
+ },
+ "items": [
+  {
+   "variant_id": "F16-D1-seethrough",
+   "day": 1,
+   "competency": "因果 why",
+   "invariant": "水沿坡从高处往低处流；顺水搭接 = 高处卷材压住低处卷材的边缘，让水从上层表面跨过缝口，而不是钻进缝里。",
+   "today_cut": "2 分钟搞懂：卷材到底从哪头往哪头铺",
+   "retest_banner": "",
+   "answer_mode": "mcq",
+   "stem": "某屋面北高南低，雨水北→南流，两名工人争论搭接方向，哪种最能解释「顺水搭接」的本质？",
+   "options": [
+    {
+     "option_id": "A",
+     "text": "让高处那张卷材压住低处那张的边缘，水从上层表面跨过缝口——谁压谁由水流方向定"
+    },
+    {
+     "option_id": "B",
+     "text": "从北高往南低铺，「后铺压先铺」总是对的"
+    },
+    {
+     "option_id": "C",
+     "text": "只要搭接宽度够，坡向和缝口方向都不影响"
+    },
+    {
+     "option_id": "D",
+     "text": "垂直屋脊铺，缝口方向由施工方便决定"
+    }
+   ],
+   "correct_option_id": "A",
+   "distractors": [
+    {
+     "option_id": "B",
+     "misconception_id": "MC-D1-RULE-ABSOLUTE",
+     "wrong_mental_model": "把「后铺压先铺」口诀当绝对规则",
+     "error_code": "E11"
+    },
+    {
+     "option_id": "C",
+     "misconception_id": "MC-D1-WIDTH-ONLY",
+     "wrong_mental_model": "只看搭接宽度不看方向/缝口",
+     "error_code": "E07"
+    },
+    {
+     "option_id": "D",
+     "misconception_id": "MC-D1-CONVENIENCE",
+     "wrong_mental_model": "用施工方便替代铺贴方向判断",
+     "error_code": "E10"
+    }
+   ],
+   "see_through": {
+    "surface": "把坡向改成北高南低",
+    "invariant": "缝口要背向来水",
+    "examiner_intent": "坡向一反，逼你代入水流，而不是背「顺水搭接」四个字",
+    "learner_misconception": "若选 B：你把「后铺压先铺」当成了绝对规则"
+   },
+   "evidence": {
+    "syllabus_chunks": [
+     {
+      "chunk": "1A434000_068_0104",
+      "true_source_pack": "F16",
+      "source_ref": "1A434000 P68 铺贴方向及顺序、搭接长度及搭接缝位置",
+      "is_extension": false
+     }
+    ],
+    "lecture_ref": "lecture_teaching_cards.jsonl:347（防水层由低向高铺贴、搭接缝顺水方向）",
+    "scoring_point": "检查卷材铺贴方向及顺序、搭接长度及搭接缝位置",
+    "error_codes": [
+     "E11",
+     "E07",
+     "E10"
+    ],
+    "misconception": "后铺压先铺机械套用"
+   },
+   "warm_correction": "你方向感是对的——知道要顺水。就差最后一步：把「谁压谁」交给水流来定，而不是交给「后铺」这个口诀。水从北来，就让北边那张压住南边那张的边。这步想通，这类题再骗不到你。",
+   "tomorrow_promise": "明天我换成地下室外墙，水从外面的土里来——还是「水从哪来」这个判断，换个场景测你。",
+   "grading_artifact_id": "",
+   "task_scope": {},
+   "scoring_points": [],
+   "replay": "",
+   "progress_receipt": "",
+   "safety_net": "",
+   "honesty_label": "",
+   "ledger": "light_signal_only",
+   "anchor": "kc:1A434000_068_0104:0"
+  },
+  {
+   "variant_id": "F16-D2-seethrough",
+   "day": 2,
+   "competency": "鉴别 discriminate",
+   "invariant": "迎水面 = 水首先作用的一侧（屋面在上、地下室外墙在外侧）。防水放迎水面 → 水压把它压贴基层；放背水面 → 结构先被水侵入、防水还可能被顶离。",
+   "today_cut": "换个场景：地下室防水到底贴里还是贴外",
+   "retest_banner": "先复测昨天：你昨天想通了「水从哪来，定谁压谁」。今天还是这个魂，换地下室。",
+   "answer_mode": "mcq",
+   "stem": "地下室外墙外侧是回填土+地下水，为赶工想把卷材主要贴内侧（「好施工、漏了好补」），哪个判断最准？",
+   "options": [
+    {
+     "option_id": "A",
+     "text": "外侧是迎水面，贴外侧让水压帮忙把防水压在墙上；贴内侧水先泡墙、还会把防水顶离"
+    },
+    {
+     "option_id": "B",
+     "text": "只要材料防水，内外侧没区别"
+    },
+    {
+     "option_id": "C",
+     "text": "内侧好检修，所以内侧永远优于外侧"
+    },
+    {
+     "option_id": "D",
+     "text": "错，但只因为「屋面防水在上表面」照搬过来"
+    }
+   ],
+   "correct_option_id": "A",
+   "distractors": [
+    {
+     "option_id": "B",
+     "misconception_id": "MC-D2-MATERIAL-ONLY",
+     "wrong_mental_model": "只看材料防水，忽略迎水面",
+     "error_code": "E07"
+    },
+    {
+     "option_id": "C",
+     "misconception_id": "MC-D2-MAINTAIN",
+     "wrong_mental_model": "用检修便利替代迎水面原则",
+     "error_code": "E10"
+    },
+    {
+     "option_id": "D",
+     "misconception_id": "MC-D2-TRANSFER",
+     "wrong_mental_model": "机械照搬「屋面在上表面」到地下室",
+     "error_code": "E11"
+    }
+   ],
+   "see_through": {
+    "surface": "赶工想贴内侧",
+    "invariant": "迎水面 = 外侧",
+    "examiner_intent": "用「好施工/好维修」诱你离开迎水面原则",
+    "learner_misconception": "若选 C：你用检修便利替代了迎水面"
+   },
+   "evidence": {
+    "syllabus_chunks": [
+     {
+      "chunk": "1A413030_134_0258",
+      "true_source_pack": "F03",
+      "source_ref": "1A413030 P134 地下室防水层设置(迎水面延伸)",
+      "is_extension": true
+     },
+     {
+      "chunk": "1A413030_130_0247",
+      "true_source_pack": "F03",
+      "source_ref": "1A413030 P130 外设防水层",
+      "is_extension": true
+     }
+    ],
+    "scoring_point": "外墙体防水层应设置在迎水面；外设防水层",
+    "error_codes": [
+     "E07",
+     "E10",
+     "E11"
+    ],
+    "misconception": "用检修便利/材料替代迎水面判断"
+   },
+   "warm_correction": "你没说错，内侧确实好修。但这题考的不是好不好修，是水从哪边压过来。地下室的水从外面土里来，迎水面就是外侧——贴外侧，水压帮你把防水压在墙上；贴内侧，水先泡了墙、还想把防水顶下来。记住「迎水面=水来的那面」，屋面和地下室就统一了。",
+   "tomorrow_promise": "明天不换「水从哪来」了，换个新魂：节点。看你会不会被「后补也行」骗到。",
+   "grading_artifact_id": "",
+   "task_scope": {},
+   "scoring_points": [],
+   "replay": "",
+   "progress_receipt": "",
+   "safety_net": "",
+   "honesty_label": "",
+   "ledger": "light_signal_plus_day1_retest_readback",
+   "anchor": "kc:1A413030_134_0258:0"
+  },
+  {
+   "variant_id": "F16-D3-seethrough",
+   "day": 3,
+   "competency": "因果 why",
+   "invariant": "节点（管根 / 阴角 / 收口）是渗漏起点。先在合格基层处理节点，再让大面防水与节点附加处理连续搭接；后贴在表面的「补丁」边缘 = 新的张口和窜水路径。",
+   "today_cut": "管根阴角：先做节点，还是先铺大面",
+   "retest_banner": "复测前天 + 昨天：水从哪来你已经会判了。今天看你会不会被「多补点总没错」带偏。",
+   "answer_mode": "mcq",
+   "stem": "工人说「先把大面卷材铺完，再在管根阴角上贴附加层补强也行」，哪项反驳最准？",
+   "options": [
+    {
+     "option_id": "A",
+     "text": "节点是渗漏起点，必须先做节点附加层再让大面压上去连成一片；后补的补丁边缘会变成新缝"
+    },
+    {
+     "option_id": "B",
+     "text": "只要后补附加层面积更大，顺序不影响"
+    },
+    {
+     "option_id": "C",
+     "text": "大面已覆盖基层，节点附加层只是美观增强"
+    },
+    {
+     "option_id": "D",
+     "text": "不行，但只因为「教材写了先节点后大面」，说不出为什么"
+    }
+   ],
+   "correct_option_id": "A",
+   "distractors": [
+    {
+     "option_id": "B",
+     "misconception_id": "MC-D3-AREA-COMP",
+     "wrong_mental_model": "用面积补偿顺序",
+     "error_code": "E06"
+    },
+    {
+     "option_id": "C",
+     "misconception_id": "MC-D3-COSMETIC",
+     "wrong_mental_model": "把节点附加层当美观增强",
+     "error_code": "E07"
+    },
+    {
+     "option_id": "D",
+     "misconception_id": "MC-D3-SLOGAN",
+     "wrong_mental_model": "口号化背规则不解释因果",
+     "error_code": "E04"
+    }
+   ],
+   "see_through": {
+    "surface": "先大面后补附加层",
+    "invariant": "节点先行 + 连续搭接",
+    "examiner_intent": "用「后补面积更大」诱你",
+    "learner_misconception": "若选 B：你用面积补偿了顺序"
+   },
+   "evidence": {
+    "syllabus_chunks": [
+     {
+      "chunk": "1A434000_068_0104",
+      "true_source_pack": "F16",
+      "source_ref": "1A434000 P68 附加层/细部构造",
+      "is_extension": false
+     },
+     {
+      "chunk": "1A434000_075_0117",
+      "true_source_pack": "F16",
+      "source_ref": "1A434000 P75 渗漏原因(收缩裂缝/外墙防水)",
+      "is_extension": false
+     },
+     {
+      "chunk": "1A434000_077_0120",
+      "true_source_pack": "F16",
+      "source_ref": "1A434000 P77 收口张口/女儿墙漏水",
+      "is_extension": false
+     }
+    ],
+    "scoring_point": "附加层、细部构造处理；穿墙管设置止水环；卷材收口处张口/固定不牢/未分层搭槎会造成问题",
+    "error_codes": [
+     "E06",
+     "E07",
+     "E04"
+    ],
+    "misconception": "多补点总没错（面积补偿顺序）"
+   },
+   "warm_correction": "你想「多补点总没错」——这份谨慎是好的。但防水不是补得多，是不给水留缝。节点是水最先钻的地方，先做它、再让大面压上去连成一片，补丁才不会变成新缝。顺序对了，你那份谨慎才真正生效。",
+   "tomorrow_promise": "前三天你练的是「判断」。明天换一种——你自己写，AI 按真实阅卷采分点给你批，看你写的能不能踩到分。",
+   "grading_artifact_id": "",
+   "task_scope": {},
+   "scoring_points": [],
+   "replay": "",
+   "progress_receipt": "",
+   "safety_net": "",
+   "honesty_label": "",
+   "ledger": "light_signal_plus_day2_retest_readback",
+   "anchor": "kc:1A434000_068_0104:0"
+  },
+  {
+   "variant_id": "F16-D4-seethrough",
+   "day": 4,
+   "competency": "半写 · 真采分点自我核对",
+   "invariant": "起鼓卷材割补 = 先放气排出鼓内气体 / 擦干清除旧胶结料 → 喷灯烘烤、分层剥开旧卷材、重贴新卷材并连续搭接。",
+   "today_cut": "今天不选答案。屋面卷材起鼓了，你来写怎么割补——对照真实采分点看哪句踩到分、哪句差一口气",
+   "retest_banner": "",
+   "answer_mode": "semi_write",
+   "stem": "",
+   "options": [],
+   "correct_option_id": "",
+   "distractors": [],
+   "see_through": {},
+   "evidence": {},
+   "warm_correction": "你已经写出了割补的大框架，这很不容易——很多人连「要先放气」都想不到。就差一个动作：重贴新卷材前要「分层剥开」，这是把新旧卷材连成一体的关键。补上这一句，这 0.75 分稳稳到手。",
+   "tomorrow_promise": "明天总复测——屋面、地下室、穿墙管三处一起上，换一个你没见过的工地，看这 5 天是真进了脑子，还是只记住了原题。",
+   "grading_artifact_id": "Q18-1A434000::qga_v0_20260604",
+   "task_scope": {
+    "scope_type": "light_check",
+    "covered_scoring_point_ids": [
+     "P10",
+     "P11"
+    ],
+    "excluded_scoring_point_policy": "not_evaluated_no_miss"
+   },
+   "scoring_points": [
+    {
+     "point_id": "P10",
+     "policy_type": "exact_required",
+     "max_score": 0.75,
+     "label": "放气 / 擦干 / 清除旧胶结料",
+     "required_terms": [
+      "放气",
+      "擦干",
+      "清除旧胶结料"
+     ],
+     "error_code": "E06"
+    },
+    {
+     "point_id": "P11",
+     "policy_type": "high_risk_review",
+     "max_score": 0.75,
+     "label": "喷灯烘烤 / 分层剥开 / 重贴新卷材",
+     "required_terms": [
+      "喷灯烘烤",
+      "分层剥开",
+      "重贴新卷材"
+     ],
+     "error_code": "E03"
+    }
+   ],
+   "replay": "",
+   "progress_receipt": "",
+   "safety_net": "",
+   "honesty_label": "判分锚 = Q18-1A434000::qga_v0（training_org 估分口径·非官方阅卷·真判待后续解 block）；task_scope 外 not_evaluated 不算漏答；本轮自我核对为已签发 P10/P11 采分点文本的确定性命中/漏点投影，非内核实判。",
+   "ledger": "semi_write_diagnostic_candidate",
+   "anchor": "kc:1A434000_076_0119:0"
+  },
+  {
+   "variant_id": "F16-D5-seethrough",
+   "day": 5,
+   "competency": "元认知 · 综合换皮复测",
+   "invariant": "同一个「控水路」原则在三个场景保持不变——屋面看坡向 / 地下室看迎水侧 / 管根看节点止水。",
+   "today_cut": "总复测：换个新工地，三处防水一起判。这不是新知识，是把这 5 天的魂用一次",
+   "retest_banner": "",
+   "answer_mode": "mcq",
+   "stem": "某工程同一天处理屋面天沟卷材 / 地下室外墙卷材 / 穿墙管根，哪套安排最能说明「真懂防水」而非背清单？",
+   "options": [
+    {
+     "option_id": "A",
+     "text": "屋面按坡向定搭接、地下室贴外侧迎水面、管根先做节点止水环再大面——三处都按「水从哪来」判"
+    },
+    {
+     "option_id": "B",
+     "text": "三处都保证搭接宽度够、内侧好修、多补一圈附加层"
+    },
+    {
+     "option_id": "C",
+     "text": "三处都先铺大面，最后统一补节点"
+    },
+    {
+     "option_id": "D",
+     "text": "哪方便贴哪、材料合格即可"
+    }
+   ],
+   "correct_option_id": "A",
+   "distractors": [
+    {
+     "option_id": "B",
+     "misconception_id": "MC-D5-WIDTH-MAINTAIN",
+     "wrong_mental_model": "宽度够/内侧好修/多补一圈替代因果判断",
+     "error_code": "E07"
+    },
+    {
+     "option_id": "C",
+     "misconception_id": "MC-D5-BIGFACE-FIRST",
+     "wrong_mental_model": "三处都先大面最后补节点",
+     "error_code": "E06"
+    },
+    {
+     "option_id": "D",
+     "misconception_id": "MC-D5-CONVENIENCE",
+     "wrong_mental_model": "施工方便/材料合格替代规范判断",
+     "error_code": "E10"
+    }
+   ],
+   "see_through": {
+    "surface": "同一天三处一起判",
+    "invariant": "同一个「控水路」原则在三场景不变",
+    "examiner_intent": "回放这 5 天的魂，一次用上三个",
+    "learner_misconception": "若选 C：你把「先大面后补节点」的老直觉又用上了"
+   },
+   "evidence": {
+    "syllabus_chunks": [
+     {
+      "chunk": "1A434000_068_0104",
+      "true_source_pack": "F16",
+      "source_ref": "1A434000 P68 施工过程检查",
+      "is_extension": false
+     },
+     {
+      "chunk": "1A413030_134_0258",
+      "true_source_pack": "F03",
+      "source_ref": "1A413030 P134 地下室防水层设置(迎水面延伸)",
+      "is_extension": true
+     }
+    ],
+    "scoring_point": "屋面看坡向 / 地下室看迎水侧 / 管根看节点止水（同一控水路原则）",
+    "error_codes": [
+     "E07",
+     "E06",
+     "E10"
+    ],
+    "misconception": "先大面后补节点/施工方便替代因果"
+   },
+   "warm_correction": "",
+   "tomorrow_promise": "",
+   "grading_artifact_id": "",
+   "task_scope": {},
+   "scoring_points": [],
+   "replay": "回看你这 5 天想通了什么：Day1 顺水 → Day2 迎水面 → Day3 节点先行 → 今天三个一次用上。",
+   "progress_receipt": "5 天前你大概会选 C（先大面、最后统一补节点，看起来最整齐）。今天你选了 A。你不是背下了答案——这 5 天每天那个「水从哪来、缝口避水、节点先行」的判断，今天一次用上了三个。这就是真懂和背过的区别。",
+   "safety_net": "就算今天还错一两处也没关系——错的那处正好告诉我们明天先陪你练哪个。你已经连续来了 5 天，这件事本身就比答案更重要。",
+   "honesty_label": "Day5 是复测读回点；D1-D4 为 inference-validated（非逐字 G-SRC），起鼓割补工序无 same-point 复测题，本综合题为 same-node 深化，不得伪装成 point-level 干净提升；掌握结论由 LearnerStateService / learning_evidence / revalidation_queue 消费后产生，前端不自算。",
+   "ledger": "retest_readback",
+   "anchor": "kc:1A434000_068_0104:0"
+  }
+ ],
+ "signoff": {
+  "who": "claude-agent(spike prototype, 待 owner 逐题过)",
+  "when": "2026-07-07T14:54:40+08:00",
+  "basis": "gate 100% (5/5, 溯源/错因E系/无审视硬词/延伸标注全过) + 内容逐字转 F16 剧本 spec + 裸借守卫对抗验证通过 + sha 三方一致;spike 雏形待 owner 亲手走查"
+ }
+}

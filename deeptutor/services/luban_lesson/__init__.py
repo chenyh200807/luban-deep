@@ -17,6 +17,10 @@ from deeptutor.services.luban_lesson.read_model import (
     list_all_pack_ids,
     list_green_lessons,
 )
+from deeptutor.services.luban_lesson.seethrough import (
+    build_seethrough,
+    build_seethrough_library,
+)
 
 __all__ = [
     "LessonNotAvailable",
@@ -28,6 +32,8 @@ __all__ = [
     "build_concept_cards",
     "build_lesson_viewmodel",
     "build_retest_items",
+    "build_seethrough",
+    "build_seethrough_library",
     "list_all_pack_ids",
     "list_green_lessons",
 ]

@@ -92,8 +92,9 @@
 .lr-route-line { display: flex; align-items: center; justify-content: space-between; padding: 20rpx 28rpx 6rpx; }
 .lr-route-lit { font-size: 24rpx; font-weight: 800; color: var(--pk-t2); }
 .lr-route-more { font-size: 24rpx; font-weight: 700; color: var(--pk-grn); }
-.lr-rack { width: 100%; white-space: nowrap; }
-.lr-rack-inner { display: inline-flex; gap: 17rpx; padding: 14rpx 28rpx 26rpx; }
+.lr-rack { width: 100%; }
+/* 不可横滑:3 卡 + 尾卡一行铺满,不溢出 */
+.lr-rack-inner { display: flex; align-items: stretch; gap: 12rpx; padding: 14rpx 24rpx 26rpx; }
 .lr-poster { }
 .lr-poster-slot--ink { background: var(--pk-red); color: #fff; }
 .lr-poster-slot--red { background: rgba(255, 255, 255, 0.92); color: var(--pk-red); }
@@ -102,8 +103,20 @@
 .lr-poster-tag--ink { color: #8fbfa8; }
 .lr-poster-tag--red { color: #ffe1ba; }
 .lr-poster-tag--paper { color: var(--pk-t3); }
-.lr-poster-tail { flex-shrink: 0; width: 128rpx; height: 209rpx; border-radius: 19rpx; border: 3rpx dashed #cbc6b4; display: flex; align-items: center; justify-content: center; }
-.lr-poster-tail-txt { font-size: 24rpx; font-weight: 800; color: var(--pk-t2); text-align: center; line-height: 1.5; }
+.lr-tagline { display: flex; align-items: center; gap: 6rpx; }
+.lr-ticon { flex-shrink: 0; line-height: 1; }
+.lr-ticon--rec { width: 22rpx; height: 22rpx; border-radius: 50%; background: rgba(255, 255, 255, 0.95); color: var(--pk-red); display: flex; align-items: center; justify-content: center; font-size: 11rpx; padding-left: 1rpx; box-sizing: border-box; }
+.lr-ticon--done { color: #8fbfa8; font-size: 22rpx; font-weight: 900; }
+.lr-ticon--lock { font-size: 18rpx; }
+.lr-poster-tail { flex-shrink: 0; width: 128rpx; height: 209rpx; border-radius: 19rpx; border: 3rpx dashed var(--pk-bd); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11rpx; }
+.lr-poster-tail-txt { font-size: 24rpx; font-weight: 800; color: var(--pk-t2); text-align: center; line-height: 1.4; }
+/* 2×2 四色格:墨/朱/灰/虚线 = 三态 + 未开通,呼应整条路线的色语言 */
+.lr-tail-grid { display: flex; flex-wrap: wrap; gap: 6rpx; width: 50rpx; }
+.lr-tail-cell { width: 22rpx; height: 22rpx; border-radius: 6rpx; box-sizing: border-box; }
+.lr-tail-cell--ink { background: var(--pk-t1); }
+.lr-tail-cell--red { background: var(--pk-red); }
+.lr-tail-cell--gray { background: var(--pk-t3); }
+.lr-tail-cell--dash { border: 3rpx dashed var(--pk-bd); }
 
 /* ── 今日任务卡 ── */
 .lr-task { padding: 30rpx; display: flex; flex-direction: column; gap: 20rpx; }
@@ -136,5 +149,6 @@
 .lr-metric-num { font-size: 38rpx; font-weight: 800; color: var(--pk-t1); line-height: 1; }
 .lr-metric-grn { color: var(--pk-grn); }
 
-/* 底部留白 = 共享五 tab 壳高(140rpx)+ safe-area + 呼吸(壳为 fixed 覆层) */
-.lr-bottom-space { height: calc(180rpx + env(safe-area-inset-bottom)); }
+/* 底部留白 = 壳高 140rpx + 中央问鲁班章上浮 60rpx + 呼吸(壳为 fixed 覆层;
+   不留够上浮量,滚到底时最后一块内容会被上浮的章遮挡) */
+.lr-bottom-space { height: calc(240rpx + env(safe-area-inset-bottom)); }
