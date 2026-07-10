@@ -1,6 +1,28 @@
 var api = require("../../utils/api");
 var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
+var surfaceTelemetry = require("../../utils/surface-telemetry");
+
+// 首体验漏斗埋点（2026-07-10）：统一经 surface-telemetry 唯一通道。
+// 测试环境可能以部分对象 stub 该模块，故做存在性防御。
+function trackBehavior(eventName, payload) {
+  if (
+    surfaceTelemetry &&
+    typeof surfaceTelemetry.trackProductBehavior === "function"
+  ) {
+    surfaceTelemetry.trackProductBehavior(eventName, payload);
+  }
+}
+
+function trackAuthResult(objectType, ok, errMessage) {
+  trackBehavior("auth_result", {
+    module: "login",
+    action: ok ? "complete" : "error",
+    objectType: objectType,
+    result: ok ? "success" : "fail",
+    errorCode: ok ? "" : String(errMessage || "").slice(0, 60),
+  });
+}
 
 function showSmsSentFeedback(message) {
   wx.showToast({
@@ -66,6 +88,8 @@ Page({
   },
   onLoad: function () {
     this._mounted = true;
+    // 漏斗起点：登录页曝光（pre-auth 时入队，登录成功后随队冲刷落库）
+    trackBehavior("module_viewed", { module: "login", action: "view" });
     try {
       var info = helpers.getWindowInfo();
       var sb = info.safeArea ? info.screenHeight - info.safeArea.bottom : 0;
@@ -218,6 +242,12 @@ Page({
     if (!u || !u.trim()) return self.setData({ errorMsg: "请输入用户名" });
     if (!p) return self.setData({ errorMsg: "请输入密码" });
     if (p.length < 6) return self.setData({ errorMsg: "密码至少 6 位" });
+    trackBehavior("auth_authorize_clicked", {
+      module: "login",
+      action: "authorize",
+      objectType: "password",
+      result: "granted",
+    });
     self.setData({ loading: true, errorMsg: "" });
     api
       .request({
@@ -237,9 +267,11 @@ Page({
           user._token;
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
         auth.setToken(token, inner.expires_at, inner);
+        trackAuthResult("password", true);
         wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
+        trackAuthResult("password", false, err && err.message);
         var m = String(err.message || ""),
           msg = "登录失败，请重试";
         if (m.includes("NETWORK_")) msg = "网络连接失败";
@@ -360,6 +392,12 @@ Page({
       self.setData({ errorMsg: "请输入手机号和验证码" });
       return;
     }
+    trackBehavior("auth_authorize_clicked", {
+      module: "login",
+      action: "authorize",
+      objectType: "sms_code",
+      result: "granted",
+    });
     self.setData({ loading: true, errorMsg: "" });
     api
       .request({
@@ -373,9 +411,11 @@ Page({
         var token = inner.token;
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
         auth.setToken(token, inner.expires_at, inner);
+        trackAuthResult("sms_code", true);
         wx.switchTab({ url: "/pages/chat/chat" });
       })
       .catch(function (err) {
+        trackAuthResult("sms_code", false, err && err.message);
         var m = String(err.message || ""),
           msg = "验证失败，请重试";
         if (m.includes("NETWORK_")) msg = "网络连接失败";
@@ -416,6 +456,14 @@ Page({
   handleWechatPhoneNumber: function (e) {
     var self = this;
     if (self.data.wechatLoading || self.data.loading) return;
+    var detailForTrack = (e && e.detail) || {};
+    trackBehavior("auth_authorize_clicked", {
+      module: "login",
+      action: "authorize",
+      objectType: "phone_auth",
+      result:
+        detailForTrack.code || detailForTrack.phoneCode ? "granted" : "denied",
+    });
     if (!self.data.privacyChecked) {
       self.handlePrivacyRequiredTap();
       return;
@@ -450,9 +498,11 @@ Page({
           .wxLoginWithPhone(loginRes.code, phoneCode)
           .then(function (resp) {
             self._completeWechatAuth(resp);
+            trackAuthResult("phone_auth", true);
             wx.switchTab({ url: "/pages/chat/chat" });
           })
           .catch(function (err) {
+            trackAuthResult("phone_auth", false, err && err.message);
             var m = String((err && err.message) || "");
             var msg = "快速登录失败，请重试";
             if (m.includes("credentials")) msg = "后端未配置小程序密钥";

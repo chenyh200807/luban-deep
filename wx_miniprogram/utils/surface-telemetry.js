@@ -3,6 +3,12 @@ const endpoints = require("./endpoints");
 
 var sentEventKeys = {};
 
+// /surface-events 强制登录（SR1 PR-1b）：无 token 的请求会被 401 拒收。
+// 登录页曝光/授权点击等 pre-auth 事件先入队，登录成功后随下一条带
+// token 的事件冲刷（collected_at_ms 保留真实采集时刻）。
+var PENDING_EVENTS_MAX = 20;
+var pendingEvents = [];
+
 function buildEventId() {
   return (
     "wx_" +
@@ -12,26 +18,14 @@ function buildEventId() {
   );
 }
 
-function track(eventName, payload) {
-  if (
-    !eventName ||
-    typeof wx === "undefined" ||
-    typeof wx.request !== "function"
-  ) {
-    return;
-  }
+function deliverEvent(eventName, data, collectedAtMs, token) {
   var baseUrl = endpoints.getPrimaryBaseUrl(false);
   if (!baseUrl) return;
-  var token = auth.getToken();
-  var collectedAtMs = Date.now();
-  var data = payload && typeof payload === "object" ? payload : {};
   var headers = {
     "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "true",
+    Authorization: "Bearer " + token,
   };
-  if (token) {
-    headers.Authorization = "Bearer " + token;
-  }
   try {
     wx.request({
       url: baseUrl + "/api/v1/observability/surface-events",
@@ -50,6 +44,46 @@ function track(eventName, payload) {
       fail: function () {},
     });
   } catch (_) {}
+}
+
+function flushPendingEvents(token) {
+  if (!pendingEvents.length) return;
+  var queued = pendingEvents;
+  pendingEvents = [];
+  for (var i = 0; i < queued.length; i++) {
+    deliverEvent(
+      queued[i].eventName,
+      queued[i].data,
+      queued[i].collectedAtMs,
+      token,
+    );
+  }
+}
+
+function track(eventName, payload) {
+  if (
+    !eventName ||
+    typeof wx === "undefined" ||
+    typeof wx.request !== "function"
+  ) {
+    return;
+  }
+  var collectedAtMs = Date.now();
+  var data = payload && typeof payload === "object" ? payload : {};
+  var token = auth.getToken();
+  if (!token) {
+    if (pendingEvents.length >= PENDING_EVENTS_MAX) {
+      pendingEvents.shift();
+    }
+    pendingEvents.push({
+      eventName: eventName,
+      data: data,
+      collectedAtMs: collectedAtMs,
+    });
+    return;
+  }
+  flushPendingEvents(token);
+  deliverEvent(eventName, data, collectedAtMs, token);
 }
 
 function trackOnce(uniqueKey, eventName, payload) {
@@ -113,6 +147,7 @@ function trackProductBehavior(eventName, payload) {
 
 function resetForTests() {
   sentEventKeys = {};
+  pendingEvents = [];
 }
 
 module.exports = {

@@ -59,6 +59,13 @@ function loadPage(relativePath, overrides) {
     clearInterval: function () {},
     require: function (request) {
       if (request === "../../utils/api") return apiMock;
+      if (request === "../../utils/surface-telemetry") {
+        return {
+          track: function () {},
+          trackOnce: function () {},
+          trackProductBehavior: function () {},
+        };
+      }
       if (request === "../../utils/auth") return { isLoggedIn: function () { return false; } };
       if (request === "../../utils/helpers") {
         return {
