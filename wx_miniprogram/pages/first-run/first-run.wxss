@@ -1,10 +1,31 @@
 /* 首跑剧本 — 学情页蓝黑青体系（owner 指定版 artifact 2a91a06d） */
 .fr-page {
   min-height: 100vh;
-  background: #0a0f1a;
+  background:
+    radial-gradient(1600rpx 860rpx at 50% -240rpx, rgba(34, 211, 238, 0.13), transparent 65%),
+    radial-gradient(1200rpx 780rpx at 100% 115%, rgba(251, 146, 60, 0.06), transparent 60%),
+    #0a0f1a;
   color: #ffffff;
   padding: 0 36rpx 52rpx;
   box-sizing: border-box;
+}
+
+/* 入场动画（纯 transform/opacity） */
+@keyframes frUp {
+  from {
+    opacity: 0;
+    transform: translateY(22rpx);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fr-act {
+  animation: frUp 0.42s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.fr-opt.anim {
+  animation: frUp 0.45s cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
 
 /* 顶栏 */
@@ -139,30 +160,51 @@
   display: flex;
   align-items: center;
   gap: 22rpx;
-  padding: 30rpx 32rpx;
-  border-radius: 32rpx;
-  border: 1rpx solid rgba(148, 163, 184, 0.14);
-  background: linear-gradient(165deg, #122330, #0d1723);
+  padding: 32rpx 30rpx 32rpx 26rpx;
+  border-radius: 30rpx;
+  border: 1rpx solid rgba(103, 232, 249, 0.13);
+  background: linear-gradient(165deg, #14283a, #0d1723);
+  box-shadow: 0 8rpx 28rpx rgba(2, 8, 20, 0.45), inset 0 1rpx 0 rgba(255, 255, 255, 0.05);
   font-size: 30rpx;
   line-height: 1.45;
   color: #ffffff;
 }
 .fr-opt:active {
-  transform: scale(0.985);
-  border-color: rgba(34, 211, 238, 0.4);
+  transform: scale(0.98);
+  border-color: rgba(34, 211, 238, 0.55);
+  background: linear-gradient(165deg, #16324a, #0e1c2c);
 }
 .fr-opt.itl {
-  border-color: rgba(251, 146, 60, 0.24);
+  border-color: rgba(251, 146, 60, 0.22);
+}
+.fr-opt.itl:active {
+  border-color: rgba(251, 146, 60, 0.55);
+}
+.fr-opt-tx {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+.fr-arrow {
+  flex: 0 0 auto;
+  font-size: 38rpx;
+  line-height: 1;
+  color: rgba(103, 232, 249, 0.45);
+  font-weight: 700;
+  margin-left: 8rpx;
+}
+.fr-arrow.warm {
+  color: rgba(251, 146, 60, 0.5);
 }
 .fr-opt-key {
-  width: 50rpx;
-  height: 50rpx;
+  width: 56rpx;
+  height: 56rpx;
   border-radius: 18rpx;
-  border: 1rpx solid rgba(148, 163, 184, 0.14);
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.48);
-  font-size: 25rpx;
-  font-weight: 700;
+  border: 1rpx solid rgba(34, 211, 238, 0.3);
+  background: rgba(34, 211, 238, 0.09);
+  color: #67e8f9;
+  font-size: 26rpx;
+  font-weight: 800;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
@@ -172,6 +214,24 @@
   color: #fb923c;
   border-color: rgba(251, 146, 60, 0.32);
   background: rgba(251, 146, 60, 0.1);
+}
+
+/* 摸底页底部预告条 */
+.fr-meta {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 44rpx;
+}
+.fr-meta-chip {
+  font-size: 23rpx;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1rpx solid rgba(148, 163, 184, 0.14);
+  border-radius: 999rpx;
+  padding: 10rpx 24rpx;
 }
 
 /* 题面 */
