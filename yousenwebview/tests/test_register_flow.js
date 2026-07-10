@@ -85,6 +85,9 @@ function loadPage(options) {
         });
       },
       describeRequestError: describeRequestErrorForTest,
+      regAttribution: function () {
+        return { channel: "", scene: "" };
+      },
     },
     (options && options.api) || {},
   );

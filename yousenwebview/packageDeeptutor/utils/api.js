@@ -474,6 +474,18 @@ function rawRequest(opts) {
 
 // ── Gateway 接口 ─────────────────────────────────────────────
 
+function regAttribution() {
+  try {
+    var attr = wx.getStorageSync("reg_attribution") || {};
+    return {
+      channel: String(attr.ch || ""),
+      scene: String(attr.scene || ""),
+    };
+  } catch (_err) {
+    return { channel: "", scene: "" };
+  }
+}
+
 /** 微信小程序登录 */
 function wxLogin(code) {
   return request({
@@ -487,10 +499,16 @@ function wxLogin(code) {
 
 /** 手机号授权快速登录 */
 function wxLoginWithPhone(code, phoneCode) {
+  var attribution = regAttribution();
   return request({
     url: "/api/v1/wechat/mp/login",
     method: "POST",
-    data: { code: code, phone_code: phoneCode },
+    data: {
+      code: code,
+      phone_code: phoneCode,
+      channel: attribution.channel,
+      scene: attribution.scene,
+    },
     useGateway: true,
     noAuth: true,
   });
@@ -498,10 +516,15 @@ function wxLoginWithPhone(code, phoneCode) {
 
 /** 绑定手机号 */
 function bindPhone(phoneCode) {
+  var attribution = regAttribution();
   return request({
     url: "/api/v1/wechat/mp/bind-phone",
     method: "POST",
-    data: { phone_code: phoneCode },
+    data: {
+      phone_code: phoneCode,
+      channel: attribution.channel,
+      scene: attribution.scene,
+    },
     useGateway: true,
   });
 }
@@ -1041,6 +1064,7 @@ module.exports = {
   wxLogin: wxLogin,
   wxLoginWithPhone: wxLoginWithPhone,
   bindPhone: bindPhone,
+  regAttribution: regAttribution,
   getUserInfo: getUserInfo,
   getTodayProgress: getTodayProgress,
   getChapterProgress: getChapterProgress,
