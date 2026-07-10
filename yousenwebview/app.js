@@ -26,7 +26,9 @@ const LOCAL_BASE_URL =
   (typeof __LOCAL_BASE_URL__ !== "undefined" && __LOCAL_BASE_URL__) ||
   "http://127.0.0.1:8001";
 const USE_LOCAL_DEVTOOLS =
-  typeof __USE_LOCAL_DEVTOOLS__ !== "undefined" ? __USE_LOCAL_DEVTOOLS__ : false;
+  // [临时·仅本地 F16 demo] 默认 true 让 DevTools 打本地 8001(有 seethrough 端点);
+  // ⚠️ 绝不 commit/发版——demo 后须改回 false。
+  typeof __USE_LOCAL_DEVTOOLS__ !== "undefined" ? __USE_LOCAL_DEVTOOLS__ : true;
 const HOST_SYS_INFO_KEY = "yousen_host_sys_info";
 const DEFAULT_HOST_SYS_INFO = {
   is_audit: 0,
