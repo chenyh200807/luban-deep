@@ -353,7 +353,7 @@ Page({
     // 10d 重铺：上下文带入条（数据源=既有 followupContext/promptIntent 载体，可见化而已）
     contextBanner: "",
     // 教学卡「问追AI」入口可预置占位文案；默认与原 placeholder 一致
-    inputPlaceholder: "直接问：考点、真题、规范、错题",
+    inputPlaceholder: "直接问建筑实务：考点、真题、规范、错题",
     workspaceBackVisible: false,
     workspaceBackLabel: "返回",
     profileEnabled: true,
@@ -380,7 +380,7 @@ Page({
       {
         icon: "▧",
         title: "知识地图",
-        desc: "一建考点梳理",
+        desc: "建筑实务考点梳理",
         bgDark: "rgba(245,158,11,0.16)",
         fgDark: "#fbbf24",
         bgLight: "#fff4e0",
@@ -505,7 +505,7 @@ Page({
         : "",
       inputPlaceholder: isTeachCardEntry
         ? "针对这一站提问…"
-        : "直接问：考点、真题、规范、错题",
+        : "直接问建筑实务：考点、真题、规范、错题",
     });
     if (isTeachCardEntry && teachPackId) {
       this._resolveTeachEntryTitle(teachPackId);
@@ -2872,7 +2872,7 @@ Page({
       scrollToId: "",
       chatScrollWithAnimation: false,
       contextBanner: "",
-      inputPlaceholder: "直接问：考点、真题、规范、错题",
+      inputPlaceholder: "直接问建筑实务：考点、真题、规范、错题",
     });
     this._teachEntryIntent = null;
     this._syncWorkspaceChrome({ hasMessages: false });

@@ -57,6 +57,7 @@ module.exports = {
       <text class="greeting-time">{{timeGreeting}}</text>
     </view>
     <text class="greeting-sub">你的专属备考专家，已为你待命</text>
+    <text class="greeting-sub">当前深度覆盖一建建筑实务，其他专业陆续上线</text>
     <view class="guest-tip" wx:if="{{isGuestPreview}}">
       <view class="guest-tip-copy">
         <text class="guest-tip-title">先体验导学</text>
