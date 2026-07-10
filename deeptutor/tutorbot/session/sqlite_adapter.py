@@ -8,17 +8,21 @@ for TutorBot and DeepTutor in a single database.
 from __future__ import annotations
 
 import asyncio
-import json
 from datetime import datetime
+import json
 from pathlib import Path
 from typing import Any
 
 from loguru import logger
 
 from deeptutor.runtime.safety import spawn_task
-from deeptutor.services.session.sqlite_store import build_user_owner_key
 from deeptutor.tutorbot.session.manager import Session
 from deeptutor.tutorbot.utils.helpers import normalize_message_content
+
+# Engine-owned session rows always declare themselves as TutorBot-internal.
+# "tutorbot" is the pre-existing engine source value (see
+# deeptutor/services/tutorbot/manager.py send_message source fallback).
+_ENGINE_SESSION_SOURCE = "tutorbot"
 
 
 class SQLiteSessionAdapter:
@@ -51,13 +55,29 @@ class SQLiteSessionAdapter:
         return dict(metadata or {})
 
     @staticmethod
-    def _owner_key_from_metadata(metadata: dict[str, Any]) -> str:
-        return build_user_owner_key(metadata.get("user_id"))
+    def _metadata_for_persistence(metadata: dict[str, Any]) -> dict[str, Any]:
+        """Single persistence gate: engine rows must never masquerade as user conversations.
 
-    @staticmethod
-    def _source_from_metadata(metadata: dict[str, Any]) -> str | None:
-        value = str(metadata.get("source") or "").strip().lower()
-        return value or None
+        The bot-side mirror row (id ``tutorbot:<key>``) is TutorBot's private
+        history store. The canonical conversation row (written by turn_runtime /
+        REST createConversation) is the single user-facing session authority.
+        Strip user identity and force the engine source before persisting, so
+        every owner/identity/source-based reader (mobile conversation listing,
+        BI registered-member scoping, member console activity) structurally
+        never counts the mirror as a second user conversation. Root cause of
+        the 2026-07 duplicate-session BI pollution: these rows used to carry
+        ``owner_key=user:<uid>`` + ``source=wx_miniprogram``.
+
+        Note: ``update_session_preferences`` re-derives the ``owner_key`` and
+        ``source`` columns from the merged preferences JSON, so this must gate
+        ALL create/update persistence calls in this adapter — fixing only
+        ``create_session`` would be stomped by the next save.
+        """
+        normalized = dict(metadata or {})
+        normalized.pop("user_id", None)
+        normalized.pop("owner_key", None)
+        normalized["source"] = _ENGINE_SESSION_SOURCE
+        return normalized
 
     @staticmethod
     def _title_from_metadata(key: str, metadata: dict[str, Any]) -> str:
@@ -132,15 +152,16 @@ class SQLiteSessionAdapter:
         stable_messages: list[dict[str, Any]],
     ) -> None:
         await self.store.delete_session(session_id)
+        persist_metadata = self._metadata_for_persistence(metadata)
         await self.store.create_session(
             title=self._title_from_metadata(session_key, metadata),
             session_id=session_id,
-            owner_key=self._owner_key_from_metadata(metadata) or None,
-            source=self._source_from_metadata(metadata),
+            owner_key=None,
+            source=_ENGINE_SESSION_SOURCE,
             archived=bool(metadata.get("archived", False)),
         )
-        if metadata:
-            await self.store.update_session_preferences(session_id, metadata)
+        if persist_metadata:
+            await self.store.update_session_preferences(session_id, persist_metadata)
         for msg in stable_messages:
             stored_message = self._message_for_sqlite(msg)
             await self.store.add_message(
@@ -252,22 +273,23 @@ class SQLiteSessionAdapter:
 
     async def _ensure_sqlite_session_async(self, key: str, metadata: dict[str, Any]) -> None:
         session_id = self._session_id(key)
+        persist_metadata = self._metadata_for_persistence(metadata)
         lock = self._save_locks.setdefault(session_id, asyncio.Lock())
         async with lock:
             existing = await self.store.get_session(session_id)
             if existing is not None:
-                if metadata:
-                    await self.store.update_session_preferences(session_id, metadata)
+                if persist_metadata:
+                    await self.store.update_session_preferences(session_id, persist_metadata)
                 return
             await self.store.create_session(
                 title=self._title_from_metadata(key, metadata),
                 session_id=session_id,
-                owner_key=self._owner_key_from_metadata(metadata) or None,
-                source=self._source_from_metadata(metadata),
+                owner_key=None,
+                source=_ENGINE_SESSION_SOURCE,
                 archived=bool(metadata.get("archived", False)),
             )
-            if metadata:
-                await self.store.update_session_preferences(session_id, metadata)
+            if persist_metadata:
+                await self.store.update_session_preferences(session_id, persist_metadata)
 
     async def _save_async(self, session: Session) -> None:
         """Write new messages to SQLite."""
@@ -276,23 +298,24 @@ class SQLiteSessionAdapter:
         lock = self._save_locks.setdefault(session_id, asyncio.Lock())
 
         async with lock:
+            persist_metadata = self._metadata_for_persistence(metadata)
             existing = await self.store.get_session(session_id)
             if existing is None:
                 await self.store.create_session(
                     title=self._title_from_metadata(session.key, metadata),
                     session_id=session_id,
-                    owner_key=self._owner_key_from_metadata(metadata) or None,
-                    source=self._source_from_metadata(metadata),
+                    owner_key=None,
+                    source=_ENGINE_SESSION_SOURCE,
                     archived=bool(metadata.get("archived", False)),
                 )
-                if metadata:
-                    await self.store.update_session_preferences(session_id, metadata)
+                if persist_metadata:
+                    await self.store.update_session_preferences(session_id, persist_metadata)
             else:
                 title = self._title_from_metadata(session.key, metadata)
                 if title and title != str(existing.get("title") or ""):
                     await self.store.update_session_title(session_id, title)
-                if metadata:
-                    await self.store.update_session_preferences(session_id, metadata)
+                if persist_metadata:
+                    await self.store.update_session_preferences(session_id, persist_metadata)
 
             stable_messages = session.stable_messages()
             existing_msgs = await self.store.get_messages(session_id)
