@@ -166,96 +166,16 @@
 
 ---
 
-## §2.6 P-1 契约骨架落地状态(2026-07-09,代码侧已完成,分支 `feat/luban-case-light-practice-p-1`)
+## §2.6 执行账本已迁出(防本文件膨胀)
 
-> Codex 二次结论点名"缺的最后一块 = 可执行代码契约骨架"。**该骨架现已落地并全绿**(worktree `deeptutor-p1-worktree`,off `spike/main-base-v2`,commit `a9f48b579`)。§2.5 六件里的**工程可执行部分**已兑现;剩下的是**教研人审 + owner 拍板**(§6 卡点)。
+> 原 §2.6 契约骨架落地状态 + §2.7 优先清单提案(逐轮 loop 执行日志)已迁至**独立执行账本**,
+> 本计划只保留**设计权威**。执行记录(建了什么/裁断/证据/偏离/commit)见:
+>
+> **→ [实现账本索引 `案例题轻练-实现账本.md`](./案例题轻练-实现账本.md)**（注:同目录 `implementation-notes.md` 是五模块改造账本,另一条工作流,勿混）
+>
+> 当前状态一句:教研-independent 后端代码 **100% 写完**(P-1 契约 + RTG1-8 + RTG9 异源 + 7 判分引擎 + 生成器 + 分发器 + resolver + 组合层 orchestrator + §1.5B 全 6 题型),case 测试 **130 passed**,闭包 **CLOSED 215**,`contract_guard --base origin/main` 全绿,Codex 对抗核修 **26 真 bug**,真 DeepSeek+真 Qwen 阿里云只读实测过。剩余全被红线/人门/UI 挡住(双教研 verdict / 接线 / UI / 部署 / 5 人验证)——见账本 [08](./案例题轻练-实现账本/08-真LLM端到端-人门-优先清单.md)。
 
-**已交付(代码,可验证)**:
-- `deeptutor/services/construction_grading/case_light_practice_contract.py`:
-  - `LubanCaseScoringPoint` frozen dataclass(15 字段 = §2.5② 全字段)+ `PointType` 6 型 + 非平点结构 `ordering_group`/`conjunction_group`/`list_cap`。
-  - claim ceiling 结构性 False(`OFFICIAL_SCORE_ALLOWED`/`CANONICAL_WRITE_ALLOWED`/`RUNTIME_INSTALL_ALLOWED`)。构造期硬校验 `authority_source==official_answer`(通道①)、`answer_key_authority` 合法域(含 `exam_reference_answer`)。
-  - `assert_qid_allowed`(§2.5① 代码级白名单门,fail-closed)、`validate_source_scoring_point_id`(RTG5 种子)、`score_conjunction_group`(找错∧改正,缺任一得 0)。
-- `runtime_supply/case_light_practice/case_light_practice_whitelist.v0.json`:register-before-use 占位(**空**,fail-closed 拒一切 qid,待双教研验收后填)。
-- schema 注册:`luban_case_scoring_point.v1` 进 `contracts/schema_registry.yaml` 的 **T2 runtime-canonical PINNED**(`canonical_fields` 内省对账 BLOCKING);闭包计数 212→213 / tier2 32→33,**CLOSED orphans=0**。
-- `contracts/index.yaml`(根 + packaged mirror)`luban_grading_engine` domain 补 protected file + 3 required tests。
-- 测试:`test_case_light_practice_schema.py` / `_whitelist_gate.py` / `_conjunction_scoring.py`。
-
-**验证证据(反自证,真跑)**:3 测试 **17 passed**;`check_schema_registry.py --closure` = **CLOSED**(full_set=213 tier1=9 tier2=33 tier3=171 orphans=0);`test_schema_registry.py` **37 passed**;`check_contract_guard.py --base spike/main-base-v2 --head HEAD` = **passed**,且 `[luban_grading_engine] protected=case_light_practice_contract.py | tests=(3 域测试)` —— protected 域真触发、域测试满足(非 trivial skip)。
-
-**第 2 轮(2026-07-09,同分支,已 push;教研-independent 工作推进)**:
-- **第 0 件复核**:P-1 对真 `origin/main` base 全绿(diff 恰 8 文件 / 闭包 CLOSED / contract_guard `--base origin/main` 真门通过),**非 spike 特例**,合 main 计数正确。
-- **RTG1–RTG8 Post-gen 门**(`case_light_practice_rtg.py`,commit 79cf9a222):纯确定性 8 门(撞车/去重/错因码/候选/结构/形态/一致性/反编造)+ RTG9 异源接口;未跑到的门显式 `NOT_EXERCISED`(反假绿)。12 测试。
-- **运行时生成器**(`case_light_practice_generator.py`,commit 491e66924):LLM = **注入式 `complete_fn` seam**(单测 stub / 阿里云真 DeepSeek);correct 选项 = 采分点原文逐字(LLM 只造干扰项);出题过 RTG 门重生成 ≤2、仍 BLOCK→degraded。F16 起鼓割补 **dev fixture**(7 点,`dev_fixture=true` 不进 production whitelist)。7 测试。
-- **静态 HTML demo**(`scripts/build_case_light_practice_demo.py`,commit 9d7f652dd,已交付 owner):真跑链路(真采分点→生成器→真 RTG 门→真确定性判分),复现 live 验证 **A 漏 a5 分层剥开=1.2 / B 写了=1.5(满分 1.5)**。唯一 stub = 干扰项来源。
-- **块 A 切分 review 骨架**(`scripts/build_case_segmentation_review_skeletons.py`,commit 25ee67698):为 owner 已确认的 5 题各产一份 `docs/原始数据/考点原料/segmentation_gold/<qid>.review.json` 骨架(预填当前采分点 + 空 verdict 槽,教研**审而非写**)。
-- ~~阻塞:真 LLM~~ **(第3轮已解:真 DeepSeek 走阿里云已部署容器只读 `docker exec`,不算 owner-stop)**。
-
-**第 3 轮(2026-07-09,同分支,已 push;真 DeepSeek 只读实测)**:
-- **方法钉死**(可复现,probe 在 `scripts/aliyun_probes/`):自包含 harness → `base64` → `ssh Aliyun-ECS-2` → `docker cp deeptutor:/tmp` → `docker exec deeptutor sh -lc 'cd /app && PYTHONPATH=/app python /tmp/h.py'`;complete_fn = `partial(llm.factory.complete, base_url=deepseek, binding=deepseek)`,`temperature=0`,`api_key=容器 DEEPSEEK_API_KEY`;跑完清 /tmp。
-- **块 A · 真 DeepSeek 链路打通**(commit 93e2cb77a):F16 起鼓割补真跑 3 次 → 真采分点 → 真生成干扰项 → **全过真 RTG1-8 门** = 整条真链路转起来。**live 发现并治**:DeepSeek 曾生成「分层剥离旧卷材」(与正确「分层剥开」差一字近义)竟过确定性 RTG1-8 = RTG9 语义缺口;**加 RTG6 近义门**(干扰项对正确项字符包含率 ≥0.85 → SOFT 可疑/异源),live 复验现抓住,合法干扰项不误伤。**temp=0 观察**:多数稳定但非位级保证(一次 1/3 措辞抖动);**安全性稳定**(每次都过门)。
-- **块 B · 5 题切分候选真跑**(commit e0a4a6c92):DeepSeek(temp=0)按小问分段 5 优先题 → `proposed_sub_no` 候选回填 `segmentation_gold/*.review.json`(P0011_01 16点→**7小问** / P0010_02 18→6 / P0014_02 20→8 / P0013_01 13→4 / P0017_01_E1 12→2)。**红线守住:只产候选、LLM 不越权当真值;verdict/is_atomic/consensus 仍空——教研 verdict 才是真值,不填白名单、不出给学员。**
-**第 4 轮(2026-07-09,同分支已 push,bb85b964a)· C1 CPM 引擎全绿**:
-- `case_cpm_solver.py`(§1① 关键线路/总时差):顺推 ES/EF → 逆推 LS/LF → TF=LS−ES → FF → 关键线路(TF=0 连续紧凑边路径,可多条)→ 总工期。solver 既算官方答案又判学员(路径精确匹配 + 数值容差)。**计算类判分绝不走 LLM**。
-- **真题金标验(非 self-test)**:N01 build-validated 网络逐工序 ES/EF/LS/LF/TF/FF **全对上 rendered SVG 官方值**(关键线路 START-A-C-E-END、总工期 10);两条并列关键线路 {2015} 型 T=25。(真题只有答案文本无机器网络,未编造网络。)
-- **Codex 异源对抗核**(codex-rescue,task-mrd47uhh):确认 **1 真 bug** —— `_EPS=1e-9` 绝对容差把 TF≈5e-10 的**真正非关键工作**误判为关键(假关键线路 = 误判学员)。**治本**:强制工期整数(一建 CPM 工期为整数天/月;非整构造期拒绝)+ 关键判据精确 `tf==0`,从源头除浮点 TF 歧义;回归测试锁死。Codex 其余攻击面(紧凑边枚举/FF/多起终点/畸形输入)**均无 bug**。
-- **人门前准备已备齐**:`segmentation_gold/_教研验收指南.md`(教研怎么填 review.json 一页纸)+ `scripts/fill_case_whitelist_from_review.py`(教研 consensus=passed 一键灌白名单,现 0 条 fail-closed)。
-**C2 · `flaw_correction` 合取门全绿**(commit 0d3950590):`case_flaw_correction.py` —— 找错子+改正子共享 conjunction_group,`judge_flaw_correction` 合取评分委托 `score_conjunction_group`(单一来源)+ 诊断状态(full/flaw_only/correction_only/miss,驱动"诊断挂误解")。不改生产判官(review-only 边界)。
-- **Codex 异源对抗核**(task-mrd4x93n)揪出 **4 个真判分 bug,全治本修**:①跨题/跨小问 pair 绕过校验拿满分 → 校验同 qid/sub_qid/sub_no;②`score_conjunction_group` 跨题**同名组全局合并**把一题分拖成 0 → group key 按 `(qid, sub_qid, group)` 作用域(§重要教训:合取/组判分必须按题作用域,别用全局字符串 key);③重复 point_id 一次命中满足两成员 → 输入去重 fail-closed;④负 max_score 满答得负分 → 构造期拒绝。5 回归测试锁死每个 bug 原输入。
-**C3 · DAG+ECF 计算图引擎全绿**(commit bf7a23b1a):`case_calc_dag.py` —— 每步 `{step_id, formula, depends_on, tolerance, rounding, points, role}`,**安全 AST 求值**(禁 eval/调用/属性/Pow,界深度,包异常,查有限)+ 顺推官方值(每步取整供下游)+ **ECF 重算**(上游错、下游在其错值上自洽 → 给过程分,不连坐)。schema `luban_case_calc_step.v1` 注册 T2 PINNED(闭包 214 CLOSED)。
-- **真题金标验**:编译库直读 EXAM_1A432000_P0016_02 造价费用构成 6 步链官方值(分部分项 48000 → 措施 7200 → 其他 2736 → 规费 1274.59 → 税金 5328.95 → 合同价 64539.54)全对上;ECF 实测学员上游错、下游自洽给分。
-- **Codex 异源对抗核**(task-mrd7lxus)揪出**一批真 bug,全治本修**:①ECF 缺上游回落官方值(学员只填下游官方值拿分)→ 缺/非数字上游判错、决不回落;②ECF 未按上游 rounding 传播 → 上游按其步 rounding 归一(合官方口径);③formula 引用未声明 step → 名一致性 fail-closed;④inf/nan tolerance 拒;⑤role 传字符串账目错分 → 必须 CalcRole 实例;⑥非数字学生值崩溃 → 判错不崩;⑦除零/溢出/Pow DoS/深表达式/非有限 → CalcError。7 回归测试锁死。
-**C4 · 拍照诊断解耦骨架全绿**(commit 5b283fecd,非评分引擎):`case_photo_diagnosis.py` —— OCR 是上游注入/stub 边界;本模块只做 OCR **之后**的实体标准化 + 采分点确定性匹配(required_terms/acceptable_variants,复用 rtg normalize)+ 证据回显(命中词 + 原图 region + 置信度)。**解耦即构造**:`diagnose_photo` 只吃 `PhotoExtraction`(文本+span),绝不吃图;判分=f(识别文本),识别错→学员纠正识别文本(修前链)→重跑即对,评分逻辑一字未变。诊断非评分 `official_score_allowed=False`。不碰生产 photo_answer(review-only),无新 schema。Codex 复核 async 进行中(C4 是诊断非评分,已提交;findings 走 follow-up)。
-**C5 · 认→写阶梯全绿(块 C 收官)**(commit 0602dade3,确定性规则非判分引擎):`case_recognition_to_writing.py` —— 4 档阶梯 + **铁律焊成门**:掌握态只由「空手产出(档≥2)通过 × 隔 3-7 天延时复测通过」双通过才写,**点选(档1)正确率永不写掌握**;升档门只由延时空手产出兑现;成人分层 A→档4/C→档1/B默认→档2。无 LLM 无 schema。Codex 核治本修(557341d87):P0 裸 int tier 绕过铁律写掌握 → `_require_tier` 守门(非 LadderTier 拒绝);P1 加 `next_tier` 只升一档防跳档。C4 亦已过 Codex 治本修(required 全需/否定守卫/最高置信 span,b71ffddcd)。
-
-> **✅ 块 C 全部 5 件 done**:C1 CPM / C2 合取门 / C3 DAG+ECF(三个评分引擎,Codex 对抗核共修 **12 个会误判学员的真 bug**)/ C4 拍照诊断解耦骨架(Codex 修 3 诊断 bug)/ C5 认→写阶梯(Codex 修 3 红线 bug)。**5 引擎共 Codex 对抗核修 18 真 bug。**当前 case 测试 **88 passed**,闭包 CLOSED 214,`contract_guard --base origin/main` 全绿。**剩余通往上线 = 双教研填 review.json verdict(人门,准备全备齐)+ 后续接线(生成器/判分/学情接进 live 路径,属 P0-P2 接线)。**
-
-**追加(2026-07-09 续):§1① 计算类判分器补齐**——荷载组合集合判分(`case_load_combination.py`,真题金标 EXAM_1A434020_P0009_01,Codex 修 5 bug:dict 输入判满分/duck-typed 绕过/零宽/空 bin)+ 工序排序判分(`case_process_ordering.py`,真题金标 EXAM_1A434000_P0010_02 工艺流程,拓扑序校验紧前,Codex 核 async)。**至此案例题轻练的全部确定性判分引擎建完**:CPM / 合取门 / DAG+ECF / 荷载组合 / 工序排序 + 生成器 + RTG1-8 门 + 拍照诊断骨架 + 认→写阶梯。全套 case 测试 **108 passed**,闭包 CLOSED 215,contract_guard 全绿。**全 session 经 Codex 异源对抗核共揪治本修 23 个会误判学员的真 bug**(CPM1/合取门4/DAG+ECF7/拍照3/认→写3/荷载组合5)。**教研-independent 新建工作至此全部完成;剩余=双教研 verdict(人门)+ 接线(碰生产判官 review-only + 教研 verdict 前不出给学员,故 gated)。**
-
-**再追加(2026-07-09 续2):判分分发器 + §1.5B 题型判分全覆盖**——
-- 判分分发器 `case_grading_dispatch.py`:题型→引擎路由(calc_dag/set_membership/ordering/conjunction/cpm),归一 DispatchResult,official_score_allowed 恒 False(只路由不造第二权威)。
-- §1.5B 两个新字段 `common_wrong_expressions`/`condition_tags` register-before-use(扩 LubanCaseScoringPoint 默认空 + T2 PINNED 内省对账)。
-- AI 错答挑错 `case_flaw_spotting.py`(复用 diagnose_photo 确定性算漏点)。
-- **§1.5B 全部 6 种题型现在都有确定性判分路径**:采分点点选→生成器+coverage / 题干关键词点选→set_membership(condition_tags)/ 漏点补全→diagnose_photo / 流程拖拽排序→ordering / AI 错答挑错→flaw_spotting / 判断改正→合取门。**判分侧教研-independent 代码全部写完。** 全套 case **122+ passed**,闭包 CLOSED 215,contract_guard 全绿。
-- **再追加(续3):RTG9 异源分流门做完**——`case_light_practice_rtg9.py`(确定性相似度预过滤 + 注入式异源 judge_fn,只分流不当真值)。**Qwen(dashscope)真异源阿里云只读实测通过**:近义干扰「分层剥离旧卷材」(RTG1-8 放过)→ 异源 Qwen 判"也对"→ 分流;跨厂 seam 端到端证明(生成器 DeepSeek / 校验器 Qwen)。
-- **✅ 教研-independent 后端代码全部写完**:P-1 契约 + 白名单门 + RTG1-8 门 + **RTG9 异源门** + 7 判分引擎(CPM/合取门/DAG+ECF/荷载/排序 + 拍照/认→写)+ 生成器 + 分发器 + §1.5B 全 6 题型判分。全套 case **126 passed**,闭包 CLOSED 215,contract_guard 全绿,Codex 对抗核修 26 真 bug,真 DeepSeek + 真 Qwen 异源阿里云实测通过。
-- **续4:采分点源 resolver 做完**(`case_scoring_point_resolver.py`,§3新造)——白名单门 + 教研 consensus 的 review.json(sub_no/原子/非平点)+ 编译库采分点原文 → 投影 LubanCaseScoringPoint。纯只读投影不改生产模块;fail-closed 到教研 verdict(编译库缺 sub_no 是欠切分,sub_no 是教研切分验收才产生的真值)。
-- **✅✅ 后端链完整可组合**:`resolve_scoring_points(qid)`[白名单+教研门] → `generate_point_select_item`[生成+RTG1-8] → `rtg9_triage`[异源分流] → `dispatch_grade`[7引擎判分]。全套 case **130 passed**,闭包 CLOSED 215,contract_guard 全绿,Codex 修 26 真 bug,真 DeepSeek+真 Qwen 异源阿里云实测过。
-- **教研-independent 后端代码 100% 写完。剩余全部被红线/人门/UI 挡住,不是我能单独写的**:①**双教研填 verdict**(唯一真阻塞);②**接线进生产判官**(改 `deep_question`/`rubric_grader` = §3 review-only 红线"不改生产判分逻辑",需 owner 拍架构);③**小程序 UI**(前端,且未过教研 verdict 不出给学员,做了也上不了);④部署/PR/5人验证(§6人门)。
-- **续5:全链路真 LLM 端到端 probe 固化**(commit 3dd150bbb,`scripts/aliyun_probes/case_e2e_real_llm_probe.py`)——把真 DeepSeek 生成 → 真 RTG1-8 → 真 Qwen 异源 RTG9 → 确定性判分**一条命令跑通**,阿里云容器只读实测 EXIT=0(生成 3 好干扰项无撞正确项 / RTG 全过 / 异源队列空 / A漏1.20 B1.50)。可复现真链路证据落盘,不再是一次性 harness。
-- **续6:「一填 verdict 整条链就亮」端到端证明**(commit 2a25ab924,`test_filled_verdict_lights_up_whole_chain_end_to_end`)——**人门前最后一块**:模拟教研 verdict passed → 白名单门**打开** → `resolve_scoring_points`[白名单门入口,非内层]出真采分点 → 合取门判分(漏关键点 0.2 < 满分 0.5)。与 fail-closed 空白名单测试**配对**,证明白名单门两侧都对。**兑现"让我一动手门就开"——从"声称"升为"证明"(反自证红线)。** 全套 case+fill **928 passed**,闭包 CLOSED 215,contract_guard 全绿。
-- **续7:拍照诊断范围边界显式化 + 真数据反自证**(commit 964f0ca75,`test_real_f16_points_under_realistic_ocr_and_front_link_correction`)——回应"块C OCR/拍照 live 验收记录不清":**明确两半**:①**图→文 OCR**=上游注入边界(生产 `photo_answer` 做,§1.5 已 defer 到 OCR 全闭环轨 4-8 周,**本相位不建**,建 = 越范围违 Less Is More);②**文→诊断**=本相位在范围内的确定性引擎,现用**真 F16 采分点(load_dev_fixture,非玩具点)**在**模拟真实 OCR 误差**下端到端验:a5「剥开」被低置信误识「剥离」→ fail-closed 不假阳;a1 多要素点半写 → 不命中;**前链纠错重跑 a5 命中、评分逻辑一字未改**(证"识别错只修前链"在真数据上成立)。拍照诊断 10 tests 全绿。
-- **§3「接线进生产判官」状态显式化**(回应"接线准备代码可能补缺"):准备侧**已备齐**——`dispatch_grade`[7 kind 分发,单测覆盖每 kind] + `resolve_scoring_points`[白名单+教研门] + `contracts/index.yaml` protected/domain 测试脚手架全就位。**未写的是接线适配本身**,且**故意不写**:提案 §4 三点(落点/灰度/policy→kind 映射)是 owner 架构决策,在其拍板前写适配 = 猜落点 = 越 §3 review-only 红线 + 违 Less Is More(过早抽象)。**这不是被跳过的缺口,是被红线正确挡住的门**;owner 一拍,接线是窄改动(judge 前加 policy 分发 + 补 domain 测试)。
-
-> **本 session 累计交付**:P-1 契约骨架 + 块A/B(真 DeepSeek 链路 + 5 题切分候选)+ C1 CPM + C2 合取门 + C3 DAG+ECF + C4 拍照诊断骨架。三个评分引擎(C1/C2/C3)各派 Codex 异源对抗核,**共揪出并治本修 12 个会误判学员的真 bug**(CPM 1 / 合取门 4 / DAG+ECF 7)。人门前准备(教研指南 + 切分候选 + 白名单填充器)全备齐。
-
-**T2-PINNED 裁断理由(单一权威 vs 字段保护,记录以备审)**:§1.5C 要求采分点 schema 有字段级保护、不许 T2 挂名。核查 `check_schema_registry.py:455` 后确认:本仓 guard 的 drift/authority 字段检查**硬编码只对 `luban_grading_object.v1` 跑**——真正的字段保护来自"frozen dataclass + 内省对账测试"(P2#9 给 context_pack/evidence_bundle 上 T2 PINNED 的同一手法),不来自 guard。故:**不往 T1"唯一 grading 对象"列表加第二个 canonical(守单一权威,不与 `luban_grading_object.v1` 竞争),改用 T2 PINNED(canonical_fields + `needs_field_canonicalization:false` + 内省对账)给字段保护。**这既满足 §1.5C(是"独立 typed schema"非"T2 挂名"),又不僭越成第二判分权威——采分点只读视图,判分权威仍归 `rubric_grader_v1`。
-
-## §2.7 P-1 优先清单提案(证据版 · 待 owner + 双教研确认才切)
-
-> **数据来源**:纯读扫描现行 published 编译库 `runtime_supply/v_case_rubric_scored/case_rubric_scored.json`(1221 采分点 / 174 qid,零 LLM/网络,确定性),复现 `2026-07-08-采分点原子化切分修复样板v0` 的"欠切分"结论:**≥12 点欠切分大题 = 22 道**(盘点记 23,差异=盘点含 rejected)。按 `policy` 分布 + 章节 + 已验证锚分级。**这是提案,不是定案——最终 N + 逐题切分归 §6 双教研人审 + owner 拍板。**
-
-**筛选原则**(与 §1 已验证事实一致):
-1. **P-1 排除计算重题**(`policy=calc` 占比高):`calc` 判分绝不走 LLM,需 CPM/DAG+ECF(P1/P2)。含少量 calc 的题可切分但轻练只开非计算小问。
-2. **优先零-calc、判断/列举/程序型**(§0 已验证泛水/进度/安全员这类当场出好题)。
-3. **锚定已 live 验证的起鼓割补**,同章优先(降切分风险)。
-4. **章节聚焦 `1A434000`(建筑工程施工技术:防水/屋面/装饰)**——首发人群(二战/差几分)案例题胜负手集中章,呼应 §1.5E。
-
-**建议首批 5 道(全零 calc,同章 1A434000,题型覆盖列举/程序/判断改正含合取门样板)**:
-
-| 序 | qid | 点数 | 整题分 | policy 构成 | 为什么选它 |
-|---|---|---:|---:|---|---|
-| 1 | `EXAM_1A434000_P0011_01::E0` | 16 | 10 | 15 list + 1 judgment | **起鼓割补,已 live 验证(A/B 判出差异)** —— 切分风险最低的锚 |
-| 2 | `EXAM_1A434000_P0010_02::E0` | 18 | 15 | 17 list + 1 judgment | 同章防水、高整题分、纯列举型,认→写档2 术语默写素材足 |
-| 3 | `EXAM_1A434000_P0014_02::E0` | 20 | 5 | 15 list + 5 exact | 盘点点名的欠切分典型(20 点挤 5 分),原子化收益最大 |
-| 4 | `EXAM_1A434000_P0013_01::E0` | 13 | 5.5 | 9 judgment + 2 list + 2 qual | 判断改正为主 —— **合取门(找错∧改正)判分样板** |
-| 5 | `EXAM_1A434000_P0017_01::E1` | 12 | 6 | 9 judgment + 3 exact | 判断改正为主,验证合取门泛化 |
-
-**明确排除出 P-1(计算重,入 P1/P2 计算引擎轨)**:`EXAM_1A432000_P0016_02`(13 calc/29)、`EXAM_1A434000_P0016_02`(8 calc/12)、`EXAM_1A432000_P0015_01`(7 calc/27)、`EXAM_1A432000_P0013_01`(3 calc)等。
-
-**全部 22 道 ≥12 点欠切分 qid 清单**(供 owner 挑选,点数降序,已标 calc 占比):见本轮扫描输出;可按需扩批。**下一步待 owner**:①确认首批 N 与是否照此 5 道;②安排两名教研按 §2.5④ 独立验收(切分/原子/锚/合取结构),产出 `docs/原始数据/考点原料/segmentation_gold/<qid>.review.json`;③定 §2.5⑥ 教研产能 SLA。**owner 确认前不切、不填白名单、不出轻练。**
-
----
-
+> **优先清单提案(首批 5 题,待 owner + 双教研确认才切)**移至账本 [08 §优先清单提案](./案例题轻练-实现账本/08-真LLM端到端-人门-优先清单.md)。
 ## §3 诚实拆分:真接线 vs 新造(v1.2/v1.3 Codex 核实后)
 
 **✅ 真接线(存在且能干声称的活)**:
