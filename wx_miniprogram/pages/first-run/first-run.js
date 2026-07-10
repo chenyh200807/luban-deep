@@ -155,6 +155,13 @@ Page({
         isTrap: o === q.trap,
       };
     });
+    var terms = q.lib.terms.map(function (t) {
+      var isHit = t === q.lib.hitTerm;
+      return {
+        text: (isHit ? (ok ? "✓ " : "✗ ") : "") + t,
+        state: isHit ? (ok ? "hit" : "miss") : "",
+      };
+    });
     this.setData({
       fb: {
         ok: ok,
@@ -164,6 +171,11 @@ Page({
         sub: ok ? q.vs.ok : q.vs.no,
         items: items,
         point: q.point,
+        terms: terms,
+        scale:
+          "判分卡按 " + q.lib.year + " 官方参考答案编译 · 全题 " + q.lib.total +
+          " 分 · 切成 " + q.lib.nPoints +
+          " 条判分点 · 鲁班编译库已收录 174 个真题小问 / 1221 条判分点",
         mnBig: q.mn.big,
         mnSub: q.mn.sub,
         nextTx:
@@ -255,7 +267,7 @@ Page({
         modeText: modeText,
         basis:
           results.length + " 条作答 · " + missN + " 个错因命中 · " +
-          results.length + " 个采分点逐条比对（溯源教材）· 6 个画像信号",
+          results.length + " 个采分点比对鲁班编译库（174 个真题小问 / 1221 条判分点）· 6 个画像信号",
         rows: results.map(function (r) {
           return { name: r.name, family: r.familyShort, ok: r.ok, tag: r.ok ? "已命中" : "明天复测" };
         }),
@@ -272,13 +284,8 @@ Page({
       "learning_action_completed",
       behavior("complete", { objectType: "script", result: "go_report" })
     );
-    this.setData({
-      finale: {
-        title: "报告存好了",
-        lead: "完整版在「学情」tab（底部第三个）。\n有任何题，随时在对话里问。",
-      },
-    });
-    this._go("finale", 6);
+    // 正式版：直接落在学情页（老蓝版底部第三个 tab = report）
+    this._finish("completed", "/pages/report/report");
   },
 
   onReportRemind: function () {
@@ -306,11 +313,11 @@ Page({
     this._finish("completed");
   },
 
-  _finish: function (how) {
+  _finish: function (how, url) {
     try {
       wx.setStorageSync(DONE_KEY, { at: Date.now(), how: how });
       wx.removeStorageSync(PENDING_KEY);
     } catch (e) {}
-    wx.switchTab({ url: "/pages/chat/chat" });
+    wx.switchTab({ url: url || "/pages/chat/chat" });
   },
 });
