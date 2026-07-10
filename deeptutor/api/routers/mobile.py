@@ -2567,15 +2567,22 @@ class RegisterRequest(BaseModel):
     username: str
     password: str
     phone: str
+    # 注册渠道归因（推广二维码/链接 ?ch=xxx + 微信场景值），可缺省。
+    channel: str = ""
+    scene: str = ""
 
 
 class WechatLoginRequest(BaseModel):
     code: str = ""
     phone_code: str = ""
+    channel: str = ""
+    scene: str = ""
 
 
 class WechatBindPhoneRequest(BaseModel):
     phone_code: str = ""
+    channel: str = ""
+    scene: str = ""
 
 
 class MobileStartTurnRequest(BaseModel):
@@ -2678,7 +2685,12 @@ async def auth_register(body: RegisterRequest) -> dict[str, Any]:
     try:
         # bcrypt hash — threadpool, same rationale as auth_login.
         result = await run_in_threadpool(
-            member_service.register_with_external_auth, body.username, body.password, body.phone
+            member_service.register_with_external_auth,
+            body.username,
+            body.password,
+            body.phone,
+            channel=body.channel,
+            scene=body.scene,
         )
         user = result.get("user") if isinstance(result.get("user"), dict) else {}
         user_id = str(
@@ -2866,7 +2878,9 @@ async def wechat_login(body: WechatLoginRequest) -> dict[str, Any]:
     try:
         if not str(body.phone_code or "").strip():
             raise ValueError("phone_code is required")
-        return await member_service.login_with_wechat_phone(body.code, body.phone_code)
+        return await member_service.login_with_wechat_phone(
+            body.code, body.phone_code, channel=body.channel, scene=body.scene
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
@@ -2887,6 +2901,8 @@ async def wechat_bind_phone(
         return await member_service.bind_phone_for_wechat(
             _resolve_authenticated_user_id(authorization),
             body.phone_code,
+            channel=body.channel,
+            scene=body.scene,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

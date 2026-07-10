@@ -224,6 +224,48 @@ def test_registered_member_identity_index_supports_trace_aliases_without_unmappe
     assert "72af0948-a253-45b8-8b3b-a9eba9e5a1d6" not in identity_index
 
 
+def test_member_stats_groups_channels_from_identity_metadata() -> None:
+    """渠道归因读侧：get_member_stats 按 identity_metadata.reg_channel 分组（总量+窗口内新增）。"""
+    service = BIService(member_service=_QuietMemberService())
+    now = datetime.now(timezone.utc)
+    recent = (now - timedelta(days=1)).isoformat()
+    stale = (now - timedelta(days=45)).isoformat()
+    service._load_all_members = lambda: [
+        {
+            "user_id": "m1",
+            "phone": "15558866501",
+            "tier": "trial",
+            "status": "active",
+            "created_at": recent,
+            "identity_metadata": {"reg_channel": "test1", "reg_scene": "1047"},
+        },
+        {
+            "user_id": "m2",
+            "phone": "15558866502",
+            "tier": "trial",
+            "status": "active",
+            "created_at": recent,
+            "identity_metadata": {"reg_channel": "test1"},
+        },
+        {
+            "user_id": "m3",
+            "phone": "15558866503",
+            "tier": "vip",
+            "status": "active",
+            "created_at": stale,
+            "identity_metadata": {},
+        },
+    ]
+
+    stats = asyncio.run(service.get_member_stats(days=30))
+
+    channels = {row["channel"]: row for row in stats["channels"]}
+    assert channels["test1"]["count"] == 2
+    assert channels["test1"]["new_count"] == 2
+    assert channels["unknown"]["count"] == 1
+    assert channels["unknown"]["new_count"] == 0
+
+
 class _SignupBonusWalletService:
     is_configured = True
 

@@ -1848,6 +1848,22 @@ class BIService:
         risk_counter = Counter(member.get("risk_level") or "unknown" for member in members)
         status_counter = Counter(member.get("status") or "unknown" for member in members)
 
+        # 注册渠道归因维度（读 user_identity_aliases.metadata.reg_channel，
+        # 经 member directory 的 identity_metadata 透传）：总量 + 窗口内新增。
+        now = datetime.now(timezone.utc)
+        channel_counter: Counter[str] = Counter()
+        new_member_channel_counter: Counter[str] = Counter()
+        for member in members:
+            reg_channel = (
+                str((member.get("identity_metadata") or {}).get("reg_channel") or "").strip()
+                or "unknown"
+            )
+            channel_counter[reg_channel] += 1
+            if self._is_member_created_within_days(
+                str(member.get("created_at") or ""), now=now, days=days
+            ):
+                new_member_channel_counter[reg_channel] += 1
+
         expiring = sorted(
             members,
             key=lambda item: item.get("expire_at") or "",
@@ -1860,6 +1876,16 @@ class BIService:
                 {"label": "活跃会员", "metric_id": "member_active_count", "value": dashboard.get("active_count", 0), "hint": f"总会员 {dashboard.get('total_count', 0)}"},
                 {"label": "7 天内到期", "metric_id": "expiring_soon_members", "value": dashboard.get("expiring_soon_count", 0), "hint": "建议跟进续费"},
                 {"label": "流失预警", "metric_id": "renewal_risk_members", "value": dashboard.get("churn_risk_count", 0), "hint": f"健康分 {dashboard.get('health_score', 0)}"},
+            ],
+            "channels": [
+                {
+                    "channel": key,
+                    "count": value,
+                    "new_count": new_member_channel_counter.get(key, 0),
+                    "label": key,
+                    "value": value,
+                }
+                for key, value in channel_counter.most_common()
             ],
             "tiers": [{"tier": key, "count": value, "label": key, "value": value} for key, value in tier_counter.most_common()],
             "risks": [{"risk_level": key, "count": value, "label": key, "value": value} for key, value in risk_counter.most_common()],

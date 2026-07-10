@@ -164,6 +164,24 @@ _EVAL_RUNNER_IDENTITY_METADATA = {
     "created_by": "eval_runner",
     "is_internal_test": True,
 }
+# 注册渠道归因（推广二维码/链接 ?ch=xxx + 微信场景值）→ user_identity_aliases.metadata。
+_CHANNEL_SANITIZE_RE = re.compile(r"[^0-9A-Za-z_\-]")
+
+
+def _channel_attribution_metadata(channel: Any, scene: Any) -> dict[str, Any]:
+    """把客户端透传的渠道参数收敛成 reg_channel / reg_scene 两个 metadata 键。
+
+    channel 只保留 [0-9A-Za-z_-]（防注入/防脏值），scene 只保留数字（微信场景值）。
+    两者皆空时返回空 dict，不产生任何写入。
+    """
+    metadata: dict[str, Any] = {}
+    normalized_channel = _CHANNEL_SANITIZE_RE.sub("", str(channel or "").strip())[:64]
+    if normalized_channel:
+        metadata["reg_channel"] = normalized_channel
+    normalized_scene = "".join(ch for ch in str(scene or "").strip() if ch.isdigit())[:8]
+    if normalized_scene:
+        metadata["reg_scene"] = normalized_scene
+    return metadata
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
@@ -4303,6 +4321,10 @@ class MemberConsoleService:
                     "review_due": item["review_due"],
                     "canonical_user_id": item.get("canonical_user_id") or item["user_id"],
                     "alias_user_ids": item.get("alias_user_ids") or [item["user_id"]],
+                    # 注册渠道归因（user_identity_aliases.metadata.reg_channel）
+                    "channel": str(
+                        (item.get("identity_metadata") or {}).get("reg_channel") or ""
+                    ),
                     "behavior": behavior_summaries.get(
                         item["user_id"],
                         self._fallback_member_behavior_summary(),
@@ -8284,7 +8306,15 @@ class MemberConsoleService:
         )
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
-    def register_with_external_auth(self, username: str, password: str, phone: str) -> dict[str, Any]:
+    def register_with_external_auth(
+        self,
+        username: str,
+        password: str,
+        phone: str,
+        *,
+        channel: str = "",
+        scene: str = "",
+    ) -> dict[str, Any]:
         normalized_phone = _normalize_phone_input(phone)
         if not normalized_phone or not self._is_cn_mainland_mobile(normalized_phone):
             raise ValueError("请输入有效的大陆手机号")
@@ -8303,10 +8333,13 @@ class MemberConsoleService:
             user_id=auth_identity["user_id"],
             canonical_uid=auth_identity["canonical_uid"],
         )
+        identity_metadata = self._explicit_identity_metadata(external_user)
+        # 注册渠道归因：register 走到这里必然是新会员（重复手机号在上方已拒绝）。
+        identity_metadata.update(_channel_attribution_metadata(channel, scene))
         self._persist_phone_identity(
             phone=normalized_phone,
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
-            identity_metadata=self._explicit_identity_metadata(external_user) or None,
+            identity_metadata=identity_metadata or None,
         )
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
@@ -8578,11 +8611,27 @@ class MemberConsoleService:
             unionid=auth_identity["unionid"] or unionid,
         )
 
-    async def login_with_wechat_phone(self, code: str, phone_code: str) -> dict[str, Any]:
+    async def login_with_wechat_phone(
+        self,
+        code: str,
+        phone_code: str,
+        *,
+        channel: str = "",
+        scene: str = "",
+    ) -> dict[str, Any]:
         identity = await self._resolve_wechat_login_identity(code)
-        return await self.bind_phone_for_wechat(identity["user_id"], phone_code)
+        return await self.bind_phone_for_wechat(
+            identity["user_id"], phone_code, channel=channel, scene=scene
+        )
 
-    async def bind_phone_for_wechat(self, user_id: str, phone_code: str) -> dict[str, Any]:
+    async def bind_phone_for_wechat(
+        self,
+        user_id: str,
+        phone_code: str,
+        *,
+        channel: str = "",
+        scene: str = "",
+    ) -> dict[str, Any]:
         raw_code = str(phone_code or "").strip()
         if not raw_code:
             raise ValueError("valid phone_code is required")
@@ -8621,6 +8670,11 @@ class MemberConsoleService:
             verified_phone_canonical_uid = self._resolve_verified_phone_canonical_uid(normalized)
         except ValueError as exc:
             raise ValueError("手机号身份冲突，请联系客服") from exc
+
+        # 注册渠道归因只做 first-touch：该手机号尚无已验证 canonical alias（真·首次注册）
+        # 才写 reg_channel/reg_scene；已注册用户复登录不覆盖注册渠道。
+        if not verified_phone_canonical_uid:
+            identity_metadata.update(_channel_attribution_metadata(channel, scene))
 
         def _apply_binding_metadata(member: dict[str, Any]) -> None:
             member["phone_binding_method"] = phone_binding_method

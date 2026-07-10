@@ -160,6 +160,13 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   `metadata`；Supabase member directory 读取 phone alias 时也必须把这些 metadata 透传到
   member `identity_metadata`，让 BI 在 display name / identifier 已变成 UUID 或学员昵称时仍能排除
   机器账号。
+- 注册渠道归因是 phone alias `metadata` 上的两个可选键：`reg_channel`（推广物料 `?ch=xxx`，
+  清洗后只含 `[0-9A-Za-z_-]`，≤64 字符）与 `reg_scene`（微信启动场景值，纯数字）。写入方唯一是
+  `MemberConsoleService` 的注册 / 微信手机号绑定路径，且只做 first-touch：账号密码注册必然是新会员
+  直接写入；微信路径仅当该手机号尚无可信 canonical alias（真·首次注册）时写入，已注册用户复登录
+  不得覆盖注册渠道。这两个键是 BI 渠道 ROI read model（会员列表 `channel` 字段与 member-stats
+  `channels` 分组）的唯一来源；它们不是 learner state，不得写入 profile、progress、goals、
+  learner_summaries 或 learner_memory_events，也不得成为身份判定或计费依据。
 - Supabase member directory 读取 trusted phone alias 时，必须优先覆盖最近注册 / 最近验证的手机号身份，
   不能因为历史 backfill alias 数量超过读取上限而漏掉当天新增会员。若 `v_members` 暂无对应行，读取层必须
   hydrate `public.users.identifier`、`createdAt` 和 `metadata`，并把 `public.users.metadata` 与 alias
