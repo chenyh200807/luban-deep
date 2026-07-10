@@ -266,6 +266,60 @@ def test_member_stats_groups_channels_from_identity_metadata() -> None:
     assert channels["unknown"]["new_count"] == 0
 
 
+def test_member_stats_channels_all_unknown_when_no_attribution() -> None:
+    """上线第一天真实形态：存量成员 metadata 全空/缺键，渠道分组必须全归 unknown，
+    不崩不除零，且分组计数总和 == 成员总数。"""
+    service = BIService(member_service=_QuietMemberService())
+    now = datetime.now(timezone.utc)
+    recent = (now - timedelta(days=1)).isoformat()
+    stale = (now - timedelta(days=45)).isoformat()
+    service._load_all_members = lambda: [
+        # metadata 键存在但为空 dict（生产存量行的形态）
+        {
+            "user_id": "m1",
+            "phone": "15558866501",
+            "tier": "trial",
+            "status": "active",
+            "created_at": recent,
+            "identity_metadata": {},
+        },
+        # identity_metadata 键整个缺失
+        {
+            "user_id": "m2",
+            "phone": "15558866502",
+            "tier": "trial",
+            "status": "active",
+            "created_at": recent,
+        },
+        # identity_metadata 为 None
+        {
+            "user_id": "m3",
+            "phone": "15558866503",
+            "tier": "vip",
+            "status": "active",
+            "created_at": stale,
+            "identity_metadata": None,
+        },
+    ]
+
+    stats = asyncio.run(service.get_member_stats(days=30))
+
+    assert stats["channels"] == [
+        {"channel": "unknown", "count": 3, "new_count": 2, "label": "unknown", "value": 3}
+    ]
+    assert sum(row["count"] for row in stats["channels"]) == 3
+
+
+def test_member_stats_channels_empty_when_no_members() -> None:
+    """零成员时渠道分组返回空列表，不崩不除零。"""
+    service = BIService(member_service=_QuietMemberService())
+    service._load_all_members = lambda: []
+
+    stats = asyncio.run(service.get_member_stats(days=30))
+
+    assert stats["channels"] == []
+
+
 class _SignupBonusWalletService:
     is_configured = True
 
