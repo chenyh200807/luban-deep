@@ -1,0 +1,97 @@
+{
+ "schema_version": "luban-concept-card-bank",
+ "pack_id": "D11",
+ "status": "signed",
+ "source_pack_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
+ "generation_ms": 60.19,
+ "gate": {
+  "total": 3,
+  "passed": 3,
+  "pass_rate": 1.0,
+  "quote_mismatches": [],
+  "duplicate_cards": [],
+  "forbidden_words": [],
+  "intent_misses": [],
+  "gist_num_orphans": []
+ },
+ "card_count": 3,
+ "dropped_rows": [
+  {
+   "row": "不同材料基体交接处防裂网",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "基层含水率",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "木材基层含水率",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "抹灰层平均总厚度",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "室内抹灰环境温度",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "涂饰工序衔接",
+   "reason": "not_green"
+  },
+  {
+   "row": "水性涂料环境温度",
+   "reason": "not_green"
+  }
+ ],
+ "cards": [
+  {
+   "card_id": "D11:kc:1A422000_042_0068:0",
+   "front": "抹灰总厚度加强",
+   "key_gist": "抹灰总厚度≥35mm时应采取加强措施",
+   "quote": "（1）抹灰工程应分层进行。当抹灰总厚度大于或等于 35mm 时，应采取加强措施。",
+   "point_id": "kc:1A422000_042_0068:0",
+   "source_ref": {
+    "chunk_id": "1A422000_042_0068",
+    "page_num": 42,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "第4章 相关法规 > 装饰装修——抹灰工程"
+  },
+  {
+   "card_id": "D11:kc:1A422000_043_0069:1",
+   "front": "基层含水率",
+   "key_gist": "混凝土/抹灰基层用溶剂型涂料≤8%",
+   "quote": "③ 混凝土或抹灰基层在用溶剂型腻子找平或直接涂刷溶剂型涂料时，含水率不得大于 8%；在用乳液型腻子找平或直接涂刷乳液型涂料时，含水率不得大于 10%，木材基层的含水率不得大于 12%；",
+   "point_id": "kc:1A422000_043_0069:1",
+   "source_ref": {
+    "chunk_id": "1A422000_043_0069",
+    "page_num": 43,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "第4章 相关法规 > 不同材料基体交接处抹灰防裂措施"
+  },
+  {
+   "card_id": "D11:kc:1A422000_043_0069:2",
+   "front": "厨卫找平层耐水腻子",
+   "key_gist": "厨房/卫生间墙面找平层应用耐水腻子",
+   "quote": "⑤ 厨房、卫生间墙面的找平层应使用耐水腻子。",
+   "point_id": "kc:1A422000_043_0069:2",
+   "source_ref": {
+    "chunk_id": "1A422000_043_0069",
+    "page_num": 43,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "第4章 相关法规 > 不同材料基体交接处抹灰防裂措施"
+  }
+ ],
+ "signoff": {
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T01:20:59+08:00",
+  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+ }
+}
