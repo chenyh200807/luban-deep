@@ -47,6 +47,8 @@ Page({
     draftText: "",
     draftSaved: false,
     showExitSheet: false,
+    // ②半写 · R6 精确挖空(signed cloze bank 投影; null=无供给→自由默写降级)
+    cloze: null,
     // 档位③全量作答(自由文本→判分内核 seam)。前端零判分, verdict 全由后端给。
     fullAnswer: null,
     fullAnswerLoading: false,
@@ -293,8 +295,51 @@ Page({
     }
   },
 
+  // ②半写供给探测: signed R6 挖空 bank 有货则精确挖空, 404/失败保持自由默写降级
+  _loadCloze: function () {
+    var that = this;
+    return api
+      .getLubanCloze(this.data.packId, { silent: true })
+      .then(function (resp) {
+        var body = api.unwrapResponse(resp) || {};
+        var vm = gauntletViewModel.buildClozeViewModel(body);
+        that.setData({ cloze: vm.available ? vm : null });
+      })
+      .catch(function () {
+        that.setData({ cloze: null }); // fail-closed: 无供给不伪装挖空
+      });
+  },
+
+  // 挖空逐句输入(改输入即作废该句旧自查结果, 不留陈旧对照)
+  onClozeInput: function (event) {
+    var dataset = (event && event.currentTarget && event.currentTarget.dataset) || {};
+    var index = Number(dataset.index);
+    var sentences = (this.data.cloze && this.data.cloze.sentences) || [];
+    if (!(index >= 0 && index < sentences.length)) return;
+    var value = (event && event.detail && event.detail.value) || "";
+    var patch = {};
+    patch["cloze.sentences[" + index + "].input"] = value;
+    patch["cloze.sentences[" + index + "].checked"] = false;
+    patch["cloze.sentences[" + index + "].hit"] = null;
+    this.setData(patch);
+  },
+
+  // 「对照提示核对」: 呈现层确定性自查(gradeClozeBlank), 零学情/掌握写入
+  checkCloze: function () {
+    var cloze = this.data.cloze;
+    if (!cloze || !cloze.sentences || !cloze.sentences.length) return;
+    var sentences = cloze.sentences.map(function (s) {
+      return Object.assign({}, s, {
+        checked: true,
+        hit: gauntletViewModel.gradeClozeBlank(s.hint, s.input),
+      });
+    });
+    this.setData({ "cloze.sentences": sentences });
+  },
+
   _loadItems: function () {
     var that = this;
+    this._loadCloze();
     return api
       .getLubanRetestItems(this.data.packId, GAUNTLET_LIMIT)
       .then(function (resp) {

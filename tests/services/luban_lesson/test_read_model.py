@@ -74,6 +74,31 @@ def test_green_only_in_listing(tmp_path):
     assert [r["pack_id"] for r in rows] == ["S05"]
 
 
+def test_listing_retest_available_follows_signed_bank(tmp_path):
+    """retest_available = signed 变体池真值(单一闸复用)——头牌轻练按供给路由的依据。
+
+    无 bank → False(保守降级); signed+sha 匹配 → True; candidate 未签发 → False。
+    """
+    mp = _write_manifest(tmp_path, [_S05, _X99], ["S05", "X99"])
+    # 无 bank 文件 → False
+    rows = {r["pack_id"]: r for r in list_green_lessons(manifest_path=mp)}
+    assert rows["S05"]["retest_available"] is False
+    assert rows["X99"]["retest_available"] is False
+    # S05 signed + sha 匹配 → True
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
+        "status": "signed", "source_pack_sha256": "abc123",
+        "variants": [{"variant_id": "S05-B-000"}],
+    }), encoding="utf-8")
+    # X99 candidate(未过人闸) → 仍 False(与 _load_signed_bank 同一 fail-closed)
+    (tmp_path / "_X99_variant_bank.v0.json").write_text(json.dumps({
+        "status": "candidate", "source_pack_sha256": _X99["content_sha256"],
+        "variants": [{"variant_id": "X99-B-000"}],
+    }), encoding="utf-8")
+    rows = {r["pack_id"]: r for r in list_green_lessons(manifest_path=mp)}
+    assert rows["S05"]["retest_available"] is True
+    assert rows["X99"]["retest_available"] is False
+
+
 def test_variant_summary_signed_sha_match_passes(tmp_path):
     mp = _write_manifest(tmp_path, [_S05], ["S05"])
     (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({

@@ -128,9 +128,15 @@ def list_all_pack_ids(*, manifest_path: Path | None = None) -> list[str]:
 
 
 def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, Any]]:
-    """绿灯站点列表投影（地图/路线消费）；只含绿灯包，锁定站的露脸文案归上层。"""
+    """绿灯站点列表投影（地图/路线消费）；只含绿灯包，锁定站的露脸文案归上层。
+
+    ``retest_available`` = signed 变体池真值（复用 ``_variant_summary`` 同一闸，
+    不建第二判定）——供学习页头牌轻练按供给路由/降级：承诺宽度收窄到有货的
+    站，不对空池站渲染练不了的按钮。
+    """
     manifest = _load_manifest(manifest_path)
     green = set(manifest.get("projection_green") or [])
+    manifest_dir = (manifest_path or _MANIFEST_PATH).parent
     rows = []
     for pack in manifest.get("packs") or []:
         if pack.get("pack_id") not in green:
@@ -140,6 +146,11 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
                 "pack_id": pack["pack_id"],
                 "title": str(pack.get("title") or ""),
                 "content_sha256": str(pack.get("content_sha256") or ""),
+                "retest_available": _variant_summary(
+                    str(pack["pack_id"]),
+                    manifest_dir,
+                    str(pack.get("content_sha256") or ""),
+                )["available"],
             }
         )
     return sorted(rows, key=lambda r: r["pack_id"])

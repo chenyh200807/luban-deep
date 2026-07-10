@@ -56,16 +56,23 @@
           <view class="rt-feedback {{item.correct ? 'good' : 'warm'}}" wx:if="{{item.answered}}">
             <block wx:if="{{item.correct}}">
               <text class="rt-feedback-main">对——你是真懂了</text>
+              <!-- 答对也给门道:正确说法不只在错时出现(签发 correct_statement 真值) -->
+              <text class="rt-feedback-why">门道 · {{item.correct_statement}}</text>
             </block>
             <block wx:else>
-              <text class="rt-feedback-main">再看一眼就稳了：{{item.correct_statement}}</text>
+              <text class="rt-feedback-main">差一步——门道在这</text>
+              <text class="rt-feedback-why">{{item.correct_statement}}</text>
             </block>
-            <text class="rt-anchor" wx:if="{{item.anchor}}">{{item.anchor}}</text>
+            <text class="rt-anchor-chip" wx:if="{{item.anchor}}">定位 {{item.anchor}}</text>
           </view>
         </view>
 
         <view class="rt-done" wx:if="{{done}}">
           <text class="rt-done-title">{{doneTitlePrefix}} {{correctCount}}/{{total}}</text>
+          <view class="rt-done-break">
+            <text class="rt-done-chip good">答对 {{correctCount}}</text>
+            <text class="rt-done-chip warm" wx:if="{{total - correctCount}}">再看一眼 {{total - correctCount}}</text>
+          </view>
           <text class="rt-done-desc">{{doneDesc}}</text>
         </view>
       </block>

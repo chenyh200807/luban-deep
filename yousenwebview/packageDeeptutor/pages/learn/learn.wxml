@@ -145,9 +145,11 @@
           </view>
         </view>
         <view class="lr-task-cta">
-          <view class="pk-btn-ink lr-task-btn" bindtap="goPractice">{{vm.todayTask.cta}}</view>
+          <!-- 主按钮只在有签发供给时渲染(cta 空 = 该站无货,诚实降级不给练不了的按钮) -->
+          <view class="pk-btn-ink lr-task-btn" wx:if="{{vm.todayTask.cta}}" bindtap="goPractice">{{vm.todayTask.cta}}</view>
           <view class="pk-btn-ghost lr-task-ghost" bindtap="goSwitchPractice">换轻练</view>
         </view>
+        <text class="pk-desc lr-supply-note" wx:if="{{vm.todayTask.supplyNote}}">{{vm.todayTask.supplyNote}}</text>
         <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.todayTask.reason}}">
           <text class="lr-why-label">为什么推荐</text>
           <text class="lr-why-chev">{{whyOpen ? '▾' : '▸'}}</text>
@@ -163,8 +165,8 @@
       </view>
 
       <!-- F16 防水「5天留存闭环」雏形入口(spike 审阅) -->
-      <view class="lr-review pk-card" bindtap="goSeethrough" style="background:#fff5ec;">
-        <view class="lr-review-bolt" style="background:#8a2b20;"></view>
+      <view class="lr-review pk-card lr-seethrough" bindtap="goSeethrough">
+        <view class="lr-review-bolt lr-seethrough-bolt"></view>
         <text class="lr-review-txt">防水 · 5 天留存闭环(雏形)</text>
         <text class="lr-review-go">走一遍 →</text>
       </view>
