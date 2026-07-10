@@ -9,6 +9,62 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-10 - 移动端一次对话产生两条 sessions（BI 会话数翻倍）
+
+- 问题：
+  - 生产 chat_history.db 里 7 月真实用户几乎每次"有消息的对话"都出现两条 sessions 行：
+    同 user、几秒内先后创建、消息相同；一条有 turns、一条 turns 为空。
+  - 活体样本（user 6cf455b1，07-07 06:38）：`unified_1783406312729_d4cf4350`（canonical，
+    有 turns）+ `tutorbot:bot:construction-exam-coach:user:6cf455b1-...:chat:unified_...`
+    （镜像，无 turns，晚 4 秒）。7 月 wx 源 canonical 326 条 vs 镜像 78 条；全库镜像 1351 条，
+    最早 2026-06-09。
+- 根因：
+  - 一等业务事实：一次用户对话 = sessions 表恰一条"用户会话"。
+  - 断点：TutorBot 引擎的 bot-side 历史行（`SQLiteSessionAdapter`，id=`tutorbot:<key>`）
+    在持久化时携带了用户 `owner_key` + 客户端 `source=wx_miniprogram`
+    （deeptutor/tutorbot/session/sqlite_adapter.py 旧 `_owner_key_from_metadata` /
+    `_source_from_metadata`），伪装成第二个用户会话，被 mobile listing（owner+source 过滤）、
+    BI 注册会员 scoping（preferences.user_id）、member_console（owner_key IN）全部计入。
+  - shared failure shape：mirror state competing with canonical state；读取层已存在
+    `_merge_mobile_conversation_rows` 去重补丁（症状端止血），BI/DB 层原样双计。
+- 失败尝试 / 被否决方案：
+  - 客户端双调 createConversation 假设：证伪——chat.js 仅一处调用且有 `_convId/_sid` 守卫；
+    生产 canonical id 是 `unified_` 前缀（WS ensure_session 建），第二条 id 是 `tutorbot:` 前缀。
+  - REST 与 WS 各建一条假设：证伪——turn_runtime.ensure_session(payload.session_id) 复用同一行。
+  - 只在 create_session 改 source：会被踩回——`update_session_preferences` 会用合并后
+    preferences JSON 里的 `source`/`user_id` 重派生列（multi-writer 生命周期陷阱），
+    必须收口 adapter 全部持久化点。
+  - 单行合并（镜像并入 canonical 行）：否决——runtime 与引擎双写同一行会触发
+    `_stored_rows_are_stable` 判不稳→`_rebuild_sqlite_session` delete_session 连 turns 一起清。
+  - 只改 BI 查询排除 `tutorbot:%`：否决——展示层去重，镜像继续污染每个新 reader。
+- 成功修法：
+  - deeptutor/tutorbot/session/sqlite_adapter.py：新增唯一持久化闸 `_metadata_for_persistence`
+    （剥 `user_id`/`owner_key`、source 恒 `tutorbot`），收口 `_rebuild_sqlite_session` /
+    `_ensure_sqlite_session_async` / `_save_async` 全部 create+update 点；删除
+    `_owner_key_from_metadata` / `_source_from_metadata` 两个身份派生概念。
+    引擎行从此结构上不是用户会话，零个 reader 需要改。
+  - scripts/demote_tutorbot_mirror_sessions.py：存量 1351+ 镜像行一次性降级
+    （owner_key=''、source='tutorbot'、preferences 剥身份），默认 dry-run。
+- 验证（数字）：
+  - RED→GREEN 复现测试 `test_tutorbot_engine_mirror_row_is_not_a_user_conversation`
+    （修前 list_sessions_by_owner 返回 2 条，修后 1 条）+ 重复保存防回踩测试。
+  - tests/services/session/test_tutorbot_sqlite_adapter.py 20/20 passed；
+    tests/api/test_unified_ws_turn_runtime.py 178 passed。
+  - 迁移脚本本地端到端：legacy 形状库 dry-run→apply→复保存，终态恰 1 条用户会话。
+  - 存量安全性：生产只读核验 1351 条镜像的 canonical 行 0 缺失、0 零消息。
+  - live 实测（指挥官补证）：本地 uvicorn 起 worktree 代码，legacy 形状库先跑迁移
+    --apply，再经真实 /api/v1/chat/start-turn + /api/v1/ws（run_student_turn.py，
+    qa_ 身份 + eval bypass）同会话连打 3 轮：turn1 回复原文"小鲁，你刚才说想先聊
+    **防水工程**的考点"（该历史仅存于被迁移剥身份的镜像行→跨迁移承接 PASS）；
+    turn2 批改 turn1 出的题；turn3 压缩 turn2 要点。DB 终态：owner+wx 口径用户
+    会话恰 1 条、镜像行恰 1 条且 3 轮真实写入后仍 owner=''/source='tutorbot'/
+    无 user_id、turns completed×3 全在 canonical。
+  - 迁移身份断言：test_tutorbot_engine_mirror_reused_after_stock_demotion——
+    demote 后 get_or_create 命中同 id（消息完整恢复 + sessions 全表行数恒 1）。
+- 教训：
+  - 引擎/内部持久化借用用户可见表时，必须在写入侧显式自我声明（source/身份），
+    否则每个按身份/来源统计的 reader 都会把内部行当业务实体；读取层去重是止血带不是闭包。
+
 ## 2026-07-08 - V2 scheduled_run 被 sev_regression 倒诬假阳阻断
 
 - 问题：
