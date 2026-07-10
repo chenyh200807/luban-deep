@@ -3,20 +3,24 @@
  "pack_id": "F02",
  "status": "signed",
  "source_pack_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
- "generation_ms": 0.79,
+ "generation_ms": 3.13,
  "gate": {
-  "total": 7,
-  "passed": 7,
+  "total": 6,
+  "passed": 6,
   "pass_rate": 1.0,
   "code_unregistered": [],
   "anchor_unresolved": [],
   "forbidden_words": []
  },
- "antidote_count": 7,
+ "antidote_count": 6,
  "dropped_rows": [
   {
    "r8_id": "F02:R8-M6",
    "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "F02:R8-M7",
+   "reason": "panel_reject"
   }
  ],
  "antidotes": {
@@ -43,13 +47,6 @@
     "textbook_ref": "kc:1A413030_123_0234:0",
     "phenomenon": "搭接缝逆流水方向 / 形成迎水缝",
     "wrong_model": "以为搭接缝方向不影响防水"
-   },
-   {
-    "r8_id": "F02:R8-M7",
-    "mental_model": "厚度<3mm的卷材严禁热熔法施工（薄卷材易烤穿）；热熔法加热温度180~200℃",
-    "textbook_ref": "kc:1A422000_041_0065:0",
-    "phenomenon": "厚度<3mm卷材仍用热熔法",
-    "wrong_model": "以为薄卷材也能热熔"
    }
   ],
   "E07": [
@@ -109,13 +106,6 @@
     "textbook_ref": "kc:1A422000_041_0065:0",
     "phenomenon": "立面/大坡面用空铺/点粘",
     "wrong_model": "以为大坡面也能空铺省料"
-   },
-   {
-    "r8_id": "F02:R8-M7",
-    "mental_model": "厚度<3mm的卷材严禁热熔法施工（薄卷材易烤穿）；热熔法加热温度180~200℃",
-    "textbook_ref": "kc:1A422000_041_0065:0",
-    "phenomenon": "厚度<3mm卷材仍用热熔法",
-    "wrong_model": "以为薄卷材也能热熔"
    }
   ],
   "M01": [
@@ -138,8 +128,8 @@
   ]
  },
  "signoff": {
-  "who": "主控代owner执行",
-  "when": "2026-07-06T00:09:21+08:00",
-  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T02:09:08+08:00",
+  "basis": "对抗验尸面板A级停发(blocklist剔11条)+C02尾部kc串清洗+gate 100%; owner授权解药变体验尸治疗"
  }
 }

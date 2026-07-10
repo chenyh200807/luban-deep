@@ -305,6 +305,21 @@ def test_retest_session_never_uniform_answer_key(tmp_path):
                 assert len(keys) == 2, f"{mode}/{uid}/{day} 全同答案: {items}"
 
 
+def test_retest_blocklisted_variants_never_served(tmp_path):
+    """对抗面板 A 级停发清单: serve 侧过滤, 被停发变体绝不出现在任何 session。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _multi_group_bank(tmp_path)
+    (tmp_path / "_variant_blocklist.json").write_text(json.dumps({
+        "variants": [{"variant_id": "S05-A-order-000", "reason": "面板A级"}]
+    }), encoding="utf-8")
+    for uid in ("u1", "u2", "u3"):
+        for day in (738000, 738001):
+            items = build_retest_items("S05", user_id=uid, day_index=day,
+                                       limit=6, manifest_path=mp)
+            assert all(i["variant_id"] != "S05-A-order-000" for i in items)
+
+
 def test_retest_uniform_pool_served_honestly(tmp_path):
     """单类池(全 False)如实全送不臆造对偶——防全同只在对偶存在时生效。"""
     from deeptutor.services.luban_lesson import build_retest_items

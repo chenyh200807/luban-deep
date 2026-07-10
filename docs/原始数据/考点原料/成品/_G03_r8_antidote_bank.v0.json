@@ -3,20 +3,28 @@
  "pack_id": "G03",
  "status": "signed",
  "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
- "generation_ms": 0.93,
+ "generation_ms": 4.89,
  "gate": {
-  "total": 8,
-  "passed": 8,
+  "total": 6,
+  "passed": 6,
   "pass_rate": 1.0,
   "code_unregistered": [],
   "anchor_unresolved": [],
   "forbidden_words": []
  },
- "antidote_count": 8,
+ "antidote_count": 6,
  "dropped_rows": [
   {
    "r8_id": "G03:R8-M3",
    "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "G03:R8-M4",
+   "reason": "panel_reject"
+  },
+  {
+   "r8_id": "G03:R8-M7",
+   "reason": "panel_reject"
   }
  ],
  "antidotes": {
@@ -43,13 +51,6 @@
     "textbook_ref": "kc:1A413030_091_0169:0",
     "phenomenon": "孔底沉渣数字错位（端承写≤200mm）",
     "wrong_model": "以为各桩型沉渣同标准"
-   },
-   {
-    "r8_id": "G03:R8-M7",
-    "mental_model": "甲级或地质复杂、可靠性低的灌注桩完整性抽检≥30% 且≥20 根（一般≥20%·10根）；承载力另须静载≥1%·3根",
-    "textbook_ref": "kc:1A434000_065_0096:0",
-    "phenomenon": "甲级桩完整性只按 20% 抽检/漏静载",
-    "wrong_model": "以为所有桩抽检标准一样"
    }
   ],
   "E02": [
@@ -75,22 +76,6 @@
     "textbook_ref": "kc:1A413030_090_0165:0",
     "phenomenon": "预制桩未达强度即起吊/运输打桩",
     "wrong_model": "以为桩看着结实就能吊"
-   }
-  ],
-  "E03": [
-   {
-    "r8_id": "G03:R8-M4",
-    "mental_model": "水下灌注桩顶混凝土面宜超灌 0.8~1.0m（凿除浮浆后桩头混凝土质量才达标）；500mm 不妥",
-    "textbook_ref": "kc:1A413030_091_0169:0",
-    "phenomenon": "灌注桩超灌只到 500mm",
-    "wrong_model": "以为超过设计标高一点即可"
-   },
-   {
-    "r8_id": "G03:R8-M7",
-    "mental_model": "甲级或地质复杂、可靠性低的灌注桩完整性抽检≥30% 且≥20 根（一般≥20%·10根）；承载力另须静载≥1%·3根",
-    "textbook_ref": "kc:1A434000_065_0096:0",
-    "phenomenon": "甲级桩完整性只按 20% 抽检/漏静载",
-    "wrong_model": "以为所有桩抽检标准一样"
    }
   ],
   "E07": [
@@ -122,8 +107,8 @@
   ]
  },
  "signoff": {
-  "who": "主控代owner执行",
-  "when": "2026-07-06T00:09:21+08:00",
-  "basis": "gate100%+sha锚定+复习闭环上线补解药(owner目标=完成计划未完成内容)"
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T02:09:08+08:00",
+  "basis": "对抗验尸面板A级停发(blocklist剔11条)+C02尾部kc串清洗+gate 100%; owner授权解药变体验尸治疗"
  }
 }
