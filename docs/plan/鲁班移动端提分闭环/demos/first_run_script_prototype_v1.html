@@ -17,8 +17,7 @@
     --green:#34d399; --green-deep:#10b981;
     --red:#fb7185; --red-soft:rgba(251,113,133,.12);
     --gold:#fbbf24; --gold-soft:rgba(251,191,36,.10);
-    --purple:#a78bfa; --purple-deep:#8b5cf6; --purple-soft:rgba(139,92,246,.12);
-    --t1:#ffffff; --t2:rgba(255,255,255,.72); --t3:rgba(255,255,255,.48);
+        --t1:#ffffff; --t2:rgba(255,255,255,.72); --t3:rgba(255,255,255,.48);
     --shadow:0 12px 36px rgba(2,8,20,.6);
     --font:-apple-system,BlinkMacSystemFont,'PingFang SC','Segoe UI','Microsoft YaHei',sans-serif;
     color-scheme:dark;
@@ -183,22 +182,22 @@
     background:rgba(34,211,238,.08);border:1px solid var(--line-cyan);border-radius:99px;padding:5px 12px;margin:16px 0 8px;
     letter-spacing:.04em;align-self:flex-start}
   /* 侧写间奏 */
-  .stepchip.purple{color:var(--purple);background:var(--purple-soft);border-color:rgba(139,92,246,.35)}
-  .itlnote{font-size:12px;color:var(--purple);font-weight:600;margin:0 0 16px}
-  .opt.itl{border-color:rgba(139,92,246,.22)}
-  .opt.itl .key{color:var(--purple);border-color:rgba(139,92,246,.3);background:var(--purple-soft)}
+  .stepchip.purple{color:var(--orange);background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.38)}
+  .itlnote{font-size:12px;color:var(--orange);font-weight:600;margin:0 0 16px}
+  .opt.itl{border-color:rgba(251,146,60,.24)}
+  .opt.itl .key{color:var(--orange);border-color:rgba(251,146,60,.32);background:rgba(251,146,60,.1)}
   /* 画像揭晓 */
-  .typecard{background:linear-gradient(160deg,rgba(139,92,246,.18),rgba(34,211,238,.06));
-    border:1px solid rgba(139,92,246,.35);border-radius:20px;padding:22px 18px;margin:10px 0 14px;
+  .typecard{background:linear-gradient(160deg,rgba(251,146,60,.16),rgba(251,191,36,.05));
+    border:1px solid rgba(251,146,60,.35);border-radius:20px;padding:22px 18px;margin:10px 0 14px;
     text-align:center;box-shadow:var(--shadow)}
-  .typecard .tk{font-size:11.5px;font-weight:800;color:var(--purple);letter-spacing:.14em;margin:0 0 10px}
+  .typecard .tk{font-size:11.5px;font-weight:800;color:var(--orange);letter-spacing:.14em;margin:0 0 10px}
   .typecard .tn{font-size:27px;font-weight:800;letter-spacing:.06em;line-height:1.3;
-    background:linear-gradient(100deg,var(--purple),var(--cyan-hi));-webkit-background-clip:text;background-clip:text;color:transparent}
+    background:linear-gradient(100deg,var(--orange),var(--cyan-hi));-webkit-background-clip:text;background-clip:text;color:transparent}
   .typecard .td{font-size:13.5px;color:var(--t2);line-height:1.7;margin:10px 0 0}
   .typecard .td b{color:var(--t1)}
   .typetags{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin:14px 0 0}
-  .ttag{font-size:12px;font-weight:700;color:var(--purple);background:var(--purple-soft);
-    border:1px solid rgba(139,92,246,.3);border-radius:99px;padding:6px 13px}
+  .ttag{font-size:12px;font-weight:700;color:var(--orange);background:rgba(251,146,60,.1);
+    border:1px solid rgba(251,146,60,.3);border-radius:99px;padding:6px 13px}
   .bigmoment{text-align:center;margin:28px 0 6px;font-size:40px;line-height:1}
   .center{text-align:center}
   .spacer{flex:1}
@@ -263,7 +262,7 @@
       <div><div class="vt" id="fTitle"></div><div class="vs" id="fSub"></div></div></div>
     <div class="panelcard"><div class="ph cyan">▍逐项拆解 · 四个选项一个个说清</div><div id="fAns"></div></div>
     <div class="panelcard"><div class="ph cyan">▍阅卷怎么给分 · 这道题的判分卡</div>
-      <div class="librow"><span class="scorechip" id="fLibScore">≈1.6 分</span><div class="libtx" id="fPoint"></div></div>
+      <div class="librow"><div class="libtx" id="fPoint"></div></div>
       <div class="termlab">阅卷认的词（写到才给分）：</div>
       <div class="termchips" id="fTerms"></div>
       <div class="libscale"><span class="ic">◈</span><span id="fScale">判分卡按官方参考答案折算 · 全题 15 分切成 18 条判分点 · 鲁班编译库已收录 174 个真题小问 / 1221 条判分点</span></div>
@@ -459,7 +458,7 @@
   /* ---------- 题集（4 道，全部来自真题采分点） ---------- */
   var QS = [
     { name:"起鼓割补", family:"1A434000 屋面防水", src:"真题 · 2023 案例",
-      lib:{score:"≈1.6 分", terms:["喷灯烘烤","槎口","分层剥开","新卷材"], hitTerm:"分层剥开", nPoints:18, total:15, year:2023},
+      lib:{terms:["喷灯烘烤","槎口","分层剥开","新卷材"], hitTerm:"分层剥开", nPoints:18, total:15, year:2023},
       cas:"某屋面卷材防水层局部<b>起鼓</b>，项目部决定<b>割补</b>处理：割开鼓泡放出气体、烘烤旧卷材槎口，然后——",
       stem:'下一步，旧卷材怎么处理才<span class="hi">对</span>？',
       hint:"👆 阅卷老师只认关键动作词，点你觉得对的",
@@ -469,13 +468,13 @@
             B:"会把旁边没起鼓、还粘得好好的部分也带起来，破坏面越修越大。",
             C:"「剥」是分寸，「铲」是破坏——铲刀会伤到下面还完好的防水层。",
             D:"气还闷在里面，太阳一晒照样鼓起来——等于没修。"},
-      point:'割补工序在判分卡里是一条 <b>≈1.6 分</b> 的采分点——四个词都写到才拿满，<span class="hitword">「分层剥开」</span>是其中的命门：道理都对但词不对，一样不给分。',
+      point:'割补工序是这道题判分卡里的<b>核心采分点</b>——四个词都写到才算拿全，<span class="hitword">「分层剥开」</span>是命门：道理都对但词不对，一样不给分。',
       vt:{ok:"这一步你是稳的",no:"方向对了，差半步"},
       vs:{ok:"「分层剥开」选得准——考场上一大半人栽在这，你没有。下面看看另外三个坑长什么样。",
           no:"你知道要先处理旧卷材，判断很稳——差在哪，四个选项逐个拆给你。"},
       mn:{big:"一割 二烤 三剥 四贴", sub:"<b>割</b>开放气 → <b>烤</b>软槎口 → 分层<b>剥</b>开 → 分片重<b>贴</b>"} },
     { name:"质量计划", family:"项目质量管理", src:"真题 · 2023 案例",
-      lib:{score:"≈1.1 分", terms:["不妥","项目经理","企业","审核"], hitTerm:"项目经理", nPoints:18, total:15, year:2023},
+      lib:{terms:["不妥","项目经理","企业","审核"], hitTerm:"项目经理", nPoints:18, total:15, year:2023},
       cas:"项目部要编制《项目质量计划》，会上几个人都说该自己牵头——",
       stem:'谁来<span class="hi">组织编制</span>才对？',
       hint:"👆 编、审、批是三拨人，点组织编制的那个",
@@ -485,13 +484,13 @@
             B:"听起来最专业，所以最多人选——但他只是参与编制，「组织」的责任在项目经理。",
             C:"企业管理层是第二步「审核」的人，不下场编。",
             D:"监理是最后一步「审批」的人，更不会替施工方编。"},
-      point:'这条采分点要求「指出不妥 + 写对的人」两段都有：<span class="hitword">「项目经理」组织编制</span>，经<b>企业</b>管理层<b>审核</b>后报监理审批——四个词齐了，≈1.1 分到手。',
+      point:'这条采分点要求「指出不妥 + 写对的人」两段都有：<span class="hitword">「项目经理」组织编制</span>，经<b>企业</b>管理层<b>审核</b>后报监理审批——四个词齐了，这条才算拿全。',
       vt:{ok:"人找对了",no:"差半步——人不对"},
       vs:{ok:"「项目经理」选得准。这题妙在四个选项其实是三个环节的人——逐个拆给你看。",
           no:"这题四个选项其实是三个环节的人，坑就藏在这——逐个拆给你看。"},
       mn:{big:"经理编 · 企业审 · 监理批", sub:"编制 → 审核 → 审批，三步<b>一个都不能换人</b>"} },
     { name:"填充墙防裂", family:"砌体填充墙 · 裂缝防治", src:"真题 · 2024 案例",
-      lib:{score:"≈0.3 分", terms:["最后3皮砖","14d"], hitTerm:"14d", nPoints:20, total:5, year:2024},
+      lib:{terms:["最后3皮砖","14d"], hitTerm:"14d", nPoints:20, total:5, year:2024},
       cas:"框架填充墙快砌到梁底了，工人问：最后这几皮砖——",
       stem:'怎么砌才<span class="hi">不裂</span>？',
       hint:"👆 想想墙砌完会发生什么",
@@ -501,13 +500,13 @@
             B:"看着利索，但墙一沉缩，梁底那道裂缝准时报到。",
             C:"方向对了但远不够——沉缩以「周」计，教材写死 14 天。",
             D:"缝还在那，抹灰迟早映出裂缝，糊弄不过去。"},
-      point:'2024 年这道题全问 5 分切成 20 条判分点，这一条只值 ≈0.3 分——但阅卷就认两个词：<span class="hitword">「最后 3 皮砖」+「14d」</span>。案例题的分，就是这样一小口一小口挣的。',
+      point:'2024 年这道题全问 5 分切成 <b>20 条判分点</b>——这一条阅卷就认两个词：<span class="hitword">「最后 3 皮砖」+「14d」</span>。案例题的分，就是这样一小口一小口挣的。',
       vt:{ok:"连 14 天都记得，可以",no:"差半步——差在等多久"},
       vs:{ok:"你抓住了这题的魂：不是砌不砌，是等多久。四个选项就是四种等法，拆给你看。",
           no:"这题考的不是砌不砌，是等多久——四个选项就是四种等法，拆给你看。"},
       mn:{big:"顶砖别急 · 先等十四", sub:"下部墙砌完 <b>14 天</b>，再补砌顶紧"} },
     { name:"装配式建筑垃圾", family:"绿色施工 · 新考点", src:"真题 · 2025 案例",
-      lib:{score:"1.5 分", terms:["200","每万平方米"], hitTerm:"200", nPoints:21, total:5, year:2025},
+      lib:{terms:["200","每万平方米"], hitTerm:"200", nPoints:21, total:5, year:2025},
       cas:"新建装配式保障房项目，施工方案里写：<b>「建筑垃圾产生量控制在每万平方米不大于 300t」</b>——",
       stem:'最后一题，2025 年的新考法：这个数<span class="hi">对吗</span>？',
       hint:"👆 教材年年改，新增考点最爱出这种数",
@@ -517,7 +516,7 @@
             B:"300t 是<b>现浇</b>结构的口径——题干是装配式，方案照抄旧数，正是出题人埋的雷。",
             C:"400t 哪个口径都不是——凭感觉放宽，考场最吃亏。",
             D:"绿色施工章节就是冲着硬指标考的，「分类处理」躲不掉数字题。"},
-      point:'2025 年这条采分点值 <b>1.5 分</b>，阅卷认两个词：<span class="hitword">「200」+「每万平方米」</span>——新教材新增的考点，题库越老的资料越不会有它。',
+      point:'2025 年<b>新增考点</b>的采分点，阅卷认两个词：<span class="hitword">「200」+「每万平方米」</span>——新教材才有的东西，越老的资料越不会有它。',
       vt:{ok:"新考点你都跟上了，厉害",no:"这就是「教材改了」的代价"},
       vs:{ok:"装配式 200t 是近两年才进教材的硬指标——你答对说明你的资料够新。",
           no:"选 300t 的人往往资料没更新——旧数字在新考卷上就是陷阱。拆给你看。"},
@@ -611,14 +610,13 @@
     });
     document.getElementById("fAns").innerHTML = html;
     /* 编译库判分卡 */
-    document.getElementById("fLibScore").textContent = q.lib.score;
     document.getElementById("fPoint").innerHTML = q.point;
     document.getElementById("fTerms").innerHTML = q.lib.terms.map(function(t){
       if(t === q.lib.hitTerm) return '<span class="tchip '+(ok?"hit":"miss")+'">'+(ok?"✓ ":"✗ ")+t+'</span>';
       return '<span class="tchip">'+t+'</span>';
     }).join("");
     document.getElementById("fScale").textContent =
-      "判分卡按 "+q.lib.year+" 官方参考答案折算 · 全题 "+q.lib.total+" 分切成 "+q.lib.nPoints+" 条判分点 · 鲁班编译库已收录 174 个真题小问 / 1221 条判分点";
+      "判分卡按 "+q.lib.year+" 官方参考答案编译 · 全题 "+q.lib.total+" 分 · 切成 "+q.lib.nPoints+" 条判分点 · 鲁班编译库已收录 174 个真题小问 / 1221 条判分点";
     document.getElementById("fMnBig").textContent = q.mn.big;
     document.getElementById("fMnSub").innerHTML = q.mn.sub;
     document.getElementById("fNext").textContent =
