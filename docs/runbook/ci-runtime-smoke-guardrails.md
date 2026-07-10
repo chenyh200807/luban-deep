@@ -153,6 +153,17 @@ python scripts/ci/tests_workflow_scope.py scan-secrets-full
 
 Record both the original timeout and the filtered-file count/time in the PR.
 
+### Full-Shard Async Scheduler Timeout
+
+If an async test passes repeatedly in isolation but the same short
+`asyncio.wait_for(...)` deadline fails at least twice in the full CI shard,
+classify the signature as test scheduling sensitivity before changing product
+code. Preserve the behavioral guard (for example, keep the background task
+blocked on an unreleased event), but give the event loop enough bounded time to
+schedule the foreground assertion under shard load. Re-run the targeted test,
+the owning shard, and the same-SHA workflow; do not use repeated job reruns as
+the fix.
+
 ## Contract Index Copy Discipline
 
 `contracts/index.yaml` is the repo authority, and
