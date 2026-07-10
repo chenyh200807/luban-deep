@@ -114,6 +114,7 @@ def classify(changed: Iterable[str]) -> dict[str, bool]:
                 "requirements/",
                 "agent-skills/",
                 "contracts/",
+                "domains/",
                 "eval/",
                 "deployment/",
                 "supabase/migrations/",

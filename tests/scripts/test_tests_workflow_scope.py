@@ -51,6 +51,16 @@ def test_unified_turn_contract_doc_selects_governance_only() -> None:
     }
 
 
+def test_domains_change_selects_governance_only() -> None:
+    assert classify(["domains/quality-flywheel/metrics/accuracy.jsonl"]) == {
+        "governance": True,
+        "backend": False,
+        "frontend": False,
+        "wx": False,
+        "yousen": False,
+    }
+
+
 def test_secret_scan_files_keep_source_and_skip_generated_heavy_inputs() -> None:
     assert secret_scan_files(
         [
