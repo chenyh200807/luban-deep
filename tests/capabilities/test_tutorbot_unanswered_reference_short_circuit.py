@@ -53,6 +53,13 @@ class _LeakingManager:
         )
 
 
+class _MnemonicManager(_LeakingManager):
+    async def send_message(self, **kwargs) -> str:
+        self.sent_messages += 1
+        self.calls.append(dict(kwargs))
+        return "记忆口诀：防水先排后防，坡度厚度看规范，年限条件分清楚。"
+
+
 def _two_question_followup_context() -> dict[str, object]:
     """A batch of two MCQs. Q1 is attempted (user_answer=B), Q2 is NOT."""
 
@@ -86,6 +93,15 @@ def _two_question_followup_context() -> dict[str, object]:
             },
         ],
     }
+
+
+def _unattempted_two_question_followup_context() -> dict[str, object]:
+    context = _two_question_followup_context()
+    for item in context["items"]:
+        if isinstance(item, dict):
+            item.pop("user_answer", None)
+            item.pop("is_correct", None)
+    return context
 
 
 def _build_context(*, user_message: str, followup_context: dict[str, object]) -> UnifiedContext:
@@ -142,6 +158,102 @@ async def test_unanswered_reference_short_circuits_before_llm(
     # 4. Reveal flags stay closed.
     assert payload["reveal_answers"] is False
     assert payload["reveal_explanations"] is False
+
+
+@pytest.mark.asyncio
+async def test_indexed_explicit_reveal_for_unanswered_question_short_circuits_before_llm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """第2题答案是什么 (Q2 unanswered) -> still blocked before the LLM can leak."""
+
+    manager = _LeakingManager()
+    monkeypatch.setattr(tutorbot_capability, "get_tutorbot_manager", lambda: manager)
+
+    stream = StreamBus()
+    context = _build_context(
+        user_message="第2题答案是什么？",
+        followup_context=_two_question_followup_context(),
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    assert manager.sent_messages == 0
+
+    payload = _result_payload(stream)
+    response = str(payload["response"])
+
+    assert "深基坑支护方案应如何选择" in response
+    assert "C. 按勘察与设计方案" in response
+    assert "正确答案是 C" not in response
+    assert "答案：C" not in response
+    assert "解析：" not in response
+
+
+@pytest.mark.asyncio
+async def test_indexed_mnemonic_for_unanswered_question_short_circuits_before_llm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """第2题记忆口诀 still points at the unanswered item, so it cannot use free LLM."""
+
+    manager = _MnemonicManager()
+    monkeypatch.setattr(tutorbot_capability, "get_tutorbot_manager", lambda: manager)
+
+    stream = StreamBus()
+    context = _build_context(
+        user_message="第2题记忆口诀",
+        followup_context=_two_question_followup_context(),
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    assert manager.sent_messages == 0
+
+    payload = _result_payload(stream)
+    response = str(payload["response"])
+
+    assert "深基坑支护方案应如何选择" in response
+    assert "记忆口诀" not in response
+    assert "正确答案是 C" not in response
+    assert "答案：C" not in response
+    assert "解析：" not in response
+
+
+@pytest.mark.asyncio
+async def test_unanswered_question_set_mnemonic_request_goes_through_tutorbot(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """记忆口诀 is learning support, not unanswered-answer reveal."""
+
+    manager = _MnemonicManager()
+    monkeypatch.setattr(tutorbot_capability, "get_tutorbot_manager", lambda: manager)
+
+    stream = StreamBus()
+    followup_context = _unattempted_two_question_followup_context()
+    context = _build_context(
+        user_message="给我整理一建建筑实务记忆口诀",
+        followup_context=followup_context,
+    )
+    context.metadata["active_object"] = {
+        "object_type": "question_set",
+        "object_id": "question_set",
+        "state_snapshot": followup_context,
+    }
+
+    await TutorBotCapability().run(context, stream)
+
+    assert manager.sent_messages == 1
+    assert manager.calls[0]["session_metadata"]["active_object"] == {}
+    assert manager.calls[0]["session_metadata"]["question_followup_context"] == {}
+    assert manager.calls[0]["session_metadata"]["followup_question_context"] == {}
+    assert manager.calls[0]["session_metadata"]["_prefetched_exact_question"] == {}
+    assert manager.calls[0]["session_metadata"]["question_context_redacted_for_safe_study_aid"] is True
+
+    payload = _result_payload(stream)
+    response = str(payload["response"])
+
+    assert "记忆口诀" in response
+    assert "这道题先自己推一推" not in response
+    assert "解题思路" not in response
 
 
 @pytest.mark.asyncio

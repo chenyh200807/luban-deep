@@ -58,7 +58,7 @@ from deeptutor.services.question_followup import (
     followup_action_route,
     looks_like_practice_generation_request,
     normalize_question_followup_context,
-    should_block_unanswered_reference_reveal,
+    should_keep_unanswered_question_active_for_followup,
 )
 from deeptutor.services.question_turn_policy import (
     _active_object_ref,
@@ -4771,10 +4771,11 @@ class TurnRuntimeManager:
             # 把它压进 suspended stack。否则 active_object 被换成 open_chat_topic，下游
             # anti-peek 消费点（tutorbot 结构化提示短路 / reveal 决策）读不到活跃未答题
             # → 落自由 LLM，LLM 从历史看到题、用知识自推答案泄底（live 红队 5/6 复现，
-            # 软指令/遮蔽已证伪）。单一权威 = should_block_unanswered_reference_reveal
-            # （reveal/anti-peek 同一权威，此处只读不重判）。显式要答案(should_block=False)
-            # 不命中本 carve-out → 照常 demote，由 reveal 路径放行答案（不抑制显式）。
-            stored_set_unanswered_implicit_help = should_block_unanswered_reference_reveal(
+            # 软指令/遮蔽已证伪）。单一权威 =
+            # should_keep_unanswered_question_active_for_followup（此处只读不重判）。
+            # 泛化显式要答案不命中本 carve-out → 照常 demote，由 reveal 路径放行答案；
+            # 具体未答题引用和安全学习辅助 detour 仍保活，避免下游失去题目连续性。
+            stored_set_keep_unanswered_active = should_keep_unanswered_question_active_for_followup(
                 raw_user_content, stored_followup_question_context
             )
             if (
@@ -4785,7 +4786,7 @@ class TurnRuntimeManager:
                 and not stored_set_ordinal_referenced
                 and not stored_active_mcq_represent_referenced
                 and not stored_set_submission_referenced
-                and not stored_set_unanswered_implicit_help
+                and not stored_set_keep_unanswered_active
             ):
                 stored_suspended_object_stack = _prepend_suspended_object(
                     stored_suspended_object_stack,
