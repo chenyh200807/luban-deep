@@ -159,6 +159,8 @@ def promote(
     if gate_check is None:
         def gate_check(pid: str, r: Path) -> None:  # noqa: ANN001 — 同签名默认闸
             _run_builder_gate_check(pid, r, kind)
+            if kind == "variant":
+                _run_style_tells_gate(pid, r)  # 风格泄露闸(2026-07-11 接电)
     pack_id = str(pack_id or "").strip().upper()
     if not _PACK_ID_RE.match(pack_id):
         raise PromotionError(f"非法 pack_id（应形如 F16）: {pack_id!r}")
