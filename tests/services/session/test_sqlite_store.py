@@ -1207,3 +1207,33 @@ async def test_recover_all_orphaned_turns_is_idempotent(tmp_path: Path) -> None:
 
     second = await store.recover_all_orphaned_turns("orphaned_on_restart")
     assert second == 0
+
+
+def test_connect_uses_wal_and_synchronous_normal(tmp_path: Path) -> None:
+    """Runtime per-op connections must inherit WAL + synchronous=NORMAL(1).
+
+    Without an explicit ``PRAGMA synchronous = NORMAL`` on every ``_connect``,
+    each new connection falls back to the default FULL, which fsyncs on every
+    commit and is the largest single-point write amplification for writes.
+    """
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    with store._connect() as conn:
+        synchronous = conn.execute("PRAGMA synchronous").fetchone()[0]
+        journal_mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+
+    assert synchronous == 1  # NORMAL
+    assert journal_mode.lower() == "wal"
+
+
+def test_runtime_connections_pin_wal_and_synchronous_normal(store: SQLiteSessionStore) -> None:
+    """Battle1 W2-T1: every runtime connection must run under the WAL +
+    synchronous=NORMAL durability contract, regardless of the SQLite
+    compile-time default (stock builds default to FULL per connection)."""
+    conn = store._connect()
+    try:
+        journal_mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+        synchronous = conn.execute("PRAGMA synchronous").fetchone()[0]
+    finally:
+        conn.close()
+    assert str(journal_mode).lower() == "wal"
+    assert int(synchronous) == 1  # 1 == NORMAL

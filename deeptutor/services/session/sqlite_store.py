@@ -987,6 +987,13 @@ class SQLiteSessionStore:
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         conn.execute(f"PRAGMA busy_timeout = {_SQLITE_BUSY_TIMEOUT_MS}")
+        # Pin synchronous=NORMAL per connection: journal_mode=WAL persists in
+        # the DB file, but synchronous is per-connection and its default is a
+        # compile-time flag (FULL on stock builds, NORMAL only when built with
+        # SQLITE_DEFAULT_WAL_SYNCHRONOUS=1) — pinning removes the environment
+        # lottery so the WAL+NORMAL durability contract set in _initialize
+        # holds on every runtime connection, not only the first one.
+        conn.execute("PRAGMA synchronous = NORMAL")
         return conn
 
     @staticmethod
