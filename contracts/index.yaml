@@ -349,6 +349,7 @@ domains:
     test_files:
       - tests/runtime/test_orchestrator_autoroute.py
       - tests/runtime/test_orchestrator_preselect_canonical.py
+      - tests/runtime/test_orchestrator_single_selection.py
       - tests/runtime/test_capability_routing_map_collapse.py
       - tests/runtime/test_orchestrator_semantic_router.py
       - tests/services/test_active_object_family_first.py
@@ -624,6 +625,8 @@ domains:
       - tests/api/test_mobile_first_run.py
       # 复习模块(双轮 §6)——到期收权 revalidation_queue 的域测试
       - tests/services/luban_lesson/test_review_due.py
+      # Battle1 W4-T3 model-tiering: consolidation_model split on protected agent/memory.py.
+      - tests/tutorbot/test_agent_loop_model_tiering.py
     schema_files:
       - deeptutor/contracts/learner_state.py
       - supabase/migrations/20260415000100_learner_state_core.sql
@@ -669,6 +672,8 @@ domains:
       - tests/services/construction_grading/test_compiled_registry_resolver.py
       - tests/services/construction_grading/test_full_knowledge_compiler_m30.py
       - tests/services/construction_grading/test_rich_leaf_runtime.py
+      # Battle1 W4 model-tiering: utility_model injection into AgentLoop (protected loop.py).
+      - tests/tutorbot/test_agent_loop_model_tiering.py
     schema_files: []
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn

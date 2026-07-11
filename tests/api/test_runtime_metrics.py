@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from deeptutor.api.runtime_metrics import TurnRuntimeMetrics, render_prometheus_metrics
+from deeptutor.services.observability.multiworker_metrics import merge_metric_snapshots
 
 
 def test_turn_runtime_metrics_snapshot_tracks_ws_and_turn_lifecycle() -> None:
@@ -127,3 +128,56 @@ def test_render_prometheus_metrics_includes_release_and_turn_runtime_metrics() -
         'deeptutor_release_info{deploy_manifest_hash="manifest123",deployment_environment="prod",ff_snapshot_hash="ffaa00112233",git_dirty="false",git_sha="abc123",prompt_version="prompt-v9",release_id="1.0.0+abc123+prod",service_version="1.0.0"} 1'
         in body
     )
+
+
+def test_response_mode_counts_snapshot_and_prometheus() -> None:
+    metrics = TurnRuntimeMetrics()
+    metrics.record_response_mode("fast", "primary")
+    metrics.record_response_mode("fast", "primary")
+    metrics.record_response_mode("deep", "primary")
+    metrics.record_response_mode("fast", "light")
+
+    counts = metrics.snapshot()["response_mode_counts"]
+    assert {"mode": "fast", "model_tier": "primary", "count": 2} in counts
+    assert {"mode": "deep", "model_tier": "primary", "count": 1} in counts
+    assert {"mode": "fast", "model_tier": "light", "count": 1} in counts
+
+    body = render_prometheus_metrics(
+        http_snapshot={},
+        turn_snapshot=metrics.snapshot(),
+        surface_snapshot={},
+        readiness_snapshot={},
+        provider_error_rates={},
+        circuit_breakers={},
+        release_snapshot={},
+    )
+    assert 'deeptutor_turn_response_mode_total{mode="fast",model_tier="light"} 1' in body
+    assert 'deeptutor_turn_response_mode_total{mode="fast",model_tier="primary"} 2' in body
+
+
+def test_response_mode_defaults_normalize_blanks() -> None:
+    metrics = TurnRuntimeMetrics()
+    metrics.record_response_mode("", "")
+    counts = metrics.snapshot()["response_mode_counts"]
+    assert {"mode": "unknown", "model_tier": "primary", "count": 1} in counts
+
+
+def test_merge_metric_snapshots_sums_response_mode_counts_across_workers() -> None:
+    worker_a = {
+        "turn": {
+            "response_mode_counts": [
+                {"mode": "fast", "model_tier": "light", "count": 3},
+                {"mode": "deep", "model_tier": "primary", "count": 1},
+            ]
+        }
+    }
+    worker_b = {
+        "turn": {
+            "response_mode_counts": [
+                {"mode": "fast", "model_tier": "light", "count": 2},
+            ]
+        }
+    }
+    merged = merge_metric_snapshots([worker_a, worker_b])["turn"]["response_mode_counts"]
+    assert {"mode": "fast", "model_tier": "light", "count": 5} in merged
+    assert {"mode": "deep", "model_tier": "primary", "count": 1} in merged

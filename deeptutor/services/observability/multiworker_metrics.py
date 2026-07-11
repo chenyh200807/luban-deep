@@ -261,6 +261,18 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         for stage in sorted(stage_count)
     ]
 
+    # Battle1 W4-T6: observe-only response-mode occupancy, summed by (mode, tier)
+    # across workers. Missing this merge would silently drop per-worker keys.
+    mode_count: dict[tuple[str, str], int] = defaultdict(int)
+    for x in snaps:
+        for entry in x.get("response_mode_counts") or []:
+            key = (str(entry.get("mode", "")), str(entry.get("model_tier", "")))
+            mode_count[key] += int(entry.get("count", 0))
+    response_mode_counts = [
+        {"mode": mode, "model_tier": tier, "count": count}
+        for (mode, tier), count in sorted(mode_count.items())
+    ]
+
     return {
         "ws_active_connections": s("ws_active_connections"),
         "ws_opened_total": s("ws_opened_total"),
@@ -272,6 +284,7 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         "turns_in_flight": s("turns_in_flight"),
         "turn_avg_latency_ms": _weighted_avg(lat_pairs),
         "turn_stage_avg_latency_ms": stages,
+        "response_mode_counts": response_mode_counts,
     }
 
 

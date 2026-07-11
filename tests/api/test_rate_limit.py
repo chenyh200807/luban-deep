@@ -29,14 +29,15 @@ def test_rate_limit_falls_back_to_sqlite_when_redis_is_unavailable(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    # Async stub: the backend now uses redis.asyncio, so command methods are awaited.
     class _FakeRedisClient:
-        def incr(self, *_args, **_kwargs):
+        async def incr(self, *_args, **_kwargs):
             raise ConnectionError("redis unavailable")
 
-        def pexpire(self, *_args, **_kwargs):
+        async def pexpire(self, *_args, **_kwargs):
             return None
 
-        def pttl(self, *_args, **_kwargs):
+        async def pttl(self, *_args, **_kwargs):
             return -1
 
     class _FakeRedisFactory:
@@ -44,8 +45,11 @@ def test_rate_limit_falls_back_to_sqlite_when_redis_is_unavailable(
         def from_url(*_args, **_kwargs):
             return _FakeRedisClient()
 
+    # Backend imports ``from redis import asyncio as aredis`` -> stub the submodule.
     fake_redis = types.ModuleType("redis")
-    fake_redis.Redis = _FakeRedisFactory
+    fake_asyncio = types.ModuleType("redis.asyncio")
+    fake_asyncio.Redis = _FakeRedisFactory
+    fake_redis.asyncio = fake_asyncio
 
     monkeypatch.setenv("DEEPTUTOR_RATE_LIMIT_BACKEND", "redis")
     monkeypatch.setenv("DEEPTUTOR_RATE_LIMIT_REDIS_URL", "redis://localhost:6379/0")
@@ -221,14 +225,14 @@ def test_fallback_in_memory_bucket_accumulates_across_calls(
     (The audit's F9 "limiter bypassed" reading was a false positive; this pins the fact.)"""
 
     class _BoomBackend:
-        def consume(self, *_args, **_kwargs):
+        async def consume(self, *_args, **_kwargs):
             raise RuntimeError("primary backend down")
 
     monkeypatch.setattr(rate_limit_module, "_get_backend", lambda: _BoomBackend())
 
     policy = rate_limit_module.RateLimitPolicy(max_requests=3, window_seconds=60.0)
     results = [
-        rate_limit_module._consume_rate_limit("probe_scope", "probe_key", policy)
+        asyncio.run(rate_limit_module._consume_rate_limit("probe_scope", "probe_key", policy))
         for _ in range(5)
     ]
 
@@ -247,17 +251,18 @@ def test_redis_backend_retries_after_degraded_window(
 
     calls = {"incr": 0}
 
+    # Async stub: redis.asyncio command methods are awaited by the backend.
     class _FlakyRedisClient:
-        def incr(self, *_args, **_kwargs):
+        async def incr(self, *_args, **_kwargs):
             calls["incr"] += 1
             if calls["incr"] == 1:
                 raise ConnectionError("redis down")
             return 1
 
-        def pexpire(self, *_args, **_kwargs):
+        async def pexpire(self, *_args, **_kwargs):
             return None
 
-        def pttl(self, *_args, **_kwargs):
+        async def pttl(self, *_args, **_kwargs):
             return -1
 
     class _FakeRedisFactory:
@@ -266,7 +271,9 @@ def test_redis_backend_retries_after_degraded_window(
             return _FlakyRedisClient()
 
     fake_redis = types.ModuleType("redis")
-    fake_redis.Redis = _FakeRedisFactory
+    fake_asyncio = types.ModuleType("redis.asyncio")
+    fake_asyncio.Redis = _FakeRedisFactory
+    fake_redis.asyncio = fake_asyncio
     monkeypatch.setitem(sys.modules, "redis", fake_redis)
     monkeypatch.setenv("DEEPTUTOR_RATE_LIMIT_DB_PATH", str(tmp_path / "rate_limit.db"))
 
@@ -274,10 +281,10 @@ def test_redis_backend_retries_after_degraded_window(
     policy = rate_limit_module.RateLimitPolicy(max_requests=5, window_seconds=60.0)
 
     # First call: Redis raises -> served by SQLite fallback, degraded window opens.
-    assert backend.consume("scope", "key", policy, 0.0) is None
+    assert asyncio.run(backend.consume("scope", "key", policy, 0.0)) is None
     assert calls["incr"] == 1
     # Inside the window: Redis is NOT touched again.
-    assert backend.consume("scope", "key", policy, 0.0) is None
+    assert asyncio.run(backend.consume("scope", "key", policy, 0.0)) is None
     assert calls["incr"] == 1
 
     # Past the 30s window: Redis is retried and serves again.
@@ -285,5 +292,5 @@ def test_redis_backend_retries_after_degraded_window(
     monkeypatch.setattr(
         rate_limit_module.time, "monotonic", lambda: real_monotonic() + 31.0
     )
-    assert backend.consume("scope", "key", policy, 0.0) is None
+    assert asyncio.run(backend.consume("scope", "key", policy, 0.0)) is None
     assert calls["incr"] == 2

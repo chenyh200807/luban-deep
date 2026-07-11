@@ -131,6 +131,11 @@ class ResolvedLLMConfig:
     api_version: str | None = None
     extra_headers: dict[str, str] = field(default_factory=dict)
     reasoning_effort: str | None = None
+    # Light-tier ("fast") model served on the PRIMARY provider endpoint. Same
+    # base_url / api_key as `model` — a model-name swap, not a second provider.
+    # Empty => callers keep the primary model (fail-open). Single authority for
+    # the "which light model" business fact; mirrors LLM_FALLBACK_MODEL below.
+    fast_model: str = ""
     fallback_model: str = ""
     fallback_provider_name: str = ""
     fallback_provider_mode: str = ""
@@ -455,6 +460,7 @@ def resolve_llm_runtime_config(
         api_version=api_version or None,
         extra_headers=extra_headers,
         reasoning_effort=reasoning_effort,
+        fast_model=_as_str(env_values.get("LLM_FAST_MODEL")),
         **fallback_config,
     )
 

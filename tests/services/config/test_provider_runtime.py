@@ -215,6 +215,75 @@ def test_llm_resolves_dashscope_fallback_model_from_env(tmp_path: Path) -> None:
     assert resolved.fallback_effective_url == "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
 
+def test_llm_resolves_fast_tier_model_from_env(tmp_path: Path) -> None:
+    catalog = _build_catalog(
+        llm_profile={
+            "id": "llm-p",
+            "name": "LLM",
+            "binding": "dashscope",
+            "base_url": "",
+            "api_key": "",
+            "api_version": "",
+            "extra_headers": {},
+            "models": [{"id": "llm-m", "name": "d", "model": "deepseek-v4-flash"}],
+        }
+    )
+    env = _env_with_lines(
+        tmp_path,
+        [
+            "LLM_BINDING=dashscope",
+            "LLM_MODEL=deepseek-v4-flash",
+            "LLM_API_KEY=primary-key",
+            "LLM_HOST=https://dashscope.aliyuncs.com/compatible-mode/v1",
+            "LLM_FAST_MODEL=qwen3.6-flash",
+        ],
+    )
+
+    resolved = resolve_llm_runtime_config(catalog=catalog, env_store=env)
+
+    # Fast tier is a model-name swap on the SAME primary endpoint.
+    assert resolved.fast_model == "qwen3.6-flash"
+    assert resolved.model == "deepseek-v4-flash"
+    assert resolved.provider_name == "dashscope"
+
+
+def test_llm_fast_tier_model_defaults_empty_when_unset(tmp_path: Path) -> None:
+    catalog = _build_catalog()
+    resolved = resolve_llm_runtime_config(catalog=catalog, env_store=_empty_env(tmp_path))
+    assert resolved.fast_model == ""
+
+
+def test_resolve_fast_tier_model_accessor_reads_scoped_config() -> None:
+    from deeptutor.services.llm.config import (
+        LLMConfig,
+        reset_scoped_llm_config,
+        resolve_fast_tier_model,
+        set_scoped_llm_config,
+    )
+
+    token = set_scoped_llm_config(
+        LLMConfig(
+            model="primary-model",
+            api_key="k",
+            base_url="https://example.test/v1",
+            fast_model="  qwen3.6-flash  ",
+        )
+    )
+    try:
+        assert resolve_fast_tier_model() == "qwen3.6-flash"
+    finally:
+        reset_scoped_llm_config(token)
+
+    # Unconfigured fast tier -> "" (fail-open: callers keep the primary model).
+    token = set_scoped_llm_config(
+        LLMConfig(model="primary-model", api_key="k", base_url="https://example.test/v1")
+    )
+    try:
+        assert resolve_fast_tier_model() == ""
+    finally:
+        reset_scoped_llm_config(token)
+
+
 def test_llm_api_key_prefix_gateway(tmp_path: Path) -> None:
     catalog = _build_catalog(
         llm_profile={

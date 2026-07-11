@@ -450,10 +450,10 @@ async def test_unified_turn_redteam_short_circuits_default_web_chat_before_orche
             )
 
     class FailingOrchestrator:
-        async def _select_capability(self, _context: Any) -> str:
+        async def select_capability(self, _context: Any) -> str:
             return "chat"
 
-        async def handle(self, _context: Any):
+        async def handle(self, _context: Any, **_kwargs: Any):
             raise AssertionError("security guardrail should short-circuit before orchestrator")
 
     class FailingNotebookAnalysisAgent:

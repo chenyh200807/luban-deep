@@ -58,3 +58,80 @@ def test_release_cleans_up_registry_entry() -> None:
         return "solo" in mod._active_ws_connections
 
     assert asyncio.run(_exercise()) is False  # no leaked zero-count entries
+
+
+# --- Redis-shared path (redis.asyncio) --------------------------------------
+# The per-process tests above force Redis=None. This block exercises the SHARED
+# ZSET path with an in-memory ASYNC fake, pinning the async pipeline/zrem wiring:
+# pipeline command methods queue synchronously and return the pipe, only execute()
+# and zrem are awaited (matching redis.asyncio semantics).
+
+
+class _FakeAsyncPipeline:
+    def __init__(self, store: dict[str, dict[str, float]]) -> None:
+        self._store = store
+        self._results: list[object] = []
+
+    def zremrangebyscore(self, key: str, min_score: float, max_score: float):
+        members = self._store.setdefault(key, {})
+        purged = [m for m, s in members.items() if min_score <= s <= max_score]
+        for m in purged:
+            members.pop(m, None)
+        self._results.append(len(purged))
+        return self
+
+    def zadd(self, key: str, mapping: dict[str, float]):
+        members = self._store.setdefault(key, {})
+        added = sum(1 for m in mapping if m not in members)
+        members.update(mapping)
+        self._results.append(added)
+        return self
+
+    def zcard(self, key: str):
+        self._results.append(len(self._store.get(key, {})))
+        return self
+
+    def expire(self, key: str, ttl: int):
+        self._results.append(True)
+        return self
+
+    async def execute(self) -> list[object]:
+        return self._results
+
+
+class _FakeAsyncRedis:
+    """Minimal in-memory async ZSET mimicking the redis.asyncio surface used here."""
+
+    def __init__(self) -> None:
+        self._store: dict[str, dict[str, float]] = {}
+
+    def pipeline(self) -> _FakeAsyncPipeline:
+        return _FakeAsyncPipeline(self._store)
+
+    async def zrem(self, key: str, member: str) -> int:
+        members = self._store.get(key, {})
+        return 1 if members.pop(member, None) is not None else 0
+
+
+def test_redis_shared_path_enforces_cap_and_rolls_back(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cap = mod._MAX_WS_CONNECTIONS_PER_USER
+    fake = _FakeAsyncRedis()
+    # Override the autouse fixture's Redis=None for this test only.
+    monkeypatch.setattr(mod, "_ws_conn_redis", fake)
+    monkeypatch.setattr(mod, "_ws_conn_redis_resolved", True)
+
+    async def _exercise() -> tuple[list[str | None], str | None, str | None]:
+        acquired = [await mod._try_acquire_ws_slot("ru") for _ in range(cap)]
+        over_cap = await mod._try_acquire_ws_slot("ru")        # cap+1 -> rolled back
+        await mod._release_ws_slot("ru", acquired[0])          # free one slot
+        after_release = await mod._try_acquire_ws_slot("ru")   # allowed again
+        return acquired, over_cap, after_release
+
+    acquired, over_cap, after_release = asyncio.run(_exercise())
+    assert all(t is not None and t.startswith("redis:") for t in acquired)
+    assert over_cap is None
+    assert after_release is not None
+    # Over-cap reservation was undone via awaited zrem -> ZSET holds exactly `cap`.
+    assert len(fake._store["deeptutor:ws-conn:ru"]) == cap

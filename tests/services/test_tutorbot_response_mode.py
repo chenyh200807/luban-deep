@@ -54,6 +54,7 @@ def test_build_mode_execution_policy_returns_expected_budget_shape():
     assert fast.allow_deep_stage is False
     assert fast.response_density == "short"
     assert fast.latency_budget_ms == 6000
+    # Default (no fast_preferred_model passed) -> "": zero-config zero-change.
     assert fast.preferred_model == ""
     assert smart.max_tool_rounds == 1
     assert smart.allow_deep_stage is False
@@ -66,6 +67,26 @@ def test_build_mode_execution_policy_returns_expected_budget_shape():
     assert deep.latency_budget_ms == 20000
     assert deep.preferred_model == ""
     assert deep.latency_budget_ms > fast.latency_budget_ms
+
+
+def test_build_mode_execution_policy_fast_tier_fills_preferred_model() -> None:
+    # W4-T2: fast branch adopts the light-tier model when one is provided.
+    fast = build_mode_execution_policy(
+        "smart", selected_mode="fast", fast_preferred_model="qwen3.6-flash"
+    )
+    assert fast.selected_mode == "fast"
+    assert fast.preferred_model == "qwen3.6-flash"
+
+    # Hard invariant: the light tier NEVER leaks into the deep branch.
+    deep = build_mode_execution_policy("deep", fast_preferred_model="qwen3.6-flash")
+    assert deep.selected_mode == "deep"
+    assert deep.preferred_model == ""
+
+    # Empty / whitespace input normalizes to "".
+    blank = build_mode_execution_policy(
+        "fast", selected_mode="fast", fast_preferred_model="   "
+    )
+    assert blank.preferred_model == ""
 
 
 def test_select_response_mode_routes_smart_between_fast_and_deep() -> None:
