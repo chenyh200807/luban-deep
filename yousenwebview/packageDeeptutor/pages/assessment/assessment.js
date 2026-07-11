@@ -135,6 +135,13 @@ function buildWelcomeModeState(mode, topicLabel, topicFormCount) {
 }
 
 var helpers = require("../../utils/helpers");
+var surfaceTelemetry = require("../../utils/surface-telemetry");
+
+function trackBehavior(eventName, payload) {
+  if (surfaceTelemetry && typeof surfaceTelemetry.trackProductBehavior === "function") {
+    surfaceTelemetry.trackProductBehavior(eventName, payload);
+  }
+}
 
 function buildAnswerState(questions, selectedKeys, currentIndex) {
   var sheet = [];
@@ -875,6 +882,8 @@ Page({
   _startTime: 0,
 
   onLoad: function () {
+    this._submitted = false;
+    trackBehavior("module_viewed", { module: "assessment", action: "view" });
     var info = helpers.getWindowInfo();
     this.setData({
       statusBarHeight: info.statusBarHeight,
@@ -887,6 +896,18 @@ Page({
 
   onShow: function () {
     this.setData({ isDark: helpers.isDark() });
+  },
+
+  onUnload: function () {
+    if (this.data.stage === "quiz" && !this._submitted) {
+      trackBehavior("module_exited", {
+        module: "assessment",
+        action: "return",
+        objectType: "assessment_quiz",
+        objectId: this._quizId || "",
+        result: "incomplete",
+      });
+    }
   },
 
   loadTopicCatalog: function () {
@@ -992,6 +1013,12 @@ Page({
       return;
     }
     var self = this;
+    trackBehavior("learning_action_started", {
+      module: "assessment",
+      action: "start_probe",
+      objectType: "assessment_quiz",
+      objectId: selectedTopic,
+    });
     helpers.vibrate("medium");
     self.setData({ stage: "loading", starting: true });
 
@@ -1234,6 +1261,15 @@ Page({
       .submitAssessment(self._quizId, answers, timeSpent, getAssessmentDeviceId())
       .then(function (resp) {
         var data = resp.data || resp;
+        self._submitted = true;
+        trackBehavior("learning_action_completed", {
+          module: "assessment",
+          action: "complete",
+          objectType: "assessment_quiz",
+          objectId: self._quizId || "",
+          durationMs: timeSpent * 1000,
+          result: "success",
+        });
         try {
           if (data && data.schema_version === "p0a-v1") {
             self.setData(
@@ -1390,6 +1426,14 @@ Page({
         }
       })
       .catch(function (e) {
+        trackBehavior("event_error", {
+          module: "assessment",
+          action: "error",
+          objectType: "assessment_quiz",
+          objectId: self._quizId || "",
+          result: "fail",
+          errorCode: e && e.message ? e.message : "submit_failed",
+        });
         // 提交失败已通过 toast 展示
         wx.showToast({ title: "提交失败，请重试", icon: "none" });
         self.setData({ stage: "quiz", submitting: false });

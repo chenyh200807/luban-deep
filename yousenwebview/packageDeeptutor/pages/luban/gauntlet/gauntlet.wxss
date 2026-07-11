@@ -254,6 +254,33 @@
   text-align: center;
 }
 
+/* ── 档位③ 全量作答(判分内核 verdict) ── */
+.gt-card.fa { gap: 18rpx; }
+.gt-fa-wait { font-size: 24rpx; color: var(--pk-t2); line-height: 1.7; }
+.gt-fa-note { font-size: 24rpx; color: var(--pk-t2); line-height: 1.7; }
+.gt-fa-scoreline { display: flex; align-items: baseline; gap: 12rpx; }
+.gt-fa-score { font-size: 40rpx; font-weight: 800; color: var(--pk-t1); line-height: 1; }
+.gt-fa-score-label { font-size: 22rpx; color: var(--pk-t3); }
+.gt-fa-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
+  padding: 14rpx 0;
+  border-top: 1rpx solid var(--pk-bd);
+}
+.gt-fa-criterion { flex: 1; font-size: 24rpx; line-height: 1.7; color: var(--pk-t1); }
+.gt-fa-cap {
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: var(--pk-t3);
+  padding: 14rpx 18rpx;
+  border-radius: 16rpx;
+  background: rgba(38, 36, 31, 0.06);
+}
+.paper:not(.light) .gt-fa-cap { background: rgba(240, 237, 225, 0.08); }
+.gt-fa-cap.stable { color: var(--pk-grn); }
+.gt-fa-mistake { font-size: 22rpx; line-height: 1.6; color: var(--pk-warn); }
+
 /* ── ③ 核对 ── */
 .gt-card.hero { flex-direction: row; align-items: center; gap: 26rpx; }
 .gt-gauge {

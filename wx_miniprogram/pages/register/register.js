@@ -1,6 +1,7 @@
 var api = require("../../utils/api");
 var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
+var firstRunEntry = require("../../utils/first-run-entry");
 
 var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 var CN_MOBILE_RE = /^1[3-9]\d{9}$/;
@@ -67,7 +68,8 @@ Page({
       });
     } catch (_) {}
     if (auth.isLoggedIn()) {
-      wx.switchTab({ url: "/pages/chat/chat" });
+      // 已登录=返回用户，直达 chat，不进首跑剧本
+      firstRunEntry.goHomeAfterAuth(false);
       return;
     }
   },
@@ -109,6 +111,7 @@ Page({
     }
 
     self.setData({ loading: true, errorMsg: "" });
+    var attribution = api.regAttribution();
     api
       .request({
         url: "/api/v1/auth/register",
@@ -117,6 +120,8 @@ Page({
           username: username,
           password: password,
           phone: phone,
+          channel: attribution.channel,
+          scene: attribution.scene,
         },
         noAuth: true,
       })
@@ -132,7 +137,7 @@ Page({
           user._token;
         if (!token) throw new Error("服务端未返回凭证");
         auth.setToken(token, inner.expires_at, inner);
-        wx.switchTab({ url: "/pages/chat/chat" });
+        firstRunEntry.goHomeAfterAuth(true);
       })
       .catch(function (err) {
         if (!self._mounted) return;
@@ -202,7 +207,7 @@ Page({
           .then(function (resp) {
             if (!self._mounted) return;
             self._completeWechatAuth(resp);
-            wx.switchTab({ url: "/pages/chat/chat" });
+            firstRunEntry.goHomeAfterAuth(true);
           })
           .catch(function (err) {
             if (!self._mounted) return;

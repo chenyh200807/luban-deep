@@ -45,9 +45,9 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath, options) {
     assert(
       wxml.indexOf('class="pkg-grid"') >= 0 &&
         wxml.indexOf('class="pay-dock"') >= 0 &&
-        wxml.indexOf('class="contact-sales-sheet"') >= 0 &&
-        js.indexOf("contactSalesVisible") >= 0,
-      label + " billing should expose package selection and sales contact QR flow",
+        wxml.indexOf('class="contact-sales-sheet"') < 0 &&
+        js.indexOf("contactSalesVisible") < 0,
+      label + " billing should expose package selection and direct WeChat Pay without QR fallback",
     );
   } else {
     assert(
@@ -107,13 +107,15 @@ function checkSurface(label, wxmlPath, wxssPath, expectedLogoPath, options) {
   );
   if (opts.expectPackages) {
     assert(
-      wxml.indexOf("联系销售开通") >= 0 &&
-        wxml.indexOf("sales-contact-qr.png") >= 0 &&
-        js.indexOf("createBillingCheckout") < 0 &&
-        js.indexOf("requestPayment") < 0 &&
+      wxml.indexOf("微信支付成功后自动开通学习权益") >= 0 &&
+        wxml.indexOf("sales-contact-qr.png") < 0 &&
+        wxml.indexOf("二维码") < 0 &&
+        wxml.indexOf("联系销售") < 0 &&
+        js.indexOf("createBillingCheckout") >= 0 &&
+        js.indexOf("requestPayment") >= 0 &&
         js.indexOf("暂未开发") < 0 &&
         wxml.indexOf("暂未开发") < 0,
-      label + " billing should show the sales contact QR before any direct payment path",
+      label + " billing should expose direct WeChat payment and reject sales QR fallback",
     );
   } else {
     assert(

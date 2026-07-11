@@ -135,6 +135,13 @@ function loadPage(relativePath, apiOverrides) {
         };
       }
       if (request === "../../utils/taxonomy") return require(path.join(__dirname, "../utils/taxonomy"));
+      if (request === "../../utils/surface-telemetry") {
+        return {
+          track: function () {},
+          trackOnce: function () {},
+          trackProductBehavior: function () {},
+        };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {

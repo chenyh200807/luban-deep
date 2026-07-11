@@ -132,6 +132,10 @@ feature_flags:
   # 复习模块(双轮 §6 回炉屏)灰度: review-due 投影 / station_completed 信号 /
   # mistake_book review_due_at 读侧派生, 三处同旗标; 关 = 与收权前行为一致。
   - {name: LUBAN_REVIEW_MODULE_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  # PRD v1.3 §0.0 头牌: 2 分钟 per-考点 MCQ 轻练(判断题投影自签发变体池)。灰度:
+  # /light-practice 取题 + /light-practice/submit 交卷判分+写 learning_evidence;
+  # 关 = 取题空集/交卷不写(诚实 disabled 态), 与上线前行为一致。
+  - {name: LUBAN_LIGHT_PRACTICE_ENABLED, default: false, kind: rollout, read: hand_rolled}
   # 讲懂卡托管基址: read_model 派生 card_url={base}/{pack_id小写}/lesson.html;
   # 未设置 = 全站 card_url 空串走原生占位降级(fail-closed), 局外人审计断链②的合闸键。
   - {name: LUBAN_LESSON_CARD_BASE, default: "", kind: config, read: hand_rolled}
@@ -140,6 +144,10 @@ feature_flags:
   - {name: LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_LECTURE_ANSWER_METHOD_CONTEXT_ENABLED, default: true, kind: killswitch, read: hand_rolled}
   - {name: LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED, default: false, kind: killswitch, read: hand_rolled}
+  # 交接时刻「明天见」次日复测订阅消息模板 ID（双轮 v3.2 §9-D12）:owner 在小程序
+  # 后台申请模板后填入;wechat_subscribe/service.py:TEMPLATE_ENV_KEYS 读。未配置=""=
+  # 链路建成前的合法态(send_subscribe_message 返 degraded_red_dot,不 raise、不阻断闭环)。
+  - {name: WECHAT_SUBSCRIBE_TMPL_NEXT_DAY_RETEST, default: "", kind: config, read: hand_rolled}
   - {name: DEEPTUTOR_DEMO_TOKENS_ENABLED, default: false, kind: dev, read: hand_rolled}
 
 # ── Credentials (secret kind — 并入此 registry，不另建凭据系统) ───────────────
@@ -177,6 +185,7 @@ credentials:
   - {name: BAILIAN_TELEMETRY_ACCESS_KEY_SECRET, owner: bailian_telemetry}
   - {name: WECHAT_MP_APP_SECRET, owner: wechat_mp}
   - {name: WECHAT_MP_TOKEN_SECRET, owner: wechat_mp}
+  - {name: WECHAT_PAY_API_V3_KEY, owner: wechat_pay}
   - {name: SUPABASE_KEY, owner: supabase}
   - {name: SUPABASE_ANON_KEY, owner: supabase}
   - {name: SUPABASE_SERVICE_KEY, owner: supabase}
@@ -202,6 +211,8 @@ credentials:
 aliases:
   - {alias: WECHAT_MP_APPSECRET, canonical: WECHAT_MP_APP_SECRET}   # service.py:2517-2518 explicit fallback
   - {alias: WECHAT_MP_APPID, canonical: WECHAT_MP_APP_ID}           # service.py:2816-2817 explicit fallback
+  - {alias: WECHAT_PAY_MCH_CERT_SERIAL_NO, canonical: WECHAT_PAY_CERT_SERIAL_NO}
+  - {alias: WECHAT_PAY_MCH_PRIVATE_KEY_PATH, canonical: WECHAT_PAY_PRIVATE_KEY_PATH}
   - {alias: OPENAI_APIKEY, canonical: OPENAI_API_KEY}
   - {alias: BAILIAN_BILLING_APIKEY_ID, canonical: BAILIAN_BILLING_ACCESS_KEY_ID}
   - {alias: BAILIAN_TELEMETRY_APIKEY_ID, canonical: BAILIAN_TELEMETRY_ACCESS_KEY_ID}
@@ -517,6 +528,15 @@ grandfathered_envs:
   - WECHAT_MP_APP_ID
   - WECHAT_MP_APP_SECRET
   - WECHAT_MP_TOKEN_SECRET
+  - WECHAT_PAY_API_BASE
+  - WECHAT_PAY_API_V3_KEY
+  - WECHAT_PAY_APP_ID
+  - WECHAT_PAY_CERT_SERIAL_NO
+  - WECHAT_PAY_MCH_CERT_SERIAL_NO
+  - WECHAT_PAY_MCH_ID
+  - WECHAT_PAY_MCH_PRIVATE_KEY_PATH
+  - WECHAT_PAY_NOTIFY_URL
+  - WECHAT_PAY_PRIVATE_KEY_PATH
   - WECHAT_QA_BASE_URL
   - WX_DEVTOOLS_CLI
   - X_DATABASE_URL

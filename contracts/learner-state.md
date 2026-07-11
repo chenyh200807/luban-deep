@@ -148,11 +148,34 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   `public.user_identity_aliases` 中 `alias_type='phone'` 且来源可信的手机号身份：
   `phone_backfill`、`member_console_backfill`、`phone_verification`。`public_users_backfill`
   是批量迁移 / 测试污染高风险来源，不得计入真实运营会员。`public.v_members` 只负责为这些
-  phone-backed identities 补充钱包、画像和聊天汇总 read model。`member_console` 本地 JSON
+  phone-backed identities 补充钱包和画像 read model；`public.chat_conversations` 是已确认死表
+  （真实对话在宿主 SQLite `chat_history.db`），`v_members` 的聊天派生列
+  （`first_chat_at`/`last_chat_at`/`total_conversations`/`total_messages`/`has_chat_history`）
+  不得再被任何读取方消费，会员对话活跃事实只能从 canonical session store 派生
+  （`_merge_session_activity_for_member_list`）。`member_console` 本地 JSON
   只能作为运营备注、审计流水、conversation view audit 和低风险动作记录的 overlay；不得再作为
   生产会员池、注册手机号池、钱包存在性或学习事实的 canonical source。BI 默认会员列表和经营总量
-  必须展示真实运营会员：可信手机号身份仍需先排除 QA、eval、release smoke、practice anchor、
-  army 类模拟账号和其它 `_looks_like_test_member` 标记账号。
+  必须展示真实运营会员：可信手机号身份仍需先排除带有 `account_kind='eval_runner'`、
+  `actor_type='machine'`、`created_by='eval_runner'`、`is_internal_test=true` 等显式机器身份的账号；
+  QA、eval、release smoke、practice anchor、army 类历史模拟账号和其它 `_looks_like_test_member`
+  marker 只能作为旧污染兜底。
+- 显式机器身份不得只停留在本地 external auth / member-console overlay。任何会把手机号身份写入
+  `public.user_identity_aliases` 的 eval / smoke / QA 路径，必须把上述机器身份同步写入该 alias 的
+  `metadata`；Supabase member directory 读取 phone alias 时也必须把这些 metadata 透传到
+  member `identity_metadata`，让 BI 在 display name / identifier 已变成 UUID 或学员昵称时仍能排除
+  机器账号。
+- 注册渠道归因是 phone alias `metadata` 上的两个可选键：`reg_channel`（推广物料 `?ch=xxx`，
+  清洗后只含 `[0-9A-Za-z_-]`，≤64 字符）与 `reg_scene`（微信启动场景值，纯数字）。写入方唯一是
+  `MemberConsoleService` 的注册 / 微信手机号绑定路径，且只做 first-touch：账号密码注册必然是新会员
+  直接写入；微信路径仅当该手机号尚无可信 canonical alias（真·首次注册）时写入，已注册用户复登录
+  不得覆盖注册渠道。这两个键是 BI 渠道 ROI read model（会员列表 `channel` 字段与 member-stats
+  `channels` 分组）的唯一来源；它们不是 learner state，不得写入 profile、progress、goals、
+  learner_summaries 或 learner_memory_events，也不得成为身份判定或计费依据。
+- Supabase member directory 读取 trusted phone alias 时，必须优先覆盖最近注册 / 最近验证的手机号身份，
+  不能因为历史 backfill alias 数量超过读取上限而漏掉当天新增会员。若 `v_members` 暂无对应行，读取层必须
+  hydrate `public.users.identifier`、`createdAt` 和 `metadata`，并把 `public.users.metadata` 与 alias
+  `metadata` 合并为 member `identity_metadata`；历史 QA / eval marker 也必须进入
+  `_looks_like_test_member` 的 alias / search 兜底，避免 alias-only 机器账号被误计入真实会员。
 - `member_console` 可以提供会员套餐展示 read model 和运营包配置投影，但新注册用户的默认权益必须是
   0 点；充值到账、扣费、冻结余额和钱包存在性仍只属于 `WalletService` / wallet ledger
   authority。套餐展示中的原价、现价、点数和可用轮次只是 commerce read model，不得写入 learner
@@ -169,6 +192,14 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   仍是相对当前时间的滚动窗口。它们是 dashboard read model，不得从前端分页结果、
   行为事件、钱包流水、运营备注或 learner-state projection 反推，也不得写入
   `learner_summaries`、`learner_memory_events`、profile、progress、goals 或 heartbeat。
+- 人工标记的内部/军团账号（`public.bi_internal_accounts` 审计流水中每个 user_id 最新一行
+  `is_internal=true`）必须从 BI 全部会员统计口径消失：会员总量、新增窗口、增长漏斗、
+  留存 cohort scoping、活跃学习者 scoping、commerce 会员基数。排除逻辑唯一收口在
+  `BIService._load_all_members`（按 member identity values 与标记集求交），消费点不得各自
+  再实现第二遍；标记表读取唯一走 `BIService._load_internal_account_states`。标记表读失败时
+  fail-open（沿用缓存或空集并告警），BI 可短暂回到未清洗口径但不得整体不可用。该标记是
+  BI 统计口径事实，不是 learner state，不得写入任何 learner 真相，也不影响会员运营
+  工作区（`/member/list`）对内部账号的可见性——运营需要看到并管理这些账号。
 - BI 会员列表的 `last_active_at` 可以用 canonical session store 的真实会话更新时间做
   read-model overlay；当 Supabase 目录暂时缺少一个本地已注册、手机号可信且有 session 活跃
   证据的会员时，`member_console` 可以把该会员作为
@@ -193,6 +224,11 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   用户；手机号验证码登录、微信 `getPhoneNumber` 快速登录 / 绑定和账号密码登录必须共同收敛到
   同一个 canonical member identity，一个手机号只能对应一个账号，不得让用户名、openid、设备号或
   未验证手机号获得独立免费试用 / billing / learner-state 身份。
+- 生产环境微信手机号快速登录 / 绑定必须使用 `getPhoneNumber` 返回的 `phone_code` 并经微信
+  `getuserphonenumber` 换号；直传 11 位手机号只允许作为非生产 eval / legacy QA 兼容路径，且必须
+  写入并同步到 external auth 的机器身份元数据：`account_kind='eval_runner'`、
+  `actor_type='machine'`、`created_by='eval_runner'`、`is_internal_test=true`。这类账号不得计入
+  BI 默认真实会员、今日新增、活跃或行为指标。
 - 微信手机号强制绑定策略上线前签发的 `wechat_mp` token 不得继续作为正式会员态刷新或访问会员
   资源；服务端必须让这类旧会话重新走 `getPhoneNumber phone_code`，避免旧 wx-only session
   长期绕过手机号 canonical identity。
@@ -909,4 +945,4 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
 
 ## QA/内部账号 allowlist 导出（2026-07-02）
 
-`MemberConsoleService.list_internal_test_user_ids()` 是 QA/内部账号名单的**唯一读权威**（spike D1 度量与 D15 埋点读侧共用）：判据复用 `_looks_like_test_member`，禁止在度量脚本里另建启发式名单（`turns>50` 等只能作对照披露）。实现注意：不得经 `_load_member_directory_members_for_bi` 取数——其 BI 过滤会先剔除测试账号，生产恒为空集；必须遍历本地 store + Supabase directory 原始成员。该导出是只读投影，不是第二 identity authority——identity 仍按 `canonical_uid` 单点。
+`MemberConsoleService.list_internal_test_user_ids()` 是 QA/内部账号名单的**唯一读权威**（spike D1 度量与 D15 埋点读侧共用）：判据复用 `_looks_like_test_member`，优先识别 `account_kind='eval_runner'`、`actor_type='machine'`、`created_by='eval_runner'`、`is_internal_test=true` 等显式机器身份，再使用旧账号名 marker 兜底；禁止在度量脚本里另建启发式名单（`turns>50` 等只能作对照披露）。实现注意：不得经 `_load_member_directory_members_for_bi` 取数——其 BI 过滤会先剔除测试账号，生产恒为空集；必须遍历本地 store + Supabase directory 原始成员。该导出是只读投影，不是第二 identity authority——identity 仍按 `canonical_uid` 单点。

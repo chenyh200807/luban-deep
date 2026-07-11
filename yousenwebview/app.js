@@ -596,6 +596,30 @@ App({
         this.globalData.networkAvailable = res.networkType !== "none";
       },
     });
+
+    this._captureChannelAttribution(
+      typeof wx.getLaunchOptionsSync === "function"
+        ? wx.getLaunchOptionsSync()
+        : null,
+    );
+  },
+
+  onShow(options) {
+    this._captureChannelAttribution(options);
+  },
+
+  _captureChannelAttribution(options) {
+    try {
+      const opts = options || {};
+      const query = opts.query || {};
+      const channel = String(query.ch || "").slice(0, 64);
+      const scene = opts.scene ? String(opts.scene) : "";
+      if (channel) {
+        wx.setStorageSync("reg_attribution", { ch: channel, scene: scene });
+      } else if (scene && !wx.getStorageSync("reg_attribution")) {
+        wx.setStorageSync("reg_attribution", { ch: "", scene: scene });
+      }
+    } catch (_err) {}
   },
 
   checkAuth(callback) {

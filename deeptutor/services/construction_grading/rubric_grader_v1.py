@@ -1545,7 +1545,7 @@ def batch_judge(
     prompt = _batch_prompt(rubric_points, student_answer)
     try:
         raw = asyncio.run(complete_fn(prompt=prompt, system_prompt=_BATCH_SYSTEM_PROMPT,
-                                      model=model, api_key=api_key, max_retries=1))
+                                      model=model, api_key=api_key, max_retries=1, temperature=0))
     except Exception:  # noqa: BLE001 — batch failure -> all miss+low_conf (high-risk fallback)
         logger.warning("rubric_grader_v1: batch_judge LLM call failed; degrading to all-miss", exc_info=True)
         return {}
@@ -1561,7 +1561,7 @@ async def batch_judge_async(
     prompt = _batch_prompt(rubric_points, student_answer)
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_BATCH_SYSTEM_PROMPT,
-                                model=model, api_key=api_key, max_retries=1)
+                                model=model, api_key=api_key, max_retries=1, temperature=0)
     except Exception:  # noqa: BLE001 — batch failure -> all miss+low_conf (high-risk fallback)
         logger.warning("rubric_grader_v1: batch_judge_async LLM call failed; degrading to all-miss",
                        exc_info=True)
@@ -2002,7 +2002,7 @@ def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str 
         )
         try:
             raw = asyncio.run(complete_fn(prompt=prompt, system_prompt="你是一建案例题阅卷员,只判命中不改分值。",
-                                          model=model, api_key=api_key, max_retries=1))
+                                          model=model, api_key=api_key, max_retries=1, temperature=0))
             v = _json.loads(str(raw)[str(raw).find("{"):str(raw).rfind("}") + 1])
             return v if isinstance(v, dict) else {"status": MISS, "low_confidence": True}
         except Exception:  # noqa: BLE001 — judge failure -> miss + low_confidence (high-risk fallback)

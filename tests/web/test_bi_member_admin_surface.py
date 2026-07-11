@@ -397,6 +397,24 @@ def test_v2_conversation_audit_uses_audited_action_hook() -> None:
     )
 
 
+def test_v2_conversation_full_text_button_is_single_line() -> None:
+    """The drawer action button is narrow in the right-side panel; keep the
+    label on one line so admins do not see a broken "查看 / 全文" split."""
+    drawer = (
+        REPO_ROOT
+        / "web"
+        / "app"
+        / "(workspace)"
+        / "bi"
+        / "_v2"
+        / "member-ops"
+        / "ConversationReviewDrawer.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert 'className="shrink-0 whitespace-nowrap"' in drawer
+    assert 'title={reasonBlockedMessage || `查看 ${session.title} 全文`}' in drawer
+
+
 def test_v2_require_bi_admin_boundary_present() -> None:
     """Round 3 C contract: BiV2Surface must gate panels behind RequireBiAdmin
     so identity is authenticated before any panel renders.

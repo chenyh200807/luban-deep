@@ -106,6 +106,80 @@ var primaryIdx = pageWxml.indexOf("保留草稿 · 先退出");
 var sheetBtnClass = pageWxml.slice(pageWxml.lastIndexOf("<view", primaryIdx), primaryIdx);
 assert.ok(sheetBtnClass.indexOf("gt-btn") >= 0, "sheet 主按钮(墨色)必须给退出, 不做暗黑挽留");
 
+// ── 5b. 档位③全量作答(判分内核 seam 投影) ────────────────────
+// 前端零判分: status / score 全部原样透传内核, vm 只做呈现映射。
+var faL0 = vm.buildFullAnswerVerdict({
+  scoring_points: [
+    { criterion: "判断监理答复时限", status: "full", awarded_score: 1, max_score: 1 },
+    { criterion: "援引合同条款依据", status: "miss", awarded_score: 0, max_score: 1 },
+    { criterion: "结论表述完整", status: "partial", awarded_score: 0.5, max_score: 1 },
+  ],
+  score_awarded: 1.5,
+  max_score: 3,
+  evidence_level: "L0_observed",
+  stable_truth_eligible: false,
+  writeback_count: 2,
+});
+assert.strictEqual(faL0.graded, true);
+assert.strictEqual(faL0.scoreLine, "1.5 / 3");
+assert.strictEqual(faL0.points[0].chipClass, "grn", "命中→竹青绿");
+assert.strictEqual(faL0.points[1].chipClass, "och", "漏点→赭暖");
+assert.strictEqual(faL0.points[2].chipClass, "line", "部分命中→中性");
+assert.strictEqual(faL0.missCount, 1);
+assert.strictEqual(faL0.hasPoints, true);
+// 诚实封顶: L0 不假装稳定掌握, 如实告知升级路径
+assert.strictEqual(faL0.stableEligible, false);
+assert.ok(faL0.capNote.indexOf("升级") >= 0 && faL0.capNote.indexOf("稳定掌握") >= 0, "L0 如实说待升级, 不假装满分掌握");
+// 有漏点 + 后端确有 writeback → 如实转述入错因银行(记账真值归内核)
+assert.ok(faL0.mistakeNote.indexOf("错因银行") >= 0, "漏点+后端写入→如实转述记账");
+// 剥离键: verdict 不得回传 keywords / required_terms(防再认泄漏)
+assert.strictEqual(faL0.points[0].keywords, undefined);
+assert.strictEqual(faL0.points[0].required_terms, undefined);
+
+// 后端无写入 → 前端绝不假声明记账
+var faNoWrite = vm.buildFullAnswerVerdict({
+  scoring_points: [{ criterion: "x", status: "miss", awarded_score: 0, max_score: 1 }],
+  writeback_count: 0,
+  stable_truth_eligible: false,
+});
+assert.strictEqual(faNoWrite.mistakeNote, "", "后端无 writeback→前端不假声明记账");
+
+// stable 掌握路径(权威采分点已签发)
+var faStable = vm.buildFullAnswerVerdict({
+  scoring_points: [{ criterion: "x", status: "full", awarded_score: 1, max_score: 1 }],
+  score_awarded: 1,
+  max_score: 1,
+  evidence_level: "L2_curated",
+  stable_truth_eligible: true,
+  writeback_count: 0,
+});
+assert.strictEqual(faStable.stableEligible, true);
+assert.ok(faStable.capNote.indexOf("稳定掌握") >= 0);
+
+// open_skill(无签发采分点): 空清单如实, 不列空点充数, 默认 L0
+var faOpen = vm.buildFullAnswerVerdict({ scoring_points: [] });
+assert.strictEqual(faOpen.hasPoints, false);
+assert.strictEqual(faOpen.points.length, 0);
+assert.strictEqual(faOpen.evidenceLevel, "L0_observed", "缺 evidence_level 默认 L0(保守)");
+assert.strictEqual(faOpen.stableEligible, false);
+
+// 页面红线: 前端只投递 variant_id/answer_text, 零本地判分, fail-closed 不伪造
+assert.ok(pageJs.indexOf("postLubanFullAnswer") >= 0, "全量作答走既有 seam api, 前端不新造判分");
+assert.ok(pageJs.indexOf("buildFullAnswerVerdict") >= 0, "verdict 由 vm 投影, 前端不自算分");
+assert.strictEqual(pageJs.indexOf("required_terms"), -1, "页面禁持有 required_terms(防再认泄漏+禁本地判分)");
+assert.strictEqual(pageJs.indexOf("keywords"), -1, "页面禁持有 keywords(防再认泄漏)");
+assert.ok(pageJs.indexOf("statusCode === 404") >= 0, "旗标关/未签发→404 fail-closed 分支");
+assert.ok(pageJs.indexOf("即将开通") >= 0, "fail-closed 诚实占位, 绝不本地伪造判分");
+// 输入期(②半写 textarea)禁把采分点做候选词/提示(D16)
+assert.strictEqual(pageWxml.indexOf("required_terms"), -1, "WXML 禁注入 required_terms 候选词");
+assert.ok(pageWxml.indexOf("gt-fa-cap") >= 0, "全量作答 L0 封顶披露位存在");
+// api 方法契约: 端点路径 + 只两个投递键
+var apiSource = fs.readFileSync(path.join(__dirname, "../packageDeeptutor/utils/api.js"), "utf8");
+assert.ok(apiSource.indexOf("postLubanFullAnswer") >= 0 && /full-answer/.test(apiSource), "seam 端点已接线");
+assert.ok(apiSource.indexOf("postLubanFullAnswer: postLubanFullAnswer") >= 0, "seam api 已导出");
+// 轻档不变: ②默写/①填空仍走本地(非 promoting), 全量作答是独立加档
+assert.ok(pageJs.indexOf("startVerify") >= 0 && pageJs.indexOf("onChoiceTap") >= 0, "本地核对轻档保持(轻练不关闭弱点)");
+
 // ── 6. 复习页接线: 入口 fail-closed + 单一判定点 ──────────────
 var reviewVm = require(path.join(__dirname, "../packageDeeptutor/utils/review-view-model.js"));
 var reviewBuilt = reviewVm.buildReviewViewModel({

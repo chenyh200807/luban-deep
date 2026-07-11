@@ -24,11 +24,49 @@ PRODUCT_BEHAVIOR_EVENT_NAMES = frozenset(
         # result=granted|red_dot|correct|incorrect|"<n>/<N>"。其余 D15 指标复用既有名:
         # 站进入=module_viewed, 档位=learning_action_started(start_training,
         # object_id="<pack>:<tier>"), 站完成/复测完成=learning_action_completed。
+        # practice_mode 判别位（2026-07-07 登记，spike 命门）：变体练题两取题模式
+        # (forward=学习轮当天正向轻练 / review=复习轮次日换皮复测) 在埋点里必须可分——
+        # 否则 D1 留存(GO 门=人次日回来做换皮复测)读不出。给 retest_item_answered /
+        # learning_action_completed(object_type=retest) 加 property practice_mode,
+        # 不新造事件名。
         "handoff_rendered",
         "retest_item_answered",
         "subscribe_prompt_result",
+        # 首体验漏斗（2026-07-10 登记）：60% 新注册用户零消息流失的定位事件，
+        # 随老蓝版小程序埋点通电一起登记。维度约定:
+        # auth_authorize_clicked: module=login, action=authorize,
+        #   object_type=phone_auth|sms_code|password, result=granted|denied。
+        # auth_result: module=login, action=complete|error,
+        #   result=success|fail, error_code=分类短码。
+        # chat_message_sent: module=chat, action=send, object_type=chat_turn。
+        # chat_first_answer_rendered: module=chat, action=render,
+        #   object_type=first_answer, duration_ms=发送到首屏可见耗时。
+        # assessment_prompt_result: module=assessment, action=start_probe|dismiss,
+        #   result=start|later, entry_source=chat_home。
+        # 其余漏斗点复用既有名: 页面曝光=module_viewed(module=login|chat|assessment),
+        # 摸底弹窗曝光=section_viewed(module=assessment, section=entry_modal),
+        # 示例卡点击=learning_action_started(module=chat, action=open_detail),
+        # 测评开始=learning_action_started(action=start_probe),
+        # 测评提交=learning_action_completed(action=complete, result="<n>/<N>"),
+        # 测评中途退出=module_exited(action=return, result="<n>/<N>")。
+        "auth_authorize_clicked",
+        "auth_result",
+        "chat_message_sent",
+        "chat_first_answer_rendered",
+        "assessment_prompt_result",
+        # 首跑剧本（2026-07-10 登记，计划 §4 G0）：module=first_run。
+        # 维度约定: 幕曝光=module_viewed(section=act_*), 逃生舱=module_exited(dismiss),
+        # 剧本完成=learning_action_completed(object_type=script, result=go_report|remind),
+        # d1_return 由 BI 按用户×日期从任意事件派生, 不设独立事件名。
+        "first_run_started",
+        "first_run_question_completed",
     }
 )
+
+# practice_mode 允许值(register-before-use，单一 authority)：forward=学习轮 2 分钟
+# 正向轻练(build_retest_items mode=forward)、review=复习轮次日换皮复测(mode=review)。
+# 与 read_model.build_retest_items 的 mode 同口径;白名单外值 ingest 拒收(防拼写漂移)。
+PRODUCT_BEHAVIOR_PRACTICE_MODES = frozenset({"forward", "review"})
 
 PRODUCT_BEHAVIOR_MODULES = frozenset(
     {
@@ -40,6 +78,10 @@ PRODUCT_BEHAVIOR_MODULES = frozenset(
         "practice",
         "assessment",
         "profile",
+        # 首体验漏斗（2026-07-10 登记）：登录/授权页。
+        "login",
+        # 首跑剧本（2026-07-10 登记，计划 §4 G0）。
+        "first_run",
     }
 )
 
@@ -77,6 +119,9 @@ PRODUCT_BEHAVIOR_ACTIONS = frozenset(
         "return",
         "complete",
         "error",
+        # 首体验漏斗（2026-07-10 登记）：authorize=登录授权点击, send=聊天消息发送。
+        "authorize",
+        "send",
     }
 )
 
@@ -149,6 +194,10 @@ def validate_product_behavior_event(event_name: str, metadata: dict[str, Any]) -
     if not visit_id and normalized_event != "event_error":
         raise ValueError("visit_id is required for product behavior events")
 
+    practice_mode = _clean_string(metadata.get("practice_mode"), max_length=32)
+    if practice_mode and practice_mode not in PRODUCT_BEHAVIOR_PRACTICE_MODES:
+        raise ValueError(f"Unsupported practice_mode: {practice_mode!r}")
+
     return {
         "event_name": normalized_event,
         "visit_id": visit_id,
@@ -156,6 +205,7 @@ def validate_product_behavior_event(event_name: str, metadata: dict[str, Any]) -
         "section": section,
         "action": action,
         "surface": surface,
+        "practice_mode": practice_mode,
         "object_type": _clean_string(metadata.get("object_type"), max_length=64),
         "object_id": _clean_string(metadata.get("object_id"), max_length=128),
         "entry_source": _clean_string(metadata.get("entry_source"), max_length=64),

@@ -74,6 +74,20 @@ function loadPage(relativePath, overrides) {
       if (request === "../../utils/api") return apiMock;
       if (request === "../../utils/auth") return authMock;
       if (request === "../../utils/helpers") return helpersMock;
+      if (request === "../../utils/surface-telemetry") {
+        return {
+          track: function () {},
+          trackOnce: function () {},
+          trackProductBehavior: function () {},
+        };
+      }
+      if (request === "../../utils/first-run-entry") {
+        return {
+          goHomeAfterAuth: function () {
+            sandbox.wx.switchTab({ url: "/pages/chat/chat" });
+          },
+        };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {

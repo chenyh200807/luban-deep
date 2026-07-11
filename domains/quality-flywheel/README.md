@@ -92,7 +92,9 @@ WEAK-GO 报告，封板 = 人在环，workflow 不会、也不应该自动宣布
 
 | Secret | 必需? | 用途 | 缺失时的行为 |
 |---|---|---|---|
-| `WECHAT_QA_USERNAME` / `WECHAT_QA_PASSWORD` | 必需 | 映射成 `DEEPTUTOR_QA_USERNAME`/`DEEPTUTOR_QA_PASSWORD`，探针登录用 | 登录失败 -> exit 4(无法判定) |
+| `WECHAT_QA_USERNAME` / `WECHAT_QA_PASSWORD` | 必需 | 映射成 `DEEPTUTOR_QA_USERNAME`/`DEEPTUTOR_QA_PASSWORD`，探针登录用；账号必须是 `qa_eval_...` / `qa_...` / `eval_...` 等 eval runner 账号 | 登录失败或账号缺少 eval runner marker -> exit 4(无法判定) |
+| `DEEPTUTOR_EVAL_RUNNER_AGENT` | 必需 | 标明执行者：Codex 用 `codex`，Claude Code 用 `claude_code` | 生成账号退化成 `qa_eval_agent_smoke_...`，可识别机器但不能区分 agent |
+| `DEEPTUTOR_EVAL_RUN_ID` | 建议 | 单次 eval run 追踪 id，推荐 `<agent>-<YYYYMMDDHHMMSS>-<shortsha>` | 不影响门，但降低事后追溯能力 |
 | `ALIYUN_SSH_PRIVATE_KEY` / `ALIYUN_SSH_HOST` | 必需 | SHA 三方门要 SSH 读 host `.env` + container env(别名 `Aliyun-ECS-2`) | workflow 直接 `::error::` 停在配置步骤 |
 | `DEEPSEEK_API_KEY` / `BIGMODEL_API_KEY` | 可选 | 异源判官(附加，非主裁) | 缺则 `JUDGE_DEGRADED` 降级，不阻断门 |
 | `QUALITY_GATE_WEBHOOK_URL` | 可选 | BLOCK 时飞书/企微 webhook 告警 | 缺则退化为 `gh issue create`(用默认 `GITHUB_TOKEN`，不需要额外配) |
@@ -110,6 +112,8 @@ WEAK-GO 报告，封板 = 人在环，workflow 不会、也不应该自动宣布
 ```bash
 cd <repo>; set -a; source .env; set +a
 export DEEPTUTOR_QA_USERNAME="$WECHAT_QA_USERNAME" DEEPTUTOR_QA_PASSWORD="$WECHAT_QA_PASSWORD"
+export DEEPTUTOR_EVAL_RUNNER_AGENT="${DEEPTUTOR_EVAL_RUNNER_AGENT:-codex}"
+export DEEPTUTOR_EVAL_RUN_ID="${DEEPTUTOR_EVAL_RUN_ID:-${DEEPTUTOR_EVAL_RUNNER_AGENT}-$(date +%Y%m%d%H%M%S)-$(git rev-parse --short HEAD 2>/dev/null || echo nogit)}"
 python scripts/quality_gate/scheduled_run.py --runs 3
 ```
 

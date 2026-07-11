@@ -2,6 +2,8 @@ const auth = require("./auth");
 const endpoints = require("./endpoints");
 
 var sentEventKeys = {};
+var PENDING_EVENTS_MAX = 20;
+var pendingEvents = [];
 
 function buildEventId() {
   return (
@@ -12,40 +14,79 @@ function buildEventId() {
   );
 }
 
-function track(eventName, payload) {
-  if (!eventName || typeof wx === "undefined" || typeof wx.request !== "function") {
+function enqueuePendingEvent(event) {
+  if (pendingEvents.length >= PENDING_EVENTS_MAX) {
+    pendingEvents.shift();
+  }
+  pendingEvents.push(event);
+}
+
+function buildEvent(eventName, data, collectedAtMs) {
+  return {
+    eventId: buildEventId(),
+    eventName: eventName,
+    data: data,
+    collectedAtMs: collectedAtMs,
+  };
+}
+
+function deliverEvent(event, token) {
+  var baseUrl = endpoints.getPrimaryBaseUrl(false);
+  if (!baseUrl) {
+    enqueuePendingEvent(event);
     return;
   }
-  var baseUrl = endpoints.getPrimaryBaseUrl(false);
-  if (!baseUrl) return;
-  var token = auth.getToken();
-  var collectedAtMs = Date.now();
-  var data = payload && typeof payload === "object" ? payload : {};
   var headers = {
     "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "true",
+    Authorization: "Bearer " + token,
   };
-  if (token) {
-    headers.Authorization = "Bearer " + token;
-  }
   try {
     wx.request({
       url: baseUrl + "/api/v1/observability/surface-events",
       method: "POST",
       header: headers,
       data: {
-        event_id: buildEventId(),
+        event_id: event.eventId,
         surface: "wechat_yousenwebview",
-        event_name: String(eventName || "").trim(),
-        session_id: data.sessionId || "",
-        turn_id: data.turnId || "",
-        collected_at_ms: collectedAtMs,
+        event_name: String(event.eventName || "").trim(),
+        session_id: event.data.sessionId || "",
+        turn_id: event.data.turnId || "",
+        collected_at_ms: event.collectedAtMs,
         sent_at_ms: Date.now(),
-        metadata: data.metadata || {},
+        metadata: event.data.metadata || {},
       },
-      fail: function () {},
+      fail: function () {
+        enqueuePendingEvent(event);
+      },
     });
-  } catch (_) {}
+  } catch (_) {
+    enqueuePendingEvent(event);
+  }
+}
+
+function flushPendingEvents(token) {
+  if (!pendingEvents.length) return;
+  var queued = pendingEvents;
+  pendingEvents = [];
+  for (var i = 0; i < queued.length; i++) {
+    deliverEvent(queued[i], token);
+  }
+}
+
+function track(eventName, payload) {
+  if (!eventName || typeof wx === "undefined" || typeof wx.request !== "function") {
+    return;
+  }
+  var data = payload && typeof payload === "object" ? payload : {};
+  var event = buildEvent(eventName, data, Date.now());
+  var token = auth.getToken();
+  if (!token) {
+    enqueuePendingEvent(event);
+    return;
+  }
+  flushPendingEvents(token);
+  deliverEvent(event, token);
 }
 
 function trackOnce(uniqueKey, eventName, payload) {
@@ -101,6 +142,9 @@ function trackProductBehavior(eventName, payload) {
       platform: data.platform || "",
       device_model: data.deviceModel || "",
       network_type: data.networkType || "",
+      // spike 命门判别位：forward(学习轮当天轻练)/review(复习轮次日复测)。
+      // 必须在此跳显式导出,否则固定 metadata 会静默丢掉——D1 留存即读不出。
+      practice_mode: data.practiceMode || "",
     },
   });
 }

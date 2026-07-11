@@ -18,6 +18,12 @@ var flags = require("../../utils/flags");
 var analytics = require("../../utils/analytics");
 var learningHomeViewModel = require("../../utils/learning-home-view-model");
 
+function trackBehavior(eventName, payload) {
+  if (surfaceTelemetry && typeof surfaceTelemetry.trackProductBehavior === "function") {
+    surfaceTelemetry.trackProductBehavior(eventName, payload);
+  }
+}
+
 // ── 常量（部分由性能分级动态覆盖）──────────────
 var _animCfg = helpers.getAnimConfig();
 var FLUSH_THROTTLE_MS = _animCfg.flushThrottleMs; // token 刷新节流
@@ -347,7 +353,7 @@ Page({
     // 10d 重铺：上下文带入条（数据源=既有 followupContext/promptIntent 载体，可见化而已）
     contextBanner: "",
     // 教学卡「问追AI」入口可预置占位文案；默认与原 placeholder 一致
-    inputPlaceholder: "直接问：考点、真题、规范、错题",
+    inputPlaceholder: "直接问建筑实务：考点、真题、规范、错题",
     workspaceBackVisible: false,
     workspaceBackLabel: "返回",
     profileEnabled: true,
@@ -374,7 +380,7 @@ Page({
       {
         icon: "▧",
         title: "知识地图",
-        desc: "一建考点梳理",
+        desc: "建筑实务考点梳理",
         bgDark: "rgba(245,158,11,0.16)",
         fgDark: "#fbbf24",
         bgLight: "#fff4e0",
@@ -433,6 +439,7 @@ Page({
   // ── 生命周期 ──────────────────────────────────
 
   onLoad: function (options) {
+    trackBehavior("module_viewed", { module: "chat", action: "view" });
     var info = helpers.getWindowInfo();
     var savedToolPrefs = wx.getStorageSync(CHAT_TOOL_PREFS_KEY) || {};
     var pendingInitialConversationId =
@@ -498,7 +505,7 @@ Page({
         : "",
       inputPlaceholder: isTeachCardEntry
         ? "针对这一站提问…"
-        : "直接问：考点、真题、规范、错题",
+        : "直接问建筑实务：考点、真题、规范、错题",
     });
     if (isTeachCardEntry && teachPackId) {
       this._resolveTeachEntryTitle(teachPackId);
@@ -1492,6 +1499,7 @@ Page({
     var wasRecoveringTurn = !!this._recoveringTurn;
     var skipHistoryRecovery = !!(options && options.skipHistoryRecovery);
     var renderedAnswer = false;
+    var wasFirstAnswerPending = !!this._firstAnswerPending;
     if (this._timer) {
       clearInterval(this._timer);
       this._timer = null;
@@ -1519,6 +1527,19 @@ Page({
         (state.blocks && state.blocks.length) ||
         (state.mcqCards && state.mcqCards.length)
       );
+      if (renderedAnswer && wasFirstAnswerPending) {
+        trackBehavior("chat_first_answer_rendered", {
+          module: "chat",
+          action: "render",
+          objectType: "first_answer",
+          sessionId: this._convId || this._sid || "",
+          turnId: this._surfaceTurnId || "",
+          durationMs: this._turnStartedAtMs
+            ? Math.max(0, Date.now() - this._turnStartedAtMs)
+            : 0,
+          result: "success",
+        });
+      }
       if (renderedAnswer) {
         u["messages[" + idx + "].thinkingStatus"] = "";
         u["messages[" + idx + "].thinkingBadge"] = "";
@@ -2624,12 +2645,21 @@ Page({
     self._surfaceTurnId = "";
     self._firstVisibleAckSent = false;
     self._doneRenderedAckSent = false;
+    self._turnStartedAtMs = Date.now();
     surfaceTelemetry.track("start_turn_sent", {
       sessionId: streamSessionId || _turnId,
       metadata: {
         answer_mode: self.data.answerMode,
         tools_count: selectedTools.length,
       },
+    });
+    trackBehavior("chat_message_sent", {
+      module: "chat",
+      action: "send",
+      sessionId: streamSessionId || _turnId,
+      turnId: _turnId,
+      entrySource: self.data.entrySource || "",
+      result: "accepted",
     });
     self._abort = wsStream.streamChat(
       {
@@ -2787,6 +2817,12 @@ Page({
     // 只在 Hero 主页弹出
     if (this.data.hasMessages) return;
     function showDiagnosticModal() {
+      trackBehavior("section_viewed", {
+        module: "assessment",
+        section: "entry_modal",
+        action: "view",
+        entrySource: "chat_home",
+      });
       wx.showModal({
         title: "欢迎新同学",
         content:
@@ -2794,6 +2830,13 @@ Page({
         confirmText: "开始测试",
         cancelText: "稍后再说",
         success: function (res) {
+          trackBehavior("assessment_prompt_result", {
+            module: "assessment",
+            section: "entry_modal",
+            action: res.confirm ? "start_probe" : "dismiss",
+            result: res.confirm ? "start" : "later",
+            entrySource: "chat_home",
+          });
           if (res.confirm) {
             wx.navigateTo({ url: route.assessment() });
           } else {
@@ -2829,7 +2872,7 @@ Page({
       scrollToId: "",
       chatScrollWithAnimation: false,
       contextBanner: "",
-      inputPlaceholder: "直接问：考点、真题、规范、错题",
+      inputPlaceholder: "直接问建筑实务：考点、真题、规范、错题",
     });
     this._teachEntryIntent = null;
     this._syncWorkspaceChrome({ hasMessages: false });

@@ -34,6 +34,17 @@ function getMarkdownFixtures() {
   }
   return markdownFixtures;
 }
+
+// 首体验漏斗埋点（2026-07-10）：统一经 surface-telemetry 唯一通道。
+// 测试环境可能以部分对象 stub 该模块，故做存在性防御。
+function trackBehavior(eventName, payload) {
+  if (
+    surfaceTelemetry &&
+    typeof surfaceTelemetry.trackProductBehavior === "function"
+  ) {
+    surfaceTelemetry.trackProductBehavior(eventName, payload);
+  }
+}
 var NAVBAR_INNER_HEIGHT_RPX = 88;
 var _IS_DEVTOOLS =
   typeof __wxConfig !== "undefined" && __wxConfig.platform === "devtools";
@@ -331,7 +342,7 @@ Page({
       {
         icon: "▧",
         title: "知识地图",
-        desc: "一建考点梳理",
+        desc: "建筑实务考点梳理",
         bgDark: "rgba(245,158,11,0.16)",
         fgDark: "#fbbf24",
         bgLight: "#fff4e0",
@@ -387,6 +398,8 @@ Page({
     this._destroyed = false;
     this._recoveryAborted = false;
     this._restoringConversation = false;
+    // 漏斗：chat 首页曝光（tab 页 onLoad 每次冷启动一次）
+    trackBehavior("module_viewed", { module: "chat", action: "view" });
     var info = helpers.getWindowInfo();
     var savedToolPrefs = wx.getStorageSync(CHAT_TOOL_PREFS_KEY) || {};
     var app = getApp();
@@ -1226,6 +1239,17 @@ Page({
           },
         },
       );
+      // 漏斗：本轮回答首屏可见（持久化事件；上面的 ack 事件不落库）
+      trackBehavior("chat_first_answer_rendered", {
+        module: "chat",
+        action: "render",
+        objectType: "first_answer",
+        sessionId: this._sid || "",
+        turnId: this._surfaceTurnId,
+        durationMs: this._turnStartedAtMs
+          ? Date.now() - this._turnStartedAtMs
+          : 0,
+      });
     }
 
     var update = normalized.updates;
@@ -1882,6 +1906,16 @@ Page({
   },
 
   onFocusTap: function () {
+    trackBehavior("learning_action_started", {
+      module: "chat",
+      action: "open_detail",
+      objectType: "sample_card",
+      objectId:
+        this.data.focusActionType === "assessment"
+          ? "focus:assessment"
+          : "focus:" + String(this.data.focusQuery || "").slice(0, 60),
+      entrySource: "focus_card",
+    });
     if (this.data.focusActionType === "assessment") {
       wx.navigateTo({ url: "/pages/assessment/assessment" });
       return;
@@ -1897,6 +1931,15 @@ Page({
     var index = Number(e && e.currentTarget && e.currentTarget.dataset.index);
     var prompt = (this.data.recommendedPrompts || [])[index];
     if (!prompt || !prompt.text) return;
+    trackBehavior("learning_action_started", {
+      module: "chat",
+      action: "open_detail",
+      objectType: "sample_card",
+      objectId:
+        String(prompt.promptIntent || "") ||
+        "rec:" + String(prompt.text).slice(0, 60),
+      entrySource: "recommended_prompt",
+    });
     helpers.vibrate("light");
     this._send(prompt.text, { promptIntent: prompt.promptIntent });
   },
@@ -2165,6 +2208,14 @@ Page({
 
   sendExample: function (e) {
     if (this.data.isStreaming) return;
+    trackBehavior("learning_action_started", {
+      module: "chat",
+      action: "open_detail",
+      objectType: "sample_card",
+      objectId:
+        "static:" + String(e.currentTarget.dataset.text || "").slice(0, 60),
+      entrySource: "static_example",
+    });
     helpers.vibrate("light");
     this._send(e.currentTarget.dataset.text);
   },
@@ -2387,12 +2438,20 @@ Page({
     self._surfaceTurnId = "";
     self._firstVisibleAckSent = false;
     self._doneRenderedAckSent = false;
+    self._turnStartedAtMs = Date.now();
     surfaceTelemetry.track("start_turn_sent", {
       sessionId: self._sid,
       metadata: {
         answer_mode: self.data.answerMode,
         tools_count: selectedTools.length,
       },
+    });
+    // 漏斗：消息发送（持久化事件；start_turn_sent 仅内存 ack 聚合不落库）
+    trackBehavior("chat_message_sent", {
+      module: "chat",
+      action: "send",
+      objectType: "chat_turn",
+      sessionId: self._sid || "",
     });
     self._abort = wsStream.streamChat(
       {
@@ -2529,6 +2588,13 @@ Page({
     // 只在 Hero 主页弹出
     if (this.data.hasMessages) return;
     function showDiagnosticModal() {
+      // 漏斗：摸底弹窗曝光 + 开始/稍后再说决策
+      trackBehavior("section_viewed", {
+        module: "assessment",
+        section: "entry_modal",
+        action: "view",
+        entrySource: "chat_home",
+      });
       wx.showModal({
         title: "欢迎新同学",
         content:
@@ -2536,6 +2602,12 @@ Page({
         confirmText: "开始测试",
         cancelText: "稍后再说",
         success: function (res) {
+          trackBehavior("assessment_prompt_result", {
+            module: "assessment",
+            action: res.confirm ? "start_probe" : "dismiss",
+            result: res.confirm ? "start" : "later",
+            entrySource: "chat_home",
+          });
           if (res.confirm) {
             wx.navigateTo({ url: "/pages/assessment/assessment" });
           } else {

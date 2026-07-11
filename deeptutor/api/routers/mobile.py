@@ -77,6 +77,16 @@ from deeptutor.services.wallet import (
     get_wallet_service,
     is_billing_enforcement_enabled,
 )
+from deeptutor.services.wechat_pay import (
+    WechatPayConfigError,
+    WechatPayNotificationError,
+    WechatPayUpstreamError,
+    build_wechat_pay_attach,
+    create_wechat_jsapi_order,
+    decrypt_wechat_pay_notification,
+    get_wechat_pay_config,
+    parse_wechat_pay_attach,
+)
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
 
 router = APIRouter()
@@ -995,6 +1005,120 @@ async def _create_payment_gateway_order(payload: dict[str, Any]) -> dict[str, An
     if not isinstance(data, dict):
         raise HTTPException(status_code=502, detail="Payment gateway returned invalid payload")
     return data
+
+
+def _bearer_token(authorization: str | None) -> str:
+    value = str(authorization or "").strip()
+    if not value:
+        return ""
+    parts = value.split(None, 1)
+    if len(parts) == 2 and parts[0].lower() == "bearer":
+        return parts[1].strip()
+    return value
+
+
+def _resolve_wechat_checkout_openid(authorization: str | None, user_id: str) -> str:
+    token = _bearer_token(authorization)
+    if token:
+        verifier = getattr(member_service, "verify_access_token", None)
+        if callable(verifier):
+            try:
+                claims = verifier(token)
+            except Exception:
+                claims = {}
+            if isinstance(claims, dict):
+                openid = str(claims.get("openid") or claims.get("wx_openid") or "").strip()
+                if openid:
+                    return openid
+    identity_getter = getattr(member_service, "_auth_identity_for_member", None)
+    if callable(identity_getter):
+        try:
+            identity = identity_getter(user_id)
+        except Exception:
+            identity = {}
+        if isinstance(identity, dict):
+            openid = str(identity.get("openid") or identity.get("wx_openid") or "").strip()
+            if openid:
+                return openid
+    return ""
+
+
+def _billing_package_days(package: dict[str, Any]) -> int:
+    try:
+        return max(1, int(package.get("days") or package.get("duration_days") or 365))
+    except (TypeError, ValueError):
+        return 365
+
+
+async def _create_wechat_pay_order(
+    checkout_payload: dict[str, Any],
+    *,
+    authorization: str | None,
+    user_id: str,
+) -> dict[str, Any] | None:
+    if str(checkout_payload.get("channel") or "").strip().lower() != "wechat":
+        return None
+    try:
+        config = get_wechat_pay_config()
+    except WechatPayConfigError as exc:
+        logger.warning("wechat pay config invalid: %s", exc)
+        raise HTTPException(status_code=503, detail="WeChat Pay unavailable") from exc
+    if config is None:
+        return None
+    package = checkout_payload.get("package") if isinstance(checkout_payload.get("package"), dict) else {}
+    package_id = str(package.get("id") or "").strip()
+    openid = _resolve_wechat_checkout_openid(authorization, user_id)
+    if not openid:
+        raise HTTPException(status_code=400, detail="WeChat login required for WeChat Pay")
+    try:
+        attach = build_wechat_pay_attach(
+            user_id=user_id,
+            package_id=package_id,
+            amount_fen=int(checkout_payload.get("amount_fen") or 0),
+            days=_billing_package_days(package),
+        )
+        return await create_wechat_jsapi_order(
+            checkout_payload,
+            openid=openid,
+            attach=attach,
+        )
+    except WechatPayUpstreamError as exc:
+        logger.warning(
+            "wechat pay order creation failed: status=%s request_id=%s message=%s",
+            exc.status_code,
+            exc.request_id,
+            exc,
+        )
+        raise HTTPException(status_code=502, detail="WeChat Pay upstream unavailable") from exc
+    except WechatPayConfigError as exc:
+        logger.warning("wechat pay order creation blocked by config: %s", exc)
+        raise HTTPException(status_code=503, detail="WeChat Pay unavailable") from exc
+
+
+def _apply_wechat_payment_success(transaction: dict[str, Any]) -> dict[str, Any]:
+    trade_state = str(transaction.get("trade_state") or "").strip().upper()
+    if trade_state and trade_state != "SUCCESS":
+        return {"ignored": True, "trade_state": trade_state}
+    attach = parse_wechat_pay_attach(transaction.get("attach"))
+    package = _billing_package_by_id(attach["package_id"])
+    if package is None:
+        raise WechatPayNotificationError("unknown package")
+    expected_fen = _price_to_fen(str(package.get("price") or ""))
+    actual_fen = int((transaction.get("amount") or {}).get("total") or 0)
+    if expected_fen <= 0 or actual_fen != expected_fen or int(attach.get("amount_fen") or 0) != expected_fen:
+        raise WechatPayNotificationError("amount mismatch")
+    transaction_id = str(transaction.get("transaction_id") or transaction.get("out_trade_no") or "").strip()
+    if not transaction_id:
+        raise WechatPayNotificationError("missing transaction id")
+    return member_service.manual_membership_purchase(
+        user_id=attach["user_id"],
+        package_id=attach["package_id"],
+        days=int(attach.get("days") or 365),
+        operator="wechat_pay",
+        reason="wechat_pay_success",
+        idempotency_key=f"wechat_pay:{transaction_id}",
+        amount_cny=actual_fen / 100,
+    )
 
 
 def _assert_wallet_balance_available(wallet_user_id: str) -> None:
@@ -2443,15 +2567,22 @@ class RegisterRequest(BaseModel):
     username: str
     password: str
     phone: str
+    # 注册渠道归因（推广二维码/链接 ?ch=xxx + 微信场景值），可缺省。
+    channel: str = ""
+    scene: str = ""
 
 
 class WechatLoginRequest(BaseModel):
     code: str = ""
     phone_code: str = ""
+    channel: str = ""
+    scene: str = ""
 
 
 class WechatBindPhoneRequest(BaseModel):
     phone_code: str = ""
+    channel: str = ""
+    scene: str = ""
 
 
 class MobileStartTurnRequest(BaseModel):
@@ -2554,7 +2685,12 @@ async def auth_register(body: RegisterRequest) -> dict[str, Any]:
     try:
         # bcrypt hash — threadpool, same rationale as auth_login.
         result = await run_in_threadpool(
-            member_service.register_with_external_auth, body.username, body.password, body.phone
+            member_service.register_with_external_auth,
+            body.username,
+            body.password,
+            body.phone,
+            channel=body.channel,
+            scene=body.scene,
         )
         user = result.get("user") if isinstance(result.get("user"), dict) else {}
         user_id = str(
@@ -2742,7 +2878,9 @@ async def wechat_login(body: WechatLoginRequest) -> dict[str, Any]:
     try:
         if not str(body.phone_code or "").strip():
             raise ValueError("phone_code is required")
-        return await member_service.login_with_wechat_phone(body.code, body.phone_code)
+        return await member_service.login_with_wechat_phone(
+            body.code, body.phone_code, channel=body.channel, scene=body.scene
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
@@ -2763,6 +2901,8 @@ async def wechat_bind_phone(
         return await member_service.bind_phone_for_wechat(
             _resolve_authenticated_user_id(authorization),
             body.phone_code,
+            channel=body.channel,
+            scene=body.scene,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -2920,7 +3060,28 @@ async def billing_checkout(
     gateway_payload = await _create_payment_gateway_order(checkout_payload)
     if gateway_payload is not None:
         return gateway_payload
+    wechat_payload = await _create_wechat_pay_order(
+        checkout_payload,
+        authorization=authorization,
+        user_id=user_id,
+    )
+    if wechat_payload is not None:
+        return wechat_payload
     return checkout_payload
+
+
+@router.post("/billing/wechat/notify")
+async def billing_wechat_notify(payload: dict[str, Any]) -> dict[str, str]:
+    try:
+        transaction = decrypt_wechat_pay_notification(payload)
+        _apply_wechat_payment_success(transaction)
+    except WechatPayNotificationError as exc:
+        logger.warning("invalid wechat pay notification: %s", exc)
+        raise HTTPException(status_code=400, detail="Invalid WeChat Pay notification") from exc
+    except Exception as exc:
+        logger.warning("wechat pay notification processing failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=503, detail="WeChat Pay notification processing failed") from exc
+    return {"code": "SUCCESS", "message": "成功"}
 
 
 @router.get("/homepage/dashboard")

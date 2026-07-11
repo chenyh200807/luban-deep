@@ -3,6 +3,24 @@ var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
 var analytics = require("../../utils/analytics");
+var flags = require("../../utils/flags");
+var surfaceTelemetry = require("../../utils/surface-telemetry");
+
+function trackBehavior(eventName, payload) {
+  if (surfaceTelemetry && typeof surfaceTelemetry.trackProductBehavior === "function") {
+    surfaceTelemetry.trackProductBehavior(eventName, payload);
+  }
+}
+
+function trackAuthResult(objectType, ok, errMessage) {
+  trackBehavior("auth_result", {
+    module: "login",
+    action: ok ? "complete" : "error",
+    objectType: objectType,
+    result: ok ? "success" : "fail",
+    errorCode: ok ? "" : String(errMessage || "").slice(0, 60),
+  });
+}
 
 function showSmsSentFeedback(message) {
   wx.showToast({
@@ -93,6 +111,7 @@ Page({
     ],
   },
   onLoad: function (options) {
+    trackBehavior("module_viewed", { module: "login", action: "view" });
     try {
       var info = helpers.getWindowInfo();
       var sb = info.safeArea ? info.screenHeight - info.safeArea.bottom : 0;
@@ -161,9 +180,18 @@ Page({
   _reLaunchAfterAuth: function () {
     var source = this.data.entrySource;
     var fallback = route.chat(source ? { entry_source: source } : null);
-    wx.reLaunch({
-      url: route.resolveInternalUrl(this.data.returnTo, fallback),
-    });
+    var target = route.resolveInternalUrl(this.data.returnTo, fallback);
+    // Task C 入口收权(双轮 spike):登录后落地的单一收口点。护栏1=flags 默认关时
+    // 整个分支跳过(不碰 route.learn),host 落地逐字节不变;flag 开且目标是问鲁班(chat)
+    // 才翻到学习双轮页(护栏2:仅翻 chat→learn,不动其它显式深链;chat 仍五 tab 一键可达、
+    // learn 冷启动有骨架、关 flag 即回滚)。只影响登录后落地=spike 新用户 cohort。
+    if (flags.shouldLandOnDoubleWheel()) {
+      target = flags.resolvePostAuthLanding(
+        target,
+        route.learn(source ? { entry_source: source } : null),
+      );
+    }
+    wx.reLaunch({ url: target });
   },
   _trackLoginSuccess: function (method) {
     analytics.track("deeptutor_login_success", {
@@ -304,6 +332,12 @@ Page({
     if (!u || !u.trim()) return self.setData({ errorMsg: "请输入用户名" });
     if (!p) return self.setData({ errorMsg: "请输入密码" });
     if (p.length < 6) return self.setData({ errorMsg: "密码至少 6 位" });
+    trackBehavior("auth_authorize_clicked", {
+      module: "login",
+      action: "authorize",
+      objectType: "password",
+      result: "granted",
+    });
     self.setData({ loading: true, errorMsg: "" });
     api
       .request({
@@ -323,10 +357,12 @@ Page({
           user._token;
         if (!token) throw new Error(resp.error || resp.message || "登录失败");
         auth.setToken(token, inner.expires_at, inner);
+        trackAuthResult("password", true);
         self._trackLoginSuccess("password");
         self._reLaunchAfterAuth();
       })
       .catch(function (err) {
+        trackAuthResult("password", false, err && err.message);
         var msg = self._describeAuthError(err, "登录失败，请重试", {
           customMap: function (info) {
             if (info.status === 401 || info.detailText.indexOf("密码") >= 0) {
@@ -453,6 +489,12 @@ Page({
       self.setData({ errorMsg: "请输入手机号和验证码" });
       return;
     }
+    trackBehavior("auth_authorize_clicked", {
+      module: "login",
+      action: "authorize",
+      objectType: "sms_code",
+      result: "granted",
+    });
     self.setData({ loading: true, errorMsg: "" });
     api
       .request({
@@ -466,10 +508,12 @@ Page({
         var token = inner.token;
         if (!token) throw new Error(resp.error || resp.message || "验证失败");
         auth.setToken(token, inner.expires_at, inner);
+        trackAuthResult("sms_code", true);
         self._trackLoginSuccess("phone_code");
         self._reLaunchAfterAuth();
       })
       .catch(function (err) {
+        trackAuthResult("sms_code", false, err && err.message);
         var msg = self._describeAuthError(err, "验证失败，请重试", {
           customMap: describePhoneCodeAuthError,
         });
@@ -543,6 +587,13 @@ Page({
   handleWechatPhoneNumber: function (e) {
     var self = this;
     if (self.data.wechatLoading || self.data.loading) return;
+    var detailForTrack = (e && e.detail) || {};
+    trackBehavior("auth_authorize_clicked", {
+      module: "login",
+      action: "authorize",
+      objectType: "phone_auth",
+      result: detailForTrack.code || detailForTrack.phoneCode ? "granted" : "denied",
+    });
     var phoneCode =
       e && e.detail && (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
@@ -567,10 +618,12 @@ Page({
       ._requestWechatPhoneSession(phoneCode, 0)
       .then(function (resp) {
         self._completeWechatAuth(resp);
+        trackAuthResult("phone_auth", true);
         self._trackLoginSuccess("wechat_phone");
         self._reLaunchAfterAuth();
       })
       .catch(function (err) {
+        trackAuthResult("phone_auth", false, err && err.message);
         var msg = self._describeAuthError(err, "快速登录失败，请重试", {
           context: "wechat_login",
           customMap: function (info) {

@@ -95,6 +95,7 @@
 - `mobile` 的 `/api/v1/chat/start-turn` 在创建 turn 前可以根据 canonical wallet ledger 做额度 fail-closed；额度耗尽时必须返回 `billing_quota_exceeded`，且不得创建 pending turn、不得写入第二套 session 状态。
 - 计费是否真正生效由单一 authority `DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED`（helper `deeptutor.services.wallet.is_billing_enforcement_enabled()`，默认开启）控制；只有显式配置 `false` / `0` / `off` / `no` 才进入内测或回滚放行。关闭时 `record_usage_points` 为 no-op（不扣 `balance_micros`、不写 wallet ledger），start-turn 也不做硬余额拦截，钱包保持 pristine。此时微信 turn 完成后可以把同一用量写入非财务 `MemberUsageMeter`，并在 trace 中标记 `billing_capture.status=metered_not_charged`；该状态只表示“已计量但未收费”，不得触发 `mark_usage_scope_billable`，不得写入钱包余额或财务流水。开启后由 wallet authority 扣费与拦截。
 - 开启计费后，`mobile` 的 `/api/v1/chat/start-turn` 在创建 turn 前必须基于 canonical wallet snapshot 做硬余额 fail-closed：当 `balance_micros − frozen_micros` 低于本轮最小扣费（`_MINI_PROGRAM_CAPTURE_COST` points 折算 micros）时返回 `billing_quota_exceeded`；当 wallet id 缺失时按 0 余额拒绝；当 wallet service 未配置或不可用时返回 `billing_wallet_unavailable`。余额为 0 且 wallet snapshot 存在时，mobile adapter 可按非财务 `MemberUsageMeter` 的免费试用窗口（每日 3 次、7 日 12 次、7 日窗口内任意连续 3 个满额自然日）在创建 turn 前写入 `free_trial_reserved` reservation，并仅通过 server-authored `billing_context.free_trial=reserved` / `free_trial_reservation_key` 传给 `turn_runtime`；已有但不足的正余额、缺失 wallet snapshot、免费试用超额或 meter 不可用仍必须 fail closed。`turn_runtime` 只消费该 server-authored marker 跳过钱包 capture 并返回 `metered_not_charged/free_trial`，不得在 runtime 内重新判定免费资格、不得写 wallet ledger。上述判断位置严格早于 `turn_runtime.start_turn`，不创建 pending turn、不交付答案。该硬门是上面 ledger 软额度门之外的余额门，二者都不得绕过 canonical wallet authority。
+- `/api/v1/billing/checkout` 与 `/api/v1/billing/wechat/notify` 是 non-streaming commerce HTTP adapters：checkout 可以基于服务端认证身份和 `wx_openid` 生成微信 JSAPI `payment.params`，notify 可以在验签/解密通过后把支付成功委托给会员/钱包 authority 开通权益；二者不得创建 turn、不得写 session/replay state、不得定义新的 streaming 协议，也不得成为 capability route 或学习策略 authority。
 - `free_trial_reserved` 只是 in-flight commerce reservation，不是已消耗权益。`turn_runtime` 只能在本轮产生可展示、非 provider raw error、非内部错误、非 failed/cancelled fallback 的 terminal assistant answer 后，把该 reservation 终结为 `metered_not_charged` 并计入免费试用窗口；若终局内容是 provider 欠费 / 鉴权 / HTTP raw error、内部输出、空答案或公开失败 fallback，则必须把 reservation 释放为 `free_trial_released`，且 released reservation 不得参与每日 3 次、7 日 12 次或任意连续 3 个满额自然日的计数。
 - `free_trial_reserved` 只允许作为短时 in-flight hold 参与并发占位；超过服务端预设 TTL 仍未被终结的历史 hold 不得永久占用免费试用窗口。reservation finalize 必须是条件状态转换（仅 `free_trial_reserved + reason=free_trial` 可转为 consumed/released）；若转换失败，trace / terminal metadata 必须显式记录 `free_trial_update_failed`，不得把未落账的释放或消耗报告为成功。
 - 免费试用资格必须绑定 canonical wallet/member identity，而该 identity 必须由可信手机号收敛：账号密码注册必须提供并校验有效大陆手机号；手机号验证码登录、微信 `getPhoneNumber` 快速登录和后续绑定都必须解析到同一可信 `phone` alias；一个手机号只能对应一个 canonical account。任何仅基于 `wx_openid`、用户名、设备号、client id 或未验证手机号生成的新身份，都不得获得独立免费试用窗口。
@@ -135,6 +136,7 @@
 - `context_pack_trace.build_stage_timings_ms` 与 terminal observer metadata 的 `context_build_stage_timings_ms` 可以携带 context build 内部子阶段耗时（如 `route_resolver`、`session_history`、`learner_state`、`source_loader_*`、`context_pack`、`pack_render`），用于定位首屏与上下文构建性能瓶颈。它们只属于 trace/observability projection，不得改变 context route、候选选择、token budget、learner-state truth、评分或计费 authority。
 - terminal observer metadata 可以携带 `start_turn_setup_stage_timings_ms`，用于拆解首个 `session` 事件前的准备阶段，如 `payload_normalize`、`active_object_lookup`、`followup_resolution`、`public_config_validation`、`bot_runtime_defaults`、`ensure_session`、`update_session_preferences`、`recover_orphaned_turns`、`cancel_active_turn`、`create_turn`、`register_execution`、`publish_session_event`。该字段只用于定位 first-visible 前置耗时，不得改变 turn 创建、session 偏好、active object、billing 或 follow-up authority。
 - terminal observer metadata 可以携带 `capability_stream_stage_timings_ms` 与 `capability_stream_event_counts`，用于拆解 `capability_stream` 黑盒，如 `first_event`、`first_public_event`、`first_content`、`first_tool_call`、`first_tool_result`、`first_result`、`event_persist_total` 以及 capability stream 期间的事件类型计数。它们只用于判断 provider 首 token、工具调用、capability 内部阻塞或事件持久化开销，不得成为客户端展示、capability routing、评分、计费或 learner-state 的业务输入。
+- terminal observer metadata 可以携带 `server_turn_start_to_first_useful_content_ms`、`capability_stream_to_first_useful_content_ms`、`first_useful_content_*`、`latency_timeline` 与 `latency_max_stall`，用于把 public-safe 的首个有用内容和最大观测耗时统一归因到 `turn_runtime`。`progress` / status-only 事件不得计入 first useful content；这些字段只属于 terminal observability projection，不得成为公开 stream contract、客户端展示、capability routing、评分、计费或 learner-state authority。
 
 - terminal observer metadata、Langfuse turn observation metadata 与 TutorBot provider generation metadata 可以携带 `llm_stream_telemetry` / provider stream 聚合字段，用于继续拆解 `capability_stream` 内部的 TutorBot LLM 调用，例如 `call_site`、`provider_name`、`model`、`stream_chunk_count`、`stream_content_chunk_count`，以及 `provider_stream_create`、`provider_first_chunk`、`provider_first_content_delta`、`provider_stream_read` 等 provider stream 阶段耗时。该字段只能包含 provider 名称、模型名、计数和耗时，不得包含 prompt、用户输入、模型输出、tool 参数、secret 或 endpoint；它只用于运维诊断 provider 建流、首 token、chunk streaming 和 capability 内部阻塞，不得成为公开 stream contract、客户端展示、capability routing、评分、计费或 learner-state authority。
 - Grading-to-Brain loop：`turn_runtime` 编排上下文时，除 `compiled_learning_truth` 外，还会把
@@ -229,18 +231,25 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
     `derive_rubric_from_stem` 诊断（`official_score_allowed=False` + 诊断 hedge）。**SEV 安全**：①标记紧扣提交框架不吃问句；
     ②V1 判分事件基线即 `official_score_allowed=False`，未签名参考被抑制后更不可能凭空给官方分；③保活不等于判分，下游
     把关不动。证据见 `tests/services/test_question_followup_case_submission.py` + `tests/tutorbot/test_case_grading_forward_reachability.py`。
-  - **anti-peek 隐式求助（2026-06-30）是同相位、同形的安全 SEV carve-out —— 答案泄露入口侧不变量，不可删**：
-    当本轮是对一道**未作答活跃题的隐式求助**（"给点提示" / "还是不会" / "这题怎么想"，
-    `should_block_unanswered_reference_reveal=True`）时**不压栈**（`stored_set_unanswered_implicit_help=True`），
-    让未答题保持 active；否则 active_object 被换成 open_chat_topic，下游 anti-peek 消费点（tutorbot 确定性结构化
-    提示短路 / reveal 决策）读不到活跃未答题 → fail-safe 落 free LLM → LLM 从对话历史看到题、用领域知识**自推答案
-    泄底**（Langfuse + DB 取证定位真断点：出题后 `active_object=single_question`，"给点提示"后变 `open_chat_topic`、
-    题被压栈；live 红队 5/6 复现，软指令/遮蔽已证伪，唯结构上不走 free LLM 可靠）。单一 anti-peek 权威 =
-    `question_followup.should_block_unanswered_reference_reveal`（reveal/anti-peek 同一权威），demote 守卫只读不重判，
-    不新增第二决策点。**SEV 安全 + 不误伤显式**：显式要答案（"公布答案"，`should_block=False`）不命中本 carve-out
-    → 照常 demote，reveal 路径放行答案（anti-peek 只压隐式求助，不抑制显式 —— 尊重"不能不输出"）。已作答题
-    （attempt 存在 → `should_block=False`）不命中。证据见 `tests/services/test_turn_start_demote_canonical_pipeline.py`
-    （carve-out 谓词）+ live 红队 `给点提示/还是不会` 3/3 `structured_hint=True/leak=False`。
+  - **unanswered active-question keep gate（2026-07-08）是同相位、同形的安全 / 连续性 carve-out —— 不可删**：
+    turn-start demote 不再直接消费 `question_followup.should_block_unanswered_reference_reveal` 这个 reveal/anti-peek
+    boolean；它只读 `question_followup.should_keep_unanswered_question_active_for_followup`。两者边界必须保持清楚：
+    `should_block_unanswered_reference_reveal` 只回答"本轮是否必须阻断 free LLM / reveal，改走确定性题面或结构化提示"；
+    `should_keep_unanswered_question_active_for_followup` 只回答"turn-start 是否要保留未作答活动题连续性，避免下一轮作答
+    绑不到题"。该 keep gate 对三类未作答上下文返回 True：隐式求助（"给点提示" / "还是不会" / "这题怎么想"）、
+    具体题项 reveal / 助记引用（"第2题答案是什么" / "第2题记忆口诀"），以及不消费当前题答案的安全学习辅助 detour
+    （"给我整理一建建筑实务记忆口诀"）。泛化显式要答案（"公布答案" / "直接告诉我答案"）仍不保活，照常 demote 并由 reveal
+    路径放行；已作答题不命中。TutorBot 对安全学习辅助 detour 可以进入正常生成，但必须在 manager session metadata
+    中清掉 `active_object` / `question_followup_context` / `_prefetched_exact_question` 等当前题上下文字段，避免自由 LLM
+    消费未作答题隐藏答案材料。证据见 `tests/services/test_turn_start_demote_canonical_pipeline.py` 与
+    `tests/capabilities/test_tutorbot_unanswered_reference_short_circuit.py`。
+  - **已批改题的下一步训练承接（2026-07-10）是同相位的 forward-reachability carve-out**：
+    当 active question 已有 `construction_grading_result.next_training_signal` 或确定性完成批改证据，且本轮不是作答提交，
+    用户用“下一步 / 继续 / 按你说的做”等接受上一轮巩固建议时，turn-start 必须保留该 active object；QTPK 的同一
+    predicate 负责生成 `question_followup_action.intent=generate_more_questions`，其 `topic` 必须从 canonical
+    `next_training_signal.concept/focus` 或当前题 concentration 投影，不能退化成“下一步”原文；lifecycle 再投影为
+    `practice_generation`。未批改题、当前作答提交和无上下文低信息短句不得命中；turn runtime 只读该 predicate，
+    不自行解释文本。回归见 `tests/api/test_unified_ws_turn_runtime.py::test_turn_runtime_routes_graded_next_step_acceptance_to_deep_question_authority`。
 - **routing 相位**（单一权威 = `deeptutor/services/semantic_router.py::apply_active_object_transition`）：
   orchestrator 经 `metadata.suspended_object_stack` 读到 turn-START 压栈的对象，在 `resume_suspended_object`
   决策下**恢复（出栈）**。canonical **只出栈、从不在 turn-START 那个输入上重做压栈决策**。

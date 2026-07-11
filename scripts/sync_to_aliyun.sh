@@ -35,6 +35,7 @@ EXCLUDES=(
     ".git.broken*"
     ".env*"
     ".secrets*"
+    "secrets"
     "*.tsbuildinfo"
     "artifacts"
     "playwright-report"
@@ -137,6 +138,7 @@ excluded_names = {
     "playwright-report",
     "test-results",
     "coverage",
+    "secrets",
     "artifacts",
     "data",
     "dist",

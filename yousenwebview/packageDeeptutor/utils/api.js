@@ -474,6 +474,18 @@ function rawRequest(opts) {
 
 // ── Gateway 接口 ─────────────────────────────────────────────
 
+function regAttribution() {
+  try {
+    var attr = wx.getStorageSync("reg_attribution") || {};
+    return {
+      channel: String(attr.ch || ""),
+      scene: String(attr.scene || ""),
+    };
+  } catch (_err) {
+    return { channel: "", scene: "" };
+  }
+}
+
 /** 微信小程序登录 */
 function wxLogin(code) {
   return request({
@@ -487,10 +499,16 @@ function wxLogin(code) {
 
 /** 手机号授权快速登录 */
 function wxLoginWithPhone(code, phoneCode) {
+  var attribution = regAttribution();
   return request({
     url: "/api/v1/wechat/mp/login",
     method: "POST",
-    data: { code: code, phone_code: phoneCode },
+    data: {
+      code: code,
+      phone_code: phoneCode,
+      channel: attribution.channel,
+      scene: attribution.scene,
+    },
     useGateway: true,
     noAuth: true,
   });
@@ -498,10 +516,15 @@ function wxLoginWithPhone(code, phoneCode) {
 
 /** 绑定手机号 */
 function bindPhone(phoneCode) {
+  var attribution = regAttribution();
   return request({
     url: "/api/v1/wechat/mp/bind-phone",
     method: "POST",
-    data: { phone_code: phoneCode },
+    data: {
+      phone_code: phoneCode,
+      channel: attribution.channel,
+      scene: attribution.scene,
+    },
     useGateway: true,
   });
 }
@@ -898,16 +921,50 @@ function postStationCompleted(packId, packTitle, opts) {
   );
 }
 
-/** 鲁班 — 次日变体复测题面（服务端确定性抽取，客户端本地判分） */
-function getLubanRetestItems(packId, limit, opts) {
+/** 鲁班 — 变体题面（服务端确定性抽取，客户端本地判分）。
+ * mode: "review"（默认，复习轮换皮复测）| "forward"（学习轮 2 分钟正向轻练，
+ * 对刚学完 pack 覆盖不同 rule_group 取一组）——同一 builder/端点，仅选序不同。
+ * 向后兼容:旧调用把 opts 放第 3 位（getLubanRetestItems(pack, 1, {silent:true})），
+ * 第 3 位为对象时按 opts 处理、mode 归 review。 */
+function getLubanRetestItems(packId, limit, mode, opts) {
+  if (mode && typeof mode === "object") {
+    opts = mode;
+    mode = "review";
+  }
   var n = Number(limit || 5);
   if (!Number.isFinite(n) || n <= 0) n = 5;
+  var m = String(mode || "review") === "forward" ? "forward" : "review";
   return requestStateGet(
     "/api/v1/luban/lessons/" +
       encodeURIComponent(String(packId || "")) +
       "/retest-items?limit=" +
-      Math.min(Math.round(n), 10),
+      Math.min(Math.round(n), 10) +
+      "&mode=" +
+      m,
     opts,
+  );
+}
+
+/** 鲁班 — 实务闯关「全量作答」档(档位③): 自由默写文本提交判分内核。
+ * 前端零判分、零改分——只投递 { variant_id, answer_text }, 逐采分点 verdict 由后端
+ * 内核给(已剥离 keywords/required_terms, 防再认泄漏)。旗标关 / 未签发 / 非绿灯一律
+ * 404 同形——前端据此保持「全量作答即将开通」诚实占位, 绝不本地伪造判分。 */
+function postLubanFullAnswer(packId, variantId, answerText, opts) {
+  return request(
+    Object.assign(
+      {
+        url:
+          "/api/v1/luban/lessons/" +
+          encodeURIComponent(String(packId || "")) +
+          "/full-answer",
+        method: "POST",
+        data: {
+          variant_id: String(variantId || "").trim(),
+          answer_text: String(answerText || ""),
+        },
+      },
+      opts || {},
+    ),
   );
 }
 
@@ -1007,6 +1064,7 @@ module.exports = {
   wxLogin: wxLogin,
   wxLoginWithPhone: wxLoginWithPhone,
   bindPhone: bindPhone,
+  regAttribution: regAttribution,
   getUserInfo: getUserInfo,
   getTodayProgress: getTodayProgress,
   getChapterProgress: getChapterProgress,
@@ -1046,6 +1104,7 @@ module.exports = {
   getLubanConceptCardLibrary: getLubanConceptCardLibrary,
   getLubanConceptCards: getLubanConceptCards,
   getLubanAntidote: getLubanAntidote,
+  postLubanFullAnswer: postLubanFullAnswer,
   postStationCompleted: postStationCompleted,
   postLessonProgress: postLessonProgress,
   getAssessmentProfile: getAssessmentProfile,

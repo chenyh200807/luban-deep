@@ -28,6 +28,36 @@ def test_product_behavior_catalog_includes_p0_events() -> None:
     }.issubset(PRODUCT_BEHAVIOR_EVENT_NAMES)
 
 
+def test_validate_accepts_and_gates_practice_mode() -> None:
+    """spike 命门判别位:forward/review 合法进 validated dict;白名单外值拒收
+    (register-before-use,防拼写漂移);缺省=空(既有事件不受影响)。"""
+    for mode in ("forward", "review"):
+        out = validate_product_behavior_event(
+            event_name="learning_action_completed",
+            metadata={
+                "visit_id": "v1", "module": "practice", "action": "complete",
+                "surface": "wechat_yousenwebview", "object_type": "retest",
+                "practice_mode": mode,
+            },
+        )
+        assert out["practice_mode"] == mode
+    with pytest.raises(ValueError, match="practice_mode"):
+        validate_product_behavior_event(
+            event_name="learning_action_completed",
+            metadata={
+                "visit_id": "v1", "module": "practice", "action": "complete",
+                "surface": "wechat_yousenwebview", "practice_mode": "frwrd",
+            },
+        )
+    # 缺省不带 practice_mode 的既有事件仍合法(空串)
+    out = validate_product_behavior_event(
+        event_name="module_viewed",
+        metadata={"visit_id": "v1", "module": "learning", "action": "view",
+                  "surface": "web"},
+    )
+    assert out["practice_mode"] == ""
+
+
 def test_validate_product_behavior_event_accepts_learning_report_section() -> None:
     event = validate_product_behavior_event(
         event_name="section_viewed",
@@ -170,3 +200,66 @@ def test_luban_spike_d15_events_registered():
         record = validate_product_behavior_event(name, meta)
         assert record["event_name"] == name
         assert record["object_id"] == meta["object_id"]
+
+
+def test_first_experience_funnel_events_registered() -> None:
+    """首体验漏斗（2026-07-10 登记）：老蓝版小程序埋点通电的 5 个新事件名 +
+    login module + authorize/send action。60% 零消息流失的定位事件。"""
+    for name, meta in [
+        ("module_viewed", {"module": "login", "action": "view",
+                           "surface": "wechat_miniprogram", "visit_id": "v1"}),
+        ("auth_authorize_clicked", {"module": "login", "action": "authorize",
+                                    "object_type": "phone_auth",
+                                    "result": "granted",
+                                    "surface": "wechat_miniprogram",
+                                    "visit_id": "v1"}),
+        ("auth_result", {"module": "login", "action": "complete",
+                         "object_type": "phone_auth", "result": "success",
+                         "surface": "wechat_miniprogram", "visit_id": "v1"}),
+        ("chat_message_sent", {"module": "chat", "action": "send",
+                               "object_type": "chat_turn",
+                               "surface": "wechat_miniprogram",
+                               "visit_id": "v1"}),
+        ("chat_first_answer_rendered", {"module": "chat", "action": "render",
+                                        "object_type": "first_answer",
+                                        "duration_ms": 3200,
+                                        "surface": "wechat_miniprogram",
+                                        "visit_id": "v1"}),
+        ("assessment_prompt_result", {"module": "assessment",
+                                      "action": "dismiss", "result": "later",
+                                      "entry_source": "chat_home",
+                                      "surface": "wechat_miniprogram",
+                                      "visit_id": "v1"}),
+    ]:
+        record = validate_product_behavior_event(name, meta)
+        assert record["event_name"] == name
+        assert record["module"] == meta["module"]
+        assert record["action"] == meta["action"]
+
+def test_first_run_script_events_registered():
+    """首跑剧本（2026-07-10 登记）：2 个新事件名 + first_run module 过 catalog 校验。"""
+    from deeptutor.services.observability.product_behavior_catalog import (
+        validate_product_behavior_event,
+    )
+
+    for name, meta in [
+        ("first_run_started", {"module": "first_run", "action": "view",
+                               "section": "act_war", "visit_id": "v1",
+                               "surface": "wechat_miniprogram"}),
+        ("first_run_question_completed", {"module": "first_run", "action": "complete",
+                                          "object_type": "question",
+                                          "object_id": "qigu_gebu",
+                                          "result": "correct", "duration_ms": 12000,
+                                          "visit_id": "v1"}),
+        # 复用既有名的三跳: 幕曝光 / 逃生舱 / 剧本完成
+        ("module_viewed", {"module": "first_run", "action": "view",
+                           "section": "act_report", "visit_id": "v1"}),
+        ("module_exited", {"module": "first_run", "action": "dismiss",
+                           "section": "act_question", "visit_id": "v1"}),
+        ("learning_action_completed", {"module": "first_run", "action": "complete",
+                                       "object_type": "script", "result": "remind",
+                                       "visit_id": "v1"}),
+    ]:
+        record = validate_product_behavior_event(name, meta)
+        assert record["event_name"] == name
+        assert record["module"] == "first_run"

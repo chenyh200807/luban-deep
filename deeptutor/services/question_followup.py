@@ -129,6 +129,27 @@ _REVEAL_ANSWER_MARKERS = (
     "哪个对",
     "哪个正确",
 )
+_SAFE_STUDY_AID_MARKERS = (
+    "记忆口诀",
+    "背诵口诀",
+    "考点口诀",
+    "知识点口诀",
+    "记忆技巧",
+    "记忆方法",
+    "记忆抓手",
+    "助记",
+    "速记",
+)
+_CURRENT_QUESTION_REFERENCE_MARKERS = (
+    "这道题",
+    "这题",
+    "本题",
+    "当前题",
+    "这组题",
+    "这几题",
+    "刚才那题",
+    "上面这题",
+)
 
 # 子句分隔符：否定感知只在 reveal marker 所在子句内判定，避免跨子句误伤
 # （"不要听废话，直接告诉我答案" 的 reveal 子句无否定 → 仍 reveal）。
@@ -1631,19 +1652,39 @@ def should_block_unanswered_reference_reveal(
     # owner 边界 #2（2026-06-30）：anti-peek 只压「隐式求助」。显式要答案（"公布答案"/
     # "把答案给我"/"直接说哪个对"）一律放行——尊重"不能不输出"，不被 anti-peek 压住。
     # 与既有 concession 放行同级（都是"学员主动解锁"），只是把"显式 reveal"也并入。
-    if detect_answer_reveal_preference(message) is True:
-        return False
+    preference = detect_answer_reveal_preference(message)
     requested_index = requested_question_item_index(message, normalized)
+    has_concession = _looks_like_answer_concession(message)
     if requested_index is not None:
         items = normalized.get("items") or []
         if isinstance(items, list) and 1 <= requested_index <= len(items):
             item = items[requested_index - 1]
             if isinstance(item, dict) and _question_has_learner_attempt(item):
                 return False
-        return not _looks_like_answer_concession(message)
+        if preference is False:
+            return True
+        return not has_concession
+    if preference is True:
+        return False
+    if _looks_like_safe_study_aid_request(message):
+        return False
     if _question_has_learner_attempt(normalized):
         return False
-    return not _looks_like_answer_concession(message)
+    return not has_concession
+
+
+def should_keep_unanswered_question_active_for_followup(
+    message: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    normalized = normalize_question_followup_context(question_context) or {}
+    if not normalized:
+        return False
+    if should_block_unanswered_reference_reveal(message, normalized):
+        return True
+    if _question_has_learner_attempt(normalized):
+        return False
+    return looks_like_safe_study_aid_request(message)
 
 
 def _question_has_learner_attempt(question_context: dict[str, Any]) -> bool:
@@ -1666,6 +1707,17 @@ def _question_has_learner_attempt(question_context: dict[str, Any]) -> bool:
 def _looks_like_answer_concession(message: str) -> bool:
     text = str(message or "").strip()
     return any(marker in text for marker in _ANSWER_CONCESSION_MARKERS)
+
+
+def looks_like_safe_study_aid_request(message: str) -> bool:
+    text = str(message or "").strip()
+    if any(marker in text for marker in _CURRENT_QUESTION_REFERENCE_MARKERS):
+        return False
+    return any(marker in text for marker in _SAFE_STUDY_AID_MARKERS)
+
+
+def _looks_like_safe_study_aid_request(message: str) -> bool:
+    return looks_like_safe_study_aid_request(message)
 
 
 def requested_question_item_index(
@@ -2778,7 +2830,19 @@ def _build_followup_action_prompt(
                 "question": str(item.get("question") or "").strip(),
                 "options": item.get("options") or {},
                 "user_answer": str(item.get("user_answer") or "").strip(),
+                "is_correct": item.get("is_correct"),
                 "multi_select": bool(item.get("multi_select", False)),
+                "has_grading_result": isinstance(
+                    item.get("construction_grading_result"), dict
+                )
+                and bool(item.get("construction_grading_result")),
+                "next_training_signal": (
+                    (item.get("construction_grading_result") or {}).get(
+                        "next_training_signal"
+                    )
+                    if isinstance(item.get("construction_grading_result"), dict)
+                    else {}
+                ),
             }
         )
 
@@ -2810,6 +2874,11 @@ def _build_followup_action_prompt(
         "③history_context 里找不到被指的那道题——用 unknown，不要猜。\n"
         "   ask_other_question 只用于讲解/追问，绝不用于作答或改答。\n"
         "4. 如果用户是在要求继续出题/再来几题，intent=generate_more_questions。\n"
+        "   如果 active_question_set 显示题目已经完成批改（有 is_correct/user_answer 或 "
+        "construction_grading_result.next_training_signal），且用户在承接上一轮老师给出的"
+        "下一步巩固建议（如‘下一步’‘继续’‘好的，按这个来’‘照你说的做’），"
+        "也应判为 generate_more_questions；此时要利用 history_context 和 next_training_signal，"
+        "不要只按用户短句字面判断。若没有已批改证据，不要把低信息短句猜成出题。\n"
         "5. 如果无法有把握地判断为题目 follow-up，返回 unknown 或 unrelated，不要猜。\n"
         "6. 只有在上下文足够支持时，才能把紧凑字母串解释成答案。\n"
         "7. 如果需要输出答案，请放在 answers 数组里，每项包含 question_index、question_id、answer。\n"

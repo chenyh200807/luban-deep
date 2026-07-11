@@ -3,19 +3,18 @@
 from __future__ import annotations
 
 import asyncio
-import json
-import os
-import re
-import sys
 from contextlib import AsyncExitStack
 from datetime import datetime
+import json
+import os
 from pathlib import Path
+import re
+import sys
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from loguru import logger
 
-from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.construction_grading.case_output_policy import (
     build_case_grading_diagnostic_only_response,
     case_grading_score_authority_available,
@@ -23,6 +22,7 @@ from deeptutor.services.construction_grading.case_output_policy import (
     should_demote_case_grading_hard_score,
 )
 from deeptutor.services.exam_track import exam_track_label
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.query_intent import (
     build_grounding_decision_from_metadata,
     looks_like_construction_exam_knowledge_query,
@@ -44,23 +44,24 @@ from deeptutor.services.rag.historical_questions import (
     project_grounding_text_to_query_surface,
 )
 from deeptutor.services.rag.pipelines.supabase_strategy import prepare_exact_question_probe
+from deeptutor.services.security.tool_access import is_end_user_tool_allowed
 from deeptutor.services.security.tutorbot_guardrails import (
     classify_tutorbot_user_input,
     guard_tutorbot_output,
     sanitize_untrusted_context,
 )
-from deeptutor.services.security.tool_access import is_end_user_tool_allowed
 from deeptutor.tutorbot.agent.context import ContextBuilder
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator
+from deeptutor.tutorbot.agent.subagent import SubagentManager
 from deeptutor.tutorbot.agent.team import TeamManager
 from deeptutor.tutorbot.agent.team.tools import TeamTool
-from deeptutor.tutorbot.agent.subagent import SubagentManager
 from deeptutor.tutorbot.agent.tools.cron import CronTool
 from deeptutor.tutorbot.agent.tools.message import MessageTool
 from deeptutor.tutorbot.agent.tools.registry import ToolRegistry, build_base_tools
 from deeptutor.tutorbot.agent.tools.spawn import SpawnTool
 from deeptutor.tutorbot.bus.events import InboundMessage, OutboundMessage
 from deeptutor.tutorbot.bus.queue import MessageBus
+from deeptutor.tutorbot.markdown_style import get_markdown_style_instruction
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
@@ -70,15 +71,14 @@ from deeptutor.tutorbot.teaching_modes import (
     build_cross_capability_context_instruction,
     content_truth_guard_response,
     correct_construction_exam_boundary_fact_response,
-    get_construction_exam_boundary_fact_instruction,
     get_anchor_preservation_instruction,
+    get_construction_exam_boundary_fact_instruction,
     get_lecture_skill_instruction,
     get_practice_generation_instruction,
     get_teaching_mode_instruction,
     looks_like_practice_generation_request,
     normalize_anchor_terms_in_response,
 )
-from deeptutor.tutorbot.markdown_style import get_markdown_style_instruction
 
 if TYPE_CHECKING:
     from deeptutor.tutorbot.config.schema import ChannelsConfig, ExecToolConfig, WebSearchConfig
@@ -1962,6 +1962,11 @@ class AgentLoop:
             filtered.append(item)
         return filtered
 
+    @staticmethod
+    def _prefetched_rag_satisfied(runtime_metadata: dict[str, Any] | None) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        return bool(metadata.get("prefetched_rag_satisfied"))
+
     async def _run_agent_loop(
         self,
         initial_messages: list[dict],
@@ -2023,6 +2028,11 @@ class AgentLoop:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             elif self._should_disable_rag_for_active_question_flow(runtime_metadata):
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+            elif iteration == 1 and self._prefetched_rag_satisfied(runtime_metadata):
+                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+                runtime_metadata["prefetched_rag_suppressed_first_loop"] = True
+                if external_runtime_metadata is not None:
+                    external_runtime_metadata["prefetched_rag_suppressed_first_loop"] = True
             elif rag_saturation:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             advertised_tool_names = {
@@ -2721,6 +2731,13 @@ class AgentLoop:
             elif self._prefetched_case_exact_question_can_answer(runtime_metadata):
                 merged_metadata["authority_applied"] = True
 
+        if runtime_metadata is not None and not bool(merged_metadata.get("retrieval_degraded")):
+            sources = merged_metadata.get("sources")
+            has_sources = isinstance(sources, list) and bool(sources)
+            has_exact_question = isinstance(exact_candidate, dict) and bool(exact_candidate)
+            if has_sources or has_exact_question or bool(merged_metadata.get("authority_applied")):
+                runtime_metadata["prefetched_rag_satisfied"] = True
+                merged_metadata["prefetched_rag_satisfied"] = True
         if on_tool_call:
             await on_tool_call("rag", preview_args)
         if on_tool_result:
