@@ -59,9 +59,17 @@ Page({
     errorText: "",
     items: [],
     total: 0,
+    pool: null,          // 题池元信息 {core_total, rule_groups_total}(呈现层规模感)
+    seenCount: 0,        // 本地已见变体数(收集感, storage 呈现层)
     answeredCount: 0,
     correctCount: 0,
     done: false,
+    // 单题聚焦流(纸墨版): 当前题指针 + 完场收据
+    currentIndex: 0,
+    showReceipt: false,
+    wrongItems: [],      // 收据"再看一眼"清单(签发 correct_statement 逐字)
+    ruleGroupCount: 0,   // 考法覆盖(去重 rule_group 数, 呈现层统计)
+    textbookCount: 0,    // 翻出的教材原文句数(join 命中数, 呈现层统计)
   },
 
   onLoad(query) {
@@ -150,6 +158,22 @@ Page({
     this.setData(patch);
 
     if (done) {
+      // 收据数据(呈现层统计, 全部来自签发字段)
+      var all = items.slice();
+      all[index] = Object.assign({}, item, { answered: true, correct: correct });
+      var groups = {};
+      var textbookCount = 0;
+      var wrong = [];
+      all.forEach(function (it) {
+        if (it.rule_group) groups[it.rule_group] = true;
+        if (it.textbook) textbookCount += 1;
+        if (it.answered && it.correct === false) wrong.push(it);
+      });
+      this.setData({
+        wrongItems: wrong,
+        ruleGroupCount: Object.keys(groups).length,
+        textbookCount: textbookCount,
+      });
       // 复测终态本地记录: 错因银行呈现层销账用(本地 storage, 非学情真值,
       // 不写掌握态——掌握结论只归 learner truth 链路)
       if (typeof wx !== "undefined" && wx.setStorageSync) {
@@ -177,6 +201,38 @@ Page({
     }
   },
 
+  // 本地"已见变体"集合(收集感, 呈现层非学情): 读旧集合并入本场
+  _seenCount(items) {
+    var key = "luban_retest_seen:" + (this.data.packId || "");
+    var seen = [];
+    try {
+      if (typeof wx !== "undefined" && wx.getStorageSync) {
+        var raw = wx.getStorageSync(key);
+        if (raw && Array.isArray(raw.ids)) seen = raw.ids;
+      }
+    } catch (_e) {}
+    var set = {};
+    seen.forEach(function (id) { set[id] = true; });
+    (items || []).forEach(function (it) { set[it.variant_id] = true; });
+    var ids = Object.keys(set);
+    try {
+      if (typeof wx !== "undefined" && wx.setStorageSync) {
+        wx.setStorageSync(key, { ids: ids, at: Date.now() });
+      }
+    } catch (_e) {}
+    return ids.length;
+  },
+
+  // 单题流推进: 下一题 / 最后一题 → 今日收据
+  nextQuestion() {
+    var next = this.data.currentIndex + 1;
+    if (next >= this.data.total) {
+      this.setData({ showReceipt: true });
+      return;
+    }
+    this.setData({ currentIndex: next });
+  },
+
   _loadItems() {
     var that = this;
     return api
@@ -184,6 +240,7 @@ Page({
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var raw = Array.isArray(body.items) ? body.items : [];
+        var pool = body.pool && body.pool.core_total ? body.pool : null;
         var items = raw.map(function (item, idx) {
           return {
             key: String(item.variant_id || "v_" + idx),
@@ -193,17 +250,25 @@ Page({
             expected_ok: Boolean(item.expected_ok),
             correct_statement: item.correct_statement,
             anchor: item.anchor,
+            textbook: item.textbook || null, // 教材原文并排卡(join 命中才有, 前端零造词)
             answered: false,
             correct: null,
             chosenOk: null,
           };
         });
         that.setData({
+          pool: pool,
+          seenCount: that._seenCount(items),
           items: items,
           total: items.length,
           answeredCount: 0,
           correctCount: 0,
           done: false,
+          currentIndex: 0,
+          showReceipt: false,
+          wrongItems: [],
+          ruleGroupCount: 0,
+          textbookCount: 0,
           loading: false,
           errorText: "",
         });

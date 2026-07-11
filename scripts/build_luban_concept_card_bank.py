@@ -58,6 +58,391 @@ class BankBuildError(Exception):
     """派生/gate 失败：bank 不写。"""
 
 
+# ── 教材 quote 修复层（2026-07-11 owner 验尸后加，治"断头引文/空页码"病） ──
+# 病根：compiled_source 的 quote 是 ~92 字窗口切片（账本 D4 登记的切片管道病），
+# 首尾断句 + markdown 噪声混入（34 卡验尸: 11 卡截断、10 卡 source_ref 空）。
+# 治法：按 point 的 chunk_id 在教材权威库（FINAL_CLEANED_BOOK2026*_fixed.json，
+# 事实权威阶梯: 教材 > 一切）定位原 quote，**确定性延展**到完整块/句边界，
+# 剥 markdown 装饰，并从 chunk source_meta 取真页码——零 LLM、零生成，
+# 修复后 quote 归一化后必须仍是 chunk 全文的逐字子串（gate 硬核验）。
+# 教材库缺失 → fail-loud（禁静默产出未修复 bank，防两台机器产出漂移）。
+TEXTBOOK_DIR = REPO / "docs" / "原始数据" / "2026_副本" / "2026教材" / "第二次加强"
+_TEXTBOOK_GLOB = "FINAL_CLEANED_BOOK2026*fixed.json"
+# 归一化剔除集：空白 + markdown 装饰(#*`>|) + 列表连字符/项目符
+_NORM_STRIP = set(" \t\r\n　#*`>|—–-·•▪")
+_SENTENCE_END = "。！？；"
+_QUOTE_MAX_LEN = 320
+_TEXTBOOK_LANE = "textbook_v3_fixed"
+
+_textbook_cache: dict[str, dict[str, Any]] | None = None
+
+
+def _load_textbook_index(textbook_dir: Path) -> dict[str, dict[str, Any]]:
+    """chunk_id → {md, page}（三分片合并，模块级缓存）。缺库 = fail-loud。"""
+    global _textbook_cache
+    if _textbook_cache is not None:
+        return _textbook_cache
+    paths = sorted(textbook_dir.glob(_TEXTBOOK_GLOB))
+    if not paths:
+        raise BankBuildError(
+            f"教材权威库缺失: {textbook_dir}/{_TEXTBOOK_GLOB}——quote 修复无法复现，"
+            "拒绝产出（在有教材库的机器上编译，或先同步 2026_副本）"
+        )
+    index: dict[str, dict[str, Any]] = {}
+    for path in paths:
+        try:
+            book = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:  # noqa: BLE001
+            raise BankBuildError(f"教材库解析失败: {path} ({exc})")
+        for block in book.get("content_blocks") or []:
+            cid = str(block.get("chunk_id") or "").strip()
+            md = str(block.get("content_markdown") or "")
+            if not cid or not md or cid in index:
+                continue
+            meta = block.get("source_meta") or {}
+            page = meta.get("page_num")
+            index[cid] = {"md": md, "page": page if isinstance(page, int) else None}
+    _textbook_cache = index
+    return index
+
+
+def _norm_with_map(text: str) -> tuple[str, list[int]]:
+    """归一化（剔 _NORM_STRIP 字符）并保留 归一下标→原文下标 映射。"""
+    out: list[str] = []
+    mapping: list[int] = []
+    for i, ch in enumerate(text):
+        if ch in _NORM_STRIP:
+            continue
+        out.append(ch)
+        mapping.append(i)
+    return "".join(out), mapping
+
+
+def _norm(text: str) -> str:
+    return "".join(ch for ch in text if ch not in _NORM_STRIP)
+
+
+def _clean_block_lines(lines: list[str]) -> str:
+    """剥 markdown 装饰：删标题行，去列表符/加粗/代码记号；不动任何文字。"""
+    kept: list[str] = []
+    for line in lines:
+        striped = line.strip()
+        if not striped or striped.startswith("#"):
+            continue  # 标题是排版件不是教材正文句
+        striped = re.sub(r"^[-*·•]\s*", "", striped)
+        striped = striped.replace("**", "").replace("`", "")
+        kept.append(striped)
+    return " ".join(kept).strip()
+
+
+def _trim_to_sentences(cleaned: str, probe: str) -> str:
+    """超长时收敛到覆盖 probe（原截断 quote）的完整句窗口。"""
+    if len(cleaned) <= _QUOTE_MAX_LEN:
+        return cleaned
+    parts = re.split(f"(?<=[{_SENTENCE_END}])", cleaned)
+    norm_probe = _norm(probe)[:30]
+    acc = ""
+    start_idx = 0
+    for i, part in enumerate(parts):
+        acc += part
+        if norm_probe and norm_probe in _norm(acc):
+            start_idx = i
+            break
+    window = ""
+    begin = start_idx
+    while begin > 0 and len(parts[begin - 1]) + len(window) < 60:
+        begin -= 1
+        window = parts[begin] + window
+    for part in parts[start_idx:]:
+        if window and len(window) + len(part) > _QUOTE_MAX_LEN:
+            break
+        window += part
+    window = window.strip()
+    return window if window else cleaned[:_QUOTE_MAX_LEN]
+
+
+_NUM_RE = re.compile(r"\d+(?:\.\d+)?")
+
+
+def _bigrams(text: str) -> set[str]:
+    n = _norm(text)
+    return {n[i : i + 2] for i in range(len(n) - 1)}
+
+
+_ENUM_HEAD_RE = re.compile(r"^\s*(?:[（(]\d+[）)]|[①②③④⑤⑥⑦⑧⑨⑩]|\d+[）)．.、])")
+
+
+def _chunk_windows(chunk_md: str) -> list[dict[str, str]]:
+    """chunk → 候选窗口 [{text, heading}]：逐块清洗文本，超长块按句滑窗；
+    heading = 该块上方最近的标题文本（front 对齐用，不进 quote 输出）。
+
+    枚举合并：教材"（1）…（5）/①…⑤"逐项常被空行拆成单条块——"合格五条"这类
+    整表考点必须有**完整枚举窗口**候选（含前置引导句），否则选句只会命中末条
+    （对抗质检实锤的选句错位残留形态）。"""
+    lines = chunk_md.splitlines()
+    raw_blocks: list[dict[str, Any]] = []  # {lines, heading, enum}
+    heading = ""
+    cur: list[str] = []
+
+    def _flush_raw() -> None:
+        nonlocal cur
+        if not cur:
+            return
+        first = next((l.strip() for l in cur if l.strip()), "")
+        raw_blocks.append(
+            {"lines": cur, "heading": heading, "enum": bool(_ENUM_HEAD_RE.match(first))}
+        )
+        cur = []
+
+    for line in lines + [""]:
+        striped = line.strip()
+        if not striped:
+            _flush_raw()
+            continue
+        if striped.startswith("#"):
+            _flush_raw()
+            heading = _MD_DECOR_RE.sub("", striped.lstrip("#")).strip()
+            continue
+        cur.append(line)
+
+    windows: list[dict[str, str]] = []
+
+    def _emit(block_lines: list[str], head: str) -> None:
+        block = _clean_block_lines(block_lines)
+        if not block:
+            return
+        if len(block) <= _QUOTE_MAX_LEN:
+            windows.append({"text": block, "heading": head})
+            return
+        parts = re.split(f"(?<=[{_SENTENCE_END}])", block)
+        for i in range(len(parts)):
+            window = ""
+            for part in parts[i:]:
+                if window and len(window) + len(part) > _QUOTE_MAX_LEN:
+                    break
+                window += part
+            if window.strip():
+                windows.append({"text": window.strip(), "heading": head})
+
+    idx = 0
+    while idx < len(raw_blocks):
+        blk = raw_blocks[idx]
+        _emit(blk["lines"], blk["heading"])
+        # 枚举 run：连续 enum 块（同 heading）合并为整表窗口，带上前一块引导句
+        if blk["enum"]:
+            run = [blk]
+            j = idx + 1
+            while (
+                j < len(raw_blocks)
+                and raw_blocks[j]["enum"]
+                and raw_blocks[j]["heading"] == blk["heading"]
+            ):
+                run.append(raw_blocks[j])
+                _emit(raw_blocks[j]["lines"], raw_blocks[j]["heading"])
+                j += 1
+            if len(run) > 1:
+                merged: list[str] = []
+                if idx > 0 and not raw_blocks[idx - 1]["enum"]:
+                    intro = _clean_block_lines(raw_blocks[idx - 1]["lines"])
+                    if intro.endswith("：") or intro.endswith(":") or len(intro) < 40:
+                        merged.extend(raw_blocks[idx - 1]["lines"])
+                for member in run:
+                    merged.extend(member["lines"])
+                block = _clean_block_lines(merged)
+                if block:
+                    # 整表窗口豁免滑窗上限(枚举完整性 > 长度上限, 上限=2倍)
+                    if len(block) <= _QUOTE_MAX_LEN * 2:
+                        windows.append({"text": block, "heading": blk["heading"]})
+            idx = j
+            continue
+        idx += 1
+    return windows
+
+
+def _select_quote(
+    front: str, gist: str, legacy_quote: str, chunk_md: str
+) -> dict[str, str] | None:
+    """按**卡意图（front+gist）语义对齐**在 chunk 里选教材真句窗口。
+
+    对抗质检两个批级病的治法合一：
+    - 改写冒充原文（39+78 卡实锤）：不再信 legacy quote，只从 chunk 逐字窗口选；
+    - 选句错位（C02 13/16 张 quote 选中提问/邻卡答案）：以 front+gist 为对齐权威
+      （人写的 §1 短名/关键词 = 这张卡在问什么），legacy quote 只作低权重提示。
+
+    硬门槛（不满足=None，调用侧剔卡——宁缺勿假）：
+    - gist 含数字时，窗口须覆盖 ≥80% 的 gist 数字 token（数字是安全关键面）；
+    - front 与 窗口+其标题 的双字重叠 ≥0.15（答非所问挡板）。
+    """
+    windows = _chunk_windows(chunk_md)
+    if not windows:
+        return None
+    front_bg = _bigrams(front)
+    gist_bg = _bigrams(gist)
+    legacy_bg = _bigrams(legacy_quote)
+    gist_nums = set(_NUM_RE.findall(gist))
+    best: tuple[float, dict[str, str]] | None = None
+    for win in windows:
+        text = win["text"]
+        w_bg = _bigrams(text)
+        if not w_bg:
+            continue
+        w_head_bg = w_bg | _bigrams(win["heading"])
+        w_nums = set(_NUM_RE.findall(text))
+        num_cov = (len(gist_nums & w_nums) / len(gist_nums)) if gist_nums else 1.0
+        front_ov = (len(front_bg & w_head_bg) / len(front_bg)) if front_bg else 0.0
+        gist_ov = (len(gist_bg & w_bg) / len(gist_bg)) if gist_bg else 0.0
+        legacy_ov = (len(legacy_bg & w_bg) / len(legacy_bg)) if legacy_bg else 0.0
+        if gist_nums and num_cov < 0.8:
+            continue
+        if front_bg and front_ov < 0.15:
+            continue
+        score = num_cov * 2 + front_ov * 1.5 + gist_ov + legacy_ov * 0.5 - len(text) / 2000
+        if best is None or score > best[0]:
+            best = (score, win)
+    if best is None:
+        return None
+    chosen = best[1]
+    if _norm(chosen["text"]) not in _norm(chunk_md):
+        return None
+    return chosen
+
+
+def _match_by_terms(raw_quote: str, chunk_md: str) -> str | None:
+    """改写文本回退锚定：quote 非教材逐字（对抗质检实锤 78 卡为 LLM 改写冒充原文）
+    时，按**数字 token + 字面双字重叠**在 chunk 里找真句窗口。命中门槛硬：
+    quote 的数字 token ≥80% 必须出现在窗口里（数字是安全关键面）、双字重叠≥0.25。
+    找不到 = 返回 None（调用侧整卡剔除——宁缺勿假，"教材原文"必须是教材原文）。
+    """
+    q_nums = set(_NUM_RE.findall(raw_quote))
+    q_norm = _norm(raw_quote)
+    q_bigrams = {q_norm[i : i + 2] for i in range(len(q_norm) - 1)}
+    if not q_bigrams:
+        return None
+    lines = chunk_md.splitlines()
+    # 候选窗口 = 逐块（空行/标题分隔）的清洗文本，块过长再按句滑窗
+    blocks: list[str] = []
+    cur: list[str] = []
+    for line in lines + [""]:
+        striped = line.strip()
+        if not striped or striped.startswith("#"):
+            if cur:
+                blocks.append(_clean_block_lines(cur))
+                cur = []
+            continue
+        cur.append(line)
+    candidates: list[str] = []
+    for block in blocks:
+        if not block:
+            continue
+        if len(block) <= _QUOTE_MAX_LEN:
+            candidates.append(block)
+            continue
+        parts = re.split(f"(?<=[{_SENTENCE_END}])", block)
+        for i in range(len(parts)):
+            window = ""
+            for part in parts[i:]:
+                if window and len(window) + len(part) > _QUOTE_MAX_LEN:
+                    break
+                window += part
+            if window.strip():
+                candidates.append(window.strip())
+    best: tuple[float, str] | None = None
+    for cand in candidates:
+        c_norm = _norm(cand)
+        c_bigrams = {c_norm[i : i + 2] for i in range(len(c_norm) - 1)}
+        if not c_bigrams:
+            continue
+        c_nums = set(_NUM_RE.findall(cand))
+        num_cov = (len(q_nums & c_nums) / len(q_nums)) if q_nums else 1.0
+        overlap = len(q_bigrams & c_bigrams) / len(q_bigrams)
+        if num_cov < 0.8 or overlap < 0.25:
+            continue
+        score = num_cov * 2 + overlap - len(cand) / 2000  # 同分偏短窗口
+        if best is None or score > best[0]:
+            best = (score, cand)
+    if best is None:
+        return None
+    result = best[1]
+    return result if _norm(result) in _norm(chunk_md) else None
+
+
+def _repair_quote(raw_quote: str, chunk_md: str) -> str | None:
+    """把截断 quote 修复为完整块/句边界的教材原文；定位失败返回 None（保留原样）。
+
+    跨块窗口处理：~92 字切片常"头沾上一节尾巴、中间横着标题行"。头尾双锚定位，
+    若展开范围内有内部标题（跨块实锤），取**最后一个内部标题之后**的块——点的
+    真身所在（切片窗口是越过标题伸进目标节的）。
+    """
+    norm_chunk, mapping = _norm_with_map(chunk_md)
+    norm_quote = _norm(raw_quote)
+    if len(norm_quote) < 12 or not mapping:
+        return None
+
+    def _find(probe_lens: tuple[int, ...], from_tail: bool) -> tuple[int, int]:
+        for plen in probe_lens:
+            plen = min(plen, len(norm_quote))
+            probe = norm_quote[-plen:] if from_tail else norm_quote[:plen]
+            pos = norm_chunk.find(probe)
+            if pos >= 0:
+                return pos, pos + plen
+        return -1, -1
+
+    head_s, head_e = _find((len(norm_quote), 60, 40, 24), from_tail=False)
+    tail_s, tail_e = _find((40, 24), from_tail=True)
+    if head_s < 0 and tail_s < 0:
+        return None
+    # 双锚合法（尾在头后且跨度合理）则并成大 span；否则用能用的那个
+    if head_s >= 0 and tail_e > head_s and (tail_e - head_s) <= len(norm_quote) * 2 + 40:
+        span = (head_s, tail_e - 1)
+    elif head_s >= 0:
+        span = (head_s, head_e - 1)
+    else:
+        span = (tail_s, tail_e - 1)
+    orig_start = mapping[min(span[0], len(mapping) - 1)]
+    orig_end = mapping[min(span[1], len(mapping) - 1)]
+
+    lines = chunk_md.splitlines(keepends=True)
+    offsets: list[tuple[int, int]] = []
+    acc_len = 0
+    for line in lines:
+        offsets.append((acc_len, acc_len + len(line)))
+        acc_len += len(line)
+
+    def line_of(offset: int) -> int:
+        for i, (s, e) in enumerate(offsets):
+            if s <= offset < e:
+                return i
+        return len(offsets) - 1
+
+    def is_blank(i: int) -> bool:
+        return not lines[i].strip()
+
+    def is_heading(i: int) -> bool:
+        return lines[i].lstrip().startswith("#")
+
+    ls, le = line_of(orig_start), line_of(min(orig_end, acc_len - 1))
+    # 展开到空行边界（标题不当边界，先容进来再裁跨块）
+    while ls > 0 and not is_blank(ls - 1):
+        ls -= 1
+    while le + 1 < len(lines) and not is_blank(le + 1):
+        le += 1
+    # 跨块裁决：范围内(不含首行)有标题 → 取最后一个内部标题之后的块
+    interior_headings = [i for i in range(ls + 1, le + 1) if is_heading(i)]
+    if interior_headings:
+        cut = interior_headings[-1] + 1
+        if cut <= le:
+            ls = cut
+    cleaned = _clean_block_lines(lines[ls : le + 1])
+    if not cleaned:
+        return None
+    # trim 的 probe 用 quote 尾段（跨块时头段属于被裁掉的上一节）
+    cleaned = _trim_to_sentences(cleaned, raw_quote[-40:])
+    # 硬校验：修复产物归一后必须仍是 chunk 的逐字子串（清洗只删装饰字符）
+    if _norm(cleaned) not in norm_chunk:
+        return None
+    return cleaned
+
+
 def _load_json(path: Path, what: str) -> Any:
     if not path.exists():
         raise BankBuildError(f"{what} 不存在: {path}")
@@ -73,18 +458,25 @@ def _point_index(pack_id: str) -> dict[str, dict[str, Any]]:
     index: dict[str, dict[str, Any]] = {}
     for unit in cs.get("units") or []:
         ref = unit.get("source_ref") or {}
+        textbook = _load_textbook_index(TEXTBOOK_DIR)
         for sp in unit.get("scoring_points") or []:
             pid = str(sp.get("point_id") or "")
             quote = str(sp.get("quote") or "").strip()
             if not pid or not quote or pid in index:
                 continue
+            # 教材修复层：按 point 自带 chunk_id 在教材权威库定位并延展 quote
+            chunk_id = str(sp.get("chunk") or ref.get("chunk_id") or "").strip()
+            source_ref = {
+                "chunk_id": chunk_id,
+                "page_num": ref.get("page_num"),
+                "source_lane": str(ref.get("source_lane") or ""),
+            }
+            # 注意：此处不再做 quote 修复/选择——选句权在 derive_cards 的
+            # _select_quote（需要 front+gist 卡意图做对齐权威, 见对抗质检 S2）。
             index[pid] = {
                 "quote": quote,
-                "source_ref": {
-                    "chunk_id": str(ref.get("chunk_id") or ""),
-                    "page_num": ref.get("page_num"),
-                    "source_lane": str(ref.get("source_lane") or ""),
-                },
+                "chunk_id": chunk_id,
+                "source_ref": source_ref,
                 "leaf_name_path": str(unit.get("leaf_name_path") or ""),
             }
     return index
@@ -118,8 +510,8 @@ def _column_map(header: list[str]) -> dict[str, int]:
             cols["name"] = idx
         elif "关键" in cell and "gist" not in cols:
             cols["gist"] = idx
-        elif "三色" in cell and "color" not in cols:
-            cols["color"] = idx
+        elif ("三色" in cell or "🚦" in cell) and "color" not in cols:
+            cols["color"] = idx  # C02 用 🚦 做三色列头(同义)
     missing = {"name", "gist", "color"} - set(cols)
     if missing:
         raise BankBuildError(f"§1 表头缺语义列 {sorted(missing)}: {header}")
@@ -129,6 +521,24 @@ def _column_map(header: list[str]) -> dict[str, int]:
 def _clean_name(raw: str) -> str:
     name = _MD_DECOR_RE.sub("", raw).strip()
     return _TRAILING_PAREN_RE.sub("", name).strip()
+
+
+_BLOCKLIST_PATH = RAW_DIR / "_concept_card_blocklist.json"
+_blocklist_cache: set[str] | None = None
+
+
+def _blocklist() -> set[str]:
+    """对抗质检面板剔卡清单（card_id 集合；人审 editorial 记录，缺文件=空集）。"""
+    global _blocklist_cache
+    if _blocklist_cache is None:
+        try:
+            data = json.loads(_BLOCKLIST_PATH.read_text(encoding="utf-8"))
+            _blocklist_cache = {
+                str(item.get("card_id") or "") for item in data.get("cards") or []
+            }
+        except FileNotFoundError:
+            _blocklist_cache = set()
+    return _blocklist_cache
 
 
 def derive_cards(pack_id: str) -> tuple[list[dict[str, Any]], list[dict[str, str]], str]:
@@ -175,16 +585,42 @@ def derive_cards(pack_id: str) -> tuple[list[dict[str, Any]], list[dict[str, str
         if resolved in seen_points:
             dropped.append({"row": name, "reason": "duplicate_point_id"})
             continue
+        if f"{pack_id}:{resolved}" in _blocklist():
+            # 对抗质检面板人审剔卡(内容错误/答非所问)——人审记录在
+            # _concept_card_blocklist.json, builder 确定性消费(--check 可复现)
+            dropped.append({"row": name, "reason": "panel_reject"})
+            continue
         seen_points.add(resolved)
         point = points[resolved]
+        gist = _MD_DECOR_RE.sub("", row[cols["gist"]]).strip()
+        # ── 选句（对抗质检 S1+S2 治法合一）：chunk 在教材权威库时, quote 一律由
+        # front+gist 意图对齐重选真句窗口; 选不出(答非所问/数字无出处)=剔卡。
+        # chunk 不在库(讲义 lane 等少数)保留 compiled_source 原 quote。
+        quote = point["quote"]
+        source_ref = point["source_ref"]
+        textbook = _load_textbook_index(TEXTBOOK_DIR)
+        chunk = textbook.get(str(point.get("chunk_id") or ""))
+        if chunk:
+            chosen = _select_quote(name, gist, point["quote"], chunk["md"])
+            if chosen is None:
+                dropped.append({"row": name, "reason": "quote_unalignable"})
+                seen_points.discard(resolved)
+                continue
+            quote = chosen["text"]
+            source_ref = {
+                "chunk_id": str(point.get("chunk_id") or ""),
+                "page_num": chunk["page"],
+                "source_lane": _TEXTBOOK_LANE,
+                "repair_mode": "intent_aligned",
+            }
         cards.append(
             {
                 "card_id": f"{pack_id}:{resolved}",
                 "front": name,
-                "key_gist": _MD_DECOR_RE.sub("", row[cols["gist"]]).strip(),
-                "quote": point["quote"],
+                "key_gist": gist,
+                "quote": quote,
                 "point_id": resolved,
-                "source_ref": point["source_ref"],
+                "source_ref": source_ref,
                 "leaf_name_path": point["leaf_name_path"],
             }
         )
@@ -199,12 +635,49 @@ def run_gate(pack_id: str, cards: list[dict[str, Any]]) -> dict[str, Any]:
     forbidden_words: list[str] = []
     passed = 0
     seen_front: set[str] = set()
+    textbook = _load_textbook_index(TEXTBOOK_DIR)
+    intent_misses: list[str] = []
+    gist_num_orphans: list[str] = []
     for card in cards:
         ok = True
         source = points.get(str(card.get("point_id") or ""))
-        if source is None or card.get("quote") != source["quote"]:
-            quote_mismatches.append(card["card_id"])
-            ok = False
+        ref = card.get("source_ref") or {}
+        lane = str(ref.get("source_lane") or "")
+        quote = str(card.get("quote") or "")
+        chunk = textbook.get(str(ref.get("chunk_id") or ""))
+        if lane == _TEXTBOOK_LANE:
+            # 教材 lane 硬闸①：quote 归一后必须逐字 ⊂ 教材 chunk 全文
+            if chunk is None or _norm(quote) not in _norm(chunk["md"]):
+                quote_mismatches.append(card["card_id"])
+                ok = False
+        else:
+            # 非教材 lane（讲义等少数）：保持与 compiled_source 逐字一致
+            if source is None or quote != source["quote"]:
+                quote_mismatches.append(card["card_id"])
+                ok = False
+        # 硬闸②（对抗质检 S3-①）：front ↔ quote+所在块标题 对齐（答非所问挡板）。
+        # 只对教材 lane 执行——讲义 lane 无 chunk 标题上下文, 该检查假阴性率高
+        # (实测 N01 面板人工验真的卡会被误杀), 其正确性由逐字一致闸+人审面板兜。
+        front_bg = _bigrams(str(card.get("front") or ""))
+        if front_bg and lane == _TEXTBOOK_LANE:
+            ctx_bg = _bigrams(quote)
+            if chunk is not None:
+                for win in _chunk_windows(chunk["md"]):
+                    if _norm(win["text"]).startswith(_norm(quote)[:24]) or _norm(quote)[:24] in _norm(win["text"]):
+                        ctx_bg |= _bigrams(win["heading"])
+                        break
+            if len(front_bg & ctx_bg) / len(front_bg) < 0.15:
+                intent_misses.append(card["card_id"])
+                ok = False
+        # 硬闸③（对抗质检 S3-②）：gist 里的数字必须 ∈ quote ∪ chunk（防编数）
+        gist_nums = set(_NUM_RE.findall(str(card.get("key_gist") or "")))
+        if gist_nums:
+            allowed = set(_NUM_RE.findall(quote))
+            if chunk is not None:
+                allowed |= set(_NUM_RE.findall(chunk["md"]))
+            if not gist_nums <= allowed:
+                gist_num_orphans.append(card["card_id"])
+                ok = False
         if card["front"] in seen_front:
             duplicate_cards.append(card["card_id"])
             ok = False
@@ -227,6 +700,9 @@ def run_gate(pack_id: str, cards: list[dict[str, Any]]) -> dict[str, Any]:
         "quote_mismatches": quote_mismatches,
         "duplicate_cards": duplicate_cards,
         "forbidden_words": forbidden_words,
+        # 对抗质检 S3 补闸(2026-07-11): 答非所问挡板 + gist 数字出处闸
+        "intent_misses": intent_misses,
+        "gist_num_orphans": gist_num_orphans,
     }
 
 
@@ -278,7 +754,11 @@ def main() -> int:
         return 1
     gate = payload["gate"]
     clean = not (
-        gate["quote_mismatches"] or gate["duplicate_cards"] or gate["forbidden_words"]
+        gate["quote_mismatches"]
+        or gate["duplicate_cards"]
+        or gate["forbidden_words"]
+        or gate["intent_misses"]
+        or gate["gist_num_orphans"]
     )
     print(
         f"cards={gate['total']} gate_pass={gate['passed']} rate={gate['pass_rate']:.2%} "
@@ -286,7 +766,10 @@ def main() -> int:
     )
     if not clean or gate["passed"] != gate["total"]:
         print(json.dumps(
-            {k: gate[k] for k in ("quote_mismatches", "duplicate_cards", "forbidden_words")},
+            {k: gate[k] for k in (
+                "quote_mismatches", "duplicate_cards", "forbidden_words",
+                "intent_misses", "gist_num_orphans",
+            )},
             ensure_ascii=False), file=sys.stderr)
         return 1
 

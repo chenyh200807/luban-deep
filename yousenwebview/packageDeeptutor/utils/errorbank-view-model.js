@@ -70,6 +70,26 @@ var ERROR_CODE_LABELS = {
   unknown_error: "未归因错误",
 };
 
+// ── 错因码 → 暖处方一句(呈现层文案, 与 ERROR_CODE_LABELS 同源同边界) ──
+// 语气纪律: 只"帮你变强", 禁审视词; 缺码/未收录走 default(即原全站通用句)。
+var WARM_LINES = {
+  E02: "点都在你脑子里——差的是落笔时把每个采分点各给一句。这笔分能拿回来。",
+  E03: "意思你懂了,差的只是阅卷认的那几个词。把给分词背上,这笔分就是你的。",
+  E04: "方向对了,再把口号落成'条款+做法'的具体话,分就实了。",
+  E05: "不是不会——是题眼看快了。下次先圈问法再动笔,这笔分能拿回来。",
+  E06: "步骤你都有,差的是顺序。把流程按'先后'串一遍,这笔分能拿回来。",
+  E07: "两个概念只差一层窗户纸。对照解药里的分界句,捅破就稳了。",
+  E09: "思路对,数错了——列式再算一遍,过程分一分不丢。",
+  E10: "你套的规范没错在懂不懂,错在'哪一本管这事'。记住适用边界,分就回来了。",
+  E11: "老场景你会,新皮没认出来——多看一个换皮例子,下次一眼穿。",
+  default: "不是不会做——差的只是把给分词落到纸上。这笔分能拿回来。",
+};
+
+// 按错因码取暖处方(呈现层, 不做第二套归因)
+function warmLineFor(errorCode) {
+  return WARM_LINES[_str(errorCode)] || WARM_LINES.default;
+}
+
 /**
  * error_label 人话化。判分内核写入的 error_label 可能是:
  * ① 人话 diagnosis(直接用) ② 原始错因码如 "E03"(镜像人话) ③ 空(兜底)。
@@ -276,7 +296,8 @@ function buildErrorbankDetail(entry, opts) {
         : null,
       e.dueChip ? { key: "due", text: e.dueChip.text, tone: e.dueChip.tone } : null,
     ].filter(Boolean),
-    warmLine: "不是不会做——差的只是把给分词落到纸上。这笔分能拿回来。",
+    // 暖处方按错因码分文案(WARM_LINES 呈现层镜像); 缺码走 default 通用句
+    warmLine: warmLineFor(e.errorCode),
     // ② 原题背景切片(记账现场), 完整作答对照走「回到当时的解析」深链
     slice: {
       quote: _str(e.title),

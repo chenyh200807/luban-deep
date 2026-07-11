@@ -25,7 +25,10 @@ from deeptutor.services.luban_lesson import (
     build_concept_cards,
     build_lesson_viewmodel,
     build_retest_items,
+    build_seethrough,
+    build_seethrough_library,
     list_green_lessons,
+    retest_pool_meta,
 )
 
 router = secure_router(tags=["luban_lesson"])
@@ -89,7 +92,14 @@ async def retest_items(
         )
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
-    return {"pack_id": pack_id.upper(), "items": items, "day_index": day_index, "mode": mode}
+    return {
+        "pack_id": pack_id.upper(),
+        "items": items,
+        "day_index": day_index,
+        "mode": mode,
+        # 题池元信息(呈现层"换皮是刻意设计"的证据: 题池规模+考法数)
+        "pool": retest_pool_meta(pack_id),
+    }
 
 
 # 复习模块灰度旗标（register-before-use: contracts/env_registry.yaml + .env.example）。
@@ -172,6 +182,40 @@ async def concept_card_deck(pack_id: str, _: AuthContext = Depends(get_current_u
         return build_concept_cards(pack_id)
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="concept cards not found")
+
+
+@router.get(
+    "/seethrough",
+    dependencies=[
+        Depends(route_rate_limit("luban_seethrough_library", default_max_requests=30, default_window_seconds=60.0))
+    ],
+)
+async def seethrough_library(_: AuthContext = Depends(get_current_user)) -> dict:
+    """看穿库总览(F16 5 天留存内容入口天数真值)——只数 signed+sha 双闸通过的看穿池。
+    旗标关 = 空投影(total=0, enabled=false),路由形状稳定(同 concept-cards 惯例)。"""
+    if not _review_module_enabled():
+        return {"total": 0, "packs": [], "enabled": False}
+    library = build_seethrough_library()
+    library["enabled"] = True
+    return library
+
+
+@router.get(
+    "/seethrough/{pack_id}",
+    dependencies=[
+        Depends(route_rate_limit("luban_seethrough_deck", default_max_requests=60, default_window_seconds=60.0))
+    ],
+)
+async def seethrough_deck(pack_id: str, _: AuthContext = Depends(get_current_user)) -> dict:
+    """单站看穿 5 天内容(表皮试探 4 选 1 + 透视揭底 4 段 + 暖纠正 + 定位证据带延伸标注)。
+    旗标关 / 非绿灯 / 未签发 / sha 漂移一律 404 同形(fail-closed,不泄漏未签发存在性)。
+    本路由零写入——看穿内容全部编译期签发,前端只投影、一字不新造。"""
+    if not _review_module_enabled():
+        raise HTTPException(status_code=404, detail="seethrough not found")
+    try:
+        return build_seethrough(pack_id)
+    except LessonNotAvailable:
+        raise HTTPException(status_code=404, detail="seethrough not found")
 
 
 @router.get(

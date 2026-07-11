@@ -103,6 +103,9 @@ function buildReviewViewModel(args) {
     firstDue: firstDue,
     // 昨天的约定卡 = 换皮复测的兑现——只有真有变体池才渲染(fail-closed)
     showPact: !!(firstDue && firstDue.retestAvailable),
+    // n=1 时三层(hero/约定卡/清单)同指一站→清单折叠防"三块同物"
+    // (owner 2026-07-11 实测点破; max_active 已提 5, 多站时清单恢复)
+    showDueList: dueCount > 1,
     // 空态: 一站未点亮(D1 铁律, 深链学习)
     isEmpty: !lessons.length,
     // -1 = 计数未取到(错因银行入口降级为无计数, 不造数)

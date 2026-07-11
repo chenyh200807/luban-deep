@@ -6,6 +6,18 @@
 
 ## Deviations
 
+### 2026-07-11（首次体验 × 五模块原生旅程）
+- **[基线纠偏：第一次确实落在了错误视觉版本]** 名义 `origin/main@b3e9ab09` 比当前五模块产品视觉线少 15 个提交，缺少 `79fddae6` 带来的安全区 TabBar、正确线性图标与中间朱印尺寸/阴影，因此首轮虽然功能正确，视觉壳仍是旧版。已停止在旧 worktree 继续开发，把首次体验的窄 diff 重新移植到 `origin/luban/seethrough-visuals-on-main@22c2a218` 的新隔离 worktree，并手工合并 `learn.js` 以保留看穿 5 关逻辑；`custom-tab-bar` 三文件相对该正确基线保持零 diff。该视觉线与 `origin/main` 仍有 `15 ahead / 2 behind` 分叉，后续进 main 必须先显式整合，不能把旧 `origin/main` 快照冒充产品当前版本。
+- **[登录态闭环已完成，本轮不部署]** 使用隔离 `qa_eval` 机器身份和独立本地 user/auth 数据目录启动 authority，DevTools 在正确 `yousenwebview` 项目根中完成登录；课程、首页仪表盘、learning report 三条请求均为 200，学习、复习、问鲁班、学情、我的五模块均能以同一身份进入。owner 已授权 commit、review、push、PR merge main；部署仍不在本轮范围。
+- **[404 不是路由漂移]** 首次进入复习页时错题本读接口返回 404，根因是本地 QA 未开启既有 `DEEPTUTOR_MISTAKE_BOOK_ENABLED`；按现有运行配置打开 read flag 和 local fallback 后页面正常。没有为 QA 假象改产品路由或增加 fallback。
+- **[第二 onboarding authority 已收口]** 问鲁班仍会对“无 legacy assessment profile”的用户弹出旧 8 分钟摸底框；首次体验虽已写入 Learner State，但旧弹窗只读 legacy assessment/local storage，形成跨设备第二权威。修法不是再写一个本地标记，而是由 `/assessment/profile` 兼容投影 canonical `learner_state.learning_preferences.first_run`，chat 只读该完成事实抑制旧弹窗；服务端首次完成仍只有 `FirstRunWritebackService` 一个 writer。
+- **[内容签发包已就绪但无人代签]** 新增四题双教研 review packet，钉死 script/content hash、逐字来源和 reviewer 字段。预审暴露两项需真人拍板的裁切风险：填充墙题只测 14d、未写“中间向两边斜砌”；装配式垃圾题只问 300t→200t、未写“不包括工程渣土/泥浆”。当前 completion 真请求仍返回 `409 first_run_content_not_signed`，这是正确 stop condition。
+- **[第二权威已收口] 老蓝首跑的本地 DONE/前端报告处方不能继续承担正式学习事实**：DONE 降级为 user-scoped UI cache；前端只提交 `completion_id + script_version + answers + declared_preferences + completed_at`，服务端 `FirstRunWritebackService` 重新判定并一次性幂等写入既有 Learner State。下一步仍只认 `home_next_step_projection`，未新增 learner table 或 recommendation authority。
+- **[内容门比 UI 更关键] 四题视觉和原版展开内容可以完成，但未签发题目不能进入 canonical learner truth**：manifest 默认 `blocked_pending_human_verdict`，服务端 unsigned fail closed。尤其第 4 题不在首批金标候选内，agent 不代签教研 verdict；当前真实状态只能是 `implemented_but_release_blocked`。
+- **[原版内容与五模块壳分层] 核心三问、资料揭示、四题、逐项拆解、采分点/来源/量尺、口诀、四次侧写、画像和完整报告保留；导航、安全区、卡片、色彩、入口和退出语义改用学习首页 paper-ink 原生体系。答题态隐藏五 Tab，一次只挂载当前题/当前反馈，下一题通过状态替换而非纵向堆叠。
+- **[真微信证据闭环分层] 新版 DevTools 自动化协议与最新公开 `miniprogram-automator` 不兼容（缺 `SDKVersion`，继而出现未知 `getGlobalWebviewIds`），改用 computer-use 在正确项目根 `yousenwebview` 实际走通 `packageDeeptutor/pages/first-run/first-run`：摸底三问→资料揭示→4 题/4 反馈→4 次侧写→画像→完整报告→返回 `packageDeeptutor/pages/learn/learn`，页面级 `real_wechat_package PASS`。首次验证时因无 QA token，学习页三个 API 均 401；该 partial 已由本节前述隔离 `qa_eval` 本地 auth-chain 复测关闭。
+- **[真机发现并修复] 第 4 题 B 选项解析含 `<b>现浇</b>`，该字段由普通 `<view>` 渲染，标签会原样露出**。保守修法只去掉 markup、不改内容语义，并给 Node contract 增加“plain-text explanation 不得含 HTML 标签”断言；未把整个 explanation 渲染器改成 rich-text。
+
 ### 2026-07-05（复习闭环诚实薄上线里程碑 · 上线 main 4daaaf6d1 · 即时入账）
 - **[签发闸补建·真根因] 考点卡签发路径从没接通**：`docs/原始数据/考点原料/promote_variant_bank.py` 是 variant 专用（`_BANK_TEMPLATE=_{pack_id}_variant_bank.v0.json`）。34 卡卡在 candidate 的真根因不是"没签"而是"没法签"。治本=把该工具泛化 `--kind {variant,concept_cards}`（variant 行为零回归）+补测试；concept 分支模板 `_{pack_id}_concept_card_bank.v0.json` + gate 重跑 `build_luban_concept_card_bank.py {pid} --check`；四关校验（status==candidate / sha 三方一致 / bank gate 干净 / builder --check exit 0）对两 kind 同构。concept builder 早把 status 标为"promote 人闸独占的翻牌字段"=设计本就该有此闸只是没建。5 包（A01/F16/J01/N01/S05=34 卡）签发后容器内活体 total 0→34。
 - **[owner 拍板 A=诚实薄上线]** 能用的先让学员用上；R8 解药 / R6 精确挖空 content bank 未产→页面诚实占位"整理中"（接口位形状已钉死，bank 一喂零改动点亮），不等齐再上。真机验后再暴露下批内容优先级。
@@ -96,6 +108,95 @@
 - **[git 收尾,Task B step1] 本会话工作已 commit 到 spike/main-base-v2(未 push、未动 main)**:`f5d23a36b`(Task A+命门 16 文件)、`89e88cab4`(Task D env 2 文件)、`37b83cfc5`(#8 gauntlet/full_answer 7 文件)。全程显式逐文件 `git add`、绝不 `-A`,`git show --stat` 复核无并行 WIP 夹带。**B step2(摘废弃 release/card-fit 增量)出了 material/defer 对账表待 owner 判**:BASE 已含几乎所有 stale luban 页(0-diff 已入 main),真 material=纸墨/card-fit 视觉(paper-ink/custom-tab-bar/learn wxss、stations.wxml)+新文件 pack-short-names.js+hunk-level 的 learn-view-model/learn.wxml 视觉块;DEFER=api.js/retest.js/learn.js/gauntlet(stale 落后,整摘会回归本会话)+read_model/concept_cards/antidotes/light_practice(计划禁摘);WeChat Pay 是独立 feature 另议。
 - **[埋点落库-审计结论，Task E]** 行为埋点管道**是持久化的**（SQLite `product_behavior_events` + register-before-use 双闸：surface_events 名单→400、catalog 维度校验），4/5 GO 信号架构就绪。真缺口：① 生产**零数据**（埋点未随小程序发版，bi_service 自述 pending）；② D1/D7 回访**无锚点事件、无指标**（可由 `occurred_at_ms` per user_id 推导但无人算；`visit_id` 30 分钟 TTL 只能按 user_id 归集）；③ 订阅授权率**结构性=0%**（`subscribe-message.js` 模板 ID 空=永远 red_dot，待 Task D + owner 模板）；④ `handoff_rendered/retest_item_answered/subscribe_prompt_result` 落库但**无 BI 指标读取**；⑤ review/stations/learn/errorbank/concept-cards 5 页零埋点。
 
+### 2026-07-08（阿里云发布 CLOSED + 换轻练修复 + 线上地真相核验）
+- **[阿里云发布, PR #412] spike/main-base-v2 → main（rebase），origin/main = 42681ace6，已部署 test2 逐层验证防假绿**：deploy_aliyun.sh 全量重建（fast-redeploy 被 HEAD tip 的 yousenwebview 文件挡下=回落全量）。host .env SHA = 容器 env SHA = 42681ace6（GIT_DIRTY=false）、容器内代码实证 `_forward_rule_group_spread=3`/`practice_mode`/`PRODUCT_BEHAVIOR_PRACTICE_MODES=2`（新码真在运行容器）、公网 //healthz/readyz 独立 curl 200、observability release_id 对上。**顺带修既有 drift**：发布前 host=c5fa4fc0e/容器=bcdc4a5d5 不一致（无主 drift）→现均 42681ace6。首轮 CI 2 项真失败（均 Task C 改 login.js 连带：4 login 测试 sandbox mock reLaunchAfterAuth eager 调 route.learn 而其 route mock 无 learn；1 假 fixture sha 被 detect-secrets 误报）→已修（测试补 flags mock + login.js 用 `shouldLandOnDoubleWheel()` 守卫只在翻转时算 learn URL + pragma allowlist）。测试 Python 81 + node yousen 86/86 + smoke shards 全过。
+- **[线上地真相核验-局外人]** 打 test2 核六能力：concept-cards/retest/antidotes/cloze/review-due 全 401（=已 LIVE 鉴权门，真部署非纸面）；半写核心 full_answer **发布前容器 ABSENT → 发布后 FULL_ANSWER_NOW_LIVE**（容器 grep 对照法，控制组 review-due 命中证 exec 可靠）。异常追查：full-answer POST HTTP 200 但 body=`{"detail":"Authentication required",http_401}`=真鉴权门（GET 正确 401，POST 状态码 cosmetic 不一致，功能安全）。**关键版本事实**：发布前 test2 跑的 `bcdc4a5d` 是**不在 origin/main 上的分叉线**（`git branch --contains` 空），此发布把 test2 从 bcdc4a5d 大跳到 42681ace6，合上"验证世界(origin/main)≠真人世界(bcdc4a5d)"的鸿沟。**残余**：bcdc4a5d 独有生产内容理论可能丢（五能力+端点实测全过，风险低，spike 期行为诡异第一嫌疑）。
+- **[换轻练修复, commit `4d8d12aaa` on spike/main-base-v2]** 真机审发现 learn 页两按钮（开始2分钟轻练+换轻练）**都绑 goPractice、goSwitchPractice 在任何已提交版本都不存在**（release/card-fit 也没有=那个"区分修复"从没落地）。修：learn.wxml:136 bindtap goPractice→goSwitchPractice；learn.js 补 `goSwitchPractice`→综合练习页 `/pages/practice/practice`，不碰 Task A 的 goPractice→retest-forward。node learn-view-model 13 passed。**教训：真人一点按钮就现形——B-step2（card-fit 增量）不只是视觉润色，扛着换轻练区分修复，是体验版上传前硬前置。**
+
+### 2026-07-10（战略转向 F16 打透 + 看穿 5天 P0 落地 · 当前接续点）
+- **[战略转向-owner 拍板]** 之前建的是**广度通用管道**（16 站 retest/full_answer/证据流/5-tab），但 owner 真机审发现轻练是**光判断题 retest 页，不是 F16 打样体验**。第一性原理复盘：第一波内测 **NPS 8-10 但 0 回访**="喜欢但不回来"=**更多功能不是回访的杆**；而 owner 早已用 F16 设计好整套「5天看穿+暖」留存闭环（`artifacts/luban_case_family_assets/F16/F16_5day_storyboard_spec.md`，每天7步：今日一刀→表皮试探[4选1+每干扰项=诊断探针→error_code]→透视揭底[表皮→不变量→出题人意图→你的误解]→定位证据→暖纠正[先捧→点差距→我相信你+安全网]→明日换皮约定→证据入账；Day4 半写真批改锚 Q18；Day5 三处换皮综合复测）。**owner 决策：先 F16 打透当品味标杆（一次做全5天，原生进新版本）→审过再抽模板批量铺有 P40 教学视频的主题→逐步补 60**。spike GO 门（小/一次性 cohort 现实）：基线次日回访=0，GO=cohort ≥2 人 day+1 未经催促回来做换皮复测，NO-GO=0（阈值预登记待 owner 签，eval-design 铁律）。cohort+nudge 前提清单已议（招 5-8 有考试痛+可触达者、nudge 优先订阅 push 兜底人工 ping、qual 问为什么、深度一考点）。
+- **[P0 三裁决-owner 拍板，证据在手非臆断]** ① **看穿 MCQ 走忠实 4选1 签发形状，不复用 retest 判断题**：二选一 6 字段装不下"每干扰项=诊断探针→misconception→error_code"（grep options/distractor_to_misconception=0），而这正是魂；schema v2（`2026-06-16-luban-deep-archetype-asset-schema-v2.md` L4）已定义 4选1 诊断形状=实现已定义 schema 非新造。② **5天推进走独立薄 program-progress，不用 revalidation_queue**：核实它是"次日同题复测"原语、无"第几天"序列态、fresh→进阶需 promoting 而 station_completed 非 promoting→复测永不推进 program 态；薄容器只投影 program 进度不算掌握（掌握仍复测读回、前端不自算）=不违反单一权威。③ **Day4 本轮诚实走投影核对不碰治理**：`Q18-1A434000::qga_v0` 现状=blocked（score_sum_mismatch，10/11 点自证卡总分和门）**非 published**，full_answer_grading 够不到（v_case_rubric count=0→open_skill/L0）；本轮 Day4=半写→自我核对对照已签发 P10/P11 采分点文本（确定性命中/漏点，honesty_label="training_org 估分·非官方·待真判"），不走内核实判=治理 follow-on。
+- **[P0① 完成-签发内容包+投影层]** 端到端签发闭环：`_F16_seethrough_source.json`（5天内容逐字转 spec，authored_from 标注=投影不生成）→ `scripts/build_luban_seethrough_bank.py`（确定性 builder+gate：错因∈E系/溯源/无审视硬词/结构自检，--check 供 promote 复算）→ `promote_variant_bank.py`（+seethrough kind，人闸）→ `_F16_seethrough_bank.v0.json`（SIGNED，sha 三方一致）→ `seethrough.py`（read-model，仿 concept_cards.py 复用 `_load_signed_bank` 双闸 signed+sha，fail-closed）→ 端点。**owner「诚实延伸」裁决落地（gate 对抗验证）**：Day3 节点（1A434000_075_0117/077_0120）核实确属 F16 章节→扩编 F16 compiled_source 收进（真教材 quote，is_extension=false，名正言顺拥有）；Day2/5 迎水面（1A413030_134_0258）是真延伸→is_extension=true+true_source_pack=F03+source_ref，学员端"从屋面延伸到地下室·同一控水原则"。**裸借守卫对抗验证：把 F03 chunk 谎标 F16 自有→gate fail(anchor_unresolved)=非橡皮图章**。`schema_registry.yaml:118` 注册 `luban_f16_seethrough_bank.v0`。测试 seethrough 5 passed（含活体）+ luban_lesson 域 55 + contract_guard 全过。
+- **[P0②③④⑤⑥ 完成-前端5天原生体验]** `pages/luban/seethrough/`（js/json/wxml/wxss）：② 表皮试探=4选1单选（onOptionTap 本地判 picked===correct_option_id，选错取干扰项 misconception+error_code）+透视揭底屏（step=insight，4段）+暖纠正屏（step=warm，warm_correction 逐字）；is_extension chunk 显延伸标注。③ 薄 program-progress（day/step 状态机，completedDays 存本地 storage=呈现层非掌握真值，顶部天导航可自由跳便于审）。④ Day4 goSelfCheck 对照 P10/P11 required_terms 确定性命中/漏点+honesty_label。⑤ Day5 4选1+进步收据+安全网投影。⑥ 学情咬合薄：每天 telemetry（practiceMode=forward 非 promoting）+Day5 station_completed 走既有单一 sink。入口：learn.js `goSeethrough`+learn.wxml F16 入口卡→`seethrough?pack_id=F16`；api.js:957 getLubanSeethrough/Library。测试 test_seethrough_page.js（4选1判对错/选错取 error_code∈E系/Day4命中）+ luban_lesson 55 + 语法检查。**红线证据（可证伪）**：投影不生成（全来自 read-model，页无硬编题面）、学员端禁审视硬词（grep 看穿/识破/揭穿/露馅=0，抓到并修 errorText 一处）、掌握前端不自算（页测试断言 data 无 mastery）、错因∈E系（断言 /^[EM]/+contract error-code-guard）、Day4 诚实标注、evidence-source-guard 无新增。
+
+**⚠️ 当前接续点（新窗口从这里续）**：
+- **F16 P0 全部 17 文件 UNCOMMITTED 在 `deeptutor-main2`（留 owner 审）**。安全网分支 `safety/spike-layer1-8`、`safety/spike-8-and-A`（#8+Task A 存底）；`spike/main-base-v2` 已有 6 commit（f5d23a36b Task A+命门 / 89e88cab4 Task D env / 37b83cfc5 #8 gauntlet / f510d2745 Task C / 1a7017e0d Task E / 4d8d12aaa 换轻练修复）。**origin/main=42681ace6 已含 #8/#9/C/D/E（PR #412 已部署 test2），但 F16 P0 未 commit 未部署**。
+- **审 F16 雏形必须本地起后端**：seethrough 只走端点无本地降级，test2（42681ace6）无 seethrough 端点→DevTools 打 test2 会 404 空。`endpoints.js` 本地优先（127.0.0.1:8001/8012 先于 test2）→**本机 8001 起带 `LUBAN_REVIEW_MODULE_ENABLED=true` 的后端，DevTools 自动命中本地，零部署可走 5 天**（末次窗口正做：本地起 8001 + automator 逐天截图存证）。
+- **待办**：① owner 亲手走完 5 天审 wow/不假/暖（人闸）→对了则 P4 抽模板批量铺 A01/J01/N01/S05→11 可上→60；② Day4 真判=治理 follow-on（解 Q18 score_sum block+接内核实判）；③ B-step2 material 摘取（card-fit 视觉增量，体验版上传前硬前置，已有对账表）；④ 订阅 tmplId（owner 后台，不阻塞）；⑤ F16 P0 审过后 commit + 上体验版真机。
+- **DevTools 复现**：项目根=`deeptutor-main2/yousenwebview`，编译启动页=`packageDeeptutor/pages/learn/learn`（project.private.config.json current 已设"学习页(双轮)"）；看不见改动清 WeappCache（退出→`rm -rf <hash>/{WeappCache,Weappdest,WeappMiniCode}`→重开，保留 WeappLocalData 登录态）；关/开 DevTools 用 `/Applications/wechatwebdevtools.app/Contents/MacOS/cli quit|open --project`（退出不干净=端口占用超时，需 pkill -9 -f wechatwebdevtools + lsof -ti:<port> 杀干净再 open）。
+
+### 2026-07-10（seethrough 视觉+F16 切片重放上 main 基座 · 即时入账）
+- **[重放] `luban/seethrough-visuals-on-main`（base=origin/main `918cf4aa`，含 first-run PR#439）**：cherry-pick `4d8d12aa`（换轻练绑定 goSwitchPractice）+ `3200ec19`（F16 seethrough 17 文件切片，即上节 P0 的 commit 化），解决"owner 要的纸墨 UI 与最新 main 功能分居两分支"。唯一冲突=app.json 子包页面双注册（main 加 first-run / 分支加 seethrough）→双保留。
+- **[自曝雷撤除] `3200ec19` 夹带 app.js `USE_LOCAL_DEVTOOLS` 默认 true**（作者自注"⚠️ 绝不 commit/发版——demo 后须改回 false"但已随切片 commit 入库）→ 被既有测试闸 `test_app_runtime_base_selection`（develop 候选默认仅 remote）当场抓住，重放分支已改回 false 单独成 commit。**教训：demo 期临时 hack 必须走本地不落库；"绝不 commit"注释挡不住 commit，测试闸挡得住。**
+- **验证**：node 小程序测试 95 文件全过（learn-view-model 13 / seethrough-page 12 / app_runtime_base_selection 11）；pytest luban_lesson 域 55 passed；改动 JS 全 node --check；app.json JSON 校验过。
+- **消费提醒**：test2 现跑 `42681ace6` 无 seethrough 端点——审看穿体验仍需本地 8001 后端（上节 DevTools 复现法），或待下次阿里云里程碑部署本分支。
+
+### 2026-07-10（轻练/复习精细化一版 · 专家组审计五修复落地 · 即时入账）
+- **[承诺宽度收窄] 头牌轻练按供给真值路由**：40 站硬编码 F16 的临时态收口——`list_green_lessons` +`retest_available`（复用 `_load_signed_bank` 单一闸不建第二判定），vm `practice_kind` 单一裁决点（seethrough>retest>none），无供给站主按钮不渲染+诚实降级说明。live 实测 f16demo 任务卡=A01/retest（不再指 F16）。
+- **[断线①转活] R6 挖空死供给接通**：cloze 服务/端点/A01 signed bank 三段早已俱全但前端 api.js 零调用方（四专家组审计抓出）。补 `getLubanCloze` 唯一调用方 + gauntlet ②半写真消费（逐句默写+对照提示确定性自查，呈现层零学情写入；无供给站保持自由默写降级）。live 实测 A01 16 句挖空渲染+命中/对照反馈。**流程教训：验收一直验"存在"没验"闭环"——bank 类资产验收应加端到端消费探针。**
+- **[反馈精细化] retest 答对也给门道**（correct_statement 不只在错时出现）+定位 chip+完场分解仪式；errorbank 暖处方按错因码分文案（WARM_LINES 呈现层镜像，禁审视词测试钉死）；learn F16 入口去内联 hardcode style。
+- **验证**：pytest luban_lesson 56 passed；node 全量 0 fail（learn-vm 14 含供给路由三态/gauntlet 含挖空自查/errorbank 含分码文案）；live 三页 automator 实测（todayTask 路由/挖空 16 句/retest 反馈）。commit `33725280`。
+- **未动（按审计裁决留 owner/后续）**：retest 二元形态 off-spec 改档位①（需 recall 供给拍板）、考点卡 miss_count 红标（需 read model 投影）、深 pack→答疑注入、看穿模板衰减实验、R7/金标人门。
+
+### 2026-07-10（retest 纸墨版整页重做 · owner"要 wow 不要普通"返工 · 即时入账）
+- **[编译资产焊进反馈] 教材原文并排卡**：发现变体 `anchor` 与考点卡/挖空 bank 的 `point_id` 同为 kc: 坐标系 → `build_retest_items` 按 `anchor==point_id` join **同 pack** signed 考点卡（同一 `_load_signed_bank` 双闸，quote 逐字透传零生成，join 不中 fail-closed 缺省；跨包借 quote 红线不适用=只 join 自己 pack）。实测 121/1029 变体可翻出阅卷认的教材原句（A01 27/J01 52/N01 12/S05 30）——"答完一题翻出教材那一句"落地。
+- **[整页重做] retest 从深色题列表 → 纸墨单题聚焦流**：pk token 单一权威；墨点进度（对竹青/错赭/当前墨环）；印章反馈（真懂/差一步 衬线圆章 stamp-in）；门道段答对也给；书页样原文卡（朱红书脊+衬线引文+页码角注，有原文卡时不露 kc 坐标）；完场纸墨收据（大分数/考法覆盖/原文句数/错题"再看一眼"清单/明日换皮·回炉完成朱红章）。动效只动 transform/opacity（丝滑纪律）。
+- **[链路零漂移]**：telemetry（retest_item_answered/learning_action_completed + practice_mode 命门）、station_completed 信号、本地销账 storage、COPY 双模式全部原样；判分仍本地确定性 choice==expected_ok。
+- **验证**：pytest luban_lesson 57（含 join 签发闸/命中/缺省三态）；node 全量 0 fail；wxml 平衡自检；DevTools automator 全流程实测（5 题走完：反馈满配截图/收据 4/5·5 考法·1 原文）。commits `7bb4e1d7`+细节修。
+- **待铺（内容侧非工程）**：原文卡覆盖率吃考点卡签发面（现 5 站）——考点卡编译脚本跑其余绿灯 pack 即自动放大，无代码改动。
+
+### 2026-07-10/11（答案模式泄露红队战役 · owner 亲测抓获 · 即时入账）
+- **[owner 抓获] 轻练"只点不妥当肯定正确"**——三路红队并行量化+机制确诊：
+  ① **选题层锁步**（真凶）：`_forward_rule_group_spread` 对所有考法组施加同一 `(seed+round)%len` 偏移，而池按"每组对齐序"生成（第0位=正确情形）→ limit≤组数时 5 题全取同一"位置列"= 单一答案。实测 forward 全同率 **17.2%**（review 仅 0.6%），seed 奇偶直接翻全对/全错。
+  ② **编译端句式泄露**（更深的病）：模板分派与答案绑死（`params.case`→答案 100% 绑定；True 套"列入"肯定壳/False 套"认为/无需"否定壳）。"认为"句 n=213 跨 11 池 **P(True)=19%**（剔 J01/N03 后 127:1）；一条口诀零知识打全网 **63%**，深度≤2 决策树 **74%**，55% 及格线 **15/17 池沦陷**。J01 是唯一健康样板（认为句真值取决于数字阈值）。
+  ③ **看穿 4 题 correct_option_id 全在 A 位** + 前端按原序渲染 → 闭眼点第一个=100%。
+  ④ **seed 劣质**：`sum(ord)+day_index` 千级用户碰撞 58% + 人/天混叠；组序不进 seed→第 1 题永远同一考法。
+- **[已修·选题层（零重签发）]** `read_model.py`：seed 换 sha256 高熵散列（碰撞清零）；组序进 seed；每组独立散列偏移破锁步；`_balance_expected_ok` 防全同+出题序确定性洗牌（§9-D3 幂等保持）。**验证：840 真数据 session 全同 17.2%→0.0%**，luban_lesson 59 passed。
+- **[已修·呈现层]** seethrough 选项确定性洗牌（judge 仍按 option_id 零语义改动；踩坑一次：线性散列对仅末字符不同的输入单调→排序不动，换 xor-shift 雪崩后全选第一 4/4→2/4）。
+- **[审计尺入仓]** `scripts/audit_variant_style_tells.py`：每池风格线索条件命中率报告（--gate 模式供签发闸复用）。**基线：11/17 池 LEAK**（阈值单线索≤65%/口诀≤55%）——内容返工的可证伪量尺。
+- **[确权结论（红队②）]** 伪造/泄露今日全部**进不了掌握真值**（轻练走 learner_signal 非 promoting；掌握只归判分内核 writeback），但全部能污染 **D1 留存 GO 门读数**（telemetry result 客户端声明+同日重进重计）。轻练成头牌后此面变大=07-05"次雷"的当前形态。
+- **[工单·待 owner]** ① **判分权收服务端 vs D5 离线可用的架构拍板**（answer 不下发+服务端 verdict 才是结构解，与既有离线设计冲突，红队一致首推）；② **编译端模板对偶补齐+重签发**（返工规格：每个泄露句式壳补真值反例，照 J01 样板"认为+参数化阈值"；gate 加风格闸=audit 脚本 --gate；seethrough bank 生产随机化正确项位置；S05 修 30% True 失衡）——重签发走 promote 人闸；③ **形态升级**：判断题二选一违背双轮设计"回忆优先/移除再认"铁律（§5.2/§D10），升 4选1 诊断探针（D17/看穿 schema 先例）；④ BI 按 (user,pack,day) 折叠去重防重进重计。
+- **[方法论教训]** 四专家组审计过供给/消费/美学，**没有一个以应试老手身份把产品当题打**——"策略机器人红队"（傻瓜策略命中率量化）应成为出题类资产的常设审计维度；且这些 tell 同样污染一切用此题池的 eval/判分回归（掌握度含风格分），补对偶前的"命中率提升"结论均应打折。
+
+### 2026-07-11（考点卡质量治本战役 · owner"敷衍/不一定正确"验尸 · 即时入账）
+- **[owner 直觉两连中+更深]** 34 卡验尸：11 卡 quote 半句截断、10 卡 source_ref 空、"4级"式空壳 gist。双面板对抗质检 162 卡再挖出两个批级病：**S1 改写冒充原文**（117/162 旧 lane quote 是 LLM 压缩转写，0 张逐字命中教材——"教材原文"承诺被二手文本兑现，A 级内容错 13 张：J01 危大数目错/限定丢失、C01 施工缝丢"中间"、F02 伪造温度区间等）；**S2 选句错位**（逐字的那批选中错误句子：C02 13/16 张 quote 竟是案例提问清单/邻卡答案）；S3 gate 假绿（不查 front↔quote 对齐、不查 gist 数字出处）；S4 leaf_name_path 错乱（待办）。
+- **[治本=选句权重构]** builder 新增教材权威库接入（FINAL_CLEANED_BOOK2026 三分片, chunk 全文+真页码, 事实权威阶梯教材>一切）+ `_select_quote` **意图对齐选句**：quote 一律由 front+gist（人写 §1 短名=卡的意图权威）在 chunk 逐字窗口中重选，枚举 run 合并（"合格五条"类整表窗口），硬门槛=gist 数字覆盖≥80%+front 对齐≥0.15，选不出=剔卡（宁缺勿假）。gate 补两道闸：intent_misses（答非所问挡板）+ gist_num_orphans（数字出处闸）。面板剔卡 blocklist（8 张 §1 内容错卡，人审记录 builder 确定性消费）。
+- **[终态+签发]** 17/17 站 gate 100% → promote 人闸全签：**141 卡**（34→141），99%+ 教材逐字化、100% 真页码、面板点名病卡全部治愈或剔除（"合格五条"=完整五条枚举、"竣工验收程序"=完整五步；C02 提问卡/E01 合成卡/敷衍原型卡剔除）。轻练教材原文 join 覆盖抽样 12%→29%。luban_lesson 59 passed。
+- **[方法论]** ①"确定性修复"第一版只救了逐字可定位的卡（改写文本定位必败被静默跳过）——**修复管道自己也要被对抗核验**；②验收铁律追加：内容资产的 gate 必须含"意图对齐"维度，结构闸全绿≠内容对；③J01 旧签发 6 卡含 3 张 A 级错已在生产——**下架即改进**，§1 重写后回炉。
+- **[待办]** leaf_name_path 错乱修映射；X03/G03 低危表述备注 4 条；J01/N03 被剔 §1 行重写（教研）；lecture lane 卡纳入下轮人审面板。
+
+### 2026-07-11（解药+变体statement验尸战役 · owner追加下令 · 即时入账）
+- **[三面板+Codex异源全量验尸]** 变体唯一statement 237条+解药去重152条(A-G 83/J-X 69)逐条对教材权威库裁决；Codex对抗复核近期全部代码产出(10卡抽验全PASS,抓1个真缺口=卡builder专用测试套漏跑且口径过时,已修22 passed)。
+- **[判决] 解药11条A级/变体9条statement A级(波及40变体)**。**共同病灶(6/9变体A级+5/11解药A级)=旧真题官答/旧规范记忆压过2026新教材**：地下防水四级(废止GB50108,教材仅三级,F03同池还把教材正确答案判False=可证伪即崩)/超灌0.8~1.0m(教材≥1m)/钢丝网应保留(教材:浇筑前拆除)/变形缝作检验批依据(教材已删)/造价五部制(规费已并入人工费)/早强剂不宜蒸养(教材:宜用于蒸养,仅有机胺类不宜)。次病灶=多档规则压缩丢分档轴(S06竖向/非竖向)+丢限定词(E01暂估价除外/A01回弹取芯法限定)。
+- **[治疗全落地]** ①变体:`_variant_blocklist.json`(40条A级)+read_model serve侧过滤(签发bank不动,测试钉死绝不下发);②解药:builder blocklist(11条A级,dropped=panel_reject留痕)+C02尾部裸露kc串确定性剥除,10站重编重签(promote人闸);③Codex抓的测试缺口修复。测试82+20 passed。
+- **[洗白名单]** 红名单多数经教材/真题官答证实为真(D11抹灰20/25、D13防火尺寸、S05电压序列、S06跨章0.9/1.2、X01围挡、X03三条、N01 TF=0、C01 28d养护)——数字扫描的假阳性率高,人审面板不可省。
+- **[系统性教训]** ①内容资产三兄弟(卡/解药/变体statement)同一病谱:LLM生成层的参数记忆(旧规范)会压过anchored教材,**签发闸应加"新旧规范冲突"维度**,LLM改写审计抓不到这类,必须教材diff;②解药gate此前只查锚可解析,7条A级带绿gate签发=gate假绿第二实锤;③blocklist三件套(卡/解药/变体)=人审剔除的统一模式,救活=修pack后重签并移除。
+- **[待教研/owner]** 被剔40变体+11解药的pack源修复(旧新规范冲突需教研按2026教材逐条裁决重写§4/§6);B级留观(J01基坑8+1项/S05 50kW/Q01冬期3℃/X01六项计数);错因银行加载不了已修(demo缺MISTAKE_BOOK flag+前端404降级,52e917e7)。
+
+### 2026-07-11（判分编译库验尸 · 轻量路径按 owner 校准 · 即时入账）
+- **[结论=结构健康度远好于教学三兄弟, 无 A 级, 未升级面板]** 确定性预扫+主控直查：legacy 库(1221 记录/174 qid)教材引证 **1004 条 100% 逐字命中**、分值和仅 1 qid 异常且该 qid 不可达；PGO(1384 点/179 qid)与 legacy **零交叠=两套题集**（legacy=章节练习题, PGO=2015-2025 历年真题案例）——"promote PGO"是扩覆盖不是换弹夹, 之前"80% 真题现编"的治法拼图更清晰了。
+- **[判分库的"旧规范"镜头与教学资产相反]**：判分库判的是历史真题, 该年官答就是 ground truth（规费类记录=合法历史口径）；教学三兄弟才需要 2026 口径。两类资产的验尸镜头不能混用。
+- **[登记的 B 级/NOTE]** ①裸 qid `NUMERIC_9001/9534`（8 条内容真实但 qid 退化不可达, 9001 分值和 7≠6, 源管道修 qid 即回收）；②11 条 required_terms 与 text 措辞漂移属判分严格度细节（如 term"特种门安装" vs 教材名"特种门窗安装"）, 归金标校准范畴；③PGO 189 条 <4 字碎渣点多为 list/enumeration 设计内（'工会''资质'=列举项）, 3 条 >120 字粗粒待金标轮看。
+- **[owner 校准入规]** 关键问题（收入闸/权威裁决/高不确定）才上"独立第三方宏观质疑+Codex 对抗"重炮；普通难度直接干。本次即按轻量路径执行的首例。
+
+### 2026-07-11（判分库判决被异源推翻 · Codex GPT-5.6-sol 终审 + spark 旁证 · 即时入账）
+- **[撤回前判决]** 上条"判分库结构健康无A级"**作废**。owner 坚持异源对抗后, Codex(5.6-sol, 独立只读+实跑判分函数)推翻四项, 主控已逐条独立复核坐实:
+  ① **A级判分错误已入库**: NUMERIC_9001 的错误计算(E≈5.74/选F)被洗入 PGO 可达 qid `2023::EXAM_1A432000_P0017_01::E4` 且标 `exam_reference_answer`; 源答案=E8/F7/G6/选G(legacy 同 qid 反而正确)。我此前判"不可达孤立异常"错——错误答案有第二条入库路径。
+  ② **评分对象边界坍塌**: 多小问被压进一个 qid 共享第一小问总分(18/22/27 点共用 total 5-6 分); 仓库自己的 backfill 桥早写明"per_question 结构乱(granularity collapse), 真题判分应直接用 canonical rubric"。
+  ③ **score=None ≠ 不计分**: grader 按"命中原子数/原子总数×官方总分"算(rubric_grader_v1.py:229/274)——**切分粒度本身就是隐含分值 authority**; Codex 实跑: 答对官答 3 分内容得 4.2/7、答完整第一小问(封顶5分)只得 1.36/5。我判"189 碎渣设计内"错。
+  ④ **零交叠假象**: 去掉年份前缀 175/179 PGO qid 命中 legacy(154 基 qid)+PGO 内部 14 组完整内容重复; 编译器源码自注"real namespace hazard"。"两套题集/promote=扩覆盖"判断作废。
+  ⑤ **authority 冒牌**: 源文件自述 `NOT_official=true`(training_org_analysis 估分), PGO 却统一标 `official_answer_verbatim`; schema registry 早已把 per_question 定为 deprecated/adapter-only。
+- **[红线立即生效]** `LUBAN_CASE_RUBRIC_BANK_SLOT=pgo` **禁止拨**(此前多份报告的"差一脚 env"建议全部撤回); PGO 停留 shadow, 重建必须走 canonical rubric 路线(backfill 桥的既有结论)。legacy 继续服务(其数值正确性反而被本轮加固)。
+- **[spark 旁证收敛]** 降级 spark 独立跑的同任务发现同向问题(qid 前缀假象/官答忠实度/2022::P0015_01 多点走样)——双异源收敛, 置信度高。required_terms 漂移经 5.6-sol 核实 policy=list 走 LLM 语义判分, 不必然误杀(spark 判断修正), 降回观察项。
+- **[方法论三连]** ①轻量路径误用第二实锤: 关键资产(收入闸)无异源不收官——owner 两次纠偏都对; ②异源对抗要"实跑不只读": 5.6-sol 胜过我预扫的关键=真的执行了判分函数; ③敢对付费用户判分前三件事(Codex 宏观判语): 官答→库逐点全集覆盖率比对 / chunk×year 跨库 dedupe / required_terms 同义扰动对抗回放。
+- **[待办工单]** PGO canonical 重建(含 authority 标签矫正+小问边界修复); 2015-2020/2022正考源缺口(归 governed gold); 14 重复组余下 12 组人工判"同题重复 vs 合法共用"。
+
+### 2026-07-11（owner 真机三问 + 四拍板落地 + 宏观独立专家判决 · 即时入账）
+- **[owner 真机三问(原文要义存档)]** ①看穿模块的目的/与其他功能的区分补充是什么? 5 天形式交互不三不四(完成一天跳回/又不让一口气做完)=UX 有问题;②换皮复测题目本身有没有问题? 固定那几题老用户马上腻、感觉被敷衍;③复习页三块(hero/约定卡/清单)花哨好看但点进去都是同一个东西——设计之初就这样吗? **调查结论**: ①审阅脚手架("雏形允许自由跳")泄漏成产品体验;②题目内容对但 B-basis 组 16 变体仅 4 种句式骨架=表面多样性极低;③设计三层假设多站队列, max_active=1 使三层每天必然塌缩同指一站。
+- **[四拍板+落地]** ①三问入账本(本条);②**看穿弃日隐喻改"5 关连闯"**——已落地: chrome 全面关卡化(第N关/下一关/5关全通), 递进解锁(_isUnlocked: 完成+1 可进, 未解锁 toast), 审阅自由跳脚手架移除;③**换皮四层优化**——呈现层已落地: 选题层句式骨架去重(_diversify_skeletons, 场内不重骨架)+题池元信息(retest_pool_meta→hero"本站N道·M种考法")+收集感(本地已见 seen/total 进收据); 形态层(4选1)/内容层(表皮多样化+对偶)=既有工单; ④**max_active 1→5**("做1实在太少了")——revalidation_queue._DAILY_MAX_ACTIVE=5+daily_capacity 同步, 测试改新口径(7到期→5发射2压制); 复习页补 n=1 三合一折叠(showDueList=dueCount>1)。测试: luban_lesson 62 + learner_state 541 + node 全量 0 fail。
+- **[owner 战略定位存档]** "现在是搭基建做体系——全知识点量产还没开始, 基建必须扎实好用"; 且常设第三方顶尖独立专家宏观审视, 防自嗨防盲区。
+- **[宏观独立专家判决(全文在会话, 要点存档)]** 总裁决: **工具链工业级, 内容生成→质检回路手工业; 下游扎实、上游产线带病停摆、人闸是一个人的名字**。①可量产性先断点: 17 个手写变体 builder(互差 395-479 行非模板)、审计尺造好没接闸(audit_variant_style_tells 全仓零引用/CI 零内容闸)、教材 diff 预扫缺失(A 级主谱系防线仍是面板)、blocklist 复活零先例、pack 产线停摆 3 周(06-20 一次性产出后未动, 病未治产线重启=5 倍复现);②自嗨信号: 141 卡当天代签有未审面(lecture lane)、质量循环"面板互证"用户不在场(验收标准从真人回访悄悄降级为面板 PASS);③体系级盲区: 教研产能模型(岗位不存在却是量产依赖)、内容回归 CI=0、用户反哺排产回路=0、教材版本滚动 story 缺失;④量产前只做三件: 尺接闸进 CI / 变体生成层返工+17 builder 收敛 1 个数据驱动 builder / 真人进场+跑通一单 blocklist 复活回路; 可缓: first-run·retest 二轮视觉、看穿铺量(模板假设未证)、PGO 重建。**本日四拍板中 max_active 被其背书, 看穿关卡化+换皮打磨被其排在三件基建活之后(已按 owner 指令先行完成, 后续消费层打磨默认冻结让位基建)**。
+
 ## 惯例沉淀（复盘时升格为规则的候选）
 - 部署后必做独立探针（不信脚本自报）——本轮抓到 22 站 404 与 F16 无声两个上线级洞。
 - owner 口述需求先 grep 是否已实现再派工；agent 终态纪律=最终回复基于磁盘/线上实测，"等待中/等子报告"不是完成态。
@@ -107,8 +208,15 @@
 - 批量签发 override note 必带逐包机器核验数字（verify_pack / 真题锚 / recheck 三闸 exit code）。
 - 主控对 agent 交付一律独立复跑关键声称（recheck 联跑、🟢 delta、published 未动）再报 owner。
 - "已裁决"唯一凭据=recheck_resolutions.py exit 0；"已合并"唯一凭据=origin/main 终态核查。
+- （2026-07-10 owner 战略）广度铺量 ≠ 留存；NPS 高但 0 回访=病灶在"回访触发器（nudge/看穿+暖体验）+可触达 cohort"，不在功能数量。spike 先深度打透一个考点（F16 看穿+暖）证假设，再抽模板铺量。
+- 签发内容包必带溯源 gate + 裸借守卫：跨包事实必须带 `true_source_pack`+`source_ref`+`is_extension`，禁无标注挂到本包名下；gate 要经对抗验证（故意裸借须 fail）才算非橡皮图章。
+- "复用即可"的假设先以代码验证再动手：本轮三处（retest 判断题当4选1 / revalidation_queue 驱动5天 / Q18 published）全与代码现实冲突，agent 逐一 grep+读码证伪后 owner 裁断，避免照错假设建错基座。
+- 审阅未部署的雏形本地起后端（endpoints.js 本地优先），别为看一眼就把 pre-review spike 代码推 test2。
 
 ## 未决观察（尚未定性，先记着）
 - verify_pack.py / verify_exam_anchors.py 硬编码主 repo 绝对路径（可移植性债，D1 范围外）。
 - jury sidecar 在 考点原料/ 上级目录有 13 个旧副本（权威只在 成品/），未清理。
 - 多个 PR 合并被 branch protection "BEHIND" 反复卡住 → update-branch+重跑 CI 的节拍成本高，若持续可考虑 merge queue。
+- `Q18-1A434000::qga_v0` blocked（score_sum_mismatch，10/11 自证卡总分和门）；Day4 真判前必先解此治理 block，本轮 Day4 诚实走 open_skill/L0 + 已签发 P10/P11 文本投影核对绕开。
+- test2 部署线曾是分叉于 origin/main 的 `bcdc4a5d`，2026-07-08 发布（42681ace6）已合上；若日后发现 bcdc4a5d 独有生产内容丢失，此为源头。
+- full-answer POST 鉴权失败返回 HTTP 200（body 是 401 形状）而非 401 状态码——cosmetic 不一致，功能安全（未登录不判分），可后补对齐状态码。

@@ -66,6 +66,7 @@ http_routes:
   - {prefix: /api/v1/billing, reason: "Wallet / ledger / checkout / usage read models."}
   - {prefix: /api/v1/chat, reason: "Chat feedback + start-turn HTTP adapters."}
   - {prefix: /api/v1/conversations, reason: "Conversation / message read models."}
+  - {prefix: /api/v1/first-run, reason: "Authenticated first-run completion adapter; server re-scores signed static content and delegates one idempotent learner-state writeback."}
   - {prefix: /api/v1/homepage, reason: "Homepage dashboard read model."}
   - {prefix: /api/v1/invite-test, reason: "Invite-test application intake."}
   - {prefix: /api/v1/knowledge, reason: "Knowledge-base CRUD + ingestion."}
@@ -282,6 +283,7 @@ domains:
       - tests/api/test_unified_ws_connection_cap.py
       - tests/services/citations/test_quality.py
       - tests/api/test_mobile_router.py
+      - tests/api/test_mobile_first_run.py
       - tests/api/test_mobile_event_loop_discipline.py
       - tests/api/test_mobile_eval_bypass.py
       - tests/services/session/test_context_builder.py
@@ -363,6 +365,7 @@ domains:
       - tests/api/test_unified_ws_connection_cap.py
       - tests/api/test_rate_limit.py
       - tests/api/test_mobile_router.py
+      - tests/api/test_mobile_first_run.py
       - tests/api/test_mobile_event_loop_discipline.py
       - tests/services/test_question_lifecycle_skills.py
       - tests/services/test_question_lifecycle_scene_derivation.py
@@ -514,6 +517,7 @@ domains:
     protected_patterns:
       - deeptutor/services/learner_state/*.py
       - deeptutor/services/learner_state/**/*.py
+      - deeptutor/services/first_run/*.py
       - deeptutor/services/member_console/*.py
       - supabase/migrations/*learner_state*.sql
       - supabase/migrations/*bot_learner_overlay*.sql
@@ -540,6 +544,7 @@ domains:
       - deeptutor/services/learner_state/heartbeat/service.py
       - deeptutor/services/learner_state/heartbeat/scheduler.py
       - deeptutor/services/learner_state/heartbeat/arbitration.py
+      - deeptutor/services/first_run/writeback.py
       - deeptutor/services/member_console/service.py
       - deeptutor/services/memory/service.py
       - deeptutor/services/tutor_state/service.py
@@ -614,6 +619,10 @@ domains:
       - tests/services/learner_state/test_scoring_point_focus.py
       - tests/api/test_learner_signal_endpoint.py
       - tests/services/learner_state/test_home_personalization_imports.py
+      - tests/services/first_run/test_manifest.py
+      - tests/services/first_run/test_writeback.py
+      - tests/services/first_run/test_status.py
+      - tests/api/test_mobile_first_run.py
       # 复习模块(双轮 §6)——到期收权 revalidation_queue 的域测试
       - tests/services/luban_lesson/test_review_due.py
       # Battle1 W4-T3 model-tiering: consolidation_model split on protected agent/memory.py.
@@ -679,6 +688,7 @@ learning_state_inference:
     - construction_grading
     - conversation_synthesis
     - assessment_testset
+    - first_run_diagnostic
   projections:
     - knowledge_state
     - ability_state

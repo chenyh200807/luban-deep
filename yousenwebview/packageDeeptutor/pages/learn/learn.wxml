@@ -29,6 +29,29 @@
 
     <view class="lr-inner" wx:else>
 
+      <!-- 新用户第一段原生学习旅程：入口投影，不计算推荐、不写学情 -->
+      <view
+        wx:if="{{firstRunState !== 'hidden'}}"
+        class="lr-first-run pk-card lr-first-run--{{firstRunState}}"
+        bindtap="openFirstRun"
+      >
+        <view class="lr-first-run-seal pk-seal">
+          <image class="lr-first-run-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" />
+        </view>
+        <view class="lr-first-run-main">
+          <text class="pk-kicker">首次学习旅程</text>
+          <text class="lr-first-run-title" wx:if="{{firstRunState === 'new'}}">先做 4 道题，让鲁班认识你</text>
+          <text class="lr-first-run-title" wx:elif="{{firstRunState === 'resume'}}">继续你的首次学习旅程</text>
+          <text class="lr-first-run-title" wx:elif="{{firstRunState === 'blocked'}}">报告已生成，学情等待同步</text>
+          <text class="lr-first-run-title" wx:else>报告已生成，正在保存学情</text>
+          <text class="pk-desc" wx:if="{{firstRunState === 'new'}}">约 3 分钟 · 一页一题 · 完成后生成首份学习报告</text>
+          <text class="pk-desc" wx:elif="{{firstRunState === 'resume'}}">已到第 {{firstRunProgress || 1}} / 4 题 · 从刚才的位置继续</text>
+          <text class="pk-desc" wx:elif="{{firstRunState === 'blocked'}}">报告安全保存在本机，点击重试保存</text>
+          <text class="pk-desc" wx:else>无需重复答题，网络恢复后会自动完成</text>
+        </view>
+        <text class="lr-first-run-go">{{firstRunState === 'new' ? '开始' : (firstRunState === 'resume' ? '继续' : (firstRunState === 'blocked' ? '重试' : '保存中'))}} →</text>
+      </view>
+
       <!-- 三枚状态卡:距考 / 路线 X/40 / 今日 -->
       <view class="lr-status-row">
         <view class="lr-status pk-card">
@@ -86,14 +109,14 @@
         <!-- 你的路线 + 完整地图 -->
         <view class="lr-route-line">
           <text class="lr-route-lit">你的路线 · 已点亮 {{vm.litCount || 0}} / {{vm.packUniverse || 40}} 站</text>
-          <text class="lr-route-more" bindtap="openStations">查看完整地图 →</text>
+          <text class="lr-route-more" bindtap="openStations">查看完整地图</text>
         </view>
 
-        <!-- 横滑课程架(书法海报三态) -->
-        <scroll-view class="lr-rack" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{vm.posters.length}}">
+        <!-- 课程架:不可横滑,只展 3 站海报 + 40站尾卡(要看全部点尾卡进完整地图) -->
+        <view class="lr-rack" wx:if="{{vm.routePreview.length}}">
           <view class="lr-rack-inner">
             <view
-              wx:for="{{vm.posters}}"
+              wx:for="{{vm.routePreview}}"
               wx:key="pack_id"
               class="pk-poster pk-poster--{{item.state}} lr-poster"
               bindtap="openStation"
@@ -103,17 +126,30 @@
               <text class="pk-poster__name">{{item.name}}</text>
               <view class="pk-poster__slot lr-poster-slot--{{item.state}}">{{item.slot}}</view>
               <view class="pk-poster__foot">
-                <text class="lr-poster-tag lr-poster-tag--{{item.state}}">{{item.recommended ? '匹配薄弱' : (item.state === 'ink' ? '已学完' : (item.locked ? '会员解锁' : '未学'))}}</text>
+                <view class="lr-tagline">
+                  <text wx:if="{{item.recommended}}" class="lr-ticon lr-ticon--rec">▶</text>
+                  <text wx:elif="{{item.state === 'ink'}}" class="lr-ticon lr-ticon--done">✓</text>
+                  <text wx:elif="{{item.locked}}" class="lr-ticon lr-ticon--lock">🔒</text>
+                  <text class="lr-poster-tag lr-poster-tag--{{item.state}}">{{item.recommended ? '匹配薄弱' : (item.state === 'ink' ? '已学完' : (item.locked ? '会员解锁' : '未学'))}}</text>
+                </view>
+                <!-- 副标题:考点卡首卡 front 真源;无卡的站留空(fail-closed,不造词) -->
+                <text wx:if="{{item.subtitle}}" class="pk-poster__sub">{{item.subtitle}}</text>
               </view>
-              <view class="pk-poster__bar" style="background: {{item.state === 'red' ? 'rgba(255,255,255,.25)' : (item.state === 'ink' ? 'rgba(244,243,236,.15)' : 'rgba(38,36,31,.12)')}}"></view>
+              <view class="pk-poster__bar"></view>
             </view>
-            <!-- 尾卡:完整路线 -->
+            <!-- 尾卡:2×2 四色格(墨/朱/灰/虚线)+ 完整路线 -->
             <view class="lr-poster-tail" bindtap="openStations">
+              <view class="lr-tail-grid">
+                <view class="lr-tail-cell lr-tail-cell--ink"></view>
+                <view class="lr-tail-cell lr-tail-cell--red"></view>
+                <view class="lr-tail-cell lr-tail-cell--gray"></view>
+                <view class="lr-tail-cell lr-tail-cell--dash"></view>
+              </view>
               <text class="lr-poster-tail-txt">完整路线</text>
-              <text class="lr-poster-tail-txt">{{vm.packUniverse || 40}} 站 →</text>
+              <text class="lr-poster-tail-txt">{{vm.packUniverse || 40}} 站</text>
             </view>
           </view>
-        </scroll-view>
+        </view>
       </view>
 
       <!-- 今日任务卡 -->
@@ -132,9 +168,11 @@
           </view>
         </view>
         <view class="lr-task-cta">
-          <view class="pk-btn-ink lr-task-btn" bindtap="goPractice">{{vm.todayTask.cta}}</view>
-          <view class="pk-btn-ghost lr-task-ghost" bindtap="goPractice">换轻练</view>
+          <!-- 主按钮只在有签发供给时渲染(cta 空 = 该站无货,诚实降级不给练不了的按钮) -->
+          <view class="pk-btn-ink lr-task-btn" wx:if="{{vm.todayTask.cta}}" bindtap="goPractice">{{vm.todayTask.cta}}</view>
+          <view class="pk-btn-ghost lr-task-ghost" bindtap="goSwitchPractice">换轻练</view>
         </view>
+        <text class="pk-desc lr-supply-note" wx:if="{{vm.todayTask.supplyNote}}">{{vm.todayTask.supplyNote}}</text>
         <view class="lr-why" bindtap="toggleWhy" wx:if="{{vm.todayTask.reason}}">
           <text class="lr-why-label">为什么推荐</text>
           <text class="lr-why-chev">{{whyOpen ? '▾' : '▸'}}</text>
@@ -147,6 +185,13 @@
         <view class="lr-review-bolt"></view>
         <text class="lr-review-txt">复习 {{vm.dueCount}} 张到期</text>
         <text class="lr-review-go">去复习 →</text>
+      </view>
+
+      <!-- F16 防水「5天留存闭环」雏形入口(spike 审阅) -->
+      <view class="lr-review pk-card lr-seethrough" bindtap="goSeethrough">
+        <view class="lr-review-bolt lr-seethrough-bolt"></view>
+        <text class="lr-review-txt">防水 · 5 天留存闭环(雏形)</text>
+        <text class="lr-review-go">走一遍 →</text>
       </view>
 
       <!-- 三枚指标卡 -->

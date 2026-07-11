@@ -4,8 +4,9 @@
 // 零学习证据写入(学习证据归 lesson-progress[讲懂幕] / 判分链路)。
 // 全程降级:任一 read model 字段缺(test2 后端未部署常态)不崩,走空态。
 const api = require("../../utils/api");
+const auth = require("../../utils/auth");
+const firstRunEntry = require("../../utils/first-run-entry");
 const helpers = require("../../utils/helpers");
-const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
 const { buildLearnViewModel } = require("../../utils/learn-view-model");
@@ -36,11 +37,15 @@ const PREVIEW_VM = {
   ],
   dueCount: 3,
   todayTask: {
-    title: "工期索赔 · 半写训练 1 题",
+    title: "工期索赔 · 2 分钟轻练",
     reason: "你最近 3 次都漏写「是否影响关键线路」,这类题通常丢 2–4 分。",
-    cta: "开始半写训练",
+    cta: "开始 2 分钟轻练",
+    secondaryCta: "换轻练",
+    task_type: "light_practice",
+    estimated_minutes: 2,
     concept: "工期索赔",
-    prompt: "针对『工期索赔』给我一道案例题做半写训练。我先真实作答,你再按采分点逐条批改并定位我的盲点,不要提前给答案和解析。",
+    pack_id: "S02",
+    mode: "topic",
   },
   stats: { recent_practice: 8, pending_errors: 3, mastery_trend: 72 },
   hasSupply: true,
@@ -54,6 +59,8 @@ Page({
     loading: true,
     vm: null, // learn-view-model 输出
     whyOpen: false,
+    firstRunState: "new", // new | resume | syncing | blocked | hidden
+    firstRunProgress: 0,
   },
 
   onLoad(query) {
@@ -76,8 +83,70 @@ Page({
       isDark: this.data.isDark,
       hidden: !flags.shouldShowWorkspaceShell(),
     });
+    const firstRunSnapshot = this._syncFirstRunState();
+    this._retryPendingFirstRun(firstRunSnapshot);
     // 从站点/复习返回时刷新点亮态(预览模式不打后端,保持镜像数据)
     if (!this.data.loading && !this.data._preview) this._load();
+  },
+
+  _syncFirstRunState() {
+    const userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+    if (!userId) {
+      this.setData({ firstRunState: "hidden", firstRunProgress: 0 });
+      return { state: "hidden", checkpoint: null, pending: null };
+    }
+    const snapshot = firstRunEntry.getState(userId);
+    const checkpoint = snapshot.checkpoint || {};
+    const progress = Math.max(0, Math.min(Number(checkpoint.qIndex || 0) + 1, 4));
+    this.setData({ firstRunState: snapshot.state, firstRunProgress: progress });
+    return snapshot;
+  },
+
+  _retryPendingFirstRun(snapshot) {
+    const current = snapshot || this._syncFirstRunState();
+    const pending = current && current.pending;
+    const userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+    if (!pending || !userId || this._firstRunSyncing) return Promise.resolve(null);
+    this._firstRunSyncing = true;
+    this.setData({ firstRunState: "syncing" });
+    const that = this;
+    return api
+      .completeFirstRun(pending, { silent: true })
+      .then(function (result) {
+        firstRunEntry.clearPendingSync(userId);
+        if (typeof firstRunEntry.clearCheckpoint === "function") {
+          firstRunEntry.clearCheckpoint(userId);
+        }
+        firstRunEntry.markDone(userId, pending);
+        that.setData({ firstRunState: "hidden", firstRunProgress: 4 });
+        if (!that.data._preview) that._load();
+        return result;
+      })
+      .catch(function (error) {
+        const code = String(
+          (error && error.payload && error.payload.detail && error.payload.detail.error) || "",
+        );
+        that.setData({
+          firstRunState:
+            code === "first_run_content_not_signed" || code === "first_run_version_conflict"
+              ? "blocked"
+              : "syncing",
+        });
+        return null;
+      })
+      .then(function (result) {
+        that._firstRunSyncing = false;
+        return result;
+      });
+  },
+
+  openFirstRun() {
+    if (this.data.firstRunState === "syncing") return;
+    if (this.data.firstRunState === "blocked") {
+      this._retryPendingFirstRun();
+      return;
+    }
+    this._navTo(route.resolve("pages/first-run/first-run"));
   },
 
   onPullDownRefresh() {
@@ -128,11 +197,19 @@ Page({
       settle(api.getHomeDashboard(opt)),
       settle(api.getLearningReport(100, opt)),
       lessonsPromise,
+      // 看穿库总览:头牌轻练 practice_kind 供给真值之一(失败=空集保守降级)
+      settle(api.getLubanSeethroughLibrary(opt)),
     ]).then(function (res) {
       var homeDashboard = api.unwrapResponse(res[0]) || {};
       var report = api.unwrapResponse(res[1]) || {};
       var lessons = api.unwrapResponse(res[2]) || {};
-      var vm = buildLearnViewModel({ homeDashboard: homeDashboard, report: report, lessons: lessons });
+      var seethroughLibrary = api.unwrapResponse(res[3]) || {};
+      var vm = buildLearnViewModel({
+        homeDashboard: homeDashboard,
+        report: report,
+        lessons: lessons,
+        seethroughLibrary: seethroughLibrary,
+      });
       that.setData({ vm: vm, loading: false });
     });
   },
@@ -164,29 +241,32 @@ Page({
   goReview() {
     this._navTo(route.lubanReview());
   },
-  // 今日任务入口(由 task_type 分流,不新建第二答题页):
-  // - light_practice:2 分钟正向轻练 → 复用 retest 页 forward 模式(带 pack_id);
-  //   本地判分、证据非 promoting、完成发 station_completed 交接次日复习。
-  // - half_write / 摸底:直达半写训练,复用唯一答题流
-  //   (runtime.setPendingChatIntent → chat/TutorBot 案例题+采分点批改)。
-  // 前端只投递作答意图或跳转,不判分、不造第二套答题入口。
+  // 今日主任务「开始 2 分钟轻练」→ 按供给真值路由(practice_kind 由 vm 单一裁决,
+  // 页面零判定):有签发看穿包 → 看穿 5 天;有 signed 变体池 → retest 正向轻练;
+  // 无供给 → 主按钮不渲染(WXML cta 空即隐藏),这里只兜底 noop。
   goPractice() {
-    var task = this.data.vm && this.data.vm.todayTask;
-    if (task && task.task_type === "light_practice" && task.pack_id) {
-      this._navTo(
-        "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
-          encodeURIComponent(String(task.pack_id)) +
-          "&mode=forward",
-      );
+    var task = (this.data.vm && this.data.vm.todayTask) || {};
+    var packId = encodeURIComponent(String(task.pack_id || ""));
+    if (task.practice_kind === "seethrough" && packId) {
+      this._navTo("/packageDeeptutor/pages/luban/seethrough/seethrough?pack_id=" + packId);
       return;
     }
-    var prompt = task && task.prompt;
-    if (prompt && typeof wx !== "undefined" && wx.reLaunch) {
-      runtime.setPendingChatIntent(prompt, "AUTO");
-      wx.reLaunch({ url: route.chat() });
+    if (task.practice_kind === "retest" && packId) {
+      this._navTo("/packageDeeptutor/pages/luban/retest/retest?pack_id=" + packId + "&mode=forward");
       return;
     }
-    this._navTo("/packageDeeptutor/pages/practice/practice");
+  },
+
+  // 今日任务副 CTA「换轻练」→ 换成更广/更轻的综合摸底(与主任务不同动作):
+  // assessment 综合模式(mode=diagnostic),同样复用既有 MCQ 流,不判分。
+  goSwitchPractice() {
+    this._navTo(route.assessment({ mode: "diagnostic", source: "today_task_switch" }));
+  },
+
+  // F16 防水「5天留存闭环」雏形入口(spike 审阅):进原生 5 天体验,内容全部
+  // 投影自已签发看穿包,前端不新造。pack 暂定 F16(雏形单母题)。
+  goSeethrough() {
+    this._navTo("/packageDeeptutor/pages/luban/seethrough/seethrough?pack_id=F16");
   },
 
   _navTo(url) {

@@ -6,10 +6,17 @@
 
 var HI = 'style="color:#67e8f9;font-weight:700"';
 var HITWORD = 'style="color:#34d399;font-weight:800"';
+var SCRIPT_SCHEMA_ID = "first_run_script.v1";
+var SCRIPT_VERSION = "first_run_script.v1@5022d02db1f3316ef7515e60140ba3f16128fde0dd8c0ebd86a9ff540a8ceffd";
 
 var QUESTIONS = [
   {
     slug: "qigu_gebu",
+    questionId: "first_run.v1:qigu_gebu",
+    sourceQuestionId: "Q18-1A434000",
+    sourceScoringPointId: "Q18-1A434000::P11",
+    conceptId: "1A434000-B017",
+    contentSha256: "2f040012810b901343d2dcd5399df6fc675fa0d89aa706cd5cfd6ede95ea0b3d", // pragma: allowlist secret — deterministic content digest
     srcNote: "采分点溯源：2023 真题官方参考答案 · 2026 版教材 1A434000 屋面防水",
     name: "起鼓割补",
     family: "1A434000 屋面防水",
@@ -47,6 +54,11 @@ var QUESTIONS = [
   },
   {
     slug: "zhiliang_jihua",
+    questionId: "first_run.v1:zhiliang_jihua",
+    sourceQuestionId: "Q18-1A434000",
+    sourceScoringPointId: "Q18-1A434000::P2",
+    conceptId: "1A434000-B077",
+    contentSha256: "a154b56b92fdcfa70a92141369be2d0306a3d7f7f183899cb4b29869f61283e5", // pragma: allowlist secret — deterministic content digest
     srcNote: "采分点溯源：2023 真题官方参考答案 · 2026 版教材 项目质量管理",
     name: "质量计划",
     family: "项目质量管理",
@@ -84,6 +96,11 @@ var QUESTIONS = [
   },
   {
     slug: "tianchongqiang_fangbie",
+    questionId: "first_run.v1:tianchongqiang_fangbie",
+    sourceQuestionId: "first_run-source:fill-wall-14d",
+    sourceScoringPointId: "textbook:1A434000_074_0116::C2",
+    conceptId: "1A434000-B013",
+    contentSha256: "da852e636f301b9eb851f5e6a33e9c460902ae90f0bd97d66718e14a17ceb186", // pragma: allowlist secret — deterministic content digest
     srcNote: "采分点溯源：2024 真题官方参考答案 · 2026 版教材 砌体结构",
     name: "填充墙防裂",
     family: "砌体填充墙 · 裂缝防治",
@@ -121,6 +138,11 @@ var QUESTIONS = [
   },
   {
     slug: "zhuangpeishi_laji",
+    questionId: "first_run.v1:zhuangpeishi_laji",
+    sourceQuestionId: "Q2025-01",
+    sourceScoringPointId: "Q2025-01::question3.1",
+    conceptId: "1A437000-B035",
+    contentSha256: "20709b4196b6bdd2393902c5b52aaaa3bacc16e545da7ecc70d41a5bf7b1582f", // pragma: allowlist secret — deterministic content digest
     srcNote: "采分点溯源：2025 真题官方参考答案 · 绿色施工新增考点（知识库已同步 2026 版）",
     name: "装配式建筑垃圾",
     family: "绿色施工 · 新考点",
@@ -140,7 +162,7 @@ var QUESTIONS = [
     trap: "B",
     expl: {
       A: "装配式建筑的垃圾控制指标比现浇更严——每万平方米不大于 200t。",
-      B: "300t 是<b>现浇</b>结构的口径——题干是装配式，方案照抄旧数，正是出题人埋的雷。",
+      B: "300t 是现浇结构的口径——题干是装配式，方案照抄旧数，正是出题人埋的雷。",
       C: "400t 哪个口径都不是——凭感觉放宽，考场最吃亏。",
       D: "绿色施工章节就是冲着硬指标考的，「分类处理」躲不掉数字题。"
     },
@@ -296,6 +318,8 @@ var MODE_REPORT = {
 };
 
 module.exports = {
+  SCRIPT_SCHEMA_ID: SCRIPT_SCHEMA_ID,
+  SCRIPT_VERSION: SCRIPT_VERSION,
   QUESTIONS: QUESTIONS,
   MATERIAL_OPTS: MATERIAL_OPTS,
   MATERIAL_REVEAL: MATERIAL_REVEAL,

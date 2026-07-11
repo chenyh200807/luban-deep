@@ -235,4 +235,19 @@ assert.ok(routeSource.indexOf("pages/luban/errorbank/errorbank") >= 0, "route.js
 var reviewJs = fs.readFileSync(path.join(__dirname, "../packageDeeptutor/pages/luban/review/review.js"), "utf8");
 assert.ok(reviewJs.indexOf("route.lubanErrorbank()") >= 0, "复习页错因银行入口卡须指向新列表页");
 
+// ── 暖处方按错因码分文案(呈现层镜像, 全站禁再共用同一句) ──────
+// entry(E03) → E03 专属处方; 未收录码/无码 → default 通用句
+assert.ok(detailNoSupply.warmLine.indexOf("阅卷认的那几个词") >= 0, "E03 须走关键词缺失专属处方");
+var entryNoCode = Object.assign({}, entry, { errorCode: "" });
+var detailNoCode = vm.buildErrorbankDetail(entryNoCode, { antidote: null, retestProbe: null });
+assert.ok(detailNoCode.warmLine.indexOf("不是不会做") >= 0, "无码走 default 通用句");
+var entryE06 = Object.assign({}, entry, { errorCode: "E06" });
+var detailE06 = vm.buildErrorbankDetail(entryE06, { antidote: null, retestProbe: null });
+assert.notStrictEqual(detailE06.warmLine, detailNoSupply.warmLine, "不同错因码文案必须不同");
+// 语气纪律: 全部处方无审视词(禁 看穿/识破/揭穿/露馅)
+var vmSource = fs.readFileSync(vmPath, "utf8");
+["看穿", "识破", "揭穿", "露馅"].forEach(function (w) {
+  assert.ok(vmSource.indexOf(w) === -1, "处方文案禁审视词: " + w);
+});
+
 console.log("PASS test_errorbank_view_model.js");

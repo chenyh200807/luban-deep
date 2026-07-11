@@ -432,6 +432,7 @@ def test_classify_t1_t2_t3_examples() -> None:
     registry = load_schema_registry()
     assert classify_identifier("luban_grading_object.v1", registry) == "tier1"
     assert classify_identifier("luban_context_pack.v1", registry) == "tier2"
+    assert classify_identifier("first_run_completion.v1", registry) == "tier2"
     # the runtime-pinned pack is T2; superseded .v1/.v2 are T3 carve-outs
     assert classify_identifier("luban_rich_leaf_runtime_token_pack.v2.3", registry) == "tier2"
     assert classify_identifier("luban_rich_leaf_runtime_token_pack.v1", registry) == "tier3"

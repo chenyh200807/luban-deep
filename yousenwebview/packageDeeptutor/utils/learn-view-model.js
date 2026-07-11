@@ -12,6 +12,9 @@
 
 var PACK_UNIVERSE = 40; // 60-slot 注册表 40 pack(融合计划 §1.1)
 
+// 站点卡简称(显示层):卡片名用简称保清爽,title 全名不变(详情页/下一站卡仍用全名)
+var _shortNames = require("./pack-short-names");
+
 function _safeObj(v) {
   return v && typeof v === "object" && !Array.isArray(v) ? v : {};
 }
@@ -32,7 +35,9 @@ function _titleIndex(lessonsResp) {
   _safeArr(_safeObj(lessonsResp).lessons).forEach(function (l) {
     var o = _safeObj(l);
     var id = _str(o.pack_id).toUpperCase();
-    if (id) idx[id] = { title: _str(o.title), sha: _str(o.content_sha256), green: true };
+    // summary = 后端签发考点卡首卡 front(路线卡副标题真源);缺则 ""(fail-closed 留空)
+    // retest = signed 变体池真值(list_green_lessons.retest_available;缺字段=false 保守降级)
+    if (id) idx[id] = { title: _str(o.title), sha: _str(o.content_sha256), green: true, summary: _str(o.summary), retest: o.retest_available === true };
   });
   return idx;
 }
@@ -79,17 +84,19 @@ function _posters(packs, titleIdx, recommendedId) {
     var up = _str(id).toUpperCase();
     if (!up || seen[up]) return;
     seen[up] = true;
-    var meta = titleIdx[up] || { title: "", green: false };
+    var meta = titleIdx[up] || { title: "", green: false, summary: "" };
     var isRec = up === _str(recommendedId).toUpperCase();
     rows.push({
       pack_id: up,
       title: meta.title || "即将开通",
-      name: _posterName(meta.title || "即将开通"),
+      name: _shortNames.shortName(up, _posterName(meta.title || "即将开通")),
       slot: up,
       green: !!meta.green,
       state: _posterState(state, isRec, !!meta.green),
       recommended: isRec,
       locked: !meta.green,
+      // 副标题:后端 summary(概念卡首卡 front)优先,否则用前端显示层 map(safe-topical)
+      subtitle: _shortNames.subtitle(up, meta.summary),
     });
   }
   // 推荐站先
@@ -110,9 +117,50 @@ function _posters(packs, titleIdx, recommendedId) {
   return rows;
 }
 
+// 今日主任务 = 针对推荐薄弱考点的 2 分钟轻练(PRD v1.3 §0.0 / §12.2 TodayMainTaskCard)。
+// 前端只投递路由意图,由学习页 handler 按 practice_kind 路由;不判分、不造第二套答题 authority。
+// practice_kind = 按签发供给真值路由(承诺宽度收窄,不对空池站渲染练不了的按钮):
+//   "seethrough"(该站有签发看穿包) > "retest"(有 signed 变体池 → retest?mode=forward) > "none"(降级)
+function _lightPracticeTask(concept, packId, reason, practiceKind) {
+  var c = _str(concept) || "你的薄弱点";
+  var kind = practiceKind === "seethrough" || practiceKind === "retest" ? practiceKind : "none";
+  return {
+    title: c + " · 2 分钟轻练",
+    reason: _str(reason),
+    // primary_cta: 无供给站不渲染主按钮(cta 空 = WXML 隐藏),诚实降级为 supplyNote
+    cta: kind === "none" ? "" : "开始 2 分钟轻练",
+    secondaryCta: "换轻练",        // secondary_cta:换成更广的综合摸底
+    supplyNote: kind === "none" ? "这一站的轻练正在教研签发中 · 先看讲解打底" : "",
+    task_type: "light_practice",
+    practice_kind: kind,
+    estimated_minutes: 2,
+    concept: c,
+    pack_id: _str(packId).toUpperCase(),
+    mode: "topic",                 // assessment 专题模式(聚焦推荐考点)
+  };
+}
+
+// 看穿库总览 → 有签发看穿包的 pack_id 集合(缺响应/旗标关 = 空集,保守降级)
+function _seethroughSet(libraryResp) {
+  var set = {};
+  _safeArr(_safeObj(libraryResp).packs).forEach(function (p) {
+    var id = _str(_safeObj(p).pack_id).toUpperCase();
+    if (id) set[id] = true;
+  });
+  return set;
+}
+
+// 供给真值 → practice_kind 单一裁决点(禁在页面层再判一次)
+function _practiceKindFor(packId, titleIdx, seethroughSet) {
+  var id = _str(packId).toUpperCase();
+  if (seethroughSet[id]) return "seethrough";
+  if (_safeObj(titleIdx[id]).retest === true) return "retest";
+  return "none";
+}
+
 /**
  * 组装学习页 data。
- * @param {object} args {homeDashboard, report, lessons}
+ * @param {object} args {homeDashboard, report, lessons, seethroughLibrary}
  * @returns {object} setData payload
  */
 function buildLearnViewModel(args) {
@@ -166,48 +214,39 @@ function buildLearnViewModel(args) {
   // ── 课程架海报(推荐站=nextStation → 朱红) ──
   var posters = _posters(packs, titleIdx, nextStation ? nextStation.pack_id : "");
 
+  // ── 首页路线预览:固定三态(已学完墨 / 匹配薄弱朱 / 会员解锁纸)= 参考设计视觉恒显。
+  //    owner 拍板(2026-07-06):黑卡恒显整体更美观;真实每站学习态在「完整路线」地图。
+  //    真站名+副标题不变,仅覆盖 state/recommended/locked 供首页 3 卡展示。 ──
+  var routePreview = posters.slice(0, 3).map(function (p, i) {
+    var st = i === 0 ? "ink" : i === 1 ? "red" : "paper";
+    return Object.assign({}, p, { state: st, recommended: st === "red", locked: st === "paper" });
+  });
+
   // ── 复习到期(revalidation_queue items) ──
   var reval = _safeObj(report.revalidation_queue);
   var dueCount = _safeArr(reval.items).length;
 
-  // ── 今日任务(next_step practice 臂 / 处方;缺则 day-0 通用兜底,不塌空) ──
-  // 两类任务,由 task_type 决定 learn.js goPractice 的入口(不新建第二答题页):
-  // - half_write(处方臂):特定薄弱点半写训练,prompt=作答意图,交 chat/TutorBot
-  //   单一答题权威消费(runtime.setPendingChatIntent),前端不判分;
-  // - light_practice(通用/冷启动臂):2 分钟正向轻练,带 pack_id → 复用 retest 页
-  //   forward 模式(build_retest_items mode=forward,本地判分、证据非 promoting)。
-  //   题面只投影签发字段,前端不造采分点/真题/章节。
+  // ── 今日任务(PRD v1.3 §0.0 重心收口:头牌 = 2 分钟 MCQ 轻练,非案例题批改) ──
+  // task_type=light_practice + mode=topic:前端只投递路由意图(→ assessment 专题模式),
+  // 复用既有 MCQ 摸底流,不判分、不造第二套答题入口、不带案例批改 prompt。
+  // 案例题批改按 v1.3 降级为深度护城河层,不再当今日任务默认。
+  var seethroughSet = _seethroughSet(a.seethroughLibrary);
   var todayTask = null;
   if (nextStep.mode === "practice_active" && nsRef) {
-    var concept = nsMeta.title || "你的薄弱点";
-    todayTask = {
-      title: concept + " · 半写训练",
-      reason: _str(nextStep.reason),
-      cta: "开始半写训练",
-      concept: concept,
-      task_type: "half_write",
-      pack_id: nsRef,
-      mode: "prescription",
-      prompt:
-        "针对『" + concept + "』给我一道案例题做半写训练。我先真实作答,你再按采分点逐条批改并定位我的盲点,不要提前给答案和解析。",
-    };
+    todayTask = _lightPracticeTask(
+      nsMeta.title || "你的薄弱点",
+      nsRef,
+      _str(nextStep.reason),
+      _practiceKindFor(nsRef, titleIdx, seethroughSet),
+    );
   } else if (nextStation) {
-    // 有站可学即给通用今日任务(设计始终显示此卡);2 分钟轻练=学习轮头牌低摩擦入口。
-    // pack_id=推荐站;无签发变体池时 retest 页 fail-closed 空态(不伪造题)。
-    var seed = nextStation.title || "";
-    todayTask = {
-      title: (seed ? seed + " · " : "") + "先花 2 分钟轻练",
-      reason: "先快速过一遍这一考点的不同考法,答完系统按错因帮你定位盲点。",
-      cta: "开始 2 分钟轻练",
-      concept: seed,
-      task_type: "light_practice",
-      pack_id: nextStation.pack_id,
-      mode: "topic",
-      // 兜底 prompt:若 pack_id 缺失无法进 retest 正向练,goPractice 退回 chat 摸底。
-      prompt:
-        (seed ? "针对『" + seed + "』给我一道案例摸底题。" : "给我一道一建建筑实务案例摸底题。") +
-        "我先真实作答,你再按采分点批改并补齐可诊断证据,不要提前给答案和解析。",
-    };
+    // 有站可学即给通用今日任务(设计始终显示此卡);诚实=针对该站的 2 分钟轻练
+    todayTask = _lightPracticeTask(
+      nextStation.title || "你的薄弱点",
+      nextStation.pack_id,
+      "先用一组 2 分钟选择题定位薄弱采分点,答完当场看盲点和教材章节定位。",
+      _practiceKindFor(nextStation.pack_id, titleIdx, seethroughSet),
+    );
   }
 
   // ── 指标卡(report stats,尽力读+降级) ──
@@ -228,7 +267,8 @@ function buildLearnViewModel(args) {
     litCount: lit,
     packUniverse: universe,
     nextStation: nextStation,          // null → 显示"内容即将上线"空态卡
-    posters: posters,                  // [] → 课程架空态
+    posters: posters,                  // [] → 课程架空态(完整地图/stations 用真实态)
+    routePreview: routePreview,        // 首页 3 卡固定三态预览(恒显黑卡)
     dueCount: dueCount,                // 0 → 隐藏复习条
     todayTask: todayTask,              // null → 隐藏今日任务卡
     stats: stats,

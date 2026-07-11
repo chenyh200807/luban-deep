@@ -1,0 +1,117 @@
+{
+ "schema_version": "luban-concept-card-bank",
+ "pack_id": "D13",
+ "status": "signed",
+ "source_pack_sha256": "6745894a27086c053065b63739bd0fb66eee75a32a56ec5679fb8467cc9bbcf3",
+ "generation_ms": 59.82,
+ "gate": {
+  "total": 3,
+  "passed": 3,
+  "pass_rate": 1.0,
+  "quote_mismatches": [],
+  "duplicate_cards": [],
+  "forbidden_words": [],
+  "intent_misses": [],
+  "gist_num_orphans": []
+ },
+ "card_count": 3,
+ "dropped_rows": [
+  {
+   "row": "窗槛墙空腔填塞",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "同一玻璃单元不跨防火分区",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "层间缝隙封堵",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "承托板材料",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "铝合金立柱柔性导线连通",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "预埋件焊接均压环",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "防雷连接破除镀膜+隐蔽验收",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "幕墙分类体系",
+   "reason": "not_green"
+  },
+  {
+   "row": "防火堵料三类",
+   "reason": "not_green"
+  },
+  {
+   "row": "防火涂料厚度",
+   "reason": "not_green"
+  },
+  {
+   "row": "防火玻璃耐火等级",
+   "reason": "not_green"
+  },
+  {
+   "row": "幕墙成品保护",
+   "reason": "not_green"
+  }
+ ],
+ "cards": [
+  {
+   "card_id": "D13:kc:1A413030_148_0286:0",
+   "front": "上下层开口间防火分隔",
+   "key_gist": "实体墙高度≥1.2m；或防火挑檐宽度≥1.0m 且长度≥开口宽度",
+   "quote": "（1）设置幕墙的建筑，其上下层外墙上开口之间应设置高度不小于1.2m的实体墙或挑出宽度不小于1.0m、长度不小于开口宽度的防火挑檐。 （2）幕墙与建筑窗槛墙之间的空腔应在建筑缝隙上、下沿处分别采用矿物棉等背衬材料填塞且填塞高度均不应小于200mm；背衬材料承托板应采用钢质承托板，且承托板的厚度不应小于1.5mm。 （3）同一幕墙玻璃单元不应跨越两个防火分区。",
+   "point_id": "kc:1A413030_148_0286:0",
+   "source_ref": {
+    "chunk_id": "1A413030_148_0286",
+    "page_num": 148,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "建筑工程施工技术 > 装饰装修工程施工 > 建筑幕墙工程施工 > 建筑幕墙防火、防雷和成品保护技术要求"
+  },
+  {
+   "card_id": "D13:kc:1A413030_148_0287:0",
+   "front": "幕墙金属框架连主体防雷",
+   "key_gist": "幕墙金属框架应与主体结构防雷体系可靠连接",
+   "quote": "（1）幕墙的金属框架应与主体结构的防雷体系可靠连接。 （2）幕墙的铝合金立柱，在不大于10m范围内宜有一根立柱采用柔性导线，把上柱与下柱的连接处连通。 （3）主体结构有水平均压环的楼层，对应导电通路的立柱预埋件或固定件应用圆钢或扁钢与均压环焊接连通，形成防雷通路。",
+   "point_id": "kc:1A413030_148_0287:0",
+   "source_ref": {
+    "chunk_id": "1A413030_148_0287",
+    "page_num": 148,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "建筑工程施工技术 > 装饰装修工程施工 > 建筑幕墙工程施工 > 建筑幕墙的防雷构造要求"
+  },
+  {
+   "card_id": "D13:kc:1A412010_066_0130:1",
+   "front": "有机防火堵料特性",
+   "key_gist": "有机(可塑性)堵料：可塑性好、遇火发泡膨胀、水密气密、可重复使用",
+   "quote": "（2）有机防火堵料又称可塑性防火堵料，它是以合成树脂为胶粘剂，并配以防火助剂、填料制成的。此类堵料在使用过程长期不硬化，可塑性好，容易封堵各种不规则形状的孔洞，能够重复使用。遇火时发泡膨胀，因此具有优异的防火、水密、气密性能。施工操作和更换较为方便，因此尤其适合需经常更换或增减电缆、管道的场合。",
+   "point_id": "kc:1A412010_066_0130:1",
+   "source_ref": {
+    "chunk_id": "1A412010_066_0130",
+    "page_num": 66,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "主要建筑工程材料的性能与应用 > 结构工程材料 > 防火堵料"
+  }
+ ],
+ "signoff": {
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T01:20:59+08:00",
+  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+ }
+}

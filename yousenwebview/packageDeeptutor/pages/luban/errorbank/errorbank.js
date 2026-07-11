@@ -40,6 +40,7 @@ Page({
     loading: true,
     errorText: "",
     mode: "list", // list | detail
+    bookDisabled: false, // 记账功能未开通(mistake-book 404)——诚实空态, 非错误态
     vm: null,
     detail: null,
     settledExpanded: false,
@@ -299,15 +300,24 @@ Page({
     var that = this;
     this.setData({ loading: true, errorText: "" });
     return Promise.all([
-      api.getMistakeBook({ include_mastered: true }, { suppressAuthRedirect: true }),
+      // mistake-book 404(=DEEPTUTOR_MISTAKE_BOOK_ENABLED 关/记账未开通)不是整页
+      // 失败: lessons 仍可渲染, 降级为诚实"记账未开通"空态(bookDisabled), 不冒充
+      // "都还清了"庆祝态; 网络类错误照旧走整页错误+重试。
+      api
+        .getMistakeBook({ include_mastered: true }, { suppressAuthRedirect: true })
+        .catch(function (err) {
+          if (err && Number(err.statusCode) === 404) return { __disabled: true };
+          throw err;
+        }),
       api.getLubanLessons().catch(function () {
         return null; // lessons 拿不到: pack 归属降级为空(换皮 CTA fail-closed)
       }),
     ])
       .then(function (results) {
-        that._mistakeBody = api.unwrapResponse(results[0]) || {};
+        var disabled = !!(results[0] && results[0].__disabled);
+        that._mistakeBody = disabled ? { items: [] } : api.unwrapResponse(results[0]) || {};
         that._lessonsBody = api.unwrapResponse(results[1]) || {};
-        that.setData({ loading: false });
+        that.setData({ loading: false, bookDisabled: disabled });
         that._rebuildVm();
       })
       .catch(function (err) {
