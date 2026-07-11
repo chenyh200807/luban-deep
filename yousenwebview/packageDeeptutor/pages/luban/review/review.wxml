@@ -82,8 +82,8 @@
             <text class="rv-pact-link">复测</text>
           </view>
 
-          <!-- 到期清单 -->
-          <view class="rv-list" wx:if="{{vm.dueEntries.length}}">
+          <!-- 到期清单(n=1 时折叠: hero+约定卡已完整承载单站, 防三块同物) -->
+          <view class="rv-list" wx:if="{{vm.dueEntries.length && vm.showDueList}}">
             <view class="rv-list-head">
               <text class="rv-list-title">到期清单</text>
               <text class="rv-list-hint">今日到期 · 服务端排定</text>

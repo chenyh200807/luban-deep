@@ -59,6 +59,8 @@ Page({
     errorText: "",
     items: [],
     total: 0,
+    pool: null,          // 题池元信息 {core_total, rule_groups_total}(呈现层规模感)
+    seenCount: 0,        // 本地已见变体数(收集感, storage 呈现层)
     answeredCount: 0,
     correctCount: 0,
     done: false,
@@ -199,6 +201,28 @@ Page({
     }
   },
 
+  // 本地"已见变体"集合(收集感, 呈现层非学情): 读旧集合并入本场
+  _seenCount(items) {
+    var key = "luban_retest_seen:" + (this.data.packId || "");
+    var seen = [];
+    try {
+      if (typeof wx !== "undefined" && wx.getStorageSync) {
+        var raw = wx.getStorageSync(key);
+        if (raw && Array.isArray(raw.ids)) seen = raw.ids;
+      }
+    } catch (_e) {}
+    var set = {};
+    seen.forEach(function (id) { set[id] = true; });
+    (items || []).forEach(function (it) { set[it.variant_id] = true; });
+    var ids = Object.keys(set);
+    try {
+      if (typeof wx !== "undefined" && wx.setStorageSync) {
+        wx.setStorageSync(key, { ids: ids, at: Date.now() });
+      }
+    } catch (_e) {}
+    return ids.length;
+  },
+
   // 单题流推进: 下一题 / 最后一题 → 今日收据
   nextQuestion() {
     var next = this.data.currentIndex + 1;
@@ -216,6 +240,7 @@ Page({
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var raw = Array.isArray(body.items) ? body.items : [];
+        var pool = body.pool && body.pool.core_total ? body.pool : null;
         var items = raw.map(function (item, idx) {
           return {
             key: String(item.variant_id || "v_" + idx),
@@ -232,6 +257,8 @@ Page({
           };
         });
         that.setData({
+          pool: pool,
+          seenCount: that._seenCount(items),
           items: items,
           total: items.length,
           answeredCount: 0,

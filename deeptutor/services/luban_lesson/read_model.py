@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -288,7 +289,7 @@ def build_retest_items(
     else:
         start = seed % len(core)
         ordered = [core[(start + i) % len(core)] for i in range(len(core))]
-    picked = _balance_expected_ok(ordered, seed, limit)
+    picked = _balance_expected_ok(_diversify_skeletons(ordered, limit), seed, limit)
     textbook_by_point = _textbook_quote_index(
         vm["pack_id"], manifest_dir, vm["content_sha256"]
     )
@@ -330,6 +331,62 @@ def _variant_blocklist(manifest_dir: Path) -> set[str]:
         str(item.get("variant_id") or "")
         for item in data.get("variants") or []
         if item.get("variant_id")
+    }
+
+
+_SKELETON_ENTITY_RE = re.compile(r"「[^」]*」")
+_SKELETON_NUM_RE = re.compile(r"\d+(?:\.\d+)?")
+
+
+def _surface_skeleton(surface: str) -> str:
+    """题面句式骨架(实体挖空+数字归一)——同骨架=用户眼中的"同一句换词"。"""
+    text = _SKELETON_ENTITY_RE.sub("「X」", str(surface or ""))
+    return _SKELETON_NUM_RE.sub("N", text)
+
+
+def _diversify_skeletons(
+    ordered: list[dict[str, Any]], limit: int
+) -> list[dict[str, Any]]:
+    """同场次句式骨架去重(owner 2026-07-11"老用户马上腻"拍板的呈现层修复):
+
+    实测 A01 B-basis 组 16 变体仅 4 种骨架——一场 5 题里出现两道"同句换词"
+    即产生敷衍感。骨架未见的题排前, 重复骨架的退后作回填(小池不空窗)。
+    保持 ordered 相对原序(forward 考法广度/review 轮换语义不变), 纯确定性。
+    ``limit`` 仅语义提示(截取仍在 _balance_expected_ok), 此处全量重排。"""
+    fresh: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    rest: list[dict[str, Any]] = []
+    for v in ordered:
+        sk = _surface_skeleton(str(v.get("surface") or ""))
+        if sk in seen:
+            rest.append(v)
+            continue
+        seen.add(sk)
+        fresh.append(v)
+    return fresh + rest
+
+
+def retest_pool_meta(
+    pack_id: str, *, manifest_path: Path | None = None
+) -> dict[str, Any]:
+    """题池元信息(呈现层"换皮是刻意设计"的证据): 核心题数/考法数——签发真值
+    派生, 停发清单已剔除。供 retest 页 hero/收据展示题池规模与收集感。"""
+    try:
+        vm = build_lesson_viewmodel(pack_id, manifest_path=manifest_path)
+    except LessonNotAvailable:
+        return {"core_total": 0, "rule_groups_total": 0}
+    manifest_dir = (manifest_path or _MANIFEST_PATH).parent
+    bank = _load_signed_bank(vm["pack_id"], manifest_dir, vm["content_sha256"])
+    if bank is None:
+        return {"core_total": 0, "rule_groups_total": 0}
+    blocked = _variant_blocklist(manifest_dir)
+    core = [
+        v for v in bank.get("variants") or []
+        if not v.get("extension") and str(v.get("variant_id") or "") not in blocked
+    ]
+    return {
+        "core_total": len(core),
+        "rule_groups_total": len({str(v.get("rule_group") or "") for v in core}),
     }
 
 

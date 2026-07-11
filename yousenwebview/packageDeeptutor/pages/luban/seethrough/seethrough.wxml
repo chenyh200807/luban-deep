@@ -2,15 +2,15 @@
   <view class="st-nav" style="padding-top: {{statusBarHeight}}px">
     <view class="st-nav-inner">
       <view class="st-back" bindtap="goBack"><text>‹ 返回</text></view>
-      <text class="st-nav-title">{{title || '防水 · 5天'}}</text>
+      <text class="st-nav-title">{{title || '防水 · 5关连闯'}}</text>
     </view>
-    <!-- 天导航(雏形可自由跳,方便逐天审) -->
+    <!-- 关卡导航(递进解锁: 已完成+下一关可点, 未解锁置灰) -->
     <scroll-view class="st-days" scroll-x wx:if="{{days.length}}">
       <view
         wx:for="{{days}}" wx:key="day"
         class="st-day-chip {{index === dayIndex ? 'active' : ''}} {{completedDays.indexOf(item.day) >= 0 ? 'done' : ''}}"
         data-idx="{{index}}" bindtap="onDayTap">
-        <text>第{{item.day}}天{{completedDays.indexOf(item.day) >= 0 ? ' ✓' : ''}}</text>
+        <text>第{{item.day}}关{{completedDays.indexOf(item.day) >= 0 ? ' ✓' : ''}}</text>
       </view>
     </scroll-view>
   </view>
@@ -18,11 +18,11 @@
   <scroll-view class="st-scroll" scroll-y style="top: {{navHeight + 44}}px">
     <view class="st-inner">
       <view class="st-error" wx:if="{{errorText}}"><text>{{errorText}}</text></view>
-      <view class="st-loading" wx:if="{{loading}}"><text>正在为你准备今天…</text></view>
+      <view class="st-loading" wx:if="{{loading}}"><text>正在为你准备这一关…</text></view>
 
       <block wx:if="{{!loading && !errorText && days.length}}">
         <view class="st-day-head">
-          <text class="st-day-no">第 {{days[dayIndex].day}} 天 / 共 {{days.length}} 天</text>
+          <text class="st-day-no">第 {{days[dayIndex].day}} 关 / 共 {{days.length}} 关</text>
           <text class="st-competency">{{days[dayIndex].competency}}</text>
         </view>
 
@@ -115,16 +115,16 @@
             <text class="st-warm-text" wx:if="{{days[dayIndex].progress_receipt}}">{{days[dayIndex].progress_receipt}}</text>
             <text class="st-safety" wx:if="{{days[dayIndex].safety_net}}">{{days[dayIndex].safety_net}}</text>
           </view>
-          <view class="st-primary" bindtap="goPromise"><text>{{isLast ? '看看这5天' : '明天见'}}</text></view>
+          <view class="st-primary" bindtap="goPromise"><text>{{isLast ? '看看这5关' : '下一关的钩子'}}</text></view>
         </block>
 
-        <!-- 步骤5:明日换皮约定 -->
+        <!-- 步骤5:下一关预告(换皮悬念) -->
         <block wx:if="{{step === 'promise'}}">
           <view class="st-card st-promise">
             <text class="st-promise-text" wx:if="{{days[dayIndex].tomorrow_promise}}">{{days[dayIndex].tomorrow_promise}}</text>
-            <text class="st-promise-text" wx:else>你已经连续走完这 5 天——这件事本身就比答案更重要。</text>
+            <text class="st-promise-text" wx:else>5 关全通——同一个魂被你从 5 个方向各认了一遍，这比背下答案值钱。</text>
           </view>
-          <view class="st-primary" bindtap="goNextDay"><text>{{isLast ? '再走一遍' : '进入明天'}}</text></view>
+          <view class="st-primary" bindtap="goNextDay"><text>{{isLast ? '再闯一遍' : '进入下一关'}}</text></view>
         </block>
       </block>
     </view>

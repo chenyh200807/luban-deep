@@ -20,7 +20,8 @@ def _state_item(**overrides):
     return item
 
 
-def test_needs_revalidation_creates_one_probe_intent_per_day() -> None:
+def test_needs_revalidation_emits_up_to_daily_capacity() -> None:
+    """日容量 owner 2026-07-11 拍板 1→5: 到期≤容量时全部发射, 超出才压制。"""
     queue = build_revalidation_queue_projection(
         user_id="student_demo",
         candidates=[_state_item(), _state_item(node_id="1A413020", label="地基处理")],
@@ -28,18 +29,25 @@ def test_needs_revalidation_creates_one_probe_intent_per_day() -> None:
     )
 
     active = [item for item in queue["items"] if item["status"] == "active"]
-    queued = [item for item in queue["items"] if item["status"] == "queued"]
 
-    assert len(queue["items"]) == 1
-    assert len(active) == 1
-    assert queued == []
-    assert active[0]["kind"] == "revalidation_probe"
+    assert len(queue["items"]) == 2
+    assert len(active) == 2
+    assert all(i["kind"] == "revalidation_probe" for i in active)
     assert active[0]["intent"]["intent_version"] == 2
     assert active[0]["intent"]["prescription_steps"][-1]["phase"] == "verification_probe"
-    assert active[0]["evidence_refs"] == ["evt_miss_1", "evt_miss_2"]
-    assert queue["source_status"]["daily_capacity"] == 1
+    assert queue["source_status"]["daily_capacity"] == 5
     assert queue["source_status"]["due_count"] == 2
-    assert queue["source_status"]["suppressed_due_count"] == 1
+    assert queue["source_status"]["suppressed_due_count"] == 0
+    # 超容量压制仍生效: 7 个到期只发 5
+    many = [
+        _state_item(node_id=f"1A41300{i}", label=f"站{i}") for i in range(7)
+    ]
+    queue7 = build_revalidation_queue_projection(
+        user_id="student_demo", candidates=many,
+        now_iso="2026-05-22T09:00:00+08:00",
+    )
+    assert len([i for i in queue7["items"] if i["status"] == "active"]) == 5
+    assert queue7["source_status"]["suppressed_due_count"] == 2
 
 
 def test_recent_observation_not_due_yet_is_not_enqueued() -> None:

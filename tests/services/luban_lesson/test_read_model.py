@@ -305,6 +305,49 @@ def test_retest_session_never_uniform_answer_key(tmp_path):
                 assert len(keys) == 2, f"{mode}/{uid}/{day} 全同答案: {items}"
 
 
+def test_retest_session_skeleton_diversity(tmp_path):
+    """同场次句式骨架去重: 池够多样时一场内不得出现"同句换词"两题。"""
+    from deeptutor.services.luban_lesson import build_retest_items
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    variants = []
+    # 8个同骨架换词题 + 4个异骨架题
+    for i in range(8):
+        variants.append({"variant_id": f"S05-A-{i:03d}", "rule_group": "A",
+            "surface": f"项目部将「实体{i}」列为划分依据", "expected_ok": i % 2 == 0,
+            "correct_statement": "c", "anchor": "kc:x", "extension": False})
+    distinct = [
+        "某住宅楼验收按检验批→分项→分部顺序推进",
+        "监理要求复验进场钢筋的出厂合格证",
+        "雨后基坑侧壁出现渗水项目部继续开挖",
+        "冬期浇筑的混凝土采用蓄热法养护",
+    ]
+    for i, surf in enumerate(distinct):
+        variants.append({"variant_id": f"S05-B-{i:03d}", "rule_group": "B",
+            "surface": surf, "expected_ok": i % 2 == 0,
+            "correct_statement": "c", "anchor": "kc:x", "extension": False})
+    (tmp_path / "_S05_variant_bank.v0.json").write_text(json.dumps({
+        "status": "signed", "source_pack_sha256": "abc123", "variants": variants,
+    }), encoding="utf-8")
+    from deeptutor.services.luban_lesson.read_model import _surface_skeleton
+    # 池共 5 种骨架(同句换词的8题算1种+4种各异) → 5题场次应零重复
+    for uid in ("u1", "u2"):
+        items = build_retest_items("S05", user_id=uid, day_index=738000, limit=5, manifest_path=mp)
+        sks = [_surface_skeleton(i["surface"]) for i in items]
+        assert len(set(sks)) == len(sks), f"场内出现同骨架: {sks}"
+    # 小池优雅回填: 骨架不足时仍发满题数(不空窗), 唯一骨架数=池骨架数
+    items3 = build_retest_items("S05", user_id="u1", day_index=738000, limit=8, manifest_path=mp)
+    sks3 = [_surface_skeleton(i["surface"]) for i in items3]
+    assert len(items3) == 8 and len(set(sks3)) == 5
+
+
+def test_retest_pool_meta_counts(tmp_path):
+    from deeptutor.services.luban_lesson.read_model import retest_pool_meta
+    mp = _write_manifest(tmp_path, [_S05], ["S05"])
+    _multi_group_bank(tmp_path)
+    meta = retest_pool_meta("S05", manifest_path=mp)
+    assert meta == {"core_total": 6, "rule_groups_total": 3}
+
+
 def test_retest_blocklisted_variants_never_served(tmp_path):
     """对抗面板 A 级停发清单: serve 侧过滤, 被停发变体绝不出现在任何 session。"""
     from deeptutor.services.luban_lesson import build_retest_items

@@ -37,6 +37,8 @@
           <view class="rt-hero" wx:if="{{currentIndex === 0 && !items[0].answered}}">
             <text class="rt-kicker">{{heroKicker}}</text>
             <text class="rt-title">{{heroTitle}}</text>
+            <!-- 题池规模(签发真值): 换皮是刻意设计不是就这几题 -->
+            <text class="rt-pool" wx:if="{{pool}}">本站题池 {{pool.core_total}} 道 · {{pool.rule_groups_total}} 种考法 · 每天换着考</text>
           </view>
 
           <!-- 墨点进度: 未答=空点 / 当前=墨环 / 对=竹青 / 错=赭 -->
@@ -119,6 +121,10 @@
             <view class="rt-receipt-row">
               <text class="rt-receipt-k">考法覆盖</text>
               <text class="rt-receipt-v">{{ruleGroupCount}} 种考法各来了一题</text>
+            </view>
+            <view class="rt-receipt-row" wx:if="{{pool && seenCount}}">
+              <text class="rt-receipt-k">收集进度</text>
+              <text class="rt-receipt-v">已见过本站 {{seenCount}} / {{pool.core_total}} 道变体</text>
             </view>
             <view class="rt-receipt-row" wx:if="{{textbookCount}}">
               <text class="rt-receipt-k">教材原文</text>

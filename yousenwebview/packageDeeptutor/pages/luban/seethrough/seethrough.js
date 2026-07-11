@@ -108,7 +108,7 @@ Page({
           opts.sort(function (a, b) { return scoreOf(a) - scoreOf(b); });
           return Object.assign({}, d, { options: opts });
         });
-        // 起始天 = 首个未完成天(呈现层),否则 Day1;雏形允许自由走 Day1→Day5
+        // 起始关 = 首个未完成关(呈现层); 关卡递进解锁见 _isUnlocked
         var firstIncomplete = 0;
         for (var i = 0; i < days.length; i++) {
           if (that.data.completedDays.indexOf(days[i].day) < 0) { firstIncomplete = i; break; }
@@ -228,17 +228,37 @@ Page({
     if (next >= this.data.days.length) {
       // 末天:回到起点总览(雏形可重走)
       this.setData({ step: STEP.PROMISE });
-      if (typeof wx !== "undefined" && wx.showToast) wx.showToast({ title: "5天走完了", icon: "success" });
+      if (typeof wx !== "undefined" && wx.showToast) wx.showToast({ title: "5关全通!", icon: "success" });
       return;
     }
     this._enterDay(next);
   },
 
-  // 顶部天导航(雏形允许自由跳,方便 owner 审)
+  // 关卡导航(owner 2026-07-11 拍板: 弃日隐喻改 5 关连闯, binge 友好)。
+  // 递进解锁: 已完成的关 + 第一个未完成关可进, 之后的锁定——
+  // 审阅期"自由跳"脚手架就此移除(它曾泄漏成产品体验, 账本有案)。
   onDayTap(e) {
     var ds = (e && e.currentTarget && e.currentTarget.dataset) || {};
     var idx = Number(ds.idx);
-    if (Number.isFinite(idx) && idx >= 0 && idx < this.data.days.length) this._enterDay(idx);
+    if (!Number.isFinite(idx) || idx < 0 || idx >= this.data.days.length) return;
+    if (!this._isUnlocked(idx)) {
+      if (typeof wx !== "undefined" && wx.showToast) {
+        wx.showToast({ title: "先闯完上一关", icon: "none" });
+      }
+      return;
+    }
+    this._enterDay(idx);
+  },
+
+  // 解锁判定: 该关已完成, 或它之前的所有关都已完成(=下一待闯关)
+  _isUnlocked(idx) {
+    var days = this.data.days || [];
+    var done = this.data.completedDays || [];
+    if (done.indexOf((days[idx] || {}).day) >= 0) return true;
+    for (var i = 0; i < idx; i++) {
+      if (done.indexOf((days[i] || {}).day) < 0) return false;
+    }
+    return true;
   },
 
   goBack() {

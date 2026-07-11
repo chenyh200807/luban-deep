@@ -91,7 +91,14 @@ async def retest_items(
         )
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
-    return {"pack_id": pack_id.upper(), "items": items, "day_index": day_index, "mode": mode}
+    return {
+        "pack_id": pack_id.upper(),
+        "items": items,
+        "day_index": day_index,
+        "mode": mode,
+        # 题池元信息(呈现层"换皮是刻意设计"的证据: 题池规模+考法数)
+        "pool": retest_pool_meta(pack_id),
+    }
 
 
 # 复习模块灰度旗标（register-before-use: contracts/env_registry.yaml + .env.example）。
