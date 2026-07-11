@@ -55,16 +55,22 @@ _MIN_CONTEXT_WINDOW_TOKENS = 8192
 
 
 def count_tokens(text: str) -> int:
-    """Estimate token count with tiktoken when available."""
+    """Single-pass token approximation for budget packing (not billing).
+
+    Battle1 W1-T2: the previous tiktoken BPE encode ran synchronously on the
+    event loop for every budget check on the turn hot path. Budget packing is
+    heuristic by nature (the real token authority is provider usage), so a
+    single-pass approximation is sufficient. Coefficients calibrated against
+    cl100k_base on bilingual exam-domain samples (2026-07-11): ASCII ≈ 3
+    chars/token, non-ASCII (CJK) ≈ 1.3 tokens/char — Chinese prose lands at
+    ratio ~1.0-1.05, English over-estimates (safe direction), worst mixed
+    technical text under-estimates ≤16%, well inside the history budget's
+    headroom (budget is 35% of the context window).
+    """
     if not text:
         return 0
-    try:
-        import tiktoken
-
-        encoding = tiktoken.get_encoding("cl100k_base")
-        return len(encoding.encode(text))
-    except Exception:
-        return max(1, len(text) // 4)
+    ascii_n = sum(1 for ch in text if ord(ch) < 128)
+    return max(1, ascii_n // 3 + int((len(text) - ascii_n) * 1.3))
 
 
 def format_messages_as_transcript(messages: list[dict[str, Any]]) -> str:
@@ -462,10 +468,19 @@ class ContextBuilder:
             stored_summary = new_summary
 
         final_history = self._build_history(stored_summary, recent_messages, language=language)
-        while len(final_history) > 1 and count_tokens(build_history_text(final_history)) > budget:
-            summary_prefix = 1 if final_history and final_history[0].get("role") == "system" else 0
-            if len(final_history) <= summary_prefix + 1:
-                break
+        # Battle1 W1-T2: two-phase packing replaces the O(n²) loop that
+        # re-counted the full joined transcript after every pop. Phase 1 prunes
+        # on cached per-item counts (+4 ≈ role prefix/separator overhead);
+        # phase 2 re-verifies against the real joined text — by then n is
+        # small, so the original postcondition (fits budget by full count,
+        # summary prefix preserved) holds with at most a few extra passes.
+        summary_prefix = 1 if final_history and final_history[0].get("role") == "system" else 0
+        item_tokens = [count_tokens(str(m.get("content") or "")) + 4 for m in final_history]
+        total = sum(item_tokens)
+        while len(final_history) > summary_prefix + 1 and total > budget:
+            final_history.pop(summary_prefix)
+            total -= item_tokens.pop(summary_prefix)
+        while len(final_history) > summary_prefix + 1 and count_tokens(build_history_text(final_history)) > budget:
             final_history.pop(summary_prefix)
 
         final_text = build_history_text(final_history)

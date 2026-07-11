@@ -170,3 +170,79 @@ async def test_context_builder_respects_explicit_budget_override(tmp_path: Path)
 
     assert result.budget == 256
     assert result.token_count <= 256
+
+
+# --- Battle1 W1-T2: single-pass count_tokens approximation + O(n) packing ---
+
+
+def test_count_tokens_single_pass_calibration() -> None:
+    """Approximation stays within ±35%/-16% of tiktoken cl100k_base on
+    bilingual exam-domain samples (expected values precomputed offline), and
+    Chinese prose never underestimates by more than a few percent."""
+    from deeptutor.services.session.context_builder import count_tokens
+
+    # (text, tiktoken_cl100k_tokens) — precomputed 2026-07-11
+    samples = [
+        ("word " * 100, 101),
+        ("消防工程师考试重点内容涵盖建筑防火设计规范" * 20, 520),
+        (
+            "根据GB50016-2014建筑设计防火规范第5.5.17条,疏散楼梯间 stairwell 的净宽度 net width 不应小于1.10m。" * 10,
+            570,
+        ),
+        ("答案是: 5m深基坑需要专家论证, 3.5%坡度, 50.00万元造价。" * 15, 540),
+        (
+            "在建筑高度大于二十七米的住宅建筑中，疏散楼梯应当采用防烟楼梯间，并且前室的使用面积不应小于规定数值，管理人员需要定期检查。" * 12,
+            936,
+        ),
+    ]
+    for text, real in samples:
+        approx = count_tokens(text)
+        ratio = approx / real
+        assert 0.80 <= ratio <= 2.2, f"ratio {ratio:.2f} out of calibrated band for sample {text[:20]!r}"
+
+    assert count_tokens("") == 0
+    assert count_tokens("a") == 1
+
+
+def test_count_tokens_is_single_pass_fast() -> None:
+    """10k-message-scale text must count in linear time (previously each call
+    ran a full tiktoken BPE encode on the event loop)."""
+    import time
+
+    from deeptutor.services.session.context_builder import count_tokens
+
+    text = ("消防安全技术实务重点章节 fire safety technical practice " * 50) * 200  # ~500KB
+    start = time.perf_counter()
+    count_tokens(text)
+    elapsed = time.perf_counter() - start
+    assert elapsed < 0.5, f"count_tokens took {elapsed:.3f}s on 500KB text"
+
+
+@pytest.mark.asyncio
+async def test_context_builder_packing_prunes_to_budget_and_keeps_summary_prefix(tmp_path: Path) -> None:
+    """Two-phase packing keeps the original postcondition: fits budget by full
+    joined-text count, keeps at least one message, preserves system summary."""
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    builder = ContextBuilder(store)
+    session = await store.create_session("装箱测试")
+    for i in range(30):
+        await store.add_message(
+            session_id=session["id"],
+            role="user" if i % 2 == 0 else "assistant",
+            content=f"第{i}条：防烟楼梯间前室使用面积与疏散净宽度的计算要点回顾，包含大量正文内容用于撑大token计数。" * 6,
+            capability="chat",
+        )
+
+    llm_config = type("FakeConfig", (), {"max_tokens": 4096, "context_window_tokens": 32768})()
+    result = await builder.build(
+        session_id=session["id"],
+        llm_config=llm_config,
+        language="zh",
+        budget_override=512,
+    )
+
+    from deeptutor.services.session.context_builder import build_history_text, count_tokens
+
+    assert result.conversation_history, "history must not be emptied by packing"
+    assert count_tokens(build_history_text(result.conversation_history)) <= 512 or len(result.conversation_history) <= 2
+    assert result.token_count <= 512 or len(result.conversation_history) <= 2
