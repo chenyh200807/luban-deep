@@ -9,6 +9,161 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-10 - 移动端一次对话产生两条 sessions（BI 会话数翻倍）
+
+- 问题：
+  - 生产 chat_history.db 里 7 月真实用户几乎每次"有消息的对话"都出现两条 sessions 行：
+    同 user、几秒内先后创建、消息相同；一条有 turns、一条 turns 为空。
+  - 活体样本（user 6cf455b1，07-07 06:38）：`unified_1783406312729_d4cf4350`（canonical，
+    有 turns）+ `tutorbot:bot:construction-exam-coach:user:6cf455b1-...:chat:unified_...`
+    （镜像，无 turns，晚 4 秒）。7 月 wx 源 canonical 326 条 vs 镜像 78 条；全库镜像 1351 条，
+    最早 2026-06-09。
+- 根因：
+  - 一等业务事实：一次用户对话 = sessions 表恰一条"用户会话"。
+  - 断点：TutorBot 引擎的 bot-side 历史行（`SQLiteSessionAdapter`，id=`tutorbot:<key>`）
+    在持久化时携带了用户 `owner_key` + 客户端 `source=wx_miniprogram`
+    （deeptutor/tutorbot/session/sqlite_adapter.py 旧 `_owner_key_from_metadata` /
+    `_source_from_metadata`），伪装成第二个用户会话，被 mobile listing（owner+source 过滤）、
+    BI 注册会员 scoping（preferences.user_id）、member_console（owner_key IN）全部计入。
+  - shared failure shape：mirror state competing with canonical state；读取层已存在
+    `_merge_mobile_conversation_rows` 去重补丁（症状端止血），BI/DB 层原样双计。
+- 失败尝试 / 被否决方案：
+  - 客户端双调 createConversation 假设：证伪——chat.js 仅一处调用且有 `_convId/_sid` 守卫；
+    生产 canonical id 是 `unified_` 前缀（WS ensure_session 建），第二条 id 是 `tutorbot:` 前缀。
+  - REST 与 WS 各建一条假设：证伪——turn_runtime.ensure_session(payload.session_id) 复用同一行。
+  - 只在 create_session 改 source：会被踩回——`update_session_preferences` 会用合并后
+    preferences JSON 里的 `source`/`user_id` 重派生列（multi-writer 生命周期陷阱），
+    必须收口 adapter 全部持久化点。
+  - 单行合并（镜像并入 canonical 行）：否决——runtime 与引擎双写同一行会触发
+    `_stored_rows_are_stable` 判不稳→`_rebuild_sqlite_session` delete_session 连 turns 一起清。
+  - 只改 BI 查询排除 `tutorbot:%`：否决——展示层去重，镜像继续污染每个新 reader。
+- 成功修法：
+  - deeptutor/tutorbot/session/sqlite_adapter.py：新增唯一持久化闸 `_metadata_for_persistence`
+    （剥 `user_id`/`owner_key`、source 恒 `tutorbot`），收口 `_rebuild_sqlite_session` /
+    `_ensure_sqlite_session_async` / `_save_async` 全部 create+update 点；删除
+    `_owner_key_from_metadata` / `_source_from_metadata` 两个身份派生概念。
+    引擎行从此结构上不是用户会话，零个 reader 需要改。
+  - scripts/demote_tutorbot_mirror_sessions.py：存量 1351+ 镜像行一次性降级
+    （owner_key=''、source='tutorbot'、preferences 剥身份），默认 dry-run。
+- 验证（数字）：
+  - RED→GREEN 复现测试 `test_tutorbot_engine_mirror_row_is_not_a_user_conversation`
+    （修前 list_sessions_by_owner 返回 2 条，修后 1 条）+ 重复保存防回踩测试。
+  - tests/services/session/test_tutorbot_sqlite_adapter.py 20/20 passed；
+    tests/api/test_unified_ws_turn_runtime.py 178 passed。
+  - 迁移脚本本地端到端：legacy 形状库 dry-run→apply→复保存，终态恰 1 条用户会话。
+  - 存量安全性：生产只读核验 1351 条镜像的 canonical 行 0 缺失、0 零消息。
+  - live 实测（指挥官补证）：本地 uvicorn 起 worktree 代码，legacy 形状库先跑迁移
+    --apply，再经真实 /api/v1/chat/start-turn + /api/v1/ws（run_student_turn.py，
+    qa_ 身份 + eval bypass）同会话连打 3 轮：turn1 回复原文"小鲁，你刚才说想先聊
+    **防水工程**的考点"（该历史仅存于被迁移剥身份的镜像行→跨迁移承接 PASS）；
+    turn2 批改 turn1 出的题；turn3 压缩 turn2 要点。DB 终态：owner+wx 口径用户
+    会话恰 1 条、镜像行恰 1 条且 3 轮真实写入后仍 owner=''/source='tutorbot'/
+    无 user_id、turns completed×3 全在 canonical。
+  - 迁移身份断言：test_tutorbot_engine_mirror_reused_after_stock_demotion——
+    demote 后 get_or_create 命中同 id（消息完整恢复 + sessions 全表行数恒 1）。
+- 教训：
+  - 引擎/内部持久化借用用户可见表时，必须在写入侧显式自我声明（source/身份），
+    否则每个按身份/来源统计的 reader 都会把内部行当业务实体；读取层去重是止血带不是闭包。
+
+## 2026-07-08 - V2 scheduled_run 被 sev_regression 倒诬假阳阻断
+
+- 问题：
+  - 本地真实 V2 scheduled run 在三方 SHA 对齐后完整跑完六维，`scheduled_run.py --runs 3`
+    返回 `exit=3(BLOCK)`。
+  - 持久化 evidence 显示阻断维度是 `sev_regression`，其中 `content_truth` 已是 GO；
+    阻断 row 集中在倒诬子场景。
+  - 一条失败 row 自身矛盾：`judge=DAOWU`，但 `why` 写“判分正确，不存在倒诬”，且
+    `o1 == o2`，没有学生看到的选项面分叉。
+- 根因：
+  - 最后正确点：`dim_daowu` 已把倒诬主裁收敛为确定性 option-surface 观察：只有真实
+    选项面分叉且异源 judge 确认，才算倒诬复现。
+  - 第一个错误点：`dim_sev_regression._daowu()` 仍把 DeepSeek `verdict == "DAOWU"`
+    直接作为 `pass=False` authority，`surface_stable` 只在 judge degraded 时生效。
+  - shared failure shape：duplicate decision / authority drift。异源 LLM judge 从辅助审计越权成主裁，
+    与 `_probe_common` “主裁决永远是确定性断言，异源 LLM 仅附加盲点检测”的约束冲突。
+- 失败尝试 / 被否决方案：
+  - 不修产品判分主链路：本次证据没有会话终态字段证明产品真实倒诬，且两条失败 row 都
+    `surface_stable=true`，其中 run3 明写“不存在倒诬”。
+  - 不加 reason regex：用“为什么里含不存在倒诬”去覆盖 verdict 会把语义问题降级成中文
+    字符串模式，仍让 LLM judge 成为第二 authority。
+  - 不改 scheduled_run/accuracy_gate 退出码：退出码正确反映了 probe 给出的 `reproduced=true`；
+    问题在倒诬 row 的单维裁决 authority。
+- 成功修法：
+  - `scripts/quality_gate/probes/dim_sev_regression.py` 对齐 `dim_daowu`：新增
+    `represented_new_order = len(o1) == 4 and len(o2) == 4 and o2 != o1`，只有
+    `represented_new_order and judge.verdict == "DAOWU"` 才 `pass=False`。
+  - `surface_stable` 场景即使 judge 假阳 `DAOWU` 也不阻断；真实 surface 分叉且 judge
+    确认仍然阻断。
+  - 顶部注释去掉“口径一字不改”，明确这是对齐 `dim_daowu` 的确定性主裁纪律。
+- 验证：
+  - RED：`tests/scripts/test_quality_gate_sev_regression.py` 新增
+    `test_daowu_surface_stable_is_deterministic_pass_even_if_judge_false_positive`
+    先失败，当前实现把 surface-stable + judge false-positive 计为 `pass=False`。
+  - GREEN：同文件两测 `2 passed in 0.07s`，覆盖 false-positive 不阻断和真实分叉仍阻断。
+  - 相关回归：`pytest tests/scripts/test_quality_gate_sev_regression.py
+    tests/services/test_r1_option_surface_grading.py
+    tests/capabilities/test_tutorbot_canonical_represent_short_circuit.py
+    tests/capabilities/test_deep_question_canonical_represent.py -q`
+    结果 `12 passed in 0.92s`。
+- 教训：
+  - Eval gate 的“红灯可信”也要服从单一 authority：LLM judge 可以发现盲点，但不能越权替代
+    可确定观测的主裁事实。
+  - 修 gate 假阳时不能削弱真实红灯；必须同时钉死“无分叉不阻断”和“真分叉仍阻断”两边。
+
+## 2026-07-06 - 启动 orphan recovery 未释放免费试用 reservation，导致“2 次后像满 3 次”
+
+- 问题：
+  - test2 微信真机账号线上配置确认是每天免费 3 条、7 日 12 条、任意连续 3 个自然日每天满 3 条后下一问拦截，但用户第 2 条成功后就感到被拦。
+  - 线上 `member_usage_events` 显示该 wallet 当天存在 2 条 `metered_not_charged` 成功免费 turn，另有 1 条 `free_trial_reserved` 遗留预占；对应 chat turn 在部署/重启时被标记为 `failed / orphaned_on_restart`。
+- 根因：
+  - 最后正确点：startup `recover_all_orphaned_turns("orphaned_on_restart")` 能把进程重启前残留的 running turn 写成 terminal failed。
+  - 第一个错误点：同一 startup recovery 没有把这些重启前遗留的 `free_trial_reserved` 交回 `MemberUsageMeter` 释放；`mobile._build_free_trial_usage_payload()` 在 20 分钟 TTL 内会把 reserved 计入 free-trial 用量。
+  - shared failure shape：terminal truth split。chat turn 已经失败终态，commerce reservation 仍停留在 in-flight 状态，两个 authority 没有在重启恢复路径收敛。
+- 成功修法：
+  - `MemberUsageMeter.release_free_trial_reservations_before()` 成为 startup orphan reservation 释放 authority，只释放 `status=free_trial_reserved`、`metadata.reason=free_trial`、且 `created_at < startup_cutoff` 的记录；已消费、已释放、非 free-trial、启动后的新预占均不动。
+  - `main.lifespan()` 在原有 running turn recovery 后调用 thin wrapper `_release_startup_orphaned_free_trial_reservations()`，补齐重启恢复的 commerce terminal path；释放失败只 warning，不把可恢复额度清理问题升级成启动阻断。
+  - 线上即时修复：定向把遗留 reservation id=485 改为 `free_trial_released`，该账号当天有效计数从 3 降回 2。
+- 验证：
+  - 新增 meter 矩阵测试：只释放 cutoff 前 free-trial reserved，不碰未来 reserved、非 free-trial reserved、consumed。
+  - 新增 startup 测试：`lifespan` 在 `recover_all_orphaned_turns` 后调用 reservation release helper。
+  - 聚焦回归：`tests/services/test_member_usage_meter.py` + startup helper + orphan turn recovery `10 passed`；`tests/api/test_mobile_router.py -k free_trial` `9 passed, 137 deselected`；`tests/api/test_main_entrypoints.py` `33 passed`；`py_compile` 与 `ruff F821/F811` 通过。
+- 教训：
+  - daily limit 设置正确不等于用户体感正确；in-flight reservation 在 TTL 内就是可见用量，所有 terminal failure path 必须同步释放。
+  - 启动恢复也是 terminal path，不能只恢复 chat turn 而漏掉 commerce state。
+
+## 2026-07-05 - 免费试用 reservation 失败占用导致“权益不足”
+
+- 问题：
+  - test2 微信真机用户在 2026-07-05 20:49/21:01 连续提问时，前两轮阿里云百炼返回 `Arrearage / overdue-payment` raw provider error，第三轮成功回答后，下一问弹出“权益不足，请先充值后继续使用”。
+  - 业务事实要求：新注册/免费账号每天可问 3 个问题；7 日累计 12 个或任意连续 3 个自然日每天问满 3 个后，下一问才拦截；免费试用必须绑定 canonical 手机号身份，一个手机号只能绑定一个账号。
+- 根因：
+  - 最后正确点：`/api/v1/chat/start-turn` 在 0 余额且 wallet snapshot 存在时，先写 `MemberUsageMeter` 的 `free_trial_reserved` reservation，防止并发超领。
+  - 第一个错误点：`turn_runtime` 只在成功 completed path 里跳过 wallet capture，没有用统一 terminal truth 把 reservation 终结为“成功消耗”或“失败释放”；`mobile._is_free_trial_usage_event()` 又把 `free_trial_reserved` 当窗口用量。
+  - 进一步断点：`free_trial` / `free_trial_reservation_key` 曾可落到 session preferences，后续 turn 可能不用 fresh start-turn gate 复用旧 marker；重复 `client_turn_id` 的 insert failure 也曾被忽略。
+  - shared failure shape：terminal truth missing / in-flight reservation promoted to consumed usage。provider raw error 泄漏是同一终端事实缺口的可见症状；DeepSeek 官方 fallback 未生效是独立的线上 provider/env release 面，不是微信包上传问题。
+- 失败尝试及原因：
+  - “上传微信开发者工具新版本”被证伪：拦截来自后端 429 commerce gate，不是小程序 UI 旧包。
+  - “只把 provider error 文案净化”不够：即使不再泄漏 raw error，失败 turn 仍会继续消耗免费次数。
+  - “在 mobile start-turn 放宽每日 3 次”不可取：那会绕开并发 reservation authority，让失败和成功混在同一计数里。
+- 成功修法：
+  - `MemberUsageMeter.finalize_free_trial_reservation()` 成为唯一 reservation 状态转换 authority，只允许 `free_trial_reserved + reason=free_trial -> metered_not_charged/free_trial_released`，拒绝已 released、已 consumed、非 free_trial 或重复 client_turn_id 旧行翻写。
+  - `turn_runtime` 增加统一 free-trial terminal finalizer：completed 且可展示答案才消耗；security guardrail、server busy、timeout、cancel、exception、provider/raw error/failure fallback 都释放；finalize 失败显式返回/记录 `free_trial_update_failed`，不假装成功。
+  - `mobile` 先解析/校验 conversation，再做 free-trial reservation；quota check + reservation insert 由 `MemberUsageMeter.record_usage_event_after_check()` 在同一个 SQLite `BEGIN IMMEDIATE` 事务内完成，避免并发请求都读到旧计数后一起放行；`turn_runtime.start_turn` 失败立即释放；`record_usage_event=False` 对 duplicate reservation fail-closed；负余额 / frozen 非零不进入免费试用；超过 TTL 的历史 `free_trial_reserved` 不再永久占用窗口。
+  - `turn_runtime` 不再把 `free_trial` / `free_trial_reservation_key` 持久化到 session preferences，防止后续 turn 通过 preferences fallback 复用旧 reservation marker 跳过钱包扣费。
+  - `AgentLoop` 的 `finish_reason=error` 分支不再把 raw provider content 交给公开输出，而是无条件输出 `模型调用失败，请稍后重试。`；`user_visible_output` 仍保留 Arrearage pattern 作为下游 sink 的 defense-in-depth。
+  - `contracts/turn.md` / `contracts/capability.md` 明确 reservation 生命周期、TTL、conditional finalize 和 `free_trial_update_failed` 只属于 commerce 边界，不得参与 capability / TutorBot / learner-state / grading authority。
+- 验证：
+  - 聚焦回归：`217 passed in 38.52s`，覆盖 mobile free-trial daily/weekly/streak、released/stale reserved ignored、transactional quota-check+reserve、duplicate reservation fail-closed、负余额拒绝、runtime start-turn 失败释放、session preferences 不保存 marker、terminal consume/release/update_failed、member meter conditional finalize、provider error public fallback。
+  - 更早宽 mobile/API 回归：`165 passed in 29.99s`。
+  - 静态：`py_compile` 5 个生产文件通过；窄范围 `ruff --select F821,F811,F401` 通过；`git diff --check` 通过。
+  - 待提交后复跑：`python scripts/check_contract_guard.py --base origin/main --head HEAD`，确认 contract-sensitive 文件已被新增 contract/test surface 覆盖。
+- 残留/边界：
+  - 线上已产生的两条失败 reservation 需要在 `/root/deeptutor/data/user/member_usage_meter.db` 定向改为 `free_trial_released`，否则该用户今天仍会被历史错误占用影响。
+  - DeepSeek 官方 fallback 需要单独确认线上 `.env` / provider factory 配置和发布，不应伪装成本次 reservation 代码修复已经解决。
+- 教训：
+  - 预占状态不是消耗事实；凡是有 reservation，就必须有 terminal finalize/release 的单一 authority。
+  - 公开错误净化和权益计数是两条验证线：不泄漏 raw error 不等于不扣免费次数。
+
 ## 2026-07-05 - 学-evidence「疑似未落账」= review-due learned_count 口径缺口；复习页点亮语义失真 = 绿灯≠点亮
 
 - 问题：

@@ -202,6 +202,109 @@ async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path)
     assert "maximum number of tool call iterations (2)" in (final_content or "")
 
 
+@pytest.mark.asyncio
+async def test_prefetched_rag_satisfied_suppresses_first_loop_rag_but_keeps_web_search(
+    tmp_path,
+) -> None:
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, list[list[str]]] = {"tool_name_sets": []}
+
+    class CapturingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            captured["tool_name_sets"].append(
+                [
+                    str(item.get("function", {}).get("name") or "")
+                    for item in list(tools or [])
+                ]
+            )
+            return LLMResponse(content="基于已召回证据回答。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class DummyTool(Tool):
+        def __init__(self, name: str) -> None:
+            self._name = name
+
+        @property
+        def name(self) -> str:
+            return self._name
+
+        @property
+        def description(self) -> str:
+            return "dummy"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return str(kwargs)
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=CapturingProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(DummyTool("rag"))
+    loop.tools.register(DummyTool("web_search"))
+    metadata = {
+        "default_tools": ["rag", "web_search"],
+        "prefetched_rag_satisfied": True,
+    }
+
+    final_content, tools_used, _messages = await loop._run_agent_loop(
+        [
+            {"role": "user", "content": "案例题采分点怎么答？"},
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {
+                        "id": "prefetch-rag-1",
+                        "type": "function",
+                        "function": {"name": "rag", "arguments": "{}"},
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "tool_call_id": "prefetch-rag-1",
+                "name": "rag",
+                "content": "标准采分点：先编制方案，再审批交底。",
+            },
+        ],
+        runtime_metadata=metadata,
+    )
+
+    assert final_content == "基于已召回证据回答。"
+    assert tools_used == []
+    assert captured["tool_name_sets"] == [["web_search"]]
+    assert metadata["prefetched_rag_suppressed_first_loop"] is True
+
+
 def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> None:
     ctx = AgentLoop._build_v1_case_ctx(_case_md(), "我的作答：共用一个开关箱不妥")
     assert ctx["question_id"] == "CASE-1"

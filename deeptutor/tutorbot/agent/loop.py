@@ -3,19 +3,18 @@
 from __future__ import annotations
 
 import asyncio
-import json
-import os
-import re
-import sys
 from contextlib import AsyncExitStack
 from datetime import datetime
+import json
+import os
 from pathlib import Path
+import re
+import sys
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from loguru import logger
 
-from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.construction_grading.case_output_policy import (
     build_case_grading_diagnostic_only_response,
     case_grading_score_authority_available,
@@ -23,6 +22,7 @@ from deeptutor.services.construction_grading.case_output_policy import (
     should_demote_case_grading_hard_score,
 )
 from deeptutor.services.exam_track import exam_track_label
+from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.query_intent import (
     build_grounding_decision_from_metadata,
     looks_like_construction_exam_knowledge_query,
@@ -44,23 +44,24 @@ from deeptutor.services.rag.historical_questions import (
     project_grounding_text_to_query_surface,
 )
 from deeptutor.services.rag.pipelines.supabase_strategy import prepare_exact_question_probe
+from deeptutor.services.security.tool_access import is_end_user_tool_allowed
 from deeptutor.services.security.tutorbot_guardrails import (
     classify_tutorbot_user_input,
     guard_tutorbot_output,
     sanitize_untrusted_context,
 )
-from deeptutor.services.security.tool_access import filter_end_user_tools, is_end_user_tool_allowed
 from deeptutor.tutorbot.agent.context import ContextBuilder
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator
+from deeptutor.tutorbot.agent.subagent import SubagentManager
 from deeptutor.tutorbot.agent.team import TeamManager
 from deeptutor.tutorbot.agent.team.tools import TeamTool
-from deeptutor.tutorbot.agent.subagent import SubagentManager
 from deeptutor.tutorbot.agent.tools.cron import CronTool
 from deeptutor.tutorbot.agent.tools.message import MessageTool
 from deeptutor.tutorbot.agent.tools.registry import ToolRegistry, build_base_tools
 from deeptutor.tutorbot.agent.tools.spawn import SpawnTool
 from deeptutor.tutorbot.bus.events import InboundMessage, OutboundMessage
 from deeptutor.tutorbot.bus.queue import MessageBus
+from deeptutor.tutorbot.markdown_style import get_markdown_style_instruction
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
@@ -70,15 +71,14 @@ from deeptutor.tutorbot.teaching_modes import (
     build_cross_capability_context_instruction,
     content_truth_guard_response,
     correct_construction_exam_boundary_fact_response,
-    get_construction_exam_boundary_fact_instruction,
     get_anchor_preservation_instruction,
+    get_construction_exam_boundary_fact_instruction,
     get_lecture_skill_instruction,
     get_practice_generation_instruction,
     get_teaching_mode_instruction,
     looks_like_practice_generation_request,
     normalize_anchor_terms_in_response,
 )
-from deeptutor.tutorbot.markdown_style import get_markdown_style_instruction
 
 if TYPE_CHECKING:
     from deeptutor.tutorbot.config.schema import ChannelsConfig, ExecToolConfig, WebSearchConfig
@@ -103,6 +103,7 @@ class AgentLoop:
     _RAG_STOP_QUERY_SIMILARITY_THRESHOLD = 0.85
     _RAG_STOP_SOURCE_OVERLAP_THRESHOLD = 0.6
     _USER_VISIBLE_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
+    _USER_VISIBLE_MODEL_ERROR_MESSAGE = "模型调用失败，请稍后重试。"
     _VISIBLE_ANSWER_REPAIR_PROMPTS = (
         "上一轮模型调用没有返回用户可见正文。请直接用中文给出最终答案，"
         "不要输出思考过程、后台过程或占位说明。",
@@ -1961,6 +1962,11 @@ class AgentLoop:
             filtered.append(item)
         return filtered
 
+    @staticmethod
+    def _prefetched_rag_satisfied(runtime_metadata: dict[str, Any] | None) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        return bool(metadata.get("prefetched_rag_satisfied"))
+
     async def _run_agent_loop(
         self,
         initial_messages: list[dict],
@@ -2022,6 +2028,11 @@ class AgentLoop:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             elif self._should_disable_rag_for_active_question_flow(runtime_metadata):
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+            elif iteration == 1 and self._prefetched_rag_satisfied(runtime_metadata):
+                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+                runtime_metadata["prefetched_rag_suppressed_first_loop"] = True
+                if external_runtime_metadata is not None:
+                    external_runtime_metadata["prefetched_rag_suppressed_first_loop"] = True
             elif rag_saturation:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             advertised_tool_names = {
@@ -2179,7 +2190,7 @@ class AgentLoop:
                 # poison the context and cause permanent 400 loops (#1303).
                 if response.finish_reason == "error":
                     logger.error("LLM returned error: {}", (clean or "")[:200])
-                    final_content = clean or "模型调用失败，请稍后重试。"
+                    final_content = self._USER_VISIBLE_MODEL_ERROR_MESSAGE
                     break
                 if not self._is_user_visible_final_answer(clean):
                     retry_messages = list(messages)
@@ -2210,7 +2221,7 @@ class AgentLoop:
                     clean = self._strip_think(response.content) or "".join(retry_parts).strip() or None
                     if response.finish_reason == "error":
                         logger.error("LLM retry returned error: {}", (clean or "")[:200])
-                        final_content = clean or "模型调用失败，请稍后重试。"
+                        final_content = self._USER_VISIBLE_MODEL_ERROR_MESSAGE
                         break
                     if not self._is_user_visible_final_answer(clean):
                         logger.error("LLM returned no user-visible final answer after retry")
@@ -2720,6 +2731,13 @@ class AgentLoop:
             elif self._prefetched_case_exact_question_can_answer(runtime_metadata):
                 merged_metadata["authority_applied"] = True
 
+        if runtime_metadata is not None and not bool(merged_metadata.get("retrieval_degraded")):
+            sources = merged_metadata.get("sources")
+            has_sources = isinstance(sources, list) and bool(sources)
+            has_exact_question = isinstance(exact_candidate, dict) and bool(exact_candidate)
+            if has_sources or has_exact_question or bool(merged_metadata.get("authority_applied")):
+                runtime_metadata["prefetched_rag_satisfied"] = True
+                merged_metadata["prefetched_rag_satisfied"] = True
         if on_tool_call:
             await on_tool_call("rag", preview_args)
         if on_tool_result:
@@ -2930,7 +2948,7 @@ class AgentLoop:
             clean = self._strip_think(response.content)
             candidate = clean or "".join(streamed_parts).strip()
             if response.finish_reason == "error":
-                final_content = clean or "模型调用失败，请稍后重试。"
+                final_content = self._USER_VISIBLE_MODEL_ERROR_MESSAGE
                 break
             if self._is_user_visible_final_answer(candidate):
                 final_content = candidate

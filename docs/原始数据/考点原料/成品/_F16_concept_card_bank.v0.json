@@ -3,17 +3,23 @@
  "pack_id": "F16",
  "status": "signed",
  "source_pack_sha256": "51b0f455ad205b4ed9965720d9562861a4a2ef7e8e7aa4c690ca69b8d88fff2e",
- "generation_ms": 0.62,
+ "generation_ms": 58.41,
  "gate": {
-  "total": 2,
-  "passed": 2,
+  "total": 1,
+  "passed": 1,
   "pass_rate": 1.0,
   "quote_mismatches": [],
   "duplicate_cards": [],
-  "forbidden_words": []
+  "forbidden_words": [],
+  "intent_misses": [],
+  "gist_num_orphans": []
  },
- "card_count": 2,
+ "card_count": 1,
  "dropped_rows": [
+  {
+   "row": "起鼓割补·按直径分档",
+   "reason": "quote_unalignable"
+  },
   {
    "row": "起鼓割补·完整工序",
    "reason": "no_verbatim_quote"
@@ -41,35 +47,23 @@
  ],
  "cards": [
   {
-   "card_id": "F16:kc:1A434000_076_0119:0",
-   "front": "起鼓割补·按直径分档",
-   "key_gist": "<100mm抽气灌胶法；≥100mm斜十字形割开、清理、吹干、重贴(新贴方形卷材)",
-   "quote": "直径小于100mm用抽气灌胶法；大于等于100mm需割开、清理、吹干、重贴。",
-   "point_id": "kc:1A434000_076_0119:0",
-   "source_ref": {
-    "chunk_id": "1A434000_076_0119",
-    "page_num": 76,
-    "source_lane": "textbook"
-   },
-   "leaf_name_path": "施工质量管理 > 屋面卷材起鼓"
-  },
-  {
    "card_id": "F16:kc:1A434000_068_0104:0",
    "front": "屋面施工过程检查/检验闭环",
    "key_gist": "检查 基层状况/铺贴方向/搭接长度/泛水高度/排气孔/保护层/材料相容性/基层平整干燥/防潮防火",
-   "quote": "施工过程需检查：基层状况、铺贴方向、搭接长度、泛水高度、排气孔、保护层、材料相容性、基层平整干燥、防潮防火措施。",
+   "quote": "（1）检查包括基层状况、卷材铺贴的方向及顺序、附加层、搭接长度及搭接缝位置、泛水的高度、女儿墙压顶的坡向及坡度、细部构造处理、排气孔设置、防水保护层、缺陷情况、隐蔽工程验收记录等是否符合设计和规范要求。 （2）屋面工程使用的材料应符合国家现行有关标准对材料有害物质限量的规定，不得对周围环境造成污染。 （3）各构造层的组成材料，应分别与相邻层次的材料相容。 （4）防水层、铺设保温层的基层应平整、干燥和干净，防水层的基层还应有坚实性要求。 （5）保温材料在施工过程中应采取防潮、防水和防火等措施。",
    "point_id": "kc:1A434000_068_0104:0",
    "source_ref": {
     "chunk_id": "1A434000_068_0104",
     "page_num": 68,
-    "source_lane": "textbook"
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
    },
    "leaf_name_path": "施工质量管理 > 屋面工程施工过程检查与检验"
   }
  ],
  "signoff": {
-  "who": "主控代owner执行",
-  "when": "2026-07-05T18:17:03+08:00",
-  "basis": "gate 100% + sha 三方锚定当前pack + 集成包244测试绿(owner拍板A=诚实薄上线含34卡签发)"
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T01:20:58+08:00",
+  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
  }
 }

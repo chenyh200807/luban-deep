@@ -40,6 +40,11 @@
         "pages/luban/station/station",
         "pages/luban/handoff/handoff",
         "pages/luban/retest/retest",
+        "pages/luban/review/review",
+        "pages/luban/concept-cards/concept-cards",
+        "pages/luban/errorbank/errorbank",
+        "pages/luban/gauntlet/gauntlet",
+        "pages/luban/seethrough/seethrough",
         "pages/internal/diagramWebviewTest/diagramWebviewTest",
         "pages/first-run/first-run"
       ]

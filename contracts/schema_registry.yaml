@@ -98,6 +98,42 @@ content_asset_contracts:
     official_score_allowed: false
     runtime_canonical: false
     grading_authority: false
+  - name: luban_concept_card_bank.v0
+    owner: luban_lesson
+    contract_for: >-
+      review-module concept-card bank (双轮 §6.2 30秒再认卡) — deterministic
+      compile-time projection of a signed pack's §1 knowledge panorama joined to
+      compiled_source verbatim quotes (point_id provenance; no-quote rows
+      fail-closed). Persisted as
+      docs/原始数据/考点原料/成品/_{pack_id}_concept_card_bank.v0.json. Follows the
+      variant-bank precedent — dash-namespaced schema_version literal
+      ("luban-concept-card-bank", deliberately outside the grading closure) and the
+      same candidate→signed human promotion gate
+      (promote_variant_bank.py --kind concept_cards).
+    validation_gate: scripts/build_luban_concept_card_bank.py --check (rerun derive + quote-verbatim/dedupe/forbidden-word gate, zero-write)
+    consumed_by: deeptutor/services/luban_lesson/concept_cards.py (read-only projection behind the signed+sha double fail-closed loader; flag-gated review read model — never grading / learner-brain input)
+    official_score_allowed: false
+    runtime_canonical: false
+    grading_authority: false
+  - name: luban_f16_seethrough_bank.v0
+    owner: luban_lesson
+    contract_for: >-
+      F16 看穿(seethrough)5天留存内容 bank(深母题 schema v2 的量产薄切片) —
+      deterministic compile-time structuring of a verbatim-transcribed storyboard
+      source (_F16_seethrough_source.json); 4选1诊断表皮试探 + 透视揭底4段(表皮→
+      不变量→出题人意图→你的误解) + 暖纠正 + 定位证据(带诚实延伸标注 is_extension/
+      true_source_pack)。Persisted as
+      docs/原始数据/考点原料/成品/_{pack_id}_seethrough_bank.v0.json. Follows the
+      concept-card precedent — dash-namespaced schema_version literal
+      ("luban-f16-seethrough-bank.v0", deliberately outside the grading closure)
+      and the same candidate→signed human promotion gate
+      (promote_variant_bank.py --kind seethrough). 投影不生成 / 错因∈E系(不新建) /
+      掌握前端不自算 / Day4 半写为已签发 Q18 P10/P11 采分点文本自我核对(诚实标注非官方)。
+    validation_gate: scripts/build_luban_seethrough_bank.py --check (rerun derive + 溯源/错因E系/无审视硬词/诚实延伸标注 gate, zero-write)
+    consumed_by: deeptutor/services/luban_lesson/seethrough.py (read-only projection behind the signed+sha double fail-closed loader; flag-gated review read model — never grading / learner-brain input)
+    official_score_allowed: false
+    runtime_canonical: false
+    grading_authority: false
 
 # ── Tier3 carve-out: ephemeral one-shot artifacts (rule, NOT 1:1 registration) ─
 #

@@ -1,0 +1,438 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
+/* 实务闯关 · 第10轮宣纸补稿(practice-gauntlet.html)
+ * token 全走 paper-ink.wxss --pk-*(单一 token 权威)。 */
+
+.gt-page {
+  min-height: 100vh;
+  font-family: -apple-system, "PingFang SC", sans-serif;
+  color: var(--pk-t1);
+}
+
+/* ── 导航(二级页无 tab 壳) ── */
+.gt-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--pk-card);
+  border-bottom: 1rpx solid var(--pk-bd);
+}
+.gt-nav-inner {
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 0 26rpx;
+}
+.gt-back {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: rgba(38, 36, 31, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.paper:not(.light) .gt-back { background: rgba(240, 237, 225, 0.08); }
+.gt-back-arrow { font-size: 38rpx; line-height: 1; color: var(--pk-t1); }
+.gt-nav-titles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+.gt-nav-title { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); }
+.gt-nav-sub {
+  font-size: 22rpx;
+  color: var(--pk-t3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gt-draftnote { flex-shrink: 0; font-size: 22rpx; color: var(--pk-t3); }
+.gt-draftnote.saved { color: var(--pk-grn); font-weight: 700; }
+
+/* ── 滚动 ── */
+.gt-scroll { position: fixed; left: 0; right: 0; bottom: 0; }
+.gt-inner {
+  min-height: 100%;
+  padding: 22rpx 26rpx;
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  box-sizing: border-box;
+}
+.gt-spacer { flex: 1; min-height: 18rpx; }
+
+/* ── 三步 stepper ── */
+.gt-stepper {
+  display: flex;
+  align-items: center;
+  gap: 11rpx;
+  padding: 4rpx 6rpx;
+}
+.gt-step { display: flex; align-items: center; gap: 11rpx; }
+.gt-step-dot {
+  width: 41rpx;
+  height: 41rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--pk-bd);
+  background: var(--pk-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gt-step-dot text { font-size: 22rpx; font-weight: 800; color: var(--pk-t3); }
+.gt-step-nm { font-size: 22rpx; font-weight: 700; color: var(--pk-t3); }
+.gt-step.active .gt-step-dot {
+  background: var(--pk-t1);
+  border-color: var(--pk-t1);
+}
+.gt-step.active .gt-step-dot text { color: var(--pk-paper); }
+.gt-step.active .gt-step-nm { color: var(--pk-t1); font-weight: 800; }
+.gt-step.done .gt-step-dot {
+  background: rgba(72, 128, 106, 0.1);
+  border-color: var(--pk-grn);
+}
+.gt-step.done .gt-step-dot text { color: var(--pk-grn); }
+.gt-step.done .gt-step-nm { color: var(--pk-grn); }
+.gt-steplink { flex: 1; height: 3rpx; background: var(--pk-bd); min-width: 26rpx; }
+.gt-steplink.done { background: var(--pk-grn); }
+
+/* ── 错误 / 加载 / 空供给 ── */
+.gt-error {
+  border-radius: 22rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
+  padding: 26rpx 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  font-size: 26rpx;
+  color: var(--pk-warn);
+}
+.gt-retry {
+  flex-shrink: 0;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--pk-bd);
+  color: var(--pk-t1);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+.gt-loading {
+  padding: 48rpx 24rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--pk-t3);
+}
+.gt-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  padding: 44rpx 34rpx;
+  text-align: center;
+  align-items: center;
+}
+.gt-empty-title { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); }
+.gt-empty-desc { font-size: 24rpx; line-height: 1.7; color: var(--pk-t2); }
+
+/* ── 卡通用 ── */
+.gt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  padding: 30rpx;
+}
+.gt-card.slim { padding: 18rpx 30rpx; }
+.gt-card.list { padding: 0; overflow: hidden; gap: 0; }
+.gt-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.gt-card-head.pad { padding: 24rpx 30rpx 16rpx; }
+.gt-card-head-left { display: flex; align-items: center; gap: 15rpx; }
+.gt-card-hint { font-size: 22rpx; color: var(--pk-t3); }
+.gt-kicker {
+  font-size: 24rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--pk-t2);
+}
+.gt-kicker.muted { color: var(--pk-t3); }
+.gt-kicker.grn { color: var(--pk-grn); }
+
+.gt-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 15rpx;
+  border-radius: 11rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.gt-chip.och { background: rgba(194, 101, 85, 0.12); color: var(--pk-warn); }
+.gt-chip.grn { background: rgba(72, 128, 106, 0.1); color: var(--pk-grn); }
+.gt-chip.line {
+  background: transparent;
+  border: 1rpx solid var(--pk-bd);
+  color: var(--pk-t3);
+  font-weight: 700;
+}
+.gt-chip.line.disabled { opacity: 0.6; }
+
+/* ── ① 回忆 ── */
+.gt-quote {
+  display: flex;
+  gap: 12rpx;
+  border-left: 6rpx solid var(--pk-bd);
+  padding: 4rpx 0 4rpx 22rpx;
+}
+.gt-quote-index { font-size: 24rpx; font-weight: 800; color: var(--pk-t3); flex-shrink: 0; }
+.gt-quote-text { font-size: 24rpx; line-height: 1.8; color: var(--pk-t2); }
+.gt-divider { height: 1rpx; background: var(--pk-bd); margin: 0 -30rpx; }
+.gt-ask {
+  font-size: 28rpx;
+  font-weight: 800;
+  line-height: 1.6;
+  color: var(--pk-t1);
+}
+.gt-iconbox {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 15rpx;
+  background: rgba(38, 36, 31, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.paper:not(.light) .gt-iconbox { background: rgba(240, 237, 225, 0.08); }
+.gt-iconbox text { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); }
+.gt-guide { font-size: 24rpx; line-height: 1.8; color: var(--pk-t2); }
+.gt-guide-sub { font-size: 22rpx; color: var(--pk-t3); }
+
+/* ── ② 半写 ── */
+.gt-collapsed {
+  font-size: 22rpx;
+  color: var(--pk-t3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gt-writearea {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 22rpx;
+  border: 3rpx dashed var(--pk-bd);
+  background: rgba(38, 36, 31, 0.06);
+  min-height: 200rpx;
+  padding: 20rpx 22rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: var(--pk-t1);
+}
+.paper:not(.light) .gt-writearea { background: rgba(240, 237, 225, 0.08); }
+.gt-write-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.gt-write-note { font-size: 22rpx; color: var(--pk-t3); }
+.gt-degrade-note {
+  font-size: 22rpx;
+  color: var(--pk-t3);
+  text-align: center;
+}
+
+/* ── 档位③ 全量作答(判分内核 verdict) ── */
+.gt-card.fa { gap: 18rpx; }
+.gt-fa-wait { font-size: 24rpx; color: var(--pk-t2); line-height: 1.7; }
+.gt-fa-note { font-size: 24rpx; color: var(--pk-t2); line-height: 1.7; }
+.gt-fa-scoreline { display: flex; align-items: baseline; gap: 12rpx; }
+.gt-fa-score { font-size: 40rpx; font-weight: 800; color: var(--pk-t1); line-height: 1; }
+.gt-fa-score-label { font-size: 22rpx; color: var(--pk-t3); }
+.gt-fa-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
+  padding: 14rpx 0;
+  border-top: 1rpx solid var(--pk-bd);
+}
+.gt-fa-criterion { flex: 1; font-size: 24rpx; line-height: 1.7; color: var(--pk-t1); }
+.gt-fa-cap {
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: var(--pk-t3);
+  padding: 14rpx 18rpx;
+  border-radius: 16rpx;
+  background: rgba(38, 36, 31, 0.06);
+}
+.paper:not(.light) .gt-fa-cap { background: rgba(240, 237, 225, 0.08); }
+.gt-fa-cap.stable { color: var(--pk-grn); }
+.gt-fa-mistake { font-size: 22rpx; line-height: 1.6; color: var(--pk-warn); }
+
+/* ── ③ 核对 ── */
+.gt-card.hero { flex-direction: row; align-items: center; gap: 26rpx; }
+.gt-gauge {
+  width: 116rpx;
+  height: 116rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gt-gauge-core {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: var(--pk-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.gt-gauge-num { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); line-height: 1; }
+.gt-gauge-label { font-size: 22rpx; color: var(--pk-t3); margin-top: 4rpx; }
+.gt-hero-body { flex: 1; display: flex; flex-direction: column; gap: 6rpx; }
+.gt-hero-title { font-size: 32rpx; font-weight: 800; color: var(--pk-t1); }
+.gt-hero-desc { font-size: 24rpx; line-height: 1.6; color: var(--pk-t2); }
+
+.gt-draft-box {
+  border-radius: 22rpx;
+  background: rgba(38, 36, 31, 0.06);
+  padding: 18rpx 22rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: var(--pk-t2);
+}
+.paper:not(.light) .gt-draft-box { background: rgba(240, 237, 225, 0.08); }
+
+.gt-check-row {
+  padding: 24rpx 30rpx;
+  border-top: 1rpx solid var(--pk-bd);
+}
+.gt-check-row.missed { background: rgba(194, 101, 85, 0.12); }
+.gt-check-body { display: flex; flex-direction: column; gap: 14rpx; }
+.gt-check-surface {
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: var(--pk-t1);
+}
+.gt-choices { display: flex; gap: 16rpx; }
+.gt-choice {
+  flex: 1;
+  min-height: 74rpx;
+  border-radius: 18rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gt-choice text { font-size: 24rpx; font-weight: 700; color: var(--pk-t1); }
+.gt-choice.warn { border-color: rgba(194, 101, 85, 0.4); }
+.gt-choice.warn text { color: var(--pk-warn); }
+.gt-verdict-line { display: flex; align-items: center; gap: 14rpx; flex-wrap: wrap; }
+.gt-verdict-text { font-size: 24rpx; color: var(--pk-t2); }
+.gt-correct-statement {
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: var(--pk-t1);
+  font-weight: 700;
+}
+.gt-anchor { font-size: 22rpx; color: var(--pk-t3); }
+
+/* ── 明天的约定 ── */
+.gt-card.pact { flex-direction: row; align-items: center; gap: 22rpx; }
+.gt-pact-stamp {
+  width: 74rpx;
+  height: 74rpx;
+  border-radius: 18rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transform: rotate(-4deg);
+}
+.gt-pact-stamp text { font-size: 34rpx; font-weight: 800; color: var(--pk-grn); }
+.gt-pact-body { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
+.gt-pact-desc { font-size: 24rpx; line-height: 1.6; color: var(--pk-t2); }
+
+/* ── 按钮 ── */
+.gt-btn {
+  min-height: 86rpx;
+  border-radius: 22rpx;
+  background: var(--pk-ink-btn);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx var(--pk-shadow);
+}
+.gt-btn text {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: var(--pk-ink-btn-t);
+  letter-spacing: 2rpx;
+}
+.gt-ghost {
+  min-height: 78rpx;
+  border-radius: 22rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gt-ghost text { font-size: 24rpx; font-weight: 700; color: var(--pk-t2); }
+
+/* ── 退出挽留 sheet ── */
+.gt-sheetmask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(28, 26, 21, 0.45);
+  display: flex;
+  align-items: flex-end;
+  z-index: 30;
+}
+.gt-sheet {
+  width: 100%;
+  background: var(--pk-card);
+  border-radius: 41rpx 41rpx 0 0;
+  padding: 41rpx 34rpx;
+  padding-bottom: calc(52rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+  box-sizing: border-box;
+}
+.gt-sheet-title { font-size: 32rpx; font-weight: 800; color: var(--pk-t1); }
+.gt-sheet-desc { font-size: 24rpx; line-height: 1.7; color: var(--pk-t2); }
+
+/* ── ②半写 · R6 精确挖空(签发骨架句 + 对照提示自查) ── */
+.gt-cloze-prompt { display: block; font-size: 24rpx; color: var(--pk-t2); margin: 6rpx 0 14rpx; }
+.gt-cloze-row { margin-bottom: 18rpx; }
+.gt-cloze-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6rpx; }
+.gt-cloze-txt { font-size: 26rpx; color: var(--pk-t1); line-height: 1.7; }
+.gt-cloze-input { min-width: 180rpx; max-width: 340rpx; height: 56rpx; padding: 0 16rpx; font-size: 25rpx; border: 2rpx dashed var(--pk-line, #d8d0bf); border-radius: 10rpx; background: transparent; }
+.gt-cloze-input.hit { border-color: var(--pk-grn); border-style: solid; }
+.gt-cloze-input.miss { border-color: var(--pk-warm, #b07a1a); border-style: solid; }
+.gt-cloze-hint { display: block; font-size: 22rpx; margin-top: 6rpx; }
+.gt-cloze-hint.hit { color: var(--pk-grn); }
+.gt-cloze-hint.miss { color: var(--pk-warm, #b07a1a); }
+.gt-cloze-check { margin: 8rpx 0 10rpx; text-align: center; }

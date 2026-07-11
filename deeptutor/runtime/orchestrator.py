@@ -48,6 +48,7 @@ from deeptutor.services.semantic_router import (
     build_turn_semantic_decision,
     is_unresolved_switch_followup,
     normalize_active_object,
+    normalize_turn_semantic_decision,
     question_context_from_active_object,
     resolve_question_semantic_routing,
     turn_semantic_decision_route,
@@ -338,7 +339,10 @@ class ChatOrchestrator:
                         turn_decision,
                         routing_user_message=routing_user_message,
                     )
-            self._prepare_practice_request_context(context, routing_user_message)
+            self._prepare_practice_request_context(
+                context,
+                self._practice_generation_message(context, routing_user_message),
+            )
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
                 f"{lifecycle_decision.source}_practice_generation"
@@ -842,6 +846,20 @@ class ChatOrchestrator:
         context: UnifiedContext,
         message: str,
     ) -> dict[str, Any] | None:
+        existing_decision = normalize_turn_semantic_decision(
+            context.metadata.get("turn_semantic_decision"),
+            active_object=normalize_active_object(context.metadata.get("active_object")),
+        )
+        existing_next_action = str((existing_decision or {}).get("next_action") or "").strip()
+        if existing_next_action in {
+            "route_to_generation",
+            "route_to_grading",
+            "route_to_followup_explainer",
+            "ask_clarifying_question",
+        }:
+            context.metadata["turn_semantic_decision"] = existing_decision
+            return existing_decision
+
         routing = await self._resolve_semantic_routing(context, message, metadata=context.metadata)
         if routing.active_object is not None:
             context.metadata["active_object"] = routing.active_object
@@ -1090,21 +1108,25 @@ class ChatOrchestrator:
         practice_active_object = normalize_active_object(
             context.metadata.get("active_object")
         )
-        context.metadata.setdefault(
-            "turn_semantic_decision",
-            build_turn_semantic_decision(
-                relation_to_active_object=(
-                    "continue_same_learning_flow"
-                    if practice_active_object
-                    else "switch_to_new_object"
+        if not context.metadata.get("turn_semantic_decision"):
+            context.metadata.setdefault(
+                "turn_semantic_decision",
+                build_turn_semantic_decision(
+                    relation_to_active_object=(
+                        "continue_same_learning_flow"
+                        if practice_active_object
+                        else "switch_to_new_object"
+                    ),
+                    next_action="route_to_generation",
+                    allowed_patch="set_active_object",
+                    confidence=1.0,
+                    reason="practice generation result",
+                    active_object=practice_active_object,
                 ),
-                next_action="route_to_generation",
-                allowed_patch="set_active_object",
-                confidence=1.0,
-                reason="practice generation result",
-                active_object=practice_active_object,
-            ),
-        )
+            )
+            context.metadata["turn_semantic_decision_writer_chain"] = [
+                "orchestrator_practice_context"
+            ]
         skill_names = list(select_question_lifecycle_skill_names("practice_generation"))
         context.metadata["question_lifecycle_skill_names"] = skill_names
         interaction_hints = (

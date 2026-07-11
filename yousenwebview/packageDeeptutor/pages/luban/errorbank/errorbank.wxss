@@ -1,0 +1,408 @@
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
+/* 错因银行 · 第10轮宣纸补稿(errorbank-detail.html)
+ * token 全走 paper-ink.wxss --pk-*(单一 token 权威, 不引第二套词汇)。
+ * 设计稿 px → rpx ≈ ×1.866, 与 review 页同一换算惯例。 */
+
+.eb-page {
+  min-height: 100vh;
+  font-family: -apple-system, "PingFang SC", sans-serif;
+  color: var(--pk-t1);
+}
+
+/* ── 导航(二级页无 tab 壳, 与 review 同构返回头) ── */
+.eb-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--pk-card);
+  border-bottom: 1rpx solid var(--pk-bd);
+}
+.eb-nav-inner {
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.eb-back {
+  position: absolute;
+  left: 26rpx;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  color: var(--pk-t2);
+  padding: 10rpx 8rpx;
+}
+.eb-back-arrow { font-size: 40rpx; line-height: 1; }
+.eb-back-text { font-size: 26rpx; }
+.eb-nav-titles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rpx;
+}
+.eb-nav-title { font-size: 30rpx; font-weight: 800; color: var(--pk-t1); }
+.eb-nav-sub { font-size: 22rpx; color: var(--pk-t3); }
+
+/* ── 滚动 ── */
+.eb-scroll { position: fixed; left: 0; right: 0; bottom: 0; }
+.eb-inner {
+  padding: 24rpx 26rpx;
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  box-sizing: border-box;
+}
+
+/* ── 错误 / 加载 ── */
+.eb-error {
+  border-radius: 22rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
+  padding: 26rpx 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  font-size: 26rpx;
+  color: var(--pk-warn);
+}
+.eb-retry {
+  flex-shrink: 0;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--pk-bd);
+  color: var(--pk-t1);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+.eb-loading {
+  padding: 48rpx 24rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--pk-t3);
+}
+
+/* ── 销账竹青章仪式条 ── */
+.eb-just-settled {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  border-radius: 30rpx;
+  border: 1.5rpx solid var(--pk-grn);
+  background: rgba(72, 128, 106, 0.1);
+  padding: 24rpx 28rpx;
+}
+.eb-just-settled-body { display: flex; flex-direction: column; gap: 4rpx; }
+.eb-just-settled-title { font-size: 28rpx; font-weight: 800; color: var(--pk-grn); }
+.eb-just-settled-desc { font-size: 24rpx; color: var(--pk-t2); line-height: 1.6; }
+
+/* ── 竹青「销」章 ── */
+.eb-seal {
+  width: 74rpx;
+  height: 74rpx;
+  border-radius: 18rpx;
+  border: 3rpx solid var(--pk-grn);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--pk-grn);
+  font-size: 34rpx;
+  font-weight: 800;
+  transform: rotate(-4deg);
+}
+
+/* ── 账本 hero ── */
+.eb-hero {
+  display: flex;
+  align-items: center;
+  gap: 26rpx;
+  padding: 30rpx 30rpx;
+}
+.eb-gauge {
+  width: 116rpx;
+  height: 116rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.eb-gauge-core {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: var(--pk-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.eb-gauge-num { font-size: 36rpx; font-weight: 800; color: var(--pk-t1); line-height: 1; }
+.eb-gauge-label { font-size: 22rpx; color: var(--pk-t3); margin-top: 4rpx; }
+.eb-hero-body { flex: 1; display: flex; flex-direction: column; gap: 6rpx; }
+.eb-hero-title { font-size: 32rpx; font-weight: 800; color: var(--pk-t1); }
+.eb-hero-desc { font-size: 24rpx; line-height: 1.6; color: var(--pk-t2); }
+
+/* ── 清单卡 ── */
+.eb-list { padding: 0; overflow: hidden; }
+.eb-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 30rpx 16rpx;
+}
+.eb-list-title {
+  font-size: 24rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--pk-t2);
+}
+.eb-list-title.muted { color: var(--pk-t3); }
+.eb-list-hint { font-size: 22rpx; color: var(--pk-t3); }
+
+.eb-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 30rpx;
+  border-top: 1rpx solid var(--pk-bd);
+}
+.eb-row-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 15rpx;
+  background: rgba(194, 101, 85, 0.12);
+  flex-shrink: 0;
+}
+.eb-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+.eb-row-title-line {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+.eb-row-title { font-size: 28rpx; font-weight: 700; color: var(--pk-t1); }
+.eb-row-title.settled {
+  color: var(--pk-t3);
+  text-decoration: line-through;
+}
+.eb-row-sub { font-size: 24rpx; color: var(--pk-t3); }
+.eb-row-warm { font-size: 24rpx; color: var(--pk-t2); }
+.eb-row-settled-line { font-size: 24rpx; color: var(--pk-grn); font-weight: 700; }
+.eb-row-arrow { font-size: 30rpx; color: var(--pk-t3); flex-shrink: 0; }
+
+.eb-list-expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 30rpx;
+  border-top: 1rpx solid var(--pk-bd);
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--pk-t2);
+}
+
+.eb-foot-note {
+  font-size: 24rpx;
+  color: var(--pk-t3);
+  text-align: center;
+  padding: 4rpx 24rpx 28rpx;
+}
+
+/* ── 空态 ── */
+.eb-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22rpx;
+  padding: 70rpx 44rpx 56rpx;
+  text-align: center;
+}
+.eb-empty-ring {
+  width: 138rpx;
+  height: 138rpx;
+  border-radius: 50%;
+  border: 11rpx solid var(--pk-grn);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.eb-empty-check { font-size: 56rpx; font-weight: 800; color: var(--pk-grn); }
+.eb-empty-title { font-size: 34rpx; font-weight: 800; color: var(--pk-t1); }
+.eb-empty-desc {
+  font-size: 24rpx;
+  line-height: 1.8;
+  color: var(--pk-t2);
+  max-width: 520rpx;
+}
+
+/* ── chips ── */
+.eb-chip-line {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  flex-wrap: wrap;
+}
+.eb-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 15rpx;
+  border-radius: 11rpx;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+.eb-chip.och { background: rgba(194, 101, 85, 0.12); color: var(--pk-warn); }
+.eb-chip.grn { background: rgba(72, 128, 106, 0.1); color: var(--pk-grn); }
+.eb-chip.ink { background: rgba(38, 36, 31, 0.06); color: var(--pk-t2); }
+.paper:not(.light) .eb-chip.ink { background: rgba(240, 237, 225, 0.08); }
+.eb-chip.line {
+  background: transparent;
+  border: 1rpx solid var(--pk-bd);
+  color: var(--pk-t3);
+  font-weight: 700;
+}
+.eb-chip.big { font-size: 26rpx; padding: 8rpx 19rpx; }
+
+/* ── 详情卡通用 ── */
+.eb-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  padding: 30rpx;
+}
+.eb-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.eb-card-head-hint { font-size: 22rpx; color: var(--pk-t3); }
+.eb-kicker {
+  font-size: 24rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--pk-t2);
+}
+.eb-kicker.muted { color: var(--pk-t3); }
+.eb-kicker.grn { color: var(--pk-grn); }
+.eb-detail-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+  line-height: 1.4;
+}
+.eb-warm-line {
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: var(--pk-t2);
+}
+.eb-textlink {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-t1);
+  text-decoration: underline;
+}
+.eb-quote {
+  border-left: 6rpx solid var(--pk-bd);
+  padding: 4rpx 0 4rpx 22rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: var(--pk-t2);
+}
+.eb-divider { height: 1rpx; background: var(--pk-bd); margin: 0 -30rpx; }
+.eb-note-box {
+  border-radius: 22rpx;
+  background: rgba(38, 36, 31, 0.06);
+  padding: 18rpx 22rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: var(--pk-t2);
+}
+.paper:not(.light) .eb-note-box { background: rgba(240, 237, 225, 0.08); }
+
+/* ── R8 解药(绿边强调卡) ── */
+.eb-card.antidote { border-color: var(--pk-grn); }
+.eb-antidote-head { display: flex; align-items: center; gap: 15rpx; }
+.eb-iconbox {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 15rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.eb-iconbox.grn {
+  background: rgba(72, 128, 106, 0.1);
+  color: var(--pk-grn);
+  font-size: 34rpx;
+  font-weight: 800;
+}
+.eb-antidote-text {
+  font-size: 24rpx;
+  line-height: 1.8;
+  color: var(--pk-t1);
+}
+.eb-antidote-pending-title { font-size: 28rpx; font-weight: 800; color: var(--pk-t1); }
+.eb-antidote-pending-desc {
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: var(--pk-t2);
+}
+
+/* ── 销账动线 ── */
+.eb-flow-line {
+  display: flex;
+  align-items: center;
+  gap: 11rpx;
+  flex-wrap: wrap;
+}
+.eb-flow-arrow { font-size: 24rpx; color: var(--pk-t3); }
+.eb-btn {
+  min-height: 86rpx;
+  border-radius: 22rpx;
+  background: var(--pk-ink-btn);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx var(--pk-shadow);
+  align-self: stretch;
+}
+.eb-btn text {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: var(--pk-ink-btn-t);
+  letter-spacing: 2rpx;
+}
+.eb-ghost {
+  min-height: 78rpx;
+  border-radius: 22rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: var(--pk-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+}
+.eb-ghost text { font-size: 24rpx; font-weight: 700; color: var(--pk-t2); }
+.eb-cta-note {
+  font-size: 22rpx;
+  color: var(--pk-t3);
+  text-align: center;
+}
+
+/* 记账未开通空态: 环降饱和(区别于全还清的竹青庆祝环) */
+.eb-empty-ring.dim { border-color: var(--pk-t3); opacity: .7; }
+.eb-empty-ring.dim .eb-empty-check { color: var(--pk-t3); }

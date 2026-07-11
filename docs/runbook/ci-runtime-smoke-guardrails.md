@@ -36,6 +36,15 @@ full validation:
 - Repeated pushes to the same PR cancel older in-flight `Tests` runs. Debug the
   newest run for the current head SHA, not a cancelled older SHA.
 
+### Required checks absent for `domains/` changes
+
+If a PR changes only `domains/**` and branch protection reports missing
+`Contract Guard` / `Test Summary` contexts, first inspect the `Tests` workflow
+path filter and `scripts/ci/tests_workflow_scope.py`. Both surfaces must include
+`domains/`: the workflow filter starts the run, and the classifier selects the
+governance job that produces the required contract-guard context. Do not bypass
+branch protection or add an unrelated file merely to manufacture the checks.
+
 ## Deploy Gate Stale Workflow Runs
 
 `Deploy Gate` is triggered by `workflow_run` after a `Tests` run completes. When
@@ -152,6 +161,17 @@ python scripts/ci/tests_workflow_scope.py scan-secrets-full
 ```
 
 Record both the original timeout and the filtered-file count/time in the PR.
+
+### Full-Shard Async Scheduler Timeout
+
+If an async test passes repeatedly in isolation but the same short
+`asyncio.wait_for(...)` deadline fails at least twice in the full CI shard,
+classify the signature as test scheduling sensitivity before changing product
+code. Preserve the behavioral guard (for example, keep the background task
+blocked on an unreleased event), but give the event loop enough bounded time to
+schedule the foreground assertion under shard load. Re-run the targeted test,
+the owning shard, and the same-SHA workflow; do not use repeated job reruns as
+the fix.
 
 ## Contract Index Copy Discipline
 

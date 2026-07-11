@@ -85,6 +85,12 @@ function loadPage(relativePath, overrides) {
       if (request === "../../utils/helpers") return helpersMock;
       if (request === "../../utils/route") return routeMock;
       if (request === "../../utils/analytics") return analyticsMock;
+      if (request === "../../utils/surface-telemetry")
+        return { trackProductBehavior: function () {} };
+      if (request === "../../utils/flags")
+        return { resolvePostAuthLanding: function (t) { return t; }, shouldLandOnDoubleWheel: function () { return false; } };
+      if (request === "../../utils/first-run-entry")
+        return { reLaunchAfterAuth: function (target) { sandbox.wx.reLaunch({ url: target }); } };
       throw new Error("unexpected require: " + request);
     },
     wx: {

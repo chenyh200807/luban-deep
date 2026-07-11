@@ -1,21 +1,22 @@
 from __future__ import annotations
 
+from datetime import datetime
 import json
+from pathlib import Path
 import sqlite3
 import time
-from datetime import datetime
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from jsonschema import validate
 
 from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
-from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
 from deeptutor.services.observability.oa_runner import build_oa_run
+from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
 from deeptutor.services.observability.product_behavior_store import SQLiteProductBehaviorStore
-from deeptutor.services.observability.turn_event_log import TurnEventLog
-from deeptutor.services.observability.turn_event_log import build_turn_observation_event
-
+from deeptutor.services.observability.turn_event_log import (
+    TurnEventLog,
+    build_turn_observation_event,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
@@ -136,10 +137,16 @@ def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path
             token_total=42,
             retrieval_hit=True,
             metadata={
+                "server_turn_start_to_first_useful_content_ms": 350.0,
                 "latency_stages_ms": {
                     "context_build": 100.0,
                     "capability_stream": 800.0,
-                }
+                },
+                "latency_max_stall": {
+                    "scope": "capability_stream",
+                    "stage": "capability_stream",
+                    "duration_ms": 800.0,
+                },
             },
         )
     )
@@ -154,10 +161,17 @@ def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path
             token_total=84,
             retrieval_hit=False,
             metadata={
+                "server_turn_start_to_first_useful_content_ms": 2200.0,
                 "latency_stages_ms": {
                     "context_build": 300.0,
                     "capability_stream": 2400.0,
-                }
+                },
+                "selected_mode": "deep",
+                "latency_max_stall": {
+                    "scope": "capability_stream",
+                    "stage": "capability_stream",
+                    "duration_ms": 2400.0,
+                },
             },
         )
     )
@@ -179,6 +193,19 @@ def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path
     assert payload["turn_events"]["latency_stage_avg_ms"] == {
         "capability_stream": 1600.0,
         "context_build": 200.0,
+    }
+    assert payload["turn_events"]["slow_turn_samples"][0] == {
+        "turn_id": "turn-2",
+        "status": "failed",
+        "capability": "deep_question",
+        "latency_ms": 3000.0,
+        "server_turn_start_to_first_useful_content_ms": 2200.0,
+        "selected_mode": "deep",
+        "latency_max_stall": {
+            "scope": "capability_stream",
+            "stage": "capability_stream",
+            "duration_ms": 2400.0,
+        },
     }
     assert payload["turn_events"]["retrieval_hit_ratio"] == 0.5
     assert payload["turn_event_log"]["last_write_error"] == ""

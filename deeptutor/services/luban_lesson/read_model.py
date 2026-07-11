@@ -20,8 +20,10 @@ Thin 投影层（§3 所有权表）：本模块**只读投影、零生成**—�
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -234,7 +236,12 @@ def list_all_pack_ids(*, manifest_path: Path | None = None) -> list[str]:
 
 
 def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, Any]]:
-    """绿灯站点列表投影（地图/路线消费）；只含绿灯包，锁定站的露脸文案归上层。"""
+    """绿灯站点列表投影（地图/路线消费）；只含绿灯包，锁定站的露脸文案归上层。
+
+    ``retest_available`` = signed 变体池真值（复用 ``_variant_summary`` 同一闸，
+    不建第二判定）——供学习页头牌轻练按供给路由/降级：承诺宽度收窄到有货的
+    站，不对空池站渲染练不了的按钮。
+    """
     manifest = _load_manifest(manifest_path)
     green = set(manifest.get("projection_green") or [])
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
@@ -250,6 +257,9 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
                 "content_sha256": content_sha,
                 # 副标题真源：签发考点卡首卡 front（无卡→""，前端 fail-closed 留空）
                 "summary": _concept_summary(pack["pack_id"], manifest_dir, content_sha),
+                "retest_available": _variant_summary(
+                    str(pack["pack_id"]), manifest_dir, content_sha
+                )["available"],
             }
         )
     return sorted(rows, key=lambda r: r["pack_id"])
@@ -301,21 +311,71 @@ def build_lesson_viewmodel(
     }
 
 
+def _forward_rule_group_spread(
+    core: list[dict[str, Any]], seed: int, limit: int
+) -> list[dict[str, Any]]:
+    """正向轻练选序：确定性广度优先 round-robin 覆盖不同 ``rule_group``——
+    对刚学完的 pack 先各考法采样一题、再回填（学习轮"先广后深"）。
+
+    与复测的扁平轮换的唯一差别是**选序**：纯签发池内确定性重排，零生成、
+    零新供给（不派生任何题面字段，§8 红线）。组间顺序与组内起点均由 ``seed``
+    确定性散列派生（多端幂等）；组间按轮次交错；题数 ≤ 核心变体数（耗尽即止）。
+
+    红队修复（2026-07-10 owner 实测抓获"全同答案 session"）：旧实现对**所有组
+    施加同一个** ``(seed + round_idx) % len`` 偏移，而变体池按"每组对齐序"生成
+    （组内第 0 位=完整/正确情形），于是 limit ≤ 组数时 5 题全取自同一"位置列"
+    = 单一 expected_ok（实测 forward 全同率 17.2%，seed 奇偶直接翻全对/全错）。
+    现改为**每组独立散列偏移** + 组序进 seed（第 1 题不再永远同一考法）。
+    """
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for variant in core:
+        groups.setdefault(str(variant.get("rule_group") or ""), []).append(variant)
+
+    def _h(tag: str, key: str) -> int:
+        digest = hashlib.sha256(f"{seed}:{tag}:{key}".encode("utf-8")).hexdigest()
+        return int(digest[:12], 16)
+
+    keys = sorted(groups.keys(), key=lambda k: _h("g", k))  # 组序确定性洗牌
+    interleaved: list[dict[str, Any]] = []
+    round_idx = 0
+    while any(round_idx < len(groups[k]) for k in keys):
+        for k in keys:
+            members = groups[k]
+            if round_idx < len(members):
+                interleaved.append(members[(_h("o", k) + round_idx) % len(members)])
+        round_idx += 1
+    return interleaved[: min(limit, len(core))]
+
+
 def build_retest_items(
     pack_id: str,
     *,
     user_id: str,
     day_index: int,
     limit: int = 5,
+    mode: str = "review",
     manifest_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """次日变体复测题面投影——runtime 只从编译期预生成池**抽取**（§8 红线）。
+    """变体题面投影——runtime 只从编译期预生成池**抽取**（§8 红线）。
 
-    确定性轮换：同一用户同一天取同一切片（多端幂等，§9-D3）；跨天按
-    ``day_index``（服务端本地日，§9-D2）前进，池耗尽自动回绕复用旧变体
-    （产能报告的降级预案①，绝不 runtime 现编）。只发核心变体
-    （extension=false）；judge 所需的期望判定随题下发（判断题二选一，
-    本地确定性判分=档位①，D5 离线可用）。
+    两种取题模式共用**同一签发池、同一 builder**（不分叉第二 builder）：
+    - ``mode="review"``（默认，复习轮换皮复测）：跨天扁平确定性轮换，同一用户
+      同一天取同一切片（多端幂等，§9-D3）；跨天按 ``day_index``（服务端本地日，
+      §9-D2）前进，池耗尽自动回绕复用旧变体（产能降级预案①，绝不 runtime 现编）。
+    - ``mode="forward"``（学习轮 2 分钟轻练，对刚学完的 pack 立即练一遍）：广度
+      优先 round-robin 覆盖不同 ``rule_group``（见 ``_forward_rule_group_spread``）。
+      仅**选序**不同，证据仍走 learner_signal 非 promoting（轻练不关闭弱点，PRD 红线）。
+
+    两模式都只发核心变体（extension=false）；judge 所需期望判定随题下发（判断题
+    二选一，本地确定性判分，D5 离线可用）。对外只投影签发字段
+    {variant_id, rule_group, surface, expected_ok, correct_statement, anchor}——
+    绝不派生 scoring_point 文本 / exam_refs / chapter（变体池无此供给=不臆造）。
+
+    ``textbook``（可选字段）= **同 pack** 签发考点卡 bank 按 ``anchor == point_id``
+    精确 join 出的教材原文并排卡 {quote, label, page_num}。这不是派生/生成——
+    quote 逐字来自已签发考点卡（同一 ``_load_signed_bank`` 双闸），坐标系同为
+    kc: 锚。join 不中 / 卡池未签发 → 字段缺省（fail-closed，前端有原文才亮）。
+    跨包借 quote 红线不适用：只 join 自己 pack 的卡池。
 
     签发闸（双 fail-closed）：只从 ``status=="signed"`` 且 sha 锚定当前 pack
     正文的 bank 抽取——不满足与 bank 缺失同形返回 ``[]``（既有降级）。
@@ -327,15 +387,34 @@ def build_retest_items(
     bank = _load_signed_bank(vm["pack_id"], manifest_dir, vm["content_sha256"])
     if bank is None:
         return []
-    core = [v for v in bank.get("variants") or [] if not v.get("extension")]
+    blocked = _variant_blocklist(manifest_dir)
+    core = [
+        v
+        for v in bank.get("variants") or []
+        if not v.get("extension") and str(v.get("variant_id") or "") not in blocked
+    ]
     if not core:
         return []
     limit = max(1, min(int(limit), 10))
-    seed = sum(ord(c) for c in str(user_id)) + int(day_index)
-    start = seed % len(core)
-    picked = [core[(start + i) % len(core)] for i in range(min(limit, len(core)))]
-    return [
-        {
+    # seed = 高熵确定性散列(红队修复: 旧 sum(ord)+day_index 在千级用户上碰撞 58%,
+    # 且 user/day 在整数轴上混叠——char-sum 差 1 的两人错一天拿同卷)。
+    # 同 (user, day) 仍幂等(§9-D3 多端一致)。
+    seed = int(
+        hashlib.sha256(f"{user_id}:{int(day_index)}".encode("utf-8")).hexdigest()[:12],
+        16,
+    )
+    if str(mode or "").strip().lower() == "forward":
+        ordered = _forward_rule_group_spread(core, seed, len(core))
+    else:
+        start = seed % len(core)
+        ordered = [core[(start + i) % len(core)] for i in range(len(core))]
+    picked = _balance_expected_ok(_diversify_skeletons(ordered, limit), seed, limit)
+    textbook_by_point = _textbook_quote_index(
+        vm["pack_id"], manifest_dir, vm["content_sha256"]
+    )
+    rows: list[dict[str, Any]] = []
+    for v in picked:
+        row: dict[str, Any] = {
             "variant_id": v["variant_id"],
             "rule_group": v["rule_group"],
             "surface": v["surface"],
@@ -343,5 +422,161 @@ def build_retest_items(
             "correct_statement": v["correct_statement"],
             "anchor": v["anchor"],
         }
-        for v in picked
+        textbook = textbook_by_point.get(str(v.get("anchor") or ""))
+        if textbook:
+            row["textbook"] = textbook
+        rows.append(row)
+    return rows
+
+
+_VARIANT_BLOCKLIST_FILE = "_variant_blocklist.json"
+
+
+def _variant_blocklist(manifest_dir: Path) -> set[str]:
+    """对抗面板 A 级停发变体清单（serve 侧过滤, 签发 bank 原样不动）。
+
+    2026-07-11 变体 statement 验尸：9 条 A 级门道语句（旧真题官答与 2026 新
+    规范教材冲突为主——地下防水四级/超灌0.8~1.0m/钢丝网保留/变形缝依据等）
+    波及 40 变体。救活 = 教研按 2026 教材口径修 pack 后重签并从清单移除。
+    缺文件 = 空集（不改变既有行为）。"""
+    path = manifest_dir / _VARIANT_BLOCKLIST_FILE
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return set()
+    except Exception:
+        return set()  # 清单损坏时不放大故障(保守: 不过滤, 由测试盯格式)
+    return {
+        str(item.get("variant_id") or "")
+        for item in data.get("variants") or []
+        if item.get("variant_id")
+    }
+
+
+_SKELETON_ENTITY_RE = re.compile(r"「[^」]*」")
+_SKELETON_NUM_RE = re.compile(r"\d+(?:\.\d+)?")
+
+
+def _surface_skeleton(surface: str) -> str:
+    """题面句式骨架(实体挖空+数字归一)——同骨架=用户眼中的"同一句换词"。"""
+    text = _SKELETON_ENTITY_RE.sub("「X」", str(surface or ""))
+    return _SKELETON_NUM_RE.sub("N", text)
+
+
+def _diversify_skeletons(
+    ordered: list[dict[str, Any]], limit: int
+) -> list[dict[str, Any]]:
+    """同场次句式骨架去重(owner 2026-07-11"老用户马上腻"拍板的呈现层修复):
+
+    实测 A01 B-basis 组 16 变体仅 4 种骨架——一场 5 题里出现两道"同句换词"
+    即产生敷衍感。骨架未见的题排前, 重复骨架的退后作回填(小池不空窗)。
+    保持 ordered 相对原序(forward 考法广度/review 轮换语义不变), 纯确定性。
+    ``limit`` 仅语义提示(截取仍在 _balance_expected_ok), 此处全量重排。"""
+    fresh: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    rest: list[dict[str, Any]] = []
+    for v in ordered:
+        sk = _surface_skeleton(str(v.get("surface") or ""))
+        if sk in seen:
+            rest.append(v)
+            continue
+        seen.add(sk)
+        fresh.append(v)
+    return fresh + rest
+
+
+def retest_pool_meta(
+    pack_id: str, *, manifest_path: Path | None = None
+) -> dict[str, Any]:
+    """题池元信息(呈现层"换皮是刻意设计"的证据): 核心题数/考法数——签发真值
+    派生, 停发清单已剔除。供 retest 页 hero/收据展示题池规模与收集感。"""
+    try:
+        vm = build_lesson_viewmodel(pack_id, manifest_path=manifest_path)
+    except LessonNotAvailable:
+        return {"core_total": 0, "rule_groups_total": 0}
+    manifest_dir = (manifest_path or _MANIFEST_PATH).parent
+    bank = _load_signed_bank(vm["pack_id"], manifest_dir, vm["content_sha256"])
+    if bank is None:
+        return {"core_total": 0, "rule_groups_total": 0}
+    blocked = _variant_blocklist(manifest_dir)
+    core = [
+        v for v in bank.get("variants") or []
+        if not v.get("extension") and str(v.get("variant_id") or "") not in blocked
     ]
+    return {
+        "core_total": len(core),
+        "rule_groups_total": len({str(v.get("rule_group") or "") for v in core}),
+    }
+
+
+def _balance_expected_ok(
+    ordered: list[dict[str, Any]], seed: int, limit: int
+) -> list[dict[str, Any]]:
+    """答案模式防泄露（选题层能修的那一半；句式泄露归编译端内容工单）。
+
+    owner 实测抓到"整场点'不妥当'全对"。此前选题完全不看 ``expected_ok``，
+    可能送出整组同答案的 session。最小干预收口（不做硬配平——硬配平会挤掉
+    forward 的考法广度契约，且会过度复曝少数类变体）：
+
+    - **防全同**：送出的题全为同一答案类、且池子里存在对偶类时，把末位
+      确定性换成剩余序列中最早的对偶题（仅此一换，广度语义基本不动）；
+      单类池如实全送，不臆造对偶。
+    - **顺序确定性洗牌**：按 (seed, variant_id) 稳定散列重排出题序，杀掉
+      次序 tell；同 (user, day) 仍幂等（§9-D3 多端一致），跨用户/跨日不可预测。
+    """
+    picked = list(ordered[: min(limit, len(ordered))])
+    if len(picked) >= 2:
+        classes = {bool(v.get("expected_ok")) for v in picked}
+        if len(classes) == 1:
+            uniform = classes.pop()
+            swap_in = next(
+                (
+                    v
+                    for v in ordered[len(picked):]
+                    if bool(v.get("expected_ok")) != uniform
+                ),
+                None,
+            )
+            if swap_in is not None:
+                picked[-1] = swap_in
+    picked.sort(
+        key=lambda v: hashlib.sha256(
+            f"{seed}:{v.get('variant_id')}".encode("utf-8")
+        ).hexdigest()
+    )
+    return picked
+
+
+_CONCEPT_CARD_BANK_TEMPLATE = "_{pack_id}_concept_card_bank.v0.json"
+
+
+def _textbook_quote_index(
+    pack_id: str, manifest_dir: Path, expected_sha: str
+) -> dict[str, dict[str, Any]]:
+    """同 pack 签发考点卡 → {point_id: 教材原文并排卡}（retest join 用）。
+
+    quote/label 逐字透传签发卡字段（zero 生成）；卡池未签发/缺失 → 空 index
+    （fail-closed，retest 不带 textbook 字段照常工作）。
+    """
+    bank = _load_signed_bank(
+        pack_id,
+        manifest_dir,
+        expected_sha,
+        filename_template=_CONCEPT_CARD_BANK_TEMPLATE,
+    )
+    if bank is None:
+        return {}
+    index: dict[str, dict[str, Any]] = {}
+    for card in bank.get("cards") or []:
+        point_id = str(card.get("point_id") or "").strip()
+        quote = str(card.get("quote") or "").strip()
+        if not point_id or not quote:
+            continue
+        source_ref = card.get("source_ref") or {}
+        page_num = source_ref.get("page_num") if isinstance(source_ref, dict) else None
+        index[point_id] = {
+            "quote": quote,
+            "label": str(card.get("front") or ""),
+            "page_num": page_num if isinstance(page_num, int) else None,
+        }
+    return index

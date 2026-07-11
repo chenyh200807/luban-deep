@@ -6,6 +6,8 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
+import re
 import sys
 import time
 from dataclasses import dataclass
@@ -20,6 +22,30 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+_EVAL_RUNNER_USERNAME_PREFIX_PATTERN = re.compile(
+    r"^(qa|eval|codex|claude|test)(?:[._-]|\d)"
+)
+
+
+def _normalize_eval_runner_agent(value: str | None = None) -> str:
+    raw = str(value or os.getenv("DEEPTUTOR_EVAL_RUNNER_AGENT") or "agent").strip().lower()
+    normalized = re.sub(r"[^a-z0-9]+", "_", raw).strip("_")
+    return normalized or "agent"
+
+
+def _looks_like_eval_runner_username(username: str) -> bool:
+    normalized = str(username or "").strip().lower()
+    return bool(normalized) and bool(_EVAL_RUNNER_USERNAME_PREFIX_PATTERN.search(normalized))
+
+
+def _require_eval_runner_username(username: str) -> None:
+    if _looks_like_eval_runner_username(username):
+        return
+    raise RuntimeError(
+        "eval_runner_identity_required:"
+        " use a qa_eval_/eval_/qa_/codex_/claude_/test_ username for automated QA"
+    )
+
 
 def _build_ws_url(api_base_url: str) -> str:
     parsed = urlparse(api_base_url.rstrip("/"))
@@ -28,9 +54,12 @@ def _build_ws_url(api_base_url: str) -> str:
     return urlunparse((scheme, parsed.netloc, path, "", "", ""))
 
 
-def _generated_credentials(prefix: str = "prelaunchsmoke") -> tuple[str, str, str]:
+def _generated_credentials(prefix: str = "") -> tuple[str, str, str]:
     stamp = int(time.time())
+    if not prefix:
+        prefix = f"qa_eval_{_normalize_eval_runner_agent()}_smoke"
     username = f"{prefix}_{stamp}"
+    _require_eval_runner_username(username)
     password = f"SmokeA{stamp % 1000000:06d}"
     phone = f"139{stamp % 100000000:08d}"
     return username, password, phone
@@ -76,6 +105,7 @@ async def _register_or_login(
     phone: str,
     register: bool,
 ) -> tuple[dict[str, Any], bool]:
+    _require_eval_runner_username(username)
     if register:
         status_code, payload = await _request_json(
             client,
@@ -378,7 +408,7 @@ def main() -> None:
     parser.add_argument("--password", default="")
     parser.add_argument("--phone", default="")
     parser.add_argument("--register", action="store_true", help="先调用 /api/v1/auth/register；若已存在则回退到登录")
-    parser.add_argument("--username-prefix", default="prelaunchsmoke")
+    parser.add_argument("--username-prefix", default="")
     parser.add_argument("--first-message", default="请用两句话介绍流水施工。")
     parser.add_argument("--second-message", default="继续上一题，用一句话概括你刚才回答的重点。")
     parser.add_argument("--timeout-seconds", type=float, default=60.0)

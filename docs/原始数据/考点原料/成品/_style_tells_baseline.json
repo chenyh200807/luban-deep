@@ -1,0 +1,73 @@
+{
+ "_note": "风格泄露棘轮基线(存量带病豁免但不许恶化;对偶返工后 --rebaseline-style)",
+ "packs": {
+  "A01": {
+   "leak": true,
+   "combo_rule": 0.806
+  },
+  "C01": {
+   "leak": true,
+   "combo_rule": 0.463
+  },
+  "C02": {
+   "leak": true,
+   "combo_rule": 0.596
+  },
+  "D11": {
+   "leak": false,
+   "combo_rule": 0.5
+  },
+  "D13": {
+   "leak": false,
+   "combo_rule": 0.412
+  },
+  "E01": {
+   "leak": false,
+   "combo_rule": 0.488
+  },
+  "F02": {
+   "leak": false,
+   "combo_rule": 0.474
+  },
+  "F03": {
+   "leak": true,
+   "combo_rule": 0.585
+  },
+  "F16": {
+   "leak": true,
+   "combo_rule": 0.591
+  },
+  "G03": {
+   "leak": true,
+   "combo_rule": 0.645
+  },
+  "J01": {
+   "leak": true,
+   "combo_rule": 0.634
+  },
+  "N01": {
+   "leak": true,
+   "combo_rule": 0.721
+  },
+  "N03": {
+   "leak": false,
+   "combo_rule": 0.438
+  },
+  "S05": {
+   "leak": true,
+   "combo_rule": 0.304
+  },
+  "X01": {
+   "leak": true,
+   "combo_rule": 0.892
+  },
+  "X02": {
+   "leak": false,
+   "combo_rule": 0.5
+  },
+  "X03": {
+   "leak": true,
+   "combo_rule": 0.841
+  }
+ }
+}

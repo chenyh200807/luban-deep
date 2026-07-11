@@ -159,6 +159,18 @@ def main() -> int:
         print(proc.stderr, file=sys.stderr, flush=True)
     exit_code = proc.returncode
 
+    # ②b 内容资产回归(2026-07-11 宏观审计工单①): 签发 bank 复现/blocklist/
+    # 风格棘轮/sha 对齐——"内容不悄悄烂掉"从人记得跑变成机器职责。
+    # 失败不吞: 计入 exit_code(非零=飞轮红), 报告落盘同目录。
+    content_cmd = [sys.executable, str(REPO_ROOT / "scripts" / "content_regression_check.py")]
+    print(f"[调度] 内容回归: {' '.join(content_cmd)}", flush=True)
+    content_proc = subprocess.run(content_cmd, cwd=str(REPO_ROOT), capture_output=True, text=True)
+    _write_report(run_dir / "content_regression.stdout.log",
+                  content_proc.stdout + "\n" + content_proc.stderr)
+    print(content_proc.stdout, flush=True)
+    if content_proc.returncode != 0:
+        exit_code = exit_code or content_proc.returncode
+
     # ③ 读 gate_summary.json(v1 起就有)拼 WEAK-GO 报告 + 六维趋势.
     summary_path = gate_out_dir / "gate_summary.json"
     dims_summary: list[dict] = []

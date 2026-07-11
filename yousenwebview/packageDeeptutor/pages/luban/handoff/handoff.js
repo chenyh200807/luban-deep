@@ -98,6 +98,21 @@ Page({
     }
   },
 
+  onSeethroughTap() {
+    if (!this.data.packId) return;
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({
+        url: route.lubanSeethrough({ pack_id: this.data.packId }),
+      });
+    }
+  },
+
+  onReviewTap() {
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({ url: route.lubanReview() });
+    }
+  },
+
   _markRetestDue() {
     if (!this.data.packId) return;
     if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {

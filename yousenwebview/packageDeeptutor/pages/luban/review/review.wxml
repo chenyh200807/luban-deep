@@ -1,0 +1,213 @@
+<!-- 复习 · 回炉（第10轮 10c，纸墨朱竹） -->
+<view class="paper {{isDark ? '' : 'light'}} rv-page pk-paper-bg">
+  <view class="rv-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="rv-nav-inner">
+      <view class="rv-back" bindtap="goBack">
+        <text class="rv-back-arrow">‹</text>
+        <text class="rv-back-text">返回</text>
+      </view>
+      <text class="rv-nav-title">复习</text>
+    </view>
+  </view>
+
+  <scroll-view class="rv-scroll" scroll-y enhanced show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="rv-inner">
+
+      <!-- 顶栏：复习 · 学过的到期回炉（10c） -->
+      <view class="rv-head">
+        <text class="pk-kicker">鲁班学习双轮</text>
+        <text class="rv-head-sub">学过的 · 到期回炉</text>
+      </view>
+
+      <view class="rv-error" wx:if="{{errorText}}">
+        <text>{{errorText}}</text>
+        <view class="rv-retry" bindtap="retry">重试</view>
+      </view>
+
+      <view class="rv-loading" wx:if="{{loading}}">
+        <text>正在整理今天的回炉任务…</text>
+      </view>
+
+      <block wx:if="{{!loading && !errorText && vm}}">
+
+        <!-- 空态（D1 铁律）：一站未点亮，深链学习页 -->
+        <view class="rv-empty" wx:if="{{vm.isEmpty}}">
+          <text class="rv-empty-kicker">复习 · 回炉</text>
+          <text class="rv-empty-title">回炉的都是你学过的</text>
+          <text class="rv-empty-desc">这里只放你点亮过的站。点亮第一站之后，第二天这里就会有你的复习任务。</text>
+          <view class="rv-empty-cta" bindtap="goLearn">
+            <text>先去点亮第一站 →</text>
+          </view>
+        </view>
+
+        <block wx:else>
+          <!-- 今日到期 hero -->
+          <view class="rv-hero">
+            <view class="rv-hero-row">
+              <view
+                class="rv-gauge"
+                style="background: conic-gradient(var(--pk-grn) {{vm.duePercent}}%, var(--pk-gauge) 0)"
+              >
+                <view class="rv-gauge-core">
+                  <text class="rv-gauge-num">{{vm.dueCount}}</text>
+                  <text class="rv-gauge-label">到期</text>
+                </view>
+              </view>
+              <view class="rv-hero-titles">
+                <text class="rv-hero-title" wx:if="{{vm.dueCount}}">今日回炉 {{vm.dueCount}} 站 · 昨天的约定</text>
+                <text class="rv-hero-title" wx:else>今天没有到期的回炉任务</text>
+                <text class="rv-hero-desc" wx:if="{{vm.dueCount}}">都是你学过的考点，再见一面会更稳</text>
+                <text class="rv-hero-desc" wx:else>你点亮的站都稳着。想主动翻一翻，用下面的检索。</text>
+              </view>
+            </view>
+            <view class="rv-hero-cta" wx:if="{{vm.dueCount}}" bindtap="startDue">
+              <text>开始回炉</text>
+            </view>
+          </view>
+
+          <!-- 昨天的约定 · 换皮复测（首个到期站，兑现交接时刻；
+               仅在真有变体池时渲染——fail-closed，禁对无池站承诺换皮） -->
+          <view
+            class="rv-pact"
+            wx:if="{{vm.showPact}}"
+            data-pack-id="{{vm.firstDue.packId}}"
+            bindtap="openDueEntry"
+          >
+            <view class="rv-pact-stamp"><text>变</text></view>
+            <view class="rv-pact-body">
+              <text class="rv-pact-kicker">昨天的约定 · 换皮复测</text>
+              <text class="rv-pact-title">{{vm.firstDue.title}}</text>
+              <text class="rv-pact-desc">数字和主体换了身皮，判别逻辑没变——认出它，你就是真懂了</text>
+            </view>
+            <text class="rv-pact-link">复测</text>
+          </view>
+
+          <!-- 到期清单(n=1 时折叠: hero+约定卡已完整承载单站, 防三块同物) -->
+          <view class="rv-list" wx:if="{{vm.dueEntries.length && vm.showDueList}}">
+            <view class="rv-list-head">
+              <text class="rv-list-title">到期清单</text>
+              <text class="rv-list-hint">今日到期 · 服务端排定</text>
+            </view>
+            <view
+              class="rv-row"
+              wx:for="{{vm.dueEntries}}"
+              wx:key="packId"
+              data-pack-id="{{item.packId}}"
+              bindtap="openDueEntry"
+            >
+              <view class="rv-row-icon icon-rv-card"></view>
+              <view class="rv-row-body">
+                <text class="rv-row-title">{{item.title}}</text>
+                <text class="rv-row-sub">{{item.sub}}</text>
+                <!-- 实务闯关入口: vm 单一判定点(变体池 fail-closed), catchtap 不抢行点击 -->
+                <view
+                  class="rv-row-gauntlet"
+                  wx:if="{{item.gauntletAvailable}}"
+                  data-pack-id="{{item.packId}}"
+                  catchtap="openGauntlet"
+                >
+                  <text>实务闯关 · 回忆→半写→核对 ›</text>
+                </view>
+              </view>
+              <text class="rv-row-link">{{item.retestAvailable ? '复测' : '回站'}}</text>
+            </view>
+          </view>
+
+          <!-- 资产入口：错因银行（错题本唯一入口） -->
+          <view class="rv-asset" bindtap="openMistakeBook">
+            <view class="rv-row-icon warm icon-rv-bank"></view>
+            <view class="rv-row-body">
+              <text class="rv-row-title">错因银行{{vm.mistakeActiveCount > 0 ? ' · ' + vm.mistakeActiveCount + ' 笔待还' : ''}}</text>
+              <text class="rv-row-sub">每笔都能回到当时的解析，还清一笔销一笔</text>
+            </view>
+            <text class="rv-asset-arrow">›</text>
+          </view>
+
+          <!-- 资产入口：考点卡库（张数=signed 卡池真值投影；
+               拿不到/旗标关/零签发池 → 诚实占位不造数） -->
+          <view
+            wx:if="{{vm.conceptCardsAvailable}}"
+            class="rv-asset"
+            bindtap="openConceptCards"
+          >
+            <view class="rv-row-icon icon-rv-book"></view>
+            <view class="rv-row-body">
+              <text class="rv-row-title">考点卡库 · {{vm.conceptCardTotal}} 张</text>
+              <text class="rv-row-sub">30 秒再认 · 教材原文并排</text>
+            </view>
+            <text class="rv-asset-arrow">›</text>
+          </view>
+          <view wx:else class="rv-asset disabled">
+            <view class="rv-row-icon icon-rv-book"></view>
+            <view class="rv-row-body">
+              <text class="rv-row-title">考点卡库</text>
+              <text class="rv-row-sub">30 秒再认 · 教材原文并排</text>
+            </view>
+            <text class="rv-asset-badge">即将开通</text>
+          </view>
+
+          <!-- 自主检索（纯前端过滤已加载数据） -->
+          <view class="rv-search">
+            <text class="rv-search-title">想自己翻？按维度检索</text>
+            <view class="rv-chips">
+              <view
+                class="rv-chip {{searchMode === 'pack' ? 'active' : ''}}"
+                data-mode="pack"
+                bindtap="setSearchMode"
+              >
+                <text>按母题</text>
+              </view>
+              <view
+                class="rv-chip {{searchMode === 'error' ? 'active' : ''}}"
+                data-mode="error"
+                bindtap="setSearchMode"
+              >
+                <text>按错因</text>
+              </view>
+            </view>
+
+            <block wx:if="{{searchMode === 'pack'}}">
+              <view
+                class="rv-row plain"
+                wx:for="{{vm.lessons}}"
+                wx:key="pack_id"
+                data-pack-id="{{item.pack_id}}"
+                bindtap="openStation"
+              >
+                <view class="rv-row-icon icon-rv-card"></view>
+                <view class="rv-row-body">
+                  <text class="rv-row-title">{{item.title}}</text>
+                  <!-- 点亮态只来自 view model(pack_lifecycle 真值), 禁硬编码 -->
+                  <text class="rv-row-sub">{{item.sub}}</text>
+                </view>
+                <text class="rv-row-link">{{item.linkText}}</text>
+              </view>
+            </block>
+
+            <block wx:else>
+              <view
+                class="rv-row plain"
+                wx:for="{{vm.errorBars}}"
+                wx:key="key"
+                bindtap="openMistakeBook"
+              >
+                <view class="rv-row-icon warm icon-rv-bank"></view>
+                <view class="rv-row-body">
+                  <text class="rv-row-title">{{item.label}}</text>
+                  <text class="rv-row-sub">{{item.count}} 题 · 去错因银行看解析</text>
+                </view>
+                <text class="rv-row-link">查看</text>
+              </view>
+              <view class="rv-search-empty" wx:if="{{!vm.errorBars.length}}">
+                <text>还没有沉淀错因。做题后收藏错题，这里会按错因聚拢。</text>
+              </view>
+            </block>
+          </view>
+        </block>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 底部五 tab = 共享壳组件(单一壳权威,禁内联 tabbar) -->
+  <workspace-shell id="workspaceShell"></workspace-shell>
+</view>

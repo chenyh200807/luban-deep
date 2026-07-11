@@ -1501,6 +1501,35 @@ def test_eval_runner_external_auth_identity_propagates_to_bi_filter(
     assert dashboard["new_today_count"] == 0
 
 
+def test_eval_runner_register_persists_phone_alias_identity_metadata(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    persisted: dict[str, object] = {}
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+
+    service.register_with_external_auth("qa_eval_codex_smoke_1", "StrongPass123", "13812345678")
+
+    assert persisted["phone"] == "13812345678"
+    assert persisted["identity_metadata"] == {
+        "account_kind": "eval_runner",
+        "actor_type": "machine",
+        "created_by": "eval_runner",
+        "is_internal_test": True,
+        "runner": "codex",
+        "agent_tool": "codex",
+    }
+
+
 def test_student_army_external_auth_account_auto_tags_eval_runner_for_bi(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -1631,14 +1660,145 @@ def test_register_with_external_auth_persists_new_phone_identity(
     monkeypatch.setattr(
         service,
         "_persist_phone_identity",
-        lambda *, phone, canonical_uid: persisted.append({"phone": phone, "canonical_uid": canonical_uid}),
+        lambda *, phone, canonical_uid, identity_metadata=None: persisted.append(
+            {
+                "phone": phone,
+                "canonical_uid": canonical_uid,
+                "identity_metadata": identity_metadata,
+            }
+        ),
     )
 
     result = service.register_with_external_auth("new_student", "StrongPass123", "13812345678")
     claims = service.verify_access_token(result["token"])
 
     assert claims is not None
-    assert persisted == [{"phone": "13812345678", "canonical_uid": claims["canonical_uid"]}]
+    assert persisted == [
+        {
+            "phone": "13812345678",
+            "canonical_uid": claims["canonical_uid"],
+            "identity_metadata": None,
+        }
+    ]
+
+
+def test_channel_attribution_metadata_sanitizes_values() -> None:
+    assert member_service_module._channel_attribution_metadata("test1", "1047") == {
+        "reg_channel": "test1",
+        "reg_scene": "1047",
+    }
+    # 脏值：channel 只保留 [0-9A-Za-z_-]，scene 只保留数字
+    assert member_service_module._channel_attribution_metadata(
+        "推广'; DROP--x", "scene1047abc"
+    ) == {"reg_channel": "DROP--x", "reg_scene": "1047"}
+    assert member_service_module._channel_attribution_metadata("", "") == {}
+    assert member_service_module._channel_attribution_metadata(None, None) == {}
+
+
+def test_register_with_external_auth_persists_channel_attribution(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    persisted: dict[str, object] = {}
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+
+    service.register_with_external_auth(
+        "new_student", "StrongPass123", "13812345678", channel="test1", scene="1047"
+    )
+
+    assert persisted["phone"] == "13812345678"
+    assert persisted["identity_metadata"] == {"reg_channel": "test1", "reg_scene": "1047"}
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_for_wechat_first_registration_persists_channel_attribution(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    persisted: dict[str, object] = {}
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911112222"
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+
+    result = await service.bind_phone_for_wechat(
+        "student_demo", "phone-code-123", channel="test1", scene="1047"
+    )
+
+    assert result["bound"] is True
+    assert persisted["phone"] == "13911112222"
+    identity_metadata = persisted["identity_metadata"]
+    assert isinstance(identity_metadata, dict)
+    assert identity_metadata["reg_channel"] == "test1"
+    assert identity_metadata["reg_scene"] == "1047"
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_for_wechat_existing_member_login_does_not_write_channel(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """已注册用户复登录（手机号已有 canonical alias）不得覆盖注册渠道（first-touch 保护）。"""
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    persisted: dict[str, object] = {}
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13911112222":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911112222"
+
+    def _capture_persist_phone_identity(**kwargs: object) -> None:
+        persisted.update(kwargs)
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+    monkeypatch.setattr(service, "_persist_phone_identity", _capture_persist_phone_identity)
+
+    def _seed(data: dict[str, object]) -> None:
+        canonical = service._ensure_member(data, canonical_uid)
+        canonical["phone"] = "13911112222"
+
+    service._mutate(_seed)
+
+    result = await service.bind_phone_for_wechat(
+        canonical_uid, "phone-code-123", channel="late_campaign", scene="1047"
+    )
+
+    assert result["bound"] is True
+    identity_metadata = persisted.get("identity_metadata")
+    assert identity_metadata is None or "reg_channel" not in identity_metadata
 
 
 def test_register_with_external_auth_does_not_match_existing_display_name(
@@ -4822,6 +4982,7 @@ async def test_bind_phone_wechat_valid_cn_mobile_skips_wx_api(
 ) -> None:
     """dev/test 模式直传合法大陆号时不应调微信 API（兼容旧 legacy 客户端行为）。"""
     users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
     monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
@@ -4840,6 +5001,43 @@ async def test_bind_phone_wechat_valid_cn_mobile_skips_wx_api(
 
     assert not wx_api_called, "合法大陆号直传时不应调用微信 API"
     assert result["phone"] == "13911112222"
+    data = service._load()
+    member = service._find_member(data, result["user_id"])
+    assert member["phone_binding_method"] == "direct_phone"
+    assert member["account_kind"] == "eval_runner"
+    assert member["actor_type"] == "machine"
+    assert member["created_by"] == "eval_runner"
+    assert member["is_internal_test"] is True
+    external_user = external_auth_module.get_external_auth_user_by_phone("13911112222")
+    assert external_user is not None
+    assert external_user["account_kind"] == "eval_runner"
+    assert external_user["actor_type"] == "machine"
+    assert external_user["created_by"] == "eval_runner"
+    assert external_user["is_internal_test"] is True
+
+
+@pytest.mark.asyncio
+async def test_bind_phone_wechat_rejects_direct_cn_mobile_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """生产微信绑定必须使用 getPhoneNumber 返回的 phone_code，不能直传手机号伪装真人。"""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    wx_api_called = []
+
+    async def _should_not_be_called(phone_code: str) -> str:
+        wx_api_called.append(phone_code)
+        return "13911112222"
+
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _should_not_be_called)
+
+    with pytest.raises(ValueError, match="phone authorization code"):
+        await service.bind_phone_for_wechat("student_demo", "13911112222")
+
+    assert not wx_api_called
 
 
 def test_persist_phone_identity_rejects_non_cn_mobile(
@@ -5089,6 +5287,10 @@ async def test_wechat_phone_quick_login_counts_as_new_bi_member(
 
     assert result["bound"] is True
     assert result["phone"] == "15558866508"
+    data = service._load()
+    member = service._find_member(data, result["user_id"])
+    assert member["phone_binding_method"] == "wechat_phone_code"
+    assert "account_kind" not in member
     assert dashboard["total_count"] == 1
     assert dashboard["new_today_count"] == 1
 
@@ -6724,10 +6926,13 @@ def test_list_internal_test_user_ids_uses_test_member_classifier(tmp_path: Path)
         data["members"] = [
             {
                 "user_id": "11111111-1111-1111-1111-111111111111",
-                "auth_username": "qa_spike_probe",
-                "display_name": "QA probe",
+                "auth_username": "realistic_wrapper",
+                "display_name": "真实样式别名账号",
                 "external_auth_user_id": "22222222-2222-2222-2222-222222222222",
-                "alias_user_ids": ["33333333-3333-3333-3333-333333333333"],
+                "alias_user_ids": [
+                    "qa_eval_codex_alias_20260708",
+                    "33333333-3333-3333-3333-333333333333",
+                ],
             },
             {
                 "user_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -6753,6 +6958,7 @@ def test_list_internal_test_user_ids_uses_test_member_classifier(tmp_path: Path)
     assert "11111111-1111-1111-1111-111111111111" in ids
     assert "22222222-2222-2222-2222-222222222222" in ids
     assert "33333333-3333-3333-3333-333333333333" in ids
+    assert "qa_eval_codex_alias_20260708" in ids
     assert "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" in ids
     assert "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb" in ids
     assert "cccccccc-cccc-cccc-cccc-cccccccccccc" in ids
@@ -6989,3 +7195,61 @@ def test_snapshot_read_count_is_pinned_per_surface(tmp_path: Path, monkeypatch: 
     calls["count"] = 0
     service.get_mastery_dashboard("student_read_count")
     assert calls["count"] == 1, f"mastery dashboard must read snapshot exactly once, got {calls['count']}"
+
+
+def test_list_members_for_bi_derives_conversation_activity_from_sqlite_sessions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """B 断点防回归：Postgres chat_conversations 是死表，目录读模型已弃读其
+    chat 派生列；BI 会员投影的对话活跃事实必须与 get_dashboard/list_members
+    同源——从宿主 SQLite sessions 派生（_merge_session_activity_for_member_list）。"""
+    directory_member = {
+        "user_id": "dir_member_1",
+        "canonical_user_id": "dir_member_1",
+        "external_auth_user_id": "dir_member_1",
+        "alias_user_ids": ["dir_member_1"],
+        "display_name": "目录会员",
+        "phone": "15558860001",
+        "tier": "trial",
+        "status": "active",
+        "segment": "general",
+        "risk_level": "low",
+        "auto_renew": False,
+        "created_at": "2026-07-01T10:00:00+08:00",
+        # 目录侧只剩钱包时间这种保守回退；真实对话活跃必须由 SQLite 覆盖。
+        "last_active_at": "2026-07-01T10:00:00+08:00",
+        "expire_at": "2099-12-31T00:00:00+08:00",
+        "points_balance": 0,
+        "member_directory_source": "supabase.phone_identity_aliases+v_members",
+    }
+
+    class _FakeDirectory:
+        is_configured = True
+
+        def list_members(self, *, limit: int = 5000) -> list[dict[str, object]]:
+            del limit
+            return [dict(directory_member)]
+
+    service = MemberConsoleService(member_directory=_FakeDirectory())
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_member_directory_enabled", lambda: True)
+
+    import sqlite3
+
+    db_path = tmp_path / "chat_history.db"
+    session_ts = datetime(2026, 7, 9, 21, 30, tzinfo=timezone(timedelta(hours=8))).timestamp()
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            "CREATE TABLE sessions (owner_key TEXT, updated_at REAL, archived INTEGER DEFAULT 0)"
+        )
+        conn.execute(
+            "INSERT INTO sessions (owner_key, updated_at, archived) VALUES (?, ?, 0)",
+            (build_user_owner_key("dir_member_1"), session_ts),
+        )
+    service._store = SimpleNamespace(db_path=str(db_path))
+
+    members = service.list_members_for_bi()
+
+    assert [member["user_id"] for member in members] == ["dir_member_1"]
+    expected_iso = service._session_time_to_iso(session_ts)
+    assert members[0]["last_active_at"] == expected_iso

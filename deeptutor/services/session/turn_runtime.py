@@ -56,11 +56,13 @@ from deeptutor.services.question_followup import (
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     followup_action_route,
+    looks_like_practice_generation_request,
     normalize_question_followup_context,
     should_keep_unanswered_question_active_for_followup,
 )
 from deeptutor.services.question_turn_policy import (
     _active_object_ref,
+    _message_accepts_next_training_for_stored_set,
     _message_is_submission_for_stored_set,
     _message_references_stored_question_set_item,
     _message_requests_active_mcq_represent,
@@ -100,7 +102,7 @@ from deeptutor.services.session.sqlite_store import (
     normalize_active_object,
     normalize_suspended_object_stack,
 )
-from deeptutor.services.user_visible_output import coerce_user_visible_answer
+from deeptutor.services.user_visible_output import coerce_user_visible_answer, looks_like_unsafe_visible_output
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
     active_object_requires_deep_mode,
@@ -176,6 +178,110 @@ def _result_response_text(metadata: dict[str, Any] | None) -> str:
             if isinstance(value, str) and value.strip():
                 return value.strip()
     return ""
+
+
+def _event_type_value(event: StreamEvent | dict[str, Any]) -> str:
+    raw = event.get("type") if isinstance(event, dict) else event.type
+    return str(getattr(raw, "value", raw) or "").strip()
+
+
+def _event_metadata(event: StreamEvent | dict[str, Any]) -> dict[str, Any]:
+    raw = event.get("metadata") if isinstance(event, dict) else event.metadata
+    return dict(raw or {}) if isinstance(raw, dict) else {}
+
+
+def _event_source_value(event: StreamEvent | dict[str, Any]) -> str:
+    raw = event.get("source") if isinstance(event, dict) else event.source
+    return str(raw or "").strip()
+
+
+def _event_stage_value(event: StreamEvent | dict[str, Any]) -> str:
+    raw = event.get("stage") if isinstance(event, dict) else event.stage
+    return str(raw or "").strip()
+
+
+def _event_content_value(event: StreamEvent | dict[str, Any]) -> str:
+    raw = event.get("content") if isinstance(event, dict) else event.content
+    return raw if isinstance(raw, str) else ""
+
+
+def _is_public_assistant_content_event(event: StreamEvent | dict[str, Any]) -> bool:
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return False
+    if _event_type_value(event) != StreamEventType.CONTENT.value:
+        return False
+    if not _event_content_value(event).strip():
+        return False
+    metadata = _event_metadata(event)
+    call_id = metadata.get("call_id")
+    if not call_id:
+        return True
+    return str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS
+
+
+def _first_useful_content_observation(
+    event: StreamEvent | dict[str, Any],
+    *,
+    elapsed_ms: float,
+    capability_elapsed_ms: float | None = None,
+) -> dict[str, Any]:
+    """Classify the first public content that is useful to the learner.
+
+    Public progress/status events are intentionally excluded. This observes the
+    event after it has passed runtime sanitization/persistence, so runtime stays
+    the latency authority instead of letting provider/frontend clocks compete.
+    """
+    if _event_visibility(event) != _PUBLIC_VISIBILITY:
+        return {}
+
+    event_type = _event_type_value(event)
+    metadata = _event_metadata(event)
+    content_source = ""
+    if event_type == StreamEventType.CONTENT.value:
+        if not _is_public_assistant_content_event(event):
+            return {}
+        content_source = "content.delta"
+    elif event_type == StreamEventType.RESULT.value:
+        if not _result_response_text(metadata):
+            return {}
+        content_source = "result.response"
+    else:
+        return {}
+
+    try:
+        normalized_elapsed = round(max(float(elapsed_ms), 0.0), 2)
+    except (TypeError, ValueError):
+        normalized_elapsed = 0.0
+    observation: dict[str, Any] = {
+        "server_turn_start_to_first_useful_content_ms": normalized_elapsed,
+        "first_useful_content_event_type": event_type,
+        "first_useful_content_content_source": content_source,
+    }
+    if capability_elapsed_ms is not None:
+        try:
+            observation["capability_stream_to_first_useful_content_ms"] = round(
+                max(float(capability_elapsed_ms), 0.0),
+                2,
+            )
+        except (TypeError, ValueError):
+            pass
+
+    source = _event_source_value(event)
+    stage = _event_stage_value(event)
+    if source:
+        observation["first_useful_content_source"] = source
+    if stage:
+        observation["first_useful_content_stage"] = stage
+    for source_key, target_key in (
+        ("selected_mode", "first_useful_content_selected_mode"),
+        ("effective_response_mode", "first_useful_content_effective_response_mode"),
+        ("execution_path", "first_useful_content_execution_path"),
+        ("question_lifecycle_scene", "first_useful_content_question_lifecycle_scene"),
+    ):
+        value = str(metadata.get(source_key) or "").strip()
+        if value:
+            observation[target_key] = value
+    return observation
 
 
 def _normalize_turn_user_content(value: Any) -> tuple[str, dict[str, Any]]:
@@ -539,6 +645,23 @@ def _safe_terminal_assistant_content(
     ) or fallback
 
 
+def _is_chargeable_mobile_assistant_content(raw_content: str | None, public_content: str | None) -> bool:
+    raw_source = str(raw_content or "").strip()
+    public_source = str(public_content or "").strip()
+    if not public_source:
+        return False
+    if raw_source and looks_like_unsafe_visible_output(raw_source):
+        return False
+    if public_source in {
+        _PUBLIC_FAILED_MESSAGE,
+        _PUBLIC_CANCELLED_MESSAGE,
+        "暂时未生成适合直接展示的答案，请重试一次。",
+        "模型调用失败，请稍后重试。",
+    }:
+        return False
+    return True
+
+
 def _looks_like_learning_plan_request(text: str | None) -> bool:
     source = re.sub(r"\s+", "", str(text or "").strip().lower())
     if not source:
@@ -817,6 +940,159 @@ def _normalize_llm_stream_telemetry(value: Any) -> dict[str, Any]:
     }
 
 
+_FIRST_USEFUL_CONTENT_STRING_FIELDS = (
+    "first_useful_content_event_type",
+    "first_useful_content_source",
+    "first_useful_content_stage",
+    "first_useful_content_content_source",
+    "first_useful_content_selected_mode",
+    "first_useful_content_effective_response_mode",
+    "first_useful_content_execution_path",
+    "first_useful_content_question_lifecycle_scene",
+)
+_FIRST_USEFUL_CONTENT_FLOAT_FIELDS = (
+    "server_turn_start_to_first_useful_content_ms",
+    "capability_stream_to_first_useful_content_ms",
+)
+
+
+def _normalize_first_useful_content_metadata(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    normalized: dict[str, Any] = {}
+    for key in _FIRST_USEFUL_CONTENT_FLOAT_FIELDS:
+        item = value.get(key)
+        if not isinstance(item, (int, float)):
+            continue
+        duration = float(item)
+        if duration < 0:
+            continue
+        normalized[key] = round(duration, 2)
+    if "server_turn_start_to_first_useful_content_ms" not in normalized:
+        return {}
+    for key in _FIRST_USEFUL_CONTENT_STRING_FIELDS:
+        item = str(value.get(key) or "").strip()
+        if item:
+            normalized[key] = item
+    return normalized
+
+
+def _latency_timeline_entry(
+    *,
+    scope: str,
+    stage: str,
+    duration_ms: float,
+    **extra: Any,
+) -> dict[str, Any] | None:
+    try:
+        duration = float(duration_ms)
+    except (TypeError, ValueError):
+        return None
+    if duration < 0:
+        return None
+    entry: dict[str, Any] = {
+        "scope": scope,
+        "stage": stage,
+        "duration_ms": round(duration, 2),
+    }
+    for key, value in extra.items():
+        if isinstance(value, str):
+            normalized = value.strip()
+            if normalized:
+                entry[key] = normalized
+        elif isinstance(value, (int, float)) and value >= 0:
+            entry[key] = int(value) if key.endswith("_index") else value
+    return entry
+
+
+def _extend_latency_timeline(
+    entries: list[dict[str, Any]],
+    *,
+    scope: str,
+    timings: Any,
+    **extra: Any,
+) -> None:
+    for stage, duration_ms in normalize_latency_stage_timings(timings).items():
+        entry = _latency_timeline_entry(
+            scope=scope,
+            stage=stage,
+            duration_ms=duration_ms,
+            **extra,
+        )
+        if entry is not None:
+            entries.append(entry)
+
+
+def _build_latency_timeline(
+    trace_metadata: dict[str, Any],
+    *,
+    limit: int | None = 80,
+) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    _extend_latency_timeline(
+        entries,
+        scope="start_turn_setup",
+        timings=trace_metadata.get("start_turn_setup_stage_timings_ms"),
+    )
+    _extend_latency_timeline(
+        entries,
+        scope="turn_runtime",
+        timings=trace_metadata.get("latency_stages_ms"),
+    )
+    _extend_latency_timeline(
+        entries,
+        scope="context_build",
+        timings=trace_metadata.get("context_build_stage_timings_ms"),
+    )
+    _extend_latency_timeline(
+        entries,
+        scope="capability_stream",
+        timings=trace_metadata.get("capability_stream_stage_timings_ms"),
+    )
+    fuc = _normalize_first_useful_content_metadata(trace_metadata)
+    if fuc:
+        entry = _latency_timeline_entry(
+            scope="cumulative",
+            stage="server_turn_start_to_first_useful_content",
+            duration_ms=fuc["server_turn_start_to_first_useful_content_ms"],
+            event_type=str(fuc.get("first_useful_content_event_type") or ""),
+            event_source=str(fuc.get("first_useful_content_source") or ""),
+            content_source=str(fuc.get("first_useful_content_content_source") or ""),
+        )
+        if entry is not None:
+            entries.append(entry)
+
+    llm_stream_telemetry = _normalize_llm_stream_telemetry(
+        trace_metadata.get("llm_stream_telemetry")
+    )
+    for call_index, call in enumerate(llm_stream_telemetry.get("calls") or [], start=1):
+        if not isinstance(call, dict):
+            continue
+        _extend_latency_timeline(
+            entries,
+            scope="llm_provider",
+            timings=call.get("stage_timings_ms"),
+            call_index=call_index,
+            call_site=str(call.get("call_site") or ""),
+            provider_name=str(call.get("provider_name") or ""),
+            model=str(call.get("model") or ""),
+        )
+    if limit is None:
+        return entries
+    return entries[:limit]
+
+
+def _latency_max_stall(entries: list[dict[str, Any]]) -> dict[str, Any]:
+    candidates = [
+        item
+        for item in entries
+        if str(item.get("stage") or "") != "server_turn_start_to_first_useful_content"
+    ] or entries
+    if not candidates:
+        return {}
+    return dict(max(candidates, key=lambda item: float(item.get("duration_ms") or 0.0)))
+
+
 def _build_terminal_turn_observation_event(
     *,
     session_id: str,
@@ -867,6 +1143,19 @@ def _build_terminal_turn_observation_event(
     )
     if llm_stream_telemetry:
         metadata["llm_stream_telemetry"] = llm_stream_telemetry
+    first_useful_content_metadata = _normalize_first_useful_content_metadata(trace_metadata)
+    if first_useful_content_metadata:
+        metadata.update(first_useful_content_metadata)
+    full_latency_timeline = _build_latency_timeline(trace_metadata, limit=None)
+    if full_latency_timeline:
+        latency_timeline = full_latency_timeline[:80]
+        metadata["latency_timeline"] = latency_timeline
+        if len(full_latency_timeline) > len(latency_timeline):
+            metadata["latency_timeline_truncated"] = True
+            metadata["latency_timeline_total_count"] = len(full_latency_timeline)
+        max_stall = _latency_max_stall(full_latency_timeline)
+        if max_stall:
+            metadata["latency_max_stall"] = max_stall
     for metadata_key in (
         "authority_applied",
         "exact_fast_path_hit",
@@ -1073,9 +1362,21 @@ def _build_turn_semantic_decision(
     *,
     active_object: dict[str, Any] | None,
     followup_question_action: dict[str, Any] | None,
+    user_message: str = "",
 ) -> dict[str, Any]:
+    # 双线合流：老蓝 87ad68c9(助记流,route=practice_generation 无 active_object 放行)
+    # × main e1a3de48(无 active_object 时 deterministic fallback 命中练题请求)。
     route = followup_action_route(followup_question_action)
     if not isinstance(active_object, dict) and route != "practice_generation":
+        if looks_like_practice_generation_request(user_message):
+            return build_semantic_turn_decision(
+                relation_to_active_object="switch_to_new_object",
+                next_action="route_to_generation",
+                allowed_patch="set_active_object",
+                confidence=0.66,
+                reason="当前无 active object，deterministic fallback 命中新练题请求。",
+                target_object_ref={"object_type": "question_set", "object_id": ""},
+            )
         return {}
 
     intent = str((followup_question_action or {}).get("intent") or "").strip()
@@ -1099,6 +1400,17 @@ def _build_turn_semantic_decision(
         relation = "continue_same_learning_flow"
         next_action = "route_to_generation"
         allowed_patch = "set_active_object"
+    elif looks_like_practice_generation_request(user_message):
+        relation = (
+            "switch_to_new_object"
+            if str(active_object.get("object_type") or "").strip() == "open_chat_topic"
+            else "continue_same_learning_flow"
+        )
+        next_action = "route_to_generation"
+        allowed_patch = "set_active_object"
+        normalized_confidence = (
+            normalized_confidence if normalized_confidence is not None else 0.7
+        )
     return build_semantic_turn_decision(
         relation_to_active_object=relation,
         next_action=next_action,
@@ -1130,8 +1442,24 @@ def _question_lifecycle_metadata_from_config(config: dict[str, Any] | None) -> d
     }
 
 
+def _practice_generation_result_is_blocked(metadata: dict[str, Any] | None) -> bool:
+    if not isinstance(metadata, dict):
+        return False
+    nested_metadata = (
+        metadata.get("metadata") if isinstance(metadata.get("metadata"), dict) else {}
+    )
+    reason = str(
+        metadata.get("practice_generation_blocked_reason")
+        or nested_metadata.get("practice_generation_blocked_reason")
+        or ""
+    ).strip()
+    return bool(reason)
+
+
 def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
     normalized_metadata = dict(metadata or {})
+    if _practice_generation_result_is_blocked(normalized_metadata):
+        return None
     explicit = normalize_question_followup_context(
         normalized_metadata.get("question_followup_context")
     )
@@ -1154,6 +1482,8 @@ def _result_question_followup_context(metadata: dict[str, Any] | None) -> dict[s
 
 def _result_active_object(metadata: dict[str, Any] | None) -> dict[str, Any] | None:
     normalized_metadata = dict(metadata or {})
+    if _practice_generation_result_is_blocked(normalized_metadata):
+        return None
     explicit = normalize_active_object(normalized_metadata.get("active_object"))
     if explicit is not None:
         return explicit
@@ -2591,6 +2921,7 @@ class TurnRuntimeManager:
         session_id: str = "",
         turn_id: str = "",
         usage_summary: dict[str, Any] | None = None,
+        chargeable_assistant_content: bool = True,
     ) -> dict[str, Any] | None:
         if not billing_context:
             return None
@@ -2628,15 +2959,14 @@ class TurnRuntimeManager:
                 "idempotency_key": idempotency_key,
             }
         if str(billing_context.get("free_trial") or "").strip().lower() == "reserved":
-            return {
-                "status": "metered_not_charged",
-                "reason": "free_trial",
-                "wallet_user_id": user_id,
-                "idempotency_key": idempotency_key,
-                "free_trial_reservation_key": str(
-                    billing_context.get("free_trial_reservation_key") or ""
-                ).strip(),
-            }
+            return self._finalize_free_trial_reservation(
+                billing_context,
+                session_id=session_id,
+                turn_id=turn_id,
+                idempotency_key=idempotency_key,
+                chargeable=chargeable_assistant_content,
+                release_reason="non_chargeable_assistant_content",
+            )
         amount_points, billing_metadata = _billing_capture_amount_from_usage_summary(usage_summary)
         capture_metadata = {
             "source": "wx_miniprogram",
@@ -2831,6 +3161,81 @@ class TurnRuntimeManager:
             "session_budget": session_budget,
             "learner_budget": learner_budget,
             "evidence_budget": evidence_budget,
+        }
+
+    def _finalize_free_trial_reservation(
+        self,
+        billing_context: dict[str, str] | None,
+        *,
+        session_id: str = "",
+        turn_id: str = "",
+        idempotency_key: str | None = None,
+        chargeable: bool,
+        release_reason: str,
+    ) -> dict[str, Any] | None:
+        if not billing_context:
+            return None
+        if billing_context.get("source") != "wx_miniprogram":
+            return None
+        if str(billing_context.get("free_trial") or "").strip().lower() != "reserved":
+            return None
+        wallet_user_id = str(billing_context.get("wallet_user_id") or "").strip()
+        reservation_key = str(
+            billing_context.get("free_trial_reservation_key") or ""
+        ).strip()
+        if not reservation_key:
+            return {
+                "status": "free_trial_update_failed",
+                "reason": "missing_free_trial_reservation_key",
+                "wallet_user_id": wallet_user_id,
+                "idempotency_key": idempotency_key or f"mini_program_capture:{turn_id}",
+            }
+        metadata_updates = {
+            "final_session_id": str(session_id or "").strip(),
+            "final_turn_id": str(turn_id or "").strip(),
+        }
+        if not chargeable:
+            metadata_updates["release_reason"] = str(release_reason or "").strip()
+        try:
+            from deeptutor.services.member_usage_meter import get_member_usage_meter
+
+            updated = get_member_usage_meter().finalize_free_trial_reservation(
+                reservation_key,
+                chargeable=chargeable,
+                turn_id=str(turn_id or "").strip(),
+                metadata_updates=metadata_updates,
+            )
+        except Exception as exc:
+            updated = False
+            logger.warning(
+                "Failed to finalize free trial reservation turn_id=%s key=%s: %s",
+                str(turn_id or "").strip(),
+                reservation_key,
+                exc,
+                exc_info=True,
+            )
+        if not updated:
+            return {
+                "status": "free_trial_update_failed",
+                "reason": "free_trial_reservation_not_finalized",
+                "wallet_user_id": wallet_user_id,
+                "idempotency_key": idempotency_key or f"mini_program_capture:{turn_id}",
+                "free_trial_reservation_key": reservation_key,
+            }
+        if chargeable:
+            return {
+                "status": "metered_not_charged",
+                "reason": "free_trial",
+                "wallet_user_id": wallet_user_id,
+                "idempotency_key": idempotency_key or f"mini_program_capture:{turn_id}",
+                "free_trial_reservation_key": reservation_key,
+            }
+        return {
+            "status": "released",
+            "reason": "free_trial_not_charged",
+            "wallet_user_id": wallet_user_id,
+            "idempotency_key": idempotency_key or f"mini_program_capture:{turn_id}",
+            "free_trial_reservation_key": reservation_key,
         }
 
     async def _build_orchestrated_context_payload(
@@ -3650,11 +4055,15 @@ class TurnRuntimeManager:
             ),
             **({"capability": capability} if capability else {}),
             **({"llm_selection": payload.get("llm_selection")} if payload.get("llm_selection") else {}),
-            # The eval-bypass marker is a per-turn decision verified at the request
-            # boundary; it must NEVER be persisted to session preferences, or the
-            # preferences fallback would re-grant a free turn on every later turn
-            # without a fresh signature. Strip it before persisting.
-            **{k: v for k, v in (billing_context or {}).items() if k != "eval_bypass"},
+            # Per-turn billing markers must NEVER be persisted to session
+            # preferences, or the preferences fallback would re-grant a bypass or
+            # reuse a consumed free-trial reservation without a fresh start-turn
+            # gate.
+            **{
+                k: v
+                for k, v in (billing_context or {}).items()
+                if k not in {"eval_bypass", "free_trial", "free_trial_reservation_key"}
+            },
         }
         if explicit_exam_track:
             preference_updates["exam_track"] = explicit_exam_track
@@ -3981,6 +4390,10 @@ class TurnRuntimeManager:
         terminal_status = "failed"
         turn_slot_acquired = False
         llm_selection_token = None
+        request_config: dict[str, Any] = dict(payload.get("config", {}) or {})
+        billing_context: dict[str, str] | None = _normalize_billing_context(
+            request_config.get("billing_context")
+        )
         turn_started_at = time.perf_counter()
         latency_stages = _TurnLatencyStages()
         deadline_task = self._schedule_turn_deadline(execution)
@@ -4150,6 +4563,16 @@ class TurnRuntimeManager:
                 "completed",
                 default=False,
             )
+            billing_capture = await asyncio.to_thread(
+                self._finalize_free_trial_reservation,
+                billing_context,
+                session_id=session_id,
+                turn_id=turn_id,
+                chargeable=False,
+                release_reason="security_guardrail",
+            )
+            if billing_capture:
+                trace_metadata["billing_capture"] = billing_capture
             terminal_status = "completed"
 
         try:
@@ -4190,6 +4613,16 @@ class TurnRuntimeManager:
                     "server_busy",
                     default=False,
                 )
+                billing_capture = await asyncio.to_thread(
+                    self._finalize_free_trial_reservation,
+                    billing_context,
+                    session_id=session_id,
+                    turn_id=turn_id,
+                    chargeable=False,
+                    release_reason="server_busy",
+                )
+                if billing_capture:
+                    trace_metadata["billing_capture"] = billing_capture
                 logger.warning(
                     "turn shed (server busy): no concurrency slot within %.1fs (cap=%d) turn_id=%s",
                     _TURN_QUEUE_TIMEOUT_S, _MAX_CONCURRENT_TURNS, turn_id,
@@ -4206,7 +4639,6 @@ class TurnRuntimeManager:
             from deeptutor.services.security.tutorbot_guardrails import classify_tutorbot_user_input
             from deeptutor.services.session.context_builder import ContextBuilder
 
-            request_config = dict(payload.get("config", {}) or {})
             raw_user_content = str(payload.get("content", "") or "")
             entry_capability_hint = str(request_config.pop("_entry_capability_hint", "") or "").strip()
             notebook_references = payload.get("notebook_references", []) or []
@@ -4349,6 +4781,12 @@ class TurnRuntimeManager:
             stored_set_keep_unanswered_active = should_keep_unanswered_question_active_for_followup(
                 raw_user_content, stored_followup_question_context
             )
+            stored_set_next_training_referenced = (
+                _message_accepts_next_training_for_stored_set(
+                    raw_user_content,
+                    stored_followup_question_context,
+                )
+            )
             if (
                 stored_active_object is not None
                 and stored_followup_question_context is not None
@@ -4358,6 +4796,7 @@ class TurnRuntimeManager:
                 and not stored_active_mcq_represent_referenced
                 and not stored_set_submission_referenced
                 and not stored_set_keep_unanswered_active
+                and not stored_set_next_training_referenced
             ):
                 stored_suspended_object_stack = _prepend_suspended_object(
                     stored_suspended_object_stack,
@@ -4481,6 +4920,7 @@ class TurnRuntimeManager:
             turn_semantic_decision = _build_turn_semantic_decision(
                 active_object=active_object,
                 followup_question_action=followup_question_action,
+                user_message=raw_user_content,
             )
             if followup_question_context:
                 self._set_volatile_question_context(session_id, dict(followup_question_context))
@@ -5281,6 +5721,7 @@ class TurnRuntimeManager:
                 capability_stream_stage_timings = _TurnLatencyStages()
                 capability_stream_event_counts: dict[str, int] = {}
                 public_result_response_seen = False
+                first_useful_content_metadata: dict[str, Any] = {}
                 synthesize_mobile_result_before_done = _is_mobile_surface_turn_config(
                     request_config,
                     billing_context,
@@ -5290,6 +5731,23 @@ class TurnRuntimeManager:
                     if capability_stream_stage_timings.has_stage(stage):
                         return
                     capability_stream_stage_timings.record_since(stage, capability_stream_started_at)
+
+                def _record_first_useful_content_once(payload_event: dict[str, Any]) -> None:
+                    nonlocal first_useful_content_metadata
+                    if first_useful_content_metadata:
+                        return
+                    observed = _first_useful_content_observation(
+                        payload_event,
+                        elapsed_ms=(time.perf_counter() - turn_started_at) * 1000.0,
+                        capability_elapsed_ms=(
+                            time.perf_counter() - capability_stream_started_at
+                        )
+                        * 1000.0,
+                    )
+                    if not observed:
+                        return
+                    first_useful_content_metadata = observed
+                    trace_metadata.update(observed)
 
                 async for event in orch.handle(context):
                     _record_capability_stream_since_once("first_event")
@@ -5376,6 +5834,7 @@ class TurnRuntimeManager:
                                 (time.perf_counter() - synthetic_persist_started_at) * 1000.0,
                             )
                             if _event_visibility(synthetic_payload_event) == _PUBLIC_VISIBILITY:
+                                _record_first_useful_content_once(synthetic_payload_event)
                                 assistant_events.append(synthetic_payload_event)
                             public_result_response_seen = True
                     event_persist_started_at = time.perf_counter()
@@ -5388,6 +5847,7 @@ class TurnRuntimeManager:
                         payload_event.get("type") not in {"done", "session"}
                         and _event_visibility(payload_event) == _PUBLIC_VISIBILITY
                     ):
+                        _record_first_useful_content_once(payload_event)
                         assistant_events.append(payload_event)
                     if _should_capture_assistant_content(event):
                         streamed_assistant_content += str(event.content or "")
@@ -5451,9 +5911,13 @@ class TurnRuntimeManager:
                     )
                 elif "question_followup_context" in trace_metadata:
                     trace_metadata.pop("question_followup_context", None)
-                assistant_content = authoritative_assistant_content or assistant_content
+                raw_assistant_content = authoritative_assistant_content or assistant_content
                 assistant_content = normalize_markdown_for_tutorbot(
-                    coerce_user_visible_answer(assistant_content)
+                    coerce_user_visible_answer(raw_assistant_content)
+                )
+                chargeable_assistant_content = _is_chargeable_mobile_assistant_content(
+                    raw_assistant_content,
+                    assistant_content,
                 )
                 execution.terminal_commit_started = True
                 await self._safe_store_call(
@@ -5483,6 +5947,7 @@ class TurnRuntimeManager:
                     session_id=session_id,
                     turn_id=turn_id,
                     usage_summary=usage_summary,
+                    chargeable_assistant_content=chargeable_assistant_content,
                 )
                 if billing_capture and billing_capture.get("status") == "captured":
                     with contextlib.suppress(Exception):
@@ -5631,6 +6096,16 @@ class TurnRuntimeManager:
                     metadata={"status": cancelled_status},
                 ),
             )
+            billing_capture = await asyncio.to_thread(
+                self._finalize_free_trial_reservation,
+                billing_context,
+                session_id=session_id,
+                turn_id=turn_id,
+                chargeable=False,
+                release_reason="turn_timeout" if timed_out else "turn_cancelled",
+            )
+            if billing_capture:
+                trace_metadata["billing_capture"] = billing_capture
             terminal_status = cancelled_status
             if not timed_out:
                 raise
@@ -5697,6 +6172,16 @@ class TurnRuntimeManager:
                     metadata={"status": "failed"},
                 ),
             )
+            billing_capture = await asyncio.to_thread(
+                self._finalize_free_trial_reservation,
+                billing_context,
+                session_id=session_id,
+                turn_id=turn_id,
+                chargeable=False,
+                release_reason="turn_exception",
+            )
+            if billing_capture:
+                trace_metadata["billing_capture"] = billing_capture
         finally:
             if turn_slot_acquired:
                 _release_turn_slot()

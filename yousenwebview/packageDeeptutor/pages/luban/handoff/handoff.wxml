@@ -26,6 +26,12 @@
         <view class="ho-btn primary {{remindRequested ? 'done' : ''}}" bindtap="onRemindTap">
           <text>{{remindRequested ? '已记下，明天见' : '明天提醒我'}}</text>
         </view>
+        <view class="ho-btn ghost" bindtap="onSeethroughTap">
+          <text>趁热再来：5 关连闯</text>
+        </view>
+        <view class="ho-btn ghost" bindtap="onReviewTap">
+          <text>看我的复习安排</text>
+        </view>
         <view class="ho-btn ghost" bindtap="onMistakeBankTap">
           <text>查看我的错因银行</text>
         </view>

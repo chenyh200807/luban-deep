@@ -1,31 +1,30 @@
 from __future__ import annotations
 
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta
 import json
 import os
+from pathlib import Path
 import re
 import sqlite3
 import time
-from collections import Counter
-from collections import defaultdict
-from datetime import datetime
-from datetime import timedelta
-from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from deeptutor.api.runtime_metrics import normalize_latency_stage_timings
-
 from deeptutor.services.observability import get_control_plane_store
 from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
+from deeptutor.services.observability.product_behavior_store import SQLiteProductBehaviorStore
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
-from deeptutor.services.observability.surface_events import get_surface_event_store
-from deeptutor.services.observability.turn_event_log import TurnEventLog
-from deeptutor.services.observability.turn_event_log import event_is_test_only
-from deeptutor.services.observability.turn_event_log import get_turn_event_log
 from deeptutor.services.observability.runtime_incidents import (
     classify_runtime_incidents_from_backend_logs,
 )
-from deeptutor.services.observability.product_behavior_store import SQLiteProductBehaviorStore
+from deeptutor.services.observability.surface_events import get_surface_event_store
+from deeptutor.services.observability.turn_event_log import (
+    TurnEventLog,
+    event_is_test_only,
+    get_turn_event_log,
+)
 from deeptutor.services.path_service import get_path_service
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -576,6 +575,44 @@ def _build_trace_linkage_snapshot(events: list[dict[str, Any]]) -> dict[str, Any
     }
 
 
+def _slow_turn_sample(event: dict[str, Any]) -> dict[str, Any] | None:
+    metadata = event.get("metadata") if isinstance(event.get("metadata"), dict) else {}
+    latency_ms = event.get("latency_ms")
+    fuc_ms = metadata.get("server_turn_start_to_first_useful_content_ms")
+    if not isinstance(latency_ms, (int, float)) and not isinstance(fuc_ms, (int, float)):
+        return None
+    sample: dict[str, Any] = {
+        "turn_id": str(event.get("turn_id") or "").strip(),
+        "status": str(event.get("status") or "").strip(),
+        "capability": str(event.get("capability") or "").strip(),
+    }
+    if isinstance(latency_ms, (int, float)) and float(latency_ms) >= 0:
+        sample["latency_ms"] = round(float(latency_ms), 1)
+    if isinstance(fuc_ms, (int, float)) and float(fuc_ms) >= 0:
+        sample["server_turn_start_to_first_useful_content_ms"] = round(float(fuc_ms), 1)
+    for key in ("selected_mode", "effective_response_mode", "execution_path"):
+        value = str(metadata.get(key) or "").strip()
+        if value:
+            sample[key] = value
+    max_stall = metadata.get("latency_max_stall")
+    if isinstance(max_stall, dict):
+        sanitized_stall = {
+            key: max_stall[key]
+            for key in (
+                "scope",
+                "stage",
+                "duration_ms",
+                "call_site",
+                "provider_name",
+                "model",
+            )
+            if key in max_stall
+        }
+        if sanitized_stall:
+            sample["latency_max_stall"] = sanitized_stall
+    return sample
+
+
 def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     event_count = len(events)
     status_counter = Counter(str(item.get("status") or "unknown").strip() or "unknown" for item in events)
@@ -597,6 +634,7 @@ def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     ]
     stage_latency_totals: dict[str, float] = defaultdict(float)
     stage_latency_counts: Counter[str] = Counter()
+    slow_samples: list[tuple[float, dict[str, Any]]] = []
     for item in events:
         metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
         for stage, duration_ms in normalize_latency_stage_timings(
@@ -604,6 +642,13 @@ def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         ).items():
             stage_latency_totals[stage] += duration_ms
             stage_latency_counts[stage] += 1
+        sample = _slow_turn_sample(item)
+        if sample is not None:
+            sort_ms = sample.get("server_turn_start_to_first_useful_content_ms")
+            if not isinstance(sort_ms, (int, float)):
+                sort_ms = sample.get("latency_ms")
+            if isinstance(sort_ms, (int, float)):
+                slow_samples.append((float(sort_ms), sample))
     error_count = sum(
         count
         for status, count in status_counter.items()
@@ -624,6 +669,14 @@ def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
             for stage, count in sorted(stage_latency_counts.items(), key=lambda item: item[0])
             if count
         },
+        "slow_turn_samples": [
+            sample
+            for _duration_ms, sample in sorted(
+                slow_samples,
+                key=lambda item: item[0],
+                reverse=True,
+            )[:5]
+        ],
         "avg_tokens": round(sum(token_values) / len(token_values), 1) if token_values else None,
         "retrieval_hit_ratio": round(sum(1 for item in retrieval_values if item) / len(retrieval_values), 4)
         if retrieval_values

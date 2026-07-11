@@ -1,0 +1,101 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "S06",
+ "status": "signed",
+ "source_pack_sha256": "22438b347c9f36c8fb53a305b4c2f3d5eb07b8d7438b7bdb3d6e24e0d71870d8",
+ "generation_ms": 4.33,
+ "gate": {
+  "total": 6,
+  "passed": 6,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 6,
+ "dropped_rows": [
+  {
+   "r8_id": "S06:R8-M4",
+   "reason": "panel_reject"
+  },
+  {
+   "r8_id": "S06:R8-M6",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "E04": [
+   {
+    "r8_id": "S06:R8-M1",
+    "mental_model": "临边必须设实体防护栏杆 + 密目网/工具式栏板封闭,不能用警示牌替代",
+    "textbook_ref": "kc:1A436000_121_0195:0",
+    "phenomenon": "临边只写「设警示牌/注意安全」,无实体栏杆",
+    "wrong_model": "以为提示标识即可替代物理隔离"
+   },
+   {
+    "r8_id": "S06:R8-M8",
+    "mental_model": "必须落到「部位+尺寸/高度+措施+封闭/挡脚板」可判分措施,口号不得分",
+    "textbook_ref": "kc:1A436000_107_0174:1",
+    "phenomenon": "答案空泛「加强安全管理、做好防护」",
+    "wrong_model": "以为方向对就给分"
+   }
+  ],
+  "E03": [
+   {
+    "r8_id": "S06:R8-M2",
+    "mental_model": "栏杆=横杆+立杆+挡脚板;上杆 1.2m、立杆间距≤2m、挡脚板≥180mm、承 1kN 缺一不妥",
+    "textbook_ref": "kc:1A436000_121_0195:2",
+    "phenomenon": "栏杆只记「要高一点」,漏挡脚板/漏间距/漏 1kN",
+    "wrong_model": "以为栏杆只要「能挡一下」即可"
+   }
+  ],
+  "E07": [
+   {
+    "r8_id": "S06:R8-M3",
+    "mental_model": "临边/洞口防护栏杆=1.2m(1A436000);0.9m 是室内楼梯扶手(1A411011),两者不同章不同考",
+    "textbook_ref": "kc:1A436000_121_0195:2",
+    "phenomenon": "把栏杆高度写成 0.9m / 1.0m",
+    "wrong_model": "把楼梯扶手 0.9m(设计侧)串到临边栏杆 1.2m"
+   },
+   {
+    "r8_id": "S06:R8-M5",
+    "mental_model": "2m 及以上模板/钢筋/浇筑悬空作业必设操作平台;严禁沿骨架攀登/站骨架作业",
+    "textbook_ref": "kc:1A436000_122_0196:0",
+    "phenomenon": ">2m 悬空作业用梯子攀登 / 站钢筋骨架上",
+    "wrong_model": "以为短时作业不必搭平台"
+   }
+  ],
+  "E10": [
+   {
+    "r8_id": "S06:R8-M5",
+    "mental_model": "2m 及以上模板/钢筋/浇筑悬空作业必设操作平台;严禁沿骨架攀登/站骨架作业",
+    "textbook_ref": "kc:1A436000_122_0196:0",
+    "phenomenon": ">2m 悬空作业用梯子攀登 / 站钢筋骨架上",
+    "wrong_model": "以为短时作业不必搭平台"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "S06:R8-M7",
+    "mental_model": "下层须在坠落半径外(15~30m→5m;>30m→6m);半径内设防护棚/网,未设隔离设警戒区",
+    "textbook_ref": "kc:1A436000_124_0198:0",
+    "phenomenon": "交叉作业不答坠落半径,只写「设防护棚」",
+    "wrong_model": "忽略坠物水平扩散范围"
+   }
+  ],
+  "E12": [
+   {
+    "r8_id": "S06:R8-M8",
+    "mental_model": "必须落到「部位+尺寸/高度+措施+封闭/挡脚板」可判分措施,口号不得分",
+    "textbook_ref": "kc:1A436000_107_0174:1",
+    "phenomenon": "答案空泛「加强安全管理、做好防护」",
+    "wrong_model": "以为方向对就给分"
+   }
+  ]
+ },
+ "signoff": {
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T02:09:09+08:00",
+  "basis": "对抗验尸面板A级停发(blocklist剔11条)+C02尾部kc串清洗+gate 100%; owner授权解药变体验尸治疗"
+ }
+}

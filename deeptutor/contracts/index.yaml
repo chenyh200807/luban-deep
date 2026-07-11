@@ -352,6 +352,7 @@ domains:
       - tests/services/test_active_object_family_first.py
       - tests/agents/question/test_coordinator_followup_anchor.py
       - tests/agents/question/test_coordinator_subject_scope_gate.py
+      - tests/agents/question/test_lightweight_anchor_block_topic_authority.py
       - tests/agents/question/test_generator_subject_lock.py
       - tests/agents/question/test_lightweight_topic_normalizer.py
       - tests/agents/question/test_practice_topic_context_inheritance.py
@@ -597,6 +598,8 @@ domains:
       - tests/services/member_console/test_admin_store.py
       - tests/services/member_console/test_admin_management.py
       - tests/services/member_console/test_rbac.py
+      # BI member read model (channel attribution grouping + member stats limits).
+      - tests/services/test_bi_service_limits.py
       - tests/web/test_bi_member_admin_surface.py
       - tests/supabase/test_learner_state_rls_migration.py
       - tests/services/learner_state/test_d_class_occurrence_timeline.py

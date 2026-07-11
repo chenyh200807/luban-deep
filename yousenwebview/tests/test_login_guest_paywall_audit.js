@@ -184,20 +184,21 @@ assert(
 );
 assert(
   billingWxml.indexOf("开通学习权益") >= 0 &&
-    billingWxml.indexOf("联系销售开通") >= 0 &&
-    billingWxml.indexOf("sales-contact-qr.png") >= 0,
-  "billing page should expose a sales-contact entitlement package flow",
+    billingWxml.indexOf("微信支付成功后自动开通学习权益") >= 0 &&
+    billingWxml.indexOf("bindtap=\"openCheckout\"") >= 0,
+  "billing page should expose direct WeChat payment entitlement flow",
 );
 assert(
-  billingJs.indexOf("contactSalesVisible") >= 0 &&
-    billingJs.indexOf("api.createBillingCheckout") < 0 &&
-    billingJs.indexOf("requestPayment") < 0,
-  "billing open action should show contact-sales QR before any direct payment path",
+  billingJs.indexOf("api.createBillingCheckout") >= 0 &&
+    billingJs.indexOf("wx.requestPayment") >= 0 &&
+    billingJs.indexOf("_refreshUsageAfterPayment") >= 0,
+  "billing open action should call checkout, invoke WeChat payment, and refresh usage",
 );
 assert(
-  billingWxml.indexOf("长按识别二维码") >= 0 &&
-    billingWxml.indexOf("添加销售顾问") >= 0,
-  "billing contact sheet should tell learners to add the sales advisor",
+  billingJs.indexOf("contactSalesVisible") === -1 &&
+    billingWxml.indexOf("sales-contact-qr.png") === -1 &&
+    billingWxml.indexOf("添加销售顾问") === -1,
+  "billing direct payment flow should not fall back to the old sales advisor QR",
 );
 [
   {

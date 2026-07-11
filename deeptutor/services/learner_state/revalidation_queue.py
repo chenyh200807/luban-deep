@@ -7,6 +7,9 @@ each probe is still produced by ``training_intent``.
 """
 from __future__ import annotations
 
+# 复习到期日容量(owner 2026-07-11 拍板 5;此前 v3.2 §6.1 口径为 1)
+_DAILY_MAX_ACTIVE = 5
+
 import hashlib
 from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable
@@ -74,9 +77,11 @@ def build_revalidation_queue_projection(
         )
         due_items.append(item)
 
+    # 日容量 owner 拍板 2026-07-11: 1→5("做1实在太少了")。
+    # 复习页三层信息架构(汇总gauge/约定卡/到期清单)自此名副其实。
     prioritized = prioritize_training_intents(
         [item["intent"] for item in due_items],
-        max_active=1,
+        max_active=_DAILY_MAX_ACTIVE,
     )
     priority_by_id = {
         str(intent.get("training_intent_id") or ""): intent
@@ -88,7 +93,7 @@ def build_revalidation_queue_projection(
             item["probe_id"],
         )
     )
-    emitted_items = due_items[:1]
+    emitted_items = due_items[:_DAILY_MAX_ACTIVE]
     for item in emitted_items:
         prioritized_intent = priority_by_id.get(item["probe_id"])
         if prioritized_intent:
@@ -101,7 +106,7 @@ def build_revalidation_queue_projection(
         "source_status": {
             "authority": "learner_memory_events.learning_evidence -> mastery_estimator -> training_intent",
             "model": "rule_based_arrs_v1",
-            "daily_capacity": 1,
+            "daily_capacity": _DAILY_MAX_ACTIVE,
             "candidate_count": len(rows),
             "due_count": len(due_items),
             "suppressed_due_count": max(len(due_items) - len(emitted_items), 0),

@@ -1,0 +1,207 @@
+<!-- 错因银行 · 列表/详情/空态（第10轮宣纸补稿 errorbank-detail.html 逐态照做） -->
+<view class="paper {{isDark ? '' : 'light'}} eb-page pk-paper-bg">
+  <view class="eb-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="eb-nav-inner">
+      <view class="eb-back" bindtap="goBack">
+        <text class="eb-back-arrow">‹</text>
+        <text class="eb-back-text">{{mode === 'detail' ? '银行' : '返回'}}</text>
+      </view>
+      <view class="eb-nav-titles">
+        <text class="eb-nav-title">{{mode === 'detail' ? '错因详情' : '错因银行'}}</text>
+        <text class="eb-nav-sub">{{mode === 'detail' ? detail.positionLabel : '每笔都带解药 · 还清一笔销一笔'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view class="eb-scroll" scroll-y enhanced show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="eb-inner">
+
+      <view class="eb-error" wx:if="{{errorText}}">
+        <text>{{errorText}}</text>
+        <view class="eb-retry" bindtap="retry">重试</view>
+      </view>
+
+      <view class="eb-loading" wx:if="{{loading}}">
+        <text>正在打开你的账本…</text>
+      </view>
+
+      <!-- ════════ 列表态 / 空态 ════════ -->
+      <block wx:if="{{!loading && !errorText && vm && mode === 'list'}}">
+
+        <!-- 销账竹青章仪式: 复测通过返回时的高光条 -->
+        <view class="eb-just-settled" wx:if="{{justSettledKey}}">
+          <view class="eb-seal">销</view>
+          <view class="eb-just-settled-body">
+            <text class="eb-just-settled-title">换皮复测通过 · 这笔销了</text>
+            <text class="eb-just-settled-desc">数字和场景换了皮你也认得——这笔分拿回来了</text>
+          </view>
+        </view>
+
+        <!-- 记账未开通(mistake-book flag 关): 诚实说明, 不冒充"都还清了" -->
+        <view class="eb-empty pk-card" wx:if="{{bookDisabled}}">
+          <view class="eb-empty-ring dim">
+            <view class="eb-empty-check">…</view>
+          </view>
+          <text class="eb-empty-title">错因记账 · 即将开通</text>
+          <text class="eb-empty-desc">开通后，练习里冒出来的每笔错因都会自动记在这里——配好解药，随还随销。现在先去练，一题都不会丢。</text>
+          <view class="eb-btn" bindtap="goLearn"><text>去学习页 · 点亮下一站</text></view>
+        </view>
+
+        <!-- 空态(待还 0): 满环对勾 + 深链学习(D1 铁律) -->
+        <view class="eb-empty pk-card" wx:elif="{{vm.allClear}}">
+          <view class="eb-empty-ring">
+            <view class="eb-empty-check">✓</view>
+          </view>
+          <text class="eb-empty-title">待还 0 笔 · 都还清了</text>
+          <text class="eb-empty-desc">现在没有待还的错因。之后练习里再冒出来的，会自动记在这里——每笔都配好解药，随还随销。</text>
+          <view class="eb-btn" bindtap="goLearn"><text>去学习页 · 点亮下一站</text></view>
+        </view>
+
+        <!-- 账本 hero(待还>0) -->
+        <view class="eb-hero pk-card" wx:else>
+          <view
+            class="eb-gauge"
+            style="background: conic-gradient(var(--pk-grn) {{vm.settledPercent}}%, var(--pk-gauge) 0)"
+          >
+            <view class="eb-gauge-core">
+              <text class="eb-gauge-num">{{vm.pendingCount}}</text>
+              <text class="eb-gauge-label">待还</text>
+            </view>
+          </view>
+          <view class="eb-hero-body">
+            <text class="eb-hero-title">{{vm.heroTitle}}</text>
+            <text class="eb-hero-desc">每一笔都是能拿回来的分——还清就划掉</text>
+          </view>
+        </view>
+
+        <!-- 待还清单 -->
+        <view class="eb-list pk-card" wx:if="{{vm.pendingCount}}">
+          <view class="eb-list-head">
+            <text class="eb-list-title">待还清单</text>
+            <text class="eb-list-hint">按到期先后排序</text>
+          </view>
+          <view
+            class="eb-row"
+            wx:for="{{vm.pendingEntries}}"
+            wx:key="key"
+            data-key="{{item.key}}"
+            bindtap="openDetail"
+          >
+            <view class="eb-row-icon"></view>
+            <view class="eb-row-body">
+              <view class="eb-row-title-line">
+                <text class="eb-row-title">{{item.errorLabel}}</text>
+                <text class="eb-chip {{item.dueChip.tone}}" wx:if="{{item.dueChip}}">{{item.dueChip.text}}</text>
+              </view>
+              <text class="eb-row-sub">{{item.conceptLabel}}{{item.savedLabel ? ' · 记账 ' + item.savedLabel : ''}}</text>
+              <text class="eb-row-warm" wx:if="{{item.repeatLine}}">{{item.repeatLine}}</text>
+            </view>
+            <text class="eb-row-arrow">›</text>
+          </view>
+        </view>
+
+        <!-- 已销账 -->
+        <view class="eb-list pk-card" wx:if="{{vm.settledCount}}">
+          <view class="eb-list-head">
+            <text class="eb-list-title muted">已销账 · {{vm.settledCount}} 笔</text>
+            <text class="eb-list-hint">{{vm.allClear ? '每一笔都变回了分' : '复测通过自动划掉'}}</text>
+          </view>
+          <view class="eb-row plain" wx:for="{{settledPreview}}" wx:key="key">
+            <view class="eb-seal">销</view>
+            <view class="eb-row-body">
+              <text class="eb-row-title settled">{{item.errorLabel}} · {{item.conceptLabel}}</text>
+              <text class="eb-row-settled-line">{{item.settledLine}}</text>
+            </view>
+          </view>
+          <view
+            class="eb-list-expand"
+            wx:if="{{vm.settledCount > settledPreview.length || settledExpanded}}"
+            bindtap="toggleSettled"
+          >
+            <text>{{settledExpanded ? '收起' : '展开全部 ' + vm.settledCount + ' 笔'}}</text>
+          </view>
+        </view>
+
+        <text class="eb-foot-note">错因由判分内核直接记账 · 这里只呈现与销账，不另起炉灶</text>
+      </block>
+
+      <!-- ════════ 详情态 · 四段瀑布 ════════ -->
+      <block wx:if="{{!loading && !errorText && mode === 'detail' && detail}}">
+
+        <!-- ① 错因头卡 -->
+        <view class="eb-card pk-card">
+          <view class="eb-chip-line">
+            <text class="eb-chip och big">{{detail.errorLabel}}</text>
+            <text class="eb-chip line" wx:if="{{detail.errorCodeChip}}">{{detail.errorCodeChip}}</text>
+          </view>
+          <text class="eb-detail-title">{{detail.title}}</text>
+          <view class="eb-chip-line" wx:if="{{detail.chips.length}}">
+            <text class="eb-chip {{chip.tone}}" wx:for="{{detail.chips}}" wx:for-item="chip" wx:key="key">{{chip.text}}</text>
+          </view>
+          <text class="eb-warm-line">{{detail.warmLine}}</text>
+        </view>
+
+        <!-- ② 原题背景切片 -->
+        <view class="eb-card pk-card">
+          <view class="eb-card-head">
+            <text class="eb-kicker">当时的题 · 背景切片</text>
+            <text class="eb-textlink" bindtap="openAttemptDetail">回到当时的解析</text>
+          </view>
+          <view class="eb-quote" wx:if="{{detail.slice.quote}}">
+            <text>{{detail.slice.quote}}</text>
+          </view>
+          <block wx:if="{{detail.slice.note}}">
+            <view class="eb-divider"></view>
+            <text class="eb-kicker muted">{{detail.slice.noteKicker}}</text>
+            <view class="eb-note-box">
+              <text>{{detail.slice.note}}</text>
+            </view>
+          </block>
+        </view>
+
+        <!-- ③ R8 解药(绿边卡 · 全页唯一强调块) -->
+        <view class="eb-card pk-card antidote">
+          <view class="eb-card-head">
+            <view class="eb-antidote-head">
+              <view class="eb-iconbox grn"><text>+</text></view>
+              <text class="eb-kicker grn">解药 · 这个误区的心智模型</text>
+            </view>
+          </view>
+          <block wx:if="{{detail.antidote.state === 'ready'}}">
+            <text class="eb-antidote-text">{{detail.antidote.text}}</text>
+            <text class="eb-chip line" wx:if="{{detail.antidote.textbookRef}}">教材出处 · {{detail.antidote.textbookRef}}</text>
+          </block>
+          <block wx:else>
+            <text class="eb-antidote-pending-title">{{detail.antidote.title}}</text>
+            <text class="eb-antidote-pending-desc">{{detail.antidote.desc}}</text>
+            <view class="eb-ghost" bindtap="openAttemptDetail"><text>先回到当时的解析</text></view>
+          </block>
+        </view>
+
+        <!-- ④ 销账动线 -->
+        <view class="eb-card pk-card">
+          <view class="eb-card-head">
+            <text class="eb-kicker">销账动线</text>
+            <text class="eb-card-head-hint">复测通过 = 这笔划掉</text>
+          </view>
+          <view class="eb-flow-line">
+            <text class="eb-chip ink">换个皮再试</text>
+            <text class="eb-flow-arrow">→</text>
+            <text class="eb-chip ink">通过</text>
+            <text class="eb-flow-arrow">→</text>
+            <text class="eb-chip grn">销账 · 划掉这一笔</text>
+          </view>
+          <block wx:if="{{detail.retest.ready}}">
+            <view class="eb-btn" bindtap="openRetest"><text>{{detail.retest.ctaText}}</text></view>
+            <text class="eb-cta-note">数字和场景换了皮，考的还是同一个点——过了就是真掌握</text>
+          </block>
+          <block wx:else>
+            <view class="eb-ghost" bindtap="openAttemptDetail"><text>{{detail.retest.fallbackText}}</text></view>
+            <text class="eb-cta-note">这笔的换皮变体还在准备中——先把当时的解析再过一遍</text>
+          </block>
+        </view>
+      </block>
+
+    </view>
+  </scroll-view>
+</view>

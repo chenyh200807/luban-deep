@@ -14,6 +14,7 @@
 
 | 触发条件 | 必读章节 |
 |---|---|
+| 涉及 Web / BI / 前端 / 浏览器 / 截图 / `next dev` / Playwright | AGENTS §Claude / Codex Web Memory Guardrails |
 | 跑 eval / smoke / QA 且会创建、登录、绑定手机号或产生会员活跃 | AGENTS §Eval Runner Identity Discipline |
 | 涉及 turn / session / stream / replay / resume / 聊天入口 / TutorBot / trace | `CONTRACT.md` + `contracts/index.yaml` + AGENTS §Contract Discipline |
 | 写 PRD / 审 PRD / 判断能力是否落地 / 理解模块方向 | `docs/plan/INDEX.md` + AGENTS §Plan Directory Discipline |
@@ -27,6 +28,15 @@
 | 在阿里云 SSH 上做任何写操作 | AGENTS §3.7 Aliyun SSH Write Boundary（`/root/deeptutor` 是唯一可写边界） |
 
 **AGENTS.md 的硬约束在 Claude Code 上一字不动地生效。** 不要因为换了 agent 平台就放松。
+
+Claude Code 跑任何会登录、注册、绑定手机号、写会员读模型或产生会员活跃的 eval / smoke / QA 前，必须先导出：
+
+```bash
+export DEEPTUTOR_EVAL_RUNNER_AGENT=claude_code
+export DEEPTUTOR_EVAL_RUN_ID="claude_code-$(date +%Y%m%d%H%M%S)-$(git rev-parse --short HEAD 2>/dev/null || echo nogit)"
+```
+
+并且只能使用 `qa_eval_...`、`qa_...`、`eval_...`、`smoke_...` 等机器账号。真人样式用户名或手机号昵称不得用于自动化测试。
 
 ## 与 Codex 的关系
 

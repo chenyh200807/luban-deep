@@ -1,15 +1,16 @@
 from __future__ import annotations
 
+from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
-from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
 from deeptutor.services.observability.oa_runner import build_oa_run
+from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
 from deeptutor.services.observability.turn_event_log import TurnEventLog
 from deeptutor.services.session.turn_runtime import (
     _append_trace_link_event,
     _build_terminal_turn_observation_event,
+    _first_useful_content_observation,
     _summarize_assistant_events,
 )
-
 
 _RELEASE = {
     "release_id": "rel-1",
@@ -167,6 +168,164 @@ def test_terminal_turn_observation_event_keeps_capability_stream_breakdown() -> 
     assert event["metadata"]["capability_stream_event_counts"] == {
         "content": 2,
         "result": 1,
+    }
+
+
+def test_first_useful_content_excludes_progress_and_requires_public_answer() -> None:
+    progress = StreamEvent(
+        type=StreamEventType.PROGRESS,
+        source="turn_runtime",
+        content="Preparing the answer.",
+    )
+    assert _first_useful_content_observation(progress, elapsed_ms=10) == {}
+
+    hidden = StreamEvent(
+        type=StreamEventType.CONTENT,
+        source="chat",
+        content="internal draft",
+        visibility="internal",
+    )
+    assert _first_useful_content_observation(hidden, elapsed_ms=20) == {}
+
+    tool_delta = StreamEvent(
+        type=StreamEventType.CONTENT,
+        source="chat",
+        content="tool chatter",
+        metadata={"call_id": "call-1", "call_kind": "tool_arguments"},
+    )
+    assert _first_useful_content_observation(tool_delta, elapsed_ms=30) == {}
+
+    answer_delta = StreamEvent(
+        type=StreamEventType.CONTENT,
+        source="chat",
+        stage="answer",
+        content="hello",
+        metadata={"call_id": "call-2", "call_kind": "llm_final_response"},
+    )
+    assert _first_useful_content_observation(
+        answer_delta,
+        elapsed_ms=40.125,
+        capability_elapsed_ms=12.345,
+    ) == {
+        "server_turn_start_to_first_useful_content_ms": 40.12,
+        "capability_stream_to_first_useful_content_ms": 12.35,
+        "first_useful_content_event_type": "content",
+        "first_useful_content_content_source": "content.delta",
+        "first_useful_content_source": "chat",
+        "first_useful_content_stage": "answer",
+    }
+
+    result = StreamEvent(
+        type=StreamEventType.RESULT,
+        source="deep_question",
+        metadata={
+            "response": "判分：2/3",
+            "selected_mode": "deep",
+            "execution_path": "case_grading",
+            "question_lifecycle_scene": "case_grading",
+        },
+    )
+    observation = _first_useful_content_observation(result, elapsed_ms=88.8)
+    assert observation["first_useful_content_event_type"] == "result"
+    assert observation["first_useful_content_content_source"] == "result.response"
+    assert observation["first_useful_content_selected_mode"] == "deep"
+    assert observation["first_useful_content_execution_path"] == "case_grading"
+    assert observation["first_useful_content_question_lifecycle_scene"] == "case_grading"
+
+
+def test_terminal_turn_observation_event_keeps_first_useful_content_and_latency_timeline() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "context_route": "question_followup",
+            "selected_mode": "fast",
+            "server_turn_start_to_first_useful_content_ms": 345.678,
+            "capability_stream_to_first_useful_content_ms": 120.123,
+            "first_useful_content_event_type": "content",
+            "first_useful_content_source": "chat",
+            "first_useful_content_content_source": "content.delta",
+            "latency_stages_ms": {"context_build": 50, "capability_stream": 400},
+            "capability_stream_stage_timings_ms": {"first_content": 120},
+            "llm_stream_telemetry": {
+                "calls": [
+                    {
+                        "call_site": "fast_policy",
+                        "provider_name": "dashscope",
+                        "model": "deepseek-v4-flash",
+                        "stage_timings_ms": {
+                            "provider_first_content_delta": 95.555,
+                            "provider_stream_read": 450.0,
+                        },
+                    }
+                ]
+            },
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    metadata = event["metadata"]
+    assert metadata["server_turn_start_to_first_useful_content_ms"] == 345.68
+    assert metadata["capability_stream_to_first_useful_content_ms"] == 120.12
+    assert metadata["first_useful_content_event_type"] == "content"
+    assert {
+        "scope": "cumulative",
+        "stage": "server_turn_start_to_first_useful_content",
+        "duration_ms": 345.68,
+        "event_type": "content",
+        "event_source": "chat",
+        "content_source": "content.delta",
+    } in metadata["latency_timeline"]
+    assert metadata["latency_max_stall"] == {
+        "scope": "llm_provider",
+        "stage": "provider_stream_read",
+        "duration_ms": 450.0,
+        "call_index": 1,
+        "call_site": "fast_policy",
+        "provider_name": "dashscope",
+        "model": "deepseek-v4-flash",
+    }
+
+
+def test_terminal_turn_observation_event_computes_max_stall_before_timeline_truncation() -> None:
+    provider_calls = [
+        {
+            "call_site": f"agent_loop_{index}",
+            "provider_name": "dashscope",
+            "model": "deepseek-v4-flash",
+            "stage_timings_ms": {"provider_stream_read": float(index)},
+        }
+        for index in range(1, 90)
+    ]
+    provider_calls[-1]["stage_timings_ms"]["provider_stream_read"] = 999.0
+
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "llm_stream_telemetry": {"calls": provider_calls},
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    metadata = event["metadata"]
+    assert len(metadata["latency_timeline"]) == 80
+    assert metadata["latency_timeline_truncated"] is True
+    assert metadata["latency_timeline_total_count"] == 89
+    assert metadata["latency_max_stall"] == {
+        "scope": "llm_provider",
+        "stage": "provider_stream_read",
+        "duration_ms": 999.0,
+        "call_index": 89,
+        "call_site": "agent_loop_89",
+        "provider_name": "dashscope",
+        "model": "deepseek-v4-flash",
     }
 
 

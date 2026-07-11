@@ -339,6 +339,46 @@ def test_store_reads_sections_and_timeline_across_identity_group(tmp_path: Path)
     ]
 
 
+def test_store_persists_and_filters_by_practice_mode(tmp_path: Path) -> None:
+    """spike 命门:forward(学习轮当天轻练)/review(复习轮次日复测)必须能从埋点分出——
+    否则 D1 留存(GO 门=人次日回来做换皮复测)读不出。practice_mode 落 column 且
+    query_raw_events 可按之过滤。"""
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    now_ms = int(time.time() * 1000)
+    for evt_id, mode in [("evt-fwd", "forward"), ("evt-rev", "review")]:
+        assert store.record_event(
+            {
+                "event_id": evt_id,
+                "event_name": "learning_action_completed",
+                "event_version": 1,
+                "occurred_at_ms": now_ms,
+                "received_at_ms": now_ms,
+                "user_id": "u1",
+                "visit_id": "v1",
+                "session_id": "",
+                "turn_id": "",
+                "surface": "wechat_yousenwebview",
+                "module": "practice",
+                "section": "",
+                "action": "complete",
+                "properties_json": {
+                    "object_type": "retest",
+                    "object_id": "S05",
+                    "result": "3/5",
+                    "practice_mode": mode,
+                },
+            }
+        )["status"] == "accepted"
+
+    review_only = store.query_raw_events(
+        {"event_name": "learning_action_completed", "practice_mode": "review"}
+    )
+    assert [e["event_id"] for e in review_only] == ["evt-rev"]
+    assert review_only[0]["practice_mode"] == "review"  # column 回读,不靠 JSON 解析
+    forward_only = store.query_raw_events({"practice_mode": "forward"})
+    assert [e["event_id"] for e in forward_only] == ["evt-fwd"]
+
+
 def test_default_product_behavior_store_uses_independent_sibling_db(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

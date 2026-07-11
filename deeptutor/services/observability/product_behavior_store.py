@@ -81,6 +81,7 @@ class SQLiteProductBehaviorStore:
                   platform text not null default '',
                   device_model text not null default '',
                   network_type text not null default '',
+                  practice_mode text not null default '',
                   properties_json text not null default '{}'
                 )
                 """
@@ -103,6 +104,7 @@ class SQLiteProductBehaviorStore:
                 "platform": "platform text not null default ''",
                 "device_model": "device_model text not null default ''",
                 "network_type": "network_type text not null default ''",
+                "practice_mode": "practice_mode text not null default ''",
             }.items():
                 if column_name not in existing_columns:
                     conn.execute(f"alter table product_behavior_events add column {column_sql}")
@@ -137,8 +139,8 @@ class SQLiteProductBehaviorStore:
                       user_id, visit_id, session_id, turn_id, surface, module, section, action,
                       object_type, object_id, entry_source, referrer_module, duration_ms, visible_ms,
                       result, error_code, release_id, app_version, platform, device_model, network_type,
-                      properties_json
-                    ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      practice_mode, properties_json
+                    ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         str(event["event_id"]),
@@ -167,6 +169,7 @@ class SQLiteProductBehaviorStore:
                         str(raw_properties.get("platform") or ""),
                         str(raw_properties.get("device_model") or ""),
                         str(raw_properties.get("network_type") or ""),
+                        str(raw_properties.get("practice_mode") or ""),
                         properties,
                     ),
                 )
@@ -382,7 +385,7 @@ class SQLiteProductBehaviorStore:
         if end_ts_ms is not None:
             clauses.append("occurred_at_ms <= ?")
             params.append(int(end_ts_ms))
-        for key in ("user_id", "event_name", "surface", "module", "section", "action"):
+        for key in ("user_id", "event_name", "surface", "module", "section", "action", "practice_mode"):
             value = str(filters.get(key) or "").strip()
             if value:
                 clauses.append(f"{key} = ?")
@@ -400,7 +403,7 @@ class SQLiteProductBehaviorStore:
                        user_id, visit_id, session_id, turn_id, surface, module, section,
                        action, object_type, object_id, entry_source, referrer_module,
                        duration_ms, visible_ms, result, error_code, release_id, app_version,
-                       platform, device_model, network_type, properties_json
+                       platform, device_model, network_type, practice_mode, properties_json
                 from product_behavior_events
                 where {where_sql}
                 order by occurred_at_ms desc

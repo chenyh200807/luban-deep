@@ -1,0 +1,76 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "J01",
+ "status": "signed",
+ "source_pack_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
+ "generation_ms": 3.15,
+ "gate": {
+  "total": 2,
+  "passed": 2,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 2,
+ "dropped_rows": [
+  {
+   "r8_id": "J01:R8-M2",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "J01:R8-M3",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "J01:R8-M4",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "J01:R8-M5",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "J01:R8-M6",
+   "reason": "panel_reject"
+  },
+  {
+   "r8_id": "J01:R8-M7",
+   "reason": "anchor_unresolved"
+  }
+ ],
+ "antidotes": {
+  "E07": [
+   {
+    "r8_id": "J01:R8-M1",
+    "mental_model": "两道闸：达危大档(基坑≥3m/脚手架≥24m)只编专项方案;达超规模档(基坑≥5m/脚手架≥50m)才专家论证",
+    "textbook_ref": "kc:1A436000_008_0011:0",
+    "phenomenon": "把\"危大\"与\"超规模\"混档,以为危大工程都要专家论证",
+    "wrong_model": "不分一般危大(编案)与超规模(论证)两档"
+   }
+  ],
+  "M08": [
+   {
+    "r8_id": "J01:R8-M1",
+    "mental_model": "两道闸：达危大档(基坑≥3m/脚手架≥24m)只编专项方案;达超规模档(基坑≥5m/脚手架≥50m)才专家论证",
+    "textbook_ref": "kc:1A436000_008_0011:0",
+    "phenomenon": "把\"危大\"与\"超规模\"混档,以为危大工程都要专家论证",
+    "wrong_model": "不分一般危大(编案)与超规模(论证)两档"
+   }
+  ],
+  "E04": [
+   {
+    "r8_id": "J01:R8-M8",
+    "mental_model": "必须落到「分档阈值 + 编制主体 + 程序顺序 + 必含内容 + 专家组数字」可判分要点,口号不得分",
+    "textbook_ref": "kc:1A436000_010_0011:0",
+    "phenomenon": "答案空泛\"加强方案管理、严格论证\"",
+    "wrong_model": "以为方向对就给分"
+   }
+  ]
+ },
+ "signoff": {
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T02:09:08+08:00",
+  "basis": "对抗验尸面板A级停发(blocklist剔11条)+C02尾部kc串清洗+gate 100%; owner授权解药变体验尸治疗"
+ }
+}

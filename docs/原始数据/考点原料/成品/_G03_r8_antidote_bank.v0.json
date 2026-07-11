@@ -1,0 +1,114 @@
+{
+ "schema_version": "luban-antidote-bank",
+ "pack_id": "G03",
+ "status": "signed",
+ "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
+ "generation_ms": 4.89,
+ "gate": {
+  "total": 6,
+  "passed": 6,
+  "pass_rate": 1.0,
+  "code_unregistered": [],
+  "anchor_unresolved": [],
+  "forbidden_words": []
+ },
+ "antidote_count": 6,
+ "dropped_rows": [
+  {
+   "r8_id": "G03:R8-M3",
+   "reason": "anchor_unresolved"
+  },
+  {
+   "r8_id": "G03:R8-M4",
+   "reason": "panel_reject"
+  },
+  {
+   "r8_id": "G03:R8-M7",
+   "reason": "panel_reject"
+  }
+ ],
+ "antidotes": {
+  "E06": [
+   {
+    "r8_id": "G03:R8-M1",
+    "mental_model": "沉桩顺序先深后浅、先大后小、先长后短、先密后疏；密集桩群从中间向四周对称（挤土效应须留自由面释放）",
+    "textbook_ref": "kc:1A413030_090_0165:0",
+    "phenomenon": "沉桩顺序写反（先浅后深/先小后大）",
+    "wrong_model": "以为桩顺序不影响成桩"
+   }
+  ],
+  "M08": [
+   {
+    "r8_id": "G03:R8-M1",
+    "mental_model": "沉桩顺序先深后浅、先大后小、先长后短、先密后疏；密集桩群从中间向四周对称（挤土效应须留自由面释放）",
+    "textbook_ref": "kc:1A413030_090_0165:0",
+    "phenomenon": "沉桩顺序写反（先浅后深/先小后大）",
+    "wrong_model": "以为桩顺序不影响成桩"
+   },
+   {
+    "r8_id": "G03:R8-M5",
+    "mental_model": "沉渣端承型≤50mm / 摩擦型≤100mm / 抗拔抗水平≤200mm——按桩型分档，端承桩持力层最敏感故最严",
+    "textbook_ref": "kc:1A413030_091_0169:0",
+    "phenomenon": "孔底沉渣数字错位（端承写≤200mm）",
+    "wrong_model": "以为各桩型沉渣同标准"
+   }
+  ],
+  "E02": [
+   {
+    "r8_id": "G03:R8-M2",
+    "mental_model": "强度≥70% 方可起吊、≥100% 方可运输打桩；未达强度吊运即致断桩",
+    "textbook_ref": "kc:1A413030_090_0165:0",
+    "phenomenon": "预制桩未达强度即起吊/运输打桩",
+    "wrong_model": "以为桩看着结实就能吊"
+   },
+   {
+    "r8_id": "G03:R8-M8",
+    "mental_model": "干作业成孔孔底虚土≤100mm，超则二次投钻/勺钻清理/孔底压力灌浆；虚土致桩端持力层虚垫沉降增大",
+    "textbook_ref": "kc:1A434000_071_0110:0",
+    "phenomenon": "干作业孔底虚土超 100mm 不处理",
+    "wrong_model": "以为孔底有点虚土无妨"
+   }
+  ],
+  "M10": [
+   {
+    "r8_id": "G03:R8-M2",
+    "mental_model": "强度≥70% 方可起吊、≥100% 方可运输打桩；未达强度吊运即致断桩",
+    "textbook_ref": "kc:1A413030_090_0165:0",
+    "phenomenon": "预制桩未达强度即起吊/运输打桩",
+    "wrong_model": "以为桩看着结实就能吊"
+   }
+  ],
+  "E07": [
+   {
+    "r8_id": "G03:R8-M6",
+    "mental_model": "低应变/声波透射只测完整性缺陷（定性Ⅰ-Ⅳ类）；承载力须静载（直接测）或高应变；甲级桩必静载",
+    "textbook_ref": "kc:1A413030_093_0174:0",
+    "phenomenon": "用低应变测承载力",
+    "wrong_model": "以为完整性=承载力同一回事"
+   }
+  ],
+  "M03": [
+   {
+    "r8_id": "G03:R8-M6",
+    "mental_model": "低应变/声波透射只测完整性缺陷（定性Ⅰ-Ⅳ类）；承载力须静载（直接测）或高应变；甲级桩必静载",
+    "textbook_ref": "kc:1A413030_093_0174:0",
+    "phenomenon": "用低应变测承载力",
+    "wrong_model": "以为完整性=承载力同一回事"
+   }
+  ],
+  "E08": [
+   {
+    "r8_id": "G03:R8-M9",
+    "mental_model": "断裂五因：桩身弯曲/遇障碍物/稳桩不直/接桩偏心/混凝土强度不足；防治=清障/查桩身/垂直沉桩/接桩对中/防运输损伤",
+    "textbook_ref": "kc:1A434000_070_0109:0",
+    "phenomenon": "预制桩断裂只归\"质量差\"不究因",
+    "wrong_model": "以为断桩是偶然"
+   }
+  ]
+ },
+ "signoff": {
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T02:09:08+08:00",
+  "basis": "对抗验尸面板A级停发(blocklist剔11条)+C02尾部kc串清洗+gate 100%; owner授权解药变体验尸治疗"
+ }
+}

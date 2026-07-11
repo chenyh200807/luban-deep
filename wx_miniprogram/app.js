@@ -171,6 +171,40 @@ App({
         this.globalData.networkAvailable = res.networkType !== "none";
       },
     });
+
+    // [渠道归因] 冷启动捕获推广渠道参数（?ch=xxx）与微信场景值，
+    // 注册/微信登录请求透传给后端做 ROI 归因。
+    this._captureChannelAttribution(
+      typeof wx.getLaunchOptionsSync === "function"
+        ? wx.getLaunchOptionsSync()
+        : null,
+    );
+  },
+
+  // [渠道归因] 热启动（后台切前台扫新码）也可能带新的 ch 参数。
+  onShow(options) {
+    this._captureChannelAttribution(options);
+  },
+
+  /**
+   * [渠道归因] 存 storage：带 ch 的启动覆盖旧值（推广码优先），
+   * 无 ch 时仅在从未记录过归因的情况下记下场景值（organic 入口）。
+   * 失败不阻塞启动。
+   */
+  _captureChannelAttribution(options) {
+    try {
+      var opts = options || {};
+      var query = opts.query || {};
+      var ch = String(query.ch || "").slice(0, 64);
+      var scene = opts.scene ? String(opts.scene) : "";
+      if (ch) {
+        wx.setStorageSync("reg_attribution", { ch: ch, scene: scene });
+      } else if (scene && !wx.getStorageSync("reg_attribution")) {
+        wx.setStorageSync("reg_attribution", { ch: "", scene: scene });
+      }
+    } catch (e) {
+      /* 归因捕获失败不影响任何功能 */
+    }
   },
 
   /** 切换主题 */

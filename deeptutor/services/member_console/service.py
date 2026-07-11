@@ -153,7 +153,35 @@ _EXPLICIT_IDENTITY_METADATA_FIELDS = (
     "created_by",
     "is_internal_test",
     "is_test_account",
+    "runner",
+    "agent_tool",
+    "eval_run_id",
+    "phone_binding_method",
 )
+_EVAL_RUNNER_IDENTITY_METADATA = {
+    "account_kind": "eval_runner",
+    "actor_type": "machine",
+    "created_by": "eval_runner",
+    "is_internal_test": True,
+}
+# 注册渠道归因（推广二维码/链接 ?ch=xxx + 微信场景值）→ user_identity_aliases.metadata。
+_CHANNEL_SANITIZE_RE = re.compile(r"[^0-9A-Za-z_\-]")
+
+
+def _channel_attribution_metadata(channel: Any, scene: Any) -> dict[str, Any]:
+    """把客户端透传的渠道参数收敛成 reg_channel / reg_scene 两个 metadata 键。
+
+    channel 只保留 [0-9A-Za-z_-]（防注入/防脏值），scene 只保留数字（微信场景值）。
+    两者皆空时返回空 dict，不产生任何写入。
+    """
+    metadata: dict[str, Any] = {}
+    normalized_channel = _CHANNEL_SANITIZE_RE.sub("", str(channel or "").strip())[:64]
+    if normalized_channel:
+        metadata["reg_channel"] = normalized_channel
+    normalized_scene = "".join(ch for ch in str(scene or "").strip() if ch.isdigit())[:8]
+    if normalized_scene:
+        metadata["reg_scene"] = normalized_scene
+    return metadata
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
@@ -1840,6 +1868,15 @@ class MemberConsoleService:
         return False
 
     @classmethod
+    def _explicit_identity_metadata(cls, member: dict[str, Any]) -> dict[str, Any]:
+        metadata: dict[str, Any] = {}
+        for source in cls._identity_metadata_sources(member):
+            for field in _EXPLICIT_IDENTITY_METADATA_FIELDS:
+                if field in source:
+                    metadata[field] = source.get(field)
+        return metadata
+
+    @classmethod
     def _looks_like_test_member(cls, member: dict[str, Any]) -> bool:
         if cls._has_explicit_non_human_identity(member):
             return True
@@ -1853,6 +1890,8 @@ class MemberConsoleService:
                 "external_auth_provider",
                 "wx_openid",
                 "wx_unionid",
+                "alias_user_ids",
+                "search_aliases",
             )
         )
         test_markers = (
@@ -2786,6 +2825,7 @@ class MemberConsoleService:
             external_user = ensure_external_auth_user_for_phone(
                 phone,
                 user_id=desired_user_id or None,
+                identity_metadata=self._explicit_identity_metadata(member) or None,
             )
         except ValueError as exc:
             logger.warning(
@@ -4281,6 +4321,10 @@ class MemberConsoleService:
                     "review_due": item["review_due"],
                     "canonical_user_id": item.get("canonical_user_id") or item["user_id"],
                     "alias_user_ids": item.get("alias_user_ids") or [item["user_id"]],
+                    # 注册渠道归因（user_identity_aliases.metadata.reg_channel）
+                    "channel": str(
+                        (item.get("identity_metadata") or {}).get("reg_channel") or ""
+                    ),
                     "behavior": behavior_summaries.get(
                         item["user_id"],
                         self._fallback_member_behavior_summary(),
@@ -4354,12 +4398,17 @@ class MemberConsoleService:
         return " ".join(values).lower()
 
     def list_members_for_bi(self) -> list[dict[str, Any]]:
+        # 与 get_dashboard / list_members 同一 canonical 模式：对话活跃事实
+        # 只从 SQLite sessions 派生（v_members 的 chat 列来自死表，已弃读），
+        # 所以 BI 投影也必须过 _merge_session_activity_for_member_list。
         data = self._load()
         return deepcopy(
             self._filter_bi_operational_members(
-                self._load_member_directory_members_for_bi(
-                    data,
-                    include_session_activity_supplements=True,
+                self._merge_session_activity_for_member_list(
+                    self._load_member_directory_members_for_bi(
+                        data,
+                        include_session_activity_supplements=True,
+                    )
                 )
             )
         )
@@ -8262,7 +8311,15 @@ class MemberConsoleService:
         )
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
-    def register_with_external_auth(self, username: str, password: str, phone: str) -> dict[str, Any]:
+    def register_with_external_auth(
+        self,
+        username: str,
+        password: str,
+        phone: str,
+        *,
+        channel: str = "",
+        scene: str = "",
+    ) -> dict[str, Any]:
         normalized_phone = _normalize_phone_input(phone)
         if not normalized_phone or not self._is_cn_mainland_mobile(normalized_phone):
             raise ValueError("请输入有效的大陆手机号")
@@ -8281,9 +8338,13 @@ class MemberConsoleService:
             user_id=auth_identity["user_id"],
             canonical_uid=auth_identity["canonical_uid"],
         )
+        identity_metadata = self._explicit_identity_metadata(external_user)
+        # 注册渠道归因：register 走到这里必然是新会员（重复手机号在上方已拒绝）。
+        identity_metadata.update(_channel_attribution_metadata(channel, scene))
         self._persist_phone_identity(
             phone=normalized_phone,
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+            identity_metadata=identity_metadata or None,
         )
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
@@ -8555,20 +8616,42 @@ class MemberConsoleService:
             unionid=auth_identity["unionid"] or unionid,
         )
 
-    async def login_with_wechat_phone(self, code: str, phone_code: str) -> dict[str, Any]:
+    async def login_with_wechat_phone(
+        self,
+        code: str,
+        phone_code: str,
+        *,
+        channel: str = "",
+        scene: str = "",
+    ) -> dict[str, Any]:
         identity = await self._resolve_wechat_login_identity(code)
-        return await self.bind_phone_for_wechat(identity["user_id"], phone_code)
+        return await self.bind_phone_for_wechat(
+            identity["user_id"], phone_code, channel=channel, scene=scene
+        )
 
-    async def bind_phone_for_wechat(self, user_id: str, phone_code: str) -> dict[str, Any]:
+    async def bind_phone_for_wechat(
+        self,
+        user_id: str,
+        phone_code: str,
+        *,
+        channel: str = "",
+        scene: str = "",
+    ) -> dict[str, Any]:
         raw_code = str(phone_code or "").strip()
         if not raw_code:
             raise ValueError("valid phone_code is required")
 
-        # 微信 phone_code 是授权码（非手机号），禁止把授权码里的数字截取当手机号使用。
-        # 仅当 raw_code 本身已是合法大陆手机号（开发/测试环境直传）才直接使用，
-        # 否则置空，强制调用微信 API 换取真实号码。
         _maybe_direct = _normalize_phone_input(raw_code)
-        normalized = _maybe_direct if self._is_cn_mainland_mobile(_maybe_direct) else ""
+        is_direct_phone = self._is_cn_mainland_mobile(_maybe_direct)
+        normalized = ""
+        phone_binding_method = "wechat_phone_code"
+        identity_metadata: dict[str, Any] = {}
+        if is_direct_phone:
+            if is_production_environment():
+                raise ValueError("WeChat phone authorization code is required")
+            normalized = _maybe_direct
+            phone_binding_method = "direct_phone"
+            identity_metadata = dict(_EVAL_RUNNER_IDENTITY_METADATA)
         if len(normalized) != 11:
             try:
                 normalized = await self._exchange_wechat_phone_code(raw_code)
@@ -8583,6 +8666,8 @@ class MemberConsoleService:
                 if not self._supports_dev_wechat_login(raw_code):
                     raise normalized_exc
                 normalized = _normalize_phone_input("13800000000" + raw_code[-4:])
+                phone_binding_method = "dev_wechat_phone_fallback"
+                identity_metadata = dict(_EVAL_RUNNER_IDENTITY_METADATA)
         if len(normalized) != 11:
             raise ValueError("valid phone_code is required")
 
@@ -8590,6 +8675,16 @@ class MemberConsoleService:
             verified_phone_canonical_uid = self._resolve_verified_phone_canonical_uid(normalized)
         except ValueError as exc:
             raise ValueError("手机号身份冲突，请联系客服") from exc
+
+        # 注册渠道归因只做 first-touch：该手机号尚无已验证 canonical alias（真·首次注册）
+        # 才写 reg_channel/reg_scene；已注册用户复登录不覆盖注册渠道。
+        if not verified_phone_canonical_uid:
+            identity_metadata.update(_channel_attribution_metadata(channel, scene))
+
+        def _apply_binding_metadata(member: dict[str, Any]) -> None:
+            member["phone_binding_method"] = phone_binding_method
+            if identity_metadata:
+                member.update(identity_metadata)
 
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             current = self._ensure_member(data, user_id)
@@ -8612,6 +8707,7 @@ class MemberConsoleService:
                 target = self._find_member(data, str(merge.get("target_user_id") or target["user_id"]))
                 target["phone"] = normalized
                 target["last_active_at"] = _iso()
+                _apply_binding_metadata(target)
                 return {
                     "bound": True,
                     "merged": True,
@@ -8624,6 +8720,7 @@ class MemberConsoleService:
             before = deepcopy(current)
             current["phone"] = normalized
             current["last_active_at"] = _iso()
+            _apply_binding_metadata(current)
             _bind_display = str(current.get("display_name") or "").strip()
             _bind_uid = str(current.get("user_id") or "").strip()
             if not _bind_display or _bind_display == _bind_uid:
@@ -8671,6 +8768,7 @@ class MemberConsoleService:
         self._persist_phone_identity(
             phone=normalized,
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+            identity_metadata=identity_metadata or None,
         )
         # openid / unionid 持久化：canonical_uid 已确立后写入，
         # 使同一 WeChat Open Platform 下的跨产品登录可通过 unionid 直接命中同一身份。
@@ -8774,7 +8872,13 @@ class MemberConsoleService:
         resolved = self._resolve_password_reset_account(username, phone)
         return self.send_phone_code(str(resolved["phone"]))
 
-    def _persist_phone_identity(self, *, phone: str, canonical_uid: str) -> None:
+    def _persist_phone_identity(
+        self,
+        *,
+        phone: str,
+        canonical_uid: str,
+        identity_metadata: dict[str, Any] | None = None,
+    ) -> None:
         """把手机号持久化到 user_identity_aliases 和 users.phone，best-effort 不阻塞认证流程。"""
         if not phone or not canonical_uid or not is_uuid_like(canonical_uid):
             return
@@ -8807,6 +8911,7 @@ class MemberConsoleService:
         if not db_url:
             logger.warning("phone identity persist skipped: DB_URL not configured")
             return
+        metadata_json = json.dumps(identity_metadata or {}, ensure_ascii=False)
         try:
             try:
                 import psycopg
@@ -8828,16 +8933,18 @@ class MemberConsoleService:
                 cur.execute(
                     """
                     INSERT INTO public.user_identity_aliases
-                        (alias_type, alias_value, user_id, source, confidence, verified_at)
-                    VALUES (%s, %s, %s::uuid, %s, %s, now())
+                        (alias_type, alias_value, user_id, source, confidence, verified_at, metadata)
+                    VALUES (%s, %s, %s::uuid, %s, %s, now(), %s::jsonb)
                     ON CONFLICT (alias_type, alias_value) DO UPDATE SET
                         confidence  = EXCLUDED.confidence,
                         verified_at = EXCLUDED.verified_at,
+                        metadata    = COALESCE(public.user_identity_aliases.metadata, '{}'::jsonb)
+                                      || EXCLUDED.metadata,
                         updated_at  = now()
                     WHERE public.user_identity_aliases.user_id = EXCLUDED.user_id
                     RETURNING user_id
                     """,
-                    ("phone", phone, canonical_uid, "phone_verification", 1.0),
+                    ("phone", phone, canonical_uid, "phone_verification", 1.0, metadata_json),
                 )
                 persisted = cur.fetchone()
                 if not persisted:

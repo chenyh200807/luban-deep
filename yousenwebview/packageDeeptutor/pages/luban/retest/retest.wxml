@@ -1,72 +1,155 @@
-<view class="luban-page {{isDark ? '' : 'light'}}">
-  <view class="lb-nav" style="padding-top: {{statusBarHeight}}px">
-    <view class="lb-nav-inner">
-      <view class="lb-back" bindtap="goBack">
-        <text class="lb-back-arrow">‹</text>
-        <text class="lb-back-text">路线</text>
+<!-- 变体轻练/复测 · 纸墨版(单题聚焦流) -->
+<!-- 结构: 纸墨壳 → 墨点进度 → 当前题卡(题面/二选) → 印章反馈(门道+教材原文join卡) → 收据 -->
+<!-- 数据红线: 全部字段=签发投影(surface/correct_statement/anchor/textbook), 前端零造词 -->
+<view class="paper {{isDark ? '' : 'light'}} rt-page pk-paper-bg">
+  <view class="rt-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="rt-nav-inner">
+      <view class="rt-back" bindtap="goBack">
+        <text class="rt-back-arrow">‹</text>
       </view>
-      <text class="lb-nav-title">换皮复测</text>
+      <view class="rt-nav-titles">
+        <text class="rt-nav-title">{{navTitle}}</text>
+        <text class="rt-nav-sub">{{title || packId}}</text>
+      </view>
+      <text class="rt-nav-count" wx:if="{{total && !showReceipt}}">{{currentIndex + 1}} / {{total}}</text>
     </view>
   </view>
 
-  <scroll-view class="lb-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px">
-    <view class="lb-inner">
-      <view class="rt-hero">
-        <text class="rt-kicker">昨天的考点，换了一身皮</text>
-        <text class="rt-title">看看你能不能一眼认出它</text>
-      </view>
+  <scroll-view class="rt-scroll" scroll-y enhanced show-scrollbar="{{false}}" style="top: {{navHeight}}px">
+    <view class="rt-inner">
 
-      <view class="rt-error" wx:if="{{errorText}}">
+      <view class="rt-error pk-card" wx:if="{{errorText}}">
         <text>{{errorText}}</text>
-        <view class="rt-retry" bindtap="retry">重试</view>
+        <view class="rt-retry pk-btn-ghost" bindtap="retry">重试</view>
       </view>
 
       <view class="rt-loading" wx:if="{{loading}}">
-        <text>正在取今天的题…</text>
+        <text>{{loadingText}}</text>
       </view>
 
       <block wx:if="{{!loading && !errorText}}">
-        <view class="rt-empty" wx:if="{{!items.length}}">
-          <text>今天这一站暂时没有复测题，明天再来。</text>
+        <view class="rt-empty pk-card" wx:if="{{!items.length}}">
+          <text>{{emptyText}}</text>
         </view>
 
-        <view class="rt-card" wx:for="{{items}}" wx:key="key">
-          <text class="rt-index">第 {{index + 1}} 题 · 共 {{total}} 题</text>
-          <text class="rt-surface">{{item.surface}}</text>
+        <block wx:if="{{items.length && !showReceipt}}">
+          <!-- 开场一句(只在第一题未答时) -->
+          <view class="rt-hero" wx:if="{{currentIndex === 0 && !items[0].answered}}">
+            <text class="rt-kicker">{{heroKicker}}</text>
+            <text class="rt-title">{{heroTitle}}</text>
+            <!-- 题池规模(签发真值): 换皮是刻意设计不是就这几题 -->
+            <text class="rt-pool" wx:if="{{pool}}">本站题池 {{pool.core_total}} 道 · {{pool.rule_groups_total}} 种考法 · 每天换着考</text>
+          </view>
 
-          <view class="rt-choices" wx:if="{{!item.answered}}">
+          <!-- 墨点进度: 未答=空点 / 当前=墨环 / 对=竹青 / 错=赭 -->
+          <view class="rt-dots">
             <view
-              class="rt-choice ok"
-              data-index="{{index}}"
-              data-choice="ok"
-              bindtap="onChoiceTap"
-            >
-              <text>这样做妥当</text>
+              wx:for="{{items}}"
+              wx:key="key"
+              class="rt-dot {{index === currentIndex && !item.answered ? 'now' : ''}} {{item.answered ? (item.correct ? 'good' : 'warm') : ''}}"
+            ></view>
+          </view>
+
+          <!-- 当前题卡(单题聚焦) -->
+          <view class="rt-card pk-card">
+            <view class="rt-card-head">
+              <text class="pk-kicker">第 {{currentIndex + 1}} 题</text>
+              <text class="rt-card-hint" wx:if="{{!items[currentIndex].answered}}">同一个考点 · 换了身皮</text>
             </view>
-            <view
-              class="rt-choice not-ok"
-              data-index="{{index}}"
-              data-choice="not_ok"
-              bindtap="onChoiceTap"
-            >
-              <text>不妥当</text>
+            <text class="rt-surface">{{items[currentIndex].surface}}</text>
+
+            <view class="rt-choices" wx:if="{{!items[currentIndex].answered}}">
+              <view class="rt-choice ok" hover-class="rt-choice-press" data-index="{{currentIndex}}" data-choice="ok" bindtap="onChoiceTap">
+                <text>这样做妥当</text>
+              </view>
+              <view class="rt-choice not-ok" hover-class="rt-choice-press" data-index="{{currentIndex}}" data-choice="not_ok" bindtap="onChoiceTap">
+                <text>不妥当</text>
+              </view>
+            </view>
+
+            <!-- 印章反馈(答后滑入) -->
+            <view class="rt-verdict {{items[currentIndex].correct ? 'good' : 'warm'}}" wx:if="{{items[currentIndex].answered}}">
+              <view class="rt-seal-row">
+                <view class="rt-seal {{items[currentIndex].correct ? 'good' : 'warm'}}">
+                  <text>{{items[currentIndex].correct ? '真懂' : '差一步'}}</text>
+                </view>
+                <view class="rt-seal-copy">
+                  <text class="rt-verdict-main">{{items[currentIndex].correct ? '对——你是真懂了' : '就差一步——门道在这'}}</text>
+                  <text class="rt-verdict-sub">{{items[currentIndex].correct ? '这个皮没骗到你' : '差的不是能力，是下面这句'}}</text>
+                </view>
+              </view>
+
+              <!-- 门道 = 签发 correct_statement 逐字 -->
+              <view class="rt-truth">
+                <text class="rt-truth-label">门道</text>
+                <text class="rt-truth-text">{{items[currentIndex].correct_statement}}</text>
+              </view>
+
+              <!-- 教材原文并排卡(仅 anchor join 命中签发考点卡时出现, 逐字透传) -->
+              <view class="rt-book" wx:if="{{items[currentIndex].textbook}}">
+                <view class="rt-book-spine"></view>
+                <view class="rt-book-body">
+                  <text class="rt-book-kicker">教材原文 · 阅卷认的这句</text>
+                  <text class="rt-book-quote">{{items[currentIndex].textbook.quote}}</text>
+                  <view class="rt-book-foot">
+                    <text class="rt-book-label" wx:if="{{items[currentIndex].textbook.label}}">{{items[currentIndex].textbook.label}}</text>
+                    <text class="rt-book-page" wx:if="{{items[currentIndex].textbook.page_num}}">教材 P{{items[currentIndex].textbook.page_num}}</text>
+                  </view>
+                </view>
+              </view>
+
+              <!-- 原文卡在场时不再露 kc 坐标(信息重复); 无原文时保留定位可溯 -->
+              <text class="rt-anchor" wx:if="{{items[currentIndex].anchor && !items[currentIndex].textbook}}">定位 {{items[currentIndex].anchor}}</text>
+
+              <view class="pk-btn-ink rt-next" bindtap="nextQuestion">
+                {{currentIndex + 1 < total ? '下一题' : '看今日收据'}}
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 完场收据(纸墨) -->
+        <view class="rt-receipt pk-card" wx:if="{{showReceipt}}">
+          <view class="rt-receipt-head">
+            <text class="rt-receipt-kicker">{{doneTitlePrefix}}</text>
+            <view class="rt-receipt-score">
+              <text class="rt-receipt-big">{{correctCount}}</text>
+              <text class="rt-receipt-slash">/ {{total}}</text>
+            </view>
+          </view>
+          <view class="rt-receipt-rows">
+            <view class="rt-receipt-row">
+              <text class="rt-receipt-k">考法覆盖</text>
+              <text class="rt-receipt-v">{{ruleGroupCount}} 种考法各来了一题</text>
+            </view>
+            <view class="rt-receipt-row" wx:if="{{pool && seenCount}}">
+              <text class="rt-receipt-k">收集进度</text>
+              <text class="rt-receipt-v">已见过本站 {{seenCount}} / {{pool.core_total}} 道变体</text>
+            </view>
+            <view class="rt-receipt-row" wx:if="{{textbookCount}}">
+              <text class="rt-receipt-k">教材原文</text>
+              <text class="rt-receipt-v">翻出 {{textbookCount}} 句阅卷认的原文</text>
             </view>
           </view>
 
-          <view class="rt-feedback {{item.correct ? 'good' : 'warm'}}" wx:if="{{item.answered}}">
-            <block wx:if="{{item.correct}}">
-              <text class="rt-feedback-main">对——你是真懂了</text>
-            </block>
-            <block wx:else>
-              <text class="rt-feedback-main">再看一眼就稳了：{{item.correct_statement}}</text>
-            </block>
-            <text class="rt-anchor" wx:if="{{item.anchor}}">{{item.anchor}}</text>
+          <!-- 错题再看一眼(签发门道逐字, 不复述你的错) -->
+          <view class="rt-review-list" wx:if="{{wrongItems.length}}">
+            <text class="rt-review-label">睡前再看一眼这 {{wrongItems.length}} 句，明天就是你的</text>
+            <view class="rt-review-item" wx:for="{{wrongItems}}" wx:key="key">
+              <view class="rt-review-dot"></view>
+              <text class="rt-review-text">{{item.correct_statement}}</text>
+            </view>
           </view>
-        </view>
+          <text class="rt-receipt-clean" wx:if="{{!wrongItems.length && total}}">一题没漏——这个考点怎么换皮，你都认得。</text>
 
-        <view class="rt-done" wx:if="{{done}}">
-          <text class="rt-done-title">今天的回炉完成 {{correctCount}}/{{total}}</text>
-          <text class="rt-done-desc">这个考点在你这儿越来越稳了。明天见。</text>
+          <view class="rt-stamp-row">
+            <view class="rt-stamp">
+              <text>{{mode === 'forward' ? '明日换皮' : '回炉完成'}}</text>
+            </view>
+            <text class="rt-stamp-note">{{doneDesc}}</text>
+          </view>
+
+          <view class="pk-btn-ink rt-next" bindtap="goBack">回到路线</view>
         </view>
       </block>
     </view>
