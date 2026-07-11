@@ -17,8 +17,11 @@ assert.deepStrictEqual(vm.humanizeErrorLabel("E03"), { label: "关键词缺失",
 assert.deepStrictEqual(vm.humanizeErrorLabel("错因 E06"), { label: "程序顺序错误", code: "E06" });
 assert.deepStrictEqual(vm.humanizeErrorLabel("M04"), { label: "选项陷阱", code: "M04" });
 assert.deepStrictEqual(vm.humanizeErrorLabel("unknown_error"), { label: "未归因错误", code: "unknown_error" });
-// 判分内核已给人话 diagnosis → 原样呈现, 不硬造错因码
-assert.deepStrictEqual(vm.humanizeErrorLabel("采分点遗漏"), { label: "采分点遗漏", code: "" });
+// 判分内核给的人话 diagnosis 若整句=注册标签 → 逆映射回码(2026-07-12 契约更新:
+// 同一注册表双向镜像, 非二次归因——解锁解药/复测的 (pack, code) 查询键)
+assert.deepStrictEqual(vm.humanizeErrorLabel("采分点遗漏"), { label: "采分点遗漏", code: "E02" });
+// 非注册表文本仍不硬造码
+assert.deepStrictEqual(vm.humanizeErrorLabel("一段自由诊断文本"), { label: "一段自由诊断文本", code: "" });
 assert.deepStrictEqual(vm.humanizeErrorLabel(""), { label: "待归因错因", code: "" });
 
 // ── 2. pack 归属诚实匹配(fail-closed: 对不上=空串, 不猜) ───────
@@ -260,3 +263,41 @@ var vmSource = fs.readFileSync(vmPath, "utf8");
 });
 
 console.log("PASS test_errorbank_view_model.js");
+
+// ── 2026-07-12: 人话标签逆映射 + 解药签发全字段消费 ──
+(function () {
+  var vm = require("../packageDeeptutor/utils/errorbank-view-model.js");
+  // 逆映射: 整句标签/前缀标签 → 注册码(解锁解药查询键)
+  var h1 = vm.humanizeErrorLabel("关键词缺失");
+  if (h1.code !== "E03") throw new Error("整句标签应逆映射 E03, got " + h1.code);
+  var h2 = vm.humanizeErrorLabel("程序顺序错误：层级写反了");
+  if (h2.code !== "E06") throw new Error("前缀标签应逆映射 E06, got " + h2.code);
+  if (h2.label !== "程序顺序错误：层级写反了") throw new Error("label 保留原句");
+  var h3 = vm.humanizeErrorLabel("答案要点没踩到给分点");
+  if (h3.code !== "") throw new Error("非注册标签不硬造码");
+
+  // 解药 items 全字段渲染 + 旧形状向后兼容
+  var d1 = vm.buildErrorbankDetail(
+    { key: "k", errorCode: "E06", packId: "A01" },
+    { antidote: { mental_model: "新地图", textbook_ref: "kc:x",
+        items: [{ mental_model: "新地图", phenomenon: "现象句", wrong_model: "旧地图", textbook_ref: "kc:x" }] } },
+  );
+  if (d1.antidote.items.length !== 1) throw new Error("items 渲染");
+  if (d1.antidote.items[0].phenomenon !== "现象句" || d1.antidote.items[0].wrongModel !== "旧地图")
+    throw new Error("现象/旧地图字段消费");
+  var d2 = vm.buildErrorbankDetail(
+    { key: "k" },
+    { antidote: { mental_model: "只有正文", textbook_ref: "" } },
+  );
+  if (d2.antidote.items.length !== 1 || d2.antidote.items[0].text !== "只有正文")
+    throw new Error("旧形状向后兼容");
+
+  // 早期无码记账的诚实说明
+  var d3 = vm.buildErrorbankDetail({ key: "k", errorCode: "" }, {});
+  if (!d3.thinNote) throw new Error("无码记账应有诚实说明行");
+  var d4 = vm.buildErrorbankDetail({ key: "k", errorCode: "E06" }, {});
+  if (d4.thinNote) throw new Error("有码不显说明行");
+  // 空 note 不给 kicker
+  if (d4.slice.noteKicker) throw new Error("空note不给kicker");
+  console.log("PASS 逆映射+解药全字段 10 断言");
+})();

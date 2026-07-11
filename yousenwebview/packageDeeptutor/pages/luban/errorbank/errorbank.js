@@ -239,7 +239,11 @@ Page({
         // 供给形状: {mental_model, textbook_ref}; 缺正文 = 视同无供给(负缓存)。
         that._antidoteCache[key] =
           body && body.mental_model
-            ? { mental_model: body.mental_model, textbook_ref: body.textbook_ref || "" }
+            ? {
+                mental_model: body.mental_model,
+                textbook_ref: body.textbook_ref || "",
+                items: Array.isArray(body.items) ? body.items : [],
+              }
             : null;
       })
       .catch(function () {
