@@ -191,7 +191,7 @@
    "title": "钢结构连接"
   },
   {
-   "card_hosted": false,
+   "card_hosted": true,
    "content_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
    "explicitly_barred_default_entry": false,
    "file": "D11_抹灰工序与质量控制.md",

@@ -90,6 +90,8 @@ STATIONS: dict[str, Station] = {
     # wave3 batch1（2026-07-05）：绿灯站补视频2类教学卡（teach+practice）
     "s05": _p40("P40_S05"),
     "a01": _p40("P40_A01"),
+    # wave3 batch1 收尾（2026-07-11）：D11 成品资产托管（branch 产出，merge main 后发布）
+    "d11": _p40("P40_D11"),
     "c02": Station(
         pack_dir="C02",
         teach={
