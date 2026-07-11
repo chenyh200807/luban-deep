@@ -661,6 +661,7 @@ class TutorBotManager:
         from deeptutor.tutorbot.agent.loop import AgentLoop
         from deeptutor.tutorbot.config.schema import ExecToolConfig
         from deeptutor.tutorbot.session.sqlite_adapter import SQLiteSessionAdapter
+        from deeptutor.services.llm.config import resolve_fast_tier_model
 
         provider = create_deeptutor_provider()
         bus = MessageBus()
@@ -691,6 +692,10 @@ class TutorBotManager:
             # prompt injection would otherwise reach an RCE surface. (security review C2/H2/H3)
             enable_exec_tool=False,
             default_session_key=canonical_key,
+            # Light-tier model for background work (memory consolidation, subagents).
+            # LLM_FAST_MODEL unset => "" => None => bit-for-bit fall back to self.model.
+            # Zero user-visible surface; independent of the fast-turn A/B flag.
+            utility_model=resolve_fast_tier_model() or None,
         )
 
         # -- Channel setup ---------------------------------------------------

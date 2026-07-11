@@ -269,6 +269,7 @@ def build_mode_execution_policy(
     *,
     selected_mode: Any | None = None,
     selection_reason: str = "",
+    fast_preferred_model: str = "",
 ) -> ModeExecutionPolicy:
     normalized_requested = normalize_requested_response_mode(requested_mode)
     normalized_selected = normalize_requested_response_mode(selected_mode)
@@ -289,9 +290,13 @@ def build_mode_execution_policy(
             model_fallback_allowed=True,
             web_search_allowed=True,
             execution_path="tutorbot_kb_first_fast_policy",
+            preferred_model=str(fast_preferred_model or "").strip(),
             selection_reason=selection_reason,
         )
 
+    # DEEP branch intentionally never fills preferred_model: deep / grading
+    # paths always run the primary model (hard invariant). fast_preferred_model
+    # is ignored here on purpose.
     return ModeExecutionPolicy(
         requested_mode=normalized_requested,
         selected_mode="deep",

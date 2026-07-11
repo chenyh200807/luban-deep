@@ -66,6 +66,22 @@ from deeptutor.tutorbot.response_mode import (
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 
+def _fast_turn_light_model_enabled() -> bool:
+    """Battle1 W4-T2 gray-release gate. Default OFF -> fast-turn preferred_model
+    stays "" and production behavior is bit-for-bit unchanged.
+
+    Delete condition (keep in sync with plan): A/B PASS -> drop this gate and make
+    the fast-turn light model unconditional; A/B FAIL -> drop the wiring in
+    _mode_policy. Never set in production during the Battle1 campaign.
+    """
+    return os.environ.get("LUBAN_FAST_TURN_LIGHT_MODEL_ENABLED", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
 class TutorBotCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="tutorbot",
@@ -83,6 +99,17 @@ class TutorBotCapability(BaseCapability):
             return
         runtime_defaults = resolve_bot_runtime_defaults(bot_id=bot_id)
         policy = self._mode_policy(context)
+        # Battle1 W4-T6: observe-only fast/deep x model-tier occupancy. Recorded
+        # exactly once per turn here (never in _mode_policy, which is called twice).
+        try:
+            from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
+
+            get_turn_runtime_metrics().record_response_mode(
+                policy.selected_mode,
+                "light" if policy.preferred_model else "primary",
+            )
+        except Exception:  # observe-only: never affects the turn
+            pass
         response_mode = policy.effective_mode
         hide_generated_answers = self._should_hide_generated_answers(context)
         runtime_default_tools = list(runtime_defaults.default_tools or []) if runtime_defaults else []
@@ -926,10 +953,16 @@ class TutorBotCapability(BaseCapability):
             )
             if not selection_reason:
                 selection_reason = inferred_reason
+        fast_preferred_model = ""
+        if _fast_turn_light_model_enabled():
+            from deeptutor.services.llm.config import resolve_fast_tier_model
+
+            fast_preferred_model = resolve_fast_tier_model()
         return build_mode_execution_policy(
             requested_mode,
             selected_mode=selected_mode,
             selection_reason=selection_reason,
+            fast_preferred_model=fast_preferred_model,
         )
 
     @staticmethod

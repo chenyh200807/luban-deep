@@ -2655,6 +2655,8 @@ async def test_tutorbot_capability_fast_mode_does_not_override_config_model(
     await _collect_events(lambda bus: capability.run(context, bus))
 
     assert captured["mode"] == "fast"
+    # flag-off default: fast-turn light model gated behind
+    # LUBAN_FAST_TURN_LIGHT_MODEL_ENABLED -> production stays bit-for-bit unchanged.
     assert "preferred_model" not in captured["session_metadata"]
 
 
@@ -2717,11 +2719,154 @@ async def test_tutorbot_capability_deep_mode_does_not_override_config_model(
     await _collect_events(lambda bus: capability.run(context, bus))
 
     assert captured["mode"] == "deep"
+    # Hard invariant: deep never carries a light-tier preferred_model.
     assert "preferred_model" not in captured["session_metadata"]
     assert captured["session_metadata"]["execution_path"] == "tutorbot_kb_first_full_agent_policy"
     assert captured["session_metadata"]["mode_execution_policy"]["workflow"] == "full_agent_loop"
     assert captured["session_metadata"]["mode_execution_policy"]["allow_deep_stage"] is True
     assert captured["session_metadata"]["mode_execution_policy"]["max_tool_rounds"] == 4
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_fast_mode_uses_light_model_when_flag_on(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.api.runtime_metrics import (
+        get_turn_runtime_metrics,
+        reset_turn_runtime_metrics,
+    )
+
+    captured: dict[str, Any] = {}
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None):
+            return SimpleNamespace(running=True)
+
+        def build_chat_session_key(
+            self, bot_id: str, conversation_id: str, user_id: str | None = None
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
+        ) -> str:
+            captured["mode"] = mode
+            captured["session_metadata"] = session_metadata
+            return "Fast TutorBot"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+    # Env_store reads .env from disk; patch the accessor directly at its source so
+    # _mode_policy's lazy import resolves the light tier deterministically.
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.resolve_fast_tier_model",
+        lambda: "qwen3.6-flash",
+    )
+    monkeypatch.setenv("LUBAN_FAST_TURN_LIGHT_MODEL_ENABLED", "true")
+    reset_turn_runtime_metrics()
+
+    context = UnifiedContext(
+        session_id="session-fast-light",
+        user_message="简短解释流水节拍",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "fast"},
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["mode"] == "fast"
+    assert captured["session_metadata"]["preferred_model"] == "qwen3.6-flash"
+
+    # W4-T6 observe-only埋点: exactly one fast|light turn recorded.
+    counts = get_turn_runtime_metrics().snapshot()["response_mode_counts"]
+    assert {"mode": "fast", "model_tier": "light", "count": 1} in counts
+    reset_turn_runtime_metrics()
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_deep_mode_ignores_light_model_when_flag_on(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None):
+            return SimpleNamespace(running=True)
+
+        def build_chat_session_key(
+            self, bot_id: str, conversation_id: str, user_id: str | None = None
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
+        ) -> str:
+            captured["mode"] = mode
+            captured["session_metadata"] = session_metadata
+            return "Deep TutorBot"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.resolve_fast_tier_model",
+        lambda: "qwen3.6-flash",
+    )
+    monkeypatch.setenv("LUBAN_FAST_TURN_LIGHT_MODEL_ENABLED", "true")
+
+    context = UnifiedContext(
+        session_id="session-deep-light",
+        user_message="请详细分析流水节拍和流水步距的区别",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "deep"},
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["mode"] == "deep"
+    # Even with the flag on and a light tier configured, deep never adopts it.
+    assert "preferred_model" not in captured["session_metadata"]
 
 
 @pytest.mark.asyncio

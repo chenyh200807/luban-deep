@@ -37,6 +37,7 @@ class LLMConfigUpdate(TypedDict, total=False):
     api_version: str | None
     extra_headers: dict[str, str]
     reasoning_effort: str | None
+    fast_model: str
     max_tokens: int
     temperature: float
     max_concurrency: int
@@ -104,6 +105,7 @@ class LLMConfig:
     api_version: str | None = None
     extra_headers: dict[str, str] | None = None
     reasoning_effort: str | None = None
+    fast_model: str = ""
     max_tokens: int = 4096
     temperature: float = 0.7
     max_concurrency: int = 20
@@ -209,6 +211,7 @@ def _get_llm_config_from_resolver() -> LLMConfig:
         api_version=resolved.api_version,
         extra_headers=resolved.extra_headers,
         reasoning_effort=resolved.reasoning_effort,
+        fast_model=resolved.fast_model,
     )
 
 
@@ -277,6 +280,23 @@ def reload_config() -> LLMConfig:
     return get_llm_config()
 
 
+def resolve_fast_tier_model() -> str:
+    """Single authority: light-tier model for latency-sensitive / background LLM work.
+
+    Returns "" when unconfigured -> callers MUST keep the primary model (fail-open).
+    The fast-tier model must be servable on the PRIMARY provider endpoint (same
+    base_url / api_key) -- it is a model-name swap, not a second provider. This is
+    the one accessor for the "which light model" business fact (fast-turn wiring,
+    memory-consolidation / subagent utility model, and the W3 scene classifier all
+    read it here); do not add a second model config/router/registry.
+    """
+    try:
+        config = get_llm_config()
+    except Exception:
+        return ""
+    return (getattr(config, "fast_model", "") or "").strip()
+
+
 def uses_max_completion_tokens(model: str) -> bool:
     """
     Check if the model uses max_completion_tokens instead of max_tokens.
@@ -334,6 +354,7 @@ __all__ = [
     "reload_config",
     "set_scoped_llm_config",
     "reset_scoped_llm_config",
+    "resolve_fast_tier_model",
     "uses_max_completion_tokens",
     "get_token_limit_kwargs",
 ]

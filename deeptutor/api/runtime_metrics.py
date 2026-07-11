@@ -125,6 +125,15 @@ class TurnRuntimeMetrics:
         self._turn_latency_count = 0
         self._turn_stage_latency_totals_ms: defaultdict[str, float] = defaultdict(float)
         self._turn_stage_latency_counts: Counter[str] = Counter()
+        # Battle1 W4-T6: observe-only fast/deep x model-tier occupancy (A/B denominator).
+        self._response_mode_counts: Counter[str] = Counter()
+
+    def record_response_mode(self, selected_mode: str, model_tier: str) -> None:
+        """Observe-only: count one turn by (selected_mode, model_tier). fail-open."""
+        mode = str(selected_mode or "").strip().lower() or "unknown"
+        tier = str(model_tier or "").strip().lower() or "primary"
+        with self._lock:
+            self._response_mode_counts[f"{mode}|{tier}"] += 1
 
     def record_ws_open(self) -> None:
         with self._lock:
@@ -192,6 +201,14 @@ class TurnRuntimeMetrics:
                 "turns_in_flight": int(self._turns_in_flight),
                 "turn_avg_latency_ms": round(avg_turn_latency_ms, 2),
                 "turn_stage_avg_latency_ms": stage_avg_latency,
+                "response_mode_counts": [
+                    {
+                        "mode": key.split("|", 1)[0],
+                        "model_tier": key.split("|", 1)[1],
+                        "count": int(value),
+                    }
+                    for key, value in sorted(self._response_mode_counts.items())
+                ],
             }
 
 
@@ -309,6 +326,18 @@ def render_prometheus_metrics(
         labels = {"stage": stage}
         emit("deeptutor_turn_stage_avg_latency_ms", stage_entry.get("avg_latency_ms", 0), labels)
         emit("deeptutor_turn_stage_count", stage_entry.get("count", 0), labels)
+
+    lines.append("# HELP deeptutor_turn_response_mode_total Turns by selected response mode and model tier.")
+    lines.append("# TYPE deeptutor_turn_response_mode_total counter")
+    for mode_entry in turn_snapshot.get("response_mode_counts") or []:
+        emit(
+            "deeptutor_turn_response_mode_total",
+            mode_entry.get("count", 0),
+            {
+                "mode": mode_entry.get("mode", ""),
+                "model_tier": mode_entry.get("model_tier", ""),
+            },
+        )
 
     lines.append("# HELP deeptutor_surface_event_total Total surface telemetry events by surface, event, and ingest status.")
     lines.append("# TYPE deeptutor_surface_event_total counter")

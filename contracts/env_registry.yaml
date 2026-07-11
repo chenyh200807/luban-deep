@@ -92,6 +92,7 @@ feature_flags:
   - {name: DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK, default: false, kind: fallback}
   - {name: DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED, default: false, kind: dev}
   - {name: DEEPTUTOR_WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS, default: "1782097380", kind: config}
+  - {name: DEEPTUTOR_ROUTING_LLM_TIMEOUT_S, default: "6", kind: config}  # Battle1 W3-T2: 路由LLM硬超时(秒), fail-open降scene=None
   - {name: DEEPTUTOR_SEMANTIC_ROUTER_ENABLED, default: true, kind: killswitch}
   - {name: DEEPTUTOR_SEMANTIC_ROUTER_SHADOW_MODE, default: false, kind: shadow}
   - {name: DISABLE_SSL_VERIFY, default: false, kind: killswitch}  # security: on = disable TLS verify
@@ -136,6 +137,9 @@ feature_flags:
   # /light-practice 取题 + /light-practice/submit 交卷判分+写 learning_evidence;
   # 关 = 取题空集/交卷不写(诚实 disabled 态), 与上线前行为一致。
   - {name: LUBAN_LIGHT_PRACTICE_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  # Battle1 W4-T2 fast-turn 轻档灰度门。默认关 = fast 轮 preferred_model 恒 ""，生产 bit-for-bit 不变;
+  # 开 + 设 LLM_FAST_MODEL 才让 smart/fast 轮吃轻模型(deep/判分永不吃)。战役期内生产永不置位。
+  - {name: LUBAN_FAST_TURN_LIGHT_MODEL_ENABLED, default: false, kind: rollout, read: hand_rolled}
   # 讲懂卡托管基址: read_model 派生 card_url={base}/{pack_id小写}/lesson.html;
   # 未设置 = 全站 card_url 空串走原生占位降级(fail-closed), 局外人审计断链②的合闸键。
   - {name: LUBAN_LESSON_CARD_BASE, default: "", kind: config, read: hand_rolled}
@@ -394,6 +398,7 @@ grandfathered_envs:
   - LLM_API_KEY
   - LLM_API_VERSION
   - LLM_BINDING
+  - LLM_FAST_MODEL
   - LLM_HOST
   - LLM_MODEL
   - LLM_TIMEOUT_ANTHROPIC_TOTAL_S
@@ -407,6 +412,7 @@ grandfathered_envs:
   - LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED
   - LUBAN_CASE_RUBRIC_V1_ENABLED
   - LUBAN_DATA_DIR
+  - LUBAN_FAST_TURN_LIGHT_MODEL_ENABLED
   - LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT
   - LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED
   - LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED

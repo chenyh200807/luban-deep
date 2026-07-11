@@ -243,10 +243,16 @@ class MemoryConsolidator:
         build_messages: Callable[..., list[dict[str, Any]]],
         get_tool_definitions: Callable[[], list[dict[str, Any]]],
         shared_memory_dir: Path | None = None,
+        consolidation_model: str | None = None,
     ):
         self.store = MemoryStore(workspace, shared_memory_dir=shared_memory_dir)
         self.provider = provider
+        # ``model`` is the main-loop token-estimation ANCHOR (tokenizer alignment
+        # for prompt-size / consolidation-boundary decisions) and MUST NOT drift
+        # with the light tier. ``consolidation_model`` (optional) only swaps the
+        # model used for the consolidation LLM call itself. None => use self.model.
         self.model = model
+        self.consolidation_model = (consolidation_model or "").strip() or None
         self.sessions = sessions
         self.context_window_tokens = context_window_tokens
         self._build_messages = build_messages
@@ -272,7 +278,9 @@ class MemoryConsolidator:
 
     async def consolidate_messages(self, messages: list[dict[str, object]]) -> bool:
         """Archive a selected message chunk into persistent memory."""
-        return await self.store.consolidate(messages, self.provider, self.model)
+        return await self.store.consolidate(
+            messages, self.provider, self.consolidation_model or self.model
+        )
 
     def pick_consolidation_boundary(
         self,
