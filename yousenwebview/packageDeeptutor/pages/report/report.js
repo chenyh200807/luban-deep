@@ -1258,7 +1258,7 @@ Page({
     warnIcon: "\u26A0\uFE0F",
     radarIcon: "\uD83D\uDCE1",
 
-    isDark: true,
+    isDark: false, // 学情页默认亮色(owner 2026-07-12);用户显式选过主题则跟随
     reportDetailView: "home",
     reportDetailTitle: REPORT_DETAIL_TITLES.home,
     reportScrollTop: 0,
@@ -1456,7 +1456,7 @@ Page({
   onShow() {
     var workspaceBack = runtime.getWorkspaceBack(route.report());
     if (!flags.ensureFeatureEnabled("report")) return;
-    this.setData({ isDark: helpers.isDark() });
+    this.setData({ isDark: helpers.isDarkOr("light") });
     this.setData({
       navBackLabel: workspaceBack ? workspaceBack.label : "对话",
       assessmentEnabled: flags.isFeatureEnabled("assessment"),
@@ -1464,6 +1464,7 @@ Page({
     // 五 tab 壳:学情 index=3
     helpers.syncTabBar(this, 3, {
       hidden: !flags.shouldShowWorkspaceShell(),
+      isDark: helpers.isDarkOr("light"),
     });
     if (!auth.isLoggedIn()) {
       this.setData({

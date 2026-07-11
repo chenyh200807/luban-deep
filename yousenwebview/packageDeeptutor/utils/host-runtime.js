@@ -47,14 +47,20 @@ function getChatEngine() {
 }
 
 function getTheme() {
+  return getThemeOr("dark");
+}
+
+/** 读主题；用户从未显式选择时返回 fallback（页面级默认亮/暗由调用方决定）。 */
+function getThemeOr(fallback) {
+  var fb = String(fallback || "dark").trim() || "dark";
   var globalData = getGlobalData();
   if (globalData && globalData.theme) {
-    return String(globalData.theme || "").trim() || "dark";
+    return String(globalData.theme || "").trim() || fb;
   }
   try {
-    return wx.getStorageSync("theme") || "dark";
+    return wx.getStorageSync("theme") || fb;
   } catch (_) {
-    return "dark";
+    return fb;
   }
 }
 
@@ -91,6 +97,7 @@ module.exports = {
   rememberWorkingBaseUrl: rememberWorkingBaseUrl,
   getChatEngine: getChatEngine,
   getTheme: getTheme,
+  getThemeOr: getThemeOr,
   setTheme: setTheme,
   getWorkspaceFlags: getWorkspaceFlags,
 };

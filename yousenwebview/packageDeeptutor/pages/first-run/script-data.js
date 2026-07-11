@@ -4,8 +4,8 @@
 // 注意：第 4 题「装配式建筑垃圾」不在首批 5 道金标候选内，verdict 人门需教研补此题溯源。
 // HTML 字符串仅用 rich-text 支持的标签（b / span[style]）。
 
-var HI = 'style="color:#67e8f9;font-weight:700"';
-var HITWORD = 'style="color:#34d399;font-weight:800"';
+var HI = 'style="color:#48806a;font-weight:700"'; // 竹青(原亮青#67e8f9在亮纸上隐形)
+var HITWORD = 'style="color:#48806a;font-weight:800"'; // 竹青(亮纸可读);内联样式压CSS,须与pk-grn亮值一致
 var SCRIPT_SCHEMA_ID = "first_run_script.v1";
 var SCRIPT_VERSION = "first_run_script.v1@5022d02db1f3316ef7515e60140ba3f16128fde0dd8c0ebd86a9ff540a8ceffd";
 

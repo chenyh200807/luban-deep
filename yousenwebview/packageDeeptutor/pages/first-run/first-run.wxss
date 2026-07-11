@@ -1187,3 +1187,137 @@
 .fr-final {
   padding-top: 132rpx;
 }
+
+/* ============================================================
+ * 覆盖层补漏（2026-07-12）：上面蓝黑基座里仍有 12 处硬编码暗色
+ * （白字/青字/深蓝卡底）没被纸墨层盖到，亮底上直接隐形。
+ * 原则：全部走 pk 变量（明暗双套自适应）；色相收敛纸墨朱竹。
+ * ============================================================ */
+
+/* 判分 verdict 卡 + 案例题面卡：深蓝渐变底 → 纸墨卡 */
+.fr-verdict,
+.fr-case {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: 0 3rpx 14rpx var(--pk-shadow);
+}
+
+/* 你的选择/正解两行的标题与解释：白字 → 墨字 */
+.fr-ans.good .fr-ans-tx,
+.fr-ans.bad .fr-ans-tx {
+  color: var(--pk-t1);
+}
+.fr-ans.good .fr-ans-rs,
+.fr-ans.bad .fr-ans-rs {
+  color: var(--pk-t2);
+}
+
+/* 逐项拆解字母章与状态签：薄荷/粉/亮橙 → 竹青/朱红/赭 */
+.fr-ans.good .fr-ans-key {
+  color: var(--pk-grn);
+  background: rgba(72, 128, 106, 0.1);
+  border-color: rgba(72, 128, 106, 0.28);
+}
+.fr-ans.bad .fr-ans-key {
+  color: var(--pk-red);
+  background: rgba(207, 68, 54, 0.08);
+  border-color: rgba(207, 68, 54, 0.24);
+}
+.fr-stag.ok {
+  color: var(--pk-grn);
+  background: rgba(72, 128, 106, 0.1);
+  border-color: rgba(72, 128, 106, 0.28);
+}
+.fr-stag.mine {
+  color: var(--pk-red);
+  background: rgba(207, 68, 54, 0.08);
+  border-color: rgba(207, 68, 54, 0.24);
+}
+.fr-stag.trap {
+  color: var(--pk-warn);
+  background: rgba(194, 101, 85, 0.1);
+  border-color: rgba(194, 101, 85, 0.26);
+}
+
+/* 阅卷认的词 chips：亮青 → 墨字纸片; 命中/漏写 → 竹青/朱红 */
+.fr-tchip {
+  color: var(--pk-t1);
+  background: #efecdf;
+  border-color: transparent;
+}
+.fr-tchip.hit {
+  color: var(--pk-grn);
+  background: rgba(72, 128, 106, 0.1);
+  border-color: rgba(72, 128, 106, 0.3);
+}
+.fr-tchip.miss {
+  color: var(--pk-red);
+  background: rgba(207, 68, 54, 0.08);
+  border-color: rgba(207, 68, 54, 0.26);
+}
+
+/* 编译库刻度行 + 环内字 + 报告 hero 副行/环标签：白字残留 → 墨字 */
+.fr-libscale {
+  color: var(--pk-t3);
+}
+.fr-libscale .ic {
+  color: var(--pk-grn);
+}
+.fr-ring-tx {
+  color: var(--pk-t1);
+}
+.fr-ring.good .fr-ring-tx {
+  color: var(--pk-grn);
+}
+.fr-ring.half .fr-ring-tx {
+  color: var(--pk-red);
+}
+.fr-hero-sub {
+  color: var(--pk-t2);
+}
+.fr-hero-eb {
+  color: var(--pk-red);
+}
+.fr-rlab {
+  color: var(--pk-t3);
+}
+
+/* 口诀大字：亮琥珀 → 朱红(纸墨口诀色);金标签 → 赭 */
+.fr-mn-big {
+  color: var(--pk-red);
+}
+.fr-ph.gold,
+.fr-eyebrow.gold {
+  color: var(--pk-warn);
+}
+.fr-panel.mnemo {
+  border-color: rgba(194, 101, 85, 0.3);
+  background: linear-gradient(160deg, rgba(194, 101, 85, 0.08), rgba(194, 101, 85, 0.02)), var(--pk-card);
+}
+
+/* 画像幕暖橙件 → 朱红系;顶栏进度点(如仍在用) → 纸墨 */
+.fr-tk,
+.fr-ttag {
+  color: var(--pk-red);
+}
+.fr-ttag {
+  background: rgba(207, 68, 54, 0.08);
+  border-color: rgba(207, 68, 54, 0.22);
+}
+.fr-typecard {
+  background: linear-gradient(160deg, rgba(207, 68, 54, 0.05), rgba(207, 68, 54, 0.01)), var(--pk-card);
+}
+.fr-tn {
+  background: none;
+  color: var(--pk-t1);
+}
+.fr-dot {
+  background: var(--pk-gauge);
+}
+.fr-dot.on {
+  background: var(--pk-red);
+}
+.fr-guide-ic {
+  background: rgba(72, 128, 106, 0.08);
+  border-color: rgba(72, 128, 106, 0.22);
+}

@@ -59,6 +59,9 @@ function loadProfilePage() {
           isDark: function () {
             return true;
           },
+          isDarkOr: function (fb) {
+            return fb !== "light";
+          },
           syncTabBar: function () {},
           vibrate: function () {},
         };

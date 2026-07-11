@@ -206,6 +206,13 @@
 - **UI 语义**：保存失败不出收据、不说“明天见”；服务端 terminal 成功后 forward 进 handoff，review 回复习。handoff 只保留提醒与 telemetry，不再写 learner state。
 - **发布边界**：本轮不部署。首次四题仍因双教研签发未完成而 fail closed；真实微信订阅提醒仍依赖模板 ID，不能用页内红点冒充系统推送。
 
+### 2026-07-12（首跑亮色版配色治本 + 学情/我的默认亮色 + 外观切换 · owner三连指令即时入账）
+- **[owner反馈]** 首跑判分卡/报告幕大量文字隐形(截图证据)——根因:first-run.wxss 是蓝黑青暗色基座+纸墨覆盖层收口(`fr-page paper light pk-paper-bg` 写死亮色),覆盖层盖了 27 处漏了 12 处,暗色白字/亮青/深蓝卡底直接印在宣纸上。**不是零散补色,是覆盖层不完备的系统病。**
+- **[治法]** first-run.wxss 追加"覆盖层补漏"段(全部走 --pk-* 变量,明暗双套自适应):verdict/case 深蓝卡→纸墨卡;good/bad 选项白字→墨字;阅卷认的词 chips 亮青→墨字纸片(命中竹青/漏写朱红);hero 副行/环标签/编译库刻度白字→墨字;口诀亮琥珀→朱红;stag/字母章薄荷粉→竹青朱红赭;画像暖橙→朱红系。script-data.js 两处**内联样式**(HI/HITWORD 亮青/薄荷,内联压 CSS)→竹青 #48806a。automator 实测三幕截图验收:判分卡上/下半+报告幕全部可读且纸墨风格统一。
+- **[学情/我的默认亮色+外观切换]** ①单一权威扩展:host-runtime 加 `getThemeOr(fallback)`(用户从未显式选主题时返回页面级默认),helpers 加 `isDarkOr`;app.js globalData.theme 不再烤死 "dark"(空=从未选过,这是能实现页面级默认的前提,契约测试 11 断言 PASS)。②report/profile 两页 `isDarkOr("light")` 默认亮,syncTabBar 传 isDark 让壳跟页面同色;其余页(chat 等)默认不变。③我的页"学习设置"卡新增**外观**行(亮色/暗色 chips,复用现有 chip 交互),setAppearance→helpers.setTheme 全端跟随。automator 实测:未选主题我的页 isDark=false,切暗立即生效,tab bar 跟随,亮暗两套截图均正常。
+- **[测试]** 4 个 profile 测试 mock 补 isDarkOr 后全 PASS;js 套件唯一 FAIL=test_index_launch_home,系本地 project.private.config.json 编译条件指 first-run 所致(干净树 PASS),非本次改动,该文件不提交。
+- **[待办]** 同病扫描显示 assessment/billing/history/mistake-book 等页存在暗色态白字(它们是明暗双态页,当前默认暗不发病);若日后把全局默认翻亮,须先逐页核 .light 覆盖完备性。
+
 ## 惯例沉淀（复盘时升格为规则的候选）
 - 部署后必做独立探针（不信脚本自报）——本轮抓到 22 站 404 与 F16 无声两个上线级洞。
 - owner 口述需求先 grep 是否已实现再派工；agent 终态纪律=最终回复基于磁盘/线上实测，"等待中/等子报告"不是完成态。
