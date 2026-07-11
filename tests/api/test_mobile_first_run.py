@@ -56,6 +56,12 @@ def test_first_run_complete_requires_auth() -> None:
     assert response.status_code == 401
 
 
+def test_first_run_complete_request_exposes_registered_schema_id() -> None:
+    assert mobile.FirstRunCompleteRequest.model_json_schema()["schema_id"] == (
+        "first_run_completion.v1"
+    )
+
+
 def test_first_run_complete_delegates_only_canonical_fields(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

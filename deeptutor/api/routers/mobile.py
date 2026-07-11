@@ -2658,8 +2658,14 @@ class FirstRunPreferencesRequest(BaseModel):
     motivation: str = Field(default="", max_length=64)
 
 
+FIRST_RUN_COMPLETION_SCHEMA = "first_run_completion.v1"
+
+
 class FirstRunCompleteRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"schema_id": FIRST_RUN_COMPLETION_SCHEMA},
+    )
 
     completion_id: str = Field(min_length=8, max_length=128)
     script_version: str = Field(min_length=1, max_length=128)
