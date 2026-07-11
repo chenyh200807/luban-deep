@@ -315,6 +315,7 @@ domains:
       - tests/services/learner_state/test_home_personalization_imports.py
       - tests/core/test_terminal_result_assembler.py
       - tests/core/test_assembler_grading_result.py
+      - tests/services/session/test_turn_event_batching_replay.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
@@ -627,6 +628,8 @@ domains:
       - tests/services/luban_lesson/test_review_due.py
       # Battle1 W4-T3 model-tiering: consolidation_model split on protected agent/memory.py.
       - tests/tutorbot/test_agent_loop_model_tiering.py
+      # Battle1 W1-T1 incremental token-estimation cache on protected agent/memory.py.
+      - tests/tutorbot/test_memory_incremental_tokens.py
     schema_files:
       - deeptutor/contracts/learner_state.py
       - supabase/migrations/20260415000100_learner_state_core.sql
@@ -674,6 +677,9 @@ domains:
       - tests/services/construction_grading/test_rich_leaf_runtime.py
       # Battle1 W4 model-tiering: utility_model injection into AgentLoop (protected loop.py).
       - tests/tutorbot/test_agent_loop_model_tiering.py
+      # Battle1 W5/W1: single finalize pipeline behavior + think-strip streamer for protected loop.py.
+      - tests/tutorbot/test_finalize_visible_answer_pipeline.py
+      - tests/tutorbot/test_think_strip_streamer.py
     schema_files: []
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn

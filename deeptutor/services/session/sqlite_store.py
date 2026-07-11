@@ -1528,6 +1528,75 @@ class SQLiteSessionStore:
     async def append_turn_event(self, turn_id: str, event: dict[str, Any]) -> dict[str, Any]:
         return await self._run(self._append_turn_event_sync, turn_id, event)
 
+    def _append_turn_events_batch_sync(
+        self, turn_id: str, events: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Battle1 W2-T3: persist a batch of pre-stamped events in ONE transaction.
+
+        Row-level byte-equivalent to calling ``_append_turn_event_sync`` once per
+        event: the batch inserts N rows for N events (content deltas are NEVER
+        merged into one row — merging would break resume(after_seq) replay), with
+        the identical INSERT OR REPLACE column tuple (including ``visibility``).
+        Cost model per flush: 1 turn-existence SELECT + 1 executemany + 1
+        ``turns.updated_at`` UPDATE + 1 commit, replacing N of each.
+
+        Every event MUST carry a pre-allocated ``seq > 0`` — the turn runtime's
+        per-turn in-memory allocator is the single seq authority on this path.
+        The MAX(seq)+1 fallback stays exclusive to the single-event
+        ``append_turn_event`` path (telemetry / orphan recovery), which only runs
+        after the runtime buffer is empty.
+        """
+        if not events:
+            return []
+        now = time.time()
+        with self._connect() as conn:
+            turn = conn.execute("SELECT id, session_id FROM turns WHERE id = ?", (turn_id,)).fetchone()
+            if turn is None:
+                raise ValueError(f"Turn not found: {turn_id}")
+            payloads: list[dict[str, Any]] = []
+            rows: list[tuple[Any, ...]] = []
+            for event in events:
+                payload = dict(event)
+                seq = int(payload.get("seq") or 0)
+                if seq <= 0:
+                    raise ValueError("batch events must carry pre-allocated seq")
+                payload["turn_id"] = payload.get("turn_id") or turn_id
+                payload["session_id"] = payload.get("session_id") or turn["session_id"]
+                payloads.append(payload)
+                rows.append(
+                    (
+                        turn_id,
+                        seq,
+                        payload.get("type", ""),
+                        payload.get("source", ""),
+                        payload.get("stage", ""),
+                        payload.get("content", "") or "",
+                        _json_dumps(payload.get("metadata", {})),
+                        str(payload.get("visibility", "") or ""),
+                        float(payload.get("timestamp") or now),
+                        now,
+                    )
+                )
+            conn.executemany(
+                """
+                INSERT OR REPLACE INTO turn_events (
+                    turn_id, seq, type, source, stage, content, metadata_json, visibility, timestamp, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                rows,
+            )
+            conn.execute(
+                "UPDATE turns SET updated_at = ? WHERE id = ?",
+                (now, turn_id),
+            )
+            conn.commit()
+        return payloads
+
+    async def append_turn_events_batch(
+        self, turn_id: str, events: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        return await self._run(self._append_turn_events_batch_sync, turn_id, events)
+
     def _get_turn_events_sync(self, turn_id: str, after_seq: int = 0) -> list[dict[str, Any]]:
         with self._connect() as conn:
             rows = conn.execute(
