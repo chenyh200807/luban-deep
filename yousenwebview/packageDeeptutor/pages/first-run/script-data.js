@@ -16,7 +16,7 @@ var QUESTIONS = [
     sourceQuestionId: "Q18-1A434000",
     sourceScoringPointId: "Q18-1A434000::P11",
     conceptId: "1A434000-B017",
-    contentSha256: "2f040012810b901343d2dcd5399df6fc675fa0d89aa706cd5cfd6ede95ea0b3d",
+    contentSha256: "2f040012810b901343d2dcd5399df6fc675fa0d89aa706cd5cfd6ede95ea0b3d", // pragma: allowlist secret — deterministic content digest
     srcNote: "采分点溯源：2023 真题官方参考答案 · 2026 版教材 1A434000 屋面防水",
     name: "起鼓割补",
     family: "1A434000 屋面防水",
@@ -58,7 +58,7 @@ var QUESTIONS = [
     sourceQuestionId: "Q18-1A434000",
     sourceScoringPointId: "Q18-1A434000::P2",
     conceptId: "1A434000-B077",
-    contentSha256: "a154b56b92fdcfa70a92141369be2d0306a3d7f7f183899cb4b29869f61283e5",
+    contentSha256: "a154b56b92fdcfa70a92141369be2d0306a3d7f7f183899cb4b29869f61283e5", // pragma: allowlist secret — deterministic content digest
     srcNote: "采分点溯源：2023 真题官方参考答案 · 2026 版教材 项目质量管理",
     name: "质量计划",
     family: "项目质量管理",
@@ -100,7 +100,7 @@ var QUESTIONS = [
     sourceQuestionId: "first_run-source:fill-wall-14d",
     sourceScoringPointId: "textbook:1A434000_074_0116::C2",
     conceptId: "1A434000-B013",
-    contentSha256: "da852e636f301b9eb851f5e6a33e9c460902ae90f0bd97d66718e14a17ceb186",
+    contentSha256: "da852e636f301b9eb851f5e6a33e9c460902ae90f0bd97d66718e14a17ceb186", // pragma: allowlist secret — deterministic content digest
     srcNote: "采分点溯源：2024 真题官方参考答案 · 2026 版教材 砌体结构",
     name: "填充墙防裂",
     family: "砌体填充墙 · 裂缝防治",
@@ -142,7 +142,7 @@ var QUESTIONS = [
     sourceQuestionId: "Q2025-01",
     sourceScoringPointId: "Q2025-01::question3.1",
     conceptId: "1A437000-B035",
-    contentSha256: "20709b4196b6bdd2393902c5b52aaaa3bacc16e545da7ecc70d41a5bf7b1582f",
+    contentSha256: "20709b4196b6bdd2393902c5b52aaaa3bacc16e545da7ecc70d41a5bf7b1582f", // pragma: allowlist secret — deterministic content digest
     srcNote: "采分点溯源：2025 真题官方参考答案 · 绿色施工新增考点（知识库已同步 2026 版）",
     name: "装配式建筑垃圾",
     family: "绿色施工 · 新考点",

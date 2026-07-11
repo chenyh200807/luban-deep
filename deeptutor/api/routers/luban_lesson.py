@@ -28,6 +28,7 @@ from deeptutor.services.luban_lesson import (
     build_seethrough,
     build_seethrough_library,
     list_green_lessons,
+    retest_pool_meta,
 )
 
 router = secure_router(tags=["luban_lesson"])
