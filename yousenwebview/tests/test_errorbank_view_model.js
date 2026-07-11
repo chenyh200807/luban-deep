@@ -2,7 +2,7 @@
 // 错因银行(复习二期二级页)域测试:
 // 1. error_code → 人话标签只做呈现层镜像(权威=deeptutor/contracts/error_codes.py);
 // 2. R8 解药 fail-closed: 无供给降级为「解药整理中」+ 解析深链, 数据位形状钉死;
-// 3. 换皮复测 CTA fail-closed: pack 归属不明/变体池未探明 → 不承诺换皮;
+// 3. 换皮复测 CTA fail-closed: pack 归属不明/无 canonical due probe → 不承诺换皮;
 // 4. 销账 = 呈现层(本地复测通过 + 服务端 mastered 旗标), 零掌握态写入(源码钉死);
 // 5. 文案铁律: 禁审视揭短词; WXML 标签平衡; 页面/路由注册。
 var assert = require("assert");
@@ -139,7 +139,7 @@ assert.strictEqual(detailNoSupply.errorCodeChip, "错因码 E03 · 判分内核�
 // 供给到位即亮(同一数据位, 不改页面)
 var detailSupplied = vm.buildErrorbankDetail(entry, {
   antidote: { mental_model: "按部位找词给分", textbook_ref: "防水工程章节" },
-  retestProbe: { available: true },
+  retestProbe: { available: true, probeId: "probe-f16" },
 });
 assert.strictEqual(detailSupplied.antidote.state, "ready");
 assert.strictEqual(detailSupplied.antidote.text, "按部位找词给分");
@@ -151,6 +151,7 @@ assert.strictEqual(noCodeDetail.errorCodeChip, "", "无注册表错因码时禁�
 
 // ── 5. 换皮复测 CTA fail-closed ───────────────────────────────
 assert.strictEqual(detailSupplied.retest.ready, true);
+assert.strictEqual(detailSupplied.retest.probeId, "probe-f16");
 assert.ok(detailSupplied.retest.ctaText.indexOf("换个皮再试一次") >= 0);
 assert.strictEqual(
   vm.buildErrorbankDetail(entry, { retestProbe: null }).retest.ready,
@@ -162,10 +163,15 @@ assert.strictEqual(
   false,
   "变体池空→不承诺换皮",
 );
+assert.strictEqual(
+  vm.buildErrorbankDetail(entry, { retestProbe: { available: true, probeId: "" } }).retest.ready,
+  false,
+  "无 canonical probe→不承诺销账复测",
+);
 var noPackEntry = built.pendingEntries.filter(function (e) { return !e.packId; })[0];
 assert.ok(noPackEntry, "样例应含无 pack 归属条目");
 assert.strictEqual(
-  vm.buildErrorbankDetail(noPackEntry, { retestProbe: { available: true } }).retest.ready,
+  vm.buildErrorbankDetail(noPackEntry, { retestProbe: { available: true, probeId: "probe-x" } }).retest.ready,
   false,
   "pack 归属不明→即使探测通过也不承诺换皮",
 );
@@ -179,6 +185,9 @@ var vmSource = fs.readFileSync(vmPath, "utf8");
 assert.strictEqual(pageJs.indexOf("markMistakeBookItemMastered"), -1, "错因银行销账禁写 mastered 旗标(销账=本地+既有信号)");
 assert.strictEqual(pageJs.indexOf("saveMistakeBookItem"), -1, "错因银行禁前端造记账(记账真值=判分内核 writeback)");
 assert.strictEqual(pageJs.indexOf("postStationCompleted"), -1, "错因银行只呈现, 信号归 retest 链路");
+assert.ok(pageJs.indexOf("getLubanReviewDue") >= 0, "错因银行销账入口只消费 canonical review-due");
+assert.strictEqual(pageJs.indexOf("getLubanRetestItems"), -1, "错因银行禁用题池存在性推断到期");
+assert.ok(pageJs.indexOf("&mode=review&probe_id=") >= 0, "销账复测必须透传 review mode + probe");
 // R8 解药接线: 详情页按 {pack_id, error_code} 取 signed 解药, 供给后点亮占位。
 assert.ok(pageJs.indexOf("getLubanAntidote") >= 0, "错因银行详情须接 R8 解药 GET(供给后点亮)");
 var apiSource = fs.readFileSync(

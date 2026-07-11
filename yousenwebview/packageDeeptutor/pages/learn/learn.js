@@ -252,7 +252,17 @@ Page({
       return;
     }
     if (task.practice_kind === "retest" && packId) {
-      this._navTo("/packageDeeptutor/pages/luban/retest/retest?pack_id=" + packId + "&mode=forward");
+      var reviewMode = !!task.probe_id;
+      this._navTo(
+        "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
+          packId +
+          "&mode=" +
+          (reviewMode ? "review" : "forward") +
+          "&training_intent_id=" +
+          encodeURIComponent(String(task.training_intent_id || "")) +
+          "&probe_id=" +
+          encodeURIComponent(String(task.probe_id || "")),
+      );
       return;
     }
   },

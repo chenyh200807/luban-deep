@@ -39,6 +39,7 @@ _TRUSTED_NON_AI_SOURCES = frozenset(
         "operator_soak",
         "operator_smoke",
         "golden_label",
+        "signed_variant_server_rescore",
     }
 )
 _CONFIDENCE_GATED_TRUSTED_SOURCES = _AI_ADJUDICATION_SOURCES | frozenset({"certified_grading_policy"})
@@ -148,6 +149,18 @@ def trusted_adjudication_from_quality(quality: dict[str, Any], signal: dict[str,
         return dict(trusted)
     authority = _text(quality.get("teacher_review_authority") or quality.get("authority")).lower()
     if (
+        authority == "signed_variant_server_rescore"
+        and quality.get("writeback_eligible") is True
+        and _text(quality.get("measurement_confidence")).lower() == "high"
+        and _text(quality.get("evidence_level")) == "L2_real_retest"
+    ):
+        return {
+            "source": "signed_variant_server_rescore",
+            "confidence": 1.0,
+            "conflict_status": "resolved",
+            "requires_human": False,
+        }
+    if (
         authority in {"teacher_final_grading_result", "teacher_final", "trusted_adjudication"}
         and quality.get("teacher_reviewed") is True
     ):
@@ -186,7 +199,10 @@ def _ai_min_confidence() -> float:
 
 
 def _has_stable_learner_claim(projection: dict[str, Any]) -> bool:
-    for claim in list(projection.get("weak_points") or []):
+    for claim in [
+        *list(projection.get("weak_points") or []),
+        *list(projection.get("stale_claims") or []),
+    ]:
         if not isinstance(claim, dict):
             continue
         stage = _text(claim.get("memory_lifecycle_stage"))

@@ -15,11 +15,11 @@ reading the legacy keys — ``concept_id``, ``concept_label``,
 ``error_code``, ``error_label``, ``training_mode``, ``training_intent_id``,
 ``attempt_refs``, ``question_count``, ``source``, ``reason`` — unchanged.
 """
+
 from __future__ import annotations
 
 import hashlib
 from typing import Any
-
 
 _MODES = {"mcq_discrimination", "case_repair", "rubric_recall", "mixed_review"}
 
@@ -61,6 +61,7 @@ def build_learning_training_intent(
     reason: str = "",
     ability_dimension: str = "",
     behavior_state: str = "",
+    target_pack_id: str = "",
 ) -> dict[str, Any]:
     """Build the canonical training intent for a learner.
 
@@ -133,6 +134,7 @@ def build_learning_training_intent(
         "ability_dimension": ability_dim_norm,
         "behavior_state": behavior_state_norm,
         "evidence_refs": evidence_refs_norm[:5],
+        "target_pack_id": str(target_pack_id or "").strip().upper(),
         "prescription_steps": prescription_steps,
         "success_criteria": success_criteria,
     }

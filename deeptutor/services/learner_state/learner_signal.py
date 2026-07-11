@@ -38,6 +38,10 @@ def record_learner_signal(
     error_code: str = "",
     ability_dimension: str = "",
     user_says: str = "",
+    completion_id: str = "",
+    practice_mode: str = "",
+    training_intent_id: str = "",
+    probe_id: str = "",
 ) -> Any:
     """追加一条学员主动信号事件，返回写入的事件。
 
@@ -65,12 +69,28 @@ def record_learner_signal(
         says = str(user_says or "").strip()
         payload["user_says"] = says if says in _USER_SAYS else "mastered"
 
+    completion = str(completion_id or "").strip()
+    if signal == _STATION_COMPLETED_SIGNAL:
+        if not completion:
+            raise ValueError("completion_id is required for station_completed")
+        payload.update({
+            "completion_id": completion,
+            "practice_mode": str(practice_mode or "").strip(),
+            "training_intent_id": str(training_intent_id or "").strip(),
+            "probe_id": str(probe_id or "").strip(),
+        })
+
     return learner_state_service.append_memory_event(
         normalized_user,
         source_feature=SOURCE_FEATURE,
-        source_id=f"{signal}:{cid}",
+        source_id=f"{signal}:{cid}:{completion}" if completion else f"{signal}:{cid}",
         memory_kind="learning_evidence",
         payload_json=payload,
+        dedupe_key=(
+            f"learner_signal:{normalized_user}:{signal}:{cid}:{completion}"
+            if completion
+            else None
+        ),
     )
 
 

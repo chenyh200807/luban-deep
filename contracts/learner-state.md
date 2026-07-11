@@ -569,13 +569,22 @@ Overlay 必须支持：
 7. weak_points 聚合保真（同日）：`learning_synthesis` 的 L2 档聚合按
    evidence rank 判定并保留组内最高 level（`L2_real_retest` 不得被字面
    `L2_confirmed` 比较降档）——真懂信号不在聚合层丢失。
+8. 证据生命周期的共享 authority 是 `learner_state/evidence_lifecycle.py`：
+   `learning_synthesis`、三层学情投影与 learning report 不得分别按 event row 自判
+   “重复出现”。重复阈值必须按 distinct authoritative attempt/completion 计算；同一
+   completion 的多个 item 永远只算一次。
+9. `claim_promotion_allowed=false` 是全读侧 promotion cap。首次四题、当天 forward
+   轻练、preview/simulated/low-confidence 证据只能形成 `L0_observed`；不能生成 weak、
+   stable、improvement 或 recurring。一次 signed、服务端重判且到期 probe 匹配的
+   `L2_real_retest` 可以确认弱点或让同一 rule-group 的旧弱点 stale，但不直接写 mastery。
 
 ### Review Due Projection（双轮 §6 复习模块，2026-07-05 登记，`LUBAN_REVIEW_MODULE_ENABLED` 后）
 
 1. `learner_signal` 第三类 `station_completed`（双轮复习到期收权）：站点完成
    （交接时刻/复测完成）的触发事实，`concept_id`=pack_id；仍非 promoting
    （source_feature=learner_signal，证据编译器排除）。旗标关 = 该类型被拒
-   （与收权前行为一致）。
+   （与收权前行为一致）。每次必须携带 authoritative `completion_id`；同一 completion
+   replay 幂等，不同 completion 必须追加新事件并刷新到期时间，禁止按 `user+pack` 永久去重。
 2. 到期/间隔语义唯一权威=`revalidation_queue`：新增新学相 `state="fresh"`
    首跳按 **UTC+8 日历日次日**（§6.1 分相最小实现 + §9-D2「天」=日历日，
    「明天见」承诺的调度载体；满 24h 判定被否——昨晚学的今早即到期）。
@@ -589,8 +598,22 @@ Overlay 必须支持：
 4. `mistake_book` 的 `review_due_at` 是**读侧投影**（`derive_review_due_at`，
    错题=lapse 走 weak 相），零落库、零间隔常量在 mistake_book 内——写侧
    `record_review` 继续清空存量 `review_due_at`（防第二调度权威复活）。
-5. 「标记掌握」仍是呈现层旗标（见 `mark_mastered` 条款）；复测/变体挑战
-   完成只发 `station_completed` 重排到期，**绝不**直写掌握态。
+5. 「标记掌握」仍是呈现层旗标（见 `mark_mastered` 条款）。`RetestWritebackService`
+   是变体练唯一 completion writer：item 事件只承载不可变作答证据，不得自报 pack 终态；
+   全部 item 写成后再追加唯一 `completion_terminal=true` 事件，随后由同一服务写一次
+   `station_completed`。页面、handoff 与 API wrapper 不得成为并行 writer。
+6. review completion 必须绑定 `revalidation_queue` 当前到期的 `probe_id`；客户端只传选择，
+   服务端从 signed variant bank 重判。forward 永远 non-promoting；review 只允许影响
+   `pack:{pack_id}:rule:{rule_group}` 的同粒度概念，不得以 pack 粗粒度清除 sibling 错因。
+   review 的 canonical `training_intent_id` 由服务端恢复为该 `probe_id`，忽略客户端自报 intent/mode；
+   取题日使用服务端 UTC+8 日历日。
+7. 所有 read projection 必须先看同一 `retest_completion_id` 的 terminal commit。terminal 缺失时，
+   即使 item 带高置信/L2 字段也只能作为 L0；partial append 不得产生 weak/improvement/verified。
+   `LUBAN_REVIEW_MODULE_ENABLED`（以及 forward 的 `LUBAN_LIGHT_PRACTICE_ENABLED`）必须在任何
+   append 前 fail closed，禁止“写完 terminal 才撞 rollout flag”。
+8. GET 取题必须签发 `selection_id`，绑定 canonical user、pack、服务端 UTC+8 day、mode 与
+   variant ID 集合；POST 必须验证该 identity 后才按原签发日重建并重判。这样跨午夜/断网
+   retry 仍消费同一题组，同时客户端不能改 day、换题或跨用户复用 selection。
 
 ## 单一写入职责
 
@@ -817,17 +840,25 @@ learner_memory_events(memory_kind=learning_evidence)`；中途状态只允许保
 5. 四题只形成低置信起点证据：所有 event 必须
    `mastery_promotion_allowed=false`、`official_score_allowed=false`；不得宣称稳定掌握、
    完整能力或长期人格。
+   错题以 registered `unknown_error` 形成可见 `L0_observed`，正确题只保留 clean baseline；
+   四条 item row 仍属于同一个 completion，绝不能因题目数量达到 L1。
 6. 学习时段、记忆方式、备考阶段等用户选择只能合并到既有 profile 的显式 preference，
    并标记 `source=explicit_first_run_v1`；“画面派/稳手”等推断画像只允许作为报告解释，
    不能覆盖 profile truth。
 7. 训练方向只允许由既有 `build_learning_training_intent()` 生成，首页继续只读消费
    `home_next_step_projection`。first-run wrapper 不得按错题数另写一套正式推荐。
+   question→pack 映射必须由 source-backed resolver 与当前 green+signed-retest supply 共同
+   验证；映射不写进仅绑定题面 hash 的 manifest。处方只能引用 focus item evidence，
+   `training_intent_id/probe_id` 是来源身份，进入站点必须另读 `target_pack_id`。
 8. 本地 DONE 只是 UI cache。只有服务端 writeback 成功才算 canonical 完成；弱网时报告可先
    展示，但必须标为待同步，并使用同一个 `completion_id` 重试。
 9. 旧 assessment / chat onboarding 只能作为兼容消费者：它必须从
    `learner_state.learning_preferences.first_run` 只读投影 canonical 完成事实，完成后不得再
    弹第二套摸底入口。禁止为了抑制弹窗新增第二个 completion writer、mirror table 或仅依赖
    跨设备失效的 local flag。
+10. canonical first-run completion marker 必须最后提交：item evidence 与 home projection
+    成功后才能合并 `learning_preferences.first_run`。home projection 失败时不得留下“已完成但
+    没有下一站”的半提交状态；同 completion 重试复用已有 item evidence 后继续收口。
 
 ## 写回与冲突规则
 

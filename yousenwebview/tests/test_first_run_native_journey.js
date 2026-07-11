@@ -130,6 +130,9 @@ function loadPage(options) {
   assert.strictEqual(setup.page.data.qIndex, 0);
   assert.strictEqual(setup.page.data.q.questionId, "first_run.v1:qigu_gebu");
   assert.strictEqual(setup.page.data.questions, undefined, "page must expose only the current question");
+  setup.page.onAnswer({ currentTarget: { dataset: { key: "B" } } });
+  setup.page.onAnswer({ currentTarget: { dataset: { key: "B" } } });
+  assert.strictEqual(setup.page.results.length, 1, "double tap must append one answer only");
 
   setup.page.war = "second";
   setup.page.mode = "nopoint";

@@ -9,6 +9,33 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-11 - 首次体验到次日复测的 item/attempt 粒度与终态权威漂移
+
+- 问题：
+  - first-run 四题虽写 ledger，但 synthesis 不认该 source；另一套三层投影却会按 item row 升级。
+  - 同一 completion 两个错题可被误判成“错两次”，当天 forward 全对可误清弱点；item 写到一半即可让处方显示 verified。
+  - `station_completed` 按 user+pack 永久去重，第二天新复测被吞；前端 retest/handoff 又各写一次完成。
+- 根因：
+  - producer 输出 item 证据，三个 consumer 却各自按 event row 裁决 attempt 生命周期；completion terminal 也没有唯一 writer。
+  - `training_intent_id/probe_id` 与 pack 导航目标混用，客户端可自报 review mode，形成第二处方/复测权威。
+- 失败尝试：
+  - 初版在 retest wrapper 每题写 `prescription_result=verified`、用 pack 粗粒度 concept 和未注册私有码；这会让 partial crash 伪造终态，并跨 rule group 清错。
+  - 初版把 question→pack 映射塞进只绑定题面 hash 的 first-run manifest，并复制到四条 item event；这污染 provenance，已撤回。
+- 成功修法：
+  - 新增 shared `evidence_lifecycle`：统一 source whitelist、promotion cap、distinct attempt、completion terminal commit 与 real-retest 判定；synthesis、三层投影、learning report 共用。
+  - first-run wrong 只形成 registered `unknown_error` 的 L0；处方只引用 focus event；home projection 成功后才最后写 completion profile marker。
+  - `RetestWritebackService` 服务端重判 signed variants，review 必须匹配 due probe；rule-group concept 粒度；item 后唯一 terminal，再唯一写 station completion。
+  - rollout flags 在任何 append 前 fail closed；review intent 从 canonical probe 恢复，忽略客户端伪造 mode/intent/day。
+  - GET 用既有 attempt-ref HMAC authority 签发 selection identity，绑定 user/pack/day/mode/variant set；POST 验签后按原签发日重建，修复跨 UTC+8 午夜和 partial retry 换题。
+  - station dedupe 纳入 completion_id；页面只有 terminal 成功才显示收据，handoff 不再写 learner state；target_pack 与 intent/probe identity 分离。
+  - 收口五模块旧入口：gauntlet 即时再练固定为 forward；errorbank 不再用变体供给猜到期，改为匹配 canonical review-due 的 pack + retest_available + probe，缺任一项 fail closed。
+- 验证：
+  - RED 曾稳定复现 3 项：first-run 不可见、同 attempt 两 item 升 L1、无 terminal 也 verified。
+  - 后端相关域 650 passed；小程序 `yousenwebview/tests/test_*.js` 全部 PASS；总指挥独立复验 69 Python + 6 Node scripts、contract guard、contract mirror、diff check 全绿，裁决可提交。
+- 教训：
+  - “错两次”必须定义成两个 authoritative attempts，不是两行数据；页面成功文案必须晚于 durable terminal truth。
+  - thin wrapper 只能传用户选择，内容签发、重判、promotion、completion 和到期都必须留在各自 fat authority。
+
 ## 2026-07-11 - 首次体验误落旧五模块视觉基线，TabBar 图标回退
 
 - 问题：

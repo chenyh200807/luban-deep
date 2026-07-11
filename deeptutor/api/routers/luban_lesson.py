@@ -2,8 +2,8 @@
 
 与 ``luban_preview``（匿名、单卡沙盒）的分界：本路由走 ``secure_router`` 默认
 鉴权，只投影 manifest 绿灯包；未签发/不存在一律 404 同形（fail-closed）。
-本路由**零写入**——学习证据归 learner_signal（档位①②）、判分链路（档位③）
-与 lesson_progress（学-evidence lesson_viewed，融合计划 §2.1）。
+读侧只投影签发内容；复测完成写侧统一委托 RetestWritebackService，由服务端重判后
+一次提交 completion terminal 与 station_completed，不接受客户端自报学情结论。
 """
 from __future__ import annotations
 
@@ -30,8 +30,24 @@ from deeptutor.services.luban_lesson import (
     list_green_lessons,
     retest_pool_meta,
 )
+from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
 
 router = secure_router(tags=["luban_lesson"])
+
+
+class RetestAnswerRequest(BaseModel):
+    variant_id: str
+    choice_ok: bool
+
+
+class RetestCompletionRequest(BaseModel):
+    completion_id: str
+    selection_id: str
+    mode: str = "review"
+    day_index: int
+    answers: list[RetestAnswerRequest] = Field(min_length=1, max_length=10)
+    training_intent_id: str = ""
+    probe_id: str = ""
 
 
 @router.get(
@@ -41,7 +57,16 @@ router = secure_router(tags=["luban_lesson"])
     ],
 )
 async def lessons(_: AuthContext = Depends(get_current_user)) -> dict:
-    return {"lessons": list_green_lessons()}
+    light_enabled = _review_module_enabled() and _light_practice_enabled()
+    return {
+        "lessons": [
+            {
+                **row,
+                "light_practice_available": light_enabled and row.get("retest_available") is True,
+            }
+            for row in list_green_lessons()
+        ]
+    }
 
 
 @router.get(
@@ -82,6 +107,8 @@ async def retest_items(
     now = datetime.now(timezone(timedelta(hours=8)))
     day_index = now.year * 1000 + now.timetuple().tm_yday
     mode = "forward" if str(mode or "").strip().lower() == "forward" else "review"
+    if not _review_module_enabled() or (mode == "forward" and not _light_practice_enabled()):
+        raise HTTPException(status_code=404, detail="retest not available")
     try:
         items = build_retest_items(
             pack_id,
@@ -97,18 +124,69 @@ async def retest_items(
         "items": items,
         "day_index": day_index,
         "mode": mode,
+        "selection_id": issue_retest_selection(
+            user_id=current_user.user_id,
+            pack_id=pack_id,
+            day_index=day_index,
+            mode=mode,
+            variant_ids=[str(item.get("variant_id") or "") for item in items],
+        ),
         # 题池元信息(呈现层"换皮是刻意设计"的证据: 题池规模+考法数)
         "pool": retest_pool_meta(pack_id),
     }
 
 
+@router.post(
+    "/lessons/{pack_id}/retest-complete",
+    dependencies=[
+        Depends(route_rate_limit("luban_lesson_retest_complete", default_max_requests=20, default_window_seconds=60.0))
+    ],
+)
+async def retest_complete(
+    pack_id: str,
+    body: RetestCompletionRequest,
+    current_user: AuthContext = Depends(get_current_user),
+) -> dict:
+    from deeptutor.services.learner_state.service import get_learner_state_service
+    from deeptutor.services.luban_lesson.retest_writeback import (
+        RetestIdempotencyConflict,
+        RetestWritebackService,
+    )
+
+    try:
+        return RetestWritebackService(
+            learner_state_service=get_learner_state_service()
+        ).complete(
+            user_id=current_user.user_id,
+            completion_id=body.completion_id,
+            selection_id=body.selection_id,
+            pack_id=pack_id,
+            mode=body.mode,
+            day_index=body.day_index,
+            answers=[item.model_dump() for item in body.answers],
+            training_intent_id=body.training_intent_id,
+            probe_id=body.probe_id,
+        )
+    except RetestIdempotencyConflict as exc:
+        raise HTTPException(status_code=409, detail="retest completion conflict") from exc
+    except LessonNotAvailable as exc:
+        raise HTTPException(status_code=404, detail="lesson not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 # 复习模块灰度旗标（register-before-use: contracts/env_registry.yaml + .env.example）。
 # 关 = 空投影（fail-closed 空清单, 页面走诚实空态）, 不 404——路由形状稳定。
 _REVIEW_MODULE_FLAG = "LUBAN_REVIEW_MODULE_ENABLED"
+_LIGHT_PRACTICE_FLAG = "LUBAN_LIGHT_PRACTICE_ENABLED"
 
 
 def _review_module_enabled() -> bool:
     return str(os.getenv(_REVIEW_MODULE_FLAG, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _light_practice_enabled() -> bool:
+    return str(os.getenv(_LIGHT_PRACTICE_FLAG, "") or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _exam_date_for(user_id: str) -> str:

@@ -15,8 +15,8 @@
 //   请求键: { pack_id: "F16", error_code: "E03" }
 //   响应形状: { mental_model: "<人话心智模型正文>",
 //               textbook_ref: "<教材出处标签>" }
-// - 换皮复测 CTA fail-closed: 只有 packId 可诚实归属且变体池探明有货
-//   (retestProbe.available === true)才渲染; 否则降级为回解析。
+// - 换皮复测 CTA fail-closed: 只有 packId 可诚实归属且 canonical review-due
+//   给出可用 probe 才渲染; 否则降级为回解析。
 // - 文案铁律: 只用「帮你变强」基调, 禁审视揭短词(测试钉死禁词表)。
 
 function _obj(v) {
@@ -267,7 +267,7 @@ var ANTIDOTE_PENDING_DESC =
  * @param {object} entry buildErrorbankViewModel 输出的条目
  * @param {object} opts
  *   antidote    = 解药 bank 响应({mental_model, textbook_ref}), 无供给传 null
- *   retestProbe = {available: boolean} 变体池探测结论, 未探测/失败传 null
+ *   retestProbe = {available: boolean, probeId: string} review-due 结论
  *   position    = {index, total} 「第 x / n 笔」
  */
 function buildErrorbankDetail(entry, opts) {
@@ -276,7 +276,7 @@ function buildErrorbankDetail(entry, opts) {
   var antidote = o.antidote && typeof o.antidote === "object" ? o.antidote : null;
   var probe = _obj(o.retestProbe);
   var position = _obj(o.position);
-  var retestReady = !!e.packId && probe.available === true;
+  var retestReady = !!e.packId && probe.available === true && !!_str(probe.probeId);
   return {
     key: _str(e.key),
     attemptRef: _str(e.attemptRef),
@@ -318,10 +318,11 @@ function buildErrorbankDetail(entry, opts) {
         },
     // 解药 bank 查询键(数据位): 供给上线后按此形状取
     antidoteQuery: { pack_id: _str(e.packId), error_code: _str(e.errorCode) },
-    // ④ 销账动线: 变体池探明有货才承诺换皮(fail-closed)
+    // ④ 销账动线: canonical 到期 probe 齐全才承诺换皮(fail-closed)
     retest: {
       ready: retestReady,
       packId: _str(e.packId),
+      probeId: _str(probe.probeId),
       ctaText: retestReady ? "换个皮再试一次 · 约 3 分钟" : "",
       fallbackText: "回到当时的解析",
     },

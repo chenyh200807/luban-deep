@@ -8,7 +8,6 @@
 // - 交接曝光 = handoff_rendered（module=learning, action=render,
 //   object_type=station, object_id=pack_id）
 // - 订阅授权结果 = subscribe_prompt_result（result=granted|red_dot）
-const api = require("../../../utils/api");
 const route = require("../../../utils/route");
 const telemetry = require("../../../utils/surface-telemetry");
 const subscribeMessage = require("../../../utils/subscribe-message");
@@ -44,13 +43,6 @@ Page({
       isDark: helpers.isDark(),
       packId: packId,
     });
-    // 站完成信号(非 promoting): 到期调度的触发事实——明天此站进复习到期清单。
-    // 旗标(LUBAN_REVIEW_MODULE_ENABLED)关时服务端拒收(400), 与失败同路静默。
-    // 失败静默(信号缺失只影响次日到期呈现, 不阻塞交接时刻)。
-    if (packId) {
-      var packTitle = String((query && query.title) || "").trim();
-      api.postStationCompleted(packId, packTitle).catch(function () {});
-    }
     // 交接曝光（任务稿 luban_handoff_shown 的登记名）
     telemetry.trackProductBehavior("handoff_rendered", {
       module: "learning",

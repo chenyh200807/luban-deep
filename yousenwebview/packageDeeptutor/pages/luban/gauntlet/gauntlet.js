@@ -240,13 +240,14 @@ Page({
     this._navigateBack();
   },
 
-  // 换个皮再练一遍 → 既有变体复测链路
+  // 换个皮再练一遍 → 正向轻练；即时再练不冒充到期复测/销账。
   openRetest: function () {
     if (typeof wx === "undefined" || !wx.navigateTo) return;
     wx.navigateTo({
       url:
         "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
-        encodeURIComponent(this.data.packId),
+        encodeURIComponent(this.data.packId) +
+        "&mode=forward",
     });
   },
 
@@ -256,7 +257,11 @@ Page({
     // 闯关走完 → 清草稿(这一轮的半成品已兑现)
     _writeStorage(gauntletViewModel.draftStorageKey(this.data.packId), "");
     // 站完成信号(非 promoting, 只重排下一跳到期; 旗标关=服务端拒收, 静默)
-    api.postStationCompleted(this.data.packId, this.data.title).catch(function () {});
+    api.postStationCompleted(
+      this.data.packId,
+      this.data.title,
+      "gauntlet_" + this.data.packId + "_" + Date.now(),
+    ).catch(function () {});
     // 已登记完成埋点(与 retest 完成同一动作语义)
     telemetry.trackProductBehavior("learning_action_completed", {
       module: "practice",

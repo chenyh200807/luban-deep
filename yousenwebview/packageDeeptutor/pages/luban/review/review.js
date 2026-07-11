@@ -175,7 +175,7 @@ Page({
   _openDueEntry: function (entry) {
     if (!entry || !entry.packId) return;
     if (entry.action === "retest") {
-      this._openRetestByPackId(entry.packId);
+      this._openRetestByPackId(entry.packId, entry.probeId);
       return;
     }
     // 无变体池: 回站重看(不承诺换皮)
@@ -187,14 +187,16 @@ Page({
     });
   },
 
-  _openRetestByPackId: function (packId) {
+  _openRetestByPackId: function (packId, probeId) {
     var clean = String(packId || "").trim();
     if (!clean) return;
     if (typeof wx === "undefined" || !wx.navigateTo) return;
     wx.navigateTo({
       url:
         "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
-        encodeURIComponent(clean),
+        encodeURIComponent(clean) +
+        "&mode=review&probe_id=" +
+        encodeURIComponent(String(probeId || "")),
     });
   },
 

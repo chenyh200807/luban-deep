@@ -93,6 +93,8 @@ def _prescription_outcome(training_intent_id: str, events: list[Any]) -> dict[st
         getattr(latest, "payload_json", {}) if latest is not None else {}
     )
     latest_result = _safe_dict(latest_payload.get("prescription_result"))
+    target_pack_id = str(latest_payload.get("target_pack_id") or "").strip().upper()
+    concept_label = str(latest_payload.get("concept_label") or "").strip()
     latest_status = str(latest_result.get("status") or "").strip()
     latest_phase = str(latest_payload.get("prescription_phase") or "").strip()
     verified_at = str(latest_result.get("verified_at") or "").strip()
@@ -149,6 +151,8 @@ def _prescription_outcome(training_intent_id: str, events: list[Any]) -> dict[st
         if latest is not None
         else "",
         "evidence_refs": evidence_refs,
+        "target_pack_id": target_pack_id,
+        "concept_label": concept_label,
         "next_required_action": next_required_action,
         "source_status": {
             "authority": "learner_memory_events.learning_evidence",
@@ -163,6 +167,8 @@ def _latest_grading_probe(events: list[Any], *, require_success: bool) -> Any | 
             continue
         payload = _safe_dict(getattr(event, "payload_json", {}))
         if str(payload.get("prescription_phase") or "").strip() != "verification_probe":
+            continue
+        if str(payload.get("retest_completion_id") or "").strip() and payload.get("completion_terminal") is not True:
             continue
         source = str(
             payload.get("evidence_source") or getattr(event, "source_feature", "") or ""

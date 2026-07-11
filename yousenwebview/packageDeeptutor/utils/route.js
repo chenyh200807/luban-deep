@@ -132,8 +132,8 @@ module.exports = {
   billing: function () {
     return resolve("pages/billing/billing");
   },
-  assessment: function () {
-    return resolve("pages/assessment/assessment");
+  assessment: function (query) {
+    return withQuery("pages/assessment/assessment", query);
   },
   practice: function () {
     return resolve("pages/practice/practice");

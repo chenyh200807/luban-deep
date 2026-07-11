@@ -384,6 +384,13 @@ class LearnerStateService:
         merged = _deep_merge(profile, patch)
         return self.write_profile(user_id, merged)
 
+    def merge_profile_strict(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        """Strict durable profile patch authority for authenticated write paths."""
+        normalized = _normalize_user_id(user_id)
+        current = self.read_profile(normalized)
+        merged = _deep_merge(current, dict(patch or {}))
+        return self.write_profile_strict(normalized, merged)
+
     def read_summary(self, user_id: str) -> str:
         normalized = _normalize_user_id(user_id)
         self._ensure_seed_state(normalized)

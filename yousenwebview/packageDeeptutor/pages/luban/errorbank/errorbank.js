@@ -3,8 +3,8 @@
 // 数据边界(零第二学情权威, 详见 errorbank-view-model.js 头注):
 // - 记账真值 = 云端错题集 read model(只读); pack 归属对照 lessons read model;
 // - R8 解药 runtime 无供给 → fail-closed 降级卡(深链既有解析), 数据位已留;
-// - 销账 = 呈现层: 本地换皮复测通过记录 + 服务端 mastered 旗标, 绝不写掌握态;
-// - 变体池探测 = 详情页单站一次 getLubanRetestItems(非列表 N+1), 有货才亮换皮 CTA。
+// - 销账 = 呈现层: canonical 到期复测通过记录 + 服务端 mastered 旗标, 绝不写掌握态;
+// - 到期复测 = 只消费 review-due 的 pack + probe; 页面不探题池、不自算到期。
 var api = require("../../../utils/api");
 var auth = require("../../../utils/auth");
 var helpers = require("../../../utils/helpers");
@@ -65,7 +65,7 @@ Page({
       return;
     }
     this._pendingRetest = null; // {packId, itemKey, leftAt}
-    this._probeCache = {}; // packId -> {available: bool}
+    this._probeCache = {}; // packId -> {available: bool, probeId: string}
     this._antidoteCache = {}; // "packId::errorCode" -> {mental_model, textbook_ref} | null
     this._loadAll();
   },
@@ -170,12 +170,13 @@ Page({
     }
   },
 
-  // ④ 销账动线 CTA: 换个皮再试一次 → 既有变体复测链路(retest 页带 pack_id)
+  // ④ 销账动线 CTA: 只允许 canonical 到期 probe 进入 review 复测。
   openRetest: function () {
     var detail = this.data.detail;
     if (!detail || !detail.retest || !detail.retest.ready) return;
     var packId = detail.retest.packId;
-    if (!packId) return;
+    var probeId = detail.retest.probeId;
+    if (!packId || !probeId) return;
     this._pendingRetest = {
       packId: packId,
       itemKey: detail.key,
@@ -185,7 +186,9 @@ Page({
       wx.navigateTo({
         url:
           "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
-          encodeURIComponent(packId),
+          encodeURIComponent(packId) +
+          "&mode=review&probe_id=" +
+          encodeURIComponent(probeId),
       });
     }
   },
@@ -213,7 +216,7 @@ Page({
       position: { index: index, total: total },
     });
     this.setData({ mode: "detail", detail: detail, justSettledKey: "" });
-    if (entry.packId && !probe) this._probeRetestPool(entry, index, total);
+    if (entry.packId && !probe) this._resolveDueProbe(entry, index, total);
     if (
       antidoteKey &&
       !Object.prototype.hasOwnProperty.call(this._antidoteCache, antidoteKey)
@@ -224,7 +227,7 @@ Page({
 
   // R8 解药单条探测: 详情页打开时按 {pack_id, error_code} 一次 GET(与错因银行
   // 同一只读投影, 非第二权威)。404/失败 = 负缓存 null → 保持「解药整理中」占位,
-  // 绝不自造讲解(fail-closed, 与 _probeRetestPool 同款异步回填结构)。
+  // 绝不自造讲解(fail-closed, 与 _resolveDueProbe 同款异步回填结构)。
   _probeAntidote: function (entry, index, total) {
     var that = this;
     var key = this._antidoteKey(entry);
@@ -249,19 +252,34 @@ Page({
       });
   },
 
-  // 变体池单站探测: 详情页打开时一次 GET(与 retest 页同一 read model,
-  // 非第二权威; 列表禁 N+1 的收权语义不受影响)。失败/空池 = 不承诺换皮。
-  _probeRetestPool: function (entry, index, total) {
+  // 到期事实只读: 详情页消费 canonical review-due，匹配 pack + probe。
+  // 未到期/无 probe/变体不可用/请求失败一律不亮销账 CTA，不降成 forward。
+  _resolveDueProbe: function (entry, index, total) {
     var that = this;
     api
-      .getLubanRetestItems(entry.packId, 1, { silent: true })
+      .getLubanReviewDue({ silent: true })
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
-        var available = Array.isArray(body.items) && body.items.length > 0;
-        that._probeCache[entry.packId] = { available: available };
+        var rows = Array.isArray(body.due) ? body.due : [];
+        var matched = null;
+        for (var i = 0; i < rows.length; i++) {
+          var row = rows[i] || {};
+          if (
+            String(row.pack_id || "").toUpperCase() === String(entry.packId || "").toUpperCase() &&
+            row.retest_available === true &&
+            String(row.probe_id || "").trim()
+          ) {
+            matched = row;
+            break;
+          }
+        }
+        that._probeCache[entry.packId] = {
+          available: !!matched,
+          probeId: matched ? String(matched.probe_id).trim() : "",
+        };
       })
       .catch(function () {
-        that._probeCache[entry.packId] = { available: false };
+        that._probeCache[entry.packId] = { available: false, probeId: "" };
       })
       .then(function () {
         var detail = that.data.detail;

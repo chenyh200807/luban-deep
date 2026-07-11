@@ -197,6 +197,15 @@
 - **[owner 战略定位存档]** "现在是搭基建做体系——全知识点量产还没开始, 基建必须扎实好用"; 且常设第三方顶尖独立专家宏观审视, 防自嗨防盲区。
 - **[宏观独立专家判决(全文在会话, 要点存档)]** 总裁决: **工具链工业级, 内容生成→质检回路手工业; 下游扎实、上游产线带病停摆、人闸是一个人的名字**。①可量产性先断点: 17 个手写变体 builder(互差 395-479 行非模板)、审计尺造好没接闸(audit_variant_style_tells 全仓零引用/CI 零内容闸)、教材 diff 预扫缺失(A 级主谱系防线仍是面板)、blocklist 复活零先例、pack 产线停摆 3 周(06-20 一次性产出后未动, 病未治产线重启=5 倍复现);②自嗨信号: 141 卡当天代签有未审面(lecture lane)、质量循环"面板互证"用户不在场(验收标准从真人回访悄悄降级为面板 PASS);③体系级盲区: 教研产能模型(岗位不存在却是量产依赖)、内容回归 CI=0、用户反哺排产回路=0、教材版本滚动 story 缺失;④量产前只做三件: 尺接闸进 CI / 变体生成层返工+17 builder 收敛 1 个数据驱动 builder / 真人进场+跑通一单 blocklist 复活回路; 可缓: first-run·retest 二轮视觉、看穿铺量(模板假设未证)、PGO 重建。**本日四拍板中 max_active 被其背书, 看穿关卡化+换皮打磨被其排在三件基建活之后(已按 owner 指令先行完成, 后续消费层打磨默认冻结让位基建)**。
 
+### 2026-07-11（首次体验→复测 Learner State 闭环根因加固）
+
+- **撤回旧链路说明**：retest 不再是“本地判分 + telemetry + 页面发 station_completed”。客户端本地判分只保留即时反馈，不具 learner truth 权威；最终 completion 必须 POST 到服务端按 signed variant bank 重判。
+- **根因**：item row/attempt truth 粒度错位，`learning_synthesis`、three-layer projection、learning report 三处各自按行数升档；partial item 又提前携带 verified 终态。
+- **收权**：shared evidence lifecycle 统一 source/promotion/attempt/terminal；RetestWritebackService 唯一写 item→terminal→station；review 绑定 due probe，forward 恒 non-promoting；处方和 probe identity 与 target pack 分离。GET 签发绑定 user/pack/day/mode/variant-set 的 selection identity，POST 验签后按原签发日重判，跨午夜/断网 retry 不换题。
+- **五模块侧门收口**：gauntlet 的即时再练显式归 forward；errorbank 删除“有题池=已到期”的前端推断，只消费 canonical review-due，pack、`retest_available`、probe 三者齐全才亮销账 CTA，并透传 `mode=review&probe_id`。总指挥否证式终审未发现仍可绕过 rollout/probe/selection/terminal 的 retest completion 入口。
+- **UI 语义**：保存失败不出收据、不说“明天见”；服务端 terminal 成功后 forward 进 handoff，review 回复习。handoff 只保留提醒与 telemetry，不再写 learner state。
+- **发布边界**：本轮不部署。首次四题仍因双教研签发未完成而 fail closed；真实微信订阅提醒仍依赖模板 ID，不能用页内红点冒充系统推送。
+
 ## 惯例沉淀（复盘时升格为规则的候选）
 - 部署后必做独立探针（不信脚本自报）——本轮抓到 22 站 404 与 F16 无声两个上线级洞。
 - owner 口述需求先 grep 是否已实现再派工；agent 终态纪律=最终回复基于磁盘/线上实测，"等待中/等子报告"不是完成态。

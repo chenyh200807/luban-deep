@@ -16,12 +16,17 @@ from deeptutor.services.learner_state.home_next_step_projection import (
 _GREEN = [
     {"pack_id": "A01", "title": "检验批验收程序"},
     {"pack_id": "N01", "title": "网络计划关键线路"},
+    {"pack_id": "F16", "title": "屋面防水起鼓割补"},
 ]
 _REVIEW_ITEM = {
     "probe_id": "rvp_x1",
-    "intent": {"concept_label": "网络计划", "training_intent_id": "rvp_x1"},
+    "intent": {"concept_id": "N01", "concept_label": "网络计划", "training_intent_id": "rvp_x1"},
 }
-_ACTIVE_INTENT = {"training_intent_id": "ti_1", "concept_label": "防水工程"}
+_ACTIVE_INTENT = {
+    "training_intent_id": "ti_1",
+    "concept_label": "防水工程",
+    "target_pack_id": "F16",
+}
 _FOUR_FIELDS = ("mode", "source_authority", "source_ref", "reason")
 
 
@@ -40,6 +45,7 @@ def test_priority_review_beats_practice_beats_learn() -> None:
     assert step["mode"] == MODE_REVIEW
     assert step["source_authority"] == "revalidation_queue"
     assert step["source_ref"] == "rvp_x1"
+    assert step["target_pack_id"] == "N01"
 
     # 无到期复 → 活跃练赢。
     step = build_home_next_step_projection(
@@ -51,6 +57,20 @@ def test_priority_review_beats_practice_beats_learn() -> None:
     assert step["mode"] == MODE_PRACTICE
     assert step["source_authority"] == "training_intent"
     assert step["source_ref"] == "ti_1"
+    assert step["target_pack_id"] == "F16"
+
+
+def test_legacy_active_intent_is_not_silently_dropped_when_target_is_missing() -> None:
+    step = build_home_next_step_projection(
+        revalidation_items=[],
+        active_training_intents=[{"training_intent_id": "legacy-ti", "concept_label": "旧处方"}],
+        pack_lifecycle={"packs": {}},
+        green_lessons=_GREEN,
+    )
+
+    assert step["mode"] == MODE_PRACTICE
+    assert step["source_ref"] == "legacy-ti"
+    assert step["target_pack_id"] == ""
 
     # 只剩学 → 第一个 未学∧绿灯。
     step = build_home_next_step_projection(
@@ -83,7 +103,7 @@ def test_all_learned_falls_back_to_registry_first_green() -> None:
     step = build_home_next_step_projection(
         revalidation_items=[],
         active_training_intents=[],
-        pack_lifecycle=_lifecycle({"A01": "mastered", "N01": "practiced"}),
+        pack_lifecycle=_lifecycle({"A01": "mastered", "N01": "practiced", "F16": "practiced"}),
         green_lessons=_GREEN,
     )
     assert step["mode"] == MODE_FALLBACK

@@ -92,15 +92,16 @@ def test_station_completed_signal_gated_by_review_module_flag(monkeypatch):
 
     monkeypatch.delenv("LUBAN_REVIEW_MODULE_ENABLED", raising=False)
     with pytest.raises(ValueError):
-        record_learner_signal(_Svc(), user_id="u1", signal_type="station_completed", concept_id="F16")
+        record_learner_signal(_Svc(), user_id="u1", signal_type="station_completed", concept_id="F16", completion_id="c1")
 
     monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
     record_learner_signal(_Svc(), user_id="u1", signal_type="station_completed",
-                          concept_id="F16", concept_label="屋面防水")
+                          concept_id="F16", concept_label="屋面防水", completion_id="c1")
     assert calls["source_feature"] == "learner_signal"
     assert calls["memory_kind"] == "learning_evidence"
     assert calls["payload_json"]["learning_signal_type"] == "station_completed"
     assert calls["payload_json"]["concept_id"] == "F16"
+    assert calls["payload_json"]["completion_id"] == "c1"
 
     with pytest.raises(ValueError):
         record_learner_signal(_Svc(), user_id="u1", signal_type="station_done", concept_id="F16")

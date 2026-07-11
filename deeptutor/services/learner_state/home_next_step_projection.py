@@ -60,15 +60,23 @@ def build_home_next_step_projection(
     green_lessons: list[dict[str, Any]] | None,
 ) -> dict[str, Any]:
     """确定性仲裁；所有输入由 caller 提供（本模块不读任何存储）。"""
+    green = [item for item in list(green_lessons or []) if isinstance(item, dict) and _text(item.get("pack_id"))]
+    green_ids = {_text(item.get("pack_id")).upper() for item in green}
     for item in list(revalidation_items or []):
         if not isinstance(item, dict):
             continue
         intent = item.get("intent") if isinstance(item.get("intent"), dict) else {}
         label = _text(intent.get("concept_label")) or _text(intent.get("error_label")) or "薄弱点"
+        target_pack_id = _text(
+            item.get("target_pack_id") or intent.get("target_pack_id") or intent.get("concept_id")
+        ).upper()
+        if target_pack_id not in green_ids:
+            target_pack_id = ""
         return {
             "mode": MODE_REVIEW,
             "source_authority": "revalidation_queue",
             "source_ref": _text(item.get("probe_id")),
+            "target_pack_id": target_pack_id,
             "reason": f"到期复验：{label} 再看一眼就稳了",
         }
 
@@ -79,14 +87,17 @@ def build_home_next_step_projection(
         if not intent_id:
             continue
         label = _text(intent.get("concept_label")) or _text(intent.get("error_label")) or "你漏的采分点"
+        target_pack_id = _text(intent.get("target_pack_id")).upper()
+        if target_pack_id not in green_ids:
+            target_pack_id = ""
         return {
             "mode": MODE_PRACTICE,
             "source_authority": "training_intent",
             "source_ref": intent_id,
+            "target_pack_id": target_pack_id,
             "reason": f"继续练：{label}，换个题面",
         }
 
-    green = [item for item in list(green_lessons or []) if isinstance(item, dict) and _text(item.get("pack_id"))]
     packs = (pack_lifecycle or {}).get("packs") if isinstance(pack_lifecycle, dict) else {}
     packs = packs if isinstance(packs, dict) else {}
 
@@ -107,6 +118,7 @@ def build_home_next_step_projection(
                 "mode": MODE_LEARN,
                 "source_authority": "pack_lifecycle_projection",
                 "source_ref": pack_id,
+                "target_pack_id": pack_id,
                 "reason": f"下一站：{title}",
             }
 
@@ -117,6 +129,7 @@ def build_home_next_step_projection(
             "mode": MODE_FALLBACK,
             "source_authority": "pack_manifest.registry_order",
             "source_ref": _text(first.get("pack_id")),
+            "target_pack_id": _text(first.get("pack_id")),
             # 群体理由（诚实版）：不伪装个性化。
             "reason": f"从这里开始：{title}（多数考生的第一站）",
         }

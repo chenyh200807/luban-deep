@@ -5,6 +5,24 @@ import hashlib
 import json
 from typing import Any, Iterable
 
+from deeptutor.services.learner_state.canonical_truth_policy import (
+    trusted_adjudication_from_quality,
+)
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    LEARNING_EVIDENCE_SOURCE_FEATURES as LEARNING_EVIDENCE_SOURCE_FEATURES,
+)
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    PRACTICE_EVIDENCE_SOURCE_FEATURES as PRACTICE_EVIDENCE_SOURCE_FEATURES,
+)
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    committed_retest_completion_ids,
+    distinct_attempt_count,
+    event_promotion_allowed,
+    evidence_attempt_id,
+    is_learning_evidence_event,
+    is_retest_completion_terminal,
+    promotion_allowed,
+)
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
 )
@@ -14,9 +32,6 @@ from deeptutor.services.learner_state.memory_lifecycle import (
     lifecycle_stage_for_evidence_level,
     max_evidence_level,
 )
-from deeptutor.services.learner_state.canonical_truth_policy import (
-    trusted_adjudication_from_quality,
-)
 from deeptutor.services.learner_state.service import LearnerStateEvent
 
 # source_feature 白名单的单一 authority(每个词汇一个 authority,病D-3):
@@ -24,11 +39,6 @@ from deeptutor.services.learner_state.service import LearnerStateEvent
 #   (pack_lifecycle_projection._is_practice_evidence 等读侧引用,禁手工拷贝)
 # - LEARNING_EVIDENCE_SOURCE_FEATURES = 证据编译器认的全集(练 + 对话合成);
 #   写侧 auto-synthesis 触发过滤(learner_state/service.py)引用同一份。
-PRACTICE_EVIDENCE_SOURCE_FEATURES = frozenset({"construction_grading", "assessment_testset"})
-LEARNING_EVIDENCE_SOURCE_FEATURES = PRACTICE_EVIDENCE_SOURCE_FEATURES | frozenset(
-    {"conversation_synthesis"}
-)
-
 _ALLOWED_EDGE_TYPES = {
     "question_tests_concept",
     "submission_answered_question",
@@ -50,6 +60,7 @@ def synthesize_learning_truth(
     event_limit: int | None = None,
 ) -> dict[str, Any]:
     ordered_events = sorted(list(events), key=lambda event: (str(event.created_at or ""), str(event.event_id or "")))
+    committed_retest_ids = committed_retest_completion_ids(ordered_events)
     # Phase -1.D: opt-in event window. Keeps the most-recent N events when
     # event_limit > 0; zero/negative/None disable windowing so existing
     # callers see no behavior change. The truncated flag surfaces upward so
@@ -62,7 +73,7 @@ def synthesize_learning_truth(
         item
         for event in ordered_events
         if _is_learning_evidence(event) and _is_release_eligible_evidence(event)
-        for item in _learning_items(event)
+        for item in _learning_items(event, committed_retest_ids=committed_retest_ids)
     ]
     # Review-only observation channel: candidate/shadow learning evidence excluded by
     # the release-eligibility safety net is OBSERVED here instead of silently dropped.
@@ -83,7 +94,7 @@ def synthesize_learning_truth(
 
     for item in learning_items:
         conflict_count += len(item["conflicting_event_ids"])
-        if item["is_improvement"]:
+        if item["is_improvement"] and item["promotion_allowed"]:
             improvements.append({
                 "concept_id": item["concept_id"],
                 "error_code": item["error_code"],
@@ -92,7 +103,8 @@ def synthesize_learning_truth(
             })
             continue
         if (
-            item["source_feature"] == "conversation_synthesis"
+            not item["promotion_allowed"]
+            or item["source_feature"] == "conversation_synthesis"
             or not item["concept_id"]
             or not item["error_code"]
             or not item["question_id"]
@@ -112,11 +124,22 @@ def synthesize_learning_truth(
             # §6-1 同族:字面 == "L2_confirmed" 曾把 L2_real_retest 降档;
             # 按 rank 判 L2 档并保真最高 level(真懂信号不在聚合层丢失)。
             raw_weak_points.append({**candidate, "evidence_level": top_level})
-        elif len(items) >= 2:
+        elif distinct_attempt_count(items) >= 2:
             raw_weak_points.append({**candidate, "evidence_level": "L1_repeated"})
         else:
             observed_candidates.append({**candidate, "evidence_level": "L0_observed"})
 
+    active_baseline_keys = {
+        (_clean_text(item.get("concept_id")), _clean_text(item.get("error_code")))
+        for item in raw_weak_points
+    }
+    improvements = [
+        item
+        for item in improvements
+        if not _clean_text(item.get("error_code"))
+        or (_clean_text(item.get("concept_id")), _clean_text(item.get("error_code")))
+        in active_baseline_keys
+    ]
     improved_keys = _resolved_improved_keys(improvements=improvements)
     weak_points = _active_weak_points(
         raw_weak_points=raw_weak_points,
@@ -181,6 +204,8 @@ def project_learning_graph(events: Iterable[LearnerStateEvent]) -> dict[str, Any
     readiness_gaps: list[dict[str, Any]] = []
     for event in events:
         if not _is_learning_evidence(event):
+            continue
+        if is_retest_completion_terminal(event):
             continue
         payload = dict(event.payload_json or {})
         event_edges: list[dict[str, Any]] = []
@@ -361,12 +386,7 @@ def render_learning_truth_summary_md(projection: dict[str, Any]) -> str:
 
 
 def _is_learning_evidence(event: LearnerStateEvent) -> bool:
-    payload = dict(event.payload_json or {})
-    return (
-        event.memory_kind == "learning_evidence"
-        and event.source_feature in LEARNING_EVIDENCE_SOURCE_FEATURES
-        and (event.source_feature == "construction_grading" or payload.get("event_type") == "learning_evidence")
-    )
+    return is_learning_evidence_event(event)
 
 
 def _is_release_eligible_evidence(event: LearnerStateEvent) -> bool:
@@ -430,8 +450,17 @@ def _is_manual_correction(event: LearnerStateEvent) -> bool:
     )
 
 
-def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
+def _learning_items(
+    event: LearnerStateEvent,
+    *,
+    committed_retest_ids: set[str] | None = None,
+) -> list[dict[str, Any]]:
     payload = dict(event.payload_json or {})
+    attempt_id = evidence_attempt_id(event, payload)
+    can_promote = event_promotion_allowed(
+        event,
+        committed_retest_ids=committed_retest_ids,
+    )
     errors = [error for error in list(payload.get("error_events") or payload.get("errors") or []) if isinstance(error, dict)]
     signal = payload.get("next_training_signal") if isinstance(payload.get("next_training_signal"), dict) else {}
     question_id = _clean_text(payload.get("question_id"))
@@ -464,6 +493,8 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
             "evidence_cap_reasons": _evidence_cap_reasons(quality),
             "evidence_level": evidence_level,
             "claim_promotion_allowed": payload.get("claim_promotion_allowed"),
+            "promotion_allowed": can_promote,
+            "attempt_id": attempt_id,
             "is_improvement": True,
         }]
     if not errors:
@@ -498,6 +529,8 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
             "evidence_cap_reasons": _evidence_cap_reasons(quality),
             "evidence_level": evidence_level,
             "claim_promotion_allowed": payload.get("claim_promotion_allowed"),
+            "promotion_allowed": can_promote,
+            "attempt_id": attempt_id,
             "is_improvement": False,
         })
     return items
@@ -509,10 +542,13 @@ def _canonical_topic_concept_id(payload: dict[str, Any]) -> str:
 
 
 def _learning_item_evidence_level(*, quality: dict[str, Any], signal: dict[str, Any]) -> str:
+    explicit_level = _clean_text(quality.get("evidence_level"))
+    if explicit_level == "L2_real_retest":
+        return explicit_level
     trusted = trusted_adjudication_from_quality(quality, signal)
     if trusted and trusted.get("requires_human") is not True:
         return "L2_confirmed"
-    return _clean_text(quality.get("evidence_level"))
+    return explicit_level
 
 
 def _evidence_cap_reasons(quality: dict[str, Any]) -> list[str]:
@@ -1089,14 +1125,10 @@ def _is_improvement(payload: dict[str, Any]) -> bool:
     # rides on ``preview_only`` / ``claim_promotion_allowed`` (set by build_learning_evidence_*);
     # ``qa_simulated`` is the project's explicit simulation marker (runtime_llm_adjudicator /
     # beta_shadow_loader). Only a real graded attempt — none of these flags — may improve.
-    quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
-    if (
-        payload.get("qa_simulated") is True
-        or payload.get("preview_only") is True
-        or payload.get("claim_promotion_allowed") is False
-        or _is_low_measurement_confidence(payload.get("measurement_confidence"))
-        or _is_low_measurement_confidence(quality.get("measurement_confidence"))
-    ):
+    if not promotion_allowed(payload):
+        return False
+    source = _clean_text(payload.get("evidence_source"))
+    if source == "assessment_testset" and _clean_text(payload.get("practice_mode")) not in {"review", "verification"}:
         return False
     try:
         max_score = float(payload.get("max_score") or 0)

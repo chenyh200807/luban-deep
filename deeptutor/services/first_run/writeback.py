@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
 import json
 from typing import Any
 
 from deeptutor.services.first_run import manifest as manifest_module
+from deeptutor.services.first_run.prescription_resolver import (
+    resolve_first_run_prescription,
+)
 from deeptutor.services.learner_state.home_personalization import (
     build_home_personalization_projection_from_learning_signal,
     write_home_personalization_projection,
@@ -119,7 +121,9 @@ class FirstRunWritebackService:
             answers=normalized_answers,
         )
         missed = [item for item in scored if not item["is_correct"]]
-        focus_item = dict((missed or scored)[0])
+        prescription = resolve_first_run_prescription(scored)
+        focus_item = dict(prescription["focus_item"])
+        target_pack_id = str(prescription["target_pack_id"] or "").strip().upper()
         provisional_intent = build_learning_training_intent(
             user_id=normalized_user_id,
             concept_id=str(focus_item["concept_id"]),
@@ -128,10 +132,18 @@ class FirstRunWritebackService:
             source=SOURCE_FEATURE,
             reason="first_run_first_missed_item" if missed else "first_run_clean_baseline",
             training_mode="mixed_review",
+            target_pack_id=target_pack_id,
         )
 
         events: list[Any] = []
         for item in scored:
+            is_focus = item["question_id"] == focus_item["question_id"]
+            is_correct = bool(item["is_correct"])
+            error_events = [] if is_correct else [{
+                "error_code": "unknown_error",
+                "concept_tag": item["concept_id"],
+                "diagnosis": "首次摸底未命中，等待后续练习确认",
+            }]
             payload = {
                 "event_type": "learning_evidence",
                 "evidence_source": SOURCE_FEATURE,
@@ -146,17 +158,28 @@ class FirstRunWritebackService:
                 "content_sha256": item["content_sha256"],
                 "learner_answer": item["learner_answer"],
                 "correct_answer": item["correct_answer"],
-                "is_correct": bool(item["is_correct"]),
+                "is_correct": is_correct,
                 "duration_ms": int(item["duration_ms"]),
+                "score_awarded": 1.0 if is_correct else 0.0,
+                "max_score": 1.0,
                 "knowledge_points": [item["concept_label"]],
                 "concept_id": item["concept_id"],
                 "concept_label": item["concept_label"],
                 "node_code": item["concept_id"],
                 "taxonomy_code": item["concept_id"],
-                "error_codes": [],
+                "error_codes": [] if is_correct else ["unknown_error"],
+                "error_events": error_events,
+                "quality": {"evidence_level": "L0_observed"},
+                "next_training_signal": {
+                    "concept": item["concept_id"],
+                    "concept_label": item["concept_label"],
+                    "error_code": "unknown_error" if not is_correct else "",
+                },
                 "measurement_confidence": "low_first_run_static_mcq",
-                "training_intent_id": provisional_intent["training_intent_id"],
-                "prescription_phase": "assigned",
+                "training_intent_id": provisional_intent["training_intent_id"] if is_focus else "",
+                "target_pack_id": target_pack_id if is_focus else "",
+                "target_pack_refs": list(prescription["mapping_refs"]) if is_focus else [],
+                "prescription_phase": "assigned" if is_focus else "",
                 "mastery_promotion_allowed": False,
                 "official_score_allowed": False,
                 "claim_promotion_allowed": False,
@@ -178,28 +201,34 @@ class FirstRunWritebackService:
             events.append(event)
 
         event_ids = [str(getattr(event, "event_id", "") or "").strip() for event in events]
+        focus_event_ids = [
+            event_ids[index]
+            for index, item in enumerate(scored)
+            if item["question_id"] == focus_item["question_id"]
+        ]
         training_intent = build_learning_training_intent(
             user_id=normalized_user_id,
             concept_id=str(focus_item["concept_id"]),
             concept_label=str(focus_item["concept_label"]),
-            evidence_refs=event_ids,
+            evidence_refs=focus_event_ids,
             source=SOURCE_FEATURE,
             reason="first_run_first_missed_item" if missed else "first_run_clean_baseline",
             training_mode="mixed_review",
+            target_pack_id=target_pack_id,
+        )
+        home_projection = self._write_home_projection(
+            user_id=normalized_user_id,
+            focus_item=focus_item,
+            event_ids=focus_event_ids,
+            training_intent=training_intent,
+            generated_at=generated_at,
+            missed=bool(missed),
         )
         self._write_explicit_preferences(
             user_id=normalized_user_id,
             preferences=preferences,
             script_version=canonical_request["script_version"],
             completed_at=canonical_request["completed_at"],
-        )
-        home_projection = self._write_home_projection(
-            user_id=normalized_user_id,
-            focus_item=focus_item,
-            event_ids=event_ids,
-            training_intent=training_intent,
-            generated_at=generated_at,
-            missed=bool(missed),
         )
         return {
             "completion_id": normalized_completion_id,
@@ -232,16 +261,16 @@ class FirstRunWritebackService:
         script_version: str,
         completed_at: str,
     ) -> None:
-        profile = deepcopy(self._learner_state.read_profile(user_id) or {})
-        learning_preferences = dict(profile.get("learning_preferences") or {})
-        learning_preferences["first_run"] = {
-            **preferences,
-            "script_version": script_version,
-            "completed_at": completed_at,
-            "source": "explicit_first_run_v1",
-        }
-        profile["learning_preferences"] = learning_preferences
-        self._learner_state.write_profile_strict(user_id, profile)
+        self._learner_state.merge_profile_strict(user_id, {
+            "learning_preferences": {
+                "first_run": {
+                    **preferences,
+                    "script_version": script_version,
+                    "completed_at": completed_at,
+                    "source": "explicit_first_run_v1",
+                }
+            }
+        })
 
     def _write_home_projection(
         self,
@@ -261,6 +290,7 @@ class FirstRunWritebackService:
             "taxonomy_code": focus_item["concept_id"],
             "knowledge_points": [concept_label],
             "training_intent_id": training_intent["training_intent_id"],
+            "target_pack_id": str(training_intent.get("target_pack_id") or ""),
             "evidence_refs": event_ids,
             "learning_state_ref": event_ids[0] if event_ids else "",
             "next_training_signal": {
@@ -274,6 +304,7 @@ class FirstRunWritebackService:
             generated_at=generated_at,
             llm_topic_inferer=lambda _text: None,
         )
+        projection["target_pack_id"] = str(training_intent.get("target_pack_id") or "")
         if not write_home_personalization_projection(
             self._learner_state,
             user_id=user_id,

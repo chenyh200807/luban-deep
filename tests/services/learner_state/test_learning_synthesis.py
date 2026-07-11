@@ -810,7 +810,7 @@ def test_eligible_evidence_still_consumed_after_safety_filter() -> None:
     assert "error:1A432000:E02" in proj["compiled_objects"]
 
 
-def test_open_world_grading_repeats_escalate_to_claim_via_canonical_topic() -> None:
+def test_open_world_non_promotable_grading_repeats_stay_observed() -> None:
     """断点修复端到端：开放世界（无 node_code）批改经真实 writer 产出的证据，
     凭 canonical_topic（taxonomy resolver 命中）聚合——同主题同错因重复两次
     必须升级为 L1_repeated claim。评分开放世界 ⇒ 记忆也开放世界。"""
@@ -882,8 +882,14 @@ def test_open_world_grading_repeats_escalate_to_claim_via_canonical_topic() -> N
         for item in projection["weak_points"]
         if item.get("concept_id") == "1A413050"
     ]
-    assert weak, f"开放世界重复错误必须聚合成 claim，got weak_points={projection['weak_points']}"
-    assert weak[0]["evidence_level"] == "L1_repeated"
+    observed = [
+        item
+        for item in projection["observed_candidates"]
+        if item.get("concept_id") == "1A413050"
+    ]
+    assert weak == [], "claim_promotion_allowed=false 必须跨读模型阻断 L1"
+    assert len(observed) == 2
+    assert all(item["evidence_level"] == "L0_observed" for item in observed)
 
 
 def _rich_leaf_candidate_event(event_id: str, *, leaf_id: str = "1A435000-B010") -> LearnerStateEvent:
