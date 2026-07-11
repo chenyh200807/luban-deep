@@ -5,9 +5,12 @@ SQLite-backed unified chat session store.
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
+import contextlib
 import json
 import os
 import sqlite3
+import threading
 import time
 import uuid
 from dataclasses import dataclass
@@ -582,7 +585,16 @@ class SQLiteSessionStore:
         self.db_path = db_path or path_service.get_chat_history_db()
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._migrate_legacy_db(path_service)
-        self._lock = asyncio.Lock()
+        # Battle1 W2-T2: the former process-wide asyncio.Lock serialized every
+        # read AND write across all sessions. Writes now run on a dedicated
+        # single writer thread (FIFO queue = natural write serialization, one
+        # persistent connection); reads run on the shared to_thread pool with
+        # short-lived connections — WAL gives snapshot-isolated concurrent
+        # reads that never block the writer.
+        self._write_executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=1, thread_name_prefix="sqlite-writer"
+        )
+        self._write_conn: sqlite3.Connection | None = None
         self._initialize()
 
     def _migrate_legacy_db(self, path_service) -> None:
@@ -670,6 +682,7 @@ class SQLiteSessionStore:
                     stage TEXT DEFAULT '',
                     content TEXT DEFAULT '',
                     metadata_json TEXT DEFAULT '',
+                    visibility TEXT DEFAULT '',
                     timestamp REAL NOT NULL,
                     created_at REAL NOT NULL,
                     UNIQUE(turn_id, seq)
@@ -740,6 +753,17 @@ class SQLiteSessionStore:
             }
             if "metadata_json" not in message_columns:
                 conn.execute("ALTER TABLE messages ADD COLUMN metadata_json TEXT DEFAULT '{}'")
+            turn_event_columns = {
+                row[1] for row in conn.execute("PRAGMA table_info(turn_events)").fetchall()
+            }
+            if "visibility" not in turn_event_columns:
+                # Battle1: persist event visibility so the replay view
+                # (backlog/catch-up/cross-worker tail/resume) carries the same
+                # fields as the live fan-out payload. Legacy rows keep '' and
+                # are omitted at reconstruction — identical to the historical
+                # missing-field behavior (consumers canonicalize missing as
+                # public via _event_visibility).
+                conn.execute("ALTER TABLE turn_events ADD COLUMN visibility TEXT DEFAULT ''")
             conn.execute(
                 """
                 CREATE INDEX IF NOT EXISTS idx_sessions_owner_updated_at
@@ -894,8 +918,27 @@ class SQLiteSessionStore:
             conn.commit()
 
     async def _run(self, fn, *args):
-        async with self._lock:
-            return await asyncio.to_thread(fn, *args)
+        """Write path: FIFO single-writer thread with a persistent connection."""
+        return await asyncio.get_running_loop().run_in_executor(
+            self._write_executor, lambda: fn(*args)
+        )
+
+    async def _run_read(self, fn, *args):
+        """Read path: lock-free, short-lived connection per call (WAL-safe)."""
+        return await asyncio.to_thread(fn, *args)
+
+    def close(self) -> None:
+        """Release the writer thread and its persistent connection (tests/teardown)."""
+
+        def _close_conn() -> None:
+            if self._write_conn is not None:
+                with contextlib.suppress(Exception):
+                    self._write_conn.close()
+                self._write_conn = None
+
+        with contextlib.suppress(Exception):
+            self._write_executor.submit(_close_conn).result(timeout=5)
+        self._write_executor.shutdown(wait=False)
 
     @staticmethod
     def _notebook_categories_require_owner_scope_migration(conn: sqlite3.Connection) -> bool:
@@ -982,6 +1025,13 @@ class SQLiteSessionStore:
         )
 
     def _connect(self) -> sqlite3.Connection:
+        # Battle1 W2-T2: on the writer thread, hand out the persistent write
+        # connection (sync fn bodies keep their `with self._connect() as conn`
+        # transaction scope untouched — `with conn:` commits/rolls back but
+        # never closes). Any other thread gets a short-lived read connection,
+        # identical to the historical behavior.
+        if threading.current_thread().name.startswith("sqlite-writer"):
+            return self._get_write_conn()
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(self.db_path, timeout=_SQLITE_TIMEOUT_SECONDS)
         conn.row_factory = sqlite3.Row
@@ -995,6 +1045,19 @@ class SQLiteSessionStore:
         # holds on every runtime connection, not only the first one.
         conn.execute("PRAGMA synchronous = NORMAL")
         return conn
+
+    def _get_write_conn(self) -> sqlite3.Connection:
+        """Writer-thread only: lazily create the persistent write connection."""
+        if self._write_conn is None:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            conn = sqlite3.connect(self.db_path, timeout=_SQLITE_TIMEOUT_SECONDS)
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA foreign_keys = ON")
+            conn.execute(f"PRAGMA busy_timeout = {_SQLITE_BUSY_TIMEOUT_MS}")
+            conn.execute("PRAGMA journal_mode = WAL")
+            conn.execute("PRAGMA synchronous = NORMAL")
+            self._write_conn = conn
+        return self._write_conn
 
     @staticmethod
     def _extract_cost_summary_from_event_metadata(metadata_json: str | None) -> dict[str, Any] | None:
@@ -1193,7 +1256,7 @@ class SQLiteSessionStore:
         return payload
 
     async def get_session(self, session_id: str) -> dict[str, Any] | None:
-        return await self._run(self._get_session_sync, session_id)
+        return await self._run_read(self._get_session_sync, session_id)
 
     async def ensure_session(
         self,
@@ -1304,7 +1367,7 @@ class SQLiteSessionStore:
         return self._serialize_turn(row)
 
     async def get_turn(self, turn_id: str) -> dict[str, Any] | None:
-        return await self._run(self._get_turn_sync, turn_id)
+        return await self._run_read(self._get_turn_sync, turn_id)
 
     def _get_active_turn_sync(self, session_id: str) -> dict[str, Any] | None:
         with self._connect() as conn:
@@ -1325,7 +1388,7 @@ class SQLiteSessionStore:
         return self._serialize_turn(row)
 
     async def get_active_turn(self, session_id: str) -> dict[str, Any] | None:
-        return await self._run(self._get_active_turn_sync, session_id)
+        return await self._run_read(self._get_active_turn_sync, session_id)
 
     def _list_active_turns_sync(self, session_id: str) -> list[dict[str, Any]]:
         with self._connect() as conn:
@@ -1343,7 +1406,7 @@ class SQLiteSessionStore:
         return [self._serialize_turn(row) for row in rows]
 
     async def list_active_turns(self, session_id: str) -> list[dict[str, Any]]:
-        return await self._run(self._list_active_turns_sync, session_id)
+        return await self._run_read(self._list_active_turns_sync, session_id)
 
     def _update_turn_status_sync(self, turn_id: str, status: str, error: str = "") -> bool:
         now = time.time()
@@ -1427,8 +1490,8 @@ class SQLiteSessionStore:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO turn_events (
-                    turn_id, seq, type, source, stage, content, metadata_json, timestamp, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    turn_id, seq, type, source, stage, content, metadata_json, visibility, timestamp, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     turn_id,
@@ -1438,6 +1501,7 @@ class SQLiteSessionStore:
                     payload.get("stage", ""),
                     payload.get("content", "") or "",
                     _json_dumps(payload.get("metadata", {})),
+                    str(payload.get("visibility", "") or ""),
                     float(payload.get("timestamp") or now),
                     now,
                 ),
@@ -1456,7 +1520,7 @@ class SQLiteSessionStore:
         with self._connect() as conn:
             rows = conn.execute(
                 """
-                SELECT turn_id, seq, type, source, stage, content, metadata_json, timestamp
+                SELECT turn_id, seq, type, source, stage, content, metadata_json, visibility, timestamp
                 FROM turn_events
                 WHERE turn_id = ? AND seq > ?
                 ORDER BY seq ASC
@@ -1465,8 +1529,9 @@ class SQLiteSessionStore:
             ).fetchall()
             turn = conn.execute("SELECT session_id FROM turns WHERE id = ?", (turn_id,)).fetchone()
         session_id = turn["session_id"] if turn else ""
-        return [
-            {
+        events: list[dict[str, Any]] = []
+        for row in rows:
+            item: dict[str, Any] = {
                 "type": row["type"],
                 "source": row["source"] or "",
                 "stage": row["stage"] or "",
@@ -1477,11 +1542,16 @@ class SQLiteSessionStore:
                 "seq": row["seq"],
                 "timestamp": row["timestamp"],
             }
-            for row in rows
-        ]
+            # Battle1: replay view carries the persisted visibility so it is
+            # field-equivalent to the live fan-out payload; legacy rows ('')
+            # omit the key, preserving the historical missing-field shape.
+            if row["visibility"]:
+                item["visibility"] = row["visibility"]
+            events.append(item)
+        return events
 
     async def get_turn_events(self, turn_id: str, after_seq: int = 0) -> list[dict[str, Any]]:
-        return await self._run(self._get_turn_events_sync, turn_id, after_seq)
+        return await self._run_read(self._get_turn_events_sync, turn_id, after_seq)
 
     def _update_session_title_sync(self, session_id: str, title: str) -> bool:
         with self._connect() as conn:
@@ -1613,7 +1683,7 @@ class SQLiteSessionStore:
         return [self._serialize_message(row) for row in rows]
 
     async def get_messages(self, session_id: str) -> list[dict[str, Any]]:
-        return await self._run(self._get_messages_sync, session_id)
+        return await self._run_read(self._get_messages_sync, session_id)
 
     def _backfill_message_presentations_sync(
         self,
@@ -1690,7 +1760,7 @@ class SQLiteSessionStore:
         return messages
 
     async def get_messages_for_context(self, session_id: str) -> list[dict[str, Any]]:
-        return await self._run(self._get_messages_for_context_sync, session_id)
+        return await self._run_read(self._get_messages_for_context_sync, session_id)
 
     def _serialize_session_rows(self, rows: list[sqlite3.Row]) -> list[dict[str, Any]]:
         sessions = []
@@ -1852,7 +1922,7 @@ class SQLiteSessionStore:
         before_updated_at: float | None = None,
         before_session_id: str | None = None,
     ) -> list[dict[str, Any]]:
-        return await self._run(
+        return await self._run_read(
             self._list_sessions_sync,
             limit,
             offset,
@@ -1897,7 +1967,7 @@ class SQLiteSessionStore:
         before_updated_at: float | None = None,
         before_session_id: str | None = None,
     ) -> list[dict[str, Any]]:
-        return await self._run(
+        return await self._run_read(
             self._list_sessions_by_owner_sync,
             owner_key,
             source,
@@ -1942,7 +2012,7 @@ class SQLiteSessionStore:
         archived: bool | None = None,
         limit: int = 50,
     ) -> list[dict[str, Any]]:
-        return await self._run(
+        return await self._run_read(
             self._list_sessions_by_owner_and_conversation_sync,
             owner_key,
             conversation_id,
@@ -1965,7 +2035,7 @@ class SQLiteSessionStore:
         return _derive_owner_key_from_preferences(_json_loads(row["preferences_json"], {}))
 
     async def get_session_owner_key(self, session_id: str) -> str:
-        return await self._run(self._get_session_owner_key_sync, session_id)
+        return await self._run_read(self._get_session_owner_key_sync, session_id)
 
     def _rewrite_owner_keys_sync(self, user_id_mapping: Mapping[str, str]) -> dict[str, int]:
         summary = {
@@ -2157,7 +2227,7 @@ class SQLiteSessionStore:
         return normalize_active_object(runtime_state.get("active_question_context"))
 
     async def get_active_object(self, session_id: str) -> dict[str, Any] | None:
-        return await self._run(self._get_active_object_sync, session_id)
+        return await self._run_read(self._get_active_object_sync, session_id)
 
     def _set_active_object_sync(
         self,
@@ -2224,7 +2294,7 @@ class SQLiteSessionStore:
         return normalize_suspended_object_stack(runtime_state.get("suspended_object_stack"))
 
     async def get_suspended_object_stack(self, session_id: str) -> list[dict[str, Any]]:
-        return await self._run(self._get_suspended_object_stack_sync, session_id)
+        return await self._run_read(self._get_suspended_object_stack_sync, session_id)
 
     def _set_suspended_object_stack_sync(
         self,
@@ -2284,7 +2354,7 @@ class SQLiteSessionStore:
         return normalize_question_followup_context(runtime_state.get("active_question_context"))
 
     async def get_active_question_context(self, session_id: str) -> dict[str, Any] | None:
-        return await self._run(self._get_active_question_context_sync, session_id)
+        return await self._run_read(self._get_active_question_context_sync, session_id)
 
     def _set_active_question_context_sync(
         self,
@@ -2475,7 +2545,7 @@ class SQLiteSessionStore:
         before_created_at: float | None = None,
         before_entry_id: int | None = None,
     ) -> dict[str, Any]:
-        return await self._run(
+        return await self._run_read(
             self._list_notebook_entries_sync,
             category_id,
             bookmarked,
@@ -2527,7 +2597,7 @@ class SQLiteSessionStore:
         entry_id: int,
         owner_key: str | None = None,
     ) -> dict[str, Any] | None:
-        return await self._run(self._get_notebook_entry_sync, entry_id, owner_key)
+        return await self._run_read(self._get_notebook_entry_sync, entry_id, owner_key)
 
     def _find_notebook_entry_sync(
         self,
@@ -2557,7 +2627,7 @@ class SQLiteSessionStore:
         question_id: str,
         owner_key: str | None = None,
     ) -> dict[str, Any] | None:
-        return await self._run(self._find_notebook_entry_sync, session_id, question_id, owner_key)
+        return await self._run_read(self._find_notebook_entry_sync, session_id, question_id, owner_key)
 
     def _update_notebook_entry_sync(
         self,
@@ -2682,7 +2752,7 @@ class SQLiteSessionStore:
         ]
 
     async def list_categories(self, owner_key: str | None = None) -> list[dict[str, Any]]:
-        return await self._run(self._list_categories_sync, owner_key)
+        return await self._run_read(self._list_categories_sync, owner_key)
 
     def _rename_category_sync(
         self,
@@ -2833,7 +2903,7 @@ class SQLiteSessionStore:
         entry_id: int,
         owner_key: str | None = None,
     ) -> list[dict[str, Any]]:
-        return await self._run(self._get_entry_categories_sync, entry_id, owner_key)
+        return await self._run_read(self._get_entry_categories_sync, entry_id, owner_key)
 
 
 _instance: SQLiteSessionStore | None = None
