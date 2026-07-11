@@ -1,0 +1,42 @@
+{
+ "_note": "X02 变体 spec(引擎试点1)——规则逐字迁自 scripts/build_luban_x02_variant_bank.py 的限缩裁决(真题明锚两切片, 详见旧 builder 文档头; 旧builder在全量迁移前保留)",
+ "pack_id": "X02",
+ "pack_file": "X02_临设道路材料堆场布置.md",
+ "schema_version": "luban-x02-variant-bank",
+ "site_skins": ["某住宅楼工地", "某厂房项目现场"],
+ "contested_tokens": ["钢构件", "施工组织设计", "疏散门", "防火墙", "灭火器", "碘钨灯", "回车场", "码放", "退场"],
+ "rule_groups": [
+  {
+   "id": "A-dorm-occupancy",
+   "kind": "threshold",
+   "verdict_op": "<=",
+   "param_key": "occupancy",
+   "thr": 16,
+   "values": [12, 16, 17, 18, 20],
+   "surface": "{skin}工人宿舍每间安排住宿 {value} 人",
+   "correct_statement": "宿舍每间住宿人员不得超过16人（每间≤16人）",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}"
+  },
+  {
+   "id": "A-dorm-aisle",
+   "kind": "threshold",
+   "verdict_op": ">=",
+   "param_key": "aisle_m",
+   "thr": 0.9,
+   "values": [0.8, 0.9, 1.0],
+   "surface": "{skin}工人宿舍室内通道宽度为 {value}m",
+   "correct_statement": "宿舍室内通道宽度不得小于0.9m",
+   "anchor": "kc:1A431011_012_0013:2 + {2020,案例五}"
+  },
+  {
+   "id": "B-flammable-wind",
+   "kind": "enum_exact",
+   "param_key": "direction",
+   "enum": ["下风方向", "上风方向"],
+   "correct_value": "下风方向",
+   "surface": "{skin}将易燃材料仓库设置在现场{value}",
+   "correct_statement": "易燃材料仓库应设在现场下风方向（下风向）、水源充足处",
+   "anchor": "kc:1A437000_146_0235:0 + {2015,第30题}"
+  }
+ ]
+}

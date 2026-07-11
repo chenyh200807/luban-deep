@@ -190,6 +190,12 @@
 - **[内容回归检查器]** 新增 `scripts/content_regression_check.py` 四道：①全部 signed bank 跑 builder --check 复现闸 ②三份 blocklist 一致性+serve 侧活体抽查(停发变体绝不下发) ③风格棘轮(对比 `_style_tells_baseline.json`——存量带病豁免但禁恶化>2pp、新池禁 LEAK；对偶返工后 --rebaseline-style) ④bank sha ↔ manifest 对齐。首跑全绿(59 signed bank)。已挂进质量飞轮 `scheduled_run.py` ②b 阶段(失败计入 exit_code, 报告落盘)；教材库仅本机故不进 GitHub CI(fail-loud 属设计)。冒烟测试 2 passed。
 - **[待续]** 工单②(17 手写变体 builder 收敛 1 个数据驱动 engine+对偶返工)侦察 agent 在途；工单③(真人进场+blocklist 复活回路)钥匙在 owner(体验版上传/cohort/订阅模板)。
 
+### 2026-07-11（基建三件之② builder 收敛 · 引擎 v0 + X02 试点全等 · 即时入账）
+- **[收敛谱侦察结论]** 实为 **18 个** builder(x02 为第 18)；~200 行/文件逐字节同构样板、互不 import 零公共模块；**规则 100% 硬编码 python、无一解析 §4**；判定逻辑可归纳为 8 原语(threshold/range/band/enum/exact/sequence/permutation/dual_membership)，14/18 纯声明式可无损进 spec，e05(挣值算术)/n03(gcd)须命名谓词逃生舱，g03/f16 用增强 spec 可表达。对偶=引擎层规则(dual_membership 强制成对 + threshold 取值域必须横跨阈值的健康检查=J01 样板机制固化)。迁移风险：字节一致不必要(runtime 只钉 pack-sha+signed；测试全 tmp_path 合成不钉内容)，唯一要盯=变体排序确定性(用户当日抽题不漂移)。
+- **[引擎 v0 落地]** `scripts/luban_variant_engine/`(spec/generators/verdict/gate/build 五件)：spec 加载+健康检查(退化单极 fail-closed 拒绝)、四原语生成器(threshold/enum_exact/dual_membership/cases，sequence/predicate 随 F16/G03/E05 试点补)、独立第二实现互证判定、三门 gate 唯一化、CLI 带 **--diff 迁移过闸判据**。spec 数据位=`考点原料/variant_specs/{pack}.variant.json`(教研可编辑的内容资产)。
+- **[试点 1/3 X02 首战全等]** `--pack X02 --diff` → **DIFF-EQUAL：20 变体与现有 signed bank 逐字段全等**——无损表达最硬判据一次过。引擎单测 5 passed(退化单极拒绝/对偶强制成对/双推互证抓篡改/域外值 fail-closed/X02 全等)。
+- **[下一步]** 试点 2=F16(sequence 原语+对偶引擎化实证)、试点 3=G03(19 组全谱压力+piecewise 谓词)；三试点过闸后批量迁移 18→specs 并**在 spec 层完成模板对偶返工**(与迁移同一战役, 修完 --rebaseline-style 重立风格基线)；旧 builder 全量迁移前不删。
+
 ## 惯例沉淀（复盘时升格为规则的候选）
 - 部署后必做独立探针（不信脚本自报）——本轮抓到 22 站 404 与 F16 无声两个上线级洞。
 - owner 口述需求先 grep 是否已实现再派工；agent 终态纪律=最终回复基于磁盘/线上实测，"等待中/等子报告"不是完成态。
