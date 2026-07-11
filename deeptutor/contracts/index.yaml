@@ -128,6 +128,13 @@ mobile_http_read_models:
         public display labels remain percentage-based rather than exposing remaining turn counts.
       - Usage windows are display read models only; they are not capability routing,
         request config, learner-state, or turn authority.
+  billing_package_catalog:
+    authority: MemberConsoleService._default_packages + member_console.packages
+    semantics:
+      - "Launch public package catalog is ordered as starter_19 19/40, light_98 98/220, vip 198/450, svip 598/1400, supreme_svip 998/2500; legacy light_99/lite_99/99 aliases normalize to light_98."
+      - "Internal wallet unit remains 20 points per promised AI learning turn; public surfaces display turns and prices, never internal points."
+      - "Original prices are commerce display anchors only: 29, 149, 298, 798, 1298; they do not affect wallet grants, ledger revenue, or learner-state."
+      - "Free-trial marketing quota is a separate usage-window authority and must not be encoded into package catalog or wallet balance."
 
 mobile_http_auth_controls:
   password_reset:

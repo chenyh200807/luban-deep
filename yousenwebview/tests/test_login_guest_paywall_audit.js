@@ -3,6 +3,7 @@
 
 var fs = require("fs");
 var path = require("path");
+var billingContract = require("./billing_contract_helpers");
 
 var pass = 0;
 var fail = 0;
@@ -182,22 +183,10 @@ assert(
     wsStream.indexOf("权益不足，请先充值后继续使用") >= 0,
   "start-turn billing quota errors should normalize to user-facing paywall copy",
 );
-assert(
-  billingWxml.indexOf("开通学习权益") >= 0 &&
-    billingWxml.indexOf("联系销售开通") >= 0 &&
-    billingWxml.indexOf("sales-contact-qr.png") >= 0,
-  "billing page should expose a sales-contact entitlement package flow",
-);
-assert(
-  billingJs.indexOf("contactSalesVisible") >= 0 &&
-    billingJs.indexOf("api.createBillingCheckout") < 0 &&
-    billingJs.indexOf("requestPayment") < 0,
-  "billing open action should show contact-sales QR before any direct payment path",
-);
-assert(
-  billingWxml.indexOf("长按识别二维码") >= 0 &&
-    billingWxml.indexOf("添加销售顾问") >= 0,
-  "billing contact sheet should tell learners to add the sales advisor",
+billingContract.assertPackageDeeptutorDirectBillingContract(
+  assert,
+  billingJs,
+  billingWxml,
 );
 [
   {

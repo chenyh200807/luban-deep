@@ -1,6 +1,7 @@
 var fs = require("fs");
 var path = require("path");
 var vm = require("vm");
+var billingContract = require("./billing_contract_helpers");
 
 var pass = 0;
 var fail = 0;
@@ -227,18 +228,10 @@ function loadBillingPage(usagePayload, walletPayload, ledgerPayload) {
       billingWxml.indexOf("item.originalPrice") >= 0,
       "billing package cards should render original price",
     );
-    assert(
-      billingWxml.indexOf("sales-contact-qr.png") < 0 &&
-        billingWxml.indexOf("联系销售") < 0 &&
-        billingJs.indexOf("createBillingCheckout") >= 0 &&
-        billingJs.indexOf("requestPayment") >= 0,
-      "billing should use direct WeChat Pay without sales QR fallback",
-    );
-    assert(
-      billingWxml.indexOf("item.turns") >= 0 &&
-        billingWxml.indexOf("{{item.points}}") === -1 &&
-        billingWxml.indexOf("selectedPackage.points") === -1,
-      "billing package cards and contact sheet should expose promised usage counts, not internal points",
+    billingContract.assertPackageDeeptutorDirectBillingContract(
+      assert,
+      billingJs,
+      billingWxml,
     );
     var staleWeeklyCopy =
       billingWxml + billingJs + profileWxml + profileJs;
