@@ -127,6 +127,29 @@ class TurnRuntimeMetrics:
         self._turn_stage_latency_counts: Counter[str] = Counter()
         # Battle1 W4-T6: observe-only fast/deep x model-tier occupancy (A/B denominator).
         self._response_mode_counts: Counter[str] = Counter()
+        # Battle1 W1-T6: event-loop lag sentinel (真闭环). A 0.5s sampler feeds
+        # record_loop_lag; any future hot-path blocking (new sync SDK, CPU-heavy work)
+        # necessarily inflates these and trips the existing Prometheus alert chain,
+        # without depending on enumerating pathogens. Observe-only, fail-open.
+        self._loop_lag_samples_total = 0
+        self._loop_lag_max_seconds = 0.0
+        self._loop_lag_over_200ms_total = 0
+
+    def record_loop_lag(self, lag_seconds: float) -> None:
+        """Observe-only: record one event-loop lag sample (expected vs. actual sleep
+        skew, seconds). Monotonic max + over-200ms counter. Never raises (fail-open)."""
+        try:
+            lag = float(lag_seconds)
+        except (TypeError, ValueError):
+            return
+        if lag < 0.0:
+            lag = 0.0
+        with self._lock:
+            self._loop_lag_samples_total += 1
+            if lag > self._loop_lag_max_seconds:
+                self._loop_lag_max_seconds = lag
+            if lag > 0.2:
+                self._loop_lag_over_200ms_total += 1
 
     def record_response_mode(self, selected_mode: str, model_tier: str) -> None:
         """Observe-only: count one turn by (selected_mode, model_tier). fail-open."""
@@ -209,6 +232,9 @@ class TurnRuntimeMetrics:
                     }
                     for key, value in sorted(self._response_mode_counts.items())
                 ],
+                "loop_lag_max_seconds": round(float(self._loop_lag_max_seconds), 6),
+                "loop_lag_over_200ms_total": int(self._loop_lag_over_200ms_total),
+                "loop_lag_samples_total": int(self._loop_lag_samples_total),
             }
 
 
@@ -338,6 +364,18 @@ def render_prometheus_metrics(
                 "model_tier": mode_entry.get("model_tier", ""),
             },
         )
+
+    lines.append("# HELP deeptutor_turn_loop_lag_max_seconds Max observed event-loop lag (expected vs. actual sleep skew) since process start.")
+    lines.append("# TYPE deeptutor_turn_loop_lag_max_seconds gauge")
+    emit("deeptutor_turn_loop_lag_max_seconds", turn_snapshot.get("loop_lag_max_seconds", 0))
+
+    lines.append("# HELP deeptutor_turn_loop_lag_over_200ms_total Event-loop lag samples exceeding 200ms (hot-path blocking signal).")
+    lines.append("# TYPE deeptutor_turn_loop_lag_over_200ms_total counter")
+    emit("deeptutor_turn_loop_lag_over_200ms_total", turn_snapshot.get("loop_lag_over_200ms_total", 0))
+
+    lines.append("# HELP deeptutor_turn_loop_lag_samples_total Total event-loop lag samples taken by the sentinel.")
+    lines.append("# TYPE deeptutor_turn_loop_lag_samples_total counter")
+    emit("deeptutor_turn_loop_lag_samples_total", turn_snapshot.get("loop_lag_samples_total", 0))
 
     lines.append("# HELP deeptutor_surface_event_total Total surface telemetry events by surface, event, and ingest status.")
     lines.append("# TYPE deeptutor_surface_event_total counter")

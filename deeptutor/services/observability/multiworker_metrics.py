@@ -285,6 +285,14 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         "turn_avg_latency_ms": _weighted_avg(lat_pairs),
         "turn_stage_avg_latency_ms": stages,
         "response_mode_counts": response_mode_counts,
+        # Battle1 W1-T6: event-loop lag sentinel. Max across workers (worst worker
+        # dominates); over-200ms + samples summed. Missing this merge would silently
+        # drop the lag signal under UVICORN_WORKERS>1.
+        "loop_lag_max_seconds": max(
+            (float(x.get("loop_lag_max_seconds", 0.0)) for x in snaps), default=0.0
+        ),
+        "loop_lag_over_200ms_total": s("loop_lag_over_200ms_total"),
+        "loop_lag_samples_total": s("loop_lag_samples_total"),
     }
 
 

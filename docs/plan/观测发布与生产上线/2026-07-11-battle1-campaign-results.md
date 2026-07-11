@@ -37,6 +37,19 @@
 
 **Codex 异源对抗未跑成**（其额度耗尽，07-12 01:02 重置）：`cd deeptutor-battle1 && node ~/.claude/plugins/cache/openai-codex/codex/1.0.5/scripts/codex-companion.mjs adversarial-review --background --base b3e9ab09 --scope branch`。
 
+## W2-T4 微基准取证（2026-07-12 实测,批7兑现）
+
+turn 持久化+fanout 管道容量,mock LLM/上下文,150 事件/turn,old=b3e9ab09 vs new=04872240(生产在跑版本),macOS 开发机:
+
+| 并发 | OLD events/s | NEW events/s | OLD turns/s | NEW turns/s | 提升 |
+|---|---|---|---|---|---|
+| 1 | 762 | 840 | 4.9 | 5.4 | +10% |
+| 8 | 2667 | 5583 | 17.2 | 36.0 | **2.1×** |
+| 32 | 2752 | 5486 | 17.8 | 35.4 | **2.0×** |
+| 64 | 2691 | 5226 | 17.4 | 33.7 | **1.9×** |
+
+**读法**:老代码 8 并发即撞全局锁饱和平台(~2700 ev/s 不再上升);新代码同硬件 2 倍吞吐。**单并发几乎无差(+10%)——这就是为什么日常低并发的 Langfuse 数据里看不见此改善**:锁只在并发下咬人,该收益是考前高峰保险,不是日常速度。ContextBuilder 装箱 3.5→2.8ms/次(200 条中文消息;tiktoken 轴在弱 CPU+超长会话上收益更大,per-turn 双倍全量重编码在 W1-T1 治)。本基准量的是管道轴;真实 turn 延迟由 LLM 生成主导(中位 ~30s),不受本战役影响。
+
 ## 两个承诺数字（对结果负责）
 
 1. 单 worker 并发 ~10 → 逼近名义 64（精确值待部署后微基准取证）

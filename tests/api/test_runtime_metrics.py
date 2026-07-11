@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import asyncio
+import time
+
 from deeptutor.api.runtime_metrics import TurnRuntimeMetrics, render_prometheus_metrics
 from deeptutor.services.observability.multiworker_metrics import merge_metric_snapshots
 
@@ -181,3 +184,87 @@ def test_merge_metric_snapshots_sums_response_mode_counts_across_workers() -> No
     merged = merge_metric_snapshots([worker_a, worker_b])["turn"]["response_mode_counts"]
     assert {"mode": "fast", "model_tier": "light", "count": 5} in merged
     assert {"mode": "deep", "model_tier": "primary", "count": 1} in merged
+
+
+# ----------------------------------------------------------------------------------
+# Battle1 W1-T6: event-loop lag sentinel (真闭环)
+# ----------------------------------------------------------------------------------
+def test_record_loop_lag_aggregates_max_and_over_200ms_threshold() -> None:
+    metrics = TurnRuntimeMetrics()
+    metrics.record_loop_lag(0.19)  # boundary: under 200ms, not counted
+    metrics.record_loop_lag(0.21)  # boundary: over 200ms, counted
+    metrics.record_loop_lag(0.30)  # over 200ms, new max
+    metrics.record_loop_lag(-1.0)  # negative clamps to 0.0, still a sample
+    metrics.record_loop_lag("not-a-number")  # fail-open: ignored entirely
+
+    snapshot = metrics.snapshot()
+    assert snapshot["loop_lag_samples_total"] == 4
+    assert snapshot["loop_lag_over_200ms_total"] == 2
+    assert snapshot["loop_lag_max_seconds"] == 0.3
+
+
+def test_render_prometheus_metrics_includes_loop_lag() -> None:
+    metrics = TurnRuntimeMetrics()
+    metrics.record_loop_lag(0.25)
+
+    body = render_prometheus_metrics(
+        http_snapshot={},
+        turn_snapshot=metrics.snapshot(),
+        surface_snapshot={},
+        readiness_snapshot={},
+        provider_error_rates={},
+        circuit_breakers={},
+        release_snapshot={},
+    )
+    assert "deeptutor_turn_loop_lag_max_seconds 0.25" in body
+    assert "deeptutor_turn_loop_lag_over_200ms_total 1" in body
+    assert "deeptutor_turn_loop_lag_samples_total 1" in body
+
+
+def test_merge_metric_snapshots_aggregates_loop_lag_across_workers() -> None:
+    worker_a = {"turn": {"loop_lag_max_seconds": 0.12, "loop_lag_over_200ms_total": 0, "loop_lag_samples_total": 100}}
+    worker_b = {"turn": {"loop_lag_max_seconds": 0.44, "loop_lag_over_200ms_total": 3, "loop_lag_samples_total": 100}}
+    merged = merge_metric_snapshots([worker_a, worker_b])["turn"]
+    # Worst worker dominates the gauge; counters sum.
+    assert merged["loop_lag_max_seconds"] == 0.44
+    assert merged["loop_lag_over_200ms_total"] == 3
+    assert merged["loop_lag_samples_total"] == 200
+
+
+def test_loop_lag_sentinel_detects_blocking_sync_callback() -> None:
+    """Integration: run the sentinel sampling loop on a live event loop. A blocking
+    ``time.sleep(0.3)`` sync callback inflates lag past 200ms; pure idle does not.
+    Mirrors deeptutor.api.main._loop_lag_sentinel (kept identical in shape)."""
+
+    async def _drive() -> tuple[int, int]:
+        metrics = TurnRuntimeMetrics()
+        interval = 0.05
+
+        async def _sentinel() -> None:
+            while True:
+                t0 = time.monotonic()
+                try:
+                    await asyncio.sleep(interval)
+                except asyncio.CancelledError:
+                    break
+                metrics.record_loop_lag(max(0.0, time.monotonic() - t0 - interval))
+
+        task = asyncio.create_task(_sentinel())
+        # Idle for several cycles: no blocking → no over-200ms samples.
+        await asyncio.sleep(0.25)
+        idle_over = metrics.snapshot()["loop_lag_over_200ms_total"]
+
+        # Block the event loop with a synchronous callback.
+        time.sleep(0.3)
+        await asyncio.sleep(0.1)  # let the sentinel wake and record the induced lag
+
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+        return idle_over, metrics.snapshot()["loop_lag_over_200ms_total"]
+
+    idle_over, after_block_over = asyncio.run(_drive())
+    assert idle_over == 0
+    assert after_block_over >= 1

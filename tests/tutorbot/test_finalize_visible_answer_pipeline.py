@@ -24,7 +24,10 @@ import deeptutor.tutorbot.agent.loop as loop_module
 from deeptutor.services.construction_grading.case_output_policy import (
     build_case_grading_diagnostic_only_response,
 )
-from deeptutor.services.rag.exact_authority import build_exact_authority_response
+from deeptutor.services.rag.exact_authority import (
+    build_exact_authority_response,
+    should_force_exact_authority,
+)
 from deeptutor.tutorbot.agent.loop import AgentLoop
 
 _LOOP_SOURCE_PATH = Path(loop_module.__file__)
@@ -294,3 +297,57 @@ def test_correction_chain_has_single_call_site_in_loop_source() -> None:
     # 4 处 finalize 分支各一行调用(方法定义 ``def _finalize_visible_answer(`` 单独计)。
     assert source.count("self._finalize_visible_answer(") == 4
     assert source.count("def _finalize_visible_answer(") == 1
+
+
+# --------------------------------------------------------------------------------------
+# 反事实不变量(F3 加固): prefetched-authority(branch B)结构上不可能携带 case_study 形状
+# --------------------------------------------------------------------------------------
+def _scene_clear_prefetched_md(exact_question: dict) -> dict:
+    """branch B 的典型 runtime_metadata: 持 _prefetched_exact_question 且 scene 非 case_grading
+    (候选门对 case_grading 显式排除),未被 block、非 review、无 suppress-on-generate。"""
+
+    return {"question_lifecycle_scene": "", "_prefetched_exact_question": exact_question}
+
+
+def test_prefetched_branch_b_structurally_cannot_carry_case_study() -> None:
+    """把『branch B 永不携带 case_study』从巧合升级为显式锁定的反事实不变量。
+
+    case_study 命中是**内容权威**而非**表达权威**——必须交给最终合成层渲染,绝不能作为
+    branch B 的即答精确权威直出。两层证据:
+
+    1. 语义闸 ``should_force_exact_authority``: case_study 恒 False,mcq/free_text 恒 True。
+    2. 结构闸 ``_prefetched_exact_authority_candidate``: 对 case_study 返回 None(拿不到候选),
+       同一选择器对 mcq/free_text 却产出候选——证明 None 是 case_study 专属排除,而非选择器
+       对一切输入都返回 None 的平凡真(阳性对照,反证)。
+    """
+
+    # 1) 语义闸:should_force_exact_authority 的 answer_kind 边界。
+    assert should_force_exact_authority(_case_study_eq("综合费率为3.5%")) is False
+    assert should_force_exact_authority(_mcq_eq()) is True
+    assert should_force_exact_authority(_free_text_eq()) is True
+
+    # 2) 结构闸:候选选择器对 case_study 排除 → branch B 结构上拿不到 case_study。
+    assert (
+        AgentLoop._prefetched_exact_authority_candidate(
+            _scene_clear_prefetched_md(_case_study_eq("系数取0.85")),
+            current_message="这题答案是什么",
+        )
+        is None
+    )
+
+    # 反证(阳性对照):同一选择器对 mcq / free_text 确实产出候选,
+    # 证明上面的 None 是 case_study 专属排除,而非平凡的『恒 None』。
+    assert (
+        AgentLoop._prefetched_exact_authority_candidate(
+            _scene_clear_prefetched_md(_mcq_eq()),
+            current_message="这题答案是什么",
+        )
+        is not None
+    )
+    assert (
+        AgentLoop._prefetched_exact_authority_candidate(
+            _scene_clear_prefetched_md(_free_text_eq()),
+            current_message="这题答案是什么",
+        )
+        is not None
+    )
