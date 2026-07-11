@@ -1988,8 +1988,6 @@ class AgentLoop:
         rag_rounds: list[dict[str, Any]] = []
         rag_saturation: dict[str, Any] | None = None
         blocked_exact_tool_retry = False
-        raw_stream_buffer = ""
-        emitted_stream_len = 0
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
         effective_max_iterations = self._resolve_max_tool_rounds(runtime_metadata)
         runtime_metadata["effective_max_tool_rounds"] = effective_max_iterations
@@ -1999,24 +1997,18 @@ class AgentLoop:
             runtime_metadata.get("exact_question_blocked_reason") or ""
         ).strip() and not self._is_question_review_scene(runtime_metadata)
 
-        def _visible_stream_text(raw_text: str) -> str:
-            # Hide completed and in-progress <think> blocks before forwarding deltas.
-            visible = re.sub(r"<think>[\s\S]*?</think>", "", raw_text)
-            visible = re.sub(r"<think>[\s\S]*$", "", visible)
-            visible = re.sub(r"</think>[\s\S]*$", "", visible)
-            visible = re.sub(r"<[^>]*$", "", visible)
-            return visible
+        # Battle1 W1-T4: incremental <think> stripping replaces the per-delta
+        # full-buffer regex rescan (4 x re.sub over the growing buffer was
+        # O(n^2) CPU on the event loop per streamed answer). Emission clip
+        # semantics (prefix-monotonic, never retract) are unchanged and
+        # oracle-locked against a verbatim replay of the old implementation
+        # by tests/tutorbot/test_think_strip_streamer.py.
+        stream_stripper = _ThinkStripStreamer()
 
         async def _stream_delta(delta: str) -> None:
-            nonlocal raw_stream_buffer, emitted_stream_len
             if not on_content_delta or not delta:
                 return
-            raw_stream_buffer += delta
-            visible = _visible_stream_text(raw_stream_buffer)
-            if len(visible) <= emitted_stream_len:
-                return
-            chunk = visible[emitted_stream_len:]
-            emitted_stream_len = len(visible)
+            chunk = stream_stripper.feed(delta)
             if chunk:
                 await on_content_delta(chunk)
 
@@ -4404,3 +4396,105 @@ class AgentLoop:
         ):
             metadata.update(response.metadata)
         return response.content if response else ""
+
+
+class _ThinkStripStreamer:
+    """Battle1 W1-T4: incremental <think>-stripping for streamed deltas.
+
+    Replaces the previous per-delta full-buffer rescan (4 x re.sub over the
+    ever-growing raw buffer — O(n^2) per streamed answer, on the event loop)
+    with a resolved-prefix fold: text before the first unresolved '<'
+    construct is final and never rescanned; the regex cascade (kept verbatim
+    from the old ``_visible_stream_text``) runs only over the small
+    unresolved tail, and only when the incoming delta can actually change
+    visibility. Emission keeps the historical clip semantics: visible text is
+    prefix-monotonic and already-emitted characters are never retracted.
+    Equivalence with the old implementation is oracle-locked by
+    tests/tutorbot/test_think_strip_streamer.py (fuzz replay of the old
+    buffer+clip loop).
+    """
+
+    def __init__(self) -> None:
+        self._resolved = ""   # finalized visible text (never rescanned)
+        self._suffix = ""     # raw unresolved tail, starts at a '<'
+        self._kind = "clean"  # clean | think_open | partial | orphan
+        self._emitted = 0     # visible chars already emitted to the client
+
+    @staticmethod
+    def _cascade(raw_text: str) -> str:
+        # Verbatim regex cascade from the previous implementation. Do not
+        # "fix" its quirks here — bug-for-bug compatibility is the contract.
+        visible = re.sub(r"<think>[\s\S]*?</think>", "", raw_text)
+        visible = re.sub(r"<think>[\s\S]*$", "", visible)
+        visible = re.sub(r"</think>[\s\S]*$", "", visible)
+        visible = re.sub(r"<[^>]*$", "", visible)
+        return visible
+
+    def _classify(self) -> str:
+        stripped = re.sub(r"<think>[\s\S]*?</think>", "", self._suffix)
+        open_at = stripped.find("<think>")
+        orphan_at = stripped.find("</think>")
+        if orphan_at != -1 and (open_at == -1 or orphan_at < open_at):
+            return "orphan"
+        if open_at != -1:
+            return "think_open"
+        if stripped.find("<", stripped.rfind(">") + 1) != -1:
+            return "partial"
+        return "resolved"
+
+    def feed(self, delta: str) -> str:
+        if not delta or self._kind == "orphan":
+            return ""
+        if self._kind == "clean":
+            lt = delta.find("<")
+            if lt == -1:
+                self._resolved += delta
+                return self._emit("")
+            self._resolved += delta[:lt]
+            self._suffix = delta[lt:]
+            return self._recompute()
+        if self._kind == "think_open":
+            carry = self._suffix[-7:]
+            self._suffix += delta
+            if "</think>" not in carry + delta:
+                return ""
+            return self._recompute()
+        # kind == "partial": nothing can resolve until a '>' arrives
+        # (both think tags contain '>', and the trailing-'<' rule only
+        # releases text once a '>' exists after the '<').
+        self._suffix += delta
+        if ">" not in delta:
+            return ""
+        return self._recompute()
+
+    def _recompute(self) -> str:
+        visible_suffix = self._cascade(self._suffix)
+        kind = self._classify()
+        chunk = self._emit(visible_suffix)
+        if kind == "resolved":
+            # Fully paired/closed tail: fold it into the resolved prefix.
+            # Future constructs all start with a fresh '<', so nothing can
+            # reach back into folded text.
+            self._resolved += visible_suffix
+            self._suffix = ""
+            self._kind = "clean"
+        elif kind == "orphan":
+            # Everything after an orphan </think> is suppressed forever by
+            # the cascade (later text can never pair it), so freeze and drop.
+            self._resolved += visible_suffix
+            self._suffix = ""
+            self._kind = "orphan"
+        else:
+            self._kind = kind
+        return chunk
+
+    def _emit(self, visible_suffix: str) -> str:
+        total_len = len(self._resolved) + len(visible_suffix)
+        if total_len <= self._emitted:
+            return ""
+        if self._emitted >= len(self._resolved):
+            chunk = visible_suffix[self._emitted - len(self._resolved):]
+        else:
+            chunk = (self._resolved + visible_suffix)[self._emitted:]
+        self._emitted = total_len
+        return chunk

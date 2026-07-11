@@ -2,6 +2,11 @@
 
 > 规则：实施中遇到 edge case 一律选保守方案并在此记录偏离；每条含【任务/偏离/原因/影响面/验证】。fix-test 日志（含失败尝试）同记于此。
 
+## 2026-07-11 W1-T4 think剥离增量状态机（批1c）
+- **实施**：`_ThinkStripStreamer`（clean/think_open/partial/orphan 四态+已决前缀折叠+跳扫规则），级联正则逐字保留只跑小尾部；oracle=旧 _stream_delta 整段重放（含 emitted clip，按指挥官挑战#1）。
+- **验证**：600 例模糊对拍逐 delta 逐字节一致一次全绿+前缀单调+6 个定向用例；tests/tutorbot 目录级 before/after 失败集合完全一致（13 个预存在隔离污染项，非本改动引入；单跑全 PASS）——暗测试污染问题再次实证，归批 7/后续战役纳管。
+- **登记去向**：tests/tutorbot/ 不在 CI shard；建议随批 7 登记进 luban_grading_engine domain（contracts/index.yaml:640 区）。
+
 ## 2026-07-11 W1-T2 count_tokens 单 pass（批1b）
 - **偏离**：设计断言"CJK≈1 token/字是轻微高估"被离线校准**证伪**——cl100k 对中文实际 ~1.24 token/字，1.0 系数是 19-36% 低估（方向危险）。按设计 uncertainty#3 预案上调：ascii÷3 + CJK×1.3，实测中文散文 ratio 1.02-1.05、最坏混合技术文本低估 16%、英文高估（安全向）。
 - **headroom 论证**：history budget=context window×35%，最坏 16% 低估→实际 ~42%，余量充足，无爆窗风险。
