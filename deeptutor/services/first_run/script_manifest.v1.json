@@ -1,0 +1,106 @@
+{
+  "schema_id": "first_run_script.v1",
+  "release_status": "blocked_pending_human_verdict",
+  "questions": [
+    {
+      "question_id": "first_run.v1:qigu_gebu",
+      "slug": "qigu_gebu",
+      "source_question_id": "Q18-1A434000",
+      "source_scoring_point_id": "Q18-1A434000::P11",
+      "concept_id": "1A434000-B017",
+      "concept_label": "屋面卷材起鼓",
+      "candidate_status": "initial_gold_candidate",
+      "review_status": "pending_dual_teacher_verdict",
+      "review_refs": [],
+      "source_refs": [
+        "v_case_rubric_scored_pgo:Q18-1A434000:P11",
+        "textbook:1A434000_076_0119::C0"
+      ],
+      "content": {
+        "stem": "屋面卷材防水层局部起鼓，割开鼓泡放气、烘烤旧卷材槎口后，旧卷材下一步怎么处理？",
+        "options": {
+          "A": "分层剥开，除去旧胶结料",
+          "B": "整体揭开，换新的",
+          "C": "用铲刀把鼓泡处铲除干净",
+          "D": "不用动，直接铺新卷材盖住"
+        },
+        "right": "A"
+      }
+    },
+    {
+      "question_id": "first_run.v1:zhiliang_jihua",
+      "slug": "zhiliang_jihua",
+      "source_question_id": "Q18-1A434000",
+      "source_scoring_point_id": "Q18-1A434000::P2",
+      "concept_id": "1A434000-B077",
+      "concept_label": "项目质量计划编制要求",
+      "candidate_status": "initial_gold_candidate",
+      "review_status": "pending_dual_teacher_verdict",
+      "review_refs": [],
+      "source_refs": [
+        "v_case_rubric_scored_pgo:Q18-1A434000:P2",
+        "textbook:1A434000_062_0093"
+      ],
+      "content": {
+        "stem": "项目部要编制项目质量计划，谁来组织编制才对？",
+        "options": {
+          "A": "项目经理",
+          "B": "项目技术负责人",
+          "C": "企业质量管理部门",
+          "D": "总监理工程师"
+        },
+        "right": "A"
+      }
+    },
+    {
+      "question_id": "first_run.v1:tianchongqiang_fangbie",
+      "slug": "tianchongqiang_fangbie",
+      "source_question_id": "first_run-source:fill-wall-14d",
+      "source_scoring_point_id": "textbook:1A434000_074_0116::C2",
+      "concept_id": "1A434000-B013",
+      "concept_label": "填充墙砌筑不当",
+      "candidate_status": "initial_gold_candidate",
+      "review_status": "pending_dual_teacher_verdict",
+      "review_refs": [],
+      "source_refs": [
+        "textbook:1A434000_074_0116::C2",
+        "exam_evidence:_F04:fill_wall_last_three_courses_14d"
+      ],
+      "content": {
+        "stem": "框架填充墙快砌到梁底，最后几皮砖怎么砌才不裂？",
+        "options": {
+          "A": "等下部墙砌完14天后，再补砌顶紧",
+          "B": "当天一口气砌到顶",
+          "C": "隔一天就补上",
+          "D": "留着缝不管，抹灰盖住"
+        },
+        "right": "A"
+      }
+    },
+    {
+      "question_id": "first_run.v1:zhuangpeishi_laji",
+      "slug": "zhuangpeishi_laji",
+      "source_question_id": "Q2025-01",
+      "source_scoring_point_id": "Q2025-01::question3.1",
+      "concept_id": "1A437000-B035",
+      "concept_label": "建筑垃圾减量化",
+      "candidate_status": "outside_initial_gold_candidates",
+      "review_status": "pending_dual_teacher_verdict",
+      "review_refs": [],
+      "source_refs": [
+        "exam:2025:Q2025-01:question3.1",
+        "docs/原始数据/考点原料/题库快照/FINAL_CLEANED_EXAM_V2025.json"
+      ],
+      "content": {
+        "stem": "新建装配式项目把建筑垃圾产生量写成每万平方米不大于300t，这个数对吗？",
+        "options": {
+          "A": "不对，装配式应不大于200t",
+          "B": "对，300t就是标准",
+          "C": "不对，应不大于400t",
+          "D": "没有硬指标，分类处理就行"
+        },
+        "right": "A"
+      }
+    }
+  ]
+}

@@ -861,6 +861,22 @@ function getHomeDashboard(opts) {
   return requestStateGet("/api/v1/homepage/dashboard", opts);
 }
 
+/** 首次体验完成 — 服务端按 signed manifest 重新判定并幂等写回 Learner State。 */
+function completeFirstRun(payload, opts) {
+  return request(
+    Object.assign(
+      {
+        url: "/api/v1/first-run/complete",
+        method: "POST",
+        data: payload || {},
+        noRetry: true,
+        noBaseFallback: true,
+      },
+      opts || {},
+    ),
+  );
+}
+
 // ── 鲁班学习双轮（站点卡 lesson viewmodel，只读投影，零学习证据写入） ──
 
 /** 鲁班 — 绿灯站点列表 */
@@ -1121,6 +1137,7 @@ module.exports = {
   submitFeedback: submitFeedback,
   uploadFeedbackAttachment: uploadFeedbackAttachment,
   getHomeDashboard: getHomeDashboard,
+  completeFirstRun: completeFirstRun,
   getLubanLessons: getLubanLessons,
   getLubanLessonDetail: getLubanLessonDetail,
   getLubanRetestItems: getLubanRetestItems,

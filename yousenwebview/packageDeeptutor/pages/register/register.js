@@ -130,8 +130,7 @@ Page({
     var source = this.data.entrySource;
     var fallback = route.chat(source ? { entry_source: source } : null);
     var target = route.resolveInternalUrl(this.data.returnTo, fallback);
-    // 首跑剧本：仅刚注册创建的新账号、且无深链 returnTo 时进「第一分钟」；
-    // 其余（含已登录返回用户、深链）落到 target。纯本地判据、非阻塞。
+    // 新账号先落「学习」首页，再从五模块原生卡进入首次旅程；深链仍优先。
     firstRunEntry.reLaunchAfterAuth(target, {
       isNewAccount: !!isNewAccount,
       hasDeepLink: !!this.data.returnTo,

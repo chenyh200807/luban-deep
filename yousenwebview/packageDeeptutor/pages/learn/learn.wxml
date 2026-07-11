@@ -29,6 +29,29 @@
 
     <view class="lr-inner" wx:else>
 
+      <!-- 新用户第一段原生学习旅程：入口投影，不计算推荐、不写学情 -->
+      <view
+        wx:if="{{firstRunState !== 'hidden'}}"
+        class="lr-first-run pk-card lr-first-run--{{firstRunState}}"
+        bindtap="openFirstRun"
+      >
+        <view class="lr-first-run-seal pk-seal">
+          <image class="lr-first-run-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" />
+        </view>
+        <view class="lr-first-run-main">
+          <text class="pk-kicker">首次学习旅程</text>
+          <text class="lr-first-run-title" wx:if="{{firstRunState === 'new'}}">先做 4 道题，让鲁班认识你</text>
+          <text class="lr-first-run-title" wx:elif="{{firstRunState === 'resume'}}">继续你的首次学习旅程</text>
+          <text class="lr-first-run-title" wx:elif="{{firstRunState === 'blocked'}}">报告已生成，学情等待同步</text>
+          <text class="lr-first-run-title" wx:else>报告已生成，正在保存学情</text>
+          <text class="pk-desc" wx:if="{{firstRunState === 'new'}}">约 3 分钟 · 一页一题 · 完成后生成首份学习报告</text>
+          <text class="pk-desc" wx:elif="{{firstRunState === 'resume'}}">已到第 {{firstRunProgress || 1}} / 4 题 · 从刚才的位置继续</text>
+          <text class="pk-desc" wx:elif="{{firstRunState === 'blocked'}}">报告安全保存在本机，点击重试保存</text>
+          <text class="pk-desc" wx:else>无需重复答题，网络恢复后会自动完成</text>
+        </view>
+        <text class="lr-first-run-go">{{firstRunState === 'new' ? '开始' : (firstRunState === 'resume' ? '继续' : (firstRunState === 'blocked' ? '重试' : '保存中'))}} →</text>
+      </view>
+
       <!-- 三枚状态卡:距考 / 路线 X/40 / 今日 -->
       <view class="lr-status-row">
         <view class="lr-status pk-card">

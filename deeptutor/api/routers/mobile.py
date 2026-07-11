@@ -1,19 +1,19 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 import json
 import logging
 import mimetypes
 import os
 import re
-from datetime import datetime, timedelta
 from typing import Any, Iterable
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
-import httpx
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
-from pydantic import BaseModel, Field, field_validator
+import httpx
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from deeptutor.api.dependencies import (
     AuthContext,
@@ -24,18 +24,45 @@ from deeptutor.api.dependencies import (
 )
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.contracts.unified_turn import UnifiedTurnStartResponse, build_turn_stream_bootstrap
-from deeptutor.services.learner_state import LearnerStateService
-from deeptutor.services.learner_state.attempt_detail_read_model import build_attempt_detail_read_model
-from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
-from deeptutor.services.learner_state.learning_report_read_model import build_learning_report_read_model
-from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
-from deeptutor.services.notebook_card.service import get_notebook_card_service
+from deeptutor.logging.context import get_request_id
+from deeptutor.services.assessment import AssessmentBlueprintUnavailable
+from deeptutor.services.assessment.session_repository import (
+    AssessmentLeaseConflict,
+    AssessmentSessionConflict,
+    AssessmentSessionError,
+    AssessmentSessionExpired,
+    AssessmentSessionNotFound,
+    AssessmentSessionRateLimited,
+)
+from deeptutor.services.feedback_service import (
+    SupabaseFeedbackStore,
+    build_mobile_feedback_row,
+)
+from deeptutor.services.first_run import (
+    FirstRunAnswerSetInvalid,
+    FirstRunIdempotencyConflict,
+    FirstRunManifestUnsigned,
+    FirstRunManifestVersionConflict,
+    FirstRunWritebackService,
+    project_first_run_completion,
+)
 from deeptutor.services.internal_qa import (
     EVAL_BILLING_BYPASS_HEADER,
     eval_billing_bypass_signature_valid,
     internal_qa_billing_bypass_allowed,
     internal_qa_billing_bypass_enabled,
 )
+from deeptutor.services.learner_state import LearnerStateService
+from deeptutor.services.learner_state.attempt_detail_read_model import (
+    build_attempt_detail_read_model,
+)
+from deeptutor.services.learner_state.learning_brain_read_model import (
+    build_learning_brain_read_model,
+)
+from deeptutor.services.learner_state.learning_report_read_model import (
+    build_learning_report_read_model,
+)
+from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.member_usage_meter import (
     FREE_TRIAL_CONSUMED_STATUS,
@@ -44,33 +71,19 @@ from deeptutor.services.member_usage_meter import (
     FREE_TRIAL_RESERVED_STATUS,
     get_member_usage_meter,
 )
-from deeptutor.services.assessment import AssessmentBlueprintUnavailable
-from deeptutor.services.assessment.session_repository import (
-    AssessmentLeaseConflict,
-    AssessmentSessionRateLimited,
-    AssessmentSessionConflict,
-    AssessmentSessionError,
-    AssessmentSessionExpired,
-    AssessmentSessionNotFound,
-)
+from deeptutor.services.notebook_card.service import get_notebook_card_service
 from deeptutor.services.query_intent import (
     build_grounding_decision,
 )
-from deeptutor.services.search import is_web_search_runtime_available
-from deeptutor.services.feedback_service import (
-    SupabaseFeedbackStore,
-    build_mobile_feedback_row,
-)
-from deeptutor.logging.context import get_request_id
 from deeptutor.services.render_presentation import build_canonical_presentation
+from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.services.session import (
     build_user_owner_key,
     get_sqlite_session_store,
     get_turn_runtime_manager,
 )
-from deeptutor.services.storage import get_attachment_store
-from deeptutor.tutorbot.utils.helpers import safe_filename
 from deeptutor.services.session.turn_runtime import _MINI_PROGRAM_CAPTURE_COST
+from deeptutor.services.storage import get_attachment_store
 from deeptutor.services.wallet import (
     WalletLedgerEntry,
     WalletSnapshot,
@@ -88,11 +101,15 @@ from deeptutor.services.wechat_pay import (
     parse_wechat_pay_attach,
 )
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
+from deeptutor.tutorbot.utils.helpers import safe_filename
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 member_service = get_member_console_service()
 learner_state_service = LearnerStateService()
+first_run_writeback_service = FirstRunWritebackService(
+    learner_state_service=learner_state_service,
+)
 mistake_book_service = MistakeBookService()
 turn_runtime = get_turn_runtime_manager()
 session_store = get_sqlite_session_store()
@@ -2622,6 +2639,37 @@ class ChatFeedbackRequest(BaseModel):
     context_snapshot: dict[str, Any] = Field(default_factory=dict)
 
 
+class FirstRunAnswerRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    question_id: str = Field(min_length=1, max_length=128)
+    selected_key: str = Field(pattern="^[A-D]$")
+    duration_ms: int = Field(default=0, ge=0, le=900_000)
+
+
+class FirstRunPreferencesRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    exam_stage: str = Field(default="", max_length=64)
+    answer_style: str = Field(default="", max_length=64)
+    material_version: str = Field(default="", max_length=64)
+    memory_channel: str = Field(default="", max_length=64)
+    study_slot: str = Field(default="", max_length=64)
+    motivation: str = Field(default="", max_length=64)
+
+
+class FirstRunCompleteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    completion_id: str = Field(min_length=8, max_length=128)
+    script_version: str = Field(min_length=1, max_length=128)
+    completed_at: str = Field(min_length=1, max_length=64)
+    answers: list[FirstRunAnswerRequest] = Field(min_length=4, max_length=4)
+    declared_preferences: FirstRunPreferencesRequest = Field(
+        default_factory=FirstRunPreferencesRequest,
+    )
+
+
 class AssessmentCreateRequest(BaseModel):
     assessment_type: str = "diagnostic"
     subject_id: str = "construction_exam"
@@ -3338,9 +3386,76 @@ async def mobile_record_mistake_book_item_review(
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
+@router.post(
+    "/first-run/complete",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_first_run_complete",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
+async def first_run_complete(
+    body: FirstRunCompleteRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    try:
+        return await run_in_threadpool(
+            first_run_writeback_service.complete,
+            user_id=user_id,
+            completion_id=body.completion_id,
+            script_version=body.script_version,
+            completed_at=body.completed_at,
+            answers=[item.model_dump() for item in body.answers],
+            declared_preferences=body.declared_preferences.model_dump(),
+        )
+    except FirstRunIdempotencyConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": "first_run_idempotency_conflict"},
+        ) from exc
+    except FirstRunManifestUnsigned as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": "first_run_content_not_signed"},
+        ) from exc
+    except FirstRunManifestVersionConflict as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": "first_run_version_conflict"},
+        ) from exc
+    except FirstRunAnswerSetInvalid as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "first_run_answer_set_invalid"},
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"error": "first_run_request_invalid"},
+        ) from exc
+    except RuntimeError as exc:
+        logger.warning("First-run writeback unavailable: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail={"error": "first_run_writeback_unavailable"},
+        ) from exc
+
+
 @router.get("/assessment/profile")
 async def assessment_profile(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    return member_service.get_assessment_profile(_resolve_authenticated_user_id(authorization))
+    user_id = _resolve_authenticated_user_id(authorization)
+    profile = dict(member_service.get_assessment_profile(user_id) or {})
+    diagnostic_sources = dict(profile.get("diagnostic_sources") or {})
+    diagnostic_sources["first_run"] = project_first_run_completion(
+        learner_state_service.read_profile(user_id)
+    )
+    profile["diagnostic_sources"] = diagnostic_sources
+    return profile
 
 
 @router.get("/assessment/topics")

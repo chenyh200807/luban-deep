@@ -4,6 +4,8 @@
 // 零学习证据写入(学习证据归 lesson-progress[讲懂幕] / 判分链路)。
 // 全程降级:任一 read model 字段缺(test2 后端未部署常态)不崩,走空态。
 const api = require("../../utils/api");
+const auth = require("../../utils/auth");
+const firstRunEntry = require("../../utils/first-run-entry");
 const helpers = require("../../utils/helpers");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
@@ -57,6 +59,8 @@ Page({
     loading: true,
     vm: null, // learn-view-model 输出
     whyOpen: false,
+    firstRunState: "new", // new | resume | syncing | blocked | hidden
+    firstRunProgress: 0,
   },
 
   onLoad(query) {
@@ -79,8 +83,70 @@ Page({
       isDark: this.data.isDark,
       hidden: !flags.shouldShowWorkspaceShell(),
     });
+    const firstRunSnapshot = this._syncFirstRunState();
+    this._retryPendingFirstRun(firstRunSnapshot);
     // 从站点/复习返回时刷新点亮态(预览模式不打后端,保持镜像数据)
     if (!this.data.loading && !this.data._preview) this._load();
+  },
+
+  _syncFirstRunState() {
+    const userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+    if (!userId) {
+      this.setData({ firstRunState: "hidden", firstRunProgress: 0 });
+      return { state: "hidden", checkpoint: null, pending: null };
+    }
+    const snapshot = firstRunEntry.getState(userId);
+    const checkpoint = snapshot.checkpoint || {};
+    const progress = Math.max(0, Math.min(Number(checkpoint.qIndex || 0) + 1, 4));
+    this.setData({ firstRunState: snapshot.state, firstRunProgress: progress });
+    return snapshot;
+  },
+
+  _retryPendingFirstRun(snapshot) {
+    const current = snapshot || this._syncFirstRunState();
+    const pending = current && current.pending;
+    const userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+    if (!pending || !userId || this._firstRunSyncing) return Promise.resolve(null);
+    this._firstRunSyncing = true;
+    this.setData({ firstRunState: "syncing" });
+    const that = this;
+    return api
+      .completeFirstRun(pending, { silent: true })
+      .then(function (result) {
+        firstRunEntry.clearPendingSync(userId);
+        if (typeof firstRunEntry.clearCheckpoint === "function") {
+          firstRunEntry.clearCheckpoint(userId);
+        }
+        firstRunEntry.markDone(userId, pending);
+        that.setData({ firstRunState: "hidden", firstRunProgress: 4 });
+        if (!that.data._preview) that._load();
+        return result;
+      })
+      .catch(function (error) {
+        const code = String(
+          (error && error.payload && error.payload.detail && error.payload.detail.error) || "",
+        );
+        that.setData({
+          firstRunState:
+            code === "first_run_content_not_signed" || code === "first_run_version_conflict"
+              ? "blocked"
+              : "syncing",
+        });
+        return null;
+      })
+      .then(function (result) {
+        that._firstRunSyncing = false;
+        return result;
+      });
+  },
+
+  openFirstRun() {
+    if (this.data.firstRunState === "syncing") return;
+    if (this.data.firstRunState === "blocked") {
+      this._retryPendingFirstRun();
+      return;
+    }
+    this._navTo(route.resolve("pages/first-run/first-run"));
   },
 
   onPullDownRefresh() {

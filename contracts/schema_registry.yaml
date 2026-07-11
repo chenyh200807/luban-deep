@@ -436,6 +436,34 @@ schemas:
 # warning if a T2 file is touched while marked needs_field_canonicalization, to
 # nudge eventual field-level pinning. T2 grants no official-score / write authority.
 tier2_canonical_contracts:
+  # — first-run static diagnostic content and completion boundary —
+  - name: first_run_script.v1
+    status: runtime_canonical
+    owner: learner_state
+    canonical_for: the signed four-question first-run diagnostic content, answer key, source refs, content hashes, and script version
+    module: deeptutor/services/first_run/manifest.py
+    consumed_by: deeptutor/services/first_run/writeback.py + yousenwebview/packageDeeptutor/pages/first-run/script-data.js (hash-pinned display mirror)
+    needs_field_canonicalization: false
+    canonical_fields:
+      - schema_id
+      - script_version
+      - release_status
+      - questions
+
+  - name: first_run_completion.v1
+    status: runtime_canonical
+    owner: learner_state
+    canonical_for: the authenticated one-shot first-run completion request delegated to the sole FirstRunWritebackService authority
+    module: deeptutor/api/routers/mobile.py
+    consumed_by: deeptutor/services/first_run/writeback.py + yousenwebview/packageDeeptutor/utils/api.js
+    needs_field_canonicalization: false
+    canonical_fields:
+      - completion_id
+      - script_version
+      - completed_at
+      - answers
+      - declared_preferences
+
   # — assessment report read-model (persisted schema_version, gates DB read-back) —
   - name: p0a-v1
     status: runtime_canonical

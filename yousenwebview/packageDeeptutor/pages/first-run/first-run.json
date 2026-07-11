@@ -1,7 +1,7 @@
 {
-  "navigationBarTitleText": "鲁班智考",
-  "navigationBarBackgroundColor": "#0a0f1a",
-  "navigationBarTextStyle": "white",
-  "backgroundColor": "#0a0f1a",
-  "disableScroll": false
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "首次学习旅程",
+  "backgroundColor": "#f5f3ec",
+  "backgroundTextStyle": "dark",
+  "disableScroll": true
 }

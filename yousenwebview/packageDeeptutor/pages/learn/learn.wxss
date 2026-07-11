@@ -42,6 +42,33 @@
   50% { opacity: 1; }
 }
 
+/* ── 首次学习旅程卡（五模块学习首页原生入口） ── */
+.lr-first-run {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  padding: 28rpx;
+  overflow: hidden;
+  border-color: rgba(207, 68, 54, 0.28);
+}
+.lr-first-run::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 7rpx;
+  background: var(--pk-red);
+}
+.lr-first-run--syncing { opacity: 0.78; }
+.lr-first-run--blocked { border-color: rgba(173, 117, 42, 0.38); }
+.lr-first-run-seal { width: 72rpx; height: 72rpx; border-radius: 19rpx; flex-shrink: 0; }
+.lr-first-run-logo { width: 44rpx; height: 44rpx; }
+.lr-first-run-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7rpx; }
+.lr-first-run-title { font-size: 31rpx; line-height: 1.35; font-weight: 800; color: var(--pk-t1); }
+.lr-first-run-go { flex-shrink: 0; font-size: 24rpx; font-weight: 800; color: var(--pk-red); }
+
 /* ── 状态卡 ── */
 .lr-status-row { display: flex; gap: 15rpx; }
 .lr-status { flex: 1; min-width: 0; padding: 22rpx 18rpx; display: flex; align-items: center; gap: 15rpx; }

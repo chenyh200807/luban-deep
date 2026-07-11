@@ -1,12 +1,24 @@
-<view class="fr-page">
-  <!-- 顶栏：品牌 + 进度 + 逃生舱 -->
-  <view class="fr-topbar">
-    <view class="fr-brand"><text class="fr-logo">鲁</text>鲁班智考 · 一建建筑实务</view>
-    <view class="fr-prog">
-      <view wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this" class="fr-dot {{progressSeg >= item ? 'on' : ''}}"></view>
+<view class="fr-page paper light pk-paper-bg">
+  <!-- 微信安全区下的产品顶栏：答题期隐藏五 Tab，只保留退出/旅程名/题数 -->
+  <view class="fr-topbar" style="padding-top: {{statusBarHeight}}px">
+    <view class="fr-nav-side fr-nav-action" bindtap="onSkip">稍后</view>
+    <view class="fr-nav-title">
+      <view class="fr-nav-seal pk-seal">
+        <image class="fr-nav-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" />
+      </view>
+      <text>首次学习旅程</text>
     </view>
-    <view class="fr-skip" bindtap="onSkip">跳过</view>
+    <view class="fr-nav-side fr-nav-count" wx:if="{{act === 'question' || act === 'feedback' || act === 'interlude'}}">{{qIndex + 1}} / {{qTotal}}</view>
+    <view class="fr-nav-side fr-nav-count" wx:else>约 3 分钟</view>
+    <view class="fr-progress-track"><view class="fr-progress-fill" style="width: {{progressSeg / 6 * 100}}%"></view></view>
   </view>
+
+  <scroll-view
+    class="fr-content {{act === 'question' ? 'fr-question-scroll' : (act === 'feedback' ? 'fr-feedback-scroll' : '')}}"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+  >
 
   <!-- 摸底 1/2 -->
   <view wx:if="{{act === 'war'}}" class="fr-act">
@@ -203,7 +215,7 @@
       </view>
       <view class="fr-hero-ring">
         <view class="fr-ring big"><view class="fr-ring-tx">{{report.pct}}%</view></view>
-        <view class="fr-rlab">采分点命中率</view>
+        <view class="fr-rlab">本轮 4 题命中</view>
       </view>
     </view>
 
@@ -277,7 +289,11 @@
       </view>
     </view>
 
-    <view class="fr-cta" bindtap="onReportGo">去「学情」页 · 开始定向训练</view>
+    <view class="fr-sync fr-sync--{{syncStatus}}">
+      <text class="fr-sync-dot"></text>
+      <text class="fr-sync-text">{{syncMessage}}</text>
+    </view>
+    <view class="fr-cta" bindtap="onReportGo">{{syncStatus === 'synced' ? '回「学习」· 开始今天任务' : '先回「学习」· 自动继续保存'}}</view>
     <view class="fr-cta warm" bindtap="onReportRemind">明天提醒我复测</view>
   </view>
 
@@ -286,6 +302,7 @@
     <view class="fr-final-ic">🏗️</view>
     <view class="fr-title center">{{finale.title}}</view>
     <view class="fr-final-lead">{{finale.lead}}</view>
-    <view class="fr-cta" bindtap="onFinale">进入鲁班智考 →</view>
+    <view class="fr-cta" bindtap="onFinale">回到学习首页 →</view>
   </view>
+  </scroll-view>
 </view>

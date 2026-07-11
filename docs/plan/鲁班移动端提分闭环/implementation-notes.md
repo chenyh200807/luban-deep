@@ -6,6 +6,18 @@
 
 ## Deviations
 
+### 2026-07-11（首次体验 × 五模块原生旅程）
+- **[基线纠偏：第一次确实落在了错误视觉版本]** 名义 `origin/main@b3e9ab09` 比当前五模块产品视觉线少 15 个提交，缺少 `79fddae6` 带来的安全区 TabBar、正确线性图标与中间朱印尺寸/阴影，因此首轮虽然功能正确，视觉壳仍是旧版。已停止在旧 worktree 继续开发，把首次体验的窄 diff 重新移植到 `origin/luban/seethrough-visuals-on-main@22c2a218` 的新隔离 worktree，并手工合并 `learn.js` 以保留看穿 5 关逻辑；`custom-tab-bar` 三文件相对该正确基线保持零 diff。该视觉线与 `origin/main` 仍有 `15 ahead / 2 behind` 分叉，后续进 main 必须先显式整合，不能把旧 `origin/main` 快照冒充产品当前版本。
+- **[登录态闭环已完成，本轮不部署]** 使用隔离 `qa_eval` 机器身份和独立本地 user/auth 数据目录启动 authority，DevTools 在正确 `yousenwebview` 项目根中完成登录；课程、首页仪表盘、learning report 三条请求均为 200，学习、复习、问鲁班、学情、我的五模块均能以同一身份进入。owner 已授权 commit、review、push、PR merge main；部署仍不在本轮范围。
+- **[404 不是路由漂移]** 首次进入复习页时错题本读接口返回 404，根因是本地 QA 未开启既有 `DEEPTUTOR_MISTAKE_BOOK_ENABLED`；按现有运行配置打开 read flag 和 local fallback 后页面正常。没有为 QA 假象改产品路由或增加 fallback。
+- **[第二 onboarding authority 已收口]** 问鲁班仍会对“无 legacy assessment profile”的用户弹出旧 8 分钟摸底框；首次体验虽已写入 Learner State，但旧弹窗只读 legacy assessment/local storage，形成跨设备第二权威。修法不是再写一个本地标记，而是由 `/assessment/profile` 兼容投影 canonical `learner_state.learning_preferences.first_run`，chat 只读该完成事实抑制旧弹窗；服务端首次完成仍只有 `FirstRunWritebackService` 一个 writer。
+- **[内容签发包已就绪但无人代签]** 新增四题双教研 review packet，钉死 script/content hash、逐字来源和 reviewer 字段。预审暴露两项需真人拍板的裁切风险：填充墙题只测 14d、未写“中间向两边斜砌”；装配式垃圾题只问 300t→200t、未写“不包括工程渣土/泥浆”。当前 completion 真请求仍返回 `409 first_run_content_not_signed`，这是正确 stop condition。
+- **[第二权威已收口] 老蓝首跑的本地 DONE/前端报告处方不能继续承担正式学习事实**：DONE 降级为 user-scoped UI cache；前端只提交 `completion_id + script_version + answers + declared_preferences + completed_at`，服务端 `FirstRunWritebackService` 重新判定并一次性幂等写入既有 Learner State。下一步仍只认 `home_next_step_projection`，未新增 learner table 或 recommendation authority。
+- **[内容门比 UI 更关键] 四题视觉和原版展开内容可以完成，但未签发题目不能进入 canonical learner truth**：manifest 默认 `blocked_pending_human_verdict`，服务端 unsigned fail closed。尤其第 4 题不在首批金标候选内，agent 不代签教研 verdict；当前真实状态只能是 `implemented_but_release_blocked`。
+- **[原版内容与五模块壳分层] 核心三问、资料揭示、四题、逐项拆解、采分点/来源/量尺、口诀、四次侧写、画像和完整报告保留；导航、安全区、卡片、色彩、入口和退出语义改用学习首页 paper-ink 原生体系。答题态隐藏五 Tab，一次只挂载当前题/当前反馈，下一题通过状态替换而非纵向堆叠。
+- **[真微信证据闭环分层] 新版 DevTools 自动化协议与最新公开 `miniprogram-automator` 不兼容（缺 `SDKVersion`，继而出现未知 `getGlobalWebviewIds`），改用 computer-use 在正确项目根 `yousenwebview` 实际走通 `packageDeeptutor/pages/first-run/first-run`：摸底三问→资料揭示→4 题/4 反馈→4 次侧写→画像→完整报告→返回 `packageDeeptutor/pages/learn/learn`，页面级 `real_wechat_package PASS`。首次验证时因无 QA token，学习页三个 API 均 401；该 partial 已由本节前述隔离 `qa_eval` 本地 auth-chain 复测关闭。
+- **[真机发现并修复] 第 4 题 B 选项解析含 `<b>现浇</b>`，该字段由普通 `<view>` 渲染，标签会原样露出**。保守修法只去掉 markup、不改内容语义，并给 Node contract 增加“plain-text explanation 不得含 HTML 标签”断言；未把整个 explanation 渲染器改成 rich-text。
+
 ### 2026-07-05（复习闭环诚实薄上线里程碑 · 上线 main 4daaaf6d1 · 即时入账）
 - **[签发闸补建·真根因] 考点卡签发路径从没接通**：`docs/原始数据/考点原料/promote_variant_bank.py` 是 variant 专用（`_BANK_TEMPLATE=_{pack_id}_variant_bank.v0.json`）。34 卡卡在 candidate 的真根因不是"没签"而是"没法签"。治本=把该工具泛化 `--kind {variant,concept_cards}`（variant 行为零回归）+补测试；concept 分支模板 `_{pack_id}_concept_card_bank.v0.json` + gate 重跑 `build_luban_concept_card_bank.py {pid} --check`；四关校验（status==candidate / sha 三方一致 / bank gate 干净 / builder --check exit 0）对两 kind 同构。concept builder 早把 status 标为"promote 人闸独占的翻牌字段"=设计本就该有此闸只是没建。5 包（A01/F16/J01/N01/S05=34 卡）签发后容器内活体 total 0→34。
 - **[owner 拍板 A=诚实薄上线]** 能用的先让学员用上；R8 解药 / R6 精确挖空 content bank 未产→页面诚实占位"整理中"（接口位形状已钉死，bank 一喂零改动点亮），不等齐再上。真机验后再暴露下批内容优先级。

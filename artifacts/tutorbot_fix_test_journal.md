@@ -9,6 +9,24 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-11 - 首次体验误落旧五模块视觉基线，TabBar 图标回退
+
+- 问题：
+  - 首轮实现基于名义 `origin/main@b3e9ab09`，功能链路可跑，但底部 TabBar 仍是旧图标/旧中间按钮形态，与用户当前五模块版本明显不一致。
+- 根因：
+  - Git release authority 与产品当前视觉 authority 已漂移：`origin/luban/seethrough-visuals-on-main@22c2a218` 比 `origin/main` 多 15 个产品提交，`79fddae6` 才包含安全区 TabBar、线性图标与中间朱印的正确尺寸/阴影；同时该视觉线又比 `origin/main` 少 2 个 turn 相关提交。
+  - 首轮只验证了功能/contract，没有先把“当前五模块视觉版本”钉到 commit 级证据，导致把分支名 `main` 误当产品现状。
+- 修法：
+  - 停止旧 worktree；从 `22c2a218` 新建隔离 worktree `deeptutor-first-run-current-five-module`，只移植首次体验窄 diff。
+  - `learn.js` 手工合并首次入口，保留正确基线的 seethrough 5 关、feature flags 与当前首页逻辑；`custom-tab-bar/index.js|wxml|wxss` 不修改，不复制旧壳。
+- 验证：
+  - TDD RED：正确基线缺 first-run service/manifest，Python import、Node manifest/learn entry 测试按预期失败。
+  - GREEN：Python 聚焦集 `196 passed`；9 个前端 Node 回归脚本全部 exit 0；contract/schema/REST allowlist/index mirror/diff checks 全绿。
+  - `git diff --exit-code -- packageDeeptutor/custom-tab-bar/{index.js,index.wxml,index.wxss}` exit 0。
+  - DevTools 真页面：学习首页显示正确线性图标与中间朱印；进入首次答题后五 Tab 隐藏；`稍后 -> 回学习` 后页面回到 `packageDeeptutor/pages/learn/learn` 且五 Tab 恢复。
+- 教训：
+  - “main”是 Git 标签/分支事实，不自动等于产品当前视觉事实。UI 移植前必须同时钉死 release SHA、视觉 SHA、真实页面截图和关键组件 diff；四者不一致时先报告 authority drift，不能默选一个。
+
 ## 2026-07-10 - 移动端一次对话产生两条 sessions（BI 会话数翻倍）
 
 - 问题：

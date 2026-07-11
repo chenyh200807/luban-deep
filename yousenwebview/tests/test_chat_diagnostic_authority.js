@@ -177,6 +177,31 @@ function loadChatPage(overrides) {
     assert(loaded.modalCalls.length === 1, "diagnostic modal should still show for truly new users");
   });
 
+  await run("first-run learner-state completion should suppress the legacy diagnostic modal", async function () {
+    var loaded = loadChatPage({
+      api: {
+        getAssessmentProfile: function () {
+          return Promise.resolve({
+            level: "",
+            chapter_mastery: {},
+            diagnostic_sources: {
+              first_run: {
+                completed: true,
+                source: "learner_state.learning_preferences.first_run",
+              },
+            },
+          });
+        },
+      },
+    });
+
+    await Promise.resolve(loaded.page._checkDiagnostic());
+    await flushPromises();
+
+    assert(loaded.modalCalls.length === 0, "canonical first-run completion should prevent a second onboarding prompt");
+    assert(loaded.storage.diagnostic_completed === true, "canonical first-run completion should warm the local cache");
+  });
+
   if (fail) {
     console.error(errors.join("\n"));
     process.exit(1);

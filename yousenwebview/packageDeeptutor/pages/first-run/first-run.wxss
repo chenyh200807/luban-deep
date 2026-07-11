@@ -1,4 +1,6 @@
-/* 首跑剧本 — 学情页蓝黑青体系（owner 指定版 artifact 2a91a06d） */
+@import "/packageDeeptutor/styles/paper-ink.wxss";
+
+/* 首跑剧本 — 核心内容沿用最终稿，视觉收口到五模块纸墨朱竹体系 */
 .fr-page {
   min-height: 100vh;
   background:
@@ -855,4 +857,333 @@
   line-height: 1.8;
   white-space: pre-line;
   margin-bottom: 48rpx;
+}
+
+/* ============================================================
+ * 五模块原生旅程覆盖层
+ * 单页只挂载当前 act；题面与反馈均占满可用视口，不暴露下一题。
+ * ============================================================ */
+.fr-page {
+  height: 100vh;
+  min-height: 100vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--pk-paper);
+  color: var(--pk-t1);
+}
+
+.fr-topbar {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 92rpx;
+  padding-left: 32rpx;
+  padding-right: 32rpx;
+  padding-bottom: 20rpx;
+  box-sizing: border-box;
+  gap: 12rpx;
+  background: rgba(245, 243, 236, 0.96);
+  border-bottom: 1rpx solid var(--pk-bd);
+  box-shadow: 0 3rpx 16rpx var(--pk-shadow);
+  z-index: 2;
+}
+
+.fr-nav-side {
+  width: 132rpx;
+  min-height: 64rpx;
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-t3);
+  box-sizing: border-box;
+}
+
+.fr-nav-action {
+  justify-content: flex-start;
+}
+
+.fr-nav-count {
+  justify-content: flex-end;
+  color: var(--pk-t2);
+  font-variant-numeric: tabular-nums;
+}
+
+.fr-nav-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  color: var(--pk-t1);
+  font-size: 26rpx;
+  font-weight: 800;
+  letter-spacing: 1rpx;
+  white-space: nowrap;
+}
+
+.fr-nav-seal {
+  width: 42rpx;
+  height: 42rpx;
+  border-radius: 12rpx;
+  flex: 0 0 auto;
+}
+
+.fr-nav-logo {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+.fr-progress-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5rpx;
+  background: var(--pk-gauge);
+  overflow: hidden;
+}
+
+.fr-progress-fill {
+  height: 100%;
+  border-radius: 0 999rpx 999rpx 0;
+  background: var(--pk-red);
+  transition: width 0.24s ease;
+}
+
+.fr-content,
+.fr-question-scroll,
+.fr-feedback-scroll {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.fr-act {
+  min-height: 100%;
+  padding: 34rpx 36rpx calc(64rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.fr-question-scroll .fr-act,
+.fr-feedback-scroll .fr-act {
+  padding-top: 28rpx;
+}
+
+.fr-chip,
+.fr-chip.warm {
+  color: var(--pk-red);
+  background: rgba(207, 68, 54, 0.08);
+  border-color: rgba(207, 68, 54, 0.18);
+}
+
+.fr-title,
+.fr-stem,
+.fr-fb-title,
+.fr-guide-t,
+.fr-kt,
+.fr-grid-nm,
+.fr-typecard,
+.fr-tn {
+  color: var(--pk-t1);
+}
+
+.fr-title .hi,
+.fr-eyebrow.cyan,
+.fr-badge.cyan,
+.fr-ph.cyan,
+.fr-kk.cyan,
+.fr-pill,
+.fr-loc,
+.loc {
+  color: var(--pk-grn);
+}
+
+.fr-eyebrow.orange,
+.fr-badge.orange,
+.fr-kk.orange,
+.fr-inter-note {
+  color: var(--pk-red);
+}
+
+.fr-lead,
+.fr-note,
+.fr-hint,
+.fr-case,
+.fr-fb-sub,
+.fr-guide-s,
+.fr-ks,
+.fr-grid-tg,
+.fr-final-lead,
+.fr-tile-cap,
+.fr-tile-n .u,
+.fr-meta-chip {
+  color: var(--pk-t2);
+}
+
+.fr-opt,
+.fr-opt.itl,
+.fr-panel,
+.fr-hero,
+.fr-tile,
+.fr-kcard,
+.fr-typecard {
+  background: var(--pk-card);
+  border-color: var(--pk-bd);
+  box-shadow: 0 3rpx 14rpx var(--pk-shadow);
+  color: var(--pk-t1);
+}
+
+.fr-opt {
+  min-height: 102rpx;
+  border-radius: 26rpx;
+}
+
+.fr-opt:active,
+.fr-opt.itl:active {
+  background: #f8f5ec;
+  border-color: rgba(72, 128, 106, 0.42);
+}
+
+.fr-opt-key,
+.fr-opt-key.warm {
+  background: #efecdf;
+  border-color: transparent;
+  color: var(--pk-t1);
+}
+
+.fr-arrow,
+.fr-arrow.warm {
+  color: var(--pk-t3);
+}
+
+.fr-meta-chip {
+  background: rgba(255, 253, 248, 0.72);
+  border-color: var(--pk-bd);
+}
+
+.fr-badge.cyan {
+  background: rgba(72, 128, 106, 0.08);
+  border-color: rgba(72, 128, 106, 0.2);
+}
+
+.fr-badge.orange {
+  background: rgba(207, 68, 54, 0.08);
+  border-color: rgba(207, 68, 54, 0.18);
+}
+
+.fr-ring,
+.fr-ring.big {
+  border-color: var(--pk-gauge);
+  background: var(--pk-card);
+  color: var(--pk-t1);
+}
+
+.fr-ring.good {
+  border-color: var(--pk-grn);
+}
+
+.fr-ring.half {
+  border-color: var(--pk-red);
+}
+
+.fr-ans,
+.fr-guide-row,
+.fr-grid-row {
+  border-color: var(--pk-bd);
+}
+
+.fr-ans-tx,
+.fr-ans-rs,
+.fr-libtx,
+.fr-mn-sub,
+.fr-termlab {
+  color: var(--pk-t2);
+}
+
+.fr-st.ok {
+  color: var(--pk-grn);
+  background: rgba(72, 128, 106, 0.1);
+  border-color: rgba(72, 128, 106, 0.24);
+}
+
+.fr-st.no {
+  color: var(--pk-red);
+  background: rgba(207, 68, 54, 0.08);
+  border-color: rgba(207, 68, 54, 0.2);
+}
+
+.fr-srcnote {
+  color: var(--pk-t3);
+  border-color: var(--pk-bd);
+}
+
+.fr-tile-n.big,
+.fr-tile-n.big.warm {
+  color: var(--pk-red);
+}
+
+.fr-mnchip {
+  color: var(--pk-t1);
+  background: #efecdf;
+  border-color: var(--pk-bd);
+}
+
+.fr-cta {
+  min-height: 88rpx;
+  border-radius: 22rpx;
+  background: var(--pk-ink-btn);
+  color: var(--pk-ink-btn-t);
+  box-shadow: 0 8rpx 20rpx var(--pk-shadow);
+}
+
+.fr-cta.warm {
+  background: transparent;
+  color: var(--pk-red);
+  border: 1rpx solid rgba(207, 68, 54, 0.28);
+  box-shadow: none;
+}
+
+.fr-sync {
+  min-height: 60rpx;
+  margin: 28rpx 0 16rpx;
+  padding: 0 20rpx;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  color: var(--pk-t2);
+  background: rgba(255, 253, 248, 0.72);
+  border: 1rpx solid var(--pk-bd);
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.fr-sync-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: var(--pk-t3);
+}
+
+.fr-sync--syncing .fr-sync-dot,
+.fr-sync--pending .fr-sync-dot {
+  background: var(--pk-red);
+}
+
+.fr-sync--synced .fr-sync-dot {
+  background: var(--pk-grn);
+}
+
+.fr-sync--blocked {
+  color: var(--pk-warn);
+}
+
+.fr-final {
+  padding-top: 132rpx;
 }
