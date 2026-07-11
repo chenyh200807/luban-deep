@@ -603,7 +603,7 @@ class TeamManager:
         for mate in runtime.state.members:
             self._ensure_worker(runtime, mate.name)
 
-        self._append_lead_session(runtime, normalized, f"Queued {len(created)} tasks: {', '.join(created)}")
+        await self._append_lead_session(runtime, normalized, f"Queued {len(created)} tasks: {', '.join(created)}")
         await self._emit_lead_update(
             runtime,
             f"Team lead: queued {len(created)} task(s) from your instruction.",
@@ -984,8 +984,8 @@ Work autonomously and coordinate through the board and mailbox."""
             session.messages.append(entry)
         session.updated_at = datetime.now()
 
-    def _append_lead_session(self, runtime: TeamRuntime, user_text: str, assistant_text: str) -> None:
-        session = self.sessions.get_or_create(f"team:{runtime.state.run_id}:lead")
+    async def _append_lead_session(self, runtime: TeamRuntime, user_text: str, assistant_text: str) -> None:
+        session = await self.sessions.get_or_create(f"team:{runtime.state.run_id}:lead")
         session.add_message("user", user_text)
         session.add_message("assistant", assistant_text)
         self.sessions.save(session)
@@ -1029,7 +1029,7 @@ Work autonomously and coordinate through the board and mailbox."""
             return
         logger.info("Team worker [{}] starting for session {}", mate.name, session_key)
         self._set_member_status(runtime, mate.name, "working")
-        session = self.sessions.get_or_create(f"team:{runtime.state.run_id}:{mate.name}")
+        session = await self.sessions.get_or_create(f"team:{runtime.state.run_id}:{mate.name}")
         history = session.get_history(max_messages=60)
         messages: list[dict[str, Any]] = [{"role": "system", "content": self._build_worker_prompt(runtime, mate)}]
         if history:

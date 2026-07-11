@@ -1,5 +1,6 @@
 """Session management for conversation history."""
 
+import asyncio
 import json
 import shutil
 from dataclasses import dataclass, field
@@ -127,9 +128,14 @@ class SessionManager:
         safe_key = safe_filename(key.replace(":", "_"))
         return self.legacy_sessions_dir / f"{safe_key}.jsonl"
 
-    def get_or_create(self, key: str) -> Session:
+    async def get_or_create(self, key: str) -> Session:
         """
         Get an existing session or create a new one.
+
+        Async to share one interface with ``SQLiteSessionAdapter.get_or_create``
+        (callers await ``self.sessions.get_or_create`` polymorphically). The
+        JSONL load is small file I/O, offloaded to a worker thread so it never
+        blocks the event loop.
 
         Args:
             key: Session key (usually channel:chat_id).
@@ -140,7 +146,7 @@ class SessionManager:
         if key in self._cache:
             return self._cache[key]
 
-        session = self._load(key)
+        session = await asyncio.to_thread(self._load, key)
         if session is None:
             session = Session(key=key)
 
