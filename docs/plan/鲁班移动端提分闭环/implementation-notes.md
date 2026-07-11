@@ -167,6 +167,18 @@
 - **[登记的 B 级/NOTE]** ①裸 qid `NUMERIC_9001/9534`（8 条内容真实但 qid 退化不可达, 9001 分值和 7≠6, 源管道修 qid 即回收）；②11 条 required_terms 与 text 措辞漂移属判分严格度细节（如 term"特种门安装" vs 教材名"特种门窗安装"）, 归金标校准范畴；③PGO 189 条 <4 字碎渣点多为 list/enumeration 设计内（'工会''资质'=列举项）, 3 条 >120 字粗粒待金标轮看。
 - **[owner 校准入规]** 关键问题（收入闸/权威裁决/高不确定）才上"独立第三方宏观质疑+Codex 对抗"重炮；普通难度直接干。本次即按轻量路径执行的首例。
 
+### 2026-07-11（判分库判决被异源推翻 · Codex GPT-5.6-sol 终审 + spark 旁证 · 即时入账）
+- **[撤回前判决]** 上条"判分库结构健康无A级"**作废**。owner 坚持异源对抗后, Codex(5.6-sol, 独立只读+实跑判分函数)推翻四项, 主控已逐条独立复核坐实:
+  ① **A级判分错误已入库**: NUMERIC_9001 的错误计算(E≈5.74/选F)被洗入 PGO 可达 qid `2023::EXAM_1A432000_P0017_01::E4` 且标 `exam_reference_answer`; 源答案=E8/F7/G6/选G(legacy 同 qid 反而正确)。我此前判"不可达孤立异常"错——错误答案有第二条入库路径。
+  ② **评分对象边界坍塌**: 多小问被压进一个 qid 共享第一小问总分(18/22/27 点共用 total 5-6 分); 仓库自己的 backfill 桥早写明"per_question 结构乱(granularity collapse), 真题判分应直接用 canonical rubric"。
+  ③ **score=None ≠ 不计分**: grader 按"命中原子数/原子总数×官方总分"算(rubric_grader_v1.py:229/274)——**切分粒度本身就是隐含分值 authority**; Codex 实跑: 答对官答 3 分内容得 4.2/7、答完整第一小问(封顶5分)只得 1.36/5。我判"189 碎渣设计内"错。
+  ④ **零交叠假象**: 去掉年份前缀 175/179 PGO qid 命中 legacy(154 基 qid)+PGO 内部 14 组完整内容重复; 编译器源码自注"real namespace hazard"。"两套题集/promote=扩覆盖"判断作废。
+  ⑤ **authority 冒牌**: 源文件自述 `NOT_official=true`(training_org_analysis 估分), PGO 却统一标 `official_answer_verbatim`; schema registry 早已把 per_question 定为 deprecated/adapter-only。
+- **[红线立即生效]** `LUBAN_CASE_RUBRIC_BANK_SLOT=pgo` **禁止拨**(此前多份报告的"差一脚 env"建议全部撤回); PGO 停留 shadow, 重建必须走 canonical rubric 路线(backfill 桥的既有结论)。legacy 继续服务(其数值正确性反而被本轮加固)。
+- **[spark 旁证收敛]** 降级 spark 独立跑的同任务发现同向问题(qid 前缀假象/官答忠实度/2022::P0015_01 多点走样)——双异源收敛, 置信度高。required_terms 漂移经 5.6-sol 核实 policy=list 走 LLM 语义判分, 不必然误杀(spark 判断修正), 降回观察项。
+- **[方法论三连]** ①轻量路径误用第二实锤: 关键资产(收入闸)无异源不收官——owner 两次纠偏都对; ②异源对抗要"实跑不只读": 5.6-sol 胜过我预扫的关键=真的执行了判分函数; ③敢对付费用户判分前三件事(Codex 宏观判语): 官答→库逐点全集覆盖率比对 / chunk×year 跨库 dedupe / required_terms 同义扰动对抗回放。
+- **[待办工单]** PGO canonical 重建(含 authority 标签矫正+小问边界修复); 2015-2020/2022正考源缺口(归 governed gold); 14 重复组余下 12 组人工判"同题重复 vs 合法共用"。
+
 ## 惯例沉淀（复盘时升格为规则的候选）
 - 部署后必做独立探针（不信脚本自报）——本轮抓到 22 站 404 与 F16 无声两个上线级洞。
 - owner 口述需求先 grep 是否已实现再派工；agent 终态纪律=最终回复基于磁盘/线上实测，"等待中/等子报告"不是完成态。
