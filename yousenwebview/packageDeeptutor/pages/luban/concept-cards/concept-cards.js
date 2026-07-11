@@ -25,6 +25,7 @@ Page({
     activePackId: "",
     currentCard: null, // 当前展示卡(由 deckState 派生)
     flipped: false, // 正面/翻面(纯呈现态)
+    quoteOpen: false, // 教材原文全文展开(记忆面默认收拢,尊重爱看全文的用户)
     finished: false,
   },
 
@@ -71,7 +72,11 @@ Page({
 
   flipCard: function () {
     if (!this.data.currentCard || this.data.finished) return;
-    this.setData({ flipped: !this.data.flipped });
+    this.setData({ flipped: !this.data.flipped, quoteOpen: false });
+  },
+
+  toggleQuote: function () {
+    this.setData({ quoteOpen: !this.data.quoteOpen });
   },
 
   // 「记住了」/「再看一眼」——纯本地牌序，零上报零掌握写入
@@ -102,6 +107,7 @@ Page({
       deckState: state,
       currentCard: idx >= 0 && deck ? deck.cards[idx] : null,
       flipped: false,
+      quoteOpen: false,
       finished: idx < 0,
     });
   },

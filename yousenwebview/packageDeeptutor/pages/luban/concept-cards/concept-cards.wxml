@@ -67,18 +67,60 @@
               <text class="cc-card-prompt">{{currentCard.prompt}}</text>
               <text class="cc-card-fliphint">点一下 · 看教材原文</text>
             </block>
-            <!-- 翻面：教材原文并排（逐字 quote + 溯源角注）+ 助记颗粒 -->
+            <!-- 翻面＝记忆面：结构化图示(逐字切分零改写)优先，教材原文一键全文 -->
             <block wx:if="{{flipped}}">
               <text class="cc-card-kicker">{{currentCard.front}}</text>
-              <view class="cc-quote">
-                <text class="cc-quote-label">教材原文</text>
-                <text class="cc-quote-text">{{currentCard.quote}}</text>
-                <text class="cc-quote-source">{{currentCard.sourceNote}}</text>
+
+              <!-- 流程链：口诀石链(来自可背颗粒的→切分) -->
+              <view class="cc-chain" wx:if="{{currentCard.structure.chain}}">
+                <text class="cc-sec-label">先记这条链</text>
+                <view class="cc-chain-flow">
+                  <block wx:for="{{currentCard.structure.chain}}" wx:key="index">
+                    <view class="cc-chain-stone">
+                      <text class="cc-chain-idx">{{index + 1}}</text>
+                      <text class="cc-chain-tx">{{item}}</text>
+                    </view>
+                    <text class="cc-chain-arrow" wx:if="{{index < currentCard.structure.chain.length - 1}}">→</text>
+                  </block>
+                </view>
               </view>
-              <view class="cc-gist" wx:if="{{currentCard.keyGist}}">
+
+              <!-- 谁做什么：主体签章 + 动作行(来自原文①②…逐字切行) -->
+              <view class="cc-roster" wx:if="{{currentCard.structure.roster}}">
+                <text class="cc-sec-label">谁做什么</text>
+                <view class="cc-roster-row" wx:for="{{currentCard.structure.roster}}" wx:key="index">
+                  <text class="cc-roster-actor" wx:if="{{item.actor}}">{{item.actor}}</text>
+                  <text class="cc-roster-mark" wx:else>{{item.mark}}</text>
+                  <text class="cc-roster-body">{{item.body}}</text>
+                </view>
+              </view>
+
+              <!-- 关键数：数字瓷砖(逐字上下文标签) -->
+              <view class="cc-nums" wx:if="{{currentCard.structure.numbers.length}}">
+                <text class="cc-sec-label">关键数</text>
+                <view class="cc-nums-row">
+                  <view class="cc-num-tile" wx:for="{{currentCard.structure.numbers}}" wx:key="index">
+                    <view class="cc-num-line"><text class="cc-num-big">{{item.num}}</text><text class="cc-num-unit">{{item.unit}}</text></view>
+                    <text class="cc-num-ctx" wx:if="{{item.label}}">{{item.label}}</text>
+                  </view>
+                </view>
+              </view>
+
+              <!-- 无结构可提炼时回落：可背颗粒原样 -->
+              <view class="cc-gist" wx:if="{{currentCard.structure.plain && currentCard.keyGist}}">
                 <text class="cc-gist-label">可背颗粒</text>
                 <text class="cc-gist-text">{{currentCard.keyGist}}</text>
               </view>
+
+              <!-- 教材原文：默认收拢，一键全文(有人就爱看完整的) -->
+              <view class="cc-quote-toggle" catchtap="toggleQuote">
+                <text>{{quoteOpen ? '收起原文 ↑' : '看教材原文全文 ↓'}}</text>
+              </view>
+              <view class="cc-quote" wx:if="{{quoteOpen}}">
+                <text class="cc-quote-label">教材原文</text>
+                <text class="cc-quote-text">{{currentCard.quote}}</text>
+              </view>
+              <text class="cc-quote-source">{{currentCard.sourceNote}}</text>
             </block>
           </view>
 

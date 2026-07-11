@@ -128,3 +128,30 @@ var pageJs = fs.readFileSync(surfaces[1], "utf8");
 );
 
 console.log("test_concept_cards_view_model: all assertions passed");
+
+// ── 记忆面结构化(2026-07-12): 确定性解析,零改写零生成 ──
+(function () {
+  var GIST = "勘察→设计→施工竣工报告→监理预验收评估→建设单位正式验收";
+  var QUOTE =
+    "单位工程完工后，各相关单位应按下列要求进行工程竣工验收： ① 勘察单位应编制勘察工程质量检查报告； ② 设计单位应对设计变更进行检查； ③ 施工单位应自检合格； ④ 监理单位应在自检合格后组织预验收，14天内完成； ⑤ 建设单位应组织竣工验收。";
+  var st = ccvm.buildCardStructure({ keyGist: GIST, quote: QUOTE });
+
+  assert(st.chain && st.chain.length === 5, "gist 箭头链切成 5 步");
+  assert(st.chain.join("→") === GIST, "链步逐字还原=gist(零改写)");
+
+  assert(st.roster && st.roster.length === 5, "quote ①-⑤ 切成 5 行");
+  assert(st.roster[0].actor === "勘察单位", "主体签章提取");
+  st.roster.forEach(function (r) {
+    assert(QUOTE.indexOf(r.actor + r.body) >= 0, "主体+动作=原文逐字子串: " + r.actor);
+  });
+
+  assert(st.numbers.length === 1 && st.numbers[0].num === "14" && st.numbers[0].unit === "天", "关键数提取14天");
+  assert(!st.plain, "有结构不回落");
+
+  var stPlain = ccvm.buildCardStructure({ keyGist: "防水层施工要点", quote: "屋面防水应按规范施工。" });
+  assert(stPlain.plain === true && !stPlain.chain && !stPlain.roster, "无结构回落颗粒条");
+
+  var deck = ccvm.buildDeckViewModel({ pack_id: "a01", title: "T", cards: [{ card_id: "c1", front: "f", key_gist: GIST, quote: QUOTE, point_id: "kc:x", source_ref: { page_num: 21 } }] });
+  assert(deck.cards[0].structure && deck.cards[0].structure.chain.length === 5, "deck 卡挂 structure");
+  console.log("PASS 记忆面结构化 8 断言");
+})();

@@ -50,6 +50,93 @@ function buildLibraryViewModel(body) {
   };
 }
 
+
+/* ── 记忆面结构化（确定性解析，零改写零生成）──────────────────────
+ * 单一权威边界不变：所有渲染文本都是 key_gist / quote 的逐字子串，
+ * 前端只做"切分与排版"，不产生一个新字；教材原文全文永远一键可见。
+ * 三种结构（有则展示，无则回落 keyGist 颗粒条）：
+ * - chain  : key_gist 按 → 切成步骤石阶（≥3 段才算链）
+ * - roster : quote 按 ①②… 枚举切行，行首主体（…单位/…方）提为签章
+ * - numbers: gist+quote 里的 数字+单位 提为关键数瓷砖（≤4 枚）
+ */
+var _CHAIN_SPLIT_RE = /\s*(?:→|➝|➔|->)\s*/;
+var _ENUM_MARKS = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮";
+var _ACTOR_RE = /^([^，。；：、]{2,14}?)(?=应当|应|须|宜|不得|不应|禁止|负责|组织)/;
+var _NUM_RE = /(\d+(?:\.\d+)?)\s*(个月|小时|万元|天|日|人|层|次|年|h|mm|cm|km|m²|m³|m|米|%|‰|MPa|kN|℃|倍|级|元|d)/g;
+
+function _parseChain(gist) {
+  var g = _str(gist).trim();
+  if (!g) return null;
+  var parts = g.split(_CHAIN_SPLIT_RE).map(function (p) {
+    return p.trim();
+  }).filter(function (p) {
+    return p.length > 0 && p.length <= 40;
+  });
+  return parts.length >= 3 && parts.length <= 9 ? parts : null;
+}
+
+function _parseRoster(quote) {
+  var q = _str(quote);
+  var idxs = [];
+  for (var i = 0; i < q.length; i++) {
+    if (_ENUM_MARKS.indexOf(q[i]) >= 0) idxs.push(i);
+  }
+  if (idxs.length < 2) return null;
+  var rows = [];
+  for (var k = 0; k < idxs.length; k++) {
+    var start = idxs[k] + 1;
+    var end = k + 1 < idxs.length ? idxs[k + 1] : q.length;
+    var item = q.slice(start, end).replace(/[；;。\s]+$/, "").trim();
+    if (!item) continue;
+    var m = item.match(_ACTOR_RE);
+    rows.push({
+      mark: q[idxs[k]],
+      actor: m ? m[1] : "",
+      body: m ? item.slice(m[1].length) : item,
+    });
+  }
+  return rows.length >= 2 ? rows : null;
+}
+
+function _parseNumbers(gist, quote) {
+  var seen = {};
+  var out = [];
+  var srcs = [_str(gist), _str(quote)];
+  for (var i = 0; i < srcs.length && out.length < 4; i++) {
+    var text = srcs[i];
+    _NUM_RE.lastIndex = 0;
+    var m;
+    while ((m = _NUM_RE.exec(text)) !== null && out.length < 4) {
+      var key = m[1] + m[2];
+      if (seen[key]) continue;
+      seen[key] = true;
+      // 标签=命中处前面的逐字上下文（截到最近标点，≤10 字）
+      var head = text.slice(Math.max(0, m.index - 10), m.index);
+      var cut = Math.max(
+        head.lastIndexOf("，"), head.lastIndexOf("。"), head.lastIndexOf("；"),
+        head.lastIndexOf("："), head.lastIndexOf("、"), head.lastIndexOf(" ")
+      );
+      out.push({ num: m[1], unit: m[2], label: cut >= 0 ? head.slice(cut + 1) : head });
+    }
+  }
+  return out;
+}
+
+/** 记忆面结构（卡级派生，纯函数）。 */
+function buildCardStructure(card) {
+  var c = _safeObj(card);
+  var chain = _parseChain(c.keyGist);
+  var roster = _parseRoster(c.quote);
+  var numbers = _parseNumbers(c.keyGist, c.quote);
+  return {
+    chain: chain,
+    roster: roster,
+    numbers: numbers,
+    // 无任何结构时回落颗粒条(gist 原样)
+    plain: !chain && !roster && numbers.length === 0,
+  };
+}
+
 /** 单站卡组: GET /api/v1/luban/concept-cards/{pack_id} 响应 → 翻卡页数据。
  * 卡字段逐字透传; 无 quote/front 的脏卡就地剔除(fail-closed, 不补文案)。 */
 function buildDeckViewModel(body) {
@@ -59,7 +146,7 @@ function buildDeckViewModel(body) {
       var o = _safeObj(c);
       var ref = _safeObj(o.source_ref);
       var page = Number(ref.page_num);
-      return {
+      var base = {
         cardId: _str(o.card_id),
         front: _str(o.front),
         prompt: FRONT_PROMPT_SUFFIX,
@@ -71,6 +158,8 @@ function buildDeckViewModel(body) {
           _str(o.point_id) +
           (Number.isFinite(page) && page > 0 ? " · 教材 P" + page : ""),
       };
+      base.structure = buildCardStructure(base);
+      return base;
     })
     .filter(function (c) {
       return !!(c.cardId && c.front && c.quote);
@@ -132,6 +221,7 @@ function currentCardIndex(state) {
 module.exports = {
   buildLibraryViewModel: buildLibraryViewModel,
   buildDeckViewModel: buildDeckViewModel,
+  buildCardStructure: buildCardStructure,
   initDeckState: initDeckState,
   stepDeck: stepDeck,
   currentCardIndex: currentCardIndex,
