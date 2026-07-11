@@ -288,6 +288,14 @@ class _LifecycleAuthorityStore:
         self.events.append(payload)
         return payload
 
+    async def append_turn_events_batch(
+        self, _turn_id: str, events: list[dict[str, object]]
+    ) -> list[dict[str, object]]:
+        # Battle1 W2-T3: runtime persists via the batch path (pre-stamped seq);
+        # mirror the single-append mock shape one row per event.
+        self.events.extend(events)
+        return list(events)
+
 
 @pytest.mark.asyncio
 async def test_turn_runtime_demotes_tutorbot_capability_hint_before_lifecycle_authority(monkeypatch) -> None:
@@ -5501,7 +5509,11 @@ async def test_turn_runtime_publishes_live_events_when_persistence_degrades(
     async def _broken_append(*_args, **_kwargs):
         raise sqlite3.OperationalError("database is locked")
 
+    # Battle1 W2-T3: content deltas persist through the batch path; break both
+    # append shapes so any flush degrades. The oversized content crosses the
+    # char flush threshold, forcing the batch write inside this same call.
     monkeypatch.setattr(store, "append_turn_event", _broken_append)
+    monkeypatch.setattr(store, "append_turn_events_batch", _broken_append)
     monkeypatch.setattr(
         TurnRuntimeManager,
         "_mirror_event_to_workspace",
@@ -5514,14 +5526,14 @@ async def test_turn_runtime_publishes_live_events_when_persistence_degrades(
             type=StreamEventType.CONTENT,
             source="chat",
             stage="responding",
-            content="partial answer",
+            content="partial answer" + "x" * 2048,
         ),
     )
     delivered = await queue.get()
 
     assert execution.persistence_degraded is True
-    assert payload["content"] == "partial answer"
-    assert delivered["content"] == "partial answer"
+    assert payload["content"].startswith("partial answer")
+    assert delivered["content"].startswith("partial answer")
 
 
 @pytest.mark.asyncio

@@ -2335,20 +2335,42 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
 # we drop the OLDEST buffered event (never the incoming one) so memory is capped for a
 # slow/stuck consumer, the close sentinel is always delivered (a slow consumer must not
 # hang on end-of-stream), and any gap is recoverable by the client via SQLite replay
-# (subscribe/resume with after_seq). SQLite remains the source of truth, so no data is lost.
+# (subscribe/resume with after_seq). SQLite remains the source of truth, so no data is
+# lost. Battle1 W2-T3: every event is stamped with a durable seq by the per-turn
+# in-memory allocator BEFORE any fan-out; non-content events are persisted before
+# fan-out, content deltas are batch-persisted within the ≤250ms/64-event/2048-char
+# window below (or on the next event's arrival) — a crash inside that window loses
+# only unflushed content deltas, never the terminal events or seq-prefix continuity.
 _MAX_LIVE_SUBSCRIBER_QUEUE_SIZE = 2048
 
 # Cross-worker live-subscribe fallback. With UVICORN_WORKERS>1 a turn frequently
 # runs on a SIBLING worker, so it is absent from THIS worker's in-memory
 # self._executions even though it is alive. The shared SQLite store is the single
-# authoritative event log (every event is persisted via _persist_and_publish
-# before in-memory fan-out), so a subscriber on the wrong worker tails the store
-# instead of giving up. Poll interval trades freshness for store read load; the
-# orphan timeout must exceed the largest plausible gap between a live turn's
-# events (TTFT under load can be tens of seconds) so a slow sibling is never
-# mistaken for a crashed (genuinely orphaned) worker.
+# authoritative event log (every event is stamped with a durable seq before any
+# fan-out and persisted via _persist_and_publish — non-content events before
+# fan-out, content deltas within the bounded flush window below), so a subscriber
+# on the wrong worker tails the store instead of giving up. Poll interval trades
+# freshness for store read load; the orphan timeout must exceed the largest
+# plausible gap between a live turn's events (TTFT under load can be tens of
+# seconds) so a slow sibling is never mistaken for a crashed (genuinely orphaned)
+# worker.
 _CROSS_WORKER_TAIL_POLL_SECONDS = 0.4
 _CROSS_WORKER_TAIL_ORPHAN_TIMEOUT_SECONDS = 150.0
+
+# Battle1 W2-T3: CONTENT-delta batch persistence window. Only CONTENT deltas may
+# be "stamp seq → fan out live → buffer for a batched commit"; every other event
+# type (result/error/done/session/tool_*/stage_*/progress/thinking/…) is still
+# persisted BEFORE fan-out, in one transaction together with all buffered deltas,
+# so every event a client can DEPEND on (terminal state, results, tool
+# boundaries) is durable before delivery. The elapsed bound stays below the
+# cross-worker tail poll period (0.4s) so a store-tailing sibling waits at most
+# one extra poll tick; flushing is triggered by the NEXT event's arrival (no
+# background flusher task), so during an event drought buffered deltas stay
+# invisible to store readers until the next event or a same-worker subscriber
+# attach (which flushes explicitly before its catchup read).
+_CONTENT_FLUSH_MAX_ELAPSED_SECONDS = 0.25
+_CONTENT_FLUSH_MAX_EVENTS = 64
+_CONTENT_FLUSH_MAX_CHARS = 2048
 
 
 # ---- Global turn-concurrency gate (orderly queue + peak shaving) -------------------
@@ -2432,6 +2454,18 @@ class _TurnExecution:
     deadline_exceeded: bool = False
     persistence_degraded: bool = False
     terminal_commit_started: bool = False
+    # Battle1 W2-T3: per-turn in-memory seq allocator + CONTENT-delta batch buffer.
+    # next_seq is only ever incremented inside _persist_and_publish, which is
+    # always awaited sequentially from the turn task (verified: every on_event=/
+    # emit= receiver awaits the coroutine), so allocation is single-point and
+    # strictly monotonic. pending_events holds stamped-but-unflushed CONTENT
+    # payload dicts; flush_lock serialises flushes so the DB always holds a
+    # contiguous seq prefix (1..MAX, no holes).
+    next_seq: int = 1
+    pending_events: list[dict[str, Any]] = field(default_factory=list)
+    pending_chars: int = 0
+    pending_first_monotonic: float = 0.0
+    flush_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 
 class TurnRuntimeManager:
@@ -4126,6 +4160,9 @@ class TurnRuntimeManager:
             turn_view=turn,
             content_transport_metadata=content_transport_metadata,
         )
+        # Battle1 W2-T3: seed the per-turn seq allocator from the freshly created
+        # turn's persisted high-water mark (0 for a new turn → first seq is 1).
+        execution.next_seq = int(turn.get("last_seq") or 0) + 1
         register_execution_started_at = time.perf_counter()
         async with self._lock:
             self._executions[turn["id"]] = execution
@@ -4212,6 +4249,14 @@ class TurnRuntimeManager:
         # recognises the terminal event, so running catch-up here would yield the
         # terminal event without terminating and spin until the orphan timeout.
         if execution is not None:
+            # Battle1 W2-T3: flush buffered CONTENT deltas BEFORE the catchup
+            # read. The subscriber is already attached (it will receive every
+            # event fanned out from here on), so flushing first guarantees the
+            # store catchup below covers ALL seqs that were fanned out before
+            # attach — no hole between "already fanned out but still buffered"
+            # and the live queue. The existing seq dedup keeps delivery
+            # exactly-once.
+            await self._flush_pending(execution)
             catchup = await self._safe_store_call(
                 None,
                 "get_turn_catchup",
@@ -6311,6 +6356,49 @@ class TurnRuntimeManager:
             metadata=metadata,
         )
 
+    async def _flush_pending(
+        self,
+        execution: _TurnExecution,
+        extra: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        """Battle1 W2-T3: commit buffered CONTENT deltas (+ optional ``extra``) as ONE batch.
+
+        ``flush_lock`` serialises flushes for the same turn (turn task threshold
+        flushes, non-content persist-before-fan-out flushes, and the
+        subscribe-attach flush), so batches reach the single-writer store in seq
+        order and the DB is always a contiguous seq prefix. Error handling
+        mirrors the historical single-append path: a deleted turn is skipped
+        (session-deleted-while-draining semantics), persistence errors degrade
+        fail-open via _mark_persistence_degraded — already-fanned-out deltas are
+        then never persisted, identical to the pre-batch degraded contract.
+        """
+        async with execution.flush_lock:
+            batch = execution.pending_events
+            execution.pending_events = []
+            execution.pending_chars = 0
+            execution.pending_first_monotonic = 0.0
+            if extra is not None:
+                batch = batch + [extra]
+            if not batch:
+                return extra
+            try:
+                await self.store.append_turn_events_batch(execution.turn_id, batch)
+            except ValueError as exc:
+                # A turn can disappear when the session is deleted while the turn
+                # task is still draining events. Avoid cascading failures here.
+                if "Turn not found:" not in str(exc):
+                    raise
+                logger.warning(
+                    "Skip persisting %d event(s) for missing turn %s",
+                    len(batch),
+                    execution.turn_id,
+                )
+            except Exception as exc:
+                if not self._is_persistence_error(exc):
+                    raise
+                self._mark_persistence_degraded(execution, "append_turn_events_batch", exc)
+            return extra
+
     async def _persist_and_publish(
         self,
         execution: _TurnExecution,
@@ -6422,24 +6510,45 @@ class TurnRuntimeManager:
         event.session_id = execution.session_id
         event.turn_id = execution.turn_id
         payload = event.to_dict()
-        try:
-            persisted = await self.store.append_turn_event(execution.turn_id, payload)
-        except ValueError as exc:
-            # A turn can disappear when the session is deleted while the turn task
-            # is still draining events. Avoid cascading failures in the error path.
-            if "Turn not found:" not in str(exc):
-                raise
-            logger.warning(
-                "Skip persisting event for missing turn %s (%s)",
-                execution.turn_id,
-                event.type.value,
-            )
+        # Battle1 W2-T3: single-point seq allocation. Stamping happens in memory
+        # BEFORE any persistence or fan-out, so live subscribers, the batch rows,
+        # and the replay view all carry the identical durable seq. Monotonicity
+        # holds because _persist_and_publish is only ever awaited sequentially
+        # from the turn task (stamp + buffer-append below are synchronous — no
+        # await between them — so no interleaving inside the event loop).
+        payload["seq"] = execution.next_seq
+        execution.next_seq += 1
+        if event.type in (StreamEventType.CONTENT, StreamEventType.THINKING):
+            # Transport-first fast path: buffer the delta for a batched commit and
+            # fan out immediately. Crash-loss upper bound = the unflushed window
+            # (≤ _CONTENT_FLUSH_MAX_ELAPSED_SECONDS / _EVENTS / _CHARS); the DB
+            # stays a contiguous seq prefix throughout.
+            # THINKING joins the buffered channel (owner decision 2026-07-12):
+            # it is the LLM's internal draft stream — never user-visible, only
+            # observability material — and deep_question emits it per-delta
+            # (22k+ rows in the production sample, interrupting content runs
+            # every ~4 events, which compressed batching gains to ~4-5x). The
+            # only semantic cost is that a crash may lose the trailing ≤250ms
+            # of draft chunks; user-visible content, tool boundaries and
+            # terminal events keep their persist-before-deliver guarantee.
+            execution.pending_events.append(payload)
+            execution.pending_chars += len(payload.get("content") or "")
+            if not execution.pending_first_monotonic:
+                execution.pending_first_monotonic = time.monotonic()
+            if (
+                len(execution.pending_events) >= _CONTENT_FLUSH_MAX_EVENTS
+                or execution.pending_chars >= _CONTENT_FLUSH_MAX_CHARS
+                or time.monotonic() - execution.pending_first_monotonic
+                >= _CONTENT_FLUSH_MAX_ELAPSED_SECONDS
+            ):
+                await self._flush_pending(execution)
             persisted = payload
-        except Exception as exc:
-            if not self._is_persistence_error(exc):
-                raise
-            self._mark_persistence_degraded(execution, "append_turn_event", exc)
-            persisted = payload
+        else:
+            # Every non-delta event (result/error/done/session/tool_*/stage_*/
+            # progress/…) keeps persist-before-fan-out semantics: it is
+            # committed in ONE transaction together with all buffered content
+            # deltas, so a terminal event's durability implies its entire prefix.
+            persisted = await self._flush_pending(execution, extra=payload)
         async with self._lock:
             subscribers = list(self._executions.get(execution.turn_id, execution).subscribers)
         for subscriber in subscribers:

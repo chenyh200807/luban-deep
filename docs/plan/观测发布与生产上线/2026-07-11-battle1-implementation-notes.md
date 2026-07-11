@@ -2,6 +2,11 @@
 
 > 规则：实施中遇到 edge case 一律选保守方案并在此记录偏离；每条含【任务/偏离/原因/影响面/验证】。fix-test 日志（含失败尝试）同记于此。
 
+## 2026-07-12 完成战役(批4后半/5/6/7余量)进行中
+- **W2-T4 微基准已兑现**(结果入 campaign-results.md):管道容量 8/32/64 并发一致 1.9-2.1×(old 锁饱和平台 ~2700 ev/s → new ~5400);单并发仅 +10% ——实证"日常低并发 Langfuse 看不见此收益"。
+- **W1-T1 落地+主控精修**:agent 版增量缓存在 tool 密集会话高估 +458%(per_msg 按 raw messages 计入 tool payload)→ 主控加 `_counts_toward_prompt` 逐消息确定性过滤(role 非 user/assistant 或 assistant 带 tool_calls → 记 0,镜像 stable_messages 的确定性丢弃规则;被覆盖 assistant 仍计入保上界)→ 实测高估 +458%→**0%**,12 测试绿。教训:上界要"紧",松上界会让 consolidation LLM 调用过早频繁反噬成本。
+- **批7 四件收工**:lag 哨兵真闭环(0.5s 采样→TurnRuntimeMetrics→prometheus 三指标+多 worker 合并,fail-open)/两 golden 测试补登记 luban_grading_engine(双镜像 md5 一致)/branch B 3 条 WARNING 降 debug/golden 反事实断言(branch B 结构上不可能携带 case_study)。偏离合理:snapshot 纯读不复位 max(三消费点竞态)、指标加 deeptutor_ 前缀、multiworker 合并超清单但必要(否则多 worker 丢 lag 信号)。
+
 ## 2026-07-11 对抗审查（内部异上下文证伪代理）：3 MAJOR 打穿→当日治本
 - **审查方式**：fresh-context 对抗代理，8 攻击面，可执行复现+33 万例穷举对拍。Codex 异源对抗因其额度耗尽（重置 07-12 01:02）延后，命令：`node ~/.claude/plugins/cache/openai-codex/codex/1.0.5/scripts/codex-companion.mjs adversarial-review --background --base b3e9ab09 --scope branch`（在 deeptutor-battle1 目录）。
 - **MAJOR-1（已修）**：单跑丢失旧双跑意外生效的 deep_question demote 守卫——可执行复现证实同输入新旧执行能力分歧（deep_question vs chat）。修=守卫确定性上移进 select_capability（_demote_non_question_deep_selection，谓词与旧 demote 分支逐条一致）；2 个 parity 测试（demote 命中+提交轮豁免）。**owner 待决**：该守卫对服务端选择是否应长期保留（删除=独立产品决策，非重构副作用）。

@@ -1506,7 +1506,7 @@ class AgentLoop:
         (not case_grading / no score authority / flag off / no reference / unavailable). Best-effort:
         never raises (must not break the tutorbot turn)."""
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-        logger.warning(
+        logger.debug(
             "LUBAN_DIAG _v1_case_render: entered md_type={} scene={} pf_eq_qid={} cg_scene={} "
             "covered_sub_keys={}",
             type(runtime_metadata).__name__,
@@ -1517,7 +1517,7 @@ class AgentLoop:
         )
         scene = str(md.get("question_lifecycle_scene") or "").strip()
         if scene != "case_grading":
-            logger.warning("LUBAN_V1 skip: scene={} qid={}", scene or "(none)",
+            logger.debug("LUBAN_V1 skip: scene={} qid={}", scene or "(none)",
                            str((md.get("_prefetched_exact_question") or {}).get("question_id") or "?")[:12])
             return None
         # _grade_one_case_v1 owns scoring authority. TutorBot is only the thin entry wrapper:
@@ -1787,7 +1787,7 @@ class AgentLoop:
         """Single seam for all finalize paths: prefer V1 rubric grading (becomes the score authority);
         otherwise fall back to the existing no-authority demotion. Returns '' to leave final_content as-is."""
         _md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-        logger.warning(
+        logger.debug(
             "LUBAN_DIAG _apply_v1_or_case_fallback: called scene={} has_pf_eq={} msg_len={}",
             _md.get("question_lifecycle_scene") or "(none)",
             bool(_md.get("_prefetched_exact_question")),
@@ -3617,7 +3617,7 @@ class AgentLoop:
         sub_cancelled = await self.subagents.cancel_by_session(msg.session_key)
         team_cancelled = await self.team.cancel_by_session(msg.session_key)
         if team_cancelled:
-            session = self.sessions.get_or_create(msg.session_key)
+            session = await self.sessions.get_or_create(msg.session_key)
             session.metadata.pop("nano_team_active", None)
             self.sessions.save(session)
         total = cancelled + sub_cancelled + team_cancelled
@@ -3691,7 +3691,7 @@ class AgentLoop:
                                 else ("cli", msg.chat_id))
             logger.info("Processing system message from {}", msg.sender_id)
             key = f"{channel}:{chat_id}"
-            session = self.sessions.get_or_create(key)
+            session = await self.sessions.get_or_create(key)
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
             runtime_metadata = dict(session.metadata or {})
             runtime_metadata.update(msg.metadata or {})
@@ -3721,7 +3721,7 @@ class AgentLoop:
         logger.info("Processing message from {}:{}: {}", msg.channel, msg.sender_id, preview)
 
         key = session_key or self._default_session_key or msg.session_key
-        session = self.sessions.get_or_create(key)
+        session = await self.sessions.get_or_create(key)
 
         # Slash commands
         raw = msg.content.strip()
