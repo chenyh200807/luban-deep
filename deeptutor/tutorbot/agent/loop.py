@@ -245,6 +245,7 @@ class AgentLoop:
         shared_memory_dir: Path | None = None,
         default_session_key: str | None = None,
         enable_exec_tool: bool = True,
+        utility_model: str | None = None,
     ):
         from deeptutor.tutorbot.config.schema import ExecToolConfig, WebSearchConfig
 
@@ -253,6 +254,10 @@ class AgentLoop:
         self.provider = provider
         self.workspace = workspace
         self.model = model or provider.get_default_model()
+        # Light-tier model for latency-insensitive / background LLM work (memory
+        # consolidation, subagents). None => fall back to self.model bit-for-bit.
+        # The main-loop token-estimation anchor stays on self.model (see memory.py).
+        self.utility_model = (utility_model or "").strip() or None
         self.max_iterations = max_iterations
         self.context_window_tokens = context_window_tokens
         self.web_search_config = web_search_config or WebSearchConfig()
@@ -271,7 +276,7 @@ class AgentLoop:
             provider=provider,
             workspace=workspace,
             bus=bus,
-            model=self.model,
+            model=self.utility_model or self.model,
             web_search_config=self.web_search_config,
             web_proxy=web_proxy,
             exec_config=self.exec_config,
@@ -307,6 +312,7 @@ class AgentLoop:
             workspace=workspace,
             provider=provider,
             model=self.model,
+            consolidation_model=self.utility_model,
             sessions=self.sessions,
             context_window_tokens=context_window_tokens,
             build_messages=self.context.build_messages,
@@ -887,6 +893,70 @@ class AgentLoop:
                 )
             )
         return guarded if guarded is not None else final_content
+
+    async def _finalize_visible_answer(
+        self,
+        final_content: str,
+        *,
+        user_message: str,
+        runtime_metadata: dict[str, Any] | None,
+        finalize_path: str,
+    ) -> str:
+        """可见答案修正链的唯一权威(四条 finalize 分支只许调这里,禁止内联复制)。
+
+        全链 8 步固定顺序:normalize_anchor_terms → correct_construction_exam_boundary_fact →
+        _case_exact_authority_fallback → _apply_v1_or_case_fallback → _degraded_exact_answer_claim →
+        _degraded_mcq_grading → _content_truth_guard → guard_tutorbot_output。每一步的
+        ``X(...) or final_content`` 约定(修正器返 '' = 保持原文)逐字保留。
+
+        ``finalize_path`` **仅作观测标签,绝不得用于门控任何修正器**——需要按路径定制时,正确做法
+        是在对应修正器内部用 ``runtime_metadata`` 里的结构化事实做门(如
+        ``_prefetched_exact_authority_candidate`` 对 case_grading 的排除),而不是在这里加分支或
+        skip flag。prefetched 分支历史上手抄漏了中间两个修正器,已逐修正器裁决为可证明 no-op
+        (见 tests/tutorbot/test_finalize_visible_answer_pipeline.py),故统一为全链、不设跳过参数。
+        """
+
+        final_content = normalize_anchor_terms_in_response(
+            user_message=user_message,
+            response=final_content,
+        ) or final_content
+        final_content = correct_construction_exam_boundary_fact_response(
+            user_message=user_message,
+            response=final_content,
+        ) or final_content
+        final_content = self._case_exact_authority_fallback(
+            final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        logger.debug(
+            "LUBAN_DIAG finalize pre-v1: path={} scene={} looks_case={} pf_qid={}",
+            finalize_path,
+            (runtime_metadata or {}).get("question_lifecycle_scene") or "(none)",
+            "【题目】" in user_message or "case" in user_message[:30].lower(),
+            str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
+        )
+        final_content = await self._apply_v1_or_case_fallback(
+            final_content,
+            runtime_metadata=runtime_metadata,
+            user_message=user_message,
+        ) or final_content
+        final_content = self._degraded_exact_answer_claim_response(
+            user_message=user_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        final_content = self._degraded_mcq_grading_response(
+            user_message=user_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        final_content = self._content_truth_guard(
+            user_message=user_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        guarded_output = guard_tutorbot_output(final_content)
+        return guarded_output.content or final_content
 
     @staticmethod
     def _format_answer_letters(letters: str | None) -> str:
@@ -3982,40 +4052,12 @@ class AgentLoop:
                 on_tool_result=on_tool_result,
             )
             final_content, all_msgs, fast_path_metadata = fast_path
-            final_content = normalize_anchor_terms_in_response(
-                user_message=current_message,
-                response=final_content,
-            ) or final_content
-            final_content = correct_construction_exam_boundary_fact_response(
-                user_message=current_message,
-                response=final_content,
-            ) or final_content
-            final_content = self._case_exact_authority_fallback(
+            final_content = await self._finalize_visible_answer(
                 final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            final_content = await self._apply_v1_or_case_fallback(
-                final_content,
-                runtime_metadata=runtime_metadata,
                 user_message=current_message,
-            ) or final_content
-            final_content = self._degraded_exact_answer_claim_response(
-                user_message=current_message,
-                final_content=final_content,
                 runtime_metadata=runtime_metadata,
-            ) or final_content
-            final_content = self._degraded_mcq_grading_response(
-                user_message=current_message,
-                final_content=final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            final_content = self._content_truth_guard(
-                user_message=current_message,
-                final_content=final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            guarded_output = guard_tutorbot_output(final_content)
-            final_content = guarded_output.content or final_content
+                finalize_path="exact_fast_path",
+            )
             if all_msgs:
                 all_msgs[-1]["content"] = final_content
             await self._emit_visible_text_deltas(final_content, on_content_delta)
@@ -4075,31 +4117,12 @@ class AgentLoop:
                 user_message=current_message,
             )
             if final_content:
-                final_content = normalize_anchor_terms_in_response(
+                final_content = await self._finalize_visible_answer(
+                    final_content,
                     user_message=current_message,
-                    response=final_content,
-                ) or final_content
-                final_content = correct_construction_exam_boundary_fact_response(
-                    user_message=current_message,
-                    response=final_content,
-                ) or final_content
-                final_content = self._degraded_exact_answer_claim_response(
-                    user_message=current_message,
-                    final_content=final_content,
                     runtime_metadata=runtime_metadata,
-                ) or final_content
-                final_content = self._degraded_mcq_grading_response(
-                    user_message=current_message,
-                    final_content=final_content,
-                    runtime_metadata=runtime_metadata,
-                ) or final_content
-                final_content = self._content_truth_guard(
-                    user_message=current_message,
-                    final_content=final_content,
-                    runtime_metadata=runtime_metadata,
-                ) or final_content
-                guarded_output = guard_tutorbot_output(final_content)
-                final_content = guarded_output.content or final_content
+                    finalize_path="prefetched_authority",
+                )
                 all_msgs = self.context.add_assistant_message(initial_messages, final_content)
                 await self._emit_visible_text_deltas(final_content, on_content_delta)
                 self._save_turn(
@@ -4143,46 +4166,12 @@ class AgentLoop:
             )
             if final_content is None:
                 final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
-            final_content = normalize_anchor_terms_in_response(
-                user_message=current_message,
-                response=final_content,
-            ) or final_content
-            final_content = correct_construction_exam_boundary_fact_response(
-                user_message=current_message,
-                response=final_content,
-            ) or final_content
-            final_content = self._case_exact_authority_fallback(
+            final_content = await self._finalize_visible_answer(
                 final_content,
+                user_message=current_message,
                 runtime_metadata=runtime_metadata,
-            ) or final_content
-            logger.warning(
-                "LUBAN_DIAG fast-policy pre-v1: scene={} looks_case={} pf_qid={}",
-                (runtime_metadata or {}).get("question_lifecycle_scene") or "(none)",
-                "【题目】" in current_message or "case" in current_message[:30].lower(),
-                str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
+                finalize_path="fast_policy",
             )
-            final_content = await self._apply_v1_or_case_fallback(
-                final_content,
-                runtime_metadata=runtime_metadata,
-                user_message=current_message,
-            ) or final_content
-            final_content = self._degraded_exact_answer_claim_response(
-                user_message=current_message,
-                final_content=final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            final_content = self._degraded_mcq_grading_response(
-                user_message=current_message,
-                final_content=final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            final_content = self._content_truth_guard(
-                user_message=current_message,
-                final_content=final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            guarded_output = guard_tutorbot_output(final_content)
-            final_content = guarded_output.content or final_content
             if all_msgs:
                 all_msgs[-1]["content"] = final_content
             if streamed_text and final_content.startswith(streamed_text):
@@ -4240,46 +4229,12 @@ class AgentLoop:
 
         if final_content is None:
             final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
-        final_content = normalize_anchor_terms_in_response(
-            user_message=current_message,
-            response=final_content,
-        ) or final_content
-        final_content = correct_construction_exam_boundary_fact_response(
-            user_message=current_message,
-            response=final_content,
-        ) or final_content
-        final_content = self._case_exact_authority_fallback(
+        final_content = await self._finalize_visible_answer(
             final_content,
+            user_message=current_message,
             runtime_metadata=runtime_metadata,
-        ) or final_content
-        logger.warning(
-            "LUBAN_DIAG agent-loop pre-v1: scene={} looks_case={} pf_qid={}",
-            (runtime_metadata or {}).get("question_lifecycle_scene") or "(none)",
-            "【题目】" in current_message or "case" in current_message[:30].lower(),
-            str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
+            finalize_path="agent_loop",
         )
-        final_content = await self._apply_v1_or_case_fallback(
-            final_content,
-            runtime_metadata=runtime_metadata,
-            user_message=current_message,
-        ) or final_content
-        final_content = self._degraded_exact_answer_claim_response(
-            user_message=current_message,
-            final_content=final_content,
-            runtime_metadata=runtime_metadata,
-        ) or final_content
-        final_content = self._degraded_mcq_grading_response(
-            user_message=current_message,
-            final_content=final_content,
-            runtime_metadata=runtime_metadata,
-        ) or final_content
-        final_content = self._content_truth_guard(
-            user_message=current_message,
-            final_content=final_content,
-            runtime_metadata=runtime_metadata,
-        ) or final_content
-        guarded_output = guard_tutorbot_output(final_content)
-        final_content = guarded_output.content or final_content
         if all_msgs:
             all_msgs[-1]["content"] = final_content
         if suppress_agent_stream:
