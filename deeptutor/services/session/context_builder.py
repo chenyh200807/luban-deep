@@ -73,6 +73,29 @@ def count_tokens(text: str) -> int:
     return max(1, ascii_n // 3 + int((len(text) - ascii_n) * 1.3))
 
 
+# Adversarial review (Battle1): char-class heuristics cannot tightly
+# upper-bound BPE on pathological ASCII (random hex/base64 reach ~0.5x the
+# true count), so budget decisions that ADMIT text near the budget must be
+# confirmed by a precise count. _APPROX_SAFETY covers the worst measured
+# under-estimate (0.46x) with margin; below budget/SAFETY the approximation
+# alone is provably safe, and the precise pass only ever runs on
+# budget-bounded text (<= ~SAFETY * budget tokens), keeping the hot path O(n).
+_APPROX_SAFETY = 2.2
+
+
+def count_tokens_precise(text: str) -> int:
+    """Precise token count for budget admission on bounded text only."""
+    if not text:
+        return 0
+    try:
+        import tiktoken
+
+        encoding = tiktoken.get_encoding("cl100k_base")
+        return len(encoding.encode(text))
+    except Exception:
+        return count_tokens(text)
+
+
 def format_messages_as_transcript(messages: list[dict[str, Any]]) -> str:
     lines: list[str] = []
     role_map = {
@@ -424,8 +447,12 @@ class ContextBuilder:
         unsummarized = [item for item in messages if int(item.get("id", 0) or 0) > summary_up_to_msg_id]
 
         current_history = self._build_history(stored_summary, unsummarized, language=language)
-        current_tokens = count_tokens(build_history_text(current_history))
-        if current_tokens <= budget:
+        current_text = build_history_text(current_history)
+        current_tokens = count_tokens(current_text)
+        if current_tokens <= budget and (
+            current_tokens * _APPROX_SAFETY <= budget
+            or count_tokens_precise(current_text) <= budget
+        ):
             return ContextBuildResult(
                 conversation_history=current_history,
                 conversation_summary=stored_summary,
@@ -480,7 +507,9 @@ class ContextBuilder:
         while len(final_history) > summary_prefix + 1 and total > budget:
             final_history.pop(summary_prefix)
             total -= item_tokens.pop(summary_prefix)
-        while len(final_history) > summary_prefix + 1 and count_tokens(build_history_text(final_history)) > budget:
+        while len(final_history) > summary_prefix + 1 and count_tokens_precise(
+            build_history_text(final_history)
+        ) > budget:
             final_history.pop(summary_prefix)
 
         final_text = build_history_text(final_history)

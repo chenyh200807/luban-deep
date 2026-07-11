@@ -150,3 +150,72 @@ async def test_routing_llm_at_most_once_per_turn_end_to_end(monkeypatch: pytest.
     assert total <= 1, (
         f"路由 LLM 每轮至多一次被击穿: scene={llm_calls['scene']} followup={llm_calls['followup']}"
     )
+
+
+def _active_single_question(session_id: str) -> dict:
+    return {
+        "object_type": "single_question",
+        "object_id": "q1",
+        "scope": {"domain": "session", "session_id": session_id},
+        "state_snapshot": {
+            "question_id": "q1",
+            "question": "某工程屋面坡度最小值是（ ）。",
+            "question_type": "choice",
+            "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+            "correct_answer": "C",
+        },
+        "version": 1,
+    }
+
+
+@pytest.mark.asyncio
+async def test_single_run_preserves_deep_question_demote_guard(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Battle1 对抗审查 MAJOR-1: 旧双跑意外把 deep_question preselect demote
+    守卫套在了服务端选择上(run2 读到 run1 写的 active_capability)——净生产
+    行为=非题目续轮 demote 回默认聊天能力。单跑收权后该守卫必须确定性保留。"""
+    orchestrator = ChatOrchestrator()
+    sid = "s-demote-parity"
+
+    async def _routed_deep_question(context: UnifiedContext) -> str:
+        # 模拟语义路由(LLM 权威)选出 deep_question 且 scene=None 的第一跑产出
+        context.metadata.setdefault("question_lifecycle_scene", None)
+        return "deep_question"
+
+    monkeypatch.setattr(orchestrator, "_select_capability", _routed_deep_question)
+
+    context = UnifiedContext(
+        session_id=sid,
+        user_message="帮我把这段话润色一下发朋友圈",  # 非题目措辞: 全部 _looks_like_* 启发式为负
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={"active_object": _active_single_question(sid)},
+        language="zh",
+    )
+    selected = await orchestrator.select_capability(context)
+    assert selected != "deep_question", "非题目续轮的服务端 deep_question 选择必须被 demote(旧净行为)"
+    assert (
+        context.metadata.get("semantic_router_mode_reason")
+        == "deep_question_preselect_demoted_non_question_turn"
+    )
+
+
+@pytest.mark.asyncio
+async def test_single_run_demote_guard_spares_submission_turns(monkeypatch: pytest.MonkeyPatch) -> None:
+    """提交作答轮(启发式命中)不 demote——判分入口必达(硬约束40)。"""
+    orchestrator = ChatOrchestrator()
+    sid = "s-demote-spare-submission"
+
+    async def _routed_deep_question(context: UnifiedContext) -> str:
+        context.metadata.setdefault("question_lifecycle_scene", None)
+        return "deep_question"
+
+    monkeypatch.setattr(orchestrator, "_select_capability", _routed_deep_question)
+
+    context = UnifiedContext(
+        session_id=sid,
+        user_message="我选C",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={"active_object": _active_single_question(sid)},
+        language="zh",
+    )
+    selected = await orchestrator.select_capability(context)
+    assert selected == "deep_question"

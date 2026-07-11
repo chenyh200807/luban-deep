@@ -9155,3 +9155,74 @@ async def test_deep_research_capability_requires_explicit_config_and_streams_tra
     assert tool_call_event.metadata["research_stage_card"] == "evidence"
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "Report about agent-native tutoring"
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_grading_turn_never_uses_light_model_even_when_flag_on(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Battle1 对抗审查 MAJOR-3: 判分轮(FAST 也合法承载 structured submission /
+    mcq_grading scene)在灰度 flag 开+轻模型已配的 B 臂下也绝不吃轻模型——
+    mcq/无 rubric case 没有 V1 权威覆盖,轻模型判分结论会直达学员。"""
+    captured: dict[str, Any] = {}
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None):
+            return SimpleNamespace(running=True)
+
+        def build_chat_session_key(
+            self, bot_id: str, conversation_id: str, user_id: str | None = None
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
+        ) -> str:
+            captured["session_metadata"] = session_metadata
+            return "判分结果"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.resolve_fast_tier_model",
+        lambda: "qwen3.6-flash",
+    )
+    monkeypatch.setenv("LUBAN_FAST_TURN_LIGHT_MODEL_ENABLED", "true")
+
+    context = UnifiedContext(
+        session_id="session-grading-no-light",
+        user_message="我选A",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "fast"},
+        metadata={
+            "question_lifecycle_scene": "mcq_grading",
+            "billing_context": {"user_id": "u1", "source": "wx_miniprogram"},
+        },
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    await _collect_events(lambda bus: capability.run(context, bus))
+
+    session_metadata = captured["session_metadata"] or {}
+    assert "preferred_model" not in session_metadata or not session_metadata.get(
+        "preferred_model"
+    ), f"判分轮泄漏轻模型: {session_metadata.get('preferred_model')}"

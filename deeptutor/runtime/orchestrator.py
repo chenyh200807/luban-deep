@@ -122,7 +122,54 @@ class ChatOrchestrator:
         is at most one selection per turn, asserted by
         tests/runtime/test_orchestrator_single_selection.py.
         """
-        return await self._select_capability(context)
+        cap_name = await self._select_capability(context)
+        return self._demote_non_question_deep_selection(context, cap_name)
+
+    def _demote_non_question_deep_selection(self, context: UnifiedContext, cap_name: str) -> str:
+        """Battle1 adversarial-review MAJOR-1: preserve the net production routing.
+
+        The old double-run accidentally applied the deep_question preselect
+        demote guard to SERVER-SIDE selections too — run 2 saw run 1's
+        ``context.active_capability`` and demoted a deep_question pick to the
+        default chat capability on non-question turns (active lifecycle
+        context, no scene, all submission/followup/practice heuristics
+        negative). Selection now runs once, so the same predicate is applied
+        here deterministically. Whether this guard should be deleted for
+        server-side picks is an owner-level product decision, not a side
+        effect of this refactor.
+        """
+        if str(cap_name or "").strip().lower() != "deep_question":
+            return cap_name
+        routing_user_message = self._routing_user_message(context)
+        lifecycle_scene = str(context.metadata.get("question_lifecycle_scene") or "").strip()
+        action = context.metadata.get("question_followup_action")
+        turn_decision = context.metadata.get("turn_semantic_decision")
+        is_generation_continuation = followup_action_route(action) == "practice_generation" or (
+            isinstance(turn_decision, dict)
+            and str(turn_decision.get("next_action") or "").strip() == "route_to_generation"
+        )
+        if (
+            not lifecycle_scene
+            and self._has_active_lifecycle_context(context)
+            and not is_generation_continuation
+            and not self._looks_like_question_submission(context, routing_user_message)
+            and not self._looks_like_question_followup(context, routing_user_message)
+            and not looks_like_practice_generation_request(routing_user_message)
+            and not self._looks_like_free_text_question_review_request(
+                context,
+                routing_user_message,
+            )
+        ):
+            demoted = self._default_chat_capability(context)
+            context.metadata["semantic_router_mode"] = "question_lifecycle"
+            context.metadata["semantic_router_mode_reason"] = (
+                "deep_question_preselect_demoted_non_question_turn"
+            )
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = demoted
+            return demoted
+        return cap_name
 
     async def handle(
         self,

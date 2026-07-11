@@ -595,6 +595,12 @@ class SQLiteSessionStore:
             max_workers=1, thread_name_prefix="sqlite-writer"
         )
         self._write_conn: sqlite3.Connection | None = None
+        # Adversarial review MINOR (Battle1): identify THIS store's writer
+        # thread by ident, not by the shared "sqlite-writer" name prefix —
+        # every store instance names its thread sqlite-writer_0, so the name
+        # is a process-global signal that would hand out the wrong persistent
+        # connection if stores ever cross-call on each other's writer threads.
+        self._writer_thread_ident: int | None = None
         self._initialize()
 
     def _migrate_legacy_db(self, path_service) -> None:
@@ -919,8 +925,14 @@ class SQLiteSessionStore:
 
     async def _run(self, fn, *args):
         """Write path: FIFO single-writer thread with a persistent connection."""
+
+        def _on_writer_thread():
+            if self._writer_thread_ident is None:
+                self._writer_thread_ident = threading.get_ident()
+            return fn(*args)
+
         return await asyncio.get_running_loop().run_in_executor(
-            self._write_executor, lambda: fn(*args)
+            self._write_executor, _on_writer_thread
         )
 
     async def _run_read(self, fn, *args):
@@ -1030,7 +1042,7 @@ class SQLiteSessionStore:
         # transaction scope untouched — `with conn:` commits/rolls back but
         # never closes). Any other thread gets a short-lived read connection,
         # identical to the historical behavior.
-        if threading.current_thread().name.startswith("sqlite-writer"):
+        if threading.get_ident() == self._writer_thread_ident:
             return self._get_write_conn()
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(self.db_path, timeout=_SQLITE_TIMEOUT_SECONDS)

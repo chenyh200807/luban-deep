@@ -2,6 +2,15 @@
 
 > 规则：实施中遇到 edge case 一律选保守方案并在此记录偏离；每条含【任务/偏离/原因/影响面/验证】。fix-test 日志（含失败尝试）同记于此。
 
+## 2026-07-11 对抗审查（内部异上下文证伪代理）：3 MAJOR 打穿→当日治本
+- **审查方式**：fresh-context 对抗代理，8 攻击面，可执行复现+33 万例穷举对拍。Codex 异源对抗因其额度耗尽（重置 07-12 01:02）延后，命令：`node ~/.claude/plugins/cache/openai-codex/codex/1.0.5/scripts/codex-companion.mjs adversarial-review --background --base b3e9ab09 --scope branch`（在 deeptutor-battle1 目录）。
+- **MAJOR-1（已修）**：单跑丢失旧双跑意外生效的 deep_question demote 守卫——可执行复现证实同输入新旧执行能力分歧（deep_question vs chat）。修=守卫确定性上移进 select_capability（_demote_non_question_deep_selection，谓词与旧 demote 分支逐条一致）；2 个 parity 测试（demote 命中+提交轮豁免）。**owner 待决**：该守卫对服务端选择是否应长期保留（删除=独立产品决策，非重构副作用）。
+- **MAJOR-2（已修）**：count_tokens 单 pass 对病态 ASCII（hex 0.50/base64 0.46/emoji 0.52）低估→可构造 20 条 base64 消息真实爆窗（true=2.02×budget）。字符类启发式**无法**紧致上界 BPE（实测证死）——修=结构性安全：模糊带（approx≤budget<approx×2.2）经 count_tokens_precise（tiktoken，仅有界文本 ≤~25KB）终判+装箱终验用精确计数；热路径仍 O(n)。base64 攻击回归测试钉死。
+- **MAJOR-3（已修）**：灰度 flag 开+轻模型配置时，mcq_grading/无 rubric case 判分轮（FAST 合法承载 structured_submission）吃轻模型且无 V1 权威覆盖。修=_mode_policy 对判分信号（scene∈{mcq,case}_grading 或 selection_reason==structured_submission）fail-closed 清空 fast_preferred_model；"判分永不吃轻"从注释升级为结构不变量+组合测试。
+- **MINOR-B（已修）**：写线程判定从进程级名字前缀（sqlite-writer_0 多实例共名）改实例级 threading.get_ident() 捕获。
+- **MINOR 记账未改**：①"flag 关=bit-for-bit"真实条件是 LLM_FAST_MODEL unset（utility_model 与 flag 正交，by design 但表述需准确）；②branch B prefetched 轮 3 条 WARNING 日志 spam→建议降 debug（批7）；③golden #1 锁的是反事实场景，建议补 candidate-is-None 不变量断言（批7）；④close() 生产不调用（单例无害，测试卫生）。
+- **未打穿面（审查员验证法在案）**：回放并发 happens-before 反证自洽；19 读 fn 无 DML；think 状态机 33 万穷举+2 万 fuzz 逐字节等价；finalize no-op 证明"元数据门层互斥"比实施者声称更强；visibility 迁移新旧互操作安全。
+
 ## 2026-07-11 两个潜伏回放 bug（批4a 揭出，非引入；治本已落）
 - **潜伏 bug①**：subscribe_turn 的 catchup 桥接"入队即推进 last_seq"——消费循环用同一 last_seq 去重，catchup 送出的每条事件**必然被自我丢弃**。该机制自诞生起从未成功投递过任何事件；旧 store 全局锁把竞争窗口压至 ~0（catchup 恒空）故休眠。W2-T2 解锁读路径后窗口变宽，测试对 44→67 顺序性 flake 揭出尸体。**治本**=catchup 改直接 yield（与跨 worker tail 同构），去重职责归消费循环单点。
 - **潜伏 bug②**：turn_events 表无 visibility 列——**回放视图（backlog/catchup/tail/resume）丢 visibility 字段**，与 live fan-out payload 不等价；internal 事件回放后按"缺失=public"语义被当 public（泄漏隐患）。**治本**=加列迁移（legacy 行 '' 省略键保持历史形状）+ 写入/重建补齐，回放与 live 逐字段等价。

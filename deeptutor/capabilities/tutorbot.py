@@ -955,9 +955,23 @@ class TutorBotCapability(BaseCapability):
                 selection_reason = inferred_reason
         fast_preferred_model = ""
         if _fast_turn_light_model_enabled():
-            from deeptutor.services.llm.config import resolve_fast_tier_model
+            # Adversarial review MAJOR-3 (Battle1): grading turns must NEVER
+            # run on the light tier, even when the fast-turn flag is on. FAST
+            # mode legitimately hosts structured submission turns
+            # (select_response_mode -> "structured_submission"), and mcq /
+            # rubric-less case grading has no V1 authority overwrite — a light
+            # model's verdict would reach the student verbatim. Fail closed on
+            # any grading signal; "deep/grading never on light tier" is a
+            # structural invariant, not a comment.
+            lifecycle_scene = str(metadata.get("question_lifecycle_scene") or "").strip()
+            grading_turn = (
+                lifecycle_scene in {"mcq_grading", "case_grading"}
+                or selection_reason == "structured_submission"
+            )
+            if not grading_turn:
+                from deeptutor.services.llm.config import resolve_fast_tier_model
 
-            fast_preferred_model = resolve_fast_tier_model()
+                fast_preferred_model = resolve_fast_tier_model()
         return build_mode_execution_policy(
             requested_mode,
             selected_mode=selected_mode,

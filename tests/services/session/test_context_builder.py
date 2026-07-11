@@ -246,3 +246,43 @@ async def test_context_builder_packing_prunes_to_budget_and_keeps_summary_prefix
     assert result.conversation_history, "history must not be emptied by packing"
     assert count_tokens(build_history_text(result.conversation_history)) <= 512 or len(result.conversation_history) <= 2
     assert result.token_count <= 512 or len(result.conversation_history) <= 2
+
+
+@pytest.mark.asyncio
+async def test_pathological_ascii_history_cannot_breach_budget(tmp_path: Path) -> None:
+    """Battle1 对抗审查 MAJOR-2: base64/hex 类 ASCII 使单 pass 近似低估至 ~0.5x，
+    旧 gate 会放行真实超窗 2x 的 history。模糊带(approx≤budget<approx*2.2)必须
+    经精确计数终判——最终 history 的**精确** token 数不得超预算。"""
+    import base64
+    import random
+
+    from deeptutor.services.session.context_builder import (
+        build_history_text,
+        count_tokens_precise,
+    )
+
+    rng = random.Random(7)
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    builder = ContextBuilder(store)
+    session = await store.create_session("对抗装箱")
+    for i in range(20):
+        blob = base64.b64encode(bytes(rng.randrange(256) for _ in range(300))).decode()
+        await store.add_message(
+            session_id=session["id"],
+            role="user" if i % 2 == 0 else "assistant",
+            content=f"报错凭证{i}: {blob}",
+            capability="chat",
+        )
+
+    llm_config = type("FakeConfig", (), {"max_tokens": 4096, "context_window_tokens": 32768})()
+    result = await builder.build(
+        session_id=session["id"],
+        llm_config=llm_config,
+        language="zh",
+        budget_override=512,
+    )
+
+    precise = count_tokens_precise(build_history_text(result.conversation_history))
+    assert precise <= 512 or len(result.conversation_history) <= 2, (
+        f"精确 token 数 {precise} 超预算 512——近似低估被放行(爆窗路径复活)"
+    )
