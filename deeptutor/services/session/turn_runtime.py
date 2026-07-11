@@ -4220,12 +4220,20 @@ class TurnRuntimeManager:
                 last_seq,
                 default=[],
             )
+            # Battle1 (latent replay bug, exposed by W2-T2 lock removal): these
+            # items must be YIELDED directly, mirroring the cross-worker tail
+            # path. The previous enqueue-with-advance was self-defeating — it
+            # advanced last_seq at enqueue time, so the live consumption loop
+            # below dropped every catch-up item at `seq <= last_seq`. Any event
+            # committed after this read is guaranteed to be in the live queue
+            # (fan-out happens after commit, and the subscriber is already
+            # attached), where the seq dedup below keeps delivery exactly-once.
             for item in catchup:
                 seq = int(item.get("seq") or 0)
                 if seq <= last_seq:
                     continue
                 last_seq = seq
-                _offer_to_subscriber(queue, _project_result_response_for_legacy_clients(item))
+                yield _project_result_response_for_legacy_clients(item)
 
         turn = await self._safe_store_call(
             None,
@@ -5638,10 +5646,20 @@ class TurnRuntimeManager:
                 )
 
                 selector_orchestrator = ChatOrchestrator()
-                selector = getattr(selector_orchestrator, "_select_capability", None)
                 capability_selection_started_at = time.perf_counter()
+                # Battle1 W3-T1: selection runs exactly once per turn via the
+                # PUBLIC select_capability API (the former getattr on the
+                # private _select_capability is gone); the raw result is
+                # handed to orch.handle() below so the orchestrator never
+                # re-runs the routing pipeline. getattr keeps the historical
+                # duck-typing contract for orchestrator test doubles that
+                # implement handle() only — they skip preselection entirely,
+                # exactly as before.
+                selector = getattr(selector_orchestrator, "select_capability", None)
+                preselected_capability: str | None = None
                 if not capability_name and callable(selector):
                     resolved_capability = await selector(context)
+                    preselected_capability = resolved_capability
                     capability_name = await self._canonicalize_execution_capability(
                         execution,
                         resolved_capability,
@@ -5747,7 +5765,12 @@ class TurnRuntimeManager:
                     first_useful_content_metadata = observed
                     trace_metadata.update(observed)
 
-                async for event in orch.handle(context):
+                capability_event_stream = (
+                    orch.handle(context, preselected_capability=preselected_capability)
+                    if preselected_capability
+                    else orch.handle(context)
+                )
+                async for event in capability_event_stream:
                     _record_capability_stream_since_once("first_event")
                     event_type_name = str(getattr(event.type, "value", event.type) or "").strip()
                     if event_type_name:

@@ -2,6 +2,21 @@
 
 > 规则：实施中遇到 edge case 一律选保守方案并在此记录偏离；每条含【任务/偏离/原因/影响面/验证】。fix-test 日志（含失败尝试）同记于此。
 
+## 2026-07-11 两个潜伏回放 bug（批4a 揭出，非引入；治本已落）
+- **潜伏 bug①**：subscribe_turn 的 catchup 桥接"入队即推进 last_seq"——消费循环用同一 last_seq 去重，catchup 送出的每条事件**必然被自我丢弃**。该机制自诞生起从未成功投递过任何事件；旧 store 全局锁把竞争窗口压至 ~0（catchup 恒空）故休眠。W2-T2 解锁读路径后窗口变宽，测试对 44→67 顺序性 flake 揭出尸体。**治本**=catchup 改直接 yield（与跨 worker tail 同构），去重职责归消费循环单点。
+- **潜伏 bug②**：turn_events 表无 visibility 列——**回放视图（backlog/catchup/tail/resume）丢 visibility 字段**，与 live fan-out payload 不等价；internal 事件回放后按"缺失=public"语义被当 public（泄漏隐患）。**治本**=加列迁移（legacy 行 '' 省略键保持历史形状）+ 写入/重建补齐，回放与 live 逐字段等价。
+- **定位方法**：症状端逐层证伪（先疑测试替身→再疑事务→最后全时间线探针 commit/fanout/attach/catchup 打 monotonic 时戳）——探针实证 seq2 已 fan-out(nsubs=1)+catchup 已含[2] 却未达消费者，一步锁死消费端去重。
+- **验证数字**：44→67 毒化对 8/8 全绿（修前 6/8 红）；session 域 114 passed（含新 visibility 往返测试）。
+- **教训**：解除一把"顺手串行化一切"的全局锁=同时揭开它掩盖的全部时序假设；回放三消费面必须有字段等价测试而不只有 seq 等价。
+
+## 2026-07-11 W3-T1/T2 消路由双跑+硬超时（批2）
+- **实施**：orchestrator 新增公共 `select_capability`；`handle(context, *, preselected_capability=None)` 可选纯加法；turn_runtime 单次选择后把 selector **原值**传入（canonical 名仍只喂 turn 侧账本，按指挥官挑战）；场景分类 LLM 加 `DEEPTUTOR_ROUTING_LLM_TIMEOUT_S`（默认 6s，超时走既有 scene=None fail-open）。
+- **失败尝试①**：初版无条件调 `select_capability` + 无条件传 kwarg → 89 个测试红。根因=旧代码的 getattr 防御是为 orchestrator 测试替身（只实现 handle）而存在。修：getattr 公共名保留 duck-typing（私有 API 依赖仍消灭），kwarg 仅预选真值时传。
+- **失败尝试②**：12 个替身定义旧私有名 `_select_capability`（契约化石）→ 按公共契约重命名；替身 `handle(self, context)` 不收新 kwarg → 统一放宽 `**_kwargs`（62 处，test_unified_ws_turn_runtime.py + redteam 1 处）。改替身不改被测语义。
+- **隐性消费者裁决**：第二跑的 `_prepare_preselected_capability_context` 对第一跑已选能力是冗余（语义路由主路径 :543-560 第一跑已备好提交/练习上下文，canonical 用 setdefault）；第二跑对第一跑决策的 demote 翻案权被移除=收权本意。demote/mcq-bypass 对客户端显式预选路径原样保留（无第一跑时 handle 自选全管线）。
+- **登记**：tests/runtime/test_orchestrator_single_selection.py（4 用例含端到端 spy"路由 LLM≤1"）登记进两份 index.yaml capability domain；DEEPTUTOR_ROUTING_LLM_TIMEOUT_S 登记 env_registry；contract guard + env guard PASS。
+- **验证数字**：单一选择 4/4；lifecycle 23/23（含超时降级+env 解析）；redteam 87/87；characterization 2 失败=基线预存在（stash 复测证实）。
+
 ## 2026-07-11 W1-T4 think剥离增量状态机（批1c）
 - **实施**：`_ThinkStripStreamer`（clean/think_open/partial/orphan 四态+已决前缀折叠+跳扫规则），级联正则逐字保留只跑小尾部；oracle=旧 _stream_delta 整段重放（含 emitted clip，按指挥官挑战#1）。
 - **验证**：600 例模糊对拍逐 delta 逐字节一致一次全绿+前缀单调+6 个定向用例；tests/tutorbot 目录级 before/after 失败集合完全一致（13 个预存在隔离污染项，非本改动引入；单跑全 PASS）——暗测试污染问题再次实证，归批 7/后续战役纳管。

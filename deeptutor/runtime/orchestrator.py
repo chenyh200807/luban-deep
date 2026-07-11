@@ -111,17 +111,40 @@ class ChatOrchestrator:
         self._cap_registry = get_capability_registry()
         self._tool_registry = get_tool_registry()
 
-    async def handle(self, context: UnifiedContext) -> AsyncIterator[StreamEvent]:
+    async def select_capability(self, context: UnifiedContext) -> str:
+        """Battle1 W3-T1: public single-selection entry point.
+
+        Turn runtime performs capability selection exactly ONCE per turn and
+        passes the raw result back to :meth:`handle` via
+        ``preselected_capability``. All selection side effects (lifecycle
+        scene stamps, canonical turn_semantic_decision, submission/practice
+        context prep) happen inside this single run — the routing-LLM budget
+        is at most one selection per turn, asserted by
+        tests/runtime/test_orchestrator_single_selection.py.
+        """
+        return await self._select_capability(context)
+
+    async def handle(
+        self,
+        context: UnifiedContext,
+        *,
+        preselected_capability: str | None = None,
+    ) -> AsyncIterator[StreamEvent]:
         """
         Execute a single user turn and yield streaming events.
 
-        If ``context.active_capability`` is set, the corresponding capability
-        handles the turn. Otherwise, the default ``chat`` capability is used.
+        If ``preselected_capability`` is provided (turn runtime already ran
+        :meth:`select_capability` for this turn), it is used verbatim and the
+        selection pipeline is NOT re-run — the previous double-run re-executed
+        the lifecycle/semantic routing (including its LLM classifiers) per
+        turn and could even reverse the first decision. Otherwise, selection
+        runs here exactly once (CLI/SDK/preselected-client paths).
         """
         if not context.session_id:
             context.session_id = str(uuid.uuid4())
 
-        cap_name = await self._select_capability(context)
+        preselected = str(preselected_capability or "").strip()
+        cap_name = preselected or await self._select_capability(context)
         capability = self._cap_registry.get(cap_name)
 
         if capability is None:
