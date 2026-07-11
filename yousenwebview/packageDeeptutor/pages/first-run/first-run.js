@@ -1,12 +1,14 @@
 // 首跑剧本页（首次体验产品化）。
 // 设计权威：docs/plan/鲁班移动端提分闭环/2026-07-10-luban-first-run-script-light-practice-plan.md §3。
-// 红线：全静态供给零 LLM；逃生舱每幕可退直达 chat；聊天入口唯一 /api/v1/ws（本页零聊天请求）。
+// 红线：全静态供给零 LLM；正式判定/处方只来自服务端 signed manifest + Learner State。
 var data = require("./script-data");
+var api = require("../../utils/api");
+var auth = require("../../utils/auth");
+var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
 var telemetry = require("../../utils/surface-telemetry");
 var subscribeMessage = require("../../utils/subscribe-message");
-
-var DONE_KEY = require("../../utils/first-run-entry").DONE_KEY;
+var firstRunEntry = require("../../utils/first-run-entry");
 
 function behavior(action, extra) {
   var payload = { module: "first_run", action: action };
@@ -20,6 +22,8 @@ function behavior(action, extra) {
 
 Page({
   data: {
+    statusBarHeight: 44,
+    navHeight: 92,
     act: "war", // war | mode | question | feedback | interlude | reveal | report | finale
     progressSeg: 1, // 1..6
     warOpts: [],
@@ -36,7 +40,9 @@ Page({
     reveal: null,
     // report
     report: null,
-    finale: { title: "开始对话吧", lead: "有任何题、任何概念，直接问。" },
+    syncStatus: "idle", // idle | syncing | synced | pending | blocked
+    syncMessage: "",
+    finale: { title: "今天的起点已经记下", lead: "回到学习首页，继续今天的任务。" },
   },
 
   war: null,
@@ -44,17 +50,29 @@ Page({
   profile: {},
   results: [],
   qShownAt: 0,
+  completionId: "",
+  userId: "",
+  _syncInFlight: false,
 
   onLoad: function () {
     // 重置页级可变态：微信不为非 data 自定义属性做每实例克隆，
     // 从学情页再入本页时 this.results/profile 会残留上轮记录 → 报告分数翻倍。
     this.profile = {};
     this.results = [];
+    this.completionId = "";
+    this.userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+    var windowInfo = {};
+    try {
+      windowInfo = helpers.getWindowInfo ? helpers.getWindowInfo() : {};
+    } catch (_e) {}
     this.setData({
+      statusBarHeight: Number(windowInfo.statusBarHeight || 44),
+      navHeight: Number(windowInfo.statusBarHeight || 44) + 48,
       warOpts: this._optList(data.WAR_OPTS),
       modeOpts: this._optList(data.MODE_OPTS),
       materialOpts: this._optList(data.MATERIAL_OPTS),
     });
+    this._restoreCheckpoint();
     telemetry.trackProductBehavior(
       "first_run_started",
       behavior("view", { section: "act_war" })
@@ -78,13 +96,71 @@ Page({
     );
   },
 
+  _checkpointPayload: function () {
+    return {
+      scriptVersion: data.SCRIPT_VERSION,
+      act: this.data.act,
+      qIndex: this.data.qIndex,
+      war: this.war,
+      mode: this.mode,
+      profile: this.profile,
+      results: this.results,
+      completionId: this.completionId,
+    };
+  },
+
+  _saveCheckpoint: function () {
+    if (!this.userId || this.data.syncStatus === "synced") return;
+    firstRunEntry.writeCheckpoint(this.userId, this._checkpointPayload());
+  },
+
+  _restoreCheckpoint: function () {
+    if (!this.userId) return;
+    var saved = firstRunEntry.readCheckpoint(this.userId);
+    if (!saved) return;
+    if (saved.scriptVersion !== data.SCRIPT_VERSION) {
+      firstRunEntry.clearCheckpoint(this.userId);
+      return;
+    }
+    this.war = saved.war || null;
+    this.mode = saved.mode || null;
+    this.profile = saved.profile || {};
+    this.results = Array.isArray(saved.results) ? saved.results.slice() : [];
+    this.completionId = String(saved.completionId || "");
+    var act = String(saved.act || "war");
+    var qIndex = Math.max(0, Math.min(Number(saved.qIndex || 0), data.QUESTIONS.length - 1));
+    if (act === "question") {
+      this._showQuestion(qIndex, true);
+      return;
+    }
+    if (act === "feedback" && this.results[qIndex]) {
+      this.setData({ qIndex: qIndex });
+      var previous = this.results.pop();
+      this._answerQuestion(previous.picked, previous.durationMs, true);
+      return;
+    }
+    if (act === "interlude") {
+      this.setData({ qIndex: qIndex });
+      this._showInterlude(qIndex, true);
+      return;
+    }
+    if (act === "materialReveal" && this.profile.material) {
+      this.setData({ materialReveal: data.MATERIAL_REVEAL[this.profile.material] || data.MATERIAL_REVEAL.unknown });
+    }
+    if (act === "report" && this.results.length === data.QUESTIONS.length) {
+      this._buildReport();
+      return;
+    }
+    this._go(act, act === "war" || act === "mode" || act === "material" || act === "materialReveal" ? 1 : 6);
+  },
+
   /* ---------- 逃生舱 ---------- */
   onSkip: function () {
     var self = this;
     wx.showModal({
-      title: "直接开始对话？",
-      content: "剧本随时可以从「学情」页再进。",
-      confirmText: "去对话",
+      title: "稍后继续？",
+      content: "进度会保存在这台设备，回到「学习」首页可以接着做。",
+      confirmText: "回学习",
       cancelText: "继续",
       success: function (res) {
         if (!res.confirm) return;
@@ -92,7 +168,8 @@ Page({
           "module_exited",
           behavior("dismiss", { section: "act_" + self.data.act })
         );
-        self._finish("escape");
+        self._saveCheckpoint();
+        self._finish();
       },
     });
   },
@@ -101,10 +178,12 @@ Page({
   onWarPick: function (e) {
     this.war = e.currentTarget.dataset.key;
     this._go("mode", 1);
+    this._saveCheckpoint();
   },
   onModePick: function (e) {
     this.mode = e.currentTarget.dataset.key;
     this._go("material", 1);
+    this._saveCheckpoint();
   },
 
   /* ---------- 摸底第 3 问：资料年份 → 2026 改版时刻 ---------- */
@@ -114,19 +193,21 @@ Page({
     var reveal = data.MATERIAL_REVEAL[key] || data.MATERIAL_REVEAL.unknown;
     this.setData({ materialReveal: reveal });
     this._go("materialReveal", 1);
+    this._saveCheckpoint();
   },
   onMaterialGo: function () {
     this._showQuestion(0);
   },
 
   /* ---------- 题集 ---------- */
-  _showQuestion: function (i) {
+  _showQuestion: function (i, restoring) {
     var q = data.QUESTIONS[i];
     this.qShownAt = Date.now();
     this.setData({
       qIndex: i,
       q: {
         slug: q.slug,
+        questionId: q.questionId,
         name: q.name,
         family: q.family,
         src: q.src,
@@ -137,24 +218,40 @@ Page({
       },
     });
     this._go("question", 2 + i);
+    if (!restoring) this._saveCheckpoint();
   },
 
   onAnswer: function (e) {
-    var picked = e.currentTarget.dataset.key;
+    this._answerQuestion(e.currentTarget.dataset.key, 0, false);
+  },
+
+  _answerQuestion: function (picked, durationOverrideMs, restoring) {
     var i = this.data.qIndex;
     var q = data.QUESTIONS[i];
     var ok = picked === q.right;
-    var secs = Math.max(1, Math.round((Date.now() - this.qShownAt) / 1000));
-    this.results.push({ name: q.name, familyShort: q.familyShort, ok: ok, mn: q.mn.big, secs: secs });
-    telemetry.trackProductBehavior(
-      "first_run_question_completed",
-      behavior("complete", {
-        objectType: "question",
-        objectId: q.slug,
-        result: ok ? "correct" : "incorrect",
-        durationMs: secs * 1000,
-      })
-    );
+    var durationMs = Number(durationOverrideMs) || Math.max(1000, Date.now() - this.qShownAt);
+    var secs = Math.max(1, Math.round(durationMs / 1000));
+    this.results.push({
+      questionId: q.questionId,
+      name: q.name,
+      familyShort: q.familyShort,
+      picked: picked,
+      ok: ok,
+      mn: q.mn.big,
+      secs: secs,
+      durationMs: durationMs,
+    });
+    if (!restoring) {
+      telemetry.trackProductBehavior(
+        "first_run_question_completed",
+        behavior("complete", {
+          objectType: "question",
+          objectId: q.questionId,
+          result: ok ? "correct" : "incorrect",
+          durationMs: durationMs,
+        })
+      );
+    }
     // 逐项拆解顺序：你的选择 + 正解优先
     var order = [];
     if (!ok) order.push(picked);
@@ -203,6 +300,7 @@ Page({
       },
     });
     this._go("feedback", 2 + i);
+    this._saveCheckpoint();
   },
 
   onFeedbackNext: function () {
@@ -210,7 +308,7 @@ Page({
   },
 
   /* ---------- 侧写间奏 ---------- */
-  _showInterlude: function (i) {
+  _showInterlude: function (i, restoring) {
     var it = data.INTERLUDES[i];
     var secs = this.results[i] ? this.results[i].secs : 10;
     this.setData({
@@ -218,6 +316,7 @@ Page({
       interTitle: it.title.replace("{secs}", String(secs)),
     });
     this._go("interlude", 2 + i);
+    if (!restoring) this._saveCheckpoint();
   },
 
   onInterPick: function (e) {
@@ -228,6 +327,7 @@ Page({
     } else {
       this._buildReveal();
     }
+    this._saveCheckpoint();
   },
 
   /* ---------- 画像揭晓 ---------- */
@@ -239,7 +339,7 @@ Page({
     this.setData({
       reveal: {
         typeName: typeName,
-        desc: "你" + c.tag + "，做题" + s.tag + "——这不是标签，是接下来系统给你排课、出题、做复测的依据。",
+        desc: "你" + c.tag + "，做题" + s.tag + "——这是今天的起点画像，之后每次真实作答都会继续修正它。",
         tags: [c.tag, s.tag, data.SLOT_TAG[this.profile.slot] || data.SLOT_TAG.D],
         rows: [
           { ic: "🧠", t: "记忆方式", s: c.teach },
@@ -264,19 +364,13 @@ Page({
     }).length;
     var missN = results.length - okN;
     var pct = Math.round((okN / results.length) * 100);
-    var rx =
-      missN >= 2
-        ? "先补「屋面防水 · 维修工艺」"
-        : missN === 1
-          ? "先复测错的那 1 题，再进新站"
-          : "直接进「细部构造」拔高";
     var modeTexts = data.MODE_REPORT[this.mode] || data.MODE_REPORT.nopoint;
     var modeText = (missN ? modeTexts.miss : modeTexts.clean).replace("{missN}", String(missN));
     this.setData({
       report: {
         pct: pct,
-        rx: rx,
-        rxSub: "约 20 分钟 · " + results.length + " 条作答证据 · 明天复测薄弱点",
+        rx: "正在根据作答生成今天任务",
+        rxSub: results.length + " 条作答证据 · 保存后回到「学习」继续",
         ansN: results.length,
         missN: missN,
         modeTitle:
@@ -284,7 +378,7 @@ Page({
           (data.WAR_TX[this.war] || ""),
         modeText: modeText,
         basis:
-          results.length + " 条作答 · " + missN + " 个错因命中 · " +
+          results.length + " 条作答 · " + missN + " 题暂未命中 · " +
           results.length + " 个采分点比对鲁班编译库（174 个真题小问 / 1221 条判分点）· 6 个画像信号",
         rows: results.map(function (r) {
           return { name: r.name, family: r.familyShort, ok: r.ok, tag: r.ok ? "已命中" : "明天复测" };
@@ -293,8 +387,93 @@ Page({
           return r.mn;
         }),
       },
+      syncStatus: "syncing",
+      syncMessage: "报告已生成，正在保存到你的学情",
     });
     this._go("report", 6);
+    var payload = this._buildCompletionPayload();
+    this._saveCheckpoint();
+    this._syncCompletion(payload);
+  },
+
+  _ensureCompletionId: function () {
+    if (!this.completionId) {
+      this.completionId =
+        "first-run-" + Date.now() + "-" + Math.random().toString(36).slice(2, 10);
+    }
+    return this.completionId;
+  },
+
+  _declaredPreferences: function () {
+    return {
+      exam_stage: String(this.war || ""),
+      answer_style: String(this.mode || ""),
+      material_version: String(this.profile.material || ""),
+      memory_channel: String(this.profile.chan || ""),
+      study_slot: String(this.profile.slot || ""),
+      motivation: String(this.profile.drive || ""),
+    };
+  },
+
+  _buildCompletionPayload: function () {
+    return {
+      completion_id: this._ensureCompletionId(),
+      script_version: data.SCRIPT_VERSION,
+      completed_at: new Date().toISOString(),
+      answers: this.results.map(function (item) {
+        return {
+          question_id: item.questionId,
+          selected_key: item.picked,
+          duration_ms: Number(item.durationMs || item.secs * 1000 || 0),
+        };
+      }),
+      declared_preferences: this._declaredPreferences(),
+    };
+  },
+
+  _syncCompletion: function (payload) {
+    if (this._syncInFlight || !this.userId) return Promise.resolve(null);
+    var self = this;
+    this._syncInFlight = true;
+    firstRunEntry.savePendingSync(this.userId, payload);
+    this.setData({ syncStatus: "syncing", syncMessage: "报告已生成，正在保存到你的学情" });
+    return api
+      .completeFirstRun(payload, { silent: true })
+      .then(function (result) {
+        firstRunEntry.clearPendingSync(self.userId);
+        firstRunEntry.clearCheckpoint(self.userId);
+        firstRunEntry.markDone(self.userId, payload);
+        var projection = (result && result.home_projection) || {};
+        var focus = projection.today_focus || {};
+        var report = Object.assign({}, self.data.report || {}, {
+          rx: String(focus.title || "今天任务已生成"),
+          rxSub: "学情已保存 · 回到「学习」继续今天的任务",
+        });
+        self.setData({
+          report: report,
+          syncStatus: "synced",
+          syncMessage: "已保存到学情，第二天回来会接着这条路线",
+        });
+        return result;
+      })
+      .catch(function (error) {
+        var detail = error && error.payload && error.payload.detail;
+        var errorCode = String((detail && detail.error) || "");
+        var blocked =
+          errorCode === "first_run_content_not_signed" ||
+          errorCode === "first_run_version_conflict";
+        self.setData({
+          syncStatus: blocked ? "blocked" : "pending",
+          syncMessage: blocked
+            ? "报告已生成，内容校验完成后会继续保存"
+            : "报告已生成，网络恢复后会自动保存学情",
+        });
+        return null;
+      })
+      .then(function (result) {
+        self._syncInFlight = false;
+        return result;
+      });
   },
 
   onReportGo: function () {
@@ -302,8 +481,7 @@ Page({
       "learning_action_completed",
       behavior("complete", { objectType: "script", result: "go_report" })
     );
-    // 正式版：直接落在学情页
-    this._finish("completed", "pages/report/report");
+    this._finish();
   },
 
   onReportRemind: function () {
@@ -320,7 +498,7 @@ Page({
       self.setData({
         finale: {
           title: "记下了，明天见",
-          lead: "明天的换皮复测题已排好。\n报告存在「学情」tab——底部第三个。",
+          lead: "明天的换皮复测题已排好。\n先回「学习」首页，今天的任务已经接上。",
         },
       });
       self._go("finale", 6);
@@ -328,14 +506,10 @@ Page({
   },
 
   onFinale: function () {
-    this._finish("completed");
+    this._finish();
   },
 
-  _finish: function (how, url) {
-    try {
-      wx.setStorageSync(DONE_KEY, { at: Date.now(), how: how });
-    } catch (e) {}
-    // packageDeeptutor 无 tabBar，统一走 route reLaunch
-    wx.reLaunch({ url: route.resolve(url || "pages/chat/chat") });
+  _finish: function () {
+    wx.reLaunch({ url: route.resolve("pages/learn/learn") });
   },
 });

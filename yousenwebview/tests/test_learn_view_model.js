@@ -42,8 +42,8 @@ const FULL = {
   },
   lessons: {
     lessons: [
-      { pack_id: "A01", title: "检验批验收程序", content_sha256: "sha_a01" },
-      { pack_id: "N01", title: "网络计划关键线路", content_sha256: "sha_n01" },
+      { pack_id: "A01", title: "检验批验收程序", content_sha256: "sha_a01", summary: "四级验收层级" },
+      { pack_id: "N01", title: "网络计划关键线路", content_sha256: "sha_n01", summary: "关键工作判定", retest_available: true },
       { pack_id: "S05", title: "临时用电三级配电", content_sha256: "sha_s05" },
     ],
   },
@@ -97,6 +97,22 @@ ok("due count + stats mapped", () => {
   assert.strictEqual(vm.hasSupply, true);
 });
 
+// ── 副标题:后端 summary(概念卡 front)优先;无 summary 回退前端显示层 map;两者都无才空 ──
+ok("poster subtitle: backend summary > frontend map > empty", () => {
+  const vm = buildLearnViewModel(FULL);
+  const a01 = vm.posters.find((p) => p.pack_id === "A01");
+  assert.strictEqual(a01.subtitle, "四级验收层级"); // 后端 summary 透传
+  const n01 = vm.posters.find((p) => p.pack_id === "N01");
+  assert.strictEqual(n01.subtitle, "关键工作判定");
+  const s05 = vm.posters.find((p) => p.pack_id === "S05");
+  assert.strictEqual(s05.subtitle, "临时用电三大系统"); // 无 summary → 回退前端 map
+  // 既无 summary 又不在 map 的站 → 真留空(不造词)
+  const vm2 = buildLearnViewModel({ homeDashboard: {}, report: {},
+    lessons: { lessons: [{ pack_id: "Z99", title: "未登记站", content_sha256: "z" }] } });
+  const z99 = vm2.posters.find((p) => p.pack_id === "Z99");
+  assert.strictEqual(z99.subtitle, "");
+});
+
 // ── H3:非绿灯 pack(不在 lessons)一律"即将开通"+锁,不硬编码真站 ──
 ok("H3: non-green pack shows 即将开通 + locked, never fabricated", () => {
   const vm = buildLearnViewModel({
@@ -124,20 +140,71 @@ ok("unavailable but green lessons → day-0 fallback station renders stage", () 
   assert.ok(vm.todayTask, "today task card must also render");
 });
 
-// ── practice_active → 今日任务卡出现 ──
-ok("practice_active arm → today task card", () => {
+// ── practice_active → 今日主任务卡 = 2 分钟 MCQ 轻练(PRD v1.3 §0.0 头牌收口) ──
+ok("practice_active arm → today task is MCQ light practice (not case grading)", () => {
   const vm = buildLearnViewModel({
     homeDashboard: { next_step: { mode: "practice_active", source_ref: "N01", reason: "练:你漏的采分点" } },
     report: FULL.report,
     lessons: FULL.lessons,
   });
   assert.ok(vm.todayTask);
-  assert.strictEqual(vm.todayTask.cta, "开始半写训练");
+  assert.strictEqual(vm.todayTask.cta, "开始 2 分钟轻练");
+  // N01 fixture 有 signed 变体池 → practice_kind 按供给真值路由到 retest forward
+  assert.strictEqual(vm.todayTask.practice_kind, "retest");
+  assert.strictEqual(vm.todayTask.supplyNote, "");
+  assert.strictEqual(vm.todayTask.task_type, "light_practice");
+  assert.strictEqual(vm.todayTask.estimated_minutes, 2);
+  assert.strictEqual(vm.todayTask.mode, "topic"); // 路由到 assessment 专题模式
+  assert.strictEqual(vm.todayTask.pack_id, "N01"); // 带上推荐考点
+  assert.strictEqual(vm.todayTask.concept, "网络计划关键线路");
   assert.ok(vm.todayTask.title.indexOf("网络计划关键线路") === 0);
-  // 直达半写训练:prompt 带考点 + 案例半写 + 采分点批改语义(交唯一答题流)
-  assert.ok(vm.todayTask.prompt.indexOf("网络计划关键线路") >= 0);
-  assert.ok(vm.todayTask.prompt.indexOf("采分点") >= 0);
-  assert.ok(vm.todayTask.prompt.indexOf("不要提前给答案") >= 0);
+  assert.strictEqual(vm.todayTask.reason, "练:你漏的采分点");
+  // 案例题批改已降级:今日任务不再携带案例批改 prompt(不走 chat 判分流)
+  assert.strictEqual(vm.todayTask.prompt, undefined);
+});
+
+// ── 兜底臂(有站可学但非 practice_active)→ 同样是 MCQ 轻练,带该站考点 ──
+ok("fallback arm → MCQ light practice carries next-station pack/concept", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "learn_next", source_ref: "N01", reason: "下一站" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+  });
+  assert.ok(vm.todayTask);
+  assert.strictEqual(vm.todayTask.task_type, "light_practice");
+  assert.strictEqual(vm.todayTask.mode, "topic");
+  assert.strictEqual(vm.todayTask.pack_id, "N01");
+  assert.strictEqual(vm.todayTask.prompt, undefined);
+});
+
+// ── 头牌按供给真值路由(承诺宽度收窄): seethrough > retest > none ──
+ok("practice_kind routes by signed supply: seethrough > retest > none", () => {
+  // ① 站有签发看穿包 → seethrough 优先(即使也有变体池)
+  const vmA = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "N01", reason: "r" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+    seethroughLibrary: { total: 1, packs: [{ pack_id: "N01", title: "网络计划关键线路" }] },
+  });
+  assert.strictEqual(vmA.todayTask.practice_kind, "seethrough");
+  // ② 无看穿有变体池 → retest(FULL 已断言)
+  // ③ 两者皆无 → none: 主按钮不渲染(cta 空) + 诚实降级说明
+  const vmC = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "A01", reason: "r" } },
+    report: FULL.report,
+    lessons: FULL.lessons, // A01 无 retest_available 字段 = 保守 false
+  });
+  assert.strictEqual(vmC.todayTask.practice_kind, "none");
+  assert.strictEqual(vmC.todayTask.cta, "");
+  assert.ok(vmC.todayTask.supplyNote.length > 0);
+  // 看穿库响应缺失/畸形 → 空集保守降级不抛
+  const vmD = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "N01", reason: "r" } },
+    report: FULL.report,
+    lessons: FULL.lessons,
+    seethroughLibrary: "garbage",
+  });
+  assert.strictEqual(vmD.todayTask.practice_kind, "retest");
 });
 
 
@@ -162,45 +229,24 @@ ok("green lessons appear as posters even without lifecycle", () => {
 
 // ── 海报竖排书法名:>6 字截断为单列显示名(live 绿灯站 26/28 标题超长),
 //    title 保留全名(下一站卡/详情消费) ──
-ok("poster name clamps to 6 chars, title keeps full text", () => {
+ok("poster name uses registered 简称; title keeps full text; unregistered falls back to clamp", () => {
   const vm = buildLearnViewModel({
     homeDashboard: {},
     report: {},
     lessons: { lessons: [
       { pack_id: "F02", title: "卷材防水施工顺序与搭接方向", content_sha256: "s1" },
       { pack_id: "F05", title: "渗漏治理诊断", content_sha256: "s2" },
+      { pack_id: "Z99", title: "未登记简称的长站点标题", content_sha256: "s3" },
     ] },
   });
   const f02 = vm.posters.find((p) => p.pack_id === "F02");
-  assert.strictEqual(f02.name, "卷材防水施工");
-  assert.strictEqual(f02.title, "卷材防水施工顺序与搭接方向");
+  assert.strictEqual(f02.name, "卷材防水");        // 简称(显示层),非旧 6 字截断
+  assert.strictEqual(f02.title, "卷材防水施工顺序与搭接方向"); // 全名不变(详情页/下一站卡用)
   const f05 = vm.posters.find((p) => p.pack_id === "F05");
-  assert.strictEqual(f05.name, "渗漏治理诊断"); // 恰 6 字不截
-});
-
-// ── task_type 路由字段:goPractice 按 task_type 分流(不新建第二答题页) ──
-ok("practice_active arm carries task_type=half_write + pack_id", () => {
-  const vm = buildLearnViewModel({
-    homeDashboard: { next_step: { mode: "practice_active", source_ref: "N01", reason: "练:你漏的采分点" } },
-    report: FULL.report,
-    lessons: FULL.lessons,
-  });
-  assert.strictEqual(vm.todayTask.task_type, "half_write");
-  assert.strictEqual(vm.todayTask.pack_id, "N01");
-});
-
-ok("general/fallback arm is light_practice with pack_id → forward retest entry", () => {
-  const vm = buildLearnViewModel({
-    homeDashboard: { next_step: { mode: "unavailable", source_ref: "", reason: "" } },
-    report: FULL.report,
-    lessons: FULL.lessons,
-  });
-  assert.strictEqual(vm.todayTask.task_type, "light_practice");
-  assert.strictEqual(vm.todayTask.mode, "topic");
-  // pack_id = 推荐/兜底站 → goPractice 据此进 retest forward 模式
-  assert.ok(vm.todayTask.pack_id, "light_practice 必须带 pack_id 才能进正向轻练");
-  assert.strictEqual(vm.todayTask.pack_id, vm.nextStation.pack_id);
-  assert.strictEqual(vm.todayTask.cta, "开始 2 分钟轻练");
+  assert.strictEqual(f05.name, "渗漏治理");        // 简称
+  const z99 = vm.posters.find((p) => p.pack_id === "Z99");
+  assert.strictEqual(z99.name, "未登记简称的"); // 未登记 → 回退旧 6 字截断止血
+  assert.strictEqual(z99.title, "未登记简称的长站点标题");
 });
 
 console.log("\nlearn-view-model: " + passed + " passed");

@@ -1,0 +1,132 @@
+<view class="st-page">
+  <view class="st-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="st-nav-inner">
+      <view class="st-back" bindtap="goBack"><text>‹ 返回</text></view>
+      <text class="st-nav-title">{{title || '防水 · 5关连闯'}}</text>
+    </view>
+    <!-- 关卡导航(递进解锁: 已完成+下一关可点, 未解锁置灰) -->
+    <scroll-view class="st-days" scroll-x wx:if="{{days.length}}">
+      <view
+        wx:for="{{days}}" wx:key="day"
+        class="st-day-chip {{index === dayIndex ? 'active' : ''}} {{completedDays.indexOf(item.day) >= 0 ? 'done' : ''}}"
+        data-idx="{{index}}" bindtap="onDayTap">
+        <text>第{{item.day}}关{{completedDays.indexOf(item.day) >= 0 ? ' ✓' : ''}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <scroll-view class="st-scroll" scroll-y style="top: {{navHeight + 44}}px">
+    <view class="st-inner">
+      <view class="st-error" wx:if="{{errorText}}"><text>{{errorText}}</text></view>
+      <view class="st-loading" wx:if="{{loading}}"><text>正在为你准备这一关…</text></view>
+
+      <block wx:if="{{!loading && !errorText && days.length}}">
+        <view class="st-day-head">
+          <text class="st-day-no">第 {{days[dayIndex].day}} 关 / 共 {{days.length}} 关</text>
+          <text class="st-competency">{{days[dayIndex].competency}}</text>
+        </view>
+
+        <!-- 复测承接 banner(Day2/3) -->
+        <view class="st-banner" wx:if="{{days[dayIndex].retest_banner && step === 'cut'}}">
+          <text>{{days[dayIndex].retest_banner}}</text>
+        </view>
+
+        <!-- 步骤1:今日一刀 -->
+        <block wx:if="{{step === 'cut'}}">
+          <view class="st-card st-cut">
+            <text class="st-kicker">今日一刀 · 2 分钟</text>
+            <text class="st-cut-text">{{days[dayIndex].today_cut}}</text>
+          </view>
+          <view class="st-primary" bindtap="goProbe">
+            <text>{{days[dayIndex].answer_mode === 'semi_write' ? '开始写' : '开始'}}</text>
+          </view>
+        </block>
+
+        <!-- 步骤2(MCQ):表皮试探 4选1 -->
+        <block wx:if="{{step === 'probe'}}">
+          <view class="st-card">
+            <text class="st-stem">{{days[dayIndex].stem}}</text>
+            <view class="st-options">
+              <view
+                wx:for="{{days[dayIndex].options}}" wx:for-item="opt" wx:key="option_id"
+                class="st-opt {{answered && opt.option_id === days[dayIndex].correct_option_id ? 'right' : ''}} {{answered && opt.option_id === picked && !correct ? 'wrong' : ''}}"
+                data-oid="{{opt.option_id}}" bindtap="onOptionTap">
+                <text class="st-opt-id">{{opt.option_id}}</text>
+                <text class="st-opt-text">{{opt.text}}</text>
+              </view>
+            </view>
+          </view>
+          <view class="st-feedback {{correct ? 'good' : 'warm'}}" wx:if="{{answered}}">
+            <text wx:if="{{correct}}">答对了——你是真懂了,不是背的 ✅</text>
+            <text wx:else>这一点再看一眼就稳了 ↺{{pickedDistractor ? '(你差在:' + pickedDistractor.wrong_mental_model + ')' : ''}}</text>
+          </view>
+          <view class="st-primary" bindtap="goInsight" wx:if="{{answered}}"><text>看看这题的门道</text></view>
+        </block>
+
+        <!-- 步骤2(Day4 半写):自由写 -->
+        <block wx:if="{{step === 'write'}}">
+          <view class="st-card">
+            <text class="st-stem">{{days[dayIndex].invariant}}</text>
+            <textarea class="st-textarea" placeholder="用你自己的话写下割补工序…" value="{{draft}}" bindinput="onDraftInput" maxlength="2000" />
+          </view>
+          <view class="st-primary {{draft ? '' : 'disabled'}}" bindtap="goSelfCheck" wx:if="{{draft}}"><text>对照采分点核对</text></view>
+        </block>
+
+        <!-- 步骤2b(Day4):对照已签发采分点自我核对 -->
+        <block wx:if="{{step === 'selfcheck'}}">
+          <view class="st-card">
+            <text class="st-section">对照采分点 · 你踩到了 {{selfCheck.hitCount}} / {{selfCheck.total}}</text>
+            <view class="st-sp {{p.hit ? 'hit' : 'miss'}}" wx:for="{{selfCheck.points}}" wx:for-item="p" wx:key="point_id">
+              <text class="st-sp-mark">{{p.hit ? '✓ 踩中' : '差一句'}}</text>
+              <text class="st-sp-label">{{p.label}}</text>
+            </view>
+            <view class="st-honesty"><text>{{days[dayIndex].honesty_label}}</text></view>
+          </view>
+          <view class="st-primary" bindtap="goWarm"><text>给你的一句话</text></view>
+        </block>
+
+        <!-- 步骤3:这题的门道(透视揭底 4 段) -->
+        <block wx:if="{{step === 'insight'}}">
+          <view class="st-card st-insight">
+            <text class="st-section">这题的门道</text>
+            <view class="st-seg"><text class="st-seg-k">题目表皮</text><text class="st-seg-v">{{days[dayIndex].see_through.surface}}</text></view>
+            <view class="st-seg"><text class="st-seg-k">不变的道理</text><text class="st-seg-v">{{days[dayIndex].see_through.invariant}}</text></view>
+            <view class="st-seg"><text class="st-seg-k">出题人想考你</text><text class="st-seg-v">{{days[dayIndex].see_through.examiner_intent}}</text></view>
+            <view class="st-seg"><text class="st-seg-k">容易掉的坑</text><text class="st-seg-v">{{days[dayIndex].see_through.learner_misconception}}</text></view>
+          </view>
+          <!-- 定位证据 + 诚实延伸标注 -->
+          <view class="st-card st-evidence" wx:if="{{days[dayIndex].evidence}}">
+            <text class="st-section">这条道理，教材在这</text>
+            <view class="st-ev-chunk" wx:for="{{days[dayIndex].evidence.syllabus_chunks}}" wx:for-item="ck" wx:key="chunk">
+              <text class="st-ev-ref">{{ck.source_ref}}</text>
+              <text class="st-ev-ext" wx:if="{{ck.is_extension}}">从屋面延伸到地下室 · 同一个控水原则</text>
+            </view>
+          </view>
+          <view class="st-primary" bindtap="goWarm"><text>给你的一句话</text></view>
+        </block>
+
+        <!-- 步骤4:给你的一句话(暖纠正 / Day5 进步收据+安全网) -->
+        <block wx:if="{{step === 'warm'}}">
+          <view class="st-card st-warm">
+            <text class="st-warm-text" wx:if="{{days[dayIndex].warm_correction}}">{{days[dayIndex].warm_correction}}</text>
+            <block wx:if="{{days[dayIndex].replay}}">
+              <text class="st-replay">{{days[dayIndex].replay}}</text>
+            </block>
+            <text class="st-warm-text" wx:if="{{days[dayIndex].progress_receipt}}">{{days[dayIndex].progress_receipt}}</text>
+            <text class="st-safety" wx:if="{{days[dayIndex].safety_net}}">{{days[dayIndex].safety_net}}</text>
+          </view>
+          <view class="st-primary" bindtap="goPromise"><text>{{isLast ? '看看这5关' : '下一关的钩子'}}</text></view>
+        </block>
+
+        <!-- 步骤5:下一关预告(换皮悬念) -->
+        <block wx:if="{{step === 'promise'}}">
+          <view class="st-card st-promise">
+            <text class="st-promise-text" wx:if="{{days[dayIndex].tomorrow_promise}}">{{days[dayIndex].tomorrow_promise}}</text>
+            <text class="st-promise-text" wx:else>5 关全通——同一个魂被你从 5 个方向各认了一遍，这比背下答案值钱。</text>
+          </view>
+          <view class="st-primary" bindtap="goNextDay"><text>{{isLast ? '再闯一遍' : '进入下一关'}}</text></view>
+        </block>
+      </block>
+    </view>
+  </scroll-view>
+</view>

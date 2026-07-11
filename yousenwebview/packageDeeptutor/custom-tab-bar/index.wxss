@@ -7,13 +7,20 @@
 .tab-bar {
   display: flex;
   justify-content: space-around;
+  align-items: flex-end;
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 140rpx;
+  /* border-box 全局生效:height 必须含 safe-area,否则 padding 吃进 140rpx →
+     真机有 home 指示条时内容区被压缩、图标顶出 bar 背景(未覆盖)。总高=140rpx+safe(chat 依赖) */
+  height: calc(140rpx + env(safe-area-inset-bottom));
+  overflow: visible;
   padding-bottom: env(safe-area-inset-bottom);
-  background: var(--pk-card);
+  /* 不透明卡底 + 自带宣纸点阵:有设计质感,又不会像半透明那样在滚动页漏出内容文字 */
+  background-color: var(--pk-card);
+  background-image: radial-gradient(rgba(150, 145, 126, 0.16) 1.3rpx, transparent 1.3rpx);
+  background-size: 26rpx 26rpx;
   border-top: 1rpx solid var(--pk-bd);
   z-index: 999;
 }
@@ -74,18 +81,22 @@
 /* 中央朱红章(问鲁班):.pk-seal 底 + 纸边圈,凸出壳顶 */
 .tab-item--center {
   color: var(--pk-t1);
+  margin-top: -60rpx;
+  justify-content: flex-end;
+  gap: 8rpx;
 }
 .tab-item--center .tab-text {
   font-weight: 800;
 }
 .tab-seal {
-  width: 100rpx;
-  height: 100rpx;
+  width: 108rpx;
+  height: 108rpx;
   border-radius: 50%;
-  border: 8rpx solid var(--pk-paper);
+  border: 8rpx solid var(--pk-card);
   box-sizing: content-box;
+  box-shadow: 0 20rpx 48rpx rgba(207, 68, 54, 0.35);
 }
 .tab-seal-logo {
-  width: 48rpx;
-  height: 48rpx;
+  width: 52rpx;
+  height: 52rpx;
 }

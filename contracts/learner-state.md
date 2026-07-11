@@ -795,6 +795,40 @@ session / evidence truth。
    report training surface；它可以触发后续训练入口，但不得绕过 report / learner-state
    authority 直接跳到 chat 生成第二套处方。
 
+### First Run Diagnostic Completion Contract
+
+首次体验是五模块「学习」首页的第一段学习旅程，不是独立 onboarding authority。正式完成
+只允许走 `POST /api/v1/first-run/complete -> FirstRunWritebackService ->
+learner_memory_events(memory_kind=learning_evidence)`；中途状态只允许保存在按 canonical user
+隔离的客户端 checkpoint，不建立第二套服务端 session 或推荐表。
+
+1. `first_run_script.v1` 是四道静态题的唯一内容与答案 authority。每题必须有稳定
+   `question_id`、source refs、content hash 与两条独立教研 review refs；任一题未 signed 时
+   completion 必须 fail closed，前端 `script-data.js` 只能是 hash-pinned 展示镜像。
+2. 客户端 completion 只能提交 `completion_id`、`script_version`、`completed_at`、四条
+   `question_id/selected_key/duration_ms` 与显式偏好；禁止提交正式 score、correct、mastery、
+   error code、training intent 或 home next step。
+3. `FirstRunWritebackService` 必须按 signed manifest 重新判定，并为每题写一条
+   `source_feature=first_run_diagnostic`、`memory_kind=learning_evidence` 事件；不得让 mobile
+   adapter 或页面直接拼 learner event。
+4. 幂等键固定包含 canonical `user_id + completion_id + script_version + question_id`。
+   同一 completion 同 body 重放返回既有事件；同一 completion 不同 body 在任何额外写入前
+   返回 `first_run_idempotency_conflict`。中断后重试允许补齐缺失事件，但不得重复证据。
+5. 四题只形成低置信起点证据：所有 event 必须
+   `mastery_promotion_allowed=false`、`official_score_allowed=false`；不得宣称稳定掌握、
+   完整能力或长期人格。
+6. 学习时段、记忆方式、备考阶段等用户选择只能合并到既有 profile 的显式 preference，
+   并标记 `source=explicit_first_run_v1`；“画面派/稳手”等推断画像只允许作为报告解释，
+   不能覆盖 profile truth。
+7. 训练方向只允许由既有 `build_learning_training_intent()` 生成，首页继续只读消费
+   `home_next_step_projection`。first-run wrapper 不得按错题数另写一套正式推荐。
+8. 本地 DONE 只是 UI cache。只有服务端 writeback 成功才算 canonical 完成；弱网时报告可先
+   展示，但必须标为待同步，并使用同一个 `completion_id` 重试。
+9. 旧 assessment / chat onboarding 只能作为兼容消费者：它必须从
+   `learner_state.learning_preferences.first_run` 只读投影 canonical 完成事实，完成后不得再
+   弹第二套摸底入口。禁止为了抑制弹窗新增第二个 completion writer、mirror table 或仅依赖
+   跨设备失效的 local flag。
+
 ## 写回与冲突规则
 
 1. 明确设置优先于模型推断。

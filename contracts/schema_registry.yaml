@@ -62,11 +62,11 @@ scope_rule:
 # incomplete baseline; the live count below is the closed authority this section
 # keys off and is pinned by tests/scripts/test_schema_registry.py.
 completeness_closure:
-  full_set_count: 212            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts + M35 R4 cached AB artifact; +fusion stage0 pack taxonomy registry + question->pack map)
+  full_set_count: 214            # union across all schema-version literal forms (+lecture answer pack + PGO supply verdicts + fusion stage0 artifacts + first-run script/completion)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 32      # tier2_canonical_contracts below (+lecture answer pack/shard + PGO runtime-supply slot; +fusion stage0 two compiled read-only artifacts)
+    tier2_runtime_canonical: 34      # tier2_canonical_contracts below (+fusion stage0 two compiled read-only artifacts + first-run script/completion)
     tier3_ephemeral_artifact: 171    # covered by tier3_carve_out rule (+PGO runtime-supply verification report; lecture answer shard promoted out to T2; +M35 R4 cached AB artifact)
   # Closure invariant (asserted by the test): T1 ∪ T2 ∪ T3 == full_set, with
   # T1, T2 disjoint and exhaustive over the non-T3 remainder; every full-set id
@@ -112,6 +112,25 @@ content_asset_contracts:
       (promote_variant_bank.py --kind concept_cards).
     validation_gate: scripts/build_luban_concept_card_bank.py --check (rerun derive + quote-verbatim/dedupe/forbidden-word gate, zero-write)
     consumed_by: deeptutor/services/luban_lesson/concept_cards.py (read-only projection behind the signed+sha double fail-closed loader; flag-gated review read model — never grading / learner-brain input)
+    official_score_allowed: false
+    runtime_canonical: false
+    grading_authority: false
+  - name: luban_f16_seethrough_bank.v0
+    owner: luban_lesson
+    contract_for: >-
+      F16 看穿(seethrough)5天留存内容 bank(深母题 schema v2 的量产薄切片) —
+      deterministic compile-time structuring of a verbatim-transcribed storyboard
+      source (_F16_seethrough_source.json); 4选1诊断表皮试探 + 透视揭底4段(表皮→
+      不变量→出题人意图→你的误解) + 暖纠正 + 定位证据(带诚实延伸标注 is_extension/
+      true_source_pack)。Persisted as
+      docs/原始数据/考点原料/成品/_{pack_id}_seethrough_bank.v0.json. Follows the
+      concept-card precedent — dash-namespaced schema_version literal
+      ("luban-f16-seethrough-bank.v0", deliberately outside the grading closure)
+      and the same candidate→signed human promotion gate
+      (promote_variant_bank.py --kind seethrough). 投影不生成 / 错因∈E系(不新建) /
+      掌握前端不自算 / Day4 半写为已签发 Q18 P10/P11 采分点文本自我核对(诚实标注非官方)。
+    validation_gate: scripts/build_luban_seethrough_bank.py --check (rerun derive + 溯源/错因E系/无审视硬词/诚实延伸标注 gate, zero-write)
+    consumed_by: deeptutor/services/luban_lesson/seethrough.py (read-only projection behind the signed+sha double fail-closed loader; flag-gated review read model — never grading / learner-brain input)
     official_score_allowed: false
     runtime_canonical: false
     grading_authority: false
@@ -417,6 +436,34 @@ schemas:
 # warning if a T2 file is touched while marked needs_field_canonicalization, to
 # nudge eventual field-level pinning. T2 grants no official-score / write authority.
 tier2_canonical_contracts:
+  # — first-run static diagnostic content and completion boundary —
+  - name: first_run_script.v1
+    status: runtime_canonical
+    owner: learner_state
+    canonical_for: the signed four-question first-run diagnostic content, answer key, source refs, content hashes, and script version
+    module: deeptutor/services/first_run/manifest.py
+    consumed_by: deeptutor/services/first_run/writeback.py + yousenwebview/packageDeeptutor/pages/first-run/script-data.js (hash-pinned display mirror)
+    needs_field_canonicalization: false
+    canonical_fields:
+      - schema_id
+      - script_version
+      - release_status
+      - questions
+
+  - name: first_run_completion.v1
+    status: runtime_canonical
+    owner: learner_state
+    canonical_for: the authenticated one-shot first-run completion request delegated to the sole FirstRunWritebackService authority
+    module: deeptutor/api/routers/mobile.py
+    consumed_by: deeptutor/services/first_run/writeback.py + yousenwebview/packageDeeptutor/utils/api.js
+    needs_field_canonicalization: false
+    canonical_fields:
+      - completion_id
+      - script_version
+      - completed_at
+      - answers
+      - declared_preferences
+
   # — assessment report read-model (persisted schema_version, gates DB read-back) —
   - name: p0a-v1
     status: runtime_canonical

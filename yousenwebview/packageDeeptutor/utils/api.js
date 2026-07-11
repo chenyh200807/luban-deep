@@ -861,6 +861,22 @@ function getHomeDashboard(opts) {
   return requestStateGet("/api/v1/homepage/dashboard", opts);
 }
 
+/** 首次体验完成 — 服务端按 signed manifest 重新判定并幂等写回 Learner State。 */
+function completeFirstRun(payload, opts) {
+  return request(
+    Object.assign(
+      {
+        url: "/api/v1/first-run/complete",
+        method: "POST",
+        data: payload || {},
+        noRetry: true,
+        noBaseFallback: true,
+      },
+      opts || {},
+    ),
+  );
+}
+
 // ── 鲁班学习双轮（站点卡 lesson viewmodel，只读投影，零学习证据写入） ──
 
 /** 鲁班 — 绿灯站点列表 */
@@ -982,6 +998,30 @@ function getLubanConceptCards(packId, opts) {
   );
 }
 
+/** 鲁班 — F16 看穿 5天留存内容(表皮试探4选1 + 透视揭底4段 + 暖纠正 + 定位证据带延伸标注)。
+ * 全部编译期签发,前端只投影、一字不新造;旗标关 / 未签发 / 非绿灯一律 404 同形。 */
+function getLubanSeethrough(packId, opts) {
+  return requestStateGet(
+    "/api/v1/luban/seethrough/" + encodeURIComponent(String(packId || "")),
+    opts,
+  );
+}
+
+/** 鲁班 — 看穿库总览(天数真值; 旗标关返 total=0/enabled=false)。 */
+function getLubanSeethroughLibrary(opts) {
+  return requestStateGet("/api/v1/luban/seethrough", opts);
+}
+
+/** 鲁班 — 单站 R6 精确挖空(实务闯关②半写数据: recall_prompt + skeleton_sentences
+ * [{text_before, blank_hint, text_after}]。签发真值=_{pack}_r6_cloze_bank(signed+sha
+ * 双闸); 未签发/非绿灯/旗标关一律 404 同形——闯关据此保持自由默写降级, 不伪装挖空)。 */
+function getLubanCloze(packId, opts) {
+  return requestStateGet(
+    "/api/v1/luban/cloze/" + encodeURIComponent(String(packId || "")),
+    opts,
+  );
+}
+
 /** 鲁班 — 单条 R8 解药(错因银行 detail「解药位」; 按 {pack_id, error_code} 取
  * signed 解药, 响应 {mental_model, textbook_ref}。未签发/无此码/非绿灯/旗标关一律
  * 404 同形——前端据此保持「解药整理中」诚实占位, 绝不自造讲解)。 */
@@ -1097,12 +1137,16 @@ module.exports = {
   submitFeedback: submitFeedback,
   uploadFeedbackAttachment: uploadFeedbackAttachment,
   getHomeDashboard: getHomeDashboard,
+  completeFirstRun: completeFirstRun,
   getLubanLessons: getLubanLessons,
   getLubanLessonDetail: getLubanLessonDetail,
   getLubanRetestItems: getLubanRetestItems,
   getLubanReviewDue: getLubanReviewDue,
   getLubanConceptCardLibrary: getLubanConceptCardLibrary,
   getLubanConceptCards: getLubanConceptCards,
+  getLubanSeethrough: getLubanSeethrough,
+  getLubanSeethroughLibrary: getLubanSeethroughLibrary,
+  getLubanCloze: getLubanCloze,
   getLubanAntidote: getLubanAntidote,
   postLubanFullAnswer: postLubanFullAnswer,
   postStationCompleted: postStationCompleted,

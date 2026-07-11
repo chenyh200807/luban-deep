@@ -1,0 +1,89 @@
+{
+ "schema_version": "luban-concept-card-bank",
+ "pack_id": "C01",
+ "status": "signed",
+ "source_pack_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
+ "generation_ms": 58.82,
+ "gate": {
+  "total": 3,
+  "passed": 3,
+  "pass_rate": 1.0,
+  "quote_mismatches": [],
+  "duplicate_cards": [],
+  "forbidden_words": [],
+  "intent_misses": [],
+  "gist_num_orphans": []
+ },
+ "card_count": 3,
+ "dropped_rows": [
+  {
+   "row": "施工缝留设位置规范",
+   "reason": "quote_unalignable"
+  },
+  {
+   "row": "浇筑连续性 / 何时留缝",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "施工缝处理关键词",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "后浇带模板独立设置",
+   "reason": "not_green"
+  },
+  {
+   "row": "B037 防水渗漏",
+   "reason": "not_green"
+  }
+ ],
+ "cards": [
+  {
+   "card_id": "C01:kc:1A413030_103_0196:1",
+   "front": "后浇带施工要点",
+   "key_gist": "微膨胀混凝土；强度提高一级；养护≥14d；接缝按施工缝处理",
+   "quote": "④ 填充后浇带，可采用微膨胀混凝土、强度等级比原结构强度提高一级，并保持至少 14d 的湿润养护。后浇带接缝处按施工缝的要求处理。",
+   "point_id": "kc:1A413030_103_0196:1",
+   "source_ref": {
+    "chunk_id": "1A413030_103_0196",
+    "page_num": 103,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "建筑工程施工技术 > 主体结构工程施工 > 施工缝和后浇带"
+  },
+  {
+   "card_id": "C01:kc:1A413030_094_0176:0",
+   "front": "后浇带界面处理",
+   "key_gist": "后浇带用快易收口网，浇筑前拆除并凿毛",
+   "quote": "混凝土基础模板通常采用组合式钢模板、胶合板模板、钢框木（竹）胶合板模板等。 （1）杯形基础的支模宜采用封底式杯口模板，施工时应将杯口模板压紧，在杯底应预留观测孔或振捣孔。 （2）锥形基础模板应随混凝土浇捣分段支设并固定牢靠，严禁斜面部分不支模，应用铁锹扣实。 （3）高杯口基础可采用安装杯口模板的方法施工，当混凝土浇捣接近杯口底时，再安装固定杯口模板。 （4）后浇带和施工缝侧面宜采用快易收口网、钢板网、铁丝网或小木板作为侧模，在后浇带混凝土浇筑前应予拆除，将混凝土界面凿毛并清理干净。 （5）箱形基础后浇带模板应有固定牢靠的支撑措施，并独立支设。在后浇带混凝土合拢前，不应因支架拆除或损坏、结构超载等而改变构件的设计受力状态。",
+   "point_id": "kc:1A413030_094_0176:0",
+   "source_ref": {
+    "chunk_id": "1A413030_094_0176",
+    "page_num": 94,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 混凝土基础施工 > 模板工程施工作业要求"
+  },
+  {
+   "card_id": "C01:kc:1A434000_074_0116:0",
+   "front": "接槎部位渗漏成因",
+   "key_gist": "施工缝未清理干净→粘结不良→渗漏；未按规范处理→接槎明显；钢筋密集→浇捣困难→不密实",
+   "quote": "（1）通病现象：施工缝处混凝土松散，骨料集中，接槎明显，沿缝隙处渗漏水。 （2）原因分析： ① 在支模和绑钢筋的过程中，施工缝没有及时清除干净。 ② 在浇筑上层混凝土时，未按规定处理施工缝。 ③ 钢筋过密，内外模板距离狭窄，混凝土浇捣困难。",
+   "point_id": "kc:1A434000_074_0116:0",
+   "source_ref": {
+    "chunk_id": "1A434000_074_0116",
+    "page_num": 74,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "施工质量管理 > 钢结构工程施工"
+  }
+ ],
+ "signoff": {
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T01:20:58+08:00",
+  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+ }
+}

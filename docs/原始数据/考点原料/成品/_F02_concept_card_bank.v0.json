@@ -1,0 +1,139 @@
+{
+ "schema_version": "luban-concept-card-bank",
+ "pack_id": "F02",
+ "status": "signed",
+ "source_pack_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
+ "generation_ms": 59.32,
+ "gate": {
+  "total": 4,
+  "passed": 4,
+  "pass_rate": 1.0,
+  "quote_mismatches": [],
+  "duplicate_cards": [],
+  "forbidden_words": [],
+  "intent_misses": [],
+  "gist_num_orphans": []
+ },
+ "card_count": 4,
+ "dropped_rows": [
+  {
+   "row": "搭接缝顺流水方向 / 平行屋脊铺贴",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "短边搭接错缝距离",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "长边搭接错开距离",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "立面/大坡面满粘法、坡度>25%满粘+钉压",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "厚度<3mm 卷材严禁热熔法",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "热熔法加热温度 / 胶结料厚度",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "自粘法接缝密封 / 焊接法顺序",
+   "reason": "duplicate_point_id"
+  },
+  {
+   "row": "地下室外墙卷材：迎水面 + 满贴 + 不垂直",
+   "reason": "quote_unalignable"
+  },
+  {
+   "row": "地下室卷材外防内贴法：先立面后平面",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "细部：阴阳角圆弧/45°、泛水高度≥250mm",
+   "reason": "no_verbatim_quote"
+  },
+  {
+   "row": "复合防水层：涂膜在卷材下方",
+   "reason": "not_green"
+  },
+  {
+   "row": "受持续振动地下工程防水方案选型",
+   "reason": "not_green"
+  },
+  {
+   "row": "涂膜防水：多遍涂布前后遍方向垂直",
+   "reason": "not_green"
+  },
+  {
+   "row": "找坡/找平、屋面构造层次",
+   "reason": "not_green"
+  }
+ ],
+ "cards": [
+  {
+   "card_id": "F02:kc:1A413030_123_0234:0",
+   "front": "施工顺序：先细部后大面积、由低向高铺贴",
+   "key_gist": "先细部后大面积；由低向高（由最低标高向上）铺贴",
+   "quote": "① 卷材防水层施工时，应先进行细部构造处理，然后由屋面最低标高向上铺贴； ② 檐沟、天沟卷材施工时，宜顺檐沟、天沟方向铺贴，搭接缝应顺流水方向； ③ 卷材宜平行屋脊铺贴，上下层卷材不得相互垂直铺贴。",
+   "point_id": "kc:1A413030_123_0234:0",
+   "source_ref": {
+    "chunk_id": "1A413030_123_0234",
+    "page_num": 123,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "建筑工程施工技术 > 屋面与防水工程施工 > 屋面工程构造和施工 > 屋面卷材防水层施工"
+  },
+  {
+   "card_id": "F02:kc:1A422000_041_0065:0",
+   "front": "上下层卷材不得相互垂直铺贴",
+   "key_gist": "上下两层及相邻两幅接缝错开，不应互相垂直铺贴",
+   "quote": "（1）屋面坡度大于 25% 时，卷材应采取满粘和钉压固定措施。 （2）卷材铺贴方向宜平行于屋脊，且上下层卷材不得相互垂直铺贴。 （3）平行屋脊的卷材搭接缝应顺流水方向，卷材搭接宽度应符合规范相关规定。相邻两幅卷材短边搭接缝应错开，且不得小于 500mm。上下层卷材长边搭接缝应错开，且不得小于幅宽的 1/3。 （4）卷材铺贴方法有冷粘法、热粘法、热熔法、自粘法、焊接法、机械固定法等。厚度小于 3mm 的改性沥青防水卷材，严禁采用热熔法施工。自粘法铺贴卷材的接缝处应用密封材料封严，宽度不应小于 10mm。焊接法施工时，应先焊长边搭接缝，后焊短边搭接缝。",
+   "point_id": "kc:1A422000_041_0065:0",
+   "source_ref": {
+    "chunk_id": "1A422000_041_0065",
+    "page_num": 41,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "第4章 相关法规 > 卷材防水层"
+  },
+  {
+   "card_id": "F02:kc:1A413030_125_0237:0",
+   "front": "细部收头：檐口800mm满粘+金属压条钉压密封",
+   "key_gist": "檐口800mm范围满粘；收头金属压条钉压并密封；设鹰嘴滴水槽",
+   "quote": "（1）卷材防水屋面檐口800mm范围内的卷材应满粘，卷材收头应采用金属压条钉压，并应用密封材料封严。檐口下端应做鹰嘴和滴水槽。",
+   "point_id": "kc:1A413030_125_0237:0",
+   "source_ref": {
+    "chunk_id": "1A413030_125_0237",
+    "page_num": 125,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "建筑工程施工技术 > 屋面与防水工程施工 > 屋面工程构造和施工 > 檐口、檐沟、天沟、水落口等细部的施工"
+  },
+  {
+   "card_id": "F02:kc:1A413030_125_0237:1",
+   "front": "细部附加层：泛水/檐沟伸入≥250mm",
+   "key_gist": "檐沟/天沟附加层伸入屋面≥250mm；女儿墙泛水附加层平面立面均≥250mm",
+   "quote": "（2）檐沟和天沟的防水层下应增设附加层，附加层伸入屋面的宽度不应小于250mm；女儿墙泛水处的防水层下应增设附加层，附加层在平面和立面的宽度均不应小于250mm。",
+   "point_id": "kc:1A413030_125_0237:1",
+   "source_ref": {
+    "chunk_id": "1A413030_125_0237",
+    "page_num": 125,
+    "source_lane": "textbook_v3_fixed",
+    "repair_mode": "intent_aligned"
+   },
+   "leaf_name_path": "建筑工程施工技术 > 屋面与防水工程施工 > 屋面工程构造和施工 > 檐口、檐沟、天沟、水落口等细部的施工"
+  }
+ ],
+ "signoff": {
+  "who": "owner授权·Fable主控代签",
+  "when": "2026-07-11T01:20:59+08:00",
+  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+ }
+}

@@ -244,4 +244,36 @@ assert.strictEqual(checkWxmlBalance(reviewWxml), "", "review.wxml 接线后标�
 var appConfig = fs.readFileSync(path.join(__dirname, "../app.json"), "utf8");
 assert.ok(appConfig.indexOf("pages/luban/gauntlet/gauntlet") >= 0, "app.json 须注册实务闯关页");
 
+// ── 10. ②半写 · R6 精确挖空(供给上线正式形态) ──────────────
+var buildClozeViewModel = vm.buildClozeViewModel;
+var gradeClozeBlank = vm.gradeClozeBlank;
+// 正常供给 → available + 行投影
+var cz = buildClozeViewModel({
+  recall_prompt: "想一想：关键词能默写全吗？",
+  skeleton_sentences: [
+    { cloze_id: "A01:C1-1", point_id: "kc:x:1", text_before: "验收四级体系：", blank_hint: "检验批 / 单位工程", text_after: "" },
+    { cloze_id: "A01:C1-2", point_id: "kc:x:2", text_before: "先", blank_hint: "自检", text_after: "再报验" },
+    { text_before: "无提示行", blank_hint: "", text_after: "(应被剔除)" },
+  ],
+});
+assert.strictEqual(cz.available, true);
+assert.strictEqual(cz.total, 2, "无 blank_hint 的行保守剔除");
+assert.strictEqual(cz.sentences[0].hint, "检验批 / 单位工程");
+assert.strictEqual(cz.sentences[0].checked, false);
+// 缺供给/畸形 → available=false(页面保持自由默写降级)
+assert.strictEqual(buildClozeViewModel(null).available, false);
+assert.strictEqual(buildClozeViewModel({ skeleton_sentences: [] }).available, false);
+// 自查确定性: 多候选词(/、分隔)互相包含命中; <2字/空输入不命中
+assert.strictEqual(gradeClozeBlank("检验批 / 单位工程", "检验批"), true);
+assert.strictEqual(gradeClozeBlank("检验批 / 单位工程", "单位工程验收"), true, "输入包含候选词=命中");
+assert.strictEqual(gradeClozeBlank("检验批 / 单位工程", "检"), false, "单字防误中");
+assert.strictEqual(gradeClozeBlank("检验批 / 单位工程", ""), false);
+assert.strictEqual(gradeClozeBlank("检验批 / 单位工程", "隐蔽工程"), false);
+assert.strictEqual(gradeClozeBlank("自检", "先自检再报"), true);
+// 页面接线: wxml 含挖空区且保留降级注记(仅无供给时)
+assert.ok(pageWxml.indexOf("gt-cloze-row") >= 0, "gauntlet.wxml 须渲染挖空行");
+assert.ok(pageWxml.indexOf('wx:if="{{!cloze}}"') >= 0, "降级注记只在无 cloze 供给时渲染");
+var pageJs = fs.readFileSync(path.join(__dirname, "../packageDeeptutor/pages/luban/gauntlet/gauntlet.js"), "utf8");
+assert.ok(pageJs.indexOf("getLubanCloze") >= 0, "gauntlet.js 须真消费 cloze 端点(死供给转活)");
+
 console.log("PASS test_gauntlet_view_model.js");

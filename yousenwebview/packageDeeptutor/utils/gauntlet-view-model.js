@@ -167,6 +167,61 @@ function buildFullAnswerVerdict(resp) {
   };
 }
 
+/**
+ * ②半写 · R6 精确挖空视图(供给上线后的正式形态, 头注接口位兑现)。
+ * 输入 = /luban/cloze/{pack} 响应 {skeleton_sentences, recall_prompt};
+ * 缺供给/形状不符 → available=false(页面保持自由默写降级, 不伪装挖空)。
+ * 自查 = 呈现层确定性对照(gradeClozeBlank), 零学情写入——与考点卡"翻面核对"
+ * 同一档位, 不是判分(判分真值仍只归档位③判分内核)。
+ */
+function buildClozeViewModel(body) {
+  var o = _obj(body);
+  var rows = _arr(o.skeleton_sentences)
+    .map(function (s, idx) {
+      var r = _obj(s);
+      var hint = _str(r.blank_hint);
+      if (!hint) return null; // 无提示词的行无法自查, 保守剔除
+      return {
+        key: _str(r.cloze_id) || "cz_" + idx,
+        pointId: _str(r.point_id),
+        textBefore: _str(r.text_before),
+        textAfter: _str(r.text_after),
+        hint: hint,
+        input: "",
+        checked: false,
+        hit: null,
+      };
+    })
+    .filter(Boolean);
+  return {
+    available: rows.length > 0,
+    recallPrompt: _str(o.recall_prompt),
+    sentences: rows,
+    total: rows.length,
+  };
+}
+
+/**
+ * 挖空自查(呈现层确定性对照): blank_hint 以「/」「、」分隔多个可接受关键词,
+ * 命中 = 输入与任一候选词互相包含(输入 ≥2 字, 防单字误中)。只做暖反馈,
+ * 不写掌握、不写错因(记账真值只归判分内核 writeback)。
+ */
+function gradeClozeBlank(hint, input) {
+  var text = _str(input).replace(/\s+/g, "");
+  if (text.length < 2) return false;
+  var candidates = _str(hint)
+    .split(/[/、,，]/)
+    .map(function (t) {
+      return t.replace(/\s+/g, "");
+    })
+    .filter(Boolean);
+  for (var i = 0; i < candidates.length; i++) {
+    var c = candidates[i];
+    if (c.length >= 2 && (text.indexOf(c) !== -1 || c.indexOf(text) !== -1)) return true;
+  }
+  return false;
+}
+
 /** 草稿(本地 storage)形状: 退出留草稿承诺的唯一载体 */
 function buildDraft(text, step) {
   return {
@@ -185,6 +240,8 @@ module.exports = {
   gradeChoice: gradeChoice,
   buildVerdict: buildVerdict,
   buildFullAnswerVerdict: buildFullAnswerVerdict,
+  buildClozeViewModel: buildClozeViewModel,
+  gradeClozeBlank: gradeClozeBlank,
   buildDraft: buildDraft,
   draftStorageKey: draftStorageKey,
 };

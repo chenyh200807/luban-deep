@@ -1,0 +1,245 @@
+{
+ "_note": "变体statement对抗面板A级停发清单(2026-07-11)。runtime read_model 消费(serve侧过滤);救活=修pack后重签并从本清单移除。",
+ "variants": [
+  {
+   "variant_id": "F03-C-underground-032",
+   "pack_id": "F03",
+   "reason": "内容错误:2026教材明挖法地下防水仅一/二/三级(表3.5-3 p130),四级为旧GB50108;同池-034把教材正确答案判False=可证伪即崩",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "F03-C-underground-033",
+   "pack_id": "F03",
+   "reason": "内容错误:2026教材明挖法地下防水仅一/二/三级(表3.5-3 p130),四级为旧GB50108;同池-034把教材正确答案判False=可证伪即崩",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "F03-C-underground-034",
+   "pack_id": "F03",
+   "reason": "内容错误:2026教材明挖法地下防水仅一/二/三级(表3.5-3 p130),四级为旧GB50108;同池-034把教材正确答案判False=可证伪即崩",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "C01-D-postpour-033",
+   "pack_id": "C01",
+   "reason": "内容错误:教材p94明写浇筑前应予拆除并凿毛,方向与解药教材冲突(2018旧真题口径);与同池-035互斥",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "C01-D-postpour-034",
+   "pack_id": "C01",
+   "reason": "内容错误:教材p94明写浇筑前应予拆除并凿毛,方向与解药教材冲突(2018旧真题口径);与同池-035互斥",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "G03-B-overpour-047",
+   "pack_id": "G03",
+   "reason": "内容错误:2026教材p91超灌应高于设计桩顶标高1m以上;0.8~1.0m为2016旧口径;同池-049已载≥1m",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "G03-B-overpour-048",
+   "pack_id": "G03",
+   "reason": "内容错误:2026教材p91超灌应高于设计桩顶标高1m以上;0.8~1.0m为2016旧口径;同池-049已载≥1m",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-B-basis-006",
+   "pack_id": "A01",
+   "reason": "内容错误:2026教材p21检验批划分依据=工程量/楼层/施工段,无变形缝(旧GB50300口径)",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-B-basis-007",
+   "pack_id": "A01",
+   "reason": "内容错误:2026教材p21检验批划分依据=工程量/楼层/施工段,无变形缝(旧GB50300口径)",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-B-basis-008",
+   "pack_id": "A01",
+   "reason": "内容错误:2026教材p21检验批划分依据=工程量/楼层/施工段,无变形缝(旧GB50300口径)",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-B-basis-009",
+   "pack_id": "A01",
+   "reason": "内容错误:2026教材p21检验批划分依据=工程量/楼层/施工段,无变形缝(旧GB50300口径)",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-B-basis-010",
+   "pack_id": "A01",
+   "reason": "内容错误:2026教材p21检验批划分依据=工程量/楼层/施工段,无变形缝(旧GB50300口径)",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-B-basis-011",
+   "pack_id": "A01",
+   "reason": "内容错误:2026教材p21检验批划分依据=工程量/楼层/施工段,无变形缝(旧GB50300口径)",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-B-basis-012",
+   "pack_id": "A01",
+   "reason": "内容错误:2026教材p21检验批划分依据=工程量/楼层/施工段,无变形缝(旧GB50300口径)",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-B-basis-013",
+   "pack_id": "A01",
+   "reason": "内容错误:2026教材p21检验批划分依据=工程量/楼层/施工段,无变形缝(旧GB50300口径)",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-D-strength-046",
+   "pack_id": "A01",
+   "reason": "内容错误:88/80为回弹-取芯法专用判据(外源规范),丢方法限定,教材p85未给通用数值",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-D-strength-047",
+   "pack_id": "A01",
+   "reason": "内容错误:88/80为回弹-取芯法专用判据(外源规范),丢方法限定,教材p85未给通用数值",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-D-strength-048",
+   "pack_id": "A01",
+   "reason": "内容错误:88/80为回弹-取芯法专用判据(外源规范),丢方法限定,教材p85未给通用数值",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-D-strength-049",
+   "pack_id": "A01",
+   "reason": "内容错误:88/80为回弹-取芯法专用判据(外源规范),丢方法限定,教材p85未给通用数值",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-D-strength-050",
+   "pack_id": "A01",
+   "reason": "内容错误:88/80为回弹-取芯法专用判据(外源规范),丢方法限定,教材p85未给通用数值",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-D-strength-051",
+   "pack_id": "A01",
+   "reason": "内容错误:88/80为回弹-取芯法专用判据(外源规范),丢方法限定,教材p85未给通用数值",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-D-strength-052",
+   "pack_id": "A01",
+   "reason": "内容错误:88/80为回弹-取芯法专用判据(外源规范),丢方法限定,教材p85未给通用数值",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "A01-D-strength-053",
+   "pack_id": "A01",
+   "reason": "内容错误:88/80为回弹-取芯法专用判据(外源规范),丢方法限定,教材p85未给通用数值",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "E01-B-vat-011",
+   "pack_id": "E01",
+   "reason": "内容错误:漏教材p38明载'专业工程暂估价除外'例外条款",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "E01-B-vat-012",
+   "pack_id": "E01",
+   "reason": "内容错误:漏教材p38明载'专业工程暂估价除外'例外条款",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "E01-B-vat-013",
+   "pack_id": "E01",
+   "reason": "内容错误:漏教材p38明载'专业工程暂估价除外'例外条款",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-069",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-070",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-071",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-072",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-073",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-074",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-075",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-076",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-077",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-078",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-079",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "J01-D-content-080",
+   "pack_id": "J01",
+   "reason": "内容错误:教材p9基坑方案第9项同为计算书及图纸,并非模板支撑特有,照背基坑补全题漏项",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "F03-A-roof-grade-000",
+   "pack_id": "F03",
+   "reason": "内容错误:防水等级引用旧规范分级口径,与2026教材冲突(面板A级#1同组)",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  },
+  {
+   "variant_id": "F03-A-roof-grade-001",
+   "pack_id": "F03",
+   "reason": "内容错误:防水等级引用旧规范分级口径,与2026教材冲突(面板A级#1同组)",
+   "reviewed_by": "变体statement对抗面板 2026-07-11"
+  }
+ ]
+}

@@ -144,6 +144,12 @@ function clearConversationHistoryCaches() {
 
 function hasAssessmentSignal(raw) {
   var assessment = unwrap(raw) || raw || {};
+  var diagnosticSources = assessment.diagnostic_sources;
+  var firstRun =
+    diagnosticSources && typeof diagnosticSources === "object"
+      ? diagnosticSources.first_run
+      : null;
+  if (firstRun && firstRun.completed === true) return true;
   var level = String(assessment.level || "").trim();
   var chapterMastery = assessment.chapter_mastery;
   if (level) return true;
