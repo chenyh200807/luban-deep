@@ -1449,24 +1449,68 @@ def _objective_explanation(question_context: dict[str, Any]) -> str:
     if user_answer and is_correct is False:
         lines.extend(["", "**你为什么会错：**", _objective_wrong_reason(question_context)])
 
+    # Battle2 S2-T4（2026-07-12）：删除硬编码"采分点 3 条 + 易错点 3 条"通用套话
+    # （owner 亲见的"套话"真源）。MCQ 无采分点概念（采分点属案例题编译判分资产，
+    # SKILL.md §编译资产边界），"采分点"段整段删除；"易错点"降级为题库行特异性
+    # 投影（trap_type / pitfalls / common_mistakes），无特异性内容则整段省略。
+    pitfalls = _objective_specific_pitfalls(question_context)
+    if pitfalls:
+        lines.extend(["", "**易错点：**", *(f"- {item}" for item in pitfalls)])
+
     lines.extend(
         [
-            "",
-            "**采分点：**",
-            "- 抓住题干限定词，先判断它问的是对象、顺序、数值、范围还是做法是否妥当。",
-            "- 对照正确选项中的规范关键词，不用相近概念替代标准表述。",
-            "- 排除与题干对象不一致、顺序颠倒、数值范围错误或绝对化的干扰项。",
-            "",
-            "**易错点：**",
-            "- 看到熟悉词就选，忽略题干真正限定的工程部位或构造要求。",
-            "- 把“可以/应当/不得”“同时/顺序”“不小于/不大于”等关键词看反。",
-            "- 多选或判断类题容易漏选一个正确约束，或把相关但不属于本题问法的选项带入。",
             "",
             "**记忆口诀：**",
             _objective_memory_tip(question_context),
         ]
     )
     return "\n".join(line for line in lines if line is not None).strip()
+
+
+_SPECIFIC_PITFALL_FIELDS = ("trap_type", "pitfalls", "common_mistakes")
+
+
+def _objective_specific_pitfalls(question_context: dict[str, Any]) -> list[str]:
+    """题库行特异性易错点投影（Battle2 S2-T4）。
+
+    只投影题库行/生成题自带的特异性字段（``trap_type`` / ``pitfalls`` /
+    ``common_mistakes``），最多 2 条；全部缺失时返回空列表，调用方整段省略
+    "易错点"。禁止回填通用检查清单。
+
+    取值来源（按序）：
+      1. item 顶层 / ``metadata`` 镜像的直接字段（生成题、测试语料）。
+      2. ``construction_grading_result.evidence_refs`` 里 ``field=trap_type`` 等
+         questions_bank 证据（题库行经 normalize_question_followup_context 白名单
+         后特异性字段唯一存活的通道）。
+    """
+    metadata = question_context.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    candidates: list[Any] = []
+    for container in (question_context, metadata):
+        candidates.extend(container.get(field) for field in _SPECIFIC_PITFALL_FIELDS)
+    grading_result = question_context.get("construction_grading_result")
+    evidence_refs = (
+        grading_result.get("evidence_refs") if isinstance(grading_result, dict) else None
+    )
+    if isinstance(evidence_refs, list):
+        candidates.extend(
+            ref.get("value")
+            for ref in evidence_refs
+            if isinstance(ref, dict) and str(ref.get("field") or "") in _SPECIFIC_PITFALL_FIELDS
+        )
+    collected: list[str] = []
+    for value in candidates:
+        items = (
+            [str(item or "").strip() for item in value]
+            if isinstance(value, (list, tuple))
+            else [str(value or "").strip()]
+        )
+        for item in items:
+            if item and item not in collected:
+                collected.append(item)
+            if len(collected) >= 2:
+                return collected
+    return collected
 
 
 def _objective_option_analysis_lines(

@@ -79,6 +79,40 @@ def test_classify_pacing_holds_for_mixed_outcomes() -> None:
     assert classify_difficulty_pacing([True, True]) == "hold"  # 不足 3
 
 
+def test_show_mnemonic_chip_only_when_mnemonic_section_present() -> None:
+    """Battle2 S2-T1：mnemonic 是条件段——无口诀不挂"看记忆口诀" chip（防点开空口诀）。"""
+    without = ExplanationSections(
+        sections={"verdict": "本题答错", "why_wrong": "概念混淆"},
+        question_type="choice",
+        is_correct=False,
+    )
+    payload = build_progressive_disclosure(
+        explanation=without, is_correct=False, pacing="suggest_consolidation"
+    ).to_dict()
+    slugs = [chip["slug"] for chip in payload["secondary_actions"]]
+    assert "show_mnemonic" not in slugs
+
+    with_mnemonic = ExplanationSections(
+        sections={"verdict": "本题答错", "mnemonic": "先论后审，谁论谁审"},
+        question_type="choice",
+        is_correct=False,
+    )
+    payload = build_progressive_disclosure(
+        explanation=with_mnemonic, is_correct=False, pacing="suggest_consolidation"
+    ).to_dict()
+    slugs = [chip["slug"] for chip in payload["secondary_actions"]]
+    assert "show_mnemonic" in slugs
+
+
+def test_step_up_pacing_mnemonic_chip_conditional() -> None:
+    empty = ExplanationSections(sections={}, question_type="choice", is_correct=True)
+    payload = build_progressive_disclosure(
+        explanation=empty, is_correct=True, pacing="suggest_step_up"
+    ).to_dict()
+    assert payload["primary_next_action"]["slug"] == "practice_more_3"
+    assert [chip["slug"] for chip in payload["secondary_actions"]] == []
+
+
 def test_action_chips_label_uses_chinese() -> None:
     parsed = ExplanationSections(sections={}, question_type="choice", is_correct=False)
     payload = build_progressive_disclosure(
