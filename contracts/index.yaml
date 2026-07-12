@@ -650,6 +650,10 @@ domains:
       - tests/tutorbot/test_agent_loop_model_tiering.py
       # Battle1 W1-T1 incremental token-estimation cache on protected agent/memory.py.
       - tests/tutorbot/test_memory_incremental_tokens.py
+      # Battle2 S1 同病同修: 公开记忆(SUMMARY+PROFILE)每轮双 LLM 重写的计数门控
+      # (镜像 summary-maintainer gate); protected memory/service.py 的域测试。
+      - tests/services/memory/test_memory_service.py
+      - tests/services/memory/test_memory_service_summary_gate.py
     schema_files:
       - deeptutor/contracts/learner_state.py
       - supabase/migrations/20260415000100_learner_state_core.sql

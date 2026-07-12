@@ -462,3 +462,64 @@ def test_merge_metric_snapshots_sums_summary_maintainer_counts_across_workers() 
     )
     assert 'deeptutor_summary_maintainer_total{decision="skip_throttled",outcome="skipped"} 3' in body
     assert 'deeptutor_summary_maintainer_total{decision="run_evidence",outcome="no_change"} 1' in body
+
+
+def test_memory_maintainer_counts_snapshot_and_prometheus() -> None:
+    metrics = TurnRuntimeMetrics()
+    metrics.record_memory_maintainer(decision="skip_throttled", outcome="skipped")
+    metrics.record_memory_maintainer(decision="skip_throttled", outcome="skipped")
+    metrics.record_memory_maintainer(decision="run_counter", outcome="no_change")
+    metrics.record_memory_maintainer(decision="run_fail_open", outcome="changed")
+    metrics.record_memory_maintainer(decision="", outcome="")  # normalizes, never raises
+
+    counts = metrics.snapshot()["memory_maintainer_counts"]
+    assert {"decision": "skip_throttled", "outcome": "skipped", "count": 2} in counts
+    assert {"decision": "run_counter", "outcome": "no_change", "count": 1} in counts
+    assert {"decision": "run_fail_open", "outcome": "changed", "count": 1} in counts
+    assert {"decision": "unknown", "outcome": "-", "count": 1} in counts
+
+    body = render_prometheus_metrics(
+        http_snapshot={},
+        turn_snapshot=metrics.snapshot(),
+        surface_snapshot={},
+        readiness_snapshot={},
+        provider_error_rates={},
+        circuit_breakers={},
+        release_snapshot={},
+    )
+    assert "# TYPE deeptutor_memory_maintainer_total counter" in body
+    assert 'deeptutor_memory_maintainer_total{decision="skip_throttled",outcome="skipped"} 2' in body
+    assert 'deeptutor_memory_maintainer_total{decision="run_counter",outcome="no_change"} 1' in body
+    assert 'deeptutor_memory_maintainer_total{decision="run_fail_open",outcome="changed"} 1' in body
+
+
+def test_merge_metric_snapshots_sums_memory_maintainer_counts_across_workers() -> None:
+    """UVICORN_WORKERS=2 下 /metrics/prometheus 合并 per-worker 快照;记忆门控计数
+    若缺多 worker 合并路径会系统性低估门命中率(一次抓取只见一个 worker)。"""
+    worker_a = TurnRuntimeMetrics()
+    worker_a.record_memory_maintainer(decision="skip_throttled", outcome="skipped")
+    worker_a.record_memory_maintainer(decision="skip_throttled", outcome="skipped")
+    worker_a.record_memory_maintainer(decision="run_counter", outcome="changed")
+    worker_b = TurnRuntimeMetrics()
+    worker_b.record_memory_maintainer(decision="skip_throttled", outcome="skipped")
+    worker_b.record_memory_maintainer(decision="run_fail_open", outcome="no_change")
+
+    merged_turn = merge_metric_snapshots(
+        [{"turn": worker_a.snapshot()}, {"turn": worker_b.snapshot()}]
+    )["turn"]
+    merged = merged_turn["memory_maintainer_counts"]
+    assert {"decision": "skip_throttled", "outcome": "skipped", "count": 3} in merged
+    assert {"decision": "run_counter", "outcome": "changed", "count": 1} in merged
+    assert {"decision": "run_fail_open", "outcome": "no_change", "count": 1} in merged
+
+    body = render_prometheus_metrics(
+        http_snapshot={},
+        turn_snapshot=merged_turn,
+        surface_snapshot={},
+        readiness_snapshot={},
+        provider_error_rates={},
+        circuit_breakers={},
+        release_snapshot={},
+    )
+    assert 'deeptutor_memory_maintainer_total{decision="skip_throttled",outcome="skipped"} 3' in body
+    assert 'deeptutor_memory_maintainer_total{decision="run_fail_open",outcome="no_change"} 1' in body
