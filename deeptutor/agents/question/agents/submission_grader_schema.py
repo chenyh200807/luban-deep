@@ -1,7 +1,7 @@
 """
 SubmissionGraderAgent explanation schema (plan §Phase 4 Step 4.2 / Batch D.2).
 
-定义错题解释必须包含的 7 段（plus 题型特定段），并提供：
+定义错题解释必须包含的段落（plus 题型特定段），并提供：
   * 提取（best-effort）函数：从自由文本 LLM 输出中按 heading 抽段。
   * 程序化校验：返回缺段列表（trace 字段 ``explanation_section_miss``）。
   * 模板兜底：缺段时填充安全模板，保证用户不会看到空段。
@@ -9,8 +9,12 @@ SubmissionGraderAgent explanation schema (plan §Phase 4 Step 4.2 / Batch D.2).
 刻意不引入 pydantic 依赖（项目当前的轻量风格），保持 stdlib 实现，
 便于在 turn runtime 任何位置调用。
 
-This file is purely additive — existing SubmissionGraderAgent 行为不变；
-新增 ``validate_explanation_sections()`` 由 capability 调用方使用。
+Battle2 S2-T1（2026-07-12，判分输出减半）：REQUIRED 集从 7 段收紧为 4 必备段；
+knowledge_point / common_pitfall / mnemonic 降级为 OPTIONAL_SECTION_KEYS（条件段：
+LLM 有题目特异性内容才输出，缺段不追讨 repair、不模板兜底）。这是单调放松——
+旧 7 段 prompt 的输出天然满足新子集，flag off 不产生新 repair。该常量是段落宽度
+的唯一权威：prompt / self-repair / 模板兜底 / progressive_disclosure 全部跟随，
+不存在第二套段落定义。
 """
 
 from __future__ import annotations
@@ -20,15 +24,21 @@ from dataclasses import dataclass, field
 from typing import Any, Iterable
 
 
-# 7 个必备段（plan §Phase 4 Step 4.2）。
+# 必备段（Battle2 S2-T1：7 段收紧为 4 段，权威常量）。
 REQUIRED_SECTION_KEYS: tuple[str, ...] = (
     "verdict",            # 阅卷结论
-    "correct_answer",     # 正确答案或采分点
+    "correct_answer",     # 正确答案与依据（含考点名一句要义，吸收原 knowledge_point 独立段）
     "why_wrong",          # 为什么用户答案错
-    "knowledge_point",    # 对应知识点讲解
-    "common_pitfall",     # 易错点
-    "mnemonic",           # 记忆口诀 / 记忆抓手
     "next_practice",      # 下一步练什么
+)
+
+# 条件段（Battle2 S2-T1 降级）：有题目特异性内容才输出；缺失不算缺段——
+# missing_required() 不追讨、self-repair 不触发、模板不兜底。
+# 别名解析与 dataclass 透传全部保留，LLM 给了就照常入 sections。
+OPTIONAL_SECTION_KEYS: tuple[str, ...] = (
+    "knowledge_point",    # 对应知识点讲解（并入"正确答案与依据"后仍可独立出现）
+    "common_pitfall",     # 易错点（仅题目特异性陷阱）
+    "mnemonic",           # 记忆口诀 / 记忆抓手（仅高价值抓手）
 )
 
 # 选择题额外段。
@@ -224,7 +234,12 @@ def _resolve_alias(title: str) -> str:
         return ""
     # 直接 hit schema key
     lowered = raw.lower()
-    all_keys = set(REQUIRED_SECTION_KEYS) | set(CHOICE_EXTRA_KEYS) | set(CASE_EXTRA_KEYS)
+    all_keys = (
+        set(REQUIRED_SECTION_KEYS)
+        | set(OPTIONAL_SECTION_KEYS)
+        | set(CHOICE_EXTRA_KEYS)
+        | set(CASE_EXTRA_KEYS)
+    )
     if lowered in all_keys:
         return lowered
     # 中文别名
@@ -236,6 +251,7 @@ def _resolve_alias(title: str) -> str:
 
 __all__ = (
     "REQUIRED_SECTION_KEYS",
+    "OPTIONAL_SECTION_KEYS",
     "CHOICE_EXTRA_KEYS",
     "CASE_EXTRA_KEYS",
     "ExplanationSections",

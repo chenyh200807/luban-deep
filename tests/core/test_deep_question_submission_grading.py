@@ -380,8 +380,10 @@ async def test_deep_question_deterministic_choice_feedback_explains_without_auth
     assert "C. 装饰装修：误选项" in response
     assert "D. 钢结构：正确项" in response
     assert "你为什么会错" in response
-    assert "采分点" in response
-    assert "易错点" in response
+    # Battle2 S2-T4：deterministic 路径去通用套话——MCQ 无"采分点"概念（整段删除）；
+    # "易错点"只在题库行带 trap_type/pitfalls 特异性内容时输出（本用例无 → 整段省略）。
+    assert "采分点" not in response
+    assert "易错点" not in response
     assert "记忆口诀" in response
 
 
@@ -662,8 +664,10 @@ async def test_deep_question_reveals_objective_answer_without_followup_llm(
     assert "正确答案：** D（钢结构）" in response
     assert "正确选项是 D（钢结构）" in response
     assert "逐项解析" in response
-    assert "采分点" in response
-    assert "易错点" in response
+    # Battle2 S2-T4：答案揭示路径复用 _objective_explanation——通用"采分点/易错点"
+    # 检查清单套话删除（本用例无 trap_type 特异性内容 → 两段整段省略）。
+    assert "采分点" not in response
+    assert "易错点" not in response
     assert "记忆口诀" in response
 
 
