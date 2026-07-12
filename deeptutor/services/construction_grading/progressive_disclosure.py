@@ -169,19 +169,24 @@ def _select_actions(
     is_correct: bool | None,
     pacing: DifficultyPacing,
 ) -> tuple[ActionChip, list[ActionChip]]:
+    # Battle2 S2-T1：mnemonic 降级为条件段后，"看记忆口诀" chip 只在本轮解释
+    # 真的带 mnemonic 段时挂出，避免点开后空口诀（前端按 slug 派发用户输入）。
+    has_mnemonic = bool(str(explanation.sections.get("mnemonic", "")).strip())
+    mnemonic_chips = (
+        [ActionChip(slug="show_mnemonic", label=_ACTION_LABELS["show_mnemonic"], role="secondary")]
+        if has_mnemonic
+        else []
+    )
     if pacing == "suggest_consolidation" or is_correct is False:
         primary = ActionChip(slug="explain_thoroughly", label=_ACTION_LABELS["explain_thoroughly"], role="primary")
         secondaries = [
-            ActionChip(slug="show_mnemonic", label=_ACTION_LABELS["show_mnemonic"], role="secondary"),
+            *mnemonic_chips,
             ActionChip(slug="practice_more_3", label=_ACTION_LABELS["practice_more_3"], role="secondary"),
         ]
         return primary, secondaries
     if pacing == "suggest_step_up":
         primary = ActionChip(slug="practice_more_3", label=_ACTION_LABELS["practice_more_3"], role="primary")
-        secondaries = [
-            ActionChip(slug="show_mnemonic", label=_ACTION_LABELS["show_mnemonic"], role="secondary"),
-        ]
-        return primary, secondaries
+        return primary, list(mnemonic_chips)
     # 默认 hold
     primary = ActionChip(slug="practice_more_3", label=_ACTION_LABELS["practice_more_3"], role="primary")
     secondaries = [

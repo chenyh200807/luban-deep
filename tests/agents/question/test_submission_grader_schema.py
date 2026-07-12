@@ -1,5 +1,8 @@
 """
-plan §Phase 4 Step 4.2 / Batch D.2 — explanation 7 段 schema 校验 + 模板兜底。
+plan §Phase 4 Step 4.2 / Batch D.2 — explanation schema 校验 + 模板兜底。
+
+Battle2 S2-T1（2026-07-12）：REQUIRED 7 段收紧为 4 必备段 +
+OPTIONAL_SECTION_KEYS 3 条件段（缺失不追讨 repair、不模板兜底）。
 """
 
 from __future__ import annotations
@@ -8,6 +11,7 @@ import pytest
 
 from deeptutor.agents.question.agents.submission_grader_schema import (
     CHOICE_EXTRA_KEYS,
+    OPTIONAL_SECTION_KEYS,
     REQUIRED_SECTION_KEYS,
     ExplanationSections,
     apply_fallback_templates,
@@ -40,14 +44,55 @@ B 选项。
 """
 
 
-def test_parse_explanation_extracts_seven_required_sections() -> None:
+def test_required_section_keys_are_the_compact_four() -> None:
+    """Battle2 S2-T1 权威常量：4 必备段 + 3 条件段，单一权威不漂移。"""
+    assert REQUIRED_SECTION_KEYS == ("verdict", "correct_answer", "why_wrong", "next_practice")
+    assert OPTIONAL_SECTION_KEYS == ("knowledge_point", "common_pitfall", "mnemonic")
+    assert not set(REQUIRED_SECTION_KEYS) & set(OPTIONAL_SECTION_KEYS)
+
+
+def test_parse_explanation_extracts_required_and_optional_sections() -> None:
     sections = parse_explanation_sections(_FULL_EXPLANATION, question_type="choice", is_correct=False)
     missing = sections.missing_required()
     # 选择题答错时还要求 option_analysis；上面没给，所以会缺一段
     assert "option_analysis" in missing
-    # 但 7 个 required 段都应该被识别
+    # required 段全部被识别；旧 7 段输出中的条件段也照常解析透传
     for key in REQUIRED_SECTION_KEYS:
         assert key in sections.sections, f"{key} not extracted"
+    for key in OPTIONAL_SECTION_KEYS:
+        assert key in sections.sections, f"optional {key} should still be parsed"
+
+
+def test_legacy_seven_section_output_has_no_missing_required() -> None:
+    """单调放松：flag off 旧 prompt 的 7 段输出在新 schema 下 missing==[]（不产生新 repair）。"""
+    full = _FULL_EXPLANATION + "\n### 逐项解析\nA错 B对 C错 D错。\n"
+    parsed, missing = validate_explanation_sections(full, question_type="choice", is_correct=False)
+    assert missing == []
+    assert isinstance(parsed, ExplanationSections)
+
+
+def test_compact_shape_without_optional_sections_has_no_missing_required() -> None:
+    """新 compact 形状（4 必备 + 逐项，无易错点/口诀/知识点）不触发 repair。"""
+    compact = """\
+### 阅卷结论
+本题答错，你答了 A、正确答案是 B。
+
+### 正确答案
+B（按顺序关闭）。依据防火门规范要求，考点：防火门关闭方式。
+
+### 为什么错
+把顺序器保证的顺序关闭理解成了自动关闭，属概念混淆。
+
+### 下一步
+现在把"双扇防火门按顺序关闭"抄 1 遍。
+
+### 逐项解析
+你选的 A（同时关闭）错：双扇门须分先后；B 正确：顺序器保证按顺序关闭；C/D 一句话带过：均不符合规范表述。
+"""
+    parsed, missing = validate_explanation_sections(compact, question_type="choice", is_correct=False)
+    assert missing == []
+    for key in OPTIONAL_SECTION_KEYS:
+        assert key not in parsed.sections
 
 
 def test_validate_explanation_returns_missing_keys_when_sections_absent() -> None:
@@ -56,9 +101,10 @@ def test_validate_explanation_returns_missing_keys_when_sections_absent() -> Non
         question_type="choice",
         is_correct=False,
     )
-    # 所有 7 段 + option_analysis 都缺
+    # 所有 4 必备段 + option_analysis 都缺；条件段缺失不进 missing
     expected = set(REQUIRED_SECTION_KEYS) | set(CHOICE_EXTRA_KEYS)
-    assert set(missing) >= expected - {"verdict"}  # 至少 6 缺，verdict 可能 fuzzy match
+    assert set(missing) >= expected - {"verdict"}  # verdict 可能 fuzzy match
+    assert not set(missing) & set(OPTIONAL_SECTION_KEYS)
     assert isinstance(parsed, ExplanationSections)
 
 
@@ -69,6 +115,9 @@ def test_apply_fallback_templates_fills_missing_sections() -> None:
         assert str(repaired.sections.get(key, "")).strip(), f"{key} not filled by template"
     # option_analysis 也应该被填
     assert "option_analysis" in repaired.sections
+    # 条件段不追讨：模板不为 optional keys 兜底（缺失=合法省略）
+    for key in OPTIONAL_SECTION_KEYS:
+        assert key not in repaired.sections
 
 
 def test_case_question_required_sections_include_scoring_points() -> None:

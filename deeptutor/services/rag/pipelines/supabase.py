@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import OrderedDict
+import contextvars
 import hashlib
 import json
 import os
@@ -59,6 +60,8 @@ _QUESTION_SELECT = (
 _EMBEDDING_CACHE: OrderedDict[str, tuple[list[float], float]] = OrderedDict()
 _SUPABASE_AVAILABILITY_CACHE: dict[str, tuple[bool, float]] = {}
 _SUPABASE_AVAILABILITY_TTL_S = 60.0
+# Single-flight background availability refresh tasks (SWR), keyed by Supabase URL.
+_SUPABASE_AVAILABILITY_REFRESH: dict[str, asyncio.Task] = {}
 # Batch size for chunk_id existence checks — keeps the PostgREST GET URL
 # (chunk_id=in.(...)) well under proxy/server URL-length limits when a golden
 # set carries hundreds of expected chunk_ids.
@@ -207,6 +210,26 @@ def _env_int_compat(primary: str, fallback: str, default: int) -> int:
         return int(raw) if raw else int(default)
     except Exception:
         return int(default)
+
+
+def _unified_rpc_timeout_s() -> float:
+    """Battle2 S5-T5: per-RPC wall-clock budget for search_unified (the largest
+    timeout source in production). Calibrated 2026-07-12 against Langfuse: recent
+    5,900 successful search_unified calls show p50=0.53s / p95=5.26s / p99=12.7s,
+    so the default is 6.0s — above the healthy p95 (5.26s) per commander ruling
+    (never cut healthy-but-slow queries wholesale), below the 8.0s client-level
+    timeout so a slow group degrades faster. <=0 disables the budget (falls back
+    to the client default) — parameterized rollback, no redeploy needed.
+    """
+    return _env_float_compat("SUPABASE_RAG_UNIFIED_TIMEOUT_S", "", 6.0)
+
+
+def _rerank_doc_char_cap() -> int:
+    """Battle2 S5-T6: char cap applied to documents SENT to the reranker (the
+    returned/ displayed content is never truncated). 0 = disabled (default,
+    zero behavior change); gray-release by env only.
+    """
+    return _env_int_compat("SUPABASE_RAG_RERANK_DOC_CHAR_CAP", "", 0)
 
 
 def _embedding_cache_enabled() -> bool:
@@ -1409,12 +1432,24 @@ class SupabasePipeline:
         semaphore = asyncio.Semaphore(max(1, int(getattr(config, "query_variant_concurrency", 1) or 1)))
         query_embedding_dim = 0
 
+        # T4①: prefetch embeddings for all distinct uncached variants in ONE
+        # batch API call instead of one embed call per variant. Failure (or an
+        # empty prefetch) falls back to the per-query embed path inside run_one
+        # (original behavior).
+        cache_enabled = _embedding_cache_enabled()
+        pending_queries = [
+            q
+            for q in dict.fromkeys(str(item or "").strip() for item in queries)
+            if q and not (cache_enabled and _get_cached_embedding(q))
+        ]
+        local_embeddings = await self._embed_queries_batch(pending_queries)
+
         async def run_one(query_index: int, item: str) -> tuple[int, list[dict[str, Any]]]:
             nonlocal query_embedding_dim
             current_query = str(item or "").strip()
             if not current_query:
                 return query_index, []
-            embedding = await self._embed_query(current_query)
+            embedding = local_embeddings.get(current_query) or await self._embed_query(current_query)
             if not query_embedding_dim and embedding:
                 query_embedding_dim = len(embedding)
             vector_literal = _vector_literal(embedding)
@@ -1429,21 +1464,34 @@ class SupabasePipeline:
                 for source in selected_sources
             ]
             task_groups = list(selected_sources)
-            if source_plan.search_questions_bank and (config.include_questions or question_like):
+            bank_search_scheduled = source_plan.search_questions_bank and (
+                config.include_questions or question_like
+            )
+            exact_vector_wanted = bool(exact_probe) and query_index == 0 and bank_search_scheduled
+            # T4②: the dedicated exact-vector call hits the SAME RPC as the
+            # regular bank search (same embedding, higher threshold, count
+            # min(fetch_count,5)) — a strict subset when rows are similarity-desc.
+            # Derive it client-side from the bank rows and save one RPC per turn.
+            # Falls back to the dedicated RPC when the superset preconditions
+            # don't hold (small fetch_count, inverted thresholds) or the bank
+            # rows arrive unsorted.
+            derive_exact_from_bank = (
+                exact_vector_wanted
+                and config.fetch_count >= 5
+                and config.match_threshold <= self._exact_vector_search_threshold(config)
+            )
+            bank_raw_rows: list[dict[str, Any]] = []
+            if bank_search_scheduled:
                 tasks.append(
                     self._search_questions(
                         client=client,
                         vector_literal=vector_literal,
                         config=config,
+                        raw_sink=bank_raw_rows if derive_exact_from_bank else None,
                     )
                 )
                 task_groups.append("questions_bank")
-            if (
-                exact_probe
-                and query_index == 0
-                and source_plan.search_questions_bank
-                and (config.include_questions or question_like)
-            ):
+            if exact_vector_wanted and not derive_exact_from_bank:
                 tasks.append(
                     self._search_exact_question_vector(
                         client=client,
@@ -1505,6 +1553,72 @@ class SupabasePipeline:
                         "results": result,
                     }
                 )
+
+            if derive_exact_from_bank:
+                bank_plan_index = next(
+                    (
+                        index
+                        for index, plan in enumerate(query_plans)
+                        if plan.get("group_name") == "questions_bank"
+                    ),
+                    None,
+                )
+                if bank_plan_index is None:
+                    # Bank RPC itself failed (already in failure_sink); the
+                    # dedicated exact call hits the same RPC and would fail the
+                    # same way — nothing to derive.
+                    self.logger.debug(
+                        "Supabase exact-vector derivation skipped: questions_bank group failed"
+                    )
+                else:
+                    derived = self._derive_exact_from_bank_rows(
+                        bank_raw_rows,
+                        allowed_question_types=exact_probe.allowed_question_types,
+                        original_query=original_query,
+                        option_validation_required=exact_probe.option_validation_required,
+                        config=config,
+                    )
+                    if derived is None:
+                        try:
+                            derived = await self._search_exact_question_vector(
+                                client=client,
+                                vector_literal=vector_literal,
+                                allowed_question_types=exact_probe.allowed_question_types,
+                                original_query=original_query,
+                                option_validation_required=exact_probe.option_validation_required,
+                                config=config,
+                            )
+                        except Exception as exc:  # noqa: BLE001 — mirror group fail-soft
+                            if _is_supabase_service_restriction(exc):
+                                raise
+                            derived = None
+                            if failure_sink is not None:
+                                failure_sink.append(
+                                    _rag_warning_payload(
+                                        phase=phase,
+                                        group_name="question_exact_vector",
+                                        query=current_query,
+                                        exc=exc,
+                                    )
+                                )
+                            self.logger.warning(
+                                f"Supabase group 'question_exact_vector' failed for query "
+                                f"'{current_query}': {exc}"
+                            )
+                    if derived is not None:
+                        # Keep the plan position the dedicated task used to have
+                        # (immediately after questions_bank).
+                        query_plans.insert(
+                            bank_plan_index + 1,
+                            {
+                                "phase": phase,
+                                "group_name": "question_exact_vector",
+                                "query": current_query,
+                                "query_index": query_index,
+                                "query_weight": query_weight * max(0.45, 1.0 - (query_index * 0.12)),
+                                "results": derived,
+                            },
+                        )
             return query_index, query_plans
 
         async def run_guarded(query_index: int, item: str) -> tuple[int, list[dict[str, Any]]]:
@@ -1589,7 +1703,14 @@ class SupabasePipeline:
         if len(rerank_candidates) < 2:
             return results
 
-        rerank_docs = [str(item.get("rag_content") or "").strip() for item in rerank_candidates]
+        # T6: optional char cap on the text SENT to the reranker only. The
+        # candidate items (and everything returned/displayed) keep the full
+        # rag_content — the index mapping below re-attaches the original item.
+        cap = _rerank_doc_char_cap()
+        rerank_docs = [
+            (doc[:cap] if cap > 0 else doc)
+            for doc in (str(item.get("rag_content") or "").strip() for item in rerank_candidates)
+        ]
         rerank_results = await rerank_documents(
             query,
             rerank_docs,
@@ -1621,6 +1742,29 @@ class SupabasePipeline:
                 continue
             reranked.append(item)
         return reranked
+
+    async def _embed_queries_batch(self, queries: list[str]) -> dict[str, list[float]]:
+        """T4①: ONE order-preserving batch embed call for the given (deduped,
+        uncached) query variants. Returns {query: embedding}; an empty dict on
+        failure or when fewer than 2 queries are pending — callers then use the
+        per-query ``_embed_query`` path (the original behavior)."""
+        if len(queries) < 2:
+            return {}
+        try:
+            embeddings = await get_embedding_client().embed(list(queries))
+        except Exception as exc:  # noqa: BLE001 — fail-open to per-query embeds
+            self.logger.warning(
+                f"Supabase batch embedding prefetch failed; per-query fallback: {exc}"
+            )
+            return {}
+        cache_enabled = _embedding_cache_enabled()
+        resolved: dict[str, list[float]] = {}
+        for query, embedding in zip(queries, embeddings or []):
+            if embedding:
+                resolved[query] = embedding
+                if cache_enabled:
+                    _cache_embedding(query, embedding)
+        return resolved
 
     async def _embed_query(self, query: str) -> list[float]:
         if _embedding_cache_enabled():
@@ -1757,6 +1901,10 @@ class SupabasePipeline:
                 "p_text_weight": config.text_weight,
                 "p_source_type": source_type,
             },
+            # T5: search_unified is the dominant slow/timeout RPC — give it its
+            # own budget so one slow group degrades (failure_sink) instead of
+            # holding the whole plan to the 8s client timeout.
+            timeout_s=_unified_rpc_timeout_s(),
         )
         normalized: list[dict[str, Any]] = []
         for row in rows:
@@ -2062,28 +2210,21 @@ class SupabasePipeline:
             self.logger.debug(f"Supabase questions text RPC unavailable: {exc}")
             return []
 
-    async def _search_exact_question_vector(
+    @staticmethod
+    def _exact_vector_search_threshold(config: SupabaseSearchConfig) -> float:
+        return min(0.70, config.exact_question_min_similarity - 0.1)
+
+    def _filter_exact_question_rows(
         self,
+        rows: list[dict[str, Any]],
         *,
-        client: httpx.AsyncClient,
-        vector_literal: str,
         allowed_question_types: list[str],
         original_query: str,
         option_validation_required: bool,
         config: SupabaseSearchConfig,
     ) -> list[dict[str, Any]]:
-        search_threshold = min(0.70, config.exact_question_min_similarity - 0.1)
-        rows = await self._rpc(
-            client,
-            "search_questions_bank_vector",
-            {
-                "query_embedding": vector_literal,
-                "match_threshold": search_threshold,
-                "match_count": min(config.fetch_count, 5),
-                "filter_question_type": None,
-                "filter_source_type": None,
-            },
-        )
+        """The exact-vector adoption filter chain, shared verbatim by the
+        dedicated RPC path and the T4② bank-superset derivation path."""
         for row in rows:
             similarity = float(row.get("similarity") or 0.0)
             if similarity < config.exact_question_min_similarity:
@@ -2111,12 +2252,81 @@ class SupabasePipeline:
             ]
         return []
 
+    async def _search_exact_question_vector(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        vector_literal: str,
+        allowed_question_types: list[str],
+        original_query: str,
+        option_validation_required: bool,
+        config: SupabaseSearchConfig,
+    ) -> list[dict[str, Any]]:
+        search_threshold = self._exact_vector_search_threshold(config)
+        rows = await self._rpc(
+            client,
+            "search_questions_bank_vector",
+            {
+                "query_embedding": vector_literal,
+                "match_threshold": search_threshold,
+                "match_count": min(config.fetch_count, 5),
+                "filter_question_type": None,
+                "filter_source_type": None,
+            },
+        )
+        return self._filter_exact_question_rows(
+            rows,
+            allowed_question_types=allowed_question_types,
+            original_query=original_query,
+            option_validation_required=option_validation_required,
+            config=config,
+        )
+
+    def _derive_exact_from_bank_rows(
+        self,
+        raw_rows: list[dict[str, Any]],
+        *,
+        allowed_question_types: list[str],
+        original_query: str,
+        option_validation_required: bool,
+        config: SupabaseSearchConfig,
+    ) -> list[dict[str, Any]] | None:
+        """T4②: derive the question_exact_vector result from the regular
+        questions_bank rows instead of issuing a second identical RPC.
+
+        Both calls hit the SAME ``search_questions_bank_vector`` function with
+        the SAME embedding; the dedicated exact call only differs by a HIGHER
+        threshold and a count of min(fetch_count, 5). With rows ordered by
+        similarity DESC, ``top-fetch_count @ match_threshold`` restricted to
+        ``similarity >= exact_threshold`` and truncated to min(fetch_count, 5)
+        is exactly ``top-min(fetch_count,5) @ exact_threshold`` — a strict
+        superset derivation. Returns None when the desc-order precondition is
+        violated at runtime (caller falls back to the dedicated RPC).
+        """
+        search_threshold = self._exact_vector_search_threshold(config)
+        similarities = [float(row.get("similarity") or 0.0) for row in raw_rows]
+        if any(a < b for a, b in zip(similarities, similarities[1:])):
+            return None  # not similarity-desc — superset precondition broken
+        eligible = [
+            row
+            for row, similarity in zip(raw_rows, similarities)
+            if similarity >= search_threshold
+        ][: min(config.fetch_count, 5)]
+        return self._filter_exact_question_rows(
+            eligible,
+            allowed_question_types=allowed_question_types,
+            original_query=original_query,
+            option_validation_required=option_validation_required,
+            config=config,
+        )
+
     async def _search_questions(
         self,
         *,
         client: httpx.AsyncClient,
         vector_literal: str,
         config: SupabaseSearchConfig,
+        raw_sink: list[dict[str, Any]] | None = None,
     ) -> list[dict[str, Any]]:
         rows = await self._rpc(
             client,
@@ -2129,6 +2339,10 @@ class SupabasePipeline:
                 "filter_source_type": None,
             },
         )
+        if raw_sink is not None:
+            # T4②: expose the raw RPC rows (order preserved) so q0 can derive
+            # the exact-vector subset without a second identical RPC.
+            raw_sink.extend(row for row in rows if isinstance(row, dict))
         normalized: list[dict[str, Any]] = []
         for row in rows:
             normalized.append(
@@ -2844,6 +3058,14 @@ class SupabasePipeline:
         client: httpx.AsyncClient,
         config: SupabaseSearchConfig,
     ) -> None:
+        """Availability gate with stale-while-revalidate expiry (Battle2 S5-T3).
+
+        The cached verdict is always served to the turn (available ⇒ pass,
+        known-restricted 402 ⇒ fail-closed). When the entry is past TTL, a
+        single-flight background task refreshes it — the user turn never waits
+        on the ~0.3s probe again. Only a cold start (no cached state for this
+        URL yet) probes inline, preserving the original first-query behavior.
+        """
         # Some tests use lightweight client doubles that only exercise plan logic.
         if not hasattr(client, "get"):
             return
@@ -2852,16 +3074,54 @@ class SupabasePipeline:
         cached = _SUPABASE_AVAILABILITY_CACHE.get(cache_key)
         if cached is not None:
             is_available, checked_at = cached
-            if now - checked_at < _SUPABASE_AVAILABILITY_TTL_S:
-                if is_available:
-                    return
-                raise RAGSearchError(
-                    "supabase retrieval failed: Supabase Data API service restricted (HTTP 402)",
-                    provider="supabase",
-                    stage="pipeline.data_api_healthcheck",
-                    retryable=False,
-                )
+            if now - checked_at >= _SUPABASE_AVAILABILITY_TTL_S:
+                self._kick_availability_refresh(config)  # background, non-blocking
+            if is_available:
+                return
+            raise RAGSearchError(
+                "supabase retrieval failed: Supabase Data API service restricted (HTTP 402)",
+                provider="supabase",
+                stage="pipeline.data_api_healthcheck",
+                retryable=False,
+            )
 
+        await self._probe_data_api(client=client, config=config)
+
+    def _kick_availability_refresh(self, config: SupabaseSearchConfig) -> None:
+        """Single-flight background availability refresh (SWR helper). Never
+        blocks or fails the calling turn; the probe writes its verdict into
+        _SUPABASE_AVAILABILITY_CACHE and a 402 raise is swallowed here (the
+        refreshed False verdict fail-closes the NEXT turn instead)."""
+        key = config.url.rstrip("/")
+        existing = _SUPABASE_AVAILABILITY_REFRESH.get(key)
+        if existing is not None and not existing.done():
+            return
+
+        async def _refresh() -> None:
+            try:
+                client = await self._get_client(config.timeout_s)
+                await self._probe_data_api(client=client, config=config)
+            except Exception:  # noqa: BLE001 — verdict already cached by the probe
+                pass
+
+        try:
+            _SUPABASE_AVAILABILITY_REFRESH[key] = asyncio.create_task(
+                _refresh(),
+                name="supabase:availability-refresh",
+                # Empty Context: the probe is not part of any turn's trace.
+                context=contextvars.Context(),
+            )
+        except RuntimeError:
+            # No running event loop — keep serving the cached verdict.
+            pass
+
+    async def _probe_data_api(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        config: SupabaseSearchConfig,
+    ) -> None:
+        cache_key = config.url.rstrip("/")
         url = f"{cache_key}/rest/v1/kb_chunks"
         headers = {
             "apikey": config.service_key,
@@ -2881,7 +3141,7 @@ class SupabasePipeline:
                 )
                 response.raise_for_status()
             except httpx.HTTPStatusError as exc:
-                _SUPABASE_AVAILABILITY_CACHE[cache_key] = (False, now)
+                _SUPABASE_AVAILABILITY_CACHE[cache_key] = (False, time.monotonic())
                 rag_error = _wrap_supabase_http_status(
                     exc,
                     stage="pipeline.data_api_healthcheck",
@@ -2897,7 +3157,7 @@ class SupabasePipeline:
                     },
                 )
                 raise rag_error from exc
-            _SUPABASE_AVAILABILITY_CACHE[cache_key] = (True, now)
+            _SUPABASE_AVAILABILITY_CACHE[cache_key] = (True, time.monotonic())
             observability.update_observation(
                 observation,
                 output_payload={"available": True},
@@ -2909,16 +3169,21 @@ class SupabasePipeline:
         client: httpx.AsyncClient,
         function_name: str,
         payload: dict[str, Any],
+        *,
+        timeout_s: float | None = None,
     ) -> list[dict[str, Any]]:
         url = f"{self._base_url(payload).rstrip('/')}/rest/v1/rpc/{function_name}"
         headers = self._headers(payload)
+        request_timeout = (
+            timeout_s if (timeout_s is not None and timeout_s > 0) else httpx.USE_CLIENT_DEFAULT
+        )
         with observability.start_observation(
             name=f"supabase.rpc.{function_name}",
             as_type="retriever",
             input_payload=payload,
             metadata={"function_name": function_name},
         ) as observation:
-            response = await client.post(url, headers=headers, json=payload)
+            response = await client.post(url, headers=headers, json=payload, timeout=request_timeout)
             try:
                 response.raise_for_status()
             except httpx.HTTPStatusError as exc:
