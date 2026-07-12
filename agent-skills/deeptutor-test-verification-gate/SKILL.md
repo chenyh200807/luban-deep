@@ -24,6 +24,25 @@ Use this skill to make completion evidence-based.
 5. Run the command and preserve the exact command in the report.
 6. Classify the result as `pass`, `partial`, `blocked`, or `not_exercised`.
 
+## Eval Runner Identity
+
+Any eval / smoke / QA run that creates accounts, logs in, binds phone numbers,
+generates session activity, or writes member read-models must run as an
+**eval runner** identity, never as a real-person-shaped account:
+
+- account names use an obvious test prefix: `qa_eval_...`, `eval_...`, or
+  `qa_...`; never real names, real phone owners, or production nicknames;
+- every path that can carry identity metadata must write
+  `account_kind="eval_runner"`, `actor_type="machine"`,
+  `created_by="eval_runner"`, `is_internal_test=true`;
+- new test helpers, seed scripts, and agent automation must reuse these fields
+  or call `external_auth.ensure_external_auth_user()` /
+  `create_external_auth_user()`, which write them automatically;
+- eval runner / machine / synthetic / QA accounts must never count into
+  `member_console` or BI member totals, new-member, or activity metrics;
+- legacy account-name markers are only a fallback for historical pollution;
+  new test accounts need explicit machine-identity fields.
+
 ## PASS Discipline
 
 Do not report PASS when:

@@ -47,9 +47,10 @@ manual GUI control:
 
 ```bash
 WX_DEVTOOLS_CLI=/Applications/wechatwebdevtools.app/Contents/MacOS/cli
+REPO_ROOT=$(git rev-parse --show-toplevel)
 $WX_DEVTOOLS_CLI islogin
-$WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --lang zh
-$WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --auto-port 9420
+$WX_DEVTOOLS_CLI open --project "$REPO_ROOT/yousenwebview" --lang zh
+$WX_DEVTOOLS_CLI auto --project "$REPO_ROOT/yousenwebview" --auto-port 9420
 ```
 
 Keep `entry_surface` as `real_wechat_package` for the primary package, and put
@@ -75,14 +76,17 @@ CLI evidence rules:
   should be one of `real_wechat`, `local_dev_wechat`, `manual_token`, or
   `none`.
 - Local/devtools test login may use the existing backend dev/mock WeChat login
-  path only in non-production. It must still obtain a normal auth token from
+  path (backend `DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN`, or `dev-` / `mock-` login
+  codes) only in non-production. It must still obtain a normal auth token from
   the auth authority, exercise the same `/api/v1/chat/start-turn` and
-  `/api/v1/ws` path, and must not write production DB or create a second
-  learner truth.
+  `/api/v1/ws` path, and must not write production DB, fabricate canonical
+  learner truth, or create a second chat entry.
 - If DevTools project-open or auto is skipped, report true-entry status as
   `partial` or `pending`, even if Web harness and contract tests pass.
 - Do not run `upload` by default; use upload/preview commands only when the user
-  explicitly asks for publishing or package preview.
+  explicitly asks for publishing or package preview, and prefer
+  `miniprogram-ci` over DevTools CLI publish commands for upload/preview
+  pipelines.
 
 ## Scenario Design
 

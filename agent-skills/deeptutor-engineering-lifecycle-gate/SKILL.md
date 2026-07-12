@@ -44,6 +44,14 @@ stop condition:
 If the frame cannot identify the authority chain or verification target, keep
 investigating before editing files.
 
+During execution, keep two self-checks running:
+
+- If an implementation grows from ~50 lines toward ~200 lines, stop and ask
+  whether one-off logic is being turned into a framework.
+- If the diff contains lines that cannot be traced directly to the user's
+  request, delete them or split them out by default; do not smuggle
+  "drive-by improvements" into this task.
+
 ## Dispatch Matrix
 
 Use the narrowest matching local workflow:
