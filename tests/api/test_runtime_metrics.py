@@ -462,3 +462,106 @@ def test_merge_metric_snapshots_sums_summary_maintainer_counts_across_workers() 
     )
     assert 'deeptutor_summary_maintainer_total{decision="skip_throttled",outcome="skipped"} 3' in body
     assert 'deeptutor_summary_maintainer_total{decision="run_evidence",outcome="no_change"} 1' in body
+
+
+def test_record_assessment_explanation_buckets_sum_and_count() -> None:
+    metrics = TurnRuntimeMetrics()
+    metrics.record_assessment_explanation(elapsed_ms=300.0)
+    metrics.record_assessment_explanation(elapsed_ms=3000.0)
+    metrics.record_assessment_explanation(elapsed_ms=999999.0)
+
+    entry = metrics.snapshot()["assessment_explanation_ms"]
+    assert entry is not None
+    assert entry["bucket_bounds_ms"] == [
+        500.0,
+        1000.0,
+        2000.0,
+        4000.0,
+        8000.0,
+        16000.0,
+        32000.0,
+        64000.0,
+    ]
+    # 300 -> le=500 bucket; 3000 -> le=4000 bucket; 999999 -> overflow (+Inf) bucket.
+    assert entry["bucket_counts"] == [1, 0, 0, 1, 0, 0, 0, 0, 1]
+    assert entry["count"] == 3
+    assert entry["sum_ms"] == 1003299.0
+
+
+def test_record_assessment_explanation_is_fail_open_on_bad_input() -> None:
+    metrics = TurnRuntimeMetrics()
+    metrics.record_assessment_explanation(elapsed_ms=None)  # type: ignore[arg-type]
+    metrics.record_assessment_explanation(elapsed_ms="nan-ish")  # type: ignore[arg-type]
+    metrics.record_assessment_explanation(elapsed_ms=-5.0)
+    metrics.record_assessment_explanation(elapsed_ms=float("nan"))
+    # An idle/rejected-only histogram exports nothing (None), not an empty series.
+    assert metrics.snapshot()["assessment_explanation_ms"] is None
+
+    metrics.record_assessment_explanation(elapsed_ms=120.0)
+    assert metrics.snapshot()["assessment_explanation_ms"]["count"] == 1
+
+
+def test_render_prometheus_metrics_exposes_assessment_explanation_histogram() -> None:
+    metrics = TurnRuntimeMetrics()
+    metrics.record_assessment_explanation(elapsed_ms=300.0)
+    metrics.record_assessment_explanation(elapsed_ms=700.0)
+    metrics.record_assessment_explanation(elapsed_ms=70000.0)
+
+    body = render_prometheus_metrics(
+        http_snapshot={},
+        turn_snapshot=metrics.snapshot(),
+        surface_snapshot={},
+        readiness_snapshot={},
+        provider_error_rates={},
+        circuit_breakers={},
+        release_snapshot={},
+    )
+    assert "# TYPE deeptutor_assessment_deep_explanation_ms histogram" in body
+    assert 'deeptutor_assessment_deep_explanation_ms_bucket{le="500"} 1' in body
+    assert 'deeptutor_assessment_deep_explanation_ms_bucket{le="1000"} 2' in body
+    assert 'deeptutor_assessment_deep_explanation_ms_bucket{le="64000"} 2' in body
+    assert 'deeptutor_assessment_deep_explanation_ms_bucket{le="+Inf"} 3' in body
+    assert "deeptutor_assessment_deep_explanation_ms_sum 71000.0" in body
+    assert "deeptutor_assessment_deep_explanation_ms_count 3" in body
+
+
+def test_render_prometheus_metrics_omits_assessment_explanation_when_idle() -> None:
+    metrics = TurnRuntimeMetrics()
+    body = render_prometheus_metrics(
+        http_snapshot={},
+        turn_snapshot=metrics.snapshot(),
+        surface_snapshot={},
+        readiness_snapshot={},
+        provider_error_rates={},
+        circuit_breakers={},
+        release_snapshot={},
+    )
+    # HELP/TYPE headers always present; no data lines when nothing was recorded.
+    assert "# TYPE deeptutor_assessment_deep_explanation_ms histogram" in body
+    assert "deeptutor_assessment_deep_explanation_ms_count" not in body
+
+
+def test_merge_metric_snapshots_sums_assessment_explanation_across_workers() -> None:
+    worker_a = TurnRuntimeMetrics()
+    worker_a.record_assessment_explanation(elapsed_ms=300.0)
+    worker_a.record_assessment_explanation(elapsed_ms=5000.0)
+    worker_b = TurnRuntimeMetrics()
+    worker_b.record_assessment_explanation(elapsed_ms=450.0)
+
+    merged = merge_metric_snapshots(
+        [{"turn": worker_a.snapshot()}, {"turn": worker_b.snapshot()}]
+    )["turn"]["assessment_explanation_ms"]
+
+    assert merged["count"] == 3
+    assert merged["sum_ms"] == 5750.0
+    assert merged["bucket_counts"][0] == 2  # 300 + 450 in the le=500 bucket
+    assert merged["bucket_counts"][4] == 1  # 5000 in the le=8000 bucket
+
+
+def test_merge_metric_snapshots_assessment_explanation_none_when_idle() -> None:
+    worker_a = TurnRuntimeMetrics()
+    worker_b = TurnRuntimeMetrics()
+    merged = merge_metric_snapshots(
+        [{"turn": worker_a.snapshot()}, {"turn": worker_b.snapshot()}]
+    )["turn"]["assessment_explanation_ms"]
+    assert merged is None
