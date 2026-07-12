@@ -77,6 +77,25 @@ function loadReportPage(stubs) {
     },
     require: function (request) {
       if (request === "../../utils/api") return stubs.api;
+      if (request === "../../utils/report-cache") {
+        return stubs.reportCache || {
+          read: function (userId, maxAgeMs) {
+            if (!userId) return null;
+            var cached = storage["deeptutor.report.unifiedSnapshot.v2:" + encodeURIComponent(userId)];
+            if (!cached || cached.userId !== userId || !cached.cachedAt) return null;
+            if (Date.now() - cached.cachedAt > maxAgeMs) return null;
+            return cached.snapshot || null;
+          },
+          write: function (userId, snapshot) {
+            if (!userId) return false;
+            var key = "deeptutor.report.unifiedSnapshot.v2:" + encodeURIComponent(userId);
+            var value = { userId: userId, cachedAt: Date.now(), snapshot: snapshot };
+            storageWrites.push({ key: key, value: value });
+            storage[key] = value;
+            return true;
+          },
+        };
+      }
       if (request === "../../utils/auth") {
         // 2026-06-12 契约演进（paywall）：report.js 新增 auth.isLoggedIn 门控以支持游客态。
         // 合并默认 isLoggedIn（已登录）到所有 auth stub，避免各调用方逐一补充。
@@ -84,6 +103,9 @@ function loadReportPage(stubs) {
           {
             isLoggedIn: function () {
               return true;
+            },
+            getUserId: function () {
+              return "report-user";
             },
           },
           stubs.auth || {},
@@ -1487,7 +1509,8 @@ function createPageInstance(pageDef) {
       };
       var pageDef = loadReportPage({
         storageSeed: {
-          "deeptutor.report.unifiedSnapshot.v1": {
+          "deeptutor.report.unifiedSnapshot.v2:student_a": {
+            userId: "student_a",
             cachedAt: Date.now(),
             snapshot: cachedSnapshot,
           },
@@ -1521,7 +1544,11 @@ function createPageInstance(pageDef) {
             return Promise.resolve({});
           },
         },
-        auth: {},
+        auth: {
+          getUserId: function () {
+            return "student_a";
+          },
+        },
         helpers: {
           getWindowInfo: function () {
             return { statusBarHeight: 20, pixelRatio: 2 };

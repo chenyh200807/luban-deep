@@ -6,6 +6,13 @@
 
 ## Deviations
 
+### 2026-07-12（五模块学员真相 root-cause closure）
+- **[主病]** 同一 learner×pack 被 learning-report 近 8 天窗口、`review_due` fresh 重置、前端固定三态和本机 due/cache 分别解释，真实页面因此可能同时出现学习 0/40、已学完、复习 0 到期、错因待还和学情无盲点。裁决不是新建 LearnerSnapshot 表，而是恢复既有分层：ledger=`learner_memory_events`；生命周期=`pack_lifecycle_projection`；间隔=`revalidation_queue`；跨模块 envelope=`learning_report_read_model.v2`。
+- **[已完成的 P0]** lifecycle 改读分页全历史 learning evidence，最近 8 天只留给趋势；canonical terminal 派生本轮 review status/success streak/cycle anchor，item/孤立 station 不推进；成功按既有 `DECAY_PROFILES` 走 3/7/14，失败重置，probe identity 纳入 cycle anchor。一次 pack 全对仍只表示本轮通过，绝不粗升整站 mastered/清 sibling 错因。
+- **[三模块同账]** learning report 输出 `pack_review`，学习/复习/学情消费同一切片；复习页删除独立 `/review-due` learner-state 请求。兼容 endpoint 保留，但仅调用同一 lifecycle/queue 内核。首页固定三态、假个性化、同一掌握数冒充置信度/趋势、F16 雏形入口全部删除。
+- **[信任与隐私]** report cache key/envelope 按 canonical user 双校验，logout purge；无 user 禁 hydrate。站点自测不再直达完成交接，签发轻练只有拿到 `terminal_event_id` 才在原页显示 canonical 收据，随后直接返回，不再用可伪造 query 把 terminal truth 交给 handoff 二次投影；删除本机 `luban_retest_due_*`，微信订阅只报告授权状态，不承诺发送；诊断 CTA 改为诚实的路线跳转，Profile 提醒文案明确还需微信授权。
+- **[仍是 release blocker]** first-run 四题仍缺双教研签发，409 保持 fail-closed；生产 rollout flags、真实订阅模板/服务端发送注册、跨天跨设备真实 cohort、完整 FSRS 参数化均未被本地代码冒充已完成。原 dirty 五模块 worktree 的 concept-card/retest WIP 不在本提交边界，后续只能显式移植，禁止扫入。
+
 ### 2026-07-11（首次体验 × 五模块原生旅程）
 - **[基线纠偏：第一次确实落在了错误视觉版本]** 名义 `origin/main@b3e9ab09` 比当前五模块产品视觉线少 15 个提交，缺少 `79fddae6` 带来的安全区 TabBar、正确线性图标与中间朱印尺寸/阴影，因此首轮虽然功能正确，视觉壳仍是旧版。已停止在旧 worktree 继续开发，把首次体验的窄 diff 重新移植到 `origin/luban/seethrough-visuals-on-main@22c2a218` 的新隔离 worktree，并手工合并 `learn.js` 以保留看穿 5 关逻辑；`custom-tab-bar` 三文件相对该正确基线保持零 diff。该视觉线与 `origin/main` 仍有 `15 ahead / 2 behind` 分叉，后续进 main 必须先显式整合，不能把旧 `origin/main` 快照冒充产品当前版本。
 - **[登录态闭环已完成，本轮不部署]** 使用隔离 `qa_eval` 机器身份和独立本地 user/auth 数据目录启动 authority，DevTools 在正确 `yousenwebview` 项目根中完成登录；课程、首页仪表盘、learning report 三条请求均为 200，学习、复习、问鲁班、学情、我的五模块均能以同一身份进入。owner 已授权 commit、review、push、PR merge main；部署仍不在本轮范围。
@@ -29,7 +36,7 @@
 ### 2026-07-05（复习二期·两屏实现，即时入账）
 - **[供给真相 ×3] mistake-book 记账行无 pack_id/error_code/分值字段**：pack 归属只能诚实匹配 lessons read model（对不上=无换皮 CTA）；"到期×分值排序"降级为按到期先后；"你当时的作答"对照 chips 无列表级供给→深链 attempt-detail 替代不伪造。前端原本也无 ERROR_CODE_REGISTRY 镜像（新建呈现层镜像，注明权威=error_codes.py）。
 - **[禁假声明] 漏点"已记进错因银行"文案不落**：前端无记账签发权（attempt_ref 服务端签名），改暖提示，测试钉死禁该句——宁少一句爽文案不造一个假承诺。
-- **[销账保守标准]**：换皮复测全对才本地销账；用户手动 mastered 在已销区诚实标"已标记销账"不冒充复测通过。零掌握态写入被源码级测试钉死。
+- **[历史方案，2026-07-12 已废止]**：早期曾让换皮复测全对触发本机销账；现已证实整包结果不能摊销单题且会跨设备漂移，客户端本地销账与对应 storage 已全部删除，只呈现服务端错题状态。
 - **[半写降级]** R6 挖空 bank 无供给→自由默写 textarea 如实降级（页面明标"精确挖空准备中"）；R8 解药卡同型降级"解药整理中"。两个供给接口形状已在 vm 头注钉死（R8 键={pack_id,error_code}；R6 键={pack_id}），内容管线喂 bank 即点亮零页面改动。
 - **[闯关入口 fail-closed]** gauntletAvailable=retest_available 单一判定点：无变体池的站无闯关入口；"继续下一关"因无队列供给降级"回到复习"。
 - **[N+1 防线]** 换皮 CTA 的池探测只在详情页单次执行，禁列表级逐行探测。
@@ -141,7 +148,7 @@
 ### 2026-07-10（retest 纸墨版整页重做 · owner"要 wow 不要普通"返工 · 即时入账）
 - **[编译资产焊进反馈] 教材原文并排卡**：发现变体 `anchor` 与考点卡/挖空 bank 的 `point_id` 同为 kc: 坐标系 → `build_retest_items` 按 `anchor==point_id` join **同 pack** signed 考点卡（同一 `_load_signed_bank` 双闸，quote 逐字透传零生成，join 不中 fail-closed 缺省；跨包借 quote 红线不适用=只 join 自己 pack）。实测 121/1029 变体可翻出阅卷认的教材原句（A01 27/J01 52/N01 12/S05 30）——"答完一题翻出教材那一句"落地。
 - **[整页重做] retest 从深色题列表 → 纸墨单题聚焦流**：pk token 单一权威；墨点进度（对竹青/错赭/当前墨环）；印章反馈（真懂/差一步 衬线圆章 stamp-in）；门道段答对也给；书页样原文卡（朱红书脊+衬线引文+页码角注，有原文卡时不露 kc 坐标）；完场纸墨收据（大分数/考法覆盖/原文句数/错题"再看一眼"清单/明日换皮·回炉完成朱红章）。动效只动 transform/opacity（丝滑纪律）。
-- **[链路零漂移]**：telemetry（retest_item_answered/learning_action_completed + practice_mode 命门）、station_completed 信号、本地销账 storage、COPY 双模式全部原样；判分仍本地确定性 choice==expected_ok。
+- **[历史记录，2026-07-12 已收权]**：当时保留了本地销账 storage 与客户端判分；当前 terminal 只认服务端 signed rescore，旧 storage 已删除，页面不再自行宣告单题销账。
 - **验证**：pytest luban_lesson 57（含 join 签发闸/命中/缺省三态）；node 全量 0 fail；wxml 平衡自检；DevTools automator 全流程实测（5 题走完：反馈满配截图/收据 4/5·5 考法·1 原文）。commits `7bb4e1d7`+细节修。
 - **待铺（内容侧非工程）**：原文卡覆盖率吃考点卡签发面（现 5 站）——考点卡编译脚本跑其余绿灯 pack 即自动放大，无代码改动。
 
@@ -202,7 +209,7 @@
 - **撤回旧链路说明**：retest 不再是“本地判分 + telemetry + 页面发 station_completed”。客户端本地判分只保留即时反馈，不具 learner truth 权威；最终 completion 必须 POST 到服务端按 signed variant bank 重判。
 - **根因**：item row/attempt truth 粒度错位，`learning_synthesis`、three-layer projection、learning report 三处各自按行数升档；partial item 又提前携带 verified 终态。
 - **收权**：shared evidence lifecycle 统一 source/promotion/attempt/terminal；RetestWritebackService 唯一写 item→terminal→station；review 绑定 due probe，forward 恒 non-promoting；处方和 probe identity 与 target pack 分离。GET 签发绑定 user/pack/day/mode/variant-set 的 selection identity，POST 验签后按原签发日重判，跨午夜/断网 retry 不换题。
-- **五模块侧门收口**：gauntlet 的即时再练显式归 forward；errorbank 删除“有题池=已到期”的前端推断，只消费 canonical review-due，pack、`retest_available`、probe 三者齐全才亮销账 CTA，并透传 `mode=review&probe_id`。总指挥否证式终审未发现仍可绕过 rollout/probe/selection/terminal 的 retest completion 入口。
+- **五模块侧门收口（后续已加强）**：gauntlet 的即时再练显式归 forward；errorbank 删除“有题池=已到期”的前端推断，只消费 canonical review-due，pack、`retest_available`、probe 三者齐全才亮复习 CTA，并透传 `mode=review&probe_id`。2026-07-12 又删除了复测后的本机单题销账，terminal truth 只留服务端。
 - **UI 语义**：保存失败不出收据、不说“明天见”；服务端 terminal 成功后 forward 进 handoff，review 回复习。handoff 只保留提醒与 telemetry，不再写 learner state。
 - **发布边界**：本轮不部署。首次四题仍因双教研签发未完成而 fail closed；真实微信订阅提醒仍依赖模板 ID，不能用页内红点冒充系统推送。
 

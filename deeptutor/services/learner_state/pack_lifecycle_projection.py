@@ -31,6 +31,9 @@ from typing import Any
 
 from loguru import logger
 
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    is_signed_luban_retest_terminal,
+)
 from deeptutor.services.learner_state.lesson_evidence import is_lesson_view_event
 
 _REPO = Path(__file__).resolve().parents[3]
@@ -206,6 +209,69 @@ def _claim_packs(claims: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return by_pack
 
 
+def _pack_retest_facts(events: list[Any]) -> dict[str, dict[str, Any]]:
+    """Project terminal-only signed retest facts per pack.
+
+    Item rows and ``station_completed`` mirrors are intentionally ignored.  The
+    canonical completion terminal already carries the server-rescored outcome;
+    accepting a partial item append here would let an interrupted write promote
+    lifecycle or move the review clock.
+    """
+    by_pack: dict[str, dict[str, Any]] = {}
+    seen_completions: set[str] = set()
+    ordered = sorted(
+        list(events or []),
+        key=lambda event: (
+            str(getattr(event, "created_at", "") or ""),
+            str(getattr(event, "event_id", "") or ""),
+        ),
+    )
+    for event in ordered:
+        payload = getattr(event, "payload_json", None) or {}
+        if not isinstance(payload, dict) or not is_signed_luban_retest_terminal(event):
+            continue
+        completion_id = str(payload.get("retest_completion_id") or "").strip()
+        pack_id = str(payload.get("pack_id") or payload.get("target_pack_id") or "").strip().upper()
+        if completion_id in seen_completions:
+            continue
+        seen_completions.add(completion_id)
+        mode = "review" if str(payload.get("practice_mode") or "").strip() == "review" else "forward"
+        created_at = str(getattr(event, "created_at", "") or "").strip()
+        event_id = str(getattr(event, "event_id", "") or "").strip()
+        fact = by_pack.setdefault(
+            pack_id,
+            {
+                "last_completion_at": "",
+                "last_review_at": "",
+                "last_review_status": "",
+                "successful_review_streak": 0,
+                "review_cycle_anchor": "",
+                "terminal_evidence_refs": [],
+            },
+        )
+        fact["last_completion_at"] = created_at
+        fact["review_cycle_anchor"] = event_id or completion_id
+        if event_id:
+            fact["terminal_evidence_refs"].append(event_id)
+        if mode != "review":
+            # A new forward completion starts a fresh learning cycle.  Older
+            # review success must not keep the new cycle on its old 7/14-day
+            # clock.
+            fact["last_review_at"] = ""
+            fact["last_review_status"] = ""
+            fact["successful_review_streak"] = 0
+            continue
+        result = payload.get("prescription_result")
+        status = str(result.get("status") or "").strip() if isinstance(result, dict) else ""
+        verified = status == "verified"
+        fact["last_review_at"] = created_at
+        fact["last_review_status"] = "verified" if verified else "not_verified"
+        fact["successful_review_streak"] = (
+            int(fact.get("successful_review_streak") or 0) + 1 if verified else 0
+        )
+    return by_pack
+
+
 def project_pack_lifecycle(
     *,
     events: list[Any] | None,
@@ -226,6 +292,7 @@ def project_pack_lifecycle(
     exposed_packs: dict[str, dict[str, int]] = {}
     practiced_packs: dict[str, int] = {}
     unassigned: list[dict[str, Any]] = []
+    retest_by_pack = _pack_retest_facts(list(events or []))
 
     for event in list(events or []):
         payload = getattr(event, "payload_json", None) or {}
@@ -272,7 +339,8 @@ def project_pack_lifecycle(
     for pack_id in pack_ids:
         mastery = mastery_by_pack.get(pack_id) or {}
         decay_states = mastery.get("decay_states") or set()
-        has_practice = pack_id in practiced_packs or bool(mastery)
+        retest = retest_by_pack.get(pack_id) or {}
+        has_practice = pack_id in practiced_packs or bool(mastery) or bool(retest)
         has_exposure = pack_id in exposed_packs
 
         if pack_id in verified_packs:
@@ -294,6 +362,15 @@ def project_pack_lifecycle(
             "exposure": exposed_packs.get(pack_id, {}),
             "practice_event_count": practiced_packs.get(pack_id, 0),
             "claim_count": int(mastery.get("claim_count", 0)),
+            # Review cadence facts are terminal-only and remain pack-level
+            # scheduling evidence.  Even a fully-correct pack retest does not
+            # coarse-promote the whole pack to mastered or settle sibling errors.
+            "last_completion_at": str(retest.get("last_completion_at") or ""),
+            "last_review_at": str(retest.get("last_review_at") or ""),
+            "last_review_status": str(retest.get("last_review_status") or ""),
+            "successful_review_streak": int(retest.get("successful_review_streak") or 0),
+            "review_cycle_anchor": str(retest.get("review_cycle_anchor") or ""),
+            "terminal_evidence_refs": list(retest.get("terminal_evidence_refs") or []),
         }
 
     return {

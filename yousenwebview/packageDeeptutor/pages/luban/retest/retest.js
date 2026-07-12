@@ -28,7 +28,7 @@ var COPY = {
     loadingText: "正在取今天的题…",
     emptyText: "今天这一站暂时没有复测题，明天再来。",
     doneTitlePrefix: "今天的回炉完成",
-    doneDesc: "这个考点在你这儿越来越稳了。明天见。",
+    doneDesc: "本轮结果已保存，系统会按你的复习节奏再次安排。",
   },
   forward: {
     navTitle: "2 分钟轻练",
@@ -37,7 +37,7 @@ var COPY = {
     loadingText: "正在给你抽题…",
     emptyText: "这一站的轻练题即将开通，先去把它讲懂。",
     doneTitlePrefix: "轻练完成",
-    doneDesc: "先热了个身。明天这个考点会换身皮再来考你一次，明天见。",
+    doneDesc: "轻练结果已保存；何时再练以复习页的服务端排程为准。",
   },
 };
 
@@ -55,6 +55,7 @@ Page({
     completionId: "",
     syncStatus: "idle",
     syncError: "",
+    terminalEventId: "",
     navTitle: COPY.review.navTitle,
     heroKicker: COPY.review.heroKicker,
     heroTitle: COPY.review.heroTitle,
@@ -249,14 +250,8 @@ Page({
   },
 
   continueAfterReceipt() {
-    if (this.data.mode === "forward" && typeof wx !== "undefined" && wx.redirectTo) {
-      wx.redirectTo({
-        url:
-          "/packageDeeptutor/pages/luban/handoff/handoff?pack_id=" +
-          encodeURIComponent(this.data.packId || ""),
-      });
-      return;
-    }
+    // Canonical receipt is already rendered on this page.  Do not hand a
+    // terminal truth to another page through forgeable query parameters.
     this.goBack();
   },
 
@@ -276,16 +271,10 @@ Page({
           return { variant_id: item.variant_id, choice_ok: item.chosenOk === true };
         }),
       })
-      .then(function () {
-        if (typeof wx !== "undefined" && wx.setStorageSync) {
-          try {
-            wx.setStorageSync("luban_retest_last:" + (that.data.packId || ""), {
-              correct: correctCount,
-              total: that.data.total,
-              at: Date.now(),
-            });
-          } catch (_err) {}
-        }
+      .then(function (response) {
+        var body = api.unwrapResponse(response) || response || {};
+        var terminalEventId = String(body.terminal_event_id || "").trim();
+        if (!terminalEventId) throw new Error("canonical terminal receipt missing");
         telemetry.trackProductBehavior("learning_action_completed", {
           module: "practice",
           action: "complete",
@@ -294,7 +283,13 @@ Page({
           result: correctCount + "/" + that.data.total,
           practiceMode: that.data.mode,
         });
-        that.setData({ syncStatus: "synced", syncError: "", done: true, showReceipt: true });
+        that.setData({
+          syncStatus: "synced",
+          syncError: "",
+          terminalEventId: terminalEventId,
+          done: true,
+          showReceipt: true,
+        });
       })
       .catch(function (err) {
         that.setData({

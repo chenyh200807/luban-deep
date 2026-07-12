@@ -5,8 +5,8 @@
 //   error_label 由判分内核写入(diagnosis 或原始错因码), 本 vm 只做呈现层
 //   人话化(镜像 deeptutor/contracts/error_codes.py 的 ERROR_CODE_REGISTRY
 //   标签), 禁第二套错因归因。
-// - 销账 = 呈现层状态: 服务端 mastered_at(用户手动标记) ∪ 本地换皮复测
-//   通过记录(local storage)。绝不写掌握态——掌握结论只归 learner truth 链路。
+// - 已标记 = 只呈现服务端 mastered_at(用户手动标记)。复测完成只推进
+//   canonical review cadence, 不在本地把整包结果摊到某一笔错题上。
 // - R8 解药 fail-closed: runtime 尚无解药 bank 供给(pack MD 不进 runtime)。
 //   detail vm 留 (pack_id, error_code) 数据位, 供给 bank 上线后把响应喂进
 //   buildErrorbankDetail 的 antidote 参数即亮; 无供给时卡片降级为
@@ -196,13 +196,11 @@ function _normalizeEntry(raw, index, lessons, nowMs) {
  * @param {object} args
  *   mistakeBook  = GET /api/v1/mobile/mistake-book 响应 body(include_mastered=true)
  *   lessons      = GET /api/v1/luban/lessons 响应 body(pack 归属唯一对照源)
- *   settledLocal = 本地销账映射 {itemKey: {at: <ms>, packId}}(换皮复测通过的呈现层记录)
  *   nowMs        = 注入时钟(测试用), 缺省 Date.now()
  */
 function buildErrorbankViewModel(args) {
   var a = _obj(args);
   var nowMs = Number(a.nowMs) > 0 ? Number(a.nowMs) : Date.now();
-  var settledLocal = _obj(a.settledLocal);
   var items = _arr(_obj(a.mistakeBook).items).map(function (raw, index) {
     return _normalizeEntry(raw, index, a.lessons, nowMs);
   });
@@ -224,23 +222,12 @@ function buildErrorbankViewModel(args) {
   var pending = [];
   var settled = [];
   items.forEach(function (entry) {
-    var local = _obj(settledLocal[entry.key]);
-    if (local.at) {
-      settled.push(
-        Object.assign({}, entry, {
-          settledAtMs: Number(local.at),
-          settledLine: _shortDate(new Date(Number(local.at)).toISOString()) + " 换皮复测通过 · 这笔销了",
-          settledVia: "retest",
-        }),
-      );
-      return;
-    }
     if (entry.masteredAt) {
       settled.push(
         Object.assign({}, entry, {
-          // 服务端 mastered_at = 用户手动标记的呈现层旗标, 诚实区分于复测销账
+          // 服务端 mastered_at = 用户手动标记的呈现层旗标, 不冒充复测或掌握推断。
           settledAtMs: _time(entry.masteredAt),
-          settledLine: (entry.masteredLabel ? entry.masteredLabel + " " : "") + "已标记销账",
+          settledLine: (entry.masteredLabel ? entry.masteredLabel + " " : "") + "服务端已标记",
           settledVia: "manual",
         }),
       );
@@ -267,12 +254,12 @@ function buildErrorbankViewModel(args) {
     settledEntries: settled,
     pendingCount: pending.length,
     settledCount: settled.length,
-    // 账本环 = 已销进度(竹青), 全空时 0
+    // 账本环 = 服务端已标记占比(竹青), 全空时 0
     settledPercent: totalCount ? Math.round((settled.length / totalCount) * 100) : 0,
     heroTitle: pending.length
-      ? "待还 " + pending.length + " 笔 · 已销 " + settled.length + " 笔"
-      : "待还 0 笔 · 都还清了",
-    // 空态(待还 0) = D1 铁律深链, 已销账本保留(赢过的证据)
+      ? "待处理 " + pending.length + " 笔 · 已标记 " + settled.length + " 笔"
+      : "当前没有待处理错因",
+    // 空态(待处理 0) = D1 铁律深链, 服务端已标记记录仍保留。
     allClear: pending.length === 0,
     isEmpty: totalCount === 0,
   };
@@ -363,7 +350,7 @@ function buildErrorbankDetail(entry, opts) {
         },
     // 解药 bank 查询键(数据位): 供给上线后按此形状取
     antidoteQuery: { pack_id: _str(e.packId), error_code: _str(e.errorCode) },
-    // ④ 销账动线: canonical 到期 probe 齐全才承诺换皮(fail-closed)
+    // ④ 复习动线: canonical 到期 probe 齐全才允许进入换皮复测(fail-closed)
     retest: {
       ready: retestReady,
       packId: _str(e.packId),

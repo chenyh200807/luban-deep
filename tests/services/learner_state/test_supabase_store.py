@@ -477,3 +477,36 @@ def test_read_learning_evidence_event_uses_user_event_and_memory_kind_filters() 
     assert requests[-1]["params"]["limit"] == "1"
 
     asyncio.run(transport_client.aclose())
+
+
+def test_sync_full_learning_evidence_read_pages_past_postgrest_row_cap() -> None:
+    requests: list[dict[str, str]] = []
+    rows = [
+        {
+            "event_id": f"evt_{index:04d}",
+            "user_id": "student_demo",
+            "memory_kind": "learning_evidence",
+            "created_at": f"2026-01-{(index % 28) + 1:02d}T00:00:00+00:00",
+            "payload_json": {"event_type": "learning_evidence"},
+        }
+        for index in range(1201)
+    ]
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        params = dict(request.url.params)
+        requests.append(params)
+        offset = int(params.get("offset", 0))
+        limit = int(params.get("limit", 500))
+        return httpx.Response(200, json=rows[offset : offset + limit], request=request)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    store = LearnerStateSupabaseSyncCoreStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    projected = store.read_learning_evidence_events("student_demo", limit=None, since=None)
+
+    assert len(projected) == 1201
+    assert [request["offset"] for request in requests] == ["0", "500", "1000"]
+    client.close()

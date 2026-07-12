@@ -3,7 +3,7 @@
 // 数据边界(零第二学情权威, 详见 errorbank-view-model.js 头注):
 // - 记账真值 = 云端错题集 read model(只读); pack 归属对照 lessons read model;
 // - R8 解药 runtime 无供给 → fail-closed 降级卡(深链既有解析), 数据位已留;
-// - 销账 = 呈现层: canonical 到期复测通过记录 + 服务端 mastered 旗标, 绝不写掌握态;
+// - 已标记 = 只呈现服务端 mastered 旗标;复测只推进复习节奏,绝不在前端销单题;
 // - 到期复测 = 只消费 review-due 的 pack + probe; 页面不探题池、不自算到期。
 var api = require("../../../utils/api");
 var auth = require("../../../utils/auth");
@@ -12,18 +12,7 @@ var route = require("../../../utils/route");
 var runtime = require("../../../utils/runtime");
 var errorbankViewModel = require("../../../utils/errorbank-view-model");
 
-var SETTLED_STORE_KEY = "luban_errorbank_settled_v1";
-var RETEST_RESULT_PREFIX = "luban_retest_last:";
 var SETTLED_PREVIEW_COUNT = 2;
-
-function _readStorage(key) {
-  if (typeof wx === "undefined" || !wx.getStorageSync) return null;
-  try {
-    return wx.getStorageSync(key) || null;
-  } catch (_err) {
-    return null;
-  }
-}
 
 function _writeStorage(key, value) {
   if (typeof wx === "undefined" || !wx.setStorageSync) return;
@@ -45,8 +34,6 @@ Page({
     detail: null,
     settledExpanded: false,
     settledPreview: [],
-    // 销账竹青章仪式: 复测通过返回本页时短暂高亮
-    justSettledKey: "",
   },
 
   onLoad: function () {
@@ -64,14 +51,9 @@ Page({
       runtime.redirectToLogin(route.lubanErrorbank());
       return;
     }
-    this._pendingRetest = null; // {packId, itemKey, leftAt}
     this._probeCache = {}; // packId -> {available: bool, probeId: string}
     this._antidoteCache = {}; // "packId::errorCode" -> {mental_model, textbook_ref} | null
     this._loadAll();
-  },
-
-  onShow: function () {
-    this._settleFromRetestResult();
   },
 
   onPullDownRefresh: function () {
@@ -170,18 +152,13 @@ Page({
     }
   },
 
-  // ④ 销账动线 CTA: 只允许 canonical 到期 probe 进入 review 复测。
+  // ④ 复习动线 CTA: 只允许 canonical 到期 probe 进入 review 复测。
   openRetest: function () {
     var detail = this.data.detail;
     if (!detail || !detail.retest || !detail.retest.ready) return;
     var packId = detail.retest.packId;
     var probeId = detail.retest.probeId;
     if (!packId || !probeId) return;
-    this._pendingRetest = {
-      packId: packId,
-      itemKey: detail.key,
-      leftAt: Date.now(),
-    };
     if (typeof wx !== "undefined" && wx.navigateTo) {
       wx.navigateTo({
         url:
@@ -224,7 +201,7 @@ Page({
       retestProbe: probe,
       position: { index: index, total: total },
     });
-    this.setData({ mode: "detail", detail: detail, justSettledKey: "" });
+    this.setData({ mode: "detail", detail: detail });
     if (entry.packId && !probe) this._resolveDueProbe(entry, index, total);
     if (
       antidoteKey &&
@@ -301,32 +278,6 @@ Page({
       });
   },
 
-  // 复测通过返回 → 本地销账(呈现层记录, 绝不写掌握态)+ 竹青销章仪式
-  _settleFromRetestResult: function () {
-    var pending = this._pendingRetest;
-    if (!pending) return;
-    this._pendingRetest = null;
-    var result = _readStorage(RETEST_RESULT_PREFIX + pending.packId);
-    if (
-      !result ||
-      !(Number(result.at) > pending.leftAt) ||
-      !(Number(result.total) > 0) ||
-      Number(result.correct) !== Number(result.total)
-    ) {
-      return; // 没做完/没全对: 不销账, 无声返回
-    }
-    var settled = this._readSettled();
-    settled[pending.itemKey] = { at: Number(result.at), packId: pending.packId };
-    _writeStorage(SETTLED_STORE_KEY, settled);
-    this.setData({ mode: "list", detail: null, justSettledKey: pending.itemKey });
-    this._rebuildVm();
-  },
-
-  _readSettled: function () {
-    var stored = _readStorage(SETTLED_STORE_KEY);
-    return stored && typeof stored === "object" ? stored : {};
-  },
-
   _loadAll: function () {
     var that = this;
     this.setData({ loading: true, errorText: "" });
@@ -363,7 +314,6 @@ Page({
     var vm = errorbankViewModel.buildErrorbankViewModel({
       mistakeBook: this._mistakeBody || {},
       lessons: this._lessonsBody || {},
-      settledLocal: this._readSettled(),
     });
     this.setData({ vm: vm });
     this._syncSettledPreview();

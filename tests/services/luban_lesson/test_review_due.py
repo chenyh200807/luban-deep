@@ -7,8 +7,57 @@ from deeptutor.services.luban_lesson.review_due import build_review_due_projecti
 
 
 def _ev(created, pack, sig="station_completed"):
-    return SimpleNamespace(created_at=created,
-                           payload_json={"learning_signal_type": sig, "concept_id": pack})
+    completion_id = f"cmp_{pack}_{created}"
+    return SimpleNamespace(
+        event_id=f"station_{completion_id}",
+        created_at=created,
+        source_feature="learner_signal",
+        payload_json={
+            "learning_signal_type": sig,
+            "concept_id": pack,
+            "completion_id": completion_id,
+        },
+    )
+
+
+def _terminal(created, pack, *, completion_id, mode="forward", score_ratio=1.0, status=None):
+    result_status = status or ("verified" if mode == "review" and score_ratio >= 1.0 else "not_verified")
+    return SimpleNamespace(
+        event_id=f"terminal_{completion_id}",
+        created_at=created,
+        source_feature="assessment_testset",
+        source_id=f"{completion_id}:terminal",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "assessment_testset",
+            "assessment_type": f"luban_{mode}_completion",
+            "retest_completion_id": completion_id,
+            "completion_terminal": True,
+            "practice_mode": mode,
+            "pack_id": pack,
+            "target_pack_id": pack,
+            "score_ratio": score_ratio,
+            "claim_promotion_allowed": mode == "review",
+            "prescription_result": {"status": result_status, "score_ratio": score_ratio},
+            "quality": {
+                "authority": "signed_variant_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "high" if mode == "review" else "medium",
+                "evidence_level": "L2_real_retest" if mode == "review" else "L0_observed",
+            },
+        },
+    )
+
+
+def _completion_pair(created, pack, *, completion_id, mode="forward", score_ratio=1.0):
+    station = _ev(created, pack)
+    station.payload_json["completion_id"] = completion_id
+    station.event_id = f"station_{completion_id}"
+    return [
+        _terminal(created, pack, completion_id=completion_id, mode=mode, score_ratio=score_ratio),
+        station,
+    ]
 
 
 def _lesson_viewed_ev(created, pack, stage="lesson"):
@@ -37,8 +86,10 @@ def _lesson_viewed_ev(created, pack, stage="lesson"):
 def test_learned_yesterday_due_today_learned_today_not_due():
     out = build_review_due_projection(
         user_id="u1",
-        events=[_ev("2026-07-03T22:00:00+08:00", "F16"),
-                _ev("2026-07-04T08:00:00+08:00", "S05")],
+        events=[
+            *_completion_pair("2026-07-03T22:00:00+08:00", "F16", completion_id="cmp_f16_1"),
+            *_completion_pair("2026-07-04T08:00:00+08:00", "S05", completion_id="cmp_s05_1"),
+        ],
         now_iso="2026-07-04T09:00:00+08:00")
     assert [d["pack_id"] for d in out["due"]] == ["F16"], "昨晚学的到期, 今早学的不到期"
     assert out["due"][0]["retest_available"] is True, "F16 有变体池"
@@ -71,8 +122,10 @@ def test_lesson_viewed_and_completion_same_pack_counted_once():
     """同一 pack 既看过讲懂又完成过站 → learned_count 只算一次（pack 粒度去重）。"""
     out = build_review_due_projection(
         user_id="u1",
-        events=[_lesson_viewed_ev("2026-07-03T21:00:00+08:00", "F16"),
-                _ev("2026-07-04T09:00:00+08:00", "F16")],
+        events=[
+            _lesson_viewed_ev("2026-07-03T21:00:00+08:00", "F16"),
+            *_completion_pair("2026-07-04T09:00:00+08:00", "F16", completion_id="cmp_f16_1"),
+        ],
         now_iso="2026-07-04T10:00:00+08:00")
     assert out["learned_count"] == 1
 
@@ -86,19 +139,85 @@ def test_no_completions_means_empty_not_all_green():
 def test_ungreen_pack_completion_filtered_by_projection_gate():
     out = build_review_due_projection(
         user_id="u1",
-        events=[_ev("2026-07-01T10:00:00+08:00", "X99")],
+        events=_completion_pair("2026-07-01T10:00:00+08:00", "X99", completion_id="cmp_x99_1"),
         now_iso="2026-07-04T09:00:00+08:00")
     assert out["due"] == [], "非绿灯站完成事件不产生到期(投影门 fail-closed)"
 
 
-def test_retest_completion_resets_next_day():
-    """复测完成再发 station_completed → 当日不再到期, 次日再到期(v0 单跳节律)。"""
+def test_verified_review_advances_to_existing_three_day_cadence():
+    """第一次 canonical review 全对后按 DECAY_PROFILES 推进 3 天，不再天天到期。"""
     out = build_review_due_projection(
         user_id="u1",
-        events=[_ev("2026-07-03T09:00:00+08:00", "F16"),
-                _ev("2026-07-04T09:30:00+08:00", "F16")],
-        now_iso="2026-07-04T10:00:00+08:00")
-    assert out["due"] == [], "今晨复测完成→今天静默"
+        events=[
+            *_completion_pair("2026-07-01T09:00:00+08:00", "F16", completion_id="cmp_f16_forward"),
+            *_completion_pair(
+                "2026-07-02T09:30:00+08:00",
+                "F16",
+                completion_id="cmp_f16_review_1",
+                mode="review",
+                score_ratio=1.0,
+            ),
+        ],
+        now_iso="2026-07-04T10:00:00+08:00",
+    )
+    assert out["due"] == [], "成功复测后第 2 天不得再次到期"
+
+    due = build_review_due_projection(
+        user_id="u1",
+        events=[
+            *_completion_pair("2026-07-01T09:00:00+08:00", "F16", completion_id="cmp_f16_forward"),
+            *_completion_pair(
+                "2026-07-02T09:30:00+08:00",
+                "F16",
+                completion_id="cmp_f16_review_1",
+                mode="review",
+                score_ratio=1.0,
+            ),
+        ],
+        now_iso="2026-07-05T10:00:00+08:00",
+    )
+    assert [item["pack_id"] for item in due["due"]] == ["F16"]
+    assert due["due"][0]["review_status"] == "verified"
+
+
+def test_review_success_ladder_uses_three_seven_fourteen_and_failure_resets():
+    events = [
+        *_completion_pair("2026-07-01T09:00:00+08:00", "F16", completion_id="fwd"),
+        *_completion_pair("2026-07-02T09:00:00+08:00", "F16", completion_id="r1", mode="review"),
+        *_completion_pair("2026-07-05T09:00:00+08:00", "F16", completion_id="r2", mode="review"),
+    ]
+    assert build_review_due_projection(
+        user_id="u1", events=events, now_iso="2026-07-11T23:59:00+08:00"
+    )["due"] == []
+    assert build_review_due_projection(
+        user_id="u1", events=events, now_iso="2026-07-12T09:01:00+08:00"
+    )["due"][0]["successful_review_streak"] == 2
+
+    failed = [
+        *events,
+        *_completion_pair(
+            "2026-07-12T10:00:00+08:00",
+            "F16",
+            completion_id="r3_fail",
+            mode="review",
+            score_ratio=0.5,
+        ),
+    ]
+    reset = build_review_due_projection(
+        user_id="u1", events=failed, now_iso="2026-07-15T10:01:00+08:00"
+    )
+    assert reset["due"][0]["successful_review_streak"] == 0
+    assert reset["due"][0]["review_status"] == "not_verified"
+
+
+def test_station_without_matching_terminal_is_not_a_completion():
+    out = build_review_due_projection(
+        user_id="u1",
+        events=[_ev("2026-07-03T09:00:00+08:00", "F16")],
+        now_iso="2026-07-04T09:00:00+08:00",
+    )
+    assert out["due"] == []
+    assert out["learned_count"] == 0
 
 
 def test_variantless_green_pack_marks_retest_unavailable():
@@ -107,7 +226,7 @@ def test_variantless_green_pack_marks_retest_unavailable():
     其 pack 自检把机械扣分判断收归 R7 🔴, 结构性无池, 是本断言的稳定 fixture)。"""
     out = build_review_due_projection(
         user_id="u1",
-        events=[_ev("2026-07-03T09:00:00+08:00", "F05")],
+        events=_completion_pair("2026-07-03T09:00:00+08:00", "F05", completion_id="cmp_f05_1"),
         now_iso="2026-07-04T09:00:00+08:00")
     assert [d["pack_id"] for d in out["due"]] == ["F05"]
     assert out["due"][0]["retest_available"] is False
@@ -135,8 +254,10 @@ def test_review_due_endpoint_flag_on_threads_exam_date(monkeypatch):
     monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
 
     class _FakeService:
-        def list_memory_events(self, user_id, limit=200):
-            return [_ev("2026-07-03T09:00:00+08:00", "F16")]
+        def list_learning_evidence_events(self, user_id, limit=None, since=None):
+            assert limit is None
+            assert since is None
+            return _completion_pair("2026-07-03T09:00:00+08:00", "F16", completion_id="cmp_f16_1")
 
     monkeypatch.setattr(ls_service, "get_learner_state_service", lambda: _FakeService())
     monkeypatch.setattr(router_module, "_exam_date_for", lambda user_id: "2026-09-19")

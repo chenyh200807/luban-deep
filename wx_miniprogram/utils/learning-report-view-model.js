@@ -468,29 +468,22 @@ function buildLearningSignalHotspots(body, learningState) {
 }
 
 function buildLearningSignalReviewSummary(body, learningState) {
-  var queue = asObject(asObject(body).revalidation_queue || asObject(body).revalidationQueue);
-  var queueItems = asList(queue.items).filter(function (item) {
-    var status = String(asObject(item).status || "active");
-    return status !== "done" && status !== "completed" && status !== "dismissed";
-  });
-  var explicitTotal = asNumber(queue.total_due || queue.totalDue, NaN);
-  var totalDue = Number.isFinite(explicitTotal) ? explicitTotal : queueItems.length;
-  if (!totalDue && queueItems.length) totalDue = queueItems.length;
-  if (!totalDue) {
-    totalDue = asList(asObject(learningState).knowledgeState).filter(function (item) {
-      return String(asObject(item).state || "") === "needs_revalidation";
-    }).length;
+  var packReview = asObject(asObject(body).pack_review || asObject(body).packReview);
+  if (
+    packReview.authority === "revalidation_queue" &&
+    packReview.enabled === true &&
+    packReview.degraded !== true
+  ) {
+    return {
+      total_due: asList(packReview.due).length,
+      overdue_count: 0,
+      state: "known",
+    };
   }
-  var explicitOverdue = asNumber(queue.overdue_count || queue.overdueCount, NaN);
-  var overdueCount = Number.isFinite(explicitOverdue)
-    ? explicitOverdue
-    : queueItems.filter(function (item) {
-        var row = asObject(item);
-        return row.overdue === true || String(row.status || "") === "overdue";
-      }).length;
   return {
-    total_due: totalDue,
-    overdue_count: overdueCount,
+    total_due: null,
+    overdue_count: null,
+    state: packReview.enabled === false ? "disabled" : "unavailable",
   };
 }
 
@@ -499,13 +492,9 @@ function enrichMasteryFromLearningSignals(mastery, body, learningState) {
   if (!asList(result.hotspots).length) {
     result.hotspots = buildLearningSignalHotspots(body, learningState);
   }
-  var review = asObject(result.reviewSummary);
-  if (
-    asNumber(review.total_due || review.totalDue, 0) <= 0 &&
-    asNumber(review.overdue_count || review.overdueCount, 0) <= 0
-  ) {
-    result.reviewSummary = buildLearningSignalReviewSummary(body, learningState);
-  }
+  // Pack review is the only due authority.  Never preserve or fall back to
+  // legacy mastery.review_summary/revalidation queues on this display surface.
+  result.reviewSummary = buildLearningSignalReviewSummary(body, learningState);
   return result;
 }
 
@@ -1377,7 +1366,11 @@ function buildLearningReportViewModel(report) {
       todayDone: asNumber(overview.today_done, 0),
       dailyTarget: asNumber(overview.daily_target, 0),
       streakDays: asNumber(overview.streak_days, 0),
-      dueTodayCount: asNumber(overview.due_today_count, 0),
+      dueTodayCount:
+        typeof overview.due_today_count === "number"
+          ? asNumber(overview.due_today_count, 0)
+          : null,
+      dueTodayState: String(overview.due_today_state || "unavailable"),
       weakNodeCount: asNumber(overview.weak_node_count, 0),
       focusHint: String(overview.focus_hint || ""),
       learnerLevel: levelName(overview.learner_level || ""),
@@ -1917,7 +1910,9 @@ function toReportPageData(model) {
     todayDone: overview.todayDone || 0,
     dailyTarget: overview.dailyTarget || 0,
     streakDays: overview.streakDays || 0,
-    dueTodayCount: overview.dueTodayCount || 0,
+    dueTodayCount: overview.dueTodayCount,
+    dueTodayState: overview.dueTodayState || "unavailable",
+    dueTodayKnown: overview.dueTodayState === "known",
     weakNodeCount: overview.weakNodeCount || 0,
     focusHint: overview.focusHint || "",
     learnerLevel: overview.learnerLevel || "",

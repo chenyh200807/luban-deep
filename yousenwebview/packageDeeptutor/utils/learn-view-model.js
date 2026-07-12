@@ -193,6 +193,7 @@ function buildLearnViewModel(args) {
       mode: _str(nextStep.mode),
       green: !!nsMeta.green,
       card_sha: _str(nsMeta.sha),
+      evidenceBacked: _safeArr(nextStep.evidence_refs).length > 0,
     };
   }
 
@@ -210,6 +211,7 @@ function buildLearnViewModel(args) {
         mode: "learn_fallback",
         green: true,
         card_sha: titleIdx[firstGreen].sha || "",
+        evidenceBacked: false,
       };
       fallbackUsed = true;
     }
@@ -221,17 +223,15 @@ function buildLearnViewModel(args) {
   // ── 课程架海报(推荐站=nextStation → 朱红) ──
   var posters = _posters(packs, titleIdx, nextStation ? nextStation.pack_id : "");
 
-  // ── 首页路线预览:固定三态(已学完墨 / 匹配薄弱朱 / 会员解锁纸)= 参考设计视觉恒显。
-  //    owner 拍板(2026-07-06):黑卡恒显整体更美观;真实每站学习态在「完整路线」地图。
-  //    真站名+副标题不变,仅覆盖 state/recommended/locked 供首页 3 卡展示。 ──
-  var routePreview = posters.slice(0, 3).map(function (p, i) {
-    var st = i === 0 ? "ink" : i === 1 ? "red" : "paper";
-    return Object.assign({}, p, { state: st, recommended: st === "red", locked: st === "paper" });
-  });
+  // 首页预览只裁切真实投影，禁止为视觉效果覆写已学/推荐/锁定状态。
+  var routePreview = posters.slice(0, 3);
 
   // ── 复习到期(revalidation_queue items) ──
+  var packReview = _safeObj(report.pack_review);
   var reval = _safeObj(report.revalidation_queue);
-  var dueCount = _safeArr(reval.items).length;
+  var dueCount = packReview.authority === "revalidation_queue"
+    ? _safeArr(packReview.due).length
+    : _safeArr(reval.items).length;
 
   // ── 今日任务(PRD v1.3 §0.0 重心收口:头牌 = 2 分钟 MCQ 轻练,非案例题批改) ──
   // task_type=light_practice + mode=topic:前端只投递路由意图(→ assessment 专题模式),
@@ -261,6 +261,7 @@ function buildLearnViewModel(args) {
   // ── 指标卡(report stats,尽力读+降级) ──
   var overview = _safeObj(report.overview);
   var mastery = _safeObj(report.mastery);
+  var learnerSettings = _safeObj(dash.learner_settings);
   var overallMastery = _int(
     (mastery.overall_mastery && mastery.overall_mastery.score) != null
       ? mastery.overall_mastery.score
@@ -269,18 +270,26 @@ function buildLearnViewModel(args) {
   var stats = {
     recent_practice: _int(overview.recent_three_done),
     pending_errors: _int(overview.weak_point_count != null ? overview.weak_point_count : overview.pending_error_count),
-    mastery_trend: overallMastery,
+    mastery_score: overallMastery,
   };
+  var dailyTarget = _int(overview.daily_target || learnerSettings.daily_target);
+  var todayDone = _int(overview.today_done);
 
   return {
     litCount: lit,
     packUniverse: universe,
     nextStation: nextStation,          // null → 显示"内容即将上线"空态卡
     posters: posters,                  // [] → 课程架空态(完整地图/stations 用真实态)
-    routePreview: routePreview,        // 首页 3 卡固定三态预览(恒显黑卡)
+    routePreview: routePreview,        // 首页 3 卡真实状态预览
     dueCount: dueCount,                // 0 → 隐藏复习条
     todayTask: todayTask,              // null → 隐藏今日任务卡
     stats: stats,
+    examDate: _str(learnerSettings.exam_date),
+    todayProgress: {
+      done: todayDone,
+      target: dailyTarget,
+      percent: dailyTarget ? Math.min(100, Math.round((todayDone / dailyTarget) * 100)) : 0,
+    },
     // 供给面可用性(全空 = 后端未部署/无数据,页面走降级但不崩)
     hasSupply: !!(nextStation || posters.length || dueCount || overallMastery),
   };

@@ -51,7 +51,7 @@
           <view class="lr-diag-copy">
             <text class="lr-diag-headline" wx:if="{{diagnosisHeadline}}">主要差距：{{diagnosisHeadline}}</text>
             <text class="lr-diag-headline" wx:elif="{{learningBrainEmpty}}">完成一轮练习后，这里会给出你的诊断结论</text>
-            <text class="lr-diag-headline" wx:else>暂时没有待补的盲点，保持复测节奏</text>
+            <text class="lr-diag-headline" wx:else>当前证据尚未形成可展示的盲点结论，继续练习后再看</text>
             <text class="lr-diag-progress" wx:if="{{trendNarrative}}">{{trendNarrative}}</text>
             <view class="lr-diag-meta-row">
               <text class="lr-diag-meta" wx:if="{{learningReviewSummary.weakCount || weakNodeCount}}">待补盲点 {{learningReviewSummary.weakCount || weakNodeCount}} 个</text>
@@ -154,7 +154,7 @@
 
       <!-- ⑥ 全页唯一行动键:把诊断喂回本周计划(深链学习页) -->
       <view class="lr-absorb-btn" bindtap="absorbDiagnosisIntoPlan" hover-class="lr-absorb-pressed" aria-role="button">
-        <text>让本周计划吸收这份诊断</text>
+        <text>去提分路线查看诊断建议</text>
       </view>
 
       <!-- ③ 产品宣言(round11 增量①) -->
@@ -634,12 +634,12 @@
           </view>
           <view class="mastery-sub-row">
             <view class="mastery-sub-item">
-              <text class="mastery-sub-num">{{reviewSummary.total_due || 0}}</text>
+              <text class="mastery-sub-num">{{reviewSummary.state === 'known' ? reviewSummary.total_due : '—'}}</text>
               <text class="mastery-sub-label">待复习</text>
             </view>
             <view class="mastery-sub-divider"></view>
             <view class="mastery-sub-item">
-              <text class="mastery-sub-num mastery-sub-warn">{{reviewSummary.overdue_count || 0}}</text>
+              <text class="mastery-sub-num mastery-sub-warn">{{reviewSummary.state === 'known' ? reviewSummary.overdue_count : '—'}}</text>
               <text class="mastery-sub-label">已逾期</text>
             </view>
             <view class="mastery-sub-divider"></view>

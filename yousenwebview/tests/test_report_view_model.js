@@ -104,7 +104,7 @@ var loopReport = {
         },
       ],
     },
-    review_summary: {},
+    review_summary: { total_due: 9, overdue_count: 2 },
   },
   long_term_analytics: {
     recurrent_errors: [
@@ -128,6 +128,12 @@ var loopReport = {
         },
       },
     ],
+  },
+  pack_review: {
+    enabled: true,
+    degraded: false,
+    authority: "revalidation_queue",
+    due: [{ pack_id: "F16", probe_id: "probe_f16" }],
   },
   learning_state: {
     ability_state: [
@@ -212,6 +218,7 @@ assert(
 assert.strictEqual(loopPageData.hotspots[0].name, "建筑工程施工技术");
 assert.strictEqual(loopPageData.reviewSummary.total_due, 1);
 assert.strictEqual(loopPageData.reviewSummary.overdue_count, 0);
+assert.strictEqual(loopPageData.reviewSummary.state, "known");
 assert.strictEqual(loopPageData.gradingLoopStatus, "needs_retest");
 assert.strictEqual(loopPageData.gradingLoopNextRequiredAction, "complete_revalidation_probe");
 assert.deepStrictEqual(loopPageData.gradingLoopEvidenceRefs, ["attempt_m32_001", "attempt_m32_002"]);
@@ -222,6 +229,11 @@ var source = fs.readFileSync(reportPath, "utf8");
 var wxmlSource = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/pages/report/report.wxml"),
   "utf8",
+);
+assert.strictEqual(
+  wxmlSource.indexOf("当前证据未发现待补盲点"),
+  -1,
+  "诊断未知不得冒充未发现盲点",
 );
 assert(
   source.indexOf("learning-report-view-model") >= 0 &&

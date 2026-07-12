@@ -58,6 +58,45 @@ def _practice_event(taxonomy_code: str = "1A433000-B041", question_id: str = "q_
     )
 
 
+def _signed_terminal(
+    *,
+    status: str = "verified",
+    score_ratio: float = 1.0,
+    source_feature: str = "assessment_testset",
+    assessment_type: str = "luban_review_completion",
+    target_pack_id: str = "N01",
+) -> LearnerStateEvent:
+    return LearnerStateEvent(
+        event_id="terminal_adversarial",
+        user_id="student_demo",
+        source_feature=source_feature,
+        source_id="adversarial:terminal",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="terminal_adversarial",
+        created_at="2026-07-04T09:00:00+08:00",
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "assessment_testset",
+            "assessment_type": assessment_type,
+            "retest_completion_id": "adversarial",
+            "completion_terminal": True,
+            "practice_mode": "review",
+            "pack_id": "N01",
+            "target_pack_id": target_pack_id,
+            "score_ratio": score_ratio,
+            "claim_promotion_allowed": True,
+            "prescription_result": {"status": status, "score_ratio": score_ratio},
+            "quality": {
+                "authority": "signed_variant_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "high",
+                "evidence_level": "L2_real_retest",
+            },
+        },
+    )
+
+
 def test_unlearned_is_derived_as_full_set_minus_evidence() -> None:
     projection = project_pack_lifecycle(events=[], claims=[], pack_ids=_PACK_IDS)
     assert set(projection["packs"]) == set(_PACK_IDS)
@@ -193,6 +232,82 @@ def test_revalidation_queue_emits_zero_probe_for_unlearned_and_exposed() -> None
         },
     )
     assert len(weak_queue["items"]) == 1
+
+
+def test_terminal_review_projects_cycle_facts_without_coarse_pack_mastery() -> None:
+    terminal = LearnerStateEvent(
+        event_id="terminal_r1",
+        user_id="student_demo",
+        source_feature="assessment_testset",
+        source_id="r1:terminal",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="terminal_r1",
+        created_at="2026-07-04T09:00:00+08:00",
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "assessment_testset",
+            "assessment_type": "luban_review_completion",
+            "retest_completion_id": "r1",
+            "completion_terminal": True,
+            "practice_mode": "review",
+            "pack_id": "N01",
+            "target_pack_id": "N01",
+            "score_ratio": 1.0,
+            "claim_promotion_allowed": True,
+            "prescription_result": {"status": "verified", "score_ratio": 1.0},
+            "quality": {
+                "authority": "signed_variant_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "high",
+                "evidence_level": "L2_real_retest",
+            },
+        },
+    )
+    projection = project_pack_lifecycle(events=[terminal], claims=[], pack_ids=_PACK_IDS)
+    n01 = projection["packs"]["N01"]
+    assert n01["lifecycle_state"] == LIFECYCLE_PRACTICED
+    assert n01["last_review_status"] == "verified"
+    assert n01["successful_review_streak"] == 1
+    assert n01["review_cycle_anchor"] == "terminal_r1"
+
+
+def test_item_without_terminal_never_advances_pack_review_cycle() -> None:
+    item = _practice_event("1A433000-B041", question_id="variant_partial")
+    item.payload_json.update({
+        "assessment_type": "luban_review_variant",
+        "retest_completion_id": "partial",
+        "practice_mode": "review",
+        "score_ratio": 1.0,
+        "claim_promotion_allowed": True,
+    })
+    projection = project_pack_lifecycle(events=[item], claims=[], pack_ids=_PACK_IDS)
+    n01 = projection["packs"]["N01"]
+    assert n01["successful_review_streak"] == 0
+    assert n01["last_review_status"] == ""
+
+
+def test_terminal_prescription_status_wins_over_conflicting_score_ratio() -> None:
+    projection = project_pack_lifecycle(
+        events=[_signed_terminal(status="not_verified", score_ratio=1.0)],
+        claims=[],
+        pack_ids=_PACK_IDS,
+    )
+    n01 = projection["packs"]["N01"]
+    assert n01["last_review_status"] == "not_verified"
+    assert n01["successful_review_streak"] == 0
+
+
+def test_foreign_or_internally_inconsistent_terminal_cannot_move_pack_clock() -> None:
+    events = [
+        _signed_terminal(source_feature="construction_grading"),
+        _signed_terminal(assessment_type="luban_forward_completion"),
+        _signed_terminal(target_pack_id="F16"),
+    ]
+    projection = project_pack_lifecycle(events=events, claims=[], pack_ids=_PACK_IDS)
+    n01 = projection["packs"]["N01"]
+    assert n01["last_completion_at"] == ""
+    assert n01["successful_review_streak"] == 0
 
 
 def test_report_read_model_exposes_pack_lifecycle_composer() -> None:

@@ -165,7 +165,7 @@ def build_progress_feedback(
     today_done: int | float = 0,
     daily_target: int | float = 0,
     streak_days: int | float = 0,
-    review_due: int | float = 0,
+    review_due: int | float | None = 0,
     daily_counts: dict[str, Any] | None = None,
     chapter_stats: dict[str, Any] | None = None,
     memory_events: list[Any] | tuple[Any, ...] | None = None,
@@ -174,6 +174,7 @@ def build_progress_feedback(
     done = _safe_int(today_done)
     target = _safe_int(daily_target)
     streak = _safe_int(streak_days)
+    review_due_known = review_due is not None
     review_due_count = _safe_int(review_due)
     weak_names = _normalize_names(weak_points)
     normalized_daily_counts = _with_today_count(dict(daily_counts or {}), done)
@@ -238,9 +239,15 @@ def build_progress_feedback(
         },
         {
             "label": "复习压力",
-            "value": str(review_due_count) + "项",
-            "detail": "建议今天先清掉待复习" if review_due_count > 0 else "当前复习压力可控",
-            "tone_class": "tone-warn" if review_due_count > 0 else "tone-good",
+            "value": str(review_due_count) + "项" if review_due_known else "—",
+            "detail": (
+                "建议今天先清掉待复习"
+                if review_due_count > 0
+                else "当前没有到期项"
+                if review_due_known
+                else "复习排程暂不可用"
+            ),
+            "tone_class": "tone-warn" if review_due_count > 0 or not review_due_known else "tone-accent",
         },
     ]
 

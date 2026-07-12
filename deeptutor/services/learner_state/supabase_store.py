@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import os
 from datetime import datetime, timezone
+import os
 from typing import Any
 
 import httpx
@@ -476,19 +476,34 @@ class LearnerStateSupabaseSyncCoreStore:
         since_text = str(since or "").strip()
         if since_text:
             filters["created_at"] = f"gte.{since_text}"
-        params = _select_params(
-            filters=filters,
-            order_by="created_at.desc",
-            limit=None if limit is None or limit < 0 else max(int(limit), 0),
-        )
-        response = self._client_or_create().get(
-            f"{self._base_url.rstrip('/')}/rest/v1/learner_memory_events",
-            headers=_rest_headers(self._service_key),
-            params=params,
-        )
-        response.raise_for_status()
-        payload = response.json()
-        rows = [dict(item) for item in payload if isinstance(item, dict)]
+        requested_limit = None if limit is None or limit < 0 else max(int(limit), 0)
+        client = self._client_or_create()
+        url = f"{self._base_url.rstrip('/')}/rest/v1/learner_memory_events"
+        rows: list[dict[str, Any]] = []
+        if requested_limit is not None:
+            response = client.get(
+                url,
+                headers=_rest_headers(self._service_key),
+                params=_select_params(filters=filters, order_by="created_at.desc", limit=requested_limit),
+            )
+            response.raise_for_status()
+            rows = [dict(item) for item in response.json() if isinstance(item, dict)]
+        else:
+            # PostgREST installations commonly cap a single response.  Full
+            # lifecycle readers must page until a short page instead of
+            # silently treating the server row cap as complete history.
+            page_size = 500
+            offset = 0
+            while True:
+                params = _select_params(filters=filters, order_by="created_at.desc", limit=page_size)
+                params["offset"] = offset
+                response = client.get(url, headers=_rest_headers(self._service_key), params=params)
+                response.raise_for_status()
+                page = [dict(item) for item in response.json() if isinstance(item, dict)]
+                rows.extend(page)
+                if len(page) < page_size:
+                    break
+                offset += len(page)
         return list(reversed(rows))
 
     def read_learning_evidence_event(self, user_id: str, event_id: str) -> dict[str, Any] | None:

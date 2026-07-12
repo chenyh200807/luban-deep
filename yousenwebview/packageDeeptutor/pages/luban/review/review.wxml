@@ -54,10 +54,14 @@
                 </view>
               </view>
               <view class="rv-hero-titles">
-                <text class="rv-hero-title" wx:if="{{vm.dueCount}}">今日回炉 {{vm.dueCount}} 站 · 昨天的约定</text>
-                <text class="rv-hero-title" wx:else>今天没有到期的回炉任务</text>
+                <text class="rv-hero-title" wx:if="{{vm.reviewState === 'has_due'}}">今日回炉 {{vm.dueCount}} 站</text>
+                <text class="rv-hero-title" wx:elif="{{vm.reviewState === 'all_clear'}}">今天没有到期任务</text>
+                <text class="rv-hero-title" wx:elif="{{vm.reviewState === 'disabled'}}">复习排程暂未开启</text>
+                <text class="rv-hero-title" wx:else>暂时无法读取复习排程</text>
                 <text class="rv-hero-desc" wx:if="{{vm.dueCount}}">都是你学过的考点，再见一面会更稳</text>
-                <text class="rv-hero-desc" wx:else>你点亮的站都稳着。想主动翻一翻，用下面的检索。</text>
+                <text class="rv-hero-desc" wx:elif="{{vm.reviewState === 'all_clear'}}">这是当前服务端排程结果，不代表所有内容都已掌握。</text>
+                <text class="rv-hero-desc" wx:elif="{{vm.reviewState === 'disabled'}}">你的学习记录仍会保留，开启后再按证据排定。</text>
+                <text class="rv-hero-desc" wx:else>请稍后重试；数据缺失不会被解释成“已经稳定”。</text>
               </view>
             </view>
             <view class="rv-hero-cta" wx:if="{{vm.dueCount}}" bindtap="startDue">

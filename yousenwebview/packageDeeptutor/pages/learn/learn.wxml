@@ -56,17 +56,17 @@
       <view class="lr-status-row">
         <view class="lr-status pk-card">
           <view class="lr-gauge-sm">
-            <text class="lr-gauge-sm-num">—</text>
+            <text class="lr-gauge-sm-num">{{vm.examDate ? '✓' : '—'}}</text>
           </view>
-          <view class="lr-status-txt"><text class="pk-kicker">距考试</text><text class="lr-status-unit">待设置</text></view>
+          <view class="lr-status-txt"><text class="pk-kicker">考试日</text><text class="lr-status-unit">{{vm.examDate || '待设置'}}</text></view>
         </view>
         <view class="lr-status pk-card lr-status-col">
           <text class="pk-kicker">路线 <text class="lr-status-strong">{{vm.litCount || 0}}/{{vm.packUniverse || 40}} 站</text></text>
           <view class="pk-progress"><view class="pk-progress__fill" style="width: {{(vm.litCount ? (vm.litCount / (vm.packUniverse || 40) * 100) : 0)}}%"></view></view>
         </view>
         <view class="lr-status pk-card lr-status-col">
-          <text class="pk-kicker">今日 <text class="lr-status-strong">练起来</text></text>
-          <view class="pk-progress"><view class="pk-progress__fill" style="width: 0%"></view></view>
+          <text class="pk-kicker">今日 <text class="lr-status-strong">{{vm.todayProgress.done || 0}}/{{vm.todayProgress.target || '—'}}</text></text>
+          <view class="pk-progress"><view class="pk-progress__fill" style="width: {{vm.todayProgress.percent || 0}}%"></view></view>
         </view>
       </view>
 
@@ -81,7 +81,7 @@
             <text class="pk-kicker">下一站 · {{vm.nextStation.pack_id}}</text>
             <text class="pk-title lr-lesson-title">{{vm.nextStation.title}}</text>
           </view>
-          <text class="pk-chip pk-chip--grn">匹配你的薄弱</text>
+          <text class="pk-chip pk-chip--grn">{{vm.nextStation.evidenceBacked ? '依据近期证据推荐' : '推荐起点'}}</text>
         </view>
         <!-- header 空态(后端未部署/无供给) -->
         <view class="lr-lesson-head lr-lesson-head--empty" wx:else>
@@ -130,7 +130,7 @@
                   <text wx:if="{{item.recommended}}" class="lr-ticon lr-ticon--rec">▶</text>
                   <text wx:elif="{{item.state === 'ink'}}" class="lr-ticon lr-ticon--done">✓</text>
                   <text wx:elif="{{item.locked}}" class="lr-ticon lr-ticon--lock">🔒</text>
-                  <text class="lr-poster-tag lr-poster-tag--{{item.state}}">{{item.recommended ? '匹配薄弱' : (item.state === 'ink' ? '已学完' : (item.locked ? '会员解锁' : '未学'))}}</text>
+                  <text class="lr-poster-tag lr-poster-tag--{{item.state}}">{{item.recommended ? '推荐起点' : (item.state === 'ink' ? '已练过' : (item.locked ? '尚未开放' : '尚未学习'))}}</text>
                 </view>
                 <!-- 副标题:考点卡首卡 front 真源;无卡的站留空(fail-closed,不造词) -->
                 <text wx:if="{{item.subtitle}}" class="pk-poster__sub">{{item.subtitle}}</text>
@@ -159,12 +159,12 @@
             <text class="pk-kicker">今天最该完成</text>
             <text class="lr-task-title">{{vm.todayTask.title}}</text>
           </view>
-          <!-- 掌握可信度环:只投影 read model 真值;缺数据时隐藏,不捏造 72% -->
-          <view class="lr-conf" wx:if="{{vm.stats.mastery_trend}}">
-            <view class="lr-conf-ring" style="background: conic-gradient(var(--pk-grn) {{vm.stats.mastery_trend * 3.6}}deg, var(--pk-gauge) 0deg);">
-              <view class="lr-conf-hole"><text class="lr-conf-num">{{vm.stats.mastery_trend}}%</text></view>
+          <!-- 掌握度:只投影 overall mastery；不冒充置信度或趋势 -->
+          <view class="lr-conf" wx:if="{{vm.stats.mastery_score}}">
+            <view class="lr-conf-ring" style="background: conic-gradient(var(--pk-grn) {{vm.stats.mastery_score * 3.6}}deg, var(--pk-gauge) 0deg);">
+              <view class="lr-conf-hole"><text class="lr-conf-num">{{vm.stats.mastery_score}}%</text></view>
             </view>
-            <text class="lr-conf-label">掌握可信度</text>
+            <text class="lr-conf-label">当前掌握度</text>
           </view>
         </view>
         <view class="lr-task-cta">
@@ -187,13 +187,6 @@
         <text class="lr-review-go">去复习 →</text>
       </view>
 
-      <!-- F16 防水「5天留存闭环」雏形入口(spike 审阅) -->
-      <view class="lr-review pk-card lr-seethrough" bindtap="goSeethrough">
-        <view class="lr-review-bolt lr-seethrough-bolt"></view>
-        <text class="lr-review-txt">防水 · 5 天留存闭环(雏形)</text>
-        <text class="lr-review-go">走一遍 →</text>
-      </view>
-
       <!-- 三枚指标卡 -->
       <view class="lr-metric-row">
         <view class="lr-metric pk-card">
@@ -205,8 +198,8 @@
           <text class="lr-metric-num">{{vm.stats.pending_errors || 0}} 个</text>
         </view>
         <view class="lr-metric pk-card">
-          <text class="pk-kicker">掌握趋势</text>
-          <text class="lr-metric-num lr-metric-grn">{{vm.stats.mastery_trend ? '↗ ' + vm.stats.mastery_trend + '%' : '—'}}</text>
+          <text class="pk-kicker">当前掌握度</text>
+          <text class="lr-metric-num lr-metric-grn">{{vm.stats.mastery_score ? vm.stats.mastery_score + '%' : '—'}}</text>
         </view>
       </view>
 

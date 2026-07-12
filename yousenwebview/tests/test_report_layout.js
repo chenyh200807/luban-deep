@@ -154,8 +154,8 @@ assert(
 
 // ── ⑥ 全页唯一行动键 ────────────────────────────────────────
 assert(
-  countOccurrences(homeBlock, "让本周计划吸收这份诊断") === 1,
-  "the absorb-diagnosis deep link must be the single action key on the page",
+  countOccurrences(homeBlock, "去提分路线查看诊断建议") === 1,
+  "the honest diagnosis route must be the single action key on the page",
 );
 assertIncludes(homeBlock, 'bindtap="absorbDiagnosisIntoPlan"', "action key should have a concrete handler");
 assertIncludes(reportSource, "route.lubanStations()", "action key must deep-link into the learn tab (weekly plan)");

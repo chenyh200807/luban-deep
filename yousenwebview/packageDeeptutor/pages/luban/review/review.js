@@ -201,8 +201,8 @@ Page({
   },
 
   _loadAll: function () {
-    // 到期语义唯一权威 = 服务端 revalidation_queue 投影(/luban/review-due)。
-    // 旧方案的前端 N+1 探测(有变体池=到期, 六站天天全到期)是假引擎感, 禁止回潮。
+    // 到期语义来自 unified learning report 的 pack_review；页面不再单独拉一份
+    // learner-state 读模型。课程/卡库仍只是内容 supply join。
     var that = this;
     this.setData({ loading: true, errorText: "" });
     var mistakePromise = api
@@ -236,7 +236,6 @@ Page({
       });
     return Promise.all([
       api.getLubanLessons(),
-      api.getLubanReviewDue(),
       mistakePromise,
       reportPromise,
       conceptCardsPromise,
@@ -244,10 +243,10 @@ Page({
       .then(function (results) {
         var vm = reviewViewModel.buildReviewViewModel({
           lessons: api.unwrapResponse(results[0]) || {},
-          reviewDue: api.unwrapResponse(results[1]) || {},
-          mistakeBook: results[2],
-          report: results[3],
-          conceptCards: results[4],
+          reviewDue: (results[2] && results[2].pack_review) || {},
+          mistakeBook: results[1],
+          report: results[2],
+          conceptCards: results[3],
         });
         that.setData({ vm: vm, loading: false });
       })

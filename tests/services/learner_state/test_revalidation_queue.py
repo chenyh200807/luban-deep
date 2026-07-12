@@ -186,3 +186,54 @@ def test_derive_review_due_at_read_side_projection():
         exam_date_iso="2026-07-06",
     )
     assert due_exam == "2026-07-02T10:00:00+08:00"
+
+
+def test_cycle_anchor_changes_probe_identity_without_breaking_same_cycle_replay() -> None:
+    base = {
+        "node_id": "F16",
+        "label": "屋面防水",
+        "state": "stable",
+        "ability_dimension": "code_application",
+        "last_observed_at": "2026-07-01T09:00:00+08:00",
+        "successful_review_streak": 1,
+        "cycle_anchor": "terminal_r1",
+    }
+    first = build_revalidation_queue_projection(
+        user_id="u1", candidates=[base], now_iso="2026-07-04T09:01:00+08:00"
+    )["items"][0]["probe_id"]
+    replay = build_revalidation_queue_projection(
+        user_id="u1", candidates=[dict(base)], now_iso="2026-07-04T10:00:00+08:00"
+    )["items"][0]["probe_id"]
+    next_cycle = build_revalidation_queue_projection(
+        user_id="u1",
+        candidates=[{
+            **base,
+            "last_observed_at": "2026-07-04T10:00:00+08:00",
+            "successful_review_streak": 2,
+            "cycle_anchor": "terminal_r2",
+        }],
+        now_iso="2026-07-11T10:01:00+08:00",
+    )["items"][0]["probe_id"]
+    assert first == replay
+    assert next_cycle != first
+
+
+def test_stable_review_uses_existing_decay_profile_schedule() -> None:
+    def _due(streak: int, observed: str, now: str) -> int:
+        return build_revalidation_queue_projection(
+            user_id="u1",
+            candidates=[{
+                "node_id": "F16",
+                "label": "屋面防水",
+                "state": "stable",
+                "ability_dimension": "code_application",
+                "last_observed_at": observed,
+                "successful_review_streak": streak,
+                "cycle_anchor": f"r{streak}",
+            }],
+            now_iso=now,
+        )["source_status"]["due_count"]
+
+    assert _due(1, "2026-07-01T09:00:00+08:00", "2026-07-04T09:00:00+08:00") == 1
+    assert _due(2, "2026-07-01T09:00:00+08:00", "2026-07-08T09:00:00+08:00") == 1
+    assert _due(3, "2026-07-01T09:00:00+08:00", "2026-07-15T09:00:00+08:00") == 1
