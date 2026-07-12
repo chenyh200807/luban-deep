@@ -90,6 +90,10 @@ feature_flags:
   - {name: DEEPTUTOR_HOME_NEXT_STEP_ENABLED, default: false, kind: rollout}  # home 生命周期融合面总开关:next_step 仲裁 + mastery 证据 blend(首页/雷达/章节盘)一起开关
   - {name: DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT, default: false, kind: killswitch}  # security
   - {name: DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK, default: false, kind: fallback}
+  # Battle2 S2 判分输出减半灰度(2026-07-12): on = SubmissionGraderAgent 用 compact prompt(4必备段)
+  # +输出token硬顶(1400+600/item); off = 旧7段prompt+配置4096, bit-for-bit 不变。
+  # 赎罪条款: 上线14天 Langfuse 复测(mcq_grading主生成p50≤700tok/section_miss率无恶化/无质量投诉)达标后删flag转正。
+  - {name: DEEPTUTOR_MCQ_FEEDBACK_COMPACT, default: false, kind: rollout, read: env_flag}
   - {name: DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED, default: false, kind: dev}
   - {name: DEEPTUTOR_WECHAT_PHONE_AUTH_REQUIRED_AFTER_TS, default: "1782097380", kind: config}
   - {name: DEEPTUTOR_ROUTING_LLM_TIMEOUT_S, default: "6", kind: config}  # Battle1 W3-T2: 路由LLM硬超时(秒), fail-open降scene=None
@@ -503,6 +507,7 @@ grandfathered_envs:
   - SUPABASE_RAG_QUERY_VARIANT_CONCURRENCY
   - SUPABASE_RAG_QUESTION_WEIGHT_EXAM
   - SUPABASE_RAG_QUESTION_WEIGHT_QUESTIONS
+  - SUPABASE_RAG_RERANK_DOC_CHAR_CAP    # Battle2 S5-T6: rerank送审文本字符cap;0=不截断(默认,零行为)
   - SUPABASE_RAG_RERANK_MODEL
   - SUPABASE_RAG_RERANK_TIMEOUT_S
   - SUPABASE_RAG_RERANK_WINDOW
@@ -514,6 +519,7 @@ grandfathered_envs:
   - SUPABASE_RAG_TEXT_WEIGHT
   - SUPABASE_RAG_TIMEOUT_S
   - SUPABASE_RAG_TOP_K
+  - SUPABASE_RAG_UNIFIED_TIMEOUT_S      # Battle2 S5-T5: search_unified单RPC预算;默认6.0(Langfuse成功p95=5.26s校准);<=0回client默认
   - SUPABASE_RAG_VECTOR_WEIGHT
   - SUPABASE_RAG_WEIGHT_COMPILED_TRUTH
   - SUPABASE_RAG_WEIGHT_EXAM
