@@ -5,15 +5,15 @@ import json
 
 import pytest
 
+from deeptutor.services.construction_grading.writeback import (
+    write_case_grading_event_learning_evidence,
+    write_grading_error_events,
+)
 from deeptutor.services.learner_state.learning_report_read_model import (
     build_learning_report_read_model,
 )
 from deeptutor.services.learner_state.learning_synthesis import synthesize_learning_truth
 from deeptutor.services.learner_state.service import LearnerStateEvent, LearnerStateService
-from deeptutor.services.construction_grading.writeback import (
-    write_case_grading_event_learning_evidence,
-    write_grading_error_events,
-)
 from deeptutor.services.taxonomy.construction_taxonomy import (
     taxonomy_source_metadata,
     taxonomy_tree_stats,
@@ -1056,6 +1056,32 @@ def test_multiple_source_failures_listed_in_degraded_sources() -> None:
     assert model["source_status"]["today_progress"]["ok"] is True
 
 
+def test_pack_review_ledger_failure_is_unavailable_not_fake_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
+
+    class FlakyLedger(FakeLearnerStateService):
+        def list_memory_events(self, user_id: str, limit: int | None = 100) -> list[LearnerStateEvent]:
+            raise RuntimeError("ledger timeout")
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FlakyLedger([]),
+        event_limit=50,
+    )
+
+    assert model["pack_review"]["enabled"] is None
+    assert model["pack_review"]["degraded"] is True
+    assert "learner_events" in model["pack_review"]["degraded_sources"]
+    assert model["overview"]["due_today_count"] is None
+    assert model["overview"]["due_today_state"] == "unavailable"
+    review_card = next(card for card in model["progress_feedback"]["cards"] if card["label"] == "复习压力")
+    assert review_card["value"] == "—"
+    assert review_card["detail"] == "复习排程暂不可用"
+
+
 def test_degraded_contract_is_consistent_when_all_sources_ok() -> None:
     model = build_learning_report_read_model(
         user_id="student_demo",
@@ -1275,6 +1301,88 @@ def test_window_not_truncated_when_event_count_below_limit() -> None:
     )
 
     assert model["freshness"]["window_truncated"] is False
+
+
+def test_pack_lifecycle_uses_full_history_while_recent_metrics_keep_window() -> None:
+    old_lesson = LearnerStateEvent(
+        event_id="lesson_n01_old",
+        user_id="student_demo",
+        source_feature="luban_lesson",
+        source_id="lesson_viewed:N01:lesson",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="lesson_n01_old",
+        created_at=_iso(90),
+        payload_json={
+            "event_type": "learning_evidence",
+            "learning_signal_type": "lesson_viewed",
+            "pack_id": "N01",
+            "watched_stage": "lesson",
+            "evidence_level": "exposed",
+            "quality": {"progress_countable": False},
+        },
+    )
+    recent = [
+        _learning_event(f"recent_{idx}", days_ago=0, question_id=f"recent_q_{idx}")
+        for idx in range(220)
+    ]
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([old_lesson, *recent]),
+        event_limit=100,
+    )
+
+    assert model["pack_lifecycle"]["packs"]["N01"]["lifecycle_state"] == "exposed"
+    assert model["freshness"]["event_count"] == 100
+    assert model["freshness"]["window_truncated"] is True
+
+
+def test_unified_report_pack_review_and_lifecycle_share_terminal_history(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LUBAN_REVIEW_MODULE_ENABLED", "true")
+    terminal = LearnerStateEvent(
+        event_id="terminal_f16_forward",
+        user_id="student_demo",
+        source_feature="assessment_testset",
+        source_id="f16_forward:terminal",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="terminal_f16_forward",
+        created_at=_iso(2),
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "assessment_testset",
+            "assessment_type": "luban_forward_completion",
+            "retest_completion_id": "f16_forward",
+            "completion_terminal": True,
+            "practice_mode": "forward",
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "score_ratio": 1.0,
+            "claim_promotion_allowed": False,
+            "prescription_result": {"status": "not_verified", "score_ratio": 1.0},
+            "quality": {
+                "authority": "signed_variant_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "medium",
+                "evidence_level": "L0_observed",
+            },
+        },
+    )
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([terminal]),
+        event_limit=100,
+    )
+
+    assert model["pack_lifecycle"]["packs"]["F16"]["lifecycle_state"] == "practiced"
+    assert [item["pack_id"] for item in model["pack_review"]["due"]] == ["F16"]
+    assert model["pack_review"]["authority"] == "revalidation_queue"
+    assert model["overview"]["due_today_count"] == 1
+    assert model["overview"]["due_today_state"] == "known"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

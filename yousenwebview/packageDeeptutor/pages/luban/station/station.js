@@ -1,6 +1,6 @@
 // 鲁班学习双轮 · 站点页（spike 形态）
-// 两幕切换：幕1 web-view 加载 card_url（讲懂）→ 幕2 web-view 加载 practice url（闯关）
-// → 跳 handoff 交接页。practice url = card_url 把结尾 lesson.html 换成 practice.html。
+// 两幕切换：幕1 web-view 加载 card_url（讲懂）→ 幕2 web-view 加载 practice url（自测）
+// → 签发轻练。只有服务端 canonical completion receipt 才能渲染完成态。
 //
 // 已知结构性 caveat（spike 先按设计稿实现，不硬编绕过）：
 // 微信 web-view 会自动铺满整个页面并覆盖其他原生组件——底部原生按钮在
@@ -79,7 +79,7 @@ Page({
     }
   },
 
-  // 底部常驻按钮：幕1「看完了，去闯关」→ 幕2「闯关完成」→ handoff
+  // 底部常驻按钮：幕1看讲解 → 幕2看自测 → 签发轻练；本页不宣告完成。
   onPrimaryTap() {
     if (this.data.tier === TIER_LESSON) {
       // 融合计划 §2.1:讲懂幕看完 = lesson_viewed 学-evidence(唯一 writer)。
@@ -92,7 +92,7 @@ Page({
     if (typeof wx !== "undefined" && wx.redirectTo) {
       wx.redirectTo({
         url:
-          "/packageDeeptutor/pages/luban/handoff/handoff?pack_id=" +
+          "/packageDeeptutor/pages/luban/retest/retest?mode=forward&pack_id=" +
           encodeURIComponent(this.data.packId),
       });
     }

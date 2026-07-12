@@ -135,7 +135,7 @@
 
           <!-- 错题再看一眼(签发门道逐字, 不复述你的错) -->
           <view class="rt-review-list" wx:if="{{wrongItems.length}}">
-            <text class="rt-review-label">睡前再看一眼这 {{wrongItems.length}} 句，明天就是你的</text>
+            <text class="rt-review-label">复习前再看一眼这 {{wrongItems.length}} 句，下次更容易拿稳</text>
             <view class="rt-review-item" wx:for="{{wrongItems}}" wx:key="key">
               <view class="rt-review-dot"></view>
               <text class="rt-review-text">{{item.correct_statement}}</text>
@@ -145,12 +145,12 @@
 
           <view class="rt-stamp-row">
             <view class="rt-stamp">
-              <text>{{mode === 'forward' ? '明日换皮' : '回炉完成'}}</text>
+              <text>{{mode === 'forward' ? '轻练已记录' : '回炉完成'}}</text>
             </view>
             <text class="rt-stamp-note">{{doneDesc}}</text>
           </view>
 
-          <view class="pk-btn-ink rt-next" bindtap="continueAfterReceipt">{{mode === 'forward' ? '去看看明天的约定' : '回到复习'}}</view>
+          <view class="pk-btn-ink rt-next" bindtap="continueAfterReceipt">{{mode === 'forward' ? '返回提分路线' : '回到复习'}}</view>
         </view>
       </block>
     </view>

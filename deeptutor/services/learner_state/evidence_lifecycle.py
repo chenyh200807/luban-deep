@@ -68,6 +68,45 @@ def is_retest_completion_terminal(event: Any) -> bool:
     )
 
 
+def is_signed_luban_retest_terminal(event: Any) -> bool:
+    """Recognize the canonical terminal emitted by Luban retest writeback.
+
+    The generic terminal marker is insufficient for pack cadence: a foreign
+    learning-evidence row must not move a pack clock by copying a boolean and
+    an authority label.
+    """
+    payload = _safe_dict(getattr(event, "payload_json", {}))
+    quality = _safe_dict(payload.get("quality"))
+    result = _safe_dict(payload.get("prescription_result"))
+    completion_id = _clean(payload.get("retest_completion_id"))
+    mode = _clean(payload.get("practice_mode")).lower()
+    pack_id = _clean(payload.get("pack_id")).upper()
+    target_pack_id = _clean(payload.get("target_pack_id")).upper()
+    expected_assessment = f"luban_{mode}_completion" if mode in {"forward", "review"} else ""
+    expected_statuses = {"not_verified"} if mode == "forward" else {"verified", "not_verified"}
+    expected_confidence = "medium" if mode == "forward" else "high"
+    expected_evidence_level = "L0_observed" if mode == "forward" else "L2_real_retest"
+    return bool(
+        _clean(getattr(event, "source_feature", "")) == "assessment_testset"
+        and _clean(getattr(event, "memory_kind", "")) == "learning_evidence"
+        and _clean(getattr(event, "source_id", "")) == f"{completion_id}:terminal"
+        and _clean(payload.get("event_type")) == "learning_evidence"
+        and _clean(payload.get("evidence_source")) == "assessment_testset"
+        and payload.get("completion_terminal") is True
+        and completion_id
+        and expected_assessment
+        and _clean(payload.get("assessment_type")) == expected_assessment
+        and pack_id
+        and pack_id == target_pack_id
+        and _clean(quality.get("authority")) == "signed_variant_server_rescore"
+        and quality.get("writeback_eligible") is True
+        and _clean(quality.get("measurement_confidence")).lower() == expected_confidence
+        and _clean(quality.get("evidence_level")) == expected_evidence_level
+        and _clean(result.get("status")) in expected_statuses
+        and payload.get("claim_promotion_allowed") is (mode == "review")
+    )
+
+
 def event_promotion_allowed(
     event: Any,
     *,
@@ -118,6 +157,7 @@ __all__ = [
     "event_promotion_allowed",
     "is_learning_evidence_event",
     "is_retest_completion_terminal",
+    "is_signed_luban_retest_terminal",
     "is_real_retest",
     "promotion_allowed",
 ]

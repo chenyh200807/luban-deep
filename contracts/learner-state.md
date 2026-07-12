@@ -580,20 +580,24 @@ Overlay 必须支持：
 
 ### Review Due Projection（双轮 §6 复习模块，2026-07-05 登记，`LUBAN_REVIEW_MODULE_ENABLED` 后）
 
-1. `learner_signal` 第三类 `station_completed`（双轮复习到期收权）：站点完成
-   （交接时刻/复测完成）的触发事实，`concept_id`=pack_id；仍非 promoting
-   （source_feature=learner_signal，证据编译器排除）。旗标关 = 该类型被拒
-   （与收权前行为一致）。每次必须携带 authoritative `completion_id`；同一 completion
-   replay 幂等，不同 completion 必须追加新事件并刷新到期时间，禁止按 `user+pack` 永久去重。
-2. 到期/间隔语义唯一权威=`revalidation_queue`：新增新学相 `state="fresh"`
+1. 复测完成事实只认 signed server-rescore 的 `completion_terminal=true` 事件；item
+   append、前端收据、本机 storage 和孤立 `station_completed` 都不得推进生命周期或移动
+   复习时钟。`station_completed` 继续作为 completion 后的幂等业务信号，但不是 terminal
+   outcome 的 mirror，也不得复制分数/状态。相同 `retest_completion_id` replay 只算一次。
+2. 到期/间隔语义唯一权威=`revalidation_queue`：新学相 `state="fresh"`
    首跳按 **UTC+8 日历日次日**（§6.1 分相最小实现 + §9-D2「天」=日历日，
    「明天见」承诺的调度载体；满 24h 判定被否——昨晚学的今早即到期）。
    §6.1 地平线参数同居本模块：间隔上限 cap ≤14 天恒生效；`exam_date`
    已设且距考 ≤40 天 → 确定性线性压缩、且间隔永不超过距考天数
    （考前一周结构上不可能出现「21 天后复习」）；考后不压缩（队列语义
-   切换归后续阶段）。`exam_date` 唯一读源 = member profile，读侧透传、不复制。
+   切换归后续阶段）。canonical review 成功后按 `mastery_estimator.DECAY_PROFILES`
+   的既有 schedule 索引推进（code_application 早期为 3/7/14，仍受 14 天 cap）；失败
+   重置 success streak 并回 weak cadence。该 v1 是确定性规则调度，不得冒充 FSRS。
+   `exam_date` 唯一读源 = member profile，读侧透传、不复制。
 3. pack 级到期投影 `luban_lesson/review_due.py`（GET `/api/v1/luban/review-due`）
-   只做粒度桥接与绿灯 join，零调度逻辑（禁第二调度器）；`retest_available=false`
+   只消费 `pack_lifecycle_projection` 的 terminal facts、做粒度桥接与绿灯 join，零调度
+   逻辑（禁第二调度器）；`probe_id` 必须包含当前 cycle anchor，避免旧 verified outcome
+   永久抑制新周期；`retest_available=false`
    的站客户端必须 fail-closed 隐藏「换皮」承诺句。
 4. `mistake_book` 的 `review_due_at` 是**读侧投影**（`derive_review_due_at`，
    错题=lapse 走 weak 相），零落库、零间隔常量在 mistake_book 内——写侧
@@ -614,6 +618,10 @@ Overlay 必须支持：
 8. GET 取题必须签发 `selection_id`，绑定 canonical user、pack、服务端 UTC+8 day、mode 与
    variant ID 集合；POST 必须验证该 identity 后才按原签发日重建并重判。这样跨午夜/断网
    retry 仍消费同一题组，同时客户端不能改 day、换题或跨用户复用 selection。
+9. 最近 8 天窗口只允许用于趋势/timeline。`pack_lifecycle` 与 pack review 必须读取分页后的
+   全历史 `learning_evidence` 窄事件流；不得被 8 天、100/200/500 条页面窗口或 PostgREST
+   单页 row cap 截断。`learning_report_read_model.v2.pack_review` 是学习/复习/学情共用的
+   聚合切片，页面不得再各拉一份 learner-state 到期读模型。
 
 ## 单一写入职责
 

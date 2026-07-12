@@ -3,6 +3,15 @@ const TOKEN_KEY = "auth_token";
 const TOKEN_EXP_KEY = "auth_token_exp";
 const USER_ID_KEY = "auth_user_id";
 
+function clearReportCache(userId) {
+  // Kept lazy so auth's pure VM contract remains usable outside the mini-app
+  // module loader; production still delegates the key/envelope to its owner.
+  if (typeof require !== "function") return;
+  try {
+    require("./report-cache").clear(userId);
+  } catch (_err) {}
+}
+
 function normalizeExpiry(value) {
   if (typeof value === "string" && !/^\d+$/.test(value.trim())) {
     return 0;
@@ -191,6 +200,9 @@ const auth = {
   },
 
   clearToken() {
+    // Identity authority owns invalidation.  This covers logout, token expiry,
+    // 401 refresh failure and forced re-login without duplicating purge logic.
+    clearReportCache(this.getUserId());
     wx.removeStorageSync(TOKEN_KEY);
     wx.removeStorageSync(TOKEN_EXP_KEY);
     wx.removeStorageSync(USER_ID_KEY);

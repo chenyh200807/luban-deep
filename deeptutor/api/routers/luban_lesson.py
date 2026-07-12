@@ -213,8 +213,8 @@ async def review_due(current_user: AuthContext = Depends(get_current_user)) -> d
     from deeptutor.services.learner_state.service import get_learner_state_service
     from deeptutor.services.luban_lesson.review_due import build_review_due_projection
 
-    events = get_learner_state_service().list_memory_events(
-        current_user.user_id, limit=200
+    events = get_learner_state_service().list_learning_evidence_events(
+        current_user.user_id, limit=None, since=None
     )
     projection = build_review_due_projection(
         user_id=current_user.user_id,

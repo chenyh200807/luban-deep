@@ -21,6 +21,7 @@ var built = vm.buildReviewViewModel({
     ],
     learned_count: 2,
     authority: "revalidation_queue",
+    enabled: true,
   },
   mistakeBook: { activeCount: 3, errorBars: [{ key: "E03", label: "关键词缺失", count: 2 }] },
 });
@@ -51,7 +52,8 @@ assert.strictEqual(noPoolFirst.showPact, false, "首个到期站无池→换皮�
 
 // ── 3. 空态与降级(后端旗标关/未部署: 不抛不崩, 诚实空态) ────────
 var empty = vm.buildReviewViewModel({});
-assert.strictEqual(empty.isEmpty, true);
+assert.strictEqual(empty.isEmpty, false);
+assert.strictEqual(empty.reviewState, "unavailable");
 assert.strictEqual(empty.dueCount, 0);
 assert.strictEqual(empty.duePercent, 0);
 assert.strictEqual(empty.showPact, false);
@@ -63,8 +65,35 @@ var flagOff = vm.buildReviewViewModel({
   reviewDue: { due: [], learned_count: 0, enabled: false },
   mistakeBook: null,
 });
-assert.strictEqual(flagOff.isEmpty, false, "有点亮站但旗标关→非空态,到期清单为空");
+assert.strictEqual(flagOff.isEmpty, false, "旗标关必须显示 disabled，不冒充无历史或全部稳定");
+assert.strictEqual(flagOff.reviewState, "disabled");
 assert.strictEqual(flagOff.dueCount, 0);
+
+var noHistory = vm.buildReviewViewModel({
+  lessons: { lessons: [{ pack_id: "F16", title: "屋面防水" }] },
+  reviewDue: { due: [], learned_count: 0, enabled: true, authority: "revalidation_queue" },
+});
+assert.strictEqual(noHistory.isEmpty, true);
+assert.strictEqual(noHistory.reviewState, "no_history");
+
+var allClear = vm.buildReviewViewModel({
+  lessons: { lessons: [{ pack_id: "F16", title: "屋面防水" }] },
+  reviewDue: { due: [], learned_count: 1, enabled: true, authority: "revalidation_queue" },
+});
+assert.strictEqual(allClear.reviewState, "all_clear");
+
+var degraded = vm.buildReviewViewModel({
+  lessons: { lessons: [{ pack_id: "F16", title: "屋面防水" }] },
+  reviewDue: {
+    due: [],
+    learned_count: 0,
+    enabled: null,
+    degraded: true,
+    authority: "revalidation_queue",
+  },
+});
+assert.strictEqual(degraded.reviewState, "unavailable", "降级态不得被 authority 字符串伪装成无历史");
+assert.strictEqual(degraded.isEmpty, false);
 
 // ── 3.5 点亮语义(问题2回归): 绿灯(published)≠点亮(learned) ─────
 // 点亮真值 = pack_lifecycle（与学习页同一 lit 判定, 单一权威）;
@@ -134,16 +163,14 @@ surfaces.forEach(function (file) {
   });
 });
 
-// ── 5. 回归防线: review 页禁 N+1 retest-items 探测(到期收权服务端) ──
+// ── 5. 回归防线: review 页只消费 unified report 的 pack_review ──
 var reviewJs = fs.readFileSync(surfaces[1], "utf8");
 assert.strictEqual(
   reviewJs.indexOf("getLubanRetestItems"),
   -1,
   "review 页禁止逐站探测 retest-items 当到期语义(唯一权威=/luban/review-due)",
 );
-assert.ok(
-  reviewJs.indexOf("getLubanReviewDue") >= 0,
-  "review 页必须消费服务端 review-due 投影",
-);
+assert.strictEqual(reviewJs.indexOf("getLubanReviewDue"), -1, "review 页不得再拉第二份 learner-state 到期读模型");
+assert.ok(reviewJs.indexOf("pack_review") >= 0, "review 页必须消费 unified learning report 的 pack_review");
 
 console.log("test_review_view_model: all assertions passed");

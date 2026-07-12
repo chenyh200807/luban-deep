@@ -101,6 +101,62 @@ def _build_pack_lifecycle_from(*, events: list[Any], weak_points: list[dict[str,
         }
 
 
+def _build_pack_review_from(
+    *,
+    user_id: str,
+    events: list[Any],
+    home_dashboard: dict[str, Any],
+    events_available: bool = True,
+    settings_available: bool = True,
+) -> dict[str, Any]:
+    """Cross-module pack review slice over the existing scheduler authority."""
+    enabled = str(os.getenv("LUBAN_REVIEW_MODULE_ENABLED", "") or "").strip().lower() in {
+        "1", "true", "yes", "on"
+    }
+    if not enabled:
+        return {
+            "due": [],
+            "learned_count": 0,
+            "authority": "revalidation_queue",
+            "enabled": False,
+        }
+    if not events_available or not settings_available:
+        return {
+            "due": [],
+            "learned_count": 0,
+            "authority": "revalidation_queue",
+            "enabled": None,
+            "degraded": True,
+            "degraded_sources": [
+                name
+                for name, available in (
+                    ("learner_events", events_available),
+                    ("learner_settings", settings_available),
+                )
+                if not available
+            ],
+        }
+    try:
+        from deeptutor.services.luban_lesson.review_due import build_review_due_projection
+
+        settings = _safe_dict(home_dashboard.get("learner_settings"))
+        projection = build_review_due_projection(
+            user_id=user_id,
+            events=events,
+            exam_date_iso=str(settings.get("exam_date") or ""),
+        )
+        projection["enabled"] = True
+        return projection
+    except Exception:
+        return {
+            "due": [],
+            "learned_count": 0,
+            "authority": "revalidation_queue",
+            "enabled": None,
+            "degraded": True,
+        }
+
+
 _TZ = timezone(timedelta(hours=8))
 # Canonical schema id for register-before-use (schema-governance P2: this read model is
 # this module's single schema authority — contracts/learning-report.md). The wire payload
@@ -226,8 +282,8 @@ def build_learning_report_read_model(
         lambda: _list_learning_evidence_events(
             learner_state_service,
             normalized_user,
-            limit=limit,
-            since=_recent_window_since_iso(),
+            limit=None,
+            since="",
         ),
         default=[],
         timeout_s=_source_timeout_s("core", _CORE_SOURCE_TIMEOUT_S),
@@ -241,7 +297,15 @@ def build_learning_report_read_model(
     mastery_dashboard = _sanitize_mastery_dashboard_topics(mastery_dashboard)
     raw_events = list(raw_events or [])
 
-    events = _learning_evidence_events(raw_events)
+    all_events = _learning_evidence_events(raw_events)
+    recent_since = _recent_window_since_iso()
+    recent_events = [
+        event
+        for event in all_events
+        if _iso_unknown_or_after(str(getattr(event, "created_at", "") or ""), recent_since)
+    ]
+    recent_window_truncated = len(recent_events) >= limit
+    events = recent_events[-limit:]
     evidence_stats = _aggregate_learning_evidence(events)
 
     learning_brain, learning_brain_source = _build_learning_brain(
@@ -264,13 +328,21 @@ def build_learning_report_read_model(
             if isinstance(item, dict) and str(item.get("name") or "").strip()
         ]
 
+    pack_review = _build_pack_review_from(
+        user_id=normalized_user,
+        events=all_events,
+        home_dashboard=home_dashboard,
+        events_available=source_status["learner_events"].get("ok") is True,
+        settings_available=source_status["home_dashboard"].get("ok") is True,
+    )
+    pack_review_known = pack_review.get("enabled") is True and pack_review.get("degraded") is not True
     progress_feedback = build_progress_feedback(
         focus_topic=_pick_focus_topic(weak_names=weak_names, home_dashboard=home_dashboard),
         weak_points=weak_names,
         today_done=evidence_stats["today_done"],
         daily_target=_safe_int(legacy_today.get("daily_target")) or 30,
         streak_days=evidence_stats["streak_days"],
-        review_due=_safe_int(_safe_dict(mastery_dashboard.get("review_summary")).get("total_due")),
+        review_due=len(_safe_list(pack_review.get("due"))) if pack_review_known else None,
         daily_counts=evidence_stats["daily_counts"],
         chapter_stats=evidence_stats["chapter_stats"],
         memory_events=events,
@@ -337,7 +409,14 @@ def build_learning_report_read_model(
         "weak_node_count": len(weak_points)
         if weak_points
         else len(_safe_list(_safe_dict(home_dashboard.get("mastery")).get("weak_nodes"))),
-        "due_today_count": _safe_int(_safe_dict(home_dashboard.get("review")).get("due_today")),
+        "due_today_count": len(_safe_list(pack_review.get("due"))) if pack_review_known else None,
+        "due_today_state": (
+            "known"
+            if pack_review_known
+            else "disabled"
+            if pack_review.get("enabled") is False
+            else "unavailable"
+        ),
         "focus_hint": _safe_dict(home_dashboard.get("today")).get("hint")
         or _safe_dict(home_dashboard.get("today_focus")).get("title")
         or "",
@@ -349,7 +428,7 @@ def build_learning_report_read_model(
         "overall_mastery": _overall_mastery_score(mastery),
     }
 
-    window_truncated = evidence_stats["event_count"] >= limit
+    window_truncated = recent_window_truncated
     degraded_sources = sorted(
         name for name, status in source_status.items() if status.get("ok") is False
     )
@@ -360,7 +439,7 @@ def build_learning_report_read_model(
         if flag_state["action_loop"]
         else _empty_scoring_point_map("feature_flag_off")
     )
-    prescription_outcomes = _build_prescription_outcomes_from(events=events)
+    prescription_outcomes = _build_prescription_outcomes_from(events=all_events)
     learning_state = (
         _build_learning_state_from(events=events)
         if flag_state["state_projection"]
@@ -391,6 +470,7 @@ def build_learning_report_read_model(
             "next_best_action_source": "training_intent",
             "note_assets_source": "learner_notebook_cards",
             "today_tasks_source": "learning-report-read-model.note_assets",
+            "pack_review_source": "pack_lifecycle_projection -> revalidation_queue",
             "deprecated_page_sources": list(_DEPRECATED_PAGE_SOURCES),
         },
         "degraded": degraded,
@@ -427,6 +507,8 @@ def build_learning_report_read_model(
         "scoring_point_map": scoring_point_map,
         "prescription_outcomes": prescription_outcomes,
         "revalidation_queue": revalidation_queue,
+        # 五模块共用的 pack 级复习切片；学习/复习/学情不得再各算到期数。
+        "pack_review": pack_review,
         # Batch C Task 8: three-layer learning state (Task 4 projection)
         # exposed at top level so the student page view-model can render
         # state -> reason -> action -> evidence without traversing into
@@ -434,7 +516,7 @@ def build_learning_report_read_model(
         "learning_state": learning_state,
         # 融合计划 §1：per-pack 生命周期（未学/已学·待验证/练过/真懂/休眠）——
         # 蓝环（接触轨）与红黄绿（掌握轨）拆开，供前端第 11 轮增量稿消费。
-        "pack_lifecycle": _build_pack_lifecycle_from(events=events, weak_points=weak_points),
+        "pack_lifecycle": _build_pack_lifecycle_from(events=all_events, weak_points=weak_points),
         # D-class: student-visible long-term analytics (recurrent errors + trend).
         # Pure read projection — derived from learning_brain.weak_points.occurrence_timeline.
         "long_term_analytics": _build_long_term_analytics(learning_brain),
@@ -1284,7 +1366,7 @@ def _list_learning_evidence_events(
     learner_state_service: Any,
     user_id: str,
     *,
-    limit: int,
+    limit: int | None,
     since: str,
 ) -> list[Any]:
     reader = getattr(learner_state_service, "list_learning_evidence_events", None)
@@ -1294,8 +1376,11 @@ def _list_learning_evidence_events(
     filtered = [
         event
         for event in _learning_evidence_events(events)
-        if _iso_unknown_or_after(str(getattr(event, "created_at", "") or ""), since)
+        if not str(since or "").strip()
+        or _iso_unknown_or_after(str(getattr(event, "created_at", "") or ""), since)
     ]
+    if limit is None or limit < 0:
+        return filtered
     return filtered[-max(1, int(limit)) :]
 
 
