@@ -27,6 +27,22 @@ _FUC_BUCKET_BOUNDS_MS: tuple[float, ...] = (
 _FUC_KNOWN_SOURCES = frozenset({"content.delta", "result.response"})
 
 
+# Assessment deep-explanation LLM call wall-clock (ms). This is a one-shot
+# (non-streaming) paid explanation generated outside the turn pipeline, so it has
+# no TTFT; the histogram captures end-to-end call duration for p50/p95 ops
+# visibility. Observe-only, fail-open, label-free (single bounded series).
+_ASSESSMENT_EXPLANATION_BUCKET_BOUNDS_MS: tuple[float, ...] = (
+    500.0,
+    1000.0,
+    2000.0,
+    4000.0,
+    8000.0,
+    16000.0,
+    32000.0,
+    64000.0,
+)
+
+
 def normalize_latency_stage_timings(value: Any) -> dict[str, float]:
     """Return stable non-negative latency stage timings in milliseconds."""
     if not isinstance(value, dict):
@@ -168,6 +184,10 @@ class TurnRuntimeMetrics:
         # latency authority) so p50/p95 become readable in Prometheus.
         # Keyed by content_source; non-cumulative bucket counts + sum + count.
         self._fuc_histograms: dict[str, dict[str, Any]] = {}
+        # Observe-only assessment deep-explanation LLM call duration histogram.
+        # Single label-free series (non-cumulative bucket counts + sum + count),
+        # lazily initialized so an idle process exports nothing.
+        self._assessment_explanation_hist: dict[str, Any] = {}
 
     def record_first_useful_content(self, *, elapsed_ms: float, content_source: str = "") -> None:
         """Observe-only: record one turn-level time-to-first-useful-content sample
@@ -193,6 +213,30 @@ class TurnRuntimeMetrics:
             hist["count"] += 1
             hist["sum_ms"] += value
             for index, bound in enumerate(_FUC_BUCKET_BOUNDS_MS):
+                if value <= bound:
+                    hist["bucket_counts"][index] += 1
+                    break
+            else:
+                hist["bucket_counts"][-1] += 1
+
+    def record_assessment_explanation(self, *, elapsed_ms: float) -> None:
+        """Observe-only: record one assessment deep-explanation LLM call duration
+        sample (ms). Fail-open, never raises; invalid input is dropped silently."""
+        try:
+            value = float(elapsed_ms)
+        except (TypeError, ValueError):
+            return
+        if value < 0 or value != value:  # reject negatives and NaN
+            return
+        with self._lock:
+            hist = self._assessment_explanation_hist
+            if not hist:
+                hist["bucket_counts"] = [0] * (len(_ASSESSMENT_EXPLANATION_BUCKET_BOUNDS_MS) + 1)
+                hist["sum_ms"] = 0.0
+                hist["count"] = 0
+            hist["count"] += 1
+            hist["sum_ms"] += value
+            for index, bound in enumerate(_ASSESSMENT_EXPLANATION_BUCKET_BOUNDS_MS):
                 if value <= bound:
                     hist["bucket_counts"][index] += 1
                     break
@@ -341,6 +385,16 @@ class TurnRuntimeMetrics:
                     }
                     for source, hist in sorted(self._fuc_histograms.items())
                 ],
+                "assessment_explanation_ms": (
+                    {
+                        "bucket_bounds_ms": list(_ASSESSMENT_EXPLANATION_BUCKET_BOUNDS_MS),
+                        "bucket_counts": [int(c) for c in self._assessment_explanation_hist["bucket_counts"]],
+                        "sum_ms": round(float(self._assessment_explanation_hist["sum_ms"]), 2),
+                        "count": int(self._assessment_explanation_hist["count"]),
+                    }
+                    if self._assessment_explanation_hist
+                    else None
+                ),
             }
 
 
@@ -534,6 +588,25 @@ def render_prometheus_metrics(
         )
         emit("deeptutor_turn_first_useful_content_ms_sum", fuc_entry.get("sum_ms", 0), source_label)
         emit("deeptutor_turn_first_useful_content_ms_count", fuc_entry.get("count", 0), source_label)
+
+    lines.append(
+        "# HELP deeptutor_assessment_deep_explanation_ms Assessment deep-explanation LLM call duration (one-shot, non-streaming) in milliseconds."
+    )
+    lines.append("# TYPE deeptutor_assessment_deep_explanation_ms histogram")
+    explain_entry = turn_snapshot.get("assessment_explanation_ms")
+    if isinstance(explain_entry, dict):
+        bounds = [float(b) for b in explain_entry.get("bucket_bounds_ms") or []]
+        counts = [int(c) for c in explain_entry.get("bucket_counts") or []]
+        if bounds and len(counts) == len(bounds) + 1:
+            cumulative = 0
+            for bound, bucket_count in zip(bounds, counts[:-1]):
+                cumulative += bucket_count
+                le = str(int(bound)) if float(bound).is_integer() else str(bound)
+                emit("deeptutor_assessment_deep_explanation_ms_bucket", cumulative, {"le": le})
+            cumulative += counts[-1]
+            emit("deeptutor_assessment_deep_explanation_ms_bucket", cumulative, {"le": "+Inf"})
+            emit("deeptutor_assessment_deep_explanation_ms_sum", explain_entry.get("sum_ms", 0))
+            emit("deeptutor_assessment_deep_explanation_ms_count", explain_entry.get("count", 0))
 
     lines.append("# HELP deeptutor_surface_event_total Total surface telemetry events by surface, event, and ingest status.")
     lines.append("# TYPE deeptutor_surface_event_total counter")

@@ -335,6 +335,44 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         for source, hist in sorted(fuc_hist.items())
     ]
 
+    # Assessment deep-explanation duration histogram (label-free), summed across
+    # workers. Missing this merge would make histogram_quantile under-count under
+    # UVICORN_WORKERS>1 (a scrape only sees the worker that answered it).
+    explain_merged: dict[str, Any] | None = None
+    for x in snaps:
+        entry = x.get("assessment_explanation_ms")
+        if not isinstance(entry, dict):
+            continue
+        bounds = [float(b) for b in entry.get("bucket_bounds_ms") or []]
+        counts = [int(c) for c in entry.get("bucket_counts") or []]
+        if not bounds or len(counts) != len(bounds) + 1:
+            continue  # corrupt/foreign shape: skip, never fatal
+        if explain_merged is None:
+            explain_merged = {
+                "bucket_bounds_ms": bounds,
+                "bucket_counts": counts,
+                "sum_ms": float(entry.get("sum_ms", 0.0)),
+                "count": int(entry.get("count", 0)),
+            }
+            continue
+        if explain_merged["bucket_bounds_ms"] != bounds:
+            continue  # mixed bucket layouts (rolling deploy): keep first layout
+        explain_merged["bucket_counts"] = [
+            a + b for a, b in zip(explain_merged["bucket_counts"], counts)
+        ]
+        explain_merged["sum_ms"] += float(entry.get("sum_ms", 0.0))
+        explain_merged["count"] += int(entry.get("count", 0))
+    assessment_explanation_ms = (
+        {
+            "bucket_bounds_ms": explain_merged["bucket_bounds_ms"],
+            "bucket_counts": explain_merged["bucket_counts"],
+            "sum_ms": round(explain_merged["sum_ms"], 2),
+            "count": explain_merged["count"],
+        }
+        if explain_merged is not None
+        else None
+    )
+
     return {
         "ws_active_connections": s("ws_active_connections"),
         "ws_opened_total": s("ws_opened_total"),
@@ -358,6 +396,7 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         "loop_lag_over_200ms_total": s("loop_lag_over_200ms_total"),
         "loop_lag_samples_total": s("loop_lag_samples_total"),
         "first_useful_content_ms": first_useful_content_ms,
+        "assessment_explanation_ms": assessment_explanation_ms,
     }
 
 
