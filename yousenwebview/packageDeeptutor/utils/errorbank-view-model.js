@@ -19,6 +19,8 @@
 //   给出可用 probe 才渲染; 否则降级为回解析。
 // - 文案铁律: 只用「帮你变强」基调, 禁审视揭短词(测试钉死禁词表)。
 
+var knowledgeShape = require("./knowledge-shape");
+
 function _obj(v) {
   return v && typeof v === "object" && !Array.isArray(v) ? v : {};
 }
@@ -340,6 +342,8 @@ function buildErrorbankDetail(entry, opts) {
               var o = _obj(r);
               return {
                 text: _str(o.mental_model),
+                // 心智模型常是箭头链——共享形状解析器切石链(≥3段才算,零改写)
+                chain: knowledgeShape.parseChain(_str(o.mental_model)),
                 phenomenon: _str(o.phenomenon),
                 wrongModel: _str(o.wrong_model || o.wrongModel),
                 textbookRef: _str(o.textbook_ref || o.textbookRef),

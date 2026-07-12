@@ -238,6 +238,16 @@ Page({
     this._submitCompletion(all, this.data.correctCount);
   },
 
+  goConceptCards: function () {
+    var packId = this.data.packId || "";
+    if (!packId) return;
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({
+        url: route.lubanConceptCards({ pack_id: packId }),
+      });
+    }
+  },
+
   continueAfterReceipt() {
     if (this.data.mode === "forward" && typeof wx !== "undefined" && wx.redirectTo) {
       wx.redirectTo({

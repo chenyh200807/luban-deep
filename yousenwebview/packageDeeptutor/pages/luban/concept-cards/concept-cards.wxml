@@ -266,7 +266,7 @@
             <text class="cc-sheet-cell-title">{{item.title}}</text>
             <view class="cc-pack-dot" wx:if="{{pendingMap[item.packId] > 0}}"></view>
           </view>
-          <text class="cc-sheet-cell-meta">{{item.cardCount}} 张{{item.packId === activePackId ? ' · 正在翻' : ''}}</text>
+          <text class="cc-sheet-cell-meta">{{item.cardCount}} 张{{item.tier === 'standard' ? ' · 标准' : ''}}{{item.packId === activePackId ? ' · 正在翻' : ''}}</text>
         </view>
       </view>
     </scroll-view>

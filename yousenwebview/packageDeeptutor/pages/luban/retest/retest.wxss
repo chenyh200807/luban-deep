@@ -107,3 +107,25 @@
 .rt-retry { padding: 12rpx 44rpx; }
 .rt-loading { padding: 60rpx 24rpx; text-align: center; font-size: 26rpx; color: var(--pk-t3); }
 .rt-pool { font-size: 22rpx; color: var(--pk-t3); margin-top: 4rpx; }
+
+/* 三角回路: 复测→考点卡 */
+.rt-cc-link {
+  margin: 20rpx 0 4rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(72, 128, 106, 0.07);
+  border: 1rpx dashed rgba(72, 128, 106, 0.32);
+  border-radius: 16rpx;
+  padding: 18rpx 22rpx;
+}
+.rt-cc-link-tx {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-grn);
+}
+.rt-cc-link-arrow {
+  font-size: 30rpx;
+  color: var(--pk-grn);
+  font-weight: 700;
+}

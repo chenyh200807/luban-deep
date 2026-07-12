@@ -206,6 +206,11 @@
 - **UI 语义**：保存失败不出收据、不说“明天见”；服务端 terminal 成功后 forward 进 handoff，review 回复习。handoff 只保留提醒与 telemetry，不再写 learner state。
 - **发布边界**：本轮不部署。首次四题仍因双教研签发未完成而 fail closed；真实微信订阅提醒仍依赖模板 ID，不能用页内红点冒充系统推送。
 
+### 2026-07-12（三线并行:标准卡量产spike+共享组件收口+RichLeaf通电评审 · owner"三件事都做"）
+- **[①标准卡二梯队spike已通]** `scripts/build_luban_standard_concept_cards.py`:RichLeaf v32(1606叶verified采分点)×11年真题考频(FINAL_CLEANED_EXAM node_code实证,案例×2+选择×1,方向性口径)→**Top100叶标准卡**,四闸fail-closed(verified+教材quote逐字复核(不信任传递,100/100过)+禁词+去重)。聚成施工质量管理49+施工进度管理51两高频章deck(taxonomy二级节点权威命名)。**分层纪律**:tier=standard/status=candidate,后端只在`LUBAN_STD_CONCEPT_CARDS_ENABLED`且非生产投影(生产fail-closed),抽屉标"标准"徽标——签发口径待owner过目打样后定,不冒充精品。库总量141精品+100标准=241张。后端6 pytest全绿,API+实机验收(STD01首卡=分部验收组织,7给分词章)。待精化:actor切词偶有截断/跨点重复term去重/考频node级精确化(盘点文档自注待办)。
+- **[②共享组件收口]** 形态学解析器抽为`utils/knowledge-shape.js`(链/规则/枚举/红线/句读/数字+形状归型,concept-cards-view-model改require保持导出兼容,测试全绿);错因银行解药mental_model接`parseChain`→箭头链渲染竹青石链(检验批→分项→分部→单位这类心智模型不再是一段文字);复测完场收据挂考点卡回路(错了="把给分词背上"/全对="趁热巩固",学-错-背三角第三边闭合)。
+- **[③RichLeaf通电评审:两专家收敛裁决]** 质量权威专家:published:false=治理未走完非质量缺陷(5 blocker中3纯治理;fail-closed结构锁已浇死official_answer冒充,`rich_leaf_runtime.py:280-317`);架构消费专家:**"通电基本是伪需求"**——runtime bundle实为1466条/2.8MB/lru一次载入,唯一已接线消费者=general_knowledge教学overlay(additive,flag默认OFF);四候选消费者排序=标准卡(编译期)>轻练富化(编译期)>报告副标题(投影)>TutorBot grounding(runtime)。**合议裁决:编译期全吃为主线(①已执行第一步),runtime flag保留为廉价期权;若要消掉release_governance_not_exercised治理blocker,test2 qa_ cohort给教学overlay灰度一次(owner拍板项)**。90天消费路线图入账:D1-14标准卡打样(已完成)→D15-30轻练/cloze富化→D31-45报告副标题投影→D46-60消费驱动质量回灌quarantine→D61-90按需灰度runtime。
+
 ### 2026-07-12（五模块加载慢根因+修复 · owner"为什么特别慢"）
 - **[根因]** 量化定位:review-due **3.45s**、mistake-book **1.0s**,其余端点全毫秒级。剖析:投影本身6ms,3秒全烧在`list_memory_events`——本地开发后端每请求**串行打4次远程Supabase HTTPS查询**(~1s RTT×4)。学习/复习/错因页都消费这两个端点=五模块整体感觉慢。
 - **[修法=接通休眠旗标,零代码]** 代码里逃生门早已建好:`DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK`+`DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK`(非生产+flag→本地投影,不打Supabase)。本地serve脚本加两行env→**review-due 3.45s→0.04s(86×),mistake-book 1.0s→5ms**。dormant flag再添一例:修法不是写新码,是给已有门通电。
