@@ -49,8 +49,12 @@ LearnerStateEventKind = Literal["turn", "guide", "notebook", "progress", "manual
 _NO_CHANGE = "NO_CHANGE"
 # Battle2 S1-T1: summary-maintainer gate counter threshold. The gate's single
 # authority is the learner_memory_events ledger plus an in-process cursor; the
-# counter branch guarantees a staleness hard cap of N-1 substantive turns.
-# Module constant on purpose (no env flag) — rollback = revert.
+# counter branch caps staleness at N-1 substantive turns PER WORKER — the
+# cursor is process-local, so with UVICORN_WORKERS=w the global worst case is
+# w*(N-1) substantive turns (adversarial re-audit 2026-07-12; ledger itself is
+# shared, so a skipped turn is deferred consumption, never lost). Do NOT quote
+# "N-1" as a global SLA. Module constant on purpose (no env flag) — rollback =
+# revert.
 _SUMMARY_GATE_TURN_THRESHOLD = 3
 _LOW_SIGNAL_TURN_PATTERNS = (
     "你好",
@@ -1659,7 +1663,7 @@ class LearnerStateService:
         if cap.startswith("guide") or cap.startswith("notebook"):
             return "run_capability"  # mirrors _should_skip_turn_writeback's never-skip set
         if state.turns_since_run + 1 >= _SUMMARY_GATE_TURN_THRESHOLD:
-            return "run_counter"  # staleness hard cap: N-1 substantive turns
+            return "run_counter"  # staleness cap: N-1 substantive turns PER WORKER (global: workers*(N-1))
         try:
             cutoff = _parse_iso(state.last_run_at)  # parse failure -> None -> all new
             for event in reversed(self._list_local_memory_events(user_id)):
