@@ -5,9 +5,11 @@
 
 ## 安装与升级
 
-gstack 安装在 `~/.claude/skills/gstack/`，同时 symlink 到 `~/.codex/skills/gstack/`——**Claude Code 和 Codex 共享同一套 skill 源**，所以两端工作流可以无缝衔接。
+gstack 在 Claude Code 侧安装在 `~/.claude/skills/gstack/`（git repo + setup 生成的 gstack-* 转发目录）；Codex 侧是**另一份独立 clone**（`~/.gstack/repos/gstack/`，经 `~/.codex/skills/` 下的逐 skill 符号链接接入），两侧并非同一份源，升级需各自处理。
 
 升级：`cd ~/.claude/skills/gstack && git pull && ./setup`
+
+> **升级后必须重跑排除清单**：gstack `./setup`（含 `/gstack-upgrade`）会无条件重建全部 gstack-* 转发目录，没有原生排除机制。本机维护了排除清单 `~/.claude/skills/gstack-prune.list`（iOS/design/setup-deploy/skillify/sync-gbrain 等 12 个对本项目永不适用的 skill），每次升级或重跑 setup / `gstack-relink` / `gstack-config set skill_prefix` 后执行一次 `~/.claude/skills/gstack-prune.sh`（幂等）。Codex 侧同类不适用 skill 的符号链接已于 2026-07-12 移除。
 
 ## gstack 命令 ↔ AGENTS.md 工作流映射
 
