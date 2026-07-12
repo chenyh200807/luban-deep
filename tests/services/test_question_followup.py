@@ -2731,6 +2731,29 @@ def test_followup_classifier_caps_retries_to_one(monkeypatch):
     assert captured.get("max_retries") == 1
 
 
+def test_followup_classifier_disables_thinking(monkeypatch):
+    # 意图分类不需推理链:显式传 reasoning_effort="disabled",executors 翻译为
+    # dashscope enable_thinking=False / deepseek thinking.disabled。dashscope 思考占
+    # 输出 token 70-80%,关闭是主延迟/成本杠杆(实测 42→6 tokens)。
+    captured = {}
+
+    async def fake_complete(**kwargs):
+        captured.update(kwargs)
+        import json as _json
+
+        return _json.dumps(
+            {"intent": "ask_followup", "confidence": 0.9, "reason": "x"}
+        )
+
+    monkeypatch.setattr(_qf, "complete", fake_complete)
+    _asyncio.run(_qf.interpret_question_followup_action("这题为什么选C", _S45_CTX))
+    assert captured.get("reasoning_effort") == "disabled"
+    # 关思考不改其余参数(temperature=0 / max_tokens=500 / JSON 结构化输出)。
+    assert captured.get("temperature") == 0
+    assert captured.get("max_tokens") == 500
+    assert captured.get("response_format") == {"type": "json_object"}
+
+
 # --- Step 5: 单一 chokepoint 收口 turn_runtime._submission_action_for_user_message ---
 # 把 4.5/4.6 逐路径 gate 收敛到最上游:LOW 裸单题作答不在此构造提交动作 → 下游不缓存
 # submission(防未来新下游路径再凭空判分)。batch/numbered 显式提交=HIGH 不经此 gate。

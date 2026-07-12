@@ -78,18 +78,36 @@ def _apply_provider_thinking_mode(
     reasoning_effort: str | None,
 ) -> None:
     spec = find_by_name(provider_name)
-    if not spec or spec.name != "deepseek":
-        if reasoning_effort:
+
+    if spec and spec.name == "deepseek":
+        # deepseek 分支:既有行为逐字不变。空/disabled effort → 强制关思考
+        # (extra_body.thinking=disabled),显式非 disabled effort → 开思考并透传。
+        requested = str(reasoning_effort or "").strip().lower()
+        thinking_enabled = bool(requested and requested not in _DISABLED_REASONING_EFFORTS)
+        if thinking_enabled:
+            payload["reasoning_effort"] = reasoning_effort
+        payload.setdefault("extra_body", {})["thinking"] = {
+            "type": "enabled" if thinking_enabled else "disabled"
+        }
+        return
+
+    if spec and spec.name == "dashscope":
+        # dashscope(生产 binding)对称补齐:此前命中上面 deepseek 判据的提前 return,
+        # thinking 控制完全空转(dormant authority),导致所有 dashscope 调用默认思考。
+        # 关键零回归约束:**只在 reasoning_effort 显式为 disabled 类值时才关思考**;
+        # 空 effort 不发任何 thinking 参数,保持 provider 默认(=思考),不退化判分等
+        # 可能依赖思考的调用。与 tutorbot openai_compat_provider 路径一致,dashscope
+        # 用 extra_body.enable_thinking(实测 dashscope 两个参数都认)。
+        requested = str(reasoning_effort or "").strip().lower()
+        if requested in _DISABLED_REASONING_EFFORTS:
+            payload.setdefault("extra_body", {})["enable_thinking"] = False
+        elif requested:
             payload["reasoning_effort"] = reasoning_effort
         return
 
-    requested = str(reasoning_effort or "").strip().lower()
-    thinking_enabled = bool(requested and requested not in _DISABLED_REASONING_EFFORTS)
-    if thinking_enabled:
+    # 其他 provider:既有兜底逐字不变。
+    if reasoning_effort:
         payload["reasoning_effort"] = reasoning_effort
-    payload.setdefault("extra_body", {})["thinking"] = {
-        "type": "enabled" if thinking_enabled else "disabled"
-    }
 
 
 async def sdk_complete(
