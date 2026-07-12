@@ -273,6 +273,55 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         for (mode, tier), count in sorted(mode_count.items())
     ]
 
+    # Battle2 S1-T4: summary-maintainer gate decisions, summed by (decision, outcome)
+    # across workers. Without this merge a scrape only sees the answering worker
+    # under UVICORN_WORKERS>1 and the gate hit rate is systematically under-counted.
+    gate_count: dict[tuple[str, str], int] = defaultdict(int)
+    for x in snaps:
+        for entry in x.get("summary_maintainer_counts") or []:
+            key = (str(entry.get("decision", "")), str(entry.get("outcome", "")))
+            gate_count[key] += int(entry.get("count", 0))
+    summary_maintainer_counts = [
+        {"decision": decision, "outcome": outcome, "count": count}
+        for (decision, outcome), count in sorted(gate_count.items())
+    ]
+
+    # Battle2 S3-T3: TTFVT histogram, summed per content_source across workers.
+    # Missing this merge would make histogram_quantile systematically under-count
+    # (a scrape only sees the worker that answered it) under UVICORN_WORKERS>1.
+    fuc_hist: dict[str, dict[str, Any]] = {}
+    for x in snaps:
+        for entry in x.get("first_useful_content_ms") or []:
+            source = str(entry.get("content_source", ""))
+            bounds = [float(b) for b in entry.get("bucket_bounds_ms") or []]
+            counts = [int(c) for c in entry.get("bucket_counts") or []]
+            if not bounds or len(counts) != len(bounds) + 1:
+                continue  # corrupt/foreign shape: skip, never fatal
+            merged = fuc_hist.get(source)
+            if merged is None:
+                fuc_hist[source] = {
+                    "bucket_bounds_ms": bounds,
+                    "bucket_counts": counts,
+                    "sum_ms": float(entry.get("sum_ms", 0.0)),
+                    "count": int(entry.get("count", 0)),
+                }
+                continue
+            if merged["bucket_bounds_ms"] != bounds:
+                continue  # mixed bucket layouts (rolling deploy): keep first layout
+            merged["bucket_counts"] = [a + b for a, b in zip(merged["bucket_counts"], counts)]
+            merged["sum_ms"] += float(entry.get("sum_ms", 0.0))
+            merged["count"] += int(entry.get("count", 0))
+    first_useful_content_ms = [
+        {
+            "content_source": source,
+            "bucket_bounds_ms": hist["bucket_bounds_ms"],
+            "bucket_counts": hist["bucket_counts"],
+            "sum_ms": round(hist["sum_ms"], 2),
+            "count": hist["count"],
+        }
+        for source, hist in sorted(fuc_hist.items())
+    ]
+
     return {
         "ws_active_connections": s("ws_active_connections"),
         "ws_opened_total": s("ws_opened_total"),
@@ -285,6 +334,7 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         "turn_avg_latency_ms": _weighted_avg(lat_pairs),
         "turn_stage_avg_latency_ms": stages,
         "response_mode_counts": response_mode_counts,
+        "summary_maintainer_counts": summary_maintainer_counts,
         # Battle1 W1-T6: event-loop lag sentinel. Max across workers (worst worker
         # dominates); over-200ms + samples summed. Missing this merge would silently
         # drop the lag signal under UVICORN_WORKERS>1.
@@ -293,6 +343,7 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         ),
         "loop_lag_over_200ms_total": s("loop_lag_over_200ms_total"),
         "loop_lag_samples_total": s("loop_lag_samples_total"),
+        "first_useful_content_ms": first_useful_content_ms,
     }
 
 

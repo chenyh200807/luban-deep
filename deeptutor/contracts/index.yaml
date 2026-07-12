@@ -316,6 +316,11 @@ domains:
       - tests/core/test_terminal_result_assembler.py
       - tests/core/test_assembler_grading_result.py
       - tests/services/session/test_turn_event_batching_replay.py
+      # Battle2 S3-T3: turn-level TTFVT observe-only export (turn_runtime
+      # _record_first_useful_content_once -> runtime_metrics histogram ->
+      # multiworker merge). Fail-open; never affects turn outcome.
+      - tests/api/test_runtime_metrics.py
+      - tests/services/observability/test_multiworker_metrics.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
@@ -402,6 +407,9 @@ domains:
       - tests/core/test_assembler_grading_result.py
       - tests/core/test_assembler_tutorbot_result.py
       - tests/services/test_resolve_reveal_decision.py
+      # Battle2 S2（判分输出减半）：deterministic 去套话 + 判分裁决字段结构性不变量
+      - tests/capabilities/test_deep_question_deterministic_feedback.py
+      - tests/capabilities/test_deep_question_submission_feedback_invariants.py
     schema_files:
       - deeptutor/capabilities/request_contracts.py
 
@@ -466,6 +474,10 @@ domains:
       - tests/services/citations/test_quality.py
       - tests/scripts/test_migrate_kb.py
       - tests/scripts/test_audit_2026_compiler_supabase_coverage.py
+      - tests/services/rag/test_supabase_availability_swr.py
+      - tests/services/rag/test_supabase_fanout_dedup.py
+      - tests/services/rag/test_supabase_unified_timeout.py
+      - tests/services/rag/test_rerank_doc_cap.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 
@@ -500,6 +512,9 @@ domains:
       - tests/services/embedding/test_validation.py
       - tests/services/search/test_web_search_runtime.py
       - tests/services/search/test_search_provider_resilience.py
+      # Battle2 S3-T2: factory.stream Langfuse export (usage + completion_start_time
+      # first-chunk wall-clock, observe-only fail-open).
+      - tests/services/llm/test_factory_langfuse_usage.py
     schema_files: []
 
   learner_state:

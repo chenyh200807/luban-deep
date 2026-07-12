@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 from contextlib import contextmanager
+from datetime import datetime, timezone
 
 import pytest
 
@@ -97,6 +99,82 @@ async def test_factory_stream_prefers_provider_usage_for_langfuse(monkeypatch) -
         "output": 6.0,
         "total": 36.0,
     }
+    # Battle2 S3-T2: first-chunk wall-clock reaches Langfuse as completion_start_time.
+    completion_start = fake_observability.updated[-1]["completion_start_time"]
+    assert isinstance(completion_start, datetime)
+    assert completion_start.tzinfo is not None
+
+
+@pytest.mark.asyncio
+async def test_factory_stream_completion_start_time_comes_from_successful_attempt(monkeypatch) -> None:
+    """A failed first attempt (retriable error before any yield) must not pollute the
+    successful attempt's completion_start_time: the timestamp is reset on retry."""
+    fake_observability = _FakeObservability()
+    attempt_counter = {"calls": 0}
+    second_attempt_started_at: list[datetime] = []
+
+    async def _fake_sdk_stream(**_kwargs):
+        attempt_counter["calls"] += 1
+        if attempt_counter["calls"] == 1:
+            raise asyncio.TimeoutError("first attempt dies before first chunk")
+        second_attempt_started_at.append(datetime.now(timezone.utc))
+        yield TutorStreamChunk(content="A", delta="A", provider="openai", model="gpt-4o-mini")
+        yield TutorStreamChunk(
+            content="A",
+            delta="",
+            provider="openai",
+            model="gpt-4o-mini",
+            is_complete=True,
+            usage={"prompt_tokens": 3, "completion_tokens": 1, "total_tokens": 4},
+        )
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.observability", fake_observability)
+    monkeypatch.setattr("deeptutor.services.llm.factory.sdk_stream", _fake_sdk_stream)
+
+    chunks: list[str] = []
+    async for chunk in stream(
+        "hello",
+        model="gpt-4o-mini",
+        api_key="sk-test",
+        base_url="https://api.openai.com/v1",
+        binding="openai",
+        max_retries=1,
+        retry_delay=0,
+    ):
+        chunks.append(chunk)
+
+    assert "".join(chunks) == "A"
+    assert attempt_counter["calls"] == 2
+    completion_start = fake_observability.updated[-1]["completion_start_time"]
+    assert isinstance(completion_start, datetime)
+    assert completion_start.tzinfo is not None
+    # The exported timestamp is from the second (successful) attempt, not the failed one.
+    assert completion_start >= second_attempt_started_at[0]
+
+
+@pytest.mark.asyncio
+async def test_factory_stream_error_before_first_chunk_has_no_completion_start_time(monkeypatch) -> None:
+    fake_observability = _FakeObservability()
+
+    async def _fake_sdk_stream(**_kwargs):
+        raise ValueError("non-retriable, dies before first chunk")
+        yield  # pragma: no cover - makes this an async generator
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.observability", fake_observability)
+    monkeypatch.setattr("deeptutor.services.llm.factory.sdk_stream", _fake_sdk_stream)
+
+    with pytest.raises(ValueError):
+        async for _chunk in stream(
+            "hello",
+            model="gpt-4o-mini",
+            api_key="sk-test",
+            base_url="https://api.openai.com/v1",
+            binding="openai",
+            max_retries=0,
+        ):
+            pass
+
+    assert fake_observability.updated[-1]["completion_start_time"] is None
 
 
 @pytest.mark.asyncio
@@ -124,7 +202,7 @@ async def test_sdk_stream_requests_usage_chunk_for_dashscope(monkeypatch) -> Non
             self.chat = _FakeChat()
 
     monkeypatch.setattr(
-        "deeptutor.services.llm.executors.make_openai_client",
+        "deeptutor.services.llm.executors.get_pooled_openai_client",
         lambda *args, **kwargs: _FakeAsyncOpenAI(),
     )
 
@@ -167,7 +245,7 @@ async def test_sdk_stream_preserves_explicit_stream_options(monkeypatch) -> None
             self.chat = _FakeChat()
 
     monkeypatch.setattr(
-        "deeptutor.services.llm.executors.make_openai_client",
+        "deeptutor.services.llm.executors.get_pooled_openai_client",
         lambda *args, **kwargs: _FakeAsyncOpenAI(),
     )
 

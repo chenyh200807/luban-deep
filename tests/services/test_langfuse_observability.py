@@ -606,6 +606,47 @@ def test_estimated_usage_is_exported_to_langfuse_payload() -> None:
     }
 
 
+# ----------------------------------------------------------------------------------
+# Battle2 S3-T1: completion_start_time passthrough (Langfuse timeToFirstToken)
+# ----------------------------------------------------------------------------------
+def test_update_observation_passes_completion_start_time_through() -> None:
+    from datetime import datetime, timezone
+
+    adapter = LangfuseObservability()
+    observation = _FakeObservation()
+    first_chunk_at = datetime(2026, 7, 12, 3, 4, 5, tzinfo=timezone.utc)
+
+    adapter.update_observation(
+        observation,
+        output_payload="hello",
+        completion_start_time=first_chunk_at,
+    )
+
+    assert observation.updates[-1]["completion_start_time"] == first_chunk_at
+
+
+def test_update_observation_defaults_completion_start_time_to_none() -> None:
+    adapter = LangfuseObservability()
+    observation = _FakeObservation()
+
+    adapter.update_observation(observation, output_payload="hello")
+
+    assert observation.updates[-1]["completion_start_time"] is None
+
+
+def test_update_observation_completion_start_time_noop_observation_does_not_raise() -> None:
+    from datetime import datetime, timezone
+
+    from deeptutor.services.observability.langfuse_adapter import _NoopObservation
+
+    adapter = LangfuseObservability()
+    adapter.update_observation(
+        _NoopObservation(),
+        output_payload="hello",
+        completion_start_time=datetime.now(timezone.utc),
+    )  # must not raise (fail-open)
+
+
 def test_estimate_cost_details_supports_gte_rerank_alias() -> None:
     adapter = LangfuseObservability()
 
