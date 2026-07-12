@@ -6518,11 +6518,19 @@ class TurnRuntimeManager:
         # await between them — so no interleaving inside the event loop).
         payload["seq"] = execution.next_seq
         execution.next_seq += 1
-        if event.type == StreamEventType.CONTENT:
+        if event.type in (StreamEventType.CONTENT, StreamEventType.THINKING):
             # Transport-first fast path: buffer the delta for a batched commit and
             # fan out immediately. Crash-loss upper bound = the unflushed window
             # (≤ _CONTENT_FLUSH_MAX_ELAPSED_SECONDS / _EVENTS / _CHARS); the DB
             # stays a contiguous seq prefix throughout.
+            # THINKING joins the buffered channel (owner decision 2026-07-12):
+            # it is the LLM's internal draft stream — never user-visible, only
+            # observability material — and deep_question emits it per-delta
+            # (22k+ rows in the production sample, interrupting content runs
+            # every ~4 events, which compressed batching gains to ~4-5x). The
+            # only semantic cost is that a crash may lose the trailing ≤250ms
+            # of draft chunks; user-visible content, tool boundaries and
+            # terminal events keep their persist-before-deliver guarantee.
             execution.pending_events.append(payload)
             execution.pending_chars += len(payload.get("content") or "")
             if not execution.pending_first_monotonic:
@@ -6536,8 +6544,8 @@ class TurnRuntimeManager:
                 await self._flush_pending(execution)
             persisted = payload
         else:
-            # Every non-content event (result/error/done/session/tool_*/stage_*/
-            # progress/thinking/…) keeps persist-before-fan-out semantics: it is
+            # Every non-delta event (result/error/done/session/tool_*/stage_*/
+            # progress/…) keeps persist-before-fan-out semantics: it is
             # committed in ONE transaction together with all buffered content
             # deltas, so a terminal event's durability implies its entire prefix.
             persisted = await self._flush_pending(execution, extra=payload)
