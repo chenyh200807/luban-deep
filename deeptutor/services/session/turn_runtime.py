@@ -1478,7 +1478,7 @@ def _build_turn_semantic_decision(
         normalized_confidence = (
             normalized_confidence if normalized_confidence is not None else 0.7
         )
-    return build_semantic_turn_decision(
+    decision = build_semantic_turn_decision(
         relation_to_active_object=relation,
         next_action=next_action,
         allowed_patch=allowed_patch,
@@ -1488,6 +1488,14 @@ def _build_turn_semantic_decision(
         target_object_ref=_active_object_ref(active_object),
         active_object=active_object,
     )
+    # WP3 Stage B（2026-07-12）：判定器 facet seeks_active_answer_help 透传进
+    # canonical turn_semantic_decision（缺失 = 不带 key，不参与）。observe-only
+    # 旗标每跳显式导出——normalize_turn_semantic_decision 已保留该可选键，
+    # orchestrator passthrough 那一跳不会静默丢。
+    facet = (followup_question_action or {}).get("seeks_active_answer_help")
+    if isinstance(facet, bool):
+        decision["seeks_active_answer_help"] = facet
+    return decision
 
 
 _QUESTION_LIFECYCLE_METADATA_KEYS = (

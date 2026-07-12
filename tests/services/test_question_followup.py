@@ -3011,3 +3011,211 @@ def test_followup_action_prompt_carries_grading_context_for_semantic_next_step()
     assert "next_training_signal" in prompt
     assert "基础检查分类混淆" in prompt
     assert "不要只按用户短句字面判断" in prompt
+
+
+# ---------------------------------------------------------------------------
+# WP3 (2026-07-12) 幽灵提交治本: 工程缩写 (CV/SV/BCWS/BCWP/ACWP…) 里被 [A-E]
+# 抠出的孤字母不是选项提交。选项字母必须是独立 token: 紧邻非选项大写字母的不算;
+# 含混合大写缩写串的 fragment 整体不算。真提交 ("我选C"/"ABD") 必须原样存活。
+# ---------------------------------------------------------------------------
+
+
+def _earned_value_mcq_context() -> dict:
+    return {
+        "question_id": "q-ev-1",
+        "question": "赢得值法综合题",
+        "question_type": "choice",
+        "options": {
+            "A": "进度超前，成本节支",
+            "B": "进度滞后，成本超支",
+            "C": "进度超前，成本超支",
+            "D": "进度滞后，成本节支",
+        },
+    }
+
+
+def test_engineering_abbreviations_are_not_ghost_option_submissions() -> None:
+    """生产幽灵 (I1 取证): "计算CV和SV" 被 re.findall(r"[A-E]") 抠出 user_answer=C。"""
+
+    message = (
+        "背景：某工程采用赢得值法进行进度和成本综合控制，第3个月末检查，"
+        "先计算BCWS、BCWP、ACWP，再计算CV和SV，判断项目进度与成本状态"
+    )
+    _target, submission = resolve_submission_attempt(message, _earned_value_mcq_context())
+    assert submission is None
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "计算CV和SV",
+        "CV是多少",
+        "BCWP和ACWP的差是CV",
+        "SV为负说明进度滞后",
+    ],
+)
+def test_abbreviation_fragments_never_mine_option_letters(message: str) -> None:
+    _target, submission = resolve_submission_attempt(message, _earned_value_mcq_context())
+    assert submission is None
+
+
+def test_explicit_letter_submission_still_resolves_c() -> None:
+    """防过杀: "我选C" 真提交必须仍返 C。"""
+
+    _target, submission = resolve_submission_attempt("我选C", _earned_value_mcq_context())
+    assert submission is not None
+    assert submission["kind"] == "single"
+    assert submission["answer"] == "C"
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [
+        ("C", "C"),
+        ("答案是B", "B"),
+        ("我选D。", "D"),
+    ],
+)
+def test_plain_letter_submissions_survive(message: str, expected: str) -> None:
+    _target, submission = resolve_submission_attempt(message, _earned_value_mcq_context())
+    assert submission is not None
+    assert submission["answer"] == expected
+
+
+def test_multi_select_compact_letters_survive() -> None:
+    """多选紧凑字母串 ("ABD") 里选项字母互邻是合法形态, 不得被独立-token 判据误杀。"""
+
+    context = dict(_earned_value_mcq_context())
+    context["multi_select"] = True
+    _target, submission = resolve_submission_attempt("我选ABD", context)
+    assert submission is not None
+    assert submission["answer"] == "ABD"
+
+
+# ---------------------------------------------------------------------------
+# WP3 Stage B: followup 判定器 canonical facet seeks_active_answer_help。
+# flag (DEEPTUTOR_ANTIPEEK_CANONICAL_FACET_ENABLED, 默认关) 才进 prompt;
+# _normalize_followup_action 只透传布尔值, 缺失/垃圾 = 不带 key (bit 不变)。
+# ---------------------------------------------------------------------------
+
+
+def _facet_question_context() -> dict:
+    return {
+        "question_id": "q-1",
+        "question": "示例题",
+        "question_type": "choice",
+        "options": {"A": "甲", "B": "乙", "C": "丙", "D": "丁"},
+    }
+
+
+def test_normalize_followup_action_passes_through_bool_facet() -> None:
+    from deeptutor.services.question_followup import _normalize_followup_action
+
+    normalized_context = normalize_question_followup_context(_facet_question_context())
+    action = _normalize_followup_action(
+        {
+            "intent": "ask_followup",
+            "confidence": 0.9,
+            "answers": [],
+            "reason": "总结考点",
+            "seeks_active_answer_help": False,
+        },
+        normalized_context,
+    )
+    assert action is not None
+    assert action["seeks_active_answer_help"] is False
+
+    action_true = _normalize_followup_action(
+        {
+            "intent": "ask_followup",
+            "confidence": 0.9,
+            "answers": [],
+            "reason": "求提示",
+            "seeks_active_answer_help": True,
+        },
+        normalized_context,
+    )
+    assert action_true is not None
+    assert action_true["seeks_active_answer_help"] is True
+
+
+@pytest.mark.parametrize("garbage", [None, "yes", 1, [], {}])
+def test_normalize_followup_action_omits_non_bool_facet(garbage) -> None:
+    """缺失/垃圾 facet 值 = 不带 key —— flag OFF 时 action dict bit-for-bit 不变。"""
+
+    from deeptutor.services.question_followup import _normalize_followup_action
+
+    normalized_context = normalize_question_followup_context(_facet_question_context())
+    raw = {
+        "intent": "ask_followup",
+        "confidence": 0.9,
+        "answers": [],
+        "reason": "",
+    }
+    if garbage is not None:
+        raw["seeks_active_answer_help"] = garbage
+    action = _normalize_followup_action(raw, normalized_context)
+    assert action is not None
+    assert "seeks_active_answer_help" not in action
+
+
+def test_followup_prompt_includes_facet_only_when_enabled() -> None:
+    from deeptutor.services.question_followup import _build_followup_action_prompt
+
+    normalized_context = normalize_question_followup_context(_facet_question_context())
+
+    prompt_off = _build_followup_action_prompt(
+        user_message="给我整理记忆口诀",
+        question_context=normalized_context,
+    )
+    assert "seeks_active_answer_help" not in prompt_off
+
+    prompt_on = _build_followup_action_prompt(
+        user_message="给我整理记忆口诀",
+        question_context=normalized_context,
+        include_answer_help_facet=True,
+    )
+    assert "seeks_active_answer_help" in prompt_on
+    # facet 语义: 学习辅助 (口诀/总结/知识点/换话题/复习计划) 一律 false。
+    assert "口诀" in prompt_on
+
+
+@pytest.mark.asyncio
+async def test_interpret_followup_action_facet_gated_by_flag(monkeypatch) -> None:
+    """flag OFF = prompt bit-for-bit 不变 (不含 facet key); flag ON = prompt 带 facet
+    契约且 LLM 返回的布尔值透传进 action。"""
+
+    import deeptutor.services.question_followup as qf
+
+    captured_prompts: list[str] = []
+
+    async def _fake_complete(*, prompt: str, **_kwargs) -> str:
+        captured_prompts.append(prompt)
+        return json.dumps(
+            {
+                "intent": "ask_followup",
+                "confidence": 0.9,
+                "preserve_other_answers": False,
+                "answers": [],
+                "reason": "总结考点",
+                "seeks_active_answer_help": False,
+            }
+        )
+
+    monkeypatch.setattr(qf, "complete", _fake_complete)
+
+    monkeypatch.setattr(qf, "antipeek_canonical_facet_enabled", lambda: False)
+    action_off = await qf.interpret_question_followup_action(
+        "帮我总结主体结构高频考点", _facet_question_context()
+    )
+    assert "seeks_active_answer_help" not in captured_prompts[-1]
+    # flag OFF: LLM 越权带回的 facet 也透传归一 (布尔透传与 flag 无关, 消费端才 gate)。
+    assert action_off is not None
+
+    monkeypatch.setattr(qf, "antipeek_canonical_facet_enabled", lambda: True)
+    action_on = await qf.interpret_question_followup_action(
+        "帮我总结主体结构高频考点", _facet_question_context()
+    )
+    assert "seeks_active_answer_help" in captured_prompts[-1]
+    assert action_on is not None
+    assert action_on["seeks_active_answer_help"] is False

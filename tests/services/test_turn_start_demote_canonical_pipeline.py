@@ -330,3 +330,80 @@ def test_turn_start_only_pushes_canonical_only_pops_phase_boundary() -> None:
     assert resumed_active is not None
     assert resumed_active["object_id"] == "set-1"
     assert remaining_stack == []  # canonical 完成出栈，turn-START 从不会做这一步
+
+
+def test_detour_release_keeps_active_set_and_next_submission_binds() -> None:
+    """WP3 state 断言: canonical detour 放行 (tutorbot 不开火, 落主 LLM) 的那一轮,
+    turn-start keep gate 仍保留未作答活动题 —— question_ids 原样存活, 紧接一轮
+    "第1题选A" 仍能绑定判分 (对象连续性不因放行断裂)。"""
+
+    from deeptutor.services.question_followup import (
+        resolve_submission_attempt,
+        should_keep_unanswered_question_active_for_followup,
+    )
+
+    unanswered_ctx = _question_set_context()
+
+    # detour / 学习辅助轮: keep gate 保活 (should_block=True → keep True)。
+    for message in ("换个话题聊聊装配式建筑", "帮我列本周复习计划", "帮我总结主体结构高频考点"):
+        assert (
+            should_keep_unanswered_question_active_for_followup(message, unanswered_ctx)
+            is True
+        ), message
+
+    # active_object 往返派生后 question_ids 原样存活。
+    active_object = build_active_object_from_question_context(unanswered_ctx)
+    assert active_object is not None
+    derived = extract_question_context_from_active_object(active_object)
+    assert derived is not None
+    assert [item["question_id"] for item in derived["items"]] == ["q1", "q2"]
+
+    # 紧接 "第1题选A" 仍绑定第1题判分。
+    target, submission = resolve_submission_attempt("第1题选A", derived)
+    assert target is not None
+    assert submission is not None
+    assert submission["kind"] == "single"
+    assert submission["answer"] == "A"
+    assert submission.get("index") == 1
+
+
+def test_build_turn_semantic_decision_transports_answer_help_facet() -> None:
+    """WP3 Stage B hop: turn_runtime._build_turn_semantic_decision 把判定器 facet
+    seeks_active_answer_help 透传进 canonical turn_semantic_decision;
+    缺失 = 不带 key (不参与)。normalize 往返不得丢 facet。"""
+
+    from deeptutor.services.semantic_router import normalize_turn_semantic_decision
+    from deeptutor.services.session.turn_runtime import _build_turn_semantic_decision
+
+    active_object = build_active_object_from_question_context(_question_set_context())
+    assert active_object is not None
+
+    action_with_facet = {
+        "intent": "ask_followup",
+        "confidence": 0.85,
+        "preserve_other_answers": False,
+        "answers": [],
+        "reason": "要求讲解/总结当前题组知识点",
+        "seeks_active_answer_help": False,
+    }
+    decision = _build_turn_semantic_decision(
+        active_object=active_object,
+        followup_question_action=action_with_facet,
+        user_message="给我整理记忆口诀",
+    )
+    assert decision["next_action"] == "route_to_followup_explainer"
+    assert decision["seeks_active_answer_help"] is False
+
+    # normalize 往返 (orchestrator passthrough 那一跳) 不得静默丢 facet。
+    renormalized = normalize_turn_semantic_decision(decision, active_object=active_object)
+    assert renormalized is not None
+    assert renormalized["seeks_active_answer_help"] is False
+
+    action_without_facet = dict(action_with_facet)
+    action_without_facet.pop("seeks_active_answer_help")
+    decision_no_facet = _build_turn_semantic_decision(
+        active_object=active_object,
+        followup_question_action=action_without_facet,
+        user_message="给我整理记忆口诀",
+    )
+    assert "seeks_active_answer_help" not in decision_no_facet

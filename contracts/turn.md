@@ -284,6 +284,36 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
     中清掉 `active_object` / `question_followup_context` / `_prefetched_exact_question` 等当前题上下文字段，避免自由 LLM
     消费未作答题隐藏答案材料。证据见 `tests/services/test_turn_start_demote_canonical_pipeline.py` 与
     `tests/capabilities/test_tutorbot_unanswered_reference_short_circuit.py`。
+  - **anti-peek 终端短路是 canonical 裁决的执行器，不是独立重判者（2026-07-12，WP3；生产活体 owner 23edde9e：
+    "给我整理记忆口诀" 三发，followup 判定器给出正确裁决仍被 0 秒 canned 模板打回 = 终端产出纪律律2 的现场违例）**。
+    `capabilities/tutorbot.py::_build_unanswered_reference_response` 的开火条件分层，正典层序（复审必修③钉死）
+    = **显式格式/解锁 → 窄 SEV 兜底表 → facet（flag）→ canonical detour → legacy**：
+    1. **显式格式/解锁规则永远最先裁，任何 canonical 层不得越位**（第N题指代 / "公布答案" 显式 reveal / 否定 reveal /
+       concession / 已作答放行），单一权威仍是 `should_block_unanswered_reference_reveal` +
+       `requested_question_item_index`。facet 消费整体收在 `requested_index is None` 分支内（不得早退），且
+       `_anti_peek_release_reason` 带确定性守卫：`detect_answer_reveal_preference(message) is True` / concession /
+       "第N题"序数命中 → 不放行、不 redact——判定器误标 facet=false 既不降级显式 reveal 流（owner"不能不输出"），
+       也不绕过序数确定性无答案重渲染 handler；
+    2. **窄隐式求助兜底表命中 → 无条件开火**（SEV 护栏，不依赖也不被 LLM canonical 裁决解除；同时就是 LLM-down 兜底）。
+       白名单式列举（`_IMPLICIT_ANSWER_HELP_FALLBACK_MARKERS`）：给点提示 / 提示一下 / 给个提示 / 还是不会 / 不会做 /
+       这题怎么想 / 怎么做 / 怎么思考——06-30 红队证实落自由 LLM 必泄底的形态。扩条目须新红队证据，禁止长成第二个
+       关键词重判器；
+    3. **facet 灰度（`DEEPTUTOR_ANTIPEEK_CANONICAL_FACET_ENABLED`，默认关）**：开启时 followup 判定器输出契约加布尔
+       facet `seeks_active_answer_help`，经 `_build_turn_semantic_decision` / semantic_router 逐跳显式透传进 canonical
+       裁决（缺失=None 不参与）。facet=true → 开火；facet=false → 放行+redact（白名单 `_SAFE_STUDY_AID_MARKERS`
+       旁路，不再消费）；facet 缺失 → 落层4/5。白名单物理保留：flag OFF 时它是口诀场景唯一活路；facet 毕业后
+       下一 PR 删白名单与本 flag；
+    4. **canonical detour（default-on）：未命中以上各层时必须先消费已持久化的 canonical `turn_semantic_decision`**：
+       判 `temporary_detour` → `route_to_general_chat` 且 drove_route=true（`semantic_router_mode=primary`）→
+       **不开火**，fall-through 主 LLM，且必须成对复用 #417 的 session_metadata redaction（清 `active_object` /
+       `question_followup_context` / `followup_question_context` / `_prefetched_exact_question`，标
+       `question_context_redacted_for_safe_study_aid` + `anti_peek_release_reason`）——放行与 redaction 不许拆开。
+       非 primary（lifecycle 等）模式的 detour 裁决只是 bookkeeping：这类知识请求维持 canned 行为至 facet 毕业；
+    5. 其余走 legacy 分支（should_block 关键词判定 + 提交/re-present/出题排除三连），bit 不变。
+    "本轮是否消费活跃题/是否隐式求助" 的 decider 由此收敛：短路端只剩 1 个窄兜底表 + 1 个 canonical facet + 既有显式
+    规则；D4 keep-gate / D9 should_block（legacy 分支）降级为放行路径上的只读消费者。已知遗留：conversation_context_text
+    （共享历史）里可能含题面/答案线索，放行轮的 history 泄露向量未闭合，须 live 红队专测。域测试：
+    `tests/capabilities/test_tutorbot_unanswered_reference_short_circuit.py`（Stage A/B + SEV counterexample 全套）。
   - **已批改题的下一步训练承接（2026-07-10）是同相位的 forward-reachability carve-out**：
     当 active question 已有 `construction_grading_result.next_training_signal` 或确定性完成批改证据，且本轮不是作答提交，
     用户用“下一步 / 继续 / 按你说的做”等接受上一轮巩固建议时，turn-start 必须保留该 active object；QTPK 的同一

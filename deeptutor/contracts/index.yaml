@@ -292,6 +292,9 @@ domains:
       - tests/services/session/test_tutorbot_sqlite_adapter.py
       # 律4 terminal error semantics (typed failure / single terminal mapper / turn FSM).
       - tests/services/test_terminal_error_semantics.py
+      # WP3 anti-peek 短路 = canonical 裁决执行器 (turn.md carve-out: 窄兜底表/canonical
+      # detour 放行+redaction 成对/facet 灰度/SEV counterexample 全套)。
+      - tests/capabilities/test_tutorbot_unanswered_reference_short_circuit.py
       - tests/services/learner_state/test_attempt_refs.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_mistake_book.py
