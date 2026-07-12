@@ -9,6 +9,23 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-12 · 判定器优化闭环:同一 flag 两次相反决策都对(数据驱动非横跳)
+
+**①现象**:判定器输出 token 三批 live 递进——flag 批(思考ON+verbose)p50=197 → nothink 批(思考OFF+verbose)105 → stack 批(思考OFF+slim)**59**,总降 70%,SEV=0/质量零回归。
+
+**②发现路径(关键=一个 flag 被我先关后开)**:
+- 第一次(开 flag 验证 B2 slim):p50=197 无收益 → **当场关 flag**(结论:slim 零收益)。
+- 修好关思考后再测(nothink 批):p50=105,揭示剩余大头是 **verbose reason 字段**(50-80 字中文 rationale)——之前被思考 token 淹没看不出。
+- 据此**重开 flag**(叠加 slim):stack 批 reason 空 11/13,p50 再降到 59。
+
+**③分析**:shape=**前提依赖的收益评估**。同一个 slim schema flag:思考没关时,它砍的 verbose reason 被更大的思考 token 淹没=净零收益;思考关掉后,verbose reason 成了剩余输出的大头=slim 兑现(105→59)。**flag 的收益不是内禀属性,依赖前置条件(思考是否已关)。** 两次相反决策(先关后开)都由当时的 live 数据驱动,不是横跳。
+
+**④修法与理由**:两杠杆正交叠加——①关思考(executors dormant authority 治本,不挂 flag,见下一条)②B2 slim(flag)。先上治本的关思考(确定收益),再据新数据重开 slim(叠加)。每一步都 live 验证再定去留,不靠离线推断。
+
+**⑤验证与教训**:三批同题集串行 live,token 会计直证思考关(gap≈0)+ reason 空直证 slim 生效;SEV=0(试探/推迟终态非 submission,Step4.5 兜底不依赖思考)。**可迁移**:①一个优化"没效果"先查是不是被另一个更大的开销淹没(分层归因),别急着判死;②flag/开关的收益依赖前置条件,前提变了必须重估,别锚定"上次测过没用"的旧结论;③先关后开同一 flag 不丢人——只要每次都有当时的数据支撑,这是诚实迭代不是反复。
+
+---
+
 ## 2026-07-12 · 判定器思考 token 真根因:dashscope 被 thinking 门漏掉(两次假设被实测证伪)
 
 **①现象**:承接 followup flag 那条——判定器真瓶颈=输出 token 70-80% 是 deepseek 思考 token。要关思考,先定位"思考开关在哪、为什么判定器没关"。
