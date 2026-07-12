@@ -87,6 +87,11 @@ Every fix needs at least:
 For question authority, verify visible answer, hidden authority, learner answer,
 official answer, active object, and route metadata agree.
 
+After the fix, also re-check the evidence labels: harness, near-real HTTP+WS,
+DevTools `islogin`/`open --project`, and real WeChat package are different
+surfaces (see `wechat-tutorbot-real-entry-qa`); do not let a fix report
+upgrade a lower surface into real-package closure.
+
 ## Final Report
 
 Use this structure:
@@ -96,7 +101,16 @@ Root cause:
 What was competing for authority:
 What changed:
 Why this is less complex:
+Why the system is now closer to single authority, not one more patch layer:
 Regex/fallback boundary:
 Verification:
+Why the problem was initially framed too narrowly:
+Transferable lesson:
 Remaining risk:
 ```
+
+Case note: this skill's frame comes from the 2026-06-06 WeChat TutorBot
+authority loop retro, where a question-authority bug was repeatedly patched
+narrow (per-scenario fixes, harness evidence mistaken for real WeChat closure)
+instead of collapsing the competing authorities once. If a fix plan starts to
+look like that shape, stop and redo the Start Gate.

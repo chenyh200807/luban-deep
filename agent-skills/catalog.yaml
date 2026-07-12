@@ -77,6 +77,10 @@ skills:
     path: agent-skills/deeptutor-spec-plan-gate/SKILL.md
     lane: planning
     expected_use: conditional
+  - name: deeptutor-storm-source-inspection
+    path: agent-skills/deeptutor-storm-source-inspection/SKILL.md
+    lane: source-grounding
+    expected_use: conditional
   - name: deeptutor-test-verification-gate
     path: agent-skills/deeptutor-test-verification-gate/SKILL.md
     lane: verification
@@ -85,8 +89,16 @@ skills:
     path: agent-skills/deeptutor-web-bi-frontend-gate/SKILL.md
     lane: frontend
     expected_use: conditional
+  - name: luban-case-answer-layer
+    path: agent-skills/luban-case-answer-layer/SKILL.md
+    lane: luban
+    expected_use: conditional
   - name: luban-diagram-microlesson
     path: agent-skills/luban-diagram-microlesson/SKILL.md
+    lane: luban
+    expected_use: conditional
+  - name: luban-learning-pack-factory
+    path: agent-skills/luban-learning-pack-factory/SKILL.md
     lane: luban
     expected_use: conditional
   - name: luban-okf-context
