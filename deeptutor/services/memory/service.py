@@ -26,6 +26,16 @@ MEMORY_FILES: list[MemoryFile] = ["summary", "profile"]
 
 _NO_CHANGE = "NO_CHANGE"
 
+# Battle2 S1 同病同修:公开双文件记忆(SUMMARY+PROFILE)的每轮无条件双 LLM 重写
+# 白烧(约 57% 输出 NO_CHANGE)。照搬 learner_state 已上线的 summary-maintainer
+# 计数门控:每 N 个实质轮次才花一次(profile+summary 共两跳)重写。门失败/异常
+# 一律 fail-open(宁可多跑不可漏跑)。与 S1 的关键结构差异:memory service 没有
+# 事件账本,门状态是进程内单实例计数器(不是 per-user 游标),因此没有 S1 的
+# evidence-scan 分支,也没有 backlog re-feed(跳过轮次不入账本、不回补——公开
+# 记忆是滚动文档,稳定事实会在后续轮次复现,可接受)。模块常量、无 env flag——
+# 回滚=revert,与 S1 同纪律。
+_MEMORY_GATE_TURN_THRESHOLD = 3
+
 _FILENAMES: dict[MemoryFile, str] = {
     "summary": "SUMMARY.md",
     "profile": "PROFILE.md",
@@ -47,6 +57,18 @@ class MemoryUpdateResult:
     updated_at: str | None
 
 
+@dataclass
+class _MemoryGateState:
+    """Battle2 S1 同病同修:公开记忆重写门控的进程内计数器(镜像
+    ``_SummaryGateState`` 的形状)。它不是记忆真相的 authority——门只决定"这一轮要
+    不要花一次 profile+summary 双跳 LLM 重写"。丢失它(重启、另一 worker)只意味着
+    "冷启动",门 fail-open(立即运行)。``last_run_at`` 空表示从未运行过=冷启动即跑,
+    镜像 S1 的 ``state is None -> run`` 分支。"""
+
+    turns_since_run: int = 0
+    last_run_at: str = ""
+
+
 class MemoryService:
     """Two-file public memory: SUMMARY + PROFILE."""
 
@@ -57,6 +79,9 @@ class MemoryService:
     ) -> None:
         self._path_service = path_service or get_path_service()
         self._store = store or get_sqlite_session_store()
+        # Battle2 S1 同病同修:公开记忆(单一共享目录)的重写门控计数器。进程内、
+        # 单实例(memory 不按 user 分区,一份共享文档 = 一个门),fail-open。
+        self._gate_state = _MemoryGateState()
         self._migrate_legacy()
 
     @property
@@ -194,6 +219,22 @@ class MemoryService:
 
     # ── Auto-refresh from conversation ────────────────────────────────
 
+    def _memory_gate_decision(self, *, capability: str) -> str:
+        """Battle2 S1 同病同修的计数门决策(镜像 ``_summary_gate_decision``)。单一
+        依据 = 进程内计数器。fail-open:任何异常 -> 立即运行(``run_fail_open``)。
+        profile 与 summary 两跳共用这一个决策(一次判定管两跳),绝不做两套门。"""
+        try:
+            cap = str(capability or "").strip().lower()
+            if cap.startswith("guide") or cap.startswith("notebook"):
+                return "run_capability"  # 镜像 S1 的 never-skip capability 集
+            if not self._gate_state.last_run_at:
+                return "run_fail_open"  # 冷启动/首见:立即跑(镜像 S1 state=None 分支)
+            if self._gate_state.turns_since_run + 1 >= _MEMORY_GATE_TURN_THRESHOLD:
+                return "run_counter"  # 陈旧上限:N-1 个实质轮次 PER WORKER
+            return "skip_throttled"
+        except Exception:
+            return "run_fail_open"
+
     async def refresh_from_turn(
         self,
         *,
@@ -207,6 +248,17 @@ class MemoryService:
         if not user_message.strip() or not assistant_message.strip():
             return MemoryUpdateResult(content="", changed=False, updated_at=None)
 
+        decision = self._memory_gate_decision(capability=capability)
+        if decision == "skip_throttled":
+            _record_memory_gate(decision=decision, outcome="skipped")
+            self._gate_state.turns_since_run += 1
+            snap = self.read_snapshot()
+            return MemoryUpdateResult(
+                content=snap.profile,
+                changed=False,
+                updated_at=snap.profile_updated_at,
+            )
+
         source = (
             f"[Session] {session_id or '(unknown)'}\n"
             f"[Capability] {capability or 'chat'}\n"
@@ -217,6 +269,17 @@ class MemoryService:
 
         p_changed = await self._rewrite_one("profile", source, language)
         s_changed = await self._rewrite_one("summary", source, language)
+
+        # 计数器只在一次完整跑完(含两跳 NO_CHANGE)之后重置。上面 LLM 抛异常会跳过
+        # 这行,让陈旧计数下一轮立即重试(fail-open),镜像 S1 游标语义。
+        self._gate_state = _MemoryGateState(
+            turns_since_run=0,
+            last_run_at=datetime.now().isoformat(),
+        )
+        _record_memory_gate(
+            decision=decision,
+            outcome="changed" if (p_changed or s_changed) else "no_change",
+        )
 
         snap = self.read_snapshot()
         return MemoryUpdateResult(
@@ -378,6 +441,18 @@ class MemoryService:
         if ctx_match:
             context = ctx_match.group(1).strip()
         return preferences, context
+
+
+def _record_memory_gate(*, decision: str, outcome: str = "") -> None:
+    """Battle2 S1 同病同修:observe-only 记忆重写门控遥测(镜像
+    ``_record_summary_gate``)。绝不打断 refresh(fail-open);惰性 import 沿用
+    services -> api.runtime_metrics 的既有方向。"""
+    try:
+        from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
+
+        get_turn_runtime_metrics().record_memory_maintainer(decision=decision, outcome=outcome)
+    except Exception:
+        pass
 
 
 def _strip_code_fence(content: str) -> str:

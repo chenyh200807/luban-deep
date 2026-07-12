@@ -151,6 +151,11 @@ class TurnRuntimeMetrics:
         # (skip ratio) and the changed/no_change mix; same discipline as
         # response_mode and it must ship in the same PR as the gate itself.
         self._summary_maintainer_counts: Counter[str] = Counter()
+        # Battle2 S1 同病同修: observe-only public-memory rewrite gate decisions
+        # keyed by "decision|outcome". Independent read for the memory-maintainer
+        # (SUMMARY.md + PROFILE.md) gate hit rate; same discipline as summary_maintainer
+        # and it must ship in the same PR as the gate itself.
+        self._memory_maintainer_counts: Counter[str] = Counter()
         # Battle1 W1-T6: event-loop lag sentinel (真闭环). A 0.5s sampler feeds
         # record_loop_lag; any future hot-path blocking (new sync SDK, CPU-heavy work)
         # necessarily inflates these and trips the existing Prometheus alert chain,
@@ -224,6 +229,14 @@ class TurnRuntimeMetrics:
         outcome_key = str(outcome or "").strip().lower() or "-"
         with self._lock:
             self._summary_maintainer_counts[f"{decision_key}|{outcome_key}"] += 1
+
+    def record_memory_maintainer(self, *, decision: str, outcome: str = "") -> None:
+        """Observe-only: count one public-memory rewrite gate (decision, outcome).
+        fail-open, never raises on stringifiable input."""
+        decision_key = str(decision or "").strip().lower() or "unknown"
+        outcome_key = str(outcome or "").strip().lower() or "-"
+        with self._lock:
+            self._memory_maintainer_counts[f"{decision_key}|{outcome_key}"] += 1
 
     def record_ws_open(self) -> None:
         with self._lock:
@@ -306,6 +319,14 @@ class TurnRuntimeMetrics:
                         "count": int(value),
                     }
                     for key, value in sorted(self._summary_maintainer_counts.items())
+                ],
+                "memory_maintainer_counts": [
+                    {
+                        "decision": key.split("|", 1)[0],
+                        "outcome": key.split("|", 1)[1],
+                        "count": int(value),
+                    }
+                    for key, value in sorted(self._memory_maintainer_counts.items())
                 ],
                 "loop_lag_max_seconds": round(float(self._loop_lag_max_seconds), 6),
                 "loop_lag_over_200ms_total": int(self._loop_lag_over_200ms_total),
@@ -455,6 +476,18 @@ def render_prometheus_metrics(
     for gate_entry in turn_snapshot.get("summary_maintainer_counts") or []:
         emit(
             "deeptutor_summary_maintainer_total",
+            gate_entry.get("count", 0),
+            {
+                "decision": gate_entry.get("decision", ""),
+                "outcome": gate_entry.get("outcome", ""),
+            },
+        )
+
+    lines.append("# HELP deeptutor_memory_maintainer_total Public-memory rewrite gate decisions by decision and outcome.")
+    lines.append("# TYPE deeptutor_memory_maintainer_total counter")
+    for gate_entry in turn_snapshot.get("memory_maintainer_counts") or []:
+        emit(
+            "deeptutor_memory_maintainer_total",
             gate_entry.get("count", 0),
             {
                 "decision": gate_entry.get("decision", ""),
