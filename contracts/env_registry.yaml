@@ -85,6 +85,12 @@ feature_flags:
   - {name: ASSESSMENT_PREWARM_FORMS, default: false, kind: rollout}
   - {name: ASSESSMENT_USE_SUPABASE, default: false, kind: rollout}
   - {name: DEEPTUTOR_CONTEXT_ORCHESTRATION_ENABLED, default: true, kind: killswitch}
+  # WP3 anti-peek canonical facet 灰度门(2026-07-12): 开 = followup 判定器输出契约加
+  # 布尔 facet seeks_active_answer_help(prompt 变更,判定分布变,须灰度), tutorbot
+  # anti-peek 短路以 canonical facet 为放行/开火判据(false→放行+redact 白名单旁路,
+  # true→开火)。关(默认) = 判定器 prompt bit-for-bit 不变, 短路走 legacy 白名单分支。
+  # 窄隐式求助兜底表不受 flag 影响(SEV 护栏不依赖 LLM)。facet 毕业后删白名单+本 flag。
+  - {name: DEEPTUTOR_ANTIPEEK_CANONICAL_FACET_ENABLED, default: false, kind: rollout, read: env_flag}
   - {name: DEEPTUTOR_ENABLE_API_DOCS, default: false, kind: config}
   - {name: DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA, default: false, kind: dev}
   - {name: DEEPTUTOR_HOME_NEXT_STEP_ENABLED, default: false, kind: rollout}  # home 生命周期融合面总开关:next_step 仲裁 + mastery 证据 blend(首页/雷达/章节盘)一起开关

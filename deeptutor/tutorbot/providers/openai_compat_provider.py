@@ -24,8 +24,10 @@ from deeptutor.services.observability.provider_reconciliation import fingerprint
 from deeptutor.tutorbot.providers.base import (
     LLMProvider,
     LLMResponse,
+    ProviderErrorStreamGate,
     ToolCallRequest,
     _first_token_timeout_seconds,
+    looks_like_provider_error_content,
 )
 
 if TYPE_CHECKING:
@@ -524,7 +526,14 @@ class OpenAICompatProvider(LLMProvider):
         )
         body_text = body if isinstance(body, str) else str(body) if body is not None else ""
         msg = f"Error: {body_text.strip()[:500]}" if body_text.strip() else f"Error calling LLM: {e}"
-        return LLMResponse(content=msg, finish_reason="error")
+        # Typed failure at birth (律4): the error body stays out of the content
+        # channel; downstream learner-visible text is the terminal mapper's job.
+        return LLMResponse(
+            content=None,
+            finish_reason="error",
+            failure_kind="provider_error",
+            error_detail=msg,
+        )
 
     # ------------------------------------------------------------------
     # Public API
@@ -673,6 +682,11 @@ class OpenAICompatProvider(LLMProvider):
                 stage_timings_ms=stage_timings_ms,
             )
 
+        # Cheap pre-classification (律4 belt): a 200-SSE stream whose prefix IS a
+        # provider error body must not reach on_content_delta. Normal streams pass
+        # through byte-identically (the gate only merges the first held deltas).
+        error_body_gate = ProviderErrorStreamGate()
+
         with observability.start_observation(
             name="tutorbot.llm.stream",
             as_type="generation",
@@ -726,11 +740,28 @@ class OpenAICompatProvider(LLMProvider):
                                         time.perf_counter() - call_started_at
                                     ) * 1000
                                 if on_content_delta:
-                                    await on_content_delta(text)
+                                    releasable = error_body_gate.feed(text)
+                                    if releasable:
+                                        await on_content_delta(releasable)
+                    if on_content_delta:
+                        held_tail = error_body_gate.flush()
+                        if held_tail:
+                            await on_content_delta(held_tail)
                     stage_timings_ms["provider_stream_read"] = (
                         time.perf_counter() - stream_created_at
                     ) * 1000
                 parsed = self._parse_chunks(chunks)
+                if parsed.finish_reason != "error" and looks_like_provider_error_content(parsed.content):
+                    # 200-SSE error body: keep the failure typed instead of letting
+                    # the raw body impersonate a legitimate final answer.
+                    parsed = LLMResponse(
+                        content=None,
+                        tool_calls=parsed.tool_calls,
+                        finish_reason="error",
+                        usage=parsed.usage,
+                        failure_kind="provider_error",
+                        error_detail=parsed.content,
+                    )
                 parsed.telemetry = _stream_telemetry()
             except asyncio.TimeoutError:
                 stalled_seconds = (
@@ -745,8 +776,12 @@ class OpenAICompatProvider(LLMProvider):
                     completion_start_time=first_chunk_at,
                 )
                 return LLMResponse(
-                    content=f"Error calling LLM: {stall_phase} stalled for more than {stalled_seconds} seconds",
+                    content=None,
                     finish_reason="error",
+                    failure_kind="provider_timeout",
+                    error_detail=(
+                        f"Error calling LLM: {stall_phase} stalled for more than {stalled_seconds} seconds"
+                    ),
                     telemetry=_stream_telemetry(),
                 )
             except Exception as e:

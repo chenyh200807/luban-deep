@@ -5,13 +5,13 @@ from __future__ import annotations
 import asyncio
 from collections import OrderedDict
 import contextvars
+from dataclasses import dataclass
 import hashlib
 import json
 import os
+from pathlib import Path
 import re
 import time
-from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Optional
 
 import httpx
@@ -25,23 +25,24 @@ from deeptutor.services.rag.evidence_bundle import build_evidence_bundle
 from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
 from deeptutor.services.rag.provenance import apply_provenance_ranking, build_ranking_trace
 from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
+
 from .supabase_strategy import (
     build_exact_question_keyword_terms,
     build_exact_question_text_candidates,
     build_second_pass_queries,
-    extract_case_subquestion_items,
-    rewrite_query,
-    dedupe_ranked_results,
-    expand_query_variants,
     classify_query_shape,
-    exact_question_stem_corresponds,
+    dedupe_ranked_results,
+    exact_question_identity_corresponds,
+    expand_query_variants,
+    extract_case_subquestion_items,
     extract_node_code_prefix,
     is_question_like_query,
     matches_allowed_question_type,
     prepare_exact_question_probe,
-    resolve_group_weights,
-    select_sources,
     rerank_documents,
+    resolve_group_weights,
+    rewrite_query,
+    select_sources,
     should_run_second_pass,
     validate_exact_question_options,
 )
@@ -1000,7 +1001,23 @@ class SupabasePipeline:
                             record_stage("exact_text_probe", exact_text_started_at)
                         for batch_index, batch in enumerate(exact_text_batches):
                             exact_text_rows = batch.get("results") if isinstance(batch, dict) else None
-                            if exact_text_rows:
+                            if not exact_text_rows:
+                                continue
+                            # Identity-adjudicated rows mint the exact chapter;
+                            # demoted candidates join the ordinary questions_bank
+                            # group so they can never enter the exact payload or
+                            # flip has_exact_question_hit.
+                            identity_rows = [
+                                row
+                                for row in exact_text_rows
+                                if str(row.get("_source_group") or "") == "question_exact_text"
+                            ]
+                            demoted_rows = [
+                                row
+                                for row in exact_text_rows
+                                if str(row.get("_source_group") or "") != "question_exact_text"
+                            ]
+                            if identity_rows:
                                 exact_text_plans.append(
                                     {
                                         "phase": "primary",
@@ -1008,7 +1025,18 @@ class SupabasePipeline:
                                         "query": str(batch.get("query") or exact_probe.query if exact_probe else query),
                                         "query_index": batch_index,
                                         "query_weight": 1.0,
-                                        "results": exact_text_rows,
+                                        "results": identity_rows,
+                                    }
+                                )
+                            if demoted_rows:
+                                exact_text_plans.append(
+                                    {
+                                        "phase": "primary",
+                                        "group_name": "questions_bank",
+                                        "query": str(batch.get("query") or exact_probe.query if exact_probe else query),
+                                        "query_index": batch_index,
+                                        "query_weight": 1.0,
+                                        "results": demoted_rows,
                                     }
                                 )
                 except Exception as exc:
@@ -2028,6 +2056,32 @@ class SupabasePipeline:
         clean = str(probe_query or "").strip()
         if not clean:
             return []
+        # Semantic-integrity collapse (2026-07-12): the direct-ILIKE and text-RPC
+        # probes only SUPPLY candidates. Whether a candidate is the learner's
+        # question is decided by the single identity adjudicator
+        # exact_question_identity_corresponds. A candidate that fails any exact
+        # gate degrades to an ordinary questions_bank retrieval row carrying its
+        # real text_score (no fabricated confidence floor) so the turn falls
+        # open to the main LLM with the row still available as context.
+        demoted_rows: list[dict[str, Any]] = []
+        demoted_ids: set[str] = set()
+
+        def _demote(row: dict[str, Any]) -> None:
+            row_id = str(row.get("id") or "").strip()
+            if row_id and row_id in demoted_ids:
+                return
+            if row_id:
+                demoted_ids.add(row_id)
+            if len(demoted_rows) >= 5:
+                return
+            demoted_rows.append(
+                self._normalize_question_result(
+                    row,
+                    source_group="questions_bank",
+                    score=float(row.get("text_score") or 0.0),
+                )
+            )
+
         direct_rows = await self._search_exact_question_text_direct(
             client=client,
             probe_query=clean,
@@ -2036,18 +2090,21 @@ class SupabasePipeline:
         )
         for row in direct_rows:
             if not matches_allowed_question_type(row.get("question_type"), allowed_question_types):
+                _demote(row)
                 continue
             if not validate_exact_question_options(
                 original_query=original_query,
                 options=row.get("options"),
                 option_validation_required=option_validation_required,
             ):
+                _demote(row)
                 continue
-            if not exact_question_stem_corresponds(
+            if not exact_question_identity_corresponds(
                 original_query=original_query,
                 matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
                 question_type=row.get("question_type"),
             ):
+                _demote(row)
                 continue
             return [self._normalize_question_result(row, source_group="question_exact_text", score=1.0)]
 
@@ -2074,27 +2131,32 @@ class SupabasePipeline:
                     if not matches_allowed_question_type(
                         row.get("question_type"), allowed_question_types
                     ):
+                        _demote(row)
                         continue
                     if not validate_exact_question_options(
                         original_query=original_query,
                         options=row.get("options"),
                         option_validation_required=option_validation_required,
                     ):
+                        _demote(row)
                         continue
-                    if not exact_question_stem_corresponds(
+                    if not exact_question_identity_corresponds(
                         original_query=original_query,
                         matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
                         question_type=row.get("question_type"),
                     ):
+                        _demote(row)
                         continue
                     return [
                         self._normalize_question_result(
                             row,
                             source_group="question_exact_text",
-                            score=max(float(row.get("text_score") or 0.0), 0.98),
+                            # real text_score only — the 0.98 confidence floor
+                            # fabricated authority for fuzzy full-text hits.
+                            score=float(row.get("text_score") or 0.0),
                         )
                     ]
-        return []
+        return demoted_rows
 
     async def _search_exact_question_text_batch(
         self,
@@ -2224,7 +2286,16 @@ class SupabasePipeline:
         config: SupabaseSearchConfig,
     ) -> list[dict[str, Any]]:
         """The exact-vector adoption filter chain, shared verbatim by the
-        dedicated RPC path and the T4② bank-superset derivation path."""
+        dedicated RPC path and the T4② bank-superset derivation path.
+
+        Semantic-integrity collapse (2026-07-12): cosine similarity (and every
+        other pre-gate here) is candidate supply, not identity authority. Only
+        ``exact_question_identity_corresponds`` may mint ``question_exact_vector``.
+        Rows that fail are dropped — NOT lost: the parallel ``_search_questions``
+        pass hits the same RPC with a lower threshold and the same embedding, so
+        every candidate seen here is already supplied downstream as an ordinary
+        ``questions_bank`` row carrying its real similarity score.
+        """
         for row in rows:
             similarity = float(row.get("similarity") or 0.0)
             if similarity < config.exact_question_min_similarity:
@@ -2237,7 +2308,7 @@ class SupabasePipeline:
                 option_validation_required=option_validation_required,
             ):
                 continue
-            if not exact_question_stem_corresponds(
+            if not exact_question_identity_corresponds(
                 original_query=original_query,
                 matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
                 question_type=row.get("question_type"),
@@ -2526,13 +2597,29 @@ class SupabasePipeline:
             "question_exact_vector": 1,
             "question_bank_case_match": 2,
         }
+
+        def _plan_exact_rows(plan: dict[str, Any]) -> list[dict[str, Any]]:
+            # Identity-demoted candidates are re-grouped as questions_bank plans
+            # upstream and can never reach here; this row-level guard keeps any
+            # future demotion path from leaking into the exact payload.
+            group_name = str(plan.get("group_name") or "")
+            results = plan.get("results")
+            if not isinstance(results, list):
+                return []
+            if group_name not in {"question_exact_text", "question_exact_vector"}:
+                return list(results)
+            return [
+                row
+                for row in results
+                if str((row or {}).get("_source_group") or group_name) == group_name
+            ]
+
         candidates = sorted(
             [
-                plan
+                {**plan, "results": exact_rows}
                 for plan in plans
                 if str(plan.get("group_name") or "") in priority
-                and isinstance(plan.get("results"), list)
-                and plan.get("results")
+                and (exact_rows := _plan_exact_rows(plan))
             ],
             key=lambda item: priority[str(item.get("group_name") or "")],
         )
@@ -2923,10 +3010,17 @@ class SupabasePipeline:
                 required_overlap = min(3, option_count) if option_count else 2
                 if overlap_count < required_overlap:
                     continue
-                if not exact_question_stem_corresponds(
+                # Option overlap is a cheap pre-filter only; identity authority
+                # for the promotion is the single adjudicator below. The bank
+                # option values are passed as corroborating identity surface:
+                # for an MCQ the identity surface is stem + options, so a short
+                # stem with a typo but near-verbatim options still decides
+                # honestly inside the same adjudicator.
+                if not exact_question_identity_corresponds(
                     original_query=original_query,
                     matched_stem=str(row.get("stem") or row.get("question_stem") or ""),
                     question_type=row.get("question_type"),
+                    matched_options=_option_values(options),
                 ):
                     continue
                 score = float(row.get("similarity") or row.get("score") or 0.0)

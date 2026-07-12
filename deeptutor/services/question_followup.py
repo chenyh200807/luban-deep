@@ -914,6 +914,8 @@ async def interpret_question_followup_action(
         question_context=normalized,
         history_context=history_context,
         slim=fast_tier_enabled,
+        # WP3 Stage B: anti-peek canonical facet（flag 默认关 = prompt bit 不变）。
+        include_answer_help_facet=antipeek_canonical_facet_enabled(),
     )
     fast_tier_model = ""
     if fast_tier_enabled:
@@ -2686,7 +2688,29 @@ def _normalize_option_answer(
     token = str(value or "").strip().upper()
     if not token:
         return None
-    letters = re.findall(r"[A-E]", token)
+    # 幽灵提交治本（WP3，2026-07-12，生产活体 I1 取证）：工程缩写（"计算CV和SV"、
+    # "BCWS、BCWP、ACWP"）会被裸 re.findall(r"[A-E]") 抠出孤字母（CV→C）当成选项
+    # 提交，凭空判分。判据收紧为"独立 token 才算选项字母"：
+    #   ① 紧邻非选项大写字母（F-Z）的 [A-E] 是缩写的一部分，不算（CV 的 C、SV）；
+    #   ② token 里与 [A-E] 混排的大写 run 若累计含 2+ 个非选项大写字母
+    #      （BCWS/BCWP/ACWP 的 W/S/P），整个 token 是术语/缩写串，全部不算。
+    # 真提交不受影响：选项字母互邻合法（"ABD" 多选紧凑串），"我选C"/"答案是B" 的
+    # 字母前后是汉字/标点。纯非选项 run（"OPTION"/"ANSWER" 前缀）不计入②，
+    # 避免误杀带英文前缀的合法单字母。
+    mixed_run_non_option_letters = 0
+    for run in re.findall(r"[A-Z]+", token):
+        if re.search(r"[A-E]", run) and re.search(r"[F-Z]", run):
+            mixed_run_non_option_letters += len(re.findall(r"[F-Z]", run))
+    if mixed_run_non_option_letters >= 2:
+        return None
+    letters = [
+        match.group(0)
+        for match in re.finditer(r"[A-E]", token)
+        if not (
+            (match.start() > 0 and "F" <= token[match.start() - 1] <= "Z")
+            or (match.end() < len(token) and "F" <= token[match.end()] <= "Z")
+        )
+    ]
     if not letters:
         return None
     available = set(_available_option_keys(question_context))
@@ -2890,12 +2914,25 @@ def _followup_fast_tier_enabled() -> bool:
     return env_flag("LUBAN_FOLLOWUP_FAST_TIER_ENABLED", default=False)
 
 
+def antipeek_canonical_facet_enabled() -> bool:
+    """WP3 Stage B（2026-07-12）anti-peek canonical facet 灰度门（单一 flag，默认关）。
+
+    关（默认/未设置）= followup 判定器 prompt bit-for-bit 不变，短路端不消费 facet。
+    开 = 判定器输出契约加布尔 facet ``seeks_active_answer_help``（本轮是否在向老师
+    索取当前未作答题的解答帮助），tutorbot anti-peek 短路以它为放行/开火判据
+    （false→放行+redact，白名单旁路；true→开火）。prompt 变化会改变判定分布，
+    必须灰度观察（contracts/env_registry.yaml 登记）。窄隐式求助兜底表不受 flag
+    影响——SEV 护栏不依赖 LLM。"""
+    return env_flag("DEEPTUTOR_ANTIPEEK_CANONICAL_FACET_ENABLED", default=False)
+
+
 def _build_followup_action_prompt(
     *,
     user_message: str,
     question_context: dict[str, Any],
     history_context: str = "",
     slim: bool = False,
+    include_answer_help_facet: bool = False,
 ) -> str:
     items = question_context.get("items") or []
     if not isinstance(items, list) or not items:
@@ -2956,6 +2993,23 @@ def _build_followup_action_prompt(
             "输出必须极简：reason 默认给空字符串，仅当 confidence 低于 0.7 时用一句不超过15字说明；"
             "answers 按规则7给，非作答/改答时给空数组；不要输出任何解释性文字或多余字段。\n\n"
         )
+    # WP3 Stage B（flag DEEPTUTOR_ANTIPEEK_CANONICAL_FACET_ENABLED，默认关）：
+    # anti-peek canonical facet。flag 关时本段字节不进 prompt（bit-for-bit 守门）。
+    facet_rule = ""
+    if include_answer_help_facet:
+        output_schema_rule = output_schema_rule.replace(
+            "键固定为 intent, confidence, preserve_other_answers, answers, reason",
+            "键固定为 intent, confidence, preserve_other_answers, answers, reason, "
+            "seeks_active_answer_help",
+        )
+        facet_rule = (
+            "10. seeks_active_answer_help：布尔值。判断用户本轮是否在向老师索取"
+            "当前未作答题目（active_question_set）的解答帮助（解题提示/思路/直接答案）。"
+            "以下情形一律为 false：要求整理记忆口诀/背诵技巧、总结考点、讲解知识点、"
+            "换个话题/闲聊、制定复习计划等学习辅助请求，即使当前存在未作答题目；"
+            "与当前题组无关的输入也为 false。仅当用户明确围绕当前题目索取解题提示、"
+            "解题思路或答案时为 true。\n\n"
+        )
     return (
         "请根据当前用户消息和题目上下文，判断用户意图。"
         "只能从以下 intent 中选择一个："
@@ -2989,6 +3043,7 @@ def _build_followup_action_prompt(
         "7. 如果需要输出答案，请放在 answers 数组里，每项包含 question_index、question_id、answer。\n"
         "8. 如果用户表达“其他不变”，preserve_other_answers=true，否则 false。\n"
         + output_schema_rule
+        + facet_rule
         + f"{json.dumps(prompt_payload, ensure_ascii=False)}"
     )
 
@@ -3031,6 +3086,12 @@ def _normalize_followup_action(
         "answers": answers,
         "reason": str(raw.get("reason") or "").strip(),
     }
+    # WP3 Stage B anti-peek canonical facet：只透传严格布尔值；缺失/垃圾 = 不带
+    # key（flag OFF 时 action dict bit-for-bit 不变）。消费端（tutorbot 短路）
+    # 由 antipeek_canonical_facet_enabled() 单独 gate。
+    facet = raw.get("seeks_active_answer_help")
+    if isinstance(facet, bool):
+        action["seeks_active_answer_help"] = facet
     if intent in _FOLLOWUP_ACTION_SUBMISSION_INTENTS and not answers:
         action["intent"] = "unknown"
     return action

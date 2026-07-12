@@ -13,10 +13,13 @@ def test_out_of_scope_blocks() -> None:
     )
 
 
-def test_needs_context_anchor_asks_for_anchor() -> None:
+def test_needs_context_anchor_is_allowed() -> None:
+    # WP4：needs_anchor 罐头链废除——纯动作词放行，锚点由 deep_question
+    # _resolve_generation_topic（唯一 topic decider）合成/fall-through，
+    # 仅真冷启动由 capability 层澄清一次。
     assert (
         practice_generation_topic_block_decision("needs_context_anchor")
-        == "needs_anchor"
+        == "allow"
     )
 
 

@@ -13064,3 +13064,136 @@ async def test_turn_runtime_routes_graded_next_step_acceptance_to_deep_question_
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["capability"] == "deep_question"
+
+
+@pytest.mark.asyncio
+async def test_concurrent_start_turn_superseded_turn_not_published_and_not_billed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    """律4 turn-aliveness FSM (production example C): two workers, one session.
+
+    Worker A holds the running execution; worker B receives a new start_turn for
+    the same session and cancels the stale turn by flipping the DB row (cross-
+    worker cancel has no access to A's in-memory task). When A's execution later
+    finishes, its terminal commit must CAS running→completed, observe the
+    absorbed terminal state, and NEITHER publish the assistant message NOR
+    capture billing. Worker B's turn completes normally.
+    """
+    release_first = asyncio.Event()
+    first_started = asyncio.Event()
+
+    class HandoffOrchestrator:
+        calls = 0
+
+        async def handle(self, _context, **_kwargs):
+            HandoffOrchestrator.calls += 1
+            if HandoffOrchestrator.calls == 1:
+                first_started.set()
+                await release_first.wait()
+                yield StreamEvent(
+                    type=StreamEventType.RESULT,
+                    source="tutorbot",
+                    metadata={"response": "第一轮迟到的完整回答。"},
+                )
+                yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+                return
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="tutorbot",
+                metadata={"response": "第二轮的正常回答。"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", HandoffOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    worker_a = TurnRuntimeManager(store)
+    worker_b = TurnRuntimeManager(store)
+
+    billing_calls: list[str] = []
+
+    def _spy_capture_a(_billing_context, _assistant_content, **kwargs):
+        billing_calls.append(str(kwargs.get("turn_id") or ""))
+        return None
+
+    monkeypatch.setattr(worker_a, "_capture_mobile_points", _spy_capture_a)
+
+    session, first_turn = await worker_a.start_turn(
+        {
+            "type": "start_turn",
+            "content": "第一问",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+    await asyncio.wait_for(first_started.wait(), timeout=5)
+
+    # Worker B: new start_turn on the SAME session supersedes the stale turn.
+    _session_b, second_turn = await worker_b.start_turn(
+        {
+            "type": "start_turn",
+            "content": "换个问题",
+            "session_id": session["id"],
+            "capability": None,
+            "tools": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+    assert second_turn["id"] != first_turn["id"]
+
+    second_events = []
+    async for event in worker_b.subscribe_turn(second_turn["id"], after_seq=0):
+        second_events.append(event)
+
+    # Now let worker A's stale execution finish and hit its terminal CAS.
+    release_first.set()
+    async for _event in worker_a.subscribe_turn(first_turn["id"], after_seq=0):
+        pass
+
+    first_persisted = await store.get_turn(first_turn["id"])
+    assert first_persisted is not None
+    # Worker B (holding no execution for the stale turn) may sweep it as failed
+    # (orphan recovery) or cancelled (supersede); either way the terminal state
+    # ABSORBS — worker A's late completed commit must never resurrect it.
+    assert first_persisted["status"] in {"cancelled", "failed"}
+    assert first_persisted["status"] != "completed"
+
+    second_persisted = await store.get_turn(second_turn["id"])
+    assert second_persisted is not None
+    assert second_persisted["status"] == "completed"
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    assistant_contents = [m["content"] for m in detail["messages"] if m["role"] == "assistant"]
+    # The superseded turn's late answer is NOT published to the session.
+    assert all("第一轮迟到的完整回答" not in content for content in assistant_contents)
+    assert any("第二轮的正常回答" in content for content in assistant_contents)
+    # And the superseded turn never captures billing on worker A.
+    assert billing_calls == []

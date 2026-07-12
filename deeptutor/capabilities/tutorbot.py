@@ -20,7 +20,9 @@ from deeptutor.services.construction_grading.case_output_policy import (
 )
 from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.question_followup import (
+    _looks_like_answer_concession,
     annotate_submission_context_from_message,
+    antipeek_canonical_facet_enabled,
     build_canonical_represent_response,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
@@ -64,6 +66,30 @@ from deeptutor.tutorbot.response_mode import (
     select_response_mode,
 )
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
+
+# WP3 Stage A（2026-07-12）窄隐式求助兜底表：06-30 红队证实会把自由 LLM 引到泄底的
+# 隐式求助形态。命中 = anti-peek 短路无条件开火（不消费、也不被 canonical LLM 裁决
+# 解除）——SEV 护栏不依赖 LLM 在场，这同时就是 LLM-down 兜底。注意：它在
+# should_block_unanswered_reference_reveal 之后消费，显式解锁（"公布答案"/concession
+# "我放弃/不会做"）仍由该单一权威先放行，兜底表不越位重判。窄表只列红队证据形态；
+# 扩条目须新红队证据，禁止往 patch spiral 方向长成第二个关键词重判器。
+_IMPLICIT_ANSWER_HELP_FALLBACK_MARKERS = (
+    "给点提示",
+    "提示一下",
+    "给个提示",
+    "还是不会",
+    "不会做",
+    "这题怎么想",
+    "怎么做",
+    "怎么思考",
+)
+
+
+def _narrow_implicit_help_fallback_hit(message: str) -> bool:
+    text = str(message or "").strip()
+    if not text:
+        return False
+    return any(marker in text for marker in _IMPLICIT_ANSWER_HELP_FALLBACK_MARKERS)
 
 
 def _fast_turn_light_model_enabled() -> bool:
@@ -232,11 +258,33 @@ class TutorBotCapability(BaseCapability):
         )
         if active_object:
             session_metadata["active_object"] = dict(active_object)
-        if (
-            looks_like_safe_study_aid_request(context.user_message)
-            and active_object
-            and extract_question_context_from_active_object(active_object) is not None
-        ):
+        # WP3 Stage A/B（2026-07-12）：canonical 放行（detour / facet=false）必须伴随
+        # #417 同款 redaction——落主 LLM 的轮清掉当前题上下文，自由 LLM 拿不到未作答
+        # 题的隐藏答案材料。release 在场时不再消费 _SAFE_STUDY_AID_MARKERS 白名单
+        # （白名单物理保留：flag OFF 时它仍是口诀场景唯一活路；facet 毕业后下一 PR
+        # 删，见 implementation-notes Deviations）。
+        anti_peek_release_reason = self._anti_peek_release_reason(context)
+        if anti_peek_release_reason:
+            redact_question_context = bool(
+                (
+                    active_object
+                    and extract_question_context_from_active_object(active_object)
+                    is not None
+                )
+                or (
+                    isinstance(context.metadata, dict)
+                    and context.metadata.get("question_followup_context")
+                )
+            )
+        else:
+            # legacy 白名单 redaction（PR#417），bit 不变。
+            redact_question_context = bool(
+                looks_like_safe_study_aid_request(context.user_message)
+                and active_object
+                and extract_question_context_from_active_object(active_object)
+                is not None
+            )
+        if redact_question_context:
             for metadata_key in (
                 "active_object",
                 "question_followup_context",
@@ -245,6 +293,8 @@ class TutorBotCapability(BaseCapability):
             ):
                 session_metadata[metadata_key] = {}
             session_metadata["question_context_redacted_for_safe_study_aid"] = True
+            if anti_peek_release_reason:
+                session_metadata["anti_peek_release_reason"] = anti_peek_release_reason
         conversation_context_text = str(
             (context.metadata or {}).get("conversation_context_text") if isinstance(context.metadata, dict) else ""
         ).strip()
@@ -675,6 +725,11 @@ class TutorBotCapability(BaseCapability):
                 # diagnostic-only channel as the degraded_* flags above; never routes.
                 "content_truth_guard_applied",
                 "content_truth_low_confidence_claims",
+                # 律4 typed failure marker (kind/detail): turn runtime's single
+                # terminal mapper consumes it — maps the learner-visible text,
+                # commits the turn as failed (no completed fake-green), and
+                # redacts the raw detail from public events.
+                "turn_failure",
                 "release_id",
                 "git_sha",
                 "deployment_environment",
@@ -1208,6 +1263,76 @@ class TutorBotCapability(BaseCapability):
         "如果确实想直接看答案，可以说「公布答案」。"
     )
 
+    # WP3（2026-07-12）anti-peek canonical 放行原因常量。
+    _ANTI_PEEK_RELEASE_FACET = "canonical_facet_no_answer_help"
+    _ANTI_PEEK_RELEASE_DETOUR = "canonical_detour_general_chat"
+
+    @classmethod
+    def _canonical_answer_help_facet(cls, metadata: dict[str, Any] | None) -> bool | None:
+        """Stage B facet 读取（flag 门后）：canonical turn_semantic_decision 里由
+        followup 判定器透传的布尔 facet ``seeks_active_answer_help``。
+
+        flag OFF / decision 缺失 / facet 非布尔 → None（不参与，落 legacy 行为）。
+        这里只读已持久化的 canonical 裁决，不重判。"""
+        if not antipeek_canonical_facet_enabled():
+            return None
+        if not isinstance(metadata, dict):
+            return None
+        decision = metadata.get("turn_semantic_decision")
+        if not isinstance(decision, dict):
+            return None
+        facet = decision.get("seeks_active_answer_help")
+        return facet if isinstance(facet, bool) else None
+
+    @classmethod
+    def _anti_peek_release_reason(cls, context: UnifiedContext) -> str | None:
+        """anti-peek 短路的 canonical 放行判据（WP3：短路从"独立重判者"降级为
+        "canonical 裁决的执行器"）。返回放行原因或 None（不放行）。
+
+        正典层序（高到低，复审必修③钉死）：
+        1. 显式格式/解锁（显式 reveal preference / concession / "第N题"序数指代）
+           → 永不经 canonical 放行——显式 reveal 轮必须拿到完整题面材料（owner
+           "不能不输出"），序数轮归第N题确定性无答案重渲染 handler。确定性守卫，
+           判定器误标 facet=false 也压不过。
+        2. 窄隐式求助兜底表命中 → 永不放行（SEV 护栏不被 LLM 裁决解除）。
+        3. Stage B（flag 门后）facet=false → 放行（判定器裁定本轮不索取当前题解答）。
+        4. Stage A（default-on）canonical 裁决 temporary_detour→route_to_general_chat
+           且 drove_route=true（semantic_router_mode=primary，路由确由该裁决驱动）
+           → 放行。非 primary 模式的 detour 裁决只是 bookkeeping，不放行。
+
+        放行的消费端有两处，必须成对：redaction 站点（清题目上下文再落主 LLM）与
+        _build_unanswered_reference_response（不开火）。"""
+        message = context.user_message
+        if _narrow_implicit_help_fallback_hit(message):
+            return None
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        # 确定性守卫（复审必修③）：显式 reveal / concession / 第N题序数指代的轮，
+        # canonical facet/detour 一律不放行、不 redact——这些轮各有显式确定性
+        # handler（reveal 流 / demote / 无答案重渲染），facet 误标不得降级它们。
+        if detect_answer_reveal_preference(message) is True:
+            return None
+        if _looks_like_answer_concession(message):
+            return None
+        followup_context = metadata.get("question_followup_context")
+        normalized = normalize_question_followup_context(
+            followup_context if isinstance(followup_context, dict) else None
+        ) or extract_question_context_from_active_object(metadata.get("active_object"))
+        if requested_question_item_index(message, normalized) is not None:
+            return None
+        facet = cls._canonical_answer_help_facet(metadata)
+        if facet is False:
+            return cls._ANTI_PEEK_RELEASE_FACET
+        decision = metadata.get("turn_semantic_decision")
+        decision = decision if isinstance(decision, dict) else {}
+        if (
+            str(decision.get("next_action") or "").strip() == "route_to_general_chat"
+            and str(decision.get("relation_to_active_object") or "").strip()
+            == "temporary_detour"
+            and str(metadata.get("semantic_router_mode") or "").strip() == "primary"
+        ):
+            return cls._ANTI_PEEK_RELEASE_DETOUR
+        return None
+
     @classmethod
     def _build_unanswered_reference_response(
         cls, context: UnifiedContext
@@ -1229,6 +1354,19 @@ class TutorBotCapability(BaseCapability):
         no new adjudication, no answer regex. The correct_answer / grading_key on
         the item is intentionally NOT read — _render_question_response is called
         with reveal_answers=False / reveal_explanations=False.
+
+        WP3（2026-07-12，生产活体 owner 23edde9e）：开火条件分层，短路从"独立重判者"
+        降级为"canonical 裁决的执行器"。正典层序（复审必修③钉死）：
+        **显式格式/解锁 → 窄 SEV 兜底表 → facet(flag) → canonical detour → legacy**：
+        1. 显式格式/解锁不动：should_block（显式 reveal/concession/已作答放行）与
+           "第N题"序数确定性无答案重渲染 handler 永远最先裁——facet/detour 不越位，
+           判定器误标 false 既不降级显式 reveal 流，也不绕过序数重渲染；
+        2. 窄隐式求助兜底表命中 → 无条件开火（SEV 护栏不依赖 LLM，= LLM-down 兜底）；
+        3. Stage B（flag 门后）facet=true → 开火；facet=false → 不开火（redaction
+           站点成对清题目上下文，白名单旁路）；
+        4. Stage A（default-on）canonical 裁决 temporary_detour→general_chat 且
+           drove_route=true → 不开火（同样成对 redaction）；
+        5. 其余 → legacy 分支（should_block + 排除三连 + 白名单），bit 不变。
         """
 
         metadata = context.metadata if isinstance(context.metadata, dict) else {}
@@ -1249,7 +1387,14 @@ class TutorBotCapability(BaseCapability):
             return None
 
         message = context.user_message
+        narrow_implicit_help = _narrow_implicit_help_fallback_hit(message)
+        canonical_facet = cls._canonical_answer_help_facet(metadata)
         # Single authority #1: is this an unanswered-reference reveal attempt?
+        # 显式解锁（"公布答案"/concession/已作答）仍由它先放行——窄兜底表与
+        # canonical facet/detour 层都不越过这条显式确定性规则（复审必修③：
+        # facet 消费整体收进 requested_index is None 分支，不得在 should_block /
+        # 序数分支之前早退，否则判定器误标 false 会降级显式 reveal / 绕过第N题
+        # 确定性无答案重渲染 handler）。
         if not should_block_unanswered_reference_reveal(message, normalized):
             return None
         # Single authority #2: which specific batch item is referenced?
@@ -1262,6 +1407,29 @@ class TutorBotCapability(BaseCapability):
             # 治本=结构上不走自由 LLM：确定性结构化提示（考点+解题思路+nudge，绝不含
             # 答案/选项评价）。动作1 proven 治本扩面到通用求助。
             #
+            # WP3 分层开火（层1）：窄隐式求助兜底表命中 → 无条件开火。06-30 红队
+            # 证实这些形态落自由 LLM 必泄底；护栏不消费 canonical LLM 裁决（LLM 判错
+            # /LLM down 都拦得住）。排除三连也不在这条路径重判——真提交/re-present/
+            # 出题不会命中窄表措辞。
+            if narrow_implicit_help:
+                return cls._build_structured_hint_for_unanswered(normalized)
+            # WP3 分层开火（层2，Stage B flag 门后）：canonical facet。true → 判定器
+            # 裁定本轮在向老师索取当前未答题解答 → 开火；false → 不开火，落主 LLM
+            # （redaction 站点成对清掉题目上下文——白名单旁路，这条路径不消费
+            # _SAFE_STUDY_AID_MARKERS）。facet 只在本分支（无第N题序数、非显式解锁、
+            # 非窄表）参与——正典层序：显式格式/解锁 → 窄 SEV 兜底表 → facet(flag)
+            # → canonical detour → legacy。
+            if canonical_facet is True:
+                return cls._build_structured_hint_for_unanswered(normalized)
+            if canonical_facet is False:
+                return None
+            # WP3 分层开火（层3，Stage A default-on）：canonical 裁决 temporary_detour
+            # →route_to_general_chat 且 drove_route=true → 不开火（这就是生产活体
+            # owner 23edde9e 的铁律③.6 现场：正确裁决被默认-block 关键词谓词重判翻案）。
+            # 新分支只读裁决，不跑排除三连（该轮不开火，无需再排除）。
+            if cls._anti_peek_release_reason(context) == cls._ANTI_PEEK_RELEASE_DETOUR:
+                return None
+            # legacy 分支（bit 不变）——
             # 但 should_block=True 太宽——也命中**有专属确定性 handler** 的轮：真实作答
             # （应判分）、re-present（应确定性重排）。这些不能被结构化提示偷走（否则判分/
             # 重排失效）。复用 turn-START carve-out 同款单一权威排除它们，只对真正会落

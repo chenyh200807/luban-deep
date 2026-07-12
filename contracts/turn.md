@@ -79,7 +79,11 @@
 - 当 exact-question 命中携带官方答案 / 解析 authority 时，`turn_runtime` 在持久化和发布 `result` 前必须把缺失的 `correct_answer`、`explanation` 等 hidden authority 同步到服务端内部 `question_followup_context` 与 `active_object.state_snapshot`。这一步只补齐 canonical result state，不得根据 `response` / `presentation` 文本反向猜测答案，也不得在公开 WS 边界绕过 hidden authority redaction。
 - 当用户在多题上下文中稳定点名“第 N 题答案 / 解析 / 公布”时，服务端仍以同一个 question-domain context 为 authority，但公开 reference feedback 只投影被点名 item；不得因顶层集合没有公开 `correct_answer` 就拒绝、澄清或改用 TutorBot/RAG 猜答案。
 - 练题出题属于 question authority 域。即使入口带有 `bot_id=construction-exam-coach` 或 TutorBot 默认知识库，`practice_generation` 也不得被预先 pin 到 TutorBot；必须交给统一 semantic route / `deep_question` 生成 canonical `active_object`、`question_followup_context`、隐藏标准答案与后续批改依据。TutorBot 可以参与普通讲解、知识问答和已命中精确题目的 grounded answer，但不得成为出题标准答案的第二套 authority。
-- 当用户在同一 session 已有开放学习主题或最近对话锚点后，只输入“出几道题 / 出三道题 / 来几道题目”等 action-only 练题请求时，turn runtime 的 canonical `turn_semantic_decision` 必须归一为 `route_to_generation`，再由 `deep_question` 的 topic-anchor/domain gate 继承锚点或在 true cold-start 时 fail-closed 澄清；不得停在 `hold_and_wait`，也不得让 TutorBot 或 transport fallback 自行生成题目。
+- 当用户在同一 session 已有开放学习主题或最近对话锚点后，只输入“出几道题 / 出三道题 / 来几道题目”等 action-only 练题请求时，turn runtime 的 canonical `turn_semantic_decision` 必须归一为 `route_to_generation`，再由 `deep_question` 的 topic-anchor gate 继承锚点；不得停在 `hold_and_wait`，也不得让 TutorBot 或 transport fallback 自行生成题目。
+- **出题考点单一 decider（WP4，2026-07-12，`fix/semantic-answering-rootcause-20260712`）**：**本轮出题考点**的裁决只有一处 = `deep_question._resolve_generation_topic`（同时产出 composed topic 与显式 `generation_anchor`）。coordinator 不得再自建第二套 topic 推导、第二套域门、或从 `user_topic` 字符串反解析锚点（`_extract_embedded_generation_anchor` / `_resolve_practice_topic_with_context` / `_should_block_unresolved_lightweight_anchor` 已删除）；anchor 与单条用户消息经显式参数（`generation_anchor` / `raw_user_message`）下传，`考(...)` 标签提取器只许喂**单条用户消息**，禁喂 transcript / anchor / history 拼接文本（防“考情权重”被啃成乱码标签）。
+  - **锚点最新优先**：`本轮显式考点 > 对话尾部（tail-clip，取最新而非最旧）> active_object（非题当前对象）> suspended_stack > session title（仅当无任何对话文本时兜底）`。`_conversation_generation_anchor` 必须尾部截取（“最近对话摘要”名实一致）；`_coerce_continuity_summary` 里 session title 降到 `conversation_context` 之后。
+  - **罐头拒答撤除 → fall-through**：action-only 请求不再产出 `blocked_unresolved_anchor` / `needs_anchor` 罐头拒答；域门（`practice_generation_topic_block_decision`）**只判 `out_of_scope`**（他科如法语/股票才拒），`needs_context_anchor` 与 `unknown_topic` 一律放行。锚点合成不出时带对话尾部 grounding fall-through 到 generator（generator 科目锁保证只出建筑题）。`practice_generation_request_needs_context_anchor`（strip 表）**已冻结、降级为 trace hint**（`practice_generation.needs_context_anchor_hint`），不得作为任何 `return` / `block` / 罐头条件——禁止靠往 strip 表加词过测。
+  - **真冷启动澄清一次**：仅当纯动作词 + session 无任何前文锚点（无对话 / 无 active_object / 无 suspended_stack）时才澄清一次，澄清是**提问语气不是罐头拒答**，且带 `practice_generation_blocked_reason` 标记，`turn_runtime` 依此**绝不**把澄清文案写成 `active_object` / `question_followup_context`。
 - 如果最近 assistant turn 明确发出“出同考点题 / 巩固练习 / 继续练题”邀请，下一轮用户的短肯定回复或复述该邀请必须被归一为 question-domain `practice_generation` 候选，由统一 semantic route 决定是否进入 `deep_question`；`bot_id` / TutorBot 默认绑定只能在语义结果为普通聊天时决定执行引擎。
 - `exam_track` 只表示同一 `construction-exam-coach` 下的考试方向上下文，如一建 / 二建 / 一造 / 二造；它可以进入 `interaction_hints`、session preferences 和 trace，作为 RAG/source plan 与回答口径的 scoped metadata，但不得成为第二个 TutorBot 身份、第二套 capability route 或第二套 knowledge-chain authority。
 - semantic router 的灰度与回滚也必须走统一 turn trace：`semantic_router_mode / semantic_router_mode_reason / semantic_router_scope / semantic_router_scope_match / semantic_router_shadow_decision / semantic_router_shadow_route / semantic_router_selected_capability`。`shadow` 只允许并行比对，不得抢执行 authority。
@@ -145,6 +149,46 @@
   在实时回合可见。它是 learner-state 读模型的**只读投影**，不是第二套推荐 authority；缺 claims 时为空且不进 metadata，
   绝不由前端或回合自行编造推荐。`next_best_action` 在回合内只作 view-layer 呈现，权威仍属 learner-state。
 
+## 终端产出纪律（2026-07-12，律4 语义完整性收权）
+
+全局律落点：终端答案通道上的每一次"确定性产出"都必须守型、守权威、守失败语义。
+
+1. **确定性短路只许两类**：高置信、可证伪的快路径（如 exact-question authority 命中），或
+   SEV 级窄拦截（如未作答泄题拦截）。除此之外不得新增确定性短路。
+2. **短路开火前必须消费 canonical 裁决**：任何短路在替学员产出终端文本前，必须已读取
+   对应的单一权威（exact authority / lifecycle scene / grading authority），不得自行猜测。
+3. **不确定一律 fall-through 主 LLM，禁模板兜底**：判定不出来就交回主链路；不得用
+   per-branch 模板文案冒充最终答案（生产例A：预算耗尽被现编成英文"合法回答"落库 completed）。
+4. **失败保型（typed failure）+ 唯一 terminal mapper + 禁 completed 假绿**：
+   - Provider 错误/超时从出生处保型：`LLMResponse.content` 永不携带错误体；错误体进
+     `error_detail`，类别进 `failure_kind`，`finish_reason="error"`（生产例B：欠费错误体
+     以 13 条 content delta 流给学员）。openai-compat 流式路径带 error-body delta gate：
+     形如 `Error: {...}` / `Error calling LLM:` 打头的 200-SSE 流不进 `on_content_delta`，
+     终局按 `looks_like_provider_error_content` 收敛为 typed failure；正常回答（含正文中
+     出现 "Error" 字样的合法教学内容）必须 byte-identical 通过。
+   - Agent loop 对预算耗尽 / provider error / 空答案只记录
+     `runtime_metadata["turn_failure"]={kind, detail, ...}`（`tool_budget_exhausted` /
+     `provider_error` / `provider_timeout` / `model_empty_answer`），`final_content=None`；
+     不得产出任何学员可见 surrogate 文本。marker 严格 per-turn：入口 pop 陈旧值，恢复出
+     真实答案后必须清除。传播链 = loop → manager（只进 trace 与 session_metadata 桥，
+     不进持久化 merged_metadata）→ capability result event → turn runtime。
+   - **唯一 terminal mapper** = `turn_runtime.map_turn_failure_to_public_text` /
+     `_safe_terminal_assistant_content`：所有终态学员可见文本（assistant message、
+     `result.metadata.response` 投影、orphan 恢复补话）只能由它决定；预算耗尽→"拆小再发"、
+     provider 类→"服务暂时繁忙"、取消→取消文案、未知→通用兜底。失败文案一律不可计费。
+   - **禁 completed 假绿**：带 `turn_failure` 的 turn 终态必须 `status=failed`，
+     `error_code`（=failure kind）保留在 public `result.metadata`，原始错误体只进
+     `turns.error`（internal），公开 turn_events 不得出现原始错误文本；public `done`
+     status 同步为 `failed`。
+5. **turn 存活性收敛单一 DB 真值（FSM 终态吸收）**：`update_turn_status` 是 CAS
+   （`WHERE id=? AND status='running'`），terminal 态吸收一切后写——跨 worker cancel 后
+   执行 worker 的迟到 completed 不得复活该 turn（生产例C）。终态 commit 顺序 = 先 CAS
+   running→terminal，**成功才** add_message + billing capture；CAS 被拒（已被取消/取代）
+   时 assistant 消息不公开落库、billing 不 capture。
+6. **孤儿必须交代**：启动 orphan recovery 除翻 `status=failed` 外，必须经同一 terminal
+   mapper 给每个孤儿 turn 的 session 补一条中文 assistant 通知（`orphaned_on_restart`），
+   不得让学员面对静默无应答。
+
 ## 必测项
 
 - `tests/api/test_system_router.py`
@@ -152,6 +196,7 @@
 - `tests/api/test_mobile_router.py`
 - `tests/services/test_semantic_router.py`
 - `tests/runtime/test_orchestrator_semantic_router.py`
+- `tests/services/test_terminal_error_semantics.py`（律4 终端产出纪律域测试）
 
 ## QTPK 物理抽出 S1（2026-06-27，控制面收权 Task 2/4 物理执行）
 
@@ -243,6 +288,36 @@ owner 决策 (b)：文档化相位互补，**不强行收敛**（强收敛冒 ta
     中清掉 `active_object` / `question_followup_context` / `_prefetched_exact_question` 等当前题上下文字段，避免自由 LLM
     消费未作答题隐藏答案材料。证据见 `tests/services/test_turn_start_demote_canonical_pipeline.py` 与
     `tests/capabilities/test_tutorbot_unanswered_reference_short_circuit.py`。
+  - **anti-peek 终端短路是 canonical 裁决的执行器，不是独立重判者（2026-07-12，WP3；生产活体 owner 23edde9e：
+    "给我整理记忆口诀" 三发，followup 判定器给出正确裁决仍被 0 秒 canned 模板打回 = 终端产出纪律律2 的现场违例）**。
+    `capabilities/tutorbot.py::_build_unanswered_reference_response` 的开火条件分层，正典层序（复审必修③钉死）
+    = **显式格式/解锁 → 窄 SEV 兜底表 → facet（flag）→ canonical detour → legacy**：
+    1. **显式格式/解锁规则永远最先裁，任何 canonical 层不得越位**（第N题指代 / "公布答案" 显式 reveal / 否定 reveal /
+       concession / 已作答放行），单一权威仍是 `should_block_unanswered_reference_reveal` +
+       `requested_question_item_index`。facet 消费整体收在 `requested_index is None` 分支内（不得早退），且
+       `_anti_peek_release_reason` 带确定性守卫：`detect_answer_reveal_preference(message) is True` / concession /
+       "第N题"序数命中 → 不放行、不 redact——判定器误标 facet=false 既不降级显式 reveal 流（owner"不能不输出"），
+       也不绕过序数确定性无答案重渲染 handler；
+    2. **窄隐式求助兜底表命中 → 无条件开火**（SEV 护栏，不依赖也不被 LLM canonical 裁决解除；同时就是 LLM-down 兜底）。
+       白名单式列举（`_IMPLICIT_ANSWER_HELP_FALLBACK_MARKERS`）：给点提示 / 提示一下 / 给个提示 / 还是不会 / 不会做 /
+       这题怎么想 / 怎么做 / 怎么思考——06-30 红队证实落自由 LLM 必泄底的形态。扩条目须新红队证据，禁止长成第二个
+       关键词重判器；
+    3. **facet 灰度（`DEEPTUTOR_ANTIPEEK_CANONICAL_FACET_ENABLED`，默认关）**：开启时 followup 判定器输出契约加布尔
+       facet `seeks_active_answer_help`，经 `_build_turn_semantic_decision` / semantic_router 逐跳显式透传进 canonical
+       裁决（缺失=None 不参与）。facet=true → 开火；facet=false → 放行+redact（白名单 `_SAFE_STUDY_AID_MARKERS`
+       旁路，不再消费）；facet 缺失 → 落层4/5。白名单物理保留：flag OFF 时它是口诀场景唯一活路；facet 毕业后
+       下一 PR 删白名单与本 flag；
+    4. **canonical detour（default-on）：未命中以上各层时必须先消费已持久化的 canonical `turn_semantic_decision`**：
+       判 `temporary_detour` → `route_to_general_chat` 且 drove_route=true（`semantic_router_mode=primary`）→
+       **不开火**，fall-through 主 LLM，且必须成对复用 #417 的 session_metadata redaction（清 `active_object` /
+       `question_followup_context` / `followup_question_context` / `_prefetched_exact_question`，标
+       `question_context_redacted_for_safe_study_aid` + `anti_peek_release_reason`）——放行与 redaction 不许拆开。
+       非 primary（lifecycle 等）模式的 detour 裁决只是 bookkeeping：这类知识请求维持 canned 行为至 facet 毕业；
+    5. 其余走 legacy 分支（should_block 关键词判定 + 提交/re-present/出题排除三连），bit 不变。
+    "本轮是否消费活跃题/是否隐式求助" 的 decider 由此收敛：短路端只剩 1 个窄兜底表 + 1 个 canonical facet + 既有显式
+    规则；D4 keep-gate / D9 should_block（legacy 分支）降级为放行路径上的只读消费者。已知遗留：conversation_context_text
+    （共享历史）里可能含题面/答案线索，放行轮的 history 泄露向量未闭合，须 live 红队专测。域测试：
+    `tests/capabilities/test_tutorbot_unanswered_reference_short_circuit.py`（Stage A/B + SEV counterexample 全套）。
   - **已批改题的下一步训练承接（2026-07-10）是同相位的 forward-reachability carve-out**：
     当 active question 已有 `construction_grading_result.next_training_signal` 或确定性完成批改证据，且本轮不是作答提交，
     用户用“下一步 / 继续 / 按你说的做”等接受上一轮巩固建议时，turn-start 必须保留该 active object；QTPK 的同一

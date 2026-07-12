@@ -120,6 +120,11 @@ _INTERNAL_VISIBILITY = "internal"
 _PLAN_ACTIVE_OBJECT_TYPES = {"guide_page", "study_plan"}
 _PUBLIC_CANCELLED_MESSAGE = "本轮生成已取消，请重新发送或换个题目继续。"
 _PUBLIC_FAILED_MESSAGE = "本轮生成失败，后台已记录问题。请稍后重试。"
+# 律4 terminal mapper copy (single learner-visible text authority for failures).
+_PUBLIC_BUDGET_EXHAUSTED_MESSAGE = "这道题内容较多，这次没批完，请把题目拆小一点再发一次。"
+_PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE = "服务暂时繁忙，请稍后再试。"
+_PUBLIC_MODEL_EMPTY_MESSAGE = "这次模型没有返回可见答案，已记录问题。请重新发送一次。"
+_PUBLIC_ORPHAN_RESTART_MESSAGE = "刚才服务重启，这条没答上，请再发一次。"
 _REQUEST_SNAPSHOT_REDACTED = "[redacted]"
 _REQUEST_SNAPSHOT_MAX_TEXT = 4000
 _REQUEST_SNAPSHOT_MAX_TOTAL_BYTES = 24000
@@ -324,6 +329,19 @@ def _project_result_response_for_legacy_clients(event: dict[str, Any]) -> dict[s
         return event
     response = _result_response_text(metadata)
     if not response:
+        # Typed failure result without a response projection: the single
+        # terminal mapper decides the learner-visible text (律4).
+        failure = _extract_turn_failure(metadata)
+        if failure:
+            projected = dict(event)
+            projected_metadata = dict(metadata)
+            projected_metadata["response"] = _safe_terminal_assistant_content(
+                None,
+                status="failed",
+                failure_kind=str(failure.get("kind") or ""),
+            )
+            projected["metadata"] = projected_metadata
+            return projected
         return event
     projected = dict(event)
     projected_metadata = dict(metadata)
@@ -631,18 +649,74 @@ def _tutorbot_mirror_session_ids(
     return candidates
 
 
+def map_turn_failure_to_public_text(failure_kind: str | None, *, status: str = "failed") -> str:
+    """律4 single terminal mapper: failure type -> learner-visible Chinese text.
+
+    Every terminal surface (assistant message, result.response projection,
+    orphan-recovery notice) MUST route through this function. No other layer
+    (provider / agent loop / capability) may improvise learner-visible failure
+    copy — they preserve the failure TYPE and this mapper owns the words.
+    """
+    if str(status or "").strip() == "cancelled":
+        return _PUBLIC_CANCELLED_MESSAGE
+    kind = str(failure_kind or "").strip().lower()
+    if kind == "tool_budget_exhausted":
+        return _PUBLIC_BUDGET_EXHAUSTED_MESSAGE
+    if kind.startswith("provider"):
+        return _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE
+    if kind == "model_empty_answer":
+        return _PUBLIC_MODEL_EMPTY_MESSAGE
+    if kind == "orphaned_on_restart":
+        return _PUBLIC_ORPHAN_RESTART_MESSAGE
+    return _PUBLIC_FAILED_MESSAGE
+
+
+def _extract_turn_failure(metadata: Mapping[str, Any] | None) -> dict[str, Any] | None:
+    """Return the typed turn_failure marker carried on a RESULT event, if any."""
+    if not isinstance(metadata, Mapping):
+        return None
+    containers: list[Mapping[str, Any]] = [metadata]
+    nested = metadata.get("metadata")
+    if isinstance(nested, Mapping):
+        containers.append(nested)
+    for container in containers:
+        candidate = container.get("turn_failure")
+        if isinstance(candidate, Mapping) and str(candidate.get("kind") or "").strip():
+            return dict(candidate)
+    return None
+
+
 def _safe_terminal_assistant_content(
     assistant_content: str | None,
     *,
     status: str,
+    failure_kind: str | None = None,
 ) -> str:
-    fallback = _PUBLIC_CANCELLED_MESSAGE if status == "cancelled" else _PUBLIC_FAILED_MESSAGE
+    fallback = map_turn_failure_to_public_text(failure_kind, status=status)
+    if str(failure_kind or "").strip():
+        # Typed failures map deterministically — partial/leaked content never
+        # overrides the mapper (it may BE the raw error body).
+        return fallback
     source = str(assistant_content or "").strip()
     if not source:
         return fallback
     return normalize_markdown_for_tutorbot(
         coerce_user_visible_answer(source, fallback=fallback)
     ) or fallback
+
+
+_NON_CHARGEABLE_PUBLIC_MESSAGES = frozenset(
+    {
+        _PUBLIC_FAILED_MESSAGE,
+        _PUBLIC_CANCELLED_MESSAGE,
+        _PUBLIC_BUDGET_EXHAUSTED_MESSAGE,
+        _PUBLIC_PROVIDER_UNAVAILABLE_MESSAGE,
+        _PUBLIC_MODEL_EMPTY_MESSAGE,
+        _PUBLIC_ORPHAN_RESTART_MESSAGE,
+        "暂时未生成适合直接展示的答案，请重试一次。",
+        "模型调用失败，请稍后重试。",
+    }
+)
 
 
 def _is_chargeable_mobile_assistant_content(raw_content: str | None, public_content: str | None) -> bool:
@@ -652,12 +726,7 @@ def _is_chargeable_mobile_assistant_content(raw_content: str | None, public_cont
         return False
     if raw_source and looks_like_unsafe_visible_output(raw_source):
         return False
-    if public_source in {
-        _PUBLIC_FAILED_MESSAGE,
-        _PUBLIC_CANCELLED_MESSAGE,
-        "暂时未生成适合直接展示的答案，请重试一次。",
-        "模型调用失败，请稍后重试。",
-    }:
+    if public_source in _NON_CHARGEABLE_PUBLIC_MESSAGES:
         return False
     return True
 
@@ -1409,7 +1478,7 @@ def _build_turn_semantic_decision(
         normalized_confidence = (
             normalized_confidence if normalized_confidence is not None else 0.7
         )
-    return build_semantic_turn_decision(
+    decision = build_semantic_turn_decision(
         relation_to_active_object=relation,
         next_action=next_action,
         allowed_patch=allowed_patch,
@@ -1419,6 +1488,14 @@ def _build_turn_semantic_decision(
         target_object_ref=_active_object_ref(active_object),
         active_object=active_object,
     )
+    # WP3 Stage B（2026-07-12）：判定器 facet seeks_active_answer_help 透传进
+    # canonical turn_semantic_decision（缺失 = 不带 key，不参与）。observe-only
+    # 旗标每跳显式导出——normalize_turn_semantic_decision 已保留该可选键，
+    # orchestrator passthrough 那一跳不会静默丢。
+    facet = (followup_question_action or {}).get("seeks_active_answer_help")
+    if isinstance(facet, bool):
+        decision["seeks_active_answer_help"] = facet
+    return decision
 
 
 _QUESTION_LIFECYCLE_METADATA_KEYS = (
@@ -5782,6 +5859,7 @@ class TurnRuntimeManager:
                 capability_stream_stage_timings = _TurnLatencyStages()
                 capability_stream_event_counts: dict[str, int] = {}
                 public_result_response_seen = False
+                turn_failure_info: dict[str, Any] | None = None
                 first_useful_content_metadata: dict[str, Any] = {}
                 synthesize_mobile_result_before_done = _is_mobile_surface_turn_config(
                     request_config,
@@ -5878,15 +5956,46 @@ class TurnRuntimeManager:
                             dict(event.metadata or {}),
                             result_trace_metadata,
                         )
-                        _replace_public_result_response_with_stream(
-                            event,
-                            streamed_assistant_content,
-                        )
+                        failure_candidate = _extract_turn_failure(event.metadata)
+                        if failure_candidate:
+                            # 律4: typed failure result. The single terminal mapper
+                            # decides the learner-visible text; the raw detail is
+                            # kept for turns.error but REDACTED from the public
+                            # event (error_code stays).
+                            turn_failure_info = failure_candidate
+                            failure_kind = str(failure_candidate.get("kind") or "").strip()
+                            failure_metadata = dict(event.metadata or {})
+                            failure_metadata["turn_failure"] = {"kind": failure_kind}
+                            failure_metadata["error_code"] = failure_kind
+                            failure_metadata["response"] = _safe_terminal_assistant_content(
+                                None,
+                                status="failed",
+                                failure_kind=failure_kind,
+                            )
+                            nested_failure_metadata = failure_metadata.get("metadata")
+                            if isinstance(nested_failure_metadata, dict) and (
+                                "turn_failure" in nested_failure_metadata
+                            ):
+                                nested_failure_metadata = dict(nested_failure_metadata)
+                                nested_failure_metadata["turn_failure"] = {"kind": failure_kind}
+                                failure_metadata["metadata"] = nested_failure_metadata
+                            event.metadata = failure_metadata
+                        else:
+                            _replace_public_result_response_with_stream(
+                                event,
+                                streamed_assistant_content,
+                            )
                         if (
                             _event_visibility(event) == _PUBLIC_VISIBILITY
                             and _result_response_text(event.metadata or {})
                         ):
                             public_result_response_seen = True
+                    if event.type == StreamEventType.DONE and turn_failure_info:
+                        # No completed fake-green on the public stream either.
+                        done_metadata = dict(event.metadata or {})
+                        if str(done_metadata.get("status") or "").strip() in ("", "completed"):
+                            done_metadata["status"] = "failed"
+                        event.metadata = done_metadata
                     if (
                         event.type == StreamEventType.DONE
                         and synthesize_mobile_result_before_done
@@ -5990,121 +6099,184 @@ class TurnRuntimeManager:
                 elif "question_followup_context" in trace_metadata:
                     trace_metadata.pop("question_followup_context", None)
                 raw_assistant_content = authoritative_assistant_content or assistant_content
-                assistant_content = normalize_markdown_for_tutorbot(
-                    coerce_user_visible_answer(raw_assistant_content)
-                )
-                chargeable_assistant_content = _is_chargeable_mobile_assistant_content(
-                    raw_assistant_content,
-                    assistant_content,
-                )
+                terminal_failure_kind = str((turn_failure_info or {}).get("kind") or "").strip()
+                if terminal_failure_kind:
+                    # 律4: a typed failure never commits as completed fake-green.
+                    # The single terminal mapper owns the learner-visible text;
+                    # the raw detail goes to turns.error (internal).
+                    terminal_commit_status = "failed"
+                    assistant_content = _safe_terminal_assistant_content(
+                        None,
+                        status="failed",
+                        failure_kind=terminal_failure_kind,
+                    )
+                    chargeable_assistant_content = False
+                    terminal_error_text = (
+                        str((turn_failure_info or {}).get("detail") or "").strip()
+                        or terminal_failure_kind
+                    )
+                else:
+                    terminal_commit_status = "completed"
+                    assistant_content = normalize_markdown_for_tutorbot(
+                        coerce_user_visible_answer(raw_assistant_content)
+                    )
+                    chargeable_assistant_content = _is_chargeable_mobile_assistant_content(
+                        raw_assistant_content,
+                        assistant_content,
+                    )
+                    terminal_error_text = ""
                 execution.terminal_commit_started = True
-                await self._safe_store_call(
+                # Turn-aliveness single DB truth: CAS running→terminal FIRST.
+                # Only a successful transition may publish the assistant message
+                # and capture billing; a turn already terminal (cross-worker
+                # cancel / supersede) is absorbed — no resurrection, no publish.
+                terminal_cas_result = await self._safe_store_call(
                     execution,
-                    "add_assistant_message",
-                    self.store.add_message,
-                    session_id=session_id,
-                    role="assistant",
-                    content=assistant_content,
-                    capability=capability_name,
-                    events=assistant_events,
-                    metadata=_assistant_message_metadata(
-                        turn_id=turn_id,
-                        config=request_config,
-                        terminal_status="completed",
-                    ),
-                    default=None,
-                )
-                usage_summary = observability.get_current_usage_summary()
-                # Wallet capture / usage metering do sync Supabase HTTP + locked file
-                # I/O — keep them off the event-loop thread (turn finalization runs
-                # for every wx_miniprogram turn).
-                billing_capture = await asyncio.to_thread(
-                    self._capture_mobile_points,
-                    billing_context,
-                    assistant_content,
-                    session_id=session_id,
-                    turn_id=turn_id,
-                    usage_summary=usage_summary,
-                    chargeable_assistant_content=chargeable_assistant_content,
-                )
-                if billing_capture and billing_capture.get("status") == "captured":
-                    with contextlib.suppress(Exception):
-                        observability.mark_usage_scope_billable(
-                            turn_id=turn_id,
-                            billing_capture=billing_capture,
-                        )
-                if billing_capture:
-                    trace_metadata["billing_capture"] = billing_capture
-                await asyncio.to_thread(
-                    self._record_mobile_learning,
-                    billing_context,
-                    raw_user_content,
-                    assistant_content,
-                )
-                await self._safe_store_call(
-                    execution,
-                    "mark_turn_completed",
+                    "mark_turn_completed" if terminal_commit_status == "completed" else "mark_turn_failed_typed",
                     self.store.update_turn_status,
                     turn_id,
-                    "completed",
-                    default=False,
-                )
-                # Additive, behavior-preserving: persist the semantic-router
-                # decision telemetry tuple to our own durable turn_events store
-                # (internal, never published, never forwarded to external trace).
-                # captured_raw_input lives here (same tier as messages.content),
-                # closing the baseline join/decision-vs-route/default breakpoints.
-                await self._safe_store_call(
-                    execution,
-                    "append_semantic_router_telemetry",
-                    self.store.append_turn_event,
-                    turn_id,
-                    build_semantic_router_telemetry_event(
-                        context_metadata=context.metadata,
-                        final_executed_capability=capability_name,
-                        captured_raw_input=str(
-                            context.metadata.get("semantic_router_captured_input") or ""
-                        ),
-                    ),
+                    terminal_commit_status,
+                    terminal_error_text,
                     default=None,
                 )
-                assistant_event_summary = _summarize_assistant_events(assistant_events)
-                observability.update_observation(
-                    turn_observation,
-                    output_payload={"assistant_content": assistant_content},
-                    metadata=_build_final_observation_metadata(
+                if terminal_cas_result is False:
+                    superseded_turn = await self._safe_store_call(
+                        execution,
+                        "get_turn_after_terminal_cas_reject",
+                        self.store.get_turn,
+                        turn_id,
+                        default=None,
+                    )
+                    terminal_status = (
+                        str((superseded_turn or {}).get("status") or "").strip() or "cancelled"
+                    )
+                    usage_summary = observability.get_current_usage_summary()
+                    logger.warning(
+                        "Turn %s terminal commit superseded (db status=%s); assistant message "
+                        "not published, billing not captured",
+                        turn_id,
+                        terminal_status,
+                    )
+                    observability.update_observation(
+                        turn_observation,
+                        output_payload={"assistant_content": ""},
+                        metadata=_build_final_observation_metadata(
+                            usage_summary=usage_summary,
+                            terminal_status=terminal_status,
+                        ),
+                        usage_details=observability.usage_details_from_summary(usage_summary),
+                        cost_details=observability.cost_details_from_summary(usage_summary),
+                        usage_source="summary",
+                        level="ERROR",
+                        status_message="terminal commit superseded by earlier terminal state",
+                    )
+                else:
+                    await self._safe_store_call(
+                        execution,
+                        "add_assistant_message",
+                        self.store.add_message,
+                        session_id=session_id,
+                        role="assistant",
+                        content=assistant_content,
+                        capability=capability_name,
+                        events=assistant_events,
+                        metadata=_assistant_message_metadata(
+                            turn_id=turn_id,
+                            config=request_config,
+                            terminal_status=terminal_commit_status,
+                        ),
+                        default=None,
+                    )
+                    usage_summary = observability.get_current_usage_summary()
+                    # Wallet capture / usage metering do sync Supabase HTTP + locked file
+                    # I/O — keep them off the event-loop thread (turn finalization runs
+                    # for every wx_miniprogram turn).
+                    billing_capture = await asyncio.to_thread(
+                        self._capture_mobile_points,
+                        billing_context,
+                        assistant_content,
+                        session_id=session_id,
+                        turn_id=turn_id,
                         usage_summary=usage_summary,
-                        terminal_status="completed",
-                    ),
-                    usage_details=observability.usage_details_from_summary(usage_summary),
-                    cost_details=observability.cost_details_from_summary(usage_summary),
-                    usage_source="summary",
-                )
-                post_turn_refresh_kwargs = {
-                    "turn_id": turn_id,
-                    "user_id": user_id,
-                    "raw_user_content": raw_user_content,
-                    "assistant_content": assistant_content,
-                    "session_id": session_id,
-                    "capability_name": capability_name or "chat",
-                    "language": str(payload.get("language", "en") or "en"),
-                    "source_bot_id": source_bot_id,
-                    "context_route": context_route,
-                    "task_anchor_type": task_anchor_type,
-                    "learner_state_service": learner_state_service,
-                    "memory_service": memory_service,
-                    "learning_prompt_intent": (
-                        dict(request_config.get("learning_prompt_intent") or {})
-                        if isinstance(request_config.get("learning_prompt_intent"), dict)
-                        else None
-                    ),
-                    "source_refs": (
-                        list(assistant_event_summary.get("sources") or [])
-                        if isinstance(assistant_event_summary, dict)
-                        else []
-                    ),
-                }
-                terminal_status = "completed"
+                        chargeable_assistant_content=chargeable_assistant_content,
+                    )
+                    if billing_capture and billing_capture.get("status") == "captured":
+                        with contextlib.suppress(Exception):
+                            observability.mark_usage_scope_billable(
+                                turn_id=turn_id,
+                                billing_capture=billing_capture,
+                            )
+                    if billing_capture:
+                        trace_metadata["billing_capture"] = billing_capture
+                    if not terminal_failure_kind:
+                        await asyncio.to_thread(
+                            self._record_mobile_learning,
+                            billing_context,
+                            raw_user_content,
+                            assistant_content,
+                        )
+                    # Additive, behavior-preserving: persist the semantic-router
+                    # decision telemetry tuple to our own durable turn_events store
+                    # (internal, never published, never forwarded to external trace).
+                    # captured_raw_input lives here (same tier as messages.content),
+                    # closing the baseline join/decision-vs-route/default breakpoints.
+                    await self._safe_store_call(
+                        execution,
+                        "append_semantic_router_telemetry",
+                        self.store.append_turn_event,
+                        turn_id,
+                        build_semantic_router_telemetry_event(
+                            context_metadata=context.metadata,
+                            final_executed_capability=capability_name,
+                            captured_raw_input=str(
+                                context.metadata.get("semantic_router_captured_input") or ""
+                            ),
+                        ),
+                        default=None,
+                    )
+                    assistant_event_summary = _summarize_assistant_events(assistant_events)
+                    observability.update_observation(
+                        turn_observation,
+                        output_payload={"assistant_content": assistant_content},
+                        metadata=_build_final_observation_metadata(
+                            usage_summary=usage_summary,
+                            terminal_status=terminal_commit_status,
+                        ),
+                        usage_details=observability.usage_details_from_summary(usage_summary),
+                        cost_details=observability.cost_details_from_summary(usage_summary),
+                        usage_source="summary",
+                        **(
+                            {"level": "ERROR", "status_message": terminal_error_text}
+                            if terminal_failure_kind
+                            else {}
+                        ),
+                    )
+                    if terminal_commit_status == "completed":
+                        post_turn_refresh_kwargs = {
+                            "turn_id": turn_id,
+                            "user_id": user_id,
+                            "raw_user_content": raw_user_content,
+                            "assistant_content": assistant_content,
+                            "session_id": session_id,
+                            "capability_name": capability_name or "chat",
+                            "language": str(payload.get("language", "en") or "en"),
+                            "source_bot_id": source_bot_id,
+                            "context_route": context_route,
+                            "task_anchor_type": task_anchor_type,
+                            "learner_state_service": learner_state_service,
+                            "memory_service": memory_service,
+                            "learning_prompt_intent": (
+                                dict(request_config.get("learning_prompt_intent") or {})
+                                if isinstance(request_config.get("learning_prompt_intent"), dict)
+                                else None
+                            ),
+                            "source_refs": (
+                                list(assistant_event_summary.get("sources") or [])
+                                if isinstance(assistant_event_summary, dict)
+                                else []
+                            ),
+                        }
+                    terminal_status = terminal_commit_status
         except asyncio.CancelledError:
             timed_out = bool(execution.deadline_exceeded)
             cancelled_status = "failed" if timed_out else "cancelled"

@@ -290,6 +290,11 @@ domains:
       - tests/services/session/test_prompt_partition.py
       - tests/services/session/test_sqlite_store.py
       - tests/services/session/test_tutorbot_sqlite_adapter.py
+      # 律4 terminal error semantics (typed failure / single terminal mapper / turn FSM).
+      - tests/services/test_terminal_error_semantics.py
+      # WP3 anti-peek 短路 = canonical 裁决执行器 (turn.md carve-out: 窄兜底表/canonical
+      # detour 放行+redaction 成对/facet 灰度/SEV counterexample 全套)。
+      - tests/capabilities/test_tutorbot_unanswered_reference_short_circuit.py
       - tests/services/learner_state/test_attempt_refs.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_mistake_book.py
@@ -361,10 +366,14 @@ domains:
       - tests/services/test_active_object_family_first.py
       - tests/agents/question/test_coordinator_followup_anchor.py
       - tests/agents/question/test_coordinator_subject_scope_gate.py
-      - tests/agents/question/test_lightweight_anchor_block_topic_authority.py
       - tests/agents/question/test_generator_subject_lock.py
       - tests/agents/question/test_lightweight_topic_normalizer.py
+      # WP4（2026-07-12）: test_lightweight_anchor_block_topic_authority.py 已删除——
+      # 它测的 _should_block_unresolved_lightweight_anchor 罐头链已废除（收权到
+      # deep_question._resolve_generation_topic，冷启动澄清由 capability 层负责）。
+      # 新契约覆盖见 tests/core/test_generation_topic_and_subject_authority.py。
       - tests/agents/question/test_practice_topic_context_inheritance.py
+      - tests/core/test_generation_topic_and_subject_authority.py
       - tests/api/test_mobile_eval_bypass.py
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_unified_ws_public_redaction.py
@@ -435,6 +444,18 @@ domains:
         user-facing consumers must read normalized document_id, source,
         authority, and subject from evidence_bundle/result sources instead of
         reinterpreting provider-specific aliases.
+      - Exact-question authority is an identity judgement, not a relevance
+        judgement (contracts/rag.md 32b). The question_exact_text /
+        question_exact_vector / option-overlap probes only supply candidates;
+        a candidate may mint a question_exact_* chapter only after the single
+        falsifiable adjudicator exact_question_identity_corresponds confirms
+        identity (normalized containment or >=0.90 ordered char coverage,
+        plus the orthogonal calculation-identity invariant). Rejected
+        candidates degrade to ordinary questions_bank retrieval rows carrying
+        their real scores — no fabricated confidence floors — and the turn
+        falls open to the main LLM. Domain tests live in
+        tests/services/rag/test_supabase_strategy.py (identity adjudicator)
+        and tests/services/rag/test_rag_pipelines.py (demotion/no-floor state).
     contract_files:
       - CONTRACT.md
       - contracts/rag.md
@@ -707,6 +728,9 @@ domains:
       # B2/B4 followup 判定器提速差分 harness: 输出 schema 瘦身/输入载荷裁剪/快档 flag
       # 守门(protected question_followup.py, flag 关 = bit-for-bit 不变)。
       - tests/services/test_question_followup_prompt_slim_differential.py
+      # WP4 科目薄切: loop.py 注入 get_subject_declaration_instruction()（protected loop.py）;
+      # test_subject_declaration_instruction_exists_and_wired_into_loop 守门该 wiring。
+      - tests/core/test_generation_topic_and_subject_authority.py
     schema_files: []
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn

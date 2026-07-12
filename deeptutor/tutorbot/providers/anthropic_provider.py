@@ -64,7 +64,13 @@ class AnthropicProvider(LLMProvider):
         )
         payload_text = payload if isinstance(payload, str) else str(payload) if payload is not None else ""
         msg = f"Error: {payload_text.strip()[:500]}" if payload_text.strip() else f"Error calling LLM: {e}"
-        return LLMResponse(content=msg, finish_reason="error")
+        # Typed failure at birth (律4): error bodies never enter the content channel.
+        return LLMResponse(
+            content=None,
+            finish_reason="error",
+            failure_kind="provider_error",
+            error_detail=msg,
+        )
 
     @staticmethod
     def _strip_prefix(model: str) -> str:
@@ -598,8 +604,12 @@ class AnthropicProvider(LLMProvider):
                     completion_start_time=first_chunk_at,
                 )
                 return LLMResponse(
-                    content=f"Error calling LLM: {stall_phase} stalled for more than {stalled_seconds} seconds",
+                    content=None,
                     finish_reason="error",
+                    failure_kind="provider_timeout",
+                    error_detail=(
+                        f"Error calling LLM: {stall_phase} stalled for more than {stalled_seconds} seconds"
+                    ),
                     telemetry=_stream_telemetry(),
                 )
             except Exception as e:

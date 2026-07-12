@@ -312,12 +312,22 @@ async def test_agent_loop_provider_error_uses_public_fallback(tmp_path) -> None:
         workspace=tmp_path,
     )
 
+    caller_metadata: dict = {}
     content = await loop.process_direct(
         "建筑构造是什么？",
         session_key="test:provider-error",
+        metadata=caller_metadata,
     )
 
-    assert content == "模型调用失败，请稍后重试。"
+    # 律4 typed failure: the loop no longer improvises a per-branch surrogate
+    # answer. It returns no learner-visible content and exports the typed
+    # failure; the single terminal mapper in turn_runtime owns the learner copy
+    # ("服务暂时繁忙，请稍后再试。") and the turn is committed as failed.
+    assert content == ""
+    failure = caller_metadata.get("turn_failure")
+    assert isinstance(failure, dict)
+    assert failure["kind"] == "provider_error"
+    assert "connection reset" in failure.get("detail", "")
     assert "connection reset" not in content
 
 

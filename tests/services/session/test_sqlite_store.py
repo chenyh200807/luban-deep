@@ -1197,6 +1197,63 @@ async def test_recover_all_orphaned_turns_sweeps_running_across_sessions(
 
 
 @pytest.mark.asyncio
+async def test_update_turn_status_terminal_state_absorbs(tmp_path: Path) -> None:
+    """Turn FSM (律4): terminal states absorb — running is the ONLY writable
+    pre-state. A cross-worker cancel must never be resurrected to ``completed``
+    by a late terminal commit (production example C: cancel flipped the DB row,
+    the execution worker unconditionally wrote completed 39s later)."""
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(title="FSM", session_id="session-fsm")
+    turn = await store.create_turn(session["id"], capability="chat")
+
+    # running -> cancelled: allowed, reports True.
+    assert await store.update_turn_status(turn["id"], "cancelled", "superseded") is True
+
+    # cancelled -> completed: rejected, reports False, row unchanged.
+    assert await store.update_turn_status(turn["id"], "completed") is False
+    detail = await store.get_turn(turn["id"])
+    assert detail is not None
+    assert detail["status"] == "cancelled"
+    assert detail["error"] == "superseded"
+
+    # cancelled -> failed is equally absorbed (no terminal-to-terminal hops).
+    assert await store.update_turn_status(turn["id"], "failed", "late failure") is False
+    detail = await store.get_turn(turn["id"])
+    assert detail["status"] == "cancelled"
+
+
+@pytest.mark.asyncio
+async def test_update_turn_status_running_to_terminal_still_works(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(title="FSM2", session_id="session-fsm2")
+    turn = await store.create_turn(session["id"], capability="chat")
+
+    assert await store.update_turn_status(turn["id"], "completed") is True
+    detail = await store.get_turn(turn["id"])
+    assert detail is not None
+    assert detail["status"] == "completed"
+    assert detail["finished_at"] is not None
+
+
+@pytest.mark.asyncio
+async def test_list_all_running_turns_returns_orphan_candidates(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session_a = await store.create_session(title="A", session_id="session-run-a")
+    session_b = await store.create_session(title="B", session_id="session-run-b")
+    done = await store.create_turn(session_a["id"], capability="chat")
+    await store.update_turn_status(done["id"], "completed")
+    running_a = await store.create_turn(session_a["id"], capability="chat")
+    running_b = await store.create_turn(session_b["id"], capability="chat")
+
+    running = await store.list_all_running_turns()
+    listed = {(item["id"], item["session_id"]) for item in running}
+    assert listed == {
+        (running_a["id"], session_a["id"]),
+        (running_b["id"], session_b["id"]),
+    }
+
+
+@pytest.mark.asyncio
 async def test_recover_all_orphaned_turns_is_idempotent(tmp_path: Path) -> None:
     """A second sweep finds no ``running`` rows and reports 0."""
     store = SQLiteSessionStore(tmp_path / "chat_history.db")

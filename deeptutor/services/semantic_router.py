@@ -380,7 +380,7 @@ def normalize_turn_semantic_decision(
     if target_object_ref is None:
         target_object_ref = {"object_type": "", "object_id": ""}
 
-    return {
+    normalized = {
         "relation_to_active_object": relation,
         "next_action": next_action,
         "allowed_patch": allowed_patch,
@@ -388,6 +388,14 @@ def normalize_turn_semantic_decision(
         "reason": str(raw.get("reason") or "").strip(),
         "target_object_ref": target_object_ref,
     }
+    # WP3 Stage B（2026-07-12）anti-peek canonical facet：可选布尔键，只在
+    # 上游（followup 判定器）真给出布尔值时保留——normalize 往返（orchestrator
+    # passthrough 那一跳）不得静默丢 facet（observe-only 旗标每跳显式导出）。
+    # 缺失/垃圾 = 不带 key，不参与任何裁决。
+    facet = raw.get("seeks_active_answer_help")
+    if isinstance(facet, bool):
+        normalized["seeks_active_answer_help"] = facet
+    return normalized
 
 
 def build_turn_semantic_decision(
@@ -773,6 +781,17 @@ async def resolve_question_semantic_routing(
             user_message=user_message,
             active_object=active_object,
         )
+    # WP3 Stage B（2026-07-12）：判定器 facet seeks_active_answer_help 附着到
+    # 由 llm_action 派生的 canonical 裁决上（orchestrator 重解析这一跳；与
+    # turn_runtime._build_turn_semantic_decision 的透传同源同值，不是第二权威）。
+    # 缺失 = 不带 key；确定性 fallback/detour 裁决无 llm_action 时不附着。
+    if (
+        isinstance(llm_decision, dict)
+        and isinstance(llm_action, dict)
+        and isinstance(llm_action.get("seeks_active_answer_help"), bool)
+        and "seeks_active_answer_help" not in llm_decision
+    ):
+        llm_decision["seeks_active_answer_help"] = llm_action["seeks_active_answer_help"]
     clarify_decision = _decision_from_ambiguity_gate(
         user_message=user_message,
         active_object=active_object,

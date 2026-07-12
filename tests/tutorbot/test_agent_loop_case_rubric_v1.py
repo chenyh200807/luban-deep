@@ -199,7 +199,11 @@ async def test_agent_loop_honors_mode_execution_policy_max_tool_rounds(tmp_path)
     assert tools_used == ["rag", "rag"]
     assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
     assert metadata["effective_max_tool_rounds"] == 2
-    assert "maximum number of tool call iterations (2)" in (final_content or "")
+    # 律4: an exhausted tool budget is a TYPED failure, not an improvised
+    # English "final answer" (the old surrogate reached real learners twice).
+    assert final_content is None
+    assert metadata["turn_failure"]["kind"] == "tool_budget_exhausted"
+    assert metadata["turn_failure"]["budget"] == 2
 
 
 @pytest.mark.asyncio

@@ -1428,7 +1428,7 @@ class SQLiteSessionStore:
                 """
                 UPDATE turns
                 SET status = ?, error = ?, updated_at = ?, finished_at = ?
-                WHERE id = ?
+                WHERE id = ? AND status = 'running'
                 """,
                 (status, error or "", now, finished_at, turn_id),
             )
@@ -1436,7 +1436,26 @@ class SQLiteSessionStore:
         return cur.rowcount > 0
 
     async def update_turn_status(self, turn_id: str, status: str, error: str = "") -> bool:
+        """CAS transition of the turn FSM: ``running`` is the ONLY writable pre-state.
+
+        Terminal states (completed / failed / cancelled) absorb — a late terminal
+        commit can never resurrect a cancelled/superseded turn (律4, production
+        example C: a cross-worker cancel flipped the row and the execution worker
+        unconditionally overwrote it with ``completed`` 39s later). Returns True
+        only when the row actually transitioned.
+        """
         return await self._run(self._update_turn_status_sync, turn_id, status, error)
+
+    def _list_all_running_turns_sync(self) -> list[dict[str, Any]]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT id, session_id FROM turns WHERE status = 'running' ORDER BY updated_at ASC",
+            ).fetchall()
+        return [{"id": row["id"], "session_id": row["session_id"]} for row in rows]
+
+    async def list_all_running_turns(self) -> list[dict[str, Any]]:
+        """All ``running`` turns across sessions (startup orphan-recovery census)."""
+        return await self._run_read(self._list_all_running_turns_sync)
 
     def _recover_all_orphaned_turns_sync(self, reason: str) -> int:
         now = time.time()

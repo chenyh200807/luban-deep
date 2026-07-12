@@ -75,6 +75,7 @@ from deeptutor.tutorbot.teaching_modes import (
     get_construction_exam_boundary_fact_instruction,
     get_lecture_skill_instruction,
     get_practice_generation_instruction,
+    get_subject_declaration_instruction,
     get_teaching_mode_instruction,
     looks_like_practice_generation_request,
     normalize_anchor_terms_in_response,
@@ -518,6 +519,37 @@ class AgentLoop:
         ):
             if metadata_key in runtime_metadata:
                 target_metadata[metadata_key] = runtime_metadata[metadata_key]
+
+    @staticmethod
+    def _record_turn_failure(
+        runtime_metadata: dict[str, Any],
+        external_runtime_metadata: dict[str, Any] | None,
+        *,
+        kind: str,
+        detail: str = "",
+        **extra: Any,
+    ) -> None:
+        """Typed failure (律4): record WHAT failed instead of improvising a
+        learner-visible surrogate answer. The learner-visible text for this
+        failure is decided by the single terminal mapper in turn_runtime
+        (_safe_terminal_assistant_content); the loop only preserves the type."""
+        failure: dict[str, Any] = {"kind": str(kind or "").strip() or "unknown_error"}
+        detail_text = str(detail or "").strip()
+        if detail_text:
+            failure["detail"] = detail_text[:2000]
+        failure.update(extra)
+        runtime_metadata["turn_failure"] = failure
+        if external_runtime_metadata is not None:
+            external_runtime_metadata["turn_failure"] = dict(failure)
+
+    @staticmethod
+    def _clear_turn_failure(
+        runtime_metadata: dict[str, Any],
+        external_runtime_metadata: dict[str, Any] | None,
+    ) -> None:
+        runtime_metadata.pop("turn_failure", None)
+        if external_runtime_metadata is not None:
+            external_runtime_metadata.pop("turn_failure", None)
 
     @staticmethod
     def _strip_think(text: str | None) -> str | None:
@@ -2050,6 +2082,9 @@ class AgentLoop:
         """Run the agent iteration loop."""
         external_runtime_metadata = runtime_metadata if isinstance(runtime_metadata, dict) else None
         runtime_metadata = dict(runtime_metadata or {})
+        # turn_failure is a PER-TURN typed-failure marker; a stale copy carried in
+        # via session/inbound metadata must never mark a fresh turn as failed.
+        self._clear_turn_failure(runtime_metadata, external_runtime_metadata)
         messages = initial_messages
         iteration = 0
         final_content = None
@@ -2128,8 +2163,19 @@ class AgentLoop:
                             if isinstance(exact_question, dict)
                             else ""
                         )
-                        final_content = fallback or self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
-                        messages = self.context.add_assistant_message(messages, final_content)
+                        if fallback:
+                            final_content = fallback
+                            messages = self.context.add_assistant_message(messages, final_content)
+                            break
+                        # Typed failure: no per-branch surrogate copy — the
+                        # terminal mapper owns the learner-visible text.
+                        self._record_turn_failure(
+                            runtime_metadata,
+                            external_runtime_metadata,
+                            kind="model_empty_answer",
+                            detail="exact-authority tool retry blocked without a fallback answer",
+                        )
+                        final_content = None
                         break
                     blocked_exact_tool_retry = True
                     messages = list(messages)
@@ -2251,8 +2297,16 @@ class AgentLoop:
                 # Don't persist error responses to session history — they can
                 # poison the context and cause permanent 400 loops (#1303).
                 if response.finish_reason == "error":
-                    logger.error("LLM returned error: {}", (clean or "")[:200])
-                    final_content = self._USER_VISIBLE_MODEL_ERROR_MESSAGE
+                    logger.error(
+                        "LLM returned error: {}", (response.error_detail or clean or "")[:200]
+                    )
+                    self._record_turn_failure(
+                        runtime_metadata,
+                        external_runtime_metadata,
+                        kind=response.failure_kind or "provider_error",
+                        detail=response.error_detail or clean or "",
+                    )
+                    final_content = None
                     break
                 if not self._is_user_visible_final_answer(clean):
                     retry_messages = list(messages)
@@ -2282,8 +2336,17 @@ class AgentLoop:
                     )
                     clean = self._strip_think(response.content) or "".join(retry_parts).strip() or None
                     if response.finish_reason == "error":
-                        logger.error("LLM retry returned error: {}", (clean or "")[:200])
-                        final_content = self._USER_VISIBLE_MODEL_ERROR_MESSAGE
+                        logger.error(
+                            "LLM retry returned error: {}",
+                            (response.error_detail or clean or "")[:200],
+                        )
+                        self._record_turn_failure(
+                            runtime_metadata,
+                            external_runtime_metadata,
+                            kind=response.failure_kind or "provider_error",
+                            detail=response.error_detail or clean or "",
+                        )
+                        final_content = None
                         break
                     if not self._is_user_visible_final_answer(clean):
                         logger.error("LLM returned no user-visible final answer after retry")
@@ -2308,10 +2371,20 @@ class AgentLoop:
 
         if final_content is None and iteration >= effective_max_iterations:
             logger.warning("Max iterations ({}) reached", effective_max_iterations)
-            final_content = (
-                f"I reached the maximum number of tool call iterations ({effective_max_iterations}) "
-                "without completing the task. You can try breaking the task into smaller steps."
-            )
+            # 律4: an exhausted tool budget is a FAILURE, not a legitimate final
+            # answer. No English surrogate; the terminal mapper owns the
+            # learner-visible text and the turn is committed as failed.
+            if not isinstance(runtime_metadata.get("turn_failure"), dict):
+                self._record_turn_failure(
+                    runtime_metadata,
+                    external_runtime_metadata,
+                    kind="tool_budget_exhausted",
+                    detail=(
+                        f"agent loop reached max tool rounds ({effective_max_iterations}) "
+                        "without a final answer"
+                    ),
+                    budget=effective_max_iterations,
+                )
 
         if exact_authority_override_allowed and exact_authority:
             exact_response = await self._build_exact_authority_response(
@@ -2339,6 +2412,11 @@ class AgentLoop:
         if no_score_fallback:
             final_content = no_score_fallback
             self._replace_last_assistant_message(messages, no_score_fallback)
+
+        # A fallback path (exact authority / case fallback) recovered a real
+        # answer after a recorded failure: the turn is NOT failed anymore.
+        if final_content is not None and str(final_content).strip():
+            self._clear_turn_failure(runtime_metadata, external_runtime_metadata)
 
         self._export_llm_stream_telemetry(runtime_metadata, external_runtime_metadata)
         return final_content, tools_used, messages
@@ -3996,6 +4074,9 @@ class AgentLoop:
                 if track_label
                 else ""
             ),
+            # WP4 科目薄切（5848e6c3 例B）：用户声明科目优先于静态默认科目。
+            # 缓解层非治本（"用户声明科目"仍无结构化 writer），复发风险记 Deviations。
+            get_subject_declaration_instruction(),
             get_anchor_preservation_instruction(current_message),
             build_continuity_anchor_instruction(
                 current_message,
@@ -4228,6 +4309,37 @@ class AgentLoop:
         )
 
         if final_content is None:
+            turn_failure = runtime_metadata.get("turn_failure")
+            if isinstance(turn_failure, dict) and str(turn_failure.get("kind") or "").strip():
+                # Typed failure (律4): do NOT fabricate a learner-visible surrogate
+                # here — export the failure type so the single terminal mapper in
+                # turn_runtime decides the learner-visible text and the turn is
+                # committed as failed instead of a completed fake-green.
+                self._save_turn(
+                    session,
+                    all_msgs,
+                    1 + len(history),
+                    persist_user_content=persist_user_content,
+                )
+                session.metadata["last_exact_fast_path"] = False
+                self.sessions.save(session)
+                logger.warning(
+                    "Turn failed (typed) for {}:{}: {}",
+                    msg.channel,
+                    msg.sender_id,
+                    str(turn_failure.get("kind") or ""),
+                )
+                response_metadata = dict(msg.metadata or {})
+                self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
+                self._export_case_grading_metadata(runtime_metadata, response_metadata)
+                self._export_content_truth_metadata(runtime_metadata, response_metadata)
+                response_metadata["turn_failure"] = dict(turn_failure)
+                return OutboundMessage(
+                    channel=msg.channel,
+                    chat_id=msg.chat_id,
+                    content="",
+                    metadata=response_metadata,
+                )
             final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
         final_content = await self._finalize_visible_answer(
             final_content,
@@ -4329,6 +4441,10 @@ class AgentLoop:
         """Process a message directly (for CLI or cron usage)."""
         await self._connect_mcp()
         msg_metadata = metadata if isinstance(metadata, dict) else {}
+        # turn_failure is strictly PER-TURN output: a stale marker carried in via
+        # persisted session metadata must never survive into this turn's inbound
+        # metadata (it would be re-exported and mark a healthy turn as failed).
+        msg_metadata.pop("turn_failure", None)
         msg = InboundMessage(
             channel=channel,
             sender_id="user",

@@ -342,6 +342,63 @@ async def _release_startup_orphaned_free_trial_reservations(
     )
 
 
+async def _recover_orphaned_turns_with_notices(session_store) -> tuple[int, int]:
+    """Fail orphaned ``running`` turns and leave ONE learner notice per turn.
+
+    Multi-worker safe (律4 turn FSM): with ``--workers N`` every worker runs
+    the lifespan hook, and near-simultaneous startups census the SAME running
+    turns — a shared census + bulk sweep would double-notify. Notice ownership
+    is therefore decided PER TURN by the ``update_turn_status`` CAS
+    (running→failed): only the worker whose CAS returns True leaves the
+    mapper-owned Chinese notice; False means a sibling worker already owns
+    that turn and it is skipped silently. The bulk
+    ``recover_all_orphaned_turns`` sweep stays as an idempotent safety net for
+    running turns that appear between census and sweep. Returns
+    ``(recovered, notices)``.
+    """
+    from deeptutor.services.session.turn_runtime import map_turn_failure_to_public_text
+
+    orphaned_turns = await session_store.list_all_running_turns()
+    orphan_notice = map_turn_failure_to_public_text("orphaned_on_restart")
+    recovered = 0
+    notices = 0
+    for orphan in orphaned_turns:
+        turn_id = str(orphan.get("id") or "").strip()
+        session_id = str(orphan.get("session_id") or "").strip()
+        if not turn_id or not session_id:
+            continue
+        try:
+            cas_won = await session_store.update_turn_status(
+                turn_id, "failed", "orphaned_on_restart"
+            )
+        except Exception as recover_error:  # noqa: BLE001 — best-effort per turn
+            logger.warning(f"Failed to recover orphaned turn {turn_id}: {recover_error}")
+            continue
+        if not cas_won:
+            # A sibling worker won the CAS and owns this turn's notice.
+            continue
+        recovered += 1
+        try:
+            await session_store.add_message(
+                session_id=session_id,
+                role="assistant",
+                content=orphan_notice,
+                metadata={
+                    "turn_id": turn_id,
+                    "engine_turn_id": turn_id,
+                    "terminal_status": "failed",
+                    "error_code": "orphaned_on_restart",
+                },
+            )
+            notices += 1
+        except Exception as notice_error:  # noqa: BLE001 — best-effort per session
+            logger.warning(
+                f"Failed to leave orphan-recovery notice for turn {turn_id}: {notice_error}"
+            )
+    recovered += await session_store.recover_all_orphaned_turns("orphaned_on_restart")
+    return recovered, notices
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -385,18 +442,24 @@ async def lifespan(app: FastAPI):
     # Self-heal orphaned turns left ``running`` by a previous crash (OOM /
     # SIGKILL). On restart the process has no in-memory turn tasks, so any
     # ``running`` row in SQLite is provably orphaned — its _run_turn finally
-    # block never ran. Sweep them to ``failed`` once, before TutorBots start,
-    # so global active/billing views are not polluted. Idempotent.
+    # block never ran. Fail them before TutorBots start, so global
+    # active/billing views are not polluted, and leave one mapper-owned
+    # Chinese notice per orphaned turn (律4: no silent no-answer — observed
+    # live: users re-asked in a NEW session). Per-turn CAS decides notice
+    # ownership so multiple uvicorn workers never double-notify.
     orphan_recovery_cutoff = time.time()
     orphan_turn_recovery_succeeded = False
     try:
         from deeptutor.services.session import get_sqlite_session_store
 
-        recovered = await get_sqlite_session_store().recover_all_orphaned_turns(
-            "orphaned_on_restart"
+        recovered, orphan_notices = await _recover_orphaned_turns_with_notices(
+            get_sqlite_session_store()
         )
         orphan_turn_recovery_succeeded = True
-        logger.info(f"Recovered {recovered} orphaned running turn(s) on startup")
+        logger.info(
+            f"Recovered {recovered} orphaned running turn(s) on startup "
+            f"({orphan_notices} learner notice(s) left)"
+        )
     except Exception as e:
         logger.warning(f"Failed to recover orphaned running turns at startup: {e}")
     if orphan_turn_recovery_succeeded:
