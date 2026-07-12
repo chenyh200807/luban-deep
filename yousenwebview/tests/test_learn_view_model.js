@@ -33,6 +33,7 @@ ok("null/garbage inputs degrade without throw", () => {
 // ── 齐全:下一站/路线/海报/复习/指标全部映射 ──
 const FULL = {
   homeDashboard: {
+    learner_settings: { exam_date: "2026-09-19", daily_target: 10 },
     next_step: {
       mode: "learn_next",
       source_authority: "pack_lifecycle_projection",
@@ -57,7 +58,12 @@ const FULL = {
       },
     },
     revalidation_queue: { items: [{ probe_id: "p1" }, { probe_id: "p2" }] },
-    overview: { recent_three_done: 8, weak_point_count: 3 },
+    pack_review: {
+      authority: "revalidation_queue",
+      enabled: true,
+      due: [{ probe_id: "p1" }, { probe_id: "p2" }],
+    },
+    overview: { recent_three_done: 8, weak_point_count: 3, today_done: 4, daily_target: 10 },
     mastery: { overall_mastery: { score: 72 } },
   },
 };
@@ -93,7 +99,9 @@ ok("due count + stats mapped", () => {
   assert.strictEqual(vm.dueCount, 2);
   assert.strictEqual(vm.stats.recent_practice, 8);
   assert.strictEqual(vm.stats.pending_errors, 3);
-  assert.strictEqual(vm.stats.mastery_trend, 72);
+  assert.strictEqual(vm.stats.mastery_score, 72);
+  assert.strictEqual(vm.examDate, "2026-09-19");
+  assert.deepStrictEqual(vm.todayProgress, { done: 4, target: 10, percent: 40 });
   assert.strictEqual(vm.hasSupply, true);
 });
 
@@ -283,7 +291,29 @@ ok("green lessons appear as posters even without lifecycle", () => {
   assert.strictEqual(vm.posters[0].state, "red");
   assert.strictEqual(vm.posters[0].recommended, true);
   assert.ok(vm.posters.slice(1).every((p) => p.state === "paper"));
+  assert.deepStrictEqual(vm.routePreview, vm.posters.slice(0, 3));
+  assert.strictEqual(vm.nextStation.evidenceBacked, false);
   assert.strictEqual(vm.hasSupply, true);
+});
+
+ok("route preview never overwrites canonical lifecycle state for visual variety", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "learn_next", source_ref: "N01", reason: "起步" } },
+    report: {
+      pack_lifecycle: {
+        packs: {
+          N01: { lifecycle_state: "unlearned" },
+          A01: { lifecycle_state: "practiced" },
+          S05: { lifecycle_state: "unlearned" },
+        },
+      },
+    },
+    lessons: FULL.lessons,
+  });
+  const previewById = Object.fromEntries(vm.routePreview.map((item) => [item.pack_id, item]));
+  assert.strictEqual(previewById.N01.state, "red");
+  assert.strictEqual(previewById.A01.state, "ink");
+  assert.strictEqual(previewById.S05.state, "paper");
 });
 
 // ── 海报竖排书法名:>6 字截断为单列显示名(live 绿灯站 26/28 标题超长),

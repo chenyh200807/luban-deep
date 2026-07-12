@@ -3,7 +3,7 @@
 // 1. error_code → 人话标签只做呈现层镜像(权威=deeptutor/contracts/error_codes.py);
 // 2. R8 解药 fail-closed: 无供给降级为「解药整理中」+ 解析深链, 数据位形状钉死;
 // 3. 换皮复测 CTA fail-closed: pack 归属不明/无 canonical due probe → 不承诺换皮;
-// 4. 销账 = 呈现层(本地复测通过 + 服务端 mastered 旗标), 零掌握态写入(源码钉死);
+// 4. 已标记只认服务端 mastered 旗标;复测结果不得在本地摊销单题(源码钉死);
 // 5. 文案铁律: 禁审视揭短词; WXML 标签平衡; 页面/路由注册。
 var assert = require("assert");
 var fs = require("fs");
@@ -32,7 +32,7 @@ assert.strictEqual(vm.deriveRetestPackId({ tags: ["case", "F16"] }, lessons), "F
 assert.strictEqual(vm.deriveRetestPackId({ concept_label: "索赔程序" }, lessons), "", "对不上鲁班站→空串, 禁猜归属");
 assert.strictEqual(vm.deriveRetestPackId({ concept_label: "屋面防水" }, {}), "", "lessons 缺失→fail-closed");
 
-// ── 3. 列表投影: 待还/已销分账 + 本地销账合并 ─────────────────
+// ── 3. 列表投影: 待还/已标记分账, 忽略本地影子销账 ────────────
 var NOW = Date.parse("2026-07-05T10:00:00+08:00");
 var built = vm.buildErrorbankViewModel({
   mistakeBook: {
@@ -85,12 +85,12 @@ var built = vm.buildErrorbankViewModel({
   settledLocal: { ev5: { at: Date.parse("2026-07-03T09:00:00+08:00"), packId: "F16" } },
   nowMs: NOW,
 });
-assert.strictEqual(built.pendingCount, 3);
-assert.strictEqual(built.settledCount, 2);
+assert.strictEqual(built.pendingCount, 4, "旧版 settledLocal 输入不得再影响 canonical 列表");
+assert.strictEqual(built.settledCount, 1);
 assert.strictEqual(built.allClear, false);
 assert.strictEqual(built.isEmpty, false);
-assert.strictEqual(built.settledPercent, 40, "账本环=已销/总数");
-assert.ok(built.heroTitle.indexOf("待还 3 笔") >= 0 && built.heroTitle.indexOf("已销 2 笔") >= 0);
+assert.strictEqual(built.settledPercent, 20, "账本环只认服务端已标记/总数");
+assert.ok(built.heroTitle.indexOf("待处理 4 笔") >= 0 && built.heroTitle.indexOf("已标记 1 笔") >= 0);
 
 // 到期在前排序 + 到期 chip
 assert.strictEqual(built.pendingEntries[0].key, "ev1", "到期条目排最前");
@@ -104,12 +104,11 @@ assert.strictEqual(built.pendingEntries[0].repeatCount, 2);
 assert.ok(built.pendingEntries[0].repeatLine.indexOf("已错 2 次") >= 0);
 assert.strictEqual(built.pendingEntries[1].repeatLine, "", "单笔不渲染同点提示");
 
-// 本地复测销账 vs 服务端手动标记: 文案诚实区分
-var retestSettled = built.settledEntries.filter(function (e) { return e.key === "ev5"; })[0];
+// 复测结果不能在本机把整包结果摊成单题销账;只呈现服务端手动标记。
+var retestPending = built.pendingEntries.filter(function (e) { return e.key === "ev5"; })[0];
 var manualSettled = built.settledEntries.filter(function (e) { return e.key === "ev4"; })[0];
-assert.ok(retestSettled && retestSettled.settledLine.indexOf("换皮复测通过") >= 0);
-assert.strictEqual(retestSettled.settledVia, "retest");
-assert.ok(manualSettled && manualSettled.settledLine.indexOf("换皮复测通过") === -1, "手动标记不冒充复测通过");
+assert.ok(retestPending, "本地复测镜像不得改变错题服务端状态");
+assert.ok(manualSettled && manualSettled.settledLine.indexOf("服务端已标记") >= 0);
 assert.strictEqual(manualSettled.settledVia, "manual");
 
 // 空态(待还 0)与全空
@@ -185,12 +184,20 @@ var pageJs = fs.readFileSync(path.join(pageDir, "errorbank.js"), "utf8");
 var pageWxml = fs.readFileSync(path.join(pageDir, "errorbank.wxml"), "utf8");
 var pageWxss = fs.readFileSync(path.join(pageDir, "errorbank.wxss"), "utf8");
 var vmSource = fs.readFileSync(vmPath, "utf8");
-assert.strictEqual(pageJs.indexOf("markMistakeBookItemMastered"), -1, "错因银行销账禁写 mastered 旗标(销账=本地+既有信号)");
+assert.strictEqual(pageJs.indexOf("markMistakeBookItemMastered"), -1, "错因银行禁前端写 mastered 旗标");
 assert.strictEqual(pageJs.indexOf("saveMistakeBookItem"), -1, "错因银行禁前端造记账(记账真值=判分内核 writeback)");
 assert.strictEqual(pageJs.indexOf("postStationCompleted"), -1, "错因银行只呈现, 信号归 retest 链路");
 assert.ok(pageJs.indexOf("getLubanReviewDue") >= 0, "错因银行销账入口只消费 canonical review-due");
 assert.strictEqual(pageJs.indexOf("getLubanRetestItems"), -1, "错因银行禁用题池存在性推断到期");
 assert.ok(pageJs.indexOf("&mode=review&probe_id=") >= 0, "销账复测必须透传 review mode + probe");
+assert.strictEqual(pageJs.indexOf("luban_errorbank_settled_v1"), -1, "禁本地错题销账账本");
+assert.strictEqual(pageJs.indexOf("settledLocal"), -1, "禁向视图模型注入本地销账镜像");
+var retestPageJs = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/luban/retest/retest.js"),
+  "utf8",
+);
+assert.strictEqual(retestPageJs.indexOf("luban_retest_last:"), -1, "复测结果只认服务端 terminal receipt");
+assert.strictEqual(vmSource.indexOf("settledLocal"), -1, "视图模型禁读取本地销账镜像");
 // R8 解药接线: 详情页按 {pack_id, error_code} 取 signed 解药, 供给后点亮占位。
 assert.ok(pageJs.indexOf("getLubanAntidote") >= 0, "错因银行详情须接 R8 解药 GET(供给后点亮)");
 var apiSource = fs.readFileSync(

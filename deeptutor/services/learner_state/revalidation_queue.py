@@ -10,8 +10,8 @@ from __future__ import annotations
 # 复习到期日容量(owner 2026-07-11 拍板 5;此前 v3.2 §6.1 口径为 1)
 _DAILY_MAX_ACTIVE = 5
 
-import hashlib
 from datetime import datetime, timedelta, timezone
+import hashlib
 from typing import Any, Iterable
 
 from deeptutor.services.learner_state.mastery_estimator import DECAY_PROFILES
@@ -21,7 +21,7 @@ from deeptutor.services.learner_state.training_intent import (
 )
 
 _TZ = timezone(timedelta(hours=8))
-_DEFAULT_SCHEDULE = (3, 7)
+_DEFAULT_SCHEDULE = DECAY_PROFILES["code_application"]["revalidation_schedule"]
 
 # ── 复习引擎地平线参数（双轮设计 v3.2 §6.1，调度真值唯一归本模块）──
 # 间隔上限：早期 cap ≤14 天（FSRS 实战教训——过长间隔让用户觉得"App 把我忘了"）。
@@ -301,10 +301,14 @@ def _first_interval_days(row: dict[str, Any]) -> int:
     if row.get("state") == "weak":
         return 3
     ability = str(row.get("ability_dimension") or "").strip()
-    profile = DECAY_PROFILES.get(ability) or {}
+    profile = DECAY_PROFILES.get(ability) or DECAY_PROFILES.get("code_application") or {}
     schedule = profile.get("revalidation_schedule") or _DEFAULT_SCHEDULE
     try:
-        return int(list(schedule)[0])
+        index = 0
+        if row.get("state") == "stable":
+            index = max(0, int(row.get("successful_review_streak") or 1) - 1)
+        values = list(schedule)
+        return int(values[min(index, len(values) - 1)])
     except (TypeError, ValueError, IndexError):
         return 3
 
@@ -360,14 +364,16 @@ def derive_review_due_at(
 
 
 def _probe_id(*, user_id: str, row: dict[str, Any]) -> str:
-    raw = "|".join(
-        [
-            str(user_id or "").strip(),
-            str(row.get("node_id") or row.get("knowledge_node_id") or "").strip(),
-            str(row.get("ability_dimension") or "code_application").strip(),
-            str(row.get("error_code") or "").strip(),
-        ]
-    )
+    parts = [
+        str(user_id or "").strip(),
+        str(row.get("node_id") or row.get("knowledge_node_id") or "").strip(),
+        str(row.get("ability_dimension") or "code_application").strip(),
+        str(row.get("error_code") or "").strip(),
+    ]
+    cycle_anchor = str(row.get("cycle_anchor") or "").strip()
+    if cycle_anchor:
+        parts.append(cycle_anchor)
+    raw = "|".join(parts)
     human = raw.replace("|", "_")
     if len(human) <= 80 and all(part for part in raw.split("|")):
         return "rvp_" + human

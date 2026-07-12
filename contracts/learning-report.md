@@ -79,6 +79,16 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
 | `mastery.dimensions` | `list[dict]` | 掌握度维度；包含 score/status/confidence，但不得伪装成稳定真相 | Stage 1 | active |
 | `mastery.knowledge_summary` | `dict` | taxonomy/textbook-directory 知识地图摘要；只表达教材目录覆盖和证据定位，不等同 mastery truth | Stage 1 | active |
 | `i18n_keys` | `dict` | v2 UI copy key，当前 locale=`zh-CN` | Stage 1 | active |
+| `pack_lifecycle` | `dict` | 全历史 terminal/evidence 派生的 pack 状态；最近窗口不得截断该状态 | 五模块闭环 | active |
+| `pack_review` | `dict` | `pack_lifecycle_projection -> revalidation_queue` 的 pack 级到期切片；学习、复习、学情共用 | 五模块闭环 | active |
+| `overview.due_today_count` | `int \| null` | 只镜像 `pack_review.due` 数量；排程不可用时必须为 `null`，不得回退 member-console 旧计数 | 五模块闭环 | active |
+| `overview.due_today_state` | `known \| disabled \| unavailable` | 区分真 0、旗标关闭与数据源失败；客户端不得把 unavailable 渲染成全清/稳定 | 五模块闭环 | active |
+
+`freshness.event_count/window_truncated` 只描述最近趋势窗口；不得被解释为 lifecycle
+历史完整性。生产 full-history evidence reader 必须分页直到短页。客户端学情缓存只能是
+按 canonical `user_id` 分区、带 envelope user 校验的可丢 UI cache；无当前 user、账号切换
+或 envelope 不匹配时禁止 hydrate，任何 token invalidation 必须清除当前用户快照；异步响应
+落地前还必须复核 request generation 与当前 canonical user，防止账号切换后的迟到响应瞬时串号。
 
 v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single authority：
 
@@ -90,6 +100,7 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
 | `training_intent_source` | `learning-report-read-model` |
 | `home_context_source` | `home_dashboard.today_focus/recommended_prompts` |
 | `knowledge_map_source` | `taxonomy_index/textbook_directory + learning-report-read-model evidence/mastery projection` |
+| `pack_review_source` | `pack_lifecycle_projection -> revalidation_queue` |
 
 **v1 Retirement 计划：**
 

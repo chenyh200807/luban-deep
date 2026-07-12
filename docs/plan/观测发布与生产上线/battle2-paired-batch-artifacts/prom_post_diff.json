@@ -1,0 +1,142 @@
+{
+  "deeptutor_summary_maintainer_total{decision=\"run_evidence\",outcome=\"changed\"}": {
+    "before": 0.0,
+    "after": 14.0,
+    "delta": 14.0
+  },
+  "deeptutor_summary_maintainer_total{decision=\"run_evidence\",outcome=\"no_change\"}": {
+    "before": 0.0,
+    "after": 11.0,
+    "delta": 11.0
+  },
+  "deeptutor_summary_maintainer_total{decision=\"run_fail_open\",outcome=\"changed\"}": {
+    "before": 0.0,
+    "after": 2.0,
+    "delta": 2.0
+  },
+  "deeptutor_summary_maintainer_total{decision=\"run_fail_open\",outcome=\"no_change\"}": {
+    "before": 0.0,
+    "after": 4.0,
+    "delta": 4.0
+  },
+  "deeptutor_summary_maintainer_total{decision=\"skip_throttled\",outcome=\"skipped\"}": {
+    "before": 0.0,
+    "after": 11.0,
+    "delta": 11.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"+Inf\"}": {
+    "before": 0.0,
+    "after": 41.0,
+    "delta": 41.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"1000\"}": {
+    "before": 0.0,
+    "after": 3.0,
+    "delta": 3.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"16000\"}": {
+    "before": 0.0,
+    "after": 39.0,
+    "delta": 39.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"2000\"}": {
+    "before": 0.0,
+    "after": 8.0,
+    "delta": 8.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"32000\"}": {
+    "before": 0.0,
+    "after": 41.0,
+    "delta": 41.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"4000\"}": {
+    "before": 0.0,
+    "after": 27.0,
+    "delta": 27.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"500\"}": {
+    "before": 0.0,
+    "after": 0.0,
+    "delta": 0.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"64000\"}": {
+    "before": 0.0,
+    "after": 41.0,
+    "delta": 41.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"8000\"}": {
+    "before": 0.0,
+    "after": 35.0,
+    "delta": 35.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"+Inf\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"1000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"16000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"2000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"32000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"4000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"500\"}": {
+    "before": 0.0,
+    "after": 0.0,
+    "delta": 0.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"64000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"8000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_count{content_source=\"content.delta\"}": {
+    "before": 0.0,
+    "after": 41.0,
+    "delta": 41.0
+  },
+  "deeptutor_turn_first_useful_content_ms_count{content_source=\"result.response\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_sum{content_source=\"content.delta\"}": {
+    "before": 0.0,
+    "after": 188664.39,
+    "delta": 188664.39
+  },
+  "deeptutor_turn_first_useful_content_ms_sum{content_source=\"result.response\"}": {
+    "before": 0.0,
+    "after": 624.27,
+    "delta": 624.27
+  },
+  "deeptutor_turn_response_mode_total{mode=\"fast\",model_tier=\"primary\"}": {
+    "before": 0.0,
+    "after": 30.0,
+    "delta": 30.0
+  }
+}

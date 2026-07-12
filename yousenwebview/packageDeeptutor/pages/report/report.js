@@ -8,10 +8,10 @@ const route = require("../../utils/route");
 const flags = require("../../utils/flags");
 const auth = require("../../utils/auth");
 const reportViewModel = require("../../utils/learning-report-view-model");
+const reportCache = require("../../utils/report-cache");
 const taxonomy = require("../../utils/taxonomy");
 
 const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
-const REPORT_SNAPSHOT_CACHE_KEY = "deeptutor.report.unifiedSnapshot.v1";
 const REPORT_SNAPSHOT_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const REPORT_MODULE_HINT_STORAGE_KEY = "deeptutor.report.moduleHint.v1";
 const ASSESSMENT_PENDING_TRAINING_ACTION_KEY =
@@ -920,7 +920,8 @@ function _buildProgressCards(input) {
   var todayDone = Number(data.todayDone) || 0;
   var dailyTarget = Number(data.dailyTarget) || 0;
   var streakDays = Number(data.streakDays) || 0;
-  var dueToday = Number(data.dueTodayCount) || 0;
+  var dueKnown = data.dueTodayKnown === true;
+  var dueToday = dueKnown ? Number(data.dueTodayCount) || 0 : 0;
   var hotspotCount = Array.isArray(data.hotspots) ? data.hotspots.length : 0;
   var progressPct =
     dailyTarget > 0
@@ -944,15 +945,19 @@ function _buildProgressCards(input) {
     },
     {
       label: "待复习",
-      value: String(dueToday),
-      detail: dueToday > 0 ? "建议今天优先清理" : "复习节奏稳定",
-      toneClass: dueToday > 0 ? "tone-warn" : "tone-good",
+      value: dueKnown ? String(dueToday) : "—",
+      detail: dueKnown
+        ? dueToday > 0
+          ? "建议今天优先清理"
+          : "当前没有到期项"
+        : "复习排程暂不可用",
+      toneClass: dueToday > 0 || !dueKnown ? "tone-warn" : "tone-accent",
     },
     {
       label: "热点关注",
       value: String(hotspotCount),
-      detail: hotspotCount > 0 ? "优先看高频失分点" : "当前无明显热点",
-      toneClass: hotspotCount > 0 ? "tone-warn" : "tone-good",
+      detail: hotspotCount > 0 ? "优先看高频失分点" : "当前证据未定位到热点",
+      toneClass: hotspotCount > 0 ? "tone-warn" : "tone-accent",
     },
   ];
 }
@@ -1221,34 +1226,6 @@ function _reportOptionalRead(promise, timeoutMs) {
   });
 }
 
-function _readCachedReportSnapshot() {
-  try {
-    if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function")
-      return null;
-    var cached = wx.getStorageSync(REPORT_SNAPSHOT_CACHE_KEY);
-    if (!cached || typeof cached !== "object") return null;
-    if (!cached.snapshot || typeof cached.snapshot !== "object") return null;
-    var cachedAt = Number(cached.cachedAt) || 0;
-    if (!cachedAt || Date.now() - cachedAt > REPORT_SNAPSHOT_CACHE_MAX_AGE_MS)
-      return null;
-    return cached.snapshot;
-  } catch (_) {
-    return null;
-  }
-}
-
-function _writeCachedReportSnapshot(snapshot) {
-  if (!snapshot || typeof snapshot !== "object") return;
-  try {
-    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function")
-      return;
-    wx.setStorageSync(REPORT_SNAPSHOT_CACHE_KEY, {
-      cachedAt: Date.now(),
-      snapshot: snapshot,
-    });
-  } catch (_) {}
-}
-
 Page({
   data: {
     statusBarHeight: 0,
@@ -1317,6 +1294,8 @@ Page({
     dailyTarget: 0,
     streakDays: 0,
     dueTodayCount: 0,
+    dueTodayKnown: false,
+    dueTodayState: "unavailable",
     weakNodeCount: 0,
     focusHint: "",
     homeStudyPlan: null,
@@ -1569,16 +1548,24 @@ Page({
   },
 
   async _loadReportPage() {
-    var cachedSnapshot = _readCachedReportSnapshot();
-    if (cachedSnapshot) {
+    var userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+    var generation = Number(this._reportLoadGeneration || 0) + 1;
+    this._reportLoadGeneration = generation;
+    var isCurrentRequest = function (page) {
+      var currentUserId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+      return !!userId && page._reportLoadGeneration === generation && currentUserId === userId;
+    };
+    var cachedSnapshot = reportCache.read(userId, REPORT_SNAPSHOT_CACHE_MAX_AGE_MS);
+    if (cachedSnapshot && isCurrentRequest(this)) {
       this._reportSnapshot = cachedSnapshot;
       this._hydrateFromUnifiedReport(cachedSnapshot, { cached: true });
       this._syncExperienceSections();
     }
     var snapshot = await this._loadReportSnapshot();
+    if (!isCurrentRequest(this)) return;
     if (snapshot) {
       this._reportSnapshot = snapshot;
-      _writeCachedReportSnapshot(snapshot);
+      reportCache.write(userId, snapshot);
       this._hydrateFromUnifiedReport(snapshot);
       this._syncExperienceSections();
       return;
@@ -1633,7 +1620,9 @@ Page({
         todayDone: overview.today_done || 0,
         dailyTarget: overview.daily_target || 0,
         streakDays: overview.streak_days || 0,
-        dueTodayCount: overview.due_today_count || 0,
+        dueTodayCount: sharedPageData.dueTodayCount,
+        dueTodayKnown: sharedPageData.dueTodayKnown === true,
+        dueTodayState: sharedPageData.dueTodayState || "unavailable",
         weakNodeCount: overview.weak_node_count || 0,
         focusHint: overview.focus_hint || "",
         homeStudyPlan: home.study_plan || null,
@@ -1815,7 +1804,7 @@ Page({
     });
   },
 
-  // 全页唯一行动键:让本周计划吸收这份诊断 → 深链学习页(提分路线)
+  // 全页唯一行动键:查看诊断建议 → 深链学习页(不冒充计划写入)
   absorbDiagnosisIntoPlan() {
     helpers.vibrate("light");
     runtime.setWorkspaceBack(route.report(), "学情");
@@ -1849,7 +1838,9 @@ Page({
         todayDone: progress.today_done || 0,
         dailyTarget: progress.daily_target || 0,
         streakDays: progress.streak_days || 0,
-        dueTodayCount: (home.review || {}).due_today || 0,
+        dueTodayCount: null,
+        dueTodayKnown: false,
+        dueTodayState: "unavailable",
         weakNodeCount: weakNodes.length,
         focusHint: (home.today || {}).hint || "",
         homeStudyPlan: home.study_plan || null,
@@ -2140,6 +2131,8 @@ Page({
       hotspots: this.data.hotspots,
       dimList: this.data.dimList,
       dueTodayCount: this.data.dueTodayCount,
+      dueTodayKnown: this.data.dueTodayKnown,
+      dueTodayState: this.data.dueTodayState,
       reviewSummary: this.data.reviewSummary,
       todayDone: this.data.todayDone,
       dailyTarget: this.data.dailyTarget,

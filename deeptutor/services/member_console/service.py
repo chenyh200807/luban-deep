@@ -6705,6 +6705,10 @@ class MemberConsoleService:
             heartbeat_context=heartbeat_context,
         )
         dashboard = {
+            "learner_settings": {
+                "exam_date": str(member.get("exam_date") or ""),
+                "daily_target": max(1, int(member.get("daily_target") or 30)),
+            },
             "review": review,
             "mastery": {"weak_nodes": weak_nodes[:3]},
             "today": {"hint": today_focus["title"], "focus": today_focus},

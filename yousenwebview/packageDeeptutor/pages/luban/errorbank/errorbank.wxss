@@ -87,21 +87,7 @@
   color: var(--pk-t3);
 }
 
-/* ── 销账竹青章仪式条 ── */
-.eb-just-settled {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  border-radius: 30rpx;
-  border: 1.5rpx solid var(--pk-grn);
-  background: rgba(72, 128, 106, 0.1);
-  padding: 24rpx 28rpx;
-}
-.eb-just-settled-body { display: flex; flex-direction: column; gap: 4rpx; }
-.eb-just-settled-title { font-size: 28rpx; font-weight: 800; color: var(--pk-grn); }
-.eb-just-settled-desc { font-size: 24rpx; color: var(--pk-t2); line-height: 1.6; }
-
-/* ── 竹青「销」章 ── */
+/* ── 服务端「标」章 ── */
 .eb-seal {
   width: 74rpx;
   height: 74rpx;

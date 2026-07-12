@@ -1,0 +1,107 @@
+{
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"+Inf\"}": {
+    "before": 23.0,
+    "after": 64.0,
+    "delta": 41.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"1000\"}": {
+    "before": 0.0,
+    "after": 2.0,
+    "delta": 2.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"16000\"}": {
+    "before": 23.0,
+    "after": 61.0,
+    "delta": 38.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"2000\"}": {
+    "before": 0.0,
+    "after": 6.0,
+    "delta": 6.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"32000\"}": {
+    "before": 23.0,
+    "after": 64.0,
+    "delta": 41.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"4000\"}": {
+    "before": 9.0,
+    "after": 31.0,
+    "delta": 22.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"64000\"}": {
+    "before": 23.0,
+    "after": 64.0,
+    "delta": 41.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"8000\"}": {
+    "before": 20.0,
+    "after": 54.0,
+    "delta": 34.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"+Inf\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"1000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"16000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"2000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"32000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"4000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"500\"}": {
+    "before": 0.0,
+    "after": 0.0,
+    "delta": 0.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"64000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_bucket{content_source=\"result.response\",le=\"8000\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_count{content_source=\"content.delta\"}": {
+    "before": 23.0,
+    "after": 64.0,
+    "delta": 41.0
+  },
+  "deeptutor_turn_first_useful_content_ms_count{content_source=\"result.response\"}": {
+    "before": 0.0,
+    "after": 1.0,
+    "delta": 1.0
+  },
+  "deeptutor_turn_first_useful_content_ms_sum{content_source=\"content.delta\"}": {
+    "before": 124546.53,
+    "after": 341917.04,
+    "delta": 217370.51
+  },
+  "deeptutor_turn_first_useful_content_ms_sum{content_source=\"result.response\"}": {
+    "before": 0.0,
+    "after": 561.76,
+    "delta": 561.76
+  }
+}

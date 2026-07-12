@@ -27,6 +27,7 @@ function loadLearn(options) {
           getLubanLessons: function () { return Promise.resolve({}); },
           getHomeDashboard: function () { return Promise.resolve({}); },
           getLearningReport: function () { return Promise.resolve({}); },
+          getLubanSeethroughLibrary: function () { return Promise.resolve({}); },
           unwrapResponse: function (value) { return value; },
           completeFirstRun: function (payload) {
             calls.completeFirstRun.push(payload);
