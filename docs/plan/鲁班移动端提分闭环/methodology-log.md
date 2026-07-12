@@ -7,6 +7,16 @@
 
 ---
 
+## 2026-07-12 followup flag 上线即证伪核心假设(思考 token 砍不到)
+
+1. **现象**:开生产 flag `LUBAN_FOLLOWUP_FAST_TIER_ENABLED=true`(B2 输出瘦身)后,打 followup 密集验证批(15 次判定器调用),输出 token p50=197,**远高于**离线差分预期的 40-54;flag 明明生效(容器 env=true、代码走 slim=True、reason 字段确已收空)。
+2. **发现路径**:先按决策规则判"~100+=需排查",第一反应怀疑 flag 没生效→核容器 env 与运行代码路径,证实 slim 确实激活。矛盾即深挖:用 tiktoken 实测可见 JSON=32-51 token,而 Langfuse usage.output=134-245 token——**隐藏差额 93-194 token(70-80%)**。
+3. **分析**:deepseek-v4-flash 的输出 token 大头是**隐藏 reasoning/thinking token**,不是可见 rationale。B2 的 schema 瘦身(reason 收成空)只砍可见字段,结构上砍不到思考 token。**团队原假设"followup 延迟主体=冗长可见 rationale"被证伪**。B4 换快档又因 LLM_FAST_MODEL 未配 fail-safe 回主模型=no-op。两杠杆叠加=零收益。shape=**测量代理与真实成本源错位**(把"输出长"归因于可见文本,真因是模型思考模式)。
+4. **修法(当场)**:不等 14 天赎罪窗——当场已有零收益铁证,**立即回滚 flag 到 false**(回 bit-for-bit 默认),不留"看着开了其实没用"的认知债。真治本(独立下一刀,owner 待决)=(a)配 LLM_FAST_MODEL 指向非思考轻模型让 B4 生效,或(b)判定器显式关 deepseek 思考模式(enable_thinking=false)——判定器是 temperature=0 结构化分类,本就不需要思考,关掉直接砍 70-80% 输出。
+5. **验证+教训**:验证批 32/32 passed、零 None/零 parse error(行为无损,可安全回滚)。**可迁移**:①离线差分乐观≠生产真收益,行为 flag 必须上线后独立验证真指标再宣称;②对带思考模式的模型,"输出 token"不等于"可见输出",省 token 要先分清可见/思考两部分;③当场有可证伪的零收益证据时,直接回滚比留 flag 等赎罪窗更诚实。
+
+---
+
 ## 2026-07-12 部署「env 新代码旧」假绿(五层核验全绿仍是假的)
 
 1. **现象**:部署#1 脚本 exit 0,五层核验全绿(host .env SHA=容器 env SHA=目标/healthy/公网/observability),但容器内 `grep completion_start_time`=0——观测基座实际没上线。
