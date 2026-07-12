@@ -2,7 +2,7 @@
 // 错因银行(复习二期二级页)域测试:
 // 1. error_code → 人话标签只做呈现层镜像(权威=deeptutor/contracts/error_codes.py);
 // 2. R8 解药 fail-closed: 无供给降级为「解药整理中」+ 解析深链, 数据位形状钉死;
-// 3. 换皮复测 CTA fail-closed: pack 归属不明/变体池未探明 → 不承诺换皮;
+// 3. 换皮复测 CTA fail-closed: pack 归属不明/无 canonical due probe → 不承诺换皮;
 // 4. 销账 = 呈现层(本地复测通过 + 服务端 mastered 旗标), 零掌握态写入(源码钉死);
 // 5. 文案铁律: 禁审视揭短词; WXML 标签平衡; 页面/路由注册。
 var assert = require("assert");
@@ -17,8 +17,11 @@ assert.deepStrictEqual(vm.humanizeErrorLabel("E03"), { label: "关键词缺失",
 assert.deepStrictEqual(vm.humanizeErrorLabel("错因 E06"), { label: "程序顺序错误", code: "E06" });
 assert.deepStrictEqual(vm.humanizeErrorLabel("M04"), { label: "选项陷阱", code: "M04" });
 assert.deepStrictEqual(vm.humanizeErrorLabel("unknown_error"), { label: "未归因错误", code: "unknown_error" });
-// 判分内核已给人话 diagnosis → 原样呈现, 不硬造错因码
-assert.deepStrictEqual(vm.humanizeErrorLabel("采分点遗漏"), { label: "采分点遗漏", code: "" });
+// 判分内核给的人话 diagnosis 若整句=注册标签 → 逆映射回码(2026-07-12 契约更新:
+// 同一注册表双向镜像, 非二次归因——解锁解药/复测的 (pack, code) 查询键)
+assert.deepStrictEqual(vm.humanizeErrorLabel("采分点遗漏"), { label: "采分点遗漏", code: "E02" });
+// 非注册表文本仍不硬造码
+assert.deepStrictEqual(vm.humanizeErrorLabel("一段自由诊断文本"), { label: "一段自由诊断文本", code: "" });
 assert.deepStrictEqual(vm.humanizeErrorLabel(""), { label: "待归因错因", code: "" });
 
 // ── 2. pack 归属诚实匹配(fail-closed: 对不上=空串, 不猜) ───────
@@ -139,7 +142,7 @@ assert.strictEqual(detailNoSupply.errorCodeChip, "错因码 E03 · 判分内核�
 // 供给到位即亮(同一数据位, 不改页面)
 var detailSupplied = vm.buildErrorbankDetail(entry, {
   antidote: { mental_model: "按部位找词给分", textbook_ref: "防水工程章节" },
-  retestProbe: { available: true },
+  retestProbe: { available: true, probeId: "probe-f16" },
 });
 assert.strictEqual(detailSupplied.antidote.state, "ready");
 assert.strictEqual(detailSupplied.antidote.text, "按部位找词给分");
@@ -151,6 +154,7 @@ assert.strictEqual(noCodeDetail.errorCodeChip, "", "无注册表错因码时禁�
 
 // ── 5. 换皮复测 CTA fail-closed ───────────────────────────────
 assert.strictEqual(detailSupplied.retest.ready, true);
+assert.strictEqual(detailSupplied.retest.probeId, "probe-f16");
 assert.ok(detailSupplied.retest.ctaText.indexOf("换个皮再试一次") >= 0);
 assert.strictEqual(
   vm.buildErrorbankDetail(entry, { retestProbe: null }).retest.ready,
@@ -162,10 +166,15 @@ assert.strictEqual(
   false,
   "变体池空→不承诺换皮",
 );
+assert.strictEqual(
+  vm.buildErrorbankDetail(entry, { retestProbe: { available: true, probeId: "" } }).retest.ready,
+  false,
+  "无 canonical probe→不承诺销账复测",
+);
 var noPackEntry = built.pendingEntries.filter(function (e) { return !e.packId; })[0];
 assert.ok(noPackEntry, "样例应含无 pack 归属条目");
 assert.strictEqual(
-  vm.buildErrorbankDetail(noPackEntry, { retestProbe: { available: true } }).retest.ready,
+  vm.buildErrorbankDetail(noPackEntry, { retestProbe: { available: true, probeId: "probe-x" } }).retest.ready,
   false,
   "pack 归属不明→即使探测通过也不承诺换皮",
 );
@@ -179,6 +188,9 @@ var vmSource = fs.readFileSync(vmPath, "utf8");
 assert.strictEqual(pageJs.indexOf("markMistakeBookItemMastered"), -1, "错因银行销账禁写 mastered 旗标(销账=本地+既有信号)");
 assert.strictEqual(pageJs.indexOf("saveMistakeBookItem"), -1, "错因银行禁前端造记账(记账真值=判分内核 writeback)");
 assert.strictEqual(pageJs.indexOf("postStationCompleted"), -1, "错因银行只呈现, 信号归 retest 链路");
+assert.ok(pageJs.indexOf("getLubanReviewDue") >= 0, "错因银行销账入口只消费 canonical review-due");
+assert.strictEqual(pageJs.indexOf("getLubanRetestItems"), -1, "错因银行禁用题池存在性推断到期");
+assert.ok(pageJs.indexOf("&mode=review&probe_id=") >= 0, "销账复测必须透传 review mode + probe");
 // R8 解药接线: 详情页按 {pack_id, error_code} 取 signed 解药, 供给后点亮占位。
 assert.ok(pageJs.indexOf("getLubanAntidote") >= 0, "错因银行详情须接 R8 解药 GET(供给后点亮)");
 var apiSource = fs.readFileSync(
@@ -251,3 +263,41 @@ var vmSource = fs.readFileSync(vmPath, "utf8");
 });
 
 console.log("PASS test_errorbank_view_model.js");
+
+// ── 2026-07-12: 人话标签逆映射 + 解药签发全字段消费 ──
+(function () {
+  var vm = require("../packageDeeptutor/utils/errorbank-view-model.js");
+  // 逆映射: 整句标签/前缀标签 → 注册码(解锁解药查询键)
+  var h1 = vm.humanizeErrorLabel("关键词缺失");
+  if (h1.code !== "E03") throw new Error("整句标签应逆映射 E03, got " + h1.code);
+  var h2 = vm.humanizeErrorLabel("程序顺序错误：层级写反了");
+  if (h2.code !== "E06") throw new Error("前缀标签应逆映射 E06, got " + h2.code);
+  if (h2.label !== "程序顺序错误：层级写反了") throw new Error("label 保留原句");
+  var h3 = vm.humanizeErrorLabel("答案要点没踩到给分点");
+  if (h3.code !== "") throw new Error("非注册标签不硬造码");
+
+  // 解药 items 全字段渲染 + 旧形状向后兼容
+  var d1 = vm.buildErrorbankDetail(
+    { key: "k", errorCode: "E06", packId: "A01" },
+    { antidote: { mental_model: "新地图", textbook_ref: "kc:x",
+        items: [{ mental_model: "新地图", phenomenon: "现象句", wrong_model: "旧地图", textbook_ref: "kc:x" }] } },
+  );
+  if (d1.antidote.items.length !== 1) throw new Error("items 渲染");
+  if (d1.antidote.items[0].phenomenon !== "现象句" || d1.antidote.items[0].wrongModel !== "旧地图")
+    throw new Error("现象/旧地图字段消费");
+  var d2 = vm.buildErrorbankDetail(
+    { key: "k" },
+    { antidote: { mental_model: "只有正文", textbook_ref: "" } },
+  );
+  if (d2.antidote.items.length !== 1 || d2.antidote.items[0].text !== "只有正文")
+    throw new Error("旧形状向后兼容");
+
+  // 早期无码记账的诚实说明
+  var d3 = vm.buildErrorbankDetail({ key: "k", errorCode: "" }, {});
+  if (!d3.thinNote) throw new Error("无码记账应有诚实说明行");
+  var d4 = vm.buildErrorbankDetail({ key: "k", errorCode: "E06" }, {});
+  if (d4.thinNote) throw new Error("有码不显说明行");
+  // 空 note 不给 kicker
+  if (d4.slice.noteKicker) throw new Error("空note不给kicker");
+  console.log("PASS 逆映射+解药全字段 10 断言");
+})();

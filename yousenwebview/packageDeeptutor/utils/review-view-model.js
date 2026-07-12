@@ -36,6 +36,7 @@ function _dueEntry(item) {
   var retestAvailable = o.retest_available === true;
   return {
     packId: packId,
+    probeId: _str(o.probe_id),
     title: _str(o.title) || packId,
     dueAt: _str(o.due_at),
     retestAvailable: retestAvailable,

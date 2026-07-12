@@ -37,6 +37,7 @@ function buildLibraryViewModel(body) {
         packId: _str(o.pack_id).toUpperCase(),
         title: _str(o.title),
         cardCount: Number(o.card_count) > 0 ? Math.round(Number(o.card_count)) : 0,
+        tier: _str(o.tier), // "standard"=全考纲标准梯队(明示分层)
       };
     })
     .filter(function (p) {
@@ -50,6 +51,11 @@ function buildLibraryViewModel(body) {
   };
 }
 
+
+var knowledgeShape = require("./knowledge-shape");
+var buildCardStructure = knowledgeShape.buildCardStructure;
+var cardShapeOf = knowledgeShape.cardShapeOf;
+
 /** 单站卡组: GET /api/v1/luban/concept-cards/{pack_id} 响应 → 翻卡页数据。
  * 卡字段逐字透传; 无 quote/front 的脏卡就地剔除(fail-closed, 不补文案)。 */
 function buildDeckViewModel(body) {
@@ -59,18 +65,33 @@ function buildDeckViewModel(body) {
       var o = _safeObj(c);
       var ref = _safeObj(o.source_ref);
       var page = Number(ref.page_num);
-      return {
+      var base = {
         cardId: _str(o.card_id),
         front: _str(o.front),
         prompt: FRONT_PROMPT_SUFFIX,
         keyGist: _str(o.key_gist),
         quote: _str(o.quote),
         pointId: _str(o.point_id),
+        // v32 采分点富化: [{statement, required_terms[]}] 签发透传(无=空数组)
+        scoringTerms: _safeArr(o.scoring_terms)
+          .map(function (r) {
+            var t = _safeObj(r);
+            return {
+              statement: _str(t.statement),
+              terms: _safeArr(t.required_terms).map(_str).filter(Boolean),
+            };
+          })
+          .filter(function (r) {
+            return r.terms.length > 0;
+          }),
         // 角注: point_id 溯源 + 教材页码(有则并示)
         sourceNote:
           _str(o.point_id) +
           (Number.isFinite(page) && page > 0 ? " · 教材 P" + page : ""),
       };
+      base.structure = buildCardStructure(base);
+      base.shape = cardShapeOf(base.structure);
+      return base;
     })
     .filter(function (c) {
       return !!(c.cardId && c.front && c.quote);
@@ -121,6 +142,32 @@ function stepDeck(state, action) {
   };
 }
 
+var ROUND_SIZE = 10;
+// 轮间歇暖句(按轮次序号确定性取, 禁审视词口径)
+var ROUND_LINES = [
+  "一轮下肚。给分词是背一个赚一个的买卖。",
+  "两轮了——阅卷老师认的词，正在变成你的词。",
+  "三轮。这个节奏，考场上就是你的呼吸感。",
+  "还在翻的人不多，你是其中一个。",
+];
+
+/** 轮次信息: 每 10 张一轮, 轮间歇给收束感(不写任何状态, 纯派生)。 */
+function roundInfo(state) {
+  var s = _safeObj(state);
+  var order = _safeArr(s.order);
+  var pos = Number(s.pos) >= 0 ? Math.round(Number(s.pos)) : 0;
+  var atBreak = pos > 0 && pos % ROUND_SIZE === 0 && pos < order.length;
+  var roundIdx = Math.floor(pos / ROUND_SIZE);
+  return {
+    atBreak: atBreak,
+    roundIdx: roundIdx,
+    seen: pos,
+    total: order.length,
+    remaining: Math.max(0, order.length - pos),
+    line: ROUND_LINES[(roundIdx - 1 + ROUND_LINES.length) % ROUND_LINES.length] || ROUND_LINES[0],
+  };
+}
+
 /** 当前牌下标(完场返回 -1)。 */
 function currentCardIndex(state) {
   var s = _safeObj(state);
@@ -132,8 +179,11 @@ function currentCardIndex(state) {
 module.exports = {
   buildLibraryViewModel: buildLibraryViewModel,
   buildDeckViewModel: buildDeckViewModel,
+  buildCardStructure: buildCardStructure,
+  cardShapeOf: cardShapeOf,
   initDeckState: initDeckState,
   stepDeck: stepDeck,
+  roundInfo: roundInfo,
   currentCardIndex: currentCardIndex,
   FRONT_PROMPT_SUFFIX: FRONT_PROMPT_SUFFIX,
 };

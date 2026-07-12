@@ -53,6 +53,7 @@ Page({
   completionId: "",
   userId: "",
   _syncInFlight: false,
+  _answerLocked: false,
 
   onLoad: function () {
     // 重置页级可变态：微信不为非 data 自定义属性做每实例克隆，
@@ -60,6 +61,7 @@ Page({
     this.profile = {};
     this.results = [];
     this.completionId = "";
+    this._answerLocked = false;
     this.userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
     var windowInfo = {};
     try {
@@ -151,6 +153,10 @@ Page({
       this._buildReport();
       return;
     }
+    if (act === "reveal" && this.results.length === data.QUESTIONS.length) {
+      this._buildReveal();
+      return;
+    }
     this._go(act, act === "war" || act === "mode" || act === "material" || act === "materialReveal" ? 1 : 6);
   },
 
@@ -203,6 +209,7 @@ Page({
   _showQuestion: function (i, restoring) {
     var q = data.QUESTIONS[i];
     this.qShownAt = Date.now();
+    this._answerLocked = false;
     this.setData({
       qIndex: i,
       q: {
@@ -222,6 +229,8 @@ Page({
   },
 
   onAnswer: function (e) {
+    if (this._answerLocked) return;
+    this._answerLocked = true;
     this._answerQuestion(e.currentTarget.dataset.key, 0, false);
   },
 
@@ -457,8 +466,7 @@ Page({
         return result;
       })
       .catch(function (error) {
-        var detail = error && error.payload && error.payload.detail;
-        var errorCode = String((detail && detail.error) || "");
+        var errorCode = api.errorCodeOf(error);
         var blocked =
           errorCode === "first_run_content_not_signed" ||
           errorCode === "first_run_version_conflict";

@@ -128,3 +128,103 @@ var pageJs = fs.readFileSync(surfaces[1], "utf8");
 );
 
 console.log("test_concept_cards_view_model: all assertions passed");
+
+// ── 记忆面结构化(2026-07-12): 确定性解析,零改写零生成 ──
+(function () {
+  var GIST = "勘察→设计→施工竣工报告→监理预验收评估→建设单位正式验收";
+  var QUOTE =
+    "单位工程完工后，各相关单位应按下列要求进行工程竣工验收： ① 勘察单位应编制勘察工程质量检查报告； ② 设计单位应对设计变更进行检查； ③ 施工单位应自检合格； ④ 监理单位应在自检合格后组织预验收，14天内完成； ⑤ 建设单位应组织竣工验收。";
+  var st = ccvm.buildCardStructure({ keyGist: GIST, quote: QUOTE });
+
+  assert(st.chain && st.chain.length === 5, "gist 箭头链切成 5 步");
+  assert(st.chain.join("→") === GIST, "链步逐字还原=gist(零改写)");
+
+  assert(st.roster && st.roster.length === 5, "quote ①-⑤ 切成 5 行");
+  assert(st.roster[0].actor === "勘察单位", "主体签章提取");
+  st.roster.forEach(function (r) {
+    assert(QUOTE.indexOf(r.actor + r.body) >= 0, "主体+动作=原文逐字子串: " + r.actor);
+  });
+
+  assert(st.numbers.length === 1 && st.numbers[0].num === "14" && st.numbers[0].unit === "天", "关键数提取14天");
+  assert(!st.plain, "有结构不回落");
+
+  var stPlain = ccvm.buildCardStructure({ keyGist: "防水层施工要点", quote: "屋面防水应按规范施工。" });
+  assert(stPlain.plain === true && !stPlain.chain && !stPlain.roster, "无结构回落颗粒条");
+
+  var deck = ccvm.buildDeckViewModel({ pack_id: "a01", title: "T", cards: [{ card_id: "c1", front: "f", key_gist: GIST, quote: QUOTE, point_id: "kc:x", source_ref: { page_num: 21 } }] });
+  assert(deck.cards[0].structure && deck.cards[0].structure.chain.length === 5, "deck 卡挂 structure");
+  console.log("PASS 记忆面结构化 8 断言");
+})();
+
+// ── 形态学v2(2026-07-12): 规则牌/（1）式枚举/红线句/句读要点 ──
+(function () {
+  // 规则牌: 双段gist, 结果含禁止词=红线
+  var st = ccvm.buildCardStructure({
+    keyGist: "返修加固仍不满足安全→严禁验收",
+    quote: "（1）当资料部分缺失时，应委托检测机构实体检验。 （2）经返修仍不能满足安全的单位工程，严禁验收。",
+  });
+  assert(st.rule && st.rule.cond === "返修加固仍不满足安全" && st.rule.banned === true, "规则牌+红线");
+  assert(st.roster && st.roster.length === 2, "（1）式枚举切行");
+  assert(st.roster[1].banned === true, "枚举行禁止词高亮位");
+  assert(!st.plain, "不再裸奔");
+
+  // 红线句捞取(无枚举无规则时)
+  var st2 = ccvm.buildCardStructure({
+    keyGist: "",
+    quote: "施工现场应保持整洁。安全通道严禁堆放材料。",
+  });
+  assert(st2.redlines.length === 1 && st2.redlines[0].indexOf("严禁堆放") >= 0, "红线句逐字捞取");
+
+  // 句读要点兜底
+  var st3 = ccvm.buildCardStructure({
+    keyGist: "",
+    quote: "模板应有足够的承载能力。支架应有足够的刚度。拼缝应严密不漏浆。",
+  });
+  assert(st3.clauses && st3.clauses.length === 3, "句读要点切3条");
+  console.log("PASS 形态学v2 7断言");
+})();
+
+// ── v3(2026-07-12): 知识形状徽标 ──
+(function () {
+  var sh = ccvm.cardShapeOf({ rule: { banned: true }, redlines: [] });
+  assert(sh.key === "redline" && sh.tone === "red", "红线规则→红线形状");
+  sh = ccvm.cardShapeOf({ chain: ["a","b","c"], redlines: [] });
+  assert(sh.key === "chain" && sh.label === "一条流程链", "链形状");
+  sh = ccvm.cardShapeOf({ numbers: [{num:"14"}], redlines: [] });
+  assert(sh.key === "numbers" && sh.tone === "warn", "关键数形状");
+  sh = ccvm.cardShapeOf({ redlines: [] });
+  assert(sh.key === "plain" && sh.tone === "ink", "颗粒兜底形状");
+  console.log("PASS 知识形状 4断言");
+})();
+
+// ── v32采分点富化透传(2026-07-12): 阅卷认的词 ──
+(function () {
+  var deck = ccvm.buildDeckViewModel({
+    pack_id: "a01", title: "T",
+    cards: [{ card_id: "c1", front: "f", key_gist: "g", quote: "q",
+      point_id: "kc:x", source_ref: { page_num: 21 },
+      scoring_terms: [{ statement: "s", required_terms: ["竣工验收", "预验收"] }] }],
+  });
+  var c = deck.cards[0];
+  if (!c.scoringTerms || c.scoringTerms.length !== 1) throw new Error("terms透传");
+  if (c.scoringTerms[0].terms.join(",") !== "竣工验收,预验收") throw new Error("terms内容");
+  var deck2 = ccvm.buildDeckViewModel({ pack_id: "a", title: "T",
+    cards: [{ card_id: "c2", front: "f", key_gist: "", quote: "q", point_id: "p", source_ref: {} }] });
+  if (deck2.cards[0].scoringTerms.length !== 0) throw new Error("无富化=空数组");
+  console.log("PASS 采分点富化透传 3断言");
+})();
+
+// ── 轮次(2026-07-12): 每10张一轮间歇 ──
+(function () {
+  var st = ccvm.initDeckState(25);
+  for (var i = 0; i < 10; i++) st = ccvm.stepDeck(st, "got_it");
+  var r = ccvm.roundInfo(st);
+  if (!r.atBreak || r.roundIdx !== 1 || r.seen !== 10 || r.remaining !== 15) throw new Error("满10张进轮间歇");
+  st = ccvm.stepDeck(st, "got_it");
+  if (ccvm.roundInfo(st).atBreak) throw new Error("第11张不在间歇");
+  var st2 = ccvm.initDeckState(10);
+  for (var j = 0; j < 10; j++) st2 = ccvm.stepDeck(st2, "got_it");
+  if (ccvm.roundInfo(st2).atBreak) throw new Error("完场不叠加间歇");
+  if (!ccvm.roundInfo(st).line) throw new Error("暖句在位");
+  console.log("PASS 轮次 4断言");
+})();

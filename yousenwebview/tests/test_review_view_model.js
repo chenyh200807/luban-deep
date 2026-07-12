@@ -16,7 +16,7 @@ var built = vm.buildReviewViewModel({
   lessons: { lessons: [{ pack_id: "F16", title: "屋面防水" }, { pack_id: "A01", title: "检验批" }] },
   reviewDue: {
     due: [
-      { pack_id: "F16", title: "屋面防水", due_at: "2026-07-04T00:00:00+08:00", retest_available: true },
+      { pack_id: "F16", title: "屋面防水", probe_id: "rvp_f16", due_at: "2026-07-04T00:00:00+08:00", retest_available: true },
       { pack_id: "A01", title: "检验批", due_at: "2026-07-04T00:00:00+08:00", retest_available: false },
     ],
     learned_count: 2,
@@ -30,6 +30,7 @@ assert.strictEqual(built.duePercent, 100);
 assert.strictEqual(built.mistakeActiveCount, 3);
 assert.strictEqual(built.isEmpty, false);
 assert.strictEqual(built.firstDue.packId, "F16");
+assert.strictEqual(built.firstDue.probeId, "rvp_f16");
 assert.strictEqual(built.showPact, true, "首个到期站有变体池→渲染约定卡");
 
 // ── 2. fail-closed: 换皮承诺句只出现在有变体池的条目 ──────────

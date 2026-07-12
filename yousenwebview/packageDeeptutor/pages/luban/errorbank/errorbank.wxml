@@ -87,7 +87,7 @@
             data-key="{{item.key}}"
             bindtap="openDetail"
           >
-            <view class="eb-row-icon"></view>
+            <view class="eb-row-icon"><text>{{item.errorCode || '还'}}</text></view>
             <view class="eb-row-body">
               <view class="eb-row-title-line">
                 <text class="eb-row-title">{{item.errorLabel}}</text>
@@ -157,6 +157,7 @@
               <text>{{detail.slice.note}}</text>
             </view>
           </block>
+          <text class="eb-thin-note" wx:if="{{detail.thinNote}}">{{detail.thinNote}}</text>
         </view>
 
         <!-- ③ R8 解药(绿边卡 · 全页唯一强调块) -->
@@ -168,14 +169,47 @@
             </view>
           </view>
           <block wx:if="{{detail.antidote.state === 'ready'}}">
-            <text class="eb-antidote-text">{{detail.antidote.text}}</text>
-            <text class="eb-chip line" wx:if="{{detail.antidote.textbookRef}}">教材出处 · {{detail.antidote.textbookRef}}</text>
+            <view class="eb-anti-item" wx:for="{{detail.antidote.items}}" wx:key="index">
+              <view class="eb-anti-phen" wx:if="{{item.phenomenon}}">
+                <text class="eb-anti-phen-k">常见的坑</text>
+                <text class="eb-anti-phen-t">{{item.phenomenon}}</text>
+              </view>
+              <view class="eb-anti-swap" wx:if="{{item.wrongModel}}">
+                <view class="eb-anti-old">
+                  <text class="eb-anti-mark">✕</text>
+                  <text class="eb-anti-old-t">{{item.wrongModel}}</text>
+                </view>
+                <text class="eb-anti-arrow">↓ 换成这张新地图</text>
+              </view>
+              <view class="eb-anti-new" wx:if="{{!item.chain}}">
+                <text class="eb-anti-mark grn">✓</text>
+                <text class="eb-anti-new-t">{{item.text}}</text>
+              </view>
+              <view class="eb-anti-new chain" wx:if="{{item.chain}}">
+                <text class="eb-anti-mark grn">✓</text>
+                <view class="eb-anti-chain">
+                  <block wx:for="{{item.chain}}" wx:for-item="step" wx:for-index="si" wx:key="si">
+                    <view class="eb-chain-stone">
+                      <text class="eb-chain-idx">{{si + 1}}</text>
+                      <text class="eb-chain-tx">{{step}}</text>
+                    </view>
+                    <text class="eb-chain-arrow" wx:if="{{si < item.chain.length - 1}}">→</text>
+                  </block>
+                </view>
+              </view>
+              <text class="eb-chip line" wx:if="{{item.textbookRef}}">教材出处 · {{item.textbookRef}}</text>
+            </view>
           </block>
           <block wx:else>
             <text class="eb-antidote-pending-title">{{detail.antidote.title}}</text>
             <text class="eb-antidote-pending-desc">{{detail.antidote.desc}}</text>
             <view class="eb-ghost" bindtap="openAttemptDetail"><text>先回到当时的解析</text></view>
           </block>
+          <!-- 挂钩考点卡: 同站教材原文卡, 记忆巩固回路(纯导航) -->
+          <view class="eb-cc-link" wx:if="{{detail.retest.packId}}" bindtap="goConceptCards">
+            <text class="eb-cc-link-tx">翻这一站的考点卡 · 教材原文逐字巩固</text>
+            <text class="eb-cc-link-arrow">›</text>
+          </view>
         </view>
 
         <!-- ④ 销账动线 -->

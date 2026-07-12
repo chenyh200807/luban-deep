@@ -67,6 +67,13 @@ class _FakeLearnerState:
         assert user_id == "user-1"
         self.profile = deepcopy(profile)
 
+    def merge_profile_strict(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        assert user_id == "user-1"
+        learning = dict(self.profile.get("learning_preferences") or {})
+        learning.update(deepcopy(patch.get("learning_preferences") or {}))
+        self.profile["learning_preferences"] = learning
+        return deepcopy(self.profile)
+
     def merge_progress(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         assert user_id == "user-1"
         self.progress.update(deepcopy(patch))
@@ -203,5 +210,33 @@ def test_learning_events_do_not_claim_mastery_or_official_score() -> None:
         assert event.payload_json["mastery_promotion_allowed"] is False
         assert event.payload_json["official_score_allowed"] is False
         assert "mastery" not in event.payload_json
-        assert event.payload_json["training_intent_id"]
-        assert event.payload_json["prescription_phase"] == "assigned"
+    assert sum(bool(event.payload_json["training_intent_id"]) for event in learner_state.events) == 1
+
+
+def test_missed_item_with_source_backed_pack_drives_real_target_without_promoting_claim() -> None:
+    learner_state = _FakeLearnerState()
+    service = FirstRunWritebackService(learner_state_service=learner_state)
+
+    result = service.complete(user_id="user-1", **_completion(first_answer="B"))
+
+    assert result["training_intent"]["target_pack_id"] == "F16"
+    assert result["home_projection"]["target_pack_id"] == "F16"
+    focus_events = [event for event in learner_state.events if event.payload_json["target_pack_id"]]
+    assert len(focus_events) == 1
+    assert focus_events[0].payload_json["target_pack_id"] == "F16"
+    assert result["training_intent"]["evidence_refs"] == [focus_events[0].event_id]
+    assert all(event.payload_json["claim_promotion_allowed"] is False for event in learner_state.events)
+
+
+def test_home_projection_failure_does_not_commit_first_run_completion(monkeypatch: pytest.MonkeyPatch) -> None:
+    learner_state = _FakeLearnerState()
+    service = FirstRunWritebackService(learner_state_service=learner_state)
+    monkeypatch.setattr(
+        "deeptutor.services.first_run.writeback.write_home_personalization_projection",
+        lambda *_args, **_kwargs: False,
+    )
+
+    with pytest.raises(RuntimeError, match="first_run_home_projection_unavailable"):
+        service.complete(user_id="user-1", **_completion())
+
+    assert "first_run" not in learner_state.profile["learning_preferences"]

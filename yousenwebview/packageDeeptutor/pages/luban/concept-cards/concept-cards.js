@@ -11,6 +11,7 @@ var auth = require("../../../utils/auth");
 var route = require("../../../utils/route");
 var runtime = require("../../../utils/runtime");
 var ccvm = require("../../../utils/concept-cards-view-model");
+var ebvm = require("../../../utils/errorbank-view-model");
 
 Page({
   data: {
@@ -25,6 +26,11 @@ Page({
     activePackId: "",
     currentCard: null, // 当前展示卡(由 deckState 派生)
     flipped: false, // 正面/翻面(纯呈现态)
+    quoteOpen: false, // 教材原文全文展开(记忆面默认收拢,尊重爱看全文的用户)
+    packPendingCount: 0, // 本站待还错因笔数(错因银行只读回路; 0/未开通=不显)
+    pendingMap: {}, // 各站待还笔数(选站抽屉红点; 同一归属口径)
+    packSheetOpen: false, // 选站抽屉
+    roundBreak: null, // 轮间歇(每10张一轮的收束卡, null=不在间歇)
     finished: false,
   },
 
@@ -71,7 +77,11 @@ Page({
 
   flipCard: function () {
     if (!this.data.currentCard || this.data.finished) return;
-    this.setData({ flipped: !this.data.flipped });
+    this.setData({ flipped: !this.data.flipped, quoteOpen: false });
+  },
+
+  toggleQuote: function () {
+    this.setData({ quoteOpen: !this.data.quoteOpen });
   },
 
   // 「记住了」/「再看一眼」——纯本地牌序，零上报零掌握写入
@@ -98,12 +108,90 @@ Page({
   _applyDeckState: function (state) {
     var deck = this.data.deck;
     var idx = ccvm.currentCardIndex(state);
+    var round = ccvm.roundInfo(state);
     this.setData({
       deckState: state,
       currentCard: idx >= 0 && deck ? deck.cards[idx] : null,
       flipped: false,
+      quoteOpen: false,
+      // 每满10张进一次轮间歇(完场不叠加)
+      roundBreak: round.atBreak ? round : null,
       finished: idx < 0,
     });
+  },
+
+  continueRound: function () {
+    this.setData({ roundBreak: null });
+  },
+
+  // 错因银行只读回路: 全站待还笔数一次算清(deriveRetestPackId 同一归属口径,
+  // 零第二权威; 未开通/失败=空map——纯导航增强, 不是新学情)。
+  _probePackPending: function (packId) {
+    var that = this;
+    if (this._pendingMapLoaded) {
+      this.setData({ packPendingCount: this.data.pendingMap[packId] || 0 });
+      return;
+    }
+    Promise.all([
+      api.getMistakeBook({ include_mastered: false }, { silent: true }),
+      api.getLubanLessons({ silent: true }),
+    ])
+      .then(function (results) {
+        var book = api.unwrapResponse(results[0]) || {};
+        var lessons = results[1] ? api.unwrapResponse(results[1]) || {} : {};
+        var items = Array.isArray(book.items) ? book.items : [];
+        var map = {};
+        items.forEach(function (item) {
+          if (item && item.mastered_at) return;
+          var pid = ebvm.deriveRetestPackId(item, lessons);
+          if (pid) map[pid] = (map[pid] || 0) + 1;
+        });
+        that._pendingMapLoaded = true;
+        that.setData({
+          pendingMap: map,
+          packPendingCount: map[that.data.activePackId] || 0,
+        });
+      })
+      .catch(function () {
+        that.setData({ packPendingCount: 0 });
+      });
+  },
+
+  openPackSheet: function () {
+    this.setData({ packSheetOpen: true });
+  },
+
+  closePackSheet: function () {
+    this.setData({ packSheetOpen: false });
+  },
+
+  pickPack: function (event) {
+    var dataset =
+      (event && event.currentTarget && event.currentTarget.dataset) || {};
+    var packId = String(dataset.packId || "").trim();
+    this.setData({ packSheetOpen: false });
+    if (!packId || packId === this.data.activePackId) return;
+    this._loadDeck(packId);
+  },
+
+  // 下一站: 按库序循环(完场/站牌一键连翻)
+  nextPack: function () {
+    var lib = this.data.library;
+    if (!lib || !lib.packs || !lib.packs.length) return;
+    var idx = -1;
+    for (var i = 0; i < lib.packs.length; i++) {
+      if (lib.packs[i].packId === this.data.activePackId) idx = i;
+    }
+    var next = lib.packs[(idx + 1) % lib.packs.length];
+    if (next && next.packId !== this.data.activePackId) {
+      this._loadDeck(next.packId);
+    }
+  },
+
+  goErrorbank: function () {
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({ url: route.lubanErrorbank() });
+    }
   },
 
   _loadLibrary: function () {
@@ -136,6 +224,7 @@ Page({
   _loadDeck: function (packId) {
     var that = this;
     this.setData({ loading: true, errorText: "", activePackId: packId });
+    this._probePackPending(packId);
     return api
       .getLubanConceptCards(packId)
       .then(function (resp) {

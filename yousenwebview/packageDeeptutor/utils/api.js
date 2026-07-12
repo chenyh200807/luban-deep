@@ -24,6 +24,16 @@ function getBaseUrl(useGateway) {
  * 解包 API 响应 — 统一 resp.data || resp 的处理
  * 后端可能返回 { data: {...} } 或直接 {...}
  */
+/** 从错误响应提取结构化错误码: detail 兼容对象(新后端)与 "{'error': 'x'}"
+ * 字符串(旧后端 str()化)。取不到=空串(调用方按网络类处理)。 */
+function errorCodeOf(error) {
+  var detail = error && error.payload && error.payload.detail;
+  if (detail && typeof detail === "object") return String(detail.error || "");
+  var text = String(detail || "");
+  var m = text.match(/'error':\s*'([a-z0-9_]+)'/i) || text.match(/"error":\s*"([a-z0-9_]+)"/i);
+  return m ? m[1] : "";
+}
+
 function unwrapResponse(raw) {
   if (!raw || typeof raw !== "object") return raw;
   // 如果有 data 字段且不是基础类型列表（排除 {data: "string"} 的情况）
@@ -920,7 +930,7 @@ function getLubanReviewDue(opts) {
 
 /** 鲁班 — 站完成信号(非 promoting): 复测调度的触发事实——交接时刻/复测完成时上报。
  * 走唯一 learner-signal 写入口, 不写掌握、不进证据编译器(contracts/learner-state.md)。 */
-function postStationCompleted(packId, packTitle, opts) {
+function postStationCompleted(packId, packTitle, completionId, opts) {
   return request(
     Object.assign(
       {
@@ -930,6 +940,7 @@ function postStationCompleted(packId, packTitle, opts) {
           signal_type: "station_completed",
           concept_id: String(packId || "").trim(),
           concept_label: String(packTitle || "").trim(),
+          completion_id: String(completionId || "").trim(),
         },
       },
       opts || {},
@@ -937,7 +948,7 @@ function postStationCompleted(packId, packTitle, opts) {
   );
 }
 
-/** 鲁班 — 变体题面（服务端确定性抽取，客户端本地判分）。
+/** 鲁班 — 变体题面（服务端确定性抽取并签发 selection identity；客户端只做即时反馈）。
  * mode: "review"（默认，复习轮换皮复测）| "forward"（学习轮 2 分钟正向轻练，
  * 对刚学完 pack 覆盖不同 rule_group 取一组）——同一 builder/端点，仅选序不同。
  * 向后兼容:旧调用把 opts 放第 3 位（getLubanRetestItems(pack, 1, {silent:true})），
@@ -958,6 +969,24 @@ function getLubanRetestItems(packId, limit, mode, opts) {
       "&mode=" +
       m,
     opts,
+  );
+}
+
+/** 鲁班 — 复测 completion 唯一写入口。客户端只交选择；服务端按签发题池重判，
+ * 全题成功后才提交 terminal + station_completed。 */
+function completeLubanRetest(packId, payload, opts) {
+  return request(
+    Object.assign(
+      {
+        url:
+          "/api/v1/luban/lessons/" +
+          encodeURIComponent(String(packId || "")) +
+          "/retest-complete",
+        method: "POST",
+        data: payload || {},
+      },
+      opts || {},
+    ),
   );
 }
 
@@ -1098,6 +1127,7 @@ module.exports = {
   ensureFreshAuthToken: ensureFreshAuthToken,
   refreshAuthToken: refreshAuthToken,
   unwrapResponse: unwrapResponse,
+  errorCodeOf: errorCodeOf,
   inspectRequestError: inspectRequestError,
   describeRequestError: describeRequestError,
   shouldRetryWechatLogin: shouldRetryWechatLogin,
@@ -1141,6 +1171,7 @@ module.exports = {
   getLubanLessons: getLubanLessons,
   getLubanLessonDetail: getLubanLessonDetail,
   getLubanRetestItems: getLubanRetestItems,
+  completeLubanRetest: completeLubanRetest,
   getLubanReviewDue: getLubanReviewDue,
   getLubanConceptCardLibrary: getLubanConceptCardLibrary,
   getLubanConceptCards: getLubanConceptCards,

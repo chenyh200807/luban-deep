@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 2
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "D13",
  "status": "signed",
  "source_pack_sha256": "6745894a27086c053065b63739bd0fb66eee75a32a56ec5679fb8467cc9bbcf3",
- "generation_ms": 59.82,
+ "generation_ms": 88.87,
  "gate": {
   "total": 3,
   "passed": 3,
@@ -78,7 +82,34 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 装饰装修工程施工 > 建筑幕墙工程施工 > 建筑幕墙防火、防雷和成品保护技术要求"
+   "leaf_name_path": "建筑工程施工技术 > 装饰装修工程施工 > 建筑幕墙工程施工 > 建筑幕墙防火、防雷和成品保护技术要求",
+   "scoring_terms": [
+    {
+     "statement": "某建筑幕墙上下层开口间距为1.1m，是否满足防火要求？应如何整改？",
+     "required_terms": [
+      "1.2m",
+      "1.0m",
+      "200mm",
+      "1.5mm",
+      "钢质承托板",
+      "防火分区"
+     ],
+     "point_id": "ca:1A413030_148_0286"
+    },
+    {
+     "statement": "幕墙防火构造关键尺寸：上下层开口间实体墙≥1.2m 或 防火挑檐宽度≥1.0m 且长度≥开口宽度；空腔填塞高度≥200mm；钢质承托板厚度≥1.5mm。",
+     "required_terms": [
+      "防火挑檐",
+      "填塞高度",
+      "承托板",
+      "1.2m",
+      "1.0m",
+      "200mm",
+      "1.5mm"
+     ],
+     "point_id": "kc:1A413030_148_0286:0"
+    }
+   ]
   },
   {
    "card_id": "D13:kc:1A413030_148_0287:0",
@@ -92,7 +123,29 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 装饰装修工程施工 > 建筑幕墙工程施工 > 建筑幕墙的防雷构造要求"
+   "leaf_name_path": "建筑工程施工技术 > 装饰装修工程施工 > 建筑幕墙工程施工 > 建筑幕墙的防雷构造要求",
+   "scoring_terms": [
+    {
+     "statement": "某幕墙铝合金立柱间距为12m，是否需要设置柔性导线？如何连接？",
+     "required_terms": [
+      "柔性导线",
+      "10m",
+      "均压环",
+      "焊接连通"
+     ],
+     "point_id": "ca:1A413030_148_0287"
+    },
+    {
+     "statement": "幕墙防雷连接要点：金属框架→连接主体防雷系统；铝合金立柱每10m内用柔性导线连通上下柱；预埋件→焊接至均压环。",
+     "required_terms": [
+      "柔性导线",
+      "均压环",
+      "焊接",
+      "10m"
+     ],
+     "point_id": "kc:1A413030_148_0287:0"
+    }
+   ]
   },
   {
    "card_id": "D13:kc:1A412010_066_0130:1",
@@ -110,8 +163,8 @@
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:20:59+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:45+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

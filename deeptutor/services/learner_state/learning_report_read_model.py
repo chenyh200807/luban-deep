@@ -13,14 +13,19 @@ from typing import Any, Callable
 from deeptutor.services.construction_grading.learning_evidence import compute_quality_signals
 from deeptutor.services.experiments.cohort import current_stage, is_enabled
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    committed_retest_completion_ids,
+    event_promotion_allowed,
+    evidence_attempt_id,
+)
+from deeptutor.services.learner_state.home_personalization import (
+    is_canonical_home_personalization_projection,
+)
 from deeptutor.services.learner_state.learning_brain_read_model import (
     build_learning_brain_read_model,
 )
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
-)
-from deeptutor.services.learner_state.home_personalization import (
-    is_canonical_home_personalization_projection,
 )
 from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
 from deeptutor.services.learner_state.next_best_action import build_next_best_actions
@@ -2197,6 +2202,7 @@ def _with_next_best_action_view(card: dict[str, Any], *, intent: dict[str, Any])
 def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
     grouped: dict[tuple[str, str], dict[str, Any]] = {}
     needs_confirmation: list[dict[str, Any]] = []
+    committed_retest_ids = committed_retest_completion_ids(events)
     for event in events:
         payload = _safe_dict(getattr(event, "payload_json", {}))
         quality = _attempt_quality(payload)
@@ -2217,13 +2223,20 @@ def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
                 "error": key[1],
                 "count": 0,
                 "stable_count": 0,
+                "stable_attempt_ids": [],
                 "latest_at": "",
                 "conversation_only": True,
             },
         )
         item["count"] += 1
-        if _is_progress_countable_event(event):
-            item["stable_count"] += 1
+        if _is_progress_countable_event(event) and event_promotion_allowed(
+            event,
+            committed_retest_ids=committed_retest_ids,
+        ):
+            attempt_id = evidence_attempt_id(event, payload)
+            if attempt_id and attempt_id not in item["stable_attempt_ids"]:
+                item["stable_attempt_ids"].append(attempt_id)
+            item["stable_count"] = len(item["stable_attempt_ids"])
             item["conversation_only"] = False
         created_at = str(getattr(event, "created_at", "") or "")
         if created_at > str(item.get("latest_at") or ""):
@@ -2231,6 +2244,7 @@ def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:
     stable: list[dict[str, Any]] = []
     recent: list[dict[str, Any]] = []
     for item in grouped.values():
+        item.pop("stable_attempt_ids", None)
         count = _safe_int(item.get("count"))
         stable_count = _safe_int(item.get("stable_count"))
         if stable_count >= 2:

@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 5
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "A01",
  "status": "signed",
  "source_pack_sha256": "23593d60ab10292ab5b2e9dac8ce767f0ed111e4b5fc669051aa5cf1824e92f1",
- "generation_ms": 63.67,
+ "generation_ms": 92.22,
  "gate": {
   "total": 8,
   "passed": 8,
@@ -78,7 +82,18 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "第4章 相关法规 > 屋面工程"
+   "leaf_name_path": "第4章 相关法规 > 屋面工程",
+   "scoring_terms": [
+    {
+     "statement": "竣工验收程序：竣工验收程序：勘察单位提交检查报告 → 设计单位提交检查报告 → 施工单位提交竣工报告 → 监理单位组织预验收并提交评估报告 → 建设单位组织正式验收。",
+     "required_terms": [
+      "竣工验收",
+      "预验收",
+      "评估报告"
+     ],
+     "point_id": "kc:1A422000_021_0029:2"
+    }
+   ]
   },
   {
    "card_id": "A01:kc:1A434020_088_0146:0",
@@ -120,7 +135,19 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工质量管理 > 项目施工质量检查与检验 > 主体结构分部工程验收组织"
+   "leaf_name_path": "施工质量管理 > 项目施工质量检查与检验 > 主体结构分部工程验收组织",
+   "scoring_terms": [
+    {
+     "statement": "主体结构分部工程验收应由谁组织？",
+     "required_terms": [
+      "总监理工程师",
+      "建设单位项目负责人",
+      "施工单位项目负责人",
+      "项目技术负责人"
+     ],
+     "point_id": "ca:1A434020_085_0137"
+    }
+   ]
   },
   {
    "card_id": "A01:kc:1A438000_151_0243:0",
@@ -148,7 +175,27 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 施工检测试验管理"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 施工检测试验管理",
+   "scoring_terms": [
+    {
+     "statement": "不妥1:见证记录应由'见证人员'记录与制作,而非'试验员'。正确做法须写出'见证人员'记录取样/现场检测并制作见证记录(由建设单位委派或监理人员担任见证)。近义不算,须点明记录主体错误",
+     "required_terms": [
+      "见证人员"
+     ],
+     "point_id": "m35:Q4-1A434000-罚则:P1"
+    },
+    {
+     "statement": "关于建筑工程施工现场检测试验管理的说法，错误的是？",
+     "required_terms": [
+      "第三方检测机构",
+      "不得有隶属关系",
+      "真实性",
+      "代表性",
+      "10000m²"
+     ],
+     "point_id": "ca:1A431011_019_0021"
+    }
+   ]
   },
   {
    "card_id": "A01:kc:1A434000_063_0094:1",
@@ -162,7 +209,17 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工质量管理 > 施工质量检查检验方式与方法"
+   "leaf_name_path": "施工质量管理 > 施工质量检查检验方式与方法",
+   "scoring_terms": [
+    {
+     "statement": "目测法四字口诀：目测法可概括为‘看、摸、敲、照’四个字。 - 看：外观检查 - 摸：手感鉴别 - 敲：音感检查 - 照：光照检查",
+     "required_terms": [
+      "目测法",
+      "观感质量"
+     ],
+     "point_id": "kc:1A434000_063_0094:1"
+    }
+   ]
   },
   {
    "card_id": "A01:kc:1A438000_153_0246:0",
@@ -176,12 +233,34 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工资源管理 > 材料试验检验"
+   "leaf_name_path": "施工资源管理 > 材料试验检验",
+   "scoring_terms": [
+    {
+     "statement": "关于材料进场验收的说法，错误的是？",
+     "required_terms": [
+      "合格证",
+      "见证取样",
+      "不得使用",
+      "降级使用",
+      "质量责任",
+      "单独存放"
+     ],
+     "point_id": "ca:1A438000_153_0246"
+    },
+    {
+     "statement": "材料进场验收流程：材料进场 → 提供合格证 → 现场验证（品种/型号/规格/数量/外观/见证取样）→ 记录并报监理审批 → 合格则使用，不合格则禁止使用或降级使用。",
+     "required_terms": [
+      "合格证",
+      "见证取样"
+     ],
+     "point_id": "kc:1A438000_153_0246:0"
+    }
+   ]
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:20:57+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:44+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

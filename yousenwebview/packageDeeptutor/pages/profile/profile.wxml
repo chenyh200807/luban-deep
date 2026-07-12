@@ -172,6 +172,24 @@
 
         <view class="divider"></view>
 
+        <!-- 外观(亮/暗;本地偏好,全端跟随) -->
+        <view class="setting-row">
+          <text class="setting-label">外观</text>
+          <view class="chips-row">
+            <view
+              class="chip {{appearance === item.val ? 'chip-active' : ''}}"
+              wx:for="{{appearanceOptions}}"
+              wx:key="val"
+              bindtap="setAppearance"
+              data-val="{{item.val}}"
+            >
+              <text class="chip-txt">{{item.label}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="divider"></view>
+
         <!-- 解题风格 -->
         <view class="setting-row">
           <text class="setting-label">解题风格</text>

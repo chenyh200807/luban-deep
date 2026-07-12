@@ -73,6 +73,16 @@ function isDark() {
   return getTheme() !== "light";
 }
 
+/**
+ * 判断是否深色模式（带页面级默认）：用户从未显式选主题时按 fallbackTheme 判。
+ * 学情/我的两页默认亮色（owner 2026-07-12），其余页默认暗保持不变。
+ * @param {string} fallbackTheme - "dark" | "light"
+ * @returns {boolean}
+ */
+function isDarkOr(fallbackTheme) {
+  return hostRuntime.getThemeOr(fallbackTheme) !== "light";
+}
+
 function getWorkspaceShell(page) {
   if (!page) return null;
   if (typeof page.getTabBar === "function" && page.getTabBar()) {
@@ -283,6 +293,7 @@ module.exports = {
   getTheme: getTheme,
   setTheme: setTheme,
   isDark: isDark,
+  isDarkOr: isDarkOr,
   getWorkspaceShell: getWorkspaceShell,
   syncTabBar: syncTabBar,
   vibrate: vibrate,

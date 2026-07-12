@@ -3,8 +3,8 @@ signal); a SIMULATED / preview retest must never be treated as real — no impro
 without real retest evidence (simulated_retest_as_real == 0)."""
 from __future__ import annotations
 
-from deeptutor.services.learner_state.service import LearnerStateEvent
 from deeptutor.services.learner_state.learning_synthesis import synthesize_learning_truth
+from deeptutor.services.learner_state.service import LearnerStateEvent
 
 CONCEPT = "waterproof_term"
 ERROR = "near_synonym_not_accepted"
@@ -41,7 +41,11 @@ def _retest_pass(event_id: str, *, simulated: bool, observed_at: str = "2026-06-
 
 
 def test_real_retest_pass_recorded_as_improvement() -> None:
-    proj = synthesize_learning_truth([_miss("m1"), _retest_pass("r1", simulated=False)])
+    proj = synthesize_learning_truth([
+        _miss("m1"),
+        _miss("m2", observed_at="2026-06-07T11:00:00+08:00"),
+        _retest_pass("r1", simulated=False),
+    ])
     signals = proj["improvement_signals"]
     assert any(s["concept_id"] == CONCEPT and s["error_code"] == ERROR for s in signals), signals
 

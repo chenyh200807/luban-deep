@@ -98,3 +98,35 @@ def test_conversation_only_probe_does_not_verify_prescription() -> None:
 
     assert outcomes[0]["status"] == "not_verified"
     assert outcomes[0]["next_required_action"] == "complete_verification_probe"
+
+
+def test_active_outcome_preserves_navigation_target_without_replacing_intent_identity() -> None:
+    event = _event(
+        event_id="evt_first_run",
+        phase="assigned",
+        status="assigned",
+        score_ratio=None,
+        evidence_source="first_run_diagnostic",
+    )
+    event.payload_json.update(
+        {
+            "target_pack_id": "F16",
+            "concept_label": "屋面卷材起鼓",
+        }
+    )
+
+    outcome = build_prescription_outcomes_read_projection(events=[event])[0]
+
+    assert outcome["training_intent_id"] == "intent_a"
+    assert outcome["target_pack_id"] == "F16"
+    assert outcome["concept_label"] == "屋面卷材起鼓"
+
+
+def test_retest_item_cannot_verify_without_completion_terminal() -> None:
+    item = _event(event_id="evt_item", status="verified", score_ratio=1.0)
+    item.payload_json["retest_completion_id"] = "completion-1"
+    item.payload_json["completion_terminal"] = False
+
+    outcome = build_prescription_outcomes_read_projection(events=[item])[0]
+
+    assert outcome["status"] != "verified"

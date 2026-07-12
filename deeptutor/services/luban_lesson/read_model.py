@@ -73,6 +73,9 @@ def _card_url(pack_id: str) -> str:
     return f"{base}/{pack_id.lower()}/lesson.html"
 
 
+_BANK_CACHE: dict[tuple[str, int], Any] = {}
+
+
 def _load_signed_bank(
     pack_id: str,
     manifest_dir: Path,
@@ -87,10 +90,26 @@ def _load_signed_bank(
     文件缺失/损坏，一律返回 None（对外与 bank 缺失同形，不泄漏未签发存在性）。
     """
     path = manifest_dir / filename_template.format(pack_id=pack_id)
+    # 读缓存(2026-07-12 性能): (path, mtime) 键——文件一变即失效, 语义与直读
+    # 逐字节等价; 每请求扫 37+ 个 bank JSON 的重复磁盘解析是复习/学情面
+    # 的主要读放大源。缓存的是解析后的 bank 原对象(下游只读投影, 不改写)。
     try:
-        bank = json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
+        mtime = path.stat().st_mtime_ns
+    except OSError:
         return None
+    cache_key = (str(path), mtime)
+    cached = _BANK_CACHE.get(cache_key)
+    if cached is not None:
+        bank = cached
+    else:
+        try:
+            bank = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return None
+        # 单文件单版本: 清掉同路径旧mtime条目再入缓存(防无界增长)
+        for key in [k for k in _BANK_CACHE if k[0] == str(path)]:
+            _BANK_CACHE.pop(key, None)
+        _BANK_CACHE[cache_key] = bank
     if not isinstance(bank, dict):
         return None
     if str(bank.get("status") or "") != "signed":

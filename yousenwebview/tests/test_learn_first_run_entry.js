@@ -34,6 +34,10 @@ function loadLearn(options) {
           },
         };
       }
+      if (request === "../first-run/script-data") {
+        // learn.js 陈旧 pending 自愈会读取 SCRIPT_VERSION;pending 无 script_version → 触发重放对齐
+        return { SCRIPT_VERSION: "first_run_script.v1@test" };
+      }
       if (request === "../../utils/auth") return { getUserId: function () { return "user-1"; } };
       if (request === "../../utils/first-run-entry") {
         return {

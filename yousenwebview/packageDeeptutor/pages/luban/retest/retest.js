@@ -1,7 +1,7 @@
 // 鲁班学习双轮 · 变体复测（spike 形态）
-// 拉 /retest-items（服务端确定性抽取）→ 逐题判断题本地判分（选择==expected_ok，
-// 档位①确定性判分，D5 离线可用）。复测结果只进 telemetry——
-// 零学习证据/掌握态写入（学习证据归 learner_signal / 判分链路）。
+// 拉 /retest-items（服务端确定性抽取 + selection identity）→ 本地只给即时反馈；
+// 全题完成后 POST /retest-complete，由服务端按签发池重判并提交唯一 terminal。
+// 页面不写 learner state、不发 station_completed；保存失败不展示收据。
 //
 // 埋点走 register-before-use catalog（product_behavior_catalog.py D15 登记，
 // 白名单外事件名会被 ingest 拒收，故不用任务稿的 luban_* 自由名）：
@@ -19,7 +19,7 @@ var RETEST_LIMIT = 5;
 // - review（默认，复习轮换皮复测）；
 // - forward（学习轮 2 分钟正向轻练，对刚学完 pack 覆盖不同 rule_group 取一组）。
 // 差别只在题面选序（后端 build_retest_items(mode) 决定）+ 文案，判分/证据链路完全一致：
-// 本地确定性判分（选择==expected_ok）+ 完成发 station_completed（非 promoting）。
+// 本地反馈（选择==expected_ok）不具 truth authority；服务端 completion 是唯一判分/写回入口。
 var COPY = {
   review: {
     navTitle: "换皮复测",
@@ -48,6 +48,13 @@ Page({
     isDark: true,
     packId: "",
     mode: "review",
+    probeId: "",
+    trainingIntentId: "",
+    dayIndex: 0,
+    selectionId: "",
+    completionId: "",
+    syncStatus: "idle",
+    syncError: "",
     navTitle: COPY.review.navTitle,
     heroKicker: COPY.review.heroKicker,
     heroTitle: COPY.review.heroTitle,
@@ -80,6 +87,17 @@ Page({
     var statusBarHeight = info.statusBarHeight || 0;
     var packId = String((query && query.pack_id) || "").trim();
     var mode = String((query && query.mode) || "review") === "forward" ? "forward" : "review";
+    var probeId = String((query && query.probe_id) || "").trim();
+    var trainingIntentId = String((query && query.training_intent_id) || "").trim();
+    var completionId =
+      "retest_" +
+      String(packId || "unknown") +
+      "_" +
+      mode +
+      "_" +
+      Date.now() +
+      "_" +
+      Math.random().toString(16).slice(2, 10);
     var copy = COPY[mode];
     this.setData({
       statusBarHeight: statusBarHeight,
@@ -87,6 +105,9 @@ Page({
       isDark: helpers.isDark(),
       packId: packId,
       mode: mode,
+      probeId: probeId,
+      trainingIntentId: trainingIntentId,
+      completionId: completionId,
       navTitle: copy.navTitle,
       heroKicker: copy.heroKicker,
       heroTitle: copy.heroTitle,
@@ -146,18 +167,18 @@ Page({
 
     var answeredCount = this.data.answeredCount + 1;
     var correctCount = this.data.correctCount + (correct ? 1 : 0);
-    var done = answeredCount >= this.data.total && this.data.total > 0;
+    var allAnswered = answeredCount >= this.data.total && this.data.total > 0;
     var patch = {
       answeredCount: answeredCount,
       correctCount: correctCount,
-      done: done,
+      done: false,
     };
     patch["items[" + index + "].answered"] = true;
     patch["items[" + index + "].correct"] = correct;
     patch["items[" + index + "].chosenOk"] = choiceOk;
     this.setData(patch);
 
-    if (done) {
+    if (allAnswered) {
       // 收据数据(呈现层统计, 全部来自签发字段)
       var all = items.slice();
       all[index] = Object.assign({}, item, { answered: true, correct: correct });
@@ -174,30 +195,7 @@ Page({
         ruleGroupCount: Object.keys(groups).length,
         textbookCount: textbookCount,
       });
-      // 复测终态本地记录: 错因银行呈现层销账用(本地 storage, 非学情真值,
-      // 不写掌握态——掌握结论只归 learner truth 链路)
-      if (typeof wx !== "undefined" && wx.setStorageSync) {
-        try {
-          wx.setStorageSync("luban_retest_last:" + (this.data.packId || ""), {
-            correct: correctCount,
-            total: this.data.total,
-            at: Date.now(),
-          });
-        } catch (_err) {}
-      }
-      // 复测完成 → 站完成信号(非 promoting, 重排下一跳到期; 旗标关=服务端拒收, 静默)
-      api.postStationCompleted(this.data.packId || "", "").catch(function () {});
-      // 变体练完成（任务稿 luban_retest_complete 的登记名）
-      // practice_mode 判别位（spike 命门）：D1 留存 = 人次日回来做 review 换皮复测,
-      // 必须能从 forward(当天轻练)里分出来,否则 GO/NO-GO 判不了。
-      telemetry.trackProductBehavior("learning_action_completed", {
-        module: "practice",
-        action: "complete",
-        objectType: "retest",
-        objectId: this.data.packId,
-        result: correctCount + "/" + this.data.total,
-        practiceMode: this.data.mode,
-      });
+      this._submitCompletion(all, correctCount);
     }
   },
 
@@ -227,10 +225,83 @@ Page({
   nextQuestion() {
     var next = this.data.currentIndex + 1;
     if (next >= this.data.total) {
-      this.setData({ showReceipt: true });
+      if (this.data.syncStatus === "synced") this.setData({ showReceipt: true });
+      else if (this.data.syncStatus === "error") this.retryCompletion();
       return;
     }
     this.setData({ currentIndex: next });
+  },
+
+  retryCompletion() {
+    var all = (this.data.items || []).slice();
+    if (!all.length || all.some(function (item) { return !item.answered; })) return;
+    this._submitCompletion(all, this.data.correctCount);
+  },
+
+  goConceptCards: function () {
+    var packId = this.data.packId || "";
+    if (!packId) return;
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({
+        url: route.lubanConceptCards({ pack_id: packId }),
+      });
+    }
+  },
+
+  continueAfterReceipt() {
+    if (this.data.mode === "forward" && typeof wx !== "undefined" && wx.redirectTo) {
+      wx.redirectTo({
+        url:
+          "/packageDeeptutor/pages/luban/handoff/handoff?pack_id=" +
+          encodeURIComponent(this.data.packId || ""),
+      });
+      return;
+    }
+    this.goBack();
+  },
+
+  _submitCompletion(items, correctCount) {
+    if (this.data.syncStatus === "syncing" || this.data.syncStatus === "synced") return;
+    var that = this;
+    this.setData({ syncStatus: "syncing", syncError: "" });
+    return api
+      .completeLubanRetest(this.data.packId, {
+        completion_id: this.data.completionId,
+        selection_id: this.data.selectionId,
+        mode: this.data.mode,
+        day_index: this.data.dayIndex,
+        training_intent_id: this.data.trainingIntentId,
+        probe_id: this.data.probeId,
+        answers: items.map(function (item) {
+          return { variant_id: item.variant_id, choice_ok: item.chosenOk === true };
+        }),
+      })
+      .then(function () {
+        if (typeof wx !== "undefined" && wx.setStorageSync) {
+          try {
+            wx.setStorageSync("luban_retest_last:" + (that.data.packId || ""), {
+              correct: correctCount,
+              total: that.data.total,
+              at: Date.now(),
+            });
+          } catch (_err) {}
+        }
+        telemetry.trackProductBehavior("learning_action_completed", {
+          module: "practice",
+          action: "complete",
+          objectType: "retest",
+          objectId: that.data.packId,
+          result: correctCount + "/" + that.data.total,
+          practiceMode: that.data.mode,
+        });
+        that.setData({ syncStatus: "synced", syncError: "", done: true, showReceipt: true });
+      })
+      .catch(function (err) {
+        that.setData({
+          syncStatus: "error",
+          syncError: api.describeRequestError(err, "保存失败，请重试后再查看收据"),
+        });
+      });
   },
 
   _loadItems() {
@@ -258,6 +329,8 @@ Page({
         });
         that.setData({
           pool: pool,
+          dayIndex: Number(body.day_index || 0),
+          selectionId: String(body.selection_id || ""),
           seenCount: that._seenCount(items),
           items: items,
           total: items.length,
@@ -271,6 +344,8 @@ Page({
           textbookCount: 0,
           loading: false,
           errorText: "",
+          syncStatus: "idle",
+          syncError: "",
         });
       })
       .catch(function (err) {

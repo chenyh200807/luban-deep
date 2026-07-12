@@ -110,6 +110,12 @@ Page({
     this._firstRunSyncing = true;
     this.setData({ firstRunState: "syncing" });
     const that = this;
+    // 陈旧pending的script_version自愈: 签发翻牌会改版本号(题集与内容sha未变),
+    // 老payload按当前常量重放, 避免永久version_conflict
+    const scriptData = require("../first-run/script-data");
+    if (scriptData && scriptData.SCRIPT_VERSION && pending.script_version !== scriptData.SCRIPT_VERSION) {
+      pending.script_version = scriptData.SCRIPT_VERSION;
+    }
     return api
       .completeFirstRun(pending, { silent: true })
       .then(function (result) {
@@ -123,9 +129,7 @@ Page({
         return result;
       })
       .catch(function (error) {
-        const code = String(
-          (error && error.payload && error.payload.detail && error.payload.detail.error) || "",
-        );
+        const code = api.errorCodeOf(error);
         that.setData({
           firstRunState:
             code === "first_run_content_not_signed" || code === "first_run_version_conflict"
@@ -252,7 +256,17 @@ Page({
       return;
     }
     if (task.practice_kind === "retest" && packId) {
-      this._navTo("/packageDeeptutor/pages/luban/retest/retest?pack_id=" + packId + "&mode=forward");
+      var reviewMode = !!task.probe_id;
+      this._navTo(
+        "/packageDeeptutor/pages/luban/retest/retest?pack_id=" +
+          packId +
+          "&mode=" +
+          (reviewMode ? "review" : "forward") +
+          "&training_intent_id=" +
+          encodeURIComponent(String(task.training_intent_id || "")) +
+          "&probe_id=" +
+          encodeURIComponent(String(task.probe_id || "")),
+      );
       return;
     }
   },

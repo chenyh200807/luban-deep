@@ -102,8 +102,9 @@
               <text class="rt-anchor" wx:if="{{items[currentIndex].anchor && !items[currentIndex].textbook}}">定位 {{items[currentIndex].anchor}}</text>
 
               <view class="pk-btn-ink rt-next" bindtap="nextQuestion">
-                {{currentIndex + 1 < total ? '下一题' : '看今日收据'}}
+                {{currentIndex + 1 < total ? '下一题' : (syncStatus === 'syncing' ? '正在保存…' : (syncStatus === 'error' ? '重试保存' : '看今日收据'))}}
               </view>
+              <text class="rt-anchor" wx:if="{{syncError}}">{{syncError}}</text>
             </view>
           </view>
         </block>
@@ -142,6 +143,12 @@
           </view>
           <text class="rt-receipt-clean" wx:if="{{!wrongItems.length && total}}">一题没漏——这个考点怎么换皮，你都认得。</text>
 
+          <!-- 三角回路: 复测→考点卡(错了去背给分词;全对去巩固) 纯导航零第二权威 -->
+          <view class="rt-cc-link" catchtap="goConceptCards">
+            <text class="rt-cc-link-tx">{{wrongItems.length ? '翻这一站的考点卡 · 把给分词背上' : '翻这一站的考点卡 · 趁热再巩固'}}</text>
+            <text class="rt-cc-link-arrow">›</text>
+          </view>
+
           <view class="rt-stamp-row">
             <view class="rt-stamp">
               <text>{{mode === 'forward' ? '明日换皮' : '回炉完成'}}</text>
@@ -149,7 +156,7 @@
             <text class="rt-stamp-note">{{doneDesc}}</text>
           </view>
 
-          <view class="pk-btn-ink rt-next" bindtap="goBack">回到路线</view>
+          <view class="pk-btn-ink rt-next" bindtap="continueAfterReceipt">{{mode === 'forward' ? '去看看明天的约定' : '回到复习'}}</view>
         </view>
       </block>
     </view>

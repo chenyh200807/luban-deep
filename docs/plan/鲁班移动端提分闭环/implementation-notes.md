@@ -197,6 +197,77 @@
 - **[owner 战略定位存档]** "现在是搭基建做体系——全知识点量产还没开始, 基建必须扎实好用"; 且常设第三方顶尖独立专家宏观审视, 防自嗨防盲区。
 - **[宏观独立专家判决(全文在会话, 要点存档)]** 总裁决: **工具链工业级, 内容生成→质检回路手工业; 下游扎实、上游产线带病停摆、人闸是一个人的名字**。①可量产性先断点: 17 个手写变体 builder(互差 395-479 行非模板)、审计尺造好没接闸(audit_variant_style_tells 全仓零引用/CI 零内容闸)、教材 diff 预扫缺失(A 级主谱系防线仍是面板)、blocklist 复活零先例、pack 产线停摆 3 周(06-20 一次性产出后未动, 病未治产线重启=5 倍复现);②自嗨信号: 141 卡当天代签有未审面(lecture lane)、质量循环"面板互证"用户不在场(验收标准从真人回访悄悄降级为面板 PASS);③体系级盲区: 教研产能模型(岗位不存在却是量产依赖)、内容回归 CI=0、用户反哺排产回路=0、教材版本滚动 story 缺失;④量产前只做三件: 尺接闸进 CI / 变体生成层返工+17 builder 收敛 1 个数据驱动 builder / 真人进场+跑通一单 blocklist 复活回路; 可缓: first-run·retest 二轮视觉、看穿铺量(模板假设未证)、PGO 重建。**本日四拍板中 max_active 被其背书, 看穿关卡化+换皮打磨被其排在三件基建活之后(已按 owner 指令先行完成, 后续消费层打磨默认冻结让位基建)**。
 
+### 2026-07-11（首次体验→复测 Learner State 闭环根因加固）
+
+- **撤回旧链路说明**：retest 不再是“本地判分 + telemetry + 页面发 station_completed”。客户端本地判分只保留即时反馈，不具 learner truth 权威；最终 completion 必须 POST 到服务端按 signed variant bank 重判。
+- **根因**：item row/attempt truth 粒度错位，`learning_synthesis`、three-layer projection、learning report 三处各自按行数升档；partial item 又提前携带 verified 终态。
+- **收权**：shared evidence lifecycle 统一 source/promotion/attempt/terminal；RetestWritebackService 唯一写 item→terminal→station；review 绑定 due probe，forward 恒 non-promoting；处方和 probe identity 与 target pack 分离。GET 签发绑定 user/pack/day/mode/variant-set 的 selection identity，POST 验签后按原签发日重判，跨午夜/断网 retry 不换题。
+- **五模块侧门收口**：gauntlet 的即时再练显式归 forward；errorbank 删除“有题池=已到期”的前端推断，只消费 canonical review-due，pack、`retest_available`、probe 三者齐全才亮销账 CTA，并透传 `mode=review&probe_id`。总指挥否证式终审未发现仍可绕过 rollout/probe/selection/terminal 的 retest completion 入口。
+- **UI 语义**：保存失败不出收据、不说“明天见”；服务端 terminal 成功后 forward 进 handoff，review 回复习。handoff 只保留提醒与 telemetry，不再写 learner state。
+- **发布边界**：本轮不部署。首次四题仍因双教研签发未完成而 fail closed；真实微信订阅提醒仍依赖模板 ID，不能用页内红点冒充系统推送。
+
+### 2026-07-12（首跑内容签发翻牌 · owner一字拍板"签"）
+- **[签发执行]** script_manifest.v1.json四题`review_status=signed`+双reviewer留痕(`teacher_review:owner_cainkyking:2026-07-12:{qid}:{content_sha}`+`claude_fable_owner_delegate`同格式;content_sha按manifest.py同源规范化计算),`release_status=signed`+release_signoff(basis=owner本人对话授权,四题源自签发采分点owner本周多轮真机过目)。真loader`_require_signed_manifest`校验PASS。
+- **[版本连锁]** 签发改变script_version(清单sha)→前端script-data.js常量同步到`@5873e950…`;learn.js重放前对陈旧pending payload做版本自愈(题集与内容sha未变,仅签发元数据改版本,按当前常量重放,避免永久version_conflict)。
+- **[活体验证]** POST /first-run/complete(新版本号)→**HTTP 200, sync_status=synced**,score/learning_event_refs/training_intent/home_projection全量返回——"正在保存学情"卡死从治理源头到呈现层全链路治愈。
+
+### 2026-07-12（首跑'保存中'卡死治本+生产侧读性能 · owner三连②③）
+- **[③'正在保存学情'卡死=三层根因]** ①真源=首跑内容清单`release_status: blocked_pending_human_verdict`(双人签发人闸,writeback fail-closed by design——**这是治理态不是bug,签发决定在owner**);②**真bug**=HTTP异常处理器`str(exc.detail)`把结构化detail字符串化成"{'error': ...}"单引号串,前端解析不到错误码→把治理性409误当网络错→无限'保存中'(learn页自动重放机制其实一直在,只是每次都误判);③test2旧后端的422同病。治法:runtime/safety.py detail是dict/list原样透传(契约形状不变,类型忠实raise方);前端api.errorCodeOf兼容对象+旧字符串双形态(test2未更新期的belt);learn页blocked态文案本来就诚实('学情等待同步·点击重试保存'),解析修好后自然落位。
+- **[②五模块慢-生产侧]** 本地fallback只治开发机;生产侧两刀:①`_load_signed_bank`加(path,mtime)键读缓存——每请求扫37+个bank JSON的重复磁盘解析是复习/学情面读放大源,文件一变即失效,语义与直读等价;②learner_state远程memory events加20s TTL缓存+`append_memory_event`写侧即时失效——串行4次Supabase往返(~3s)是页面等待主体,同用户20s内复访直接命中。回归:read_model 26+learner_state 551全过。
+- **[owner待拍板]** 首跑清单签发:script_manifest.v1.json四题需`review_status=signed`+每题≥2 reviewer——这是内容人闸,你说签我就按你授权翻(reviewer留痕),或走真教研双签。不签则首跑学情写入持续fail-closed(报告本机可见,学情不入账)。
+
+### 2026-07-12（标准卡放量就绪+轮次体验+RichLeaf灰度runbook · owner"按你的建议来,顶尖体验"授权）
+- **[标准卡品质关+正式签发]** 修两个可见瑕疵:①knowledge-shape actor边界`负责(?!人)`(此前"设计单位项目负责人"被截成"设计单位项目");②跨点给分词去重(第二组剔重,剔空弃组)。重编100卡后走**promote std车道正式签发**——promote_variant_bank.py新增packless车道(同构语义:builder --check复现一致+source_v32_sha256锚定编译资产+教材复核零跳过+禁词扫描+签发翻牌唯一在本工具),signoff留痕owner授权。后端生产闸:**生产只认signed**,candidate仅非生产预览。放量姿势=部署时置`LUBAN_STD_CONCEPT_CARDS_ENABLED=true`(质量49+进度51两deck随下次test2/生产部署即亮)。
+- **[轮次体验(爱上的一拍)]** 考点卡每10张进**轮间歇收据**:斜章"第N轮"+大字进度+记住/回炉账目+确定性暖句轮换+两钮(继续下一轮·还剩X张/今天到这里·回复习)。49张的墙变成一轮轮小胜利——完成感是"还想继续用"的燃料。vm纯函数roundInfo(+4契约断言),实机验证第1轮10张准点触发。
+- **[RichLeaf灰度runbook(消治理blocker)]** flag=`LUBAN_RICH_LEAF_RUNTIME_ENABLED`(rich_leaf_runtime.py:35,默认OFF);消费点唯一=compiled_knowledge/general_knowledge.py:740(ADDITIVE overlay,miss即fail-open回legacy四源链,confidence门仍是路由权威)。**步骤(下次Aliyun里程碑执行)**:①test2部署时置flag=true(test2即qa环境,天然内部cohort);②Langfuse trace核rich_leaf_contexts真实命中+with/without对照;③盯排除法泄露复发(prompt≠terminal authority旧案);④≥3轮live核终态;⑤全绿→owner签published:true消掉release_governance_not_exercised。生产flag保持OFF直到owner签字。
+
+### 2026-07-12（三线并行:标准卡量产spike+共享组件收口+RichLeaf通电评审 · owner"三件事都做"）
+- **[①标准卡二梯队spike已通]** `scripts/build_luban_standard_concept_cards.py`:RichLeaf v32(1606叶verified采分点)×11年真题考频(FINAL_CLEANED_EXAM node_code实证,案例×2+选择×1,方向性口径)→**Top100叶标准卡**,四闸fail-closed(verified+教材quote逐字复核(不信任传递,100/100过)+禁词+去重)。聚成施工质量管理49+施工进度管理51两高频章deck(taxonomy二级节点权威命名)。**分层纪律**:tier=standard/status=candidate,后端只在`LUBAN_STD_CONCEPT_CARDS_ENABLED`且非生产投影(生产fail-closed),抽屉标"标准"徽标——签发口径待owner过目打样后定,不冒充精品。库总量141精品+100标准=241张。后端6 pytest全绿,API+实机验收(STD01首卡=分部验收组织,7给分词章)。待精化:actor切词偶有截断/跨点重复term去重/考频node级精确化(盘点文档自注待办)。
+- **[②共享组件收口]** 形态学解析器抽为`utils/knowledge-shape.js`(链/规则/枚举/红线/句读/数字+形状归型,concept-cards-view-model改require保持导出兼容,测试全绿);错因银行解药mental_model接`parseChain`→箭头链渲染竹青石链(检验批→分项→分部→单位这类心智模型不再是一段文字);复测完场收据挂考点卡回路(错了="把给分词背上"/全对="趁热巩固",学-错-背三角第三边闭合)。
+- **[③RichLeaf通电评审:两专家收敛裁决]** 质量权威专家:published:false=治理未走完非质量缺陷(5 blocker中3纯治理;fail-closed结构锁已浇死official_answer冒充,`rich_leaf_runtime.py:280-317`);架构消费专家:**"通电基本是伪需求"**——runtime bundle实为1466条/2.8MB/lru一次载入,唯一已接线消费者=general_knowledge教学overlay(additive,flag默认OFF);四候选消费者排序=标准卡(编译期)>轻练富化(编译期)>报告副标题(投影)>TutorBot grounding(runtime)。**合议裁决:编译期全吃为主线(①已执行第一步),runtime flag保留为廉价期权;若要消掉release_governance_not_exercised治理blocker,test2 qa_ cohort给教学overlay灰度一次(owner拍板项)**。90天消费路线图入账:D1-14标准卡打样(已完成)→D15-30轻练/cloze富化→D31-45报告副标题投影→D46-60消费驱动质量回灌quarantine→D61-90按需灰度runtime。
+
+### 2026-07-12（五模块加载慢根因+修复 · owner"为什么特别慢"）
+- **[根因]** 量化定位:review-due **3.45s**、mistake-book **1.0s**,其余端点全毫秒级。剖析:投影本身6ms,3秒全烧在`list_memory_events`——本地开发后端每请求**串行打4次远程Supabase HTTPS查询**(~1s RTT×4)。学习/复习/错因页都消费这两个端点=五模块整体感觉慢。
+- **[修法=接通休眠旗标,零代码]** 代码里逃生门早已建好:`DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK`+`DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK`(非生产+flag→本地投影,不打Supabase)。本地serve脚本加两行env→**review-due 3.45s→0.04s(86×),mistake-book 1.0s→5ms**。dormant flag再添一例:修法不是写新码,是给已有门通电。
+- **[生产侧注意]** 此修只治本地开发体验;生产(Aliyun→Supabase)同样存在"每请求串行4连击远程查询"的结构病(六专家审计的同步阻塞+读扇出),RTT小但仍在账上,治本需读侧缓存/合并查询,另立工单。
+- **[owner问"下一步把所有考点卡都更新掉?"]** 已全部更新:v32富化+重签是**17站141卡整体管线**,不只A01(证据表:95/141带给分词,X03 15/19、X02 10/11、C02 10/13…J01 0/3是该站chunk无verified采分点交集,fail-closed宁缺)。真正的"更新掉所有考点卡"=铺满40站/全考纲,瓶颈在考点原料pack量产(内容线),不在这条技术管线。
+
+### 2026-07-12（考点卡×编译资产：v32采分点富化进卡 · owner"利用编译资产,数据盘点里找"指令）
+- **[资产选型]** 按数据盘点(2026-06-16编译资产盘点)核库:选**RichLeaf v3.2采分点富化层**(1612 unit/5705采分点,每点带quote_verified教材溯源+required_terms)——141卡chunk_id join命中**141/141**,可挂~1823点。exam_patterns**不上**:LLM合成题面无verified溯源,不冒充真题考法(单一权威纪律)。
+- **[编译期join四闸]** builder新增`_attach_scoring_terms`(fail-closed):①quote_verified=True且source_authority=textbook;②terms 1..8个;③**每个term逐字∈本卡quote**(卡引的是chunk意图切片,词不在切片=不是这张卡的给分词,宁缺勿挂——A01竣工验收卡因此滤掉了同chunk的屋面/检验批杂点);④terms元组去重,每卡≤2组。**覆盖95/141卡(67%)**。bank记账enrichment元信息;17站全部rebuild+promote人闸重签(basis留痕)。v32包为本机artifacts软链(同教材库先例,缺席=空富化不挡产出)。
+- **[消费链]** 后端concept_cards投影透传scoring_terms→vm scoringTerms→卡面新块**"阅卷认的词·写到才给分"**(朱红词章+`来自判分编译库·教材原文逐词核验`角注)。竣工验收卡实测:竣工验收/预验收/评估报告三词章。前端契约+3断言、后端6 pytest全PASS,automator实机截图验收。
+- **[意义]** 考点卡从"背原文"升级为"背给分词"——判分编译库(1221条判分点的姊妹资产)第一次直接喂进记忆产品面;供给消费缺口(21:1病)再收窄一格。
+
+### 2026-07-12（考点卡v3精致化+选站抽屉 · owner"不够精致/交互不好/全面吗"三问）
+- **[精致化=形状驱动的视觉系统]** 参考顶尖知识卡(Anki高分卡组/间隔重复最佳实践"回忆先于核对"):①**知识形状徽标**——每张卡按结构定形状(一道红线/一条规则/一条流程链/一份分工清单/几个关键数/几句要点/一句原文),正面出**回忆预告**("背面是一条流程链·先在脑子里搭出它"=recall priming,给回忆一个方向而不是裸问);②形状色系(红线朱红/流程竹青/数字赭/要点墨)贯穿:正面预告chip→卡片左缘色条→翻面徽标;③翻面内容ccUp入场动效;④"点一下翻面"斜置朱红章;⑤进度条升级**骨牌**(过一张点亮一枚,当前朱红);⑥完场账目(记住N·回炉M大字对账)。
+- **[选站交互重做]** 横向拉chips→**站牌+选站抽屉**:当前站牌(站名/张数/待还红点/▾)点开底部抽屉,双列网格全站一屏选,红点=该站有待还错因(pendingMap全站一次算清,与错因银行同一归属口径);另设"下一站›"循环连翻(完场页也有)。
+- **[141张全面吗——诚实口径]** 不全面:141张=17个试点变体站的签发量,考纲taxonomy共3158叶、路线40站。头部文案改诚实口径"已铺17站·141张·持续铺站中"。量产瓶颈不在前端在内容编译线——变体引擎(X02试点DIFF-EQUAL)+builder收敛正是为量产铺的基建。
+- **[验证]** 契约测试+4断言(知识形状)全PASS;automator实机三截图(正面预告/翻面徽标/选站抽屉红点)验收。
+
+### 2026-07-12（考点卡形态学v2+错因银行双向挂钩 · owner"页面没效果/太linear"反思整改）
+- **[owner反馈+我的盲区]** 前一版三解析器(链/枚举/数字)在141卡全库只命中~41张,**约100张裸奔回落颗粒条**——我拿一张最漂亮的卡(竣工验收5步链)验收了"通用"声称,犯了"样本选择性验收"错:owner随手翻到3/8(条件→红线卡)就当场露馅。教训与错因银行同款:**声称通用必须全库覆盖率实测,不许用最佳样本代表全体**。
+- **[形态学v2]** 新增4种确定性形态(仍全部逐字切分零改写):①**规则牌**=双段gist(条件⇒结果),结果含严禁/不得/禁止→**红线章**(朱红描边);②枚举兼容**（1）（2）式**(教材另一常用体例,此前只认①②);③**红线句捞取**=原文含禁止词的整句(≤2条,"禁"字斜章);④**句读要点**=无枚举时按。；切2-6短句兜底。枚举行含禁止词朱红高亮。**全库实测:裸奔19/141(86%有结构)**,链10/规则2/枚举68/要点36/红线21/数字45。契约测试+7断言PASS。
+- **[考点卡↔错因银行双向挂钩]** (owner提议;纯导航回路,零第二权威):①考点卡记忆面→本站有待还错因时显"这一站你有N笔待还错因·去看解药"(deriveRetestPackId同一归属口径,未开通/0笔不显);②错因银行详情解药卡尾→"翻这一站的考点卡·教材原文逐字巩固"(有packId才显)。学-错-背三角闭环打通。automator实机验收:目标卡(严禁验收红线)规则牌+红线高亮+挂钩条(1笔)全亮。
+
+### 2026-07-12（错因银行二级页评审+治本：解药签发内容全量放行 · owner"信息有限"反馈即时入账）
+- **[owner问: 二级页信息很有限,是早期对话的原因还是以后都这样]** 答:**两者都有,且都能治**。诊断=富内容要同时过三道闸((pack归属命中)×(错因码是注册码)×(该站解药池收录该码)),任一miss就退化占位;早期对话记账三闸全难命中。且**后端把签发解药的2/3字段丢了**(build_antidote只回mental_model+textbook_ref,phenomenon/wrong_model被扔,同码多条只取一条)——签发内容付了钱只消费1/3,又一例消费不足。
+- **[治法四层]** ①后端`build_antidote`全字段投影(items数组含phenomenon/wrong_model/mental_model/textbook_ref,首条顶层键向后兼容,6 pytest PASS);②vm加**人话标签↔注册码逆映射**(同一注册表双向镜像非二次归因——判分内核写"关键词缺失"这类人话diagnosis的记账,现在能解锁(pack,code)解药查询键;整句/「标签：细节」前缀两种形态;非注册文本仍不硬造码);③详情解药卡重排为**三段递进**:常见的坑(phenomenon)→✕旧地图(wrong_model,划线+赭色)→↓换成这张新地图→✓新心智模型(竹青强调)+教材出处,同码多条最多展示2条;④共情细节:空note不再留空壳kicker;无码早期记账给一句诚实说明("早期记账没带错因码——新的判分会自动归因,这页会随之长厚");列表行首空粉块补错因码印章。
+- **[验证]** 真ref铸造(sign_attempt_ref)种3笔代表性数据(富E06/A01·中"关键词缺失"→逆映射E03·薄自由文本);automator实机三态截图验收:列表/富详情(三段解药×2条全亮)/薄详情(暖降级+诚实说明)。vm契约测试含旧断言契约更新(人话标签逆映射为特性)全PASS。
+- **[盲区反思]** ①此前修"错因银行404"只修到诚实空态就停了,从没用**代表性数据**走过一遍二级页——每个fail-closed单独看都对,叠在一起=体验荒漠,这是"逐闸正确,整体饥饿"的盲区;②解药bank签发时对抗验尸过内容质量,却没审计**消费端到底用了几个字段**——供给侧验收≠消费侧验收;③deriveRetestPackId严格等值匹配是诚实设计,但零命中时无任何遥测,饥饿不可见。教训:**页面验收必须带代表性中间态数据,供给资产上线必须核消费字段覆盖率**。
+- **[遗留]** pack归属仍fail-closed(concept_label须全等站名/qid含pack词元)——扩宽需要owner拍板口径;解药池当前~17站×少数错因码,覆盖率提升靠内容量产线。
+
+### 2026-07-12（考点卡记忆面重设计 + 轻练接线澄清 · owner两问即时入账）
+- **[owner问1: 轻练是不是没接进去]** 澄清:**已接进去**——本线(codex/first-run-learner-loop)已把纸墨复测/5关连闯/四拍板/防泄露全量 cherry-pick(8cafb6de/4ab32db9/fcff8b48/d53eadbc);学习页"教研签发中"是**供给真值路由的诚实空态**,病根=DevTools连的test2后端还是旧代码(无retest_available字段)。本地后端(f16_local_serve_loop.py指本树)实测:A01/C01/C02 retest_available=true,供给全亮。**结论:前端接线完整,差的是后端部署**(上test2/生产=Aliyun里程碑)。
+- **[owner问2: 考点卡太繁琐,要精妙设计]** 翻面从"原文墙"重设计为**记忆面**,三种确定性图形化(单一权威边界不破:全部是key_gist/quote的逐字切分,前端零改写零生成,测试钉死"主体+动作=原文逐字子串"):①**先记这条链**=key_gist按→切步骤石链(朱红序号章+纸片石+箭头,自动换行);②**谁做什么**=quote按①②…枚举切行,主体(勘察单位/监理单位…)提为竹青签章+动作原文;③**关键数**=数字+单位提为大字瓷砖(≤4枚,带逐字上下文标签)。无结构可提炼的卡回落可背颗粒条。**教材原文默认收拢,「看教材原文全文↓」一键展开**(尊重爱看全文的用户);溯源角标(kc:+教材页码)常驻。解析器在concept-cards-view-model(纯函数),契约测试+8断言全PASS;automator实机截图两态验收(记忆面/原文展开)。
+- **[附带]** demo本地后端serve脚本换台账:f16_local_serve_loop.py(sys.path指本树,手机号19900000712注册f16demo);app.js USE_LOCAL hack仅本地不提交(沿ee99e76e惯例)。
+
+### 2026-07-12（首跑亮色版配色治本 + 学情/我的默认亮色 + 外观切换 · owner三连指令即时入账）
+- **[owner反馈]** 首跑判分卡/报告幕大量文字隐形(截图证据)——根因:first-run.wxss 是蓝黑青暗色基座+纸墨覆盖层收口(`fr-page paper light pk-paper-bg` 写死亮色),覆盖层盖了 27 处漏了 12 处,暗色白字/亮青/深蓝卡底直接印在宣纸上。**不是零散补色,是覆盖层不完备的系统病。**
+- **[治法]** first-run.wxss 追加"覆盖层补漏"段(全部走 --pk-* 变量,明暗双套自适应):verdict/case 深蓝卡→纸墨卡;good/bad 选项白字→墨字;阅卷认的词 chips 亮青→墨字纸片(命中竹青/漏写朱红);hero 副行/环标签/编译库刻度白字→墨字;口诀亮琥珀→朱红;stag/字母章薄荷粉→竹青朱红赭;画像暖橙→朱红系。script-data.js 两处**内联样式**(HI/HITWORD 亮青/薄荷,内联压 CSS)→竹青 #48806a。automator 实测三幕截图验收:判分卡上/下半+报告幕全部可读且纸墨风格统一。
+- **[学情/我的默认亮色+外观切换]** ①单一权威扩展:host-runtime 加 `getThemeOr(fallback)`(用户从未显式选主题时返回页面级默认),helpers 加 `isDarkOr`;app.js globalData.theme 不再烤死 "dark"(空=从未选过,这是能实现页面级默认的前提,契约测试 11 断言 PASS)。②report/profile 两页 `isDarkOr("light")` 默认亮,syncTabBar 传 isDark 让壳跟页面同色;其余页(chat 等)默认不变。③我的页"学习设置"卡新增**外观**行(亮色/暗色 chips,复用现有 chip 交互),setAppearance→helpers.setTheme 全端跟随。automator 实测:未选主题我的页 isDark=false,切暗立即生效,tab bar 跟随,亮暗两套截图均正常。
+- **[测试]** 4 个 profile 测试 mock 补 isDarkOr 后全 PASS;js 套件唯一 FAIL=test_index_launch_home,系本地 project.private.config.json 编译条件指 first-run 所致(干净树 PASS),非本次改动,该文件不提交。
+- **[待办]** 同病扫描显示 assessment/billing/history/mistake-book 等页存在暗色态白字(它们是明暗双态页,当前默认暗不发病);若日后把全局默认翻亮,须先逐页核 .light 覆盖完备性。
+
 ## 惯例沉淀（复盘时升格为规则的候选）
 - 部署后必做独立探针（不信脚本自报）——本轮抓到 22 站 404 与 F16 无声两个上线级洞。
 - owner 口述需求先 grep 是否已实现再派工；agent 终态纪律=最终回复基于磁盘/线上实测，"等待中/等子报告"不是完成态。

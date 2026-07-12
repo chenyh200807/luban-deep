@@ -74,7 +74,7 @@ http_routes:
   - {prefix: /api/v1/lesson-progress, reason: "学-evidence (lesson_viewed) write adapter (融合计划 §2.1): records learning_evidence with source_feature=luban_lesson, evidence_level=exposed, progress_countable=false; stays OUT of the synthesis whitelist and never promotes mastery (M0)."}
   - {prefix: /api/v1/learning-brain, reason: "Learning-brain QA (dev-gated)."}
   - {prefix: /api/v1/luban-preview, reason: "Luban preview AI ask adapter; production REST surface must stay explicitly governed and rate-limited."}
-  - {prefix: /api/v1/luban, reason: "Luban lesson viewmodel (双轮 §7 投影门 runtime 消费者): authed read-only projection of pack-manifest green lights; fail-closed 404 for unpublished packs; zero write (evidence 归 learner_signal/判分链路)."}
+  - {prefix: /api/v1/luban, reason: "Luban lesson runtime: authenticated signed-pack projections plus canonical retest completion adapter; item answers are server-rescored and only the fat RetestWritebackService may commit terminal learning evidence and station_completed."}
   - {prefix: /api/v1/member, reason: "Member console: profile / progress / goals / wallet."}
   - {prefix: /api/v1/memory, reason: "Learner memory read models."}
   - {prefix: /api/v1/mobile, reason: "Mobile (mini-program) read models + auth adapters."}
@@ -637,8 +637,13 @@ domains:
       - tests/services/learner_state/test_home_personalization_imports.py
       - tests/services/first_run/test_manifest.py
       - tests/services/first_run/test_writeback.py
+      - tests/services/first_run/test_prescription_resolver.py
       - tests/services/first_run/test_status.py
       - tests/api/test_mobile_first_run.py
+      - tests/services/learner_state/test_first_run_retest_lifecycle.py
+      - tests/services/luban_lesson/test_retest_writeback.py
+      - tests/services/luban_lesson/test_retest_selection.py
+      - tests/api/test_luban_retest_complete_endpoint.py
       # 复习模块(双轮 §6)——到期收权 revalidation_queue 的域测试
       - tests/services/luban_lesson/test_review_due.py
       # Battle1 W4-T3 model-tiering: consolidation_model split on protected agent/memory.py.

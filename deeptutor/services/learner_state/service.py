@@ -405,6 +405,13 @@ class LearnerStateService:
         merged = _deep_merge(profile, patch)
         return self.write_profile(user_id, merged)
 
+    def merge_profile_strict(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
+        """Strict durable profile patch authority for authenticated write paths."""
+        normalized = _normalize_user_id(user_id)
+        current = self.read_profile(normalized)
+        merged = _deep_merge(current, dict(patch or {}))
+        return self.write_profile_strict(normalized, merged)
+
     def read_summary(self, user_id: str) -> str:
         normalized = _normalize_user_id(user_id)
         self._ensure_seed_state(normalized)
@@ -571,6 +578,33 @@ class LearnerStateService:
             if goal_id and goal_id not in previous_ids:
                 self._core_store.delete_goal(goal_id)
 
+    # 远程事件读缓存: {user_id: (monotonic_ts, events)}。20s TTL——复习/学情/错因
+    # 三面每次进入都读一遍(串行4次Supabase往返~3s是"五模块慢"的生产侧根因),
+    # 写侧(append_memory_event)即时失效, 单进程内不会读到写后旧值。
+    _REMOTE_EVENTS_TTL_S = 20.0
+
+    def _remote_events_cache_get(self, user_id: str) -> list[LearnerStateEvent] | None:
+        import time as _time
+
+        entry = getattr(self, "_remote_events_cache", {}).get(user_id)
+        if not entry:
+            return None
+        ts, events = entry
+        if _time.monotonic() - ts > self._REMOTE_EVENTS_TTL_S:
+            return None
+        return events
+
+    def _remote_events_cache_put(self, user_id: str, events: list[LearnerStateEvent]) -> None:
+        import time as _time
+
+        if not hasattr(self, "_remote_events_cache"):
+            self._remote_events_cache = {}
+        self._remote_events_cache[user_id] = (_time.monotonic(), events)
+
+    def _remote_events_cache_invalidate(self, user_id: str) -> None:
+        if hasattr(self, "_remote_events_cache"):
+            self._remote_events_cache.pop(user_id, None)
+
     def list_memory_events(self, user_id: str, limit: int | None = 20) -> list[LearnerStateEvent]:
         normalized = _normalize_user_id(user_id)
         self._ensure_seed_state(normalized)
@@ -591,16 +625,21 @@ class LearnerStateService:
         if bool(getattr(self._core_store, "is_configured", False)):
             reader = getattr(self._core_store, "read_memory_events", None)
             if callable(reader):
+                cached_remote = self._remote_events_cache_get(normalized)
+                if cached_remote is not None:
+                    remote_events = cached_remote
                 try:
-                    remote_events = [
-                        event
-                        for event in (
-                            self._event_from_mapping(item, default_user_id=normalized)
-                            for item in list(reader(normalized, limit=limit) or [])
-                            if isinstance(item, dict)
-                        )
-                        if event is not None
-                    ]
+                    if cached_remote is None:
+                        remote_events = [
+                            event
+                            for event in (
+                                self._event_from_mapping(item, default_user_id=normalized)
+                                for item in list(reader(normalized, limit=limit) or [])
+                                if isinstance(item, dict)
+                            )
+                            if event is not None
+                        ]
+                        self._remote_events_cache_put(normalized, remote_events)
                 except Exception:
                     if is_production_environment():
                         return []
@@ -849,6 +888,7 @@ class LearnerStateService:
         if not self._event_dedupe_exists(path, event.dedupe_key):
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(_json_dump(self._event_to_dict(event)) + "\n")
+        self._remote_events_cache_invalidate(normalized)  # 写后读不吃20s旧值
         self._enqueue_memory_event_outbox(event)
         self._maybe_auto_synthesize_learning_truth(event)
         return event

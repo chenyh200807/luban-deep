@@ -1,6 +1,6 @@
 # 鲁班首次体验 × 五模块原生旅程实施计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. owner 已于 2026-07-11 授权 commit、review、push、开 PR 并合并 main；仍未授权部署。本轮继续由当前会话 inline execution，不使用 subagent。
+> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. owner 已于 2026-07-11 授权 commit、review、push、开 PR 并合并 main；仍未授权部署。2026-07-11 owner 追加要求由顶尖专家 subagent 团队按 root-cause gate 终审，本轮已按该要求执行。
 
 **Goal:** 把老蓝最终版首次体验适配为五模块「学习」首页的原生首段旅程，并在报告完成时一次性、幂等写回 canonical Learner State。
 
@@ -22,6 +22,24 @@
 | 8. 首次完成与旧摸底收权 | Complete | `/assessment/profile` 只读投影 canonical `learner_state.learning_preferences.first_run`；问鲁班以该服务端完成事实抑制旧 8 分钟摸底弹窗，跨设备不依赖本地 DONE；服务与前端 authority tests 通过 |
 
 当前终态：`implemented_and_local_authenticated_pass_but_content_release_blocked`。`real_wechat_package` 页面级旅程与本地 auth-chain 均 PASS；唯一剩余内容启用 stop condition 是四题双教研 signed verdict。owner 已授权把 fail-closed 代码候选合入 main，但未授权部署或开启 unsigned 内容。
+
+### 2026-07-11 lifecycle root-cause hardening addendum
+
+专家组复核推翻了“只差一个完成接口”的窄结论。共同根因是
+`producer/consumer granularity mismatch + evidence lifecycle authority drift`：item row 被当成
+attempt，三处读模型各自判断“错两次”，completion 终态又在 item 写完前提前发布。
+
+本轮加固范围：
+
+- 共享 `evidence_lifecycle` authority 统一 source eligibility、promotion cap 与 distinct attempt；
+- first-run 错题只进 L0，处方只引用 focus evidence，完成 marker 最后提交；
+- `training_intent_id/probe_id` 与 `target_pack_id` 分离，兼容旧处方但不再把 intent 当 pack；
+- signed retest 由服务端重判，review 必须绑定 due probe，item 后追加唯一 terminal；
+- GET 取题签发 selection identity，绑定 user/pack/day/mode/variant set，跨午夜重试仍消费原题；
+- `station_completed` 按 completion 幂等，不再按 user+pack 永久吞掉跨日复测；
+- 页面只有服务端 terminal 成功后才展示收据，forward 收据继续进入 handoff；handoff 降级为纯呈现/提醒面。
+
+仍存在两个外部 release blocker，不以代码伪造 closure：四题双教研 signed verdict、微信订阅消息模板 ID。未部署。
 
 本轮 fresh verification（rebase 到最新 `origin/main` 后）：后端/五模块聚焦集 `238 passed`，另有依赖本机只读教材权威库的 concept-card 编译器 `22 passed`；首次旅程、学习入口、注册、五 Tab shell、首页 prompt、旧摸底 authority、learn/review/errorbank/gauntlet view model、seethrough page 共 12 个 Node 脚本 exit 0；exact CI contract、schema、REST route、runtime assets、Ruff、secret scan、双 index mirror、whitespace gate 全部通过。DevTools 真页面验证：答题态五 Tab 隐藏，`稍后 -> 回学习` 后恢复五 Tab；首次体验适配未覆盖正确基线的 TabBar 实现。
 

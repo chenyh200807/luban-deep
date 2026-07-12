@@ -113,9 +113,19 @@ def build_antidote(
     if not rows:
         raise LessonNotAvailable(pack_id)
     row = rows[0]
+    # 签发内容全字段投影(2026-07-12: phenomenon/wrong_model 此前被丢弃=消费不足;
+    # 同码多条全部返回, 首条字段保持向后兼容的顶层键)。
+    def _proj(r: dict) -> dict:
+        return {
+            "mental_model": str(r.get("mental_model") or ""),
+            "phenomenon": str(r.get("phenomenon") or ""),
+            "wrong_model": str(r.get("wrong_model") or ""),
+            "textbook_ref": str(r.get("textbook_ref") or ""),
+        }
     return {
         "pack_id": pack_id,
         "error_code": error_code,
         "mental_model": str(row.get("mental_model") or ""),
         "textbook_ref": str(row.get("textbook_ref") or ""),
+        "items": [_proj(r) for r in rows],
     }

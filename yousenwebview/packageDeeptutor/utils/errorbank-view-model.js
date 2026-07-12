@@ -15,9 +15,11 @@
 //   请求键: { pack_id: "F16", error_code: "E03" }
 //   响应形状: { mental_model: "<人话心智模型正文>",
 //               textbook_ref: "<教材出处标签>" }
-// - 换皮复测 CTA fail-closed: 只有 packId 可诚实归属且变体池探明有货
-//   (retestProbe.available === true)才渲染; 否则降级为回解析。
+// - 换皮复测 CTA fail-closed: 只有 packId 可诚实归属且 canonical review-due
+//   给出可用 probe 才渲染; 否则降级为回解析。
 // - 文案铁律: 只用「帮你变强」基调, 禁审视揭短词(测试钉死禁词表)。
+
+var knowledgeShape = require("./knowledge-shape");
 
 function _obj(v) {
   return v && typeof v === "object" && !Array.isArray(v) ? v : {};
@@ -95,6 +97,16 @@ function warmLineFor(errorCode) {
  * ① 人话 diagnosis(直接用) ② 原始错因码如 "E03"(镜像人话) ③ 空(兜底)。
  * @returns {{label: string, code: string}} code 仅在源头是注册表错因码时非空
  */
+// 人话标签 → 注册码 逆映射(同一注册表的双向镜像; E 系先注册,与解药池键位一致)
+var LABEL_TO_CODE = (function () {
+  var map = {};
+  Object.keys(ERROR_CODE_LABELS).forEach(function (code) {
+    var label = ERROR_CODE_LABELS[code];
+    if (!map[label]) map[label] = code;
+  });
+  return map;
+})();
+
 function humanizeErrorLabel(raw) {
   var text = _str(raw);
   if (!text) return { label: "待归因错因", code: "" };
@@ -105,6 +117,15 @@ function humanizeErrorLabel(raw) {
   }
   if (ERROR_CODE_LABELS[text]) {
     return { label: ERROR_CODE_LABELS[text], code: text };
+  }
+  // 判分内核写的人话 diagnosis: 整句=注册标签, 或 "标签：细节" 前缀 → 逆映射回码
+  // (镜像同一注册表, 不产生第二套归因; 解锁解药/复测的 (pack, code) 查询键)
+  if (LABEL_TO_CODE[text]) {
+    return { label: text, code: LABEL_TO_CODE[text] };
+  }
+  var head = text.split(/[：:，,——]/)[0].trim();
+  if (head && LABEL_TO_CODE[head]) {
+    return { label: text, code: LABEL_TO_CODE[head] };
   }
   return { label: text, code: "" };
 }
@@ -267,7 +288,7 @@ var ANTIDOTE_PENDING_DESC =
  * @param {object} entry buildErrorbankViewModel 输出的条目
  * @param {object} opts
  *   antidote    = 解药 bank 响应({mental_model, textbook_ref}), 无供给传 null
- *   retestProbe = {available: boolean} 变体池探测结论, 未探测/失败传 null
+ *   retestProbe = {available: boolean, probeId: string} review-due 结论
  *   position    = {index, total} 「第 x / n 笔」
  */
 function buildErrorbankDetail(entry, opts) {
@@ -276,7 +297,7 @@ function buildErrorbankDetail(entry, opts) {
   var antidote = o.antidote && typeof o.antidote === "object" ? o.antidote : null;
   var probe = _obj(o.retestProbe);
   var position = _obj(o.position);
-  var retestReady = !!e.packId && probe.available === true;
+  var retestReady = !!e.packId && probe.available === true && !!_str(probe.probeId);
   return {
     key: _str(e.key),
     attemptRef: _str(e.attemptRef),
@@ -301,13 +322,37 @@ function buildErrorbankDetail(entry, opts) {
     // ② 原题背景切片(记账现场), 完整作答对照走「回到当时的解析」深链
     slice: {
       quote: _str(e.title),
-      noteKicker: "当时的解析摘要",
+      noteKicker: _str(e.note) ? "当时的解析摘要" : "",
       note: _str(e.note),
     },
-    // ③ R8 解药: 有供给=心智模型正文; 无供给=fail-closed 降级(禁造讲解)
+    // 早期记账没带错因码(判分内核后来才开始写码)——诚实说明,不留悬念
+    thinNote: !e.errorCode
+      ? "这笔是早期记账，没带错因码——新的判分会自动归因，这页会随之长厚。"
+      : "",
+    // ③ R8 解药: 有供给=签发全字段(现象→旧地图→新地图, 同码多条); 无=fail-closed
     antidote: antidote
       ? {
           state: "ready",
+          // 向后兼容旧形状({mental_model,textbook_ref})
+          items: (_arr(antidote.items).length
+            ? _arr(antidote.items)
+            : [antidote]
+          )
+            .map(function (r) {
+              var o = _obj(r);
+              return {
+                text: _str(o.mental_model),
+                // 心智模型常是箭头链——共享形状解析器切石链(≥3段才算,零改写)
+                chain: knowledgeShape.parseChain(_str(o.mental_model)),
+                phenomenon: _str(o.phenomenon),
+                wrongModel: _str(o.wrong_model || o.wrongModel),
+                textbookRef: _str(o.textbook_ref || o.textbookRef),
+              };
+            })
+            .filter(function (r) {
+              return !!r.text;
+            })
+            .slice(0, 2),
           text: _str(antidote.mental_model),
           textbookRef: _str(antidote.textbook_ref),
         }
@@ -318,10 +363,11 @@ function buildErrorbankDetail(entry, opts) {
         },
     // 解药 bank 查询键(数据位): 供给上线后按此形状取
     antidoteQuery: { pack_id: _str(e.packId), error_code: _str(e.errorCode) },
-    // ④ 销账动线: 变体池探明有货才承诺换皮(fail-closed)
+    // ④ 销账动线: canonical 到期 probe 齐全才承诺换皮(fail-closed)
     retest: {
       ready: retestReady,
       packId: _str(e.packId),
+      probeId: _str(probe.probeId),
       ctaText: retestReady ? "换个皮再试一次 · 约 3 分钟" : "",
       fallbackText: "回到当时的解析",
     },

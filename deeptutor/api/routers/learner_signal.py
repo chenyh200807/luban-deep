@@ -29,6 +29,10 @@ class LearnerSignalRequest(BaseModel):
     error_code: str = ""
     ability_dimension: str = ""
     user_says: str = ""         # user_dispute: "mastered" | "not_mastered"
+    completion_id: str = ""
+    practice_mode: str = ""
+    training_intent_id: str = ""
+    probe_id: str = ""
 
 
 @router.post("/signal")
@@ -46,6 +50,10 @@ async def post_learner_signal(
             error_code=body.error_code,
             ability_dimension=body.ability_dimension,
             user_says=body.user_says,
+            completion_id=body.completion_id,
+            practice_mode=body.practice_mode,
+            training_intent_id=body.training_intent_id,
+            probe_id=body.probe_id,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

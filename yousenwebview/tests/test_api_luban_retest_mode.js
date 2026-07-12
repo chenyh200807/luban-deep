@@ -78,13 +78,13 @@ function urlOf(loaded) {
   assert(urlOf(loaded).indexOf("mode=review") >= 0, "未识别模式归一 review");
 })();
 
-// 向后兼容:errorbank 旧调用把 opts 放第 3 位,不得被当成 mode
+// 向后兼容:历史调用把 opts 放第 3 位,不得被当成 mode
 (function () {
   var loaded = loadApiModule();
   loaded.api.getLubanRetestItems("S05", 1, { silent: true });
   var url = urlOf(loaded);
   assert(url.indexOf("mode=review") >= 0, "第 3 位对象=opts 时 mode 应归 review, got " + url);
-  assert(url.indexOf("limit=1") >= 0, "limit=1 应保留(errorbank 单题探测), got " + url);
+  assert(url.indexOf("limit=1") >= 0, "limit=1 应保留, got " + url);
 })();
 
 if (fail > 0) {

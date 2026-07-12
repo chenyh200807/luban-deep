@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import functools
 import json
 import re
 import sys
@@ -706,13 +707,86 @@ def run_gate(pack_id: str, cards: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+# ── v32 采分点富化(2026-07-12): 编译期 join RichLeaf v3.2 采分点富化层 ──
+# owner 指令"利用编译资产"。四闸 fail-closed:
+# ① provenance.quote_verified=True 且 source_authority=textbook 才收;
+# ② required_terms 1..8 个;
+# ③ 每个 term 都逐字 ∈ 本卡 quote(卡引的是 chunk 的意图切片, 词不在切片=不是
+#    这张卡的给分词, 宁缺勿挂);
+# ④ 按 terms 元组去重, 每卡至多 2 组。
+# v32 包缺席(其他机器) → 空富化, 卡照常产出(enrichment 是加法, 不是门)。
+_V32_PACK_PATH = (
+    REPO / "artifacts" / "luban_grading_artifacts"
+    / "rich_leaf_v32_scoring_point_compile_20260613"
+    / "runtime_token_pack_v32_scoring_points.json"
+)
+
+
+@functools.lru_cache(maxsize=1)
+def _v32_chunk_index() -> dict[str, list[dict[str, Any]]]:
+    if not _V32_PACK_PATH.exists():
+        return {}
+    data = json.loads(_V32_PACK_PATH.read_text(encoding="utf-8"))
+    index: dict[str, list[dict[str, Any]]] = {}
+    for unit in data.get("runtime_token_pack_units") or []:
+        chunk_id = str((unit.get("source_ref") or {}).get("chunk_id") or "")
+        if not chunk_id:
+            continue
+        points = (unit.get("compiled_context") or {}).get("scoring_points") or []
+        index.setdefault(chunk_id, []).extend(points)
+    return index
+
+
+def _attach_scoring_terms(cards: list[dict[str, Any]]) -> int:
+    index = _v32_chunk_index()
+    attached = 0
+    for card in cards:
+        chunk_id = str((card.get("source_ref") or {}).get("chunk_id") or "")
+        quote = str(card.get("quote") or "")
+        rows: list[dict[str, Any]] = []
+        seen: set[tuple[str, ...]] = set()
+        for point in index.get(chunk_id, []):
+            prov = point.get("provenance") or {}
+            if prov.get("quote_verified") is not True:
+                continue
+            if str(prov.get("source_authority") or "") != "textbook":
+                continue
+            terms = [str(t) for t in (point.get("required_terms") or []) if str(t).strip()]
+            if not 1 <= len(terms) <= 8:
+                continue
+            if not all(term in quote for term in terms):
+                continue
+            key = tuple(terms)
+            if key in seen:
+                continue
+            seen.add(key)
+            rows.append(
+                {
+                    "statement": str(point.get("statement") or ""),
+                    "required_terms": terms,
+                    "point_id": str(point.get("point_id") or ""),
+                }
+            )
+            if len(rows) >= 2:
+                break
+        if rows:
+            card["scoring_terms"] = rows
+            attached += 1
+    return attached
+
+
 def build_payload(pack_id: str) -> dict[str, Any]:
     t0 = time.perf_counter()
     cards, dropped, pack_sha = derive_cards(pack_id)
     if not cards:
         raise BankBuildError(f"{pack_id} 派生 0 卡（fail-closed，无 quote 不成卡）")
+    terms_attached = _attach_scoring_terms(cards)
     gate = run_gate(pack_id, cards)
     return {
+        "scoring_terms_enrichment": {
+            "source": "rich_leaf_v32_scoring_point_compile_20260613",
+            "cards_with_terms": terms_attached,
+        },
         "schema_version": SCHEMA_NAME,
         "pack_id": pack_id,
         "status": "candidate",  # 签发唯一入口 = promote_variant_bank.py --kind concept_cards

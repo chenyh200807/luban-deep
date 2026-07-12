@@ -43,7 +43,7 @@ const FULL = {
   lessons: {
     lessons: [
       { pack_id: "A01", title: "检验批验收程序", content_sha256: "sha_a01", summary: "四级验收层级" },
-      { pack_id: "N01", title: "网络计划关键线路", content_sha256: "sha_n01", summary: "关键工作判定", retest_available: true },
+      { pack_id: "N01", title: "网络计划关键线路", content_sha256: "sha_n01", summary: "关键工作判定", retest_available: true, light_practice_available: true },
       { pack_id: "S05", title: "临时用电三级配电", content_sha256: "sha_s05" },
     ],
   },
@@ -143,7 +143,7 @@ ok("unavailable but green lessons → day-0 fallback station renders stage", () 
 // ── practice_active → 今日主任务卡 = 2 分钟 MCQ 轻练(PRD v1.3 §0.0 头牌收口) ──
 ok("practice_active arm → today task is MCQ light practice (not case grading)", () => {
   const vm = buildLearnViewModel({
-    homeDashboard: { next_step: { mode: "practice_active", source_ref: "N01", reason: "练:你漏的采分点" } },
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "练:你漏的采分点" } },
     report: FULL.report,
     lessons: FULL.lessons,
   });
@@ -156,11 +156,70 @@ ok("practice_active arm → today task is MCQ light practice (not case grading)"
   assert.strictEqual(vm.todayTask.estimated_minutes, 2);
   assert.strictEqual(vm.todayTask.mode, "topic"); // 路由到 assessment 专题模式
   assert.strictEqual(vm.todayTask.pack_id, "N01"); // 带上推荐考点
+  assert.strictEqual(vm.todayTask.training_intent_id, "ti_n01");
   assert.strictEqual(vm.todayTask.concept, "网络计划关键线路");
   assert.ok(vm.todayTask.title.indexOf("网络计划关键线路") === 0);
   assert.strictEqual(vm.todayTask.reason, "练:你漏的采分点");
   // 案例题批改已降级:今日任务不再携带案例批改 prompt(不走 chat 判分流)
   assert.strictEqual(vm.todayTask.prompt, undefined);
+});
+
+ok("practice source_ref is intent identity, never treated as a pack id", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: {
+      next_step: {
+        mode: "practice_active",
+        source_ref: "lti_not_a_pack",
+        target_pack_id: "F16",
+        reason: "继续练",
+      },
+    },
+    report: FULL.report,
+    lessons: {
+      lessons: [
+        { pack_id: "F16", title: "屋面防水起鼓割补", content_sha256: "sha_f16", retest_available: true, light_practice_available: true },
+      ],
+    },
+  });
+  assert.strictEqual(vm.nextStation.pack_id, "F16");
+  assert.strictEqual(vm.nextStation.green, true);
+  assert.strictEqual(vm.todayTask.training_intent_id, "lti_not_a_pack");
+});
+
+ok("signed variant supply does not expose forward CTA while rollout is off", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_f16", target_pack_id: "F16" } },
+    report: FULL.report,
+    lessons: {
+      lessons: [
+        { pack_id: "F16", title: "屋面防水起鼓割补", retest_available: true, light_practice_available: false },
+      ],
+    },
+  });
+  assert.strictEqual(vm.todayTask.practice_kind, "none");
+  assert.strictEqual(vm.todayTask.cta, "");
+});
+
+ok("review source_ref is probe identity and target_pack_id selects the station", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: {
+      next_step: {
+        mode: "review_due",
+        source_ref: "rvp_f16",
+        target_pack_id: "F16",
+        reason: "到期复验",
+      },
+    },
+    report: FULL.report,
+    lessons: {
+      lessons: [
+        { pack_id: "F16", title: "屋面防水起鼓割补", content_sha256: "sha_f16", retest_available: true, light_practice_available: true },
+      ],
+    },
+  });
+  assert.strictEqual(vm.nextStation.pack_id, "F16");
+  assert.strictEqual(vm.todayTask.probe_id, "rvp_f16");
+  assert.strictEqual(vm.todayTask.training_intent_id, "");
 });
 
 // ── 兜底臂(有站可学但非 practice_active)→ 同样是 MCQ 轻练,带该站考点 ──
@@ -181,7 +240,7 @@ ok("fallback arm → MCQ light practice carries next-station pack/concept", () =
 ok("practice_kind routes by signed supply: seethrough > retest > none", () => {
   // ① 站有签发看穿包 → seethrough 优先(即使也有变体池)
   const vmA = buildLearnViewModel({
-    homeDashboard: { next_step: { mode: "practice_active", source_ref: "N01", reason: "r" } },
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
     report: FULL.report,
     lessons: FULL.lessons,
     seethroughLibrary: { total: 1, packs: [{ pack_id: "N01", title: "网络计划关键线路" }] },
@@ -190,7 +249,7 @@ ok("practice_kind routes by signed supply: seethrough > retest > none", () => {
   // ② 无看穿有变体池 → retest(FULL 已断言)
   // ③ 两者皆无 → none: 主按钮不渲染(cta 空) + 诚实降级说明
   const vmC = buildLearnViewModel({
-    homeDashboard: { next_step: { mode: "practice_active", source_ref: "A01", reason: "r" } },
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_a01", target_pack_id: "A01", reason: "r" } },
     report: FULL.report,
     lessons: FULL.lessons, // A01 无 retest_available 字段 = 保守 false
   });
@@ -199,7 +258,7 @@ ok("practice_kind routes by signed supply: seethrough > retest > none", () => {
   assert.ok(vmC.todayTask.supplyNote.length > 0);
   // 看穿库响应缺失/畸形 → 空集保守降级不抛
   const vmD = buildLearnViewModel({
-    homeDashboard: { next_step: { mode: "practice_active", source_ref: "N01", reason: "r" } },
+    homeDashboard: { next_step: { mode: "practice_active", source_ref: "ti_n01", target_pack_id: "N01", reason: "r" } },
     report: FULL.report,
     lessons: FULL.lessons,
     seethroughLibrary: "garbage",

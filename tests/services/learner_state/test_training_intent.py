@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+from deeptutor.services.learner_state.home_personalization import (
+    build_home_personalization_projection_from_learning_signal,
+    write_home_personalization_projection,
+)
 from deeptutor.services.learner_state.training_intent import (
     PRESCRIPTION_AUTHORITY,
     build_learning_training_intent,
     prioritize_training_intents,
-)
-from deeptutor.services.learner_state.home_personalization import (
-    build_home_personalization_projection_from_learning_signal,
-    write_home_personalization_projection,
 )
 
 
@@ -21,6 +21,7 @@ def test_training_intent_contains_concept_error_attempt_and_question_count() -> 
         attempt_refs=["ref1"],
         question_count=9,
         training_mode="mcq_discrimination",
+        target_pack_id="f16",
     )
 
     assert intent["source"] == "learning_report"
@@ -30,6 +31,7 @@ def test_training_intent_contains_concept_error_attempt_and_question_count() -> 
     assert intent["attempt_refs"] == ["ref1"]
     assert intent["question_count"] == 5
     assert intent["training_mode"] == "mcq_discrimination"
+    assert intent["target_pack_id"] == "F16"
     assert intent["training_intent_id"].startswith("lti_")
 
 

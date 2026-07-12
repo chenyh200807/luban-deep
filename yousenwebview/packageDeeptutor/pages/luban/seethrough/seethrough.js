@@ -218,7 +218,13 @@ Page({
     });
     if (this.data.isLast) {
       // 复测读回:F16 站完成信号(非 promoting;旗标关=服务端拒收静默,不阻断)
-      try { api.postStationCompleted(PACK_ID, this.data.title || "").catch(function () {}); } catch (_e) {}
+      try {
+        api.postStationCompleted(
+          PACK_ID,
+          this.data.title || "",
+          "seethrough_" + PACK_ID + "_" + Date.now(),
+        ).catch(function () {});
+      } catch (_e) {}
     }
   },
 

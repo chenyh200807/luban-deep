@@ -29,6 +29,15 @@ from collections import defaultdict
 from typing import Any, Iterable
 
 from deeptutor.contracts.error_codes import ERROR_CODE_REGISTRY
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    committed_retest_completion_ids,
+    distinct_attempt_count,
+    event_promotion_allowed,
+    evidence_attempt_id,
+    is_learning_evidence_event,
+    is_real_retest,
+    is_retest_completion_terminal,
+)
 from deeptutor.services.learner_state.lesson_evidence import is_lesson_view_event
 from deeptutor.services.learner_state.service import LearnerStateEvent
 from deeptutor.services.taxonomy.construction_learning_graph import (
@@ -78,14 +87,19 @@ def project_three_layer_learning_state(
     conversation_signals: list[dict[str, Any]] = []
     legacy_count = 0
     lesson_view_count = 0
+    completion_terminal_count = 0
+    committed_retest_ids = committed_retest_completion_ids(ordered)
 
     for event in ordered:
+        if is_retest_completion_terminal(event):
+            completion_terminal_count += 1
+            continue
         # §2.1 显式分类：luban_lesson 学-evidence（lesson_viewed）不是 grading
         # fact 也不是 legacy——单独计数，防 legacy_count 观测口径虚高。
         if is_lesson_view_event(event):
             lesson_view_count += 1
             continue
-        fact = _extract_grading_fact(event)
+        fact = _extract_grading_fact(event, committed_retest_ids=committed_retest_ids)
         if fact is not None:
             grading_facts.extend(fact)
             continue
@@ -114,6 +128,7 @@ def project_three_layer_learning_state(
             "grading_fact_count": len(grading_facts),
             "conversation_signal_count": len(conversation_signals),
             "lesson_view_count": lesson_view_count,
+            "completion_terminal_count": completion_terminal_count,
         },
     }
 
@@ -122,14 +137,14 @@ def project_three_layer_learning_state(
 
 
 def _is_learning_evidence_event(event: LearnerStateEvent) -> bool:
-    payload = _safe_dict(getattr(event, "payload_json", {}))
-    return (
-        str(getattr(event, "memory_kind", "") or "").strip() == "learning_evidence"
-        or str(payload.get("event_type") or "").strip() == "learning_evidence"
-    )
+    return is_learning_evidence_event(event)
 
 
-def _extract_grading_fact(event: LearnerStateEvent) -> list[dict[str, Any]] | None:
+def _extract_grading_fact(
+    event: LearnerStateEvent,
+    *,
+    committed_retest_ids: set[str] | None = None,
+) -> list[dict[str, Any]] | None:
     payload = _safe_dict(getattr(event, "payload_json", {}))
     if str(payload.get("evidence_source") or "").strip() == "conversation_synthesis":
         return None
@@ -139,6 +154,12 @@ def _extract_grading_fact(event: LearnerStateEvent) -> list[dict[str, Any]] | No
     event_id = str(getattr(event, "event_id", "") or "").strip()
     created_at = str(getattr(event, "created_at", "") or "").strip()
     is_correct = _is_correct(payload)
+    attempt_id = evidence_attempt_id(event, payload)
+    can_promote = event_promotion_allowed(
+        event,
+        committed_retest_ids=committed_retest_ids,
+    )
+    real_retest = is_real_retest(payload)
 
     rubric = _safe_dict(payload.get("rubric"))
     granularity = str(rubric.get("granularity") or "").strip()
@@ -177,6 +198,9 @@ def _extract_grading_fact(event: LearnerStateEvent) -> list[dict[str, Any]] | No
                 "error_code": error_code,
                 "granularity": granularity or "scoring_point" if rubric_mode in {"grading_key", "curated_rubric"} else granularity,
                 "rubric_mode": rubric_mode,
+                "attempt_id": attempt_id,
+                "promotion_allowed": can_promote,
+                "real_retest": real_retest,
             })
 
     # Path 2: no rubric but error_events present → one fact per error event.
@@ -200,6 +224,9 @@ def _extract_grading_fact(event: LearnerStateEvent) -> list[dict[str, Any]] | No
                 "error_code": normalized_code,
                 "granularity": "",
                 "rubric_mode": "",
+                "attempt_id": attempt_id,
+                "promotion_allowed": can_promote,
+                "real_retest": real_retest,
             })
 
     # Path 3: a clean success event (no errors) on a known concept still
@@ -216,6 +243,9 @@ def _extract_grading_fact(event: LearnerStateEvent) -> list[dict[str, Any]] | No
                 "error_code": "",
                 "granularity": "",
                 "rubric_mode": "",
+                "attempt_id": attempt_id,
+                "promotion_allowed": can_promote,
+                "real_retest": real_retest,
             })
 
     return fact_rows or None
@@ -256,7 +286,7 @@ def _build_knowledge_state(facts: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "node_id": node_id,
             "label": _resolve_label(node_id),
             "state": _classify_concept_state(rows, granularity=granularity),
-            "evidence_count": len(rows),
+            "evidence_count": distinct_attempt_count(rows),
             "evidence_refs": _ordered_event_ids(rows),
             "granularity": granularity,
             "last_observed_at": max(row["created_at"] for row in rows),
@@ -281,7 +311,7 @@ def _build_ability_state(facts: list[dict[str, Any]]) -> list[dict[str, Any]]:
         state_items.append({
             "dimension": dim,
             "state": _classify_concept_state(rows, granularity=granularity),
-            "evidence_count": len(rows),
+            "evidence_count": distinct_attempt_count(rows),
             "evidence_refs": _ordered_event_ids(rows),
             "last_observed_at": max(row["created_at"] for row in rows),
         })
@@ -298,7 +328,7 @@ def _build_behavior_state(
     # Recurrence: cluster on (node, ability_dimension, error_code).
     cluster_keys: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
     for fact in grading_facts:
-        if fact["is_correct"]:
+        if fact["is_correct"] or not fact.get("promotion_allowed"):
             continue  # only repeated MISSES form recurrence
         key = (
             fact["knowledge_node_id"],
@@ -311,7 +341,7 @@ def _build_behavior_state(
 
     recurring_refs: list[str] = []
     for rows in cluster_keys.values():
-        if len(rows) >= 2:
+        if distinct_attempt_count(rows) >= 2:
             recurring_refs.extend(row["event_id"] for row in rows)
     if recurring_refs:
         items.append({
@@ -368,12 +398,24 @@ def _classify_concept_state(
     """
     if granularity == "keyword_only":
         return "observed"
-    if len(rows) <= 0:
+    promotable = [row for row in rows if row.get("promotion_allowed")]
+    if not promotable:
         return "observed"
-    if len(rows) == 1:
+    if any(row.get("real_retest") for row in promotable):
+        retests = sorted(
+            [row for row in promotable if row.get("real_retest")],
+            key=lambda row: row["created_at"],
+        )
+        latest_retest = retests[-1]
+        if not latest_retest["is_correct"]:
+            return "weak"
+        if any(not row["is_correct"] for row in promotable if row["created_at"] < latest_retest["created_at"]):
+            return "improving"
+        return "observed"
+    if distinct_attempt_count(promotable) < 2:
         return "observed"
 
-    rows_sorted = sorted(rows, key=lambda r: r["created_at"])
+    rows_sorted = sorted(promotable, key=lambda r: r["created_at"])
     positives = [r for r in rows_sorted if r["is_correct"]]
     negatives = [r for r in rows_sorted if not r["is_correct"]]
 

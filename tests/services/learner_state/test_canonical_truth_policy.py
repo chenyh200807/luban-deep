@@ -195,3 +195,44 @@ def test_legacy_teacher_final_quality_maps_to_trusted_adjudication() -> None:
     assert trusted["source"] == "teacher_final"
     assert trusted["confidence"] == 1.0
     assert trusted["conflict_status"] == "resolved"
+
+
+def test_signed_real_retest_is_trusted_only_with_structural_quality_gate() -> None:
+    trusted = trusted_adjudication_from_quality({
+        "authority": "signed_variant_server_rescore",
+        "writeback_eligible": True,
+        "measurement_confidence": "high",
+        "evidence_level": "L2_real_retest",
+    })
+    forward = trusted_adjudication_from_quality({
+        "authority": "signed_variant_server_rescore",
+        "writeback_eligible": True,
+        "measurement_confidence": "medium",
+        "evidence_level": "L0_observed",
+    })
+
+    assert trusted["source"] == "signed_variant_server_rescore"
+    assert forward == {}
+
+
+def test_signed_real_retest_can_persist_resolved_stale_claim(monkeypatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED", "1")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED", "1")
+
+    decision = canonical_truth_promotion_decision(
+        user_id="real_student_1",
+        projection={
+            "stale_claims": [{"evidence_level": "L2_real_retest"}],
+            "synthesis_run": {
+                "trusted_adjudication": {
+                    "source": "signed_variant_server_rescore",
+                    "confidence": 1.0,
+                    "conflict_status": "resolved",
+                    "requires_human": False,
+                }
+            },
+        },
+    )
+
+    assert decision.allowed is True

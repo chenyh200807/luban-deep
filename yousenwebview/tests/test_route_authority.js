@@ -31,6 +31,11 @@ assert(
   "report route helper should preserve detail query",
 );
 assert(
+  route.assessment({ mode: "diagnostic", source: "today_task_switch" }) ===
+    "/packageDeeptutor/pages/assessment/assessment?mode=diagnostic&source=today_task_switch",
+  "assessment route helper should preserve mode and source query",
+);
+assert(
   route.resolveInternalUrl("/pages/report/report?from=profile", fallback) ===
     "/packageDeeptutor/pages/report/report?from=profile",
   "known deeptutor main-page alias should be normalized into package route",

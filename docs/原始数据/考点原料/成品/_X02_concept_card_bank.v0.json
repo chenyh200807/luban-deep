@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 10
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "X02",
  "status": "signed",
  "source_pack_sha256": "d3a4eec1f279c91dce1254ca27e09de0a4ece72c42f8bffbf6551f665ae94c01",
- "generation_ms": 61.06,
+ "generation_ms": 90.77,
  "gate": {
   "total": 11,
   "passed": 11,
@@ -38,7 +42,27 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 布置临时房屋"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 布置临时房屋",
+   "scoring_terms": [
+    {
+     "statement": "关于施工现场临时仓库布置的说法，正确的是？",
+     "required_terms": [
+      "接近使用地点",
+      "远离道路边",
+      "15m"
+     ],
+     "point_id": "ca:1A431011_012_0013"
+    },
+    {
+     "statement": "临时仓库布置要点：临时仓库应接近使用地点，危险品仓库需远离现场，距在建工程不小于15m。",
+     "required_terms": [
+      "仓库",
+      "危险品",
+      "15m"
+     ],
+     "point_id": "kc:1A431011_012_0013:0"
+    }
+   ]
   },
   {
    "card_id": "X02:kc:1A431011_012_0013:1",
@@ -52,7 +76,23 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 布置临时房屋"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 布置临时房屋",
+   "scoring_terms": [
+    {
+     "statement": "临时道路宽度标准：主干道单行道≥4m，双行道≥6m；消防车道≥4m；木材场通道≥6m；回车场12m×12m；载重车转弯半径≥15m。",
+     "required_terms": [
+      "道路",
+      "宽度",
+      "消防",
+      "转弯半径",
+      "4m",
+      "6m",
+      "12m",
+      "15m"
+     ],
+     "point_id": "kc:1A431011_012_0013:1"
+    }
+   ]
   },
   {
    "card_id": "X02:kc:1A431011_012_0013:2",
@@ -66,7 +106,23 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 布置临时房屋"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 布置临时房屋",
+   "scoring_terms": [
+    {
+     "statement": "临时房屋布置要求：宿舍床铺≤2层，净高≥2.5m，通道≥0.9m，人均面积≥2.5m²，每间≤16人。",
+     "required_terms": [
+      "宿舍",
+      "床铺",
+      "净高",
+      "通道",
+      "人均面积",
+      "2.5m",
+      "0.9m",
+      "2.5m²"
+     ],
+     "point_id": "kc:1A431011_012_0013:2"
+    }
+   ]
   },
   {
    "card_id": "X02:kc:1A437000_147_0236:0",
@@ -80,7 +136,32 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "绿色建造及施工现场环境管理 > 仓库与堆料场的消防安全要求"
+   "leaf_name_path": "绿色建造及施工现场环境管理 > 仓库与堆料场的消防安全要求",
+   "scoring_terms": [
+    {
+     "statement": "仓库防火分区与面积限制：易引起火灾的仓库应按每500m²设防火墙；可燃材料库房单间≤30m²；易燃易爆品库房单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。",
+     "required_terms": [
+      "防火墙",
+      "建筑面积",
+      "500m²",
+      "30m²",
+      "20m²",
+      "10m",
+      "0.8m"
+     ],
+     "point_id": "kc:1A437000_147_0236:0"
+    },
+    {
+     "statement": "电气设备防火间距：架空电力线与易燃堆垛最小水平距离≥电杆高度×1.5；照明灯具与堆垛≥1m；开关箱/接线盒距堆垛≥1.5m；严禁使用碘钨灯。",
+     "required_terms": [
+      "碘钨灯",
+      "1.5倍",
+      "1m",
+      "1.5m"
+     ],
+     "point_id": "kc:1A437000_147_0236:1"
+    }
+   ]
   },
   {
    "card_id": "X02:kc:1A437000_147_0236:1",
@@ -94,7 +175,32 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "绿色建造及施工现场环境管理 > 仓库与堆料场的消防安全要求"
+   "leaf_name_path": "绿色建造及施工现场环境管理 > 仓库与堆料场的消防安全要求",
+   "scoring_terms": [
+    {
+     "statement": "仓库防火分区与面积限制：易引起火灾的仓库应按每500m²设防火墙；可燃材料库房单间≤30m²；易燃易爆品库房单间≤20m²；房门净宽≥0.8m；任一点到疏散门≤10m。",
+     "required_terms": [
+      "防火墙",
+      "建筑面积",
+      "500m²",
+      "30m²",
+      "20m²",
+      "10m",
+      "0.8m"
+     ],
+     "point_id": "kc:1A437000_147_0236:0"
+    },
+    {
+     "statement": "电气设备防火间距：架空电力线与易燃堆垛最小水平距离≥电杆高度×1.5；照明灯具与堆垛≥1m；开关箱/接线盒距堆垛≥1.5m；严禁使用碘钨灯。",
+     "required_terms": [
+      "碘钨灯",
+      "1.5倍",
+      "1m",
+      "1.5m"
+     ],
+     "point_id": "kc:1A437000_147_0236:1"
+    }
+   ]
   },
   {
    "card_id": "X02:kc:1A437000_146_0235:0",
@@ -108,7 +214,33 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "绿色建造及施工现场环境管理 > 存放易燃材料仓库的消防要求"
+   "leaf_name_path": "绿色建造及施工现场环境管理 > 存放易燃材料仓库的消防要求",
+   "scoring_terms": [
+    {
+     "statement": "易燃材料露天仓库消防通道宽度应不小于多少米？",
+     "required_terms": [
+      "6m",
+      "消防通道",
+      "下风方向",
+      "防火间距",
+      "30m"
+     ],
+     "point_id": "ca:1A437000_146_0235"
+    },
+    {
+     "statement": "易燃材料仓库消防要求：易燃材料仓库应设在下风向、水源充足处；消防通道宽≥6m；与明火区间距≥30m；危险品间距≥10m，与易燃易爆品间距≥30m。",
+     "required_terms": [
+      "易燃材料",
+      "仓库",
+      "消防通道",
+      "防火间距",
+      "6m",
+      "30m",
+      "10m"
+     ],
+     "point_id": "kc:1A437000_146_0235:0"
+    }
+   ]
   },
   {
    "card_id": "X02:kc:1A437000_146_0233:0",
@@ -122,7 +254,32 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "绿色建造及施工现场环境管理 > 消防器材的配备"
+   "leaf_name_path": "绿色建造及施工现场环境管理 > 消防器材的配备",
+   "scoring_terms": [
+    {
+     "statement": "临时木料间每多少平方米需配备一只灭火器？",
+     "required_terms": [
+      "25m²",
+      "木料间",
+      "油漆间",
+      "木工机具间"
+     ],
+     "point_id": "ca:1A437000_146_0233"
+    },
+    {
+     "statement": "临时设施灭火器配置标准：临时搭设建筑每100㎡配2只10L灭火器；木料间、油漆间等每25㎡配1只灭火器；大型临时设施超1200㎡需设太平桶、积水池、黄砂池。",
+     "required_terms": [
+      "灭火器",
+      "面积",
+      "临时设施",
+      "100m²",
+      "10L",
+      "25m²",
+      "1200m²"
+     ],
+     "point_id": "kc:1A437000_146_0233:0"
+    }
+   ]
   },
   {
    "card_id": "X02:kc:1A438000_150_0241:0",
@@ -136,7 +293,17 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工资源管理 > 不合格材料与半成品退场"
+   "leaf_name_path": "施工资源管理 > 不合格材料与半成品退场",
+   "scoring_terms": [
+    {
+     "statement": "关于材料进场验收的说法，错误的是？",
+     "required_terms": [
+      "挂牌标识",
+      "待检标识"
+     ],
+     "point_id": "ca:1A438000_150_0241"
+    }
+   ]
   },
   {
    "card_id": "X02:kc:1A438000_150_0241:1",
@@ -150,7 +317,17 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工资源管理 > 不合格材料与半成品退场"
+   "leaf_name_path": "施工资源管理 > 不合格材料与半成品退场",
+   "scoring_terms": [
+    {
+     "statement": "材料堆放高度限制：料具码放高度不得超过1.5米，库外材料应下垫上盖。",
+     "required_terms": [
+      "下垫上盖",
+      "1.5m"
+     ],
+     "point_id": "kc:1A438000_150_0241:1"
+    }
+   ]
   },
   {
    "card_id": "X02:kc:1A438000_150_0241:2",
@@ -164,7 +341,17 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工资源管理 > 不合格材料与半成品退场"
+   "leaf_name_path": "施工资源管理 > 不合格材料与半成品退场",
+   "scoring_terms": [
+    {
+     "statement": "不合格材料处理流程：不合格材料退场需经申请→审批→通知→见证退场→记录确认→报告提交。",
+     "required_terms": [
+      "不合格材料",
+      "退场流程"
+     ],
+     "point_id": "kc:1A438000_150_0241:2"
+    }
+   ]
   },
   {
    "card_id": "X02:kc:1A437000_150_0295:0",
@@ -182,8 +369,8 @@
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:21:00+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:48+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

@@ -36,8 +36,8 @@ function _titleIndex(lessonsResp) {
     var o = _safeObj(l);
     var id = _str(o.pack_id).toUpperCase();
     // summary = 后端签发考点卡首卡 front(路线卡副标题真源);缺则 ""(fail-closed 留空)
-    // retest = signed 变体池真值(list_green_lessons.retest_available;缺字段=false 保守降级)
-    if (id) idx[id] = { title: _str(o.title), sha: _str(o.content_sha256), green: true, summary: _str(o.summary), retest: o.retest_available === true };
+    // retest = 签发供给 + rollout 双闸后的可完成真值；缺字段=false 保守降级。
+    if (id) idx[id] = { title: _str(o.title), sha: _str(o.content_sha256), green: true, summary: _str(o.summary), retest: o.light_practice_available === true };
   });
   return idx;
 }
@@ -136,6 +136,8 @@ function _lightPracticeTask(concept, packId, reason, practiceKind) {
     estimated_minutes: 2,
     concept: c,
     pack_id: _str(packId).toUpperCase(),
+    training_intent_id: "",
+    probe_id: "",
     mode: "topic",                 // assessment 专题模式(聚焦推荐考点)
   };
 }
@@ -175,7 +177,12 @@ function buildLearnViewModel(args) {
 
   // ── 下一站卡(next_step 呈现仲裁,H3 只认真实 pack) ──
   var nextStep = _safeObj(dash.next_step);
-  var nsRef = _str(nextStep.source_ref).toUpperCase();
+  var sourceRef = _str(nextStep.source_ref);
+  var nsRef = _str(
+    nextStep.mode === "practice_active" || nextStep.mode === "review_due"
+      ? nextStep.target_pack_id
+      : nextStep.source_ref,
+  ).toUpperCase();
   var nsMeta = titleIdx[nsRef] || {};
   var nextStation = null;
   if (nextStep.mode && nextStep.mode !== "unavailable" && nsRef) {
@@ -232,13 +239,15 @@ function buildLearnViewModel(args) {
   // 案例题批改按 v1.3 降级为深度护城河层,不再当今日任务默认。
   var seethroughSet = _seethroughSet(a.seethroughLibrary);
   var todayTask = null;
-  if (nextStep.mode === "practice_active" && nsRef) {
+  if ((nextStep.mode === "practice_active" || nextStep.mode === "review_due") && nsRef) {
     todayTask = _lightPracticeTask(
       nsMeta.title || "你的薄弱点",
       nsRef,
       _str(nextStep.reason),
       _practiceKindFor(nsRef, titleIdx, seethroughSet),
     );
+    if (nextStep.mode === "review_due") todayTask.probe_id = sourceRef;
+    else todayTask.training_intent_id = sourceRef;
   } else if (nextStation) {
     // 有站可学即给通用今日任务(设计始终显示此卡);诚实=针对该站的 2 分钟轻练
     todayTask = _lightPracticeTask(

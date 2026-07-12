@@ -173,7 +173,7 @@ Page({
     username: "用户",
     avatarChar: "U",
     avatarUrl: "",
-    isDark: true,
+    isDark: false, // 我的页默认亮色(owner 2026-07-12);用户显式选过主题则跟随
     usageLoading: true,
     usagePrimaryLabel: "剩余 --",
     usageRows: [],
@@ -189,6 +189,11 @@ Page({
     // TODO(time_budget): 后端落 time_budget(light/medium/heavy) 后，
     // 本控件换三档映射（约 15/30/60 分钟每天），daily_target 退役。
     dailyTarget: 30,
+    appearance: "light", // 外观:当前主题(unset 默认亮)
+    appearanceOptions: [
+      { val: "light", label: "亮色" },
+      { val: "dark", label: "暗色" },
+    ],
     dailyTargetOptions: [10, 30, 50],
     difficultyPref: "medium",
     difficultyOptions: [
@@ -227,7 +232,10 @@ Page({
     var workspaceBack = runtime.getWorkspaceBack(route.profile());
     var workspaceFlags = flags.getWorkspaceFlags();
     if (!flags.ensureFeatureEnabled("profile")) return;
-    this.setData({ isDark: helpers.isDark() });
+    this.setData({
+      isDark: helpers.isDarkOr("light"),
+      appearance: helpers.isDarkOr("light") ? "dark" : "light",
+    });
     this.setData({
       navBackLabel: workspaceBack ? workspaceBack.label : "对话",
       linkItems: buildLinkItems(workspaceFlags),
@@ -235,6 +243,7 @@ Page({
     // 五 tab 壳:我的 index=4
     helpers.syncTabBar(this, 4, {
       hidden: !flags.shouldShowWorkspaceShell(),
+      isDark: helpers.isDarkOr("light"),
     });
     if (!auth.isLoggedIn()) {
       this._showGuestPreview();
@@ -432,6 +441,18 @@ Page({
       examDateLabel: _examDateLabel(value),
     });
     this._saveSettings({ exam_date: value });
+  },
+
+  setAppearance: function (e) {
+    helpers.vibrate("light");
+    var val = e.currentTarget.dataset.val === "dark" ? "dark" : "light";
+    helpers.setTheme(val); // 单一写入口:globalData + Storage,全端页面 onShow 跟随
+    var dark = val === "dark";
+    this.setData({ isDark: dark, appearance: val });
+    helpers.syncTabBar(this, 4, {
+      hidden: !flags.shouldShowWorkspaceShell(),
+      isDark: dark,
+    });
   },
 
   setDailyTarget: function (e) {

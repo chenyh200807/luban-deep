@@ -570,7 +570,8 @@ App({
     const storedHostSysInfo = readStoredHostSysInfo();
     const baseUrl = resolveBaseUrl();
     const baseCandidates = buildDeeptutorBaseCandidates(baseUrl);
-    this.globalData.theme = wx.getStorageSync("theme") || "dark";
+    // 只存显式选择;空=从未选过(页面级默认亮/暗由 host-runtime.getThemeOr 决定)
+    this.globalData.theme = wx.getStorageSync("theme") || "";
     this.globalData.apiUrl = baseUrl;
     this.globalData.gatewayUrl = baseUrl;
     this.globalData.apiCandidates = baseCandidates;
@@ -821,7 +822,7 @@ App({
     sysInfo: { ...DEFAULT_HOST_SYS_INFO },
     sysInfoLoaded: false,
     chatEngine: "deeptutor",
-    theme: "dark",
+    theme: "", // 空=用户从未显式选主题
     networkAvailable: true,
     deeptutorEntryEnabled: true,
     deeptutorEntryConfig: getDefaultDeeptutorEntryConfig(),
