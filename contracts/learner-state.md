@@ -40,6 +40,7 @@
 - 门控必须 fail-open：未知游标、进程重启、另一 worker、扫描异常都判定为"未读"并立即运行；`guide*` / `notebook*` 等 capability 走直通（不受计数门约束）。
 - 读游标只允许在一次**完整跑完**（含 `NO_CHANGE` 结果）之后重置；LLM 异常时不得重置，让陈旧游标下一轮继续触发运行，避免"摘要稳定 ⇒ mtime 不动 ⇒ 门永远打开"的退化。
 - 后台摘要维护默认可挂 fast/light tier（`resolve_fast_tier_model` 为唯一 light-model authority）；生产环境未设置该 tier 时为零效果，不得宣称降档收益。
+- 单次扫描共享：一个实质轮次的门决策（`_summary_gate_decision`）与摘要 source 构建（`_build_summary_source`）必须复用**同一次** `learner_memory_events` 本地读，由 `refresh_from_turn` 在锁内、当前轮次落账后读取一次并传入两者，杜绝每轮两遍全文件线性扫描。这是纯性能收口——门决策结果与 source 内容逐字节不变；两个消费者的 `events=None` 回退保持独立自读语义。此共享不覆盖 `read_snapshot` 自身的账本读（另一相位的独立读，不在此收口范围）。
 
 ### Learning Evidence Pipeline
 
