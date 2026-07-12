@@ -101,6 +101,14 @@ baseline update only after inspecting the diff. New high-entropy values in
 source, config, docs, or env examples are not baseline updates; remove and
 rotate them.
 
+## Recurrence Escalation
+
+- First occurrence: fix the single root cause.
+- Second recurrence of the same failure class: in addition to the code fix,
+  update `docs/runbook/ci-runtime-smoke-guardrails.md` with the pattern.
+- Third recurrence: also upgrade this SKILL.md (or the AGENTS CI discipline
+  rules) so the pattern is caught at the gate, not in the runbook.
+
 ## Reporting
 
 Always report:

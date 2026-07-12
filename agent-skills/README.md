@@ -14,6 +14,9 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   roadmap, PRD, architecture, and capability-status work under `docs/plan/`.
 - `deeptutor-source-grounded-change`: source-driven workflow for framework,
   library, API, or external-reference changes where stale assumptions are risky.
+- `deeptutor-storm-source-inspection`: STORM/Co-STORM-like multi-perspective
+  source inspection producing candidate/review-only findings with provenance,
+  without runtime, scoring, RAG, or learner-truth authority drift.
 - `deeptutor-incremental-implementation`: thin vertical-slice implementation
   workflow for multi-file DeepTutor changes.
 - `deeptutor-test-verification-gate`: test-first and evidence-first workflow
@@ -65,6 +68,10 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   topic coverage, exam/source-evidence, and candidate/runtime boundary questions.
 - `luban-diagram-microlesson`: 图解微课卡 authoring / 确定性 renderer / 一屏一重点
   翻页 deck UX / 单一权威边界 / web-view 沙盒 / 零依赖 CDP 验收 workflow.
+- `luban-case-answer-layer`: 案例题作答训练(采分点可写化、五维框架、AI 批改
+  训练闭环),依附已 signed pack 加层,不造第二 authority.
+- `luban-learning-pack-factory`: 鲁班"教研测一体"学习包批量生产总纲与质量闭环;
+  造法细节调用 `luban-diagram-microlesson`,本 skill 不重复它.
 - `external-tool-absorption-boundary`: adopting/upgrading a plugin, marketplace skill,
   gstack, CLI, MCP, or shared hook — audit + neutralize opinionated defaults
   (auto-commit, CLAUDE.md injection, blocking hooks, telemetry) so they never
@@ -116,11 +123,13 @@ verification evidence for that stronger claim.
 The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
 
 - Define and plan: `deeptutor-spec-plan-gate`
-- Ground in sources: `deeptutor-source-grounded-change`
+- Ground in sources: `deeptutor-source-grounded-change`,
+  `deeptutor-storm-source-inspection`
 - Build: `deeptutor-incremental-implementation`,
   `deeptutor-api-contract-design`, `deeptutor-schema-authority-gate`,
   `deeptutor-resource-registry-gate`, `deeptutor-web-bi-frontend-gate`,
-  `luban-okf-context`, `luban-diagram-microlesson`
+  `luban-okf-context`, `luban-diagram-microlesson`,
+  `luban-case-answer-layer`, `luban-learning-pack-factory`
 - Verify: `deeptutor-test-verification-gate`,
   `deeptutor-ci-runtime-fix-gate`,
   `tutorbot-student-army-eval-loop`,
