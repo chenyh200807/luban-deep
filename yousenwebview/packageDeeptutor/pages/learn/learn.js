@@ -123,9 +123,7 @@ Page({
         return result;
       })
       .catch(function (error) {
-        const code = String(
-          (error && error.payload && error.payload.detail && error.payload.detail.error) || "",
-        );
+        const code = api.errorCodeOf(error);
         that.setData({
           firstRunState:
             code === "first_run_content_not_signed" || code === "first_run_version_conflict"

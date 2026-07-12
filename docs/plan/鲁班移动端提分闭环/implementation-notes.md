@@ -206,6 +206,11 @@
 - **UI 语义**：保存失败不出收据、不说“明天见”；服务端 terminal 成功后 forward 进 handoff，review 回复习。handoff 只保留提醒与 telemetry，不再写 learner state。
 - **发布边界**：本轮不部署。首次四题仍因双教研签发未完成而 fail closed；真实微信订阅提醒仍依赖模板 ID，不能用页内红点冒充系统推送。
 
+### 2026-07-12（首跑'保存中'卡死治本+生产侧读性能 · owner三连②③）
+- **[③'正在保存学情'卡死=三层根因]** ①真源=首跑内容清单`release_status: blocked_pending_human_verdict`(双人签发人闸,writeback fail-closed by design——**这是治理态不是bug,签发决定在owner**);②**真bug**=HTTP异常处理器`str(exc.detail)`把结构化detail字符串化成"{'error': ...}"单引号串,前端解析不到错误码→把治理性409误当网络错→无限'保存中'(learn页自动重放机制其实一直在,只是每次都误判);③test2旧后端的422同病。治法:runtime/safety.py detail是dict/list原样透传(契约形状不变,类型忠实raise方);前端api.errorCodeOf兼容对象+旧字符串双形态(test2未更新期的belt);learn页blocked态文案本来就诚实('学情等待同步·点击重试保存'),解析修好后自然落位。
+- **[②五模块慢-生产侧]** 本地fallback只治开发机;生产侧两刀:①`_load_signed_bank`加(path,mtime)键读缓存——每请求扫37+个bank JSON的重复磁盘解析是复习/学情面读放大源,文件一变即失效,语义与直读等价;②learner_state远程memory events加20s TTL缓存+`append_memory_event`写侧即时失效——串行4次Supabase往返(~3s)是页面等待主体,同用户20s内复访直接命中。回归:read_model 26+learner_state 551全过。
+- **[owner待拍板]** 首跑清单签发:script_manifest.v1.json四题需`review_status=signed`+每题≥2 reviewer——这是内容人闸,你说签我就按你授权翻(reviewer留痕),或走真教研双签。不签则首跑学情写入持续fail-closed(报告本机可见,学情不入账)。
+
 ### 2026-07-12（标准卡放量就绪+轮次体验+RichLeaf灰度runbook · owner"按你的建议来,顶尖体验"授权）
 - **[标准卡品质关+正式签发]** 修两个可见瑕疵:①knowledge-shape actor边界`负责(?!人)`(此前"设计单位项目负责人"被截成"设计单位项目");②跨点给分词去重(第二组剔重,剔空弃组)。重编100卡后走**promote std车道正式签发**——promote_variant_bank.py新增packless车道(同构语义:builder --check复现一致+source_v32_sha256锚定编译资产+教材复核零跳过+禁词扫描+签发翻牌唯一在本工具),signoff留痕owner授权。后端生产闸:**生产只认signed**,candidate仅非生产预览。放量姿势=部署时置`LUBAN_STD_CONCEPT_CARDS_ENABLED=true`(质量49+进度51两deck随下次test2/生产部署即亮)。
 - **[轮次体验(爱上的一拍)]** 考点卡每10张进**轮间歇收据**:斜章"第N轮"+大字进度+记住/回炉账目+确定性暖句轮换+两钮(继续下一轮·还剩X张/今天到这里·回复习)。49张的墙变成一轮轮小胜利——完成感是"还想继续用"的燃料。vm纯函数roundInfo(+4契约断言),实机验证第1轮10张准点触发。

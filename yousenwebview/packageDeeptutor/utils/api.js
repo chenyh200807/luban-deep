@@ -24,6 +24,16 @@ function getBaseUrl(useGateway) {
  * 解包 API 响应 — 统一 resp.data || resp 的处理
  * 后端可能返回 { data: {...} } 或直接 {...}
  */
+/** 从错误响应提取结构化错误码: detail 兼容对象(新后端)与 "{'error': 'x'}"
+ * 字符串(旧后端 str()化)。取不到=空串(调用方按网络类处理)。 */
+function errorCodeOf(error) {
+  var detail = error && error.payload && error.payload.detail;
+  if (detail && typeof detail === "object") return String(detail.error || "");
+  var text = String(detail || "");
+  var m = text.match(/'error':\s*'([a-z0-9_]+)'/i) || text.match(/"error":\s*"([a-z0-9_]+)"/i);
+  return m ? m[1] : "";
+}
+
 function unwrapResponse(raw) {
   if (!raw || typeof raw !== "object") return raw;
   // 如果有 data 字段且不是基础类型列表（排除 {data: "string"} 的情况）
@@ -1117,6 +1127,7 @@ module.exports = {
   ensureFreshAuthToken: ensureFreshAuthToken,
   refreshAuthToken: refreshAuthToken,
   unwrapResponse: unwrapResponse,
+  errorCodeOf: errorCodeOf,
   inspectRequestError: inspectRequestError,
   describeRequestError: describeRequestError,
   shouldRetryWechatLogin: shouldRetryWechatLogin,
