@@ -213,3 +213,18 @@ console.log("test_concept_cards_view_model: all assertions passed");
   if (deck2.cards[0].scoringTerms.length !== 0) throw new Error("无富化=空数组");
   console.log("PASS 采分点富化透传 3断言");
 })();
+
+// ── 轮次(2026-07-12): 每10张一轮间歇 ──
+(function () {
+  var st = ccvm.initDeckState(25);
+  for (var i = 0; i < 10; i++) st = ccvm.stepDeck(st, "got_it");
+  var r = ccvm.roundInfo(st);
+  if (!r.atBreak || r.roundIdx !== 1 || r.seen !== 10 || r.remaining !== 15) throw new Error("满10张进轮间歇");
+  st = ccvm.stepDeck(st, "got_it");
+  if (ccvm.roundInfo(st).atBreak) throw new Error("第11张不在间歇");
+  var st2 = ccvm.initDeckState(10);
+  for (var j = 0; j < 10; j++) st2 = ccvm.stepDeck(st2, "got_it");
+  if (ccvm.roundInfo(st2).atBreak) throw new Error("完场不叠加间歇");
+  if (!ccvm.roundInfo(st).line) throw new Error("暖句在位");
+  console.log("PASS 轮次 4断言");
+})();

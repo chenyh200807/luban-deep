@@ -30,6 +30,7 @@ Page({
     packPendingCount: 0, // 本站待还错因笔数(错因银行只读回路; 0/未开通=不显)
     pendingMap: {}, // 各站待还笔数(选站抽屉红点; 同一归属口径)
     packSheetOpen: false, // 选站抽屉
+    roundBreak: null, // 轮间歇(每10张一轮的收束卡, null=不在间歇)
     finished: false,
   },
 
@@ -107,13 +108,20 @@ Page({
   _applyDeckState: function (state) {
     var deck = this.data.deck;
     var idx = ccvm.currentCardIndex(state);
+    var round = ccvm.roundInfo(state);
     this.setData({
       deckState: state,
       currentCard: idx >= 0 && deck ? deck.cards[idx] : null,
       flipped: false,
       quoteOpen: false,
+      // 每满10张进一次轮间歇(完场不叠加)
+      roundBreak: round.atBreak ? round : null,
       finished: idx < 0,
     });
+  },
+
+  continueRound: function () {
+    this.setData({ roundBreak: null });
   },
 
   // 错因银行只读回路: 全站待还笔数一次算清(deriveRetestPackId 同一归属口径,

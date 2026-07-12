@@ -22,7 +22,7 @@ var _CHAIN_SPLIT_RE = /\s*(?:→|➝|➔|->)\s*/;
 var _ENUM_MARKS = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮";
 var _PAREN_ENUM_RE = /[（(]\s*(\d{1,2})\s*[）)]/g;
 var _BAN_RE = /(严禁|不得|禁止|不应|不准)/;
-var _ACTOR_RE = /^([^，。；：、]{2,14}?)(?=应当|应|须|宜|不得|不应|禁止|负责|组织)/;
+var _ACTOR_RE = /^([^，。；：、]{2,14}?)(?=应当|应|须|宜|不得|不应|禁止|负责(?!人)|组织)/;
 var _NUM_RE = /(\d+(?:\.\d+)?)\s*(个月|小时|万元|天|日|人|层|次|年|h|mm|cm|km|m²|m³|m|米|%|‰|MPa|kN|℃|倍|级|元|d)/g;
 
 function _parseChain(gist) {

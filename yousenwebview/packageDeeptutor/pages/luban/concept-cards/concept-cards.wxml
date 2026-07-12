@@ -70,8 +70,27 @@
             <text class="cc-progress-hint">先回忆 · 点卡翻面核对</text>
           </view>
 
+          <!-- 轮间歇: 每10张一枚小收据(收束感=想继续的燃料) -->
+          <view class="cc-round pk-card" wx:if="{{roundBreak && !finished}}">
+            <view class="cc-round-seal"><text>第 {{roundBreak.roundIdx}} 轮</text></view>
+            <view class="cc-round-nums">
+              <text class="cc-round-big">{{roundBreak.seen}}</text>
+              <text class="cc-round-slash">/ {{roundBreak.total}} 张</text>
+            </view>
+            <text class="cc-round-tally">记住 {{deckState.gotCount}} · 回炉 {{deckState.againCount}}</text>
+            <text class="cc-round-line">{{roundBreak.line}}</text>
+            <view class="cc-round-actions">
+              <view class="pk-btn-ink cc-round-go" bindtap="continueRound">
+                <text>继续下一轮 · 还剩 {{roundBreak.remaining}} 张</text>
+              </view>
+              <view class="pk-btn-ghost cc-round-rest" bindtap="goBack">
+                <text>今天到这里 · 回复习</text>
+              </view>
+            </view>
+          </view>
+
           <!-- 翻卡主体 -->
-          <view class="cc-card pk-card shape-{{currentCard.shape.tone}}" wx:if="{{currentCard && !finished}}" bindtap="flipCard">
+          <view class="cc-card pk-card shape-{{currentCard.shape.tone}}" wx:if="{{currentCard && !finished && !roundBreak}}" bindtap="flipCard">
             <!-- 正面：考点问法 + 知识形状预告(帮回忆定向) -->
             <block wx:if="{{!flipped}}">
               <view class="cc-front-face">
@@ -201,7 +220,7 @@
           </view>
 
           <!-- 两枚按钮：纯本地牌序，绝不写掌握态 -->
-          <view class="cc-actions" wx:if="{{currentCard && !finished}}">
+          <view class="cc-actions" wx:if="{{currentCard && !finished && !roundBreak}}">
             <view
               class="cc-btn-again pk-btn-ghost {{flipped ? '' : 'dim'}}"
               bindtap="markAgain"
@@ -215,7 +234,7 @@
               <text>{{deck.gotItLabel}} →</text>
             </view>
           </view>
-          <text class="cc-actions-note" wx:if="{{currentCard && !finished && !flipped}}">先翻面核对原文，再决定这张卡怎么走</text>
+          <text class="cc-actions-note" wx:if="{{currentCard && !finished && !flipped && !roundBreak}}">先翻面核对原文，再决定这张卡怎么走</text>
 
           <!-- 完场：这一轮的账目 -->
           <view class="cc-done pk-card" wx:if="{{finished}}">

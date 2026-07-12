@@ -93,6 +93,66 @@ _BANK_KINDS: dict[str, dict[str, Any]] = {
 }
 
 
+# ── 标准考点卡车道(2026-07-12 owner授权放量): 无 pack manifest 的编译资产梯队 ──
+# 同构语义不减: ①builder 复现一致 ②source_v32_sha256 锚定编译资产
+# ③禁词/复核违规扫描 ④签发翻牌唯一在本工具。
+_STD_BANK = "_STD_concept_card_bank.v0.json"
+_STD_BUILDER = ("scripts/build_luban_standard_concept_cards.py",)
+
+
+def promote_std(basis: str, who: str) -> Path:
+    path = PACK_DIR / _STD_BANK
+    bank = _load_json(path, "标准考点卡 bank")
+    if str(bank.get("tier") or "") != "standard":
+        raise PromotionError("非标准梯队 bank, 走常规 kind")
+    if str(bank.get("status") or "") == "signed":
+        raise PromotionError("已是 signed, 不重复翻牌")
+    # ① v32 编译资产 sha 锚(本机有资产才可签——签发只在编译机做)
+    v32 = REPO / "artifacts" / "luban_grading_artifacts" / (
+        "rich_leaf_v32_scoring_point_compile_20260613"
+    ) / "runtime_token_pack_v32_scoring_points.json"
+    if not v32.exists():
+        raise PromotionError("v32 编译资产缺席, 无法复核锚, 拒签")
+    if _sha256(v32) != str(bank.get("source_v32_sha256") or ""):
+        raise PromotionError("bank 的 source_v32_sha256 与 v32 资产不一致, 先重编")
+    # ② builder 复现一致(--check 只算不写, 比对确定性视图)
+    top_n = int(bank.get("card_count") or 0)
+    proc = subprocess.run(
+        [sys.executable, str(REPO / _STD_BUILDER[0]), "--top", str(top_n), "--check"],
+        capture_output=True, text=True, timeout=600, cwd=str(REPO),
+    )
+    if proc.returncode != 0:
+        raise PromotionError(f"builder --check 失败: {proc.stderr[-300:]}")
+    import importlib.util as _ilu
+
+    spec = _ilu.spec_from_file_location("_stdb", REPO / _STD_BUILDER[0])
+    mod = _ilu.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    rebuilt = mod.build_payload(top_n)
+    def _view(p: dict) -> dict:
+        return {k: v for k, v in p.items() if k not in ("generation_ms", "status", "signoff")}
+    if _view(rebuilt) != _view(bank):
+        raise PromotionError("重编产物与 bank 不一致(非确定性或源漂移), 拒签")
+    # ③ 违规扫描: 禁词 + 教材复核必须零跳过(全量 verified)
+    if int(bank.get("quote_recheck_skipped") or 0) != 0:
+        raise PromotionError("存在未过教材逐字复核的卡, 拒签")
+    forbidden = ("看穿", "识破", "揭穿", "露馅")
+    for card in bank.get("cards") or []:
+        text = f"{card.get('front','')}|{card.get('quote','')}"
+        if any(w in text for w in forbidden):
+            raise PromotionError(f"禁词违规: {card.get('card_id')}")
+    # ④ 翻牌 + 留痕
+    bank["status"] = "signed"
+    bank["signoff"] = {
+        "who": who,
+        "basis": basis,
+        "at": datetime.now(timezone(timedelta(hours=8))).isoformat(timespec="seconds"),
+        "tool": "promote_variant_bank.py(std lane)",
+    }
+    path.write_text(json.dumps(bank, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    return path
+
+
 class PromotionError(Exception):
     """校验不过：签发中止，bank 文件不动。"""
 
@@ -230,13 +290,16 @@ def main() -> int:
     parser.add_argument("--basis", required=True, help="签发依据（留痕，必填）")
     parser.add_argument("--who", default=getpass.getuser(), help="签发人（默认当前系统用户）")
     parser.add_argument(
-        "--kind", default="variant", choices=sorted(_BANK_KINDS),
+        "--kind", default="variant", choices=sorted(_BANK_KINDS) + ["std_concept_cards"],
         help="bank 类型：variant=变体池（默认）/ concept_cards=考点卡池 / "
-             "antidote=R8 解药池 / cloze=R6 挖空池",
+             "antidote=R8 解药池 / cloze=R6 挖空池 / std_concept_cards=标准考点卡(packless)",
     )
     args = parser.parse_args()
     try:
-        path = promote(args.pack_id, args.basis, args.who, kind=args.kind)
+        if args.kind == "std_concept_cards":
+            path = promote_std(args.basis, args.who)
+        else:
+            path = promote(args.pack_id, args.basis, args.who, kind=args.kind)
     except PromotionError as exc:
         print(f"promote-variant-bank: FAIL — {exc}", file=sys.stderr)
         return 1

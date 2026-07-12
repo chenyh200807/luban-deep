@@ -142,6 +142,32 @@ function stepDeck(state, action) {
   };
 }
 
+var ROUND_SIZE = 10;
+// 轮间歇暖句(按轮次序号确定性取, 禁审视词口径)
+var ROUND_LINES = [
+  "一轮下肚。给分词是背一个赚一个的买卖。",
+  "两轮了——阅卷老师认的词，正在变成你的词。",
+  "三轮。这个节奏，考场上就是你的呼吸感。",
+  "还在翻的人不多，你是其中一个。",
+];
+
+/** 轮次信息: 每 10 张一轮, 轮间歇给收束感(不写任何状态, 纯派生)。 */
+function roundInfo(state) {
+  var s = _safeObj(state);
+  var order = _safeArr(s.order);
+  var pos = Number(s.pos) >= 0 ? Math.round(Number(s.pos)) : 0;
+  var atBreak = pos > 0 && pos % ROUND_SIZE === 0 && pos < order.length;
+  var roundIdx = Math.floor(pos / ROUND_SIZE);
+  return {
+    atBreak: atBreak,
+    roundIdx: roundIdx,
+    seen: pos,
+    total: order.length,
+    remaining: Math.max(0, order.length - pos),
+    line: ROUND_LINES[(roundIdx - 1 + ROUND_LINES.length) % ROUND_LINES.length] || ROUND_LINES[0],
+  };
+}
+
 /** 当前牌下标(完场返回 -1)。 */
 function currentCardIndex(state) {
   var s = _safeObj(state);
@@ -157,6 +183,7 @@ module.exports = {
   cardShapeOf: cardShapeOf,
   initDeckState: initDeckState,
   stepDeck: stepDeck,
+  roundInfo: roundInfo,
   currentCardIndex: currentCardIndex,
   FRONT_PROMPT_SUFFIX: FRONT_PROMPT_SUFFIX,
 };

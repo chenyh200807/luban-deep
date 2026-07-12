@@ -37,11 +37,17 @@ _STD_PREFIX = "STD"
 def _std_enabled() -> bool:
     import os
 
+    return str(os.getenv(_STD_FLAG, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _std_status_ok(bank: dict[str, Any]) -> bool:
+    """生产只认 signed(promote std车道翻牌); 非生产额外容 candidate(打样预览)。"""
     from deeptutor.services.runtime_env import is_production_environment
 
+    status = str(bank.get("status") or "")
     if is_production_environment():
-        return False
-    return str(os.getenv(_STD_FLAG, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+        return status == "signed"
+    return status in {"signed", "candidate"}
 
 
 def _std_decks(manifest_dir: Path) -> list[dict[str, Any]]:
@@ -58,6 +64,8 @@ def _std_decks(manifest_dir: Path) -> list[dict[str, Any]]:
     except Exception:  # noqa: BLE001
         return []
     if str(bank.get("tier") or "") != "standard":
+        return []
+    if not _std_status_ok(bank):
         return []
     chapters: dict[str, list[dict[str, Any]]] = {}
     for card in bank.get("cards") or []:

@@ -116,6 +116,25 @@ def _leaf_score(leaf_code: str, freq: dict[str, int]) -> int:
     return total
 
 
+def _dedupe_term_sets(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """跨点给分词去重: 第二组剔除与第一组重复的词, 剔空则整组弃(呈现层不重复喊)。"""
+    out: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for r in rows:
+        terms = [t for t in r["terms"] if t not in seen]
+        if not terms:
+            continue
+        seen.update(terms)
+        out.append(
+            {
+                "statement": str(r["point"].get("statement") or ""),
+                "required_terms": terms,
+                "point_id": str(r["point"].get("point_id") or ""),
+            }
+        )
+    return out
+
+
 def build_payload(top_n: int) -> dict[str, Any]:
     t0 = time.perf_counter()
     if not V32_PACK.exists():
@@ -193,14 +212,7 @@ def build_payload(top_n: int) -> dict[str, Any]:
                 "leaf_name_path": str(unit.get("leaf_name_path") or ""),
                 "chapter": chapter,
                 "exam_weight": score,
-                "scoring_terms": [
-                    {
-                        "statement": str(r["point"].get("statement") or ""),
-                        "required_terms": r["terms"],
-                        "point_id": str(r["point"].get("point_id") or ""),
-                    }
-                    for r in verified[:2]
-                ],
+                "scoring_terms": _dedupe_term_sets(verified[:2]),
             }
         )
 
