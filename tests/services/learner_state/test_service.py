@@ -2034,3 +2034,276 @@ def test_lesson_view_evidence_does_not_trigger_auto_synthesis(tmp_path, monkeypa
         dedupe_key="turn-1",
     )
     assert calls == 1
+
+
+# ----------------------------------------------------------------------------------
+# Battle2 S1 摘要维护器门控 (T1 gate / T2 compact source / T3 fast tier / T4 telemetry)
+# ----------------------------------------------------------------------------------
+
+_GATE_USER = "student_gate"
+_SUBSTANTIVE_REWRITE = (
+    "## 当前学习概览\n- 已完成一轮概念巩固。\n\n"
+    "## 待持续观察\n- 承载力与沉降控制的区分。"
+)
+
+
+def _capturing_stream(response: str):
+    """Async stream stub that records every call's kwargs (prompt, model, ...)."""
+    calls: list[dict] = []
+
+    async def _stream(**kwargs):
+        calls.append(dict(kwargs))
+        yield response
+
+    return _stream, calls
+
+
+def _run_gate_turn(service, *, n: int, capability: str = "chat", assistant: str | None = None):
+    return asyncio.run(
+        service.refresh_from_turn(
+            user_id=_GATE_USER,
+            user_message=f"编号{n:02d}：为什么承载力和沉降控制总是混淆？",
+            assistant_message=assistant
+            or f"第{n:02d}轮讲解：先区分极限状态设计，再看正常使用阶段的沉降控制，配两道案例题巩固。",
+            session_id=f"session_{n:02d}",
+            capability=capability,
+            language="zh",
+        )
+    )
+
+
+def test_summary_gate_throttles_pure_chat_turns_and_consumes_backlog(monkeypatch, tmp_path) -> None:
+    service = _make_service(tmp_path)
+    stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    _run_gate_turn(service, n=1)
+    assert len(calls) == 1  # unknown cursor -> run_fail_open
+
+    _run_gate_turn(service, n=2)
+    _run_gate_turn(service, n=3)
+    assert len(calls) == 1  # counter gate throttles turns 2/3 (threshold 3)
+
+    _run_gate_turn(service, n=4)
+    assert len(calls) == 2  # 3rd substantive turn since last run -> run_counter
+
+    # The gated run consumes the throttled backlog, not just the current turn.
+    prompt = str(calls[-1]["prompt"])
+    assert "编号02" in prompt
+    assert "编号03" in prompt
+    assert "编号04" in prompt
+
+    # The event ledger is never gated: all 4 turns landed in learner_memory_events.
+    events_path = tmp_path / "learner_state" / _GATE_USER / "MEMORY_EVENTS.jsonl"
+    lines = [line for line in events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert len([line for line in lines if json.loads(line)["memory_kind"] == "turn"]) == 4
+
+
+def test_summary_gate_immediate_on_guide_capability(monkeypatch, tmp_path) -> None:
+    service = _make_service(tmp_path)
+    stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    _run_gate_turn(service, n=1)
+    assert len(calls) == 1
+    _run_gate_turn(service, n=2, capability="guide_learning")
+    assert len(calls) == 2  # guide* bypasses the counter gate (run_capability)
+
+
+def test_summary_gate_immediate_on_evidence_event(monkeypatch, tmp_path) -> None:
+    service = _make_service(tmp_path)
+    stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    _run_gate_turn(service, n=1)
+    assert len(calls) == 1
+    service.append_memory_event(
+        _GATE_USER,
+        source_feature="construction_grading",
+        source_id="grade_evidence_1",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence", "question_id": "case-9"},
+    )
+    _run_gate_turn(service, n=2)
+    assert len(calls) == 2  # non-turn event since cursor -> run_evidence
+
+
+def test_summary_gate_no_change_resets_counter(monkeypatch, tmp_path) -> None:
+    service = _make_service(tmp_path)
+    stream, calls = _capturing_stream("NO_CHANGE")
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    _run_gate_turn(service, n=1)
+    assert len(calls) == 1
+    # NO_CHANGE still resets the cursor: the next 2 substantive turns are throttled.
+    _run_gate_turn(service, n=2)
+    _run_gate_turn(service, n=3)
+    assert len(calls) == 1
+    _run_gate_turn(service, n=4)
+    assert len(calls) == 2
+
+
+def test_summary_gate_llm_failure_keeps_gate_open(monkeypatch, tmp_path) -> None:
+    service = _make_service(tmp_path)
+    calls: list[dict] = []
+
+    async def _flaky_stream(**kwargs):
+        calls.append(dict(kwargs))
+        if len(calls) == 1:
+            raise RuntimeError("llm down")
+        yield "NO_CHANGE"
+
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", _flaky_stream)
+
+    with pytest.raises(RuntimeError):
+        _run_gate_turn(service, n=1)
+    # LLM exception left the cursor untouched -> the very next turn retries.
+    _run_gate_turn(service, n=2)
+    assert len(calls) == 2
+
+
+def test_summary_source_no_duplicate_summary_and_no_raw_progress_json(monkeypatch, tmp_path) -> None:
+    service = _make_service(tmp_path)
+    service.merge_progress(
+        _GATE_USER,
+        {"radar_history": [{"score": 42}], "knowledge_map": {"ch_1": "weak"}},
+    )
+    current_summary = service.read_summary(_GATE_USER)
+    stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    _run_gate_turn(service, n=1)
+    prompt = str(calls[-1]["prompt"])
+    # Raw progress JSON is replaced by the compact segment renderer.
+    assert "radar_history" not in prompt
+    assert "knowledge_map" not in prompt
+    assert "[User Profile]" not in prompt
+    assert "[学员画像(压缩)]" in prompt
+    assert "[学习进度(压缩)]" in prompt
+    # The current summary appears exactly once (the old source injected it twice).
+    assert prompt.count(current_summary) == 1
+
+
+def test_summary_source_caps_assistant_message(monkeypatch, tmp_path) -> None:
+    service = _make_service(tmp_path)
+    stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    _run_gate_turn(service, n=1, assistant="答" * 3000)
+    prompt = str(calls[-1]["prompt"])
+    assert ("答" * 2000) in prompt
+    assert ("答" * 2001) not in prompt
+
+
+def test_summary_source_mtime_cutoff_fallback_caps_backlog_at_8(monkeypatch, tmp_path) -> None:
+    """Commander hardening: after a restart during a long NO_CHANGE stretch the cutoff
+    falls back to the stale summary mtime (mtime does not move on NO_CHANGE), which
+    re-feeds old turns — the [-8:] window must cap that re-feed."""
+    import os
+    import time as time_module
+
+    service = _make_service(tmp_path)
+    service.read_summary(_GATE_USER)  # seed profile/summary/progress files
+    summary_path = tmp_path / "learner_state" / _GATE_USER / "SUMMARY.md"
+    stale = time_module.time() - 3600
+    os.utime(summary_path, (stale, stale))
+    for i in range(1, 13):
+        service.append_memory_event(
+            _GATE_USER,
+            source_feature="turn",
+            source_id=f"backlog_{i:02d}",
+            memory_kind="turn",
+            payload_json={
+                "user_message": f"积压问题{i:02d}",
+                "assistant_message": f"积压解答{i:02d}",
+            },
+        )
+    stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    _run_gate_turn(service, n=99)  # fresh process cursor -> run_fail_open, mtime cutoff
+    prompt = str(calls[-1]["prompt"])
+    assert prompt.count("[User]") == 8  # 12 backlog + current turn -> capped at 8
+    assert "编号99" in prompt  # current turn always present (large budget slot)
+    assert "积压问题12" in prompt  # newest backlog survives
+    assert "积压问题06" in prompt  # oldest inside the window
+    assert "积压问题05" not in prompt  # older than the [-8:] window
+
+
+def test_rewrite_summary_uses_fast_tier_when_configured(monkeypatch, tmp_path) -> None:
+    service = _make_service(tmp_path)
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.resolve_fast_tier_model", lambda: "qwen-flash"
+    )
+    stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    result = _run_gate_turn(service, n=1)
+    assert result.changed is True
+    assert calls[-1]["model"] == "qwen-flash"
+
+
+def test_rewrite_summary_falls_back_to_primary_model_when_unconfigured(monkeypatch, tmp_path) -> None:
+    service = _make_service(tmp_path)
+    monkeypatch.setattr("deeptutor.services.llm.config.resolve_fast_tier_model", lambda: "")
+    stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    _run_gate_turn(service, n=1)
+    assert calls[-1]["model"] is None  # "" -> None -> primary model (fail-open)
+
+
+def test_rewrite_summary_survives_fast_tier_resolver_failure(monkeypatch, tmp_path) -> None:
+    service = _make_service(tmp_path)
+
+    def _boom() -> str:
+        raise RuntimeError("config down")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.resolve_fast_tier_model", _boom)
+    stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    result = _run_gate_turn(service, n=1)
+    assert result.changed is True  # refresh survives, primary model used
+    assert calls[-1]["model"] is None
+
+
+def test_summary_gate_metrics_recorded(monkeypatch, tmp_path) -> None:
+    from deeptutor.api.runtime_metrics import (
+        get_turn_runtime_metrics,
+        reset_turn_runtime_metrics,
+    )
+
+    reset_turn_runtime_metrics()
+    try:
+        service = _make_service(tmp_path)
+        stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+        monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+        _run_gate_turn(service, n=1)  # run_fail_open -> changed
+        _run_gate_turn(service, n=2)  # skip_throttled -> skipped
+
+        counts = get_turn_runtime_metrics().snapshot()["summary_maintainer_counts"]
+        assert {"decision": "run_fail_open", "outcome": "changed", "count": 1} in counts
+        assert {"decision": "skip_throttled", "outcome": "skipped", "count": 1} in counts
+    finally:
+        reset_turn_runtime_metrics()
+
+
+def test_summary_gate_metric_failure_does_not_break_refresh(monkeypatch, tmp_path) -> None:
+    import deeptutor.api.runtime_metrics as runtime_metrics_module
+
+    def _boom():
+        raise RuntimeError("metrics backend down")
+
+    monkeypatch.setattr(runtime_metrics_module, "get_turn_runtime_metrics", _boom)
+
+    service = _make_service(tmp_path)
+    stream, calls = _capturing_stream(_SUBSTANTIVE_REWRITE)
+    monkeypatch.setattr("deeptutor.services.learner_state.service.llm_stream", stream)
+
+    result = _run_gate_turn(service, n=1)  # run path records outcome -> must not raise
+    assert result.changed is True
+    skip_result = _run_gate_turn(service, n=2)  # skip path records too -> must not raise
+    assert skip_result.changed is True  # turn event still recorded
+    assert len(calls) == 1

@@ -575,6 +575,14 @@ async def test_run_query_plan_bounds_query_variant_concurrency(
             }
         ]
 
+    async def _no_batch(queries):
+        # Neutralize the T4① batch prefetch so this test keeps measuring the
+        # per-query embed path the semaphore bounds (and stays hermetic — the
+        # batch path would otherwise reach get_embedding_client()).
+        _ = queries
+        return {}
+
+    monkeypatch.setattr(pipeline, "_embed_queries_batch", _no_batch)
     monkeypatch.setattr(pipeline, "_embed_query", _fake_embed_query)
     monkeypatch.setattr(pipeline, "_search_source", _fake_search_source)
 
