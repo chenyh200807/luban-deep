@@ -29,7 +29,7 @@ def _clear_availability_state():
 def _config():
     return supabase_module.SupabaseSearchConfig(
         url="https://example.supabase.co",
-        service_key="test-key",
+        service_key="test-key",  # pragma: allowlist secret
         timeout_s=5.0,
         sources=["standard"],
         include_questions=True,

@@ -32,7 +32,7 @@ def _clear_embedding_cache():
 def _config(**overrides):
     values = dict(
         url="https://example.supabase.co",
-        service_key="test-key",
+        service_key="test-key",  # pragma: allowlist secret
         timeout_s=5.0,
         sources=["standard"],
         include_questions=True,

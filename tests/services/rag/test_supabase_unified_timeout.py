@@ -19,7 +19,7 @@ from deeptutor.services.rag.pipelines import supabase as supabase_module
 def _config(**overrides):
     values = dict(
         url="https://example.supabase.co",
-        service_key="test-key",
+        service_key="test-key",  # pragma: allowlist secret
         timeout_s=8.0,
         sources=["standard", "textbook"],
         include_questions=True,
