@@ -193,6 +193,11 @@
             <text class="eb-antidote-pending-desc">{{detail.antidote.desc}}</text>
             <view class="eb-ghost" bindtap="openAttemptDetail"><text>先回到当时的解析</text></view>
           </block>
+          <!-- 挂钩考点卡: 同站教材原文卡, 记忆巩固回路(纯导航) -->
+          <view class="eb-cc-link" wx:if="{{detail.retest.packId}}" bindtap="goConceptCards">
+            <text class="eb-cc-link-tx">翻这一站的考点卡 · 教材原文逐字巩固</text>
+            <text class="eb-cc-link-arrow">›</text>
+          </view>
         </view>
 
         <!-- ④ 销账动线 -->

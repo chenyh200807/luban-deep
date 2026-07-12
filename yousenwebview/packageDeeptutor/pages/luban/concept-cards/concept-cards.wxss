@@ -380,3 +380,116 @@
 .cc-quote-toggle:active {
   background: #f8f5ec;
 }
+
+/* ── 形态学v2(2026-07-12): 规则牌/句读要点/红线句/错因回路 ── */
+.cc-rule-flow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.cc-rule-cond {
+  background: #efecdf;
+  border-radius: 16rpx;
+  padding: 16rpx 22rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--pk-t1);
+  line-height: 1.4;
+}
+.cc-rule-arrow {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--pk-t3);
+}
+.cc-rule-result {
+  background: rgba(72, 128, 106, 0.1);
+  border: 1rpx solid rgba(72, 128, 106, 0.3);
+  border-radius: 16rpx;
+  padding: 16rpx 22rpx;
+  font-size: 27rpx;
+  font-weight: 800;
+  color: var(--pk-grn);
+  line-height: 1.4;
+}
+.cc-rule-result.ban {
+  background: rgba(207, 68, 54, 0.07);
+  border: 2rpx solid rgba(207, 68, 54, 0.5);
+  color: var(--pk-red);
+  letter-spacing: 2rpx;
+}
+.cc-roster-body.ban {
+  color: var(--pk-red);
+  font-weight: 700;
+}
+.cc-clause-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
+  padding: 10rpx 0;
+}
+.cc-clause-dot {
+  flex: 0 0 auto;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 4rpx;
+  background: var(--pk-grn);
+  margin-top: 14rpx;
+}
+.cc-clause-tx {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--pk-t2);
+  line-height: 1.6;
+}
+.cc-redline {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
+  background: rgba(207, 68, 54, 0.06);
+  border: 1rpx solid rgba(207, 68, 54, 0.24);
+  border-radius: 16rpx;
+  padding: 16rpx 18rpx;
+  margin-bottom: 12rpx;
+}
+.cc-redline-seal {
+  flex: 0 0 auto;
+  width: 44rpx;
+  height: 44rpx;
+  border: 2rpx solid var(--pk-red);
+  border-radius: 10rpx;
+  color: var(--pk-red);
+  font-size: 24rpx;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-6deg);
+}
+.cc-redline-tx {
+  flex: 1;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--pk-t1);
+  line-height: 1.6;
+}
+.cc-eb-link {
+  margin-top: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(194, 101, 85, 0.07);
+  border: 1rpx dashed rgba(194, 101, 85, 0.32);
+  border-radius: 16rpx;
+  padding: 18rpx 22rpx;
+}
+.cc-eb-link-tx {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-warn);
+}
+.cc-eb-link-arrow {
+  font-size: 30rpx;
+  color: var(--pk-warn);
+  font-weight: 700;
+}

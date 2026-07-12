@@ -507,3 +507,25 @@
   color: var(--pk-warn);
   letter-spacing: 0.5rpx;
 }
+
+/* 考点卡回路 */
+.eb-cc-link {
+  margin-top: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(72, 128, 106, 0.07);
+  border: 1rpx dashed rgba(72, 128, 106, 0.32);
+  border-radius: 16rpx;
+  padding: 18rpx 22rpx;
+}
+.eb-cc-link-tx {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-grn);
+}
+.eb-cc-link-arrow {
+  font-size: 30rpx;
+  color: var(--pk-grn);
+  font-weight: 700;
+}

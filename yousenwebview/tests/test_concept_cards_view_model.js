@@ -155,3 +155,31 @@ console.log("test_concept_cards_view_model: all assertions passed");
   assert(deck.cards[0].structure && deck.cards[0].structure.chain.length === 5, "deck 卡挂 structure");
   console.log("PASS 记忆面结构化 8 断言");
 })();
+
+// ── 形态学v2(2026-07-12): 规则牌/（1）式枚举/红线句/句读要点 ──
+(function () {
+  // 规则牌: 双段gist, 结果含禁止词=红线
+  var st = ccvm.buildCardStructure({
+    keyGist: "返修加固仍不满足安全→严禁验收",
+    quote: "（1）当资料部分缺失时，应委托检测机构实体检验。 （2）经返修仍不能满足安全的单位工程，严禁验收。",
+  });
+  assert(st.rule && st.rule.cond === "返修加固仍不满足安全" && st.rule.banned === true, "规则牌+红线");
+  assert(st.roster && st.roster.length === 2, "（1）式枚举切行");
+  assert(st.roster[1].banned === true, "枚举行禁止词高亮位");
+  assert(!st.plain, "不再裸奔");
+
+  // 红线句捞取(无枚举无规则时)
+  var st2 = ccvm.buildCardStructure({
+    keyGist: "",
+    quote: "施工现场应保持整洁。安全通道严禁堆放材料。",
+  });
+  assert(st2.redlines.length === 1 && st2.redlines[0].indexOf("严禁堆放") >= 0, "红线句逐字捞取");
+
+  // 句读要点兜底
+  var st3 = ccvm.buildCardStructure({
+    keyGist: "",
+    quote: "模板应有足够的承载能力。支架应有足够的刚度。拼缝应严密不漏浆。",
+  });
+  assert(st3.clauses && st3.clauses.length === 3, "句读要点切3条");
+  console.log("PASS 形态学v2 7断言");
+})();

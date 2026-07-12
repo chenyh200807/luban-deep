@@ -196,6 +196,15 @@ Page({
   // 解药查询键: 只有 packId 可诚实归属 ∧ errorCode 是注册表错因码才成立
   // (deriveRetestPackId / humanizeErrorLabel 对不上=空串)。任一空 = 不查, 保持
   // 「解药整理中」占位, 绝不拿半个键瞎猜。
+  goConceptCards: function () {
+    var detail = this.data.detail || {};
+    var packId = detail.retest && detail.retest.packId;
+    if (!packId) return;
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({ url: route.lubanConceptCards({ pack_id: packId }) });
+    }
+  },
+
   _antidoteKey: function (entry) {
     var e = entry || {};
     if (!e.packId || !e.errorCode) return "";

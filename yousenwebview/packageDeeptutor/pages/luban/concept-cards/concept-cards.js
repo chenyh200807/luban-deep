@@ -11,6 +11,7 @@ var auth = require("../../../utils/auth");
 var route = require("../../../utils/route");
 var runtime = require("../../../utils/runtime");
 var ccvm = require("../../../utils/concept-cards-view-model");
+var ebvm = require("../../../utils/errorbank-view-model");
 
 Page({
   data: {
@@ -26,6 +27,7 @@ Page({
     currentCard: null, // 当前展示卡(由 deckState 派生)
     flipped: false, // 正面/翻面(纯呈现态)
     quoteOpen: false, // 教材原文全文展开(记忆面默认收拢,尊重爱看全文的用户)
+    packPendingCount: 0, // 本站待还错因笔数(错因银行只读回路; 0/未开通=不显)
     finished: false,
   },
 
@@ -112,6 +114,38 @@ Page({
     });
   },
 
+  // 错因银行只读回路: 本站待还笔数(deriveRetestPackId 同一归属口径, 零第二权威;
+  // 未开通/失败/0 笔一律不显——纯导航增强, 不是新学情)。
+  _probePackPending: function (packId) {
+    var that = this;
+    Promise.all([
+      api.getMistakeBook({ include_mastered: false }, { silent: true }),
+      api.getLubanLessons({ silent: true }),
+    ])
+      .then(function (results) {
+        var book = api.unwrapResponse(results[0]) || {};
+        var lessons = results[1] ? api.unwrapResponse(results[1]) || {} : {};
+        var items = Array.isArray(book.items) ? book.items : [];
+        var n = 0;
+        items.forEach(function (item) {
+          if (item && item.mastered_at) return;
+          if (ebvm.deriveRetestPackId(item, lessons) === packId) n += 1;
+        });
+        if (that.data.activePackId === packId) {
+          that.setData({ packPendingCount: n });
+        }
+      })
+      .catch(function () {
+        that.setData({ packPendingCount: 0 });
+      });
+  },
+
+  goErrorbank: function () {
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({ url: route.lubanErrorbank() });
+    }
+  },
+
   _loadLibrary: function () {
     var that = this;
     this.setData({ loading: true, errorText: "" });
@@ -142,6 +176,7 @@ Page({
   _loadDeck: function (packId) {
     var that = this;
     this.setData({ loading: true, errorText: "", activePackId: packId });
+    this._probePackPending(packId);
     return api
       .getLubanConceptCards(packId)
       .then(function (resp) {

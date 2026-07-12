@@ -61,6 +61,8 @@ function buildLibraryViewModel(body) {
  */
 var _CHAIN_SPLIT_RE = /\s*(?:→|➝|➔|->)\s*/;
 var _ENUM_MARKS = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮";
+var _PAREN_ENUM_RE = /[（(]\s*(\d{1,2})\s*[）)]/g;
+var _BAN_RE = /(严禁|不得|禁止|不应|不准)/;
 var _ACTOR_RE = /^([^，。；：、]{2,14}?)(?=应当|应|须|宜|不得|不应|禁止|负责|组织)/;
 var _NUM_RE = /(\d+(?:\.\d+)?)\s*(个月|小时|万元|天|日|人|层|次|年|h|mm|cm|km|m²|m³|m|米|%|‰|MPa|kN|℃|倍|级|元|d)/g;
 
@@ -78,24 +80,77 @@ function _parseChain(gist) {
 function _parseRoster(quote) {
   var q = _str(quote);
   var idxs = [];
+  var markLens = [];
   for (var i = 0; i < q.length; i++) {
-    if (_ENUM_MARKS.indexOf(q[i]) >= 0) idxs.push(i);
+    if (_ENUM_MARKS.indexOf(q[i]) >= 0) {
+      idxs.push(i);
+      markLens.push(1);
+    }
+  }
+  if (idxs.length < 2) {
+    // （1）(2) 式枚举(教材另一常用体例)
+    idxs = [];
+    markLens = [];
+    _PAREN_ENUM_RE.lastIndex = 0;
+    var pm;
+    while ((pm = _PAREN_ENUM_RE.exec(q)) !== null) {
+      idxs.push(pm.index);
+      markLens.push(pm[0].length);
+    }
   }
   if (idxs.length < 2) return null;
   var rows = [];
   for (var k = 0; k < idxs.length; k++) {
-    var start = idxs[k] + 1;
+    var start = idxs[k] + markLens[k];
     var end = k + 1 < idxs.length ? idxs[k + 1] : q.length;
     var item = q.slice(start, end).replace(/[；;。\s]+$/, "").trim();
     if (!item) continue;
     var m = item.match(_ACTOR_RE);
     rows.push({
-      mark: q[idxs[k]],
+      mark: String(k + 1),
       actor: m ? m[1] : "",
       body: m ? item.slice(m[1].length) : item,
+      banned: _BAN_RE.test(item),
     });
   }
   return rows.length >= 2 ? rows : null;
+}
+
+/** 条件→结果 规则牌: gist 恰好双段(→切一刀); 结果含禁止词=红线章。 */
+function _parseRule(gist) {
+  var g = _str(gist).trim();
+  if (!g) return null;
+  var parts = g.split(_CHAIN_SPLIT_RE).map(function (p) {
+    return p.trim();
+  }).filter(Boolean);
+  if (parts.length !== 2) return null;
+  if (parts[0].length > 60 || parts[1].length > 40) return null;
+  return { cond: parts[0], result: parts[1], banned: _BAN_RE.test(parts[1]) };
+}
+
+/** 红线句捞取: 原文里含 严禁/不得/禁止 的整句(逐字, ≤2条)。 */
+function _parseRedlines(quote) {
+  var q = _str(quote);
+  if (!q) return [];
+  var out = [];
+  var sentences = q.split(/(?<=[。；;])/);
+  for (var i = 0; i < sentences.length && out.length < 2; i++) {
+    var sent = sentences[i].trim();
+    if (sent && _BAN_RE.test(sent) && sent.length <= 90) out.push(sent);
+  }
+  return out;
+}
+
+/** 句读要点: 无枚举时按 。；切 2-6 条短句(逐字), 长散文的最后兜底。 */
+function _parseClauses(quote) {
+  var q = _str(quote).trim();
+  if (!q) return null;
+  var parts = q.split(/[。；;]/).map(function (p) {
+    return p.trim();
+  }).filter(function (p) {
+    return p.length >= 6 && p.length <= 70;
+  });
+  return parts.length >= 2 && parts.length <= 6 ? parts : null;
 }
 
 function _parseNumbers(gist, quote) {
@@ -126,14 +181,32 @@ function _parseNumbers(gist, quote) {
 function buildCardStructure(card) {
   var c = _safeObj(card);
   var chain = _parseChain(c.keyGist);
+  var rule = chain ? null : _parseRule(c.keyGist);
   var roster = _parseRoster(c.quote);
+  // 要点/红线只在没有枚举行时兜底(避免同一原文双重呈现)
+  var clauses = roster ? null : _parseClauses(c.quote);
+  var redlines = rule || roster ? [] : _parseRedlines(c.quote);
+  // 兜底句里已含红线句时去重
+  if (redlines.length && clauses) {
+    clauses = clauses.filter(function (p) {
+      return redlines.every(function (r) {
+        return r.indexOf(p) < 0;
+      });
+    });
+    if (clauses.length < 2) clauses = null;
+  }
   var numbers = _parseNumbers(c.keyGist, c.quote);
   return {
     chain: chain,
+    rule: rule,
     roster: roster,
+    clauses: clauses,
+    redlines: redlines,
     numbers: numbers,
-    // 无任何结构时回落颗粒条(gist 原样)
-    plain: !chain && !roster && numbers.length === 0,
+    // 全形态都空才回落颗粒条(gist 原样)
+    plain:
+      !chain && !rule && !roster && !clauses &&
+      redlines.length === 0 && numbers.length === 0,
   };
 }
 

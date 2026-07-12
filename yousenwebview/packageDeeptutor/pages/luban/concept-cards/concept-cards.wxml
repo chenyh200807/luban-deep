@@ -85,13 +85,43 @@
                 </view>
               </view>
 
+              <!-- 条件→结果 规则牌(结果含禁止词=红线章) -->
+              <view class="cc-rule" wx:if="{{currentCard.structure.rule}}">
+                <text class="cc-sec-label">一句就一条规则</text>
+                <view class="cc-rule-flow">
+                  <view class="cc-rule-cond"><text>{{currentCard.structure.rule.cond}}</text></view>
+                  <text class="cc-rule-arrow">⇒</text>
+                  <view class="cc-rule-result {{currentCard.structure.rule.banned ? 'ban' : ''}}">
+                    <text>{{currentCard.structure.rule.result}}</text>
+                  </view>
+                </view>
+              </view>
+
               <!-- 谁做什么：主体签章 + 动作行(来自原文①②…逐字切行) -->
               <view class="cc-roster" wx:if="{{currentCard.structure.roster}}">
                 <text class="cc-sec-label">谁做什么</text>
                 <view class="cc-roster-row" wx:for="{{currentCard.structure.roster}}" wx:key="index">
                   <text class="cc-roster-actor" wx:if="{{item.actor}}">{{item.actor}}</text>
                   <text class="cc-roster-mark" wx:else>{{item.mark}}</text>
-                  <text class="cc-roster-body">{{item.body}}</text>
+                  <text class="cc-roster-body {{item.banned ? 'ban' : ''}}">{{item.body}}</text>
+                </view>
+              </view>
+
+              <!-- 句读要点(无枚举时的兜底, 原文逐字切短句) -->
+              <view class="cc-clauses" wx:if="{{currentCard.structure.clauses}}">
+                <text class="cc-sec-label">拆成几句好记的</text>
+                <view class="cc-clause-row" wx:for="{{currentCard.structure.clauses}}" wx:key="index">
+                  <view class="cc-clause-dot"></view>
+                  <text class="cc-clause-tx">{{item}}</text>
+                </view>
+              </view>
+
+              <!-- 红线句(严禁/不得/禁止, 考场就考这个) -->
+              <view class="cc-redlines" wx:if="{{currentCard.structure.redlines.length}}">
+                <text class="cc-sec-label">红线 · 碰不得</text>
+                <view class="cc-redline" wx:for="{{currentCard.structure.redlines}}" wx:key="index">
+                  <text class="cc-redline-seal">禁</text>
+                  <text class="cc-redline-tx">{{item}}</text>
                 </view>
               </view>
 
@@ -110,6 +140,12 @@
               <view class="cc-gist" wx:if="{{currentCard.structure.plain && currentCard.keyGist}}">
                 <text class="cc-gist-label">可背颗粒</text>
                 <text class="cc-gist-text">{{currentCard.keyGist}}</text>
+              </view>
+
+              <!-- 挂钩错因银行: 这一站有待还错因时给一条回路(纯导航,零第二权威) -->
+              <view class="cc-eb-link" wx:if="{{packPendingCount > 0}}" catchtap="goErrorbank">
+                <text class="cc-eb-link-tx">这一站你有 {{packPendingCount}} 笔待还错因 · 去看解药</text>
+                <text class="cc-eb-link-arrow">›</text>
               </view>
 
               <!-- 教材原文：默认收拢，一键全文(有人就爱看完整的) -->
