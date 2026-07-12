@@ -104,6 +104,12 @@ feature_flags:
   - {name: LANGFUSE_ENABLED, default: false, kind: killswitch}
   - {name: LANGFUSE_HTTPX_TRUST_ENV, default: false, kind: config}
   - {name: LANGFUSE_MASK_PII, default: false, kind: config}        # PII
+  # ③稳定性 B2/B4 followup 判定器提速灰度门(2026-07-12): 开 = B2 瘦身 prompt(题干/选项/
+  # 作答/history 裁剪,判定必需信号保留) + B4 快档模型(读 W4 唯一档位 accessor
+  # resolve_fast_tier_model,需另配 LLM_FAST_MODEL;未配置=仅 B2 瘦身生效)。
+  # 关(默认) = 判定器 prompt/model bit-for-bit 不变。判定器 fallback 对 SEV fail-safe
+  # (None→under-act 不 mis-act),但判定分布随输入/模型变,放量前必须灰度观察。
+  - {name: LUBAN_FOLLOWUP_FAST_TIER_ENABLED, default: false, kind: rollout, read: env_flag}
   - {name: LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED, default: false, kind: rollout}
   - {name: MEMBER_CONSOLE_USE_REAL_SMS, default: false, kind: killswitch}  # off = mock SMS
   - {name: MEMBER_CONSOLE_USE_SUPABASE_MEMBER_DIRECTORY, default: false, kind: rollout}
