@@ -9,6 +9,23 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-12 · 判定器思考 token 真根因:dashscope 被 thinking 门漏掉(两次假设被实测证伪)
+
+**①现象**:承接 followup flag 那条——判定器真瓶颈=输出 token 70-80% 是 deepseek 思考 token。要关思考,先定位"思考开关在哪、为什么判定器没关"。
+
+**②发现路径(两次假设都被实测推翻,最值钱的部分)**:
+- **假设A**:factory.complete 路径压根没 thinking 控制。**证伪**:grep 到 `executors.py:74 _apply_provider_thinking_mode` 已有 reasoning_effort→thinking 映射。
+- **假设B**:executors 一刀切 `thinking.type=disabled`,而 dashscope 只认 `enable_thinking`,所以关法无效。**生产实测证伪**(base64 探针进容器打生产 dashscope):基线 42 tokens/reasoning 61;`thinking.type=disabled`→6/0;`enable_thinking=false`→6/0——**两参数 dashscope 都认,关法本身有效**。假设 B 错。
+- **真根因(第三次才对)**:`executors.py:80-84` `if not spec or spec.name != "deepseek": return`。生产 binding=**dashscope**→`spec.name != "deepseek"`→**提前 return,thinking 控制整段被跳过**。config.reasoning_effort=None 也探针实读确认。
+
+**③分析**:shape=**dormant authority**——关思考的门在 live 路径上,但 dashscope 走不到它(provider 判据 `!= "deepseek"` 太窄)。对比 tutorbot 路径 `openai_compat_provider.py:299` 判据 `spec.name in {"dashscope","deepseek"}`——**两条 provider 路径判据不对称,executors 漏了 dashscope**(同一逻辑各写一遍→判据漂移)。
+
+**④修法与理由**:不在判定器加 provider 特例(泄 dashscope 参数进业务层+第三处决策)。修 authority:executors 加 dashscope 分支,**只在显式 disabled 时关**(空 effort 不动)——生产所有 dashscope 调用现都因此 bug 在思考,全局"空→关"会退化可能依赖思考的判分链。判定器用**通用语义** `reasoning_effort="disabled"` 表意图。影响面被"只关显式 disabled"限定=零回归。deepseek/其他 provider 字节不变。
+
+**⑤验证与教训**:实施+eval 交 agent(歧义集思考 on/off 分类一致率≥90%,SEV 红线=试探/推迟不得误判 submission)。**可迁移**:①改 provider 行为前必实测该 provider 认哪个参数,别靠文档/直觉(假设 B 就错);②"门在但不生效"先查 provider 判据是否覆盖当前 binding,别急着改参数格式;③同一逻辑两条 provider 路径各写一遍→判据必漂移不一致,是收权信号(但收权有回归风险需单独测绘)。
+
+---
+
 ## 2026-07-12 · 部署 agent 断线恢复（先勘察后续跑，不重跑已完成步骤）
 
 **①现象**：合并 root-closure 的 Opus agent 因 API 断线中断，最后一句话停在"钩子 exit 3、还在查它要改什么"。
