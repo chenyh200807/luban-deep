@@ -222,6 +222,11 @@
 - **[生产界面不变]** LUBAN_STD_CONCEPT_CARDS/RICH_LEAF_RUNTIME/LIGHT_PRACTICE全OFF;小程序未上传(仍老蓝版)。新五模块对用户零展示。
 - **[⚠️红线发现,owner待裁决]** 生产`LUBAN_CASE_RUBRIC_BANK_SLOT=pgo`——与"禁拨PGO"红线冲突,**但非本次引入**:host .env备份06-19/07-05/07-06全是pgo(已存活~3周),带canary结构(CANARY_ENABLED=false,cohort qa_/operator_),属案例判分pgo/canary独立轨道。部署agent未擅动(翻已上线3周的判分槽超授权)。**待owner裁决:回legacy还是追认pgo轨道**(需先查这3周生产判分是否受影响——PGO库score=null靠切分粒度隐式计分,红线当初立的原因)。
 
+### 2026-07-12（PR#454学情真值收口合流+二次部署 · 双前端线终结）
+- **[合流]** 另一会话的 codex/five-module-root-closure(61aaf9a2 学情真值统一收口)经 PR#454 merge commit 入 main=**84909343**;代码/账本零冲突;.secrets.baseline 撞车按"合并树口径"解(方法志有条目);methodology-log add/add 两会话条目全保留。first-run-learner-loop 已对齐(348b62bf 推远端)。**root-closure 分支内容 100% 进 main 可废弃**(其 worktree 归对方会话,删分支由 owner/对方执行)。
+- **[二次部署]** deploy_aliyun.sh 全量 rebuild;四门+md5 指纹全过(容器 17:11:27 就绪/evidence_lifecycle 特征命中/healthz 200/双端 GIT_SHA==84909343);主控独立抽查一致。旗标红线全守(三 LUBAN_*_ENABLED OFF;判分槽 pgo 原样待 owner 裁决)。测试:定向 pytest 803 绿×2轮/yousen 前端 95/95/CI 14 检查全绿(wx_miniprogram 6 失败经 main 基线复跑证实为既有)。
+- **[终态]** 生产=main=84909343;唯一前端工作线=first-run-learner-loop(worktree deeptutor-first-run-current-five-module);"两个版本互相抢"终结。
+
 ### 2026-07-12（首跑内容签发翻牌 · owner一字拍板"签"）
 - **[签发执行]** script_manifest.v1.json四题`review_status=signed`+双reviewer留痕(`teacher_review:owner_cainkyking:2026-07-12:{qid}:{content_sha}`+`claude_fable_owner_delegate`同格式;content_sha按manifest.py同源规范化计算),`release_status=signed`+release_signoff(basis=owner本人对话授权,四题源自签发采分点owner本周多轮真机过目)。真loader`_require_signed_manifest`校验PASS。
 - **[版本连锁]** 签发改变script_version(清单sha)→前端script-data.js常量同步到`@5873e950…`;learn.js重放前对陈旧pending payload做版本自愈(题集与内容sha未变,仅签发元数据改版本,按当前常量重放,避免永久version_conflict)。
