@@ -493,3 +493,327 @@
   color: var(--pk-warn);
   font-weight: 700;
 }
+
+/* ── v3 精致化(2026-07-12): 站牌/抽屉/骨牌/形状徽标/正面重排/完场账目 ── */
+
+/* 站牌 + 下一站 */
+.cc-pack-bar {
+  display: flex;
+  gap: 14rpx;
+  margin: 4rpx 0 20rpx;
+}
+.cc-pack-now {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 20rpx;
+  padding: 20rpx 24rpx;
+  box-shadow: 0 3rpx 12rpx var(--pk-shadow);
+}
+.cc-pack-now:active {
+  background: #f8f5ec;
+}
+.cc-pack-now-title {
+  font-size: 29rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cc-pack-now-meta {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 23rpx;
+  color: var(--pk-t3);
+  flex: 0 0 auto;
+}
+.cc-pack-now-arrow {
+  margin-left: auto;
+  flex: 0 0 auto;
+  font-size: 24rpx;
+  color: var(--pk-t3);
+}
+.cc-pack-next {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 0 26rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid var(--pk-bd);
+  background: rgba(255, 253, 248, 0.72);
+  font-size: 25rpx;
+  font-weight: 700;
+  color: var(--pk-t2);
+}
+.cc-pack-next:active {
+  background: #f8f5ec;
+}
+.cc-pack-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: var(--pk-red);
+  flex: 0 0 auto;
+}
+
+/* 进度骨牌 */
+.cc-dominoes {
+  display: flex;
+  gap: 8rpx;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.cc-domino {
+  flex: 1;
+  max-width: 40rpx;
+  height: 10rpx;
+  border-radius: 6rpx;
+  background: var(--pk-gauge);
+}
+.cc-domino.done {
+  background: var(--pk-grn);
+}
+.cc-domino.now {
+  background: var(--pk-red);
+}
+
+/* 正面: 回忆预告 + 翻面章 */
+.cc-front-face {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.cc-shape-hint {
+  margin-top: 22rpx;
+  font-size: 23rpx;
+  font-weight: 700;
+  border-radius: 999rpx;
+  padding: 10rpx 24rpx;
+}
+.cc-shape-hint.tone-red {
+  color: var(--pk-red);
+  background: rgba(207, 68, 54, 0.07);
+  border: 1rpx solid rgba(207, 68, 54, 0.22);
+}
+.cc-shape-hint.tone-grn {
+  color: var(--pk-grn);
+  background: rgba(72, 128, 106, 0.08);
+  border: 1rpx solid rgba(72, 128, 106, 0.22);
+}
+.cc-shape-hint.tone-warn {
+  color: var(--pk-warn);
+  background: rgba(194, 101, 85, 0.08);
+  border: 1rpx solid rgba(194, 101, 85, 0.24);
+}
+.cc-shape-hint.tone-ink {
+  color: var(--pk-t2);
+  background: #efecdf;
+  border: 1rpx solid transparent;
+}
+.cc-fliphint-seal {
+  align-self: center;
+  margin-top: 40rpx;
+  border: 2rpx solid rgba(207, 68, 54, 0.4);
+  color: var(--pk-red);
+  border-radius: 14rpx;
+  padding: 10rpx 28rpx;
+  font-size: 23rpx;
+  font-weight: 800;
+  letter-spacing: 3rpx;
+  transform: rotate(-2deg);
+}
+
+/* 翻面: 头行 + 形状徽标 + 入场 */
+.cc-back-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 6rpx;
+}
+.cc-shape-badge {
+  flex: 0 0 auto;
+  font-size: 21rpx;
+  font-weight: 800;
+  border-radius: 12rpx;
+  padding: 6rpx 14rpx;
+  letter-spacing: 1rpx;
+}
+.cc-shape-badge.tone-red {
+  color: var(--pk-red);
+  background: rgba(207, 68, 54, 0.07);
+  border: 1rpx solid rgba(207, 68, 54, 0.24);
+}
+.cc-shape-badge.tone-grn {
+  color: var(--pk-grn);
+  background: rgba(72, 128, 106, 0.08);
+  border: 1rpx solid rgba(72, 128, 106, 0.24);
+}
+.cc-shape-badge.tone-warn {
+  color: var(--pk-warn);
+  background: rgba(194, 101, 85, 0.08);
+  border: 1rpx solid rgba(194, 101, 85, 0.26);
+}
+.cc-shape-badge.tone-ink {
+  color: var(--pk-t2);
+  background: #efecdf;
+  border: 1rpx solid transparent;
+}
+@keyframes ccUp {
+  from {
+    opacity: 0;
+    transform: translateY(16rpx);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.cc-reveal {
+  animation: ccUp 0.32s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* 卡片形状色缘(左缘细条呼应徽标色) */
+.cc-card.shape-red {
+  border-left: 6rpx solid rgba(207, 68, 54, 0.5);
+}
+.cc-card.shape-grn {
+  border-left: 6rpx solid rgba(72, 128, 106, 0.45);
+}
+.cc-card.shape-warn {
+  border-left: 6rpx solid rgba(194, 101, 85, 0.45);
+}
+
+/* 完场账目 */
+.cc-done-tally {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 44rpx;
+  margin: 24rpx 0 8rpx;
+}
+.cc-tally-item {
+  text-align: center;
+}
+.cc-tally-n {
+  display: block;
+  font-size: 56rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.cc-tally-n.grn {
+  color: var(--pk-grn);
+}
+.cc-tally-k {
+  font-size: 22rpx;
+  color: var(--pk-t3);
+  font-weight: 600;
+}
+.cc-tally-divider {
+  width: 1rpx;
+  height: 64rpx;
+  background: var(--pk-bd);
+}
+
+/* 选站抽屉 */
+.cc-sheet-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(38, 36, 31, 0.32);
+  z-index: 20;
+}
+.cc-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 21;
+  background: var(--pk-paper);
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 18rpx 32rpx calc(28rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -12rpx 48rpx rgba(38, 36, 31, 0.18);
+  max-height: 68vh;
+  display: flex;
+  flex-direction: column;
+}
+.cc-sheet-grip {
+  width: 72rpx;
+  height: 8rpx;
+  border-radius: 999rpx;
+  background: var(--pk-gauge);
+  margin: 0 auto 18rpx;
+}
+.cc-sheet-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--pk-t1);
+}
+.cc-sheet-sub {
+  font-size: 22rpx;
+  color: var(--pk-t3);
+  margin: 6rpx 0 18rpx;
+}
+.cc-sheet-scroll {
+  flex: 1;
+  min-height: 0;
+}
+.cc-sheet-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  padding-bottom: 8rpx;
+}
+.cc-sheet-cell {
+  flex: 0 0 calc(50% - 8rpx);
+  box-sizing: border-box;
+  background: var(--pk-card);
+  border: 1rpx solid var(--pk-bd);
+  border-radius: 20rpx;
+  padding: 20rpx 22rpx;
+}
+.cc-sheet-cell:active {
+  background: #f8f5ec;
+}
+.cc-sheet-cell.active {
+  border: 2rpx solid rgba(72, 128, 106, 0.5);
+}
+.cc-sheet-cell-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+}
+.cc-sheet-cell-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--pk-t1);
+  line-height: 1.35;
+  min-width: 0;
+}
+.cc-sheet-cell-meta {
+  display: block;
+  font-size: 21rpx;
+  color: var(--pk-t3);
+  margin-top: 8rpx;
+}
+
+/* 进度行间距修正 */
+.cc-progress-text {
+  margin-left: 16rpx;
+  margin-right: 12rpx;
+  flex: 0 0 auto;
+}
+.cc-progress-hint {
+  flex: 0 0 auto;
+}

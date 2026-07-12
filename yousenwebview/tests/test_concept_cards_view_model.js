@@ -183,3 +183,16 @@ console.log("test_concept_cards_view_model: all assertions passed");
   assert(st3.clauses && st3.clauses.length === 3, "句读要点切3条");
   console.log("PASS 形态学v2 7断言");
 })();
+
+// ── v3(2026-07-12): 知识形状徽标 ──
+(function () {
+  var sh = ccvm.cardShapeOf({ rule: { banned: true }, redlines: [] });
+  assert(sh.key === "redline" && sh.tone === "red", "红线规则→红线形状");
+  sh = ccvm.cardShapeOf({ chain: ["a","b","c"], redlines: [] });
+  assert(sh.key === "chain" && sh.label === "一条流程链", "链形状");
+  sh = ccvm.cardShapeOf({ numbers: [{num:"14"}], redlines: [] });
+  assert(sh.key === "numbers" && sh.tone === "warn", "关键数形状");
+  sh = ccvm.cardShapeOf({ redlines: [] });
+  assert(sh.key === "plain" && sh.tone === "ink", "颗粒兜底形状");
+  console.log("PASS 知识形状 4断言");
+})();

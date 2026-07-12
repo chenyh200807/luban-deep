@@ -177,6 +177,20 @@ function _parseNumbers(gist, quote) {
   return out;
 }
 
+/** 知识形状: 结构→类型徽标(正面预告"往哪个方向回忆", 翻面定视觉锚)。
+ * 优先级=辨识度: 红线>规则>流程链>分工清单>关键数>要点>原文颗粒。 */
+function cardShapeOf(structure) {
+  var st = _safeObj(structure);
+  if (st.rule && st.rule.banned) return { key: "redline", label: "一道红线", tone: "red" };
+  if (st.rule) return { key: "rule", label: "一条规则", tone: "grn" };
+  if (st.redlines && st.redlines.length) return { key: "redline", label: "一道红线", tone: "red" };
+  if (st.chain) return { key: "chain", label: "一条流程链", tone: "grn" };
+  if (st.roster) return { key: "roster", label: "一份分工清单", tone: "grn" };
+  if (st.numbers && st.numbers.length) return { key: "numbers", label: "几个关键数", tone: "warn" };
+  if (st.clauses) return { key: "clauses", label: "几句要点", tone: "ink" };
+  return { key: "plain", label: "一句原文", tone: "ink" };
+}
+
 /** 记忆面结构（卡级派生，纯函数）。 */
 function buildCardStructure(card) {
   var c = _safeObj(card);
@@ -232,6 +246,7 @@ function buildDeckViewModel(body) {
           (Number.isFinite(page) && page > 0 ? " · 教材 P" + page : ""),
       };
       base.structure = buildCardStructure(base);
+      base.shape = cardShapeOf(base.structure);
       return base;
     })
     .filter(function (c) {
@@ -295,6 +310,7 @@ module.exports = {
   buildLibraryViewModel: buildLibraryViewModel,
   buildDeckViewModel: buildDeckViewModel,
   buildCardStructure: buildCardStructure,
+  cardShapeOf: cardShapeOf,
   initDeckState: initDeckState,
   stepDeck: stepDeck,
   currentCardIndex: currentCardIndex,

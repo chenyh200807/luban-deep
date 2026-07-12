@@ -1,4 +1,5 @@
-<!-- 考点卡 · 30 秒再认（纸墨朱竹，与 review 同 token 权威） -->
+<!-- 考点卡 · 30 秒再认（纸墨朱竹，与 review 同 token 权威）
+     2026-07-12 v3: 知识形状徽标/正面回忆预告/选站抽屉/进度骨牌/完场账目 -->
 <view class="paper {{isDark ? '' : 'light'}} cc-page pk-paper-bg">
   <view class="cc-nav" style="padding-top: {{statusBarHeight}}px">
     <view class="cc-nav-inner">
@@ -35,41 +36,63 @@
 
         <block wx:if="{{library && library.available}}">
 
-          <!-- 站点条：按母题切换（张数=signed 卡池真值） -->
+          <!-- 头部：铺站进度诚实口径 -->
           <view class="cc-head">
             <text class="pk-kicker">复习 · 考点卡库</text>
-            <text class="cc-head-sub">30 秒一张 · 共 {{library.total}} 张，全部带教材原文</text>
+            <text class="cc-head-sub">已铺 {{library.packs.length}} 站 · {{library.total}} 张 · 全部教材原文签发，持续铺站中</text>
           </view>
-          <scroll-view class="cc-packs" scroll-x enhanced show-scrollbar="{{false}}">
-            <view
-              wx:for="{{library.packs}}"
-              wx:key="packId"
-              class="cc-pack-chip {{item.packId === activePackId ? 'active' : ''}}"
-              data-pack-id="{{item.packId}}"
-              bindtap="switchPack"
-            >
-              <text>{{item.title}} · {{item.cardCount}}</text>
-            </view>
-          </scroll-view>
 
-          <!-- 进度：第 N 张 / 共 M 张 -->
+          <!-- 站点切换：当前站牌 + 选站抽屉入口 -->
+          <view class="cc-pack-bar">
+            <view class="cc-pack-now" bindtap="openPackSheet">
+              <text class="cc-pack-now-title">{{deck.title}}</text>
+              <view class="cc-pack-now-meta">
+                <text>{{deck.cards.length}} 张</text>
+                <view class="cc-pack-dot" wx:if="{{pendingMap[activePackId] > 0}}"></view>
+              </view>
+              <text class="cc-pack-now-arrow">▾</text>
+            </view>
+            <view class="cc-pack-next" bindtap="nextPack">
+              <text>下一站 ›</text>
+            </view>
+          </view>
+
+          <!-- 进度骨牌：过一张点亮一枚 -->
           <view class="cc-progress-row" wx:if="{{deck && !finished}}">
+            <view class="cc-dominoes" wx:if="{{deckState.order.length <= 14}}">
+              <view
+                wx:for="{{deckState.order}}"
+                wx:key="index"
+                class="cc-domino {{index < deckState.pos ? 'done' : (index === deckState.pos ? 'now' : '')}}"
+              ></view>
+            </view>
             <text class="cc-progress-text">{{deckState.pos + 1}} / {{deckState.order.length}}</text>
-            <text class="cc-progress-hint">点卡片翻面 · 先回忆再核对</text>
+            <text class="cc-progress-hint">先回忆 · 点卡翻面核对</text>
           </view>
 
           <!-- 翻卡主体 -->
-          <view class="cc-card pk-card" wx:if="{{currentCard && !finished}}" bindtap="flipCard">
-            <!-- 正面：考点问法（固定模板包裹签发短名，禁造句） -->
+          <view class="cc-card pk-card shape-{{currentCard.shape.tone}}" wx:if="{{currentCard && !finished}}" bindtap="flipCard">
+            <!-- 正面：考点问法 + 知识形状预告(帮回忆定向) -->
             <block wx:if="{{!flipped}}">
-              <text class="cc-card-kicker">{{deck.title}}</text>
-              <text class="cc-card-front">「{{currentCard.front}}」</text>
-              <text class="cc-card-prompt">{{currentCard.prompt}}</text>
-              <text class="cc-card-fliphint">点一下 · 看教材原文</text>
+              <view class="cc-front-face">
+                <text class="cc-card-kicker">{{deck.title}}</text>
+                <text class="cc-card-front">「{{currentCard.front}}」</text>
+                <text class="cc-card-prompt">{{currentCard.prompt}}</text>
+                <view class="cc-shape-hint tone-{{currentCard.shape.tone}}">
+                  <text>背面是{{currentCard.shape.label}} · 先在脑子里搭出它</text>
+                </view>
+                <view class="cc-fliphint-seal"><text>点一下翻面</text></view>
+              </view>
             </block>
             <!-- 翻面＝记忆面：结构化图示(逐字切分零改写)优先，教材原文一键全文 -->
             <block wx:if="{{flipped}}">
-              <text class="cc-card-kicker">{{currentCard.front}}</text>
+              <view class="cc-reveal">
+              <view class="cc-back-head">
+                <text class="cc-card-kicker">{{currentCard.front}}</text>
+                <view class="cc-shape-badge tone-{{currentCard.shape.tone}}">
+                  <text>{{currentCard.shape.label}}</text>
+                </view>
+              </view>
 
               <!-- 流程链：口诀石链(来自可背颗粒的→切分) -->
               <view class="cc-chain" wx:if="{{currentCard.structure.chain}}">
@@ -157,6 +180,7 @@
                 <text class="cc-quote-text">{{currentCard.quote}}</text>
               </view>
               <text class="cc-quote-source">{{currentCard.sourceNote}}</text>
+              </view>
             </block>
           </view>
 
@@ -177,16 +201,27 @@
           </view>
           <text class="cc-actions-note" wx:if="{{currentCard && !finished && !flipped}}">先翻面核对原文，再决定这张卡怎么走</text>
 
-          <!-- 完场 -->
+          <!-- 完场：这一轮的账目 -->
           <view class="cc-done pk-card" wx:if="{{finished}}">
             <text class="cc-done-title">{{deck.doneTitle}}</text>
+            <view class="cc-done-tally">
+              <view class="cc-tally-item">
+                <text class="cc-tally-n grn">{{deckState.gotCount}}</text>
+                <text class="cc-tally-k">记住了</text>
+              </view>
+              <view class="cc-tally-divider"></view>
+              <view class="cc-tally-item">
+                <text class="cc-tally-n">{{deckState.againCount}}</text>
+                <text class="cc-tally-k">回炉次数</text>
+              </view>
+            </view>
             <text class="cc-done-desc">{{deck.doneDesc}}</text>
             <view class="cc-done-actions">
               <view class="cc-done-restart pk-btn-ink" bindtap="restartDeck">
                 <text>再来一轮</text>
               </view>
-              <view class="cc-done-back pk-btn-ghost" bindtap="goBack">
-                <text>回复习页</text>
+              <view class="cc-done-next pk-btn-ghost" bindtap="nextPack">
+                <text>下一站 ›</text>
               </view>
             </view>
           </view>
@@ -195,4 +230,29 @@
       </block>
     </view>
   </scroll-view>
+
+  <!-- 选站抽屉：全站网格 + 待还红点 -->
+  <view class="cc-sheet-mask" wx:if="{{packSheetOpen}}" bindtap="closePackSheet"></view>
+  <view class="cc-sheet {{packSheetOpen ? 'open' : ''}}" wx:if="{{packSheetOpen}}">
+    <view class="cc-sheet-grip"></view>
+    <text class="cc-sheet-title">选一站翻卡</text>
+    <text class="cc-sheet-sub">红点 = 这一站有待还错因，优先补</text>
+    <scroll-view class="cc-sheet-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="cc-sheet-grid">
+        <view
+          wx:for="{{library.packs}}"
+          wx:key="packId"
+          class="cc-sheet-cell {{item.packId === activePackId ? 'active' : ''}}"
+          data-pack-id="{{item.packId}}"
+          bindtap="pickPack"
+        >
+          <view class="cc-sheet-cell-top">
+            <text class="cc-sheet-cell-title">{{item.title}}</text>
+            <view class="cc-pack-dot" wx:if="{{pendingMap[item.packId] > 0}}"></view>
+          </view>
+          <text class="cc-sheet-cell-meta">{{item.cardCount}} 张{{item.packId === activePackId ? ' · 正在翻' : ''}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
 </view>

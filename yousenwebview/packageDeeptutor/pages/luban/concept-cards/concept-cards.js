@@ -28,6 +28,8 @@ Page({
     flipped: false, // 正面/翻面(纯呈现态)
     quoteOpen: false, // 教材原文全文展开(记忆面默认收拢,尊重爱看全文的用户)
     packPendingCount: 0, // 本站待还错因笔数(错因银行只读回路; 0/未开通=不显)
+    pendingMap: {}, // 各站待还笔数(选站抽屉红点; 同一归属口径)
+    packSheetOpen: false, // 选站抽屉
     finished: false,
   },
 
@@ -114,10 +116,14 @@ Page({
     });
   },
 
-  // 错因银行只读回路: 本站待还笔数(deriveRetestPackId 同一归属口径, 零第二权威;
-  // 未开通/失败/0 笔一律不显——纯导航增强, 不是新学情)。
+  // 错因银行只读回路: 全站待还笔数一次算清(deriveRetestPackId 同一归属口径,
+  // 零第二权威; 未开通/失败=空map——纯导航增强, 不是新学情)。
   _probePackPending: function (packId) {
     var that = this;
+    if (this._pendingMapLoaded) {
+      this.setData({ packPendingCount: this.data.pendingMap[packId] || 0 });
+      return;
+    }
     Promise.all([
       api.getMistakeBook({ include_mastered: false }, { silent: true }),
       api.getLubanLessons({ silent: true }),
@@ -126,18 +132,52 @@ Page({
         var book = api.unwrapResponse(results[0]) || {};
         var lessons = results[1] ? api.unwrapResponse(results[1]) || {} : {};
         var items = Array.isArray(book.items) ? book.items : [];
-        var n = 0;
+        var map = {};
         items.forEach(function (item) {
           if (item && item.mastered_at) return;
-          if (ebvm.deriveRetestPackId(item, lessons) === packId) n += 1;
+          var pid = ebvm.deriveRetestPackId(item, lessons);
+          if (pid) map[pid] = (map[pid] || 0) + 1;
         });
-        if (that.data.activePackId === packId) {
-          that.setData({ packPendingCount: n });
-        }
+        that._pendingMapLoaded = true;
+        that.setData({
+          pendingMap: map,
+          packPendingCount: map[that.data.activePackId] || 0,
+        });
       })
       .catch(function () {
         that.setData({ packPendingCount: 0 });
       });
+  },
+
+  openPackSheet: function () {
+    this.setData({ packSheetOpen: true });
+  },
+
+  closePackSheet: function () {
+    this.setData({ packSheetOpen: false });
+  },
+
+  pickPack: function (event) {
+    var dataset =
+      (event && event.currentTarget && event.currentTarget.dataset) || {};
+    var packId = String(dataset.packId || "").trim();
+    this.setData({ packSheetOpen: false });
+    if (!packId || packId === this.data.activePackId) return;
+    this._loadDeck(packId);
+  },
+
+  // 下一站: 按库序循环(完场/站牌一键连翻)
+  nextPack: function () {
+    var lib = this.data.library;
+    if (!lib || !lib.packs || !lib.packs.length) return;
+    var idx = -1;
+    for (var i = 0; i < lib.packs.length; i++) {
+      if (lib.packs[i].packId === this.data.activePackId) idx = i;
+    }
+    var next = lib.packs[(idx + 1) % lib.packs.length];
+    if (next && next.packId !== this.data.activePackId) {
+      this._loadDeck(next.packId);
+    }
   },
 
   goErrorbank: function () {
