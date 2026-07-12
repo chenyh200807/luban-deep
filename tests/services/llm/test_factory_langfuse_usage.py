@@ -265,3 +265,79 @@ async def test_sdk_stream_preserves_explicit_stream_options(monkeypatch) -> None
         "include_usage": False,
         "custom_flag": True,
     }
+
+
+class _NameCapturingObservability:
+    """Captures the start_observation name so we can assert the caller's
+    observe-only generation name reaches Langfuse."""
+
+    def __init__(self) -> None:
+        self.start_kwargs: list[dict[str, object]] = []
+
+    @contextmanager
+    def start_observation(self, **kwargs):
+        self.start_kwargs.append(kwargs)
+        yield object()
+
+    def update_observation(self, _observation, **_kwargs):
+        pass
+
+    def estimate_usage_details(self, **_kwargs):
+        return {"input": 1.0, "output": 1.0, "total": 2.0}
+
+    def estimate_cost_details(self, **_kwargs):
+        return {"input": 0.0, "output": 0.0, "total": 0.0}
+
+
+@pytest.mark.asyncio
+async def test_factory_complete_defaults_observation_name(monkeypatch) -> None:
+    fake_observability = _NameCapturingObservability()
+
+    async def _fake_sdk_complete(**_kwargs):
+        return TutorResponse(content="ok", usage={}, provider="openai", model="gpt-4o-mini")
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.observability", fake_observability)
+    monkeypatch.setattr("deeptutor.services.llm.factory.sdk_complete", _fake_sdk_complete)
+
+    await complete(
+        "hello",
+        model="gpt-4o-mini",
+        api_key="sk-test",
+        base_url="https://api.openai.com/v1",
+        binding="openai",
+        max_retries=0,
+    )
+
+    assert fake_observability.start_kwargs[-1]["name"] == "llm.complete"
+
+
+@pytest.mark.asyncio
+async def test_factory_complete_threads_observation_name(monkeypatch) -> None:
+    """Observe-only: an explicit observation_name reaches the Langfuse generation
+    without leaking into the provider request kwargs."""
+    fake_observability = _NameCapturingObservability()
+    captured_provider_kwargs: dict[str, object] = {}
+
+    async def _fake_sdk_complete(**kwargs):
+        captured_provider_kwargs.update(kwargs)
+        return TutorResponse(content="ok", usage={}, provider="openai", model="gpt-4o-mini")
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.observability", fake_observability)
+    monkeypatch.setattr("deeptutor.services.llm.factory.sdk_complete", _fake_sdk_complete)
+
+    await complete(
+        "hello",
+        model="gpt-4o-mini",
+        api_key="sk-test",
+        base_url="https://api.openai.com/v1",
+        binding="openai",
+        max_retries=0,
+        max_tokens=2048,
+        observation_name="assessment.deep_explanation",
+    )
+
+    assert fake_observability.start_kwargs[-1]["name"] == "assessment.deep_explanation"
+    # observation_name is observe-only: it must not be forwarded to the provider.
+    assert "observation_name" not in captured_provider_kwargs
+    # the caller's max_tokens still reaches the provider unchanged.
+    assert captured_provider_kwargs.get("max_tokens") == 2048

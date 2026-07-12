@@ -61,3 +61,80 @@ def test_static_deep_explanation_is_projection_only() -> None:
     assert explanation["score_mutation_allowed"] is False
     assert explanation["knowledge_points"] == ["地下防水"]
     assert "搭接宽度" in explanation["summary"]
+
+
+@pytest.mark.asyncio
+async def test_generate_llm_deep_explanation_observes_call(monkeypatch) -> None:
+    """Observe-only wiring: the out-of-turn-pipeline LLM call carries an
+    identifiable Langfuse generation name, keeps its explicit max_tokens ceiling,
+    and records a duration sample into the runtime metrics histogram."""
+    import deeptutor.services.llm as llm_module
+    from deeptutor.api.runtime_metrics import (
+        get_turn_runtime_metrics,
+        reset_turn_runtime_metrics,
+    )
+    from deeptutor.services.assessment.deep_explanation import (
+        generate_llm_deep_explanation,
+    )
+
+    reset_turn_runtime_metrics()
+    captured: dict[str, object] = {}
+
+    async def _fake_complete(prompt, **kwargs):
+        captured.update(kwargs)
+        captured["prompt"] = prompt
+        return '{"summary": "先判断构造层次。", "why_wrong": "漏看限定词。"}'
+
+    monkeypatch.setattr(llm_module, "complete", _fake_complete)
+
+    result = await generate_llm_deep_explanation(
+        question={"question_id": "q1", "question_stem": "地下防水", "options": ["A", "B"]},
+        learner_answer="A",
+        correct_answer="B",
+        quiz_id="quiz1",
+        question_id="q1",
+    )
+
+    assert captured["observation_name"] == "assessment.deep_explanation"
+    assert captured["max_tokens"] == 1200
+    assert result["summary"] == "先判断构造层次。"
+
+    entry = get_turn_runtime_metrics().snapshot()["assessment_explanation_ms"]
+    assert entry is not None
+    assert entry["count"] == 1
+    reset_turn_runtime_metrics()
+
+
+@pytest.mark.asyncio
+async def test_generate_llm_deep_explanation_records_duration_even_on_error(monkeypatch) -> None:
+    """Duration is recorded in a finally block, so a failed LLM call still yields
+    an ops-visible latency sample and the error propagates unchanged."""
+    import deeptutor.services.llm as llm_module
+    from deeptutor.api.runtime_metrics import (
+        get_turn_runtime_metrics,
+        reset_turn_runtime_metrics,
+    )
+    from deeptutor.services.assessment.deep_explanation import (
+        generate_llm_deep_explanation,
+    )
+
+    reset_turn_runtime_metrics()
+
+    async def _boom(prompt, **kwargs):
+        raise RuntimeError("provider down")
+
+    monkeypatch.setattr(llm_module, "complete", _boom)
+
+    with pytest.raises(RuntimeError, match="provider down"):
+        await generate_llm_deep_explanation(
+            question={"question_id": "q1"},
+            learner_answer="A",
+            correct_answer="B",
+            quiz_id="quiz1",
+            question_id="q1",
+        )
+
+    entry = get_turn_runtime_metrics().snapshot()["assessment_explanation_ms"]
+    assert entry is not None
+    assert entry["count"] == 1
+    reset_turn_runtime_metrics()

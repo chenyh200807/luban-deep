@@ -3,11 +3,32 @@ from __future__ import annotations
 from copy import deepcopy
 import hashlib
 import json
+import logging
 import math
 import re
+import time
 from typing import Any
 
 from deeptutor.services.observability import get_langfuse_observability
+
+logger = logging.getLogger(__name__)
+
+# Observe-only Langfuse generation name for the assessment deep-explanation LLM
+# call. Threaded through factory.complete so this out-of-turn-pipeline call is
+# identifiable in Langfuse instead of collapsing into the generic "llm.complete".
+_ASSESSMENT_EXPLANATION_OBSERVATION_NAME = "assessment.deep_explanation"
+
+
+def _record_assessment_explanation_duration(elapsed_ms: float) -> None:
+    """Observe-only, fail-open: forward one LLM call duration sample (ms) to the
+    runtime metrics histogram. Never raises; observability must not break the
+    paid explanation path."""
+    try:
+        from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
+
+        get_turn_runtime_metrics().record_assessment_explanation(elapsed_ms=elapsed_ms)
+    except Exception:  # pragma: no cover - defensive, never affects explanation
+        logger.debug("assessment explanation duration metric skipped", exc_info=True)
 
 PROMPT_VERSION = "assessment-deep-explanation-llm-v1"
 _MINIMUM_EXPLANATION_POINTS = 20
@@ -155,13 +176,18 @@ async def generate_llm_deep_explanation(
         turn_id=str(question_id or ""),
         capability="assessment_deep_explanation",
     ):
-        raw = await complete(
-            prompt,
-            system_prompt=system_prompt,
-            temperature=0.2,
-            max_tokens=1200,
-            max_retries=2,
-        )
+        started_at = time.monotonic()
+        try:
+            raw = await complete(
+                prompt,
+                system_prompt=system_prompt,
+                temperature=0.2,
+                max_tokens=1200,
+                max_retries=2,
+                observation_name=_ASSESSMENT_EXPLANATION_OBSERVATION_NAME,
+            )
+        finally:
+            _record_assessment_explanation_duration((time.monotonic() - started_at) * 1000.0)
         usage_summary = observability.get_current_usage_summary()
     parsed = _parse_llm_json(raw)
     return {

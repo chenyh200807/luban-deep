@@ -85,8 +85,9 @@ class SubmissionGraderAgent(BaseAgent):
                 _COMPACT_MAX_TOKENS_BASE + _COMPACT_MAX_TOKENS_PER_EXTRA_ITEM * _extra_items,
             )
 
+        rendered_question_context = self._render_question_context(question_context)
         user_prompt = user_prompt_template.format(
-            question_context=self._render_question_context(question_context),
+            question_context=rendered_question_context,
             history_context=history_context or "(none)",
             user_message=user_message.strip() or "(empty)",
             grounding_context=grounding_context.strip() or "(none)",
@@ -148,10 +149,17 @@ class SubmissionGraderAgent(BaseAgent):
         missing = parsed.missing_required()
         section_miss_after_repair: list[str] = list(missing)
         if missing:
-            repair_prompt = (
-                f"{user_prompt.rstrip()}\n\n"
-                f"上次输出缺以下段落：{', '.join(missing)}。请补齐这些缺段；"
-                "保持已经写好的段落不变，输出 markdown 含 `### 段标题` heading。"
+            # Battle2 perf（2026-07-12）：self-repair 不再原样重发整份 user_prompt。
+            # 只发补齐缺段真正需要的最小充分上下文（题目上下文 + 检索依据 + 学员作答
+            # + anchor 契约 + 缺段名单），刻意丢弃裁剪会话历史(history_context)——历史
+            # 对"补齐缺失讲评段"零信息量。判分裁决保持不变由下游 concatenation
+            # (草稿在前 + parse 取首现段)结构性保证，本轮只补段、不改分。
+            repair_prompt = self._build_repair_prompt(
+                rendered_question_context=rendered_question_context,
+                grounding_context=grounding_context,
+                user_message=user_message,
+                anchor_contract=anchor_contract,
+                missing=missing,
             )
             _repair_chunks: list[str] = []
             try:
@@ -197,6 +205,54 @@ class SubmissionGraderAgent(BaseAgent):
         trace_collector["explanation_sections"] = dict(parsed.sections)
 
         return explanation_text
+
+    @staticmethod
+    def _build_repair_prompt(
+        *,
+        rendered_question_context: str,
+        grounding_context: str,
+        user_message: str,
+        anchor_contract: str,
+        missing: list[str],
+    ) -> str:
+        """Slim self-repair prompt：只含补齐缺段真正需要的充分上下文。
+
+        与首轮 ``user_prompt`` 的区别只有一处减法——**不含裁剪会话历史**
+        (``history_context``)：补齐"为什么错/正确答案/下一步"这类缺失讲评段
+        不依赖历史对话。其余每项都 load-bearing 而保留：
+
+          * ``rendered_question_context``：题干/选项/学员作答/参考答案/
+            construction_grading_result authority/knowledge_context/开放世界指令，
+            补 correct_answer / option_analysis 等段的事实底座。
+          * ``grounding_context``：开放世界判分（无题库标准答案 authority）时补
+            correct_answer 段的唯一事实源；丢弃会诱发杜撰硬事实（contracts/
+            capability.md §硬约束 40），故保留。
+          * ``anchor_contract``：事实锚定契约，保证补段沿用正确锚点术语。
+
+        判分草稿刻意**不内联**：下游 ``explanation_text + repaired_text``
+        (草稿在前) + ``parse_explanation_sections`` 取首现段已结构性保证草稿的
+        verdict / 分数 / 裁决覆盖 repair 任何重复输出；内联全文只会把
+        ~整份草稿的 token 加回来，与本优化目标相悖。指令措辞与旧版逐字一致，
+        只减上下文、不改语义。
+        """
+        parts = [
+            "题目上下文：",
+            rendered_question_context,
+            "",
+            "知识库/题库检索依据：",
+            grounding_context.strip() or "(none)",
+            "",
+            "学员本轮提交：",
+            user_message.strip() or "(empty)",
+        ]
+        body = "\n".join(parts)
+        if anchor_contract:
+            body = f"{body.rstrip()}\n\n{anchor_contract}"
+        return (
+            f"{body.rstrip()}\n\n"
+            f"上次输出缺以下段落：{', '.join(missing)}。请补齐这些缺段；"
+            "保持已经写好的段落不变，输出 markdown 含 `### 段标题` heading。"
+        )
 
     @staticmethod
     def _humanize_question_id(question_id: Any) -> str:
