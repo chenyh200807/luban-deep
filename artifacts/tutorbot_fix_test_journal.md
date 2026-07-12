@@ -9,6 +9,56 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-12 · 语义完整性战役调和上线说明
+
+原始施工在 1e9f6a40,origin/main 并行推进 54 commit(Battle2 #447-#456+五模块 #454)。WP0(泄露测试翻转)已被 main 9533adb1/PR#452 独立landed→丢弃;WP1-WP4 病在 main 仍全活,重放调和为 `5fc1c276/3e9aba6d/3c2da4dc/84d1efc5`。CI-shard 登记(tests.yml)因缺 workflow scope 留给 owner(泄露测试本体已在 main,登记仅防护)。全量回归 1301 passed。方法论日志见同日 campaign-log。
+
+## 2026-07-12 - 语义完整性战役 WP4:出题承接断裂=本轮考点 9+ decider 互相矛盾 + 用户声明科目无 writer
+
+- 问题:①(a60e0902,07-06)刚收完"一建建筑实务核心考点梳理"完整回答,发"出几道题目"被拒"我还没有拿到本轮出题的具体考点";②(5848e6c3,07-08)用户明示"梳理一建机电实务",发"1"被翻案"你问的应该是建筑实务"。
+- 根因:①=reachability/consumption+duplicate decision——锚点当时就在 session state(suspended_object_stack 的 open_chat_topic title)一寸之遥没被消费;"本轮有没有考点"被 ≥9 个 regex decider 互相矛盾地重判(deep_question needs-anchor 说"不需锚",coordinator lightweight 门说"必须锚");needs-anchor strip 表残渣"目"让 resolver 跳过锚点合成;coordinator fall-through 第二套 label 提取器啃全文 transcript 被"考情权重"劫持(`考(?!我|点|试|考)`)→乱码标签→blocked_unresolved_anchor 罐头,罐头文案还被打包成 q_1 污染 active_object。②=authority drift+mirror state——"用户声明科目"在系统里 0 个 writer,4 个静态"建筑实务"权威(soul/KB/exam_track/上轮自注)压场;陈旧 title 当"当前主题"注入。
+- 失败尝试及原因(历史):#264 teaching_modes context-anchor marker 白名单只认"刚才/继续";aa50f95c(07-06)只往 strip 表补"道题目"一词=打地鼠(实测"来几个题目"仍 False)。
+- 成功修法(commit 84d1efc5):`_resolve_generation_topic_and_anchor` 唯一 topic decider,锚点最新优先(本轮显式考点>对话尾部>active_object/stack>title);_clip_text 头部截取 bug 修尾部;coordinator 删 4 个第二套推导函数(hasattr 断言物理消失)+入口域门(199-239)删除只留出口科目门;`考(...)`提取器只喂单条用户消息(raw_user_message,不喂 transcript);needs_anchor 降 trace hint;罐头撤除→带对话尾部 grounding fall-through generator(域门只判 out_of_scope);真冷启动澄清一次不写 active_object。科目薄切=缓解层(get_subject_declaration_instruction+soul 让位句+title 降权;declared_subject 全字段按指挥官有罪推定砍掉,诚实标注复发风险)。SAFETY belt(指挥官必补):NeverReached 钉死 off-domain 主题在 coordinator 构造前被入口门拒答,破坏入口门→抓红证伪通过。generation_anchor/raw_user_message 是显式函数参数非 session 字段(消灭字符串反解析镜像态)。
+- 验证:目标+相关套件 354 passed;12 条旧契约 pin 逐条翻转(needs_anchor→allow/罐头→content 空/重写唯一 resolver/删无等价物文件+双 index 去注册);belt 证伪通过;contract guard 全 PASS;ruff 0 新增;双 index PARITY OK。**战役级跨包联跑 1246 passed 0 failed**(turn_runtime 被 WP2/WP3/WP4 各改一块无相互踩);三 SEV hold 全绿(泄露 33/回指幽灵 197/倒诬题库假命中 126)。前任 Fable 施工专家收尾撞额度墙,由 Opus 4.8 接手翻转 12 条 pin。
+- 教训:锚点在 session state 里≠被消费(reachability 病);"本轮考点"这类语义事实必须收进单一 resolver 而非让 N 个 regex 门各判;topic 提取器喂 transcript 会被上文噪声劫持,只许喂单条用户消息;新增 session 字段(declared_subject)按有罪推定砍掉——它仍只喂 prompt 非 terminal,缓解层足够,省一层未来 patch anchor;SAFETY 面(off-domain 拒答)必须有端到端 belt 钉死"入口门覆盖全部生产路径",防条件未来收窄静默回归。
+
+## 2026-07-12 - 语义完整性战役 WP3:anti-peek 守卫劫持合理请求=canonical 裁决被 terminal 翻案 + 幽灵提交
+
+- 问题:真实学员(23edde9e,2026-07-08)三发"给我整理记忆口诀",两次被 0 秒 canned 模板"这道题先自己推一推…"逐字打回=拒答合理请求;实测当前 main"总结考点/讲知识点/换个话题/复习计划"仍被拒答。另:提交解析器从"计算CV和SV"缩写抠出幽灵 user_answer=C, is_correct=true(当前 main 复现)。
+- 根因:duplicate decision+terminal truth(铁律③.6 最纯现场)——canonical 裁决两轮全对(turn3 LLM 判定器 conf 0.85 reason 原文"要求讲解/总结当前题组知识点";turn4 确定性降级 temporary_detour→general_chat, drove_route=true 已持久化进 DB),但 terminal 短路 `_build_unanswered_reference_response` 不读 metadata 里现成的 turn_semantic_decision,用 `should_block_unanswered_reference_reveal`(默认-block 关键词谓词)重判翻案。"是否隐式求助"被 ≥6 处独立重判(D4 keep-gate/D9 三消费点/D10 排除三连/D11 白名单)。幽灵提交=`re.findall(r"[A-E]")` 把非选项缩写字母当作答。
+- 失败尝试及原因(历史):PR#417(事发 2 天后)给"口诀"开 _SAFE_STUDY_AID_MARKERS 白名单=patch spiral 第 N+1 补丁,邻近意图全漏;06-30 fb0461d3 已赦免过 4 类=同谓词第二轮逐词赦免。施工中间态被指挥官打回一次:facet=False 早退放在 should_block 与序数检查**之前**——flag ON 时 LLM 误标 false 会降级显式 reveal(违 owner"不能不输出")、绕过第N题确定性 handler(违"显式格式零改动"红线)。
+- 成功修法(commit 3c2da4dc):正典开火层序=显式格式/解锁→窄 SEV 兜底表→facet(flag)→canonical detour→legacy(写入 docstring+contracts/turn.md)。Stage A default-on:窄隐式求助兜底表(红队证实形态,扩条目须新红队证据)+canonical detour 放行必配 redaction;Stage B flag 默认关(DEEPTUTOR_ANTIPEEK_CANONICAL_FACET_ENABLED):判定器输出 facet seeks_active_answer_help,flag OFF prompt bit-for-bit;redaction 站点确定性守卫(reveal/concession/序数→不放行不 redact)。幽灵在唯一权威 _normalize_option_answer 一刀治本(独立 token 判据,"我选C"/"ABD"/"OPTION B"零过杀)。semantic_router normalize 显式保留 facet 键(observe-only 旗标每跳导出教训)。decider:≥6 处重判→1 窄表+1 canonical 读取,旧谓词降级为 canonical 缺席的 legacy 兜底。
+- 验证:16 RED→229 passed(44 新用例);SEV 反例逐条全绿(给点提示/还是不会/怎么想/第N题怎么做→reprompt+LLM 零调用+零答案;detour 裁决在场仍开火;LLM-down 仍开火;公布答案/我放弃放行;detour 后"第1题选A"仍绑定判分);回归 248+334+84+183 passed;contract guard/env registry 全 PASS;指挥官独立复跑 226 吻合+打回项复验。
+- 教训:canonical 裁决存在≠被消费,修法是让 terminal 变成消费者而非让谓词更聪明;LLM facet 只能做"放行"的证据、绝不能做"解除 SEV 护栏/降级显式格式"的证据——误判方向必须只降级不泄露;白名单在 flag 毕业前是场景活路,架构洁癖不能拿已修好的场景回归换;记录一起 git stash 复合命令过程事故(已还原,stash 栈无损),再验证"禁复合命令夹带 git stash"。
+
+## 2026-07-12 - 语义完整性战役 WP2:错误裸奔+一问双答=失败身份洗白+turn 双真值
+
+- 问题:①真题批改请求两次收到英文原文"I reached the maximum number of tool call iterations (4)…",turns.status=completed 假绿(该案流量后核实为 studentarmy harness 身份,但同路径真实用户例成立);②真实用户首问收到阿里云欠费英文报错以 13 条 delta 流出+落库;③两并行 turn 跨 worker,cancel 被 39s 后的 completed 覆写复活,一问双答;④服务重启孤儿 turn 学员静默无应答→换 session 重问。
+- 根因:①②=**失败身份洗白**(terminal truth+authority drift 带 dormant-authority 变体):五处 coerce sink 都执行了,但错误在出生处被格式化成普通字符串进 content 通道(loop.py:2311 现编英文"最终回答"无 error 标记;provider _handle_error 错误体直写 content),sink 只剩 regex 猜测——不是"绕过 sink",是"语义先被洗白"。两处测试还把英文错误断言为预期=bug 被测试制度化。③=duplicate decision+mirror state:turn 存活性双真值(per-worker `_executions` vs DB),update_turn_status 无守卫 UPDATE 允许 cancelled→completed 复活;且终态 commit 先 add_message 后改状态不回读。
+- 失败尝试及原因(历史):给 sink 补欠费 regex(feb4a289,事发 2 小时后)=打地鼠,Case A 的纯英文句过全部 pattern 证明反推必漏。
+- 成功修法(commit 3e9aba6d):typed failure 出生保型(LLMResponse.failure_kind/error_detail,provider content 置空);唯一 terminal mapper `map_turn_failure_to_public_text`(assistant message/result 投影/孤儿通知三面共用,失败=status failed+error_code 公开+raw 只进 turns.error+不可计费+不进学情);update_turn_status 改 CAS(running 唯一可写前态);终态 commit 重排序=先 CAS 后 add_message+billing;孤儿恢复逐 turn CAS 决定通知所有权(指挥官复审揪出双 worker lifespan 双通知竞态)+mapper 中文交代。ProviderErrorStreamGate 窄前缀闸被指挥官裁定为薄闸非第二 decider(200-SSE 错误体无类型可保,保型律管不了类型不存在的注入面)。
+- 验证:新 test_terminal_error_semantics.py 27 用例先 23 RED 后全绿;验收 345 passed;辐射面 193+158+26+20+33 passed;counterexample 四层 byte-identical(含正文带"Error:"的合法教学内容);竞态修复 RED→GREEN+34/151 passed;contract guard 全 PASS;指挥官独立复跑 138+183 passed。
+- 教训:错误必须在出生处保型——一旦格式化成字符串进 content 通道,下游只剩 regex 猜测(必漏+打地鼠);"错误长什么样"的 decider 从 5 类收敛到 1 个 mapper 才是治本;turn 存活性这类并发不变量必须收进带 FSM 的单一 DB 真值,内存表只做句柄查找。
+
+## 2026-07-12 - 语义完整性战役 WP1:题库假命中=relevance 被铸成 identity 权威
+
+- 问题:真实学员(d289c0d1,2026-07-08)粘自由挣值计算题,4 轮 3 轮被返回无关题库原题"已命中题库原题。标准答案:C(-30)";LLM 中途道歉纠正,下轮又被同一 lookup 劫持;错误轮 6-7s vs 正确轮 23s=确定性短路。附带:提交解析器从"计算CV和SV"缩写抠出幽灵 user_answer=C, is_correct=true(归 WP3 修)。
+- 根因:authority drift+producer-consumer granularity mismatch——RPC 模糊全文检索把 relevance 命中铸成 `question_exact_text` identity 章并 `score=max(text_score,0.98)` 人为抬置信;4 个铸章点(direct/RPC/vector/option-overlap)各带 3-4 层闸=whack-a-mole 结构。既往 PR#202 题型门是单向的(calc_like 允许 single 合法放行)、Bug#6 bigram 0.30 门判弱(同域词汇 cov 0.442 通过)、#422 只补计算类切片(非计算 cov 0.36 实测仍放行)——修窄了+判据层错了,不是没接线。
+- 失败尝试及原因(历史):逐路径逐题型补闸(Bug#6→#422)=每次事故加一层判据;根子是 relevance 层拥有 identity 裁决权。
+- 成功修法(commit 5fc1c276):单一可证伪 adjudicator `exact_question_identity_corresponds`(NFKC 归一化互相包含[判别面≥12]+字符级有序覆盖率≥0.90[判别面≥20]+数词事实全覆盖+MCQ 选项佐证合并判别面[题干独立覆盖≥0.90]);删 0.98 floor;4 铸章点降级候选供给,非 identity 行降 questions_bank 普通检索(真实分数);不匹配 fail-open 回主 LLM(复用 loop.py:3549 既有 fallthrough,消费层零改动——假章连开放世界 LLM 都会被"必须严格服从"注入劫持,所以必须修铸章层)。
+- 复审加固(指挥官三轮):①12-18 字符短窗对抗缺口(构造"一级/二级"单字差实测误判)→模糊判别面抬≥20;②预案过杀真原题(短题干带错字+选项近逐字一致)→选项佐证收进同一 adjudicator 而非开例外;③options-only 粘贴算术漏洞→题干独立覆盖;④数词变题穿透(≥20 窗口"一级→二级"0.95 覆盖率仍过)→数词+单位 token 全覆盖 rejector(变题假标准答案结构性不可能)。
+- 验证:21 RED→263 rag passed;对抗对 5+2+2 组全拒;真原题 6 变体全命中(逐字/带选项/口语前后缀/1-2 错字/换行差);contract guard [rag] PASS;contracts/rag.md 32b 重写为 identity 语义。
+- 教训:relevance 与 identity 是两种判断,前者永远不许铸后者的章;置信 floor 是身份洗白的签名;每次收紧判据必须同步钉反向 SEV 反例(真原题必须命中),指挥官预案也会过杀;已知残留(非数词类单字变题字符容差不可判)诚实写进合同,交 live 标定。
+
+## 2026-07-12 - 语义完整性战役 WP0:12 天暗红泄露测试=契约翻转漏清镜像副本
+
+- 问题:test_deep_question_blocks_unanswered_direct_answer_reveal 在 origin/main 红 12 天进生产;battle2 memory 归因"疑似 first-run 波次引入"被 git bisect 证伪(first bad=9d569936=PR#317 泄露治本 commit 本身)。
+- 根因:契约漂移非真回归——owner 2026-06-30 拍板反转 anti-peek 边界(显式要答案放行),PR#317 同 commit 翻转了 3 份镜像测试,漏了 CI 暗区(tests/core 不在执行 shard)的第 4 份;两份测试对同一(message,context)互斥断言=测试层第二权威。live 可达性分析:reveal 判定与 turn_semantic_decision 解耦,无泄露 SEV。
+- 成功修法(调和版:WP0 已被 main 9533adb1/PR#452 独立landed,本分支丢弃;此条留档说明病因):翻转断言为新契约镜像+rename;显式分支 FailingFollowupAgent 钉死"确定性揭示不走自由 LLM";**隐式分支 SEV 护栏断言保留并增强**(翻转≠删除);文件登进 runtime-capability CI shard。
+- 验证:1f/55p→56/56;邻居 184 passed;指挥官独立复跑一致。
+- 教训:契约反转必须清点全部镜像副本(4 份测试镜像同一不变量);CI 暗测试(仅~26% 文件进 PR 阻断)让红测试没有信号;"泄露修复自噬"这类归因必须 bisect 实锤,不能停在"疑似"。
+
+
 ## 2026-07-11 - 首次体验到次日复测的 item/attempt 粒度与终态权威漂移
 
 - 问题：
