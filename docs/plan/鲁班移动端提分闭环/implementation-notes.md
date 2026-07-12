@@ -1,5 +1,8 @@
 # 五模块改造 · Implementation Notes（活账本）
 
+> **方法层记录**：本账本只记结果与验证；"怎么发现、怎么分析、走过哪些歧路"的完整叙事在 [methodology-log.md](./methodology-log.md)（owner 2026-07-12 立的常设纪律，每个非平凡问题五段式入志）。
+
+
 > 维护规则（owner 2026-07-05 指令）：执行中撞上 edge case 偏离计划时，**选保守方案，在 Deviations 记一笔，接着干**——复盘全靠它。
 > 由主控会话集中维护；实施 agent 在隔离 worktree 工作，其报告中的偏离由主控收录。按日期倒序追加，不删旧条目。
 > 关联计划：`2026-07-04-luban-ai-adjudication-pipeline-plan.md`（裁决流水线）、五模块 IA Brief、双轮 v3.2、融合计划 v1.1。
