@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import contextvars
+import hashlib
 import os
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
@@ -11,6 +14,31 @@ from loguru import logger
 
 if TYPE_CHECKING:
     from deeptutor.tutorbot.providers.base import LLMProvider
+
+
+_ACTIVE_TASKS_HDR = re.compile(r"^##\s*Active Tasks\s*$", re.M)
+
+
+def extract_active_tasks(content: str) -> str:
+    """Deterministic implementation of the HEARTBEAT.md format contract
+    (templates/HEARTBEAT.md: "If this file has no tasks other than headers and
+    comments, the agent will skip the heartbeat").
+
+    Returns the non-header, non-comment task text under "## Active Tasks"
+    (empty string ⇒ deterministic skip, no LLM call). Files without the
+    "## Active Tasks" header fall back to the whole document stripped of HTML
+    comments and headers — any remaining text keeps the old LLM path
+    (fail-open to the pre-existing behavior).
+    """
+    m = _ACTIVE_TASKS_HDR.search(content or "")
+    section = content[m.end():] if m else (content or "")
+    if m:
+        nxt = re.search(r"^##\s", section, re.M)
+        if nxt:
+            section = section[: nxt.start()]
+    section = re.sub(r"<!--.*?-->", "", section, flags=re.S)  # example tasks live in HTML comments
+    lines = [ln.strip() for ln in section.splitlines()]
+    return "\n".join(ln for ln in lines if ln and not ln.startswith("#"))
 
 
 def _heartbeat_redis() -> "object | None":
@@ -98,6 +126,10 @@ class HeartbeatService:
         self._single_instance_key = single_instance_key
         self._running = False
         self._task: asyncio.Task | None = None
+        # Memo of the last content hash the LLM judged "skip". _decide has no
+        # time input, so identical content ⇒ identical decision; only "skip" is
+        # memoized ("run" must re-fire every tick).
+        self._last_skip_hash: str | None = None
 
     @property
     def heartbeat_file(self) -> Path:
@@ -110,6 +142,16 @@ class HeartbeatService:
             except Exception:
                 return None
         return None
+
+    def _decision_model(self) -> str:
+        """Phase-1 skip/run is a trivial classification — prefer the fast tier.
+        Phase 2 (on_execute / evaluate_response) keeps ``self.model``."""
+        try:
+            from deeptutor.services.llm.config import resolve_fast_tier_model
+
+            return resolve_fast_tier_model() or self.model
+        except Exception:  # noqa: BLE001 — resolution failure → main model (fail-open)
+            return self.model
 
     async def _decide(self, content: str) -> tuple[str, str]:
         """Phase 1: ask LLM to decide skip/run via virtual tool call.
@@ -125,7 +167,7 @@ class HeartbeatService:
                 )},
             ],
             tools=_HEARTBEAT_TOOL,
-            model=self.model,
+            model=self._decision_model(),
         )
 
         if not response.has_tool_calls:
@@ -144,7 +186,18 @@ class HeartbeatService:
             return
 
         self._running = True
-        self._task = asyncio.create_task(self._run_loop())
+        self._task = asyncio.create_task(
+            self._run_loop(),
+            name="tutorbot:heartbeat",
+            # Empty Context: the heartbeat is an independent background identity.
+            # Without this, create_task snapshots the creating turn's contextvars
+            # (Langfuse/OTel current span + usage scope), and every future tick's
+            # LLM observation is adopted by that stale turn trace (observed in
+            # production: turn traces stretched to ~79,000-90,000s). Heartbeat
+            # usage still lands in the global usage ledger (record_usage writes
+            # unconditionally; only the per-turn scope attribution is dropped).
+            context=contextvars.Context(),
+        )
         logger.info("Heartbeat started (every {}s)", self.interval_s)
 
     def stop(self) -> None:
@@ -197,12 +250,23 @@ class HeartbeatService:
             logger.debug("Heartbeat: HEARTBEAT.md missing or empty")
             return
 
+        active = extract_active_tasks(content)
+        if not active:
+            logger.info("Heartbeat: no active tasks (deterministic skip, no LLM)")
+            return
+
+        content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        if content_hash == self._last_skip_hash:
+            logger.info("Heartbeat: unchanged content previously judged skip; memo skip (no LLM)")
+            return
+
         logger.info("Heartbeat: checking for tasks...")
 
         try:
             action, tasks = await self._decide(content)
 
             if action != "run":
+                self._last_skip_hash = content_hash
                 logger.info("Heartbeat: OK (nothing to report)")
                 return
 
@@ -226,6 +290,9 @@ class HeartbeatService:
         """Manually trigger a heartbeat."""
         content = self._read_heartbeat_file()
         if not content:
+            return None
+        if not extract_active_tasks(content):
+            logger.info("Heartbeat trigger: no active tasks (deterministic skip, no LLM)")
             return None
         action, tasks = await self._decide(content)
         if action != "run" or not self.on_execute:
