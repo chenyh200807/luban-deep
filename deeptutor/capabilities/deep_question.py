@@ -150,6 +150,14 @@ def _clip_text(value: Any, *, limit: int = 280) -> str:
     return text[: max(0, limit - 3)].rstrip() + "..."
 
 
+def _clip_text_tail(value: Any, *, limit: int = 280) -> str:
+    """尾部截取：保留最新的 limit 字（WP4——"最近对话摘要"必须真的取最近）。"""
+    text = _compact_text(value)
+    if len(text) <= limit:
+        return text
+    return "..." + text[-max(0, limit - 3) :].lstrip()
+
+
 def _append_unique(parts: list[str], candidate: Any) -> None:
     text = _compact_text(candidate)
     if not text or text in parts:
@@ -420,7 +428,9 @@ def _active_object_generation_anchor(active_object: dict[str, Any] | None) -> st
 
 
 def _conversation_generation_anchor(conversation_context_text: str) -> str:
-    text = _clip_text(conversation_context_text, limit=240)
+    # WP4（a60e0902 例A）：旧实现 _clip_text 头部截取，名叫"最近对话摘要"实际取
+    # 最旧 240 字——改为尾部截取，锚点永远是对话里最新的内容（最新优先）。
+    text = _clip_text_tail(conversation_context_text, limit=240)
     if not text:
         return ""
     return f"最近对话摘要：{text}"
@@ -492,7 +502,22 @@ def _suspended_stack_generation_anchor(
 
 
 def _topic_needs_authoritative_anchor(topic: str) -> bool:
-    return practice_generation_request_needs_context_anchor(_compact_text(topic))
+    """WP4 唯一的"本轮 topic 是否缺自带考点"判定（topic decider 收权到 resolver）。
+
+    以 domain status 为准而非 strip 表残渣（strip 表已冻结、其 needs-anchor 判定
+    降级为 trace hint）：``needs_context_anchor``（纯动作词）与 ``unknown_topic``
+    （白名单未覆盖，可能是动作词变体如"来几个题目"，也可能是长尾显式考点）都
+    attach 对话锚点。composed wording 声明"请求自带考点时以请求为准"，因此对
+    显式长尾考点误 attach 只是多带一段上下文，不会劫持显式考点；判错的任何
+    方向都不再产生罐头拒答。
+    """
+    text = _compact_text(topic)
+    if not text:
+        return False
+    return practice_generation_topic_domain_status(text) in {
+        "needs_context_anchor",
+        "unknown_topic",
+    }
 
 
 def _prefers_current_question_anchor(topic: str) -> bool:
@@ -516,9 +541,35 @@ def _resolve_generation_topic(
     followup_question_context: dict[str, Any] | None,
     conversation_context_text: str,
 ) -> str:
+    return _resolve_generation_topic_and_anchor(
+        raw_topic=raw_topic,
+        active_object=active_object,
+        suspended_object_stack=suspended_object_stack,
+        followup_question_context=followup_question_context,
+        conversation_context_text=conversation_context_text,
+    )[0]
+
+
+def _resolve_generation_topic_and_anchor(
+    *,
+    raw_topic: str,
+    active_object: dict[str, Any] | None,
+    suspended_object_stack: list[dict[str, Any]] | None,
+    followup_question_context: dict[str, Any] | None,
+    conversation_context_text: str,
+) -> tuple[str, str]:
+    """WP4 唯一 topic decider："本轮出题考点"只在这里裁决。
+
+    返回 ``(composed_topic, generation_anchor)``：anchor 以显式参数传给
+    coordinator（消灭字符串反解析镜像态）。锚点优先级【最新优先】：
+    本轮显式考点 > 对话尾部（tail-clip）> active_object（非题）> suspended_stack；
+    session title 藏在 open_chat_topic anchor 里，只在无任何对话文本时才可能当选。
+    合成不出锚点：纯动作词且真冷启动 → 返回 ("", "") 交调用方澄清一次；
+    其余 fall-through 原 topic 到 generator（有科目锁），绝不罐头拒答。
+    """
     topic = _compact_text(raw_topic)
     if not topic:
-        return ""
+        return "", ""
     if _requests_current_question_exclusion(topic):
         broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
         normalized_active_object = normalize_active_object(active_object)
@@ -542,13 +593,16 @@ def _resolve_generation_topic(
             broader_anchor = _active_object_generation_anchor(normalized_active_object)
         if not broader_anchor:
             broader_anchor = _conversation_generation_anchor(conversation_context_text)
-        return _current_question_exclusion_generation_topic(
-            topic,
-            broader_anchor,
-            exclusion_anchor,
+        return (
+            _current_question_exclusion_generation_topic(
+                topic,
+                broader_anchor,
+                exclusion_anchor,
+            ),
+            "",
         )
     if not _topic_needs_authoritative_anchor(topic):
-        return topic
+        return topic, ""
 
     normalized_active_object = normalize_active_object(active_object)
     active_object_type = str((normalized_active_object or {}).get("object_type") or "").strip()
@@ -558,11 +612,13 @@ def _resolve_generation_topic(
     if not question_anchor and active_object_is_question:
         question_anchor = _active_object_generation_anchor(normalized_active_object)
 
-    broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
+    # WP4 最新优先反转：对话尾部（最新）> active_object（非题，当前对象）>
+    # suspended_stack（更旧）。旧序 suspended 优先会让陈旧 session title 压场。
+    broader_anchor = _conversation_generation_anchor(conversation_context_text)
     if not broader_anchor and not active_object_is_question:
         broader_anchor = _active_object_generation_anchor(normalized_active_object)
     if not broader_anchor:
-        broader_anchor = _conversation_generation_anchor(conversation_context_text)
+        broader_anchor = _suspended_stack_generation_anchor(suspended_object_stack)
 
     anchor = (
         question_anchor or broader_anchor
@@ -570,18 +626,33 @@ def _resolve_generation_topic(
         else broader_anchor or question_anchor
     )
     if not anchor:
-        return ""
-    return (
+        # 真冷启动（纯动作词 + 无任何前文锚点）→ 澄清一次；
+        # 请求可能自带考点（unknown_topic）→ fall-through 开放世界生成，绝不罐头。
+        if practice_generation_topic_domain_status(topic) == "needs_context_anchor":
+            return "", ""
+        return topic, ""
+    composed = (
         f"{topic}\n\n"
-        "请严格围绕以下当前学习锚点出题，不要偏题，不要超纲；如果锚点里没有出现某个新概念，不要自行引入：\n"
+        "如果上面的请求本身已明确给出考点，请严格围绕该考点出题；"
+        "否则请严格围绕以下当前学习锚点出题，并以其中最新出现的考点为准"
+        "（不要沿用更早的旧主题），不要偏题，不要超纲；"
+        "如果锚点里没有出现某个新概念，不要自行引入：\n"
         f"{anchor}"
     )
+    return composed, anchor
 
 
 def _render_missing_generation_topic_anchor_feedback() -> str:
+    """真冷启动澄清（WP4：非罐头拒答，提问语气）。
+
+    只允许在 session 无任何前文（无对话/无 active_object/无 suspended_stack）
+    且请求为纯动作词时出现一次。带 practice_generation_blocked_reason 标记，
+    turn_runtime 的 _result_active_object 依此绝不把澄清文案写成 active_object。
+    """
     return (
-        "我还没有拿到本轮出题的具体考点，不能只按“出三道题”这类动作词生成题目。"
-        "请指定要围绕哪个知识点出题，或先回到刚才的学习主题后再让我出题。"
+        "好的，马上可以练。你想围绕哪个考点出题？"
+        "例如变形缝、网络计划、屋面防水、项目质量计划管理——"
+        "回复一个具体考点，我就直接出题。"
     )
 
 
@@ -616,7 +687,10 @@ def _should_use_followup_anchor_generation(
     items = normalized_context.get("items") if isinstance(normalized_context.get("items"), list) else []
     if not items:
         return False
-    return _topic_needs_authoritative_anchor(raw_topic)
+    # WP4：这里保留窄口径 strip 表 hint 作为"生成策略偏好"（同题族 followup 生成
+    # vs 带锚点 topic 生成）。hint 判错只是走 topic+对话锚点路径（LLM 仲裁），
+    # 不产生任何 block；显式长尾考点不会被劫持进 followup 同题族。
+    return practice_generation_request_needs_context_anchor(_compact_text(raw_topic))
 
 
 def _should_use_lightweight_followup_generation(
@@ -4296,7 +4370,9 @@ class DeepQuestionCapability(BaseCapability):
         mode = str(overrides.get("mode", "custom") or "custom").strip().lower()
         raw_topic = str(overrides.get("topic") or context.user_message or "").strip()
         current_question_exclusion = _requests_current_question_exclusion(raw_topic)
-        topic = _resolve_generation_topic(
+        # WP4：唯一 topic decider。join 顺序=旧→新（memory→跨能力上下文→对话尾部），
+        # 配合 anchor 的尾部截取，锚点永远落在最新对话上。
+        topic, generation_anchor = _resolve_generation_topic_and_anchor(
             raw_topic=raw_topic,
             active_object=active_object,
             suspended_object_stack=suspended_object_stack,
@@ -4306,9 +4382,9 @@ class DeepQuestionCapability(BaseCapability):
             conversation_context_text="\n\n".join(
                 part
                 for part in [
+                    str(context.memory_context or "").strip(),
                     str(context.metadata.get("conversation_context_text", "") or "").strip(),
                     _conversation_history_context_text(context.conversation_history),
-                    str(context.memory_context or "").strip(),
                 ]
                 if part
             ),
@@ -4460,6 +4536,9 @@ class DeepQuestionCapability(BaseCapability):
                 "code_execution": "code_execution" in enabled_tools,
             }
 
+        # WP4：topic=="" 只剩一种含义——真冷启动（纯动作词 + 无任何前文锚点，
+        # 由唯一 resolver 裁决）。此时澄清一次（提问语气，非罐头拒答）；
+        # blocked_reason 标记保留，turn_runtime 依此绝不把澄清写成 active_object。
         if mode != "mimic" and not topic:
             content = _render_missing_generation_topic_anchor_feedback()
             if content and not answer_citations_enabled():
@@ -4498,19 +4577,24 @@ class DeepQuestionCapability(BaseCapability):
             )
         )
         if should_enforce_practice_topic_domain:
-            topic_domain_status = practice_generation_topic_domain_status(topic)
+            # WP4：域门只判 out_of_scope（needs_anchor 罐头链已废除，锚点消费归唯一
+            # resolver），且判 raw_topic（用户自己的话）——composed topic 里的对话
+            # 锚点文本不允许反向污染域判定。
+            topic_domain_status = practice_generation_topic_domain_status(raw_topic)
             if isinstance(context.metadata, dict):
                 trace_meta = context.metadata.setdefault("trace_metadata", {})
                 if isinstance(trace_meta, dict):
                     trace_meta["practice_generation.topic_domain_status"] = topic_domain_status
+                    # needs-anchor 降级为 trace hint：只标注，无任何 block 语义。
+                    trace_meta["practice_generation.needs_context_anchor_hint"] = (
+                        practice_generation_request_needs_context_anchor(
+                            _compact_text(raw_topic)
+                        )
+                    )
             block_decision = practice_generation_topic_block_decision(topic_domain_status)
             if block_decision != "allow":
-                if block_decision == "needs_anchor":
-                    blocked_reason = "needs_context_anchor"
-                    content = _render_missing_generation_topic_anchor_feedback()
-                else:
-                    blocked_reason = "out_of_scope_topic"
-                    content = _render_invalid_generation_topic_feedback("out_of_scope_topic")
+                blocked_reason = "out_of_scope_topic"
+                content = _render_invalid_generation_topic_feedback("out_of_scope_topic")
                 if content and not answer_citations_enabled():
                     await stream.content(content, source=self.name, stage="generation")
                 result_payload = {
@@ -4640,6 +4724,10 @@ class DeepQuestionCapability(BaseCapability):
                     allow_lightweight_fallback=not question_review_mode,
                     allow_similar_source_variant=question_review_mode,
                     avoid_current_question=current_question_exclusion,
+                    # WP4 显式参数传递（消灭字符串反解析镜像态）：anchor 与单条
+                    # 用户消息各走各的参数，coordinator 不得再从 user_topic 反解析。
+                    generation_anchor=generation_anchor,
+                    raw_user_message=raw_topic,
                 )
 
         if question_review_mode:
@@ -6064,11 +6152,8 @@ class DeepQuestionCapability(BaseCapability):
             counters = (
                 trace.get("lightweight_counters") if isinstance(trace, dict) else {}
             )
-            if (
-                isinstance(counters, dict)
-                and counters.get("lightweight_batch_fallback") == "blocked_unresolved_anchor"
-            ):
-                return _render_missing_generation_topic_anchor_feedback()
+            # WP4：blocked_unresolved_anchor 渲染分支已删除——coordinator 的
+            # needs-anchor 罐头链（第二套 topic 推导）已废除，该 counter 无生产者。
             # 科目出口门拒答：lightweight 走 lightweight_batch_fallback，heavy 走 trace.subject_scope_blocked，
             # 统一渲染 subject_unavailable（owner=只建筑，他科/跑偏题诚实拒答而非出垃圾题）。
             if (isinstance(trace, dict) and trace.get("subject_scope_blocked")) or (

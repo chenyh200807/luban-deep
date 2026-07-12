@@ -2375,6 +2375,8 @@ def test_practice_generation_topic_domain_status_blocks_non_construction_topic()
 
 
 def test_unresolved_lightweight_generation_anchor_renders_topic_clarification() -> None:
+    # WP4：blocked_unresolved_anchor 罐头链已废除（coordinator 无生产者），
+    # 渲染层不得再为该 counter 吐罐头拒答文案。
     content = DeepQuestionCapability()._render_summary_markdown(
         {
             "results": [],
@@ -2388,8 +2390,7 @@ def test_unresolved_lightweight_generation_anchor_renders_topic_clarification() 
         reveal_explanations=False,
     )
 
-    assert "具体考点" in content
-    assert "出三道题" in content
+    assert content == ""
 
     out_of_scope_content = DeepQuestionCapability()._render_summary_markdown(
         {

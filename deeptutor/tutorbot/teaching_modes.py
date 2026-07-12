@@ -139,10 +139,12 @@ def _coerce_continuity_summary(
         if isinstance(active_object, dict) and isinstance(active_object.get("state_snapshot"), dict)
         else {}
     )
+    # WP4 科目薄切（5848e6c3 例B）：session title 是最陈旧的信号，降到
+    # conversation_context 之后——刚声明"机电实务"的用户不能被旧 title 拉回"建筑实务"。
     for candidate in (
         state_snapshot.get("compressed_summary") if isinstance(state_snapshot, dict) else "",
-        state_snapshot.get("title") if isinstance(state_snapshot, dict) else "",
         conversation_context_text,
+        state_snapshot.get("title") if isinstance(state_snapshot, dict) else "",
     ):
         text = " ".join(str(candidate or "").strip().split())
         if text:
@@ -171,6 +173,20 @@ def get_anchor_preservation_instruction(user_message: str | None) -> str:
         f"回答正文里必须至少显式保留一次这些锚点原词：{'、'.join(anchor_terms)}。"
         "不要自行缩写、泛化或换称呼。"
     )
+
+def get_subject_declaration_instruction() -> str:
+    """WP4 科目薄切（5848e6c3 例B 缓解层，非治本——"用户声明科目"仍无结构化 writer）。
+
+    静态"建筑实务"权威（soul/KB/exam_track/上轮自注）会压过用户刚声明的科目，
+    出现"你问的应该是建筑实务"翻案。此指令行与 exam_track 指令并列注入，
+    提高用户声明在 LLM 事实权重里的位阶。复发风险已记 Deviations。
+    """
+    return (
+        "科目声明权威：以用户最近一次明确声明的科目/主题为准，不得替用户改科目、"
+        "不得把用户的科目选择“纠正”成其他科目；当知识库或你的默认科目不覆盖用户声明的"
+        "科目时，先诚实声明知识边界，然后仍围绕用户声明的科目/主题延续，不要擅自切换话题。"
+    )
+
 
 def get_construction_exam_boundary_fact_instruction(*texts: str | None) -> str:
     joined = "\n".join(str(text or "") for text in texts if str(text or "").strip())
@@ -527,6 +543,12 @@ _PRACTICE_GENERATION_CONTEXT_ANCHOR_MARKERS = (
     "围绕这个",
     "围绕刚才",
 )
+# WP4（2026-07-12，a60e0902 例A 治本）：本 strip 表【冻结，停止扩表】。
+# 往表里加词（如 aa50f95c 补"道题目"）是打地鼠：残渣一个字（"来几个题目"→残"目"）
+# 就翻转判定。表下游的 practice_generation_request_needs_context_anchor 已降级为
+# trace hint，不再作为任何 return/block 条件——锚点消费由 deep_question
+# _resolve_generation_topic（唯一 topic decider）以 fall-through 方式兜住，
+# 判错方向只是"多带一段对话锚点"，不再是罐头拒答。
 _PRACTICE_GENERATION_ACTION_STRIP_PATTERNS = (
     r"好[,，]?",
     r"那你现在",
@@ -590,6 +612,13 @@ _PRACTICE_GENERATION_ACTION_STRIP_PATTERNS = (
 
 
 def practice_generation_request_needs_context_anchor(user_message: str | None) -> bool:
+    """TRACE HINT ONLY（WP4 降级）：判断消息是否像"纯动作词出题"。
+
+    本函数基于冻结的 strip 表，天然有漏判（"来几个题目"→False）。因此它只允许
+    用于 trace 标注与生成策略偏好（如 followup-anchor 路径选择），【不得】作为
+    任何 return / block / 罐头拒答条件。锚点是否attach由 deep_question
+    ``_resolve_generation_topic`` 按 domain status 单点裁决。
+    """
     text = re.sub(r"\s+", "", str(user_message or "").strip().lower())
     if not text:
         return False
@@ -625,9 +654,9 @@ PracticeGenerationTopicDomainStatus = Literal[
     "unknown_topic",
     "out_of_scope_topic",
 ]
+# WP4: "needs_anchor" 变体已废除——域门只判 out_of_scope（锚点消费归唯一 resolver）。
 PracticeGenerationTopicBlockDecision = Literal[
     "block_out_of_scope",
-    "needs_anchor",
     "allow",
 ]
 _LIGHTWEIGHT_MAX_QUESTIONS = 5
@@ -801,9 +830,12 @@ def practice_generation_topic_block_decision(
 ) -> PracticeGenerationTopicBlockDecision:
     """单一判定权威：把出题主题域状态映射成出题门决策。
 
-    一建范畴一律不拒（他科无题库由出口校验门处理）：
+    WP4（2026-07-12）域门只判 out_of_scope，不再判 needs_anchor：
     - ``out_of_scope_topic``（明确非考试，如法国/英语/股票）⇒ 拒答；
-    - ``needs_context_anchor``（纯动作词缺主题，如"出三道题"）⇒ 要锚点；
+    - ``needs_context_anchor``（纯动作词缺主题）⇒ 放行——锚点由 deep_question
+      ``_resolve_generation_topic``（唯一 topic decider）合成；合成不出时带对话
+      尾部 grounding fall-through 到 generator（有科目锁），仅真冷启动澄清一次。
+      旧的 needs_anchor 拒答罐头（a60e0902 例A"刚讲完考点却说不知道考点"）已废除；
     - ``construction_topic`` / ``unknown_topic`` ⇒ 放行。
 
     放行 ``unknown_topic`` 是关键修正：关键词白名单覆盖不全会把建筑工程同主题的不同
@@ -812,8 +844,6 @@ def practice_generation_topic_block_decision(
     """
     if status == "out_of_scope_topic":
         return "block_out_of_scope"
-    if status == "needs_context_anchor":
-        return "needs_anchor"
     return "allow"
 
 

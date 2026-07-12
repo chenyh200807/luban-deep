@@ -75,6 +75,7 @@ from deeptutor.tutorbot.teaching_modes import (
     get_construction_exam_boundary_fact_instruction,
     get_lecture_skill_instruction,
     get_practice_generation_instruction,
+    get_subject_declaration_instruction,
     get_teaching_mode_instruction,
     looks_like_practice_generation_request,
     normalize_anchor_terms_in_response,
@@ -4073,6 +4074,9 @@ class AgentLoop:
                 if track_label
                 else ""
             ),
+            # WP4 科目薄切（5848e6c3 例B）：用户声明科目优先于静态默认科目。
+            # 缓解层非治本（"用户声明科目"仍无结构化 writer），复发风险记 Deviations。
+            get_subject_declaration_instruction(),
             get_anchor_preservation_instruction(current_message),
             build_continuity_anchor_instruction(
                 current_message,

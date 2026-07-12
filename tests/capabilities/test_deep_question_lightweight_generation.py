@@ -424,9 +424,14 @@ def test_lightweight_question_review_without_bank_hit_disables_llm_fallback(
     assert fake_gen.batch_call_count == 0
 
 
-def test_lightweight_action_only_topic_without_anchor_blocks_llm_fallback(
+def test_lightweight_action_only_topic_without_anchor_falls_through_to_generation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # WP4（旧契约 pin → 新契约镜像）：罐头拒答撤除。action-only "出三道题" 直连
+    # coordinator 不再 block（blocked_unresolved_anchor 链 + 第二套 topic 推导已删除），
+    # 而是 fall-through 生成（generator 科目锁保证只出建筑题）。真冷启动的一次性澄清
+    # 责任上移到 deep_question capability（见 test_generation_topic_and_subject_authority
+    # ::test_true_cold_start_clarifies_once_without_canned_refusal），不再由 coordinator 罐头。
     coord, fake_gen = _stub_coordinator(monkeypatch)
 
     async def _miss_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
@@ -451,17 +456,22 @@ def test_lightweight_action_only_topic_without_anchor_blocks_llm_fallback(
         )
     )
 
-    assert result.get("results") == []
+    assert result.get("results") != []
     counters = (result.get("trace") or {}).get("lightweight_counters") or {}
-    assert counters.get("llm_calls") == 0
-    assert counters.get("lightweight_batch_fallback") == "blocked_unresolved_anchor"
-    assert fake_gen.call_count == 0
-    assert fake_gen.batch_call_count == 0
+    assert counters.get("lightweight_batch_fallback") != "blocked_unresolved_anchor"
+    # 走 fall-through 生成路径（batch generator 被调用一次）。
+    assert fake_gen.batch_call_count == 1
 
 
-def test_lightweight_out_of_scope_topic_blocks_llm_fallback(
+def test_lightweight_out_of_scope_topic_blocked_at_exit_subject_gate(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # WP4（旧契约 pin → 新契约镜像）：coordinator 入口域门已删（收权到 deep_question
+    # 入口门，只判 out_of_scope）。out_of_scope 仍被【唯一保留的出口科目门】拦截——
+    # SAFETY 护栏不变：results==[]，绝不吐他科题。差别只在拦截【相位】：从"生成前入口
+    # 短路"改为"生成后出口拦截"，故 llm/retriever/batch 计数不再为 0（不再是护栏，是效率
+    # 观测）。生产流经 deep_question 入口门在 coordinator 之前即拦下 out_of_scope，此
+    # coordinator-direct 路径为测试专用，不代表生产会为他科题耗算力。
     coord, fake_gen = _stub_coordinator(monkeypatch)
     coord.enable_idea_rag = True
     coord.kb_name = "construction-exam"
@@ -478,14 +488,12 @@ def test_lightweight_out_of_scope_topic_blocks_llm_fallback(
         )
     )
 
+    # SAFETY 护栏（不许弱化）：他科题一道不吐。
     assert result.get("results") == []
     counters = (result.get("trace") or {}).get("lightweight_counters") or {}
-    assert counters.get("llm_calls") == 0
-    assert counters.get("retriever_calls") == 0
     assert counters.get("lightweight_batch_fallback") == "blocked_out_of_scope_topic"
     assert (result.get("trace") or {}).get("topic_domain_status") == "out_of_scope_topic"
-    assert fake_gen.call_count == 0
-    assert fake_gen.batch_call_count == 0
+    assert (result.get("trace") or {}).get("subject_scope_blocked") == "subject_unavailable"
 
 
 def test_lightweight_resolved_topic_anchor_survives_empty_rag(
@@ -503,15 +511,17 @@ def test_lightweight_resolved_topic_anchor_survives_empty_rag(
     coord.enable_idea_rag = True
     coord.kb_name = "stub-kb"
 
-    resolved_topic = (
-        "出三道题\n\n"
-        "请严格围绕以下当前学习锚点出题，不要偏题，不要超纲；如果锚点里没有出现某个新概念，不要自行引入：\n"
-        "当前会话摘要：用户刚学习了建筑实务变形缝的设置与构造处理。"
-    )
+    # WP4（旧契约 pin → 新契约镜像）：锚点不再从 user_topic 字符串反解析
+    # （_extract_embedded_generation_anchor 已删），改为经【显式 generation_anchor 参数】
+    # 传入（deep_question._resolve_generation_topic_and_anchor 的产物）。raw_user_message
+    # 单独走参数（考(...) 标签提取器只喂单条用户消息，不喂 anchor 文本）。
+    generation_anchor = "当前会话摘要：用户刚学习了建筑实务变形缝的设置与构造处理。"
 
     result = asyncio.run(
         coord.generate_from_topic(
-            user_topic=resolved_topic,
+            user_topic="出三道题",
+            generation_anchor=generation_anchor,
+            raw_user_message="出三道题",
             preference="",
             num_questions=3,
             difficulty="easy",

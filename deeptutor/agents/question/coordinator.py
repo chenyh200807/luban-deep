@@ -30,11 +30,7 @@ from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.tools.question.pdf_parser import parse_pdf_with_mineru
 from deeptutor.tools.question.question_extractor import extract_questions_from_paper
 from deeptutor.tools.rag_tool import rag_search
-from deeptutor.tutorbot.teaching_modes import (
-    practice_generation_request_needs_context_anchor,
-    practice_generation_topic_block_decision,
-    practice_generation_topic_domain_status,
-)
+from deeptutor.tutorbot.teaching_modes import practice_generation_topic_domain_status
 
 _CONSTRUCTION_EXAM_KB_ALIASES = {
     "construction-exam",
@@ -164,7 +160,12 @@ class AgentCoordinator:
         allow_lightweight_fallback: bool = True,
         allow_similar_source_variant: bool = False,
         avoid_current_question: bool = False,
+        generation_anchor: str = "",
+        raw_user_message: str = "",
     ) -> dict[str, Any]:
+        # WP4：generation_anchor / raw_user_message 是显式参数（唯一 topic decider
+        # = deep_question._resolve_generation_topic_and_anchor 的产物），coordinator
+        # 不再从 user_topic 字符串反解析锚点、不再自建第二套 topic 推导或域门。
         self._current_batch_dir = self._create_batch_dir("custom")
         requested = max(1, int(num_questions or 1))
         templates: list[QuestionTemplate] = []
@@ -196,47 +197,9 @@ class AgentCoordinator:
             "generated_explanation": False,
         }
         batch_number = 0
-        if _uses_construction_exam_scope(self.kb_name):
-            topic_domain_status = practice_generation_topic_domain_status(user_topic)
-            block_decision = practice_generation_topic_block_decision(topic_domain_status)
-            if block_decision != "allow":
-                blocked_reason = (
-                    "blocked_out_of_scope_topic"
-                    if block_decision == "block_out_of_scope"
-                    else "blocked_unresolved_anchor"
-                )
-                if lightweight_generation:
-                    lightweight_trace_counters["lightweight_batch_fallback"] = blocked_reason
-                batch_trace.append(
-                    {
-                        "mode": (
-                            "lightweight_topic_generation"
-                            if lightweight_generation
-                            else "topic_generation"
-                        ),
-                        "requested": requested,
-                        "generated": 0,
-                        "knowledge_context": "",
-                        "retrieval": {"used_rag": False},
-                        "bank_short_circuit": False,
-                        "anchor_resolution_status": blocked_reason,
-                        "topic_domain_status": topic_domain_status,
-                    }
-                )
-                return self._build_summary(
-                    source="topic",
-                    requested=requested,
-                    templates=[],
-                    qa_pairs=[],
-                    trace={
-                        "batches": batch_trace,
-                        "lightweight_generation": lightweight_generation,
-                        "lightweight_counters": dict(lightweight_trace_counters)
-                        if lightweight_generation
-                        else None,
-                        "topic_domain_status": topic_domain_status,
-                    },
-                )
+        # WP4：入口域门已删除（与 deep_question 的域门重复——那里才是唯一入口门，
+        # 只判 out_of_scope）。科目守门保留唯一一处出口校验门（生成题⊆建筑，
+        # 否则 subject_unavailable，见本函数尾部）。
         if lightweight_generation:
             if avoid_current_question:
                 anchor_payload = self._current_question_exclusion_anchor_payload(
@@ -249,54 +212,15 @@ class AgentCoordinator:
             else:
                 anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
                     user_topic=user_topic,
+                    generation_anchor=generation_anchor,
+                    raw_user_message=raw_user_message,
                 )
                 # retriever_calls 计数：调过 rag_search 即算一次（成功/失败都计入）。
                 lightweight_trace_counters["retriever_calls"] = 1
-            if self._should_block_unresolved_lightweight_anchor(
-                user_topic=user_topic,
-                anchor_payload=anchor_payload,
-            ):
-                # Step 3 (p11 fall-through, NOT fail-closed-to-template): a bare-action
-                # continuation ("继续出一道") has no topic THIS turn. Inherit the established
-                # construction topic from the conversation context and generate, instead of
-                # canning. Safe because the generator subject lock (Step 1) guarantees
-                # construction-only output even on a thin topic — fall-through can never produce
-                # off-domain garbage. Only a TRUE cold start (no topic in message OR context)
-                # still falls to the honest needs-anchor canned.
-                inherited_topic = self._resolve_practice_topic_with_context(
-                    user_topic=user_topic,
-                    history_context=history_context,
-                )
-                if inherited_topic:
-                    user_topic = inherited_topic
-                    anchor_payload, retrieval_trace = await self._resolve_lightweight_topic_knowledge_anchor(
-                        user_topic=inherited_topic,
-                    )
-                    lightweight_trace_counters["lightweight_batch_fallback"] = "anchor_inherited_from_context"
-                else:
-                    lightweight_trace_counters["lightweight_batch_fallback"] = "blocked_unresolved_anchor"
-                    batch_trace.append(
-                        {
-                            "mode": "lightweight_topic_generation",
-                            "requested": requested,
-                            "generated": 0,
-                            "knowledge_context": str(anchor_payload.get("knowledge_context") or ""),
-                            "retrieval": retrieval_trace,
-                            "bank_short_circuit": False,
-                            "anchor_resolution_status": "blocked_unresolved_anchor",
-                        }
-                    )
-                    return self._build_summary(
-                        source="topic",
-                        requested=requested,
-                        templates=[],
-                        qa_pairs=[],
-                        trace={
-                            "batches": batch_trace,
-                            "lightweight_generation": lightweight_generation,
-                            "lightweight_counters": dict(lightweight_trace_counters),
-                        },
-                    )
+            # WP4：blocked_unresolved_anchor 罐头链与第二套 topic 推导
+            # （_should_block_unresolved_lightweight_anchor / _resolve_practice_topic_with_context）
+            # 已删除。锚点合成唯一归 deep_question resolver；即便锚点稀薄也 fall-through
+            # 生成（generator 科目锁保证不出跑偏题，出口校验门兜底）。
             templates = self._build_lightweight_topic_templates(
                 user_topic=user_topic,
                 requested=requested,
@@ -1063,8 +987,14 @@ class AgentCoordinator:
         self,
         *,
         user_topic: str,
+        generation_anchor: str = "",
+        raw_user_message: str = "",
     ) -> tuple[dict[str, Any], dict[str, Any]]:
-        fallback = self._base_lightweight_anchor_payload(user_topic=user_topic)
+        fallback = self._base_lightweight_anchor_payload(
+            user_topic=user_topic,
+            generation_anchor=generation_anchor,
+            raw_user_message=raw_user_message,
+        )
         trace: dict[str, Any] = {"used_rag": False}
         if not self.enable_idea_rag or not self.kb_name:
             return fallback, trace
@@ -1085,6 +1015,8 @@ class AgentCoordinator:
         anchor = self._build_lightweight_rag_anchor_payload(
             user_topic=user_topic,
             result=result,
+            generation_anchor=generation_anchor,
+            raw_user_message=raw_user_message,
         )
         trace.update(
             {
@@ -1101,17 +1033,30 @@ class AgentCoordinator:
         return anchor, trace
 
     @staticmethod
-    def _base_lightweight_anchor_payload(*, user_topic: str) -> dict[str, Any]:
-        embedded_anchor = AgentCoordinator._extract_embedded_generation_anchor(user_topic)
-        if embedded_anchor:
+    def _base_lightweight_anchor_payload(
+        *,
+        user_topic: str,
+        generation_anchor: str = "",
+        raw_user_message: str = "",
+    ) -> dict[str, Any]:
+        # WP4：anchor 走显式参数（resolver 产物），不再从 user_topic 字符串反解析。
+        # 标签推导只喂【单条用户消息】（raw_user_message，缺省取 user_topic 首段），
+        # 禁喂 transcript/anchor 文本——a60e0902 根因之一是 考(...) 提取器啃 transcript
+        # 把"考情权重"变成乱码标签。
+        label_source = (
+            str(raw_user_message or "").strip()
+            or str(user_topic or "").split("\n\n", 1)[0]
+        )
+        anchor_label = AgentCoordinator._derive_lightweight_anchor_label(
+            user_topic=label_source
+        )
+        anchor_text = str(generation_anchor or "").strip()
+        if anchor_text:
             return {
-                "knowledge_context": embedded_anchor,
-                "concentration": AgentCoordinator._derive_lightweight_anchor_label(
-                    user_topic=embedded_anchor
-                ),
+                "knowledge_context": anchor_text,
+                "concentration": anchor_label,
                 "anchor_source": "resolved_topic_anchor",
             }
-        anchor_label = AgentCoordinator._derive_lightweight_anchor_label(user_topic=user_topic)
         return {
             "knowledge_context": f"当前学习锚点：{anchor_label}",
             "concentration": anchor_label,
@@ -1176,75 +1121,25 @@ class AgentCoordinator:
             return derived
         return "建筑实务高频考点"
 
-    @staticmethod
-    def _extract_embedded_generation_anchor(user_topic: str) -> str:
-        text = str(user_topic or "").strip()
-        marker = "请严格围绕以下当前学习锚点出题"
-        marker_index = text.find(marker)
-        if marker_index < 0:
-            return ""
-        tail = text[marker_index + len(marker) :]
-        if "：" in tail:
-            tail = tail.split("：", 1)[1]
-        elif ":" in tail:
-            tail = tail.split(":", 1)[1]
-        return re.sub(r"\s+", " ", tail).strip()[:500]
-
-    @staticmethod
-    def _lightweight_anchor_has_grounding(anchor_payload: dict[str, Any] | None) -> bool:
-        payload = anchor_payload if isinstance(anchor_payload, dict) else {}
-        if str(payload.get("anchor_source") or "").strip():
-            return True
-        if str(payload.get("reference_question") or "").strip():
-            return True
-        if str(payload.get("source_group") or "").strip() or str(payload.get("source_id") or "").strip():
-            return True
-        evidence_refs = payload.get("evidence_refs")
-        return isinstance(evidence_refs, list) and any(isinstance(ref, dict) for ref in evidence_refs)
-
-    @staticmethod
-    def _resolve_practice_topic_with_context(*, user_topic: str, history_context: str) -> str:
-        """Single authority for the lightweight practice topic (Step 3, p11 fall-through).
-
-        This turn's own topic wins; if the message is a bare action word with no topic, inherit
-        the established construction topic from the conversation context. Returns ""  only on a
-        true cold start (no topic in the message AND none in the context) — that case still falls
-        to the honest needs-anchor canned. Reuses the single normalizer
-        ``_derive_lightweight_anchor_label`` (no second topic decider). Safe to fall through here
-        because the generator subject lock (Step 1) guarantees construction-only output even on a
-        thin topic, so inheriting-and-generating can never produce off-domain garbage.
-        """
-        own = AgentCoordinator._derive_lightweight_anchor_label(user_topic=user_topic)
-        if practice_generation_topic_domain_status(own) == "construction_topic":
-            return own
-        inherited = AgentCoordinator._derive_lightweight_anchor_label(
-            user_topic=str(history_context or "")
-        )
-        if practice_generation_topic_domain_status(inherited) == "construction_topic":
-            return inherited
-        return ""
-
-    @staticmethod
-    def _should_block_unresolved_lightweight_anchor(
-        *,
-        user_topic: str,
-        anchor_payload: dict[str, Any] | None,
-    ) -> bool:
-        if AgentCoordinator._lightweight_anchor_has_grounding(anchor_payload):
-            return False
-        payload = anchor_payload if isinstance(anchor_payload, dict) else {}
-        label = str(payload.get("concentration") or "").strip() or AgentCoordinator._derive_lightweight_anchor_label(
-            user_topic=user_topic
-        )
-        return practice_generation_request_needs_context_anchor(label)
+    # WP4（2026-07-12）已删除的第二套 topic decider（收权到 deep_question resolver）：
+    # - _extract_embedded_generation_anchor：字符串反解析镜像态 → 显式 generation_anchor 参数；
+    # - _resolve_practice_topic_with_context：第二套 topic 推导（transcript 啃噬入口）；
+    # - _should_block_unresolved_lightweight_anchor / _lightweight_anchor_has_grounding：
+    #   blocked_unresolved_anchor 罐头链（needs-anchor 判定降级为 trace hint 后无 block 语义）。
 
     @staticmethod
     def _build_lightweight_rag_anchor_payload(
         *,
         user_topic: str,
         result: dict[str, Any] | None,
+        generation_anchor: str = "",
+        raw_user_message: str = "",
     ) -> dict[str, Any]:
-        base = AgentCoordinator._base_lightweight_anchor_payload(user_topic=user_topic)
+        base = AgentCoordinator._base_lightweight_anchor_payload(
+            user_topic=user_topic,
+            generation_anchor=generation_anchor,
+            raw_user_message=raw_user_message,
+        )
         anchor_label = str(base.get("concentration") or "").strip()
         if not isinstance(result, dict):
             return base
@@ -1547,12 +1442,14 @@ class AgentCoordinator:
         practice_generation_topic_domain_status（入口出口同源，不另造科目权威），判生成题
         考点+题面是否建筑实务。
 
-        口径与入口门 practice_generation_topic_block_decision **对称**：只在生成题**确有
-        他科证据（out_of_scope_topic 命中法语/数学等）且无任何建筑证据**时才判
-        subject_unavailable。``unknown_topic``（关键词白名单未覆盖的建筑长尾，如"水泥/沟槽
-        开挖"）一律视为 in-scope 放行——禁止重蹈入口门已修正过的 ``!= construction_topic``
-        误拒（白名单永远不全，正向命中口径会把同主题的不同表述当跑题，见 teaching_modes.py
-        practice_generation_topic_block_decision 的修正注释）。无题面可判时不拦（避免空判误拒）。
+        WP4 后这是 coordinator 侧【唯一】科目门（入口域门归 deep_question，只判
+        out_of_scope）。口径与入口门 practice_generation_topic_block_decision 对称：
+        只在生成题**确有他科证据（out_of_scope_topic 命中法语/数学等）且无任何建筑
+        证据**时才判 subject_unavailable。``unknown_topic``（关键词白名单未覆盖的建筑
+        长尾，如"水泥/沟槽开挖"）一律视为 in-scope 放行——禁止重蹈已修正过的
+        ``!= construction_topic`` 误拒（白名单永远不全，正向命中口径会把同主题的不同
+        表述当跑题，见 teaching_modes.py practice_generation_topic_block_decision 的
+        修正注释）。无题面可判时不拦（避免空判误拒）。
         """
         texts: list[str] = []
         for qp in qa_pairs or []:
@@ -1620,6 +1517,10 @@ class AgentCoordinator:
 
     @staticmethod
     def _extract_explicit_lightweight_topic_label(text: str) -> str:
+        # WP4 硬约束：本提取器（尤其 考(...) pattern）只许喂【单条用户消息】，
+        # 禁喂 transcript / anchor / history 拼接文本——a60e0902 生产事故里它从
+        # 梳理全文里啃出"考情权重"当 topic 标签。调用方 _derive_lightweight_anchor_label
+        # 的 label_source 已收敛为 raw_user_message 或 user_topic 首段。
         for pattern in (
             r"(?:围绕|关于|针对)(?P<label>[^，,。!?！？；;:：]+)",
             # "考 <topic>" (考网络计划). Exclude 考我/考点/考试 AND a doubled 考 so the action
