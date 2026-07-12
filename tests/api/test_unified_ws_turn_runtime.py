@@ -5089,9 +5089,11 @@ async def test_turn_runtime_observer_breaks_down_start_setup_and_capability_stre
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
+    from deeptutor.api.runtime_metrics import get_turn_runtime_metrics, reset_turn_runtime_metrics
     from deeptutor.services.observability import get_turn_event_log, reset_turn_event_log
 
     reset_turn_event_log(events_dir=tmp_path / "observer_events")
+    reset_turn_runtime_metrics()
     store = SQLiteSessionStore(tmp_path / "chat_history.db")
     runtime = TurnRuntimeManager(store)
 
@@ -5199,6 +5201,13 @@ async def test_turn_runtime_observer_breaks_down_start_setup_and_capability_stre
         ]
         == 123.4
     )
+    # Battle2 S3-T3: the same first-useful-content observation is exported one hop
+    # further into the Prometheus TTFVT histogram (observe-only, fail-open).
+    fuc_entries = get_turn_runtime_metrics().snapshot()["first_useful_content_ms"]
+    assert len(fuc_entries) == 1
+    assert fuc_entries[0]["content_source"] == "content.delta"
+    assert fuc_entries[0]["count"] >= 1
+    assert fuc_entries[0]["sum_ms"] >= 0
 
 
 @pytest.mark.asyncio

@@ -1130,6 +1130,7 @@ class LangfuseObservability:
         model: str | None = None,
         level: str | None = None,
         status_message: str | None = None,
+        completion_start_time: Any = None,  # datetime | None; generation 专用,span/chain 传 None
     ) -> None:
         source_key = self.normalize_usage_source(usage_source)
         merged_metadata = dict(metadata or {})
@@ -1161,6 +1162,7 @@ class LangfuseObservability:
                 cost_details=cost_details if export_usage else None,
                 level=level,
                 status_message=status_message,
+                completion_start_time=completion_start_time,
             )
         except Exception as exc:
             logger.debug(f"Langfuse observation update skipped: {exc}", exc_info=True)

@@ -38,6 +38,7 @@ Retry Mechanism:
 
 import asyncio
 from collections.abc import AsyncGenerator, Mapping
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, TypedDict
 
 import tenacity
@@ -603,6 +604,9 @@ async def stream(
         model_parameters=model_parameters,
     ) as observation:
         provider_usage_details: dict[str, float] | None = None
+        # Observe-only: wall-clock of the first stream chunk, exported as the
+        # Langfuse generation completion_start_time (drives timeToFirstToken).
+        first_chunk_at: datetime | None = None
         for attempt in range(total_attempts):
             try:
                 async with get_provider_traffic_controller(provider_name=provider_name, config=traffic_config):
@@ -636,6 +640,8 @@ async def stream(
                             return_stream_chunks=True,
                             **extra_kwargs,
                         ):
+                            if first_chunk_at is None:
+                                first_chunk_at = datetime.now(timezone.utc)
                             if isinstance(chunk, TutorStreamChunk):
                                 if chunk.usage:
                                     provider_usage_details = _normalize_provider_usage(chunk.usage)
@@ -658,6 +664,8 @@ async def stream(
                             return_stream_chunks=True,
                             **extra_kwargs,
                         ):
+                            if first_chunk_at is None:
+                                first_chunk_at = datetime.now(timezone.utc)
                             if isinstance(chunk, TutorStreamChunk):
                                 if chunk.usage:
                                     provider_usage_details = _normalize_provider_usage(chunk.usage)
@@ -686,6 +694,8 @@ async def stream(
                             return_stream_chunks=True,
                             **extra_kwargs,
                         ):
+                            if first_chunk_at is None:
+                                first_chunk_at = datetime.now(timezone.utc)
                             if isinstance(chunk, TutorStreamChunk):
                                 if chunk.usage:
                                     provider_usage_details = _normalize_provider_usage(chunk.usage)
@@ -716,6 +726,7 @@ async def stream(
                         model=model,
                         usage_details=usage_details,
                     ),
+                    completion_start_time=first_chunk_at,
                 )
                 return
             except Exception as exc:
@@ -727,6 +738,7 @@ async def stream(
                         metadata={"provider_name": provider_name, "provider_mode": provider_mode},
                         level="ERROR",
                         status_message=str(exc),
+                        completion_start_time=first_chunk_at,
                     )
                     raise
                 if attempt >= max_retries or not _is_retriable_error(exc):
@@ -735,8 +747,12 @@ async def stream(
                         metadata={"provider_name": provider_name, "provider_mode": provider_mode},
                         level="ERROR",
                         status_message=str(exc),
+                        completion_start_time=first_chunk_at,
                     )
                     raise
+                # Retrying without having yielded: drop the failed attempt's
+                # first-chunk timestamp so it cannot pollute the successful one.
+                first_chunk_at = None
 
                 if exponential_backoff:
                     current_delay = min(delay * (2**attempt), max_delay)

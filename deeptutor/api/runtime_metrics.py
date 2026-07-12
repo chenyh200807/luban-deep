@@ -8,6 +8,25 @@ from collections import deque
 from typing import Any
 
 
+# Battle2 S3-T3: fixed histogram bucket bounds (ms) for turn-level time to first
+# useful content (TTFVT). Same observe-only discipline as the W1-T6 lag sentinel.
+_FUC_BUCKET_BOUNDS_MS: tuple[float, ...] = (
+    500.0,
+    1000.0,
+    2000.0,
+    4000.0,
+    8000.0,
+    16000.0,
+    32000.0,
+    64000.0,
+)
+
+# Known first-useful-content sources (discriminator label: streamed first delta
+# vs. one-shot result payload). Anything else collapses into "other" so the
+# label set stays bounded.
+_FUC_KNOWN_SOURCES = frozenset({"content.delta", "result.response"})
+
+
 def normalize_latency_stage_timings(value: Any) -> dict[str, float]:
     """Return stable non-negative latency stage timings in milliseconds."""
     if not isinstance(value, dict):
@@ -127,6 +146,11 @@ class TurnRuntimeMetrics:
         self._turn_stage_latency_counts: Counter[str] = Counter()
         # Battle1 W4-T6: observe-only fast/deep x model-tier occupancy (A/B denominator).
         self._response_mode_counts: Counter[str] = Counter()
+        # Battle2 S1-T4: observe-only summary-maintainer gate decisions keyed by
+        # "decision|outcome". This is the independent read for the S1 gate hit rate
+        # (skip ratio) and the changed/no_change mix; same discipline as
+        # response_mode and it must ship in the same PR as the gate itself.
+        self._summary_maintainer_counts: Counter[str] = Counter()
         # Battle1 W1-T6: event-loop lag sentinel (真闭环). A 0.5s sampler feeds
         # record_loop_lag; any future hot-path blocking (new sync SDK, CPU-heavy work)
         # necessarily inflates these and trips the existing Prometheus alert chain,
@@ -134,6 +158,41 @@ class TurnRuntimeMetrics:
         self._loop_lag_samples_total = 0
         self._loop_lag_max_seconds = 0.0
         self._loop_lag_over_200ms_total = 0
+        # Battle2 S3-T3: observe-only TTFVT histogram. One hop export of the
+        # existing turn_runtime _first_useful_content_observation (the single
+        # latency authority) so p50/p95 become readable in Prometheus.
+        # Keyed by content_source; non-cumulative bucket counts + sum + count.
+        self._fuc_histograms: dict[str, dict[str, Any]] = {}
+
+    def record_first_useful_content(self, *, elapsed_ms: float, content_source: str = "") -> None:
+        """Observe-only: record one turn-level time-to-first-useful-content sample
+        (ms). Fail-open, never raises; invalid input is dropped silently."""
+        try:
+            value = float(elapsed_ms)
+        except (TypeError, ValueError):
+            return
+        if value < 0 or value != value:  # reject negatives and NaN
+            return
+        source = str(content_source or "").strip()
+        if source not in _FUC_KNOWN_SOURCES:
+            source = "other"
+        with self._lock:
+            hist = self._fuc_histograms.setdefault(
+                source,
+                {
+                    "bucket_counts": [0] * (len(_FUC_BUCKET_BOUNDS_MS) + 1),
+                    "sum_ms": 0.0,
+                    "count": 0,
+                },
+            )
+            hist["count"] += 1
+            hist["sum_ms"] += value
+            for index, bound in enumerate(_FUC_BUCKET_BOUNDS_MS):
+                if value <= bound:
+                    hist["bucket_counts"][index] += 1
+                    break
+            else:
+                hist["bucket_counts"][-1] += 1
 
     def record_loop_lag(self, lag_seconds: float) -> None:
         """Observe-only: record one event-loop lag sample (expected vs. actual sleep
@@ -157,6 +216,14 @@ class TurnRuntimeMetrics:
         tier = str(model_tier or "").strip().lower() or "primary"
         with self._lock:
             self._response_mode_counts[f"{mode}|{tier}"] += 1
+
+    def record_summary_maintainer(self, *, decision: str, outcome: str = "") -> None:
+        """Observe-only: count one summary-maintainer gate (decision, outcome).
+        fail-open, never raises on stringifiable input."""
+        decision_key = str(decision or "").strip().lower() or "unknown"
+        outcome_key = str(outcome or "").strip().lower() or "-"
+        with self._lock:
+            self._summary_maintainer_counts[f"{decision_key}|{outcome_key}"] += 1
 
     def record_ws_open(self) -> None:
         with self._lock:
@@ -232,9 +299,27 @@ class TurnRuntimeMetrics:
                     }
                     for key, value in sorted(self._response_mode_counts.items())
                 ],
+                "summary_maintainer_counts": [
+                    {
+                        "decision": key.split("|", 1)[0],
+                        "outcome": key.split("|", 1)[1],
+                        "count": int(value),
+                    }
+                    for key, value in sorted(self._summary_maintainer_counts.items())
+                ],
                 "loop_lag_max_seconds": round(float(self._loop_lag_max_seconds), 6),
                 "loop_lag_over_200ms_total": int(self._loop_lag_over_200ms_total),
                 "loop_lag_samples_total": int(self._loop_lag_samples_total),
+                "first_useful_content_ms": [
+                    {
+                        "content_source": source,
+                        "bucket_bounds_ms": list(_FUC_BUCKET_BOUNDS_MS),
+                        "bucket_counts": [int(c) for c in hist["bucket_counts"]],
+                        "sum_ms": round(float(hist["sum_ms"]), 2),
+                        "count": int(hist["count"]),
+                    }
+                    for source, hist in sorted(self._fuc_histograms.items())
+                ],
             }
 
 
@@ -365,6 +450,18 @@ def render_prometheus_metrics(
             },
         )
 
+    lines.append("# HELP deeptutor_summary_maintainer_total Summary-maintainer gate decisions by decision and outcome.")
+    lines.append("# TYPE deeptutor_summary_maintainer_total counter")
+    for gate_entry in turn_snapshot.get("summary_maintainer_counts") or []:
+        emit(
+            "deeptutor_summary_maintainer_total",
+            gate_entry.get("count", 0),
+            {
+                "decision": gate_entry.get("decision", ""),
+                "outcome": gate_entry.get("outcome", ""),
+            },
+        )
+
     lines.append("# HELP deeptutor_turn_loop_lag_max_seconds Max observed event-loop lag (expected vs. actual sleep skew) since process start.")
     lines.append("# TYPE deeptutor_turn_loop_lag_max_seconds gauge")
     emit("deeptutor_turn_loop_lag_max_seconds", turn_snapshot.get("loop_lag_max_seconds", 0))
@@ -376,6 +473,34 @@ def render_prometheus_metrics(
     lines.append("# HELP deeptutor_turn_loop_lag_samples_total Total event-loop lag samples taken by the sentinel.")
     lines.append("# TYPE deeptutor_turn_loop_lag_samples_total counter")
     emit("deeptutor_turn_loop_lag_samples_total", turn_snapshot.get("loop_lag_samples_total", 0))
+
+    lines.append(
+        "# HELP deeptutor_turn_first_useful_content_ms Server turn start to first useful content (TTFVT) in milliseconds."
+    )
+    lines.append("# TYPE deeptutor_turn_first_useful_content_ms histogram")
+    for fuc_entry in turn_snapshot.get("first_useful_content_ms") or []:
+        source_label = {"content_source": fuc_entry.get("content_source", "")}
+        bounds = [float(b) for b in fuc_entry.get("bucket_bounds_ms") or []]
+        counts = [int(c) for c in fuc_entry.get("bucket_counts") or []]
+        if len(counts) != len(bounds) + 1:
+            continue
+        cumulative = 0
+        for bound, bucket_count in zip(bounds, counts[:-1]):
+            cumulative += bucket_count
+            le = str(int(bound)) if float(bound).is_integer() else str(bound)
+            emit(
+                "deeptutor_turn_first_useful_content_ms_bucket",
+                cumulative,
+                {**source_label, "le": le},
+            )
+        cumulative += counts[-1]
+        emit(
+            "deeptutor_turn_first_useful_content_ms_bucket",
+            cumulative,
+            {**source_label, "le": "+Inf"},
+        )
+        emit("deeptutor_turn_first_useful_content_ms_sum", fuc_entry.get("sum_ms", 0), source_label)
+        emit("deeptutor_turn_first_useful_content_ms_count", fuc_entry.get("count", 0), source_label)
 
     lines.append("# HELP deeptutor_surface_event_total Total surface telemetry events by surface, event, and ingest status.")
     lines.append("# TYPE deeptutor_surface_event_total counter")

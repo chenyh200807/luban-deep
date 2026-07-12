@@ -5809,6 +5809,18 @@ class TurnRuntimeManager:
                         return
                     first_useful_content_metadata = observed
                     trace_metadata.update(observed)
+                    # Battle2 S3-T3: observe-only one-hop export of the existing
+                    # TTFVT observation to the Prometheus histogram. Fail-open —
+                    # metric errors must never affect the turn.
+                    with contextlib.suppress(Exception):
+                        get_turn_runtime_metrics().record_first_useful_content(
+                            elapsed_ms=observed[
+                                "server_turn_start_to_first_useful_content_ms"
+                            ],
+                            content_source=str(
+                                observed.get("first_useful_content_content_source") or ""
+                            ),
+                        )
 
                 capability_event_stream = (
                     orch.handle(context, preselected_capability=preselected_capability)
