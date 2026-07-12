@@ -206,6 +206,12 @@
 - **UI 语义**：保存失败不出收据、不说“明天见”；服务端 terminal 成功后 forward 进 handoff，review 回复习。handoff 只保留提醒与 telemetry，不再写 learner state。
 - **发布边界**：本轮不部署。首次四题仍因双教研签发未完成而 fail closed；真实微信订阅提醒仍依赖模板 ID，不能用页内红点冒充系统推送。
 
+### 2026-07-12（五模块加载慢根因+修复 · owner"为什么特别慢"）
+- **[根因]** 量化定位:review-due **3.45s**、mistake-book **1.0s**,其余端点全毫秒级。剖析:投影本身6ms,3秒全烧在`list_memory_events`——本地开发后端每请求**串行打4次远程Supabase HTTPS查询**(~1s RTT×4)。学习/复习/错因页都消费这两个端点=五模块整体感觉慢。
+- **[修法=接通休眠旗标,零代码]** 代码里逃生门早已建好:`DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK`+`DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK`(非生产+flag→本地投影,不打Supabase)。本地serve脚本加两行env→**review-due 3.45s→0.04s(86×),mistake-book 1.0s→5ms**。dormant flag再添一例:修法不是写新码,是给已有门通电。
+- **[生产侧注意]** 此修只治本地开发体验;生产(Aliyun→Supabase)同样存在"每请求串行4连击远程查询"的结构病(六专家审计的同步阻塞+读扇出),RTT小但仍在账上,治本需读侧缓存/合并查询,另立工单。
+- **[owner问"下一步把所有考点卡都更新掉?"]** 已全部更新:v32富化+重签是**17站141卡整体管线**,不只A01(证据表:95/141带给分词,X03 15/19、X02 10/11、C02 10/13…J01 0/3是该站chunk无verified采分点交集,fail-closed宁缺)。真正的"更新掉所有考点卡"=铺满40站/全考纲,瓶颈在考点原料pack量产(内容线),不在这条技术管线。
+
 ### 2026-07-12（考点卡×编译资产：v32采分点富化进卡 · owner"利用编译资产,数据盘点里找"指令）
 - **[资产选型]** 按数据盘点(2026-06-16编译资产盘点)核库:选**RichLeaf v3.2采分点富化层**(1612 unit/5705采分点,每点带quote_verified教材溯源+required_terms)——141卡chunk_id join命中**141/141**,可挂~1823点。exam_patterns**不上**:LLM合成题面无verified溯源,不冒充真题考法(单一权威纪律)。
 - **[编译期join四闸]** builder新增`_attach_scoring_terms`(fail-closed):①quote_verified=True且source_authority=textbook;②terms 1..8个;③**每个term逐字∈本卡quote**(卡引的是chunk意图切片,词不在切片=不是这张卡的给分词,宁缺勿挂——A01竣工验收卡因此滤掉了同chunk的屋面/检验批杂点);④terms元组去重,每卡≤2组。**覆盖95/141卡(67%)**。bank记账enrichment元信息;17站全部rebuild+promote人闸重签(basis留痕)。v32包为本机artifacts软链(同教材库先例,缺席=空富化不挡产出)。
