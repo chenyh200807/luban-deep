@@ -35,6 +35,13 @@ generates session activity, or writes member read-models must run as an
 - every path that can carry identity metadata must write
   `account_kind="eval_runner"`, `actor_type="machine"`,
   `created_by="eval_runner"`, `is_internal_test=true`;
+- before any such run, export the runner identity env vars:
+
+  ```bash
+  export DEEPTUTOR_EVAL_RUNNER_AGENT=claude_code   # or codex / <agent name>
+  export DEEPTUTOR_EVAL_RUN_ID="${DEEPTUTOR_EVAL_RUNNER_AGENT}-$(date +%Y%m%d%H%M%S)-$(git rev-parse --short HEAD 2>/dev/null || echo nogit)"
+  ```
+
 - new test helpers, seed scripts, and agent automation must reuse these fields
   or call `external_auth.ensure_external_auth_user()` /
   `create_external_auth_user()`, which write them automatically;

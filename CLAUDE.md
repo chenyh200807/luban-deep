@@ -19,6 +19,7 @@
 | 跑 eval/smoke/QA 且会创建账号或产生会员活跃 | AGENTS §Hard Invariants(Eval Runner Identity) |
 | 阿里云 SSH 任何写操作 | AGENTS §Hard Invariants(Aliyun Write Boundary,原 §3.7) |
 | commit/分支/worktree/合并 main | AGENTS §Hard Invariants(git 纪律)+ §Main Merge Workflow |
+| Web/BI/前端/浏览器/截图/`next dev`/Playwright | AGENTS §Hard Invariants(Web/BI 内存护栏)→ `deeptutor-web-bi-frontend-gate` |
 | 鲁班数据资产/教材/真题/讲义/考频 | `agent-skills/luban-okf-context/SKILL.md` |
 | 查架构/CLI/Key Files | `docs/ARCHITECTURE.md`(或 CodeGraph) |
 
