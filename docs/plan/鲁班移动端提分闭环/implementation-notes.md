@@ -1,5 +1,8 @@
 # 五模块改造 · Implementation Notes（活账本）
 
+> **方法层记录**：本账本只记结果与验证；"怎么发现、怎么分析、走过哪些歧路"的完整叙事在 [methodology-log.md](./methodology-log.md)（owner 2026-07-12 立的常设纪律，每个非平凡问题五段式入志）。
+
+
 > 维护规则（owner 2026-07-05 指令）：执行中撞上 edge case 偏离计划时，**选保守方案，在 Deviations 记一笔，接着干**——复盘全靠它。
 > 由主控会话集中维护；实施 agent 在隔离 worktree 工作，其报告中的偏离由主控收录。按日期倒序追加，不删旧条目。
 > 关联计划：`2026-07-04-luban-ai-adjudication-pipeline-plan.md`（裁决流水线）、五模块 IA Brief、双轮 v3.2、融合计划 v1.1。
@@ -212,6 +215,17 @@
 - **五模块侧门收口（后续已加强）**：gauntlet 的即时再练显式归 forward；errorbank 删除“有题池=已到期”的前端推断，只消费 canonical review-due，pack、`retest_available`、probe 三者齐全才亮复习 CTA，并透传 `mode=review&probe_id`。2026-07-12 又删除了复测后的本机单题销账，terminal truth 只留服务端。
 - **UI 语义**：保存失败不出收据、不说“明天见”；服务端 terminal 成功后 forward 进 handoff，review 回复习。handoff 只保留提醒与 telemetry，不再写 learner state。
 - **发布边界**：本轮不部署。首次四题仍因双教研签发未完成而 fail closed；真实微信订阅提醒仍依赖模板 ID，不能用页内红点冒充系统推送。
+
+### 2026-07-12（PR#451合main+阿里云生产部署 · Opus部署agent执行,四门全过）
+- **[合并]** PR #451 merge commit合入main(保留历史),合并SHA `9314930c`;12提交增量(首跑闭环/考点卡三代/错因银行/标准卡签发/性能修复,含签发翻牌645e0e70)。CI两红=测试桩滞后于已签发代码(apiMock缺errorCodeOf/shim未放行script-data),外科补桩dfedaebe后94/94全绿;main领先的33提交无一丢失。
+- **[部署四门]** ①容器just-now(07:51Z,healthy);②容器内grep:_BANK_CACHE/原样透传/manifest release_status=signed/STD bank signed全命中;③healthz/readyz公网200;④镜像sha==build产物,host与容器GIT_SHA==9314930c,GIT_DIRTY=false。全量rebuild(36/36 stage,非redeploy_fast),干净发布worktree,写边界全程/root/deeptutor内。
+- **[生产界面不变]** LUBAN_STD_CONCEPT_CARDS/RICH_LEAF_RUNTIME/LIGHT_PRACTICE全OFF;小程序未上传(仍老蓝版)。新五模块对用户零展示。
+- **[⚠️红线发现,owner待裁决]** 生产`LUBAN_CASE_RUBRIC_BANK_SLOT=pgo`——与"禁拨PGO"红线冲突,**但非本次引入**:host .env备份06-19/07-05/07-06全是pgo(已存活~3周),带canary结构(CANARY_ENABLED=false,cohort qa_/operator_),属案例判分pgo/canary独立轨道。部署agent未擅动(翻已上线3周的判分槽超授权)。**待owner裁决:回legacy还是追认pgo轨道**(需先查这3周生产判分是否受影响——PGO库score=null靠切分粒度隐式计分,红线当初立的原因)。
+
+### 2026-07-12（PR#454学情真值收口合流+二次部署 · 双前端线终结）
+- **[合流]** 另一会话的 codex/five-module-root-closure(61aaf9a2 学情真值统一收口)经 PR#454 merge commit 入 main=**84909343**;代码/账本零冲突;.secrets.baseline 撞车按"合并树口径"解(方法志有条目);methodology-log add/add 两会话条目全保留。first-run-learner-loop 已对齐(348b62bf 推远端)。**root-closure 分支内容 100% 进 main 可废弃**(其 worktree 归对方会话,删分支由 owner/对方执行)。
+- **[二次部署]** deploy_aliyun.sh 全量 rebuild;四门+md5 指纹全过(容器 17:11:27 就绪/evidence_lifecycle 特征命中/healthz 200/双端 GIT_SHA==84909343);主控独立抽查一致。旗标红线全守(三 LUBAN_*_ENABLED OFF;判分槽 pgo 原样待 owner 裁决)。测试:定向 pytest 803 绿×2轮/yousen 前端 95/95/CI 14 检查全绿(wx_miniprogram 6 失败经 main 基线复跑证实为既有)。
+- **[终态]** 生产=main=84909343;唯一前端工作线=first-run-learner-loop(worktree deeptutor-first-run-current-five-module);"两个版本互相抢"终结。
 
 ### 2026-07-12（首跑内容签发翻牌 · owner一字拍板"签"）
 - **[签发执行]** script_manifest.v1.json四题`review_status=signed`+双reviewer留痕(`teacher_review:owner_cainkyking:2026-07-12:{qid}:{content_sha}`+`claude_fable_owner_delegate`同格式;content_sha按manifest.py同源规范化计算),`release_status=signed`+release_signoff(basis=owner本人对话授权,四题源自签发采分点owner本周多轮真机过目)。真loader`_require_signed_manifest`校验PASS。

@@ -932,6 +932,14 @@ async def interpret_question_followup_action(
             ),
             model=fast_tier_model or None,
             temperature=0,
+            # 关思考(主延迟/成本杠杆):意图分类是 temperature=0 的结构化 JSON 抽取,
+            # 不需要推理链。生产 dashscope deepseek-v4-flash 上思考占输出 token 70-80%,
+            # 关闭后实测 completion 42→6 tokens。"disabled" 是通用语义(provider 细节由
+            # executors._apply_provider_thinking_mode 翻译:dashscope→enable_thinking=False,
+            # deepseek→thinking.disabled),不挂 flag——判定器本就不该思考,对 B2 fast_tier
+            # on/off 都生效(与 slim 逻辑正交)。SEV backstop(Step 4.5)在下方独立兜底,
+            # 关思考不改分类语义只省 reasoning token。
+            reasoning_effort="disabled",
             response_format={"type": "json_object"},
             max_tokens=500,
             # ③稳定性 2b/B1: 首答前阻塞分类器,只重试 transient infra 失败,fallback(None)
