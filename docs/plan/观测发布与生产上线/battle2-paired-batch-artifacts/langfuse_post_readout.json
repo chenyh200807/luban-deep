@@ -1,0 +1,74 @@
+{
+  "window_from_utc": "2026-07-12T07:41:55.000Z",
+  "window_to_utc": "2026-07-12T07:54:38.000Z",
+  "traces_in_window": 45,
+  "generations_in_window": 88,
+  "generations_classified_main": 66,
+  "generations_classified_sentinel": 16,
+  "per_trace_gen_count": {
+    "n_traces": 42,
+    "avg": 2.1,
+    "p50": 2,
+    "p95": 3,
+    "max": 4
+  },
+  "summary_maintainer": {
+    "generation_calls": 0,
+    "total_tokens": 0
+  },
+  "heartbeat": {
+    "generation_calls": 0,
+    "total_tokens": 0
+  },
+  "tokens": {
+    "total_input": 443341,
+    "total_output": 30907,
+    "total": 474248
+  },
+  "total_cost": 0.492321,
+  "ttft_ms": {
+    "tutorbot_llm_stream": {
+      "n": 30,
+      "p50": 1293.0,
+      "p95": 3518.0
+    },
+    "llm_stream": {
+      "n": 36,
+      "p50": 5453.0,
+      "p95": 9459.0
+    },
+    "sentinel": {
+      "n": 16,
+      "p50": 1816.0,
+      "p95": 4925.0
+    },
+    "main": {
+      "n": 45,
+      "p50": 3301.0,
+      "p95": 9459.0
+    }
+  },
+  "trace_duration_ms": {
+    "all": {
+      "n": 45,
+      "p50": 13945.0,
+      "p95": 27114.0
+    },
+    "main": {
+      "n": 35,
+      "p50": 15409.0,
+      "p95": 27114.0
+    },
+    "sentinel": {
+      "n": 10,
+      "p50": 11817.0,
+      "p95": 16367.0
+    }
+  },
+  "distinct_generation_names": [
+    "llm.complete",
+    "llm.stream",
+    "rerank.dashscope",
+    "tutorbot.llm.stream"
+  ]
+}
