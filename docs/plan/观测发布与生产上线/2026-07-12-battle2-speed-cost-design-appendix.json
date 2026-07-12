@@ -1,0 +1,462 @@
+{
+ "designs": [
+  {
+   "family": "summary_maintainer 门控(learner_state.refresh 后台尾巴,占样本内 turn LLM 成本 52%)",
+   "root_cause": {
+    "one_business_fact": "长期学习摘要只需要在'自上次维护以来出现了值得沉淀的新材料'时才重写;而每个 turn 的原始增量在 refresh_from_turn 里已经无条件持久化到 learner_memory_events(service.py:1665 record_turn_event → :792-830 append_memory_event 恒写本地 JSONL+outbox),维护器随时可以批量补读积压增量——所以'跳过这个 turn 不跑 LLM'不会丢任何信息,只是推迟消费。",
+    "one_authority": "门的单一权威 = learner_memory_events 事件流(已存在的唯一增量账本)+ 其上的进程内游标(turns_since_run 计数 + last_run_at,LearnerStateService 实例字段)。游标只是账本上的读位置,不是第二权威:丢游标(重启/多 worker)= 视为未读 = 立即跑,fail-open。门收口在 refresh_from_turn 内部(它是 turn_runtime.py:2711 唯一调用点的唯一入口),turn_runtime 不加参数不加旁路。",
+    "concepts_to_delete_or_demote": "删除'每个实质 turn 必跑一次 LLM 摘要维护'的隐含契约(把 NO_CHANGE 判断从 LLM 内部前移到廉价门);删除 prompt 里重复注入的当前摘要(source 的 [Learner Summary](:1676) 与 _summary_prompts 的 [当前长期摘要](:2443) 是同一内容双份);删除全量 _json_dump(snapshot.progress)(:1677,含 knowledge_map/guided_learning_history 等大 JSON);降级 read_snapshot 在 refresh 链的地位——它拉的 memory_events(:1484,可能触发 Supabase 远端读 :569-582)在 source 构建里根本没被消费。",
+    "why_not_old_pattern": "旧法 = 不信任增量信号,每 turn 全量重读画像+摘要+进度再让 LLM 自己判断'要不要改',把门做成了系统里最贵的组件(LLM 本身):57% 的调用 10k tok 进、9 字符出,纯开销。这与 Battle1 主病(每 turn 全量重算路由/上下文)同构。打补丁式的替代(再加一个便宜 LLM 分类器判'要不要跑')会新增一个 decider,被否;正确修法是消费已有信号,decider 数量不变。",
+    "why_this_layer": "改在 refresh_from_turn/_rewrite_summary(deeptutor/services/learner_state/service.py:1630-1723)这一层:门消费的全部信号在该函数内已有(capability 入参、本地事件文件、摘要 mtime、自身实例状态),零跨层新协议;turn_runtime._schedule_post_turn_refresh(:2665-2805)一行不改;下游 _enqueue_summary_refresh→learner_summaries 的写入语义不变(契约 summary_truth=learner_summaries 不动)。"
+   },
+   "shared_failure_shape": "全量重算型后台维护器:不信任已持久化的增量账本,每 turn 用最贵的组件(LLM)自问\"有没有变化\",57% 时间答\"没有\"。门长在 LLM 输出侧(NO_CHANGE 字符串)而不是调用前;并且 read_snapshot 顺手拉了根本不消费的远端 memory_events。与 Battle1 主病(路由/上下文每 turn 全量重跑)同构:增量信号存在但没人消费。",
+   "base_reverification": "全部在 /Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor-battle1 (HEAD=5791967d) 亲核:deeptutor/services/learner_state/service.py:1630 refresh_from_turn(唯一 LLM 维护入口);:1650 _should_skip_turn_writeback 低信号跳过(定义 :2498-2518,guide*/notebook* 永不跳);:1662 per-user 锁横跨整个 LLM 流;:1664 read_snapshot(定义 :1476,拉 limit=5 memory_events 但 source 未消费;list_memory_events :553-600 可触发 Supabase 远端读);:1665 record_turn_event(定义 :918-942)→ :792-830 append_memory_event 恒写本地 MEMORY_EVENTS.jsonl+outbox(且每次 append 已全文件扫 dedupe :824,新增一次事件扫描不是新成本类);:1674-1683 source 构建 = 全量 profile JSON + 摘要(与 :2443 重复)+ 全量 progress JSON + user/assistant 全文;:1700-1723 _rewrite_summary(stream 无 model= 参数→主模型,max_tokens=900,:1719 NO_CHANGE/等值判断);:1686-1693 变更才 _enqueue_summary_refresh;:1893-1901 摘要消费面=压缩段前4行/260字;turn_runtime.py:2665/2711-2720 唯一调用点(后台任务,尾巴),:2685 trace 名 learner_state.refresh,:3371-3372 build_context_candidates 每 turn 注入;member_console/service.py:1217 摘要第二消费面;llm/factory.py:508 stream 接受 model=;llm/config.py:283 resolve_fast_tier_model(空串→fail-open 用主模型);api/runtime_metrics.py:154 record_response_mode observe-only 模式(:241 单例);contracts/index.yaml:541 learner_state/service.py 在 sensitive_patterns,tests/services/learner_state/test_service.py 已登记(:1321/:1368 现有 refresh 测试,llm_stream stub 均为 **_kwargs,兼容新增 model kwarg)。注:任务给的 2026-07-12 Langfuse 报告文件不在本基线(find 无果),52%/57%/10k/7.8s 数字按上游给定证据采信,验证法见 uncertainties。",
+   "tasks": [
+    {
+     "title": "T1 门控+积压增量批量消费(核心,root-cause 修法)",
+     "files": [
+      "deeptutor/services/learner_state/service.py",
+      "tests/services/learner_state/test_service.py"
+     ],
+     "exact_changes": "① 模块常量 `_SUMMARY_GATE_TURN_THRESHOLD = 3`(不做 env,有罪推定否掉新 flag;回滚=revert)。② `LearnerStateService.__init__` 加 `self._summary_gate_states: dict[str, _SummaryGateState] = {}`,其中 `@dataclass class _SummaryGateState: turns_since_run: int = 0; last_run_at: str = ''`——进程内游标,非持久化状态机;丢失即 fail-open。③ 新增方法(放 refresh_from_turn 附近):\n```python\ndef _summary_gate_decision(self, *, user_id: str, capability: str) -> str:\n    \"\"\"门的单一权威=learner_memory_events 增量流+进程内游标。fail-open:游标未知/扫描异常→跑。\"\"\"\n    state = self._summary_gate_states.get(user_id)\n    if state is None:\n        return \"run_fail_open\"          # 重启/新用户:立即跑并重建游标\n    cap = str(capability or \"\").strip().lower()\n    if cap.startswith(\"guide\") or cap.startswith(\"notebook\"):\n        return \"run_capability\"          # 复用 _should_skip_turn_writeback 已有约定\n    if state.turns_since_run + 1 >= _SUMMARY_GATE_TURN_THRESHOLD:\n        return \"run_counter\"             # 计数门:陈旧上界 = N-1 个实质 turn\n    try:\n        cutoff = _parse_iso(state.last_run_at)   # 解析失败→None→全部视为新\n        for event in reversed(self._list_local_memory_events(user_id)):\n            created = _parse_iso(event.created_at)\n            if cutoff and created and created <= cutoff:\n                break\n            if event.memory_kind != \"turn\":\n                return \"run_evidence\"    # 本 turn/近期产生了判分・progress・学习证据等非 turn 事件→立即跑\n    except Exception:\n        return \"run_fail_open\"\n    return \"skip_throttled\"\n```\n④ refresh_from_turn(:1684 前)改为:record_turn_event 之后(事件账本不受门影响)插入:\n```python\ndecision = self._summary_gate_decision(user_id=normalized, capability=capability)\n_record_summary_gate(decision=decision, outcome=\"skipped\" if decision == \"skip_throttled\" else \"\")  # T4\nif decision == \"skip_throttled\":\n    self._summary_gate_states[normalized].turns_since_run += 1\n    return LearnerStateUpdateResult(content=self._read_summary_raw(normalized), changed=bool(event.event_id), updated_at=self._latest_updated_at(normalized))\nsource = self._build_summary_source(normalized, session_id=session_id, capability=capability, timestamp=timestamp, language=language)  # T2\nsummary_changed = await self._rewrite_summary(normalized, source, language)\nself._summary_gate_states[normalized] = _SummaryGateState(turns_since_run=0, last_run_at=_iso_now())  # 仅成功返回后重置;LLM 异常→游标不动→下轮重试(fail-open)\n```\n锁内执行(:1662 锁已保证游标无竞态)。⑤ 关键语义:游标在跑完后重置(含 NO_CHANGE),消灭'摘要稳定期 mtime 不动→每 turn 都开门'的病理;LLM 抛异常不重置→下一 turn 直通重试。",
+     "test_plan": "加进已登记的 tests/services/learner_state/test_service.py(满足 contracts/index.yaml:541 sensitive_pattern 域测试要求):(1) test_summary_gate_throttles_pure_chat_turns:capturing stub 记录 llm_stream 调用次数与 prompt;同一 service 实例连打 4 个实质 chat turn,断言第 1 turn 调 LLM(fail_open),第 2/3 不调,第 4 调,且第 4 次 prompt 含第 2/3 turn 的 user 文本(积压被消费,依赖 T2);(2) test_summary_gate_immediate_on_guide_capability:reset 后 capability='guide_learning' 立即调;(3) test_summary_gate_immediate_on_evidence_event:reset 后 append_memory_event(memory_kind='learning_evidence') 再打 chat turn→立即调;(4) test_summary_gate_no_change_resets_counter:stub 返回 'NO_CHANGE'→后续 2 turn 不调;(5) test_summary_gate_llm_failure_keeps_gate_open:stub 抛异常→下一 turn 仍调;(6) 现有 test_service.py:1321(首 turn 即跑,fail_open 保绿)与 :1368(低信号跳过,先于门)必须不改断言直接通过。",
+     "risk": "低-中。摘要陈旧上界 = 2 个实质 turn(消费面已核:会话内连续性由无条件历史注入保证(turn.md§24 不变量),摘要只以 260 字压缩段+跨会话/运营面被消费,容忍数 turn 陈旧;漏更新方向被三重兜底封死:计数门必然到期、证据事件直通、游标丢失直通)。多 worker 各持独立游标→只会多跑不会漏跑。回滚:单 commit revert,无 env/schema/新文件。"
+    },
+    {
+     "title": "T2 prompt 瘦身 10k→~4-5k + 砍未消费的远端读(_build_summary_source 取代 :1664-1683)",
+     "files": [
+      "deeptutor/services/learner_state/service.py",
+      "tests/services/learner_state/test_service.py"
+     ],
+     "exact_changes": "① 删除 refresh_from_turn 里 `snapshot = self.read_snapshot(normalized)`(:1664)与 source 拼接块(:1674-1683),新增:\n```python\ndef _build_summary_source(self, user_id: str, *, session_id: str, capability: str, timestamp: str, language: str) -> str:\n    profile = self._compact_profile_segment(self._read_profile_raw(user_id), language=language).get(\"content\") or \"\"\n    progress = self._compact_progress_segment(self._read_progress_raw(user_id), language=language).get(\"content\") or \"\"\n    state = self._summary_gate_states.get(user_id)\n    cutoff = _parse_iso(getattr(state, \"last_run_at\", \"\")) or _parse_iso(self._file_updated_at(user_id, \"summary\") or \"\")\n    turns = [e for e in self._list_local_memory_events(user_id)\n             if e.memory_kind == \"turn\" and ((c := _parse_iso(e.created_at)) is None or cutoff is None or c > cutoff)][-8:]\n    blocks = []\n    for i, e in enumerate(turns):\n        last = i == len(turns) - 1   # 当前 turn(record_turn_event 已落盘)给大预算,积压 turn 给小预算\n        u = str(e.payload_json.get(\"user_message\") or \"\")[: (1000 if last else 240)]\n        a = str(e.payload_json.get(\"assistant_message\") or \"\")[: (2000 if last else 320)]\n        blocks.append(f\"[User]\\n{u}\\n[Assistant]\\n{a}\")\n    return (f\"[学员画像(压缩)]\\n{profile}\\n\\n[学习进度(压缩)]\\n{progress}\\n\\n\"\n            f\"[Session] {session_id or '(unknown)'}\\n[Capability] {capability or 'chat'}\\n\"\n            f\"[Timestamp] {timestamp or _iso_now()}\\n\\n[自上次维护以来的对话增量]\\n\\n\" + \"\\n\\n\".join(blocks))\n```\n关键削减:(a) 去掉 source 里的 [Learner Summary]——当前摘要只在 _summary_prompts(:2443/:2453)出现一次,消除双份;(b) 全量 progress/profile JSON dump → 复用已有压缩段渲染器 _compact_profile_segment/_compact_progress_segment(:1859/:1903,同一渲染权威,不新写第二套);(c) assistant 全文 → 截 2000 字符(判 durable 信号在前段);(d) 连带删掉 read_snapshot 拉 memory_events 的 Supabase 远端读(refresh 尾巴少一次网络往返)。② 辅助 `_parse_iso(text) -> datetime | None`(fromisoformat + except→None,None 一律按'算新材料'处理,fail-open 向多包含)。③ _summary_prompts(:2434-2455)措辞不动(prompt 压不住 LLM,输出约束仍靠 :1719 的 NO_CHANGE/等值硬判 + max_tokens=900 上限,不新增措辞约束)。",
+     "test_plan": "同文件加:(1) test_summary_source_no_duplicate_summary_and_no_raw_progress_json:写入含 radar_history/knowledge_map 的 progress,capturing stub 断言 prompt 不含 'radar_history' 字样、当前摘要文本在完整 prompt 中只出现一次;(2) test_summary_source_caps_assistant_message:3000 字 assistant → prompt 内被截到 ≤2000;(3) test_summary_source_includes_backlog_turns(与 T1-(1) 合并断言);(4) 全量域测试 pytest tests/services/learner_state/test_service.py 绿。",
+     "risk": "中。压缩 profile/progress 可能丢 LLM 判断信号,NO_CHANGE 率/改写行为会漂移(预期 NO_CHANGE 率下降,因为攒了料才跑,这是良性方向);验证法:上线前用 20 条真实 turn 新旧 source 离线对拍(dry-run,不计费模型走 test2),上线后看 T4 埋点 changed/no_change 比率与 Langfuse。回滚独立于 T1(可单独 revert 回旧 source 构建而保留门)。"
+    },
+    {
+     "title": "T3 摘要维护降档到 fast tier(消费 Battle1 已有单一权威 resolve_fast_tier_model)",
+     "files": [
+      "deeptutor/services/learner_state/service.py",
+      "tests/services/learner_state/test_service.py"
+     ],
+     "exact_changes": "_rewrite_summary(:1710)的 stream 调用加 model 参数,完全镜像 Battle1 在 tutorbot.py:972-974 的模式:\n```python\ntry:\n    from deeptutor.services.llm.config import resolve_fast_tier_model\n    fast_model = resolve_fast_tier_model()\nexcept Exception:\n    fast_model = \"\"\nasync for chunk in stream_fn(prompt=user_prompt, system_prompt=sys_prompt,\n                             model=fast_model or None, temperature=0.2, max_tokens=900):\n```\nresolve_fast_tier_model 是既有的'轻档模型'唯一 accessor(llm/config.py:283,空串→None→主模型,fail-open),不新增任何模型配置/router;factory.stream(:508)原生接受 model=,同 provider 端点纯换名。现有测试 stub 均为 **_kwargs 签名,新 kwarg 兼容。",
+     "test_plan": "(1) test_rewrite_summary_uses_fast_tier_when_configured:monkeypatch resolve_fast_tier_model 返回 'qwen-flash',capturing stub 断言收到 model='qwen-flash';(2) monkeypatch 返回 '' → 断言 model 为 None(主模型,fail-open);(3) resolve 抛异常 → 仍走主模型不炸 refresh。",
+     "risk": "低。摘要重写是压缩型任务,轻档模型胜任;最大风险=轻档模型 NO_CHANGE 纪律变差→多写摘要→outbox churn,由 :1719 的 rewritten==current 等值硬判兜底 + T4 changed 率埋点监控。生产未配置 fast_model 时零效果零风险(上线前核生产 .env)。独立 commit,可单独回滚。"
+    },
+    {
+     "title": "T4 observe-only 门命中率/结果埋点(runtime_metrics 同款)",
+     "files": [
+      "deeptutor/api/runtime_metrics.py",
+      "deeptutor/services/learner_state/service.py",
+      "tests/services/learner_state/test_service.py"
+     ],
+     "exact_changes": "① TurnRuntimeMetrics 加(完全镜像 record_response_mode :154-159 模式):\n```python\ndef record_summary_maintainer(self, *, decision: str, outcome: str = \"\") -> None:\n    \"\"\"Observe-only: 摘要维护门 (decision, outcome) 计数。fail-open,never raises。\"\"\"\n    key = f\"{(str(decision or '').strip().lower() or 'unknown')}|{(str(outcome or '').strip().lower() or '-')}\"\n    with self._lock:\n        self._summary_maintainer_counts[key] += 1\n```\n(__init__ 加 `self._summary_maintainer_counts: Counter[str] = Counter()`;snapshot() 加 summary_maintainer_counts 列表展开;render_prometheus_metrics 加 `deeptutor_summary_maintainer_total{decision=...,outcome=...}` counter,与既有 response_mode 渲染同款)。② service.py 模块级辅助:\n```python\ndef _record_summary_gate(*, decision: str, outcome: str = \"\") -> None:\n    try:\n        from deeptutor.api.runtime_metrics import get_turn_runtime_metrics\n        get_turn_runtime_metrics().record_summary_maintainer(decision=decision, outcome=outcome)\n    except Exception:\n        pass  # observe-only:埋点永不破坏 refresh\n```\n调用点仅 2 处(T1 的 skip 路径 outcome='skipped';run 路径在 _rewrite_summary 返回后记 outcome='changed'/'no_change')。decision 枚举:run_fail_open/run_capability/run_counter/run_evidence/skip_throttled。services→api.runtime_metrics 的 import 方向有既有先例(turn_runtime 已用),且为惰性导入。runtime_metrics.py 不在 contracts sensitive 清单,无需额外登记;不新增 env 键。",
+     "test_plan": "(1) test_summary_gate_metrics_recorded:reset_turn_runtime_metrics 后跑 1 skip + 1 run,断言 snapshot()['summary_maintainer_counts'] 含 {decision:'skip_throttled',outcome:'-'} 与 {decision:'run_counter'|'run_fail_open',outcome:'no_change'|'changed'} 计数;(2) render_prometheus_metrics 输出含 deeptutor_summary_maintainer_total 行;(3) 埋点函数被 monkeypatch 成抛异常时 refresh_from_turn 仍正常返回(fail-open)。",
+     "risk": "极低。纯 observe-only 计数,双 try/except 包裹;这是验收 T1/T2 预期收益(门命中率≈55-65% skip、changed 率)的唯一独立观测口,必须与 T1 同 PR 上线(呼应记忆教训:GO 判据依赖的判别位埋点必须与功能同批落地,不定级为'不阻塞')。"
+    }
+   ],
+   "invariants_to_preserve": [
+    "每个非低信号 turn 仍无条件 record_turn_event → learner_memory_events(本地 JSONL+outbox):事件账本完全不受门影响,门只管 LLM 重写",
+    "摘要变更仍且仅经 _enqueue_summary_refresh → learner_summaries(契约 summary_truth=learner_summaries,contracts/learner_state.py:24 不动;不新增第二摘要写路径)",
+    "fail-open 铁律:游标未知/事件扫描异常/ISO 解析失败/LLM 失败 → 一律开门跑;门在任何路径上都不可能造成'静默永不跑'(计数门给出陈旧硬上界 N-1=2 个实质 turn)",
+    "turn.md§24 无条件历史注入不动:会话内上下文连续性不依赖摘要新鲜度,这是陈旧容忍度的前提,禁止任何人以'摘要更新了'为由给历史注入加门控",
+    "_should_skip_turn_writeback 低信号跳过语义不变(它在门之前,连事件都不记);guide*/notebook* 永不节流的既有约定被门直通分支继承",
+    "turn_runtime._schedule_post_turn_refresh 签名与调用零改动;/api/v1/ws 唯一入口不动;不新增 env 键(无 env_registry 登记项),阈值为模块常量",
+    "contracts 纪律:service.py 是 sensitive_pattern(index.yaml:541),所有改动的域测试进已登记的 tests/services/learner_state/test_service.py,双镜像 deeptutor/contracts/index.yaml 无需改(未加新 test 文件)",
+    "_safe_lock per-user 锁语义不变(游标读写全部在锁内);LearnerStateUpdateResult 形状与 changed 语义不变(skip 路径 changed=bool(event_id) 与既有终态返回一致)"
+   ],
+   "uncertainties": [
+    {
+     "what": "52%/57%/10k tok/7.8s 生产数字来自 2026-07-12 Langfuse 报告,该文件不在基线 worktree,无法亲核",
+     "verification_or_fallback": "实施前用 Langfuse API 按 trace name=learner_state.refresh 拉 3 天样本自算 NO_CHANGE 率与 p50(报告可在主 repo 或其他 worktree 找到原文);即便数字偏差,门的正确性不依赖比例——只影响收益预估幅度"
+    },
+    {
+     "what": "判分/学习证据事件是否在 post-turn refresh 执行时已落本地 MEMORY_EVENTS.jsonl(时序:conversation_learning_evidence 在 refresh 之后跑 turn_runtime.py:2732;construction grading 在 turn 内写)",
+     "verification_or_fallback": "test2 真机跑一次判分 turn,比对该用户 JSONL 各事件 created_at 与 Langfuse refresh 时间戳;若证据晚到→run_evidence 在下一 turn 才触发,由计数门兜底(陈旧≤2 实质 turn),方向 fail-open,不阻塞"
+    },
+    {
+     "what": "prompt 压缩(压缩段替代全量 JSON)改变 LLM 的 NO_CHANGE/改写行为,可能多写摘要→outbox churn 或漏沉淀某些 durable 信号",
+     "verification_or_fallback": "上线前离线对拍:取 20 条真实 turn(chat_history.db/test2),新旧 source 各跑一遍轻档模型比对输出方向;上线后以 T4 的 changed/no_change 比率 + Langfuse 输出中位长度做 3 天对照,漂移>2x 则回调 T2 的截断预算(保留门)"
+    },
+    {
+     "what": "多 worker 部署下每进程独立游标导致放大跑量(每 worker 首见用户各 fail-open 一次)",
+     "verification_or_fallback": "核生产 uvicorn worker 数(deployment/aliyun compose);w 个 worker 最坏放大 = 每用户每 worker 多 1 次 + 节流周期近似 N/w;若 w>2 且埋点显示 skip 率<40%,再评估把 last_run_at 挂到已有 learner_summaries.last_refreshed_from_turn_id 读侧(仍是既有字段,非新状态)——当前不预做"
+    },
+    {
+     "what": "生产是否已配置 fast_model(resolve_fast_tier_model 返回空则 T3 零效果)以及轻档模型对中文摘要重写的质量",
+     "verification_or_fallback": "部署前在阿里云宿主 grep .env fast_model;未配置→T3 静默直通主模型(零风险);已配置→用对拍样本人工过 5 条摘要重写质量,不合格则 T3 单独 revert,不影响 T1/T2/T4"
+    },
+    {
+     "what": "memory_service.refresh_from_turn(无 user_id 路径,turn_runtime.py:2795,trace 名 memory.consolidation)是同病兄弟但不在本设计范围",
+     "verification_or_fallback": "本战役先落 learner_state 家族并验证门命中率;若 Langfuse 显示 memory.consolidation 占比可观,同一门模式(计数+fail-open)平移过去,作为后续独立小任务,不混入本 PR"
+    }
+   ],
+   "estimated_loc": "生产代码净 ~180-220 行(service.py 门+source 重建 ~130,其中删除旧 source 构建/快照读 ~25;runtime_metrics ~40;fast-tier ~10);测试 ~180-220 行;合计 ~400 行,4 个可独立回滚的 commit"
+  },
+  {
+   "family": "mcq_grading 主生成输出减半(判分轮用户等待 p50 20.3s→~12-13s)",
+   "root_cause": {
+    "one_business_fact": "『判分反馈的用户可见输出宽度』这一个业务事实,当前由三处各自定义且全是'无差别全宽':①prompt(submission_grader_agent.yaml:13-57)强制 7 段+选择题逐项解析 A-D 每项一段+易错点必须表格+口诀必给;②schema(submission_grader_schema.py REQUIRED_SECTION_KEYS 7 段+choice 错题加 option_analysis)用 self-repair(二次全量 LLM)+模板兜底反向强化该宽度;③deterministic 路径(_objective_explanation deep_question.py:1452-1468)硬编码 3 条采分点+3 条易错点通用套话(live 抓样的'套话'真源就在这,不是 LLM)。在 ~65tok/s 吞吐下,1,277 tok 输出≈16.8s 全部由该 mandate 决定,与本题实际需要解释的内容脱钩。",
+    "one_authority": "submission_grader_schema.REQUIRED_SECTION_KEYS + missing_required() 是段落宽度的唯一权威(prompt 只是它的措辞投影,repair/兜底/progressive_disclosure 全跟它走)。改法=把该权威收紧为『4 必备段(阅卷结论/正确答案与依据/为什么错/下一步)+错题逐项解析(只展开错选项与正确项)+2 条件段(易错点/口诀,有题目特异性内容才输出)』,prompt/兜底模板/repair 跟随同一常量,不新建第二套段落定义。",
+    "concepts_to_delete_or_demote": "删:knowledge_point 独立段(并入'正确答案与依据':考点名+一句要义);删:deterministic 路径 6 条硬编码通用套话(降级为题库行 trap_type/pitfalls 特异性投影,无则整段省略)。降:common_pitfall/mnemonic 从必备段降为条件段(移出 REQUIRED,LLM 无特异性内容时省略,repair 不追讨);降:逐项解析从'A-D 每项一段'降为'错选项+正确项展开各≤40字,其余干扰项合并一行'。",
+    "why_not_old_pattern": "旧法是靠 prompt 措辞求简短——prompt 压不住 LLM;且只改 prompt 不改 schema 会触发 repair 风暴:missing_required 仍要 7 段,缺段即第二次全量 LLM 调用(submission_grader_agent.py:117-149),反而更慢更贵。也不做'生成后截断 wrapper'(伤 markdown/伤解析质量,属加闸不属收权)。长度置信度押在结构上:required 集收紧(schema)+max_tokens 硬顶(API 参数)双保险,措辞预算只负责 p50。",
+    "why_this_layer": "长度在 SubmissionGraderAgent 单次生成内产生,结构由 schema 常量+prompt 共同锁定,在此层收紧同时减少两类重复计算:少生成的 token(~600tok≈9s 墙钟)+下降的 self-repair 二次全量 LLM 率(required 7+1→4+1)。客户端折叠/分段流式不减 65tok/s 的墙钟(且 citation 默认 off、内容本就边生成边流、verdict 段本就排第一,候选②的收益已结构性存在);模型降档被 Battle1 MAJOR-3 不变量(tutorbot.py:958-974 判分轮永不吃轻模型)明确封死。"
+   },
+   "shared_failure_shape": "承诺宽度全量展开:对每道题无差别输出最大可能宽度(7+1 段、A-D 全展开、通用套话表格),而非本题必要宽度;且兜底机制反向强化——缺段触发二次全量 LLM 重跑+模板填充,把'省略'惩罚成'更慢'。与轻练'打样宽度≠承诺宽度'同构的镜像病:那边是料不足,这边是料溢出。",
+   "base_reverification": "全部在 5791967d 工作树(deeptutor-battle1)亲读:deep_question.py:4964-5056(_emit_grading_result 三路分支:V1 render/deterministic 模板/SubmissionGraderAgent+硬约束40兜底)、:1097-1127(deterministic 门槛——mode∉{deep,smart}且 objective 且 is_correct 已知;kb_name 存在且答错→必走 LLM,故生产 LLM 判分轮≈错题轮)、:1420-1469(采分点3条+易错点3条硬编码套话)、:1062-1094(open_world 清占位 is_correct=None,LLM 裁决只在叙述文本不回写结构化字段)、submission_grader_agent.yaml:13-57(7段+逐项解析 mandate)、submission_grader_schema.py:24-37/115-123(REQUIRED_SECTION_KEYS+choice 错题加 option_analysis)、submission_grader_agent.py:72-164(流式单发+缺段 self-repair 二次全量 LLM+模板兜底,process 返回首轮原文)、base_agent.py:540-551+data/user/settings/agents.yaml(question: max_tokens=4096/temp=0.7,输出无硬顶)、tutorbot.py:958-974(判分轮永不轻模型)、citations/config.py:9-10(默认 off→内容边生成边流)、contracts/index.yaml:336(deep_question.py protected,capability 域)、progressive_disclosure.py:96-190(消费 verdict/why_wrong;show_mnemonic chip 无条件挂出)。生产证据报告在分支 docs/langfuse-invest-20260712 commit f9210a17(基线工作树无此文件,经 git show 读取)。",
+   "tasks": [
+    {
+     "title": "T1|输出 schema v2 收紧(权威层:required 集+prompt+兜底+chip 联动)",
+     "files": [
+      "deeptutor/agents/question/agents/submission_grader_schema.py",
+      "deeptutor/agents/question/prompts/zh/submission_grader_agent.yaml",
+      "deeptutor/services/construction_grading/progressive_disclosure.py",
+      "tests/agents/question/test_submission_grader_schema.py",
+      "tests/agents/question/test_submission_grader_agent_schema_wiring.py"
+     ],
+     "exact_changes": "①schema:REQUIRED_SECTION_KEYS 收为 (\"verdict\",\"correct_answer\",\"why_wrong\",\"next_practice\");新增 OPTIONAL_SECTION_KEYS=(\"knowledge_point\",\"common_pitfall\",\"mnemonic\")——保留全部别名解析与 dataclass 透传,只从 missing_required() 移除(单调放松:旧 prompt 输出天然满足新子集,flag off 不产生新 repair);CHOICE_EXTRA_KEYS/CASE_EXTRA_KEYS 与开放世界诚实模板一字不动。missing_required() 无需改逻辑,只吃新常量。②yaml 新增 system_compact + grade_submission_compact 两个 prompt key(同文件,不建第二文件):必备 4 段——`### 阅卷结论`≤2句(对错+你答X/正确Y);`### 正确答案`≤120字(学员题面字母+选项文本+规范/教材依据一句+考点名,沿用【教材要点 Ln】标注约束);`### 为什么错`≤80字(具体归因到所选项;答对题写判断关键依据);`### 下一步`1条≤40字。选择题错题追加 `### 逐项解析`:『只展开你选错的项和正确项,每项≤40字;其余未选干扰项合并成一行一句话带过』。条件段:『### 易错点 仅当本题有与题干/选项直接相关的特异性陷阱时给1-2条,写不出特异性内容就整段省略,禁通用检查清单;### 记忆口诀 仅当考点有数字串/顺序/对比等高价值抓手时给≤30字,否则省略』。题面字母对齐/不重判 authority/开放裁决诚实措辞/事实溯源等硬约束段逐字保留。③progressive_disclosure._select_actions:show_mnemonic chip 改为仅当 explanation.sections.get(\"mnemonic\") 非空才加入 secondaries(~6行);_select_verdict/_select_diagnosis 读 verdict/why_wrong,均在新必备集内,不动。④测试:REQUIRED 集断言更新;新增『新 prompt 形状样例(缺易错点/口诀)不触发 repair』『旧 7 段样例在新 schema 下 missing=[] 』两条。",
+     "test_plan": "pytest tests/agents/question/test_submission_grader_schema.py test_submission_grader_agent_schema_wiring.py tests/services/construction_grading/(progressive_disclosure 相关);断言:(a)新形状(4段+逐项,无易错点/口诀)missing_required()==[];(b)choice+is_correct=False 仍要求 option_analysis;(c)case 题 CASE_EXTRA 不变;(d)mnemonic 缺失时 secondary_actions 无 show_mnemonic、存在时有;(e)开放世界兜底模板措辞回归(既有 test_apply_fallback_templates_open_world_* 全绿)。",
+     "risk": "低-中。风险1:小程序/webview 若硬依赖 sections 里必有 mnemonic key——排查 wx_miniprogram/yousenwebview 对 progressive_disclosure.sections 的消费(设计已核 payload 是 dict 透传,前端按 key 存在性渲染的概率高,合并前 grep 确认);风险2:repair 率理论上只降不升(required 变子集)。回滚:革除常量改动即回旧形状。"
+    },
+    {
+     "title": "T2|输出 token 硬上限(结构保险,非 p50 整形工具)",
+     "files": [
+      "deeptutor/agents/question/agents/submission_grader_agent.py",
+      "tests/agents/question/test_submission_grader_agent_schema_wiring.py"
+     ],
+     "exact_changes": "process() 内计算 stage 级硬顶并显式传给两次 stream_llm(首发+repair):`_items=[i for i in question_context.get('items') or [] if isinstance(i,dict)]; _cap=min(self.get_max_tokens(), 1400+600*max(0,len(_items)-1))`,以 `max_tokens=_cap` 传入(base_agent.stream_llm:513 已支持显式覆盖,底层 get_token_limit_kwargs 处理 max_tokens/max_completion_tokens 分叉)。1400≈目标 p50(~650tok)的 2 倍余量——cap 只斩病理尾部(现 p50 1,277 的长尾在 4096 顶下可自由膨胀),不负责 p50 整形(p50 由 T1 结构负责,'prompt 压不住 LLM'的置信度押在 schema+cap 两层结构上)。批量多题按 item 线性放宽,不牺牲批量判分完整性。截断安全:finish_reason=length→缺段→既有 repair/模板兜底链自动补必备段,硬约束40(必有解析/不拒答)保持;微信客户端以持久化终态渲染(_onFinal 替换流式),截断不会碎屏。",
+     "test_plan": "单测:mock stream_llm 断言收到的 max_tokens(单题=1400,4题批量=1400+1800);注入'截断在逐项解析中途'的假流,断言 parse+fallback 后 4 必备段全部非空且 trace 记录 miss;repair 调用同样带 cap。真机(test2):故意低 cap(如400)压测一轮,人眼核持久化 messages 终态不碎。",
+     "risk": "低。deepseek 对 max_tokens 的截断=干净停流,已被兜底链覆盖;唯一坑是批量系数估错——见不确定点5,校准前 cap 取保守值(宁松勿紧,松了只是少斩尾部)。回滚:去掉显式参数即回 4096。"
+    },
+    {
+     "title": "T3|差分质量门 harness(逐用例裁决不变+可证伪解析质量断言)",
+     "files": [
+      "scripts/run_mcq_feedback_output_ab.py",
+      "tests/capabilities/test_deep_question_submission_feedback_invariants.py",
+      "eval/fixtures/mcq_feedback_ab/(冻结语料)",
+      "contracts/index.yaml",
+      "deeptutor/contracts/index.yaml"
+     ],
+     "exact_changes": "不复用 qtpk 语料(tests/services/test_qtpk_differential.py 是 followup 判定 parity-net,非判分输出;借其'差分对拍'模式)。①冻结语料 ≥24 例:单选错(主流,生产 LLM 判分轮≈错题轮)/单选对/多选漏选/多选错选/判断/批量4题/open_world 无标准答案/组合选项/OCR 噪声作答,每例带冻结的 graded_context+grounding_context(检索结果入 fixture,消检索方差——eval-design 臂公平)。②裁决不变式两层:authority 路径——unit test 钉死 is_correct/score/correct_answer 在进 SubmissionGraderAgent 前已由服务端算定且 process 全程不写回 graded_context(结构性不变量,deep_question.py:4964 前置已证);open_world 路径——两臂输出用确定性 regex 从『阅卷结论/正确答案』段抽答案字母(非 LLM judge,防循环度量),n=3 多数票断言 新臂==旧臂==教材金标(金标按教材原文人工核定,可证伪),不一致即 FAIL。③解析质量程序化断言:输出必含正确答案字母+该选项文本子串;用户每个错选字母必须出现且所在句含该选项文本关键词(错选项针对性);套话黑名单 0 命中(含 deep_question.py:1456-1463 六条通用句原文+『多刷题』『注意审题』);grounding 含【教材要点 Ln】时至少引用1处;post-fallback 必备段 100% 非空;输出 tok 新臂 p50≤700 且较旧臂降幅≥45%;repair 触发率新臂≤旧臂。④两臂同模型(deepseek-v4-flash)同温度(0.7,不借战役改温度=单变量)n=3。⑤异源面板(GLM/Qwen)对 20 例盲评教学有用性,仅 advisory 不阻断。⑥deep_question.py 是 protected(contracts/index.yaml:336):新增 invariants 测试同 PR 登记进 capability 域 test_files,双镜像同步,否则 contract_guard FAIL。",
+     "test_plan": "harness 本身先自证:向旧臂喂『把正确答案字母改错的合成输出』断言门必红(可证伪性自检);再跑全语料双臂,门全绿才允许 T5 灰度。billable run 前按 eval-design 排雷单过一遍(泄漏:fixture 不含答案以外的判定提示;TTFT/截断/重试口径固定)。",
+     "risk": "中。主要风险=open_world 用例 temp 0.7 下两臂各自抖动导致假红——预案见不确定点3(口径改为'新臂稳定性≥旧臂',抖动本身单独立案)。成本:~24例×2臂×3次×2轮≈300 次 flash 调用,自然流量日成本量级($<1)。"
+    },
+    {
+     "title": "T4|deterministic 模板去通用套话(零延迟成本,修 owner 亲见的'套话'形状)",
+     "files": [
+      "deeptutor/capabilities/deep_question.py",
+      "tests/capabilities/test_deep_question_mcq_full_submission.py(或新增 test_deep_question_deterministic_feedback.py 并登记)"
+     ],
+     "exact_changes": "_objective_explanation(deep_question.py:1420-1469):删 1452-1468 的硬编码『采分点3条+易错点3条』通用 bullets,替换为题库行特异性投影:`_pitfalls=normalize_string_list(row.get('trap_type') or row.get('pitfalls'))` 有则输出『**易错点：**』1-2条,无则整段省略;『采分点』段对 MCQ 直接删除(MCQ 无采分点概念,SKILL.md:58 编译资产边界明言 MCQ 不消费 case 采分点库——现状套话恰是把案例概念错移植到选择题);_objective_memory_tip 保留(已是特异性:正确项关键词)。该路径零 LLM,改动纯属质量/阅读时间,不动 1097-1127 门槛逻辑。文案审查:禁『看穿/识破』,保持暖基调。",
+     "test_plan": "断言:有 trap_type 的行渲染出该内容且无六条套话原文;无 trap_type 的行输出不含『易错点』标题;『采分点』字样在 MCQ deterministic 输出中消失;正确/错误判定行与字母对齐逻辑回归(既有 mcq_full_submission 测试全绿)。新测试若测 protected 文件行为,同 PR 登记 capability 域(与 T3 合一次登记)。",
+     "risk": "低。唯一坑:存量测试若断言套话原文(grep tests/ 六条句子确认后再动);此改动让答对轮反馈变短,属预期(答对不需要三条检查清单)。"
+    },
+    {
+     "title": "T5|灰度 flag+上线验证+flag 生命周期",
+     "files": [
+      "deeptutor/agents/question/agents/submission_grader_agent.py",
+      "deeptutor/services/runtime_env(env_registry.yaml)",
+      "deeptutor/agents/question/prompts/zh/submission_grader_agent.yaml",
+      "docs/plan/观测发布与生产上线/(battle2 实施笔记)"
+     ],
+     "exact_changes": "裁决:要 flag——判分是收入面,且 flag 只需切 prompt 一个维度,成本极低。①env 键 DEEPTUTOR_MCQ_FEEDBACK_COMPACT(default false)登记 env_registry.yaml;process() 里 `key='system_compact' if env_flag(...) else 'system'`(user prompt 同理),仅此一处 decider,无 wrapper 无 state。②schema 收紧(T1)与 max_tokens cap(T2)无条件生效——单调放松+纯保险,两臂都安全,不进 flag(避免双 schema=第二权威)。③有罪推定的赎罪条款写死:上线后 14 天,Langfuse 复测(复用 F13 前后对比脚本)确认 mcq_grading 主生成 p50 输出≤700tok、explanation_section_miss 率无恶化、无质量投诉→删 flag+删旧 prompt key,实施笔记记 deadline。④上线序:T3 门全绿→test2 QA cohort 真机 3 轮 live(automator true-entry 法,拉持久化 messages 核终态,禁流式抓包判质量)→生产 .env 开 flag+容器重启(prompt yaml 烘焙进镜像,首次上线需 build;之后回滚=flag off 秒级,不必 rebuild)→部署核 SHA 防假绿(容器内 grep 对 SHA)。⑤观测:判分轮输出 tok 与 repair 率已可从 Langfuse GENERATION usage 直读,不新增埋点;TTFT 埋点属另一家族(报告清单#4)不夹带。",
+     "test_plan": "flag off 全量回归==现状(prompt 字节级不变);flag on 跑 T3 门;生产开闸后 48h 拉 Langfuse:scene=mcq_grading 主生成 completion tokens p50 分布前后对比+用户等待 root p50;3 轮真机终态人眼核(错选项针对性/无套话/答案字母对齐)。",
+     "risk": "低-中。风险1:F13 教训——部署后样本少,48h 内别下结论,凑够 ≥30 judged turns 再宣称;风险2:flag 长寿化——deadline 写进实施笔记并由 owner 里程碑 PR 收账;风险3:prompt 改动烘焙镜像,记得 rebuild(redeploy_fast 不带数据/资产)。"
+    }
+   ],
+   "invariants_to_preserve": [
+    "硬约束40:答题必有解析、判分轮永不空输出/拒答——三级兜底链(grading_key→questions_bank→open_world)与失败降级段(deep_question.py:5002-5056)一字不动",
+    "判分裁决字段(is_correct/score/correct_answer)由服务端 authority 算定,LLM 不得重判/改分/增删采分点——prompt 该指令段与 Authoritative grading result 注入逐字保留;差分门逐用例裁决不变全绿才可合",
+    "题面字母对齐硬约束:先裁值、回学员题面 Options 取字母;grounding 题库字母绝不直出(SKILL.md:42 与 open-world directive 保留)",
+    "判分轮永不吃轻模型(Battle1 MAJOR-3,tutorbot.py:958-974)——本战役不动模型档位,收益全部来自输出 token",
+    "开放世界诚实措辞:不冒充题库官方结论,_OPEN_WORLD_FALLBACK_TEMPLATES 与『依据教材/规范判定』口径不动",
+    "采分点/教材溯源价值:【教材要点 Ln】引用约束保留;正确答案段必含依据;case 题 CASE_EXTRA_KEYS(采分点命中/漏点/改写)完全不动——本战役只收 MCQ",
+    "阅卷结论段保持第一顺位(verdict-first 流式首屏)+citation 默认 off 的边生成边流行为不动",
+    "文案禁『看穿/识破』类审视语气,先捧后纠偏的暖基调 prompt 段保留",
+    "protected 文件(deep_question.py)改动同 PR 登记域测试,contracts/index.yaml 与 deeptutor/contracts/index.yaml 双镜像同步",
+    "若触碰 tutorbot skills(construction-mcq-grading SKILL.md),源↔runtime workspace 手动同步纪律执行"
+   ],
+   "uncertainties": [
+    {
+     "what": "生产 mcq_grading 主生成(16.8s/1,277tok)的生成者归属:SubmissionGraderAgent(deep_question 全量提交判分)还是 TutorBot 聊天路径(construction-mcq-grading skill)?二者输出宽度权威不同。",
+     "verification_or_fallback": "Langfuse 按 GENERATION 的 agent/observation name+system prompt 指纹分桶 scene=mcq_grading(188 turn 解剖脚本可复用);若 TutorBot 路径占比显著,镜像收紧 construction-mcq-grading SKILL.md『用户可见输出』(它已精简,补『逐项只展开错选项+正确项』『无特异性内容省略段落』),并走 skills 源↔runtime 同步。"
+    },
+    {
+     "what": "1,277 tok 的分段构成(逐项解析~30%/易错点表格~15% 等)是估算,减半目标 700 的可达性未实测。",
+     "verification_or_fallback": "动手前跑取数脚本 dump 20-30 条生产判分输出按 heading 切段测 token 分布,校准各段预算;若逐项解析占比<25%,削减重心移向易错点/知识点段,目标值按实测重定(门槛改为'降幅≥40%'保底)。"
+    },
+    {
+     "what": "open_world 用例在 temp 0.7 下裁决字母的臂内抖动可能造成差分门假红(该抖动是存量病,与本改动正交)。",
+     "verification_or_fallback": "先单臂 n=5 测旧 prompt 的裁决稳定性基线;若不稳,门口径改为『新臂多数票==金标 且 稳定性≥旧臂』,抖动单独立案(候选治本=open_world 裁决与叙述分离/结构化输出),不许借本战役改温度或加第二裁决器。"
+    },
+    {
+     "what": "max_tokens=1400 截断时 deepseek 的 markdown 断口与批量多题(600/item)系数是否合适。",
+     "verification_or_fallback": "harness 注入低 cap 强制截断验证兜底链补段+真机终态渲染不碎;批量系数用真实批量样本(fixture 里 4 题批)实测校准;不确定就放宽 cap(松了只少斩尾部,不伤 p50)。"
+    },
+    {
+     "what": "前端(wx_miniprogram/yousenwebview)与夜间质量飞轮/release gate 是否存在对 7 段齐全或 mnemonic key 恒在的隐式依赖(grep explanation_section_miss 未见 gate 消费方,但 6 维门配置未逐一排查)。",
+     "verification_or_fallback": "合并前 grep 前端对 progressive_disclosure.sections 的 key 级消费+release gate/attest 脚本对段落完整率的口径;有则同 PR 更新口径(gate 只 attest 真实跑到的,不硬编码凑 GO)。"
+    },
+    {
+     "what": "F13 教训:部署前后 Langfuse 对比样本量不足时的假结论风险(当时仅 4 turn)。",
+     "verification_or_fallback": "灰度开闸后凑够 ≥30 条 scene=mcq_grading judged turns 再宣称收益;宣称口径用『用户可感 root p50』非 trace latency(F1 假象);live≥3 轮真机终态核过才算 fixed。"
+    }
+   ],
+   "estimated_loc": "~600(prompt yaml 重写~80 / schema+agent+chip~120 / deterministic 模板~30 / 差分 harness+fixtures+测试~350 / env 登记与契约登记~20;其中生产逻辑净变更 <250,其余为测试与门)"
+  },
+  {
+   "family": "TTFT 可观测 + 客户端真流式核查(Battle2 感知速度杠杆)",
+   "root_cause": {
+    "one_business_fact": "「用户几秒看到第一个字」这一个业务事实,当前在三层各有半成品但没有一层完成闭环:provider 层已经算出 provider_first_chunk/provider_first_content_delta(openai_compat_provider.py:709-722, anthropic_provider.py:560-570)却只塞进 metadata dict,从未写入 Langfuse generation 的一等字段 completion_start_time——所以全库 26,927 traces 的 completionStartTime/timeToFirstToken 均为 null;turn 层已经有单一权威观测 server_turn_start_to_first_useful_content_ms(turn_runtime.py:5796-5811)却只进 trace_metadata/turn_event_log,不进 runtime_metrics/Prometheus(record_turn_finished 只收 latency_stages_ms,turn_runtime.py:6274-6278),无法读分位数。",
+    "one_authority": "不新建任何时钟或第二事实源。LLM 调用级 TTFT 的权威=provider 循环里既有的首 chunk 时刻(补一个 wall-clock datetime 快照导出到 Langfuse completion_start_time);turn 级 TTFVT 的权威=turn_runtime 既有的 _first_useful_content_observation(经过 sanitize/persist 之后观测,runtime 是延迟权威,provider/前端时钟不得竞争)——只把它多导出一跳到 Prometheus histogram。langfuse_adapter.update_observation 仍是 Langfuse 写入的唯一出口,在它身上加 completion_start_time 直通,三个 provider 调用点全走它。",
+    "concepts_to_delete_or_demote": "不新增 flag/state/wrapper/env 键(observe-only 全量常开,与 lag 哨兵/response_mode_counts 同纪律);不新建「客户端 TTFT 上报」概念——前端已有 first_visible_content_rendered surface ack(chat.js:1481-1493→surface_events),保持原样只作交叉核对;不给 chain 类型 turn observation 加 completion_start_time(Langfuse 只对 generation 计算 timeToFirstToken,加了是死字段)。",
+    "why_not_old_pattern": "老路是「再加一个专用埋点服务/新 metadata 键再想办法聚合」——那会制造第三个时钟和第二权威。本设计是把两个已存在、已通过测试(tests/tutorbot/test_provider_observability.py:279 已断言 provider_first_chunk)的观测各补最后一跳导出,符合 observe-only-flag-must-export-at-every-metadata-hop 的既有教训:值已经算出来了,断在导出跳。",
+    "why_this_layer": "completion_start_time 必须在 provider 循环捕获(唯一能看到首 chunk 的地方),但写入必须经 langfuse_adapter(唯一 Langfuse 出口,保 fail-open);TTFVT 分位数必须在 runtime_metrics(既有 Prometheus exposition 的唯一渲染点,main.py:894 已接 /metrics),不在 observer_snapshot(它是快照消费者不是指标源)。"
+   },
+   "shared_failure_shape": "同一形状的断链×2:「值在热路径已被正确计算 → 只写进自由格式 metadata dict → 永远没到达能算分位数的一等指标面」。表现为:(a) Langfuse generations 全部 timeToFirstToken=null,无法回答感知速度问题,只能用总时长≈token/65 反推;(b) Prometheus 只有 turn 总时长 avg,没有任何 time-to-first-visible 分布;(c) 一旦未来 TTFT 回归(路由变慢/新同步阻塞/provider 排队),没有任何告警面能发现,只能等用户抱怨。",
+   "base_reverification": "基线 5791967d(worktree /Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor-battle1)逐一核实:deeptutor/tutorbot/providers/openai_compat_provider.py:709-712(provider_first_chunk)/719-722(provider_first_content_delta)/672-685(tutorbot.llm.stream generation)/765-776(终态 update 无 completion_start_time);deeptutor/tutorbot/providers/anthropic_provider.py:560-570/616-619(同形);deeptutor/services/llm/factory.py:592-604(llm.stream generation)/639-699(三分支首 chunk 点)/708-719(终态 update);deeptutor/services/observability/langfuse_adapter.py:1121-1166(update_observation 显式 kwargs 不含 completion_start_time,1146 行 NoopObservation 早退保 fail-open);deeptutor/services/session/turn_runtime.py:222-284(_first_useful_content_observation)/5796-5811(once 记录进 trace_metadata)/6274-6278(record_turn_finished 只传 latency_stages_ms)/4515-4519(final metadata 展开 **trace_metadata,故 fuc 已达 Langfuse turn metadata);deeptutor/api/runtime_metrics.py:111-238(TurnRuntimeMetrics 无 TTFVT)/257-475(render_prometheus_metrics);deeptutor/api/routers/unified_ws.py:325-342(fuc 键列入 internal-observability 公网 redaction,新指标不外泄);客户端 yousenwebview/packageDeeptutor/utils/ws-stream.js:496-507(content 事件逐条 cb.onToken,无攒批)、pages/chat/chat.js:1404-1415(_onToken:首 token 立即 _flush,之后 FLUSH_THROTTLE_MS 定时 flush)、utils/helpers.js:251/263/275(节流 200/120/100ms 按机型分档);本地 langfuse SDK 4.2.0 实测 LangfuseObservationWrapper.update 与 start_as_current_observation 均含 completion_start_time 参数。",
+   "tasks": [
+    {
+     "title": "T1 langfuse_adapter 增加 completion_start_time 直通(Langfuse 写入唯一出口)",
+     "files": [
+      "deeptutor/services/observability/langfuse_adapter.py"
+     ],
+     "exact_changes": "update_observation 签名加一个可选参数并透传给 observation.update。函数级改法:\n\n```python\ndef update_observation(\n    self,\n    observation: Any,\n    *,\n    output_payload: Any = None,\n    metadata: dict[str, Any] | None = None,\n    usage_details: dict[str, float] | None = None,\n    cost_details: dict[str, float] | None = None,\n    usage_source: str | None = None,\n    model: str | None = None,\n    level: str | None = None,\n    status_message: str | None = None,\n    completion_start_time: Any = None,  # datetime | None; generation 专用,span/chain 传 None\n) -> None:\n```\n\n在 1157 行 observation.update(...) 调用里加一行 `completion_start_time=completion_start_time,`。SDK 4.x 的 LangfuseObservationWrapper.update 原生支持该参数(本地 4.2.0 实测在签名内,None 为无操作);整个调用已在 try/except 内,且 _NoopObservation.update(**_) 吞任意 kwargs——fail-open 不变。不改 start_observation(开始时刻未知首 chunk)。",
+     "test_plan": "扩展 tests/services/test_langfuse_observability.py:构造 fake observation 记录 update kwargs,断言 (1) 传 datetime 时原样到达 observation.update;(2) 不传时为 None;(3) observation 为 _NoopObservation 时不抛。纯单测,无网络。",
+     "risk": "极低。纯可选参数,默认 None 行为与现状 bit-for-bit 相同。回滚=revert 单文件。唯一隐患:生产 SDK 4.7.1 与本地 4.2.0 差异——见 uncertainties 的容器内验证命令。"
+    },
+    {
+     "title": "T2 三个流式 generation 调用点捕获首 chunk wall-clock 并导出 completion_start_time",
+     "files": [
+      "deeptutor/tutorbot/providers/openai_compat_provider.py",
+      "deeptutor/tutorbot/providers/anthropic_provider.py",
+      "deeptutor/services/llm/factory.py"
+     ],
+     "exact_changes": "统一口径:completion_start_time=收到首个 chunk 的 UTC wall-clock(与 Battle2 简报一致;思考型模型的『首 chunk vs 首 content delta』差值已由既有 stage_timings_ms 的 provider_first_chunk/provider_first_content_delta 两键区分,不另设第二权威)。\n\n(a) openai_compat_provider.chat_stream:659 行局部变量区加 `first_chunk_at: datetime | None = None`;709-712 既有 `if stream_chunk_count == 0:` 块内加一行 `first_chunk_at = datetime.now(timezone.utc)`(文件头补 `from datetime import datetime, timezone`);765-776 成功终态 update_observation 调用加 `completion_start_time=first_chunk_at,`(超时/异常分支 735/747 同样加,保部分流式失败也有 TTFT)。\n\n(b) anthropic_provider.chat_stream:同形——560-563 首 chunk 块内捕获,586/598/616 三处 update_observation 加参。注意 545 行 `if on_content_delta:` 为 False 时无逐 chunk 循环(整流直读 get_final_message),first_chunk_at 保持 None → completion_start_time 不写,诚实缺省,不伪造。\n\n(c) services/llm/factory.stream:605 行旁加 `first_chunk_at: datetime | None = None`;三个 async-for 分支(litellm 639 / local 661 / cloud 689)循环体第一行统一加:\n```python\nif first_chunk_at is None:\n    first_chunk_at = datetime.now(timezone.utc)\n```\n721 行 except 分支、在决定重试(未 yield 过)进入下一 attempt 前重置 `first_chunk_at = None`(防止失败 attempt 的时刻污染成功 attempt);708-719 成功 update_observation 与 724/733 错误分支均加 `completion_start_time=first_chunk_at,`。\n\n不动 providers/open_ai.py:200 与 providers/anthropic.py:294(legacy_provider 模式,非生产主链;列为后续可选,同一模式照抄)。",
+     "test_plan": "扩展 tests/tutorbot/test_provider_observability.py::test_openai_compat_provider_records_stream_first_token_telemetry:_FakeObservability.update_observation 已捕获 kwargs,新增断言 `isinstance(fake_observability.updated[-1][\"completion_start_time\"], datetime)` 且 tzinfo 非 None;anthropic 用例同法。扩展 tests/services/llm/test_factory_langfuse_usage.py::test_factory_stream_prefers_provider_usage_for_langfuse:断言终态 update 带 aware datetime;另加一个「首 attempt 拿到 chunk 前失败→重试成功」用例断言时间来自第二 attempt(mock 两次 create,第一次立抛可重试错)。",
+     "risk": "低。每次 LLM 调用多一次 datetime.now(),纳秒级;所有写入都在既有 try/except 观测出口内。风险点:factory 重试语义(已用重置规则封死);anthropic 无回调分支诚实缺省(该路径生产占比极小)。回滚=revert,字段在 Langfuse 侧本就 nullable。"
+    },
+    {
+     "title": "T3 turn 级 TTFVT 进 Prometheus histogram(复用 lag 哨兵纪律,observe-only)",
+     "files": [
+      "deeptutor/api/runtime_metrics.py",
+      "deeptutor/services/session/turn_runtime.py"
+     ],
+     "exact_changes": "(a) runtime_metrics.py 的 TurnRuntimeMetrics 增加固定桶 histogram(模式与 W1-T6 lag 哨兵注释同款):\n```python\n_FUC_BUCKET_BOUNDS_MS: tuple[float, ...] = (500.0, 1000.0, 2000.0, 4000.0, 8000.0, 16000.0, 32000.0, 64000.0)\n\n# __init__ 内:\nself._fuc_histograms: dict[str, dict[str, Any]] = {}\n\ndef record_first_useful_content(self, *, elapsed_ms: float, content_source: str = \"\") -> None:\n    \"\"\"Observe-only: TTFVT 一跳导出。fail-open,never raises。\"\"\"\n    try:\n        value = float(elapsed_ms)\n    except (TypeError, ValueError):\n        return\n    if value < 0:\n        return\n    source = str(content_source or \"\").strip()\n    if source not in {\"content.delta\", \"result.response\"}:\n        source = \"other\"\n    with self._lock:\n        hist = self._fuc_histograms.setdefault(source, {\"bucket_counts\": [0] * (len(_FUC_BUCKET_BOUNDS_MS) + 1), \"sum_ms\": 0.0, \"count\": 0})\n        hist[\"count\"] += 1\n        hist[\"sum_ms\"] += value\n        for index, bound in enumerate(_FUC_BUCKET_BOUNDS_MS):\n        \tif value <= bound:\n        \t\thist[\"bucket_counts\"][index] += 1\n        \t\tbreak\n    \telse:\n    \t\thist[\"bucket_counts\"][-1] += 1\n```\nsnapshot() 增加 `\"first_useful_content_ms\": [...]`(按 source 输出 bounds/累计桶/sum/count);render_prometheus_metrics 增加标准 histogram exposition:`deeptutor_turn_first_useful_content_ms_bucket{content_source=\"content.delta\",le=\"500\"} …` 直到 le=\"+Inf\",加 _sum/_count(累计和在 render 时由非累计桶求前缀和)。label 只留 content_source(2-3 个值,判别位=流式首字 vs 一次性 result,呼应 spike-GO 埋点判别位教训),不加 mode/capability 防基数爆炸。\n\n(b) turn_runtime.py 的 _record_first_useful_content_once(5796-5811)在 `trace_metadata.update(observed)` 后追加:\n```python\nwith contextlib.suppress(Exception):\n    get_turn_runtime_metrics().record_first_useful_content(\n        elapsed_ms=observed[\"server_turn_start_to_first_useful_content_ms\"],\n        content_source=str(observed.get(\"first_useful_content_content_source\") or \"\"),\n    )\n```\nget_turn_runtime_metrics/contextlib 均已在该文件导入,净增 ~6 行。不动 _first_useful_content_observation 本体(单一权威不复算)。",
+     "test_plan": "tests/api/test_runtime_metrics.py 加:record 三个值(300/3000/999999)断言 snapshot 桶分布/sum/count 正确、render 输出含 le=\"+Inf\" 且桶单调累计、非法输入(None/负数/怪 source)不抛并归 other;tests/api/test_unified_ws_turn_runtime.py(contracts 已注册的 domain 测试)加一条:跑既有 fake turn 流,断言 get_turn_runtime_metrics().snapshot()[\"first_useful_content_ms\"] count≥1 且 source==\"content.delta\"。turn_runtime.py 是 sensitive_pattern,本 PR 同步在 contracts/index.yaml + deeptutor/contracts/index.yaml 双镜像登记新增断言所在测试文件(若只扩展已注册文件则无需新登记,优先走这条路)。",
+     "risk": "低。锁内 O(桶数) 整数操作;fail-open suppress;/metrics 输出体积 +~30 行。已知边界:runtime_metrics 是 per-process,多 worker 下每 worker 独立直方图——PromQL sum by (le) 天然可聚合,与既有 counters 同性质,不新增问题。回滚=revert 两文件。"
+    },
+    {
+     "title": "T4 客户端真流式核查结论(只报告)+ TTFT 基线采集 runbook(验收门)",
+     "files": [
+      "yousenwebview/packageDeeptutor/utils/ws-stream.js",
+      "yousenwebview/packageDeeptutor/pages/chat/chat.js",
+      "yousenwebview/packageDeeptutor/utils/helpers.js",
+      "docs/plan/观测发布与生产上线/(新增runbook md,挂docs/plan/INDEX.md)"
+     ],
+     "exact_changes": "【核查结论,无代码改动】客户端是真流式,无需修:(1) ws-stream.js:496-507 每个 public content 事件逐条 cb.onToken,无攒批无去抖;(2) chat.js:1404-1415 _onToken 累积 _buf,但 `_flushCount===0` 时首 token 立即 _flush(首字零延迟),之后按 helpers.js 机型分档 100/120/200ms 定时 flush——这是 setData 合批渲染优化而非『流式变一次性』,60 秒回答约 300-600 次渲染合到 ~5-10 次/秒,合理;(3) markdown 每 3-5 次 flush 才解析一次(chat.js:1417-1426),长文本再减半——防重排,不影响首字;(4) first_visible_content_rendered ack(chat.js:1472-1493)已回传服务端 surface_events,可与服务端 TTFVT 交叉核对。唯一备忘:_onFinal 用 result.response 整体替换流式文本(既有已知设计),与 TTFT 无关。不建议动 flushThrottleMs——低端机 200ms 是性能保护,改小属前端性能另案。\n\n【runbook(新 md,验收即照跑)】1. 部署后先核 SDK:`docker exec <api容器> python -c \"import inspect,langfuse;from langfuse._client.span import LangfuseObservationWrapper as W;print(langfuse.__version__,'completion_start_time' in inspect.signature(W.update).parameters)\"` 须输出 True;2. test2 真入口打 5 个流式 turn(既有 automator/curl smoke);3. Langfuse 读数:`GET {LANGFUSE_HOST}/api/public/observations?type=GENERATION&name=tutorbot.llm.stream&limit=50`,断言新 turn 的 completionStartTime 非 null 且 timeToFirstToken=completionStartTime-startTime 为正;分位数在 Langfuse UI Generations 表 Time-to-First-Token 列排序,或导出 JSON 用 5 行脚本算 p50/p95;4. Prometheus 读数:`curl -s :8000/metrics | grep deeptutor_turn_first_useful_content_ms` 桶非零;分位数 PromQL `histogram_quantile(0.95, sum(rate(deeptutor_turn_first_useful_content_ms_bucket[24h])) by (le, content_source))`;5. 交叉核对:turn TTFVT p50 ≈ start_turn_setup + provider_first_chunk + 事件 persist 开销,若差异 >2s 定位中间跳;6. 采集 7 天基线写回本 md,作为 Battle2 后续任何『变快了』宣称的对照组(自证陷阱纪律:只信独立终态读数)。",
+     "test_plan": "runbook 本身即验收脚本;文档 PR 挂 docs/plan/INDEX.md(Plan Directory Discipline)。客户端零 diff,无回归面。",
+     "risk": "无代码风险。文档风险=runbook 步骤 1 若 SDK 不支持(理论上 3.x/4.x 均支持)则 T1/T2 观测静默缺失——步骤 1 是硬前置门,fail 则先升 SDK 再验收。"
+    }
+   ],
+   "invariants_to_preserve": [
+    "观测全链 fail-open:任何埋点异常不得影响 turn 成败(langfuse_adapter try/except、runtime_metrics never-raises、turn_runtime contextlib.suppress 三层保持)",
+    "runtime 是延迟权威:TTFVT 只用 turn_runtime 既有 _first_useful_content_observation(sanitize/persist 之后观测),不引入 provider/前端第二时钟竞争",
+    "公网 redaction 边界:first_useful_content_* / server_turn_start_to_first_useful_content_ms 已在 unified_ws.py:325-342 的 internal-observability 键列表内,新增导出不得绕过 /api/v1/ws 出口(本设计不改该文件)",
+    "零新增 env 键/flag/state:observe-only 全量常开,与 lag 哨兵同纪律(env_registry.yaml 无需动)",
+    "contract 纪律:turn_runtime.py 为 sensitive_pattern、factory.py 为 protected_pattern,PR 内跑注册 domain 测试;若新增测试文件必须双镜像登记 contracts/index.yaml + deeptutor/contracts/index.yaml(当前两镜像 md5 一致,保持)",
+    "usage/cost 记账语义不变:update_observation 新参不改 record_usage 路径的任何分支",
+    "客户端首 token 立即渲染语义(chat.js _flushCount===0 立即 flush)与低端机 200ms 节流保护不动",
+    "Battle1 已合并的 THINKING 缓冲/批量落库/lag 哨兵行为零扰动(本设计只读它们的产物)"
+   ],
+   "uncertainties": [
+    {
+     "what": "生产容器 langfuse SDK 4.7.1 的 update()/start_as_current_observation 是否与本地 4.2.0 一致含 completion_start_time(本地已实测有)",
+     "verification_or_fallback": "runbook 步骤 1 容器内 inspect.signature 一行命令硬前置;若缺失(几乎不可能,v3 起即有)则 fallback:adapter 内用既有 _filter_supported_kwargs 包 update 调用,不支持时静默丢参不报错"
+    },
+    {
+     "what": "Langfuse 服务端/UI 是否由 completion_start_time 自动派生 timeToFirstToken 并在 Generations 表可排序聚合(v2/v3 server 行为)",
+     "verification_or_fallback": "部署后打 1 个 turn 在 Langfuse UI 看单条 generation 详情页 Time to first token 字段;若 UI 不聚合,分位数改用 observations API 导出+脚本计算(runbook 步骤 3 已备双路径)"
+    },
+    {
+     "what": "litellm 执行路径(provider_mode != direct)下 factory 层捕获的首 chunk 时刻含 executors 内部缓冲,较真实网络首 byte 偏晚多少",
+     "verification_or_fallback": "对同一 prompt 分别走 direct(cloud_provider)与 litellm 路径各 5 次,对比 completion_start_time-startTime 与 tutorbot 层 provider_first_chunk 差值;偏差稳定即可接受(observe-only 求一致性非绝对精度),差值>1s 则在 executors 层内推捕获点(另一个同形小 diff)"
+    },
+    {
+     "what": "生产 tutorbot 主链是否全部经 openai_compat_provider.chat_stream(即 T2(a) 覆盖率),failover/deeptutor_adapter 路径占比",
+     "verification_or_fallback": "上线 24h 后查 Langfuse:name=tutorbot.llm.stream 且 completionStartTime 非 null 的占比;若 <90%,按 trace 的 provider_name 定位缺口 provider,同模式补(failover.py 委托底层 provider,理论上已覆盖)"
+    },
+    {
+     "what": "多 worker 部署下 per-process 直方图在重启/扩缩容时的桶重置对 histogram_quantile 的影响",
+     "verification_or_fallback": "PromQL 用 rate() 已天然免疫 counter 重置;验收时用 increase(...[1h]) 双核;若 test2 单 worker 则无此问题"
+    }
+   ],
+   "estimated_loc": "源码 ~95 行(adapter ~8 / 三 provider 调用点 ~30 / runtime_metrics ~50 / turn_runtime ~7),测试 ~150 行,文档 runbook ~80 行;合计 ~325 行,零删除零迁移,纯增量可单 commit revert"
+  },
+  {
+   "family": "三个小杠杆:heartbeat 真LLM+trace污染 / supabase health check 出热路径 / 出题检索扇出收窄+search_unified超时预算",
+   "root_cause": {
+    "one_business_fact": "用户 turn 的等待与成本只应由「为这个学员这次产出内容所必需的计算」构成——心跳巡检(1,510次真LLM)、可用性探活(0.6次/turn×~0.3s同步)、对同一查询的重复检索扇出(32次调用/sum 15.4s)都不是 turn 的业务事实,却被计入 turn 的墙钟、trace 归属(p99 被污染到 36,050s)与账单。",
+    "one_authority": "心跳决策的唯一权威是 HEARTBEAT.md 文件格式契约(templates/HEARTBEAT.md:13 已白纸黑字承诺『无任务即跳过』)——该判断应由确定性解析承担,LLM 只在真有任务文本时做摘要;Supabase 可用性真值由模块级 _SUPABASE_AVAILABILITY_CACHE(supabase.py:60)单点持有,turn 内只读不探;检索扇出的权威计算图=每个(query,embedding)对每张表至多一次。",
+    "concepts_to_delete_or_demote": "①降级『LLM心跳判官』为确定性解析后的兜底摘要器(空任务文件零LLM);②删除『每60s在用户turn内同步探活』这个隐式decider(降为后台单飞SWR刷新);③删除 q0 上对 search_questions_bank_vector 的第二次同RPC调用(exact vector 从常规 vector 超集结果客户端派生);④删除心跳后台任务对 turn 上下文的继承(空 Context 起任务),消灭『陈旧 turn trace 收养后台 observation』这一隐式归属权;⑤删除每变体逐条 embed API 调用(单次批量)。",
+    "why_not_old_pattern": "旧模式是加闸补丁:在 Langfuse 查询侧过滤 heartbeat span 治 p99(观测侧掩盖)、拉长 health TTL(仍在热路径)、调并发度掩盖扇出(总调用数不减)。本设计全部是减法:消灭错误归属的唯一传播点(create_task 上下文快照)、探活从 turn 内同步闸变后台刷新(turn 内 decider -1)、重复计算在计算图源头合并(RPC/embed 次数直接减少)。质量敏感的收窄(变体数/rerank窗口)因无召回 eval 依据一律挂账不动。",
+    "why_this_layer": "trace 污染修在 heartbeat/service.py:147 的任务创建层——那是上下文快照的唯一发生点,比在 provider 观测层或 Langfuse 侧修更根;心跳确定性化修在文件解析层(格式契约已承诺该行为,不是新语义);health 修在 _assert_data_api_available 单函数内(缓存机制已存在,只改过期语义,不新建服务);扇出修在 _run_query_plan/_rerank_results 计算图层,所有调用方(prefetch、agent rag 工具、各 capability)自然受益,不在上层各加旁路。"
+   },
+   "shared_failure_shape": "后台/辅助计算寄生在用户 turn 的关键路径与观测归属上:心跳 LLM 的 observation 挂进创建它的那个陈旧 turn 的 trace(p99 36,050s vs 实际 5.8s)、探活同步占 turn 墙钟、同一查询对同源表重复扇出。共同形状=「非 turn 业务的计算没有独立的执行边界(context)、时间边界(后台化)和计算图边界(去重)」。",
+   "base_reverification": "基线 5791967d(worktree deeptutor-battle1)已逐点核实:tutorbot/heartbeat/service.py:119-129(_decide 真LLM tool-call)、:147(asyncio.create_task 无 context 参数=污染传播点)、:161(interval sleep)、:191(单实例锁);services/tutorbot/manager.py:759-772(HeartbeatService 接线,interval_s=30*60,model=agent_loop.model 主模型)、:730-736(loop/router task 同样继承上下文);capabilities/tutorbot.py:120(turn 内 ensure_bot_running→start_bot=心跳任务在 turn trace 上下文中创建);tutorbot/templates/HEARTBEAT.md:13(空任务跳过契约);rag/pipelines/supabase.py:60-61(availability 缓存 TTL 60s)、:932(turn 内 await 探活)、:2841-2905(_assert_data_api_available+observation supabase.data_api.health)、:1384-1524(_run_query_plan:每变体 1 embed+3×search_unified+1×bank_vector,q0 加 1 exact vector,标准码再加 1-2)、:1693(默认 4 变体)、:1695+1041-1069(second pass 2 查询)、:1586-1597(rerank 全文送审 rerank_window=fetch_count=12)、:1681(httpx timeout 8s)、:212-257(embedding 缓存已存在默认开启 TTL 600s)、:2065-2112 与 :2114-2141(exact vector 与常规 bank vector 同 RPC 不同阈值=超集关系)、supabase_strategy.py:1331-1400(rerank_documents 全文调 dashscope);Dockerfile:65(python:3.11,asyncio.create_task 的 context 参数 3.11 可用,已本机验证);contracts/index.yaml 无 supabase.py/heartbeat/service.py protected 条目;contracts/env_registry.yaml:500-509 已含 SUPABASE_RAG_* 键族(新键需登记)。",
+   "tasks": [
+    {
+     "title": "T1 heartbeat 去 LLM:确定性任务门 + skip 记忆 + 快档模型兜底",
+     "files": [
+      "deeptutor/tutorbot/heartbeat/service.py",
+      "deeptutor/services/tutorbot/manager.py",
+      "tests/tutorbot/test_heartbeat_deterministic_gate.py"
+     ],
+     "exact_changes": "① service.py 新增模块级纯函数(实现模板:13 已承诺的契约):\n```python\n_ACTIVE_TASKS_HDR = re.compile(r\"^##\\s*Active Tasks\\s*$\", re.M)\ndef extract_active_tasks(content: str) -> str:\n    m = _ACTIVE_TASKS_HDR.search(content or \"\")\n    section = content[m.end():] if m else (content or \"\")\n    if m:\n        nxt = re.search(r\"^##\\s\", section, re.M)\n        if nxt: section = section[: nxt.start()]\n    section = re.sub(r\"<!--.*?-->\", \"\", section, flags=re.S)  # 剥 HTML 注释(示例任务全在注释里)\n    lines = [ln.strip() for ln in section.splitlines()]\n    return \"\\n\".join(ln for ln in lines if ln and not ln.startswith(\"#\"))\n```\n② _tick()(:195-203 之间)与 trigger_now()(:227-230 之间)在 _decide 之前插确定性门:\n```python\nactive = extract_active_tasks(content)\nif not active:\n    logger.info(\"Heartbeat: no active tasks (deterministic skip, no LLM)\")\n    return\ncontent_hash = hashlib.sha256(content.encode()).hexdigest()\nif content_hash == self._last_skip_hash:\n    logger.info(\"Heartbeat: unchanged content previously judged skip; memo skip\")\n    return\naction, tasks = await self._decide(content)\nif action != \"run\":\n    self._last_skip_hash = content_hash  # _decide 无时间输入,同内容⇒同决策,memo 只缓存 skip 不缓存 run\n    ...\n```(__init__ 加 self._last_skip_hash: str | None = None;无 Active Tasks 标题的手改文件 fallback 整文剥注释后非空→仍走 LLM,fail-open 到旧行为)\n③ manager.py:762 决策模型降快档:`model=resolve_fast_tier_model() or agent_loop.model`(文件 :664 已 import 该函数;phase2 execute/evaluate 不动)。",
+     "test_plan": "新文件 tests/tutorbot/test_heartbeat_deterministic_gate.py:(a) extract_active_tasks(默认模板原文)==\"\";(b) 模板+Active Tasks 下加一条真 bullet → 非空;(c) 仅注释/标题的 Active Tasks → 空;(d) 用『调用即计数、返回 skip』的 fake provider 跑 _tick:模板文件断言 provider 调用数==0;真任务文件断言==1;(e) memo:同一真任务内容连跑 2 次 _tick(LLM 判 skip)→ provider 总调用==1;内容变更后再 tick → ==2;(f) LLM 判 run 的内容连跑 2 次 → 每次都调用(run 不 memo)。回归:tests/tutorbot/test_heartbeat_single_instance.py 全绿。",
+     "risk": "低。误判方向偏保守:除 HTML 注释与 # 标题外任何文本(列表/表格/正文)都算任务→走 LLM,不会漏执行真任务;唯一行为变化是纯模板文件不再消耗 LLM(1,510 次 ≈ 归零,838tok/2.9s/次)。快档模型判 skip/run 是平凡分类,tool-call 结构化输出不依赖措辞。回滚:删门两段+model 改回,单 commit revert。"
+    },
+    {
+     "title": "T2 heartbeat trace 污染治本:后台任务以空 Context 创建(不继承 turn 的 Langfuse/OTel 上下文)",
+     "files": [
+      "deeptutor/tutorbot/heartbeat/service.py",
+      "tests/tutorbot/test_heartbeat_trace_isolation.py"
+     ],
+     "exact_changes": "根因链:capabilities/tutorbot.py:120 在用户 turn 的 trace 上下文内调 ensure_bot_running→manager.start_bot:772→heartbeat.start()→service.py:147 `asyncio.create_task(self._run_loop())` 快照复制了当时的 contextvars(含 langfuse start_as_current_observation 的 OTel current-span)。此后每 30min tick 的 provider 生成 observation(openai_compat_provider.py:577/672 的 start_observation)全部挂进那个首 turn 的 trace,trace 时间线被拉长到 36,050s。修法(:147):\n```python\nimport contextvars\nself._task = asyncio.create_task(\n    self._run_loop(),\n    name=\"tutorbot:heartbeat\",\n    # 空 Context:心跳是独立后台身份,不得继承创建时 turn 的 trace/usage_scope\n    context=contextvars.Context(),\n)\n```\nPython 3.11(Dockerfile:65)起 create_task 支持 context 参数,已本机验证。副产物:heartbeat 的 usage 也不再落入创建 turn 的 _current_usage_scope 计费口径。心跳生成从此各自成根 trace(名即 generation 名),Langfuse 可按名过滤。",
+     "test_plan": "新文件 tests/tutorbot/test_heartbeat_trace_isolation.py:定义模块级 ContextVar(default='clean');测试体内 set('polluted') 后 await service.start(),fake provider 的 chat_with_retry 内读该 ctxvar 并记录;手动触发一个 tick(缩短 interval 或直接 await service._tick()),断言 provider 看到 'clean' 而非 'polluted'。回归:test_heartbeat_single_instance.py(单实例锁在空 Context 下只依赖 os.getenv 与 redis,无 ctxvar 依赖)全绿。上线验证:部署后 Langfuse 查 heartbeat generation 的 trace_id 不再等于任何 turn trace;turn latency p99 回落到秒级。",
+     "risk": "低但需确认心跳路径无隐性 ctxvar 依赖(读文件+provider HTTP 调用+redis 锁,均为环境级配置非请求级);若某 provider 依赖请求级 ctxvar 会回默认值——用回归测试兜底。同病灶的 loop_task/router_task(manager.py:730-736)本任务不动(生产证据只指向 heartbeat),列入验证账。回滚:删 context 参数一行。"
+    },
+    {
+     "title": "T3 supabase.data_api.health 出热路径:stale-while-revalidate + 单飞后台刷新",
+     "files": [
+      "deeptutor/services/rag/pipelines/supabase.py",
+      "tests/services/rag/test_supabase_availability_swr.py"
+     ],
+     "exact_changes": "现状:TTL 60s 过期后由用户 turn 在 :932 同步 await 探活(~0.3s,0.6次/turn)。改 _assert_data_api_available(:2841):\n① 把 :2865-2905 探活主体原样抽为 `async def _probe_data_api(self, *, client, config) -> None`(observation/缓存写入/402 raise 全不动);\n② 过期语义改 SWR:\n```python\ncached = _SUPABASE_AVAILABILITY_CACHE.get(cache_key)\nif cached is not None:\n    is_available, checked_at = cached\n    if now - checked_at >= _SUPABASE_AVAILABILITY_TTL_S:\n        self._kick_availability_refresh(config)   # 后台刷新,不阻塞 turn\n    if is_available:\n        return                                    # 信任缓存态(fail-open)\n    raise RAGSearchError(...HTTP 402...)          # known-restricted 仍 fail-closed\nawait self._probe_data_api(client=client, config=config)  # 仅进程冷启动首查内联,原行为\n```\n③ 单飞 helper(模块级 dict):\n```python\n_SUPABASE_AVAILABILITY_REFRESH: dict[str, asyncio.Task] = {}\ndef _kick_availability_refresh(self, config) -> None:\n    key = config.url.rstrip(\"/\")\n    task = _SUPABASE_AVAILABILITY_REFRESH.get(key)\n    if task is not None and not task.done():\n        return\n    async def _refresh() -> None:\n        try:\n            client = await self._get_client(config.timeout_s)\n            await self._probe_data_api(client=client, config=config)\n        except Exception:\n            pass  # 结果(True/False)已在 probe 体内写缓存;402 raise 在此吞掉\n    _SUPABASE_AVAILABILITY_REFRESH[key] = asyncio.create_task(_refresh(), context=contextvars.Context())\n```\n不加新 env、不加新服务,只改一处过期语义。",
+     "test_plan": "新文件 test_supabase_availability_swr.py(fake httpx client 记录 get 调用):(a) 缓存 (True, now-61s) → 调用返回且 turn 路径内 client.get 计数 0、后台 task 已创建;await 后台 task 后缓存时间戳刷新;(b) 缓存 (False, now-61s) → 仍 raise 非重试 RAGSearchError 且触发后台刷新;后台刷新探到 200 后再调 → 放行;(c) 无缓存冷启动 → 内联 get 恰 1 次;(d) 单飞:连续两次过期调用只创建 1 个后台 task;(e) 402 探活 → 缓存写 False。回归:tests/services/rag/test_rag_pipelines.py。",
+     "risk": "低。语义变化仅一处:Supabase 从可用变 402 后,最长一个 TTL 窗(60s)内 turn 仍放行→真实检索 RPC 自己撞 402,由既有 _wrap_supabase_http_status 包装成同类错误(门本就是提前拦截的优化,非唯一防线);known-restricted 的 fail-closed 保留。预期收益:稳态热路径探活 RTT 归零(≈0.3s×0.6次/turn)。回滚:恢复原函数体(改动局限单函数+一 helper)。"
+    },
+    {
+     "title": "T4 检索扇出明显冗余消除:批量 embed + q0 双 RPC 合一 + exact-text 命中短路(flag)",
+     "files": [
+      "deeptutor/services/rag/pipelines/supabase.py",
+      "contracts/env_registry.yaml",
+      "tests/services/rag/test_supabase_fanout_dedup.py"
+     ],
+     "exact_changes": "32 次构成(已核):4 变体×(1 embed+3 search_unified+1 bank_vector)+q0 exact vector 1+exact_text 1-3+second pass 2×(1 embed+4-5)+hydrate select 1+rerank 1+health 0-1≈26-33。三个纯冗余修:\n① 批量 embed(_run_query_plan :1409 后):\n```python\nlocal_emb: dict[str, list[float]] = {}\npending = [q for q in dict.fromkeys(str(x or '').strip() for x in queries) if q and not _get_cached_embedding(q)]\nif len(pending) > 1:\n    embs = await get_embedding_client().embed(pending)\n    for q, e in zip(pending, embs or []):\n        if e:\n            local_emb[q] = e\n            _cache_embedding(q, e)\n```\nrun_one 内 :1417 改为先查 local_emb 再 _embed_query(现行为兜底)。主通道 embed API 4→1、second pass 2→1。\n② q0 exact vector 合并(:1441-1457):当 config.fetch_count>=5 时不再发 _search_exact_question_vector 独立 RPC(与 _search_questions 同 RPC search_questions_bank_vector,阈值 0.35<0.60、count 12>5,严格超集);让 _search_questions 在 normalize 行上附带 `_raw_row`(similarity/question_type/options/stem 原字段),q0 处新函数 `_derive_exact_from_bank_rows(raw_rows, ...)` 客户端复刻 :2087-2111 的四重过滤(similarity≥min_similarity、类型、选项校验、题干对应)产出 question_exact_vector 组;fetch_count<5 保留旧双调。省 1 RPC/turn。\n③ exact-text 命中短路(flag `SUPABASE_RAG_EXACT_TEXT_SHORT_CIRCUIT`,默认 on;登记 env_registry):把 :958 primary_plan_task 的创建移到 exact_text_task 的 gate 之后:\n```python\nif exact_text_task is not None and _exact_text_short_circuit_enabled():\n    done, _ = await asyncio.wait({exact_text_task}, timeout=_exact_text_gate_timeout_s())  # 默认 0.6s\n    if done and not exact_text_task.exception() and any(b.get('results') for b in exact_text_task.result() if isinstance(b, dict)):\n        primary_queries = primary_queries[:1]          # 保留 q0 单变体兜底上下文(讲解分支仍可能消费 sources)\n        effective_second_pass_enabled = False\n        effective_rerank_enabled = False\n```\n未命中/超时→原全量路径(primary 启动最多延迟 0.6s)。命中 turn(题库直出 9/60)扇出 ~26→~7,且免 rerank(36k tok)。",
+     "test_plan": "新文件 test_supabase_fanout_dedup.py(fake client 按 function_name 计数 RPC):(a) 4 变体输入断言 embed 客户端调用 1 次且顺序保序、向量与逐条结果一致;(b) oracle 测试:同一组 fake bank 行,新 _derive_exact_from_bank_rows 输出与旧 _search_exact_question_vector 过滤结果逐字段一致(含空命中);(c) 短路:exact_text 命中场景断言 search_unified 调用数==3(1变体×3源)、rerank 0 次、exact_question payload 仍产出且 pinning 序不变;(d) 未命中场景断言 RPC 调用集合与 flag off 完全一致;(e) flag off 行为逐字节回归。回归:test_exact_authority.py、test_exact_authority_type_consistency.py、test_supabase_strategy.py 全绿(exact 权威链不变)。",
+     "risk": "中。①embed 批量依赖 embed(list) 的保序批量语义(见 uncertainties#8,不支持则退化为 gather 并发单条);②短路命中判定先于采纳层校验,若管道命中但 _extract_exact_question_payload 拒绝,该 turn 仅 1 变体上下文(质量降)——缓解=保留 q0 全源检索+flag 可关;③未命中 turn 墙钟+≤0.6s 串行代价,净收益依赖 exact text RPC p50(需 Langfuse 实测,见 uncertainties#6)。预期收益:每出题 turn 检索调用 32→~20(未命中)/~7(命中),embed API -75%。回滚:flag off(③)+revert(①②),三改动独立 commit。"
+    },
+    {
+     "title": "T5 search_unified 超时预算 + 快速降级(治 938 条/月最大错误源的墙钟拖累)",
+     "files": [
+      "deeptutor/services/rag/pipelines/supabase.py",
+      "contracts/env_registry.yaml",
+      "tests/services/rag/test_supabase_unified_timeout.py"
+     ],
+     "exact_changes": "现状:整个 httpx client 统一 8s(:1681),search_unified 慢查询把单组墙钟拖满 8s;组级降级已存在(:1479-1497 异常进 failure_sink 继续融合)。修法只加预算不加闸:\n① _rpc(:2907)加可选参数:\n```python\nasync def _rpc(self, client, function_name, payload, *, timeout_s: float | None = None) -> ...:\n    ...\n    response = await client.post(url, headers=headers, json=payload,\n                                 timeout=(timeout_s if timeout_s and timeout_s > 0 else httpx.USE_CLIENT_DEFAULT))\n```\n② _search_source(:1748)调用处传 `timeout_s=_unified_rpc_timeout_s()`:\n```python\ndef _unified_rpc_timeout_s() -> float:\n    return _env_float_compat(\"SUPABASE_RAG_UNIFIED_TIMEOUT_S\", \"SUPABASE_RAG_TIMEOUT_S\", 4.0)\n```\n(新键登记 env_registry.yaml,默认 4.0s)。超时抛 httpx.TimeoutException→run_one 既有路径记 warning 降级,其他组结果不受影响;retrieval_warnings 已进 evidence_bundle 的 retrieval_degraded 口径,超时率变化可在 Langfuse 直接观察。DB 侧根因(kb_chunks 混合检索 SQL/索引)另行挂账,不在本 PR。",
+     "test_plan": "新文件 test_supabase_unified_timeout.py:(a) fake client 记录 post kwargs,断言 search_unified 调用带 timeout==4.0 且其他 RPC(bank_vector/rpc 等)不带(用 client 默认);(b) fake post 对 search_unified 抛 httpx.ReadTimeout → 断言该组进 failure_sink(group_name 对应源)、其余组结果保留、search() 正常返回;(c) env 覆写 SUPABASE_RAG_UNIFIED_TIMEOUT_S=2.5 生效、非法值回默认(仿 test_rag_retrieval_timeout.py 形状)。",
+     "risk": "低。行为变化=原本 4-8s 之间才返回的慢查询现在被判超时降级(该组少一份候选,融合继续)——这正是快速降级的意图;若生产超时率上升过多可 env 上调。预期收益:单慢组墙钟上限 8s→4s,出题 turn 尾部墙钟收敛;错误更早失败但语义同类(原本也是超时)。回滚:env 设回 8.0 即行为等同(参数化回滚,无需发版)。"
+    },
+    {
+     "title": "T6 rerank 送审文本截断(成本第二大项,默认关闭灰度开)",
+     "files": [
+      "deeptutor/services/rag/pipelines/supabase.py",
+      "contracts/env_registry.yaml",
+      "tests/services/rag/test_rerank_doc_cap.py"
+     ],
+     "exact_changes": "现状:_rerank_results(:1592)把 12 个候选的 rag_content 全文(单次 36k tok)送 dashscope gte-rerank。修法(仅送审文本截断,返回文档与最终展示内容不变——index 映射回原 item 的机制 :1604-1616 已保证):\n```python\ndef _rerank_doc_char_cap() -> int:\n    return _env_int_compat(\"SUPABASE_RAG_RERANK_DOC_CHAR_CAP\", \"\", 0)  # 0=不截断(默认关闭)\n# :1592 处:\ncap = _rerank_doc_char_cap()\nrerank_docs = [\n    (doc[:cap] if cap > 0 else doc)\n    for doc in (str(item.get(\"rag_content\") or \"\").strip() for item in rerank_candidates)\n]\n```\n新键登记 env_registry.yaml。生产灰度建议值 1500 字符(≈1k tok/doc→整单 ~10k tok,-70% rerank 成本);候选数收窄(rerank_window 12→8)与变体数收窄一律不做,挂账待召回 eval(任务 4 铁律:质量敏感收窄无 eval 不动)。",
+     "test_plan": "新文件 test_rerank_doc_cap.py(monkeypatch rerank_documents 为 spy):(a) cap=100 时 spy 收到的每个 doc len<=100,且返回结果中 item 的 rag_content 为原全文未截断;(b) cap=0(默认)时送审 docs 与旧行为逐字节一致;(c) rerank 返回 index 越界/乱序时映射行为不变(既有 :1604-1616 逻辑回归)。上线验证:灰度开 1500 后人工 spot-check 20 个出题 turn 的 top_k 排序差异+Langfuse rerank tok 曲线。",
+     "risk": "低-中(质量敏感但默认零行为变化)。截断只影响 rerank 打分输入,相关性信号多在文首,1500 字符对 3k tok 级 case bundle 属温和;极端长题干头部无关时排序可能劣化——靠灰度+spot-check 兜底,劣化即 env 关回 0(参数化回滚,无需发版)。预期收益(灰度后):rerank tok 36k→~10k/次,成本第二大项 -70%。"
+    }
+   ],
+   "invariants_to_preserve": [
+    "/api/v1/ws 是唯一聊天流式入口,不新增任何路由/服务",
+    "exact_question 权威链行为不变:question_exact_text/vector 的 pinning(_pin_exact_question_results)、采纳校验(_extract_exact_question_payload)与 authority 采纳条件逐字节保留;T4② 需 oracle 测试证明派生结果与旧 RPC 过滤逐字段一致",
+    "402 服务受限的 fail-closed 语义保留(known-restricted 缓存仍拒);检索组级 fail-soft(单组失败进 failure_sink 不拖垮 turn)保留",
+    "心跳跨 worker 单实例锁(valkey SET NX, service.py:169-185)与 Redis 缺失 fail-open 语义不变;phase2(on_execute/evaluate_response/on_notify)行为不变,有真任务时仍走 LLM 决策",
+    "质量敏感 knob 一律不动:max_query_variants=4、second_pass 默认开、rerank_window=fetch_count、rerank 默认不截断——收窄全部挂账待最小召回 eval(走 eval-design 纪律)",
+    "新 env 键(SUPABASE_RAG_UNIFIED_TIMEOUT_S / SUPABASE_RAG_RERANK_DOC_CHAR_CAP / SUPABASE_RAG_EXACT_TEXT_SHORT_CIRCUIT)登记 contracts/env_registry.yaml;本次涉及文件均不在 contracts/index.yaml protected 清单(已核),仍随 PR 附域测试",
+    "六件事各自独立 commit、独立可回滚:T2/T3/T5/T6 单点 revert 或 env 参数化回滚,T4 三子项分 commit 且短路挂 flag",
+    "禁『看穿/识破』类文案(本战役无用户可见文案改动,heartbeat 日志除外)"
+   ],
+   "uncertainties": [
+    {
+     "what": "任务简报所指报告 docs/plan/观测发布与生产上线/2026-07-12-langfuse-production-deep-investigation.md 在两个 worktree 磁盘上都不存在(find 全库无命中),本设计的生产数字(1,510次/36,050s/32次/938超时/36k tok)全部依据任务简报转述",
+     "verification_or_fallback": "实施前直接查 Langfuse:heartbeat generation 的 trace_id 是否指向某个古老 turn trace、search_unified 超时条数、rerank 单次 usage;任一数字对不上则先补测绘再动刀"
+    },
+    {
+     "what": "trace 污染机制推断为 create_task 上下文快照(service.py:147 ← capabilities/tutorbot.py:120 turn 内 ensure_bot_running),未做活体证明;且 auto_start_bots(api/main.py:417)在 startup 启动的 bot 心跳应当是干净的——若 Langfuse 显示 startup 启动的 bot 也污染,则机制假设错误",
+     "verification_or_fallback": "Langfuse 取 heartbeat observation 的宿主 trace,核对该 trace 首事件是否为某用户 turn 且时间点=该 bot 首次被 ensure_bot_running 拉起;假设证伪则改在 _tick 内显式 detach(contextvars.copy_context 清洗后 run)"
+    },
+    {
+     "what": "T1 收益规模取决于生产 workspace 的 HEARTBEAT.md 是否为模板原样(全部任务在 HTML 注释里)",
+     "verification_or_fallback": "Aliyun-ECS SSH 只读查各 bot workspace 的 HEARTBEAT.md 内容/hash;若有真任务文件,收益降为 memo+快档模型部分,确定性门仍然正确"
+    },
+    {
+     "what": "manager.py:730-736 的 loop_task/router_task 同样继承创建时 turn 上下文,是否造成后续 turn 的 observation 跨 trace 混挂未证实(26,927 traces 大体独立说明 turn 多半在请求上下文内处理)",
+     "verification_or_fallback": "Langfuse 抽样各 bot 首 turn trace 的 observation 数是否异常膨胀;若确认同病,追加同款 context=Context() 修复(独立 PR)"
+    },
+    {
+     "what": "search_unified 的 3×每变体调用(仅 p_source_type 不同)能否 DB 侧合并成 1 次(p_source_type=NULL 是否已支持全源?repo 内无该函数 SQL)以及 938 超时的 DB 根因(索引/SQL)——本战役挂账",
+     "verification_or_fallback": "Supabase SQL editor 查函数定义+EXPLAIN ANALYZE;支持 NULL 或可加数组参数则单独 PR(DB 迁移+客户端按 source_type 拆组),预期再省 8 次 RPC/turn"
+    },
+    {
+     "what": "T4③ exact-text gate 的 0.6s 预算净收益依赖 search_questions_bank_text 的实测延迟与命中率(9/60)",
+     "verification_or_fallback": "Langfuse 查该 observation 的 p50/p95;若 p95>0.6s,gate 预算上调或改为『并行启动+命中后 cancel 未完成的 primary 子任务』的省成本不省墙钟变体;flag 默认改 off 灰度"
+    },
+    {
+     "what": "质量敏感收窄(变体 4→2、rerank_window 12→8、second_pass 策略)无召回 eval 可依,全部不做",
+     "verification_or_fallback": "挂账:先建最小检索召回集(历史 exact 命中 turn 的 query→期望题 id + 教材 chunk 金标 ~100 条,走 eval-design skill 排雷),eval 立起后这些 knob 全是现成 env,零代码收窄"
+    },
+    {
+     "what": "T4① 依赖 get_embedding_client().embed(list[str]) 的保序批量语义(未读该客户端实现)",
+     "verification_or_fallback": "读 deeptutor/services/embedding 实现与单测确认批量+保序;不支持则退化为 asyncio.gather 并发单条(省墙钟不省调用数),T4① 独立 commit 可单独弃"
+    }
+   ],
+   "estimated_loc": "主代码 ~180-230 行(T1≈45 / T2≈5 / T3≈55 / T4≈80 / T5≈20 / T6≈15)+ 测试 ~280 行 + env_registry 3 键;合计 ≈480-530 行,六件各自独立 commit 独立回滚"
+  }
+ ],
+ "commander": {
+  "single_disease_verdict": "是同一病的延续,不是新病,外加一个镜像变体。Battle1 的病是「不信任已有单一真值,每个消费点重复支付已付过的计算成本」;Battle2 五家族把它从『重复付计算费』延伸到『重复付判断费与宽度费』:S1 每 turn 用最贵组件(主模型 LLM)自问\"有没有变化\",而增量账本 learner_memory_events 早已恒写(service.py:792-830 亲核);S4-heartbeat 用真 LLM 判\"有没有任务\",而 HEARTBEAT.md 格式契约已白纸黑字承诺确定性可判;S4-health 在 turn 内同步重新探活,而 _SUPABASE_AVAILABILITY_CACHE 真值已在(supabase.py:60);S4-检索对同 RPC 的严格超集结果再发第二次调用(0.35/12 ⊇ 0.60/5 亲核);S2 判分对每道题无差别输出最大承诺宽度(7 必备段+A-D 全展开+硬编码通用套话,schema:24-37 与 deep_question.py:1455-1465 亲核),且 repair 把\"省略\"惩罚成第二次全量 LLM(agent.py:117-149 亲核)。S3 是同病的观测镜像:首 chunk 时刻与 TTFVT 已在热路径算出(provider:709-722、turn_runtime:5796 亲核),却断在最后一跳导出,系统\"已拥有但不消费\"。四份设计对病因的自我诊断全部与源码对得上,无一家在病因层跑偏。",
+  "disease_naming": "「守门权错配」——把『要不要干活、干多宽』的裁量权外包给最贵的执行组件(LLM 自判变化/自判任务/全宽输出、网络探活、全量重检索),而系统已持有的廉价确定性信号(增量账本、文件格式契约、缓存真值、超集结果、已算出的时刻)无人消费。Battle1 治的是\"重复计算真值\",Battle2 治的是同一根上的\"重复购买判断与宽度\":门应长在信号侧,却长在执行者内部——57% 的摘要维护调用 10k token 进、9 字符出,就是把门做成系统里最贵的组件的铁证。修法方向全体一致:把门前移到已有信号(减 decider、减重复计算),不加新闸。",
+  "implementation_order": [
+   "第0步(任何刀落前,半天): Langfuse 直查复核关键数字——任务简报所引报告文件在两个 worktree 均不存在(两家族独立报告 find 无果),52%/57% NO_CHANGE、heartbeat 1,510 次、rerank 36k tok、search_unified 超时分布、heartbeat observation 宿主 trace 归属,全部按 trace name 亲拉 3 天样本;任一关键数字对不上,对应家族先补测绘再动刀",
+   "PR-0(即刻,已成品): origin/perf/followup-classifier-b2b4 单 commit 合 main——flag LUBAN_FOLLOWUP_FAST_TIER_ENABLED 默认关=bit-for-bit 零行为;必须最先合,因它已 touch contracts/index.yaml 双镜像+env_registry.yaml,后续所有登记类改动 rebase 其上,消灭三方冲突",
+   "组A(观测基座,最先落地): S3 全部(T1 adapter 直通→T2 三调用点捕获→T3 TTFVT histogram→T4 runbook)+ S4-T2(heartbeat 空 Context 一行)——零行为风险,且是后续一切『变快了』宣称的对照组(自证陷阱纪律);硬化项:S3-T3 与 S1-T4 的新 snapshot 键必须接入 multiworker_metrics.collect_merged_snapshots(main.py:893-905 亲核,生产 UVICORN_WORKERS=2,漏接=scrape 只见单 worker,两份设计均未提)",
+   "组B(与组A并行开发,PR 在其后): S1 四任务同文件串行 4 commits——T1 门(核心)→T4 埋点(必须与 T1 同 PR,GO 判据判别位纪律)→T2 source 瘦身→T3 fast-tier;T4 等 S3-T3 的 runtime_metrics 改动合入后 rebase;前置核查:生产 .env 是否配 fast_model(未配则 T3 零效果,不许宣称降档收益)",
+   "组C(与A/B并行,独立文件): S4-T1 heartbeat 确定性门→T3 SWR→T5 unified timeout(默认值先拉成功请求 p95 校准,不盲用 4.0)→T6 rerank cap(代码进、默认0)→T4①批量embed+②q0双RPC合一(oracle 测试硬前置);T4③串行短路本次不做(见砍单)",
+   "组D(最后合,用户可见风险最高): S2-T4 deterministic 去套话(零 LLM、owner 当天可感知,可提前单独出)→T1 schema v2 收紧+chip 联动→T3 差分质量门(自证红测+全绿是硬前置)→T2 max_tokens cap(裁决改判:必须随 flag,不得无条件生效,见挑战#1)→T5 灰度 flag;合并硬前置=前端 wx_miniprogram/yousenwebview 对 sections key 级消费 grep 清零+存量测试对六条套话原文 grep 清零"
+  ],
+  "file_collisions": "真冲突两处,登记冲突一处,其余按家族天然并行:①deeptutor/api/runtime_metrics.py——S3-T3(FUC histogram)与 S1-T4(summary gate counter)都改 TurnRuntimeMetrics 的 __init__/snapshot/render 三段:裁决 S3-T3 先合,S1-T4 rebase;且两者的新 snapshot 键都要在 deeptutor/services/observability/multiworker_metrics.py 增加合并支持(第三个被双方遗漏的共改文件)。②contracts/index.yaml+deeptutor/contracts/index.yaml 双镜像+contracts/env_registry.yaml——PR-0(B2/B4)、S2-T5(1 env 键+deep_question 域测试登记)、S4(3 env 键)三方都改:按 PR-0→S4→S2 顺序串行 rebase,每次合并后核双镜像 md5 一致。③同文件家族内串行(非跨家族冲突):learner_state/service.py 全归 S1 单 owner 4 commits;rag/pipelines/supabase.py 全归 S4 单 owner 顺序 commits;turn_runtime.py 只有 S3-T3 动(S1 明确零改动,亲核确认设计如此)。并行编组:组A(providers/adapter/runtime_metrics/turn_runtime)∥组B(learner_state)∥组C(heartbeat/supabase)∥组D(question agents/deep_question/progressive_disclosure)四组开发可全并行,合并按 A→B/C→D 串行进列车。",
+  "design_challenges": [
+   "【S2-T2 证伪,全场最大设计错误】cap=1400 无条件生效+flag-off 旧 prompt 是自相矛盾:旧臂输出 p50=1,277 tok,意味着约半数输出超 1,277、大量落在 1,400 以上→截断→末位段(next_practice 在新 REQUIRED 内)缺失→触发 repair=第二次全量 LLM(agent.py:117-149 亲核)→flag-off 臂更慢更贵,与『cap 只斩病理尾部』的声称直接冲突。改判:cap 必须与 DEEPTUTOR_MCQ_FEEDBACK_COMPACT 同一 decider 联动(flag on→1400,off→维持 4096),flag 删除日转无条件;T5 的『T2 无条件生效两臂都安全』一句作废",
+   "【S3-T3/S1-T4 共同硬伤,已核实】两设计都声称『per-process 直方图 PromQL 天然可聚合』,但生产 UVICORN_WORKERS=2 且 /metrics/prometheus 走 multiworker_metrics.collect_merged_snapshots 文件合并(main.py:893-905 亲核)——新增 snapshot 键若不进合并器,scrape 只见接请求的那个 worker,门命中率/TTFVT 分位数系统性低估一半。两 PR 必须同步改 multiworker_metrics 并加跨 worker 合并测试(lag 哨兵 0321a76b 已有先例照抄)",
+   "【S4-T4③ 按战役目标证伪】exact-text 串行 gate(默认 on,0.6s)= 让 ~85% 未命中出题 turn 每次多等 ≤0.6s,换 ~15% 命中 turn 的成本节省——速度战役里伤多数人 p50 换少数人成本是方向性错误,且设计自己的不确定点#6 承认 p95 未实测。改判:本列车不做③;若做,改『并行启动+命中后 cancel 未完成 primary 子任务+跳 rerank』形态(省成本零延迟代价),且 flag 默认 off",
+   "【S1 门控漏更新审判(专项)】三重兜底在源码上站得住:计数门硬上界 N-1=2 实质 turn、guide*/notebook* 直通与 _should_skip_turn_writeback(:2498)既有约定对齐、游标丢失 fail-open;消费面(压缩段 260 字+member_console)容忍 2-turn 陈旧,turn.md§24 无条件历史注入不依赖摘要新鲜度——不漏。真正要加固的两点:(a)evidence-scan 依赖『判分事件先于 refresh 落 JSONL』的时序未证(设计自认),裁决降级为 best-effort,保证责任全压在计数门+capability 直通上,时序证伪也不阻塞;(b)T2 的 cutoff 在重启+长 NO_CHANGE 稳定期回退到 summary mtime(mtime 在 NO_CHANGE 时不动),会把至多 8 条旧 turn 重喂——[-8:] 截断已兜住,补一条断言测试即可,不改设计",
+   "【S2 质量门可证伪性审判(专项)】门是可证伪的:喂『答案字母改错的合成输出』断言必红(自检)+确定性 regex 抽答案(非 LLM judge,无循环度量)+教材金标人工核定+authority 路径结构性不变量(is_correct 进 agent 前已算定,gate :1097-1127 亲核)——通过。加固两点:(a)『错选字母所在句含选项文本关键词』这类脆断言降为 advisory,blocking 只留四件硬事:正确字母在场/套话黑名单零命中/必备段非空/降幅≥45%;(b)open_world 臂先单臂 n=5 测旧 prompt 抖动基线再定门口径,禁止事后放水",
+   "【S5/检索收窄召回依据审判(专项)】设计对『变体 4→2/rerank_window 12→8/second_pass』全部拒动、挂账待最小召回 eval——正确,维持原判。但 T4② 超集派生的两个隐含假设必须在 oracle 测试里显式钉死:RPC 返回行含 exact 过滤所需全部列(options/stem/similarity)且按 similarity 降序——任一不成立,top-12@0.35 就不是 top-5@0.60 的超集;oracle 断言『新派生==旧 RPC 逐字段一致(含空命中)』不绿则②整体弃,不许放宽成近似一致",
+   "【S4-T5 默认值挑战】4.0s 是拍脑袋值:先拉 search_unified 成功请求的 p95,若健康查询 p95>4s 则默认值上调(否则把慢而正确的查询批量斩成降级,retrieval_degraded 率上升)——部署前一条 Langfuse 查询的事,必须做",
+   "【S4-T1/T2 机制假设加固】T1 的 memo-skip 依赖『_decide 无时间输入,同内容⇒同决策』——实施时核 prompt 模板是否嵌时间戳,嵌则 memo 键要含它;T2 的污染机制(create_task 上下文快照)未活体证明,且 auto_start_bots 启动的心跳应当干净——上线后按设计自己的验证法核 Langfuse,若 startup bot 也污染则机制假设错,fallback 改 _tick 内显式 detach;另外空 Context 会连 usage_scope 一起剥离,确认心跳 usage 记账落全局口径而非丢失",
+   "【S1-T3/B4 快档降档共同前提】resolve_fast_tier_model 空串→fail-open 主模型=未配置时零效果零风险(config.py:283 语义与 Battle1 一致),但也意味着:生产 .env 未配 fast_model 时,S1-T3 与 B4 的全部降档收益为零——通电前 SSH 只读核 .env 是两者共同的硬前置,验收报告里禁止在未核配置的情况下宣称降档收益",
+   "【跨家族总挑战】四家族全部生产数字(52%/1,510/36k/938/32次)出自一份两个 worktree 都找不到的报告——第 0 步 Langfuse 复核不是仪式,是每家族刀落的前置门;另 S1 阈值=3、S2 目标=700tok、S4-T6 灰度值=1500 字符三个 magic number 都无实测支撑,验收全部以 T4/Langfuse 实测回填,不许以设计值为准写结论"
+  ],
+  "red_lines": [
+   "判分差分门任何一例裁决字段(is_correct/score/correct_answer/答案字母)新旧臂不一致→S2 全家停手,门修绿前不许灰度",
+   "部署后 explanation_section_miss 率或 repair 触发率较基线上升→第一嫌疑 T2 cap,立即 flag off(秒级)并单独 revert cap commit",
+   "新 TTFVT histogram 显示 turn p50/p95 较部署#1 基线恶化>10%→回滚最近一个 toggle,一次只回一个",
+   "S1 门:T4 埋点 skip_throttled 占比>85% 或 changed 率跌至≈0→门有 bug(疑似永不开门),revert T1;摘要陈旧超过 2 实质 turn 的活体反例出现→同上",
+   "heartbeat:任何有真任务的 bot 出现 tick 无决策日志(漏执行)→revert T1 确定性门;Langfuse 显示心跳 observation 仍挂 turn trace→T2 机制假设错,按 fallback 改 detach 而非带病运行",
+   "检索:exact_question 采纳率下降或 retrieval_degraded 率较基线升>2x→SUPABASE_RAG_UNIFIED_TIMEOUT_S 回 8.0/rerank cap 回 0(参数化回滚,免发版);oracle 测试红→T4② 直接弃",
+   "观测铁律:任何埋点/导出异常导致 turn 失败(理论 fail-open 不可能)→当日回滚整个观测 PR;runbook 步骤1 SDK 签名核不过→T1/T2 不部署,先升 SDK",
+   "样本量红线:凑不够 ≥30 条 judged turns 不许宣称 S2 收益(F13 教训);任何『变快了』宣称必须引用部署#1 采集的 TTFVT 基线对照,禁 trace latency 口径",
+   "发布纪律:生产今天已部署 2 次,今日不再有第三次部署;每次部署容器内 grep SHA 防假绿;任何一步触红线,先关最近 toggle 再排查,禁止带病继续开下一个 toggle"
+  ],
+  "defer_recommendations": "砍单:S4-T4③ exact-text 串行短路(本列车不做,理由见挑战#3;重做形态=并行+cancel,待 exact-text RPC p95 实测后另立小 PR)。推迟:①S4-T6 rerank 截断的『通电』推迟到 20-turn spot-check 完成(代码本列车进、默认 0 零行为);②S2-T2 cap 在 flag-off 臂的生效推迟到 flag 删除日(改判为随 flag);③S1 evidence-scan 若实施中时序证伪则降级为计数门+capability 直通(staleness 上界不变,砍复杂度);④memory_service.refresh_from_turn 同病兄弟、manager.py loop/router task 的 context 隔离、search_unified DB 侧三合一(p_source_type 合并)、变体数/rerank_window 收窄(待最小召回 eval)、legacy provider(open_ai.py/anthropic.py)的 completion_start_time——五项全部挂账 docs/plan 实施笔记,不混入本列车任何 PR。宁少而稳的底线:本列车四个确定性大头(S1 门+S4 heartbeat 双修+S3 观测+S2 去套话)已覆盖报告成本/延迟主体的 ~70%,以上推迟项合计影响 <15%,不值得为它们增加回滚面。",
+  "release_train_plan": "4 次 PR+2 次部署+串行灰度。生产今天已部署 2 次,部署#1 最早明天(D+1)。【PR-0|即刻可发】origin/perf/followup-classifier-b2b4→main:单 commit、flag LUBAN_FOLLOWUP_FAST_TIER_ENABLED 默认关=零行为,合并只为占住 contracts/env_registry 基线,不单独触发部署。【PR-1|观测基座】S3 全部+S4-T2(heartbeat 空 Context)+multiworker_metrics 合并支持:全 observe-only 零行为;turn_runtime.py/factory.py 为 sensitive/protected,域测试同 PR 跑,扩展已登记测试文件优先(免双镜像新登记)。【部署#1|D+1】PR-0+PR-1 一起 build 上线(Python 改动必须 build,容器内 grep SHA),随即跑 S3-T4 runbook:SDK 签名硬前置→5 个流式 turn→Langfuse completionStartTime 非空→Prometheus FUC 桶非零(两 worker 合并视图),采 24-48h TTFT/TTFVT 基线,这是全列车唯一合法对照组。【PR-2|成本刀,无用户可见文本变化】S1 四 commits+S4-T1/T3/T5/T6/T4①②(各自独立 commit 独立回滚);前置=Langfuse 第0步复核完成+oracle 测试绿+timeout 默认值按 p95 校准。【PR-3|判分收紧】S2-T4→T1→T3 差分门(自证红测+全绿硬前置)→T2(随 flag)→T5;前置=前端 sections key 消费 grep 清零。【部署#2|D+2~D+3,不与部署#1 同日】PR-2+PR-3 一起 build 上线(prompt yaml 烘焙进镜像必须 rebuild,此后回滚=flag off 秒级免发版)。【灰度 toggle 序,每次只开一个、间隔≥24h、触红线先关最近的】T+0:PR-2 无 flag 项自动生效,靠 S1-T4 埋点+Langfuse 验收 48h(预期 skip 率 55-65%、heartbeat LLM 归零、探活出热路径);同时 SSH 只读核生产 .env fast_model(S1-T3 与 B4 共同前提);T+2d:DEEPTUTOR_MCQ_FEEDBACK_COMPACT=on——先 test2 QA cohort 真机 3 轮拉持久化终态人眼核(禁流式抓包判质量),再生产 on,凑 ≥30 judged turns 才许宣称;T+3d:LUBAN_FOLLOWUP_FAST_TIER_ENABLED=on(B2/B4 通电,盯回指维度这一灰度观察点);T+5d+:SUPABASE_RAG_RERANK_DOC_CHAR_CAP=1500(20 turn spot-check 后)。flag 生命周期:两个行为 flag 各带 14 天赎罪条款写进 docs/plan 实施笔记并挂 INDEX.md,达标即删 flag+删旧 prompt key,由 owner 里程碑 PR 收账。全程部署走 deeptutor-aliyun-release checklist,宿主 .env 与容器 env 双核对。"
+ },
+ "provenance": {
+  "design_workflow": "wf_02bfe32a-41a (4/5设计师+全局指挥官;S4发布列车设计师API中断,发布列车方案由指挥官release_train_plan覆盖)",
+  "evidence_base": "docs/plan/观测发布与生产上线/2026-07-12-langfuse-production-deep-investigation.md (agent直拉生产Langfuse,26927 traces/188 turn解剖)",
+  "baseline": "origin/main 5791967d, branch perf/battle2-speed-cost-20260712"
+ }
+}
