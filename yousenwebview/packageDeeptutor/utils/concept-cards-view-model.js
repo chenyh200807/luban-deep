@@ -240,6 +240,18 @@ function buildDeckViewModel(body) {
         keyGist: _str(o.key_gist),
         quote: _str(o.quote),
         pointId: _str(o.point_id),
+        // v32 采分点富化: [{statement, required_terms[]}] 签发透传(无=空数组)
+        scoringTerms: _safeArr(o.scoring_terms)
+          .map(function (r) {
+            var t = _safeObj(r);
+            return {
+              statement: _str(t.statement),
+              terms: _safeArr(t.required_terms).map(_str).filter(Boolean),
+            };
+          })
+          .filter(function (r) {
+            return r.terms.length > 0;
+          }),
         // 角注: point_id 溯源 + 教材页码(有则并示)
         sourceNote:
           _str(o.point_id) +

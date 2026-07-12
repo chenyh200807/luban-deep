@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 7
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "S05",
  "status": "signed",
  "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
- "generation_ms": 60.81,
+ "generation_ms": 89.51,
  "gate": {
   "total": 10,
   "passed": 10,
@@ -38,7 +42,17 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电安全技术"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电安全技术",
+   "scoring_terms": [
+    {
+     "statement": "临时用电三大系统：施工现场临时用电必须采用三级配电系统、TN-S接零保护系统、二级剩余电流动作保护系统。",
+     "required_terms": [
+      "三级配电",
+      "TN-S"
+     ],
+     "point_id": "kc:1A431011_015_0016:0"
+    }
+   ]
   },
   {
    "card_id": "S05:kc:1A431011_015_0016:1",
@@ -66,7 +80,21 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电安全技术"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电安全技术",
+   "scoring_terms": [
+    {
+     "statement": "安全特低电压应用：不同环境下的安全电压限值：潮湿/隧道/人防 → ≤36V；易触及带电体 → ≤24V；金属容器/锅炉 → ≤12V。",
+     "required_terms": [
+      "AC36V",
+      "AC24V",
+      "AC12V",
+      "36V",
+      "24V",
+      "12V"
+     ],
+     "point_id": "kc:1A431011_015_0016:2"
+    }
+   ]
   },
   {
    "card_id": "S05:kc:1A431011_014_0015:1",
@@ -80,7 +108,19 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电管理"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电管理",
+   "scoring_terms": [
+    {
+     "statement": "三级配电系统：配电系统应设置总配电箱、分配电箱、开关箱三级配电装置，实行三级配电。",
+     "required_terms": [
+      "三级配电",
+      "总配电箱",
+      "分配电箱",
+      "开关箱"
+     ],
+     "point_id": "kc:1A431011_014_0015:1"
+    }
+   ]
   },
   {
    "card_id": "S05:kc:1A431011_014_0015:2",
@@ -108,7 +148,19 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电管理"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电管理",
+   "scoring_terms": [
+    {
+     "statement": "动力与照明配电分离：动力配电箱与照明配电箱宜分别设置；若合并，则动力和照明应分路配电，且动力开关箱与照明开关箱必须分设。",
+     "required_terms": [
+      "动力",
+      "照明",
+      "分路",
+      "分设"
+     ],
+     "point_id": "kc:1A431011_014_0015:3"
+    }
+   ]
   },
   {
    "card_id": "S05:kc:1A431011_014_0015:0",
@@ -122,7 +174,20 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电管理"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电管理",
+   "scoring_terms": [
+    {
+     "statement": "电缆埋地深度要求：电缆直接埋地敷设的深度不应小于 0.7m。",
+     "required_terms": [
+      "电缆",
+      "埋地",
+      "深度",
+      "防护套管",
+      "0.7m"
+     ],
+     "point_id": "kc:1A431011_014_0015:0"
+    }
+   ]
   },
   {
    "card_id": "S05:kc:1A431011_014_0015:4",
@@ -136,7 +201,19 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电管理"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 临时用电管理",
+   "scoring_terms": [
+    {
+     "statement": "电工持证上岗：电工应经职业资格考试合格后，持证上岗工作。",
+     "required_terms": [
+      "电工",
+      "持证",
+      "上岗",
+      "持证上岗"
+     ],
+     "point_id": "kc:1A431011_014_0015:4"
+    }
+   ]
   },
   {
    "card_id": "S05:kc:1A436000_107_0174:0",
@@ -164,12 +241,34 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工安全管理 > 触电事故预防管理"
+   "leaf_name_path": "施工安全管理 > 触电事故预防管理",
+   "scoring_terms": [
+    {
+     "statement": "下列关于施工现场照明用电的说法正确的是？",
+     "required_terms": [
+      "36V",
+      "SELV",
+      "双绕组型"
+     ],
+     "point_id": "ca:1A436000_130_0209"
+    },
+    {
+     "statement": "特殊场所照明安全电压：手持式灯具供电电压不得超过36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
+     "required_terms": [
+      "SELV",
+      "隔离变压器",
+      "金属容器",
+      "36V",
+      "双绕组"
+     ],
+     "point_id": "kc:1A436000_130_0209:0"
+    }
+   ]
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:20:58+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:48+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

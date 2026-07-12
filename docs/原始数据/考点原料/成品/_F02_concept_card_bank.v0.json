@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 2
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "F02",
  "status": "signed",
  "source_pack_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
- "generation_ms": 59.32,
+ "generation_ms": 88.13,
  "gate": {
   "total": 4,
   "passed": 4,
@@ -114,7 +118,20 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 屋面与防水工程施工 > 屋面工程构造和施工 > 檐口、檐沟、天沟、水落口等细部的施工"
+   "leaf_name_path": "建筑工程施工技术 > 屋面与防水工程施工 > 屋面工程构造和施工 > 檐口、檐沟、天沟、水落口等细部的施工",
+   "scoring_terms": [
+    {
+     "statement": "关于屋面檐口卷材施工，下列说法正确的是？",
+     "required_terms": [
+      "满粘",
+      "金属压条",
+      "密封材料",
+      "鹰嘴",
+      "滴水槽"
+     ],
+     "point_id": "ca:1A413030_125_0237"
+    }
+   ]
   },
   {
    "card_id": "F02:kc:1A413030_125_0237:1",
@@ -128,12 +145,25 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 屋面与防水工程施工 > 屋面工程构造和施工 > 檐口、檐沟、天沟、水落口等细部的施工"
+   "leaf_name_path": "建筑工程施工技术 > 屋面与防水工程施工 > 屋面工程构造和施工 > 檐口、檐沟、天沟、水落口等细部的施工",
+   "scoring_terms": [
+    {
+     "statement": "檐沟/天沟附加层要求：檐沟和天沟防水层下需增设附加层，伸入屋面宽度≥250mm；女儿墙泛水处附加层在平面和立面宽度均≥250mm。",
+     "required_terms": [
+      "附加层",
+      "250mm",
+      "檐沟",
+      "天沟",
+      "女儿墙"
+     ],
+     "point_id": "kc:1A413030_125_0237:1"
+    }
+   ]
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:20:59+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:46+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

@@ -102,6 +102,8 @@ def build_concept_cards(
                 "quote": str(c.get("quote") or ""),
                 "point_id": str(c.get("point_id") or ""),
                 "source_ref": c.get("source_ref") or {},
+                # v32 采分点富化(2026-07-12): 阅卷认的词, 编译期签发, 此处只透传
+                "scoring_terms": c.get("scoring_terms") or [],
             }
             for c in cards
         ],

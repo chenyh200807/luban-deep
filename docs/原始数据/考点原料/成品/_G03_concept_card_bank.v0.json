@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 7
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "G03",
  "status": "signed",
  "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
- "generation_ms": 64.82,
+ "generation_ms": 90.89,
  "gate": {
   "total": 14,
   "passed": 14,
@@ -108,7 +112,19 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 桩基础施工 > 钢筋混凝土灌注桩分类"
+   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 桩基础施工 > 钢筋混凝土灌注桩分类",
+   "scoring_terms": [
+    {
+     "statement": "下列哪些属于钢筋混凝土灌注桩的施工方法？",
+     "required_terms": [
+      "泥浆护壁",
+      "沉管",
+      "长螺旋钻孔",
+      "干作业"
+     ],
+     "point_id": "ca:1A413030_091_0167"
+    }
+   ]
   },
   {
    "card_id": "G03:kc:1A413030_091_0168:0",
@@ -122,7 +138,21 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 桩基础施工 > 泥浆护壁灌注桩施工工艺流程"
+   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 桩基础施工 > 泥浆护壁灌注桩施工工艺流程",
+   "scoring_terms": [
+    {
+     "statement": "请描述泥浆护壁灌注桩的施工流程，并指出关键控制环节。",
+     "required_terms": [
+      "场地平整",
+      "护筒埋设",
+      "成孔",
+      "清孔",
+      "下钢筋笼",
+      "二次清孔"
+     ],
+     "point_id": "ca:1A413030_091_0168"
+    }
+   ]
   },
   {
    "card_id": "G03:kc:1A413030_091_0169:0",
@@ -164,7 +194,29 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 桩基础施工 > 人工挖孔灌注桩护壁方法"
+   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 桩基础施工 > 人工挖孔灌注桩护壁方法",
+   "scoring_terms": [
+    {
+     "statement": "人工挖孔桩桩距小于2.5m时，应如何施工？",
+     "required_terms": [
+      "间隔开挖",
+      "间隔浇筑",
+      "5m",
+      "先中间后周边"
+     ],
+     "point_id": "ca:1A413030_092_0172"
+    },
+    {
+     "statement": "人工挖孔桩施工要点：桩距<2.5m时，应间隔开挖和浇筑，最小间距≥5m；挖土顺序：先中间后周边，扩底先挖圆柱体再扩底。",
+     "required_terms": [
+      "间隔开挖",
+      "扩底",
+      "2.5m",
+      "5m"
+     ],
+     "point_id": "kc:1A413030_092_0172:0"
+    }
+   ]
   },
   {
    "card_id": "G03:kc:1A413030_092_0173:0",
@@ -178,7 +230,29 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 桩基础施工 > 桩基检测技术"
+   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 桩基础施工 > 桩基检测技术",
+   "scoring_terms": [
+    {
+     "statement": "以下哪些属于桩基检测方法？",
+     "required_terms": [
+      "静载试验",
+      "钻芯法",
+      "低应变法",
+      "高应变法"
+     ],
+     "point_id": "ca:1A413030_092_0173"
+    },
+    {
+     "statement": "桩基检测方法汇总：1. 静载试验：抗压/抗拔/水平；2. 钻芯法：测强度、桩长、沉渣；3. 低应变法：测缺陷；4. 高应变法：测承载力；5. 声波透射法：测缺陷。",
+     "required_terms": [
+      "桩基检测",
+      "静载试验",
+      "钻芯法",
+      "低应变法"
+     ],
+     "point_id": "kc:1A413030_092_0173:0"
+    }
+   ]
   },
   {
    "card_id": "G03:kc:1A413030_093_0174:1",
@@ -206,7 +280,21 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 混凝土基础施工 > 单桩竖向抗压承载力特征值取值"
+   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 混凝土基础施工 > 单桩竖向抗压承载力特征值取值",
+   "scoring_terms": [
+    {
+     "statement": "钻芯法钻孔数量与位置：桩径<1.2m：1~2孔；1.2~1.6m：2孔；>1.6m：3孔；钻孔位置在距桩中心(0.15~0.25)D范围内均匀对称布置。",
+     "required_terms": [
+      "钻芯法",
+      "钻孔数量",
+      "桩径",
+      "钻孔位置",
+      "1.2m",
+      "1.6m"
+     ],
+     "point_id": "kc:1A413030_093_0174:2"
+    }
+   ]
   },
   {
    "card_id": "G03:kc:1A434000_065_0096:0",
@@ -220,7 +308,29 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工质量管理 > 打（压）预制桩工程"
+   "leaf_name_path": "施工质量管理 > 打（压）预制桩工程",
+   "scoring_terms": [
+    {
+     "statement": "关于混凝土灌注桩的承载力检测，下列说法正确的是？",
+     "required_terms": [
+      "静载试验",
+      "1%",
+      "高应变法",
+      "5%"
+     ],
+     "point_id": "ca:1A434000_065_0096"
+    },
+    {
+     "statement": "混凝土灌注桩承载力检测要求：设计等级为甲级或地质条件复杂时，应采用静载试验，检验桩数不少于总桩数的1%且不少于3根；总桩数<50根时，不少于2根。",
+     "required_terms": [
+      "静载试验",
+      "高应变法",
+      "桩基",
+      "1%"
+     ],
+     "point_id": "kc:1A434000_065_0096:0"
+    }
+   ]
   },
   {
    "card_id": "G03:kc:1A434000_065_0096:1",
@@ -234,7 +344,29 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工质量管理 > 打（压）预制桩工程"
+   "leaf_name_path": "施工质量管理 > 打（压）预制桩工程",
+   "scoring_terms": [
+    {
+     "statement": "关于混凝土灌注桩的承载力检测，下列说法正确的是？",
+     "required_terms": [
+      "静载试验",
+      "1%",
+      "高应变法",
+      "5%"
+     ],
+     "point_id": "ca:1A434000_065_0096"
+    },
+    {
+     "statement": "混凝土灌注桩承载力检测要求：设计等级为甲级或地质条件复杂时，应采用静载试验，检验桩数不少于总桩数的1%且不少于3根；总桩数<50根时，不少于2根。",
+     "required_terms": [
+      "静载试验",
+      "高应变法",
+      "桩基",
+      "1%"
+     ],
+     "point_id": "kc:1A434000_065_0096:0"
+    }
+   ]
   },
   {
    "card_id": "G03:kc:1A434000_070_0109:0",
@@ -252,8 +384,8 @@
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:21:00+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:47+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

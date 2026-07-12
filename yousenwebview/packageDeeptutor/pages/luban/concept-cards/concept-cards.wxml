@@ -165,6 +165,22 @@
                 <text class="cc-gist-text">{{currentCard.keyGist}}</text>
               </view>
 
+              <!-- 阅卷认的词(v32采分点富化: 教材verified溯源, 写到才给分) -->
+              <view class="cc-terms" wx:if="{{currentCard.scoringTerms.length}}">
+                <text class="cc-sec-label">阅卷认的词 · 写到才给分</text>
+                <view class="cc-terms-row">
+                  <block wx:for="{{currentCard.scoringTerms}}" wx:key="index">
+                    <text
+                      class="cc-term-chip"
+                      wx:for="{{item.terms}}"
+                      wx:for-item="term"
+                      wx:key="*this"
+                    >{{term}}</text>
+                  </block>
+                </view>
+                <text class="cc-terms-note">来自判分编译库 · 教材原文逐词核验</text>
+              </view>
+
               <!-- 挂钩错因银行: 这一站有待还错因时给一条回路(纯导航,零第二权威) -->
               <view class="cc-eb-link" wx:if="{{packPendingCount > 0}}" catchtap="goErrorbank">
                 <text class="cc-eb-link-tx">这一站你有 {{packPendingCount}} 笔待还错因 · 去看解药</text>

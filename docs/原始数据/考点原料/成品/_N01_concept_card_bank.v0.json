@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 4
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "N01",
  "status": "signed",
  "source_pack_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
- "generation_ms": 57.92,
+ "generation_ms": 87.46,
  "gate": {
   "total": 5,
   "passed": 5,
@@ -62,7 +66,28 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工进度管理 > 工期优化"
+   "leaf_name_path": "施工进度管理 > 工期优化",
+   "scoring_terms": [
+    {
+     "statement": "下列关于网络计划关键线路的说法正确的是？",
+     "required_terms": [
+      "关键线路",
+      "总时差最小",
+      "计算工期"
+     ],
+     "point_id": "ca:1A433000_056_0085"
+    },
+    {
+     "statement": "关键工作与关键线路判定：关键工作是总时差最小的工作；关键线路是由全部关键工作组成的线路，其工期等于网络计划的计算工期。",
+     "required_terms": [
+      "关键工作",
+      "关键线路",
+      "总时差",
+      "最小"
+     ],
+     "point_id": "kc:1A433000_056_0085:1"
+    }
+   ]
   },
   {
    "card_id": "N01:kc:LEC_1A433000_P0018_001:0",
@@ -89,7 +114,29 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工进度管理 > 网络计划技术"
+   "leaf_name_path": "施工进度管理 > 网络计划技术",
+   "scoring_terms": [
+    {
+     "statement": "网络计划技术的应用程序包括几个阶段？",
+     "required_terms": [
+      "7个阶段",
+      "18个步骤"
+     ],
+     "point_id": "ca:1A433000_055_0084"
+    },
+    {
+     "statement": "网络计划技术应用程序：网络计划技术的应用程序包括7个阶段18个步骤，涵盖准备、绘图、计算、编制、确定、实施与控制、收尾全过程。",
+     "required_terms": [
+      "网络计划",
+      "应用程序",
+      "阶段",
+      "步骤",
+      "7个阶段",
+      "18个步骤"
+     ],
+     "point_id": "kc:1A433000_055_0084:0"
+    }
+   ]
   },
   {
    "card_id": "N01:kc:1A433000_061_0091:0",
@@ -103,7 +150,17 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工进度管理 > 施工进度计划监测的内容"
+   "leaf_name_path": "施工进度管理 > 施工进度计划监测的内容",
+   "scoring_terms": [
+    {
+     "statement": "施工进度计划监测核心内容：施工进度计划监测包括：记录实际时间、观测关键线路、检查非关键工作、核查逻辑关系、收集变更信息。",
+     "required_terms": [
+      "关键线路",
+      "逻辑关系"
+     ],
+     "point_id": "kc:1A433000_061_0091:0"
+    }
+   ]
   },
   {
    "card_id": "N01:kc:1A433000_061_0092:0",
@@ -117,12 +174,31 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工进度管理 > 施工进度计划的调整依据"
+   "leaf_name_path": "施工进度管理 > 施工进度计划的调整依据",
+   "scoring_terms": [
+    {
+     "statement": "某项目因材料延迟导致关键路径延误，应如何调整进度计划？",
+     "required_terms": [
+      "关键工作调整",
+      "资源优化"
+     ],
+     "point_id": "ca:1A433000_061_0092"
+    },
+    {
+     "statement": "进度计划调整五种方法：1. 关键工作调整；2. 逻辑关系调整；3. 重新编制计划；4. 非关键工作调整；5. 资源调整。",
+     "required_terms": [
+      "关键工作",
+      "资源优化",
+      "逻辑关系"
+     ],
+     "point_id": "kc:1A433000_061_0092:0"
+    }
+   ]
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:20:58+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:47+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

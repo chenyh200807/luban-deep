@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 10
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "C02",
  "status": "signed",
  "source_pack_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
- "generation_ms": 63.59,
+ "generation_ms": 94.22,
  "gate": {
   "total": 13,
   "passed": 13,
@@ -58,7 +62,22 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "工程招标投标与合同管理 > 工程量清单规定"
+   "leaf_name_path": "工程招标投标与合同管理 > 工程量清单规定",
+   "scoring_terms": [
+    {
+     "statement": "关于工程量清单计价方式，下列说法正确的是？",
+     "required_terms": [
+      "单价计价",
+      "总价计价",
+      "综合单价",
+      "风险费",
+      "措施项目清单",
+      "发包人负责",
+      "承包人负责"
+     ],
+     "point_id": "ca:1A432002_035_0046"
+    }
+   ]
   },
   {
    "card_id": "C02:kc:1A435000_038_0050:0",
@@ -72,7 +91,19 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "工程招标投标与合同管理 > 建筑工程费构成与计算"
+   "leaf_name_path": "工程招标投标与合同管理 > 建筑工程费构成与计算",
+   "scoring_terms": [
+    {
+     "statement": "分部分项工程费计算公式：分部分项工程费 = Σ（分部分项工程量 × 综合单价）",
+     "required_terms": [
+      "分部分项工程费",
+      "综合单价",
+      "工程量",
+      "Σ"
+     ],
+     "point_id": "kc:1A435000_038_0050:1"
+    }
+   ]
   },
   {
    "card_id": "C02:kc:1A435000_038_0050:2",
@@ -86,7 +117,19 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "工程招标投标与合同管理 > 建筑工程费构成与计算"
+   "leaf_name_path": "工程招标投标与合同管理 > 建筑工程费构成与计算",
+   "scoring_terms": [
+    {
+     "statement": "分部分项工程费计算公式：分部分项工程费 = Σ（分部分项工程量 × 综合单价）",
+     "required_terms": [
+      "分部分项工程费",
+      "综合单价",
+      "工程量",
+      "Σ"
+     ],
+     "point_id": "kc:1A435000_038_0050:1"
+    }
+   ]
   },
   {
    "card_id": "C02:kc:1A435000_043_0058:2",
@@ -100,7 +143,30 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "工程招标投标与合同管理 > 分析与答案"
+   "leaf_name_path": "工程招标投标与合同管理 > 分析与答案",
+   "scoring_terms": [
+    {
+     "statement": "工程预付款计算：工程预付款 = 合同价 × 预付款比例",
+     "required_terms": [
+      "预付款",
+      "比例",
+      "20%",
+      "132.00"
+     ],
+     "point_id": "kc:1A435000_043_0058:0"
+    },
+    {
+     "statement": "预付款起扣点计算：预付款起扣点 = 合同价 − 预付款 / 起扣比例",
+     "required_terms": [
+      "起扣点",
+      "预付款",
+      "比例",
+      "60%",
+      "440.00"
+     ],
+     "point_id": "kc:1A435000_043_0058:1"
+    }
+   ]
   },
   {
    "card_id": "C02:kc:1A435000_042_0056:0",
@@ -128,7 +194,17 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "工程招标投标与合同管理 > 合同未约定支付比例时的规定"
+   "leaf_name_path": "工程招标投标与合同管理 > 合同未约定支付比例时的规定",
+   "scoring_terms": [
+    {
+     "statement": "未约定支付比例的最低标准：合同未约定工程总值支付比例的，支付比例不宜低于累计完成工程总值的 80%。",
+     "required_terms": [
+      "支付比例",
+      "80%"
+     ],
+     "point_id": "kc:1A435000_042_0056:1"
+    }
+   ]
   },
   {
    "card_id": "C02:kc:1A435000_040_0054:1",
@@ -142,7 +218,19 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "工程招标投标与合同管理 > 分析与答案：计算建安工程造价"
+   "leaf_name_path": "工程招标投标与合同管理 > 分析与答案：计算建安工程造价",
+   "scoring_terms": [
+    {
+     "statement": "合同价款调整事项：合同履行过程中可调整合同价款的事项包括：工程量清单缺陷、暂列金额、暂估价、总承包服务费、计日工、物价变化、法律法规变化、工程变更、新增工程、工程索赔。",
+     "required_terms": [
+      "暂列金额",
+      "暂估价",
+      "工程变更",
+      "工程索赔"
+     ],
+     "point_id": "kc:1A435000_040_0054:1"
+    }
+   ]
   },
   {
    "card_id": "C02:kc:1A432002_036_0047:0",
@@ -156,7 +244,30 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "工程招标投标与合同管理 > 合同选择与要求"
+   "leaf_name_path": "工程招标投标与合同管理 > 合同选择与要求",
+   "scoring_terms": [
+    {
+     "statement": "下列哪项属于由发包人承担的计价风险？",
+     "required_terms": [
+      "发包人提供",
+      "工程量清单缺陷",
+      "工程变更",
+      "赶工"
+     ],
+     "point_id": "ca:1A432002_036_0047"
+    },
+    {
+     "statement": "计价风险责任划分：发包人承担：清单缺陷、数据错误、变更、赶工；承包人承担：措施清单准确性、总价合同缺陷、自身方案变更、施工效率问题。",
+     "required_terms": [
+      "计价风险",
+      "发包人",
+      "承包人",
+      "工程量清单",
+      "措施项目"
+     ],
+     "point_id": "kc:1A432002_036_0047:0"
+    }
+   ]
   },
   {
    "card_id": "C02:kc:1A432002_037_0048:0",
@@ -184,7 +295,16 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "工程招标投标与合同管理 > 实际价格法"
+   "leaf_name_path": "工程招标投标与合同管理 > 实际价格法",
+   "scoring_terms": [
+    {
+     "statement": "某工程使用1000工日，合同人工单价为100元/工日，信息价为120元/工日，人工费调整额是多少？",
+     "required_terms": [
+      "信息价"
+     ],
+     "point_id": "ca:1A435000_044_0061"
+    }
+   ]
   },
   {
    "card_id": "C02:kc:1A435000_045_0064:1",
@@ -198,7 +318,19 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "工程招标投标与合同管理 > 应用调值公式时应注意"
+   "leaf_name_path": "工程招标投标与合同管理 > 应用调值公式时应注意",
+   "scoring_terms": [
+    {
+     "statement": "调值注意事项：① 固定费用a₀通常在0.15~0.35之间；② 只调整对总造价影响大的少数项；③ 调整幅度一般≥±5%；④ 考核地点应在工程所在地；⑤ 必须确定基期和当期价格指数。",
+     "required_terms": [
+      "价格指数",
+      "0.15",
+      "0.35",
+      "±5%"
+     ],
+     "point_id": "kc:1A435000_045_0064:1"
+    }
+   ]
   },
   {
    "card_id": "C02:kc:1A435000_044_0059:0",
@@ -212,7 +344,27 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "工程招标投标与合同管理 > 竣工结算申请与支付"
+   "leaf_name_path": "工程招标投标与合同管理 > 竣工结算申请与支付",
+   "scoring_terms": [
+    {
+     "statement": "关于竣工结算中质量保证金的说法，正确的是？",
+     "required_terms": [
+      "3%",
+      "质量保证金",
+      "保函"
+     ],
+     "point_id": "ca:1A435000_044_0059"
+    },
+    {
+     "statement": "质量保证金上限：累计预留的质量保证金或以担保保函替代的金额不得超过工程结算总价的3%。",
+     "required_terms": [
+      "质量保证金",
+      "3%",
+      "预留"
+     ],
+     "point_id": "kc:1A435000_044_0059:0"
+    }
+   ]
   },
   {
    "card_id": "C02:kc:1A435020_095_0156:0",
@@ -230,8 +382,8 @@
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:20:59+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:45+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

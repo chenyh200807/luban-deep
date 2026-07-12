@@ -196,3 +196,20 @@ console.log("test_concept_cards_view_model: all assertions passed");
   assert(sh.key === "plain" && sh.tone === "ink", "颗粒兜底形状");
   console.log("PASS 知识形状 4断言");
 })();
+
+// ── v32采分点富化透传(2026-07-12): 阅卷认的词 ──
+(function () {
+  var deck = ccvm.buildDeckViewModel({
+    pack_id: "a01", title: "T",
+    cards: [{ card_id: "c1", front: "f", key_gist: "g", quote: "q",
+      point_id: "kc:x", source_ref: { page_num: 21 },
+      scoring_terms: [{ statement: "s", required_terms: ["竣工验收", "预验收"] }] }],
+  });
+  var c = deck.cards[0];
+  if (!c.scoringTerms || c.scoringTerms.length !== 1) throw new Error("terms透传");
+  if (c.scoringTerms[0].terms.join(",") !== "竣工验收,预验收") throw new Error("terms内容");
+  var deck2 = ccvm.buildDeckViewModel({ pack_id: "a", title: "T",
+    cards: [{ card_id: "c2", front: "f", key_gist: "", quote: "q", point_id: "p", source_ref: {} }] });
+  if (deck2.cards[0].scoringTerms.length !== 0) throw new Error("无富化=空数组");
+  console.log("PASS 采分点富化透传 3断言");
+})();

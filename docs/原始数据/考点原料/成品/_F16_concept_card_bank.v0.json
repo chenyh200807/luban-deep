@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 1
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "F16",
  "status": "signed",
  "source_pack_sha256": "51b0f455ad205b4ed9965720d9562861a4a2ef7e8e7aa4c690ca69b8d88fff2e",
- "generation_ms": 58.41,
+ "generation_ms": 86.61,
  "gate": {
   "total": 1,
   "passed": 1,
@@ -58,12 +62,24 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工质量管理 > 屋面工程施工过程检查与检验"
+   "leaf_name_path": "施工质量管理 > 屋面工程施工过程检查与检验",
+   "scoring_terms": [
+    {
+     "statement": "屋面施工过程中，以下哪项不属于必须检查的内容？",
+     "required_terms": [
+      "基层状况",
+      "搭接长度",
+      "排气孔",
+      "保护层"
+     ],
+     "point_id": "ca:1A434000_068_0104"
+    }
+   ]
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:20:58+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:46+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

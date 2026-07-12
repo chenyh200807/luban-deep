@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 3
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "C01",
  "status": "signed",
  "source_pack_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
- "generation_ms": 58.82,
+ "generation_ms": 89.91,
  "gate": {
   "total": 3,
   "passed": 3,
@@ -50,7 +54,20 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 主体结构工程施工 > 施工缝和后浇带"
+   "leaf_name_path": "建筑工程施工技术 > 主体结构工程施工 > 施工缝和后浇带",
+   "scoring_terms": [
+    {
+     "statement": "后浇带施工要点：后浇带使用微膨胀混凝土，强度提高一级，养护不少于14天，接缝按施工缝处理。",
+     "required_terms": [
+      "后浇带",
+      "微膨胀",
+      "强度",
+      "养护",
+      "14d"
+     ],
+     "point_id": "kc:1A413030_103_0196:1"
+    }
+   ]
   },
   {
    "card_id": "C01:kc:1A413030_094_0176:0",
@@ -64,7 +81,28 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 混凝土基础施工 > 模板工程施工作业要求"
+   "leaf_name_path": "建筑工程施工技术 > 地基与基础工程施工 > 混凝土基础施工 > 模板工程施工作业要求",
+   "scoring_terms": [
+    {
+     "statement": "某工程采用高杯口基础，杯口模板应在何时安装？",
+     "required_terms": [
+      "封底式杯口模板",
+      "分段支设",
+      "独立支设",
+      "后浇带模板"
+     ],
+     "point_id": "ca:1A413030_094_0176"
+    },
+    {
+     "statement": "基础模板施工要点：杯形基础用封底式模板，压紧并留孔；锥形基础分段支设，斜面必须支模；高杯口基础待混凝土接近杯底时再装模板；后浇带用快易收口网，浇筑前拆除并凿毛；箱形基础后浇带模板独立支设，防止受力改变。",
+     "required_terms": [
+      "杯口模板",
+      "分段支设",
+      "独立支设"
+     ],
+     "point_id": "kc:1A413030_094_0176:0"
+    }
+   ]
   },
   {
    "card_id": "C01:kc:1A434000_074_0116:0",
@@ -78,12 +116,23 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工质量管理 > 钢结构工程施工"
+   "leaf_name_path": "施工质量管理 > 钢结构工程施工",
+   "scoring_terms": [
+    {
+     "statement": "地下防水施工缝渗漏原因：施工缝未清理干净 → 混凝土粘结不良 → 渗漏；未按规范处理施工缝 → 接槎明显；钢筋密集 → 浇捣困难 → 混凝土不密实。",
+     "required_terms": [
+      "施工缝",
+      "渗漏",
+      "钢筋过密"
+     ],
+     "point_id": "kc:1A434000_074_0116:3"
+    }
+   ]
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:20:58+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:45+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

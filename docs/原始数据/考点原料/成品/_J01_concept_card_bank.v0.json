@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 0
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "J01",
  "status": "signed",
  "source_pack_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
- "generation_ms": 60.38,
+ "generation_ms": 86.33,
  "gate": {
   "total": 3,
   "passed": 3,
@@ -110,8 +114,8 @@
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:20:58+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:47+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

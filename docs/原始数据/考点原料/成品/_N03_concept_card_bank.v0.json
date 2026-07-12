@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 6
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "N03",
  "status": "signed",
  "source_pack_sha256": "ae9e5525c4f86bda1a0868a65663b2b56dcd4bd48846f8aa7e5a62af9999b590",
- "generation_ms": 64.78,
+ "generation_ms": 89.85,
  "gate": {
   "total": 10,
   "passed": 10,
@@ -64,7 +68,21 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工进度管理 > 工艺参数"
+   "leaf_name_path": "施工进度管理 > 工艺参数",
+   "scoring_terms": [
+    {
+     "statement": "施工段划分原则：施工段划分需满足：劳动量差异≤15%，工作面充足，界限与结构缝吻合，段数合理，多层工程应分段分层。",
+     "required_terms": [
+      "施工段",
+      "劳动量",
+      "工作面",
+      "15%",
+      "沉降缝",
+      "伸缩缝"
+     ],
+     "point_id": "kc:1A433000_051_0074:1"
+    }
+   ]
   },
   {
    "card_id": "N03:kc:1A433000_052_0075:0",
@@ -78,7 +96,28 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工进度管理 > 时间参数"
+   "leaf_name_path": "施工进度管理 > 时间参数",
+   "scoring_terms": [
+    {
+     "statement": "什么是流水节拍？它在流水施工中的作用是什么？",
+     "required_terms": [
+      "专业队",
+      "施工段",
+      "施工时间",
+      "t"
+     ],
+     "point_id": "ca:1A433000_052_0075"
+    },
+    {
+     "statement": "流水节拍定义：流水节拍是指在组织流水施工时，某个专业队在一个施工段上的施工时间，以符号 t 表示。",
+     "required_terms": [
+      "流水节拍",
+      "t",
+      "施工时间"
+     ],
+     "point_id": "kc:1A433000_052_0075:0"
+    }
+   ]
   },
   {
    "card_id": "N03:kc:1A433000_052_0075:1",
@@ -92,7 +131,18 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工进度管理 > 时间参数"
+   "leaf_name_path": "施工进度管理 > 时间参数",
+   "scoring_terms": [
+    {
+     "statement": "流水步距定义：流水步距是指两个相邻的专业队进入流水作业的时间间隔，以符号 K 表示。",
+     "required_terms": [
+      "流水步距",
+      "K",
+      "时间间隔"
+     ],
+     "point_id": "kc:1A433000_052_0075:1"
+    }
+   ]
   },
   {
    "card_id": "N03:kc:1A433000_052_0075:2",
@@ -106,7 +156,18 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工进度管理 > 时间参数"
+   "leaf_name_path": "施工进度管理 > 时间参数",
+   "scoring_terms": [
+    {
+     "statement": "工期定义：工期是从第一个专业队投入流水作业开始，到最后一个专业队完成最后一段工作并退出为止的持续时间，符号 T 表示。",
+     "required_terms": [
+      "工期",
+      "T",
+      "持续时间"
+     ],
+     "point_id": "kc:1A433000_052_0075:2"
+    }
+   ]
   },
   {
    "card_id": "N03:kc:1A433000_052_0076:0",
@@ -120,7 +181,31 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工进度管理 > 无节奏流水施工"
+   "leaf_name_path": "施工进度管理 > 无节奏流水施工",
+   "scoring_terms": [
+    {
+     "statement": "下列哪项不是无节奏流水施工的特点？",
+     "required_terms": [
+      "节拍不全相等",
+      "步距不尽相等",
+      "可能有间隔"
+     ],
+     "point_id": "ca:1A433000_052_0076"
+    },
+    {
+     "statement": "无节奏流水施工特点：（1）各施工过程在各施工段的流水节拍不全相等；（2）相邻施工过程的流水步距不尽相等；（3）专业工作队数等于施工过程数；（4）各专业工作队能够连续作业，但施工过程间可能有间隔。",
+     "required_terms": [
+      "无节奏",
+      "节拍",
+      "步距",
+      "间隔",
+      "不全相等",
+      "不尽相等",
+      "等于"
+     ],
+     "point_id": "kc:1A433000_052_0076:0"
+    }
+   ]
   },
   {
    "card_id": "N03:kc:1A433000_052_0077:0",
@@ -134,7 +219,26 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "施工进度管理 > 等节奏流水施工"
+   "leaf_name_path": "施工进度管理 > 等节奏流水施工",
+   "scoring_terms": [
+    {
+     "statement": "等节奏流水施工中，流水步距与流水节拍的关系是什么？",
+     "required_terms": [
+      "相等",
+      "等于"
+     ],
+     "point_id": "ca:1A433000_052_0077"
+    },
+    {
+     "statement": "等节奏流水施工特点：（1）所有施工过程在各施工段上的流水节拍均相等；（2）相邻施工过程的流水步距相等，且等于流水节拍；（3）专业工作队数等于施工过程数；（4）各专业工作队连续作业，无空闲时间。",
+     "required_terms": [
+      "等节奏",
+      "相等",
+      "等于"
+     ],
+     "point_id": "kc:1A433000_052_0077:0"
+    }
+   ]
   },
   {
    "card_id": "N03:kc:1A433000_053_0078:0",
@@ -180,8 +284,8 @@
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:21:00+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:47+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }

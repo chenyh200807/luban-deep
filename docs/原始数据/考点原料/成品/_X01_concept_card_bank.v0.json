@@ -1,9 +1,13 @@
 {
+ "scoring_terms_enrichment": {
+  "source": "rich_leaf_v32_scoring_point_compile_20260613",
+  "cards_with_terms": 6
+ },
  "schema_version": "luban-concept-card-bank",
  "pack_id": "X01",
  "status": "signed",
  "source_pack_sha256": "173b2bf67a0ef36794281518e3511873105f84b371f22cd23c2d0661240a94ef",
- "generation_ms": 59.91,
+ "generation_ms": 97.02,
  "gate": {
   "total": 8,
   "passed": 8,
@@ -80,7 +84,17 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 施工平面布置图设计"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 施工平面布置图设计",
+   "scoring_terms": [
+    {
+     "statement": "施工现场封闭管理'四区'除施工区外的另外三区,必须写出规范术语:生活区、办公区、材料加工和存放区(三项列举)",
+     "required_terms": [
+      "生活区",
+      "办公区"
+     ],
+     "point_id": "m35:Q11-1A434020:P1"
+    }
+   ]
   },
   {
    "card_id": "X01:kc:1A431011_011_0012:2",
@@ -108,7 +122,18 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 施工平面布置图设计"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 施工平面布置图设计",
+   "scoring_terms": [
+    {
+     "statement": "施工总平面图设计要点 - 塔吊布置：布置塔吊需考虑基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞。",
+     "required_terms": [
+      "布置",
+      "覆盖范围",
+      "附墙"
+     ],
+     "point_id": "kc:1A431011_011_0012:3"
+    }
+   ]
   },
   {
    "card_id": "X01:kc:1A431011_011_0012:4",
@@ -122,7 +147,18 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 施工平面布置图设计"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 施工平面布置图设计",
+   "scoring_terms": [
+    {
+     "statement": "施工总平面图设计要点 - 塔吊布置：布置塔吊需考虑基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞。",
+     "required_terms": [
+      "布置",
+      "覆盖范围",
+      "附墙"
+     ],
+     "point_id": "kc:1A431011_011_0012:3"
+    }
+   ]
   },
   {
    "card_id": "X01:kc:1A431011_011_0012:5",
@@ -136,7 +172,18 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 施工平面布置图设计"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 施工平面布置图设计",
+   "scoring_terms": [
+    {
+     "statement": "施工总平面图设计要点 - 塔吊布置：布置塔吊需考虑基础、环境、覆盖范围、吊重、运输堆放、附墙位置、拆除运输、群塔防撞。",
+     "required_terms": [
+      "布置",
+      "覆盖范围",
+      "附墙"
+     ],
+     "point_id": "kc:1A431011_011_0012:3"
+    }
+   ]
   },
   {
    "card_id": "X01:kc:1A431011_013_0014:0",
@@ -150,7 +197,29 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 场地围护与出入口"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 场地围护与出入口",
+   "scoring_terms": [
+    {
+     "statement": "施工现场围挡高度要求：市区主要路段围挡高度≥2.5m；一般路段≥1.8m；距路口20m内0.8m以上部分应为通透性围挡。",
+     "required_terms": [
+      "围挡高度",
+      "通透性",
+      "交通路口",
+      "2.5m",
+      "1.8m",
+      "0.8m",
+      "20m"
+     ],
+     "point_id": "kc:1A431011_013_0014:0"
+    },
+    {
+     "statement": "施工现场环保措施：施工现场应设置排水系统、硬化地面、防尘洒水、封闭垃圾区、绿化布置，并对大气、水、噪声、光、垃圾污染进行防治。",
+     "required_terms": [
+      "2.5m"
+     ],
+     "point_id": "kc:1A431011_013_0014:2"
+    }
+   ]
   },
   {
    "card_id": "X01:kc:1A431011_013_0014:1",
@@ -164,12 +233,32 @@
     "source_lane": "textbook_v3_fixed",
     "repair_mode": "intent_aligned"
    },
-   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 场地围护与出入口"
+   "leaf_name_path": "建筑工程项目管理实务 > 建筑工程企业资质与施工组织 > 场地围护与出入口",
+   "scoring_terms": [
+    {
+     "statement": "五牌一图还应包含(列举型,标准术语原文):工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工(环境保护)牌",
+     "required_terms": [
+      "工程概况牌",
+      "管理人员名单及监督电话牌",
+      "消防保卫牌",
+      "安全生产牌"
+     ],
+     "point_id": "m35:Q16-1A436000:P1"
+    },
+    {
+     "statement": "五牌一图设置要求：主要出入口应设置‘五牌一图’：工程概况牌、消防保卫牌、安全生产牌、文明施工牌、管理人员名单及监督电话牌和施工现场总平面图。",
+     "required_terms": [
+      "五牌一图",
+      "出入口管理"
+     ],
+     "point_id": "kc:1A431011_013_0014:1"
+    }
+   ]
   }
  ],
  "signoff": {
-  "who": "owner授权·Fable主控代签",
-  "when": "2026-07-11T01:21:00+08:00",
-  "basis": "gate 100%(含新增意图对齐闸+gist数字出处闸) + 双面板对抗质检162卡→修复重编 + owner 2026-07-11 授权铺17站"
+  "who": "claude",
+  "when": "2026-07-12T09:33:48+08:00",
+  "basis": "v32采分点富化(阅卷认的词,教材verified溯源,owner指令利用编译资产) 2026-07-12"
  }
 }
