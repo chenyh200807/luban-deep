@@ -13,14 +13,14 @@
 ## Hard Invariants — 可机械判定的铁律
 
 - **唯一流式入口 `/api/v1/ws`**;禁止新增专用聊天 WebSocket 路由(如 `/api/v1/mobile/tutorbot/ws/...`)。
-- **Aliyun SSH Write Boundary(原 §3.7)**:阿里云 SSH 上唯一可写根是 `/root/deeptutor`;其他路径(含 `/root/luban`、`/etc`、nginx、系统服务)一律只读观察面。越界需求必须停下向用户说明。细则与只读命令白名单:[deeptutor-release-launch-gate](./agent-skills/deeptutor-release-launch-gate/SKILL.md)。已有 PreToolUse hook 拦明显违规——hook 只是止血带,本条散文才是权威。
-- **Eval Runner Identity**:所有会创建/登录/绑定手机号/产生会员活跃的 eval/smoke/QA,必须用 `qa_eval_`/`eval_`/`qa_` 前缀账号,写 `account_kind="eval_runner"`、`actor_type="machine"`、`is_internal_test=true`,复用 `external_auth.ensure_external_auth_user()` 路径;测试账号不得计入会员/活跃指标。细则:[deeptutor-test-verification-gate](./agent-skills/deeptutor-test-verification-gate/SKILL.md)。
+- **Aliyun SSH Write Boundary(原 §3.7)**:阿里云 SSH 上唯一可写根是 `/root/deeptutor`;其他路径(含 `/root/luban`、`/etc`、nginx、系统服务)一律只读观察面。越界需求必须停下向用户说明。细则与只读命令白名单:[deeptutor-release-launch-gate](./agent-skills/deeptutor-release-launch-gate/SKILL.md)。(Claude Code 本机另有 PreToolUse hook 拦明显违规;Codex 及其他 agent 无此 hook,同样受本条约束——hook 只是止血带,本条散文才是权威。)
+- **Eval Runner Identity**:所有会创建/登录/绑定手机号/产生会员活跃的 eval/smoke/QA,必须用 `qa_eval_`/`eval_`/`qa_` 前缀账号,写 `account_kind="eval_runner"`、`actor_type="machine"`、`created_by="eval_runner"`、`is_internal_test=true` 四字段,复用 `external_auth.ensure_external_auth_user()` 路径;测试账号不得计入会员/活跃指标。细则:[deeptutor-test-verification-gate](./agent-skills/deeptutor-test-verification-gate/SKILL.md)。
 - **contract-guard**:改 `deeptutor/contracts/index.yaml` 登记的 protected 文件必须同步登记 `test_files`;合并/push 前 `python scripts/check_contract_guard.py <files>` 必须 passed。
 - **双拷贝同步**:`contracts/index.yaml` 与 `deeptutor/contracts/index.yaml` 必须同步修改(后者是 packaged runtime copy)。
 - **计划纪律**:计划/PRD/runbook/gate checklist 统一放 `docs/plan/`,新增或修改后必须同步更新 [docs/plan/INDEX.md](./docs/plan/INDEX.md);新计划优先挂既有主线,不造平行规划;禁止 `doc/plan/` 路径。
-- **git 纪律**:并行 agent 场景禁 `git add -A`/`git add .`(互扫工作,已发生两次;已有 hook 拦),脏分支用 `git commit --only -- <文件>`;诊断/合并命令禁夹带 `git stash`;只有用户明确要求时才 commit;默认不因新任务开分支;多任务并行必须独立 worktree。细则:[deeptutor-git-workflow-gate](./agent-skills/deeptutor-git-workflow-gate/SKILL.md)。
-- **skill 一致性**:新增/删除/改名 `agent-skills/*/SKILL.md` 后必须跑 `python agent-skills/scripts/validate_agent_skills.py`(已有 PostToolUse hook 自动跑)。
-- **测试不可跳过**:改代码必须跑与改动直接相关的测试;缺运行环境先补齐,不得以环境缺失为由跳过;前端/小程序改动还必须过微信开发者工具回归。
+- **git 纪律**:并行 agent 场景禁 `git add -A`/`git add .`(互扫工作,已发生两次;Claude Code 本机有 hook 拦,其他 agent 无 hook 同样必须遵守),脏分支用 `git commit --only -- <文件>`;诊断/合并命令禁夹带 `git stash`;只有用户明确要求时才 commit;默认不因新任务开分支;多任务并行必须独立 worktree。细则:[deeptutor-git-workflow-gate](./agent-skills/deeptutor-git-workflow-gate/SKILL.md)。
+- **skill 一致性**:新增/删除/改名 `agent-skills/*/SKILL.md` 后必须跑 `python agent-skills/scripts/validate_agent_skills.py`(Claude Code 本机有 PostToolUse hook 自动跑,其他 agent 需手动执行)。
+- **测试不可跳过**:改代码必须跑与改动直接相关的测试;缺运行环境(如 `node`/`npm`/`deno`)时**先自行安装补齐再继续**,不得停下询问或以环境缺失为由跳过;前端/小程序改动还必须过微信开发者工具回归。
 
 ## Contract Discipline
 
