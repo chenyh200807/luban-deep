@@ -110,6 +110,12 @@ Page({
     this._firstRunSyncing = true;
     this.setData({ firstRunState: "syncing" });
     const that = this;
+    // 陈旧pending的script_version自愈: 签发翻牌会改版本号(题集与内容sha未变),
+    // 老payload按当前常量重放, 避免永久version_conflict
+    const scriptData = require("../first-run/script-data");
+    if (scriptData && scriptData.SCRIPT_VERSION && pending.script_version !== scriptData.SCRIPT_VERSION) {
+      pending.script_version = scriptData.SCRIPT_VERSION;
+    }
     return api
       .completeFirstRun(pending, { silent: true })
       .then(function (result) {
