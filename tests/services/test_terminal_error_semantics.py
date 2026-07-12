@@ -258,7 +258,7 @@ def _openai_compat_provider_with_chunks(chunks: list[Any]):
     from deeptutor.tutorbot.providers.openai_compat_provider import OpenAICompatProvider
 
     provider = OpenAICompatProvider(
-        api_key="sk-test",
+        api_key="sk-test",  # pragma: allowlist secret
         api_base="https://example.invalid/v1",
         default_model="fake-model",
     )
