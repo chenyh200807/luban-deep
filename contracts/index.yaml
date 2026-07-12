@@ -435,6 +435,18 @@ domains:
         user-facing consumers must read normalized document_id, source,
         authority, and subject from evidence_bundle/result sources instead of
         reinterpreting provider-specific aliases.
+      - Exact-question authority is an identity judgement, not a relevance
+        judgement (contracts/rag.md 32b). The question_exact_text /
+        question_exact_vector / option-overlap probes only supply candidates;
+        a candidate may mint a question_exact_* chapter only after the single
+        falsifiable adjudicator exact_question_identity_corresponds confirms
+        identity (normalized containment or >=0.90 ordered char coverage,
+        plus the orthogonal calculation-identity invariant). Rejected
+        candidates degrade to ordinary questions_bank retrieval rows carrying
+        their real scores — no fabricated confidence floors — and the turn
+        falls open to the main LLM. Domain tests live in
+        tests/services/rag/test_supabase_strategy.py (identity adjudicator)
+        and tests/services/rag/test_rag_pipelines.py (demotion/no-floor state).
     contract_files:
       - CONTRACT.md
       - contracts/rag.md

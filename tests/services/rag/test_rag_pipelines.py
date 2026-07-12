@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import math
 import os
 import sys
 from types import SimpleNamespace
-import asyncio
 
 import httpx
 import pytest
@@ -619,8 +619,8 @@ def test_get_pipeline_invalid_raises() -> None:
 async def test_llamaindex_search_rejects_invalid_persisted_embeddings(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from deeptutor.services.rag.pipelines import llamaindex as llamaindex_module
     from deeptutor.services.rag.exceptions import RAGSearchError
+    from deeptutor.services.rag.pipelines import llamaindex as llamaindex_module
 
     storage_dir = tmp_path / "demo" / "llamaindex_storage"
     storage_dir.mkdir(parents=True)
@@ -1261,6 +1261,220 @@ async def test_supabase_exact_vector_accepts_full_pasted_calculation_question(
     assert len(result) == 1
     assert result[0]["chunk_id"] == "question-calc-bank-exact"
     assert result[0]["correct_answer"] == "C"
+
+
+# ---------------------------------------------------------------------------
+# Semantic-integrity campaign (2026-07-12): identity adjudication in the
+# pipeline. A fuzzy full-text / vector hit that the identity adjudicator does
+# not confirm must never mint a question_exact_* chapter — it degrades to an
+# ordinary questions_bank retrieval row (real text_score, no 0.98 floor) and
+# the turn falls open to the main LLM.
+# ---------------------------------------------------------------------------
+
+_IDENTITY_FALSE_HIT_QUERY = "下列关于屋面防水等级为一级的做法正确的是？"
+_IDENTITY_FALSE_HIT_STEM = "屋面防水等级为一级时,防水层合理使用年限不应少于(　)年。"
+
+
+def _identity_false_hit_rpc_row(text_score: float = 0.42) -> dict:
+    return {
+        "id": "14422",
+        "stem": _IDENTITY_FALSE_HIT_STEM,
+        "question_type": "single_choice",
+        "options": [
+            {"key": "A", "value": "10"},
+            {"key": "B", "value": "15"},
+            {"key": "C", "value": "20"},
+            {"key": "D", "value": "25"},
+        ],
+        "correct_answer": "C",
+        "analysis": "依据规范，一级防水层合理使用年限不应少于20年。",
+        "text_score": text_score,
+        "source_type": "REAL_EXAM",
+    }
+
+
+@pytest.mark.asyncio
+async def test_supabase_rpc_text_false_hit_demotes_to_questions_bank_without_score_floor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import dataclasses
+
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+    config = dataclasses.replace(
+        _learning_fact_supabase_config(supabase_module),
+        exact_question_text_rpc_enabled=True,
+    )
+
+    async def _empty_direct(**kwargs):
+        _ = kwargs
+        return []
+
+    async def _fake_rpc_rows(**kwargs):
+        _ = kwargs
+        return [_identity_false_hit_rpc_row(text_score=0.42)]
+
+    monkeypatch.setattr(pipeline, "_search_exact_question_text_direct", _empty_direct)
+    monkeypatch.setattr(pipeline, "_search_questions_text_rpc", _fake_rpc_rows)
+
+    rows = await pipeline._search_exact_question_text(
+        client=object(),
+        probe_query=_IDENTITY_FALSE_HIT_QUERY,
+        allowed_question_types=["single", "multi"],
+        original_query=_IDENTITY_FALSE_HIT_QUERY,
+        option_validation_required=False,
+        config=config,
+    )
+
+    # No exact chapter may be minted from a relevance-only hit …
+    assert all(row.get("_source_group") != "question_exact_text" for row in rows)
+    # … but the row is still supplied as ordinary retrieval context,
+    # carrying its REAL text score (the 0.98 confidence floor is dead).
+    assert rows, "false hit must degrade to normal supply, not vanish"
+    assert rows[0]["_source_group"] == "questions_bank"
+    assert rows[0]["score"] == pytest.approx(0.42)
+
+
+@pytest.mark.asyncio
+async def test_supabase_rpc_text_identity_hit_keeps_real_text_score(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import dataclasses
+
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+    config = dataclasses.replace(
+        _learning_fact_supabase_config(supabase_module),
+        exact_question_text_rpc_enabled=True,
+    )
+
+    async def _empty_direct(**kwargs):
+        _ = kwargs
+        return []
+
+    async def _fake_rpc_rows(**kwargs):
+        _ = kwargs
+        return [_identity_false_hit_rpc_row(text_score=0.63)]
+
+    monkeypatch.setattr(pipeline, "_search_exact_question_text_direct", _empty_direct)
+    monkeypatch.setattr(pipeline, "_search_questions_text_rpc", _fake_rpc_rows)
+
+    # verbatim paste of the bank stem => identity confirmed => exact chapter
+    rows = await pipeline._search_exact_question_text(
+        client=object(),
+        probe_query=_IDENTITY_FALSE_HIT_STEM,
+        allowed_question_types=["single", "multi"],
+        original_query=_IDENTITY_FALSE_HIT_STEM,
+        option_validation_required=False,
+        config=config,
+    )
+
+    assert len(rows) == 1
+    assert rows[0]["_source_group"] == "question_exact_text"
+    # real text_score, not max(text_score, 0.98)
+    assert rows[0]["score"] == pytest.approx(0.63)
+
+
+@pytest.mark.asyncio
+async def test_supabase_exact_vector_rejects_same_domain_relevance_hit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    pipeline = supabase_module.SupabasePipeline()
+
+    async def _fake_rpc(*args, **kwargs):
+        _ = (args, kwargs)
+        return [
+            {
+                "id": "vec-false-hit",
+                "stem": _IDENTITY_FALSE_HIT_STEM,
+                "question_type": "single_choice",
+                "options": [{"key": "A", "value": "10"}],
+                "correct_answer": "C",
+                "analysis": "…",
+                "similarity": 0.93,
+                "source_type": "REAL_EXAM",
+            }
+        ]
+
+    monkeypatch.setattr(pipeline, "_rpc", _fake_rpc)
+
+    result = await pipeline._search_exact_question_vector(
+        client=object(),
+        vector_literal="[0.1,0.2,0.3]",
+        allowed_question_types=["single", "multi"],
+        original_query=_IDENTITY_FALSE_HIT_QUERY,
+        option_validation_required=False,
+        config=_learning_fact_supabase_config(supabase_module),
+    )
+
+    # High cosine similarity on a same-domain different question must not mint
+    # question_exact_vector. The row is dropped here because the parallel
+    # _search_questions pass (same RPC, lower threshold) already supplies it as
+    # an ordinary questions_bank row with its real similarity score.
+    assert result == []
+
+
+@pytest.mark.asyncio
+async def test_supabase_search_false_text_hit_yields_no_exact_question_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.rag.pipelines import supabase as supabase_module
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-key")
+    monkeypatch.setenv("SUPABASE_RAG_ENABLE_RERANK", "false")
+    monkeypatch.setenv("SUPABASE_RAG_SECOND_PASS", "false")
+    monkeypatch.setenv("SUPABASE_RAG_EXACT_QUESTION_TEXT_RPC", "true")
+
+    class _FakeKbConfigService:
+        def get_kb_config(self, kb_name: str) -> dict[str, object]:
+            _ = kb_name
+            return {}
+
+    monkeypatch.setattr(supabase_module, "get_kb_config_service", lambda: _FakeKbConfigService())
+
+    pipeline = supabase_module.SupabasePipeline()
+    _disable_supabase_availability_gate(monkeypatch, pipeline)
+
+    async def _empty_direct(**kwargs):
+        _ = kwargs
+        return []
+
+    async def _fake_rpc_rows(**kwargs):
+        _ = kwargs
+        return [_identity_false_hit_rpc_row(text_score=0.42)]
+
+    async def _fake_run_query_plan(**kwargs):
+        _ = kwargs
+        return []
+
+    async def _identity_passthrough(results, **kwargs):
+        _ = kwargs
+        return results
+
+    monkeypatch.setattr(pipeline, "_search_exact_question_text_direct", _empty_direct)
+    monkeypatch.setattr(pipeline, "_search_questions_text_rpc", _fake_rpc_rows)
+    monkeypatch.setattr(pipeline, "_run_query_plan", _fake_run_query_plan)
+    monkeypatch.setattr(pipeline, "_hydrate_sources", _identity_passthrough)
+    monkeypatch.setattr(pipeline, "_rerank_results", _identity_passthrough)
+
+    result = await pipeline.search(
+        query=_IDENTITY_FALSE_HIT_QUERY,
+        kb_name="construction-exam",
+    )
+
+    # State assertions: no exact chapter anywhere, row degraded to normal supply.
+    assert result.get("exact_question") is None
+    demoted = [
+        item
+        for item in result["sources"]
+        if str(item.get("chunk_id") or "") == "question-14422"
+    ]
+    assert demoted, "demoted bank row must still reach sources as normal context"
 
 
 @pytest.mark.asyncio

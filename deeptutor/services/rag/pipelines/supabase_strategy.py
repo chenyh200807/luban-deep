@@ -12,15 +12,17 @@ from __future__ import annotations
 
 import asyncio
 from collections import Counter
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
+import difflib
 from http import HTTPStatus
 import os
 import re
 from typing import Any
+import unicodedata
 
 from deeptutor.services.observability import get_langfuse_observability
-
 
 _FILLER_PATTERNS = (
     "请问",
@@ -897,35 +899,107 @@ _EXACT_STEM_CASE_TYPES = {
 }
 
 
-def _exact_question_surface_bigrams(text: str) -> set[str]:
-    cleaned = re.sub(r"[\s\W_]+", "", str(text or ""), flags=re.UNICODE)
-    if len(cleaned) < 2:
-        return {cleaned} if cleaned else set()
-    return {cleaned[index : index + 2] for index in range(len(cleaned) - 1)}
+# Minimum normalized surface length for a side to be discriminative enough to
+# decide identity (containment or >=0.90 coverage of a shorter surface would
+# otherwise fire on incidental shared fragments like "防水等级").
+_IDENTITY_MIN_SURFACE_LEN = 12
+# Char-level coverage tolerance for typos / OCR noise / line-break drift on an
+# otherwise verbatim paste. NOT live-calibrated yet — flagged for the deploy
+# milestone (see semantic-integrity campaign notes, 2026-07-12).
+_IDENTITY_MIN_COVERAGE = 0.90
+# The fuzzy-coverage supplement needs a wider discriminative surface than the
+# verbatim-containment path: short template stems (12-19 normalized chars) can
+# differ by one load-bearing char ("…一级时…" vs "…二级时…", "7天" vs "14天")
+# and still clear 0.90 ordered coverage — that is a DIFFERENT question, not a
+# noisy paste of the same one. 指挥官加固(2026-07-12): coverage may only decide
+# identity on surfaces >= this length; shorter surfaces must win via
+# containment/equality or fall open to the main LLM.
+_IDENTITY_MIN_FUZZY_SURFACE_LEN = 20
 
 
-def exact_question_stem_corresponds(
+_IDENTITY_NUMERIC_FACT_RE = re.compile(
+    r"[0-9一二三四五六七八九十百千]+"
+    r"(?:mm|cm|km|mpa|kn|kg|m2|m3|m|t|%|级|年|天|日|月|周|次|层|跨|元)"
+)
+
+
+def _identity_numeric_facts_covered(query_surface: str, stem_surface: str) -> bool:
+    """指挥官加固(2026-07-12,#422 同 genus 正交 rejector,仅模糊路径).
+
+    Char-level 0.90 coverage cannot tell a typo from a CHANGED question: a
+    >=20-char stem where only the load-bearing numeral differs ("一级"→"二级",
+    "7天"→"14天") still clears coverage, and would mint the WRONG variant's
+    standard answer. Every numeral+unit token of the bank stem must appear
+    verbatim in the learner surface; a genuine paste always carries them
+    (typos live in non-numeral positions), so the over-kill face is only
+    "learner mistyped the numeral itself" — conservative, fail-open.
+    """
+    for token in _IDENTITY_NUMERIC_FACT_RE.findall(stem_surface):
+        if token not in query_surface:
+            return False
+    return True
+
+
+def _normalize_identity_surface(text: str) -> str:
+    """Canonical surface for identity comparison.
+
+    NFKC folds full-width/half-width variants (ＡＢＣ→abc, １→1, ㎡→m2), then all
+    whitespace, punctuation (incl. CJK blanks "（　）") and underscores are removed
+    so that layout/line-break/punctuation drift cannot break a verbatim paste.
+    """
+    clean = unicodedata.normalize("NFKC", str(text or "")).lower()
+    return re.sub(r"[\s\W_]+", "", clean, flags=re.UNICODE)
+
+
+def exact_question_identity_corresponds(
     *,
     original_query: str,
     matched_stem: str,
     question_type: str | None = None,
-    min_stem_coverage: float = 0.30,
+    matched_options: Sequence[str] | None = None,
 ) -> bool:
-    """Reject a text/keyword exact-question match the query does not actually cover.
+    """Single falsifiable adjudicator: is the learner's text THIS bank question?
 
-    The ``question_exact_text`` path can return a row that shares only an incidental
-    common term (e.g. "混凝土") with the learner's query while the matched stem is a
-    completely different bank question. Surfacing that row's answer as authoritative
-    fabricates a "标准答案" the learner never asked about. This deterministic guard
-    requires the matched stem's surface to be substantially covered by the query (the
-    learner is quoting/paraphrasing that question), not merely sharing one keyword.
+    "学员本轮粘贴的题是否=题库某道原题" is an IDENTITY judgement, not a relevance
+    judgement. Every candidate supplied by the text-RPC, vector and option-overlap
+    probes must pass here before a ``question_exact_*`` chapter may be minted;
+    a candidate that fails degrades to ordinary ``questions_bank`` retrieval
+    supply and the turn falls open to the main LLM.
 
-    Calibrated on the production false positive ("钢筋和混凝土哪个硬" vs a 防水等级 stem,
-    coverage ~0.08) against real paraphrases/pastes (coverage >= 0.4). Case-study matches
-    use bundle coverage rather than surface overlap, so they are never gated here.
+    Criterion (on normalized surfaces, see ``_normalize_identity_surface``):
+
+    1. containment — bank stem ⊆ learner text (paste with colloquial prefix/
+       suffix and/or options) or learner text ⊆ bank stem (truncated paste);
+    2. tolerance supplement — char-level ordered coverage >= 0.90 of either
+       side (``difflib`` matching blocks), which absorbs 1-2 typos, OCR noise
+       and line-break drift that break strict containment.
+
+    The containment path requires ``_IDENTITY_MIN_SURFACE_LEN`` normalized
+    chars on the decided side; the fuzzy-coverage path requires the wider
+    ``_IDENTITY_MIN_FUZZY_SURFACE_LEN`` (short template stems can differ by a
+    single load-bearing char and still clear 0.90 coverage). Shared short
+    fragments are relevance, never identity.
+
+    ``matched_options``: when the caller has the bank row's option values
+    (the option-overlap probe), the identity surface of an MCQ is stem +
+    options combined — a short stem with a typo but near-verbatim options IS
+    the same question, and the combined surface is wide enough for the fuzzy
+    path to decide honestly. This widens the evidence surface, not the set of
+    deciders: the criterion stays this one adjudicator.
+    The #422 calculation-identity invariant stays as an orthogonal rejector:
+    numeric facts and the solve target of a calculation stem must be covered
+    by the learner's text no matter how similar the wording template is.
+
+    Calibrated 2026-07-12 on the production hijack (learner's free earned-value
+    question minted question-14422, bigram cov 0.36 under the old >=0.30
+    relevance gate) plus 5 adversarial same-domain pairs (all <=0.68 coverage)
+    against genuine paste variants (all >=0.94 coverage or contained).
     """
 
     if str(question_type or "").strip().lower() in _EXACT_STEM_CASE_TYPES:
+        # 指挥官裁决(2026-07-12):case 家族收权推迟——case 型命中继续由
+        # case_bundle 覆盖判定裁决,此处保持无条件放行。触发重评条件:
+        # case 型假命中 live 证据,或案例家族战役开工。
         return True
     if not _calculation_question_identity_corresponds(
         original_query=original_query,
@@ -933,14 +1007,63 @@ def exact_question_stem_corresponds(
         question_type=question_type,
     ):
         return False
-    stem_bigrams = _exact_question_surface_bigrams(matched_stem)
-    if not stem_bigrams:
+
+    query_surface = _normalize_identity_surface(original_query)
+    stem_surface = _normalize_identity_surface(matched_stem)
+    if not query_surface or not stem_surface:
         return False
-    query_bigrams = _exact_question_surface_bigrams(original_query)
-    if not query_bigrams:
-        return False
-    coverage = len(query_bigrams & stem_bigrams) / len(stem_bigrams)
-    return coverage >= min_stem_coverage
+    if query_surface == stem_surface:
+        return True
+
+    if len(stem_surface) >= _IDENTITY_MIN_SURFACE_LEN and stem_surface in query_surface:
+        return True
+    if len(query_surface) >= _IDENTITY_MIN_SURFACE_LEN and query_surface in stem_surface:
+        return True
+
+    # All fuzzy (coverage-based) decisions below additionally require every
+    # numeral+unit fact of the bank stem to be present verbatim in the learner
+    # surface — coverage alone cannot tell a typo from a changed question.
+    numeric_facts_ok = _identity_numeric_facts_covered(query_surface, stem_surface)
+
+    matcher = difflib.SequenceMatcher(None, query_surface, stem_surface, autojunk=False)
+    matched_chars = sum(block.size for block in matcher.get_matching_blocks())
+    stem_coverage = matched_chars / len(stem_surface) if stem_surface else 0.0
+    if (
+        numeric_facts_ok
+        and len(stem_surface) >= _IDENTITY_MIN_FUZZY_SURFACE_LEN
+        and stem_coverage >= _IDENTITY_MIN_COVERAGE
+    ):
+        return True
+    if (
+        numeric_facts_ok
+        and len(query_surface) >= _IDENTITY_MIN_FUZZY_SURFACE_LEN
+        and matched_chars / len(query_surface) >= _IDENTITY_MIN_COVERAGE
+    ):
+        return True
+
+    option_values = [str(value or "") for value in (matched_options or []) if str(value or "").strip()]
+    if option_values and numeric_facts_ok:
+        combined_surface = _normalize_identity_surface(
+            str(matched_stem or "") + "".join(option_values)
+        )
+        # 指挥官加固(2026-07-12): the merged surface may be dominated by the
+        # options — an options-only paste could clear combined coverage with
+        # the stem absent. The stem must ALSO be independently covered.
+        if (
+            len(combined_surface) >= _IDENTITY_MIN_FUZZY_SURFACE_LEN
+            and stem_coverage >= _IDENTITY_MIN_COVERAGE
+        ):
+            if combined_surface in query_surface:
+                return True
+            combined_matcher = difflib.SequenceMatcher(
+                None, query_surface, combined_surface, autojunk=False
+            )
+            combined_matched = sum(
+                block.size for block in combined_matcher.get_matching_blocks()
+            )
+            if combined_matched / len(combined_surface) >= _IDENTITY_MIN_COVERAGE:
+                return True
+    return False
 
 
 def is_question_like_query(query: str) -> bool:

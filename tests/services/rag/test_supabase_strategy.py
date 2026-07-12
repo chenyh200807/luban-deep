@@ -8,12 +8,12 @@ from deeptutor.services.rag.pipelines.supabase_strategy import (
     build_second_pass_queries,
     classify_query_shape,
     dedupe_ranked_results,
-    exact_question_stem_corresponds,
+    exact_question_identity_corresponds,
     expand_query_variants,
     extract_case_subquestion_items,
     extract_standard_codes,
-    normalize_retrieval_query,
     matches_allowed_question_type,
+    normalize_retrieval_query,
     prepare_exact_question_probe,
     resolve_group_weights,
     rewrite_query,
@@ -534,43 +534,36 @@ async def test_supabase_search_raises_typed_error_on_primary_failure(
 
 # Bug#6: question_exact_text keyword false-positive. A keyword search on a shared
 # common term ("混凝土") returned a totally unrelated bank MCQ and surfaced its
-# answer as authoritative. The deterministic stem-correspondence guard must reject
-# a text/keyword match whose stem the learner's query does not actually cover, while
-# still accepting genuine paraphrases/pastes. Calibrated: unrelated coverage ~0.08,
-# real paraphrase coverage >=0.4 (see /tmp calibration in the Bug#6 investigation).
+# answer as authoritative. Since the 2026-07-12 semantic-integrity campaign the
+# rejector is the identity adjudicator (exact_question_identity_corresponds):
+# incidental keyword overlap is relevance, never identity.
 _FALSE_STEM = "地下工程的防水等级分为（  ），防水混凝土的适用环境温度不得高于（  ）。"
 
 
 def test_stem_correspondence_rejects_incidental_keyword_match() -> None:
     from deeptutor.services.rag.pipelines.supabase_strategy import (
-        exact_question_stem_corresponds,
+        exact_question_identity_corresponds,
     )
 
     # the production false positive: chitchat sharing only "混凝土" with the stem
-    assert not exact_question_stem_corresponds(
+    assert not exact_question_identity_corresponds(
         original_query="我是二建零基础小白，钢筋和混凝土哪个硬啊？",
         matched_stem=_FALSE_STEM,
         question_type="single_choice",
     )
     # a comparison that shares no discriminative content at all
-    assert not exact_question_stem_corresponds(
+    assert not exact_question_identity_corresponds(
         original_query="水泥和钢筋哪个贵？",
         matched_stem=_FALSE_STEM,
         question_type="single_choice",
     )
 
 
-def test_stem_correspondence_accepts_real_paraphrase_or_paste() -> None:
-    assert exact_question_stem_corresponds(
-        original_query="防水混凝土的适用环境温度不得高于多少？",
-        matched_stem=_FALSE_STEM,
-        question_type="single_choice",
-    )
-    assert exact_question_stem_corresponds(
-        original_query="大体积混凝土里表温差控制多少？",
-        matched_stem="大体积混凝土施工里表温差不宜大于（  ）。",
-        question_type="single_choice",
-    )
+# NOTE(2026-07-12 semantic-integrity campaign): the old companion test
+# test_stem_correspondence_accepts_real_paraphrase_or_paste was removed on
+# purpose. Asking ABOUT one blank of a bank stem is relevance, not identity —
+# under the identity adjudicator it falls open to normal RAG instead of
+# minting an exact chapter. See test_identity_paraphrase_is_not_identity.
 
 
 def test_calculation_stem_correspondence_rejects_different_numeric_identity() -> None:
@@ -581,7 +574,7 @@ def test_calculation_stem_correspondence_rejects_different_numeric_identity() ->
     )
     bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
 
-    assert not exact_question_stem_corresponds(
+    assert not exact_question_identity_corresponds(
         original_query=query,
         matched_stem=bank_stem,
         question_type="single_choice",
@@ -592,7 +585,7 @@ def test_calculation_stem_correspondence_rejects_same_numbers_different_target()
     query = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时费用偏差为多少万元？"
     bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
 
-    assert not exact_question_stem_corresponds(
+    assert not exact_question_identity_corresponds(
         original_query=query,
         matched_stem=bank_stem,
         question_type="single_choice",
@@ -603,7 +596,7 @@ def test_calculation_stem_correspondence_rejects_same_numbers_swapped_roles() ->
     query = "某工程计划完成工程量3000m3，预算成本单价150元/m3，现已完成5000m3，实际价是200元/m3，此时进度偏差为多少万元？"
     bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
 
-    assert not exact_question_stem_corresponds(
+    assert not exact_question_identity_corresponds(
         original_query=query,
         matched_stem=bank_stem,
         question_type="single_choice",
@@ -614,7 +607,7 @@ def test_calculation_stem_correspondence_accepts_target_alias() -> None:
     query = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时CV为多少万元？"
     bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时费用偏差为（　　）万元。"
 
-    assert exact_question_stem_corresponds(
+    assert exact_question_identity_corresponds(
         original_query=query,
         matched_stem=bank_stem,
         question_type="single_choice",
@@ -625,7 +618,7 @@ def test_calculation_stem_correspondence_accepts_role_aliases() -> None:
     query = "某工程计划完成工程量5000m3，预算单价150元/m3，实际完成工程量3000m3，实际单价200元/m3，此时进度偏差为多少万元？"
     bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
 
-    assert exact_question_stem_corresponds(
+    assert exact_question_identity_corresponds(
         original_query=query,
         matched_stem=bank_stem,
         question_type="single_choice",
@@ -636,7 +629,7 @@ def test_calculation_stem_correspondence_accepts_same_calculation_question() -> 
     query = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为多少万元？"
     bank_stem = "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
 
-    assert exact_question_stem_corresponds(
+    assert exact_question_identity_corresponds(
         original_query=query,
         matched_stem=bank_stem,
         question_type="single_choice",
@@ -645,14 +638,226 @@ def test_calculation_stem_correspondence_accepts_same_calculation_question() -> 
 
 def test_stem_correspondence_skips_case_study_and_empty() -> None:
     # case_study matches use bundle coverage, not surface overlap — never gated here
-    assert exact_question_stem_corresponds(
+    assert exact_question_identity_corresponds(
         original_query="背景资料：某项目……问题一：……",
         matched_stem=_FALSE_STEM,
         question_type="case_study",
     )
     # an empty matched stem cannot be an authoritative exact match
-    assert not exact_question_stem_corresponds(
+    assert not exact_question_identity_corresponds(
         original_query="防水混凝土温度",
         matched_stem="",
         question_type="single_choice",
     )
+
+
+# ---------------------------------------------------------------------------
+# Identity adjudication (semantic-integrity campaign, 2026-07-12)
+#
+# "学员本轮粘贴的题是否=题库某道原题" is an IDENTITY judgement, not a relevance
+# judgement. The single falsifiable adjudicator is
+# exact_question_identity_corresponds: normalized containment (bank stem ⊆
+# learner text or learner text ⊆ bank stem) with a char-level coverage >= 0.90
+# tolerance supplement for typos/line breaks. Bigram coverage has NO standalone
+# authorization power any more (production live: cov 0.36 same-domain hijack).
+# ---------------------------------------------------------------------------
+
+def _identity(
+    query: str,
+    stem: str,
+    question_type: str = "single_choice",
+    options: list[str] | None = None,
+) -> bool:
+    from deeptutor.services.rag.pipelines.supabase_strategy import (
+        exact_question_identity_corresponds,
+    )
+
+    return exact_question_identity_corresponds(
+        original_query=query,
+        matched_stem=stem,
+        question_type=question_type,
+        matched_options=options,
+    )
+
+
+_RED_STEM = "屋面防水等级为一级时,防水层合理使用年限不应少于(　)年。"
+
+
+def test_identity_rejects_same_domain_relevance_hit() -> None:
+    # RED anchor: bigram coverage 0.36 (>= old 0.30 floor) used to mint a false
+    # exact chapter. Same domain (屋面防水等级一级), different question — the
+    # learner asked a 做法-judgement MCQ, the bank row asks 合理使用年限.
+    assert not _identity("下列关于屋面防水等级为一级的做法正确的是？", _RED_STEM)
+
+
+def test_identity_regression_earned_value_bank_row_not_minted() -> None:
+    # Production live hijack (question-14422 shape): free earned-value
+    # calculation pasted by learner vs a bank row with different numbers.
+    query = (
+        "背景：某工程到第6个月末：计划完成工程量8000m²，预算单价500元/m²；"
+        "实际完成工程量7500m²，实际单价520元/m²。"
+        "问题：计算BCWS、BCWP、ACWP，帮我算出答案"
+    )
+    bank_stem = (
+        "某工程计划完成工程量5000m3，预算成本单价150元/m3，"
+        "现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。"
+    )
+    assert not _identity(query, bank_stem)
+
+
+@pytest.mark.parametrize(
+    ("query", "stem"),
+    [
+        (  # 防水
+            "地下防水工程的防水混凝土配合比应符合下列哪项规定？",
+            "屋面防水等级为一级时，防水层合理使用年限不应少于（　）年。",
+        ),
+        (  # 混凝土
+            "关于大体积混凝土浇筑施工的说法，正确的是（　）。",
+            "混凝土浇筑过程中，混凝土的自由倾落高度不应超过（　）m。",
+        ),
+        (  # 脚手架
+            "关于扣件式钢管脚手架搭设的说法，正确的有（　）。",
+            "扣件式钢管脚手架立杆基础验收合格后，纵距允许偏差为（　）mm。",
+        ),
+        (  # 网络计划
+            "某双代号网络计划中，关键线路的确定依据是（　）。",
+            "某工程双代号网络计划如下图，工作M的总时差为（　）天。",
+        ),
+        (  # 安全管理
+            "施工现场安全管理中，专职安全生产管理人员的配备要求是（　）。",
+            "建筑施工企业安全生产管理机构专职安全生产管理人员的职责不包括（　）。",
+        ),
+    ],
+)
+def test_identity_rejects_adversarial_same_domain_pairs(query: str, stem: str) -> None:
+    # Same construction-exam domain vocabulary, different questions — none of
+    # these may be adjudicated as the same bank question.
+    assert not _identity(query, stem)
+
+
+@pytest.mark.parametrize(
+    ("query", "stem"),
+    [
+        # single load-bearing char differs (一级 vs 二级) — different question;
+        # pre-hardening this cleared 0.90 ordered coverage (12/13) and minted.
+        ("屋面防水等级为一级时怎么做？", "屋面防水等级为二级时怎么做？"),
+        # numeric fact differs (7天 vs 14天) — the daowu-shaped confusion pair.
+        ("混凝土浇水养护不得少于7天的是？", "混凝土浇水养护不得少于14天的是？"),
+    ],
+)
+def test_identity_rejects_short_window_near_miss_pairs(query: str, stem: str) -> None:
+    # 指挥官加固(2026-07-12): a 12-19 normalized-char surface is too thin for
+    # the fuzzy-coverage path — one load-bearing char can differ and still
+    # clear 0.90 coverage. Coverage may only decide identity on >=20-char
+    # surfaces (_IDENTITY_MIN_FUZZY_SURFACE_LEN); these pairs must fall open.
+    assert not _identity(query, stem)
+
+
+def test_identity_short_verbatim_containment_still_hits() -> None:
+    # The containment path keeps the 12-char floor: a short stem pasted
+    # verbatim (with a colloquial prefix) is still identity — the fuzzy-path
+    # hardening must not over-kill verbatim pastes of short stems.
+    assert _identity("帮我看看这道题：屋面防水等级为一级时怎么做？", "屋面防水等级为一级时怎么做？")
+
+
+@pytest.mark.parametrize(
+    ("query", "stem"),
+    [
+        # >=20-char surface, only the load-bearing numeral differs (一级→二级):
+        # 0.95+ char coverage but a CHANGED question — the numeric-fact
+        # rejector must refuse to mint the wrong variant's standard answer.
+        (
+            "屋面防水等级为二级时,防水层合理使用年限不应少于(　)年。",
+            _RED_STEM,
+        ),
+        # 7天 vs 14天 on a >=20-char stem (daowu-shaped confusion).
+        (
+            "混凝土浇水养护时间不得少于14天的部位是哪些？",
+            "混凝土浇水养护时间不得少于7天的部位是哪些？",
+        ),
+    ],
+)
+def test_identity_rejects_numeral_variant_questions(query: str, stem: str) -> None:
+    # 指挥官加固(2026-07-12): fuzzy coverage cannot tell a typo from a changed
+    # numeral — every numeral+unit fact of the bank stem must appear verbatim
+    # in the learner surface, else the fuzzy path falls open.
+    assert not _identity(query, stem)
+
+
+def test_identity_merged_options_requires_stem_presence() -> None:
+    # 指挥官加固(2026-07-12): the merged (stem+options) surface may be
+    # dominated by the options — an options-only paste must NOT decide
+    # identity; the stem must be independently covered.
+    options = [
+        "单跨构件宜从跨端一侧向另一侧吊装",
+        "单跨结构可从跨中间向两端吊装",
+        "单跨结构不可从跨两端向中间吊装",
+        "多跨结构宜先吊副跨后吊主跨",
+        "多台起重设备共同作业时，可多跨同时吊装",
+    ]
+    options_only_paste = "\n".join(
+        f"{letter}.{value}" for letter, value in zip("ABCDE", options)
+    )
+    assert not _identity(options_only_paste, "吊装顺序的正确说法", options=options)
+    # Counter-check: stem present (with one typo) + near-verbatim options IS
+    # identity via the merged surface (the WP1 option-match scenario).
+    with_stem = "关于单层钢结构吊装顺序的说法，正确的有（ ）。\n" + options_only_paste
+    assert _identity(with_stem, "关于单跨钢结构吊装顺序的说法，正确的有（　　）。", options=options)
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        # verbatim stem only
+        "屋面防水等级为一级时,防水层合理使用年限不应少于(　)年。",
+        # verbatim stem + options
+        "屋面防水等级为一级时,防水层合理使用年限不应少于(　)年。\nA. 10\nB. 15\nC. 20\nD. 25",
+        # colloquial prefix/suffix around a verbatim paste
+        "老师帮我看看这道题：屋面防水等级为一级时,防水层合理使用年限不应少于(　)年。这题选什么呀",
+        # 1-2 typos (年现 for 年限) — similarity supplement must keep it
+        "屋面防水等级为一级时,防水层合理使用年现不应少于()年。",
+        # typos + colloquial prefix
+        "老师帮我看看这道题：屋面防水等级为一级时,防水层合理使用年现不应少于()年？",
+        # line-break / whitespace / full-width differences
+        "屋面防水等级为一级时,\n防水层合理使用年限 不应少于(　)年。",
+    ],
+)
+def test_identity_accepts_genuine_paste_variants(query: str) -> None:
+    # SEV counterexample family: a learner pasting the real bank question must
+    # still hit — the identity collapse must not over-kill true originals.
+    assert _identity(query, _RED_STEM)
+
+
+def test_identity_paraphrase_is_not_identity() -> None:
+    # Semantic change vs the old bigram-relevance gate: asking ABOUT one blank
+    # of a bank stem is relevance, not identity. It must fall open to normal
+    # RAG (the row still reaches the LLM as ordinary retrieval context).
+    assert not _identity(
+        "防水混凝土的适用环境温度不得高于多少？",
+        "地下工程的防水等级分为（  ），防水混凝土的适用环境温度不得高于（  ）。",
+    )
+    assert not _identity(
+        "大体积混凝土里表温差控制多少？",
+        "大体积混凝土施工里表温差不宜大于（  ）。",
+    )
+
+
+def test_identity_keeps_calculation_invariant_as_orthogonal_rejector() -> None:
+    # #422 calc identity stays: same wording template, different numeric facts
+    # can never be the same question even if surface coverage were high.
+    assert not _identity(
+        "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时费用偏差为多少万元？",
+        "某工程计划完成工程量5000m3，预算成本单价150元/m3，现已完成3000m3，实际价是200元/m3，此时进度偏差为（　　）万元。",
+    )
+
+
+def test_identity_case_type_passthrough_is_preserved() -> None:
+    # 指挥官裁决：case 家族推迟收权——case 型命中继续走 case_bundle 覆盖判定。
+    assert _identity("背景资料：某项目……问题一：……", _RED_STEM, question_type="case_study")
+
+
+def test_identity_short_fragments_never_authorize() -> None:
+    # A tiny shared fragment (below the minimum discriminative surface) must
+    # not authorize identity via the containment rule.
+    assert not _identity("防水等级", "防水等级为（　）级。")
