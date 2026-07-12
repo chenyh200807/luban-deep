@@ -63,6 +63,15 @@ worker 重启对策:rate()/increase() 天然免疫 counter 重置,验收时用 `
 
 turn TTFVT p50 ≈ `start_turn_setup` + `provider_first_chunk` + 事件 persist 开销。若 TTFVT 与 Langfuse TTFT 差异 > 2s,按 turn_event_log 的 `latency_timeline`/`capability_stream_stage_timings_ms` 定位中间跳(路由分类器/工具链/persist)。另与 `deeptutor_surface_first_render_coverage_ratio` 及 surface ack 的 `first_visible_content_rendered` 对照,确认端侧感知与服务端观测同向。
 
+## 启动核验读数(2026-07-12,部署#1=08dc27eb 后步骤1-5实测)
+
+- 步骤1 SDK 签名门:容器内 `langfuse 4.7.1 True` → GO。
+- 步骤2:eval-runner(claude_ttft_bl*)真 WS 入口 3 轮×2 消息=6 流式 turn,全部 passed:true。
+- 步骤3 Langfuse:部署后新 generation `completionStartTime` 非 null 11/11(tutorbot.llm.stream 6 + llm.stream 5;更早的 null 全为部署前历史,符合预期)。LLM 级 TTFT 实测:tutorbot.llm.stream 1.39-1.91s,llm.stream(factory 路径)3.54-4.57s,模型 deepseek-v4-flash。
+- 步骤4 Prometheus(X-Metrics-Token,127.0.0.1:8001/metrics/prometheus):`deeptutor_turn_first_useful_content_ms` count=6 与打的 6 turn 逐一对上;分桶 3≤4s/1≤8s/2≤16s,`+Inf`==count;合并视图 ✓。
+- 步骤5 交叉核对:turn TTFVT 均值 ~6.1s vs LLM TTFT ~1.4-1.9s,差 ~2-4s=生成开始前的路由/followup 判定器段——与 Langfuse 深查"followup 判定器占首答前阻塞主因"结论同向,正是灰度序(B2/B4)要消的段。基线窗自本读数起算。
+- 部署#1教训:首跑 SSH 在备份步被断,容器 env 已更新但镜像里代码是旧的(md5 与宿主源码不一致)=「env 新代码旧」假绿;重跑完整构建后 md5 逐字一致才放行。**核部署必须 md5 比对容器文件 vs 宿主源码,env SHA 对齐不算数。**
+
 ## 步骤 6:采 24-48h(目标 7 天)基线并写回本文件
 
 | 指标 | p50 | p95 | 采样窗 | 备注 |
