@@ -9,11 +9,13 @@ description: Use this whenever adopting, upgrading, installing, or enabling an e
 **吸收它的严谨流程，中和它的 opinionated 默认行为。** 外部工具的默认是为通用场景设计的，
 会悄悄越过本项目的单一权威、分支纪律、register-before-use。工具越"帮你自动做"，越容易绕过 gate。
 
-**与既有 gate 的分工**（不重复造）：本 skill 只管"**采纳/升级外部工具这一刻**的审计与中和"。提交细则归 `deeptutor-git-workflow-gate`，schema 登记归 `deeptutor-schema-authority-gate`，gstack 各命令的专项越权清单归 `CLAUDE.md`。本 skill 是触发面更广的"入口闸"，命中后该跳哪条专项 gate 就跳。下面的 gstack / 插件只是**例子**，不是只针对这两个。
+**与既有 gate 的分工**（不重复造）：本 skill 只管"**采纳/升级外部工具这一刻**的审计与中和"。提交细则归 `deeptutor-git-workflow-gate`，schema 登记归 `deeptutor-schema-authority-gate`，gstack 各命令的专项越权清单归本 skill 的 [references/gstack.md](references/gstack.md)。本 skill 是触发面更广的"入口闸"，命中后该跳哪条专项 gate 就跳。下面的 gstack / 插件只是**例子**，不是只针对这两个。
+
+**gstack 专项**：使用任何 `/gstack-*` 命令前先读 [references/gstack.md](references/gstack.md)（命令↔工作流映射、越权风险清单、六条硬约束、团队模式禁用状态）。
 
 ## 为什么（已踩两次，会再踩）
 
-- **gstack**：`ship`/`land`/`document` 默认 auto-commit、bump 版本、改 CLAUDE.md/README、push、开 PR —— 越过 AGENTS §3.5 Main Merge / §3.6 Branch discipline。
+- **gstack**：`ship`/`land`/`document` 默认 auto-commit、bump 版本、改 CLAUDE.md/README、push、开 PR —— 越过 AGENTS.md 的 Main Merge Workflow 与 git 纪律(Hard Invariants)。
 - **everything-claude-code 插件**：一条 PreToolUse doc-guard hook 直接拦掉合法的 `agent-skills/**/SKILL.md` 创建。
 
 ## 采纳前审计清单（逐项问）
@@ -35,7 +37,7 @@ description: Use this whenever adopting, upgrading, installing, or enabling an e
 
 ## 不可越过的硬边界（工具再方便也不让）
 
-- **单一权威**：不新增第二套 schema/router/authority；工具建议的"新增字段/兜底/wrapper/特例"先对照既有 authority（见 AGENTS §0/§5.6/§5.7）。
+- **单一权威**：不新增第二套 schema/router/authority；工具建议的"新增字段/兜底/wrapper/特例"先对照既有 authority（见 AGENTS.md Principles 的 Thin wrappers, fat skills 与 Single Authority Hard Gate）。
 - **分支纪律**：默认不新建分支、不 auto-commit；提交只含当前任务相关文件，脏树/并行场景尤其只重放自己的 hunk。
 - **register-before-use**：工具生成的 schema/skill/资源先登记再消费。
 - **远端写边界**：部署类工具的目标路径先证明在授权根内。

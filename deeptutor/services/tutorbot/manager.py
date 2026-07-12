@@ -661,6 +661,7 @@ class TutorBotManager:
         from deeptutor.tutorbot.agent.loop import AgentLoop
         from deeptutor.tutorbot.config.schema import ExecToolConfig
         from deeptutor.tutorbot.session.sqlite_adapter import SQLiteSessionAdapter
+        from deeptutor.services.llm.config import resolve_fast_tier_model
 
         provider = create_deeptutor_provider()
         bus = MessageBus()
@@ -691,6 +692,10 @@ class TutorBotManager:
             # prompt injection would otherwise reach an RCE surface. (security review C2/H2/H3)
             enable_exec_tool=False,
             default_session_key=canonical_key,
+            # Light-tier model for background work (memory consolidation, subagents).
+            # LLM_FAST_MODEL unset => "" => None => bit-for-bit fall back to self.model.
+            # Zero user-visible surface; independent of the fast-turn A/B flag.
+            utility_model=resolve_fast_tier_model() or None,
         )
 
         # -- Channel setup ---------------------------------------------------
@@ -974,7 +979,7 @@ class TutorBotManager:
         effective_chat_id = str(chat_id or "web").strip() or "web"
         effective_session_key = session_key or self.build_chat_session_key(bot_id, effective_chat_id)
 
-        session = instance.agent_loop.sessions.get_or_create(effective_session_key)
+        session = await instance.agent_loop.sessions.get_or_create(effective_session_key)
         merged_metadata = dict(session.metadata or {})
         if session_metadata:
             merged_metadata.update(session_metadata)
@@ -1225,7 +1230,7 @@ class TutorBotManager:
                             response,
                             tool_trace_summary.get("web_search_sources"),
                     )
-                    loop_session = instance.agent_loop.sessions.get_or_create(effective_session_key)
+                    loop_session = await instance.agent_loop.sessions.get_or_create(effective_session_key)
                     loop_metadata = dict(getattr(loop_session, "metadata", {}) or {})
                     exact_fast_path_hit = bool(loop_metadata.get("last_exact_fast_path", False))
                     if not exact_fast_path_hit and tool_trace_summary["authority_applied"]:

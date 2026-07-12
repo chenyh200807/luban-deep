@@ -232,6 +232,10 @@ class MemoryConsolidator:
     """Owns consolidation policy, locking, and session offset updates."""
 
     _MAX_CONSOLIDATION_ROUNDS = 5
+    # Above this many already-persisted messages, seed the per-message token
+    # table on a worker thread so a cold session's first turn does not block the
+    # event loop on one big synchronous BPE pass.
+    _COLD_START_MESSAGE_THRESHOLD = 64
 
     def __init__(
         self,
@@ -243,15 +247,30 @@ class MemoryConsolidator:
         build_messages: Callable[..., list[dict[str, Any]]],
         get_tool_definitions: Callable[[], list[dict[str, Any]]],
         shared_memory_dir: Path | None = None,
+        consolidation_model: str | None = None,
     ):
         self.store = MemoryStore(workspace, shared_memory_dir=shared_memory_dir)
         self.provider = provider
+        # ``model`` is the main-loop token-estimation ANCHOR (tokenizer alignment
+        # for prompt-size / consolidation-boundary decisions) and MUST NOT drift
+        # with the light tier. ``consolidation_model`` (optional) only swaps the
+        # model used for the consolidation LLM call itself. None => use self.model.
         self.model = model
+        self.consolidation_model = (consolidation_model or "").strip() or None
         self.sessions = sessions
         self.context_window_tokens = context_window_tokens
         self._build_messages = build_messages
         self._get_tool_definitions = get_tool_definitions
         self._locks: dict[str, asyncio.Lock] = {}
+        # Process-local, discardable memoization of prompt-size estimation.
+        # Keyed by ``session.key``; each entry is
+        # ``{"per_msg": list[int], "base": int, "base_sig": tuple | None}`` where
+        # ``per_msg`` is index-aligned to ``session.messages``.  This is pure
+        # derived state: never persisted, never written into any message dict,
+        # never part of any contract.  Losing it forces one recompute.  The sole
+        # consolidation decider remains ``maybe_consolidate_by_tokens``; this
+        # only changes HOW the same input is computed, not WHO decides.
+        self._token_cache: dict[str, dict[str, Any]] = {}
 
     def get_lock(self, session_key: str) -> asyncio.Lock:
         """Return the shared consolidation lock for one session."""
@@ -272,7 +291,9 @@ class MemoryConsolidator:
 
     async def consolidate_messages(self, messages: list[dict[str, object]]) -> bool:
         """Archive a selected message chunk into persistent memory."""
-        return await self.store.consolidate(messages, self.provider, self.model)
+        return await self.store.consolidate(
+            messages, self.provider, self.consolidation_model or self.model
+        )
 
     def pick_consolidation_boundary(
         self,
@@ -284,6 +305,12 @@ class MemoryConsolidator:
         if start >= len(session.messages) or tokens_to_remove <= 0:
             return None
 
+        # Reuse the per-message token counts populated by
+        # ``_incremental_prompt_tokens`` (index-aligned to ``session.messages``)
+        # so boundary selection does not re-encode every message; fall back to a
+        # direct estimate only on a cache miss.
+        per_msg = self._token_cache.get(session.key, {}).get("per_msg") or []
+
         removed_tokens = 0
         last_boundary: tuple[int, int] | None = None
         for idx in range(start, len(session.messages)):
@@ -292,7 +319,10 @@ class MemoryConsolidator:
                 last_boundary = (idx, removed_tokens)
                 if removed_tokens >= tokens_to_remove:
                     return last_boundary
-            removed_tokens += estimate_message_tokens(message)
+            if idx < len(per_msg):
+                removed_tokens += per_msg[idx]
+            else:
+                removed_tokens += estimate_message_tokens(message)
 
         return last_boundary
 
@@ -313,6 +343,129 @@ class MemoryConsolidator:
             self._get_tool_definitions(),
         )
 
+    def _base_signature(self) -> tuple[int, int, int]:
+        """Cheap fingerprint of everything the constant (non-message) prompt
+        segment depends on: the persisted memory files (folded into the system
+        prompt) and the tool schema.  When unchanged, the cached ``base`` is
+        reused; when it changes (e.g. a consolidation round rewrote MEMORY.md)
+        the base is recomputed.  O(1) in message count."""
+        def _mtime(path: Path) -> int:
+            try:
+                return path.stat().st_mtime_ns
+            except OSError:
+                return -1
+
+        tools_len = len(json.dumps(self._get_tool_definitions(), ensure_ascii=False))
+        return (
+            _mtime(self.store.memory_file),
+            _mtime(self.store.history_file),
+            tools_len,
+        )
+
+    def _estimate_base_tokens(self, session: Session) -> int:
+        """Estimate the constant prompt segment (system prompt + tools + probe
+        scaffolding) against an EMPTY history.  Depends only on system/tool
+        material, so it is O(1) in message count and safe to compute on the hot
+        path when the signature changes."""
+        channel, chat_id = (
+            session.key.split(":", 1) if ":" in session.key else (None, None)
+        )
+        probe_messages = self._build_messages(
+            history=[],
+            current_message="[token-probe]",
+            channel=channel,
+            chat_id=chat_id,
+        )
+        base, _ = estimate_prompt_tokens_chain(
+            self.provider,
+            self.model,
+            probe_messages,
+            self._get_tool_definitions(),
+        )
+        return base
+
+    @staticmethod
+    def _counts_toward_prompt(message: dict) -> bool:
+        """Deterministic per-message mirror of the stable-history DROP rules.
+
+        ``Session.stable_messages()`` always drops tool results (role not in
+        user/assistant) and assistant tool_call intermediates — those rules are
+        decidable per message, so the incremental table can record 0 for them
+        without ever re-walking history.  Superseded assistant messages are
+        still counted (their stability depends on later messages), which keeps
+        the incremental value an UPPER BOUND while removing the tool-payload
+        bloat that made tool-dense sessions consolidate far too early
+        (observed +458% over-estimate before this refinement).
+        """
+        role = message.get("role")
+        if role not in ("user", "assistant"):
+            return False
+        if role == "assistant" and message.get("tool_calls"):
+            return False
+        return True
+
+    async def _incremental_prompt_tokens(self, session: Session) -> tuple[int, str]:
+        """Estimate current prompt size incrementally, re-encoding only messages
+        appended since the previous call.
+
+        This turns the per-turn ``O(all messages)`` BPE pass done by
+        ``estimate_session_prompt_tokens`` into ``O(new messages)`` via the
+        process-local ``self._token_cache`` (see ``__init__``).
+
+        Direction safety: the returned value is an UPPER BOUND on
+        ``estimate_session_prompt_tokens``.  The per-message sum walks the raw,
+        append-only ``session.messages`` (including tool-intermediate turns),
+        whereas the full estimator walks the collapsed *stable* history
+        (``get_history`` drops those intermediates).  ``estimate_message_tokens``
+        also counts a message's ``tool_calls``/``name`` payload that the flat
+        chain estimate omits.  Both effects make the incremental value ``>=`` the
+        full value — over-counting is safe here because it only makes us
+        consolidate slightly EARLY, never lets the context window overflow.
+
+        The cache is pure discardable derived state (never persisted, never in a
+        message dict, never in a contract); losing it forces one recompute and
+        does not change WHO decides consolidation.
+        """
+        cache = self._token_cache.setdefault(
+            session.key, {"per_msg": [], "base": -1, "base_sig": None}
+        )
+        per_msg: list[int] = cache["per_msg"]
+        msgs = session.messages
+
+        # clear()/truncation shrinks the append-only list — drop the stale table
+        # so we never read token counts that belonged to since-removed messages.
+        if len(per_msg) > len(msgs):
+            per_msg.clear()
+
+        # Cold start on a long, already-persisted session: seed the whole table
+        # once off the event loop (we hold the per-session consolidation lock, so
+        # no concurrent writer mutates this cache).
+        if not per_msg and len(msgs) > self._COLD_START_MESSAGE_THRESHOLD:
+            snapshot = list(msgs)
+            per_msg.extend(
+                await asyncio.to_thread(
+                    lambda: [
+                        estimate_message_tokens(m) if self._counts_toward_prompt(m) else 0
+                        for m in snapshot
+                    ]
+                )
+            )
+
+        # Steady state: encode only the messages appended since the last call.
+        for idx in range(len(per_msg), len(msgs)):
+            message = msgs[idx]
+            per_msg.append(
+                estimate_message_tokens(message) if self._counts_toward_prompt(message) else 0
+            )
+
+        base_sig = self._base_signature()
+        if cache["base_sig"] != base_sig:
+            cache["base"] = self._estimate_base_tokens(session)
+            cache["base_sig"] = base_sig
+
+        tail = sum(per_msg[session.last_consolidated:])
+        return cache["base"] + tail, "tiktoken_incremental"
+
     async def archive_unconsolidated(self, session: Session) -> bool:
         """Archive the full unconsolidated tail for /new-style session rollover."""
         lock = self.get_lock(session.key)
@@ -330,7 +483,7 @@ class MemoryConsolidator:
         lock = self.get_lock(session.key)
         async with lock:
             target = self.context_window_tokens // 2
-            estimated, source = self.estimate_session_prompt_tokens(session)
+            estimated, source = await self._incremental_prompt_tokens(session)
             if estimated <= 0:
                 return
             if estimated < self.context_window_tokens:
@@ -375,6 +528,6 @@ class MemoryConsolidator:
                 session.last_consolidated = end_idx
                 self.sessions.save(session)
 
-                estimated, source = self.estimate_session_prompt_tokens(session)
+                estimated, source = await self._incremental_prompt_tokens(session)
                 if estimated <= 0:
                     return

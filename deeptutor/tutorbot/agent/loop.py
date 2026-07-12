@@ -245,6 +245,7 @@ class AgentLoop:
         shared_memory_dir: Path | None = None,
         default_session_key: str | None = None,
         enable_exec_tool: bool = True,
+        utility_model: str | None = None,
     ):
         from deeptutor.tutorbot.config.schema import ExecToolConfig, WebSearchConfig
 
@@ -253,6 +254,10 @@ class AgentLoop:
         self.provider = provider
         self.workspace = workspace
         self.model = model or provider.get_default_model()
+        # Light-tier model for latency-insensitive / background LLM work (memory
+        # consolidation, subagents). None => fall back to self.model bit-for-bit.
+        # The main-loop token-estimation anchor stays on self.model (see memory.py).
+        self.utility_model = (utility_model or "").strip() or None
         self.max_iterations = max_iterations
         self.context_window_tokens = context_window_tokens
         self.web_search_config = web_search_config or WebSearchConfig()
@@ -271,7 +276,7 @@ class AgentLoop:
             provider=provider,
             workspace=workspace,
             bus=bus,
-            model=self.model,
+            model=self.utility_model or self.model,
             web_search_config=self.web_search_config,
             web_proxy=web_proxy,
             exec_config=self.exec_config,
@@ -307,6 +312,7 @@ class AgentLoop:
             workspace=workspace,
             provider=provider,
             model=self.model,
+            consolidation_model=self.utility_model,
             sessions=self.sessions,
             context_window_tokens=context_window_tokens,
             build_messages=self.context.build_messages,
@@ -888,6 +894,70 @@ class AgentLoop:
             )
         return guarded if guarded is not None else final_content
 
+    async def _finalize_visible_answer(
+        self,
+        final_content: str,
+        *,
+        user_message: str,
+        runtime_metadata: dict[str, Any] | None,
+        finalize_path: str,
+    ) -> str:
+        """可见答案修正链的唯一权威(四条 finalize 分支只许调这里,禁止内联复制)。
+
+        全链 8 步固定顺序:normalize_anchor_terms → correct_construction_exam_boundary_fact →
+        _case_exact_authority_fallback → _apply_v1_or_case_fallback → _degraded_exact_answer_claim →
+        _degraded_mcq_grading → _content_truth_guard → guard_tutorbot_output。每一步的
+        ``X(...) or final_content`` 约定(修正器返 '' = 保持原文)逐字保留。
+
+        ``finalize_path`` **仅作观测标签,绝不得用于门控任何修正器**——需要按路径定制时,正确做法
+        是在对应修正器内部用 ``runtime_metadata`` 里的结构化事实做门(如
+        ``_prefetched_exact_authority_candidate`` 对 case_grading 的排除),而不是在这里加分支或
+        skip flag。prefetched 分支历史上手抄漏了中间两个修正器,已逐修正器裁决为可证明 no-op
+        (见 tests/tutorbot/test_finalize_visible_answer_pipeline.py),故统一为全链、不设跳过参数。
+        """
+
+        final_content = normalize_anchor_terms_in_response(
+            user_message=user_message,
+            response=final_content,
+        ) or final_content
+        final_content = correct_construction_exam_boundary_fact_response(
+            user_message=user_message,
+            response=final_content,
+        ) or final_content
+        final_content = self._case_exact_authority_fallback(
+            final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        logger.debug(
+            "LUBAN_DIAG finalize pre-v1: path={} scene={} looks_case={} pf_qid={}",
+            finalize_path,
+            (runtime_metadata or {}).get("question_lifecycle_scene") or "(none)",
+            "【题目】" in user_message or "case" in user_message[:30].lower(),
+            str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
+        )
+        final_content = await self._apply_v1_or_case_fallback(
+            final_content,
+            runtime_metadata=runtime_metadata,
+            user_message=user_message,
+        ) or final_content
+        final_content = self._degraded_exact_answer_claim_response(
+            user_message=user_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        final_content = self._degraded_mcq_grading_response(
+            user_message=user_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        final_content = self._content_truth_guard(
+            user_message=user_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        guarded_output = guard_tutorbot_output(final_content)
+        return guarded_output.content or final_content
+
     @staticmethod
     def _format_answer_letters(letters: str | None) -> str:
         normalized = AgentLoop._normalize_answer_letters(letters)
@@ -1436,7 +1506,7 @@ class AgentLoop:
         (not case_grading / no score authority / flag off / no reference / unavailable). Best-effort:
         never raises (must not break the tutorbot turn)."""
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-        logger.warning(
+        logger.debug(
             "LUBAN_DIAG _v1_case_render: entered md_type={} scene={} pf_eq_qid={} cg_scene={} "
             "covered_sub_keys={}",
             type(runtime_metadata).__name__,
@@ -1447,7 +1517,7 @@ class AgentLoop:
         )
         scene = str(md.get("question_lifecycle_scene") or "").strip()
         if scene != "case_grading":
-            logger.warning("LUBAN_V1 skip: scene={} qid={}", scene or "(none)",
+            logger.debug("LUBAN_V1 skip: scene={} qid={}", scene or "(none)",
                            str((md.get("_prefetched_exact_question") or {}).get("question_id") or "?")[:12])
             return None
         # _grade_one_case_v1 owns scoring authority. TutorBot is only the thin entry wrapper:
@@ -1717,7 +1787,7 @@ class AgentLoop:
         """Single seam for all finalize paths: prefer V1 rubric grading (becomes the score authority);
         otherwise fall back to the existing no-authority demotion. Returns '' to leave final_content as-is."""
         _md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-        logger.warning(
+        logger.debug(
             "LUBAN_DIAG _apply_v1_or_case_fallback: called scene={} has_pf_eq={} msg_len={}",
             _md.get("question_lifecycle_scene") or "(none)",
             bool(_md.get("_prefetched_exact_question")),
@@ -1988,8 +2058,6 @@ class AgentLoop:
         rag_rounds: list[dict[str, Any]] = []
         rag_saturation: dict[str, Any] | None = None
         blocked_exact_tool_retry = False
-        raw_stream_buffer = ""
-        emitted_stream_len = 0
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
         effective_max_iterations = self._resolve_max_tool_rounds(runtime_metadata)
         runtime_metadata["effective_max_tool_rounds"] = effective_max_iterations
@@ -1999,24 +2067,18 @@ class AgentLoop:
             runtime_metadata.get("exact_question_blocked_reason") or ""
         ).strip() and not self._is_question_review_scene(runtime_metadata)
 
-        def _visible_stream_text(raw_text: str) -> str:
-            # Hide completed and in-progress <think> blocks before forwarding deltas.
-            visible = re.sub(r"<think>[\s\S]*?</think>", "", raw_text)
-            visible = re.sub(r"<think>[\s\S]*$", "", visible)
-            visible = re.sub(r"</think>[\s\S]*$", "", visible)
-            visible = re.sub(r"<[^>]*$", "", visible)
-            return visible
+        # Battle1 W1-T4: incremental <think> stripping replaces the per-delta
+        # full-buffer regex rescan (4 x re.sub over the growing buffer was
+        # O(n^2) CPU on the event loop per streamed answer). Emission clip
+        # semantics (prefix-monotonic, never retract) are unchanged and
+        # oracle-locked against a verbatim replay of the old implementation
+        # by tests/tutorbot/test_think_strip_streamer.py.
+        stream_stripper = _ThinkStripStreamer()
 
         async def _stream_delta(delta: str) -> None:
-            nonlocal raw_stream_buffer, emitted_stream_len
             if not on_content_delta or not delta:
                 return
-            raw_stream_buffer += delta
-            visible = _visible_stream_text(raw_stream_buffer)
-            if len(visible) <= emitted_stream_len:
-                return
-            chunk = visible[emitted_stream_len:]
-            emitted_stream_len = len(visible)
+            chunk = stream_stripper.feed(delta)
             if chunk:
                 await on_content_delta(chunk)
 
@@ -3555,7 +3617,7 @@ class AgentLoop:
         sub_cancelled = await self.subagents.cancel_by_session(msg.session_key)
         team_cancelled = await self.team.cancel_by_session(msg.session_key)
         if team_cancelled:
-            session = self.sessions.get_or_create(msg.session_key)
+            session = await self.sessions.get_or_create(msg.session_key)
             session.metadata.pop("nano_team_active", None)
             self.sessions.save(session)
         total = cancelled + sub_cancelled + team_cancelled
@@ -3629,7 +3691,7 @@ class AgentLoop:
                                 else ("cli", msg.chat_id))
             logger.info("Processing system message from {}", msg.sender_id)
             key = f"{channel}:{chat_id}"
-            session = self.sessions.get_or_create(key)
+            session = await self.sessions.get_or_create(key)
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
             runtime_metadata = dict(session.metadata or {})
             runtime_metadata.update(msg.metadata or {})
@@ -3659,7 +3721,7 @@ class AgentLoop:
         logger.info("Processing message from {}:{}: {}", msg.channel, msg.sender_id, preview)
 
         key = session_key or self._default_session_key or msg.session_key
-        session = self.sessions.get_or_create(key)
+        session = await self.sessions.get_or_create(key)
 
         # Slash commands
         raw = msg.content.strip()
@@ -3990,40 +4052,12 @@ class AgentLoop:
                 on_tool_result=on_tool_result,
             )
             final_content, all_msgs, fast_path_metadata = fast_path
-            final_content = normalize_anchor_terms_in_response(
-                user_message=current_message,
-                response=final_content,
-            ) or final_content
-            final_content = correct_construction_exam_boundary_fact_response(
-                user_message=current_message,
-                response=final_content,
-            ) or final_content
-            final_content = self._case_exact_authority_fallback(
+            final_content = await self._finalize_visible_answer(
                 final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            final_content = await self._apply_v1_or_case_fallback(
-                final_content,
-                runtime_metadata=runtime_metadata,
                 user_message=current_message,
-            ) or final_content
-            final_content = self._degraded_exact_answer_claim_response(
-                user_message=current_message,
-                final_content=final_content,
                 runtime_metadata=runtime_metadata,
-            ) or final_content
-            final_content = self._degraded_mcq_grading_response(
-                user_message=current_message,
-                final_content=final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            final_content = self._content_truth_guard(
-                user_message=current_message,
-                final_content=final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            guarded_output = guard_tutorbot_output(final_content)
-            final_content = guarded_output.content or final_content
+                finalize_path="exact_fast_path",
+            )
             if all_msgs:
                 all_msgs[-1]["content"] = final_content
             await self._emit_visible_text_deltas(final_content, on_content_delta)
@@ -4083,31 +4117,12 @@ class AgentLoop:
                 user_message=current_message,
             )
             if final_content:
-                final_content = normalize_anchor_terms_in_response(
+                final_content = await self._finalize_visible_answer(
+                    final_content,
                     user_message=current_message,
-                    response=final_content,
-                ) or final_content
-                final_content = correct_construction_exam_boundary_fact_response(
-                    user_message=current_message,
-                    response=final_content,
-                ) or final_content
-                final_content = self._degraded_exact_answer_claim_response(
-                    user_message=current_message,
-                    final_content=final_content,
                     runtime_metadata=runtime_metadata,
-                ) or final_content
-                final_content = self._degraded_mcq_grading_response(
-                    user_message=current_message,
-                    final_content=final_content,
-                    runtime_metadata=runtime_metadata,
-                ) or final_content
-                final_content = self._content_truth_guard(
-                    user_message=current_message,
-                    final_content=final_content,
-                    runtime_metadata=runtime_metadata,
-                ) or final_content
-                guarded_output = guard_tutorbot_output(final_content)
-                final_content = guarded_output.content or final_content
+                    finalize_path="prefetched_authority",
+                )
                 all_msgs = self.context.add_assistant_message(initial_messages, final_content)
                 await self._emit_visible_text_deltas(final_content, on_content_delta)
                 self._save_turn(
@@ -4151,46 +4166,12 @@ class AgentLoop:
             )
             if final_content is None:
                 final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
-            final_content = normalize_anchor_terms_in_response(
-                user_message=current_message,
-                response=final_content,
-            ) or final_content
-            final_content = correct_construction_exam_boundary_fact_response(
-                user_message=current_message,
-                response=final_content,
-            ) or final_content
-            final_content = self._case_exact_authority_fallback(
+            final_content = await self._finalize_visible_answer(
                 final_content,
+                user_message=current_message,
                 runtime_metadata=runtime_metadata,
-            ) or final_content
-            logger.warning(
-                "LUBAN_DIAG fast-policy pre-v1: scene={} looks_case={} pf_qid={}",
-                (runtime_metadata or {}).get("question_lifecycle_scene") or "(none)",
-                "【题目】" in current_message or "case" in current_message[:30].lower(),
-                str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
+                finalize_path="fast_policy",
             )
-            final_content = await self._apply_v1_or_case_fallback(
-                final_content,
-                runtime_metadata=runtime_metadata,
-                user_message=current_message,
-            ) or final_content
-            final_content = self._degraded_exact_answer_claim_response(
-                user_message=current_message,
-                final_content=final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            final_content = self._degraded_mcq_grading_response(
-                user_message=current_message,
-                final_content=final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            final_content = self._content_truth_guard(
-                user_message=current_message,
-                final_content=final_content,
-                runtime_metadata=runtime_metadata,
-            ) or final_content
-            guarded_output = guard_tutorbot_output(final_content)
-            final_content = guarded_output.content or final_content
             if all_msgs:
                 all_msgs[-1]["content"] = final_content
             if streamed_text and final_content.startswith(streamed_text):
@@ -4248,46 +4229,12 @@ class AgentLoop:
 
         if final_content is None:
             final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
-        final_content = normalize_anchor_terms_in_response(
-            user_message=current_message,
-            response=final_content,
-        ) or final_content
-        final_content = correct_construction_exam_boundary_fact_response(
-            user_message=current_message,
-            response=final_content,
-        ) or final_content
-        final_content = self._case_exact_authority_fallback(
+        final_content = await self._finalize_visible_answer(
             final_content,
+            user_message=current_message,
             runtime_metadata=runtime_metadata,
-        ) or final_content
-        logger.warning(
-            "LUBAN_DIAG agent-loop pre-v1: scene={} looks_case={} pf_qid={}",
-            (runtime_metadata or {}).get("question_lifecycle_scene") or "(none)",
-            "【题目】" in current_message or "case" in current_message[:30].lower(),
-            str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
+            finalize_path="agent_loop",
         )
-        final_content = await self._apply_v1_or_case_fallback(
-            final_content,
-            runtime_metadata=runtime_metadata,
-            user_message=current_message,
-        ) or final_content
-        final_content = self._degraded_exact_answer_claim_response(
-            user_message=current_message,
-            final_content=final_content,
-            runtime_metadata=runtime_metadata,
-        ) or final_content
-        final_content = self._degraded_mcq_grading_response(
-            user_message=current_message,
-            final_content=final_content,
-            runtime_metadata=runtime_metadata,
-        ) or final_content
-        final_content = self._content_truth_guard(
-            user_message=current_message,
-            final_content=final_content,
-            runtime_metadata=runtime_metadata,
-        ) or final_content
-        guarded_output = guard_tutorbot_output(final_content)
-        final_content = guarded_output.content or final_content
         if all_msgs:
             all_msgs[-1]["content"] = final_content
         if suppress_agent_stream:
@@ -4404,3 +4351,105 @@ class AgentLoop:
         ):
             metadata.update(response.metadata)
         return response.content if response else ""
+
+
+class _ThinkStripStreamer:
+    """Battle1 W1-T4: incremental <think>-stripping for streamed deltas.
+
+    Replaces the previous per-delta full-buffer rescan (4 x re.sub over the
+    ever-growing raw buffer — O(n^2) per streamed answer, on the event loop)
+    with a resolved-prefix fold: text before the first unresolved '<'
+    construct is final and never rescanned; the regex cascade (kept verbatim
+    from the old ``_visible_stream_text``) runs only over the small
+    unresolved tail, and only when the incoming delta can actually change
+    visibility. Emission keeps the historical clip semantics: visible text is
+    prefix-monotonic and already-emitted characters are never retracted.
+    Equivalence with the old implementation is oracle-locked by
+    tests/tutorbot/test_think_strip_streamer.py (fuzz replay of the old
+    buffer+clip loop).
+    """
+
+    def __init__(self) -> None:
+        self._resolved = ""   # finalized visible text (never rescanned)
+        self._suffix = ""     # raw unresolved tail, starts at a '<'
+        self._kind = "clean"  # clean | think_open | partial | orphan
+        self._emitted = 0     # visible chars already emitted to the client
+
+    @staticmethod
+    def _cascade(raw_text: str) -> str:
+        # Verbatim regex cascade from the previous implementation. Do not
+        # "fix" its quirks here — bug-for-bug compatibility is the contract.
+        visible = re.sub(r"<think>[\s\S]*?</think>", "", raw_text)
+        visible = re.sub(r"<think>[\s\S]*$", "", visible)
+        visible = re.sub(r"</think>[\s\S]*$", "", visible)
+        visible = re.sub(r"<[^>]*$", "", visible)
+        return visible
+
+    def _classify(self) -> str:
+        stripped = re.sub(r"<think>[\s\S]*?</think>", "", self._suffix)
+        open_at = stripped.find("<think>")
+        orphan_at = stripped.find("</think>")
+        if orphan_at != -1 and (open_at == -1 or orphan_at < open_at):
+            return "orphan"
+        if open_at != -1:
+            return "think_open"
+        if stripped.find("<", stripped.rfind(">") + 1) != -1:
+            return "partial"
+        return "resolved"
+
+    def feed(self, delta: str) -> str:
+        if not delta or self._kind == "orphan":
+            return ""
+        if self._kind == "clean":
+            lt = delta.find("<")
+            if lt == -1:
+                self._resolved += delta
+                return self._emit("")
+            self._resolved += delta[:lt]
+            self._suffix = delta[lt:]
+            return self._recompute()
+        if self._kind == "think_open":
+            carry = self._suffix[-7:]
+            self._suffix += delta
+            if "</think>" not in carry + delta:
+                return ""
+            return self._recompute()
+        # kind == "partial": nothing can resolve until a '>' arrives
+        # (both think tags contain '>', and the trailing-'<' rule only
+        # releases text once a '>' exists after the '<').
+        self._suffix += delta
+        if ">" not in delta:
+            return ""
+        return self._recompute()
+
+    def _recompute(self) -> str:
+        visible_suffix = self._cascade(self._suffix)
+        kind = self._classify()
+        chunk = self._emit(visible_suffix)
+        if kind == "resolved":
+            # Fully paired/closed tail: fold it into the resolved prefix.
+            # Future constructs all start with a fresh '<', so nothing can
+            # reach back into folded text.
+            self._resolved += visible_suffix
+            self._suffix = ""
+            self._kind = "clean"
+        elif kind == "orphan":
+            # Everything after an orphan </think> is suppressed forever by
+            # the cascade (later text can never pair it), so freeze and drop.
+            self._resolved += visible_suffix
+            self._suffix = ""
+            self._kind = "orphan"
+        else:
+            self._kind = kind
+        return chunk
+
+    def _emit(self, visible_suffix: str) -> str:
+        total_len = len(self._resolved) + len(visible_suffix)
+        if total_len <= self._emitted:
+            return ""
+        if self._emitted >= len(self._resolved):
+            chunk = visible_suffix[self._emitted - len(self._resolved):]
+        else:
+            chunk = (self._resolved + visible_suffix)[self._emitted:]
+        self._emitted = total_len
+        return chunk

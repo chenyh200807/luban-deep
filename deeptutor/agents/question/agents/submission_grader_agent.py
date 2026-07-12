@@ -20,6 +20,19 @@ from deeptutor.agents.question.agents.submission_grader_schema import (
 )
 from deeptutor.core.grounding import prepend_grounding
 from deeptutor.core.trace import build_trace_metadata, new_call_id
+from deeptutor.services.runtime_env import env_flag
+
+# ── Battle2 S2（2026-07-12）判分输出减半灰度 ────────────────────────────────────
+# 单一 decider：flag on = compact prompt（4 必备段 + 条件段）+ 输出 token 硬顶；
+# flag off = 旧 7 段 prompt + 配置默认 max_tokens(4096)，字节级不变。
+# 指挥官改判（S2-T2）：cap 严禁无条件生效——旧臂输出 p50≈1,277 tok，无条件 1400 顶会把
+# 约半数旧臂输出截断 → 缺段 → 触发 repair 第二次全量 LLM，更慢更贵。
+# 赎罪条款：上线 14 天 Langfuse 复测达标后删 flag、compact 转正（cap 转无条件）。
+_COMPACT_FLAG = "DEEPTUTOR_MCQ_FEEDBACK_COMPACT"
+# ≈目标 p50(~650 tok) 的 2 倍余量：cap 只斩病理尾部，p50 整形由 schema+prompt 负责。
+_COMPACT_MAX_TOKENS_BASE = 1400
+# 批量多题按 item 线性放宽，不牺牲批量判分完整性（系数待 harness 批量样本校准，宁松勿紧）。
+_COMPACT_MAX_TOKENS_PER_EXTRA_ITEM = 600
 
 
 class SubmissionGraderAgent(BaseAgent):
@@ -43,13 +56,33 @@ class SubmissionGraderAgent(BaseAgent):
         on_content_chunk: Callable[[str], Awaitable[None]] | None = None,
         trace_collector: dict[str, Any] | None = None,
     ) -> str:
-        system_prompt = prepend_grounding(self.get_prompt("system", ""))
-        user_prompt_template = self.get_prompt("grade_submission", "")
+        # Battle2 S2 单一 decider：compact 灰度旗标同时决定 prompt key 与输出 token 硬顶。
+        # compact key 缺失时 fail-open 回旧 key（prompt 资产未烘焙时行为=flag off）。
+        compact = env_flag(_COMPACT_FLAG, default=False)
+        raw_system_prompt = (self.get_prompt("system_compact", "") if compact else "") or self.get_prompt(
+            "system", ""
+        )
+        system_prompt = prepend_grounding(raw_system_prompt)
+        user_prompt_template = (
+            self.get_prompt("grade_submission_compact", "") if compact else ""
+        ) or self.get_prompt("grade_submission", "")
         if not user_prompt_template:
             user_prompt_template = (
                 "Question context:\n{question_context}\n\n"
                 "Conversation history:\n{history_context}\n\n"
                 "Learner submission:\n{user_message}\n"
+            )
+        # S2-T2 输出 token 硬顶（仅 compact 臂）：结构保险斩病理尾部；批量按 item 放宽。
+        # None = 不覆盖，stream_llm 落回配置默认（4096）——flag off 臂行为不变。
+        max_tokens_override: int | None = None
+        if compact:
+            _extra_items = max(
+                0,
+                len([i for i in question_context.get("items") or [] if isinstance(i, dict)]) - 1,
+            )
+            max_tokens_override = min(
+                self.get_max_tokens(),
+                _COMPACT_MAX_TOKENS_BASE + _COMPACT_MAX_TOKENS_PER_EXTRA_ITEM * _extra_items,
             )
 
         user_prompt = user_prompt_template.format(
@@ -73,6 +106,7 @@ class SubmissionGraderAgent(BaseAgent):
         async for _c in self.stream_llm(
             user_prompt=user_prompt,
             system_prompt=system_prompt or "",
+            max_tokens=max_tokens_override,
             stage="submission_grading",
             trace_meta=build_trace_metadata(
                 call_id=new_call_id(
@@ -124,6 +158,7 @@ class SubmissionGraderAgent(BaseAgent):
                 async for _c in self.stream_llm(
                     user_prompt=repair_prompt,
                     system_prompt=system_prompt or "",
+                    max_tokens=max_tokens_override,
                     stage="submission_grading_repair",
                     trace_meta=build_trace_metadata(
                         call_id=new_call_id(

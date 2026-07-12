@@ -66,7 +66,7 @@ def test_tutorbot_sqlite_adapter_persists_metadata_and_stable_messages(tmp_path)
     adapter.save(session)
     adapter.invalidate(key)
 
-    restored = adapter.get_or_create(key)
+    restored = asyncio.run(adapter.get_or_create(key))
     assert restored.metadata["bot_id"] == "construction-exam-coach"
     assert restored.metadata["conversation_id"] == "c1"
     # 引擎镜像行不得携带用户身份戳 / 客户端 source（2026-07 双会话根因）：
@@ -230,7 +230,7 @@ def test_tutorbot_sqlite_adapter_repeated_save_does_not_duplicate_final_answer(t
     adapter.save(session)
     adapter.invalidate(key)
 
-    restored = adapter.get_or_create(key)
+    restored = asyncio.run(adapter.get_or_create(key))
     assert [item["content"] for item in restored.messages] == [
         "建筑构造是什么？",
         "现在我来给你一个完整的解释。",
@@ -272,7 +272,7 @@ def test_tutorbot_sqlite_adapter_persists_raw_user_message_not_prompt_envelope(t
     adapter.save(session)
     adapter.invalidate(key)
 
-    restored = adapter.get_or_create(key)
+    restored = asyncio.run(adapter.get_or_create(key))
     assert [item["content"] for item in restored.messages] == [
         "防水卷材搭接宽度怎么记？",
         "先按材料和施工方法区分。",
@@ -284,16 +284,16 @@ def test_tutorbot_sqlite_adapter_persists_raw_user_message_not_prompt_envelope(t
 
 def test_tutorbot_sqlite_adapter_load_failure_is_not_treated_as_missing_session(tmp_path) -> None:
     class BrokenStore:
-        def _get_session_sync(self, _session_id: str):
+        async def get_session(self, _session_id: str):
             raise RuntimeError("sqlite unavailable")
 
-        def _get_messages_sync(self, _session_id: str):
+        async def get_messages(self, _session_id: str):
             return []
 
     adapter = SQLiteSessionAdapter(BrokenStore())
 
     with pytest.raises(RuntimeError, match="sqlite unavailable"):
-        adapter.get_or_create("bot:demo:user:u1:chat:c1")
+        asyncio.run(adapter.get_or_create("bot:demo:user:u1:chat:c1"))
 
 
 @pytest.mark.asyncio
@@ -377,18 +377,31 @@ async def test_tutorbot_sqlite_adapter_ensure_and_save_share_session_create_lock
     )
     store = RacingStore()
     adapter = SQLiteSessionAdapter(store)
+    key = "bot:demo:user:u1:chat:c1"
 
-    session = adapter.get_or_create("bot:demo:user:u1:chat:c1")
-    session.messages.append({"role": "user", "content": "hello"})
-    adapter.save(session)
+    # get_or_create now awaits its create-session ensure inline (single async
+    # interface), so run it as a task and hold it inside create_session while a
+    # concurrent save contends for the SAME per-session lock. The lock must
+    # serialize both create paths → exactly one create_session, no duplicate.
+    get_task = asyncio.create_task(adapter.get_or_create(key))
     await asyncio.wait_for(store.first_create_entered.wait(), timeout=0.1)
-    await asyncio.sleep(0)
     create_calls_before_release = store.create_calls
+
+    session = Session(key=key)
+    session.messages.append({"role": "user", "content": "hello"})
+    adapter.save(session)  # _save_async spawned; blocks on the held lock
+    await asyncio.sleep(0)
+
     store.release_create.set()
+    loaded = await get_task
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     assert create_calls_before_release == 1
+    # save ran after the ensure released the lock; it saw the ensured row and
+    # did NOT create a second one.
+    assert store.create_calls == 1
     assert not [result for result in results if isinstance(result, RuntimeError)]
+    assert loaded.key == key
 
 
 def test_tutorbot_sqlite_adapter_rewrites_legacy_noisy_session_before_appending(tmp_path) -> None:
@@ -442,7 +455,7 @@ def test_tutorbot_sqlite_adapter_rewrites_legacy_noisy_session_before_appending(
     adapter.save(session)
     adapter.invalidate(key)
 
-    restored = adapter.get_or_create(key)
+    restored = asyncio.run(adapter.get_or_create(key))
     assert [item["role"] for item in restored.messages] == ["user", "assistant", "user", "assistant"]
     assert [item["content"] for item in restored.messages] == ["第一问", "第一问答案", "第二问", "第二问答案"]
 
@@ -504,7 +517,7 @@ def test_tutorbot_sqlite_adapter_normalizes_none_content_from_stored_tutorbot_me
         )
     )
 
-    restored = adapter.get_or_create(key)
+    restored = asyncio.run(adapter.get_or_create(key))
 
     assert restored.messages[0]["content"] == ""
     assert restored.messages[1]["content"] == ""
@@ -549,7 +562,7 @@ def test_tutorbot_sqlite_adapter_normalizes_multimodal_content_and_drops_reasoni
         )
     )
 
-    restored = adapter.get_or_create(key)
+    restored = asyncio.run(adapter.get_or_create(key))
 
     assert restored.messages == [
         {
@@ -684,7 +697,7 @@ async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_extern
         def __init__(self) -> None:
             self._session = Session(key="bot:demo:user:u1:chat:c1", metadata={})
 
-        def get_or_create(self, key: str) -> Session:
+        async def get_or_create(self, key: str) -> Session:
             self._session.key = key
             return self._session
 
@@ -813,7 +826,7 @@ async def test_tutorbot_manager_strips_stale_case_grading_receipt_from_non_case_
                 metadata=dict(stale_receipt),
             )
 
-        def get_or_create(self, key: str) -> Session:
+        async def get_or_create(self, key: str) -> Session:
             self._session.key = key
             return self._session
 
@@ -910,7 +923,7 @@ async def test_tutorbot_manager_injects_high_confidence_general_knowledge_contex
         def __init__(self) -> None:
             self._session = Session(key="bot:demo:user:u1:chat:c1", metadata={})
 
-        def get_or_create(self, key: str) -> Session:
+        async def get_or_create(self, key: str) -> Session:
             self._session.key = key
             return self._session
 
@@ -1006,7 +1019,7 @@ def test_tutorbot_engine_mirror_row_is_not_a_user_conversation(tmp_path) -> None
     # ② 同一 turn 内：TutorBot 引擎 get_or_create（先建空行）+ save（补 metadata）
     adapter = SQLiteSessionAdapter(store)
     key = f"bot:construction-exam-coach:user:{user_id}:chat:{conversation_id}"
-    engine_session = adapter.get_or_create(key)
+    engine_session = asyncio.run(adapter.get_or_create(key))
     engine_session.metadata = {
         "bot_id": "construction-exam-coach",
         "conversation_id": conversation_id,
@@ -1041,7 +1054,7 @@ def test_tutorbot_engine_mirror_row_is_not_a_user_conversation(tmp_path) -> None
 
     # 引擎自身历史读写不受影响
     adapter.invalidate(key)
-    restored = adapter.get_or_create(key)
+    restored = asyncio.run(adapter.get_or_create(key))
     assert [item["content"] for item in restored.messages] == [
         "一建建筑实务第一章考点",
         "第一章核心考点如下……",
@@ -1057,7 +1070,7 @@ def test_tutorbot_engine_mirror_stays_engine_owned_across_repeat_saves(tmp_path)
     user_id = "u-repeat"
     key = f"bot:construction-exam-coach:user:{user_id}:chat:conv_repeat"
 
-    engine_session = adapter.get_or_create(key)
+    engine_session = asyncio.run(adapter.get_or_create(key))
     engine_session.metadata = {
         "bot_id": "construction-exam-coach",
         "conversation_id": "conv_repeat",
@@ -1083,7 +1096,7 @@ def test_tutorbot_engine_mirror_stays_engine_owned_across_repeat_saves(tmp_path)
 def test_tutorbot_engine_mirror_reused_after_stock_demotion(tmp_path) -> None:
     """迁移身份断言：存量镜像行被 demote（剥 owner_key/user_id、source→tutorbot）后，
     get_or_create(session_key) 仍命中同一行——匹配只按主键 id=tutorbot:<key>
-    （sqlite_adapter._load_sync → store._get_session_sync），不依赖任何被剥元数据。
+    （sqlite_adapter._load → store.get_session），不依赖任何被剥元数据。
     若匹配依赖身份戳，迁移会诱发新一轮双写（新建第二条镜像行）。"""
     from pathlib import Path as _Path
     import sqlite3 as _sqlite3
@@ -1133,7 +1146,7 @@ def test_tutorbot_engine_mirror_reused_after_stock_demotion(tmp_path) -> None:
 
     # 迁移后 get_or_create 必须命中同一行：历史消息完整恢复（证明没有新建空行）
     adapter = SQLiteSessionAdapter(store)
-    restored = adapter.get_or_create(key)
+    restored = asyncio.run(adapter.get_or_create(key))
     assert [item["content"] for item in restored.messages] == ["存量第一问"]
 
     # 且 sessions 表行数不变（没有第二条镜像行被创建）

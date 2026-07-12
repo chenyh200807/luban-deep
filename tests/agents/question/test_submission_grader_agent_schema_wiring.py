@@ -53,15 +53,24 @@ B 选项。
 
 
 def _make_agent(monkeypatch: pytest.MonkeyPatch, *, stream_outputs: list[str]) -> SubmissionGraderAgent:
-    """Bypass BaseAgent.__init__ (which loads LLM config) and patch stream_llm."""
+    """Bypass BaseAgent.__init__ (which loads LLM config) and patch stream_llm.
+
+    记录每次 stream_llm 的 kwargs 到 ``agent.stream_calls``（Battle2 S2-T2：
+    断言 repair 触发次数与 max_tokens cap 联动）。
+    """
 
     agent = SubmissionGraderAgent.__new__(SubmissionGraderAgent)
     agent.language = "zh"  # type: ignore[attr-defined]
     # Stub minimal BaseAgent surface.
     agent.get_prompt = lambda key, default: ""  # type: ignore[attr-defined]
+    agent.get_max_tokens = lambda: 4096  # type: ignore[attr-defined]
+    agent.stream_calls = []  # type: ignore[attr-defined]
+    # 缺省钉死 flag off（宿主 .env 不得影响测试）；flag-on 用例再显式覆盖。
+    _force_flag(monkeypatch, False)
     output_iter = iter(stream_outputs)
 
     async def fake_stream_llm(*args: Any, **kwargs: Any) -> AsyncIterator[str]:
+        agent.stream_calls.append(dict(kwargs))
         try:
             text = next(output_iter)
         except StopIteration:
@@ -71,6 +80,152 @@ def _make_agent(monkeypatch: pytest.MonkeyPatch, *, stream_outputs: list[str]) -
 
     agent.stream_llm = fake_stream_llm  # type: ignore[attr-defined]
     return agent
+
+
+_COMPACT_EXPLANATION = """\
+### 阅卷结论
+本题答错，你答了 A、正确答案是 B。
+
+### 正确答案
+B（按顺序关闭）。依据防火门规范要求，考点：防火门关闭方式。
+
+### 为什么错
+把顺序器保证的顺序关闭理解成了自动关闭，属概念混淆。
+
+### 下一步
+现在把"双扇防火门按顺序关闭"抄 1 遍。
+
+### 逐项解析
+你选的 A 错：双扇门须分先后；B 正确：顺序器保证按顺序关闭；C/D 均不符合规范表述。
+"""
+
+
+def test_grader_compact_shape_without_optional_sections_skips_repair(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Battle2 S2-T1：新 compact 形状（缺易错点/口诀/知识点）不算缺段、不触发第二次全量 LLM。"""
+    agent = _make_agent(monkeypatch, stream_outputs=[_COMPACT_EXPLANATION])
+    trace_collector: dict[str, Any] = {}
+    asyncio.run(
+        agent.process(
+            user_message="我选 A",
+            question_context={
+                "question_id": "q_compact",
+                "question_type": "choice",
+                "is_correct": False,
+                "question": "...",
+            },
+            trace_collector=trace_collector,
+        )
+    )
+    assert len(agent.stream_calls) == 1, "optional sections missing must NOT trigger self-repair"
+    assert trace_collector["explanation_section_miss"] == []
+    sections = trace_collector["explanation_sections"]
+    for key in ("verdict", "correct_answer", "why_wrong", "next_practice", "option_analysis"):
+        assert sections.get(key)
+    for key in ("knowledge_point", "common_pitfall", "mnemonic"):
+        assert key not in sections
+
+
+def _force_flag(monkeypatch: pytest.MonkeyPatch, value: bool) -> None:
+    """钉死 compact 灰度旗标（env_store 读磁盘 .env，monkeypatch.setenv 不可靠——直接补丁模块内引用）。"""
+    import deeptutor.agents.question.agents.submission_grader_agent as agent_module
+
+    monkeypatch.setattr(
+        agent_module, "env_flag", lambda name, *, default=False: value if name == "DEEPTUTOR_MCQ_FEEDBACK_COMPACT" else default
+    )
+
+
+def test_flag_off_keeps_legacy_prompt_and_no_max_tokens_cap(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Battle2 S2-T2 指挥官改判：flag off 臂 prompt 与 token 顶都必须与现状 bit-for-bit 一致。"""
+    agent = _make_agent(monkeypatch, stream_outputs=[_FULL_EXPLANATION])
+    _force_flag(monkeypatch, False)
+    requested_keys: list[str] = []
+    agent.get_prompt = lambda key, default="": (requested_keys.append(key), "")[1]  # type: ignore[attr-defined]
+    asyncio.run(
+        agent.process(
+            user_message="我选 A",
+            question_context={"question_id": "q_off", "question_type": "choice", "is_correct": False, "question": "..."},
+            trace_collector={},
+        )
+    )
+    assert "system_compact" not in requested_keys
+    assert "grade_submission_compact" not in requested_keys
+    assert agent.stream_calls, "stream_llm must be called"
+    for call in agent.stream_calls:
+        assert call.get("max_tokens") is None, "flag off must NOT cap max_tokens (keeps config 4096)"
+
+
+def test_flag_on_selects_compact_prompt_and_caps_single_question_at_1400(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    agent = _make_agent(monkeypatch, stream_outputs=[_COMPACT_EXPLANATION])
+    _force_flag(monkeypatch, True)
+    requested_keys: list[str] = []
+    agent.get_prompt = lambda key, default="": (requested_keys.append(key), "")[1]  # type: ignore[attr-defined]
+    asyncio.run(
+        agent.process(
+            user_message="我选 A",
+            question_context={"question_id": "q_on", "question_type": "choice", "is_correct": False, "question": "..."},
+            trace_collector={},
+        )
+    )
+    assert "system_compact" in requested_keys
+    assert "grade_submission_compact" in requested_keys
+    assert len(agent.stream_calls) == 1
+    assert agent.stream_calls[0].get("max_tokens") == 1400
+
+
+def test_flag_on_batch_items_widen_cap_linearly(monkeypatch: pytest.MonkeyPatch) -> None:
+    agent = _make_agent(monkeypatch, stream_outputs=[_COMPACT_EXPLANATION])
+    _force_flag(monkeypatch, True)
+    items = [
+        {"question_id": f"q_{i}", "question_type": "choice", "is_correct": False, "question": "..."}
+        for i in range(4)
+    ]
+    asyncio.run(
+        agent.process(
+            user_message="1A 2B 3C 4D",
+            question_context={
+                "question_id": "q_batch",
+                "question_type": "choice",
+                "is_correct": False,
+                "question": "...",
+                "items": items,
+            },
+            trace_collector={},
+        )
+    )
+    # 4 题：1400 + 600*3 = 3200（≤ 配置 4096 不截顶）
+    assert agent.stream_calls[0].get("max_tokens") == 3200
+
+
+def test_flag_on_truncated_stream_repairs_with_same_cap_and_fallback_fills_required(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """模拟 finish_reason=length 截断在逐项解析中途：repair 同 cap；两轮仍缺 → 模板兜底，
+    4 必备段全部非空（硬约束40：判分轮永不空段），miss 名单如实记录。"""
+    truncated = "### 阅卷结论\n本题答错，你答了 A、正确答案是 B。\n\n### 正确答案\nB（按顺序关闭）。\n\n### 逐项解析\n你选的 A 错：双扇门须"
+    agent = _make_agent(monkeypatch, stream_outputs=[truncated, ""])
+    _force_flag(monkeypatch, True)
+    trace_collector: dict[str, Any] = {}
+    asyncio.run(
+        agent.process(
+            user_message="我选 A",
+            question_context={"question_id": "q_trunc", "question_type": "choice", "is_correct": False, "question": "..."},
+            trace_collector=trace_collector,
+        )
+    )
+    assert len(agent.stream_calls) == 2, "missing required sections must trigger repair"
+    assert agent.stream_calls[0].get("max_tokens") == 1400
+    assert agent.stream_calls[1].get("max_tokens") == 1400, "repair call must carry the same cap"
+    sections = trace_collector["explanation_sections"]
+    for key in ("verdict", "correct_answer", "why_wrong", "next_practice"):
+        assert str(sections.get(key, "")).strip(), f"{key} must be non-empty post-fallback"
+    miss = trace_collector["explanation_section_miss"]
+    assert "why_wrong" in miss and "next_practice" in miss
 
 
 def test_grader_writes_section_miss_when_first_llm_passes_all_sections(
@@ -150,8 +305,11 @@ def test_grader_falls_back_to_template_when_repair_still_misses(
         )
     )
     sections = trace_collector["explanation_sections"]
-    # 模板填充：所有 required keys 都应有内容
-    for key in ("verdict", "correct_answer", "why_wrong", "knowledge_point", "common_pitfall", "mnemonic", "next_practice"):
+    # 模板填充：所有 required keys（Battle2 S2-T1 后为 4 必备段 + 错题 option_analysis）都应有内容
+    for key in ("verdict", "correct_answer", "why_wrong", "next_practice", "option_analysis"):
         assert sections.get(key), f"{key} should be filled by template fallback"
+    # 条件段（knowledge_point/common_pitfall/mnemonic）缺失=合法省略，不模板兜底
+    for key in ("knowledge_point", "common_pitfall", "mnemonic"):
+        assert key not in sections
     # explanation_section_miss 应记录原始缺段名单（template 填充不修改 miss list）
     assert len(trace_collector["explanation_section_miss"]) > 0

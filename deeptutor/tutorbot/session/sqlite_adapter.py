@@ -8,6 +8,7 @@ for TutorBot and DeepTutor in a single database.
 from __future__ import annotations
 
 import asyncio
+from collections import OrderedDict
 from datetime import datetime
 import json
 from pathlib import Path
@@ -24,6 +25,14 @@ from deeptutor.tutorbot.utils.helpers import normalize_message_content
 # deeptutor/services/tutorbot/manager.py send_message source fallback).
 _ENGINE_SESSION_SOURCE = "tutorbot"
 
+# In-memory LRU cap for hydrated sessions. The single persistence authority is
+# SQLite; this cache and the persistence cursor below are process-local derived
+# state — eviction (or process restart) simply forces a reload / full
+# re-validation, so the cap prevents unbounded growth without adding a decider.
+# Sized well above single-worker concurrency (~10) to keep it a safety bound,
+# not a tuning knob.
+_SESSION_CACHE_MAX = 1024
+
 
 class SQLiteSessionAdapter:
     """Drop-in replacement for SessionManager, backed by DeepTutor SQLite."""
@@ -34,8 +43,15 @@ class SQLiteSessionAdapter:
             store: A DeepTutor SQLiteSessionStore instance.
         """
         self.store = store
-        self._cache: dict[str, Session] = {}
+        # OrderedDict = LRU: most-recently-used moved to the end, oldest evicted.
+        self._cache: OrderedDict[str, Session] = OrderedDict()
         self._save_locks: dict[str, asyncio.Lock] = {}
+        # Per-session persistence cursor: number of stable messages already
+        # written to SQLite. Lets a hot save append only the new tail instead of
+        # reading back the full history and re-signing every row. ``None`` (or a
+        # missing key) means "not yet validated this process" → first save runs
+        # the one-time full stability check.
+        self._persisted_stable: dict[str, int] = {}
 
     @property
     def sessions_dir(self) -> Path:
@@ -172,16 +188,25 @@ class SQLiteSessionAdapter:
                 events=[{"_tutorbot_message": stored_message}],
             )
 
-    def get_or_create(self, key: str) -> Session:
-        """Get or create a session synchronously (loads from SQLite via event loop)."""
-        if key in self._cache:
-            return self._cache[key]
+    async def get_or_create(self, key: str) -> Session:
+        """Get or create a session, hydrating from SQLite via the store's async API.
 
-        session = self._load_sync(key)
+        Single interface (no sync/async fork): callers await this from their own
+        async context. The load path goes through the store's public async
+        methods (``get_session`` / ``get_messages``), so it no longer reaches
+        past the store's ``to_thread`` boundary into private ``*_sync`` methods.
+        """
+        cached = self._cache.get(key)
+        if cached is not None:
+            self._cache.move_to_end(key)
+            return cached
+
+        session = await self._load(key)
         if session is None:
             session = Session(key=key)
-            self._ensure_sqlite_session_sync(key)
+            await self._ensure_sqlite_session_async(key, {})
         self._cache[key] = session
+        self._evict_if_over_limit()
         return session
 
     def save(self, session: Session) -> None:
@@ -197,16 +222,42 @@ class SQLiteSessionAdapter:
 
     def invalidate(self, key: str) -> None:
         self._cache.pop(key, None)
+        # Drop the persistence cursor too, so the next save re-validates from
+        # SQLite — keeps cursor and cache lifetimes identical.
+        self._persisted_stable.pop(self._session_id(key), None)
+
+    def _evict_if_over_limit(self) -> None:
+        """Evict least-recently-used sessions once the cache exceeds the cap.
+
+        Skips any session whose save lock is currently held, so an in-flight
+        writer never has its cursor dropped mid-append. Eviction mirrors
+        ``invalidate``: both cache entry and cursor go, and the next
+        ``get_or_create`` reloads from SQLite (the single authority).
+        """
+        while len(self._cache) > _SESSION_CACHE_MAX:
+            victim: str | None = None
+            for cached_key in self._cache:
+                lock = self._save_locks.get(self._session_id(cached_key))
+                if lock is not None and lock.locked():
+                    continue
+                victim = cached_key
+                break
+            if victim is None:
+                # Every cached session is mid-save; leave the cap slightly
+                # exceeded rather than evict a session being written.
+                break
+            self._cache.pop(victim, None)
+            self._persisted_stable.pop(self._session_id(victim), None)
 
     def list_sessions(self) -> list[dict[str, Any]]:
         return self.store._list_sessions_sync(limit=50)
 
-    def _load_sync(self, key: str) -> Session | None:
-        """Load a session from SQLite by running the coroutine."""
+    async def _load(self, key: str) -> Session | None:
+        """Load a session from SQLite through the store's public async API."""
         session_id = self._session_id(key)
         try:
-            session_row = self.store._get_session_sync(session_id)
-            messages_raw = self.store._get_messages_sync(session_id)
+            session_row = await self.store.get_session(session_id)
+            messages_raw = await self.store.get_messages(session_id)
         except Exception:
             logger.exception("Failed to load TutorBot SQLite session {}", session_id)
             raise
@@ -250,26 +301,6 @@ class SQLiteSessionAdapter:
             updated_at=datetime.fromtimestamp(float(session_row.get("updated_at") or datetime.now().timestamp())),
             metadata=metadata,
         )
-
-    def _ensure_sqlite_session_sync(self, key: str, metadata: dict[str, Any] | None = None) -> None:
-        """Ensure a corresponding DeepTutor session row exists."""
-        normalized_metadata = self._normalize_metadata(metadata)
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
-        try:
-            if loop and loop.is_running():
-                spawn_task(
-                    self._ensure_sqlite_session_async(key, normalized_metadata),
-                    name=f"tutorbot.sqlite.ensure_session:{self._session_id(key)}",
-                )
-            elif loop:
-                loop.run_until_complete(self._ensure_sqlite_session_async(key, normalized_metadata))
-            else:
-                asyncio.run(self._ensure_sqlite_session_async(key, normalized_metadata))
-        except Exception:
-            logger.debug("Session {} may already exist", self._session_id(key))
 
     async def _ensure_sqlite_session_async(self, key: str, metadata: dict[str, Any]) -> None:
         session_id = self._session_id(key)
@@ -318,17 +349,30 @@ class SQLiteSessionAdapter:
                     await self.store.update_session_preferences(session_id, persist_metadata)
 
             stable_messages = session.stable_messages()
-            existing_msgs = await self.store.get_messages(session_id)
-            if existing_msgs and not self._stored_rows_are_stable(existing_msgs):
-                await self._rebuild_sqlite_session(
-                    session_id=session_id,
-                    session_key=session.key,
-                    metadata=metadata,
-                    stable_messages=stable_messages,
-                )
-                existing_count = len(stable_messages)
-            else:
-                existing_count = len(existing_msgs)
+            # Persistence cursor: the adapter only ever writes stable messages
+            # (one row per stable message), so the row count equals the number of
+            # stable messages already persisted. A hot save appends just the new
+            # tail. The full read-back + O(n) signature comparison is only needed
+            # the FIRST time this process touches the session (cursor is None):
+            # once the adapter owns the rows they stay stable-by-construction, so
+            # later saves can trust the cursor. Losing the cursor (restart /
+            # invalidate / LRU eviction) simply reruns the one-time check — same
+            # end state, never a duplicate append.
+            existing_count = self._persisted_stable.get(session_id)
+            if existing_count is None:
+                existing_msgs = await self.store.get_messages(session_id)
+                if existing_msgs and not await asyncio.to_thread(
+                    self._stored_rows_are_stable, existing_msgs
+                ):
+                    await self._rebuild_sqlite_session(
+                        session_id=session_id,
+                        session_key=session.key,
+                        metadata=metadata,
+                        stable_messages=stable_messages,
+                    )
+                    existing_count = len(stable_messages)
+                else:
+                    existing_count = len(existing_msgs)
 
             for msg in stable_messages[existing_count:]:
                 stored_message = self._message_for_sqlite(msg)
@@ -341,4 +385,8 @@ class SQLiteSessionAdapter:
                     capability="tutorbot",
                     events=[{"_tutorbot_message": stored_message}],
                 )
+            # Advance the cursor. ``max`` guards the degenerate case where a save
+            # sees fewer stable messages than are already persisted (nothing was
+            # appended above): never lower the watermark below what SQLite holds.
+            self._persisted_stable[session_id] = max(existing_count, len(stable_messages))
         self._cache[session.key] = session

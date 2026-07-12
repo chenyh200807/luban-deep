@@ -288,6 +288,14 @@ class _LifecycleAuthorityStore:
         self.events.append(payload)
         return payload
 
+    async def append_turn_events_batch(
+        self, _turn_id: str, events: list[dict[str, object]]
+    ) -> list[dict[str, object]]:
+        # Battle1 W2-T3: runtime persists via the batch path (pre-stamped seq);
+        # mirror the single-append mock shape one row per event.
+        self.events.extend(events)
+        return list(events)
+
 
 @pytest.mark.asyncio
 async def test_turn_runtime_demotes_tutorbot_capability_hint_before_lifecycle_authority(monkeypatch) -> None:
@@ -1457,11 +1465,11 @@ async def test_start_turn_merges_redacted_public_submission_with_stored_active_q
             )
 
     class FakeOrchestrator:
-        async def _select_capability(self, context):
+        async def select_capability(self, context):
             captured["selector_active_capability"] = context.active_capability
             return "deep_question"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["capability"] = context.active_capability
             captured["config_overrides"] = dict(context.config_overrides)
             captured["question_followup_context"] = dict(
@@ -1577,10 +1585,10 @@ async def test_start_turn_projects_general_knowledge_shadow_flag_to_tutorbot_met
             )
 
     class FakeOrchestrator:
-        async def _select_capability(self, context):
+        async def select_capability(self, context):
             return "tutorbot"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["config_overrides"] = dict(context.config_overrides)
             captured["metadata"] = dict(context.metadata)
             yield StreamEvent(
@@ -1658,10 +1666,10 @@ async def test_start_turn_passes_pgo_shadow_flag_to_config_overrides(
             )
 
     class FakeOrchestrator:
-        async def _select_capability(self, context):
+        async def select_capability(self, context):
             return "deep_question"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["config_overrides"] = dict(context.config_overrides)
             yield StreamEvent(
                 type=StreamEventType.RESULT,
@@ -1727,10 +1735,10 @@ async def test_start_turn_does_not_coerce_string_general_knowledge_flag_to_true(
             )
 
     class FakeOrchestrator:
-        async def _select_capability(self, context):
+        async def select_capability(self, context):
             return "tutorbot"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["metadata"] = dict(context.metadata)
             yield StreamEvent(
                 type=StreamEventType.RESULT,
@@ -1806,7 +1814,7 @@ async def test_start_turn_recovers_stored_active_question_for_plain_text_option_
         }
 
     class FakeOrchestrator:
-        async def _select_capability(self, context):
+        async def select_capability(self, context):
             captured["selector_question_followup_context"] = dict(
                 context.metadata.get("question_followup_context", {}) or {}
             )
@@ -1816,7 +1824,7 @@ async def test_start_turn_recovers_stored_active_question_for_plain_text_option_
             captured["selector_active_object"] = dict(context.metadata.get("active_object", {}) or {})
             return "deep_question"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["capability"] = context.active_capability
             captured["question_followup_context"] = dict(
                 context.metadata.get("question_followup_context", {}) or {}
@@ -1916,7 +1924,7 @@ async def test_start_turn_promotes_full_new_mcq_over_stale_active_object(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_object"] = dict(context.metadata.get("active_object") or {})
             captured["question_followup_context"] = dict(
                 context.metadata.get("question_followup_context") or {}
@@ -2038,7 +2046,7 @@ async def test_start_turn_stamps_inline_full_mcq_scene_and_marked_answer(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["question_lifecycle_scene"] = context.metadata.get(
                 "question_lifecycle_scene"
             )
@@ -2145,7 +2153,7 @@ async def test_start_turn_promotes_full_new_case_over_stale_active_object(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_object"] = dict(context.metadata.get("active_object") or {})
             captured["question_followup_context"] = dict(
                 context.metadata.get("question_followup_context") or {}
@@ -2278,7 +2286,7 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -2426,7 +2434,7 @@ async def test_turn_runtime_extracts_document_attachments_into_context(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured_contexts.append(context)
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -2568,7 +2576,7 @@ async def test_turn_runtime_applies_request_scoped_llm_selection(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             from deeptutor.services.llm.config import get_llm_config
 
             captured["scoped_model"] = get_llm_config().model
@@ -2661,7 +2669,7 @@ async def test_turn_runtime_captures_exact_authority_response_content(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -2731,7 +2739,7 @@ async def test_turn_runtime_bootstraps_open_chat_active_object_when_no_stronger_
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_object"] = context.metadata.get("active_object")
             yield StreamEvent(
                 type=StreamEventType.RESULT,
@@ -2803,7 +2811,7 @@ async def test_turn_runtime_prefers_public_content_stream_over_stale_result_resp
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -2889,7 +2897,7 @@ async def test_turn_runtime_visible_sink_strips_orphan_markers_across_stream_res
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -2971,7 +2979,7 @@ async def test_turn_runtime_visible_sink_blocks_internal_envelope_in_result_and_
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
@@ -3048,7 +3056,7 @@ async def test_turn_runtime_projects_assistant_content_to_legacy_result_response
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
@@ -3145,7 +3153,7 @@ async def test_turn_runtime_persists_message_turn_identity_for_resume_recovery(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
@@ -3217,7 +3225,7 @@ async def test_turn_runtime_excludes_internal_content_from_assistant_history(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="tutorbot",
@@ -3307,11 +3315,11 @@ async def test_turn_runtime_routes_construction_exam_bot_to_tutorbot_capability(
             )
 
     class FakeOrchestrator:
-        async def _select_capability(self, context):
+        async def select_capability(self, context):
             assert context.active_capability is None
             return "tutorbot"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             assert context.active_capability == "tutorbot"
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -3383,7 +3391,7 @@ async def test_start_turn_waits_for_first_subscriber_before_running(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             started.set()
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -3456,7 +3464,7 @@ async def test_start_turn_emits_public_status_before_capability_content(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -3548,7 +3556,7 @@ async def test_turn_runtime_routes_tutorbot_practice_generation_to_deep_question
             )
 
     class FakeOrchestrator:
-        async def _select_capability(self, context):
+        async def select_capability(self, context):
             captured["selector_active_capability"] = context.active_capability
             context.config_overrides["force_generate_questions"] = True
             context.config_overrides["question_type"] = "choice"
@@ -3556,7 +3564,7 @@ async def test_turn_runtime_routes_tutorbot_practice_generation_to_deep_question
             context.config_overrides["reveal_explanations"] = False
             return "deep_question"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["user_message"] = context.user_message
             captured["config_overrides"] = dict(context.config_overrides)
@@ -3654,7 +3662,7 @@ async def test_turn_runtime_carries_prior_tutorbot_topic_to_action_only_practice
     captured: dict[str, Any] = {}
 
     class FakeOrchestrator:
-        async def _select_capability(self, context):
+        async def select_capability(self, context):
             if "出几道题目" in context.user_message:
                 captured["second_history"] = list(context.conversation_history)
                 captured["second_context_text"] = context.metadata.get(
@@ -3671,7 +3679,7 @@ async def test_turn_runtime_carries_prior_tutorbot_topic_to_action_only_practice
                 return "deep_question"
             return "tutorbot"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             if context.active_capability == "tutorbot":
                 yield StreamEvent(
                     type=StreamEventType.RESULT,
@@ -4093,7 +4101,7 @@ async def test_turn_runtime_leaves_tutorbot_question_followup_for_orchestrator_a
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["followup_question_context"] = dict(
                 context.metadata.get("question_followup_context", {}) or {}
@@ -4188,7 +4196,7 @@ async def test_turn_runtime_injects_usage_summary_into_result_events(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -4290,7 +4298,7 @@ async def test_turn_runtime_updates_turn_observation_with_usage_details(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
@@ -4388,7 +4396,7 @@ async def test_turn_runtime_records_release_lineage_in_observation_metadata(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
@@ -4488,7 +4496,7 @@ async def test_turn_runtime_records_aae_scores_in_observation_metadata(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
@@ -4658,7 +4666,7 @@ async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
             )
 
     class FakeOrchestrator:
-        async def _select_capability(self, _context):
+        async def select_capability(self, _context):
             with fake_observability.start_observation(
                 name="llm.complete",
                 as_type="generation",
@@ -4666,7 +4674,7 @@ async def test_turn_runtime_wraps_selector_llm_calls_in_parent_turn_trace(
             ):
                 return "deep_question"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             assert context.active_capability == "deep_question"
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -4837,7 +4845,7 @@ async def test_turn_runtime_wraps_learner_state_refresh_llm_in_parent_trace(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -4992,7 +5000,7 @@ async def test_turn_runtime_metrics_track_completed_and_failed_turns(
             )
 
     class CompletedOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
@@ -5001,7 +5009,7 @@ async def test_turn_runtime_metrics_track_completed_and_failed_turns(
             yield StreamEvent(type=StreamEventType.DONE, source="chat")
 
     class FailedOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             raise RuntimeError("boom")
             yield  # pragma: no cover
 
@@ -5081,9 +5089,11 @@ async def test_turn_runtime_observer_breaks_down_start_setup_and_capability_stre
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
+    from deeptutor.api.runtime_metrics import get_turn_runtime_metrics, reset_turn_runtime_metrics
     from deeptutor.services.observability import get_turn_event_log, reset_turn_event_log
 
     reset_turn_event_log(events_dir=tmp_path / "observer_events")
+    reset_turn_runtime_metrics()
     store = SQLiteSessionStore(tmp_path / "chat_history.db")
     runtime = TurnRuntimeManager(store)
 
@@ -5101,7 +5111,7 @@ async def test_turn_runtime_observer_breaks_down_start_setup_and_capability_stre
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -5191,6 +5201,13 @@ async def test_turn_runtime_observer_breaks_down_start_setup_and_capability_stre
         ]
         == 123.4
     )
+    # Battle2 S3-T3: the same first-useful-content observation is exported one hop
+    # further into the Prometheus TTFVT histogram (observe-only, fail-open).
+    fuc_entries = get_turn_runtime_metrics().snapshot()["first_useful_content_ms"]
+    assert len(fuc_entries) == 1
+    assert fuc_entries[0]["content_source"] == "content.delta"
+    assert fuc_entries[0]["count"] >= 1
+    assert fuc_entries[0]["sum_ms"] >= 0
 
 
 @pytest.mark.asyncio
@@ -5220,7 +5237,7 @@ async def test_turn_runtime_deadline_marks_stuck_turn_failed(
             )
 
     class StuckOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             started.set()
             yield StreamEvent(
                 type=StreamEventType.PROGRESS,
@@ -5299,7 +5316,7 @@ async def test_turn_runtime_records_semantic_router_rollout_metadata(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured_context["config_overrides"] = dict(context.config_overrides)
             context.metadata["semantic_router_mode"] = "shadow"
             context.metadata["semantic_router_mode_reason"] = "shadow_compare_only"
@@ -5404,7 +5421,7 @@ async def test_turn_runtime_bootstraps_question_followup_context_once(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["conversation_history"] = context.conversation_history
             captured["config_overrides"] = context.config_overrides
             captured["metadata"] = context.metadata
@@ -5501,7 +5518,11 @@ async def test_turn_runtime_publishes_live_events_when_persistence_degrades(
     async def _broken_append(*_args, **_kwargs):
         raise sqlite3.OperationalError("database is locked")
 
+    # Battle1 W2-T3: content deltas persist through the batch path; break both
+    # append shapes so any flush degrades. The oversized content crosses the
+    # char flush threshold, forcing the batch write inside this same call.
     monkeypatch.setattr(store, "append_turn_event", _broken_append)
+    monkeypatch.setattr(store, "append_turn_events_batch", _broken_append)
     monkeypatch.setattr(
         TurnRuntimeManager,
         "_mirror_event_to_workspace",
@@ -5514,14 +5535,14 @@ async def test_turn_runtime_publishes_live_events_when_persistence_degrades(
             type=StreamEventType.CONTENT,
             source="chat",
             stage="responding",
-            content="partial answer",
+            content="partial answer" + "x" * 2048,
         ),
     )
     delivered = await queue.get()
 
     assert execution.persistence_degraded is True
-    assert payload["content"] == "partial answer"
-    assert delivered["content"] == "partial answer"
+    assert payload["content"].startswith("partial answer")
+    assert delivered["content"].startswith("partial answer")
 
 
 @pytest.mark.asyncio
@@ -5553,7 +5574,7 @@ async def test_turn_runtime_recovers_active_question_context_from_previous_resul
     class FakeOrchestrator:
         call_count = 0
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             FakeOrchestrator.call_count += 1
             captured["contexts"].append(context.metadata.get("question_followup_context"))
             if FakeOrchestrator.call_count == 1:
@@ -5712,7 +5733,7 @@ async def test_turn_runtime_does_not_recover_active_question_context_from_presen
     class FakeOrchestrator:
         call_count = 0
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             FakeOrchestrator.call_count += 1
             captured["contexts"].append(context.metadata.get("question_followup_context"))
             if FakeOrchestrator.call_count == 1:
@@ -5851,10 +5872,10 @@ async def test_turn_runtime_does_not_pin_tutorbot_for_recovered_question_submiss
             )
 
     class FakeOrchestrator:
-        async def _select_capability(self, _context):
+        async def select_capability(self, _context):
             return "deep_question"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["question_followup_context"] = context.metadata.get(
                 "question_followup_context"
@@ -5957,10 +5978,10 @@ async def test_turn_runtime_does_not_pin_tutorbot_when_llm_identifies_followup_t
             )
 
     class FakeOrchestrator:
-        async def _select_capability(self, _context):
+        async def select_capability(self, _context):
             return "deep_question"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["question_followup_context"] = context.metadata.get(
                 "question_followup_context"
@@ -6107,7 +6128,7 @@ async def test_turn_runtime_treats_choice_type_as_generation_with_stored_active_
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["metadata"] = dict(context.metadata or {})
             yield StreamEvent(
@@ -6227,7 +6248,7 @@ async def test_turn_runtime_treats_written_question_type_request_as_generation_w
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["metadata"] = dict(context.metadata or {})
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -6346,7 +6367,7 @@ async def test_turn_runtime_suspends_active_question_for_unrelated_general_query
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["metadata"] = dict(context.metadata)
             captured["active_capability"] = context.active_capability
             yield StreamEvent(
@@ -6460,7 +6481,7 @@ async def test_turn_runtime_suspends_active_question_before_smart_mode_selection
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["chat_mode"] = context.config_overrides.get("chat_mode")
             captured["metadata"] = dict(context.metadata)
             yield StreamEvent(
@@ -6590,7 +6611,7 @@ async def test_turn_runtime_keeps_batch_submission_in_chat_for_stored_question_s
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["question_followup_context"] = context.metadata.get(
                 "question_followup_context"
@@ -6713,7 +6734,7 @@ async def test_turn_runtime_recovers_tutorbot_mirror_question_set_for_batch_subm
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["question_followup_context"] = context.metadata.get(
                 "question_followup_context"
@@ -6871,7 +6892,7 @@ async def test_turn_runtime_keeps_compact_batch_letters_in_chat_for_stored_quest
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["question_followup_context"] = context.metadata.get(
                 "question_followup_context"
@@ -6994,7 +7015,7 @@ async def test_turn_runtime_keeps_compact_numbered_batch_in_chat_for_stored_ques
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["question_followup_context"] = context.metadata.get(
                 "question_followup_context"
@@ -7117,10 +7138,10 @@ async def test_turn_runtime_keeps_batch_correction_in_chat_for_stored_question_s
             )
 
     class FakeOrchestrator:
-        async def _select_capability(self, _context):
+        async def select_capability(self, _context):
             return "deep_question"
 
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["question_followup_context"] = context.metadata.get(
                 "question_followup_context"
@@ -7243,7 +7264,7 @@ async def test_turn_runtime_does_not_inject_stale_question_context_for_unrelated
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["contexts"].append(context.metadata.get("question_followup_context"))
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -7318,7 +7339,7 @@ async def test_turn_runtime_recovers_orphaned_running_turn_before_new_turn(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -7388,7 +7409,7 @@ async def test_turn_runtime_cancels_superseded_running_turn_before_new_turn(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             orchestrator_calls["count"] += 1
             if orchestrator_calls["count"] == 1:
                 first_turn_started.set()
@@ -7503,7 +7524,7 @@ async def test_turn_runtime_preserves_terminal_commit_when_new_turn_arrives(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             orchestrator_calls["count"] += 1
             if orchestrator_calls["count"] == 1:
                 yield StreamEvent(
@@ -7606,7 +7627,7 @@ async def test_turn_runtime_fails_closed_for_provider_raw_error(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             raise RuntimeError("<400> InternalError.Algo.DataInspectionFailed: raw provider rejection")
             yield
 
@@ -7675,7 +7696,7 @@ async def test_turn_runtime_fails_closed_for_provider_html_error_event(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.ERROR,
                 source="chat",
@@ -7747,7 +7768,7 @@ async def test_turn_runtime_coerces_provider_auth_error_returned_as_result(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
@@ -7829,7 +7850,7 @@ async def test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["config_overrides"] = context.config_overrides
             captured["metadata"] = context.metadata
             captured["conversation_history"] = context.conversation_history
@@ -7914,7 +7935,7 @@ async def test_turn_runtime_allows_m35_artifact_shadow_flags_as_runtime_only_con
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["config_overrides"] = dict(context.config_overrides)
             captured["metadata"] = dict(context.metadata)
             yield StreamEvent(
@@ -7993,7 +8014,7 @@ async def test_turn_runtime_preserves_current_info_hint_for_mode_selection(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["metadata"] = context.metadata
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -8232,7 +8253,7 @@ async def test_turn_runtime_normalizes_legacy_mini_tutor_profile_to_tutorbot(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["config_overrides"] = dict(context.config_overrides)
             captured["metadata"] = dict(context.metadata)
             yield StreamEvent(
@@ -8311,7 +8332,7 @@ async def test_turn_runtime_does_not_treat_default_rag_binding_as_grounding_rout
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["metadata"] = context.metadata
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -8376,7 +8397,7 @@ async def test_turn_runtime_preserves_auto_capability_selection_when_unspecified
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["active_capability"] = context.active_capability
             captured["user_message"] = context.user_message
             yield StreamEvent(
@@ -8452,7 +8473,7 @@ async def test_mobile_surface_turn_synthesizes_public_result_response_from_final
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="deep_question",
@@ -8527,7 +8548,7 @@ async def test_mobile_surface_turn_synthesizes_public_result_response_from_final
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="deep_question",
@@ -8618,7 +8639,7 @@ async def test_turn_runtime_marks_explicit_chat_mode_in_metadata(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["chat_mode_explicit"] = context.metadata.get("chat_mode_explicit")
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -8685,7 +8706,7 @@ async def test_turn_runtime_uses_canonical_requested_response_mode_to_set_explic
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["chat_mode"] = context.config_overrides.get("chat_mode")
             captured["chat_mode_explicit"] = context.metadata.get("chat_mode_explicit")
             yield StreamEvent(
@@ -8763,7 +8784,7 @@ async def test_turn_runtime_prefers_requested_response_mode_hint_when_chat_mode_
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["chat_mode"] = context.config_overrides.get("chat_mode")
             captured["chat_mode_explicit"] = context.metadata.get("chat_mode_explicit")
             yield StreamEvent(
@@ -8841,7 +8862,7 @@ async def test_turn_runtime_trace_requested_response_mode_records_selected_mode_
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
@@ -8931,7 +8952,7 @@ async def test_turn_runtime_open_chat_active_object_does_not_force_deep_mode_for
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["chat_mode"] = context.config_overrides.get("chat_mode")
             captured["active_object"] = context.metadata.get("active_object")
             yield StreamEvent(
@@ -9032,7 +9053,7 @@ async def test_turn_runtime_separates_requested_smart_from_selected_fast_in_trac
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["chat_mode"] = context.config_overrides.get("chat_mode")
             yield StreamEvent(
                 type=StreamEventType.RESULT,
@@ -9153,7 +9174,7 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -9322,7 +9343,7 @@ async def test_turn_runtime_marks_usage_scope_billable_after_wallet_capture(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -9440,7 +9461,7 @@ async def test_turn_runtime_skips_mini_program_capture_without_wallet_authority(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -9904,7 +9925,7 @@ async def test_turn_runtime_persists_deep_research_session_preference(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="deep_research",
@@ -9977,7 +9998,7 @@ async def test_turn_runtime_injects_memory_and_refreshes_after_completion(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["conversation_history"] = context.conversation_history
             captured["memory_context"] = context.memory_context
             captured["conversation_context_text"] = context.metadata.get("conversation_context_text")
@@ -10055,7 +10076,7 @@ async def test_turn_runtime_does_not_block_done_on_background_memory_refresh(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -10137,7 +10158,7 @@ async def test_turn_runtime_context_orchestration_skips_heavy_context_for_low_si
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["user_message"] = context.user_message
             captured["notebook_context"] = context.notebook_context
             captured["history_context"] = context.history_context
@@ -10234,7 +10255,7 @@ async def test_turn_runtime_context_orchestration_loads_history_evidence_for_cro
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["user_message"] = context.user_message
             captured["history_context"] = context.history_context
             captured["metadata"] = context.metadata
@@ -10328,7 +10349,7 @@ async def test_turn_runtime_context_orchestration_implicitly_recalls_cross_sessi
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["history_context"] = context.history_context
             captured["metadata"] = context.metadata
             yield StreamEvent(
@@ -10419,7 +10440,7 @@ async def test_turn_runtime_context_orchestration_respects_history_source_flag(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["history_context"] = context.history_context
             captured["metadata"] = context.metadata
             yield StreamEvent(
@@ -10499,7 +10520,7 @@ async def test_turn_runtime_can_fallback_to_legacy_context_builder_by_flag(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["metadata"] = context.metadata
             captured["user_message"] = context.user_message
             yield StreamEvent(
@@ -10566,7 +10587,7 @@ async def test_turn_runtime_records_stage_specific_orchestration_fallback_path(
             raise RuntimeError("builder boom")
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["metadata"] = context.metadata
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -10684,7 +10705,7 @@ async def test_turn_runtime_writes_home_prompt_conversation_learning_evidence(
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -10795,7 +10816,7 @@ async def test_turn_runtime_writes_conversation_learning_evidence_without_prompt
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -10894,7 +10915,7 @@ async def test_turn_runtime_does_not_write_greeting_conversation_learning_eviden
             )
 
     class FakeOrchestrator:
-        async def handle(self, _context):
+        async def handle(self, _context, **_kwargs):
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
                 source="chat",
@@ -11014,7 +11035,7 @@ async def test_turn_runtime_context_orchestration_prioritizes_active_plan_page(
             }
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["user_message"] = context.user_message
             captured["metadata"] = context.metadata
             yield StreamEvent(
@@ -11139,7 +11160,7 @@ async def test_turn_runtime_recovers_guided_plan_active_object_without_repassing
             }
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured.append(
                 {
                     "user_message": context.user_message,
@@ -11280,7 +11301,7 @@ async def test_turn_runtime_recovers_latest_user_plan_for_plan_request(
             }
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["user_message"] = context.user_message
             captured["metadata"] = context.metadata
             yield StreamEvent(
@@ -11365,7 +11386,7 @@ async def test_turn_runtime_uses_user_scoped_learner_state_when_user_id_is_avail
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["memory_context"] = context.memory_context
             yield StreamEvent(
                 type=StreamEventType.CONTENT,
@@ -11573,7 +11594,7 @@ async def test_turn_runtime_uses_guide_completion_summary_from_real_learner_stat
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["memory_context"] = context.memory_context
             captured["metadata"] = context.metadata
             yield StreamEvent(
@@ -11671,7 +11692,7 @@ async def test_turn_runtime_context_orchestration_loads_bot_overlay_into_context
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["user_message"] = context.user_message
             captured["memory_context"] = context.memory_context
             captured["metadata"] = context.metadata
@@ -11920,7 +11941,7 @@ async def test_turn_runtime_end_to_end_applies_overlay_promotion_and_reads_next_
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured_contexts.append(
                 {
                     "user_message": context.user_message,
@@ -12047,7 +12068,7 @@ async def test_turn_runtime_injects_tutorbot_default_knowledge_chain(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             captured["enabled_tools"] = context.enabled_tools
             captured["knowledge_bases"] = context.knowledge_bases
             captured["metadata"] = context.metadata
@@ -12302,7 +12323,7 @@ async def test_turn_completion_writes_internal_semantic_router_telemetry_event(
             )
 
     class FakeOrchestrator:
-        async def handle(self, context):
+        async def handle(self, context, **_kwargs):
             # Simulate the real ChatOrchestrator populating primary-mode routing
             # telemetry into context.metadata (incl. the in-place captured input).
             context.metadata["semantic_router_mode"] = "primary"

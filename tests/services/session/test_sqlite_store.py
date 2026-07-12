@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import sqlite3
+import threading
 import time
 from pathlib import Path
 
@@ -1207,3 +1208,148 @@ async def test_recover_all_orphaned_turns_is_idempotent(tmp_path: Path) -> None:
 
     second = await store.recover_all_orphaned_turns("orphaned_on_restart")
     assert second == 0
+
+
+def test_connect_uses_wal_and_synchronous_normal(tmp_path: Path) -> None:
+    """Runtime per-op connections must inherit WAL + synchronous=NORMAL(1).
+
+    Without an explicit ``PRAGMA synchronous = NORMAL`` on every ``_connect``,
+    each new connection falls back to the default FULL, which fsyncs on every
+    commit and is the largest single-point write amplification for writes.
+    """
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    with store._connect() as conn:
+        synchronous = conn.execute("PRAGMA synchronous").fetchone()[0]
+        journal_mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+
+    assert synchronous == 1  # NORMAL
+    assert journal_mode.lower() == "wal"
+
+
+def test_runtime_connections_pin_wal_and_synchronous_normal(store: SQLiteSessionStore) -> None:
+    """Battle1 W2-T1: every runtime connection must run under the WAL +
+    synchronous=NORMAL durability contract, regardless of the SQLite
+    compile-time default (stock builds default to FULL per connection)."""
+    conn = store._connect()
+    try:
+        journal_mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+        synchronous = conn.execute("PRAGMA synchronous").fetchone()[0]
+    finally:
+        conn.close()
+    assert str(journal_mode).lower() == "wal"
+    assert int(synchronous) == 1  # 1 == NORMAL
+
+
+# --- Battle1 W2-T2: single-writer thread + lock-free reads ---
+
+
+def test_concurrent_turn_event_writes_and_reads_stay_consistent(store: SQLiteSessionStore) -> None:
+    """8 turns x 50 events written concurrently while readers poll: every turn
+    must end with seq 1..50 contiguous (single-writer FIFO keeps ordering)."""
+
+    async def _run() -> None:
+        turn_ids: list[str] = []
+        for i in range(8):
+            session = await store.create_session(title=f"并发写读{i}")
+            turn = await store.create_turn(session_id=session["id"])
+            turn_ids.append(turn["id"])
+
+        async def _write(turn_id: str) -> None:
+            for seq in range(1, 51):
+                await store.append_turn_event(
+                    turn_id,
+                    {"type": "content", "source": "test", "stage": "", "content": f"c{seq}", "metadata": {}},
+                )
+
+        async def _poll(turn_id: str) -> None:
+            for _ in range(10):
+                await store.get_turn_events(turn_id, 0)
+
+        await asyncio.gather(*[_write(t) for t in turn_ids], *[_poll(t) for t in turn_ids])
+
+        for turn_id in turn_ids:
+            events = await store.get_turn_events(turn_id, 0)
+            seqs = [int(e["seq"]) for e in events]
+            assert seqs == list(range(1, 51)), f"{turn_id}: {seqs[:5]}...{seqs[-5:]}"
+
+    asyncio.run(_run())
+
+
+def test_write_exception_rolls_back_persistent_connection(store: SQLiteSessionStore) -> None:
+    """A failing write on the persistent writer connection must not leave an
+    open transaction behind (next write succeeds, half-write invisible)."""
+
+    def _bad_write() -> None:
+        with store._connect() as conn:
+            conn.execute(
+                "INSERT INTO sessions (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)",
+                ("s-rollback", "半写", time.time(), time.time()),
+            )
+            raise RuntimeError("boom")
+
+    async def _run() -> None:
+        with pytest.raises(RuntimeError):
+            await store._run(_bad_write)
+        # half-write must have been rolled back
+        assert await store.get_session("s-rollback") is None
+        # writer connection still healthy
+        created = await store.create_session(title="正常写", session_id="s-after-rollback")
+        assert created["id"] == "s-after-rollback"
+
+    asyncio.run(_run())
+
+
+def test_reads_do_not_wait_for_writer_thread(store: SQLiteSessionStore) -> None:
+    """While the writer thread is deliberately blocked, reads must still
+    complete (lock-free read path over WAL)."""
+
+    async def _run() -> None:
+        session = await store.create_session(title="读不等写")
+        gate = threading.Event()
+
+        def _block_writer() -> None:
+            gate.wait(timeout=10)
+
+        blocker = asyncio.get_running_loop().run_in_executor(
+            store._write_executor, _block_writer
+        )
+        try:
+            result = await asyncio.wait_for(store.get_session(session["id"]), timeout=2)
+            assert result is not None and result["id"] == session["id"]
+        finally:
+            gate.set()
+            await blocker
+
+    asyncio.run(_run())
+
+
+def test_turn_event_replay_preserves_visibility_field(store: SQLiteSessionStore) -> None:
+    """Battle1 latent-bug fix: the replay view (get_turn_events) must be
+    field-equivalent to the live fan-out payload — visibility included.
+    Legacy rows (written before the column existed) omit the key, matching
+    the historical missing-field shape."""
+
+    async def _run() -> None:
+        session = await store.create_session(title="回放字段等价")
+        turn = await store.create_turn(session_id=session["id"])
+        await store.append_turn_event(
+            turn["id"],
+            {"type": "progress", "source": "turn_runtime", "stage": "understanding",
+             "content": "…", "metadata": {"phase": "understanding"}, "visibility": "public"},
+        )
+        await store.append_turn_event(
+            turn["id"],
+            {"type": "thinking", "source": "cap", "stage": "", "content": "内部",
+             "metadata": {}, "visibility": "internal"},
+        )
+        # legacy row without visibility
+        await store.append_turn_event(
+            turn["id"],
+            {"type": "content", "source": "cap", "stage": "", "content": "hi", "metadata": {}},
+        )
+        events = await store.get_turn_events(turn["id"], 0)
+        assert events[0]["visibility"] == "public"
+        assert events[1]["visibility"] == "internal"
+        assert "visibility" not in events[2]
+
+    asyncio.run(_run())

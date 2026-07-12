@@ -6,6 +6,7 @@ import re
 from typing import Any, NamedTuple
 
 from deeptutor.services.llm.factory import complete
+from deeptutor.services.runtime_env import env_flag
 
 logger = logging.getLogger(__name__)
 
@@ -897,11 +898,28 @@ async def interpret_question_followup_action(
     if not normalized:
         return None
 
+    # ③稳定性 2b/B2+B4 (2026-07-12): followup 判定器提速灰度门(单一 flag,默认关)。
+    # 关 = prompt(slim=False) 与模型(model=None→主模型)与既有行为 bit-for-bit 一致。
+    # 开 = B2 瘦身(主杠杆=输出 schema 收紧: 生产解剖实证延迟主体是输出 p50=216 token
+    # 的冗长 rationale ≈3.3s@65tok/s,slim 把 reason 收成可选默认空;次杠杆=输入载荷裁剪,
+    # 省成本为主) + B4 快档模型(resolve_fast_tier_model,W4 唯一档位 accessor;未配置
+    # LLM_FAST_MODEL 时返回 "" → 仍走主模型,仅 B2 生效)。判定分布随 prompt/model 变化,
+    # 必须灰度(contracts/env_registry.yaml 登记)。判分/deep 内容生成不走本函数,不受
+    # 影响——这只是首答前阻塞的意图分类器。max_tokens=500 两态不变:它只是防跑飞的
+    # 安全上限,压输出靠规则9指令而非硬截断(硬截断会把长案例作答 answers 截成坏 JSON
+    # → parse 失败落 under-act,伤合法提交)。
+    fast_tier_enabled = _followup_fast_tier_enabled()
     prompt = _build_followup_action_prompt(
         user_message=message,
         question_context=normalized,
         history_context=history_context,
+        slim=fast_tier_enabled,
     )
+    fast_tier_model = ""
+    if fast_tier_enabled:
+        from deeptutor.services.llm.config import resolve_fast_tier_model
+
+        fast_tier_model = resolve_fast_tier_model()
     try:
         raw = await complete(
             prompt=prompt,
@@ -910,6 +928,7 @@ async def interpret_question_followup_action(
                 "你的唯一任务是根据当前用户消息和题目上下文，输出结构化 JSON，"
                 "判断这是答题、改答案、问解析、继续出题，还是无关内容。"
             ),
+            model=fast_tier_model or None,
             temperature=0,
             response_format={"type": "json_object"},
             max_tokens=500,
@@ -2808,11 +2827,67 @@ def _existing_batch_answers(items: list[dict[str, Any]]) -> dict[int, str]:
     return answers
 
 
+# ③稳定性 2b/B2 (2026-07-12) followup 判定器瘦身。
+# 主杠杆(2026-07-12 生产 Langfuse 全量解剖修正): 单次延迟与 prompt 大小基本无关
+# (pt<1000 p50=3.7s vs pt≥1000 p50=4.0s),慢在**输出** p50=216 token 的 JSON(冗长
+# rationale),生成速率 ~65 tok/s → 216 tok ≈3.3s 即延迟主体。故 slim 模式的主改动是
+# 输出 schema 瘦身: reason 改为可选(默认空串,仅低置信给一句短说明;下游 semantic_router
+# /turn_runtime 只把 reason 透传进 decision trace 且有 or-默认串兜底,无逻辑分支消费,
+# 空串合法)。intent/confidence/preserve_other_answers/answers 保留——它们被下游消费
+# (confidence 参与 decision 默认值,answers 是 submission authority)。
+# 次杠杆(省成本为主): 输入载荷裁剪(题干全文/选项全文/history)。裁剪保留判定必需信号:
+# 题干头部(识别"问的是哪道题")、全部选项字母(规则2/6/7 只吃字母;选项原文→字母的映射
+# 在下游 _match_option_key_by_value 用**未裁剪** context 完成,不吃 prompt)、history
+# 近端尾部(规则3b 回指找不到→unknown 是既有 fail-safe 路径,under-act 不 mis-act)。
+# 规则文本 1-8 承载提交优先/3b 反例/Step4.5 等 SEV 修复,slim 只改规则 9 的输出契约。
+_SLIM_QUESTION_CHARS = 160
+_SLIM_OPTION_CHARS = 40
+_SLIM_USER_ANSWER_CHARS = 80
+# history 上限取 6000(而非激进裁剪): 2026-07-12 真 LLM observe 差分实测,history 头部
+# 裁得太狠(2400)会把回指目标裁掉,LLM 不按规则 3b 落 unknown 而是误判 ask_followup
+# (mis-act 方向,绑错题)。新证据下输入大小对延迟影响可忽略,history 只做防极端的
+# 上限兜底(对齐 turn_runtime 8000 字符 fallback 预算的常态区间),不当省钱主力。
+_SLIM_HISTORY_TAIL_CHARS = 6000
+_SLIM_ELLIPSIS = "…(已截断)"
+
+
+def _clip_prompt_text(text: str, limit: int) -> str:
+    if len(text) <= limit:
+        return text
+    return text[:limit] + _SLIM_ELLIPSIS
+
+
+def _clip_prompt_options(options: Any) -> Any:
+    if not isinstance(options, dict):
+        return options
+    return {
+        key: _clip_prompt_text(str(value or "").strip(), _SLIM_OPTION_CHARS)
+        for key, value in options.items()
+    }
+
+
+def _clip_prompt_history_tail(text: str, limit: int) -> str:
+    if len(text) <= limit:
+        return text
+    return _SLIM_ELLIPSIS + text[-limit:]
+
+
+def _followup_fast_tier_enabled() -> bool:
+    """③稳定性 B2/B4 followup 判定器提速灰度门（单一 flag，默认关）。
+
+    关（默认/未设置）= 判定器 prompt 与模型与既有行为 bit-for-bit 一致。
+    开 = B2 瘦身 prompt；若同时配置 LLM_FAST_MODEL，再叠加 B4 快档模型。
+    prompt/model 任一变化都会改变判定分布，必须灰度观察后才可放量。
+    """
+    return env_flag("LUBAN_FOLLOWUP_FAST_TIER_ENABLED", default=False)
+
+
 def _build_followup_action_prompt(
     *,
     user_message: str,
     question_context: dict[str, Any],
     history_context: str = "",
+    slim: bool = False,
 ) -> str:
     items = question_context.get("items") or []
     if not isinstance(items, list) or not items:
@@ -2822,14 +2897,21 @@ def _build_followup_action_prompt(
     for index, item in enumerate(items, 1):
         if not isinstance(item, dict):
             continue
+        question_text = str(item.get("question") or "").strip()
+        options = item.get("options") or {}
+        user_answer = str(item.get("user_answer") or "").strip()
+        if slim:
+            question_text = _clip_prompt_text(question_text, _SLIM_QUESTION_CHARS)
+            options = _clip_prompt_options(options)
+            user_answer = _clip_prompt_text(user_answer, _SLIM_USER_ANSWER_CHARS)
         question_snapshot.append(
             {
                 "question_index": index,
                 "question_id": str(item.get("question_id") or "").strip(),
                 "question_type": str(item.get("question_type") or "").strip(),
-                "question": str(item.get("question") or "").strip(),
-                "options": item.get("options") or {},
-                "user_answer": str(item.get("user_answer") or "").strip(),
+                "question": question_text,
+                "options": options,
+                "user_answer": user_answer,
                 "is_correct": item.get("is_correct"),
                 "multi_select": bool(item.get("multi_select", False)),
                 "has_grading_result": isinstance(
@@ -2846,11 +2928,26 @@ def _build_followup_action_prompt(
             }
         )
 
+    history_text = str(history_context or "").strip()
+    if slim:
+        history_text = _clip_prompt_history_tail(history_text, _SLIM_HISTORY_TAIL_CHARS)
+
     prompt_payload = {
-        "history_context": str(history_context or "").strip(),
+        "history_context": history_text,
         "user_message": str(user_message or "").strip(),
         "active_question_set": question_snapshot,
     }
+    # B2 主杠杆: slim 模式把规则 9 的输出契约收紧(reason 可选默认空/禁解释性输出),
+    # 非 slim 模式的规则 9 字节保持不变(bit-for-bit 守门)。
+    output_schema_rule = (
+        "9. 输出必须是 JSON 对象，键固定为 intent, confidence, preserve_other_answers, answers, reason。\n\n"
+    )
+    if slim:
+        output_schema_rule = (
+            "9. 输出必须是 JSON 对象，键固定为 intent, confidence, preserve_other_answers, answers, reason。"
+            "输出必须极简：reason 默认给空字符串，仅当 confidence 低于 0.7 时用一句不超过15字说明；"
+            "answers 按规则7给，非作答/改答时给空数组；不要输出任何解释性文字或多余字段。\n\n"
+        )
     return (
         "请根据当前用户消息和题目上下文，判断用户意图。"
         "只能从以下 intent 中选择一个："
@@ -2883,8 +2980,8 @@ def _build_followup_action_prompt(
         "6. 只有在上下文足够支持时，才能把紧凑字母串解释成答案。\n"
         "7. 如果需要输出答案，请放在 answers 数组里，每项包含 question_index、question_id、answer。\n"
         "8. 如果用户表达“其他不变”，preserve_other_answers=true，否则 false。\n"
-        "9. 输出必须是 JSON 对象，键固定为 intent, confidence, preserve_other_answers, answers, reason。\n\n"
-        f"{json.dumps(prompt_payload, ensure_ascii=False)}"
+        + output_schema_rule
+        + f"{json.dumps(prompt_payload, ensure_ascii=False)}"
     )
 
 
