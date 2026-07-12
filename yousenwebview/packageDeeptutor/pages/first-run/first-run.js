@@ -466,8 +466,7 @@ Page({
         return result;
       })
       .catch(function (error) {
-        var detail = error && error.payload && error.payload.detail;
-        var errorCode = String((detail && detail.error) || "");
+        var errorCode = api.errorCodeOf(error);
         var blocked =
           errorCode === "first_run_content_not_signed" ||
           errorCode === "first_run_version_conflict";

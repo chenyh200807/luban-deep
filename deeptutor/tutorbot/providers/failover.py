@@ -12,7 +12,16 @@ from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
 
 
 class FailoverProvider(LLMProvider):
-    """Try a configured backup provider when the primary yields no visible answer."""
+    """Try a configured backup provider when the primary yields no visible answer.
+
+    Battle1 W4-T4 model-tiering interaction (decided, not changed): a per-call
+    ``model`` override (e.g. the light "fast" tier) is honored by the PRIMARY only.
+    On failover the backup is always called with ``self.fallback_model`` -- the
+    per-call override is deliberately NOT forwarded. A persistently failing light
+    tier is fixed at the config layer (change LLM_FAST_MODEL or turn the fast-turn
+    flag off), NOT by an automatic "light -> primary" mid-hop, which would add a
+    decider and hide the regression while making cost unpredictable.
+    """
 
     def __init__(
         self,

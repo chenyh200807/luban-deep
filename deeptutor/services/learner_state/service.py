@@ -47,6 +47,15 @@ logger = logging.getLogger(__name__)
 LearnerStateEventKind = Literal["turn", "guide", "notebook", "progress", "manual"]
 
 _NO_CHANGE = "NO_CHANGE"
+# Battle2 S1-T1: summary-maintainer gate counter threshold. The gate's single
+# authority is the learner_memory_events ledger plus an in-process cursor; the
+# counter branch caps staleness at N-1 substantive turns PER WORKER — the
+# cursor is process-local, so with UVICORN_WORKERS=w the global worst case is
+# w*(N-1) substantive turns (adversarial re-audit 2026-07-12; ledger itself is
+# shared, so a skipped turn is deferred consumption, never lost). Do NOT quote
+# "N-1" as a global SLA. Module constant on purpose (no env flag) — rollback =
+# revert.
+_SUMMARY_GATE_TURN_THRESHOLD = 3
 _LOW_SIGNAL_TURN_PATTERNS = (
     "你好",
     "您好",
@@ -120,6 +129,16 @@ class LearnerStateUpdateResult:
 
 
 @dataclass
+class _SummaryGateState:
+    """Battle2 S1-T1: in-process read cursor over learner_memory_events for the
+    summary-maintainer gate. Not a second authority — losing it (restart, another
+    worker) simply means "unread" and the gate fails open (run immediately)."""
+
+    turns_since_run: int = 0
+    last_run_at: str = ""
+
+
+@dataclass
 class LearningPlanRecord:
     plan_id: str
     user_id: str
@@ -161,6 +180,8 @@ class LearnerStateService:
         self._heartbeat_job_service = LearnerHeartbeatJobService(path_service=self._path_service)
         self._locks: dict[str, asyncio.Lock] = {}
         self._learning_evidence_event_cache: dict[tuple[str, str], LearnerStateEvent] = {}
+        # Battle2 S1-T1: per-user summary-gate cursors (process-local, fail-open).
+        self._summary_gate_states: dict[str, _SummaryGateState] = {}
 
     @property
     def _learner_root(self) -> Path:
@@ -557,6 +578,33 @@ class LearnerStateService:
             if goal_id and goal_id not in previous_ids:
                 self._core_store.delete_goal(goal_id)
 
+    # 远程事件读缓存: {user_id: (monotonic_ts, events)}。20s TTL——复习/学情/错因
+    # 三面每次进入都读一遍(串行4次Supabase往返~3s是"五模块慢"的生产侧根因),
+    # 写侧(append_memory_event)即时失效, 单进程内不会读到写后旧值。
+    _REMOTE_EVENTS_TTL_S = 20.0
+
+    def _remote_events_cache_get(self, user_id: str) -> list[LearnerStateEvent] | None:
+        import time as _time
+
+        entry = getattr(self, "_remote_events_cache", {}).get(user_id)
+        if not entry:
+            return None
+        ts, events = entry
+        if _time.monotonic() - ts > self._REMOTE_EVENTS_TTL_S:
+            return None
+        return events
+
+    def _remote_events_cache_put(self, user_id: str, events: list[LearnerStateEvent]) -> None:
+        import time as _time
+
+        if not hasattr(self, "_remote_events_cache"):
+            self._remote_events_cache = {}
+        self._remote_events_cache[user_id] = (_time.monotonic(), events)
+
+    def _remote_events_cache_invalidate(self, user_id: str) -> None:
+        if hasattr(self, "_remote_events_cache"):
+            self._remote_events_cache.pop(user_id, None)
+
     def list_memory_events(self, user_id: str, limit: int | None = 20) -> list[LearnerStateEvent]:
         normalized = _normalize_user_id(user_id)
         self._ensure_seed_state(normalized)
@@ -577,16 +625,21 @@ class LearnerStateService:
         if bool(getattr(self._core_store, "is_configured", False)):
             reader = getattr(self._core_store, "read_memory_events", None)
             if callable(reader):
+                cached_remote = self._remote_events_cache_get(normalized)
+                if cached_remote is not None:
+                    remote_events = cached_remote
                 try:
-                    remote_events = [
-                        event
-                        for event in (
-                            self._event_from_mapping(item, default_user_id=normalized)
-                            for item in list(reader(normalized, limit=limit) or [])
-                            if isinstance(item, dict)
-                        )
-                        if event is not None
-                    ]
+                    if cached_remote is None:
+                        remote_events = [
+                            event
+                            for event in (
+                                self._event_from_mapping(item, default_user_id=normalized)
+                                for item in list(reader(normalized, limit=limit) or [])
+                                if isinstance(item, dict)
+                            )
+                            if event is not None
+                        ]
+                        self._remote_events_cache_put(normalized, remote_events)
                 except Exception:
                     if is_production_environment():
                         return []
@@ -835,6 +888,7 @@ class LearnerStateService:
         if not self._event_dedupe_exists(path, event.dedupe_key):
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(_json_dump(self._event_to_dict(event)) + "\n")
+        self._remote_events_cache_invalidate(normalized)  # 写后读不吃20s旧值
         self._enqueue_memory_event_outbox(event)
         self._maybe_auto_synthesize_learning_truth(event)
         return event
@@ -1634,6 +1688,84 @@ class LearnerStateService:
             "personalization_context": personalization_context,
         }
 
+    def _summary_gate_decision(self, *, user_id: str, capability: str) -> str:
+        """Battle2 S1-T1 gate: single authority = learner_memory_events ledger +
+        in-process cursor. fail-open: unknown cursor / scan errors -> run.
+
+        The evidence-scan branch is best-effort (commander ruling): correctness is
+        carried by the counter threshold + the guide*/notebook* capability branch;
+        an evidence event that lands after this refresh is picked up on the next
+        turn, bounded by the counter's N-1 substantive-turn staleness cap."""
+        state = self._summary_gate_states.get(user_id)
+        if state is None:
+            return "run_fail_open"  # restart / first sight: run now, rebuild cursor
+        cap = str(capability or "").strip().lower()
+        if cap.startswith("guide") or cap.startswith("notebook"):
+            return "run_capability"  # mirrors _should_skip_turn_writeback's never-skip set
+        if state.turns_since_run + 1 >= _SUMMARY_GATE_TURN_THRESHOLD:
+            return "run_counter"  # staleness cap: N-1 substantive turns PER WORKER (global: workers*(N-1))
+        try:
+            cutoff = _parse_iso(state.last_run_at)  # parse failure -> None -> all new
+            for event in reversed(self._list_local_memory_events(user_id)):
+                created = _parse_iso(event.created_at)
+                if cutoff is not None and created is not None and created <= cutoff:
+                    break
+                if event.memory_kind != "turn":
+                    return "run_evidence"  # grading/progress/learning evidence landed
+        except Exception:
+            return "run_fail_open"
+        return "skip_throttled"
+
+    def _build_summary_source(
+        self,
+        user_id: str,
+        *,
+        session_id: str,
+        capability: str,
+        timestamp: str,
+        language: str,
+    ) -> str:
+        """Battle2 S1-T2: compact summary-maintainer source (~4-5k tokens vs. the old
+        ~10k full-JSON dump). Reuses the existing compact segment renderers (single
+        rendering authority — no second renderer) and feeds the turn backlog accrued
+        since the last gate run instead of only the current turn."""
+        profile = self._compact_profile_segment(self._read_profile_raw(user_id), language=language).get("content") or ""
+        progress = self._compact_progress_segment(self._read_progress_raw(user_id), language=language).get("content") or ""
+        state = self._summary_gate_states.get(user_id)
+        cutoff = _parse_iso(getattr(state, "last_run_at", "") or "") or _parse_iso(
+            self._file_updated_at(user_id, "summary") or ""
+        )
+        # [-8:] is the hard cap: a stale mtime fallback cutoff (restart during a long
+        # NO_CHANGE stretch — mtime does not move on NO_CHANGE) re-feeds at most 8
+        # old turns; unparseable timestamps count as new material (fail-open).
+        turns = [
+            event
+            for event in self._list_local_memory_events(user_id)
+            if event.memory_kind == "turn"
+            and (
+                cutoff is None
+                or (created := _parse_iso(event.created_at)) is None
+                or created > cutoff
+            )
+        ][-8:]
+        blocks: list[str] = []
+        for index, event in enumerate(turns):
+            payload = dict(event.payload_json or {})
+            # Current turn (recorded just before source build) gets the large budget;
+            # backlog turns get the small one — durable signal sits in the early text.
+            last = index == len(turns) - 1
+            user_text = str(payload.get("user_message") or "")[: (1000 if last else 240)]
+            assistant_text = str(payload.get("assistant_message") or "")[: (2000 if last else 320)]
+            blocks.append(f"[User]\n{user_text}\n[Assistant]\n{assistant_text}")
+        return (
+            f"[学员画像(压缩)]\n{profile}\n\n"
+            f"[学习进度(压缩)]\n{progress}\n\n"
+            f"[Session] {session_id or '(unknown)'}\n"
+            f"[Capability] {capability or 'chat'}\n"
+            f"[Timestamp] {timestamp or _iso_now()}\n\n"
+            "[自上次维护以来的对话增量]\n\n" + "\n\n".join(blocks)
+        )
+
     async def refresh_from_turn(
         self,
         *,
@@ -1668,7 +1800,9 @@ class LearnerStateService:
 
         async with self._safe_lock(normalized):
             self._ensure_seed_state(normalized)
-            snapshot = self.read_snapshot(normalized)
+            # The event ledger is never gated: every substantive turn still lands in
+            # learner_memory_events (local JSONL + outbox) unconditionally, so a
+            # skipped turn is deferred consumption, never lost information.
             event = self.record_turn_event(
                 user_id=normalized,
                 session_id=session_id,
@@ -1678,17 +1812,35 @@ class LearnerStateService:
                 source_bot_id=source_bot_id,
                 timestamp=timestamp,
             )
-            source = (
-                f"[User Profile]\n{_json_dump(snapshot.profile)}\n\n"
-                f"[Learner Summary]\n{snapshot.summary or '(empty)'}\n\n"
-                f"[Learner Progress]\n{_json_dump(snapshot.progress)}\n\n"
-                f"[Session] {session_id or '(unknown)'}\n"
-                f"[Capability] {capability or 'chat'}\n"
-                f"[Timestamp] {timestamp or _iso_now()}\n\n"
-                f"[User]\n{user_message.strip()}\n\n"
-                f"[Assistant]\n{assistant_message.strip()}"
+            decision = self._summary_gate_decision(user_id=normalized, capability=capability)
+            if decision == "skip_throttled":
+                _record_summary_gate(decision=decision, outcome="skipped")
+                self._summary_gate_states[normalized].turns_since_run += 1
+                return LearnerStateUpdateResult(
+                    content=self._read_summary_raw(normalized),
+                    changed=bool(event.event_id),
+                    updated_at=self._latest_updated_at(normalized),
+                )
+            source = self._build_summary_source(
+                normalized,
+                session_id=session_id,
+                capability=capability,
+                timestamp=timestamp,
+                language=language,
             )
             summary_changed = await self._rewrite_summary(normalized, source, language)
+            # Cursor resets only after a completed run (including NO_CHANGE) — this
+            # kills the "stable summary => mtime never moves => gate always open"
+            # pathology. An LLM exception skips this line, so the stale cursor makes
+            # the next turn retry immediately (fail-open).
+            self._summary_gate_states[normalized] = _SummaryGateState(
+                turns_since_run=0,
+                last_run_at=_iso_now(),
+            )
+            _record_summary_gate(
+                decision=decision,
+                outcome="changed" if summary_changed else "no_change",
+            )
             updated = self.read_snapshot(normalized)
             if summary_changed and updated.summary.strip():
                 self._enqueue_summary_refresh(
@@ -1713,10 +1865,22 @@ class LearnerStateService:
         if stream_fn is None:
             from deeptutor.services.llm import stream as stream_fn  # type: ignore[no-redef]
 
+        # Battle2 S1-T3: background summary maintenance rides the light tier when
+        # configured. resolve_fast_tier_model is the single light-model authority
+        # (llm/config.py); "" -> None -> primary model — fail-open, zero effect and
+        # zero risk when LLM_FAST_MODEL is unconfigured in production.
+        try:
+            from deeptutor.services.llm.config import resolve_fast_tier_model
+
+            fast_model = resolve_fast_tier_model()
+        except Exception:
+            fast_model = ""
+
         chunks: list[str] = []
         async for chunk in stream_fn(
             prompt=user_prompt,
             system_prompt=sys_prompt,
+            model=fast_model or None,
             temperature=0.2,
             max_tokens=900,
         ):
@@ -2619,6 +2783,35 @@ def _exam_urgency_hint(value: Any) -> str:
 
 def _iso_now() -> str:
     return datetime.now().astimezone().isoformat()
+
+
+def _parse_iso(text: str | None) -> datetime | None:
+    """Lenient ISO-8601 parse for summary-gate cursor comparisons. Returns None on
+    failure — callers treat unparseable timestamps as "new material" (fail-open
+    toward inclusion). Naive datetimes are pinned to UTC so aware/naive comparisons
+    can never raise."""
+    value = str(text or "").strip()
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
+def _record_summary_gate(*, decision: str, outcome: str = "") -> None:
+    """Battle2 S1-T4: observe-only summary-gate telemetry. Never breaks refresh
+    (fail-open); lazy import mirrors the existing services -> api.runtime_metrics
+    direction already used by turn_runtime."""
+    try:
+        from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
+
+        get_turn_runtime_metrics().record_summary_maintainer(decision=decision, outcome=outcome)
+    except Exception:
+        pass
 
 
 def _iso_gte(value: str | None, minimum: str | None) -> bool:

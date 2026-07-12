@@ -172,9 +172,21 @@
                 </view>
                 <text class="eb-anti-arrow">↓ 换成这张新地图</text>
               </view>
-              <view class="eb-anti-new">
+              <view class="eb-anti-new" wx:if="{{!item.chain}}">
                 <text class="eb-anti-mark grn">✓</text>
                 <text class="eb-anti-new-t">{{item.text}}</text>
+              </view>
+              <view class="eb-anti-new chain" wx:if="{{item.chain}}">
+                <text class="eb-anti-mark grn">✓</text>
+                <view class="eb-anti-chain">
+                  <block wx:for="{{item.chain}}" wx:for-item="step" wx:for-index="si" wx:key="si">
+                    <view class="eb-chain-stone">
+                      <text class="eb-chain-idx">{{si + 1}}</text>
+                      <text class="eb-chain-tx">{{step}}</text>
+                    </view>
+                    <text class="eb-chain-arrow" wx:if="{{si < item.chain.length - 1}}">→</text>
+                  </block>
+                </view>
               </view>
               <text class="eb-chip line" wx:if="{{item.textbookRef}}">教材出处 · {{item.textbookRef}}</text>
             </view>

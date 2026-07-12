@@ -515,3 +515,45 @@
   color: var(--pk-grn);
   font-weight: 700;
 }
+
+/* 解药心智模型石链(共享知识形状) */
+.eb-anti-chain {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8rpx;
+  row-gap: 12rpx;
+}
+.eb-chain-stone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  background: #efecdf;
+  border-radius: 14rpx;
+  padding: 10rpx 16rpx 10rpx 8rpx;
+}
+.eb-chain-idx {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background: var(--pk-grn);
+  color: #fffdf8;
+  font-size: 19rpx;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.eb-chain-tx {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--pk-t1);
+  line-height: 1.3;
+}
+.eb-chain-arrow {
+  color: var(--pk-t3);
+  font-size: 24rpx;
+  font-weight: 700;
+}

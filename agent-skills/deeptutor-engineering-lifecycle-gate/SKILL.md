@@ -44,6 +44,14 @@ stop condition:
 If the frame cannot identify the authority chain or verification target, keep
 investigating before editing files.
 
+During execution, keep two self-checks running:
+
+- If an implementation grows from ~50 lines toward ~200 lines, stop and ask
+  whether one-off logic is being turned into a framework.
+- If the diff contains lines that cannot be traced directly to the user's
+  request, delete them or split them out by default; do not smuggle
+  "drive-by improvements" into this task.
+
 ## Dispatch Matrix
 
 Use the narrowest matching local workflow:
@@ -72,8 +80,8 @@ Use the narrowest matching local workflow:
   authority, or governance scanner changes: use
   `deeptutor-resource-registry-gate`.
 - Web, BI, browser, screenshot, Playwright, or `next dev` work: use
-  `deeptutor-web-bi-frontend-gate`; run the memory preflight from `AGENTS.md`
-  before any frontend command; do not let Codex, Computer Use, or another AI
+  `deeptutor-web-bi-frontend-gate`; run the memory preflight commands from that
+  skill before any frontend command; do not let Codex, Computer Use, or another AI
   agent host a long-lived Next dev server.
 - TutorBot, WeChat, follow-up, refusal, active object, route, terminal truth, or
   state continuity bugs: use `deeptutor-authority-debugging`.

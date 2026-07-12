@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 import logging
 import math
@@ -44,7 +45,7 @@ class _BaseRateLimitBackend:
     def clear(self) -> None:
         raise NotImplementedError
 
-    def consume(self, scope_name: str, key: str, policy: RateLimitPolicy, now: float) -> int | None:
+    async def consume(self, scope_name: str, key: str, policy: RateLimitPolicy, now: float) -> int | None:
         raise NotImplementedError
 
 
@@ -53,7 +54,10 @@ class _MemoryRateLimitBackend(_BaseRateLimitBackend):
         with _RATE_LIMIT_LOCK:
             _RATE_LIMIT_STATE.clear()
 
-    def consume(self, scope_name: str, key: str, policy: RateLimitPolicy, now: float) -> int | None:
+    async def consume(self, scope_name: str, key: str, policy: RateLimitPolicy, now: float) -> int | None:
+        # Pure in-memory bucket arithmetic — no I/O, no await. Kept ``async`` so the
+        # whole ``consume`` boundary is a single coroutine contract (no sync/async dual
+        # track); the lock is a plain ``threading.RLock`` held for microseconds.
         del scope_name
         with _RATE_LIMIT_LOCK:
             bucket = _RATE_LIMIT_STATE.get(key)
@@ -94,7 +98,15 @@ class _SQLiteRateLimitBackend(_BaseRateLimitBackend):
         with self._connect() as conn:
             conn.execute("DELETE FROM rate_limit_buckets")
 
-    def consume(self, scope_name: str, key: str, policy: RateLimitPolicy, now: float) -> int | None:
+    async def consume(self, scope_name: str, key: str, policy: RateLimitPolicy, now: float) -> int | None:
+        # Blocking WAL-SQLite work is pushed off the event loop via to_thread. This is
+        # the DEGRADED / fallback path (Redis down, or sqlite backend selected for a
+        # low-QPS deployment), not the hot Redis path — a dedicated aiosqlite dependency
+        # would be over-engineering for a cold path. Thread-pool queueing under load is
+        # acceptable here (and strictly better than stalling the loop synchronously).
+        return await asyncio.to_thread(self._consume_sync, scope_name, key, policy, now)
+
+    def _consume_sync(self, scope_name: str, key: str, policy: RateLimitPolicy, now: float) -> int | None:
         expires_at = now + policy.window_seconds
         with self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
@@ -193,15 +205,17 @@ class _SQLiteRateLimitBackend(_BaseRateLimitBackend):
 class _RedisRateLimitBackend(_BaseRateLimitBackend):
     def __init__(self, redis_url: str, namespace: str) -> None:
         try:
-            import redis
+            from redis import asyncio as aredis
         except Exception as exc:  # pragma: no cover - import guard
             raise RuntimeError(
                 "DEEPTUTOR_RATE_LIMIT_BACKEND=redis requires the 'redis' package"
             ) from exc
 
-        # Short socket timeouts: this is a SYNC client called on the event-loop
-        # thread; a half-dead valkey must stall a request ~1s, not indefinitely.
-        self._redis = redis.Redis.from_url(
+        # ASYNC client (redis.asyncio, built into redis>=4.2 — zero new dependency).
+        # Command I/O is awaited so a half-dead valkey never freezes the event loop;
+        # the short socket timeouts still bound any single slow call to ~1s so slow
+        # calls degrade to the SQLite fallback instead of piling up on the loop.
+        self._redis = aredis.Redis.from_url(
             redis_url,
             decode_responses=True,
             socket_timeout=1.0,
@@ -217,21 +231,21 @@ class _RedisRateLimitBackend(_BaseRateLimitBackend):
     def clear(self) -> None:
         self._fallback.clear()
 
-    def consume(self, scope_name: str, key: str, policy: RateLimitPolicy, now: float) -> int | None:
+    async def consume(self, scope_name: str, key: str, policy: RateLimitPolicy, now: float) -> int | None:
         del now
         if policy.max_requests <= 0 or policy.window_seconds <= 0:
             return None
         if time.monotonic() < self._degraded_until:
-            return self._fallback.consume(scope_name, key, policy, time.time())
+            return await self._fallback.consume(scope_name, key, policy, time.time())
 
         namespaced_key = f"{self._namespace}:{scope_name}:{key}"
         ttl_ms = max(1, int(math.ceil(policy.window_seconds * 1000.0)))
         try:
-            current = int(self._redis.incr(namespaced_key))
+            current = int(await self._redis.incr(namespaced_key))
             if current == 1:
-                self._redis.pexpire(namespaced_key, ttl_ms)
+                await self._redis.pexpire(namespaced_key, ttl_ms)
             if current > policy.max_requests:
-                ttl = int(self._redis.pttl(namespaced_key))
+                ttl = int(await self._redis.pttl(namespaced_key))
                 if ttl < 0:
                     return max(1, math.ceil(policy.window_seconds))
                 return max(1, math.ceil(ttl / 1000.0))
@@ -242,7 +256,7 @@ class _RedisRateLimitBackend(_BaseRateLimitBackend):
                 "Redis rate limit backend failed, falling back to SQLite backend for 30s",
                 exc_info=True,
             )
-            return self._fallback.consume(scope_name, key, policy, time.time())
+            return await self._fallback.consume(scope_name, key, policy, time.time())
 
 
 def clear_rate_limit_state() -> None:
@@ -428,17 +442,17 @@ def _build_websocket_rate_limit_key(ws: WebSocket, scope_name: str) -> str:
     return f"{identity}|{_websocket_path(ws, scope_name)}"
 
 
-def _consume_rate_limit(scope_name: str, key: str, policy: RateLimitPolicy) -> int | None:
+async def _consume_rate_limit(scope_name: str, key: str, policy: RateLimitPolicy) -> int | None:
     if policy.max_requests <= 0 or policy.window_seconds <= 0:
         return None
 
     now = time.time()
     backend = _get_backend()
     try:
-        return backend.consume(scope_name, key, policy, now)
+        return await backend.consume(scope_name, key, policy, now)
     except Exception:
         logger.warning("Rate limit backend failed, falling back to in-memory bucket", exc_info=True)
-        return _MemoryRateLimitBackend().consume(scope_name, key, policy, now)
+        return await _MemoryRateLimitBackend().consume(scope_name, key, policy, now)
 
 
 def route_rate_limit(
@@ -453,7 +467,7 @@ def route_rate_limit(
             default_max_requests=default_max_requests,
             default_window_seconds=default_window_seconds,
         )
-        retry_after = _consume_rate_limit(scope_name, _build_rate_limit_key(request, scope_name), policy)
+        retry_after = await _consume_rate_limit(scope_name, _build_rate_limit_key(request, scope_name), policy)
         if retry_after is not None:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -478,7 +492,7 @@ async def enforce_websocket_rate_limit(
         default_max_requests=default_max_requests,
         default_window_seconds=default_window_seconds,
     )
-    retry_after = _consume_rate_limit(scope_name, _build_websocket_rate_limit_key(ws, scope_name), policy)
+    retry_after = await _consume_rate_limit(scope_name, _build_websocket_rate_limit_key(ws, scope_name), policy)
     if retry_after is None:
         return True
     await ws.close(code=1013, reason="Too many requests")

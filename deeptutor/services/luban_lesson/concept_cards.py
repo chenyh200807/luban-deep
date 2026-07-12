@@ -25,6 +25,64 @@ from deeptutor.services.luban_lesson.read_model import (
 
 _CONCEPT_CARD_BANK_TEMPLATE = "_{pack_id}_concept_card_bank.v0.json"
 
+# ── 标准梯队(2026-07-12 spike): v32编译资产派生的全考纲标准卡 ──
+# 与精品卡明示分层: tier="standard"、status=candidate;
+# 只在 LUBAN_STD_CONCEPT_CARDS_ENABLED 且非生产时投影(owner 过目打样期,
+# 签发口径未定, 签发纪律不为量产让步——生产永远 fail-closed)。
+_STD_BANK_NAME = "_STD_concept_card_bank.v0.json"
+_STD_FLAG = "LUBAN_STD_CONCEPT_CARDS_ENABLED"
+_STD_PREFIX = "STD"
+
+
+def _std_enabled() -> bool:
+    import os
+
+    return str(os.getenv(_STD_FLAG, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _std_status_ok(bank: dict[str, Any]) -> bool:
+    """生产只认 signed(promote std车道翻牌); 非生产额外容 candidate(打样预览)。"""
+    from deeptutor.services.runtime_env import is_production_environment
+
+    status = str(bank.get("status") or "")
+    if is_production_environment():
+        return status == "signed"
+    return status in {"signed", "candidate"}
+
+
+def _std_decks(manifest_dir: Path) -> list[dict[str, Any]]:
+    """标准卡按章成组: [{pack_id: STD01.., title, cards}]（旗标关/文件缺失=空）。"""
+    if not _std_enabled():
+        return []
+    path = manifest_dir / _STD_BANK_NAME
+    if not path.exists():
+        return []
+    import json as _json
+
+    try:
+        bank = _json.loads(path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return []
+    if str(bank.get("tier") or "") != "standard":
+        return []
+    if not _std_status_ok(bank):
+        return []
+    chapters: dict[str, list[dict[str, Any]]] = {}
+    for card in bank.get("cards") or []:
+        if not isinstance(card, dict):
+            continue
+        chapters.setdefault(str(card.get("chapter") or "综合高频"), []).append(card)
+    decks = []
+    for i, (title, cards) in enumerate(sorted(chapters.items()), start=1):
+        decks.append(
+            {
+                "pack_id": f"{_STD_PREFIX}{i:02d}",
+                "title": title,
+                "cards": cards,
+            }
+        )
+    return decks
+
 
 def _signed_cards(
     pack: dict[str, Any], manifest_dir: Path
@@ -68,7 +126,18 @@ def build_concept_card_library(
             }
         )
         total += len(cards)
-    return {"total": total, "packs": sorted(packs, key=lambda p: p["pack_id"])}
+    packs = sorted(packs, key=lambda p: p["pack_id"])
+    for deck in _std_decks(manifest_dir):
+        packs.append(
+            {
+                "pack_id": deck["pack_id"],
+                "title": deck["title"],
+                "card_count": len(deck["cards"]),
+                "tier": "standard",
+            }
+        )
+        total += len(deck["cards"])
+    return {"total": total, "packs": packs}
 
 
 def build_concept_cards(
@@ -77,6 +146,31 @@ def build_concept_cards(
     """单站考点卡投影（翻卡页数据）；不过任一道闸一律 LessonNotAvailable。"""
     pack_id = str(pack_id or "").strip().upper()
     manifest = _load_manifest(manifest_path)
+    manifest_dir = (manifest_path or _MANIFEST_PATH).parent
+    if pack_id.startswith(_STD_PREFIX):
+        deck = next(
+            (d for d in _std_decks(manifest_dir) if d["pack_id"] == pack_id), None
+        )
+        if deck is None:
+            raise LessonNotAvailable(pack_id)
+        return {
+            "pack_id": pack_id,
+            "title": deck["title"],
+            "tier": "standard",
+            "card_count": len(deck["cards"]),
+            "cards": [
+                {
+                    "card_id": str(c.get("card_id") or ""),
+                    "front": str(c.get("front") or ""),
+                    "key_gist": str(c.get("key_gist") or ""),
+                    "quote": str(c.get("quote") or ""),
+                    "point_id": str(c.get("point_id") or ""),
+                    "source_ref": c.get("source_ref") or {},
+                    "scoring_terms": c.get("scoring_terms") or [],
+                }
+                for c in deck["cards"]
+            ],
+        }
     green = set(manifest.get("projection_green") or [])
     if pack_id not in green:
         raise LessonNotAvailable(pack_id)
@@ -86,7 +180,6 @@ def build_concept_cards(
     )
     if pack is None:
         raise LessonNotAvailable(pack_id)
-    manifest_dir = (manifest_path or _MANIFEST_PATH).parent
     cards = _signed_cards(pack, manifest_dir)
     if cards is None:
         raise LessonNotAvailable(pack_id)

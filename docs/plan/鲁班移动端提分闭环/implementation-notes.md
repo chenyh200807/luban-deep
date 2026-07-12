@@ -213,6 +213,26 @@
 - **UI 语义**：保存失败不出收据、不说“明天见”；服务端 terminal 成功后 forward 进 handoff，review 回复习。handoff 只保留提醒与 telemetry，不再写 learner state。
 - **发布边界**：本轮不部署。首次四题仍因双教研签发未完成而 fail closed；真实微信订阅提醒仍依赖模板 ID，不能用页内红点冒充系统推送。
 
+### 2026-07-12（首跑内容签发翻牌 · owner一字拍板"签"）
+- **[签发执行]** script_manifest.v1.json四题`review_status=signed`+双reviewer留痕(`teacher_review:owner_cainkyking:2026-07-12:{qid}:{content_sha}`+`claude_fable_owner_delegate`同格式;content_sha按manifest.py同源规范化计算),`release_status=signed`+release_signoff(basis=owner本人对话授权,四题源自签发采分点owner本周多轮真机过目)。真loader`_require_signed_manifest`校验PASS。
+- **[版本连锁]** 签发改变script_version(清单sha)→前端script-data.js常量同步到`@5873e950…`;learn.js重放前对陈旧pending payload做版本自愈(题集与内容sha未变,仅签发元数据改版本,按当前常量重放,避免永久version_conflict)。
+- **[活体验证]** POST /first-run/complete(新版本号)→**HTTP 200, sync_status=synced**,score/learning_event_refs/training_intent/home_projection全量返回——"正在保存学情"卡死从治理源头到呈现层全链路治愈。
+
+### 2026-07-12（首跑'保存中'卡死治本+生产侧读性能 · owner三连②③）
+- **[③'正在保存学情'卡死=三层根因]** ①真源=首跑内容清单`release_status: blocked_pending_human_verdict`(双人签发人闸,writeback fail-closed by design——**这是治理态不是bug,签发决定在owner**);②**真bug**=HTTP异常处理器`str(exc.detail)`把结构化detail字符串化成"{'error': ...}"单引号串,前端解析不到错误码→把治理性409误当网络错→无限'保存中'(learn页自动重放机制其实一直在,只是每次都误判);③test2旧后端的422同病。治法:runtime/safety.py detail是dict/list原样透传(契约形状不变,类型忠实raise方);前端api.errorCodeOf兼容对象+旧字符串双形态(test2未更新期的belt);learn页blocked态文案本来就诚实('学情等待同步·点击重试保存'),解析修好后自然落位。
+- **[②五模块慢-生产侧]** 本地fallback只治开发机;生产侧两刀:①`_load_signed_bank`加(path,mtime)键读缓存——每请求扫37+个bank JSON的重复磁盘解析是复习/学情面读放大源,文件一变即失效,语义与直读等价;②learner_state远程memory events加20s TTL缓存+`append_memory_event`写侧即时失效——串行4次Supabase往返(~3s)是页面等待主体,同用户20s内复访直接命中。回归:read_model 26+learner_state 551全过。
+- **[owner待拍板]** 首跑清单签发:script_manifest.v1.json四题需`review_status=signed`+每题≥2 reviewer——这是内容人闸,你说签我就按你授权翻(reviewer留痕),或走真教研双签。不签则首跑学情写入持续fail-closed(报告本机可见,学情不入账)。
+
+### 2026-07-12（标准卡放量就绪+轮次体验+RichLeaf灰度runbook · owner"按你的建议来,顶尖体验"授权）
+- **[标准卡品质关+正式签发]** 修两个可见瑕疵:①knowledge-shape actor边界`负责(?!人)`(此前"设计单位项目负责人"被截成"设计单位项目");②跨点给分词去重(第二组剔重,剔空弃组)。重编100卡后走**promote std车道正式签发**——promote_variant_bank.py新增packless车道(同构语义:builder --check复现一致+source_v32_sha256锚定编译资产+教材复核零跳过+禁词扫描+签发翻牌唯一在本工具),signoff留痕owner授权。后端生产闸:**生产只认signed**,candidate仅非生产预览。放量姿势=部署时置`LUBAN_STD_CONCEPT_CARDS_ENABLED=true`(质量49+进度51两deck随下次test2/生产部署即亮)。
+- **[轮次体验(爱上的一拍)]** 考点卡每10张进**轮间歇收据**:斜章"第N轮"+大字进度+记住/回炉账目+确定性暖句轮换+两钮(继续下一轮·还剩X张/今天到这里·回复习)。49张的墙变成一轮轮小胜利——完成感是"还想继续用"的燃料。vm纯函数roundInfo(+4契约断言),实机验证第1轮10张准点触发。
+- **[RichLeaf灰度runbook(消治理blocker)]** flag=`LUBAN_RICH_LEAF_RUNTIME_ENABLED`(rich_leaf_runtime.py:35,默认OFF);消费点唯一=compiled_knowledge/general_knowledge.py:740(ADDITIVE overlay,miss即fail-open回legacy四源链,confidence门仍是路由权威)。**步骤(下次Aliyun里程碑执行)**:①test2部署时置flag=true(test2即qa环境,天然内部cohort);②Langfuse trace核rich_leaf_contexts真实命中+with/without对照;③盯排除法泄露复发(prompt≠terminal authority旧案);④≥3轮live核终态;⑤全绿→owner签published:true消掉release_governance_not_exercised。生产flag保持OFF直到owner签字。
+
+### 2026-07-12（三线并行:标准卡量产spike+共享组件收口+RichLeaf通电评审 · owner"三件事都做"）
+- **[①标准卡二梯队spike已通]** `scripts/build_luban_standard_concept_cards.py`:RichLeaf v32(1606叶verified采分点)×11年真题考频(FINAL_CLEANED_EXAM node_code实证,案例×2+选择×1,方向性口径)→**Top100叶标准卡**,四闸fail-closed(verified+教材quote逐字复核(不信任传递,100/100过)+禁词+去重)。聚成施工质量管理49+施工进度管理51两高频章deck(taxonomy二级节点权威命名)。**分层纪律**:tier=standard/status=candidate,后端只在`LUBAN_STD_CONCEPT_CARDS_ENABLED`且非生产投影(生产fail-closed),抽屉标"标准"徽标——签发口径待owner过目打样后定,不冒充精品。库总量141精品+100标准=241张。后端6 pytest全绿,API+实机验收(STD01首卡=分部验收组织,7给分词章)。待精化:actor切词偶有截断/跨点重复term去重/考频node级精确化(盘点文档自注待办)。
+- **[②共享组件收口]** 形态学解析器抽为`utils/knowledge-shape.js`(链/规则/枚举/红线/句读/数字+形状归型,concept-cards-view-model改require保持导出兼容,测试全绿);错因银行解药mental_model接`parseChain`→箭头链渲染竹青石链(检验批→分项→分部→单位这类心智模型不再是一段文字);复测完场收据挂考点卡回路(错了="把给分词背上"/全对="趁热巩固",学-错-背三角第三边闭合)。
+- **[③RichLeaf通电评审:两专家收敛裁决]** 质量权威专家:published:false=治理未走完非质量缺陷(5 blocker中3纯治理;fail-closed结构锁已浇死official_answer冒充,`rich_leaf_runtime.py:280-317`);架构消费专家:**"通电基本是伪需求"**——runtime bundle实为1466条/2.8MB/lru一次载入,唯一已接线消费者=general_knowledge教学overlay(additive,flag默认OFF);四候选消费者排序=标准卡(编译期)>轻练富化(编译期)>报告副标题(投影)>TutorBot grounding(runtime)。**合议裁决:编译期全吃为主线(①已执行第一步),runtime flag保留为廉价期权;若要消掉release_governance_not_exercised治理blocker,test2 qa_ cohort给教学overlay灰度一次(owner拍板项)**。90天消费路线图入账:D1-14标准卡打样(已完成)→D15-30轻练/cloze富化→D31-45报告副标题投影→D46-60消费驱动质量回灌quarantine→D61-90按需灰度runtime。
+
 ### 2026-07-12（五模块加载慢根因+修复 · owner"为什么特别慢"）
 - **[根因]** 量化定位:review-due **3.45s**、mistake-book **1.0s**,其余端点全毫秒级。剖析:投影本身6ms,3秒全烧在`list_memory_events`——本地开发后端每请求**串行打4次远程Supabase HTTPS查询**(~1s RTT×4)。学习/复习/错因页都消费这两个端点=五模块整体感觉慢。
 - **[修法=接通休眠旗标,零代码]** 代码里逃生门早已建好:`DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK`+`DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK`(非生产+flag→本地投影,不打Supabase)。本地serve脚本加两行env→**review-due 3.45s→0.04s(86×),mistake-book 1.0s→5ms**。dormant flag再添一例:修法不是写新码,是给已有门通电。

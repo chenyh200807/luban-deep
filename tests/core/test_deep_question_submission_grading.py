@@ -380,8 +380,10 @@ async def test_deep_question_deterministic_choice_feedback_explains_without_auth
     assert "C. 装饰装修：误选项" in response
     assert "D. 钢结构：正确项" in response
     assert "你为什么会错" in response
-    assert "采分点" in response
-    assert "易错点" in response
+    # Battle2 S2-T4：deterministic 路径去通用套话——MCQ 无"采分点"概念（整段删除）；
+    # "易错点"只在题库行带 trap_type/pitfalls 特异性内容时输出（本用例无 → 整段省略）。
+    assert "采分点" not in response
+    assert "易错点" not in response
     assert "记忆口诀" in response
 
 
@@ -662,8 +664,10 @@ async def test_deep_question_reveals_objective_answer_without_followup_llm(
     assert "正确答案：** D（钢结构）" in response
     assert "正确选项是 D（钢结构）" in response
     assert "逐项解析" in response
-    assert "采分点" in response
-    assert "易错点" in response
+    # Battle2 S2-T4：答案揭示路径复用 _objective_explanation——通用"采分点/易错点"
+    # 检查清单套话删除（本用例无 trap_type 特异性内容 → 两段整段省略）。
+    assert "采分点" not in response
+    assert "易错点" not in response
     assert "记忆口诀" in response
 
 
@@ -939,45 +943,9 @@ async def test_deep_question_reveals_written_reference_without_followup_llm(
     assert "本题按参考答案的关键点给分" in response
 
 
-@pytest.mark.asyncio
-async def test_deep_question_blocks_unanswered_direct_answer_reveal(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    class FakeCoordinator:
-        def __init__(self, **_kwargs: Any) -> None:
-            raise AssertionError("Coordinator should not be constructed for follow-up mode")
-
-    # A1-①(2026-06-22):未作答 followup 不再硬 block"练习阶段不公开答案",改走 FollowupAgent
-    # 在答案隐藏下作答(should_reveal_reference_material=False → 渲染不含答案 + 安全指令)。
-    # 关键不变量仍是:绝不泄露答案。FollowupAgent 被调用但拿不到答案,故不会吐出 观察法/正确答案。
-    class StubFollowupAgent:
-        def __init__(self, **_kwargs: Any) -> None:
-            pass
-
-        def set_trace_callback(self, _cb: Any) -> None:
-            pass
-
-        async def process(self, **_kwargs: Any) -> str:
-            return "这道题你还没作答,我先帮你理解题意,先不直接公布答案,你可以试着选一个。"
-
-    _install_module(
-        monkeypatch,
-        "deeptutor.agents.question.coordinator",
-        AgentCoordinator=FakeCoordinator,
-    )
-    _install_module(
-        monkeypatch,
-        "deeptutor.agents.question.agents.followup_agent",
-        FollowupAgent=StubFollowupAgent,
-    )
-    _install_module(
-        monkeypatch,
-        "deeptutor.services.llm.config",
-        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
-    )
-
-    context = UnifiedContext(
-        user_message="直接告诉我答案",
+def _build_unanswered_reveal_context(user_message: str) -> UnifiedContext:
+    return UnifiedContext(
+        user_message=user_message,
         language="zh",
         metadata={
             "turn_semantic_decision": {
@@ -997,15 +965,72 @@ async def test_deep_question_blocks_unanswered_direct_answer_reveal(
         },
     )
 
-    capability = DeepQuestionCapability()
-    events = await _collect_events(lambda bus: capability.run(context, bus))
 
-    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
-    response = result_event.metadata["response"]
-    assert result_event.metadata["mode"] == "followup"
-    # A1-①:不再硬 block,但答案仍绝不泄露(FollowupAgent 拿不到答案)
-    assert "观察法" not in response
-    assert "正确答案" not in response
+@pytest.mark.asyncio
+async def test_deep_question_blocks_unanswered_direct_answer_reveal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 边界锚定(PR#317 / owner 边界#2, 2026-06-30):未作答 followup 的答案揭示不是全压/全放,
+    # 而是按「显式要答案 vs 隐式求助」二分(should_block_unanswered_reference_reveal 单一权威):
+    #   * 显式("直接告诉我答案"/"公布答案"/"把正确答案给我") → detect_answer_reveal_preference
+    #     命中 → 放行(尊重"不能不输出", 学员主动解锁), 答案与解析照给。
+    #   * 隐式求助("给点提示"/"我还是不会"这类未认输的求援, 非 concession) → anti-peek 硬红线
+    #     仍压住 → 绝不吐出 观察法/正确答案(防泄露不变量, PR#317 前后一字不改)。
+    # 本测试同时守住这两条边界:放开显式(旧"anti-peek 压显式"陈旧断言已按 owner 反转),
+    # 但保留隐式求助的真泄露拦截价值。
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for follow-up mode")
+
+    class StubFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_trace_callback(self, _cb: Any) -> None:
+            pass
+
+        async def process(self, **_kwargs: Any) -> str:
+            # 隐式求助走确定性结构化提示短路(不经自由 LLM), FollowupAgent 即便被调也拿不到答案。
+            return "这道题你还没作答,我先帮你理解题意,先不直接公布答案,你可以试着选一个。"
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=StubFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    # --- 边界一:隐式求助 → anti-peek 硬红线仍压住, 绝不泄露答案(防泄露不变量). ---
+    implicit_ctx = _build_unanswered_reveal_context("我还是不会,给点提示")
+    capability = DeepQuestionCapability()
+    implicit_events = await _collect_events(lambda bus: capability.run(implicit_ctx, bus))
+    implicit_result = next(
+        event for event in implicit_events if event.type == StreamEventType.RESULT
+    )
+    implicit_response = implicit_result.metadata["response"]
+    assert implicit_result.metadata["mode"] == "followup"
+    assert "观察法" not in implicit_response
+    assert "正确答案" not in implicit_response
+
+    # --- 边界二:显式要答案 → PR#317 后放行, 答案与解析照给(旧断言按 owner 边界#2 反转). ---
+    explicit_ctx = _build_unanswered_reveal_context("直接告诉我答案")
+    explicit_events = await _collect_events(lambda bus: capability.run(explicit_ctx, bus))
+    explicit_result = next(
+        event for event in explicit_events if event.type == StreamEventType.RESULT
+    )
+    explicit_response = explicit_result.metadata["response"]
+    assert explicit_result.metadata["mode"] == "followup"
+    assert "观察法" in explicit_response
+    assert "正确答案" in explicit_response
 
 
 @pytest.mark.asyncio

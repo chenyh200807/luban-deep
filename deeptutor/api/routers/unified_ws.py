@@ -76,12 +76,13 @@ def _get_ws_conn_redis() -> "object | None":
     if backend != "redis" or not url:
         return None
     try:
-        import redis
+        from redis import asyncio as aredis
 
-        # Sync client used on the event-loop thread — short socket timeouts so a
-        # half-dead valkey degrades to the per-process counter instead of stalling
-        # every WS connect/disconnect indefinitely.
-        _ws_conn_redis = redis.Redis.from_url(
+        # ASYNC client (redis.asyncio, built into redis>=4.2 — zero new dependency).
+        # Connect/disconnect I/O is awaited so a half-dead valkey never freezes the
+        # event loop; the short socket timeouts still bound any single slow call to
+        # ~1s so it degrades to the per-process counter instead of piling up.
+        _ws_conn_redis = aredis.Redis.from_url(
             url,
             decode_responses=True,
             socket_timeout=1.0,
@@ -108,10 +109,10 @@ async def _try_acquire_ws_slot(user_id: str) -> str | None:
             pipe.zadd(key, {token: now})
             pipe.zcard(key)
             pipe.expire(key, _WS_CONN_TTL_SECONDS)
-            results = pipe.execute()
+            results = await pipe.execute()
             count = int(results[2])
             if count > _MAX_WS_CONNECTIONS_PER_USER:
-                client.zrem(key, token)  # over cap — undo our reservation
+                await client.zrem(key, token)  # over cap — undo our reservation
                 return None
             return f"redis:{token}"
         except Exception:  # noqa: BLE001 — Redis hiccup → fall through to per-process
@@ -129,7 +130,7 @@ async def _release_ws_slot(user_id: str, token: str) -> None:
         client = _get_ws_conn_redis()
         if client is not None:
             try:
-                client.zrem(f"deeptutor:ws-conn:{user_id}", token[len("redis:"):])
+                await client.zrem(f"deeptutor:ws-conn:{user_id}", token[len("redis:"):])
             except Exception:  # noqa: BLE001 — entry self-heals via TTL purge
                 logger.warning("WS conn cap: Redis release failed; entry will TTL-expire", exc_info=True)
         return

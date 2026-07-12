@@ -22,9 +22,11 @@ attach_question_lifecycle_scene_to_context).
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 import json
 import logging
+import os
 from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Any
@@ -39,6 +41,22 @@ if TYPE_CHECKING:
     from deeptutor.tutorbot.agent.skills import SkillsLoader
 
 logger = logging.getLogger(__name__)
+
+
+def _routing_llm_timeout_seconds() -> float:
+    """Battle1 W3-T2: hard ceiling for the routing-stage LLM call.
+
+    Conservative 6s default (matches the fast-mode latency budget); invalid
+    or non-positive values fall back to the default. Timeout is fail-open:
+    the caller's except-path degrades to scene=None, never blocks the turn.
+    """
+    raw = os.getenv("DEEPTUTOR_ROUTING_LLM_TIMEOUT_S", "6")
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return 6.0
+    return value if value > 0 else 6.0
+
 
 
 # ---------------------------------------------------------------------------
@@ -1617,21 +1635,27 @@ async def _llm_question_lifecycle_scene_proposal(
         ],
     }
     try:
-        raw = await llm_factory.complete(
-            prompt=(
-                "请只输出 JSON 对象，字段固定为 scene, confidence, reason。\n"
-                "scene 必须来自 allowed_scenes。confidence 是 0 到 1 的数字。\n"
-                f"{json.dumps(prompt_payload, ensure_ascii=False)}"
+        # Battle1 W3-T2: hard per-call timeout so a slow provider can never
+        # park the pre-first-token routing stage; timeout falls through the
+        # existing fail-open path (scene=None) below.
+        raw = await asyncio.wait_for(
+            llm_factory.complete(
+                prompt=(
+                    "请只输出 JSON 对象，字段固定为 scene, confidence, reason。\n"
+                    "scene 必须来自 allowed_scenes。confidence 是 0 到 1 的数字。\n"
+                    f"{json.dumps(prompt_payload, ensure_ascii=False)}"
+                ),
+                system_prompt=(
+                    "你是鲁班智考的题目生命周期语义候选建议器。"
+                    "你只提出 scene 候选，不执行出题、不批改、不生成解析。"
+                ),
+                temperature=0,
+                response_format={"type": "json_object"},
+                max_tokens=300,
+                max_retries=0,
+                retry_delay=0.1,
             ),
-            system_prompt=(
-                "你是鲁班智考的题目生命周期语义候选建议器。"
-                "你只提出 scene 候选，不执行出题、不批改、不生成解析。"
-            ),
-            temperature=0,
-            response_format={"type": "json_object"},
-            max_tokens=300,
-            max_retries=0,
-            retry_delay=0.1,
+            timeout=_routing_llm_timeout_seconds(),
         )
     except Exception:
         logger.debug("LLM question lifecycle scene proposal failed", exc_info=True)

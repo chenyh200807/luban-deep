@@ -14,6 +14,7 @@ import string
 import time
 import uuid
 from collections.abc import Awaitable, Callable
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 import json_repair
@@ -659,6 +660,9 @@ class OpenAICompatProvider(LLMProvider):
         stage_timings_ms: dict[str, float] = {}
         stream_chunk_count = 0
         stream_content_chunk_count = 0
+        # Observe-only: wall-clock of the first stream chunk, exported as the
+        # Langfuse generation completion_start_time (drives timeToFirstToken).
+        first_chunk_at: datetime | None = None
 
         def _stream_telemetry() -> dict[str, Any]:
             return self._build_stream_telemetry(
@@ -707,6 +711,7 @@ class OpenAICompatProvider(LLMProvider):
                             break
                         chunk_received_at = time.perf_counter()
                         if stream_chunk_count == 0:
+                            first_chunk_at = datetime.now(timezone.utc)
                             stage_timings_ms["provider_first_chunk"] = (
                                 chunk_received_at - call_started_at
                             ) * 1000
@@ -737,6 +742,7 @@ class OpenAICompatProvider(LLMProvider):
                     metadata={**provider_metadata, **_stream_telemetry()},
                     level="ERROR",
                     status_message=f"{stall_phase} stalled for more than {stalled_seconds} seconds",
+                    completion_start_time=first_chunk_at,
                 )
                 return LLMResponse(
                     content=f"Error calling LLM: {stall_phase} stalled for more than {stalled_seconds} seconds",
@@ -749,6 +755,7 @@ class OpenAICompatProvider(LLMProvider):
                     metadata={**provider_metadata, **_stream_telemetry()},
                     level="ERROR",
                     status_message=str(e),
+                    completion_start_time=first_chunk_at,
                 )
                 parsed_error = self._handle_error(e)
                 parsed_error.telemetry = _stream_telemetry()
@@ -773,6 +780,7 @@ class OpenAICompatProvider(LLMProvider):
                     model=model_name,
                     usage_details=usage_details,
                 ),
+                completion_start_time=first_chunk_at,
             )
             return parsed
 

@@ -143,6 +143,12 @@
           </view>
           <text class="rt-receipt-clean" wx:if="{{!wrongItems.length && total}}">一题没漏——这个考点怎么换皮，你都认得。</text>
 
+          <!-- 三角回路: 复测→考点卡(错了去背给分词;全对去巩固) 纯导航零第二权威 -->
+          <view class="rt-cc-link" catchtap="goConceptCards">
+            <text class="rt-cc-link-tx">{{wrongItems.length ? '翻这一站的考点卡 · 把给分词背上' : '翻这一站的考点卡 · 趁热再巩固'}}</text>
+            <text class="rt-cc-link-arrow">›</text>
+          </view>
+
           <view class="rt-stamp-row">
             <view class="rt-stamp">
               <text>{{mode === 'forward' ? '轻练已记录' : '回炉完成'}}</text>

@@ -504,6 +504,16 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Failed to start cross-worker metrics dump loop: {e}")
 
+    # Battle1 W1-T6: event-loop lag sentinel (真闭环). Fail-open: never blocks startup.
+    try:
+        from deeptutor.runtime.safety import spawn_task as _spawn_task
+
+        app.state.loop_lag_sentinel_task = _spawn_task(
+            _loop_lag_sentinel(), name="observability.loop_lag_sentinel"
+        )
+    except Exception as e:
+        logger.warning(f"Failed to start event-loop lag sentinel: {e}")
+
     if _assessment_form_prewarm_enabled():
         from deeptutor.runtime.safety import spawn_task as _spawn_task
         app.state.assessment_form_prewarm_task = _spawn_task(
@@ -551,6 +561,14 @@ async def lifespan(app: FastAPI):
         _mwm.remove_worker_snapshot(get_path_service().get_observability_dir(), os.getpid())
     except Exception as e:
         logger.warning(f"Failed to stop metrics dump loop: {e}")
+
+    # Battle1 W1-T6: stop the event-loop lag sentinel.
+    try:
+        sentinel_task = getattr(app.state, "loop_lag_sentinel_task", None)
+        if sentinel_task is not None:
+            sentinel_task.cancel()
+    except Exception as e:
+        logger.warning(f"Failed to stop event-loop lag sentinel: {e}")
 
 
 app = FastAPI(
@@ -835,6 +853,26 @@ async def _metrics_dump_loop() -> None:
             await asyncio.sleep(_mwm.DEFAULT_DUMP_INTERVAL_SECONDS)
         except asyncio.CancelledError:
             break
+
+
+async def _loop_lag_sentinel() -> None:
+    """Battle1 W1-T6 真闭环: sample event-loop lag every 0.5s and feed the existing
+    TurnRuntimeMetrics (single observability authority) so any future hot-path blocking
+    trips the existing Prometheus alert chain. Observe-only, no intervention/fallback.
+    Fail-open: a sampling error is logged, never fatal to the service."""
+    interval = 0.5
+    while True:
+        t0 = time.monotonic()
+        try:
+            await asyncio.sleep(interval)
+        except asyncio.CancelledError:
+            break
+        try:
+            get_turn_runtime_metrics().record_loop_lag(
+                max(0.0, time.monotonic() - t0 - interval)
+            )
+        except Exception:
+            logger.debug("loop lag sentinel record failed", exc_info=True)
 
 
 @app.get("/metrics", include_in_schema=False, dependencies=[Depends(require_metrics_access)])

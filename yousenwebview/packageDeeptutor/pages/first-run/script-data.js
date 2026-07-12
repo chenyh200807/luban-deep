@@ -7,7 +7,7 @@
 var HI = 'style="color:#48806a;font-weight:700"'; // 竹青(原亮青#67e8f9在亮纸上隐形)
 var HITWORD = 'style="color:#48806a;font-weight:800"'; // 竹青(亮纸可读);内联样式压CSS,须与pk-grn亮值一致
 var SCRIPT_SCHEMA_ID = "first_run_script.v1";
-var SCRIPT_VERSION = "first_run_script.v1@5022d02db1f3316ef7515e60140ba3f16128fde0dd8c0ebd86a9ff540a8ceffd";
+var SCRIPT_VERSION = "first_run_script.v1@5873e95063568d553079743474cadc6f126159aae92f11022eab5f5f74474c8d";
 
 var QUESTIONS = [
   {

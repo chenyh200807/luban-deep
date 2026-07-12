@@ -315,6 +315,12 @@ domains:
       - tests/services/learner_state/test_home_personalization_imports.py
       - tests/core/test_terminal_result_assembler.py
       - tests/core/test_assembler_grading_result.py
+      - tests/services/session/test_turn_event_batching_replay.py
+      # Battle2 S3-T3: turn-level TTFVT observe-only export (turn_runtime
+      # _record_first_useful_content_once -> runtime_metrics histogram ->
+      # multiworker merge). Fail-open; never affects turn outcome.
+      - tests/api/test_runtime_metrics.py
+      - tests/services/observability/test_multiworker_metrics.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
@@ -349,6 +355,7 @@ domains:
     test_files:
       - tests/runtime/test_orchestrator_autoroute.py
       - tests/runtime/test_orchestrator_preselect_canonical.py
+      - tests/runtime/test_orchestrator_single_selection.py
       - tests/runtime/test_capability_routing_map_collapse.py
       - tests/runtime/test_orchestrator_semantic_router.py
       - tests/services/test_active_object_family_first.py
@@ -400,6 +407,9 @@ domains:
       - tests/core/test_assembler_grading_result.py
       - tests/core/test_assembler_tutorbot_result.py
       - tests/services/test_resolve_reveal_decision.py
+      # Battle2 S2（判分输出减半）：deterministic 去套话 + 判分裁决字段结构性不变量
+      - tests/capabilities/test_deep_question_deterministic_feedback.py
+      - tests/capabilities/test_deep_question_submission_feedback_invariants.py
     schema_files:
       - deeptutor/capabilities/request_contracts.py
 
@@ -464,6 +474,10 @@ domains:
       - tests/services/citations/test_quality.py
       - tests/scripts/test_migrate_kb.py
       - tests/scripts/test_audit_2026_compiler_supabase_coverage.py
+      - tests/services/rag/test_supabase_availability_swr.py
+      - tests/services/rag/test_supabase_fanout_dedup.py
+      - tests/services/rag/test_supabase_unified_timeout.py
+      - tests/services/rag/test_rerank_doc_cap.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 
@@ -498,6 +512,9 @@ domains:
       - tests/services/embedding/test_validation.py
       - tests/services/search/test_web_search_runtime.py
       - tests/services/search/test_search_provider_resilience.py
+      # Battle2 S3-T2: factory.stream Langfuse export (usage + completion_start_time
+      # first-chunk wall-clock, observe-only fail-open).
+      - tests/services/llm/test_factory_langfuse_usage.py
     schema_files: []
 
   learner_state:
@@ -629,6 +646,10 @@ domains:
       - tests/api/test_luban_retest_complete_endpoint.py
       # 复习模块(双轮 §6)——到期收权 revalidation_queue 的域测试
       - tests/services/luban_lesson/test_review_due.py
+      # Battle1 W4-T3 model-tiering: consolidation_model split on protected agent/memory.py.
+      - tests/tutorbot/test_agent_loop_model_tiering.py
+      # Battle1 W1-T1 incremental token-estimation cache on protected agent/memory.py.
+      - tests/tutorbot/test_memory_incremental_tokens.py
     schema_files:
       - deeptutor/contracts/learner_state.py
       - supabase/migrations/20260415000100_learner_state_core.sql
@@ -674,6 +695,14 @@ domains:
       - tests/services/construction_grading/test_compiled_registry_resolver.py
       - tests/services/construction_grading/test_full_knowledge_compiler_m30.py
       - tests/services/construction_grading/test_rich_leaf_runtime.py
+      # Battle1 W4 model-tiering: utility_model injection into AgentLoop (protected loop.py).
+      - tests/tutorbot/test_agent_loop_model_tiering.py
+      # Battle1 W5/W1: single finalize pipeline behavior + think-strip streamer for protected loop.py.
+      - tests/tutorbot/test_finalize_visible_answer_pipeline.py
+      - tests/tutorbot/test_think_strip_streamer.py
+      # B2/B4 followup 判定器提速差分 harness: 输出 schema 瘦身/输入载荷裁剪/快档 flag
+      # 守门(protected question_followup.py, flag 关 = bit-for-bit 不变)。
+      - tests/services/test_question_followup_prompt_slim_differential.py
     schema_files: []
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn

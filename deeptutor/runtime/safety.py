@@ -162,9 +162,14 @@ def install_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(HTTPException)
     async def _http_exc(request: Request, exc: HTTPException) -> JSONResponse:
         rid = getattr(request.state, "request_id", "") or uuid.uuid4().hex
+        # 结构化 detail(dict/list)原样透传——str()化会把 {'error': code} 变成
+        # 单引号字符串, 前端解析不到错误码, 把治理性 409/422 误当网络错误无限
+        # 转圈(2026-07-12 首跑'保存中'卡死的根因)。契约 {detail, request_id,
+        # error_code} 形状不变, detail 类型忠实于 raise 方。
+        detail = exc.detail if isinstance(exc.detail, (dict, list)) else str(exc.detail)
         return JSONResponse(
             status_code=exc.status_code,
-            content=_envelope(str(exc.detail), rid, f"http_{exc.status_code}"),
+            content=_envelope(detail, rid, f"http_{exc.status_code}"),
         )
 
     @app.exception_handler(RequestValidationError)

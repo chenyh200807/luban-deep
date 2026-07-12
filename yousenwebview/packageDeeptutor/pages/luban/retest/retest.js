@@ -239,6 +239,16 @@ Page({
     this._submitCompletion(all, this.data.correctCount);
   },
 
+  goConceptCards: function () {
+    var packId = this.data.packId || "";
+    if (!packId) return;
+    if (typeof wx !== "undefined" && wx.navigateTo) {
+      wx.navigateTo({
+        url: route.lubanConceptCards({ pack_id: packId }),
+      });
+    }
+  },
+
   continueAfterReceipt() {
     // Canonical receipt is already rendered on this page.  Do not hand a
     // terminal truth to another page through forgeable query parameters.

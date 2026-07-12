@@ -115,6 +115,78 @@ def test_turn_stage_latency_count_weighted() -> None:
     assert stage["avg_latency_ms"] == 100.0  # (50*2 + 150*2)/4
 
 
+def test_fuc_histogram_summed_per_source_across_workers() -> None:
+    """Battle2 S3-T3 hardening: without this merge, UVICORN_WORKERS=2 halves the
+    TTFVT distribution (a scrape only sees the answering worker's histogram)."""
+    bounds = [500.0, 1000.0, 2000.0, 4000.0, 8000.0, 16000.0, 32000.0, 64000.0]
+    a = _turn(first_useful_content_ms=[
+        {"content_source": "content.delta", "bucket_bounds_ms": bounds,
+         "bucket_counts": [2, 1, 0, 0, 0, 0, 0, 0, 0], "sum_ms": 1400.0, "count": 3},
+    ])
+    b = _turn(first_useful_content_ms=[
+        {"content_source": "content.delta", "bucket_bounds_ms": bounds,
+         "bucket_counts": [1, 0, 0, 1, 0, 0, 0, 0, 1], "sum_ms": 103500.0, "count": 3},
+        {"content_source": "result.response", "bucket_bounds_ms": bounds,
+         "bucket_counts": [0, 0, 1, 0, 0, 0, 0, 0, 0], "sum_ms": 1500.0, "count": 1},
+    ])
+    merged = mwm.merge_metric_snapshots([_bundle(turn=a), _bundle(turn=b)])["turn"]
+    by_source = {e["content_source"]: e for e in merged["first_useful_content_ms"]}
+    delta = by_source["content.delta"]
+    assert delta["bucket_counts"] == [3, 1, 0, 1, 0, 0, 0, 0, 1]
+    assert delta["count"] == 6
+    assert delta["sum_ms"] == 104900.0
+    assert by_source["result.response"]["count"] == 1
+
+
+def test_fuc_histogram_merge_tolerates_missing_and_corrupt_entries() -> None:
+    bounds = [500.0, 1000.0, 2000.0, 4000.0, 8000.0, 16000.0, 32000.0, 64000.0]
+    good = _turn(first_useful_content_ms=[
+        {"content_source": "content.delta", "bucket_bounds_ms": bounds,
+         "bucket_counts": [1, 0, 0, 0, 0, 0, 0, 0, 0], "sum_ms": 300.0, "count": 1},
+    ])
+    legacy_no_key = _turn()  # pre-Battle2 worker snapshot without the key
+    corrupt = _turn(first_useful_content_ms=[
+        {"content_source": "content.delta", "bucket_bounds_ms": [1.0], "bucket_counts": [9]},
+    ])
+    merged = mwm.merge_metric_snapshots(
+        [_bundle(turn=good), _bundle(turn=legacy_no_key), _bundle(turn=corrupt)]
+    )["turn"]["first_useful_content_ms"]
+    assert len(merged) == 1
+    assert merged[0]["count"] == 1
+
+
+def test_fuc_histogram_survives_dump_read_merge_render_round_trip(tmp_path) -> None:
+    """End-to-end two-worker path: worker 222 dumps its snapshot file, live worker 111
+    merges via collect_merged_snapshots, and the real renderer exposes summed buckets."""
+    from deeptutor.api.runtime_metrics import TurnRuntimeMetrics, render_prometheus_metrics
+
+    worker_222 = TurnRuntimeMetrics()
+    worker_222.record_first_useful_content(elapsed_ms=400.0, content_source="content.delta")
+    worker_222.record_first_useful_content(elapsed_ms=6000.0, content_source="content.delta")
+    mwm.dump_worker_snapshot(tmp_path, 222, _bundle(turn=worker_222.snapshot()), now=1000.0)
+
+    worker_111 = TurnRuntimeMetrics()
+    worker_111.record_first_useful_content(elapsed_ms=250.0, content_source="content.delta")
+    merged = mwm.collect_merged_snapshots(
+        tmp_path, 111, _bundle(turn=worker_111.snapshot()),
+        staleness_seconds=60.0, now=1000.0, pid_is_alive=ALIVE,
+    )
+
+    text = render_prometheus_metrics(
+        http_snapshot=merged["http"],
+        turn_snapshot=merged["turn"],
+        surface_snapshot=merged["surface"],
+        readiness_snapshot={"ready": True, "checks": {}},
+        provider_error_rates=merged["providers"],
+        circuit_breakers=merged["circuit_breakers"],
+        release_snapshot={},
+    )
+    # 250 + 400 in le=500; 6000 lands in le=8000; +Inf carries all three samples.
+    assert 'deeptutor_turn_first_useful_content_ms_bucket{content_source="content.delta",le="500"} 2' in text
+    assert 'deeptutor_turn_first_useful_content_ms_bucket{content_source="content.delta",le="+Inf"} 3' in text
+    assert 'deeptutor_turn_first_useful_content_ms_count{content_source="content.delta"} 3' in text
+
+
 # ---------------------------------------------------------------- surface
 
 def test_surface_coverage_recomputed_from_summed_raw_counts() -> None:

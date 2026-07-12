@@ -58,6 +58,13 @@ function loadPage(options) {
         home_projection: { today_focus: { title: "今日焦点：屋面卷材起鼓" } },
       });
     },
+    // 镜像真实 utils/api.js 的 errorCodeOf：从 error.payload.detail.error 取签发/版本错误码,
+    // 普通 Error("offline") 无 payload → 返回 "",与线上一致(离线不误判为 blocked)
+    errorCodeOf: function (error) {
+      var detail = error && error.payload && error.payload.detail;
+      if (detail && typeof detail === "object") return String(detail.error || "");
+      return "";
+    },
   };
   var sandbox = {
     console: console,

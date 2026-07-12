@@ -442,3 +442,49 @@ def test_question_followup_generation_action_wins_over_next_step_study_assistant
     decision = asyncio.run(resolve_question_lifecycle_scene_decision(ctx, enable_llm=False))
 
     assert decision.scene == "practice_generation"
+
+
+def test_routing_llm_hard_timeout_degrades_to_none(monkeypatch):
+    """Battle1 W3-T2: 场景分类 LLM 超时必须走既有 fail-open 路径（返回 None），
+    绝不向上抛异常阻塞路由。"""
+    import asyncio
+    from types import SimpleNamespace
+
+    from deeptutor.services import question_lifecycle_skills as ql
+    from deeptutor.services.llm import factory as llm_factory
+
+    async def _slow_complete(**kwargs):
+        await asyncio.sleep(5)
+        return "{}"
+
+    monkeypatch.setenv("DEEPTUTOR_ROUTING_LLM_TIMEOUT_S", "0.05")
+    monkeypatch.setattr(llm_factory, "complete", _slow_complete)
+
+    async def _run():
+        return await ql._llm_question_lifecycle_scene_proposal(
+            SimpleNamespace(user_message="帮我出几道题考考我", metadata={})
+        )
+
+    result = asyncio.run(_run())
+    assert result is None
+
+
+def test_routing_llm_timeout_env_parsing_defaults():
+    """非法/非正值一律回退 6s 保守默认。"""
+    import os
+
+    from deeptutor.services.question_lifecycle_skills import _routing_llm_timeout_seconds
+
+    original = os.environ.get("DEEPTUTOR_ROUTING_LLM_TIMEOUT_S")
+    try:
+        os.environ["DEEPTUTOR_ROUTING_LLM_TIMEOUT_S"] = "abc"
+        assert _routing_llm_timeout_seconds() == 6.0
+        os.environ["DEEPTUTOR_ROUTING_LLM_TIMEOUT_S"] = "-1"
+        assert _routing_llm_timeout_seconds() == 6.0
+        os.environ["DEEPTUTOR_ROUTING_LLM_TIMEOUT_S"] = "2.5"
+        assert _routing_llm_timeout_seconds() == 2.5
+    finally:
+        if original is None:
+            os.environ.pop("DEEPTUTOR_ROUTING_LLM_TIMEOUT_S", None)
+        else:
+            os.environ["DEEPTUTOR_ROUTING_LLM_TIMEOUT_S"] = original

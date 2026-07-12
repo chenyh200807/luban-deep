@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from datetime import datetime
 from types import SimpleNamespace
 from types import ModuleType
 
@@ -355,6 +356,106 @@ async def test_openai_compat_provider_records_stream_first_token_telemetry(
     assert final_metadata["stream_chunk_count"] == 2
     assert final_metadata["stream_content_chunk_count"] == 2
     assert final_metadata["stage_timings_ms"]["provider_first_content_delta"] >= 0
+    # Battle2 S3-T2: first-chunk wall-clock reaches Langfuse as completion_start_time.
+    completion_start = fake_observability.updated[-1]["completion_start_time"]
+    assert isinstance(completion_start, datetime)
+    assert completion_start.tzinfo is not None
+
+
+@pytest.mark.asyncio
+async def test_openai_compat_provider_stream_error_before_first_chunk_has_no_completion_start_time(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Honest missing value: a stream that fails before its first chunk must export
+    completion_start_time=None instead of fabricating a timestamp."""
+    fake_observability = _FakeObservability()
+    monkeypatch.setattr(
+        "deeptutor.tutorbot.providers.openai_compat_provider.observability",
+        fake_observability,
+    )
+
+    async def _raise_create(**_kwargs):
+        raise RuntimeError("boom before first chunk")
+
+    provider = OpenAICompatProvider.__new__(OpenAICompatProvider)
+    LLMProvider.__init__(provider, api_key="sk-test", api_base="https://example.com")
+    provider.default_model = "gpt-test"
+    provider.extra_headers = {}
+    provider._spec = None
+    provider._provider_name = "openai"
+    provider._client = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=_raise_create))
+    )
+
+    response = await provider.chat(
+        messages=[{"role": "user", "content": "hi"}],
+        model="gpt-test",
+        on_content_delta=lambda text: _capture_async([], text),
+    )
+
+    assert response.finish_reason == "error"
+    assert fake_observability.updated[-1]["completion_start_time"] is None
+
+
+@pytest.mark.asyncio
+async def test_anthropic_provider_stream_records_completion_start_time(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_observability = _FakeObservability()
+    monkeypatch.setattr(
+        "deeptutor.tutorbot.providers.anthropic_provider.observability",
+        fake_observability,
+    )
+
+    class _FakeTextStream:
+        def __init__(self, chunks):
+            self._chunks = list(chunks)
+
+        def __aiter__(self):
+            return self
+
+        async def __anext__(self):
+            if not self._chunks:
+                raise StopAsyncIteration
+            return self._chunks.pop(0)
+
+    class _FakeMessageStream:
+        def __init__(self):
+            self.text_stream = _FakeTextStream(["你", "好"])
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def get_final_message(self):
+            return SimpleNamespace(
+                content=[SimpleNamespace(type="text", text="你好")],
+                stop_reason="end_turn",
+                usage=SimpleNamespace(input_tokens=8, output_tokens=2),
+            )
+
+    provider = AnthropicProvider.__new__(AnthropicProvider)
+    LLMProvider.__init__(provider, api_key="sk-test", api_base="https://example.com")
+    provider.default_model = "claude-test"
+    provider.extra_headers = {}
+    provider._client = SimpleNamespace(
+        messages=SimpleNamespace(stream=lambda **_kwargs: _FakeMessageStream())
+    )
+    deltas: list[str] = []
+
+    response = await provider.chat(
+        messages=[{"role": "user", "content": "hi"}],
+        model="claude-test",
+        on_content_delta=lambda text: _capture_async(deltas, text),
+    )
+
+    assert response.content == "你好"
+    assert deltas == ["你", "好"]
+    completion_start = fake_observability.updated[-1]["completion_start_time"]
+    assert isinstance(completion_start, datetime)
+    assert completion_start.tzinfo is not None
 
 
 @pytest.mark.asyncio

@@ -33,6 +33,14 @@
 - `LearnerStateService.build_compact_context()` 只渲染 learner profile、summary、progress、goals 这类稳定学员事实；它不得读取 `learner_memory_events`，也不得把 recall evidence 当作每轮默认上下文。
 - `learner_memory_events` 只在明确 recall-like 路由或 `build_context_candidates()` 判定需要 memory hits 时读取。普通问答的 compact learner context 必须避免额外 memory-event read，以降低每轮上下文构建延迟，同时保持 memory events 作为 durable learner evidence authority。
 
+### Summary Maintainer 门控（Battle2 S1）
+
+- 摘要维护器（summary-maintainer）不是学员长期真相的 authority。它的单一权威是 `learner_memory_events` 账本加一个进程内读游标（per-worker cursor），门控只决定"这一轮要不要花一次 LLM 去重写摘要"，绝不改变账本真相。
+- 门控的每次跳过（skip）不得丢失事实：每一个实质轮次仍然无条件落入 `learner_memory_events` 账本，摘要在下一次真正运行时按游标一次性消费自上次运行以来的全部增量。因此陈旧上限是 **per-worker N-1 个实质轮次**；多 worker 下全局上限为 `workers × (N-1)`，因为账本共享、跨 worker 的延迟消费永不丢。
+- 门控必须 fail-open：未知游标、进程重启、另一 worker、扫描异常都判定为"未读"并立即运行；`guide*` / `notebook*` 等 capability 走直通（不受计数门约束）。
+- 读游标只允许在一次**完整跑完**（含 `NO_CHANGE` 结果）之后重置；LLM 异常时不得重置，让陈旧游标下一轮继续触发运行，避免"摘要稳定 ⇒ mtime 不动 ⇒ 门永远打开"的退化。
+- 后台摘要维护默认可挂 fast/light tier（`resolve_fast_tier_model` 为唯一 light-model authority）；生产环境未设置该 tier 时为零效果，不得宣称降档收益。
+
 ### Learning Evidence Pipeline
 
 - `LearnerStateService.append_memory_event(memory_kind="learning_evidence")` 是学习证据写入、dedupe 和后续 synthesis 触发的唯一服务入口；API/router/wrapper 不得各自触发第二套长期画像刷新。

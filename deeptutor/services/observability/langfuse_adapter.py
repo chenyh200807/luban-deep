@@ -402,16 +402,17 @@ def _safe_json_text(value: Any) -> str:
 
 
 def _estimate_token_count(value: Any) -> int:
+    # Battle1 W1-T2: display-only fallback used when the provider returns no
+    # usage. The previous synchronous tiktoken BPE encode of the full JSON
+    # payload ran on the event loop per LLM observation; a single-pass
+    # approximation (ASCII ≈ 3 chars/token, non-ASCII ≈ 1.3 tokens/char,
+    # calibrated against cl100k_base on bilingual samples) keeps the estimate
+    # semantics without the CPU stall.
     text = _safe_json_text(value)
     if not text:
         return 0
-    try:
-        import tiktoken
-
-        encoder = tiktoken.get_encoding("cl100k_base")
-        return len(encoder.encode(text))
-    except Exception:
-        return max(1, len(text) // 4)
+    ascii_n = sum(1 for ch in text if ord(ch) < 128)
+    return max(1, ascii_n // 3 + int((len(text) - ascii_n) * 1.3))
 
 
 def _sanitize_value(
@@ -1129,6 +1130,7 @@ class LangfuseObservability:
         model: str | None = None,
         level: str | None = None,
         status_message: str | None = None,
+        completion_start_time: Any = None,  # datetime | None; generation 专用,span/chain 传 None
     ) -> None:
         source_key = self.normalize_usage_source(usage_source)
         merged_metadata = dict(metadata or {})
@@ -1160,6 +1162,7 @@ class LangfuseObservability:
                 cost_details=cost_details if export_usage else None,
                 level=level,
                 status_message=status_message,
+                completion_start_time=completion_start_time,
             )
         except Exception as exc:
             logger.debug(f"Langfuse observation update skipped: {exc}", exc_info=True)
