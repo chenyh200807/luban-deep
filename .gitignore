@@ -340,9 +340,14 @@ celerybeat.pid
 data/user/official_billing/
 var/official_billing/
 
-# Claude Code agent workspace (settings, transcripts, isolated worktrees).
-# Like .codex/.gstack — agent scratch state, must never enter git or reach prod.
-.claude/
+# Claude Code agent workspace: scratch state (transcripts, worktrees, loop.md,
+# settings.local.json) stays local, but the deterministic enforcement layer
+# (settings.json + hooks/) ships with the repo for every Claude Code user.
+# gitignore semantics: excluding the directory itself (`.claude/`) would make
+# child negations no-ops, so use `.claude/*` + explicit re-includes.
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
 
 # Browser/Playwright session dumps — transient debug scratch, never commit.
 .playwright-cli/
