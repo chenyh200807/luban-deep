@@ -1688,14 +1688,25 @@ class LearnerStateService:
             "personalization_context": personalization_context,
         }
 
-    def _summary_gate_decision(self, *, user_id: str, capability: str) -> str:
+    def _summary_gate_decision(
+        self,
+        *,
+        user_id: str,
+        capability: str,
+        events: list[LearnerStateEvent] | None = None,
+    ) -> str:
         """Battle2 S1-T1 gate: single authority = learner_memory_events ledger +
         in-process cursor. fail-open: unknown cursor / scan errors -> run.
 
         The evidence-scan branch is best-effort (commander ruling): correctness is
         carried by the counter threshold + the guide*/notebook* capability branch;
         an evidence event that lands after this refresh is picked up on the next
-        turn, bounded by the counter's N-1 substantive-turn staleness cap."""
+        turn, bounded by the counter's N-1 substantive-turn staleness cap.
+
+        `events` lets the caller pass a single per-turn read of the local event
+        ledger, shared with `_build_summary_source`, so a substantive turn scans
+        the JSONL once instead of twice. None -> read on demand (unchanged
+        semantics for any standalone call)."""
         state = self._summary_gate_states.get(user_id)
         if state is None:
             return "run_fail_open"  # restart / first sight: run now, rebuild cursor
@@ -1706,7 +1717,10 @@ class LearnerStateService:
             return "run_counter"  # staleness cap: N-1 substantive turns PER WORKER (global: workers*(N-1))
         try:
             cutoff = _parse_iso(state.last_run_at)  # parse failure -> None -> all new
-            for event in reversed(self._list_local_memory_events(user_id)):
+            local_events = (
+                self._list_local_memory_events(user_id) if events is None else events
+            )
+            for event in reversed(local_events):
                 created = _parse_iso(event.created_at)
                 if cutoff is not None and created is not None and created <= cutoff:
                     break
@@ -1724,11 +1738,16 @@ class LearnerStateService:
         capability: str,
         timestamp: str,
         language: str,
+        events: list[LearnerStateEvent] | None = None,
     ) -> str:
         """Battle2 S1-T2: compact summary-maintainer source (~4-5k tokens vs. the old
         ~10k full-JSON dump). Reuses the existing compact segment renderers (single
         rendering authority — no second renderer) and feeds the turn backlog accrued
-        since the last gate run instead of only the current turn."""
+        since the last gate run instead of only the current turn.
+
+        `events` lets the caller pass the same per-turn read of the local event
+        ledger already consumed by `_summary_gate_decision`, so the turn scans the
+        JSONL once. None -> read on demand (unchanged standalone semantics)."""
         profile = self._compact_profile_segment(self._read_profile_raw(user_id), language=language).get("content") or ""
         progress = self._compact_progress_segment(self._read_progress_raw(user_id), language=language).get("content") or ""
         state = self._summary_gate_states.get(user_id)
@@ -1738,9 +1757,12 @@ class LearnerStateService:
         # [-8:] is the hard cap: a stale mtime fallback cutoff (restart during a long
         # NO_CHANGE stretch — mtime does not move on NO_CHANGE) re-feeds at most 8
         # old turns; unparseable timestamps count as new material (fail-open).
+        local_events = (
+            self._list_local_memory_events(user_id) if events is None else events
+        )
         turns = [
             event
-            for event in self._list_local_memory_events(user_id)
+            for event in local_events
             if event.memory_kind == "turn"
             and (
                 cutoff is None
@@ -1812,7 +1834,14 @@ class LearnerStateService:
                 source_bot_id=source_bot_id,
                 timestamp=timestamp,
             )
-            decision = self._summary_gate_decision(user_id=normalized, capability=capability)
+            # Single per-turn read of the local event ledger, shared by the gate
+            # decision and (if we run) the summary source — a substantive turn scans
+            # the JSONL once instead of twice. Read under the lock, after the current
+            # turn was appended, so both consumers see identical, complete input.
+            turn_events = self._list_local_memory_events(normalized)
+            decision = self._summary_gate_decision(
+                user_id=normalized, capability=capability, events=turn_events
+            )
             if decision == "skip_throttled":
                 _record_summary_gate(decision=decision, outcome="skipped")
                 self._summary_gate_states[normalized].turns_since_run += 1
@@ -1827,6 +1856,7 @@ class LearnerStateService:
                 capability=capability,
                 timestamp=timestamp,
                 language=language,
+                events=turn_events,
             )
             summary_changed = await self._rewrite_summary(normalized, source, language)
             # Cursor resets only after a completed run (including NO_CHANGE) — this

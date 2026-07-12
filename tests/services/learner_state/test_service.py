@@ -2230,6 +2230,153 @@ def test_summary_source_mtime_cutoff_fallback_caps_backlog_at_8(monkeypatch, tmp
     assert "积压问题05" not in prompt  # older than the [-8:] window
 
 
+def _seed_gate_ledger(service, *, n_before: int, n_after: int):
+    """Append n_before turn events, a learning_evidence event, then n_after turn
+    events; return the ISO cutoff captured just before the evidence event."""
+    service.read_summary(_GATE_USER)  # seed profile/summary/progress files
+    for i in range(1, n_before + 1):
+        service.append_memory_event(
+            _GATE_USER,
+            source_feature="turn",
+            source_id=f"pre_{i:03d}",
+            memory_kind="turn",
+            payload_json={
+                "user_message": f"前置问题{i:03d}",
+                "assistant_message": f"前置解答{i:03d}",
+            },
+        )
+    cutoff = learner_state_service_module._iso_now()
+    service.append_memory_event(
+        _GATE_USER,
+        source_feature="construction_grading",
+        source_id="evidence_mid",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence", "question_id": "case-mid"},
+    )
+    for i in range(1, n_after + 1):
+        service.append_memory_event(
+            _GATE_USER,
+            source_feature="turn",
+            source_id=f"post_{i:03d}",
+            memory_kind="turn",
+            payload_json={
+                "user_message": f"后置问题{i:03d}",
+                "assistant_message": f"后置解答{i:03d}",
+            },
+        )
+    return cutoff
+
+
+def test_summary_gate_source_shared_read_matches_on_demand(tmp_path) -> None:
+    """对拍:传入共享事件列表(单次扫描)与按需自读(events=None,改前行为)必须
+    在门决策与 summary source 上逐字段相等。≥50 条事件,覆盖 cutoff 落在文件中段/
+    不可解析/超出全部三种分区。"""
+    service = _make_service(tmp_path)
+    mid_cutoff = _seed_gate_ledger(service, n_before=25, n_after=30)  # 56 events total
+
+    all_events = service._list_local_memory_events(_GATE_USER)
+    assert len(all_events) >= 50  # ledger is genuinely large enough to matter
+
+    def _both(cutoff_last_run_at: str) -> None:
+        service._summary_gate_states[_GATE_USER] = (
+            learner_state_service_module._SummaryGateState(
+                turns_since_run=0, last_run_at=cutoff_last_run_at
+            )
+        )
+        # A single shared read handed to both consumers.
+        shared = service._list_local_memory_events(_GATE_USER)
+
+        decision_on_demand = service._summary_gate_decision(
+            user_id=_GATE_USER, capability="chat", events=None
+        )
+        decision_shared = service._summary_gate_decision(
+            user_id=_GATE_USER, capability="chat", events=shared
+        )
+        assert decision_on_demand == decision_shared
+
+        source_on_demand = service._build_summary_source(
+            _GATE_USER,
+            session_id="s1",
+            capability="chat",
+            timestamp="2026-07-12T00:00:00+00:00",
+            language="zh",
+            events=None,
+        )
+        source_shared = service._build_summary_source(
+            _GATE_USER,
+            session_id="s1",
+            capability="chat",
+            timestamp="2026-07-12T00:00:00+00:00",
+            language="zh",
+            events=shared,
+        )
+        assert source_on_demand == source_shared
+
+    _both(mid_cutoff)  # cutoff mid-file: partial reversed scan + partial filter
+    _both("garbage-not-iso")  # cutoff -> None: fail-open all-new
+    _both("2999-01-01T00:00:00+00:00")  # cutoff in the future: throttle / empty turns
+
+    # Sanity: the mid-file cutoff really does surface the evidence event as a run.
+    service._summary_gate_states[_GATE_USER] = (
+        learner_state_service_module._SummaryGateState(
+            turns_since_run=0, last_run_at=mid_cutoff
+        )
+    )
+    assert service._summary_gate_decision(
+        user_id=_GATE_USER, capability="chat"
+    ) == "run_evidence"
+
+
+def test_summary_gate_and_source_share_single_event_scan(monkeypatch, tmp_path) -> None:
+    """The two per-turn consumers (gate decision via the evidence branch, then
+    source build) must share ONE ledger scan instead of one each. Scoped to those
+    two consumers on purpose — read_snapshot's own read is a separate concern and
+    out of this fix's scope."""
+    service = _make_service(tmp_path)
+    _seed_gate_ledger(service, n_before=25, n_after=30)  # 56 events on disk
+    # Early cursor so the evidence event lands after the gate cutoff -> the gate takes
+    # its reading (evidence-scan) branch rather than returning before any read.
+    service._summary_gate_states[_GATE_USER] = (
+        learner_state_service_module._SummaryGateState(
+            turns_since_run=0, last_run_at="2000-01-01T00:00:00+00:00"
+        )
+    )
+
+    original = LearnerStateService._list_local_memory_events
+    read_calls = {"n": 0}
+
+    def _counting(self, normalized_user_id):
+        read_calls["n"] += 1
+        return original(self, normalized_user_id)
+
+    monkeypatch.setattr(LearnerStateService, "_list_local_memory_events", _counting)
+
+    def _run_pair(events):
+        decision = service._summary_gate_decision(
+            user_id=_GATE_USER, capability="chat", events=events
+        )
+        service._build_summary_source(
+            _GATE_USER,
+            session_id="s1",
+            capability="chat",
+            timestamp="2026-07-12T00:00:00+00:00",
+            language="zh",
+            events=events,
+        )
+        return decision
+
+    # Pre-fix behaviour: each consumer reads on demand -> two full-file scans.
+    read_calls["n"] = 0
+    assert _run_pair(None) == "run_evidence"  # gate really took its reading branch
+    assert read_calls["n"] == 2
+
+    # Fixed behaviour: one shared read fed to both consumers -> a single scan total.
+    read_calls["n"] = 0
+    shared = service._list_local_memory_events(_GATE_USER)  # the single per-turn read
+    assert _run_pair(shared) == "run_evidence"
+    assert read_calls["n"] == 1
+
+
 def test_rewrite_summary_uses_fast_tier_when_configured(monkeypatch, tmp_path) -> None:
     service = _make_service(tmp_path)
     monkeypatch.setattr(

@@ -236,6 +236,7 @@ async def complete(
     max_retries: int = DEFAULT_MAX_RETRIES,
     retry_delay: float = DEFAULT_RETRY_DELAY,
     exponential_backoff: bool = DEFAULT_EXPONENTIAL_BACKOFF,
+    observation_name: str = "llm.complete",
     **kwargs: object,
 ) -> str:
     """
@@ -256,6 +257,9 @@ async def complete(
         max_retries: Maximum number of retry attempts (default: 5)
         retry_delay: Initial delay between retries in seconds (default: 2.0)
         exponential_backoff: Whether to use exponential backoff (default: True)
+        observation_name: Langfuse generation name for this call (default: "llm.complete").
+            Observe-only: lets a caller give its LLM call an identifiable name in
+            Langfuse without altering request/response bytes.
         **kwargs: Additional parameters (temperature, max_tokens, etc.)
 
     Returns:
@@ -450,7 +454,7 @@ async def complete(
         if value is not None
     }
     with observability.start_observation(
-        name="llm.complete",
+        name=str(observation_name or "").strip() or "llm.complete",
         as_type="generation",
         input_payload=input_payload,
         metadata={

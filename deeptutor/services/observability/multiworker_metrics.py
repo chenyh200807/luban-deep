@@ -286,6 +286,19 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         for (decision, outcome), count in sorted(gate_count.items())
     ]
 
+    # Battle2 S1 同病同修: public-memory rewrite gate decisions, summed by
+    # (decision, outcome) across workers. Without this merge a scrape only sees the
+    # answering worker under UVICORN_WORKERS>1 and the gate hit rate is under-counted.
+    memory_gate_count: dict[tuple[str, str], int] = defaultdict(int)
+    for x in snaps:
+        for entry in x.get("memory_maintainer_counts") or []:
+            key = (str(entry.get("decision", "")), str(entry.get("outcome", "")))
+            memory_gate_count[key] += int(entry.get("count", 0))
+    memory_maintainer_counts = [
+        {"decision": decision, "outcome": outcome, "count": count}
+        for (decision, outcome), count in sorted(memory_gate_count.items())
+    ]
+
     # Battle2 S3-T3: TTFVT histogram, summed per content_source across workers.
     # Missing this merge would make histogram_quantile systematically under-count
     # (a scrape only sees the worker that answered it) under UVICORN_WORKERS>1.
@@ -322,6 +335,44 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         for source, hist in sorted(fuc_hist.items())
     ]
 
+    # Assessment deep-explanation duration histogram (label-free), summed across
+    # workers. Missing this merge would make histogram_quantile under-count under
+    # UVICORN_WORKERS>1 (a scrape only sees the worker that answered it).
+    explain_merged: dict[str, Any] | None = None
+    for x in snaps:
+        entry = x.get("assessment_explanation_ms")
+        if not isinstance(entry, dict):
+            continue
+        bounds = [float(b) for b in entry.get("bucket_bounds_ms") or []]
+        counts = [int(c) for c in entry.get("bucket_counts") or []]
+        if not bounds or len(counts) != len(bounds) + 1:
+            continue  # corrupt/foreign shape: skip, never fatal
+        if explain_merged is None:
+            explain_merged = {
+                "bucket_bounds_ms": bounds,
+                "bucket_counts": counts,
+                "sum_ms": float(entry.get("sum_ms", 0.0)),
+                "count": int(entry.get("count", 0)),
+            }
+            continue
+        if explain_merged["bucket_bounds_ms"] != bounds:
+            continue  # mixed bucket layouts (rolling deploy): keep first layout
+        explain_merged["bucket_counts"] = [
+            a + b for a, b in zip(explain_merged["bucket_counts"], counts)
+        ]
+        explain_merged["sum_ms"] += float(entry.get("sum_ms", 0.0))
+        explain_merged["count"] += int(entry.get("count", 0))
+    assessment_explanation_ms = (
+        {
+            "bucket_bounds_ms": explain_merged["bucket_bounds_ms"],
+            "bucket_counts": explain_merged["bucket_counts"],
+            "sum_ms": round(explain_merged["sum_ms"], 2),
+            "count": explain_merged["count"],
+        }
+        if explain_merged is not None
+        else None
+    )
+
     return {
         "ws_active_connections": s("ws_active_connections"),
         "ws_opened_total": s("ws_opened_total"),
@@ -335,6 +386,7 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         "turn_stage_avg_latency_ms": stages,
         "response_mode_counts": response_mode_counts,
         "summary_maintainer_counts": summary_maintainer_counts,
+        "memory_maintainer_counts": memory_maintainer_counts,
         # Battle1 W1-T6: event-loop lag sentinel. Max across workers (worst worker
         # dominates); over-200ms + samples summed. Missing this merge would silently
         # drop the lag signal under UVICORN_WORKERS>1.
@@ -344,6 +396,7 @@ def _merge_turn(snaps: list[dict[str, Any]]) -> dict[str, Any]:
         "loop_lag_over_200ms_total": s("loop_lag_over_200ms_total"),
         "loop_lag_samples_total": s("loop_lag_samples_total"),
         "first_useful_content_ms": first_useful_content_ms,
+        "assessment_explanation_ms": assessment_explanation_ms,
     }
 
 

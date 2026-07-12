@@ -285,6 +285,63 @@ def test_grader_triggers_self_repair_when_first_llm_misses_sections(
     assert "knowledge_point" not in miss
 
 
+@pytest.mark.parametrize("compact", [False, True])
+def test_self_repair_prompt_is_slim_and_drops_history(
+    monkeypatch: pytest.MonkeyPatch, compact: bool
+) -> None:
+    """Battle2 perf：self-repair 只发最小充分上下文——含题目/学员作答/缺段名单/检索依据，
+    但**不含裁剪会话历史**；首轮 user_prompt 仍带历史（首轮行为不变）。两种 flag 都覆盖。"""
+    history_sentinel = "HISTORY_SENTINEL_上一轮闲聊"
+    grounding_sentinel = "GROUNDING_SENTINEL_教材第12章"
+    question_sentinel = "QUESTION_SENTINEL_防火门顺序关闭"
+    answer_sentinel = "ANSWER_SENTINEL_我选A"
+
+    # 首轮只给 2 段（缺 why_wrong / next_practice）→ 触发 repair；第二轮补齐。
+    repair_supplement = (
+        "### 为什么错\n概念混淆。\n### 下一步\n抄 1 遍规范。\n"
+        "### 逐项解析\nA 错；B 对；C 错；D 错。\n"
+    )
+    agent = _make_agent(monkeypatch, stream_outputs=[_PARTIAL_EXPLANATION, repair_supplement])
+    _force_flag(monkeypatch, compact)
+    trace_collector: dict[str, Any] = {}
+    asyncio.run(
+        agent.process(
+            user_message=answer_sentinel,
+            question_context={
+                "question_id": "q_slim",
+                "question_type": "choice",
+                "is_correct": False,
+                "question": question_sentinel,
+            },
+            history_context=history_sentinel,
+            grounding_context=grounding_sentinel,
+            trace_collector=trace_collector,
+        )
+    )
+
+    assert len(agent.stream_calls) == 2, "缺段必须触发 self-repair"
+    main_prompt = agent.stream_calls[0]["user_prompt"]
+    repair_prompt = agent.stream_calls[1]["user_prompt"]
+
+    # 首轮不变：历史仍在。
+    assert history_sentinel in main_prompt, "首轮 user_prompt 必须仍带历史（首轮行为不变）"
+
+    # repair = 充分集：题目、学员作答、缺段名单、检索依据齐全。
+    assert question_sentinel in repair_prompt, "repair 必须含题干"
+    assert answer_sentinel in repair_prompt, "repair 必须含学员作答"
+    assert grounding_sentinel in repair_prompt, "repair 必须含检索依据（开放世界事实源，保留）"
+    assert "why_wrong" in repair_prompt and "next_practice" in repair_prompt, "repair 必须含缺段名单"
+
+    # slim：历史被丢弃。
+    assert history_sentinel not in repair_prompt, "repair 不得携带裁剪会话历史"
+
+    # repair 输出仍过必填段校验：4 必备段全非空、无缺段。
+    sections = trace_collector["explanation_sections"]
+    for key in ("verdict", "correct_answer", "why_wrong", "next_practice"):
+        assert str(sections.get(key, "")).strip(), f"{key} 必须补齐非空"
+    assert trace_collector["explanation_section_miss"] == [], "repair 后不应仍缺必备段"
+
+
 def test_grader_falls_back_to_template_when_repair_still_misses(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
