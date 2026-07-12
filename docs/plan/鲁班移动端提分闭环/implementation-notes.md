@@ -206,6 +206,12 @@
 - **UI 语义**：保存失败不出收据、不说“明天见”；服务端 terminal 成功后 forward 进 handoff，review 回复习。handoff 只保留提醒与 telemetry，不再写 learner state。
 - **发布边界**：本轮不部署。首次四题仍因双教研签发未完成而 fail closed；真实微信订阅提醒仍依赖模板 ID，不能用页内红点冒充系统推送。
 
+### 2026-07-12（PR#451合main+阿里云生产部署 · Opus部署agent执行,四门全过）
+- **[合并]** PR #451 merge commit合入main(保留历史),合并SHA `9314930c`;12提交增量(首跑闭环/考点卡三代/错因银行/标准卡签发/性能修复,含签发翻牌645e0e70)。CI两红=测试桩滞后于已签发代码(apiMock缺errorCodeOf/shim未放行script-data),外科补桩dfedaebe后94/94全绿;main领先的33提交无一丢失。
+- **[部署四门]** ①容器just-now(07:51Z,healthy);②容器内grep:_BANK_CACHE/原样透传/manifest release_status=signed/STD bank signed全命中;③healthz/readyz公网200;④镜像sha==build产物,host与容器GIT_SHA==9314930c,GIT_DIRTY=false。全量rebuild(36/36 stage,非redeploy_fast),干净发布worktree,写边界全程/root/deeptutor内。
+- **[生产界面不变]** LUBAN_STD_CONCEPT_CARDS/RICH_LEAF_RUNTIME/LIGHT_PRACTICE全OFF;小程序未上传(仍老蓝版)。新五模块对用户零展示。
+- **[⚠️红线发现,owner待裁决]** 生产`LUBAN_CASE_RUBRIC_BANK_SLOT=pgo`——与"禁拨PGO"红线冲突,**但非本次引入**:host .env备份06-19/07-05/07-06全是pgo(已存活~3周),带canary结构(CANARY_ENABLED=false,cohort qa_/operator_),属案例判分pgo/canary独立轨道。部署agent未擅动(翻已上线3周的判分槽超授权)。**待owner裁决:回legacy还是追认pgo轨道**(需先查这3周生产判分是否受影响——PGO库score=null靠切分粒度隐式计分,红线当初立的原因)。
+
 ### 2026-07-12（首跑内容签发翻牌 · owner一字拍板"签"）
 - **[签发执行]** script_manifest.v1.json四题`review_status=signed`+双reviewer留痕(`teacher_review:owner_cainkyking:2026-07-12:{qid}:{content_sha}`+`claude_fable_owner_delegate`同格式;content_sha按manifest.py同源规范化计算),`release_status=signed`+release_signoff(basis=owner本人对话授权,四题源自签发采分点owner本周多轮真机过目)。真loader`_require_signed_manifest`校验PASS。
 - **[版本连锁]** 签发改变script_version(清单sha)→前端script-data.js常量同步到`@5873e950…`;learn.js重放前对陈旧pending payload做版本自愈(题集与内容sha未变,仅签发元数据改版本,按当前常量重放,避免永久version_conflict)。
