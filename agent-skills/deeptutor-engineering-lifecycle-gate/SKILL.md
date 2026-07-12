@@ -80,8 +80,8 @@ Use the narrowest matching local workflow:
   authority, or governance scanner changes: use
   `deeptutor-resource-registry-gate`.
 - Web, BI, browser, screenshot, Playwright, or `next dev` work: use
-  `deeptutor-web-bi-frontend-gate`; run the memory preflight from `AGENTS.md`
-  before any frontend command; do not let Codex, Computer Use, or another AI
+  `deeptutor-web-bi-frontend-gate`; run the memory preflight commands from that
+  skill before any frontend command; do not let Codex, Computer Use, or another AI
   agent host a long-lived Next dev server.
 - TutorBot, WeChat, follow-up, refusal, active object, route, terminal truth, or
   state continuity bugs: use `deeptutor-authority-debugging`.

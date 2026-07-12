@@ -57,6 +57,12 @@ Keep `entry_surface` as `real_wechat_package` for the primary package, and put
 the mechanism in `trace source` such as `devtools_cli_open`,
 `devtools_cli_auto`, `miniprogram_automator`, or `manual_devtools`.
 
+Cost-ordered execution gradient: run cheap deterministic checks first
+(`/wechat-harness`, node contract, backend harness) for visible behavior and
+contract coverage; then DevTools CLI for real-package evidence; only add real
+device / production miniprogram checks for device-specific risk, pre-release
+verification, auth/network differences, or explicit user request.
+
 CLI evidence rules:
 
 - `islogin` is only an environment preflight.

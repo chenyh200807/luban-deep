@@ -95,6 +95,8 @@ deeptutor kb create my-kb --doc textbook.pdf
 deeptutor serve --port 8001
 ```
 
+完整子命令(plugin/memory/bot/session/notebook/provider/config 等)见 `deeptutor --help`。
+
 ## Dependency Layers
 
 ```
