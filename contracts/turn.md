@@ -145,6 +145,46 @@
   在实时回合可见。它是 learner-state 读模型的**只读投影**，不是第二套推荐 authority；缺 claims 时为空且不进 metadata，
   绝不由前端或回合自行编造推荐。`next_best_action` 在回合内只作 view-layer 呈现，权威仍属 learner-state。
 
+## 终端产出纪律（2026-07-12，律4 语义完整性收权）
+
+全局律落点：终端答案通道上的每一次"确定性产出"都必须守型、守权威、守失败语义。
+
+1. **确定性短路只许两类**：高置信、可证伪的快路径（如 exact-question authority 命中），或
+   SEV 级窄拦截（如未作答泄题拦截）。除此之外不得新增确定性短路。
+2. **短路开火前必须消费 canonical 裁决**：任何短路在替学员产出终端文本前，必须已读取
+   对应的单一权威（exact authority / lifecycle scene / grading authority），不得自行猜测。
+3. **不确定一律 fall-through 主 LLM，禁模板兜底**：判定不出来就交回主链路；不得用
+   per-branch 模板文案冒充最终答案（生产例A：预算耗尽被现编成英文"合法回答"落库 completed）。
+4. **失败保型（typed failure）+ 唯一 terminal mapper + 禁 completed 假绿**：
+   - Provider 错误/超时从出生处保型：`LLMResponse.content` 永不携带错误体；错误体进
+     `error_detail`，类别进 `failure_kind`，`finish_reason="error"`（生产例B：欠费错误体
+     以 13 条 content delta 流给学员）。openai-compat 流式路径带 error-body delta gate：
+     形如 `Error: {...}` / `Error calling LLM:` 打头的 200-SSE 流不进 `on_content_delta`，
+     终局按 `looks_like_provider_error_content` 收敛为 typed failure；正常回答（含正文中
+     出现 "Error" 字样的合法教学内容）必须 byte-identical 通过。
+   - Agent loop 对预算耗尽 / provider error / 空答案只记录
+     `runtime_metadata["turn_failure"]={kind, detail, ...}`（`tool_budget_exhausted` /
+     `provider_error` / `provider_timeout` / `model_empty_answer`），`final_content=None`；
+     不得产出任何学员可见 surrogate 文本。marker 严格 per-turn：入口 pop 陈旧值，恢复出
+     真实答案后必须清除。传播链 = loop → manager（只进 trace 与 session_metadata 桥，
+     不进持久化 merged_metadata）→ capability result event → turn runtime。
+   - **唯一 terminal mapper** = `turn_runtime.map_turn_failure_to_public_text` /
+     `_safe_terminal_assistant_content`：所有终态学员可见文本（assistant message、
+     `result.metadata.response` 投影、orphan 恢复补话）只能由它决定；预算耗尽→"拆小再发"、
+     provider 类→"服务暂时繁忙"、取消→取消文案、未知→通用兜底。失败文案一律不可计费。
+   - **禁 completed 假绿**：带 `turn_failure` 的 turn 终态必须 `status=failed`，
+     `error_code`（=failure kind）保留在 public `result.metadata`，原始错误体只进
+     `turns.error`（internal），公开 turn_events 不得出现原始错误文本；public `done`
+     status 同步为 `failed`。
+5. **turn 存活性收敛单一 DB 真值（FSM 终态吸收）**：`update_turn_status` 是 CAS
+   （`WHERE id=? AND status='running'`），terminal 态吸收一切后写——跨 worker cancel 后
+   执行 worker 的迟到 completed 不得复活该 turn（生产例C）。终态 commit 顺序 = 先 CAS
+   running→terminal，**成功才** add_message + billing capture；CAS 被拒（已被取消/取代）
+   时 assistant 消息不公开落库、billing 不 capture。
+6. **孤儿必须交代**：启动 orphan recovery 除翻 `status=failed` 外，必须经同一 terminal
+   mapper 给每个孤儿 turn 的 session 补一条中文 assistant 通知（`orphaned_on_restart`），
+   不得让学员面对静默无应答。
+
 ## 必测项
 
 - `tests/api/test_system_router.py`
@@ -152,6 +192,7 @@
 - `tests/api/test_mobile_router.py`
 - `tests/services/test_semantic_router.py`
 - `tests/runtime/test_orchestrator_semantic_router.py`
+- `tests/services/test_terminal_error_semantics.py`（律4 终端产出纪律域测试）
 
 ## QTPK 物理抽出 S1（2026-06-27，控制面收权 Task 2/4 物理执行）
 

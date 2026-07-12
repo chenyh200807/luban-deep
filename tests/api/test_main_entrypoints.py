@@ -895,10 +895,21 @@ def test_startup_releases_orphaned_free_trial_reservations_after_turn_recovery(
     _install_fake_startup_dependencies(monkeypatch)
 
     calls: list[tuple[str, float]] = []
+    orphan_notices: list[dict[str, object]] = []
 
     class _FakeSessionStore:
+        async def list_all_running_turns(self) -> list[dict[str, str]]:
+            return [{"id": "turn-orphan-1", "session_id": "session-orphan-1"}]
+
+        async def update_turn_status(self, _turn_id: str, _status: str, _error: str = "") -> bool:
+            return True  # this worker wins the per-turn CAS
+
         async def recover_all_orphaned_turns(self, reason: str) -> int:
             calls.append(("turn_recovery", 0.0 if reason == "orphaned_on_restart" else -1.0))
+            return 0
+
+        async def add_message(self, **kwargs) -> int:
+            orphan_notices.append(dict(kwargs))
             return 1
 
     async def _release_orphaned_reservations(*, cutoff_created_at: float) -> int:
@@ -919,6 +930,73 @@ def test_startup_releases_orphaned_free_trial_reservations_after_turn_recovery(
     assert calls[0] == ("turn_recovery", 0.0)
     assert calls[1][0] == "reservation_release"
     assert calls[1][1] > 0
+    # 律4: orphaned turns leave one mapper-owned Chinese notice in their session
+    # instead of a silent no-answer (learners re-asked in NEW sessions in prod).
+    assert len(orphan_notices) == 1
+    notice = orphan_notices[0]
+    assert notice["session_id"] == "session-orphan-1"
+    assert notice["role"] == "assistant"
+    assert "重启" in str(notice["content"])
+    assert notice["metadata"]["terminal_status"] == "failed"
+    assert notice["metadata"]["error_code"] == "orphaned_on_restart"
+    assert notice["metadata"]["turn_id"] == "turn-orphan-1"
+
+
+def test_orphan_recovery_notice_ownership_is_cas_single_winner(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Multi-worker race (律4 FSM): with ``--workers N`` every worker runs the
+    lifespan orphan recovery, and near-simultaneous startups census the SAME
+    running turns. Notice ownership must be decided per turn by the
+    update_turn_status CAS: exactly ONE worker flips running→failed and leaves
+    the Chinese notice; the loser's CAS returns False and adds ZERO messages."""
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "DEEPTUTOR_STARTUP_FAIL_FAST": "0",
+        },
+        tmp_path=tmp_path,
+    )
+    from deeptutor.services.session.sqlite_store import SQLiteSessionStore
+
+    async def _scenario():
+        store = SQLiteSessionStore(tmp_path / "orphan_race.db")
+        session = await store.create_session(title="orphan", session_id="session-orphan-race")
+        turn = await store.create_turn(session["id"], capability="chat")
+
+        # Freeze the census: both "workers" saw the same turn while it was
+        # still running (the exact interleave that double-notified).
+        stale_census = [{"id": turn["id"], "session_id": session["id"]}]
+
+        async def _stale_list_all_running_turns():
+            return [dict(item) for item in stale_census]
+
+        store.list_all_running_turns = _stale_list_all_running_turns  # type: ignore[method-assign]
+
+        worker_a = await module._recover_orphaned_turns_with_notices(store)
+        worker_b = await module._recover_orphaned_turns_with_notices(store)
+
+        detail = await store.get_turn(turn["id"])
+        messages = (await store.get_session_with_messages(session["id"]))["messages"]
+        return worker_a, worker_b, detail, messages
+
+    worker_a, worker_b, detail, messages = asyncio.run(_scenario())
+
+    # Exactly one status flip: worker A wins the CAS, worker B's CAS is False.
+    assert worker_a == (1, 1)  # (recovered, notices)
+    assert worker_b == (0, 0)
+    assert detail is not None
+    assert detail["status"] == "failed"
+    assert detail["error"] == "orphaned_on_restart"
+
+    # Exactly ONE notice message lands, despite both workers censusing the turn.
+    assistant_messages = [m for m in messages if m["role"] == "assistant"]
+    assert len(assistant_messages) == 1
+    assert "重启" in assistant_messages[0]["content"]
+    assert assistant_messages[0]["metadata"]["error_code"] == "orphaned_on_restart"
+    assert assistant_messages[0]["metadata"]["turn_id"] == detail["id"]
 
 
 def test_startup_does_not_release_free_trial_reservations_when_turn_recovery_fails(

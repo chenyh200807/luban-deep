@@ -290,6 +290,8 @@ domains:
       - tests/services/session/test_prompt_partition.py
       - tests/services/session/test_sqlite_store.py
       - tests/services/session/test_tutorbot_sqlite_adapter.py
+      # 律4 terminal error semantics (typed failure / single terminal mapper / turn FSM).
+      - tests/services/test_terminal_error_semantics.py
       - tests/services/learner_state/test_attempt_refs.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_mistake_book.py

@@ -675,6 +675,11 @@ class TutorBotCapability(BaseCapability):
                 # diagnostic-only channel as the degraded_* flags above; never routes.
                 "content_truth_guard_applied",
                 "content_truth_low_confidence_claims",
+                # 律4 typed failure marker (kind/detail): turn runtime's single
+                # terminal mapper consumes it — maps the learner-visible text,
+                # commits the turn as failed (no completed fake-green), and
+                # redacts the raw detail from public events.
+                "turn_failure",
                 "release_id",
                 "git_sha",
                 "deployment_environment",

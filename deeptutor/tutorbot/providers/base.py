@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import re
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -60,7 +61,14 @@ class ToolCallRequest:
 
 @dataclass
 class LLMResponse:
-    """Response from an LLM provider."""
+    """Response from an LLM provider.
+
+    Typed-failure discipline (律4, contracts/turn.md §终端产出纪律): provider
+    failures must keep their TYPE from birth. Error bodies are NEVER written
+    into ``content`` (the learner-visible channel); they live in
+    ``error_detail`` with ``failure_kind`` naming the class of failure, and
+    ``finish_reason == "error"`` marking the response non-final.
+    """
     content: str | None
     tool_calls: list[ToolCallRequest] = field(default_factory=list)
     finish_reason: str = "stop"
@@ -68,11 +76,97 @@ class LLMResponse:
     reasoning_content: str | None = None  # Kimi, DeepSeek-R1 etc.
     thinking_blocks: list[dict] | None = None  # Anthropic extended thinking
     telemetry: dict[str, Any] = field(default_factory=dict)
-    
+    failure_kind: str | None = None  # e.g. "provider_error" / "provider_timeout"
+    error_detail: str | None = None  # raw error body (internal only, never learner-visible)
+
     @property
     def has_tool_calls(self) -> bool:
         """Check if response contains tool calls."""
         return len(self.tool_calls) > 0
+
+
+# ---------------------------------------------------------------------------
+# Provider error-body classification (typed-failure belt for 200-SSE streams)
+# ---------------------------------------------------------------------------
+
+# High-confidence, falsifiable shapes only: our own _handle_error formats
+# ("Error calling LLM: ...") and a provider error body streamed through a 200
+# response ("Error: {'message': ...}" / "Error: {\"message\": ...}"). Teaching
+# content that merely MENTIONS Error mid-text must never match.
+_PROVIDER_ERROR_BODY_RE = re.compile(r"^Error:\s*[\{\[]")
+_PROVIDER_ERROR_CALL_PREFIX = "Error calling LLM:"
+
+
+def looks_like_provider_error_content(text: str | None) -> bool:
+    """True only for content that IS a provider error body (not content that mentions one)."""
+    source = str(text or "").lstrip()
+    if not source:
+        return False
+    if source.startswith(_PROVIDER_ERROR_CALL_PREFIX):
+        return True
+    return bool(_PROVIDER_ERROR_BODY_RE.match(source))
+
+
+class ProviderErrorStreamGate:
+    """Hold back the first streamed deltas until we can cheaply tell whether the
+    stream is a provider error body masquerading as content (200-SSE form of
+    production example B: an Aliyun arrears body streamed as 13 content deltas).
+
+    States:
+      - probing: buffering; undecided.
+      - clean: normal stream; everything (including the held prefix) is forwarded
+        byte-identically — same delta sequence contents, only the first callback
+        may carry a few merged leading deltas.
+      - suspect: prefix matches an error-body shape; the entire stream is
+        withheld from the content channel. Final classification happens on the
+        full parsed content via :func:`looks_like_provider_error_content`.
+    """
+
+    _PROBE = "Error"
+    _MAX_PREFIX = len(_PROVIDER_ERROR_CALL_PREFIX)
+
+    def __init__(self) -> None:
+        self._buffer = ""
+        self._state = "probing"
+
+    @property
+    def suppressed(self) -> bool:
+        return self._state == "suspect"
+
+    def feed(self, text: str) -> str:
+        """Feed one delta; return the text that may be forwarded now."""
+        if not text:
+            return ""
+        if self._state == "clean":
+            return text
+        if self._state == "suspect":
+            self._buffer += text
+            return ""
+        self._buffer += text
+        stripped = self._buffer.lstrip()
+        if not stripped:
+            return ""
+        if len(stripped) < len(self._PROBE) and self._PROBE.startswith(stripped):
+            return ""  # could still become "Error..."; keep probing
+        if not stripped.startswith(self._PROBE):
+            return self._release()
+        if stripped.startswith(("Error:", _PROVIDER_ERROR_CALL_PREFIX)):
+            self._state = "suspect"
+            return ""
+        if len(stripped) < self._MAX_PREFIX:
+            return ""  # "Error c..." — undecided between error prefix and prose
+        return self._release()
+
+    def flush(self) -> str:
+        """Stream ended while probing: release the held prefix (short answers)."""
+        if self._state != "probing":
+            return ""
+        return self._release()
+
+    def _release(self) -> str:
+        self._state = "clean"
+        released, self._buffer = self._buffer, ""
+        return released
 
 
 @dataclass(frozen=True)
@@ -337,17 +431,20 @@ class LLMProvider(ABC):
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
+                # Typed failure at birth: the error body never enters content.
                 response = LLMResponse(
-                    content=f"Error calling LLM: {exc}",
+                    content=None,
                     finish_reason="error",
+                    failure_kind="provider_error",
+                    error_detail=f"Error calling LLM: {exc}",
                 )
 
             if response.finish_reason != "error":
                 return response
-            if not self._is_transient_error(response.content):
+            if not self._is_transient_error(response.error_detail or response.content):
                 return response
 
-            err = (response.content or "").lower()
+            err = (response.error_detail or response.content or "").lower()
             logger.warning(
                 "LLM transient error (attempt {}/{}), retrying in {}s: {}",
                 attempt,
@@ -372,8 +469,10 @@ class LLMProvider(ABC):
             raise
         except Exception as exc:
             return LLMResponse(
-                content=f"Error calling LLM: {exc}",
+                content=None,
                 finish_reason="error",
+                failure_kind="provider_error",
+                error_detail=f"Error calling LLM: {exc}",
             )
 
     @abstractmethod

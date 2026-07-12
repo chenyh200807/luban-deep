@@ -154,7 +154,9 @@ class MemoryStore:
             )
 
             if response.finish_reason == "error" and _is_tool_choice_unsupported(
-                response.content
+                # Typed failures carry the raw body in error_detail (律4);
+                # keep the legacy content fallback for older provider shapes.
+                response.error_detail or response.content
             ):
                 logger.warning("Forced tool_choice unsupported, retrying with auto")
                 response = await provider.chat_with_retry(

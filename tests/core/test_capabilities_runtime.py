@@ -4962,7 +4962,11 @@ async def test_tutorbot_agent_loop_honors_mode_policy_max_tool_rounds(
     assert tools_used == ["rag", "rag"]
     assert tool.calls == [{"topic": "round-1"}, {"topic": "round-2"}]
     assert metadata["effective_max_tool_rounds"] == 2
-    assert "maximum number of tool call iterations (2)" in (final_content or "")
+    # 律4: an exhausted tool budget is a TYPED failure, not an improvised
+    # English "final answer" (the old surrogate reached real learners twice).
+    assert final_content is None
+    assert metadata["turn_failure"]["kind"] == "tool_budget_exhausted"
+    assert metadata["turn_failure"]["budget"] == 2
 
 
 @pytest.mark.asyncio
@@ -9226,3 +9230,71 @@ async def test_tutorbot_capability_grading_turn_never_uses_light_model_even_when
     assert "preferred_model" not in session_metadata or not session_metadata.get(
         "preferred_model"
     ), f"判分轮泄漏轻模型: {session_metadata.get('preferred_model')}"
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_capability_exports_turn_failure_to_result_event(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """律4 typed failure hop: manager stamps turn_failure into session_metadata →
+    the capability result event must carry it verbatim so turn runtime's single
+    terminal mapper can commit the turn as failed (no completed fake-green)."""
+    monkeypatch.setenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "0")
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None):
+            return SimpleNamespace(running=True)
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            session_metadata: dict[str, Any] | None = None,
+            **_kwargs: Any,
+        ) -> str:
+            if session_metadata is not None:
+                session_metadata["turn_failure"] = {
+                    "kind": "tool_budget_exhausted",
+                    "budget": 4,
+                    "detail": "agent loop reached max tool rounds (4) without a final answer",
+                }
+            return ""
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-typed-failure",
+        user_message="请批改这道真题",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={"interaction_hints": {}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_events = [event for event in events if event.type == StreamEventType.RESULT]
+    assert result_events, "capability must still emit a terminal RESULT frame on failure"
+    failure = result_events[-1].metadata.get("turn_failure")
+    assert isinstance(failure, dict)
+    assert failure["kind"] == "tool_budget_exhausted"
+    assert failure["budget"] == 4
+    # No improvised learner-visible surrogate below the terminal mapper.
+    assert "maximum number of tool call iterations" not in str(
+        result_events[-1].metadata.get("response") or ""
+    )

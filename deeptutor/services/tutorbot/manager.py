@@ -1219,6 +1219,12 @@ class TutorBotManager:
                         if metadata_key in runtime_metadata:
                             trace_metadata[metadata_key] = runtime_metadata[metadata_key]
                             merged_metadata[metadata_key] = runtime_metadata[metadata_key]
+                    # 律4 typed failure marker: forward to trace/observability only —
+                    # NEVER into merged_metadata (it persists as loop session metadata
+                    # and a stale marker would poison later healthy turns). The
+                    # session_metadata bridge below carries it to the result event.
+                    if "turn_failure" in runtime_metadata:
+                        trace_metadata["turn_failure"] = runtime_metadata["turn_failure"]
                     copy_current_case_grading_turn_metadata(runtime_metadata, trace_metadata)
                     copy_current_case_grading_turn_metadata(runtime_metadata, merged_metadata)
                     if any(
@@ -1336,9 +1342,15 @@ class TutorBotManager:
                             # result_payload allow-list can export the low-confidence claims.
                             "content_truth_guard_applied",
                             "content_truth_low_confidence_claims",
+                            # 律4 typed failure marker → capability result_payload.
+                            "turn_failure",
                         ):
                             if metadata_key in runtime_metadata:
                                 update_metadata[metadata_key] = runtime_metadata[metadata_key]
+                        # turn_failure is strictly PER-TURN: clear any stale copy so a
+                        # past failure can never mark a later healthy turn as failed.
+                        if "turn_failure" not in runtime_metadata:
+                            session_metadata.pop("turn_failure", None)
                         session_metadata.update(update_metadata)
                         copy_current_case_grading_turn_metadata(runtime_metadata, session_metadata)
                     response = coerce_user_visible_answer(response)
