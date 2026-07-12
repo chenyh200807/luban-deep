@@ -26,3 +26,23 @@ PR-0(#446,即刻)→PR-1(组A 观测基座)→**部署#1(D+1,今日不再第三�
 ## 砍单/挂账
 
 S4-T4③ exact-text 串行短路(伤 85% 多数人 p50 换 15% 成本,方向性错误,砍);变体数/rerank_window 收窄待最小召回 eval;memory_service 同病兄弟/search_unified DB 三合一/legacy provider TTFT——挂账不混本列车。
+
+## 赎罪条款(sunset clauses)
+
+> 两个行为 flag(B2/B4 与 MCQ_COMPACT)都不许留成"死 flag"。若开启后 14 天内拿不到可测收益证据,或触发下方 off 条件,**revert 对应代码**,把 main 回到无 flag 的清爽态,而非把关着的 flag 长期挂账。判定起点=各 flag 在生产置位为 on 的当日(操作者置位时把日期填进下表),14 天窗从该日起算。样本门槛沿用红线:样本<30 judged turns 不许宣称收益;禁用 trace latency 口径。
+
+**B2/B4 条款(`LUBAN_FOLLOWUP_FAST_TIER_ENABLED`)** — 收益证据必须四项同时成立,否则到期 revert B2/B4 代码(followup 判定器输出瘦身+快档),不留死 flag:
+- followup 判定器输出 token p50:216 → ~40(主杠杆,B2 schema 收紧);
+- 判定延迟:3.9s → ~1.5s;
+- `ask_other_question` 占比无恶化(判定分布随 slim prompt/快档漂移的护栏);
+- Step4.5 降级率无升高(快档模型不得把合法提交解析成坏 JSON 落 under-act)。
+- 任一恶化触红线即先关 flag;14 天窗满仍无上述净收益证据 → revert。
+
+**MCQ_COMPACT 条款(`DEEPTUTOR_MCQ_FEEDBACK_COMPACT`)** — 即时 off 条件:explanation 缺段 / repair 率上升(已入红线);14 天窗满无收益证据(判分输出降幅≥45% 且差分门四裁决字段全一致、无套话回潮)→ revert 组D(S2 判分收紧),不留死 flag。
+
+**判定起点(置位日,操作者置位 flag 为 on 时填写):**
+
+| flag | 生产置位为 on 的日期 | 14 天窗到期 | 到期裁决(收益证据齐→保留 / 否→revert) |
+|---|---|---|---|
+| `LUBAN_FOLLOWUP_FAST_TIER_ENABLED` | (待填) | (置位日+14) | (待填) |
+| `DEEPTUTOR_MCQ_FEEDBACK_COMPACT` | (待填) | (置位日+14) | (待填) |
