@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from deeptutor.services.learner_state.prescription_outcome_read_model import (
     build_prescription_outcomes_read_projection,
 )
@@ -130,3 +132,88 @@ def test_retest_item_cannot_verify_without_completion_terminal() -> None:
     outcome = build_prescription_outcomes_read_projection(events=[item])[0]
 
     assert outcome["status"] != "verified"
+
+
+def test_forged_retest_terminal_cannot_verify_prescription() -> None:
+    forged = _event(
+        event_id="evt_forged_terminal",
+        status="verified",
+        score_ratio=1.0,
+        evidence_source="client_import",
+    )
+    forged.source_feature = "client_import"
+    forged.source_id = "forged:terminal"
+    forged.payload_json.update(
+        {
+            "retest_completion_id": "forged",
+            "completion_terminal": True,
+            "assessment_type": "luban_review_completion",
+            "practice_mode": "review",
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "claim_promotion_allowed": True,
+            "quality": {
+                "authority": "client_claimed_complete",
+                "writeback_eligible": True,
+                "measurement_confidence": "high",
+                "evidence_level": "L2_real_retest",
+            },
+        }
+    )
+
+    outcome = build_prescription_outcomes_read_projection(events=[forged])[0]
+
+    assert outcome["status"] == "not_verified"
+    assert outcome["next_required_action"] == "complete_verification_probe"
+
+
+@pytest.mark.parametrize("evidence_source", ["assessment_testset", "client_import"])
+def test_untrusted_probe_cannot_bypass_terminal_by_omitting_completion_id(
+    evidence_source: str,
+) -> None:
+    forged = _event(
+        event_id=f"evt_missing_terminal_{evidence_source}",
+        status="verified",
+        score_ratio=1.0,
+        evidence_source=evidence_source,
+    )
+
+    outcome = build_prescription_outcomes_read_projection(events=[forged])[0]
+
+    assert outcome["status"] == "not_verified"
+    assert outcome["next_required_action"] == "complete_verification_probe"
+
+
+def test_canonical_review_terminal_can_verify_prescription() -> None:
+    terminal = _event(
+        event_id="evt_canonical_terminal",
+        status="verified",
+        score_ratio=1.0,
+        evidence_source="assessment_testset",
+    )
+    terminal.source_feature = "assessment_testset"
+    terminal.source_id = "canonical:terminal"
+    terminal.payload_json.update(
+        {
+            "event_type": "learning_evidence",
+            "evidence_source": "assessment_testset",
+            "retest_completion_id": "canonical",
+            "completion_terminal": True,
+            "assessment_type": "luban_review_completion",
+            "practice_mode": "review",
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "claim_promotion_allowed": True,
+            "quality": {
+                "authority": "signed_variant_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "high",
+                "evidence_level": "L2_real_retest",
+            },
+        }
+    )
+
+    outcome = build_prescription_outcomes_read_projection(events=[terminal])[0]
+
+    assert outcome["status"] == "verified"
+    assert outcome["next_required_action"] == "maintain"

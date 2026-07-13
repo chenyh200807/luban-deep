@@ -42,7 +42,7 @@
             <text class="pk-poster__name">{{item.name}}</text>
             <view class="pk-poster__slot sr-slot--{{item.state}}">{{item.slot}}</view>
             <view class="pk-poster__foot">
-              <text class="sr-tag sr-tag--{{item.state}}">{{item.card_hosted === false ? '微课即将开通' : (item.recommended ? '匹配薄弱' : (item.state === 'ink' ? '已学完' : (item.locked ? '会员解锁' : '未学')))}}</text>
+              <text class="sr-tag sr-tag--{{item.state}}">{{item.card_hosted === false ? '微课即将开通' : (item.recommended ? '匹配薄弱' : (item.state === 'ink' ? '已点亮' : (item.locked ? '会员解锁' : '未学')))}}</text>
               <!-- 副标题:考点卡首卡 front 真源;无卡的站留空(fail-closed) -->
               <text wx:if="{{item.subtitle}}" class="pk-poster__sub">{{item.subtitle}}</text>
             </view>

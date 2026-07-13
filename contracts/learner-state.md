@@ -605,10 +605,14 @@ Overlay 必须支持：
 
 ### Review Due Projection（双轮 §6 复习模块，2026-07-05 登记，`LUBAN_REVIEW_MODULE_ENABLED` 后）
 
-1. 复测完成事实只认 signed server-rescore 的 `completion_terminal=true` 事件；item
-   append、前端收据、本机 storage 和孤立 `station_completed` 都不得推进生命周期或移动
-   复习时钟。`station_completed` 继续作为 completion 后的幂等业务信号，但不是 terminal
-   outcome 的 mirror，也不得复制分数/状态。相同 `retest_completion_id` replay 只算一次。
+1. 练习完成事实只认服务端重判且满足严格 mode-authority 矩阵的
+   `completion_terminal=true` 事件：forward 可接受 `signed_variant_server_rescore` 或
+   `compiled_html_server_rescore`，但必须是 `medium/L0_observed/promotion=false`；review
+   只接受 `signed_variant_server_rescore`，且必须是
+   `high/L2_real_retest/promotion=true`。compiled HTML 绝不能冒充 review/L2。item append、
+   前端收据、本机 storage 和孤立 `station_completed` 都不得推进生命周期或移动复习时钟。
+   `station_completed` 继续作为 completion 后的幂等业务信号，但不是 terminal outcome 的
+   mirror，也不得复制分数/状态。相同 `retest_completion_id` replay 只算一次。
 2. 到期/间隔语义唯一权威=`revalidation_queue`：新学相 `state="fresh"`
    首跳按 **UTC+8 日历日次日**（§6.1 分相最小实现 + §9-D2「天」=日历日，
    「明天见」承诺的调度载体；满 24h 判定被否——昨晚学的今早即到期）。
@@ -647,6 +651,9 @@ Overlay 必须支持：
    全历史 `learning_evidence` 窄事件流；不得被 8 天、100/200/500 条页面窗口或 PostgREST
    单页 row cap 截断。`learning_report_read_model.v2.pack_review` 是学习/复习/学情共用的
    聚合切片，页面不得再各拉一份 learner-state 到期读模型。
+10. 今日进度的单位是题目作答：item event 可以计数，completion terminal 只是提交边界，
+    必须带 `quality.progress_countable=false`，读侧也必须识别并排除历史 terminal。五题练习
+    只增加 5 题，不能因 terminal 或 `station_completed` 变成 6。
 
 ## 单一写入职责
 

@@ -61,10 +61,23 @@ def _terminal(event_id: str, *, attempt_id: str, mode: str = "review"):
         payload_json={
             "event_type": "learning_evidence",
             "evidence_source": "assessment_testset",
+            "assessment_type": f"luban_{mode}_completion",
             "retest_completion_id": attempt_id,
             "completion_terminal": True,
             "practice_mode": mode,
+            "pack_id": "F16",
+            "target_pack_id": "F16",
             "claim_promotion_allowed": mode == "review",
+            "prescription_result": {
+                "status": "not_verified",
+                "score_ratio": 0.0,
+            },
+            "quality": {
+                "authority": "signed_variant_server_rescore",
+                "writeback_eligible": True,
+                "measurement_confidence": "high" if mode == "review" else "medium",
+                "evidence_level": "L2_real_retest" if mode == "review" else "L0_observed",
+            },
         },
     )
 

@@ -29,6 +29,7 @@
 .rt-dot.now { border-color: var(--pk-t1); opacity: 1; transform: scale(1.35); }
 .rt-dot.good { background: var(--pk-grn); border-color: var(--pk-grn); opacity: 1; }
 .rt-dot.warm { background: var(--pk-warn); border-color: var(--pk-warn); opacity: 1; }
+.rt-dot.picked { background: var(--pk-t2); border-color: var(--pk-t2); opacity: .8; }
 
 /* ── 题卡(单题聚焦) ── */
 .rt-card { padding: 30rpx 30rpx 34rpx; display: flex; flex-direction: column; gap: 22rpx; }
@@ -41,6 +42,11 @@
 .rt-choice.ok { border-color: var(--pk-grn); color: var(--pk-grn); }
 .rt-choice.not-ok { border-color: var(--pk-warn); color: var(--pk-warn); }
 .rt-choice-press { transform: scale(0.97); opacity: .85; }
+.rt-choices.mcq { flex-direction: column; }
+.rt-choice.mcq-option { flex: none; width: 100%; box-sizing: border-box; height: auto; min-height: 92rpx; justify-content: flex-start; text-align: left; padding: 20rpx 22rpx; gap: 16rpx; font-size: 25rpx; line-height: 1.55; font-weight: 500; }
+.rt-choice.mcq-option.selected { border-color: var(--pk-grn); background: var(--pk-gauge); }
+.rt-choice-letter { width: 42rpx; height: 42rpx; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--pk-paper); background: var(--pk-t2); font-size: 22rpx; font-weight: 800; }
+.rt-pending { display: flex; flex-direction: column; gap: 18rpx; padding-top: 6rpx; font-size: 23rpx; line-height: 1.6; color: var(--pk-t2); }
 
 /* ── 印章反馈(答后滑入, 只动 transform/opacity) ── */
 @keyframes rt-slide-in {
@@ -95,7 +101,10 @@
 .rt-review-label { font-size: 23rpx; color: var(--pk-t2); }
 .rt-review-item { display: flex; gap: 14rpx; align-items: flex-start; }
 .rt-review-dot { width: 10rpx; height: 10rpx; border-radius: 50%; background: var(--pk-warn); flex-shrink: 0; margin-top: 14rpx; }
+.rt-review-copy { flex: 1; display: flex; flex-direction: column; gap: 8rpx; }
 .rt-review-text { font-size: 25rpx; line-height: 1.7; color: var(--pk-t1); }
+.rt-review-detail { font-size: 22rpx; line-height: 1.6; color: var(--pk-t2); }
+.rt-review-fix { font-size: 22rpx; line-height: 1.6; color: var(--pk-grn); }
 .rt-receipt-clean { font-size: 25rpx; color: var(--pk-grn); }
 
 .rt-stamp-row { display: flex; align-items: center; gap: 20rpx; }

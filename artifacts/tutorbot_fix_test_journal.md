@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-14 - F16 正式收据成功但学情未点亮，五题被算成六题
+
+- 问题：F16 finished 五题能进入服务端重判并返回 terminal，但 pack lifecycle 仍是 unlearned、review clock 不启动；学习报告把五条 item 加 terminal 统计成六题；HTML 本地结果与原生正式收据并存，用户还需第二次点击保存。
+- 根因：真实 writer 使用 `compiled_html_server_rescore`，共享 terminal classifier 却只接受 `signed_variant_server_rescore`；completion commit、pack cadence 和 item promotion 没有共用同一个裁决。进度读侧又把 completion boundary 当 question attempt；publisher 把 HTML local result 提升成可见最终结果。旧测试手造 signed F16 terminal，掩盖了生产 producer/consumer 不一致；dormant replay 与 prescription outcome reader 还直接信任任意 `completion_terminal=true`，可绕过 canonical authority。
+- 失败尝试及原因：给 F16 item 直接信任 `payload.pack_id` 虽能快速点亮，但 partial append 无 terminal 也会变 practiced，制造第二完成 authority；把 compiled authority 加入 mastery trusted source 会把 forward L0 错升稳定事实；新增 done cache/调度状态会导致跨设备漂移。因此三条均否决。
+- 成功修法：建立严格 terminal 矩阵（forward signed/compiled medium L0 non-promoting；review 仅 signed high L2 promoting），completion ids、pack lifecycle、promotion、existing/replay terminal 与 prescription outcome reader 共用 classifier；reader 额外用 verification source allowlist 拒绝删 completion id 与 foreign source 绕过。item 只通过 canonical terminal completion map 归包，terminal 从题目计数与通用 item loop 排除。第五题自动桥接，原生 terminal receipt 成为小程序唯一正式结果；HTML 预览与旧 boolean 题只陈述本轮答题、不宣判掌握；stations/review onShow 重新读现有投影，不新增状态 authority。
+- 验证：真实 compiled terminal 3 个 RED 精确复现后转绿，补充 forged replay、旁路 prescription reader（伪字段、删字段、foreign source）与预览越权文案反例；learner/luban/API/publisher 相关 Python 321 passed，4 个 Node 行为合同、3 个页面脚本 syntax check、publisher determinism、contract guard、Ruff、diff check 全绿。DevTools 真项目根渲染路线；F16 receipt route 因 test2 后端未部署返回 404 时只显示失败重试、无成功收据。未声称登录态/生产闭环。
+- 教训：写入成功不等于消费者承认；测试应尽量复用真实 producer；terminal 是提交边界不是第 N+1 题；产品闭环必须同时验证唯一结果、持久投影、返回刷新和跨入口一致性。
+
 ## 2026-07-13 - 会员运营 BI 首屏慢且筛选只覆盖前 100 条
 
 - 问题：会员运营页首屏并行请求 dashboard 和 member list；两条链路各自重建一次 Supabase 会员目录投影。生产只读测量中 dashboard 约 2065ms、列表约 711ms，目录 overlay 投影约 955ms；前端仅取前 100 条后本地排序/筛选，成员规模增长后会产生不完整结果。

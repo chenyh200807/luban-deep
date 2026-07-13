@@ -10,7 +10,7 @@
   </view>
 
   <block wx:else>
-    <!-- 两幕 web-view；currentUrl 为空（托管未配置）时降级为原生占位，按钮流程不变 -->
+    <!-- 所有已编译 pack 共用 finished 讲懂/随堂练两幕。 -->
     <web-view wx:if="{{currentUrl}}" src="{{currentUrl}}"></web-view>
     <view class="st-fallback" wx:else>
       <text class="st-fallback-title">{{title}}</text>
@@ -18,9 +18,9 @@
     </view>
 
     <!-- 底部常驻按钮（见 station.js 顶部 caveat：真机可能被 web-view 覆盖） -->
-    <view class="st-footer">
+    <view class="st-footer" wx:if="{{tier === 'lesson'}}">
       <view class="st-primary" bindtap="onPrimaryTap">
-        <text>{{tier === 'lesson' ? '看完了，去自测' : '去做签发轻练'}}</text>
+        <text>看完了，练 5 题</text>
       </view>
     </view>
   </block>

@@ -19,11 +19,17 @@ Page({
   },
 
   onLoad() {
+    this._hasShown = false;
     var info =
       typeof wx !== "undefined" && wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
     var sbh = info.statusBarHeight || 0;
     this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
     this._load();
+  },
+
+  onShow() {
+    if (this._hasShown && !this.data.loading) this._load();
+    this._hasShown = true;
   },
 
   onPullDownRefresh() {

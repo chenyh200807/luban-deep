@@ -9,6 +9,7 @@
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -101,16 +102,28 @@
     </div>
     </sc-if>
 
+    <sc-if value="{{ autoSaving }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:72px 24px 48px;text-align:center;">
+      <div style="width:44px;height:44px;border:3px solid #e1d8c6;border-top-color:#cf4436;border-radius:50%;margin:0 auto 18px;"></div>
+      <div style="font-size:18px;font-weight:900;color:#23282b;">正在确认这 5 题</div>
+      <div style="font-size:12px;color:#6f777b;line-height:1.7;margin-top:8px;">正在提交本次作答，马上生成正式结果…</div>
+      <sc-if value="{{ hasSaveError }}" hint-placeholder-val="{{ false }}">
+      <div style="font-size:11px;color:#cf4436;line-height:1.5;margin-top:16px;">{{ saveError }}</div>
+      <button onClick="{{ retrySave }}" style="width:100%;border:none;background:#23282b;border-radius:13px;padding:13px;font-size:13px;font-weight:900;color:#fff;cursor:pointer;margin-top:12px;">重试保存</button>
+      </sc-if>
+    </div>
+    </sc-if>
+
     <!-- RESULTS VIEW -->
     <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
     <div style="padding:22px 16px 40px;">
       <div style="text-align:center;margin-bottom:18px;">
         <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
         <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
-        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">本轮作答 · {{ scoreLabel }}</div>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">本轮作答 · 逐题</div>
         <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
           <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
             <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
@@ -120,7 +133,7 @@
         </sc-for>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">本轮复盘提示</div>
         <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
           <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
             <div style="margin-bottom:9px;">
@@ -130,13 +143,14 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">本轮全部答对。这里只是网页预览，是否形成学习记录以小程序正式收据为准。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
         <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
       </div>
+      <div style="font-size:10px;color:#8b9398;line-height:1.5;text-align:center;margin:0 8px 12px;">网页预览 · 不写入学习记录；小程序内只以服务端复核后的正式收据为准。</div>
       <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
         <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
         <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
@@ -198,8 +212,9 @@
    题库对齐作答层样板：分档(R5-1)/工序链(R5-2~R5-4)/三段式纠错/检验清单(R5-5)/姐妹病害区分(R5-8)/末题采分诊断。
    错因码只映射 ERROR_CODE_REGISTRY 已注册码：E02/E04/E07/E08/E10、M03/M08。 */
 class Component extends DCLogic {
-  SHOW_COUNT = 6;
-  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  SHOW_COUNT = 5;
+  PRACTICE_ORDER = [0,1,2,3,5]; // 发布策略：从 final 六题中固定取五题，内容/答案不改
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null, saveError:"", autoSaving:false };
   examTitle="屋面防水起鼓割补";
   KNOWLEDGE="屋面卷材防水起鼓割补(真题{2017,案例二})。病根:基层水汽受热膨胀+无排气孔。分档:直径<100mm抽气灌胶法;≥100mm割补法。割补完整工序:斜十字形割开鼓泡→放出气体→擦干水分→清除旧胶结料→喷灯烘烤旧卷材槎口分层剥开→重贴新卷材(新贴方形卷材)→周边压实刮平→重做保护层。究因:基层平整干燥、排气孔通畅,否则原地二次起鼓。检查项:基层平整干燥、排气孔、铺贴方向、搭接长度、泛水高度、保护层、材料相容性、防潮防火。区分:流淌=高温软化下淌用钉钉子法/切割法;起鼓=水汽鼓胀用分档+割补。常见失分:不分档(E10/M08)、割开直接重贴漏放气擦干清旧胶(E02)、笼统跳步(E04)、漏重做保护层(E02)、不究因(E08)、钉钉子法治起鼓(M03)。";
   moreText="补两道：① {2017,案例二} 原题——直接默写起鼓割补完整工序箭头链，练八环一环不落；② {2023,第1题} 卷材流淌钉钉子法/找平层分格缝成因，练「流淌 vs 起鼓」姐妹病害不混答。";
@@ -275,11 +290,8 @@ class Component extends DCLogic {
     vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
     this.setState({order:this.pickOrder(),optOrder:this.pickOptOrders()});
   }
-  pickOrder(){ const idx=this.Q.map((_,i)=>i);
-    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
-    const last=this.Q.length-1; const k=idx.indexOf(last); if(k>=0){ idx.splice(k,1); idx.push(last); }
-    return idx.slice(0, Math.min(this.SHOW_COUNT||6, idx.length)); }
-  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||6, this.Q.length)); }
+  pickOrder(){ return this.PRACTICE_ORDER.slice(); }
+  fallbackOrder(){ return this.PRACTICE_ORDER.slice(); }
   pickOptOrders(){ const m={}; this.Q.forEach((q,qidx)=>{ const idx=q.opts.map((_,i)=>i);
     for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i];idx[i]=idx[j];idx[j]=t; }
     if(idx.length && idx[0]===0 && Math.random()<0.75){ const s=1+Math.floor(Math.random()*(idx.length-1)); const t=idx[0];idx[0]=idx[s];idx[s]=t; }
@@ -299,8 +311,21 @@ class Component extends DCLogic {
   graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi];
     if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
     return s!=null&&q.opts[s]&&q.opts[s].ok; }
-  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
-  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false,order:this.pickOrder(),optOrder:this.pickOptOrders()}); }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else { this.setState({autoSaving:true,finished:false,saveError:""}); setTimeout(()=>this.saveEvidence(),0); } }
+  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false,order:this.pickOrder(),optOrder:this.pickOptOrders(),saveError:"",autoSaving:false}); }
+  answerIndexes(){ return this.ord().map((_,i)=>this.state.sel[i]); }
+  saveEvidence(){ try{
+      const answers=this.answerIndexes();
+      if(answers.length!==this.qCount()||answers.some(v=>!Number.isInteger(v))){ this.setState({autoSaving:false,finished:true,saveError:"作答不完整，请完成五题。"}); return false; }
+      const wxm=window.wx&&window.wx.miniProgram;
+      const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+      if(!wxm||!inMini||!wxm.redirectTo){ this.setState({autoSaving:false,finished:true,saveError:"网页预览结果不会写入学习记录。"}); return false; }
+      wxm.redirectTo({
+        url:'/packageDeeptutor/pages/luban/retest/retest?mode=forward&pack_id=F16&presentation=receipt&answer_indexes='+encodeURIComponent(answers.join(',')),
+        fail:()=>this.setState({autoSaving:true,finished:false,saveError:"暂时没保存成功，请重试。"})
+      });
+      return true; }catch(e){ this.setState({autoSaving:true,finished:false,saveError:"暂时没保存成功，请重试。"}); return false; } }
+  retrySave(){ this.setState({autoSaving:true,finished:false,saveError:""}); this.saveEvidence(); }
   curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.dispLetter(qi,i)).join("、"); } else if(sel!=null)mine=this.dispLetter(qi,sel);
     const perm=this.curPerm();
@@ -375,19 +400,19 @@ class Component extends DCLogic {
     else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
     else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
 
-    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"答对":"答错"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["本轮待加强","本轮有进展","本轮表现不错","本轮全部答对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
-      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      examTitle:this.examTitle, inQuiz:!this.state.finished&&!this.state.autoSaving, finished:this.state.finished,
       qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
       progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
       btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
-      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
-      reset:()=>this.reset(),
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 道题本轮答对",moreText:this.moreText,
+      reset:()=>this.reset(),saveEvidence:()=>this.saveEvidence(),retrySave:()=>this.retrySave(),saveError:this.state.saveError,hasSaveError:!!this.state.saveError,autoSaving:this.state.autoSaving,
       openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
       dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
       askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,

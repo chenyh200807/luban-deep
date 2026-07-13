@@ -6,7 +6,11 @@ import json
 import os
 from typing import Any
 
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    is_canonical_luban_retest_terminal,
+)
 from deeptutor.services.learner_state.learner_signal import record_learner_signal
+from deeptutor.services.luban_lesson.practice_html import load_compiled_practice
 from deeptutor.services.luban_lesson.read_model import (
     build_lesson_viewmodel,
     build_retest_items,
@@ -41,10 +45,18 @@ def _normalize_answers(value: list[dict[str, Any]] | None) -> list[dict[str, Any
         if not variant_id or variant_id in seen:
             raise ValueError("retest_duplicate_or_missing_variant_id")
         choice = item.get("choice_ok")
-        if not isinstance(choice, bool):
-            raise ValueError(f"retest_choice_must_be_boolean:{variant_id}")
+        selected_option_id = str(item.get("selected_option_id") or "").strip()
+        has_boolean_choice = isinstance(choice, bool)
+        has_option_choice = bool(selected_option_id)
+        if has_boolean_choice == has_option_choice:
+            raise ValueError(f"retest_answer_requires_exactly_one_choice:{variant_id}")
         seen.add(variant_id)
-        answers.append({"variant_id": variant_id, "choice_ok": choice})
+        normalized = {"variant_id": variant_id}
+        if has_boolean_choice:
+            normalized["choice_ok"] = choice
+        else:
+            normalized["selected_option_id"] = selected_option_id
+        answers.append(normalized)
     return sorted(answers, key=lambda item: item["variant_id"])
 
 
@@ -145,10 +157,16 @@ class RetestWritebackService:
             user_id=normalized_user,
             completion_id=normalized_completion,
         )
-        existing_terminal = next(
-            (event for event in existing_events if getattr(event, "payload_json", {}).get("completion_terminal") is True),
-            None,
-        )
+        terminal_rows = [
+            event
+            for event in existing_events
+            if getattr(event, "payload_json", {}).get("completion_terminal") is True
+        ]
+        if terminal_rows and not all(
+            is_canonical_luban_retest_terminal(event) for event in terminal_rows
+        ):
+            raise RetestIdempotencyConflict(normalized_completion)
+        existing_terminal = terminal_rows[0] if terminal_rows else None
         if existing_terminal is not None:
             existing_hash = str(getattr(existing_terminal, "payload_json", {}).get("request_hash") or "")
             if existing_hash != request_hash:
@@ -186,13 +204,26 @@ class RetestWritebackService:
         ):
             raise ValueError("retest_training_intent_mismatch")
 
-        canonical_items = build_retest_items(
-            normalized_pack,
-            user_id=normalized_user,
-            day_index=normalized_day,
-            limit=len(normalized_answers),
-            mode=normalized_mode,
+        lesson = build_lesson_viewmodel(normalized_pack)
+        compiled_practice = (
+            load_compiled_practice(normalized_pack)
+            if normalized_mode == "forward"
+            else None
         )
+        if compiled_practice is not None:
+            if str(compiled_practice.get("source_pack_sha256") or "") != str(
+                lesson.get("content_sha256") or ""
+            ):
+                raise ValueError("retest_compiled_practice_pack_sha_mismatch")
+            canonical_items = list(compiled_practice.get("items") or [])
+        else:
+            canonical_items = build_retest_items(
+                normalized_pack,
+                user_id=normalized_user,
+                day_index=normalized_day,
+                limit=len(normalized_answers),
+                mode=normalized_mode,
+            )
         canonical_by_id = {
             str(item.get("variant_id") or "").strip(): dict(item)
             for item in canonical_items
@@ -201,17 +232,51 @@ class RetestWritebackService:
         if set(canonical_by_id) != {item["variant_id"] for item in normalized_answers}:
             raise ValueError("retest_answer_set_mismatch")
 
-        lesson = build_lesson_viewmodel(normalized_pack)
         title = str(lesson.get("title") or normalized_pack).strip()
         scored: list[dict[str, Any]] = []
         for answer in normalized_answers:
             canonical = canonical_by_id[answer["variant_id"]]
+            if canonical.get("answer_type") == "single_choice":
+                selected_option_id = str(answer.get("selected_option_id") or "").strip()
+                if not selected_option_id or "choice_ok" in answer:
+                    raise ValueError(
+                        f"retest_single_choice_answer_required:{answer['variant_id']}"
+                    )
+                options = {
+                    str(option.get("option_id") or ""): dict(option)
+                    for option in canonical.get("options") or []
+                    if str(option.get("option_id") or "")
+                }
+                selected = options.get(selected_option_id)
+                if selected is None:
+                    raise ValueError(
+                        f"retest_selected_option_invalid:{answer['variant_id']}"
+                    )
+                correct = next(
+                    (option for option in options.values() if option.get("is_correct") is True),
+                    None,
+                )
+                if correct is None:
+                    raise ValueError("retest_compiled_practice_answer_missing")
+                scored.append(
+                    {
+                        **canonical,
+                        "selected_option": selected,
+                        "correct_option": correct,
+                        "is_correct": bool(selected.get("is_correct")),
+                        "scoring_authority": "compiled_html_server_rescore",
+                    }
+                )
+                continue
+            if "selected_option_id" in answer or not isinstance(answer.get("choice_ok"), bool):
+                raise ValueError(f"retest_boolean_answer_required:{answer['variant_id']}")
             expected_ok = bool(canonical.get("expected_ok"))
             scored.append(
                 {
                     **canonical,
                     "learner_choice_ok": bool(answer["choice_ok"]),
                     "is_correct": bool(answer["choice_ok"]) == expected_ok,
+                    "scoring_authority": "signed_variant_server_rescore",
                 }
             )
 
@@ -227,6 +292,12 @@ class RetestWritebackService:
             rule_group = str(item.get("rule_group") or variant_id).strip()
             concept_id = f"pack:{normalized_pack}:rule:{rule_group}"
             promotion_allowed = normalized_mode == "review"
+            is_single_choice = item.get("answer_type") == "single_choice"
+            selected_option = dict(item.get("selected_option") or {})
+            correct_option = dict(item.get("correct_option") or {})
+            scoring_authority = str(
+                item.get("scoring_authority") or "signed_variant_server_rescore"
+            )
             error_id = f"{concept_id}:{ERROR_CODE}"
             submission_id = f"{normalized_completion}:{variant_id}"
             typed_edges = [
@@ -270,8 +341,13 @@ class RetestWritebackService:
                 "probe_id": normalized_probe,
                 "question_id": variant_id,
                 "source_question_id": variant_id,
-                "learner_answer": "ok" if item["learner_choice_ok"] else "not_ok",
-                "correct_answer": "ok" if bool(item.get("expected_ok")) else "not_ok",
+                "answer_type": "single_choice" if is_single_choice else "boolean",
+                "learner_answer": str(selected_option.get("option_id") or "")
+                if is_single_choice
+                else ("ok" if item["learner_choice_ok"] else "not_ok"),
+                "correct_answer": str(correct_option.get("option_id") or "")
+                if is_single_choice
+                else ("ok" if bool(item.get("expected_ok")) else "not_ok"),
                 "is_correct": is_correct,
                 "knowledge_points": [f"{title} · {rule_group}"],
                 "concept_id": concept_id,
@@ -283,17 +359,30 @@ class RetestWritebackService:
                     {
                         "error_code": ERROR_CODE,
                         "concept_tag": concept_id,
-                        "diagnosis": "签发变体判断与 canonical expected_ok 不一致",
+                        "diagnosis": "用户选择与编译 HTML canonical option 不一致"
+                        if is_single_choice
+                        else "签发变体判断与 canonical expected_ok 不一致",
                     }
                 ],
+                "source_error_code": str(selected_option.get("source_error_code") or "")
+                if is_single_choice and not is_correct
+                else "",
+                "answer_feedback": {
+                    "correct_statement": str(item.get("model_answer") or ""),
+                    "temptation": str(selected_option.get("temptation") or ""),
+                    "loss_reason": str(selected_option.get("loss_reason") or ""),
+                    "fix": str(selected_option.get("fix") or ""),
+                }
+                if is_single_choice
+                else {},
                 "score_awarded": 1.0 if is_correct else 0.0,
                 "max_score": 1.0,
                 "score_ratio": score_ratio,
                 "measurement_confidence": "high_real_retest"
                 if normalized_mode == "review"
-                else "medium_signed_variant",
+                else ("medium_compiled_html" if is_single_choice else "medium_signed_variant"),
                 "quality": {
-                    "authority": "signed_variant_server_rescore",
+                    "authority": scoring_authority,
                     "writeback_eligible": True,
                     "measurement_confidence": "high"
                     if normalized_mode == "review"
@@ -313,7 +402,11 @@ class RetestWritebackService:
                 "typed_edges": typed_edges,
                 "source_refs": [
                     str(item.get("anchor") or ""),
-                    f"signed_variant:{normalized_pack}:{variant_id}",
+                    (
+                        f"compiled_html:{normalized_pack}:{item.get('source_html_sha256')}"
+                        if is_single_choice
+                        else f"signed_variant:{normalized_pack}:{variant_id}"
+                    ),
                 ],
             }
             event = self._learner_state.append_memory_event(
@@ -332,9 +425,27 @@ class RetestWritebackService:
                 raise RetestIdempotencyConflict(normalized_completion)
             event_id = str(getattr(event, "event_id", "") or "")
             event_ids.append(event_id)
-            public_items.append(
-                {"variant_id": variant_id, "is_correct": is_correct, "event_id": event_id}
-            )
+            public_item = {
+                "variant_id": variant_id,
+                "is_correct": is_correct,
+                "event_id": event_id,
+            }
+            if is_single_choice:
+                public_item.update(
+                    {
+                        "selected_option_id": str(selected_option.get("option_id") or ""),
+                        "correct_option_id": str(correct_option.get("option_id") or ""),
+                        "correct_statement": str(item.get("model_answer") or ""),
+                        "feedback": dict(payload["answer_feedback"]),
+                    }
+                )
+            public_items.append(public_item)
+
+        completion_authority = (
+            "compiled_html_server_rescore"
+            if scored and all(item.get("answer_type") == "single_choice" for item in scored)
+            else "signed_variant_server_rescore"
+        )
 
         terminal_payload = {
             "event_type": "learning_evidence",
@@ -358,8 +469,9 @@ class RetestWritebackService:
             "prescription_result": {"status": result_status, "score_ratio": score_ratio},
             "item_event_refs": list(event_ids),
             "quality": {
-                "authority": "signed_variant_server_rescore",
+                "authority": completion_authority,
                 "writeback_eligible": True,
+                "progress_countable": False,
                 "measurement_confidence": "high" if normalized_mode == "review" else "medium",
                 "evidence_level": "L2_real_retest" if normalized_mode == "review" else "L0_observed",
             },
@@ -373,6 +485,8 @@ class RetestWritebackService:
             dedupe_key=f"luban_retest_terminal:{normalized_user}:{normalized_completion}",
         )
         if str(getattr(terminal, "payload_json", {}).get("request_hash") or "") != request_hash:
+            raise RetestIdempotencyConflict(normalized_completion)
+        if not is_canonical_luban_retest_terminal(terminal):
             raise RetestIdempotencyConflict(normalized_completion)
         terminal_event_id = str(getattr(terminal, "event_id", "") or "")
         event_ids.append(terminal_event_id)
@@ -402,7 +516,7 @@ class RetestWritebackService:
             "learning_change": {
                 "status": change,
                 "authority": "learner_memory_events -> learning_synthesis",
-                "reason": "signed_variant_server_rescore",
+                "reason": completion_authority,
             },
         }
 
@@ -423,6 +537,11 @@ class RetestWritebackService:
         ]
 
     def _replay_result(self, events: list[Any], *, terminal: Any) -> dict[str, Any]:
+        if not is_canonical_luban_retest_terminal(terminal):
+            completion_id = str(
+                getattr(terminal, "payload_json", {}).get("retest_completion_id") or ""
+            )
+            raise RetestIdempotencyConflict(completion_id)
         terminal_payload = dict(getattr(terminal, "payload_json", {}) or {})
         item_events = [
             event
@@ -430,7 +549,11 @@ class RetestWritebackService:
             if getattr(event, "source_feature", "") == SOURCE_FEATURE
             and getattr(event, "payload_json", {}).get("completion_terminal") is not True
         ]
-        item_events.sort(key=lambda event: str(getattr(event, "event_id", "") or ""))
+        item_events.sort(
+            key=lambda event: str(
+                getattr(event, "payload_json", {}).get("question_id") or ""
+            )
+        )
         correct_count = int(float(terminal_payload.get("score_awarded") or 0))
         question_count = int(float(terminal_payload.get("max_score") or 0))
         mode = str(terminal_payload.get("practice_mode") or "forward")
@@ -446,23 +569,39 @@ class RetestWritebackService:
             "mode": mode,
             "sync_status": "synced",
             "score": {"correct_count": correct_count, "question_count": question_count},
-            "items": [
-                {
-                    "variant_id": str(getattr(event, "payload_json", {}).get("question_id") or ""),
-                    "is_correct": bool(getattr(event, "payload_json", {}).get("is_correct")),
-                    "event_id": str(getattr(event, "event_id", "") or ""),
-                }
-                for event in item_events
-            ],
+            "items": [self._replay_public_item(event) for event in item_events],
             "learning_event_refs": [*item_refs, terminal_id],
             "terminal_event_id": terminal_id,
             "station_event_id": str(getattr(station, "event_id", "") or ""),
             "learning_change": {
                 "status": _learning_change_status(mode=mode, score_ratio=(correct_count / question_count) if question_count else 0.0),
                 "authority": "learner_memory_events -> learning_synthesis",
-                "reason": "signed_variant_server_rescore",
+                "reason": str(
+                    (terminal_payload.get("quality") or {}).get("authority")
+                    or "signed_variant_server_rescore"
+                ),
             },
         }
+
+    @staticmethod
+    def _replay_public_item(event: Any) -> dict[str, Any]:
+        payload = dict(getattr(event, "payload_json", {}) or {})
+        item = {
+            "variant_id": str(payload.get("question_id") or ""),
+            "is_correct": bool(payload.get("is_correct")),
+            "event_id": str(getattr(event, "event_id", "") or ""),
+        }
+        if payload.get("answer_type") == "single_choice":
+            feedback = dict(payload.get("answer_feedback") or {})
+            item.update(
+                {
+                    "selected_option_id": str(payload.get("learner_answer") or ""),
+                    "correct_option_id": str(payload.get("correct_answer") or ""),
+                    "correct_statement": str(feedback.get("correct_statement") or ""),
+                    "feedback": feedback,
+                }
+            )
+        return item
 
     def _require_due_probe(self, *, user_id: str, pack_id: str, probe_id: str) -> dict[str, Any]:
         if not probe_id:

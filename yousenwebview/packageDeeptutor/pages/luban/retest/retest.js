@@ -1,6 +1,6 @@
 // 鲁班学习双轮 · 变体复测（spike 形态）
-// 拉 /retest-items（服务端确定性抽取 + selection identity）→ 本地只给即时反馈；
-// 全题完成后 POST /retest-complete，由服务端按签发池重判并提交唯一 terminal。
+// 拉 /retest-items（服务端确定性投影 + selection identity）→ 客户端只回传选择；
+// 全题完成后 POST /retest-complete，由服务端按 canonical 内容源重判并提交唯一 terminal。
 // 页面不写 learner state、不发 station_completed；保存失败不展示收据。
 //
 // 埋点走 register-before-use catalog（product_behavior_catalog.py D15 登记，
@@ -12,14 +12,23 @@
 const api = require("../../../utils/api");
 const telemetry = require("../../../utils/surface-telemetry");
 const helpers = require("../../../utils/helpers");
+const route = require("../../../utils/route");
 
 var RETEST_LIMIT = 5;
 
+function parseBridgeAnswerIndexes(query, mode) {
+  if (mode !== "forward" || String((query && query.presentation) || "") !== "receipt") return [];
+  var raw = String((query && query.answer_indexes) || "").trim();
+  var parts = raw ? raw.split(",") : [];
+  if (parts.length !== RETEST_LIMIT || parts.some(function (part) { return !/^\d+$/.test(part); })) return null;
+  var indexes = parts.map(function (part) { return Number(part); });
+  return indexes.every(function (index) { return Number.isInteger(index) && index >= 0 && index < 10; }) ? indexes : null;
+}
+
 // 两种取题模式共用本页（复用同一 retest 页/内核，不建第二答题页）：
 // - review（默认，复习轮换皮复测）；
-// - forward（学习轮 2 分钟正向轻练，对刚学完 pack 覆盖不同 rule_group 取一组）。
-// 差别只在题面选序（后端 build_retest_items(mode) 决定）+ 文案，判分/证据链路完全一致：
-// 本地反馈（选择==expected_ok）不具 truth authority；服务端 completion 是唯一判分/写回入口。
+// - forward（学习轮五题轻练；F16 题面/答案来自 compiled HTML）。
+// review 旧判断题保留即时呈现；forward 单选不下发答案，服务端 completion 是唯一判分/写回入口。
 var COPY = {
   review: {
     navTitle: "换皮复测",
@@ -31,13 +40,13 @@ var COPY = {
     doneDesc: "本轮结果已保存，系统会按你的复习节奏再次安排。",
   },
   forward: {
-    navTitle: "2 分钟轻练",
-    heroKicker: "刚学完，趁热练一练",
-    heroTitle: "这一考点的不同考法，你能答对几道",
+    navTitle: "课后轻练 · 5 题",
+    heroKicker: "刚学完，用五题把它钉牢",
+    heroTitle: "条件、工序、纠错、检查、诊断各来一题",
     loadingText: "正在给你抽题…",
     emptyText: "这一站的轻练题即将开通，先去把它讲懂。",
-    doneTitlePrefix: "轻练完成",
-    doneDesc: "轻练结果已保存；何时再练以复习页的服务端排程为准。",
+    doneTitlePrefix: "这 5 题已记下",
+    doneDesc: "这次先记为已练过；是否稳定，等下一次换皮复测。",
   },
 };
 
@@ -56,6 +65,9 @@ Page({
     syncStatus: "idle",
     syncError: "",
     terminalEventId: "",
+    receiptSyncText: "",
+    receiptStateText: "",
+    receiptNextText: "",
     navTitle: COPY.review.navTitle,
     heroKicker: COPY.review.heroKicker,
     heroTitle: COPY.review.heroTitle,
@@ -68,6 +80,9 @@ Page({
     items: [],
     total: 0,
     pool: null,          // 题池元信息 {core_total, rule_groups_total}(呈现层规模感)
+    practiceSource: "signed_variant",
+    bridgeMode: false,
+    bridgeAnswerIndexes: [],
     seenCount: 0,        // 本地已见变体数(收集感, storage 呈现层)
     answeredCount: 0,
     correctCount: 0,
@@ -88,6 +103,8 @@ Page({
     var statusBarHeight = info.statusBarHeight || 0;
     var packId = String((query && query.pack_id) || "").trim();
     var mode = String((query && query.mode) || "review") === "forward" ? "forward" : "review";
+    var bridgeAnswerIndexes = parseBridgeAnswerIndexes(query, mode);
+    var bridgeRequested = String((query && query.presentation) || "") === "receipt";
     var probeId = String((query && query.probe_id) || "").trim();
     var trainingIntentId = String((query && query.training_intent_id) || "").trim();
     var completionId =
@@ -106,6 +123,8 @@ Page({
       isDark: helpers.isDark(),
       packId: packId,
       mode: mode,
+      bridgeMode: bridgeRequested,
+      bridgeAnswerIndexes: bridgeAnswerIndexes || [],
       probeId: probeId,
       trainingIntentId: trainingIntentId,
       completionId: completionId,
@@ -119,6 +138,10 @@ Page({
     });
     if (!packId) {
       this.setData({ loading: false, errorText: "缺少站点参数，请从提分路线进入" });
+      return;
+    }
+    if (bridgeRequested && bridgeAnswerIndexes === null) {
+      this.setData({ loading: false, errorText: "成品练习答案传递无效，请返回重新完成五题" });
       return;
     }
     this._loadItems();
@@ -196,7 +219,34 @@ Page({
         ruleGroupCount: Object.keys(groups).length,
         textbookCount: textbookCount,
       });
-      this._submitCompletion(all, correctCount);
+      this._submitCompletion(all);
+    }
+  },
+
+  // 编译 HTML 单选题：客户端只记录 option identity，不持有正确答案。
+  onOptionTap(event) {
+    var dataset = (event && event.currentTarget && event.currentTarget.dataset) || {};
+    var index = Number(dataset.index);
+    var optionId = String(dataset.optionId || "").trim();
+    var items = this.data.items;
+    if (!Number.isFinite(index) || index < 0 || index >= items.length || !optionId) return;
+    var item = items[index];
+    if (!item || item.answered || item.answer_type !== "single_choice") return;
+    if (!(item.options || []).some(function (option) { return option.option_id === optionId; })) return;
+
+    var answeredCount = this.data.answeredCount + 1;
+    var allAnswered = answeredCount >= this.data.total && this.data.total > 0;
+    var patch = { answeredCount: answeredCount, done: false };
+    patch["items[" + index + "].answered"] = true;
+    patch["items[" + index + "].selectedOptionId"] = optionId;
+    this.setData(patch);
+    if (allAnswered) {
+      var all = items.slice();
+      all[index] = Object.assign({}, item, {
+        answered: true,
+        selectedOptionId: optionId,
+      });
+      this._submitCompletion(all);
     }
   },
 
@@ -236,7 +286,7 @@ Page({
   retryCompletion() {
     var all = (this.data.items || []).slice();
     if (!all.length || all.some(function (item) { return !item.answered; })) return;
-    this._submitCompletion(all, this.data.correctCount);
+    this._submitCompletion(all);
   },
 
   goConceptCards: function () {
@@ -255,7 +305,7 @@ Page({
     this.goBack();
   },
 
-  _submitCompletion(items, correctCount) {
+  _submitCompletion(items) {
     if (this.data.syncStatus === "syncing" || this.data.syncStatus === "synced") return;
     var that = this;
     this.setData({ syncStatus: "syncing", syncError: "" });
@@ -268,6 +318,12 @@ Page({
         training_intent_id: this.data.trainingIntentId,
         probe_id: this.data.probeId,
         answers: items.map(function (item) {
+          if (item.answer_type === "single_choice") {
+            return {
+              variant_id: item.variant_id,
+              selected_option_id: item.selectedOptionId,
+            };
+          }
           return { variant_id: item.variant_id, choice_ok: item.chosenOk === true };
         }),
       })
@@ -275,18 +331,69 @@ Page({
         var body = api.unwrapResponse(response) || response || {};
         var terminalEventId = String(body.terminal_event_id || "").trim();
         if (!terminalEventId) throw new Error("canonical terminal receipt missing");
+        var changeStatus = String((body.learning_change || {}).status || "").trim();
+        var expectedChange = that.data.mode === "forward"
+          ? changeStatus === "practice_recorded"
+          : changeStatus === "verification_passed" || changeStatus === "verification_failed";
+        if (!expectedChange) throw new Error("canonical learning change missing");
+        var serverResults = {};
+        (body.items || []).forEach(function (result) {
+          serverResults[String(result.variant_id || "")] = result;
+        });
+        var scoredItems = items.map(function (item) {
+          var result = serverResults[item.variant_id] || {};
+          var next = Object.assign({}, item, {
+            correct: result.is_correct === true,
+            correct_statement: String(result.correct_statement || item.correct_statement || ""),
+            feedback: result.feedback || null,
+          });
+          if (item.answer_type === "single_choice") {
+            telemetry.trackProductBehavior("retest_item_answered", {
+              module: "practice",
+              action: "complete",
+              objectType: "variant",
+              objectId: item.variant_id,
+              result: next.correct ? "correct" : "incorrect",
+              practiceMode: that.data.mode,
+            });
+          }
+          return next;
+        });
+        var score = body.score || {};
+        var serverCorrectCount = Number(score.correct_count || 0);
+        var groups = {};
+        var textbookCount = 0;
+        var wrong = [];
+        scoredItems.forEach(function (item) {
+          if (item.rule_group) groups[item.rule_group] = true;
+          if (item.textbook) textbookCount += 1;
+          if (item.correct === false) wrong.push(item);
+        });
         telemetry.trackProductBehavior("learning_action_completed", {
           module: "practice",
           action: "complete",
           objectType: "retest",
           objectId: that.data.packId,
-          result: correctCount + "/" + that.data.total,
+          result: serverCorrectCount + "/" + that.data.total,
           practiceMode: that.data.mode,
         });
+        var reviewPassed = changeStatus === "verification_passed";
         that.setData({
           syncStatus: "synced",
           syncError: "",
           terminalEventId: terminalEventId,
+          receiptSyncText: "服务器已复核 · 已更新学习记录",
+          receiptStateText: that.data.mode === "forward"
+            ? "已练过 · 待验证"
+            : (reviewPassed ? "复测通过 · 已更新" : "还需巩固 · 已更新"),
+          receiptNextText: that.data.mode === "forward"
+            ? "本次课后轻练不等于已经掌握；复习页会按学习记录安排后续复测。"
+            : (reviewPassed ? "这次换皮复测通过，后续仍按复习节奏安排。" : "本次薄弱点已记录，复习页会继续安排。"),
+          items: scoredItems,
+          correctCount: serverCorrectCount,
+          wrongItems: wrong,
+          ruleGroupCount: Object.keys(groups).length,
+          textbookCount: textbookCount,
           done: true,
           showReceipt: true,
         });
@@ -306,33 +413,55 @@ Page({
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var raw = Array.isArray(body.items) ? body.items : [];
+        var practiceSource = String(body.practice_source || "signed_variant");
         var pool = body.pool && body.pool.core_total ? body.pool : null;
         var items = raw.map(function (item, idx) {
           return {
             key: String(item.variant_id || "v_" + idx),
             variant_id: item.variant_id,
             rule_group: item.rule_group,
+            answer_type: item.answer_type || "boolean",
             surface: item.surface,
-            expected_ok: Boolean(item.expected_ok),
+            stem: item.stem || item.surface,
+            options: Array.isArray(item.options) ? item.options : [],
+            expected_ok: item.answer_type === "single_choice" ? null : Boolean(item.expected_ok),
             correct_statement: item.correct_statement,
             anchor: item.anchor,
             textbook: item.textbook || null, // 教材原文并排卡(join 命中才有, 前端零造词)
             answered: false,
             correct: null,
             chosenOk: null,
+            selectedOptionId: "",
+            feedback: null,
           };
         });
+        var bridgedItems = null;
+        if (that.data.bridgeMode) {
+          if (practiceSource !== "compiled_html" || that.data.bridgeAnswerIndexes.length !== items.length) {
+            throw new Error("compiled_practice_bridge_mismatch");
+          }
+          bridgedItems = items.map(function (item, index) {
+            var option = (item.options || [])[that.data.bridgeAnswerIndexes[index]];
+            if (!option || !option.option_id) throw new Error("compiled_practice_bridge_option_invalid");
+            return Object.assign({}, item, {
+              answered: true,
+              selectedOptionId: String(option.option_id),
+            });
+          });
+          items = bridgedItems;
+        }
         that.setData({
           pool: pool,
+          practiceSource: practiceSource,
           dayIndex: Number(body.day_index || 0),
           selectionId: String(body.selection_id || ""),
           seenCount: that._seenCount(items),
           items: items,
           total: items.length,
-          answeredCount: 0,
+          answeredCount: bridgedItems ? bridgedItems.length : 0,
           correctCount: 0,
           done: false,
-          currentIndex: 0,
+          currentIndex: bridgedItems ? Math.max(0, bridgedItems.length - 1) : 0,
           showReceipt: false,
           wrongItems: [],
           ruleGroupCount: 0,
@@ -341,7 +470,11 @@ Page({
           errorText: "",
           syncStatus: "idle",
           syncError: "",
+          receiptSyncText: "",
+          receiptStateText: "",
+          receiptNextText: "",
         });
+        if (bridgedItems) that._submitCompletion(bridgedItems);
       })
       .catch(function (err) {
         that.setData({

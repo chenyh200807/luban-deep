@@ -38,7 +38,8 @@ router = secure_router(tags=["luban_lesson"])
 
 class RetestAnswerRequest(BaseModel):
     variant_id: str
-    choice_ok: bool
+    choice_ok: bool | None = None
+    selected_option_id: str = ""
 
 
 class RetestCompletionRequest(BaseModel):
@@ -97,10 +98,10 @@ async def retest_items(
     mode: str = "review",
     current_user: AuthContext = Depends(get_current_user),
 ) -> dict:
-    """变体题面抽取（同一 builder / 同一签发池，两种取题模式）：
+    """题面投影（同一 endpoint / 同一 completion authority）：
     - ``mode=review``（默认，复习轮换皮复测）；
-    - ``mode=forward``（学习轮 2 分钟轻练：对刚学完的 pack 广度优先取一组，
-      覆盖不同 rule_group）。仅选序不同，均本地判分、证据非 promoting。
+    - ``mode=forward``（学习轮课后轻练；F16 试点读取编译 HTML 固定五题，
+      其他 pack 仍读签发变体池）。completion 均由服务端重判；forward 非 promoting。
 
     未识别的 mode 归一为 review（thin 归一，不新增第二 builder/第二端点）。
     """
@@ -122,6 +123,9 @@ async def retest_items(
         )
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
+    compiled_forward = mode == "forward" and any(
+        item.get("answer_type") == "single_choice" for item in items
+    )
     return {
         "pack_id": pack_id.upper(),
         "items": items,
@@ -134,8 +138,15 @@ async def retest_items(
             mode=mode,
             variant_ids=[str(item.get("variant_id") or "") for item in items],
         ),
-        # 题池元信息(呈现层"换皮是刻意设计"的证据: 题池规模+考法数)
-        "pool": retest_pool_meta(pack_id),
+        "pool": {
+            "core_total": len(items),
+            "rule_groups_total": len(
+                {str(item.get("rule_group") or "") for item in items}
+            ),
+        }
+        if compiled_forward
+        else retest_pool_meta(pack_id),
+        "practice_source": "compiled_html" if compiled_forward else "signed_variant",
     }
 
 

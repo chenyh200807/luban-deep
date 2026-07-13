@@ -11,7 +11,7 @@
         <text class="rt-nav-title">{{navTitle}}</text>
         <text class="rt-nav-sub">{{title || packId}}</text>
       </view>
-      <text class="rt-nav-count" wx:if="{{total && !showReceipt}}">{{currentIndex + 1}} / {{total}}</text>
+      <text class="rt-nav-count" wx:if="{{total && !showReceipt && !bridgeMode}}">{{currentIndex + 1}} / {{total}}</text>
     </view>
   </view>
 
@@ -32,13 +32,19 @@
           <text>{{emptyText}}</text>
         </view>
 
-        <block wx:if="{{items.length && !showReceipt}}">
+        <view class="rt-loading pk-card" wx:if="{{items.length && bridgeMode && !showReceipt}}">
+          <text>{{syncStatus === 'error' ? syncError : '正在按成品五题作答进行服务端复核并写入学习证据…'}}</text>
+          <view class="rt-retry pk-btn-ghost" wx:if="{{syncStatus === 'error'}}" bindtap="retryCompletion">重试保存</view>
+        </view>
+
+        <block wx:if="{{items.length && !showReceipt && !bridgeMode}}">
           <!-- 开场一句(只在第一题未答时) -->
           <view class="rt-hero" wx:if="{{currentIndex === 0 && !items[0].answered}}">
             <text class="rt-kicker">{{heroKicker}}</text>
             <text class="rt-title">{{heroTitle}}</text>
             <!-- 题池规模(签发真值): 换皮是刻意设计不是就这几题 -->
-            <text class="rt-pool" wx:if="{{pool}}">本站题池 {{pool.core_total}} 道 · {{pool.rule_groups_total}} 种考法 · 每天换着考</text>
+            <text class="rt-pool" wx:if="{{pool && practiceSource === 'compiled_html'}}">本节固定 5 题 · {{pool.rule_groups_total}} 个关键维度 · 答案由服务端判定</text>
+            <text class="rt-pool" wx:elif="{{pool}}">本站题池 {{pool.core_total}} 道 · {{pool.rule_groups_total}} 种考法 · 每天换着考</text>
           </view>
 
           <!-- 墨点进度: 未答=空点 / 当前=墨环 / 对=竹青 / 错=赭 -->
@@ -46,7 +52,7 @@
             <view
               wx:for="{{items}}"
               wx:key="key"
-              class="rt-dot {{index === currentIndex && !item.answered ? 'now' : ''}} {{item.answered ? (item.correct ? 'good' : 'warm') : ''}}"
+              class="rt-dot {{index === currentIndex && !item.answered ? 'now' : ''}} {{item.answered ? (item.correct === true ? 'good' : (item.correct === false ? 'warm' : 'picked')) : ''}}"
             ></view>
           </view>
 
@@ -56,9 +62,25 @@
               <text class="pk-kicker">第 {{currentIndex + 1}} 题</text>
               <text class="rt-card-hint" wx:if="{{!items[currentIndex].answered}}">同一个考点 · 换了身皮</text>
             </view>
-            <text class="rt-surface">{{items[currentIndex].surface}}</text>
+            <text class="rt-surface">{{items[currentIndex].stem || items[currentIndex].surface}}</text>
 
-            <view class="rt-choices" wx:if="{{!items[currentIndex].answered}}">
+            <view class="rt-choices mcq" wx:if="{{items[currentIndex].answer_type === 'single_choice'}}">
+              <view
+                wx:for="{{items[currentIndex].options}}"
+                wx:for-item="option"
+                wx:key="option_id"
+                class="rt-choice mcq-option {{items[currentIndex].selectedOptionId === option.option_id ? 'selected' : ''}}"
+                hover-class="rt-choice-press"
+                data-index="{{currentIndex}}"
+                data-option-id="{{option.option_id}}"
+                bindtap="onOptionTap"
+              >
+                <text class="rt-choice-letter">{{index + 1}}</text>
+                <text>{{option.text}}</text>
+              </view>
+            </view>
+
+            <view class="rt-choices" wx:elif="{{!items[currentIndex].answered}}">
               <view class="rt-choice ok" hover-class="rt-choice-press" data-index="{{currentIndex}}" data-choice="ok" bindtap="onChoiceTap">
                 <text>这样做妥当</text>
               </view>
@@ -68,14 +90,22 @@
             </view>
 
             <!-- 印章反馈(答后滑入) -->
-            <view class="rt-verdict {{items[currentIndex].correct ? 'good' : 'warm'}}" wx:if="{{items[currentIndex].answered}}">
+            <view class="rt-pending" wx:if="{{items[currentIndex].answer_type === 'single_choice' && items[currentIndex].answered}}">
+              <text>已选。五题答完后由服务器统一判分并写入学习证据。</text>
+              <view class="pk-btn-ink rt-next" bindtap="nextQuestion">
+                {{currentIndex + 1 < total ? '下一题' : (syncStatus === 'syncing' ? '正在判分并保存…' : (syncStatus === 'error' ? '重试保存' : '查看结果'))}}
+              </view>
+              <text class="rt-anchor" wx:if="{{syncError}}">{{syncError}}</text>
+            </view>
+
+            <view class="rt-verdict {{items[currentIndex].correct ? 'good' : 'warm'}}" wx:if="{{items[currentIndex].answered && items[currentIndex].answer_type !== 'single_choice'}}">
               <view class="rt-seal-row">
                 <view class="rt-seal {{items[currentIndex].correct ? 'good' : 'warm'}}">
-                  <text>{{items[currentIndex].correct ? '真懂' : '差一步'}}</text>
+                  <text>{{items[currentIndex].correct ? '本题答对' : '差一步'}}</text>
                 </view>
                 <view class="rt-seal-copy">
-                  <text class="rt-verdict-main">{{items[currentIndex].correct ? '对——你是真懂了' : '就差一步——门道在这'}}</text>
-                  <text class="rt-verdict-sub">{{items[currentIndex].correct ? '这个皮没骗到你' : '差的不是能力，是下面这句'}}</text>
+                  <text class="rt-verdict-main">{{items[currentIndex].correct ? '本题答对——看解析巩固' : '就差一步——门道在这'}}</text>
+                  <text class="rt-verdict-sub">{{items[currentIndex].correct ? '这是本轮作答结果' : '差的不是能力，是下面这句'}}</text>
                 </view>
               </view>
 
@@ -120,12 +150,16 @@
           </view>
           <view class="rt-receipt-rows">
             <view class="rt-receipt-row">
+              <text class="rt-receipt-k">记录状态</text>
+              <text class="rt-receipt-v">{{receiptSyncText}}</text>
+            </view>
+            <view class="rt-receipt-row">
+              <text class="rt-receipt-k">学习状态</text>
+              <text class="rt-receipt-v">{{receiptStateText}}</text>
+            </view>
+            <view class="rt-receipt-row">
               <text class="rt-receipt-k">考法覆盖</text>
               <text class="rt-receipt-v">{{ruleGroupCount}} 种考法各来了一题</text>
-            </view>
-            <view class="rt-receipt-row" wx:if="{{pool && seenCount}}">
-              <text class="rt-receipt-k">收集进度</text>
-              <text class="rt-receipt-v">已见过本站 {{seenCount}} / {{pool.core_total}} 道变体</text>
             </view>
             <view class="rt-receipt-row" wx:if="{{textbookCount}}">
               <text class="rt-receipt-k">教材原文</text>
@@ -135,13 +169,17 @@
 
           <!-- 错题再看一眼(签发门道逐字, 不复述你的错) -->
           <view class="rt-review-list" wx:if="{{wrongItems.length}}">
-            <text class="rt-review-label">复习前再看一眼这 {{wrongItems.length}} 句，下次更容易拿稳</text>
+            <text class="rt-review-label">这 {{wrongItems.length}} 道错题已写入学习证据，先把门道看清</text>
             <view class="rt-review-item" wx:for="{{wrongItems}}" wx:key="key">
               <view class="rt-review-dot"></view>
-              <text class="rt-review-text">{{item.correct_statement}}</text>
+              <view class="rt-review-copy">
+                <text class="rt-review-text">{{item.correct_statement}}</text>
+                <text class="rt-review-detail" wx:if="{{item.feedback && item.feedback.loss_reason}}">为什么会丢分：{{item.feedback.loss_reason}}</text>
+                <text class="rt-review-fix" wx:if="{{item.feedback && item.feedback.fix}}">下次这样答：{{item.feedback.fix}}</text>
+              </view>
             </view>
           </view>
-          <text class="rt-receipt-clean" wx:if="{{!wrongItems.length && total}}">一题没漏——这个考点怎么换皮，你都认得。</text>
+          <text class="rt-receipt-clean" wx:if="{{!wrongItems.length && total}}">本轮五题全对，已经记录；是否稳定，等下一次换皮验证。</text>
 
           <!-- 三角回路: 复测→考点卡(错了去背给分词;全对去巩固) 纯导航零第二权威 -->
           <view class="rt-cc-link" catchtap="goConceptCards">
@@ -153,7 +191,7 @@
             <view class="rt-stamp">
               <text>{{mode === 'forward' ? '轻练已记录' : '回炉完成'}}</text>
             </view>
-            <text class="rt-stamp-note">{{doneDesc}}</text>
+            <text class="rt-stamp-note">{{receiptNextText || doneDesc}}</text>
           </view>
 
           <view class="pk-btn-ink rt-next" bindtap="continueAfterReceipt">{{mode === 'forward' ? '返回提分路线' : '回到复习'}}</view>

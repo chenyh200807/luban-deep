@@ -11,6 +11,10 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable
 
+from deeptutor.services.learner_state.evidence_lifecycle import (
+    is_canonical_luban_retest_terminal,
+)
+
 _TZ = timezone(timedelta(hours=8))
 
 
@@ -168,12 +172,20 @@ def _latest_grading_probe(events: list[Any], *, require_success: bool) -> Any | 
         payload = _safe_dict(getattr(event, "payload_json", {}))
         if str(payload.get("prescription_phase") or "").strip() != "verification_probe":
             continue
-        if str(payload.get("retest_completion_id") or "").strip() and payload.get("completion_terminal") is not True:
+        source_feature = str(getattr(event, "source_feature", "") or "").strip()
+        payload_source = str(payload.get("evidence_source") or "").strip()
+        is_canonical_retest = is_canonical_luban_retest_terminal(event)
+        carries_retest_identity = bool(
+            str(payload.get("retest_completion_id") or "").strip()
+            or source_feature == "assessment_testset"
+            or payload_source == "assessment_testset"
+        )
+        if carries_retest_identity and not is_canonical_retest:
             continue
-        source = str(
-            payload.get("evidence_source") or getattr(event, "source_feature", "") or ""
-        ).strip()
-        if source == "conversation_synthesis":
+        if not is_canonical_retest and (
+            source_feature != "construction_grading"
+            or payload_source not in {"", "construction_grading"}
+        ):
             continue
         if _is_preview_or_simulated(payload):
             continue

@@ -125,8 +125,9 @@
           <div style="position:absolute;left:20px;right:20px;top:284px;height:14px;background:#3a3f42;"></div>
           <div style="position:absolute;left:130px;bottom:{{ b3_bb }}px;width:140px;height:{{ b3_bh }}px;background:#3a3f42;border-radius:76px 76px 0 0;"></div>
         </div>
-        <div style="position:absolute;left:165px;top:{{ b3_cy }}px;width:70px;height:3.5px;background:#cf4436;border-radius:2px;transform:rotate(40deg) scaleX({{ b3_cut }});transform-origin:center;"></div>
-        <div style="position:absolute;left:165px;top:{{ b3_cy }}px;width:70px;height:3.5px;background:#cf4436;border-radius:2px;transform:rotate(-40deg) scaleX({{ b3_cut }});transform-origin:center;"></div>
+        <div style="position:absolute;left:181px;top:{{ b3_cy }}px;width:42px;height:3px;background:#cf4436;border-radius:2px;box-shadow:0 0 4px rgba(207,68,54,.4);transform:rotate(38deg) scaleX({{ b3_cut }});transform-origin:center;"></div>
+        <div style="position:absolute;left:181px;top:{{ b3_cy }}px;width:42px;height:3px;background:#cf4436;border-radius:2px;box-shadow:0 0 4px rgba(207,68,54,.4);transform:rotate(-38deg) scaleX({{ b3_cut }});transform-origin:center;"></div>
+        <div style="position:absolute;left:238px;top:{{ b3_cy }}px;font-size:9px;font-weight:800;color:#cf4436;white-space:nowrap;opacity:{{ b3_cut }};transform:translateY(-6px);">↖ 斜十字割口</div>
         <div style="position:absolute;left:186px;top:216px;width:9px;height:9px;border-radius:50%;background:rgba(122,130,136,.8);opacity:{{ b3_gasO }};transform:translateY({{ b3_gasY }}px);"></div>
         <div style="position:absolute;left:205px;top:224px;width:7px;height:7px;border-radius:50%;background:rgba(122,130,136,.65);opacity:{{ b3_gasO }};transform:translateY({{ b3_gasY2 }}px);"></div>
         <div style="position:absolute;left:222px;top:218px;width:8px;height:8px;border-radius:50%;background:rgba(122,130,136,.7);opacity:{{ b3_gasO }};transform:translateY({{ b3_gasY }}px);"></div>
@@ -336,12 +337,12 @@
 class Component extends DCLogic {
   state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, muted:false };
   audioBase="audio/";
-  audioVersion="20260702-f16-tts2";
-  DUR = 255.116;
+  audioVersion="20260713172938";
+  DUR = 253.892;
   examTitle="屋面防水起鼓割补"; examCode="F16"; examCat="案例·防水";
-  posterSub="病根 · 100mm 分档 · 割补八环 · 究因防复发"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 15 秒";
+  posterSub="病根 · 100mm 分档 · 割补八环 · 究因防复发"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 46 秒";
   KNOWLEDGE="屋面卷材防水起鼓割补(真题{2017,案例二}GOLD)。病根:基层含水受热成水汽、无排气孔可跑,顶起卷材。治理先按鼓泡直径100mm分档:直径<100mm用抽气灌胶法;≥100mm走割补法。割补完整工序(自前向后不可颠倒不可漏步):用刀斜十字形割开鼓泡→放出鼓内气体→擦干水分→清除旧胶结料→喷灯烘烤旧卷材槎口分层剥开除旧胶→重新粘贴新卷材(新贴方形卷材)→周边压实刮平→重做保护层。究复发根因:割补后须保证基层平整干燥、排气孔通畅,否则原地二次起鼓。屋面施工过程检查项:基层平整干燥、排气孔、铺贴方向、搭接长度、泛水高度、保护层、材料相容性、防潮防火等。姐妹病害区分:流淌=高温软化下淌用钉钉子法/切割法/局部切除重铺;起鼓=水汽鼓胀用分档+割补,药方不能互换。常见失分:不分档一律割开或一律抽气(E10/M08)、割开直接重贴漏放气擦干清旧胶(E02)、只写割开重贴笼统跳步(E04)、漏重做保护层(E02)、不究因(E08)、拿钉钉子法治起鼓(M03)。";
-  beats=[["b0",0.0,19.916,"破误区"],["b1",19.916,38.344,"看病根"],["b2",38.344,55.932,"分档"],["b3",55.932,78.968,"割补前半"],["b4",78.968,95.308,"割补后半"],["b5",95.308,119.016,"检验清单"],["b6",119.016,141.188,"究因口诀"],["q0",141.188,165.416,"问答"],["q1",165.416,196.772,"问答"],["q2",196.772,225.464,"问答"],["q3",225.464,255.116,"问答"]];
+    beats=[["b0",0.0,19.508,"破误区"],["b1",19.508,37.936,"看病根"],["b2",37.936,55.14,"分档"],["b3",55.14,78.176,"割补前半"],["b4",78.176,94.516,"割补后半"],["b5",94.516,118.224,"检验清单"],["b6",118.224,138.884,"究因口诀"],["q0",138.884,163.736,"问答"],["q1",163.736,194.492,"问答"],["q2",194.492,223.184,"问答"],["q3",223.184,253.892,"问答"]];
   keycards=[
     "起鼓 ≠ 都割开重贴，先破这个想当然",
     "病根 = 基层水汽 + 无排气孔",
@@ -366,7 +367,6 @@ class Component extends DCLogic {
     { figLabel:"流淌≠起鼓 · 药方不能互换", fig:"twin", q:"我看书上还有个「流淌」，用钉钉子法。那起鼓我也钉几排钉子中不中？", a:"中不了。流淌是高温把胶结料烤软了、卷材往下出溜，钉钉子是把它钉住不让滑；起鼓是底下水汽往上顶，你钉钉子它照样鼓，还多扎一排眼。流淌用钉钉子法、切割法；起鼓按 100 分档、走割补。姐妹病害、两副药方，考试最爱换着坑你。" },
     { figLabel:"割补八环 · 一环不落", fig:"chain", q:"整明白了！那考试让写割补工序，我咋写才不丢分啊？", a:"按箭头链一环环写全：割开鼓泡、放出气体、擦干水分、清除旧胶结料、喷灯烘烤槎口分层剥开、重贴新卷材（方形）、周边压实刮平、重做保护层。最容易漏的是放气、擦干和末了的保护层；再补一句基层平整干燥、排气孔通畅防复发，采分点就齐了。" }
   ];
-  qaCue=[{answerStart:7.203},{answerStart:7.067},{answerStart:6.834},{answerStart:6.008}];
   askPresets=["100mm 分档怎么答不丢分？","割补工序哪几步最容易漏？","流淌和起鼓咋区分？"];
 
   componentDidMount(){
@@ -382,8 +382,8 @@ class Component extends DCLogic {
   speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
   pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
   webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
-  stopSpeak(){ this._audioStarted=false; try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
-  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true; this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false; this.webSpeak(text); } }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
   setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
   toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
   loop(ts){ if(this._dead)return;
@@ -474,7 +474,7 @@ class Component extends DCLogic {
       v.b2_go=W(.2,.32); v.b2_gx=this.lp(88,280,W(.3,.56));
       v.b2_m1=W(.36,.48); v.b2_m2=W(.52,.64); v.b2_syr=W(.6,.74); v.b2_r1=W(.62,.76); v.b2_r2=W(.78,.94); }
     if(A(3)){ v.b3_secO=W(0,.12);
-      const cut=W(.1,.22); const def=W(.24,.44); v.b3_cut=cut*(1-W(.46,.56)); v.b3_cy=this.lp(212,270,def);
+      const cut=W(.1,.22); const def=W(.24,.44); v.b3_cut=cut*(1-W(.46,.56)); v.b3_cy=this.lp(242,286,def);
       const gas=W(.22,.4); v.b3_gasO=gas>0?gas*(1-W(.4,.52)):0; v.b3_gasY=this.lp(0,-56,gas); v.b3_gasY2=this.lp(0,-44,gas);
       v.b3_bh=this.lp(52,10,def); v.b3_bb=164;
       v.b3_dropO=(1-W(.5,.64))*W(.4,.5); v.b3_crumbO=W(.56,.66)*(1-W(.7,.8)); v.b3_crumbX=this.lp(0,90,W(.62,.8));
@@ -500,7 +500,7 @@ class Component extends DCLogic {
 
     const isQA=ai>=NB;
     let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
-    if(isQA){ const it=this.qa[ai-NB]; if(it){ const qaElapsed=t-cur[1]; const cue=this.qaCue[ai-NB]||{answerStart:(cur[2]-cur[1])*.28}; qaLayerO=1; qa_so=this.eo(this.cl((qaElapsed-.15)/.6,0,1)); qa_sx=this.lp(-40,0,qa_so); qa_to=this.eo(this.cl((qaElapsed-(cue.answerStart-.18))/.75,0,1)); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
       qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
     const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
     const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));

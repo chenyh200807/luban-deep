@@ -9,6 +9,34 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-14 · 写进 LearnerState 不等于用户能感知：terminal 消费者必须共用同一裁决
+
+**①现象**：F16 五题完成接口返回 terminal 和正式分数，但学习路线仍可能显示未学、复习页没有次日任务、今日进度从 0 变 6；用户还会先看 HTML 本地成绩，再点一次“保存”看原生正式成绩。代码看起来每一段都存在，产品上却感知不到闭环。
+
+**②发现路径（含走错的岔路）**：专家组先从真实 `RetestWritebackService` 输出反向追消费者，而不是继续看手写 fixture。直接把 compiled terminal 喂给 `project_pack_lifecycle`，得到 `unlearned + last_completion_at=""`；再聚合 5 item + terminal 得到 6。旧绿测手造的是 signed authority，恰好绕过真实 F16。最诱人的捷径是给 item 的 `payload.pack_id` 加 fallback，但它会让 partial append 在没有 terminal 时也点亮，重新造出第二完成权威，因此被否决。第二轮 hostile review 又发现 dormant replay 会信任任意 `completion_terminal=true`，独立网页还用“稳了 / 满分手”抢先下掌握结论；第三轮沿所有 terminal reader 追踪，继续发现 prescription outcome 旁路可把伪 terminal 投影成“验证通过”，旧 boolean 题也会在 terminal 前显示“真懂”。这些反例说明不能只修 F16 happy path。
+
+**③分析**：shared failure shape 是 authority drift + producer/consumer 粒度不一致。writer 说 compiled terminal 已提交，lifecycle 只认 signed terminal；进度聚合把“提交边界”当成“第六题”；HTML 又把客户端结果当最终结果。真正的一等事实不是某条 item，也不是某个页面状态，而是“这次 completion 是否被 canonical terminal 封口”。所有下游必须消费同一个严格裁决。
+
+**④修法与理由**：建立 mode-authority-confidence-level-promotion 严格矩阵，并让 completion ids、生命周期时钟、item promotion、existing/replay terminal 校验及 prescription outcome reader 共用它；reader 再以 verification source allowlist fail-close 删除字段攻击：只放行合法 construction grading，assessment testset 必须是 canonical terminal，foreign/unknown 一律不验证。item 通过 terminal completion map 归包，terminal 自身从题目循环与进度计数中移除。UI 做减法：第五题自动提交，HTML 与旧 boolean 题都只描述本轮作答、不宣判掌握；原生 terminal receipt 是小程序唯一正式结果。路线/复习 onShow 只重新读取既有 projection，不新增 done cache、状态表或前端调度器。compiled forward 仍为 L0，不进入 mastery authority。
+
+**⑤验证与教训**：真实 compiled terminal 测试先 3 RED 后转绿，hostile review 补出的 forged replay、旁路 prescription reader（伪字段、删字段、foreign source）与预览越权文案都有反例回归；相关 Python 321 PASS，4 个 Node 行为合同、3 个页面脚本 syntax check、publisher determinism、contract guard、Ruff 与 diff check 全绿。DevTools 真实页面确认本 worktree 路线可渲染、F16 receipt route 在 test2 后端 404 时诚实失败且不出收据。教训：①writer 有字段不等于 consumer 认字段；②测试必须用生产 producer 产物，手造相似 payload 会制造假绿；③terminal 是 commit boundary，不是一次作答；④“让用户感知”要同时检查唯一结果、持续投影和刷新时机；⑤replay、旁路 reader 和预览同样受 authority 边界约束；⑥只按字段存在做校验可被删除字段绕过，业务类型还需 fail-close source allowlist；⑦未部署的本地闭环必须与线上 true-entry 分层汇报。
+
+---
+
+## 2026-07-13 · 先确认你接的是哪一版，再谈如何利用视频尾练习
+
+**①现象**：第一次试点误把旧 worktree 的 F16 成品当最终版，又手改 public 生成物并让服务端反向读取它。表面上链路和测试都能跑，实际上用户看到的 teach/practice、选项反馈与 6 段音频都落后一版；若继续完成 writeback，会把“答了旧题”记成当前 F16 学习证据。
+
+**②发现路径（含走错的岔路）**：用户直接指出给出的 F16 不是他认定的版本；专家组随后对 root finished、pilot finished、public、publisher 做逐文件 hash，确认 teach/practice SHA 不同，6 题 identity 0/6 重合，且整包音频与 audit 也发生变化。另一个盲区是 pack Markdown SHA 没变，如果 URL 仍只靠它缓存，即使重新发布，用户也可能继续看到旧卡。
+
+**③分析**：一等事实仍分两类：内容事实归当前 finished HTML，学习事实归 LearnerState/RetestWritebackService。public 只是部署消费者，绝不能反过来成为答案 authority；“六道最终题”和“课后呈现五题”也不是同一事实，前者归内容源，后者归 selection policy。把两者拆开，才能既尊重最终成品又满足五题体验。
+
+**④修法与理由**：只修 F16。把用户指定 bundle 完整同步进试点；publisher 单向生成 lesson/practice、复制全部音频，并从 raw finished HTML 生成后端非公开 answer projection。HTML 继续承担正确的成品作答体验，固定呈现 Q1/Q2/Q3/Q4/Q6 且保留选项随机化；练完后桥接稳定 option identity，原生页只显示服务端重判与 terminal 收据，不让学生重复答第二套。URL 用 bundle SHA 破缓存，source practice SHA 变化则 selection 编译 fail-close。
+
+**⑤验证与教训**：Python 95 PASS，publisher 重跑字节稳定，public 六题块与 finished 完全一致，11/11 音频与 manifest 同 hash；Node 覆盖 bridge、服务端 authority 与 first-run 零回归。真实浏览器走完五题并看到正确结果页；微信 DevTools 真实 package 页完成 lesson→practice 切换，但无登录态/后端 terminal，因此仍只叫 local pilot。可迁移教训：①同名目录不是 authority，必须核 commit/hash/整包；②只同步 HTML 会制造音画漂移；③生成物可被运行时消费，但不能夺取 authoring authority；④缓存键必须跟真正变化的成品 bundle 走；⑤数量策略只选集合，不复制或改写答案。
+
+---
+
 ## 2026-07-12 · 判定器优化闭环:同一 flag 两次相反决策都对(数据驱动非横跳)
 
 **①现象**:判定器输出 token 三批 live 递进——flag 批(思考ON+verbose)p50=197 → nothink 批(思考OFF+verbose)105 → stack 批(思考OFF+slim)**59**,总降 70%,SEV=0/质量零回归。

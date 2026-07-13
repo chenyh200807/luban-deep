@@ -1364,10 +1364,11 @@ def test_unified_report_pack_review_and_lifecycle_share_terminal_history(
             "claim_promotion_allowed": False,
             "prescription_result": {"status": "not_verified", "score_ratio": 1.0},
             "quality": {
-                "authority": "signed_variant_server_rescore",
+                "authority": "compiled_html_server_rescore",
                 "writeback_eligible": True,
                 "measurement_confidence": "medium",
                 "evidence_level": "L0_observed",
+                "progress_countable": False,
             },
         },
     )
@@ -1383,6 +1384,7 @@ def test_unified_report_pack_review_and_lifecycle_share_terminal_history(
     assert model["pack_review"]["authority"] == "revalidation_queue"
     assert model["overview"]["due_today_count"] == 1
     assert model["overview"]["due_today_state"] == "known"
+    assert model["overview"]["today_done"] == 0
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -2152,6 +2154,66 @@ def test_verification_probe_updates_prescription_outcome() -> None:
     assert loop["status"] == "verified"
     assert loop["evidence_refs"] == ["evt_assigned", "evt_verified"]
     assert loop["next_required_action"] == "maintain"
+
+
+def test_forged_retest_terminal_does_not_improve_learning_report() -> None:
+    forged = _prescription_event(
+        "evt_forged_probe",
+        training_intent_id="intent_forged",
+        phase="verification_probe",
+        status="verified",
+        score_ratio=1.0,
+        evidence_source="assessment_testset",
+    )
+    forged.source_id = "forged-report:terminal"
+    forged.payload_json.update(
+        {
+            "retest_completion_id": "forged-report",
+            "completion_terminal": True,
+            "assessment_type": "luban_review_completion",
+            "practice_mode": "review",
+            "pack_id": "F16",
+            "target_pack_id": "F16",
+            "claim_promotion_allowed": True,
+            "quality": {
+                "authority": "client_claimed_complete",
+                "writeback_eligible": True,
+                "measurement_confidence": "high",
+                "evidence_level": "L2_real_retest",
+            },
+        }
+    )
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([forged]),
+        schema_version=2,
+    )
+
+    loop = model["prescription_outcomes"][0]
+    assert loop["status"] == "not_verified"
+    assert loop["next_required_action"] == "complete_verification_probe"
+
+
+def test_assessment_probe_cannot_bypass_terminal_by_omitting_completion_id() -> None:
+    forged = _prescription_event(
+        "evt_missing_completion",
+        training_intent_id="intent_missing_completion",
+        phase="verification_probe",
+        status="verified",
+        score_ratio=1.0,
+        evidence_source="assessment_testset",
+    )
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([forged]),
+        schema_version=2,
+    )
+
+    loop = model["prescription_outcomes"][0]
+    assert loop["status"] == "not_verified"
+    assert loop["next_required_action"] == "complete_verification_probe"
 
 
 def test_failed_verification_probe_requires_another_probe() -> None:

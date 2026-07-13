@@ -52,11 +52,15 @@ def promotion_allowed(payload: dict[str, Any]) -> bool:
 
 
 def committed_retest_completion_ids(events: Iterable[Any]) -> set[str]:
+    """Return only completion ids sealed by the canonical retest terminal.
+
+    Item promotion and pack cadence must share the same commit authority.  A
+    copied ``completion_terminal=true`` boolean is not a commit certificate.
+    """
     return {
         _clean(_safe_dict(getattr(event, "payload_json", {})).get("retest_completion_id"))
         for event in events
-        if _safe_dict(getattr(event, "payload_json", {})).get("completion_terminal") is True
-        and _clean(_safe_dict(getattr(event, "payload_json", {})).get("retest_completion_id"))
+        if is_canonical_luban_retest_terminal(event)
     }
 
 
@@ -68,12 +72,13 @@ def is_retest_completion_terminal(event: Any) -> bool:
     )
 
 
-def is_signed_luban_retest_terminal(event: Any) -> bool:
-    """Recognize the canonical terminal emitted by Luban retest writeback.
+def is_canonical_luban_retest_terminal(event: Any) -> bool:
+    """Recognize a canonical terminal emitted by Luban retest writeback.
 
     The generic terminal marker is insufficient for pack cadence: a foreign
-    learning-evidence row must not move a pack clock by copying a boolean and
-    an authority label.
+    learning-evidence row must not move a pack clock by copying a boolean.
+    Compiled HTML is accepted only for forward L0 practice; review remains
+    signed-variant L2 evidence.
     """
     payload = _safe_dict(getattr(event, "payload_json", {}))
     quality = _safe_dict(payload.get("quality"))
@@ -86,6 +91,10 @@ def is_signed_luban_retest_terminal(event: Any) -> bool:
     expected_statuses = {"not_verified"} if mode == "forward" else {"verified", "not_verified"}
     expected_confidence = "medium" if mode == "forward" else "high"
     expected_evidence_level = "L0_observed" if mode == "forward" else "L2_real_retest"
+    allowed_authorities = {
+        "forward": {"signed_variant_server_rescore", "compiled_html_server_rescore"},
+        "review": {"signed_variant_server_rescore"},
+    }
     return bool(
         _clean(getattr(event, "source_feature", "")) == "assessment_testset"
         and _clean(getattr(event, "memory_kind", "")) == "learning_evidence"
@@ -98,7 +107,7 @@ def is_signed_luban_retest_terminal(event: Any) -> bool:
         and _clean(payload.get("assessment_type")) == expected_assessment
         and pack_id
         and pack_id == target_pack_id
-        and _clean(quality.get("authority")) == "signed_variant_server_rescore"
+        and _clean(quality.get("authority")) in allowed_authorities.get(mode, set())
         and quality.get("writeback_eligible") is True
         and _clean(quality.get("measurement_confidence")).lower() == expected_confidence
         and _clean(quality.get("evidence_level")) == expected_evidence_level
@@ -157,7 +166,7 @@ __all__ = [
     "event_promotion_allowed",
     "is_learning_evidence_event",
     "is_retest_completion_terminal",
-    "is_signed_luban_retest_terminal",
+    "is_canonical_luban_retest_terminal",
     "is_real_retest",
     "promotion_allowed",
 ]

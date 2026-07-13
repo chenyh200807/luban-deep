@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
+import json
 from pathlib import Path
+import subprocess
 import sys
 
 import pytest
@@ -145,7 +148,7 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
         + '\n<audio data-luban-prewarm preload="auto" src="audio/b0.mp3?v=test" '
         'aria-hidden="true" style="display:none"></audio>',
     )
-    monkeypatch.setattr(_mod, "transform_practice", lambda text: text)
+    monkeypatch.setattr(_mod, "transform_practice", lambda text, _station: text)
     station = _mod.Station(
         pack_dir="PACK",
         teach={"lesson.html": "teach.html"},
@@ -163,3 +166,70 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
 
 def test_derived_html_strips_trailing_whitespace_without_losing_final_newline() -> None:
     assert _mod._strip_trailing_whitespace("first  \nsecond\t\n") == "first\nsecond\n"
+
+from deeptutor.services.luban_lesson.practice_html import _array_after
+
+ROOT = Path(__file__).resolve().parents[2]
+SOURCE = (
+    ROOT
+    / "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16"
+)
+PUBLIC = ROOT / "web/public/luban-preview/f16"
+AUTHORITY = (
+    ROOT
+    / "deeptutor/services/luban_lesson/compiled/f16.practice.authority.json"
+)
+
+
+def _sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def test_f16_publish_is_deterministic_and_preserves_finished_content() -> None:
+    tracked = [
+        PUBLIC / "lesson.html",
+        PUBLIC / "practice.html",
+        AUTHORITY,
+    ]
+    before = {str(path.relative_to(ROOT)): _sha(path) for path in tracked}
+
+    subprocess.run(
+        [sys.executable, str(ROOT / "scripts/publish_luban_preview_cards.py"), "f16"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert {str(path.relative_to(ROOT)): _sha(path) for path in tracked} == before
+    source_html = (SOURCE / "P40_F16.practice.dc.html").read_text(encoding="utf-8")
+    public_html = (PUBLIC / "practice.html").read_text(encoding="utf-8")
+    assert _array_after(public_html, r"\bQ\s*=") == _array_after(source_html, r"\bQ\s*=")
+
+    authority = json.loads(AUTHORITY.read_text(encoding="utf-8"))
+    assert authority["source_html_sha256"] == _sha(SOURCE / "P40_F16.practice.dc.html")
+    assert authority["published_lesson_sha256"] == _sha(PUBLIC / "lesson.html")
+    assert authority["published_practice_sha256"] == _sha(PUBLIC / "practice.html")
+    assert authority["presentation_order"] == [0, 1, 2, 3, 5]
+    assert "正在确认这 5 题" in public_html
+    assert "inQuiz:!this.state.finished&&!this.state.autoSaving" in public_html
+    assert "正在提交本次作答，马上生成正式结果" in public_html
+    assert "服务端正在重新判定并更新你的学习记录" not in public_html
+    assert "setTimeout(()=>this.saveEvidence(),0)" in public_html
+    assert "presentation=receipt&answer_indexes=" in public_html
+    assert "网页预览 · 不写入学习记录" in public_html
+    assert "满分手" not in public_html
+    assert '"稳了"' not in public_html
+    assert "采分点都拿到了" not in public_html
+    assert "是否形成学习记录以小程序正式收据为准" in public_html
+    assert "保存学习证据 · 查看正式收据" not in public_html
+
+
+def test_f16_publish_copies_all_audio_and_manifest_byte_for_byte() -> None:
+    source_audio = SOURCE / "audio"
+    public_audio = PUBLIC / "audio"
+    source_mp3 = sorted(source_audio.glob("*.mp3"))
+
+    assert len(source_mp3) == 11
+    assert all(_sha(path) == _sha(public_audio / path.name) for path in source_mp3)
+    assert _sha(source_audio / "manifest.json") == _sha(public_audio / "manifest.json")

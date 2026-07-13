@@ -20,7 +20,16 @@ def _ev(created, pack, sig="station_completed"):
     )
 
 
-def _terminal(created, pack, *, completion_id, mode="forward", score_ratio=1.0, status=None):
+def _terminal(
+    created,
+    pack,
+    *,
+    completion_id,
+    mode="forward",
+    score_ratio=1.0,
+    status=None,
+    authority="signed_variant_server_rescore",
+):
     result_status = status or ("verified" if mode == "review" and score_ratio >= 1.0 else "not_verified")
     return SimpleNamespace(
         event_id=f"terminal_{completion_id}",
@@ -41,7 +50,7 @@ def _terminal(created, pack, *, completion_id, mode="forward", score_ratio=1.0, 
             "claim_promotion_allowed": mode == "review",
             "prescription_result": {"status": result_status, "score_ratio": score_ratio},
             "quality": {
-                "authority": "signed_variant_server_rescore",
+                "authority": authority,
                 "writeback_eligible": True,
                 "measurement_confidence": "high" if mode == "review" else "medium",
                 "evidence_level": "L2_real_retest" if mode == "review" else "L0_observed",
@@ -95,6 +104,29 @@ def test_learned_yesterday_due_today_learned_today_not_due():
     assert out["due"][0]["retest_available"] is True, "F16 有变体池"
     assert out["learned_count"] == 2
     assert out["authority"] == "revalidation_queue"
+
+
+def test_compiled_forward_completion_starts_next_calendar_day_review() -> None:
+    terminal = _terminal(
+        "2026-07-03T22:00:00+08:00",
+        "F16",
+        completion_id="cmp_f16_compiled",
+        authority="compiled_html_server_rescore",
+    )
+
+    before = build_review_due_projection(
+        user_id="u1",
+        events=[terminal],
+        now_iso="2026-07-03T23:59:00+08:00",
+    )
+    due = build_review_due_projection(
+        user_id="u1",
+        events=[terminal],
+        now_iso="2026-07-04T00:01:00+08:00",
+    )
+
+    assert before["due"] == []
+    assert [item["pack_id"] for item in due["due"]] == ["F16"]
 
 
 def test_lesson_viewed_counts_as_learned_but_not_due():

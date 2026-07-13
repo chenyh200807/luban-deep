@@ -17,6 +17,7 @@ from deeptutor.services.learner_state.evidence_lifecycle import (
     committed_retest_completion_ids,
     event_promotion_allowed,
     evidence_attempt_id,
+    is_retest_completion_terminal,
 )
 from deeptutor.services.learner_state.home_personalization import (
     is_canonical_home_personalization_projection,
@@ -1470,6 +1471,8 @@ def _is_learning_evidence_payload(event: Any) -> bool:
 
 def _is_progress_countable_event(event: Any) -> bool:
     payload = _safe_dict(getattr(event, "payload_json", {}))
+    if is_retest_completion_terminal(event):
+        return False
     if str(payload.get("evidence_source") or "").strip() == "conversation_synthesis":
         return False
     quality = _safe_dict(payload.get("quality"))

@@ -65,7 +65,7 @@
           <view class="pk-progress"><view class="pk-progress__fill" style="width: {{(vm.litCount ? (vm.litCount / (vm.packUniverse || 40) * 100) : 0)}}%"></view></view>
         </view>
         <view class="lr-status pk-card lr-status-col">
-          <text class="pk-kicker">今日 <text class="lr-status-strong">{{vm.todayProgress.done || 0}}/{{vm.todayProgress.target || '—'}}</text></text>
+          <text class="pk-kicker">今日 <text class="lr-status-strong">{{vm.todayProgress.done || 0}}/{{vm.todayProgress.target || '—'}} 题</text></text>
           <view class="pk-progress"><view class="pk-progress__fill" style="width: {{vm.todayProgress.percent || 0}}%"></view></view>
         </view>
       </view>
