@@ -98,6 +98,8 @@ test('member ops keeps ancillary reads and charts off the overview critical path
   assert.ok(surface.includes("import dynamic from 'next/dynamic'"))
   assert.ok(surface.includes("import('./BiV2OverviewPanel')"))
   assert.equal(surface.includes("import { BiV2OverviewPanel } from './BiV2OverviewPanel'"), false)
+  assert.ok(surface.includes("useState<BiV2Section>(() => readSectionFromUrl())"))
+  assert.equal(surface.includes("useState<BiV2Section>('overview')"), false)
 })
 
 test('member ops exposes member account lifecycle panel', async () => {
