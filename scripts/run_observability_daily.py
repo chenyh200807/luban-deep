@@ -185,22 +185,42 @@ def _same_release(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
     return False
 
 
+def _same_runtime_identity(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
+    required_fields = (
+        "git_sha",
+        "deployment_environment",
+        "ff_snapshot_hash",
+        "deploy_manifest_hash",
+    )
+    for field in required_fields:
+        expected_value = str((expected or {}).get(field) or "").strip()
+        actual_value = str((actual or {}).get(field) or "").strip()
+        if not expected_value or not actual_value or expected_value != actual_value:
+            return False
+    return True
+
+
 def _build_runtime_authority_preflight(
     *,
     expected_release: dict[str, Any],
     om_payload: dict[str, Any] | None,
 ) -> dict[str, Any]:
     runtime_release = _payload_release(om_payload)
-    matched = _same_release(expected_release, runtime_release)
+    release_matched = _same_release(expected_release, runtime_release)
+    runtime_identity_matched = _same_runtime_identity(expected_release, runtime_release)
     metrics_snapshot = (om_payload or {}).get("metrics_snapshot") or {}
     metrics_provenance = dict(metrics_snapshot.get("observability_metrics_provenance") or {})
-    live_identity_verified = (
+    live_metrics_verified = (
         metrics_provenance.get("source") == "live_metrics_endpoint"
         and metrics_provenance.get("fallback_used") is False
     )
-    if not matched:
+    live_identity_verified = live_metrics_verified and runtime_identity_matched
+    if live_metrics_verified and not runtime_identity_matched:
         status = "BLOCKED"
-        reason = "runtime release does not match candidate; downstream evidence assembly stopped"
+        reason = "live runtime identity does not match candidate; downstream evidence assembly stopped"
+    elif not release_matched:
+        status = "BLOCKED"
+        reason = "artifact release does not match candidate; downstream evidence assembly stopped"
     elif live_identity_verified:
         status = "PASS"
         reason = "live runtime release matches candidate"
@@ -209,7 +229,8 @@ def _build_runtime_authority_preflight(
         reason = "release matches candidate but live runtime identity was not verified"
     return {
         "status": status,
-        "matched": matched,
+        "matched": release_matched,
+        "runtime_identity_matched": runtime_identity_matched,
         "live_identity_verified": live_identity_verified,
         "expected_release": dict(expected_release or {}),
         "runtime_release": dict(runtime_release or {}),
@@ -388,18 +409,15 @@ def _ensure_om_payload(
         metrics_provenance.get("source") == "live_metrics_endpoint"
         and metrics_provenance.get("fallback_used") is False
     )
-    if _same_release(release, runtime_release) and live_identity_verified:
+    if _same_runtime_identity(release, runtime_release) and live_identity_verified:
         unified_ws_smoke = _run_unified_ws_smoke_check(
             api_base_url=api_base_url,
             timeout_seconds=unified_ws_smoke_timeout,
         )
     else:
-        release_matches = _same_release(release, runtime_release)
-        summary = (
-            "unified /api/v1/ws smoke skipped: runtime identity was not verified by live metrics"
-            if release_matches
-            else "unified /api/v1/ws smoke skipped: runtime release does not match candidate"
-        )
+        summary = "unified /api/v1/ws smoke skipped: runtime identity does not match candidate"
+        if not live_identity_verified:
+            summary = "unified /api/v1/ws smoke skipped: runtime identity was not verified by live metrics"
         unified_ws_smoke = {
             "name": "unified_ws_smoke",
             "ok": None,
@@ -580,9 +598,8 @@ def _benchmark_covers_default_suites(payload: dict[str, Any]) -> bool:
     return all(suite in requested for suite in DEFAULT_BENCHMARK_SUITES)
 
 
-def _quality_api_base_url(api_base_url: str, om_payload: dict[str, Any] | None) -> str:
-    health_summary = (om_payload or {}).get("health_summary") or {}
-    if health_summary.get("unified_ws_smoke_ok") is False:
+def _quality_api_base_url(api_base_url: str, runtime_authority: dict[str, Any] | None) -> str:
+    if not (runtime_authority or {}).get("live_identity_verified"):
         return ""
     return str(api_base_url or "").strip()
 
@@ -890,7 +907,7 @@ def main() -> None:
     )
     runtime_authority_path = output_dir / "runtime_authority_preflight.json"
     _write_json(runtime_authority_path, runtime_authority)
-    if not runtime_authority["matched"]:
+    if runtime_authority["status"] == "BLOCKED":
         expected_sha = str((runtime_authority.get("expected_release") or {}).get("git_sha") or "unknown")
         runtime_sha = str((runtime_authority.get("runtime_release") or {}).get("git_sha") or "unknown")
         raise SystemExit(
@@ -902,13 +919,13 @@ def main() -> None:
         store=store,
         release=current_release,
         output_dir=output_dir,
-        api_base_url=_quality_api_base_url(args.api_base_url, om_payload),
+        api_base_url=_quality_api_base_url(args.api_base_url, runtime_authority),
     )
     benchmark_payload = _ensure_benchmark_payload(
         store=store,
         release=current_release,
         output_dir=output_dir,
-        api_base_url=_quality_api_base_url(args.api_base_url, om_payload),
+        api_base_url=_quality_api_base_url(args.api_base_url, runtime_authority),
     )
     aae_payload = _ensure_aae_payload(
         store=store,

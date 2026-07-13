@@ -247,6 +247,82 @@ def test_daily_observability_metrics_json_never_authorizes_live_ws_smoke(
     assert preflight["live_identity_verified"] is False
 
 
+def test_daily_observability_live_runtime_requires_strict_identity_match(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    expected_release = {
+        "release_id": "candidate",
+        "git_sha": "head123",
+        "deployment_environment": "local",
+        "ff_snapshot_hash": "ff-new",
+        "deploy_manifest_hash": "manifest-new",
+    }
+    runtime_release = {
+        **expected_release,
+        "ff_snapshot_hash": "ff-old",
+        "deploy_manifest_hash": "manifest-old",
+    }
+    store = ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane")
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_load_metrics_snapshot",
+        lambda **_kwargs: {
+            "release": runtime_release,
+            "readiness": {"ready": True},
+            "observability_metrics_provenance": {
+                "source": "live_metrics_endpoint",
+                "fallback_used": False,
+            },
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_run_unified_ws_smoke_check",
+        lambda **_kwargs: pytest.fail("weak same-SHA match must not authorize a live WS turn"),
+    )
+
+    payload = DAILY_OBSERVABILITY_MODULE._ensure_om_payload(
+        store=store,
+        release=expected_release,
+        metrics_json=None,
+        metrics_token=None,
+        api_base_url="http://127.0.0.1:8001",
+        unified_ws_smoke_timeout=1.0,
+    )
+    preflight = DAILY_OBSERVABILITY_MODULE._build_runtime_authority_preflight(
+        expected_release=expected_release,
+        om_payload=payload,
+    )
+
+    assert payload["smoke_checks"][0]["status"] == "DEFERRED"
+    assert preflight["status"] == "BLOCKED"
+    assert preflight["matched"] is True
+    assert preflight["runtime_identity_matched"] is False
+    assert preflight["live_identity_verified"] is False
+
+
+def test_daily_observability_quality_url_requires_verified_live_runtime() -> None:
+    api_url = "http://127.0.0.1:8001"
+
+    assert DAILY_OBSERVABILITY_MODULE._quality_api_base_url(
+        api_url,
+        {"status": "ARTIFACT_ONLY", "live_identity_verified": False},
+    ) == ""
+    assert DAILY_OBSERVABILITY_MODULE._quality_api_base_url(
+        api_url,
+        {
+            "status": "ARTIFACT_ONLY",
+            "live_identity_verified": False,
+            "metrics_provenance": {"source": "testclient_fallback", "fallback_used": True},
+        },
+    ) == ""
+    assert DAILY_OBSERVABILITY_MODULE._quality_api_base_url(
+        api_url,
+        {"status": "PASS", "live_identity_verified": True},
+    ) == api_url
+
+
 def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monkeypatch, tmp_path) -> None:
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {

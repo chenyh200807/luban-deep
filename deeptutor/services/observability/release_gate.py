@@ -252,7 +252,7 @@ def build_release_gate_report(
     git_dirty_value = str(resolved_release.get("git_dirty") or "").strip().lower()
     release_dirty = git_dirty_value in {"1", "true", "yes", "on"}
     unified_ws_smoke_ok = om_health.get("unified_ws_smoke_ok")
-    ws_main_path_healthy = unified_ws_smoke_ok is not False
+    ws_main_path_healthy = unified_ws_smoke_ok is True
     orphaned_turns = int(om_health.get("orphaned_turns") or 0)
     readiness_rows = (readiness_payload or {}).get("rows") or []
     readiness_rows_by_check = {
@@ -287,7 +287,7 @@ def build_release_gate_report(
     p0_blockers = [
         *([] if om_health.get("ready") is True and release_complete else ["runtime_or_release_lineage_incomplete"]),
         *(["runtime_release_dirty"] if release_dirty else []),
-        *(["ws_main_path_unhealthy"] if ws_main_path_healthy is False else []),
+        *(["ws_main_path_unhealthy"] if not ws_main_path_healthy else []),
         *(["turn_in_flight_without_ws_subscriber"] if orphaned_turns > 0 else []),
         *readiness_blockers,
     ]

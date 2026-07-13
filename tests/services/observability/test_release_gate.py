@@ -285,8 +285,8 @@ def test_release_gate_deferred_ws_smoke_does_not_claim_ws_unhealthy() -> None:
 
     p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
     assert p0["status"] == "FAIL"
-    assert "ws_main_path_unhealthy" not in payload["blockers"]
-    assert "ws 主链路异常" not in p0["summary"]
+    assert "ws_main_path_unhealthy" in payload["blockers"]
+    assert "ws 主链路异常" in p0["summary"]
     assert "playwright_failed" in payload["blockers"]
     assert "wechat_devtools_failed" in payload["blockers"]
 
