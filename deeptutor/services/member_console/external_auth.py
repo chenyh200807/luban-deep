@@ -24,6 +24,12 @@ _CN_MOBILE_RE = re.compile(r"^1[3-9]\d{9}$")
 _EVAL_RUNNER_ACCOUNT_KIND = "eval_runner"
 _EVAL_RUNNER_ACTOR_TYPE = "machine"
 _EVAL_RUNNER_CREATED_BY = "eval_runner"
+_EVAL_RUNNER_IDENTITY_METADATA = {
+    "account_kind": _EVAL_RUNNER_ACCOUNT_KIND,
+    "actor_type": _EVAL_RUNNER_ACTOR_TYPE,
+    "created_by": _EVAL_RUNNER_CREATED_BY,
+    "is_internal_test": True,
+}
 _EVAL_RUNNER_USERNAME_MARKERS = (
     "eval",
     "qa_",
@@ -107,7 +113,9 @@ def _ensure_parent(path: Path) -> None:
 
 
 def _resolve_users_file_for_write() -> Path:
-    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", _default_users_file())
+    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", None)
+    if path is None:
+        path = _default_users_file()
     if path is None:
         path = _PRIMARY_USERS_FILE
     _ensure_parent(path)
@@ -115,7 +123,9 @@ def _resolve_users_file_for_write() -> Path:
 
 
 def _resolve_sessions_file_for_write() -> Path | None:
-    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE", _default_sessions_file())
+    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE", None)
+    if path is None:
+        path = _default_sessions_file()
     if path is None:
         return None
     _ensure_parent(path)
@@ -123,14 +133,18 @@ def _resolve_sessions_file_for_write() -> Path | None:
 
 
 def get_external_auth_users_file() -> Path | None:
-    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", _default_users_file())
+    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", None)
+    if path is None:
+        path = _default_users_file()
     if path is not None and path.exists():
         return path
     return None
 
 
 def get_external_auth_sessions_file() -> Path | None:
-    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE", _default_sessions_file())
+    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE", None)
+    if path is None:
+        path = _default_sessions_file()
     if path is not None and path.exists():
         return path
     return None
@@ -242,12 +256,7 @@ def _eval_runner_identity_from_username(username: str) -> dict[str, Any]:
         return {}
     if not any(marker in normalized for marker in _EVAL_RUNNER_USERNAME_MARKERS):
         return {}
-    metadata = {
-        "account_kind": _EVAL_RUNNER_ACCOUNT_KIND,
-        "actor_type": _EVAL_RUNNER_ACTOR_TYPE,
-        "created_by": _EVAL_RUNNER_CREATED_BY,
-        "is_internal_test": True,
-    }
+    metadata = dict(_EVAL_RUNNER_IDENTITY_METADATA)
     if "claude" in normalized:
         metadata.update({"runner": "claude_code", "agent_tool": "claude_code"})
     elif "codex" in normalized:
@@ -261,7 +270,19 @@ def _identity_metadata_for_user(
 ) -> dict[str, Any]:
     explicit = _normalize_identity_metadata(identity_metadata)
     detected = _eval_runner_identity_from_username(username)
-    return {**explicit, **detected}
+    merged = {**explicit, **detected}
+    is_eval_runner = bool(detected) or any(
+        (
+            merged.get("account_kind") == _EVAL_RUNNER_ACCOUNT_KIND,
+            merged.get("actor_type") == _EVAL_RUNNER_ACTOR_TYPE,
+            merged.get("created_by") == _EVAL_RUNNER_CREATED_BY,
+            merged.get("is_internal_test") is True,
+            merged.get("is_test_account") is True,
+        )
+    )
+    if is_eval_runner:
+        merged.update(_EVAL_RUNNER_IDENTITY_METADATA)
+    return merged
 
 
 def _validate_password(password: str) -> None:
@@ -317,6 +338,19 @@ def get_external_auth_user(username: str) -> dict[str, Any] | None:
     if not isinstance(user, dict):
         return None
     return _merge_user(normalized, user)
+
+
+def get_external_auth_identity_metadata(user_id: str) -> dict[str, Any]:
+    """Return canonical BI identity metadata for an external-auth user id."""
+
+    normalized_user_id = str(user_id or "").strip()
+    if not normalized_user_id:
+        return {}
+    for username, user_data in load_external_auth_users().items():
+        if str(user_data.get("id") or "").strip() != normalized_user_id:
+            continue
+        return _identity_metadata_for_user(username, user_data)
+    return {}
 
 
 def get_external_auth_user_by_phone(phone: str) -> dict[str, Any] | None:

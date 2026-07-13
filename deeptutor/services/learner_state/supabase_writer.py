@@ -11,6 +11,7 @@ import httpx
 from deeptutor.services.learner_state.heartbeat.store import LearnerHeartbeatJobStore
 from deeptutor.services.learning_plan import LearningPlanService
 from deeptutor.services.learner_state.outbox import LearnerStateOutboxItem
+from deeptutor.services.member_console.external_auth import get_external_auth_identity_metadata
 from deeptutor.services.path_service import PathService, get_path_service
 
 
@@ -287,6 +288,25 @@ class LearnerStateSupabaseWriter:
         normalized_user_id = str(user_id or "").strip()
         if not normalized_user_id:
             return
+        existing_metadata = await self._read_user_metadata(client, user_id=normalized_user_id)
+        metadata = {
+            **(existing_metadata or {}),
+            "source": "learner_state_outbox",
+            "mirror_reason": "learner_state_fk",
+            **get_external_auth_identity_metadata(normalized_user_id),
+        }
+        if existing_metadata is not None:
+            if metadata == existing_metadata:
+                return
+            url = f"{self._base_url.rstrip('/')}/rest/v1/users"
+            response = await client.patch(
+                url,
+                headers=self._headers(),
+                params={"id": f"eq.{normalized_user_id}"},
+                json={"metadata": metadata},
+            )
+            response.raise_for_status()
+            return
         now = datetime.now(UTC).isoformat()
         await self._upsert(
             client,
@@ -296,14 +316,33 @@ class LearnerStateSupabaseWriter:
                     "id": normalized_user_id,
                     "identifier": normalized_user_id,
                     "createdAt": now,
-                    "metadata": {
-                        "source": "learner_state_outbox",
-                        "mirror_reason": "learner_state_fk",
-                    },
+                    "metadata": metadata,
                 }
             ],
             on_conflict="id",
         )
+
+    async def _read_user_metadata(
+        self,
+        client: httpx.AsyncClient,
+        *,
+        user_id: str,
+    ) -> dict[str, Any] | None:
+        url = f"{self._base_url.rstrip('/')}/rest/v1/users"
+        response = await client.get(
+            url,
+            headers=self._headers(),
+            params={"select": "metadata", "id": f"eq.{user_id}", "limit": "1"},
+        )
+        response.raise_for_status()
+        try:
+            rows = response.json()
+        except ValueError:
+            return None
+        if not isinstance(rows, list) or not rows:
+            return None
+        metadata = dict(rows[0]).get("metadata")
+        return dict(metadata) if isinstance(metadata, dict) else {}
 
     @staticmethod
     def _needs_user_row(

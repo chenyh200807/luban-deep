@@ -1898,6 +1898,27 @@ def test_external_auth_production_explicit_legacy_env_still_allows_compat_store(
     assert user["username"] == "legacy_user"
 
 
+def test_explicit_external_auth_store_does_not_read_default_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "explicit" / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    def _unexpected_default_path():
+        raise AssertionError("explicit external-auth path must bypass default path discovery")
+
+    monkeypatch.setattr(external_auth_module, "_default_users_file", _unexpected_default_path)
+
+    user = external_auth_module.ensure_external_auth_user(
+        "qa_eval_explicit_store",
+        "StrongPass123",
+    )
+
+    assert user["account_kind"] == "eval_runner"
+    assert external_auth_module.get_external_auth_user("qa_eval_explicit_store") is not None
+
+
 def test_ensure_external_auth_user_resets_seeded_test_password(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -1923,6 +1944,26 @@ def test_ensure_external_auth_user_resets_seeded_test_password(
     assert updated["is_internal_test"] is True
     assert external_auth_module.verify_external_auth_user("qa_tutorbot_mcq", "OldPass123") is None
     assert external_auth_module.verify_external_auth_user("qa_tutorbot_mcq", "NewPass123") is not None
+
+
+def test_external_auth_machine_signal_closes_required_eval_identity_fields(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(tmp_path / "users.json"))
+
+    user = external_auth_module.ensure_external_auth_user(
+        "plain_automation_runner",
+        "StrongPass123",
+        identity_metadata={"actor_type": "machine"},
+    )
+
+    assert external_auth_module.get_external_auth_identity_metadata(str(user["id"])) == {
+        "account_kind": "eval_runner",
+        "actor_type": "machine",
+        "created_by": "eval_runner",
+        "is_internal_test": True,
+    }
 
 
 def test_member_console_serializes_multi_step_writes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -4275,6 +4316,65 @@ def test_persist_phone_identity_does_not_overwrite_concurrent_alias_owner(
 
     assert len(queries) == 1
     assert "WHERE public.user_identity_aliases.user_id = EXCLUDED.user_id" in queries[0]
+
+
+def test_persist_phone_identity_inherits_canonical_eval_metadata_into_alias_and_user(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(tmp_path / "users.json"))
+    external_user = external_auth_module.ensure_external_auth_user(
+        "qa_eval_codex_phone_binding",
+        "StrongPass123",
+    )
+    canonical_uid = str(external_user["id"])
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DB_URL", "postgresql://example.invalid/db")
+    monkeypatch.setattr(service, "_trusted_phone_alias_user_ids", lambda _phone: set())
+    executed: list[tuple[str, tuple[object, ...]]] = []
+
+    class _Cursor:
+        def execute(self, query: str, params: tuple[object, ...]) -> None:
+            executed.append((query, params))
+
+        @staticmethod
+        def fetchone():
+            return (canonical_uid,)
+
+    class _Connection:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        @staticmethod
+        def cursor():
+            return _Cursor()
+
+    monkeypatch.setitem(
+        sys.modules,
+        "psycopg",
+        SimpleNamespace(connect=lambda *_args, **_kwargs: _Connection()),
+    )
+
+    service._persist_phone_identity(
+        phone="13955556666",
+        canonical_uid=canonical_uid,
+    )
+
+    assert len(executed) == 2
+    alias_metadata = json.loads(str(executed[0][1][5]))
+    user_metadata = json.loads(str(executed[1][1][1]))
+    for metadata in (alias_metadata, user_metadata):
+        assert metadata["account_kind"] == "eval_runner"
+        assert metadata["actor_type"] == "machine"
+        assert metadata["created_by"] == "eval_runner"
+        assert metadata["is_internal_test"] is True
+        assert metadata["runner"] == "codex"
+        assert metadata["agent_tool"] == "codex"
+    assert "metadata = COALESCE(metadata, '{}'::jsonb) || %s::jsonb" in executed[1][0]
 
 
 def test_reset_password_with_phone_code_updates_external_auth_password(

@@ -32,7 +32,13 @@ description: "Use this to proactively pressure-test DeepTutor TutorBot on test2 
 
 ## 1. 测试阶段（端到端模拟学员）
 - 真实链路：test2 公网 + 小程序 WebSocket（`/api/v1/ws` 是唯一聊天入口）。
-  harness = `scripts/run_student_turn.py` + eval-bypass header；账号池 `/tmp/cc_pool.json`。
+  harness = `scripts/run_student_turn.py` + eval-bypass header。`/tmp/cc_pool.json` 只允许作为
+  已核验账号的本地缓存，不是身份 authority；缓存里出现手机号或 token 不代表账号已是 eval runner。
+  开跑前必须设置 `DEEPTUTOR_EVAL_RUNNER_AGENT=codex|claude_code` 与唯一
+  `DEEPTUTOR_EVAL_RUN_ID`，并逐账号确认 canonical external-auth 记录含
+  `account_kind=eval_runner`、`actor_type=machine`、`created_by=eval_runner`、
+  `is_internal_test=true`。缺任一字段立即停止，不得拿“qa 名称”“测试手机号”或
+  eval-bypass header 代替；新账号统一通过 `external_auth.ensure_external_auth_user()` 创建/刷新。
   抓答案优先读 DB（`/app/data/user/chat_history.db`），harness WS 捕获可能漏。
   查 DB 时按 `conversation_id` 拉 **所有** `sessions` row；同一 conversation 可能同时有 canonical
   session 与 TutorBot 内部投影 session，后者会把注入给 LLM 的"参考证据/局部工作记忆投影"

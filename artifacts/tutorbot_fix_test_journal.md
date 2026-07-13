@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-13 - Eval 会员污染 BI：canonical 机器身份在 learner-state/手机号镜像 writer 丢失
+
+- 问题：生产 BI 的 2026-07-12 自然日新增显示 21；逐条核对后，这 21 条均来自同日 agent/eval 批量注册，未带机器身份，因而被当作真实会员。另有 19 条同日 eval 账号因四字段完整而被 BI 正确排除。
+- 根因：一等业务事实是“eval 身份一旦建立，经过任何绑定/镜像仍是 machine”。唯一 authority 本应是 external-auth identity metadata，但 `LearnerStateSupabaseWriter._ensure_user_row` 是 dormant competing writer：它用只含 `source/mirror_reason` 的 metadata 整列 upsert，丢掉四字段；同一 upsert 还每次重写 `createdAt=now`，让注册时间 authority 漂移。手机号持久化只把调用方显式 metadata 写 alias，未从 canonical user id 继承 external-auth 身份，也未同步 `public.users.metadata`。
+- 失败尝试及原因：按手机号前缀、相似号码、日期窗口或“零消息”长期过滤只能解释这一批样本；下一批号码会绕过，真实新用户也可能零消息，属于启发式补丁。仅在 BI 再加一层猜测会形成第二身份 authority。
+- 成功修法：external-auth 将任一 machine/eval 信号闭合为必需四字段，并提供按 canonical user id 的只读身份投影；显式 external-auth store 使用惰性 fallback，不再提前探测无权限的 legacy 路径。learner-state 创建镜像时继承该投影，已存在用户只合并 metadata、不改 `createdAt`；手机号 alias 与 `public.users` 同时从该投影合并。历史 21 条通过精确 user-id 清单回填四字段，不删除业务主键、不保留手机号模式黑名单。
+- 验证：learner-state writer + member-console 相关套件 196/196 passed；7 条身份传播/BI 聚焦链路 7/7 passed；contract guard、agent skill validator、diff check 全绿。生产 UTC+8 精确快照确认 21 条待回填污染身份，其中 20 条可回溯 external-auth source，候选 user-id 集合以 SHA-256 固定并存入阿里云允许写入根下的 0600 ops 快照；实际回填只允许消费该集合，不按手机号模式扩选。
+- 教训：手机号验证只证明联系方式可达，不证明 actor 是真人；机器/真人必须是身份生命周期中的不可丢失属性。任何下游 mirror/upsert 都只能继承该事实，不能通过缺省 metadata 把 machine 洗白为 human。
+
 ## 2026-07-12 · 语义完整性战役调和上线说明
 
 原始施工在 1e9f6a40,origin/main 并行推进 54 commit(Battle2 #447-#456+五模块 #454)。WP0(泄露测试翻转)已被 main 9533adb1/PR#452 独立landed→丢弃;WP1-WP4 病在 main 仍全活,重放调和为 `5fc1c276/3e9aba6d/3c2da4dc/84d1efc5`。CI-shard 登记(tests.yml)因缺 workflow scope 留给 owner(泄露测试本体已在 main,登记仅防护)。全量回归 1301 passed。方法论日志见同日 campaign-log。
