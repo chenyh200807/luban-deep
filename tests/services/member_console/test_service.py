@@ -1898,6 +1898,27 @@ def test_external_auth_production_explicit_legacy_env_still_allows_compat_store(
     assert user["username"] == "legacy_user"
 
 
+def test_explicit_external_auth_store_does_not_read_default_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "explicit" / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    def _unexpected_default_path():
+        raise AssertionError("explicit external-auth path must bypass default path discovery")
+
+    monkeypatch.setattr(external_auth_module, "_default_users_file", _unexpected_default_path)
+
+    user = external_auth_module.ensure_external_auth_user(
+        "qa_eval_explicit_store",
+        "StrongPass123",
+    )
+
+    assert user["account_kind"] == "eval_runner"
+    assert external_auth_module.get_external_auth_user("qa_eval_explicit_store") is not None
+
+
 def test_ensure_external_auth_user_resets_seeded_test_password(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

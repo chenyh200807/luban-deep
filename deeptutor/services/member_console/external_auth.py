@@ -113,7 +113,9 @@ def _ensure_parent(path: Path) -> None:
 
 
 def _resolve_users_file_for_write() -> Path:
-    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", _default_users_file())
+    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", None)
+    if path is None:
+        path = _default_users_file()
     if path is None:
         path = _PRIMARY_USERS_FILE
     _ensure_parent(path)
@@ -121,7 +123,9 @@ def _resolve_users_file_for_write() -> Path:
 
 
 def _resolve_sessions_file_for_write() -> Path | None:
-    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE", _default_sessions_file())
+    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE", None)
+    if path is None:
+        path = _default_sessions_file()
     if path is None:
         return None
     _ensure_parent(path)
@@ -129,14 +133,18 @@ def _resolve_sessions_file_for_write() -> Path | None:
 
 
 def get_external_auth_users_file() -> Path | None:
-    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", _default_users_file())
+    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", None)
+    if path is None:
+        path = _default_users_file()
     if path is not None and path.exists():
         return path
     return None
 
 
 def get_external_auth_sessions_file() -> Path | None:
-    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE", _default_sessions_file())
+    path = _env_path("DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE", None)
+    if path is None:
+        path = _default_sessions_file()
     if path is not None and path.exists():
         return path
     return None
