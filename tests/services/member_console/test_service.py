@@ -7,7 +7,7 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 import threading
 from types import SimpleNamespace
@@ -5211,6 +5211,125 @@ def test_list_members_supports_expiry_window_and_operational_flags(tmp_path: Pat
 
     assert [item["user_id"] for item in result["items"]] == ["vip_soon"]
     assert result["filters"]["expire_within_days"] == 7
+
+
+def test_member_ops_overview_filters_registration_and_reads_directory_once(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime(2026, 7, 13, 12, 0, tzinfo=timezone(timedelta(hours=8)))
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+
+    def _member(user_id: str, *, channel: str, created_at: str, tier: str = "trial") -> dict[str, object]:
+        return {
+            "user_id": user_id,
+            "canonical_user_id": user_id,
+            "alias_user_ids": [user_id],
+            "display_name": user_id,
+            "phone": "15558866501",
+            "tier": tier,
+            "status": "active",
+            "segment": "general",
+            "risk_level": "high",
+            "auto_renew": False,
+            "created_at": created_at,
+            "last_active_at": (now - timedelta(days=1)).isoformat(),
+            "expire_at": (now + timedelta(days=30)).isoformat(),
+            "points_balance": 0,
+            "review_due": 4,
+            "identity_metadata": {"reg_channel": channel},
+            "ledger": [],
+            "notes": [],
+        }
+
+    directory = _FakeMemberDirectory(
+        [
+            _member("target", channel="wechat_qr", created_at="2026-07-12T09:00:00+08:00"),
+            _member("wrong_channel", channel="campaign", created_at="2026-07-12T09:00:00+08:00"),
+            _member("too_old", channel="wechat_qr", created_at="2026-07-01T09:00:00+08:00"),
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    payload = service.get_member_ops_overview(
+        page=1,
+        page_size=20,
+        risk_min=0.7,
+        registered_from=date(2026, 7, 12),
+        registered_to=date(2026, 7, 12),
+        active_within_days=2,
+        review_due_min=3,
+        not_paid=True,
+        auto_renew=False,
+        channel="wechat_qr",
+    )
+
+    assert len(directory.calls) == 1
+    assert payload["dashboard"]["total_count"] == 3
+    assert [item["user_id"] for item in payload["list"]["items"]] == ["target"]
+    assert payload["list"]["filters"]["registered_from"] == "2026-07-12"
+    assert payload["list"]["filters"]["channel"] == "wechat_qr"
+
+
+def test_list_members_sorts_risk_levels_by_business_severity(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime(2026, 7, 13, 12, 0, tzinfo=timezone(timedelta(hours=8)))
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed(data: dict[str, object]) -> None:
+        members = []
+        for user_id, risk_level in (("low", "low"), ("medium", "medium"), ("high", "high")):
+            member = service._build_default_member(user_id)
+            member["phone"] = f"15558866{len(members):03d}"
+            member["risk_level"] = risk_level
+            member["created_at"] = now.isoformat()
+            members.append(member)
+        data["members"] = members
+
+    service._mutate(_seed)
+
+    payload = service.list_members(page=1, page_size=20, sort="risk_level", order="desc")
+
+    assert [item["user_id"] for item in payload["items"]] == ["high", "medium", "low"]
+
+
+def test_export_members_csv_reads_full_canonical_directory(tmp_path: Path) -> None:
+    rows = []
+    for user_id in ("directory_member_1", "directory_member_2"):
+        rows.append(
+            {
+                "user_id": user_id,
+                "canonical_user_id": user_id,
+                "alias_user_ids": [user_id],
+                "display_name": user_id,
+                "phone": "15558866501",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-07-12T09:00:00+08:00",
+                "last_active_at": "2026-07-12T09:00:00+08:00",
+                "expire_at": "2026-12-31T00:00:00+08:00",
+                "points_balance": 0,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+            }
+        )
+    service = MemberConsoleService(member_directory=_FakeMemberDirectory(rows))
+    service._data_path = tmp_path / "member_console.json"
+
+    export = service.export_members_csv()
+
+    assert export["content"].count("\n") == 3
+    assert "directory_member_1" in export["content"]
+    assert "directory_member_2" in export["content"]
 
 
 def test_list_members_searches_account_alias_and_normalized_phone(tmp_path: Path) -> None:

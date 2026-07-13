@@ -7,6 +7,10 @@ export type MemberRow = {
   last_active: string
   balance_points: number
   expires_at: string
+  registered_at?: string
+  channel?: string
+  auto_renew?: boolean
+  review_due?: number
   paid_at_first?: string
   region?: string
   notes_count?: number
@@ -30,6 +34,8 @@ export type MemberColumnKey =
   | 'last_active'
   | 'balance'
   | 'expires_at'
+  | 'registered_at'
+  | 'channel'
   | 'paid_first'
   | 'region'
   | 'notes'
@@ -54,12 +60,14 @@ export const ALL_COLUMNS: MemberColumnDef[] = [
   { key: 'last_active', label: '最近活跃', sortable: true },
   { key: 'balance', label: '余额(点)', sortable: true, align: 'right' },
   { key: 'expires_at', label: '到期', sortable: true },
+  { key: 'registered_at', label: '注册时间', sortable: true },
+  { key: 'channel', label: '注册渠道' },
   { key: 'paid_first', label: '首充' },
   { key: 'region', label: '地区' },
   { key: 'notes', label: '备注数', align: 'right' },
   { key: 'feedback', label: '反馈数', align: 'right' },
-  { key: 'behavior_report', label: '学情7日', sortable: true, align: 'right' },
-  { key: 'behavior_history', label: '历史7日', sortable: true, align: 'right' },
+  { key: 'behavior_report', label: '学情7日', align: 'right' },
+  { key: 'behavior_history', label: '历史7日', align: 'right' },
   { key: 'behavior_cohort', label: '行为队列' },
   { key: 'behavior_next_action', label: '建议动作' },
 ]
@@ -75,6 +83,7 @@ export const DEFAULT_COLUMNS: MemberColumnKey[] = [
   'behavior_next_action',
   'last_active',
   'balance',
+  'registered_at',
   'expires_at',
 ]
 
@@ -84,6 +93,12 @@ export type MemberFilters = {
   riskMin: number
   expiringDays: number // 0 = 不限
   notPaid: boolean
+  registeredFrom: string
+  registeredTo: string
+  activeWithinDays: number // 0 = 不限
+  reviewDueMin: number // 0 = 不限
+  autoRenew: '' | 'enabled' | 'disabled'
+  channel: string
 }
 
 export const DEFAULT_FILTERS: MemberFilters = {
@@ -92,6 +107,12 @@ export const DEFAULT_FILTERS: MemberFilters = {
   riskMin: 0,
   expiringDays: 0,
   notPaid: false,
+  registeredFrom: '',
+  registeredTo: '',
+  activeWithinDays: 0,
+  reviewDueMin: 0,
+  autoRenew: '',
+  channel: '',
 }
 
 export type MemberSortDir = 'asc' | 'desc'
@@ -104,6 +125,7 @@ export type MemberSortKey = Extract<
   | 'last_active'
   | 'balance'
   | 'expires_at'
+  | 'registered_at'
   | 'paid_first'
   | 'region'
   | 'notes'
@@ -277,6 +299,14 @@ export function filterMembers(
     if (filters.status && row.status !== filters.status) return false
     if (filters.riskMin > 0 && row.risk < filters.riskMin) return false
     if (filters.notPaid && row.paid_at_first) return false
+    if (filters.registeredFrom && row.registered_at && row.registered_at < filters.registeredFrom)
+      return false
+    if (filters.registeredTo && row.registered_at && row.registered_at > filters.registeredTo)
+      return false
+    if (filters.reviewDueMin > 0 && (row.review_due ?? 0) < filters.reviewDueMin) return false
+    if (filters.autoRenew === 'enabled' && !row.auto_renew) return false
+    if (filters.autoRenew === 'disabled' && row.auto_renew) return false
+    if (filters.channel && row.channel !== filters.channel) return false
     if (filters.expiringDays > 0) {
       const exp = Date.parse(row.expires_at)
       const cutoff = Date.now() + filters.expiringDays * 86400000
@@ -309,6 +339,7 @@ function compareMemberRows(a: MemberRow, b: MemberRow, key: MemberSortKey): numb
   if (key === 'notes') return (a.notes_count ?? 0) - (b.notes_count ?? 0)
   if (key === 'feedback') return (a.feedback_count ?? 0) - (b.feedback_count ?? 0)
   if (key === 'expires_at') return compareDateLike(a.expires_at, b.expires_at)
+  if (key === 'registered_at') return compareDateLike(a.registered_at ?? '', b.registered_at ?? '')
   if (key === 'paid_first') return compareDateLike(a.paid_at_first ?? '', b.paid_at_first ?? '')
   if (key === 'last_active') return compareDateLike(a.last_active, b.last_active)
   if (key === 'phone') return compareText(a.phone_masked, b.phone_masked)

@@ -21,7 +21,7 @@ import urllib.request
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -275,6 +275,20 @@ def _is_created_on_local_date(value: str | None, *, now: datetime) -> bool:
     created_local = created_at.astimezone(_TZ)
     now_local = now.astimezone(_TZ)
     return created_local <= now_local and created_local.date() == now_local.date()
+
+
+def _registered_on_local_date(value: str | None) -> date | None:
+    """Return the canonical registration date without treating malformed data as now."""
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    try:
+        registered_at = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if registered_at.tzinfo is None:
+        registered_at = registered_at.replace(tzinfo=_TZ)
+    return registered_at.astimezone(_TZ).date()
 
 
 def is_bi_operational_at(value: Any) -> bool:
@@ -4080,6 +4094,16 @@ class MemberConsoleService:
                 for user_id in group_by_user_id
             }
 
+    def _load_member_behavior_summaries_in_batches(
+        self,
+        members: list[dict[str, Any]],
+    ) -> dict[str, dict[str, Any]]:
+        """Keep behavior-cohort filtering below SQLite parameter limits at scale."""
+        summaries: dict[str, dict[str, Any]] = {}
+        for start in range(0, len(members), 200):
+            summaries.update(self._load_member_behavior_summaries_for_members(members[start : start + 200]))
+        return summaries
+
     def _load_member_behavior_summaries(self, user_ids: list[str]) -> dict[str, dict[str, Any]]:
         try:
             return self._get_product_behavior_store().get_member_behavior_summaries(user_ids, days=7)
@@ -4098,13 +4122,21 @@ class MemberConsoleService:
             if is_bi_operational_at(member.get("created_at"))
         ]
 
-    def get_dashboard(self, days: int = 30) -> dict[str, Any]:
-        data = self._load()
-        members = self._filter_bi_operational_members(
-            self._merge_session_activity_for_member_list(
-                self._load_member_directory_members_for_bi(data)
-            )
-        )
+    @staticmethod
+    def _member_risk_score(member: dict[str, Any]) -> float:
+        return {
+            "low": 0.2,
+            "medium": 0.55,
+            "high": 0.85,
+        }.get(str(member.get("risk_level") or "").lower(), 0.0)
+
+    def _build_member_dashboard(
+        self,
+        data: dict[str, Any],
+        members: list[dict[str, Any]],
+        *,
+        days: int,
+    ) -> dict[str, Any]:
         behavior_summaries = self._load_member_behavior_summaries_for_members(members)
         behavior_health = {
             "learning_report_open_count_7d": sum(
@@ -4201,6 +4233,15 @@ class MemberConsoleService:
             "recommendations": recommendations,
         }
 
+    def get_dashboard(self, days: int = 30) -> dict[str, Any]:
+        data = self._load()
+        members = self._filter_bi_operational_members(
+            self._merge_session_activity_for_member_list(
+                self._load_member_directory_members_for_bi(data)
+            )
+        )
+        return self._build_member_dashboard(data, members, days=days)
+
     def _aggregate_actions(self, audit_log: list[dict[str, Any]]) -> list[dict[str, Any]]:
         counts: dict[str, int] = {}
         for item in audit_log[:100]:
@@ -4220,22 +4261,80 @@ class MemberConsoleService:
         search: str | None = None,
         segment: str | None = None,
         risk_level: str | None = None,
+        risk_min: float | None = None,
         auto_renew: bool | None = None,
         expire_within_days: int | None = None,
         active_within_days: int | None = None,
+        registered_from: date | None = None,
+        registered_to: date | None = None,
+        review_due_min: int | None = None,
+        not_paid: bool | None = None,
+        channel: str | None = None,
+        behavior_cohort: str | None = None,
         has_heartbeat_job: bool | None = None,
         has_overlay_candidates: bool | None = None,
     ) -> dict[str, Any]:
         data = self._load()
-        search_text = str(search or "").strip().lower()
         members = self._merge_session_activity_for_member_list(
             self._load_member_directory_members_for_bi(
                 data,
                 include_session_activity_supplements=True,
             )
         )
-        if not search_text:
+        if not str(search or "").strip():
             members = self._filter_bi_operational_members(members)
+        return self._list_members_from_projection(
+            members,
+            page=page,
+            page_size=page_size,
+            sort=sort,
+            order=order,
+            status=status,
+            tier=tier,
+            search=search,
+            segment=segment,
+            risk_level=risk_level,
+            risk_min=risk_min,
+            auto_renew=auto_renew,
+            expire_within_days=expire_within_days,
+            active_within_days=active_within_days,
+            registered_from=registered_from,
+            registered_to=registered_to,
+            review_due_min=review_due_min,
+            not_paid=not_paid,
+            channel=channel,
+            behavior_cohort=behavior_cohort,
+            has_heartbeat_job=has_heartbeat_job,
+            has_overlay_candidates=has_overlay_candidates,
+        )
+
+    def _list_members_from_projection(
+        self,
+        members: list[dict[str, Any]],
+        *,
+        page: int,
+        page_size: int,
+        sort: str,
+        order: str,
+        status: str | None,
+        tier: str | None,
+        search: str | None,
+        segment: str | None,
+        risk_level: str | None,
+        risk_min: float | None,
+        auto_renew: bool | None,
+        expire_within_days: int | None,
+        active_within_days: int | None,
+        registered_from: date | None,
+        registered_to: date | None,
+        review_due_min: int | None,
+        not_paid: bool | None,
+        channel: str | None,
+        behavior_cohort: str | None,
+        has_heartbeat_job: bool | None,
+        has_overlay_candidates: bool | None,
+    ) -> dict[str, Any]:
+        search_text = str(search or "").strip().lower()
         now = _now()
         heartbeat_user_ids: set[str] | None = None
         if has_heartbeat_job is not None:
@@ -4269,7 +4368,25 @@ class MemberConsoleService:
                 continue
             if risk_level and risk_level != "all" and item["risk_level"] != risk_level:
                 continue
+            if risk_min is not None:
+                if self._member_risk_score(item) < risk_min:
+                    continue
             if auto_renew is not None and bool(item.get("auto_renew")) != auto_renew:
+                continue
+            if not_paid is True and str(item.get("tier") or "") != "trial":
+                continue
+            if review_due_min is not None and int(item.get("review_due") or 0) < review_due_min:
+                continue
+            if channel:
+                member_channel = str(
+                    (item.get("identity_metadata") or {}).get("reg_channel") or ""
+                ).strip().lower()
+                if member_channel != channel.strip().lower():
+                    continue
+            registered_at = _registered_on_local_date(item.get("created_at"))
+            if registered_from is not None and (registered_at is None or registered_at < registered_from):
+                continue
+            if registered_to is not None and (registered_at is None or registered_at > registered_to):
                 continue
             if search_text:
                 haystack = self._member_search_haystack(item)
@@ -4293,8 +4410,19 @@ class MemberConsoleService:
                 if member_has_overlay_candidates != has_overlay_candidates:
                     continue
             filtered.append(item)
+        behavior_summaries: dict[str, dict[str, Any]] | None = None
+        if behavior_cohort:
+            behavior_summaries = self._load_member_behavior_summaries_in_batches(filtered)
+            filtered = [
+                item
+                for item in filtered
+                if str(behavior_summaries.get(item["user_id"], {}).get("cohort") or "")
+                == behavior_cohort
+            ]
         reverse = str(order).lower() == "desc"
-        if sort in {"expire_at", "created_at", "last_active_at"}:
+        if sort == "risk_level":
+            filtered.sort(key=self._member_risk_score, reverse=reverse)
+        elif sort in {"expire_at", "created_at", "last_active_at"}:
             filtered.sort(key=lambda item: _parse_time(item.get(sort)).timestamp(), reverse=reverse)
         else:
             filtered.sort(key=lambda item: str(item.get(sort) or ""), reverse=reverse)
@@ -4302,7 +4430,8 @@ class MemberConsoleService:
         start = max(0, (page - 1) * page_size)
         end = start + page_size
         page_items = filtered[start:end]
-        behavior_summaries = self._load_member_behavior_summaries_for_members(page_items)
+        if behavior_summaries is None:
+            behavior_summaries = self._load_member_behavior_summaries_for_members(page_items)
         items = []
         for item in page_items:
             items.append(
@@ -4343,9 +4472,16 @@ class MemberConsoleService:
                 "tier": tier,
                 "segment": segment,
                 "risk_level": risk_level,
+                "risk_min": risk_min,
                 "auto_renew": auto_renew,
                 "expire_within_days": expire_within_days,
                 "active_within_days": active_within_days,
+                "registered_from": registered_from.isoformat() if registered_from else None,
+                "registered_to": registered_to.isoformat() if registered_to else None,
+                "review_due_min": review_due_min,
+                "not_paid": not_paid,
+                "channel": channel,
+                "behavior_cohort": behavior_cohort,
                 "has_heartbeat_job": has_heartbeat_job,
                 "has_overlay_candidates": has_overlay_candidates,
             },
@@ -4355,6 +4491,70 @@ class MemberConsoleService:
                 "behavior": "product_behavior_events",
                 "operational_start_at": BI_OPERATION_START_AT.isoformat(),
             },
+        }
+
+    def get_member_ops_overview(
+        self,
+        *,
+        days: int = 30,
+        page: int = 1,
+        page_size: int = 20,
+        sort: str = "expire_at",
+        order: str = "asc",
+        status: str | None = None,
+        tier: str | None = None,
+        search: str | None = None,
+        segment: str | None = None,
+        risk_level: str | None = None,
+        risk_min: float | None = None,
+        auto_renew: bool | None = None,
+        expire_within_days: int | None = None,
+        active_within_days: int | None = None,
+        registered_from: date | None = None,
+        registered_to: date | None = None,
+        review_due_min: int | None = None,
+        not_paid: bool | None = None,
+        channel: str | None = None,
+        behavior_cohort: str | None = None,
+        has_heartbeat_job: bool | None = None,
+        has_overlay_candidates: bool | None = None,
+    ) -> dict[str, Any]:
+        """Build the member-ops first screen from one canonical directory projection."""
+        data = self._load()
+        members = self._merge_session_activity_for_member_list(
+            self._load_member_directory_members_for_bi(
+                data,
+                include_session_activity_supplements=True,
+            )
+        )
+        operational_members = self._filter_bi_operational_members(members)
+        list_members = members if str(search or "").strip() else operational_members
+        return {
+            "dashboard": self._build_member_dashboard(data, operational_members, days=days),
+            "list": self._list_members_from_projection(
+                list_members,
+                page=page,
+                page_size=page_size,
+                sort=sort,
+                order=order,
+                status=status,
+                tier=tier,
+                search=search,
+                segment=segment,
+                risk_level=risk_level,
+                risk_min=risk_min,
+                auto_renew=auto_renew,
+                expire_within_days=expire_within_days,
+                active_within_days=active_within_days,
+                registered_from=registered_from,
+                registered_to=registered_to,
+                review_due_min=review_due_min,
+                not_paid=not_paid,
+                channel=channel,
+                behavior_cohort=behavior_cohort,
+                has_heartbeat_job=has_heartbeat_job,
+                has_overlay_candidates=has_overlay_candidates,
+            ),
         }
 
     @staticmethod
@@ -5209,23 +5409,37 @@ class MemberConsoleService:
         search: str | None = None,
         segment: str | None = None,
         risk_level: str | None = None,
+        risk_min: float | None = None,
         auto_renew: bool | None = None,
         expire_within_days: int | None = None,
         active_within_days: int | None = None,
+        registered_from: date | None = None,
+        registered_to: date | None = None,
+        review_due_min: int | None = None,
+        not_paid: bool | None = None,
+        channel: str | None = None,
+        behavior_cohort: str | None = None,
         has_heartbeat_job: bool | None = None,
         has_overlay_candidates: bool | None = None,
     ) -> dict[str, str]:
         rows = self.list_members(
             page=1,
-            page_size=max(1, len(self._load().get("members", [])) or 1),
+            page_size=5000,
             status=status,
             tier=tier,
             search=search,
             segment=segment,
             risk_level=risk_level,
+            risk_min=risk_min,
             auto_renew=auto_renew,
             expire_within_days=expire_within_days,
             active_within_days=active_within_days,
+            registered_from=registered_from,
+            registered_to=registered_to,
+            review_due_min=review_due_min,
+            not_paid=not_paid,
+            channel=channel,
+            behavior_cohort=behavior_cohort,
             has_heartbeat_job=has_heartbeat_job,
             has_overlay_candidates=has_overlay_candidates,
         )["items"]
@@ -5247,6 +5461,7 @@ class MemberConsoleService:
                 "points_balance",
                 "review_due",
             ],
+            extrasaction="ignore",
         )
         writer.writeheader()
         for row in rows:

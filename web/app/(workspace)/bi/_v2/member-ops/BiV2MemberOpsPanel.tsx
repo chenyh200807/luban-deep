@@ -38,7 +38,7 @@ import {
 import { Member360Drawer } from './Member360Drawer'
 import { ConversationReviewDrawer } from './ConversationReviewDrawer'
 import {
-  getMemberDashboard,
+  getMemberOpsOverview,
   getMemberDetail,
   listMembers,
   deleteMemberAccount,
@@ -229,6 +229,10 @@ function toMemberRow(item: MemberListItem): MemberRow {
     risk: riskScore(item.risk_level),
     last_active: shortDate(item.last_active_at),
     balance_points: item.points_balance,
+    registered_at: toDateInputValue(item.created_at),
+    channel: item.channel || '',
+    auto_renew: item.auto_renew,
+    review_due: item.review_due,
     expires_at: shortDate(item.expire_at),
     paid_at_first: tier === 'trial' ? undefined : shortDate(item.created_at),
     region: item.segment || item.display_name,
@@ -287,7 +291,23 @@ function toDateInputValue(value?: string | null): string {
   if (!value) return ''
   const parsed = Date.parse(value)
   if (Number.isNaN(parsed)) return ''
-  return new Date(parsed).toISOString().slice(0, 10)
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(parsed))
+  const date = Object.fromEntries(parts.map(part => [part.type, part.value]))
+  return `${date.year}-${date.month}-${date.day}`
+}
+
+function daysAgoDateInput(days: number): string {
+  const value = new Date()
+  value.setDate(value.getDate() - days)
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 export function BiV2MemberOpsPanel({
@@ -331,7 +351,9 @@ export function BiV2MemberOpsPanel({
   const [dashboard, setDashboard] = useState<MemberDashboard | null>(null)
   const [membershipPackages, setMembershipPackages] = useState<BiCommercePackage[]>(EMPTY_PACKAGES)
   const [totalRows, setTotalRows] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(flagEnabled)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState('')
   const [opsActionNotice, setOpsActionNotice] = useState('')
   const [membershipActionWriting, setMembershipActionWriting] = useState(false)
@@ -353,12 +375,50 @@ export function BiV2MemberOpsPanel({
     setMemberSearchDraft(globalQuery)
   }, [globalQuery])
 
+  const memberListParams = useCallback(
+    (page: number) => ({
+      page,
+      page_size: 50,
+      sort:
+        sortKey === 'expires_at'
+          ? 'expire_at'
+          : sortKey === 'registered_at'
+            ? 'created_at'
+            : sortKey === 'last_active'
+              ? 'last_active_at'
+              : sortKey === 'risk'
+                ? 'risk_level'
+                : sortKey,
+      order: sortDir,
+      search: globalQuery.trim() || undefined,
+      status: filters.status ? API_STATUS[filters.status] : undefined,
+      tier: filters.tier || undefined,
+      risk_min: filters.riskMin || undefined,
+      expire_within_days: filters.expiringDays || undefined,
+      active_within_days: filters.activeWithinDays || undefined,
+      registered_from: filters.registeredFrom || undefined,
+      registered_to: filters.registeredTo || undefined,
+      review_due_min: filters.reviewDueMin || undefined,
+      not_paid: filters.notPaid || undefined,
+      auto_renew:
+        filters.autoRenew === 'enabled'
+          ? true
+          : filters.autoRenew === 'disabled'
+            ? false
+            : undefined,
+      channel: filters.channel.trim() || undefined,
+      behavior_cohort: behaviorCohort || undefined,
+    }),
+    [behaviorCohort, filters, globalQuery, sortDir, sortKey]
+  )
+
   const loadMembers = useCallback(async () => {
     if (!flagEnabled) {
       setLiveRows([])
       setDashboard(null)
       setMembershipPackages(EMPTY_PACKAGES)
       setTotalRows(0)
+      setTotalPages(1)
       setLoading(false)
       setError('')
       return
@@ -366,19 +426,8 @@ export function BiV2MemberOpsPanel({
     try {
       setLoading(true)
       setError('')
-      const [nextDashboard, list, packages, internalData] = await Promise.all([
-        getMemberDashboard(),
-        listMembers({
-          page: 1,
-          page_size: 100,
-          sort: 'expire_at',
-          order: 'asc',
-          search: globalQuery.trim() || undefined,
-          status: filters.status ? API_STATUS[filters.status] : undefined,
-          tier: filters.tier || undefined,
-          expire_within_days: filters.expiringDays || undefined,
-          risk_level: filters.riskMin >= 0.7 ? 'high' : undefined,
-        }),
+      const [overview, packages, internalData] = await Promise.all([
+        getMemberOpsOverview(memberListParams(1)),
         getBiMemberOpsPackages().catch(() => []),
         getBiInternalAccounts().catch(() => ({
           states: {},
@@ -389,16 +438,17 @@ export function BiV2MemberOpsPanel({
       ])
       setInternalStates(internalData.states)
       setInternalAudit(internalData.audit)
-      const nextRows = list.items.map(item => ({
+      const nextRows = overview.list.items.map(item => ({
         ...toMemberRow(item),
         is_internal_account: Boolean(
           (internalData.states as Record<string, BiInternalAccountState>)[item.user_id]?.is_internal
         ),
       }))
-      setDashboard(nextDashboard)
+      setDashboard(overview.dashboard)
       setMembershipPackages(packages.filter(pkg => (pkg.status || 'active') !== 'archived'))
       setLiveRows(nextRows)
-      setTotalRows(list.total)
+      setTotalRows(overview.list.total)
+      setTotalPages(overview.list.pages)
       setSelectedRows(
         prev => new Set([...prev].filter(id => nextRows.some(row => row.user_id === id)))
       )
@@ -407,32 +457,56 @@ export function BiV2MemberOpsPanel({
       setLiveRows([])
       setDashboard(null)
       setTotalRows(0)
+      setTotalPages(1)
     } finally {
       setLoading(false)
     }
   }, [
-    filters.expiringDays,
-    filters.riskMin,
-    filters.status,
-    filters.tier,
     flagEnabled,
-    globalQuery,
+    memberListParams,
   ])
 
   useEffect(() => {
     void loadMembers()
   }, [loadMembers])
 
+  const loadMoreMembers = useCallback(async () => {
+    const nextPage = Math.floor(liveRows.length / 50) + 1
+    if (!flagEnabled || loadingMore || loading || nextPage > totalPages) return
+    try {
+      setLoadingMore(true)
+      const list = await listMembers(memberListParams(nextPage))
+      setLiveRows(prev => {
+        const seen = new Set(prev.map(row => row.user_id))
+        return [
+          ...prev,
+          ...list.items
+            .map(item => ({
+              ...toMemberRow(item),
+              is_internal_account: Boolean(internalStates[item.user_id]?.is_internal),
+            }))
+            .filter(row => !seen.has(row.user_id)),
+        ]
+      })
+      setTotalRows(list.total)
+      setTotalPages(list.pages)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '加载更多会员失败')
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [flagEnabled, internalStates, liveRows.length, loading, loadingMore, memberListParams, totalPages])
+
   const sourceRows = flagEnabled ? liveRows : MOCK_MEMBERS
   const rows = useMemo(() => {
-    const filtered = filterMembers(sourceRows, filters, flagEnabled ? '' : globalQuery)
-    const cohortRows = behaviorCohort
-      ? filtered.filter(row => row.behavior_cohort === behaviorCohort)
-      : filtered
+    const filtered = flagEnabled ? sourceRows : filterMembers(sourceRows, filters, globalQuery)
+    const cohortRows = flagEnabled || !behaviorCohort
+      ? filtered
+      : filtered.filter(row => row.behavior_cohort === behaviorCohort)
     const internalFiltered = showInternalOnly
       ? cohortRows.filter(row => row.is_internal_account)
       : cohortRows
-    return sortMembers(internalFiltered, sortKey, sortDir)
+    return flagEnabled ? internalFiltered : sortMembers(internalFiltered, sortKey, sortDir)
   }, [
     behaviorCohort,
     filters,
@@ -451,6 +525,12 @@ export function BiV2MemberOpsPanel({
     filters.riskMin > 0 ||
     filters.expiringDays > 0 ||
     filters.notPaid ||
+    Boolean(filters.registeredFrom) ||
+    Boolean(filters.registeredTo) ||
+    filters.activeWithinDays > 0 ||
+    filters.reviewDueMin > 0 ||
+    Boolean(filters.autoRenew) ||
+    Boolean(filters.channel) ||
     Boolean(behaviorCohort)
 
   function submitMemberSearch(event?: FormEvent<HTMLFormElement>) {
@@ -488,7 +568,7 @@ export function BiV2MemberOpsPanel({
   }
 
   function applyView(view: SavedView) {
-    setFilters(view.filters)
+    setFilters({ ...DEFAULT_FILTERS, ...view.filters })
     setColumns(view.columns)
     setActiveViewId(view.id)
   }
@@ -886,8 +966,8 @@ export function BiV2MemberOpsPanel({
             </BiButton>
           }
         >
-          BI_CRM_V2_ENABLED 已开启 · 会员列表读取{' '}
-          <code className="font-mono">/api/v1/member/list</code>，学员 360 读取{' '}
+          BI_CRM_V2_ENABLED 已开启 · 首屏一次读取{' '}
+          <code className="font-mono">/api/v1/bi/member/overview</code>，学员 360 读取{' '}
           <code className="font-mono">/api/v1/member/&lt;user_id&gt;/360</code>；低风险写动作走
           member.ops_action.record audit。
         </BiV2DataSourceBanner>
@@ -1009,6 +1089,10 @@ export function BiV2MemberOpsPanel({
 
       <CommonFilters filters={filters} onChange={setFilters} />
 
+      <p className="text-xs text-slate-400">
+        顶部总览保持全量真实会员口径；筛选仅作用于下方成员表，结果由服务端分页计算。
+      </p>
+
       <section className="flex flex-wrap items-center justify-between gap-3 rounded-[26px] border border-cyan-300/20 bg-cyan-300/[0.08] px-4 py-3 text-sm text-cyan-50 shadow-lg shadow-black/10">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-cyan-200/25 bg-cyan-200/10 text-cyan-100">
@@ -1117,11 +1201,21 @@ export function BiV2MemberOpsPanel({
           </div>
         )}
         pageSize={50}
+        cursor={
+          flagEnabled
+            ? {
+                hasMore: liveRows.length < totalRows,
+                onLoadMore: () => void loadMoreMembers(),
+                loading: loadingMore,
+                total: totalRows,
+              }
+            : undefined
+        }
         cursorFooter={
           <>
             <span>
               {flagEnabled
-                ? `服务端返回前 ${liveRows.length} / ${totalRows}，当前筛选 ${rows.length} 行`
+                ? `已加载 ${liveRows.length} / ${totalRows} 条服务端筛选结果`
                 : `筛选后 ${rows.length} 行（dev mock total ${MOCK_MEMBERS.length}）`}
             </span>
             <span>{selectedRows.size > 0 ? `已选 ${selectedRows.size}` : ''}</span>
@@ -1853,6 +1947,21 @@ function CommonFilters({
         active={filters.notPaid}
         onClick={() => onChange({ ...filters, notPaid: !filters.notPaid })}
       />
+      <Pill
+        label="近 7 日注册"
+        active={filters.registeredFrom === daysAgoDateInput(6) && Boolean(filters.registeredTo)}
+        onClick={() =>
+          onChange(
+            filters.registeredFrom
+              ? { ...filters, registeredFrom: '', registeredTo: '' }
+              : {
+                  ...filters,
+                  registeredFrom: daysAgoDateInput(6),
+                  registeredTo: daysAgoDateInput(0),
+                }
+          )
+        }
+      />
       <BiButton
         onClick={() => onChange(DEFAULT_FILTERS)}
         variant="ghost"
@@ -1895,7 +2004,7 @@ function AdvancedFilters({
       className="rounded-2xl border border-white/10 bg-white/[0.04] p-3"
     >
       <h4 className="text-xs font-black text-slate-200">高级筛选</h4>
-      <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
+      <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
         <label className="text-xs font-bold text-slate-300">
           状态
           <select
@@ -1936,6 +2045,76 @@ function AdvancedFilters({
             onChange={e => onChange({ ...filters, expiringDays: Number(e.target.value) })}
             className="ml-2 w-20 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
             aria-label="到期天数阈值"
+          />
+        </label>
+        <label className="text-xs font-bold text-slate-300">
+          注册开始日
+          <input
+            type="date"
+            value={filters.registeredFrom}
+            onChange={e => onChange({ ...filters, registeredFrom: e.target.value })}
+            className="ml-2 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+            aria-label="注册开始日"
+          />
+        </label>
+        <label className="text-xs font-bold text-slate-300">
+          注册结束日
+          <input
+            type="date"
+            value={filters.registeredTo}
+            onChange={e => onChange({ ...filters, registeredTo: e.target.value })}
+            className="ml-2 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+            aria-label="注册结束日"
+          />
+        </label>
+        <label className="text-xs font-bold text-slate-300">
+          最近活跃天数（0 = 不限）
+          <input
+            type="number"
+            min={0}
+            max={365}
+            value={filters.activeWithinDays}
+            onChange={e => onChange({ ...filters, activeWithinDays: Number(e.target.value) })}
+            className="ml-2 w-20 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+            aria-label="最近活跃天数"
+          />
+        </label>
+        <label className="text-xs font-bold text-slate-300">
+          复习待办至少
+          <input
+            type="number"
+            min={0}
+            max={365}
+            value={filters.reviewDueMin}
+            onChange={e => onChange({ ...filters, reviewDueMin: Number(e.target.value) })}
+            className="ml-2 w-20 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+            aria-label="复习待办最少数量"
+          />
+        </label>
+        <label className="text-xs font-bold text-slate-300">
+          自动续费
+          <select
+            className="ml-2 rounded-xl border border-white/10 bg-[#151d2b] px-2 py-1 text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+            value={filters.autoRenew}
+            onChange={e =>
+              onChange({ ...filters, autoRenew: e.target.value as MemberFilters['autoRenew'] })
+            }
+            aria-label="自动续费筛选"
+          >
+            <option value="">全部</option>
+            <option value="enabled">已开启</option>
+            <option value="disabled">未开启</option>
+          </select>
+        </label>
+        <label className="text-xs font-bold text-slate-300">
+          注册渠道
+          <input
+            type="text"
+            value={filters.channel}
+            onChange={e => onChange({ ...filters, channel: e.target.value })}
+            placeholder="如 wechat_qr"
+            className="ml-2 w-28 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+            aria-label="注册渠道筛选"
           />
         </label>
       </div>
@@ -2056,6 +2235,8 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
   if (key === 'balance')
     return <BiMoneyCell amount={row.balance_points} currency="POINT" align="right" />
   if (key === 'expires_at') return <span className="text-slate-300">{row.expires_at}</span>
+  if (key === 'registered_at') return <span className="text-slate-300">{row.registered_at ?? '—'}</span>
+  if (key === 'channel') return <span className="text-slate-300">{row.channel || '—'}</span>
   if (key === 'paid_first')
     return <span className="text-slate-300">{row.paid_at_first ?? '—'}</span>
   if (key === 'region') return row.region ?? '—'

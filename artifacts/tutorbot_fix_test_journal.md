@@ -9,6 +9,13 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-13 - 会员运营 BI 首屏慢且筛选只覆盖前 100 条
+
+- 问题：会员运营页首屏并行请求 dashboard 和 member list；两条链路各自重建一次 Supabase 会员目录投影。生产只读测量中 dashboard 约 2065ms、列表约 711ms，目录 overlay 投影约 955ms；前端仅取前 100 条后本地排序/筛选，成员规模增长后会产生不完整结果。
+- 根因：同一“真实运营会员目录”被 dashboard 和列表请求分别读取、分别投影；页面层又承担了本应由服务端负责的全量筛选与排序，形成重复 I/O 和分页语义错误。行为汇总和 SQLite 会话活跃合并分别仅约 3ms/1ms，不是主瓶颈。
+- 成功修法：新增 `/api/v1/bi/member/overview`，单次 canonical directory projection 同时生成全量真实会员 dashboard 与服务端筛选/分页 list；注册日期按 canonical `created_at` 的 UTC+8 自然日解释。筛选统一覆盖注册日期、等级、状态、风险、到期、活跃、待复习、续费、付费、渠道和行为队列；前端首屏改用组合接口并用 cursor 继续分页，顶部总览与表格筛选口径明确分离。
+- 验证：服务层组合筛选与“目录只读取一次”回归 5 passed；BI router 参数解析回归 4 passed；前端 TypeScript、14 条静态回归、ESLint 与 Next 生产构建均 passed；contract guard passed。未启动开发服务器或浏览器自动化进程。
+
 ## 2026-07-13 - Eval 会员污染 BI：canonical 机器身份在 learner-state/手机号镜像 writer 丢失
 
 - 问题：生产 BI 的 2026-07-12 自然日新增显示 21；逐条核对后，这 21 条均来自同日 agent/eval 批量注册，未带机器身份，因而被当作真实会员。另有 19 条同日 eval 账号因四字段完整而被 BI 正确排除。
