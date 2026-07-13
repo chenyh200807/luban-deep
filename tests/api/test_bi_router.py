@@ -866,6 +866,48 @@ def test_bi_router_rejects_non_admin_even_with_authenticated_context(bi_service:
         assert response.json()["detail"] == "Admin access required"
 
 
+def test_member_ops_overview_routes_server_side_filters(
+    bi_service: BIService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class _MemberOpsService:
+        def can_access(self, *_args, **_kwargs) -> bool:
+            return True
+
+        def get_member_ops_overview(self, **kwargs: object) -> dict[str, object]:
+            captured.update(kwargs)
+            return {
+                "dashboard": {"total_count": 2},
+                "list": {"items": [], "total": 0, "page": 1, "page_size": 50, "pages": 1},
+            }
+
+    monkeypatch.setattr(bi_router_module, "get_member_console_service", lambda: _MemberOpsService())
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(
+        user_id="u-admin", is_admin=True
+    )
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/bi/member/overview?"
+            "page=1&page_size=50&registered_from=2026-07-01&registered_to=2026-07-13&"
+            "risk_min=0.7&active_within_days=7&review_due_min=2&not_paid=true&"
+            "auto_renew=false&channel=wechat_qr&behavior_cohort=chat_only"
+        )
+
+    assert response.status_code == 200
+    assert response.json()["dashboard"]["total_count"] == 2
+    assert captured["registered_from"] == datetime(2026, 7, 1).date()
+    assert captured["registered_to"] == datetime(2026, 7, 13).date()
+    assert captured["risk_min"] == 0.7
+    assert captured["not_paid"] is True
+    assert captured["auto_renew"] is False
+    assert captured["channel"] == "wechat_qr"
+    assert captured["behavior_cohort"] == "chat_only"
+
+
 def test_bi_rbac_permission_management_endpoints_allow_admin(
     bi_service: BIService, tmp_path: Path, monkeypatch
 ) -> None:

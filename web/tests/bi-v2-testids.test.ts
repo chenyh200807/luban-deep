@@ -71,6 +71,20 @@ test('member ops exposes member search by phone or account', async () => {
   assert.ok(api.includes('/api/v1/bi/member/list?'))
 })
 
+test('member ops uses one overview read and exposes server-side registration filters', async () => {
+  const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
+  const api = await readWeb('lib/member-api.ts')
+
+  assert.ok(panel.includes('getMemberOpsOverview(memberListParams(1))'))
+  assert.ok(panel.includes('registered_from: filters.registeredFrom || undefined'))
+  assert.ok(panel.includes('registered_to: filters.registeredTo || undefined'))
+  assert.ok(panel.includes('aria-label="注册开始日"'))
+  assert.ok(panel.includes('aria-label="注册结束日"'))
+  assert.ok(panel.includes("timeZone: 'Asia/Shanghai'"))
+  assert.ok(panel.includes('已加载 ${liveRows.length} / ${totalRows} 条服务端筛选结果'))
+  assert.ok(api.includes('/api/v1/bi/member/overview?'))
+})
+
 test('member ops exposes member account lifecycle panel', async () => {
   const page = await readWeb('app/(workspace)/bi/BiPageClient.tsx')
   const panel = await readWeb('app/(workspace)/bi/_components/BiMemberAccountPanel.tsx')
@@ -126,7 +140,7 @@ test('member ops exposes package-led cashier membership settings', async () => {
   const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
   const api = await readWeb('lib/member-api.ts')
 
-  assert.ok(panel.includes('getBiCommerce'))
+  assert.ok(panel.includes('getBiMemberOpsPackages'))
   assert.ok(panel.includes('manualPurchaseMembership'))
   assert.ok(panel.includes('reverseManualMembershipPurchase'))
   assert.ok(panel.includes('updateMembership'))
@@ -138,8 +152,7 @@ test('member ops exposes package-led cashier membership settings', async () => {
   assert.ok(panel.includes('至尊SVIP'))
   assert.ok(panel.includes('套餐是唯一选择；等级、点数、次数和默认收入都从套餐派生。'))
   assert.ok(panel.includes('不改金额时按套餐价入账；填 0 即 0 元开通，填其他数字即按人工实收金额入账。'))
-  assert.ok(panel.includes('只冲销下方展示的原始购买流水'))
-  assert.ok(panel.includes('reversible_supreme_purchase'))
+  assert.ok(panel.includes('留空则后端按最近一笔至尊SVIP购买金额推断'))
   assert.ok(panel.includes('有效期'))
   assert.ok(panel.includes('付费开通并入账'))
   assert.ok(panel.includes('收款开通'))

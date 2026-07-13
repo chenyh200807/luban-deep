@@ -79,6 +79,7 @@ export interface MemberListItem {
   last_active_at: string
   points_balance: number
   review_due: number
+  channel?: string
   behavior?: MemberBehaviorSummary
 }
 
@@ -89,6 +90,11 @@ export interface MemberListResponse {
   page_size: number
   pages: number
   filters?: Record<string, string | number | boolean | null>
+}
+
+export interface MemberOpsOverview {
+  dashboard: MemberDashboard
+  list: MemberListResponse
 }
 
 export interface MemberNote {
@@ -400,6 +406,21 @@ export async function listMembers(
     headers: adminHeaders(),
   })
   return expectJson<MemberListResponse>(response)
+}
+
+export async function getMemberOpsOverview(
+  params: Record<string, string | number | boolean | undefined>
+): Promise<MemberOpsOverview> {
+  const query = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === '' || value === 'all') return
+    query.set(key, String(value))
+  })
+  const response = await fetch(apiUrl(`/api/v1/bi/member/overview?${query.toString()}`), {
+    cache: 'no-store',
+    headers: adminHeaders(),
+  })
+  return expectJson<MemberOpsOverview>(response)
 }
 
 export async function getMemberDetail(userId: string): Promise<MemberDetail> {

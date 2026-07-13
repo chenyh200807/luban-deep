@@ -123,6 +123,21 @@ DeepTutor 必须优先保证：
 - 成功后必须失效旧 external auth session、消费验证码、不返回 token、不自动登录。
 - 该链路不得写 learner-state、turn/session/runtime state 或 capability route/config state。
 
+### 7. BI Member Operations Read Contract
+
+负责：
+
+- `/api/v1/bi/member/overview` 首屏读取
+- 会员运营总览与成员表的同源投影
+- 会员注册时间和运营筛选的口径
+
+硬约束：
+
+- `dashboard` 始终是全量、已排除内部/eval 账号的运营会员口径；`list` 只代表当前筛选结果，二者不得混用。
+- 首屏必须从一次 canonical member-directory projection 构建 `dashboard` 和分页 `list`，不得由前端分别请求后再本地全量筛选。
+- 注册日期以会员 canonical `created_at` 的 UTC+8 自然日解释；列表筛选、分页、排序和导出必须在服务端执行，并复用同一会员 authority。
+- 筛选只能缩小列表，不得改变 dashboard 的真实会员口径或把筛选结果写回会员身份事实。
+
 ## AI / 工程师工作规则
 
 任何涉及以下边界的改动，不能直接动代码，必须先读 contract：
