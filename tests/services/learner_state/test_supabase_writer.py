@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import httpx
+import pytest
 
 from deeptutor.services.learner_state.heartbeat.service import LearnerHeartbeatService
 from deeptutor.services.learning_plan import LearningPlanService
@@ -94,6 +95,14 @@ class _PathServiceStub:
         path = self.project_root / "workspace" / "guide"
         path.mkdir(parents=True, exist_ok=True)
         return path
+
+
+@pytest.fixture(autouse=True)
+def _isolate_external_auth_store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(
+        "DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE",
+        str(tmp_path / "external_auth_users.json"),
+    )
 
 
 def test_write_item_turn_writes_learner_memory_event_only() -> None:
