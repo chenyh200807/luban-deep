@@ -187,7 +187,7 @@ function BiV2AuthenticatedSurface({
   flags: BiFlagSnapshot
   identity: BiAdminIdentity & { authenticated: true; hasBiAccess: true }
 }) {
-  const [section, setSection] = useState<BiV2Section>('overview')
+  const [section, setSection] = useState<BiV2Section>(() => readSectionFromUrl())
   const [submittedQuery, setSubmittedQuery] = useState('')
   const allowedSections = useMemo(() => accessibleSections(identity), [identity])
   const navItems = useMemo(
