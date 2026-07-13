@@ -71,3 +71,13 @@ def test_all_hosted_audio_manifests_have_every_declared_mp3() -> None:
             segment_id = str(segment.get("id") or "")
             assert segment_id
             assert (manifest_path.parent / f"{segment_id}.mp3").is_file()
+
+
+def test_s07_is_the_safety_accident_lesson_and_old_c02_ir_is_not_public() -> None:
+    root = ROOT / "web" / "public" / "luban-preview"
+    s07 = (root / "s07" / "lesson.html").read_text(encoding="utf-8")
+
+    assert "安全事故等级判定与上报" in s07
+    assert 'examCode="N03"' not in s07
+    assert "流水施工参数与工期" not in s07
+    assert not list((root / "c02").glob("C02_progress_payment*"))

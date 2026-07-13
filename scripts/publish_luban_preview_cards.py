@@ -56,6 +56,7 @@ import json
 import re
 import shutil
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -181,8 +182,8 @@ STATIONS: dict[str, Station] = {
     "s02": _p40("P40_S02"),
     "s05": _p40("P40_S05"),
     "s06": _staged_station("P40_S06", teach_stages=("up", "down")),
-    # S07 唯一使用 P40_S07B 这个最终成品变体，托管槽仍为 canonical s07。
-    "s07": _p40("P40_S07B"),
+    # S07 必须使用安全事故成品；P40_S07B 的 dc runtime 实为 N03 流水施工旧错版。
+    "s07": _p40("P40_S07"),
     "x01": _staged_station("P40_X01", teach_stages=("up", "down")),
     "x02": _staged_station("P40_X02", teach_stages=("up", "down")),
     "x03": _staged_station("P40_X03", teach_stages=("up", "middle", "down")),
@@ -465,6 +466,13 @@ def transform_teach(text: str, pack_id: str) -> str:
             wx_ask = _FULLSCREEN_NEW[_FULLSCREEN_NEW.index("  wxAsk(){"):].replace("__LZ_PACK__", pack_id)
             text = _sub(text, _OPENASK_OLD, wx_ask + "\n" + _OPENASK_NEW, "openask-wx")
         return text
+    # S07 安全事故成品使用另一套已自带双向全屏的母版（multiline `next` 版本）。
+    # 不把旧单行母版的整套控制条再次套入；只接入同一问鲁班桥接。
+    if "const next=!this.state.fs;" in text and "document.body.classList.toggle('luban-fs', next);" in text:
+        if "wxAsk(){" not in text:
+            wx_ask = _FULLSCREEN_NEW[_FULLSCREEN_NEW.index("  wxAsk(){"):].replace("__LZ_PACK__", pack_id)
+            text = _sub(text, _OPENASK_OLD, wx_ask + "\n" + _OPENASK_NEW, "openask-wx")
+        return text
     # 1b. 普通态宽度自适应 + html/body 底色改为卡自身深墨（逐卡提取，fail-closed）
     bg_m = _CARD_BG_RE.search(text)
     if not bg_m:
@@ -479,7 +487,13 @@ def transform_teach(text: str, pack_id: str) -> str:
         raise TransformError("anchor [fs-css-line] not found")
     text = _FS_CSS_LINE_RE.sub(lambda mm: f"{mm.group(1)}s.textContent='{_FS_CSS_NEW}';", text, count=1)
     # 3. componentDidMount 收尾：resize 监听 + 进入即全屏
-    text = _sub(text, "document.head.appendChild(s); }", _DIDMOUNT_APPEND, "didmount-append")
+    text = _sub(
+        text,
+        r"document\.head\.appendChild\(s\);\s*\}",
+        _DIDMOUNT_APPEND,
+        "didmount-append",
+        literal_pattern=False,
+    )
     # 4. state 加 ctrlHidden
     text = _sub(text, _STATE_RE, "fs:false, ctrlHidden:false, muted:false };",
                 "state-ctrlHidden", literal_pattern=False)
@@ -570,6 +584,9 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
         )
         for hosted_name, src_name in st.practice.items()
     }
+    support = _self_host_support_runtime(
+        (src / "support.js").read_text(encoding="utf-8")
+    )
     for hosted_name, text in rendered_teach.items():
         preload_match = _AUDIO_PRELOAD_SRC_RE.search(text)
         if not preload_match:
@@ -580,39 +597,47 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
                 f"published page first audio missing: {hosted_name} -> {preload_path}"
             )
 
-    dst.mkdir(parents=True, exist_ok=True)
-    # 托管目录是 finished 的纯派生产物：删掉上一版多出的分幕/素材，避免 HTML
-    # 虽已更新但仍误命中同名旧音频或旧图片。清理发生在全部页面已成功转换之后。
-    for stale_page in [*dst.glob("lesson*.html"), *dst.glob("practice*.html")]:
-        stale_page.unlink()
-    for sub in ("assets", "audio"):
-        stale_dir = dst / sub
-        if stale_dir.exists():
-            shutil.rmtree(stale_dir)
+    # 先在同一父目录组装完整纯派生树，再整体切换；任何变换/拷贝失败都不碰线上旧树。
+    # 整树替换也会清掉 C02_progress_payment 等历史 IR 预览残留。
+    HOST.mkdir(parents=True, exist_ok=True)
+    staged = Path(tempfile.mkdtemp(prefix=f".{station_id}.staging-", dir=HOST))
     written: list[str] = []
+    try:
+        for hosted_name, text in rendered_teach.items():
+            (staged / hosted_name).write_text(text, encoding="utf-8")
+            written.append(hosted_name)
 
-    for hosted_name, text in rendered_teach.items():
-        (dst / hosted_name).write_text(text, encoding="utf-8")
-        written.append(hosted_name)
+        for hosted_name, text in rendered_practice.items():
+            (staged / hosted_name).write_text(text, encoding="utf-8")
+            written.append(hosted_name)
 
-    for hosted_name, text in rendered_practice.items():
-        (dst / hosted_name).write_text(text, encoding="utf-8")
-        written.append(hosted_name)
+        (staged / "support.js").write_text(support, encoding="utf-8")
+        written.append("support.js")
+        for sub in ("assets", "audio"):
+            if (src / sub).is_dir():
+                shutil.copytree(
+                    src / sub,
+                    staged / sub,
+                    ignore=shutil.ignore_patterns(".DS_Store"),
+                )
+                written.append(sub + "/")
 
-    support = _self_host_support_runtime(
-        (src / "support.js").read_text(encoding="utf-8")
-    )
-    (dst / "support.js").write_text(support, encoding="utf-8")
-    written.append("support.js")
-    for sub in ("assets", "audio"):
-        if (src / sub).is_dir():
-            shutil.copytree(
-                src / sub,
-                dst / sub,
-                dirs_exist_ok=True,
-                ignore=shutil.ignore_patterns(".DS_Store"),
-            )
-            written.append(sub + "/")
+        backup = dst.with_name(f".{dst.name}.previous")
+        if backup.exists():
+            shutil.rmtree(backup)
+        if dst.exists():
+            dst.rename(backup)
+        try:
+            staged.rename(dst)
+        except Exception:
+            if backup.exists() and not dst.exists():
+                backup.rename(dst)
+            raise
+        if backup.exists():
+            shutil.rmtree(backup)
+    finally:
+        if staged.exists():
+            shutil.rmtree(staged)
     return written
 
 

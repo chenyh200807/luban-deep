@@ -19,13 +19,19 @@ _spec.loader.exec_module(_mod)
 def test_registry_has_exact_37_finished_topics_and_canonical_variants() -> None:
     assert len(_mod.STATIONS) == 37
     assert _mod.STATIONS["c02"].pack_dir == "C02"
-    assert _mod.STATIONS["s07"].pack_dir == "P40_S07B"
+    assert _mod.STATIONS["s07"].pack_dir == "P40_S07"
     assert set(_mod.STATIONS["s01"].teach) == {
         "lesson.html", "lesson2.html", "lesson3.html"
     }
     assert set(_mod.STATIONS["s01"].practice) == {
         "practice.html", "practice2.html", "practice3.html"
     }
+
+
+def test_s07_registry_cannot_regress_to_the_n03_runtime() -> None:
+    station = _mod.STATIONS["s07"]
+    assert station.pack_dir == "P40_S07"
+    assert station.teach == {"lesson.html": "P40_S07.teach.dc.html"}
 
 
 def test_rewrite_hrefs_handles_html_and_x_dc_script_links() -> None:
@@ -106,6 +112,53 @@ def test_support_runtime_urls_are_rewritten_to_same_origin_vendor_assets() -> No
 def test_support_runtime_rewrite_fails_closed_when_pinned_anchor_drifts() -> None:
     with pytest.raises(_mod.TransformError, match="support-runtime"):
         _mod._self_host_support_runtime('var REACT_URL = "react-next.js";')
+
+
+def test_support_transform_failure_keeps_existing_hosted_tree(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    finished = tmp_path / "finished"
+    source = finished / "PACK"
+    audio = source / "audio"
+    audio.mkdir(parents=True)
+    (source / "teach.html").write_text(
+        'audioBase="audio/"; audioVersion="old";', encoding="utf-8"
+    )
+    (source / "practice.html").write_text("practice", encoding="utf-8")
+    (source / "support.js").write_text('var REACT_URL = "drifted";', encoding="utf-8")
+    (audio / "manifest.json").write_text(
+        '{"segments":[{"id":"b0"}]}', encoding="utf-8"
+    )
+    (audio / "b0.mp3").write_bytes(b"new-audio")
+
+    host = tmp_path / "host"
+    old = host / "x01"
+    (old / "audio").mkdir(parents=True)
+    (old / "lesson.html").write_text("old-lesson", encoding="utf-8")
+    (old / "support.js").write_text("old-support", encoding="utf-8")
+    (old / "audio" / "b0.mp3").write_bytes(b"old-audio")
+    monkeypatch.setattr(_mod, "HOST", host)
+    monkeypatch.setattr(
+        _mod,
+        "transform_teach",
+        lambda text, _pack: text
+        + '\n<audio data-luban-prewarm preload="auto" src="audio/b0.mp3?v=test" '
+        'aria-hidden="true" style="display:none"></audio>',
+    )
+    monkeypatch.setattr(_mod, "transform_practice", lambda text: text)
+    station = _mod.Station(
+        pack_dir="PACK",
+        teach={"lesson.html": "teach.html"},
+        practice={"practice.html": "practice.html"},
+    )
+
+    with pytest.raises(_mod.TransformError, match="support-runtime"):
+        _mod.publish("x01", station, finished_root=finished)
+
+    assert (old / "lesson.html").read_text(encoding="utf-8") == "old-lesson"
+    assert (old / "support.js").read_text(encoding="utf-8") == "old-support"
+    assert (old / "audio" / "b0.mp3").read_bytes() == b"old-audio"
+    assert not list(host.glob(".x01.staging-*"))
 
 
 def test_derived_html_strips_trailing_whitespace_without_losing_final_newline() -> None:

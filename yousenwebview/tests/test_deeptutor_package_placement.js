@@ -115,6 +115,14 @@ run("deeptutor package should not register internal prototype pages", function (
   );
 });
 
+run("complete stations route should consume card_hosted before navigation", function () {
+  var js = read("packageDeeptutor/pages/luban/stations/stations.js");
+  var wxml = read("packageDeeptutor/pages/luban/stations/stations.wxml");
+  assert(js.indexOf("ds.cardHosted === false") >= 0, "stations handler should block an explicitly unhosted card");
+  assert(wxml.indexOf('data-card-hosted="{{item.card_hosted}}"') >= 0, "stations poster should pass card_hosted authority to handler");
+  assert(wxml.indexOf("微课即将开通") >= 0, "stations poster should label an explicitly unhosted card");
+});
+
 run("legacy host group pages should not register global plugin dependency", function () {
   var appConfig = JSON.parse(read("app.json"));
   assert(

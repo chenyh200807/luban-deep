@@ -52,6 +52,11 @@ Page({
         wx.showToast({ title: "这一站即将开通", icon: "none" });
       return;
     }
+    if (ds.cardHosted === false) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "这一站微课即将开通", icon: "none" });
+      return;
+    }
     if (typeof wx !== "undefined" && wx.navigateTo) {
       wx.navigateTo({
         url: "/packageDeeptutor/pages/luban/station/station?pack_id=" + encodeURIComponent(String(packId)),
