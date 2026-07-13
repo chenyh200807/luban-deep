@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  a{color:#cf8a44;} a:hover{color:#cf4436;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <!-- 图示位 -->
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ═══ 鲁班智考 · C04 模板拆除顺序与条件 · 随堂练（fork 自随堂练母版，只改内容区）═══ */
+class Component extends DCLogic {
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="模板拆除顺序与条件";
+  KNOWLEDGE="模板拆除顺序与条件(C04)。合法拆模=强度+顺序+程序+作业安全四门槛同时满足。侧模:不承重侧模只要表面棱角不因拆模受损即可拆,墙体大模板常温达1N/mm²。底模及支架按构件类型×跨度查百分率表:板≤2m→50%,2~8m→75%,>8m→100%;梁拱壳≤8m→75%,>8m→100%;悬臂一律100%。{2021第9题}6m板C30→75%→22.5N/mm²。快拆:立杆间距≤2m,拆模保留立杆并顶托支承楼板,按等效2m取50%;{2015第10题}8m板C30快拆→15MPa。顺序成对句:后支先拆、先支后拆;先拆非承重、后拆承重。程序:填拆模申请+同条件试块达标+技术负责人批准。作业安全:设警戒线、下方禁人、上下呼应,楼板底模禁无控制大片塌落。预应力底模四条件:张拉后拆+同条件试件达标+技术负责人批准+灌浆≥C30。常见失分:侧底模判据混淆、悬臂取75%、快拆漏保留立杆顶托、顺序写反或口号化、漏技术负责人批准。";
+  moreText="补两个方向：① 同案关联——梁跨＞10m 应编模板专项方案、＞18m 专家论证，长度＞4m 的梁板设计无要求时按 1/1000~3/1000 起拱，常与拆模同案出现；② 把「口头申请全拆预应力顶板」案例完整写一遍三段式：不妥之处 + 理由 + 四前置条件（张拉后拆 / 试件达标 / 技术负责人批准 / 灌浆≥C30）。";
+  // ── 题库 ≥15：侧模 · 底模表 · 换算 · 边界 · 快拆 · 顺序 · 程序 · 安全 · 预应力 · 综合诊断 ──
+  Q=[
+    { tag:"侧模判据·条件维", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"剖面：柱侧模 vs 板底模", figCaption:"左：柱两侧薄板；右：板底带立杆 · 判据你来配", fig:"sect",
+      stem:"梁、柱、墙的侧模板要拆除，拆除条件怎么写才能得分？",
+      model:"不承重侧模：混凝土强度保证其表面、棱角不因拆模受损即可拆除；墙体大模板常温达 1N/mm² 即可拆除。",
+      opts:[
+        { t:"不承重侧模只要混凝土强度保证表面、棱角不因拆模受损即可拆；墙体大模板常温达 1N/mm² 即可拆。", ok:true, fix:"侧模判据两件套：表面棱角不受损 + 大模板 1N/mm²，别沾百分率表。", code:"" },
+        { t:"侧模与底模一样，须按构件类型和跨度查强度百分率表，达到对应百分率后方可拆除。", ok:false, code:"E07", tempt:"底模那张表太出名，顺手就往侧模上套。", lose:"百分率表只管承重的底模及支架；侧模不承重，判据是表面棱角。", fix:"侧模看「表面、棱角不因拆模受损」，墙体大模板 1N/mm²。" },
+        { t:"侧模拆除只要混凝土表面不粘模即可，对棱角没有要求，常温下随时可拆。", ok:false, code:"E02", tempt:"记住了「表面」，忘了「棱角」。", lose:"判据是「表面、棱角」两个词都得有，漏「棱角」就漏采分词。", fix:"写全「表面、棱角不因拆模受损」。" },
+        { t:"所有模板包括底模，混凝土强度达到 1N/mm² 即可拆除，这是拆模的统一强度阈值。", ok:false, code:"E10", tempt:"1N/mm² 这个数好记，容易当万能阈值。", lose:"1N/mm² 只适用于墙体大模板（侧模）；底模按它拆就是重大安全事故级错误。", fix:"1N/mm² 仅限墙体大模板；底模按构件×跨度查表。" }
+      ] },
+    { tag:"底模强度表·条件维", typeHint:"单选 · 选出全表写对的作答", figLabel:"底模强度表（待填）", figCaption:"板 / 梁拱壳 / 悬臂 · 三行分档", fig:"table",
+      stem:"底模及支架拆除时的混凝土强度要求，怎么写才完整、能得分？",
+      model:"按构件类型+跨度：板 ≤2m→50%、2~8m→75%、＞8m→100%；梁拱壳 ≤8m→75%、＞8m→100%；悬臂构件一律 100%。",
+      opts:[
+        { t:"按构件类型加跨度查表：板 ≤2m 取 50%、2~8m 取 75%、＞8m 取 100%；梁拱壳 ≤8m 取 75%、＞8m 取 100%；悬臂构件一律 100%。", ok:true, fix:"构件三类 + 断点 2m/8m + 档值 50/75/100，全表一句写齐。", code:"" },
+        { t:"底模拆除时混凝土达到设计强度即可拆除，不必区分构件类型，统一按设计强度掌握。", ok:false, code:"E02", tempt:"「达到设计强度」听着最保险。", lose:"漏掉构件×跨度分档——2m 内的板 50% 就能拆，全按 100% 是把表整个丢了。", fix:"写全按构件类型+跨度查表的三行档位。" },
+        { t:"板和梁的底模统一按 75% 掌握，只有跨度特别大的构件才需要达到 100%。", ok:false, code:"M08", tempt:"75% 是表里最常见的档，容易当成通用值。", lose:"档值因构件与跨度而异：≤2m 板只要 50%，＞8m 就要 100%，「统一 75%」数字错。", fix:"板 50/75/100 三档、梁拱壳 75/100 两档，断点 2m、8m。" },
+        { t:"悬臂构件的底模在混凝土强度达到设计强度的 75% 时即可拆除，与梁拱壳一致。", ok:false, code:"M08", tempt:"悬臂看着和梁差不多，顺手套 75%。", lose:"悬臂构件无支撑一侧最危险，规范要求一律 100%——2024 年真题错项原型。", fix:"悬臂构件不论跨度，一律达到 100% 方可拆。" }
+      ] },
+    { tag:"强度换算·计算表达维", typeHint:"单选 · 选出可得分的算式与依据", figLabel:"题给：6m 板 · C30", figCaption:"落哪档？最低强度 = ？", fig:"calc",
+      stem:"某现浇楼板跨度 6m、混凝土 C30。拆底模时同条件养护试块强度至少应达到多少？写出可得分的算式与依据。",
+      model:"6m 板落 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块代表值≥22.5 方可拆底模。",
+      opts:[
+        { t:"6m 板属 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块强度≥22.5 方可拆底模。", ok:true, fix:"档位依据 + 算式 + 数值带单位 + 同条件养护，四件齐。", code:"" },
+        { t:"6m 板跨度较大从严掌握，按 100% 控制：混凝土达 30N/mm² 后方可拆除底模。", ok:false, code:"M08", tempt:"「从严总没错」的心态，直接取顶格。", lose:"档位判错：6m 落 2~8m 档取 75%；100% 是＞8m 档，白白压工期还丢档位分。", fix:"6m 属 2~8m 档，30×75%=22.5N/mm²。" },
+        { t:"6m 板取 75%：30×75%=22.5N/mm²，以标准养护试块强度达到 22.5 为准即可拆除。", ok:false, code:"E07", tempt:"数值 22.5 全对，试块口径看着无所谓。", lose:"拆模看「同条件养护」试块——它才代表现场构件真实强度；写「标养」依据词错。", fix:"改成「同条件养护试块强度≥22.5N/mm²」。" },
+        { t:"6m 板不超 8m 属小跨度，按 50% 控制：30×50%=15N/mm² 即可拆除底模。", ok:false, code:"M08", tempt:"记混了断点，把 8m 内全当 50% 档。", lose:"50% 只给 ≤2m 的板；6m 在 2~8m 档要 75%，15 就拆属过早拆除。", fix:"2~8m 档取 75%，最低 22.5N/mm²。" }
+      ] },
+    { tag:"边界辨析·条件维", typeHint:"单选 · 8m 整跨落哪档？", figLabel:"题给：梁 · 跨度恰为 8m", figCaption:"8m 是「≤8m」还是「＞8m」？", fig:"table",
+      stem:"某现浇混凝土梁跨度恰好为 8m。拆底模时强度百分率应取多少？选出依据正确的作答。",
+      model:"梁 8m 属「≤8m」档取 75%；只有跨度超过 8m 才取 100%。",
+      opts:[
+        { t:"梁跨度 8m 属「不超过 8m」档，取设计强度的 75%；超过 8m 才取 100%。", ok:true, fix:"边界值归属：8m 本身在 ≤8m 档内，档位分界记「超过」二字。", code:"" },
+        { t:"8m 是分界值应从严掌握，按「大于 8m」档取 100%，达设计强度后方可拆除。", ok:false, code:"M08", tempt:"边界值「从严」听着稳妥。", lose:"表的口径是「＞8m 才 100%」，8m 本身仍在 ≤8m 档，从严反而档位错。", fix:"8m 取 75%；写明「超过 8m 才 100%」。" },
+        { t:"梁按板的档位掌握：8m 落 2~8m 档取 75%，依据是板的跨度分档表。", ok:false, code:"E07", tempt:"数值 75% 碰对了，依据却引错行。", lose:"梁拱壳只有 8m 一个断点，没有 2m 档；引「板 2~8m」是构件行张冠李戴。", fix:"写「梁拱壳 ≤8m→75%」，别引板的档。" },
+        { t:"8m 悬挑梁与普通梁一致，取 75% 即可拆除底模，悬臂与否不影响档位。", ok:false, code:"M08", tempt:"都叫梁，容易忽略悬臂特殊。", lose:"悬臂构件一律 100%，与跨度无关；「悬臂 75%」是 2024 真题经典错项。", fix:"悬臂一律 100%；普通梁 8m 才是 75%。" }
+      ] },
+    { tag:"全表辨析·条件维", typeHint:"单选 · 选出「已达到底模拆除要求」的构件", figLabel:"四个构件 · 谁能拆？", figCaption:"逐项对表卡阈值", fig:"table",
+      stem:"下列构件同条件试块强度均已测得，其中已达到底模拆除要求的是哪一项？",
+      model:"逐项查表：8m 拱 ≤8m 档取 75%，达 75% 即满足；3m 板需 75%（40% 不够）；10m 梁需 100%（75% 不够）；悬臂梁需 100%（75% 不够）。",
+      opts:[
+        { t:"跨度 8m 的拱，混凝土强度已达设计强度的 75%——拱 ≤8m 档要求 75%，满足可拆。", ok:true, fix:"8m 在 ≤8m 档内取 75%，逐项对表这项恰好卡线达标。", code:"" },
+        { t:"跨度 3m 的板，混凝土强度已达设计强度的 40%——小跨度板要求低，满足可拆。", ok:false, code:"M08", tempt:"3m 听着小，以为 40% 差不多够。", lose:"3m 板落 2~8m 档要 75%；50% 档只给 ≤2m 的板，40% 连 50% 都不到。", fix:"3m 板需达 75% 方可拆底模。" },
+        { t:"跨度 10m 的梁，混凝土强度已达设计强度的 75%——梁按 75% 掌握，满足可拆。", ok:false, code:"M08", tempt:"「梁取 75%」记了半句，忘了跨度条件。", lose:"10m＞8m，梁要 100%；75% 只适用于 ≤8m 的梁。", fix:"＞8m 的梁需达 100% 方可拆。" },
+        { t:"悬臂梁，混凝土强度已达设计强度的 75%——悬臂构件与梁一致按 75% 掌握，满足可拆。", ok:false, code:"M08", tempt:"悬臂梁也带「梁」字，顺手套 75%。", lose:"悬臂构件一律 100%，75% 不满足——这是真题里最常埋的错项。", fix:"悬臂构件一律 100%。" }
+      ] },
+    { tag:"快拆判定链·计算表达维", typeHint:"单选 · 选出可得分的判定链", figLabel:"题给：8m 楼板 · C30 · 快拆立杆 2m", figCaption:"保留立杆顶托 · 最低拆模强度 = ？", fig:"quick",
+      stem:"8m 跨现浇楼板 C30，采用快拆支架体系，立杆间距 2m，拆模时保留立杆并顶托支承楼板。拆模最低强度是多少？写出可得分的判定链。",
+      model:"快拆保留立杆顶托、立杆≤2m → 按等效 2m 小跨取 50% → 30×50%=15MPa，试块≥15 方可拆。",
+      opts:[
+        { t:"保留立杆顶托、立杆间距≤2m，按等效 2m 小跨取 50%：30×50%=15MPa 即可拆模。", ok:true, fix:"先判快拆切跨成立，再取 50%、代入算出 15，判定链完整。", code:"" },
+        { t:"楼板跨度 8m 超过 8m 档界限，按 100% 控制：混凝土达 30MPa 后方可拆模。", ok:false, code:"M10", tempt:"盯着「8m 大跨」，没理会快拆条件。", lose:"题干明给保留立杆顶托、立杆 2m——快拆切跨成立，按原跨取值是用常识替代规范。", fix:"快拆成立按等效 2m 取 50%→15MPa。" },
+        { t:"8m 楼板落 2~8m 档取 75%：30×75%=22.5MPa 后方可拆模。", ok:false, code:"M08", tempt:"顺手把 8m 塞进 2~8m 档。", lose:"档位与快拆两处都错：8m 板不走 75%，且快拆成立后应按 2m 档 50%。", fix:"快拆等效 2m → 50% → 15MPa。" },
+        { t:"快拆体系按 2m 跨度计算取 50%，混凝土达 15MPa 即可把模板连同立杆一次性全部拆除。", ok:false, code:"M09", tempt:"数值 15 全对，就差条件那半句。", lose:"「按 2m 算」的前提正是保留立杆顶托——连立杆一起全拆，前提就没了，条件提取不完整。", fix:"写明「拆模时保留立杆并顶托支承楼板」，只拆模不拆撑。" }
+      ] },
+    { tag:"快拆纠错·条件维", typeHint:"单选 · 判断并改正", figLabel:"现场做法（待判断）", figCaption:"快拆体系 · 立杆全部拆除只剩模板？", fig:"quick",
+      stem:"某工程采用快拆支架体系（按 50% 拆模），现场拆模时把立杆连同顶托一次性全部拆除。判断该做法并改正。",
+      model:"不妥。快拆体系拆模时应保留立杆并顶托支承楼板，立杆间距不应大于 2m；立杆全拆则等效小跨不成立，强度须按原跨度档判定。",
+      opts:[
+        { t:"不妥。快拆拆模时应保留立杆并顶托支承楼板、立杆间距不大于 2m；立杆全拆则须按原跨度档判强度。", ok:true, fix:"三段式：判不妥 + 引「保留立杆顶托」条文 + 点明全拆的后果。", code:"" },
+        { t:"妥当。模板已按 50% 强度要求拆除，立杆作为周转材料应及时拆除退场，加快周转。", ok:false, code:"M10", tempt:"「周转材料早退场」是现场常识。", lose:"50% 的前提就是立杆顶托还在；用施工常识替代规范条文。", fix:"保留立杆并顶托支承楼板，方可维持 50% 取值。" },
+        { t:"不妥。快拆体系立杆间距不应大于 3m，本工程立杆布置过密，应加大间距后再拆。", ok:false, code:"M08", tempt:"结论「不妥」碰对了，数字却记错。", lose:"规范是立杆间距不应大于 2m，不是 3m；纠错题理由错照样丢分。", fix:"立杆间距≤2m + 保留立杆顶托。" },
+        { t:"不妥。拆除应严格按照专项施工方案执行，方案怎么写就怎么拆，确保程序合规。", ok:false, code:"E04", tempt:"「按方案拆」万能句看着稳。", lose:"口号化空表达，没给出任何可判分的规范条件。", fix:"写具体：保留立杆并顶托支承楼板、立杆≤2m。" }
+      ] },
+    { tag:"拆除顺序·程序维", typeHint:"单选 · 选出能得分的顺序表述", figLabel:"剖面：侧模 · 后支杆 · 先支杆", figCaption:"谁先走谁后走？", fig:"order",
+      stem:"模板拆除顺序的原则怎么写才完整、能得分？",
+      model:"后支先拆、先支后拆；先拆除非承重部分、后拆除承重部分（成对句写全）。",
+      opts:[
+        { t:"按「后支先拆、先支后拆；先拆非承重部分、后拆承重部分」的顺序进行拆除。", ok:true, fix:"两组成对句一句不落，这就是顺序门槛的满分句。", code:"" },
+        { t:"按「先支先拆、后支后拆；先拆承重部分、后拆非承重部分」的顺序进行拆除。", ok:false, code:"E06", tempt:"「先来先走」符合直觉排队逻辑。", lose:"整句写反：先支的杆是根基要最后拆，承重部分必须后拆，反着写是 0 分句。", fix:"后支先拆、先支后拆；非承重先拆、承重后拆。" },
+        { t:"模板拆除顺序按专项施工方案确定，自上而下逐层拆除即可，无固定口诀。", ok:false, code:"E04", tempt:"「按方案、自上而下」看着四平八稳。", lose:"口号化空表达，没写出可判分的成对句，阅卷给不了顺序分。", fix:"写出成对句：后支先拆、先支后拆；非承重先、承重后。" },
+        { t:"按「后支先拆、先支后拆」的顺序拆除模板，把支设先后关系交代清楚即可。", ok:false, code:"E02", tempt:"记住了前半句，觉得意思到了。", lose:"成对句缺了「先拆非承重、后拆承重」半句，采分点漏一半。", fix:"补上「先拆非承重部分、后拆承重部分」。" }
+      ] },
+    { tag:"顺序纠错·程序维", typeHint:"单选 · 判断并改正", figLabel:"现场做法（待判断）", figCaption:"先拆承重支架 · 后拆侧模？", fig:"order",
+      stem:"某现场拆模时，先将梁底承重支架和底模拆除，最后拆除梁侧模。判断该做法并改正。",
+      model:"不妥。违反「后支先拆、先支后拆；先拆非承重、后拆承重」——应先拆不承重的侧模，承重底模及支架最后拆。",
+      opts:[
+        { t:"不妥。违反「先拆非承重、后拆承重」原则——应先拆不承重侧模，承重底模及支架最后拆除。", ok:true, fix:"判不妥 + 引成对句 + 给正确顺序，三段齐。", code:"" },
+        { t:"妥当。承重支架受力最大，先拆除可尽早释放荷载，降低支架系统的安全风险。", ok:false, code:"M10", tempt:"「先卸大荷载」听着像力学常识。", lose:"恰恰相反：承重体系是最后防线，先拆等于抽掉拐杖，属违章拆除。", fix:"承重部分必须后拆，侧模等非承重先拆。" },
+        { t:"不妥。应从跨中向两端对称拆除承重支架，再拆侧模，保证受力均衡不偏载。", ok:false, code:"E10", tempt:"「对称拆、防偏载」看着很专业。", lose:"引错了规范：本考点的顺序判据是成对句，不是对称拆除；且仍把承重排在非承重前。", fix:"按「先拆非承重、后拆承重」改正顺序。" },
+        { t:"不妥。该拆除顺序不符合要求，应严格按照经审批的模板专项方案顺序执行拆除。", ok:false, code:"E04", tempt:"判断对了，理由想省事。", lose:"没写出成对句，改正内容空心化，只能拿判断分。", fix:"补成对句：后支先拆、先支后拆；非承重先、承重后。" }
+      ] },
+    { tag:"拆模程序·主体+程序维", typeHint:"单选 · 选出程序完整的作答", figLabel:"程序链：申请 · 试块 · 批准", figCaption:"三步走完才能拆", fig:"pipe",
+      stem:"模板拆除前应履行什么程序？怎么写才完整、能得分？",
+      model:"拆模前须填拆模申请，同条件养护试块强度达到规定要求时，由技术负责人批准后方可拆除。",
+      opts:[
+        { t:"填拆模申请，同条件养护试块强度达到规定要求时，经技术负责人批准后方可拆除。", ok:true, fix:"三步链：填申请 → 试块达标 → 技术负责人批准，主体与程序都齐。", code:"" },
+        { t:"由现场生产经理向监理工程师口头申请，监理同意后即可组织拆除模板。", ok:false, code:"E06", tempt:"现场确实常见「跟监理打声招呼」。", lose:"程序三处错：须书面填申请、批准主体是技术负责人、还得试块达标——2016 真题原坑。", fix:"填拆模申请 + 试块达标 + 技术负责人批准。" },
+        { t:"同条件养护试块强度达到规定要求后即可直接拆除模板，无须再履行审批手续。", ok:false, code:"E02", tempt:"「强度是硬指标，达标即拆」很符合直觉。", lose:"漏掉填申请和技术负责人批准两个程序采分点，强度只是门槛之一。", fix:"补「填拆模申请、经技术负责人批准」。" },
+        { t:"填写拆模申请并经项目经理批准后即可拆除，试块强度作为拆后备查资料留存。", ok:false, code:"E07", tempt:"项目经理是现场最大的官，批准像他的活。", lose:"批准主体错（应为技术负责人），且试块达标是拆前前提不是拆后备查。", fix:"技术负责人批准，且试块达标在前。" }
+      ] },
+    { tag:"批准主体·主体维", typeHint:"单选 · 谁有权批准拆模？", figLabel:"批准章 · 该盖谁的？", figCaption:"申请单在等一个签字", fig:"pipe",
+      stem:"拆模申请填好、同条件试块也达标了。批准拆模的主体是谁？选出主体定位正确的作答。",
+      model:"拆模批准主体是（项目）技术负责人，不是生产经理、项目经理，也不是监理工程师。",
+      opts:[
+        { t:"由技术负责人批准——生产经理、项目经理或监理同意都不能替代技术负责人的批准。", ok:true, fix:"主体句 + 排除易混主体，主体定位题这样写最稳。", code:"" },
+        { t:"由监理工程师批准——拆模属质量控制关键环节，监理签认后施工单位方可实施。", ok:false, code:"E07", tempt:"平时啥都要报监理，惯性迁移。", lose:"监理可以监督，但拆模批准主体是施工单位技术负责人，主体错位。", fix:"写「经技术负责人批准」。" },
+        { t:"由现场生产经理批准——拆模属生产组织事项，由分管生产的负责人决定即可。", ok:false, code:"E07", tempt:"拆模看着就是个生产安排。", lose:"生产经理正是 2016 真题里的错误主体；拆模是技术判断，归技术负责人。", fix:"批准主体改为技术负责人。" },
+        { t:"由建设单位代表批准——模板拆除影响结构安全，应由建设方最终把关确认。", ok:false, code:"E07", tempt:"「甲方拍板」听着最有权威。", lose:"建设单位不承担施工技术批准职责，主体张冠李戴。", fix:"施工单位技术负责人批准。" }
+      ] },
+    { tag:"作业安全·后果维", typeHint:"单选 · 选出安全措施写全的作答", figLabel:"现场：警戒线 · 人员 · 底模", figCaption:"拆模作业区该是什么样？", fig:"safe",
+      stem:"模板拆除作业时的安全控制要点怎么写才完整、能得分？",
+      model:"拆模时下方不得有人、设警戒线；模板向下传递须上下呼应、协调一致；楼板底模不得采取无控制大片塌落的拆除方法。",
+      opts:[
+        { t:"下方不得有人、设警戒线；模板向下传递上下呼应；楼板底模不得无控制大片塌落。", ok:true, fix:"警戒线 + 禁人 + 上下呼应 + 禁大片塌落，四个可判分动作全齐。", code:"" },
+        { t:"拆模作业要提高安全意识、注意安全文明施工，作业人员规范佩戴安全帽即可。", ok:false, code:"E04", tempt:"「注意安全」怎么写都不算错。", lose:"口号化表达，没有一个可判分的具体动作，阅卷一分给不出。", fix:"写具体动作：设警戒线、下方禁人、上下呼应、禁大片塌落。" },
+        { t:"楼板底模面积大，可整片松开让其大片自然塌落，再统一清运，效率高又减少高处作业。", ok:false, code:"E10", tempt:"「少爬高、快清运」像是安全优化。", lose:"规范明令楼板底模不得采取无控制大片塌落的方法，这是禁止性条款。", fix:"底模应有控制地拆除，禁大片塌落。" },
+        { t:"拆模区域设置警戒线即可满足要求，线内作业人员照常通行，无须其他专门措施。", ok:false, code:"E02", tempt:"设了警戒线，感觉安全到位了。", lose:"漏「下方禁人」「上下呼应」「禁大片塌落」——警戒线只是四条之一。", fix:"补齐下方禁人、上下呼应、禁大片塌落。" }
+      ] },
+    { tag:"预应力条件·条件维", typeHint:"单选 · 选出四条件写全的作答", figLabel:"后张法梁 · 拆底模前", figCaption:"还差几道条件？", fig:"ps",
+      stem:"后张法预应力混凝土梁的底模拆除，应满足哪些条件？选出写全的作答。",
+      model:"①预应力张拉后方可拆除底模；②混凝土强度符合同条件养护试件要求；③经技术负责人批准；④有孔道灌浆的，灌浆强度不应低于 C30。",
+      opts:[
+        { t:"张拉后方可拆底模；同条件试件强度达标；经技术负责人批准；有孔道灌浆的灌浆强度不低于 C30。", ok:true, fix:"预应力四条件逐项编号写全，缺一条丢一条的分。", code:"" },
+        { t:"同条件养护试件强度达到设计要求后即可拆除底模，预应力构件与普通构件一致掌握。", ok:false, code:"M09", tempt:"「试件达标」是普通构件的肌肉记忆。", lose:"预应力底模必须张拉后才能拆——试件达标≠可拆，这正是 2016 真题的核心坑。", fix:"补「张拉后拆」＋批准＋灌浆≥C30。" },
+        { t:"预应力底模须在张拉完成且同条件试件达标后拆除，报监理工程师同意即可实施。", ok:false, code:"E02", tempt:"记住了张拉这条大的，后面想收尾。", lose:"漏「技术负责人批准」和「灌浆≥C30」两条，且批准主体写错。", fix:"补「技术负责人批准 + 灌浆强度≥C30」。" },
+        { t:"为避免张拉时底模约束梁体变形，应在预应力张拉之前先行拆除底模及支架。", ok:false, code:"E10", tempt:"「张拉要自由变形」听着有物理道理。", lose:"张拉前梁体不能自承重，先拆底模等于让没上筋的梁裸奔，规范适用完全颠倒。", fix:"底模必须在张拉之后拆除。" }
+      ] },
+    { tag:"预应力纠错·程序维", typeHint:"单选 · 判断并改正（真题场景）", figLabel:"案例现场（待判断）", figCaption:"口头申请 · 监理同意 · 顶板全拆", fig:"pipe",
+      stem:"某地下室顶板设后张法预应力梁。同条件试件达标后，生产经理向监理口头申请拆模，监理同意后将顶板模板及支架全部拆除。判断并写出应满足的前置条件。",
+      model:"不正确。前置条件四条：①张拉后拆底模；②同条件试件强度达标；③填拆模申请、经技术负责人批准；④有孔道灌浆的灌浆强度≥C30。",
+      opts:[
+        { t:"不正确。应满足：张拉后拆底模；同条件试件达标；填拆模申请经技术负责人批准；灌浆强度≥C30。", ok:true, fix:"判断 + 四前置条件枚举，与真题标准答案逐条对齐。", code:"" },
+        { t:"正确。同条件试件强度已达到设计要求，说明结构已具备强度条件，拆除无碍。", ok:false, code:"E05", tempt:"抓住「试件达标」这一条就下结论。", lose:"审题只看了一个条件：漏判张拉未做、口头申请、主体错三处不妥。", fix:"先判不正确，再逐条补四前置条件。" },
+        { t:"不正确。问题在于口头申请不规范，改为书面申请并经监理签认后即可全部拆除。", ok:false, code:"E02", tempt:"抓到「口头申请」一处错，以为就这一处。", lose:"漏诊「未张拉就拆」这个最重的坑，批准主体也仍写错。", fix:"张拉后拆 + 技术负责人批准 + 灌浆≥C30 都要补。" },
+        { t:"不正确。顶板模板可以先拆，但支架应保留到预应力张拉完成后再拆除。", ok:false, code:"E10", tempt:"看着像快拆的「拆模不拆撑」思路。", lose:"预应力底模（含模板）整体须张拉后拆，不是只留支架；把快拆逻辑错搬到预应力。", fix:"底模及支架均须张拉后、按四条件拆除。" }
+      ] },
+    { tag:"综合判断·条件维", typeHint:"单选 · 判断并改正", figLabel:"三重门槛 · 只过了一道？", figCaption:"试块 ✓ 之后还有几道门？", fig:"gate",
+      stem:"某现场规定：「同条件试块强度达标后，各部位模板即可安排拆除。」判断该规定并改正。",
+      model:"不妥。合法拆模须同时满足强度（按构件×跨度查表）、顺序（成对句）、程序（申请+试块+技术负责人批准）与作业安全四道门槛，试块达标仅是强度门槛的一部分。",
+      opts:[
+        { t:"不妥。拆模须同时满足强度、顺序、程序与作业安全四道门槛，试块达标只是其中一环。", ok:true, fix:"用「四门槛」框架判题，把强度之外的三道门都点到。", code:"" },
+        { t:"妥当。试块强度是拆模的核心指标，达标说明混凝土已硬化，具备拆除条件。", ok:false, code:"E05", tempt:"强度确实是最硬的指标。", lose:"把单一条件当充分条件：顺序、程序、安全三道门全被跳过。", fix:"补顺序成对句、程序三步、作业安全要求。" },
+        { t:"不妥。还应补充拆除顺序要求：后支先拆、先支后拆，非承重先拆、承重后拆。", ok:false, code:"E02", tempt:"想起了顺序门槛，补得也对。", lose:"只补了一道门：程序（申请+技术负责人批准）和作业安全仍然漏。", fix:"四道门都写：强度、顺序、程序、安全。" },
+        { t:"不妥。试块达标后还须报监理工程师同意，监理签认后各部位即可同时拆除。", ok:false, code:"E07", tempt:"报监理像是那道缺的程序。", lose:"批准主体错（技术负责人），「同时拆除」还违反顺序门槛。", fix:"技术负责人批准 + 按成对句顺序分批拆。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"三句话 · 几处失分？", fig:"sheet",
+      stem:"某学生作答拆模条件题：①所有模板达 1N/mm² 即可拆；②顺序按施工方案执行；③经监理同意后拆除。选出最准确的诊断与补写。",
+      model:"三处全失分：①1N/mm² 仅限墙体大模板侧模，底模须按构件×跨度查表；②顺序须写成对句「后支先拆、先支后拆；非承重先、承重后」；③程序须填申请+试块达标+技术负责人批准。",
+      opts:[
+        { t:"三处都失分：1N/mm² 仅限墙体大模板，底模须查表；顺序须写成对句；程序须技术负责人批准。", ok:true, fix:"逐句诊断、逐句补写——把三句空话换成三句采分句，这就是会写答案。", code:"" },
+        { t:"作答基本正确：三句话覆盖了强度、顺序、程序三个方面，结构完整可以给分。", ok:false, code:"E07", tempt:"三句话确实每句沾了一个门槛。", lose:"沾边≠采分：数值张冠李戴、顺序口号化、主体错位，三句全是失分句。", fix:"逐句替换为查表句、成对句、三步程序句。" },
+        { t:"只有第①句有问题，把 1N/mm² 改为「达到设计强度的 75%」即可，②③无须修改。", ok:false, code:"M08", tempt:"抓到 1N/mm² 眼熟的错，想一改了之。", lose:"「统一 75%」还是数字错（应按构件×跨度分档），且②口号化、③主体错都没诊出来。", fix:"①按构件×跨度查表；②补成对句；③技术负责人批准。" },
+        { t:"第③句主体错应改为技术负责人，第①②句表述虽简略但方向正确，不影响得分。", ok:false, code:"E02", tempt:"诊出了主体错，觉得其余「意思到了」。", lose:"漏诊①的通用阈值错误和②的口号化——阅卷不给「方向分」，只认采分词。", fix:"三句都要重写：查表句 + 成对句 + 程序句。" }
+      ] },
+    { tag:"侧底混淆·条件维", typeHint:"单选 · 判断并改正", figLabel:"现场做法（待判断）", figCaption:"墙体大模板 · 等 75% 再拆？", fig:"sect",
+      stem:"某墙体采用大模板施工，常温下混凝土强度已达 1.2N/mm²，现场却要求等强度达设计值 75% 后才拆墙模。判断该要求并改正。",
+      model:"要求不当。墙体大模板属不承重侧模，常温达 1N/mm² 即可拆除；75% 百分率表适用于承重底模及支架，套用到侧模属判据混淆。",
+      opts:[
+        { t:"不当。墙体大模板属不承重侧模，常温达 1N/mm² 即可拆；75% 是底模的档位，不适用于侧模。", ok:true, fix:"点明构件归类（侧模）→ 引对应判据（1N/mm²）→ 指出档位表用错对象。", code:"" },
+        { t:"妥当。从严控制拆模强度总是安全的，等 75% 再拆墙模没有任何问题。", ok:false, code:"E07", tempt:"「从严无错」是最顺手的和稀泥。", lose:"考的是判据归属：侧模用底模判据就是概念混淆，从严不能掩盖判据错。", fix:"侧模按 1N/mm²/棱角判据，不套百分率表。" },
+        { t:"不当。墙模拆除与强度无关，模板周转需要时即可拆除，1.2N/mm² 的数据无意义。", ok:false, code:"E10", tempt:"既然不用查表，干脆觉得强度不设限。", lose:"侧模仍有强度门槛（保证表面棱角不受损、大模板 1N/mm²），说「无关」违反条文。", fix:"写「常温达 1N/mm² 即可拆」并保表面棱角。" },
+        { t:"不当。墙体大模板常温达 2.5N/mm² 方可拆除，1.2N/mm² 尚未达到要求。", ok:false, code:"M08", tempt:"方向判对了，阈值数字记岔了。", lose:"规范值是 1N/mm²，1.2 已满足；编数字比不写更危险。", fix:"阈值写 1N/mm²，本例已可拆。" }
+      ] }
+  ];
+  // ── 错因码库（deeptutor/contracts/error_codes 已注册 E/M 码，勿自造）──
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"四门槛逐项写：查表句、成对句、程序三步、安全四动作，缺一扣一。"},
+    E04:{label:"口号化空表达",advice:"「按方案拆/注意安全」不给分，替换成可判分的规范条件与具体动作。"},
+    E05:{label:"审题错误",advice:"别抓单一条件下结论：试块达标只是强度门槛之一，先数题干给了几道门。"},
+    E06:{label:"程序顺序错误",advice:"程序三步：填申请、试块达标、技术负责人批准；顺序成对句别写反。"},
+    E07:{label:"概念混淆",advice:"侧模看棱角、底模查表；批准主体是技术负责人；同条件≠标养。"},
+    E10:{label:"规范适用错误",advice:"禁大片塌落是禁止性条款；预应力底模张拉后拆；别拿别处规范硬套。"},
+    M08:{label:"规范数字混淆",advice:"档值 50/75/100、断点 2m/8m、悬臂一律 100%、大模板 1N/mm²、立杆≤2m。"},
+    M09:{label:"条件提取不完整",advice:"快拆先看「保留立杆顶托」，预应力先看「张拉了没」，再定档位。"},
+    M10:{label:"用常识替代规范",advice:"周转快、从严稳、先卸荷都不是依据——判定只认规范条文。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+  }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="sect"){ figH=112;
+      els.push(D({x:46,top:6,w:34,h:74,bg:"#cbc7ba",r:2}));
+      els.push(D({x:36,top:6,w:9,h:74,bg:"#2f6db0",r:1}));
+      els.push(D({x:81,top:6,w:9,h:74,bg:"#2f6db0",r:1}));
+      els.push(D({x:14,top:88,w:110,h:16,fg:"#2f6db0",fs:10,lab:"侧模 · 贴柱墙两侧"}));
+      els.push(D({x:180,top:22,w:136,h:14,bg:"#cbc7ba",r:2}));
+      els.push(D({x:180,top:36,w:136,h:6,bg:"#46627e",r:1}));
+      els.push(D({x:202,top:42,w:7,h:36,bg:"#6b675c",r:0}));
+      els.push(D({x:250,top:42,w:7,h:36,bg:"#6b675c",r:0}));
+      els.push(D({x:296,top:42,w:7,h:36,bg:"#6b675c",r:0}));
+      els.push(D({x:186,top:88,w:130,h:16,fg:"#cf4436",fs:10,lab:"底模 · 板底带立杆"})); }
+    else if(type==="table"){ figH=118;
+      els.push(D({x:2,top:10,w:38,h:18,fg:"#23282b",fs:10,ta:"right",jc:"flex-end",lab:"板"}));
+      els.push(D({x:48,top:8,w:70,h:22,bg:"#dff0e6",r:0,fg:"#1f6b45",fs:8.5,lab:"≤2m · 50"}));
+      els.push(D({x:119,top:8,w:104,h:22,bg:"#fdeeda",r:0,fg:"#a3661f",fs:8.5,lab:"2~8m · 75"}));
+      els.push(D({x:224,top:8,w:96,h:22,bg:"#fadcd6",r:0,fg:"#a3271c",fs:8.5,lab:"＞8m · 100"}));
+      els.push(D({x:2,top:48,w:38,h:18,fg:"#23282b",fs:9,ta:"right",jc:"flex-end",lab:"梁拱壳"}));
+      els.push(D({x:48,top:46,w:174,h:22,bg:"#fdeeda",r:0,fg:"#a3661f",fs:8.5,lab:"≤8m · 75"}));
+      els.push(D({x:224,top:46,w:96,h:22,bg:"#fadcd6",r:0,fg:"#a3271c",fs:8.5,lab:"＞8m · 100"}));
+      els.push(D({x:2,top:86,w:38,h:18,fg:"#23282b",fs:10,ta:"right",jc:"flex-end",lab:"悬臂"}));
+      els.push(D({x:48,top:84,w:272,h:22,bg:"#fadcd6",r:0,fg:"#a3271c",fs:8.5,lab:"任意跨度 · 100"})); }
+    else if(type==="calc"){ figH=96;
+      els.push(D({x:10,top:8,w:88,h:34,bd:"1.5px solid #2f6db0",r:8,fg:"#2f6db0",fs:12,lab:"6m 板"}));
+      els.push(D({x:118,top:8,w:74,h:34,bd:"1.5px solid #cf8a44",r:8,fg:"#cf8a44",fs:12,lab:"C30"}));
+      els.push(D({x:212,top:8,w:108,h:34,bd:"1.5px dashed #a98a55",r:8,fg:"#a98a55",fs:12,lab:"档位 ? %"}));
+      els.push(D({x:10,top:56,w:310,h:26,bg:"#f1ece0",r:8,fg:"#5c6469",fs:11,lab:"同条件试块 ≥ 30 × ?% = ? N/mm²"})); }
+    else if(type==="quick"){ figH=104;
+      els.push(D({x:20,top:22,w:290,h:12,bg:"#cbc7ba",r:2}));
+      els.push(D({x:20,top:34,w:290,h:5,bg:"#46627e",r:1}));
+      els.push(D({x:22,top:39,w:5,h:38,bg:"#6b675c",r:0}));
+      els.push(D({x:303,top:39,w:5,h:38,bg:"#6b675c",r:0}));
+      [90,160,230].forEach(x=>{ els.push(D({x:x-4,top:39,w:13,h:4,bg:"#cf8a44",r:1})); els.push(D({x:x,top:43,w:5,h:34,bg:"#6b675c",r:0})); });
+      els.push(D({x:20,top:0,w:290,h:16,fg:"#cf4436",fs:10,lab:"原跨 8m"}));
+      els.push(D({x:20,top:84,w:290,h:16,fg:"#cf8a44",fs:9.5,lab:"橙帽 = 顶托 · 保留的立杆把大跨切小"})); }
+    else if(type==="order"){ figH=110;
+      els.push(D({x:20,top:10,w:290,h:12,bg:"#b7b3a6",r:2}));
+      els.push(D({x:145,top:22,w:46,h:16,bg:"#a8a396",r:0}));
+      els.push(D({x:137,top:22,w:7,h:16,bg:"#2f6db0",r:1}));
+      els.push(D({x:192,top:22,w:7,h:16,bg:"#2f6db0",r:1}));
+      els.push(D({x:60,top:24,w:7,h:56,bg:"#8b9398",r:0}));
+      els.push(D({x:100,top:24,w:7,h:56,bg:"#8b9398",r:0}));
+      els.push(D({x:235,top:24,w:7,h:56,bg:"#8b9398",r:0}));
+      els.push(D({x:275,top:24,w:7,h:56,bg:"#8b9398",r:0}));
+      els.push(D({x:155,top:38,w:8,h:42,bg:"#5c6469",r:0}));
+      els.push(D({x:178,top:38,w:8,h:42,bg:"#5c6469",r:0}));
+      els.push(D({x:14,top:88,w:306,h:16,fg:"#5c6469",fs:9,lab:"蓝=侧模 · 浅灰=后支的杆 · 深灰=先支的杆"})); }
+    else if(type==="pipe"){ figH=100;
+      els.push(D({x:14,top:6,w:46,h:56,bg:"#fff",bd:"1.5px solid #cf4436",r:4,fg:"#cf4436",fs:9,lab:"申请单"}));
+      els.push(D({x:64,top:32,w:56,h:2,bg:"#bdb8a8",r:0}));
+      els.push(D({x:124,top:14,w:40,h:40,bg:"#9aa0a3",r:6,fg:"#eaffe9",fs:16,lab:"✓"}));
+      els.push(D({x:168,top:32,w:56,h:2,bg:"#bdb8a8",r:0}));
+      els.push(D({x:228,top:8,w:52,h:52,bd:"3px solid #cf4436",r:26,fg:"#cf4436",fs:11,lab:"批 ?"}));
+      els.push(D({x:8,top:70,w:70,h:14,fg:"#5c6469",fs:8.5,lab:"填拆模申请"}));
+      els.push(D({x:106,top:70,w:80,h:14,fg:"#5c6469",fs:8.5,lab:"试块达标"}));
+      els.push(D({x:214,top:70,w:84,h:14,fg:"#cf4436",fs:8.5,lab:"谁来批准？"})); }
+    else if(type==="safe"){ figH=104;
+      els.push(D({x:16,top:24,w:5,h:34,bg:"#cf4436",r:1}));
+      els.push(D({x:130,top:24,w:5,h:34,bg:"#cf4436",r:1}));
+      els.push(D({x:21,top:32,w:109,h:8,bg:"repeating-linear-gradient(45deg,#cf4436 0 8px,#f4f3ec 8px 16px)",bd:"1px solid #cf4436",r:0}));
+      els.push(D({x:168,top:20,w:13,h:13,bg:"#5c6469",r:7}));
+      els.push(D({x:166,top:34,w:17,h:22,bg:"#5c6469",r:4}));
+      els.push(D({x:222,top:34,w:72,h:12,bg:"#8f8d84",r:2}));
+      els.push(D({x:246,top:16,w:24,h:20,fg:"#cf4436",fs:22,lab:"✕"}));
+      els.push(D({x:6,top:66,w:150,h:14,fg:"#5c6469",fs:8.5,lab:"警戒线 · 线外站人"}));
+      els.push(D({x:198,top:66,w:122,h:14,fg:"#cf4436",fs:8.5,lab:"大片塌落 · 禁止"})); }
+    else if(type==="ps"){ figH=104;
+      els.push(D({x:24,top:14,w:230,h:26,bg:"#cbc7ba",r:2}));
+      els.push(D({x:40,top:24,w:198,h:5,bg:"#5c6469",r:2}));
+      els.push(D({x:18,top:16,w:8,h:22,bg:"#cf4436",r:1}));
+      els.push(D({x:252,top:16,w:8,h:22,bg:"#cf4436",r:1}));
+      els.push(D({x:264,top:14,w:24,h:26,bg:"#cf8a44",r:3,fg:"#fff",fs:9,lab:"拉"}));
+      [0,1,2,3].forEach(i=>{ els.push(D({x:24+i*76,top:56,w:66,h:28,bd:"1.5px dashed #a98a55",r:8,fg:"#a98a55",fs:12,lab:"条件"+["①","②","③","④"][i]})); }); }
+    else if(type==="gate"){ figH=96;
+      els.push(D({x:8,top:12,w:44,h:44,bg:"#9aa0a3",r:6,fg:"#eaffe9",fs:16,lab:"✓"}));
+      els.push(D({x:10,top:62,w:44,h:14,fg:"#5c6469",fs:8.5,lab:"试块达标"}));
+      [0,1,2,3].forEach(i=>{ els.push(D({x:74+i*62,top:8,w:54,h:52,bd:"1.5px dashed #a98a55",r:8,fg:"#a98a55",fs:15,lab:"?"})); });
+      els.push(D({x:74,top:66,w:240,h:14,fg:"#a98a55",fs:8.5,lab:"后面还有几道门？"})); }
+    else if(type==="sheet"){ figH=98; const lines=["① 所有模板达 1N/mm² 即可拆","② 顺序按施工方案执行","③ 经监理同意后拆除"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -136,10 +136,11 @@ Page({
             self._reLaunchAfterAuth();
             return;
           }
-          self.setData({ loginMode: "bind_phone_only" });
+          self._refreshPrivacySetting();
         })
         .catch(function () {
           auth.clearToken();
+          self._refreshPrivacySetting();
         });
       return;
     }

@@ -61,11 +61,31 @@ roots.forEach(function (files) {
   var js = fs.readFileSync(files.js, "utf8");
   var config = JSON.parse(fs.readFileSync(files.json, "utf8"));
   var primary = blockFor(css, ".btn-wechat-primary");
+  var privacyButton = blockFor(css, ".privacy-consent-button,\n.privacy-consent-toggle");
+  var isRealEntry = files.wxml.indexOf("yousenwebview/packageDeeptutor") >= 0;
 
   if (primary) {
     assert(
       /background:\s*transparent\s*!important;/.test(primary),
       files.wxss + " should keep the native button surface transparent",
+    );
+  }
+  if (wxml.indexOf("privacy-consent-button") >= 0 && isRealEntry) {
+    assert(
+      /hero-line-single/.test(wxml) && /hero-line-single/.test(css),
+      files.wxml + " should keep the compact one-line login headline",
+    );
+    assert(
+      wxml.indexOf("bind_phone_only") === -1 && wxml.indexOf("请先绑定手机号") === -1,
+      files.wxml + " should keep one canonical quick-login surface",
+    );
+    assert(
+      /background:\s*transparent\s*!important;/.test(privacyButton),
+      files.wxss + " should keep the privacy consent native button transparent",
+    );
+    assert(
+      /width:\s*auto;/.test(privacyButton) && /min-width:\s*0;/.test(privacyButton),
+      files.wxss + " should prevent the privacy consent native button from stretching into a white block",
     );
   }
   assert(

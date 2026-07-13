@@ -7,6 +7,7 @@
 </head>
 <body>
 <x-dc>
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <style>
@@ -17,13 +18,14 @@
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </helmet>
+<!-- ░░░ 母版骨架：随堂练 ░░░ 改 Q[] 即可。每题必须有图示位 + 完整采分句选项 + 每错项三段解析 -->
 <template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
 <div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
   <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
 
     <!-- HEADER -->
     <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
-      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:24px;flex:none;">鲁</div>
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
         <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
@@ -46,82 +48,14 @@
 
       <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
 
-      <!-- 图示位（每题真图：条件/标尺/突涌/方案/诊断，答前不泄露答案）-->
+      <!-- 图示位（每题必有：标尺/变化图/管道/诊断图/答题纸；此处给通用占位，按题替换内部 SVG/结构）-->
       <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
         <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
-
-        <sc-if value="{{ figPit }}" hint-placeholder-val="{{ false }}">
-        <div style="position:relative;height:96px;border:1.5px solid #23282b;border-radius:7px;overflow:hidden;">
-          <div style="position:absolute;left:0;right:0;top:0;height:54px;background:repeating-linear-gradient(180deg,#d8bd9b,#d8bd9b 6px,#cdab87 6px,#cdab87 12px);"></div>
-          <div style="position:absolute;left:6px;top:5px;font-size:9px;font-weight:800;color:#7a5a3a;">填土层</div>
-          <div style="position:absolute;left:0;right:0;top:22px;border-top:2px dashed #2f6db0;"></div>
-          <div style="position:absolute;right:6px;top:9px;font-size:8px;font-weight:800;color:#2f6db0;">▽地下水位(丰富)</div>
-          <div style="position:absolute;left:120px;top:0;width:90px;height:54px;background:#f4f3ec;border-left:2px solid #8a9296;border-right:2px solid #8a9296;clip-path:polygon(16% 0,84% 0,100% 100%,0 100%);"></div>
-          <div style="position:absolute;left:146px;top:38px;font-size:8px;font-weight:800;color:#8a6d4a;">坑底</div>
-          <div style="position:absolute;left:0;right:0;top:54px;bottom:0;background:#dfe9d8;"></div>
-          <div style="position:absolute;left:6px;top:62px;font-size:9px;font-weight:800;color:#5c7a3a;">原状土 · 坑底以下无承压水</div>
-          <div style="position:absolute;right:6px;bottom:5px;font-size:9px;font-weight:800;color:#cf4436;">开挖深度 6m</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
         </div>
-        </sc-if>
-
-        <sc-if value="{{ figRuler }}" hint-placeholder-val="{{ false }}">
-        <div style="position:relative;height:88px;">
-          <div style="position:absolute;left:0;right:0;top:0;display:flex;font-size:8px;font-weight:800;text-align:center;color:#5c6469;line-height:1.15;">
-            <div style="flex:1;">集水明排<br/>≤3m</div><div style="flex:1;">轻型<br/>≤6(多级6~10)</div><div style="flex:1;">喷射<br/>8~20m</div><div style="flex:1;">真空<br/>&gt;6m</div>
-          </div>
-          <div style="position:absolute;left:0;right:0;top:42px;height:20px;display:flex;border-radius:5px;overflow:hidden;">
-            <div style="flex:1;background:#dff0e6;border-right:1px solid #fff;"></div><div style="flex:1;background:#e9f0d6;border-right:1px solid #fff;"></div><div style="flex:1;background:#fdeed1;border-right:1px solid #fff;"></div><div style="flex:1;background:#e2ecf5;"></div>
-          </div>
-          <div style="position:absolute;left:0;right:0;top:64px;display:flex;font-size:8px;color:#9aa0a3;font-weight:700;"><div style="flex:1;">0</div><div style="flex:1;">3</div><div style="flex:1;">6</div><div style="flex:1;">8</div><div style="flex:none;">20m</div></div>
-          <div style="position:absolute;left:75%;top:22px;transform:translateX(-50%);"><div style="background:#cf4436;color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:8px;white-space:nowrap;">需降水 8m</div><div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid #cf4436;margin:0 auto;"></div></div>
-        </div>
-        </sc-if>
-
-        <sc-if value="{{ figBreak }}" hint-placeholder-val="{{ false }}">
-        <div style="position:relative;height:80px;border-radius:7px;overflow:hidden;">
-          <div style="position:absolute;left:0;right:0;top:18px;height:4px;background:#8a6d4a;border-radius:2px;"></div>
-          <div style="position:absolute;left:6px;top:3px;font-size:8px;font-weight:800;color:#8a6d4a;">坑底（隔水层）</div>
-          <div style="position:absolute;left:0;right:0;top:26px;bottom:0;background:repeating-linear-gradient(90deg,#cfe3f2,#cfe3f2 8px,#bcd7ee 8px,#bcd7ee 16px);"></div>
-          <div style="position:absolute;left:60px;top:22px;font-size:16px;color:#cf4436;font-weight:900;">↑</div>
-          <div style="position:absolute;left:150px;top:22px;font-size:16px;color:#cf4436;font-weight:900;">↑</div>
-          <div style="position:absolute;left:240px;top:22px;font-size:16px;color:#cf4436;font-weight:900;">↑</div>
-          <div style="position:absolute;right:6px;bottom:5px;font-size:9px;font-weight:800;color:#2f6db0;">承压水上顶 → 坑底突涌风险</div>
-        </div>
-        </sc-if>
-
-        <sc-if value="{{ figSchemes }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;gap:6px;">
-          <div style="flex:1;border:1.5px solid #ddd9c9;border-radius:7px;padding:5px 4px;text-align:center;">
-            <div style="height:32px;position:relative;"><div style="position:absolute;left:6%;right:6%;bottom:0;top:34%;background:#eef0e4;border:1.5px solid #b9bda8;clip-path:polygon(24% 0,76% 0,100% 100%,0 100%);"></div></div>
-            <div style="font-size:8.5px;font-weight:800;color:#5c6469;margin-top:3px;">放坡</div>
-          </div>
-          <div style="flex:1;border:1.5px solid #ddd9c9;border-radius:7px;padding:5px 4px;text-align:center;">
-            <div style="height:32px;position:relative;"><div style="position:absolute;left:6%;right:6%;bottom:0;top:30%;background:#eef0e4;border:1.5px solid #b9bda8;"></div><div style="position:absolute;left:38%;right:38%;bottom:0;top:8%;background:#cdab87;border:1.5px solid #a07a4f;"></div></div>
-            <div style="font-size:8.5px;font-weight:800;color:#5c6469;margin-top:3px;">中心岛</div>
-          </div>
-          <div style="flex:1;border:1.5px solid #ddd9c9;border-radius:7px;padding:5px 4px;text-align:center;">
-            <div style="height:32px;position:relative;"><div style="position:absolute;left:6%;right:6%;bottom:0;top:42%;background:#eef0e4;border:1.5px solid #b9bda8;"></div><div style="position:absolute;left:6%;width:18%;bottom:0;top:8%;background:#cdab87;border:1.5px solid #a07a4f;"></div><div style="position:absolute;right:6%;width:18%;bottom:0;top:8%;background:#cdab87;border:1.5px solid #a07a4f;"></div></div>
-            <div style="font-size:8.5px;font-weight:800;color:#5c6469;margin-top:3px;">盆式</div>
-          </div>
-          <div style="flex:1;border:1.5px solid #ddd9c9;border-radius:7px;padding:5px 4px;text-align:center;">
-            <div style="height:32px;position:relative;"><div style="position:absolute;left:10%;right:10%;top:8%;height:4px;background:#8a9296;"></div><div style="position:absolute;left:10%;right:10%;top:42%;height:4px;background:#8a9296;"></div><div style="position:absolute;left:10%;right:10%;top:76%;height:4px;background:#8a9296;"></div></div>
-            <div style="font-size:8.5px;font-weight:800;color:#5c6469;margin-top:3px;">逆作</div>
-          </div>
-        </div>
-        </sc-if>
-
-        <sc-if value="{{ figDiagnose }}" hint-placeholder-val="{{ false }}">
-        <div style="background:#fffdf6;border:1.5px solid #e6e2d2;border-radius:7px;padding:9px 10px;">
-          <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:5px;">降水开挖交底（待诊断）</div>
-          <div style="font-size:11px;line-height:1.75;color:#23282b;font-weight:600;">
-            <div>① 基坑深 6m·填土 → 拟用<b>降水管井</b></div>
-            <div>② 坑底承压水 → 拟用<b>井点回灌</b>控制</div>
-            <div>③ 分层厚度 → 按 <b>5m</b> 开挖</div>
-          </div>
-          <div style="margin-top:6px;font-size:8.5px;color:#cf4436;font-weight:800;">✎ 哪几条需补正？（多选选齐）</div>
-        </div>
-        </sc-if>
-
         <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
       </div>
 
@@ -142,7 +76,7 @@
                 <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
               </sc-if>
               <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
-                <div style="font-size:11.5px;line-height:1.6;color:#3a3f42;">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
                   <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
                   <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
                   <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
@@ -180,7 +114,7 @@
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
-        <sc-for list="{{ review }}" as="r" hint-placeholder-count="5">
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
           <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
             <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
             <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
@@ -214,7 +148,7 @@
     </div>
     </sc-if>
 
-    <!-- ASK-AI OVERLAY -->
+    <!-- ASK-AI OVERLAY (大窗 · 自动带题目) -->
     <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
       <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
@@ -262,113 +196,205 @@
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 母版骨架逻辑：随堂练 ░░░
+   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
+   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
+   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
+   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
+     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
+   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
+     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
 class Component extends DCLogic {
-  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"" };
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
   examTitle="基坑开挖与降水方法选择";
-  KNOWLEDGE="降水方案三原则：≤3m且软土→集水明排；>3m→井点降水；危及周边→截水帷幕/井点回灌(回灌防周边沉降非防突涌)；承压水→验算坑底突涌,钻孔减压/水平封底隔渗。阈值表：轻型≤6m(多级6~10)；喷射8~20m；真空降水井管>6m、管径≥200mm、水平间距≤25m；管井适渗透系数较大砂砾层,填土黏土不宜。无支护挖土=放坡;中心岛/盆式/逆作均需支护(逆作面积大宜盆式)。开挖控制:与设计工况一致严禁超挖;分层≤3m;预留150~300mm人工挖;水位降坑底以下500mm持续到基础完成;软土高差≤1m。";
-  moreText="明天补练两道：① 深度>6m降水技术清单（真题2025·25题方向），练「亮深度阈值表→代入→筛多级轻型/管井/喷射/真空」的计算判定链；② 4m软土地下水丰富如何选降水方案（教材A1），练「先按深度分流：≤3m明排 / >3m井点」的程序箭头链，别把4m软土仍答明排。";
+  KNOWLEDGE="基坑开挖与降水方法选择(含降水方法与开挖方案+开挖控制)。降水:先按开挖深度分流——≤3m且软土→集水明排;>3m→井点降水。井点按降水深度选:轻型≤6m(多级6~10m)/喷射8~20m/真空降水井管>6m·渗透系数>1e-6;渗透系数较大砂砾层用管井、填土黏土不宜。危及周边→截水帷幕或井点回灌(维持水位平衡、防周边沉降,非防突涌)。承压水→验算坑底突涌,钻孔减压/水平封底隔渗(与回灌职能不同)。开挖:无支护挖土=放坡;中心岛/盆式/逆作需支护。控制数字:分层≤3m;预留土层人工150~300、机械200~300人工挖除;水位降至坑底以下500mm且持续到基础完成;与设计工况一致严禁超挖、软土高差≤1m、不损支护/降水设施/工程桩。常见失分:有地下水就只明排、管井用于填土、轻型用于>6m、回灌当防突涌、把盆式/逆作当无支护、一次挖到底、水位只降到坑底/中途停降水、只写严禁超挖漏高差与不损护。";
+  moreText="再练两组：① 降水选型——给不同开挖深度+土质(如深8m填土、深5m砂砾、深2.5m软土)，练「亮深度阀值表→代入工况→排除→定方法」，专治管井用错土、轻型用错深度；② 开挖控制数字——把分层3m/预留150~300/水位坑底500mm/高差1m 混着设错值，练判断纠错三段式(不妥+理由+正确数值)。";
+  // ── 题库：降水分流·井点选型·管井·截水回灌·承压突涌·开挖方案·分层·预留·水位·超挖·采分诊断（≥15 题随机抽 5）──
   Q=[
-    { tag:"条件维·选型", figKind:"pit", figLabel:"题给工况 · 基坑剖面（条件已给，结论你来判）", figCaption:"深6m · 填土 · 地下水丰富 · 坑底以下无承压水",
-      typeHint:"单选 · 选出最完整、最能拿分的作答",
-      stem:"某基坑开挖深度 6m，场地上部为填土层、地下水丰富，坑底以下无承压水。关于该基坑降水方法的选择，最完整、最能拿分的作答是？",
-      model:"深 6m>3m，排除集水明排；填土渗透系数小，排除管井；选轻型井点（多级 6~10m）或喷射井点（8~20m），回判降水深度与填土土质均匹配。",
+    { tag:"降水分流·条件维", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"题给：基坑深 4m · 软土 · 地下水丰富", figCaption:"深度过 3m 临界 · 该明排还是井点？", fig:"depthflow",
+      stem:"某基坑开挖深度 4m，场地为软土、地下水丰富。问降水方案怎么选，选出最完整、能得分的作答。",
+      model:"深度>3m 应井点降水；综合地质水文环境支护，危及周边截水回灌、有承压水验算突涌。",
       opts:[
-        { t:"因开挖深度 6m>3m，排除集水明排；填土渗透系数小、排除管井；应选轻型井点（多级 6~10m）或喷射井点（8~20m），回判深度与土质均匹配。", ok:true, code:"",
-          fix:"判据链写全：亮深度/土质阈值→代入→排除明排与管井→命中轻型多级/喷射→回判，采分点一个不落。" },
-        { t:"6m 不算深，直接用降水管井降水即可。", ok:false, code:"E07",
-          tempt:"管井是最常见的降水法，顺手就报。", lose:"填土渗透系数小、出水不足，管井不宜用于填土；且没做深度+土质判据。", fix:"填土排除管井，应选轻型井点（多级）或喷射井点。" },
-        { t:"深度 6m，用单级轻型井点降水。", ok:false, code:"E10",
-          tempt:"轻型井点 ≤6m，6m 看着正好够。", lose:"单级轻型降水深度 ≤6m，6m 已临界、填土还需富余，单级不稳。", fix:"6m 宜多级轻型（6~10m）或喷射井点（8~20m）。" },
-        { t:"沿坑底设排水沟集水明排即可。", ok:false, code:"E10",
-          tempt:"集水明排简单便宜，感觉基坑都能用。", lose:"集水明排仅适用深度 ≤3m 且软土；6m 已超 3m，不能只用明排。", fix:"深度>3m 应改用井点降水。" }
+        { t:"深度>3m 应采用井点降水；并综合地质、水文、环境、支护，危及周边时截水或回灌。", ok:true, fix:"先按深度分流定井点，再补综合因素与周边保护，判据链完整。", code:"" },
+        { t:"有地下水就用集水明排、挖排水沟设集水井靠重力排走，简单经济即可满足降水。", ok:false, code:"E10", tempt:"一见地下水就想到最常见的集水明排。", lose:"深度 4m 已>3m，明排压不住；集水明排只适用≤3m 且软土。", fix:"深度>3m 应改井点降水，集水明排仅≤3m 软土。" },
+        { t:"不看深度直接选降水管井，管井出水量大、适应性强，任何土质基坑都能可靠降水。", ok:false, code:"E07", tempt:"觉得管井出水大、万能。", lose:"管井要求渗透系数较大（砂砾），软土/填土/黏土不宜；且未按深度分流。", fix:"先按深度分流用井点，再按渗透系数与土质选井点类型。" },
+        { t:"只要写采取降水措施把水位降下去即可，具体哪种方法现场看着定不必写死。", ok:false, code:"E02", tempt:"图省事、笼统写降水。", lose:"没有可判分的方法与依据，采分点全落空。", fix:"写明>3m 井点降水+综合因素+周边保护+承压水验算。" }
       ] },
-    { tag:"条件维·清单·真题2025·25", figKind:"ruler", figLabel:"阈值标尺 · 需降水深度落点", figCaption:"题给：基坑需降水深度达 8m，问适用方法",
-      typeHint:"单选 · 选出最准确的一组（清单题，别漏项）",
-      stem:"某基坑降水深度需达 8m。下列降水方法中，适用于降水深度大于 6m 的是？（选最准确的一组）",
-      model:"降水深度>6m：多级轻型井点（6~10m）、管井、喷射井点（8~20m）、真空降水井管（>6m）均可；单级轻型≤6m 不选。",
+    { tag:"井点选型·计算表达维", typeHint:"单选 · 亮阈值表→代入→排除→定方法", figLabel:"题给：降水深度 8m · 上部填土", figCaption:"轻型≤6 / 喷射8~20 / 真空>6 / 管井砂砾", fig:"ruler",
+      stem:"某基坑降水深度约 8m，场地上部为填土层。按降水深度与土质选井点，选出能得分的作答。",
+      model:"排除集水明排(>3m)、轻型(≤6m)、管井(填土不宜)，宜选喷射井点(降水深度 8~20m)。",
       opts:[
-        { t:"多级轻型井点（6~10m）、管井、喷射井点（8~20m）、真空降水井管（>6m）均可用于降水深度大于 6m。", ok:true, code:"",
-          fix:"按深度阈值表筛 >6m：单级轻型（≤6m）出局，其余多级轻型/管井/喷射/真空全满足，清单不漏。" },
-        { t:"只有喷射井点（8~20m）能用于 8m 降水。", ok:false, code:"E02",
-          tempt:"8m 正落在喷射区间，顺手只答喷射。", lose:"题问「>6m 适用」是清单题，多级轻型/管井/真空也满足，只答喷射漏项。", fix:"应补多级轻型、管井、真空降水井管。" },
-        { t:"单级轻型井点即可满足 8m 降水。", ok:false, code:"E08",
-          tempt:"轻型井点最常用，以为能往深里加。", lose:"单级轻型降水深度 ≤6m，8m 已超出，必须多级（6~10m）或换喷射/真空。", fix:"单级轻型 ≤6m，8m 应多级或喷射/真空。" },
-        { t:"采用集水明排配合深井降水。", ok:false, code:"E07",
-          tempt:"把「深井」当成深基坑通用解。", lose:"集水明排仅 ≤3m 软土，与 8m 降水深度完全不匹配，概念混淆。", fix:"8m 按阈值表选多级轻型/管井/喷射/真空。" }
+        { t:"深 8m 超轻型≤6m、填土不宜管井，宜选喷射井点，其降水深度 8~20m 覆盖本工况。", ok:true, fix:"逐条卡深度与土质排除，落到喷射并回判 8m∈8~20m，判据完整。", code:"" },
+        { t:"选轻型井点，轻型构造简单、布置方便，配合多级还能加深，用于本 8m 基坑最稳妥。", ok:false, code:"M08", tempt:"轻型最常见、构造简单，顺手就选。", lose:"轻型井点降水深度≤6m（多级 6~10m 需分级），单级 8m 够不着。", fix:"8m 超轻型单级，应选喷射井点(8~20m)。" },
+        { t:"选降水管井，管井出水量大、对深度不敏感，8m 填土用管井降水效率最高最省事。", ok:false, code:"E07", tempt:"以为管井深度大、出水多就通用。", lose:"管井要求渗透系数较大（砂砾），填土渗透系数小、出水寥寥，不宜用管井。", fix:"填土不宜管井；按深度 8m 选喷射井点。" },
+        { t:"选集水明排，沿坑底挖排水沟、设集水井把地下水引流抽走，明排对 8m 基坑也够用。", ok:false, code:"E10", tempt:"明排看着简单便宜。", lose:"明排只适用≤3m 且软土；8m 深坑必须井点降水。", fix:"深 8m 用井点（喷射），不是集水明排。" }
       ] },
-    { tag:"后果维·承压水·真题2016·24", figKind:"breakthrough", figLabel:"坑底承压水 · 突涌风险图", figCaption:"坑底为隔水层，其下承压水上顶，问防突涌措施",
-      typeHint:"单选 · 选职能正确的措施",
-      stem:"某基坑坑底为隔水层，其下存在承压水。为防止坑底突涌，可采取的措施是？（选职能正确项）",
-      model:"承压水坑底突涌：验算突涌→钻孔减压（卸压）→水平封底隔渗（封底）；集水明排/井点降水/回灌均不防突涌（回灌防周边沉降）。",
+    { tag:"轻型井点·条件维", typeHint:"单选 · 记准降水深度数字", figLabel:"题给：轻型井点降水深度", figCaption:"单级？多级？范围是多少", fig:"ruler",
+      stem:"关于轻型井点的降水深度，选出表述正确、能得分的作答。",
+      model:"轻型井点降水深度单级≤6m，多级可达 6~10m。",
       opts:[
-        { t:"验算坑底突涌，并采取钻孔减压、水平封底隔渗。", ok:true, code:"",
-          fix:"突涌靠「卸压+封底」：钻孔减压泄掉承压水头、水平封底隔渗堵住向上通道，职能对路。" },
-        { t:"加密井点回灌，回灌平衡水位防止突涌。", ok:false, code:"E07",
-          tempt:"回灌也跟地下水有关，听着像能压住。", lose:"回灌的职能是维持周边水位、防周边沉降，管不了坑底向上突涌，职能张冠李戴。", fix:"防突涌应钻孔减压/水平封底隔渗；回灌防的是周边沉降。" },
-        { t:"采用集水明排，坑底设排水沟把突涌水排走。", ok:false, code:"E10",
-          tempt:"突涌也是水，直觉想把它排掉。", lose:"集水明排排的是坑内明水，无法卸承压水头、防不了突涌，规范适用错误。", fix:"承压水突涌应验算后钻孔减压、水平封底隔渗。" },
-        { t:"改用井点降水把承压水位降下去即可。", ok:false, code:"E07",
-          tempt:"觉得降水万能，降下去就没事。", lose:"常规井点降的是潜水/上层水，承压水突涌须专门减压隔渗，不能笼统「井点降水」。", fix:"应验算突涌 + 钻孔减压 + 水平封底隔渗。" }
+        { t:"轻型井点单级降水深度≤6m，需要更深时采用多级轻型井点，可达 6~10m。", ok:true, fix:"分清单级≤6m 与多级 6~10m，数字与条件都齐。", code:"" },
+        { t:"轻型井点降水深度 8~20m，适用于较深基坑，是深层降水的主力方法。", ok:false, code:"M08", tempt:"把轻型和喷射的深度记混。", lose:"8~20m 是喷射井点的范围，轻型单级≤6m。", fix:"轻型单级≤6m、多级 6~10m；8~20m 是喷射。" },
+        { t:"轻型井点降水深度不受限制，加长井管即可任意加深，深基坑也能一级到位。", ok:false, code:"E07", tempt:"以为加管就能无限加深。", lose:"轻型受真空吸程限制，单级≤6m，不是不受限。", fix:"单级≤6m，更深需多级或改喷射/真空。" },
+        { t:"轻型井点降水深度>6m 且要求渗透系数>1e-6、管径≥200mm，用于大渗透系数土层。", ok:false, code:"E07", tempt:"把真空降水井管的参数安到轻型头上。", lose:">6m·渗透系数>1e-6·管径≥200 是真空降水井管的条件。", fix:"轻型单级≤6m；>6m 大渗透用真空降水井管。" }
       ] },
-    { tag:"后果维·方案·真题2021·10", figKind:"schemes", figLabel:"四种挖土方案 · 示意", figCaption:"判断哪种是无支护（不设支护结构）方案",
-      typeHint:"单选 · 认准「无支护」",
-      stem:"下列基坑挖土方案中，属于无支护（不设支护结构）方案的是？",
-      model:"无支护挖土方案＝放坡（按坡度自稳）；中心岛式、盆式、逆作法均需支护（逆作面积大宜盆式，先中部结构、再分块对称限时挖周边）。",
+    { tag:"管井适用·真题陷阱", typeHint:"单选 · 找出不宜用于填土的降水方法", figLabel:"题给：填土 vs 砂砾 · 出水量", figCaption:"渗透大哗哗出水 / 渗透小出水寥寥", fig:"welltype",
+      stem:"下列降水方法中，不宜用于填土、黏土等渗透系数较小土层的是（真题口径）。选出正确作答。",
+      model:"降水管井——要求渗透系数较大（砂砾层），填土/黏土渗透系数小、出水量不足，不宜用管井。",
       opts:[
-        { t:"放坡挖土——按规定坡度放坡，不设支护结构，靠坡度自稳。", ok:true, code:"",
-          fix:"无支护唯一就是放坡；靠足够缓的坡度自稳，不依赖挡墙支撑。" },
-        { t:"盆式挖土——先挖中部、周边留土，属无支护。", ok:false, code:"E07",
-          tempt:"盆式周边留土像「自己撑住」，误当无支护。", lose:"盆式仍需支护结构，周边留土只是开挖顺序，本质有支护。", fix:"盆式需支护；无支护只有放坡。" },
-        { t:"逆作法——自上而下逐层施工，无需支护。", ok:false, code:"E07",
-          tempt:"逆作有结构梁板，误以为不用支护。", lose:"逆作法依靠地下结构与支护协同，属有支护；面积大宜盆式。", fix:"逆作需支护；无支护只有放坡。" },
-        { t:"中心岛式——中部先成岛，属无支护。", ok:false, code:"M03",
-          tempt:"「岛」听着能自稳，误判无支护。", lose:"中心岛式同样需支护结构，只是开挖与出土顺序不同。", fix:"中心岛需支护；无支护只有放坡。" }
+        { t:"降水管井——它属重力排水、要求渗透系数较大的砂砾层，填土黏土渗透系数小不宜用。", ok:true, fix:"点出管井要砂砾、填土黏土不宜，正是真题采分句。", code:"" },
+        { t:"轻型井点——轻型井点靠真空抽吸，只能用于砂砾等大渗透土层，填土黏土一律不能用。", ok:false, code:"E07", tempt:"把不宜填土误安到轻型头上。", lose:"轻型井点适用渗透系数 1e-7~2e-4 的土层，恰能用于粉细砂等小渗透土，不是它。", fix:"不宜用于填土的是降水管井，不是轻型井点。" },
+        { t:"喷射井点——喷射井点降水深度大，只适合砂砾，遇到填土黏土就会淤堵不能使用。", ok:false, code:"E07", tempt:"觉得深层方法都挑砂砾。", lose:"题问的是不宜用于填土的降水管井；喷射不是标准答案。", fix:"标准答案是降水管井；喷射按深度 8~20m 选用。" },
+        { t:"集水明排——明排只在浅坑用，遇到填土黏土会塌沟，所以填土基坑不宜集水明排。", ok:false, code:"M03", tempt:"把明排的深度限制当成土质限制。", lose:"题眼是渗透系数较小土层不宜用的降水方法=管井，不是明排。", fix:"答降水管井：填土黏土渗透系数小不宜用管井。" }
       ] },
-    { tag:"采分句诊断·多选", figKind:"diagnose", figLabel:"作答诊断 · 降水开挖交底", figCaption:"对照采分点，圈出需补正的几条",
-      typeHint:"多选 · 选齐全部需补正项（选齐才得分），再看满分采分句",
-      stem:"某项目降水开挖交底：①基坑深 6m、填土，拟用降水管井；②坑底承压水，拟用井点回灌控制；③分层厚度按 5m 开挖。下列对该方案的诊断，正确的是？（多选，选齐需补正的采分点）",
-      model:"三处需补正：①填土改轻型（多级）/喷射井点（管井不宜填土）；②承压水改钻孔减压/水平封底隔渗（回灌防沉降非防突涌）；③分层改 ≤3m。④截水帷幕题干未给周边风险，不臆增。",
+    { tag:"管井适用·条件维", typeHint:"单选 · 选出管井最适用的土层", figLabel:"题给：管井适用工况", figCaption:"哪种土层用管井最合适", fig:"welltype",
+      stem:"降水管井最适用于下列哪种情况？选出正确、能得分的作答。",
+      model:"渗透系数较大的砂砾层（如砂卵石、砂砾）宜用管井井点。",
       opts:[
-        { t:"①填土用降水管井不妥——填土渗透系数小、管井不宜，应改轻型（多级）或喷射井点。", ok:true, code:"E07",
-          fix:"诊断准：管井张冠李戴到填土，按深度+土质改匹配的井点。" },
-        { t:"③分层 5m 不妥——深基坑分层厚度宜 ≤3m，应改按 ≤3m 分层。", ok:true, code:"E02",
-          fix:"诊断准：漏了「分层 ≤3m」的数字门槛，补上即得分。" },
-        { t:"②回灌防突涌不妥——回灌防周边沉降，承压水突涌应验算后钻孔减压/水平封底隔渗。", ok:true, code:"E07",
-          fix:"诊断准：回灌职能混淆，改钻孔减压+水平封底隔渗。" },
-        { t:"④应增设截水帷幕，否则方案不成立。", ok:false, code:"E08",
-          tempt:"截水帷幕也是降水保护手段，顺手补一条显得全。", lose:"题干未提危及周边邻近建筑，截水帷幕非本工况必需，属无中生有/过度发挥。", fix:"按题给工况诊断，不臆造未给条件；危及周边时才上截水/回灌。" }
+        { t:"渗透系数较大的砂砾、砂卵石层，出水量大，宜用降水管井降水。", ok:true, fix:"抓住渗透系数较大→管井这一条件采分句。", code:"" },
+        { t:"以填土、淤泥质黏土为主的软弱土层，用管井降水见效最快、周边沉降也最小。", ok:false, code:"E07", tempt:"以为管井万能、软土也行。", lose:"填土黏土渗透系数小、出水不足，正是管井不宜用的土层。", fix:"管井宜用于砂砾大渗透土层，软黏土不宜。" },
+        { t:"承压水导致坑底突涌的隔水层坑底，直接打管井把承压水抽干就能防突涌。", ok:false, code:"E10", tempt:"把管井当防突涌手段。", lose:"防突涌是验算+钻孔减压/水平封底隔渗，不是笼统打管井；题问适用土层。", fix:"管井按渗透系数选；防突涌另用减压/封底隔渗。" },
+        { t:"任何深度、任何土质的基坑都可用管井，只要井管够深、水泵够大就能可靠降水。", ok:false, code:"M10", tempt:"用设备强就行的常识替代规范。", lose:"管井有渗透系数要求，填土黏土不宜，不能一概而论。", fix:"管井适用渗透系数较大砂砾层，不是任何土质。" }
+      ] },
+    { tag:"承压水突涌·后果维", typeHint:"单选 · 选出真正防坑底突涌的措施", figLabel:"题给：坑底隔水层 + 其下承压水", figCaption:"承压水头顶破坑底 → 突涌", fig:"pressure",
+      stem:"深基坑坑底为隔水层、其下存在承压水，有坑底突涌风险。防止坑底突涌应采取的措施是？选出正确作答。",
+      model:"验算坑底突涌，采取钻孔减压、水平封底隔渗（降低承压水头/隔断渗流）。",
+      opts:[
+        { t:"验算坑底突涌，必要时钻孔减压降低承压水头，或做水平封底隔渗隔断承压水。", ok:true, fix:"验算+钻孔减压+水平封底隔渗，正是防突涌采分句。", code:"" },
+        { t:"设置井点回灌，把抽出的水回灌到坑外维持水位平衡，就能压住坑底不发生突涌。", ok:false, code:"E07", tempt:"回灌也跟水有关，容易误当防突涌。", lose:"回灌的职能是维持周边水位、防地面沉降，不能降低坑底承压水头。", fix:"防突涌用钻孔减压/水平封底隔渗；回灌是防沉降。" },
+        { t:"加密集水明排，沿坑底多挖排水沟、多设集水井把坑内的水尽快排走即可防突涌。", ok:false, code:"E10", tempt:"以为把坑内水排干净就不突涌。", lose:"突涌来自坑底以下承压水头，明排排的是坑内积水，压不住承压水。", fix:"针对承压水头，用钻孔减压/水平封底隔渗。" },
+        { t:"直接加大井点降水强度，把整个场地地下水位一次性抽到最低，承压水自然不会顶破坑底。", ok:false, code:"M10", tempt:"用抽得狠就行的常识替代规范。", lose:"承压含水层需专门减压井，盲目加大普通降水既不经济也未必降承压水头。", fix:"验算后钻孔减压、水平封底隔渗，针对承压水头处置。" }
+      ] },
+    { tag:"回灌职能·后果维", typeHint:"单选 · 分清回灌防的是什么", figLabel:"题给：回灌井 vs 减压/封底", figCaption:"一个护周边、一个护坑底", fig:"reinject",
+      stem:"关于井点回灌的作用，选出表述正确、能得分的作答。",
+      model:"回灌向坑外注水维持地下水位平衡，防止降水引起周边地面与建筑沉降；不用于防坑底突涌。",
+      opts:[
+        { t:"回灌向坑外注水维持水位平衡，防止降水引起的周边地面与建筑沉降。", ok:true, fix:"点明回灌职能=维持水位、防周边沉降，与减压/封底分开。", code:"" },
+        { t:"回灌把水补进坑底承压含水层，抬高坑内水压顶住坑底，是防止坑底突涌的主要措施。", ok:false, code:"E07", tempt:"把回灌和防突涌搅在一起。", lose:"防突涌是钻孔减压/水平封底隔渗；回灌是防周边沉降，职能不同。", fix:"回灌防周边沉降；防突涌用减压/封底隔渗。" },
+        { t:"回灌就是把基坑内积水重新抽回坑里循环使用，主要目的是节约用水、减少排水量。", ok:false, code:"M03", tempt:"望文生义把回灌当循环用水。", lose:"回灌是往坑外含水层注水维持周边水位，不是坑内循环节水。", fix:"回灌注水于坑外、维持周边水位、防沉降。" },
+        { t:"回灌用于加快坑内降水速度，通过注水扰动含水层让井点出水更快、工期更短。", ok:false, code:"E07", tempt:"以为回灌帮着降水。", lose:"回灌是抵消降水影响、护周边，反向注水，不加快降水。", fix:"回灌维持周边水位防沉降，非加速降水。" }
+      ] },
+    { tag:"无支护方案·后果维", typeHint:"单选 · 找出唯一的无支护挖土方案", figLabel:"题给：放坡 vs 中心岛/盆式/逆作", figCaption:"看坑壁靠斜坡还是靠支护", fig:"scheme",
+      stem:"下列深基坑挖土方案中，属于无支护开挖方案的是。选出正确、能得分的作答。",
+      model:"放坡挖土是无支护方案；中心岛式、盆式、逆作法均需支护。",
+      opts:[
+        { t:"放坡挖土——靠边坡自身稳定、不设支护结构，是唯一的无支护挖土方案。", ok:true, fix:"点明放坡=无支护，且其余三种需支护，采分到位。", code:"" },
+        { t:"盆式开挖——先挖中间成盆、四周留土护壁，靠留土自稳，属于无支护开挖方案。", ok:false, code:"E07", tempt:"盆式留土听着像不用支护。", lose:"盆式仍需支护结构，留土只是开挖顺序，不等于无支护。", fix:"无支护只有放坡；盆式属有支护方案。" },
+        { t:"逆作法——自上而下先做结构再挖土，用已成结构当支撑，所以不需要另设支护是无支护。", ok:false, code:"E07", tempt:"逆作用结构撑易误判无支护。", lose:"逆作法以支护/结构承担侧压，属有支护方案。", fix:"逆作法需支护；无支护方案是放坡。" },
+        { t:"中心岛式——中间先挖成岛、四周斜坡下挖，中心岛提供反压，属无支护开挖方案。", ok:false, code:"M03", tempt:"中心岛有斜坡字样易混放坡。", lose:"中心岛式仍配支护结构挖周边，不是无支护。", fix:"无支护=放坡；中心岛属有支护方案。" }
+      ] },
+    { tag:"分层开挖·条件维", typeHint:"单选 · 记准分层厚度数字", figLabel:"题给：深基坑分层开挖", figCaption:"每层厚度控制多少", fig:"layers",
+      stem:"深基坑分层开挖，每层厚度宜控制在多少？选出正确、能得分的作答。",
+      model:"深基坑分层开挖，每层厚度宜控制在 3m 以内。",
+      opts:[
+        { t:"深基坑应分层开挖，每层厚度宜控制在 3m 以内，一层挖完稳定后再挖下一层。", ok:true, fix:"分层≤3m 且逐层下挖，数字与做法都对。", code:"" },
+        { t:"为加快进度可一次开挖到设计坑底，只要坡度放缓、四周有支护就不必分层。", ok:false, code:"M08", tempt:"图快想一次到底。", lose:"深基坑必须分层开挖、每层≤3m，一次到底易失稳。", fix:"分层开挖、每层厚度宜≤3m。" },
+        { t:"深基坑分层开挖，每层厚度宜控制在 5m 以内，深度大时可放宽到 6~8m 一层。", ok:false, code:"M08", tempt:"记成了更大的数字。", lose:"每层厚度宜≤3m，5m/6~8m 超限。", fix:"每层厚度宜≤3m。" },
+        { t:"分层厚度按机械臂长确定即可，挖机能挖多深就分多厚，没有固定的规范限值。", ok:false, code:"M10", tempt:"用按设备的常识替代规范。", lose:"规范给出每层宜≤3m 的限值，不是随设备定。", fix:"每层厚度宜≤3m，有明确限值。" }
+      ] },
+    { tag:"预留土层·条件维", typeHint:"单选 · 选出预留土层正确做法", figLabel:"题给：机械挖到基底上方", figCaption:"留多厚 · 谁来清", fig:"reserve",
+      stem:"基坑挖至接近基底时对预留土层的处理，选出正确、能得分的作答。",
+      model:"预留土层：人工挖土预留 150~300mm、机械挖土预留 200~300mm，由人工挖除，保护基底原状土。",
+      opts:[
+        { t:"应预留土层由人工挖除：人工挖土留 150~300mm、机械挖土留 200~300mm，保护基底原状土。", ok:true, fix:"人工/机械预留数值+人工挖除+护基底，采分完整。", code:"" },
+        { t:"机械直接挖到设计基底标高即可，挖到位再抹一层垫层封住，无需预留人工清底。", ok:false, code:"E02", tempt:"觉得机械挖到位省事。", lose:"机械直挖到基底会扰动原状土；漏了预留土层与人工挖除采分。", fix:"预留 150~300/200~300mm 人工挖除，护基底。" },
+        { t:"预留土层厚度取 500~800mm，越厚越能保护基底，最后统一用机械快速清除即可。", ok:false, code:"M08", tempt:"以为留厚更保险、机械更快。", lose:"预留 150~300/机械 200~300mm，且应人工挖除；数值与做法都错。", fix:"人工 150~300、机械 200~300mm，人工挖除。" },
+        { t:"预留土层留多少无所谓，关键是挖完立即浇筑垫层，土层厚薄不影响基底承载力。", ok:false, code:"E07", tempt:"以为浇垫层就能补救扰动。", lose:"预留是为避免扰动原状土，数值有规定、须人工挖除，不是无所谓。", fix:"按人工 150~300/机械 200~300mm 预留、人工挖除。" }
+      ] },
+    { tag:"水位控制·条件维", typeHint:"单选 · 水位降到哪、降多久", figLabel:"题给：地下水位以下挖土", figCaption:"降至坑底以下多少 · 持续到何时", fig:"waterlevel",
+      stem:"地下水位以下挖土时的降水控制，选出正确、能得分的作答。",
+      model:"水位应降至坑底以下 500mm 以上，且降水持续到基础施工完成。",
+      opts:[
+        { t:"地下水位应降至坑底以下 500mm 以上，且降水应持续到基础施工完成，保证干作业。", ok:true, fix:"降至坑底下 500mm+持续到基础完成，两句采分都在。", code:"" },
+        { t:"把地下水位降到坑底标高即可开挖，见到坑底不出水就可以停泵、转入基础施工。", ok:false, code:"M08", tempt:"以为降到坑底不冒水就行。", lose:"应降至坑底以下 500mm 以上，且不能中途停降水。", fix:"降至坑底下≥500mm，持续到基础完成。" },
+        { t:"水位降至坑底以下 500mm 后即可停止降水，基础施工阶段靠垫层挡水不必继续抽。", ok:false, code:"E06", tempt:"抓到 500mm 却漏了持续。", lose:"中途停降水水会回涨，必须持续到基础施工完成。", fix:"降至坑底下 500mm 且持续到基础完成。" },
+        { t:"降水深度按经验降到坑底以下 2~3m 最保险，一直抽到主体结构封顶再停最稳妥。", ok:false, code:"M08", tempt:"以为降越深、抽越久越保险。", lose:"规范要求坑底以下≥500mm、持续到基础完成即可，过度降水不经济且加剧周边沉降。", fix:"坑底下≥500mm、持续到基础完成，不是越深越久。" }
+      ] },
+    { tag:"严禁超挖·后果维", typeHint:"单选 · 开挖控制要点选全", figLabel:"题给：设计标高 · 超挖 · 高差", figCaption:"多挖一锹会怎样", fig:"overdig",
+      stem:"关于土方开挖控制，选出表述完整、能得分的作答。",
+      model:"开挖必须与设计工况一致、严禁超挖；软土基坑高差≤1m；不得损坏支护结构、降水设施、工程桩。",
+      opts:[
+        { t:"开挖须与设计工况一致、严禁超挖；软土基坑高差≤1m；不得损坏支护、降水设施、工程桩。", ok:true, fix:"严禁超挖+软土高差≤1m+不损护，三句齐。", code:"" },
+        { t:"只要严禁超挖、挖到设计标高就行，软土高差和支护、降水设施属另一工序不必一起写。", ok:false, code:"E02", tempt:"抓到严禁超挖就以为够了。", lose:"漏了软土高差≤1m 与不损坏支护/降水设施/工程桩两处采分。", fix:"补软土高差≤1m 与不损护两句。" },
+        { t:"适当超挖 200~300mm 再回填夯实反而使基底更密实，超挖后垫层加厚即可不影响质量。", ok:false, code:"E10", tempt:"以为超挖回填能补救。", lose:"必须与设计工况一致、严禁超挖，超挖会扰动基底、损伤支护。", fix:"严禁超挖，与设计工况一致。" },
+        { t:"软土基坑相邻高差控制在 3m 以内即可，只要分块开挖、放坡到位就不会失稳。", ok:false, code:"M08", tempt:"把高差限值记大了。", lose:"软土基坑高差应≤1m，3m 超限。", fix:"软土基坑高差≤1m。" }
+      ] },
+    { tag:"降水综合·记录表达维", typeHint:"单选 · 选出降水方案作答顺序完整的", figLabel:"题给：如何选择降水方案", figCaption:"综合→分流→选型→周边→承压水", fig:"depthflow",
+      stem:"问如何选择基坑降水方案，选出层次完整、能得分的作答。",
+      model:"综合考虑地质水文环境支护→按深度分流→按降水深度与渗透系数选井点→危及周边截水回灌→承压水验算突涌。",
+      opts:[
+        { t:"综合考虑地质水文环境支护，按深度分流(≤3m明排/>3m井点)，按参数选井点，危及周边截水回灌，承压水验算突涌。", ok:true, fix:"四层按序铺开、每层可判分，正是采分链。", code:"" },
+        { t:"根据经验直接选一种最常用的降水方法（如轻型井点）布置到位，能把水降下去就算合格。", ok:false, code:"E02", tempt:"图省事直接上一种方法。", lose:"缺综合因素、深度分流、周边与承压水各层采分。", fix:"按综合→分流→选型→周边→承压水分层写。" },
+        { t:"先算出基坑涌水量再套公式定井点数量，把降水方案做成一道纯计算题即可得分。", ok:false, code:"M05", tempt:"以为降水方案就是算涌水量。", lose:"选型是按深度/渗透系数/土质匹配方法，不是只算涌水量。", fix:"按深度分流+参数选型+周边+承压水综合作答。" },
+        { t:"只要写采用井点降水并设排水沟，方法越多越保险，把明排井点回灌全堆上最稳。", ok:false, code:"E07", tempt:"以为方法堆满就得分。", lose:"堆方法不分工况=概念混淆；应按深度/参数匹配、周边有需要才截水回灌。", fix:"按工况匹配方法，非无差别堆叠。" }
+      ] },
+    { tag:"分层实操·程序维", typeHint:"单选 · 深 8m 基坑怎么分层", figLabel:"题给：深 8m 基坑", figCaption:"分几层 · 每层多厚", fig:"layers",
+      stem:"某深基坑开挖深度 8m，按分层开挖要求，选出正确、能得分的作答。",
+      model:"分层开挖、每层≤3m，如分为 3、3、2 三层，逐层挖完稳定后再挖下一层。",
+      opts:[
+        { t:"分层开挖、每层≤3m，可分 3、3、2 三层，一层挖完稳定后再挖下一层。", ok:true, fix:"分层数与每层≤3m、逐层下挖都对。", code:"" },
+        { t:"分成上下两层各挖 4m，两层都在限值附近、能减少倒运次数，效率最高。", ok:false, code:"M08", tempt:"以为 4m 差不多、层数少更快。", lose:"每层≤3m，4m 已超限。", fix:"每层≤3m，8m 宜分三层(3+3+2)。" },
+        { t:"一次挖到 8m 坑底，四周放大放坡角就能自稳，深基坑也可不分层一次成型。", ok:false, code:"E07", tempt:"以为放缓坡就能一次到底。", lose:"深基坑须分层开挖、每层≤3m，一次到底易失稳。", fix:"分层开挖，每层≤3m。" },
+        { t:"分层厚度随意，只要最后总深度到 8m 即可，各层薄厚不影响坑壁稳定。", ok:false, code:"M08", tempt:"以为总深对就行。", lose:"每层有≤3m 限值，逐层稳定才安全。", fix:"每层≤3m、逐层挖并稳定。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 揪出三处失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"填土用管井 + 回灌防突涌 + 分层5m", fig:"sheet",
+      stem:"某学生对填土层、深 6m、坑底有承压水的基坑降水开挖方案作答：①用降水管井；②承压水靠井点回灌控制；③分层开挖每层 5m。选出最准确的诊断与补写。",
+      model:"①填土不宜管井，应按深度选轻型(多级)/喷射；②回灌防沉降不防突涌，应验算突涌+钻孔减压/水平封底隔渗；③分层应≤3m。",
+      opts:[
+        { t:"三处都不妥：填土不宜管井应改喷射/多级轻型、回灌不防突涌应减压封底隔渗、分层5m超3m。", ok:true, fix:"逐条揪错并给正确方法/数值，正是判断纠错三段式。", code:"" },
+        { t:"方案基本合理，只是分层 5m 略大改成 4m 即可，管井和回灌的用法都没有问题。", ok:false, code:"E07", tempt:"只盯着一处、放过了张冠李戴的两处。", lose:"漏诊填土用管井、回灌当防突涌两处硬伤；分层应≤3m 非 4m。", fix:"三处都要改：喷射/多级轻型、减压封底、分层≤3m。" },
+        { t:"只有承压水那条要改成加大管井抽水，其余管井降水、分层 5m 都符合规范无需调整。", ok:false, code:"E10", tempt:"以为加大抽水能治突涌。", lose:"填土不宜管井、分层5m超限也错；防突涌是减压/封底不是加大抽水。", fix:"改喷射/多级轻型、分层≤3m、减压封底防突涌。" },
+        { t:"把降水管井换成集水明排就全对了，明排简单又便宜，回灌和分层 5m 保持不变即可。", ok:false, code:"M10", tempt:"用明排简单的常识替代规范。", lose:"深 6m 不能用明排；回灌当防突涌、分层5m 也未纠。", fix:"深6m 用喷射/多级轻型、分层≤3m、减压封底防突涌。" }
       ] }
   ];
+  // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
   codeMap={
-    E02:{label:"采分点遗漏",advice:"清单题逐条编号写全，漏一项扣一项；深度>6m 别只答喷射。"},
-    E07:{label:"概念混淆",advice:"分清职能与适用：管井要砂砾不待见填土、回灌防沉降不防突涌、无支护只有放坡。"},
-    E08:{label:"背景信息提取失败",advice:"把题给数值/条件全代入，别凭感觉、也别臆造没给的条件。"},
-    E10:{label:"规范适用错误",advice:"对照阈值区间定档，集水明排只配 ≤3m 软土，承压水须减压隔渗。"},
-    M03:{label:"概念混淆",advice:"中心岛/盆式/逆作都需支护，认准放坡＝唯一无支护。"}
+    E02:{label:"采分点遗漏",advice:"降水分流/选型/周边/承压水、开挖分层/预留/水位/超挖，逐项写，缺一扣一。"},
+    E06:{label:"程序顺序错误",advice:"降水持续到基础完成、先分流再选型，别中途停或跳步。"},
+    E07:{label:"概念混淆",advice:"管井≠万能、回灌≠防突涌、盆式逆作≠无支护，别张冠李戴。"},
+    E10:{label:"规范适用错误",advice:">3m 别只明排、承压水别只抽水，按规范用对方法。"},
+    M03:{label:"概念混淆",advice:"分清各降水方法适用土质与开挖方案有无支护。"},
+    M08:{label:"规范数字混淆",advice:"轻型≤6/喷射8~20/真空>6、分层≤3m、预留150~300、水位500mm、高差≤1m 记牢。"},
+    M10:{label:"常识替代规范",advice:"别用设备强/挖得快/明排便宜代替规范阈值与做法。"}
   };
 
   componentDidMount(){
     var vp=document.querySelector('meta[name=viewport]');
     if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
     vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    // 抽题顺序与选项乱序在首帧惰性生成并缓存（ord()/optPerm()），不依赖此处 setState，
+    // 保证首屏渲染即已随机（消除"A 先出现再洗牌"的闪烁与对 componentDidMount 的依赖）。
   }
+  // ── 随机抽题：从 Q[] 全量候选池洗牌后取前 SHOW_COUNT 条真实索引 ──
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  // ── 选项乱序：每题对 opts 独立洗牌，正确项落随机位置（防"永远选第一个/最长的"位置泄露）；重做重新洗 ──
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
   isMulti(q){ return q.tag.indexOf("多选")>=0; }
   optLetter(i){ return String.fromCharCode(65+i); }
-  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.Q[qi];
-    const sel={...this.state.sel};
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
     if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
     else sel[qi]=i; this.setState({sel}); }
-  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.Q[qi]; if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
   submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
-  graded(qi){ const q=this.Q[qi],s=this.state.sel[qi];
-    if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
-    return s!=null&&q.opts[s]&&q.opts[s].ok; }
-  next(){ if(this.state.qi<this.Q.length-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
-  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false}); }
-  curCtx(){ const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
-    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
   ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
   openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
   closeAsk(){ this.setState({askOpen:false}); }
@@ -379,63 +405,145 @@ class Component extends DCLogic {
   dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
   async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
     this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
-    const prompt='你是"鲁班智考"一建案例课老师龙安欢，正在带学员做"'+this.examTitle+'"随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
     try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
-      else{ this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：「"+userQ+"」"}); } }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
     catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
   }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=104;
+    if(type==="depthflow"){ figH=96;
+      els.push(D({x:4,top:6,w:158,h:82,bg:"#eef6f0",bd:"1.5px solid #2c8a5b",r:10}));
+      els.push(D({x:14,top:16,w:138,h:16,fg:"#2c8a5b",fs:11,lab:"≤3m 且软土"}));
+      els.push(D({x:14,top:38,w:138,h:20,fg:"#23282b",fs:14,lab:"集水明排"}));
+      els.push(D({x:14,top:62,w:138,h:14,fg:"#7a857f",fs:9.5,fw:"600",lab:"重力自流"}));
+      els.push(D({x:170,top:6,w:158,h:82,bg:"#eaf1f8",bd:"1.5px solid #2f6db0",r:10}));
+      els.push(D({x:180,top:16,w:138,h:16,fg:"#2f6db0",fs:11,lab:">3m 明排压不住"}));
+      els.push(D({x:180,top:38,w:138,h:20,fg:"#23282b",fs:14,lab:"井点降水"}));
+      els.push(D({x:180,top:62,w:138,h:14,fg:"#7a857f",fs:9.5,fw:"600",lab:"强降水位到坑底下"})); }
+    else if(type==="ruler"){ figH=108; const x0=42, sc=13;
+      els.push(D({x:4,top:14,w:60,h:16,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",lab:"轻型"}));
+      els.push(D({x:x0,top:14,w:6*sc,h:16,bg:"#bfe3cd",r:4,fg:"#22694a",fs:9,lab:"≤6m"}));
+      els.push(D({x:4,top:40,w:60,h:16,fg:"#2f6db0",fs:10,ta:"left",jc:"flex-start",lab:"真空"}));
+      els.push(D({x:x0+6*sc,top:40,w:16*sc,h:16,bg:"#c4d8ee",r:4,fg:"#245089",fs:9,lab:">6m·渗透大"}));
+      els.push(D({x:4,top:66,w:60,h:16,fg:"#cf8a44",fs:10,ta:"left",jc:"flex-start",lab:"喷射"}));
+      els.push(D({x:x0+8*sc,top:66,w:12*sc,h:16,bg:"#f0cfa0",r:4,fg:"#8a5a1f",fs:9,lab:"8~20m"}));
+      els.push(D({x:x0+8*sc-1,top:64,w:12*sc+2,h:20,bg:"transparent",bd:"2px solid #cf8a44",r:6}));
+      els.push(D({x:x0+8*sc,top:2,w:0,h:96,bg:"transparent",bd:"1px dashed #cf4436"}));
+      els.push(D({x:x0+8*sc-24,top:88,w:48,h:14,fg:"#cf4436",fs:9,lab:"本例 8m"})); }
+    else if(type==="welltype"){ figH=104;
+      els.push(D({x:6,top:2,w:150,h:14,fg:"#2c8a5b",fs:10,lab:"砂砾层·渗透大"}));
+      els.push(D({x:6,top:18,w:150,h:82,bg:"radial-gradient(#a98442 3px,transparent 3.2px) 0 0/16px 16px,#d8c795",bd:"1.5px solid #b79a5e",r:6}));
+      els.push(D({x:60,top:26,w:16,h:66,bg:"#8a9095",bd:"1.5px solid #6b7075",r:2}));
+      els.push(D({x:120,top:36,w:24,h:58,bg:"#2f6db0",r:2,fg:"#fff",fs:9,ai:"flex-end",lab:"多"}));
+      els.push(D({x:172,top:2,w:150,h:14,fg:"#cf4436",fs:10,lab:"填土/黏土·渗透小"}));
+      els.push(D({x:172,top:18,w:150,h:82,bg:"radial-gradient(#8f8266 1px,transparent 1.2px) 0 0/6px 6px,#b6a988",bd:"1.5px solid #9a8f74",r:6}));
+      els.push(D({x:226,top:26,w:16,h:66,bg:"#8a9095",bd:"1.5px solid #6b7075",r:2}));
+      els.push(D({x:286,top:78,w:24,h:16,bg:"#b06a5c",r:2,fg:"#fff",fs:9,lab:"寥"})); }
+    else if(type==="pressure"){ figH=106;
+      els.push(D({x:0,top:0,w:70,h:106,bg:"linear-gradient(180deg,#cdb884,#b89f6a)",r:0}));
+      els.push(D({x:262,top:0,w:70,h:106,bg:"linear-gradient(180deg,#cdb884,#b89f6a)",r:0}));
+      els.push(D({x:70,top:0,w:192,h:56,bg:"#f4f3ec"}));
+      els.push(D({x:80,top:6,w:60,h:14,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:"基坑"}));
+      els.push(D({x:70,top:56,w:192,h:14,bg:"#8f7f66",fg:"#f1e6cf",fs:9,lab:"坑底隔水层"}));
+      els.push(D({x:70,top:70,w:192,h:36,bg:"repeating-linear-gradient(180deg,#2f6db0,#2f6db0 3px,#3f7dbf 3px,#3f7dbf 8px)",fg:"#fff",fs:9,lab:"承压水·水头顶↑"}));
+      els.push(D({x:150,top:14,w:10,h:56,bg:"#5c6469",r:2}));
+      els.push(D({x:126,top:2,w:60,h:12,fg:"#5c6469",fs:8.5,lab:"钻孔减压"}));
+      els.push(D({x:70,top:52,w:192,h:6,bg:"repeating-linear-gradient(45deg,#2c8a5b,#2c8a5b 4px,#37a06c 4px,#37a06c 8px)"})); }
+    else if(type==="reinject"){ figH=64;
+      els.push(D({x:0,top:4,w:92,h:22,bg:"#2f6db0",r:6,fg:"#fff",fs:10,lab:"回灌井"}));
+      els.push(D({x:100,top:4,w:230,h:22,fg:"#2f6db0",fs:11,ta:"left",jc:"flex-start",lab:"护周边 · 防地面沉降"}));
+      els.push(D({x:0,top:34,w:92,h:22,bg:"#cf4436",r:6,fg:"#fff",fs:9.5,lab:"减压·封底"}));
+      els.push(D({x:100,top:34,w:230,h:22,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"护坑底 · 防承压突涌"})); }
+    else if(type==="scheme"){ figH=104;
+      els.push(D({x:6,top:2,w:150,h:14,fg:"#2c8a5b",fs:10,lab:"放坡 · 无支护 ✓"}));
+      els.push(D({x:6,top:18,w:150,h:82,bg:"linear-gradient(180deg,#cdb884,#b89f6a)",bd:"1.5px solid #b79a5e",r:6}));
+      els.push(D({x:26,top:26,w:36,h:12,bg:"#f4f3ec",r:1}));
+      els.push(D({x:26,top:38,w:70,h:12,bg:"#f4f3ec",r:1}));
+      els.push(D({x:26,top:50,w:104,h:40,bg:"#f4f3ec",r:1}));
+      els.push(D({x:172,top:2,w:150,h:14,fg:"#cf4436",fs:10,lab:"中心岛/盆式/逆作 · 需支护"}));
+      els.push(D({x:172,top:18,w:150,h:82,bg:"linear-gradient(180deg,#cdb884,#b89f6a)",bd:"1.5px solid #b79a5e",r:6}));
+      els.push(D({x:206,top:22,w:82,h:74,bg:"#f4f3ec"}));
+      els.push(D({x:204,top:24,w:7,h:72,bg:"#6b7075",r:1}));
+      els.push(D({x:284,top:24,w:7,h:72,bg:"#6b7075",r:1}));
+      els.push(D({x:211,top:40,w:73,h:5,bg:"#cf8a44",r:1}));
+      els.push(D({x:211,top:70,w:73,h:5,bg:"#cf8a44",r:1})); }
+    else if(type==="layers"){ figH=104;
+      els.push(D({x:0,top:6,w:60,h:92,bg:"linear-gradient(180deg,#cdb884,#b89f6a)"}));
+      els.push(D({x:272,top:6,w:60,h:92,bg:"linear-gradient(180deg,#cdb884,#b89f6a)"}));
+      els.push(D({x:60,top:8,w:212,h:26,bg:"#eaf1f8",bd:"1.5px solid #2f6db0",fg:"#2f6db0",fs:11,lab:"第1层 ≤3m"}));
+      els.push(D({x:80,top:38,w:172,h:26,bg:"#fbeede",bd:"1.5px solid #cf8a44",fg:"#cf8a44",fs:11,lab:"第2层 ≤3m"}));
+      els.push(D({x:100,top:68,w:132,h:26,bg:"#eaf6ef",bd:"1.5px solid #2c8a5b",fg:"#2c8a5b",fs:11,lab:"第3层 ≤3m"})); }
+    else if(type==="reserve"){ figH=100;
+      els.push(D({x:0,top:6,w:80,h:88,bg:"linear-gradient(180deg,#cdb884,#b89f6a)"}));
+      els.push(D({x:252,top:6,w:80,h:88,bg:"linear-gradient(180deg,#cdb884,#b89f6a)"}));
+      els.push(D({x:80,top:6,w:172,h:52,bg:"#f4f3ec",fg:"#8b9398",fs:9,ai:"flex-start",lab:"已挖土体"}));
+      els.push(D({x:80,top:58,w:172,h:16,bg:"repeating-linear-gradient(45deg,#cf8a44,#cf8a44 5px,#e0a86a 5px,#e0a86a 10px)"}));
+      els.push(D({x:80,top:74,w:172,h:5,bg:"#8f7f66"}));
+      els.push(D({x:84,top:80,w:150,h:12,fg:"#8f7f66",fs:8.5,ta:"left",jc:"flex-start",lab:"基底原状土 · 别扰动"}));
+      els.push(D({x:256,top:56,w:74,h:20,fg:"#cf8a44",fs:9,ta:"left",jc:"flex-start",lab:"预留150~300"})); }
+    else if(type==="waterlevel"){ figH=104;
+      els.push(D({x:0,top:4,w:80,h:96,bg:"linear-gradient(180deg,#cdb884,#b89f6a)"}));
+      els.push(D({x:252,top:4,w:80,h:96,bg:"linear-gradient(180deg,#cdb884,#b89f6a)"}));
+      els.push(D({x:80,top:4,w:172,h:52,bg:"#f4f3ec"}));
+      els.push(D({x:86,top:8,w:90,h:14,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:"基坑(干作业)"}));
+      els.push(D({x:80,top:56,w:172,h:4,bg:"#8f7f66"}));
+      els.push(D({x:84,top:60,w:40,h:12,fg:"#8f7f66",fs:8.5,ta:"left",jc:"flex-start",lab:"坑底"}));
+      els.push(D({x:0,top:86,w:332,h:0,bd:"2px dashed #2f6db0"}));
+      els.push(D({x:4,top:74,w:70,h:12,fg:"#2f6db0",fs:8.5,ta:"left",jc:"flex-start",lab:"降后水位"}));
+      els.push(D({x:150,top:58,w:0,h:28,bd:"2px solid #cf4436"}));
+      els.push(D({x:158,top:64,w:60,h:14,fg:"#cf4436",fs:9.5,ta:"left",jc:"flex-start",lab:"≥500mm"})); }
+    else if(type==="overdig"){ figH=100;
+      els.push(D({x:0,top:6,w:70,h:88,bg:"linear-gradient(180deg,#cdb884,#b89f6a)"}));
+      els.push(D({x:262,top:6,w:70,h:88,bg:"linear-gradient(180deg,#cdb884,#b89f6a)"}));
+      els.push(D({x:70,top:6,w:192,h:52,bg:"#f4f3ec"}));
+      els.push(D({x:70,top:56,w:192,h:0,bd:"2px dashed #2c8a5b"}));
+      els.push(D({x:74,top:40,w:70,h:14,fg:"#2c8a5b",fs:9.5,ta:"left",jc:"flex-start",lab:"设计标高"}));
+      els.push(D({x:110,top:58,w:112,h:20,bg:"repeating-linear-gradient(45deg,#e7b7ae,#e7b7ae 5px,#f2d3cd 5px,#f2d3cd 10px)"}));
+      els.push(D({x:106,top:80,w:130,h:14,fg:"#cf4436",fs:9.5,lab:"超挖 ✕ 支护受损"}));
+      els.push(D({x:284,top:24,w:44,h:14,fg:"#cf8a44",fs:9,ta:"left",jc:"flex-start",lab:"高差≤1m"})); }
+    else if(type==="sheet"){ figH=98; const lines=["① 降水拟采用降水管井（填土）","② 承压水靠井点回灌控制","③ 分层开挖每层 5m"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    return {els,figH};
+  }
   renderVals(){
-    const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
-    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i);
-      let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
       if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
-      else{ showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
         else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
-        else{border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
-      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,
-        onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
     });
-    const isLast=qi===this.Q.length-1;
+    const isLast=qi===this.qCount()-1;
     let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
-    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit();
-      if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
     else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
-    else{ btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
 
-    let score=0;
-    const review=this.Q.map((qq,i)=>{ const ok=this.graded(i); if(ok)score++;
-      return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
-    const wc={};
-    this.Q.forEach((qq,i)=>{ if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code&&!o.ok) wc[o.code]=1; }); } });
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const verdicts=["再练练","有手感","稳了","满分手"];
-    const vi=score<=Math.floor(this.Q.length*0.4)?0:score<this.Q.length-1?1:score<this.Q.length?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
-    const fk=q.figKind;
 
     return {
-      examTitle:this.examTitle,inQuiz:!this.state.finished,finished:this.state.finished,
-      qNum:qi+1,qTotal:this.Q.length,qTag:q.tag,qStem:q.stem,qTypeHint:q.typeHint,
-      figLabel:q.figLabel,figCaption:q.figCaption,
-      figPit:fk==="pit",figRuler:fk==="ruler",figBreak:fk==="breakthrough",figSchemes:fk==="schemes",figDiagnose:fk==="diagnose",
-      progPct:Math.round(((sub?qi+1:qi)/this.Q.length)*100),opts,showModel:sub,qModel:q.model,
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
       btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
-      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,
-      scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
       reset:()=>this.reset(),
       openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
       dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
       askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
       hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
-      askChips:[
-        {t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},
-        {t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},
-        {t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}
-      ],
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
       askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
-      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
-      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
 }

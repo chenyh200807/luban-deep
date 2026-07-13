@@ -26,13 +26,26 @@ def test_manifest_scans_real_packs_and_never_self_publishes() -> None:
         assert manifest["projection_green"] == []
 
 
-def test_s07_coarse_review_is_barred_from_default_entry() -> None:
-    """S07 自标 coarse_review + 不进默认入口——确定性提取必须如实登记(Codex 对抗采信)。"""
+def test_s07_owner_default_entry_override_preserves_source_barrier() -> None:
+    """owner 放行成品视频时，不得篡改源文档的 coarse/barred 事实。"""
     manifest = _mod.build_manifest()
     s07 = next(p for p in manifest["packs"] if p["pack_id"] == "S07")
     assert s07["review_level"] == "coarse_review"
-    assert s07["explicitly_barred_default_entry"] is True
     assert s07["needs_leaf_review"] is True
+    assert s07["source_explicitly_barred_default_entry"] is True
+    assert s07["default_entry_override"] is True
+    assert s07["explicitly_barred_default_entry"] is False
+
+
+def test_finished_video_owner_overrides_enter_projection_with_provenance() -> None:
+    manifest = _mod.build_manifest()
+    by_id = {p["pack_id"]: p for p in manifest["packs"]}
+    for pack_id in ("C06", "F04", "Q03", "S07"):
+        pack = by_id[pack_id]
+        assert pack["published"] is True
+        assert pack["source_explicitly_barred_default_entry"] is True
+        assert pack["default_entry_override"] is True
+        assert pack_id in manifest["projection_green"]
 
 
 def test_entry_shape_has_projection_gate_fields() -> None:

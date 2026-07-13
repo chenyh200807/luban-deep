@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲（上/下集）</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍（重新抽题）</button>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="高处作业临边洞口防护";
+  KNOWLEDGE="高处作业临边洞口防护（JGJ80-2016 / JGJ59-2011）。临边触发：坠落高度基准面2m及以上临边作业，临空一侧设防护栏杆，配密目式安全立网或工具式栏板封闭。栏杆构造：上杆1.2m（非室内楼梯扶手0.9m）、立杆间距≤2m、挡脚板≥180mm、承1kN任意方向外力、张挂密目立网。洞口按尺寸：25~500mm承重盖板可靠覆盖固定；短边≥500mm竖向设1.2m栏杆并封闭加挡脚板；≥1500mm大洞口加安全平网。楼梯口/楼梯平台/梯段边属临边重点设栏杆；坡度>25°屋面屋檐边≥1.5m栏杆+密目网全封闭。通道口设防护棚（非机动≥3m/机动≥4m，高>24m木板双层）。悬空作业≥2m必设操作平台，超2m不得梯子攀登、不是脚手架。攀登：同梯禁两人，直梯>3m宜护笼、>8m应梯间平台；严禁沿钢筋骨架攀登/站骨架作业、严禁座板式单人吊具/自制吊篮。悬挑卸料钢平台两侧固定栏杆+底部200mm挡脚板（非三侧1200）。交叉作业坠落半径15~30m取5m、>30m取6m，下层退半径外，圈内设防护棚/网，未隔离设警戒区。高处作业检查项：安全帽/网/带+临边/洞口/通道口/攀登/悬空/移动式操作平台/悬挑钢平台/交叉作业及安全防护网。";
+  moreText="错得多的两块重点补：① 条件维——2m 触发、栏杆 1.2m·间距≤2m·挡脚板≥180mm·1kN、洞口 25~500 盖板 / ≥500 栏杆封闭，把硬数字和尺寸档一次写全；② 措施维——检查项 7 项逐条编号、卸料平台两侧+200mm 挡脚板、交叉作业下层避坠落半径 5/6m，别坍缩成一句「加强防护」。";
+  Q=[
+    { tag:"临边触发·条件维", typeHint:"单选 · 选最完整、能拿分的作答", fig:"ruler2m", figLabel:"题给：楼层临边 · 坠落高度基准面 2.3m", figCaption:"达 2m 触发线了吗？该怎么防？",
+      stem:"某工程楼层临边作业，坠落高度基准面 2.3m。选出判定与做法最能得分的作答。",
+      model:"坠落高度基准面 2m 及以上临边作业，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。",
+      opts:[
+        { t:"坠落高度基准面 2m 及以上，临空一侧应设防护栏杆，并配密目式安全立网或工具式栏板封闭。", ok:true, fix:"2m 触发 + 临空侧栏杆 + 封闭三件齐，换个高度也不错。", code:"" },
+        { t:"设「当心坠落」警示标志、拉警戒线提醒工人注意即可。", ok:false, code:"E04", tempt:"觉得提醒到位、看得见就安全。", lose:"警示标志是口号，没有实体隔离，临边必须设栏杆。", fix:"临空侧设防护栏杆，配密目网或工具式栏板封闭。" },
+        { t:"高处临边要注意安全，做好临边防护措施，防止人员坠落。", ok:false, code:"E03", tempt:"方向对、话也顺，像答到点了。", lose:"没写 2m 触发、没写栏杆/封闭具体措施，空泛不给分。", fix:"写「2m 及以上临空侧设栏杆并封闭」。" },
+        { t:"坠落高度不足 5m 可不设防护，2.3m 未到 5m，本处无需设栏杆。", ok:false, code:"E07", tempt:"误把 5m 当成临边触发线。", lose:"临边触发线是 2m，不是 5m，达线即须设防护。", fix:"2m 及以上就设栏杆并封闭。" }
+      ] },
+    { tag:"栏杆构造·条件维", typeHint:"单选 · 选参数完整、能拿分的作答", fig:"railnum", figLabel:"题给：临边防护栏杆构造", figCaption:"上杆·立杆间距·挡脚板·承载，哪几个是硬数字？",
+      stem:"关于临边防护栏杆的构造要求，选出参数完整、能得分的作答。",
+      model:"上杆离地 1.2m、立杆间距≤2m、挡脚板≥180mm、能承受 1kN 任意方向外力、张挂密目立网。",
+      opts:[
+        { t:"上杆离地 1.2m、立杆间距≤2m、挡脚板高≥180mm、能承受 1kN 任意方向外力、张挂密目立网。", ok:true, fix:"四个硬数字 + 密目网一次写全，正是高分密集区。", code:"" },
+        { t:"上杆离地 0.9m、立杆间距≤2m、设挡脚板即可，能挡住人就行。", ok:false, code:"E07", tempt:"把室内楼梯扶手 0.9m 套到临边栏杆上。", lose:"临边栏杆上杆是 1.2m；0.9m 是室内楼梯扶手，串章丢分。", fix:"上杆改 1.2m，其余数字补齐。" },
+        { t:"设防护栏杆，牢固可靠、高度足够，能防止人员坠落即可。", ok:false, code:"E03", tempt:"觉得「牢固够高」意思到了。", lose:"漏 1.2m / 间距 / 挡脚板 / 1kN 全部硬数字，空泛。", fix:"写 1.2m、≤2m、≥180mm、1kN。" },
+        { t:"上杆 1.2m、张挂密目立网，其余参数按现场情况灵活掌握。", ok:false, code:"E03", tempt:"记住主数字，其余想当然省了。", lose:"漏立杆间距≤2m、挡脚板≥180mm、承 1kN。", fix:"补≤2m、≥180mm、1kN。" }
+      ] },
+    { tag:"洞口≥500·条件维", typeHint:"单选 · 选做法完整、能拿分的作答", fig:"holeBig", figLabel:"题给：楼板竖向预留洞口 · 短边 600mm", figCaption:"人能掉下去——盖块板够吗？",
+      stem:"楼板上短边 600mm 的竖向预留洞口，选出防护做法完整、能得分的作答。",
+      model:"短边≥500mm 洞口临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。",
+      opts:[
+        { t:"短边≥500mm，临空侧设≥1.2m 防护栏杆并封闭、设挡脚板，必要时下挂安全平网。", ok:true, fix:"判尺寸档 + 栏杆 + 封闭 + 挡脚板齐，够大的加平网。", code:"" },
+        { t:"用一块木板把洞口盖住即可，600mm 的洞盖上就安全了。", ok:false, code:"E10", tempt:"以为洞口「盖住就行」、不分尺寸。", lose:"短边≥500 人可整个坠落，盖板兜不住，必须围栏杆封闭。", fix:"设 1.2m 栏杆并封闭、加挡脚板。" },
+        { t:"25~500mm 用承重盖板，本洞 600 也按承重盖板可靠覆盖固定。", ok:false, code:"E10", tempt:"记得盖板口径，却套错了尺寸段。", lose:"600≥500 属栏杆档；承重盖板是 25~500 档，尺寸配错措施。", fix:"≥500 设栏杆 + 封闭 + 挡脚板。" },
+        { t:"在洞口周边设警示标志、夜间加警示灯，提醒人员注意避让。", ok:false, code:"E04", tempt:"觉得警示到位就算防护。", lose:"口号化，没有实体防护，人照样会踩空坠落。", fix:"设 1.2m 栏杆并封闭、加挡脚板。" }
+      ] },
+    { tag:"洞口25~500·条件维", typeHint:"单选 · 选做法正确、能拿分的作答", fig:"holeSmall", figLabel:"题给：楼板洞口 · 短边 300mm", figCaption:"这个尺寸段该用啥防护？",
+      stem:"楼板上短边 300mm 的洞口，选出防护做法正确、能得分的作答。",
+      model:"短边 25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。",
+      opts:[
+        { t:"25~500mm 洞口用承重盖板可靠覆盖、固定牢靠，防止盖板移位。", ok:true, fix:"尺寸档 + 承重盖板 + 固定防移位，一次到位。", code:"" },
+        { t:"300mm 洞口也要临空侧设 1.2m 防护栏杆并封闭、加挡脚板。", ok:false, code:"E10", tempt:"以为「越严越好」，把栏杆档套到小洞口。", lose:"25~500 档用承重盖板即可，套栏杆档属规范适用错误。", fix:"用承重盖板可靠覆盖、固定牢靠。" },
+        { t:"拿彩条布或警戒线把洞口围一下，提醒工人别踩。", ok:false, code:"E04", tempt:"图省事，拿警戒线糊弄。", lose:"警戒线非承重、人踩即塌，属口号化。", fix:"用承重盖板可靠覆盖、固定牢靠。" },
+        { t:"把洞口盖上就行，用什么盖、固不固定不重要。", ok:false, code:"E03", tempt:"只记住「盖住」两个字。", lose:"漏「承重」「固定」关键词，普通板会塌或移位。", fix:"承重盖板 + 可靠固定防移位。" }
+      ] },
+    { tag:"临边封闭·措施维", typeHint:"单选 · 选封闭措施能拿分的作答", fig:"seal", figLabel:"题给：临边已设栏杆 · 下沿封闭", figCaption:"栏杆下沿拿什么封？",
+      stem:"临边已设防护栏杆，关于栏杆下沿的封闭措施，选出能得分的作答。",
+      model:"栏杆下沿配合密目式安全立网或工具式栏板封闭。",
+      opts:[
+        { t:"栏杆下沿配合密目式安全立网或工具式栏板封闭。", ok:true, fix:"点名「密目立网 / 工具式栏板」+ 封闭，正是采分句。", code:"" },
+        { t:"挂「禁止翻越」警示牌提示，栏杆立着就够，无需再封闭。", ok:false, code:"E04", tempt:"觉得有栏杆、有提示就够。", lose:"漏封闭措施，警示牌口号化不给分。", fix:"配密目立网或工具式栏板封闭。" },
+        { t:"用大孔安全网随便围一下，能挡大件物料就行。", ok:false, code:"E07", tempt:"把大孔网当成密目网。", lose:"临边封闭要「密目式」安全立网，大孔网不符。", fix:"用密目式安全立网封闭。" },
+        { t:"做好封闭、防止物料坠落即可，具体材料现场定。", ok:false, code:"E03", tempt:"方向对但没落到具体材料。", lose:"漏「密目立网 / 工具式栏板」具体措施。", fix:"密目立网或工具式栏板封闭。" }
+      ] },
+    { tag:"检查项补全·措施维", typeHint:"单选 · 选补充最完整、能拿分的作答", fig:"checklist", figLabel:"题给：检查项仅列 帽 / 网 / 带", figCaption:"通用项已列，采分项呢？",
+      stem:"某项目高处作业专项检查内容仅列「安全帽、安全网、安全带」。选出补充最完整、能得分的作答。",
+      model:"还应补充：临边防护、洞口防护、通道口防护、攀登作业、悬空作业、移动式操作平台、交叉作业及安全防护网。",
+      opts:[
+        { t:"还应补充：临边防护、洞口防护、通道口防护、攀登作业、悬空作业、移动式操作平台、交叉作业及安全防护网。", ok:true, fix:"7 项逐条编号写全，一项不落。", code:"" },
+        { t:"还应补充：安全帽佩戴、安全带高挂低用、现场消防器材。", ok:false, code:"E02", tempt:"围着「帽、带」加同类项，看着专业。", lose:"帽带已列属重复、消防器材非高处作业项，7 个采分项全漏。", fix:"补临边/洞口/通道口/攀登/悬空/移动平台/交叉作业。" },
+        { t:"还应补充临边防护和洞口防护两项，其余基本已经齐了。", ok:false, code:"E02", tempt:"只想到最熟的临边、洞口两项。", lose:"漏通道口/攀登/悬空/移动平台/交叉作业 5 项。", fix:"7 项全补，逐条编号。" },
+        { t:"还应加强高处作业安全管理、落实防护责任、专人巡查。", ok:false, code:"E04", tempt:"管理话术显得面面俱到。", lose:"口号化，没落到具体检查项，一分不给。", fix:"列出 7 个具体高处作业项。" }
+      ] },
+    { tag:"悬空作业·措施维", typeHint:"单选 · 选作业面做法能拿分的作答", fig:"ladpf", figLabel:"题给：钢筋/模板 · 坠落高度 2m 以上悬空作业", figCaption:"站在哪儿干这活才合规？",
+      stem:"钢筋、模板等坠落高度 2m 以上的悬空作业，选出作业面做法能得分的作答。",
+      model:"坠落高度 2m 及以上的模板、钢筋、浇筑等悬空作业，必须设置操作平台。",
+      opts:[
+        { t:"坠落高度 2m 及以上的模板、钢筋、浇筑等悬空作业，必须设置操作平台。", ok:true, fix:"2m 阈值 + 悬空作业 + 必设操作平台，措施点名到位。", code:"" },
+        { t:"悬空作业时间短，用梯子攀登上去作业即可，不必搭平台。", ok:false, code:"E10", tempt:"觉得短时作业、搭平台费事。", lose:"超 2m 不得以梯子攀登替代，必须设操作平台。", fix:"必设操作平台。" },
+        { t:"搭个脚手架上去作业就行，脚手架比操作平台更稳当。", ok:false, code:"E07", tempt:"觉得脚手架也很稳。", lose:"规范点名「操作平台」，写脚手架属措施张冠李戴。", fix:"设操作平台。" },
+        { t:"做好悬空作业防护、系好安全带即可，平台看情况再定。", ok:false, code:"E03", tempt:"想靠安全带兜底。", lose:"漏「必设操作平台」这一硬措施。", fix:"2m 及以上悬空作业必设操作平台。" }
+      ] },
+    { tag:"梯子纠错·后果维", typeHint:"单选 · 指出不妥并选正确做法", fig:"ladpf", figLabel:"背景：坠落高度超 2m 的安装作业使用梯子攀登", figCaption:"这处交底妥不妥？该怎么改？",
+      stem:"背景资料：「坠落高度超过 2m 的安装作业使用梯子攀登」。选出对不妥的判定与正确做法最准确的作答。",
+      model:"不妥；坠落高度超过 2m 时应设置操作平台，不得以梯子攀登替代。",
+      opts:[
+        { t:"不妥；坠落高度超过 2m 时应设置操作平台，不得以梯子攀登替代。", ok:true, fix:"判「不妥」+ 正确做法（操作平台）成对，才给全分。", code:"" },
+        { t:"妥当；只要梯子放稳、有人扶着，超 2m 用梯子攀登没问题。", ok:false, code:"E08", tempt:"觉得扶稳了就安全。", lose:"超 2m 必设操作平台，梯子不合规，判「妥当」方向就错了。", fix:"判不妥，应设操作平台。" },
+        { t:"不妥；应改用人字梯（合梯）攀登，比直梯稳一些。", ok:false, code:"E07", tempt:"识别到不妥，但纠错停在换梯型。", lose:"换梯型仍是梯子，规范要的是操作平台。", fix:"应设操作平台，而非换梯型。" },
+        { t:"不妥；应搭设脚手架上下，脚手架比操作平台更通用。", ok:false, code:"E10", tempt:"知道要「平台类」却写成脚手架。", lose:"规范措施是操作平台，脚手架不对口。", fix:"应设操作平台。" }
+      ] },
+    { tag:"严禁行为·后果维", typeHint:"单选 · 选表述正确、能拿分的作答", fig:"ban", figLabel:"题给：高处作业严禁行为", figCaption:"哪些是硬禁止？",
+      stem:"关于高处作业的严禁行为，选出表述正确、能得分的作答。",
+      model:"严禁沿钢筋骨架攀登或站在骨架上作业；严禁使用座板式单人吊具、自制吊篮。",
+      opts:[
+        { t:"严禁沿钢筋骨架攀登或站在骨架上作业；严禁使用座板式单人吊具、自制吊篮。", ok:true, fix:"两类严禁一次写全，性质是硬禁止。", code:"" },
+        { t:"作业紧张时可沿钢筋骨架攀登上下，注意抓稳即可。", ok:false, code:"E10", tempt:"觉得抓稳、赶工时通融一下没事。", lose:"严禁沿骨架攀登，写成「可以」性质就错了。", fix:"严禁沿骨架攀登 / 站骨架作业。" },
+        { t:"严禁沿钢筋骨架攀登。（仅此一条）", ok:false, code:"E02", tempt:"只记住最熟的一类。", lose:"漏「座板式单人吊具 / 自制吊篮」一类严禁。", fix:"补严禁座板式单人吊具、自制吊篮。" },
+        { t:"可使用自制吊篮载人上下，只要绳索牢固、有人监护。", ok:false, code:"E07", tempt:"觉得牢固加监护就安全。", lose:"严禁座板式单人吊具、自制吊篮，属硬禁止。", fix:"严禁座板式单人吊具、自制吊篮。" }
+      ] },
+    { tag:"攀登分档·条件维", typeHint:"单选 · 选高度分档正确、能拿分的作答", fig:"climb", figLabel:"题给：固定式直梯攀登", figCaption:"多高设护笼、多高设梯间平台？",
+      stem:"关于固定式直梯的攀登作业要求，选出高度分档正确、能得分的作答。",
+      model:"同一梯子禁两人同时攀登；固定式直梯超 3m 宜设护笼，超 8m 应设梯间平台。",
+      opts:[
+        { t:"同一梯子禁止两人同时攀登；固定式直梯超 3m 宜设护笼，超 8m 应设梯间平台。", ok:true, fix:"同梯禁两人 + 3m 护笼 + 8m 梯间平台，档位清楚。", code:"" },
+        { t:"固定式直梯超 8m 宜设护笼，超 3m 应设梯间平台。", ok:false, code:"E07", tempt:"记得两个档位，却把它们记反了。", lose:"3m/8m 档记反：>3m 护笼、>8m 梯间平台。", fix:">3m 护笼、>8m 梯间平台。" },
+        { t:"直梯要牢固、定期检查，工人系好安全带攀登即可。", ok:false, code:"E03", tempt:"方向对但空泛。", lose:"漏 3m/8m 分档和同梯禁两人。", fix:"补 >3m 护笼、>8m 梯间平台、同梯禁两人。" },
+        { t:"固定式直梯超 3m 宜设护笼。（仅此一条）", ok:false, code:"E02", tempt:"只答了一个档位。", lose:"漏 >8m 梯间平台、同梯禁两人。", fix:"补 >8m 梯间平台、同梯禁两人。" }
+      ] },
+    { tag:"卸料平台纠错·后果维", typeHint:"单选 · 指出不妥并选正确做法", fig:"platcmp", figLabel:"背景：悬挑卸料钢平台三侧设 1200mm 固定栏杆", figCaption:"采分点是高度，还是侧数和挡脚板？",
+      stem:"背景资料：「在悬挑卸料钢平台三侧设置 1200mm 固定防护栏杆」。选出对不妥的判定与正确做法最准确的作答。",
+      model:"不妥；卸料钢平台应在两侧设固定防护栏杆，底部设 200mm 高挡脚板。",
+      opts:[
+        { t:"不妥；卸料钢平台应在两侧设固定防护栏杆，底部设 200mm 高挡脚板。", ok:true, fix:"判不妥 + 两侧固定栏杆 + 底部 200mm 挡脚板，踩准采分点。", code:"" },
+        { t:"妥当；三侧 1200mm 固定栏杆围得更严，完全符合要求。", ok:false, code:"E08", tempt:"觉得围得越多越好，只盯 1200 高度。", lose:"采分点是两侧 + 挡脚板，「三侧 1200」没踩上点。", fix:"判不妥，两侧固定栏杆 + 200mm 挡脚板。" },
+        { t:"不妥；应把栏杆加高到 1500mm、三侧改四侧全围。", ok:false, code:"E02", tempt:"识别到不妥，但纠错方向乱了。", lose:"采分点不在高度更高、侧数更多，在两侧固定 + 挡脚板。", fix:"两侧固定栏杆 + 底部 200mm 挡脚板。" },
+        { t:"不妥；应在两侧设固定防护栏杆。（漏挡脚板）", ok:false, code:"E02", tempt:"答对了侧数，收尾漏了挡脚板。", lose:"漏「底部 200mm 挡脚板」这一采分点。", fix:"补底部 200mm 高挡脚板。" }
+      ] },
+    { tag:"交叉作业·条件维", typeHint:"单选 · 选下层防护完整、能拿分的作答", fig:"radius", figLabel:"题给：上下交叉作业 · 上层坠落高度约 20m", figCaption:"下层退多远？圈里咋防？",
+      stem:"上下交叉作业，上层坠落高度约 20m。选出下层防护做法完整、能得分的作答。",
+      model:"坠落高度 15~30m 取半径 5m，下层作业点须在半径外；半径内设防护棚或防护网，未隔离设警戒隔离区禁人。",
+      opts:[
+        { t:"坠落高度 15~30m 取半径 5m，下层须在半径外；半径内设防护棚或防护网，未隔离设警戒隔离区禁人。", ok:true, fix:"半径取值 + 退到圈外 + 圈内设棚/网，采分点齐。", code:"" },
+        { t:"在下层作业区上方搭设防护棚即可，坠物砸不到人。", ok:false, code:"E02", tempt:"只想到「搭个棚」。", lose:"漏坠落半径与下层退至半径外，采分点遗漏。", fix:"补「下层退到坠落半径 5m 外」。" },
+        { t:"坠落高度 20m，坠落半径取 6m，下层退到 6m 外。", ok:false, code:"E07", tempt:"记得两个档，却套错了区间。", lose:"15~30m 取 5m，>30m 才取 6m；20m 应取 5m。", fix:"15~30m 取半径 5m。" },
+        { t:"下层作业注意避让上方坠物、加强交叉作业协调管理即可。", ok:false, code:"E04", tempt:"用管理话术带过。", lose:"口号化，没有半径与防护棚具体措施。", fix:"半径 5m 外 + 圈内防护棚/网 + 警戒隔离。" }
+      ] },
+    { tag:"屋面作业·条件维", typeHint:"单选 · 选防护做法正确、能拿分的作答", fig:"roof", figLabel:"题给：坡度 28° 坡屋面作业", figCaption:"坡度超 25° 屋檐边怎么防？",
+      stem:"坡度 28° 的坡屋面作业，选出屋檐边防护做法正确、能得分的作答。",
+      model:"坡度>25°的屋面，屋檐边应设≥1.5m 防护栏杆，并挂密目网全封闭。",
+      opts:[
+        { t:"坡度大于 25°的屋面，屋檐边应设≥1.5m 防护栏杆，并挂密目网全封闭。", ok:true, fix:">25° 判档 + ≥1.5m 栏杆 + 密目网全封闭，一次写全。", code:"" },
+        { t:"屋面作业设 1.2m 临边栏杆即可，与楼层临边一样处理。", ok:false, code:"E07", tempt:"直接套用普通临边 1.2m。", lose:"坡度>25° 屋面屋檐边要≥1.5m 栏杆，比普通临边高。", fix:"屋檐边设≥1.5m 栏杆 + 密目网全封闭。" },
+        { t:"屋面作业系好安全带、注意防滑，坡陡处小心即可。", ok:false, code:"E04", tempt:"想靠安全带加提醒。", lose:"漏屋檐边≥1.5m 栏杆与全封闭实体措施。", fix:"设≥1.5m 栏杆 + 密目网全封闭。" },
+        { t:"屋面周边做好防护，防止人员和物料滑落即可。", ok:false, code:"E03", tempt:"方向对但空泛。", lose:"漏 >25°、≥1.5m、密目网全封闭关键词。", fix:">25° 屋面屋檐边≥1.5m 栏杆全封闭。" }
+      ] },
+    { tag:"楼梯口·措施维", typeHint:"单选 · 选做法能拿分的作答", fig:"stair", figLabel:"题给：楼梯口 / 楼梯平台 / 梯段边", figCaption:"这几处算不算临边重点？",
+      stem:"关于楼梯口、楼梯平台、梯段边的临边防护，选出能得分的作答。",
+      model:"楼梯口、楼梯平台、梯段边属临边防护重点，应安装防护栏杆。",
+      opts:[
+        { t:"楼梯口、楼梯平台、梯段边属临边防护重点，应安装防护栏杆。", ok:true, fix:"点名三处 + 安装防护栏杆，采分点到位。", code:"" },
+        { t:"楼梯口挂「注意台阶、小心坠落」标志提醒即可。", ok:false, code:"E04", tempt:"觉得提醒够用。", lose:"口号化，应安装防护栏杆。", fix:"楼梯口/平台/梯段边安装防护栏杆。" },
+        { t:"只在楼层临边设栏杆即可，楼梯口不属临边、无需防护。", ok:false, code:"E02", tempt:"以为楼梯口不算临边。", lose:"楼梯口/平台/梯段边正是临边重点，漏设丢分。", fix:"三处均安装防护栏杆。" },
+        { t:"楼梯处做好安全防护、加强管理，防止踏空坠落。", ok:false, code:"E03", tempt:"空泛管理话术。", lose:"漏「安装防护栏杆」实体措施与具体部位。", fix:"楼梯口/平台/梯段边安装防护栏杆。" }
+      ] },
+    { tag:"通道口·措施维", typeHint:"单选 · 选防护做法正确、能拿分的作答", fig:"shed", figLabel:"题给：出入口 / 通道口处于坠物影响范围", figCaption:"通道口该怎么防坠物？",
+      stem:"建筑物出入口、通道口处于坠物影响范围内，选出防护做法正确、能得分的作答。",
+      model:"出入口、通道口上方应搭设防护棚，非机动车道≥3m、机动车道≥4m，坠物影响大时用木板须双层。",
+      opts:[
+        { t:"出入口、通道口上方应搭设防护棚（非机动车道≥3m、机动车道≥4m），坠物影响大时木板双层。", ok:true, fix:"防护棚 + 长度分档 + 双层，采分点齐。", code:"" },
+        { t:"通道口挂「注意坠物」标志、安排专人提醒行人快速通过。", ok:false, code:"E04", tempt:"靠提醒和疏导。", lose:"口号化，通道口应搭防护棚实体隔离。", fix:"搭设防护棚（非机动≥3m/机动≥4m）。" },
+        { t:"通道口拉警戒线围挡，禁止无关人员进入即可。", ok:false, code:"E02", tempt:"警戒线看着像有隔离。", lose:"警戒线不能承接坠物，应搭防护棚。", fix:"搭设防护棚承接坠物。" },
+        { t:"通道口做好防砸防护、注意上方作业协调即可。", ok:false, code:"E03", tempt:"方向对但空泛。", lose:"漏防护棚及长度/双层数值。", fix:"防护棚非机动≥3m / 机动≥4m。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", fig:"sheet", figLabel:"模拟学生作答（待诊断）", figCaption:"三处看着都答了，真踩上点了吗？",
+      stem:"某学生答临边洞口防护：①临边挂警示牌提醒；②600mm 竖向洞口盖块木板；③防护栏杆高 0.9m。选出最准确的诊断与补写。",
+      model:"①警示牌须改实体栏杆+密目网封闭；②竖向≥500 洞口须设 1.2m 栏杆封闭加挡脚板（25~500 才用承重盖板）；③栏杆高应 1.2m（0.9m 是室内扶手）。三处都要补写。",
+      opts:[
+        { t:"三处均失分：①应改实体栏杆+密目网封闭；②≥500 洞口设 1.2m 栏杆封闭加挡脚板（25~500 才用盖板）；③栏杆上杆应 1.2m（0.9m 是室内扶手）。", ok:true, fix:"三处逐条补成采分句——这就是「会写答案」。", code:"" },
+        { t:"基本正确，只是栏杆 0.9m 偏低，改成 1.0m 就达标，其余没问题。", ok:false, code:"E08", tempt:"只挑出一处、还改错了数。", lose:"漏诊警示牌口号化、洞口盖板不分尺寸；栏杆应 1.2m 非 1.0m。", fix:"三处都补，栏杆改 1.2m。" },
+        { t:"只是栏杆高度问题，把 0.9m 改 1.2m 即可，警示牌和盖木板都行。", ok:false, code:"E07", tempt:"抓到栏杆一处就收手。", lose:"警示牌替不了栏杆、≥500 洞口须设栏杆，漏两处。", fix:"警示牌改栏杆+网、洞口设 1.2m 栏杆封闭。" },
+        { t:"思路对、防护到位，加强现场管理、落实责任即可给分。", ok:false, code:"E04", tempt:"整体表扬式带过。", lose:"三处实体措施都错或缺，纯口号不得分。", fix:"实体栏杆+网、洞口按尺寸设栏杆、栏杆 1.2m 三处补写。" }
+      ] }
+  ];
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"检查项 7 项、卸料两侧+挡脚板、交叉半径逐项写，缺一扣一。"},
+    E03:{label:"关键词缺失",advice:"别停在「做好防护」，落到 2m / 1.2m / ≥180mm / 承重盖板等硬词。"},
+    E04:{label:"口号化表达",advice:"警示牌、警戒线替不了实体栏杆/盖板/防护棚，口号不给分。"},
+    E05:{label:"审题错误",advice:"先看尺寸、坡度、坠落高度落哪档，再套对应措施。"},
+    E07:{label:"概念混淆",advice:"栏杆 1.2m≠扶手 0.9m；操作平台≠脚手架≠梯子；档位别记反。"},
+    E08:{label:"背景信息提取失败",advice:"卸料「三侧1200」、梯子攀登这类不妥要抓出来，别判「妥当」。"},
+    E10:{label:"规范适用错误",advice:"洞口按尺寸配措施、悬空必设操作平台，别张冠李戴。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+  }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="ruler2m"){ figH=98;
+      els.push(D({x:40,top:22,w:150,h:12,bg:"#b3ac99",r:2}));
+      els.push(D({x:40,top:80,w:300,h:10,bg:"#b3ac99",r:2}));
+      els.push(D({x:158,top:6,w:12,h:12,bg:"#ffd24a",r:6}));
+      els.push(D({x:159,top:16,w:10,h:8,bg:"#2f6db0",r:2}));
+      els.push(D({x:22,top:22,w:0,h:58,bd:"2px solid #cf4436"}));
+      els.push(D({x:0,top:44,w:36,h:14,fg:"#cf4436",fs:10,lab:"2.3m"}));
+      els.push(D({x:186,top:2,w:4,h:32,bg:"#46627e"}));
+      els.push(D({x:150,top:2,w:40,h:4,bg:"#46627e",r:1}));
+      els.push(D({x:206,top:36,w:134,h:14,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",lab:"≥2m 临空侧栏杆+封闭"})); }
+    else if(type==="railnum"){ figH=104;
+      els.push(D({x:70,top:8,w:190,h:9,bg:"repeating-linear-gradient(45deg,#23282b,#23282b 6px,#ffd24a 6px,#ffd24a 12px)",r:2}));
+      els.push(D({x:70,top:8,w:8,h:82,bg:"#46627e"}));
+      els.push(D({x:252,top:8,w:8,h:82,bg:"#46627e"}));
+      els.push(D({x:70,top:48,w:190,h:5,bg:"#46627e"}));
+      els.push(D({x:70,top:82,w:190,h:12,bg:"#cf8a44",r:2}));
+      els.push(D({x:6,top:20,w:56,h:14,fg:"#cf4436",fs:9.5,ta:"right",jc:"flex-end",lab:"上杆1.2m"}));
+      els.push(D({x:120,top:-2,w:90,h:12,fg:"#2f6db0",fs:9.5,lab:"立杆间距≤2m"}));
+      els.push(D({x:266,top:80,w:80,h:14,fg:"#b5732a",fs:9.5,ta:"left",jc:"flex-start",lab:"挡脚板≥180"}));
+      els.push(D({x:266,top:40,w:80,h:14,fg:"#2c8a5b",fs:9.5,ta:"left",jc:"flex-start",lab:"承1kN·密目网"})); }
+    else if(type==="railcmp"){ figH=96;
+      els.push(D({x:20,top:6,w:90,h:14,fg:"#cf4436",fs:10,lab:"临边栏杆"}));
+      els.push(D({x:56,top:22,w:16,h:56,bg:"#2c8a5b",r:3}));
+      els.push(D({x:20,top:80,w:90,h:12,fg:"#2c8a5b",fs:11,lab:"1.2m ✓"}));
+      els.push(D({x:210,top:6,w:120,h:14,fg:"#8b8471",fs:10,lab:"室内楼梯扶手"}));
+      els.push(D({x:250,top:36,w:16,h:42,bg:"#8a7f6a",r:3}));
+      els.push(D({x:210,top:80,w:120,h:12,fg:"#cf8a44",fs:10.5,lab:"0.9m · 别串到临边"})); }
+    else if(type==="holeBig"){ figH=100;
+      els.push(D({x:26,top:26,w:150,h:52,bg:"#c9c3b1",r:3}));
+      els.push(D({x:66,top:26,w:70,h:52,bg:"#3a4550",r:2}));
+      els.push(D({x:62,top:18,w:78,h:6,bg:"#46627e",r:2}));
+      els.push(D({x:62,top:18,w:5,h:60,bg:"#46627e"}));
+      els.push(D({x:135,top:18,w:5,h:60,bg:"#46627e"}));
+      els.push(D({x:66,top:72,w:70,h:6,bg:"#cf8a44"}));
+      els.push(D({x:26,top:82,w:150,h:14,fg:"#2c8a5b",fs:9.5,lab:"≥500 栏杆+封闭+挡脚板"}));
+      els.push(D({x:206,top:30,w:60,h:26,bg:"#9a8d70",r:2}));
+      els.push(D({x:270,top:34,w:20,h:20,fg:"#cf4436",fs:18,lab:"✕"}));
+      els.push(D({x:200,top:62,w:140,h:14,fg:"#cf4436",fs:9.5,ta:"left",jc:"flex-start",lab:"只盖板 → 兜不住人"})); }
+    else if(type==="holeSmall"){ figH=98;
+      els.push(D({x:40,top:30,w:150,h:46,bg:"#c9c3b1",r:3}));
+      els.push(D({x:78,top:22,w:74,h:20,bg:"repeating-linear-gradient(90deg,#7d715a,#7d715a 6px,#9a8d70 6px,#9a8d70 12px)",r:2}));
+      els.push(D({x:40,top:80,w:150,h:14,fg:"#2c8a5b",fs:10,lab:"25~500 承重盖板 ✓"}));
+      els.push(D({x:220,top:24,w:110,h:14,fg:"#5c6469",fs:9.5,ta:"left",jc:"flex-start",lab:"短边 300mm"}));
+      els.push(D({x:220,top:44,w:120,h:34,fg:"#b5732a",fs:9,ta:"left",jc:"flex-start",lab:"盖住+固定牢，防移位"})); }
+    else if(type==="seal"){ figH=96;
+      els.push(D({x:30,top:14,w:6,h:64,bg:"#46627e"}));
+      els.push(D({x:150,top:14,w:6,h:64,bg:"#46627e"}));
+      els.push(D({x:30,top:14,w:126,h:5,bg:"#46627e"}));
+      els.push(D({x:36,top:24,w:114,h:48,bg:"repeating-linear-gradient(45deg,rgba(44,138,91,.3),rgba(44,138,91,.3) 3px,transparent 3px,transparent 7px)",bd:"1px solid #2c8a5b66"}));
+      els.push(D({x:30,top:80,w:150,h:14,fg:"#2c8a5b",fs:9.5,lab:"密目网/工具式栏板 ✓"}));
+      els.push(D({x:238,top:22,w:52,h:30,bg:"#d9a521",r:3,fg:"#fff",fs:9,lab:"警示牌"}));
+      els.push(D({x:292,top:28,w:20,h:20,fg:"#cf4436",fs:16,lab:"✕"}));
+      els.push(D({x:214,top:80,w:120,h:14,fg:"#cf4436",fs:9.5,lab:"只挂牌=口号"})); }
+    else if(type==="checklist"){ figH=104;
+      els.push(D({x:2,top:2,w:120,h:12,fg:"#8b8471",fs:9,ta:"left",jc:"flex-start",lab:"已列（通用）："}));
+      const done=["安全帽","安全网","安全带"];
+      done.forEach((d,i)=>els.push(D({x:2+i*72,top:18,w:66,h:18,bg:"#ece9dd",r:5,fg:"#8b8471",fs:9,lab:"✓"+d})));
+      els.push(D({x:2,top:42,w:200,h:12,fg:"#cf4436",fs:9,ta:"left",jc:"flex-start",lab:"缺的采分项（补 7 项）："}));
+      const miss=["临边","洞口","通道口","攀登","悬空","移动平台","交叉网"];
+      miss.forEach((m,i)=>els.push(D({x:2+(i%4)*84,top:58+Math.floor(i/4)*22,w:80,h:18,bg:"rgba(207,68,54,.1)",bd:"1px solid #cf443655",r:5,fg:"#cf4436",fs:9,lab:m}))); }
+    else if(type==="ladpf"){ figH=104;
+      els.push(D({x:20,top:6,w:80,h:12,fg:"#cf4436",fs:9.5,lab:"梯子 ✕"}));
+      els.push(D({x:40,top:22,w:5,h:64,bg:"#b5732a",r:2}));
+      els.push(D({x:66,top:22,w:5,h:64,bg:"#b5732a",r:2}));
+      els.push(D({x:41,top:36,w:30,h:4,bg:"#cf8a44"}));
+      els.push(D({x:41,top:56,w:30,h:4,bg:"#cf8a44"}));
+      els.push(D({x:41,top:76,w:30,h:4,bg:"#cf8a44"}));
+      els.push(D({x:96,top:44,w:20,h:20,fg:"#cf4436",fs:18,lab:"✕"}));
+      els.push(D({x:210,top:6,w:120,h:12,fg:"#2c8a5b",fs:9.5,lab:"操作平台 ✓"}));
+      els.push(D({x:210,top:52,w:120,h:10,bg:"#8a94a0",r:2}));
+      els.push(D({x:218,top:62,w:6,h:24,bg:"#6b7580"}));
+      els.push(D({x:316,top:62,w:6,h:24,bg:"#6b7580"}));
+      els.push(D({x:210,top:26,w:6,h:26,bg:"#46627e"}));
+      els.push(D({x:324,top:26,w:6,h:26,bg:"#46627e"}));
+      els.push(D({x:210,top:26,w:120,h:5,bg:"#46627e",r:2}));
+      els.push(D({x:262,top:34,w:14,h:14,bg:"#ffd24a",r:7})); }
+    else if(type==="ban"){ figH=100; const b=["严禁沿钢筋骨架攀登","严禁站在骨架上作业","严禁座板式单人吊具/自制吊篮"];
+      b.forEach((x,i)=>{ els.push(D({x:6,top:6+i*30,w:24,h:22,fg:"#cf4436",fs:16,lab:"✕"}));
+        els.push(D({x:34,top:6+i*30,w:298,h:22,bg:"#fdf2f0",bd:"1px solid #f0cabf",r:6,fg:"#a3271c",fs:10.5,ta:"left",jc:"flex-start",p:"0 10px",lab:x})); }); }
+    else if(type==="climb"){ figH=104;
+      els.push(D({x:70,top:4,w:5,h:96,bg:"#8a94a0",r:2}));
+      els.push(D({x:96,top:4,w:5,h:96,bg:"#8a94a0",r:2}));
+      for(let i=0;i<5;i++)els.push(D({x:71,top:12+i*20,w:30,h:4,bg:"#6b7580"}));
+      els.push(D({x:60,top:24,w:50,h:5,bg:"#2c8a5b",r:2}));
+      els.push(D({x:116,top:20,w:120,h:14,fg:"#2c8a5b",fs:9.5,ta:"left",jc:"flex-start",lab:">8m 应设梯间平台"}));
+      els.push(D({x:56,top:60,w:52,h:40,bd:"2px solid #cf8a44",r:26}));
+      els.push(D({x:116,top:70,w:120,h:14,fg:"#b5732a",fs:9.5,ta:"left",jc:"flex-start",lab:">3m 宜设护笼"}));
+      els.push(D({x:250,top:44,w:90,h:14,fg:"#5c6469",fs:9,ta:"left",jc:"flex-start",lab:"同梯禁两人"})); }
+    else if(type==="platcmp"){ figH=104;
+      els.push(D({x:14,top:4,w:150,h:12,fg:"#cf4436",fs:9.5,ta:"left",jc:"flex-start",lab:"三侧 1200 围死 ✕"}));
+      els.push(D({x:14,top:22,w:8,h:56,bg:"repeating-linear-gradient(45deg,#8f8975,#8f8975 4px,#a49d86 4px,#a49d86 8px)"}));
+      els.push(D({x:22,top:22,w:120,h:56,bg:"#d8d2c2"}));
+      els.push(D({x:22,top:22,w:120,h:5,bg:"#46627e"}));
+      els.push(D({x:22,top:73,w:120,h:5,bg:"#46627e"}));
+      els.push(D({x:137,top:22,w:5,h:56,bg:"#46627e"}));
+      els.push(D({x:196,top:4,w:150,h:12,fg:"#2c8a5b",fs:9.5,ta:"left",jc:"flex-start",lab:"两侧+200挡脚板 ✓"}));
+      els.push(D({x:196,top:22,w:8,h:56,bg:"repeating-linear-gradient(45deg,#8f8975,#8f8975 4px,#a49d86 4px,#a49d86 8px)"}));
+      els.push(D({x:204,top:22,w:120,h:56,bg:"#e6efe8"}));
+      els.push(D({x:204,top:22,w:120,h:5,bg:"#2c8a5b"}));
+      els.push(D({x:204,top:73,w:120,h:5,bg:"#2c8a5b"}));
+      els.push(D({x:204,top:68,w:120,h:5,bg:"#cf8a44"})); }
+    else if(type==="radius"){ figH=104;
+      els.push(D({x:150,top:2,w:14,h:14,bg:"#ffd24a",r:7}));
+      els.push(D({x:166,top:4,w:100,h:12,fg:"#5c6469",fs:9,ta:"left",jc:"flex-start",lab:"上层坠物"}));
+      els.push(D({x:40,top:40,w:180,h:56,bd:"2px dashed #cf4436",r:90,bg:"rgba(207,68,54,.05)"}));
+      els.push(D({x:120,top:52,w:80,h:12,fg:"#cf4436",fs:9,ta:"left",jc:"flex-start",lab:"R=5m(15~30m)"}));
+      els.push(D({x:96,top:70,w:0,h:0,bd:"14px solid transparent",lab:""}));
+      els.push(D({x:100,top:74,w:60,h:12,fg:"#b5732a",fs:9,lab:"圈内设棚/网"}));
+      els.push(D({x:288,top:66,w:14,h:14,bg:"#2c8a5b",r:7}));
+      els.push(D({x:250,top:82,w:90,h:12,fg:"#2c8a5b",fs:9,lab:"下层退到圈外 ✓"})); }
+    else if(type==="roof"){ figH=100;
+      els.push(D({x:40,top:74,w:190,h:0,bd:"2px solid #b3ac99"}));
+      els.push(D({x:40,top:30,w:150,h:0,bd:"3px solid #8a94a0",r:2}));
+      els.push(D({x:36,top:28,w:8,h:50,bg:"#2c8a5b"}));
+      els.push(D({x:20,top:12,w:80,h:14,fg:"#2c8a5b",fs:9,ta:"left",jc:"flex-start",lab:"檐口≥1.5m 栏杆"}));
+      els.push(D({x:120,top:44,w:60,h:14,fg:"#cf4436",fs:10,lab:"坡度 28°"}));
+      els.push(D({x:236,top:40,w:100,h:28,fg:"#b5732a",fs:9,ta:"left",jc:"flex-start",lab:">25°→密目网全封闭"})); }
+    else if(type==="stair"){ figH=100;
+      for(let i=0;i<4;i++)els.push(D({x:30+i*36,top:70-i*15,w:36,h:15+i*15,bg:"#c9c3b1",bd:"1px solid #b0aa98"}));
+      els.push(D({x:30,top:20,w:5,h:52,bg:"#2c8a5b"}));
+      els.push(D({x:30,top:18,w:150,h:5,bg:"#2c8a5b",r:2}));
+      els.push(D({x:180,top:18,w:5,h:80,bg:"#2c8a5b"}));
+      els.push(D({x:196,top:30,w:140,h:40,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",lab:"楼梯口·平台·梯段边 都设栏杆"})); }
+    else if(type==="shed"){ figH=100;
+      els.push(D({x:150,top:2,w:12,h:12,bg:"#ffd24a",r:6}));
+      els.push(D({x:166,top:4,w:100,h:12,fg:"#5c6469",fs:9,ta:"left",jc:"flex-start",lab:"上方坠物"}));
+      els.push(D({x:60,top:48,w:200,h:10,bg:"#cf8a44",r:2}));
+      els.push(D({x:60,top:36,w:200,h:12,bg:"#e0b070",r:2}));
+      els.push(D({x:70,top:58,w:6,h:34,bg:"#8a7f6a"}));
+      els.push(D({x:244,top:58,w:6,h:34,bg:"#8a7f6a"}));
+      els.push(D({x:120,top:70,w:80,h:14,fg:"#8b9398",fs:9,lab:"通道口"}));
+      els.push(D({x:60,top:16,w:220,h:14,fg:"#2c8a5b",fs:9,lab:"防护棚 非机动≥3m / 机动≥4m"})); }
+    else if(type==="sheet"){ figH=98; const lines=["① 临边挂警示牌提醒","② 600mm 竖向洞口盖块木板","③ 防护栏杆高 0.9m"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:322,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

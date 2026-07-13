@@ -6,16 +6,16 @@
 <script src="./support.js"></script>
 </head>
 <body>
+<audio data-luban-prewarm preload="auto" src="audio/up/b0.mp3?v=d3230a21a8826580" aria-hidden="true" style="display:none"></audio>
 <x-dc>
+<!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
-  html,body{margin:0;padding:0;background:#181b1e;}
-  .lz-card{zoom:var(--lz-fit,1);margin:0 auto;}
-  body.luban-fs .lz-card{zoom:1!important;}
-  body{background:#181b1e;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
   ::-webkit-scrollbar{width:0;height:0;}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
@@ -26,7 +26,7 @@
 
     <!-- HEADER -->
     <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
-      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:26px;line-height:1;flex:none;">鲁</div>
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
         <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
@@ -35,170 +35,176 @@
     </div>
 
     <!-- STAGE -->
-    <div class="lz-stagewrap" onClick="{{ tapToggle }}">
+    <!-- ░░ 顶部安全区红线（母版冻结，勿改）：舞台顶部 top:0–48px 为常驻 UI 带（旁白按钮/钥匙卡胶囊/全屏按钮，胶囊底沿≈40px）。
+         所有 beat 的领域对象/气泡/标签 top 最小值 = 48px，含手绘位移阴影厚度另计。双轴 gate 正确轴固定判据之一：截 beat0 中段帧核对任一对象 top≥48 且与胶囊/按钮无重叠、有可见空隙。 ░░ -->
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
     <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
 
-      <div style="position:absolute;top:10px;left:104px;right:52px;z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);white-space:nowrap;overflow:hidden;">
-        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ curKeycard }}</span>
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
       </div>
       <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
 
       <!-- POSTER -->
       <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
-        <div style="font-family:'Long Cang',cursive;font-size:46px;color:#cf4436;line-height:1;">鲁班智考</div>
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
         <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
         <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
         <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
         <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
       </div>
 
-      <!-- ░░ BEAT 0 · 破误区 ░░ -->
+      <!-- ░░ BEAT 0 · 破误区：基坑剖面 + 三误区气泡 + 红章淘汰 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
-        <div style="position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(180deg,transparent,#e7e4d6);opacity:{{ b0_op }};"></div>
-        <div style="position:absolute;left:30px;right:30px;top:330px;height:2.5px;background:#bdb8a8;border-radius:2px;opacity:{{ b0_op }};"></div>
-        <div style="position:absolute;left:118px;top:332px;width:150px;height:72px;border-left:2.5px dashed #b08968;border-right:2.5px dashed #b08968;background:repeating-linear-gradient(180deg,#d8bd9b,#d8bd9b 6px,#cdab87 6px,#cdab87 12px);opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);"></div>
-        <div style="position:absolute;left:126px;top:340px;font-size:10px;font-weight:800;color:#7a5a3a;opacity:{{ b0_op }};">填土层</div>
-        <div style="position:absolute;left:40px;top:70px;width:252px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:13px 15px;font-size:13.5px;font-weight:700;color:#23282b;line-height:1.45;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">「基坑降水嘛，管井最常用，直接上管井就完事」
+        <div style="position:absolute;inset:0;opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);">
+          <div style="position:absolute;left:0;right:0;top:312px;bottom:0;background:linear-gradient(180deg,#cdb884,#b89f6a);"></div>
+          <div style="position:absolute;left:120px;top:312px;width:150px;height:112px;background:#f4f3ec;border-left:3px solid #a8946a;border-right:3px solid #a8946a;border-bottom:3px solid #a8946a;"></div>
+          <div style="position:absolute;left:123px;top:360px;width:144px;height:61px;background:rgba(47,109,176,.32);border-top:2px dashed #2f6db0;"></div>
+          <div style="position:absolute;left:0;top:360px;width:120px;height:0;border-top:2px dashed #2f6db0;"></div>
+          <div style="position:absolute;left:270px;top:360px;right:0;height:0;border-top:2px dashed #2f6db0;"></div>
+          <div style="position:absolute;left:10px;top:340px;font-size:10px;font-weight:800;color:#2f6db0;">地下水位 · 高过坑底</div>
+        </div>
+        <div style="position:absolute;left:38px;top:58px;width:256px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:11px 15px;color:#23282b;line-height:1.5;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">
+          <div style="font-size:12px;font-weight:900;color:#cf4436;margin-bottom:5px;">这三个念想，先划拉掉</div>
+          <div style="font-size:12.5px;font-weight:700;">✕ 一见地下水就「集水明排」</div>
+          <div style="font-size:12.5px;font-weight:700;margin-top:3px;">✕ 管井万能、哪儿都能使</div>
+          <div style="font-size:12.5px;font-weight:700;margin-top:3px;">✕ 拿「回灌」防坑底突涌</div>
           <div style="position:absolute;left:34px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
         </div>
-        <div style="position:absolute;left:104px;top:158px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:19px;font-weight:900;letter-spacing:2px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">凭习惯选 ✕</div>
+        <div style="position:absolute;left:210px;top:196px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:22px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">误区 ✕</div>
       </div>
 
-      <!-- ░░ BEAT 1 · 立工况（基坑剖面）░░ -->
+      <!-- ░░ BEAT 1 · 按开挖深度分流：深度尺 + 指针滑过3m临界触发井点 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
-        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">立工况 · 把题给条件摆上台</div>
-        <div style="position:absolute;left:16px;top:62px;display:flex;gap:7px;">
-          <div style="background:#7a5a3a;color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:11px;opacity:{{ b1_c1 }};">土质：填土</div>
-          <div style="background:#cf4436;color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:11px;opacity:{{ b1_c2 }};">深度：6m</div>
-          <div style="background:#2f6db0;color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:11px;opacity:{{ b1_c3 }};">坑底下：承压水</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">按开挖深度分流 · 指针过 3m 才上井点</div>
+        <div style="position:absolute;left:70px;top:96px;width:18px;height:232px;border-radius:9px;overflow:hidden;transform-origin:top;transform:scaleY({{ d1_wtO }});background:linear-gradient(180deg,#c6e6d2 0%,#c6e6d2 25%,#cfe0f0 25%,#bcd4ec 100%);"></div>
+        <div style="position:absolute;left:46px;top:90px;font-size:10px;font-weight:800;color:#5c6469;opacity:{{ d1_wtO }};">0</div>
+        <div style="position:absolute;left:34px;top:206px;font-size:10px;font-weight:800;color:#5c6469;opacity:{{ d1_wtO }};">6m</div>
+        <div style="position:absolute;left:30px;top:318px;font-size:10px;font-weight:800;color:#5c6469;opacity:{{ d1_wtO }};">12m</div>
+        <div style="position:absolute;left:60px;top:154px;width:250px;height:0;border-top:2px dashed #cf4436;opacity:{{ d1_critO }};"></div>
+        <div style="position:absolute;left:96px;top:140px;font-size:10px;font-weight:900;color:#cf4436;opacity:{{ d1_critO }};">3m 临界</div>
+        <div style="position:absolute;left:92px;top:{{ d1_py }}px;transform:translateY(-50%);z-index:12;opacity:{{ d1_po }};display:flex;align-items:center;">
+          <div style="width:0;height:0;border-top:6px solid transparent;border-bottom:6px solid transparent;border-right:8px solid #23282b;"></div>
+          <div style="background:#23282b;color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:9px;white-space:nowrap;">开挖 {{ d1_depth }}</div>
         </div>
-        <div style="position:absolute;left:34px;right:22px;top:96px;height:300px;border:2px solid #23282b;border-radius:8px;overflow:hidden;background:#fff;opacity:{{ b1_op }};transform:translateY({{ b1_y }}px);">
-          <div style="position:absolute;left:0;right:0;top:0;height:150px;background:repeating-linear-gradient(180deg,#d8bd9b,#d8bd9b 7px,#cdab87 7px,#cdab87 14px);"></div>
-          <div style="position:absolute;left:8px;top:8px;font-size:10px;font-weight:800;color:#7a5a3a;">填土层</div>
-          <div style="position:absolute;left:0;right:0;top:54px;height:0;border-top:2px dashed #2f6db0;"></div>
-          <div style="position:absolute;right:8px;top:38px;font-size:9px;font-weight:800;color:#2f6db0;">▽ 地下水位（丰富）</div>
-          <div style="position:absolute;left:100px;top:0;width:120px;height:150px;background:#f4f3ec;border-left:2px solid #8a9296;border-right:2px solid #8a9296;clip-path:polygon(14% 0,86% 0,100% 100%,0 100%);"></div>
-          <div style="position:absolute;left:128px;top:122px;font-size:9px;font-weight:800;color:#8a6d4a;">坑底</div>
-          <div style="position:absolute;left:0;right:0;top:150px;height:46px;background:#b8b3a3;"></div>
-          <div style="position:absolute;left:8px;top:164px;font-size:10px;font-weight:800;color:#fff;">隔水层</div>
-          <div style="position:absolute;left:0;right:0;top:196px;bottom:0;background:repeating-linear-gradient(90deg,#cfe3f2,#cfe3f2 9px,#bcd7ee 9px,#bcd7ee 18px);"></div>
-          <div style="position:absolute;left:8px;top:206px;font-size:10px;font-weight:800;color:#2f6db0;">承压水</div>
-          <div style="position:absolute;left:138px;top:150px;font-size:18px;color:#cf4436;font-weight:900;opacity:{{ b1_pp }};transform:scaleY({{ b1_aScale }});">↑</div>
-          <div style="position:absolute;left:172px;top:150px;font-size:18px;color:#cf4436;font-weight:900;opacity:{{ b1_pp }};transform:scaleY({{ b1_aScale }});">↑</div>
+        <div style="position:absolute;left:150px;top:106px;width:212px;background:#eef6f0;border:1.5px solid #2c8a5b;border-left:5px solid #2c8a5b;border-radius:9px;padding:8px 11px;opacity:{{ d1_shO }};">
+          <div style="font-size:11px;font-weight:900;color:#2c8a5b;">≤3m 且软土</div>
+          <div style="font-size:13px;font-weight:900;color:#23282b;margin-top:2px;">集水明排 · 重力自流</div>
         </div>
-        <div style="position:absolute;left:14px;top:96px;width:12px;height:150px;border-left:2px solid #cf4436;border-top:2px solid #cf4436;border-bottom:2px solid #cf4436;opacity:{{ b1_dep }};"></div>
-        <div style="position:absolute;left:2px;top:162px;font-size:12px;font-weight:900;color:#cf4436;opacity:{{ b1_dep }};">6m</div>
+        <div style="position:absolute;left:150px;top:196px;width:212px;background:#eaf1f8;border:1.5px solid #2f6db0;border-left:5px solid #2f6db0;border-radius:9px;padding:8px 11px;opacity:{{ d1_deepO }};box-shadow:3px 3px 0 rgba(47,109,176,.16);">
+          <div style="font-size:11px;font-weight:900;color:#2f6db0;">＞3m · 明排压不住</div>
+          <div style="font-size:13px;font-weight:900;color:#23282b;margin-top:2px;">井点降水 · 强降水位</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:300px;text-align:center;font-size:12px;font-weight:800;color:#cf8a44;opacity:{{ d1_ruleO }};">深浅不同 · 治水的招也不同</div>
       </div>
 
-      <!-- ░░ BEAT 2 · 量标尺（计算判定链）░░ -->
+      <!-- ░░ BEAT 2 · 井点选型：降水深度轴 · 三方法区间 · 探针命中喷射 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
-        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">量标尺 · 降水深度阈值表</div>
-        <div style="position:absolute;left:92px;top:64px;width:274px;display:flex;font-size:8.5px;font-weight:800;text-align:center;color:#5c6469;line-height:1.15;">
-          <div style="flex:1;">集水明排<br/>≤3m<br/><span style="font-size:7px;font-weight:700;color:#8a9296;">软土</span></div><div style="flex:1;">轻型井点<br/>≤6m·多级6~10<br/><span style="font-size:7px;font-weight:700;color:#8a9296;">k=10⁻⁷~10⁻⁴</span></div><div style="flex:1;">喷射井点<br/>8~20m<br/><span style="font-size:7px;font-weight:700;color:#8a9296;">碎石土·黄土</span></div><div style="flex:1;">真空井管<br/>&gt;6m<br/><span style="font-size:7px;font-weight:700;color:#8a9296;">管径≥200·间距≤25</span></div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">井点按「降水深度」选 · 本例深 8m</div>
+        <div style="position:absolute;left:56px;top:112px;font-size:11px;font-weight:800;color:#2c8a5b;">轻型井点</div>
+        <div style="position:absolute;left:60px;top:126px;height:20px;width:90px;background:#bfe3cd;border-radius:5px;transform-origin:left;transform:scaleX({{ r2_track }});display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#22694a;">≤6m</div>
+        <div style="position:absolute;left:56px;top:152px;font-size:11px;font-weight:800;color:#2f6db0;">真空井管</div>
+        <div style="position:absolute;left:150px;top:166px;height:20px;width:210px;background:#c4d8ee;border-radius:5px;transform-origin:left;transform:scaleX({{ r2_track }});display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#245089;">&gt;6m · 渗透大</div>
+        <div style="position:absolute;left:56px;top:192px;font-size:11px;font-weight:800;color:#cf8a44;">喷射井点</div>
+        <div style="position:absolute;left:180px;top:206px;height:20px;width:180px;background:#f0cfa0;border-radius:5px;transform-origin:left;transform:scaleX({{ r2_track }});display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#8a5a1f;">8~20m</div>
+        <div style="position:absolute;left:178px;top:204px;width:184px;height:24px;border:2.5px solid #cf8a44;border-radius:7px;box-shadow:0 0 0 3px rgba(207,138,68,.2);opacity:{{ r2_hit }};"></div>
+        <div style="position:absolute;left:60px;top:238px;width:300px;height:0;border-top:2px solid #b7b09c;"></div>
+        <div style="position:absolute;left:55px;top:244px;font-size:9px;font-weight:800;color:#8b9398;">0</div>
+        <div style="position:absolute;left:146px;top:244px;font-size:9px;font-weight:800;color:#8b9398;">6</div>
+        <div style="position:absolute;left:176px;top:244px;font-size:9px;font-weight:800;color:#cf4436;">8</div>
+        <div style="position:absolute;left:346px;top:244px;font-size:9px;font-weight:800;color:#8b9398;">20m</div>
+        <div style="position:absolute;left:{{ r2_px }}px;top:100px;height:150px;width:0;border-left:2px dashed #cf4436;opacity:{{ r2_po }};"></div>
+        <div style="position:absolute;left:{{ r2_px }}px;top:86px;transform:translateX(-50%);background:#cf4436;color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;opacity:{{ r2_po }};">本例 8m</div>
+        <div style="position:absolute;left:16px;right:16px;top:276px;text-align:center;opacity:{{ r2_resO }};">
+          <div style="display:inline-block;background:#cf8a44;color:#fff;border-radius:12px;padding:9px 16px;font-size:14px;font-weight:900;box-shadow:3px 3px 0 rgba(207,138,68,.25);">深 8m → 命中喷射井点（8~20m）</div>
         </div>
-        <div style="position:absolute;left:8px;top:100px;width:80px;font-size:10.5px;font-weight:800;color:#cf4436;line-height:1.25;">降水深度<br/>＋土质</div>
-        <div style="position:absolute;left:92px;top:100px;width:274px;height:24px;">
-          <div style="position:absolute;inset:0;display:flex;border-radius:6px;overflow:hidden;transform-origin:left;transform:scaleX({{ b2_track }});">
-            <div style="flex:1;background:#dff0e6;border-right:1px solid #fff;"></div>
-            <div style="flex:1;background:#e9f0d6;border-right:1px solid #fff;"></div>
-            <div style="flex:1;background:#fdeed1;border-right:1px solid #fff;"></div>
-            <div style="flex:1;background:#e2ecf5;"></div>
-          </div>
-          <div style="position:absolute;left:0;top:-2px;width:68.5px;height:28px;display:flex;align-items:center;justify-content:center;color:#cf4436;font-size:20px;font-weight:900;opacity:{{ b2_xmp }};">✕</div>
-          <div style="position:absolute;left:68.5px;top:-2px;width:68.5px;height:28px;border:2.5px solid #2c8a5b;border-radius:6px;box-shadow:0 0 0 3px rgba(44,138,91,.18);opacity:{{ b2_hit }};"></div>
-        </div>
-        <div style="position:absolute;left:92px;top:126px;width:274px;display:flex;font-size:8px;font-weight:700;color:#9aa0a3;">
-          <div style="flex:1;text-align:left;">0</div><div style="flex:1;text-align:left;">3</div><div style="flex:1;text-align:left;">6</div><div style="flex:1;text-align:left;">8</div><div style="flex:none;">20m</div>
-        </div>
-        <div style="position:absolute;top:76px;left:{{ b2_px }}px;transform:translateX(-50%);z-index:10;opacity:{{ b2_po }};">
-          <div style="background:#cf4436;color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;white-space:nowrap;box-shadow:2px 2px 0 rgba(0,0,0,.12);">深 6m · 填土</div>
-          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #cf4436;margin:0 auto;"></div>
-        </div>
-        <div style="position:absolute;left:16px;top:160px;display:flex;align-items:center;gap:7px;background:#fff;border:2px solid #cf4436;border-radius:9px;padding:6px 10px;box-shadow:2px 2px 0 rgba(207,68,54,.15);opacity:{{ b2_well }};">
-          <span style="color:#cf4436;font-size:15px;font-weight:900;">✕</span>
-          <span style="font-size:11px;font-weight:700;color:#23282b;">管井：填土渗透系数小、出水不足 → 不宜</span>
-        </div>
-        <div style="position:absolute;left:16px;right:16px;top:204px;background:#fff8e2;border:1.5px dashed #d8b24a;border-radius:9px;padding:8px 12px;font-size:10.5px;font-weight:700;color:#8a6d1f;line-height:1.5;opacity:{{ b2_rule }};transform:translateY({{ b2_ry }}px);">亮阈值表 → 代入（6m·填土）→ 排除：明排（&gt;3m）、管井（填土）→ 命中匹配档</div>
-        <div style="position:absolute;left:50%;top:258px;transform:translateX(-50%) translateY({{ b2_ey }}px);text-align:center;opacity:{{ b2_res }};">
-          <div style="display:inline-flex;align-items:center;gap:8px;background:#2c8a5b;color:#fff;border-radius:12px;padding:9px 15px;font-size:13.5px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.25);">✓ 选 轻型(多级6~10) / 喷射井点</div>
-        </div>
+        <div style="position:absolute;left:16px;right:16px;top:314px;text-align:center;font-size:11px;font-weight:700;color:#8b9398;opacity:{{ r2_resO }};">深度对不上号，水就降不下去</div>
       </div>
 
-      <!-- ░░ BEAT 3 · 防突涌 ░░ -->
+      <!-- ░░ BEAT 3 · 管井挖食：砂砾大渗透哗哗出水 vs 填土黏土出水寥寥 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
-        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">承压水突涌 · 职能别串了</div>
-        <div style="position:absolute;left:16px;right:16px;top:66px;height:64px;opacity:{{ b3_op }};">
-          <div style="position:absolute;left:0;right:0;top:20px;height:4px;background:#8a6d4a;border-radius:2px;"></div>
-          <div style="position:absolute;left:6px;top:2px;font-size:9px;font-weight:800;color:#8a6d4a;">坑底（隔水层）</div>
-          <div style="position:absolute;left:0;right:0;top:30px;bottom:0;background:repeating-linear-gradient(90deg,#cfe3f2,#cfe3f2 9px,#bcd7ee 9px,#bcd7ee 18px);border-radius:0 0 6px 6px;"></div>
-          <div style="position:absolute;left:70px;top:22px;font-size:17px;color:#cf4436;font-weight:900;transform:scaleY({{ b3_aScale }});opacity:{{ b3_pulse }};">↑</div>
-          <div style="position:absolute;left:150px;top:22px;font-size:17px;color:#cf4436;font-weight:900;transform:scaleY({{ b3_aScale }});opacity:{{ b3_pulse }};">↑</div>
-          <div style="position:absolute;left:230px;top:22px;font-size:17px;color:#cf4436;font-weight:900;transform:scaleY({{ b3_aScale }});opacity:{{ b3_pulse }};">↑</div>
-          <div style="position:absolute;right:6px;top:42px;font-size:10px;font-weight:800;color:#2f6db0;">承压水上顶→突涌</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">管井挖食 · 只吃渗透大的砂砾</div>
+        <div style="position:absolute;left:20px;top:76px;width:168px;opacity:{{ c3_lO }};">
+          <div style="font-size:11px;font-weight:900;color:#2c8a5b;text-align:center;margin-bottom:5px;">砂砾层 · 渗透大</div>
+          <div style="position:relative;height:196px;border-radius:8px;background:#d8c795;background-image:radial-gradient(#a98442 3px,transparent 3.2px);background-size:17px 17px;border:1.5px solid #b79a5e;overflow:hidden;">
+            <div style="position:absolute;left:70px;top:8px;width:20px;height:180px;background:#8a9095;border:2px solid #6b7075;border-radius:4px 4px 0 0;"></div>
+            <div style="position:absolute;left:74px;top:96px;width:12px;height:88px;background:#2f6db0;"></div>
+            <div style="position:absolute;left:122px;top:22px;width:22px;height:166px;background:#eef3f7;border:1.5px solid #9fb6cc;border-radius:4px;"></div>
+            <div style="position:absolute;left:124px;bottom:8px;width:18px;background:#2f6db0;border-radius:0 0 3px 3px;height:{{ c3_flL }}px;"></div>
+          </div>
+          <div style="margin-top:6px;font-size:11px;font-weight:900;color:#2c8a5b;text-align:center;opacity:{{ c3_vO }};">✓ 出水哗哗 · 降得动</div>
         </div>
-        <div style="position:absolute;left:16px;top:152px;width:106px;background:#fff;border:2px solid #cf4436;border-radius:10px;padding:9px 8px;box-shadow:2px 2px 0 rgba(207,68,54,.15);opacity:{{ b3_re }};">
-          <div style="font-size:11px;font-weight:900;color:#cf4436;">井点回灌</div>
-          <div style="font-size:9px;color:#5c6469;font-weight:700;line-height:1.4;margin-top:3px;">防周边沉降<br/>不防突涌</div>
-        </div>
-        <div style="position:absolute;left:16px;top:152px;width:106px;height:60px;display:flex;align-items:center;justify-content:center;color:#cf4436;font-size:34px;font-weight:900;opacity:{{ b3_xre }};">✕</div>
-        <div style="position:absolute;left:120px;top:218px;font-size:9px;font-weight:800;color:#cf8a44;opacity:{{ b3_trace }};">↙ 它防的是周边地表沉降↓</div>
-        <div style="position:absolute;left:138px;top:152px;width:106px;background:#f0f8f3;border:2px solid #2c8a5b;border-radius:10px;padding:9px 8px;box-shadow:2px 2px 0 rgba(44,138,91,.18);opacity:{{ b3_dp }};">
-          <div style="font-size:11px;font-weight:900;color:#2c8a5b;">钻孔减压 ✓</div>
-          <div style="font-size:9px;color:#3a3f42;font-weight:700;line-height:1.4;margin-top:3px;">钻减压井<br/>卸承压水头</div>
-        </div>
-        <div style="position:absolute;left:252px;top:152px;width:108px;background:#f0f8f3;border:2px solid #2c8a5b;border-radius:10px;padding:9px 8px;box-shadow:2px 2px 0 rgba(44,138,91,.18);opacity:{{ b3_seal }};">
-          <div style="font-size:11px;font-weight:900;color:#2c8a5b;">封底隔渗 ✓</div>
-          <div style="font-size:9px;color:#3a3f42;font-weight:700;line-height:1.4;margin-top:3px;">坑底封一层<br/>堵向上通道</div>
-        </div>
-        <div style="position:absolute;left:16px;right:16px;top:252px;background:#fadcd6;border-radius:8px;padding:7px 11px;font-size:10px;font-weight:700;color:#a3271c;opacity:{{ b3_seal }};">集水明排、井点降水、井点回灌 —— 都不防坑底突涌。</div>
-        <div style="position:absolute;left:16px;right:16px;top:292px;text-align:center;opacity:{{ b3_seal }};">
-          <div style="display:inline-block;background:#2c8a5b;color:#fff;border-radius:11px;padding:8px 14px;font-size:12.5px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.25);">验算突涌 → 钻孔减压 + 水平封底隔渗</div>
+        <div style="position:absolute;left:204px;top:76px;width:168px;opacity:{{ c3_rO }};">
+          <div style="font-size:11px;font-weight:900;color:#cf4436;text-align:center;margin-bottom:5px;">填土/黏土 · 渗透小</div>
+          <div style="position:relative;height:196px;border-radius:8px;background:#b6a988;background-image:radial-gradient(#8f8266 1px,transparent 1.2px);background-size:6px 6px;border:1.5px solid #9a8f74;overflow:hidden;">
+            <div style="position:absolute;left:70px;top:8px;width:20px;height:180px;background:#8a9095;border:2px solid #6b7075;border-radius:4px 4px 0 0;"></div>
+            <div style="position:absolute;left:74px;top:168px;width:12px;height:16px;background:#2f6db0;"></div>
+            <div style="position:absolute;left:122px;top:22px;width:22px;height:166px;background:#eef3f7;border:1.5px solid #9fb6cc;border-radius:4px;"></div>
+            <div style="position:absolute;left:124px;bottom:8px;width:18px;background:#b06a5c;border-radius:0 0 3px 3px;height:{{ c3_flR }}px;"></div>
+          </div>
+          <div style="margin-top:6px;font-size:11px;font-weight:900;color:#cf4436;text-align:center;opacity:{{ c3_vO }};">✕ 出水寥寥 · 降不动</div>
         </div>
       </div>
 
-      <!-- ░░ BEAT 4 · 控开挖（答题纸）░░ -->
+      <!-- ░░ BEAT 4 · 截水回灌：降水致周边沉降 → 回灌维持水位 → 防沉降 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
-        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">开挖控制 · 数字一个不漏</div>
-        <div style="position:absolute;left:16px;right:16px;top:70px;background:#fff;border:2px solid #23282b;border-radius:12px;padding:14px 15px;box-shadow:4px 4px 0 rgba(35,40,43,.1);opacity:{{ b4_sheetO }};">
-          <div style="font-size:12px;line-height:1.82;color:#23282b;font-weight:600;">
-            <div><b style="color:#cf4436;">①</b>　与设计工况一致、<span style="background:rgba(255,210,74,{{ b4_k1 }});border-radius:3px;padding:0 3px;font-weight:800;">严禁超挖</span></div>
-            <div><b style="color:#cf4436;">②</b>　分层厚度 <span style="background:rgba(255,210,74,{{ b4_k2 }});border-radius:3px;padding:0 3px;font-weight:800;">≤3m</span></div>
-            <div><b style="color:#cf4436;">③</b>　预留土层 <span style="background:rgba(255,210,74,{{ b4_k3 }});border-radius:3px;padding:0 3px;font-weight:800;">人工150~300 / 机械200~300mm</span></div>
-            <div><b style="color:#cf4436;">④</b>　水位降至坑底以下 <span style="background:rgba(255,210,74,{{ b4_k4 }});border-radius:3px;padding:0 3px;font-weight:800;">500mm</span>，持续到基础完成</div>
-            <div><b style="color:#cf4436;">⑤</b>　软土基坑高差 <span style="background:rgba(255,210,74,{{ b4_k5 }});border-radius:3px;padding:0 3px;font-weight:800;">≤1m</span></div>
-            <div><b style="color:#cf4436;">⑥</b>　不得损坏 <span style="background:rgba(255,210,74,{{ b4_k6 }});border-radius:3px;padding:0 3px;font-weight:800;">支护结构·降水设施·工程桩</span></div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">危及周边 · 回灌把水补回去防沉降</div>
+        <div style="position:absolute;inset:0;opacity:{{ c4_scO }};">
+          <div style="position:absolute;left:0;right:0;top:210px;bottom:0;background:linear-gradient(180deg,#cdb884,#b89f6a);"></div>
+          <div style="position:absolute;left:250px;top:210px;width:120px;height:150px;background:#f4f3ec;border-left:3px solid #a8946a;border-bottom:3px solid #a8946a;"></div>
+          <div style="position:absolute;left:296px;top:220px;font-size:9px;font-weight:800;color:#8b9398;">基坑</div>
+          <div style="position:absolute;left:34px;top:150px;width:80px;height:60px;background:#e6e2d6;border:2px solid #9a8f74;border-radius:2px;transform:translateY({{ c4_sink }}px);">
+            <div style="position:absolute;left:9px;top:9px;width:14px;height:14px;background:#9fb6cc;"></div>
+            <div style="position:absolute;left:33px;top:9px;width:14px;height:14px;background:#9fb6cc;"></div>
+            <div style="position:absolute;left:57px;top:9px;width:14px;height:14px;background:#9fb6cc;"></div>
+            <div style="position:absolute;left:9px;top:33px;width:14px;height:14px;background:#9fb6cc;"></div>
+            <div style="position:absolute;left:33px;top:33px;width:14px;height:14px;background:#9fb6cc;"></div>
+            <div style="position:absolute;left:40px;top:4px;width:3px;height:52px;background:#cf4436;transform:rotate(9deg);opacity:{{ c4_crackO }};"></div>
+          </div>
+          <div style="position:absolute;left:28px;top:126px;font-size:10px;font-weight:900;color:#cf4436;opacity:{{ c4_crackO }};">地面沉降 ✕</div>
+          <div style="position:absolute;left:0;top:250px;width:120px;height:0;border-top:2px dashed #2f6db0;"></div>
+          <div style="position:absolute;left:118px;top:250px;width:140px;height:56px;border-top:2px dashed #2f6db0;border-right:2px dashed #2f6db0;border-radius:0 0 40px 0;"></div>
+          <div style="position:absolute;left:150px;top:150px;opacity:{{ c4_reinjO }};">
+            <div style="width:14px;height:60px;background:#2f6db0;border-radius:3px 3px 0 0;margin-left:6px;"></div>
+            <div style="position:absolute;left:-6px;top:-15px;font-size:9px;font-weight:900;color:#2f6db0;white-space:nowrap;">回灌井</div>
+            <div style="position:absolute;left:8px;top:62px;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:8px solid #2f6db0;"></div>
           </div>
         </div>
-        <div style="position:absolute;left:16px;right:16px;top:300px;text-align:center;opacity:{{ b4_k6 }};">
-          <div style="display:inline-block;background:#23282b;color:#f1e6cf;border-radius:11px;padding:8px 14px;font-size:11.5px;font-weight:800;">口诀：分层 3 · 预留 150~300 · 降水 500 · 高差 1</div>
+        <div style="position:absolute;left:16px;right:16px;top:372px;text-align:center;opacity:{{ c4_vO }};">
+          <div style="display:inline-block;background:#2f6db0;color:#fff;border-radius:11px;padding:8px 14px;font-size:12px;font-weight:900;box-shadow:3px 3px 0 rgba(47,109,176,.22);">回灌维持水位平衡 · 防周边沉降（不防突涌）</div>
         </div>
       </div>
 
-      <!-- ░░ BEAT 5 · 串链 ░░ -->
+      <!-- ░░ BEAT 5 · 承压水突涌：坑底鼓起 → 钻孔减压/水平封底隔渗 → 稳 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
-        <div style="position:absolute;left:16px;top:38px;font-size:12px;font-weight:900;color:#23282b;">选方案五步链 · 顺序不能颠</div>
-        <div style="position:absolute;left:34px;top:70px;width:3px;height:278px;background:#cdcabb;transform-origin:top;transform:scaleY({{ b5_line }});border-radius:2px;"></div>
-        <div style="position:absolute;left:24px;top:66px;display:flex;align-items:center;gap:10px;opacity:{{ b5_n1 }};">
-          <div style="flex:none;width:22px;height:22px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">1</div>
-          <div style="background:#fff;border:2px solid #23282b;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800;color:#23282b;box-shadow:2px 2px 0 #23282b;">综合：地质·水文·环境·支护</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">承压水 · 先验算突涌，减压封底才治它</div>
+        <div style="position:absolute;inset:0;opacity:{{ c5_scO }};">
+          <!-- 两侧土柱 -->
+          <div style="position:absolute;left:0;top:96px;width:90px;height:210px;background:linear-gradient(180deg,#cdb884,#b89f6a);"></div>
+          <div style="position:absolute;right:0;top:96px;width:90px;height:210px;background:linear-gradient(180deg,#cdb884,#b89f6a);"></div>
+          <!-- 基坑空腔 96→200 -->
+          <div style="position:absolute;left:90px;right:90px;top:96px;height:104px;background:#f4f3ec;"></div>
+          <div style="position:absolute;left:118px;top:106px;font-size:10px;font-weight:800;color:#8b9398;">基坑</div>
+          <!-- 承压水 226→292（蓝纹，水头往上顶）-->
+          <div style="position:absolute;left:90px;right:90px;top:226px;height:66px;background:repeating-linear-gradient(180deg,#2f6db0,#2f6db0 3px,#3f7dbf 3px,#3f7dbf 8px);"></div>
+          <div style="position:absolute;left:158px;top:250px;font-size:10px;font-weight:900;color:#fff;">承压水 · 水头顶 ↑</div>
+          <!-- 坑底隔水层 200→226（随突涌上鼓）-->
+          <div style="position:absolute;left:90px;right:90px;top:200px;height:26px;background:#8f7f66;border-radius:0 0 8px 8px;transform:translateY(-{{ c5_bulge }}px);"></div>
+          <div style="position:absolute;left:176px;top:204px;background:#fff;border:1px solid #ccbf9e;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:800;color:#6b5f45;transform:translateY(-{{ c5_bulge }}px);">坑底隔水层</div>
+          <!-- 突涌（未处理时）：右侧红裂缝 + 白片红字 -->
+          <div style="position:absolute;left:236px;top:198px;width:3px;height:18px;background:#cf4436;transform:translateY(-{{ c5_bulge }}px) rotate(10deg);opacity:{{ c5_crackO }};"></div>
+          <div style="position:absolute;left:214px;top:172px;background:#fff;border:1.5px solid #cf4436;border-radius:6px;padding:2px 8px;font-size:10.5px;font-weight:900;color:#cf4436;opacity:{{ c5_crackO }};">突涌 ✕</div>
+          <!-- 处理：左侧钻孔减压井 + 顶部水平封底隔渗（随 fix 出现）-->
+          <div style="position:absolute;left:130px;top:150px;width:10px;height:130px;background:#5c6469;border-radius:3px 3px 0 0;opacity:{{ c5_fixO }};"></div>
+          <div style="position:absolute;left:96px;top:130px;background:#eef0f1;border:1px solid #b7bdc0;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:800;color:#3a4046;opacity:{{ c5_fixO }};">钻孔减压</div>
+          <div style="position:absolute;left:90px;right:90px;top:194px;height:6px;background:repeating-linear-gradient(45deg,#2c8a5b,#2c8a5b 4px,#37a06c 4px,#37a06c 8px);opacity:{{ c5_fixO }};"></div>
+          <div style="position:absolute;left:214px;top:172px;background:#eaf6ef;border:1px solid #8fcaa8;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:800;color:#2c8a5b;opacity:{{ c5_fixO }};">水平封底隔渗</div>
         </div>
-        <div style="position:absolute;left:24px;top:122px;display:flex;align-items:center;gap:10px;opacity:{{ b5_n2 }};">
-          <div style="flex:none;width:22px;height:22px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">2</div>
-          <div style="background:#fff;border:2px solid #23282b;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800;color:#23282b;box-shadow:2px 2px 0 #23282b;">按深度分流：≤3m明排 / &gt;3m井点</div>
+        <div style="position:absolute;left:16px;right:16px;top:342px;text-align:center;opacity:{{ c5_vO }};">
+          <div style="display:inline-block;background:#2c8a5b;color:#fff;border-radius:11px;padding:8px 14px;font-size:12px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.22);">验算突涌 · 钻孔减压 / 水平封底隔渗</div>
         </div>
-        <div style="position:absolute;left:24px;top:178px;display:flex;align-items:center;gap:10px;opacity:{{ b5_n3 }};">
-          <div style="flex:none;width:22px;height:22px;border-radius:50%;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">3</div>
-          <div style="background:#fff;border:2px solid #2c8a5b;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800;color:#2c8a5b;box-shadow:2px 2px 0 rgba(44,138,91,.3);">按渗透系数+降水深度选井点</div>
-        </div>
-        <div style="position:absolute;left:24px;top:234px;display:flex;align-items:center;gap:10px;opacity:{{ b5_n4 }};">
-          <div style="flex:none;width:22px;height:22px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">4</div>
-          <div style="background:#fff;border:2px solid #23282b;border-radius:8px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#23282b;box-shadow:2px 2px 0 #23282b;">危及周边：截水帷幕(插不透水层) / 回灌防沉降</div>
-        </div>
-        <div style="position:absolute;left:24px;top:290px;display:flex;align-items:center;gap:10px;opacity:{{ b5_n5 }};">
-          <div style="flex:none;width:22px;height:22px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">5</div>
-          <div style="background:#fff;border:2px solid #2f6db0;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:800;color:#2f6db0;box-shadow:2px 2px 0 rgba(47,109,176,.3);">承压水：验算突涌→减压隔渗</div>
-        </div>
-        <div style="position:absolute;left:31px;top:{{ b5_flowY }}px;width:9px;height:9px;border-radius:50%;background:#cf8a44;box-shadow:0 0 0 3px rgba(201,104,62,.2);opacity:{{ b5_line }};"></div>
       </div>
 
       <!-- ░░ QA 场景 ░░ -->
@@ -209,13 +215,13 @@
         </div>
         <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
           <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
-          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:250px;">
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
             <div>{{ qaA }}</div>
             <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
-              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:6px;">迷你领域图 · {{ qaFigLabel }}</div>
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
               <div style="position:relative;height:{{ qaFigH }}px;">
                 <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
-                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;padding:0 2px;">{{ e.lab }}</div>
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
                 </sc-for>
               </div>
             </div>
@@ -230,30 +236,6 @@
         </div>
       </div>
 
-      <!-- ░░ 收官终屏 ░░ -->
-      <div style="position:absolute;inset:0;background:linear-gradient(180deg,#20252a,#15181b);padding:26px 18px 18px;display:flex;flex-direction:column;opacity:{{ outroO }};transition:opacity .45s ease;pointer-events:{{ outroPE }};">
-        <div style="display:flex;gap:10px;align-items:flex-start;opacity:{{ o_head }};transform:translateY({{ o_headY }}px);">
-          <div style="flex:none;width:36px;height:36px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:24px;box-shadow:2px 2px 0 rgba(207,68,54,.25);">师</div>
-          <div style="flex:1;background:#2b2620;border-radius:12px 12px 12px 4px;padding:11px 13px;font-size:13px;color:#f1e6cf;line-height:1.6;font-weight:500;">这道题就通关了哈——记住哈，方法不是凭习惯挑，是拿两把尺子量出来的。下面这几句，考场上照着写。</div>
-        </div>
-        <div style="margin-top:14px;background:#181b1e;border:1.5px solid #3a3127;border-top:5px solid #cf8a44;border-radius:13px;padding:13px 15px;opacity:{{ o_card }};transform:translateY({{ o_cardY }}px);">
-          <div style="font-size:8px;letter-spacing:2px;color:#cf8a44;font-weight:800;margin-bottom:9px;">带走的采分句</div>
-          <div style="font-size:11.5px;color:#e7e3d8;line-height:1.4;">
-            <div style="display:flex;gap:8px;margin-bottom:7px;"><span style="flex:none;color:#cf4436;font-weight:900;">1</span><span>按渗透系数＋降水深度查阈值表：明排≤3、轻型≤6(多级6~10)、喷射8~20、真空&gt;6；填土排除管井。</span></div>
-            <div style="display:flex;gap:8px;margin-bottom:7px;"><span style="flex:none;color:#cf4436;font-weight:900;">2</span><span>承压水验算突涌→钻孔减压＋水平封底隔渗；回灌防的是周边沉降，不防突涌。</span></div>
-            <div style="display:flex;gap:8px;margin-bottom:7px;"><span style="flex:none;color:#cf4436;font-weight:900;">3</span><span>开挖控制：分层≤3m、预留人工150~300/机械200~300、水位坑底下500持续到基础完、软土高差≤1；不损坏支护·降水设施·工程桩。</span></div>
-            <div style="display:flex;gap:8px;"><span style="flex:none;color:#cf4436;font-weight:900;">4</span><span>无支护挖土只有放坡；中心岛/盆式/逆作都需支护。</span></div>
-          </div>
-        </div>
-        <div style="flex:1;"></div>
-        <div style="display:flex;gap:8px;opacity:{{ o_btn }};transform:translateY({{ o_btnY }}px);">
-          <button onClick="{{ replay }}" style="flex:none;width:52px;border:1.5px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:12px;padding:12px 0;font-size:18px;cursor:pointer;">⟲</button>
-          <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;box-shadow:0 3px 12px rgba(207,68,54,.28);">问鲁班</button>
-          <a href="practice.html" style="flex:1;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
-        </div>
-        <div style="text-align:center;margin-top:10px;font-size:9px;color:#5c6469;opacity:{{ o_btn }};">⟲ 重看 · 问鲁班追问 · 去随堂练过采分点</div>
-      </div>
-
       <!-- CAPTION -->
       <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
         <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
@@ -262,6 +244,28 @@
             <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
             <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
           </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN（播到底 t≥DUR 才出 · 与海报对称）░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">降水这半程 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">这道就唠到这儿哈——先按深度分流：≤3 米软土明排、＞3 米上井点；井点按降水深度挑：轻型≤6、喷射 8~20、真空＞6、砂砾用管井填土不宜；危及周边截水回灌防沉降，承压水验算突涌钻孔减压封底隔渗。开挖方案和开挖控制，下集接着唠。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">≤3m软土明排 · ＞3m井点降水</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">轻型≤6 · 喷射 8~20 · 真空＞6</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">砂砾用管井 · 填土黏土不宜</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">回灌防沉降 · 减压隔渗防突涌</div>
+        </div>
+        <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="practice.html" style="border:1.5px solid #2c8a5b;border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;background:rgba(44,138,91,.08);color:#2c8a5b;text-decoration:none;display:flex;align-items:center;">做练习</a>
+          <a href="lesson2.html" style="border:none;border-radius:11px;padding:9px 16px;font-size:12px;font-weight:900;background:#cf4436;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(207,68,54,.28);">下集 · 开挖控制</a>
         </div>
       </div>
     </div>
@@ -286,13 +290,18 @@
           </button>
         </sc-for>
       </div>
-      <div style="display:flex;gap:8px;margin-top:11px;">
+      <div style="display:flex;gap:8px;align-items:center;margin-top:11px;">
+        <div style="flex:none;font-size:11px;font-weight:800;color:#9aa0a3;line-height:1.15;">本考点<br/>分 2 集</div>
+        <div style="flex:1;border-radius:11px;padding:11px;font-size:13px;font-weight:900;text-align:center;background:#cf4436;color:#fff;box-shadow:0 3px 12px rgba(207,68,54,.28);">上集 · 当前</div>
+        <a href="lesson2.html" style="flex:1;border-radius:11px;padding:11px;font-size:13px;font-weight:900;text-align:center;background:#2b2f33;color:#e7e4da;text-decoration:none;">下集</a>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
         <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
         <a href="practice.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
       </div>
     </div>
 
-    <!-- FULLSCREEN 浮层控制条（点屏显隐 · 播放时自动隐藏 · 发布层回灌） -->
+    <!-- 全屏浮层控制条（真·全屏时点屏唤出，3.5s 自隐）-->
     <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
       <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
@@ -301,6 +310,7 @@
           <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
           <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
         </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
         <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
       </div>
     </div>
@@ -352,34 +362,65 @@
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ═══════════════════════════════════════════════════════════════════════════
+   鲁班智考 · 动画学习卡 母版（讲解页）
+   ───────────────────────────────────────────────────────────────────────────
+   做新考点时，fork 本文件改名 <考点名>_讲解.dc.html，只改【内容区】，骨架别动。
+
+   ▼ 内容区（每张卡都要换）：
+     · examTitle / examCode / examCat / posterSub / posterMeta / KNOWLEDGE
+     · DUR（总秒数，≈每页旁白 6–8 秒累加）
+     · beats[]（≥6 主讲 + ≥4 问答，[id,起,止,短标题]）
+     · keycards[]（每主讲 beat 一句记忆点）
+     · narr[]（每主讲 beat 旁白，老师 longanhuan_v3 口语）
+     · qa[]（≥4 问，每问含 figLabel + fig 类型 + q + a）
+     · qaFig() 里 4 种迷你图 / figFor 的领域图（按新考点重画）
+     · 模板里 6 个 BEAT 块的领域对象 SVG/CSS（这是唯一要手画的部分）
+
+   ▲ 骨架（禁止改，改了就丢功能）：
+     · RAF 时间轴 loop / toggle / seek / jump
+     · paginate() + 旁白条 ≤3 行分页（capPages/capText/captionPage）
+     · QA 师生气泡 + 老师气泡内嵌 qaFig 迷你领域图
+     · 问追AI 弹层 + window.claude.complete
+     · 视口/全屏注入 componentDidMount
+
+   规则速记：动画讲知识不用文字讲；先判 6+1 认知结构再画领域对象；
+   每 beat 一个对象级动作、不堆画面；旁白条一页 ≤3 行（QA 气泡可整段显示）；
+   logo 用 assets/mark-white.png(暗底) / mark-red.png(亮底)，不用 emoji。
+   ═══════════════════════════════════════════════════════════════════════════ */
 class Component extends DCLogic {
   state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
-  audioBase="audio/";
-  audioVersion="20260703-batch-tts1";
-  DUR = 223.416;
-  examTitle="基坑开挖与降水方法选择"; examCode="G01"; examCat="案例·地基基础";
-  posterSub="先按深度分流，再按渗透系数选井点"; posterMeta="点击播放 · 6 幕精讲 + 四问四答";
-  KNOWLEDGE="基坑开挖与降水方法选择。降水方案三原则：①深度≤3m且软土→集水明排；②深度>3m→井点降水；③危及周边→截水帷幕/井点回灌（回灌防周边沉降，非防突涌）；④承压水→验算坑底突涌，钻孔减压/水平封底隔渗。井点选型阈值表：轻型井点降水深度≤6m（多级6~10m），渗透系数1×10^-7~2×10^-4cm/s；喷射井点8~20m，适碎石土黄土；真空降水井管>6m、渗透系数>1×10^-6cm/s、管径≥200mm、水平间距≤25m；管井适用渗透系数较大砂砾层，填土黏土不宜。截水帷幕渗透系数宜<1.0×10^-6cm/s、插入不透水层。无支护挖土方案=放坡；中心岛/盆式/逆作均需支护（逆作面积大宜盆式，先中部结构再分块对称限时挖周边）。开挖控制：与设计工况一致严禁超挖；分层厚度≤3m；预留土层人工150~300mm/机械200~300mm人工挖除；地下水位降至坑底以下500mm且持续到基础施工完成；软土基坑高差≤1m；不得损坏支护结构/降水设施/工程桩。真题：2019第7题（填土不宜管井）、2016第24题（防突涌=钻孔减压/水平封底隔渗）、2025第25题（降水深度>6m=多级轻型/管井/喷射/真空）、2015第9题（管井适渗透系数较大）、2021第10题/2023第15题（无支护=放坡）。";
-  beats=[["b0",0,15.932,"破误区"],["b1",15.932,30.088,"立工况"],["b2",30.088,51.564,"量标尺"],["b3",51.564,68.984,"防突涌"],["b4",68.984,92.308,"控开挖"],["b5",92.308,108.192,"串链"],["q0",108.192,135.324,"问答"],["q1",135.324,156.912,"问答"],["q2",156.912,183.516,"问答"],["q3",183.516,211.416,"问答"],["outro",211.416,223.416,"收官"]];
-  keycards=["降水方法不能凭习惯，按尺子量","工况三条：深度·土质·承压水","亮阈值表→代入→排除→命中","回灌防沉降，突涌靠减压隔渗","开挖控制：3·150~300·500·1 不漏","五步链：综合→分流→选型→护边→突涌"];
+  audioBase="audio/up/";
+  audioVersion="d3230a21a8826580";
+  DUR = 223.488;
+  examTitle="基坑降水方法选择（上）"; examCode="G01"; examCat="案例·地基基础";
+  posterSub="先按深度分流，再按参数选井点，一条选型判定链"; posterMeta="点击播放 · 6 幕精讲 + 4 追问 · 约 4 分 34 秒";
+  KNOWLEDGE="基坑降水方法选择(上集,只讲降水;开挖方案与开挖控制归下集)。决策主轴:先按开挖深度分流——深度≤3m且软土→集水明排(重力自流);深度>3m→井点降水(强制降水位)。井点按降水深度+渗透系数选型:轻型井点降水深度≤6m(多级6~10m);喷射井点8~20m;真空降水井管>6m、渗透系数>1×10⁻⁶cm/s、管径≥200mm;渗透系数较大的砂砾层用管井,填土/黏土渗透系数小、不宜用管井(真题高频陷阱)。危及周边安全→截水帷幕(插入不透水层)或井点回灌(维持地下水位平衡、防周边沉降,不是防突涌)。承压水→验算坑底突涌,必要时钻孔减压/水平封底隔渗(与回灌职能不同)。采分要点:综合考虑地质水文环境支护→按深度分流→按降水深度与渗透系数选井点→危及周边截水回灌→承压水验算突涌。常见失分:有地下水就只明排(E10)、管井用到填土黏土(E07)、轻型用到>6m(M08)、回灌当防突涌(E07)。开挖方案(放坡vs中心岛/盆式/逆作)与开挖控制数字(分层≤3m/预留土层/水位坑底500mm/严禁超挖)归下集。";
+    beats=[["b0",0.0,16.58,"破误区"],["b1",16.58,32.776,"按深度"],["b2",32.776,53.556,"选井点"],["b3",53.556,71.0,"管井"],["b4",71.0,90.076,"截水回灌"],["b5",90.076,110.784,"防突涌"],["q0",110.784,139.116,"问答"],["q1",139.116,163.68,"问答"],["q2",163.68,189.42,"问答"],["q3",189.42,223.488,"问答"]];
+  keycards=[
+    "有地下水≠只明排，管井≠万能，回灌≠防突涌",
+    "按开挖深度分流：≤3m且软土明排，>3m井点降水",
+    "井点按降水深度选：轻型≤6m · 喷射8~20m · 真空>6m",
+    "管井挑食：只吃砂砾大渗透，填土黏土不宜",
+    "危及周边：截水帷幕挡、回灌井补，防的是沉降",
+    "承压水验算突涌：钻孔减压、水平封底隔渗"
+  ];
   narr=[
-    "先破个误区哈——好些同学一看基坑降水，张口就是「上管井」。可你这层是填土，管井最不待见填土。降水方法不是凭习惯挑，是按「渗透系数＋降水深度」两把尺子量出来的。",
-    "把工况先摆台面上：开挖深 6 米，上头是填土、地下水还旺；坑底下面压着承压水。这三条——深度、土质、承压水——等下选方法、定措施全靠它仨。",
-    "看尺子。降水深度往带上一搁：6 米，过了 3 米，集水明排先出局；再看土质，填土出水少，管井也不待见——划掉。剩下轻型多级（6~10）、喷射（8~20）都罩得住。这就叫亮阈值表、代入工况、排除、命中。",
-    "承压水这块最容易答岔。好多人写「回灌」——错！回灌是往外圈灌水、防周边地面沉降的，它管不了坑底往上顶。坑底突涌得验算突涌＋钻孔减压＋水平封底隔渗，把压力卸了、把底封住，这才对路。",
-    "选完方法别忘了开挖控制，这是白送的分：跟设计工况一致、严禁超挖；分层别超 3 米；留 150 到 300 的土人工挖；水位压到坑底以下 500、一直降到基础做完；软土高差别超 1 米；支护结构、降水设施、工程桩仨都不能碰坏。数字写全，一个不漏。",
-    "最后把链串一遍：先综合地质水文环境支护，再按深度分流，再按渗透系数加深度选井点，危及周边上截水回灌，承压水验算突涌。顺序不能颠——先分流，再选型，记住喽。"
+    "来，看基坑降水这道题。好些同学一上来就栽——一见地下水，张嘴就「集水明排」；要么觉着管井万能、哪都能使；再不就把「回灌」当成防突涌的招。注意哈，这三个都是坑，先给它划拉掉。",
+    "正经走法，先按开挖深度分流。深度不超过 3 米、又是软土，集水明排、靠重力自个儿淌就够了；一旦超过 3 米，明排就压不住喽，必须上井点降水，把地下水位硬生生拽到坑底下头去。",
+    "定了用井点，还得挑是哪一种——看降水深度。轻型井点管到 6 米，多级能到 6 到 10 米；再深，8 到 20 米那是喷射井点的活;超过 6 米、土还挺透水，就上真空降水井管。深度对不上号，水就是降不下去。",
+    "这儿有个真题最爱设的坑：管井挑食。管井靠重力抽水，专吃渗透系数大的砂砾层，哗哗地出水；你把它插进填土、黏土里，那点渗透系数，出水稀稀拉拉、根本降不动。所以填土黏土不宜用管井。",
+    "降水降狠了，周边地面跟着沉、旁边楼跟着裂。这时候得护着周边：要么打截水帷幕、把坑外的水挡在外头，要么设回灌井、把抽出来的水再补回去。记住哈，回灌管的是防周边沉降，可不是防坑底突涌，别张冠李戴。",
+    "最后说承压水。坑底底下要是压着一层承压水，水头能把坑底顶破、咕嘟一下鼓起来，这叫突涌。所以得先验算突涌；真危险，就钻孔减压把水头泄了，或者水平封底隔渗、给坑底封上一层。这跟回灌，可不是一码事。"
   ];
   qa=[
-    { fig:"deep8", figLabel:"标尺再走一遍 · 8m 填土落点", q:"老师，那要是基坑深 8 米、还是填土，这回选啥？", a:"8 米填土啊——集水明排（≤3）、单级轻型（≤6）都不够深，管井又嫌填土，剩喷射井点正合适，8~20 米这档稳稳罩住 8 米；喷射还专治碎石土、黄土。记住：深度对档、土质对路，两条都点头才算命中。" },
-    { fig:"direction", figLabel:"方向反着 · 一个往外防沉、一个往里卸压", q:"回灌井我老记成防突涌，到底咋分啊？", a:"你就记俩字——方向。回灌往坑外周边灌水、补地下水，防的是周边地面往下沉；突涌是坑底水往上顶，得在坑里钻孔减压、底下封隔渗。一个往外防沉、一个往里卸压，方向反着，别再串了。" },
-    { fig:"nosupport", figLabel:"无支护唯一 = 放坡", q:"无支护的挖土方案到底是哪个？盆式、逆作我总分不清。", a:"无支护就一个——放坡！坡放够缓、不靠挡墙。中心岛、盆式、逆作这仨全得有支护，逆作面积大了宜盆式：先做中间结构、再分块对称限时挖周边。考试爱拿盆式逆作冒充无支护，你认准「放坡＝唯一无支护」就不上当。" },
-    { fig:"digits", figLabel:"开挖四数 + 三不碰 · 一个不漏", q:"开挖那几个数字老记混，有没有顺手的记法？", a:"顺着挖一遍：分层别超 3（米）、人工留 150~300、机械留 200~300（毫米）、水位压到坑底下 500 还得降到基础完事、软土高差不过 1（米）；支护、降水设施、工程桩仨都不能碰坏。一道工序卡一个数，照这顺序写一遍，一个不落。" }
+    { figLabel:"深8m·填土 → 排除管井/轻型 → 喷射", fig:"select", q:"老师，那我这坑挖 8 米、上头还是填土，到底该使哪种井点啊？", a:"先排除法哈。填土，管井头一个出局——它只吃砂砾；轻型井点最多管 6 米，8 米也够不着。剩下喷射井点，降水深度 8 到 20 米，8 米正落这区间、填土也不挑，就它了。选井点先卡深度、再看土质，俩关都得过。" },
+    { figLabel:"≤3m 重力明排 vs >3m 井点强降", fig:"flow", q:"老师我寻思，都是降水，≤3 米和 >3 米咋非得分两种招呢？", a:"浅坑水压小，挖条排水沟、设个集水井，靠重力把水引出去就成，这叫集水明排。坑一深，水往里渗得猛、明排根本兜不住，必须用井点主动把水位抽到坑底下头去。深浅不一样、招就不一样。" },
+    { figLabel:"回灌护周边沉降 · 减压护坑底突涌", fig:"reinject", q:"回灌井和钻孔减压都是跟水较劲，我老搞混，咋分啊？", a:"看它俩防的是啥。回灌井——往坑外注水、把周边水位托住，防的是旁边地面和楼沉降；钻孔减压、水平封底隔渗——泄的是坑底下那层承压水的劲儿，防的是坑底突涌。一个护周边、一个护坑底，职能两码事。" },
+    { figLabel:"降水方案四层 · 一层不能落", fig:"checklist", q:"整明白了！那降水方案题，我得咋答才一分不丢啊？", a:"按四层铺开写：一，综合考虑地质、水文、环境、支护；二，按深度分流，≤3 米软土明排、>3 米井点；三，按降水深度和渗透系数挑井点，轻型≤6、喷射8~20、真空>6、砂砾用管井填土不宜；四，危及周边截水回灌、有承压水验算突涌。四层都点到，分就齐了。" }
   ];
-  
-  qaCue=[{"answerStart":6.175},{"answerStart":4.848},{"answerStart":6.265},{"answerStart":4.93}];
-  askPresets=["6m填土到底选轻型还是喷射？","回灌和防突涌咋区分？","开挖那几个数字怎么记全？"];
+  askPresets=["≤3m 和 >3m 降水方法咋分？","轻型/喷射/真空井点怎么选？","回灌和减压隔渗有啥区别？"];
 
   componentDidMount(){
     this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
@@ -389,8 +430,7 @@ class Component extends DCLogic {
     if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
       s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
       document.head.appendChild(s); }
-    this.updateFitZoom();
-    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); this.updateFitZoom(); };
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
     window.addEventListener('resize', this._onResize);
     window.addEventListener('orientationchange', this._onResize);
   }
@@ -399,28 +439,25 @@ class Component extends DCLogic {
   pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
   webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
   stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
-  speakBeat(ai){ this.stopSpeak(); if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true; }); a.addEventListener("ended",()=>{ if(this._audio===a)this._audio=null; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audio=null;this.webSpeak(text);} }); }catch(e){ this.webSpeak(text); } }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
   setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
   toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
   loop(ts){ if(this._dead)return;
     if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
-      let nt=this.state.t+dt;
-      const ab=this._activeBeat;
-      if(ab!=null&&this.beats[ab]){ const curEnd=this.beats[ab][2]; if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02); }
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
       if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
         let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
         if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
     else { this._last=null; }
     this._raf=requestAnimationFrame(this.loop);
   }
-  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.stopSpeak();this.setState({t:0,playing:true});}
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
     else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
       if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
       else { this.setSpeechPaused(true); } }
     if(this.state.fs)this.scheduleHide(); }
-  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
   seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
-  jump(i){ if(!this.beats[i])return; this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
   fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
     if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
     try{ const el=this._phone||document.documentElement; let p;
@@ -428,17 +465,20 @@ class Component extends DCLogic {
       if(p&&p.catch)p.catch(function(){}); }catch(e){} }
   updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
   scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
-  tapToggle(){ if(!this.state.fs)return; const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
-  updateFitZoom(){ try{ const z=Math.min(window.innerWidth/390, 2.0); document.body.style.setProperty('--lz-fit', String(z)); }catch(e){} }
-  wxAsk(){ try{
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return; // 忽略舞台内交互控件（全屏钮/QA点/终屏按钮等），只有点空白画面才切换控制条
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+    wxAsk(){ try{
       const wxm=window.wx&&window.wx.miniProgram;
       const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
       if(!wxm||!inMini) return false;
       let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
       if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
-      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=P40_G01'+(st?'&scene_title='+encodeURIComponent(st):'')});
+      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=G01'+(st?'&scene_title='+encodeURIComponent(st):'')});
       return true; }catch(e){ return false; } }
-  phoneRef(el){ if(el) this._phone=el; }
   openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
   closeAsk(){ this.setState({askOpen:false}); }
   setAsk(e){ this.setState({askText:e.target.value}); }
@@ -449,110 +489,103 @@ class Component extends DCLogic {
   async submitAsk(){
     const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
     this.setState({askLoading:true,askAnswer:""});
-    const prompt='你是"鲁班智考"一级建造师案例课老师龙安欢，正在讲"'+this.examTitle+'"。\n知识口径：'+this.KNOWLEDGE+'\n学生追问："'+q+'"\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
     try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
-      else{ this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App 就能直接问。\n你的问题先记下：「"+q+"」"}); } }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
     catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
   }
-  cl(x,a,b){ return Math.max(a,Math.min(b,x)); }
-  lp(a,b,p){ return a+(b-a)*p; }
-  eo(p){ return 1-Math.pow(1-p,3); }
-  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
-  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
   qaFig(idx){
     const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
     const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
-    if(it.fig==="deep8"){ h=48;
-      const chips=[["明排 ✗","#cf9a8f",0],["轻型 ✗","#cf9a8f",60],["管井 ✗","#cf9a8f",120],["喷射 ✓","#2c8a5b",180]];
-      chips.forEach(c=>els.push(D({x:c[2],top:2,w:54,h:18,bg:c[1],r:5,fg:"#fff",fs:9,lab:c[0]})));
-      els.push(D({x:0,top:26,w:238,h:16,fg:"#e0b48a",fs:8.5,jc:"flex-start",lab:"深8m填土：明排>3·轻型≤6·管井嫌填土 → 喷射8~20m 命中"})); }
-    else if(it.fig==="direction"){ h=52;
-      els.push(D({x:0,top:2,w:48,h:18,bg:"#2f6db0",r:5,fg:"#fff",fs:8.5,lab:"回灌"}));
-      els.push(D({x:52,top:2,w:186,h:18,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"→ 坑外补水 · 防周边地面沉降↓"}));
-      els.push(D({x:0,top:26,w:48,h:18,bg:"#2c8a5b",r:5,fg:"#fff",fs:8,lab:"减压隔渗"}));
-      els.push(D({x:52,top:26,w:186,h:18,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"→ 坑底卸压封底 · 防突涌↑"})); }
-    else if(it.fig==="nosupport"){ h=48;
-      const s=[["放坡 ✓","#2c8a5b",0],["中心岛","#8a8578",60],["盆式","#8a8578",120],["逆作","#8a8578",180]];
-      s.forEach(c=>els.push(D({x:c[2],top:2,w:54,h:18,bg:c[1],r:5,fg:"#fff",fs:9,lab:c[0]})));
-      els.push(D({x:0,top:26,w:238,h:16,fg:"#e0b48a",fs:8.5,jc:"flex-start",lab:"只有放坡无支护 · 中心岛/盆式/逆作都需支护"})); }
-    else if(it.fig==="digits"){ h=48;
-      els.push(D({x:0,top:2,w:52,h:20,bd:"1.5px solid #2f6db0",r:6,fg:"#9fc7e0",fs:8.5,lab:"分层≤3m"}));
-      els.push(D({x:56,top:2,w:70,h:20,bd:"1.5px solid #cf8a44",r:6,fg:"#e0b48a",fs:7.5,lab:"预留150~300"}));
-      els.push(D({x:130,top:2,w:52,h:20,bd:"1.5px solid #2c8a5b",r:6,fg:"#9fd3b4",fs:8.5,lab:"降水500"}));
-      els.push(D({x:186,top:2,w:48,h:20,bd:"1.5px solid #d9a521",r:6,fg:"#e6c96f",fs:8.5,lab:"高差≤1"}));
-      els.push(D({x:0,top:28,w:238,h:14,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"另加三不碰：支护结构·降水设施·工程桩"})); }
+    if(it.fig==="select"){ h=80;
+      const R=[["轻型井点","≤6m · 8m 够不着","#9fc7e0","✕",false],["喷射井点","8~20m · 8m 命中","#9fd3b4","✓",true],["真空井管",">6m · 大渗透","#c8b78f","",false],["管井","砂砾大渗透·填土不宜","#d8a79c","✕",false]];
+      R.forEach((r,i)=>{ const y=2+i*16;
+        if(r[4]) els.push(D({x:-2,top:y-1,w:248,h:15,bg:"rgba(44,138,91,.20)",bd:"1px solid #3fa06a",r:4}));
+        els.push(D({x:2,top:y,w:58,h:13,fg:r[2],fs:9.5,jc:"flex-start",lab:r[0]}));
+        els.push(D({x:62,top:y,w:148,h:13,fg:"#c9c2b2",fs:8.5,jc:"flex-start",lab:r[1]}));
+        if(r[3]) els.push(D({x:214,top:y,w:16,h:13,fg:r[3]==="✓"?"#5fbf85":"#d98a7c",fs:10,lab:r[3]})); });
+      els.push(D({x:2,top:68,w:244,h:12,fg:"#cf8a44",fs:8.5,jc:"flex-start",lab:"先卡深度、再看土质，俩关都得过"})); }
+    else if(it.fig==="flow"){ h=54;
+      els.push(D({x:0,top:2,w:118,h:48,bg:"rgba(47,109,176,.16)",bd:"1.5px solid #3f6fa0",r:8}));
+      els.push(D({x:8,top:8,w:104,h:13,fg:"#9fc7e0",fs:9.5,jc:"flex-start",lab:"≤3m 且软土"}));
+      els.push(D({x:8,top:23,w:104,h:14,fg:"#eef1f3",fs:11,fw:"800",jc:"flex-start",lab:"集水明排"}));
+      els.push(D({x:8,top:38,w:104,h:11,fg:"#9aa7ad",fs:8,jc:"flex-start",lab:"重力自流"}));
+      els.push(D({x:130,top:2,w:118,h:48,bg:"rgba(44,138,91,.16)",bd:"1.5px solid #3fa06a",r:8}));
+      els.push(D({x:138,top:8,w:104,h:13,fg:"#9fd3b4",fs:9.5,jc:"flex-start",lab:"深度 >3m"}));
+      els.push(D({x:138,top:23,w:104,h:14,fg:"#eef1f3",fs:11,fw:"800",jc:"flex-start",lab:"井点降水"}));
+      els.push(D({x:138,top:38,w:104,h:11,fg:"#9aa7ad",fs:8,jc:"flex-start",lab:"强降水位到坑底下"})); }
+    else if(it.fig==="reinject"){ h=54;
+      els.push(D({x:0,top:2,w:80,h:22,bg:"#2f6db0",r:6,fg:"#fff",fs:9.5,lab:"回灌井"}));
+      els.push(D({x:88,top:2,w:158,h:22,fg:"#9fc7e0",fs:10,jc:"flex-start",lab:"护周边 · 防地面沉降"}));
+      els.push(D({x:0,top:30,w:80,h:22,bg:"#cf4436",r:6,fg:"#fff",fs:8.5,lab:"减压·封底"}));
+      els.push(D({x:88,top:30,w:158,h:22,fg:"#e0a89f",fs:10,jc:"flex-start",lab:"护坑底 · 防承压突涌"})); }
+    else if(it.fig==="checklist"){ h=64; const s=[["①","综合地质·水文·环境·支护","#2f6db0"],["②","按深度分流 明排/井点","#cf8a44"],["③","按降水深度选井点类型","#2c8a5b"],["④","周边截水回灌·承压验算","#d9a521"]];
+      s.forEach((r,i)=>{ const y=2+i*15;
+        els.push(D({x:0,top:y,w:16,h:13,fg:r[2],fs:11,fw:"900",lab:r[0]}));
+        els.push(D({x:20,top:y,w:226,h:13,fg:"#e2dccb",fs:9.5,jc:"flex-start",lab:r[1]})); }); }
     return {els,h};
   }
-
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
   renderVals(){
-    const t=this.state.t,B=this.beats; let ai=0;
-    for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
-    const cur=B[ai];
-    const lp_=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1);
-    const W=(a,b)=>this.eo(this.cl((lp_-a)/(b-a),0,1));
-    const A=i=>i===ai;
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
     const NB=this.narr.length;
-    const aS1=1+0.12*Math.sin(t*4), aS3=1+0.18*Math.sin(t*5);
 
-    const v={
-      b0_op:0,b0_y:42,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,
-      b1_op:0,b1_y:34,b1_c1:0,b1_c2:0,b1_c3:0,b1_pp:0,b1_dep:0,b1_aScale:1,
-      b2_track:0,b2_px:110,b2_po:0,b2_xmp:0,b2_hit:0,b2_rule:0,b2_ry:8,b2_res:0,b2_ey:12,b2_well:0,
-      b3_op:0,b3_pulse:0,b3_re:0,b3_trace:0,b3_dp:0,b3_seal:0,b3_xre:0,b3_aScale:1,
-      b4_sheetO:0,b4_k1:0,b4_k2:0,b4_k3:0,b4_k4:0,b4_k5:0,b4_k6:0,
-      b5_line:0,b5_n1:0,b5_n2:0,b5_n3:0,b5_n4:0,b5_n5:0,b5_flowY:66
-    };
+    const v={ b0_op:0,b0_y:46,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,
+      d1_wtO:0,d1_critO:0,d1_py:150,d1_po:0,d1_shO:0,d1_deepO:0,d1_ruleO:0,d1_depth:"—",
+      r2_track:0,r2_px:60,r2_po:0,r2_hit:0,r2_ruleO:0,r2_resO:0,
+      c3_lO:0,c3_rO:0,c3_flL:0,c3_flR:0,c3_vO:0,
+      c4_scO:0,c4_sink:0,c4_crackO:0,c4_reinjO:0,c4_vO:0,
+      c5_scO:0,c5_bulge:0,c5_crackO:0,c5_fixO:0,c5_vO:0 };
 
-    if(A(0)){ const sp=W(0,.22),bp=W(.3,.5),dim=W(.78,.92),st=W(.58,.78);
-      v.b0_op=sp; v.b0_y=this.lp(42,0,sp); v.b0_bs=this.lp(.6,1,bp); v.b0_bo=bp*(1-.55*dim); v.b0_so=st*.95; v.b0_ss=this.lp(1.7,1,st); }
-    if(A(1)){ const sp=W(0,.3); v.b1_op=sp; v.b1_y=this.lp(34,0,sp);
-      v.b1_c1=W(.42,.56); v.b1_c2=W(.56,.7); v.b1_c3=W(.7,.84); v.b1_pp=W(.5,1); v.b1_dep=W(.3,.46); v.b1_aScale=aS1; }
-    if(A(2)){ v.b2_track=W(0,.16); v.b2_px=this.lp(110,195,W(.26,.5)); v.b2_po=W(.24,.36);
-      v.b2_xmp=W(.5,.62); v.b2_well=W(.6,.72); v.b2_hit=W(.66,.82);
-      const ru=W(.5,.66),re=W(.82,1); v.b2_rule=ru; v.b2_ry=this.lp(8,0,ru); v.b2_res=re; v.b2_ey=this.lp(12,0,re); }
-    if(A(3)){ v.b3_op=W(0,.2); v.b3_pulse=W(.2,1); v.b3_aScale=aS3;
-      v.b3_re=W(.28,.42); v.b3_xre=W(.46,.58); v.b3_trace=W(.5,.66); v.b3_dp=W(.6,.74); v.b3_seal=W(.76,.9); }
-    if(A(4)){ v.b4_sheetO=W(0,.16);
-      v.b4_k1=W(.16,.28); v.b4_k2=W(.3,.42); v.b4_k3=W(.44,.55); v.b4_k4=W(.57,.68); v.b4_k5=W(.7,.8); v.b4_k6=W(.82,.92); }
-    if(A(5)){ v.b5_line=W(.05,.7);
-      v.b5_n1=W(0,.16); v.b5_n2=W(.18,.34); v.b5_n3=W(.36,.52); v.b5_n4=W(.54,.7); v.b5_n5=W(.72,.88);
-      v.b5_flowY=this.lp(66,300,W(.1,.95)); }
+    if(A(0)){ const sp=W(0,.22),bp=W(.28,.46),dim=W(.74,.9),st=W(.56,.74);
+      v.b0_op=sp; v.b0_y=this.lp(46,0,sp); v.b0_bs=this.lp(.6,1,bp); v.b0_bo=bp*(1-.55*dim); v.b0_so=st*.95; v.b0_ss=this.lp(1.7,1,st); }
+    if(A(1)){ v.d1_wtO=W(0,.1); v.d1_critO=W(.08,.2);
+      const trav=W(.16,.86); v.d1_py=this.lp(128,248,trav); v.d1_po=W(.14,.26);
+      const depth=((v.d1_py-96)/232)*11.6; v.d1_depth=depth.toFixed(1)+" m";
+      v.d1_shO=W(.14,.28); v.d1_deepO=W(.42,.62); v.d1_ruleO=W(.8,.96); }
+    if(A(2)){ v.r2_track=W(0,.2); v.r2_px=this.lp(60,180,W(.24,.5)); v.r2_po=W(.2,.32);
+      v.r2_ruleO=W(.42,.56); v.r2_hit=W(.56,.74); v.r2_resO=W(.78,.96); }
+    if(A(3)){ v.c3_lO=W(0,.22); v.c3_rO=W(.18,.4); v.c3_flL=W(.4,.64)*150; v.c3_flR=W(.44,.66)*18; v.c3_vO=W(.74,.94); }
+    if(A(4)){ v.c4_scO=W(0,.18); const sink=W(.24,.44), rec=W(.64,.84);
+      v.c4_sink=this.lp(0,12,sink)*(1-rec); v.c4_crackO=W(.28,.44)*(1-rec); v.c4_reinjO=W(.5,.68); v.c4_vO=W(.82,.98); }
+    if(A(5)){ v.c5_scO=W(0,.18); const bulge=W(.22,.42), fix=W(.56,.78);
+      v.c5_bulge=this.lp(0,16,bulge)*(1-.85*fix); v.c5_crackO=W(.34,.46)*(1-fix); v.c5_fixO=W(.56,.76); v.c5_vO=W(.8,.98); }
 
-    const QN=this.qa.length;
-    const isQA=ai>=NB && ai<NB+QN;
-    const isOutro=ai>=NB+QN;
-    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
-    if(isQA){ const it=this.qa[ai-NB]; if(it){ const cue=(this.qaCue&&this.qaCue[ai-NB]&&this.qaCue[ai-NB].answerStart)||((cur[2]-cur[1])*.38); const ansStart=this.cl(cue/(cur[2]-cur[1]),.12,.86); const ansEnd=this.cl(ansStart+.12,ansStart+.04,.98); qaLayerO=1; qa_so=W(0,Math.min(.24,ansStart*.6)); qa_sx=this.lp(-40,0,qa_so); qa_to=W(ansStart,ansEnd); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
-      qaA=it.a; qaFigLabel=it.figLabel||""; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
-    let outroO=0,o_head=0,o_headY=18,o_card=0,o_cardY=18,o_btn=0,o_btnY=14;
-    if(isOutro){ outroO=1; o_head=W(0,.28); o_headY=this.lp(18,0,o_head); o_card=W(.28,.56); o_cardY=this.lp(18,0,o_card); o_btn=W(.56,.82); o_btnY=this.lp(14,0,o_btn); }
-    const capPages=(isQA||isOutro)?[""]:this.paginate(this.narr[ai]||"",26);
-    const capIx=(isQA||isOutro)?0:Math.min(capPages.length-1,Math.floor(this.cl(lp_,0,0.999)*capPages.length));
-    const capText=capPages[capIx];
-    const capPageInfo=(!isQA&&!isOutro&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaPageInfo="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaPageInfo=""; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
 
-    const beatChips=[];
-    for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
     beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
-    beatChips.push({num:"收官",label:"终屏",onClick:()=>this.jump(NB+QN),bg:isOutro?"#2c8a5b":"#23282b",fg:isOutro?"#fff":"#9aa0a3",flex:"1.05"});
     const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
     const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
-    const lo={},lpe={};
-    for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
     const empty=!((this.state.askText||"").trim());
 
     return Object.assign(v,lo,lpe,{
-      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,
-      posterSub:this.posterSub,posterMeta:this.posterMeta,DUR:this.DUR,durSec:this.DUR,
-      caption:capText,captionPage:capPageInfo,
-      curKeycard:isOutro?"收官 · 带走这几句采分句":(isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai]),
-      curTitle:cur[3],t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),
-      playIcon:this.state.playing?"⏸":"▶",
-      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,replay:()=>this.replay(),
-      captionO:(isQA||isOutro)?0:1,captionPE:(isQA||isOutro)?"none":"auto",
-      outroO,outroPE:isOutro?"auto":"none",o_head,o_headY,o_card,o_cardY,o_btn,o_btnY,
-      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
-      fullscreen:(e)=>{if(e&&e.stopPropagation)e.stopPropagation();this.fullscreen();},phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",fs:this.state.fs,capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,tapToggle:()=>this.tapToggle(),
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaPageInfo,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
       openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
       dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
       askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
@@ -560,8 +593,10 @@ class Component extends DCLogic {
       askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
       askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
-      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,
-      posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none"
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
     });
   }
 }

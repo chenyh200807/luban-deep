@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<audio data-luban-prewarm preload="auto" src="audio/up/b0.mp3?v=64e814b2a0efccf3" aria-hidden="true" style="display:none"></audio>
+<x-dc>
+<!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;background:#181b1e;}
+  .lz-card{zoom:var(--lz-fit,1);margin:0 auto;}
+  body.luban-fs .lz-card{zoom:1!important;}
+  body{background:#181b1e;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <!-- ░░ 顶部安全区红线（母版冻结，勿改）：舞台顶部 top:0–48px 为常驻 UI 带（旁白按钮/钥匙卡胶囊/全屏按钮，胶囊底沿≈40px）。
+         所有 beat 的领域对象/气泡/标签 top 最小值 = 48px，含手绘位移阴影厚度另计。双轴 gate 正确轴固定判据之一：截 beat0 中段帧核对任一对象 top≥48 且与胶囊/按钮无重叠、有可见空隙。 ░░ -->
+    <div class="lz-stagewrap" onClick="{{ tapToggle }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：早龄期混凝土失水温升裂纹 + 误区气泡 + 红章 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:96px;top:276px;width:198px;height:88px;opacity:{{ b0_bk }};transform:translateY({{ b0_by }}px);">
+          <div style="position:absolute;inset:0;background:linear-gradient(180deg,#d9c7a2,#c3ad84);border-radius:4px;box-shadow:2px 2px 0 rgba(35,40,43,.14);"></div>
+          <div style="position:absolute;left:0;right:0;top:0;height:7px;background:#e8ddc3;border-radius:4px 4px 0 0;"></div>
+          <div style="position:absolute;left:40px;top:5px;width:2px;height:32px;background:#cf4436;transform:rotate(10deg);opacity:{{ b0_ck }};"></div>
+          <div style="position:absolute;left:104px;top:5px;width:2px;height:42px;background:#cf4436;transform:rotate(-8deg);opacity:{{ b0_ck }};"></div>
+          <div style="position:absolute;left:150px;top:5px;width:2px;height:28px;background:#cf4436;transform:rotate(7deg);opacity:{{ b0_ck }};"></div>
+          <div style="position:absolute;left:0;right:0;bottom:-18px;text-align:center;font-size:11px;font-weight:800;color:#5c6469;">早龄期混凝土 · 最脆弱</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:250px;text-align:center;font-size:11px;font-weight:800;color:#c9683e;opacity:{{ b0_ev }};">失水 ↑ · 温升 ↑ · 收缩受约束 → 拉裂</div>
+        <div style="position:absolute;left:44px;top:62px;width:246px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:12px 14px;font-size:13px;font-weight:700;color:#23282b;line-height:1.45;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">浇完就使劲浇水？养 7 天准够？25℃、20℃ 差不多就行？
+          <div style="position:absolute;left:30px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:56px;top:152px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:22px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">误区 ✕</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 原理·三旋钮：强度增长跑赢拉应力 + 危险窗口 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;width:210px;line-height:1.3;">{{ b1_title }}</div>
+        <div style="position:absolute;right:14px;top:44px;display:flex;flex-direction:column;gap:2px;align-items:flex-end;">
+          <span style="font-size:9px;font-weight:800;color:#cf4436;">— 拉应力</span>
+          <span style="font-size:9px;font-weight:800;color:#2c8a5b;">— 抗拉强度</span>
+        </div>
+        <svg viewBox="0 0 300 122" style="position:absolute;left:52px;top:80px;width:292px;height:122px;overflow:visible;">
+          <rect x="1" y="0" width="{{ b1_dw }}" height="106" fill="rgba(207,68,54,.10)"></rect>
+          <line x1="1" y1="106" x2="300" y2="106" stroke="#bdb8a8" stroke-width="1.5"></line>
+          <line x1="1" y1="0" x2="1" y2="106" stroke="#bdb8a8" stroke-width="1.5"></line>
+          <path d="M1,78 C70,40 150,30 299,34" fill="none" stroke="#cf4436" stroke-width="3" pathLength="1" stroke-dasharray="1" stroke-dashoffset="{{ b1_rd }}"></path>
+          <path d="M1,104 C90,98 165,66 299,12" fill="none" stroke="#2c8a5b" stroke-width="3" pathLength="1" stroke-dasharray="1" stroke-dashoffset="{{ b1_gd }}"></path>
+          <circle cx="188" cy="46" r="5" fill="#ffd24a" stroke="#cf8a44" stroke-width="1.5" opacity="{{ b1_cross }}"></circle>
+        </svg>
+        <div style="position:absolute;left:58px;top:188px;font-size:9px;font-weight:800;color:#c9683e;opacity:{{ b1_dwl }};">早龄期·危险窗口</div>
+        <div style="position:absolute;left:330px;top:196px;font-size:9px;font-weight:800;color:#8b9398;">龄期</div>
+        <div style="position:absolute;left:150px;top:148px;transform:translateX(-50%);background:#2c8a5b;color:#fff;font-size:11px;font-weight:900;border-radius:10px;padding:4px 12px;box-shadow:2px 2px 0 rgba(44,138,91,.22);opacity:{{ b1_cross }};white-space:nowrap;">养护好 → 强度跑赢</div>
+        <div style="position:absolute;left:0;right:0;top:236px;display:flex;justify-content:center;gap:20px;opacity:{{ b1_kn }};">
+          <div style="width:64px;text-align:center;">
+            <div style="width:52px;height:52px;margin:0 auto;border-radius:50%;background:#fff;border:2px solid #cf8a44;position:relative;box-shadow:2px 2px 0 rgba(201,104,62,.18);">
+              <div style="position:absolute;left:50%;top:50%;width:3px;height:19px;background:#cf4436;border-radius:2px;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate({{ b1_r0 }}deg);"></div>
+              <div style="position:absolute;left:50%;top:50%;width:8px;height:8px;background:#cf4436;border-radius:50%;transform:translate(-50%,-50%);"></div>
+            </div>
+            <div style="font-size:11px;font-weight:800;color:#23282b;margin-top:5px;">时间</div>
+          </div>
+          <div style="width:64px;text-align:center;">
+            <div style="width:52px;height:52px;margin:0 auto;border-radius:50%;background:#fff;border:2px solid #2f6db0;position:relative;box-shadow:2px 2px 0 rgba(47,109,176,.18);">
+              <div style="position:absolute;left:50%;top:50%;width:3px;height:19px;background:#2f6db0;border-radius:2px;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate({{ b1_r1 }}deg);"></div>
+              <div style="position:absolute;left:50%;top:50%;width:8px;height:8px;background:#2f6db0;border-radius:50%;transform:translate(-50%,-50%);"></div>
+            </div>
+            <div style="font-size:11px;font-weight:800;color:#23282b;margin-top:5px;">湿度</div>
+          </div>
+          <div style="width:64px;text-align:center;">
+            <div style="width:52px;height:52px;margin:0 auto;border-radius:50%;background:#fff;border:2px solid #cf4436;position:relative;box-shadow:2px 2px 0 rgba(207,68,54,.18);">
+              <div style="position:absolute;left:50%;top:50%;width:3px;height:19px;background:#cf4436;border-radius:2px;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate({{ b1_r2 }}deg);"></div>
+              <div style="position:absolute;left:50%;top:50%;width:8px;height:8px;background:#cf4436;border-radius:50%;transform:translate(-50%,-50%);"></div>
+            </div>
+            <div style="font-size:11px;font-weight:800;color:#23282b;margin-top:5px;">温差</div>
+          </div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:322px;text-align:center;font-size:11px;font-weight:800;color:#5c6469;opacity:{{ b1_kn }};">时间 × 湿度 × 温差 · 三旋钮拧到位</div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 时间旋钮：养护时长按类别（7d / 14d）░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b2_title }}</div>
+        <div style="position:absolute;left:96px;top:96px;width:264px;opacity:{{ b2_axisO }};">
+          <div style="position:relative;height:14px;font-size:10px;font-weight:800;color:#5c6469;">
+            <span style="position:absolute;left:-3px;">0</span><span style="position:absolute;left:60px;color:#cf4436;">7</span><span style="position:absolute;left:126px;color:#cf4436;">14</span><span style="position:absolute;left:256px;">28</span><span style="position:absolute;right:-16px;color:#8b9398;">天</span>
+          </div>
+          <div style="position:relative;height:2px;background:#bdb8a8;"></div>
+          <div style="position:absolute;left:66px;top:14px;width:0;height:150px;border-left:1.5px dashed #e0a89f;"></div>
+          <div style="position:absolute;left:132px;top:14px;width:0;height:150px;border-left:1.5px dashed #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:8px;top:126px;width:84px;text-align:right;font-size:10px;font-weight:800;color:#2c8a5b;opacity:{{ b2_r0 }};">普通硛酸盐</div>
+        <div style="position:absolute;left:96px;top:126px;height:16px;width:66px;background:#2c8a5b;border-radius:0 4px 4px 0;opacity:{{ b2_r0 }};"></div>
+        <div style="position:absolute;left:168px;top:127px;font-size:11px;font-weight:900;color:#2c8a5b;opacity:{{ b2_r0 }};">≥7d</div>
+        <div style="position:absolute;left:8px;top:160px;width:84px;text-align:right;font-size:9.5px;font-weight:800;color:#2f6db0;opacity:{{ b2_r1 }};line-height:1.15;">掺缓凝·抗渗·C60+</div>
+        <div style="position:absolute;left:96px;top:164px;height:16px;width:132px;background:#2f6db0;border-radius:0 4px 4px 0;opacity:{{ b2_r1 }};"></div>
+        <div style="position:absolute;left:234px;top:165px;font-size:11px;font-weight:900;color:#2f6db0;opacity:{{ b2_r1 }};">≥14d</div>
+        <div style="position:absolute;left:8px;top:200px;width:84px;text-align:right;font-size:10px;font-weight:800;color:#cf8a44;opacity:{{ b2_r2 }};">后浇带(养护)</div>
+        <div style="position:absolute;left:96px;top:200px;height:16px;width:132px;background:#cf8a44;border-radius:0 4px 4px 0;opacity:{{ b2_r2 }};"></div>
+        <div style="position:absolute;left:234px;top:201px;font-size:11px;font-weight:900;color:#cf8a44;opacity:{{ b2_r2 }};">≥14d</div>
+        <div style="position:absolute;left:8px;top:236px;width:84px;text-align:right;font-size:10px;font-weight:800;color:#8a6d1f;opacity:{{ b2_r3 }};">大体积</div>
+        <div style="position:absolute;left:96px;top:236px;height:16px;width:132px;background:#d9a521;border-radius:0 4px 4px 0;opacity:{{ b2_r3 }};"></div>
+        <div style="position:absolute;left:228px;top:243px;width:64px;border-top:2px dashed #d9a521;opacity:{{ b2_r3 }};"></div>
+        <div style="position:absolute;left:234px;top:236px;font-size:9px;font-weight:900;color:#8a6d1f;opacity:{{ b2_r3 }};">保湿≥14d</div>
+        <div style="position:absolute;left:0;right:0;top:290px;text-align:center;font-size:12px;font-weight:900;color:#cf4436;opacity:{{ b2_hi }};">普硛 7d ✕→ 别当 14d · 抗渗/后浇带才 14d</div>
+        <div style="position:absolute;left:16px;right:16px;top:314px;text-align:center;font-size:10px;font-weight:700;color:#5c6469;opacity:{{ b2_hi }};">浇筑后及时覆盖保湿（普通混凝土终凝前就得开始养护）</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 温差旋钮：大体积 里表温差≤25℃、降温≤2℃/d ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b3_title }}</div>
+        <div style="position:absolute;left:34px;top:122px;width:176px;height:148px;border-radius:6px;background:linear-gradient(180deg,#e9b98f,#d98f57);box-shadow:3px 3px 0 rgba(140,80,40,.18);opacity:{{ b3_blk }};">
+          <div style="position:absolute;left:0;right:0;top:-17px;text-align:center;font-size:10px;font-weight:800;color:#5c6469;">大体积混凝土</div>
+          <div style="position:absolute;left:50%;top:50%;width:92px;height:70px;border-radius:50%;background:radial-gradient(circle,#cf4436,#d9663e);transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:900;opacity:{{ b3_core }};">里·高温</div>
+          <div style="position:absolute;left:7px;bottom:6px;font-size:10px;font-weight:800;color:#fff;">表 · 偏低</div>
+        </div>
+        <div style="position:absolute;left:118px;top:150px;opacity:{{ b3_gap }};">
+          <div style="width:0;height:62px;border-left:2px solid #cf4436;"></div>
+          <div style="position:absolute;left:10px;top:18px;width:104px;background:#fff;border:1.5px solid #cf4436;border-radius:8px;padding:3px 7px;font-size:11px;font-weight:900;color:#cf4436;white-space:nowrap;">里表温差 ≤25℃</div>
+        </div>
+        <div style="position:absolute;left:236px;top:130px;width:128px;opacity:{{ b3_rate }};">
+          <svg viewBox="0 0 120 72" style="width:120px;height:72px;overflow:visible;">
+            <line x1="0" y1="0" x2="0" y2="66" stroke="#bdb8a8" stroke-width="1.5"></line>
+            <line x1="0" y1="66" x2="116" y2="66" stroke="#bdb8a8" stroke-width="1.5"></line>
+            <path d="M0,8 L116,56" fill="none" stroke="#2f6db0" stroke-width="2.5"></path>
+          </svg>
+          <div style="font-size:12px;font-weight:900;color:#2f6db0;margin-top:2px;">降温 ≤2.0℃/d</div>
+          <div style="font-size:9px;font-weight:700;color:#5c6469;">温升 ≤50℃</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:298px;text-align:center;font-size:11px;font-weight:800;color:#8a6d1f;opacity:{{ b3_pour }};">入模温度 5～30℃ · 拆保温时表面-大气 ≤20℃</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 温差旋钮：冬期 表面-大气≤20℃、温降≤3℃/d、养护≥14d ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b4_title }}</div>
+        <div style="position:absolute;left:16px;top:74px;font-size:11px;font-weight:800;color:#2f6db0;opacity:{{ b4_cov }};">❄ 大气 · 冷（外界低温）</div>
+        <div style="position:absolute;left:34px;top:106px;width:176px;height:22px;border-radius:6px 6px 0 0;background:repeating-linear-gradient(45deg,#c98a5a,#c98a5a 6px,#e0a878 6px,#e0a878 12px);box-shadow:2px 2px 0 rgba(140,80,40,.18);opacity:{{ b4_cov }};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;">保温覆盖层（蓄热/暖棚）</div>
+        <div style="position:absolute;left:34px;top:128px;width:176px;height:132px;border-radius:0 0 6px 6px;background:linear-gradient(180deg,#e9b98f,#d98f57);box-shadow:3px 3px 0 rgba(140,80,40,.18);opacity:{{ b4_blk }};">
+          <div style="position:absolute;left:50%;top:52%;width:82px;height:60px;border-radius:50%;background:radial-gradient(circle,#cf4436,#d9663e);transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900;">中心热</div>
+          <div style="position:absolute;left:7px;bottom:6px;font-size:10px;font-weight:800;color:#fff;">表面</div>
+        </div>
+        <div style="position:absolute;left:216px;top:94px;width:82px;background:#fff;border:2px solid #2f6db0;border-radius:8px;padding:4px 7px;font-size:10px;font-weight:900;color:#2f6db0;opacity:{{ b4_g2 }};">表面-大气 ≤20℃</div>
+        <div style="position:absolute;left:210px;top:118px;width:0;height:34px;border-left:2px dashed #2f6db0;opacity:{{ b4_g2 }};"></div>
+        <div style="position:absolute;left:216px;top:160px;width:82px;background:#fff;border:1.5px solid #cf8a44;border-radius:8px;padding:4px 7px;font-size:10px;font-weight:900;color:#c9683e;opacity:{{ b4_g1 }};">中心-表面 ≤25℃</div>
+        <div style="position:absolute;left:0;right:0;top:286px;text-align:center;font-size:12px;font-weight:900;color:#cf4436;opacity:{{ b4_rate }};">温降梯度 ≤3℃/d（比大体积 2℃/d 松）· 养护 ≥14d</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 高温环境：早晚施工+喷雾+连续浇筑，不吹风 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b5_title }}</div>
+        <div style="position:absolute;left:300px;top:64px;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle,#ffd24a,#f0a83c);box-shadow:0 0 0 6px rgba(240,168,60,.16);opacity:{{ b5_sun }};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#a05a10;">高温</div>
+        <div style="position:absolute;left:34px;top:76px;width:90px;text-align:center;opacity:{{ b5_clock }};">
+          <div style="width:74px;height:74px;margin:0 auto;border-radius:50%;background:#fff;border:2.5px solid #2c8a5b;position:relative;box-shadow:2px 2px 0 rgba(44,138,91,.16);">
+            <div style="position:absolute;left:50%;top:5px;width:24px;height:24px;transform:translateX(-50%);border-radius:0 0 24px 24px;background:rgba(207,68,54,.22);"></div>
+            <div style="position:absolute;left:50%;top:50%;width:2.5px;height:24px;background:#2c8a5b;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(-52deg);"></div>
+            <div style="position:absolute;left:50%;top:50%;width:2.5px;height:24px;background:#2c8a5b;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(52deg);"></div>
+            <div style="position:absolute;left:50%;top:50%;width:7px;height:7px;background:#2c8a5b;border-radius:50%;transform:translate(-50%,-50%);"></div>
+          </div>
+          <div style="font-size:10px;font-weight:800;color:#2c8a5b;margin-top:4px;">早晚施工 · 避正午</div>
+        </div>
+        <div style="position:absolute;left:150px;top:150px;width:200px;opacity:{{ b5_mist }};">
+          <div style="position:absolute;left:20px;top:0;font-size:15px;color:#2f6db0;letter-spacing:7px;">˙ ˙ ˙ ˙ ˙</div>
+          <div style="position:absolute;left:0;top:22px;width:180px;height:30px;background:linear-gradient(180deg,#d9c7a2,#c3ad84);border-radius:4px;box-shadow:1px 1px 0 rgba(35,40,43,.12);"></div>
+          <div style="position:absolute;left:0;top:58px;font-size:10px;font-weight:800;color:#2f6db0;">喷雾降温保湿 · 混凝土面</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:250px;text-align:center;font-size:11px;font-weight:800;color:#2c8a5b;opacity:{{ b5_flow }};">早间/晚间施工 · 喷雾 · 连续浇筑（避免冷缝）</div>
+        <div style="position:absolute;left:0;right:0;top:288px;display:flex;justify-content:center;align-items:center;gap:10px;opacity:{{ b5_fan }};">
+          <div style="width:40px;height:40px;border-radius:50%;background:#eceadf;border:2px solid #9aa0a3;position:relative;">
+            <div style="position:absolute;left:50%;top:50%;width:15px;height:6px;background:#9aa0a3;border-radius:6px;transform:translate(-50%,-50%) rotate(20deg);"></div>
+            <div style="position:absolute;left:50%;top:50%;width:15px;height:6px;background:#9aa0a3;border-radius:6px;transform:translate(-50%,-50%) rotate(140deg);"></div>
+            <div style="position:absolute;left:50%;top:50%;width:15px;height:6px;background:#9aa0a3;border-radius:6px;transform:translate(-50%,-50%) rotate(-100deg);"></div>
+            <div style="position:absolute;left:50%;top:50%;width:6px;height:6px;background:#5c6469;border-radius:50%;transform:translate(-50%,-50%);"></div>
+          </div>
+          <div style="font-size:13px;font-weight:900;color:#cf4436;">吹风 ✕ 加速失水更裂</div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 三旋钮回扣 · 数值别串门 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b6_title }}</div>
+        <div style="position:absolute;left:14px;top:142px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c0 }};"><div style="font-size:13px;font-weight:900;color:#2c8a5b;">时间</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:700;line-height:1.4;">普硛≥7d<br/>抗渗·后浇带≥14d</div></div>
+        <div style="position:absolute;left:104px;top:142px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c1 }};"><div style="font-size:13px;font-weight:900;color:#2f6db0;">大体积</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:700;line-height:1.4;">里表≤25℃<br/>降温≤2℃/d</div></div>
+        <div style="position:absolute;left:194px;top:142px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf8a44;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c2 }};"><div style="font-size:13px;font-weight:900;color:#cf8a44;">冬期</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:700;line-height:1.4;">表面-大气≤20℃<br/>温降≤3℃/d</div></div>
+        <div style="position:absolute;left:284px;top:142px;width:88px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf4436;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c3 }};"><div style="font-size:13px;font-weight:900;color:#cf4436;">高温</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:700;line-height:1.4;">早晚·喷雾<br/>连续·不吹风</div></div>
+        <div style="position:absolute;left:0;right:0;top:250px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ c3 }};">25℃/20℃、 2/3 、 7/14 别写反</div>
+        <div style="position:absolute;left:0;right:0;top:280px;text-align:center;font-size:11px;font-weight:800;color:#cf8a44;opacity:{{ c3 }};">三旋钮拧到位，强度跑赢拉应力</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN（播到底 t≥DUR 才出 · 与海报对称）░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">养护这半场 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">这半场把养护三个旋钮唠明白了——时间、湿度、温差。数值别串门：普硛 7 天、抗渗 14 天；大体积降温 2 度、冬期 3 度；里表 25、表面对大气 20。下一集唠裂缝控制、防水、后浇带跟成因识图。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">养护=强度跑赢收缩+温度拉应力</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">普硛≥7d ｜ 抗渗·后浇带≥14d</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">大体积 里表≤25℃·降温≤2℃/d</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">冬期 表面-大气≤20℃·温降≤3℃/d</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#8a6d1f;">高温 早晚+喷雾·不吹风</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="lesson2.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#cf4436;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(207,68,54,.28);">下一集</a>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:11px;">
+        <div style="flex:none;width:52px;font-size:11px;font-weight:900;color:#9aa0a3;line-height:1.28;">本考点<br/>分 2 集</div>
+        <div style="flex:1;border-radius:12px;padding:14px 0;text-align:center;font-size:15px;font-weight:900;background:#cf4436;color:#fff;box-shadow:0 3px 12px rgba(207,68,54,.28);">上集 · 当前</div>
+        <a href="lesson2.html" style="flex:1;border-radius:12px;padding:14px 0;text-align:center;font-size:15px;font-weight:900;background:#23282b;color:#cdd2d5;text-decoration:none;">下集</a>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="practice.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- FULLSCREEN 浮层控制条（点屏显隐 · 播放时自动隐藏 · 发布层回灌） -->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ═══════════════════════════════════════════════════════════════════════════
+   鲁班智考 · 动画学习卡 母版（讲解页）
+   ───────────────────────────────────────────────────────────────────────────
+   做新考点时，fork 本文件改名 <考点名>_讲解.dc.html，只改【内容区】，骨架别动。
+
+   ▼ 内容区（每张卡都要换）：
+     · examTitle / examCode / examCat / posterSub / posterMeta / KNOWLEDGE
+     · DUR（总秒数，≈每页旁白 6–8 秒累加）
+     · beats[]（≥6 主讲 + ≥4 问答，[id,起,止,短标题]）
+     · keycards[]（每主讲 beat 一句记忆点）
+     · narr[]（每主讲 beat 旁白，老师 longanhuan_v3 口语）
+     · qa[]（≥4 问，每问含 figLabel + fig 类型 + q + a）
+     · qaFig() 里 4 种迷你图 / figFor 的领域图（按新考点重画）
+     · 模板里 6 个 BEAT 块的领域对象 SVG/CSS（这是唯一要手画的部分）
+
+   ▲ 骨架（禁止改，改了就丢功能）：
+     · RAF 时间轴 loop / toggle / seek / jump
+     · paginate() + 旁白条 ≤3 行分页（capPages/capText/captionPage）
+     · QA 师生气泡 + 老师气泡内嵌 qaFig 迷你领域图
+     · 问追AI 弹层 + window.claude.complete
+     · 视口/全屏注入 componentDidMount
+
+   规则速记：动画讲知识不用文字讲；先判 6+1 认知结构再画领域对象；
+   每 beat 一个对象级动作、不堆画面；旁白条一页 ≤3 行（QA 气泡可整段显示）；
+   logo 用 assets/mark-white.png(暗底) / mark-red.png(亮底)，不用 emoji。
+   ═══════════════════════════════════════════════════════════════════════════ */
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/up/";
+  audioVersion="64e814b2a0efccf3";
+  DUR = 256.868;
+  examTitle="混凝土养护与裂缝防治（上）"; examCode="Q01"; examCat="案例·施工";
+  posterSub="养护三旋钮：时间 × 湿度 × 温差，把强度顶到跑赢拉应力"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 52 秒";
+  KNOWLEDGE="混凝土养护与裂缝防治(上集·养护篇)。养护本质:早龄期把温度梯度与失水收缩压在材料当时能承受范围内,用时间·湿度·温差三旋钮让强度增长跑赢收缩与温度拉应力。养护时长按类别:普通硛酸盐/普硛≥7d;掺缓凝/有抗渗要求/C60及以上≥14d;后浇带养护≥14d;大体积保湿≥14d按温控方案。大体积温控:里表温差≤25℃、降温速率≤2.0℃/d、温升≤50℃、入模5~30℃、拆保温时表面-大气≤20℃。冬期:中心-表面≤25℃、表面-大气≤20℃、温降梯度≤3℃/d、养护≥14d。高温:早间/晚间施工、喷雾、连续浇筑,不宜吹风。常见失分:7d/14d张冠李戴、大体积降温2℃/d与冬期温降3℃/d互换、里表25℃与表面-大气20℃方向写反。数值以真题2017第10题(降温≤2℃/d)、2022第15题(抗渗≥14d)、2019第1题(冬期指标)为锚。下集讲裂缝控制等级、防水混凝土、后浇带、拆模强度、地基不均匀下沉裂缝成因。";
+    beats=[["b0",0.0,14.636,"破误区"],["b1",14.636,37.072,"三旋钮"],["b2",37.072,63.756,"养护时长"],["b3",63.756,86.24,"大体积"],["b4",86.24,111.916,"冬期"],["b5",111.916,132.408,"高温"],["b6",132.408,159.428,"口诀"],["q0",159.428,186.608,"问答"],["q1",186.608,211.7,"问答"],["q2",211.7,235.184,"问答"],["q3",235.184,256.868,"问答"]];
+  keycards=[
+    "浇完就浇水？养 7 天就够？先划掉误区",
+    "养护=让强度跑赢收缩+温度拉应力",
+    "普硛≥7d，抗渗·C60·后浇带≥14d",
+    "大体积：里表≤25℃、降温≤2℃/d",
+    "冬期：表面-大气≤20℃、温降≤3℃/d",
+    "高温早晚+喷雾+连续，不吹风",
+    "三旋钮拧到位，数值别串门"
+  ];
+  narr=[
+    "来，看混凝土养护这道题。好些同学一上来就栽——浇完就使劲浇水、养个七天就撒手，温差 25℃、20℃ 张嘴就串。注意哈，这几个都是坑，先给它划掉。",
+    "先弄明白养护到底干啥。混凝土早龄期最脆弱，一边失水收缩、一边水化热温升，都在拉它；可这时候抗拉强度还没长起来——这段就是危险窗口。养护就干一件事：把强度顶上去，跑赢收缩加温度这股拉应力。手里就三个旋钮：时间、湿度、温差。",
+    "先说时间旋钮，养护浇几天水，按类别定。普通硛酸盐、普硛水泥，不少于七天；掺了缓凝剂的、有抗渗要求的、C60 及以上的，加倍——不少于十四天；后浇带养护也是十四天；大体积按温控方案、保湿也得十四天往上。记住哈，普硛七天，别当成十四天；抗渗十四天，更不能缩成七天。",
+    "温差旋钮，先看大体积。个儿大，里头水化热散不出去、烫，表面凉得快，里表这一温差得压在二十五度以内；降温别猛，速率不超每天两度；温升控制在五十度以内，入模温度五到三十度。里表二十五、降温每天两度，这两个数儿是大体积的招牌。",
+    "同样是温差，冬期不一样。外头是冷空气，得先盖保温层、蓄热或者搭暖棚。这回盯两个差：中心跟表面还是不超二十五度；多出来一个——表面跟大气不超二十度，这是冬期专属。温降梯度放到每天三度，比大体积那两度松一点；养护照样不少于十四天。表面对大气二十，别跟里表二十五写反喽。",
+    "湿度这头，最怕高温大风天。太阳一晒，水贑得飞快。招儿是：避开正午、早间晚间施工，混凝土面上喷雾保湿，连续浇筑别留冷缝。有个坑得记死——高温别拿风扇吹！吹风加速失水，表面裂得更快，喷雾保湿才对。",
+    "最后把三旋钮的数儿理清楚：时间——普硛七天、抗渗后浇带十四天；大体积——里表二十五度、降温每天两度；冬期——表面对大气二十度、温降每天三度；高温——早晚施工、喷雾、连续浇筑、不吹风。二十五跟二十、二跟三、七跟十四，千万别串门。三旋钮拧到位，强度自然跑赢拉应力。"
+  ];
+  qa=[
+    { figLabel:"普硅 7d 与 抗渗 14d", fig:"days", q:"老师我寻思着，普通混凝土养 7 天，防水抗渗的咋非得 14 天呢？", a:"问得好哈。抗渗、C60 高强、还有后浇带这些，对密实度、抗裂要求高，早期失水更遭不住，所以养护得加倍——不少于十四天。普通硅酸盐水泥的是七天。七天十四天别对调，对调就是规范适用错误，直接丢分。" },
+    { figLabel:"降温 2℃/d 与 温降 3℃/d", fig:"rate", q:"大体积降温每天 2 度、冬期每天 3 度，我老记反，有招没？", a:"这么记哈：大体积个儿大、里头热量憋着，降快了里表撑裂，所以慢——每天两度；冬期主要护着表面别被冷空气激裂，温降梯度放到每天三度。体量大慢降是二，冬天护表是三。写反了就是把两个规范数字用串了。" },
+    { figLabel:"块内 25℃ 与 对外 20℃", fig:"gap", q:"25 度、20 度到底哪个配哪个啊？总分不清。", a:"分对象记哈：二十五度是块儿里头的事——里表温差、冬期的中心对表面，都是二十五；二十度是对外界的事——冬期表面跟大气之间，才二十。块内二十五、对外二十。方向写反，采分点就没了。" },
+    { figLabel:"高温措施 · 不吹风", fig:"hot", q:"大热天我拿风扇给混凝土吹吹凉快，能防裂不？", a:"可别！吹风看着凉快，其实把水分嗖嗖抽走，表面失水更快、裂得更凶。高温防裂靠的是避开正午、早晚施工、喷雾保湿、连续浇筑。题里要出现‘吹风’当措施，那就是错项，别选。" }
+  ];
+  askPresets=["养护时长怎么分 7d/14d？","大体积和冬期温控数值怎么区分？","高温防裂为啥不能吹风？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this.updateFitZoom();
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); this.updateFitZoom(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  tapToggle(){ if(!this.state.fs)return; const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  updateFitZoom(){ try{ const z=Math.min(window.innerWidth/390, 2.0); document.body.style.setProperty('--lz-fit', String(z)); }catch(e){} }
+  wxAsk(){ try{
+      const wxm=window.wx&&window.wx.miniProgram;
+      const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+      if(!wxm||!inMini) return false;
+      let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
+      if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
+      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=Q01'+(st?'&scene_title='+encodeURIComponent(st):'')});
+      return true; }catch(e){ return false; } }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+    openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=44;
+    if(it.fig==="days"){ h=46;
+      els.push(D({x:0,top:4,w:34,h:14,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"普硅"}));
+      els.push(D({x:36,top:4,w:44,h:14,bg:"#2c8a5b",r:3,fg:"#fff",fs:8.5,lab:"7d"}));
+      els.push(D({x:0,top:24,w:34,h:14,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"抗渗"}));
+      els.push(D({x:36,top:24,w:88,h:14,bg:"#2f6db0",r:3,fg:"#fff",fs:8.5,lab:"14d"}));
+      els.push(D({x:132,top:15,w:118,h:14,fg:"#cf8a44",fs:8.5,jc:"flex-start",lab:"失水更怕 → 加倍养"})); }
+    else if(it.fig==="rate"){ h=46;
+      els.push(D({x:0,top:2,w:122,h:16,bd:"1.5px solid #2f6db0",r:6,fg:"#9fc7e0",fs:9,lab:"大体积 降温≤2℃/d"}));
+      els.push(D({x:0,top:24,w:122,h:16,bd:"1.5px solid #cf8a44",r:6,fg:"#e6b483",fs:9,lab:"冬期 温降≤3℃/d"}));
+      els.push(D({x:132,top:15,w:118,h:14,fg:"#7fbf95",fs:8.5,jc:"flex-start",lab:"体量大慢降2·冬护表3"})); }
+    else if(it.fig==="gap"){ h=46;
+      els.push(D({x:0,top:2,w:132,h:16,bd:"1.5px solid #cf8a44",r:6,fg:"#e6b483",fs:8.5,lab:"里表/中心-表面 ≤25℃"}));
+      els.push(D({x:0,top:24,w:132,h:16,bd:"1.5px solid #2f6db0",r:6,fg:"#9fc7e0",fs:9,lab:"表面-大气 ≤20℃"}));
+      els.push(D({x:142,top:15,w:110,h:14,fg:"#cf8a44",fs:8.5,jc:"flex-start",lab:"块内25·对外20"})); }
+    else if(it.fig==="hot"){ h=44;
+      const m=[["早晚","#2c8a5b","#9fd3b4"],["喷雾","#2f6db0","#9fc7e0"],["连续","#cf8a44","#e6b483"]];
+      m.forEach((p,i)=>els.push(D({x:i*56,top:2,w:52,h:18,bd:"1.5px solid "+p[1],r:6,fg:p[2],fs:9.5,lab:p[0]})));
+      els.push(D({x:0,top:26,w:220,h:14,fg:"#e0a89f",fs:9,jc:"flex-start",lab:"吹风 ✕ 加速失水更裂"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      b0_bk:0,b0_by:34,b0_ck:0,b0_ev:0,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,
+      b1_title:"让强度增长，跑赢收缩+温度拉应力", b1_dw:0,b1_rd:1,b1_gd:1,b1_cross:0,b1_kn:0,b1_r0:-120,b1_r1:-120,b1_r2:-120,b1_dwl:0,
+      b2_title:"时间旋钮 · 养护时长按类别", b2_axisO:0,b2_r0:0,b2_r1:0,b2_r2:0,b2_r3:0,b2_hi:0,
+      b3_title:"温差旋钮 · 大体积里表温差", b3_blk:0,b3_core:0,b3_gap:0,b3_rate:0,b3_pour:0,
+      b4_title:"温差旋钮 · 冬期保温控温", b4_blk:0,b4_cov:0,b4_g1:0,b4_g2:0,b4_rate:0,
+      b5_title:"高温环境 · 早晚+喷雾，不吹风", b5_sun:0,b5_clock:0,b5_mist:0,b5_flow:0,b5_fan:0,
+      b6_title:"三旋钮回扣 · 数值别串门", c0:0,c1:0,c2:0,c3:0 };
+
+    if(A(0)){ const bk=W(0,.22),bb=W(.28,.5),ck=W(.5,.7),st=W(.66,.86);
+      v.b0_bk=bk; v.b0_by=this.lp(34,0,bk); v.b0_ev=W(.4,.6); v.b0_ck=ck;
+      v.b0_bs=this.lp(.6,1,bb); v.b0_bo=bb; v.b0_so=st*.95; v.b0_ss=this.lp(1.7,1,st); }
+    if(A(1)){ v.b1_dw=this.lp(0,86,W(0,.2)); v.b1_dwl=W(.14,.3);
+      v.b1_rd=1-W(.12,.4); v.b1_gd=1-W(.36,.72); v.b1_cross=W(.66,.86);
+      const kp=W(.72,1); v.b1_kn=W(.7,.94); v.b1_r0=this.lp(-120,120,kp); v.b1_r1=this.lp(-120,90,kp); v.b1_r2=this.lp(-120,140,kp); }
+    if(A(2)){ v.b2_axisO=W(0,.16); v.b2_r0=W(.2,.4); v.b2_r1=W(.38,.56); v.b2_r2=W(.52,.7); v.b2_r3=W(.66,.84); v.b2_hi=W(.82,1); }
+    if(A(3)){ v.b3_blk=W(0,.2); v.b3_core=W(.2,.4); v.b3_gap=W(.42,.62); v.b3_rate=W(.6,.8); v.b3_pour=W(.78,.96); }
+    if(A(4)){ v.b4_blk=W(0,.18); v.b4_cov=W(.18,.4); v.b4_g2=W(.4,.58); v.b4_g1=W(.56,.74); v.b4_rate=W(.74,.94); }
+    if(A(5)){ v.b5_sun=W(0,.2); v.b5_clock=W(.2,.42); v.b5_mist=W(.42,.62); v.b5_flow=W(.6,.78); v.b5_fan=W(.78,.96); }
+    if(A(6)){ v.c0=W(.08,.3); v.c1=W(.26,.48); v.c2=W(.44,.66); v.c3=W(.62,.86); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaPageInfo="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaPageInfo=""; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaPageInfo,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:(e)=>{if(e&&e.stopPropagation)e.stopPropagation();this.fullscreen();},phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",fs:this.state.fs,capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,tapToggle:()=>this.tapToggle(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

@@ -46,7 +46,6 @@
         "pages/luban/errorbank/errorbank",
         "pages/luban/gauntlet/gauntlet",
         "pages/luban/seethrough/seethrough",
-        "pages/internal/diagramWebviewTest/diagramWebviewTest",
         "pages/first-run/first-run"
       ]
     },

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11.5px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲（上集选用 · 下集位置代换验收）</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 鲁班智考 · 随堂练（钢筋连接选用 · 合并练习，覆盖上下两集）░░░
+   fork 自 templates/practice-quiz/PracticeQuiz.dc.html，只改 Q[]/KNOWLEDGE/codeMap/moreText/figFor，骨架不动。
+   Q[] 候选题库 16 道（≥15），SHOW_COUNT=5 每次随机抽 5；选项运行时独立洗牌，正确项不固定首位、长度相当。 */
+class Component extends DCLogic {
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="钢筋连接选用";
+  KNOWLEDGE="钢筋连接选用。三种连接:焊接/机械连接/绑扎连接,机械连接以剥肋滚压直螺纹套筒最常用。选用=直径×受力×荷载×部位四输入匹配三方式:越大直径·受拉·动力·抗震关键越往机械连接端,越小直径·受压·静载·非关键才退绑扎搭接。端点:受拉Φ28/桁架拉杆/行车梁受力筋不宜绑扎、受压Φ25可绑扎。动力荷载:优先机械连接、焊接不宜;机械连接接头面积百分率不应超过50%(关键词'不应')。装配式剪力墙竖向:边缘构件逐根连接、非边缘间距不应大于600mm、一二级抗震底部加强区宜套筒灌浆。梁接头:上部宜跨中1/3、下部宜梁端1/3;柱接头:距楼面≥500mm、≥H/6、≥b取最大,八字形。代换基本要求:等强度+等面积+满足构造+设计单位同意(等刚度为干扰);构造要求=钢筋间距/保护层/锚固长度,裂缝宽度验算/配筋率属设计要求。冷拉率:HPB300≤4%、HRB400/HRB500≤1%,不得反复弯折。对象错位:钢结构连接(高强螺栓/熔透焊缝)≠钢筋连接。下游验收:直螺纹检具通/止/量规(直尺不行);套筒灌浆料试件40×40×160长方体、每工作班1组、每层≥3组、标养28d(70.7立方体是水泥胶砂陷阱)。";
+  moreText="再往深里练两组：① 装配式剪力墙竖向连接（边缘构件逐根、非边缘≤600、一二级底部加强区套筒灌浆），练题干条件提取；② 案例改错——把不宜/不应 50%、梁柱接头位置、直尺当检具混进一段背景里找不妥并改正，练三段式判断纠错，把采分句连关键词写全。";
+  Q=[
+    { tag:"选用总纲·条件维", typeHint:"单选 · 选出最完整、能得分的作答", fig:"conn3", figLabel:"钢筋连接的三种方法", figCaption:"焊接 · 机械连接 · 绑扎连接",
+      stem:"钢筋连接的方法有哪几种？其中机械连接最常用的形式是什么？选出最完整、能得分的作答。",
+      model:"钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以剥肋滚压直螺纹套筒连接最为常用。",
+      opts:[
+        { t:"钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以剥肋滚压直螺纹套筒连接最为常用。", ok:true, fix:"三类连接写全，再点出机械连接最常用形式是剥肋滚压直螺纹套筒，缺一都丢采分句。", code:"" },
+        { t:"钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以电渣压力焊连接最为常用。", ok:false, code:"E07", tempt:"记得有电渣压力焊这个名词，顺手就填上。", lose:"电渣压力焊属焊接类，不是机械连接；机械连接最常用是剥肋滚压直螺纹套筒。", fix:"机械连接最常用是剥肋滚压直螺纹套筒连接。" },
+        { t:"钢筋连接主要就是焊接和绑扎两种，机械连接用得少可以不单列，按现场习惯选即可。", ok:false, code:"E02", tempt:"平时现场焊接、绑扎见得多，机械连接反倒少见。", lose:"漏了机械连接这一大类，采分点直接遗漏；机械连接恰恰是大直径/动力荷载首选。", fix:"三类都要列：焊接、机械连接、绑扎连接。" },
+        { t:"连接方法就看哪种最牢，直接选焊接把钢筋熔成一体，其余两种都不如焊接可靠。", ok:false, code:"E05", tempt:"觉得熔成一体最结实，凭经验选最牢的。", lose:"题问方法种类不是问哪种最牢；且焊接有热影响区、动力荷载还不宜。", fix:"先列三类方法，机械连接以剥肋滚压直螺纹套筒最常用。" }
+      ] },
+    { tag:"端点·条件维", typeHint:"单选 · 依据真题口径判端点", fig:"endpoints", figLabel:"两根受力筋，能否绑扎搭接？", figCaption:"受拉 Φ28 大直径　/　受压 Φ25",
+      stem:"下列纵向受力钢筋中，宜采用绑扎搭接接头的是哪一种？选出正确且能说明理由的作答。",
+      model:"受压 Φ25 钢筋宜采用绑扎搭接；受拉大直径（Φ28）、桁架拉杆、行车梁受力筋不宜绑扎，应机械连接。",
+      opts:[
+        { t:"受压 Φ25 钢筋宜采用绑扎搭接；受拉 Φ28、桁架拉杆、行车梁受力筋不宜绑扎、应机械连接。", ok:true, fix:"受压中等直径可绑扎，受拉大直径/桁架/行车梁不宜绑扎，口诀拉25压28。", code:"" },
+        { t:"受拉 Φ28 钢筋宜采用绑扎搭接，直径大搭接面积也大、握裹更牢，反而比受压更适合绑扎。", ok:false, code:"M03", tempt:"想当然以为直径大搭接面积大就更牢。", lose:"端点搞反：受拉大直径搭接区应力集中、握裹不住，不宜绑扎。", fix:"受拉 Φ28 不宜绑扎，应机械连接；受压 Φ25 才可绑扎。" },
+        { t:"行车梁受力钢筋宜采用绑扎搭接，行车梁是静载构件，绑扎省工又能满足受力要求。", ok:false, code:"M09", tempt:"没提取到行车梁是动力/重要受力筋这个条件。", lose:"行车梁受力筋属不宜绑扎之列，条件提取不全导致误判。", fix:"行车梁受力筋不宜绑扎；宜绑扎的是受压 Φ25。" },
+        { t:"桁架拉杆宜采用绑扎搭接，拉杆细长、绑扎方便，只要多绑几道丝扣就能保证连接强度。", ok:false, code:"E07", tempt:"觉得拉杆细、绑扎方便，多绑几道就行。", lose:"桁架拉杆是受拉关键杆件，不宜绑扎；绑扎强度靠握裹不靠丝扣道数。", fix:"桁架拉杆不宜绑扎；宜绑扎的是受压 Φ25。" }
+      ] },
+    { tag:"动力荷载·条件维", typeHint:"单选 · 依据真题口径选连接方式", fig:"ruler", figLabel:"直接承受动力荷载的受力筋", figCaption:"四输入 → 该往哪种连接走？",
+      stem:"某吊车梁直接承受动力荷载，其 Φ20 纵向受力钢筋宜优先采用哪种连接方式？选出正确且说明理由的作答。",
+      model:"宜优先采用机械连接（剥肋滚压直螺纹套筒）；直接承受动力荷载的构件纵向钢筋不宜焊接。",
+      opts:[
+        { t:"宜优先采用机械连接（剥肋滚压直螺纹套筒）；直接承受动力荷载的构件纵向钢筋不宜焊接。", ok:true, fix:"动力荷载往机械连接端走，并点出焊接不宜，理由与结论都到位。", code:"" },
+        { t:"宜优先采用焊接连接，焊接把钢筋熔为一体、传力最直接，最能承受吊车梁的动力荷载。", ok:false, code:"E07", tempt:"觉得熔为一体最结实、最抗动力。", lose:"焊接有热影响区，直接承受动力荷载的构件纵向钢筋不宜焊接。", fix:"动力荷载优先机械连接（直螺纹套筒），焊接不宜。" },
+        { t:"宜优先采用绑扎搭接，Φ20 直径不大、绑扎方便，动力荷载靠混凝土握裹也能传递。", ok:false, code:"M03", tempt:"看直径 Φ20 不算大就想退到绑扎。", lose:"动力荷载不是绑扎的地界；绑扎握裹扛不住反复动力，应机械连接。", fix:"动力荷载优先机械连接（直螺纹套筒），不退绑扎。" },
+        { t:"三种连接都行，按现场哪种方便就用哪种，动力荷载对连接方式没有特别的选用要求。", ok:false, code:"M10", tempt:"图省事，以为动力荷载没啥特别讲究。", lose:"以常识替代规范：动力荷载明确导向机械连接、焊接不宜。", fix:"动力荷载优先机械连接（直螺纹套筒），焊接不宜。" }
+      ] },
+    { tag:"接头百分率·计算表达维", typeHint:"单选 · 关键词与数值都要对", fig:"dyn50", figLabel:"动力荷载 · 同一连接区段接头面积百分率", figCaption:"机械连接时，接头面积百分率上限？",
+      stem:"直接承受动力荷载的构件采用机械连接时，同一连接区段的纵向受力钢筋接头面积百分率应如何控制？选出关键词与数值都能得分的作答。",
+      model:"直接承受动力荷载、采用机械连接时，接头面积百分率不应超过50%。",
+      opts:[
+        { t:"直接承受动力荷载、采用机械连接时，接头面积百分率不应超过50%。", ok:true, fix:"三要素齐：直接承受动力荷载 + 机械连接 + 不应超过50%，关键词是不应。", code:"" },
+        { t:"直接承受动力荷载、采用机械连接时，接头面积百分率不宜超过50%，尽量控制在半数以内。", ok:false, code:"M08", tempt:"数值 50% 记对了，不宜/不应没在意。", lose:"把强制性的不应弱化成建议性的不宜，关键词分被扣。", fix:"应写不应超过50%（强制），不是不宜。" },
+        { t:"直接承受动力荷载、采用机械连接时，接头面积百分率不应超过25%，动力荷载要更严。", ok:false, code:"M08", tempt:"觉得动力荷载更危险，数值想当然压到更低。", lose:"数值记错：规范是不应超过50%，不是25%。", fix:"接头面积百分率不应超过50%。" },
+        { t:"接头面积百分率不应超过50%，受拉受压、静载动力都一样，按这一个数控制即可。", ok:false, code:"M09", tempt:"记住了 50% 就一刀切套到所有情况。", lose:"漏了前提条件：受拉接头不宜>50%、受压可不受限，动力荷载机械连接才是不应超50%。", fix:"限定前提：直接承受动力荷载、机械连接，接头不应超过50%。" }
+      ] },
+    { tag:"装配式·条件维", typeHint:"单选 · 抓全题干条件", fig:"wall", figLabel:"预制剪力墙竖向钢筋连接", figCaption:"边缘构件 / 非边缘区 / 抗震部位",
+      stem:"预制剪力墙竖向分布钢筋的连接，下列做法正确、能得分的是？",
+      model:"边缘构件竖向钢筋应逐根连接；非边缘区被连接的同侧钢筋间距不应大于600mm；一二级抗震底部加强区宜采用套筒灌浆连接。",
+      opts:[
+        { t:"边缘构件竖向钢筋应逐根连接；非边缘区被连接的同侧钢筋间距不应大于600mm；一二级抗震底部加强区宜套筒灌浆。", ok:true, fix:"边缘逐根、非边缘≤600、抗震底部加强区套筒灌浆，三条件全抓到。", code:"" },
+        { t:"竖向钢筋按现场方便隔根连接即可，边缘构件和非边缘区做法一致，间距不用特别控制。", ok:false, code:"M09", tempt:"图省事，觉得边缘和非边缘一个样。", lose:"漏了边缘构件逐根连接、非边缘≤600两个条件，题干条件提取不全。", fix:"边缘逐根连接、非边缘间距不应大于600mm。" },
+        { t:"边缘构件竖向钢筋间距不应大于600mm即可，不必逐根连接，抗震部位也无需套筒灌浆。", ok:false, code:"E07", tempt:"把非边缘的≤600误套到边缘构件上。", lose:"概念混淆：逐根连接是边缘构件的要求，≤600是非边缘区的要求，且抗震底部加强区宜套筒灌浆。", fix:"边缘逐根连接；非边缘≤600；抗震底部加强区套筒灌浆。" },
+        { t:"所有竖向钢筋一律采用套筒灌浆逐根连接，不分边缘非边缘、不分抗震等级，最保险。", ok:false, code:"M03", tempt:"觉得全逐根套筒灌浆最保险最省心。", lose:"非边缘区允许部分连接（间距≤600），一律逐根既不经济也偏离规范分档。", fix:"分区分档：边缘逐根、非边缘≤600、一二级底部加强区套筒灌浆。" }
+      ] },
+    { tag:"梁接头位置·程序维", typeHint:"单选 · 上下位置别写反", fig:"beamjoint", figLabel:"框架梁纵向钢筋接头位置", figCaption:"上部钢筋 / 下部钢筋 各设在哪？",
+      stem:"框架梁纵向受力钢筋的接头位置应如何设置？选出上下位置正确、能得分的作答。",
+      model:"上部钢筋接头宜设在跨中1/3范围内，下部钢筋接头宜设在梁端1/3范围内，避开最大拉应力区。",
+      opts:[
+        { t:"上部钢筋接头宜设在跨中1/3范围，下部钢筋接头宜设在梁端1/3范围，都避开最大拉应力区。", ok:true, fix:"上跨中1/3、下梁端1/3，并点出避开最大拉应力区的道理。", code:"" },
+        { t:"上部钢筋接头宜设在梁端1/3范围，下部钢筋接头宜设在跨中1/3范围，这样接头更分散。", ok:false, code:"M08", tempt:"觉得错开分散更好，把上下位置对调。", lose:"位置写反：上部接头搁到梁端正撞负弯矩最大处，下部搁跨中撞正弯矩最大处。", fix:"上部→跨中1/3，下部→梁端1/3。" },
+        { t:"上下钢筋接头都设在跨中1/3范围内，集中在跨中便于施工，也方便质量检查。", ok:false, code:"E10", tempt:"图施工方便，把接头都集中到跨中。", lose:"下部钢筋跨中正弯矩最大，接头搁这儿正踩最大拉应力，规范适用错误。", fix:"上部→跨中1/3，下部→梁端1/3，各自避开最大拉应力区。" },
+        { t:"接头位置按现场下料长度定，钢筋接到哪算哪，只要接头错开搭接长度就行。", ok:false, code:"M10", tempt:"以下料方便为准，用常识替代规范。", lose:"忽略了梁上部/下部接头的规定位置，接头位置采分点丢失。", fix:"上部→跨中1/3、下部→梁端1/3是硬规定，不能只看下料。" }
+      ] },
+    { tag:"柱接头位置·程序维", typeHint:"单选 · 三个下限别漏取最大", fig:"coljoint", figLabel:"柱第一个接头距楼面的下限", figCaption:"≥500mm / ≥H/6 / ≥b，怎么取？",
+      stem:"框架柱第一个钢筋接头距楼面的位置应如何确定？选出下限完整、能得分的作答。",
+      model:"柱第一个接头距楼面应≥500mm、≥H/6（柱净高六分之一）、≥b（柱截面长边），三者取最大值；箍筋绑扎丝扣呈八字形。",
+      opts:[
+        { t:"距楼面应≥500mm、≥H/6、≥b（柱截面长边），三者取最大值；箍筋绑扎丝扣呈八字形。", ok:true, fix:"三个下限齐全，并强调取最大值、八字形丝扣，位置采分不漏。", code:"" },
+        { t:"距楼面应≥500mm、≥H/6、≥b，三者满足其一即可，取其中较方便的一个作为接头位置。", ok:false, code:"M08", tempt:"看到三个数就想挑最省事的一个。", lose:"漏了取最大值：三条下限须同时满足，取三者中的最大，不能满足其一。", fix:"三者取最大值，同时满足。" },
+        { t:"距楼面不小于500mm即可，H/6 和 b 是构造参考、可不作硬性要求，主要控制500这一个数。", ok:false, code:"E02", tempt:"只记住了 500 这个整数。", lose:"漏了≥H/6、≥b 两个下限，接头位置采分点遗漏。", fix:"三个下限 500/ H6/ b 都要，取最大值。" },
+        { t:"距楼面越高越安全，接头直接设在柱中部，只要不在柱根就行，具体数值不必记。", ok:false, code:"M10", tempt:"凭越高越安全的直觉定位置。", lose:"用常识替代规范：接头位置有明确下限，不是越高越好，需 500/H6/b 取最大。", fix:"按≥500、≥H/6、≥b 取最大值确定第一接头位置。" }
+      ] },
+    { tag:"代换守恒·后果维", typeHint:"单选 · 认清基本要求与干扰项", fig:"balance", figLabel:"受力钢筋代换的基本要求", figCaption:"哪几条是基本要求？哪条是干扰？",
+      stem:"受力钢筋代换的基本要求有哪些？选出完整且能得分、并排除干扰项的作答。",
+      model:"基本要求为等强度代换、等面积代换、满足构造要求，且须经设计单位同意；等刚度不是基本要求。",
+      opts:[
+        { t:"基本要求为等强度代换、等面积代换、满足构造要求，且须经设计单位同意；等刚度不是基本要求。", ok:true, fix:"等强度+等面积+满足构造+设计单位同意，并点明等刚度是干扰。", code:"" },
+        { t:"基本要求为等强度代换、等面积代换、等刚度代换三条，刚度相等才能保证变形一致最稳妥。", ok:false, code:"M03", tempt:"觉得刚度相等变形一致，听着很合理。", lose:"等刚度是经典干扰项，不属基本要求；还漏了满足构造与设计单位同意。", fix:"基本要求=等强度+等面积+满足构造+设计单位同意，等刚度不算。" },
+        { t:"只要代换后钢筋总面积相等就行，等面积一条即可，强度和构造会自动跟着满足。", ok:false, code:"E02", tempt:"以为面积够了强度自然够。", lose:"漏了等强度、满足构造、设计单位同意，采分点大面积遗漏。", fix:"面积只是一条，还要等强度、满足构造、设计单位同意。" },
+        { t:"钢筋代换由施工方按库存自行决定，等强度换算清楚即可，不需要经过设计单位同意。", ok:false, code:"E07", tempt:"觉得施工方懂换算就能自己换。", lose:"漏了须经设计单位同意这一主体要求，代换不能施工方自定。", fix:"代换必须经设计单位同意，且等强度+等面积+满足构造。" }
+      ] },
+    { tag:"代换构造·后果维", typeHint:"单选 · 分清构造要求与设计要求", fig:"sort", figLabel:"代换后要复核的构造要求", figCaption:"哪些属构造要求？哪些是设计要求？",
+      stem:"钢筋代换后应复核的构造要求包括下列哪些？选出归类正确、能得分的作答。",
+      model:"构造要求包括钢筋间距、保护层厚度、锚固（搭接）长度；裂缝宽度验算、配筋率属设计要求，不归构造。",
+      opts:[
+        { t:"构造要求包括钢筋间距、保护层厚度、锚固（搭接）长度；裂缝宽度验算、配筋率属设计要求。", ok:true, fix:"间距/保护层/锚固归构造，裂缝验算/配筋率归设计，两类不混。", code:"" },
+        { t:"构造要求包括钢筋间距、保护层厚度、裂缝宽度验算，代换后把这几项复核到位即可。", ok:false, code:"M09", tempt:"裂缝宽度听着也像构造上的事，顺手归进构造。", lose:"裂缝宽度验算属设计要求不是构造要求，类别错配。", fix:"构造要求=间距/保护层/锚固长度；裂缝验算属设计要求。" },
+        { t:"构造要求包括保护层厚度、锚固长度、配筋率，配筋率是构造里最要紧的一项。", ok:false, code:"M03", tempt:"觉得配筋率跟钢筋构造关系最紧。", lose:"配筋率（承载力）属设计要求，不归构造要求。", fix:"构造要求=间距/保护层/锚固长度；配筋率属设计要求。" },
+        { t:"代换只要面积相等，构造要求自动满足，不必再单独复核间距、保护层、锚固长度。", ok:false, code:"E02", tempt:"以为等面积就万事大吉。", lose:"漏答构造要求复核内容，采分点遗漏；等面积不代表构造自动满足。", fix:"仍须复核间距、保护层厚度、锚固（搭接）长度等构造要求。" }
+      ] },
+    { tag:"检具·计算表达维", typeHint:"单选 · 依据真题口径识别检具", fig:"gauge", figLabel:"直螺纹接头加工精度检测", figCaption:"用哪些量具？哪个不行？",
+      stem:"检测直螺纹接头加工精度应采用下列哪些量具？选出正确、能得分的作答。",
+      model:"应采用通规、止规、量规检测；直尺不属直螺纹接头加工精度检具。",
+      opts:[
+        { t:"应采用通规、止规、量规检测直螺纹接头加工精度；直尺不属精度检具。", ok:true, fix:"通/止/量规三件齐，并点明直尺不属精度检具。", code:"" },
+        { t:"用直尺量出螺纹长度和外径即可，直尺读数直观，能满足加工精度的检测要求。", ok:false, code:"M10", tempt:"直尺常见、读数直观，凭常识以为能量。", lose:"直尺量不了螺纹配合精度，不属直螺纹接头加工精度检具。", fix:"应用通规、止规、量规，直尺不行。" },
+        { t:"用游标卡尺量外径就够了，直螺纹接头主要看外径尺寸，卡尺精度高于专用规。", ok:false, code:"E07", tempt:"觉得卡尺精度高，量外径就代表合格。", lose:"精度靠螺纹配合的通/止/量规判定，不是量外径；概念混淆。", fix:"应采用通规、止规、量规检测。" },
+        { t:"接头拧紧看着到位就算合格，凭经验手感判断即可，不必用专门的量规检测。", ok:false, code:"M10", tempt:"凭手感、看着到位就放行。", lose:"以常识替代规范：加工精度须用通/止/量规检测，不能凭手感。", fix:"用通规、止规、量规检测精度。" }
+      ] },
+    { tag:"灌浆料试件·计算表达维", typeHint:"单选 · 依据真题口径答形状与养护", fig:"specimen", figLabel:"套筒灌浆料强度试件", figCaption:"留什么形状？怎么留、怎么养护？",
+      stem:"套筒灌浆连接用灌浆料的强度试件应如何留置与养护？选出形状、组数、养护都能得分的作答。",
+      model:"试件为40mm×40mm×160mm长方体，每工作班留1组、每层不少于3组，标准养护28天。",
+      opts:[
+        { t:"试件为40mm×40mm×160mm长方体，每工作班留1组、每层不少于3组，标准养护28天。", ok:true, fix:"长方体尺寸 + 每班1组/每层≥3组 + 标养28d，形状组数养护齐。", code:"" },
+        { t:"试件为边长70.7mm的立方体，每工作班留1组，标准养护28天后测强度即可。", ok:false, code:"M03", tempt:"70.7 立方体眼熟，跟别的胶砂试件混了。", lose:"70.7mm立方体是水泥胶砂试件，灌浆料应是40×40×160长方体；还漏每层≥3组。", fix:"灌浆料试件是40×40×160长方体，每层≥3组、标养28d。" },
+        { t:"试件为边长150mm的混凝土标准立方体，同条件养护28天，与混凝土试块一并留置。", ok:false, code:"M03", tempt:"顺手套用混凝土 150 立方体那一套。", lose:"灌浆料不是混凝土立方体，是40×40×160长方体、标准养护，不是同条件。", fix:"灌浆料试件40×40×160长方体、标准养护28d。" },
+        { t:"试件为40×40×160长方体即可，留几组、怎么养护现场按经验掌握，不必卡每层3组。", ok:false, code:"E02", tempt:"形状记对了就松了组数和养护。", lose:"漏了每工作班1组/每层≥3组/标准养护28天，采分点遗漏。", fix:"补齐每工作班1组、每层≥3组、标准养护28d。" }
+      ] },
+    { tag:"冷拉率·条件维", typeHint:"单选 · 数值别张冠李戴", fig:"coldpull", figLabel:"连接前钢筋冷拉调直的限值", figCaption:"HPB300 / HRB400·HRB500 冷拉率上限？",
+      stem:"钢筋连接前采用冷拉方法调直时，冷拉率应如何控制？选出数值正确、能得分的作答。",
+      model:"HPB300冷拉率不宜大于4%，HRB400、HRB500不宜大于1%，且钢筋不得反复弯折。",
+      opts:[
+        { t:"HPB300冷拉率不宜大于4%，HRB400、HRB500不宜大于1%，且不得反复弯折。", ok:true, fix:"两档数值对号入座，并点明不得反复弯折，塑性是抗震保险丝。", code:"" },
+        { t:"HPB300冷拉率不宜大于1%，HRB400、HRB500不宜大于4%，光圆钢筋要求更严。", ok:false, code:"M08", tempt:"觉得光圆钢弱应更严，把两档数值对调。", lose:"数值张冠李戴：HPB300是≤4%，HRB400/500才是≤1%。", fix:"HPB300≤4%，HRB400/HRB500≤1%。" },
+        { t:"各类钢筋冷拉率统一不宜大于4%，按一个数控制便于现场操作、也不影响使用。", ok:false, code:"M09", tempt:"图省事想用一个数一刀切。", lose:"两档要求不同，HRB400/500 只到1%，一刀切会超限。", fix:"分档：HPB300≤4%，HRB400/HRB500≤1%。" },
+        { t:"钢筋可反复弯折调直，多弯几次更平顺，冷拉率大点也没关系，能拉直就行。", ok:false, code:"E07", tempt:"以为多弯几下更直更好用。", lose:"反复弯折使钢筋变脆、降低塑性，抗震时先断；冷拉率也有上限。", fix:"不得反复弯折；HPB300≤4%、HRB400/500≤1%。" }
+      ] },
+    { tag:"对象错位·后果维", typeHint:"单选 · 别把钢结构那套套过来", fig:"wrongobj", figLabel:"钢筋连接 vs 钢结构连接", figCaption:"两类连接的方法能混用吗？",
+      stem:"某案例背景涉及钢筋混凝土构件的钢筋连接，下列关于连接方法的表述正确的是？",
+      model:"钢筋连接采用焊接、机械连接、绑扎连接；高强螺栓、熔透焊缝是钢结构连接方法，不能套用到钢筋连接。",
+      opts:[
+        { t:"钢筋连接采用焊接、机械连接、绑扎连接；高强螺栓、熔透焊缝属钢结构连接，不能套到钢筋连接。", ok:true, fix:"钢筋连接三类清楚，并划清与钢结构连接的对象边界。", code:"" },
+        { t:"钢筋连接可采用摩擦型高强螺栓连接，抗剪性能好，比绑扎和机械连接更可靠。", ok:false, code:"E07", tempt:"高强螺栓听着高级、抗剪好就想用上。", lose:"高强螺栓是钢结构连接，对象错位，钢筋连接里没有这种做法。", fix:"钢筋连接只有焊接/机械连接/绑扎，高强螺栓属钢结构。" },
+        { t:"钢筋重要接头应采用熔透焊缝连接，等强对接、传力最可靠，参照钢结构焊缝执行。", ok:false, code:"M03", tempt:"把钢结构熔透焊缝那套照搬过来。", lose:"熔透焊缝是钢结构焊缝形式，钢筋连接不这么分，对象混淆。", fix:"钢筋焊接不用熔透焊缝口径；连接方法是焊接/机械/绑扎。" },
+        { t:"钢筋连接和钢结构连接原理一样，方法可以互相通用，按哪种方便就用哪种。", ok:false, code:"E07", tempt:"觉得都是连接、原理差不多能通用。", lose:"两类构件连接对象不同、方法不通用，混用导致答案全错。", fix:"钢筋连接=焊接/机械/绑扎；钢结构连接另成体系，不通用。" }
+      ] },
+    { tag:"选用主线·条件维", typeHint:"单选 · 选用的正确思路", fig:"ruler", figLabel:"连接选用的判断思路", figCaption:"该按什么来选连接方式？",
+      stem:"关于钢筋连接方式的选用思路，下列表述正确、能得分的是？",
+      model:"应按直径、受力性质、荷载性质、部位/抗震四个条件匹配连接方式：越大直径、受拉、动力、抗震关键越往机械连接端，越小直径、受压、静载、非关键才退绑扎。",
+      opts:[
+        { t:"按直径、受力、荷载、部位四个条件匹配：越大直径/受拉/动力/抗震关键越往机械连接端，越小直径/受压/静载才退绑扎。", ok:true, fix:"点出四输入匹配与两端走向，这是选用主线的采分表述。", code:"" },
+        { t:"哪种连接最牢就选哪种，一律优先焊接，其次机械连接，绑扎只在实在没条件时才用。", ok:false, code:"E05", tempt:"把选用简化成比谁最牢。", lose:"选用是四输入匹配不是比最牢；焊接在动力荷载下还不宜。", fix:"按直径/受力/荷载/部位匹配，不是选最牢。" },
+        { t:"只看直径一个条件，直径大用机械连接、直径小用绑扎，受力和荷载可以不用管。", ok:false, code:"M09", tempt:"只抓直径一个变量，简单好记。", lose:"漏了受力、荷载、部位三个条件，条件提取不全会误判端点。", fix:"四个条件都要看：直径×受力×荷载×部位。" },
+        { t:"连接方式由施工单位按机械设备情况自定，规范对怎么选没有硬性的匹配要求。", ok:false, code:"M10", tempt:"以设备方便为准，用常识替代规范。", lose:"选用有明确的四输入匹配规则，不是施工单位随意定。", fix:"按直径/受力/荷载/部位四条件匹配连接方式。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 找准失分点并把采分句补全", fig:"sheet", figLabel:"模拟学生作答（待诊断）", figCaption:"看着答对了，采分句却没写全",
+      stem:"某学生对一道动力荷载吊车梁配筋题作答：①Φ28受拉钢筋用绑扎搭接；②接头面积百分率不宜超过50%；③直尺检测直螺纹接头精度。选出最准确的诊断与补写。",
+      model:"三处都失分：①受拉Φ28不宜绑扎应机械连接；②不宜应改不应超过50%；③直尺不属检具应用通/止/量规。",
+      opts:[
+        { t:"三处都失分：①受拉Φ28不宜绑扎、应机械连接；②不宜应改为不应超过50%；③直尺不属检具、应用通止量规。", ok:true, fix:"逐处揪出并给出正确采分句——端点、关键词、检具三处都补齐，这就是会写答案。", code:"" },
+        { t:"作答基本正确，只是③直尺换成卷尺更准，①②的绑扎和不宜超过50%都没有问题。", ok:false, code:"E05", tempt:"只盯着量具这一处小毛病，放过了大错。", lose:"漏诊①受拉Φ28绑扎（端点搞反）和②不宜应为不应两处，且卷尺同样不行。", fix:"①改机械连接、②改不应超过50%、③用通止量规，三处都要补。" },
+        { t:"只有②的数值要改，把50%改成25%就全对了，①绑扎和③直尺检测都可以保留。", ok:false, code:"M08", tempt:"以为问题只在一个数值上。", lose:"50%数值本就是对的（错在不宜/不应），且①③都是错的，漏诊两处。", fix:"②改不应超过50%（数值不动），①改机械连接、③用通止量规。" },
+        { t:"③改成通止量规就行，①受拉Φ28绑扎、②不宜超过50%都符合规范，无需改动。", ok:false, code:"M03", tempt:"抓对检具一处，就以为其余都对。", lose:"漏诊①端点搞反（受拉大直径不宜绑扎）与②不宜应为不应两处失分。", fix:"三处齐补：①机械连接、②不应超过50%、③通止量规。" }
+      ] }
+  ];
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"三类连接、接头位置、代换要求、检具灌浆料，逐项写全，缺一扣一。"},
+    E05:{label:"审题错误",advice:"别把选用简化成比谁最牢；先抓直径/受力/荷载/部位四个条件。"},
+    E07:{label:"概念混淆",advice:"端点别搞反、钢结构≠钢筋、等刚度不是基本要求、边缘与非边缘规则别互套。"},
+    E10:{label:"规范适用错误",advice:"接头位置、构造要求按规范落地，别以施工方便替代规范。"},
+    M03:{label:"概念混淆（客观）",advice:"受拉受压端点、构造与设计要求、长方体与立方体试件，逐一对号。"},
+    M08:{label:"规范数字/位置混淆",advice:"50%、冷拉率4%/1%、梁上下接头位置、柱三下限，数值和位置记准。"},
+    M09:{label:"题干条件提取不完整",advice:"动力荷载/受力/部位/边缘等前提条件抓全，别漏维。"},
+    M10:{label:"用常识替代规范",advice:"直尺、手感、越高越安全都不算数，按规范条文答。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+  }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    const RB="repeating-linear-gradient(115deg,#7c8288 0 4px,#5f656a 4px 8px)";
+    if(type==="conn3"){ figH=110;
+      els.push(D({x:4,top:4,w:56,h:16,fg:"#cf8a44",fs:10,ta:"left",jc:"flex-start",lab:"焊接"}));
+      els.push(D({x:66,top:6,w:44,h:11,bg:RB,r:2})); els.push(D({x:110,top:2,w:14,h:19,bg:"#cf8a44",r:3})); els.push(D({x:124,top:6,w:44,h:11,bg:RB,r:2}));
+      els.push(D({x:176,top:6,w:120,h:12,fg:"#8b7b5a",fs:9,ta:"left",jc:"flex-start",lab:"熔为一体·有热影响区"}));
+      els.push(D({x:4,top:44,w:56,h:16,fg:"#2f6db0",fs:10,ta:"left",jc:"flex-start",lab:"机械连接"}));
+      els.push(D({x:66,top:46,w:40,h:11,bg:RB,r:2})); els.push(D({x:104,top:41,w:40,h:21,bg:"repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 1.5px,transparent 1.5px 4.5px),linear-gradient(#6a7176,#4b5157)",r:4})); els.push(D({x:142,top:46,w:40,h:11,bg:RB,r:2}));
+      els.push(D({x:190,top:40,w:104,h:22,bg:"#eef7f1",bd:"1px solid #2c8a5b",r:6,fg:"#2c8a5b",fs:9,lab:"直螺纹套筒·最常用"}));
+      els.push(D({x:4,top:84,w:56,h:16,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",lab:"绑扎搭接"}));
+      els.push(D({x:66,top:80,w:78,h:9,bg:RB,r:2})); els.push(D({x:96,top:92,w:78,h:9,bg:RB,r:2}));
+      els.push(D({x:184,top:84,w:120,h:12,fg:"#8b7b5a",fs:9,ta:"left",jc:"flex-start",lab:"搭接·靠混凝土握裹"})); }
+    else if(type==="ruler"){ figH=96;
+      const ins=[["直径","#2f6db0"],["受力","#cf8a44"],["荷载","#2c8a5b"],["部位","#d9a521"]];
+      ins.forEach((p,i)=>els.push(D({x:6+i*76,top:4,w:70,h:26,bg:"#f6f4ea",bd:"1.5px solid "+p[1],r:7,fg:p[1],fs:10,lab:p[0]})));
+      els.push(D({x:6,top:44,w:200,h:18,bg:"linear-gradient(90deg,#dff0e6,#eeece0,#dbe8f5)",r:6}));
+      els.push(D({x:6,top:66,w:96,h:12,fg:"#2c8a5b",fs:9,ta:"left",jc:"flex-start",lab:"绑扎端"}));
+      els.push(D({x:150,top:66,w:56,h:12,fg:"#2f6db0",fs:9,ta:"left",jc:"flex-start",lab:"机械端"}));
+      els.push(D({x:216,top:44,w:104,h:18,fg:"#cf4436",fs:10.5,ta:"left",jc:"flex-start",lab:"越硬→机械"})); }
+    else if(type==="endpoints"){ figH=104;
+      els.push(D({x:4,top:2,w:150,h:16,fg:"#cf4436",fs:10.5,lab:"受拉 Φ28 大直径"}));
+      els.push(D({x:24,top:26,w:110,h:14,bg:RB,r:3})); els.push(D({x:44,top:42,w:110,h:14,bg:RB,r:3}));
+      els.push(D({x:40,top:62,w:80,h:16,bg:"#fdf2f0",bd:"1px solid #cf4436",r:6,fg:"#cf4436",fs:10,lab:"不宜绑扎 ✕"}));
+      els.push(D({x:170,top:2,w:150,h:16,fg:"#2c8a5b",fs:10.5,lab:"受压 Φ25"}));
+      els.push(D({x:190,top:28,w:104,h:10,bg:RB,r:3})); els.push(D({x:206,top:42,w:104,h:10,bg:RB,r:3}));
+      els.push(D({x:206,top:62,w:80,h:16,bg:"#f0f8f3",bd:"1px solid #2c8a5b",r:6,fg:"#2c8a5b",fs:10,lab:"可绑扎 ✓"}));
+      els.push(D({x:0,top:86,w:320,h:14,fg:"#8b7b5a",fs:9,lab:"口诀：拉25 压28 不宜绑扎"})); }
+    else if(type==="dyn50"){ figH=100;
+      els.push(D({x:40,top:4,w:220,h:14,bg:"linear-gradient(#4b5157,#3a3f44)",r:3}));
+      els.push(D({x:132,top:-10,w:24,h:24,bg:"#cf8a44",r:12}));
+      els.push(D({x:20,top:22,w:260,h:12,fg:"#5c6469",fs:9,ta:"left",jc:"flex-start",lab:"直接承受动力荷载（吊车梁）"}));
+      els.push(D({x:20,top:44,w:280,h:22,bg:"#e8e5d8",r:6}));
+      els.push(D({x:20,top:44,w:140,h:22,bg:"#2c8a5b",r:6,fg:"#fff",fs:10,lab:"接头 ≤ 50%"}));
+      els.push(D({x:158,top:40,w:2,h:30,bg:"#cf4436"}));
+      els.push(D({x:20,top:72,w:300,h:14,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"机械连接：接头面积百分率不应超过50%"})); }
+    else if(type==="wall"){ figH=104;
+      els.push(D({x:20,top:4,w:290,h:92,bg:"#eceadf",bd:"1.5px solid #cbc6b3",r:5}));
+      els.push(D({x:30,top:12,w:5,h:70,bg:RB})); els.push(D({x:44,top:12,w:5,h:70,bg:RB})); els.push(D({x:58,top:12,w:5,h:70,bg:RB}));
+      els.push(D({x:26,top:86,w:60,h:12,fg:"#2f6db0",fs:8.5,lab:"边缘·逐根"}));
+      els.push(D({x:140,top:12,w:5,h:70,bg:"repeating-linear-gradient(0deg,#9aa0a3 0 4px,#7f868b 4px 8px)"})); els.push(D({x:210,top:12,w:5,h:70,bg:"repeating-linear-gradient(0deg,#9aa0a3 0 4px,#7f868b 4px 8px)"}));
+      els.push(D({x:140,top:40,w:75,h:0,bd:"1px solid #cf8a44"})); els.push(D({x:140,top:44,w:76,h:12,fg:"#cf8a44",fs:8.5,lab:"≤600"}));
+      els.push(D({x:270,top:12,w:5,h:70,bg:RB})); els.push(D({x:284,top:12,w:5,h:70,bg:RB})); els.push(D({x:298,top:12,w:5,h:70,bg:RB})); }
+    else if(type==="beamjoint"){ figH=100;
+      els.push(D({x:10,top:12,w:300,h:70,bg:"#eceadf",bd:"1.5px solid #cbc6b3",r:4}));
+      els.push(D({x:110,top:12,w:0,h:70,bd:"1px dashed #b9b3a1"})); els.push(D({x:210,top:12,w:0,h:70,bd:"1px dashed #b9b3a1"}));
+      els.push(D({x:20,top:24,w:280,h:5,bg:RB})); els.push(D({x:145,top:20,w:30,h:13,bg:"#2f6db0",r:3,fg:"#fff",fs:8,lab:"接头"}));
+      els.push(D({x:20,top:60,w:280,h:5,bg:RB})); els.push(D({x:30,top:56,w:30,h:13,bg:"#2c8a5b",r:3,fg:"#fff",fs:8,lab:"接头"})); els.push(D({x:262,top:56,w:30,h:13,bg:"#2c8a5b",r:3,fg:"#fff",fs:8,lab:"接头"}));
+      els.push(D({x:10,top:86,w:100,h:12,fg:"#8b7b5a",fs:8.5,lab:"梁端1/3"})); els.push(D({x:110,top:86,w:100,h:12,fg:"#2f6db0",fs:8.5,lab:"跨中1/3"})); els.push(D({x:210,top:86,w:100,h:12,fg:"#8b7b5a",fs:8.5,lab:"梁端1/3"})); }
+    else if(type==="coljoint"){ figH=104;
+      els.push(D({x:120,top:6,w:44,h:82,bg:"#e2ddcd",bd:"1.5px solid #c9c3b0",r:4}));
+      els.push(D({x:128,top:10,w:5,h:74,bg:RB})); els.push(D({x:151,top:10,w:5,h:74,bg:RB}));
+      els.push(D({x:120,top:44,w:44,h:10,bg:"#cf4436"}));
+      els.push(D({x:60,top:88,w:250,h:0,bd:"2px solid #8a8171"})); els.push(D({x:60,top:90,w:60,h:12,fg:"#8b7b5a",fs:8.5,ta:"left",jc:"flex-start",lab:"楼面"}));
+      els.push(D({x:180,top:16,w:110,h:14,fg:"#2f6db0",fs:11,ta:"left",jc:"flex-start",lab:"≥ 500mm"}));
+      els.push(D({x:180,top:36,w:110,h:14,fg:"#2f6db0",fs:11,ta:"left",jc:"flex-start",lab:"≥ H / 6"}));
+      els.push(D({x:180,top:56,w:110,h:14,fg:"#2f6db0",fs:11,ta:"left",jc:"flex-start",lab:"≥ b 长边"}));
+      els.push(D({x:180,top:74,w:130,h:14,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"三者取最大值"})); }
+    else if(type==="balance"){ figH=100;
+      els.push(D({x:4,top:4,w:96,h:22,bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",r:6,fg:"#2c8a5b",fs:10,lab:"等强度 ✓"}));
+      els.push(D({x:106,top:4,w:96,h:22,bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",r:6,fg:"#2c8a5b",fs:10,lab:"等面积 ✓"}));
+      els.push(D({x:208,top:4,w:108,h:22,bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",r:6,fg:"#2c8a5b",fs:10,lab:"满足构造 ✓"}));
+      els.push(D({x:4,top:34,w:150,h:22,bg:"#fdf2f0",bd:"1.5px solid #cf4436",r:6,fg:"#cf4436",fs:10,lab:"等刚度 ✕ 不是基本"}));
+      els.push(D({x:160,top:34,w:156,h:22,bg:"#eef3f7",bd:"1.5px solid #2f6db0",r:6,fg:"#2f6db0",fs:10,lab:"须设计单位同意"}));
+      els.push(D({x:0,top:66,w:320,h:14,fg:"#8b7b5a",fs:9,lab:"面积够只是一条，四件齐才配平"})); }
+    else if(type==="sort"){ figH=104;
+      els.push(D({x:4,top:4,w:150,h:96,bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",r:8}));
+      els.push(D({x:4,top:8,w:150,h:14,fg:"#2c8a5b",fs:9.5,lab:"构造要求 ✓"}));
+      els.push(D({x:16,top:26,w:126,h:18,bg:"#fff",bd:"1px solid #b7ddc7",r:5,fg:"#23282b",fs:10,lab:"钢筋间距"}));
+      els.push(D({x:16,top:48,w:126,h:18,bg:"#fff",bd:"1px solid #b7ddc7",r:5,fg:"#23282b",fs:10,lab:"保护层厚度"}));
+      els.push(D({x:16,top:70,w:126,h:18,bg:"#fff",bd:"1px solid #b7ddc7",r:5,fg:"#23282b",fs:10,lab:"锚固/搭接长度"}));
+      els.push(D({x:166,top:4,w:150,h:96,bg:"#f2f0e8",bd:"1.5px dashed #b9b3a1",r:8}));
+      els.push(D({x:166,top:8,w:150,h:14,fg:"#8b8571",fs:9.5,lab:"设计要求（干扰）"}));
+      els.push(D({x:178,top:30,w:126,h:18,bg:"#fbf9f2",bd:"1px solid #d8d2c0",r:5,fg:"#8b8571",fs:10,lab:"裂缝宽度验算"}));
+      els.push(D({x:178,top:54,w:126,h:18,bg:"#fbf9f2",bd:"1px solid #d8d2c0",r:5,fg:"#8b8571",fs:10,lab:"配筋率（承载力）"})); }
+    else if(type==="gauge"){ figH=96;
+      const g=[["通规",6],["止规",84],["量规",162]];
+      g.forEach(v=>{ els.push(D({x:v[1],top:6,w:70,h:44,bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",r:8})); els.push(D({x:v[1]+26,top:14,w:18,h:18,bg:"transparent",bd:"3px solid #2c8a5b",r:9})); els.push(D({x:v[1],top:33,w:70,h:12,fg:"#2c8a5b",fs:10,lab:v[0]})); });
+      els.push(D({x:240,top:6,w:76,h:44,bg:"#fdf2f0",bd:"1.5px solid #cf4436",r:8}));
+      els.push(D({x:248,top:20,w:60,h:8,bg:"repeating-linear-gradient(90deg,#cf4436 0 1.5px,transparent 1.5px 6px),#e9beb6",r:2}));
+      els.push(D({x:240,top:32,w:76,h:12,fg:"#cf4436",fs:10,lab:"直尺 ✕"}));
+      els.push(D({x:0,top:60,w:320,h:14,fg:"#8b7b5a",fs:9,lab:"通规/止规/量规量螺纹配合，直尺量不了"})); }
+    else if(type==="specimen"){ figH=96;
+      els.push(D({x:10,top:14,w:150,h:28,bg:"#cf8a44",r:4}));
+      els.push(D({x:10,top:46,w:150,h:14,fg:"#2c8a5b",fs:10,lab:"40×40×160 长方体 ✓"}));
+      els.push(D({x:210,top:8,w:34,h:34,bg:"#c9a9a2",r:4}));
+      els.push(D({x:190,top:46,w:80,h:14,fg:"#cf4436",fs:10,lab:"70.7 立方体 ✕"}));
+      els.push(D({x:0,top:70,w:320,h:14,fg:"#8b7b5a",fs:9,lab:"每工作班1组·每层≥3组·标养28d"})); }
+    else if(type==="coldpull"){ figH=92;
+      els.push(D({x:6,top:8,w:110,h:16,fg:"#2f6db0",fs:11,ta:"left",jc:"flex-start",lab:"HPB300"}));
+      els.push(D({x:120,top:6,w:70,h:22,bg:"#2f6db0",r:4,fg:"#fff",fs:12,lab:"≤ 4%"}));
+      els.push(D({x:6,top:38,w:110,h:16,fg:"#2c8a5b",fs:11,ta:"left",jc:"flex-start",lab:"HRB400 / 500"}));
+      els.push(D({x:120,top:36,w:70,h:22,bg:"#2c8a5b",r:4,fg:"#fff",fs:12,lab:"≤ 1%"}));
+      els.push(D({x:210,top:24,w:106,h:16,fg:"#cf4436",fs:10.5,ta:"left",jc:"flex-start",lab:"不得反复弯折"}));
+      els.push(D({x:6,top:68,w:310,h:14,fg:"#8b7b5a",fs:9,lab:"数值别对调：光圆4%、带肋1%"})); }
+    else if(type==="wrongobj"){ figH=96;
+      els.push(D({x:6,top:8,w:140,h:40,bg:"#eef1f3",bd:"1.5px solid #8b949c",r:8,fg:"#5c6469",fs:10,lab:"钢结构：高强螺栓 / 熔透焊缝"}));
+      els.push(D({x:150,top:14,w:24,h:28,fg:"#cf4436",fs:20,lab:"≠"}));
+      els.push(D({x:176,top:8,w:140,h:40,bg:"#eef3f7",bd:"1.5px solid #2f6db0",r:8,fg:"#2f6db0",fs:10,lab:"钢筋：焊接 / 机械 / 绑扎"}));
+      els.push(D({x:0,top:56,w:320,h:14,fg:"#8b7b5a",fs:9,lab:"对象一错位，答案跟着全错"})); }
+    else if(type==="sheet"){ figH=96;
+      const lines=["① Φ28 受拉钢筋用绑扎搭接","② 接头面积百分率不宜超过50%","③ 直尺检测直螺纹接头精度"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:4+i*28,w:312,h:22,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

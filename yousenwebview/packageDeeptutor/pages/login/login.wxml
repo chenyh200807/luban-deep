@@ -22,18 +22,9 @@
           </view>
 
           <view class="hero-copy">
-            <view class="hero-title-line">
-              <text class="hero-char" style="animation-delay: 340ms">懂</text>
-              <text class="hero-char" style="animation-delay: 395ms">你</text>
-              <text class="hero-char" style="animation-delay: 450ms">的</text>
-            </view>
-            <view class="hero-title-line">
-              <text class="hero-char hero-char-accent" style="animation-delay: 560ms">智</text>
-              <text class="hero-char hero-char-accent" style="animation-delay: 615ms">能</text>
-              <text class="hero-char hero-char-accent" style="animation-delay: 670ms">备</text>
-              <text class="hero-char hero-char-accent" style="animation-delay: 725ms">考</text>
-              <text class="hero-char hero-char-accent" style="animation-delay: 780ms">导</text>
-              <text class="hero-char hero-char-accent" style="animation-delay: 835ms">师</text>
+            <view class="hero-line-single">
+              <text class="hero-line hero-line-main-inline">懂你的</text>
+              <text class="hero-line hero-line-accent-inline">智能备考导师</text>
             </view>
             <text class="hero-desc">{{heroMessages[activeHeroIndex].line1}}</text>
             <text class="hero-desc hero-desc-sub">{{heroMessages[activeHeroIndex].line2}}</text>
@@ -55,29 +46,7 @@
         <text class="err-txt">{{errorMsg}}</text>
       </view>
 
-      <view wx:if="{{loginMode === 'bind_phone_only'}}" class="bind-phone-only-panel">
-        <text class="bind-phone-title">请先绑定手机号</text>
-        <text class="bind-phone-desc">绑定后才会进入会员系统和权益记录</text>
-        <button
-          wx:if="{{privacyChecked}}"
-          class="btn-wechat-primary {{wechatLoading?'off':''}}"
-          open-type="getPhoneNumber"
-          bindgetphonenumber="handleWechatPhoneNumber"
-          disabled="{{wechatLoading || loading}}"
-        >
-          <text class="btn-wechat-primary-txt">{{wechatLoading ? '绑定中...' : '绑定手机号'}}</text>
-        </button>
-        <button
-          wx:else
-          class="btn-wechat-primary"
-          bindtap="handlePrivacyRequiredTap"
-          disabled="{{wechatLoading || loading}}"
-        >
-          <text class="btn-wechat-primary-txt">快速登录</text>
-        </button>
-      </view>
-
-      <view wx:else>
+      <view>
         <view class="btn-wechat-stack">
           <button
             wx:if="{{privacyChecked}}"

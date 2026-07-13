@@ -99,6 +99,30 @@ run("host root should not keep duplicated deeptutor theme copy", function () {
   );
 });
 
+run("deeptutor package should not register internal prototype pages", function () {
+  var appConfig = JSON.parse(read("app.json"));
+  var deeptutorPackage = (appConfig.subpackages || []).filter(function (item) {
+    return item.root === "packageDeeptutor";
+  })[0];
+  var pages = (deeptutorPackage && deeptutorPackage.pages) || [];
+  assert(
+    pages.every(function (pagePath) { return pagePath.indexOf("pages/internal/") !== 0; }),
+    "app.json should not expose internal prototype pages in packageDeeptutor",
+  );
+  assert(
+    exists("packageDeeptutor/pages/internal") === false,
+    "packageDeeptutor/pages/internal should be removed instead of kept as a hidden second entry",
+  );
+});
+
+run("complete stations route should consume card_hosted before navigation", function () {
+  var js = read("packageDeeptutor/pages/luban/stations/stations.js");
+  var wxml = read("packageDeeptutor/pages/luban/stations/stations.wxml");
+  assert(js.indexOf("ds.cardHosted === false") >= 0, "stations handler should block an explicitly unhosted card");
+  assert(wxml.indexOf('data-card-hosted="{{item.card_hosted}}"') >= 0, "stations poster should pass card_hosted authority to handler");
+  assert(wxml.indexOf("微课即将开通") >= 0, "stations poster should label an explicitly unhosted card");
+});
+
 run("legacy host group pages should not register global plugin dependency", function () {
   var appConfig = JSON.parse(read("app.json"));
   assert(

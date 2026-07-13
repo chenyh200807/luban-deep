@@ -198,7 +198,7 @@ function loadPage(relativePath, overrides) {
     );
   });
 
-  await run("login page with local token but no phone should stay in bind-phone mode", async function () {
+  await run("login page with local token but no phone should stay on canonical quick-login screen", async function () {
     var setup = loadPage("packageDeeptutor/pages/login/login.js", {
       api: {
         getUserInfo: function () {
@@ -210,7 +210,7 @@ function loadPage(relativePath, overrides) {
     await flushPromises();
     assert(setup.getClearCount() === 0, "login page should keep token while asking for phone binding");
     assert(setup.reLaunchCalls.length === 0, "login page should not enter chat before phone binding");
-    assert(setup.page.data.loginMode === "bind_phone_only", "login page should show bind-phone-only mode");
+    assert(setup.page.data.loginMode === "phone_code", "login page should keep the canonical login mode");
   });
 
   await run("login page should clear expired local token", async function () {

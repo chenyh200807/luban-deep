@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<!-- ░░░ 母版骨架：随堂练 ░░░ 改 Q[] 即可。每题必须有图示位 + 完整采分句选项 + 每错项三段解析 -->
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <!-- 图示位（每题必有：标尺/变化图/管道/诊断图/答题纸；此处给通用占位，按题替换内部 SVG/结构）-->
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY (大窗 · 自动带题目) -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 母版骨架逻辑：随堂练 ░░░
+   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
+   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
+   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
+   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
+     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
+   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
+     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+class Component extends DCLogic {
+  // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
+  //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="砌体留槎与构造柱";
+  KNOWLEDGE="砌体留槎与构造柱。留槎:能同时砌就同时砌(转角交接不留直槎、错缝搭接);不能同时砌留斜槎——抗震8度及以上必斜槎、非抗震可直槎但须加拉结筋;普通砖斜槎水平投影≥高2/3、多孔砖长高比≥1/2、空心砖斜槎高不宜大于1.2m。构造柱:马牙槎从柱脚先退后进(先进后退错)、沿高≤300mm、凹凸60mm、每500mm设拉结钢筋;施工顺序先绑钢筋→砌墙→浇柱(先砌墙后浇柱)、砖柱不得包心砌法。填充墙:化学植筋须实体检测、连接构造须经设计同意、严禁任意剔凿、顶部最后3皮待下部砌完14d后顶砌;小砌块龄期≥28d、单排孔搭接≥块长1/2、竖向灰缝饱满度≥90%。临时洞口:净宽≤1m、距交接面≥500mm、过梁封口、预埋拉结筋、9度须设计确认。";
+  moreText="薄弱点补练:① 斜槎尺寸普通砖2/3 vs 多孔砖1/2 别记混;② 构造柱先砌墙后浇柱 + 马牙槎先退后进;③ 临时洞口净宽≤1m、距交接面≥500mm 逐条指错;④ 填充墙顶砌14d 时机与化学植筋实体检测。";
+  Q=[
+    { tag:"留槎形式·条件维", typeHint:"单选 · 选出最完整、能得分的作答", figLabel:"题给：抗震设防 8 度的砖墙临时间断", figCaption:"8 度设防 · 该留斜槎还是直槎？", fig:"ruler8",
+      stem:"抗震设防烈度 8 度地区，砖墙砌筑临时间断处应如何留槎？选出最完整、能得分的作答。", model:"抗震设防 8 度及以上，临时间断处应留斜槎，不得留直槎。",
+      opts:[
+        { t:"抗震设防 8 度及以上，临时间断处应留斜槎，不得留直槎。", ok:true, fix:"点明‘8度及以上必留斜槎、不得直槎’，条件与做法齐，是采分句。", code:"" },
+        { t:"8 度地区图省事留直槎，只要把接口清理干净、后砌时对齐即可。", ok:false, code:"E10", tempt:"觉得清理干净就不影响咬合。", lose:"抗震 8 度及以上禁留直槎，留直槎即判不妥。", fix:"应留斜槎，不得留直槎。" },
+        { t:"8 度地区可留直槎，只要沿墙加设拉结筋补强就满足抗震要求。", ok:false, code:"E11", tempt:"把‘非抗震直槎加拉结筋’迁移到抗震区。", lose:"加拉结筋是非抗震直槎的做法，8 度及以上必须斜槎，拉结筋替代不了。", fix:"8 度及以上必留斜槎。" },
+        { t:"只要留斜槎就行，斜槎留多长无所谓，能接上即算合格。", ok:false, code:"M08", tempt:"以为留了斜槎就够。", lose:"斜槎有尺寸要求，普通砖水平投影须≥高 2/3，不写尺寸丢分。", fix:"留斜槎且普通砖水平投影≥高 2/3。" }
+      ] },
+    { tag:"斜槎尺寸·记忆维", typeHint:"单选 · 选出数值正确的作答", figLabel:"题给：普通实心砖留斜槎", figCaption:"普通砖斜槎长度看哪个比值？", fig:"ratio",
+      stem:"普通实心砖砌体留斜槎，斜槎长度应满足什么要求？", model:"普通砖斜槎水平投影长度不应小于斜槎高度的 2/3。",
+      opts:[
+        { t:"普通砖斜槎的水平投影长度不应小于斜槎高度的 2/3。", ok:true, fix:"普通砖认准 2/3，写清‘水平投影≥高 2/3’即得分。", code:"" },
+        { t:"普通砖斜槎的水平投影长度不应小于斜槎高度的 1/2。", ok:false, code:"M08", tempt:"把多孔砖 1/2 用到了普通砖上。", lose:"普通砖是 2/3、多孔砖才 1/2，两个数字混淆。", fix:"普通砖水平投影≥高 2/3。" },
+        { t:"普通砖留斜槎坡度自然、能接上就行，不必量具体长度。", ok:false, code:"E03", tempt:"觉得凭手感留即可。", lose:"缺‘≥2/3 高’关键数值，采分句不成立。", fix:"补‘水平投影≥高 2/3’。" },
+        { t:"普通砖斜槎高度不应大于 1.2m 即为合格。", ok:false, code:"E07", tempt:"把空心砖斜槎高 1.2m 套到普通砖。", lose:"1.2m 是空心砖斜槎高度限值，不是普通砖的投影比。", fix:"普通砖看水平投影≥高 2/3。" }
+      ] },
+    { tag:"斜槎尺寸·记忆维", typeHint:"单选 · 选出数值正确的作答", figLabel:"题给：多孔砖留斜槎", figCaption:"多孔砖斜槎看哪个比值？", fig:"ratio",
+      stem:"多孔砖砌体留斜槎，斜槎应满足什么要求？", model:"多孔砖斜槎的长高比不应小于 1/2。",
+      opts:[
+        { t:"多孔砖斜槎的长高比不应小于 1/2。", ok:true, fix:"多孔砖认准 1/2，写‘长高比≥1/2’即得分。", code:"" },
+        { t:"多孔砖斜槎的水平投影长度不应小于高度的 2/3。", ok:false, code:"M08", tempt:"把普通砖 2/3 用到了多孔砖。", lose:"多孔砖是长高比≥1/2，普通砖才 2/3，数字混淆。", fix:"多孔砖长高比≥1/2。" },
+        { t:"多孔砖不能留斜槎，只能同时砌筑或留直槎。", ok:false, code:"E10", tempt:"以为多孔砖不许斜槎。", lose:"多孔砖同样可留斜槎，只是比值取 1/2。", fix:"多孔砖可留斜槎，长高比≥1/2。" },
+        { t:"多孔砖留斜槎即可，长高比多少不影响验收。", ok:false, code:"E03", tempt:"以为留了就行。", lose:"缺‘长高比≥1/2’关键数值。", fix:"补‘长高比≥1/2’。" }
+      ] },
+    { tag:"留槎形式·条件维", typeHint:"单选 · 选出最完整的作答", figLabel:"题给：非抗震区、不能同时砌", figCaption:"非抗震留直槎还要做什么？", fig:"zhixie",
+      stem:"非抗震设防地区，砖墙临时间断处不能留斜槎时可否留直槎？如何处理？", model:"非抗震区可留直槎，但应沿墙加设拉结钢筋。",
+      opts:[
+        { t:"非抗震设防地区可留直槎，但应沿墙加设拉结钢筋。", ok:true, fix:"‘可直槎’要连着‘加拉结筋’一起写，两句才满分。", code:"" },
+        { t:"非抗震区可以直接留直槎，把接口清理干净即可，无需其他处理。", ok:false, code:"E02", tempt:"以为非抗震区就随便留。", lose:"漏了‘加设拉结筋’，采分点遗漏。", fix:"留直槎须沿墙加设拉结钢筋。" },
+        { t:"无论是否抗震，一律不得留直槎，只能留斜槎。", ok:false, code:"E10", tempt:"把抗震区规则扩大化。", lose:"非抗震区允许留直槎(加拉结筋)，一律禁止是规范适用错误。", fix:"非抗震区可留直槎，但须加拉结筋。" },
+        { t:"非抗震留直槎加拉结筋，抗震 8 度区同样加拉结筋即可留直槎。", ok:false, code:"E11", tempt:"把做法迁移到抗震区。", lose:"8 度及以上必留斜槎，拉结筋替代不了。", fix:"8 度及以上必斜槎，不能靠拉结筋留直槎。" }
+      ] },
+    { tag:"咬槎·同时砌筑维", typeHint:"单选 · 选出最完整的作答", figLabel:"题给：砖墙转角与内外墙交接", figCaption:"交接处怎么砌才不留薄弱面？", fig:"zhixie",
+      stem:"砖墙转角和内外墙交接处，砌筑时应如何处理才不留薄弱面？", model:"转角和交接处应同时砌筑，不能同时砌时留斜槎，不得留直槎。",
+      opts:[
+        { t:"转角和交接处应同时砌筑，不能同时砌筑时应留斜槎，不得留直槎。", ok:true, fix:"首选同时砌筑(错缝咬成一体)、退而求其次留斜槎，层次齐。", code:"" },
+        { t:"转角和交接处可分开砌筑，先砌一面墙、后砌另一面，接头对齐即可。", ok:false, code:"E06", tempt:"觉得分开砌方便、对齐就行。", lose:"分砌形成上下贯通竖缝、成薄弱面，应同时砌筑。", fix:"转角交接处应同时砌筑。" },
+        { t:"转角处同时砌筑即可，交接处怎么砌无所谓。", ok:false, code:"E02", tempt:"只记住转角。", lose:"内外墙交接处同样要求同时砌筑，采分点遗漏。", fix:"转角与交接处都应同时砌筑。" },
+        { t:"转角处留直槎，直槎高度不超过 300mm 即可。", ok:false, code:"M08", tempt:"拿 300mm 凑数。", lose:"300mm 是马牙槎沿高，不是留槎判据；概念与数字都错。", fix:"应同时砌筑或留斜槎，不留直槎。" }
+      ] },
+    { tag:"留槎形式·记忆维", typeHint:"单选 · 选出正确的作答", figLabel:"题给：空心砖墙交接、不能同时砌", figCaption:"空心砖斜槎高度有何限值？", fig:"block",
+      stem:"空心砖墙交接处不能同时砌筑而留斜槎时，斜槎高度有何要求？", model:"应留斜槎，且斜槎高度不宜大于 1.2m。",
+      opts:[
+        { t:"应留斜槎，且斜槎高度不宜大于 1.2m。", ok:true, fix:"记住空心砖斜槎高不宜大于 1.2m。", code:"" },
+        { t:"应留斜槎，斜槎高度不宜大于 2.0m。", ok:false, code:"M08", tempt:"对数值印象模糊。", lose:"限值是 1.2m，不是 2.0m。", fix:"斜槎高度不宜大于 1.2m。" },
+        { t:"直接留直槎、加拉结筋即可，不必留斜槎。", ok:false, code:"E07", tempt:"套用非抗震直槎做法。", lose:"空心砖交接不能同时砌时应留斜槎。", fix:"应留斜槎(高度≤1.2m)。" },
+        { t:"留斜槎即可，高度不限。", ok:false, code:"E03", tempt:"以为留了斜槎就够。", lose:"缺高度‘不宜大于 1.2m’的限值。", fix:"补‘斜槎高度不宜大于 1.2m’。" }
+      ] },
+    { tag:"马牙槎·方向维", typeHint:"单选 · 选出方向正确的作答", figLabel:"题给：构造柱与墙连接处", figCaption:"马牙槎从柱脚起怎么进退？", fig:"tooth",
+      stem:"构造柱与砌体连接处砌马牙槎，从每层柱脚开始的进退方向应是？", model:"从每层柱脚开始，应先退后进。",
+      opts:[
+        { t:"从每层柱脚开始，马牙槎应先退后进。", ok:true, fix:"柱脚先退让出凹槽，浇柱后齿槽咬死；方向固定为先退后进。", code:"" },
+        { t:"从每层柱脚开始，马牙槎应先进后退。", ok:false, code:"E06", tempt:"顺口且是常见误记(真题陷阱)。", lose:"方向反了，柱脚咬合不足；应先退后进。", fix:"从柱脚先退后进。" },
+        { t:"先退后进、先进后退都行，只要凹凸均匀即可。", ok:false, code:"E07", tempt:"以为方向随意。", lose:"方向固定为先退后进，不能二选一。", fix:"必须先退后进。" },
+        { t:"砌成马牙槎即可，进退方向不影响咬合效果。", ok:false, code:"E02", tempt:"以为砌出齿即可。", lose:"进退方向是采分点，漏答丢分。", fix:"应写明先退后进。" }
+      ] },
+    { tag:"马牙槎·尺寸维", typeHint:"单选 · 选出尺寸完整的作答", figLabel:"题给：马牙槎尺寸与拉结筋", figCaption:"≤300 / 凹凸60 / 每500 拉结筋", fig:"toothdim",
+      stem:"构造柱马牙槎除‘先退后进’外，尺寸与拉结筋有何要求？", model:"每个马牙槎沿高≤300mm、凹凸60mm，沿墙高每500mm设拉结钢筋。",
+      opts:[
+        { t:"每个马牙槎沿高不超过 300mm、凹凸 60mm，沿墙高每 500mm 设拉结钢筋。", ok:true, fix:"300、60、500 三个数与拉结筋一起写全才满分。", code:"" },
+        { t:"先退后进砌成马牙槎即可，尺寸和拉结筋按现场情况定。", ok:false, code:"E02", tempt:"只答了方向。", lose:"漏尺寸与拉结筋，采分点遗漏。", fix:"补≤300mm/凹凸60mm/每500mm拉结筋。" },
+        { t:"每个马牙槎沿高不超过 500mm，沿墙高每 300mm 设拉结钢筋。", ok:false, code:"M08", tempt:"把 300 与 500 记反。", lose:"沿高应≤300mm、拉结筋每500mm，数字对调。", fix:"沿高≤300mm、每500mm拉结筋。" },
+        { t:"沿墙高每 500mm 设拉结钢筋即可，其余不必。", ok:false, code:"E03", tempt:"抓住 500 一项。", lose:"漏≤300mm、凹凸60mm。", fix:"补≤300mm、凹凸60mm。" }
+      ] },
+    { tag:"构造柱·顺序维", typeHint:"单选 · 选出顺序正确的作答", figLabel:"题给：设构造柱的多层砖房", figCaption:"墙与柱的施工先后？", fig:"seq",
+      stem:"设构造柱的多层砖房，构造柱与墙体的施工顺序应是？", model:"先绑构造柱钢筋，再砌砖墙(马牙槎)，最后浇柱混凝土——先砌墙后浇柱。",
+      opts:[
+        { t:"先绑构造柱钢筋，再砌砖墙(马牙槎)，最后浇筑构造柱混凝土。", ok:true, fix:"先砌墙后浇柱，混凝土灌进齿槽咬成一体；顺序即采分点。", code:"" },
+        { t:"先支模浇筑构造柱混凝土，再砌两侧砖墙。", ok:false, code:"E06", tempt:"以为先浇柱更快。", lose:"先浇柱后砌墙，墙与柱无法咬合、马牙槎作废。", fix:"应先砌墙后浇柱。" },
+        { t:"先砌砖墙，再绑构造柱钢筋，最后浇筑混凝土。", ok:false, code:"E06", tempt:"觉得墙砌完再放钢筋也行。", lose:"钢筋应先绑，先砌墙后绑钢筋顺序错。", fix:"先绑钢筋→砌墙→浇柱。" },
+        { t:"先砌墙后浇柱，钢筋在浇筑前随时绑扎均可。", ok:false, code:"E07", tempt:"以为绑筋时机随意。", lose:"钢筋须在砌墙前先绑，顺序固定。", fix:"顺序固定：先绑钢筋→砌墙→浇柱。" }
+      ] },
+    { tag:"构造柱·做法维", typeHint:"单选 · 选出正确的作答", figLabel:"题给：独立砖柱砌筑", figCaption:"砖柱能不能包心砌？", fig:"seq",
+      stem:"独立砖柱砌筑，下列做法正确的是？", model:"砖柱不得采用包心砌法砌筑，应整体咬砌。",
+      opts:[
+        { t:"砖柱不得采用包心砌法砌筑，应整体咬砌成整体。", ok:true, fix:"‘砖柱不得包心砌法’是明确采分句。", code:"" },
+        { t:"砖柱可用包心砌法，四周砌整砖、中间填碎砖以省工。", ok:false, code:"E10", tempt:"觉得省工无碍。", lose:"包心砌法整体性差、明令禁止。", fix:"砖柱不得采用包心砌法。" },
+        { t:"砖柱与构造柱一样，要砌马牙槎、每500mm留拉结筋。", ok:false, code:"E07", tempt:"把砖柱当构造柱。", lose:"砖柱非构造柱，不砌马牙槎，此为概念混淆。", fix:"砖柱不得包心砌法，与构造柱要求不同。" },
+        { t:"砖柱砌筑无特殊要求，按普通墙体砌法即可。", ok:false, code:"E02", tempt:"以为无要求。", lose:"漏‘不得包心砌法’关键点。", fix:"补‘砖柱不得采用包心砌法’。" }
+      ] },
+    { tag:"填充墙·连接维", typeHint:"单选 · 选出正确的作答", figLabel:"题给：填充墙与主体连接", figCaption:"植筋 / 改构造 / 剔凿", fig:"wall",
+      stem:"填充墙与主体结构的拉结及连接构造，下列做法正确的是？", model:"化学植筋须做实体检测；连接构造须经设计同意方可改变；严禁任意剔凿。",
+      opts:[
+        { t:"拉结筋若为化学植筋应做实体检测；连接构造须经设计同意方可改变；严禁任意剔凿。", ok:true, fix:"植筋检测 + 改构造经设计 + 严禁剔凿，三句齐。", code:"" },
+        { t:"施工中可按现场情况自行调整拉结筋间距和连接做法，无需报设计。", ok:false, code:"E10", tempt:"觉得现场灵活方便。", lose:"改变连接构造须经设计同意，不能自行改。", fix:"连接构造改变须经设计同意。" },
+        { t:"埋好或植好拉结筋即可，化学植筋不必做检测。", ok:false, code:"E02", tempt:"以为植了就行。", lose:"化学植筋须做实体检测，采分点遗漏。", fix:"化学植筋须做实体检测。" },
+        { t:"墙上走管线可随时剔凿开槽，事后用砂浆补平即可。", ok:false, code:"E10", tempt:"觉得补平就没事。", lose:"严禁任意剔凿，损伤墙体整体性。", fix:"严禁任意剔凿。" }
+      ] },
+    { tag:"小砌块·搭接维", typeHint:"单选 · 选出数值正确的作答", figLabel:"题给：混凝土小型空心砌块填充墙", figCaption:"龄期 / 搭接 / 饱满度", fig:"block",
+      stem:"填充墙用混凝土小型空心砌块，下列做法正确的是？", model:"龄期≥28d；单排孔搭接≥块长1/2；竖向灰缝饱满度≥90%。",
+      opts:[
+        { t:"砌块龄期不小于 28d；单排孔搭接长度不小于块长 1/2；竖向灰缝砂浆饱满度不小于 90%。", ok:true, fix:"28d、1/2、90% 三个数一起写全。", code:"" },
+        { t:"砌块龄期 21d 即可上墙；单排孔搭接长度不小于块长 1/3。", ok:false, code:"M08", tempt:"数值印象模糊。", lose:"龄期应≥28d、搭接应≥1/2，两处数字都小了。", fix:"龄期≥28d、搭接≥1/2块长。" },
+        { t:"上下皮错缝搭砌即可，搭接长度和龄期不必控制。", ok:false, code:"E02", tempt:"以为错缝就行。", lose:"漏龄期与搭接关键数值。", fix:"补龄期≥28d、搭接≥1/2、饱满度≥90%。" },
+        { t:"竖向灰缝砂浆饱满度不小于 80% 即可。", ok:false, code:"M08", tempt:"把墙水平缝 80% 用到竖缝。", lose:"竖向灰缝饱满度要求≥90%，80% 是水平缝口径。", fix:"竖向灰缝饱满度≥90%。" }
+      ] },
+    { tag:"填充墙·顶砌维", typeHint:"单选 · 选出时机正确的作答", figLabel:"题给：填充墙砌至梁(板)底", figCaption:"顶部最后几皮何时砌？", fig:"wall",
+      stem:"填充墙砌至接近梁(板)底时，顶部最后几皮砖应如何处理？", model:"顶部最后3皮砖，应待下部墙砌完至少14d后再斜砌顶紧。",
+      opts:[
+        { t:"填充墙顶部最后 3 皮砖，应待下部墙体砌完至少 14d 后再斜砌顶紧。", ok:true, fix:"待 14d 沉降稳、再斜砌顶紧，时机与做法齐。", code:"" },
+        { t:"顶部最后 3 皮砖应待下部砌完 7d 后即可顶砌。", ok:false, code:"M08", tempt:"对天数印象模糊。", lose:"应至少 14d，7d 沉降未稳。", fix:"应待下部砌完至少 14d。" },
+        { t:"下部墙砌完后立即将顶部砖斜砌顶紧，一次成活最省事。", ok:false, code:"E06", tempt:"觉得一次做完省事。", lose:"须待下部沉降稳定，立即顶砌会挤裂。", fix:"应待 14d 后再顶砌。" },
+        { t:"顶部直接用整砖平砌顶到梁底即可。", ok:false, code:"E02", tempt:"以为平砌顶到即可。", lose:"应斜砌顶紧且待 14d，漏做法与时机。", fix:"待14d后斜砌顶紧。" }
+      ] },
+    { tag:"临时洞口·阈值维", typeHint:"单选 · 选出尺寸位置完整的作答", figLabel:"题给：砌体墙留临时施工洞口", figCaption:"净宽 / 距交接面 / 封口", fig:"hole",
+      stem:"砌体墙上留设临时施工洞口，尺寸与位置应满足什么要求？", model:"净宽≤1m；距交接面≥500mm；预埋拉结筋；上设过梁或挑砖封口。",
+      opts:[
+        { t:"洞口净宽不应大于 1m；侧边距交接面不应小于 500mm；并预埋拉结筋、上设过梁或挑砖封口。", ok:true, fix:"净宽、距交接面、封口、拉结筋四项齐。", code:"" },
+        { t:"洞口净宽不应大于 1.2m；侧边距交接面不应小于 400mm。", ok:false, code:"M08", tempt:"数值差一点、易顺手。", lose:"净宽应≤1m、距交接面应≥500mm，两处数值都错(真题指错点)。", fix:"净宽≤1m、距交接面≥500mm。" },
+        { t:"控制净宽不大于 1m 即可，开在哪个位置无所谓。", ok:false, code:"E02", tempt:"只记住净宽。", lose:"漏距交接面≥500mm、封口、拉结筋。", fix:"补距交接面≥500mm、过梁封口、拉结筋。" },
+        { t:"临时洞口宜开在墙体交接处，便于两面施工。", ok:false, code:"E10", tempt:"觉得开在交接处方便。", lose:"交接处最薄弱，洞口应远离≥500mm。", fix:"距交接面≥500mm，不得开在交接处。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 逐条诊断并给正确补写", figLabel:"模拟考生作答（待诊断）", figCaption:"构造柱三处作答·哪里失分？", fig:"sheet",
+      stem:"某考生答构造柱题：①马牙槎先进后退；②沿高不超过 500mm、每 500mm 设拉结钢筋；③先浇构造柱混凝土后砌墙。选出最准确的诊断与正确补写。",
+      model:"三处都错：马牙槎应先退后进；沿高应≤300mm(500 是拉结筋间距)；顺序应先砌墙后浇柱。",
+      opts:[
+        { t:"三处都错：应先退后进；沿高应≤300mm(凹凸60mm、每500mm拉结筋)；顺序应先砌墙后浇柱(先绑钢筋→砌墙→浇柱)。", ok:true, fix:"方向、尺寸、顺序三处失分全揪出并补全采分句。", code:"" },
+        { t:"仅顺序写反，把③改成先砌墙后浇柱即可，①②都正确。", ok:false, code:"E07", tempt:"只看出顺序一处。", lose:"①先进后退错、②沿高 500 错，漏诊两处。", fix:"三处都要改：方向、沿高、顺序。" },
+        { t:"只是尺寸小问题，把沿高改成 300mm 即可，方向和顺序无碍。", ok:false, code:"M08", tempt:"抓住尺寸一处。", lose:"方向(先进后退)与顺序(先浇柱)均为采分点，漏诊。", fix:"方向改先退后进、顺序改先砌墙后浇柱。" },
+        { t:"作答基本正确，补一句‘砖柱不得包心砌法’即可满分。", ok:false, code:"E02", tempt:"以为补一句就行。", lose:"三处硬错未纠，属方向性误判。", fix:"先纠方向/尺寸/顺序三处硬错。" }
+      ] },
+    { tag:"采分诊断·采分句输出", typeHint:"单选 · 把作答补成完整采分句", figLabel:"临时洞口案例（补写采分句）", figCaption:"只写‘净宽1.2m不妥’够不够？", fig:"sheet",
+      stem:"临时洞口案例，考生只写‘洞口净宽 1.2m 不妥、应改小’。要拿全采分，应如何补写完整采分句？", model:"净宽应≤1m；距交接面应≥500mm；上设过梁或挑砖封口；并预埋拉结筋。",
+      opts:[
+        { t:"净宽不应大于 1m(1.2m 改为≤1m)；侧边距交接面不应小于 500mm；上设过梁或挑砖封口；并预埋拉结筋。", ok:true, fix:"给出具体数值+位置+封口+拉结筋，才是完整采分句。", code:"" },
+        { t:"补一句‘洞口尺寸要再小一点、注意位置’即可。", ok:false, code:"E02", tempt:"以为定性说明就够。", lose:"没给具体数值和位置，采分句不成立。", fix:"写≤1m、距交接面≥500mm等具体值。" },
+        { t:"写‘净宽≤1m’一句即可，其余不必展开。", ok:false, code:"E03", tempt:"抓住净宽一项。", lose:"漏距交接面、封口、拉结筋。", fix:"补距交接面≥500mm、过梁封口、拉结筋。" },
+        { t:"净宽≤1m、距交接面≥300mm，并预埋拉结筋。", ok:false, code:"M08", tempt:"距离数值记小了。", lose:"距交接面应≥500mm，不是 300mm。", fix:"距交接面≥500mm。" }
+      ] }
+  ];
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"留槎形式/尺寸/拉结筋/顺序逐项写全，缺一扣一。"},
+    E03:{label:"关键词缺失",advice:"数值、方向、时机等关键词必须落到采分句里。"},
+    E06:{label:"程序顺序错误",advice:"先绑钢筋→砌墙→浇柱、先退后进、顶砌待14d，顺序别乱。"},
+    E07:{label:"概念混淆",advice:"直/斜/马牙槎、砖柱≠构造柱、普通砖≠多孔砖，别混。"},
+    E10:{label:"规范适用错误",advice:"抗震8度必斜槎、改连接构造须设计、严禁剔凿、洞口离交接面。"},
+    E11:{label:"迁移失败",advice:"非抗震做法别套到抗震区；加拉结筋替代不了斜槎。"},
+    M08:{label:"规范数字混淆",advice:"2/3与1/2、300与500、≤1m与≥500mm、28d/14d、90%别记混。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    // 抽题顺序与选项乱序在首帧惰性生成并缓存（ord()/optPerm()），不依赖此处 setState，
+    // 保证首屏渲染即已随机（消除"A 先出现再洗牌"的闪烁与对 componentDidMount 的依赖）。
+  }
+  // ── 随机抽题：从 Q[] 全量候选池洗牌后取前 SHOW_COUNT 条真实索引 ──
+  pickOrder(){ const all=this.Q.map((_,i)=>i);
+    const isDiag=i=>this.Q[i].tag.indexOf("诊断")>=0;
+    const sh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;};
+    const reg=sh(all.filter(i=>!isDiag(i))), diag=sh(all.filter(isDiag));
+    const n=Math.min(this.SHOW_COUNT||5, this.Q.length);
+    const pick=reg.slice(0,n-1); if(diag.length)pick.push(diag[0]); else pick.push(reg[n-1]);
+    return pick.slice(0,n); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  // ── 选项乱序：每题对 opts 独立洗牌，正确项落随机位置（防"永远选第一个/最长的"位置泄露）；重做重新洗 ──
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const BK="repeating-linear-gradient(90deg,#a5714c 0 14px,#83552f 14px 16px)"; const CG="#9aa0a3";
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="ruler8"){ figH=78;
+      els.push(D({x:20,top:22,w:150,h:24,bg:"#dff0e6",r:0,fg:"#2c8a5b",fs:10.5,lab:"6·7度 可直槎"}));
+      els.push(D({x:170,top:22,w:150,h:24,bg:"#fadcd6",r:0,fg:"#cf4436",fs:10.5,lab:"8·9度 必斜槎"}));
+      els.push(D({x:150,top:2,w:40,h:16,bg:"#23282b",r:8,fg:"#fff",fs:9,lab:"8度"}));
+      els.push(D({x:168,top:18,w:4,h:32,bg:"#23282b"}));
+      els.push(D({x:20,top:56,w:300,h:14,fg:"#8b9398",fs:9.5,ta:"left",jc:"flex-start",lab:"8度及以上落入必斜槎区，不得留直槎"}));
+    } else if(type==="ratio"){ figH=68;
+      els.push(D({x:0,top:4,w:66,h:20,fg:"#cf8a44",fs:11,ta:"right",jc:"flex-end",lab:"普通砖"}));
+      els.push(D({x:74,top:4,w:190,h:20,bg:"#2c8a5b",r:5,fg:"#fff",fs:10,lab:"水平投影 ≥ 2/3 高"}));
+      els.push(D({x:0,top:34,w:66,h:20,fg:"#2f6db0",fs:11,ta:"right",jc:"flex-end",lab:"多孔砖"}));
+      els.push(D({x:74,top:34,w:142,h:20,bg:"#2f6db0",r:5,fg:"#fff",fs:10,lab:"长高比 ≥ 1/2"}));
+    } else if(type==="zhixie"){ figH=98;
+      for(let i=0;i<7;i++) els.push(D({x:20,top:6+i*11,w:110,h:9,bg:BK,r:1}));
+      els.push(D({x:128,top:6,w:3,h:77,bg:"#cf4436"}));
+      els.push(D({x:18,top:84,w:130,h:12,fg:"#cf4436",fs:9.5,ta:"left",jc:"flex-start",lab:"直槎·通缝 ✕"}));
+      for(let i=0;i<7;i++) els.push(D({x:200,top:6+i*11,w:20+i*11,h:9,bg:BK,r:1}));
+      els.push(D({x:198,top:84,w:130,h:12,fg:"#2c8a5b",fs:9.5,ta:"left",jc:"flex-start",lab:"斜槎·咬合坡面 ✓"}));
+    } else if(type==="tooth"){ figH=94;
+      for(let i=0;i<6;i++){ const ret=(i%2===0),w=ret?40:56; els.push(D({x:20,top:6+i*12,w,h:10,bg:BK,r:1})); els.push(D({x:20+w,top:6+i*12,w:70-w,h:10,bg:CG,r:1})); }
+      els.push(D({x:16,top:80,w:140,h:12,fg:"#2c8a5b",fs:9.5,ta:"left",jc:"flex-start",lab:"先退后进 ✓（柱脚先退）"}));
+      for(let i=0;i<6;i++){ const adv=(i%2===0),w=adv?56:40; els.push(D({x:210,top:6+i*12,w,h:10,bg:BK,r:1})); els.push(D({x:210+w,top:6+i*12,w:70-w,h:10,bg:"#c19a92",r:1})); }
+      els.push(D({x:206,top:80,w:120,h:12,fg:"#cf4436",fs:9.5,ta:"left",jc:"flex-start",lab:"先进后退 ✕"}));
+    } else if(type==="toothdim"){ figH=98;
+      for(let i=0;i<6;i++){ const ret=(i%2===0),rE=ret?110:128; els.push(D({x:40,top:4+i*15,w:rE-40,h:13,bg:BK,r:1})); els.push(D({x:rE,top:4+i*15,w:150-rE,h:13,bg:CG,r:1})); }
+      els.push(D({x:156,top:4,w:110,h:14,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"每个 ≤ 300mm"}));
+      els.push(D({x:156,top:34,w:110,h:14,fg:"#cf8a44",fs:10,ta:"left",jc:"flex-start",lab:"凹凸 60mm"}));
+      els.push(D({x:30,top:52,w:126,h:0,bd:"1.5px solid #cf4436"}));
+      els.push(D({x:156,top:64,w:120,h:14,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"每 500mm 拉结筋"}));
+    } else if(type==="seq"){ figH=64; const st=[["① 绑钢筋","#2f6db0"],["② 砌墙","#cf8a44"],["③ 浇柱","#2c8a5b"]];
+      st.forEach((p,i)=>els.push(D({x:8+i*108,top:12,w:98,h:36,bg:"transparent",bd:"2px solid "+p[1],r:8,fg:p[1],fs:12,lab:p[0]})));
+      els.push(D({x:106,top:20,w:10,h:18,fg:"#b3a692",fs:16,lab:"·"})); els.push(D({x:214,top:20,w:10,h:18,fg:"#b3a692",fs:16,lab:"·"}));
+    } else if(type==="wall"){ figH=100;
+      els.push(D({x:40,top:6,w:250,h:12,bg:"#8b9298",r:2}));
+      els.push(D({x:40,top:6,w:12,h:60,bg:"#8b9298",r:2})); els.push(D({x:278,top:6,w:12,h:60,bg:"#8b9298",r:2}));
+      for(let r=0;r<3;r++) for(let c=0;c<6;c++) els.push(D({x:58+c*36+((r%2)?-8:0),top:32+r*12,w:34,h:10,bg:BK,r:1}));
+      els.push(D({x:98,top:20,w:140,h:10,fg:"#8a6d1f",fs:9,ta:"left",jc:"flex-start",lab:"顶部斜砌·待14d"}));
+      els.push(D({x:40,top:72,w:44,h:3,bg:"#cf4436"}));
+      els.push(D({x:6,top:82,w:322,h:14,fg:"#cf4436",fs:9,ta:"left",jc:"flex-start",lab:"植筋须实体检测 · 改连接构造经设计 · 严禁剔凿"}));
+    } else if(type==="hole"){ figH=98;
+      els.push(D({x:10,top:6,w:310,h:64,bg:"#e9e2d4",r:2}));
+      els.push(D({x:10,top:6,w:5,h:64,bg:"#2f6db0"}));
+      els.push(D({x:150,top:20,w:90,h:50,bg:"#fff",bd:"2px dashed #cf4436",r:2}));
+      els.push(D({x:144,top:10,w:102,h:10,bg:"#8b9298",r:2}));
+      els.push(D({x:150,top:74,w:90,h:14,fg:"#2c8a5b",fs:9.5,lab:"净宽 ≤ 1m"}));
+      els.push(D({x:12,top:74,w:138,h:14,fg:"#cf8a44",fs:9,ta:"left",jc:"flex-start",lab:"距交接面 ≥ 500mm"}));
+    } else if(type==="block"){ figH=84;
+      els.push(D({x:20,top:8,w:80,h:24,bg:BK,r:2})); els.push(D({x:104,top:8,w:80,h:24,bg:BK,r:2}));
+      els.push(D({x:60,top:36,w:80,h:24,bg:BK,r:2})); els.push(D({x:144,top:36,w:80,h:24,bg:BK,r:2}));
+      els.push(D({x:60,top:2,w:40,h:0,bd:"1.5px solid #2c8a5b"}));
+      els.push(D({x:6,top:64,w:322,h:14,fg:"#2c8a5b",fs:9.5,ta:"left",jc:"flex-start",lab:"搭接≥1/2块长 · 龄期≥28d · 竖缝饱满度≥90%"}));
+    } else if(type==="sheet"){ figH=88;
+      for(let i=0;i<3;i++) els.push(D({x:6,top:6+i*26,w:314,h:20,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:10.5,ta:"left",jc:"flex-start",p:"0 10px",lab:"考生第 "+(i+1)+" 处作答 · 逐条诊断改正"}));
+    }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

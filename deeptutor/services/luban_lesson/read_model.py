@@ -136,9 +136,9 @@ def _variant_summary(
 
 
 def list_all_pack_ids(*, manifest_path: Path | None = None) -> list[str]:
-    """40 pack 全集（pack_id 排序，非 manifest 登记序；消费者当集合用）
+    """manifest pack 全集（pack_id 排序，非 manifest 登记序；消费者当集合用）
     ——生命周期投影「未学」态的枚举范围
-    （融合计划 §1.1：考点全集 = 60-slot 注册表的 40 pack，不是 1976 叶）。
+    （考点全集来自当前 manifest，不由客户端镜像固定数量）。
     只读 manifest，绿灯与否不影响「未学」枚举（锁定站也如实是未学）。"""
     manifest = _load_manifest(manifest_path)
     return sorted(
@@ -167,6 +167,8 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
                 "pack_id": pack["pack_id"],
                 "title": str(pack.get("title") or ""),
                 "content_sha256": str(pack.get("content_sha256") or ""),
+                # 托管真值来自 manifest 对 lesson.html 的确定性扫描；路线绿灯与可播放分开。
+                "card_hosted": bool(pack.get("card_hosted")),
                 "retest_available": _variant_summary(
                     str(pack["pack_id"]),
                     manifest_dir,

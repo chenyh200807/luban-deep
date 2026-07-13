@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<audio data-luban-prewarm preload="auto" src="audio/b0.mp3?v=5b48e645db9caff9" aria-hidden="true" style="display:none"></audio>
+<x-dc>
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：回填土坑剖面 + 三误区气泡 + 红章 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:56px;right:56px;top:250px;opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);">
+          <div style="position:absolute;left:-14px;right:-14px;top:0;height:3px;background:#8a7c5e;border-radius:2px;"></div>
+          <div style="position:absolute;left:22px;top:3px;width:2px;height:80px;background:#8a7c5e;"></div>
+          <div style="position:absolute;right:22px;top:3px;width:2px;height:80px;background:#8a7c5e;"></div>
+          <div style="position:absolute;left:24px;right:24px;top:3px;height:80px;background:repeating-linear-gradient(0deg,#b8955f 0,#b8955f 12px,#a9834e 12px,#a9834e 24px);border-radius:0 0 6px 6px;"></div>
+          <div style="position:absolute;left:0;right:0;top:92px;text-align:center;font-size:11.5px;font-weight:800;color:#5c6469;">{{ b0_tag }}</div>
+        </div>
+        <div style="position:absolute;left:40px;top:62px;width:252px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:13px 15px;font-size:13.5px;font-weight:700;color:#23282b;line-height:1.45;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">{{ b0_bubble }}
+          <div style="position:absolute;left:34px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:238px;top:158px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:20px;font-weight:900;letter-spacing:2px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">{{ b0_stamp }}</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 选料 · 禁用清单过筛 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b1_title }}</div>
+        <div style="position:absolute;left:14px;top:58px;font-size:9px;font-weight:800;color:#cf4436;">禁用 · 一律拦下</div>
+        <div style="position:absolute;left:224px;top:58px;font-size:9px;font-weight:800;color:#2c8a5b;">可用 · 优选同类土</div>
+        <div style="position:absolute;left:190px;top:76px;width:5px;height:148px;background:#cf4436;border-radius:3px;opacity:{{ b1_gateO }};box-shadow:2px 0 0 rgba(207,68,54,.16);"></div>
+        <sc-for list="{{ b1ban }}" as="c" hint-placeholder-count="4">
+          <div style="position:absolute;left:14px;top:{{ c.top }}px;width:168px;height:26px;background:{{ c.bg }};border-radius:5px;display:flex;align-items:center;padding:0 8px;gap:6px;opacity:{{ c.op }};box-shadow:2px 2px 0 rgba(0,0,0,.14);">
+            <span style="flex:1;color:#f4f1e8;font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ c.lab }}</span>
+            <span style="flex:none;width:16px;height:16px;border-radius:50%;background:#cf4436;color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;">✕</span>
+          </div>
+        </sc-for>
+        <sc-for list="{{ b1ok }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:206px;top:{{ c.top }}px;width:168px;height:{{ c.h }}px;background:{{ c.bg }};border:{{ c.bd }};border-radius:5px;display:flex;align-items:center;padding:0 9px;gap:6px;opacity:{{ c.op }};">
+            <span style="flex:1;color:{{ c.fg }};font-size:{{ c.fs }}px;font-weight:800;">{{ c.lab }}</span>
+            <span style="flex:none;width:16px;height:16px;border-radius:50%;background:#2c8a5b;color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;">✓</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- ░░ BEAT 2 · 铺填 · 从最低处起·由下而上·对称 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b2_title }}</div>
+        <div style="position:absolute;left:172px;top:{{ b2_hopY }}px;width:46px;height:22px;background:#cf8a44;border-radius:4px 4px 9px 9px;opacity:{{ b2_hopO }};box-shadow:2px 2px 0 rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">铺土</div>
+        <div style="position:absolute;left:96px;top:120px;width:198px;height:150px;">
+          <div style="position:absolute;left:0;bottom:0;width:6px;height:150px;background:#7a6a4a;border-radius:3px;"></div>
+          <div style="position:absolute;right:0;bottom:0;width:6px;height:150px;background:#7a6a4a;border-radius:3px;"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;height:6px;background:#7a6a4a;border-radius:3px;"></div>
+          <div style="position:absolute;left:8px;bottom:6px;width:87px;height:{{ b2_fillH }}px;background:repeating-linear-gradient(0deg,#b8955f 0,#b8955f 11px,#a9834e 11px,#a9834e 22px);"></div>
+          <div style="position:absolute;right:8px;bottom:6px;width:87px;height:{{ b2_fillH }}px;background:repeating-linear-gradient(0deg,#b8955f 0,#b8955f 11px,#a9834e 11px,#a9834e 22px);"></div>
+          <div style="position:absolute;left:50%;bottom:6px;width:0;height:138px;border-left:1px dashed rgba(122,106,74,.55);"></div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:280px;text-align:center;font-size:11px;font-weight:800;color:#5c6469;">最低处起 · 由下而上 · 整宽分层</div>
+        <div style="position:absolute;left:50%;top:304px;transform:translateX(-50%);background:#2c8a5b;color:#fff;border-radius:11px;padding:7px 15px;font-size:12.5px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.22);white-space:nowrap;opacity:{{ b2_okO }};">两侧对称 · 均衡上升 ✓</div>
+        <div style="position:absolute;left:0;right:0;top:338px;text-align:center;font-size:10px;font-weight:700;color:#cf4436;opacity:{{ b2_okO }};">✕ 单侧猛堆 → 结构偏压</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 虚铺按机具定 + 含水率双向 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">{{ b3_title }}</div>
+        <div style="position:absolute;left:16px;top:66px;width:120px;height:26px;background:#2f6db0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;opacity:{{ b3_mrO }};box-shadow:2px 2px 0 rgba(47,109,176,.22);">振动压实机</div>
+        <div style="position:absolute;left:146px;top:66px;width:58px;height:26px;background:#eef3f7;border:1.5px dashed #cdd9e2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#8b9398;opacity:{{ b3_waterO }};">含水量</div>
+        <div style="position:absolute;left:208px;top:70px;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ b3_waterO }};">✕ 不由它定铺厚</div>
+        <div style="position:absolute;left:16px;right:16px;top:106px;height:22px;opacity:{{ b3_mrO }};">
+          <div style="position:absolute;inset:0;display:flex;border-radius:5px;overflow:hidden;">
+            <div style="flex:250;background:#e7e4d8;"></div>
+            <div style="flex:100;background:#dff0e6;border-left:2px solid #fff;border-right:2px solid #fff;"></div>
+            <div style="flex:50;background:#e7e4d8;"></div>
+          </div>
+          <div style="position:absolute;left:0;top:24px;font-size:8px;font-weight:700;color:#9aa0a3;">0</div>
+          <div style="position:absolute;left:68%;top:24px;transform:translateX(-50%);font-size:8.5px;font-weight:900;color:#2c8a5b;">250–350mm</div>
+          <div style="position:absolute;right:0;top:24px;font-size:8px;font-weight:700;color:#9aa0a3;">400</div>
+          <div style="position:absolute;left:{{ b3_thumbX }}px;top:-6px;width:3px;height:34px;background:#cf4436;border-radius:2px;"></div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:206px;opacity:{{ b3_moistO }};">
+          <div style="font-size:10px;font-weight:800;color:#23282b;margin-bottom:6px;">含水率 · 过大过小都压不密</div>
+          <div style="position:relative;height:26px;display:flex;border-radius:6px;overflow:hidden;">
+            <div style="flex:1;background:#d8c69a;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#7a5c2a;">过小·散沙</div>
+            <div style="flex:1;background:#2c8a5b;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;">最优·好压</div>
+            <div style="flex:1;background:#5b6b7a;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;">过大·稀泥</div>
+          </div>
+          <div style="position:absolute;left:{{ b3_probeX }}px;top:22px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:9px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:272px;height:58px;opacity:{{ b3_barsO }};">
+          <div style="position:absolute;left:16%;bottom:16px;width:44px;height:16px;background:#c58f86;border-radius:3px 3px 0 0;"></div>
+          <div style="position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:44px;height:40px;background:#2c8a5b;border-radius:3px 3px 0 0;"></div>
+          <div style="position:absolute;right:16%;bottom:16px;width:44px;height:16px;background:#7a8894;border-radius:3px 3px 0 0;"></div>
+          <div style="position:absolute;left:0;right:0;bottom:14px;height:2px;background:#bdb8a8;"></div>
+          <div style="position:absolute;left:0;right:0;bottom:-4px;text-align:center;font-size:9.5px;font-weight:800;color:#5c6469;">密实度：两端掉档 · 最优满格</div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 压实 · 参数表 + 下层合格再上层 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b4_title }}</div>
+        <div style="position:absolute;left:16px;right:16px;top:68px;display:flex;font-size:9px;font-weight:800;color:#8b9398;padding:0 8px;">
+          <div style="flex:1.3;">压实机具</div><div style="flex:1.2;text-align:center;">分层厚度</div><div style="flex:.9;text-align:right;">遍数</div>
+        </div>
+        <sc-for list="{{ b4rows }}" as="r" hint-placeholder-count="4">
+          <div style="position:absolute;left:16px;right:16px;top:{{ r.top }}px;height:23px;background:{{ r.bg }};border:{{ r.bd }};border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:11px;color:#23282b;opacity:{{ r.op }};">
+            <div style="flex:1.3;font-weight:800;color:{{ r.mc }};">{{ r.m }}</div><div style="flex:1.2;text-align:center;font-weight:700;">{{ r.t }}</div><div style="flex:.9;text-align:right;font-weight:800;">{{ r.p }}</div>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:16px;right:16px;top:210px;height:30px;background:#2c8a5b;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;opacity:{{ b4_lowO }};box-shadow:2px 2px 0 rgba(44,138,91,.2);">下层 · 压实系数试验合格 ✓</div>
+        <div style="position:absolute;left:16px;right:16px;top:246px;height:30px;background:#eaf4ee;border:1.5px solid #2c8a5b;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#2c8a5b;opacity:{{ b4_upO }};">上层 · 合格后方可施工</div>
+        <div style="position:absolute;left:0;right:0;top:286px;text-align:center;font-size:10px;font-weight:700;color:#cf8a44;opacity:{{ b4_upO }};">铺填超上限 / 遍数不足 = 不妥</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 检测 · 必查清单 + 击实法vs环刀 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b5_title }}</div>
+        <div style="position:absolute;left:16px;top:60px;font-size:9px;font-weight:800;color:#8b9398;">回填质量必查（排水系统非必查）</div>
+        <sc-for list="{{ b5chk }}" as="c" hint-placeholder-count="4">
+          <div style="position:absolute;left:{{ c.x }}px;top:78px;width:82px;height:32px;background:{{ c.bg }};border:{{ c.bd }};border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;opacity:{{ c.op }};">
+            <span style="font-size:9.5px;font-weight:800;color:{{ c.fg }};">{{ c.lab }}</span>
+            <span style="font-size:8px;font-weight:800;color:{{ c.fg }};">{{ c.mk }}</span>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:14px;top:124px;width:168px;height:174px;background:#f0f8f3;border:1.5px solid #2c8a5b;border-radius:11px;padding:10px;opacity:{{ b5_leftO }};">
+          <div style="font-size:11px;font-weight:900;color:#2c8a5b;">标准击实法 ✓</div>
+          <div style="font-size:9px;color:#5c6469;font-weight:600;margin-top:2px;line-height:1.4;">室内标定最大干密度 · 逐层判定</div>
+          <div style="margin-top:11px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:16px;background:#2c8a5b;border-radius:3px;"></div><span style="font-size:9.5px;font-weight:800;color:#2c8a5b;">第1层 ✓</span></div>
+            <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:16px;background:#3fa06a;border-radius:3px;"></div><span style="font-size:9.5px;font-weight:800;color:#2c8a5b;">第2层 ✓</span></div>
+            <div style="display:flex;align-items:center;gap:7px;"><div style="width:24px;height:16px;background:#4faf79;border-radius:3px;"></div><span style="font-size:9.5px;font-weight:800;color:#2c8a5b;">第3层 ✓</span></div>
+          </div>
+          <div style="margin-top:10px;font-size:9.5px;font-weight:800;color:#2c8a5b;">压实系数逐层达标</div>
+        </div>
+        <div style="position:absolute;left:208px;top:124px;width:168px;height:174px;background:#fbeeec;border:1.5px solid #cf4436;border-radius:11px;padding:10px;opacity:{{ b5_rightO }};">
+          <div style="font-size:11px;font-weight:900;color:#cf4436;">多层环刀装一袋</div>
+          <div style="font-size:9px;color:#5c6469;font-weight:600;margin-top:2px;line-height:1.4;">统一送检 · 分不清哪层</div>
+          <div style="margin-top:14px;position:relative;height:72px;">
+            <div style="position:absolute;left:6px;top:2px;width:60px;height:13px;background:#a9834e;border-radius:2px;"></div>
+            <div style="position:absolute;left:6px;top:18px;width:60px;height:13px;background:#8a6a3f;border-radius:2px;"></div>
+            <div style="position:absolute;left:6px;top:34px;width:60px;height:13px;background:#6b5230;border-radius:2px;"></div>
+            <div style="position:absolute;left:92px;top:8px;width:54px;height:56px;background:#c98c3a;border-radius:6px 6px 12px 12px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;">一袋</div>
+          </div>
+          <div style="position:absolute;left:50%;top:132px;transform:translate(-50%,-50%) rotate(-11deg);color:#cf4436;border:4px solid #cf4436;border-radius:9px;padding:1px 11px;font-size:18px;font-weight:900;opacity:{{ b5_xO }};">✕</div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 四步链回扣 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ c_title }}</div>
+        <div style="position:absolute;left:14px;top:152px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf4436;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c0 }};"><div style="font-size:14px;font-weight:900;color:#cf4436;">1 选料</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">禁用清单 · 同类土</div></div>
+        <div style="position:absolute;left:106px;top:152px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c1 }};"><div style="font-size:14px;font-weight:900;color:#2f6db0;">2 铺填</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">最低处 · 对称 · 按机具</div></div>
+        <div style="position:absolute;left:198px;top:152px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf8a44;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c2 }};"><div style="font-size:14px;font-weight:900;color:#cf8a44;">3 压实</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">查表 · 下层合格</div></div>
+        <div style="position:absolute;left:290px;top:152px;width:86px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c3 }};"><div style="font-size:14px;font-weight:900;color:#2c8a5b;">4 检测</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">标高+压实系数 · 击实法</div></div>
+        <div style="position:absolute;left:96px;top:190px;font-size:20px;color:#b3a692;opacity:{{ c1 }};">·</div>
+        <div style="position:absolute;left:188px;top:190px;font-size:20px;color:#b3a692;opacity:{{ c2 }};">·</div>
+        <div style="position:absolute;left:280px;top:190px;font-size:20px;color:#b3a692;opacity:{{ c3 }};">·</div>
+        <div style="position:absolute;left:0;right:0;top:264px;text-align:center;font-size:13px;font-weight:900;color:#23282b;opacity:{{ c3 }};">四步写全，采分句一句不少</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">这道考点 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">这道就唠到这儿哈——选料卡禁用清单、铺填从低到高对称走、压实按机具查表还得下层合格、检测标高加压实系数用击实法。四步写全，阅卷一分不丢。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这四句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">选料：禁用淤泥·淤泥质土·有机质&gt;5%·含水量不符黏性土</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">铺填：最低处起·由下而上·对称回填</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">压实：按机具控厚度遍数·下层合格再上层</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">检测：标高+压实系数·标准击实法·排水非必查</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="practice.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="7">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="practice.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/";
+  audioVersion="5b48e645db9caff9";
+  DUR = 204.044;
+  examTitle="土方回填压实与检测"; examCode="G02"; examCat="技术·质量";
+  posterSub="选料 · 铺填 · 压实 · 检测，四步过采分"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 48 秒";
+  KNOWLEDGE="土方回填压实与检测。四步链:选料→分层铺填→压实→检测。①选料:不得用淤泥、淤泥质土、有机质大于5%的土、含水量不符压实要求的黏性土;能用砂、碎石土,尽量采用同类土;回填土料不得混建筑垃圾。②铺填:从场地最低处开始、由下而上整个宽度分层铺填、相对两侧对称回填;每层虚铺厚度按夯实机具确定,不按含水量(2016年真题陷阱)。③压实:按压实机具控分层厚度与遍数——平碾250-300mm/6-8遍,振动压实机250-350mm/3-4遍,柴油打夯机200-250mm/3-4遍,人工打夯小于200mm/3-4遍;下层压实系数试验合格后再上层。含水率过大过小均致密实度不足,应控制在最优含水率附近(2019真题)。④检测:施工后进行标高及压实系数检验;必查填筑厚度、含水量控制、压实系数,排水系统非必查;压实系数用标准击实法标定最大干密度,不能把多层回填的环刀土样统一送检(2018案例三);先取样点布置图后试验结果表。常见失分:把禁用土当可用、虚铺按含水量定、铺填厚度超机具上限、压实遍数不足、只检标高漏压实系数、多层环刀统一送检、把排水系统当必查。边界:换填地基压实系数(灰土≥0.95其他≥0.97)属地基处理、土的可松性属土方平衡,均非本考点回填压实判分眼。";
+    beats=[["b0",0.0,14.324,"破误区"],["b1",14.324,30.592,"选料"],["b2",30.592,44.484,"铺填"],["b3",44.484,58.256,"虚铺·含水率"],["b4",58.256,72.94,"压实"],["b5",72.94,89.688,"检测"],["b6",89.688,106.844,"口诀"],["q0",106.844,134.144,"问答"],["q1",134.144,159.956,"问答"],["q2",159.956,178.736,"问答"],["q3",178.736,204.044,"问答"]];
+  keycards=[
+    "先划掉三个坑：淤泥能填 / 虚铺按含水量 / 环刀统一送检",
+    "禁用四类：淤泥·淤泥质土·有机质>5%·含水量不符黏性土",
+    "从最低处起 · 由下而上 · 两侧对称回填",
+    "虚铺厚度按夯实机具定，不是按含水量",
+    "按机具查表控厚度遍数 · 下层合格再上层",
+    "标高+压实系数 · 标准击实法 · 排水系统非必查",
+    "选料 · 铺填 · 压实 · 检测，四步写全"
+  ];
+  narr=[
+    "来，看这道土方回填题。好些同学栽在三处——以为淤泥也能当填料、虚铺厚度张嘴就按含水量定、环刀土样装一袋就统一送检。注意哈，这仨全是坑，先给它划掉。",
+    "正确头一步是选料。填方土料有张禁用清单：淤泥、淤泥质土、有机质大于百分之五的土、含水量不符压实要求的黏性土，这四类一律拦下。能用的是砂、碎石土，还得尽量用同类土。",
+    "料选对了开始铺填。记住三句：从场地最低处起、由下而上整个宽度分层铺，两侧还得对称回填。单边猛堆，结构准被挤偏——对称压着走，才稳。",
+    "每层铺多厚？按夯实机具定，不是按含水量，这是老陷阱。含水量管的是压得实不实——过大成稀泥、过小散成沙，都压不密，得卡在最优含水率附近。",
+    "压实按机具查表控厚度和遍数：振动压实机铺二百五到三百五、压三到四遍；平碾二百五到三百、六到八遍。还有条铁律——下层压实系数试验合格了，才能上上层。",
+    "最后检测。施工完查标高和压实系数；必查是填筑厚度、含水量、压实系数，排水系统不在必查里。压实系数得用标准击实法定，别把好几层的环刀土样装一袋统一送检——那不行。",
+    "把这条链子记牢：选料、铺填、压实、检测。禁用清单卡住淤泥，铺填从低到高对称走，虚铺按机具、压实查表还得下层合格，检测标高加压实系数用击实法。四步写全，分不丢。"
+  ];
+  qa=[
+    { figLabel:"禁用清单 · 淤泥/有机质拦下 · 砂石可用", fig:"ban", q:"老师，淤泥不也是土么？填坑填空隙不就得了，咋就不能用啊？", a:"还真不行哈。淤泥、淤泥质土含水量高、颗粒软，压不实、后期还沉降；有机质大于百分之五的土会腐烂脱空。填方就得用能压密实的——砂、碎石土、尽量同类土。这张禁用清单，多选题专坑这儿。" },
+    { figLabel:"机具尺 · 厚度按机具跳 · 不由含水量", fig:"gauge", q:"老师我寻思，铺多厚跟土湿不湿有关系吧？为啥不能按含水量定虚铺厚度呢？", a:"含水量管的是压得实不实，不是铺多厚。铺多厚看你用啥机具——夯击能大的能铺厚点，小的就得薄。振动压实机二百五到三百五，人工打夯不到二百。二〇一六年真题就拿'按含水量定'挖坑，别跳进去。" },
+    { figLabel:"含水率轴 · 两端掉档 · 最优满格", fig:"moist", q:"那含水率是不是越大越软、越好压呀？", a:"反了哈。过大，土成稀泥、水占了颗粒的地儿、压不动；过小，颗粒干、摩擦大、也压不拢。就中间最优含水率那一档最好压。二〇一九年真题答的就是'过大或过小'，双向都得写上。" },
+    { figLabel:"击实法逐层 ✓ vs 环刀装一袋 ✕", fig:"test", q:"检测那块，环刀取样送检不挺常规么，为啥说不行？", a:"错不在环刀，错在'好几层装一袋统一送检'——那分不清哪层压没压好。压实系数得用标准击实法在室内标定最大干密度，再逐层比着算。二〇一八年案例三就扣这儿。检测还得记：标高加压实系数、排水系统非必查。" }
+  ];
+  askPresets=["淤泥为啥不能当填料？","虚铺厚度按什么定才不丢分？","检测那四句采分句怎么写全？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return;
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+    wxAsk(){ try{
+      const wxm=window.wx&&window.wx.miniProgram;
+      const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+      if(!wxm||!inMini) return false;
+      let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
+      if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
+      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=G02'+(st?'&scene_title='+encodeURIComponent(st):'')});
+      return true; }catch(e){ return false; } }
+  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="ban"){ h=70;
+      els.push(D({x:0,top:0,w:186,h:15,bg:"#4a5648",r:4,fg:"#f4f1e8",fs:9,jc:"flex-start",lab:" 淤泥 / 淤泥质土"}));
+      els.push(D({x:190,top:0,w:16,h:15,bg:"#cf4436",r:4,fg:"#fff",fs:9,lab:"✕"}));
+      els.push(D({x:0,top:18,w:186,h:15,bg:"#6b5a3a",r:4,fg:"#f4f1e8",fs:9,jc:"flex-start",lab:" 有机质>5%的土"}));
+      els.push(D({x:190,top:18,w:16,h:15,bg:"#cf4436",r:4,fg:"#fff",fs:9,lab:"✕"}));
+      els.push(D({x:0,top:36,w:186,h:15,bg:"#5b6b7a",r:4,fg:"#f4f1e8",fs:9,jc:"flex-start",lab:" 含水量不符的黏性土"}));
+      els.push(D({x:190,top:36,w:16,h:15,bg:"#cf4436",r:4,fg:"#fff",fs:9,lab:"✕"}));
+      els.push(D({x:0,top:55,w:186,h:15,bg:"transparent",bd:"1.5px solid #2c8a5b",r:4,fg:"#7fbf95",fs:9,jc:"flex-start",lab:" 可用：砂·碎石土·同类土"}));
+      els.push(D({x:190,top:55,w:16,h:15,bg:"#2c8a5b",r:4,fg:"#fff",fs:9,lab:"✓"})); }
+    else if(it.fig==="gauge"){ h=54;
+      els.push(D({x:0,top:2,w:96,h:15,bg:"#2f6db0",r:4,fg:"#fff",fs:9,lab:"振动压实机"}));
+      els.push(D({x:100,top:2,w:110,h:15,fg:"#9fc7e0",fs:10,jc:"flex-start",lab:"250–350mm"}));
+      els.push(D({x:0,top:21,w:96,h:15,bg:"#6b7a86",r:4,fg:"#fff",fs:9,lab:"人工打夯"}));
+      els.push(D({x:100,top:21,w:110,h:15,fg:"#c7ccd0",fs:10,jc:"flex-start",lab:"<200mm"}));
+      els.push(D({x:0,top:40,w:230,h:12,fg:"#cf8a44",fs:8.5,jc:"flex-start",lab:"按机具定 · 不按含水量"})); }
+    else if(it.fig==="moist"){ h=54;
+      els.push(D({x:0,top:2,w:74,h:24,bg:"#d8c69a",r:4,fg:"#7a5c2a",fs:8.5,lab:"过小·散沙"}));
+      els.push(D({x:78,top:2,w:74,h:24,bg:"#2c8a5b",r:4,fg:"#fff",fs:8.5,lab:"最优·好压"}));
+      els.push(D({x:156,top:2,w:74,h:24,bg:"#5b6b7a",r:4,fg:"#fff",fs:8.5,lab:"过大·稀泥"}));
+      els.push(D({x:0,top:32,w:230,h:16,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"两端压不密，最优含水率最好压"})); }
+    else if(it.fig==="test"){ h=64;
+      els.push(D({x:0,top:0,w:112,h:14,fg:"#7fbf95",fs:9,jc:"flex-start",lab:"标准击实法 ✓"}));
+      els.push(D({x:0,top:16,w:112,h:42,bg:"#22402f",bd:"1px solid #2c8a5b",r:6}));
+      els.push(D({x:6,top:22,w:20,h:9,bg:"#2c8a5b",r:2}));
+      els.push(D({x:6,top:33,w:20,h:9,bg:"#3fa06a",r:2}));
+      els.push(D({x:6,top:44,w:20,h:9,bg:"#4faf79",r:2}));
+      els.push(D({x:30,top:29,w:78,h:16,fg:"#7fbf95",fs:8,jc:"flex-start",lab:"逐层标定判定"}));
+      els.push(D({x:126,top:0,w:112,h:14,fg:"#e0a89f",fs:9,jc:"flex-start",lab:"环刀装一袋 ✕"}));
+      els.push(D({x:126,top:16,w:112,h:42,bg:"#3a2622",bd:"1px solid #cf4436",r:6}));
+      els.push(D({x:132,top:27,w:40,h:20,bg:"#c98c3a",r:4,fg:"#fff",fs:8,lab:"一袋"}));
+      els.push(D({x:178,top:29,w:56,h:16,fg:"#e0a89f",fs:8,jc:"flex-start",lab:"混层·分不清"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      b0_op:0,b0_y:46,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,
+      b0_tag:"土方回填 · 分层压实检测", b0_bubble:"淤泥也能填？虚铺按含水量定？环刀装一袋统一送检？", b0_stamp:"全是坑 ✕",
+      b1_title:"选料 · 禁用清单先过筛", b1_gateO:0, b1ban:[], b1ok:[],
+      b2_title:"铺填 · 从最低处起 · 由下而上 · 两侧对称", b2_fillH:0,b2_hopY:-40,b2_hopO:0,b2_okO:0,
+      b3_title:"虚铺按机具定 · 含水率过大过小都压不实", b3_mrO:0,b3_thumbX:70,b3_waterO:0,b3_moistO:0,b3_probeX:20,b3_barsO:0,
+      b4_title:"压实 · 按机具查表 · 下层合格再上层", b4rows:[], b4_lowO:0,b4_upO:0,
+      b5_title:"检测 · 标高+压实系数 · 标准击实法", b5chk:[], b5_leftO:0,b5_rightO:0,b5_xO:0,
+      c_title:"四步链：选料 · 铺填 · 压实 · 检测", c0:0,c1:0,c2:0,c3:0
+    };
+
+    if(A(0)){ const sp=W(0,.22),bp=W(.28,.5),st=W(.6,.82);
+      v.b0_op=sp; v.b0_y=this.lp(46,0,sp); v.b0_bs=this.lp(.6,1,bp); v.b0_bo=bp; v.b0_so=st; v.b0_ss=this.lp(1.7,1,st); }
+    if(A(1)){ v.b1_gateO=W(0,.14); const banO=W(.14,.6),okO=W(.6,.94);
+      const bans=[["淤泥","#4a5648"],["淤泥质土","#4a5648"],["有机质>5%的土","#6b5a3a"],["含水量不符的黏性土","#5b6b7a"]];
+      v.b1ban=bans.map((b,i)=>({lab:b[0],bg:b[1],top:78+i*32,op:this.cl(banO*5-i,0,1)}));
+      const oks=[["砂","#cdb082","none","#fff",10,26],["碎石土","#c2a878","none","#fff",10,26],["优选：尽量同类土","#eaf4ee","1.5px solid #2c8a5b","#2c8a5b",10,30]];
+      const otop=[84,118,154];
+      v.b1ok=oks.map((o,i)=>({lab:o[0],bg:o[1],bd:o[2],fg:o[3],fs:o[4],h:o[5],top:otop[i],op:this.cl(okO*4-i,0,1)})); }
+    if(A(2)){ v.b2_fillH=this.lp(0,138,W(.1,.72)); v.b2_hopO=W(0,.12); v.b2_hopY=this.lp(-30,-6,W(0,.7)); v.b2_okO=W(.74,.94); }
+    if(A(3)){ v.b3_mrO=W(0,.14); v.b3_thumbX=this.lp(70,255,W(.16,.4)); v.b3_waterO=W(.28,.44);
+      v.b3_moistO=W(.5,.62); v.b3_probeX=this.lp(20,300,W(.6,.92)); v.b3_barsO=W(.66,.92); }
+    if(A(4)){ const rowsO=W(0,.5); const rd=[["平碾","250–300mm","6–8遍","#6b7a86",false],["振动压实机","250–350mm","3–4遍","#2f6db0",true],["柴油打夯机","200–250mm","3–4遍","#cf8a44",false],["人工打夯","<200mm","3–4遍","#8a7c5e",false]];
+      v.b4rows=rd.map((r,i)=>({m:r[0],t:r[1],p:r[2],mc:r[3],top:92+i*25,op:this.cl(rowsO*5-i,0,1),bg:r[4]?"#eaf4ee":"#fff",bd:r[4]?"1.5px solid #2c8a5b":"1.5px solid #e2e0d5"}));
+      v.b4_lowO=W(.52,.72); v.b4_upO=W(.76,.96); }
+    if(A(5)){ const chkO=W(0,.42);
+      const ck=[["填筑厚度","✓",true,14],["含水量","✓",true,102],["压实系数","✓",true,190],["排水系统","✕非必查",false,278]];
+      v.b5chk=ck.map((c,i)=>({lab:c[0],mk:c[1],x:c[3],op:this.cl(chkO*5-i,0,1),bg:c[2]?"#eaf4ee":"#fbeeec",bd:c[2]?"1.5px solid #2c8a5b":"1.5px solid #cf4436",fg:c[2]?"#2c8a5b":"#cf4436"}));
+      v.b5_leftO=W(.44,.64); v.b5_rightO=W(.6,.8); v.b5_xO=W(.8,.96); }
+    if(A(6)){ v.c0=W(.1,.34); v.c1=W(.28,.5); v.c2=W(.44,.66); v.c3=W(.6,.84); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

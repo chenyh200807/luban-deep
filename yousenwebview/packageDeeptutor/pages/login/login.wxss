@@ -118,10 +118,31 @@
   max-width: 100%;
 }
 
+.hero-line {
+  display: block;
+  font-weight: 780;
+  letter-spacing: -1.4rpx;
+}
 
+.hero-line-single {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  white-space: nowrap;
+}
 
+.hero-line-main-inline {
+  font-size: 68rpx;
+  line-height: 1;
+  color: #ffffff;
+}
 
-
+.hero-line-accent-inline {
+  font-size: 68rpx;
+  line-height: 1;
+  color: #4d97ff;
+  font-style: italic;
+}
 .hero-desc {
   display: block;
   margin-top: 20rpx;
@@ -248,30 +269,6 @@
   letter-spacing: 1.2rpx;
 }
 
-.bind-phone-only-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20rpx;
-  padding: 0 8rpx;
-}
-
-.bind-phone-title {
-  font-size: 36rpx;
-  line-height: 1.2;
-  font-weight: 650;
-  color: rgba(226, 232, 240, 0.95);
-  text-align: center;
-}
-
-.bind-phone-desc {
-  font-size: 24rpx;
-  line-height: 1.45;
-  color: rgba(226, 232, 240, 0.62);
-  text-align: center;
-  margin-bottom: 8rpx;
-}
-
 .guest-entry {
   align-self: center;
   margin-top: 20rpx;
@@ -394,63 +391,6 @@
   background-size: 110rpx 110rpx;
 }
 
-/* —— 标题逐字 mask-rise —— */
-.hero-title-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  overflow: hidden;
-  padding-bottom: 6rpx;
-}
-
-.hero-char {
-  display: block;
-  opacity: 0;
-  transform: translateY(112%);
-  font-family: "Songti SC", "STSong", "Source Han Serif SC", serif;
-  font-weight: 900;
-  color: #f2f5fb;
-  font-size: 74rpx;
-  line-height: 1.22;
-  animation: loginCharRise 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.hero-char-pad {
-  margin-right: 18rpx;
-}
-
-@keyframes loginCharRise {
-  from {
-    opacity: 0;
-    transform: translateY(112%);
-  }
-  55% {
-    opacity: 1;
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 升起完成后整词点金（颜色与辉光淡入，Apple 式克制） */
-.hero-char-accent {
-  animation:
-    loginCharRise 760ms cubic-bezier(0.22, 1, 0.36, 1) both,
-    loginGoldIn 880ms ease 1500ms both;
-}
-
-@keyframes loginGoldIn {
-  from {
-    color: #f2f5fb;
-    text-shadow: 0 0 0 rgba(232, 181, 77, 0);
-  }
-  to {
-    color: #7db8ff;
-    text-shadow: 0 0 28rpx rgba(90, 162, 255, 0.45);
-  }
-}
-
 /* —— 一次性入场编排 —— */
 .hero-kicker {
   animation: loginKickIn 620ms ease 80ms both;
@@ -458,6 +398,10 @@
 
 .brand-row {
   animation: loginRise 680ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both;
+}
+
+.hero-line-single {
+  animation: loginRise 760ms cubic-bezier(0.22, 1, 0.36, 1) 340ms both;
 }
 
 .hero-desc {
@@ -512,13 +456,80 @@
 }
 
 .privacy-consent-row {
+  width: 100%;
+  min-height: 36rpx;
+  margin: 14rpx 0 0;
+  padding: 0 20rpx;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  margin: 14rpx 0 0;
+  justify-content: center;
+  gap: 8rpx;
+  box-sizing: border-box;
+  animation: loginFade 620ms ease 1320ms both;
+}
+
+.privacy-consent-button,
+.privacy-consent-toggle {
+  width: auto;
+  min-width: 0;
+  min-height: 40rpx;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  border: none;
+  border-radius: 8rpx;
+  background: transparent !important;
+  box-shadow: none;
+  line-height: 1.35;
+  font-size: inherit;
+  box-sizing: border-box;
 }
 
 .privacy-consent-button::after {
   content: '';
   display: none;
+  border: none;
+}
+
+.privacy-checkbox {
+  width: 28rpx;
+  height: 28rpx;
+  flex: 0 0 28rpx;
+  border-radius: 6rpx;
+  border: 2rpx solid rgba(226, 232, 240, 0.46);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: rgba(15, 23, 42, 0.24);
+}
+
+.privacy-checkbox.checked {
+  border-color: rgba(103, 183, 255, 0.92);
+  background: #4198ff;
+}
+
+.privacy-checkmark {
+  color: #ffffff;
+  font-size: 20rpx;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.privacy-copy,
+.privacy-link {
+  font-size: 22rpx;
+  line-height: 1.35;
+  color: rgba(226, 232, 240, 0.68);
+  white-space: normal;
+}
+
+.privacy-link {
+  color: #8fc7ff;
+  font-weight: 620;
 }
