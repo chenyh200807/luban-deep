@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关 · 下集</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson3.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson3.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 鲁班 S01 · 随堂练（下集）· 验收评分表 + 操作平台防护 ░░░ */
+class Component extends DCLogic {
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null };
+  examTitle="验收评分表与平台防护";
+  KNOWLEDGE="脚手架/模板支架 · 验收评分表与操作平台防护（下集）。模板支架检查评分表：保证项目6项=施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收；一般项目4项=杆件连接、底座与托撑、构件材质、支架拆除。脚手架检查评分表共8类。脚手架验收四要素：材料、支承与固定、搭设质量、技术资料。搭设五阶段检查节点：基础完工后、首层水平杆搭设后、每搭完一楼层高度后、悬挑脚手架固定后、支撑脚手架每搭约6m后。操作平台：悬挑式 悬挑≤5m/均布≤5.5kN/m²/集中≤15kN/吊环≥4；移动式 面积≤10m²/高≤5m/高宽比≤2:1/荷载≤1.5kN/m²；落地式 高≤15m/高宽比≤3:1/荷载≤2.0kN/m²/连墙件≤4m。卸料平台搁支点与拉结点必须设在建筑主体结构上，严禁固定在作业脚手架上；缆风绳、泵管、大型设备支承件同理。禁竹木脚手架；限用：轮扣式≤15m双排/≤8m满堂、龙门架/井架≤25m、扣件式卸料平台≤10m。";
+  moreText="补两组：① 满堂脚手架评分表保证/一般项目归类，练「照清单归、别凭听着重要」；② 悬挑式与落地式平台参数交叉对比，练「2:1 是移动式、3:1 是落地式、支撑架是 3.0」。回讲解页看归类标尺与卸料平台对比图再练一轮。";
+  Q=[
+    { tag:"验收·保证/一般", typeHint:"单选 · 选出归类正确的作答", fig:"sort", figLabel:"模板支架评分表 · 保证6 / 一般4", figCaption:"哪组全是保证项目？",
+      stem:"模板支架检查评分表中，下列哪组全部属于「保证项目」？选出能得分的作答。",
+      model:"保证项目=施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收（6项）。",
+      opts:[
+        { t:"施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收。", ok:true, fix:"六项保证项目一个不差、照清单归。", code:"" },
+        { t:"支架拆除、杆件连接、构件材质、底座与托撑。", ok:false, code:"M03", tempt:"支架拆除、杆件连接听着挺重要。", lose:"这四项恰是一般项目，凭「听着重要」归错类。", fix:"保证项目=方案/基础/构造/稳定/荷载/交底验收。" },
+        { t:"施工方案、支架稳定、支架拆除、构件材质。", ok:false, code:"M03", tempt:"混着选、有对有错。", lose:"支架拆除、构件材质是一般项目，混进保证项目。", fix:"支架拆除、构件材质属一般项，剔除。" },
+        { t:"随便哪几项都行，保证/一般没固定清单。", ok:false, code:"E01", tempt:"觉得凭感觉分。", lose:"保证/一般项目是固定清单，须照清单归。", fix:"照清单：保证6项固定，别凭感觉。" }
+      ] },
+    { tag:"验收·支架拆除归类", typeHint:"单选 · 选出归类与依据都对的作答", fig:"sort", figLabel:"支架拆除 · 归哪类？", figCaption:"听着重要 ≠ 保证项目",
+      stem:"模板支架评分表中，「支架拆除」属于保证项目还是一般项目？选出能得分的作答。",
+      model:"支架拆除属一般项目；保证项目是施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收。",
+      opts:[
+        { t:"支架拆除属一般项目；保证项目为方案、基础、构造、稳定、荷载、交底与验收。", ok:true, fix:"归类对、并列出保证6项作对照。", code:"" },
+        { t:"支架拆除关系安全，属保证项目。", ok:false, code:"M03", tempt:"「拆除关系安全」听着就该是保证项。", lose:"支架拆除是一般项目，凭语感升成保证项归错。", fix:"支架拆除属一般项目，别凭听着重要。" },
+        { t:"支架拆除既是保证也是一般，两边都算。", ok:false, code:"M03", tempt:"拿不准就两边都占。", lose:"评分项目归类唯一，支架拆除只在一般项目。", fix:"支架拆除只属一般项目。" },
+        { t:"支架拆除不在评分表里。", ok:false, code:"E01", tempt:"没记住它在表里。", lose:"支架拆除是评分表一般项目之一，漏记。", fix:"支架拆除在一般项目里。" }
+      ] },
+    { tag:"验收·四要素", typeHint:"单选 · 选出四要素齐全的作答", fig:"four", figLabel:"脚手架验收 · 四要素", figCaption:"验收查哪四样？",
+      stem:"脚手架验收应检查哪四方面要素？选出齐全、能得分的作答。",
+      model:"脚手架验收四要素：材料、支承与固定、搭设质量、技术资料。",
+      opts:[
+        { t:"材料、支承与固定、搭设质量、技术资料。", ok:true, fix:"四要素齐全，验收查全才算过。", code:"" },
+        { t:"只看搭设质量合不合格就行。", ok:false, code:"E01", tempt:"觉得搭得好就验收过。", lose:"漏了材料、支承固定、技术资料三项。", fix:"补材料、支承与固定、技术资料。" },
+        { t:"材料、外观、颜色、品牌四样。", ok:false, code:"M03", tempt:"把无关项凑成四样。", lose:"外观/颜色/品牌不是验收要素，张冠李戴。", fix:"四要素=材料/支承固定/搭设质量/技术资料。" },
+        { t:"只查技术资料齐不齐即可。", ok:false, code:"E01", tempt:"以为资料齐就验收过。", lose:"漏了实体检查（材料/支承固定/搭设质量）。", fix:"资料 + 实体三项一起查。" }
+      ] },
+    { tag:"验收·五阶段节点", typeHint:"单选 · 选出检查节点正确的作答", fig:"stages", figLabel:"搭设过程 · 五阶段检查", figCaption:"支撑架每搭多少要查？",
+      stem:"钢管脚手架搭设过程中的检查节点，下列哪项数值正确？选出能得分的作答。",
+      model:"检查节点：基础完工后、首层水平杆搭设后、每搭完一楼层高度后、悬挑脚手架固定后、支撑脚手架每搭约6m后。",
+      opts:[
+        { t:"支撑脚手架每搭约 6m 后应检查一次；另有基础完工后、首层水平杆后、每层楼高后、悬挑固定后。", ok:true, fix:"支撑架 6m 节点 + 其余四节点齐。", code:"" },
+        { t:"支撑脚手架每搭约 10m 后检查一次即可。", ok:false, code:"M08", tempt:"把节点数值记大了。", lose:"支撑架是每搭约 6m 检查，写 10m 超了。", fix:"支撑脚手架每搭约 6m 后检查。" },
+        { t:"搭完整体后统一验收一次就行，中途不查。", ok:false, code:"E01", tempt:"图省事只验收一次。", lose:"搭设过程有五个阶段节点，须分阶段查。", fix:"分五节点查，不能只验收一次。" },
+        { t:"只在基础完工后查一次即可。", ok:false, code:"E01", tempt:"记住了第一个节点。", lose:"漏了首层、每层、悬挑固定、支撑架6m 四节点。", fix:"补齐五节点，含支撑架每6m。" }
+      ] },
+    { tag:"平台·悬挑式", typeHint:"单选 · 选出悬挑式参数正确的作答", fig:"platX", figLabel:"悬挑式操作平台 · 参数", figCaption:"悬挑/荷载/吊环各多少？",
+      stem:"悬挑式操作平台的构造参数，下列哪组正确？选出能得分的作答。",
+      model:"悬挑式：悬挑长度≤5m、均布荷载≤5.5kN/m²、集中荷载≤15kN、吊环≥4个。",
+      opts:[
+        { t:"悬挑≤5m、均布≤5.5kN/m²、集中≤15kN、吊环≥4。", ok:true, fix:"悬挑/均布/集中/吊环四参数齐全。", code:"" },
+        { t:"悬挑≤10m、荷载不限、吊环≥2。", ok:false, code:"M08", tempt:"把限值放宽、吊环记少。", lose:"悬挑≤5m、吊环≥4，写 10m/2 均超。", fix:"悬挑≤5m、吊环≥4。" },
+        { t:"悬挑式面积≤10m²、高宽比≤2:1。", ok:false, code:"M03", tempt:"把移动式参数安到悬挑式。", lose:"10m²/2:1 是移动式平台参数，张冠李戴。", fix:"悬挑式看悬挑5m/5.5/15kN/吊环4。" },
+        { t:"悬挑长度看现场情况定，无硬限。", ok:false, code:"E01", tempt:"以为悬挑长度灵活。", lose:"悬挑≤5m 是硬限，凭现场定违规。", fix:"悬挑≤5m 是硬限值。" }
+      ] },
+    { tag:"平台·移动式", typeHint:"单选 · 选出移动式参数正确的作答", fig:"platX", figLabel:"移动式操作平台 · 参数", figCaption:"面积/高/高宽比各多少？",
+      stem:"移动式操作平台的构造参数，下列哪组正确？选出能得分的作答。",
+      model:"移动式：面积≤10m²、高度≤5m、高宽比≤2:1、荷载≤1.5kN/m²。",
+      opts:[
+        { t:"面积≤10m²、高≤5m、高宽比≤2:1、荷载≤1.5kN/m²。", ok:true, fix:"面积/高/高宽比/荷载四参数齐。", code:"" },
+        { t:"面积≤10m²、高≤15m、高宽比≤3:1。", ok:false, code:"M03", tempt:"把落地式的 15m/3:1 混进来。", lose:"15m/3:1 是落地式，移动式是 5m/2:1。", fix:"移动式高≤5m、高宽比≤2:1。" },
+        { t:"移动式高宽比≤3.0，同支撑脚手架。", ok:false, code:"M08", tempt:"把支撑架 3.0 安到移动平台。", lose:"移动式高宽比≤2:1，3.0 是支撑脚手架的值。", fix:"移动式高宽比≤2:1，不是 3.0。" },
+        { t:"移动平台可移动，荷载面积都不限。", ok:false, code:"E01", tempt:"以为能移动就不受限。", lose:"移动式有面积10m²/高5m/2:1/1.5 硬限。", fix:"补面积≤10m²、高≤5m、荷载≤1.5。" }
+      ] },
+    { tag:"平台·落地式", typeHint:"单选 · 选出落地式参数正确的作答", fig:"platX", figLabel:"落地式操作平台 · 参数", figCaption:"高/高宽比/连墙件各多少？",
+      stem:"落地式操作平台的构造参数，下列哪组正确？选出能得分的作答。",
+      model:"落地式：高度≤15m、高宽比≤3:1、荷载≤2.0kN/m²、连墙件间距≤4m。",
+      opts:[
+        { t:"高≤15m、高宽比≤3:1、荷载≤2.0kN/m²、连墙件≤4m。", ok:true, fix:"高/高宽比/荷载/连墙件四参数齐。", code:"" },
+        { t:"高≤5m、高宽比≤2:1，同移动式。", ok:false, code:"M03", tempt:"把移动式参数套到落地式。", lose:"落地式是 15m/3:1，5m/2:1 是移动式。", fix:"落地式高≤15m、高宽比≤3:1。" },
+        { t:"落地式无需连墙件。", ok:false, code:"E01", tempt:"以为落地就不用拉结。", lose:"落地式高>某值需连墙件、间距≤4m，漏项。", fix:"落地式连墙件间距≤4m。" },
+        { t:"落地式高≤24m 才需验算。", ok:false, code:"M08", tempt:"把脚手架 24m 混进来。", lose:"落地式操作平台高≤15m，24m 是脚手架编案门。", fix:"落地式高≤15m。" }
+      ] },
+    { tag:"卸料平台·红线", typeHint:"单选 · 选出卸料平台支承规定正确的作答", fig:"unload", figLabel:"卸料平台 · 搁支/拉结点", figCaption:"能不能挂在脚手架上？",
+      stem:"悬挑式卸料平台的搁支点与拉结点应设在何处？选出能得分的作答。",
+      model:"卸料平台的搁支点与拉结点必须设在建筑主体结构上，严禁固定在作业脚手架上。",
+      opts:[
+        { t:"搁支点与拉结点必须设在建筑主体结构上，严禁固定在作业脚手架上。", ok:true, fix:"「设主体、严禁挂作业架」红线写全。", code:"" },
+        { t:"旁边有脚手架，把卸料平台搁、拉在脚手架上更方便。", ok:false, code:"E10", tempt:"图省事借用现成脚手架。", lose:"作业脚手架自重已满，卸料平台一压超载失稳、连锁塌。", fix:"必须设在建筑主体结构上，严禁挂作业架。" },
+        { t:"搁支点设主体、拉结点可设脚手架。", ok:false, code:"E10", tempt:"以为拉结点受力小可以挂架。", lose:"搁支与拉结点都必须在主体结构，拉结点也严禁挂作业架。", fix:"搁支点、拉结点都设主体，都不挂作业架。" },
+        { t:"设在地面临时支架上即可。", ok:false, code:"E10", tempt:"想另搭临时架承托。", lose:"悬挑卸料平台靠主体锚固，临时地面架不可靠。", fix:"搁支/拉结点设在建筑主体结构上。" }
+      ] },
+    { tag:"卸料平台·连带禁令", typeHint:"单选 · 选出禁止固定项齐全的作答", fig:"unload", figLabel:"严禁固定在作业脚手架上", figCaption:"还有哪些不能挂作业架？",
+      stem:"除卸料平台外，下列哪些同样严禁固定在作业脚手架上？选出能得分的作答。",
+      model:"缆风绳、泵管、大型设备的支承件（及卸料平台）均严禁固定在作业脚手架上。",
+      opts:[
+        { t:"缆风绳、泵管、大型设备支承件均严禁固定在作业脚手架上。", ok:true, fix:"缆风绳/泵管/大设备支承件一并列全。", code:"" },
+        { t:"只有卸料平台不能挂，缆风绳、泵管无所谓。", ok:false, code:"E10", tempt:"以为只有卸料平台受限。", lose:"缆风绳、泵管、大型设备支承件同样严禁固定在作业架上。", fix:"缆风绳、泵管、大设备支承件都严禁挂作业架。" },
+        { t:"泵管固定在脚手架上便于施工，允许。", ok:false, code:"E10", tempt:"图施工方便把泵管绑架上。", lose:"泵管冲击荷载大，固定作业架上致失稳，严禁。", fix:"泵管严禁固定在作业脚手架上。" },
+        { t:"缆风绳拉在脚手架上更稳。", ok:false, code:"E10", tempt:"以为借架拉缆稳当。", lose:"缆风绳拉力作用作业架致失稳，严禁固定其上。", fix:"缆风绳严禁固定在作业脚手架上。" }
+      ] },
+    { tag:"设备·禁用限用", typeHint:"单选 · 选出禁限用与限高都对的作答", fig:"device", figLabel:"禁用 / 限用设备 · 限高", figCaption:"竹木、轮扣、龙门架各如何？",
+      stem:"关于禁用与限用脚手架/设备，下列哪项正确？选出能得分的作答。",
+      model:"禁用竹木脚手架；限用：轮扣式≤15m双排/≤8m满堂、龙门架/井架≤25m、扣件式卸料平台≤10m。",
+      opts:[
+        { t:"禁用竹木脚手架；轮扣式限15m双排/8m满堂、龙门架/井架限25m、扣件式卸料平台限10m。", ok:true, fix:"禁用竹木 + 三档限高全，逐条清楚。", code:"" },
+        { t:"竹木脚手架可用，限高 15m 即可。", ok:false, code:"M03", tempt:"以为竹木限高就能用。", lose:"竹木脚手架是禁用，不是限用。", fix:"竹木脚手架禁用，不是限高使用。" },
+        { t:"轮扣式限 25m、龙门架限 15m。", ok:false, code:"M08", tempt:"把两个限高对调。", lose:"轮扣式限 15m、龙门架限 25m，数值对调。", fix:"轮扣15m、龙门架/井架25m。" },
+        { t:"限用设备只要方案批了就无限高。", ok:false, code:"E01", tempt:"以为批了方案就突破限高。", lose:"限用设备有硬限高，方案不能突破。", fix:"按限高：轮扣15m/龙门架25m/卸料10m。" }
+      ] },
+    { tag:"平台·高宽比串档", typeHint:"单选 · 选出高宽比对象与数值都对的作答", fig:"ratio", figLabel:"高宽比 · 别串对象", figCaption:"2:1 / 3:1 / 3.0 各属谁？",
+      stem:"下列关于「高宽比」的对象与数值对应，哪项正确？选出能得分的作答。",
+      model:"移动式操作平台高宽比≤2:1；落地式操作平台≤3:1；支撑（模板支撑）脚手架独立架体≤3.0。",
+      opts:[
+        { t:"移动式≤2:1、落地式≤3:1、支撑脚手架独立架体≤3.0。", ok:true, fix:"三个高宽比各归其对象、不串。", code:"" },
+        { t:"支撑脚手架高宽比≤2:1。", ok:false, code:"M08", tempt:"把移动式 2:1 安到支撑架。", lose:"支撑架独立架体高宽比≤3.0，2:1 是移动式。", fix:"支撑架≤3.0，移动式才≤2:1。" },
+        { t:"移动式与落地式高宽比都是≤3:1。", ok:false, code:"M03", tempt:"两类平台高宽比记成一样。", lose:"移动式≤2:1、落地式≤3:1，两者不同。", fix:"移动式≤2:1、落地式≤3:1。" },
+        { t:"高宽比是一个通用值，各类都≤3.0。", ok:false, code:"M03", tempt:"想用一个数省事。", lose:"不同对象高宽比不同：2:1/3:1/3.0，不能通用。", fix:"按对象分：移动2:1/落地3:1/支撑架3.0。" }
+      ] },
+    { tag:"验收·8类评分表", typeHint:"单选 · 选出评分表分类正确的作答", fig:"four", figLabel:"脚手架检查评分表 · 8类", figCaption:"评分表分几类、几档？",
+      stem:"关于脚手架安全检查评分表，下列哪项正确？选出能得分的作答。",
+      model:"脚手架检查评分表共8类（扣件式/门式/碗扣/盘扣/满堂/悬挑/附着升降/吊篮），每类分保证项目与一般项目两档。",
+      opts:[
+        { t:"共8类（扣件式/门式/碗扣/盘扣/满堂/悬挑/附着升降/吊篮），每类分保证与一般两档。", ok:true, fix:"8类 + 保证/一般两档，结构清楚。", code:"" },
+        { t:"只有一张通用评分表，不分类。", ok:false, code:"E01", tempt:"以为一张表打天下。", lose:"评分表按架型分 8 类，不通用。", fix:"按架型分 8 类评分表。" },
+        { t:"分保证/一般/优良三档。", ok:false, code:"M03", tempt:"多凑一个「优良」档。", lose:"只分保证项目、一般项目两档，无「优良」档。", fix:"只分保证、一般两档。" },
+        { t:"满堂脚手架与模板支架用同一张评分表。", ok:false, code:"M03", tempt:"觉得都是满堂差不多。", lose:"满堂脚手架与模板支架各有评分表，不可混用。", fix:"各用各的评分表，不混用。" }
+      ] },
+    { tag:"验收·保证项目（多选）", typeHint:"多选 · 选出全部保证项目", fig:"sort", figLabel:"模板支架 · 找出保证项目", figCaption:"多选 · 少选漏选都不得分",
+      stem:"模板支架检查评分表中，属「保证项目」的有（多选）：",
+      model:"保证项目：施工方案、支架基础、支架稳定、施工荷载；一般项目：支架拆除。",
+      opts:[
+        { t:"施工方案。", ok:true, fix:"施工方案是保证项目。", code:"" },
+        { t:"支架基础。", ok:true, fix:"支架基础是保证项目。", code:"" },
+        { t:"支架稳定。", ok:true, fix:"支架稳定是保证项目。", code:"" },
+        { t:"支架拆除。", ok:false, code:"M03", tempt:"支架拆除听着重要误当保证项。", lose:"支架拆除是一般项目，不是保证项目。", fix:"支架拆除属一般项目，别选。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 诊断作答失分并给正确补写", fig:"diag", figLabel:"模拟学生作答（待诊断）", figCaption:"归类对不对？卸料平台呢？",
+      stem:"某学生答：「支架拆除是保证项目；卸料平台旁边有脚手架，搁支、拉结在脚手架上即可。」选出最准确的诊断与补写。",
+      model:"两处均错：支架拆除属一般项目（保证项目=方案/基础/构造/稳定/荷载/交底验收）；卸料平台搁支/拉结点必须设建筑主体结构、严禁固定作业脚手架上。",
+      opts:[
+        { t:"两处都错：支架拆除属一般项目（保证=方案/基础/构造/稳定/荷载/交底验收）；卸料平台搁支/拉结点必须设主体结构、严禁挂作业架。", ok:true, fix:"归类错 + 卸料平台红线两处都揪出并补写。", code:"" },
+        { t:"支架拆除归保证项没问题，只是卸料平台该设主体。", ok:false, code:"M03", tempt:"只揪出卸料平台、放过归类错。", lose:"支架拆除是一般项目，归保证项也错，漏诊一处。", fix:"支架拆除改一般项 + 卸料平台设主体。" },
+        { t:"卸料平台挂脚手架可以，只是支架拆除该归一般项。", ok:false, code:"E10", tempt:"纠了归类、却认可挂脚手架。", lose:"卸料平台挂作业架是红线错误，超载失稳。", fix:"卸料平台必须设主体、严禁挂作业架。" },
+        { t:"两处都对，可给满分。", ok:false, code:"M03", tempt:"没看出两处都是典型错。", lose:"支架拆除归错类、卸料平台挂错处，两处都失分。", fix:"两处都要改：一般项 + 设主体。" }
+      ] }
+  ];
+  codeMap={
+    E01:{label:"知识点缺失",advice:"四要素、五节点、平台参数别漏项，照清单记全。"},
+    M03:{label:"概念混淆",advice:"保证≠一般、悬挑≠移动≠落地、竹木是禁用不是限用。"},
+    M08:{label:"规范数字混淆",advice:"支撑架6m/轮扣15m/龙门架25m/卸料10m、2:1/3:1/3.0，钉死。"},
+    E10:{label:"规范适用错误",advice:"卸料平台、缆风绳、泵管一律设主体、严禁挂作业架。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    this.setState({order:this.pickOrder()});
+  }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    const head=idx.filter(i=>i<this.Q.length-1).slice(0,Math.max(0,(this.SHOW_COUNT||5)-1));
+    head.push(this.Q.length-1);
+    return head; }
+  fallbackOrder(){ const n=Math.min(this.SHOW_COUNT||5,this.Q.length); const a=this.Q.map((_,i)=>i).slice(0,n-1); a.push(this.Q.length-1); return a; }
+  ord(){ return (this.state.order && this.state.order.length) ? this.state.order : this.fallbackOrder(); }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi];
+    if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&q.opts[s]&&q.opts[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false,order:this.pickOrder()}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="sort"){ figH=100;
+      els.push(D({x:0,top:0,w:160,h:14,fg:"#227a4c",fs:10,jc:"flex-start",ta:"left",lab:"保证项目 · 6"}));
+      ["施工方案","支架基础","支架构造","支架稳定","施工荷载","交底验收"].forEach((t,i)=>els.push(D({x:(i%2)*82,top:18+Math.floor(i/2)*23,w:78,h:19,bg:"#f0f8f3",bd:"1px solid #cfe4d7",r:5,fg:"#227a4c",fs:9.5,lab:t})));
+      els.push(D({x:172,top:0,w:150,h:14,fg:"#2f6db0",fs:10,jc:"flex-start",ta:"left",lab:"一般项目 · 4"}));
+      ["杆件连接","底座托撑","构件材质"].forEach((t,i)=>els.push(D({x:172+(i%2)*82,top:18+Math.floor(i/2)*23,w:78,h:19,bg:"#eef3f7",bd:"1px solid #cdd9e2",r:5,fg:"#2f6db0",fs:9.5,lab:t})));
+      els.push(D({x:172,top:64,w:160,h:19,bg:"#fdf2f0",bd:"1.5px solid #cf4436",r:5,fg:"#cf4436",fs:9.5,lab:"支架拆除 = 一般项"})); }
+    else if(type==="four"){ figH=96; const c=["材料","支承与固定","搭设质量","技术资料"];
+      c.forEach((t,i)=>els.push(D({x:(i%2)*162+4,top:8+Math.floor(i/2)*44,w:154,h:36,bg:"#fff",bd:"1.5px solid #cfe4d7",r:9,fg:"#227a4c",fs:12,lab:t}))); }
+    else if(type==="stages"){ figH=100; const s=["基础完工","首层水平杆","每层楼高","悬挑固定","支撑架每6m"];
+      els.push(D({x:24,top:6,w:3,h:88,bg:"#e0c9a6"}));
+      s.forEach((t,i)=>{ const y=4+i*19; els.push(D({x:14,top:y,w:20,h:16,bg:i===4?"#cf8a44":"#2f6db0",r:8,fg:"#fff",fs:9,lab:String(i+1)}));
+        els.push(D({x:40,top:y,w:250,h:16,fg:i===4?"#cf4436":"#23282b",fs:11,jc:"flex-start",ta:"left",lab:t+(i===4?"（每约 6m）":"")})); }); }
+    else if(type==="platX"){ figH=96; const cols=[["悬挑","5m·5.5·15·环4","#cf4436"],["移动","10㎡·5m·2:1·1.5","#2f6db0"],["落地","15m·3:1·2.0·连4","#2c8a5b"]];
+      cols.forEach((c,i)=>{ const x=i*108+2; els.push(D({x:x,top:6,w:100,h:16,bg:c[2],r:5,fg:"#fff",fs:10,lab:c[0]+"式"}));
+        els.push(D({x:x,top:26,w:100,h:60,bg:"#faf9f3",bd:"1px solid #ddd2bb",r:6,fg:"#3a3f42",fs:9.5,lab:c[1]})); }); }
+    else if(type==="unload"){ figH=100;
+      els.push(D({x:0,top:0,w:150,h:12,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✕ 挂作业脚手架"}));
+      els.push(D({x:30,top:16,w:5,h:60,bg:"#b5564a"})); els.push(D({x:60,top:16,w:5,h:60,bg:"#b5564a"}));
+      els.push(D({x:22,top:36,w:80,h:9,bg:"#8a8f93",r:2})); els.push(D({x:96,top:30,w:22,h:14,bg:"#cf8a44",r:2}));
+      els.push(D({x:14,top:80,w:130,h:14,fg:"#cf4436",fs:9,jc:"flex-start",ta:"left",lab:"作业架超载失稳"}));
+      els.push(D({x:176,top:0,w:150,h:12,fg:"#227a4c",fs:9.5,jc:"flex-start",ta:"left",lab:"✓ 设建筑主体"}));
+      els.push(D({x:300,top:12,w:16,h:70,bg:"#b08968",r:2}));
+      els.push(D({x:220,top:36,w:82,h:9,bg:"#8a8f93",r:2})); els.push(D({x:198,top:30,w:22,h:14,bg:"#cf8a44",r:2}));
+      els.push(D({x:190,top:80,w:150,h:14,fg:"#227a4c",fs:9,jc:"flex-start",ta:"left",lab:"搁支/拉结点设主体结构"})); }
+    else if(type==="device"){ figH=98; const r=[["竹木脚手架","禁用","#cf4436"],["轮扣式","15m双排/8m满堂","#cf8a44"],["龙门架/井架","25m","#2f6db0"],["扣件卸料平台","10m","#2c8a5b"]];
+      r.forEach((k,i)=>{ const y=2+i*23; els.push(D({x:0,top:y,w:150,h:19,bg:"#1b1814",bd:"1px solid #3a3127",r:4,fg:"#e7ddc9",fs:9.5,jc:"flex-start",lab:" "+k[0]}));
+        els.push(D({x:154,top:y,w:170,h:19,bg:i===0?"#4a2420":"#faf9f3",bd:i===0?"1px solid #cf4436":"1px solid #ddd2bb",r:4,fg:k[2],fs:10,lab:k[1]})); }); }
+    else if(type==="ratio"){ figH=92; const r=[["移动式","≤ 2:1","#2f6db0"],["落地式","≤ 3:1","#2c8a5b"],["支撑脚手架","≤ 3.0","#cf4436"]];
+      r.forEach((k,i)=>{ const y=6+i*27; els.push(D({x:0,top:y,w:170,h:22,bg:"#faf9f3",bd:"1px solid #ddd2bb",r:6,fg:"#23282b",fs:11,jc:"flex-start",lab:" "+k[0]}));
+        els.push(D({x:176,top:y,w:110,h:22,bg:"#fff",bd:"1.5px solid "+k[2],r:6,fg:k[2],fs:13,lab:k[1]})); }); }
+    else if(type==="diag"){ figH=94; const lines=["「支架拆除 = 保证项目」","「卸料平台搁、拉在脚手架上」"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:8+i*30,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); });
+      els.push(D({x:4,top:72,w:320,h:14,fg:"#cf4436",fs:10,jc:"flex-start",ta:"left",lab:"归类对不对？卸料平台挂对地方没？"})); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

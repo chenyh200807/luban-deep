@@ -18,6 +18,9 @@
 - 微信 web-view 外链字体静默失败：fonts.googleapis.com 三行外链替换为共享自托管
   子集 ``../fonts/fonts.css``（Noto Sans SC 可变字重 + Long Cang，子集覆盖全部
   finished 卡出现过的字符；生成命令见 web/public/luban-preview/fonts/README.md）。
+- finished 卡的 ``support.js`` 原本在启动时从 unpkg 拉 React/ReactDOM，国内弱网会让
+  整张卡白屏。发布器把固定版本 URL 锚定改写到 ``../vendor/`` 同域文件；React
+  启动依赖与按需 Babel 后备均自托管，SRI 仍校验相同字节，源卡保持只读。
 - 2026-07-05 owner 真机反馈（第三轮）普通模式两问题在打包层治本：
   3. **普通态没铺满 + 露纯黑底**：卡源 max-width:390px + body #101315 → 宽视口两侧
      /下方露近黑底。治法 = ``.lz-card{zoom:var(--lz-fit)}``（zoom 参与布局：滚动高度
@@ -37,6 +40,8 @@
 
     python3 scripts/publish_luban_preview_cards.py           # 发布全部注册站点
     python3 scripts/publish_luban_preview_cards.py f16 c02   # 只发布指定站点
+    python3 scripts/publish_luban_preview_cards.py \\
+      --finished-root /absolute/path/to/finished             # 显式使用外部 finished 成品根
 
 站点注册表 = 本文件 STATIONS：新增托管卡在这里登记（station id = pack_id 小写，
 manifest 的 card_hosted 按 web/public/luban-preview/<pack_id小写>/lesson.html 扫描）。
@@ -45,6 +50,9 @@ lesson2.html（卡自带上下集互链，发布时只重写 href，不改 read_
 """
 from __future__ import annotations
 
+import argparse
+import hashlib
+import json
 import re
 import shutil
 import sys
@@ -56,53 +64,128 @@ FINISHED = REPO / "artifacts" / "luban_case_family_assets" / "diagram_microlesso
 HOST = REPO / "web" / "public" / "luban-preview"
 FONTS_CSS = HOST / "fonts" / "fonts.css"
 JWEIXIN_JS = HOST / "vendor" / "jweixin.js"
+SUPPORT_RUNTIME_ASSETS = (
+    HOST / "vendor" / "babel-7.26.4.min.js",
+    HOST / "vendor" / "babel-7.29.0.min.js",
+    HOST / "vendor" / "react-18.3.1.production.min.js",
+    HOST / "vendor" / "react-dom-18.3.1.production.min.js",
+)
+
+_SUPPORT_RUNTIME_URL_GROUPS = (
+    (
+        (
+            "https://unpkg.com/@babel/standalone@7.26.4/babel.min.js",
+            "../vendor/babel-7.26.4.min.js",
+        ),
+        (
+            "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js",
+            "../vendor/babel-7.29.0.min.js",
+        ),
+    ),
+    ((
+        "https://unpkg.com/react@18.3.1/umd/react.production.min.js",
+        "../vendor/react-18.3.1.production.min.js",
+    ),),
+    ((
+        "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js",
+        "../vendor/react-dom-18.3.1.production.min.js",
+    ),),
+)
 
 
 @dataclass(frozen=True)
 class Station:
     pack_dir: str                       # finished/ 下的目录名
     teach: dict[str, str]               # 托管名 -> 源文件名（lesson.html 必须在场）
-    practice: str                       # practice 源文件名
+    practice: dict[str, str]            # 托管名 -> 源文件名（支持多幕闯关）
     href_map: dict[str, str] = field(default_factory=dict)  # 卡内互链重写
 
 
-def _p40(pack: str) -> Station:
+def _source_name(pack: str, surface: str, stage: str) -> str:
+    suffix = f".{stage}" if stage else ""
+    return f"{pack}.{surface}{suffix}.dc.html"
+
+
+def _hosted_name(surface: str, index: int) -> str:
+    return f"{surface}.html" if index == 0 else f"{surface}{index + 1}.html"
+
+
+def _staged_station(
+    pack: str,
+    *,
+    teach_stages: tuple[str, ...] = ("",),
+    practice_stages: tuple[str, ...] = ("",),
+) -> Station:
+    """从一个 finished 成品目录派生托管文件名和全部卡内互链。
+
+    目录名和文件前缀始终同源；C02 与 S07B 的版本选择只在 STATIONS 明示，
+    不在发布循环里猜测或降级到同名旧目录。
+    """
+    teach = {
+        _hosted_name("lesson", index): _source_name(pack, "teach", stage)
+        for index, stage in enumerate(teach_stages)
+    }
+    practice = {
+        _hosted_name("practice", index): _source_name(pack, "practice", stage)
+        for index, stage in enumerate(practice_stages)
+    }
+    href_map = {src: hosted for hosted, src in {**teach, **practice}.items()}
     return Station(
         pack_dir=pack,
-        teach={"lesson.html": f"{pack}.teach.dc.html"},
-        practice=f"{pack}.practice.dc.html",
-        href_map={
-            f"{pack}.practice.dc.html": "practice.html",
-            f"{pack}.teach.dc.html": "lesson.html",
-        },
+        teach=teach,
+        practice=practice,
+        href_map=href_map,
     )
 
 
+def _p40(pack: str) -> Station:
+    return _staged_station(pack)
+
+
 STATIONS: dict[str, Station] = {
-    "f16": _p40("P40_F16"),
-    "n01": _p40("P40_N01"),
-    "j01": _p40("P40_J01"),
+    "a01": _staged_station("P40_A01", teach_stages=("up", "down")),
+    "a02": _staged_station("P40_A02", teach_stages=("up", "down")),
+    "c01": _staged_station("P40_C01", teach_stages=("up", "down")),
+    # C02 唯一使用独立 C02 成品目录，不回退到历史 P40_C02 目录。
+    "c02": _staged_station("C02", teach_stages=("up", "down")),
+    "c04": _p40("P40_C04"),
+    "c05": _staged_station("P40_C05", teach_stages=("up", "down")),
+    "c06": _staged_station("P40_C06", teach_stages=("up", "down")),
+    "c07": _staged_station("P40_C07", teach_stages=("up", "down")),
+    "d11": _p40("P40_D11"),
+    "d12": _staged_station("P40_D12", teach_stages=("up", "down")),
+    "d13": _staged_station("P40_D13", teach_stages=("up", "down")),
+    "e05": _p40("P40_E05"),
     "f02": _p40("P40_F02"),
-    "g01": _p40("P40_G01"),
-    # S07B 是 S07 pack 的成品卡变体（manifest 无独立 S07B slot）：托管在 s07 站位，
-    # S07 当前未签发（published=False + barred），卡就绪等签发。
-    "s07": _p40("P40_S07B"),
-    # wave3 batch1（2026-07-05）：绿灯站补视频2类教学卡（teach+practice）
-    "s05": _p40("P40_S05"),
-    "a01": _p40("P40_A01"),
-    "c02": Station(
-        pack_dir="C02",
-        teach={
-            "lesson.html": "C02.teach.up.dc.html",
-            "lesson2.html": "C02.teach.down.dc.html",
-        },
-        practice="C02.practice.dc.html",
-        href_map={
-            "C02.teach.up.dc.html": "lesson.html",
-            "C02.teach.down.dc.html": "lesson2.html",
-            "C02.practice.dc.html": "practice.html",
-        },
+    "f03": _staged_station("P40_F03", teach_stages=("up", "down")),
+    "f04": _staged_station("P40_F04", teach_stages=("up", "down")),
+    "f05": _staged_station("P40_F05", teach_stages=("up", "down")),
+    "f16": _p40("P40_F16"),
+    "g01": _staged_station("P40_G01", teach_stages=("up", "down")),
+    "g02": _p40("P40_G02"),
+    "g03": _staged_station("P40_G03", teach_stages=("up", "middle", "down")),
+    "g04": _staged_station("P40_G04", teach_stages=("up", "down")),
+    "j01": _p40("P40_J01"),
+    "k01": _staged_station("P40_K01", teach_stages=("up", "down")),
+    "n01": _staged_station("P40_N01", teach_stages=("up", "down")),
+    "n03": _p40("P40_N03"),
+    "q01": _staged_station("P40_Q01", teach_stages=("up", "down")),
+    "q02": _staged_station("P40_Q02", teach_stages=("up", "down")),
+    "q03": _staged_station("P40_Q03", teach_stages=("up", "down")),
+    "r01": _staged_station("P40_R01", teach_stages=("up", "down")),
+    "s01": _staged_station(
+        "P40_S01",
+        teach_stages=("up", "middle", "down"),
+        practice_stages=("up", "middle", "down"),
     ),
+    "s02": _p40("P40_S02"),
+    "s05": _p40("P40_S05"),
+    "s06": _staged_station("P40_S06", teach_stages=("up", "down")),
+    # S07 唯一使用 P40_S07B 这个最终成品变体，托管槽仍为 canonical s07。
+    "s07": _p40("P40_S07B"),
+    "x01": _staged_station("P40_X01", teach_stages=("up", "down")),
+    "x02": _staged_station("P40_X02", teach_stages=("up", "down")),
+    "x03": _staged_station("P40_X03", teach_stages=("up", "middle", "down")),
 }
 
 # ───────────────────────── 字体（全部 html） ─────────────────────────
@@ -117,6 +200,98 @@ _FONT_LINKS_NEW = '<link href="../fonts/fonts.css" rel="stylesheet"/>'
 
 # teach 卡额外注入微信 JSSDK（自托管，避免外链依赖；practice 卡不需要）
 _JWEIXIN_TAG = '<script src="../vendor/jweixin.js"></script>'
+
+# 用户进入讲懂卡就是明确播放意图：只预热首段 b0，缩短第一次点播放到出声；
+# 其余音频仍按讲解进度懒加载，避免一次下载整卡 5MB 左右的配音。
+_AUDIO_BASE_RE = re.compile(r'audioBase\s*=\s*["\']([^"\']+)["\']\s*;')
+_AUDIO_VERSION_RE = re.compile(r'audioVersion\s*=\s*["\']([^"\']+)["\']\s*;')
+_AUDIO_PRELOAD_SRC_RE = re.compile(
+    r'<audio data-luban-prewarm preload="auto" src="([^"]+)" '
+    r'aria-hidden="true" style="display:none"></audio>'
+)
+
+
+def _audio_preload_element(text: str) -> str:
+    base_match = _AUDIO_BASE_RE.search(text)
+    version_match = _AUDIO_VERSION_RE.search(text)
+    if not base_match or not version_match:
+        raise TransformError("anchor [audio-preload] missing audioBase/audioVersion")
+    base = base_match.group(1)
+    version = version_match.group(1)
+    if not base.startswith("audio/") or ".." in base or not base.endswith("/"):
+        raise TransformError(f"anchor [audio-preload] unsafe audioBase: {base}")
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", version):
+        raise TransformError(f"anchor [audio-preload] unsafe audioVersion: {version}")
+    return (
+        '<audio data-luban-prewarm preload="auto" '
+        f'src="{base}b0.mp3?v={version}" aria-hidden="true" '
+        'style="display:none"></audio>'
+    )
+
+
+def _version_audio_assets(text: str, src: Path) -> str:
+    base_match = _AUDIO_BASE_RE.search(text)
+    if not base_match:
+        raise TransformError("anchor [audio-version] missing audioBase")
+    base = base_match.group(1)
+    if not base.startswith("audio/") or ".." in base or not base.endswith("/"):
+        raise TransformError(f"anchor [audio-version] unsafe audioBase: {base}")
+    audio_dir = src / base
+    audio_files = sorted(audio_dir.glob("*.mp3"))
+    if not audio_files:
+        raise TransformError(f"finished pack incomplete: {audio_dir} missing mp3")
+    digest = hashlib.sha256()
+    for path in audio_files:
+        digest.update(path.name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    version = digest.hexdigest()[:16]
+    rendered, count = _AUDIO_VERSION_RE.subn(
+        lambda _match: f'audioVersion="{version}";', text, count=1
+    )
+    if count != 1:
+        raise TransformError("anchor [audio-version] missing audioVersion")
+    return rendered
+
+
+def _validate_audio_assets(src: Path) -> None:
+    manifests = sorted((src / "audio").glob("**/manifest.json"))
+    if not manifests:
+        raise TransformError(f"finished pack incomplete: {src} missing audio manifest")
+    missing: list[str] = []
+    for manifest_path in manifests:
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            raise TransformError(f"invalid audio manifest: {manifest_path}: {exc}") from exc
+        for segment in manifest.get("segments") or []:
+            segment_id = str(segment.get("id") or "").strip()
+            if not segment_id or not (manifest_path.parent / f"{segment_id}.mp3").is_file():
+                missing.append(str(manifest_path.parent / f"{segment_id or '<empty>'}.mp3"))
+    if missing:
+        raise TransformError("finished pack incomplete: missing audio " + ", ".join(missing))
+
+
+def _self_host_support_runtime(text: str) -> str:
+    """将 dc runtime 的固定外网依赖收口到同域、版本化的共享 vendor 资产。"""
+    rendered = text
+    for variants in _SUPPORT_RUNTIME_URL_GROUPS:
+        matched = [pair for pair in variants if rendered.count(pair[0]) == 1]
+        unexpected_duplicates = [pair[0] for pair in variants if rendered.count(pair[0]) > 1]
+        if len(matched) != 1 or unexpected_duplicates:
+            raise TransformError(
+                "anchor [support-runtime] expected one pinned variant: "
+                + ", ".join(remote for remote, _local in variants)
+            )
+        remote_url, local_url = matched[0]
+        rendered = rendered.replace(remote_url, local_url, 1)
+    return rendered
+
+
+def _strip_trailing_whitespace(text: str) -> str:
+    """规范化派生 HTML，避免 finished 源里的行尾空格污染发布提交。"""
+    return "\n".join(line.rstrip() for line in text.split("\n"))
 
 # ─────────────── 普通态宽度自适应 + 深墨底色（teach 卡 · 打包层） ───────────────
 #
@@ -189,7 +364,7 @@ _FULLSCREEN_NEW = """  fullscreen(){ const n=!this.state.fs; this.setState({fs:n
       return true; }catch(e){ return false; } }"""
 
 _OPENASK_OLD = "openAsk(){ this.setState({askOpen:true,playing:false}); }"
-_OPENASK_NEW = "openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }"
+_OPENASK_NEW = "  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }"
 
 _RVALS_APPEND = (
     # stopPropagation:角标在 lz-stagewrap(tapToggle 点屏显隐)内,不截断冒泡则
@@ -279,7 +454,17 @@ _AUTOSTART_RE = re.compile(r"^\s*this\._autoTimer=setTimeout\([^\n]*\n", re.M)
 
 def transform_teach(text: str, pack_id: str) -> str:
     # 1. 字体自托管 + 微信 JSSDK（自托管）
+    preload_element = _audio_preload_element(text)
     text = _sub(text, _FONT_LINKS_OLD, _FONT_LINKS_NEW + "\n" + _JWEIXIN_TAG, "font-links")
+    text = _sub(text, "<body>", "<body>\n" + preload_element, "audio-preload")
+    # 新一批 finished 已内置全屏/控制条结构（ctrlHidden），不能再把旧母版的
+    # 锚定回灌重复套进去。只做所有卡共用的字体/JSSDK/问鲁班桥接；这仍是同一
+    # 打包入口，且 bridge 锚不中就 fail-closed，不会把陌生模板误判为可发布。
+    if "ctrlHidden:false" in text:
+        if "wxAsk(){" not in text:
+            wx_ask = _FULLSCREEN_NEW[_FULLSCREEN_NEW.index("  wxAsk(){"):].replace("__LZ_PACK__", pack_id)
+            text = _sub(text, _OPENASK_OLD, wx_ask + "\n" + _OPENASK_NEW, "openask-wx")
+        return text
     # 1b. 普通态宽度自适应 + html/body 底色改为卡自身深墨（逐卡提取，fail-closed）
     bg_m = _CARD_BG_RE.search(text)
     if not bg_m:
@@ -347,41 +532,100 @@ def transform_practice(text: str) -> str:
 
 def _rewrite_hrefs(text: str, href_map: dict[str, str]) -> str:
     for old, new in href_map.items():
-        text = text.replace(f'href="{old}"', f'href="{new}"')
+        # finished 卡既有普通 HTML <a href="…">，也有 x-dc 脚本对象
+        # ``{href:"…"}``。只改 href 值，绝不做宽泛文件名替换以免污染讲解文本。
+        text = re.sub(
+            rf'(?P<prefix>href\s*[:=]\s*)(?P<quote>["\']){re.escape(old)}(?P=quote)',
+            lambda match: f"{match.group('prefix')}{match.group('quote')}{new}{match.group('quote')}",
+            text,
+        )
     return text
 
 
-def publish(station_id: str, st: Station) -> list[str]:
-    src = FINISHED / st.pack_dir
+def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> list[str]:
+    src = finished_root / st.pack_dir
     dst = HOST / station_id
     if not src.is_dir():
         raise TransformError(f"finished pack missing: {src}")
+    required = [*st.teach.values(), *st.practice.values(), "support.js"]
+    missing = [name for name in required if not (src / name).is_file()]
+    if missing:
+        raise TransformError(f"finished pack incomplete: {src} missing {', '.join(missing)}")
+    _validate_audio_assets(src)
+
+    # 先把所有页面变换成功，再写入托管目录；任一锚点失配不留下半张新卡。
+    rendered_teach = {}
+    for hosted_name, src_name in st.teach.items():
+        source = (src / src_name).read_text(encoding="utf-8")
+        source = _version_audio_assets(source, src)
+        rendered_teach[hosted_name] = _strip_trailing_whitespace(
+            _rewrite_hrefs(transform_teach(source, station_id.upper()), st.href_map)
+        )
+    rendered_practice = {
+        hosted_name: _strip_trailing_whitespace(
+            _rewrite_hrefs(
+                transform_practice((src / src_name).read_text(encoding="utf-8")),
+                st.href_map,
+            )
+        )
+        for hosted_name, src_name in st.practice.items()
+    }
+    for hosted_name, text in rendered_teach.items():
+        preload_match = _AUDIO_PRELOAD_SRC_RE.search(text)
+        if not preload_match:
+            raise TransformError(f"published page missing first-audio preload: {hosted_name}")
+        preload_path = preload_match.group(1).split("?", 1)[0]
+        if not (src / preload_path).is_file():
+            raise TransformError(
+                f"published page first audio missing: {hosted_name} -> {preload_path}"
+            )
+
     dst.mkdir(parents=True, exist_ok=True)
+    # 托管目录是 finished 的纯派生产物：删掉上一版多出的分幕/素材，避免 HTML
+    # 虽已更新但仍误命中同名旧音频或旧图片。清理发生在全部页面已成功转换之后。
+    for stale_page in [*dst.glob("lesson*.html"), *dst.glob("practice*.html")]:
+        stale_page.unlink()
+    for sub in ("assets", "audio"):
+        stale_dir = dst / sub
+        if stale_dir.exists():
+            shutil.rmtree(stale_dir)
     written: list[str] = []
 
-    for hosted_name, src_name in st.teach.items():
-        text = (src / src_name).read_text(encoding="utf-8")
-        text = transform_teach(text, st.pack_dir)
-        text = _rewrite_hrefs(text, st.href_map)
+    for hosted_name, text in rendered_teach.items():
         (dst / hosted_name).write_text(text, encoding="utf-8")
         written.append(hosted_name)
 
-    text = (src / st.practice).read_text(encoding="utf-8")
-    text = transform_practice(text)
-    text = _rewrite_hrefs(text, st.href_map)
-    (dst / "practice.html").write_text(text, encoding="utf-8")
-    written.append("practice.html")
+    for hosted_name, text in rendered_practice.items():
+        (dst / hosted_name).write_text(text, encoding="utf-8")
+        written.append(hosted_name)
 
-    shutil.copy2(src / "support.js", dst / "support.js")
+    support = _self_host_support_runtime(
+        (src / "support.js").read_text(encoding="utf-8")
+    )
+    (dst / "support.js").write_text(support, encoding="utf-8")
     written.append("support.js")
     for sub in ("assets", "audio"):
         if (src / sub).is_dir():
-            shutil.copytree(src / sub, dst / sub, dirs_exist_ok=True)
+            shutil.copytree(
+                src / sub,
+                dst / sub,
+                dirs_exist_ok=True,
+                ignore=shutil.ignore_patterns(".DS_Store"),
+            )
             written.append(sub + "/")
     return written
 
 
 def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(description="发布注册的鲁班 finished 成品卡")
+    parser.add_argument(
+        "--finished-root",
+        type=Path,
+        default=FINISHED,
+        help="finished 成品根目录；默认当前仓 artifacts 下的 finished",
+    )
+    parser.add_argument("stations", nargs="*", help="可选站点 ID；缺省发布全部注册站点")
+    args = parser.parse_args(argv)
     if not FONTS_CSS.is_file():
         print(f"publish: 缺共享字体 {FONTS_CSS}（先提交自托管字体子集）", file=sys.stderr)
         return 1
@@ -389,7 +633,15 @@ def main(argv: list[str]) -> int:
         print(f"publish: 缺自托管微信 JSSDK {JWEIXIN_JS}（curl res.wx.qq.com/open/js/jweixin-1.6.0.js）",
               file=sys.stderr)
         return 1
-    targets = argv or sorted(STATIONS)
+    missing_runtime = [str(path) for path in SUPPORT_RUNTIME_ASSETS if not path.is_file()]
+    if missing_runtime:
+        print(f"publish: 缺自托管卡片 runtime {missing_runtime}", file=sys.stderr)
+        return 1
+    finished_root = args.finished_root.expanduser().resolve()
+    if not finished_root.is_dir():
+        print(f"publish: finished 根目录不存在 {finished_root}", file=sys.stderr)
+        return 1
+    targets = args.stations or sorted(STATIONS)
     unknown = [t for t in targets if t not in STATIONS]
     if unknown:
         print(f"publish: 未注册站点 {unknown}（注册表见 STATIONS）", file=sys.stderr)
@@ -397,7 +649,7 @@ def main(argv: list[str]) -> int:
     failures: list[str] = []
     for sid in targets:
         try:
-            written = publish(sid, STATIONS[sid])
+            written = publish(sid, STATIONS[sid], finished_root=finished_root)
             print(f"{sid}: {' '.join(written)}")
         except TransformError as exc:
             failures.append(f"{sid}: {exc}")

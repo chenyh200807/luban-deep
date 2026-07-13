@@ -99,6 +99,22 @@ run("host root should not keep duplicated deeptutor theme copy", function () {
   );
 });
 
+run("deeptutor package should not register internal prototype pages", function () {
+  var appConfig = JSON.parse(read("app.json"));
+  var deeptutorPackage = (appConfig.subpackages || []).filter(function (item) {
+    return item.root === "packageDeeptutor";
+  })[0];
+  var pages = (deeptutorPackage && deeptutorPackage.pages) || [];
+  assert(
+    pages.every(function (pagePath) { return pagePath.indexOf("pages/internal/") !== 0; }),
+    "app.json should not expose internal prototype pages in packageDeeptutor",
+  );
+  assert(
+    exists("packageDeeptutor/pages/internal") === false,
+    "packageDeeptutor/pages/internal should be removed instead of kept as a hidden second entry",
+  );
+});
+
 run("legacy host group pages should not register global plugin dependency", function () {
   var appConfig = JSON.parse(read("app.json"));
   assert(

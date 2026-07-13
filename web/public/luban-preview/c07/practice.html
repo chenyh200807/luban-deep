@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="随堂练 · C07 钢结构连接（焊接+高强螺栓 合并练习）" -->
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11.5px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲（焊接篇 / 高强螺栓篇）</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="钢结构连接 · 焊接/高强螺栓";
+  KNOWLEDGE="钢结构连接（焊接+高强螺栓合并练习）。连接方法四类：焊接/普通螺栓/高强度螺栓/铆接。焊接接头七类：全熔透/部分熔透/角焊缝/塞焊/槽焊/电渣焊/栓钉焊。焊接环境：温度≥−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s。固体夹渣主因=焊接电流太小（别与气孔=湿度大、裂纹=冷却快没预热混）。承受动荷载且需疲劳验算时严禁塞焊/槽焊/电渣焊/气电立焊。焊接主控：焊材烘焙、焊工持证、一二级焊缝无损检测。焊接优点=节约钢材/构造简单/易自动化/加工方便，内部缺陷难查须探伤，不写「易于检查」。高强螺栓=摩擦型：预拉力夹紧、接触面摩擦传力（普通螺栓承压型靠螺栓杆抗剪当销钉）。安装螺栓≥2个且≥安装孔1/3、冲钉≤安装螺栓30%、不得用高强螺栓兼作安装螺栓。高强螺栓必须自由穿入、不得强行；扩孔≤螺栓直径1.2倍、禁气割扩孔。摩擦面干燥清洁、无飞边毛刺焊渣氧化皮污垢、不得作标记、生锈钢丝刷除浮锈。摩擦面须抗滑移试验、终拧后1~48h内检查。";
+  moreText="① 焊接篇再练：夹渣成因（电流太小）与气孔/裂纹成因辨析、疲劳验算严禁四焊、焊接环境风速8/2 不混；② 高强螺栓篇再练：安装螺栓数量三条纪律、扩孔≤1.2D 禁气割、摩擦面不作标记 + 终拧后1~48h。判断纠错题「正确做法」务必带上规范数值/限值，只指不妥不给数 = 半分。";
+  Q=[
+    { tag:"连接方法·定性", typeHint:"单选 · 选出列全、能得分的作答", figLabel:"钢结构构件的连接方法", figCaption:"四类，一种都不能漏", fig:"methods",
+      stem:"钢结构构件的连接方法包括哪几类？选出列全、能得分的作答。",
+      model:"钢结构连接方法包括：焊接、普通螺栓连接、高强度螺栓连接、铆接。",
+      opts:[
+        { t:"钢结构连接方法包括焊接、普通螺栓连接、高强度螺栓连接、铆接四类。", ok:true, fix:"四类列全、不多不漏，正是定性采分点。", code:"" },
+        { t:"钢结构连接方法主要就是焊接和高强度螺栓连接两大类。", ok:false, code:"E02", tempt:"工程上焊接和高强螺栓最常用，容易只答这两类。", lose:"漏了普通螺栓连接和铆接，采分点列不全。", fix:"补齐为焊接、普通螺栓连接、高强度螺栓连接、铆接四类。" },
+        { t:"连接方法包括焊接、螺栓连接、铆接和栓钉焊四类。", ok:false, code:"E07", tempt:"栓钉焊听着像一种连接方式，顺手就写上。", lose:"栓钉焊是焊接接头类型，不是并列的连接方法，属分类混淆。", fix:"连接方法是焊接/普通螺栓/高强螺栓/铆接；栓钉焊归焊接接头。" },
+        { t:"连接方法包括焊接、吊装、制孔、防腐四类。", ok:false, code:"E07", tempt:"把施工过程当成了连接方法。", lose:"吊装/制孔/防腐是加工安装工序，不是连接方法。", fix:"连接方法只有焊接、普通螺栓、高强螺栓、铆接四类。" }
+      ] },
+    { tag:"焊接接头·分类", typeHint:"单选 · 选出接头类型列全的作答", figLabel:"焊接接头类型", figCaption:"共七类", fig:"joints",
+      stem:"钢结构焊接接头的类型包括哪些？选出列全、能得分的作答。",
+      model:"全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。",
+      opts:[
+        { t:"全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。", ok:true, fix:"七类枚举齐全，分类采分点拿满。", code:"" },
+        { t:"就是对接焊缝和角焊缝两类，其余按现场情况定。", ok:false, code:"E02", tempt:"平时最常见对接、角焊缝，容易只答这两种。", lose:"塞焊/槽焊/电渣焊/栓钉焊等未列，采分点大面积遗漏。", fix:"补齐全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。" },
+        { t:"焊接、普通螺栓、高强螺栓、铆接、角焊缝五类。", ok:false, code:"E07", tempt:"把连接方法和焊接接头混在一起写。", lose:"前四个是连接方法不是焊接接头，问的是接头类型。", fix:"接头类型只列焊接内部的七类，别掺连接方法。" },
+        { t:"全熔透、部分熔透、角焊缝、搭接焊、点焊、铆焊六类。", ok:false, code:"E01", tempt:"编了几个听着像的名词凑数。", lose:"搭接焊/点焊/铆焊不是教材列出的接头类型，属知识点缺失。", fix:"按教材七类：全熔透/部分熔透/角焊缝/塞焊/槽焊/电渣焊/栓钉焊。" }
+      ] },
+    { tag:"焊接环境·条件维", typeHint:"单选 · 选出数值正确、能得分的作答", figLabel:"焊接作业环境阈值", figCaption:"温度 · 湿度 · 风速（两种焊分别）", fig:"env",
+      stem:"钢结构焊接作业环境应满足哪些条件？选出数值正确、能得分的作答。",
+      model:"温度≥−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s，低温须加热防护。",
+      opts:[
+        { t:"温度不低于−10℃、相对湿度≤90%、手工电弧焊风速≤8m/s、气体保护焊风速≤2m/s。", ok:true, fix:"四个阈值都对、两种焊风速分开写，条件维拿满。", code:"" },
+        { t:"温度不低于−10℃、相对湿度≤90%、手工电弧焊风速≤2m/s、气体保护焊风速≤8m/s。", ok:false, code:"M08", tempt:"记得有 8 和 2，却把两种焊对应的风速写反了。", lose:"风速 8/2 张冠李戴：气体保护焊怕吹散保护气应≤2，手工电弧焊≤8。", fix:"手工电弧焊≤8m/s、气体保护焊≤2m/s，别写反。" },
+        { t:"温度不低于0℃、相对湿度≤80%、风速不限，技术过硬就能焊。", ok:false, code:"M08", tempt:"凭常识觉得 0℃、80% 差不多。", lose:"温度阈值应−10℃、湿度应90%，且风速有限值，数值全错。", fix:"温度≥−10℃、湿度≤90%、手工≤8/气保≤2m/s。" },
+        { t:"只要现场环境适宜、避开雨雪大风即可施焊，具体数值按经验掌握。", ok:false, code:"M10", tempt:"用「环境适宜」这种常识话术代替规范。", lose:"没有可判分的数值，属用常识替代规范。", fix:"必须写出−10℃/90%/8m/s/2m/s 四个规范阈值。" }
+      ] },
+    { tag:"焊接缺陷·后果维", typeHint:"单选 · 选出固体夹渣主因正确的作答", figLabel:"三种缺陷各自成因", figCaption:"固体夹渣的主要成因是？", fig:"defect",
+      stem:"某焊缝检测发现固体夹渣缺陷，其主要成因是下列哪项？选出正确、能得分的作答。",
+      model:"固体夹渣主因是焊接电流太小（及焊接速度太快、熔渣密度太大、多层焊熔渣未清除）。",
+      opts:[
+        { t:"焊接电流太小（熔池温度不够、熔渣来不及上浮），及速度太快、熔渣未清除。", ok:true, fix:"抓住主因「电流太小」，与气孔/裂纹成因分开，后果维拿分。", code:"" },
+        { t:"焊前未预热、层间温度过低，导致熔渣夹在焊缝里形成固体夹渣。", ok:false, code:"M03", tempt:"预热听着和焊接质量有关，顺手套上。", lose:"预热不足对应的是裂纹缺陷，不是固体夹渣，成因张冠李戴。", fix:"固体夹渣主因是焊接电流太小，不是没预热。" },
+        { t:"焊后冷却太快、内应力集中，把熔渣挤在焊缝里造成夹渣。", ok:false, code:"E07", tempt:"冷却快听着像会出问题。", lose:"冷却快对应裂纹，不是夹渣，缺陷成因混淆。", fix:"夹渣主因是电流太小；冷却快归裂纹。" },
+        { t:"作业环境相对湿度太大，水汽混入熔池形成固体夹渣。", ok:false, code:"M03", tempt:"湿度大确实是焊接大忌。", lose:"湿度大对应的是气孔，不是固体夹渣，成因归错。", fix:"夹渣主因是电流太小；湿度大归气孔。" }
+      ] },
+    { tag:"疲劳禁焊·后果维", typeHint:"单选 · 选出严禁接头列全的作答", figLabel:"动荷载 · 需疲劳验算", figCaption:"严禁使用哪几种焊接接头？", fig:"fatigue",
+      stem:"构件承受动荷载且需疲劳验算时，严禁使用哪几种焊接接头？选出列全、能得分的作答。",
+      model:"严禁塞焊、槽焊、电渣焊、气电立焊接头。",
+      opts:[
+        { t:"严禁使用塞焊、槽焊、电渣焊、气电立焊接头。", ok:true, fix:"四种接头列全、并点明触发条件是动荷载需疲劳验算。", code:"" },
+        { t:"严禁使用塞焊、槽焊、坡口焊、电渣焊接头。", ok:false, code:"E07", tempt:"坡口焊听着像特殊接头，误当禁用项。", lose:"坡口焊不在严禁之列，漏了气电立焊，四种记错一种。", fix:"是塞焊/槽焊/电渣焊/气电立焊，坡口焊不属此列。" },
+        { t:"接头形式与荷载无关，动荷载下任何接头都能用，只要焊透即可。", ok:false, code:"E07", tempt:"以为焊透了就万事大吉。", lose:"疲劳验算下接头形式恰恰关键，塞/槽/电渣/气电立焊严禁。", fix:"动荷载需疲劳验算时严禁这四种接头。" },
+        { t:"动荷载下要严禁使用不当的焊接接头，具体哪几种按规范来。", ok:false, code:"E02", tempt:"知道有禁用项但记不清，写句套话。", lose:"没点出具体四种接头，采分点落空。", fix:"明确写塞焊、槽焊、电渣焊、气电立焊四种。" }
+      ] },
+    { tag:"焊接主控·记录维", typeHint:"单选 · 选出主控项目正确的作答", figLabel:"焊接质量主控项目", figCaption:"应包括哪些？", fig:"ctrl",
+      stem:"钢结构焊接质量主控项目应包括哪些内容？选出正确、能得分的作答。",
+      model:"焊接材料须烘焙、焊工持证上岗、一二级焊缝须无损检测。",
+      opts:[
+        { t:"焊接材料须烘焙、焊工持证上岗、一级和二级焊缝须无损检测。", ok:true, fix:"三项主控齐全，尤其盯准「一二级」焊缝无损检测。", code:"" },
+        { t:"焊接材料须烘焙、焊工持证上岗、全部焊缝一律进行无损检测。", ok:false, code:"E03", tempt:"以为焊缝都查一遍更保险。", lose:"应是「一级、二级」焊缝无损检测，写「全部」关键词错、不合规。", fix:"改为一级、二级焊缝须无损检测，不是全部焊缝。" },
+        { t:"焊工持证上岗，其余加强现场管理、按规范施焊即可。", ok:false, code:"E02", tempt:"只记住焊工持证一条。", lose:"漏了焊材烘焙和一二级焊缝无损检测两项主控。", fix:"补焊材须烘焙、一二级焊缝须无损检测。" },
+        { t:"焊接质量靠焊工经验和责任心保证，主控就是加强质量意识。", ok:false, code:"M10", tempt:"用「意识/责任心」这种话代替具体项目。", lose:"无可判分的主控项目，属常识替代规范。", fix:"写焊材烘焙、焊工持证、一二级焊缝无损检测。" }
+      ] },
+    { tag:"焊接特点·陷阱", typeHint:"单选 · 选出关于焊接优点正确的作答", figLabel:"焊缝表面光溜 · 内部缺陷难查", figCaption:"哪句关于焊接优点是对的？", fig:"inspect",
+      stem:"关于焊接连接的特点，选出正确、能得分的作答。",
+      model:"焊接优点：节约钢材、构造简单、易自动化、加工方便；但内部缺陷难查，须无损探伤，不能算「易于检查」。",
+      opts:[
+        { t:"优点是节约钢材、构造简单、易自动化、加工方便；内部缺陷难查，须无损探伤。", ok:true, fix:"优点四条对，且点明内部缺陷难查、须探伤，避开「易于检查」陷阱。", code:"" },
+        { t:"优点是节约钢材、构造简单、易自动化、加工方便，而且焊缝易于检查。", ok:false, code:"E07", tempt:"焊缝表面看得见，就以为「易于检查」也是优点。", lose:"焊缝内部夹渣气孔肉眼难查、须探伤，「易于检查」是典型陷阱项。", fix:"删掉「易于检查」，改为内部缺陷须无损探伤。" },
+        { t:"焊接最大优点是连接可拆卸、可重复使用，施工灵活。", ok:false, code:"E07", tempt:"把螺栓的可拆特性安到焊接头上。", lose:"焊接是永久连接不可拆，可拆是螺栓的特点，概念混淆。", fix:"焊接优点是节约钢材/构造简单/易自动化/加工方便。" },
+        { t:"焊接优点就是牢固耐用，能焊多牢就多牢，没什么缺点。", ok:false, code:"E02", tempt:"笼统说「牢固」省事。", lose:"没列具体优点、也回避了内部缺陷难查，采分点空。", fix:"列四条优点并补内部缺陷难查、须探伤。" }
+      ] },
+    { tag:"高强螺栓·原理", typeHint:"单选 · 选出传力机理正确的作答", figLabel:"摩擦型 vs 承压型", figCaption:"高强螺栓靠什么传力？", fig:"clamp",
+      stem:"高强度螺栓连接（摩擦型）主要靠什么传递外荷载？选出正确、能得分的作答。",
+      model:"靠预拉力把板件夹紧、接触面摩擦力传递外荷载（摩擦连接）。",
+      opts:[
+        { t:"靠拧出的预拉力把板件夹紧，接触面产生摩擦力来传递外荷载。", ok:true, fix:"点明「预拉力夹紧、摩擦传力」，正是摩擦型高强螺栓的机理采分句。", code:"" },
+        { t:"靠螺栓杆抵住孔壁承受剪力来传递外荷载，像销钉一样抗剪。", ok:false, code:"E07", tempt:"直觉觉得螺栓就是靠杆顶着受力。", lose:"那是普通螺栓承压型的传力方式，摩擦型高强螺栓靠摩擦传力。", fix:"摩擦型靠预拉力夹紧、接触面摩擦力传外荷载。" },
+        { t:"靠螺栓和钢板焊在一起形成整体来传递外荷载。", ok:false, code:"E07", tempt:"把螺栓连接和焊接搞混。", lose:"高强螺栓是机械连接不焊接，传力靠摩擦不靠熔合。", fix:"靠预拉力夹紧、摩擦力传外荷载。" },
+        { t:"只要把高强螺栓拧得足够紧，靠拧紧本身就能把荷载传过去。", ok:false, code:"E02", tempt:"觉得「拧紧就行」。", lose:"没说清是靠预拉力产生的摩擦力传力，机理采分点没答到。", fix:"预拉力夹紧板件、接触面摩擦力传外荷载。" }
+      ] },
+    { tag:"安装螺栓·条件维", typeHint:"单选 · 选出数量纪律列全的作答", figLabel:"安装孔 · 安装螺栓 · 冲钉", figCaption:"安装阶段的数量纪律", fig:"count",
+      stem:"钢结构安装时，安装螺栓与冲钉的数量应满足哪些要求？选出列全、能得分的作答。",
+      model:"安装螺栓≥2个且≥安装孔总数1/3；冲钉≤安装螺栓数量30%；不得用高强螺栓兼作安装螺栓。",
+      opts:[
+        { t:"安装螺栓不少于2个且不少于安装孔总数的1/3；冲钉不多于安装螺栓的30%；不得用高强螺栓兼作安装螺栓。", ok:true, fix:"三条纪律齐：数量下限、冲钉上限、不得兼作，条件维拿满。", code:"" },
+        { t:"安装螺栓不少于2个即可，冲钉数量不限，随孔位灵活穿。", ok:false, code:"M08", tempt:"只记住「≥2个」一个数。", lose:"漏了「≥安装孔1/3」和「冲钉≤30%」，数量纪律不全。", fix:"补≥安装孔总数1/3、冲钉≤安装螺栓30%。" },
+        { t:"孔位不够时可直接用高强度螺栓兼作安装螺栓临时固定，方便省事。", ok:false, code:"E10", tempt:"觉得高强螺栓装一遍能临时又最终，省一道。", lose:"明确规定不得用高强螺栓兼作安装螺栓，属规范适用错误。", fix:"另设安装螺栓≥2个且≥1/3孔，高强螺栓不得兼作。" },
+        { t:"安装螺栓不少于安装孔总数的1/2，冲钉不少于安装螺栓的50%。", ok:false, code:"M08", tempt:"记得有分数和百分比，数值凭印象填。", lose:"应是≥1/3孔、冲钉≤30%（是上限不是下限），数值和方向都错。", fix:"≥安装孔1/3、冲钉≤安装螺栓30%。" }
+      ] },
+    { tag:"兼作纠错·判断纠错", typeHint:"单选 · 指出不妥并给出带数值的正确做法", figLabel:"高强螺栓兼作安装螺栓（待判）", figCaption:"这样临时固定妥不妥？", fig:"count",
+      stem:"施工员用高强度螺栓兼作安装螺栓做临时固定。指出是否妥当，并选出正确做法。",
+      model:"不妥：不得用高强度螺栓兼作安装螺栓；应另设安装螺栓，不少于2个且不少于安装孔总数的1/3。",
+      opts:[
+        { t:"不妥。应另设安装螺栓，不少于2个且不少于安装孔总数的1/3，高强螺栓不得兼作。", ok:true, fix:"先判不妥、再给带数值的正确做法，判断纠错三段齐。", code:"" },
+        { t:"妥当。高强螺栓先当安装螺栓临时固定、后续再终拧当正式受力件，一举两得。", ok:false, code:"E10", tempt:"觉得高强螺栓装一次能兼两用，效率高。", lose:"违反「不得用高强螺栓兼作安装螺栓」，属规范适用错误。", fix:"不妥；另设安装螺栓≥2个且≥1/3孔。" },
+        { t:"不妥，应该换成普通螺栓来兼作安装螺栓临时固定即可。", ok:false, code:"E03", tempt:"知道不能用高强螺栓兼作，改口说换普通螺栓。", lose:"没给出「另设安装螺栓≥2个≥1/3孔」的数量限值，纠正缺关键数。", fix:"应另设安装螺栓，不少于2个且不少于安装孔1/3。" },
+        { t:"不妥，应把全部孔都先用冲钉打满固定后再拧高强螺栓。", ok:false, code:"E07", tempt:"想用冲钉替代解决临时固定。", lose:"冲钉不多于安装螺栓30%，不能打满；且没设安装螺栓，方向错。", fix:"另设安装螺栓≥2个≥1/3孔，冲钉≤30%。" }
+      ] },
+    { tag:"穿入扩孔·程序维", typeHint:"单选 · 选出穿入与扩孔规定正确的作答", figLabel:"自由穿入 vs 气割扩孔 · ≤1.2D", figCaption:"穿入与扩孔怎么做才对？", fig:"ream",
+      stem:"高强度螺栓的穿入与扩孔应如何处理？选出正确、能得分的作答。",
+      model:"必须自由穿入、不得强行；若需扩孔，孔径不得超过螺栓直径的1.2倍，且不得使用气割扩孔。",
+      opts:[
+        { t:"必须自由穿入、不得强行；若需扩孔，孔径不超过螺栓直径的1.2倍，且禁止气割扩孔。", ok:true, fix:"自由穿入 + 扩孔≤1.2D + 禁气割，三点齐，程序维拿满。", code:"" },
+        { t:"穿不进去可用锤子敲击强行打入，孔差得多时用气割把孔扩大到位。", ok:false, code:"M10", tempt:"现场图快，能穿进去就行。", lose:"强行锤入伤螺纹、气割扩孔烧伤孔壁，都违反规范。", fix:"必须自由穿入；扩孔≤1.2D、只能机械扩、禁气割。" },
+        { t:"必须自由穿入；若需扩孔，孔径不超过螺栓直径的1.5倍即可，扩孔方式不限。", ok:false, code:"M08", tempt:"记得有个倍数，凭印象写 1.5。", lose:"扩孔上限是1.2倍不是1.5倍，且未禁气割。", fix:"扩孔≤1.2倍螺栓直径，且禁气割扩孔。" },
+        { t:"只要最终能拧紧到位，穿入方式和扩孔方式都无所谓。", ok:false, code:"E10", tempt:"以为结果拧紧就行、过程随意。", lose:"忽略自由穿入与禁气割/≤1.2D的过程规定，规范适用错误。", fix:"必须自由穿入、扩孔≤1.2D、禁气割。" }
+      ] },
+    { tag:"气割纠错·判断纠错", typeHint:"单选 · 指出不妥并给出带限值的正确做法", figLabel:"用气割扩孔（待判）", figCaption:"孔不对位气割扩一下妥不妥？", fig:"ream",
+      stem:"个别螺栓孔不对位，施工员用气割把孔扩大。指出是否妥当，并选出正确做法。",
+      model:"不妥：不得用气割扩孔（烧伤孔壁、热影响）；应用机械方法扩孔，且孔径不超过螺栓直径的1.2倍。",
+      opts:[
+        { t:"不妥。应采用机械方法扩孔，孔径不超过螺栓直径的1.2倍，不得用气割扩孔。", ok:true, fix:"点明禁气割、给出机械扩孔且≤1.2D 的限值，三段齐。", code:"" },
+        { t:"妥当。气割扩孔又快又省事，只要能把螺栓穿进去就行。", ok:false, code:"E10", tempt:"现场赶工，气割最快。", lose:"气割烧伤孔壁、留热影响区，明确禁止，属规范适用错误。", fix:"不妥；应机械扩孔≤1.2D，禁气割。" },
+        { t:"不妥，应该改用锤子把螺栓强行打进原孔，不必扩孔。", ok:false, code:"E07", tempt:"想避开扩孔干脆硬砸进去。", lose:"强行锤入违反自由穿入要求，方向纠错错。", fix:"应机械扩孔、孔径≤1.2D，且必须自由穿入。" },
+        { t:"不妥，气割扩孔不好，用机械扩孔就行。", ok:false, code:"E03", tempt:"知道禁气割改机械，但没写限值。", lose:"缺「孔径≤螺栓直径1.2倍」关键限值，正确做法不完整。", fix:"机械扩孔且孔径≤螺栓直径的1.2倍。" }
+      ] },
+    { tag:"摩擦面·记录维", typeHint:"单选 · 选出摩擦面处理正确的作答", figLabel:"洁净面 vs 带杂质/标记面", figCaption:"摩擦面该怎么处理？", fig:"face",
+      stem:"高强度螺栓连接的摩擦面应如何处理？选出正确、能得分的作答。",
+      model:"摩擦面干燥清洁，无飞边毛刺焊渣氧化皮污垢，不得作标记，生锈须钢丝刷除浮锈。",
+      opts:[
+        { t:"摩擦面须干燥清洁，无飞边毛刺焊渣氧化皮污垢，不得作标记，生锈用钢丝刷除浮锈。", ok:true, fix:"洁净要求 + 不得作标记 + 除浮锈都写全，尤其「不得作标记」是判分眼。", code:"" },
+        { t:"摩擦面清理干净即可；为方便安装，可用记号笔在摩擦面上做定位标记。", ok:false, code:"E10", tempt:"觉得做个定位记号方便对位、无伤大雅。", lose:"摩擦面不得作标记，记号会降低摩擦系数，属规范适用错误。", fix:"摩擦面不得作标记；定位标记只能做在摩擦面以外。" },
+        { t:"摩擦面打磨光亮后抹一层薄油防锈，安装前擦掉即可。", ok:false, code:"E07", tempt:"觉得抹油防锈是好习惯。", lose:"油膜会降低摩擦系数、削弱抗滑移承载力，方向错。", fix:"摩擦面须干燥清洁无油污，不得抹油、不得作标记。" },
+        { t:"把摩擦面清理干净就行，其他没什么特别要求。", ok:false, code:"E02", tempt:"只答「清理干净」一句了事。", lose:"漏了「不得作标记」「除浮锈」等关键要求，采分点不全。", fix:"补无飞边毛刺焊渣污垢、不得作标记、生锈钢丝刷除浮锈。" }
+      ] },
+    { tag:"抗滑移·终拧检查", typeHint:"单选 · 选出检验项与时间正确的作答", figLabel:"抗滑移试验 · 终拧后检查时间", figCaption:"检验怎么做、终拧后何时查？", fig:"clock",
+      stem:"高强度螺栓连接的检验应包括什么？终拧后应何时检查？选出正确、能得分的作答。",
+      model:"摩擦面须做抗滑移试验；终拧后应在1~48小时内检查。",
+      opts:[
+        { t:"摩擦面须做抗滑移试验；终拧完成后应在1~48小时内检查。", ok:true, fix:"抗滑移试验 + 终拧后1~48h 检查，两项齐、时间准。", code:"" },
+        { t:"摩擦面须做抗滑移试验；终拧完成后检查即可，时间没有特别要求。", ok:false, code:"E03", tempt:"记得要抗滑移、要检查，却忘了时间窗。", lose:"漏了「终拧后1~48h内」这个关键时间，关键词缺失。", fix:"补终拧后应在1~48小时内检查。" },
+        { t:"摩擦面须做抗滑移试验；终拧完成后一周内检查完毕即可。", ok:false, code:"M08", tempt:"觉得一周内挺宽松、来得及。", lose:"检查时间是1~48小时，写「一周内」时间数值错。", fix:"终拧后应在1~48小时内检查，不是一周内。" },
+        { t:"终拧完成后在1~48小时内检查扭矩即可，安装前不必做别的试验。", ok:false, code:"E02", tempt:"抓住了时间窗，就以为够了。", lose:"漏了「摩擦面须做抗滑移试验」这一检验项。", fix:"补摩擦面抗滑移试验，与终拧后1~48h检查并列。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 揪出全部失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"哪处对、哪处错，一次说清", fig:"sheet",
+      stem:"某学生作答：①用高强螺栓兼作安装螺栓临时固定；②孔不对位用气割扩孔；③摩擦面用记号笔做定位；④终拧完一周后检查；⑤焊缝夹渣是焊前没预热造成的。选出最准确的诊断与补写。",
+      model:"五处全错：①不得兼作，应另设安装螺栓≥2个≥1/3孔；②禁气割，应机械扩孔≤1.2D；③摩擦面不得作标记；④应终拧后1~48h内检查；⑤夹渣主因是焊接电流太小，非没预热。",
+      opts:[
+        { t:"五处都不对：应另设安装螺栓≥2个≥1/3孔、机械扩孔≤1.2D禁气割、摩擦面不得作标记、终拧后1~48h内检查、夹渣主因是电流太小。", ok:true, fix:"五处失分全揪出并逐条给正确采分句——这就是「会写答案」。", code:"" },
+        { t:"只有第⑤条夹渣成因写错，前四条施工做法都合规，改成因即可。", ok:false, code:"E07", tempt:"只盯住了成因那句，觉得施工步骤没毛病。", lose:"兼作、气割、摩擦面标记、终拧时间四处施工也全违规，漏诊四处。", fix:"五处都要改，不止成因一处。" },
+        { t:"主要问题是第②条气割扩孔，改用机械扩孔即可，其余基本没问题。", ok:false, code:"E02", tempt:"抓到气割最扎眼的一处就收手。", lose:"兼作、摩擦面标记、终拧时间、夹渣成因四处失分被漏诊。", fix:"五处逐条改：兼作/气割/标记/终拧时间/夹渣成因。" },
+        { t:"把第⑤条夹渣成因纠成「湿度太大」，其余四条按现场惯例即可。", ok:false, code:"M03", tempt:"知道成因写错了，却纠成了另一个错答案。", lose:"湿度大是气孔成因不是夹渣，且前四条违规未纠，诊断方向错。", fix:"夹渣主因是电流太小；前四条也须逐条纠正。" }
+      ] }
+  ];
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"连接方法/接头/主控/数量纪律逐项写全，缺一扣一。"},
+    E03:{label:"关键词缺失",advice:"「一二级焊缝」「扩孔≤1.2D」「终拧后1~48h」这些限值别漏。"},
+    E07:{label:"概念混淆",advice:"分清连接方法≠接头类型、摩擦型≠承压型、缺陷成因各归各家。"},
+    E10:{label:"规范适用错误",advice:"不得兼作、禁气割扩孔、摩擦面不作标记——违规做法要认得出。"},
+    M03:{label:"缺陷成因混淆",advice:"夹渣=电流太小、气孔=湿度大、裂纹=冷却快没预热，别串门。"},
+    M08:{label:"规范数字混淆",advice:"风速8/2、扩孔1.2D、终拧1~48h、安装螺栓≥1/3孔冲钉≤30%，数字记牢。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+  }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="methods"){ figH=60; const m=[["焊接","#cf4436"],["普通螺栓","#2f6db0"],["高强度螺栓","#2f6db0"],["铆接","#2f6db0"]];
+      m.forEach((p,i)=>els.push(D({x:2+i*80,top:12,w:74,h:38,bg:"#fff",bd:"1.5px solid "+p[1],r:10,fg:p[1],fs:11,lab:p[0]}))); }
+    else if(type==="joints"){ figH=92; const j=["全熔透","部分熔透","角焊缝","塞焊","槽焊","电渣焊","栓钉焊"]; let x=0,y=6;
+      j.forEach((t)=>{ const w=t.length*13+18; if(x+w>318){x=0;y+=32;} els.push(D({x:x,top:y,w:w,h:26,bg:"#f1ece0",bd:"1px solid #d8ccaa",r:8,fg:"#23282b",fs:11,lab:t})); x+=w+7; }); }
+    else if(type==="env"){ figH=96; const rows=[["温度 ≥ −10℃",0.78,"#2c8a5b"],["相对湿度 ≤ 90%",0.62,"#2f6db0"],["手工≤8 / 气保≤2 m/s",0.5,"#cf8a44"]];
+      rows.forEach((r,i)=>{ const y=6+i*30; els.push(D({x:0,top:y,w:150,h:18,fg:"#5c6469",fs:10.5,ta:"left",jc:"flex-start",lab:r[0]}));
+        els.push(D({x:158,top:y+2,w:150,h:14,bg:"#e2e0d5",r:7,lab:""}));
+        els.push(D({x:158,top:y+2,w:Math.round(150*r[1]),h:14,bg:r[2],r:7,lab:""})); }); }
+    else if(type==="defect"){ figH=72; const c=[["夹渣","主因？","#cf4436"],["气孔","湿度大","#8b9398"],["裂纹","冷却快·没预热","#8b9398"]];
+      c.forEach((p,i)=>{ const x=2+i*104; els.push(D({x:x,top:4,w:98,h:24,bg:"#fff",bd:"1.5px solid "+(i===0?"#cf4436":"#d8ccaa"),r:9,fg:p[2],fs:12,lab:p[0]}));
+        els.push(D({x:x,top:34,w:98,h:30,fg:"#5c6469",fs:9,lab:p[1]})); }); }
+    else if(type==="fatigue"){ figH=76; els.push(D({x:0,top:0,w:318,h:16,fg:"#cf4436",fs:10,jc:"flex-start",lab:"动荷载 ↓↓↓ 循环 · 需疲劳验算"}));
+      const j=["塞焊","槽焊","电渣焊","气电立焊"]; j.forEach((t,i)=>els.push(D({x:2+i*79,top:26,w:74,h:40,bg:"#fdeeeb",bd:"2px solid #cf4436",r:9,fg:"#cf4436",fs:11,lab:t+" ✕"}))); }
+    else if(type==="ctrl"){ figH=62; const c=[["焊材烘焙","#cf8a44"],["焊工持证","#2f6db0"],["一二级无损检测","#2c8a5b"]];
+      let x=0; c.forEach((p)=>{ const w=p[0].length>4?128:88; els.push(D({x:x,top:14,w:w,h:34,bg:"#fff",bd:"1.5px solid "+p[1],r:10,fg:p[1],fs:11,lab:p[0]})); x+=w+8; }); }
+    else if(type==="inspect"){ figH=68; els.push(D({x:0,top:2,w:318,h:20,bg:"#46627e",r:5,fg:"#dfe6ee",fs:10.5,lab:"焊缝表面 · 光溜溜"}));
+      els.push(D({x:70,top:7,w:9,h:9,bg:"#1c1f22",r:9,lab:""})); els.push(D({x:150,top:8,w:7,h:7,bg:"#1c1f22",r:7,lab:""})); els.push(D({x:220,top:6,w:8,h:8,bg:"#1c1f22",r:8,lab:""}));
+      els.push(D({x:0,top:30,w:318,h:14,fg:"#8b9398",fs:9.5,jc:"flex-start",lab:"内部夹渣气孔肉眼看不见"}));
+      els.push(D({x:0,top:48,w:318,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",lab:"→ 须无损探伤，「易于检查」是陷阱"})); }
+    else if(type==="clamp"){ figH=64;
+      els.push(D({x:0,top:2,w:66,h:18,bg:"#2c8a5b",r:5,fg:"#fff",fs:10,lab:"摩擦型"}));
+      els.push(D({x:72,top:2,w:246,h:18,fg:"#2c8a5b",fs:10,jc:"flex-start",lab:"预拉力夹紧 · 接触面摩擦传力"}));
+      els.push(D({x:0,top:26,w:66,h:18,bg:"#8b95a0",r:5,fg:"#fff",fs:10,lab:"承压型"}));
+      els.push(D({x:72,top:26,w:246,h:18,fg:"#8b6a3a",fs:10,jc:"flex-start",lab:"螺栓杆抗剪（销钉）· 普通螺栓"}));
+      els.push(D({x:0,top:48,w:318,h:14,fg:"#9aa0a3",fs:9,jc:"flex-start",lab:"高强螺栓广泛采用摩擦型"})); }
+    else if(type==="count"){ figH=104; const bx=84;
+      els.push(D({x:bx,top:2,w:150,h:74,bg:"#cdd3d8",bd:"2px solid #9aa4ac",r:8,lab:""}));
+      const cols=[bx+14,bx+65,bx+116], rows=[8,32,56], fill=[["b"],["o","b"],["","",""]];
+      const cfg=[[0,0,"b"],[0,2,"b"],[1,1,"b"],[1,0,"o"]];
+      const put=(cx,ry,type)=>{ const c=type==="b"?"#2f6db0":type==="o"?"#cf8a44":null; els.push(D({x:cols[cx],top:rows[ry],w:20,h:20,r:20,bg:c||"#e6eaee",bd:c?"none":"2px solid #9aa4ac",lab:""})); };
+      for(let r=0;r<3;r++)for(let c=0;c<3;c++){ let ty=""; cfg.forEach(f=>{ if(f[0]===c&&f[1]===r)ty=f[2]; }); put(c,r,ty); }
+      els.push(D({x:0,top:84,w:318,h:14,fg:"#5c6469",fs:9.5,lab:"● 安装螺栓　● 冲钉　○ 空孔"})); }
+    else if(type==="ream"){ figH=76;
+      els.push(D({x:0,top:2,w:150,h:34,bg:"#eef7f1",bd:"2px solid #2c8a5b",r:9,fg:"#2c8a5b",fs:11,lab:"自由穿入 ✓"}));
+      els.push(D({x:168,top:2,w:150,h:34,bg:"#fff",bd:"1.5px solid #cf4436",r:9,fg:"#cf4436",fs:11,lab:"气割扩孔 ✕"}));
+      els.push(D({x:0,top:46,w:318,h:16,fg:"#8b6a3a",fs:10.5,jc:"flex-start",lab:"要扩孔：机械扩、孔径 ≤ 螺栓直径 1.2 倍"})); }
+    else if(type==="face"){ figH=88;
+      els.push(D({x:0,top:2,w:150,h:20,bg:"#eef7f1",bd:"2px solid #2c8a5b",r:8,fg:"#2c8a5b",fs:10.5,lab:"洁净面 ✓"}));
+      els.push(D({x:0,top:26,w:150,h:34,bg:"linear-gradient(135deg,#c9d3cd,#dfe7e1)",bd:"1px solid #b3c0b8",r:6,lab:""}));
+      els.push(D({x:0,top:64,w:150,h:14,fg:"#2c8a5b",fs:9,lab:"干燥清洁·不作标记"}));
+      els.push(D({x:168,top:2,w:150,h:20,bg:"#fff",bd:"1.5px solid #cf4436",r:8,fg:"#cf4436",fs:10.5,lab:"带杂质/标记 ✕"}));
+      els.push(D({x:168,top:26,w:150,h:34,bg:"linear-gradient(135deg,#c9d3cd,#dfe7e1)",bd:"1px solid #b3c0b8",r:6,lab:""}));
+      els.push(D({x:186,top:36,w:60,h:3,bg:"#cf4436",r:2,lab:""}));
+      els.push(D({x:204,top:32,w:8,h:8,bg:"#5c4a2e",r:8,lab:""}));
+      els.push(D({x:168,top:64,w:150,h:14,fg:"#cf4436",fs:9,lab:"标记/杂质→系数↓"})); }
+    else if(type==="clock"){ figH=66;
+      els.push(D({x:0,top:14,w:36,h:14,fg:"#cf8a44",fs:9,jc:"flex-start",lab:"终拧"}));
+      els.push(D({x:8,top:28,w:14,h:14,bg:"#cf8a44",r:14,lab:""}));
+      els.push(D({x:40,top:31,w:200,h:6,bg:"#2c8a5b",r:3,lab:""}));
+      els.push(D({x:36,top:44,w:24,h:12,fg:"#2c8a5b",fs:9,lab:"1h"}));
+      els.push(D({x:216,top:44,w:24,h:12,fg:"#2c8a5b",fs:9,lab:"48h"}));
+      els.push(D({x:248,top:44,w:64,h:12,fg:"#cf4436",fs:9,jc:"flex-start",lab:"一周后 ✕"}));
+      els.push(D({x:0,top:2,w:318,h:12,fg:"#8b6a3a",fs:9.5,jc:"flex-start",lab:"另需：摩擦面抗滑移试验 · 摩擦面不作标记"})); }
+    else if(type==="sheet"){ figH=100; const lines=["① 高强螺栓兼作安装螺栓临时固定","② 孔不对位 → 气割扩孔","③ 摩擦面用记号笔做定位","④ 终拧完一周后检查","⑤ 夹渣是焊前没预热造成的"];
+      lines.forEach((l,i)=>{ els.push(D({x:0,top:2+i*19,w:318,h:16,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:5,fg:"#23282b",fs:10.5,fw:"600",ta:"left",jc:"flex-start",p:"0 9px",lab:l})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

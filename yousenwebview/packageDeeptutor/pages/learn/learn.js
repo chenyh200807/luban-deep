@@ -186,10 +186,16 @@ Page({
     var ds = (event && event.currentTarget && event.currentTarget.dataset) || {};
     var packId = ds.packId || (this.data.vm && this.data.vm.nextStation && this.data.vm.nextStation.pack_id);
     var green = ds.green;
+    var cardHosted = ds.cardHosted;
     if (!packId) return;
     if (green === false) {
       if (typeof wx !== "undefined" && wx.showToast)
         wx.showToast({ title: "这一站即将开通", icon: "none" });
+      return;
+    }
+    if (cardHosted === false) {
+      if (typeof wx !== "undefined" && wx.showToast)
+        wx.showToast({ title: "这一站微课即将开通", icon: "none" });
       return;
     }
     this._navTo("/packageDeeptutor/pages/luban/station/station?pack_id=" + encodeURIComponent(String(packId)));

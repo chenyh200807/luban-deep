@@ -130,7 +130,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 内容清单、组织主体、判定依据、采分句都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -139,7 +139,7 @@
       </div>
       <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
         <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
-        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲（上 / 下集）</div></div>
       </a>
       <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
     </div>
@@ -195,89 +195,218 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
-  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"" };
-  examTitle="结构实体检验答案诊断";
-  KNOWLEDGE="检验批验收·案例题作答层(A01,真题锚{2017·案例·问4})。本层训练把知识写成阅卷友好的采分句,采分点从A01知识层派生,不新增官方判分权威。内容清单:结构实体检验除混凝土强度外,还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目(漏项=E02)。组织主体:由监理单位组织、施工单位实施、监理见证全过程,施工单位编制专项方案报监理审批(写施工单位组织=E07概念混淆)。判定依据:C35实体强度应满足平均值≥设计值×88%且最小值≥设计值×80%,不能直接拿平均值比35(=E10);本题芯样28.5/31/32MPa,平均值30.8MPa,35×88%=30.8MPa恰为临界,最小值28.5MPa>35×80%=28MPa;临界取舍以评分细则或教研裁定为准,只指漏不定分。作答结构:先编号写检验内容,再写主体链,最后亮双阈值判据、代入回判。禁口号化表达(E04)。记忆钩:扫答案,补三格——内容清单、组织主体、判定依据。";
-  moreText="补两道：① 主体分部工程验收“应有哪些单位和人员参加”的场景题（{2015·第28题}/{2023·案例·问4}）——练「组织主体 + 必参加人员」一次写全，防再漏设计单位和技术质量负责人；② 验收不合格如何处理的决策分支题——练「返修/返工后重新验收 → 资料缺失可委托检测 → 加固后仍不满足安全要求严禁验收」三档，补上后果维。";
-
-  // ── 题库：扫答案 → 改主体 → 跑双阈值 → 重排三格 → 输出采分句（5 题，来自 pack practice_blueprint）──
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrders:null };
+  examTitle="检验批·验收程序";
+  KNOWLEDGE="检验批/分部分项工程质量验收程序。四级层级自下而上：检验批→分项→分部→单位，下一级合格是上一级前提。检验批按工程量/楼层/施工段/变形缝划分；分项按主要工种/材料/施工工艺/设备类别。合格判定：主控项目全部合格、一般项目合格率≥80%。隐蔽工程覆盖前验收留记录、未验收不得进下道。见证取样在建设/监理见证下取样送检、见证人员记录。结构实体检验四内容：混凝土强度/钢筋保护层厚度/结构位置与尺寸偏差/合同约定项目；监理组织、施工实施、监理见证；强度先同条件养护试件、不足才回弹—取芯；合格判定平均≥设计×88%且最小≥设计×80%（C35三芯样28.5/31/32→平均30.8临界、最小28.5>28，临界按评分细则）。分部验收由总监理工程师/建设单位项目负责人组织，施工项目/技术负责人参加，地基基础/主体加设计单位项目负责人+施工技术质量部门负责人；主体结构七子分部。单位工程合格五条。不合格分档：返工重验/资料缺委托检测/加固重评/仍不满足安全严禁验收。竣工六步：施工自检→监理预验收→施工整改→预验收通过→竣工报告→建设单位组织正式验收，五方参加。";
+  moreText="补两组方向：① 隐蔽工程与见证取样——练「覆盖前验收 + 留记录 + 未验收不得进下道」和「见证下取样、见证人员记录」两条采分句；② 结构实体检验——练四项内容一次写全、组织主体（监理组织·施工实施）不答反、强度双阈值 88%/80% 判定带临界。";
   Q=[
-    { tag:"扫学生答案·补清单", typeHint:"单选 · 选出最能补齐采分动作的做法", figLabel:"图示：答题纸逐句扫描", figCaption:"混凝土强度 hit · 保护层 partial · 尺寸偏差 / 合同项目待补", fig:"scan1",
-      stem:"学生答：“结构实体检验还要测一下钢筋保护层。”这句话在实体检验项目上最主要缺哪一类采分动作？",
-      model:"补“结构位置与尺寸偏差、合同约定项目”，把实体检验内容从一项补成完整清单：混凝土强度 + 钢筋保护层厚度 + 结构位置与尺寸偏差 + 合同约定项目。",
+    { tag:"验收层级·程序维", typeHint:"单选 · 选出最完整、能得分的作答", fig:"steps",
+      figLabel:"四级验收层级", figCaption:"四级 · 验收方向你来判",
+      stem:"建筑工程质量验收分哪几级？验收方向如何？选出最完整、能得分的作答。",
+      model:"分检验批、分项工程、分部工程、单位工程四级，自下而上逐级累积验收，下一级合格是上一级前提。",
       opts:[
-        { t:"补“结构位置与尺寸偏差、合同约定项目”，把实体检验内容从一项补成完整清单。", ok:true, fix:"四件套逐项编号写：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目。", code:"" },
-        { t:"把“测一下”改成“必须检测”，让语气更强即可。", ok:false, code:"E04", tempt:"“必须检测”听起来更规范、更像标准答案。", lose:"阅卷缺的是项目不是语气，语气变强补不了缺项，口号化表达。", fix:"把结构位置与尺寸偏差、合同约定项目补进清单。" },
-        { t:"先改成监理单位组织，内容清单可以后面再写。", ok:false, code:"E02", tempt:"主体错位也是本题真实漏分口，先修它看着更要紧。", lose:"主体要改，但这一句首先卡在检验项目不全；清单缺口不补仍是采分点遗漏。", fix:"先补齐四件套清单，主体链另起一句单独写。" },
-        { t:"只保留混凝土强度，因为题干已经是强度判定题。", ok:false, code:"E05", tempt:"题干确实围着 C35 强度转，聚焦强度显得干脆。", lose:"题干第一问明确问“除混凝土强度外”还包括哪些项目，只答强度是审题错误。", fix:"按问法答强度以外的三项：保护层厚度、尺寸偏差、合同约定项目。" }
+        { t:"分检验批、分项工程、分部工程、单位工程四级，自下而上逐级累积验收，下一级合格是上一级前提。", ok:true, fix:"层级名 + 自下而上方向 + 逐级前提，三件齐。", code:"" },
+        { t:"分单位工程、分部工程、分项工程、检验批四级，自上而下逐级分解验收，上一级合格是下一级前提。", ok:false, code:"E06", tempt:"名头都对，方向顺手写成从大到小。", lose:"方向与前提整体倒装——应自下而上累积，倒着验的「合格」建在没验的地基上。", fix:"检验批、分项、分部、单位，自下而上逐级验。" },
+        { t:"分检验批、分项工程、分部工程、单位工程四级，自上而下验收，先定单位工程合格再核对下级。", ok:false, code:"E07", tempt:"层级顺序抄对了，验收方向想反了。", lose:"层级名对但方向错——先定上级再核下级，逻辑颠倒。", fix:"自下而上：下级全合格才验上级。" },
+        { t:"分分项工程、分部工程、单位工程三级，自下而上验收，检验批并入分项一并核定不单列。", ok:false, code:"E02", tempt:"以为检验批太小可并进分项。", lose:"漏检验批这一最小验收单元，层级少一级。", fix:"检验批必须单列，共四级。" }
       ] },
-    { tag:"改主体错位·组织权", typeHint:"单选 · 选出最像能拿主体分的改正动作", figLabel:"图示：组织主体箭头纠正", figCaption:"✗ 施工组织 → ✓ 监理组织 · 施工实施 · 监理见证", fig:"org",
-      stem:"学生答：“结构实体检验由施工单位组织检验。”下面哪一句改正动作最像能拿主体分？",
-      model:"改为“由监理单位组织、施工单位实施，监理见证全过程”；施工单位编制专项方案报监理审批。",
+    { tag:"检验批划分·条件维", typeHint:"单选 · 选出划分依据完整的作答", fig:"divide",
+      figLabel:"检验批怎么划分", figCaption:"一个分部 / 分项，切成若干检验批",
+      stem:"检验批可按哪些条件划分？（题干已给「楼层」）选出补充完整、能得分的作答。",
+      model:"检验批可按工程量、楼层、施工段、变形缝等划分。",
       opts:[
-        { t:"改为“由监理单位组织、施工单位实施，监理见证全过程”。", ok:true, fix:"组织、实施、见证三个角色拆清，主体精确到单位。", code:"" },
-        { t:"写施工单位自检合格后自行组织，体现谁施工谁负责。", ok:false, code:"E07", tempt:"施工单位确实实施检验，“谁施工谁负责”顺口又好记。", lose:"把实施主体当成组织主体，“谁施工谁验收”正是主体错位的错误心智，概念混淆。", fix:"组织写监理单位，施工单位只是实施主体。" },
-        { t:"直接写建设单位组织即可，避免监理和施工责任混乱。", ok:false, code:"M10", tempt:"拿不准就交给更高一级，听着最保险。", lose:"这是用常识推责任分配；结构实体检验的组织主体是监理单位，不是建设单位。", fix:"按主体链写：监理组织、施工实施、监理见证。" },
-        { t:"只写施工单位编制专项方案报监理审批，不再写组织主体。", ok:false, code:"E02", tempt:"专项方案报审批也是真实考点，写它显得懂流程。", lose:"专项方案是补充点；组织、实施、见证的主体分没写，就是采分点遗漏。", fix:"主体链写全后，再补专项方案报监理审批。" }
+        { t:"还可按工程量、施工段、变形缝划分，与楼层并列作为检验批的划分依据。", ok:true, fix:"补齐工程量 / 施工段 / 变形缝，边缘项不漏。", code:"" },
+        { t:"还可按主要工种、材料、施工工艺、设备类别划分，与楼层并列作为检验批依据。", ok:false, code:"E07", tempt:"依据看着都沾边，把分项的四类搬来凑。", lose:"工种 / 材料 / 工艺 / 设备是分项工程划分依据，不是检验批。", fix:"检验批按工程量 / 楼层 / 施工段 / 变形缝。" },
+        { t:"楼层已能唯一确定检验批，工程量、施工段、变形缝均不再作为划分依据。", ok:false, code:"E02", tempt:"以为给了楼层就够、其余多余。", lose:"把单一维度当全部，漏工程量 / 施工段 / 变形缝三项。", fix:"补工程量、施工段、变形缝，与楼层并列。" },
+        { t:"还可按专业性质与工程部位划分，与楼层并列作为检验批的划分依据。", ok:false, code:"E07", tempt:"把分部的划分依据错接到检验批上。", lose:"专业性质 / 工程部位是分部工程划分依据，层级归错。", fix:"检验批按工程量 / 楼层 / 施工段 / 变形缝。" }
       ] },
-    { tag:"跑双阈值·计算判定", typeHint:"单选 · 选出最稳的计算判定链", figLabel:"图示：芯样进入双阈值标尺", figCaption:"平均 30.8 ↔ 35×88%=30.8 · 最小 28.5 ＞ 35×80%=28", fig:"chain",
-      stem:"C35 构件芯样 28.5、31、32MPa，学生答：“平均值比 35 小，所以不合格。”这一步最稳的计算判定链应该怎么写？",
-      model:"先亮判据“平均值≥设计值×88%、最小值≥设计值×80%”，再代入：平均值 30.8MPa、35×88%=30.8MPa（临界），最小值 28.5MPa＞35×80%=28MPa，回判；临界取舍以评分细则或教研裁定为准。",
+    { tag:"分项划分·条件维", typeHint:"单选 · 选出划分依据完整的作答", fig:"divide",
+      figLabel:"分项工程怎么划分", figCaption:"按工种 / 材料 / 工艺 / 设备类别切分",
+      stem:"分项工程按哪些条件划分？选出完整、能得分的作答。",
+      model:"分项工程按主要工种、材料、施工工艺、设备类别划分。",
       opts:[
-        { t:"先亮判据“平均值≥设计×88%、最小值≥设计×80%”，再代入平均值30.8和最小值28.5回判。", ok:true, fix:"判据、代入、回判三步交付；临界不擅自定官方分，但阈值链必须写对。", code:"" },
-        { t:"平均值小于35MPa，直接判不合格即可，过程越短越清楚。", ok:false, code:"E10", tempt:"直接比设计值最直观，答案还短。", lose:"实体强度判定不是直接比35，而是先把设计值乘88%和80%，规范适用错误。", fix:"先写双阈值判据，再代入回判。" },
-        { t:"只要平均值达到88%即可，最小值不用再看。", ok:false, code:"E05", tempt:"平均值那条线最出名，算一条省事。", lose:"问法要的是完整判定依据，判定步骤缺最小值那条门，审题不全。", fix:"平均值≥88%和最小值≥80%两条同时满足才回判。" },
-        { t:"只看28.5大于28，所以不用算平均值。", ok:false, code:"M08", tempt:"最小值刚好过线，看着已经安全。", lose:"把双阈值记成单阈值：88%对平均值、80%对最小值，两条规则少套一条，规范数字混淆。", fix:"两条门都亮出来：平均值看88%，最小值看80%。" }
+        { t:"按主要工种、材料、施工工艺、设备类别划分。", ok:true, fix:"四类依据齐全，别与检验批条件混。", code:"" },
+        { t:"按工程量、楼层、施工段、变形缝等条件来划分各分项工程。", ok:false, code:"E07", tempt:"依据串档，把检验批那套搬到分项。", lose:"工程量 / 楼层 / 施工段 / 变形缝是检验批划分依据，分项归错类。", fix:"分项按工种 / 材料 / 工艺 / 设备类别。" },
+        { t:"分项工程只按主要工种和所用材料两类依据划分，工艺与设备类别不计。", ok:false, code:"E02", tempt:"记住前两类就当成全部。", lose:"漏施工工艺、设备类别两类，依据不全。", fix:"补施工工艺、设备类别，共四类。" },
+        { t:"按专业性质和工程部位来划分各分项工程，与工种材料并列。", ok:false, code:"E07", tempt:"把分部的依据错接到分项。", lose:"专业性质 / 工程部位是分部工程划分依据，层级归错。", fix:"分项按工种 / 材料 / 工艺 / 设备类别。" }
       ] },
-    { tag:"重排标准答·三格", typeHint:"单选 · 选出阅卷友好的组织顺序", figLabel:"图示：三格改写答题纸", figCaption:"散乱原答 → 内容清单 · 主体链 · 双阈值回判", fig:"regrid",
-      stem:"现在要把学生样本改成答题纸答案。下面哪种组织顺序最像阅卷友好的主观题答案？",
-      model:"先编号写检验内容，再写监理组织、施工实施、监理见证，最后亮88%/80%判据并代入回判——内容、主体、依据三格连续写。",
+    { tag:"合格判定·条件维", typeHint:"单选 · 选出合格标准正确的作答", fig:"twogate",
+      figLabel:"检验批合格两道门", figCaption:"主控项目 vs 一般项目，判定逻辑一样吗",
+      stem:"检验批主控项目、一般项目的合格标准分别是什么？选出能得分的作答。",
+      model:"主控项目应全部合格；一般项目合格率≥80%且最大偏差不超过规定值。",
       opts:[
-        { t:"先编号写检验内容，再写监理组织、施工实施、监理见证，最后亮88%/80%判据并代入回判。", ok:true, fix:"内容清单、组织主体、判定依据三格齐全，阅卷顺着格子给分。", code:"" },
-        { t:"先写平均值计算，再补一句“其余内容按规范验收”。", ok:false, code:"E02", tempt:"数值题最显眼，先把计算写了最有安全感。", lose:"计算有了，但“其余按规范验收”把内容清单和主体格空着，采分点遗漏。", fix:"把检验四项和主体链补成显式采分句。" },
-        { t:"先解释结构实体检验的概念，再写本题结论。", ok:false, code:"E04", tempt:"先讲概念显得基础扎实。", lose:"案例题不是名词解释：概念加结论没有具体采分对象，口号化表达。", fix:"直接答题干要的内容、主体、判定三格。" },
-        { t:"先给合格或不合格结论，再根据篇幅补理由。", ok:false, code:"E05", tempt:"结论先行看着干脆利落。", lose:"问法要求写判定依据，把依据当篇幅富余才补的东西是审题错误；本题还有临界处置，更不能只写结论。", fix:"先亮判据、代入、回判，结论跟在链条后面。" }
+        { t:"主控项目必须全部合格；一般项目合格率≥80%、且最大偏差不超过规定值。", ok:true, fix:"主控全合格（否决）+ 一般≥80%（容差），两条性质分清。", code:"" },
+        { t:"主控项目与一般项目的合格率均达到 80% 以上、偏差不超规定值即合格。", ok:false, code:"E10", tempt:"把两类项目当成同一个百分比门槛。", lose:"主控是否决项、须全部合格，套 80% 就错。", fix:"主控全部合格，只有一般项目才讲≥80%。" },
+        { t:"主控项目合格率达 80% 以上即可；一般项目则必须全部合格、无一例外。", ok:false, code:"E07", tempt:"记得有全合格和 80% 两档，却对调了。", lose:"两档张冠李戴——主控才是全合格、一般才是≥80%。", fix:"主控全合格、一般≥80%，别对调。" },
+        { t:"只要主控项目全部合格，检验批即判合格，一般项目不再另设合格率要求。", ok:false, code:"E02", tempt:"以为主控过了就万事大吉。", lose:"漏一般项目合格率≥80%、偏差不超规定值这一道门。", fix:"补一般项目合格率≥80%、偏差不超规定值。" }
       ] },
-    { tag:"输出采分句·终稿", typeHint:"单选 · 选出最完整的采分句", figLabel:"图示：最终答题纸扫描", figCaption:"内容清单 hit · 组织主体 hit · 判定依据 hit", fig:"final",
-      stem:"考试要求：结构实体检验除混凝土强度外还包括哪些项目？由谁组织？强度是否合格，写依据。下面哪一句最像完整采分句？",
-      model:"除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；由监理单位组织、施工单位实施、监理见证；强度按平均值≥设计×88%且最小值≥设计×80%回判。",
+    { tag:"隐蔽工程·程序维", typeHint:"单选 · 选出程序正确、能得分的作答", fig:"window",
+      figLabel:"隐蔽工程的时间窗口", figCaption:"钢筋 / 防水被覆盖前 vs 覆盖后",
+      stem:"某工程钢筋绑扎完成后准备浇筑混凝土。就隐蔽工程验收，选出正确、能得分的作答。",
+      model:"隐蔽工程应在覆盖前组织验收、留隐蔽验收记录，未经验收不得进入下道工序。",
       opts:[
-        { t:"除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；由监理组织、施工实施、监理见证；强度按平均≥88%、最小≥80%回判。", ok:true, fix:"内容、主体、依据三格都交付，阅卷一扫全命中。", code:"" },
-        { t:"还包括钢筋保护层，施工单位组织；平均值不达设计值，所以不合格。", ok:false, code:"E07", tempt:"每个格子都碰到了，看着像答完了。", lose:"这几乎就是学生错答：把施工单位写成组织方是概念混淆，清单和双阈值也没写全。", fix:"主体改成监理组织、施工实施、监理见证，再补清单和双阈值。" },
-        { t:"实体检验内容很多，应按规范逐项检测，确保质量合格。", ok:false, code:"E04", tempt:"“按规范、确保质量”怎么写都不会错。", lose:"阅卷无法定位保护层、尺寸偏差、合同项目和双阈值，空泛表达拿不到对象分，口号化表达。", fix:"把四件套、主体链、88%/80%写成显式对象。" },
-        { t:"应由监理单位组织，施工单位配合即可。", ok:false, code:"E02", tempt:"监理组织这句最有把握，先把它写上。", lose:"只拿到主体格的一部分，内容清单和判定依据两格空白，采分点遗漏。", fix:"三格连续写：清单、主体链、双阈值回判。" }
+        { t:"应在覆盖前对钢筋隐蔽工程组织验收并留隐蔽验收记录，合格后方可浇筑混凝土。", ok:true, fix:"覆盖前验 + 留记录 + 未验收不得进下道，三件齐。", code:"" },
+        { t:"可先浇筑混凝土，待后续需要时再凿开混凝土检查钢筋并补做验收记录。", ok:false, code:"E06", tempt:"以为随时能开挖复查、记录事后补。", lose:"覆盖后物理够不着、窗口一次性，违反覆盖前验收。", fix:"必须覆盖前验收留记录，未验收不得浇筑。" },
+        { t:"对钢筋组织验收合格即可浇筑，验收结论口头确认、不必留书面记录。", ok:false, code:"E02", tempt:"验了就行，觉得记录是走形式。", lose:"漏「留隐蔽验收记录」，事后无据可查。", fix:"验收 + 留文字 / 图像记录，缺一不可。" },
+        { t:"钢筋由施工班组自检合格后即可直接浇筑，无需报监理组织隐蔽验收。", ok:false, code:"E06", tempt:"图快，班组自检完就浇。", lose:"跳过隐蔽工程验收节点，程序缺环。", fix:"须经隐蔽工程验收合格，方可进下道。" }
+      ] },
+    { tag:"见证取样·主体维", typeHint:"单选 · 选出主体、记录都正确的作答", fig:"witness",
+      figLabel:"见证取样谁在场、谁记录", figCaption:"见证人 · 试验员 · 送检",
+      stem:"涉及结构安全的材料需见证取样送检。选出主体、记录都正确、能得分的作答。",
+      model:"在建设/监理见证人员见证下由试验员现场取样送检，保证真实性、代表性，见证记录由见证人员制作。",
+      opts:[
+        { t:"在建设 / 监理见证人员见证下现场取样送检，保证试样真实性、代表性，见证记录由见证人员制作。", ok:true, fix:"见证主体 + 真实代表性 + 见证人员记录，三件齐。", code:"" },
+        { t:"由试验员在现场独立取样送检并制作见证记录，同样能保证试样真实性与代表性。", ok:false, code:"E07", tempt:"取样是试验员干的，记录顺手也归他。", lose:"取样、记录都少了见证人员这一主体，记录应由见证人员制作。", fix:"见证记录由见证人员（非试验员）制作。" },
+        { t:"由施工员凭材料重要程度自行决定是否见证取样送检，重要的才送、次要的免送、常规材料凭出厂合格证直接放行入场。", ok:false, code:"M10", tempt:"凭「重要就送」的常识判断。", lose:"该不该送靠规范见证取样清单强制，不是主观判断。", fix:"按规范见证取样清单强制送检。" },
+        { t:"由施工单位现场取样后直接送检即可，取样与送检环节无需见证人员在场。", ok:false, code:"E02", tempt:"以为把样送到就完成了。", lose:"漏「见证下取样」这一主体条件，也没提真实性代表性。", fix:"补建设 / 监理见证下取样、保证真实代表性。" }
+      ] },
+    { tag:"实体检验·记录维", typeHint:"单选 · 选出内容完整的作答", fig:"checklist", figItems:["混凝土强度","钢筋保护层厚度","结构位置与尺寸偏差","合同约定项目"], figKnown:1,
+      figLabel:"结构实体检验内容", figCaption:"已知强度，还有哪三项？",
+      stem:"结构实体检验应包括哪些内容？选出完整、能得分的作答。",
+      model:"包括混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定的项目。",
+      opts:[
+        { t:"混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定的项目。", ok:true, fix:"四项齐全，后三项最易漏。", code:"" },
+        { t:"混凝土强度与钢筋保护层厚度两项，即为结构实体检验的全部内容。", ok:false, code:"E02", tempt:"记住最熟的前两项就当成全部。", lose:"漏结构位置与尺寸偏差、合同约定项目两项。", fix:"补尺寸偏差、合同约定项目，共四项。" },
+        { t:"混凝土强度、见证取样结果、隐蔽工程记录、工程观感质量四项内容。", ok:false, code:"E07", tempt:"凑够四项、却把别的验收环节混进来。", lose:"见证取样 / 隐蔽记录 / 观感非实体检验四内容，张冠李戴。", fix:"实体四内容=强度 / 保护层 / 尺寸偏差 / 合同约定。" },
+        { t:"混凝土强度、钢筋保护层厚度、砌体强度、防水性能共四项内容。", ok:false, code:"E07", tempt:"数量对上四项，内容却塞了砌体、防水。", lose:"砌体强度 / 防水性能不属结构实体检验四内容，归错。", fix:"第三四项是尺寸偏差与合同约定项目。" }
+      ] },
+    { tag:"实体检验·主体维", typeHint:"单选 · 选出组织主体正确的作答", fig:"roles",
+      figLabel:"实体检验谁组织、谁实施", figCaption:"监理 · 施工 各就位",
+      stem:"结构实体检验由谁组织、谁实施？选出能得分的作答。",
+      model:"由监理单位组织、施工单位实施、监理见证，施工单位编专项方案报监理审批。",
+      opts:[
+        { t:"由监理单位组织、施工单位实施、监理单位全过程见证；施工单位编制专项方案报监理审批。", ok:true, fix:"组织在监理、实施在施工、见证在监理，方案报审批。", code:"" },
+        { t:"由施工单位自行组织并实施结构实体检验，监理单位负责事后见证与备案。", ok:false, code:"E07", tempt:"「谁施工谁验收」的直觉。", lose:"组织主体应是监理，施工只负责实施，主体答反。", fix:"监理组织、施工实施、监理见证。" },
+        { t:"由建设单位组织、监理单位实施、施工单位配合，检验专项方案由监理编制审批。", ok:false, code:"E07", tempt:"觉得建设是甲方牵头、监理动手。", lose:"组织在监理、实施在施工、方案由施工编，三处主体都错位。", fix:"监理组织、施工实施、施工编方案报监理审批。" },
+        { t:"由监理单位组织结构实体检验，施工单位配合取样，专项方案不作硬性要求。", ok:false, code:"E02", tempt:"组织答对了就以为够了。", lose:"漏施工实施主体、监理见证与专项方案报审批。", fix:"补施工实施 + 监理见证 + 专项方案报审批。" }
+      ] },
+    { tag:"强度检测·程序维", typeHint:"单选 · 选出方法顺序正确的作答", fig:"method",
+      figLabel:"强度检测方法的先后", figCaption:"首选 vs 兜底，顺序？",
+      stem:"结构实体混凝土强度检测应采用什么方法？选出顺序正确、能得分的作答。",
+      model:"优先采用同条件养护试件法；试件不足或不满足时采用回弹—取芯法。",
+      opts:[
+        { t:"优先采用同条件养护试件法；当试件缺乏或强度不满足时，再采用回弹—取芯法。", ok:true, fix:"先首选同条件试件、不足才兜底回弹取芯，顺序点明。", code:"" },
+        { t:"直接采用回弹法或钻芯取样法检测强度，同条件养护试件仅作辅助参考。", ok:false, code:"E06", tempt:"觉得回弹钻芯又快又直接。", lose:"跳过同条件养护试件首选、把兜底当首选，顺序错。", fix:"先同条件养护试件，不足才回弹—取芯。" },
+        { t:"同条件养护试件法与回弹—取芯法二者等效，可任选其一直接评定强度。", ok:false, code:"E07", tempt:"以为两法并列等价。", lose:"两法有先后、非并列，同条件试件优先。", fix:"同条件养护试件优先，回弹取芯是兜底。" },
+        { t:"直接采用标准养护试件的强度评定结果判定实体强度即可，无需另做同条件试件。", ok:false, code:"E02", tempt:"把结构实体检验和标准养护评定混了。", lose:"实体强度用同条件养护试件、不是标准养护试件。", fix:"用同条件养护试件法，不足再回弹取芯。" }
+      ] },
+    { tag:"强度合格判定·计算维", typeHint:"单选 · 选出判据与算式正确的作答", fig:"ruler",
+      figLabel:"C35 三芯样强度判定", figCaption:"28.5 · 31 · 32（MPa）· 合格否？",
+      stem:"某 C35 构件钻芯，三芯样抗压代表值 28.5、31、32 MPa。写出可得分的合格判定依据与结论。",
+      model:"依据「平均值≥设计×88%=30.8、最小值≥设计×80%=28」；平均(28.5+31+32)/3=30.8 恰为临界、最小 28.5>28，临界是否合格以评分细则为准。",
+      opts:[
+        { t:"依据「平均值≥设计×88%=30.8、最小值≥设计×80%=28」；平均(28.5+31+32)/3=30.8 恰为临界、最小 28.5>28，临界判定以评分细则为准。", ok:true, fix:"两阈值都套 + 代入算 + 点明临界，不擅自拍板。", code:"" },
+        { t:"依据「平均值须≥设计强度 35」判定；平均(28.5+31+32)/3=30.8＜35，故代表值不足、直接判不合格。", ok:false, code:"E10", tempt:"直接拿平均和设计强度 35 比大小。", lose:"判据错——应比设计×88% / ×80% 双阈值，不是比设计值本身。", fix:"套平均≥35×88%、最小≥35×80% 双阈值。" },
+        { t:"依据「平均值≥设计×88%=30.8」判定；平均 30.8 已达标，故构件合格，最小值不再单独设限。", ok:false, code:"E02", tempt:"套了 88% 平均线就以为完事。", lose:"漏最小值≥设计×80% 这条独立门槛，判据不全。", fix:"补最小值≥28 这条，双条件都要满足。" },
+        { t:"依据「平均值≥设计×80%=28、最小值≥设计×88%=30.8」；平均30.8>28、最小28.5<30.8，故判不合格。", ok:false, code:"M08", tempt:"两阈值记得，却把 88% / 80% 对调了。", lose:"平均对应 88%、最小对应 80%，数值配反、结论也带偏。", fix:"平均≥88%（30.8）、最小≥80%（28），别对调。" }
+      ] },
+    { tag:"分部验收·主体维", typeHint:"单选 · 选出组织与参加人员完整的作答", fig:"group",
+      figLabel:"分部验收谁组织、谁参加", figCaption:"总监组织 + 参加人员",
+      stem:"主体结构分部工程验收由谁组织、还应有哪些人员参加？选出能得分的作答。",
+      model:"由总监理工程师（或建设单位项目负责人）组织，施工单位项目负责人、技术负责人，设计单位项目负责人，施工单位技术、质量部门负责人参加。",
+      opts:[
+        { t:"由总监理工程师（或建设单位项目负责人）组织；施工单位项目负责人、技术负责人，设计单位项目负责人，施工单位技术、质量部门负责人参加。", ok:true, fix:"组织者 + 施工/设计参加人员齐，主体分部不漏设计与技术质量负责人。", code:"" },
+        { t:"由施工单位项目负责人组织自行验收，总监理工程师、设计单位项目负责人及施工单位质量部门负责人到场旁站见证、并在验收记录上签字确认即可。", ok:false, code:"E06", tempt:"觉得施工方牵头验自己的活、别人陪场。", lose:"应由总监理工程师 / 建设单位组织，施工不是组织者。", fix:"总监理工程师（或建设单位项目负责人）组织。" },
+        { t:"由总监理工程师组织，施工单位项目负责人与技术负责人参加即可，设计单位与质量部门可不参加。", ok:false, code:"E02", tempt:"答了组织者和施工两人就收手。", lose:"主体结构分部漏设计单位项目负责人、施工技术 / 质量部门负责人。", fix:"补设计单位 + 施工技术、质量部门负责人。" },
+        { t:"由建设单位项目负责人组织，仅监理单位总监与施工单位项目负责人两方到场参加验收。", ok:false, code:"E07", tempt:"以为甲方组织、监理施工到场就行。", lose:"漏设计单位项目负责人、施工技术 / 质量部门负责人。", fix:"补设计单位 + 施工技术、质量部门负责人。" }
+      ] },
+    { tag:"主体子分部·记录维", typeHint:"单选 · 选出子分部完整的作答", fig:"checklist", figItems:["混凝土结构","砌体结构","钢结构","钢管混凝土结构","型钢混凝土结构","铝合金结构","木结构"], figKnown:3,
+      figLabel:"主体结构 7 个子分部", figCaption:"数量与名称都别错",
+      stem:"主体结构分部包含哪些子分部工程？选出能得分的作答。",
+      model:"含混凝土结构、砌体结构、钢结构、钢管混凝土结构、型钢混凝土结构、铝合金结构、木结构，共七类。",
+      opts:[
+        { t:"混凝土结构、砌体结构、钢结构、钢管混凝土结构、型钢混凝土结构、铝合金结构、木结构，共七类子分部。", ok:true, fix:"七类齐全、数量不改。", code:"" },
+        { t:"混凝土结构、砌体结构、钢结构、型钢混凝土结构、铝合金结构、装配式结构，共六类子分部。", ok:false, code:"M08", tempt:"数量记成六、还塞了个「装配式」。", lose:"子分部是七类、漏钢管混凝土、且无「装配式结构」这一子分部名。", fix:"七类，无装配式；补钢管混凝土、木结构。" },
+        { t:"混凝土结构、砌体结构、钢结构三类，即为主体结构的全部子分部工程。", ok:false, code:"E02", tempt:"只记住最常见的三类当全部。", lose:"漏钢管混凝土 / 型钢混凝土 / 铝合金 / 木结构，数量不足。", fix:"补齐至七类。" },
+        { t:"含地基与基础、主体结构、装饰装修、屋面工程等，作为主体结构的子分部。", ok:false, code:"E07", tempt:"把分部层级错当成主体的子分部。", lose:"地基基础 / 装饰装修 / 屋面是分部、非主体的子分部，层级混。", fix:"主体子分部=混凝土 / 砌体 / 钢等七类。" }
+      ] },
+    { tag:"单位工程合格·记录维", typeHint:"单选 · 选出合格条件完整的作答", fig:"checklist", figItems:["分部工程全合格","质量控制资料完整","安全节能环保资料","主要功能抽查合格","观感质量达标"], figKnown:2,
+      figLabel:"单位工程合格五条", figCaption:"五条缺一不可",
+      stem:"单位工程质量验收合格应满足哪些条件？选出完整、能得分的作答。",
+      model:"分部全合格、质量控制资料完整、安全节能环保资料完整、主要功能抽查合格、观感质量达标，五条齐。",
+      opts:[
+        { t:"所含分部全部合格、质量控制资料完整、安全节能环保等资料完整、主要功能抽查合格、观感质量达标。", ok:true, fix:"五条齐全，最易漏主要功能抽查与观感。", code:"" },
+        { t:"所含分部全部合格、质量控制资料完整、观感质量达标三条满足，即可判单位工程合格。", ok:false, code:"E02", tempt:"挑了三条像样的就当齐了。", lose:"漏安全节能环保资料完整、主要功能抽查合格两条。", fix:"补安全节能环保资料 + 主要功能抽查，凑齐五条。" },
+        { t:"主控项目全部合格、一般项目合格率≥80% 且偏差不超规定值、质量控制资料完整、观感质量达标，即可判单位工程验收合格。", ok:false, code:"E07", tempt:"把检验批合格标准搬到单位工程。", lose:"主控 / 一般是检验批标准，单位工程看分部合格等五条。", fix:"单位工程看分部合格 + 资料 + 主要功能 + 观感五条。" },
+        { t:"所含分部全部合格、观感质量达标两条即可，各类资料是否完整不影响验收结论。", ok:false, code:"E02", tempt:"只盯着分部和观感首尾两条。", lose:"漏质控资料、安全节能环保资料、主要功能抽查三条。", fix:"补中间三条，共五条。" }
+      ] },
+    { tag:"竣工验收程序·程序维", typeHint:"单选 · 选出顺序正确的作答", fig:"chain", figItems:["施工自检","监理预验收","施工整改","预验收通过","竣工报告","建设单位正式验收"],
+      figLabel:"竣工验收程序（乱序）", figCaption:"正确顺序是？",
+      stem:"单位工程竣工验收的程序如何？选出顺序正确、能得分的作答。",
+      model:"施工自检、监理预验收、施工整改、预验收通过、提交竣工报告、建设单位组织正式验收；建设/施工/监理/设计/勘察五方参加。",
+      opts:[
+        { t:"施工单位自检合格后报监理预验收，整改通过后提交竣工验收报告，由建设单位组织勘察 / 设计 / 施工 / 监理五方正式验收。", ok:true, fix:"自检、预验收、整改、报告、建设单位组织正式验收，五方齐。", code:"" },
+        { t:"由建设单位先组织勘察 / 设计 / 施工 / 监理五方正式验收，发现问题后再交监理预验收、施工整改，整改合格后补交竣工验收报告。", ok:false, code:"E06", tempt:"觉得甲方先验、发现问题再回头改。", lose:"顺序整段倒置——监理预验收、整改在正式验收之前。", fix:"先施工自检、监理预验收、整改，最后建设单位正式验收。" },
+        { t:"施工单位自检合格后直接提交竣工报告，由建设单位组织正式验收，监理预验收环节可省略。", ok:false, code:"E02", tempt:"跳过中间环节图省事。", lose:"漏监理预验收、整改两个前置环节。", fix:"补监理预验收、整改，通过后再正式验收。" },
+        { t:"施工自检、整改合格后由监理单位组织勘察 / 设计 / 建设 / 施工五方进行竣工正式验收。", ok:false, code:"E07", tempt:"监理管现场，以为它组织正式验收。", lose:"竣工正式验收由建设单位组织，监理只做预验收。", fix:"建设单位组织五方正式验收。" }
+      ] },
+    { tag:"不合格处理·后果维", typeHint:"单选 · 选出处理分档正确的作答", fig:"branch",
+      figLabel:"验收不合格的处理分支", figCaption:"多数能救 · 严禁验收在最末",
+      stem:"检验批 / 工程验收不合格，应如何处理？选出能得分的作答。",
+      model:"返工 / 返修后重新验收；资料缺委托有资质机构实体检验补证；经返修或加固后仍不满足安全或重要使用要求的，严禁验收。",
+      opts:[
+        { t:"返工 / 返修后重新验收；质控资料缺失委托有资质机构实体检验补证；经返修或加固仍不满足安全或重要使用要求的，严禁验收。", ok:true, fix:"分档处理 + 严禁验收在最末，分支答全。", code:"" },
+        { t:"验收不合格的一律返工返修、推倒重做后重新验收，直至各项指标全部合格为止。", ok:false, code:"E11", tempt:"以为不合格=失败=拆了重来。", lose:"只给一个终态，漏委托检测补证、加固重评、严禁验收各档。", fix:"按返修 / 委托检测 / 加固 / 严禁验收分档处理。" },
+        { t:"返工返修后重新验收；质量控制资料缺失的委托有资质机构检测补证；经返修或加固后仍不满足安全或重要使用要求的，可作让步处理验收后交付使用。", ok:false, code:"E10", tempt:"以为加固后再不行也能让步用。", lose:"仍不满足安全 / 重要使用要求应严禁验收，不得让步验收。", fix:"最末一档是严禁验收，不能让步接收。" },
+        { t:"对不合格部位返工返修后重新组织验收即可，资料缺失与加固评估不属验收处理范畴。", ok:false, code:"E02", tempt:"只答返工一档、把其余排除在外。", lose:"漏资料缺委托检测、加固重评、严禁验收各档。", fix:"补委托检测补证与「严禁验收」终档。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 数值蒙对，诊断失分并给正确补写", fig:"sheet", figItems:["① 实体检验测混凝土强度","② 由施工单位组织检验","③ 平均(28.5+31+32)/3=30.5＜35，不合格"],
+      figLabel:"模拟学生作答（待诊断）", figCaption:"结论「不合格」与参考一致，但…",
+      stem:"某学生答：① 实体检验测混凝土强度；② 由施工单位组织；③ 平均(28.5+31+32)/3=30.5＜35，不合格。选出最准确的诊断与补写。",
+      model:"三处失分：实体检验漏钢筋保护层 / 尺寸偏差 / 合同约定项目；组织应为监理组织、施工实施；判定未套 88%/80% 双阈值（平均应 30.8=临界、最小 28.5>28），且平均算错为 30.5。",
+      opts:[
+        { t:"三处失分：实体检验漏钢筋保护层 / 尺寸偏差 / 合同约定项目；组织应为监理组织、施工实施；判定未套 88%/80% 双阈值（平均应 30.8=临界、最小 28.5>28），且平均算错为 30.5。", ok:true, fix:"漏项 + 主体 + 判据三处全揪出，补齐即上答题纸。", code:"" },
+        { t:"结论「不合格」与参考答案一致，实体检验、组织主体、判定过程三处均无误，可按满分给分。", ok:false, code:"E07", tempt:"只看末位结论，一致就以为全对。", lose:"内容漏三项、组织答反、判据没套阈值且平均算错，过程全丢分。", fix:"内容 / 组织 / 判据三处都要重写。" },
+        { t:"仅组织主体一处失分（应监理组织、施工实施），实体检验内容与强度判定均正确，改这一处即可。", ok:false, code:"E02", tempt:"抓到组织错一处就以为只此一错。", lose:"漏诊实体检验三项缺失、判据未套双阈值且平均算错。", fix:"补实体四项 + 88%/80% 双阈值判定。" },
+        { t:"两处失分：组织应改为监理组织、施工实施；强度判定应按平均≥设计×80%、最小≥设计×88% 重新代入计算，实体检验四项内容书写完整、无需改动。", ok:false, code:"M08", tempt:"揪出两处、却把阈值配反又漏了内容。", lose:"88%/80% 对调，且漏诊实体检验三项缺失。", fix:"平均≥88%、最小≥80%，并补实体四项。" }
       ] }
   ];
   codeMap={
-    E02:{label:"采分点遗漏",advice:"四件套逐项编号写：混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目；题干每一问都要对上格，缺一扣一。"},
-    E04:{label:"口号化表达",advice:"别写“按规范、确保质量”：落到保护层厚度、尺寸偏差、合同项目、监理组织、88%/80% 这些阅卷能扫到的对象。"},
-    E05:{label:"审题错误",advice:"题干问几问答几问：“除混凝土强度外”“由谁组织”“写依据”逐问对格；判定链平均值和最小值两条都要给。"},
-    E07:{label:"概念混淆",advice:"“谁施工谁验收”是错心智：监理单位组织、施工单位实施、监理见证全过程，施工单位编制专项方案报监理审批。"},
-    E10:{label:"规范适用错误",advice:"实体强度不直接比设计值：平均值≥设计值×88% 且最小值≥设计值×80%，两条同时满足才回判。"},
-    M08:{label:"规范数字混淆",advice:"88% 对平均值、80% 对最小值，别记反也别只套一条；本题 35×88%=30.8、35×80%=28。"},
-    M10:{label:"用常识替代规范",advice:"责任分配不能靠常识往上推：组织主体按教材写监理单位，不是建设单位也不是施工单位。"}
+    E02:{label:"采分点遗漏",advice:"层级 / 划分 / 四内容 / 五条逐项写全，缺一扣一。"},
+    E05:{label:"审题错误",advice:"看清问的是哪一级、哪一步，别答偏。"},
+    E06:{label:"程序顺序错误",advice:"验收自下而上、隐蔽覆盖前验、方法先首选，顺序别倒。"},
+    E07:{label:"概念混淆",advice:"划分依据、组织主体、层级归属分清，别张冠李戴。"},
+    E10:{label:"规范适用错误",advice:"主控全合格 vs 一般≥80%、双阈值 88%/80% 别套错。"},
+    E11:{label:"迁移失败",advice:"不合格是分档处理，不是一律返工。"},
+    M08:{label:"规范数字混淆",advice:"88%/80%、子分部数量、五条别记反。"},
+    M10:{label:"用常识替代规范判断",advice:"该不该送检、怎么判定，按规范清单不是凭感觉。"}
   };
 
   componentDidMount(){
     var vp=document.querySelector('meta[name=viewport]');
     if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
     vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    const order=this.pickOrder();
+    this.setState({order, optOrders:this.buildOptOrders(order)});
   }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  buildOptOrders(qorder){ const map={}; (qorder||[]).forEach((realQ,slot)=>{ const q=this.Q[realQ]; if(!q){map[slot]=[];return;} const oi=q.opts.map((_,i)=>i);
+    for(let i=oi.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=oi[i]; oi[i]=oi[j]; oi[j]=t; } map[slot]=oi; }); return map; }
+  optOrder(qi){ const m=this.state.optOrders; if(m&&m[qi])return m[qi]; const q=this.qAt(qi); return q?q.opts.map((_,i)=>i):[]; }
+  dispPos(qi,realIdx){ const p=this.optOrder(qi).indexOf(realIdx); return p<0?realIdx:p; }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ return (this.state.order && this.state.order.length) ? this.state.order : this.fallbackOrder(); }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  qCount(){ return this.ord().length; }
   isMulti(q){ return q.tag.indexOf("多选")>=0; }
   optLetter(i){ return String.fromCharCode(65+i); }
-  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.Q[qi]; const sel={...this.state.sel};
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
     if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
     else sel[qi]=i; this.setState({sel}); }
-  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.Q[qi]; if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
   submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
-  graded(qi){ const q=this.Q[qi],s=this.state.sel[qi];
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi];
     if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
     return s!=null&&q.opts[s]&&q.opts[s].ok; }
-  next(){ if(this.state.qi<this.Q.length-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
-  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false}); }
-  curCtx(){ const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
-    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
-    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ const order=this.pickOrder(); this.setState({qi:0,sel:{},sub:{},finished:false,order,optOrders:this.buildOptOrders(order)}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(this.dispPos(qi,i))).join("、"); } else if(sel!=null)mine=this.optLetter(this.dispPos(qi,sel));
+    const ord=this.optOrder(qi);
+    return { q, sub, mine, opts:ord.map((ri,pos)=>this.optLetter(pos)+". "+q.opts[ri].t).join("\n") }; }
   ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
   openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
   closeAsk(){ this.setState({askOpen:false}); }
@@ -295,58 +424,101 @@ class Component extends DCLogic {
   }
   figFor(qi){
     const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
-    const type=this.Q[qi].fig, els=[]; let figH=100;
-    if(type==="scan1"){ figH=108; const rows=[["① 混凝土强度（题干已考）","#2c8a5b","hit ✓"],["② 钢筋保护层 · 只写到一格","#cf8a44","partial ⚠"],["③ 结构位置与尺寸偏差 · 待补","#cf4436","miss ✗"],["④ 合同约定项目 · 待补","#cf4436","miss ✗"]];
-      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*27,w:246,h:23,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); els.push(D({x:252,top:i*27,w:68,h:23,fg:r[1],fs:9.5,jc:"flex-start",ta:"left",lab:r[2]})); }); }
-    else if(type==="org"){ figH=92;
-      els.push(D({x:0,top:0,w:230,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 施工单位组织（实施主体 ≠ 组织主体）"}));
-      els.push(D({x:0,top:22,w:96,h:34,bg:"#46627e",bd:"2px solid #2c8a5b",r:6,fg:"#fff",fs:9,lab:"监理单位组织"}));
-      els.push(D({x:96,top:36,w:16,h:5,bg:"#2c8a5b"}));
-      els.push(D({x:112,top:22,w:96,h:34,bg:"#46627e",bd:"2px solid #2c8a5b",r:6,fg:"#fff",fs:9,lab:"施工单位实施"}));
-      els.push(D({x:208,top:36,w:16,h:5,bg:"#2c8a5b"}));
-      els.push(D({x:224,top:22,w:96,h:34,bg:"#46627e",bd:"2px solid #2c8a5b",r:6,fg:"#fff",fs:9,lab:"监理见证全过程"}));
-      els.push(D({x:0,top:68,w:320,h:14,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"✓ 施工单位编制专项方案报监理审批"})); }
-    else if(type==="chain"){ figH=110;
-      els.push(D({x:0,top:0,w:60,h:30,bg:"#fff",bd:"1.5px solid #cdd9e2",r:15,fg:"#2f6db0",fs:10.5,lab:"28.5"}));
-      els.push(D({x:68,top:0,w:60,h:30,bg:"#fff",bd:"1.5px solid #cdd9e2",r:15,fg:"#2f6db0",fs:10.5,lab:"31"}));
-      els.push(D({x:136,top:0,w:60,h:30,bg:"#fff",bd:"1.5px solid #cdd9e2",r:15,fg:"#2f6db0",fs:10.5,lab:"32"}));
-      els.push(D({x:204,top:6,w:116,h:18,fg:"#5c6469",fs:9,jc:"flex-start",ta:"left",lab:"三个芯样 · MPa"}));
-      els.push(D({x:0,top:38,w:320,h:22,bg:"#fff",bd:"1.5px solid #cdd9e2",r:7,fg:"#2f6db0",fs:9.5,fw:"800",ta:"left",jc:"flex-start",p:"0 8px",lab:"平均值 30.8 ↔ 35×88% = 30.8（临界）"}));
-      els.push(D({x:0,top:64,w:320,h:22,bg:"#fff",bd:"1.5px solid #a9cdb8",r:7,fg:"#2c8a5b",fs:9.5,fw:"800",ta:"left",jc:"flex-start",p:"0 8px",lab:"最小值 28.5 ＞ 35×80% = 28"}));
-      els.push(D({x:0,top:92,w:320,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 直接拿平均值比 35 = 跳过双阈值"})); }
-    else if(type==="regrid"){ figH=84; const rows=[["第一段 内容清单：保护层厚度 · 尺寸偏差 · 合同约定项目","#2f6db0"],["第二段 主体链：监理组织 · 施工实施 · 监理见证","#2c8a5b"],["第三段 判定链：亮判据 → 代入 → 回判","#cf8a44"]];
-      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*28,w:320,h:24,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); }); }
-    else if(type==="final"){ figH=84; const rows=[["① 内容清单 · 四件套齐","#2f6db0"],["② 组织主体 · 监理组织施工实施见证","#2c8a5b"],["③ 判定依据 · 88%/80% 双阈值回判","#cf8a44"]];
-      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*28,w:250,h:24,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); els.push(D({x:256,top:i*28,w:64,h:24,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"hit ✓"})); }); }
+    const slot=(x,top,w,h,lab,filled)=>D(filled?{x,top,w,h,bg:"#eef3f7",bd:"1.5px solid #9fbdd8",r:8,fg:"#2f6db0",fs:10,lab}:{x,top,w,h,bg:"#f6f4ec",bd:"1.5px dashed #cbc3ad",r:8,fg:"#b3ac98",fs:12,lab});
+    const q=this.qAt(qi), type=q.fig, els=[]; let figH=100;
+    if(type==="steps"){ figH=100; const ws=[168,132,96,64], cols=["#2f6db0","#2c8a5b","#cf8a44","#cf4436"];
+      for(let i=0;i<4;i++){ const w=ws[i]; els.push(D({x:110-w/2,top:76-i*20,w:w,h:16,bg:cols[i],r:4})); }
+      els.push(D({x:214,top:14,w:108,h:16,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"四级 · 方向？"}));
+      els.push(D({x:214,top:36,w:108,h:14,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:"由小到大？"})); }
+    else if(type==="divide"){ figH=94; els.push(D({x:8,top:18,w:314,h:40,bg:"#cf8a44",r:8,fg:"#fff",fs:11,lab:"一个分部 / 分项工程"}));
+      for(let i=1;i<4;i++) els.push(D({x:8+i*78,top:18,w:3,h:40,bg:"#f4f3ec"}));
+      for(let i=0;i<4;i++) els.push(D({x:8+i*78,top:62,w:78,h:16,fg:"#a7a08e",fs:11,lab:"依据 ?"})); }
+    else if(type==="twogate"){ figH=94;
+      els.push(D({x:6,top:8,w:66,h:24,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"主控项目"}));
+      for(let i=0;i<5;i++) els.push(D({x:82+i*46,top:8,w:38,h:24,bg:"#2c8a5b",r:5}));
+      els.push(D({x:6,top:44,w:66,h:24,fg:"#2c8a5b",fs:11,ta:"left",jc:"flex-start",lab:"一般项目"}));
+      for(let i=0;i<5;i++) els.push(D({x:82+i*46,top:44,w:38,h:24,bg:i===3?"#c3c8c5":"#2c8a5b",r:5}));
+      els.push(D({x:6,top:76,w:316,h:14,fg:"#8b9398",fs:9.5,ta:"left",jc:"flex-start",lab:"两类合格判定逻辑一样吗？"})); }
+    else if(type==="window"){ figH=98;
+      els.push(D({x:10,top:8,w:150,h:22,bg:"#8a9296",r:5,fg:"#fff",fs:10,lab:"混凝土覆盖层"}));
+      els.push(D({x:10,top:34,w:150,h:30,bg:"#b9a88a",r:5,fg:"#3a2f1e",fs:10,lab:"钢筋隐蔽层"}));
+      els.push(D({x:170,top:8,w:152,h:56,bd:"1.5px dashed #cf4436",r:8,fg:"#cf4436",fs:11,lab:"覆盖前 该做什么？"}));
+      els.push(D({x:10,top:72,w:312,h:16,fg:"#8b9398",fs:9.5,ta:"left",jc:"flex-start",lab:"覆盖后能不能再拆开复验？"})); }
+    else if(type==="witness"){ figH=94;
+      els.push(D({x:10,top:22,w:72,h:34,bg:"#b9a88a",r:6,fg:"#3a2f1e",fs:10,lab:"材料样品"}));
+      els.push(D({x:98,top:22,w:82,h:34,bg:"#2f6db0",r:6,fg:"#fff",fs:10,lab:"取样送检"}));
+      els.push(D({x:98,top:4,w:82,h:14,fg:"#cf4436",fs:9,lab:"谁见证？"}));
+      els.push(D({x:196,top:22,w:82,h:34,bd:"1.5px solid #2c8a5b",r:6,fg:"#2c8a5b",fs:10,lab:"检验报告"}));
+      els.push(D({x:10,top:66,w:314,h:16,fg:"#8b9398",fs:9.5,ta:"left",jc:"flex-start",lab:"见证记录由谁制作？"})); }
+    else if(type==="checklist"){ const items=q.figItems||[], known=q.figKnown||0; const cn="①②③④⑤⑥⑦"; const perRow=4, gap=6; const w=Math.floor((322-gap*(perRow-1))/perRow);
+      for(let i=0;i<items.length;i++){ const col=i%perRow,row=Math.floor(i/perRow); const fl=i<known;
+        els.push(slot(6+col*(w+gap),8+row*40,w,34, fl?items[i]:cn.charAt(i), fl)); if(fl) els[els.length-1].fs=8.5; }
+      figH=8+Math.ceil(items.length/perRow)*40+2; }
+    else if(type==="roles"){ figH=94;
+      els.push(D({x:120,top:6,w:100,h:26,bg:"#cf4436",r:7,fg:"#fff",fs:10,lab:"监理单位"}));
+      els.push(D({x:10,top:48,w:100,h:26,bg:"#2f6db0",r:7,fg:"#fff",fs:10,lab:"施工单位"}));
+      els.push(D({x:224,top:48,w:96,h:26,bg:"#23282b",r:7,fg:"#fff",fs:9.5,lab:"结构实体检验"}));
+      els.push(D({x:110,top:80,w:120,h:14,fg:"#cf4436",fs:9.5,lab:"谁组织·谁见证？"})); }
+    else if(type==="method"){ figH=92;
+      els.push(D({x:10,top:14,w:150,h:34,bg:"#2c8a5b",r:8,fg:"#fff",fs:10,lab:"同条件养护试件"}));
+      els.push(D({x:170,top:14,w:152,h:34,bg:"#cf8a44",r:8,fg:"#fff",fs:10,lab:"回弹—取芯"}));
+      els.push(D({x:10,top:58,w:312,h:16,fg:"#8b9398",fs:9.5,ta:"left",jc:"flex-start",lab:"哪个先、哪个兜底？顺序？"})); }
+    else if(type==="ruler"){ figH=104;
+      els.push(D({x:10,top:2,w:314,h:16,fg:"#23282b",fs:10.5,ta:"left",jc:"flex-start",lab:"三芯样 28.5 · 31 · 32 → 平均 30.8 · 最小 28.5"}));
+      els.push(D({x:10,top:28,w:40,h:14,fg:"#2f6db0",fs:9.5,ta:"left",jc:"flex-start",lab:"平均"}));
+      els.push(D({x:54,top:28,w:224,h:14,bg:"#e6e2d4",r:7}));
+      els.push(D({x:214,top:24,w:2.5,h:22,bg:"#ffd24a"}));
+      els.push(D({x:210,top:44,w:70,h:12,fg:"#a98a12",fs:8,ta:"left",jc:"flex-start",lab:"88%线=30.8"}));
+      els.push(D({x:10,top:64,w:40,h:14,fg:"#2c8a5b",fs:9.5,ta:"left",jc:"flex-start",lab:"最小"}));
+      els.push(D({x:54,top:64,w:224,h:14,bg:"#e6e2d4",r:7}));
+      els.push(D({x:186,top:60,w:2.5,h:22,bg:"#ffd24a"}));
+      els.push(D({x:182,top:80,w:70,h:12,fg:"#a98a12",fs:8,ta:"left",jc:"flex-start",lab:"80%线=28"}));
+      els.push(D({x:288,top:34,w:34,h:44,fg:"#cf4436",fs:16,lab:"?"})); }
+    else if(type==="group"){ figH=98;
+      els.push(D({x:96,top:6,w:130,h:28,bg:"#cf4436",r:8,fg:"#fff",fs:10,lab:"总监 · 组织?"}));
+      for(let i=0;i<4;i++) els.push(slot(8+i*79,50,71,26,"参加?",false));
+      els.push(D({x:8,top:82,w:314,h:14,fg:"#8b9398",fs:9.5,ta:"left",jc:"flex-start",lab:"谁组织、还有哪些人参加？"})); }
+    else if(type==="chain"){ const items=q.figItems||[]; let cx=6,cy=8; const maxW=322;
+      items.forEach((t)=>{ const w=Math.min(160,20+t.length*12); if(cx+w>maxW){cx=6;cy+=30;} els.push(D({x:cx,top:cy,w:w,h:24,bg:"#f4f3ec",bd:"1.5px solid #ddd2bb",r:7,fg:"#5c6469",fs:9.5,lab:t})); cx+=w+6; });
+      els.push(D({x:6,top:cy+30,w:314,h:14,fg:"#cf4436",fs:9.5,ta:"left",jc:"flex-start",lab:"正确顺序是？"})); figH=cy+30+16; }
+    else if(type==="branch"){ figH=98;
+      els.push(D({x:10,top:28,w:60,h:42,bg:"#cf8a44",r:8,fg:"#fff",fs:10,lab:"质检闸门"}));
+      els.push(D({x:86,top:6,w:130,h:20,bd:"1.5px solid #2c8a5b",r:5,fg:"#2c8a5b",fs:9,lab:"合格 · 升级"}));
+      els.push(slot(86,30,130,18,"不合格 · 哪档?",false));
+      els.push(slot(86,52,130,18,"资料缺 · 哪档?",false));
+      els.push(slot(224,52,96,18,"最末档 · ?",false));
+      els.push(D({x:10,top:78,w:314,h:14,fg:"#8b9398",fs:9.5,ta:"left",jc:"flex-start",lab:"不合格有哪几档处理？"})); }
+    else if(type==="sheet"){ const lines=q.figItems||[]; figH=8+lines.length*30+2;
+      lines.forEach((l,i)=>els.push(D({x:6,top:6+i*30,w:314,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l}))); }
     return {els,figH};
   }
   renderVals(){
-    const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
-    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+    const opts=this.optOrder(qi).map((ri,pos)=>{ const o=q.opts[ri]; const chosen=selSet(ri); let border="#e2e0d5",bg="#fff",badge=this.optLetter(pos),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
       if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
       else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
         else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
         else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
-      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(ri),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
     });
-    const isLast=qi===this.Q.length-1;
+    const isLast=qi===this.qCount()-1;
     let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
     if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
-    else if(!isLast){ btnLabel="下一题 →"; btnAction=()=>this.next(); }
-    else { btnLabel="查看结果 →"; btnAction=()=>this.next(); btnBg="#23282b"; }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
 
-    let score=0; const review=this.Q.map((qq,i)=>{ const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
-    const wc={}; this.Q.forEach((qq,i)=>{ if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(this.Q.length*0.4)?0:score<this.Q.length-1?1:score<this.Q.length?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
       examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
-      qNum:qi+1, qTotal:this.Q.length, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
-      progPct:Math.round(((sub?qi+1:qi)/this.Q.length)*100), opts, showModel:sub, qModel:q.model,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
       btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
       score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
       reset:()=>this.reset(),

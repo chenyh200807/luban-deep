@@ -134,6 +134,14 @@ Page({
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var cardUrl = String(body.card_url || "");
+        if (!cardUrl) {
+          that.setData({
+            title: String(body.title || ""),
+            loading: false,
+            errorText: "这一站微课即将开通",
+          });
+          return;
+        }
         that.setData({
           title: String(body.title || ""),
           cardUrl: cardUrl,

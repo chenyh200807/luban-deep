@@ -73,7 +73,7 @@
       <!-- 动画精讲卡:下一站 header + 宣纸舞台 + 横滑课程架 -->
       <view class="lr-lesson pk-card">
         <!-- header -->
-        <view class="lr-lesson-head" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}">
+        <view class="lr-lesson-head" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}" data-card-hosted="{{vm.nextStation.card_hosted}}">
           <view class="lr-lesson-seal pk-seal">
             <image class="lr-lesson-logo" src="/packageDeeptutor/images/logo-mark-white.png" mode="aspectFit" />
           </view>
@@ -81,7 +81,7 @@
             <text class="pk-kicker">下一站 · {{vm.nextStation.pack_id}}</text>
             <text class="pk-title lr-lesson-title">{{vm.nextStation.title}}</text>
           </view>
-          <text class="pk-chip pk-chip--grn">{{vm.nextStation.evidenceBacked ? '依据近期证据推荐' : '推荐起点'}}</text>
+          <text class="pk-chip pk-chip--grn">{{vm.nextStation.card_hosted === false ? '微课即将开通' : (vm.nextStation.evidenceBacked ? '依据近期证据推荐' : '推荐起点')}}</text>
         </view>
         <!-- header 空态(后端未部署/无供给) -->
         <view class="lr-lesson-head lr-lesson-head--empty" wx:else>
@@ -92,18 +92,18 @@
         </view>
 
         <!-- 宣纸舞台(播放键)· 原色宣纸,不随主题变(设计:动画卡=原色宣纸舞台) -->
-        <view class="lr-stage" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}">
-          <text class="lr-stage-badge">旁白·开</text>
+        <view class="lr-stage" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}" data-card-hosted="{{vm.nextStation.card_hosted}}">
+          <text class="lr-stage-badge">{{vm.nextStation.card_hosted === false ? '制作中' : '旁白·开'}}</text>
           <view class="lr-stage-fs">
             <view class="lr-fs-corner"></view><view class="lr-fs-corner lr-fs-tr"></view>
             <view class="lr-fs-corner lr-fs-bl"></view><view class="lr-fs-corner lr-fs-br"></view>
           </view>
-          <text class="lr-stage-cal">鲁班智考</text>
-          <text class="lr-stage-sub">动画精讲 · 讲懂这一站</text>
-          <view class="lr-stage-play pk-seal">
+          <text class="lr-stage-cal">{{vm.nextStation.card_hosted === false ? '微课即将开通' : '鲁班智考'}}</text>
+          <text class="lr-stage-sub">{{vm.nextStation.card_hosted === false ? '该站内容已进入路线，动画精讲正在制作' : '动画精讲 · 讲懂这一站'}}</text>
+          <view class="lr-stage-play pk-seal" wx:if="{{vm.nextStation.card_hosted !== false}}">
             <view class="lr-play-tri"></view>
           </view>
-          <text class="lr-stage-hint">点击播放 · 讲懂 → 闯关</text>
+          <text class="lr-stage-hint">{{vm.nextStation.card_hosted === false ? '敬请期待' : '点击播放 · 讲懂 → 闯关'}}</text>
         </view>
 
         <!-- 你的路线 + 完整地图 -->
@@ -122,6 +122,7 @@
               bindtap="openStation"
               data-pack-id="{{item.pack_id}}"
               data-green="{{item.green}}"
+              data-card-hosted="{{item.card_hosted}}"
             >
               <text class="pk-poster__name">{{item.name}}</text>
               <view class="pk-poster__slot lr-poster-slot--{{item.state}}">{{item.slot}}</view>
@@ -130,7 +131,7 @@
                   <text wx:if="{{item.recommended}}" class="lr-ticon lr-ticon--rec">▶</text>
                   <text wx:elif="{{item.state === 'ink'}}" class="lr-ticon lr-ticon--done">✓</text>
                   <text wx:elif="{{item.locked}}" class="lr-ticon lr-ticon--lock">🔒</text>
-                  <text class="lr-poster-tag lr-poster-tag--{{item.state}}">{{item.recommended ? '推荐起点' : (item.state === 'ink' ? '已练过' : (item.locked ? '尚未开放' : '尚未学习'))}}</text>
+                  <text class="lr-poster-tag lr-poster-tag--{{item.state}}">{{item.card_hosted === false ? '微课即将开通' : (item.recommended ? '推荐起点' : (item.state === 'ink' ? '已练过' : (item.locked ? '尚未开放' : '尚未学习')))}}</text>
                 </view>
                 <!-- 副标题:考点卡首卡 front 真源;无卡的站留空(fail-closed,不造词) -->
                 <text wx:if="{{item.subtitle}}" class="pk-poster__sub">{{item.subtitle}}</text>

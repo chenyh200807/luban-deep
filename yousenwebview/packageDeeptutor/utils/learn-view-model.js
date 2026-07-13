@@ -10,7 +10,7 @@
 //   非绿灯 pack 一律"即将开通"(H3)。
 // - 掌握态只读 lifecycle_state,不发明判分语义(H5)。
 
-var PACK_UNIVERSE = 40; // 60-slot 注册表 40 pack(融合计划 §1.1)
+var PACK_UNIVERSE = 40; // 仅兼容尚未返回 pack_universe 的旧后端；正式值来自 lessons API。
 
 // 站点卡简称(显示层):卡片名用简称保清爽,title 全名不变(详情页/下一站卡仍用全名)
 var _shortNames = require("./pack-short-names");
@@ -28,6 +28,10 @@ function _int(v) {
   var n = Number(v);
   return Number.isFinite(n) ? Math.round(n) : 0;
 }
+function _packUniverse(lessonsResp) {
+  var n = _int(_safeObj(lessonsResp).pack_universe);
+  return n > 0 ? n : PACK_UNIVERSE;
+}
 
 // pack_id -> title,来自绿灯 lessons(H3:只有绿灯是可学的真站)
 function _titleIndex(lessonsResp) {
@@ -37,7 +41,16 @@ function _titleIndex(lessonsResp) {
     var id = _str(o.pack_id).toUpperCase();
     // summary = 后端签发考点卡首卡 front(路线卡副标题真源);缺则 ""(fail-closed 留空)
     // retest = 签发供给 + rollout 双闸后的可完成真值；缺字段=false 保守降级。
-    if (id) idx[id] = { title: _str(o.title), sha: _str(o.content_sha256), green: true, summary: _str(o.summary), retest: o.light_practice_available === true };
+    if (id) idx[id] = {
+      title: _str(o.title),
+      sha: _str(o.content_sha256),
+      green: true,
+      // 三态供给真值：true/false 来自新 lessons API；null 表示旧 API 未签发该字段。
+      // 未知不能被前端擅自降成 false，最终由详情接口 card_url 裁决。
+      card_hosted: o.card_hosted === true ? true : (o.card_hosted === false ? false : null),
+      summary: _str(o.summary),
+      retest: o.light_practice_available === true,
+    };
   });
   return idx;
 }
@@ -84,7 +97,7 @@ function _posters(packs, titleIdx, recommendedId) {
     var up = _str(id).toUpperCase();
     if (!up || seen[up]) return;
     seen[up] = true;
-    var meta = titleIdx[up] || { title: "", green: false, summary: "" };
+    var meta = titleIdx[up] || { title: "", green: false, card_hosted: false, summary: "" };
     var isRec = up === _str(recommendedId).toUpperCase();
     rows.push({
       pack_id: up,
@@ -92,6 +105,7 @@ function _posters(packs, titleIdx, recommendedId) {
       name: _shortNames.shortName(up, _posterName(meta.title || "即将开通")),
       slot: up,
       green: !!meta.green,
+      card_hosted: meta.card_hosted === true ? true : (meta.card_hosted === false ? false : null),
       state: _posterState(state, isRec, !!meta.green),
       recommended: isRec,
       locked: !meta.green,
@@ -173,7 +187,7 @@ function buildLearnViewModel(args) {
 
   var lifecycle = _safeObj(report.pack_lifecycle);
   var packs = _safeObj(lifecycle.packs);
-  var universe = _safeArr(lifecycle.state_machine).length ? PACK_UNIVERSE : PACK_UNIVERSE;
+  var universe = _packUniverse(a.lessons);
 
   // ── 下一站卡(next_step 呈现仲裁,H3 只认真实 pack) ──
   var nextStep = _safeObj(dash.next_step);
@@ -184,6 +198,8 @@ function buildLearnViewModel(args) {
       : nextStep.source_ref,
   ).toUpperCase();
   var nsMeta = titleIdx[nsRef] || {};
+  var greenIds = Object.keys(titleIdx).sort();
+  var hostedIds = greenIds.filter(function (id) { return titleIdx[id].card_hosted; });
   var nextStation = null;
   if (nextStep.mode && nextStep.mode !== "unavailable" && nsRef) {
     nextStation = {
@@ -192,8 +208,26 @@ function buildLearnViewModel(args) {
       reason: _str(nextStep.reason),
       mode: _str(nextStep.mode),
       green: !!nsMeta.green,
+      card_hosted: nsMeta.card_hosted === true ? true : (nsMeta.card_hosted === false ? false : null),
       card_sha: _str(nsMeta.sha),
       evidenceBacked: _safeArr(nextStep.evidence_refs).length > 0,
+    };
+  }
+
+  // 学习页头牌承担“点开即学”的承诺：个性化 next_step 若暂未托管微课，
+  // 仍留在完整路线/今日任务中，但头牌降级推荐一节真实可播放微课。
+  // card_hosted 只来自 lessons manifest 投影，前端不靠 URL/pack_id 猜供给。
+  if (nextStation && nextStation.card_hosted === false && hostedIds.length) {
+    var firstHosted = hostedIds[0];
+    nextStation = {
+      pack_id: firstHosted,
+      title: titleIdx[firstHosted].title || "即将开通",
+      reason: "推荐先看这节可播放微课 · 点亮你的提分路线",
+      mode: "hosted_fallback",
+      green: true,
+      card_hosted: true,
+      card_sha: titleIdx[firstHosted].sha || "",
+      evidenceBacked: false,
     };
   }
 
@@ -201,15 +235,17 @@ function buildLearnViewModel(args) {
   // 让宣纸舞台/下一站卡始终显示(不因无 next_step 塌成空态);诚实=真实绿灯站+群体理由。
   var fallbackUsed = false;
   if (!nextStation) {
-    var greenIds = Object.keys(titleIdx);
+    // day-0 入口优先选择真实已有动画卡；无卡绿灯站仍保留在路线中。
     if (greenIds.length) {
-      var firstGreen = greenIds.sort()[0];
+      var unknownIds = greenIds.filter(function (id) { return titleIdx[id].card_hosted === null; });
+      var firstGreen = hostedIds[0] || unknownIds[0] || greenIds[0];
       nextStation = {
         pack_id: firstGreen,
         title: titleIdx[firstGreen].title || "即将开通",
         reason: "从这一站开始 · 点亮你的提分路线",
         mode: "learn_fallback",
         green: true,
+        card_hosted: titleIdx[firstGreen].card_hosted,
         card_sha: titleIdx[firstGreen].sha || "",
         evidenceBacked: false,
       };

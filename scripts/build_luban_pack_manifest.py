@@ -9,6 +9,10 @@
   （防"库建好没通电"与"脚本自签发"两个历史坑）。
 - 人工签发 = 在 ``_pack_manifest.overrides.json`` 里对具体 pack_id 置
   ``published: true``；本脚本重跑时合并 overrides，其余字段永远以扫描为准。
+  只有 owner 明确要求将已完成成品接入默认学习入口时，才可额外置
+  ``allow_default_entry: true``。该动作会保留扫描到的原始 barrier，并记录为
+  ``source_explicitly_barred_default_entry`` + ``default_entry_override``，不把
+  人工放行伪装成源材料从未设限。
 - ``jury_clean`` = jury sidecar 存在且**无未解决的高可信 issue**（双轮设计 §7
   投影门③「jury issue 已 fix 或不涉该簇」的机器可读载体）：解决状态由人工/汇编
   在 jury sidecar 行内登记 ``resolution: {status: fixed|not_applicable, fixed_in,
@@ -133,9 +137,16 @@ def _apply_overrides(packs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for pack_id, patch in overrides.items():
         if pack_id not in by_id:
             raise ValueError(f"override 指向不存在的 pack: {pack_id}")
-        if not isinstance(patch, dict) or set(patch) - {"published", "note"}:
-            raise ValueError(f"override 只允许 published/note 字段: {pack_id}")
+        if not isinstance(patch, dict) or set(patch) - {"published", "allow_default_entry", "note"}:
+            raise ValueError(f"override 只允许 published/allow_default_entry/note 字段: {pack_id}")
         by_id[pack_id]["published"] = bool(patch.get("published", False))
+        if "allow_default_entry" in patch:
+            source_barred = bool(by_id[pack_id]["explicitly_barred_default_entry"])
+            allow_default_entry = bool(patch["allow_default_entry"])
+            by_id[pack_id]["source_explicitly_barred_default_entry"] = source_barred
+            by_id[pack_id]["default_entry_override"] = allow_default_entry
+            if allow_default_entry:
+                by_id[pack_id]["explicitly_barred_default_entry"] = False
         if patch.get("note"):
             by_id[pack_id]["publish_note"] = str(patch["note"])
     return packs

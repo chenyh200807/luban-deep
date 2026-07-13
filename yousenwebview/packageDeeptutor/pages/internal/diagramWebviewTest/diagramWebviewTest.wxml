@@ -1,3 +1,0 @@
-<!-- INTERNAL PROTOTYPE ONLY · diagram_microlesson webview 沙盒验证页 · 不挂正式导航 · 不接业务 -->
-<web-view wx:if="{{url}}" src="{{url}}"></web-view>
-<view wx:else class="hint">internal prototype only · 缺少 url 参数</view>

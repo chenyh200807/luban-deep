@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="lesson.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="lesson.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="渗漏治理诊断";
+  KNOWLEDGE="渗漏治理诊断（施工缝/裂缝/穿墙/流淌/起鼓/女儿墙）。判分主线=先按部位诊断→回溯成因→对症治理，不混答。①施工缝渗漏成因：未清理干净粘结不良、接槎明显、钢筋密集浇捣不密实。②防水混凝土裂缝治理：及时保湿养护+多道设防刚柔结合+确保防水层保护层质量。③管道穿墙治理流程：清理管道表面→设止水环（延长渗径）→振捣密实→避免振动→灌浆堵漏。④卷材流淌分三级：严重拆除重铺、中等切割法/局部切除重铺/钉钉子法、轻微不渗漏可不治。⑤卷材起鼓按100mm分档：<100mm抽气灌胶法；≥100mm斜十字割开、清理、吹干、重贴方形卷材。⑥山墙女儿墙成因=收口/压条脱落/滴水线破损/拉结不牢/钝角，治理五步=清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口。相邻背景（非主判分眼）：堵漏灌浆材料分类、外墙淋水检验。常见失分：只背防水没做好不诊断部位、治理方法张冠李戴、穿墙漏止水环、流淌不分级、起鼓漏100mm分档、女儿墙漏烤干与封口。";
+  moreText="补练方向：① 混凝土基体与节点侧（施工缝三成因 / 裂缝多道设防刚柔结合 / 穿墙止水环五步）——练部位诊断 + 程序箭头链写全；② 卷材柔性层侧（流淌三级三法 / 起鼓 100mm 分档 / 女儿墙成因五项加治理五步）——练分级分档 + 判断纠错三段式。回看讲解上/下集，再抽 5 道过一遍。";
+  Q=[
+    { tag:"施工缝诊断·后果维", typeHint:"单选 · 选出最完整、最能拿分的作答", figLabel:"图示：地下室墙施工缝渗水剖面", figCaption:"上下两段混凝土 · 施工缝界面 · 钢筋密集区", fig:"joint",
+      stem:"地下室墙体施工缝部位渗水。分析成因，选出最完整、能得分的作答。",
+      model:"施工缝未清理干净致新旧混凝土粘结不良渗漏；未按规范处理接槎明显；钢筋密集处浇捣困难、混凝土不密实。",
+      opts:[
+        { t:"施工缝未清理干净致新旧混凝土粘结不良、接槎明显、钢筋密集处浇捣不密实，共同形成渗水通路。", ok:true, fix:"三条成因写全（未清理粘结不良 / 接槎 / 钢筋密集不密实），部位与成因都诊断到位。", code:"" },
+        { t:"是防水层没做好、防水材料不合格导致渗漏，把整个防水层重做一遍即可解决。", ok:false, code:"E08", tempt:"一看渗漏就往'防水层没做好'上套，不去读施工缝这个部位背景。", lose:"没提取施工缝部位背景、没诊断具体成因，答非所问。", fix:"先定位施工缝，写未清理粘结不良、接槎、钢筋密集不密实三条成因。" },
+        { t:"主要是施工缝未清理干净、粘结不良这一条原因造成的渗水，成因就这一点。", ok:false, code:"E02", tempt:"记住了最典型的一条，就以为答完了。", lose:"漏了接槎明显、钢筋密集浇捣不密实两条成因，采分点遗漏。", fix:"补写接槎明显、钢筋密集处浇捣不密实两条。" },
+        { t:"是混凝土强度不足产生结构裂缝渗水，应沿裂缝注浆按结构裂缝处理。", ok:false, code:"E07", tempt:"都是混凝土渗水，容易和裂缝渗漏混为一谈。", lose:"施工缝渗漏与结构裂缝是不同部位不同成因，概念混淆。", fix:"本题是施工缝部位，成因写未清理/接槎/钢筋密集不密实。" }
+      ] },
+    { tag:"施工缝诊断·后果维", typeHint:"单选 · 选出不笼统、能拿判据分的作答", figLabel:"图示：施工缝界面成因", figCaption:"未清理碎渣 · 接槎错台 · 钢筋密集蜂窝", fig:"joint",
+      stem:"就施工缝渗漏「分析成因」这一问，哪种作答阅卷能拿到判据分？",
+      model:"逐条点出：未清理干净→粘结不良；未按规范处理→接槎明显；钢筋密集→浇捣困难→混凝土不密实。",
+      opts:[
+        { t:"未清理干净致粘结不良、接槎明显、钢筋密集处浇捣不密实三条并列，逐条点明成因。", ok:true, fix:"三条并列、每条点到机理，阅卷按点给分。", code:"" },
+        { t:"施工缝部位施工质量差、当时没弄好，所以后来就渗水了。", ok:false, code:"E04", tempt:"'质量差''没弄好'像是答了原因，写起来省事。", lose:"全是口号、没有可判分的具体成因。", fix:"点明未清理粘结不良、接槎、钢筋密集不密实三条。" },
+        { t:"施工缝渗漏是因为养护不到位，加强保湿养护即可。", ok:false, code:"E07", tempt:"把裂缝治理里的'养护'搬过来当施工缝成因。", lose:"养护是裂缝治理措施，不是施工缝渗漏成因，概念混淆。", fix:"施工缝成因写未清理/接槎/钢筋密集不密实。" },
+        { t:"钢筋太密浇不下去导致渗水，主要就这一条。", ok:false, code:"E02", tempt:"抓住钢筋密集一条觉得够了。", lose:"漏未清理粘结不良、接槎明显两条。", fix:"补未清理粘结不良、接槎明显两条。" }
+      ] },
+    { tag:"裂缝治理·记录维", typeHint:"单选 · 选出措施最完整能得分的作答", figLabel:"图示：多道设防 · 刚柔结合", figCaption:"刚性混凝土自防水 + 柔性卷材/涂膜 + 保护层", fig:"layers",
+      stem:"防水混凝土墙体出现裂缝渗漏。其治理措施选出最完整、能得分的作答。",
+      model:"及时保湿养护；采取多道设防、刚柔结合；确保防水层及保护层质量。",
+      opts:[
+        { t:"及时保湿养护，采取多道设防、刚柔结合的防水做法，并确保防水层及保护层质量。", ok:true, fix:"养护 + 多道设防刚柔结合 + 保护层质量三件齐，关键句'多道设防、刚柔结合'不丢。", code:"" },
+        { t:"加强防水、及时养护，把渗漏部位处理好就行。", ok:false, code:"E02", tempt:"'加强防水''养护'听着对，容易觉得够了。", lose:"漏了核心采分句'多道设防、刚柔结合'与保护层质量。", fix:"补'多道设防、刚柔结合'和确保防水层保护层质量。" },
+        { t:"沿裂缝设置止水环后灌浆堵漏，把裂缝封死。", ok:false, code:"E07", tempt:"止水环+灌浆是穿墙治理，套到裂缝上像是能堵。", lose:"止水环+灌浆是管道穿墙的治理，用于裂缝属方法张冠李戴。", fix:"裂缝治理写养护 + 多道设防刚柔结合 + 保护层质量。" },
+        { t:"把防水做扎实、彻底杜绝渗漏，确保工程质量。", ok:false, code:"E04", tempt:"口号顺口、像总结陈词。", lose:"没有可判分的具体措施，全是口号。", fix:"写养护 + 多道设防刚柔结合 + 保护层质量。" }
+      ] },
+    { tag:"裂缝治理·概念", typeHint:"单选 · 选出对「多道设防刚柔结合」理解正确的", figLabel:"图示：一道破 · 别道挡", figCaption:"刚性自防水与柔性卷材/涂膜叠合冗余", fig:"layers",
+      stem:"「多道设防、刚柔结合」，哪种理解能对应得分作答？",
+      model:"刚性混凝土自防水与柔性卷材/涂膜多道叠合，一道破损仍有其余道设防挡水。",
+      opts:[
+        { t:"刚性混凝土自防水与柔性卷材/涂膜多道叠合，一道破损仍有其余道挡水，形成冗余。", ok:true, fix:"点出刚柔搭配 + 多道冗余 + 一道破别道挡，理解到位。", code:"" },
+        { t:"只要一道防水层做得够厚够好就行，多做几道是浪费材料。", ok:false, code:"M03", tempt:"觉得做厚一道更省更牢。", lose:"单道一处破即漏，与多道设防要求相悖，概念错误。", fix:"要多道设防、刚柔结合，一道破仍有别道挡。" },
+        { t:"刚柔结合指先做刚性面层再做柔性找平层的抹灰施工顺序。", ok:false, code:"E07", tempt:"把'刚柔'理解成抹灰工序顺序。", lose:"刚柔结合指刚性与柔性防水层搭配，非抹灰顺序，概念混淆。", fix:"刚性自防水 + 柔性卷材/涂膜多道搭配。" },
+        { t:"多道设防就是同一种防水涂料多刷几遍加厚。", ok:false, code:"E02", tempt:"'多道'字面理解成多刷几遍。", lose:"漏了'刚柔结合'——多道要刚性柔性搭配，非同料多刷。", fix:"补'刚柔结合'：刚性自防水配柔性卷材涂膜。" }
+      ] },
+    { tag:"穿墙治理·程序维", typeHint:"单选 · 选出流程完整、顺序正确的作答", figLabel:"图示：穿墙管 + 止水环", figCaption:"墙 · 管 · 止水环 · 灌浆堵漏", fig:"pipe",
+      stem:"管道穿墙部位渗漏。其治理措施按流程组织，选出能得分的作答。",
+      model:"清理管道表面→设置止水环→振捣密实→避免振动→灌浆堵漏，按序不漏步。",
+      opts:[
+        { t:"清理管道表面→设置止水环→振捣密实→避免振动→灌浆堵漏，按此流程组织不漏步。", ok:true, fix:"五步顺序齐全，止水环与灌浆堵漏都在，程序箭头链完整。", code:"" },
+        { t:"直接对渗水处灌浆堵漏，把水封住即可，简单有效。", ok:false, code:"E02", tempt:"觉得堵漏就是灌浆，一步到位。", lose:"漏了清理管面、止水环、振捣密实、避免振动等前置，采分点遗漏。", fix:"补清理管面→止水环→振捣密实→避免振动→灌浆堵漏。" },
+        { t:"先灌浆堵漏，再回头清理管道表面、补设止水环。", ok:false, code:"E06", tempt:"以为先把水堵住再收拾其他，顺手。", lose:"止水环、振捣需在灌浆前，顺序颠倒，程序错误。", fix:"按清理→止水环→振捣密实→避免振动→灌浆堵漏的顺序。" },
+        { t:"按卷材流淌的切割法、钉钉子法处理穿墙渗漏部位。", ok:false, code:"E07", tempt:"记了不少治理法，随手抓一个套上。", lose:"切割法/钉钉子法是卷材流淌治理，用于穿墙属张冠李戴。", fix:"穿墙用清理→止水环→振捣→避振→灌浆堵漏。" }
+      ] },
+    { tag:"穿墙治理·概念", typeHint:"单选 · 选出止水环作用表述准确的", figLabel:"图示：止水环延长渗径", figCaption:"水沿管壁的渗径被拉长、受阻", fig:"pipe",
+      stem:"穿墙管处为何要设置止水环？选出表述准确的作答。",
+      model:"止水环沿管壁延长水的渗径、增加渗流阻力，阻断水沿管壁渗入。",
+      opts:[
+        { t:"止水环沿管壁延长水的渗径、增加渗流阻力，从而阻断水沿管壁渗入。", ok:true, fix:"点明'延长渗径、增加阻力'的机理，是采分句。", code:"" },
+        { t:"止水环是固定管道、防止管道晃动的支架构件。", ok:false, code:"M03", tempt:"'环'像个卡箍，容易当成固定件。", lose:"止水环功能是止水延长渗径，非固定支架，概念错误。", fix:"止水环延长渗径、增加渗流阻力止水。" },
+        { t:"设不设止水环都行，关键把灌浆量灌足就能堵住。", ok:false, code:"E02", tempt:"觉得灌浆足够就够，忽略止水环。", lose:"漏掉止水环这一关键采分句。", fix:"必须设止水环延长渗径，再灌浆堵漏。" },
+        { t:"止水环就是管道外包的保温层，起隔热保温作用。", ok:false, code:"E07", tempt:"和管道保温层长得像，容易混。", lose:"止水环是止水构件，非保温层，概念混淆。", fix:"止水环延长渗径止水，不是保温。" }
+      ] },
+    { tag:"流淌分级·记录维", typeHint:"单选 · 选出分级对症、不过度处置的作答", figLabel:"图示：流淌三级 · 各级对症", figCaption:"严重 / 中等 / 轻微 · 治理各不同", fig:"flow",
+      stem:"屋面卷材出现流淌，项目部拟对全部流淌部位一律拆除重铺。选出最准确的诊断与作答。",
+      model:"先分严重/中等/轻微三级：严重拆除重铺、中等用三法、轻微不渗漏可不治；一律拆除属过度处置。",
+      opts:[
+        { t:"应先分严重/中等/轻微三级：严重拆除重铺、中等用三法、轻微不渗漏可不治，一律拆除属过度处置。", ok:true, fix:"先分级再对症，指出轻微一律拆除是过度处置，分级采分句齐。", code:"" },
+        { t:"卷材流淌一律拆除重铺最彻底，不必分级，省得反复。", ok:false, code:"E02", tempt:"'拆了重铺最彻底'听着稳妥。", lose:"漏了分级这一整维，轻微不渗漏可不治没体现，属过度处置。", fix:"先分三级：严重拆除、中等三法、轻微可不治。" },
+        { t:"流淌就是热天晒化了，凭经验全部铲掉重铺最稳当。", ok:false, code:"M10", tempt:"用生活常识'晒化了铲掉'替代规范判断。", lose:"以常识替代分级规范，把轻微也大拆，判断失据。", fix:"按规范分三级对症，轻微不渗漏可不治。" },
+        { t:"流淌按起鼓的直径100mm分档来处理即可。", ok:false, code:"E07", tempt:"都是卷材病，容易把分级和分档搞混。", lose:"100mm分档是起鼓的口径，流淌按程度分三级，概念混淆。", fix:"流淌按严重/中等/轻微三级，不是100mm分档。" }
+      ] },
+    { tag:"中等流淌·记录维", typeHint:"单选 · 选出方法完整能得分的作答", figLabel:"图示：中等流淌三法", figCaption:"切割法 · 局部切除重铺 · 钉钉子法", fig:"method3",
+      stem:"中等程度卷材流淌的治理方法，选出作答完整、能得分的。",
+      model:"中等流淌可采用切割法、局部切除重铺、钉钉子法三法，择宜使用。",
+      opts:[
+        { t:"中等流淌可采用切割法、局部切除重铺、钉钉子法三法，视情况择宜使用。", ok:true, fix:"三法列全、点明择宜，中等流淌采分句齐。", code:"" },
+        { t:"中等流淌用切割法把它切开压平就行了。", ok:false, code:"E02", tempt:"记住切割法一种，觉得够了。", lose:"漏局部切除重铺、钉钉子法两法，采分点遗漏。", fix:"补局部切除重铺、钉钉子法两法。" },
+        { t:"中等流淌抽气灌胶抚平即可恢复。", ok:false, code:"E07", tempt:"抽气灌胶是常听到的卷材治法，随手用上。", lose:"抽气灌胶是起鼓治理，用于流淌属方法混淆。", fix:"中等流淌用切割法/局部切除重铺/钉钉子法三法。" },
+        { t:"中等流淌等天凉了自己就恢复，一般不用治理。", ok:false, code:"M10", tempt:"把中等当轻微，凭常识以为能自愈。", lose:"'不渗漏可不治'是轻微级，中等必须三法治理，混级。", fix:"中等要治：切割法/局部切除重铺/钉钉子法。" }
+      ] },
+    { tag:"起鼓分档·条件维", typeHint:"单选 · 选出按直径分档处置正确的作答", figLabel:"图示：起鼓按 100mm 分档", figCaption:"小鼓抽气灌胶 · 大鼓斜十字割开重贴", fig:"bulge",
+      stem:"屋面卷材起鼓，直径分别为 80mm 与 150mm。选出分档处置正确的作答。",
+      model:"80mm<100mm用抽气灌胶法；150mm≥100mm应斜十字形割开、清理、吹干、重贴方形卷材。",
+      opts:[
+        { t:"80mm<100mm用抽气灌胶法；150mm≥100mm应斜十字形割开、清理、吹干、重贴方形卷材。", ok:true, fix:"按100mm分档、两档处置各写清，条件维与做法都到位。", code:"" },
+        { t:"起鼓一律斜十字割开重贴最彻底，不用看直径大小。", ok:false, code:"M08", tempt:"'割开重贴最彻底'像最保险的做法。", lose:"漏了100mm分档，小鼓也大拆属过度、规范数字缺失。", fix:"补100mm分界：<100mm抽气灌胶，≥100mm割开重贴。" },
+        { t:"80mm和150mm都用抽气灌胶法抽气注胶抚平即可。", ok:false, code:"E07", tempt:"抽气灌胶简单，想一招用到底。", lose:"150mm≥100mm胶结料大面积失效，只抽气会复发，方法误用。", fix:"150mm应斜十字割开、吹干、重贴方形卷材。" },
+        { t:"分界应按 50mm：小于50mm抽气灌胶、大于50mm割开重贴。", ok:false, code:"M08", tempt:"记得有个分界值，把数字记错成50。", lose:"分档界值是100mm不是50mm，规范数字混淆。", fix:"分界是直径100mm。" }
+      ] },
+    { tag:"起鼓分档·条件维", typeHint:"单选 · 选出对大鼓只抽气判断准确的", figLabel:"图示：大鼓只抽气 → 复发", figCaption:"直径≥100mm 胶结料大面积失效", fig:"bulge",
+      stem:"某处卷材起鼓直径 150mm，工人只做抽气灌胶。选出最准确的判断与作答。",
+      model:"不妥，≥100mm胶结料大面积失效，应斜十字割开、清理、吹干、重贴，只抽气会复发。",
+      opts:[
+        { t:"不妥，直径≥100mm胶结料大面积失效，应斜十字割开、清理、吹干、重贴，只抽气会复发。", ok:true, fix:"判不妥 + 依据(≥100mm大面积失效) + 正确做法(割开重贴)三段齐。", code:"" },
+        { t:"妥当，抽气灌胶法对各种大小的起鼓都适用有效。", ok:false, code:"E02", tempt:"抽气灌胶用着方便，就认为通用。", lose:"漏了100mm分档，大鼓必须割开重贴，遗漏关键判据。", fix:"≥100mm应割开、吹干、重贴，非抽气。" },
+        { t:"妥当，起鼓不论大小抽气灌胶最省事、成本低。", ok:false, code:"M10", tempt:"图省事、省成本的常识判断。", lose:"以省事常识替代分档规范，大鼓只抽气会复发。", fix:"按100mm分档，大鼓割开重贴。" },
+        { t:"不妥，应改用拆除重铺，起鼓属于流淌治理的一种。", ok:false, code:"E07", tempt:"知道不妥了，却纠成了另一个方法。", lose:"起鼓不是流淌，不用拆除重铺，方向纠错错误。", fix:"≥100mm起鼓斜十字割开、吹干、重贴方形卷材。" }
+      ] },
+    { tag:"女儿墙诊断·后果维", typeHint:"单选 · 选出成因诊断完整能得分的作答", figLabel:"图示：女儿墙收头构造", figCaption:"压顶 · 压条 · 卷材上翻收口 · 滴水线", fig:"parapet",
+      stem:"山墙女儿墙根部渗漏。分析成因，选出能得分的作答。",
+      model:"卷材收口/压条脱落、滴水线破损、拉结不牢、阴阳角成钝角等收头薄弱处失效导致渗漏。",
+      opts:[
+        { t:"卷材收口/压条脱落、滴水线破损、拉结不牢、阴阳角成钝角等收头薄弱处失效导致渗漏。", ok:true, fix:"收头薄弱各项(收口/压条/滴水线/拉结/钝角)列全，部位与成因诊断到位。", code:"" },
+        { t:"就是女儿墙防水没做好，把防水层返工重做即可。", ok:false, code:"E08", tempt:"渗漏就往'防水没做好'上套，不读收头背景。", lose:"没提取女儿墙收头部位背景、无具体成因，答非所问。", fix:"写收口/压条脱落、滴水线破损、拉结不牢、钝角。" },
+        { t:"是施工缝未清理、钢筋密集不密实造成女儿墙渗漏。", ok:false, code:"E07", tempt:"把施工缝的成因套到女儿墙上。", lose:"部位错、成因错，施工缝成因不适用女儿墙，概念混淆。", fix:"女儿墙成因写收口/压条脱落/滴水线破损/拉结不牢/钝角。" },
+        { t:"主要是压条脱落一条原因导致的渗漏。", ok:false, code:"E02", tempt:"抓住压条脱落一条觉得够。", lose:"漏收口、滴水线破损、拉结不牢、钝角其余成因。", fix:"补滴水线破损、拉结不牢、钝角等收头薄弱处。" }
+      ] },
+    { tag:"女儿墙治理·程序维", typeHint:"单选 · 选出五步完整、顺序正确的作答", figLabel:"图示：女儿墙治理五步链", figCaption:"清旧料 · 烤干 · 钉压条 · 新卷材 · 油膏封口", fig:"parapet",
+      stem:"山墙女儿墙渗漏治理。选出步骤最完整、能得分的作答。",
+      model:"清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口，并修复压顶砂浆。",
+      opts:[
+        { t:"清除旧胶结料→烤干基层→重新钉压条→覆盖新卷材→防水油膏封口，并修复压顶砂浆。", ok:true, fix:"五步齐全、含易漏的烤干基层与油膏封口，程序链完整。", code:"" },
+        { t:"直接重新钉压条、覆盖新卷材，省去清旧料与烤干基层。", ok:false, code:"E06", tempt:"觉得钉压条铺新卷材是主活，前面可省。", lose:"漏清旧料、烤干基层，基层不干新卷材粘不牢，程序缺步。", fix:"补清除旧胶结料、烤干基层，再钉压条、铺新卷材、封口。" },
+        { t:"把女儿墙防水重新做一遍就行，按常规防水施工来。", ok:false, code:"E02", tempt:"'重做防水'笼统好写。", lose:"没有五步具体采分句，采分点遗漏。", fix:"写清旧料→烤干→钉压条→新卷材→油膏封口五步。" },
+        { t:"用抽气灌胶法处理女儿墙收口渗漏。", ok:false, code:"E07", tempt:"抽气灌胶记得牢，随手套用。", lose:"抽气灌胶是起鼓治理，用于女儿墙收口属方法误用。", fix:"女儿墙用清旧料→烤干→钉压条→新卷材→油膏封口五步。" }
+      ] },
+    { tag:"诊断总则·后果维", typeHint:"单选 · 选出作答思路正确的", figLabel:"图示：不同部位 · 不同药方", figCaption:"施工缝 / 穿墙 / 流淌起鼓 / 女儿墙", fig:"scene",
+      stem:"面对不同部位的渗漏，哪种作答思路阅卷能得分？",
+      model:"先按部位定位（施工缝/穿墙/流淌起鼓/女儿墙），回溯成因后对症治理，不混用治理方法。",
+      opts:[
+        { t:"先按部位定位（施工缝/穿墙/流淌起鼓/女儿墙），回溯成因后对症治理，不混用治理方法。", ok:true, fix:"先诊断部位、再对症治理、不混答——正是判分主线。", code:"" },
+        { t:"渗漏题统一答『加强防水、做好防水层』最保险不会错。", ok:false, code:"E05", tempt:"一句话套所有题，图省心。", lose:"没审部位、无对症措施，全是口号，审题失据。", fix:"按部位诊断成因、对症治理。" },
+        { t:"所有渗漏都先灌浆堵漏，一招通用最省事。", ok:false, code:"E07", tempt:"灌浆堵漏听着万能。", lose:"不同部位成因不同、治理不同，一招通用属混答。", fix:"按部位对症：穿墙止水环、流淌分级、起鼓分档、女儿墙五步。" },
+        { t:"只写治理措施就行，不必分析渗漏部位与成因。", ok:false, code:"E02", tempt:"觉得阅卷只看措施。", lose:"漏了部位诊断与成因回溯，诊断分丢掉。", fix:"先诊断部位+成因，再写对症治理。" }
+      ] },
+    { tag:"相邻背景·审题", typeHint:"单选 · 选出对相邻知识定位正确的", figLabel:"图示：治理用材 / 检验背景", figCaption:"堵漏灌浆材料分类 · 外墙淋水检验", fig:"adjacent",
+      stem:"关于堵漏灌浆材料分类与外墙淋水检验，在渗漏治理案例中应如何定位？",
+      model:"属治理用材与诊断检验背景，主答案仍回到部位诊断与对症治理，不作为治理方法主体。",
+      opts:[
+        { t:"属治理用材与诊断检验背景，主答案仍回到部位诊断与对症治理，不作为主判分。", ok:true, fix:"把相邻知识当背景、主答案回诊断治理，审题定位准。", code:"" },
+        { t:"直接以堵漏灌浆材料的分类作为本治理案例的主答案。", ok:false, code:"E05", tempt:"材料分类背得熟，顺手当主答案。", lose:"材料分类是用材背景，非治理方法主体，审题偏了。", fix:"主答案写部位诊断+对症治理，材料只作背景。" },
+        { t:"外墙淋水试验本身就是渗漏的治理方法之一。", ok:false, code:"E07", tempt:"淋水和渗漏都跟水有关，容易混。", lose:"淋水试验是检验/验收方法，不是治理方法，概念混淆。", fix:"淋水是诊断检验背景，治理仍按部位对症。" },
+        { t:"只写灌浆材料分类即可得分，不必诊断治理。", ok:false, code:"E02", tempt:"觉得写了知识点就有分。", lose:"漏诊断治理主线，采分点遗漏。", fix:"主线写诊断+对症治理，材料分类只是背景。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 诊断学生作答的失分并给正确补写", figLabel:"图示：学生作答（待诊断）", figCaption:"女儿墙渗漏 · 作答过于笼统", fig:"sheet",
+      stem:"某学生答女儿墙渗漏治理『重新做防水，把漏的地方补上』。选出最准确的诊断与补写。",
+      model:"成因未诊断、治理五步全缺；补成因(收口/压条脱落/滴水线破损/钝角)+五步(清旧料→烤干→钉压条→新卷材→油膏封口)。",
+      opts:[
+        { t:"成因未诊断、治理五步全缺；应补成因(收口/压条脱落/滴水线破损/钝角)与五步(清旧料→烤干→钉压条→新卷材→油膏封口)。", ok:true, fix:"揪出成因与五步都缺，给出可上答题纸的补写——这就是「会写答案」。", code:"" },
+        { t:"作答思路正确、方向没问题，只是不够详细，可酌情给大部分分。", ok:false, code:"E04", tempt:"看到'重做防水'觉得沾边，想给分。", lose:"全是口号、无成因无五步，按点给分几乎为零。", fix:"必须补写成因五项与治理五步。" },
+        { t:"只差写明用哪种防水材料，把材料补上就完整了。", ok:false, code:"E02", tempt:"以为差的只是材料。", lose:"漏诊成因未写、治理五步全缺两大块。", fix:"补成因(收口/压条/滴水线/钝角)与五步治理。" },
+        { t:"应补写卷材流淌三法与起鼓100mm分档的内容。", ok:false, code:"E07", tempt:"把别部位的采分句往上堆。", lose:"流淌三法、起鼓分档不属女儿墙，部位方法混淆。", fix:"补女儿墙成因五项与治理五步，不是流淌起鼓。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 诊断学生作答的失分并给正确补写", figLabel:"图示：学生作答（待诊断）", figCaption:"穿墙渗漏 · 只写灌浆堵漏", fig:"sheet",
+      stem:"某学生答管道穿墙渗漏『哪漏堵哪，灌浆把它堵死』。选出最准确的诊断与补写。",
+      model:"漏诊断与前置流程；补清理管道表面→设止水环→振捣密实→避免振动→灌浆堵漏，止水环不可漏。",
+      opts:[
+        { t:"漏了前置流程，应补清理管道表面→设止水环→振捣密实→避免振动→灌浆堵漏，止水环不可漏。", ok:true, fix:"指出止水环与前置流程都缺，补齐五步程序链。", code:"" },
+        { t:"作答已点到灌浆堵漏，基本完整，可给大部分分。", ok:false, code:"E02", tempt:"看到'灌浆堵漏'关键词就觉得答到了。", lose:"漏止水环与清理、振捣、避振等前置，采分点大量遗漏。", fix:"补清理管面→止水环→振捣→避振→灌浆堵漏。" },
+        { t:"只需把『灌浆堵漏』放到最后一步，其余不用补。", ok:false, code:"E06", tempt:"觉得顺序理顺就行。", lose:"不止顺序问题，止水环、振捣密实等步骤本就缺，仍遗漏。", fix:"补齐止水环、振捣密实、避免振动等步骤。" },
+        { t:"应补写多道设防、刚柔结合与保湿养护的内容。", ok:false, code:"E07", tempt:"把裂缝治理的采分句搬过来。", lose:"多道设防/养护是裂缝治理，用于穿墙属方法混淆。", fix:"穿墙补清理→止水环→振捣→避振→灌浆堵漏五步。" }
+      ] }
+  ];
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"成因分条、治理流程逐步、分级分档逐档写全，缺一扣一。"},
+    E04:{label:"口号化表达",advice:"别写'加强防水/做扎实'，要落到可判分的具体成因与措施。"},
+    E05:{label:"审题错误",advice:"先按部位诊断，别一句'防水没做好'套所有题、别拿相邻知识当主答案。"},
+    E06:{label:"程序顺序错误",advice:"穿墙、女儿墙治理按固定工序顺序写，别颠倒、别跳步。"},
+    E07:{label:"概念混淆",advice:"分清部位与治理方法：穿墙止水环、流淌分级、起鼓分档、女儿墙五步，不张冠李戴。"},
+    E08:{label:"背景信息提取失败",advice:"先读题干给的部位背景，定位到施工缝/穿墙/流淌起鼓/女儿墙再回溯成因。"},
+    M08:{label:"规范数字混淆",advice:"起鼓分档界值是直径100mm，记牢别记错档。"},
+    M10:{label:"用常识替代规范判断",advice:"别凭'铲了最彻底/晒化了自愈'的常识，按分级分档规范判断。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+  }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    let pick=idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length));
+    const isDiag=(ri)=>this.Q[ri].tag.indexOf("采分诊断")>=0;
+    const inPick=pick.findIndex(isDiag);
+    if(inPick>=0){ const d=pick.splice(inPick,1)[0]; pick.push(d); }
+    else { const all=this.Q.map((_,i)=>i).filter(isDiag); if(all.length){ const d=all[Math.floor(Math.random()*all.length)]; if(pick.indexOf(d)<0) pick[pick.length-1]=d; } }
+    return pick; }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=104;
+    if(type==="joint"){ figH=104;
+      els.push(D({x:56,top:8,w:210,h:34,bg:"#b9a88a",r:4}));
+      els.push(D({x:56,top:46,w:210,h:46,bg:"#a89878",r:4}));
+      els.push(D({x:56,top:42,w:210,h:5,bg:"#cf4436"}));
+      els.push(D({x:86,top:43,w:6,h:6,bg:"#3a3127",r:5}));
+      els.push(D({x:108,top:43,w:6,h:6,bg:"#3a3127",r:5}));
+      els.push(D({x:130,top:43,w:6,h:6,bg:"#3a3127",r:5}));
+      els.push(D({x:94,top:47,w:3,h:42,bg:"#cf4436"}));
+      els.push(D({x:214,top:10,w:2,h:80,bg:"#6f7679"}));
+      els.push(D({x:226,top:10,w:2,h:80,bg:"#6f7679"}));
+      els.push(D({x:238,top:10,w:2,h:80,bg:"#6f7679"}));
+      els.push(D({x:250,top:10,w:2,h:80,bg:"#6f7679"}));
+      els.push(D({x:270,top:44,w:54,h:16,fg:"#7a6f5e",fs:9,ta:"left",jc:"flex-start",lab:"施工缝"})); }
+    else if(type==="layers"){ figH=100;
+      els.push(D({x:62,top:6,w:46,h:88,bg:"#b9a88a",fg:"#5c4a2e",fs:11,ai:"flex-end",lab:"刚"}));
+      els.push(D({x:108,top:6,w:34,h:88,bg:"#3a5168",fg:"#dfe8ef",fs:11,ai:"flex-end",lab:"柔"}));
+      els.push(D({x:142,top:6,w:34,h:88,bg:"#46627e",fg:"#dfe8ef",fs:11,ai:"flex-end",lab:"柔"}));
+      els.push(D({x:176,top:6,w:26,h:88,bg:"#a7adb0",fg:"#3a3f42",fs:9,ai:"flex-end",lab:"护"}));
+      els.push(D({x:66,top:40,w:56,h:3,bg:"#cf4436"}));
+      els.push(D({x:214,top:42,w:60,h:16,fg:"#2c8a5b",fs:12,ta:"left",jc:"flex-start",lab:"✓ 别道挡"})); }
+    else if(type==="pipe"){ figH=100;
+      els.push(D({x:118,top:8,w:88,h:84,bg:"#b9a88a",r:4}));
+      els.push(D({x:16,top:44,w:296,h:20,bg:"#6f7679",r:4,fg:"#e7eaeb",fs:9,jc:"flex-end",p:"0 8px 0 0",lab:"穿墙管"}));
+      els.push(D({x:154,top:22,w:14,h:60,bg:"#2c8a5b",r:2}));
+      els.push(D({x:150,top:2,w:120,h:14,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",lab:"止水环 · 延长渗径"})); }
+    else if(type==="flow"){ figH=104;
+      const rows=[["严重","#cf4436","拆除重铺",44],["中等","#cf8a44","切割/局部切除重铺/钉钉子",22],["轻微","#2c8a5b","不渗漏可不治",6]];
+      rows.forEach((r,i)=>{ const y=6+i*32;
+        els.push(D({x:4,top:y,w:50,h:20,bg:r[1],r:6,fg:"#fff",fs:10,lab:r[0]}));
+        els.push(D({x:62,top:y+3,w:70,h:14,bg:"#3a5168",r:3}));
+        els.push(D({x:70,top:y+17,w:3,h:r[3]*0.32+4,bg:r[1]}));
+        els.push(D({x:142,top:y,w:186,h:20,fg:r[1],fs:10.5,ta:"left",jc:"flex-start",lab:r[2]})); }); }
+    else if(type==="method3"){ figH=100;
+      els.push(D({x:8,top:8,w:96,h:44,bg:"#3a5168",r:5}));
+      els.push(D({x:54,top:14,w:3,h:32,bg:"#ffd24a"}));
+      els.push(D({x:8,top:56,w:96,h:16,fg:"#2c8a5b",fs:10,lab:"切割法"}));
+      els.push(D({x:116,top:8,w:96,h:44,bg:"#3a5168",r:5}));
+      els.push(D({x:140,top:16,w:48,h:28,bg:"#7fa8cf",bd:"2px dashed #d7e6f2",r:3,fg:"#1c3a55",fs:8,lab:"补新"}));
+      els.push(D({x:116,top:56,w:96,h:16,fg:"#2c8a5b",fs:10,lab:"局部切除重铺"}));
+      els.push(D({x:224,top:8,w:96,h:44,bg:"#3a5168",r:5}));
+      els.push(D({x:236,top:18,w:9,h:9,bg:"#c9ccce",r:5}));
+      els.push(D({x:264,top:28,w:9,h:9,bg:"#c9ccce",r:5}));
+      els.push(D({x:294,top:18,w:9,h:9,bg:"#c9ccce",r:5}));
+      els.push(D({x:224,top:56,w:96,h:16,fg:"#2c8a5b",fs:10,lab:"钉钉子法"})); }
+    else if(type==="bulge"){ figH=100;
+      els.push(D({x:12,top:52,w:120,h:14,bg:"#3a5168",r:3}));
+      els.push(D({x:56,top:38,w:24,h:14,bg:"#46627e",r:12}));
+      els.push(D({x:12,top:70,w:120,h:16,fg:"#2c8a5b",fs:10,lab:"<100mm 抽气灌胶"}));
+      els.push(D({x:158,top:6,w:2,h:80,bg:"#cf4436"}));
+      els.push(D({x:140,top:6,w:40,h:12,fg:"#cf4436",fs:9,lab:"100mm"}));
+      els.push(D({x:190,top:52,w:120,h:14,bg:"#3a5168",r:3}));
+      els.push(D({x:230,top:32,w:44,h:20,bg:"#46627e",r:14}));
+      els.push(D({x:250,top:32,w:3,h:20,bg:"#ffd24a"}));
+      els.push(D({x:190,top:70,w:130,h:16,fg:"#2c8a5b",fs:10,lab:"≥100mm 斜十字割开重贴"})); }
+    else if(type==="parapet"){ figH=104;
+      els.push(D({x:44,top:8,w:60,h:14,bg:"#8a9296",r:2}));
+      els.push(D({x:54,top:22,w:40,h:74,bg:"#b9a88a"}));
+      els.push(D({x:94,top:30,w:8,h:66,bg:"#46627e"}));
+      els.push(D({x:88,top:26,w:20,h:6,bg:"#cf8a44",r:1}));
+      els.push(D({x:102,top:82,w:96,h:14,bg:"#3a5168",r:2}));
+      els.push(D({x:110,top:8,w:70,h:14,fg:"#5c6469",fs:9,ta:"left",jc:"flex-start",lab:"压顶"}));
+      els.push(D({x:114,top:26,w:80,h:14,fg:"#cf8a44",fs:9,ta:"left",jc:"flex-start",lab:"压条"}));
+      els.push(D({x:114,top:52,w:110,h:14,fg:"#3a5168",fs:9,ta:"left",jc:"flex-start",lab:"卷材上翻收口"}));
+      els.push(D({x:6,top:24,w:38,h:14,fg:"#5c6469",fs:9,ta:"right",jc:"flex-end",lab:"滴水线"})); }
+    else if(type==="scene"){ figH=104;
+      els.push(D({x:70,top:20,w:200,h:16,bg:"#8a9296",r:3}));
+      els.push(D({x:70,top:4,w:16,h:18,bg:"#7c8388",r:3}));
+      els.push(D({x:96,top:36,w:150,h:56,bg:"#b9a88a",r:0}));
+      els.push(D({x:96,top:60,w:150,h:3,bg:"#7a6f5e"}));
+      els.push(D({x:226,top:64,w:60,h:14,bg:"#6f7679",r:3}));
+      els.push(D({x:70,top:6,w:12,h:12,bg:"#cf4436",r:6}));
+      els.push(D({x:150,top:54,w:12,h:12,bg:"#cf4436",r:6}));
+      els.push(D({x:170,top:74,w:12,h:12,bg:"#cf4436",r:6}));
+      els.push(D({x:290,top:62,w:12,h:12,bg:"#cf4436",r:6})); }
+    else if(type==="adjacent"){ figH=100;
+      els.push(D({x:20,top:10,w:140,h:34,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:9,fg:"#2f6db0",fs:11,lab:"堵漏灌浆材料分类"}));
+      els.push(D({x:20,top:52,w:140,h:34,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:9,fg:"#2f6db0",fs:11,lab:"外墙淋水检验"}));
+      els.push(D({x:176,top:10,w:70,h:34,bg:"#f4efe4",bd:"1.5px dashed #d8ccaa",r:9,fg:"#a98a55",fs:10,lab:"用材背景"}));
+      els.push(D({x:176,top:52,w:70,h:34,bg:"#f4efe4",bd:"1.5px dashed #d8ccaa",r:9,fg:"#a98a55",fs:10,lab:"检验背景"}));
+      els.push(D({x:256,top:10,w:64,h:76,bg:"#f0f8f3",bd:"1.5px solid #bfe0cf",r:9,fg:"#2c8a5b",fs:10,lab:"主答案回诊断治理"})); }
+    else if(type==="sheet"){ figH=98; const lines=this.qAt(qi).stem.indexOf("女儿墙")>=0?["学生答：\u201c重新做防水，","把漏的地方补上。\u201d","（成因？五步？——全缺）"]:["学生答：\u201c哪漏堵哪，","灌浆把它堵死。\u201d","（止水环？前置流程？——缺）"];
+      lines.forEach((l,i)=>{ els.push(D({x:6,top:6+i*29,w:314,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

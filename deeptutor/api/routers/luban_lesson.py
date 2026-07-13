@@ -27,6 +27,7 @@ from deeptutor.services.luban_lesson import (
     build_retest_items,
     build_seethrough,
     build_seethrough_library,
+    list_all_pack_ids,
     list_green_lessons,
     retest_pool_meta,
 )
@@ -59,6 +60,8 @@ class RetestCompletionRequest(BaseModel):
 async def lessons(_: AuthContext = Depends(get_current_user)) -> dict:
     light_enabled = _review_module_enabled() and _light_practice_enabled()
     return {
+        # 总站数由 manifest 唯一枚举；客户端不得继续维护 40/41 的镜像常量。
+        "pack_universe": len(list_all_pack_ids()),
         "lessons": [
             {
                 **row,

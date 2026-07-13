@@ -146,5 +146,25 @@
   "D14": {
     "published": true,
     "note": "2026-07-06 裁决流水线机器准入：recheck exit 0（含本次新裁 row0=fixed）；verify_pack exit 0；verify_exam_anchors exit 0（单选/多选锚 12 + 案例锚 0 = 12，零漂移）；jury 高可信 1/未决 0；🔴=27。**D14 裁决**：三源 flag（DeepSeek/Qwen/Codex）『门窗采分簇误引入涂饰基层含水率/耐水腻子』为真——教材原文直读证实 kc:1A422000_043_0069:1（溶剂型涂料含水率≤8%）与 :2（找平层耐水腻子）系涂饰工程、非门窗本体，门窗真锚仅 :0（砌体禁射钉）；手术已剔除/降级并归类涂饰（R5.3/R6.3/R8误区12），补位核=DeepSeek-V4-Pro 盲测判两条均属涂饰工程（利益回避：Codex 系 flagger 不自裁）。**注意**：D14 为 composite teaching prototype，`has_answer_layer=false`（尚无答题层样板），owner 若签发需知晓此形态差异。签发裁决人=owner。"
+  },
+  "C06": {
+    "published": true,
+    "allow_default_entry": true,
+    "note": "2026-07-13 owner 明确指令：将指定 finished 成品视频更新到五大模块学习入口。仅放行默认学习入口；源材料的 default-entry barrier 仍由 manifest 保留 source_explicitly_barred_default_entry 记录。"
+  },
+  "F04": {
+    "published": true,
+    "allow_default_entry": true,
+    "note": "2026-07-13 owner 明确指令：将指定 finished 成品视频更新到五大模块学习入口。仅放行默认学习入口；源材料的 default-entry barrier 仍由 manifest 保留 source_explicitly_barred_default_entry 记录。"
+  },
+  "Q03": {
+    "published": true,
+    "allow_default_entry": true,
+    "note": "2026-07-13 owner 明确指令：将指定 finished 成品视频更新到五大模块学习入口。仅放行默认学习入口；源材料的 default-entry barrier 仍由 manifest 保留 source_explicitly_barred_default_entry 记录。"
+  },
+  "S07": {
+    "published": true,
+    "allow_default_entry": true,
+    "note": "2026-07-13 owner 明确指令：将指定 finished 成品视频更新到五大模块学习入口。仅放行默认学习入口；源材料的 default-entry barrier 仍由 manifest 保留 source_explicitly_barred_default_entry 记录。"
   }
 }

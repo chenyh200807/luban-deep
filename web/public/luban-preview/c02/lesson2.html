@@ -6,6 +6,7 @@
 <script src="./support.js"></script>
 </head>
 <body>
+<audio data-luban-prewarm preload="auto" src="audio/down/b0.mp3?v=9f26b6aab0ba1607" aria-hidden="true" style="display:none"></audio>
 <x-dc>
 <!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
 <helmet>
@@ -305,7 +306,7 @@
 class Component extends DCLogic {
   state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
   audioBase="audio/down/";
-  audioVersion="20260703-batch-tts1";
+  audioVersion="9f26b6aab0ba1607";
   DUR = 260.828;
   examTitle="进度款与计量计价·下集"; examCode="C02"; examCat="责任与口径";
   posterSub="下集·责任与口径：清单责任 / 风险划分 / 调整事项 / 综合单价 / 80%下限 / 资料移交"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 58 秒 · 接上集";
@@ -335,7 +336,7 @@ class Component extends DCLogic {
     { figLabel:"变更/暂估价/物价/计日工/索赔 → 进闸门才调", fig:"gate", q:"那啥样的事儿才算‘可调整事项’啊？", a:"有名单的：变更、暂估价、总包服务费、计日工、物价变化、法规变化、新增、索赔这些，进闸门、可以调。先判这事属不属于名单，属于才算调整额或者划责任；不属于就不调。顺序别反——先判属不属于，再动笔算。" },
     { figLabel:"各专业→总包→建设→城建档案（不可逆）", fig:"pipe", q:"资料移交能不能让分包直接交建设单位啊？阅卷咋写？", a:"不能哈。顺序钉死：各专业承包单位先交施工总承包单位，总包再交建设单位，建设单位最后交城建档案管理部门。分包跳过总包直接交建设单位，就是程序错。阅卷你把这条不可逆的链一环不漏写全，分就稳。" }
   ];
-  
+
   qaCue=[{"answerStart":5.723},{"answerStart":5.003},{"answerStart":3.793},{"answerStart":6.657}];
   askPresets=["清单算错找谁赔？","综合单价含不含税？","资料移交顺序是啥？"];
 
@@ -396,7 +397,7 @@ class Component extends DCLogic {
       wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=C02'+(st?'&scene_title='+encodeURIComponent(st):'')});
       return true; }catch(e){ return false; } }
   phoneRef(el){ if(el) this._phone=el; }
-  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
+    openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
   closeAsk(){ this.setState({askOpen:false}); }
   setAsk(e){ this.setState({askText:e.target.value}); }
   preset(t){ this.setState({askText:t}); }

@@ -6,6 +6,7 @@
 <script src="./support.js"></script>
 </head>
 <body>
+<audio data-luban-prewarm preload="auto" src="audio/b0.mp3?v=72f3eb0ba3b43e69" aria-hidden="true" style="display:none"></audio>
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
@@ -318,7 +319,7 @@
 class Component extends DCLogic {
   state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
   audioBase="audio/";
-  audioVersion="20260703-batch-tts1";
+  audioVersion="72f3eb0ba3b43e69";
   DUR = 229.56;
   examTitle="流水施工参数与工期"; examCode="N03"; examCat="案例·进度";
   posterSub="判型 → 步距K → 队数 → 工期，一条计算判定链"; posterMeta="点击播放 · 6 幕精讲 + 4 追问 · 约 4 分 28 秒";
@@ -346,7 +347,7 @@ class Component extends DCLogic {
     { figLabel:"依次 30 个月 vs 流水搭接 18 个月", fig:"lap", q:"那工期为啥不能把节拍直接加起来啊？3 加 3 加 6 加 3 不也是个数么？", a:"直接加那是「依次施工」、一段段死等，30 个月往上。流水是搭接的——每队错开一个 K 就进场，前后咬着干，所以是 (2+5−1)×3=18。工期必须体现搭接，机械相加准超长、还丢分。" },
     { figLabel:"采分四句 · 一句不能少", fig:"score", q:"整明白了！那最后这 18 个月，要是阅卷，我得咋写才给分呐？", a:"写全四句：一，判型——节拍成倍数、等步距异节奏；二，K 等于最大公约数 3 个月；三，队数 1+1+2+1=5 个；四，工期 (2+5−1)×3=18 个月，带单位。判型理由、最大公约数、队数求和、搭接工期，一句都不能少。" }
   ];
-  
+
   qaCue=[{"answerStart":7.32},{"answerStart":8.32},{"answerStart":6.739},{"answerStart":6.154}];
   askPresets=["判型为什么是等步距异节奏？","步距 K 怎么取才不丢分？","采分四句怎么写全？"];
 
@@ -404,10 +405,10 @@ class Component extends DCLogic {
       if(!wxm||!inMini) return false;
       let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
       if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
-      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=P40_S07B'+(st?'&scene_title='+encodeURIComponent(st):'')});
+      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=S07'+(st?'&scene_title='+encodeURIComponent(st):'')});
       return true; }catch(e){ return false; } }
   phoneRef(el){ if(el) this._phone=el; }
-  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
+    openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
   closeAsk(){ this.setState({askOpen:false}); }
   setAsk(e){ this.setState({askText:e.target.value}); }
   preset(t){ this.setState({askText:t}); }

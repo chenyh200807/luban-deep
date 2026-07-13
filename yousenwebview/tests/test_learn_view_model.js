@@ -42,10 +42,11 @@ const FULL = {
     },
   },
   lessons: {
+    pack_universe: 41,
     lessons: [
-      { pack_id: "A01", title: "检验批验收程序", content_sha256: "sha_a01", summary: "四级验收层级" },
-      { pack_id: "N01", title: "网络计划关键线路", content_sha256: "sha_n01", summary: "关键工作判定", retest_available: true, light_practice_available: true },
-      { pack_id: "S05", title: "临时用电三级配电", content_sha256: "sha_s05" },
+      { pack_id: "A01", title: "检验批验收程序", content_sha256: "sha_a01", card_hosted: true, summary: "四级验收层级" },
+      { pack_id: "N01", title: "网络计划关键线路", content_sha256: "sha_n01", card_hosted: true, summary: "关键工作判定", retest_available: true, light_practice_available: true },
+      { pack_id: "S05", title: "临时用电三级配电", content_sha256: "sha_s05", card_hosted: true },
     ],
   },
   report: {
@@ -75,12 +76,18 @@ ok("full data maps next station with reason and title", () => {
   assert.strictEqual(vm.nextStation.reason, "下一站:网络计划关键线路");
   assert.strictEqual(vm.nextStation.card_sha, "sha_n01");
   assert.strictEqual(vm.nextStation.green, true);
+  assert.strictEqual(vm.nextStation.card_hosted, true);
 });
 
-ok("lit count = practiced+mastered+dormant, universe=40", () => {
+ok("lit count = practiced+mastered+dormant, universe comes from manifest API", () => {
   const vm = buildLearnViewModel(FULL);
   assert.strictEqual(vm.litCount, 2); // A01 mastered + S05 practiced
-  assert.strictEqual(vm.packUniverse, 40);
+  assert.strictEqual(vm.packUniverse, 41);
+});
+
+ok("old lessons payload without pack_universe keeps compatibility fallback", () => {
+  const vm = buildLearnViewModel({ homeDashboard: {}, report: {}, lessons: { lessons: [] } });
+  assert.strictEqual(vm.packUniverse, PACK_UNIVERSE);
 });
 
 ok("posters: recommended first(red), then ink lit, no dup", () => {
@@ -146,6 +153,63 @@ ok("unavailable but green lessons → day-0 fallback station renders stage", () 
   assert.strictEqual(vm.nextStation.mode, "learn_fallback");
   assert.strictEqual(vm.nextStation.green, true);
   assert.ok(vm.todayTask, "today task card must also render");
+});
+
+ok("day-0 fallback prefers a green station with a hosted microlesson", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "unavailable" } },
+    report: {},
+    lessons: { lessons: [
+      { pack_id: "B02", title: "基坑", content_sha256: "b", card_hosted: false },
+      { pack_id: "C02", title: "质量", content_sha256: "c", card_hosted: true },
+    ] },
+  });
+  assert.strictEqual(vm.nextStation.pack_id, "C02");
+  assert.strictEqual(vm.nextStation.card_hosted, true);
+});
+
+ok("unhosted personalized next step falls back to a playable recommended microlesson", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "learn_next", source_ref: "B02", reason: "x" } },
+    report: {},
+    lessons: { lessons: [
+      { pack_id: "B02", title: "基坑", content_sha256: "b", card_hosted: false },
+      { pack_id: "C02", title: "质量", content_sha256: "c", card_hosted: true },
+    ] },
+  });
+  assert.strictEqual(vm.nextStation.pack_id, "C02");
+  assert.strictEqual(vm.nextStation.green, true);
+  assert.strictEqual(vm.nextStation.card_hosted, true);
+  assert.strictEqual(vm.nextStation.mode, "hosted_fallback");
+  assert.strictEqual(vm.nextStation.evidenceBacked, false);
+  const b02 = vm.posters.find((p) => p.pack_id === "B02");
+  assert.strictEqual(b02.card_hosted, false);
+  assert.strictEqual(b02.recommended, false);
+});
+
+ok("when no hosted microlesson exists the route stays honest and the stage remains blocked", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "learn_next", source_ref: "B02", reason: "x" } },
+    report: {},
+    lessons: { lessons: [{ pack_id: "B02", title: "基坑", content_sha256: "b", card_hosted: false }] },
+  });
+  assert.strictEqual(vm.nextStation.pack_id, "B02");
+  assert.strictEqual(vm.nextStation.green, true);
+  assert.strictEqual(vm.nextStation.card_hosted, false);
+  assert.strictEqual(vm.nextStation.title, "基坑");
+});
+
+ok("legacy lessons without card_hosted keep the station navigable for detail authority", () => {
+  const vm = buildLearnViewModel({
+    homeDashboard: { next_step: { mode: "learn_next", source_ref: "A01", reason: "x" } },
+    report: {},
+    lessons: { lessons: [{ pack_id: "A01", title: "检验批验收程序", content_sha256: "a" }] },
+  });
+  assert.strictEqual(vm.nextStation.pack_id, "A01");
+  assert.strictEqual(vm.nextStation.green, true);
+  assert.strictEqual(vm.nextStation.card_hosted, null);
+  const a01 = vm.posters.find((p) => p.pack_id === "A01");
+  assert.strictEqual(a01.card_hosted, null);
 });
 
 // ── practice_active → 今日主任务卡 = 2 分钟 MCQ 轻练(PRD v1.3 §0.0 头牌收口) ──

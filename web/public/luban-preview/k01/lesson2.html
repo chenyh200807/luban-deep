@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<audio data-luban-prewarm preload="auto" src="audio/down/b0.mp3?v=de73c6c0104b89b5" aria-hidden="true" style="display:none"></audio>
+<x-dc>
+<!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <!-- ░░ 顶部安全区红线（母版冻结，勿改）：舞台顶部 top:0–48px 为常驻 UI 带（旁白按钮/钥匙卡胶囊/全屏按钮，胶囊底沿≈40px）。
+         所有 beat 的领域对象/气泡/标签 top 最小值 = 48px，含手绘位移阴影厚度另计。双轴 gate 正确轴固定判据之一：截 beat0 中段帧核对任一对象 top≥48 且与胶囊/按钮无重叠、有可见空隙。 ░░ -->
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：算数两坑 + 红章 + 分层堆叠预览 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:24px;top:58px;width:214px;background:#fff;border:2.5px solid #cf4436;border-radius:14px;padding:10px 13px;font-size:13px;font-weight:700;color:#23282b;line-height:1.4;box-shadow:3px 3px 0 rgba(207,68,54,.16);opacity:{{ b0_bo1 }};transform:scale({{ b0_bs1 }});transform-origin:22% 100%;">非关键延误几个月 → 就赔几个月？
+          <div style="position:absolute;left:28px;bottom:-12px;width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;right:20px;top:120px;width:206px;background:#fff;border:2.5px solid #cf4436;border-radius:14px;padding:10px 13px;font-size:13px;font-weight:700;color:#23282b;line-height:1.4;box-shadow:3px 3px 0 rgba(207,68,54,.16);opacity:{{ b0_bo2 }};transform:scale({{ b0_bs2 }});transform-origin:80% 100%;">费用把损失一加 → 就完事了？
+          <div style="position:absolute;right:30px;bottom:-12px;width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:126px;top:96px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:2px 12px;font-size:19px;font-weight:900;letter-spacing:2px;background:rgba(244,243,236,.92);transform:scale({{ b0_ss }}) rotate(-12deg);opacity:{{ b0_so }};">漏步 ✕</div>
+        <div style="position:absolute;left:0;right:0;top:290px;text-align:center;opacity:{{ b0_g }};transform:translateY({{ b0_gy }}px);">
+          <div style="display:inline-block;font-size:11.5px;font-weight:900;color:#2c8a5b;margin-bottom:10px;background:#eaf6ef;border:1px solid #9fd3b4;border-radius:8px;padding:3px 11px;">算数也要列式判定链 · 四步走全</div>
+          <div style="display:flex;justify-content:center;gap:8px;">
+            <div style="width:78px;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #2f6db0;border-radius:9px;padding:8px 5px;"><div style="font-size:11px;font-weight:900;color:#2f6db0;">亮公式</div><div style="font-size:8px;color:#6b6358;font-weight:700;margin-top:2px;">判据/公式</div></div>
+            <div style="width:78px;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #cf8a44;border-radius:9px;padding:8px 5px;"><div style="font-size:11px;font-weight:900;color:#cf8a44;">代入</div><div style="font-size:8px;color:#6b6358;font-weight:700;margin-top:2px;">题干列式</div></div>
+            <div style="width:78px;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #2c8a5b;border-radius:9px;padding:8px 5px;"><div style="font-size:11px;font-weight:900;color:#2c8a5b;">数值</div><div style="font-size:8px;color:#6b6358;font-weight:700;margin-top:2px;">带单位</div></div>
+            <div style="width:78px;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #cf4436;border-radius:9px;padding:8px 5px;"><div style="font-size:11px;font-weight:900;color:#cf4436;">回判</div><div style="font-size:8px;color:#6b6358;font-weight:700;margin-top:2px;">定性结论</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 算工期 · 网络分析法（总时差先吸收+溢出顶动竣工）░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:44px;font-size:12px;font-weight:900;color:#23282b;">工期定量 · 网络分析法比前后总工期</div>
+        <div style="position:absolute;left:60px;top:118px;font-size:10px;font-weight:800;color:#2c8a5b;opacity:{{ b1_lane }};">总时差 1 月 · 先吸收</div>
+        <div style="position:absolute;left:60px;top:150px;width:40px;height:28px;background:#dff0e6;border:1.5px solid #9fd3b4;border-radius:5px;opacity:{{ b1_lane }};"></div>
+        <div style="position:absolute;left:60px;top:150px;height:28px;width:80px;background:rgba(207,68,54,.5);border-radius:5px;transform-origin:left;transform:scaleX({{ b1_grow }});"></div>
+        <div style="position:absolute;left:100px;top:150px;height:28px;width:40px;background:#cf4436;border-radius:0 5px 5px 0;opacity:{{ b1_over }};"></div>
+        <div style="position:absolute;left:60px;top:184px;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ b1_grow }};">延误 2 月</div>
+        <div style="position:absolute;left:100px;top:186px;width:2px;height:44px;background:#23282b;transform:translateX({{ b1_nodeX }}px);opacity:{{ b1_over }};"></div>
+        <div style="position:absolute;left:104px;top:208px;font-size:9.5px;font-weight:800;color:#23282b;transform:translateX({{ b1_nodeX }}px);opacity:{{ b1_over }};">竣工 +1</div>
+        <div style="position:absolute;left:16px;right:16px;top:224px;text-align:center;background:#2c8a5b;color:#fff;border-radius:11px;padding:9px 12px;font-size:13px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.22);opacity:{{ b1_res }};">顺延 = 延误2 − 总时差1 = 1 月</div>
+        <div style="position:absolute;left:0;right:0;top:264px;text-align:center;font-size:10.5px;font-weight:700;color:#8a6d1f;opacity:{{ b1_res }};">网络分析法：比延误前后两次计划总工期之差</div>
+        <div style="position:absolute;left:16px;right:16px;top:292px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #cf4436;border-radius:9px;padding:8px 12px;opacity:{{ b1_crit }};"><div style="font-size:11px;font-weight:800;color:#23282b;">关键线路：总时差 0 → 延误几月，顺延几月</div></div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 算费用 · 分层堆叠 成本+管理费+利润=346.5万 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:44px;font-size:12px;font-weight:900;color:#23282b;">费用分层 · 成本 + 管理费 + 利润</div>
+        <div style="position:absolute;left:16px;right:16px;top:74px;text-align:center;background:#cf4436;color:#fff;border-radius:11px;padding:9px 12px;font-size:13px;font-weight:900;box-shadow:3px 3px 0 rgba(207,68,54,.22);opacity:{{ b2_total }};">索赔值 = 346.5 万</div>
+        <div style="position:absolute;left:30px;top:130px;width:152px;height:24px;background:#2c8a5b;border-radius:5px 5px 0 0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;opacity:{{ b2_l3 }};">利润 16.5 万</div>
+        <div style="position:absolute;left:30px;top:156px;width:152px;height:30px;background:#cf8a44;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;opacity:{{ b2_l2 }};">管理费 30 万</div>
+        <div style="position:absolute;left:30px;top:188px;width:152px;height:56px;background:#2f6db0;border-radius:0 0 5px 5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;opacity:{{ b2_l1 }};">成本 300 万</div>
+        <div style="position:absolute;left:196px;top:132px;font-size:10.5px;font-weight:800;color:#2c8a5b;opacity:{{ b2_l3 }};">(300+30)×5% = 16.5</div>
+        <div style="position:absolute;left:196px;top:164px;font-size:10.5px;font-weight:800;color:#a86a1f;opacity:{{ b2_l2 }};">300×10% = 30</div>
+        <div style="position:absolute;left:196px;top:210px;font-size:10.5px;font-weight:800;color:#2f6db0;opacity:{{ b2_l1 }};">基数 = 300</div>
+        <div style="position:absolute;left:16px;right:16px;top:262px;text-align:center;font-size:11px;font-weight:800;color:#cf4436;opacity:{{ b2_note }};">利润基数 = 成本 + 管理费（最易少算）</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 利润归属 · 硬币(费用) vs 钞票(利润) 分源 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:44px;font-size:12px;font-weight:900;color:#23282b;">利润 · 看责任源分开写</div>
+        <!-- 左：发包人原因 -->
+        <div style="position:absolute;left:16px;top:74px;width:172px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:12px;padding:11px 12px;opacity:{{ b3_left }};">
+          <div style="font-size:12px;font-weight:900;color:#2c8a5b;">发包人原因 / 变更</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:12px;">
+            <div style="position:relative;width:46px;height:22px;flex:none;">
+              <div style="position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;background:#e6b34a;border:1.5px solid #c99a2f;"></div>
+              <div style="position:absolute;left:11px;top:0;width:22px;height:22px;border-radius:50%;background:#eabf5e;border:1.5px solid #c99a2f;"></div>
+              <div style="position:absolute;left:22px;top:0;width:22px;height:22px;border-radius:50%;background:#efcb77;border:1.5px solid #c99a2f;"></div>
+            </div>
+            <div style="font-size:11px;font-weight:800;color:#23282b;">费用 <span style="color:#2c8a5b;">✓ 全额</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:10px;">
+            <div style="width:46px;height:26px;flex:none;background:#eaf6ef;border:1.5px solid #3fa06a;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#2c8a5b;">利润</div>
+            <div style="font-size:11px;font-weight:800;color:#23282b;">利润 <span style="color:#2c8a5b;">✓ 可加索</span></div>
+          </div>
+        </div>
+        <!-- 右：不可抗力 -->
+        <div style="position:absolute;right:16px;top:74px;width:172px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #8a8375;border-radius:12px;padding:11px 12px;opacity:{{ b3_right }};">
+          <div style="font-size:12px;font-weight:900;color:#8a8375;">不可抗力</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:12px;">
+            <div style="position:relative;width:46px;height:22px;flex:none;">
+              <div style="position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;background:#e6b34a;border:1.5px solid #c99a2f;"></div>
+              <div style="position:absolute;left:11px;top:0;width:22px;height:22px;border-radius:50%;background:#eabf5e;border:1.5px solid #c99a2f;"></div>
+            </div>
+            <div style="font-size:11px;font-weight:800;color:#23282b;">费用 <span style="color:#2c8a5b;">✓ 按分担</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:10px;">
+            <div style="width:46px;height:26px;flex:none;background:#f0eeea;border:1.5px dashed #b3aa99;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#a39a88;">利润</div>
+            <div style="font-size:11px;font-weight:800;color:#23282b;">利润 <span style="color:#cf4436;">✕ 不当然</span></div>
+          </div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:296px;text-align:center;background:#23282b;color:#f1efe8;border-radius:11px;padding:9px;font-size:12px;font-weight:800;opacity:{{ b3_foot }};">费用是费用、利润是利润 · 看责任源分开写</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 赶工优选 · 天平比价（主体 vs 装修）░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:44px;font-size:12px;font-weight:900;color:#23282b;">赶工 · 压哪道工序？</div>
+        <div style="position:absolute;left:50%;top:104px;transform:translateX(-50%);width:280px;height:70px;opacity:{{ b4_beam }};">
+          <div style="position:absolute;left:0;right:0;top:8px;height:8px;background:#8a8375;border-radius:4px;transform:rotate({{ b4_tiltDeg }}deg);transform-origin:center;"></div>
+          <div style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-bottom:44px solid #5c574c;"></div>
+        </div>
+        <div style="position:absolute;left:12px;top:150px;width:150px;background:#fff;border:2px solid {{ b4_pickBd }};border-radius:11px;padding:9px 10px;text-align:center;box-shadow:{{ b4_pickSh }};opacity:{{ b4_beam }};"><div style="font-size:12px;font-weight:900;color:#2c8a5b;">主体结构</div><div style="font-size:10px;color:#5c6469;font-weight:700;margin-top:2px;">2700 元/天 · 可压 2 天</div><div style="font-size:10px;font-weight:900;color:#2c8a5b;margin-top:4px;opacity:{{ b4_pick }};">✓ 先压</div></div>
+        <div style="position:absolute;right:12px;top:132px;width:150px;background:#faf9f3;border:1.5px solid #d8ccbb;border-radius:11px;padding:9px 10px;text-align:center;opacity:{{ b4_beam }};"><div style="font-size:12px;font-weight:900;color:#8a8375;">室内装修</div><div style="font-size:10px;color:#5c6469;font-weight:700;margin-top:2px;">3000 元/天 · 较贵</div><div style="font-size:10px;font-weight:800;color:#a39a88;margin-top:4px;">后压</div></div>
+        <div style="position:absolute;left:0;right:0;top:252px;display:flex;justify-content:center;gap:7px;opacity:{{ b4_rule }};">
+          <div style="background:#eaf6ef;border:1px solid #9fd3b4;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">在关键线路上</div>
+          <div style="background:#eaf6ef;border:1px solid #9fd3b4;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">单位赶工费低</div>
+          <div style="background:#eaf6ef;border:1px solid #9fd3b4;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">不影响后续</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:292px;text-align:center;font-size:11px;font-weight:800;color:#cf8a44;opacity:{{ b4_pick }};">压非关键线路不缩总工期 · 赶工费由发包人担</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 证据程序 + 计算判定链口诀 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:44px;font-size:12px;font-weight:900;color:#23282b;">收尾 · 程序 + 证据四性</div>
+        <div style="position:absolute;left:0;right:0;top:78px;display:flex;align-items:center;justify-content:center;gap:12px;opacity:{{ b5_timer }};">
+          <div style="position:relative;width:32px;height:44px;">
+            <div style="position:absolute;top:0;left:0;width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:21px solid #cf8a44;"></div>
+            <div style="position:absolute;bottom:0;left:0;width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:21px solid #cf8a44;"></div>
+            <div style="position:absolute;top:2px;left:5px;width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:13px solid #f4d9b3;"></div>
+          </div>
+          <div style="text-align:left;"><div style="font-size:12.5px;font-weight:900;color:#23282b;">合同未约定 → 28 天内书面意向</div><div style="font-size:10px;font-weight:700;color:#8a6d1f;">事件发生日起算 · 逾期丧权</div></div>
+        </div>
+        <div style="position:absolute;left:14px;right:14px;top:160px;display:flex;gap:7px;">
+          <div style="flex:1;background:#fff;border:1.5px solid #cf4436;border-radius:10px;padding:9px 4px;text-align:center;opacity:{{ b5_e0 }};"><div style="font-size:11.5px;font-weight:900;color:#cf4436;">真实性</div></div>
+          <div style="flex:1;background:#fff;border:1.5px solid #cf4436;border-radius:10px;padding:9px 4px;text-align:center;opacity:{{ b5_e1 }};"><div style="font-size:11.5px;font-weight:900;color:#cf4436;">全面性</div></div>
+          <div style="flex:1;background:#fff;border:1.5px solid #cf4436;border-radius:10px;padding:9px 4px;text-align:center;opacity:{{ b5_e2 }};"><div style="font-size:11.5px;font-weight:900;color:#cf4436;">法律效力</div></div>
+          <div style="flex:1;background:#fff;border:1.5px solid #cf4436;border-radius:10px;padding:9px 4px;text-align:center;opacity:{{ b5_e3 }};"><div style="font-size:11.5px;font-weight:900;color:#cf4436;">及时性</div></div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:206px;text-align:center;font-size:9.5px;font-weight:700;color:#8a8375;opacity:{{ b5_e3 }};">证据四性 · 缺一性即失分</div>
+        <div style="position:absolute;left:16px;right:16px;top:238px;background:#23282b;color:#f1efe8;border-radius:11px;padding:10px 12px;text-align:center;opacity:{{ b5_foot }};"><div style="font-size:12px;font-weight:900;">计算判定链 · 四步走全</div><div style="font-size:10px;color:#cdd2d5;font-weight:600;margin-top:3px;">亮公式 · 代入列式 · 得数值(带单位) · 回判定性</div></div>
+        <div style="position:absolute;left:0;right:0;top:300px;text-align:center;font-size:11px;font-weight:700;color:#cf8a44;opacity:{{ b5_foot }};">只写结论丢过程分 · 四步一句不少</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN（播到底 t≥DUR 才出 · 与海报对称）░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">下集 · 算完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">这两集唠完整了哈——上集判成立、下集算多少。工期用网络分析法看总时差，费用分层列式、发包人原因才加利润，赶工压关键线路上费用低的，程序证据垫底。算数题四步列式，一分不丢。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">工期：网络分析法 · 顺延=延误−总时差</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">费用：成本+管理费+利润=346.5万</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">利润：发包人原因才加 · 不可抗力不套</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">赶工：关键线路·费用低·不影响后续</div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="practice.html" style="border:none;border-radius:11px;padding:9px 16px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
+        </div>
+        <a href="lesson.html" style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid #cf8a44;background:rgba(207,138,68,.08);border-radius:11px;padding:9px 16px;font-size:12px;font-weight:900;color:#a86a1f;text-decoration:none;">上一集 · 双闸门判成立</a>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:stretch;gap:8px;margin-top:11px;">
+        <div style="flex:none;display:flex;flex-direction:column;justify-content:center;font-size:11px;font-weight:800;color:#9aa0a3;line-height:1.25;">本考点<br/>分 2 集</div>
+        <a href="lesson.html" style="flex:1;border:1px solid #3a4046;border-radius:11px;padding:12px;font-size:13px;font-weight:900;background:#23282b;color:#f1efe8;display:flex;align-items:center;justify-content:center;text-decoration:none;">上集</a>
+        <div style="flex:1;border-radius:11px;padding:12px;font-size:13px;font-weight:900;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(207,68,54,.28);">下集 · 当前</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="practice.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- 全屏浮层控制条（真·全屏时点屏唤出，3.5s 自隐）-->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ═══════════════════════════════════════════════════════════════════════════
+   鲁班智考 · 动画学习卡 母版（讲解页）
+   ───────────────────────────────────────────────────────────────────────────
+   做新考点时，fork 本文件改名 <考点名>_讲解.dc.html，只改【内容区】，骨架别动。
+
+   ▼ 内容区（每张卡都要换）：
+     · examTitle / examCode / examCat / posterSub / posterMeta / KNOWLEDGE
+     · DUR（总秒数，≈每页旁白 6–8 秒累加）
+     · beats[]（≥6 主讲 + ≥4 问答，[id,起,止,短标题]）
+     · keycards[]（每主讲 beat 一句记忆点）
+     · narr[]（每主讲 beat 旁白，老师 longanhuan_v3 口语）
+     · qa[]（≥4 问，每问含 figLabel + fig 类型 + q + a）
+     · qaFig() 里 4 种迷你图 / figFor 的领域图（按新考点重画）
+     · 模板里 6 个 BEAT 块的领域对象 SVG/CSS（这是唯一要手画的部分）
+
+   ▲ 骨架（禁止改，改了就丢功能）：
+     · RAF 时间轴 loop / toggle / seek / jump
+     · paginate() + 旁白条 ≤3 行分页（capPages/capText/captionPage）
+     · QA 师生气泡 + 老师气泡内嵌 qaFig 迷你领域图
+     · 问追AI 弹层 + window.claude.complete
+     · 视口/全屏注入 componentDidMount
+
+   规则速记：动画讲知识不用文字讲；先判 6+1 认知结构再画领域对象；
+   每 beat 一个对象级动作、不堆画面；旁白条一页 ≤3 行（QA 气泡可整段显示）；
+   logo 用 assets/mark-white.png(暗底) / mark-red.png(亮底)，不用 emoji。
+   ═══════════════════════════════════════════════════════════════════════════ */
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/down/";
+  audioVersion="de73c6c0104b89b5";
+  DUR = 240.816;
+  examTitle="索赔成立与计算 · 下"; examCode="K01·下"; examCat="案例·合同";
+  posterSub="算工期 · 算费用 · 赶工 · 证据，四条列式判定链"; posterMeta="点击播放 · 6 幕精讲 + 4 追问 · 约 4 分 54 秒";
+  KNOWLEDGE="索赔成立与计算(下集·算多少)。承上集已判成立,本集算工期、算费用、赶工、程序证据。工期定量:用网络分析法比较延误前后总工期之差得应顺延工期,不是只数单项延误天数。非关键工作:顺延=延误−总时差(2015·C:延误2−总时差1=顺延1月);关键线路:总时差0→延误几月顺延几月。费用分层计算(2021案例(四)):索赔值=成本+成本×管理费率+(成本+管理费)×利润率;算例300+300×10%(=30)+(300+30)×5%(=16.5)=346.5万;利润基数是成本+管理费,不是只成本。利润归属:发包人原因/工程变更→费用外可加索利润(剥夺承包人盈利机会);不可抗力→按风险分担、利润不宜机械套用。赶工优选(2017案例一):工期成立后发包人仍要求原期竣工→赶工;压缩工序须①在关键线路上②单位赶工费低③不影响后续者优先(主体结构2700元/天可压2天,先于室内装修3000元/天);赶工费由发包人承担;压非关键线路不缩总工期、不得分。程序证据:合同未约定→事件发生后28天内递交书面索赔意向通知书,逾期丧权;证据四性=真实性、全面性、法律效力、及时性。计算判定链采分:亮公式/判据→代入题干列式→得数值结论(带单位)→回判定性,四步都写;只写结论丢过程分。常见失分:E09非关键延误全额索(不看总时差)、E09费用机械相加不分层、E02漏利润或漏程序、E10不可抗力机械套利润、赶工压非关键线路。本集数值均引真题给定值。";
+    beats=[["b0",0.0,20.012,"破误区"],["b1",20.012,43.984,"算工期"],["b2",43.984,68.268,"算费用"],["b3",68.268,86.048,"利润归属"],["b4",86.048,110.884,"赶工优选"],["b5",110.884,133.944,"证据程序"],["q0",133.944,163.116,"问答"],["q1",163.116,188.928,"问答"],["q2",188.928,212.22,"问答"],["q3",212.22,240.816,"问答"]];
+  keycards=[
+    "算数也要列式 · 非关键别忘总时差、费用要分层",
+    "工期用网络分析法 · 顺延=延误−总时差",
+    "费用分层 · 成本+管理费+利润=346.5万",
+    "发包人原因才加利润 · 不可抗力不套利润",
+    "赶工压关键线路上·费用低·不影响后续",
+    "28天书面意向 + 证据四性 · 列式四步走全"
+  ];
+  narr=[
+    "上集判完成立，这集咱算数。算之前先划俩坑：头一个，「非关键延误几个月就赔几个月」，把总时差忘了；第二个，「费用把损失一加就完」，没分层。记住哈，算数也得按采分步骤列式，光甩个数、不给过程，分照样丢。",
+    "先算工期。工期得用网络分析法——比延误前后总工期差多少，不是光数单项延误几天。就拿 C：非关键、总时差一个月、延误俩月，总时差先吸掉一个月，剩下这一个月才顶动竣工，所以顺延就一个月。要是在关键线路、总时差是零，那延误几个月、顺延几个月，一分不差。",
+    "再算费用，发包人原因这笔分层算。先成本三百万；加管理费——成本乘管理费率十个点，三十万；再加利润——注意哈，利润是拿成本加管理费一块儿、再乘利润率五个点，十六万五。三层摞起来，三百四十六万五。利润的底子是成本加管理费，不是光成本，这地方最容易少算。",
+    "利润这块得拎清：发包人原因、工程变更，剥夺了你挣钱的机会，费用之外利润能一块儿要；可要是不可抗力，那是双方分担的风险，利润就别机械地往上套了。一句话——费用是费用、利润是利润，看责任源分开写。",
+    "工期成立了，甲方还想按原期竣工，那就得赶工。赶工压哪道工序？记死三条：得在关键线路上、单位赶工费低、还不影响后续。像这道，主体结构两千七一天、还能压两天；室内装修三千一天——先压主体，便宜。压非关键线路那纯白搭，总工期不缩、还不给分。赶工费由发包人担。",
+    "最后收尾俩事别忘：一，程序——合同没约定，二十八天内递书面索赔意向通知书，过期丧权；二，证据得够四性：真实、全面、法律效力、及时。记住哈，算数题就一条链——亮公式、代入列式、算出数、再回判定性，四步写全，过程分一分不丢。"
+  ];
+  qa=[
+    { figLabel:"分层 · 成本+管理费+利润=346.5万", fig:"stack", q:"老师，这利润为啥非得拿「成本加管理费」一块儿算，不直接成本乘利润率啊？", a:"问得细。这是分层往上摞：管理费是成本的百分之十；利润的底子是成本加管理费，不是光成本。你要只拿成本乘，利润就少算了管理费那块钱，数就不对。记死了：利润=(成本+管理费)×利润率，本题就是三百三乘百分之五等于十六万五。" },
+    { figLabel:"天平 · 关键线路·费用低·不影响后续", fig:"scale", q:"赶工咋非得先压主体啊？装修不也能压么？", a:"能压的多了，可采分只认三条：在关键线路上、单位赶工费低、不影响后续。主体两千七一天、还能压两天；装修三千一天，贵。先压便宜的、还在关键线路上的，最划算。你要去压非关键线路，压了总工期也不缩，白花钱、还不给分。" },
+    { figLabel:"沙漏 · 28天·书面·丧权", fig:"timer", q:"那二十八天，从哪天开始算呐？漏了这步咋整？", a:"从索赔事件发生那天起算。合同要是没约定期限，就是二十八天内递书面的索赔意向通知书。过了这个点，索赔权就没了，这叫丧权。所以程序这句必须写全：合同未约定、二十八天、书面意向通知，一个都不能少。" },
+    { figLabel:"综合四块 · 工期·费用·利润·程序", fig:"score", q:"整明白了！那一道综合的索赔题，我到底得写全哪几块才拿满呐？", a:"四块齐活：一，工期——网络分析法、看总时差；二，费用——分层列式、带单位；三，利润——发包人原因才加；四，程序证据——二十八天、四性。工期费用分开、利润看源、程序垫底，四块写全就是满分句。" }
+  ];
+  askPresets=["费用分层公式怎么列？","赶工优先压哪道工序？","算数题采分四步怎么写？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return; // 忽略舞台内交互控件（全屏钮/QA点/终屏按钮等），只有点空白画面才切换控制条
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+    wxAsk(){ try{
+      const wxm=window.wx&&window.wx.miniProgram;
+      const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+      if(!wxm||!inMini) return false;
+      let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
+      if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
+      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=K01'+(st?'&scene_title='+encodeURIComponent(st):'')});
+      return true; }catch(e){ return false; } }
+  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="stack"){ h=58;
+      els.push(D({x:0,top:0,w:132,h:16,bg:"#2f6db0",r:4,fg:"#fff",fs:9,lab:"成本 300"}));
+      els.push(D({x:0,top:20,w:132,h:16,bg:"#cf8a44",r:4,fg:"#fff",fs:9,lab:"+管理费 30 (×10%)"}));
+      els.push(D({x:0,top:40,w:132,h:16,bg:"#2c8a5b",r:4,fg:"#fff",fs:9,lab:"+利润 16.5 ((300+30)×5%)"}));
+      els.push(D({x:144,top:18,w:104,h:22,bg:"#4a3d2a",r:6,fg:"#f0c98a",fs:11,lab:"= 346.5 万"})); }
+    else if(it.fig==="scale"){ h=50;
+      els.push(D({x:0,top:2,w:122,h:24,bg:"#20301f",bd:"1.5px solid #3fa06a",r:6,fg:"#8fd3ac",fs:9,lab:"主体 2700/天·压2天 ✓"}));
+      els.push(D({x:128,top:2,w:120,h:24,bg:"#2b2f33",bd:"1.5px solid #7f8a8f",r:6,fg:"#c3cbd0",fs:9,lab:"装修 3000/天"}));
+      els.push(D({x:0,top:32,w:248,h:14,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"关键线路上 · 费用低 · 不影响后续 → 先压主体"})); }
+    else if(it.fig==="timer"){ h=50;
+      els.push(D({x:0,top:2,w:122,h:24,bg:"#3a2f17",bd:"1.5px solid #cf8a44",r:6,fg:"#f0c98a",fs:9.5,lab:"合同未约定 → 28 天内"}));
+      els.push(D({x:128,top:2,w:120,h:24,bg:"#3a1f1c",bd:"1.5px solid #cf4436",r:6,fg:"#e79a8f",fs:9.5,lab:"书面意向 · 过期丧权"}));
+      els.push(D({x:0,top:32,w:248,h:14,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"事件发生日起算 · 递书面索赔意向通知书"})); }
+    else if(it.fig==="score"){ h=46; const s=[["①工期","#2f6db0"],["②费用","#cf8a44"],["③利润","#2c8a5b"],["④程序","#cf4436"]];
+      s.forEach((p,i)=>els.push(D({x:i*63,top:2,w:57,h:18,bg:"transparent",bd:"1.5px solid "+p[1],r:6,fg:p[1],fs:9,lab:p[0]})));
+      els.push(D({x:0,top:26,w:252,h:14,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"网络分析法 + 分层列式 + 发包人加利润 + 28天四性"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      b0_bo1:0,b0_bs1:.6, b0_bo2:0,b0_bs2:.6, b0_so:0,b0_ss:1.6, b0_g:0,b0_gy:24,
+      b1_lane:0, b1_grow:0, b1_over:0, b1_nodeX:0, b1_res:0, b1_crit:0,
+      b2_l1:0,b2_l2:0,b2_l3:0, b2_total:0, b2_note:0,
+      b3_left:0, b3_right:0, b3_foot:0,
+      b4_beam:0, b4_tiltDeg:0, b4_rule:0, b4_pick:0, b4_pickBd:"#d8ccbb", b4_pickSh:"0 4px 12px rgba(0,0,0,.06)",
+      b5_timer:0, b5_e0:0,b5_e1:0,b5_e2:0,b5_e3:0, b5_foot:0 };
+
+    if(A(0)){ const dim=W(.58,.72);
+      v.b0_bo1=W(0,.16)*(1-.5*dim); v.b0_bs1=this.lp(.6,1,W(0,.16));
+      v.b0_bo2=W(.18,.34)*(1-.5*dim); v.b0_bs2=this.lp(.6,1,W(.18,.34));
+      const st=W(.42,.58); v.b0_so=st; v.b0_ss=this.lp(1.6,1,st);
+      const g=W(.68,.92); v.b0_g=g; v.b0_gy=this.lp(24,0,g); }
+    if(A(1)){ v.b1_lane=W(0,.14); v.b1_grow=W(.24,.56); v.b1_over=W(.5,.72);
+      v.b1_nodeX=this.lp(0,40,W(.5,.72)); v.b1_res=W(.72,.9); v.b1_crit=W(.85,1); }
+    if(A(2)){ v.b2_l1=W(0,.2); v.b2_l2=W(.26,.46); v.b2_l3=W(.5,.7); v.b2_total=W(.74,.9); v.b2_note=W(.84,1); }
+    if(A(3)){ v.b3_left=W(.04,.34); v.b3_right=W(.4,.7); v.b3_foot=W(.76,.96); }
+    if(A(4)){ v.b4_beam=W(0,.2); v.b4_tiltDeg=this.lp(0,-8,W(.28,.56)); v.b4_rule=W(.4,.6); v.b4_pick=W(.62,.84);
+      const pk=W(.62,.84); v.b4_pickBd=pk>.5?"#2c8a5b":"#d8ccbb"; v.b4_pickSh=pk>.5?"3px 3px 0 rgba(44,138,91,.2)":"0 4px 12px rgba(0,0,0,.06)"; }
+    if(A(5)){ v.b5_timer=W(0,.24); v.b5_e0=W(.3,.42); v.b5_e1=W(.4,.52); v.b5_e2=W(.5,.62); v.b5_e3=W(.6,.72); v.b5_foot=W(.76,.96); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaPageInfo="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaPageInfo=""; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaPageInfo,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

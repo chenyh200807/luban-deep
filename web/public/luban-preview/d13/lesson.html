@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<audio data-luban-prewarm preload="auto" src="audio/up/b0.mp3?v=7a99a152a7a75445" aria-hidden="true" style="display:none"></audio>
+<x-dc>
+<!-- @template name="D13 幕墙防火·层间封堵 讲解（上）" description="鲁班智考动画学习卡 · 讲解页上集：防火关 堵+隔。fork 自 AnimatedLecture 母版，只改内容区。" -->
+<helmet>
+<link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：承托板选错 + 误区红章淘汰 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:160px;background:linear-gradient(180deg,transparent,#e9e7da);opacity:{{ b0_op }};"></div>
+        <div style="position:absolute;inset:0;opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);">
+          <div style="position:absolute;left:132px;top:250px;width:120px;height:30px;background:repeating-linear-gradient(45deg,#d8bd94,#d8bd94 5px,#e6d2ad 5px,#e6d2ad 10px);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#7a5a2a;">岩棉 · 防火层</div>
+          <div style="position:absolute;left:126px;top:282px;width:132px;height:11px;background:#c2bcae;border-radius:2px;box-shadow:0 2px 0 rgba(0,0,0,.08);"></div>
+          <div style="position:absolute;left:126px;top:299px;width:220px;font-size:11px;font-weight:800;color:#cf4436;">承托板：铝板？厚度 1.5m？</div>
+          <div style="position:absolute;left:0;right:0;top:360px;text-align:center;font-size:12px;font-weight:800;color:#5c6469;">{{ b0_tag }}</div>
+        </div>
+        <div style="position:absolute;left:46px;top:62px;width:244px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:13px 15px;font-size:14px;font-weight:700;color:#23282b;line-height:1.4;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">{{ b0_bubble }}
+          <div style="position:absolute;left:30px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:54px;top:150px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:22px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">{{ b0_stamp }}</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 烟囱效应：幕墙空腔=烟囱，火往上蹿 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b1_title }}</div>
+        <div style="position:absolute;left:64px;top:88px;width:38px;height:300px;background:#bcaa8c;border-right:2px solid #a2906f;opacity:{{ b1_secO }};"></div>
+        <div style="position:absolute;left:66px;top:92px;font-size:10px;font-weight:800;color:#4a3f2a;opacity:{{ b1_secO }};">主体</div>
+        <div style="position:absolute;left:102px;top:150px;width:126px;height:14px;background:#a89878;border-radius:2px;opacity:{{ b1_secO }};"></div>
+        <div style="position:absolute;left:102px;top:238px;width:126px;height:14px;background:#a89878;border-radius:2px;opacity:{{ b1_secO }};"></div>
+        <div style="position:absolute;left:102px;top:326px;width:126px;height:14px;background:#a89878;border-radius:2px;opacity:{{ b1_secO }};"></div>
+        <div style="position:absolute;left:258px;top:88px;width:18px;height:300px;background:linear-gradient(180deg,#8fb0d0,#c0d6e8);border:1px solid #6f97ba;border-radius:2px;opacity:{{ b1_secO }};"></div>
+        <div style="position:absolute;left:228px;top:88px;width:30px;height:300px;background:rgba(207,68,54,.06);opacity:{{ b1_flO }};"></div>
+        <sc-for list="{{ b1_flames }}" as="f" hint-placeholder-count="4">
+          <div style="position:absolute;left:{{ f.x }}px;top:{{ f.top }}px;width:{{ f.w }}px;height:{{ f.h }}px;background:radial-gradient(50% 60% at 50% 70%,#ffd24a,#e0863a 55%,#cf4436 100%);border-radius:50% 50% 48% 48%/62% 62% 40% 40%;opacity:{{ f.op }};"></div>
+        </sc-for>
+        <div style="position:absolute;left:284px;top:150px;width:96px;font-size:10px;font-weight:800;color:#2f6db0;">玻璃幕墙</div>
+        <div style="position:absolute;left:284px;top:196px;width:98px;font-size:11px;font-weight:700;color:#a3271c;line-height:1.4;opacity:{{ b1_noteO }};">空腔像烟囱 · 火苗顺缝往上蹿，一层着火全楼遭殃</div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 堵·层间封堵：岩棉≥100 + 水平烟带 + 密封胶 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b2_title }}</div>
+        <div style="position:absolute;left:40px;top:96px;width:34px;height:270px;background:#bcaa8c;"></div>
+        <div style="position:absolute;left:74px;top:206px;width:126px;height:22px;background:#a89878;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#4a3f2a;">楼板</div>
+        <div style="position:absolute;left:250px;top:96px;width:18px;height:270px;background:linear-gradient(180deg,#8fb0d0,#c0d6e8);border:1px solid #6f97ba;border-radius:2px;"></div>
+        <div style="position:absolute;left:198px;top:200px;width:52px;height:30px;background:repeating-linear-gradient(45deg,#d8bd94,#d8bd94 5px,#e6d2ad 5px,#e6d2ad 10px);border-radius:3px;opacity:{{ b2_wool }};"></div>
+        <div style="position:absolute;left:74px;top:232px;width:176px;height:8px;background:linear-gradient(90deg,#ffd24a,#f2b63c);border-radius:3px;opacity:{{ b2_band }};"></div>
+        <div style="position:absolute;left:196px;top:240px;width:58px;height:6px;background:#8f9498;border-radius:2px;opacity:{{ b2_plate }};"></div>
+        <div style="position:absolute;left:246px;top:202px;width:6px;height:26px;background:#cf4436;border-radius:3px;opacity:{{ b2_seal }};"></div>
+        <div style="position:absolute;left:210px;top:296px;width:26px;height:34px;background:radial-gradient(50% 60% at 50% 70%,#ffd24a,#e0863a 55%,#cf4436 100%);border-radius:50% 50% 48% 48%/62% 62% 40% 40%;opacity:{{ b2_stopFl }};"></div>
+        <div style="position:absolute;left:150px;top:340px;font-size:11px;font-weight:800;color:#2c8a5b;opacity:{{ b2_stop }};">✓ 火截在单层</div>
+        <div style="position:absolute;left:286px;top:120px;width:96px;font-size:10.5px;font-weight:800;color:#7a5a2a;opacity:{{ b2_wool }};">① 不燃岩棉 ≥100mm</div>
+        <div style="position:absolute;left:286px;top:158px;width:96px;font-size:10.5px;font-weight:800;color:#a5771c;opacity:{{ b2_band }};">② 水平防火烟带</div>
+        <div style="position:absolute;left:286px;top:196px;width:96px;font-size:10.5px;font-weight:800;color:#8a8f92;opacity:{{ b2_plate }};">③ 钢承托板</div>
+        <div style="position:absolute;left:286px;top:234px;width:96px;font-size:10.5px;font-weight:800;color:#cf4436;opacity:{{ b2_seal }};">④ 防火密封胶封缝</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 承托板 钢 vs 铝 对决 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b3_title }}</div>
+        <div style="position:absolute;left:195px;top:78px;width:0;height:300px;border-left:1.5px dashed #c7c1b2;"></div>
+        <div style="position:absolute;left:52px;top:70px;font-size:12px;font-weight:900;color:#cf4436;opacity:{{ b3_show }};">铝板 ✗</div>
+        <div style="position:absolute;left:240px;top:70px;font-size:12px;font-weight:900;color:#2c8a5b;opacity:{{ b3_show }};">镀锌钢板 ✓</div>
+        <div style="position:absolute;left:34px;top:{{ b3_lwoolTop }}px;width:120px;height:24px;background:repeating-linear-gradient(45deg,#d8bd94,#d8bd94 5px,#e6d2ad 5px,#e6d2ad 10px);border-radius:3px;opacity:{{ b3_show }};transform:rotate({{ b3_lwoolRot }}deg);"></div>
+        <div style="position:absolute;left:30px;top:210px;width:128px;height:9px;background:#c2bcae;border-radius:2px;opacity:{{ b3_show }};transform:rotate({{ b3_sag }}deg);transform-origin:0 50%;"></div>
+        <div style="position:absolute;left:70px;top:300px;width:26px;height:36px;background:radial-gradient(50% 60% at 50% 70%,#ffd24a,#e0863a 55%,#cf4436 100%);border-radius:50% 50% 48% 48%/62% 62% 40% 40%;opacity:{{ b3_heat }};"></div>
+        <div style="position:absolute;left:24px;top:252px;width:150px;font-size:10.5px;font-weight:800;color:#cf4436;opacity:{{ b3_alTag }};">铝 660℃ 就熔 · 承托垮塌</div>
+        <div style="position:absolute;left:222px;top:186px;width:128px;height:24px;background:repeating-linear-gradient(45deg,#d8bd94,#d8bd94 5px,#e6d2ad 5px,#e6d2ad 10px);border-radius:3px;opacity:{{ b3_show }};"></div>
+        <div style="position:absolute;left:216px;top:210px;width:140px;height:9px;background:linear-gradient(180deg,#b7bdc0,#8f9498);border-radius:2px;opacity:{{ b3_show }};"></div>
+        <div style="position:absolute;left:274px;top:300px;width:26px;height:36px;background:radial-gradient(50% 60% at 50% 70%,#ffd24a,#e0863a 55%,#cf4436 100%);border-radius:50% 50% 48% 48%/62% 62% 40% 40%;opacity:{{ b3_heat }};"></div>
+        <div style="position:absolute;left:220px;top:252px;width:150px;font-size:10.5px;font-weight:800;color:#2c8a5b;opacity:{{ b3_stTag }};">钢 1500℃ 稳住 · ≥1.5mm 镀锌钢板</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 隔·防火构造尺寸：实体墙/挑檐/空腔 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b4_title }}</div>
+        <div style="position:absolute;left:120px;top:96px;width:150px;height:56px;background:linear-gradient(180deg,#8fb0d0,#c0d6e8);border:1px solid #6f97ba;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#274b6b;">上层开口</div>
+        <div style="position:absolute;left:120px;top:152px;width:150px;height:92px;background:#b9a88a;border-top:1px solid #a2906f;border-bottom:1px solid #a2906f;"></div>
+        <div style="position:absolute;left:124px;top:224px;width:142px;height:14px;background:repeating-linear-gradient(45deg,#d8bd94,#d8bd94 5px,#e6d2ad 5px,#e6d2ad 10px);border-radius:2px;opacity:{{ b4_cav }};"></div>
+        <div style="position:absolute;left:120px;top:244px;width:150px;height:56px;background:linear-gradient(180deg,#8fb0d0,#c0d6e8);border:1px solid #6f97ba;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#274b6b;">下层开口</div>
+        <div style="position:absolute;left:104px;top:152px;width:0;height:92px;border-left:2px solid #cf4436;opacity:{{ b4_wall }};"></div>
+        <div style="position:absolute;left:14px;top:186px;width:88px;font-size:11px;font-weight:800;color:#cf4436;opacity:{{ b4_wall }};">实体墙 ≥1.2m</div>
+        <div style="position:absolute;left:270px;top:150px;width:44px;height:12px;background:#8a8f92;border-radius:2px;opacity:{{ b4_eave }};"></div>
+        <div style="position:absolute;left:286px;top:166px;width:98px;font-size:10.5px;font-weight:800;color:#2f6db0;line-height:1.4;opacity:{{ b4_eave }};">或 防火挑檐 ≥1.0m 且长≥开口宽</div>
+        <div style="position:absolute;left:286px;top:222px;width:98px;font-size:10.5px;font-weight:800;color:#7a5a2a;opacity:{{ b4_cav }};">空腔填塞 ≥200mm</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 不跨防火分区 + 200/100 部位区分 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b5_title }}</div>
+        <div style="position:absolute;left:195px;top:66px;width:0;height:180px;border-left:1.5px dashed #c7c1b2;"></div>
+        <div style="position:absolute;left:44px;top:70px;font-size:11px;font-weight:900;color:#cf4436;opacity:{{ b5_zoneL }};">玻璃单元跨两区 ✗</div>
+        <div style="position:absolute;left:24px;top:158px;width:150px;height:0;border-top:2px dashed #cf4436;opacity:{{ b5_zoneL }};"></div>
+        <div style="position:absolute;left:150px;top:146px;font-size:8.5px;font-weight:800;color:#cf4436;opacity:{{ b5_zoneL }};">分区界</div>
+        <div style="position:absolute;left:40px;top:120px;width:96px;height:76px;background:linear-gradient(180deg,rgba(207,68,54,.18),rgba(207,68,54,.28));border:2px solid #cf4436;border-radius:2px;opacity:{{ b5_zoneL }};display:flex;align-items:center;justify-content:center;text-align:center;font-size:9px;font-weight:800;color:#a3271c;line-height:1.3;">1 块玻璃<br/>跨上下区</div>
+        <div style="position:absolute;left:226px;top:70px;font-size:11px;font-weight:900;color:#2c8a5b;opacity:{{ b5_zoneR }};">单元不跨线 ✓</div>
+        <div style="position:absolute;left:206px;top:158px;width:150px;height:0;border-top:2px solid #2c8a5b;opacity:{{ b5_zoneR }};"></div>
+        <div style="position:absolute;left:222px;top:120px;width:118px;height:34px;background:linear-gradient(180deg,#8fb0d0,#c0d6e8);border:1px solid #6f97ba;border-radius:2px;opacity:{{ b5_zoneR }};"></div>
+        <div style="position:absolute;left:222px;top:162px;width:118px;height:34px;background:linear-gradient(180deg,#8fb0d0,#c0d6e8);border:1px solid #6f97ba;border-radius:2px;opacity:{{ b5_zoneR }};"></div>
+        <div style="position:absolute;left:24px;top:262px;right:24px;height:0;border-top:1px solid #ddd2bb;"></div>
+        <div style="position:absolute;left:40px;top:282px;width:150px;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #7a5a2a;border-radius:8px;padding:8px 9px;font-size:10px;font-weight:800;color:#7a5a2a;line-height:1.4;opacity:{{ b5_partA }};">窗槛墙空腔填塞<br/><span style="font-size:14px;color:#23282b;">≥200mm</span></div>
+        <div style="position:absolute;left:206px;top:282px;width:150px;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #2f6db0;border-radius:8px;padding:8px 9px;font-size:10px;font-weight:800;color:#2f6db0;line-height:1.4;opacity:{{ b5_partB }};">楼板缝隙封堵<br/><span style="font-size:14px;color:#23282b;">≥100mm</span></div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 口诀回扣：堵·隔·材料·分区 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b6_title }}</div>
+        <div style="position:absolute;left:14px;top:120px;width:174px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:11px 10px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c0 }};"><div style="font-size:14px;font-weight:900;color:#2f6db0;">堵</div><div style="font-size:10px;color:#6b6358;margin-top:4px;font-weight:700;line-height:1.5;">层间封堵：不燃岩棉≥100mm · 水平防火烟带 · 防火密封胶</div></div>
+        <div style="position:absolute;left:202px;top:120px;width:174px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf8a44;border-radius:10px;padding:11px 10px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c1 }};"><div style="font-size:14px;font-weight:900;color:#cf8a44;">隔</div><div style="font-size:10px;color:#6b6358;margin-top:4px;font-weight:700;line-height:1.5;">实体墙≥1.2m 或挑檐≥1.0m · 空腔填塞≥200mm</div></div>
+        <div style="position:absolute;left:14px;top:236px;width:174px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:11px 10px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c2 }};"><div style="font-size:14px;font-weight:900;color:#2c8a5b;">材料</div><div style="font-size:10px;color:#6b6358;margin-top:4px;font-weight:700;line-height:1.5;">承托板≥1.5mm 镀锌钢板 · 不得用铝板</div></div>
+        <div style="position:absolute;left:202px;top:236px;width:174px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #d9a521;border-radius:10px;padding:11px 10px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c3 }};"><div style="font-size:14px;font-weight:900;color:#d9a521;">分区</div><div style="font-size:10px;color:#6b6358;margin-top:4px;font-weight:700;line-height:1.5;">同一玻璃单元 · 不跨两个防火分区</div></div>
+        <div style="position:absolute;left:0;right:0;top:352px;text-align:center;font-size:13px;font-weight:900;color:#23282b;opacity:{{ c3 }};">防火四关写全，一分不丢</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN（播到底 t≥DUR 才出 · 与海报对称）░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">上半段 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">这防火关就唠到这儿哈——堵是层间封堵岩棉一百、水平烟带、密封胶；隔是实体墙一米二或挑檐一米、空腔二百；承托板必须一点五毫米镀锌钢板不得铝板；玻璃单元不跨防火分区。防雷那半段，下集接着唠。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">层间封堵岩棉≥100 · 水平烟带 · 密封胶</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">承托板≥1.5mm镀锌钢板 · 不得铝板</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">实体墙≥1.2m 或挑檐≥1.0m</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#7a5a2a;">空腔填塞≥200mm（≠楼板缝100mm）</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#d9a521;">同一玻璃单元不跨防火分区</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="lesson2.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#cf4436;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(207,68,54,.28);">下一集</a>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="7">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;margin-bottom:6px;">
+        <span style="font-size:9px;font-weight:800;letter-spacing:1px;color:#7f8a8f;">本考点分两集 · 点这切换</span>
+        <span style="font-size:9px;font-weight:800;color:#cf8a44;">第 1 / 2 集</span>
+      </div>
+      <div style="display:flex;gap:5px;background:#101315;border-radius:11px;padding:4px;">
+        <span style="flex:1;border-radius:8px;padding:10px 4px;font-size:12px;font-weight:900;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;">上集 · 防火关</span>
+        <a href="lesson2.html" style="flex:1;border-radius:8px;padding:10px 4px;font-size:12px;font-weight:800;background:#23282b;color:#cdd2d5;display:flex;align-items:center;justify-content:center;text-decoration:none;">下集 · 防雷关</a>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="lesson2.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);text-decoration:none;">下一集 · 防雷关</a>
+      </div>
+    </div>
+
+    <!-- 全屏浮层控制条（真·全屏时点屏唤出，3.5s 自隐）-->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ═══ D13 幕墙防火·层间封堵 讲解（上）· fork 自 AnimatedLecture 母版，只改内容区，骨架未动 ═══ */
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/up/";
+  audioVersion="7a99a152a7a75445";
+  DUR = 212.828;
+  examTitle="幕墙防火 · 层间封堵（上）"; examCode="D13 上"; examCat="装饰装修·幕墙";
+  posterSub="堵 · 隔：层间封堵 + 防火构造尺寸，一条防火链"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 58 秒";
+  KNOWLEDGE="幕墙防火构造与层间封堵(上集·防火关)。风险:幕墙与主体间垂直空腔像烟囱,火沿空腔上窜使防火分区失效。防线一「堵」层间封堵:幕墙与各层楼板/隔墙缝隙用不燃材料(岩棉或矿棉)封堵,厚度不应小于100mm,满足设计耐火极限,楼层间形成水平防火烟带;防火层用厚度不小于1.5mm的镀锌钢板承托,不得采用铝板;承托板与主体/幕墙缝隙用防火密封胶密封。防线二「隔」防火构造:上下层开口间实体墙高度不应小于1.2m,或设防火挑檐宽度不小于1.0m且长度不小于开口宽度;窗槛墙空腔上下沿矿物棉填塞高度不应小于200mm;同一幕墙玻璃单元不应跨越两个防火分区。关键区分:200mm是窗槛墙空腔填塞高度、100mm是楼板缝隙封堵厚度,不同部位不同尺寸;承托板1.5mm不是1.5m,是镀锌钢板不是铝板。常见失分:1.5mm写成1.5m、承托用铝板、200与100混、漏水平防火烟带、漏防火密封胶、玻璃单元跨防火分区。防雷连接与封堵选材归下集。";
+    beats=[["b0",0.0,14.732,"破误区"],["b1",14.732,29.368,"烟囱效应"],["b2",29.368,47.724,"层间封堵"],["b3",47.724,65.384,"钢vs铝"],["b4",65.384,83.86,"防火尺寸"],["b5",83.86,101.04,"不跨分区"],["b6",101.04,121.532,"口诀"],["q0",121.532,143.624,"问答"],["q1",143.624,163.868,"问答"],["q2",163.868,184.592,"问答"],["q3",184.592,212.828,"问答"]];
+  keycards=[
+    "承托板是 1.5mm 不是 1.5m · 别用铝板",
+    "幕墙空腔=烟囱，火往上蹿先堵它",
+    "层间封堵：不燃岩棉≥100mm + 水平烟带 + 密封胶",
+    "承托板≥1.5mm 镀锌钢板，不得铝板",
+    "实体墙≥1.2m 或挑檐≥1.0m，空腔填塞≥200mm",
+    "同一玻璃单元不跨防火分区；200≠100",
+    "堵·隔·材料·不跨分区，四句写全"
+  ];
+  narr=[
+    "来，看这道幕墙防火的题。好些同学栽在俩地方——承托板厚度写成一点五米、还拿铝板顶上；再一个，二百和一百俩尺寸整串了。注意哈，这几个坑，先给它划掉。",
+    "先弄明白为啥要防。幕墙跟主体墙中间有条竖着的空腔，火苗顺着这条腔往上蹿，就跟烟囱抽风一个道理，一层着火全楼遭殃。所以头一件事，先把这烟囱给堵上。",
+    "堵，就是层间封堵。幕墙跟每层楼板、隔墙之间的缝，得拿不燃材料——岩棉或者矿棉——填上，厚度不小于一百毫米，满足耐火极限，楼层之间形成一道水平防火烟带。缝儿最后还得用防火密封胶封死。",
+    "关键在托着岩棉那块承托板。有人图省事上铝板——铝六百六十度就化了，一场火岩棉全塌下来。记住哈，承托板必须是厚度不小于一点五毫米的镀锌钢板，钢一千五百度才化，稳稳顶住，绝不能用铝板。",
+    "堵完了再说隔。上下层窗口之间，得留高度不小于一点二米的实体墙；实体墙不够，就挑出一道防火挑檐，宽度不小于一米、长度不小于开口宽。窗槛墙那道空腔，上下沿用矿物棉填塞，高度不小于二百毫米。",
+    "还有俩容易混的。第一，同一块幕墙玻璃单元，不许跨两个防火分区，跨了火就顺着幕墙串区。第二，二百毫米是窗槛墙空腔填塞、一百毫米是楼板缝隙封堵，俩不同部位、俩尺寸，千万别串。",
+    "把这道防火关的链子记牢：堵——层间封堵岩棉一百、水平烟带、密封胶；隔——实体墙一点二米、挑檐一米、空腔二百；材料——承托板一点五毫米镀锌钢板不得铝板；再加一条不跨防火分区。写全了，防火这块一分不丢。"
+  ];
+  qa=[
+    { figLabel:"实体墙(竖) vs 挑檐(横)", fig:"wallvseave", q:"老师，实体墙一点二米、挑檐一米，我老记岔劈，咋分啊？", a:"这么记哈——实体墙是「墙」，立着挡火，要高，一点二米；挑檐是「檐」，横着挑出来兜火苗，要够宽，一米、还得比开口宽。一竖一横、一个一米二一个一米，分开就不乱。" },
+    { figLabel:"空腔 200mm vs 楼板缝 100mm", fig:"depth", q:"那二百和一百我也总串，到底哪个是哪个啊？", a:"看部位。二百毫米是窗槛墙那道空腔、上下沿矿物棉填塞的高度；一百毫米是幕墙跟楼板缝隙里岩棉的厚度。空腔二百、楼板缝一百，记住部位就不串了。" },
+    { figLabel:"钢 1500℃ vs 铝 660℃", fig:"steelvsalu", q:"承托板为啥非得钢的呀？铝的它也是金属啊。", a:"金属也分脾气。铝六百六十度就化，火一大承托板塌了、岩棉全掉下来，防火层等于没了；钢一千五百度才化，稳稳顶住。所以必须一点五毫米镀锌钢板，绝不能用铝板。" },
+    { figLabel:"防火四句 · 一句不能少", fig:"score4", q:"整明白了！这道防火关，阅卷我得咋写才给分呐？", a:"写全四句：一，层间封堵——不燃岩棉不小于一百、水平防火烟带、防火密封胶；二，承托板一点五毫米镀锌钢板、不得铝板；三，实体墙一点二米或挑檐一米、空腔填塞二百；四，同一玻璃单元不跨防火分区。四句到位，分全拿。" }
+  ];
+  askPresets=["实体墙和挑檐咋区分？","200mm 和 100mm 分别指哪？","承托板为啥不能用铝板？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return;
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+    wxAsk(){ try{
+      const wxm=window.wx&&window.wx.miniProgram;
+      const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+      if(!wxm||!inMini) return false;
+      let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
+      if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
+      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=D13'+(st?'&scene_title='+encodeURIComponent(st):'')});
+      return true; }catch(e){ return false; } }
+  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="wallvseave"){ h=54;
+      els.push(D({x:8,top:6,w:16,h:42,bg:"#b9a88a",r:2}));
+      els.push(D({x:0,top:-8,w:60,h:8,fg:"#e0a89f",fs:8,jc:"flex-start",lab:"实体墙"}));
+      els.push(D({x:30,top:20,w:70,h:12,fg:"#f1d6a0",fs:9,jc:"flex-start",lab:"竖 · ≥1.2m"}));
+      els.push(D({x:150,top:12,w:64,h:12,bg:"#8a8f92",r:2}));
+      els.push(D({x:150,top:-8,w:80,h:8,fg:"#9fd3b4",fs:8,jc:"flex-start",lab:"挑檐"}));
+      els.push(D({x:150,top:28,w:100,h:12,fg:"#f1d6a0",fs:9,jc:"flex-start",lab:"横 · ≥1.0m 且长≥开口宽"})); }
+    else if(it.fig==="depth"){ h=54;
+      els.push(D({x:0,top:8,w:20,h:38,bg:"#bcaa8c",r:2}));
+      els.push(D({x:20,top:16,w:80,h:16,bg:"#a89878",r:2,fg:"#4a3f2a",fs:8,lab:"楼板"}));
+      els.push(D({x:100,top:12,w:14,h:22,bg:"repeating-linear-gradient(45deg,#d8bd94,#d8bd94 4px,#e6d2ad 4px,#e6d2ad 8px)",r:2}));
+      els.push(D({x:120,top:16,w:120,h:14,fg:"#cf8a44",fs:9,jc:"flex-start",lab:"楼板缝 100mm"}));
+      els.push(D({x:120,top:0,w:120,h:12,fg:"#7fbf95",fs:9,jc:"flex-start",lab:"空腔填塞 200mm"})); }
+    else if(it.fig==="steelvsalu"){ h=48;
+      els.push(D({x:0,top:4,w:36,h:14,fg:"#e0a89f",fs:9,jc:"flex-start",lab:"铝板"}));
+      els.push(D({x:40,top:4,w:78,h:14,bg:"#b5564a",r:3,fg:"#fff",fs:9,lab:"660℃ 熔"}));
+      els.push(D({x:0,top:26,w:36,h:14,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"钢板"}));
+      els.push(D({x:40,top:26,w:130,h:14,bg:"#2c8a5b",r:3,fg:"#fff",fs:9,lab:"1500℃ 稳 · 1.5mm 镀锌"})); }
+    else if(it.fig==="score4"){ h=44; const s=[["堵","#2f6db0"],["隔","#cf8a44"],["材料","#2c8a5b"],["分区","#d9a521"]];
+      s.forEach((p,i)=>els.push(D({x:i*62,top:2,w:56,h:18,bg:"transparent",bd:"1.5px solid "+p[1],r:6,fg:p[1],fs:10,lab:p[0]})));
+      els.push(D({x:0,top:26,w:250,h:14,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"封堵 + 尺寸 + 钢板 + 不跨分区"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      b0_tag:"承托板选错料 · 单位写错，全塌", b0_bubble:"岩棉拿铝板托着？厚度写成 1.5 米？", b0_stamp:"误区 ✕",
+      b0_op:0,b0_y:46,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,
+      b1_title:"为啥先防火：幕墙空腔像烟囱", b1_secO:0,b1_flO:0,b1_noteO:0,b1_flames:[],
+      b2_title:"堵：把楼板缝隙封死", b2_wool:0,b2_band:0,b2_plate:0,b2_seal:0,b2_stopFl:0,b2_stop:0,
+      b3_title:"承托板为啥必须钢：铝一烧就化", b3_show:0,b3_heat:0,b3_sag:0,b3_lwoolTop:186,b3_lwoolRot:0,b3_alTag:0,b3_stTag:0,
+      b4_title:"隔：上下开口留够距离", b4_wall:0,b4_eave:0,b4_cav:0,
+      b5_title:"别跨分区 · 别把 200 和 100 搞混", b5_zoneL:0,b5_zoneR:0,b5_partA:0,b5_partB:0,
+      b6_title:"防火关一条链：堵·隔·材料·分区", c0:0,c1:0,c2:0,c3:0
+    };
+    if(A(0)){ const sp=W(0,.22),bp=W(.28,.5),dim=W(.74,.9),st=W(.56,.74);
+      v.b0_op=sp; v.b0_y=this.lp(46,0,sp); v.b0_bs=this.lp(.6,1,bp); v.b0_bo=bp*(1-.5*dim); v.b0_so=st*.95; v.b0_ss=this.lp(1.7,1,st); }
+    if(A(1)){ v.b1_secO=W(0,.22); v.b1_flO=W(.3,.5); v.b1_noteO=W(.62,.85);
+      const mp=W(.3,1); const fl=[]; for(let i=0;i<4;i++){ const pr=this.cl(mp-i*0.16,0,1); const top=this.lp(360,96,pr); fl.push({x:230+(i%2)*8,top:Math.round(top),w:16,h:24,op:pr>0.02?this.cl(1.1-pr*0.45,0.25,1):0}); } v.b1_flames=fl; }
+    if(A(2)){ v.b2_wool=W(0,.2); v.b2_band=W(.24,.42); v.b2_plate=W(.44,.6); v.b2_seal=W(.62,.8); v.b2_stopFl=W(.82,.94); v.b2_stop=W(.86,1); }
+    if(A(3)){ v.b3_show=W(0,.22); v.b3_heat=W(.24,.44); v.b3_sag=this.lp(0,15,W(.46,.74)); v.b3_lwoolTop=this.lp(186,236,W(.5,.8)); v.b3_lwoolRot=this.lp(0,10,W(.5,.8)); v.b3_alTag=W(.6,.82); v.b3_stTag=W(.66,.9); }
+    if(A(4)){ v.b4_wall=W(.06,.3); v.b4_eave=W(.36,.6); v.b4_cav=W(.66,.9); }
+    if(A(5)){ v.b5_zoneL=W(.04,.28); v.b5_zoneR=W(.3,.54); v.b5_partA=W(.58,.78); v.b5_partB=W(.72,.94); }
+    if(A(6)){ v.c0=W(.08,.32); v.c1=W(.26,.5); v.c2=W(.44,.68); v.c3=W(.62,.86); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

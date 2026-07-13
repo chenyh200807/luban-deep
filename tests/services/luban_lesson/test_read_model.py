@@ -72,6 +72,19 @@ def test_green_only_in_listing(tmp_path):
     mp = _write_manifest(tmp_path, [_S05, _X99], ["S05"])
     rows = list_green_lessons(manifest_path=mp)
     assert [r["pack_id"] for r in rows] == ["S05"]
+    assert rows[0]["card_hosted"] is True
+
+
+def test_green_listing_keeps_unhosted_truth_for_learning_home(tmp_path):
+    unhosted = dict(_S05, pack_id="B02", card_hosted=False)
+    mp = _write_manifest(tmp_path, [unhosted], ["B02"])
+    rows = list_green_lessons(manifest_path=mp)
+    assert len(rows) == 1
+    assert rows[0]["pack_id"] == "B02"
+    assert rows[0]["title"] == "临时用电三级配电"
+    assert rows[0]["content_sha256"] == "abc123"
+    assert rows[0]["card_hosted"] is False
+    assert rows[0]["retest_available"] is False
 
 
 def test_retest_items_textbook_join_same_pack_signed_cards(tmp_path):

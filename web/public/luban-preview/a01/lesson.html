@@ -6,6 +6,7 @@
 <script src="./support.js"></script>
 </head>
 <body>
+<audio data-luban-prewarm preload="auto" src="audio/up/b0.mp3?v=3677dcae21397346" aria-hidden="true" style="display:none"></audio>
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
@@ -38,8 +39,8 @@
     <div class="lz-stagewrap" onClick="{{ tapToggle }}">
     <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
 
-      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:330px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:{{ capO }};transition:opacity .25s ease;">
-        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;">{{ curKeycard }}</span>
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
       </div>
       <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
       <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
@@ -54,125 +55,128 @@
         <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
       </div>
 
-      <!-- ░░ BEAT 0 · 扫缺口：题面 + 学生答题纸进场 + 扫描笔首扫 ░░ -->
+      <!-- ░░ BEAT 0 · 破误区：楼体悬空塌 + 误区气泡 + 红章 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
-        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b0_title }}</div>
-        <div style="position:absolute;left:20px;right:20px;top:66px;background:#fff;border:1.5px solid #cdd9e2;border-left:5px solid #2f6db0;border-radius:9px;padding:7px 11px;font-size:10.5px;font-weight:700;color:#2f6db0;line-height:1.5;opacity:{{ a0_qO }};transform:translateY({{ a0_qY }}px);">题面 · 结构实体检验：除混凝土强度外还包括哪些项目？由谁组织？C35 强度是否满足并说明依据</div>
-        <div style="position:absolute;left:24px;right:24px;top:140px;background:#fffdf6;border:1.5px solid #dddacb;border-radius:10px;padding:9px 12px;opacity:{{ a0_sO }};transform:translateY({{ a0_sY }}px);">
-          <div style="font-size:9px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:6px;">学生答题纸</div>
-          <div style="font-size:11.5px;font-weight:600;color:#23282b;line-height:1.6;border-bottom:1px dashed #e2e0d5;padding:3px 0;">还要测一下<span style="background:rgba(217,165,33,{{ a0_hl }});border-radius:3px;padding:0 2px;">钢筋保护层</span></div>
-          <div style="font-size:11.5px;font-weight:600;color:#23282b;line-height:1.6;border-bottom:1px dashed #e2e0d5;padding:3px 0;">由施工单位组织<span style="display:inline-block;margin-left:6px;width:{{ a0_gap1W }}px;height:3px;background:#cf4436;border-radius:2px;vertical-align:middle;"></span></div>
-          <div style="font-size:11.5px;font-weight:600;color:#23282b;line-height:1.6;padding:3px 0;">平均值小于 35，所以不合格<span style="display:inline-block;margin-left:6px;width:{{ a0_gap2W }}px;height:3px;background:#cf4436;border-radius:2px;vertical-align:middle;"></span></div>
+        <!-- 未验的地基：三层虚线空框（自下而上还没建） -->
+        <div style="position:absolute;left:104px;top:348px;width:184px;height:22px;border:1.5px dashed #b7b1a0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#a7a08e;opacity:{{ b0_baseO }};">检验批（未验）</div>
+        <div style="position:absolute;left:118px;top:324px;width:156px;height:22px;border:1.5px dashed #b7b1a0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#a7a08e;opacity:{{ b0_baseO }};">分项（未验）</div>
+        <div style="position:absolute;left:132px;top:300px;width:128px;height:22px;border:1.5px dashed #b7b1a0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#a7a08e;opacity:{{ b0_baseO }};">分部（未验）</div>
+        <!-- 悬空提示：屋顶与地基之间的空隙 -->
+        <div style="position:absolute;left:186px;top:236px;height:60px;border-left:2px dashed #cf8a44;opacity:{{ b0_gapO }};"></div>
+        <div style="position:absolute;left:20px;top:250px;width:118px;font-size:10px;font-weight:800;color:#b06d28;line-height:1.35;opacity:{{ b0_gapO }};">屋顶下面<br/>没验的地基 → 悬空</div>
+        <!-- 单位工程屋顶：先架上去，悬在半空 -->
+        <div style="position:absolute;left:140px;top:208px;width:118px;height:26px;border-radius:4px;background:#2f6db0;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:#fff;opacity:{{ b0_roofO }};transform:translateY({{ b0_roofY }}px);">单位工程·屋顶</div>
+        <!-- 塌：悬空后坠落、压垮 -->
+        <div style="position:absolute;left:130px;top:276px;width:126px;height:26px;border-radius:4px;background:#cf4436;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;opacity:{{ b0_redO }};transform:rotate(-7deg);box-shadow:2px 2px 0 rgba(122,39,28,.35);">悬空 · 塌</div>
+        <div style="position:absolute;left:46px;top:62px;width:250px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:13px 15px;font-size:14px;font-weight:700;color:#23282b;line-height:1.4;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});transform-origin:50% 100%;">{{ b0_bubble }}
+          <div style="position:absolute;left:30px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
         </div>
-        <div style="position:absolute;left:{{ a0_penX }}px;top:134px;width:3px;height:126px;background:rgba(207,68,54,.5);border-radius:2px;opacity:{{ a0_penO }};"></div>
-        <div style="position:absolute;left:24px;right:24px;top:282px;background:#fadcd6;border:1.5px solid #cf4436;border-radius:9px;padding:7px 11px;font-size:10.5px;font-weight:800;color:#a3271c;opacity:{{ a0_vO }};">一扫描就见三处缺口：内容清单不全 · 组织主体错位 · 计算判据跑偏</div>
-        <div style="position:absolute;left:0;right:0;top:330px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a0_vO }};">这张卡不背答案 · 练的是看出自己差哪句</div>
+        <div style="position:absolute;left:236px;top:150px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:20px;font-weight:900;letter-spacing:2px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">误区 ✕</div>
       </div>
 
-      <!-- ░░ BEAT 1 · 判命中：答题纸四行逐行标 hit / partial / miss ░░ -->
+      <!-- ░░ BEAT 1 · 四级台阶自下而上 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
-        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b1_title }}</div>
-        <div style="position:absolute;left:22px;right:22px;top:76px;background:#fff;border-radius:9px;border-left:5px solid #2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a1_r0 }};"><span style="font-size:11.5px;font-weight:900;color:#2c8a5b;">① 混凝土强度</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　题干给了芯样数据，这行在考</span><span style="float:right;font-size:11px;font-weight:900;color:#2c8a5b;">hit ✓</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:122px;background:#fff;border-radius:9px;border-left:5px solid #cf8a44;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a1_r1 }};"><span style="font-size:11.5px;font-weight:900;color:#cf8a44;">② 钢筋保护层</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　词没错 · 但只写了一个项目</span><span style="float:right;font-size:11px;font-weight:900;color:#cf8a44;">partial ⚠</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:168px;background:#fff;border-radius:9px;border-left:5px solid #cf4436;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a1_r2 }};"><span style="font-size:11.5px;font-weight:900;color:#cf4436;">③ 由施工单位组织</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　主体错了</span><span style="float:right;font-size:11px;font-weight:900;color:#cf4436;">miss ✗</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:214px;background:#fff;border-radius:9px;border-left:5px solid #cf4436;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a1_r3 }};"><span style="font-size:11.5px;font-weight:900;color:#cf4436;">④ 平均值&lt;35 → 不合格</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　直接比设计值 · 跳过双阈值</span><span style="float:right;font-size:11px;font-weight:900;color:#cf4436;">miss ✗</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:{{ a1_penY }}px;height:3px;background:rgba(207,68,54,.5);border-radius:2px;opacity:{{ a1_penO }};"></div>
-        <div style="position:absolute;left:24px;right:24px;top:266px;background:#fadcd6;border:1.5px solid #cf4436;border-radius:9px;padding:7px 11px;font-size:10.5px;font-weight:800;color:#a3271c;opacity:{{ a1_noteO }};">最危险是第 ④ 行：拿平均强度直接比设计值，双阈值整条链没了</div>
-        <div style="position:absolute;left:0;right:0;top:318px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a1_noteO }};">熟词 ≠ 得分：partial 要补全，miss 要重写</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">验收四级 · 自下而上垒台阶</div>
+        <div style="position:absolute;left:16px;top:64px;font-size:10.5px;font-weight:700;color:#8a6d3a;opacity:{{ b1_o0 }};">下一级全合格，才是上一级验收的前提</div>
+        <div style="position:absolute;left:140px;top:254px;width:110px;height:24px;background:#cf4436;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;opacity:{{ b1_o3 }};transform:translateY({{ b1_y3 }}px);">单位工程</div>
+        <div style="position:absolute;left:120px;top:284px;width:150px;height:24px;background:#cf8a44;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;opacity:{{ b1_o2 }};transform:translateY({{ b1_y2 }}px);">分部工程</div>
+        <div style="position:absolute;left:100px;top:314px;width:190px;height:24px;background:#2c8a5b;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;opacity:{{ b1_o1 }};transform:translateY({{ b1_y1 }}px);">分项工程</div>
+        <div style="position:absolute;left:80px;top:344px;width:230px;height:24px;background:#2f6db0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;opacity:{{ b1_o0 }};transform:translateY({{ b1_y0 }}px);">检验批</div>
+        <div style="position:absolute;left:58px;top:254px;height:114px;border-left:2.5px solid #cf4436;opacity:{{ b1_noteO }};"></div>
+        <div style="position:absolute;left:52px;top:246px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:9px solid #cf4436;opacity:{{ b1_noteO }};"></div>
+        <div style="position:absolute;left:30px;top:280px;font-size:11px;font-weight:900;color:#cf4436;writing-mode:vertical-rl;letter-spacing:2px;opacity:{{ b1_noteO }};">自下而上</div>
       </div>
 
-      <!-- ░░ BEAT 2 · 补清单：实体检验四件套逐项放回采分槽 ░░ -->
+      <!-- ░░ BEAT 2 · 划分依据：切格 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
-        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b2_title }}</div>
-        <div style="position:absolute;left:20px;top:84px;width:92px;height:170px;background:#b8b2a3;border:2px solid #6b6455;border-radius:6px;opacity:{{ a2_obj }};">
-          <div style="position:absolute;left:8px;right:8px;top:10px;height:4px;background:#8a8375;border-radius:2px;"></div>
-          <div style="position:absolute;left:8px;right:8px;top:20px;height:4px;background:#8a8375;border-radius:2px;"></div>
-          <div style="position:absolute;left:0;right:0;top:64px;text-align:center;font-size:11px;font-weight:900;color:#3a3325;line-height:1.5;">C35<br/>混凝土<br/>构件</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">怎么切格 · 检验批 / 分项的划分依据</div>
+        <div style="position:absolute;left:40px;top:120px;width:310px;height:56px;background:#cf8a44;border-radius:8px;opacity:{{ b2_blockO }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">一个分部工程</div>
+        <div style="position:absolute;left:117px;top:120px;width:3px;height:56px;background:#f4f3ec;opacity:{{ b2_cutO }};"></div>
+        <div style="position:absolute;left:195px;top:120px;width:3px;height:56px;background:#f4f3ec;opacity:{{ b2_cutO }};"></div>
+        <div style="position:absolute;left:272px;top:120px;width:3px;height:56px;background:#f4f3ec;opacity:{{ b2_cutO }};"></div>
+        <div style="position:absolute;left:40px;top:184px;width:77px;text-align:center;font-size:9.5px;font-weight:800;color:#2f6db0;opacity:{{ b2_cutO }};">工程量</div>
+        <div style="position:absolute;left:117px;top:184px;width:78px;text-align:center;font-size:9.5px;font-weight:800;color:#2f6db0;opacity:{{ b2_cutO }};">楼层</div>
+        <div style="position:absolute;left:195px;top:184px;width:77px;text-align:center;font-size:9.5px;font-weight:800;color:#2f6db0;opacity:{{ b2_cutO }};">施工段</div>
+        <div style="position:absolute;left:272px;top:184px;width:78px;text-align:center;font-size:9.5px;font-weight:800;color:#2f6db0;opacity:{{ b2_cutO }};">变形缝</div>
+        <div style="position:absolute;left:40px;top:204px;font-size:9px;font-weight:700;color:#8b9398;opacity:{{ b2_cutO }};">检验批：按 工程量 / 楼层 / 施工段 / 变形缝 划分</div>
+        <div style="position:absolute;left:16px;top:240px;font-size:11px;font-weight:800;color:#23282b;opacity:{{ b2_projO }};">分项工程按：</div>
+        <div style="position:absolute;left:16px;right:16px;top:262px;display:flex;gap:7px;flex-wrap:wrap;opacity:{{ b2_projO }};">
+          <div style="background:#eef3f7;border:1.5px solid #cdd9e2;border-radius:8px;padding:6px 11px;font-size:10.5px;font-weight:800;color:#2f6db0;">主要工种</div>
+          <div style="background:#eef3f7;border:1.5px solid #cdd9e2;border-radius:8px;padding:6px 11px;font-size:10.5px;font-weight:800;color:#2f6db0;">材料</div>
+          <div style="background:#eef3f7;border:1.5px solid #cdd9e2;border-radius:8px;padding:6px 11px;font-size:10.5px;font-weight:800;color:#2f6db0;">施工工艺</div>
+          <div style="background:#eef3f7;border:1.5px solid #cdd9e2;border-radius:8px;padding:6px 11px;font-size:10.5px;font-weight:800;color:#2f6db0;">设备类别</div>
         </div>
-        <div style="position:absolute;left:128px;right:20px;top:84px;height:38px;border:1.5px dashed #ccc7b8;border-radius:8px;opacity:{{ a2_obj }};"></div>
-        <div style="position:absolute;left:128px;right:20px;top:128px;height:38px;border:1.5px dashed #ccc7b8;border-radius:8px;opacity:{{ a2_obj }};"></div>
-        <div style="position:absolute;left:128px;right:20px;top:172px;height:38px;border:1.5px dashed #ccc7b8;border-radius:8px;opacity:{{ a2_obj }};"></div>
-        <div style="position:absolute;left:128px;right:20px;top:216px;height:38px;border:1.5px dashed #ccc7b8;border-radius:8px;opacity:{{ a2_obj }};"></div>
-        <div style="position:absolute;left:128px;right:20px;top:84px;height:38px;background:#fff;border:1.5px solid #cdd9e2;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:10.5px;font-weight:800;color:#2f6db0;opacity:{{ a2_s0 }};">① 混凝土强度<span style="margin-left:auto;font-size:9px;color:#9aa0a3;">题干已考</span></div>
-        <div style="position:absolute;left:128px;right:20px;top:128px;height:38px;background:#fff;border:1.5px solid #a9cdb8;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:10.5px;font-weight:800;color:#2c8a5b;opacity:{{ a2_s1 }};transform:translateX({{ a2_x1 }}px);">② 钢筋保护层厚度</div>
-        <div style="position:absolute;left:128px;right:20px;top:172px;height:38px;background:#fff;border:1.5px solid #a9cdb8;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:10.5px;font-weight:800;color:#2c8a5b;opacity:{{ a2_s2 }};transform:translateX({{ a2_x2 }}px);">③ 结构位置与尺寸偏差</div>
-        <div style="position:absolute;left:128px;right:20px;top:216px;height:38px;background:#fff;border:1.5px solid #a9cdb8;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:10.5px;font-weight:800;color:#2c8a5b;opacity:{{ a2_s3 }};transform:translateX({{ a2_x3 }}px);">④ 合同约定项目</div>
-        <div style="position:absolute;left:24px;right:24px;top:272px;background:#fff;border:1.5px solid #cdd9e2;border-left:5px solid #2f6db0;border-radius:9px;padding:7px 10px;font-size:10px;font-weight:700;color:#2f6db0;line-height:1.4;opacity:{{ a2_noteO }};">动作不是把“项目很多”写得更响，而是把漏掉的工程对象逐项放回采分槽</div>
-        <div style="position:absolute;left:0;right:0;top:326px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a2_noteO }};">四件套写全，第一格才算补齐</div>
+        <div style="position:absolute;left:16px;right:16px;top:316px;font-size:10px;font-weight:700;color:#8a6d3a;opacity:{{ b2_noteO }};line-height:1.5;">分部：按专业性质、工程部位划分　·　单位工程：一个独立使用功能的单元</div>
       </div>
 
-      <!-- ░░ BEAT 3 · 改主体：施工组织箭头淘汰 → 监理组织/施工实施/见证链点亮 ░░ -->
+      <!-- ░░ BEAT 3 · 合格判定：主控否决 / 一般容差 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
-        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b3_title }}</div>
-        <div style="position:absolute;left:105px;top:74px;width:180px;height:34px;background:#23282b;border-radius:8px;color:#f1efe8;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;">结构实体检验</div>
-        <div style="position:absolute;left:34px;top:158px;width:104px;height:40px;background:#3a5168;border-radius:6px;color:#fff;font-size:10.5px;font-weight:900;display:flex;align-items:center;justify-content:center;">施工单位</div>
-        <div style="position:absolute;left:252px;top:158px;width:104px;height:40px;background:#2f6db0;border-radius:6px;color:#fff;font-size:10.5px;font-weight:900;display:flex;align-items:center;justify-content:center;">监理单位</div>
-        <div style="position:absolute;left:104px;top:120px;width:56px;height:4px;background:#cf4436;transform:rotate(-38deg);transform-origin:0 50%;opacity:{{ a3_badO }};"></div>
-        <div style="position:absolute;left:46px;top:122px;font-size:10px;font-weight:900;color:#cf4436;opacity:{{ a3_badO }};">组织？</div>
-        <div style="position:absolute;left:118px;top:118px;z-index:20;color:#cf4436;border:3px solid #cf4436;border-radius:8px;padding:2px 10px;font-size:15px;font-weight:900;letter-spacing:2px;transform-origin:50% 50%;opacity:{{ a3_so }};transform:scale({{ a3_ss }}) rotate(-12deg);">主体错位 ✗</div>
-        <div style="position:absolute;left:286px;top:120px;width:56px;height:4px;background:#2c8a5b;transform:rotate(-142deg);transform-origin:0 50%;opacity:{{ a3_c0 }};"></div>
-        <div style="position:absolute;left:300px;top:122px;font-size:10px;font-weight:900;color:#2c8a5b;opacity:{{ a3_c0 }};">组织 ✓</div>
-        <div style="position:absolute;left:22px;right:22px;top:216px;background:#fff;border-radius:9px;border-left:5px solid #2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a3_c0 }};"><span style="font-size:11.5px;font-weight:900;color:#2c8a5b;">① 监理单位</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　组织</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:256px;background:#fff;border-radius:9px;border-left:5px solid #2f6db0;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a3_c1 }};"><span style="font-size:11.5px;font-weight:900;color:#2f6db0;">② 施工单位</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　实施</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:296px;background:#fff;border-radius:9px;border-left:5px solid #cf8a44;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a3_c2 }};"><span style="font-size:11.5px;font-weight:900;color:#cf8a44;">③ 监理单位</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　见证全过程</span></div>
-        <div style="position:absolute;left:0;right:0;top:340px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a3_noteO }};">阅卷要扫到的主体动作：监理单位组织</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">合格两道门 · 主控否决 / 一般容差</div>
+        <div style="position:absolute;left:16px;top:82px;font-size:11px;font-weight:800;color:#cf4436;opacity:{{ b3_zkO }};">主控项目 · 必须全部合格（否决项）</div>
+        <div style="position:absolute;left:40px;top:104px;width:48px;height:34px;background:#2c8a5b;border-radius:6px;opacity:{{ b3_zkO }};"></div>
+        <div style="position:absolute;left:96px;top:104px;width:48px;height:34px;background:#2c8a5b;border-radius:6px;opacity:{{ b3_zkO }};"></div>
+        <div style="position:absolute;left:152px;top:104px;width:48px;height:34px;background:#2c8a5b;border-radius:6px;opacity:{{ b3_zkO }};"></div>
+        <div style="position:absolute;left:208px;top:104px;width:48px;height:34px;background:#2c8a5b;border-radius:6px;opacity:{{ b3_zkO }};"></div>
+        <div style="position:absolute;left:208px;top:104px;width:48px;height:34px;border:2px solid #cf4436;border-radius:6px;background:#fdecea;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#cf4436;opacity:{{ b3_failO }};">缺</div>
+        <div style="position:absolute;left:264px;top:104px;width:48px;height:34px;background:#2c8a5b;border-radius:6px;opacity:{{ b3_zkO }};"></div>
+        <div style="position:absolute;left:40px;top:100px;width:272px;height:42px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:#cf4436;opacity:{{ b3_failO }};">✕</div>
+        <div style="position:absolute;left:40px;top:148px;font-size:10.5px;font-weight:800;color:#cf4436;opacity:{{ b3_failO }};">缺 1 项 → 整批不合格 · 零容忍</div>
+        <div style="position:absolute;left:16px;top:196px;font-size:11px;font-weight:800;color:#2c8a5b;opacity:{{ b3_ybO }};">一般项目 · 合格率 ≥ 80%（容差项）</div>
+        <div style="position:absolute;left:40px;top:218px;width:48px;height:34px;background:#2c8a5b;border-radius:6px;opacity:{{ b3_ybO }};"></div>
+        <div style="position:absolute;left:96px;top:218px;width:48px;height:34px;background:#2c8a5b;border-radius:6px;opacity:{{ b3_ybO }};"></div>
+        <div style="position:absolute;left:152px;top:218px;width:48px;height:34px;background:#2c8a5b;border-radius:6px;opacity:{{ b3_ybO }};"></div>
+        <div style="position:absolute;left:208px;top:218px;width:48px;height:34px;background:#c3c8c5;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;opacity:{{ b3_ybO }};">差</div>
+        <div style="position:absolute;left:264px;top:218px;width:48px;height:34px;background:#2c8a5b;border-radius:6px;opacity:{{ b3_ybO }};"></div>
+        <div style="position:absolute;left:40px;top:260px;font-size:10.5px;font-weight:800;color:#2c8a5b;opacity:{{ b3_ybOkO }};">4 / 5 = 80% ≥ 80% → 本批合格 · 允许容差</div>
+        <div style="position:absolute;left:16px;right:16px;top:298px;font-size:10.5px;font-weight:800;color:#23282b;text-align:center;opacity:{{ b3_ybOkO }};">主控零容忍，一般才讲 80%，绝不能混</div>
       </div>
 
-      <!-- ░░ BEAT 4 · 双阈值：三个芯样进公式链 · 88%/80% 两条线 · 直接比35被淘汰 ░░ -->
+      <!-- ░░ BEAT 4 · 隐蔽工程覆盖前窗口 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
-        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b4_title }}</div>
-        <div style="position:absolute;left:30px;top:72px;width:56px;height:56px;border-radius:50%;background:#8f9aa3;border:3px solid #5c6b76;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;opacity:{{ a4_s0 }};">28.5</div>
-        <div style="position:absolute;left:102px;top:72px;width:56px;height:56px;border-radius:50%;background:#8f9aa3;border:3px solid #5c6b76;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;opacity:{{ a4_s1 }};">31</div>
-        <div style="position:absolute;left:174px;top:72px;width:56px;height:56px;border-radius:50%;background:#8f9aa3;border:3px solid #5c6b76;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;opacity:{{ a4_s2 }};">32</div>
-        <div style="position:absolute;left:244px;top:92px;font-size:10px;font-weight:800;color:#5c6469;opacity:{{ a4_s2 }};">三个芯样 · MPa</div>
-        <div style="position:absolute;left:24px;right:24px;top:140px;border:1.5px dashed #cf4436;border-radius:9px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#cf4436;opacity:{{ a4_badO }};">平均值直接比 35 → 跳过双阈值</div>
-        <div style="position:absolute;left:132px;top:132px;z-index:20;color:#cf4436;border:3px solid #cf4436;border-radius:8px;padding:2px 12px;font-size:16px;font-weight:900;letter-spacing:2px;transform-origin:50% 50%;opacity:{{ a4_bx }};transform:scale({{ a4_bs }}) rotate(-12deg);">淘汰 ✗</div>
-        <div style="position:absolute;left:24px;top:186px;width:{{ a4_l1W }}px;height:4px;background:#2f6db0;border-radius:2px;"></div>
-        <div style="position:absolute;left:24px;right:24px;top:194px;background:#fff;border:1.5px solid #cdd9e2;border-left:5px solid #2f6db0;border-radius:9px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#2f6db0;line-height:1.5;opacity:{{ a4_f1O }};">平均值 = <b>30.8</b>MPa（三芯样均值）　线：35×88% = <b>30.8</b> · 命中 ✓</div>
-        <div style="position:absolute;left:24px;top:244px;width:{{ a4_l2W }}px;height:4px;background:#2c8a5b;border-radius:2px;"></div>
-        <div style="position:absolute;left:24px;right:24px;top:252px;background:#fff;border:1.5px solid #a9cdb8;border-left:5px solid #2c8a5b;border-radius:9px;padding:6px 10px;font-size:10.5px;font-weight:800;color:#2c8a5b;line-height:1.5;opacity:{{ a4_f2O }};">最小值 = <b>28.5</b>　线：35×80% = <b>28</b> · 高于 ✓</div>
-        <div style="position:absolute;left:24px;right:24px;top:302px;background:#fff;border:1.5px solid #dddacb;border-left:5px solid #cf8a44;border-radius:9px;padding:6px 10px;font-size:10px;font-weight:700;color:#6b5f49;line-height:1.45;opacity:{{ a4_critO }};">30.8 恰为临界 · 官方给分看评分细则或教研裁定，但双阈值链必须写在答题纸上</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">隐蔽工程 · 覆盖前的一次性窗口</div>
+        <div style="position:absolute;left:195px;top:96px;height:250px;border-left:1.5px dashed #ccc4b0;"></div>
+        <div style="position:absolute;left:22px;top:96px;font-size:10px;font-weight:800;color:#2c8a5b;">覆盖前验收 ✓</div>
+        <div style="position:absolute;left:78px;top:150px;width:64px;height:28px;border:2.5px solid #cf4436;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#cf4436;opacity:{{ b4_stampO }};transform:translateY({{ b4_stampY }}px);">验收 ✓</div>
+        <div style="position:absolute;left:26px;top:222px;width:150px;height:26px;background:#8a9296;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:#fff;opacity:{{ b4_coverO }};transform:translateY({{ b4_coverY }}px);">混凝土覆盖层</div>
+        <div style="position:absolute;left:26px;top:250px;width:150px;height:8px;background:#2c8a5b;border-radius:3px;opacity:{{ b4_winO }};"></div>
+        <div style="position:absolute;left:26px;top:258px;width:150px;height:34px;border-radius:5px;background:repeating-linear-gradient(90deg,#b9a88a,#b9a88a 7px,#a89774 7px,#a89774 11px);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#3a2f1e;opacity:{{ b4_stampO }};">隐蔽层 · 钢筋/防水</div>
+        <div style="position:absolute;left:22px;top:300px;font-size:9px;font-weight:700;color:#5c6469;opacity:{{ b4_okO }};">印章盖下 · 覆盖层才推入</div>
+        <div style="position:absolute;left:214px;top:96px;font-size:10px;font-weight:800;color:#cf4436;">跳过验收 ✕</div>
+        <div style="position:absolute;left:210px;top:224px;width:150px;height:28px;background:#8a9296;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:#fff;opacity:{{ b4_badO }};">直接覆盖</div>
+        <div style="position:absolute;left:210px;top:258px;width:150px;height:34px;border-radius:5px;background:repeating-linear-gradient(90deg,#b9a88a,#b9a88a 7px,#a89774 7px,#a89774 11px);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#3a2f1e;opacity:{{ b4_badO }};">隐蔽层 · 够不着</div>
+        <div style="position:absolute;left:210px;top:224px;width:150px;height:68px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:#cf4436;opacity:{{ b4_badX }};">✕</div>
+        <div style="position:absolute;left:210px;top:300px;width:150px;font-size:9px;font-weight:800;color:#cf4436;opacity:{{ b4_badX }};line-height:1.4;">未经验收 · 不得进下道工序</div>
       </div>
 
-      <!-- ░░ BEAT 5 · 重排：原答案保留块迁移 · 三段采分句装配 ░░ -->
+      <!-- ░░ BEAT 5 · 见证取样三方 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
-        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b5_title }}</div>
-        <div style="position:absolute;left:24px;right:24px;top:66px;background:#fffdf6;border:1.5px solid #dddacb;border-radius:10px;padding:8px 10px;opacity:{{ a5_srcO }};">
-          <div style="font-size:9px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:5px;">学生原答案 · 可保留的搬走，错位的划掉</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;">
-            <span style="position:relative;font-size:10px;font-weight:800;color:#23282b;border:1.5px solid #ccc7b8;border-radius:6px;padding:3px 7px;">钢筋保护层<span style="position:absolute;inset:0;border:2px solid #2c8a5b;border-radius:6px;opacity:{{ a5_k0 }};"></span></span>
-            <span style="position:relative;font-size:10px;font-weight:800;color:#23282b;border:1.5px solid #ccc7b8;border-radius:6px;padding:3px 7px;">施工单位组织<span style="position:absolute;left:2px;right:2px;top:50%;height:2.5px;background:#cf4436;opacity:{{ a5_x0 }};"></span></span>
-            <span style="position:relative;font-size:10px;font-weight:800;color:#23282b;border:1.5px solid #ccc7b8;border-radius:6px;padding:3px 7px;">平均值直接比 35<span style="position:absolute;left:2px;right:2px;top:50%;height:2.5px;background:#cf4436;opacity:{{ a5_x0 }};"></span></span>
-            <span style="position:relative;font-size:10px;font-weight:800;color:#23282b;border:1.5px solid #ccc7b8;border-radius:6px;padding:3px 7px;">芯样 28.5 / 31 / 32<span style="position:absolute;inset:0;border:2px solid #2c8a5b;border-radius:6px;opacity:{{ a5_k0 }};"></span></span>
-          </div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">见证取样 · 谁见证、谁取样、谁记录</div>
+        <div style="position:absolute;left:24px;top:150px;width:74px;height:44px;background:#b9a88a;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#3a2f1e;opacity:{{ b5_matO }};">材料样品</div>
+        <div style="position:absolute;left:132px;top:110px;width:104px;height:32px;background:#cf4436;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:#fff;opacity:{{ b5_witO }};">见证人 · 监理</div>
+        <div style="position:absolute;left:132px;top:162px;width:104px;height:40px;background:#2f6db0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:#fff;opacity:{{ b5_labO }};">试验员取样</div>
+        <div style="position:absolute;left:150px;top:142px;height:20px;border-left:2px dashed #cf8a44;opacity:{{ b5_labO }};"></div>
+        <div style="position:absolute;left:158px;top:144px;font-size:8.5px;font-weight:800;color:#cf8a44;opacity:{{ b5_labO }};">见证 · 盯</div>
+        <div style="position:absolute;left:270px;top:150px;width:88px;height:44px;border:2px solid #2c8a5b;border-radius:8px;background:#f0f8f3;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#2c8a5b;opacity:{{ b5_repO }};">送检报告</div>
+        <div style="position:absolute;left:104px;top:174px;font-size:16px;font-weight:900;color:#b3a692;opacity:{{ b5_labO }};">·</div>
+        <div style="position:absolute;left:244px;top:166px;font-size:16px;font-weight:900;color:#b3a692;opacity:{{ b5_repO }};">·</div>
+        <div style="position:absolute;left:24px;right:24px;top:226px;font-size:10.5px;font-weight:800;color:#23282b;opacity:{{ b5_repO }};line-height:1.5;">见证记录由 <span style="color:#cf4436;">见证人员</span> 制作，不是试验员自己填</div>
+        <div style="position:absolute;left:24px;top:272px;right:24px;background:#fdecea;border:1.5px solid #ecbbb3;border-radius:9px;padding:9px 11px;opacity:{{ b5_badO }};">
+          <div style="font-size:10px;font-weight:800;color:#a3271c;">✕ 凭「重要就送、不重要不送」的感觉决定</div>
+          <div style="font-size:9.5px;font-weight:700;color:#7a4b44;margin-top:3px;">该不该送，规范清单说了算，不是主观判断</div>
         </div>
-        <div style="position:absolute;left:22px;right:22px;top:162px;background:#fff;border-radius:9px;border-left:5px solid #2f6db0;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a5_p0 }};transform:translateY({{ a5_p0Y }}px);"><div style="font-size:11px;font-weight:900;color:#2f6db0;">第一段 · 内容清单</div><div style="font-size:9.5px;color:#6b6358;font-weight:600;line-height:1.45;">除混凝土强度外：钢筋保护层厚度 · 结构位置与尺寸偏差 · 合同约定项目</div></div>
-        <div style="position:absolute;left:22px;right:22px;top:214px;background:#fff;border-radius:9px;border-left:5px solid #2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a5_p1 }};transform:translateY({{ a5_p1Y }}px);"><div style="font-size:11px;font-weight:900;color:#2c8a5b;">第二段 · 主体链</div><div style="font-size:9.5px;color:#6b6358;font-weight:600;line-height:1.45;">由监理单位组织 · 施工单位实施 · 监理见证全过程</div></div>
-        <div style="position:absolute;left:22px;right:22px;top:266px;background:#fff;border-radius:9px;border-left:5px solid #cf8a44;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:7px 11px;opacity:{{ a5_p2 }};transform:translateY({{ a5_p2Y }}px);"><div style="font-size:11px;font-weight:900;color:#cf8a44;">第三段 · 判定链</div><div style="font-size:9.5px;color:#6b6358;font-weight:600;line-height:1.45;">平均值≥设计值×88% · 最小值≥设计值×80% · 代入回判</div></div>
-        <div style="position:absolute;left:0;right:0;top:322px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a5_noteO }};">不是更啰嗦 · 是每一格都能被扫描到</div>
       </div>
 
-      <!-- ░░ BEAT 6 · 再扫描：成品答案三格依次 hit · miss 标记退出 ░░ -->
+      <!-- ░░ BEAT 6 · 上集口诀 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
-        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b6_title }}</div>
-        <div style="position:absolute;right:26px;top:46px;border:1.5px dashed #ccc7b8;border-radius:8px;padding:2px 9px;font-size:10px;font-weight:900;color:#cf4436;text-decoration:line-through;opacity:{{ a6_missO }};">miss ✗</div>
-        <div style="position:absolute;left:22px;right:22px;top:84px;background:#fff;border-radius:9px;border-left:5px solid #2f6db0;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ a6_r0 }};"><span style="font-size:11.5px;font-weight:900;color:#2f6db0;">① 内容清单</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　四件套写全</span><span style="float:right;font-size:11px;font-weight:900;color:#2c8a5b;">hit ✓</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:138px;background:#fff;border-radius:9px;border-left:5px solid #2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ a6_r1 }};"><span style="font-size:11.5px;font-weight:900;color:#2c8a5b;">② 组织主体</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　监理组织 · 施工实施 · 见证</span><span style="float:right;font-size:11px;font-weight:900;color:#2c8a5b;">hit ✓</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:192px;background:#fff;border-radius:9px;border-left:5px solid #cf8a44;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ a6_r2 }};"><span style="font-size:11.5px;font-weight:900;color:#cf8a44;">③ 判定依据</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　88% / 80% 双阈值回判</span><span style="float:right;font-size:11px;font-weight:900;color:#2c8a5b;">hit ✓</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:{{ a6_penY }}px;height:3px;background:rgba(207,68,54,.5);border-radius:2px;opacity:{{ a6_penO }};"></div>
-        <div style="position:absolute;left:24px;right:24px;top:250px;background:#fff;border:1.5px solid #cdd9e2;border-left:5px solid #2f6db0;border-radius:9px;padding:7px 10px;font-size:10px;font-weight:700;color:#2f6db0;line-height:1.45;opacity:{{ a6_okO }};">带走的不是一段死记答案，而是一个作答动作：看到实体检验案例，先扫自己的答题纸，问三格齐不齐</div>
-        <div style="position:absolute;left:0;right:0;top:316px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ a6_okO }};">内容清单 · 组织主体 · 判定依据</div>
-      </div>
-
-      <!-- ░░ BEAT 7 · 收官：记忆钩 ░░ -->
-      <div style="position:absolute;inset:0;opacity:{{ lo7 }};transition:opacity .4s ease;pointer-events:{{ lpe7 }};">
-        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">{{ c_title }}</div>
-        <div style="position:absolute;left:22px;right:22px;top:80px;background:#fff;border-radius:9px;border-left:5px solid #2f6db0;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ c0 }};"><span style="font-size:12px;font-weight:900;color:#2f6db0;">① 先扫答案</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　逐行标 hit · partial · miss</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:130px;background:#fff;border-radius:9px;border-left:5px solid #2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ c1 }};"><span style="font-size:12px;font-weight:900;color:#2c8a5b;">② 再补三格</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　内容清单 · 组织主体 · 判定依据</span></div>
-        <div style="position:absolute;left:22px;right:22px;top:180px;background:#fff;border-radius:9px;border-left:5px solid #cf8a44;box-shadow:0 3px 9px rgba(0,0,0,.06);padding:8px 11px;opacity:{{ c2 }};"><span style="font-size:12px;font-weight:900;color:#cf8a44;">③ 判定链落纸</span><span style="font-size:10px;color:#6b6358;font-weight:600;">　平均≥设计×88% · 最小≥设计×80%</span></div>
-        <div style="position:absolute;left:0;right:0;top:250px;text-align:center;font-family:'Long Cang',cursive;font-size:26px;color:#cf4436;opacity:{{ c3 }};">扫答案，补三格</div>
-        <div style="position:absolute;left:0;right:0;top:294px;text-align:center;font-size:12px;font-weight:800;color:#23282b;opacity:{{ c4 }};">少一格都不是完整采分句</div>
-        <div style="position:absolute;left:0;right:0;top:322px;text-align:center;font-size:12px;font-weight:800;color:#23282b;opacity:{{ c4 }};">进闯关：按答题纸扫描来练</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">上集四句 · 一句不能少</div>
+        <div style="position:absolute;left:14px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c0 }};"><div style="font-size:13px;font-weight:900;color:#2f6db0;">1 台阶</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">四级 · 自下而上</div></div>
+        <div style="position:absolute;left:102px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c1 }};"><div style="font-size:13px;font-weight:900;color:#2c8a5b;">2 判定</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">主控否决 · 一般80%</div></div>
+        <div style="position:absolute;left:190px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf8a44;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c2 }};"><div style="font-size:13px;font-weight:900;color:#cf8a44;">3 隐蔽</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">覆盖前验收</div></div>
+        <div style="position:absolute;left:278px;top:150px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf4436;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c3 }};"><div style="font-size:13px;font-weight:900;color:#cf4436;">4 见证</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">取样按清单</div></div>
+        <div style="position:absolute;left:96px;top:188px;font-size:20px;color:#b3a692;opacity:{{ c1 }};">·</div>
+        <div style="position:absolute;left:184px;top:188px;font-size:20px;color:#b3a692;opacity:{{ c2 }};">·</div>
+        <div style="position:absolute;left:272px;top:188px;font-size:20px;color:#b3a692;opacity:{{ c3 }};">·</div>
+        <div style="position:absolute;left:0;right:0;top:264px;text-align:center;font-size:12.5px;font-weight:900;color:#23282b;opacity:{{ c3 }};">地基分稳了 · 下半场接着唠实体检验</div>
       </div>
 
       <!-- ░░ QA 场景 ░░ -->
@@ -214,6 +218,28 @@
           </div>
         </div>
       </div>
+
+      <!-- ░░ 收官 END-SCREEN ░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">上集 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">上半场就唠到这儿哈——台阶自下而上垒，主控项目全合格是否决、一般项目才讲 80%，隐蔽工程必须覆盖前验，见证取样按清单走。这四句写全，验收程序的地基分稳稳的。下半场接着唠实体检验和不合格咋处理。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">四级：检验批·分项·分部·单位（自下而上累积）</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">主控全部合格（否决）· 一般合格率 ≥ 80%</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">隐蔽工程覆盖前验收留记录 · 未验收不得进下道</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">见证取样：见证下取样送检 · 见证人员记录</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="lesson2.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">下一集</a>
+        </div>
+      </div>
     </div>
     </div>
 
@@ -230,13 +256,19 @@
         <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
       </div>
       <div style="display:flex;gap:4px;margin-top:11px;">
-        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="6">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="7">
           <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
             <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
           </button>
         </sc-for>
       </div>
-      <div style="display:flex;gap:8px;margin-top:11px;">
+      <div style="display:flex;gap:8px;margin-top:11px;align-items:stretch;">
+        <div style="flex:none;width:56px;display:flex;flex-direction:column;justify-content:center;gap:1px;font-size:11px;font-weight:800;color:#8b9398;"><span style="white-space:nowrap;">本考点</span><span style="white-space:nowrap;">分 2 集</span></div>
+        <sc-for list="{{ episodes }}" as="e" hint-placeholder-count="2">
+          <a href="{{ e.href }}" onClick="{{ e.onClick }}" style="flex:1;border:none;border-radius:11px;padding:12px 6px;font-size:13px;font-weight:900;cursor:{{ e.cursor }};background:{{ e.bg }};color:{{ e.fg }};display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:{{ e.shadow }};">{{ e.label }}</a>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
         <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
         <a href="practice.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
       </div>
@@ -306,40 +338,38 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
   state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
-  audioBase="audio/";
-  audioVersion="20260705-a01-tts1";
-  DUR = 236.548;
-  examTitle="结构实体检验答案诊断"; examCode="A01"; examCat="案例·作答层";
-  posterSub="先扫答题纸，再补三格：内容清单 · 组织主体 · 判定依据"; posterMeta="点击播放 · 8 幕精讲 + 3 追问 · 约 3 分 57 秒";
-  KNOWLEDGE="检验批验收·案例题作答层(A01,真题锚{2017·案例·问4})。本层只训练把知识写成阅卷友好的采分句,采分点从A01知识层派生,不新增官方判分权威。学生样本:只写“还要测钢筋保护层,由施工单位组织;平均值小于35所以不合格”,典型问题=清单不全+组织主体错位+判定依据错误。内容清单:结构实体检验除混凝土强度外,还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目(漏项=E02采分点遗漏)。组织主体:由监理单位组织、施工单位实施、监理见证全过程,施工单位编制专项方案报监理审批(写施工单位组织=E07概念混淆,“谁施工谁验收”是错误心智)。判定依据:C35实体强度应满足平均值不小于设计值88%且最小值不小于设计值80%,不能直接拿平均值比35(=E10规范适用错误);本题芯样28.5/31/32MPa,平均值30.8MPa,35×88%=30.8MPa恰为临界,最小值28.5MPa>35×80%=28MPa;临界取舍以评分细则或教研裁定为准,只指漏不替官方定分。改写结构:先编号写检验内容,再写监理组织、施工实施、监理见证,最后亮双阈值判据、代入平均值和最小值并回判。作答纪律:按内容清单、组织主体、判定依据三格自检,禁口号化表达(E04)。记忆钩:扫答案,补三格。";
-  beats=[["b0",0,22.604,"扫缺口"],["b1",22.604,44.44,"判命中"],["b2",44.44,63.036,"补清单"],["b3",63.036,83.792,"改主体"],["b4",83.792,117.916,"双阈值"],["b5",117.916,147.504,"重排"],["b6",147.504,169.172,"再扫描"],["b7",169.172,182.776,"收官"],["q0",182.776,200.836,"问答"],["q1",200.836,216.616,"问答"],["q2",216.616,236.548,"问答"]];
+  audioBase="audio/up/";
+  audioVersion="3677dcae21397346";
+  DUR = 253.820;
+  examTitle="检验批·验收程序（上）"; examCode="A01 · 上"; examCat="案例·质量验收";
+  posterSub="验收台阶自下而上 · 合格判定 · 隐蔽与见证"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 5 分 12 秒";
+  KNOWLEDGE="检验批/分部分项工程质量验收程序（上集：层级台阶+合格判定+隐蔽与见证）。①验收四级层级自下而上：检验批→分项工程→分部工程→单位工程，下一级全合格是上一级前提，顺序不可颠倒（倒装是常见失分）。②划分依据：检验批按工程量/楼层/施工段/变形缝；分项按主要工种/材料/施工工艺/设备类别；分部按专业性质/工程部位；单位工程=一个独立使用功能的单元。③合格判定：主控项目必须全部合格（否决项、无百分比），一般项目合格率≥80%且偏差不超规定值；把80%套到主控是概念/规范适用错误。④技术资料完整+见证取样/抽样检验结果满足设计。⑤隐蔽工程覆盖前验收并留文字+图像记录，未经验收不得进下道工序（覆盖前一次性窗口不可逆）。⑥见证取样：涉及结构安全/节能材料在建设/监理见证下取样送检，保证真实性代表性，见证记录由见证人员制作（非试验员）；该不该送靠规范清单不是主观判断。下集讲结构实体检验/验收组织人员/不合格处理与竣工程序。合格标准普适口径以GB50300为准。";
+    beats=[["b0",0.0,19.22,"破误区"],["b1",19.22,38.656,"四级台阶"],["b2",38.656,62.34,"划分条件"],["b3",62.34,83.12,"合格判定"],["b4",83.12,105.484,"隐蔽窗口"],["b5",105.484,128.136,"见证取样"],["b6",128.136,144.092,"上集口诀"],["q0",144.092,171.968,"问答"],["q1",171.968,197.612,"问答"],["q2",197.612,225.248,"问答"],["q3",225.248,253.82,"问答"]];
   keycards=[
-    "这不是背答案，是扫缺口",
-    "先把每一行标成 hit、partial、miss",
-    "实体检验项目要补成完整清单",
-    "施工单位实施，不等于施工单位组织",
-    "实体强度判定跑双阈值",
-    "把原答案重排成三格采分句",
-    "以后先扫答案，再补三格",
-    "扫答案，补三格：内容清单 · 组织主体 · 判定依据"
+    "从大往小验？主控也按80%？先划掉",
+    "检验批·分项·分部·单位，自下而上",
+    "检验批按工程量/楼层/施工段/变形缝划",
+    "主控全部合格否决 · 一般合格率≥80%",
+    "隐蔽工程覆盖前验收 · 未验收不得进下道",
+    "见证取样：见证人盯着取样送检 · 非试验员记录",
+    "台阶·判定·隐蔽·见证，四句写全"
   ];
   narr=[
-    "注意哈，这张卡不训练你背一整段标准答案，而是训练你看一份学生答案到底差哪句。题干问结构实体检验，学生写了钢筋保护层，又算了平均强度，还下了不合格结论。看起来会一点，但白板一扫描就会发现：内容清单不全，组织主体错位，计算判据也跑偏。",
-    "第一笔，扫答案。钢筋保护层这个词不是完全错，它是部分命中；问题是它只写了一个项目。由施工单位组织这一句，主体错了。平均值比三十五小，所以不合格，这一句更危险，因为它直接拿平均强度去比设计值，跳过了实体强度的双阈值。",
-    "结构实体检验不是只写混凝土强度。学生写保护层，只补到了一格。答题纸上还要看见结构位置与尺寸偏差，再看见合同约定项目。这里的动作不是把“项目很多”写得更响，而是把漏掉的工程对象逐项放回采分槽。",
-    "第二格看主体。施工单位当然参与，但它在这条链里是实施主体，不是组织主体。要写成监理单位组织，施工单位实施，监理见证全过程。你看白板上，施工单位组织这条箭头退出，监理组织这条箭头才是阅卷要扫到的主体动作。",
-    "第三格是判定依据。C35 这里不能直接拿平均值和三十五比。实体强度要看两条线：平均值不小于设计值的百分之八十八，最小值不小于设计值的百分之八十。本题三个芯样算平均值是三十点八，三十五乘百分之八十八也是三十点八；最小值二十八点五，也高于三十五乘百分之八十的二十八。临界怎么给官方分，要看评分细则或教研裁定，但你的答题纸必须把这条双阈值链写出来。",
-    "现在才进入改写。第一段，结构实体检验除混凝土强度外，还包括钢筋保护层厚度、结构位置与尺寸偏差、合同约定项目。第二段，由监理单位组织，施工单位实施，监理见证全过程。第三段，强度按平均值不小于设计值百分之八十八、最小值不小于设计值百分之八十回判。这样写，不是更啰嗦，而是每一格都能被扫描到。",
-    "最后扫一遍成品答案。内容清单命中，主体链命中，判定依据命中。你真正要带走的不是一段死记答案，而是一个作答动作：看到结构实体检验案例，先扫自己的答题纸，问三格齐不齐。内容清单有没有完整，组织主体有没有写对，计算判据有没有亮出来。",
-    "记住哈，检验批验收作答层就一句话：扫答案，补三格。内容清单、组织主体、判定依据，少一格都不是完整采分句。现在进闯关，按答题纸扫描来练。"
+    "来看这道验收程序题。不少人一上来就栽——张嘴就「从单位工程往下拆着验」，还有的说主控项目也按百分之八十放行。注意哈，这俩全是坑。你从大往小验，等于先架屋顶再补地基，屋顶悬空，准塌。先把这俩误区划掉。",
+    "正确走法，先认这条台阶。质量验收自下而上分四级：最小的检验批，往上并成分项工程，再叠成分部工程，最后封顶单位工程。台阶只能从下往上垒——下一级全合格，才是上一级验收的前提，顺序颠不得。",
+    "这台阶最底下两级怎么切出来？检验批按工程量、楼层、施工段、变形缝来划；分项工程按主要工种、材料、施工工艺、设备类别来分。往上，分部按专业性质和工程部位划，单位工程就是一个能独立使用的功能单元。划分依据要答全，别光写个楼层。",
+    "每一格验收合格，得过两道门。主控项目是否决项——必须全部合格，缺一项整批就红叉，没有百分比可讲。一般项目才给容差——合格率到百分之八十、偏差不超规定值就行。记住哈，主控零容忍，一般才讲八十，这俩绝不能混。",
+    "再看藏起来的活儿。钢筋、孔洞、防水这些隐蔽工程，必须在被上道工序盖住之前验收、留下记录。为啥？盖住了你就物理上够不着了，这窗口一次性、错过不可逆。所以印章盖下、记录在案，覆盖层才准推上去；跳过验收直接覆盖，红叉，不得进下道。",
+    "还有材料这道关。涉及结构安全、节能的材料，得在建设或监理见证下取样送检——见证人在旁边盯着试验员取样，保证试样真实、有代表性；这见证记录，由见证人员做，不是试验员自己填。别凭「重要就送、不重要不送」那点感觉，该不该送，规范清单说了算。",
+    "把上半场这条链子记牢：台阶自下而上、主控否决一般容差、隐蔽覆盖前验收、见证取样按清单。这四句写全，验收程序的地基分就稳了。下半场咱接着唠实体检验和不合格咋处理。"
   ];
   qa=[
-    { figLabel:"实体检验四件套 · 清单补完整", fig:"fouritem", q:"老师，我写了钢筋保护层，这块能拿分不？", a:"能拿一点方向分，但不稳。因为这只命中保护层，漏了结构位置与尺寸偏差和合同约定项目。主观题不是看你有没有碰到熟词，而是看清单有没有补完整。" },
-    { figLabel:"组织 · 实施 · 见证", fig:"orgchain", q:"那我直接写施工单位组织，咋就不行呢？", a:"因为你把实施主体写成组织主体了。施工单位实施检验，但组织要写监理单位，过程还要有监理见证。主体错位，阅卷会直接扣。" },
-    { figLabel:"88% / 80% 双阈值", fig:"dualthr", q:"整明白了，但平均值这块我能不能直接跟 C35 比？", a:"不能。实体强度不是直接比设计值，而是平均值看百分之八十八，最小值看百分之八十。你可以不替官方抢判临界分，但公式、代入、回判这条链必须写。" }
+    { figLabel:"自下而上垒 vs 屋顶悬空塌", fig:"stair", q:"老师我寻思着，这验收为啥非得从检验批往上验？从单位往下拆着查不也行么？", a:"还真不行哈。上一级的合格，是建在下一级已经验过的底子上——检验批没合格就放行分项，那分项的「合格」就是假的、责任链断了。从大往小拆，等于先架屋顶再补地基，屋顶悬空准塌。所以必须自下而上，一级托一级。" },
+    { figLabel:"主控全亮否决 vs 一般≥80%容差", fig:"twogate", q:"那主控项目和一般项目，为啥不能都按百分之八十算合格啊？都放宽点不行？", a:"性质不一样哈。主控项目管的是结构安全、主要功能，这种缺陷不可补偿、后果灾难，所以一票否决、必须全合格。一般项目影响的是观感、次要功能，缺陷能修，才给你百分之八十的容差。主控零容忍、一般讲八十，混一块儿就丢分。" },
+    { figLabel:"覆盖前验 vs 盖住够不着", fig:"window", q:"隐蔽工程为啥非得盖住之前验呐？等盖完了，需要时再拆开看看不行吗？", a:"盖住了就拆不动喽。钢筋、防水这些隐蔽活，一旦上道工序浇上去、盖过去，物理上你就够不着了，这窗口是一次性的。所以铁律是——覆盖前验收、留下文字加图像记录，未经验收不得进下道工序。错过这一下，就永远封在结构里了。" },
+    { figLabel:"见证人盯取样 · 三方各就位", fig:"witness", q:"见证取样那块，是不是就重要的材料才送检，不重要的省了就行？", a:"不是凭你觉着重要不重要哈。涉及结构安全、节能、环保、规范清单点了名的材料，必须见证取样送检——建设或监理见证人在场盯着试验员取样，保证真实、有代表性；这记录还得见证人员来做。判断该不该送，靠的是规范清单，不是感觉。" }
   ];
-  qaCue=[{answerStart:4.58},{answerStart:4.58},{answerStart:6.14}];
-  askPresets=["实体检验四项清单咋写全？","组织主体那句怎么改才对？","88%和80%的判定链怎么写？"];
+  askPresets=["验收为啥必须自下而上？","主控和一般项目咋区分？","隐蔽验收采分句怎么写？"];
 
   componentDidMount(){
     this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
@@ -358,8 +388,8 @@ class Component extends DCLogic {
   speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
   pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
   webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
-  stopSpeak(){ this._audioStarted=false; try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
-  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true; this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false; this.webSpeak(text); } }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
   setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
   toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
   loop(ts){ if(this._dead)return;
@@ -393,10 +423,11 @@ class Component extends DCLogic {
       if(!wxm||!inMini) return false;
       let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
       if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
-      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=P40_A01'+(st?'&scene_title='+encodeURIComponent(st):'')});
+      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=A01'+(st?'&scene_title='+encodeURIComponent(st):'')});
       return true; }catch(e){ return false; } }
   phoneRef(el){ if(el) this._phone=el; }
-  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+    openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
   closeAsk(){ this.setState({askOpen:false}); }
   setAsk(e){ this.setState({askText:e.target.value}); }
   preset(t){ this.setState({askText:t}); }
@@ -414,22 +445,43 @@ class Component extends DCLogic {
   qaFig(idx){
     const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
     const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
-    if(it.fig==="fouritem"){ h=68;
-      els.push(D({x:0,top:2,w:118,h:22,bd:"1.5px solid #9fc7e0",r:11,fg:"#9fc7e0",fs:8.5,lab:"混凝土强度"}));
-      els.push(D({x:126,top:2,w:118,h:22,bd:"1.5px solid #9fd3b4",r:11,fg:"#9fd3b4",fs:8.5,lab:"钢筋保护层厚度"}));
-      els.push(D({x:0,top:30,w:118,h:22,bd:"1.5px solid #e0c89f",r:11,fg:"#e0c89f",fs:8,lab:"结构位置与尺寸偏差"}));
-      els.push(D({x:126,top:30,w:118,h:22,bd:"1.5px solid #e0a89f",r:11,fg:"#e0a89f",fs:8.5,lab:"合同约定项目"}));
-      els.push(D({x:0,top:58,w:248,h:10,fg:"#9fd3b4",fs:8.5,jc:"flex-start",lab:"四件套一起写，缺一不稳"})); }
-    else if(it.fig==="orgchain"){ h=58;
-      els.push(D({x:0,top:0,w:220,h:12,fg:"#e0a89f",fs:8.5,jc:"flex-start",lab:"✗ 施工单位组织（它是实施主体）"}));
-      els.push(D({x:0,top:18,w:76,h:18,bg:"#46627e",bd:"1px solid #3fa06a",r:2,fg:"#9fd3b4",fs:8,lab:"监理组织"}));
-      els.push(D({x:86,top:18,w:76,h:18,bg:"#46627e",bd:"1px solid #3fa06a",r:2,fg:"#9fd3b4",fs:8,lab:"施工实施"}));
-      els.push(D({x:172,top:18,w:76,h:18,bg:"#46627e",bd:"1px solid #3fa06a",r:2,fg:"#9fd3b4",fs:8,lab:"监理见证"}));
-      els.push(D({x:0,top:44,w:248,h:10,fg:"#9fd3b4",fs:8.5,jc:"flex-start",lab:"✓ 组织、实施、见证三个角色拆清"})); }
-    else if(it.fig==="dualthr"){ h=58;
-      els.push(D({x:0,top:2,w:248,h:14,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"平均值 30.8 ↔ 35×88% = 30.8（临界）"}));
-      els.push(D({x:0,top:20,w:248,h:14,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"最小值 28.5 ＞ 35×80% = 28"}));
-      els.push(D({x:0,top:40,w:248,h:12,fg:"#e0a89f",fs:8.5,jc:"flex-start",lab:"✗ 直接拿平均值比 35 = 跳过双阈值"})); }
+    if(it.fig==="stair"){ h:54; h=54;
+      els.push(D({x:0,top:38,w:52,h:12,bg:"#2f6db0",r:3,fg:"#fff",fs:8,lab:"检验批"}));
+      els.push(D({x:8,top:26,w:44,h:12,bg:"#2c8a5b",r:3,fg:"#fff",fs:8,lab:"分项"}));
+      els.push(D({x:16,top:14,w:36,h:12,bg:"#cf8a44",r:3,fg:"#fff",fs:8,lab:"分部"}));
+      els.push(D({x:24,top:2,w:28,h:12,bg:"#cf4436",r:3,fg:"#fff",fs:7.5,lab:"单位"}));
+      els.push(D({x:60,top:20,w:66,h:12,fg:"#7fbf95",fs:9,jc:"flex-start",lab:"自下而上 ✓"}));
+      els.push(D({x:150,top:2,w:60,h:13,bg:"#b5564a",r:3,fg:"#fff",fs:8,lab:"单位·屋顶"}));
+      els.push(D({x:150,top:34,w:60,h:13,bd:"1.5px dashed #d08a80",r:3,fg:"#e0a89f",fs:7.5,lab:"地基缺"}));
+      els.push(D({x:150,top:18,w:88,h:12,fg:"#e0a89f",fs:8.5,jc:"flex-start",lab:"悬空 · 塌 ✕"})); }
+    else if(it.fig==="twogate"){ h=44;
+      els.push(D({x:0,top:2,w:34,h:14,fg:"#9fc7e0",fs:8.5,jc:"flex-start",lab:"主控"}));
+      els.push(D({x:36,top:2,w:18,h:14,bg:"#2c8a5b",r:3}));
+      els.push(D({x:56,top:2,w:18,h:14,bg:"#2c8a5b",r:3}));
+      els.push(D({x:76,top:2,w:18,h:14,bg:"#2c8a5b",r:3}));
+      els.push(D({x:96,top:2,w:18,h:14,bg:"transparent",bd:"1.5px solid #cf4436",r:3,fg:"#e0a89f",fs:9,lab:"✕"}));
+      els.push(D({x:120,top:2,w:120,h:14,fg:"#e0a89f",fs:8,jc:"flex-start",lab:"缺1项→整批不合格"}));
+      els.push(D({x:0,top:24,w:34,h:14,fg:"#e0c08a",fs:8.5,jc:"flex-start",lab:"一般"}));
+      els.push(D({x:36,top:24,w:18,h:14,bg:"#2c8a5b",r:3}));
+      els.push(D({x:56,top:24,w:18,h:14,bg:"#2c8a5b",r:3}));
+      els.push(D({x:76,top:24,w:18,h:14,bg:"#2c8a5b",r:3}));
+      els.push(D({x:96,top:24,w:18,h:14,bg:"#7a838a",r:3}));
+      els.push(D({x:116,top:24,w:18,h:14,bg:"#2c8a5b",r:3}));
+      els.push(D({x:140,top:24,w:100,h:14,fg:"#7fbf95",fs:8,jc:"flex-start",lab:"4/5=80%→合格"})); }
+    else if(it.fig==="window"){ h=52;
+      els.push(D({x:0,top:2,w:70,h:11,bg:"#8a9296",r:3,fg:"#fff",fs:7.5,lab:"覆盖层"}));
+      els.push(D({x:20,top:16,w:34,h:14,bd:"1.5px solid #cf4436",r:3,fg:"#e0a89f",fs:8,lab:"验✓"}));
+      els.push(D({x:0,top:34,w:70,h:13,bg:"#b9a88a",r:3,fg:"#3a2f1e",fs:7.5,lab:"隐蔽层"}));
+      els.push(D({x:76,top:22,w:60,h:12,fg:"#7fbf95",fs:8,jc:"flex-start",lab:"覆盖前验"}));
+      els.push(D({x:158,top:18,w:74,h:14,bg:"#8a9296",r:3,fg:"#fff",fs:7.5,lab:"已覆盖"}));
+      els.push(D({x:158,top:34,w:74,h:11,bg:"#b9a88a",r:3,fg:"#7a6a4a",fs:7,lab:"隐蔽·够不着"}));
+      els.push(D({x:158,top:2,w:80,h:12,fg:"#e0a89f",fs:8,jc:"flex-start",lab:"未验→红叉"})); }
+    else if(it.fig==="witness"){ h=44;
+      els.push(D({x:0,top:6,w:50,h:16,bg:"#cf4436",r:8,fg:"#fff",fs:8,lab:"见证人"}));
+      els.push(D({x:54,top:8,w:28,h:12,fg:"#e0c08a",fs:8,jc:"flex-start",lab:"盯着"}));
+      els.push(D({x:86,top:6,w:52,h:16,bg:"#2f6db0",r:8,fg:"#fff",fs:8,lab:"试验员"}));
+      els.push(D({x:142,top:6,w:44,h:16,bd:"1.5px solid #7fbf95",r:8,fg:"#7fbf95",fs:8,lab:"送检"}));
+      els.push(D({x:0,top:28,w:240,h:14,fg:"#e0c08a",fs:8.5,jc:"flex-start",lab:"见证人记录（非试验员）· 按清单送"})); }
     return {els,h};
   }
   cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
@@ -440,48 +492,42 @@ class Component extends DCLogic {
     const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
     const NB=this.narr.length;
 
-    const v={ b0_title:"扫缺口 · 先看学生答案差哪句，不背标准答案",
-      a0_qO:0,a0_qY:14,a0_sO:0,a0_sY:14,a0_hl:0,a0_gap1W:0,a0_gap2W:0,a0_penX:26,a0_penO:0,a0_vO:0,
-      b1_title:"逐行判定 · hit 命中 / partial 半命中 / miss 漏点",
-      a1_r0:0,a1_r1:0,a1_r2:0,a1_r3:0,a1_penY:74,a1_penO:0,a1_noteO:0,
-      b2_title:"补清单 · 实体检验四件套逐项放回采分槽",
-      a2_obj:0,a2_s0:0,a2_s1:0,a2_s2:0,a2_s3:0,a2_x1:30,a2_x2:30,a2_x3:30,a2_noteO:0,
-      b3_title:"改主体 · 监理组织 · 施工实施 · 监理见证",
-      a3_badO:0,a3_so:0,a3_ss:1.6,a3_c0:0,a3_c1:0,a3_c2:0,a3_noteO:0,
-      b4_title:"双阈值 · 平均值看 88% · 最小值看 80%",
-      a4_s0:0,a4_s1:0,a4_s2:0,a4_badO:0,a4_bx:0,a4_bs:1.5,a4_l1W:0,a4_f1O:0,a4_l2W:0,a4_f2O:0,a4_critO:0,
-      b5_title:"重排 · 原答案装配成三格采分句",
-      a5_srcO:0,a5_x0:0,a5_k0:0,a5_p0:0,a5_p0Y:16,a5_p1:0,a5_p1Y:16,a5_p2:0,a5_p2Y:16,a5_noteO:0,
-      b6_title:"再扫描 · 三格依次 hit，缺口清零",
-      a6_r0:0,a6_r1:0,a6_r2:0,a6_penY:80,a6_penO:0,a6_missO:0,a6_okO:0,
-      c_title:"记忆钩：扫答案，补三格", c0:0,c1:0,c2:0,c3:0,c4:0 };
+    const v={
+      b0_baseO:0,b0_roofO:0,b0_roofY:0,b0_redO:0,b0_gapO:0,b0_bo:0,b0_bs:.7,b0_so:0,b0_ss:1.7,
+      b0_bubble:"验收从大往小拆？主控项目也按 80% 放行？",
+      b1_o0:0,b1_y0:24,b1_o1:0,b1_y1:24,b1_o2:0,b1_y2:24,b1_o3:0,b1_y3:24,b1_noteO:0,
+      b2_blockO:0,b2_cutO:0,b2_projO:0,b2_noteO:0,
+      b3_zkO:0,b3_failO:0,b3_ybO:0,b3_ybOkO:0,
+      b4_stampO:0,b4_stampY:40,b4_winO:0,b4_coverO:0,b4_coverY:-44,b4_okO:0,b4_badO:0,b4_badX:0,
+      b5_matO:0,b5_witO:0,b5_labO:0,b5_repO:0,b5_badO:0,
+      c0:0,c1:0,c2:0,c3:0
+    };
 
-    if(A(0)){ const q0=W(0,.1); v.a0_qO=q0; v.a0_qY=this.lp(14,0,q0); const sh=W(.1,.22); v.a0_sO=sh; v.a0_sY=this.lp(14,0,sh);
-      v.a0_penO=W(.24,.3)*(1-W(.6,.68)); v.a0_penX=Math.round(this.lp(26,346,W(.26,.62)));
-      v.a0_hl=0.55*W(.32,.42); v.a0_gap1W=Math.round(34*W(.44,.54)); v.a0_gap2W=Math.round(34*W(.54,.64)); v.a0_vO=W(.7,.84); }
-    if(A(1)){ v.a1_penO=W(0,.08)*(1-W(.84,.94)); v.a1_penY=Math.round(this.lp(74,252,W(.06,.8)));
-      v.a1_r0=W(.04,.16); v.a1_r1=W(.2,.34); v.a1_r2=W(.4,.54); v.a1_r3=W(.58,.72); v.a1_noteO=W(.76,.9); }
-    if(A(2)){ v.a2_obj=W(0,.14); v.a2_s0=W(.14,.26);
-      const c1=W(.3,.44); v.a2_s1=c1; v.a2_x1=this.lp(30,0,c1);
-      const c2=W(.46,.6); v.a2_s2=c2; v.a2_x2=this.lp(30,0,c2);
-      const c3=W(.62,.76); v.a2_s3=c3; v.a2_x3=this.lp(30,0,c3); v.a2_noteO=W(.8,.94); }
-    if(A(3)){ v.a3_badO=W(0,.14)*(1-.5*W(.3,.42)); const st=W(.18,.3); v.a3_so=st; v.a3_ss=this.lp(1.6,1,st);
-      v.a3_c0=W(.36,.5); v.a3_c1=W(.52,.66); v.a3_c2=W(.66,.8); v.a3_noteO=W(.84,.96); }
-    if(A(4)){ v.a4_s0=W(0,.08); v.a4_s1=W(.05,.13); v.a4_s2=W(.1,.18);
-      v.a4_badO=W(.16,.26); const bx=W(.26,.36); v.a4_bx=bx; v.a4_bs=this.lp(1.5,1,bx);
-      v.a4_l1W=Math.round(340*W(.4,.52)); v.a4_f1O=W(.44,.58);
-      v.a4_l2W=Math.round(340*W(.6,.7)); v.a4_f2O=W(.62,.74); v.a4_critO=W(.82,.94); }
-    if(A(5)){ v.a5_srcO=W(0,.12); v.a5_x0=W(.14,.26); v.a5_k0=W(.2,.32);
-      const p0=W(.32,.46); v.a5_p0=p0; v.a5_p0Y=this.lp(16,0,p0);
-      const p1=W(.48,.62); v.a5_p1=p1; v.a5_p1Y=this.lp(16,0,p1);
-      const p2=W(.62,.78); v.a5_p2=p2; v.a5_p2Y=this.lp(16,0,p2); v.a5_noteO=W(.82,.94); }
-    if(A(6)){ v.a6_penO=W(0,.08)*(1-W(.8,.9)); v.a6_penY=Math.round(this.lp(80,236,W(.06,.72)));
-      v.a6_r0=W(.08,.22); v.a6_r1=W(.3,.44); v.a6_r2=W(.5,.64); v.a6_missO=W(.08,.2)*(1-W(.34,.48)); v.a6_okO=W(.72,.88); }
-    if(A(7)){ v.c0=W(.05,.22); v.c1=W(.2,.4); v.c2=W(.38,.58); v.c3=W(.56,.76); v.c4=W(.74,.92); }
+    if(A(0)){ const bub=W(.04,.20),base=W(.28,.44),roofin=W(.40,.54),gap=W(.54,.66),collapse=W(.66,.86),red=W(.82,.98),st=W(.86,1);
+      v.b0_bo=bub; v.b0_bs=this.lp(.7,1,bub);
+      v.b0_baseO=base;
+      v.b0_roofO=roofin*(1-W(.66,.80));
+      v.b0_roofY=this.lp(0,66,W(.66,.86));
+      v.b0_gapO=gap*(1-collapse);
+      v.b0_redO=red;
+      v.b0_so=st; v.b0_ss=this.lp(1.7,1,st); }
+    if(A(1)){ v.b1_o0=W(0,.18); v.b1_y0=this.lp(24,0,W(0,.18));
+      v.b1_o1=W(.2,.38); v.b1_y1=this.lp(24,0,W(.2,.38));
+      v.b1_o2=W(.4,.58); v.b1_y2=this.lp(24,0,W(.4,.58));
+      v.b1_o3=W(.6,.78); v.b1_y3=this.lp(24,0,W(.6,.78));
+      v.b1_noteO=W(.82,1); }
+    if(A(2)){ v.b2_blockO=W(0,.2); v.b2_cutO=W(.24,.5); v.b2_projO=W(.54,.78); v.b2_noteO=W(.82,1); }
+    if(A(3)){ v.b3_zkO=W(0,.22); v.b3_failO=W(.3,.52); v.b3_ybO=W(.56,.8); v.b3_ybOkO=W(.82,1); }
+    if(A(4)){ v.b4_stampO=W(.06,.26); v.b4_stampY=this.lp(40,0,W(.06,.26)); v.b4_winO=W(.28,.4);
+      v.b4_coverO=W(.42,.62); v.b4_coverY=this.lp(-44,0,W(.42,.62)); v.b4_okO=W(.6,.72);
+      v.b4_badO=W(.72,.86); v.b4_badX=W(.86,1); }
+    if(A(5)){ v.b5_matO=W(0,.16); v.b5_witO=W(.18,.34); v.b5_labO=W(.34,.5); v.b5_repO=W(.52,.72); v.b5_badO=W(.76,.94); }
+    if(A(6)){ v.c0=W(.1,.34); v.c1=W(.28,.5); v.c2=W(.46,.68); v.c3=W(.62,.86); }
 
     const isQA=ai>=NB;
     let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
-    if(isQA){ const it=this.qa[ai-NB]; if(it){ const qaElapsed=t-cur[1]; const cue=this.qaCue[ai-NB]||{answerStart:(cur[2]-cur[1])*.28}; qaLayerO=1; qa_so=this.eo(this.cl((qaElapsed-.15)/.6,0,1)); qa_sx=this.lp(-40,0,qa_so); qa_to=this.eo(this.cl((qaElapsed-(cue.answerStart-.18))/.75,0,1)); qa_ty=this.lp(24,0,qa_to); qaQ=it.q; qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
     const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
     const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
     const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
@@ -498,6 +544,10 @@ class Component extends DCLogic {
       DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
       t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
       toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      epCount:2, episodes:[
+        {label:"上集 · 当前",href:"#",cur:true,onClick:(e)=>e.preventDefault(),bg:"#cf4436",fg:"#fff",cursor:"default",shadow:"0 3px 12px rgba(207,68,54,.28)"},
+        {label:"下集",href:"lesson2.html",cur:false,onClick:null,bg:"#23282b",fg:"#f1efe8",cursor:"pointer",shadow:"none"}
+      ],
       muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
       captionO:isQA?0:1,captionPE:isQA?"none":"auto",
       qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
@@ -509,7 +559,10 @@ class Component extends DCLogic {
       askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
       askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
-      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none"
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
     });
   }
 }

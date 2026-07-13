@@ -6,6 +6,7 @@
 <script src="./support.js"></script>
 </head>
 <body>
+<audio data-luban-prewarm preload="auto" src="audio/up/b0.mp3?v=ab46a8beebb0505b" aria-hidden="true" style="display:none"></audio>
 <x-dc>
 <!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
 <helmet>
@@ -323,7 +324,7 @@
 class Component extends DCLogic {
   state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
   audioBase="audio/up/";
-  audioVersion="20260703-batch-tts1";
+  audioVersion="ab46a8beebb0505b";
   DUR = 308.516;
   examTitle="进度款与计量计价·上集"; examCode="C02"; examCat="资金链";
   posterSub="上集·资金链：扣暂列金 → 预付款 → 起扣点 → 逐月累计 → 两刀扣款"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 54 秒 · 续看下集";
@@ -353,7 +354,7 @@ class Component extends DCLogic {
     { figLabel:"未约定 → 进度款 ≥ 累计完成总值 80%", fig:"floor80", q:"那要是合同压根没写支付比例，这进度款该按多少付啊？", a:"没约定的，规范给了个下限：进度款不宜低于累计完成工程总值的 80%。注意“未约定”是前提哈——合同写了比例就按合同来，没写才用这 80%。可别把 80% 当成固定支付比例到处套，也别跟质保金 3%、材料占比 60% 那些数字串味了。" },
     { figLabel:"采分四步 + 综合单价税只乘一次", fig:"score", q:"整明白了！那真到阅卷，我得咋写才能把分都拿全呢？", a:"按四步写、一步一句：一，亮公式；二，代入题面数据列式；三，写数值、带单位‘万元’；四，回判——累计够没够起扣点、这月切一刀还是两刀。再捎一句计价口径：综合单价是不含税的全费用价，税只在最末整体乘一次，单价里别再乘一遍(1+税率)，那是重复计税。四步写全，分就齐了。" }
   ];
-  
+
   qaCue=[{"answerStart":9.702},{"answerStart":6.673},{"answerStart":5.522},{"answerStart":5.865}];
   askPresets=["暂列金为什么要先扣？","起扣点公式怎么记不反？","采分四步怎么写全？"];
 
@@ -414,7 +415,7 @@ class Component extends DCLogic {
       wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=C02'+(st?'&scene_title='+encodeURIComponent(st):'')});
       return true; }catch(e){ return false; } }
   phoneRef(el){ if(el) this._phone=el; }
-  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
+    openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
   closeAsk(){ this.setState({askOpen:false}); }
   setAsk(e){ this.setState({askText:e.target.value}); }
   preset(t){ this.setState({askText:t}); }
