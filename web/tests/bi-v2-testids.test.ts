@@ -85,6 +85,21 @@ test('member ops uses one overview read and exposes server-side registration fil
   assert.ok(api.includes('/api/v1/bi/member/overview?'))
 })
 
+test('member ops keeps ancillary reads and charts off the overview critical path', async () => {
+  const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
+  const surface = await readWeb('app/(workspace)/bi/_v2/BiV2Surface.tsx')
+
+  assert.ok(panel.includes("import dynamic from 'next/dynamic'"))
+  assert.ok(panel.includes("import('@/components/bi-cockpit/MemberOpsCockpit')"))
+  assert.ok(panel.includes('const overview = await getMemberOpsOverview(memberListParams(1))'))
+  assert.ok(panel.includes('void loadInternalAccounts()'))
+  assert.ok(panel.includes('membershipPackages.length ? Promise.resolve(membershipPackages) : loadMembershipPackages()'))
+  assert.equal(panel.includes('const [overview, packages, internalData] = await Promise.all(['), false)
+  assert.ok(surface.includes("import dynamic from 'next/dynamic'"))
+  assert.ok(surface.includes("import('./BiV2OverviewPanel')"))
+  assert.equal(surface.includes("import { BiV2OverviewPanel } from './BiV2OverviewPanel'"), false)
+})
+
 test('member ops exposes member account lifecycle panel', async () => {
   const page = await readWeb('app/(workspace)/bi/BiPageClient.tsx')
   const panel = await readWeb('app/(workspace)/bi/_components/BiMemberAccountPanel.tsx')
@@ -127,7 +142,7 @@ test('member ops exposes membership settings as the visible row action', async (
 
   assert.ok(panel.includes('manualPurchaseMembership'))
   assert.ok(panel.includes('upgradeMemberToVip'))
-  assert.ok(panel.includes('findPackageForTier(membershipPackages, \'vip\')'))
+  assert.ok(panel.includes("findPackageForTier(packages, 'vip')"))
   assert.ok(panel.includes('aria-label={`打开 ${row.user_id} 会员设置`}'))
   assert.ok(panel.includes('选择套餐、实收金额、有效期和取消会员'))
   assert.ok(panel.includes('variant="primary"'))
