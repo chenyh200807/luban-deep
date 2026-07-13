@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  a{color:#cf8a44;} a:hover{color:#e0a15c;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：屋面收边糊弄 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(180deg,transparent,#e9e7da);opacity:{{ b0_op }};"></div>
+        <div style="position:absolute;inset:0;opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);">
+          <div style="position:absolute;left:44px;right:36px;top:344px;height:22px;background:#cbc4b2;border-radius:3px;"></div>
+          <div style="position:absolute;left:70px;top:158px;width:40px;height:186px;background:#cbc4b2;border-radius:3px 3px 0 0;"></div>
+          <div style="position:absolute;left:60px;top:146px;width:60px;height:14px;background:#b3ab98;border-radius:3px;"></div>
+          <div style="position:absolute;left:66px;top:138px;width:48px;height:8px;background:#7fb0d8;border-radius:3px;"></div>
+          <div style="position:absolute;left:124px;top:132px;font-size:10px;color:#cf4436;font-weight:800;">压顶平顶·积水</div>
+          <div style="position:absolute;left:110px;top:296px;width:9px;height:48px;background:#46627e;border-radius:2px;"></div>
+          <div style="position:absolute;left:110px;top:336px;width:118px;height:9px;background:#46627e;border-radius:2px;"></div>
+          <div style="position:absolute;left:150px;top:302px;font-size:10px;color:#cf4436;font-weight:800;">泛水只翻200</div>
+        </div>
+        <div style="position:absolute;left:46px;top:62px;width:250px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:13px 15px;font-size:14px;font-weight:700;color:#23282b;line-height:1.4;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">{{ b0_bubble }}
+          <div style="position:absolute;left:30px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:252px;top:150px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:20px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">{{ b0_stamp }}</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 泛水高度≥250mm（标尺） ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ f_title }}</div>
+        <div style="position:absolute;left:70px;top:120px;width:30px;height:212px;background:#cbc4b2;opacity:{{ f_baseO }};"></div>
+        <div style="position:absolute;left:70px;top:332px;width:206px;height:20px;background:#cbc4b2;opacity:{{ f_baseO }};"></div>
+        <div style="position:absolute;left:100px;top:324px;width:100px;height:8px;background:#46627e;opacity:{{ f_baseO }};"></div>
+        <div style="position:absolute;left:100px;top:{{ f_memTop }}px;width:8px;height:{{ f_memH }}px;background:#46627e;border-radius:2px 2px 0 0;"></div>
+        <div style="position:absolute;left:118px;top:210px;width:0;height:114px;border-left:2px dashed #b3a692;opacity:{{ f_baseO }};"></div>
+        <div style="position:absolute;left:110px;top:252px;width:18px;border-top:2px solid #cf4436;opacity:{{ f_200O }};"></div>
+        <div style="position:absolute;left:132px;top:246px;font-size:11px;color:#cf4436;font-weight:800;opacity:{{ f_200O }};">200 · 不够</div>
+        <div style="position:absolute;left:110px;top:216px;width:18px;border-top:2.5px solid #2c8a5b;opacity:{{ f_250O }};"></div>
+        <div style="position:absolute;left:132px;top:208px;font-size:11.5px;color:#2c8a5b;font-weight:900;opacity:{{ f_250O }};">≥250 · 命中 ✓</div>
+        <div style="position:absolute;left:16px;right:16px;top:298px;text-align:center;font-size:12.5px;font-weight:900;color:#23282b;opacity:{{ f_noteO }};">其他部位泛水高度≥250mm · 差50mm雨水就翻进来</div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 女儿墙泛水附加层平立面均≥250 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ a_title }}</div>
+        <div style="position:absolute;left:96px;top:110px;width:30px;height:150px;background:#cbc4b2;opacity:{{ a_baseO }};"></div>
+        <div style="position:absolute;left:96px;top:250px;width:190px;height:22px;background:#cbc4b2;opacity:{{ a_baseO }};"></div>
+        <!-- 基层阴角 cove（附加层背衬，圆心在阴角 O(126,250)） -->
+        <div style="position:absolute;left:126px;top:234px;width:16px;height:16px;background:#cbc4b2;border-top-right-radius:16px;opacity:{{ a_addO }};"></div>
+        <!-- 附加层：墙面立面段 -->
+        <div style="position:absolute;left:126px;top:158px;width:9px;height:76px;background:#cf8a44;opacity:{{ a_addO }};"></div>
+        <!-- 附加层：平顺过渡的 1/4 圆弧（切于墙面与平面，凹向房间） -->
+        <div style="position:absolute;left:126px;top:234px;width:16px;height:16px;border-left:9px solid #cf8a44;border-bottom:9px solid #cf8a44;border-bottom-left-radius:16px;opacity:{{ a_addO }};"></div>
+        <!-- 附加层：平面段 -->
+        <div style="position:absolute;left:142px;top:250px;width:88px;height:9px;background:#cf8a44;opacity:{{ a_addO }};"></div>
+        <!-- 立面≥250 竖标尺 -->
+        <div style="position:absolute;left:112px;top:158px;width:0;height:92px;border-left:2px solid #cf4436;opacity:{{ a_dimVO }};"></div>
+        <div style="position:absolute;left:104px;top:158px;width:16px;border-top:2px solid #cf4436;opacity:{{ a_dimVO }};"></div>
+        <div style="position:absolute;left:104px;top:250px;width:16px;border-top:2px solid #cf4436;opacity:{{ a_dimVO }};"></div>
+        <div style="position:absolute;left:24px;top:196px;font-size:11px;color:#cf4436;font-weight:900;opacity:{{ a_dimVO }};">立面≥250</div>
+        <!-- 平面≥250 横标尺 -->
+        <div style="position:absolute;left:126px;top:274px;width:104px;border-top:2px solid #cf4436;opacity:{{ a_dimHO }};"></div>
+        <div style="position:absolute;left:126px;top:270px;width:0;height:8px;border-left:2px solid #cf4436;opacity:{{ a_dimHO }};"></div>
+        <div style="position:absolute;left:228px;top:270px;width:0;height:8px;border-left:2px solid #cf4436;opacity:{{ a_dimHO }};"></div>
+        <div style="position:absolute;left:150px;top:282px;font-size:11px;color:#cf4436;font-weight:900;opacity:{{ a_dimHO }};">平面≥250</div>
+        <div style="position:absolute;left:16px;right:16px;top:310px;text-align:center;font-size:11.5px;font-weight:900;color:#cf8a44;opacity:{{ a_noteO }};">女儿墙泛水附加层平面立面均≥250mm · 檐沟天沟伸入≥250mm</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 女儿墙压顶排水（平顶积水 vs 向内坡≥5%） ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ t_title }}</div>
+        <!-- 左:平顶积水 -->
+        <div style="position:absolute;inset:0;opacity:{{ t_flatO }};">
+          <div style="position:absolute;left:70px;top:176px;width:28px;height:110px;background:#cbc4b2;"></div>
+          <div style="position:absolute;left:98px;top:272px;width:66px;height:14px;background:#cbc4b2;"></div>
+          <div style="position:absolute;left:58px;top:162px;width:52px;height:13px;background:#b3ab98;border-radius:2px;"></div>
+          <div style="position:absolute;left:62px;top:154px;width:44px;height:8px;background:#7fb0d8;border-radius:3px;opacity:{{ t_waterO }};"></div>
+          <div style="position:absolute;left:80px;top:190px;width:2px;height:80px;background:#cf4436;opacity:{{ t_waterO }};"></div>
+          <div style="position:absolute;left:40px;top:300px;font-size:11px;color:#cf4436;font-weight:900;">✕ 平顶·积水回渗</div>
+        </div>
+        <!-- 右:向内坡≥5% -->
+        <div style="position:absolute;inset:0;opacity:{{ t_slopeO }};">
+          <div style="position:absolute;left:280px;top:176px;width:28px;height:110px;background:#cbc4b2;"></div>
+          <div style="position:absolute;left:214px;top:272px;width:66px;height:14px;background:#cbc4b2;"></div>
+          <div style="position:absolute;left:230px;top:158px;width:64px;height:12px;background:#b3ab98;border-radius:2px;transform:rotate(6deg);transform-origin:left center;"></div>
+          <div style="position:absolute;left:234px;top:172px;width:8px;height:100px;background:#2c8a5b;opacity:{{ t_drainO }};"></div>
+          <div style="position:absolute;left:240px;top:178px;font-size:13px;color:#2f6db0;font-weight:900;opacity:{{ t_drainO }};">↘</div>
+          <div style="position:absolute;left:224px;top:300px;font-size:11px;color:#2c8a5b;font-weight:900;">✓ 向内坡≥5%</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:334px;text-align:center;font-size:11.5px;font-weight:900;color:#23282b;opacity:{{ t_noteO }};">压顶向内排水坡度≥5% · 涂膜防水层直涂至压顶下</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 收头金属压条钉压+密封+鹰嘴滴水槽 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ h_title }}</div>
+        <!-- 屋面 -->
+        <div style="position:absolute;left:40px;top:296px;width:118px;height:16px;background:#cbc4b2;opacity:{{ h_wallO }};"></div>
+        <!-- 女儿墙块 -->
+        <div style="position:absolute;left:158px;top:120px;width:96px;height:192px;background:#cbc4b2;opacity:{{ h_wallO }};"></div>
+        <!-- 卷材收头(内面翻上+压顶少许) -->
+        <div style="position:absolute;left:150px;top:150px;width:8px;height:146px;background:#46627e;opacity:{{ h_memO }};"></div>
+        <div style="position:absolute;left:150px;top:150px;width:40px;height:8px;background:#46627e;opacity:{{ h_memO }};"></div>
+        <!-- 负风压掀 red arrow -->
+        <div style="position:absolute;left:132px;top:{{ h_windY }}px;font-size:20px;color:#cf4436;font-weight:900;opacity:{{ h_windO }};">▲</div>
+        <div style="position:absolute;left:96px;top:126px;font-size:10.5px;color:#cf4436;font-weight:800;opacity:{{ h_windO }};">负风压掀边</div>
+        <!-- 金属压条 drops -->
+        <div style="position:absolute;left:142px;top:{{ h_battenY }}px;width:14px;height:24px;background:linear-gradient(90deg,#8a949a,#b3bcc1,#8a949a);border-radius:2px;opacity:{{ h_battenO }};"></div>
+        <div style="position:absolute;left:147px;top:158px;width:4px;height:4px;border-radius:50%;background:#3a4046;opacity:{{ h_nailO }};"></div>
+        <div style="position:absolute;left:147px;top:172px;width:4px;height:4px;border-radius:50%;background:#3a4046;opacity:{{ h_nailO }};"></div>
+        <!-- 密封 bead -->
+        <div style="position:absolute;left:142px;top:150px;width:14px;height:6px;background:#cf8a44;border-radius:3px;opacity:{{ h_nailO }};"></div>
+        <!-- 鹰嘴+滴水槽 下端 + 水滴 -->
+        <div style="position:absolute;left:150px;top:296px;width:16px;height:12px;background:#cbc4b2;border-bottom-left-radius:10px;opacity:{{ h_dripO }};"></div>
+        <div style="position:absolute;left:154px;top:{{ h_dropY }}px;width:7px;height:9px;background:#7fb0d8;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;opacity:{{ h_dripO }};"></div>
+        <div style="position:absolute;left:206px;top:150px;font-size:10.5px;color:#3c556e;font-weight:800;opacity:{{ h_battenO }};">金属压条钉压</div>
+        <div style="position:absolute;left:172px;top:314px;font-size:10.5px;color:#5c6469;font-weight:800;opacity:{{ h_dripO }};">鹰嘴+滴水槽</div>
+        <div style="position:absolute;left:16px;right:16px;top:342px;text-align:center;font-size:11.5px;font-weight:900;color:#23282b;opacity:{{ h_noteO }};">收头金属压条钉压固定+密封封严 · 下端鹰嘴和滴水槽</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 檐口800满粘 + 水落口 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ e_title }}</div>
+        <!-- 檐口 上 -->
+        <div style="position:absolute;inset:0;opacity:{{ e_eaveO }};">
+          <div style="position:absolute;left:40px;top:96px;font-size:10px;font-weight:800;color:#8b9398;">檐口 · 800mm 满粘</div>
+          <div style="position:absolute;left:44px;top:132px;width:230px;height:16px;background:#cbc4b2;"></div>
+          <div style="position:absolute;left:44px;top:124px;width:110px;height:8px;background:#46627e;"></div>
+          <div style="position:absolute;left:154px;top:124px;width:120px;height:8px;background:#2c8a5b;"></div>
+          <div style="position:absolute;left:268px;top:148px;width:12px;height:14px;background:#cbc4b2;border-bottom-left-radius:9px;"></div>
+        </div>
+        <div style="position:absolute;left:154px;top:110px;width:120px;opacity:{{ e_800O }};">
+          <div style="border-top:2px solid #cf4436;position:relative;"><div style="position:absolute;left:0;top:-4px;height:8px;border-left:2px solid #cf4436;"></div><div style="position:absolute;right:0;top:-4px;height:8px;border-left:2px solid #cf4436;"></div></div>
+          <div style="text-align:center;font-size:11px;font-weight:900;color:#cf4436;margin-top:2px;">800mm 满粘</div>
+        </div>
+        <!-- 水落口 下 -->
+        <div style="position:absolute;inset:0;opacity:{{ e_wlO }};">
+          <div style="position:absolute;left:40px;top:206px;font-size:10px;font-weight:800;color:#8b9398;">水落口</div>
+          <div style="position:absolute;left:44px;top:250px;width:110px;height:16px;background:#cbc4b2;"></div>
+          <div style="position:absolute;left:236px;top:250px;width:100px;height:16px;background:#cbc4b2;"></div>
+          <div style="position:absolute;left:154px;top:250px;width:82px;height:60px;background:#e6e2d5;border:2px solid #9aa7b0;border-top:none;border-radius:0 0 10px 10px;"></div>
+          <div style="position:absolute;left:150px;top:244px;width:90px;height:8px;background:#cf8a44;border-radius:3px;"></div>
+          <div style="position:absolute;left:166px;top:250px;width:8px;height:36px;background:#46627e;"></div>
+          <div style="position:absolute;left:216px;top:250px;width:8px;height:36px;background:#46627e;"></div>
+          <div style="position:absolute;left:176px;top:290px;font-size:10.5px;color:#3c556e;font-weight:900;opacity:{{ e_50O }};">伸入杯内≥50</div>
+          <div style="position:absolute;left:40px;top:300px;font-size:10.5px;color:#2c8a5b;font-weight:800;opacity:{{ e_500O }};">周边500 · 坡≥5%</div>
+          <div style="position:absolute;left:44px;top:244px;width:110px;height:6px;background:#2c8a5b;border-radius:3px;opacity:{{ e_500O }};transform:rotate(2deg);transform-origin:left;"></div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:330px;text-align:center;font-size:11px;font-weight:900;color:#23282b;opacity:{{ e_noteO }};">檐口800满粘·收头压条密封 · 水落口涂膜附加层·伸入杯内≥50·周边500坡≥5%</div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 口诀回扣：五处收边 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ sm_title }}</div>
+        <div style="position:absolute;left:32px;right:32px;top:96px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #2f6db0;border-radius:9px;padding:9px 13px;font-size:12.5px;font-weight:800;color:#2f6db0;box-shadow:0 3px 9px rgba(0,0,0,.06);opacity:{{ sm0 }};">1 · 泛水高度 ≥250mm</div>
+        <div style="position:absolute;left:32px;right:32px;top:141px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #cf8a44;border-radius:9px;padding:9px 13px;font-size:12.5px;font-weight:800;color:#a9762f;box-shadow:0 3px 9px rgba(0,0,0,.06);opacity:{{ sm1 }};">2 · 女儿墙泛水附加层 平立面≥250mm</div>
+        <div style="position:absolute;left:32px;right:32px;top:186px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #2c8a5b;border-radius:9px;padding:9px 13px;font-size:12.5px;font-weight:800;color:#2c8a5b;box-shadow:0 3px 9px rgba(0,0,0,.06);opacity:{{ sm2 }};">3 · 压顶向内坡≥5% · 涂膜至压顶下</div>
+        <div style="position:absolute;left:32px;right:32px;top:231px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #cf4436;border-radius:9px;padding:9px 13px;font-size:12.5px;font-weight:800;color:#cf4436;box-shadow:0 3px 9px rgba(0,0,0,.06);opacity:{{ sm3 }};">4 · 收头压条钉压+密封+鹰嘴滴水槽</div>
+        <div style="position:absolute;left:32px;right:32px;top:276px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #d9a521;border-radius:9px;padding:9px 13px;font-size:12.5px;font-weight:800;color:#b58611;box-shadow:0 3px 9px rgba(0,0,0,.06);opacity:{{ sm4 }};">5 · 檐口800满粘 · 水落口伸入杯内≥50mm</div>
+        <div style="position:absolute;left:0;right:0;top:328px;text-align:center;font-size:12px;font-weight:900;color:#23282b;opacity:{{ sm4 }};">五处收边，采分句一句不少</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN ░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">下集 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">屋面收边这几处唠透了哈——泛水高度不小于250；女儿墙泛水附加层平面立面都不小于250；压顶向内坡不小于5%、涂膜直涂至压顶下；收头金属压条钉压加密封、下端鹰嘴滴水槽；檐口800满粘、水落口伸入杯内不小于50、周边500坡不小于5%。数值一个不含糊，收边这块分就拿全了。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">泛水高度≥250mm</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">附加层平立面均≥250mm</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">压顶向内坡≥5% · 涂膜至压顶下</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">收头压条钉压+密封+鹰嘴滴水槽</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#b58611;">檐口800满粘 · 水落口伸入杯内≥50mm</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="P40_F04.practice.dc.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
+        </div>
+        <a href="P40_F04.teach.up.dc.html" style="margin-top:12px;font-size:12px;font-weight:900;color:#cf8a44;text-decoration:none;border:1.5px solid #cf8a44;border-radius:11px;padding:8px 16px;">上一集 · 阴阳角/管根/穿楼板 + 先细部后大面</a>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="7">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:9.5px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="P40_F04.practice.dc.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- 全屏浮层控制条 -->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/down/";
+  audioVersion="20260713142920";
+  DUR = 240.404;
+  examTitle="防水细部节点·下：女儿墙/收边"; examCode="F04·下"; examCat="案例·防水";
+  posterSub="泛水250 · 附加层 · 压顶坡5% · 收头 · 水落口"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 52 秒";
+  KNOWLEDGE="防水细部节点(下集:女儿墙/泛水/檐口/水落口屋面收边)。核心判分:①泛水高度≥250mm(2015案例2埋点:写200mm错);②女儿墙泛水处防水层下增设附加层、平面和立面宽度均≥250mm,檐沟天沟附加层伸入屋面≥250mm;③女儿墙压顶向内排水坡度≥5%、涂膜防水层直接涂刷至压顶下;④卷材收头用金属压条钉压固定+密封材料封严、下端做鹰嘴和滴水槽;⑤檐口800mm范围内卷材必须满粘、收头压条密封;⑥水落口杯牢固固定承重结构、防水层下增设涂膜附加层、伸入杯内≥50mm、周围500mm坡度≥5%。采分要点:节点做法对不对+关键数值(250/5%/50/800)准不准。边界:阴阳角/管根/穿楼板+先细部后大面在上集;卷材大面铺贴搭接属卷材施工、屋面设防道数属屋面防水,不是本考点判分眼。";
+    beats=[["b0",0.0,17.948,"破误区"],["b1",17.948,35.2,"泛水250"],["b2",35.2,52.884,"附加层"],["b3",52.884,70.712,"压顶坡"],["b4",70.712,89.764,"收头"],["b5",89.764,111.36,"檐口·落口"],["b6",111.36,132.116,"口诀"],["q0",132.116,155.84,"问答"],["q1",155.84,183.428,"问答"],["q2",183.428,208.424,"问答"],["q3",208.424,240.404,"问答"]];
+  keycards=[
+    "泛水/压顶/收头/水落口都是漏点",
+    "泛水高度≥250mm，翻到200不够",
+    "女儿墙泛水附加层平面立面均≥250mm",
+    "压顶向内坡≥5% · 涂膜直涂至压顶下",
+    "收头金属压条钉压+密封+鹰嘴滴水槽",
+    "檐口800满粘 · 水落口伸入杯内≥50mm",
+    "泛水 · 附加层 · 压顶坡 · 收头 · 水落口"
+  ];
+  narr=[
+    "接着上集，唠屋面收边这几处——女儿墙泛水、压顶、卷材收头、水落口。先看几个常犯的坑：泛水只翻到200、压顶做成平的积着水、收头光抹点密封没压条。注意哈，这几处最爱漏，先划掉。",
+    "先说泛水高度。你看卷材往墙上翻，翻到200毫米——不够，红线不命中。规范要求其他部位泛水高度不小于250毫米；翻到250，这道绿带才亮。就差这50毫米，雨水一顶就翻进来了。",
+    "女儿墙泛水根部这个阴角，防水层底下得先增设一道附加层。而且这附加层平面、立面两个方向的宽度都不能小于250毫米。檐沟、天沟处的附加层伸入屋面也是不小于250。两个方向都得量够。",
+    "再看女儿墙压顶。做成平顶或者反坡，水就积上头、慢慢往里渗。正确是向内排水、坡度不小于5%，水顺着往里走、排得快。还有，涂膜防水层要直接涂刷到压顶下头，别断在半截。",
+    "卷材收头是自由边，负风压一兜、热胀冷缩一拽，这边最先掀开。所以收头得用金属压条钉压固定，再拿密封材料把边封严——机械锁死加断水路。下端还得做鹰嘴和滴水槽，让水滴出去、不回流。",
+    "还有两处。檐口800毫米范围内卷材必须满粘、收头压条密封、下端鹰嘴滴水槽。水落口呢——杯要牢固固定在承重结构上，防水层下增设涂膜附加层，防水层伸入杯内不小于50毫米，水落口周围500毫米范围坡度不小于5%。",
+    "下集这几句串起来：泛水不小于250、女儿墙泛水附加层平立面都不小于250、压顶向内坡不小于5%、收头压条钉压加密封加鹰嘴滴水、水落口伸入杯内不小于50。数值一个不含糊，收边这块采分就拿全了。"
+  ];
+  qa=[
+    { figLabel:"泛水 200✕ vs 250✓", fig:"flash", q:"老师，泛水翻到200差一点点，真就不给分啊？", a:"真不给。规范卡的是其他部位泛水高度不小于250毫米，200就是低于限值，判不妥。就差这50毫米，雨水顺墙面一顶就翻进防水层里头。阅卷写『泛水高度≥250mm』给分，写200直接当错处扣。" },
+    { figLabel:"附加层平面立面均≥250", fig:"addlayer", q:"女儿墙泛水那个附加层，平面立面都要量250？咋记啊？", a:"就记两个方向都不小于250。女儿墙泛水根部阴角，防水层下先增设一道附加层，平面宽、立面高都不小于250毫米；檐沟天沟的附加层伸入屋面也是不小于250。答的时候平立面两个数都得点到，漏一个少一分。" },
+    { figLabel:"平顶积水 vs 向内坡排水", fig:"coping", q:"压顶为啥非得做向内坡啊？做平的不也盖着么？", a:"平顶存水哈。压顶平了或者反坡，水积上头慢慢往里渗，时间一长准漏。做成向内排水、坡度不小于5%，水顺坡往里一走排得快，静水压时间短。再配上涂膜直涂到压顶下头，压顶这块才封严实。" },
+    { figLabel:"下集四句采分句", fig:"score", q:"整明白了！那下集这几处，阅卷我得咋写全呐？", a:"写全这四句：一，泛水高度不小于250；二，女儿墙泛水附加层平立面都不小于250；三，压顶向内坡不小于5%、涂膜直涂至压顶下；四，收头金属压条钉压加密封加鹰嘴滴水槽、水落口伸入杯内不小于50。做法带数值，一句不能少。" }
+  ];
+  askPresets=["泛水为什么必须≥250？","压顶为什么要向内坡？","下集采分句怎么写全？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return;
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="flash"){ h=56;
+      els.push(D({x:0,top:4,w:56,h:12,fg:"#a8997a",fs:9,jc:"flex-start",lab:"泛水翻起"}));
+      els.push(D({x:64,top:22,w:10,h:24,bg:"#b5564a",r:2}));
+      els.push(D({x:78,top:26,w:44,h:12,fg:"#e0a89f",fs:9,jc:"flex-start",lab:"200 ✕"}));
+      els.push(D({x:150,top:8,w:10,h:38,bg:"#2c8a5b",r:2}));
+      els.push(D({x:164,top:8,w:70,h:12,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"≥250 ✓"})); }
+    else if(it.fig==="addlayer"){ h=54;
+      els.push(D({x:64,top:2,w:14,h:44,bg:"#cbc4b2",r:2}));
+      els.push(D({x:80,top:6,w:7,h:40,bg:"#cf8a44",r:2}));
+      els.push(D({x:80,top:39,w:40,h:7,bg:"#cf8a44",r:2}));
+      els.push(D({x:0,top:8,w:60,h:12,fg:"#e0b98a",fs:9,jc:"flex-start",lab:"立面≥250"}));
+      els.push(D({x:124,top:34,w:118,h:12,fg:"#e0b98a",fs:9,jc:"flex-start",lab:"平面≥250"})); }
+    else if(it.fig==="coping"){ h=52;
+      els.push(D({x:2,top:14,w:44,h:8,bg:"#b3ab98",r:2}));
+      els.push(D({x:8,top:8,w:32,h:6,bg:"#7fb0d8",r:2}));
+      els.push(D({x:0,top:28,w:60,h:12,fg:"#e0a89f",fs:9,jc:"flex-start",lab:"平顶积水✕"}));
+      els.push(D({x:150,top:12,w:44,h:8,bg:"#b3ab98",r:2}));
+      els.push(D({x:150,top:24,w:16,h:12,fg:"#2f6db0",fs:11,jc:"flex-start",lab:"↘"}));
+      els.push(D({x:170,top:28,w:80,h:12,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"向内坡≥5%✓"})); }
+    else if(it.fig==="score"){ h=44; const s=[["①泛水","#2f6db0"],["②附加层","#cf8a44"],["③压顶","#2c8a5b"],["④收头","#d9a521"]];
+      s.forEach((p,i)=>els.push(D({x:i*64,top:2,w:58,h:18,bg:"transparent",bd:"1.5px solid "+p[1],r:6,fg:p[1],fs:9,lab:p[0]})));
+      els.push(D({x:0,top:26,w:252,h:14,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"250 + 平立面250 + 坡5%涂膜 + 压条密封滴水/落口50"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={ b0_op:0,b0_y:46,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,
+      b0_bubble:"泛水翻到200就行？压顶做平的？收头抹点密封不压条？", b0_stamp:"误区 ✕",
+      f_title:"泛水高度 · 200不够，≥250才命中", f_baseO:0,f_memH:0,f_memTop:324,f_200O:0,f_250O:0,f_noteO:0,
+      a_title:"女儿墙泛水附加层 · 平面立面均≥250", a_baseO:0,a_addO:0,a_dimVO:0,a_dimHO:0,a_noteO:0,
+      t_title:"女儿墙压顶 · 平顶积水 vs 向内坡≥5%", t_flatO:0,t_slopeO:0,t_waterO:0,t_drainO:0,t_noteO:0,
+      h_title:"卷材收头 · 压条钉压+密封+鹰嘴滴水槽", h_wallO:0,h_memO:0,h_windO:0,h_windY:112,h_battenO:0,h_battenY:118,h_nailO:0,h_dripO:0,h_dropY:308,h_noteO:0,
+      e_title:"檐口800满粘 · 水落口构造", e_eaveO:0,e_800O:0,e_wlO:0,e_50O:0,e_500O:0,e_noteO:0,
+      sm_title:"下集这五处收边：一处一句采分句", sm0:0,sm1:0,sm2:0,sm3:0,sm4:0 };
+
+    if(A(0)){ const sp=W(0,.22),bp=W(.28,.46),dim=W(.74,.9),st=W(.56,.74);
+      v.b0_op=sp; v.b0_y=this.lp(46,0,sp); v.b0_bs=this.lp(.6,1,bp); v.b0_bo=bp*(1-.6*dim); v.b0_so=st*.95; v.b0_ss=this.lp(1.7,1,st); }
+    if(A(1)){ v.f_baseO=W(0,.18); v.f_memH=this.lp(0,108,W(.2,.82)); v.f_memTop=324-v.f_memH; v.f_200O=W(.36,.52); v.f_250O=W(.66,.84); v.f_noteO=W(.88,1); }
+    if(A(2)){ v.a_baseO=W(0,.18); v.a_addO=W(.22,.46); v.a_dimVO=W(.5,.68); v.a_dimHO=W(.62,.8); v.a_noteO=W(.84,1); }
+    if(A(3)){ v.t_flatO=W(0,.26); v.t_waterO=W(.18,.4); v.t_slopeO=W(.44,.66); v.t_drainO=W(.62,.82); v.t_noteO=W(.84,1); }
+    if(A(4)){ v.h_wallO=W(0,.14); v.h_memO=W(.12,.3); v.h_windO=W(.3,.46); v.h_windY=this.lp(120,104,W(.3,.46)); v.h_battenO=W(.46,.62); v.h_battenY=this.lp(118,150,W(.46,.64)); v.h_nailO=W(.6,.74); v.h_dripO=W(.76,.9); v.h_dropY=this.lp(306,326,W(.82,1)); v.h_noteO=W(.9,1); }
+    if(A(5)){ v.e_eaveO=W(0,.2); v.e_800O=W(.22,.4); v.e_wlO=W(.46,.68); v.e_50O=W(.66,.82); v.e_500O=W(.7,.86); v.e_noteO=W(.88,1); }
+    if(A(6)){ v.sm0=W(.06,.2); v.sm1=W(.18,.32); v.sm2=W(.3,.44); v.sm3=W(.42,.56); v.sm4=W(.54,.7); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

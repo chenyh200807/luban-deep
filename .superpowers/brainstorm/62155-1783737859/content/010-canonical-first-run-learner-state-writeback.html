@@ -1,0 +1,34 @@
+<style>
+  :root{--paper:#f4f2e9;--ink:#24292b;--muted:#747a7b;--line:#d8d1c1;--red:#c94739;--red-soft:#f7e5e0;--ochre:#c8873f;--ochre-soft:#f7ecd8;--blue:#2e6da3;--blue-soft:#e7f0f6;--green:#41775a;--green-soft:#e6f0e9;--white:#fffdf8}
+  .clw-wrap{max-width:1120px;margin:auto}.clw-lock{display:inline-flex;padding:7px 11px;border-radius:999px;background:var(--green-soft);color:var(--green);font-size:11px;font-weight:900}.clw-wrap h2{margin:10px 0 6px}.clw-lead{margin:13px 0 18px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--green);border-radius:10px;font-size:9px;line-height:1.55}.clw-lead b{color:var(--green)}
+  .clw-pipeline{display:grid;grid-template-columns:1fr 42px 1.2fr 42px 1.15fr 42px 1fr;gap:6px;align-items:stretch}.clw-node{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px 10px}.clw-node small{display:block;font-size:6px;color:var(--muted);font-weight:900;margin-bottom:5px}.clw-node h3{font-size:10px;margin:0 0 6px}.clw-node p{font-size:7px;line-height:1.5;color:var(--muted);margin:0}.clw-node.api{background:var(--blue-soft);border-color:#bad0df}.clw-node.service{background:var(--ink);color:white}.clw-node.service small,.clw-node.service p{color:#c4c8c8}.clw-node.reader{background:var(--green-soft);border-color:#b5d0be}.clw-arrow{display:grid;place-items:center;color:var(--red);font-size:23px;font-weight:900}
+  .clw-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-top:18px}.clw-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}.clw-card h3{margin:0 0 10px}.clw-row{display:grid;grid-template-columns:105px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.clw-row:last-child{border-bottom:0}.clw-kind{font-size:8px;font-weight:900}.clw-kind.fact{color:var(--green)}.clw-kind.declared{color:var(--blue)}.clw-kind.inferred{color:var(--ochre)}.clw-row p{font-size:8px;line-height:1.5;color:var(--muted);margin:0}.clw-row b{color:var(--ink)}.clw-guard{display:grid;gap:7px}.clw-guard div{padding:9px 10px;border-radius:9px;background:var(--paper);font-size:8px;line-height:1.45}.clw-guard b{display:block;margin-bottom:3px}.clw-guard .no{background:var(--red-soft)}
+  .clw-outcomes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:17px}.clw-outcome{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:10px}.clw-outcome b{display:block;font-size:8px;margin-bottom:4px}.clw-outcome p{font-size:7px;line-height:1.45;color:var(--muted);margin:0}.clw-effort{margin-top:17px;background:var(--ochre-soft);border:1px solid #e4c89c;border-radius:12px;padding:12px;font-size:8px;line-height:1.55;color:#6d593f}.clw-effort b{color:var(--ink)}
+  .clw-decision{max-width:900px;margin:22px auto 0}.clw-decision h3{text-align:center}.options .option.selected{outline:3px solid rgba(201,71,57,.22);border-color:var(--red)}
+  @media(max-width:950px){.clw-pipeline{grid-template-columns:1fr}.clw-arrow{transform:rotate(90deg)}.clw-grid{grid-template-columns:1fr}.clw-outcomes{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.clw-outcomes{grid-template-columns:1fr}.clw-row{grid-template-columns:1fr}}
+</style>
+
+<div class="clw-wrap">
+  <div class="clw-lock">方向修订：首次体验正式进入 Canonical Learner State</div>
+  <h2>第二权威不是 Learner State；绕开 Learner State 才会产生第二权威</h2>
+  <p class="subtitle">正确做法不是让前端按四题答案直接决定下一站，而是把结构化结果写进现有唯一事件流，再由现有画像、处方和首页投影消费。</p>
+  <div class="clw-lead"><b>设计裁决：</b>完成报告时做一次幂等批量写回；客观答题证据、用户自述偏好和系统推断分层保存。写回成功后，第二天的学习首页、问鲁班、学情与复测都从同一 Learner State 读取。</div>
+
+  <div class="clw-pipeline">
+    <div class="clw-node"><small>五模块前端</small><h3>首次体验 UI</h3><p>一页一题；本地 checkpoint 只负责断点恢复。完成时提交 script_version、题目作答、时长和显式偏好。</p></div><div class="clw-arrow">→</div>
+    <div class="clw-node api"><small>薄适配层</small><h3>POST /first-run/complete</h3><p>只做鉴权、大小限制、幂等键和错误语义；不算画像、不决定下一站。</p></div><div class="clw-arrow">→</div>
+    <div class="clw-node service"><small>唯一业务写入者</small><h3>FirstRunWritebackService</h3><p>校验静态题版本与权威答案；写学习证据、合并显式偏好、生成低置信推断，并委托既有 home personalization / training intent。</p></div><div class="clw-arrow">→</div>
+    <div class="clw-node reader"><small>同一 Learner State 读侧</small><h3>第二天继续</h3><p>学习首页焦点、学情报告、问鲁班教学方式、复测与会员路线说明读取同一份 durable state。</p></div>
+  </div>
+
+  <div class="clw-grid">
+    <div class="clw-card"><h3>三类信号必须分层</h3><div class="clw-row"><div class="clw-kind fact">客观作答证据</div><p>四道静态题的 question_id、canonical topic、选项、确定性 verdict、错因、时长和来源。进入 <b>learner_memory_events.learning_evidence</b>，单次只算 L0 observation，不直接宣称掌握。</p></div><div class="clw-row"><div class="clw-kind declared">用户显式偏好</div><p>记忆方式、答题节奏、学习时段、动力来源。合并到 profile 的 <b>learning_preferences / support_preferences</b>，可随时在“我的”中修改。</p></div><div class="clw-row"><div class="clw-kind inferred">系统推断画像</div><p>“实战型快枪手”等组合标签只是带 provenance 与 confidence 的推断；后续行为冲突时可被覆盖，不能反向改写客观证据。</p></div></div>
+    <div class="clw-card"><h3>单一 authority 的硬门</h3><div class="clw-guard"><div><b>唯一 ledger</b>所有长期事件只走 `append_memory_event`，复用 dedupe、outbox 与 read-your-writes。</div><div><b>唯一处方</b>下一步训练只由 canonical `training_intent` 生成，首页继续由 `home_next_step_projection` 仲裁。</div><div><b>唯一内容版本</b>前端只提交 question_id 和选择；后端按注册过的 script_version 复算 verdict，不信任客户端分数。</div><div class="no"><b>明确禁止</b>前端自行把“错两题”映射到某个 pack；也不把偏好选择当成“已掌握/未掌握”。</div></div></div>
+  </div>
+
+  <div class="clw-outcomes"><div class="clw-outcome"><b>第二天回来</b><p>首页显示真实薄弱主题、建议动作和待复测，不再回到陌生 starter 状态。</p></div><div class="clw-outcome"><b>继续问鲁班</b><p>表达节奏可读取显式偏好；知识判断仍来自真实证据，不靠标签猜。</p></div><div class="clw-outcome"><b>查看学情</b><p>四题成为第一批可追溯证据，报告能深链回当时的问题与答案。</p></div><div class="clw-outcome"><b>购买会员</b><p>Learner State 解释“你的路线还差什么”；会员资格和支付仍由 wallet/membership authority 决定。</p></div></div>
+
+  <div class="clw-effort"><b>难度评估：中等，不是基础设施重造。</b>现有事件账本、assessment 写回、profile、home personalization、training intent、next-step 投影都能复用。新增工作主要是：注册 `first_run_diagnostic.v1`、补专用 writeback service 与 endpoint、给 4 道题补 canonical question/topic/pack 映射、前端幂等重试和真实微信 QA。工程约一个小迭代；最大的外部门是第 4 题仍缺双教研 verdict。</div>
+
+  <div class="clw-decision"><h3>写回粒度怎么锁定？</h3><div class="options"><div class="option" data-choice="canonical_writeback_on_complete" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>完成报告时一次性写回（推荐）</h3><p>中途恢复仍走本地 checkpoint；完整完成后幂等写入 Learner State。范围可控，已满足第二天连续性。</p></div></div><div class="option" data-choice="durable_server_session_every_step" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>每一步都保存到服务端</h3><p>支持跨设备中途续做，但需要 durable first-run session、并发控制和更多隐私/清理语义，范围明显更大。</p></div></div></div></div>
+</div>

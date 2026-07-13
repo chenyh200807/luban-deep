@@ -1,0 +1,140 @@
+{
+  "version": "animation_ir.v0",
+  "lesson_id": "N03_流水施工参数与工期",
+  "archetype": "calc_judgment_chain",
+  "stage": { "w": 1200, "h": 672, "theme": "whiteboard_paper" },
+  "visual_library": {
+    "domain_objects": {
+      "building_segment": "楼栋按施工段①②竖向切分，带楼层线",
+      "process_chip": "施工过程色片（基础/结构/砌筑/装修）",
+      "tact_bar": "流水节拍 t —— 高度/长度∝节拍月数的色条",
+      "gantt_cell": "横道图单元：某队在某施工段的占用块（长度=K）",
+      "team_row": "拆队后每个专业队一行，沿时间轴对角错位 K",
+      "k_bracket": "流水步距 K 的测量括号",
+      "t_bracket": "总工期 T 的测量括号",
+      "ghost_wrong": "红色错解幽灵（K取最大/机械相加），出现后被划掉淘汰",
+      "answer_sheet": "采分四句标准答题纸 / 失分诊断答题纸"
+    }
+  },
+  "scenes": [
+    {
+      "scene": "s0_setup", "focus": "建立现场对象",
+      "enter": "building_segment×2 自下浮入；process_chip×4 依次滑入",
+      "hold": "四道工序排队待进场", "exit": "楼栋与色片淡出，留出横道图空间",
+      "layout": "center", "camera": "static",
+      "visible_nodes": ["building_segment#1","building_segment#2","process_chip#基础","process_chip#结构","process_chip#砌筑","process_chip#装修"],
+      "keycard": null, "coach": "旁白引入",
+      "actions": [
+        {"obj":"building_segment","op":"enter","mode":"rise_fade"},
+        {"obj":"process_chip","op":"enter","mode":"slide_stagger"}
+      ]
+    },
+    {
+      "scene": "s1_flow", "focus": "依次 vs 流水（为什么搭接省工期）",
+      "enter": "依次：4 条 tact_bar 端到端排列；流水：4 条 tact_bar 错位 1 单位",
+      "hold": "两条 t_bracket 对比『工期长 / 工期短』", "exit": "全部淡出",
+      "layout": "two_row_compare", "camera": "static",
+      "visible_nodes": ["tact_bar×4(依次)","tact_bar×4(流水)","t_bracket(长)","t_bracket(短)"],
+      "keycard": "流水施工 = 分段分序 · 连续搭接",
+      "actions": [
+        {"obj":"tact_bar#依次","op":"enter","mode":"slide_stagger"},
+        {"obj":"t_bracket#长","op":"measure"},
+        {"obj":"tact_bar#流水","op":"enter","mode":"slide_stagger_overlap"},
+        {"obj":"t_bracket#短","op":"measure"}
+      ]
+    },
+    {
+      "scene": "s2_type", "focus": "判型：节拍成倍数→等步距异节奏",
+      "enter": "4 根 tact_bar 升起（值 3/3/6/3）",
+      "hold": "高亮 6=2×3；三类型卡只点亮『等步距异节奏』", "exit": "类型卡与节拍柱淡出",
+      "layout": "left_bars_right_panel", "camera": "static",
+      "visible_nodes": ["tact_bar#3","tact_bar#3","tact_bar#6","tact_bar#3","type_option×3"],
+      "keycard": "节拍成倍数 → 等步距异节奏",
+      "actions": [
+        {"obj":"tact_bar","op":"grow","mode":"stagger"},
+        {"obj":"hint#6=2x3","op":"highlight"},
+        {"obj":"type_option#等步距异节奏","op":"select_check"},
+        {"obj":"type_option#等节奏","op":"eliminate_cross"},
+        {"obj":"type_option#无节奏","op":"eliminate_cross"}
+      ]
+    },
+    {
+      "scene": "s3_step_k", "focus": "取 K = 最大公约数（淘汰 K=最大节拍错解）",
+      "enter": "左：gcd(3,6)=3 推导 + K=3 个月色块",
+      "hold": "右：ghost_wrong『K=6 队排稀、段空等』被划掉；正解『K=3 队咬紧』", "exit": "错解幽灵淡出",
+      "layout": "left_calc_right_contrast", "camera": "static",
+      "visible_nodes": ["gcd_calc","K_block","ghost_wrong#K6","k_bracket"],
+      "keycard": "K = 各节拍最大公约数 gcd",
+      "actions": [
+        {"obj":"gcd_calc","op":"reveal"},
+        {"obj":"K_block","op":"pop"},
+        {"obj":"ghost_wrong#K6","op":"enter_then_cross"},
+        {"obj":"k_bracket","op":"measure"}
+      ]
+    },
+    {
+      "scene": "s4_split", "focus": "拆队：队数=节拍÷K，砌筑(6=2K)拆 2 队",
+      "enter": "4 工序行带节拍",
+      "hold": "砌筑行 1 条 bar 分裂成 2 条；逐行 节拍÷K；汇总 1+1+2+1=5", "exit": "保留结论牌",
+      "layout": "rows_with_division", "camera": "static",
+      "visible_nodes": ["team_row#基础","team_row#结构","team_row#砌筑(split)","team_row#装修","sum_badge"],
+      "keycard": "队数 = 节拍 ÷ K，求和",
+      "actions": [
+        {"obj":"team_row","op":"enter","mode":"stagger"},
+        {"obj":"team_row#砌筑","op":"split","into":2},
+        {"obj":"division_label","op":"reveal","mode":"stagger"},
+        {"obj":"sum_badge","op":"pop"}
+      ]
+    },
+    {
+      "scene": "s5_duration", "focus": "算工期：从『不搭接30』morph到『搭接18』",
+      "enter": "5 个 team_row 先以无搭接(kgap=6)铺开 → 红色 T=30",
+      "hold": "kgap 6→3 morph，对角咬合，T_bracket 由 30 收缩到 18；标注『省下12个月』", "exit": "保留对角横道图",
+      "layout": "gantt_diagonal", "camera": "static",
+      "visible_nodes": ["team_row×5","gantt_cell×10","k_bracket","t_bracket"],
+      "keycard": "T =(M+N′−1)×K  体现搭接",
+      "actions": [
+        {"obj":"team_row","op":"enter","mode":"stagger"},
+        {"obj":"layout","op":"morph","from":"kgap=6","to":"kgap=3"},
+        {"obj":"t_bracket","op":"shrink","from":30,"to":18},
+        {"obj":"note#省12月","op":"reveal"}
+      ]
+    },
+    {
+      "scene": "s6_chain", "focus": "口诀回扣：判型→K→队数→工期",
+      "enter": "对角横道图压暗作背景",
+      "hold": "四步链卡依次点亮", "exit": "—",
+      "layout": "gantt_dim_bg + step_chain", "camera": "static",
+      "visible_nodes": ["gantt(dim)","step_card×4"],
+      "keycard": "判型 → K → 队数 → 工期",
+      "actions": [{"obj":"step_card","op":"enter","mode":"stagger_arrow"}]
+    },
+    {
+      "scene": "qa1", "focus": "学生问：K 为何取最大公约数",
+      "enter": "压暗横道图 + 高亮框住前两行 K 对齐",
+      "hold": "答：3、6 被 3 整除→咬合；取平均/最大→撞或空等(红)", "exit": "—",
+      "layout": "gantt_dim_bg + highlight", "camera": "static",
+      "visible_nodes": ["gantt(dim)","k_align_highlight","k_bracket"],
+      "keycard": "K 为何取最大公约数", "coach": "QA",
+      "actions": [{"obj":"k_align_highlight","op":"flash"},{"obj":"note#bad","op":"reveal"}]
+    },
+    {
+      "scene": "qa2", "focus": "学生问：公式里 N′ 到底是几",
+      "enter": "压暗横道图",
+      "hold": "公式 T=(M+N′−1)×K，M=2、N′=拆队后5（高亮 N′≠工序数）", "exit": "—",
+      "layout": "gantt_dim_bg + formula", "camera": "static",
+      "visible_nodes": ["gantt(dim)","formula","M_note","Nprime_note","result"],
+      "keycard": "N′ = 拆队后总队数", "coach": "QA",
+      "actions": [{"obj":"formula","op":"reveal"},{"obj":"Nprime_note","op":"highlight"},{"obj":"result","op":"pop"}]
+    },
+    {
+      "scene": "qa3", "focus": "学生问：阅卷怎么写才给分（采分四句）",
+      "enter": "压暗横道图",
+      "hold": "四句采分句逐条滑入：①判型②K③队数④工期", "exit": "—",
+      "layout": "gantt_dim_bg + answer_sheet", "camera": "static",
+      "visible_nodes": ["gantt(dim)","answer_sheet_line×4"],
+      "keycard": "采分四句怎么写", "coach": "QA",
+      "actions": [{"obj":"answer_sheet_line","op":"enter","mode":"slide_stagger"}]
+    }
+  ]
+}

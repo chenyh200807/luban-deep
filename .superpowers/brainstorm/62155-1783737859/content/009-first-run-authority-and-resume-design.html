@@ -1,0 +1,33 @@
+<style>
+  :root{--paper:#f4f2e9;--ink:#24292b;--muted:#747a7b;--line:#d8d1c1;--red:#c94739;--red-soft:#f7e5e0;--ochre:#c8873f;--ochre-soft:#f7ecd8;--blue:#2e6da3;--blue-soft:#e7f0f6;--green:#41775a;--green-soft:#e6f0e9;--white:#fffdf8}
+  .far-wrap{max-width:1120px;margin:auto}.far-lock{display:inline-flex;padding:7px 11px;border-radius:999px;background:var(--green-soft);color:var(--green);font-size:11px;font-weight:900}.far-head h2{margin:10px 0 6px}.far-alert{margin:13px 0 18px;padding:11px 13px;border-left:4px solid var(--ochre);border-radius:9px;background:var(--ochre-soft);font-size:9px;line-height:1.55;color:#6d583d}.far-alert b{color:var(--ink)}
+  .far-flow{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;align-items:stretch}.far-node{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 8px;position:relative;text-align:center}.far-node:after{content:"→";position:absolute;right:-9px;top:40%;color:var(--red);font-weight:900;z-index:1}.far-node:last-child:after{display:none}.far-node small{display:block;color:var(--muted);font-size:6px;margin-bottom:5px}.far-node b{display:block;font-size:9px;line-height:1.35}.far-node span{display:block;font-size:7px;line-height:1.4;color:var(--muted);margin-top:4px}.far-node.home{border-color:#c8b170;background:#fffaf0}.far-node.focus{background:var(--ink);color:white}.far-node.focus small,.far-node.focus span{color:#c3c7c7}.far-node.done{border-color:#a9c9b5;background:var(--green-soft)}
+  .far-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-top:18px}.far-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}.far-card h3{margin:0 0 10px}.far-table{width:100%;border-collapse:collapse}.far-table th,.far-table td{text-align:left;padding:8px;border-bottom:1px solid var(--line);font-size:8px;line-height:1.45;vertical-align:top}.far-table th{font-size:7px;color:var(--muted);font-weight:900}.far-table tr:last-child td{border-bottom:0}.far-auth{font-weight:900}.far-auth.content{color:var(--ochre)}.far-auth.local{color:var(--blue)}.far-auth.canon{color:var(--green)}.far-auth.nav{color:var(--red)}.far-remove{display:grid;gap:7px}.far-remove-row{padding:9px 10px;border-radius:9px;background:var(--red-soft);font-size:8px;line-height:1.45}.far-remove-row b{display:block;color:var(--red);margin-bottom:3px}.far-rule{margin-top:11px;padding:10px;border-radius:9px;background:var(--blue-soft);font-size:8px;line-height:1.5;color:#47667d}.far-rule b{color:var(--blue)}
+  .far-cases{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:17px}.far-case{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:10px}.far-case b{font-size:8px;display:block;margin-bottom:4px}.far-case p{font-size:7px;line-height:1.45;color:var(--muted);margin:0}.far-case strong{color:var(--green)}
+  .far-decision{max-width:900px;margin:22px auto 0}.far-decision h3{text-align:center}.options .option.selected{outline:3px solid rgba(201,71,57,.22);border-color:var(--red)}
+  @media(max-width:930px){.far-flow{grid-template-columns:repeat(2,1fr)}.far-node:after{display:none}.far-grid{grid-template-columns:1fr}.far-cases{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.far-cases{grid-template-columns:1fr}}
+</style>
+
+<div class="far-wrap">
+  <div class="far-head"><div class="far-lock">已锁定：一页一题 · 答题隐藏五 Tab</div><h2>最后一个设计决策：本次画像只是体验，还是要写入长期学情？</h2><p class="subtitle">分页本身很简单；真正决定工程边界的是“首跑答案能否改变五模块学习首页的下一站”。</p></div>
+  <div class="far-alert"><b>代码实证：</b>现有首跑已经是一套单一 `act` 状态机，适合直接改成一页一题；但当前“稍后退出”也会写完成标记并跳聊天，画像只存在页面内存，报告完成后也没有写入学习事实。五模块学习页在 `origin/main` 已存在，并以 `home_next_step_projection` 作为下一站 authority。</div>
+
+  <div class="far-flow">
+    <div class="far-node"><small>注册成功</small><b>标记待首跑</b><span>只对新账号</span></div>
+    <div class="far-node home"><small>五 Tab 可见</small><b>进入学习首页</b><span>看到“新同学第一站”</span></div>
+    <div class="far-node focus"><small>五 Tab 隐藏</small><b>逐页完成诊断</b><span>一题 → 判分 → 间奏</span></div>
+    <div class="far-node"><small>中途离开</small><b>保存本地断点</b><span>不写完成标记</span></div>
+    <div class="far-node focus"><small>重新进入</small><b>从断点继续</b><span>版本不兼容才重开</span></div>
+    <div class="far-node"><small>完成报告</small><b>清断点 + 标完成</b><span>报告仍可完整阅读</span></div>
+    <div class="far-node done"><small>五 Tab 恢复</small><b>回到学习首页</b><span>消费权威下一站</span></div>
+  </div>
+
+  <div class="far-grid">
+    <div class="far-card"><h3>一等事实与唯一 authority</h3><table class="far-table"><tr><th>业务事实</th><th>唯一负责者</th><th>边界</th></tr><tr><td>四题、解析、口诀与报告内容</td><td class="far-auth content">script-data.js</td><td>继续沿用最终版，不复制第二份</td></tr><tr><td>进行到哪一页</td><td class="far-auth local">版本化本地 checkpoint</td><td>只服务恢复，不是长期学情</td></tr><tr><td>是否完整完成首跑</td><td class="far-auth local">DONE_KEY</td><td>只有报告完成后写入</td></tr><tr><td>学习首页的下一站</td><td class="far-auth canon">home_next_step_projection</td><td>前端不得根据四题自行算推荐</td></tr><tr><td>页面与五 Tab 切换</td><td class="far-auth nav">route + workspace-shell</td><td>学习首页显示；诊断页隐藏；完成恢复</td></tr></table></div>
+    <div class="far-card"><h3>需要删除或降级的旧行为</h3><div class="far-remove"><div class="far-remove-row"><b>退出 ≠ 完成</b>“稍后再做”只保存断点并回学习首页，不再写 DONE_KEY。</div><div class="far-remove-row"><b>完成 ≠ 去聊天</b>报告和提醒流程结束后回学习首页，不再默认 `pages/chat/chat`。</div><div class="far-remove-row"><b>本地画像 ≠ 长期真相</b>没写入 learner state 前，只称“本次诊断观察”，不承诺以后自动按画像教学。</div><div class="far-remove-row"><b>报告 ≠ 错误 Tab 文案</b>“学情底部第三个”改为真实第四个，所有入口名称与五模块 IA 对齐。</div></div><div class="far-rule"><b>最小实现：</b>不新建 WS、不新建推荐器、不让 wrapper 自己算学习路径；只适配入口、分页、恢复和完成后的导航。</div></div>
+  </div>
+
+  <div class="far-cases"><div class="far-case"><b>刷新 / 杀进程</b><p>读取 checkpoint，恢复到当前题或当前判分页。</p></div><div class="far-case"><b>点击“稍后再做”</b><p>回学习首页，卡片变成<strong>继续首次诊断</strong>。</p></div><div class="far-case"><b>订阅授权失败</b><p>报告仍算完成；只显示“可在我的中重新开启提醒”。</p></div><div class="far-case"><b>权威下一站暂不可用</b><p>诚实显示“回学习首页继续”，不拿本地答案伪造推荐。</p></div></div>
+
+  <div class="far-decision"><h3>首跑画像与下一站按哪条边界定稿？</h3><div class="options"><div class="option" data-choice="honest_local_v1" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>本轮做诚实的本地体验（推荐）</h3><p>保留完整画像与报告，但称“本次观察”；下一站只读现有 projection。改动窄、无第二 authority，可马上适配五模块。</p></div></div><div class="option" data-choice="canonical_profile_writeback" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>同步做长期画像写回</h3><p>新增注册过的首跑诊断事件，经 learner-state 管道更新 projection；承诺更完整，但会扩大到后端 contract、隐私、失败重试与观测。</p></div></div><div class="option" data-choice="frontend_static_recommendation" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>前端按答案静态推荐</h3><p>最快保持“个性化”表象，但会制造第二套推荐 authority；不建议。</p></div></div></div></div>
+</div>

@@ -1,0 +1,17 @@
+{
+  "schema_version": "learning_graph_pilot_source_pack.v0",
+  "authority": "raw_source_navigation_only",
+  "runtime_consumable": false,
+  "official_score_allowed": false,
+  "facts": [
+    {"fact_id":"S01","topic_id":"np01","text":"网络计划先分析工作之间的先行、后续、紧前、紧后和平行关系，并区分实工作与虚工作。","source_refs":["page_13_13.json::$[0].content_markdown"]},
+    {"fact_id":"S02","topic_id":"np02","text":"合法双代号网络图需要保持逻辑关系，编号不重复，有唯一开始和结束，不能形成循环；虚工作用于表达必要的逻辑约束。","source_refs":["page_17_17.json::$[1].content_markdown","page_18_18.json::$[0].content_markdown","page_19_19.json::$[0].content_markdown"]},
+    {"fact_id":"S03","topic_id":"np03","text":"顺推计算 ES 时取紧前工作完成时间的最大值，EF 等于 ES 加持续时间。","source_refs":["page_20_20.json::$[0].content_markdown"]},
+    {"fact_id":"S04","topic_id":"np04","text":"讲义给出 LS/LF 的逆推定义与局部公式，但当前 source slice 没有完整逐字覆盖项目工期终点边界和紧后取小规则。","source_refs":["page_21_21.json::$[0].content_markdown"]},
+    {"fact_id":"S05","topic_id":"np05","text":"TF 表示不影响总工期的余量，FF 表示不影响紧后工作最早开始的余量；讲义给出 TF=LS-ES=LF-EF 与 FF 的计算关系。","source_refs":["page_20_20.json::$[0].content_markdown","FINAL_CLEANED_BOOK2026-222-382_fixed.json::$.content_blocks[84].content_markdown"]},
+    {"fact_id":"S06","topic_id":"np06","text":"关键工作由总时差判定，关键线路由连续关键工作组成；不能把最长单个工作直接当作关键线路。","source_refs":["FINAL_CLEANED_BOOK2026-222-382_fixed.json::$.content_blocks[84].content_markdown"]},
+    {"fact_id":"S07","topic_id":"np07","text":"判断延误影响时，需要比较偏差与 FF/TF，并结合涉事工作是否处于关键线路；教材将关键线路和超出总时差作为索赔判断条件。","source_refs":["page_24_24.json::$[0].content_markdown","FINAL_CLEANED_BOOK2026-222-382.json::$[67].content_markdown"]},
+    {"fact_id":"S08","topic_id":"np08","text":"工期优化先识别当前关键线路，再选择关键工作压缩；多关键线路时考虑共同或组合工作与最低增费。","source_refs":["FINAL_CLEANED_BOOK2026-222-382_fixed.json::$.content_blocks[84].content_markdown","page_27_27.json::$[0].content_markdown","page_28_28.json::$[0].content_markdown"]}
+  ],
+  "protected_authority": {"release_truth":"unchanged","answer_key_authority":"unchanged","official_score_allowed":false,"required_terms":"unchanged","learner_truth_write_allowed":false}
+}

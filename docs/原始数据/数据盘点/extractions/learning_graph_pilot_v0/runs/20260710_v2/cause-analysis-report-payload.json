@@ -1,0 +1,35 @@
+{
+  "charts": [
+    {
+      "id": "arm-accuracy",
+      "height": 320,
+      "type": "bar",
+      "dataset": {
+        "id": "arm-accuracy",
+        "title": "Strict remediation-choice accuracy",
+        "data": [
+          {"arm": "Baseline", "accuracy": 0.85, "correct": 17, "total": 20},
+          {"arm": "Graph", "accuracy": 0.80, "correct": 16, "total": 20}
+        ],
+        "chart_spec": {
+          "id": "arm-accuracy",
+          "dataset": "arm-accuracy",
+          "title": "Strict remediation-choice accuracy",
+          "type": "bar",
+          "encodings": {
+            "x": {"field": "arm", "type": "nominal"},
+            "y": {"field": "accuracy", "label": "Accuracy", "type": "quantitative"},
+            "tooltip": [
+              {"field": "correct", "label": "Correct", "type": "quantitative"},
+              {"field": "total", "label": "Cases", "type": "quantitative"}
+            ]
+          },
+          "xAxisTitle": "",
+          "yAxisTitle": "Accuracy",
+          "valueFormat": "percent"
+        },
+        "settings": {"orientation": "horizontal", "groupMode": "grouped"}
+      }
+    }
+  ]
+}

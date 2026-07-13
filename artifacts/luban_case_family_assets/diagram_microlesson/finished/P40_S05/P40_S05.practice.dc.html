@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="P40_S05.teach.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="P40_S05.teach.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？回看动画精讲</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">架构 · 参数 · 管理，三关重过</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍（重新抽题）</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="临时用电 · 三级配电两级保护";
+  KNOWLEDGE="临时用电三级配电两级保护。三大系统缺一不可:三级配电系统(总配电箱→分配电箱→开关箱)+TN-S接零保护系统+二级剩余电流(漏电)动作保护系统(总箱一级、末级开关箱一级)。停送电顺序:送电总→分→开;停电开→分→总,禁颠倒。一机一闸:每台设备专用开关箱,严禁2台及以上共用(含插座);进线端严禁插头插座做活动连接;动力开关箱与照明开关箱必分设。安全电压:潮湿/隧道/人防≤36V、易触及带电体≤24V、金属容器/锅炉内≤12V;手持灯具≤36V须双绕组隔离变压器、金属容器内严禁;湿度>75%/积水未用安全电压照明=重大隐患。电缆直接埋地≥0.7m;五芯电缆N线=蓝色、PE线=黄绿双色;配电箱金属箱门与箱体连接=单股铜线。管理:电工持证上岗、拆除由电工完成;装饰装修阶段补编单项施工用电方案;50kW及以上编用电组织设计;开关箱与配电箱间距≤30m、仓库堆料场严禁碘钨灯。采分主线:架构对不对→参数够不够→管理顺不顺。";
+  moreText="补两组：① 综合纠错案例（{2023第1题}共用开关箱+插头插座+装饰阶段），练「指不妥+违反哪条+正确做法带判据」三段式；② 参数记忆组（安全电压 36/24/12V、埋深 0.7m、N蓝 PE黄绿、单股铜线），练条件维数值不张冠李戴。";
+  Q=[
+    { tag:"三大系统·架构", typeHint:"单选 · 选最完整、能拿分的作答", figLabel:"题给：临时用电必须采用的系统", figCaption:"三块拼图 · 缺一不可", fig:"sys3",
+      stem:"施工现场临时用电必须采用哪几大系统？选出最完整、能得分的作答。",
+      model:"三级配电系统 + TN-S 接零保护系统 + 二级剩余电流（漏电）动作保护系统，三者缺一不可。",
+      opts:[
+        { t:"三级配电系统、TN-S 接零保护系统、二级剩余电流（漏电）动作保护系统，三者缺一不可。", ok:true, fix:"三块一块儿写全，正是阅卷分开给分的三个采分点。", code:"" },
+        { t:"采用三级配电系统即可，把总配电箱、分配电箱、开关箱设齐就满足临时用电要求。", ok:false, code:"E02", tempt:"三级配电最常被记住，容易以为写这一条就够。", lose:"漏了 TN-S 接零与二级漏电保护两大系统，系统不完整。", fix:"补 TN-S 接零保护系统 + 二级剩余电流动作保护系统。" },
+        { t:"采用两级配电系统加一级漏电保护，并利用大地作为保护零线导体接零。", ok:false, code:"E07", tempt:"记成了「两级／一级」，还把大地当零线。", lose:"应是三级配电、二级漏保，且严禁利用大地作零线导体。", fix:"三级配电 + TN-S 接零（PE 线独立）+ 二级漏保。" },
+        { t:"采用 TN-C 接零保护系统与三级配电系统，配一级漏电保护装置在总配电箱处。", ok:false, code:"E10", tempt:"知道要接零、要三级，顺手写成 TN-C。", lose:"应为 TN-S（PE 与 N 分开），且漏保是二级不是一级。", fix:"TN-S 接零 + 二级漏保（总箱 + 末级开关箱各一级）。" }
+      ] },
+    { tag:"三级配电装置·架构", typeHint:"单选 · 选归类正确的作答", figLabel:"题给：三级配电的三级装置", figCaption:"总 → 分 → 开，逐级配电", fig:"levels",
+      stem:"三级配电系统由哪三级配电装置组成？选出正确的作答。",
+      model:"总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级。",
+      opts:[
+        { t:"总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级直接接用电设备。", ok:true, fix:"三级装置顺序写全并点明「不得越级」，归类到位。", code:"" },
+        { t:"总配电箱、开关箱两级配电装置，中间的分配电箱可省略以简化线路。", ok:false, code:"E02", tempt:"觉得两级也能供上电，省一级更省事。", lose:"少了分配电箱这一级，违反三级配电要求。", fix:"必须总配电箱、分配电箱、开关箱三级齐全。" },
+        { t:"总配电箱、分配电箱、开关箱、末端插座箱四级配电，层层加箱更安全。", ok:false, code:"E07", tempt:"以为加得越多越安全。", lose:"标准是三级配电，多加一级并非规范要求、概念混淆。", fix:"三级配电即总、分、开三级，不是四级。" },
+        { t:"配电室、配电柜、配电盘三级，按室内配电层级组织临时用电。", ok:false, code:"E10", tempt:"把固定式室内配电层级套到临时用电上。", lose:"临时用电三级是总配电箱、分配电箱、开关箱，规范套错。", fix:"总配电箱、分配电箱、开关箱三级配电装置。" }
+      ] },
+    { tag:"一机一闸·管理", typeHint:"单选 · 指出不妥并选正确做法", figLabel:"题给：瓷砖切割机、砂浆搅拌机", figCaption:"两台设备 · 共用一个开关箱（题给做法）", fig:"onebox",
+      stem:"现场瓷砖切割机与砂浆搅拌机共用一个开关箱。此做法不妥，选出正确做法。",
+      model:"每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
+      opts:[
+        { t:"每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。", ok:true, fix:"专用开关箱 + 严禁 2 台及以上 + 含插座，判据带全才拿满分。", code:"" },
+        { t:"两台设备分开时段错峰使用同一个开关箱即可，不同时开就不违反一机一闸。", ok:false, code:"M10", tempt:"觉得「不同时用」就等于不共用。", lose:"一机一闸是硬性配置要求，与是否同时使用无关。", fix:"每台设备专用开关箱，严禁 2 台及以上共用（含插座）。" },
+        { t:"给两台设备各装一个漏电保护器后共用一个开关箱，加装保护即可合规。", ok:false, code:"E10", tempt:"以为加了漏保就能共用一箱。", lose:"漏保解决不了共用问题，仍违反一机一闸。", fix:"每台设备必须专用开关箱，不得共用（含插座）。" },
+        { t:"把两台设备接到同一开关箱不同回路上，一箱两路分开控制就算专用。", ok:false, code:"E03", tempt:"以为分回路就等于专用。", lose:"仍是一个开关箱控多台，漏了「专用开关箱」关键词。", fix:"每台设备各自专用开关箱，严禁 2 台及以上共用。" }
+      ] },
+    { tag:"进线端·管理", typeHint:"单选 · 指出不妥并选正确做法", figLabel:"题给：开关箱与配电箱连接方式", figCaption:"用插头插座做活动连接（题给做法）", fig:"inlet",
+      stem:"某开关箱使用插头插座与配电箱进线端连接。此做法不妥，选出正确做法。",
+      model:"配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应固定可靠连接。",
+      opts:[
+        { t:"配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应采用固定可靠的连接方式。", ok:true, fix:"点出「进线端」「严禁插头插座活动连接」两个关键词，判据齐。", code:"" },
+        { t:"选用防水防尘的工业插头插座连接即可，防护等级够高就能用于进线端。", ok:false, code:"E10", tempt:"以为换成高防护插头就合规。", lose:"进线端本身就严禁插头插座活动连接，与防护等级无关。", fix:"进线端严禁插头插座活动连接，须固定连接。" },
+        { t:"只要把插头插座连接处用绝缘胶布缠牢固定，就等于满足可靠连接。", ok:false, code:"M10", tempt:"用「缠牢」的常识替代规范。", lose:"缠胶布仍是活动连接，未达固定可靠连接要求。", fix:"进线端严禁插头插座活动连接，应固定连接。" },
+        { t:"进线端可用插头插座、出线端固定连接即可，进出各一种方式最灵活。", ok:false, code:"E07", tempt:"把进线端和出线端要求记反。", lose:"恰恰是进线端严禁插头插座活动连接。", fix:"电源进线端严禁插头插座活动连接。" }
+      ] },
+    { tag:"动力照明分设·管理", typeHint:"单选 · 选做法正确的作答", figLabel:"题给：动力开关箱与照明开关箱", figCaption:"能不能合用一个开关箱？", fig:"powlight",
+      stem:"关于动力与照明配电的设置，选出正确的作答。",
+      model:"动力配电箱与照明配电箱宜分别设置；合并设置时应分路配电；动力开关箱与照明开关箱必须分设。",
+      opts:[
+        { t:"动力配电箱与照明配电箱宜分设；合并时须分路配电；动力开关箱与照明开关箱必须分设。", ok:true, fix:"宜分设 + 合并须分路 + 开关箱必分设，层次写全。", code:"" },
+        { t:"动力和照明用一个开关箱统一控制最省线，只要总容量不超标就可以合用。", ok:false, code:"E10", tempt:"以为省线、不超容量就能合用。", lose:"动力开关箱与照明开关箱必须分设，不得合用。", fix:"动力开关箱与照明开关箱必须分设。" },
+        { t:"动力与照明配电箱必须共箱设置以便集中管理，分设反而增加箱体不利维护。", ok:false, code:"E07", tempt:"把「宜分设」记反成「必须共箱」。", lose:"配电箱宜分设，开关箱必须分设，方向记反。", fix:"配电箱宜分设、开关箱必分设。" },
+        { t:"照明可直接从动力开关箱引出一路使用，不必单独设照明开关箱。", ok:false, code:"E03", tempt:"觉得从动力箱分一路更方便。", lose:"漏了「动力/照明开关箱必须分设」关键要求。", fix:"照明须单设开关箱，动力照明开关箱分设。" }
+      ] },
+    { tag:"送电顺序·程序", typeHint:"单选 · 选顺序正确的作答", figLabel:"题给：三级配电箱", figCaption:"合闸送电，谁先谁后？", fig:"seqsend",
+      stem:"施工现场临时用电正常送电（合闸）的顺序是？选出正确的作答。",
+      model:"送电顺序：总配电箱 → 分配电箱 → 开关箱（从大到小逐级送电）。",
+      opts:[
+        { t:"送电顺序：总配电箱 → 分配电箱 → 开关箱，从大到小逐级合闸送电。", ok:true, fix:"送电从总到分到开，方向写对、逐级点明。", code:"" },
+        { t:"送电顺序：开关箱 → 分配电箱 → 总配电箱，从末端设备侧往回合闸。", ok:false, code:"E06", tempt:"把停电顺序套到送电上。", lose:"这是停电顺序；送电应总→分→开，顺序颠倒。", fix:"送电：总配电箱→分配电箱→开关箱。" },
+        { t:"送电顺序：分配电箱 → 总配电箱 → 开关箱，先送中间一级再补两头。", ok:false, code:"E06", tempt:"记成从中间一级先送。", lose:"顺序错乱，送电必须自总箱起逐级向下。", fix:"送电：总→分→开，不能从中间起。" },
+        { t:"送电无先后，三级配电箱可同时合闸以缩短送电时间。", ok:false, code:"M10", tempt:"以为同时合闸更快。", lose:"送电有严格顺序，不得同时或随意合闸。", fix:"送电必须总→分→开逐级进行。" }
+      ] },
+    { tag:"停电顺序·程序", typeHint:"单选 · 选顺序正确的作答", figLabel:"题给：三级配电箱", figCaption:"停电（拉闸），谁先谁后？", fig:"seqstop",
+      stem:"正常情况下，现场临时配电系统停电（拉闸）的顺序是？选出正确的作答。",
+      model:"停电顺序：开关箱 → 分配电箱 → 总配电箱（从末端开始，防带负荷拉闸拉弧）。",
+      opts:[
+        { t:"停电顺序：开关箱 → 分配电箱 → 总配电箱，从末端先停、逐级向总箱，防带负荷拉弧。", ok:true, fix:"停电从末端起 + 点明防带负荷拉弧，方向与理由齐。", code:"" },
+        { t:"停电顺序：总配电箱 → 分配电箱 → 开关箱，先断总箱一次性切掉全场电源。", ok:false, code:"E06", tempt:"觉得先断总箱一把切最干净。", lose:"先断总箱时开关箱仍带负荷，拉闸拉弧；这是送电顺序。", fix:"停电：开关箱→分配电箱→总配电箱。" },
+        { t:"停电顺序：分配电箱 → 开关箱 → 总配电箱，先切中间一级再收两头。", ok:false, code:"E06", tempt:"记成从中间一级先停。", lose:"顺序错乱，停电必须从末端开关箱起。", fix:"停电：开→分→总，从末端起。" },
+        { t:"停电与送电同序：总配电箱 → 分配电箱 → 开关箱，一套顺序好记。", ok:false, code:"E07", tempt:"图省事记成停送同序。", lose:"停送电顺序相反，停电从末端开始。", fix:"送电总→分→开；停电开→分→总。" }
+      ] },
+    { tag:"安全电压·条件维", typeHint:"单选 · 计算判定链：对照场所取限值", figLabel:"题给：金属容器内照明", figCaption:"场所=金属容器 → 电压上限=？", fig:"volt",
+      stem:"在金属容器（如锅炉、储罐）内作业时，照明行灯的供电电压上限应为多少？选出可得分的作答。",
+      model:"金属容器/锅炉内照明电压不得大于 12V（安全电压最低档）。",
+      opts:[
+        { t:"金属容器、锅炉内照明电压不得大于 12V，取安全电压最低一档。", ok:true, fix:"对照场所=金属容器，取 12V 最低档，判据链完整。", code:"" },
+        { t:"金属容器内照明电压不得大于 36V，按一般潮湿场所的安全电压执行即可。", ok:false, code:"M08", tempt:"把 36V 这一常见档位套到金属容器。", lose:"36V 是潮湿/隧道档，金属容器须降到 12V。", fix:"金属容器/锅炉内 ≤12V。" },
+        { t:"金属容器内照明电压不得大于 24V，比一般场所降一档就够安全。", ok:false, code:"M08", tempt:"只降一档到 24V，以为够了。", lose:"24V 是易触及带电体档，金属容器要再降到 12V。", fix:"金属容器/锅炉内 ≤12V，不是 24V。" },
+        { t:"金属容器内使用 220V 灯具但加装漏电保护器即可保证安全。", ok:false, code:"E10", tempt:"以为加漏保就能用 220V。", lose:"金属容器内必须用安全电压 12V，不能用 220V。", fix:"金属容器内 ≤12V 安全电压照明。" }
+      ] },
+    { tag:"安全电压分档·条件维", typeHint:"单选 · 选场所与限值对应正确的作答", figLabel:"题给：三档安全电压", figCaption:"36 / 24 / 12V 各对哪种场所？", fig:"voltmap",
+      stem:"下列安全电压限值与场所的对应，哪一项完全正确？",
+      model:"潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。",
+      opts:[
+        { t:"潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。", ok:true, fix:"三档场所一一对应正确，条件维不张冠李戴。", code:"" },
+        { t:"潮湿/隧道 ≤24V；易触及带电体 ≤36V；金属容器/锅炉内 ≤12V。", ok:false, code:"M08", tempt:"把 36V 与 24V 两档对调。", lose:"潮湿/隧道是 36V、易触及是 24V，档位调错。", fix:"潮湿/隧道 36V、易触及 24V、金属容器 12V。" },
+        { t:"潮湿/隧道 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤24V。", ok:false, code:"M08", tempt:"金属容器顺手也写成 24V。", lose:"金属容器/锅炉内须 ≤12V，不是 24V。", fix:"金属容器/锅炉内 ≤12V。" },
+        { t:"所有特殊场所统一 ≤36V，一个门槛好记又偏安全。", ok:false, code:"E02", tempt:"图好记用一个门槛套所有场所。", lose:"漏了 24V、12V 两档，采分点不全。", fix:"分三档：36V / 24V / 12V 对应不同场所。" }
+      ] },
+    { tag:"手持灯具·条件维", typeHint:"单选 · 选做法完整正确的作答", figLabel:"题给：手持行灯供电", figCaption:"电压 + 变压器 + 使用禁区", fig:"handlamp",
+      stem:"关于手持式照明灯具（行灯）的供电要求，选出完整正确的作答。",
+      model:"手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
+      opts:[
+        { t:"手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。", ok:true, fix:"电压 + 双绕组隔离变压器 + 金属容器内严禁，三点齐。", code:"" },
+        { t:"手持灯具电压不得超过 36V 即可，用普通变压器降到 36V 就满足要求。", ok:false, code:"E02", tempt:"只记住 36V 电压值。", lose:"漏了「双绕组型安全隔离变压器」这一关键器件。", fix:"须用双绕组型安全隔离变压器供电。" },
+        { t:"手持灯具用自耦变压器降压到 36V 供电，简单可靠。", ok:false, code:"E10", tempt:"以为自耦变压器也能降压用。", lose:"自耦变压器无电气隔离，必须用双绕组隔离变压器。", fix:"必须用双绕组型安全隔离变压器。" },
+        { t:"手持灯具电压不超过 36V，可在金属容器内正常使用照明。", ok:false, code:"M08", tempt:"以为 36V 在金属容器里也安全。", lose:"金属容器内严禁手持灯具、且须 12V 照明。", fix:"金属容器内严禁使用手持灯具。" }
+      ] },
+    { tag:"重大隐患·后果维", typeHint:"单选 · 选定性正确的作答", figLabel:"题给：湿度>75% / 有积水场所", figCaption:"未用安全电压照明，属什么？", fig:"hazard",
+      stem:"特殊环境（湿度大于 75%、有积水）作业未采用安全电压照明。此情形应如何定性？",
+      model:"属重大事故隐患，应立即整改为安全电压照明。",
+      opts:[
+        { t:"属重大事故隐患，必须立即整改为安全电压（对应场所限值）照明。", ok:true, fix:"点出「重大事故隐患」定性 + 整改方向，后果维到位。", code:"" },
+        { t:"属一般安全问题，记录后限期整改即可，不影响继续作业。", ok:false, code:"E07", tempt:"以为只是普通违规、可缓改。", lose:"这是重大事故隐患，定性偏轻。", fix:"应定性为重大事故隐患，立即整改。" },
+        { t:"注意用电安全、加强现场管理即可，属日常防护范畴。", ok:false, code:"E04", tempt:"用「加强管理」的口号带过。", lose:"口号化、未定性也无可判分措施。", fix:"定性重大事故隐患 + 改用安全电压照明。" },
+        { t:"只要给灯具加装漏电保护器就能继续用 220V 照明，无需停工。", ok:false, code:"E10", tempt:"以为加漏保就可用常规电压。", lose:"特殊潮湿场所必须用安全电压，加漏保不替代。", fix:"须用安全电压照明，属重大隐患须整改。" }
+      ] },
+    { tag:"电缆埋地·条件维", typeHint:"单选 · 计算判定链：对照阈值判合格", figLabel:"题给：电缆直接埋地敷设", figCaption:"埋深阈值 = ?", fig:"bury",
+      stem:"电缆直接埋地敷设时，埋设深度应满足什么要求？选出可得分的作答。",
+      model:"电缆直接埋地敷设深度不应小于 0.7m，穿越道路等处应加保护套管并设警示。",
+      opts:[
+        { t:"电缆直接埋地敷设深度不应小于 0.7m，穿越处应加保护套管并设警示标识。", ok:true, fix:"0.7m 阈值 + 保护措施，条件维带全。", code:"" },
+        { t:"电缆直接埋地敷设深度不应小于 0.5m，浅埋可减少土方、便于检修。", ok:false, code:"M08", tempt:"记成了 0.5m，觉得浅埋省事。", lose:"直接埋地深度须 ≥0.7m，数字记错。", fix:"直接埋地敷设深度 ≥0.7m。" },
+        { t:"电缆沿地面明敷并加盖木板保护即可，不必埋入地下。", ok:false, code:"E10", tempt:"以为盖木板就等于保护。", lose:"要求直接埋地 ≥0.7m，明敷不合规。", fix:"电缆直接埋地敷设 ≥0.7m。" },
+        { t:"只要埋进土里即可，深度按现场土方情况灵活确定。", ok:false, code:"E03", tempt:"只答「埋地」不给深度。", lose:"漏了「≥0.7m」这一关键数值。", fix:"直接埋地深度不应小于 0.7m。" }
+      ] },
+    { tag:"标识色·条件维", typeHint:"单选 · 选颜色对应正确的作答", figLabel:"题给：五芯电缆芯线颜色", figCaption:"N 线、PE 线各是什么色？", fig:"colors",
+      stem:"五芯电缆中，N 线（工作零线）与 PE 线（保护零线）的标识色分别是？选出正确的作答。",
+      model:"N 线=蓝色；PE 线=黄绿双色。二者不得混用或挪作他用。",
+      opts:[
+        { t:"N 线为蓝色，PE 线为黄绿双色，二者颜色不得混用或挪作他用。", ok:true, fix:"N 蓝、PE 黄绿对应正确，并点明不得挪用。", code:"" },
+        { t:"N 线为黄绿双色，PE 线为蓝色，按接零系统习惯配色即可。", ok:false, code:"M08", tempt:"把 N 与 PE 的颜色对调。", lose:"应是 N 蓝、PE 黄绿，颜色记反。", fix:"N 线=蓝色、PE 线=黄绿双色。" },
+        { t:"N 线为黑色，PE 线为绿色，与相线区分开就行。", ok:false, code:"M08", tempt:"随手写成黑、绿也能区分。", lose:"N 是蓝色、PE 是黄绿双色，颜色错。", fix:"N=蓝色、PE=黄绿双色。" },
+        { t:"N 线与 PE 线颜色不作强制规定，只要现场统一标注即可。", ok:false, code:"E10", tempt:"以为现场自定就行。", lose:"标识色是强制规定，N 蓝 PE 黄绿。", fix:"N=蓝色、PE=黄绿双色（强制）。" }
+      ] },
+    { tag:"箱门连接·条件维", typeHint:"单选 · 选材料正确的作答", figLabel:"题给：配电箱金属箱门与箱体", figCaption:"两者之间用什么连接？", fig:"copper",
+      stem:"配电箱、开关箱的金属箱门与箱体之间应采用什么连接？选出正确的作答。",
+      model:"金属箱门与箱体之间应采用软铜线（单股铜线）做电气连接（跨接）。",
+      opts:[
+        { t:"金属箱门与箱体之间应用单股铜线做电气连接（跨接），保证箱门可靠接地。", ok:true, fix:"单股铜线跨接、点明可靠接地，材料与目的齐。", code:"" },
+        { t:"金属箱门与箱体之间用多股编织铜带连接，越粗越软越好。", ok:false, code:"M08", tempt:"以为编织带更软更导电。", lose:"规范要求单股铜线连接，材料记错。", fix:"金属箱门与箱体连接用单股铜线。" },
+        { t:"金属箱门与箱体靠合页金属接触自然导通即可，无需另设连接线。", ok:false, code:"E10", tempt:"以为合页接触就够。", lose:"合页接触不可靠，须专设单股铜线跨接。", fix:"须用单股铜线做电气跨接。" },
+        { t:"金属箱门与箱体用塑料绝缘条隔开，避免箱门带电更安全。", ok:false, code:"E07", tempt:"以为隔开绝缘更安全。", lose:"箱门须可靠接地而非绝缘隔离，概念反了。", fix:"用单股铜线跨接使箱门可靠接地。" }
+      ] },
+    { tag:"电工持证·主体维", typeHint:"单选 · 选主体正确的作答", figLabel:"题给：电工资格与拆除主体", figCaption:"谁能上岗？谁来拆除？", fig:"cert",
+      stem:"关于电工上岗与用电设备的安装拆除，选出正确的作答。",
+      model:"电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。",
+      opts:[
+        { t:"电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。", ok:true, fix:"持证上岗 + 拆除由电工完成，主体两点齐。", code:"" },
+        { t:"电工经内部培训熟悉操作即可上岗，用电设备可由熟练工人自行拆除。", ok:false, code:"M10", tempt:"用「有经验/熟练」替代持证。", lose:"电工须持证上岗，拆除须电工完成。", fix:"电工持证上岗，用电设备拆除由电工完成。" },
+        { t:"用电设备的拆除由现场安全员负责监督并完成，比电工更懂安全。", ok:false, code:"E10", tempt:"觉得安全员更懂安全、可代劳。", lose:"拆除应由电工完成，主体写错。", fix:"用电设备拆除应由电工完成（非安全员）。" },
+        { t:"电工持证即可，用电设备安装拆除属机械操作，可由机操工兼做。", ok:false, code:"E02", tempt:"抓住持证一点，漏了拆除主体。", lose:"漏「拆除由电工完成」这一采分点。", fix:"用电设备安装拆除均应由电工完成。" }
+      ] },
+    { tag:"组织设计·主体维", typeHint:"单选 · 选做法完整正确的作答", figLabel:"题给：50kW 用电 + 装饰装修阶段", figCaption:"编什么文件？何时补方案？", fig:"plan",
+      stem:"某工程临时用电总容量 50kW 以上，且进入装饰装修阶段。用电文件应如何编制？选出正确的作答。",
+      model:"总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。",
+      opts:[
+        { t:"总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。", ok:true, fix:"50kW 组织设计 + 装饰阶段补方案，两项齐。", code:"" },
+        { t:"总容量 50kW 以上编用电组织设计即可，装饰阶段沿用原方案不必另编。", ok:false, code:"E05", tempt:"以为一份组织设计管到底。", lose:"漏识别装饰阶段用电变化，须补编单项方案。", fix:"装饰装修阶段应补编单项施工用电方案。" },
+        { t:"只需在装饰阶段补编单项方案，总容量大小不影响是否编组织设计。", ok:false, code:"E02", tempt:"只记住补方案，漏了 50kW 门槛。", lose:"漏「50kW 及以上编用电组织设计」采分点。", fix:"50kW 及以上须编用电组织设计。" },
+        { t:"编制一份施工现场防火防雷方案覆盖临时用电即可，无需专门用电文件。", ok:false, code:"E10", tempt:"用防火防雷方案冒充用电文件。", lose:"须编用电组织设计 + 单项用电方案，文件套错。", fix:"50kW+ 编用电组织设计、装饰阶段补单项用电方案。" }
+      ] },
+    { tag:"堆场综合·条件维", typeHint:"单选 · 综合纠错，选做法均正确的作答", figLabel:"题给：堆料场配电布置", figCaption:"间距 + 灯具，哪项都对？", fig:"yard",
+      stem:"关于堆料场临时用电布置（综合纠错），选出各项均正确的作答。",
+      model:"开关箱与其控制的固定式配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯。",
+      opts:[
+        { t:"开关箱与配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯照明。", ok:true, fix:"30m 间距 + 严禁碘钨灯，综合纠错两点齐。", code:"" },
+        { t:"开关箱与配电箱间距不得大于 30m；堆料场可用碘钨灯以增强照度。", ok:false, code:"E10", tempt:"觉得堆场大、碘钨灯亮更好用。", lose:"仓库堆料场严禁碘钨灯（高温易燃）。", fix:"仓库堆料场严禁使用碘钨灯。" },
+        { t:"开关箱与配电箱间距不得大于 50m；仓库堆料场严禁使用碘钨灯。", ok:false, code:"M08", tempt:"把间距记成 50m。", lose:"开关箱与配电箱间距须 ≤30m，数字错。", fix:"开关箱与配电箱间距 ≤30m。" },
+        { t:"开关箱靠近设备即可、与配电箱间距无硬性限制；碘钨灯远离堆垛使用可。", ok:false, code:"E03", tempt:"以为就近就行、灯挪远即可。", lose:"漏 30m 间距硬指标，且堆料场严禁碘钨灯。", fix:"间距 ≤30m，仓库堆料场严禁碘钨灯。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 指出漏诊并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"指出①共用不妥，但漏了什么？", fig:"sheet",
+      stem:"案例：现场做法有①装饰阶段仅按原组织设计用电、②切割机与搅拌机共用一开关箱、③开关箱用插头插座与配电箱连接。某学生只答「②共用不妥，应分开」。选出最准确的诊断与补写。",
+      model:"②改正缺判据（应写专用开关箱、严禁2台及以上含插座）；漏诊①装饰阶段应补编单项用电方案、③进线端严禁插头插座活动连接，三处都要补。",
+      opts:[
+        { t:"②改正缺规范判据（应写专用开关箱、严禁 2 台及以上含插座）；还漏诊①装饰阶段补方案、③进线端禁插头插座，三处均须补。", ok:true, fix:"半命中项补判据 + 补齐两处漏诊，指漏到具体采分句。", code:"" },
+        { t:"学生指出②共用不妥、方向正确，本题作答基本到位，可给大部分分。", ok:false, code:"E02", tempt:"看方向对就以为差不多。", lose:"漏诊①③两处不妥，②改正也缺判据，失分严重。", fix:"补①装饰补方案、③进线端禁插接，②补专用开关箱判据。" },
+        { t:"只需把②的「应分开」补成「专用开关箱」即可，①③题干本无不妥。", ok:false, code:"E05", tempt:"以为只有②一处不妥。", lose:"①装饰未补方案、③插头插座连接都是不妥，审题漏项。", fix:"①③均不妥，须一并指出并改正。" },
+        { t:"重点是③插头插座连接不妥，①②做法其实符合规范，无需改动。", ok:false, code:"E07", tempt:"抓到③却把①②当合规。", lose:"②共用开关箱、①装饰未补方案同样不妥，判断反了。", fix:"①②③三处都不妥，逐条指出并给判据。" }
+      ] }
+  ];
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"三大系统/分档/两点要求逐条写全，缺一扣一。"},
+    E03:{label:"关键词缺失",advice:"专用开关箱、进线端、≥0.7m 等判据词不能省。"},
+    E04:{label:"口号化表达",advice:"别用「加强管理」带过，要落到可判分措施与定性。"},
+    E05:{label:"审题错误",advice:"装饰阶段、金属容器等场景条件要先识别到。"},
+    E06:{label:"程序顺序错误",advice:"送电总→分→开、停电开→分→总，不能颠倒或混。"},
+    E07:{label:"概念混淆",advice:"分清 TN-S/TN-C、宜分设/必分设、档位与主体。"},
+    E10:{label:"规范适用错误",advice:"不能用漏保/防护/常识替代硬性规范要求。"},
+    M08:{label:"规范数字混淆",advice:"36/24/12V、0.7m、30m、N蓝PE黄绿别张冠李戴。"},
+    M10:{label:"用常识替代规范",advice:"错峰、熟练、缠胶布都不替代持证与专用开关箱。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+  }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="sys3"){ figH=86;
+      els.push(D({x:4,top:8,w:150,h:32,bg:"#eef3f7",bd:"1.5px solid #2f6db0",r:8,fg:"#2f6db0",fs:11,lab:"三级配电系统"}));
+      els.push(D({x:170,top:8,w:150,h:32,bg:"#fdf3ea",bd:"1.5px solid #cf8a44",r:8,fg:"#c07a34",fs:11,lab:"TN-S 接零保护"}));
+      els.push(D({x:4,top:46,w:150,h:32,bg:"#eef7f1",bd:"1.5px solid #2c8a5b",r:8,fg:"#2c8a5b",fs:11,lab:"二级漏电保护"}));
+      els.push(D({x:170,top:46,w:150,h:32,bg:"transparent",bd:"1.5px dashed #cf4436",r:8,fg:"#cf4436",fs:11,lab:"缺一不可"})); }
+    else if(type==="levels"){ figH=80; const b=[["总配电箱","一级","#2f6db0"],["分配电箱","二级","#3f7dc0"],["开关箱","末级","#4f8bcf"]];
+      b.forEach((p,i)=>{ els.push(D({x:8+i*106,top:16,w:96,h:36,bg:p[2],r:7,fg:"#fff",fs:11.5,lab:p[0]}));
+        els.push(D({x:8+i*106,top:56,w:96,h:16,fg:"#8b9398",fs:9,lab:p[1]})); }); }
+    else if(type==="onebox"){ figH=88;
+      els.push(D({x:36,top:6,w:80,h:28,bg:"#8a9298",r:6,fg:"#fff",fs:10.5,lab:"切割机"}));
+      els.push(D({x:200,top:6,w:80,h:28,bg:"#8a9298",r:6,fg:"#fff",fs:10.5,lab:"搅拌机"}));
+      els.push(D({x:118,top:52,w:88,h:30,bg:"#cf9a8f",bd:"2px solid #cf4436",r:6,fg:"#7a241a",fs:10.5,lab:"1 个开关箱"}));
+      els.push(D({x:8,top:52,w:104,h:30,fg:"#cf4436",fs:11,ta:"right",jc:"flex-end",lab:"两台共用 ✕"})); }
+    else if(type==="inlet"){ figH=84;
+      els.push(D({x:20,top:14,w:110,h:34,bg:"#3f7dc0",r:6,fg:"#fff",fs:10.5,lab:"配电箱"}));
+      els.push(D({x:200,top:14,w:110,h:34,bg:"#4f8bcf",r:6,fg:"#fff",fs:10.5,lab:"开关箱"}));
+      els.push(D({x:132,top:22,w:66,h:18,bg:"#fadcd6",bd:"1.5px dashed #cf4436",r:5,fg:"#a3271c",fs:9,lab:"插头插座"}));
+      els.push(D({x:20,top:58,w:290,h:16,fg:"#cf4436",fs:10.5,ta:"left",jc:"flex-start",lab:"进线端 活动连接（题给做法）"})); }
+    else if(type==="powlight"){ figH=76;
+      els.push(D({x:20,top:18,w:130,h:36,bg:"#eef3f7",bd:"1.5px solid #2f6db0",r:8,fg:"#2f6db0",fs:11,lab:"动力开关箱"}));
+      els.push(D({x:170,top:18,w:130,h:36,bg:"#fdf3ea",bd:"1.5px solid #cf8a44",r:8,fg:"#c07a34",fs:11,lab:"照明开关箱"}));
+      els.push(D({x:150,top:24,w:20,h:24,fg:"#cf4436",fs:14,lab:"?"})); }
+    else if(type==="seqsend"||type==="seqstop"){ figH=80; const b=["总配电箱","分配电箱","开关箱"]; const cols=["#2f6db0","#3f7dc0","#4f8bcf"];
+      b.forEach((n,i)=>els.push(D({x:8+i*106,top:16,w:96,h:34,bg:cols[i],r:7,fg:"#fff",fs:11,lab:n})));
+      els.push(D({x:8,top:56,w:312,h:16,fg:type==="seqsend"?"#2c8a5b":"#cf4436",fs:10.5,lab:type==="seqsend"?"送电：从左向右？":"停电：从右向左？"})); }
+    else if(type==="volt"){ figH=88;
+      els.push(D({x:110,top:8,w:104,h:44,bg:"#e9e7da",bd:"2px solid #8a9298",r:8,fg:"#5c6469",fs:10,lab:"金属容器内"}));
+      els.push(D({x:150,top:18,w:24,h:24,bg:"#ffd24a",r:12,fg:"#7a5a00",fs:9,lab:"灯"}));
+      els.push(D({x:96,top:60,w:132,h:20,fg:"#cf4436",fs:12,lab:"电压上限 = ? V"})); }
+    else if(type==="voltmap"){ figH=86;
+      els.push(D({x:4,top:6,w:150,h:22,bg:"#dff0e6",r:6,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",p:"0 8px",lab:"潮湿/隧道/人防"}));
+      els.push(D({x:160,top:6,w:44,h:22,bg:"#2c8a5b",r:6,fg:"#fff",fs:11,lab:"?V"}));
+      els.push(D({x:4,top:32,w:150,h:22,bg:"#fff4d6",r:6,fg:"#8a6d1f",fs:10,ta:"left",jc:"flex-start",p:"0 8px",lab:"易触及带电体"}));
+      els.push(D({x:160,top:32,w:44,h:22,bg:"#d8b24a",r:6,fg:"#fff",fs:11,lab:"?V"}));
+      els.push(D({x:4,top:58,w:150,h:22,bg:"#fadcd6",r:6,fg:"#c0392b",fs:10,ta:"left",jc:"flex-start",p:"0 8px",lab:"金属容器/锅炉"}));
+      els.push(D({x:160,top:58,w:44,h:22,bg:"#cf4436",r:6,fg:"#fff",fs:11,lab:"?V"})); }
+    else if(type==="handlamp"){ figH=80;
+      els.push(D({x:24,top:20,w:60,h:36,bg:"#ffd24a",r:8,fg:"#7a5a00",fs:10,lab:"手持灯"}));
+      els.push(D({x:120,top:20,w:110,h:36,bg:"#eef3f7",bd:"1.5px solid #2f6db0",r:8,fg:"#2f6db0",fs:9.5,lab:"变压器 ?型"}));
+      els.push(D({x:250,top:20,w:70,h:36,bg:"#fadcd6",bd:"1.5px solid #cf4436",r:8,fg:"#a3271c",fs:9.5,lab:"金属容器 ?"})); }
+    else if(type==="hazard"){ figH=82;
+      els.push(D({x:20,top:10,w:140,h:30,bg:"#dfe9f0",bd:"1.5px solid #2f6db0",r:7,fg:"#2f6db0",fs:10,lab:"湿度 >75%"}));
+      els.push(D({x:180,top:10,w:140,h:30,bg:"#dfe9f0",bd:"1.5px solid #2f6db0",r:7,fg:"#2f6db0",fs:10,lab:"地面积水"}));
+      els.push(D({x:60,top:50,w:220,h:24,bg:"#2b2620",r:7,fg:"#ffb0a3",fs:10.5,lab:"未用安全电压照明 = ?"})); }
+    else if(type==="bury"){ figH=92;
+      els.push(D({x:16,top:8,w:300,h:12,bg:"#c9a06a",r:3,fg:"#5c4321",fs:8,lab:"地面"}));
+      els.push(D({x:16,top:20,w:300,h:52,bg:"repeating-linear-gradient(0deg,#e6d3b3,#e6d3b3 7px,#dcc7a2 7px,#dcc7a2 14px)",r:0}));
+      els.push(D({x:120,top:58,w:96,h:12,bg:"#2f6db0",r:4,fg:"#fff",fs:8,lab:"电缆"}));
+      els.push(D({x:16,top:74,w:300,h:14,fg:"#cf4436",fs:11,lab:"埋深 = ? m"})); }
+    else if(type==="colors"){ figH=88; const c=[["L1","#d9a521"],["L2","#2c8a5b"],["L3","#cf4436"],["N","#2f6db0"],["PE","repeating-linear-gradient(45deg,#d9a521,#d9a521 5px,#2c8a5b 5px,#2c8a5b 10px)"]];
+      c.forEach((p,i)=>{ els.push(D({x:36+i*56,top:8,w:34,h:44,bg:p[1],r:5}));
+        els.push(D({x:36+i*56,top:56,w:34,h:16,fg:(p[0]==="N"||p[0]==="PE")?"#23282b":"#8b9398",fs:10,fw:"900",lab:p[0]})); }); }
+    else if(type==="copper"){ figH=80;
+      els.push(D({x:70,top:10,w:80,h:56,bg:"#dfe3e6",bd:"2px solid #8a9298",r:6,fg:"#5c6469",fs:9,lab:"箱体"}));
+      els.push(D({x:150,top:10,w:60,h:56,bg:"#eef1f3",bd:"2px solid #8a9298",r:6,fg:"#5c6469",fs:9,lab:"箱门"}));
+      els.push(D({x:210,top:30,w:110,h:16,fg:"#cf4436",fs:10.5,ta:"left",jc:"flex-start",lab:"两者用 ? 连接"})); }
+    else if(type==="cert"){ figH=80;
+      els.push(D({x:20,top:12,w:120,h:50,bg:"#fff",bd:"1.5px solid #2c8a5b",r:8,fg:"#2c8a5b",fs:11,lab:"电工证 ?"}));
+      els.push(D({x:160,top:20,w:160,h:34,fg:"#5c6469",fs:10,ta:"left",jc:"flex-start",lab:"设备拆除 由谁做？"})); }
+    else if(type==="plan"){ figH=82;
+      els.push(D({x:16,top:10,w:150,h:28,bg:"#3f7dc0",r:6,fg:"#fff",fs:9.5,lab:"主体结构阶段"}));
+      els.push(D({x:170,top:10,w:150,h:28,bg:"#cf8a44",r:6,fg:"#fff",fs:9.5,lab:"装饰装修阶段"}));
+      els.push(D({x:16,top:46,w:150,h:24,fg:"#2f6db0",fs:9.5,lab:"50kW+ → ?"}));
+      els.push(D({x:170,top:46,w:150,h:24,fg:"#c07a34",fs:9.5,lab:"装饰阶段 → ?"})); }
+    else if(type==="yard"){ figH=82;
+      els.push(D({x:16,top:16,w:70,h:30,bg:"#8a9298",r:6,fg:"#fff",fs:9.5,lab:"开关箱"}));
+      els.push(D({x:246,top:16,w:70,h:30,bg:"#8a9298",r:6,fg:"#fff",fs:9.5,lab:"配电箱"}));
+      els.push(D({x:90,top:26,w:152,h:0,bd:"2px dashed #cf4436",bg:"transparent"}));
+      els.push(D({x:90,top:50,w:152,h:16,fg:"#cf4436",fs:10,lab:"间距 ≤ ? m"})); }
+    else if(type==="sheet"){ figH=94; const lines=["① 装饰阶段仅按原组织设计用电","② 切割机与搅拌机共用一开关箱","③ 开关箱用插头插座接配电箱"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

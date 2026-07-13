@@ -1,0 +1,176 @@
+{
+  "id": "J01_危大工程专项方案专家论证",
+  "exam_point": "危大工程专项方案专家论证",
+  "exam_code": "J01",
+  "exam_category": "一级建造师 · 案例 · 危大工程安全管理",
+  "status": "candidate_microlesson_v1",
+  "voice": { "teacher": "longanhuan_v3", "student": "longlaotie_v3" },
+  "source": {
+    "finished_md": "uploads/J01_危大工程专项方案专家论证_案例题作答层样板.md",
+    "authority_note": "采分点 ground truth 锚 J01 §5 R5(signed)；错因码映射 deeptutor/contracts/error_codes(E/M 系列)；本卡为派生教学层，不另造 authority。"
+  },
+
+  "source_card": {
+    "main_exam_action": "给一个危大/超规模危大工程案例场景，考生要能：①按开挖深度/规模判档(危大 vs 超规模)；②确定编制主体(施工总承包单位组织编制，专业工程可专业承包编)；③排出论证前置程序(施工单位审核·总监理工程师审查·专家论证，不可颠倒)；④点明组织主体(总包组织召开)；⑤写全方案八项内容(尤其验收要求、应急处置；模板支撑另加计算书及施工图)；⑥专家组要求(5人以上、无利害关系、参建方回避、报告签字)；⑦论证内容三项(完整可行/计算书验算依据施工图符合规范/满足现场确保安全)；⑧实施控制(公示、交底、不得擅自修改、确需改须重新论证)。并写成阅卷友好的采分句。",
+    "wrong_idea": "① 混档：基坑刚过 3m 就说要专家论证(把危大档当超规模档)；② 专家‘5 人’就够(应 5 人以上)、且漏回避(参建各方人员不得当专家)；③ 编制主体写含糊‘施工单位’不点‘施工总承包单位’；④ 跳过总监审查直接论证；⑤ 论证内容写成经济性/分包资质；⑥ 只写‘不能改’不写‘须重新论证’。",
+    "teaching_spine": "一条‘危大工程从判档到论证落地’的合规流水线：判档 · 编制(主体) · 前置审(审核·审查) · 组织论证(主体+专家组回避) · 论证内容 · 实施控制(不得擅改·须重新论证)。",
+    "facts": [
+      "R5-1 危大档阈值：基坑≥3m/模板≥5m/起重≥10kN/脚手架≥24m · 编专项施工方案(条件维)",
+      "R5-2 超规模档阈值：深基坑≥5m/模板≥8m或跨≥18m/起重≥100kN/脚手架落地≥50m/幕墙≥50m · 除编方案外还须专家论证(条件维)",
+      "R5-3 编制主体：施工总承包单位组织编制；起重安拆/深基坑/附着升降脚手架等专业工程可由专业承包单位编制(主体维)",
+      "R5-4 需单独编专项方案的工程：深基坑支护/降水/土方开挖/模板及支撑体系/建筑幕墙安装(记录维)",
+      "R5-5 基坑方案八项内容：工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施(记录维)",
+      "R5-6 模板支撑方案内容：另加计算书及相关施工图纸(记录维，最易漏)",
+      "R5-7 论证触发+组织主体：超规模须论证，施工总承包单位组织召开(主体维)",
+      "R5-8 论证前置程序：先施工单位审核、再总监理工程师审查，方可论证(程序维，不可颠倒)",
+      "R5-9 专家组：5人以上/无利害关系/参建各方人员不得以专家身份参加(回避)/论证报告签字(主体维+记录维)",
+      "R5-10 论证内容三项：完整可行/计算书验算依据施工图符合规范/满足现场实际确保安全(记录维)",
+      "R5-11 实施控制：公示/交底/不得擅自修改/确需改须重新审核·论证(后果维)"
+    ],
+    "common_errors": ["E02 采分点遗漏", "E05 审题错误", "E06 程序·主体错误", "E07 概念混淆", "E08 背景信息提取失败", "E10 规范适用错误", "M08 规范数字混淆"],
+    "practice_blueprint": "以真题{2019第2题}(基坑7.6m、参建方技术负责人当专家、缺回避)为末题采分诊断轴心；配 15 道单点/迁移题覆盖五维(条件/主体/程序/记录/后果)。合并成一套练习(非分集)，理由：本考点单集<5min，采分点集中，一套练习即可覆盖全矩阵。"
+  },
+
+  "scoring_point_coverage_matrix": {
+    "note": "teaching_spine ≠ 采分点全集；下表逐条锚 R5，讲解页与练习页各自过一遍矩阵，无空白。",
+    "rows": [
+      { "point": "R5-1", "dim": "条件维", "lecture_beat": "b1 判档·标尺过 3m 触发编方案", "practice_q": "Q1 判档危大 / Q3 混档辨析" },
+      { "point": "R5-2", "dim": "条件维", "lecture_beat": "b1 判档·标尺过 5m 触发论证", "practice_q": "Q2 判档超规模 / Q3 混档辨析" },
+      { "point": "R5-3", "dim": "主体维", "lecture_beat": "b2 编制节点·总承包/专业承包芯片", "practice_q": "Q4 编制主体 / Q5 专业分包编制" },
+      { "point": "R5-4", "dim": "记录维", "lecture_beat": "QA·worklist(需单独编案清单五类工程) + b3 关联", "practice_q": "Q11 需单独编案工程清单" },
+      { "point": "R5-5", "dim": "记录维", "lecture_beat": "b3 方案八项逐项打钩", "practice_q": "Q9 方案八项内容" },
+      { "point": "R5-6", "dim": "记录维", "lecture_beat": "b3 模板支撑追加计算书施工图", "practice_q": "Q10 模板支撑内容" },
+      { "point": "R5-7", "dim": "主体维", "lecture_beat": "b2 论证节点(总包组织) + b4 组织召开", "practice_q": "Q8 组织主体" },
+      { "point": "R5-8", "dim": "程序维", "lecture_beat": "b2 管道顺序 + 错误支路淘汰", "practice_q": "Q6 前置程序顺序 / Q7 跳过审查纠错" },
+      { "point": "R5-9", "dim": "主体维+记录维", "lecture_beat": "b4 专家组围合 + 参建方回避 + 签字", "practice_q": "Q12 专家人数 / Q13 专家回避 / Q16 末题诊断" },
+      { "point": "R5-10", "dim": "记录维", "lecture_beat": "b5 论证内容三项命中 + 干扰淘汰", "practice_q": "Q14 论证内容三项" },
+      { "point": "R5-11", "dim": "后果维", "lecture_beat": "b6 实施回路(不得擅改·重新论证)", "practice_q": "Q15 实施控制" }
+    ],
+    "dimension_coverage": ["主体维 ✓", "程序维 ✓", "条件维 ✓", "记录维 ✓", "后果维 ✓"]
+  },
+
+  "visual_archetype_decision": {
+    "cognitive_structure_6plus1": "程序/流程链(procedure) 为主，内嵌 阈值触发(threshold gate) 与 成员构成/回避(member-composition) 两个子结构。判定：本考点核心不是分类，而是‘一份方案沿不可逆程序流转、途中被阈值触发出新做法、并在论证节点受成员构成约束’——是因果+顺序结构，故禁纯文字/判断框。",
+    "primary_archetype": "report_pipeline 流程管道：专项方案(公文)沿 编制·审核·审查·论证·实施 有向节点流转，错误支路(跳过审查)红✗淘汰。",
+    "secondary_archetype": "threshold_trigger 阈值触发：深度尺 0—3m—5m—7.6m，指针(基坑剖面)下探越过临界刻度 · 触发对应做法对象出现(过3m·编方案，过5m·+论证)，因果非并列。",
+    "tertiary_archetype": "investigation_group 成员围合：专家芯片飞入围成组，参建方(总包技术负责人)芯片被红章淘汰(回避)，外部补位凑 5 人以上，报告签字。",
+    "rationale": "安全管理类最易退回文字框；本卡坚持对象级动作：深度尺触发(条件维)、公文管道流转+淘汰(程序维/主体维)、人头围合+回避踢出(主体维)、三卡命中+干扰淘汰(记录维)、实施回路(后果维)。6+1 是结构不是标签。"
+  },
+
+  "domain_visual_plan": {
+    "objects_student_must_see": [
+      { "object": "深度/规模标尺 + 下探指针", "motion": "标尺显现 · 指针(基坑剖面/深度填充)自上而下 enter/move · 越过 3m 刻度 hit(危大卡亮) · 越过 5m 刻度 hit(超规模卡亮) · 本题 7.6m 定格 verdict", "beat": "b1" },
+      { "object": "专项方案公文(载体)", "motion": "从 编制 节点 enter · 沿管道 move 流经各节点 · 每节点盖✓ · 到 论证 节点 hold", "beat": "b2" },
+      { "object": "管道节点(编制/审核/审查/论证)+主体芯片", "motion": "节点 staggered enter · 主体芯片(总承包/施工单位/总监理/总包组织)归位 · 错误支路‘跳过审查’红✗ eliminate", "beat": "b2" },
+      { "object": "方案八项内容清单", "motion": "八项 staggered enter 逐项打钩 · ⑦验收/⑧应急 highlight(橙) · 模板支撑追加‘计算书及施工图’卡 enter", "beat": "b3" },
+      { "object": "专家组人头(围合)", "motion": "5+1 头 staggered 飞入围成圈 · 参建方头被‘回避✕’红章命中并 translateX 滑出(eliminate) · 外部专家补位 enter · ‘5人以上/无利害’计数 + 报告签字", "beat": "b4" },
+      { "object": "论证内容三卡 + 干扰卡", "motion": "三卡 staggered enter · 逐卡 ✓ hit · 干扰卡‘经济性/分包资质’enter 后被红✕ eliminate", "beat": "b5" },
+      { "object": "实施节点 + 修改回路", "motion": "公示·交底·施工 节点 enter · ‘不得擅自修改’锁 enter · 红虚线回路 draw 回到‘重新审核/论证’节点(后果闭环)", "beat": "b6" }
+    ],
+    "why_not_text_boxes": "条件维=‘深度越线才触发做法’的因果，须用指针滑过+对象出现，纯文字记不住两档阈值也分不清危大/超规模；程序维=‘公文按不可逆顺序流经节点’，须用载体流转+错误支路淘汰，文字看不出为什么不能倒序；主体维回避=‘把参建方那颗头踢出圈’，淘汰动作比‘不得以专家身份’抽象文字牢；记录维八项=逐项打钩+高亮易漏项，比堆叠句号阅卷友好。",
+    "scenes_with_domain_objects": ["b1", "b2", "b3", "b4", "b5", "b6", "qa_gate", "qa_avoid", "qa_pipe", "qa_worklist", "qa_score"],
+    "domain_scene_count_main": 7
+  },
+
+  "storyboard": [
+    { "beat": "b0", "t": [0, 22], "visual_action": "三个高频误区气泡依次 enter，红✕章逐个命中淘汰", "narration_gist": "先破三个丢分坑：混档、专家5人、主体含糊", "exit_before_next": "误区气泡与红章全部退出，仅留‘逐个破’提示", "acceptance": "当且仅当三条误区各被独立红✕命中、且文字未压深色对象" },
+    { "beat": "b1", "t": [22, 56], "visual_action": "深度尺显现·指针下探·过3m危大卡亮·过5m超规模卡亮·7.6m定格", "narration_gist": "判档：过3m编方案、过5m还要论证，本题7.6m超规模", "exit_before_next": "标尺/指针/两卡退出", "acceptance": "当且仅当指针越过 3m 时‘编方案’卡才亮、越过 5m 时‘+论证’卡才亮(因果对齐)" },
+    { "beat": "b2", "t": [56, 92], "visual_action": "公文沿 编制·审核·审查·论证 流转盖✓，主体芯片归位，跳过审查支路红✕", "narration_gist": "编制归总包；先审核再审查方可论证，跳步淘汰", "exit_before_next": "管道/公文/错误支路退出", "acceptance": "当且仅当四节点主体芯片正确(总承包/施工单位/总监理/总包组织)且错误支路指向‘跳过审查’" },
+    { "beat": "b3", "t": [92, 122], "visual_action": "八项清单逐项打钩，⑦⑧高亮，模板支撑追加计算书施工图卡", "narration_gist": "方案八项，验收/应急最易漏；模板另加计算书施工图", "exit_before_next": "清单与追加卡退出", "acceptance": "当且仅当⑦验收⑧应急被视觉高亮、且模板追加项单列" },
+    { "beat": "b4", "t": [122, 156], "visual_action": "专家头围合，参建方头被回避✕踢出，外部补位，计数+签字", "narration_gist": "5人以上、无利害；参建方不得当专家(回避)", "exit_before_next": "人头组/签字条退出", "acceptance": "当且仅当被踢出的是‘参建方·总包技负’那颗头(蓝)、其余为外部专家(绿)、能一眼分清谁被回避" },
+    { "beat": "b5", "t": [156, 184], "visual_action": "论证三卡逐卡命中✓，干扰卡经济性/分包资质红✕", "narration_gist": "论证只看三样，经济性/资质淘汰", "exit_before_next": "三卡/干扰卡退出", "acceptance": "当且仅当三项为完整可行/计算书施工图符规范/确保安全，干扰项被✕" },
+    { "beat": "b6", "t": [184, 210], "visual_action": "公示·交底·施工，锁‘不得擅改’，红虚线回路回到‘重新论证’", "narration_gist": "不得擅自修改；确需改须重新论证后执行", "exit_before_next": "全部退出，进入 QA", "acceptance": "当且仅当回路箭头从‘施工’指回‘重新审核/论证’节点(后果闭环可见)" }
+  ],
+
+  "student_qa": [
+    { "id": "q0", "fig": "gate", "q": "基坑一超过 3 米，就都得请专家论证吗？", "a_gist": "3m 编方案、5m 才论证，两档两条线，别混。" },
+    { "id": "q1", "fig": "avoid", "q": "把自己项目技术大拿凑够 5 个就中了吗？", "a_gist": "5 人以上 + 参建方回避；自家技负不能当专家。" },
+    { "id": "q2", "fig": "pipe", "q": "方案编完直接找专家论证不行吗？", "a_gist": "先审核、再审查方可论证，跳步扣程序分。" },
+    { "id": "q3", "fig": "worklist", "q": "除了基坑，还有哪些工程也得单独编专项方案？", "a_gist": "深基坑支护/降水/土方开挖/模板及支撑体系/建筑幕墙安装(R5-4)；降水、幕墙最易漏。" },
+    { "id": "q4", "fig": "score", "q": "阅卷这道题得写全哪几句？", "a_gist": "档/主体/专家/内容四句：超5m论证+总包编先审查+5人回避+三项内容。" }
+  ],
+
+  "outro": {
+    "pattern": "end_screen",
+    "trigger": "t >= DUR 且 !playing（与开头海报对称：海报=起，终屏=收）",
+    "why": "QA 是发散环节，放在最后会让画面停在孤立追问上、结尾悬空；终屏在 QA 之后把叙事主线收回来落地。scrub 回去即消失，不干扰时间轴。",
+    "teacher_outro": "行，危大工程论证这道就唠到这儿。判档、主体、程序、专家、内容、实施，六步走全，采分句一句不少，分就稳了。",
+    "takeaway_chips": ["判档·过5m须论证", "编制归总包·先审查", "专家5人以上·回避", "论证三项·非经济性", "不得擅改·须重新论证"],
+    "cta": ["重看(replay)", "问鲁班(openAsk)", "做练习(·练习页)"],
+    "backfilled_to_master": "AnimatedLecture.dc.html（本项目讲解母版）已回灌同款终屏 + replay()；设计系统源母版(只读)需同步。"
+  },
+
+  "animation_ir": {
+    "version": "v0",
+    "canvas": { "w": 390, "h": 462, "bg": "#f4f3ec-dot" },
+    "renderer_contract": "renderer 只消费本 IR：每 scene 声明 focus/enter/hold/exit/layout/camera/visible_nodes/keycard/coach/actions/visual_library；HTML preview 与 Remotion 吃同一份，不靠自由 HTML 或历史 class 累积；层切换用 lo{i}/lpe{i}，离场对象明确 exit。",
+    "scenes": [
+      { "scene": "b0", "focus": "破误区", "visual_library": "stamp_knockout", "layout": "三气泡竖排", "camera": "static",
+        "visible_nodes": ["bubble_混档", "bubble_5人", "bubble_主体含糊", "stamp_x1", "stamp_x2", "stamp_x3"],
+        "enter": "bubbles staggered W(.02-.44)", "hold": "全显", "exit": "stamps 命中后 bubble dim，切 b1",
+        "keycard": "三档别混：达标才编方案，超规模才论证",
+        "coach": "先破三个丢分坑：混档、专家5人、主体含糊，逐个划掉。",
+        "actions": [{ "obj": "stamp_x1", "op": "hit", "win": [0.42, 0.54] }, { "obj": "stamp_x2", "op": "hit", "win": [0.56, 0.68] }, { "obj": "stamp_x3", "op": "hit", "win": [0.7, 0.82] }] },
+      { "scene": "b1", "focus": "判档·阈值触发", "visual_library": "threshold_trigger", "layout": "左深度尺+右触发卡", "camera": "static",
+        "visible_nodes": ["depth_rail", "pointer", "mark_3m", "mark_5m", "card_危大_编方案", "card_超规模_论证", "verdict_7.6m"],
+        "enter": "rail W(0-.12)", "hold": "pointer 下探 pd=W(.08-.64)", "exit": "切 b2",
+        "keycard": "深度过 3m · 编方案；过 5m · 还要专家论证",
+        "coach": "过3m编方案、过5m还要论证，本题7.6m超规模，论证跑不了。",
+        "actions": [{ "obj": "card_危大_编方案", "op": "trigger_on_cross", "at_depth_m": 3 }, { "obj": "card_超规模_论证", "op": "trigger_on_cross", "at_depth_m": 5 }, { "obj": "verdict_7.6m", "op": "enter", "win": [0.82, 0.97] }] },
+      { "scene": "b2", "focus": "编制+前置程序", "visual_library": "report_pipeline", "layout": "四节点横向管道+主体芯片+错误支路", "camera": "static",
+        "visible_nodes": ["doc_方案", "node_编制", "node_审核", "node_审查", "node_论证", "chips_主体", "branch_跳过审查_x"],
+        "enter": "nodes staggered W(0-.34)", "hold": "doc travels W(.4-.82)，逐节点✓", "exit": "错误支路红✕后切 b3",
+        "keycard": "编制归总包；先审核、再审查，方可论证",
+        "coach": "编制归总包，先审核再审查方可论证，跳过审查直接论证红叉淘汰。",
+        "actions": [{ "obj": "doc_方案", "op": "move", "path": "编制·论证" }, { "obj": "branch_跳过审查_x", "op": "eliminate", "win": [0.84, 0.98] }] },
+      { "scene": "b3", "focus": "方案八项内容", "visual_library": "checklist_highlight", "layout": "八项双列清单+模板追加卡", "camera": "static",
+        "visible_nodes": ["item_1..8", "hl_验收_应急", "card_模板_计算书施工图"],
+        "enter": "items staggered W(0-.6)", "hold": "⑦⑧高亮 W(.56-.74)", "exit": "切 b4",
+        "keycard": "方案八项：验收、应急最易漏",
+        "coach": "八项里验收要求、应急处置最容易漏；模板支撑另加计算书及施工图。",
+        "actions": [{ "obj": "hl_验收_应急", "op": "highlight" }, { "obj": "card_模板_计算书施工图", "op": "enter", "win": [0.7, 0.92] }] },
+      { "scene": "b4", "focus": "专家组回避", "visual_library": "investigation_group", "layout": "环形围合", "camera": "static",
+        "visible_nodes": ["head_专家x5", "head_参建方", "stamp_回避", "head_外部补位", "badge_5人以上", "row_报告签字"],
+        "enter": "heads staggered W(0-.42)", "hold": "参建方 knockout W(.5-.68)+补位 W(.7-.84)", "exit": "切 b5",
+        "keycard": "专家 5 人以上、无利害关系；参建方不得当专家",
+        "coach": "5人以上、无利害；参建方(总包技负)红章踢出，外部补位，报告签字。",
+        "actions": [{ "obj": "head_参建方", "op": "eliminate_slide_out" }, { "obj": "head_外部补位", "op": "enter" }, { "obj": "badge_5人以上", "op": "enter", "win": [0.82, 0.94] }] },
+      { "scene": "b5", "focus": "论证内容三项", "visual_library": "hit_and_eliminate", "layout": "三卡竖排+干扰卡", "camera": "static",
+        "visible_nodes": ["card_完整可行", "card_计算书施工图", "card_确保安全", "card_干扰_经济性资质", "stamp_x"],
+        "enter": "三卡 staggered W(0-.46)", "hold": "逐卡✓ W(.5-.8)", "exit": "切 b6",
+        "keycard": "论证只看：完整可行 · 计算书施工图 · 确保安全",
+        "coach": "论证只看三样，经济性、分包资质红叉划掉。",
+        "actions": [{ "obj": "card_干扰_经济性资质", "op": "eliminate", "win": [0.72, 0.9] }] },
+      { "scene": "b6", "focus": "实施控制回路", "visual_library": "report_pipeline+return_loop", "layout": "三节点横排+锁+回路", "camera": "static",
+        "visible_nodes": ["node_公示", "node_交底", "node_施工", "lock_不得擅改", "loop_重新论证"],
+        "enter": "nodes staggered W(0-.34)", "hold": "lock W(.4-.58) + loop draw W(.6-.82)", "exit": "切 QA",
+        "keycard": "不得擅自修改；确需改，须重新论证",
+        "coach": "不得擅自修改；确需改，得重新审核、重新论证过了才能接着施工。",
+        "actions": [{ "obj": "lock_不得擅改", "op": "enter" }, { "obj": "loop_重新论证", "op": "draw_return_arrow" }] },
+      { "scene": "qa_gate", "focus": "QA·混档", "visual_library": "mini_gate", "coach": "3m编方案、5m加论证，两档两条线。", "keycard": "学生追问 1/5" },
+      { "scene": "qa_avoid", "focus": "QA·回避", "visual_library": "mini_group", "coach": "5人以上+参建方回避。", "keycard": "学生追问 2/5" },
+      { "scene": "qa_pipe", "focus": "QA·程序", "visual_library": "mini_pipe", "coach": "审核·审查·论证不可省。", "keycard": "学生追问 3/5" },
+      { "scene": "qa_worklist", "focus": "QA·需单独编案清单(R5-4)", "visual_library": "mini_worklist", "coach": "深基坑支护/降水/土方/模板支撑/幕墙，降水幕墙最易漏。", "keycard": "学生追问 4/5" },
+      { "scene": "qa_score", "focus": "QA·采分句", "visual_library": "mini_score", "coach": "档/主体/专家/内容四句写全。", "keycard": "学生追问 5/5" },
+      { "scene": "end", "focus": "收官落地", "visual_library": "end_screen", "layout": "居中：mark + 收尾话 + 5枚采分句chip + CTA", "trigger": "t>=DUR && !playing", "coach": "判档、主体、程序、专家、内容、实施，六步走全，采分句一句不少。", "cta": ["replay", "openAsk", "练习页"] }
+    ]
+  },
+
+  "practice_blueprint_detail": {
+    "question_bank_size": 16,
+    "show_count": 5,
+    "selection_rule": "前 15 道洗牌抽 4 道 + 末题(采分诊断, 索引15)固定压轴；重做重新抽取。",
+    "last_question_is_diagnosis": true,
+    "anti_gaming": "选项显示顺序每题独立洗牌(正确项不再恒为 A，重做重洗)；干扰项写成与正确项等长的完整采分句(正确项不再恒为最长)。判分按源下标，洗牌只改显示位。防止学生按位置/长度规律蒙对而非理解采分点。",
+    "per_question": "均含图示(depth/pipe/subject/checklist/worklist/group/trio/loop/sheet)；选项为完整采分句(非关键词)；每错项三段解析(为什么容易选/为什么扣分+error_code/正确补这句)；提交前不泄答案。",
+    "result_page": ["表现分析·逐题", "薄弱点诊断(按 error_code)", "继续补练两道", "问鲁班入口", "重做(重新随机)"],
+    "error_codes_used": ["E02", "E05", "E06", "E07", "E08", "E10", "M08"]
+  },
+
+  "artifacts": {
+    "lecture": "危大工程专项方案专家论证_讲解.dc.html",
+    "practice": "危大工程专项方案专家论证_练习.dc.html",
+    "lesson_json": "危大工程专项方案专家论证_lesson.json",
+    "assets": ["assets/mark-white.png", "assets/mark-red.png"]
+  }
+}

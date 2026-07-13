@@ -708,12 +708,10 @@ def build_observer_snapshot(
     arr_record = _safe_latest_run(control_store, "arr_runs")
     aae_record = _safe_latest_run(control_store, "aae_composite_runs")
     benchmark_record = _safe_latest_run(control_store, "benchmark_runs", fallback=False)
-    daily_trend_record = _safe_latest_run(control_store, "daily_trends")
     om_payload = _payload_from_record(om_record)
     arr_payload = _payload_from_record(arr_record)
     aae_payload = _payload_from_record(aae_record)
     benchmark_payload = benchmark_payload or _payload_from_record(benchmark_record)
-    daily_trend_payload = _payload_from_record(daily_trend_record)
     if start_ts is not None and end_ts is not None:
         turn_events = turn_log.load_events_window(
             start_ts=float(start_ts),
@@ -783,7 +781,6 @@ def build_observer_snapshot(
         arr_payload,
         benchmark_payload,
         aae_payload,
-        daily_trend_payload,
         canonical_turn_events[0] if canonical_turn_events else (raw_turn_events[0] if raw_turn_events else None),
     )
 
@@ -882,16 +879,6 @@ def build_observer_snapshot(
             reason="no trace_id values in turn event window",
             now=now,
         ),
-        "daily_trend": _source_entry(
-            "daily_trend",
-            has_data=bool(daily_trend_payload),
-            source_id=((daily_trend_payload or {}).get("run_manifest") or {}).get("run_id")
-            or (daily_trend_payload or {}).get("run_id"),
-            recorded_at=(daily_trend_record or {}).get("recorded_at"),
-            sample_count=1 if daily_trend_payload else 0,
-            reason="missing daily trend",
-            now=now,
-        ),
         "live_metrics": _source_entry(
             "live_metrics",
             has_data=has_metrics,
@@ -922,8 +909,6 @@ def build_observer_snapshot(
         blind_spots.append({"type": "missing_arr_run", "severity": "medium"})
     if not has_surface_coverage:
         blind_spots.append({"type": "missing_surface_coverage", "severity": "medium"})
-    if not daily_trend_payload:
-        blind_spots.append({"type": "missing_daily_trend", "severity": "low"})
     if recent_conversations.get("read_error"):
         blind_spots.append(
             {
@@ -987,15 +972,12 @@ def build_observer_snapshot(
             "aae_run_id": (aae_payload or {}).get("run_id"),
             "benchmark_run_id": ((benchmark_payload or {}).get("run_manifest") or {}).get("run_id")
             or (benchmark_payload or {}).get("run_id"),
-            "daily_trend_run_id": ((daily_trend_payload or {}).get("run_manifest") or {}).get("run_id")
-            or (daily_trend_payload or {}).get("run_id"),
         },
         "signals": {
             "om_health_summary": (om_payload or {}).get("health_summary") or {},
             "arr_summary": (arr_payload or {}).get("summary") or {},
             "aae_scorecard": (aae_payload or {}).get("scorecard") or {},
             "benchmark_summary": (benchmark_payload or {}).get("summary") or {},
-            "daily_trend_metrics": (daily_trend_payload or {}).get("metrics") or {},
             "surface_snapshot": surface_payload,
             "live_metrics_snapshot": metrics_snapshot or {},
             "recent_conversations": recent_conversations,

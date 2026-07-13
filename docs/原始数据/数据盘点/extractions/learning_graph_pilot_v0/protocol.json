@@ -1,0 +1,31 @@
+{
+  "schema_version": "learning_graph_pilot_protocol.v0",
+  "experiment_id": "np_graph_ab_20260710_v1",
+  "status": "preregistered_exploratory_candidate",
+  "question": "在相同微目标定义和来源上下文下，加入经来源审计的 prerequisite projection 是否提高补救主题选择准确率？",
+  "model": "deepseek-chat",
+  "model_config": {
+    "temperature": 0,
+    "top_p": 1,
+    "seed": 20260710,
+    "max_tokens": 600,
+    "tools": "disabled",
+    "network_for_model": "disabled"
+  },
+  "randomization_seed": 20260710,
+  "case_count": 20,
+  "arm_count": 2,
+  "expected_call_count": 40,
+  "arms": {
+    "baseline": "topic definitions + source context + case",
+    "graph": "baseline + 4 hard and 2 soft prerequisite projection"
+  },
+  "gold_independence": "strictly_unproven",
+  "negative_control_count": 0,
+  "confirmatory_eligible": false,
+  "maximum_claim": "realized-run directional remediation-choice effect",
+  "runtime_consumable": false,
+  "official_score_allowed": false,
+  "learner_truth_write_allowed": false,
+  "production_registry_write_allowed": false
+}

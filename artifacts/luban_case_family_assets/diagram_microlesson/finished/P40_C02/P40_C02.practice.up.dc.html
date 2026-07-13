@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<!-- ░░░ 母版骨架：随堂练 ░░░ 改 Q[] 即可。每题必须有图示位 + 完整采分句选项 + 每错项三段解析 -->
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="P40_C02.teach.up.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <!-- 图示位（每题必有：标尺/变化图/管道/诊断图/答题纸；此处给通用占位，按题替换内部 SVG/结构）-->
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="P40_C02.teach.up.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY (大窗 · 自动带题目) -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 母版骨架逻辑：随堂练 ░░░
+   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
+   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
+   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。 */
+class Component extends DCLogic {
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"" };
+  examTitle="进度款与计量计价";
+  KNOWLEDGE="进度款与计量计价(计算判定链,真题{2019第1题})。预付款=(合同价−暂列金)×预付比例=(5800−580)×20%=1044万。起扣点=合同价基数−预付款÷主要材料占比=(5800−580)−1044/60%=3480万,累计达此线才扣回预付款。逐月累计180/680/1430/2430/3830;3月750×0.97=727.5、4月1000×0.97=970(未达起扣点只扣3%质保一刀);5月累计3830>3480,除扣3%质保金外还扣回预付款(两刀)。质保金以工程结算总价为基数累计≤3%(题面5%/履约15%是诱饵,规范钉死3%/10%、不得指定供应商)。综合单价是不含增值税的税前全费用价,税只在最末整体乘一次,单价里再乘(1+税率)=双重计税错。合同未约定支付比例时进度款不宜低于累计完成工程总值80%(未约定是前提)。采分四步:亮公式·代入题面列式·数值结论带单位·回判规范阈值/定性。常见失分:基数不扣暂列金、起扣点公式写反成'合同价×占比−预付款'、漏列累计漏判起扣点、漏写3%质保、5月漏扣回预付、写题面诱饵值5%当上限。";
+  moreText="补两道：① {2020,案例四} 综合单价重算 + 含税结算（练 C1：调整后单价 = 原单价 +（确认价−暂估价）×(1+损耗率) · 结算价 = 单价×量×(1+税率)，治“单价里重复计税”）；② {2022,第(四)题} 合同条款体检（练 C8 + 判断纠错三段式：不妥 + 违反规范钉死值（质保≤3%/履约≤10%/不得指定）+ 正确做法）。";
+  // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
+  SHOW_COUNT=5;
+  BANK=[
+    { tag:"计价口径·综合单价", typeHint:"单选 · 选出口径完整、能得分的作答", figLabel:"题给：综合单价的费用构成", figCaption:"人工+材料+机械+管理+利润+风险 · 税怎么计？", fig:"unit",
+      stem:"某清单项目综合单价由人工、材料、机械、管理费、利润加风险构成。下列关于综合单价口径与计税，哪一句最完整、能得分？",
+      opts:[
+        { t:"综合单价是不含增值税的税前全费用价（含人材机+管理费+利润+风险），增值税在最末整体计提一次，单价内不重复计税。", ok:true, fix:"点明‘不含税全费用价’+‘税最末整体计提一次’，口径与计税都对。", code:"" },
+        { t:"综合单价是含税单价，已包含增值税，结算时直接用即可。", ok:false, code:"E07", tempt:"觉得‘综合’就是啥都含、连税也含。", lose:"综合单价是税前价，当含税价会漏掉最末计税环节或埋下重复计税。", fix:"综合单价不含税，税在最末整体乘一次。" },
+        { t:"综合单价要先乘 (1+税率) 得含税单价，再乘工程量得结算价。", ok:false, code:"E10", tempt:"想着每个单价都先含上税最稳妥。", lose:"单价里乘一遍税、结算再乘一遍＝双重计税，违反计价规范。", fix:"税只在最末对税前合价整体计提一次。" },
+        { t:"综合单价就是人工费、材料费、机械费三项之和。", ok:false, code:"E02", tempt:"只记住了‘三大直接费’。", lose:"漏了管理费、利润和风险，综合单价不完整。", fix:"综合单价 = 人材机 + 管理费 + 利润 + 风险（税前全费用）。" }
+      ] },
+    { tag:"预付款·计算表达维", typeHint:"单选 · 选出基数正确、能得分的列式", figLabel:"题给：合同价5800 · 暂列580 · 预付20%", figCaption:"预付款基数取多少？", fig:"base",
+      stem:"中标价 5800 万元，暂列金额 580 万元，主要材料占比 60%，预付款为造价 20%。计算工程预付款，选出能得分的列式与依据。",
+      opts:[
+        { t:"预付款 =（合同价−暂列金额）× 预付比例 =（5800−580）×20% = 1044 万元，基数先扣暂列金。", ok:true, fix:"先扣暂列金、再乘比例，公式+列式+数值带单位齐。", code:"" },
+        { t:"预付款 = 合同价 × 预付比例 = 5800×20% = 1160 万元。", ok:false, code:"E08", tempt:"题面给了 5800，顺手就拿它当基数。", lose:"暂列金 580 未发包、不进预付款基数，基数错连锁全错。", fix:"基数 = 5800−580 = 5220，预付款 = 5220×20% = 1044。" },
+        { t:"预付款 =（合同价−暂列金）× 预付比例 × 材料占比 =（5800−580）×20%×60% = 626.4 万元。", ok:false, code:"E09", tempt:"看到材料占比 60% 就想乘进预付款。", lose:"材料占比是起扣点的分母，不进预付款公式，多乘一项算错。", fix:"预付款只 =（5800−580）×20% = 1044，占比留给起扣点。" },
+        { t:"预付款 = 1044 万元。", ok:false, code:"E02", tempt:"会算、直接写得数最省事。", lose:"只写得数没列式没依据，丢过程分。", fix:"写全：（5800−580）×20% = 1044 万元。" }
+      ] },
+    { tag:"起扣点·计算表达维", typeHint:"单选 · 选出公式结构正确、能得分的作答", figLabel:"题给：基数5220 · 预付款1044 · 占比60%", figCaption:"起扣点 = ？（累计达此线才扣回预付款）", fig:"line",
+      stem:"承上（基数 5220 万、预付款 1044 万、主要材料占比 60%）。计算起扣点，选出公式结构正确、能得分的作答。",
+      opts:[
+        { t:"起扣点 = 基数 − 预付款 ÷ 材料占比 = 5220 − 1044÷60% = 3480 万元，累计达此线才开始扣回预付款。", ok:true, fix:"公式结构对（基数−预付款÷占比）+列式+数值+定性回判。", code:"" },
+        { t:"起扣点 = 合同价 × 材料占比 − 预付款 = 5220×60% − 1044 = 2088 万元。", ok:false, code:"E09", tempt:"记成‘占比乘基数再减预付款’，乘除位置凭手感。", lose:"公式结构整个写反，阅卷直接判公式错。", fix:"是基数−预付款÷占比 = 5220−1740 = 3480，不是占比×基数−预付款。" },
+        { t:"起扣点 = 基数 − 预付款 × 材料占比 = 5220 − 1044×60% = 4593.6 万元。", ok:false, code:"E09", tempt:"知道要减预付款，却把‘÷占比’记成‘×占比’。", lose:"应除以占比（放大到对应已完产值），乘则方向反、数值错。", fix:"预付款÷占比 = 1044÷60% = 1740，起扣点 = 5220−1740 = 3480。" },
+        { t:"起扣点 = 3480 万元。", ok:false, code:"E02", tempt:"算对了直接写结论。", lose:"没写公式、没列式、没说‘累计达此才扣回’，丢过程分与定性分。", fix:"写全公式 · 5220−1044÷60% = 3480 · 累计达此线才扣回预付款。" }
+      ] },
+    { tag:"逐月累计·条件维", typeHint:"单选 · 选出列累计、判起扣完整的作答", figLabel:"题给：逐月产值 + 起扣点 3480", figCaption:"先列累计，再判是否达起扣点", fig:"cum",
+      stem:"1–5 月完成产值 180/500/750/1000/1400 万元，起扣点 3480 万元，质保金每月扣 3%。判断 5 月是否需扣回预付款，选出能得分的作答。",
+      opts:[
+        { t:"逐月列累计，5 月累计 = 180+500+750+1000+1400 = 3830 ＞ 3480，故 5 月除扣 3% 质保金外还扣回预付款。", ok:true, fix:"列累计 + 判是否达起扣点 + 回判‘两刀’，条件维写全。", code:"" },
+        { t:"5 月当月产值 1400 ＜ 3480，未达起扣点，5 月不扣回预付款。", ok:false, code:"E02", tempt:"拿当月产值跟起扣点比，看着 1400 远小于 3480。", lose:"起扣点比的是累计完成额，不是当月产值；漏列累计就误判。", fix:"列累计 3830 ＞ 3480，5 月应扣回预付款。" },
+        { t:"5 月累计 3830 ＞ 3480，需扣回预付款。", ok:false, code:"E02", tempt:"判断方向对，直接下结论。", lose:"漏写 3% 质保金这一刀，5 月是质保 + 扣回两刀。", fix:"5 月除扣 3% 质保金外，还扣回预付款（两刀）。" },
+        { t:"每月都按累计完成的 80% 支付，5 月也一样，无需单独扣回预付款。", ok:false, code:"E07", tempt:"把‘未约定时不低于 80%’当成固定支付规则套上。", lose:"80% 是未约定时的下限、与扣回预付款是两回事；本题有约定不适用。", fix:"按起扣点判：累计 3830 ＞ 3480，5 月扣回预付款。" }
+      ] },
+    { tag:"质保金·后果维", typeHint:"单选 · 选出上限与基数正确的作答", figLabel:"题给：逐月扣3% · 题面又写上限5%", figCaption:"上限取多少？以什么为基数？", fig:"cap3",
+      stem:"合同约定每月按进度款 3% 预留质量保证金，质保期满返还；题面另写‘累计预留质保金为合同价的 5%’。下列关于质保金上限，哪句能得分？",
+      opts:[
+        { t:"累计预留质保金不得超过工程结算总价的 3%，以结算总价为基数；逐月按 3% 扣、累计封顶结算总价 3%。", ok:true, fix:"点‘结算总价为基数’+‘≤3%’+逐月与累计封顶并存。", code:"" },
+        { t:"按题面累计预留到合同价的 5% 为上限。", ok:false, code:"E10", tempt:"题面白纸黑字写了 5%，照抄最稳。", lose:"5% 是题面诱饵，规范钉死 ≤3%；写诱饵值＝判反丢分。", fix:"规范上限是结算总价 3%，不是 5%。" },
+        { t:"以合同价为基数，累计预留不超过合同价的 3%。", ok:false, code:"E08", tempt:"基数随手用了合同价。", lose:"质保金以工程结算总价为基数，不是合同价。", fix:"以结算总价为基数、累计 ≤3%。" },
+        { t:"每月扣 3% 即可。", ok:false, code:"E02", tempt:"只答了逐月扣法。", lose:"漏了‘累计不超结算总价 3%’的封顶口径。", fix:"逐月扣 3% + 累计不超结算总价 3%，两句都写。" }
+      ] },
+    { tag:"预付款·计算表达维", typeHint:"单选 · 换组数据求预付款", figLabel:"题给：合同价6000 · 暂列600 · 预付12%", figCaption:"基数仍要先扣暂列金", fig:"base",
+      stem:"另一工程：中标价 6000 万元，暂列金额 600 万元，预付款为造价 12%。求工程预付款，选出能得分的作答。",
+      opts:[
+        { t:"预付款 =（6000−600）×12% = 5400×12% = 648 万元，基数先扣暂列金。", ok:true, fix:"换了数据仍先扣暂列、再乘比例，列式带单位。", code:"" },
+        { t:"预付款 = 6000×12% = 720 万元。", ok:false, code:"E08", tempt:"直接拿合同价当基数。", lose:"暂列金 600 未发包、不进基数。", fix:"基数 = 6000−600 = 5400，预付款 = 648。" },
+        { t:"预付款 =（6000−600）×12% 再乘材料占比。", ok:false, code:"E09", tempt:"惯性把占比乘进预付款。", lose:"预付款公式不含材料占比，多乘算错。", fix:"预付款 =（6000−600）×12% = 648，不乘占比。" },
+        { t:"预付款 = 648 万元。", ok:false, code:"E02", tempt:"只写得数。", lose:"没列式没依据，丢过程分。", fix:"写全（6000−600）×12% = 648 万元。" }
+      ] },
+    { tag:"起扣点·概念维", typeHint:"单选 · 选出起扣点定性含义正确的作答", figLabel:"题给：起扣点是累计轴上的一条线", figCaption:"起扣点到底是什么？", fig:"line",
+      stem:"下列关于‘起扣点’含义的表述，哪一句准确、能得分？",
+      opts:[
+        { t:"起扣点是一个累计完成额的临界值：当累计已完工程价款达到该值时，开始从当期进度款中逐期扣回预付款。", ok:true, fix:"点明‘累计临界值’+‘达到才起扣预付款’，定性准确。", code:"" },
+        { t:"起扣点是每月固定要扣的一笔钱。", ok:false, code:"E07", tempt:"把‘扣款点’误当成‘扣款额’。", lose:"起扣点是临界额、不是金额，概念错。", fix:"起扣点是累计达到就起扣预付款的临界值。" },
+        { t:"起扣点是合同开工时就要扣预付款的时间点。", ok:false, code:"E07", tempt:"把‘点’理解成时间点。", lose:"起扣按累计产值触发、不按开工时间。", fix:"是累计产值达临界值才起扣，与开工时点无关。" },
+        { t:"起扣点就是预付款的金额。", ok:false, code:"E02", tempt:"两个数都出现过，混起来。", lose:"起扣点与预付款是两个量，混淆概念。", fix:"起扣点是临界产值，预付款是垫付金额，别混。" }
+      ] },
+    { tag:"逐月累计·条件维", typeHint:"单选 · 判 4 月是否达起扣点", figLabel:"题给：4月累计2430 vs 起扣点3480", figCaption:"未达起扣点的月怎么扣？", fig:"cum",
+      stem:"承上，4 月末累计完成 2430 万元，起扣点 3480 万元。判断 4 月进度款如何扣款，选出能得分的作答。",
+      opts:[
+        { t:"4 月累计 2430 ＜ 3480，未达起扣点，只扣 3% 质保金、不扣回预付款：付 1000×(1−3%)=970 万元。", ok:true, fix:"先判累计未达起扣点 + 只扣质保一刀 + 带数值。", code:"" },
+        { t:"4 月累计 2430，已到起扣点，质保 + 扣回预付款两刀都扣。", ok:false, code:"E02", tempt:"没跟 3480 比就当已达。", lose:"2430 ＜ 3480 未达起扣点，不该扣回预付款。", fix:"未达起扣点只扣 3% 质保金一刀。" },
+        { t:"4 月不扣任何款，全额支付 1000 万元。", ok:false, code:"E02", tempt:"觉得没到起扣点就啥都不扣。", lose:"漏了每月都要扣的 3% 质保金。", fix:"未达起扣点仍扣 3% 质保：付 970 万元。" },
+        { t:"4 月按累计 80% 支付。", ok:false, code:"E07", tempt:"把 80% 下限硬套。", lose:"本题有约定支付方式，80% 是未约定下限、不适用。", fix:"按约定扣 3% 质保金，付 970 万元。" }
+      ] },
+    { tag:"综合单价·记录计算维", typeHint:"单选 · 判综合单价构成是否完整", figLabel:"题给：某报价只列了直接费", figCaption:"综合单价漏了什么？", fig:"unit",
+      stem:"某投标人把综合单价填成‘人工+材料+机械’。下列指出问题并补全，哪句能得分？",
+      opts:[
+        { t:"综合单价除人材机外，还应包含管理费、利润和一定范围的风险费用，缺一不完整。", ok:true, fix:"点出漏项 + 补全管理费/利润/风险，构成完整。", code:"" },
+        { t:"综合单价只含人材机即可，管理费另计。", ok:false, code:"E02", tempt:"记成‘直接费=综合单价’。", lose:"漏管理费、利润、风险，综合单价不完整。", fix:"综合单价 = 人材机 + 管理费 + 利润 + 风险。" },
+        { t:"综合单价还应再加上增值税。", ok:false, code:"E10", tempt:"觉得‘全费用’连税一起。", lose:"综合单价是税前价，税不进单价。", fix:"补管理费/利润/风险即可，税在最末整体计提。" },
+        { t:"综合单价填人材机没错，措施费才含管理费。", ok:false, code:"E07", tempt:"把管理费错挪进措施费。", lose:"管理费、利润本就在综合单价内。", fix:"综合单价内含管理费、利润、风险。" }
+      ] },
+    { tag:"质保金·后果维", typeHint:"单选 · 判质保金基数取哪个", figLabel:"题给：合同价 vs 结算总价", figCaption:"3% 以谁为基数？", fig:"cap3",
+      stem:"关于质量保证金的计提基数，下列哪句准确、能得分？",
+      opts:[
+        { t:"质量保证金以工程结算总价为基数，累计预留不超过结算总价的 3%。", ok:true, fix:"基数=结算总价 + 上限 3%，两点齐。", code:"" },
+        { t:"以合同价为基数，累计不超过合同价 3%。", ok:false, code:"E08", tempt:"顺手用合同价。", lose:"基数应为结算总价，不是合同价。", fix:"以结算总价为基数、≤3%。" },
+        { t:"以中标价为基数，上限 5%。", ok:false, code:"E10", tempt:"混入题面诱饵 5%。", lose:"基数错且 5% 超规范上限。", fix:"结算总价为基数、上限 3%。" },
+        { t:"质保金没有基数，按月扣满为止。", ok:false, code:"E02", tempt:"只记逐月扣。", lose:"漏了基数和累计封顶口径。", fix:"结算总价为基数、累计封顶 3%。" }
+      ] },
+    { tag:"扣回预付款·计算表达维", typeHint:"单选 · 5月两刀的列式", figLabel:"题给：5月累计3830已过起扣点", figCaption:"达起扣点当期怎么扣？", fig:"cum",
+      stem:"5 月累计 3830 万元已超起扣点 3480 万元，5 月当月产值 1400 万元。下列关于 5 月扣款的表述，哪句能得分？",
+      opts:[
+        { t:"5 月已达起扣点，除按当期产值扣 3% 质保金外，还要开始扣回预付款，即质保、扣回预付两刀都扣。", ok:true, fix:"点明达起扣点 + 两刀（质保 + 扣回预付）。", code:"" },
+        { t:"5 月只扣 3% 质保金，和前几个月一样。", ok:false, code:"E02", tempt:"惯性沿用前月只扣一刀。", lose:"已达起扣点还漏了扣回预付款这一刀。", fix:"5 月是质保 + 扣回预付两刀。" },
+        { t:"5 月只扣回预付款，不再扣质保金。", ok:false, code:"E02", tempt:"觉得起扣后质保就停。", lose:"质保金每月照扣，不因起扣停止。", fix:"质保金继续扣 + 加扣回预付款。" },
+        { t:"5 月一次性把全部预付款扣完。", ok:false, code:"E09", tempt:"想着到点就全扣。", lose:"预付款自起扣点起逐期扣回，非一次扣完。", fix:"自起扣点起按各期完成额逐期扣回。" }
+      ] },
+    { tag:"暂列金·背景信息维", typeHint:"单选 · 暂列金为何不进预付款基数", figLabel:"题给：暂列金性质", figCaption:"暂列金算不算已发包工程？", fig:"base",
+      stem:"关于暂列金额为何不计入预付款基数，下列哪句准确、能得分？",
+      opts:[
+        { t:"暂列金额是招标人暂定、尚未确定用途和承包对象的备用款，不属于已发包工程价款，故不计入预付款基数。", ok:true, fix:"点明‘未确定用途/未发包’＝不进基数的理由。", code:"" },
+        { t:"暂列金额是承包人的利润，不该预付。", ok:false, code:"E07", tempt:"望文生义。", lose:"暂列金非利润，概念错。", fix:"暂列金是招标人备用款，未发包故不进基数。" },
+        { t:"暂列金额已发包，只是金额待定，应计入基数。", ok:false, code:"E08", tempt:"以为只是金额待定。", lose:"暂列金用途未定、未发包，不进基数。", fix:"未发包故须从基数中扣除。" },
+        { t:"暂列金额要全额预付给承包人。", ok:false, code:"E10", tempt:"觉得合同价里的钱都要付。", lose:"暂列金动用需另行批准，不随预付款支付。", fix:"暂列金不进预付款基数，动用另批。" }
+      ] },
+    { tag:"综合单价·记录计算维", typeHint:"单选 · 税计提位置", figLabel:"题给：税前合价 + 税率", figCaption:"税在哪一步计提？", fig:"unit",
+      stem:"关于增值税在工程计价中的计提位置，下列哪句准确、能得分？",
+      opts:[
+        { t:"各分部分项税前合价汇总后，在最末按适用税率整体计提一次增值税，单价内不含税、不重复计税。", ok:true, fix:"点明‘最末整体计提一次’+单价不含税。", code:"" },
+        { t:"每个综合单价里都先乘 (1+税率)，再汇总。", ok:false, code:"E10", tempt:"觉得逐项含税更保险。", lose:"单价含税再汇总＝重复计税。", fix:"单价税前，税在最末整体乘一次。" },
+        { t:"税在预付款环节就先扣出。", ok:false, code:"E07", tempt:"把税和预付款混。", lose:"计税与预付款是两回事。", fix:"税在最末对税前合价整体计提。" },
+        { t:"工程计价不含税，全部税外走账。", ok:false, code:"E02", tempt:"记成‘全不含税’。", lose:"漏了最末整体计提这一步。", fix:"税前合价最末整体计提一次增值税。" }
+      ] },
+    { tag:"起扣点·计算表达维", typeHint:"单选 · 数值代入求起扣点", figLabel:"题给：基数5220 预付1044 占比60%", figCaption:"把数代进公式", fig:"line",
+      stem:"已知基数 5220 万、预付款 1044 万、材料占比 60%，直接代入求起扣点数值，选出正确作答。",
+      opts:[
+        { t:"起扣点 = 5220 − 1044÷60% = 5220 − 1740 = 3480 万元。", ok:true, fix:"先算 1044÷60%=1740 再相减，数值正确带单位。", code:"" },
+        { t:"起扣点 = 5220 − 1044×60% = 5220 − 626.4 = 4593.6 万元。", ok:false, code:"E09", tempt:"把÷写成×。", lose:"乘除方向反、数值错。", fix:"是 ÷60%=1740，起扣点 3480。" },
+        { t:"起扣点 = 5220 − 1044 = 4176 万元。", ok:false, code:"E09", tempt:"忘了除以占比。", lose:"漏÷占比这一步。", fix:"1044÷60%=1740，5220−1740=3480。" },
+        { t:"起扣点 = 1044÷60% = 1740 万元。", ok:false, code:"E02", tempt:"算到中间量就停。", lose:"1740 只是中间量，没减基数。", fix:"再用 5220−1740=3480 才是起扣点。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 揪出失分并给可抄的采分句", figLabel:"模拟学生作答（待诊断）", figCaption:"得数写了，但算式链断在哪？", fig:"diag", diag:true,
+      diagLines:["① 预付款 = 5800 × 20% = 1160万","② 起扣点 = 5800×60% − 1160 = 2320万","③ 5月当月1400 ＜ 起扣点，不扣回"],
+      stem:"某学生作答：① 预付款=5800×20%=1160万；② 起扣点=5800×60%−1160=2320万；③ 5月当月1400＜起扣点，不扣回预付款。选出最准确的诊断与补写。",
+      opts:[
+        { t:"① 基数漏扣暂列金（应 1044）；② 起扣点公式写反（应 5220−1044÷60%=3480）；③ 漏列累计、应 3830＞3480 故 5 月扣回预付。补写：（5800−580）×20%=1044；5220−1044÷60%=3480；累计3830＞3480；5月质保外再扣回预付款。", ok:true, fix:"三处失分全揪出 + 四步采分句补齐，这就是‘会写答案’。", code:"" },
+        { t:"三步得数都算出来了，作答正确，可给满分。", ok:false, code:"E07", tempt:"每问都有数、看着像全做完。", lose:"基数错、公式反、漏累计三处全错，得数是错值；阅卷看过程采分。", fix:"基数 1044、起扣点 3480、5 月按累计 3830 扣回，全要重写。" },
+        { t:"只是起扣点数值算错，改对它即可，其余都正确。", ok:false, code:"E02", tempt:"抓到起扣点一处，以为只此一错。", lose:"漏诊‘基数未扣暂列金’和‘5 月漏列累计’两处。", fix:"基数、起扣点、5 月累计三处都要补，不止改一处。" },
+        { t:"预付款 1160 对、起扣点公式没问题，只是 5 月该用 80% 下限重算。", ok:false, code:"E08", tempt:"把 80% 下限硬套到本题。", lose:"预付款基数未扣暂列（错）、起扣点公式反（错），且 80% 是未约定下限、本题不适用。", fix:"先扣暂列金=1044、起扣点 5220−1044÷60%=3480、5 月按累计 3830 扣回。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 诊断综合单价重复计税", figLabel:"模拟学生作答（待诊断）", figCaption:"单价里乘了税，对吗？", fig:"diag", diag:true,
+      diagLines:["① 综合单价 = 人材机+管利风险","② 单价 × (1+9%) 得含税单价","③ 含税单价 × 工程量 × (1+9%)"],
+      stem:"某学生：① 综合单价=人材机+管理+利润+风险；② 单价×(1+9%)得含税单价；③ 再用含税单价×工程量×(1+9%)得结算价。诊断并补写。",
+      opts:[
+        { t:"第①步综合单价口径对；②③重复计税——税乘了两遍。正确：综合单价（税前）×工程量汇总税前合价，最末整体×(1+9%)只计一次税。", ok:true, fix:"确认对的、揪出重复计税、给出只计一次的正确链。", code:"" },
+        { t:"三步都对，含税越算越细越准。", ok:false, code:"E10", tempt:"觉得多乘税更保险。", lose:"②③把税乘了两遍＝双重计税。", fix:"税只在最末整体计提一次。" },
+        { t:"错在第①步，综合单价应含税。", ok:false, code:"E07", tempt:"误判税前口径为错。", lose:"①是对的，错在②③重复计税。", fix:"①综合单价税前正确，删掉②③的重复计税。" },
+        { t:"只要把 9% 改成正确税率即可。", ok:false, code:"E02", tempt:"以为只是税率数值问题。", lose:"问题是计税次数，不是税率数值。", fix:"税只计一次，与税率数值无关。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 诊断漏扣暂列金", figLabel:"模拟学生作答（待诊断）", figCaption:"基数取对了吗？", fig:"diag", diag:true,
+      diagLines:["① 基数 = 合同价 5800","② 预付款 = 5800 × 20% = 1160","③ 起扣点 = 5800 − 1160÷60%"],
+      stem:"某学生：① 基数=合同价5800；② 预付款=5800×20%=1160；③ 起扣点=5800−1160÷60%。诊断并补写。",
+      opts:[
+        { t:"①基数漏扣暂列金580，应为5220；②③随之全错。正确：（5800−580）×20%=1044；起扣点=5220−1044÷60%=3480。", ok:true, fix:"定位根错在基数、给出扣暂列后的正确链。", code:"" },
+        { t:"三步公式都对，数值也对。", ok:false, code:"E08", tempt:"没注意暂列金。", lose:"基数未扣暂列金，后续连锁错。", fix:"基数=5800−580=5220，重算。" },
+        { t:"只是起扣点第③步要把减号改加号。", ok:false, code:"E09", tempt:"只盯符号。", lose:"根错在基数，不是符号。", fix:"先扣暂列金得5220，再套起扣点公式。" },
+        { t:"预付款该用累计80%重算。", ok:false, code:"E07", tempt:"套80%下限。", lose:"80%是未约定下限，本题不适用。", fix:"预付款=（5800−580）×20%=1044。" }
+      ] }
+  ];
+  Q=[];
+    codeMap={
+    E02:{label:"采分点遗漏",advice:"列累计 / 3% 质保 / 扣回预付 / 依据逐项写，缺一扣一。"},
+    E07:{label:"概念混淆",advice:"综合单价是税前价、起扣点比累计不比当月、80% 是未约定下限。"},
+    E08:{label:"背景信息提取失败",advice:"暂列金要扣、质保金以结算总价为基数，题面数字看准用对。"},
+    E09:{label:"计算错误",advice:"基数先扣暂列、起扣点=基数−预付款÷占比、税只乘一次。"},
+    E10:{label:"规范适用错误",advice:"写规范钉死值 3%/10%，别照抄题面诱饵 5%/15%。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+  }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.Q[qi]; const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.Q[qi]; if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.Q[qi],s=this.state.sel[qi];
+    if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&q.opts[s]&&q.opts[s].ok; }
+  next(){ if(this.state.qi<this.Q.length-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  buildQ(){ const shuf=a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i];a[i]=a[j];a[j]=t; } return a; };
+    const main=shuf(this.BANK.filter(q=>!q.diag)), diag=shuf(this.BANK.filter(q=>q.diag));
+    const pick=main.slice(0,Math.max(1,this.SHOW_COUNT-(diag.length?1:0)));
+    if(diag.length) pick.push(diag[0]);
+    pick.forEach(q=>{ const o=q.opts.slice(); shuf(o); if(o[0]&&o[0].ok){ const k=o.findIndex((x,ix)=>ix>0&&!x.ok); if(k>0){ const t=o[0];o[0]=o[k];o[k]=t; } } q.opts=o; });
+    this.Q=pick; }
+  reset(){ this.buildQ(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.Q[qi].fig, els=[]; let figH=100;
+    if(type==="unit"){ figH=96; const parts=[["人工","#2f6db0"],["材料","#2f6db0"],["机械","#2f6db0"],["管理","#cf8a44"],["利润","#cf8a44"],["风险","#cf8a44"]];
+      parts.forEach((p,i)=>els.push(D({x:6+i*52,top:8,w:48,h:30,bg:p[1],r:6,fg:"#fff",fs:10,lab:p[0]})));
+      els.push(D({x:6,top:46,w:316,h:16,fg:"#5c6469",fs:10,ta:"left",jc:"flex-start",lab:"综合单价 = 税前全费用价（不含增值税）"}));
+      els.push(D({x:6,top:70,w:316,h:18,bg:"#fadcd6",r:6,fg:"#a3271c",fs:10.5,lab:"增值税：最末整体计提 ×(1+税率) = ？"})); }
+    else if(type==="base"){ figH=96;
+      els.push(D({x:6,top:8,w:236,h:26,bg:"#2f6db0",r:5,fg:"#fff",fs:11,lab:"合同价 5800"}));
+      els.push(D({x:246,top:8,w:76,h:26,bg:"#8a9296",r:5,fg:"#fff",fs:9,lab:"暂列 580"}));
+      els.push(D({x:6,top:42,w:316,h:16,fg:"#5c6469",fs:10,ta:"left",jc:"flex-start",lab:"主要材料占比 60% · 预付款为造价 20%"}));
+      els.push(D({x:6,top:66,w:316,h:22,bg:"#f1ece0",bd:"1.5px solid #d8ccaa",r:6,fg:"#a98a55",fs:11,lab:"预付款基数 = ？ × 20%"})); }
+    else if(type==="line"){ figH=100;
+      els.push(D({x:40,top:88,w:280,h:0,bd:"1.5px solid #bdb8a8"}));
+      els.push(D({x:40,top:30,w:280,h:0,bd:"1.5px dashed #cf4436"}));
+      els.push(D({x:222,top:14,w:100,h:14,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"起扣点 = ？万"}));
+      els.push(D({x:150,top:48,w:48,h:40,bg:"#2f6db0",r:3,fg:"#fff",fs:9,lab:"累计"}));
+      els.push(D({x:6,top:62,w:132,h:14,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:"基数5220·预付1044·占比60%"})); }
+    else if(type==="cum"){ figH=104; const mon=[["1月",180],["2月",500],["3月",750],["4月",1000],["5月",1400]];
+      els.push(D({x:30,top:24,w:292,h:0,bd:"1.5px dashed #cf4436"}));
+      els.push(D({x:230,top:8,w:92,h:14,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"起扣点 3480"}));
+      mon.forEach((m,i)=>{ const h=Math.round(m[1]*0.045); els.push(D({x:34+i*58,top:88-h,w:44,h:h,bg:"#2f6db0",r:3,fg:"#fff",fs:9,lab:String(m[1])}));
+        els.push(D({x:34+i*58,top:90,w:44,h:12,fg:"#5c6469",fs:9,lab:m[0]})); }); }
+    else if(type==="cap3"){ figH=96;
+      els.push(D({x:6,top:14,w:316,h:26,bg:"#e9e7da",r:6,fg:"#8b9398",fs:10,ta:"left",jc:"flex-start",p:"0 10px",lab:"工程结算总价（质保金基数 = ？）"}));
+      els.push(D({x:6,top:48,w:150,h:22,bg:"#f1ece0",bd:"1.5px solid #d8ccaa",r:6,fg:"#5c6469",fs:10,lab:"逐月扣 3%"}));
+      els.push(D({x:166,top:48,w:156,h:22,bg:"#fadcd6",bd:"1.5px solid #e3a89f",r:6,fg:"#a3271c",fs:10,lab:"题面写上限 5% ?"})); }
+    else if(type==="diag"){ figH=100; const lines=this.Q[qi].diagLines||["① 预付款 = 5800 × 20% = 1160万","② 起扣点 = 5800×60% − 1160 = 2320万","③ 5月当月1400 ＜ 起扣点，不扣回"];
+      lines.forEach((l,i)=>els.push(D({x:4,top:6+i*30,w:318,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l}))); }
+    return {els,figH};
+  }
+    renderVals(){
+    if(!this.Q||!this.Q.length){ this.buildQ(); }
+    const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.Q.length-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.Q.map((qq,i)=>{ const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.Q.forEach((qq,i)=>{ if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(this.Q.length*0.4)?0:score<this.Q.length-1?1:score<this.Q.length?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:this.Q.length, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/this.Q.length)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

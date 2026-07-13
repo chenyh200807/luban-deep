@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  a{color:#cf8a44;} a:hover{color:#e0a05a;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2f6db0"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2f6db0">环</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+        <div style="margin-top:6px;font-size:9px;color:#b9bdbf;letter-spacing:1px;">第 3 集 / 共 3 集 · 环境保护技术</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：光洒水拿不全分 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <!-- 裸土地面 -->
+        <div style="position:absolute;left:0;right:0;bottom:0;height:120px;background:repeating-linear-gradient(0deg,#d8c6a4,#d8c6a4 6px,#cbb894 6px,#cbb894 12px);opacity:{{ b0_op }};"></div>
+        <!-- 扬尘颗粒 -->
+        <div style="position:absolute;left:70px;top:250px;width:8px;height:8px;border-radius:50%;background:#b3a07a;opacity:{{ b0_op }};"></div>
+        <div style="position:absolute;left:110px;top:222px;width:11px;height:11px;border-radius:50%;background:#c2b18c;opacity:{{ b0_op }};"></div>
+        <div style="position:absolute;left:150px;top:196px;width:7px;height:7px;border-radius:50%;background:#b3a07a;opacity:{{ b0_op }};"></div>
+        <div style="position:absolute;left:250px;top:240px;width:10px;height:10px;border-radius:50%;background:#c2b18c;opacity:{{ b0_op }};"></div>
+        <div style="position:absolute;left:290px;top:212px;width:8px;height:8px;border-radius:50%;background:#b3a07a;opacity:{{ b0_op }};"></div>
+        <!-- 洒水车（只洒水）-->
+        <div style="position:absolute;left:196px;top:264px;width:36px;height:20px;background:#2f6db0;border-radius:4px;opacity:{{ b0_op }};"></div>
+        <div style="position:absolute;left:186px;top:280px;font-size:14px;color:#2f6db0;opacity:{{ b0_op }};">💧</div>
+        <!-- 气泡 -->
+        <div style="position:absolute;left:46px;top:66px;width:250px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:13px 15px;font-size:14px;font-weight:700;color:#23282b;line-height:1.45;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">扬尘就写一句「洒水降尘」，够了吧？
+          <div style="position:absolute;left:34px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:60px;top:148px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:22px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">不全 ✕</div>
+        <div style="position:absolute;left:26px;right:26px;top:206px;text-align:center;background:#fff8e2;border:1.5px dashed #d8b24a;border-radius:10px;padding:9px 12px;font-size:12px;font-weight:700;color:#8a6d1f;line-height:1.5;opacity:{{ b0_ho }};">扬尘要立体防：<b style="color:#cf4436;">源头 · 路径 · 出口</b> 三步都上，光洒水尘还飞</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 扬尘三件套：源头→路径→出口 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">扬尘三件套 · 源头 · 路径 · 出口</div>
+        <!-- 源头：裸土覆盖绿网 -->
+        <div style="position:absolute;left:18px;top:82px;width:112px;opacity:{{ b1_o0 }};">
+          <div style="position:relative;height:78px;">
+            <div style="position:absolute;left:16px;top:34px;width:80px;height:40px;background:#c9a877;border-radius:4px;"></div>
+            <div style="position:absolute;left:16px;top:34px;width:80px;height:40px;background:repeating-linear-gradient(45deg,rgba(44,138,91,.5),rgba(44,138,91,.5) 2px,transparent 2px,transparent 8px),repeating-linear-gradient(-45deg,rgba(44,138,91,.5),rgba(44,138,91,.5) 2px,transparent 2px,transparent 8px);border:1.5px solid #2c8a5b;border-radius:4px;"></div>
+          </div>
+          <div style="font-size:9.5px;font-weight:800;color:#2c8a5b;text-align:center;line-height:1.3;">源头<br/>裸土覆盖固化·物料篷盖</div>
+        </div>
+        <div style="position:absolute;left:132px;top:112px;font-size:18px;color:#b3a692;opacity:{{ b1_lineO }};">·</div>
+        <!-- 路径：雾炮喷水幕 -->
+        <div style="position:absolute;left:142px;top:82px;width:106px;opacity:{{ b1_o1 }};">
+          <div style="position:relative;height:78px;">
+            <div style="position:absolute;left:8px;top:44px;width:40px;height:22px;background:#5c6469;border-radius:4px;"></div>
+            <div style="position:absolute;left:40px;top:40px;width:26px;height:14px;background:#4a4e52;border-radius:3px;"></div>
+            <div style="position:absolute;left:64px;top:18px;width:8px;height:8px;border-radius:50%;background:#8fc7e0;"></div>
+            <div style="position:absolute;left:78px;top:26px;width:7px;height:7px;border-radius:50%;background:#a9d6ea;"></div>
+            <div style="position:absolute;left:88px;top:14px;width:6px;height:6px;border-radius:50%;background:#8fc7e0;"></div>
+            <div style="position:absolute;left:74px;top:38px;width:6px;height:6px;border-radius:50%;background:#a9d6ea;"></div>
+          </div>
+          <div style="font-size:9.5px;font-weight:800;color:#2f6db0;text-align:center;line-height:1.3;">路径<br/>自动喷淋·雾炮除尘</div>
+        </div>
+        <div style="position:absolute;left:250px;top:112px;font-size:18px;color:#b3a692;opacity:{{ b1_lineO }};">·</div>
+        <!-- 出口：冲洗池 + 车辆 -->
+        <div style="position:absolute;left:260px;top:82px;width:112px;opacity:{{ b1_o2 }};">
+          <div style="position:relative;height:78px;">
+            <div style="position:absolute;left:8px;top:52px;width:96px;height:16px;background:#4a90c4;border-radius:4px;"></div>
+            <div style="position:absolute;left:26px;top:30px;width:48px;height:22px;background:#cf8a44;border-radius:4px 4px 0 0;"></div>
+            <div style="position:absolute;left:32px;top:66px;width:12px;height:12px;background:#23282b;border-radius:50%;"></div>
+            <div style="position:absolute;left:58px;top:66px;width:12px;height:12px;background:#23282b;border-radius:50%;"></div>
+          </div>
+          <div style="font-size:9.5px;font-weight:800;color:#4a90c4;text-align:center;line-height:1.3;">出口<br/>冲洗池沉淀池·车辆冲洗</div>
+        </div>
+        <div style="position:absolute;left:24px;right:24px;top:214px;text-align:center;font-size:11.5px;font-weight:900;color:#cf4436;opacity:{{ b1_noteO }};">三步缺一就不全，光洒水拿不全分</div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 噪声四步：源强→传播→受体 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">噪声四步 · 源强 → 传播 → 受体</div>
+        <sc-for list="{{ noiseSteps }}" as="s" hint-placeholder-count="4">
+          <div style="position:absolute;left:{{ s.x }}px;top:96px;width:82px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid {{ s.color }};border-radius:10px;padding:10px 6px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ s.op }};text-align:center;">
+            <div style="font-size:13px;font-weight:900;color:{{ s.color }};">{{ s.n }}</div>
+            <div style="font-size:9px;color:#6b6358;margin-top:5px;font-weight:700;line-height:1.35;">{{ s.lab }}</div>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:97px;top:130px;font-size:15px;color:#b3a692;opacity:{{ noiseLineO }};">·</div>
+        <div style="position:absolute;left:187px;top:130px;font-size:15px;color:#b3a692;opacity:{{ noiseLineO }};">·</div>
+        <div style="position:absolute;left:277px;top:130px;font-size:15px;color:#b3a692;opacity:{{ noiseLineO }};">·</div>
+        <!-- 分贝递减条 -->
+        <div style="position:absolute;left:24px;top:214px;right:24px;opacity:{{ noiseDbO }};">
+          <div style="font-size:9.5px;font-weight:800;color:#2c8a5b;margin-bottom:4px;">分贝递减 · 从源头降到受体</div>
+          <div style="height:12px;border-radius:6px;background:linear-gradient(90deg,#cf4436,#cf8a44 45%,#d9a521 70%,#2c8a5b);"></div>
+        </div>
+        <div style="position:absolute;left:24px;right:24px;top:258px;text-align:center;font-size:11px;font-weight:800;color:#cf4436;opacity:{{ noiseNoteO }};">别写「减少噪声」口号，落到设备+隔声+封闭+工艺</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 夜间施工 / 光污染 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">夜间施工 · 光污染控制</div>
+        <!-- 夜空底 -->
+        <div style="position:absolute;left:20px;top:70px;right:20px;height:150px;background:linear-gradient(180deg,#2b3a4a,#1f2a36);border-radius:10px;opacity:{{ b3_nightO }};"></div>
+        <div style="position:absolute;left:44px;top:86px;width:3px;height:3px;border-radius:50%;background:#e7e4da;opacity:{{ b3_nightO }};"></div>
+        <div style="position:absolute;left:300px;top:96px;width:3px;height:3px;border-radius:50%;background:#e7e4da;opacity:{{ b3_nightO }};"></div>
+        <!-- 许可证 -->
+        <div style="position:absolute;left:34px;top:104px;width:96px;opacity:{{ b3_o0 }};">
+          <div style="width:64px;height:76px;margin:0 auto;background:#f1efe8;border-radius:4px;box-shadow:2px 2px 0 rgba(0,0,0,.25);padding:8px 6px;">
+            <div style="height:3px;background:#cf4436;border-radius:2px;margin-bottom:4px;"></div>
+            <div style="height:2px;background:#c9c4b4;margin-bottom:3px;"></div>
+            <div style="height:2px;background:#c9c4b4;margin-bottom:3px;width:70%;"></div>
+            <div style="width:22px;height:22px;border:2px solid #cf4436;border-radius:50%;margin:6px auto 0;"></div>
+          </div>
+          <div style="font-size:9px;font-weight:800;color:#e7e4da;text-align:center;margin-top:5px;line-height:1.3;">办许可证<br/>公告居民</div>
+        </div>
+        <!-- 灯加灯罩 -->
+        <div style="position:absolute;left:148px;top:104px;width:96px;opacity:{{ b3_o1 }};">
+          <div style="position:relative;height:76px;">
+            <div style="position:absolute;left:28px;top:6px;width:40px;height:16px;background:#5c6469;border-radius:8px 8px 0 0;"></div>
+            <div style="position:absolute;left:38px;top:22px;width:20px;height:14px;background:#ffd24a;border-radius:0 0 8px 8px;"></div>
+            <div style="position:absolute;left:34px;top:38px;width:28px;height:34px;background:linear-gradient(180deg,rgba(255,210,74,.5),transparent);clip-path:polygon(30% 0,70% 0,100% 100%,0 100%);"></div>
+          </div>
+          <div style="font-size:9px;font-weight:800;color:#e7e4da;text-align:center;line-height:1.3;">灯加灯罩<br/>透光集中</div>
+        </div>
+        <!-- 电焊遮挡 -->
+        <div style="position:absolute;left:262px;top:104px;width:96px;opacity:{{ b3_o2 }};">
+          <div style="position:relative;height:76px;">
+            <div style="position:absolute;left:18px;top:14px;width:56px;height:46px;border:2px solid #8fa5b8;border-radius:4px;background:rgba(143,165,184,.15);"></div>
+            <div style="position:absolute;left:40px;top:34px;width:10px;height:10px;border-radius:50%;background:#ffd24a;box-shadow:0 0 6px 2px rgba(255,210,74,.6);"></div>
+          </div>
+          <div style="font-size:9px;font-weight:800;color:#e7e4da;text-align:center;line-height:1.3;">电焊遮挡<br/>防弧光外泄</div>
+        </div>
+        <div style="position:absolute;left:24px;right:24px;top:236px;text-align:center;font-size:11px;font-weight:800;color:#2c8a5b;opacity:{{ b3_noteO }};">三条都是采分句，别只写一句「注意光污染」</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 污水 / 泥浆 / 许可 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">泥浆封闭收集 · 污水许可</div>
+        <!-- 泥浆池封闭收集，就地排放✕ -->
+        <div style="position:absolute;left:26px;top:82px;width:150px;opacity:{{ b4_o0 }};">
+          <div style="position:relative;height:66px;">
+            <div style="position:absolute;left:22px;top:14px;width:66px;height:44px;background:#8a6a45;border:2px solid #5c4a30;border-radius:4px;"></div>
+            <div style="position:absolute;left:22px;top:26px;width:66px;height:32px;background:#6f5638;"></div>
+            <div style="position:absolute;left:22px;top:2px;width:66px;height:8px;background:#5c4a30;border-radius:3px;"></div>
+          </div>
+          <div style="font-size:9.5px;font-weight:800;color:#8a6a45;text-align:center;line-height:1.3;">泥浆池/封闭容器收集</div>
+        </div>
+        <div style="position:absolute;left:186px;top:96px;width:170px;opacity:{{ b4_o0b }};">
+          <div style="background:#fff;border:1.5px solid #d8ccb4;border-radius:8px;padding:6px 8px;font-size:11px;font-weight:700;color:#23282b;">「沉淀完就地排放」</div>
+          <div style="height:3px;background:#cf4436;border-radius:2px;margin-top:2px;transform:rotate(-3deg);"></div>
+          <div style="font-size:10px;font-weight:800;color:#cf4436;margin-top:4px;">✕ 未经处理不得随意排放</div>
+        </div>
+        <!-- 雨水回收 -->
+        <div style="position:absolute;left:26px;top:172px;width:170px;opacity:{{ b4_o1 }};">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:16px;height:22px;background:#8fc7e0;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;"></div>
+            <span style="font-size:14px;color:#b3a692;">·</span>
+            <div style="width:34px;height:26px;background:#4a90c4;border-radius:4px;"></div>
+            <span style="font-size:14px;color:#b3a692;">·</span>
+            <div style="font-size:10px;font-weight:800;color:#2f6db0;">冲厕·洗车·洒水降尘</div>
+          </div>
+          <div style="font-size:9.5px;font-weight:800;color:#4a90c4;margin-top:5px;">雨水收集 · 渗蓄沉淀 · 回用</div>
+        </div>
+        <!-- 污水许可证 市政发证 -->
+        <div style="position:absolute;left:210px;top:172px;width:146px;opacity:{{ b4_o2 }};">
+          <div style="background:#fff8e2;border:1.5px solid #d8b24a;border-radius:8px;padding:8px 10px;">
+            <div style="font-size:10.5px;font-weight:900;color:#8a6d1f;">临时排水许可证</div>
+            <div style="font-size:9.5px;font-weight:800;color:#cf4436;margin-top:3px;">市政管理部门发证</div>
+            <div style="font-size:8px;font-weight:700;color:#a08f70;margin-top:2px;">真题 2020-16 D</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 建筑垃圾资源化 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">建筑垃圾 · 3m 限高 · 台账 · 资源化</div>
+        <!-- 垃圾堆 + 标尺 -->
+        <div style="position:absolute;left:26px;top:82px;width:126px;opacity:{{ b5_o0 }};">
+          <div style="position:relative;height:88px;">
+            <div style="position:absolute;left:26px;top:76px;width:2px;height:0;border-top:0;"></div>
+            <div style="position:absolute;left:14px;top:20px;width:2px;height:68px;background:#cf4436;"></div>
+            <div style="position:absolute;left:8px;top:18px;width:14px;height:2px;background:#cf4436;"></div>
+            <div style="position:absolute;left:8px;top:86px;width:14px;height:2px;background:#cf4436;"></div>
+            <div style="position:absolute;left:-4px;top:44px;font-size:10px;font-weight:900;color:#cf4436;transform:rotate(-90deg);transform-origin:center;">3m</div>
+            <div style="position:absolute;left:30px;top:46px;width:74px;height:42px;background:#9c9a8f;clip-path:polygon(0 100%,20% 30%,50% 0,80% 35%,100% 100%);"></div>
+          </div>
+          <div style="font-size:9px;font-weight:800;color:#cf4436;text-align:center;line-height:1.3;">堆放不宜高于3m<br/>超3m须稳定性验算</div>
+        </div>
+        <!-- 分类计量台账 -->
+        <div style="position:absolute;left:162px;top:88px;width:96px;opacity:{{ b5_o1 }};">
+          <div style="width:74px;height:60px;margin:0 auto;background:#fff;border:1.5px solid #cdc9ba;border-radius:4px;padding:7px 6px;box-shadow:2px 2px 0 rgba(0,0,0,.08);">
+            <div style="height:3px;background:#2c8a5b;border-radius:2px;margin-bottom:5px;"></div>
+            <div style="height:2px;background:#c9c4b4;margin-bottom:4px;"></div>
+            <div style="height:2px;background:#c9c4b4;margin-bottom:4px;width:80%;"></div>
+            <div style="height:2px;background:#c9c4b4;width:60%;"></div>
+          </div>
+          <div style="font-size:9px;font-weight:800;color:#2c8a5b;text-align:center;margin-top:5px;line-height:1.3;">分类计量·建台账<br/>未分类不得运出</div>
+        </div>
+        <!-- 资源化：破碎→再生骨料 -->
+        <div style="position:absolute;left:266px;top:88px;width:96px;opacity:{{ b5_o2 }};">
+          <div style="position:relative;height:60px;">
+            <div style="position:absolute;left:6px;top:8px;width:34px;height:30px;background:#5c6469;border-radius:4px;"></div>
+            <div style="position:absolute;left:14px;top:16px;width:18px;height:14px;background:#8fa5b8;border-radius:2px;"></div>
+            <div style="position:absolute;left:46px;top:22px;font-size:14px;color:#b3a692;">·</div>
+            <div style="position:absolute;left:58px;top:14px;width:30px;height:24px;background:#cf8a44;border-radius:3px;"></div>
+          </div>
+          <div style="font-size:9px;font-weight:800;color:#cf8a44;text-align:center;line-height:1.3;">就地粉碎/级配回填<br/>→ 再生骨料</div>
+        </div>
+        <div style="position:absolute;left:24px;right:24px;top:224px;text-align:center;background:#f0f8f3;border:1.5px solid #2c8a5b;border-radius:10px;padding:9px 12px;font-size:11px;font-weight:800;color:#2c5a41;line-height:1.5;opacity:{{ b5_loopO }};">分类收集 → 分类堆放 → 级配回填/就地粉碎 → 再生骨料<br/><span style="color:#2c8a5b;font-size:10px;">装配式建筑垃圾每万㎡≤200t（真题 2025 案例三）</span></div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 口诀：源头减·路径拦·末端资源化 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">环保回扣：源头减 · 路径拦 · 末端资源化</div>
+        <div style="position:absolute;left:20px;top:120px;width:104px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:11px 9px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ k0 }};"><div style="font-size:14px;font-weight:900;color:#2c8a5b;">源头减</div><div style="font-size:9.5px;color:#6b6358;margin-top:5px;font-weight:600;line-height:1.45;">裸土覆盖·低噪设备·泥浆封闭收集</div></div>
+        <div style="position:absolute;left:143px;top:120px;width:104px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:11px 9px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ k1 }};"><div style="font-size:14px;font-weight:900;color:#2f6db0;">路径拦</div><div style="font-size:9.5px;color:#6b6358;margin-top:5px;font-weight:600;line-height:1.45;">喷淋雾炮·隔声屏罩·灯罩遮挡</div></div>
+        <div style="position:absolute;left:266px;top:120px;width:104px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf8a44;border-radius:10px;padding:11px 9px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ k2 }};"><div style="font-size:14px;font-weight:900;color:#cf8a44;">末端资源化</div><div style="font-size:9.5px;color:#6b6358;margin-top:5px;font-weight:600;line-height:1.45;">出口冲洗·雨水回用·再生骨料</div></div>
+        <div style="position:absolute;left:126px;top:158px;font-size:20px;color:#b3a692;opacity:{{ k1 }};">·</div>
+        <div style="position:absolute;left:249px;top:158px;font-size:20px;color:#b3a692;opacity:{{ k2 }};">·</div>
+        <div style="position:absolute;left:0;right:0;top:250px;text-align:center;font-size:13px;font-weight:900;color:#23282b;opacity:{{ kSum }};">扬尘三件套·噪声四步·泥浆不乱排·垃圾3m台账</div>
+        <div style="position:absolute;left:24px;right:24px;top:282px;text-align:center;font-size:11px;font-weight:700;color:#cf8a44;opacity:{{ kSum }};">措施落到可执行动作，环保的分才拿得住</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ░░ 收官 END-SCREEN ░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">环境保护技术 · 三集唠齐了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">环保记住源头减、路径拦、末端资源化：扬尘三件套、噪声四步、夜间三条、泥浆封闭不乱排、建筑垃圾三米加台账加再生骨料。文明、四节、环保三集连起来，X03 这道母题就唠全了，做套练习练手。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">扬尘 · 源头覆盖→喷淋雾炮→出口冲洗</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">噪声 · 低噪设备→隔声屏罩→封闭→工艺</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">泥浆封闭未处理不排 · 许可市政发证</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">建筑垃圾不宜高于3m · 台账 · 再生骨料</div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;">
+          <a href="P40_X03.teach.middle.dc.html" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;text-decoration:none;">上一集</a>
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <a href="P40_X03.practice.dc.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
+        </div>
+        <a href="P40_X03.teach.up.dc.html" style="margin-top:9px;font-size:11px;font-weight:800;color:#cf8a44;text-decoration:none;">从头看（第 1 集）→</a>
+      </div>
+    </div>
+    </div>
+
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="8">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:9.5px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:11px;align-items:stretch;">
+        <a href="P40_X03.teach.up.dc.html" style="flex:1;text-align:center;border-radius:9px;padding:8px 2px;font-size:10px;font-weight:800;background:#23282b;color:#cdd2d5;text-decoration:none;">① 上·文明施工</a>
+        <a href="P40_X03.teach.middle.dc.html" style="flex:1;text-align:center;border-radius:9px;padding:8px 2px;font-size:10px;font-weight:800;background:#23282b;color:#cdd2d5;text-decoration:none;">② 中·四节</a>
+        <div style="flex:1;text-align:center;border-radius:9px;padding:8px 2px;font-size:10px;font-weight:800;background:#cf4436;color:#fff;">③ 下·环保</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="P40_X03.practice.dc.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/down/";
+  audioVersion="20260713163258";
+  DUR = 216.380;
+  examTitle="环境保护技术措施"; examCode="X03·下"; examCat="绿色建造·环保";
+  posterSub="源头减 · 路径拦 · 末端资源化"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分半";
+  KNOWLEDGE="环境保护技术措施(X03下集·环境保护子轴)。①扬尘控制:源头地面硬化/裸土覆盖固化或绿化/物料篷盖→路径自动喷淋+雾炮除尘→出口设冲洗池沉淀池+车辆冲洗,源头-路径-出口立体防尘(锚kc149_0293:0、kc141_0225:1)。②噪声控制:低噪声设备→隔声屏/罩→封闭木工房→优化工艺,按源强→传播→受体(kc149_0294:0)。③夜间/光污染:办夜间施工许可证并公告居民/照明灯加灯罩透光集中/电焊作业遮挡防弧光外泄(kc139_0222:2)。④污水泥浆:工程泥浆经泥浆池或封闭容器收集,未经处理不得随意排放;雨水收集→渗蓄沉淀→冲厕洗车洒水降尘(kc013_0019:1、kc149_0290:0);污水排放申领临时排水许可证由市政管理部门发证(真题{2020第16题}D)。⑤建筑垃圾:堆放不宜高于3m,超3m须堆体和地基稳定性验算;分类计量建台账,未分类不得运输出场;资源化按分类收集→分类堆放→级配回填/就地粉碎→再生骨料(kc013_0019:0/4、kc149_0291:0,真题{2025案例三}装配式建筑垃圾≤200t/万㎡)。常见失分:扬尘只洒水漏源头出口(E02)、噪声只减少噪声口号(E04)、泥浆就地排放(E10)、未分类外运(E10)。只答本集(环境保护技术)范围;文明施工在上集、四节在中集。";
+    beats=[["b0",0.0,17.036,"破误区"],["b1",17.036,38.608,"扬尘"],["b2",38.608,54.948,"噪声"],["b3",54.948,69.224,"夜间光污染"],["b4",69.224,89.428,"污水泥浆"],["b5",89.428,109.632,"建筑垃圾"],["b6",109.632,128.396,"口诀"],["q0",128.396,151.52,"问答"],["q1",151.52,168.908,"问答"],["q2",168.908,191.576,"问答"],["q3",191.576,216.38,"问答"]];
+  keycards=[
+    "扬尘不是只洒水，要源头·路径·出口立体防",
+    "扬尘三件套：源头覆盖→喷淋雾炮→出口冲洗",
+    "噪声四步：低噪设备→隔声屏罩→封闭木工房→优化工艺",
+    "夜间：办许可证公告居民·灯加灯罩·电焊遮挡",
+    "泥浆封闭收集未处理不排；污水许可市政发证",
+    "建筑垃圾不宜高于3m·分类台账·资源化再生骨料",
+    "源头减·路径拦·末端资源化，污染分级拦截"
+  ];
+  narr=[
+    "先破个扬尘的坑。好些同学写环保措施，扬尘就一句「洒水降尘」——注意哈，光洒水拿不全分。你看这尘，光洒水它还往外飞。扬尘得立体地防，源头、路径、出口三步都得上。",
+    "扬尘三件套记牢。源头，把裸土覆盖固化或者绿化、易扬尘的物料篷盖上；路径上，自动喷淋加雾炮除尘，水幕把尘压下来；出口，设冲洗池和沉淀池，车辆过一遍冲洗干净再出场。源头、路径、出口，三步缺一都不全。",
+    "噪声控制按四步走，从源强到受体。先选低噪声设备，再设隔声屏或隔声罩挡住传播，把木工房封闭起来，最后优化施工工艺。别写「减少噪声」一句口号，得落到设备和隔声上。",
+    "夜间施工防光污染。得办夜间施工许可证、公告周边居民；照明灯加灯罩、让透光集中别乱漫射；电焊作业得遮挡，防止弧光往外泄。这三条都是采分句。",
+    "再说污水泥浆。工程泥浆得进泥浆池或封闭容器收集，未经处理不得随意排放，谁沉淀完就地排那就是不妥。雨水可以收集回来冲厕、洗车、洒水降尘。还有一句——污水排放要申领临时排水许可证，由市政管理部门发证。",
+    "最后建筑垃圾。堆放不宜高于三米，超过三米得做堆体和地基稳定性验算；要分类计量、建台账，没分类的不得运输出场；资源化按分类收集、级配回填或就地粉碎、做成再生骨料，垃圾变材料转一圈回来。",
+    "环境保护这条链子记住：源头减、路径拦、末端资源化。扬尘三件套、噪声四步、夜间三条、泥浆封闭不乱排、建筑垃圾三米加台账加再生骨料。写到可执行动作，环保的分才拿得住。"
+  ];
+  qa=[
+    { figLabel:"扬尘：源头·路径·出口三步", fig:"dust", q:"老师，扬尘我就写个「洒水降尘」，咋还扣分呢？", a:"洒水只是一环，扬尘得立体防：源头把裸土覆盖固化或绿化、物料篷盖；路上自动喷淋加雾炮除尘；出口设冲洗池沉淀池、车辆冲洗。源头、路径、出口三步缺一就不全，光洒水拿不全分。" },
+    { figLabel:"噪声四步 · 源强到受体", fig:"noise", q:"噪声是不是写「减少噪声」就行了？", a:"那是口号，得按源强到受体四步写：先选低噪声设备，再设隔声屏或隔声罩，把木工房封闭起来，最后优化施工工艺。四步落到设备和隔声上，才是采分动作。" },
+    { figLabel:"泥浆封闭收集 · 污水市政发证", fig:"sewage", q:"泥浆沉淀完直接排了中不？还有那个污水许可谁发啊？", a:"中不了！工程泥浆得进泥浆池或封闭容器收集，未经处理不得随意排放，就地排放就是不妥。污水排放要申领临时排水许可证，由市政管理部门发证，别答成环保或建设部门。" },
+    { figLabel:"建筑垃圾：3m · 台账 · 资源化", fig:"waste", q:"建筑垃圾那个三米，还有台账，我老记不住咋写。", a:"记三句：堆放不宜高于三米，超过三米得做堆体和地基稳定性验算；要分类计量、建台账，未分类的不得运输出场；资源化按分类收集、级配回填或就地粉碎、做成再生骨料。三句写全，建筑垃圾的分就齐。" }
+  ];
+  askPresets=["扬尘三件套是哪三件？","噪声控制怎么写全？","建筑垃圾堆放限高多少？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return;
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[];
+    if(it.fig==="dust"){ const h=48; const z=[["源头覆盖","#2c8a5b"],["喷淋雾炮","#2f6db0"],["出口冲洗","#4a90c4"]];
+      z.forEach((g,i)=>{ els.push(D({x:i*84,top:2,w:74,h:22,bg:g[1],r:6,fg:"#fff",fs:9,lab:g[0]})); if(i<2)els.push(D({x:i*84+76,top:6,w:8,h:14,fg:"#a8997a",fs:12,lab:"·"})); });
+      els.push(D({x:0,top:28,w:248,h:14,fg:"#e0a89f",fs:8.5,jc:"flex-start",lab:"三步缺一就不全，光洒水拿不全分"}));
+      return {els,h}; }
+    if(it.fig==="noise"){ const h=48; const s=[["低噪设备","#cf4436"],["隔声屏罩","#cf8a44"],["封闭木工房","#d9a521"],["优化工艺","#2c8a5b"]];
+      s.forEach((g,i)=>els.push(D({x:i*62,top:2,w:58,h:22,bg:g[1],r:5,fg:"#fff",fs:8,lab:g[0]})));
+      els.push(D({x:0,top:28,w:248,h:14,fg:"#9fd3b4",fs:8.5,jc:"flex-start",lab:"源强 → 传播 → 受体，别写「减少噪声」"}));
+      return {els,h}; }
+    if(it.fig==="sewage"){ const h=50;
+      els.push(D({x:0,top:2,w:118,h:22,bg:"#8a6a45",r:6,fg:"#fff",fs:8.5,lab:"泥浆池封闭收集"}));
+      els.push(D({x:126,top:2,w:122,h:22,bg:"transparent",bd:"1.5px solid #b5564a",r:6,fg:"#e0a89f",fs:8.5,lab:"✕ 就地排放"}));
+      els.push(D({x:0,top:28,w:248,h:18,bg:"#cf4436",r:6,fg:"#fff",fs:8.5,jc:"flex-start",lab:" 污水许可 → 市政管理部门发证"}));
+      return {els,h}; }
+    if(it.fig==="waste"){ const h=52;
+      els.push(D({x:0,top:2,w:80,h:20,bg:"#cf4436",r:6,fg:"#fff",fs:8.5,lab:"不宜高于3m"}));
+      els.push(D({x:84,top:2,w:80,h:20,bg:"#2c8a5b",r:6,fg:"#fff",fs:8.5,lab:"分类台账"}));
+      els.push(D({x:168,top:2,w:80,h:20,bg:"#cf8a44",r:6,fg:"#fff",fs:8.5,lab:"再生骨料"}));
+      els.push(D({x:0,top:26,w:248,h:20,fg:"#9fd3b4",fs:8.5,jc:"flex-start",lab:"超3m须稳定性验算·未分类不得运出·资源化"}));
+      return {els,h}; }
+    return {els,h:40};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const noiseDefs=[["1 低噪设备","低噪声设备","#cf4436"],["2 隔声","隔声屏/罩","#cf8a44"],["3 封闭","封闭木工房","#d9a521"],["4 工艺","优化工艺","#2c8a5b"]];
+    const v={ b0_op:0,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,b0_ho:0,
+      b1_o0:0,b1_o1:0,b1_o2:0,b1_lineO:0,b1_noteO:0,
+      noiseSteps:noiseDefs.map((d,i)=>({n:d[0],lab:d[1],color:d[2],x:i*90+14,op:0})),
+      noiseLineO:0,noiseDbO:0,noiseNoteO:0,
+      b3_nightO:0,b3_o0:0,b3_o1:0,b3_o2:0,b3_noteO:0,
+      b4_o0:0,b4_o0b:0,b4_o1:0,b4_o2:0,
+      b5_o0:0,b5_o1:0,b5_o2:0,b5_loopO:0,
+      k0:0,k1:0,k2:0,kSum:0 };
+
+    if(A(0)){ const sp=W(0,.2),bp=W(.22,.42),st=W(.48,.66),hp=W(.72,.94);
+      v.b0_op=sp; v.b0_bs=this.lp(.6,1,bp); v.b0_bo=bp; v.b0_so=st*.95; v.b0_ss=this.lp(1.7,1,st); v.b0_ho=hp; }
+    if(A(1)){ v.b1_o0=W(.05,.24); v.b1_o1=W(.28,.5); v.b1_o2=W(.54,.76); v.b1_lineO=W(.3,.6); v.b1_noteO=W(.8,.98); }
+    if(A(2)){ v.noiseLineO=W(.5,.76); v.noiseDbO=W(.6,.82); v.noiseNoteO=W(.82,.98);
+      v.noiseSteps=v.noiseSteps.map((s,i)=>({...s,op:this.cl(W(.05,.6)*4-i,0,1)})); }
+    if(A(3)){ v.b3_nightO=W(0,.16); v.b3_o0=W(.16,.38); v.b3_o1=W(.4,.6); v.b3_o2=W(.62,.82); v.b3_noteO=W(.84,.98); }
+    if(A(4)){ v.b4_o0=W(.05,.24); v.b4_o0b=W(.26,.48); v.b4_o1=W(.52,.72); v.b4_o2=W(.74,.94); }
+    if(A(5)){ v.b5_o0=W(.05,.24); v.b5_o1=W(.28,.48); v.b5_o2=W(.5,.7); v.b5_loopO=W(.74,.96); }
+    if(A(6)){ v.k0=W(.06,.3); v.k1=W(.24,.48); v.k2=W(.42,.66); v.kSum=W(.66,.9); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

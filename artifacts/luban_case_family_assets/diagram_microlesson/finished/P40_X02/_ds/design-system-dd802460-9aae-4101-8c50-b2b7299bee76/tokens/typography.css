@@ -1,0 +1,26 @@
+/* ── Typography tokens — 鲁班智考 ─────────────────────────────────────
+   Body/UI: Noto Sans SC (400/500/700/900). Chops: Long Cang (avatars +
+   poster wordmark only). Mobile floor: body ≥ 11px; tap target ≥ 44px;
+   stage title 12–17px; keycard 11px; caption 12.5px; poster headline
+   Long Cang 46px red, subtitle 17px/900 ink. */
+:root {
+  --font-body: "Noto Sans SC", system-ui, sans-serif;
+  --font-chop: "Long Cang", cursive;
+
+  --fw-regular: 400; /* @kind other */
+  --fw-medium:  500; /* @kind other */
+  --fw-bold:    700; /* @kind other */
+  --fw-black:   900; /* @kind other */
+
+  /* Size scale (mobile, px) */
+  --fs-micro:    8px;   /* eyebrow labels, fig labels */
+  --fs-tiny:     9px;   /* meta, page eyebrow */
+  --fs-mini:     10px;  /* meta numbers, dots */
+  --fs-min:      11px;  /* body floor, keycard */
+  --fs-caption:  12.5px;/* teacher caption */
+  --fs-body:     13px;  /* options, bubble text */
+  --fs-title:    15px;  /* header title */
+  --fs-stage:    17px;  /* poster subtitle / stage hero */
+  --fs-score:    44px;  /* results big score */
+  --fs-chop:     30px;  /* poster wordmark (Long Cang) */
+}

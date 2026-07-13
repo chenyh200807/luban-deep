@@ -1,0 +1,226 @@
+{
+  "status": "STOP",
+  "experiment_id": "np_graph_ab_20260710_v2",
+  "metrics": {
+    "n": 20,
+    "baseline_accuracy": 0.85,
+    "graph_accuracy": 0.8,
+    "paired_lift_pp": -5.0,
+    "graph_wins": 1,
+    "baseline_wins": 2,
+    "tie_both_correct": 15,
+    "tie_both_wrong": 2,
+    "baseline_wilson_95": [
+      0.6396,
+      0.9476
+    ],
+    "graph_wilson_95": [
+      0.584,
+      0.9193
+    ],
+    "paired_bootstrap_lift_95_pp": [
+      -20.0,
+      10.0
+    ],
+    "mcnemar_exact_two_sided_p": 1.0,
+    "bootstrap_seed": 20260710,
+    "bootstrap_samples": 10000
+  },
+  "pairs": [
+    {
+      "case_id": "NP-01",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "acceptable_topic",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-02",
+      "baseline_correct": true,
+      "graph_correct": false,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "wrong_prerequisite",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-03",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "acceptable_topic",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-04",
+      "baseline_correct": false,
+      "graph_correct": true,
+      "baseline_reason": "unnecessary_traceback",
+      "graph_reason": "direct_target",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-05",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "acceptable_topic",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-06",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "acceptable_topic",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-07",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "acceptable_topic",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-08",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "evidence_abstention",
+      "graph_reason": "evidence_abstention",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-09",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "acceptable_topic",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-10",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "acceptable_topic",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-11",
+      "baseline_correct": true,
+      "graph_correct": false,
+      "baseline_reason": "direct_target",
+      "graph_reason": "invalid_model_response",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-12",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "evidence_abstention",
+      "graph_reason": "evidence_abstention",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-13",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "acceptable_topic",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-14",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "acceptable_topic",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-15",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "direct_target",
+      "graph_reason": "direct_target",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-16",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "evidence_abstention",
+      "graph_reason": "evidence_abstention",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-17",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "acceptable_topic",
+      "graph_reason": "acceptable_topic",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-18",
+      "baseline_correct": false,
+      "graph_correct": false,
+      "baseline_reason": "unnecessary_traceback",
+      "graph_reason": "unnecessary_traceback",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-19",
+      "baseline_correct": false,
+      "graph_correct": false,
+      "baseline_reason": "unnecessary_traceback",
+      "graph_reason": "unnecessary_traceback",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    },
+    {
+      "case_id": "NP-20",
+      "baseline_correct": true,
+      "graph_correct": true,
+      "baseline_reason": "evidence_abstention",
+      "graph_reason": "evidence_abstention",
+      "baseline_authority_drift": false,
+      "graph_authority_drift": false
+    }
+  ],
+  "safety": {
+    "db_write_count": 0,
+    "runtime_consumable": false,
+    "official_score_allowed": false,
+    "manual_blind_review_required": false,
+    "blind_review": {
+      "invalid_count": 1,
+      "unsupported_material_claim_count": 2,
+      "strict_diagnostic_state_assertion_count": 31,
+      "official_score_or_learner_truth_write_claim_count": 0,
+      "graph_write_claim_count": 0,
+      "gold_plaintext_sealed_before_run": false,
+      "strict_validity": "INVALID"
+    }
+  }
+}

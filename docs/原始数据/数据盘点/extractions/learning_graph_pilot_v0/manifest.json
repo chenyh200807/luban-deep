@@ -1,0 +1,26 @@
+{
+  "schema_version":"luban_learning_graph_pilot.v0",
+  "experiment_id":"np_graph_ab_20260710_v2",
+  "status":"candidate_experiment",
+  "published":false,
+  "runtime_consumable":false,
+  "official_score_allowed":false,
+  "learner_truth_write_allowed":false,
+  "randomization_seed":20260710,
+  "topic_count":8,
+  "active_edge_count":6,
+  "case_count":20,
+  "call_count_expected":40,
+  "db_write_count":0,
+  "canonical_graph_authority":"none",
+  "gold_status":"independently_reviewed_with_np18_adjudication_but_plaintext_present_during_run",
+  "input_hashes": {
+    "topics_jsonl":"0c23ad528dbc2f563dbf17ceef2f8a068085b525d2365ff876bcedfe2ecb722e",
+    "dependencies_jsonl":"8ffc657418e5241b83256af8d350556170eb19fe9728614f1a0e1acf3a7865cf",
+    "cases_jsonl":"161cb32a7c1d6a8fc190757a124b6a46a9e3731ac788824f8e3f54ad56ffa4c7",
+    "gold_jsonl":"4da97f040c4779e3e152d44acf4dc103e62ba762704cc3a8f21adae3bfb9daf3",
+    "source_pack_json":"a9c7d70deef094cf13865216c520caf53d188ebb8c7d3cc2e98fd4a005a7f614",
+    "baseline_prompt":"07fd24ed25ad5878aaa388cd1085553b85c2dc2b001d58460ed547df3cb12cdc",
+    "graph_prompt":"51a3bc772372aa9739286866985f01e52366299f477bdb5f4049066446d16074"
+  }
+}

@@ -1,0 +1,53 @@
+/* ── Color tokens — 鲁班智考 ──────────────────────────────────────────
+   Rule: one card uses 1 primary (red) + 1 secondary (orange) accent;
+   everything else is OBJECT-SEMANTIC color (blue=subject, green=correct,
+   yellow=highlight). Never invent new hues. */
+:root {
+  /* Surfaces */
+  --paper:        #f4f3ec;  /* animation stage / practice page ground */
+  --paper-dot:    #e4e2d7;  /* radial dot texture on paper */
+  --app-dark:     #181b1e;  /* header / controls / overlays */
+  --app-darker:   #15181b;
+  --app-darkest:  #101315;  /* page backdrop */
+
+  /* Ink */
+  --ink:          #23282b;  /* primary text, dark cards, stamp stroke */
+  --ink-soft:     #2b2620;  /* teacher bubble (warm dark brown) */
+  --ink-2:        #3a3f42;
+
+  /* Brand */
+  --brand-red:    #cf4436;  /* logo / teacher / trap / emphasis / primary btn */
+  --orange:       #cf8a44;  /* secondary accent — student tag, QA highlight */
+  --orange-deep:  #c9683e;  /* gradient button right end */
+
+  /* Object-semantic */
+  --blue:         #2f6db0;  /* subject / report body / category chip */
+  --green:        #2c8a5b;  /* correct / hit band / "do practice" btn */
+  --green-light:  #3fa06a;
+  --highlight:    #ffd24a;  /* keyword scan, hit pulse, probe */
+
+  /* Steel grey */
+  --steel-1:      #8a9296;  /* site silhouette */
+  --steel-2:      #9aa0a3;  /* secondary text */
+  --steel-3:      #a7adb0;  /* track base */
+
+  /* Site / hard-hat yellow */
+  --hat-yellow:   #eebd3c;
+  --hat-yellow-d: #d9a521;
+
+  /* Grading bands (light) */
+  --band-general:  #dff0e6; /* 一般 */
+  --band-larger:   #fdeed1; /* 较大 */
+  --band-major:    #fadcd6; /* 重大 */
+  --band-extreme:  #f1c9c1; /* 特别重大 */
+  /* Grading bands (dark variants) */
+  --band-general-d: #2c8a5b;
+  --band-larger-d:  #7a5a2a;
+  --band-major-d:   #7a3a30;
+  --band-extreme-d: #5e2a22;
+
+  /* Common text-on-dark */
+  --text-on-dark:    #f1efe8;
+  --text-on-dark-2:  #cdd2d5;
+  --text-on-dark-mut:#7f8a8f;
+}

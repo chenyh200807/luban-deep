@@ -71,7 +71,18 @@ function cdp(ws) {
     await sleep(100);
   }
   await sleep(350); // 让内联 JS 初始化
-  if (evalJS) { await send("Runtime.evaluate", { expression: evalJS }); await sleep(250); }
+  // DC handoff pages expose seek through a range input rather than a window API.
+  // Keep the documented `seek(seconds)` screenshot shorthand deterministic.
+  const seekHelper = await send("Runtime.evaluate", {
+    expression: `globalThis.seek=(seconds)=>{const input=document.querySelector('input[type="range"]');if(!input)throw new Error('seek helper: range input not found');input.value=String(seconds);input.dispatchEvent(new Event('input',{bubbles:true}));}`,
+    returnByValue: true,
+  });
+  if (seekHelper.result?.exceptionDetails) throw new Error(`seek helper failed: ${seekHelper.result.exceptionDetails.text || "runtime exception"}`);
+  if (evalJS) {
+    const evaluated = await send("Runtime.evaluate", { expression: evalJS, returnByValue: true });
+    if (evaluated.result?.exceptionDetails) throw new Error(`evalJS failed: ${evaluated.result.exceptionDetails.text || "runtime exception"}`);
+    await sleep(250);
+  }
   const metrics = await send("Page.getLayoutMetrics");
   const res = metrics.result || {};
   const cs = res.cssContentSize || res.contentSize;

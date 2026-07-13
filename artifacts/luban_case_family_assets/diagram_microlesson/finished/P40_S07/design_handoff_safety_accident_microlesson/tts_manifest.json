@@ -1,0 +1,23 @@
+{
+  "_comment": "TTS 合成清单 —— 供本地脚本（如 build_aliyun_lesson_narration.mjs）逐行喂给阿里云 TTS。voice 字段对应你的音色 ID；est_sec 仅为粗估，请以合成回填的真实时长为准并写回 timing。",
+  "lesson_id": "S07_safety_accident_grade_report",
+  "voices": { "teacher": "longanhuan_v3", "student": "longlaotie_v3" },
+  "timing_contract": "合成后请回填 actual_sec，并据此对齐 animation_ir 各 scene 的 hold 时长；讲解时间轴 beat 窗口见 lesson.json.storyboard[].t。",
+  "lines": [
+    { "id": "narr_b0", "role": "teacher", "voice": "longanhuan_v3", "scene": "b0", "beat_window_sec": [0, 14], "audio_out": "narr_b0.mp3", "est_sec": 7.5, "text": "注意哈，出了事别急着拍脑袋定级——“感觉严重”不是定级的依据，定级得靠尺子量。" },
+    { "id": "narr_b1", "role": "teacher", "voice": "longanhuan_v3", "scene": "b1", "beat_window_sec": [14, 30], "audio_out": "narr_b1.mp3", "est_sec": 9, "text": "先定性：按伤害类型这是“高处坠落”，按原因性质算“生产事故”。但记住，事故类型不等于事故等级。" },
+    { "id": "narr_b2", "role": "teacher", "voice": "longanhuan_v3", "scene": "b2", "beat_window_sec": [30, 64], "audio_out": "narr_b2.mp3", "est_sec": 15, "text": "定级靠三把尺子：死亡人数、重伤人数、直接经济损失。本事故死亡 1 人，没到 3 人，落“一般”档——三把尺子哪把最高就听哪把，不平均、不取最低。" },
+    { "id": "narr_b3", "role": "teacher", "voice": "longanhuan_v3", "scene": "b3", "beat_window_sec": [64, 94], "audio_out": "narr_b3.mp3", "est_sec": 16, "text": "上报这步，现场人员是立即向“本单位负责人”报告，别一上来就报应急或建设单位，这是高频陷阱。再逐级上报到市级住建主管，报告含初步原因、联系人、其他；伤亡有变化，30 天内补报。" },
+    { "id": "narr_b4", "role": "teacher", "voice": "longanhuan_v3", "scene": "b4", "beat_window_sec": [94, 122], "audio_out": "narr_b4.mp3", "est_sec": 17, "text": "查事故不是单位说了算。调查组得有政府、安监、公安、监察、工会、检察院和专家。处理走调查组建议→政府批复→单位执行，单位不能自裁；既追直接责任人，也追领导责任，漏了领导责任要扣分。" },
+    { "id": "narr_b5", "role": "teacher", "voice": "longanhuan_v3", "scene": "b5", "beat_window_sec": [122, 142], "audio_out": "narr_b5.mp3", "est_sec": 10, "text": "记住哈，会看答案不算数，得会写成分。把这四步串成采分句，关键词一个不漏，分就拿到手了。" },
+
+    { "id": "qa1_q", "role": "student", "voice": "longlaotie_v3", "scene": "qa", "audio_out": "qa1_q.mp3", "est_sec": 6, "text": "老师，死了 1 人，我咋觉得挺严重的，咋就一般事故了呢？" },
+    { "id": "qa1_a", "role": "teacher", "voice": "longanhuan_v3", "scene": "qa", "audio_out": "qa1_a.mp3", "est_sec": 9, "text": "严重不严重不归你感觉管，归三把尺子管。死亡 1 人没到 3 人，经济损失也没到 1000 万，就落“一般”档。别拍脑袋，量尺子。" },
+    { "id": "qa2_q", "role": "student", "voice": "longlaotie_v3", "scene": "qa", "audio_out": "qa2_q.mp3", "est_sec": 4, "text": "那要是死 1 人、可损失 2000 万呢？" },
+    { "id": "qa2_a", "role": "teacher", "voice": "longanhuan_v3", "scene": "qa", "audio_out": "qa2_a.mp3", "est_sec": 11, "text": "好问题。三指标任一达更高级就按更高级。2000 万落“较大”档（1000 万~5000 万），那就按较大事故——不平均、不取最低，哪把尺子最高听哪把。" },
+    { "id": "qa3_q", "role": "student", "voice": "longlaotie_v3", "scene": "qa", "audio_out": "qa3_q.mp3", "est_sec": 5, "text": "出了事我第一个电话打给谁？打 119 还是打政府？" },
+    { "id": "qa3_a", "role": "teacher", "voice": "longanhuan_v3", "scene": "qa", "audio_out": "qa3_a.mp3", "est_sec": 11, "text": "救人当然先救。但“报告”这步，现场人员是立即向【本单位负责人】报告，再由单位逐级上报到市级住建主管。一上来就报应急或建设单位，是高频陷阱，扣分。" },
+    { "id": "qa4_q", "role": "student", "voice": "longlaotie_v3", "scene": "qa", "audio_out": "qa4_q.mp3", "est_sec": 4, "text": "责任人是不是我们单位自己处理就行？" },
+    { "id": "qa4_a", "role": "teacher", "voice": "longanhuan_v3", "scene": "qa", "audio_out": "qa4_a.mp3", "est_sec": 10, "text": "不行，单位不得自裁。得调查组提建议→政府批复→单位执行，而且既追直接责任人，也追领导责任，漏了领导责任照样扣分。" }
+  ]
+}

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" data-screen-label="讲解上·材料进场关" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：安检门拦下带合格证的材料 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;inset:0;opacity:{{ b0_op }};">
+          <div style="position:absolute;left:20px;right:20px;top:314px;height:2.5px;background:#bdb8a8;border-radius:2px;"></div>
+          <div style="position:absolute;left:248px;top:150px;width:122px;height:20px;background:#46627e;border-radius:5px;text-align:center;font-size:11px;font-weight:900;color:#fff;line-height:20px;">材料安检门</div>
+          <div style="position:absolute;left:250px;top:168px;width:16px;height:148px;background:#46627e;"></div>
+          <div style="position:absolute;left:352px;top:168px;width:16px;height:148px;background:#46627e;"></div>
+          <div style="position:absolute;left:244px;top:120px;background:#cf4436;color:#fff;font-size:11px;font-weight:900;padding:4px 10px;border-radius:9px;white-space:nowrap;box-shadow:2px 2px 0 rgba(0,0,0,.15);opacity:{{ b0_stopO }};">站住 · 先复验</div>
+          <div style="position:absolute;left:{{ b0_cx }}px;top:258px;width:64px;height:56px;background:#cf8a44;border-radius:5px;box-shadow:3px 3px 0 rgba(0,0,0,.12);">
+            <div style="position:absolute;left:0;right:0;top:0;height:12px;background:#b9743a;border-radius:5px 5px 0 0;"></div>
+            <div style="position:absolute;left:8px;top:22px;width:48px;height:22px;background:#fff;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;color:#2c8a5b;">合格证</div>
+          </div>
+        </div>
+        <div style="position:absolute;left:24px;top:56px;width:222px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:12px 14px;font-size:13px;font-weight:700;color:#23282b;line-height:1.45;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});transform-origin:28% 100%;">有合格证就能直接用？涉安全节能环保也不复验？
+          <div style="position:absolute;left:30px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:60px;top:172px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:22px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">误区 ✕</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 材料进场验收 安检门四灯 + 退场闭环 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">材料进场验收 · 安检门先查四样</div>
+        <div style="position:absolute;left:20px;top:76px;width:80px;text-align:center;"><div style="position:relative;width:34px;height:34px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:50%;background:#d8d3c4;"></div><div style="position:absolute;inset:0;border-radius:50%;background:#2c8a5b;box-shadow:0 0 0 3px rgba(44,138,91,.18);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b1_l0 }};">✓</div></div><div style="font-size:11px;font-weight:800;color:#5c6469;margin-top:6px;">凭证</div></div>
+        <div style="position:absolute;left:108px;top:76px;width:80px;text-align:center;"><div style="position:relative;width:34px;height:34px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:50%;background:#d8d3c4;"></div><div style="position:absolute;inset:0;border-radius:50%;background:#2c8a5b;box-shadow:0 0 0 3px rgba(44,138,91,.18);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b1_l1 }};">✓</div></div><div style="font-size:11px;font-weight:800;color:#5c6469;margin-top:6px;">数量</div></div>
+        <div style="position:absolute;left:196px;top:76px;width:80px;text-align:center;"><div style="position:relative;width:34px;height:34px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:50%;background:#d8d3c4;"></div><div style="position:absolute;inset:0;border-radius:50%;background:#2c8a5b;box-shadow:0 0 0 3px rgba(44,138,91,.18);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b1_l2 }};">✓</div></div><div style="font-size:11px;font-weight:800;color:#5c6469;margin-top:6px;">规格</div></div>
+        <div style="position:absolute;left:284px;top:76px;width:80px;text-align:center;"><div style="position:relative;width:34px;height:34px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:50%;background:#d8d3c4;"></div><div style="position:absolute;inset:0;border-radius:50%;background:#2c8a5b;box-shadow:0 0 0 3px rgba(44,138,91,.18);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b1_l3 }};">✓</div></div><div style="font-size:11px;font-weight:800;color:#5c6469;margin-top:6px;">外观</div></div>
+        <div style="position:absolute;left:16px;right:16px;top:150px;text-align:center;opacity:{{ b1_pass }};"><div style="display:inline-flex;align-items:center;gap:8px;background:#2c8a5b;color:#fff;border-radius:11px;padding:8px 14px;font-size:12.5px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.22);">四样齐 · 挂牌标识 + 记收料台账</div></div>
+        <div style="position:absolute;left:16px;top:206px;font-size:11.5px;font-weight:800;color:#cf4436;opacity:{{ b1_badO }};">不合格 / 缺证 → 走退场闭环，不能一退了之</div>
+        <div style="position:absolute;left:14px;right:14px;top:246px;height:52px;opacity:{{ b1_badO }};">
+          <div style="position:absolute;left:12px;right:12px;top:19px;height:2px;background:#d8ccaa;"></div>
+          <div style="position:absolute;left:2px;top:6px;width:80px;height:40px;background:#fff;border:1.5px solid #d8ccaa;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#23282b;opacity:{{ b1_n0 }};">申请</div>
+          <div style="position:absolute;left:96px;top:6px;width:80px;height:40px;background:#fff;border:1.5px solid #d8ccaa;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#23282b;opacity:{{ b1_n1 }};">审批</div>
+          <div style="position:absolute;left:190px;top:6px;width:80px;height:40px;background:#fff;border:1.5px solid #d8ccaa;border-radius:9px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;font-weight:800;color:#23282b;line-height:1.15;opacity:{{ b1_n2 }};">见证退场</div>
+          <div style="position:absolute;left:284px;top:6px;width:80px;height:40px;background:#fff;border:1.5px solid #2c8a5b;border-radius:9px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10px;font-weight:800;color:#2c8a5b;line-height:1.15;opacity:{{ b1_n3 }};">记录确认</div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 复验触发三原则（材料滑过条件触发下游做法）░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">哪些要复验？三条触发线</div>
+        <div style="position:absolute;left:30px;top:{{ b2_my }}px;width:54px;height:30px;background:#cf8a44;border-radius:6px;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 rgba(0,0,0,.12);z-index:5;">材料</div>
+        <div style="position:absolute;left:96px;top:80px;width:278px;height:48px;border-radius:11px;background:#f1ece0;border:1.5px solid {{ b2_bA }};display:flex;align-items:center;padding:0 12px;gap:9px;"><div style="flex:none;font-size:12px;font-weight:900;color:#2f6db0;white-space:nowrap;">主要材料</div><div style="flex:none;width:7px;height:7px;border-radius:50%;background:#b3a692;"></div><div style="flex:1;font-size:11.5px;font-weight:800;color:#23282b;opacity:{{ b2_resA }};">进场必须检验</div></div>
+        <div style="position:absolute;left:96px;top:150px;width:278px;height:48px;border-radius:11px;background:#f1ece0;border:1.5px solid {{ b2_bB }};display:flex;align-items:center;padding:0 12px;gap:9px;"><div style="flex:none;font-size:11px;font-weight:900;color:#cf8a44;white-space:nowrap;line-height:1.1;">涉安全<br/>节能环保</div><div style="flex:none;width:7px;height:7px;border-radius:50%;background:#b3a692;"></div><div style="flex:1;font-size:11.5px;font-weight:800;color:#23282b;opacity:{{ b2_resB }};">须复验 + 经监理认可</div><div style="flex:none;color:#cf4436;border:2px solid #cf4436;border-radius:6px;padding:1px 6px;font-size:9px;font-weight:900;transform:rotate(-10deg);opacity:{{ b2_resB }};">监理</div></div>
+        <div style="position:absolute;left:96px;top:220px;width:278px;height:48px;border-radius:11px;background:#f1ece0;border:1.5px solid {{ b2_bC }};display:flex;align-items:center;padding:0 12px;gap:9px;"><div style="flex:none;font-size:11px;font-weight:900;color:#2c8a5b;white-space:nowrap;line-height:1.1;">关键<br/>试块试件</div><div style="flex:none;width:7px;height:7px;border-radius:50%;background:#b3a692;"></div><div style="flex:1;font-size:11.5px;font-weight:800;color:#23282b;opacity:{{ b2_resC }};">须见证检验</div></div>
+        <div style="position:absolute;left:16px;right:16px;top:284px;text-align:center;font-size:11px;font-weight:800;color:#cf8a44;opacity:{{ b2_note }};">涉安全·节能·环保 → 复验并经监理，这是触发条件</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 钢筋复试清单格子 + 成型钢筋免弯曲 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">钢筋复试：普通 5 项 · 成型免弯曲</div>
+        <div style="position:absolute;left:16px;top:78px;font-size:11px;font-weight:900;color:#2f6db0;">普通钢筋</div>
+        <div style="position:absolute;left:8px;top:100px;width:60px;text-align:center;"><div style="position:relative;width:40px;height:40px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:8px;background:#e6efe9;border:1.5px solid #bfe0cd;"></div><div style="position:absolute;inset:0;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b3_c0 }};">✓</div></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;line-height:1.15;">屈服强度</div></div>
+        <div style="position:absolute;left:82px;top:100px;width:60px;text-align:center;"><div style="position:relative;width:40px;height:40px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:8px;background:#e6efe9;border:1.5px solid #bfe0cd;"></div><div style="position:absolute;inset:0;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b3_c1 }};">✓</div></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;line-height:1.15;">抗拉强度</div></div>
+        <div style="position:absolute;left:156px;top:100px;width:60px;text-align:center;"><div style="position:relative;width:40px;height:40px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:8px;background:#e6efe9;border:1.5px solid #bfe0cd;"></div><div style="position:absolute;inset:0;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b3_c2 }};">✓</div></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;line-height:1.15;">伸长率</div></div>
+        <div style="position:absolute;left:230px;top:100px;width:60px;text-align:center;"><div style="position:relative;width:40px;height:40px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:8px;background:#e6efe9;border:1.5px solid #bfe0cd;"></div><div style="position:absolute;inset:0;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b3_c3 }};">✓</div></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;line-height:1.15;">弯曲性能</div></div>
+        <div style="position:absolute;left:304px;top:100px;width:60px;text-align:center;"><div style="position:relative;width:40px;height:40px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:8px;background:#e6efe9;border:1.5px solid #bfe0cd;"></div><div style="position:absolute;inset:0;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b3_c4 }};">✓</div></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;line-height:1.15;">重量偏差</div></div>
+        <div style="position:absolute;left:16px;top:198px;font-size:11px;font-weight:900;color:#cf8a44;opacity:{{ b3_s }};">成型钢筋</div>
+        <div style="position:absolute;left:8px;top:220px;width:60px;text-align:center;opacity:{{ b3_s }};"><div style="width:40px;height:40px;margin:0 auto;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;">✓</div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;">屈服强度</div></div>
+        <div style="position:absolute;left:82px;top:220px;width:60px;text-align:center;opacity:{{ b3_s }};"><div style="width:40px;height:40px;margin:0 auto;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;">✓</div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;">抗拉强度</div></div>
+        <div style="position:absolute;left:156px;top:220px;width:60px;text-align:center;opacity:{{ b3_s }};"><div style="width:40px;height:40px;margin:0 auto;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;">✓</div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;">伸长率</div></div>
+        <div style="position:absolute;left:230px;top:220px;width:60px;text-align:center;opacity:{{ b3_s }};"><div style="position:relative;width:40px;height:40px;margin:0 auto;border-radius:8px;background:#e4e0d4;border:1.5px dashed #b9b0a0;display:flex;align-items:center;justify-content:center;color:#a79f8f;font-size:15px;">✕<div style="position:absolute;left:-3px;right:-3px;top:19px;height:2px;background:#cf4436;transform:rotate(-18deg);"></div></div><div style="font-size:9px;font-weight:800;color:#cf4436;margin-top:5px;">弯曲·免检</div></div>
+        <div style="position:absolute;left:304px;top:220px;width:60px;text-align:center;opacity:{{ b3_s }};"><div style="width:40px;height:40px;margin:0 auto;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;">✓</div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;">重量偏差</div></div>
+        <div style="position:absolute;left:16px;right:16px;top:286px;text-align:center;font-size:11px;font-weight:800;color:#cf8a44;opacity:{{ b3_s }};">成型钢筋弯曲已在加工时定死 → 进场免检，其余 4 项照查</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 水泥复试 4 项 + 有氯离子要求首检外加剂 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">水泥复试 4 项 · 氯离子先检外加剂</div>
+        <div style="position:absolute;left:16px;top:76px;font-size:11px;font-weight:900;color:#2f6db0;">水泥复试</div>
+        <div style="position:absolute;left:14px;top:98px;width:82px;text-align:center;"><div style="position:relative;width:40px;height:40px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:8px;background:#e6efe9;border:1.5px solid #bfe0cd;"></div><div style="position:absolute;inset:0;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b4_w0 }};">✓</div></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;">胶砂强度</div></div>
+        <div style="position:absolute;left:106px;top:98px;width:82px;text-align:center;"><div style="position:relative;width:40px;height:40px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:8px;background:#e6efe9;border:1.5px solid #bfe0cd;"></div><div style="position:absolute;inset:0;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b4_w1 }};">✓</div></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;">氯离子</div></div>
+        <div style="position:absolute;left:198px;top:98px;width:82px;text-align:center;"><div style="position:relative;width:40px;height:40px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:8px;background:#e6efe9;border:1.5px solid #bfe0cd;"></div><div style="position:absolute;inset:0;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b4_w2 }};">✓</div></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;">安定性</div></div>
+        <div style="position:absolute;left:290px;top:98px;width:82px;text-align:center;"><div style="position:relative;width:40px;height:40px;margin:0 auto;"><div style="position:absolute;inset:0;border-radius:8px;background:#e6efe9;border:1.5px solid #bfe0cd;"></div><div style="position:absolute;inset:0;border-radius:8px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;opacity:{{ b4_w3 }};">✓</div></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:5px;">凝结时间</div></div>
+        <div style="position:absolute;left:16px;right:16px;top:158px;height:1.5px;background:#e0dccf;"></div>
+        <div style="position:absolute;left:16px;top:170px;font-size:12px;font-weight:900;color:#23282b;">有氯离子含量要求 · 首检哪个？</div>
+        <div style="position:absolute;top:198px;left:{{ b4_px }}px;transform:translateX(-50%);z-index:6;"><div style="background:#cf4436;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;border-radius:9px;white-space:nowrap;box-shadow:2px 2px 0 rgba(0,0,0,.12);">首检</div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #cf4436;margin:0 auto;"></div></div>
+        <div style="position:absolute;left:16px;top:230px;width:96px;height:44px;border-radius:10px;background:#f1ece0;border:1.5px solid #d8ccaa;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#8b7f66;">碎石</div>
+        <div style="position:absolute;left:130px;top:230px;width:96px;height:44px;border-radius:10px;background:#f1ece0;border:1.5px solid #d8ccaa;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#8b7f66;">河砂</div>
+        <div style="position:absolute;left:244px;top:230px;width:118px;height:44px;border-radius:10px;background:#f1ece0;border:1.5px solid #d8ccaa;overflow:hidden;"><div style="position:absolute;inset:0;background:#2c8a5b;opacity:{{ b4_hit }};"></div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#8b7f66;opacity:{{ b4_notHit }};">外加剂</div><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;opacity:{{ b4_hit }};">外加剂 ✓</div></div>
+        <div style="position:absolute;left:16px;right:16px;top:288px;text-align:center;font-size:11px;font-weight:800;color:#cf8a44;opacity:{{ b4_note }};">外加剂是氯盐主要来源 → 首检外加剂，别写碎石河砂</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 保温 / 门窗 / 防火材料复验 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">保温 · 门窗 · 防火材料复验</div>
+        <div style="position:absolute;left:16px;top:74px;width:170px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:9px 10px 11px;">
+          <div style="font-size:11px;font-weight:900;color:#2c8a5b;">屋面保温材料</div>
+          <div style="margin-top:7px;background:#eef7f1;border-radius:7px;padding:5px 8px;font-size:10.5px;font-weight:800;color:#2c6b4b;opacity:{{ b5_r0 }};">导热系数</div>
+          <div style="margin-top:5px;background:#eef7f1;border-radius:7px;padding:5px 8px;font-size:10.5px;font-weight:800;color:#2c6b4b;opacity:{{ b5_r1 }};">密度</div>
+          <div style="margin-top:5px;background:#eef7f1;border-radius:7px;padding:5px 8px;font-size:10.5px;font-weight:800;color:#2c6b4b;opacity:{{ b5_r2 }};">燃烧性能</div>
+        </div>
+        <div style="position:absolute;left:204px;top:74px;width:170px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:9px 10px 11px;">
+          <div style="font-size:11px;font-weight:900;color:#2f6db0;">墙体保温砌块</div>
+          <div style="margin-top:7px;background:#eef3f7;border-radius:7px;padding:5px 8px;font-size:10.5px;font-weight:800;color:#2f5f88;opacity:{{ b5_m0 }};">导热系数</div>
+          <div style="margin-top:5px;background:#eef3f7;border-radius:7px;padding:5px 8px;font-size:10.5px;font-weight:800;color:#2f5f88;opacity:{{ b5_m1 }};">抗压强度</div>
+          <div style="margin-top:5px;background:#eef3f7;border-radius:7px;padding:5px 8px;font-size:10.5px;font-weight:800;color:#2f5f88;opacity:{{ b5_m2 }};">吸水率</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:250px;opacity:{{ b5_clim }};">
+          <div style="font-size:10.5px;font-weight:900;color:#23282b;margin-bottom:5px;">门窗节能 · 按气候区复验</div>
+          <div style="display:flex;gap:6px;">
+            <div style="flex:1;background:#2f6db0;color:#fff;border-radius:8px;padding:6px 8px;font-size:9.5px;font-weight:800;line-height:1.3;">严寒·寒冷<br/>传热系数 + 气密性</div>
+            <div style="flex:1;background:#e6ebf0;color:#5c6469;border-radius:8px;padding:6px 8px;font-size:9.5px;font-weight:800;line-height:1.3;">夏热冬冷<br/>+ 太阳得热 · 可见光</div>
+          </div>
+        </div>
+        <div style="position:absolute;left:16px;top:322px;background:#fff3e6;border:1.5px solid #e3b98a;border-radius:8px;padding:5px 10px;font-size:10px;font-weight:800;color:#b9743a;opacity:{{ b5_fire }};">防火装修材料 · 按等级见证取样送检</div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 见证取样三方签章 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">见证取样 · 三方主体别配错</div>
+        <div style="position:absolute;left:16px;top:76px;width:112px;height:104px;background:#fff;border:1.5px solid #ddd2bb;border-radius:11px;padding:9px;box-shadow:0 3px 10px rgba(0,0,0,.06);"><div style="font-size:11px;font-weight:900;color:#2f6db0;">建设单位</div><div style="font-size:10px;font-weight:700;color:#5c6469;margin-top:3px;line-height:1.35;">书面确认见证人</div><div style="position:absolute;left:50%;bottom:11px;transform:translateX(-50%) scale({{ b6_s0s }}) rotate(-11deg);opacity:{{ b6_s0 }};color:#2c8a5b;border:2.5px solid #2c8a5b;border-radius:7px;padding:2px 8px;font-size:11px;font-weight:900;white-space:nowrap;">已确认</div></div>
+        <div style="position:absolute;left:139px;top:76px;width:112px;height:104px;background:#fff;border:1.5px solid #ddd2bb;border-radius:11px;padding:9px;box-shadow:0 3px 10px rgba(0,0,0,.06);"><div style="font-size:11px;font-weight:900;color:#cf8a44;">见证人</div><div style="font-size:10px;font-weight:700;color:#5c6469;margin-top:3px;line-height:1.35;">本人填见证记录</div><div style="position:absolute;left:50%;bottom:11px;transform:translateX(-50%) scale({{ b6_s1s }}) rotate(-11deg);opacity:{{ b6_s1 }};color:#2c8a5b;border:2.5px solid #2c8a5b;border-radius:7px;padding:2px 8px;font-size:11px;font-weight:900;white-space:nowrap;">已填写</div></div>
+        <div style="position:absolute;left:262px;top:76px;width:112px;height:104px;background:#fff;border:1.5px solid #ddd2bb;border-radius:11px;padding:9px;box-shadow:0 3px 10px rgba(0,0,0,.06);"><div style="font-size:11px;font-weight:900;color:#2c8a5b;">检测机构</div><div style="font-size:10px;font-weight:700;color:#5c6469;margin-top:3px;line-height:1.35;">核实见证人</div><div style="position:absolute;left:50%;bottom:11px;transform:translateX(-50%) scale({{ b6_s2s }}) rotate(-11deg);opacity:{{ b6_s2 }};color:#2c8a5b;border:2.5px solid #2c8a5b;border-radius:7px;padding:2px 8px;font-size:11px;font-weight:900;white-space:nowrap;">已核实</div></div>
+        <div style="position:absolute;left:16px;top:200px;font-size:11px;font-weight:900;color:#cf4436;opacity:{{ b6_wrong }};">配错主体，见证链当场断：</div>
+        <div style="position:absolute;left:16px;top:224px;display:flex;gap:8px;opacity:{{ b6_wrong }};">
+          <div style="border:2px solid #cf4436;background:#fdf2f0;border-radius:9px;padding:7px 10px;font-size:10.5px;font-weight:800;color:#cf4436;">监理确认见证人 ✕</div>
+          <div style="border:2px solid #cf4436;background:#fdf2f0;border-radius:9px;padding:7px 10px;font-size:10.5px;font-weight:800;color:#cf4436;">试验员填记录 ✕</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:280px;font-size:10.5px;font-weight:800;color:#8a6d1f;background:#fff8e2;border:1.5px dashed #d8b24a;border-radius:8px;padding:7px 10px;line-height:1.4;opacity:{{ b6_wrong }};">试样现场内抽取 · 送检前通知见证人 · 检测机构核实见证人</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN ░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">进场关 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">进场这关就唠到这儿哈——四样验收、复验项按材料列全、见证主体别配错。记住：合格证不等于复验合格。下一集咱唠覆盖前那道关：隐蔽验收和结构实体检验。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">进场查凭证·数量·规格·外观 + 台账</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">钢筋5项 · 成型免弯曲</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">水泥4项 · 氯离子首检外加剂</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">保温复验导热·密度·燃烧</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">见证人建设单位确认·见证人填记录</div>
+          <div style="background:#f1efe6;border:1px dashed #c7c2b2;border-radius:8px;padding:5px 9px;font-size:9.5px;font-weight:700;color:#8b9398;">不考：检验批→分项→分部 层级验收程序（属 A01）</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="P40_A02.teach.down.dc.html" style="border:none;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:900;background:#cf8a44;color:#fff;text-decoration:none;display:flex;align-items:center;">下一集 · 覆盖关</a>
+        </div>
+        <a href="P40_A02.practice.dc.html" style="margin-top:9px;font-size:12px;font-weight:900;color:#2c8a5b;text-decoration:none;border-bottom:2px solid #2c8a5b;padding-bottom:1px;">直接做练习 · 采分点过关</a>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="7">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:9.5px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;margin-top:11px;">
+        <span style="flex:none;font-size:10px;font-weight:900;color:#7f8a8f;white-space:nowrap;">本考点分 2 集</span>
+        <div style="flex:1;border-radius:11px;padding:11px 4px;font-size:12.5px;font-weight:900;text-align:center;background:#cf4436;color:#fff;box-shadow:0 3px 10px rgba(207,68,54,.28);">上集 · 当前</div>
+        <a href="P40_A02.teach.down.dc.html" style="flex:1;border-radius:11px;padding:11px 4px;font-size:12.5px;font-weight:900;text-align:center;background:#23282b;color:#cdd2d5;border:1px solid #333a3f;text-decoration:none;">下集</a>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="P40_A02.practice.dc.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- 全屏浮层控制条 -->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/up/";
+  audioVersion="20260713142028";
+  DUR = 244.652;
+  examTitle="材料进场关 · 复验与见证取样"; examCode="A02·上"; examCat="案例·质量验收";
+  posterSub="进场验收 · 复验项目 · 见证取样，覆盖前第一道闸"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 52 秒";
+  KNOWLEDGE="A02 隐蔽验收+材料进场复验/见证取样（上集·材料进场关）。核心：覆盖前层层设闸——进场验收→复验→见证取样。①材料进场验收：查凭证/数量/规格/外观，挂牌标识+建收料台账；不合格禁用或经审批降级，退场走申请→审批→见证退场→记录确认闭环。②复验触发三原则：主要材料须进场检验；涉安全/节能/环保须复验并经监理认可；关键试块试件须见证检验（有合格证≠复验合格）。③钢筋复试5项：屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差；成型钢筋弯曲已在加工时定，进场免检弯曲、其余4项照检。④水泥复试4项：胶砂强度/氯离子/安定性/凝结时间；有氯离子含量要求时首检外加剂（外加剂是氯盐主要来源，不是碎石河砂）。⑤保温材料复验：屋面导热系数/密度/燃烧性能，墙体砌块导热系数/抗压强度/吸水率，复验为见证取样送检；门窗节能按气候区（严寒寒冷=传热系数+气密性）；防火装修材料按等级见证取样。⑥见证取样：见证人由建设单位书面确认（不是监理），见证记录由见证人本人填（不是试验员），试样现场内抽取、送检前通知见证人，检测机构核实见证人。常见失分：有合格证即用不复验(E10)、复验项坍缩漏项(E02)、成型钢筋仍套全项查弯曲(E10)、首检写碎石河砂(M10)、见证人误监理/记录误试验员(E07)。边界：检验批→分项→分部→单位的层级验收程序、合格判定(主控全合格/一般≥80%)属A01，本卡不考；隐蔽工程验收项目与结构实体检验在下集。";
+    beats=[["b0",0.0,19.052,"破误区"],["b1",19.052,40.144,"进场验收"],["b2",40.144,61.668,"复验触发"],["b3",61.668,85.832,"钢筋复试"],["b4",85.832,104.068,"水泥首检"],["b5",104.068,126.696,"保温门窗"],["b6",126.696,150.932,"见证取样"],["q0",150.932,177.056,"问答"],["q1",177.056,196.46,"问答"],["q2",196.46,219.992,"问答"],["q3",219.992,244.652,"问答"]];
+  keycards=[
+    "合格证 ≠ 复验合格，进场先过安检门",
+    "进场验收查四样：凭证·数量·规格·外观 + 挂牌台账",
+    "复验触发三原则：主要材料·涉安全节能环保经监理·关键试块见证",
+    "钢筋复试5项；成型钢筋免弯曲，其余4项照检",
+    "水泥4项 + 有氯离子要求首检外加剂",
+    "保温复验导热·密度·燃烧；门窗按气候区；防火见证取样",
+    "见证取样：建设单位确认见证人·见证人填记录·检测机构核实"
+  ];
+  narr=[
+    "来，看材料进场这道关。好些同学一看材料带着合格证，大手一挥就让进场用了——注意哈，这是头一个坑。合格证只证出厂合格，涉及安全、节能、环保的主要材料，进场还得复验、还得见证取样，安检门这一关必须过。",
+    "材料到场，安检门先查四样：凭证、数量、规格、外观——四盏灯全绿，挂牌标识、记进收料台账，这批材料才算验收合格。要是外观不符、或者缺证呢？不能一退了之，得走闭环：申请、审批、见证退场、记录确认，一步都不能少。",
+    "哪些要复验？记住三条触发线：主要材料，进场必须检验；涉及安全、节能、环保的，光检验还不够，得复验、并且经监理认可；关键的试块、试件，必须见证检验。你看这材料一涉节能，监理这道章就跟上来了——这就是复验的触发条件。",
+    "钢筋进场复试，普通钢筋查五项：屈服强度、抗拉强度、伸长率、弯曲性能、重量偏差，一项都不能漏。可要是成型钢筋呢？弯曲性能在加工成型时就定死了，进场这一项可以免检——你看弯曲这格灰掉，剩下四项照查。别一股脑全套上，也别把五项漏成三项。",
+    "水泥复试四项：胶砂强度、氯离子、安定性、凝结时间。再看这个坑：混凝土有氯离子含量要求时，首检哪个？探针别停在碎石、河砂上——外加剂才是氯盐的主要来源，首检必须落在外加剂上。",
+    "保温材料别只看外观。屋面保温复验导热系数、密度、燃烧性能三项；墙体保温砌块是导热系数、抗压强度、吸水率。门窗节能得按气候区——严寒寒冷区查传热系数加气密性。这些复验都是见证取样送检，防火装修材料也得按等级见证取样。",
+    "最后是见证取样，主体千万别配错。见证人由建设单位书面确认，不是监理；见证记录由见证人本人填，不是试验员；试样现场内抽取、送检前通知，检测机构还得核实见证人。你把见证人换成监理、把记录换成试验员，立马红叉——主体一错，见证链就断，整项不得分。"
+  ];
+  qa=[
+    { figLabel:"钢筋5项 · 成型弯曲免检", fig:"steel", q:"老师，成型钢筋咋还能少查一项弯曲呢，不怕出问题？", a:"不怕哈。弯曲性能在钢筋加工成型那会儿就定死了，进场再弯一回没意义，所以成型钢筋这项免检。但注意——屈服、抗拉、伸长、重量偏差这四项一项不能少，普通钢筋更得五项齐。别把「免一项」记成「随便少」。" },
+    { figLabel:"氯离子 · 首检外加剂", fig:"chlor", q:"有氯离子要求的时候，为啥先检外加剂，不检砂石啊？", a:"因为外加剂是氯盐的主要来源，早强剂里氯离子最多。所以题干一提「有氯离子含量要求」，首检就落在外加剂上，别写成碎石、河砂。记牢「氯离子—首检外加剂」这对儿。" },
+    { figLabel:"见证三方 · 主体不能换", fig:"seal", q:"见证人为啥非得建设单位确认，监理确认不行吗？", a:"不行哈。见证取样图的就是第三方在场、样品不能动手脚。见证人由建设单位书面确认、见证记录由见证人本人填、检测机构还得核实见证人——你把见证人换成监理、记录换成试验员，见证链当场就断，整项不给分。" },
+    { figLabel:"两条主线 · 采分句", fig:"score", q:"这一大堆，阅卷我到底咋写才拿分呐？", a:"抓两条主线：一，复验项目按材料列全——钢筋五项、水泥四项、保温导热密度燃烧，成型钢筋记得删弯曲；二，见证主体精确到单位——建设单位确认见证人、见证人填记录。列项别坍缩、主体别配错，这分就稳了。" }
+  ];
+  askPresets=["钢筋复试到底查几项？","见证人到底谁确认？","保温材料复验哪几项？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return;
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="steel"){ h=48; const names=["屈服","抗拉","伸长","弯曲","重量"];
+      names.forEach((n,i)=>{ const grey=(i===3); els.push(D({x:i*50,top:4,w:46,h:22,bg:grey?"#5a544a":"#2c8a5b",r:5,fg:"#fff",fs:9,lab:grey?"弯曲免":n})); });
+      els.push(D({x:0,top:32,w:250,h:12,fg:"#cf8a44",fs:9,jc:"flex-start",lab:"成型钢筋弯曲免检，其余 4 项照检"})); }
+    else if(it.fig==="chlor"){ h=50;
+      els.push(D({x:0,top:12,w:60,h:22,bg:"#5a544a",r:6,fg:"#cdc7b8",fs:10,lab:"碎石"}));
+      els.push(D({x:70,top:12,w:60,h:22,bg:"#5a544a",r:6,fg:"#cdc7b8",fs:10,lab:"河砂"}));
+      els.push(D({x:140,top:12,w:78,h:22,bg:"#2c8a5b",r:6,fg:"#fff",fs:10,lab:"外加剂 ✓"}));
+      els.push(D({x:158,top:0,w:44,h:10,fg:"#cf8a44",fs:8,jc:"flex-start",lab:"首检"}));
+      els.push(D({x:0,top:38,w:250,h:12,fg:"#9fb0bb",fs:9,jc:"flex-start",lab:"氯离子主要来源＝外加剂"})); }
+    else if(it.fig==="seal"){ h=54; const ok=["建设单位·确认","见证人·填记录","检测机构·核实"];
+      ok.forEach((p,i)=>els.push(D({x:i*84,top:2,w:80,h:30,bg:"transparent",bd:"1.5px solid #2c8a5b",r:7,fg:"#7fbf95",fs:8.5,lab:p})));
+      els.push(D({x:0,top:38,w:250,h:14,fg:"#e0a89f",fs:9,jc:"flex-start",lab:"监理确认 ✕ · 试验员填记录 ✕"})); }
+    else if(it.fig==="score"){ h=48; const s=[["①复验项","#9fc7e0"],["②见证主体","#e0b98a"],["③按材料","#7fbf95"]];
+      s.forEach((p,i)=>els.push(D({x:i*84,top:2,w:80,h:22,bg:"transparent",bd:"1.5px solid "+p[1],r:6,fg:p[1],fs:9,lab:p[0]})));
+      els.push(D({x:0,top:30,w:250,h:14,fg:"#a8997a",fs:9,jc:"flex-start",lab:"列项别坍缩 · 主体别配错"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      b0_op:0,b0_cx:-70,b0_stopO:0,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,
+      b1_l0:0,b1_l1:0,b1_l2:0,b1_l3:0,b1_pass:0,b1_badO:0,b1_n0:0,b1_n1:0,b1_n2:0,b1_n3:0,
+      b2_my:58,b2_bA:"#d8ccaa",b2_bB:"#d8ccaa",b2_bC:"#d8ccaa",b2_resA:0,b2_resB:0,b2_resC:0,b2_note:0,
+      b3_c0:0,b3_c1:0,b3_c2:0,b3_c3:0,b3_c4:0,b3_s:0,
+      b4_w0:0,b4_w1:0,b4_w2:0,b4_w3:0,b4_px:64,b4_hit:0,b4_notHit:1,b4_note:0,
+      b5_r0:0,b5_r1:0,b5_r2:0,b5_m0:0,b5_m1:0,b5_m2:0,b5_clim:0,b5_fire:0,
+      b6_s0:0,b6_s0s:.5,b6_s1:0,b6_s1s:.5,b6_s2:0,b6_s2s:.5,b6_wrong:0
+    };
+
+    if(A(0)){ const sc=W(0,.16); v.b0_op=sc; v.b0_cx=this.lp(-70,196,W(.06,.4)); v.b0_stopO=W(.4,.52); const bp=W(.5,.7); v.b0_bo=bp; v.b0_bs=this.lp(.6,1,bp); const st=W(.76,.92); v.b0_so=st; v.b0_ss=this.lp(1.7,1,st); }
+    if(A(1)){ v.b1_l0=W(0,.08); v.b1_l1=W(.07,.15); v.b1_l2=W(.14,.22); v.b1_l3=W(.21,.29); v.b1_pass=W(.32,.44); v.b1_badO=W(.48,.58);
+      const np=this.cl((lp-.6)/.34,0,1); v.b1_n0=this.cl(np*4,0,1); v.b1_n1=this.cl(np*4-1,0,1); v.b1_n2=this.cl(np*4-2,0,1); v.b1_n3=this.cl(np*4-3,0,1); }
+    if(A(2)){ v.b2_my=this.lp(58,232,W(.05,.6)); v.b2_resA=W(.12,.24); v.b2_resB=W(.32,.44); v.b2_resC=W(.5,.62);
+      v.b2_bA=v.b2_resA>.3?"#2c8a5b":"#d8ccaa"; v.b2_bB=v.b2_resB>.3?"#2c8a5b":"#d8ccaa"; v.b2_bC=v.b2_resC>.3?"#2c8a5b":"#d8ccaa"; v.b2_note=W(.78,.92); }
+    if(A(3)){ v.b3_c0=W(0,.1); v.b3_c1=W(.08,.18); v.b3_c2=W(.16,.26); v.b3_c3=W(.24,.34); v.b3_c4=W(.32,.42); v.b3_s=W(.48,.64); }
+    if(A(4)){ v.b4_w0=W(0,.1); v.b4_w1=W(.08,.18); v.b4_w2=W(.16,.26); v.b4_w3=W(.24,.34); v.b4_px=this.lp(64,300,W(.42,.66)); v.b4_hit=W(.66,.78); v.b4_notHit=1-v.b4_hit; v.b4_note=W(.82,.96); }
+    if(A(5)){ v.b5_r0=W(0,.1); v.b5_r1=W(.08,.18); v.b5_r2=W(.16,.26); v.b5_m0=W(.22,.32); v.b5_m1=W(.3,.4); v.b5_m2=W(.38,.48); v.b5_clim=W(.56,.68); v.b5_fire=W(.76,.9); }
+    if(A(6)){ const p0=W(.05,.22); v.b6_s0=p0; v.b6_s0s=this.lp(.5,1,p0); const p1=W(.24,.41); v.b6_s1=p1; v.b6_s1s=this.lp(.5,1,p1); const p2=W(.43,.6); v.b6_s2=p2; v.b6_s2s=this.lp(.5,1,p2); v.b6_wrong=W(.66,.84); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

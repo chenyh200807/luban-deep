@@ -1,0 +1,14 @@
+<div style="padding:12px 16px;margin-bottom:16px;border-radius:12px;background:#fff4ec;border:1px solid #efc8b8;color:#493f3a">
+  <strong>现在可以直接点击整张手机稿。</strong> 选中后会出现朱红描边；再次点击可取消。我们推荐 B。
+</div>
+<div id="interactive-design-root"><p class="subtitle">正在载入三种适配方向…</p></div>
+<script>
+  fetch('/files/001-first-run-five-module-adaptation.html')
+    .then(function (response) { return response.text(); })
+    .then(function (html) {
+      document.getElementById('interactive-design-root').innerHTML = html;
+    })
+    .catch(function () {
+      document.getElementById('interactive-design-root').innerHTML = '<p>对照稿载入失败，请刷新页面。</p>';
+    });
+</script>

@@ -1,0 +1,182 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": []
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Noto Sans SC|Long Cang))/i]",
+        "message": "Font not provided by the design system. Available: Noto Sans SC, Long Cang."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {},
+    "tokens": [
+      "--app-dark",
+      "--app-darker",
+      "--app-darkest",
+      "--band-extreme",
+      "--band-extreme-d",
+      "--band-general",
+      "--band-general-d",
+      "--band-larger",
+      "--band-larger-d",
+      "--band-major",
+      "--band-major-d",
+      "--blue",
+      "--brand-red",
+      "--font-body",
+      "--font-chop",
+      "--fs-body",
+      "--fs-caption",
+      "--fs-chop",
+      "--fs-micro",
+      "--fs-min",
+      "--fs-mini",
+      "--fs-score",
+      "--fs-stage",
+      "--fs-tiny",
+      "--fs-title",
+      "--fw-black",
+      "--fw-bold",
+      "--fw-medium",
+      "--fw-regular",
+      "--green",
+      "--green-light",
+      "--hat-yellow",
+      "--hat-yellow-d",
+      "--highlight",
+      "--ink",
+      "--ink-2",
+      "--ink-soft",
+      "--orange",
+      "--orange-deep",
+      "--pad-card",
+      "--pad-controls",
+      "--pad-header",
+      "--paper",
+      "--paper-dot",
+      "--r-button",
+      "--r-card",
+      "--r-object",
+      "--r-pill",
+      "--r-tag",
+      "--sh-float-grn",
+      "--sh-float-red",
+      "--sh-hand-1",
+      "--sh-hand-2",
+      "--sh-hand-3",
+      "--sh-sheet",
+      "--steel-1",
+      "--steel-2",
+      "--steel-3",
+      "--text-on-dark",
+      "--text-on-dark-2",
+      "--text-on-dark-mut",
+      "--texture-dot",
+      "--texture-dot-size"
+    ],
+    "tokenKinds": {
+      "--paper": "color",
+      "--paper-dot": "color",
+      "--app-dark": "color",
+      "--app-darker": "color",
+      "--app-darkest": "color",
+      "--ink": "color",
+      "--ink-soft": "color",
+      "--ink-2": "color",
+      "--brand-red": "color",
+      "--orange": "color",
+      "--orange-deep": "color",
+      "--blue": "color",
+      "--green": "color",
+      "--green-light": "color",
+      "--highlight": "color",
+      "--steel-1": "color",
+      "--steel-2": "color",
+      "--steel-3": "color",
+      "--hat-yellow": "color",
+      "--hat-yellow-d": "color",
+      "--band-general": "color",
+      "--band-larger": "color",
+      "--band-major": "color",
+      "--band-extreme": "color",
+      "--band-general-d": "color",
+      "--band-larger-d": "color",
+      "--band-major-d": "color",
+      "--band-extreme-d": "color",
+      "--text-on-dark": "font",
+      "--text-on-dark-2": "font",
+      "--text-on-dark-mut": "font",
+      "--font-body": "font",
+      "--font-chop": "font",
+      "--fw-regular": "other",
+      "--fw-medium": "other",
+      "--fw-bold": "other",
+      "--fw-black": "other",
+      "--fs-micro": "spacing",
+      "--fs-tiny": "spacing",
+      "--fs-mini": "spacing",
+      "--fs-min": "spacing",
+      "--fs-caption": "spacing",
+      "--fs-body": "spacing",
+      "--fs-title": "spacing",
+      "--fs-stage": "spacing",
+      "--fs-score": "spacing",
+      "--fs-chop": "spacing",
+      "--pad-card": "spacing",
+      "--pad-header": "spacing",
+      "--pad-controls": "spacing",
+      "--r-card": "spacing",
+      "--r-pill": "spacing",
+      "--r-tag": "spacing",
+      "--r-button": "spacing",
+      "--r-object": "spacing",
+      "--sh-hand-1": "shadow",
+      "--sh-hand-2": "shadow",
+      "--sh-hand-3": "shadow",
+      "--sh-float-red": "shadow",
+      "--sh-float-grn": "shadow",
+      "--sh-sheet": "shadow",
+      "--texture-dot": "other",
+      "--texture-dot-size": "spacing"
+    },
+    "fontFamilies": [
+      "Long Cang",
+      "Noto Sans SC"
+    ]
+  }
+}

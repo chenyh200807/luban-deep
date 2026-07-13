@@ -1,0 +1,2 @@
+{"type":"click","text":"A完成报告时一次性写回（推荐）中途恢复仍走本地 checkpoint；完整完成后幂等写入 Learner State。范围可控，已满足第二天连续性。","choice":"canonical_writeback_on_complete","id":null,"timestamp":1783758912271}
+{"type":"click","text":"A完成报告时一次性写回（推荐）中途恢复仍走本地 checkpoint；完整完成后幂等写入 Learner State。范围可控，已满足第二天连续性。","choice":"canonical_writeback_on_complete","id":null,"timestamp":1783758924933}

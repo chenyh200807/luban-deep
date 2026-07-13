@@ -1,0 +1,118 @@
+{
+  "id": "S07_safety_accident_grade_report",
+  "exam_point": "安全事故等级判定与上报",
+  "status": "candidate_teaching_prototype + coarse_review",
+  "source_ref": "uploads/S07_案例题作答层样板.md (派生自 S07 §5 R5 signed candidate pack)",
+  "voice": { "teacher": "longanhuan_v3", "student": "longlaotie_v3" },
+
+  "source_card": {
+    "main_exam_action": "给一个事故场景（伤亡/经济损失数据），判定事故等级（一般/较大/重大/特别重大），并写出上报程序（向谁报、时限、报告内容）与调查处理链条（调查组成员、政府批复、追责），按阅卷采分点写全。",
+    "wrong_idea": "凭“性质严重/死了人”这种主观感觉拍脑袋定级，而不去量三阈值；出事第一时间报错对象（应急/建设/劳动部门）；上报漏逐级、漏30天补报；调查组只写单位内部、漏法定成员；只追直接责任人漏领导责任；单位自行处理责任人。",
+    "teaching_spine": [
+      "定性：先识别是什么事故（伤害类型12类 / 原因性质四类），事故类型 ≠ 事故等级。",
+      "定级：死亡人数 / 重伤人数 / 直接经济损失 三阈值，任一达更高级即按更高级，不平均不取最低。",
+      "上报：现场人员立即向【本单位负责人】报告 → 逐级上报至【市(设区)级人民政府住建主管部门】；报告含初步原因/联系人方式/其他；伤亡变化30天内及时补报。",
+      "调查处理：调查组（政府+安监+负有安监职责部门+监察+公安+工会+检察院+专家）建议 → 政府批复 → 单位执行；追究直接责任人+领导责任，单位不得自裁。",
+      "写成分：把以上压成阅卷友好的采分句，必写关键词不能漏（会看答案 → 会写答案）。"
+    ],
+    "facts": {
+      "grade_thresholds": {
+        "特别重大": "≥30死 / ≥100重伤 / ≥1亿",
+        "重大": "10~30死 / 50~100重伤 / 5000万~1亿",
+        "较大": "3~10死 / 10~50重伤 / 1000万~5000万",
+        "一般": "<3死 / <10重伤 / <1000万"
+      },
+      "rule": "三指标任一达更高等级即按更高等级（取最严档），不平均、不取最低。",
+      "report_target": "现场有关人员立即向本单位负责人报告，再由单位逐级上报至市(设区)级人民政府住建主管部门。",
+      "report_contents": ["事故初步原因", "报告联系人及联系方式", "其他应报告的情况"],
+      "supplement_deadline": "自事故发生之日起30天内，伤亡人数发生变化的应及时补报。",
+      "investigation_members": ["有关人民政府", "安监部门", "负有安监职责的有关部门", "监察机关", "公安机关", "工会", "人民检察院", "有关专家"],
+      "handling_chain": "调查组提建议 → 负责调查的人民政府批复 → 单位按批复执行；追究直接责任人+领导责任，单位不得自裁。"
+    },
+    "common_errors": [
+      { "code": "E08", "label": "背景信息提取失败", "desc": "漏看伤亡/经济损失具体数，凭“性质严重”主观定级" },
+      { "code": "E10", "label": "规范适用错误", "desc": "阈值用错档（死1人当较大/重大；区间端点错配）" },
+      { "code": "E07", "label": "概念混淆", "desc": "把事故类型(坍塌/生产事故)当事故等级；出事先报政府的错心智" },
+      { "code": "E03", "label": "关键词缺失", "desc": "补报写7/14/15天；只写“及时报告”无30天期限" },
+      { "code": "E06", "label": "程序顺序错误", "desc": "越级直报；漏逐级；调查处理三层关系断；单位自裁" },
+      { "code": "E02", "label": "采分点遗漏", "desc": "调查组法定成员整组漏；只追直接责任人漏领导责任" }
+    ],
+    "practice_blueprint": [
+      "Q1 等级判定·计算判定链：死1人→量三阈值→一般事故（治“拍脑袋判较大”）",
+      "Q2 取最高级规则：死1人+损失3000万→较大（治“只看死亡数/取最低”）",
+      "Q3 上报主体：立即向本单位负责人（治“先报应急/建设/劳动”陷阱）",
+      "Q4 上报时限+内容：30天补报 + 报告三项内容（治漏期限/漏初步原因联系人）",
+      "Q5 调查组法定成员：内容清单枚举（治整组漏）",
+      "Q6 采分句诊断/输出：给一段失分作答，诊断漏哪句并补全采分句（训练采分句输出）"
+    ]
+  },
+
+  "visual_archetype_decision": {
+    "cognitive_structure_6plus1": "计算判定链（阈值分级）为主 + 程序流程链为辅",
+    "primary_archetype": "③ 标尺/分级带命中（Measure-&-Classify）——把题干数值作为探针在三条阈值标尺上滑动并命中档位，取最高档为最终等级",
+    "secondary_archetype": "④ 流程管道/箭头链（Pipeline）——上报路径与调查处理批复链作为有向管道，载体（报告信封/批复公文/责任人）在节点间流转",
+    "rejected_archetype": "纯文字卡 / 判断框 / 流程框（红线①②③禁止）——本考点失分的杠杆是‘量没量尺子’和‘流向对不对’，这必须用对象的滑动命中与流转来呈现，文字框无法让学生看见‘测量’这一动作。",
+    "why_not_textcard": "学生不是不知道有等级，是凭感觉定级、不去量阈值。文字框把结论摆出来，恰恰省略了‘测量’这个唯一该被训练的动作。必须让三个数值探针真的在标尺上滑动、命中、最高者胜出，学生才会把‘量三把尺子’这件事记成肌肉记忆。"
+  },
+
+  "domain_visual_plan": {
+    "objects_students_must_see": [
+      "工程现场对象：脚手架/屋面梁剪影、坠落施工人员、‘死亡1人’伤亡数标签（事故的物理来源，不是抽象命题）",
+      "三阈值标尺对象：四档分级带（一般/较大/重大/特别重大）× 三条子轴（死亡人数/重伤人数/直接经济损失）",
+      "数值探针对象：题干的死亡1人/重伤0/损失— 三个滑块，在各自子轴上滑动命中档位",
+      "上报管道对象：现场人员→本单位负责人→市级住建主管部门 的有向管道；报告信封作为载体流转；错误支路（应急/建设/劳动）被划掉；30天补报时钟",
+      "调查组成员对象：政府/安监/监察/公安/工会/检察院/专家 人头芯片，飞入围合成组",
+      "处理链对象：批复公文 token 在 调查组→政府→单位 间流转；直接责任人+领导责任 双追责印章；‘单位自裁’被红叉淘汰",
+      "答题纸对象：采分句卡 + 高亮扫描的必写关键词"
+    ],
+    "object_motions": {
+      "enter": "现场剪影从底部升起；分类芯片分两列飞入；标尺逐段画出；调查组芯片staggered弹入",
+      "move": "三探针沿子轴左→右滑动到命中段；报告信封沿管道节点位移；批复公文在三节点间流转",
+      "layer": "标尺三条子轴垂直分层；调查组芯片围合分层于中心",
+      "hit": "探针停在命中段时该段高亮脉冲；最高档探针胜出点亮最终等级灯",
+      "eliminate": "学生直觉气泡被红✗盖章淘汰；错误上报支路被红✗划掉；‘单位自裁’被红✗淘汰",
+      "trace": "判据链一行随定级动作逐字描出：亮判据→代入→比阈值→回判",
+      "scan": "采分句卡上的高亮笔从左扫到右，逐个点亮必写关键词",
+      "exit": "每beat结束，上一beat对象整体淡出/缩到角落作锚点，画面不累积"
+    },
+    "scenes_with_domain_objects": ["b0 现场+伤亡标签+直觉淘汰", "b2 三阈值标尺+三探针命中（核心）", "b3 上报管道+信封+错误支路+时钟", "b4 调查组芯片群+批复流转+追责印章"],
+    "no_accumulation_rule": "每个 beat 的 exit 明确列出退出对象，下一 beat 只保留必要锚点（如事故现场缩角、上一结论牌留一行），避免画面累积。"
+  },
+
+  "storyboard": [
+    { "beat": "b0", "title": "别拍脑袋", "t": [0, 14], "visual_action": "工地现场升起：脚手架/屋面梁剪影 + 坠落小人 + ‘死亡1人’标签；学生直觉气泡‘性质严重，肯定重大事故！’弹出，被大红✗盖章淘汰。", "narration_teacher": "注意哈，出了事别急着拍脑袋定级——‘感觉严重’不是定级的依据。", "exit": "直觉气泡+红✗淡出；事故现场缩到右上角作锚点。" },
+    { "beat": "b1", "title": "先定性", "t": [14, 30], "visual_action": "事故卡‘高处坠落事故’居中；两列分类芯片飞入——按伤害类型12类(坍塌/物体打击/触电/高处坠落…) / 按原因性质四类(生产/质量/技术/环境)；高亮条划出‘事故类型 ≠ 事故等级’。", "narration_teacher": "先定性：这是按伤害类型分的‘高处坠落’，按原因性质算‘生产事故’。但记住，事故类型不等于事故等级。", "exit": "两列分类芯片收起，只留‘安全生产事故’结论牌。" },
+    { "beat": "b2", "title": "量三把尺子", "t": [30, 64], "visual_action": "三阈值标尺画出：四档分级带 × 三条子轴(死亡/重伤/经济损失)；三个数值探针‘死亡1人/重伤—/损失—’滑入各自子轴；死亡探针停在‘<3=一般’段并高亮；‘任一达高级即按高级’规则牌亮起；做一次what-if：损失探针跳到3000万→‘较大’段，最终灯翻到较大，再退回本题；本题三探针皆落一般→‘一般事故’灯绿。", "narration_teacher": "定级靠三把尺子：死亡人数、重伤人数、直接经济损失。本事故死亡1人，没到3人，落‘一般’档。关键——三把尺子哪把最高就听哪把，不平均、不取最低。", "exit": "标尺与探针淡出，留‘一般事故’判定牌 + 判据链一行。" },
+    { "beat": "b3", "title": "报给谁·什么时限", "t": [64, 94], "visual_action": "上报管道展开：现场人员→本单位负责人→市(设区)级住建主管部门；报告信封沿管道流转；错误支路‘应急/建设/劳动部门’被红✗划掉；报告内容三芯片(初步原因/联系人方式/其他)贴上信封；30天补报时钟出现并走动。", "narration_teacher": "上报这一步，现场人员是立即向‘本单位负责人’报告，别一上来就报应急或建设单位——这是高频陷阱。再逐级上报到市级住建主管，报告要含初步原因、联系人、其他；伤亡有变化，30天内补报。", "exit": "管道淡出，留两条要害牌：‘报本单位负责人’‘30天补报’。" },
+    { "beat": "b4", "title": "谁来查·谁担责", "t": [94, 122], "visual_action": "调查组成员芯片staggered飞入围成一组(政府/安监/负有安监职责部门/监察/公安/工会/检察院/专家)；处理链批复公文在‘调查组建议→政府批复→单位执行’三节点流转；‘单位自行处理责任人’被红✗淘汰；直接责任人+领导责任 双追责印章盖下。", "narration_teacher": "查事故不是单位自己说了算。调查组得有政府、安监、公安、监察、工会、检察院和专家。处理走调查组建议→政府批复→单位执行，单位不能自裁；追责既追直接责任人，也追领导责任——漏了领导责任要扣分。", "exit": "调查组与批复链淡出。" },
+    { "beat": "b5", "title": "写成分", "t": [122, 142], "visual_action": "答题纸卡展开四步采分句(定性→定级→上报→调查处理)；高亮笔从左扫到右逐个点亮必写关键词(一般事故/死1人<3/本单位负责人/30天/调查组法定成员/政府批复/直接责任人+领导责任)。", "narration_teacher": "记住哈，会看答案不算数，得会写成分。把这四步串成采分句，关键词一个不漏，分就拿到手了。", "exit": "全画面定格在采分句卡。" }
+  ],
+
+  "student_qa": [
+    { "q": "老师，死了1人，我咋觉得挺严重的，咋就一般事故了呢？", "a": "严重不严重不归你感觉管，归三把尺子管。死亡1人没到3人，经济损失也没到1000万，就落‘一般’档。别拍脑袋，量尺子。" },
+    { "q": "那要是死1人、可损失2000万呢？", "a": "好问题。三指标任一达更高级就按更高级。2000万落‘较大’档(1000万~5000万)，那就按较大事故——不平均、不取最低，哪把尺子最高听哪把。" },
+    { "q": "出了事我第一个电话打给谁？打119还是打政府？", "a": "救人当然先救。但‘报告’这一步，现场人员是立即向【本单位负责人】报告，再由单位逐级上报到市级住建主管。一上来就报应急或建设单位，是高频陷阱，扣分。" },
+    { "q": "责任人是不是我们单位自己处理就行？", "a": "不行，单位不得自裁。得调查组提建议→政府批复→单位执行，而且既追直接责任人，也追领导责任，漏了领导责任照样扣分。" }
+  ],
+
+  "animation_ir": {
+    "version": "v0",
+    "canvas": { "w": 390, "h": 720, "orientation": "portrait", "bg": "#f4f3ec" },
+    "renderer_contract": "renderer 只消费本 IR 的 scene/focus/enter/hold/exit/layout/camera/visible_nodes/keycard/coach/actions/visual_library；HTML preview 与 Remotion renderer 吃同一份 IR；不靠自由 HTML 或历史 class 累积。",
+    "visual_library": {
+      "site_scene": "脚手架/屋面梁剪影 + 坠落小人 + 伤亡标签",
+      "threshold_ruler": "4档×3子轴 分级标尺 + 数值探针滑块 + 命中高亮",
+      "report_pipeline": "有向节点管道 + 报告信封载体 + 错误支路红叉 + 30天时钟",
+      "investigation_group": "成员人头芯片群 + 批复公文 token + 追责印章",
+      "answer_sheet": "采分句卡 + 高亮扫描笔"
+    },
+    "scenes": [
+      { "scene": "b0", "focus": "事故现场与‘拍脑袋’误区", "layout": "center-stage", "camera": "establish→push", "visible_nodes": ["site_scene", "gut_bubble", "red_stamp"], "enter": ["site rises from bottom", "gut bubble pops"], "hold": ["red ✗ stamps the gut bubble"], "exit": ["bubble fade", "site shrink to corner"], "keycard": "感觉≠定级", "coach": "longanhuan_v3", "actions": ["eliminate(gut_bubble)"] },
+      { "scene": "b1", "focus": "先定性·两分类轴", "layout": "two-columns", "camera": "static-drift", "visible_nodes": ["accident_card", "harm12_chips", "cause4_chips", "neq_banner"], "enter": ["chips fly in two columns"], "hold": ["highlight 事故类型≠事故等级"], "exit": ["chips collapse to 安全生产事故 牌"], "keycard": "事故类型≠事故等级", "coach": "longanhuan_v3", "actions": ["enter(chips)", "highlight(neq_banner)"] },
+      { "scene": "b2", "focus": "三阈值标尺命中（核心）", "layout": "stacked-rulers", "camera": "push-on-ruler", "visible_nodes": ["threshold_ruler", "probe_death", "probe_injury", "probe_loss", "rule_card", "result_card"], "enter": ["rulers draw left→right"], "hold": ["probes slide to bands", "highest wins lights up", "what-if loss=3000万→较大→revert"], "exit": ["rulers fade", "keep 一般事故 + 判据链"], "keycard": "三指标任一达高级即按高级", "coach": "longanhuan_v3", "actions": ["move(probes)", "hit(band)", "trace(judge_chain)"] },
+      { "scene": "b3", "focus": "上报主体·时限·内容", "layout": "horizontal-pipeline", "camera": "follow-envelope", "visible_nodes": ["report_pipeline", "envelope", "wrong_branch", "content_chips", "clock30"], "enter": ["pipeline unfolds"], "hold": ["envelope travels", "wrong branch ✗", "clock ticks"], "exit": ["pipeline fade, keep 2 keycards"], "keycard": "报本单位负责人 · 30天补报", "coach": "longanhuan_v3", "actions": ["move(envelope)", "eliminate(wrong_branch)", "attach(content_chips)"] },
+      { "scene": "b4", "focus": "调查组·批复·追责", "layout": "group-circle+chain", "camera": "static-drift", "visible_nodes": ["investigation_group", "approval_doc", "blame_stamps", "self_handle_x"], "enter": ["member chips fly in"], "hold": ["approval doc flows 调查组→政府→单位", "two blame stamps"], "exit": ["group fade"], "keycard": "调查组建议→政府批复→单位执行 · 追直接+领导责任", "coach": "longanhuan_v3", "actions": ["enter(member_chips)", "move(approval_doc)", "eliminate(self_handle)"] },
+      { "scene": "b5", "focus": "采分句收束", "layout": "answer-sheet", "camera": "scan", "visible_nodes": ["answer_sheet", "highlighter"], "enter": ["sheet unfolds"], "hold": ["highlighter sweeps keywords"], "exit": ["freeze"], "keycard": "会看答案→会写成分", "coach": "longanhuan_v3", "actions": ["scan(keywords)"] }
+    ]
+  }
+}

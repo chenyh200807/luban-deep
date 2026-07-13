@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <!-- ░░ 顶部安全区红线（母版冻结，勿改）：舞台顶部 top:0–48px 为常驻 UI 带（旁白按钮/钥匙卡胶囊/全屏按钮，胶囊底沿≈40px）。
+         所有 beat 的领域对象/气泡/标签 top 最小值 = 48px，含手绘位移阴影厚度另计。双轴 gate 正确轴固定判据之一：截 beat0 中段帧核对任一对象 top≥48 且与胶囊/按钮无重叠、有可见空隙。 ░░ -->
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：只摆灭火器的贫乏现场 + 误区章 + 六要素缺失 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:16px;top:118px;right:16px;height:216px;background:#eae7d9;border:2px dashed #b9b4a2;border-radius:10px;opacity:{{ e_sceneO }};">
+          <div style="position:absolute;left:10px;top:7px;font-size:10px;font-weight:800;color:#8a8472;">施工现场（俯视）</div>
+        </div>
+        <sc-for list="{{ eSlots }}" as="s" hint-placeholder-count="6">
+          <div style="position:absolute;left:{{ s.x }}px;top:{{ s.top }}px;width:104px;height:84px;background:{{ s.bg }};border:1.5px {{ s.bstyle }} {{ s.bc }};border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:{{ s.op }};box-shadow:{{ s.sh }};">
+            <div style="width:30px;height:30px;border-radius:7px;background:{{ s.icoBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;">{{ s.ico }}</div>
+            <div style="font-size:10px;font-weight:800;color:{{ s.fg }};margin-top:6px;text-align:center;line-height:1.2;">{{ s.name }}</div>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:34px;top:52px;width:262px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:12px 15px;font-size:14px;font-weight:700;color:#23282b;line-height:1.4;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ e_bubO }};transform:scale({{ e_bubS }});z-index:22;">{{ e_bubble }}
+          <div style="position:absolute;left:40px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:248px;top:150px;z-index:24;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:20px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ e_stampO }};transform:scale({{ e_stampS }}) rotate(-13deg);">{{ e_stamp }}</div>
+        <div style="position:absolute;left:16px;right:16px;top:344px;text-align:center;font-size:12.5px;font-weight:900;color:#cf4436;opacity:{{ e_revO }};">只摆灭火器 = 缺 5 项 · 阅卷 0 分</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 现场消防布置六要素逐项点亮 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:56px;font-size:12px;font-weight:900;color:#23282b;">{{ s1_title }}</div>
+        <sc-for list="{{ six }}" as="s" hint-placeholder-count="6">
+          <div style="position:absolute;left:{{ s.x }}px;top:{{ s.top }}px;width:104px;height:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid {{ s.col }};border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:{{ s.op }};box-shadow:0 3px 10px rgba(0,0,0,.06);">
+            <div style="width:32px;height:32px;border-radius:8px;background:{{ s.col }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;">{{ s.ico }}</div>
+            <div style="font-size:10.5px;font-weight:800;color:#23282b;margin-top:6px;text-align:center;line-height:1.2;">{{ s.name }}</div>
+            <div style="position:absolute;top:-9px;right:-6px;width:20px;height:20px;border-radius:50%;background:#2c8a5b;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;opacity:{{ s.ckO }};box-shadow:1px 1px 0 rgba(44,138,91,.3);">✓</div>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:16px;right:16px;top:340px;text-align:center;font-size:11.5px;font-weight:800;color:#cf8a44;opacity:{{ s1_noteO }};">路 · 水 · 施 · 器 · 标 · 人，列要求成组写、漏一项不全</div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 临时消防设施改错：立管/消防箱/消火栓 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:56px;font-size:12px;font-weight:900;color:#23282b;">{{ s2_title }}</div>
+        <!-- 立管 -->
+        <div style="position:absolute;left:20px;top:100px;font-size:11px;font-weight:800;color:#5c6469;">消防竖管</div>
+        <div style="position:absolute;left:96px;top:92px;width:12px;height:52px;background:#cf4436;border-radius:3px;opacity:{{ s2_r1 }};"></div>
+        <div style="position:absolute;left:80px;top:146px;font-size:9px;font-weight:800;color:#cf4436;opacity:{{ s2_r1x }};">✕ 只1根</div>
+        <div style="position:absolute;left:132px;top:92px;width:12px;height:52px;background:#cf4436;border-radius:3px;opacity:{{ s2_r2 }};"></div>
+        <div style="position:absolute;left:158px;top:108px;font-size:12px;font-weight:900;color:#2c8a5b;opacity:{{ s2_r2 }};">立管不应少于 2 根</div>
+        <!-- 消防箱 -->
+        <div style="position:absolute;left:20px;top:170px;font-size:11px;font-weight:800;color:#5c6469;">消防箱</div>
+        <div style="position:absolute;left:96px;top:166px;width:30px;height:22px;background:#cf4436;border-radius:4px;opacity:{{ s2_b1 }};"></div>
+        <div style="position:absolute;left:132px;top:166px;width:30px;height:22px;background:#cf4436;border-radius:4px;opacity:{{ s2_b2 }};"></div>
+        <div style="position:absolute;left:174px;top:170px;font-size:12px;font-weight:900;color:#2c8a5b;opacity:{{ s2_b2 }};">消防箱不应少于 2 套</div>
+        <!-- 消火栓 + 路边 -->
+        <div style="position:absolute;left:20px;top:214px;font-size:11px;font-weight:800;color:#5c6469;">消火栓距路边</div>
+        <div style="position:absolute;left:40px;top:244px;width:3px;height:64px;background:#8a8472;opacity:{{ s2_road }};"></div>
+        <div style="position:absolute;left:18px;top:310px;font-size:9px;font-weight:800;color:#8a8472;opacity:{{ s2_road }};">路边</div>
+        <div style="position:absolute;left:{{ s2_hydX }}px;top:256px;width:18px;height:26px;background:#2f6db0;border-radius:4px;opacity:{{ s2_road }};"></div>
+        <div style="position:absolute;left:{{ s2_hydX }}px;top:286px;width:40px;transform:translateX(-11px);text-align:center;font-size:9px;font-weight:800;color:#2f6db0;opacity:{{ s2_road }};">消火栓</div>
+        <div style="position:absolute;left:{{ s2_distX }}px;top:232px;font-size:11px;font-weight:900;color:{{ s2_hydC }};opacity:{{ s2_road }};">{{ s2_hydTag }}</div>
+        <div style="position:absolute;left:186px;top:250px;width:186px;font-size:11px;font-weight:800;color:#2c8a5b;opacity:{{ s2_fixO }};line-height:1.45;">距路边不应大于 2m<br/>距拟建房屋 ≥5m 且 ≤25m</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 灭火器配置密度 + 设置高度 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:56px;font-size:12px;font-weight:900;color:#23282b;">{{ s3_title }}</div>
+        <!-- 临建 room -->
+        <div style="position:absolute;left:18px;top:88px;width:150px;height:96px;background:#eef3f7;border:1.5px solid #cdd9e2;border-radius:8px;opacity:{{ s3_r1 }};">
+          <div style="position:absolute;left:8px;top:6px;font-size:10px;font-weight:800;color:#2f6db0;">临时建筑 · 每100㎡</div>
+          <div style="position:absolute;left:36px;top:38px;width:20px;height:34px;background:#cf4436;border-radius:4px 4px 3px 3px;opacity:{{ s3_r1d }};"><div style="position:absolute;left:5px;top:-6px;width:10px;height:7px;background:#23282b;border-radius:2px;"></div></div>
+          <div style="position:absolute;left:94px;top:38px;width:20px;height:34px;background:#cf4436;border-radius:4px 4px 3px 3px;opacity:{{ s3_r1d }};"><div style="position:absolute;left:5px;top:-6px;width:10px;height:7px;background:#23282b;border-radius:2px;"></div></div>
+          <div style="position:absolute;left:0;right:0;bottom:5px;text-align:center;font-size:10px;font-weight:900;color:#23282b;opacity:{{ s3_r1d }};">配 2 只 10L</div>
+        </div>
+        <!-- 木料/油漆间（更密）-->
+        <div style="position:absolute;left:180px;top:88px;width:98px;height:96px;background:#fdf0ea;border:1.5px solid #e6bfa8;border-radius:8px;opacity:{{ s3_r2 }};">
+          <div style="position:absolute;left:8px;top:6px;font-size:10px;font-weight:800;color:#cf8a44;">木料/油漆间·每25㎡</div>
+          <div style="position:absolute;left:40px;top:38px;width:18px;height:32px;background:#cf4436;border-radius:4px 4px 3px 3px;opacity:{{ s3_r2d }};"><div style="position:absolute;left:4px;top:-6px;width:9px;height:7px;background:#23282b;border-radius:2px;"></div></div>
+          <div style="position:absolute;left:0;right:0;bottom:5px;text-align:center;font-size:9.5px;font-weight:900;color:#cf4436;opacity:{{ s3_r2d }};">25㎡就1只·更密</div>
+        </div>
+        <!-- 太平桶 -->
+        <div style="position:absolute;left:180px;top:196px;width:196px;font-size:10.5px;font-weight:800;color:#8a6d1f;background:#fff8e2;border:1.5px dashed #d8b24a;border-radius:8px;padding:6px 9px;line-height:1.4;opacity:{{ s3_bucket }};">面积&gt;1200㎡：增设太平桶·积水池·黄砂池</div>
+        <!-- 高度尺 -->
+        <div style="position:absolute;left:24px;top:200px;font-size:11px;font-weight:800;color:#5c6469;opacity:{{ s3_ruler }};">灭火器设置高度</div>
+        <div style="position:absolute;left:60px;top:228px;width:3px;height:100px;background:#8a8472;opacity:{{ s3_ruler }};"></div>
+        <div style="position:absolute;left:52px;top:326px;width:22px;height:3px;background:#8a8472;opacity:{{ s3_ruler }};"></div>
+        <div style="position:absolute;left:40px;top:332px;font-size:9px;font-weight:700;color:#8a8472;opacity:{{ s3_ruler }};">地面</div>
+        <div style="position:absolute;left:70px;top:230px;width:24px;height:38px;background:#cf4436;border-radius:5px 5px 3px 3px;opacity:{{ s3_mount }};"><div style="position:absolute;left:6px;top:-7px;width:12px;height:8px;background:#23282b;border-radius:2px;"></div></div>
+        <div style="position:absolute;left:102px;top:232px;font-size:11px;font-weight:900;color:#cf4436;opacity:{{ s3_mount }};">顶部离地 ≤1.5m</div>
+        <div style="position:absolute;left:102px;top:308px;font-size:11px;font-weight:900;color:#2f6db0;opacity:{{ s3_mount }};">底部离地 ≥0.15m</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 特殊场所分隔 + 电石灭火剂对症 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:56px;font-size:12px;font-weight:900;color:#23282b;">{{ s4_title }}</div>
+        <!-- 合并态（✕）-->
+        <div style="position:absolute;left:20px;top:84px;width:150px;height:66px;background:#fdf0ea;border:2px solid #cf4436;border-radius:9px;opacity:{{ s4_merge }};">
+          <div style="position:absolute;left:8px;top:7px;font-size:10.5px;font-weight:800;color:#cf4436;">油漆料库</div>
+          <div style="position:absolute;left:70px;top:30px;width:70px;height:28px;background:#fff;border:1.5px dashed #cf4436;border-radius:6px;font-size:9px;font-weight:800;color:#cf4436;display:flex;align-items:center;justify-content:center;">内设调料间</div>
+          <div style="position:absolute;right:6px;top:5px;font-size:14px;font-weight:900;color:#cf4436;">✕</div>
+        </div>
+        <!-- 分开态（✓）-->
+        <div style="position:absolute;left:20px;top:84px;width:80px;height:66px;background:#f0f8f3;border:2px solid #2c8a5b;border-radius:9px;opacity:{{ s4_sep }};">
+          <div style="position:absolute;left:8px;top:7px;font-size:10.5px;font-weight:800;color:#2c8a5b;">油漆料库</div>
+          <div style="position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:9px;color:#2c8a5b;font-weight:700;">分开 ✓</div>
+        </div>
+        <div style="position:absolute;left:112px;top:84px;width:80px;height:66px;background:#f0f8f3;border:2px solid #2c8a5b;border-radius:9px;opacity:{{ s4_sep }};">
+          <div style="position:absolute;left:8px;top:7px;font-size:10.5px;font-weight:800;color:#2c8a5b;">调料间</div>
+          <div style="position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:9px;color:#2c8a5b;font-weight:700;">留防火间距</div>
+        </div>
+        <div style="position:absolute;left:206px;top:84px;width:166px;height:66px;background:#fff;border:1.5px solid #ddd2bb;border-radius:9px;opacity:{{ s4_wood }};padding:7px 9px;">
+          <div style="font-size:10.5px;font-weight:800;color:#cf8a44;">木工操作间</div>
+          <div style="font-size:9.5px;font-weight:700;color:#5c6469;margin-top:4px;line-height:1.4;">阻燃材料搭建 · 人走断电 · 清理刨花锯末</div>
+        </div>
+        <!-- 电石灭火剂选择器 -->
+        <div style="position:absolute;left:16px;top:168px;font-size:11px;font-weight:900;color:#cf4436;">电石起火 · 灭火剂对症</div>
+        <!-- ✕ 用水 -->
+        <div style="position:absolute;left:20px;top:196px;width:168px;height:136px;background:#fdf2f0;border:1.5px solid #eabfb6;border-radius:10px;opacity:{{ s4_water }};">
+          <div style="position:absolute;left:10px;top:8px;font-size:10.5px;font-weight:800;color:#2f6db0;">✕ 用水</div>
+          <div style="position:absolute;left:64px;bottom:60px;width:{{ s4_wFlameW }}px;height:{{ s4_wFlameH }}px;background:linear-gradient(180deg,#ffd24a,#cf4436);border-radius:50% 50% 50% 50%/62% 62% 40% 40%;transform:translateX(-50%);opacity:.92;"></div>
+          <div style="position:absolute;left:42px;bottom:44px;width:44px;height:20px;background:#6b6660;border-radius:5px;"></div>
+          <div style="position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:9.5px;font-weight:800;color:#cf4436;line-height:1.3;">遇水生乙炔<br/>越浇越旺</div>
+        </div>
+        <!-- ✓ 干砂 -->
+        <div style="position:absolute;left:202px;top:196px;width:170px;height:136px;background:#f0f8f3;border:1.5px solid #b3d8c2;border-radius:10px;opacity:{{ s4_sand }};">
+          <div style="position:absolute;left:10px;top:8px;font-size:10.5px;font-weight:800;color:#2c8a5b;">✓ 干砂 / 二氧化碳</div>
+          <div style="position:absolute;left:70px;bottom:60px;width:{{ s4_sFlameW }}px;height:{{ s4_sFlameH }}px;background:linear-gradient(180deg,#ffd24a,#cf8a44);border-radius:50%;transform:translateX(-50%);opacity:{{ s4_sFlameO }};"></div>
+          <div style="position:absolute;left:44px;bottom:44px;width:44px;height:20px;background:#6b6660;border-radius:5px;"></div>
+          <div style="position:absolute;left:40px;bottom:42px;width:56px;height:26px;background:#d8b24a;border-radius:6px 6px 4px 4px;opacity:{{ s4_sandCap }};"></div>
+          <div style="position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:9.5px;font-weight:800;color:#2c8a5b;line-height:1.3;">盖住隔氧<br/>熄灭</div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 消防管理禁用品 + 义务消防队 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:56px;font-size:12px;font-weight:900;color:#23282b;">{{ s5_title }}</div>
+        <sc-for list="{{ ban }}" as="b" hint-placeholder-count="3">
+          <div style="position:absolute;left:{{ b.x }}px;top:92px;width:104px;height:106px;background:#fff;border:1.5px solid #ddd2bb;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:{{ b.op }};">
+            <div style="position:relative;width:46px;height:46px;">
+              <div style="position:absolute;left:5px;top:5px;width:36px;height:36px;border-radius:7px;background:{{ b.col }};"></div>
+              <div style="position:absolute;left:0;top:0;width:46px;height:46px;border:3px solid #cf4436;border-radius:50%;"></div>
+              <div style="position:absolute;left:-1px;top:20px;width:48px;height:3px;background:#cf4436;transform:rotate(-45deg);transform-origin:center;"></div>
+            </div>
+            <div style="font-size:10px;font-weight:800;color:#23282b;margin-top:9px;text-align:center;line-height:1.25;">{{ b.name }}</div>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:16px;top:216px;font-size:11px;font-weight:800;color:#5c6469;opacity:{{ s5_crewO }};">义务消防队 · 不少于施工总人数 10%</div>
+        <sc-for list="{{ crew }}" as="c" hint-placeholder-count="10">
+          <div style="position:absolute;left:{{ c.x }}px;top:{{ c.y }}px;width:20px;height:20px;border-radius:50%;background:{{ c.bg }};border:{{ c.bd }};opacity:{{ c.op }};"></div>
+        </sc-for>
+        <div style="position:absolute;left:24px;top:280px;font-size:9px;font-weight:800;color:#2c8a5b;opacity:{{ s5_tagO }};">↑ 义务消防员</div>
+        <div style="position:absolute;left:16px;right:16px;top:314px;text-align:center;font-size:12px;font-weight:900;color:#2c8a5b;opacity:{{ s5_tagO }};">{{ s5_tag }}</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN（播到底 t≥DUR 才出 · 与海报对称）░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:6px;">上集 · 布置与器材，唠完了</div>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">上半张就唠到这儿哈——现场消防布置照六要素成组写；临时设施记牢立管≥2根、消防箱≥2套、消火栓距路边≤2m；灭火器盯场所配比和高度；电石只认干砂、绝不沾水。下集接着唠动火审批和检查验收。</div>
+        </div>
+        <div style="margin-top:10px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">六要素 · 路水施器标人</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">立管≥2根 · 消防箱≥2套 · 栓≤2m</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">临建100㎡2只 · 木油间25㎡1只</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">电石用干砂/CO₂ · 严禁水</div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="P40_R01.practice.dc.html" style="border:none;border-radius:11px;padding:9px 16px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
+        </div>
+        <a href="P40_R01.teach.down.dc.html" style="margin-top:9px;border:1.5px solid #cf8a44;border-radius:11px;padding:9px 18px;font-size:12px;font-weight:900;background:rgba(207,138,68,.1);color:#cf8a44;text-decoration:none;display:flex;align-items:center;">下一集 · 动火审批与检查验收</a>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:11px;">
+        <span style="flex:none;font-size:10px;font-weight:800;color:#7f8a8f;letter-spacing:1px;line-height:1.25;">本考点<br/>分 2 集</span>
+        <div style="flex:1;border-radius:11px;padding:11px;font-size:13px;font-weight:900;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(207,68,54,.28);">上集 · 当前</div>
+        <a href="P40_R01.teach.down.dc.html" style="flex:1;border:1.5px solid #3a4046;border-radius:11px;padding:11px;font-size:13px;font-weight:900;background:#23282b;color:#cdd2d5;display:flex;align-items:center;justify-content:center;text-decoration:none;">下集</a>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="P40_R01.practice.dc.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- 全屏浮层控制条（真·全屏时点屏唤出，3.5s 自隐）-->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ═══════════════════════════════════════════════════════════════════════════
+   鲁班智考 · 动画学习卡 母版（讲解页）
+   ───────────────────────────────────────────────────────────────────────────
+   做新考点时，fork 本文件改名 <考点名>_讲解.dc.html，只改【内容区】，骨架别动。
+
+   ▼ 内容区（每张卡都要换）：
+     · examTitle / examCode / examCat / posterSub / posterMeta / KNOWLEDGE
+     · DUR（总秒数，≈每页旁白 6–8 秒累加）
+     · beats[]（≥6 主讲 + ≥4 问答，[id,起,止,短标题]）
+     · keycards[]（每主讲 beat 一句记忆点）
+     · narr[]（每主讲 beat 旁白，老师 longanhuan_v3 口语）
+     · qa[]（≥4 问，每问含 figLabel + fig 类型 + q + a）
+     · qaFig() 里 4 种迷你图 / figFor 的领域图（按新考点重画）
+     · 模板里 6 个 BEAT 块的领域对象 SVG/CSS（这是唯一要手画的部分）
+
+   ▲ 骨架（禁止改，改了就丢功能）：
+     · RAF 时间轴 loop / toggle / seek / jump
+     · paginate() + 旁白条 ≤3 行分页（capPages/capText/captionPage）
+     · QA 师生气泡 + 老师气泡内嵌 qaFig 迷你领域图
+     · 问追AI 弹层 + window.claude.complete
+     · 视口/全屏注入 componentDidMount
+
+   规则速记：动画讲知识不用文字讲；先判 6+1 认知结构再画领域对象；
+   每 beat 一个对象级动作、不堆画面；旁白条一页 ≤3 行（QA 气泡可整段显示）；
+   logo 用 assets/mark-white.png(暗底) / mark-red.png(亮底)，不用 emoji。
+   ═══════════════════════════════════════════════════════════════════════════ */
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/up/";
+  audioVersion="20260713154735";
+  DUR = 211.776;
+  examTitle="现场消防·布置与器材"; examCode="R01·上"; examCat="案例·消防";
+  posterSub="现场消防布置六要素 · 临时消防设施 · 灭火器 · 特殊场所"; posterMeta="点击播放 · 6 幕精讲 + 4 追问 · 约 4 分 46 秒 · 上集";
+  KNOWLEDGE="现场消防布置、动火、检查、验收流程(R01·上集：现场消防布置+器材+特殊场所+管理)。①现场消防布置六要素:消防通道/消防水源/消防设施/灭火器材/明显标志/消防安全责任人,列要求成组写、漏一项不全。②临时消防设施:立管不应少于2根、消防箱不应少于2套、消火栓距路边不应大于2m、距拟建房屋不小于5m且不大于25m(GB50720-2011)。③灭火器配置:临时建筑每100㎡配2只10L、木料间油漆间每25㎡配1只(火险大配更密)、面积超1200㎡增设太平桶积水池黄砂池;设置:顶部离地≤1.5m、底部≥0.15m、明显位置铭牌朝外。④特殊场所:油漆料库与调料间必须分开设置并留防火间距、木工操作间阻燃材料搭建+离开断电+清理刨花锯末。⑤电石灭火:气焊电石起火必须用干砂或二氧化碳、严禁用水泡沫四氯化碳(电石遇水生乙炔助燃爆燃)。⑥消防管理:在建工程禁存氧气乙炔瓶、禁用液化气钢瓶、禁用易燃材料作安全网防尘网;义务消防队人数不少于施工总人数10%。动火分级审批/动火证/十不烧/气瓶距离/检查验收在下集讲。真题印证:{2016案例5}消火栓间距改错、{2018第5题}临时消防设施改错、{2015第18题}电石干砂、{2015第30题}消防管理判断。常见失分:布置漏六要素之一(E02)、灭火器只写'配足'无场所数量(E02)、电石用水(M10/E10)、油漆料库内设调料间(E10)。";
+    beats=[["b0",0.0,18.812,"破误区"],["b1",18.812,37.888,"六要素"],["b2",37.888,56.292,"临时设施"],["b3",56.292,77.672,"灭火器"],["b4",77.672,99.028,"特殊场所"],["b5",99.028,116.736,"消防管理"],["q0",116.736,143.94,"问答"],["q1",143.94,165.216,"问答"],["q2",165.216,185.652,"问答"],["q3",185.652,211.776,"问答"]];
+  keycards=[
+    "现场消防不是多摆灭火器，是六要素成体系",
+    "布置六要素：通道·水源·设施·器材·标志·责任人",
+    "立管≥2根 · 消防箱≥2套 · 消火栓距路边≤2m",
+    "临建100㎡2只 · 木料油漆间25㎡1只 · 顶部≤1.5m",
+    "油漆料库调料间分开 · 电石用干砂禁水",
+    "禁存氧气乙炔瓶 · 义务消防队≥总人数10%"
+  ];
+  narr=[
+    "来，现场消防这道题，好些同学张嘴就是「多摆俩灭火器不就完了」。注意哈，这是头号坑。现场消防是一整套布置——通道、水源、设施、器材、标志、责任人，六要素一个都不能少，光摆灭火器，阅卷一分不给。",
+    "先看现场消防布置这关。俯瞰整个工地，六要素挨个点亮：消防通道留出来、消防水源接上、消防设施装齐、灭火器材配够、明显标志立上、消防安全责任人定死。列要求就照这六项成组写，漏一项就是不全。",
+    "案例最爱考临时消防设施改错。立管只画一根？不行，不应少于两根。消防箱一套？也不行，不应少于两套。消火栓离路边五米太远——规范是不应大于两米，离拟建房屋还得不小于五米、不大于二十五米。",
+    "灭火器配置盯数字。临时建筑每一百平米配两只十升的；木料间、油漆间火险大，每二十五平米就得配一只，配得更密。面积超一千二百平米，还要设太平桶、积水池、黄砂池。安装高度：顶部离地不大于一米五、底部不小于零点一五米。",
+    "特殊场所各有讲究。油漆料库和调料间必须分开设置、留防火间距，绝不能把调料间设进料库里头。木工操作间要阻燃材料搭、人走断电。还有电石着火——千万别浇水！电石遇水生乙炔，越浇火越大；得用干砂或者二氧化碳盖住它。",
+    "最后是消防管理这关。在建工程里禁存氧气乙炔瓶、禁用液化气钢瓶、禁拿易燃材料当安全网防尘网。再一个，义务消防队人数不能少于施工总人数的百分之十。这几条判断题最爱挖坑，记牢喽。"
+  ];
+  qa=[
+    { figLabel:"六要素 · 路水施器标人", fig:"six", q:"老师我寻思着，这现场消防布置六要素，我老记不全，咋整才不漏啊？", a:"记个顺口的哈——「路、水、施、器、标、人」。消防通道路先留，消防水源水接上，消防设施装齐全，灭火器材配够数，明显标志立起来，最后消防安全责任人定死。六个字一撸，列要求成组写，一项不落。" },
+    { figLabel:"临建100㎡2只 vs 木料油漆间25㎡1只", fig:"count", q:"灭火器那俩数我老整混，到底一百平米两只、还是二十五平米一只呀？", a:"这么记：普通临建一百平米两只十升的；木料间、油漆间这种「火险大户」，二十五平米就得一只，配得密四倍。哪儿越容易着火，灭火器摆得越密——这么一想就不混了。" },
+    { figLabel:"电石遇水生乙炔 · 越浇越旺", fig:"carbide", q:"电石着火为啥不能浇水啊？着火不都拿水浇么？", a:"这回真不行！电石遇水生成乙炔气，乙炔易燃易爆，你一浇水等于给火添柴，越浇越旺。得用干砂或者二氧化碳把它盖住、隔开空气。记住哈，电石火、绝对不沾水。" },
+    { figLabel:"布置·设施·器材·电石 一句不能虚", fig:"score", q:"整明白了！那这些要是案例题，我得咋写才拿分呐？", a:"成组往下写：布置写全六要素；临时设施写立管≥2根、消防箱≥2套、消火栓距路边≤2m；灭火器写清场所配比和高度；电石写干砂禁水。数字和主体一个不能虚，成句成组，采分点才拿得全。" }
+  ];
+  askPresets=["布置六要素怎么记不漏？","灭火器数字怎么背才不混？","电石着火为什么不能用水？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return; // 忽略舞台内交互控件（全屏钮/QA点/终屏按钮等），只有点空白画面才切换控制条
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="six"){ h=52; const g=[["通","#8fbfe0"],["水","#9fd3b4"],["施","#e6c08f"],["器","#e59f97"],["标","#e6d08a"],["人","#c3aee0"]];
+      g.forEach((x,i)=>els.push(D({x:i*40,top:2,w:32,h:22,bg:x[1],r:6,fg:"#2b2620",fs:13,lab:x[0]})));
+      els.push(D({x:0,top:30,w:250,h:14,fg:"#a8997a",fs:9,jc:"flex-start",lab:"路·水·施·器·标·人，一项不落"})); }
+    else if(it.fig==="count"){ h=52;
+      els.push(D({x:0,top:0,w:72,h:14,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"临建100㎡"}));
+      els.push(D({x:74,top:0,w:16,h:14,bg:"#b5564a",r:3})); els.push(D({x:94,top:0,w:16,h:14,bg:"#b5564a",r:3}));
+      els.push(D({x:118,top:0,w:120,h:14,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"= 2 只 10L"}));
+      els.push(D({x:0,top:24,w:74,h:14,fg:"#e6c08f",fs:9,jc:"flex-start",lab:"木料间25㎡"}));
+      els.push(D({x:74,top:24,w:16,h:14,bg:"#cf8a44",r:3}));
+      els.push(D({x:118,top:24,w:130,h:14,fg:"#e0a89f",fs:9,jc:"flex-start",lab:"= 1 只（密 4 倍）"})); }
+    else if(it.fig==="carbide"){ h=52;
+      els.push(D({x:0,top:2,w:32,h:14,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"浇水"}));
+      els.push(D({x:34,top:-2,w:40,h:22,bg:"#b5564a",r:5,fg:"#fff",fs:9,lab:"爆燃"}));
+      els.push(D({x:80,top:2,w:160,h:14,fg:"#e0a89f",fs:9,jc:"flex-start",lab:"遇水生乙炔、越浇越旺 ✕"}));
+      els.push(D({x:0,top:28,w:54,h:14,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"干砂/CO₂"}));
+      els.push(D({x:56,top:26,w:28,h:16,bg:"#2c8a5b",r:5,fg:"#fff",fs:9,lab:"灭"}));
+      els.push(D({x:90,top:28,w:150,h:14,fg:"#7fbf95",fs:9,jc:"flex-start",lab:"盖住隔氧、熄灭 ✓"})); }
+    else if(it.fig==="score"){ h=44; const s=[["布置六要素","#2f6db0"],["设施数量","#cf8a44"],["器材配比","#2c8a5b"],["电石禁水","#cf4436"]];
+      s.forEach((p,i)=>els.push(D({x:(i%2)*126,top:(i<2?0:22),w:118,h:18,bg:"transparent",bd:"1.5px solid "+p[1],r:6,fg:p[1],fs:9.5,lab:p[0]}))); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      e_sceneO:0, eSlots:[], e_bubO:0,e_bubS:.6,e_bubble:"现场消防？多摆俩灭火器不就完了", e_stampO:0,e_stampS:1.7,e_stamp:"误区 ✕", e_revO:0,
+      s1_title:"现场消防布置 · 六要素逐项配齐", six:[], s1_noteO:0,
+      s2_title:"临时消防设施改错 · 数量与间距", s2_r1:0,s2_r1x:0,s2_r2:0, s2_b1:0,s2_b2:0, s2_road:0,s2_hydX:150,s2_hydC:"#cf4436",s2_hydTag:"5m ✕",s2_distX:150,s2_fixO:0,
+      s3_title:"灭火器 · 场所配比 + 设置高度", s3_r1:0,s3_r1d:0, s3_r2:0,s3_r2d:0, s3_bucket:0, s3_ruler:0,s3_mount:0,
+      s4_title:"特殊场所分隔 + 电石对症灭火", s4_merge:0,s4_sep:0,s4_wood:0, s4_water:0,s4_wFlameW:20,s4_wFlameH:26, s4_sand:0,s4_sFlameW:24,s4_sFlameH:30,s4_sFlameO:1,s4_sandCap:0,
+      s5_title:"消防管理 · 禁用品 + 义务消防队", ban:[], s5_crewO:0, crew:[], s5_tagO:0, s5_tag:"10 人配 1 名义务消防员 ≈ 总人数 10%" };
+
+    if(A(0)){ const scO=W(0,.14), slotO=W(.06,.2), bp=W(.28,.44), st=W(.5,.66), rv=W(.72,.9);
+      v.e_sceneO=scO;
+      const grid=[["通","消防通道 ?",22,132,false],["水","消防水源 ?",140,132,false],["施","消防设施 ?",258,132,false],["器","灭火器材",22,228,true],["标","明显标志 ?",140,228,false],["人","责任人 ?",258,228,false]];
+      v.eSlots=grid.map(g=>({ ico:g[0],name:g[1],x:g[2],top:g[3],op:slotO,
+        bg:g[4]?"#fff":"#eae7d9", bstyle:g[4]?"solid":"dashed", bc:g[4]?"#cf4436":"#b9b4a2",
+        sh:g[4]?"0 3px 10px rgba(207,68,54,.15)":"none", icoBg:g[4]?"#cf4436":"#c3bdaa", fg:g[4]?"#23282b":"#8a8472" }));
+      v.e_bubO=bp; v.e_bubS=this.lp(.6,1,bp); v.e_stampO=st; v.e_stampS=this.lp(1.7,1,st); v.e_revO=rv; }
+    if(A(1)){ const items=[["通","消防通道","#2f6db0",22,92],["水","消防水源","#2c8a5b",140,92],["施","消防设施","#cf8a44",258,92],["器","灭火器材","#cf4436",22,202],["标","明显标志","#d9a521",140,202],["人","安全责任人","#7a5cc0",258,202]];
+      const ap=W(0,.66), ck=W(.14,.86);
+      v.six=items.map((it,i)=>({ico:it[0],name:it[1],col:it[2],x:it[3],top:it[4],op:this.cl(ap*6-i,0,1),ckO:this.cl(ck*6-i,0,1)}));
+      v.s1_noteO=W(.86,1); }
+    if(A(2)){ v.s2_r1=W(0,.1); v.s2_r1x=W(.1,.16); v.s2_r2=W(.16,.26);
+      v.s2_b1=W(.28,.36); v.s2_b2=W(.38,.5);
+      v.s2_road=W(.5,.6); const near=W(.6,.8);
+      v.s2_hydX=this.lp(150,62,near); v.s2_distX=v.s2_hydX-6; v.s2_hydC=near>.6?"#2c8a5b":"#cf4436"; v.s2_hydTag=near>.6?"≤2m ✓":"5m ✕";
+      v.s2_fixO=W(.82,.98); }
+    if(A(3)){ v.s3_r1=W(0,.14); v.s3_r1d=W(.14,.3); v.s3_r2=W(.3,.42); v.s3_r2d=W(.42,.56);
+      v.s3_bucket=W(.56,.7); v.s3_ruler=W(.66,.8); v.s3_mount=W(.8,.96); }
+    if(A(4)){ const sep=W(.24,.4);
+      v.s4_merge=W(0,.14)*(1-sep); v.s4_sep=sep; v.s4_wood=W(.42,.56);
+      v.s4_water=W(.56,.66); const wg=W(.62,.82); v.s4_wFlameW=this.lp(22,52,wg); v.s4_wFlameH=this.lp(24,50,wg);
+      v.s4_sand=W(.7,.8); const sg=W(.82,.98); v.s4_sFlameW=this.lp(26,4,sg); v.s4_sFlameH=this.lp(32,4,sg); v.s4_sFlameO=this.lp(1,0,sg); v.s4_sandCap=sg; }
+    if(A(5)){ const bi=[["氧气 / 乙炔瓶","#8fbfe0",22],["液化气钢瓶","#e0b48f",140],["易燃材料作安全网","#c9d98f",258]];
+      const bo=W(0,.5); v.ban=bi.map((b,i)=>({name:b[0],col:b[1],x:b[2],op:this.cl(bo*3-i,0,1)}));
+      v.s5_crewO=W(.5,.62); const co=W(.56,.9); v.crew=[];
+      for(let i=0;i<10;i++){ const vol=(i===0); v.crew.push({x:24+i*35,y:246,bg:vol?"#2c8a5b":"#c7c2b4",bd:vol?"2px solid #1c6b45":"none",op:this.cl(co*11-i,0,1)}); }
+      v.s5_tagO=W(.86,1); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaPageInfo="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaPageInfo=""; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaPageInfo,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

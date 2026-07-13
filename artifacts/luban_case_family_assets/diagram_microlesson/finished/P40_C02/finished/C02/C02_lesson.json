@@ -1,0 +1,123 @@
+{
+  "id": "C02",
+  "exam_point": "进度款与计量计价",
+  "status": "candidate_diagram_microlesson",
+  "voice": { "teacher": "longanhuan_v3", "student": "longlaotie_v3" },
+  "authority_note": "采分点锚 C02 §5 R5（C1–C8），不另造 authority；金额只引用真题{2019第1题}/教材给定值，本卡不独立验算，数值正确性归 signed scoring artifact + Layer-2；错因码映射 ERROR_CODE_REGISTRY（E02/E07/E08/E09/E10），不自造。",
+
+  "source_card": {
+    "main_exam_action": "按第9类『计算判定链』四步（亮公式→代入题面列式→数值结论带单位→回判规范阈值/定性）写全进度款资金链：先扣暂列金求预付款→求起扣点这条线→逐月列累计判是否达起扣点→当期应付（未达扣3%质保一刀、达起扣点再扣回预付款两刀）。",
+    "wrong_idea": "『会算就能得分』——实则失分在写不成分：预付款基数不扣暂列金、起扣点公式写反成『合同价×占比−预付款』、只算当月不列累计漏判起扣点、漏3%质保金、5月漏扣回预付款、把题面诱饵值5%当质保金上限。",
+    "teaching_spine": "扣暂列金→预付款1044 → 起扣点3480（线）→ 逐月累计180/680/1430/2430/3830 过线 → 第5月触发两刀 → 合同条款红线体检 → 采分四步回扣。",
+    "facts": [
+      "预付款=(合同价−暂列金)×预付比例=(5800−580)×20%=1044万（基数先扣暂列金）",
+      "起扣点=合同价基数−预付款÷主要材料占比=(5800−580)−1044/60%=3480万",
+      "逐月累计 180/680/1430/2430/3830；累计≥起扣点才扣回预付款",
+      "3月付750×(1−3%)=727.5万、4月付1000×0.97=970万（未达起扣点只扣3%质保一刀）",
+      "5月累计3830>3480，除3%质保外还扣回预付款（两刀）",
+      "质保金以工程结算总价为基数累计≤3%（逐月扣3%、累计封顶3%）；2022题面5%/履约15%是诱饵，规范钉死3%/10%、不得指定供应商/分包",
+      "综合单价是不含增值税的税前全费用价（人材机+管理费+利润+风险），税只在最末整体计提一次，单价里再乘(1+税率)＝双重计税",
+      "合同未约定支付比例时，进度款不宜低于累计完成工程总值的80%（『未约定』是前提）"
+    ],
+    "common_errors": [
+      { "code": "E08", "desc": "预付款基数未扣暂列金（背景信号未抓）" },
+      { "code": "E09", "desc": "起扣点公式结构写反 / 预付款÷占比写成×占比 / 基数错连锁" },
+      { "code": "E02", "desc": "只算当月不列累计、漏判起扣点；漏3%质保；漏5月扣回预付；只写得数不列式" },
+      { "code": "E07", "desc": "把综合单价当含税价；把80%未约定下限当固定支付规则" },
+      { "code": "E10", "desc": "单价里重复计税；写题面诱饵值5%/15%当规范上限" }
+    ],
+    "practice_blueprint": "6 题级联：综合单价口径(C1)→预付款基数(C4)→起扣点公式(C4)→逐月累计判起扣(C5)→质保金上限(C8)→采分诊断末题（诊断『会算但写不成分』样本，输出四步采分句）。每题图示、答前不泄答案、选项为完整采分句、每错项三段解析（为什么容易选/为什么扣分+错因码/正确补这句）、结果页含逐题表现+薄弱点(error_code)+继续补练+问鲁班入口。"
+  },
+
+  "visual_archetype_decision": {
+    "primary": "③ 计算判定链 / 阈值触发因果（threshold_trigger + 资金分块 money_partition）",
+    "secondary": "判断纠错·红线体检（合同条款体检 + 红章淘汰）",
+    "cognitive_structure": "本考点 90% 是计算判定题，teaching_spine 是一条串行依赖的资金链（上一步结果是下一步输入），命门在『算完回判规范阈值/触发条件』——正是阈值触发的设计目标；非计算的条款体检走判断纠错三段式。两类正交覆盖。",
+    "why_not_text_cards": "起扣点的本质是『累计资金垒到某高度才触发扣回』——是一条线与一根逐月长高的柱之间的空间/高度关系，文字『累计≥起扣点才扣回』无法让学生感知跨越；预付款基数要扣暂列金，文字公式学生会背但下笔仍错，缺『把那一截切走』的空间动作锚定。所以禁用纯文字框/判断框，必须画资金对象的进出/垒高/过线/切刀。"
+  },
+
+  "domain_visual_plan": {
+    "objects_student_must_see": [
+      "合同价总块 5800万（蓝条）+ 暂列金截段 580（条纹灰，被切走/不进基数）",
+      "基数 5220 与预付款币 1044万（绿）",
+      "起扣点阈值线 3480万（红虚线，钉在累计轴上）",
+      "逐月累计柱 180→680→1430→2430→3830（5 段垒高，跨过起扣点线）",
+      "质保金 3% 切片 + 第5月预付款扣回切片（两刀）",
+      "条款体检卡（质保5%/履约15%/指定钢厂）+ 红章『不妥』+ 规范钉死值"
+    ],
+    "object_motions": {
+      "enter": "合同价块进入；起扣点线从右滑入钉在3480；逐月柱从底依次升起垒成累计柱",
+      "move": "暂列金段下滑变灰退场；预付款币从基数升起；累计柱逐月加高",
+      "hit": "第5月累计3830跨过起扣点3480 → 线高亮 + 触发徽标",
+      "eliminate": "beat0 两个错式被红章淘汰；beat5 条款诱饵值被红章判『不妥』",
+      "exit": "每 beat 用 lo{i}/lpe{i} 切层，离场对象明确退出，不累积画面"
+    },
+    "scenes_with_domain_objects": ["b0 资金块+红章", "b1 切暂列金+预付款币", "b2 起扣点线+累计轴", "b3 逐月累计柱过线", "b4 两刀切片", "b5 条款红章体检"],
+    "min_4_main_scenes_ok": true
+  },
+
+  "storyboard": [
+    { "beat": "b0", "t": [0, 26], "visual_action": "合同价5800块（含暂列580条纹段）出现 → 两个错式『5800×20%=1160』『合同价×占比−预付款』被红章『基数错』『公式反』淘汰", "narr_gist": "预付款别拿5800直接乘、起扣点公式别写反", "exit": "误区气泡+错式+红章清场", "accept_iff": "学生能看出两个误区＝基数没扣暂列金 + 起扣点公式写反，两红章分别压在两错式上" },
+    { "beat": "b1", "t": [26, 60], "visual_action": "合同价块的暂列580段下滑变灰退场 → 剩基数5220 → ×20% → 预付款币1044升起", "narr_gist": "先扣暂列金再乘比例，预付款=5220×20%=1044", "exit": "暂列段/箭头退场，仅留预付款结论", "accept_iff": "学生看见暂列580从合同价里被切走、不进基数，预付款=剩下5220的20%=1044" },
+    { "beat": "b2", "t": [60, 94], "visual_action": "累计轴出现 → 公式三步『基数−预付款÷占比』『=5220−1740』『=3480』 → 起扣点红虚线从右滑入钉在3480高度", "narr_gist": "起扣点=基数−预付款÷占比=3480，是横在累计轴上的一条线", "exit": "公式步退场，保留轴+起扣点线作 b3 锚点", "accept_iff": "起扣点是钉在累计轴3480的一条线；公式结构=基数−预付款÷占比，不是占比×基数−预付款" },
+    { "beat": "b3", "t": [94, 134], "visual_action": "同轴同线；逐月累计柱5段依次垒高，累计数字180/680/1430/2430/3830跳变；4月(2430)在线下、5月(3830)跨过3480线→线高亮+触发徽标", "narr_gist": "逐月累计，第5月3830越过3480才触发扣回", "exit": "保留过线状态进入 b4", "accept_iff": "学生看出4月累计在线下、5月累计跨过3480线→第5月才触发扣回预付款（条件维：累计≥起扣点才扣）" },
+    { "beat": "b4", "t": [134, 170], "visual_action": "三行：3月/4月切1刀(−3%质保)=727.5/970；5月切2刀(−3%质保 + 扣回预付)", "narr_gist": "未到起扣点扣一刀（质保），到了扣两刀（+预付）", "exit": "对比注脚收尾退场", "accept_iff": "学生看见每月先切3%质保；第5月在质保之外还多切一刀扣回预付款——两刀不是一刀" },
+    { "beat": "b5", "t": [170, 194], "visual_action": "三张条款卡（质保5%/履约15%/指定钢厂）逐一被红章『不妥』+ 规范钉死值（≤3%/≤10%/不得指定）浮出", "narr_gist": "题面诱饵值不是规范值，写规范钉死值", "exit": "条款卡清场", "accept_iff": "学生看见题面诱饵值5%/15%被红章判不妥、规范钉死值3%/10%浮出，写诱饵值=判反" },
+    { "beat": "b6", "t": [194, 214], "visual_action": "四步链卡：1预付款→2起扣点→3判起扣→4当期两刀；底部『亮公式→代入列式→数值带单位→回判定性』", "narr_gist": "一条资金链串牢，采分四步走全", "exit": "—", "accept_iff": "四步链清楚，采分四步一步不少" }
+  ],
+
+  "student_qa": [
+    { "fig": "base", "q": "暂列金580为啥非得先扣？", "a_gist": "暂列金未发包、是备用钱，预付款只对已发包工程预付，基数必须先抠出580→5220×20%=1044。" },
+    { "fig": "line", "q": "起扣点公式老记反咋办？", "a_gist": "记成一条线：基数−预付款÷占比=5220−1044÷60%=3480，别写成占比×基数−预付款。" },
+    { "fig": "floor80", "q": "合同没写支付比例咋付？", "a_gist": "未约定时进度款不宜低于累计完成总值80%；『未约定』是前提，别当固定比例套。" },
+    { "fig": "score", "q": "阅卷怎么写才把分拿全？", "a_gist": "四步写全（公式→列式→数值带单位→回判一刀还是两刀）；综合单价不含税、税只最末乘一次。" }
+  ],
+
+  "animation_ir_v0": {
+    "renderer_contract": "renderer 只消费本 IR：RAF 驱动 t（秒）→ renderVals() 按 t 用 W(a,b)/lp/eo 算每个 visible_node 的 opacity/transform 标量 → 模板 {{ }} 插值；不靠自由 HTML 或历史 class 累积。HTML preview 与 Remotion renderer 吃同一份 beats/narr/keycards/qa + 每 beat 的 visible_nodes/actions。",
+    "stage": { "w": 390, "h": 462, "paper_bg": "#f4f3ec", "dot_grid": "radial-gradient(#e4e2d7 .7px) 18px" },
+    "scenes": [
+      { "scene": "b0", "focus": "破误区", "enter": "bubble→bar→eq1→stamp1→eq2→stamp2", "hold": "两错式被红章压住", "exit": "全清", "layout": "气泡上/资金块中/错式+章下", "camera": "static", "visible_nodes": ["b0_bubble","合同价5800","暂列580","错式1160","章基数错","错式公式反","章公式反"], "keycard": "预付款基数要先扣暂列金，别拿合同价直接乘", "coach": "longanhuan_v3", "actions": ["scale-in bubble","stamp drop -12deg"], "visual_library": "money_partition + 红章淘汰" },
+      { "scene": "b1", "focus": "扣暂列金→预付款", "enter": "bar→暂列段translateY下滑变灰→基数label→×20%→预付款币rise", "hold": "预付款1044", "exit": "暂列/箭头退场", "layout": "bar上/基数说明/币中", "camera": "static", "visible_nodes": ["基数5220","暂列580(slide-out)","×20%","预付款1044"], "keycard": "预付款 = (合同价−暂列金) × 预付比例 = 1044万", "coach": "longanhuan_v3", "actions": ["translateY 0→56 + gray","coin rise translateY 24→0"], "visual_library": "money_partition" },
+      { "scene": "b2", "focus": "起扣点阈值线", "enter": "axis→f1→f2→f3→起扣点线translateX 210→0", "hold": "3480线钉在轴上", "exit": "公式退、留轴+线", "layout": "轴左/公式右/线横", "camera": "static", "visible_nodes": ["累计轴","公式三步","起扣点线3480"], "keycard": "起扣点 = 基数 − 预付款÷材料占比 = 3480万，是条线", "coach": "longanhuan_v3", "actions": ["line slide-in from right","f3 green chip pop"], "visual_library": "threshold_ruler" },
+      { "scene": "b3", "focus": "逐月累计过线", "enter": "axis+line→5段柱依次rev垒高→累计数字跳变→5月过线hit+触发徽标", "hold": "3830>3480高亮", "exit": "保留过线", "layout": "轴+柱(x150)+累计标签(x224)+触发徽标(top60)", "camera": "static", "visible_nodes": ["起扣点线3480","b3segs[5]","b3labs[180/680/1430/2430/3830]","触发徽标"], "keycard": "累计达起扣点那条线，才开始扣回预付款", "coach": "longanhuan_v3", "actions": ["segments opacity reveal rev=W(.14,.96)*5.6","hit highlight rev>=5"], "visual_library": "threshold_trigger" },
+      { "scene": "b4", "focus": "两刀扣款", "enter": "3月bar+1刀→4月bar+1刀→5月bar+2刀(质保+扣回)", "hold": "5月两刀对比", "exit": "对比注脚退", "layout": "三行 month|bar|slices|result", "camera": "static", "visible_nodes": ["3月727.5一刀","4月970一刀","5月质保+扣回两刀"], "keycard": "未到起扣点扣一刀(质保)，到了扣两刀(+预付)", "coach": "longanhuan_v3", "actions": ["slice fade-in staged"], "visual_library": "money_partition (slice peel)" },
+      { "scene": "b5", "focus": "条款红线体检", "enter": "条款卡1→章1→规范1；条款卡2→章2→规范2；条款卡3→章3→规范3", "hold": "三章三规范", "exit": "清场", "layout": "三行 卡+章+规范fix", "camera": "static", "visible_nodes": ["质保5%→≤3%","履约15%→≤10%","指定钢厂→不得指定"], "keycard": "诱饵值不是规范值：质保≤3%、履约≤10%、不得指定", "coach": "longanhuan_v3", "actions": ["stamp drop -11deg per clause"], "visual_library": "判断纠错 + 红章淘汰" },
+      { "scene": "b6", "focus": "采分四步链", "enter": "card0→1→2→3 + arrows + 结句", "hold": "四步链", "exit": "—", "layout": "四卡一排 + 箭头 + 收束句", "camera": "static", "visible_nodes": ["1预付款","2起扣点","3判起扣","4当期两刀","亮公式→代入→数值→回判"], "keycard": "亮公式→代入列式→数值带单位→回判，四步一句不少", "coach": "longanhuan_v3", "actions": ["staged fade + arrows"], "visual_library": "答题纸/收束" }
+    ]
+  },
+
+  "split": "拆两节课：上集·资金链（C02_..._讲解.dc.html）+ 下集·责任与口径（C02_..._讲解_下集.dc.html），互相链接；练习共用一份。",
+  "coverage_matrix": {
+    "C1_综合单价不含税(记录/计算表达)": "下集主讲 b4（费用块拆解+税最末一次）+ 下集 QA-tax + practice Q1",
+    "C2_清单责任主体(主体维)": "下集主讲 b1（招标人编制+单价/总价分流）+ 下集 QA-blame",
+    "C3_计价风险责任划分(主体维)": "下集主讲 b2（合同类型→风险来源→责任主体三步链）",
+    "C4_预付款+起扣点(记录/计算表达+条件)": "上集主讲 b1/b2 + QA base/line + practice Q2/Q3",
+    "C5_逐月累计扣回(记录/计算表达+条件)": "上集主讲 b3/b4 + practice Q4",
+    "C6_未约定80%下限(条件)": "下集主讲 b5（阈值尺下限带）+ 上集 QA-floor80",
+    "C7_合同价款调整事项(后果)": "下集主讲 b3（调整事项闸门：进闸门才调）+ 下集 QA-gate",
+    "C8_质保金≤3%结算总价为基数(记录/计算表达+后果)": "上集主讲 b4/b5（质保切片+条款红线体检）+ practice Q5",
+    "程序维_竣工资料移交": "下集主讲 b6（管道流转+分包跳总包红✗）+ 下集 QA-pipe",
+    "note": "上下集合计 C1–C8 + 五维全覆盖：主体维(C2/C3 下集b1/b2)、程序维(下集b6)、条件维(上集b3起扣点/下集b5 80%)、记录·计算维(上集b1-b4 C4/C5/C8 + 下集b4 C1)、后果维(上集b5 C8红线/下集b3 C7调整)。每维都有独立动画 scene，非仅练习覆盖。"
+  },
+
+  "validation": {
+    "run_in_this_environment": [
+      "源 MD 直读提炼 source_card（C02 案例题作答层样板 + C02 R5 C1–C8 锚定）",
+      "390px 手机宽度截图（讲解逐 beat + QA / practice 题卡 + 结果页）",
+      "practice 真实点击冒烟（选择→对答案→三段解析展开→下一题→查看结果页）",
+      "DC 加载无 console 报错（ready_for_verification）"
+    ],
+    "NOT_run_here_external_pipeline": [
+      "validate_lesson_source_workflow（源 workflow gate）",
+      "build_aliyun_lesson_narration.mjs --print",
+      "validate_animation_ir_contract.mjs",
+      "render_animation_ir_preview.py / validate_animation_ir_preview.mjs",
+      "render_animation_ir_practice.py",
+      "Aliyun TTS（longanhuan_v3 / longlaotie_v3）mp3 + timing 生成",
+      "复制到本地 /Users/yehongchen/.../finished/<ID>/",
+      "8800 本地服务 URL"
+    ],
+    "tts_note": "本卡内置 Web Speech 兜底（speakBeat→audio/<beatid>.mp3 优先，失败回退 webSpeak）。正式 mp3 需在你本地用 build_aliyun_lesson_narration.mjs 生成后放入 finished/C02/audio/ 同名文件；timing 由该脚本产出。"
+  }
+}

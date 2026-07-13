@@ -1,0 +1,18 @@
+{
+  "status": "outputs_frozen",
+  "experiment_id": "np_graph_ab_20260710_v2",
+  "calls": 40,
+  "expected_calls": 40,
+  "system_fingerprints": [
+    "fp_8b330d02d0_prod0820_fp8_kvcache_20260402"
+  ],
+  "seed_supported_values": [
+    true
+  ],
+  "topic_count": 8,
+  "active_edge_count": 6,
+  "case_count": 20,
+  "source_fact_count": 8,
+  "runtime_consumable": false,
+  "db_write_count": 0
+}

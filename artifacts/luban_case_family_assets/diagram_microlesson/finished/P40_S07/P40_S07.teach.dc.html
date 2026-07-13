@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  body.luban-fs .lz-card{position:fixed !important;top:0 !important;right:0 !important;bottom:0 !important;left:0 !important;width:100% !important;max-width:100% !important;height:100vh !important;overflow-y:auto !important;z-index:9999 !important;box-shadow:none !important;}
+  body.luban-fs{overflow:hidden;}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:22px;object-fit:contain;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">安全事故等级判定与上报</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">S07<br/><span style="color:#cf8a44;">案例·实务</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <div style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:300px;white-space:nowrap;">
+        <span style="color:#ffd24a;font-size:9px;">●</span><span>{{ curKeycard }}</span>
+      </div>
+
+      <!-- FULLSCREEN -->
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <div style="display:flex;justify-content:center;"><img src="assets/mark-red.png" alt="鲁班智考" style="width:78px;height:78px;object-fit:contain;"/></div>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:6px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">安全事故等级判定与上报</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">动画精讲 · 量三把尺子，写满采分句</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">点击播放 · 6 幕精讲 + 4 追问 · 约 3 分 18 秒</div>
+      </div>
+
+      <!-- ============ BEAT 0 ============ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:160px;background:linear-gradient(180deg,transparent,#e9e7da);opacity:{{ b0_op }};"></div>
+        <!-- ground line -->
+        <div style="position:absolute;left:18px;right:18px;top:300px;height:2.5px;background:#bdb8a8;border-radius:2px;opacity:{{ b0_op }};"></div>
+        <!-- scaffold + roof beam + falling worker -->
+        <div style="position:absolute;left:42px;top:196px;opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);">
+          <div style="position:absolute;left:0;top:0;width:6px;height:104px;background:#a7adb0;border-radius:2px;"></div>
+          <div style="position:absolute;left:108px;top:0;width:6px;height:104px;background:#a7adb0;border-radius:2px;"></div>
+          <div style="position:absolute;left:0;top:6px;width:160px;height:13px;background:#8a9296;border-radius:3px;transform:skewY(-4deg);"></div>
+          <div style="position:absolute;left:4px;top:14px;width:84px;height:5px;background:#b5babd;border-radius:2px;transform:rotate(50deg);transform-origin:left center;"></div>
+          <div style="position:absolute;left:128px;top:44px;width:88px;height:11px;background:#c98a3e;border-radius:3px;transform:rotate(9deg);"></div>
+          <div style="position:absolute;left:140px;top:58px;transform:rotate(20deg);">
+            <div style="width:15px;height:15px;border-radius:50%;background:#23282b;"></div>
+            <div style="width:4px;height:22px;background:#23282b;border-radius:2px;margin:1px 0 0 5px;"></div>
+            <div style="position:absolute;left:-3px;top:18px;width:18px;height:4px;background:#23282b;border-radius:2px;transform:rotate(-30deg);"></div>
+          </div>
+        </div>
+        <!-- ground shadow under landing -->
+        <div style="position:absolute;left:176px;top:294px;width:72px;height:12px;border-radius:50%;background:rgba(35,40,43,.16);opacity:{{ b0_op }};"></div>
+        <!-- hard hat (安全帽) on ground -->
+        <div style="position:absolute;left:206px;top:284px;width:32px;height:18px;opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);">
+          <div style="position:absolute;left:0;bottom:2px;width:32px;height:5px;background:#d9a521;border-radius:4px;"></div>
+          <div style="position:absolute;left:5px;bottom:4px;width:22px;height:13px;background:#eebd3c;border-radius:11px 11px 2px 2px;"></div>
+          <div style="position:absolute;left:15px;bottom:6px;width:2.5px;height:11px;background:#d9a521;border-radius:1px;"></div>
+        </div>
+        <!-- guardrail (防护栏) -->
+        <div style="position:absolute;left:24px;top:266px;width:120px;height:34px;opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);">
+          <div style="position:absolute;left:0;bottom:0;width:5px;height:34px;background:#4a4f52;border-radius:1px;"></div>
+          <div style="position:absolute;left:57px;bottom:0;width:5px;height:34px;background:#4a4f52;border-radius:1px;"></div>
+          <div style="position:absolute;left:115px;bottom:0;width:5px;height:34px;background:#4a4f52;border-radius:1px;"></div>
+          <div style="position:absolute;left:0;top:0;width:120px;height:8px;border-radius:2px;background:repeating-linear-gradient(45deg,#eebd3c 0 7px,#3a3f42 7px 14px);"></div>
+          <div style="position:absolute;left:0;top:16px;width:120px;height:4px;background:#9aa0a3;border-radius:2px;"></div>
+        </div>
+        <div style="position:absolute;left:206px;top:250px;background:#fff;border:2px solid #23282b;border-radius:8px;padding:4px 9px;font-size:12px;font-weight:900;color:#cf4436;box-shadow:2px 2px 0 #23282b;opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);">死亡 1 人</div>
+        <div style="position:absolute;left:46px;top:64px;width:230px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:13px 15px;font-size:14px;font-weight:700;color:#23282b;line-height:1.4;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">
+          “死了人，性质这么严重，<br/>肯定是<span style="color:#cf4436;">重大事故</span>啊！”
+          <div style="position:absolute;left:30px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:118px;top:98px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:22px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">拍脑袋 ✕</div>
+      </div>
+
+      <!-- ============ BEAT 1 ============ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:50%;top:54px;transform:translateX(-50%) scale({{ b1_cs }});background:#23282b;color:#f4f3ec;border-radius:10px;padding:8px 16px;font-size:15px;font-weight:900;box-shadow:3px 3px 0 rgba(0,0,0,.12);opacity:{{ b1_co }};">高处坠落事故</div>
+        <div style="position:absolute;left:16px;top:118px;width:170px;opacity:{{ b1_lo }};transform:translateX({{ b1_lx }}px);">
+          <div style="font-size:11px;font-weight:900;color:#2f6db0;margin-bottom:7px;">按伤害类型 · 12类</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            <span style="background:#eaf1f8;color:#2f6db0;border:1.5px solid #b8d0e8;border-radius:14px;padding:3px 9px;font-size:11px;font-weight:700;">高处坠落</span>
+            <span style="background:#eaf1f8;color:#2f6db0;border:1.5px solid #b8d0e8;border-radius:14px;padding:3px 9px;font-size:11px;">坍塌</span>
+            <span style="background:#eaf1f8;color:#2f6db0;border:1.5px solid #b8d0e8;border-radius:14px;padding:3px 9px;font-size:11px;">物体打击</span>
+            <span style="background:#eaf1f8;color:#2f6db0;border:1.5px solid #b8d0e8;border-radius:14px;padding:3px 9px;font-size:11px;">触电</span>
+            <span style="background:#eaf1f8;color:#9fb4c8;border:1.5px solid #d4e2ee;border-radius:14px;padding:3px 9px;font-size:11px;">…等</span>
+          </div>
+        </div>
+        <div style="position:absolute;right:16px;top:118px;width:170px;text-align:right;opacity:{{ b1_ro }};transform:translateX({{ b1_rx }}px);">
+          <div style="font-size:11px;font-weight:900;color:#2c8a5b;margin-bottom:7px;">按原因性质 · 4类</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;">
+            <span style="background:#e8f4ee;color:#2c8a5b;border:1.5px solid #b6ddc8;border-radius:14px;padding:3px 9px;font-size:11px;font-weight:700;">生产事故</span>
+            <span style="background:#e8f4ee;color:#2c8a5b;border:1.5px solid #b6ddc8;border-radius:14px;padding:3px 9px;font-size:11px;">质量</span>
+            <span style="background:#e8f4ee;color:#2c8a5b;border:1.5px solid #b6ddc8;border-radius:14px;padding:3px 9px;font-size:11px;">技术</span>
+            <span style="background:#e8f4ee;color:#2c8a5b;border:1.5px solid #b6ddc8;border-radius:14px;padding:3px 9px;font-size:11px;">环境</span>
+          </div>
+        </div>
+        <div style="position:absolute;left:50%;top:232px;transform:translateX(-50%);text-align:center;">
+          <div style="position:relative;display:inline-block;padding:4px 10px;font-size:15px;font-weight:900;color:#23282b;opacity:{{ b1_no }};">
+            事故类型 <span style="color:#cf4436;">≠</span> 事故等级
+            <div style="position:absolute;left:0;bottom:2px;height:11px;background:#ffd24a;z-index:-1;border-radius:2px;width:100%;transform-origin:left;transform:scaleX({{ b1_nb }});"></div>
+          </div>
+        </div>
+        <div style="position:absolute;left:50%;top:290px;transform:translateX(-50%) translateY({{ b1_cy }}px);background:#fff;border:2px solid #2c8a5b;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:800;color:#2c8a5b;box-shadow:2px 2px 0 rgba(44,138,91,.2);white-space:nowrap;opacity:{{ b1_co2 }};">先定性：这是一起「安全生产事故」</div>
+      </div>
+
+      <!-- ============ BEAT 2 (CORE) ============ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">定级 · 量三把尺子（任一达高级即按高级）</div>
+        <div style="position:absolute;left:92px;top:64px;width:274px;display:flex;font-size:9px;font-weight:800;text-align:center;color:#5c6469;">
+          <div style="flex:1;">一般</div><div style="flex:1;">较大</div><div style="flex:1;">重大</div><div style="flex:1;">特别重大</div>
+        </div>
+        <div style="position:absolute;left:8px;top:92px;width:80px;font-size:11px;font-weight:800;color:#cf4436;">死亡人数</div>
+        <div style="position:absolute;left:92px;top:90px;width:274px;height:24px;">
+          <div style="position:absolute;inset:0;display:flex;border-radius:6px;overflow:hidden;transform-origin:left;transform:scaleX({{ b2_td }});">
+            <div style="flex:1;background:#dff0e6;border-right:1px solid #fff;font-size:8px;color:#2c8a5b;display:flex;align-items:center;justify-content:center;">&lt;3</div>
+            <div style="flex:1;background:#fdeed1;border-right:1px solid #fff;font-size:8px;color:#c98a3e;display:flex;align-items:center;justify-content:center;">3~10</div>
+            <div style="flex:1;background:#fadcd6;border-right:1px solid #fff;font-size:8px;color:#cf4436;display:flex;align-items:center;justify-content:center;">10~30</div>
+            <div style="flex:1;background:#f1c9c1;font-size:8px;color:#a3271c;display:flex;align-items:center;justify-content:center;">≥30</div>
+          </div>
+          <div style="position:absolute;left:0;top:-2px;width:68.5px;height:28px;border:2.5px solid #2c8a5b;border-radius:6px;box-shadow:0 0 0 3px rgba(44,138,91,.18);opacity:{{ b2_hit }};"></div>
+        </div>
+        <div style="position:absolute;top:64px;left:{{ b2_px }}px;transform:translateX(-50%);z-index:10;opacity:{{ b2_po }};">
+          <div style="background:#cf4436;color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;white-space:nowrap;box-shadow:2px 2px 0 rgba(0,0,0,.12);">死亡 1 人</div>
+          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #cf4436;margin:0 auto;"></div>
+        </div>
+        <div style="position:absolute;left:8px;top:150px;width:80px;font-size:11px;font-weight:800;color:#8b9398;">重伤人数</div>
+        <div style="position:absolute;left:92px;top:148px;width:274px;height:22px;background:#ecebe3;border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:10px;color:#9aa0a3;opacity:{{ b2_ti }};">本题无重伤数据 —</div>
+        <div style="position:absolute;left:8px;top:200px;width:80px;font-size:11px;font-weight:800;color:#8b9398;">经济损失</div>
+        <div style="position:absolute;left:92px;top:198px;width:274px;height:22px;background:#ecebe3;border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:10px;color:#9aa0a3;opacity:{{ b2_tl }};">本题无经济损失数据 —</div>
+        <div style="position:absolute;left:50%;top:240px;transform:translateX(-50%) translateY({{ b2_ry }}px);background:#fff8e2;border:1.5px dashed #d8b24a;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:#8a6d1f;white-space:nowrap;opacity:{{ b2_ro }};">三把尺子 → 哪把最高听哪把（不平均·不取最低）</div>
+        <div style="position:absolute;left:50%;top:284px;transform:translateX(-50%) translateY({{ b2_ey }}px);width:330px;text-align:center;opacity:{{ b2_eo }};">
+          <div style="display:inline-flex;align-items:center;gap:8px;background:#2c8a5b;color:#fff;border-radius:12px;padding:9px 18px;font-size:17px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.25);">✓ 判定：一般事故</div>
+          <div style="margin-top:8px;font-size:11px;color:#5c6469;font-weight:600;line-height:1.5;">判据链：亮三阈值 → 代入死亡 1 人 → &lt;3 死 → 回判「一般」</div>
+        </div>
+      </div>
+
+      <!-- ============ BEAT 3 ============ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">上报 · 报给谁 · 什么时限</div>
+        <div style="position:absolute;left:42px;top:150px;width:300px;height:3px;background:#cdcabb;transform-origin:left;transform:scaleX({{ b3_line }});"></div>
+        <div style="position:absolute;left:70px;top:130px;transform:translateX(-50%);"><div style="background:#fff;border:2px solid #23282b;border-radius:9px;padding:6px 7px;font-size:10px;font-weight:800;color:#23282b;text-align:center;white-space:nowrap;box-shadow:2px 2px 0 #23282b;">现场人员</div></div>
+        <div style="position:absolute;left:195px;top:126px;transform:translateX(-50%);">
+          <div style="position:absolute;inset:-5px;border-radius:12px;background:#ffd24a;opacity:{{ b3_n1 }};"></div>
+          <div style="position:relative;background:#fff;border:2.5px solid #2c8a5b;border-radius:9px;padding:6px 7px;font-size:10px;font-weight:900;color:#2c8a5b;text-align:center;white-space:nowrap;box-shadow:2px 2px 0 rgba(44,138,91,.3);">本单位负责人</div>
+        </div>
+        <div style="position:absolute;left:322px;top:128px;transform:translateX(-50%);"><div style="background:#fff;border:2px solid #2f6db0;border-radius:9px;padding:5px 7px;font-size:10px;font-weight:800;color:#2f6db0;text-align:center;line-height:1.2;box-shadow:2px 2px 0 rgba(47,109,176,.3);">市级住建<br/>主管部门</div></div>
+        <div style="position:absolute;top:100px;left:{{ b3_ex }}px;transform:translateX(-50%);opacity:{{ b3_eo }};"><div style="width:24px;height:16px;background:#fff;border:2px solid #cf4436;border-radius:2px;position:relative;overflow:hidden;"><div style="position:absolute;left:0;top:0;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:9px solid #cf4436;"></div></div></div>
+        <div style="position:absolute;left:120px;top:158px;font-size:9px;color:#cf4436;font-weight:800;">立即</div>
+        <div style="position:absolute;left:242px;top:158px;font-size:9px;color:#2f6db0;font-weight:800;">逐级</div>
+        <div style="position:absolute;left:18px;top:198px;width:150px;">
+          <div style="background:#fff;border:2px dashed #cf4436;border-radius:9px;padding:6px 8px;font-size:10px;color:#9aa0a3;line-height:1.3;">先报应急/建设/<br/>劳动部门？</div>
+          <div style="position:absolute;left:32px;top:0;color:#cf4436;font-size:28px;font-weight:900;opacity:{{ b3_wo }};transform:scale({{ b3_ws }}) rotate(-12deg);transform-origin:50% 50%;">✕</div>
+        </div>
+        <div style="position:absolute;right:14px;top:194px;width:174px;text-align:right;">
+          <div style="font-size:9px;color:#5c6469;font-weight:800;margin-bottom:5px;opacity:{{ b3_c1 }};">报告应含 ↓</div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+            <span style="background:#eaf1f8;color:#2f6db0;border:1.5px solid #b8d0e8;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700;opacity:{{ b3_c1 }};">① 事故初步原因</span>
+            <span style="background:#eaf1f8;color:#2f6db0;border:1.5px solid #b8d0e8;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700;opacity:{{ b3_c2 }};">② 联系人及方式</span>
+            <span style="background:#eaf1f8;color:#2f6db0;border:1.5px solid #b8d0e8;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700;opacity:{{ b3_c3 }};">③ 其他应报情况</span>
+          </div>
+        </div>
+        <div style="position:absolute;left:50%;top:264px;transform:translateX(-50%);text-align:center;opacity:{{ b3_clo }};">
+          <div style="position:relative;width:44px;height:44px;border-radius:50%;border:3px solid #cf4436;margin:0 auto;background:#fff;">
+            <div style="position:absolute;left:50%;top:50%;width:2.5px;height:15px;background:#cf4436;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate({{ b3_clr }}deg);"></div>
+            <div style="position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#cf4436;transform:translate(-50%,-50%);"></div>
+          </div>
+          <div style="margin-top:5px;font-size:11px;font-weight:900;color:#cf4436;">30 天内 · 伤亡变化及时补报</div>
+        </div>
+      </div>
+
+      <!-- ============ BEAT 4 ============ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">调查处理 · 谁来查 · 谁担责</div>
+        <sc-for list="{{ members }}" as="m" hint-placeholder-count="8">
+          <div style="position:absolute;left:{{ m.x }}px;top:{{ m.y }}px;transform:translate(-50%,-50%) scale({{ m.s }});opacity:{{ m.o }};">
+            <div style="background:#fff;border:2px solid #2f6db0;border-radius:8px;padding:3px 6px;font-size:9.5px;font-weight:800;color:#2f6db0;text-align:center;line-height:1.15;width:80px;box-shadow:1.5px 1.5px 0 rgba(47,109,176,.25);">{{ m.label }}</div>
+          </div>
+        </sc-for>
+        <div style="position:absolute;left:50%;top:128px;transform:translateX(-50%);background:#23282b;color:#fff;border-radius:9px;padding:5px 12px;font-size:11px;font-weight:900;opacity:{{ b4_co }};">事故调查组</div>
+        <div style="position:absolute;left:50%;top:158px;transform:translateX(-50%);background:#fff;border:2px dashed #cf4436;border-radius:8px;padding:3px 9px;font-size:10px;font-weight:800;color:#cf4436;white-space:nowrap;opacity:{{ b4_so }};">单位不得自裁 ✕</div>
+        <div style="position:absolute;left:50%;top:186px;transform:translateX(-50%);display:flex;gap:6px;opacity:{{ b4_bo }};">
+          <span style="background:#2c8a5b;color:#fff;border-radius:7px;padding:4px 9px;font-size:10px;font-weight:800;">✓ 追直接责任人</span>
+          <span style="background:#2c8a5b;color:#fff;border-radius:7px;padding:4px 9px;font-size:10px;font-weight:800;">✓ 追领导责任</span>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:300px;">
+          <div style="position:absolute;left:42px;top:11px;width:300px;height:2px;background:#cdcabb;"></div>
+          <div style="position:absolute;left:62px;top:0;transform:translateX(-50%);background:#fff;border:1.5px solid #8b9398;border-radius:7px;padding:4px 6px;font-size:9px;font-weight:800;color:#5c6469;white-space:nowrap;">调查组建议</div>
+          <div style="position:absolute;left:195px;top:0;transform:translateX(-50%);background:#fff;border:1.5px solid #cf4436;border-radius:7px;padding:4px 6px;font-size:9px;font-weight:800;color:#cf4436;white-space:nowrap;">政府批复</div>
+          <div style="position:absolute;left:328px;top:0;transform:translateX(-50%);background:#fff;border:1.5px solid #2c8a5b;border-radius:7px;padding:4px 6px;font-size:9px;font-weight:800;color:#2c8a5b;white-space:nowrap;">单位执行</div>
+          <div style="position:absolute;top:-14px;left:{{ b4_dx }}px;transform:translateX(-50%);opacity:{{ b4_do }};"><div style="width:13px;height:16px;background:#fff;border:1.5px solid #cf4436;border-radius:2px;"></div></div>
+        </div>
+      </div>
+
+      <!-- ============ BEAT 5 ============ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">写成分 · 采分句（关键词一个不漏）</div>
+        <div style="position:absolute;left:16px;right:16px;top:66px;background:#fff;border:2px solid #23282b;border-radius:12px;padding:14px 14px;box-shadow:4px 4px 0 rgba(35,40,43,.1);opacity:{{ b5_sheetO }};">
+          <div style="font-size:12.5px;line-height:2.0;color:#23282b;font-weight:600;">
+            <div><b style="color:#cf4436;">①定性</b>　高处坠落（生产事故）</div>
+            <div><b style="color:#cf4436;">②定级</b>　死亡1人&lt;3 → 【<span style="background:rgba(255,210,74,{{ b5_k1 }});border-radius:3px;padding:0 2px;font-weight:800;">一般事故</span>】</div>
+            <div><b style="color:#cf4436;">③上报</b>　立即报【<span style="background:rgba(255,210,74,{{ b5_k2 }});border-radius:3px;padding:0 2px;font-weight:800;">本单位负责人</span>】→逐级至市级住建；<span style="background:rgba(255,210,74,{{ b5_k3 }});border-radius:3px;padding:0 2px;font-weight:800;">30天</span>补报</div>
+            <div><b style="color:#cf4436;">④调查</b>　调查组建议→<span style="background:rgba(255,210,74,{{ b5_k4 }});border-radius:3px;padding:0 2px;font-weight:800;">政府批复</span>→单位执行；追<span style="background:rgba(255,210,74,{{ b5_k5 }});border-radius:3px;padding:0 2px;font-weight:800;">直接责任人+领导责任</span></div>
+          </div>
+          <div style="position:absolute;right:12px;top:{{ b5_py }}px;opacity:{{ b5_po }};"><div style="width:3px;height:16px;background:#cf4436;border-radius:2px;transform:rotate(32deg);"></div></div>
+        </div>
+        <div style="position:absolute;left:50%;top:300px;transform:translateX(-50%);background:#cf4436;color:#fff;border-radius:11px;padding:9px 18px;font-size:14px;font-weight:900;box-shadow:3px 3px 0 rgba(207,68,54,.25);opacity:{{ b5_do }};">会看答案 → 会写成分 ✓</div>
+      </div>
+
+      <!-- ============ QA SCENES (in-stage) ============ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <!-- student question -->
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <!-- teacher answer + mini figure -->
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:340px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);">
+            {{ qaA }}
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 9px;">
+              <div style="font-size:8px;font-weight:800;color:#8a7a5e;letter-spacing:1px;margin-bottom:6px;">{{ qaFigLabel }}</div>
+              <sc-if value="{{ qaFigDeath }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="display:flex;font-size:7px;font-weight:800;text-align:center;color:#9a8e74;margin-bottom:2px;">
+                  <div style="flex:1;">一般</div><div style="flex:1;">较大</div><div style="flex:1;">重大</div><div style="flex:1;">特别重大</div>
+                </div>
+                <div style="display:flex;height:16px;border-radius:4px;overflow:hidden;">
+                  <div style="flex:1;background:#2c8a5b;display:flex;align-items:center;justify-content:center;font-size:7px;color:#eafff3;">&lt;3死</div>
+                  <div style="flex:1;background:#7a5a2a;display:flex;align-items:center;justify-content:center;font-size:7px;color:#f5e6c8;">3~10</div>
+                  <div style="flex:1;background:#7a3a30;display:flex;align-items:center;justify-content:center;font-size:7px;color:#f5d6cf;">10~30</div>
+                  <div style="flex:1;background:#5e2a22;display:flex;align-items:center;justify-content:center;font-size:7px;color:#f0cabf;">≥30</div>
+                </div>
+                <div style="position:relative;height:14px;margin-top:1px;">
+                  <div style="position:absolute;left:12.5%;transform:translateX(-50%);text-align:center;">
+                    <div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:6px solid #ffd24a;margin:0 auto;"></div>
+                    <div style="font-size:7.5px;font-weight:900;color:#ffd24a;white-space:nowrap;">死1人 ✓一般</div>
+                  </div>
+                </div>
+              </div>
+              </sc-if>
+              <sc-if value="{{ qaFigLoss }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
+                  <div style="width:30px;font-size:8px;font-weight:800;color:#9a8e74;">死亡</div>
+                  <div style="flex:1;position:relative;display:flex;height:13px;border-radius:3px;overflow:hidden;">
+                    <div style="flex:1;background:#2c8a5b;"></div><div style="flex:1;background:#3a3127;"></div><div style="flex:1;background:#3a3127;"></div><div style="flex:1;background:#3a3127;"></div>
+                    <div style="position:absolute;left:12.5%;top:-1px;transform:translateX(-50%);width:10px;height:15px;border:1.5px solid #8a7a5e;border-radius:3px;"></div>
+                  </div>
+                  <div style="width:30px;font-size:8px;font-weight:800;color:#9a8e74;text-align:right;">1人</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:5px;">
+                  <div style="width:30px;font-size:8px;font-weight:800;color:#cf8a44;">损失</div>
+                  <div style="flex:1;position:relative;display:flex;height:13px;border-radius:3px;overflow:hidden;">
+                    <div style="flex:1;background:#3a3127;"></div><div style="flex:1;background:#c98a3e;"></div><div style="flex:1;background:#3a3127;"></div><div style="flex:1;background:#3a3127;"></div>
+                    <div style="position:absolute;left:37.5%;top:-1px;transform:translateX(-50%);width:10px;height:15px;border:1.5px solid #ffd24a;border-radius:3px;box-shadow:0 0 0 1.5px rgba(255,210,74,.3);"></div>
+                  </div>
+                  <div style="width:30px;font-size:8px;font-weight:800;color:#ffd24a;text-align:right;">2000万</div>
+                </div>
+                <div style="text-align:center;font-size:8px;font-weight:900;color:#ffd24a;margin-top:5px;">取最高 → 较大事故 ↑</div>
+              </div>
+              </sc-if>
+              <sc-if value="{{ qaFigPipe }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:3px;">
+                <div style="background:#23282b;border:1px solid #4a4f53;border-radius:5px;padding:3px 4px;font-size:7.5px;font-weight:800;color:#cdd2d5;text-align:center;line-height:1.1;">现场<br/>人员</div>
+                <div style="width:9px;height:2px;background:#ffd24a;border-radius:1px;flex:none;"></div>
+                <div style="background:#23332b;border:1.5px solid #2c8a5b;border-radius:5px;padding:3px 5px;font-size:7.5px;font-weight:900;color:#7fe0a8;text-align:center;line-height:1.1;">本单位<br/>负责人 ✓</div>
+                <div style="width:9px;height:2px;background:#2f6db0;border-radius:1px;flex:none;"></div>
+                <div style="background:#23282b;border:1px solid #3f5f82;border-radius:5px;padding:3px 4px;font-size:7.5px;font-weight:800;color:#9cc2e8;text-align:center;line-height:1.1;">市级<br/>住建</div>
+                <div style="margin-left:4px;position:relative;">
+                  <span style="display:inline-block;background:#332220;border:1px dashed #cf4436;border-radius:5px;padding:3px 4px;font-size:7px;color:#d99;text-decoration:line-through;">应急/<br/>建设</span>
+                  <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#cf4436;font-size:15px;font-weight:900;">✕</span>
+                </div>
+              </div>
+              </sc-if>
+              <sc-if value="{{ qaFigChain }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="display:flex;align-items:center;gap:3px;justify-content:center;">
+                  <div style="background:#23282b;border:1px solid #4a4f53;border-radius:5px;padding:3px 5px;font-size:7.5px;font-weight:800;color:#cdd2d5;">调查组建议</div>
+                  <div style="width:9px;height:2px;background:#cf4436;border-radius:1px;flex:none;"></div>
+                  <div style="background:#332220;border:1.5px solid #cf4436;border-radius:5px;padding:3px 5px;font-size:7.5px;font-weight:900;color:#f0a89c;">政府批复</div>
+                  <div style="width:9px;height:2px;background:#2c8a5b;border-radius:1px;flex:none;"></div>
+                  <div style="background:#23332b;border:1px solid #2c8a5b;border-radius:5px;padding:3px 5px;font-size:7.5px;font-weight:800;color:#7fe0a8;">单位执行</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:5px;justify-content:center;margin-top:6px;">
+                  <span style="position:relative;background:#2a2520;border:1px dashed #6a5a3e;border-radius:5px;padding:3px 6px;font-size:7.5px;color:#9a8e74;text-decoration:line-through;">单位自裁<span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#cf4436;font-size:14px;">✕</span></span>
+                  <span style="background:#23332b;color:#7fe0a8;border-radius:5px;padding:3px 6px;font-size:7.5px;font-weight:800;">✓直接责任人</span>
+                  <span style="background:#23332b;color:#7fe0a8;border-radius:5px;padding:3px 6px;font-size:7.5px;font-weight:800;">✓领导责任</span>
+                </div>
+              </div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <!-- QA nav dots + ask -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:4px;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CLOSING TERMINAL SCREEN (收官终屏) -->
+      <div style="position:absolute;inset:0;z-index:32;background:linear-gradient(180deg,#181b1e,#15181b);padding:52px 18px 20px;display:flex;flex-direction:column;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .4s ease;overflow-y:auto;">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">
+          <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">师</div>
+          <div style="flex:1;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;">好，这一讲就到这儿。把下面四句采分句带走，考场上照着写。</div>
+        </div>
+        <div style="background:#23282b;border-radius:12px;padding:12px 14px;border-top:4px solid #cf4436;">
+          <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:8px;">带走的四句采分句</div>
+          <div style="font-size:12px;line-height:1.9;color:#f1efe8;font-weight:500;">
+            <div><b style="color:#cf4436;">①定性</b>　高处坠落（安全生产事故）</div>
+            <div><b style="color:#cf4436;">②定级</b>　死亡1人&lt;3 → 一般事故（三尺子取最严档）</div>
+            <div><b style="color:#cf4436;">③上报</b>　立即报本单位负责人 → 逐级至市级住建；30天补报</div>
+            <div><b style="color:#cf4436;">④调查</b>　调查组建议·政府批复·单位执行；追直接+领导责任</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button onClick="{{ replay }}" style="flex:1;border:1.5px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:11px;padding:11px 4px;font-size:12px;font-weight:800;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="flex:1;border:none;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;border-radius:11px;padding:11px 4px;font-size:12px;font-weight:900;cursor:pointer;">问鲁班</button>
+          <a href="P40_S07.practice.dc.html" style="flex:1;border:none;background:#2c8a5b;color:#fff;border-radius:11px;padding:11px 4px;font-size:12px;font-weight:900;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;">做练习</a>
+        </div>
+      </div>
+
+      <!-- CAPTION (main beats only) -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:5px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="7">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 2px;cursor:pointer;font-size:9px;font-weight:800;line-height:1.25;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:11px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="P40_S07.practice.dc.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div>
+            <div style="font-size:9px;color:#8b9398;font-weight:600;">就「安全事故等级判定与上报」这道考点问，老师按采分点答</div>
+          </div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="比如：恰好死亡3人是一般还是较大？" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;">
+            <span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…
+          </div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { t: 0, playing: false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, muted:false };
+  DUR = 163.532;
+    beats=[["b0",0.0,7.724,"别拍脑袋"],["b1",7.724,17.128,"先定性"],["b2",17.128,31.74,"量三把尺子"],["b3",31.74,48.848,"报给谁·时限"],["b4",48.848,67.156,"谁查·谁担责"],["b5",67.156,76.392,"写成分"],["q0",76.392,94.692,"问答"],["q1",94.692,112.968,"问答"],["q2",112.968,131.796,"问答"],["q3",131.796,146.88,"问答"],["end",146.88,163.532,"收官"]];
+  endNarr = "好，这一讲就到这儿。记住哈——定级量三把尺子、任一达高级就按高级；上报先报本单位负责人、3 0 天补报；调查走政府批复、追责到领导。把这四句采分句带走，考场上就能拿分。";
+  keycards= ["感觉 ≠ 定级","事故类型 ≠ 事故等级","三指标任一达高级 → 按高级","报本单位负责人 · 30天补报","调查组提议 · 政府批复 · 追双责","会看答案 → 会写成分"];
+  narr = [
+    "注意哈，出了事别急着拍脑袋定级——“感觉严重”不是定级的依据，定级得靠尺子量。",
+    "先定性：按伤害类型这是“高处坠落”，按原因性质算“生产事故”。但记住，事故类型不等于事故等级。",
+    "定级靠三把尺子：死亡人数、重伤人数、直接经济损失。本事故死亡 1 人，没到 3 人，落“一般”档——三把尺子哪把最高就听哪把，不平均、不取最低。",
+    "上报这步，现场人员是立即向“本单位负责人”报告，别一上来就报应急或建设单位，这是高频陷阱。再逐级上报到市级住建主管，报告含初步原因、联系人、其他；伤亡有变化，30 天内补报。",
+    "查事故不是单位说了算。调查组得有政府、安监、公安、监察、工会、检察院和专家。处理走调查组建议→政府批复→单位执行，单位不能自裁；既追直接责任人，也追领导责任，漏了领导责任要扣分。",
+    "记住哈，会看答案不算数，得会写成分。把这四步串成采分句，关键词一个不漏，分就拿到手了。"
+  ];
+  qa = [
+    { q:"老师，死了 1 人，我咋觉得挺严重的，咋就一般事故了呢？", a:"严重不严重不归你感觉管，归三把尺子管。死亡 1 人没到 3 人，经济损失也没到 1000 万，就落“一般”档。别拍脑袋，量尺子。", figLabel:"死亡尺 · 命中一般档", figDeath:true,figLoss:false,figPipe:false,figChain:false },
+    { q:"那要是死 1 人、可损失 2000 万呢？", a:"好问题。三指标任一达更高级就按更高级。2000 万落“较大”档（1000 万~5000 万），那就按较大事故——不平均、不取最低，哪把尺子最高听哪把。", figLabel:"两把尺 · 取最高档", figDeath:false,figLoss:true,figPipe:false,figChain:false },
+    { q:"出了事我第一个电话打给谁？打 119 还是打政府？", a:"救人当然先救。但“报告”这步，现场人员是立即向【本单位负责人】报告，再由单位逐级上报到市级住建主管。一上来就报应急或建设单位，是高频陷阱，扣分。", figLabel:"上报管道 · 错支被淘汰", figDeath:false,figLoss:false,figPipe:true,figChain:false },
+    { q:"责任人是不是我们单位自己处理就行？", a:"不行，单位不得自裁。得调查组提建议→政府批复→单位执行，而且既追直接责任人，也追领导责任，漏了领导责任照样扣分。", figLabel:"处理链 · 不得自裁", figDeath:false,figLoss:false,figPipe:false,figChain:true }
+  ];
+  askPresets = ["恰好死亡3人，是一般还是较大？","30天补报是从哪天起算？","质量事故的上报和这个一样吗？"];
+  memberLabels = ["有关人民政府","安监部门","负有安监职责部门","监察机关","公安机关","工会","人民检察院","有关专家"];
+  audioBase="audio/";
+  audioVersion="20260713161216";  // 本机用阿里云 longanhuan_v3 合成 b0.mp3..q3.mp3 丢这里，自动优先播放
+  speechText(ai){ if(ai===this.beats.length-1) return this.endNarr; if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; u.pitch=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    // force mobile viewport so phone browsers don't zoom out to desktop width
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    // inject fullscreen CSS imperatively — helmet cache sometimes misses live edits
+    if(!document.getElementById('lz-fs-style')){
+      var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;overflow-y:auto!important;z-index:9999!important;box-shadow:none!important}body.luban-fs{overflow:hidden}';
+      document.head.appendChild(s);
+    }
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } } }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){
+    const next=!this.state.fs;
+    this.setState({fs:next});
+    // toggle CSS body class — works even in sandboxed iframe
+    document.body.classList.toggle('luban-fs', next);
+    // also attempt real browser fullscreen as bonus — catch both sync throws and async rejections
+    try{
+      const el=this._phone||document.documentElement;
+      let p;
+      if(!next){ p=(document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document); }
+      else { p=(el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el); }
+      if(p&&typeof p.catch==='function') p.catch(function(){});
+    }catch(e){}
+  }
+  phoneRef(el){ if(el) this._phone=el; }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  dragStart(e){ this._dragY=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dragDelta=0; this._dragging=true; }
+  dragMove(e){ if(!this._dragging)return; const y=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dragDelta=y-this._dragY; }
+  dragEnd(){ if(this._dragging&&this._dragDelta>70) this.closeAsk(); this._dragging=false; this._dragDelta=0; }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班深”一级建造师案例课老师龙安欢，正在讲“安全事故等级判定与上报”。\\n知识口径：①事故类型≠事故等级。②定级量三把尺子(死亡人数/重伤人数/直接经济损失)，任一达更高级即按更高级，不平均不取最低；阈值——一般<3死或<10重伤或<1000万；较大3≤死<10 或 10≤重伤<50 或 1000万≤损失<5000万；重大10≤死<30 或 50≤重伤<100 或 5000万≤损失<1亿；特别重大≥30死或≥100重伤或≥1亿。③上报：现场人员立即向本单位负责人报告→逐级上报至市(设区)级人民政府住建主管部门；报告含事故初步原因、报告联系人及方式、其他；自事故发生之日起30天内伤亡变化及时补报。④调查处理：调查组(有关政府/安监/负有安监职责部门/监察/公安/工会/检察院/专家)提建议→负责调查的政府批复→单位执行；追直接责任人+领导责任，单位不得自裁。\\n学生追问：“'+q+'”\\n要求：用东北话口语化、亲切、简短(140字以内)，面向阅卷采分点回答，先给结论再点一句依据；只答这个考点范围内的问题，若超纲就温和提示回到本考点。';
+    try{
+      if(window.claude && typeof window.claude.complete==='function'){
+        const ans=await window.claude.complete(prompt);
+        this.setState({askLoading:false,askAnswer:(ans&&String(ans).trim())||"（这次没拿到回答，再点一下试试哈）"});
+      } else {
+        this.setState({askLoading:false,askAnswer:"当前预览环境没接 AI 接口。把这张卡放进鲁班 App 里，「追问」就能直接连老师啦。\\n\\n你的问题我先记下了：“"+q+"”。\\n小提示：定级永远先量三把尺子，任一达更高级就按更高级。"});
+      }
+    }catch(err){ this.setState({askLoading:false,askAnswer:"追问出错了："+((err&&err.message)||err)+"。稍后再试。"}); }
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));}
+  lp(a,b,p){return a+(b-a)*p;}
+  eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60), c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  renderVals(){
+    const t=this.state.t, B=this.beats;
+    let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai]; const lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1);
+    const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1));
+    const A=(i)=>i===ai;
+
+    const v = {
+      b0_op:0,b0_y:46,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,
+      b1_cs:.7,b1_co:0,b1_lo:0,b1_lx:-50,b1_ro:0,b1_rx:50,b1_no:0,b1_nb:0,b1_co2:0,b1_cy:10,
+      b2_td:0,b2_ti:.4,b2_tl:.4,b2_px:64,b2_po:0,b2_hit:0,b2_ro:0,b2_ry:8,b2_eo:0,b2_ey:12,
+      b3_line:0,b3_n1:0,b3_ex:70,b3_eo:0,b3_wo:0,b3_ws:1.6,b3_c1:0,b3_c2:0,b3_c3:0,b3_clo:0,b3_clr:0,
+      b4_co:0,b4_so:0,b4_bo:0,b4_dx:62,b4_do:0,
+      b5_sheetO:0,b5_k1:0,b5_k2:0,b5_k3:0,b5_k4:0,b5_k5:0,b5_py:14,b5_po:0,b5_do:0
+    };
+
+    if(A(0)){ const sp=W(0,.22),bp=W(.28,.46),dim=W(.74,.9),st=W(.56,.74);
+      v.b0_op=sp; v.b0_y=this.lp(46,0,sp); v.b0_bs=this.lp(.6,1,bp); v.b0_bo=bp*(1-.6*dim);
+      v.b0_so=st*.95; v.b0_ss=this.lp(1.7,1,st); }
+    if(A(1)){ const c1=W(0,.18),l1=W(.15,.4),r1=W(.25,.5),n1=W(.55,.75),cc1=W(.82,1);
+      v.b1_cs=this.lp(.7,1,c1); v.b1_co=c1; v.b1_lo=l1; v.b1_lx=this.lp(-50,0,l1);
+      v.b1_ro=r1; v.b1_rx=this.lp(50,0,r1); v.b1_no=n1; v.b1_nb=n1; v.b1_co2=cc1; v.b1_cy=this.lp(10,0,cc1); }
+    if(A(2)){ const pd=W(.3,.56);
+      v.b2_td=W(0,.16); v.b2_ti=.4+.6*W(.06,.22); v.b2_tl=.4+.6*W(.1,.26);
+      v.b2_px=this.lp(64,126,pd); v.b2_po=W(.28,.4); v.b2_hit=W(.56,.74);
+      const ru=W(.5,.66),re=W(.8,1); v.b2_ro=ru; v.b2_ry=this.lp(8,0,ru); v.b2_eo=re; v.b2_ey=this.lp(12,0,re); }
+    if(A(3)){ v.b3_line=W(0,.18); v.b3_ex=this.lp(70,322,W(.18,.62)); v.b3_eo=W(.14,.22);
+      v.b3_n1=.85*W(.34,.46); v.b3_wo=W(.3,.46); v.b3_ws=this.lp(1.6,1,W(.3,.46));
+      v.b3_c1=W(.5,.6); v.b3_c2=W(.55,.65); v.b3_c3=W(.6,.7); v.b3_clo=W(.72,.84); v.b3_clr=(t*200)%360; }
+    if(A(4)){ v.b4_co=W(.02,.1); v.b4_so=W(.62,.74); v.b4_bo=W(.8,.95);
+      v.b4_dx=this.lp(62,328,W(.5,.82)); v.b4_do=W(.46,.55); }
+    if(A(5)){ v.b5_sheetO=W(0,.15); v.b5_k1=W(.2,.32); v.b5_k2=W(.35,.47); v.b5_k3=W(.45,.55);
+      v.b5_k4=W(.6,.72); v.b5_k5=W(.72,.84); v.b5_py=this.lp(14,150,this.cl(lp,0,1)); v.b5_po=W(.15,.25); v.b5_do=W(.86,1); }
+
+    // QA scene values
+    const isEnd = ai===B.length-1;
+    const isQA = ai>=6 && !isEnd;
+    let qaLayerO=0, qa_so=0, qa_sx=-40, qa_to=0, qa_ty=24;
+    let qaQ="", qaA="", qaFigLabel="", qaFigDeath=false, qaFigLoss=false, qaFigPipe=false, qaFigChain=false;
+    if(isQA){
+      const it=this.qa[ai-6];
+      qaLayerO=1;
+      qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so);
+      qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to);
+      qaQ=it.q; qaA=it.a; qaFigLabel=it.figLabel;
+      qaFigDeath=it.figDeath; qaFigLoss=it.figLoss; qaFigPipe=it.figPipe; qaFigChain=it.figChain;
+    }
+
+    const cx=195, cy=172, r=95;
+    const members=this.memberLabels.map((label,i)=>{
+      const ang=(-90+i*45)*Math.PI/180;
+      const start=.08+i*.06, p=A(4)?W(start,start+.14):0;
+      return { label, x:Math.round(cx+r*Math.cos(ang)), y:Math.round(cy+r*Math.sin(ang)), o:p, s:this.lp(.5,1,p) };
+    });
+
+    const beatChips=[];
+    for(let i=0;i<6;i++){ beatChips.push({ num:(i+1<10?"0":"")+(i+1), label:B[i][3], onClick:()=>this.jump(i), bg:i===ai?"#cf4436":"#23282b", fg:i===ai?"#fff":"#9aa0a3", flex:"1" }); }
+    beatChips.push({ num:"问答", label:"Q&A", onClick:()=>this.jump(6), bg:isQA?"#cf8a44":"#23282b", fg:isQA?"#fff":"#9aa0a3", flex:"1.05" });
+
+    const qaDots=this.qa.map((_,i)=>({ onClick:()=>this.jump(6+i), bg:(ai-6)===i?"#cf4436":"#ccc7b8", w:(ai-6)===i?"18px":"8px" }));
+    const askChips=this.askPresets.map(tt=>({ t:tt, onClick:()=>this.preset(tt) }));
+
+    const lo={},lpe={};
+    for(let i=0;i<6;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+
+    const askEmpty=!((this.state.askText||"").trim());
+    const endO = isEnd?this.eo(this.cl(lp/0.35,0,1)):0;
+    return Object.assign(v, lo, lpe, {
+      caption:this.narr[ai]||"", curKeycard:isEnd?"收官 · 带走采分句":(isQA?("学生追问 · 第 "+(ai-5)+" / 4 问"):this.keycards[ai]), curTitle:cur[3],
+      isEnd, endO, endPE:isEnd?"auto":"none", replay:()=>this.replay(),
+      t:this.state.t, DUR:this.DUR,durSec:this.DUR, tLabel:this.fmt(this.state.t), totalLabel:this.fmt(this.DUR), playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(), seek:(e)=>this.seek(e), beatChips, members,
+      muted:this.state.muted, narrLabel:this.state.muted?"旁白·关":"旁白·开",
+      narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)", narrFg:this.state.muted?"#9aa0a3":"#fff",
+      toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1, captionPE:isQA?"none":"auto",
+      qaLayerO, qaLayerPE:isQA?"auto":"none", qa_so, qa_sx, qa_to, qa_ty,
+      qaQ, qaA, qaFigLabel, qaFigDeath, qaFigLoss, qaFigPipe, qaFigChain, qaDots, askChips,
+      fullscreen:()=>this.fullscreen(), phoneRef:(el)=>this.phoneRef(el),
+      openAsk:()=>this.openAsk(), closeAsk:()=>this.closeAsk(), setAsk:(e)=>this.setAsk(e), submitAsk:()=>this.submitAsk(),
+      dragStart:(e)=>this.dragStart(e), dragMove:(e)=>this.dragMove(e), dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen, askText:this.state.askText, askLoading:this.state.askLoading,
+      askAnswer:this.state.askAnswer, hasAnswer:!!this.state.askAnswer,
+      askIdle:!this.state.askLoading && !this.state.askAnswer,
+      askDisabled:askEmpty||this.state.askLoading, askCursor:(askEmpty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(askEmpty||this.state.askLoading)?"#3a3127":"#cf4436", askBtnFg:(askEmpty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0, posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      fsIcon:this.state.fs?"⊠":"⛶"
+    });
+  }
+}
+</script>
+</body>
+</html>

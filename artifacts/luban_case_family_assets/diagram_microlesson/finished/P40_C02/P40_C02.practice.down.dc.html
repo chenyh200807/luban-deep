@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<!-- ░░░ 母版骨架：随堂练 ░░░ 改 Q[] 即可。每题必须有图示位 + 完整采分句选项 + 每错项三段解析 -->
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="P40_C02.teach.down.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <!-- 图示位（每题必有：标尺/变化图/管道/诊断图/答题纸；此处给通用占位，按题替换内部 SVG/结构）-->
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="P40_C02.teach.down.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY (大窗 · 自动带题目) -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 母版骨架逻辑：随堂练 ░░░
+   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
+   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
+   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。 */
+class Component extends DCLogic {
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"" };
+  examTitle="进度款与计量计价·下集";
+  KNOWLEDGE="进度款与计量计价·下集(责任与口径)。①工程量清单由招标人(或造价咨询人)编制、是招标文件组成部分,准确性完整性由招标人负责;单价合同清单缺陷归发包人、总价合同缺陷归承包人。②计价风险三步:判合同类型·判风险来源·定责任主体·是否调价。③合同价款调整:先判事件是否属可调整事项(变更/暂估价/物价变化/计日工/索赔),属于才调,自身赶工等不属于不调。④综合单价是不含增值税的税前全费用价,税在最末整体计提一次,单价里再乘(1+税率)=双重计税。⑤合同未约定支付比例,进度款不宜低于累计完成总值80%(未约定是前提)。⑥竣工资料移交不可逆:各专业承包·施工总承包·建设单位·城建档案管理部门,分包不得跳总包。采分按四步:亮判据·分流/代入·结论·回判。常见失分:清单责任推给承包人、不分合同类型一律判某方、不判是否属调整事项直接算、综合单价当含税或重复计税、资料移交跳总包。";
+  moreText="补两道：① {2022,第(四)题} 合同条款体检（练判断纠错三段式：不妥+违反规范钉死值+正确做法）；② 综合单价含税结算口径题（练‘税只在最末整体计提一次’，治单价里重复计税）。回上集做资金链计算题巩固预付款/起扣点/逐月累计。";
+  // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
+  SHOW_COUNT=5;
+  BANK=[
+    { tag:"清单责任·主体维", typeHint:"单选 · 选出主体与责任完整的作答", figLabel:"题给：工程量清单", figCaption:"谁编制？谁对准确性负责？", fig:"doc",
+      stem:"关于工程量清单的编制与准确性责任，选出表述完整、能得分的作答。",
+      opts:[
+        { t:"工程量清单由招标人（或造价咨询人）编制，作为招标文件的组成部分，准确性和完整性由招标人负责。", ok:true, fix:"招标人编制 + 招标文件组成部分 + 招标人负准确性，三件齐。", code:"" },
+        { t:"工程量清单由承包人编制，准确性由承包人负责。", ok:false, code:"E08", tempt:"觉得谁算量谁编清单、就归承包人。", lose:"清单由招标人编制、归招标人负责，主体搞反。", fix:"招标人编制、招标人负准确性，承包人据此报价。" },
+        { t:"工程量清单是招标人编制的。", ok:false, code:"E02", tempt:"记住编制主体就收笔。", lose:"漏了‘招标文件组成部分’和‘准确性由招标人负责’两句。", fix:"补：是招标文件组成部分、准确性完整性由招标人负责。" },
+        { t:"工程量清单由发承包双方共同编制、共同对准确性负责。", ok:false, code:"E07", tempt:"觉得合同双方就该一起担。", lose:"编制与准确性责任在招标人单方，不是共担。", fix:"招标人编制并对准确性负责。" }
+      ] },
+    { tag:"缺陷责任·主体维", typeHint:"单选 · 按合同类型分责任", figLabel:"题给：清单缺陷 + 合同类型", figCaption:"单价 / 总价合同，责任归谁？", fig:"flow",
+      stem:"工程量清单存在缺陷导致工程量偏差。下列关于缺陷责任归属，选出能得分的作答。",
+      opts:[
+        { t:"先判合同类型：单价合同清单缺陷归发包人，总价合同清单缺陷归承包人。", ok:true, fix:"先判合同类型再定责任主体，两类都点到。", code:"" },
+        { t:"无论单价还是总价合同，清单缺陷一律由发包人负责。", ok:false, code:"E10", tempt:"清单是招标人给的，觉得缺陷都赖发包人。", lose:"不分合同类型，总价合同缺陷其实归承包人。", fix:"单价·发包人、总价·承包人，按合同类型分。" },
+        { t:"无论合同类型，清单缺陷一律由承包人负责。", ok:false, code:"E07", tempt:"谁施工谁兜底的惯性。", lose:"单价合同缺陷应归发包人，方向反。", fix:"单价·发包人、总价·承包人。" },
+        { t:"由发包人承担。", ok:false, code:"E02", tempt:"直接给个结论省事。", lose:"没先判合同类型、没说总价情形，采分点不全。", fix:"写全：先判合同类型，单价归发包人、总价归承包人。" }
+      ] },
+    { tag:"风险划分·主体维", typeHint:"单选 · 选出判定顺序正确的作答", figLabel:"题给：风险责任判定要素", figCaption:"按什么顺序判？", fig:"chain",
+      stem:"确定计价风险责任时，正确的判定顺序是？选出能得分的作答。",
+      opts:[
+        { t:"先判合同类型（单价/总价），再判风险来源（清单缺陷/变更/方案），据此定责任主体，最后决定是否调价。", ok:true, fix:"四步顺序齐，先类型后来源再主体。", code:"" },
+        { t:"直接看谁施工的，谁担计价风险。", ok:false, code:"E02", tempt:"图省事，凭施工方判。", lose:"跳过合同类型与风险来源，判定地基缺失。", fix:"先判合同类型、再判风险来源，才能定主体。" },
+        { t:"先定责任主体，再回头判合同类型。", ok:false, code:"E07", tempt:"顺序颠倒也觉得能到结论。", lose:"主体是判出来的结果，不能先定再反推。", fix:"合同类型·风险来源·责任主体，顺序不能反。" },
+        { t:"发包人承担一切计价风险。", ok:false, code:"E10", tempt:"觉得发包人出钱该兜底。", lose:"承包人担措施清单、总价缺陷、自身方案，不是全归发包人。", fix:"按来源分担：发包人担清单缺陷/变更，承包人担方案/总价缺陷。" }
+      ] },
+    { tag:"调整事项·后果维", typeHint:"单选 · 先判是否属可调整事项", figLabel:"题给：两个事件", figCaption:"哪个进‘可调整事项’闸门？", fig:"gate",
+      stem:"施工中发生‘设计变更’与‘承包人自身原因赶工’两件事。关于是否调整合同价款，选出能得分的作答。",
+      opts:[
+        { t:"设计变更属可调整事项、按规定调整价款；承包人自身原因赶工不属可调整事项、不调。", ok:true, fix:"先判属不属于，再决定调不调，两事分开判。", code:"" },
+        { t:"两件事都算工程变化，都应调整价款。", ok:false, code:"E02", tempt:"都影响进度成本，想一起调。", lose:"自身赶工不属可调整事项、不该调；漏了判定这一步。", fix:"先判是否属可调整事项：变更调、自身赶工不调。" },
+        { t:"两件事都不调，进度款照常付。", ok:false, code:"E10", tempt:"怕调价麻烦，一律不调。", lose:"设计变更是法定可调整事项，应调。", fix:"变更属可调整事项要调，自身赶工才不调。" },
+        { t:"先把两件事的金额都算出来，再看要不要调。", ok:false, code:"E07", tempt:"觉得先算钱再说。", lose:"顺序反了，应先判是否属调整事项再算。", fix:"先判属不属于，属于才算调整额。" }
+      ] },
+    { tag:"综合单价·记录计算维", typeHint:"单选 · 选出口径与计税正确的作答", figLabel:"题给：综合单价构成", figCaption:"含不含税？税怎么算？", fig:"tax",
+      stem:"关于综合单价是否含税及计税方式，选出能得分的作答。",
+      opts:[
+        { t:"综合单价是不含增值税的税前全费用价（人材机+管理费+利润+风险），增值税在最末对税前合价整体计提一次，单价内不重复计税。", ok:true, fix:"不含税 + 最末整体计税一次，两件齐。", code:"" },
+        { t:"综合单价先乘 (1+税率) 得含税单价，再乘工程量结算。", ok:false, code:"E10", tempt:"想每个单价都先含税最稳妥。", lose:"单价乘一遍、结算再乘一遍 = 双重计税。", fix:"税只在最末整体计提一次。" },
+        { t:"综合单价是含税价，已包含增值税，直接用。", ok:false, code:"E07", tempt:"觉得‘综合’连税也综合进去。", lose:"综合单价是税前价，当含税价口径错。", fix:"综合单价不含税，税在最末乘。" },
+        { t:"综合单价 = 人工费 + 材料费 + 机械费。", ok:false, code:"E02", tempt:"只记直接费三项。", lose:"漏了管理费、利润、风险。", fix:"综合单价 = 人材机 + 管理费 + 利润 + 风险（税前）。" }
+      ] },
+    { tag:"清单责任·主体维", typeHint:"单选 · 委托造价咨询人编制时责任归谁", figLabel:"题给：招标人委托造价咨询人编清单", figCaption:"委托出去，责任转移了吗？", fig:"doc",
+      stem:"招标人委托工程造价咨询人编制工程量清单。关于清单准确性责任，选出能得分的作答。",
+      opts:[
+        { t:"即便委托造价咨询人编制，工程量清单仍是招标文件组成部分，其准确性和完整性仍由招标人对外负责。", ok:true, fix:"点明‘委托不转移对外责任’，主体仍是招标人。", code:"" },
+        { t:"委托后准确性责任转移给造价咨询人，招标人不再负责。", ok:false, code:"E08", tempt:"觉得谁编谁负责。", lose:"对外责任仍在招标人，委托不免责。", fix:"清单对外准确性责任仍由招标人承担。" },
+        { t:"委托后责任由承包人承担。", ok:false, code:"E07", tempt:"惯性推给承包人。", lose:"承包人只据清单报价，不担编制责任。", fix:"准确性责任仍在招标人。" },
+        { t:"委托后清单不再是招标文件的组成部分。", ok:false, code:"E02", tempt:"以为委托改变了清单性质。", lose:"清单性质不变，仍是招标文件组成部分。", fix:"清单仍属招标文件、责任仍归招标人。" }
+      ] },
+    { tag:"缺陷责任·主体维", typeHint:"单选 · 总价合同的缺陷归谁", figLabel:"题给：总价合同 + 清单缺陷", figCaption:"总价合同这类缺陷谁担？", fig:"flow",
+      stem:"某工程采用总价合同，结算时发现清单存在缺陷。关于该缺陷的责任，选出能得分的作答。",
+      opts:[
+        { t:"总价合同下，工程量清单缺陷带来的风险由承包人承担（除合同另有约定外）。", ok:true, fix:"点明总价合同缺陷归承包人。", code:"" },
+        { t:"总价合同的清单缺陷一律由发包人承担。", ok:false, code:"E10", tempt:"觉得清单是招标人给的就赖发包人。", lose:"总价合同缺陷风险归承包人，判反。", fix:"总价合同清单缺陷归承包人。" },
+        { t:"总价合同没有清单，不存在缺陷责任问题。", ok:false, code:"E07", tempt:"以为总价合同不用清单。", lose:"总价合同仍有清单，只是风险划分不同。", fix:"总价合同也有清单，缺陷风险归承包人。" },
+        { t:"由发承包双方各担一半。", ok:false, code:"E02", tempt:"折中最省事。", lose:"总价合同缺陷明确归承包人，不是对半。", fix:"总价合同清单缺陷归承包人。" }
+      ] },
+    { tag:"风险分担·主体维", typeHint:"单选 · 各类风险谁担", figLabel:"题给：变更 / 自身方案", figCaption:"发包人担什么？承包人担什么？", fig:"chain",
+      stem:"关于计价风险的分担，选出表述准确、能得分的作答。",
+      opts:[
+        { t:"发包人承担清单缺陷、设计变更、赶工等风险；承包人承担措施清单、总价合同缺陷及自身施工方案的风险。", ok:true, fix:"两侧风险分类清楚、对应主体明确。", code:"" },
+        { t:"所有计价风险都由承包人承担。", ok:false, code:"E10", tempt:"谁施工谁兜底的惯性。", lose:"清单缺陷、变更等归发包人，不全归承包人。", fix:"按来源分：发包人担变更/清单缺陷，承包人担方案/措施。" },
+        { t:"所有计价风险都由发包人承担。", ok:false, code:"E10", tempt:"觉得发包人出钱兜底。", lose:"承包人自身方案、措施清单风险自担。", fix:"承包人担措施/方案，发包人担变更/清单缺陷。" },
+        { t:"风险由市场决定，双方都不担。", ok:false, code:"E02", tempt:"回避划分。", lose:"没有落到主体，采分为空。", fix:"逐类划到发包人或承包人。" }
+      ] },
+    { tag:"调整事项·后果维", typeHint:"单选 · 物价波动是否可调", figLabel:"题给：材料价格大幅上涨", figCaption:"物价波动进不进闸门？", fig:"gate",
+      stem:"施工期间主要材料价格大幅上涨，合同约定了价格调整条款。关于是否调整价款，选出能得分的作答。",
+      opts:[
+        { t:"物价变化属合同价款可调整事项，按合同约定的价格调整方法（如价格指数法或造价信息法）调整。", ok:true, fix:"点明属可调整事项 + 按约定方法调。", code:"" },
+        { t:"物价波动是市场风险，一律不调。", ok:false, code:"E10", tempt:"觉得涨价是承包人自担。", lose:"物价变化是法定/约定可调整事项，应按约定调。", fix:"物价变化属可调整事项，按约定方法调整。" },
+        { t:"直接按上涨金额全额补偿承包人。", ok:false, code:"E02", tempt:"觉得涨多少补多少。", lose:"应按约定调整方法算，不是全额补。", fix:"按价格指数法/造价信息法等约定方法调整。" },
+        { t:"先不管属不属于调整事项，直接算差额。", ok:false, code:"E07", tempt:"急着算钱。", lose:"应先判属可调整事项再算。", fix:"先判属于，再按约定方法算调整额。" }
+      ] },
+    { tag:"综合单价·记录计算维", typeHint:"单选 · 构成完整性", figLabel:"题给：只报了直接费", figCaption:"综合单价漏了什么？", fig:"tax",
+      stem:"某投标人把综合单价填成‘人工+材料+机械’。指出问题并补全，选出能得分的作答。",
+      opts:[
+        { t:"综合单价除人材机外，还应包含管理费、利润和一定范围的风险费用，且为不含税价；缺项则不完整。", ok:true, fix:"补齐管理费/利润/风险 + 点明税前，构成完整。", code:"" },
+        { t:"综合单价只含人材机即可，其余另计。", ok:false, code:"E02", tempt:"记成‘直接费=综合单价’。", lose:"漏管理费、利润、风险。", fix:"综合单价 = 人材机 + 管理费 + 利润 + 风险。" },
+        { t:"还应把增值税加进综合单价。", ok:false, code:"E10", tempt:"觉得全费用含税。", lose:"综合单价税前，税不进单价。", fix:"补管理费/利润/风险即可，税最末整体计提。" },
+        { t:"管理费属于措施项目费，不在综合单价里。", ok:false, code:"E07", tempt:"把管理费挪去措施费。", lose:"管理费、利润本在综合单价内。", fix:"综合单价内含管理费、利润、风险。" }
+      ] },
+    { tag:"调整事项·后果维", typeHint:"单选 · 索赔是否属可调整事项", figLabel:"题给：因发包人原因窝工索赔", figCaption:"索赔进不进闸门？", fig:"gate",
+      stem:"因发包人未按时提供施工场地导致承包人窝工，承包人提出费用索赔。关于价款处理，选出能得分的作答。",
+      opts:[
+        { t:"因发包人原因引起的索赔属合同价款可调整事项，经确认后调整合同价款、补偿承包人相应费用。", ok:true, fix:"点明索赔属可调整事项 + 经确认后调。", code:"" },
+        { t:"索赔与价款无关，不予调整。", ok:false, code:"E10", tempt:"觉得索赔另走流程。", lose:"发包人原因的索赔属可调整事项。", fix:"经确认后调整合同价款。" },
+        { t:"承包人窝工是自身管理问题，不能索赔。", ok:false, code:"E08", tempt:"没抓住是发包人原因。", lose:"起因是发包人未提供场地，可索赔。", fix:"发包人原因导致，属可调整、可索赔。" },
+        { t:"直接按承包人报的金额补偿。", ok:false, code:"E02", tempt:"报多少给多少。", lose:"需经核实确认，非直接照付。", fix:"经确认后按实调整。" }
+      ] },
+    { tag:"清单责任·主体维", typeHint:"单选 · 招标控制价编制责任", figLabel:"题给：招标控制价（最高投标限价）", figCaption:"谁编、谁负责？", fig:"doc",
+      stem:"关于招标控制价（最高投标限价）的编制，选出表述准确、能得分的作答。",
+      opts:[
+        { t:"招标控制价由招标人（或其委托的造价咨询人）编制并公布，是投标报价的最高限价，编制责任在招标人。", ok:true, fix:"招标人编制 + 最高限价 + 责任在招标人。", code:"" },
+        { t:"招标控制价由投标人各自报出，取最低者。", ok:false, code:"E08", tempt:"和投标报价混。", lose:"控制价是招标人编制的上限，非投标人报出。", fix:"由招标人编制并公布为最高限价。" },
+        { t:"招标控制价由造价管理部门统一下发。", ok:false, code:"E07", tempt:"以为政府统一定。", lose:"由招标人编制，非主管部门下发。", fix:"招标人（或受托咨询人）编制。" },
+        { t:"招标控制价可以不公布，保密即可。", ok:false, code:"E02", tempt:"觉得是底价该保密。", lose:"招标控制价应公布，与保密的标底不同。", fix:"招标控制价应公布为最高限价。" }
+      ] },
+    { tag:"资料移交·程序维末题", typeHint:"单选 · 诊断分包跳总包并给正确顺序", figLabel:"学生做法（待诊断）", figCaption:"分包 · 直接交建设单位？", fig:"pipe", diag:true,
+      stem:"某分包单位将其竣工资料直接移交给建设单位。诊断该做法并给出正确顺序，选出能得分的作答。",
+      opts:[
+        { t:"不正确——分包不得跳过总包。正确顺序：各专业承包单位交施工总承包单位，总包交建设单位，建设单位交城建档案管理部门。", ok:true, fix:"判‘不正确’+点名跳总包+写全不可逆链，三段齐。", code:"" },
+        { t:"正确，分包资料交建设单位即可，无需经过总包。", ok:false, code:"E06", tempt:"觉得最终都给建设单位，跳一步无所谓。", lose:"跳过总包就是程序错，违反移交顺序。", fix:"分包先交总包，总包再交建设单位。" },
+        { t:"不正确，应先交总包。", ok:false, code:"E02", tempt:"抓到要先交总包就收笔。", lose:"漏写完整不可逆链（到城建档案管理部门）。", fix:"补全：各专业·总包·建设·城建档案管理部门。" },
+        { t:"不正确，应由分包直接交城建档案管理部门。", ok:false, code:"E07", tempt:"知道有城建档案这一环就跳过去。", lose:"顺序仍错，中间的总包、建设单位不能略。", fix:"按各专业·总包·建设·城建档案逐级交。" }
+      ] },
+    { tag:"清单责任·诊断末题", typeHint:"单选 · 诊断责任推给承包人", figLabel:"学生作答（待诊断）", figCaption:"清单算错就赖承包人？", fig:"doc", diag:true,
+      stem:"某学生答：‘工程量清单由承包人编制，算错了当然由承包人负责赔偿。’诊断该作答并补写。",
+      opts:[
+        { t:"错在编制主体：清单由招标人（或受托咨询人）编制、准确性归招标人；赔偿再按合同类型分（单价归发包人、总价归承包人）。", ok:true, fix:"揪出主体错 + 补编制责任 + 按合同类型分赔偿。", code:"" },
+        { t:"作答正确，清单谁用谁负责。", ok:false, code:"E08", tempt:"承包人据清单报价就以为他编的。", lose:"编制主体是招标人，作答主体错。", fix:"招标人编制、负准确性；缺陷按合同类型分。" },
+        { t:"只需把‘承包人编制’改成‘监理编制’即可。", ok:false, code:"E07", tempt:"随手换个主体。", lose:"编制主体是招标人，不是监理。", fix:"招标人（或受托咨询人）编制。" },
+        { t:"清单责任和合同类型无关，都归发包人。", ok:false, code:"E10", tempt:"矫枉过正全推发包人。", lose:"缺陷赔偿要按合同类型分，非一律发包人。", fix:"单价归发包人、总价归承包人。" }
+      ] },
+    { tag:"调整事项·诊断末题", typeHint:"单选 · 诊断不判是否可调直接算", figLabel:"学生作答（待诊断）", figCaption:"没判属不属于就开算？", fig:"gate", diag:true,
+      stem:"某学生对‘承包人自身原因赶工增加的费用’直接算出金额并要求调增合同价款。诊断该作答并补写。",
+      opts:[
+        { t:"错在漏判可调整事项：承包人自身原因赶工不属可调整事项、不应调增；正确应先判是否属可调整事项，再算调整额。", ok:true, fix:"揪出漏判 + 定性不属可调 + 给出先判后算的正确顺序。", code:"" },
+        { t:"作答正确，赶工多花的钱就该补。", ok:false, code:"E02", tempt:"觉得花了钱就该补。", lose:"自身原因赶工不属可调整事项，不该调增。", fix:"先判属不属于：自身赶工不调。" },
+        { t:"只要把金额算得再准一点就对了。", ok:false, code:"E07", tempt:"以为是算错数。", lose:"问题是根本不该调，不是数值。", fix:"自身原因不属可调整事项、不调。" },
+        { t:"应由发包人和承包人对半分担赶工费。", ok:false, code:"E10", tempt:"折中处理。", lose:"自身原因赶工费由承包人自担，非对半。", fix:"承包人自身原因，费用自担、不调价款。" }
+      ] }
+  ];
+  Q=[];
+    codeMap={
+    E02:{label:"采分点遗漏",advice:"责任主体/合同类型/完整顺序逐项写，缺一扣一。"},
+    E06:{label:"程序顺序错误",advice:"资料移交不可逆：各专业·总包·建设·城建档案，不跳级。"},
+    E07:{label:"概念混淆",advice:"综合单价税前、责任按合同类型分、先判后算别颠倒。"},
+    E08:{label:"背景信息提取失败",advice:"清单由招标人编制、归招标人，主体别搞反。"},
+    E10:{label:"规范适用错误",advice:"分合同类型定责任、税只乘一次、变更才可调。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+  }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.Q[qi]; const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.Q[qi]; if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.Q[qi],s=this.state.sel[qi];
+    if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&q.opts[s]&&q.opts[s].ok; }
+  next(){ if(this.state.qi<this.Q.length-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  buildQ(){ const shuf=a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i];a[i]=a[j];a[j]=t; } return a; };
+    const main=shuf(this.BANK.filter(q=>!q.diag)), diag=shuf(this.BANK.filter(q=>q.diag));
+    const pick=main.slice(0,Math.max(1,this.SHOW_COUNT-(diag.length?1:0)));
+    if(diag.length) pick.push(diag[0]);
+    pick.forEach(q=>{ const o=q.opts.slice(); shuf(o); if(o[0]&&o[0].ok){ const k=o.findIndex((x,ix)=>ix>0&&!x.ok); if(k>0){ const t=o[0];o[0]=o[k];o[k]=t; } } q.opts=o; });
+    this.Q=pick; }
+  reset(){ this.buildQ(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.Q[qi].fig, els=[]; let figH=100;
+    if(type==="doc"){ figH=96;
+      els.push(D({x:120,top:8,w:86,h:54,bg:"#fff",bd:"2px solid #2f6db0",r:8,fg:"#2f6db0",fs:11,lab:"工程量清单"}));
+      els.push(D({x:0,top:70,w:326,h:16,fg:"#5c6469",fs:10.5,lab:"谁编制？谁对准确性负责？"})); }
+    else if(type==="flow"){ figH=96;
+      els.push(D({x:6,top:14,w:150,h:26,bg:"#2f6db0",r:6,fg:"#fff",fs:10,lab:"单价合同 · 清单缺陷"}));
+      els.push(D({x:160,top:14,w:24,h:26,fg:"#a8997a",fs:14,lab:"·"}));
+      els.push(D({x:188,top:14,w:130,h:26,bg:"#fff",bd:"1.5px dashed #cdd9e2",r:6,fg:"#9aa0a3",fs:13,lab:"？"}));
+      els.push(D({x:6,top:52,w:150,h:26,bg:"#cf8a44",r:6,fg:"#fff",fs:10,lab:"总价合同 · 清单缺陷"}));
+      els.push(D({x:160,top:52,w:24,h:26,fg:"#a8997a",fs:14,lab:"·"}));
+      els.push(D({x:188,top:52,w:130,h:26,bg:"#fff",bd:"1.5px dashed #cdd9e2",r:6,fg:"#9aa0a3",fs:13,lab:"？"})); }
+    else if(type==="chain"){ figH=96; const cs=[["合同类型","#2f6db0"],["风险来源","#cf8a44"],["责任主体","#2c8a5b"]];
+      cs.forEach((c,i)=>{ els.push(D({x:6+i*108,top:28,w:96,h:38,bg:"#fff",bd:"1.5px solid #ddd2bb",r:8,fg:c[1],fs:11,lab:c[0]})); if(i<2)els.push(D({x:6+i*108+96,top:28,w:12,h:38,fg:"#a8997a",fs:13,lab:"·"})); });
+      els.push(D({x:0,top:74,w:326,h:14,fg:"#5c6469",fs:9.5,lab:"按什么顺序判？"})); }
+    else if(type==="gate"){ figH=96;
+      els.push(D({x:6,top:10,w:96,h:22,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:6,fg:"#2f6db0",fs:9.5,lab:"设计变更"}));
+      els.push(D({x:6,top:40,w:96,h:22,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:6,fg:"#2f6db0",fs:9.5,lab:"自身赶工"}));
+      els.push(D({x:108,top:24,w:20,h:24,fg:"#a8997a",fs:14,lab:"·"}));
+      els.push(D({x:132,top:18,w:92,h:40,bg:"#fff",bd:"2px solid #cf8a44",r:8,fg:"#cf8a44",fs:10,lab:"可调整事项?"}));
+      els.push(D({x:228,top:24,w:18,h:24,fg:"#a8997a",fs:14,lab:"·"}));
+      els.push(D({x:250,top:18,w:70,h:40,bg:"#fff",bd:"1.5px dashed #cdd9e2",r:8,fg:"#9aa0a3",fs:15,lab:"？"})); }
+    else if(type==="tax"){ figH=96; const ps=["人工","材料","机械","管理","利润","风险"];
+      ps.forEach((p,i)=>els.push(D({x:6+i*53,top:14,w:48,h:28,bg:"#2f6db0",r:5,fg:"#fff",fs:9,lab:p})));
+      els.push(D({x:0,top:52,w:326,h:16,fg:"#5c6469",fs:10,lab:"= 综合单价 · 含不含税？税怎么算？"})); }
+    else if(type==="pipe"){ figH=100; const nd=[["各专业","#2f6db0"],["总包","#cf8a44"],["建设","#2c8a5b"],["城建档案","#8a9296"]];
+      nd.forEach((n,i)=>{ els.push(D({x:6+i*80,top:50,w:64,h:30,bg:n[1],r:6,fg:"#fff",fs:9,lab:n[0]})); if(i<3)els.push(D({x:6+i*80+64,top:50,w:16,h:30,fg:"#a8997a",fs:13,lab:"·"})); });
+      els.push(D({x:38,top:18,w:140,h:0,bd:"2px dashed #cf4436"}));
+      els.push(D({x:40,top:2,w:150,h:14,fg:"#cf4436",fs:9.5,ta:"left",jc:"flex-start",lab:"分包直接交建设 ✕"}));
+      els.push(D({x:0,top:84,w:326,h:14,fg:"#5c6469",fs:9.5,lab:"分包跳过总包，对不对？"})); }
+    return {els,figH};
+  }
+    renderVals(){
+    if(!this.Q||!this.Q.length){ this.buildQ(); }
+    const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.Q.length-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.Q.map((qq,i)=>{ const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.Q.forEach((qq,i)=>{ if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(this.Q.length*0.4)?0:score<this.Q.length-1?1:score<this.Q.length?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:this.Q.length, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/this.Q.length)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

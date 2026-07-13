@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:30px;top:62px;width:302px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:12px 15px;font-size:13.5px;font-weight:700;color:#23282b;line-height:1.5;box-shadow:3px 3px 0 rgba(207,68,54,.18);transform-origin:50% 100%;opacity:{{ e0_bo }};transform:scale({{ e0_bs }});">答系统只写「三级配电」？停电先断总箱？两台机凑一个开关箱？
+          <div style="position:absolute;left:40px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:122px;top:150px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 14px;font-size:23px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ e0_so }};transform:scale({{ e0_ss }}) rotate(-12deg);">误区 ✕</div>
+        <div style="position:absolute;left:18px;right:18px;top:246px;opacity:{{ e0_row }};">
+          <div style="text-align:center;font-size:11px;font-weight:800;color:#cf8a44;margin-bottom:10px;">临时用电就三关 · 关关都是采分点</div>
+          <div style="display:flex;gap:8px;">
+            <div style="flex:1;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #2f6db0;border-radius:10px;padding:11px 6px;text-align:center;"><div style="font-size:13px;font-weight:900;color:#2f6db0;">架构</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">三级配电<br/>TN-S · 二级漏保</div></div>
+            <div style="flex:1;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #cf8a44;border-radius:10px;padding:11px 6px;text-align:center;"><div style="font-size:13px;font-weight:900;color:#cf8a44;">参数</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">36·24·12V<br/>埋深 0.7m</div></div>
+            <div style="flex:1;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #2c8a5b;border-radius:10px;padding:11px 6px;text-align:center;"><div style="font-size:13px;font-weight:900;color:#2c8a5b;">管理</div><div style="font-size:9px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">一机一闸<br/>持证 · 补方案</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 三大系统 + 三级配电装置 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:52px;font-size:12px;font-weight:900;color:#23282b;">{{ b1_title }}</div>
+        <!-- 三级箱 -->
+        <div style="position:absolute;left:20px;top:104px;width:82px;height:54px;background:#2f6db0;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;box-shadow:2px 2px 0 rgba(47,109,176,.28);opacity:{{ s1_b0 }};"><div style="font-size:13px;font-weight:900;">总配电箱</div><div style="font-size:8px;opacity:.85;margin-top:2px;">一级</div></div>
+        <div style="position:absolute;left:106px;top:129px;width:44px;height:4px;background:#2f6db0;border-radius:2px;transform-origin:left;transform:scaleX({{ s1_l1 }});"></div>
+        <div style="position:absolute;left:154px;top:104px;width:82px;height:54px;background:#3f7dc0;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;box-shadow:2px 2px 0 rgba(47,109,176,.28);opacity:{{ s1_b1 }};"><div style="font-size:13px;font-weight:900;">分配电箱</div><div style="font-size:8px;opacity:.85;margin-top:2px;">二级</div></div>
+        <div style="position:absolute;left:240px;top:129px;width:44px;height:4px;background:#2f6db0;border-radius:2px;transform-origin:left;transform:scaleX({{ s1_l2 }});"></div>
+        <div style="position:absolute;left:288px;top:104px;width:82px;height:54px;background:#4f8bcf;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;box-shadow:2px 2px 0 rgba(47,109,176,.28);opacity:{{ s1_b2 }};"><div style="font-size:13px;font-weight:900;">开关箱</div><div style="font-size:8px;opacity:.85;margin-top:2px;">末级</div></div>
+        <!-- 二级漏保徽标（总箱 + 末级开关箱）-->
+        <div style="position:absolute;left:72px;top:92px;background:#cf4436;color:#fff;font-size:8.5px;font-weight:800;padding:2px 6px;border-radius:9px;box-shadow:1px 1px 0 rgba(0,0,0,.15);opacity:{{ s1_r }};">漏保①</div>
+        <div style="position:absolute;left:328px;top:92px;background:#cf4436;color:#fff;font-size:8.5px;font-weight:800;padding:2px 6px;border-radius:9px;box-shadow:1px 1px 0 rgba(0,0,0,.15);opacity:{{ s1_r }};">漏保②</div>
+        <div style="position:absolute;left:16px;right:16px;top:172px;text-align:center;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ s1_r }};">总箱 + 末级开关箱 各一级 = 二级漏电保护</div>
+        <!-- PE 线（黄绿 · TN-S）-->
+        <div style="position:absolute;left:20px;top:200px;width:350px;height:7px;border-radius:4px;background:repeating-linear-gradient(90deg,#d9a521,#d9a521 9px,#2c8a5b 9px,#2c8a5b 18px);transform-origin:left;transform:scaleX({{ s1_pe }});"></div>
+        <div style="position:absolute;left:20px;top:212px;font-size:10px;font-weight:800;color:#2c8a5b;opacity:{{ s1_pe }};">PE 线独立贯穿 · TN-S 接零保护（设备外壳接零）</div>
+        <!-- 三块拼图 -->
+        <div style="position:absolute;left:16px;right:16px;top:250px;display:flex;gap:8px;opacity:{{ s1_sum }};">
+          <div style="flex:1;background:#eef3f7;border:1.5px solid #2f6db0;border-radius:9px;padding:9px 4px;text-align:center;font-size:10.5px;font-weight:900;color:#2f6db0;line-height:1.35;">三级配电<br/>系统</div>
+          <div style="flex:1;background:#fdf3ea;border:1.5px solid #cf8a44;border-radius:9px;padding:9px 4px;text-align:center;font-size:10.5px;font-weight:900;color:#c07a34;line-height:1.35;">TN-S<br/>接零保护</div>
+          <div style="flex:1;background:#eef7f1;border:1.5px solid #2c8a5b;border-radius:9px;padding:9px 4px;text-align:center;font-size:10.5px;font-weight:900;color:#2c8a5b;line-height:1.35;">二级剩余电流<br/>漏电保护</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:322px;text-align:center;font-size:11px;font-weight:800;color:#cf8a44;opacity:{{ s1_sum }};">三块缺一不可 · 答系统题一块都不能少</div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 一机一闸 + 进线端 + 动力照明分设 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:52px;font-size:12px;font-weight:900;color:#23282b;">{{ b2_title }}</div>
+        <!-- 错解：两台共用一箱 -->
+        <div style="position:absolute;left:20px;top:84px;opacity:{{ m2_two }};">
+          <div style="display:flex;gap:6px;">
+            <div style="width:58px;height:30px;background:#8a9298;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;">切割机</div>
+            <div style="width:58px;height:30px;background:#8a9298;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;">搅拌机</div>
+          </div>
+          <div style="width:64px;height:22px;margin:6px auto 0;background:#cf9a8f;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#7a241a;font-size:9px;font-weight:800;">1 个开关箱</div>
+        </div>
+        <div style="position:absolute;left:60px;top:96px;z-index:8;color:#cf4436;border:3.5px solid #cf4436;border-radius:8px;padding:1px 9px;font-size:16px;font-weight:900;letter-spacing:2px;transform:rotate(-10deg);opacity:{{ m2_x }};">共用 ✕</div>
+        <!-- 正解：一机一闸 -->
+        <div style="position:absolute;left:210px;top:84px;opacity:{{ m2_split }};">
+          <div style="display:flex;gap:14px;">
+            <div style="text-align:center;"><div style="width:52px;height:28px;background:#2c8a5b;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;">切割机</div><div style="width:52px;height:20px;margin-top:5px;background:#3fa06a;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:800;">专用箱</div></div>
+            <div style="text-align:center;"><div style="width:52px;height:28px;background:#2c8a5b;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;">搅拌机</div><div style="width:52px;height:20px;margin-top:5px;background:#3fa06a;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:800;">专用箱</div></div>
+          </div>
+        </div>
+        <div style="position:absolute;left:238px;top:150px;color:#2c8a5b;font-size:15px;font-weight:900;opacity:{{ m2_ok }};">一机一闸 ✓</div>
+        <div style="position:absolute;left:16px;right:16px;top:186px;text-align:center;font-size:11px;font-weight:800;color:#23282b;opacity:{{ m2_ok }};">每台设备专用开关箱 · 严禁 2 台及以上共用（含插座）</div>
+        <!-- 进线端禁插接 -->
+        <div style="position:absolute;left:20px;right:20px;top:220px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #cf4436;border-radius:9px;padding:9px 12px;opacity:{{ m2_line }};">
+          <div style="font-size:11.5px;font-weight:900;color:#cf4436;">进线端 严禁插头插座做活动连接</div>
+          <div style="font-size:10px;color:#6b6358;margin-top:2px;font-weight:600;">配电箱、开关箱电源进线端应固定可靠连接</div>
+        </div>
+        <!-- 动力照明分设 -->
+        <div style="position:absolute;left:20px;right:20px;top:280px;display:flex;gap:8px;opacity:{{ m2_dl }};">
+          <div style="flex:1;background:#eef3f7;border:1.5px solid #2f6db0;border-radius:9px;padding:9px 6px;text-align:center;font-size:11px;font-weight:900;color:#2f6db0;">动力开关箱</div>
+          <div style="flex:none;align-self:center;font-size:14px;font-weight:900;color:#cf8a44;">必分设</div>
+          <div style="flex:1;background:#fdf3ea;border:1.5px solid #cf8a44;border-radius:9px;padding:9px 6px;text-align:center;font-size:11px;font-weight:900;color:#c07a34;">照明开关箱</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:326px;text-align:center;font-size:10px;font-weight:700;color:#8b9398;opacity:{{ m2_dl }};">动力/照明配电箱宜分设 · 合并须分路</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 停送电顺序 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:52px;font-size:12px;font-weight:900;color:#23282b;">{{ b3_title }}</div>
+        <!-- 三箱 -->
+        <div style="position:absolute;left:20px;top:98px;width:100px;height:44px;background:#2f6db0;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:900;opacity:{{ p3_box }};">总配电箱</div>
+        <div style="position:absolute;left:145px;top:98px;width:100px;height:44px;background:#3f7dc0;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:900;opacity:{{ p3_box }};">分配电箱</div>
+        <div style="position:absolute;left:270px;top:98px;width:100px;height:44px;background:#4f8bcf;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:900;opacity:{{ p3_box }};">开关箱</div>
+        <!-- 送电 -->
+        <div style="position:absolute;left:20px;top:168px;font-size:11px;font-weight:900;color:#2c8a5b;opacity:{{ p3_lab }};">送电 · 从大到小</div>
+        <div style="position:absolute;left:20px;top:188px;width:350px;height:12px;background:#e2e0d5;border-radius:6px;overflow:hidden;opacity:{{ p3_lab }};">
+          <div style="height:100%;background:#2c8a5b;border-radius:6px;transform-origin:left;transform:scaleX({{ p3_send }});"></div>
+        </div>
+        <div style="position:absolute;left:20px;top:204px;width:350px;display:flex;justify-content:space-between;font-size:9.5px;font-weight:800;color:#2c8a5b;opacity:{{ p3_lab }};"><span>总配电箱</span><span>分配电箱</span><span>开关箱</span></div>
+        <!-- 停电 -->
+        <div style="position:absolute;left:20px;top:230px;font-size:11px;font-weight:900;color:#2f6db0;opacity:{{ p3_lab }};">停电 · 从末端起</div>
+        <div style="position:absolute;left:20px;top:250px;width:350px;height:12px;background:#e2e0d5;border-radius:6px;overflow:hidden;opacity:{{ p3_lab }};">
+          <div style="height:100%;background:#2f6db0;border-radius:6px;transform-origin:right;transform:scaleX({{ p3_stop }});"></div>
+        </div>
+        <div style="position:absolute;left:20px;top:266px;width:350px;display:flex;justify-content:space-between;font-size:9.5px;font-weight:800;color:#2f6db0;opacity:{{ p3_lab }};"><span>开关箱</span><span>分配电箱</span><span>总配电箱</span></div>
+        <!-- 逆向警示 -->
+        <div style="position:absolute;left:20px;right:20px;top:296px;background:#fadcd6;border-radius:9px;padding:10px 12px;text-align:center;font-size:11px;font-weight:800;color:#a3271c;opacity:{{ p3_wrong }};">先断总箱 · 开关箱仍带负荷 → 拉闸拉弧 ✕</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 安全电压分级 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:52px;font-size:12px;font-weight:900;color:#23282b;">{{ b4_title }}</div>
+        <div style="position:absolute;left:16px;top:74px;font-size:9.5px;font-weight:700;color:#8b9398;">手持灯具 ≤36V · 双绕组隔离变压器 · 金属容器内严禁使用</div>
+        <!-- 阶梯三档 -->
+        <div style="position:absolute;left:24px;top:100px;width:170px;height:40px;background:#dff0e6;border:1.5px solid #7fbf95;border-radius:8px;display:flex;align-items:center;padding:0 12px;gap:8px;opacity:{{ v4_s1 }};"><span style="font-size:13px;">●</span><span style="font-size:11px;font-weight:800;color:#2c8a5b;flex:1;">潮湿 · 隧道 · 人防</span><span style="font-size:15px;font-weight:900;color:#2c8a5b;">≤36V</span></div>
+        <div style="position:absolute;left:78px;top:150px;width:200px;height:40px;background:#fff4d6;border:1.5px solid #d8b24a;border-radius:8px;display:flex;align-items:center;padding:0 12px;gap:8px;opacity:{{ v4_s2 }};"><span style="font-size:13px;">●</span><span style="font-size:11px;font-weight:800;color:#8a6d1f;flex:1;">易触及带电体</span><span style="font-size:15px;font-weight:900;color:#8a6d1f;">≤24V</span></div>
+        <div style="position:absolute;left:140px;top:200px;width:224px;height:44px;background:#fadcd6;border:1.5px solid #cf4436;border-radius:8px;display:flex;align-items:center;padding:0 12px;gap:8px;opacity:{{ v4_s3 }};"><span style="font-size:13px;">●</span><span style="font-size:11px;font-weight:800;color:#a3271c;flex:1;">金属容器 · 锅炉内</span><span style="font-size:16px;font-weight:900;color:#c0392b;">≤12V</span></div>
+        <div style="position:absolute;left:24px;top:256px;font-size:11px;font-weight:800;color:#cf8a44;opacity:{{ v4_s3 }};">场所越导电 → 电压门槛越低</div>
+        <!-- 重大隐患 -->
+        <div style="position:absolute;left:20px;right:20px;top:288px;background:#2b2620;border-radius:10px;padding:11px 13px;opacity:{{ v4_haz }};">
+          <div style="font-size:11.5px;font-weight:900;color:#ffb0a3;">湿度 &gt;75% / 积水 未用安全电压照明</div>
+          <div style="font-size:10.5px;color:#e8c9a3;margin-top:3px;font-weight:600;">= 重大事故隐患</div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 电缆埋地 + 标识色 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:52px;font-size:12px;font-weight:900;color:#23282b;">{{ b5_title }}</div>
+        <!-- 左：埋地剖面 -->
+        <div style="position:absolute;left:16px;top:84px;font-size:10px;font-weight:800;color:#5c6469;opacity:{{ c5_scene }};">直接埋地敷设</div>
+        <div style="position:absolute;left:16px;top:104px;width:168px;height:14px;background:#c9a06a;border-radius:3px 3px 0 0;opacity:{{ c5_scene }};"></div>
+        <div style="position:absolute;left:16px;top:118px;width:168px;height:96px;background:repeating-linear-gradient(0deg,#e6d3b3,#e6d3b3 8px,#dcc7a2 8px,#dcc7a2 16px);opacity:{{ c5_scene }};"></div>
+        <div style="position:absolute;left:20px;top:196px;width:160px;height:10px;background:#2f6db0;border-radius:4px;opacity:{{ c5_ruler }};"></div>
+        <div style="position:absolute;left:8px;top:118px;width:2px;height:88px;background:#cf4436;opacity:{{ c5_ruler }};"></div>
+        <div style="position:absolute;left:14px;top:150px;background:#2c8a5b;color:#fff;font-size:11px;font-weight:900;padding:2px 7px;border-radius:8px;opacity:{{ c5_ruler }};">≥0.7m</div>
+        <div style="position:absolute;left:20px;top:216px;width:160px;text-align:center;font-size:9.5px;font-weight:800;color:#2f6db0;opacity:{{ c5_ruler }};">电缆（直接埋地）</div>
+        <div style="position:absolute;left:16px;top:238px;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ c5_bad }};">埋浅 &lt;0.7m ✕ 易砸伤破损</div>
+        <!-- 右：五芯电缆标识色 -->
+        <div style="position:absolute;left:206px;top:84px;font-size:10px;font-weight:800;color:#5c6469;opacity:{{ c5_core }};">五芯电缆标识色</div>
+        <div style="position:absolute;left:206px;top:106px;display:flex;gap:7px;opacity:{{ c5_core }};">
+          <div style="text-align:center;"><div style="width:24px;height:48px;background:#d9a521;border-radius:4px;"></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:4px;">L1</div></div>
+          <div style="text-align:center;"><div style="width:24px;height:48px;background:#2c8a5b;border-radius:4px;"></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:4px;">L2</div></div>
+          <div style="text-align:center;"><div style="width:24px;height:48px;background:#cf4436;border-radius:4px;"></div><div style="font-size:9px;font-weight:800;color:#5c6469;margin-top:4px;">L3</div></div>
+          <div style="text-align:center;"><div style="width:24px;height:48px;background:#2f6db0;border-radius:4px;box-shadow:0 0 0 2px #1f4f85;"></div><div style="font-size:9px;font-weight:900;color:#2f6db0;margin-top:4px;">N</div></div>
+          <div style="text-align:center;"><div style="width:24px;height:48px;background:repeating-linear-gradient(45deg,#d9a521,#d9a521 5px,#2c8a5b 5px,#2c8a5b 10px);border-radius:4px;box-shadow:0 0 0 2px #7a6a20;"></div><div style="font-size:9px;font-weight:900;color:#2c8a5b;margin-top:4px;">PE</div></div>
+        </div>
+        <div style="position:absolute;left:206px;top:176px;font-size:10.5px;font-weight:900;color:#23282b;opacity:{{ c5_core }};">N 线=蓝色<br/><span style="color:#2c8a5b;">PE 线=黄绿双色</span></div>
+        <!-- 单股铜线 -->
+        <div style="position:absolute;left:16px;right:16px;top:296px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #cf8a44;border-radius:9px;padding:9px 12px;opacity:{{ c5_cu }};">
+          <div style="font-size:11.5px;font-weight:900;color:#23282b;">配电箱金属箱门与箱体连接 · 用单股铜线</div>
+          <div style="font-size:10px;color:#6b6358;margin-top:2px;font-weight:600;">这些数值与颜色 = 选择题送分点</div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 用电管理制度 + 堆场综合 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:52px;font-size:12px;font-weight:900;color:#23282b;">{{ b6_title }}</div>
+        <!-- 电工持证 -->
+        <div style="position:absolute;left:20px;top:84px;width:150px;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #2c8a5b;border-radius:9px;padding:9px 10px;opacity:{{ g6_cert }};"><div style="font-size:11.5px;font-weight:900;color:#2c8a5b;">电工证 ✓ 持证上岗</div><div style="font-size:9px;color:#6b6358;margin-top:2px;font-weight:600;">经职业资格考试合格</div></div>
+        <div style="position:absolute;left:182px;top:88px;width:190px;font-size:10.5px;font-weight:700;color:#5c6469;line-height:1.5;opacity:{{ g6_cert }};">用电设备拆除<b style="color:#cf4436;"> 由电工完成</b>（非安全员）</div>
+        <!-- 装饰阶段补方案 + 50kW -->
+        <div style="position:absolute;left:20px;top:150px;right:20px;opacity:{{ g6_plan }};">
+          <div style="display:flex;align-items:center;gap:0;">
+            <div style="flex:1;height:26px;background:#3f7dc0;border-radius:6px 0 0 6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:800;">主体结构阶段</div>
+            <div style="flex:1;height:26px;background:#cf8a44;border-radius:0 6px 6px 0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:800;">装饰装修阶段</div>
+          </div>
+          <div style="margin-top:7px;display:flex;gap:8px;">
+            <div style="flex:1;background:#fdf3ea;border:1.5px solid #cf8a44;border-radius:8px;padding:7px 8px;font-size:10px;font-weight:800;color:#c07a34;text-align:center;">装饰阶段 补编单项用电方案</div>
+            <div style="flex:1;background:#eef3f7;border:1.5px solid #2f6db0;border-radius:8px;padding:7px 8px;font-size:10px;font-weight:800;color:#2f6db0;text-align:center;">50kW 及以上 编用电组织设计</div>
+          </div>
+        </div>
+        <!-- 堆场综合 -->
+        <div style="position:absolute;left:20px;top:242px;right:20px;opacity:{{ g6_dist }};">
+          <div style="position:relative;height:40px;">
+            <div style="position:absolute;left:0;top:6px;width:60px;height:28px;background:#8a9298;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;">开关箱</div>
+            <div style="position:absolute;right:0;top:6px;width:60px;height:28px;background:#8a9298;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;">配电箱</div>
+            <div style="position:absolute;left:64px;right:64px;top:18px;border-top:2px dashed #cf4436;"></div>
+            <div style="position:absolute;left:0;right:0;top:-2px;text-align:center;font-size:10px;font-weight:900;color:#cf4436;">间距 ≤30m（题给 30.5m ✕）</div>
+          </div>
+        </div>
+        <div style="position:absolute;left:20px;right:20px;top:300px;text-align:center;background:#fadcd6;border-radius:9px;padding:9px 10px;font-size:11px;font-weight:800;color:#a3271c;opacity:{{ g6_lamp }};">仓库 · 堆料场 严禁使用碘钨灯 ✕</div>
+      </div>
+
+      <!-- ░░ BEAT 7 · 口诀回扣：三关一条链 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo7 }};transition:opacity .4s ease;pointer-events:{{ lpe7 }};">
+        <div style="position:absolute;left:16px;top:52px;font-size:12px;font-weight:900;color:#23282b;">{{ b7_title }}</div>
+        <div style="position:absolute;left:16px;top:96px;right:16px;background:#fff;border:1.5px solid #ddd2bb;border-left:6px solid #2f6db0;border-radius:11px;padding:11px 13px;box-shadow:0 4px 12px rgba(0,0,0,.06);opacity:{{ k0 }};"><div style="font-size:13px;font-weight:900;color:#2f6db0;">架构对不对</div><div style="font-size:10.5px;color:#6b6358;margin-top:3px;font-weight:600;line-height:1.4;">三级配电 + TN-S 接零 + 二级漏保</div></div>
+        <div style="position:absolute;left:16px;top:168px;right:16px;background:#fff;border:1.5px solid #ddd2bb;border-left:6px solid #cf8a44;border-radius:11px;padding:11px 13px;box-shadow:0 4px 12px rgba(0,0,0,.06);opacity:{{ k1 }};"><div style="font-size:13px;font-weight:900;color:#c07a34;">参数够不够</div><div style="font-size:10.5px;color:#6b6358;margin-top:3px;font-weight:600;line-height:1.4;">36·24·12V · 埋深0.7m · N蓝 PE黄绿</div></div>
+        <div style="position:absolute;left:16px;top:240px;right:16px;background:#fff;border:1.5px solid #ddd2bb;border-left:6px solid #2c8a5b;border-radius:11px;padding:11px 13px;box-shadow:0 4px 12px rgba(0,0,0,.06);opacity:{{ k2 }};"><div style="font-size:13px;font-weight:900;color:#2c8a5b;">管理顺不顺</div><div style="font-size:10.5px;color:#6b6358;margin-top:3px;font-weight:600;line-height:1.4;">一机一闸 · 停送电顺序 · 持证 · 补方案</div></div>
+        <div style="position:absolute;left:0;right:0;top:322px;text-align:center;font-size:13px;font-weight:900;color:#23282b;opacity:{{ k3 }};">三关答全，采分句一句不少</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN ░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">这道考点 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">这道就唠到这儿哈——临时用电就三关：架构要三级配电加 TN-S 加二级漏保；参数记牢 36、24、12 伏和埋深 0.7；管理是一机一闸、停送电顺序、持证、补方案。三关答全，阅卷一分不丢。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">三级配电 + TN-S + 二级漏保</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">一机一闸 · 进线端禁插接</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">送电总→分→开 · 停电开→分→总</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#c0392b;">安全电压 36 · 24 · 12V</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">埋深 ≥0.7m · N蓝 PE黄绿</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">电工持证 · 装饰阶段补方案</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="P40_S05.practice.dc.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:3px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="8">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:9px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="P40_S05.practice.dc.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- 全屏浮层控制条 -->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/";
+  audioVersion="20260713161821";
+  DUR = 281.416;
+  examTitle="临时用电 · 三级配电两级保护"; examCode="S05"; examCat="案例·安全用电";
+  posterSub="架构 · 参数 · 管理，三关一条采分链"; posterMeta="点击播放 · 8 幕精讲 + 4 追问 · 约 5 分半";
+  KNOWLEDGE="临时用电三级配电两级保护(安全/用电桶)。三大系统缺一不可:三级配电系统(总配电箱→分配电箱→开关箱)+TN-S接零保护系统(PE线独立、设备外壳接零)+二级剩余电流(漏电)动作保护系统(总箱一级、末级开关箱一级)。停送电顺序:送电总配电箱→分配电箱→开关箱;停电开关箱→分配电箱→总配电箱,禁颠倒(先断总箱开关箱带负荷拉弧)。一机一闸:每台设备专用开关箱,严禁2台及以上共用(含插座);进线端严禁插头插座做活动连接;动力开关箱与照明开关箱必分设(动力/照明配电箱宜分设、合并须分路)。安全电压:潮湿/隧道/人防≤36V、易触及带电体≤24V、金属容器/锅炉内≤12V;手持灯具≤36V须双绕组隔离变压器、金属容器内严禁;湿度>75%/积水未用安全电压照明=重大隐患。电缆直接埋地敷设深度≥0.7m;五芯电缆N线=蓝色、PE线=黄绿双色;配电箱金属箱门与箱体连接=单股铜线。管理:电工经职业资格考试合格持证上岗、用电设备拆除由电工完成;装饰装修阶段补编单项施工用电方案;总容量50kW及以上编用电组织设计;综合纠错:开关箱与配电箱间距≤30m、仓库堆料场严禁碘钨灯。采分主线:架构对不对→参数够不够→管理顺不顺。常见失分:答系统只写三级配电漏TN-S/二级漏保(E02)、停送电顺序写反(E06)、共用开关箱漏含插座/2台(E03)、安全电压张冠李戴(M08)、指不妥不给正确做法判据。真题锚:{2023第1题}一机一闸/进线端/装饰补方案、{2017第2题}停电顺序/堆场30m/碘钨灯、{2018第17题}电工持证/50kW、{2016第13题}金属容器12V、{2019第14题}N蓝PE黄绿、{2020第15题}单股铜线、{2021第5题}电缆埋地。";
+    beats=[["b0",0.0,22.364,"破误区"],["b1",22.364,46.552,"三大系统"],["b2",46.552,65.58,"一机一闸"],["b3",65.58,88.76,"停送电"],["b4",88.76,116.5,"安全电压"],["b5",116.5,137.376,"电缆标识"],["b6",137.376,161.732,"用电管理"],["b7",161.732,183.208,"口诀"],["q0",183.208,206.956,"问答"],["q1",206.956,231.928,"问答"],["q2",231.928,255.652,"问答"],["q3",255.652,281.416,"问答"]];
+  keycards=[
+    "临时用电三关：架构 · 参数 · 管理",
+    "三大系统缺一不可：三级配电 + TN-S + 二级漏保",
+    "一机一闸：专用开关箱 · 进线端禁插接",
+    "送电总→分→开，停电开→分→总，禁逆",
+    "安全电压降档：36 · 24 · 12V",
+    "埋深 ≥0.7m · N蓝 PE黄绿 · 单股铜线",
+    "电工持证 · 装饰补方案 · 50kW 组织设计",
+    "架构 · 参数 · 管理，三关答全"
+  ];
+  narr=[
+    "来，临时用电这道题，好些同学栽在三处：答系统光写个三级配电，把 TN-S 和二级漏保漏了；停电图快先断总箱；两台机器凑一个开关箱使。注意哈，这仨全是坑，先给划掉。记住，临时用电就三关——架构、参数、管理，关关都踩采分点。",
+    "先过架构第一关。临时用电必须三大系统一块上：三级配电系统——总配电箱、分配电箱、开关箱，一级管一级；TN-S 接零保护，PE 线单独拉一根、设备外壳都接上；再加二级漏电保护，总箱一级、末级开关箱一级。三块缺一不可，答系统题三块都得写全。",
+    "第二关看末端接线。一机一闸——每台设备配自己专用的开关箱，两台以上共用一个不妥，连插座也算在内。进线端更得盯紧：严禁拿插头插座做活动连接，得固定接牢。还有动力和照明的开关箱必须分设，别搅一块儿。",
+    "接着是停送电顺序，这个考得勤。送电从大往小：总配电箱、分配电箱、开关箱；停电反过来，从末端开关箱先停，再分配电箱，最后总配电箱。为啥？先断总箱、开关箱还带着负荷，一拉就拉弧。记住哈，送电总分开、停电开分总，写反直接丢分。",
+    "第三关进参数——先说安全电压，按场所降档。一般潮湿、隧道、人防，不超 36 伏；容易碰着带电体的降到 24 伏；钻进金属容器、锅炉里头干活，只能 12 伏。手持灯具还得配双绕组的隔离变压器，金属容器里严禁使。要是湿度过 75、有积水还不用安全电压照明，那就是重大隐患了。",
+    "参数还有俩得记牢。电缆直接埋地，深度不小于 0.7 米，埋浅了不妥。五芯电缆颜色别串：N 线蓝色、PE 线黄绿双色，一个都不能挪用。配电箱那金属箱门跟箱体连接，得用单股铜线。这些数字和颜色，就是选择题的送分点。",
+    "最后一关管理。电工得考试合格、持证上岗，用电设备拆除也得电工来，不能安全员上。装饰装修阶段用电环境变了，得补编单项用电方案；总容量到 50 千瓦以上，得编用电组织设计。综合纠错题还爱考：开关箱离配电箱不超 30 米，仓库堆料场严禁使碘钨灯。",
+    "把这三关串成一条链：架构对不对——三级配电、TN-S、二级漏保；参数够不够——36、24、12 伏，埋深 0.7，N 蓝 PE 黄绿；管理顺不顺——一机一闸、停送电顺序、持证、补方案。三关答全，采分句一句不少。"
+  ];
+  qa=[
+    { figLabel:"三块拼图 · 缺一不可", fig:"sys", q:"老师，答系统题我就写了个三级配电，咋还扣分呐？", a:"扣哈。三大系统是三块拼图——三级配电、TN-S 接零、二级漏保，你光写三级配电，剩俩没补上，系统就不完整。阅卷三块分开给分，缺一块少一块分。答系统题，三块必须一块儿写全。" },
+    { figLabel:"停电从末端开关箱起", fig:"stop", q:"停电为啥非得从开关箱先停啊？从总箱一把断了不省事？", a:"省事可危险。你先断总箱，开关箱那头还带着负荷呢，硬拉闸就拉弧、烧触点。得从末端开关箱先停、再分配电箱、最后总配电箱——负荷一级级卸干净了再断总闸。送电反着来：总、分、开。" },
+    { figLabel:"场所越导电 · 电压越低", fig:"volt", q:"金属容器里为啥非 12 伏不可，用 36 伏的灯不行么？", a:"不行哈。场所越导电，人触电后果越重。金属容器四面都是导体、又潮又挤，36 伏都危险，必须压到 12 伏。潮湿隧道 36、易触及带电体 24、金属容器 12——记住这三档，场所对号入座。" },
+    { figLabel:"现场纠错 · 采分句写全", fig:"fix", q:"案例让指不妥再改正，我总写不全，咋整？", a:"三段式套牢：先照抄不妥做法，再点违反哪条规范，最后给正确做法带判据。共用开关箱，就写「每台设备专用开关箱、严禁 2 台及以上共用」；插头插座活动连接，写「进线端严禁插头插座做活动连接」。判据带上才给全分。" }
+  ];
+  askPresets=["三大系统怎么写全不丢分？","停送电顺序会不会写反？","安全电压 36/24/12V 咋记？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return;
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="sys"){ h=48;
+      els.push(D({x:0,top:2,w:78,h:22,bg:"#2f6db0",r:5,fg:"#fff",fs:9.5,lab:"三级配电"}));
+      els.push(D({x:84,top:2,w:66,h:22,bg:"#cf8a44",r:5,fg:"#fff",fs:9.5,lab:"TN-S"}));
+      els.push(D({x:156,top:2,w:92,h:22,bg:"#2c8a5b",r:5,fg:"#fff",fs:9.5,lab:"二级漏保"}));
+      els.push(D({x:0,top:30,w:248,h:14,fg:"#cf8a44",fs:8.5,jc:"flex-start",lab:"缺一块 = 系统不完整，少给分"})); }
+    else if(it.fig==="stop"){ h=48;
+      els.push(D({x:0,top:2,w:70,h:22,bg:"#2c8a5b",r:5,fg:"#fff",fs:9,lab:"①开关箱"}));
+      els.push(D({x:76,top:2,w:80,h:22,bg:"#cf8a44",r:5,fg:"#fff",fs:9,lab:"②分配电箱"}));
+      els.push(D({x:162,top:2,w:80,h:22,bg:"#2f6db0",r:5,fg:"#fff",fs:9,lab:"③总配电箱"}));
+      els.push(D({x:0,top:30,w:248,h:14,fg:"#9fd3b4",fs:8.5,jc:"flex-start",lab:"先卸末端负荷 · 再断总箱，防拉弧"})); }
+    else if(it.fig==="volt"){ h=60;
+      els.push(D({x:0,top:0,w:150,h:16,bg:"#dff0e6",r:4,fg:"#2c8a5b",fs:9,jc:"flex-start",lab:"潮湿·隧道 ≤36V"}));
+      els.push(D({x:20,top:20,w:150,h:16,bg:"#fff4d6",r:4,fg:"#8a6d1f",fs:9,jc:"flex-start",lab:"易触及带电体 ≤24V"}));
+      els.push(D({x:40,top:40,w:160,h:16,bg:"#fadcd6",r:4,fg:"#c0392b",fs:9,jc:"flex-start",lab:"金属容器/锅炉 ≤12V"})); }
+    else if(it.fig==="fix"){ h=48; const s=[["专用开关箱","#2c8a5b"],["进线端禁插接","#cf8a44"],["装饰补方案","#2f6db0"]];
+      let cx=0; s.forEach(p=>{ const w=p[0].length*10+16; els.push(D({x:cx,top:2,w:w,h:20,bg:"transparent",bd:"1.5px solid "+p[1],r:6,fg:p[1],fs:9.5,lab:p[0]})); cx+=w+6; });
+      els.push(D({x:0,top:28,w:248,h:14,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"照抄不妥 + 违反哪条 + 正确做法带判据"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      b1_title:"架构关 · 三大系统缺一不可", b2_title:"末端关 · 一机一闸一漏", b3_title:"程序关 · 停送电顺序禁逆",
+      b4_title:"参数关 · 安全电压按场所降档", b5_title:"参数关 · 电缆埋深 + 五芯标识色", b6_title:"管理关 · 制度合规 + 堆场综合", b7_title:"一条链子：架构 · 参数 · 管理",
+      e0_bo:0,e0_bs:.6,e0_so:0,e0_ss:1.7,e0_row:0,
+      s1_b0:0,s1_b1:0,s1_b2:0,s1_l1:0,s1_l2:0,s1_r:0,s1_pe:0,s1_sum:0,
+      m2_two:0,m2_x:0,m2_split:0,m2_ok:0,m2_line:0,m2_dl:0,
+      p3_box:0,p3_lab:0,p3_send:0,p3_stop:0,p3_wrong:0,
+      v4_s1:0,v4_s2:0,v4_s3:0,v4_haz:0,
+      c5_scene:0,c5_ruler:0,c5_bad:0,c5_core:0,c5_cu:0,
+      g6_cert:0,g6_plan:0,g6_dist:0,g6_lamp:0,
+      k0:0,k1:0,k2:0,k3:0 };
+
+    if(A(0)){ const sp=W(0,.2),dim=W(.52,.66),st=W(.34,.5);
+      v.e0_bo=sp*(1-.35*dim); v.e0_bs=this.lp(.6,1,sp); v.e0_so=st; v.e0_ss=this.lp(1.7,1,st); v.e0_row=W(.62,.84); }
+    if(A(1)){ v.s1_b0=W(0,.12); v.s1_l1=W(.12,.2); v.s1_b1=W(.2,.3); v.s1_l2=W(.3,.38); v.s1_b2=W(.38,.48);
+      v.s1_r=W(.5,.64); v.s1_pe=W(.64,.8); v.s1_sum=W(.82,1); }
+    if(A(2)){ v.m2_two=W(0,.16); v.m2_x=W(.18,.3); v.m2_split=W(.34,.52); v.m2_ok=W(.48,.62); v.m2_line=W(.64,.8); v.m2_dl=W(.82,.96); }
+    if(A(3)){ v.p3_box=W(0,.14); v.p3_lab=W(.14,.26); v.p3_send=W(.26,.5); v.p3_stop=W(.54,.78); v.p3_wrong=W(.82,.96); }
+    if(A(4)){ v.v4_s1=W(0,.18); v.v4_s2=W(.24,.44); v.v4_s3=W(.5,.7); v.v4_haz=W(.76,.94); }
+    if(A(5)){ v.c5_scene=W(0,.16); v.c5_ruler=W(.2,.4); v.c5_bad=W(.44,.56); v.c5_core=W(.58,.82); v.c5_cu=W(.84,.98); }
+    if(A(6)){ v.g6_cert=W(0,.22); v.g6_plan=W(.28,.52); v.g6_dist=W(.56,.78); v.g6_lamp=W(.82,.96); }
+    if(A(7)){ v.k0=W(.06,.3); v.k1=W(.26,.5); v.k2=W(.46,.7); v.k3=W(.64,.9); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.1"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

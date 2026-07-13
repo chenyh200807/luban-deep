@@ -25,11 +25,18 @@
       "current": 2,
       "list": [
         {
+          "name": "packageDeeptutor/pages/first-run/first-run",
+          "pathName": "packageDeeptutor/pages/first-run/first-run",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest",
           "pathName": "packageDeeptutor/pages/internal/diagramWebviewTest/diagramWebviewTest",
           "query": "card=c02",
-          "scene": null,
           "launchMode": "default",
+          "scene": null,
           "partialCompile": {
             "enabled": false,
             "pages": [

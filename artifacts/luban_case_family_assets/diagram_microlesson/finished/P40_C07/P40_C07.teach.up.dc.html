@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="动画讲解页 · C07 钢结构连接 焊接篇（上）" -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">焊</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div class="lz-chrome" style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <div class="lz-stagewrap" ref="{{ stageWrapRef }}">
+    <div class="lz-stage" style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:250px;white-space:nowrap;overflow:hidden;opacity:{{ capO }};transition:opacity .25s ease;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:{{ cornerO }};pointer-events:{{ cornerPE }};transition:opacity .25s ease;">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：焊缝剖面 + 误区气泡 + 红章 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:50%;top:250px;transform:translateX(-50%);opacity:{{ b0_weldO }};">
+          <div style="position:relative;width:280px;height:72px;">
+            <div style="position:absolute;left:0;top:26px;width:112px;height:46px;background:#46627e;border-radius:3px 0 0 3px;"></div>
+            <div style="position:absolute;right:0;top:26px;width:112px;height:46px;background:#46627e;border-radius:0 3px 3px 0;"></div>
+            <div style="position:absolute;left:104px;top:12px;width:72px;height:60px;background:#cf8a44;border-radius:34px 34px 4px 4px;box-shadow:2px 2px 0 rgba(0,0,0,.12);"></div>
+            <div style="position:absolute;left:126px;top:42px;width:10px;height:10px;border-radius:50%;background:#1c1f22;opacity:{{ b0_slagO }};"></div>
+            <div style="position:absolute;left:143px;top:32px;width:7px;height:7px;border-radius:50%;background:#1c1f22;opacity:{{ b0_slagO }};"></div>
+            <div style="position:absolute;left:150px;top:48px;width:6px;height:6px;border-radius:50%;background:#1c1f22;opacity:{{ b0_slagO }};"></div>
+            <div style="position:absolute;top:8px;left:{{ b0_scanX }}px;width:3px;height:66px;background:#ffd24a;box-shadow:0 0 8px 2px rgba(255,210,74,.6);opacity:{{ b0_scanO }};"></div>
+          </div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:336px;text-align:center;font-size:12px;font-weight:800;color:#5c6469;opacity:{{ b0_weldO }};">{{ b0_tag }}</div>
+        <div style="position:absolute;left:46px;top:62px;width:250px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:13px 15px;font-size:13.5px;font-weight:700;color:#23282b;line-height:1.45;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">{{ b0_bubble }}
+          <div style="position:absolute;left:30px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:56px;top:150px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:22px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">{{ b0_stamp }}</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 连接四分法 + 焊接接头七类 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b1_title }}</div>
+        <div style="position:absolute;left:10px;top:70px;width:80px;height:46px;border-radius:10px;background:#fdeeeb;border:2px solid #cf4436;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:{{ b1_m0 }};box-shadow:2px 2px 0 rgba(207,68,54,.16);"><div style="font-size:14px;font-weight:900;color:#cf4436;">焊接</div><div style="font-size:8px;font-weight:800;color:#cf8a44;margin-top:1px;">再分七接头</div></div>
+        <div style="position:absolute;left:98px;top:70px;width:80px;height:46px;border-radius:10px;background:#fff;border:1.5px solid #d8ccaa;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;font-weight:800;color:#2f6db0;line-height:1.25;opacity:{{ b1_m1 }};">普通螺栓</div>
+        <div style="position:absolute;left:186px;top:70px;width:80px;height:46px;border-radius:10px;background:#fff;border:1.5px solid #d8ccaa;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;font-weight:800;color:#2f6db0;line-height:1.25;opacity:{{ b1_m2 }};">高强度螺栓</div>
+        <div style="position:absolute;left:274px;top:70px;width:80px;height:46px;border-radius:10px;background:#fff;border:1.5px solid #d8ccaa;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#2f6db0;opacity:{{ b1_m3 }};">铆接</div>
+        <div style="position:absolute;left:49px;top:116px;width:2px;height:32px;background:#cf4436;opacity:{{ b1_jO }};"></div>
+        <div style="position:absolute;left:14px;right:14px;top:150px;background:#fff;border:1.5px solid #ddd2bb;border-top:4px solid #cf4436;border-radius:12px;padding:11px 12px 13px;opacity:{{ b1_jO }};box-shadow:0 4px 12px rgba(0,0,0,.06);">
+          <div style="font-size:9px;font-weight:800;color:#cf8a44;letter-spacing:1px;margin-bottom:9px;">焊接接头 · 七类</div>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;">
+            <div style="background:#f4f3ec;border:1px solid #dcd6c4;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:800;color:#23282b;">全熔透</div>
+            <div style="background:#f4f3ec;border:1px solid #dcd6c4;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:800;color:#23282b;">部分熔透</div>
+            <div style="background:#f4f3ec;border:1px solid #dcd6c4;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:800;color:#23282b;">角焊缝</div>
+            <div style="background:#f4f3ec;border:1px solid #dcd6c4;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:800;color:#23282b;">塞焊</div>
+            <div style="background:#f4f3ec;border:1px solid #dcd6c4;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:800;color:#23282b;">槽焊</div>
+            <div style="background:#f4f3ec;border:1px solid #dcd6c4;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:800;color:#23282b;">电渣焊</div>
+            <div style="background:#f4f3ec;border:1px solid #dcd6c4;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:800;color:#23282b;">栓钉焊</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 焊接微环境：温度 · 湿度 · 风速 三条线 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b2_title }}</div>
+        <!-- 温度行 -->
+        <div style="position:absolute;left:14px;top:96px;font-size:12px;font-weight:900;color:#23282b;opacity:{{ b2_tempO }};">温度</div>
+        <div style="position:absolute;left:14px;top:114px;font-size:10px;font-weight:800;color:#2c8a5b;opacity:{{ b2_tempO }};">≥ −10℃</div>
+        <div style="position:absolute;left:76px;top:100px;width:298px;height:22px;border-radius:6px;background:#eceadf;overflow:hidden;opacity:{{ b2_tempO }};"><div style="position:absolute;left:56px;top:0;right:0;bottom:0;background:#dff0e6;"></div></div>
+        <div style="position:absolute;left:132px;top:94px;width:0;height:34px;border-left:2px dashed #cf4436;opacity:{{ b2_tempO }};"></div>
+        <div style="position:absolute;top:96px;left:{{ b2_tempX }}px;opacity:{{ b2_tempO }};z-index:5;"><div style="width:2.5px;height:30px;background:#2c8a5b;margin:0 auto;"></div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #2c8a5b;margin:0 auto;"></div></div>
+        <!-- 湿度行 -->
+        <div style="position:absolute;left:14px;top:172px;font-size:12px;font-weight:900;color:#23282b;opacity:{{ b2_humO }};">湿度</div>
+        <div style="position:absolute;left:14px;top:190px;font-size:10px;font-weight:800;color:#2c8a5b;opacity:{{ b2_humO }};">≤ 90%</div>
+        <div style="position:absolute;left:76px;top:176px;width:298px;height:22px;border-radius:6px;background:#eceadf;overflow:hidden;opacity:{{ b2_humO }};"><div style="position:absolute;left:0;top:0;width:238px;bottom:0;background:#dff0e6;"></div></div>
+        <div style="position:absolute;left:314px;top:170px;width:0;height:34px;border-left:2px dashed #cf4436;opacity:{{ b2_humO }};"></div>
+        <div style="position:absolute;left:300px;top:206px;font-size:8px;font-weight:800;color:#cf4436;opacity:{{ b2_humO }};">90% 界</div>
+        <div style="position:absolute;top:172px;left:{{ b2_humX }}px;opacity:{{ b2_humO }};z-index:5;"><div style="width:2.5px;height:30px;background:#2c8a5b;margin:0 auto;"></div><div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #2c8a5b;margin:0 auto;"></div></div>
+        <!-- 风速行 -->
+        <div style="position:absolute;left:14px;top:248px;font-size:12px;font-weight:900;color:#23282b;opacity:{{ b2_windO }};">风速</div>
+        <div style="position:absolute;left:14px;top:266px;font-size:9px;font-weight:800;color:#5c6469;line-height:1.35;opacity:{{ b2_windO }};">手工≤8<br/>气保≤2</div>
+        <div style="position:absolute;left:76px;top:252px;width:298px;height:22px;border-radius:6px;background:#eceadf;opacity:{{ b2_windO }};"></div>
+        <div style="position:absolute;left:133px;top:246px;width:0;height:34px;border-left:2px dashed #cf8a44;opacity:{{ b2_windO }};"></div>
+        <div style="position:absolute;left:118px;top:280px;font-size:8px;font-weight:800;color:#cf8a44;opacity:{{ b2_windO }};">2 m/s</div>
+        <div style="position:absolute;left:303px;top:246px;width:0;height:34px;border-left:2px dashed #cf4436;opacity:{{ b2_windO }};"></div>
+        <div style="position:absolute;left:290px;top:280px;font-size:8px;font-weight:800;color:#cf4436;opacity:{{ b2_windO }};">8 m/s</div>
+        <div style="position:absolute;top:256px;left:{{ b2_windD1 }}px;width:14px;height:14px;border-radius:50%;background:#2f6db0;border:2px solid #fff;box-shadow:0 0 0 1px #2f6db0;opacity:{{ b2_windO }};z-index:6;"></div>
+        <div style="position:absolute;top:256px;left:{{ b2_windD2 }}px;width:14px;height:14px;border-radius:50%;background:#2c8a5b;border:2px solid #fff;box-shadow:0 0 0 1px #2c8a5b;opacity:{{ b2_windO }};z-index:6;"></div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 固体夹渣：主因电流太小 + 三缺陷成因对照 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b3_title }}</div>
+        <div style="position:absolute;left:34px;top:92px;text-align:center;opacity:{{ b3_knobO }};">
+          <div style="width:56px;height:56px;border-radius:50%;background:#23282b;border:3px solid #cf4436;position:relative;margin:0 auto;"><div style="position:absolute;left:50%;top:7px;width:3px;height:21px;background:#ffd24a;border-radius:2px;transform-origin:bottom center;transform:translateX(-50%) rotate({{ b3_knobRot }}deg);"></div></div>
+          <div style="font-size:10px;font-weight:900;color:#cf4436;margin-top:5px;">电流 ↓ 太小</div>
+        </div>
+        <div style="position:absolute;left:132px;top:96px;opacity:{{ b3_poolO }};">
+          <div style="position:relative;width:210px;height:66px;">
+            <div style="position:absolute;left:0;top:22px;width:78px;height:42px;background:#46627e;border-radius:3px;"></div>
+            <div style="position:absolute;left:74px;top:8px;width:60px;height:56px;background:#cf8a44;border-radius:30px 30px 4px 4px;"></div>
+            <div style="position:absolute;left:130px;top:22px;width:80px;height:42px;background:#46627e;border-radius:3px;display:none;"></div>
+            <div style="position:absolute;left:96px;top:34px;width:9px;height:9px;border-radius:50%;background:#1c1f22;opacity:{{ b3_slagO }};"></div>
+            <div style="position:absolute;left:110px;top:26px;width:7px;height:7px;border-radius:50%;background:#1c1f22;opacity:{{ b3_slagO }};"></div>
+            <div style="position:absolute;left:112px;top:42px;width:6px;height:6px;border-radius:50%;background:#1c1f22;opacity:{{ b3_slagO }};"></div>
+            <div style="position:absolute;left:146px;top:20px;font-size:10px;font-weight:800;color:#cf4436;line-height:1.3;opacity:{{ b3_slagO }};">熔渣<br/>困在<br/>焊缝里</div>
+          </div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:180px;text-align:center;font-size:12.5px;font-weight:800;color:#23282b;opacity:{{ b3_chainO }};">电流小 · 熔池温度不够 · 熔渣来不及上浮 → 夹渣</div>
+        <div style="position:absolute;left:16px;top:216px;width:110px;height:76px;background:#eef7f1;border:2px solid #2c8a5b;border-radius:11px;padding:9px 8px;opacity:{{ b3_c0 }};"><div style="font-size:13px;font-weight:900;color:#2c8a5b;">夹渣 ✓</div><div style="font-size:10px;font-weight:700;color:#3a3f42;margin-top:5px;line-height:1.35;">成因＝焊接电流太小</div></div>
+        <div style="position:absolute;left:140px;top:216px;width:110px;height:76px;background:#fff;border:1.5px solid #d8ccaa;border-radius:11px;padding:9px 8px;opacity:{{ b3_c1 }};"><div style="font-size:13px;font-weight:900;color:#8b9398;">气孔</div><div style="font-size:10px;font-weight:700;color:#5c6469;margin-top:5px;line-height:1.35;">成因＝湿度大</div></div>
+        <div style="position:absolute;left:264px;top:216px;width:110px;height:76px;background:#fff;border:1.5px solid #d8ccaa;border-radius:11px;padding:9px 8px;opacity:{{ b3_c2 }};"><div style="font-size:13px;font-weight:900;color:#8b9398;">裂纹</div><div style="font-size:10px;font-weight:700;color:#5c6469;margin-top:5px;line-height:1.35;">成因＝冷却快·没预热</div></div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 疲劳验算严禁四种焊 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b4_title }}</div>
+        <div style="position:absolute;left:36px;right:36px;top:80px;opacity:{{ b4_beamO }};">
+          <div style="display:flex;justify-content:space-around;opacity:{{ b4_loadO }};transform:scaleY({{ b4_loadS }});transform-origin:bottom;"><span style="font-size:18px;color:#cf4436;font-weight:900;">↓</span><span style="font-size:18px;color:#cf4436;font-weight:900;">↓</span><span style="font-size:18px;color:#cf4436;font-weight:900;">↓</span><span style="font-size:18px;color:#cf4436;font-weight:900;">↓</span></div>
+          <div style="height:20px;background:#46627e;border-radius:4px;margin-top:2px;"></div>
+          <div style="text-align:center;font-size:10px;color:#cf4436;font-weight:800;margin-top:4px;">动荷载 · 循环往复 · 需疲劳验算</div>
+        </div>
+        <div style="position:absolute;left:14px;top:196px;width:82px;height:56px;background:#fdeeeb;border:2px solid #cf4436;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:{{ b4_j0 }};"><div style="font-size:13px;font-weight:900;color:#cf4436;">塞焊</div><div style="font-size:9px;font-weight:800;color:#cf4436;margin-top:2px;">✕ 严禁</div></div>
+        <div style="position:absolute;left:102px;top:196px;width:82px;height:56px;background:#fdeeeb;border:2px solid #cf4436;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:{{ b4_j1 }};"><div style="font-size:13px;font-weight:900;color:#cf4436;">槽焊</div><div style="font-size:9px;font-weight:800;color:#cf4436;margin-top:2px;">✕ 严禁</div></div>
+        <div style="position:absolute;left:190px;top:196px;width:82px;height:56px;background:#fdeeeb;border:2px solid #cf4436;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:{{ b4_j2 }};"><div style="font-size:13px;font-weight:900;color:#cf4436;">电渣焊</div><div style="font-size:9px;font-weight:800;color:#cf4436;margin-top:2px;">✕ 严禁</div></div>
+        <div style="position:absolute;left:278px;top:196px;width:82px;height:56px;background:#fdeeeb;border:2px solid #cf4436;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:{{ b4_j3 }};"><div style="font-size:12px;font-weight:900;color:#cf4436;">气电立焊</div><div style="font-size:9px;font-weight:800;color:#cf4436;margin-top:2px;">✕ 严禁</div></div>
+        <div style="position:absolute;left:0;right:0;top:266px;text-align:center;font-size:11px;font-weight:800;color:#cf8a44;opacity:{{ b4_noteO }};">动荷载压上 → 这四种接头最易疲劳开裂</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 焊接质量主控三件套 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b5_title }}</div>
+        <div style="position:absolute;left:16px;right:16px;top:88px;height:64px;background:#fff;border:1.5px solid #ddd2bb;border-radius:12px;display:flex;align-items:center;gap:12px;padding:0 14px;opacity:{{ b5_r0O }};box-shadow:0 3px 10px rgba(0,0,0,.05);">
+          <div style="width:42px;height:38px;border-radius:6px;background:#cf8a44;position:relative;flex:none;"><div style="position:absolute;left:7px;top:8px;right:7px;height:16px;background:#8a5a26;border-radius:3px;"></div><div style="position:absolute;left:12px;bottom:6px;right:12px;height:3px;background:#ffd24a;border-radius:2px;"></div></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#23282b;">焊接材料须烘焙</div><div style="font-size:10px;color:#8b9398;font-weight:600;margin-top:1px;">焊条焊剂受潮 → 气孔裂纹</div></div>
+          <div style="flex:none;width:26px;height:26px;border-radius:50%;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;opacity:{{ b5_ck0 }};">✓</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:160px;height:64px;background:#fff;border:1.5px solid #ddd2bb;border-radius:12px;display:flex;align-items:center;gap:12px;padding:0 14px;opacity:{{ b5_r1O }};box-shadow:0 3px 10px rgba(0,0,0,.05);">
+          <div style="width:42px;height:38px;border-radius:6px;background:#2f6db0;position:relative;flex:none;"><div style="position:absolute;left:8px;top:7px;width:14px;height:14px;border-radius:50%;background:#cfe0ef;"></div><div style="position:absolute;left:6px;bottom:6px;right:6px;height:8px;background:#cfe0ef;border-radius:2px;"></div></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#23282b;">焊工必须持证上岗</div><div style="font-size:10px;color:#8b9398;font-weight:600;margin-top:1px;">无证不得施焊</div></div>
+          <div style="flex:none;width:26px;height:26px;border-radius:50%;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;opacity:{{ b5_ck1 }};">✓</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:232px;height:66px;background:#fff;border:1.5px solid #ddd2bb;border-radius:12px;display:flex;align-items:center;gap:12px;padding:0 14px;opacity:{{ b5_r2O }};box-shadow:0 3px 10px rgba(0,0,0,.05);">
+          <div style="width:42px;height:38px;border-radius:6px;background:#2c8a5b;position:relative;flex:none;"><div style="position:absolute;left:9px;top:8px;width:24px;height:12px;border:2px solid #fff;border-radius:8px 8px 0 0;border-bottom:none;"></div><div style="position:absolute;left:19px;top:18px;width:4px;height:12px;background:#fff;"></div></div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#23282b;">一、二级焊缝须无损检测</div><div style="font-size:10px;color:#cf4436;font-weight:700;margin-top:1px;">是「一二级」·不是全部焊缝</div></div>
+          <div style="flex:none;width:26px;height:26px;border-radius:50%;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;opacity:{{ b5_ck2 }};">✓</div>
+        </div>
+      </div>
+
+      <!-- ░░ BEAT 6 · 口诀回扣：定性·环境·缺陷·主控 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo6 }};transition:opacity .4s ease;pointer-events:{{ lpe6 }};">
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b6_title }}</div>
+        <div style="position:absolute;left:31px;top:78px;width:2px;height:172px;background:#e0dccb;"></div>
+        <div style="position:absolute;left:16px;right:16px;top:74px;height:44px;display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #2f6db0;border-radius:10px;padding:0 13px 0 10px;box-shadow:0 3px 10px rgba(0,0,0,.06);opacity:{{ b6_c0 }};">
+          <div style="flex:none;width:22px;height:22px;border-radius:7px;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;">1</div>
+          <div style="flex:none;width:40px;font-size:12.5px;font-weight:900;color:#2f6db0;">定性</div>
+          <div style="flex:1;font-size:11.5px;font-weight:700;color:#5c6469;line-height:1.35;">连接四方法 · 焊接分七接头</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:122px;height:44px;display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #2c8a5b;border-radius:10px;padding:0 13px 0 10px;box-shadow:0 3px 10px rgba(0,0,0,.06);opacity:{{ b6_c1 }};">
+          <div style="flex:none;width:22px;height:22px;border-radius:7px;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;">2</div>
+          <div style="flex:none;width:40px;font-size:12.5px;font-weight:900;color:#2c8a5b;">环境</div>
+          <div style="flex:1;font-size:11.5px;font-weight:700;color:#5c6469;line-height:1.35;">温度≥−10℃ · 湿度≤90% · 风速手工8/气保2</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:170px;height:44px;display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #cf8a44;border-radius:10px;padding:0 13px 0 10px;box-shadow:0 3px 10px rgba(0,0,0,.06);opacity:{{ b6_c2 }};">
+          <div style="flex:none;width:22px;height:22px;border-radius:7px;background:#cf8a44;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;">3</div>
+          <div style="flex:none;width:40px;font-size:12.5px;font-weight:900;color:#cf8a44;">缺陷</div>
+          <div style="flex:1;font-size:11.5px;font-weight:700;color:#5c6469;line-height:1.35;">夹渣＝电流太小 · 疲劳验算禁四焊</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:218px;height:44px;display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #cf4436;border-radius:10px;padding:0 13px 0 10px;box-shadow:0 3px 10px rgba(0,0,0,.06);opacity:{{ b6_c3 }};">
+          <div style="flex:none;width:22px;height:22px;border-radius:7px;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;">4</div>
+          <div style="flex:none;width:40px;font-size:12.5px;font-weight:900;color:#cf4436;">主控</div>
+          <div style="flex:1;font-size:11.5px;font-weight:700;color:#5c6469;line-height:1.35;">焊材烘焙 · 焊工持证 · 一二级焊缝无损</div>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:284px;text-align:center;font-size:13px;font-weight:900;color:#23282b;opacity:{{ b6_noteO }};">四句写全，采分一句不少</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN ░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">焊接这半场 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">焊接这半场就唠到这儿哈——连接四方法先列全、焊接分七接头；环境三条线；夹渣认准电流太小、疲劳这四种焊严禁；主控烘焙持证一二级无损。下半场咱唠高强螺栓。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">连接四方法 · 焊接七接头</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">温度≥−10℃ · 湿度≤90% · 风速8/2</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">夹渣=电流太小 · 疲劳禁四焊</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">主控 烘焙·持证·一二级无损</div>
+        </div>
+        <div style="margin-top:15px;display:flex;gap:8px;">
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 14px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
+          <a href="P40_C07.practice.dc.html" style="border:none;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
+        </div>
+        <a href="P40_C07.teach.down.dc.html" style="margin-top:10px;border:none;border-radius:11px;padding:10px 20px;font-size:12.5px;font-weight:900;background:#cf4436;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(207,68,54,.3);">下一集 · 高强螺栓篇</a>
+      </div>
+    </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="lz-chrome" style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="7">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:stretch;gap:8px;margin-top:11px;">
+        <div style="flex:none;width:52px;display:flex;flex-direction:column;justify-content:center;font-size:11px;font-weight:900;color:#7f8a8f;line-height:1.3;">本考点<br/>分 2 集</div>
+        <div style="flex:1;border-radius:12px;padding:13px 10px;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;box-shadow:0 3px 12px rgba(207,68,54,.28);">上集 · 当前</div>
+        <a href="P40_C07.teach.down.dc.html" style="flex:1;border-radius:12px;padding:13px 10px;background:#23282b;color:#cdd2d5;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;text-decoration:none;">下集</a>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="P40_C07.practice.dc.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- 全屏浮层控制条 -->
+    <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:10001;padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.68));opacity:{{ fsBarO }};pointer-events:{{ fsBarPE }};transform:translateY({{ fsBarY }}px);transition:opacity .25s ease,transform .25s ease;">
+      <div style="display:flex;align-items:center;gap:13px;max-width:820px;margin:0 auto;">
+        <button onClick="{{ toggle }}" style="flex:none;width:46px;height:46px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:17px;cursor:pointer;">{{ playIcon }}</button>
+        <div style="flex:1;min-width:0;">
+          <input type="range" min="0" max="{{ DUR }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:6px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#e7e4da;margin-top:4px;font-variant-numeric:tabular-nums;"><span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span></div>
+        </div>
+        <button onClick="{{ toggleMute }}" style="flex:none;height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">{{ narrLabel }}</button>
+        <button onClick="{{ fullscreen }}" title="退出全屏" style="flex:none;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);color:#fff;font-size:19px;cursor:pointer;">⊠</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/up/";
+  audioVersion="20260713163726";
+  DUR = 201.284;
+  examTitle="钢结构连接·焊接（上）"; examCode="C07"; examCat="案例·钢结构";
+  posterSub="焊接质量：定性·环境·缺陷·禁焊·主控一条链"; posterMeta="点击播放 · 7 幕精讲 + 4 追问 · 约 4 分 44 秒";
+  KNOWLEDGE="钢结构连接焊接篇。连接方法四种：焊接/普通螺栓/高强度螺栓/铆接，一种不能漏。焊接接头七类：全熔透/部分熔透/角焊缝/塞焊/槽焊/电渣焊/栓钉焊。焊接作业环境三阈值：温度不低于−10℃、相对湿度不超过90%、手工电弧焊风速不超过8m/s、气体保护焊风速不超过2m/s，超线易缺陷。固体夹渣主因=焊接电流太小（熔渣来不及上浮困在焊缝），别与气孔（湿度大）、裂纹（冷却快/没预热）成因搞混。承受动荷载且需疲劳验算时严禁塞焊/槽焊/电渣焊/气电立焊四种接头。焊接质量主控三件套：焊接材料须烘焙、焊工必须持证上岗、一级二级焊缝须无损检测（是一二级不是全部焊缝）。焊接连接优点是节约钢材/构造简单/易自动化/加工方便，但内部缺陷难查、不能写「易于检查」，须探伤。采分四句：连接方法列全并点焊接七接头、环境三阈值、夹渣电流太小加疲劳禁四焊、主控三件套。高强螺栓的数量纪律/摩擦面/终拧检查在下一集讲。";
+    beats=[["b0",0.0,13.364,"破误区"],["b1",13.364,31.672,"四分法"],["b2",31.672,48.852,"焊接环境"],["b3",48.852,66.512,"夹渣成因"],["b4",66.512,81.436,"疲劳禁焊"],["b5",81.436,95.376,"主控"],["b6",95.376,112.076,"口诀"],["q0",112.076,136.328,"问答"],["q1",136.328,158.852,"问答"],["q2",158.852,181.232,"问答"],["q3",181.232,201.284,"问答"]];
+  keycards=[
+    "焊缝表面光 ≠ 内部无缺陷；夹渣 ≠ 没预热",
+    "连接四方法 · 焊接再分七接头",
+    "环境三条线：−10℃ · 90% · 8/2 m/s",
+    "固体夹渣主因 = 焊接电流太小",
+    "动荷载疲劳验算，严禁塞/槽/电渣/气电立焊",
+    "主控三件套：烘焙 · 持证 · 一二级无损",
+    "定性·环境·缺陷·主控，四句写全"
+  ];
+  narr=[
+    "来，看钢结构连接这道题。好些同学一上来就栽——看焊缝表面光溜溜的就当合格，夹渣张嘴就说是焊前没预热闹的。注意哈，这俩都是坑，咱先把它划掉。",
+    "先把连接方法列全：焊接、普通螺栓、高强度螺栓、铆接，四种，一种都不能漏。这里头焊接最常考，它自己还分七种接头——全熔透、部分熔透、角焊缝、塞焊、槽焊、电渣焊、栓钉焊。",
+    "焊接环境这关，三条线卡死：温度不低于零下十度，相对湿度不超过百分之九十；风速分两种，手工电弧焊不超过八米每秒，气体保护焊更严，不超过两米每秒。超了线，熔池就出缺陷。",
+    "夹渣到底咋来的？记住哈，主因是焊接电流太小。电流一小，熔池温度不够，熔渣来不及浮上来，就困在焊缝里成了固体夹渣。别搞混：气孔是湿度大，裂纹才是冷却快、没预热——张冠李戴就丢分。",
+    "还有个高频点：构件承受动荷载、又要做疲劳验算的时候，这四种接头严禁用——塞焊、槽焊、电渣焊、气电立焊。动荷载一循环压上，这四种最容易疲劳开裂，四个名记牢。",
+    "焊接质量主控，阅卷就认这三件套：焊接材料必须烘焙、焊工必须持证上岗、一级和二级焊缝必须做无损检测。注意是「一二级」焊缝，写成「全部焊缝」反而错。",
+    "把这条链子记牢：一，连接方法四种、焊接分七接头；二，环境三条线；三，夹渣认电流太小、疲劳禁四焊；四，主控烘焙持证无损检测。四句写全，分才拿全。"
+  ];
+  qa=[
+    { figLabel:"三缺陷成因分工 · 别串门", fig:"slag3", q:"老师，夹渣咋就赖上电流太小了？我老觉得是焊前没预热闹的。", a:"预热那是防裂纹的哈，跟夹渣不挨着。夹渣认准一句——焊接电流太小，熔池温度不够、熔渣浮不上来就困住了。气孔归湿度大、裂纹归冷却快没预热，三个成因各归各家，串门就丢分。" },
+    { figLabel:"表面光溜 · X光下现缺陷", fig:"inspect", q:"焊接那么些优点，为啥独独不能写「易于检查」啊？", a:"焊接优点是节约钢材、构造简单、易自动化、加工方便，这几条对。可焊缝表面再光溜，夹渣气孔藏在里头肉眼看不见，得靠无损探伤。所以「易于检查」是陷阱项，写上就扣分。" },
+    { figLabel:"手工电弧焊≤8 · 气体保护焊≤2", fig:"wind", q:"风速那俩数，八和二，我老记混，咋分啊？", a:"看谁怕吹。气体保护焊靠一层保护气罩着熔池，风一大就给吹散了，所以卡得严，不超两米每秒；手工电弧焊没这层气、皮实点，放宽到八米每秒。记「气保娇气数小、手工皮实数大」。" },
+    { figLabel:"焊接主控三件套 · 缺一扣一", fig:"ctrl3", q:"要是案例题问焊接主控，我咋写才给分呐？", a:"三件套逐项写全：焊接材料须烘焙、焊工必须持证上岗、一级和二级焊缝须无损检测。关键盯住「一二级」别写成全部焊缝；三项缺一扣一，写全才是满分句。" }
+  ];
+  askPresets=["夹渣成因为啥是电流太小？","风速8和2怎么记不混？","焊接主控采分句怎么写全？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;height:100dvh!important;overflow:hidden!important;z-index:9999!important;box-shadow:none!important;background:#000!important}body.luban-fs{overflow:hidden}body.luban-fs .lz-chrome{display:none!important}body.luban-fs .lz-stagewrap{position:absolute!important;top:0!important;right:0!important;bottom:0!important;left:0!important;display:flex!important;align-items:center!important;justify-content:center!important}body.luban-fs .lz-stage{width:390px!important;height:462px!important;flex:none!important;transform:scale(var(--fs-scale,1))!important;transform-origin:center center!important}';
+      document.head.appendChild(s); }
+    this._onResize=()=>{ if(this.state.fs) this.updateFsScale(); };
+    window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); if(this._hideT)clearTimeout(this._hideT); try{ window.removeEventListener('resize',this._onResize); window.removeEventListener('orientationchange',this._onResize); }catch(e){} }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } }
+    if(this.state.fs)this.scheduleHide(); }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n,ctrlHidden:false}); document.body.classList.toggle('luban-fs',n);
+    if(n){ this.updateFsScale(); this.scheduleHide(); } else if(this._hideT){ clearTimeout(this._hideT); this._hideT=null; }
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
+  scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
+  stageWrapRef(el){ if(el&&!this._swBound){ this._swBound=true; el.addEventListener('click',(e)=>this.onStageTap(e)); } }
+  onStageTap(e){ if(!this.state.fs)return;
+    if(e&&e.target&&e.target.closest&&e.target.closest('button,a,input,textarea')) return;
+    const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
+    if(it.fig==="slag3"){ h=56;
+      els.push(D({x:0,top:1,w:52,h:16,bg:"#2c8a5b",r:4,fg:"#fff",fs:9,lab:"夹渣"}));
+      els.push(D({x:58,top:1,w:186,h:16,fg:"#8fd0a8",fs:9.5,jc:"flex-start",lab:"电流太小 ✓"}));
+      els.push(D({x:0,top:20,w:52,h:16,bg:"#3a4046",r:4,fg:"#cdd2d5",fs:9,lab:"气孔"}));
+      els.push(D({x:58,top:20,w:186,h:16,fg:"#b7bcc0",fs:9.5,jc:"flex-start",lab:"湿度大"}));
+      els.push(D({x:0,top:39,w:52,h:16,bg:"#3a4046",r:4,fg:"#cdd2d5",fs:9,lab:"裂纹"}));
+      els.push(D({x:58,top:39,w:186,h:16,fg:"#b7bcc0",fs:9.5,jc:"flex-start",lab:"冷却快 · 没预热"})); }
+    else if(it.fig==="inspect"){ h=52;
+      els.push(D({x:0,top:0,w:244,h:16,bg:"#46627e",r:4,fg:"#dfe6ee",fs:9,lab:"焊缝表面 · 光溜溜"}));
+      els.push(D({x:70,top:4,w:8,h:8,bg:"#1c1f22",r:8}));
+      els.push(D({x:120,top:5,w:6,h:6,bg:"#1c1f22",r:6}));
+      els.push(D({x:160,top:4,w:7,h:7,bg:"#1c1f22",r:7}));
+      els.push(D({x:0,top:24,w:244,h:14,fg:"#e0a89f",fs:9,jc:"flex-start",lab:"内部夹渣气孔肉眼看不见"}));
+      els.push(D({x:0,top:39,w:244,h:14,fg:"#8fd0a8",fs:9,jc:"flex-start",lab:"→ 须无损探伤，不能写「易于检查」"})); }
+    else if(it.fig==="wind"){ h=48;
+      els.push(D({x:0,top:1,w:96,h:16,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"手工电弧焊"}));
+      els.push(D({x:100,top:1,w:110,h:16,bg:"#2f6db0",r:3,fg:"#fff",fs:9,lab:"≤ 8 m/s"}));
+      els.push(D({x:0,top:24,w:96,h:16,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"气体保护焊"}));
+      els.push(D({x:100,top:24,w:44,h:16,bg:"#2c8a5b",r:3,fg:"#fff",fs:9,lab:"≤ 2"}));
+      els.push(D({x:150,top:24,w:94,h:16,fg:"#cf a",fs:8.5,jc:"flex-start",lab:"保护气怕吹散"})); }
+    else if(it.fig==="ctrl3"){ h=44;
+      const s=[["烘焙","#cf8a44"],["持证","#2f6db0"],["一二级无损","#2c8a5b"]];
+      let x=0; s.forEach((p)=>{ const w=p[0].length>3?92:58; els.push(D({x:x,top:1,w:w,h:18,bg:"transparent",bd:"1.5px solid "+p[1],r:6,fg:p[1],fs:9.5,lab:p[0]})); x+=w+6; });
+      els.push(D({x:0,top:26,w:244,h:14,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"三项缺一扣一 · 盯住「一二级」"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={
+      b0_weldO:0,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,b0_scanO:0,b0_scanX:6,b0_slagO:0,
+      b0_tag:"焊缝——表面光 ≠ 内部无缺陷", b0_bubble:"焊缝表面光溜就合格？夹渣是焊前没预热闹的？", b0_stamp:"误区 ✕",
+      b1_title:"连接四种方法 · 焊接再分七接头", b1_m0:0,b1_m1:0,b1_m2:0,b1_m3:0,b1_jO:0,
+      b2_title:"焊接环境：温度 · 湿度 · 风速，三条线", b2_tempO:0,b2_tempX:200,b2_humO:0,b2_humX:150,b2_windO:0,b2_windD1:100,b2_windD2:240,
+      b3_title:"固体夹渣：主因是焊接电流太小", b3_knobO:0,b3_knobRot:0,b3_poolO:0,b3_slagO:0,b3_chainO:0,b3_c0:0,b3_c1:0,b3_c2:0,
+      b4_title:"承受动荷载·需疲劳验算：严禁四种焊", b4_beamO:0,b4_loadO:1,b4_loadS:1,b4_j0:0,b4_j1:0,b4_j2:0,b4_j3:0,b4_noteO:0,
+      b5_title:"焊接质量主控：三件套逐项打勾", b5_r0O:0,b5_r1O:0,b5_r2O:0,b5_ck0:0,b5_ck1:0,b5_ck2:0,
+      b6_title:"一条链子：定性 · 环境 · 缺陷 · 主控", b6_c0:0,b6_c1:0,b6_c2:0,b6_c3:0,b6_noteO:0
+    };
+
+    if(A(0)){ const wp=W(0,.2),bp=W(.26,.44),sc=W(.5,.72),sl=W(.58,.82),st=W(.82,.98);
+      v.b0_weldO=wp; v.b0_bo=bp; v.b0_bs=this.lp(.6,1,bp); v.b0_scanO=sc<1?sc:(1-W(.72,.88)); v.b0_scanX=this.lp(6,172,sc); v.b0_slagO=sl; v.b0_so=st; v.b0_ss=this.lp(1.7,1,st); }
+    if(A(1)){ v.b1_m0=W(0,.12); v.b1_m1=W(.1,.22); v.b1_m2=W(.2,.32); v.b1_m3=W(.3,.42); v.b1_jO=W(.5,.74); }
+    if(A(2)){ const r0=W(0,.2),r1=W(.24,.44),r2=W(.48,.68);
+      v.b2_tempO=r0; v.b2_tempX=this.lp(200,254,r0);
+      v.b2_humO=r1; v.b2_humX=this.lp(150,236,r1);
+      v.b2_windO=r2; v.b2_windD1=this.lp(100,120,r2); v.b2_windD2=this.lp(240,290,r2); }
+    if(A(3)){ const kn=W(0,.22); v.b3_knobO=kn; v.b3_knobRot=this.lp(0,-58,kn); v.b3_poolO=W(.16,.36); v.b3_slagO=W(.4,.6); v.b3_chainO=W(.5,.68); v.b3_c0=W(.66,.82); v.b3_c1=W(.74,.9); v.b3_c2=W(.82,.98); }
+    if(A(4)){ v.b4_beamO=W(0,.2); const lz=this.cl((lp-.08)/.6,0,1); v.b4_loadS=1+0.22*Math.sin(lz*Math.PI*5); v.b4_j0=W(.28,.42); v.b4_j1=W(.38,.52); v.b4_j2=W(.48,.62); v.b4_j3=W(.58,.72); v.b4_noteO=W(.72,.9); }
+    if(A(5)){ v.b5_r0O=W(0,.2); v.b5_r1O=W(.22,.42); v.b5_r2O=W(.44,.64); v.b5_ck0=W(.24,.36); v.b5_ck1=W(.46,.58); v.b5_ck2=W(.68,.82); }
+    if(A(6)){ v.b6_c0=W(.1,.34); v.b6_c1=W(.28,.5); v.b6_c2=W(.44,.66); v.b6_c3=W(.6,.84); v.b6_noteO=W(.66,.88); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      fs:this.state.fs,
+      capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,
+      cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",
+      fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,
+      fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",
+      fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,
+      stageWrapRef:el=>this.stageWrapRef(el),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

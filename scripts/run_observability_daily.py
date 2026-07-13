@@ -185,6 +185,82 @@ def _same_release(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
     return False
 
 
+def _build_runtime_authority_preflight(
+    *,
+    expected_release: dict[str, Any],
+    om_payload: dict[str, Any] | None,
+) -> dict[str, Any]:
+    runtime_release = _payload_release(om_payload)
+    matched = _same_release(expected_release, runtime_release)
+    metrics_snapshot = (om_payload or {}).get("metrics_snapshot") or {}
+    metrics_provenance = dict(metrics_snapshot.get("observability_metrics_provenance") or {})
+    live_identity_verified = (
+        metrics_provenance.get("source") == "live_metrics_endpoint"
+        and metrics_provenance.get("fallback_used") is False
+    )
+    if not matched:
+        status = "BLOCKED"
+        reason = "runtime release does not match candidate; downstream evidence assembly stopped"
+    elif live_identity_verified:
+        status = "PASS"
+        reason = "live runtime release matches candidate"
+    else:
+        status = "ARTIFACT_ONLY"
+        reason = "release matches candidate but live runtime identity was not verified"
+    return {
+        "status": status,
+        "matched": matched,
+        "live_identity_verified": live_identity_verified,
+        "expected_release": dict(expected_release or {}),
+        "runtime_release": dict(runtime_release or {}),
+        "metrics_provenance": metrics_provenance,
+        "reason": reason,
+    }
+
+
+def _has_material_observer_blind_spots(observer_payload: dict[str, Any] | None) -> bool:
+    if not isinstance(observer_payload, dict):
+        return False
+    return any(
+        str((item or {}).get("severity") or "").strip().lower() in {"high", "medium"}
+        for item in observer_payload.get("blind_spots") or []
+    )
+
+
+def _derive_daily_observability_verdict(
+    *,
+    gate_payload: dict[str, Any] | None,
+    oa_payload: dict[str, Any] | None,
+    observer_payload: dict[str, Any] | None,
+    runtime_authority: dict[str, Any] | None,
+) -> dict[str, Any]:
+    lineage_verdict = (
+        "STALE"
+        if (gate_payload or {}).get("verdict") == "STALE" or (oa_payload or {}).get("verdict") == "STALE"
+        else "TRUSTED"
+    )
+    if lineage_verdict == "STALE":
+        return {
+            "verdict": "STALE",
+            "lineage_verdict": lineage_verdict,
+            "reasons": ["artifact_release_stale_vs_head"],
+        }
+
+    reasons: list[str] = []
+    gate_status = str((gate_payload or {}).get("final_status") or "").strip().upper()
+    if gate_status and gate_status != "PASS":
+        reasons.append(f"release_gate_{gate_status.lower()}")
+    if _has_material_observer_blind_spots(observer_payload):
+        reasons.append("observer_blind_spots")
+    if not (runtime_authority or {}).get("live_identity_verified"):
+        reasons.append("runtime_identity_not_live")
+    return {
+        "verdict": "DEGRADED" if reasons else "TRUSTED",
+        "lineage_verdict": lineage_verdict,
+        "reasons": reasons,
+    }
+
+
 def _current_release_payload(store, kind: str, *, release: dict[str, Any]) -> dict[str, Any] | None:
     try:
         records = store.list_runs(kind, limit=100)
@@ -264,14 +340,19 @@ def _load_metrics_snapshot(
         status_code = None
         if isinstance(exc, httpx.HTTPStatusError) and exc.response is not None:
             status_code = int(exc.response.status_code)
-        allow_auth_fallback = (
+        allow_testclient_fallback = (
             str(os.getenv("DEEPTUTOR_ALLOW_METRICS_TESTCLIENT_FALLBACK", "") or "").strip().lower()
             in {"1", "true", "yes", "on"}
         )
-        if status_code in {401, 403} and not allow_auth_fallback:
+        if not allow_testclient_fallback:
+            if status_code in {401, 403}:
+                raise RuntimeError(
+                    f"metrics endpoint auth blocked: GET {api_base_url.rstrip('/')}/metrics returned {status_code}; "
+                    "set DEEPTUTOR_METRICS_TOKEN or pass --metrics-token"
+                ) from exc
             raise RuntimeError(
-                f"metrics endpoint auth blocked: GET {api_base_url.rstrip('/')}/metrics returned {status_code}; "
-                "set DEEPTUTOR_METRICS_TOKEN or pass --metrics-token"
+                f"metrics endpoint unavailable: GET {api_base_url.rstrip('/')}/metrics failed with "
+                f"{type(exc).__name__}; TestClient fallback is disabled"
             ) from exc
         payload = _build_testclient_metrics_snapshot()
         payload["observability_metrics_provenance"] = {
@@ -294,16 +375,44 @@ def _ensure_om_payload(
     unified_ws_smoke_timeout: float,
 ) -> dict[str, Any] | None:
     # OM is the runtime evidence row for this daily pass. Rebuild it even when
-    # a same-release row exists so /api/v1/ws smoke reflects the current process.
-    unified_ws_smoke = _run_unified_ws_smoke_check(
-        api_base_url=api_base_url,
-        timeout_seconds=unified_ws_smoke_timeout,
-    )
+    # a same-release row exists. Verify the target identity before sending a
+    # synthetic WS turn so an unrelated process on the same port is not mutated.
     metrics_snapshot = _load_metrics_snapshot(
         api_base_url=api_base_url,
         metrics_json=metrics_json,
         metrics_token=metrics_token,
     )
+    runtime_release = metrics_snapshot.get("release") or {}
+    metrics_provenance = metrics_snapshot.get("observability_metrics_provenance") or {}
+    live_identity_verified = (
+        metrics_provenance.get("source") == "live_metrics_endpoint"
+        and metrics_provenance.get("fallback_used") is False
+    )
+    if _same_release(release, runtime_release) and live_identity_verified:
+        unified_ws_smoke = _run_unified_ws_smoke_check(
+            api_base_url=api_base_url,
+            timeout_seconds=unified_ws_smoke_timeout,
+        )
+    else:
+        release_matches = _same_release(release, runtime_release)
+        summary = (
+            "unified /api/v1/ws smoke skipped: runtime identity was not verified by live metrics"
+            if release_matches
+            else "unified /api/v1/ws smoke skipped: runtime release does not match candidate"
+        )
+        unified_ws_smoke = {
+            "name": "unified_ws_smoke",
+            "ok": None,
+            "status": "DEFERRED",
+            "summary": summary,
+            "evidence": [
+                f"expected_git_sha={str((release or {}).get('git_sha') or '')}",
+                f"runtime_git_sha={str((runtime_release or {}).get('git_sha') or '')}",
+                f"api_base_url={api_base_url.rstrip('/')}",
+            ],
+            "session_ids": [],
+            "turn_ids": [],
+        }
     payload = build_om_run(
         metrics_snapshot=metrics_snapshot,
         stack_health=[],
@@ -775,6 +884,20 @@ def main() -> None:
         api_base_url=args.api_base_url,
         unified_ws_smoke_timeout=float(getattr(args, "unified_ws_smoke_timeout", 20.0) or 20.0),
     )
+    runtime_authority = _build_runtime_authority_preflight(
+        expected_release=current_release,
+        om_payload=om_payload,
+    )
+    runtime_authority_path = output_dir / "runtime_authority_preflight.json"
+    _write_json(runtime_authority_path, runtime_authority)
+    if not runtime_authority["matched"]:
+        expected_sha = str((runtime_authority.get("expected_release") or {}).get("git_sha") or "unknown")
+        runtime_sha = str((runtime_authority.get("runtime_release") or {}).get("git_sha") or "unknown")
+        raise SystemExit(
+            "runtime_authority_mismatch: "
+            f"expected_git_sha={expected_sha} runtime_git_sha={runtime_sha}; "
+            f"evidence={runtime_authority_path}"
+        )
     arr_payload = _ensure_arr_payload(
         store=store,
         release=current_release,
@@ -799,6 +922,7 @@ def main() -> None:
         store=store,
         event_days=max(int(args.event_days or 1), 1),
         metrics_snapshot=metrics_snapshot,
+        surface_snapshot=(metrics_snapshot or {}).get("surface_events") or {},
         benchmark_payload=benchmark_payload,
         release=current_release,
         report_date=str(report_window["report_date"]),
@@ -905,13 +1029,20 @@ def main() -> None:
         encoding="utf-8",
     )
 
+    daily_verdict = _derive_daily_observability_verdict(
+        gate_payload=gate_payload,
+        oa_payload=oa_payload,
+        observer_payload=observer_payload,
+        runtime_authority=runtime_authority,
+    )
     daily_payload = {
         "run_id": f"observability-daily-{int(time.time())}",
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "release": dict(current_release),
-        "verdict": "STALE"
-        if gate_payload.get("verdict") == "STALE" or oa_payload.get("verdict") == "STALE"
-        else "TRUSTED",
+        "verdict": daily_verdict["verdict"],
+        "lineage_verdict": daily_verdict["lineage_verdict"],
+        "verdict_reasons": list(daily_verdict["reasons"]),
+        "runtime_authority": runtime_authority,
         "window": dict(report_window),
         "source_runs": {
             "observer_snapshot_run_id": observer_payload.get("run_id"),
@@ -927,6 +1058,7 @@ def main() -> None:
             "oa_root_cause_count": len(oa_payload.get("root_causes") or []),
             "oa_causal_candidate_count": len(oa_payload.get("causal_candidates") or []),
             "release_gate_status": gate_payload.get("final_status"),
+            "observer_blind_spot_count": len(observer_payload.get("blind_spots") or []),
             "om_ready": ((om_payload or {}).get("health_summary") or {}).get("ready"),
             "benchmark_pass_rate": (benchmark_payload or {}).get("summary", {}).get("pass_rate"),
         },

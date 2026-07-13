@@ -124,6 +124,16 @@ def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path
             "baseline_diff": {"regressions": [], "new_failures": []},
         },
     )
+    store.write_run(
+        kind="daily_trends",
+        run_id="daily-old",
+        release_id="rel-old",
+        payload={
+            "run_id": "daily-old",
+            "release": {"release_id": "rel-old", "git_sha": "old"},
+            "metrics": {"release_gate_status": "PASS"},
+        },
+    )
     event_log = TurnEventLog(events_dir=tmp_path / "events")
     event_log.append(
         build_turn_observation_event(
@@ -184,7 +194,9 @@ def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path
     assert payload["turn_event_log"]["last_write_error"] == ""
     assert payload["source_runs"]["om_run_id"] == "om-1"
     assert payload["source_runs"]["arr_run_id"] == "arr-1"
+    assert "daily_trend_run_id" not in payload["source_runs"]
     layers = {item["name"]: item for item in payload["data_coverage"]["layers"]}
+    assert "daily_trend" not in layers
     assert "reason" not in layers["turn_event_log"]
     assert layers["aae_composite"]["reason"] == "missing AAE composite"
     assert payload["data_sources"]["om_snapshot"]["source_id"] == "om-1"
@@ -192,6 +204,34 @@ def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path
     assert isinstance(payload["data_sources"]["om_snapshot"]["age_seconds"], int)
     assert payload["data_sources"]["turn_event_log"]["sample_count"] == 2
     assert payload["data_sources"]["turn_event_log"]["confidence"] == "high"
+    assert "daily_trend_metrics" not in payload["signals"]
+    assert "missing_daily_trend" not in {item["type"] for item in payload["blind_spots"]}
+
+
+def test_build_observer_snapshot_prefers_explicit_runtime_surface_snapshot(tmp_path) -> None:
+    payload = build_observer_snapshot(
+        store=ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane"),
+        event_log=TurnEventLog(events_dir=tmp_path / "events"),
+        metrics_snapshot={"release": {"git_sha": "same-sha"}},
+        surface_snapshot={
+            "coverage": [
+                {
+                    "surface": "wechat_yousenwebview",
+                    "accepted_events": 3,
+                    "first_render_coverage_ratio": 1.0,
+                }
+            ]
+        },
+        release={"git_sha": "same-sha"},
+        conversation_db_path=tmp_path / "missing-chat.db",
+        backend_log_paths=[],
+        product_behavior_db_path=tmp_path / "missing-product.db",
+    )
+
+    assert payload["data_sources"]["surface_ack"]["has_data"] is True
+    assert payload["data_sources"]["surface_ack"]["sample_count"] == 1
+    assert payload["signals"]["surface_snapshot"]["coverage"][0]["accepted_events"] == 3
+    assert "missing_surface_coverage" not in {item["type"] for item in payload["blind_spots"]}
 
 
 def test_build_observer_snapshot_collects_recent_conversation_and_backend_log_evidence(tmp_path) -> None:

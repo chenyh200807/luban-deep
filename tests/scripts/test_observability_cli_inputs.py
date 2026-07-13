@@ -9,6 +9,7 @@ import sys
 
 import pytest
 
+from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
 from deeptutor.services.observability.control_plane_store import get_control_plane_store
 from deeptutor.services.observability.control_plane_store import reset_control_plane_store
 
@@ -152,6 +153,100 @@ def test_daily_observability_metrics_auth_failure_is_not_silently_downgraded(
         )
 
 
+def test_daily_observability_metrics_transport_failure_requires_explicit_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("DEEPTUTOR_ALLOW_METRICS_TESTCLIENT_FALLBACK", raising=False)
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "load_metrics_snapshot_shared",
+        lambda **_kwargs: (_ for _ in ()).throw(ConnectionRefusedError("connection refused")),
+    )
+
+    with pytest.raises(RuntimeError, match="TestClient fallback is disabled"):
+        DAILY_OBSERVABILITY_MODULE._load_metrics_snapshot(
+            api_base_url="http://127.0.0.1:18002",
+            metrics_json=None,
+            metrics_token=None,
+        )
+
+
+def test_daily_observability_skips_ws_smoke_for_mismatched_runtime(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    store = ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane")
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_load_metrics_snapshot",
+        lambda **_kwargs: {
+            "release": {"release_id": "runtime-old", "git_sha": "old123"},
+            "readiness": {"ready": True},
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_run_unified_ws_smoke_check",
+        lambda **_kwargs: pytest.fail("mismatched runtime must not receive a synthetic WS turn"),
+    )
+
+    payload = DAILY_OBSERVABILITY_MODULE._ensure_om_payload(
+        store=store,
+        release={"release_id": "candidate", "git_sha": "head123"},
+        metrics_json=None,
+        metrics_token=None,
+        api_base_url="http://127.0.0.1:8001",
+        unified_ws_smoke_timeout=1.0,
+    )
+
+    assert payload["release"]["git_sha"] == "old123"
+    assert payload["smoke_checks"][0]["status"] == "DEFERRED"
+    assert payload["health_summary"]["unified_ws_smoke_ok"] is None
+
+
+def test_daily_observability_metrics_json_never_authorizes_live_ws_smoke(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    store = ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane")
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_load_metrics_snapshot",
+        lambda **_kwargs: {
+            "release": {"release_id": "candidate", "git_sha": "head123"},
+            "readiness": {"ready": True},
+            "observability_metrics_provenance": {
+                "source": "metrics_json",
+                "fallback_used": False,
+            },
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_run_unified_ws_smoke_check",
+        lambda **_kwargs: pytest.fail("offline metrics must not authorize a live WS turn"),
+    )
+
+    payload = DAILY_OBSERVABILITY_MODULE._ensure_om_payload(
+        store=store,
+        release={"release_id": "candidate", "git_sha": "head123"},
+        metrics_json=tmp_path / "metrics.json",
+        metrics_token=None,
+        api_base_url="http://127.0.0.1:8001",
+        unified_ws_smoke_timeout=1.0,
+    )
+    preflight = DAILY_OBSERVABILITY_MODULE._build_runtime_authority_preflight(
+        expected_release={"release_id": "candidate", "git_sha": "head123"},
+        om_payload=payload,
+    )
+
+    assert payload["smoke_checks"][0]["status"] == "DEFERRED"
+    assert "not verified by live metrics" in payload["smoke_checks"][0]["summary"]
+    assert preflight["status"] == "ARTIFACT_ONLY"
+    assert preflight["matched"] is True
+    assert preflight["live_identity_verified"] is False
+
+
 def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monkeypatch, tmp_path) -> None:
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     current_release = {
@@ -186,7 +281,14 @@ def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monke
         lambda **_kwargs: {
             "run_id": "om-1",
             "release": current_release,
-            "metrics_snapshot": {"release": current_release},
+            "metrics_snapshot": {
+                "release": current_release,
+                "surface_events": {"coverage": [{"surface": "wechat_yousenwebview"}]},
+                "observability_metrics_provenance": {
+                    "source": "live_metrics_endpoint",
+                    "fallback_used": False,
+                },
+            },
             "health_summary": {"ready": True},
             "smoke_checks": [{"name": "unified_ws_smoke", "session_ids": ["session-smoke"]}],
         },
@@ -279,6 +381,9 @@ def test_run_observability_daily_passes_frozen_window_and_smoke_exclusions(monke
     assert observer_kwargs["timezone"] == "Asia/Shanghai"
     assert observer_kwargs["exclude_session_ids"] == {"session-smoke"}
     assert observer_kwargs["start_ts"] < observer_kwargs["end_ts"]
+    assert observer_kwargs["surface_snapshot"] == {
+        "coverage": [{"surface": "wechat_yousenwebview"}]
+    }
 
 
 def test_daily_observability_missing_surface_readiness_rows_are_evidence_gaps(tmp_path) -> None:
@@ -933,6 +1038,9 @@ def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_pa
     env = {
         **os.environ,
         "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
+        "DEEPTUTOR_RELEASE_ID": "rel-1",
+        "DEEPTUTOR_GIT_SHA": "abc",
+        "DEEPTUTOR_ENV": "dev",
     }
 
     proc = subprocess.run(
@@ -1135,10 +1243,14 @@ def test_run_observability_daily_marks_verdict_stale_when_input_release_lags_hea
         },
     )
 
-    DAILY_OBSERVABILITY_MODULE.main()
+    with pytest.raises(SystemExit, match="runtime_authority_mismatch"):
+        DAILY_OBSERVABILITY_MODULE.main()
 
-    latest = json.loads((tmp_path / "control_plane" / "daily_trends" / "latest.json").read_text(encoding="utf-8"))
-    assert latest["payload"]["verdict"] == "STALE"
+    preflight = json.loads((tmp_path / "out" / "runtime_authority_preflight.json").read_text(encoding="utf-8"))
+    assert preflight["status"] == "BLOCKED"
+    assert preflight["matched"] is False
+    assert preflight["runtime_release"]["git_sha"] == "old123"
+    assert not (tmp_path / "control_plane" / "daily_trends" / "latest.json").exists()
 
 
 def test_run_observability_daily_passes_current_release_through_spine(
@@ -1173,7 +1285,12 @@ def test_run_observability_daily_passes_current_release_through_spine(
         assert kwargs["unified_ws_smoke_timeout"] == 12.0
         return {
             "run_id": "om-1",
-            "metrics_snapshot": {},
+            "metrics_snapshot": {
+                "observability_metrics_provenance": {
+                    "source": "live_metrics_endpoint",
+                    "fallback_used": False,
+                }
+            },
             "health_summary": {},
             "release": dict(kwargs["release"]),
         }
@@ -1292,6 +1409,11 @@ def test_run_observability_daily_passes_current_release_through_spine(
         "plan_completion": current_release,
         "gate": current_release,
     }
+    latest = json.loads((tmp_path / "control_plane" / "daily_trends" / "latest.json").read_text(encoding="utf-8"))
+    assert latest["payload"]["verdict"] == "DEGRADED"
+    assert latest["payload"]["lineage_verdict"] == "TRUSTED"
+    assert latest["payload"]["verdict_reasons"] == ["release_gate_fail"]
+    assert latest["payload"]["runtime_authority"]["matched"] is True
 
 
 def test_run_release_gate_cli_requires_canonical_benchmark_latest(tmp_path) -> None:

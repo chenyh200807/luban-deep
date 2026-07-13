@@ -36,8 +36,8 @@
     <!-- STAGE -->
     <div style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
 
-      <div style="position:absolute;top:10px;left:104px;right:52px;z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);white-space:nowrap;overflow:hidden;">
-        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ curKeycard }}</span>
+      <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);max-width:330px;white-space:nowrap;">
+        <span style="color:#ffd24a;font-size:9px;">●</span><span>{{ curKeycard }}</span>
       </div>
       <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
       <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);">{{ narrLabel }}</button>
@@ -375,12 +375,12 @@
 class Component extends DCLogic {
   state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, muted:false };
   audioBase="audio/";
-  audioVersion="20260703-batch-tts1";
+  audioVersion="20260713172939";
   DUR = 329.716;
   examTitle="危大工程专项方案专家论证"; examCode="J01"; examCat="案例·危大管理";
   posterSub="判档 · 编制 · 审查 · 论证 · 实施，一条危大合规链"; posterMeta="点击播放 · 8 幕精讲 + 5 追问 · 约 5 分半";
   KNOWLEDGE="危大工程专项方案与专家论证。①判档(条件维):基坑≥3m/模板≥5m/起重≥10kN/脚手架≥24m·危险性较大,编专项施工方案;深基坑≥5m/模板≥8m或跨≥18m/起重≥100kN/脚手架落地≥50m/幕墙≥50m·超过一定规模,除编方案外还须专家论证。本题基坑7.6m>5m,属超规模,须论证。②编制主体(主体维):施工总承包单位组织编制;起重安拆/深基坑/附着升降脚手架等专业工程可由专业承包单位编制。③前置程序(程序维):方案先经施工单位审核、再总监理工程师审查,方可组织论证,顺序不可颠倒。④组织(主体维):超规模由施工总承包单位组织召开论证会。⑤方案八项内容(记录维):工程概况/编制依据/施工计划/施工工艺技术/施工保证措施/施工管理及人员配备/验收要求/应急处置措施;模板支撑方案另加计算书及相关施工图纸。⑥专家组(主体维+记录维):5人以上、与本工程无利害关系,本项目参建各方(建设/监理/施工/设计)人员不得以专家身份参加(回避),论证报告须签字。⑦论证内容三项(记录维):方案是否完整可行/计算书验算依据施工图是否符合规范/是否满足现场实际确保安全;不是经济性、不是分包资质。⑧实施控制(后果维):公示、编制人交底,施工中不得擅自修改,确需修改须重新审核/论证后执行。需单独编专项方案的工程:深基坑支护/降水/土方开挖/模板及支撑体系/建筑幕墙安装。常见失分:混档(E07/M08)、编制主体含糊(E06)、跳过审查直接论证(E06)、专家只写5人漏回避(E10)、论证内容写经济性(E05)、只写不能改不写重新论证(E06)。";
-  beats=[["b0",0,17.156,"破误区"],["b1",17.156,39.928,"判档"],["b2",39.928,65.916,"编制审查"],["b3",65.916,95.36,"方案八项"],["b4",95.36,122.86,"专家组"],["b5",122.86,144.312,"论证内容"],["b6",144.312,165.5,"实施控制"],["b7",165.5,199.264,"答题落笔"],["q0",199.264,223.06,"问答"],["q1",223.06,249.088,"问答"],["q2",249.088,274.18,"问答"],["q3",274.18,296.848,"问答"],["q4",296.848,329.716,"问答"]];
+    beats=[["b0",0.0,17.156,"破误区"],["b1",17.156,39.928,"判档"],["b2",39.928,65.916,"编制审查"],["b3",65.916,95.36,"方案八项"],["b4",95.36,122.86,"专家组"],["b5",122.86,144.312,"论证内容"],["b6",144.312,165.5,"实施控制"],["b7",165.5,199.264,"答题落笔"],["q0",199.264,223.06,"问答"],["q1",223.06,249.088,"问答"],["q2",249.088,274.18,"问答"],["q3",274.18,296.848,"问答"],["q4",296.848,329.716,"问答"]];
   keycards=[
     "三档别混：达标才编方案，超规模才论证",
     "深度过 3m · 编方案；过 5m · 还要专家论证",
@@ -408,8 +408,6 @@ class Component extends DCLogic {
     { figLabel:"需单独编专项方案 · 五类工程", fig:"worklist", q:"老师，除了基坑本身，还有哪些工程也得单独编专项方案啊？", a:"记住这几类哈：深基坑支护、降水、土方开挖、模板工程及支撑体系、建筑幕墙安装——都得单独编专项方案。最容易漏的是降水和幕墙，你答清单的时候，这俩千万别落下。" },
     { figLabel:"采分四句 · 档 / 主体 / 专家 / 内容", fig:"score", q:"整明白了！那要是阅卷，这道题我得把哪几句写全才给分呐？", a:"写全这几句：一，判档——超过 5 米属超规模危大，除编方案还要专家论证；二，编制归施工总承包单位，先审核再总监审查；三，专家 5 人以上、无利害关系，参建方不得当专家；四，论证只看完整可行、计算书施工图、确保安全。档、主体、专家、内容，一句都别少。" }
   ];
-  
-  qaCue=[{"answerStart":6.657},{"answerStart":7.081},{"answerStart":6.081},{"answerStart":6.42},{"answerStart":6.827}];
   askPresets=["超规模危大的阈值是多少？","专家组为什么要回避？","论证的采分句怎么写全？"];
 
   componentDidMount(){
@@ -426,26 +424,24 @@ class Component extends DCLogic {
   pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
   webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
   stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
-  speakBeat(ai){ this.stopSpeak(); if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true; }); a.addEventListener("ended",()=>{ if(this._audio===a)this._audio=null; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audio=null;this.webSpeak(text);} }); }catch(e){ this.webSpeak(text); } }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
   setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
   toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
   loop(ts){ if(this._dead)return;
     if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
-      let nt=this.state.t+dt;
-      const ab=this._activeBeat;
-      if(ab!=null&&this.beats[ab]){ const curEnd=this.beats[ab][2]; if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02); }
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
       if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
         let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
         if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
     else { this._last=null; }
     this._raf=requestAnimationFrame(this.loop);
   }
-  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.stopSpeak();this.setState({t:0,playing:true});}
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
     else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
       if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
       else { this.setSpeechPaused(true); } } }
   seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
-  jump(i){ if(!this.beats[i])return; this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
   fullscreen(){ const n=!this.state.fs; this.setState({fs:n}); document.body.classList.toggle('luban-fs',n);
     try{ const el=this._phone||document.documentElement; let p;
       if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
@@ -578,8 +574,8 @@ class Component extends DCLogic {
 
     const isQA=ai>=NB;
     let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
-    if(isQA){ const it=this.qa[ai-NB]; if(it){ const cue=(this.qaCue&&this.qaCue[ai-NB]&&this.qaCue[ai-NB].answerStart)||((cur[2]-cur[1])*.38); const ansStart=this.cl(cue/(cur[2]-cur[1]),.12,.86); const ansEnd=this.cl(ansStart+.12,ansStart+.04,.98); qaLayerO=1; qa_so=W(0,Math.min(.24,ansStart*.6)); qa_sx=this.lp(-40,0,qa_so); qa_to=W(ansStart,ansEnd); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
-      qaA=it.a; qaFigLabel=it.figLabel||""; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q;
+      qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
     const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
     const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
     const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";

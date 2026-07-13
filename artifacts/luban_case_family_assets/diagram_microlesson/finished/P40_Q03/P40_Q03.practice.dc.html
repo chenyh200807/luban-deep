@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<!-- ░░░ 母版骨架：随堂练 ░░░ 改 Q[] 即可。每题必须有图示位 + 完整采分句选项 + 每错项三段解析 -->
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="P40_Q03.teach.up.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <!-- 图示位（每题必有：标尺/变化图/管道/诊断图/答题纸；此处给通用占位，按题替换内部 SVG/结构）-->
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="P40_Q03.teach.up.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY (大窗 · 自动带题目) -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 母版骨架逻辑：随堂练 ░░░
+   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
+   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
+   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
+   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
+     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
+   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
+     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+class Component extends DCLogic {
+  // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
+  //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="质量通病防治 · 采分过关";
+  KNOWLEDGE="质量通病防治（混凝土表面缺陷/空鼓/裂缝/渗漏）。四链：①密实度失效（麻面=模板缺浆、露筋=保护层缺失、蜂窝=振捣离析、孔洞=配筋过密；成因三侧模板/布料/振捣；底模拆除A50/B75/C100；孔洞治理清理→支模→湿润→界面剂→高一强度细石混凝土浇筑密实→养护不少于7天，不用普通砂浆）；②空鼓=界面粘结失效（基层清理、水泥基粘结材料、油性防护石材界面剂+背砂、瓷砖浸砖阴干、伸缩缝，与蜂窝本体不密实分链）；③裂缝=约束应力（收缩裂缝控含泥量/水胶比坤落度/养护；填充墙交接裂缝部位柱边/梁底/门窗洞口，措施间距≤1500？——应为间距不大于500mm的2φ6钢筋、下部墙砌完14d后砌顶半砖斜砌、洞口加强网片、窗台细石混凝土配筋）；④渗漏=防水通路（施工缝松散接榺明显→清理凿毛+浇捣密实；穿墙管无止水环→清管壁+止水环+灌浆；防水混凝土收缩裂缝→保湿养护+多道设防刚柔结合）。采分四件套：现象→成因→部位→防治（带规范数值/标准术语）。常见失分：四缺陷混称、空鼓与蜂窝混、治理乱序漏关键词、拆模/填充墙数值错、渗漏只赖防水层、措施口号化无数值。";
+  moreText="再补两道：① 拿一张拆模后的混凝土墙逐图命名（麻面/露筋/蜂窝/孔洞），练“对号入座+成因归三侧”；② 拿填充墙交接裂缝真题，练“部位（柱边/梁底/洞口）+措施带数值（2φ6@500、14d）”三段式，将“口号化措施”改写成带数值采分句。";
+  // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
+  Q=[
+    { tag:"表面缺陷·识别", typeHint:"单选 · 选出把四缺陷对号入座、能得分的作答", figLabel:"题给：拆模后四种表面缺陷", figCaption:"形貌各不同 · 你来逐一命名", fig:"defectID",
+      stem:"地下室墙板拆模后出现四种表面缺陷。选出把它们对号入座、能得分的作答。",
+      model:"密布小凹点且钢筋不露=麻面；钢筋外露无保护层=露筋；石子成堆缺砂浆空隙连片=蜂窝；局部贯穿大洞=孔洞。",
+      opts:[
+        { t:"密布小凹点=麻面、钢筋外露=露筋、石子成堆缺砂浆=蜂窝、局部贯穿大洞=孔洞，按形貌逐一命名。", ok:true, fix:"四种形貌逐一对应命名，是识别题的采分地基。", code:"" },
+        { t:"表面缺陷都是振捣不实闹的，一律按蜂窝处理、成因都写漏振就行。", ok:false, code:"E07", tempt:"觉得四种只是轻重不同、都怪振捣。", lose:"麻面主因在模板、露筋在保护层，一律叫蜂窝命名就错。", fix:"按形貌分别命名：麻面/露筋/蜂窝/孔洞。" },
+        { t:"凡是凹陷类都算孔洞，表面小凹点也归到孔洞里一起报。", ok:false, code:"E07", tempt:"都是凹进去的，笼统归孔洞。", lose:"麻面是表面密布小凹点、孔洞是局部贯穿大洞，深浅范围完全不同。", fix:"密布小凹点是麻面，贯穿大洞才是孔洞。" },
+        { t:"先不管叫啥名，直接写防治措施加强振捣、加强养护就够拿分。", ok:false, code:"E05", tempt:"想跳过识别直接答措施。", lose:"识别命名是采分地基，跳过=丢识别分。", fix:"先逐图命名，再对应写成因与措施。" }
+      ] },
+    { tag:"表面缺陷·成因", typeHint:"单选 · 选出麻面成因分析能得分的作答", figLabel:"题给：成因三侧归类", figCaption:"麻面——该归哪一侧？", fig:"cause",
+      stem:"构件拆模后表面出现麻面（密布小凹点、钢筋未外露）。选出成因分析能得分的作答。",
+      model:"模板不光滑/接缝不严漏浆/浇筑前未湿润/隔离剂涂刷不匀，表面缺浆形成麻面。",
+      opts:[
+        { t:"模板表面不光滑、接缝不严漏浆、浇筑前未湿润、隔离剂涂刷不匀，表面缺浆形成麻面。", ok:true, fix:"四个成因都落在模板与缺浆，正是麻面采分点。", code:"" },
+        { t:"麻面是钢筋保护层垫块漏放、钢筋贴模造成的，属保护层不足。", ok:false, code:"E07", tempt:"把麻面和露筋的成因搞混。", lose:"垫块漏放导致的是露筋不是麻面；麻面钢筋并未外露。", fix:"麻面主因在模板与缺浆，露筋才是保护层不足。" },
+        { t:"麻面是混凝土内部石子成堆、砂浆包裹不足造成的密实度问题。", ok:false, code:"E07", tempt:"把麻面当蜂窝的成因来答。", lose:"石子成堆缺砂浆是蜂窝；麻面是表面缺浆、非内部离析。", fix:"麻面归模板/缺浆，蜂窝才归振捣离析。" },
+        { t:"麻面就是施工不认真、管理不到位造成的，加强管理确保质量即可。", ok:false, code:"E04", tempt:"口号化、好写。", lose:"只喊加强管理没写具体成因（模板/漏浆/湿润/隔离剂），拿不到采分。", fix:"写清模板不光滑·接缝漏浆·未湿润·隔离剂不匀。" }
+      ] },
+    { tag:"表面缺陷·成因", typeHint:"单选 · 选出蜂窝/孔洞成因能得分的作答", figLabel:"题给：成因三侧归类", figCaption:"蜂窝/孔洞——该归哪一侧？", fig:"cause",
+      stem:"构件出现蜂窝（石子成堆、空隙连片）与孔洞（局部贯穿）。选出成因分析能得分的作答。",
+      model:"自由倾落过高致离析、漏振欠振、钢筋过密下料困难混凝土未振实，形成蜂窝孔洞。",
+      opts:[
+        { t:"自由倾落过高致离析、漏振欠振、钢筋过密下料困难混凝土未振实，形成蜂窝、孔洞。", ok:true, fix:"离析·漏振·配筋过密都是宆窝孔洞的采分成因。", code:"" },
+        { t:"蜂窝孔洞是模板接缝漏浆、隔离剂不匀造成表面缺浆。", ok:false, code:"E07", tempt:"套用麻面的模板成因。", lose:"模板漏浆致麻面；蜂窝孔洞主因是振捣离析与配筋过密。", fix:"蜂窝孔洞归布料/振捣/配筋，不是模板缺浆。" },
+        { t:"蜂窝孔洞是养护不到位、后期强度不够被压出来的。", ok:false, code:"E10", tempt:"把成因往养护上推。", lose:"养护影响强度/收缩，蜂窝孔洞是浇筑振捣阶段的密实度问题。", fix:"成因写离析·漏振·配筋过密，不是养护。" },
+        { t:"蜂窝就是振捣不实一句话，写上就够了。", ok:false, code:"E02", tempt:"只答一条省事。", lose:"漏了离析、下料过厚、配筋过密等采分点。", fix:"补齐离析·下料过厚·钢筋过密等成因。" }
+      ] },
+    { tag:"缺陷治理·工艺顺序", typeHint:"单选 · 选出工艺顺序正确能得分的作答", figLabel:"题给：孔洞治理工艺六步", figCaption:"后三步是采分关键 · 顺序不能乱", fig:"process",
+      stem:"孔洞缺陷需按工艺流程治理。选出流程顺序正确、能得分的作答。",
+      model:"清理表面→支设模板→洒水湿润→涂混凝土界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。",
+      opts:[
+        { t:"清理表面→支设模板→洒水湿润→涂界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。", ok:true, fix:"六步顺序正确、界面剂与高一强度与养护一个不漏。", code:"" },
+        { t:"先浇筑高强细石混凝土填实，再清理表面、支模板、最后洒水湿润养护。", ok:false, code:"E06", tempt:"觉得先填上要紧、顺序无所谓。", lose:"先浇后清、乱序=程序错，界面没处理浇了也白搭。", fix:"必须先清理→支模→湿润→界面剂→再浇筑→养护。" },
+        { t:"清理表面→支设模板→浇筑混凝土→然后养护即可。", ok:false, code:"E03", tempt:"看着步骤挺全。", lose:"漏了洒水湿润、涂界面剂两个关键采分词。", fix:"补洒水湿润与涂混凝土界面剂两步。" },
+        { t:"清理→支模→湿润→界面剂→浇筑→养护，养护2天即可拆模交工。", ok:false, code:"E10", tempt:"顺序对，只是养护天数随手填。", lose:"养护应不少于7天，写2天规范数值错。", fix:"保温保湿养护不少于7天。" }
+      ] },
+    { tag:"缺陷治理·材料养护", typeHint:"单选 · 选出修补材料与养护能得分的作答", figLabel:"题给：孔洞修补用什么材料", figCaption:"普通砂浆 vs 高一强度细石混凝土", fig:"material",
+      stem:"孔洞修补用什么材料、怎么养护？选出能得分的作答。",
+      model:"用高一强度等级的细石混凝土仔细浇筑密实，不能用普通砂浆；保温保湿养护不少于7天。",
+      opts:[
+        { t:"用高一强度等级的细石混凝土仔细浇筑密实，不能用普通砂浆，保温保湿养护不少于7天。", ok:true, fix:"高一强度+不用普通砂浆+养护≤7天，三个采分点齐。", code:"" },
+        { t:"凿掉松散部分后用普通水泥砂浆抹平压光，表面看不出缺陷即可。", ok:false, code:"E01", tempt:"普通砂浆随手抹省事。", lose:"普通砂浆强度接不上、易再裂，且漏界面剂与养护，属知识点缺失。", fix:"改高一强度细石混凝土浇筑密实，养护不少于7天。" },
+        { t:"用同强度等级的细石混凝土浇筑，自然干燥即可、无需专门养护。", ok:false, code:"E10", tempt:"同强度、看着合理。", lose:"应高一强度等级，且必须保温保湿养护不少于7天，等级与养护都错。", fix:"高一强度等级+保温保湿养护不少于7天。" },
+        { t:"涂界面剂后用细石混凝土浇筑密实即可。", ok:false, code:"E03", tempt:"抓到界面剂+细石混凝土。", lose:"漏了高一强度等级与养护不少于7天两个采分词。", fix:"补高一强度等级与保温保湿养护不少于7天。" }
+      ] },
+    { tag:"拆模强度·条件维", typeHint:"单选 · 选出底模拆除强度能得分的作答", figLabel:"题给：底模拆除强度门槛", figCaption:"按构件跨度分档 · 占设计值%", fig:"strength",
+      stem:"底模拆除时混凝土需达到的强度门槛（占设计值百分比）。选出能得分的作答。",
+      model:"板跨≤2m达50%、板梁跨≤8m达75%、跨>8m及悬臂达100%，方可拆除底模。",
+      opts:[
+        { t:"板跨≤2m达设计值50%、板梁跨≤8m达75%、跨>8m及悬臂构件达100%，方可拆除底模。", ok:true, fix:"按跨度分档5/75/100，是拆模采分的规范数值。", code:"" },
+        { t:"所有构件底模一律达到设计强度的75%即可拆除，方便统一管理。", ok:false, code:"E10", tempt:"记一个数省事。", lose:"门槛随跨度分档50/75/100，一刀列75%规范错。", fix:"分档：≤2m 50%、≤8m 75%、>8m及悬臂 100%。" },
+        { t:"跨度越大越早拆没关系，悬臂构件达到50%就能拆底模。", ok:false, code:"E10", tempt:"把大跨门槛记低了。", lose:"悬臂/大跨风险高，应达100%，写50%严重偏低。", fix:"跨>8m及悬臂必须达100%。" },
+        { t:"只要侧模能拆就说明强度够了，底模跟着侧模一起拆即可。", ok:false, code:"E05", tempt:"把侧模条件当底模条件。", lose:"侧模拆除看棱角强度、底模看承载百分比，混淆条件。", fix:"底模按50/75/100分档，与侧模条件不同。" }
+      ] },
+    { tag:"拆模找错·背景提取", typeHint:"单选 · 选出对提前拆模问题分析能得分的作答", figLabel:"题给：提前拆模 → 梁底缺陷", figCaption:"强度未达拆底模的后果", fig:"demold",
+      stem:"某工程混凝土强度未达标即提前拆除底模，梁底随后出现缺陷。选出对该问题分析能得分的作答。",
+      model:"强度未达门槛提前拆模，构件承自重后易出现麻面、蜂窝、孔洞、露筋；应达规定强度再拆。",
+      opts:[
+        { t:"强度未达门槛就提前拆模，构件承受自重后易出现麻面、蜂窝、孔洞、露筋，应达规定强度再拆。", ok:true, fix:"点出强度未达提前拆模是直接诱因，拆模须达标。", code:"" },
+        { t:"梁底缺陷是拆模时工人磕碰蹭掉的，与混凝土强度无关，注意轻拿轻放即可。", ok:false, code:"E07", tempt:"把成因归到操作磕碰。", lose:"根因是强度不足提前拆模、非磕碰，方向错。", fix:"指出强度未达提前拆模是直接诱因。" },
+        { t:"提前拆模没问题，只要拆后立即回顶支撑，强度多少都能先拆。", ok:false, code:"E10", tempt:"以为回顶能兜底。", lose:"回顶不能替代拆模强度门槛，仍须达50/75/100。", fix:"必须达规定强度再拆，回顶不替代门槛。" },
+        { t:"这是抢工期造成的，以后加强进度管理、保证质量就行。", ok:false, code:"E04", tempt:"口号化好写。", lose:"没点出强度门槛与缺陷因果，拿不到采分。", fix:"写强度未达提前拆模→表面缺陷，须达标再拆。" }
+      ] },
+    { tag:"空鼓·成因", typeHint:"单选 · 选出空鼓成因分析能得分的作答", figLabel:"题给：空鼓界面剔面", figCaption:"面层与基层之间发生了什么", fig:"hollow",
+      stem:"地面板块或饰面出现大面积空鼓（敲击空响）。选出成因分析能得分的作答。",
+      model:"基层未清理有浮渣浮浆、粘结材料或水灰比不当、油性防护剂阻隔粘结、瓷砖未浸砖，界面粘结失效致空鼓。",
+      opts:[
+        { t:"基层未清理有浮渣浮浆、粘结材料或水灰比不当、油性防护剂阻隔粘结、瓷砖未浸砖，界面粘结失效致空鼓。", ok:true, fix:"基层·粘结材料·油性防护剂·未浸砖，界面链采分齐。", code:"" },
+        { t:"空鼓是混凝土内部石子成堆、砂浆包裹不足的密实度问题。", ok:false, code:"E07", tempt:"把空鼓当蜂窝的本体问题。", lose:"空鼓是面层与基层界面脱开、非本体密实，两条链混淆。", fix:"空鼓归界面粘结失效，蜂窝才是本体密实。" },
+        { t:"空鼓就是基层没清理干净一条，写上即可。", ok:false, code:"E02", tempt:"只答一条省事。", lose:"漏了粘结材料/水灰比、油性防护剂、未浸砖等采分点。", fix:"补齐粘结材料·油性防护剂·未浸砖等成因。" },
+        { t:"空鼓是偶发的手艺问题，敲掉重贴即可，不必追前道工序。", ok:false, code:"E01", tempt:"归运气、图省事。", lose:"空鼓是前道工序系统缺陷，只重贴不治本，知识点缺失。", fix:"追前道：清基层·浸砖·界面剂+背砂再贴。" }
+      ] },
+    { tag:"概念辨析·本体vs界面", typeHint:"单选 · 选出正确辨析空鼓与蜂窝的作答", figLabel:"题给：蜂窝 vs 空鼓", figCaption:"本体不密实 · 界面脱空", fig:"hollowHoney",
+      stem:"有人把空鼓和蜂窝混为一谈。选出正确辨析、能得分的作答。",
+      model:"蜂窝是混凝土本体石子成堆砂浆不足的本体不密实；空鼓是面层与基层界面脱开的粘结失效，两条链成因治法不同。",
+      opts:[
+        { t:"蜂窝是混凝土本体石子成堆砂浆不足的本体不密实；空鼓是面层与基层界面脱开的粘结失效，两者不同链。", ok:true, fix:"本体链/界面链分清楚，才能各写对症措施。", code:"" },
+        { t:"空鼓和蜂窝本质一样，都是振捣不实，治理都靠加强振捣即可。", ok:false, code:"E07", tempt:"都空、都想归振捣。", lose:"空鼓是界面粘结问题、与振捣无关，治法是清基层浸砖界面剂。", fix:"空鼓归界面、蜂窝归本体，分开治。" },
+        { t:"蜂窝在贴面层里、空鼓在混凝土构件里，位置正好反过来。", ok:false, code:"E07", tempt:"记反了位置。", lose:"蜂窝在构件本体内、空鼓在饰面与基层界面，说反了。", fix:"蜂窝=本体内部，空鼓=饰面界面。" },
+        { t:"两者都空，敲掉重做就行，成因不用分。", ok:false, code:"E02", tempt:"图省事不追成因。", lose:"不分成因就写不出对症措施，采分点全丢。", fix:"先分本体/界面，再各写对应防治。" }
+      ] },
+    { tag:"空鼓·瓷砖工艺", typeHint:"单选 · 选出瓷砖防空鼓处理能得分的作答", figLabel:"题给：瓷砖铺贴前处理", figCaption:"铺贴前四步不能省", fig:"tile",
+      stem:"为防止瓷砖饰面空鼓，铺贴前应如何处理？选出能得分的作答。",
+      model:"清除瓷砖背面脱模剂、充分浸砖后阴干，基层清理并用水泥基粘结材料满粘铺贴。",
+      opts:[
+        { t:"清除瓷砖背面脱模剂、充分浸砖后阴干，基层清理并用水泥基粘结材料满粘铺贴。", ok:true, fix:"清脱模剂·浸砖阴干·基层清理·水泥基粘结，正是防空鼓采分。", code:"" },
+        { t:"瓷砖干贴即可，直接上墙铺贴最省事，无需浸泡。", ok:false, code:"E10", tempt:"干贴省一道工。", lose:"未浸砖会吸走砂浆水分致空鼓，工艺违规。", fix:"须清脱模剂、充分浸砖后阴干再贴。" },
+        { t:"先铺贴上墙，再往砖缝里补浸水养护，让砖吸饱水。", ok:false, code:"E06", tempt:"以为事后补水一样。", lose:"浸砖须在铺贴前，贴后补水顺序错、无法治空鼓。", fix:"浸砖阴干在铺贴前完成。" },
+        { t:"把瓷砖浸湿就直接贴。", ok:false, code:"E03", tempt:"抓到浸砖一条。", lose:"漏了清脱模剂与浸后阴干，且未提基层与粘结材料。", fix:"补清脱模剂·阴干·基层清理·水泥基粘结材料。" }
+      ] },
+    { tag:"裂缝·收缩裂缝", typeHint:"单选 · 选出收缩裂缝成因与防治能得分的作答", figLabel:"题给：收缩裂缝成因", figCaption:"三成因 → 龟裂 → 养护闭合", fig:"shrink",
+      stem:"混凝土表面出现不规则收缩裂缝。选出成因与防治能得分的作答。",
+      model:"含泥量大、水胶比或坤落度偏大、养护不足致收缩裂缝；防治控原材料、合理配比、加强振捣、及时养护。",
+      opts:[
+        { t:"含泥量大、水胶比或坤落度偏大、养护不足致收缩裂缝；防治控原材料、合理配比、加强振捣、及时养护。", ok:true, fix:"成因三件+防治四步，养护是治根关键。", code:"" },
+        { t:"收缩裂缝是地基不均匀沉降造成的，加固地基即可解决。", ok:false, code:"E07", tempt:"把收缩裂缝当沉降裂缝。", lose:"地基沉降是另一类裂缝；收缩裂缝根在材料与养护。", fix:"成因归含泥量/水胶比/养护，非地基沉降。" },
+        { t:"收缩裂缝无需养护，抹面压光后自然干燥即可。", ok:false, code:"E10", tempt:"以为干燥就好。", lose:"养护不足正是主因，及时保湿养护是关键防治。", fix:"必须及时保湿养护，控收缩。" },
+        { t:"裂缝是材料质量差，换好材料、加强质量管理就行。", ok:false, code:"E04", tempt:"口号化好写。", lose:"没点出含泥量/水胶比坤落度/养护等采分点。", fix:"写控含泥量·水胶比坤落度·及时养护。" }
+      ] },
+    { tag:"填充墙裂缝·部位", typeHint:"单选 · 选出裂缝易发部位判断能得分的作答", figLabel:"题给：填充墙与主体交接", figCaption:"裂缝专挑哪几个部位", fig:"fillpos",
+      stem:"填充墙与主体结构交接处易开裂。选出裂缝易发部位判断能得分的作答。",
+      model:"裂缝常出现在柱边、梁底、门窗洞口处，因填充墙与主体变形不协调、刚度突变。",
+      opts:[
+        { t:"裂缝常出现在柱边、梁底、门窗洞口处，因填充墙与主体结构变形不协调、刚度突变。", ok:true, fix:"柱边/梁底/洞口三部位，是真题采分部位。", code:"" },
+        { t:"填充墙裂缝只会出现在墙体正中央大面上，与柱梁边无关。", ok:false, code:"E07", tempt:"以为大面最薄弱。", lose:"裂缝恰在柱边/梁底/洞口等约束突变处，非正中大面。", fix:"部位是柱边、梁底、门窗洞口。" },
+        { t:"裂缝就出现在梁底一处，写梁底即可。", ok:false, code:"E02", tempt:"只记一个部位。", lose:"漏了柱边与门窗洞口，采分点遗漏。", fix:"补柱边与门窗洞口两处部位。" },
+        { t:"这是抹灰层收缩裂缝，跟砌筑和主体交接没关系。", ok:false, code:"E05", tempt:"把构造裂缝当抹灰问题。", lose:"题问交接构造裂缝，归到抹灰收缩，审题偏。", fix:"是填充墙与主体变形不协调的构造裂缝。" }
+      ] },
+    { tag:"填充墙裂缝·措施数值", typeHint:"单选 · 选出带规范数值的防治措施作答", figLabel:"题给：填充墙裂缝防治措施", figCaption:"部位加数值 · 一句不能省", fig:"fillmeasure",
+      stem:"填充墙交接处裂缝的防治措施（带规范数值）。选出能得分的作答。",
+      model:"柱或墙边设间距不大于500mm的2φ6钢筋、下部墙砌完14d后砌顶半砖斜砌、洞口加强网片、窗台细石混凝土配筋。",
+      opts:[
+        { t:"柱或墙边设间距不大于500mm的2φ6钢筋、下部墙砌完14d后半砖斜砌塔顶、洞口加强网片、窗台细石混凝土配筋。", ok:true, fix:"500mm、2φ6、14d 三个数值配部位，阅卷要的就这几个。", code:"" },
+        { t:"沿墙高每隔一段设拉结钢筋，墙砌到顶后及时塞缝，洞口做好加固。", ok:false, code:"E03", tempt:"意思对但没数值。", lose:"漏了间距不大于500mm、2φ6、14d等关键数值，关键词缺失。", fix:"补间距≤500mm的2φ6、下部墙砌完14d后砌。" },
+        { t:"柱边设间距1000mm的2φ8钢筋、下部墙砌完3d后即可砌顶。", ok:false, code:"E10", tempt:"有数值、看着专业。", lose:"间距应≤500mm、钢筋2φ6、应砌完14d后砌，数值全错。", fix:"间距≤500mm、2φ6、下部墙砌完14d后砌。" },
+        { t:"先砌填充墙顶塞紧，等主体沉降后再补柱边拉结筋。", ok:false, code:"E06", tempt:"顺序颠倒。", lose:"应先砌下部墙、等14d再砌顶，拉结筋随砌随设，顺序错。", fix:"下部墙砌完14d后再半砖斜砌塔顶。" }
+      ] },
+    { tag:"渗漏·施工缝", typeHint:"单选 · 选出施工缝渗漏成因与防治能得分的作答", figLabel:"题给：地下室墙施工缝渗水", figCaption:"接榺处形成了渗水通路", fig:"jointleak",
+      stem:"地下室墙施工缝处出现渗漏。选出成因与防治能得分的作答。",
+      model:"施工缝处混凝土松散、骨料集中、接榺明显形成渗水通路；防治清理凿毛、加强浇捣密实。",
+      opts:[
+        { t:"施工缝处混凝土松散、骨料集中、接榺明显形成渗水通路；防治清理凿毛、加强浇捣密实。", ok:true, fix:"接榺松散成因+凿毛浇捣密实措施，采分齐。", code:"" },
+        { t:"施工缝渗漏直接在表面刷一道防水涂料盖住即可。", ok:false, code:"E02", tempt:"表面处理省事。", lose:"只封表面不处理接榺松散，漏凿毛与浇捣密实，治标。", fix:"补清理凿毛与加强浇捣密实。" },
+        { t:"施工缝渗漏是混凝土表面麻面造成的，按麻面涂界面剂修补。", ok:false, code:"E07", tempt:"套用麻面治理。", lose:"施工缝渗漏是接榺松散通路、非麻面缺浆，成因混淆。", fix:"按施工缝清理凿毛、浇捣密实处理。" },
+        { t:"施工缝渗漏是防水没做好，加强防水施工管理即可。", ok:false, code:"E04", tempt:"口号化好写。", lose:"没点出接榺松散成因与凿毛浇捣措施。", fix:"写清理凿毛+加强浇捣密实。" }
+      ] },
+    { tag:"渗漏·穿墙管", typeHint:"单选 · 选出穿墙管渗漏成因与防治能得分的作答", figLabel:"题给：穿墙管根部渗水", figCaption:"止水环 · 灌浆 · 加强振捣", fig:"pipeleak",
+      stem:"穿墙管根部出现渗水。选出成因与防治能得分的作答。",
+      model:"管壁未清理、无止水环、周边振捣不密实致渗漏；防治清理管壁、加强振捣、设止水环并灌浆。",
+      opts:[
+        { t:"管壁未清理、无止水环、周边混凝土振捣不密实致渗漏；防治清理管壁、加强振捣、设止水环并灌浆。", ok:true, fix:"止水环是穿墙管防水规范做法，配清管壁与灌浆。", code:"" },
+        { t:"穿墙管周边多浇点混凝土捣实就行了。", ok:false, code:"E03", tempt:"以为捣实一条够。", lose:"漏了止水环与清理管壁、灌浆等关键采分词。", fix:"补设止水环、清理管壁、灌浆。" },
+        { t:"穿墙管无需止水环，用密封胶把管根打一圈封住即可。", ok:false, code:"E10", tempt:"以为打胶能替代。", lose:"止水环是防水混凝土穿墙管的规范做法，打胶不替代。", fix:"须设止水环并灌浆，配合加强振捣。" },
+        { t:"管根渗水是收缩裂缝渗漏，按保湿养护处理即可。", ok:false, code:"E07", tempt:"套用收缩裂缝治法。", lose:"管根渗漏是节点构造问题、非本体收缩，治法不同。", fix:"按穿墙管止水环+灌浆+加强振捣处理。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 诊断三条治标作答并给出正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"三条都只写了现象→处置，到底差在哪儿", fig:"diagnose",
+      stem:"某学生对空鼓/裂缝/渗漏三问作答：①空鼓归师傅手艺、敲掉重贴；②墙裂渗水，做完防水层就行；③填充墙裂缝，抹层灰盖上。选出最准确的诊断与补写。",
+      model:"三条均为治标：空鼓应清基层·浸砖·界面剂+背砂；渗漏应保湿养护治收缩+多道设防刚柔结合、穿墙管加止水环；填充墙应设2φ6@500拉结、下部墙砌完14d后砌顶、洞口加强网片。三处都需补规范措施。",
+      opts:[
+        { t:"三条都只答了治标：空鼓应清基层浸砖界面剂背砂、渗漏应养护治收缩加多道设防、填充墙应2φ6@500加14d后砌，均需补规范措施。", ok:true, fix:"三处治标全揪出，对症补写就是上答题纸的采分句。", code:"" },
+        { t:"三条思路都对，只是写得简单些，补充点文字描述就能得满分。", ok:false, code:"E07", tempt:"以为方向对只是简略。", lose:"三条全是治标、方向就错，不是简略问题，阅卷看规范措施。", fix:"三处成因与措施都要重写，非补字数。" },
+        { t:"只有填充墙那条要补2φ6@500和14d，空鼓和渗漏两条其实没问题。", ok:false, code:"E02", tempt:"只抓到一处。", lose:"空鼓漏界面处理、渗漏漏养护与多道设防，两处也失分。", fix:"空鼓与渗漏同样要补规范措施。" },
+        { t:"空鼓补做防水层、渗漏敲掉重贴、填充墙把钢筋加密到间距200mm即可。", ok:false, code:"E10", tempt:"看似都在加措施。", lose:"措施张冠李戴且间距应≤500mm不是200mm，规范/对象错。", fix:"对症：空鼓清基层浸砖、渗漏养护+多道设防、填充塙2φ6@500。" }
+      ] }
+  ];
+  // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
+  codeMap={
+    E01:{label:"知识点缺失",advice:"空鼓不是运气，是前道工序系统性缺陷，要追基层/浸砖/界面剂。"},
+    E02:{label:"采分点遗漏",advice:"现象·成因·部位·防治四件套逐项写，缺一扣一。"},
+    E03:{label:"关键词缺失",advice:"界面剂/高一强度/养护≤7天/2φ6@500/14d 这些采分词不能漏。"},
+    E05:{label:"审题错误",advice:"先看问成因还是问部位/措施，别拿抹灰当构造、拿侧模当底模。"},
+    E06:{label:"程序顺序错误",advice:"治理先清理后浇筑、先砌下部后14d砌顶，顺序乱不得分。"},
+    E07:{label:"概念混淆",advice:"空鼓（界面）≠蜂窝（本体）；收缩裂缝≠沉降裂缝；四缺陷对号入座。"},
+    E10:{label:"规范适用错误",advice:"拆模A50/B75/C100、填充塙2φ6@500、14d、养护≤7天，数值不能错。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    // 抽题顺序与选项乱序在首帧惰性生成并缓存（ord()/optPerm()），不依赖此处 setState，
+    // 保证首屏渲染即已随机（消除"A 先出现再洗牌"的闪烁与对 componentDidMount 的依赖）。
+  }
+  // ── 随机抽题：从 Q[] 全量候选池洗牌后取前 SHOW_COUNT 条真实索引 ──
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  // ── 选项乱序：每题对 opts 独立洗牌，正确项落随机位置（防"永远选第一个/最长的"位置泄露）；重做重新洗 ──
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="defectID"){ figH=100; const d=[["麻面","#8a7a5b","密布小凹点"],["露筋","#b9a88a","钢筋外露"],["蜂窝","#6f6550","石子成堆"],["孔洞","#33302a","贯穿大洞"]];
+      d.forEach((v,i)=>{ const x=6+i*80; els.push(D({x:x,top:6,w:72,h:40,bg:v[1],r:6,fg:"#fff",fs:11,lab:v[0]})); els.push(D({x:x,top:50,w:72,h:30,fg:"#5c6469",fs:8.5,lab:v[2]})); }); }
+    else if(type==="cause"){ figH=98; const c=[["模板侧","#2f6db0","接缝漏浆·未湿润·隔离剂不匀"],["布料侧","#cf8a44","倾落过高·离析·下料过厚"],["振捣侧","#2c8a5b","漏振欠振·钢筋过密"]];
+      c.forEach((v,i)=>{ const x=6+i*106; els.push(D({x:x,top:6,w:98,h:22,bg:v[1],r:6,fg:"#fff",fs:11,lab:v[0]})); els.push(D({x:x,top:32,w:98,h:44,fg:"#5c6469",fs:9,lab:v[2],p:"0 4px"})); });
+      els.push(D({x:0,top:82,w:322,h:14,fg:"#cf4436",fs:9.5,lab:"三侧汇一处 → 混凝土密实度失效"})); }
+    else if(type==="process"){ figH=98; const p=["①清理","②支模","③湿润","④界面剂","⑤高强细石砼","⑥养护≥7d"];
+      p.forEach((v,i)=>{ const x=4+i*54; els.push(D({x:x,top:22,w:50,h:46,bg:i>=3?"#2c8a5b":"#eef3f7",bd:i>=3?"none":"1.5px solid #cdd9e2",r:7,fg:i>=3?"#fff":"#2f6db0",fs:8.5,lab:v,p:"0 2px"})); });
+      els.push(D({x:0,top:6,w:326,h:14,fg:"#cf4436",fs:9.5,lab:"顺序不能乱 · 后三步是采分关键",jc:"flex-start",ta:"left"}));
+      els.push(D({x:0,top:76,w:326,h:16,fg:"#8b9398",fs:9,lab:"普通砂浆抹平 ✕ — 强度接不上·易再裂"})); }
+    else if(type==="material"){ figH=90;
+      els.push(D({x:10,top:8,w:150,h:66,bg:"#fdf2f0",bd:"1.5px dashed #cf4436",r:8,fg:"#a3271c",fs:10,lab:"普通砂浆抹平 ✕ 强度接不上·易再裂",p:"0 8px"}));
+      els.push(D({x:172,top:8,w:150,h:66,bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",r:8,fg:"#1f6a44",fs:10,lab:"高一强度细石混凝土 ✓ 浇筑密实·养护≥7天",p:"0 8px"})); }
+    else if(type==="strength"){ figH=92;
+      els.push(D({x:10,top:6,w:300,h:16,fg:"#cf4436",fs:9.5,lab:"底模拆除：强度达门槛才能拆",jc:"flex-start",ta:"left"}));
+      els.push(D({x:10,top:28,w:300,h:20,bg:"#e6e2d4",r:6,lab:""}));
+      els.push(D({x:10,top:28,w:150,h:20,bg:"#2c8a5b",r:6,lab:""}));
+      els.push(D({x:10,top:52,w:100,h:16,fg:"#23282b",fs:9.5,lab:"\"A\"50%"}));
+      els.push(D({x:110,top:52,w:100,h:16,fg:"#23282b",fs:9.5,lab:"\"B\"75%"}));
+      els.push(D({x:210,top:52,w:100,h:16,fg:"#23282b",fs:9.5,lab:"\"C\"100%"}));
+      els.push(D({x:10,top:68,w:100,h:14,fg:"#8b9398",fs:8,lab:"板跨≤2m"}));
+      els.push(D({x:110,top:68,w:100,h:14,fg:"#8b9398",fs:8,lab:"板梁≤8m"}));
+      els.push(D({x:210,top:68,w:100,h:14,fg:"#8b9398",fs:8,lab:">8m·悬臂"})); }
+    else if(type==="demold"){ figH=94;
+      els.push(D({x:10,top:8,w:150,h:16,fg:"#cf4436",fs:10,lab:"✕ 强度未达提前拆模"}));
+      els.push(D({x:24,top:28,w:122,h:52,bg:"#b9a88a",bd:"2px solid #a1926f",r:6,fg:"#5c5348",fs:9,lab:"麻面·蜂窝·露筋·孔洞"}));
+      els.push(D({x:176,top:8,w:150,h:16,fg:"#2c8a5b",fs:10,lab:"✓ 达标再拆"}));
+      els.push(D({x:190,top:28,w:122,h:52,bg:"#c3b291",bd:"2px solid #2c8a5b",r:6,fg:"#1f6a44",fs:9,lab:"光洁面·无缺陷"})); }
+    else if(type==="hollow"){ figH=98;
+      els.push(D({x:20,top:6,w:120,h:16,fg:"#cf4436",fs:9.5,lab:"✕ 空鼓"}));
+      els.push(D({x:20,top:24,w:120,h:14,bg:"#cf8a44",r:2,fg:"#fff",fs:8,lab:"面砖"}));
+      els.push(D({x:20,top:39,w:120,h:10,bg:"#b5564a",r:1,fg:"#fff",fs:7,lab:"空气层·脱空"}));
+      els.push(D({x:20,top:50,w:120,h:22,bg:"#b9a88a",r:2,fg:"#5c5348",fs:8,lab:"基层有浮渣"}));
+      els.push(D({x:186,top:6,w:120,h:16,fg:"#2c8a5b",fs:9.5,lab:"✓ 满粘"}));
+      els.push(D({x:186,top:24,w:120,h:14,bg:"#cf8a44",r:2,fg:"#fff",fs:8,lab:"面砖"}));
+      els.push(D({x:186,top:39,w:120,h:10,bg:"#2c8a5b",r:1,fg:"#fff",fs:7,lab:"满粘无缝"}));
+      els.push(D({x:186,top:50,w:120,h:22,bg:"#c3b291",r:2,fg:"#1f6a44",fs:8,lab:"基层清理"})); }
+    else if(type==="hollowHoney"){ figH=90;
+      els.push(D({x:10,top:16,w:140,h:52,bg:"#6f6550",r:6,fg:"#efe4cf",fs:9.5,lab:"蜂窝·本体不密实（构件内）"}));
+      els.push(D({x:156,top:34,w:22,h:16,fg:"#cf8a44",fs:14,lab:"≠"}));
+      els.push(D({x:184,top:16,w:140,h:52,bg:"#8a7a5b",r:6,fg:"#efe4cf",fs:9.5,lab:"空鼓·界面脱空（贴面层）"}));
+      els.push(D({x:10,top:72,w:314,h:14,fg:"#8b9398",fs:9,lab:"本体链 ≠ 界面链，成因治法不同"})); }
+    else if(type==="tile"){ figH=92; const s=["①清脱模剂","②充分浸砖","③阴干","④满粘铺贴"];
+      s.forEach((v,i)=>{ const x=6+i*80; els.push(D({x:x,top:24,w:72,h:38,bg:i<3?"#eef3f7":"#2c8a5b",bd:i<3?"1.5px solid #cdd9e2":"none",r:7,fg:i<3?"#2f6db0":"#fff",fs:9.5,lab:v})); });
+      els.push(D({x:0,top:6,w:326,h:14,fg:"#cf4436",fs:9.5,lab:"瓷砖防空鼓：铺前处理不能省",jc:"flex-start",ta:"left"}));
+      els.push(D({x:0,top:68,w:326,h:14,fg:"#8b9398",fs:9,lab:"未浸砖直接贴 → 吸走砂浆水分 → 空鼓"})); }
+    else if(type==="shrink"){ figH=98; const c=["含泥量大","水胶比坤落度大","养护不足"];
+      c.forEach((v,i)=>{ const x=6+i*106; els.push(D({x:x,top:6,w:98,h:24,bg:"#fff",bd:"1.5px solid #ddd2bb",r:6,fg:"#5c6469",fs:9,lab:v})); });
+      els.push(D({x:60,top:38,w:200,h:32,bg:"#c3b291",r:5,fg:"#6b6250",fs:9,lab:"表面不规则龟裂"}));
+      els.push(D({x:0,top:78,w:322,h:16,fg:"#2c8a5b",fs:9.5,lab:"防治：控原材料·合理配比·加强振捣·及时养护"})); }
+    else if(type==="fillpos"){ figH=100;
+      els.push(D({x:60,top:8,w:200,h:14,bg:"#8a9296",r:2,fg:"#fff",fs:8,lab:"梁"}));
+      els.push(D({x:60,top:22,w:16,h:66,bg:"#8a9296",r:2,lab:""}));
+      els.push(D({x:244,top:22,w:16,h:66,bg:"#8a9296",r:2,lab:""}));
+      els.push(D({x:76,top:22,w:168,h:66,bg:"#c99a6a",r:0,fg:"#7a5a2a",fs:9,lab:"填充墙"}));
+      els.push(D({x:70,top:56,w:44,h:15,bg:"#fadcd6",r:4,fg:"#a3271c",fs:8,lab:"柱边"}));
+      els.push(D({x:150,top:26,w:44,h:15,bg:"#fadcd6",r:4,fg:"#a3271c",fs:8,lab:"梁底"}));
+      els.push(D({x:150,top:60,w:60,h:15,bg:"#fadcd6",r:4,fg:"#a3271c",fs:8,lab:"门窗洞口"}));
+      els.push(D({x:0,top:88,w:320,h:12,fg:"#8b9398",fs:8.5,lab:"填充墙与主体变形不协调 → 三处开裂"})); }
+    else if(type==="fillmeasure"){ figH=92; const m=[["间距≤500mm 2φ6钢筋","拉结柱墙边"],["下部墙砌完14d后砌","半砖斜砌塞顶"],["门窗洞口加强网片","窗台细石砼配筋"]];
+      m.forEach((v,i)=>{ const y=4+i*30; els.push(D({x:6,top:y,w:170,h:26,bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",r:6,fg:"#1f6a44",fs:9.5,lab:v[0],jc:"flex-start",ta:"left",p:"0 8px"})); els.push(D({x:182,top:y,w:140,h:26,fg:"#8b9398",fs:9,lab:v[1],jc:"flex-start",ta:"left"})); }); }
+    else if(type==="jointleak"){ figH=94;
+      els.push(D({x:20,top:20,w:60,h:56,bg:"#b9a88a",bd:"1px solid #a1926f",r:3,lab:""}));
+      els.push(D({x:20,top:44,w:60,h:5,bg:"#7a6d54",lab:""}));
+      els.push(D({x:82,top:40,w:10,h:14,bg:"#3a5168",r:2,lab:""}));
+      els.push(D({x:100,top:12,w:220,h:14,fg:"#cf4436",fs:9.5,lab:"施工缝松散·接榺明显",jc:"flex-start",ta:"left"}));
+      els.push(D({x:100,top:40,w:220,h:34,bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",r:7,fg:"#1f6a44",fs:9.5,lab:"清理凿毛 + 加强浇捣密实",jc:"flex-start",ta:"left",p:"0 8px"})); }
+    else if(type==="pipeleak"){ figH=94;
+      els.push(D({x:20,top:20,w:60,h:56,bg:"#b9a88a",bd:"1px solid #a1926f",r:3,lab:""}));
+      els.push(D({x:44,top:40,w:40,h:14,bg:"#8a9296",r:2,fg:"#fff",fs:7,lab:"管"}));
+      els.push(D({x:56,top:34,w:14,h:26,bg:"transparent",bd:"2px solid #2c8a5b",r:2,lab:""}));
+      els.push(D({x:100,top:12,w:220,h:14,fg:"#cf4436",fs:9.5,lab:"穿墙管无止水环 → 管根渗",jc:"flex-start",ta:"left"}));
+      els.push(D({x:100,top:40,w:220,h:34,bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",r:7,fg:"#1f6a44",fs:9.5,lab:"清管壁 + 设止水环 + 灌浆",jc:"flex-start",ta:"left",p:"0 8px"})); }
+    else if(type==="diagnose"){ figH=98; const lines=["① 空鼓？师傅手艺问题，敲掉重贴","② 墙裂渗水，做完防水层就行","③ 填充墙裂缝，抹层灰盖上"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

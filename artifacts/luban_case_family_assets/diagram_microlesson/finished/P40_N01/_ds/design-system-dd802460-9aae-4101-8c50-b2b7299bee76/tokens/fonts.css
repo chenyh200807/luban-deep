@@ -1,0 +1,4 @@
+/* Webfonts — loaded from Google Fonts CDN (the templates load the same
+   link directly in their <helmet>). Noto Sans SC = body/UI. Long Cang =
+   handwritten chops ONLY (鲁/师/生 avatars, poster wordmark) — never body. */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap");

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cf4436"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="34" font-weight="900" text-anchor="middle" fill="#cf4436">鲁</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" ref="{{ phoneRef }}" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 深母题动画学习卡</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">{{ examTitle }}</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">{{ examCode }}<br/><span style="color:#cf8a44;">{{ examCat }}</span></div>
+    </div>
+
+    <!-- STAGE -->
+    <div style="position:relative;width:100%;height:462px;background:#f4f3ec;background-image:radial-gradient(#e4e2d7 0.7px,transparent 0.7px);background-size:18px 18px;overflow:hidden;">
+
+      <div style="position:absolute;top:9px;left:82px;right:82px;z-index:40;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(35,40,43,.92);color:#fbf7ea;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.18);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        <span style="color:#ffd24a;font-size:9px;flex:none;">●</span><span style="overflow:hidden;text-overflow:ellipsis;min-width:0;">{{ curKeycard }}</span>
+      </div>
+      <button onClick="{{ fullscreen }}" title="全屏" style="position:absolute;top:8px;right:10px;z-index:41;width:30px;height:30px;border-radius:8px;border:none;background:rgba(35,40,43,.82);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      <button onClick="{{ toggleMute }}" title="旁白朗读开关" style="position:absolute;top:8px;left:10px;z-index:41;height:30px;padding:0 11px;border-radius:15px;border:none;background:{{ narrBg }};color:{{ narrFg }};font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,.18);">{{ narrLabel }}</button>
+
+      <!-- POSTER -->
+      <div onClick="{{ toggle }}" style="position:absolute;inset:0;z-index:36;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:{{ posterO }};pointer-events:{{ posterPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:80px;height:auto;display:block;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;margin-top:8px;">鲁班智考</div>
+        <div style="font-size:17px;font-weight:900;color:#23282b;margin-top:10px;">{{ examTitle }}</div>
+        <div style="font-size:11px;color:#8b9398;margin-top:4px;font-weight:600;">{{ posterSub }}</div>
+        <div style="margin-top:22px;width:60px;height:60px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 6px 18px rgba(207,68,54,.35);">▶</div>
+        <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
+      </div>
+
+      <!-- ░░ BEAT 0 · 破误区：连墙件可有可无 / 从下往上拆 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(180deg,transparent,#e9e7da);opacity:{{ p0_siteO }};"></div>
+        <div style="position:absolute;left:0;right:0;top:280px;opacity:{{ p0_siteO }};transform:translateY({{ p0_siteY }}px);">
+          <div style="position:absolute;left:150px;top:6px;width:112px;height:7px;background:#cf8a44;border-radius:2px;"></div>
+          <div style="position:absolute;left:154px;top:13px;width:3px;height:52px;background:#6b7378;"></div>
+          <div style="position:absolute;left:179px;top:13px;width:3px;height:52px;background:#6b7378;"></div>
+          <div style="position:absolute;left:204px;top:13px;width:3px;height:52px;background:#6b7378;"></div>
+          <div style="position:absolute;left:229px;top:13px;width:3px;height:52px;background:#6b7378;"></div>
+          <div style="position:absolute;left:254px;top:13px;width:3px;height:52px;background:#6b7378;"></div>
+          <div style="position:absolute;left:154px;top:26px;width:103px;height:2.5px;background:#7f888d;"></div>
+          <div style="position:absolute;left:154px;top:50px;width:103px;height:2.5px;background:#7f888d;"></div>
+          <div style="position:absolute;left:130px;top:74px;background:#f4f3ec;border:1px solid #d8d2c0;border-radius:7px;padding:3px 10px;font-size:10px;font-weight:800;color:#5c6469;white-space:nowrap;">脚手架 · 搭设 / 拆除</div>
+        </div>
+        <div style="position:absolute;left:24px;top:50px;width:262px;background:#fff;border:2.5px solid #cf4436;border-radius:15px;padding:11px 14px;font-size:13.5px;font-weight:700;color:#23282b;line-height:1.4;box-shadow:3px 3px 0 rgba(207,68,54,.16);opacity:{{ p0_b1o }};transform:scale({{ p0_b1s }});transform-origin:20% 100%;">「连墙件？拿钢筋柔性拉一下就得了」
+          <div style="position:absolute;left:30px;bottom:-11px;width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:12px solid #cf4436;"></div>
+        </div>
+        <div style="position:absolute;left:64px;top:128px;width:262px;background:#fff;border:2.5px solid #cf8a44;border-radius:15px;padding:11px 14px;font-size:13.5px;font-weight:700;color:#23282b;line-height:1.4;box-shadow:3px 3px 0 rgba(207,138,68,.18);opacity:{{ p0_b2o }};transform:scale({{ p0_b2s }});transform-origin:75% 100%;">「拆架从下往上、先拆连墙件腾地方」
+          <div style="position:absolute;right:34px;bottom:-11px;width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:12px solid #cf8a44;"></div>
+        </div>
+        <div style="position:absolute;left:132px;top:200px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 13px;font-size:22px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ p0_so }};transform:scale({{ p0_ss }}) rotate(-12deg);">误区 ✕</div>
+      </div>
+
+      <!-- ░░ BEAT 1 · 搭设找违规 · 三处硬伤 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
+        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">搭设找违规 · 三处硬伤</div>
+        <!-- 脚手架剪影 -->
+        <div style="position:absolute;opacity:{{ g_frameO }};">
+          <div style="position:absolute;left:70px;top:76px;width:4px;height:226px;background:#6b7378;"></div>
+          <div style="position:absolute;left:150px;top:76px;width:4px;height:226px;background:#6b7378;"></div>
+          <div style="position:absolute;left:70px;top:96px;width:84px;height:3px;background:#7f888d;"></div>
+          <div style="position:absolute;left:70px;top:150px;width:84px;height:3px;background:#7f888d;"></div>
+          <div style="position:absolute;left:70px;top:204px;width:84px;height:3px;background:#7f888d;"></div>
+          <div style="position:absolute;left:70px;top:284px;width:84px;height:3px;background:#cf8a44;"></div>
+          <div style="position:absolute;left:60px;top:304px;width:104px;height:2.5px;background:#bdb8a8;border-radius:2px;"></div>
+          <div style="position:absolute;left:100px;top:170px;width:18px;height:18px;border-radius:50%;background:#cf4436;color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;">✕</div>
+          <div style="position:absolute;left:100px;top:78px;width:18px;height:18px;border-radius:50%;background:#cf4436;color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;">✕</div>
+          <div style="position:absolute;left:100px;top:270px;width:18px;height:18px;border-radius:50%;background:#cf4436;color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;">✕</div>
+        </div>
+        <!-- 三处违规卡 -->
+        <div style="position:absolute;left:186px;top:80px;width:190px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #cf4436;border-radius:9px;padding:8px 11px;opacity:{{ g_c0 }};"><div style="font-size:12px;font-weight:800;color:#23282b;">立杆步距 2.3m <span style="color:#cf4436;">✕</span></div><div style="font-size:10.5px;color:#227a4c;font-weight:700;margin-top:1px;">应 ≤ 2m</div></div>
+        <div style="position:absolute;left:186px;top:156px;width:190px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #cf4436;border-radius:9px;padding:8px 11px;opacity:{{ g_c1 }};"><div style="font-size:12px;font-weight:800;color:#23282b;">一次搭设自由高 5m <span style="color:#cf4436;">✕</span></div><div style="font-size:10.5px;color:#227a4c;font-weight:700;margin-top:1px;">应 ≤ 4m（≤最上连墙件上 2 步）</div></div>
+        <div style="position:absolute;left:186px;top:246px;width:190px;background:#fff;border:1.5px solid #ddd2bb;border-left:5px solid #cf4436;border-radius:9px;padding:8px 11px;opacity:{{ g_c2 }};"><div style="font-size:12px;font-weight:800;color:#23282b;">纵向扫地杆 350mm <span style="color:#cf4436;">✕</span></div><div style="font-size:10.5px;color:#227a4c;font-weight:700;margin-top:1px;">距底端应 ≤ 200mm</div></div>
+      </div>
+
+      <!-- ░░ BEAT 2 · 连墙件 · 刚性 vs 柔性 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
+        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">连墙件 · 抗倾覆受力构件，必须刚性</div>
+        <div style="position:absolute;opacity:{{ w_wallO }};">
+          <!-- 主体结构墙 -->
+          <div style="position:absolute;left:300px;top:70px;width:16px;height:230px;background:#b08968;border-radius:2px;"></div>
+          <div style="position:absolute;left:300px;top:120px;width:16px;height:2px;background:#8f6b4e;"></div>
+          <div style="position:absolute;left:300px;top:190px;width:16px;height:2px;background:#8f6b4e;"></div>
+          <div style="position:absolute;left:300px;top:260px;width:16px;height:2px;background:#8f6b4e;"></div>
+          <div style="position:absolute;left:286px;top:58px;font-size:9px;font-weight:800;color:#8f6b4e;white-space:nowrap;">主体结构</div>
+          <!-- 脚手架立杆 -->
+          <div style="position:absolute;left:64px;top:70px;width:4px;height:230px;background:#6b7378;"></div>
+          <div style="position:absolute;left:104px;top:70px;width:4px;height:230px;background:#6b7378;"></div>
+          <div style="position:absolute;left:52px;top:58px;font-size:9px;font-weight:800;color:#6b7378;white-space:nowrap;">脚手架</div>
+        </div>
+        <!-- 刚性连墙件① -->
+        <div style="position:absolute;left:108px;top:112px;width:192px;height:7px;background:#2c8a5b;border-radius:2px;opacity:{{ w_r0 }};"></div>
+        <div style="position:absolute;left:150px;top:92px;background:#f0f8f3;border:1px solid #cfe4d7;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:800;color:#227a4c;opacity:{{ w_r0 }};">刚性连墙件 ✓</div>
+        <!-- 柔性钢筋② ✕ -->
+        <div style="position:absolute;left:108px;top:182px;width:192px;height:0;border-top:3px dashed #cf4436;opacity:{{ w_r1 }};"></div>
+        <div style="position:absolute;left:150px;top:190px;background:#fdf2f0;border:1px solid #ecccc6;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ w_r1 }};">柔性钢筋 ✕ 严禁</div>
+        <!-- 刚性连墙件③ -->
+        <div style="position:absolute;left:108px;top:252px;width:192px;height:7px;background:#2c8a5b;border-radius:2px;opacity:{{ w_r2 }};"></div>
+        <div style="position:absolute;left:150px;top:262px;background:#f0f8f3;border:1px solid #cfe4d7;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:800;color:#227a4c;opacity:{{ w_r2 }};">刚性连墙件 ✓</div>
+        <!-- 间距 legend -->
+        <div style="position:absolute;left:16px;right:16px;top:314px;text-align:center;font-size:11px;font-weight:800;color:#cf8a44;opacity:{{ w_note }};">间距 水平≤3跨·竖向≤3步·≤4m · 24m以上双排必刚性 · 缺失=重大隐患</div>
+      </div>
+
+      <!-- ░░ BEAT 3 · 剪刀撑 + 高宽比 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
+        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">剪刀撑 45~60° · 支撑架高宽比 ≤ 3.0</div>
+        <!-- 左：剪刀撑架面 -->
+        <div style="position:absolute;opacity:{{ x_frameO }};">
+          <div style="position:absolute;left:44px;top:88px;width:4px;height:192px;background:#6b7378;"></div>
+          <div style="position:absolute;left:186px;top:88px;width:4px;height:192px;background:#6b7378;"></div>
+          <div style="position:absolute;left:44px;top:88px;width:146px;height:3px;background:#7f888d;"></div>
+          <div style="position:absolute;left:44px;top:182px;width:146px;height:3px;background:#7f888d;"></div>
+          <div style="position:absolute;left:44px;top:278px;width:146px;height:3px;background:#7f888d;"></div>
+        </div>
+        <div style="position:absolute;left:112px;top:184px;width:236px;height:5px;background:#cf4436;border-radius:2px;transform:rotate(-52deg);transform-origin:50% 50%;margin-left:-118px;margin-top:-2px;opacity:{{ x_braceO }};"></div>
+        <div style="position:absolute;left:112px;top:184px;width:236px;height:5px;background:#cf4436;border-radius:2px;transform:rotate(52deg);transform-origin:50% 50%;margin-left:-118px;margin-top:-2px;opacity:{{ x_braceO }};"></div>
+        <div style="position:absolute;left:78px;top:250px;background:#fdf2f0;border:1px solid #ecccc6;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ x_angleO }};">45°~60°</div>
+        <div style="position:absolute;left:44px;top:290px;width:146px;text-align:center;font-size:10px;font-weight:800;color:#5c6469;opacity:{{ x_angleO }};">宽 6~9m（4~6跨）</div>
+        <!-- 右：高宽比 -->
+        <div style="position:absolute;left:244px;top:96px;width:56px;height:184px;border:2.5px solid #2f6db0;border-radius:4px;background:rgba(47,109,176,.06);opacity:{{ x_ratioO }};"></div>
+        <div style="position:absolute;left:306px;top:96px;font-size:9px;font-weight:800;color:#2f6db0;opacity:{{ x_ratioO }};">H</div>
+        <div style="position:absolute;left:244px;top:284px;width:56px;text-align:center;font-size:9px;font-weight:800;color:#2f6db0;opacity:{{ x_ratioO }};">B</div>
+        <div style="position:absolute;left:232px;top:60px;width:96px;text-align:center;font-size:12px;font-weight:900;color:#2f6db0;opacity:{{ x_ratioO }};">H / B ≤ 3.0</div>
+      </div>
+
+      <!-- ░░ BEAT 4 · 缺连墙件 → 倾覆 物理演示 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
+        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">缺刚性连墙件 → 整架侧倾倾覆</div>
+        <div style="position:absolute;left:60px;top:300px;width:280px;height:2.5px;background:#bdb8a8;border-radius:2px;opacity:{{ c_frameO }};"></div>
+        <!-- 倾倒架体（绕底左旋转）-->
+        <div style="position:absolute;left:120px;top:96px;width:110px;height:204px;transform-origin:0% 100%;transform:rotate({{ c_rot }}deg);opacity:{{ c_frameO }};">
+          <div style="position:absolute;left:0;top:0;width:4px;height:204px;background:#6b7378;"></div>
+          <div style="position:absolute;left:106px;top:0;width:4px;height:204px;background:#6b7378;"></div>
+          <div style="position:absolute;left:0;top:8px;width:110px;height:3px;background:#7f888d;"></div>
+          <div style="position:absolute;left:0;top:68px;width:110px;height:3px;background:#7f888d;"></div>
+          <div style="position:absolute;left:0;top:132px;width:110px;height:3px;background:#7f888d;"></div>
+          <div style="position:absolute;left:0;top:196px;width:110px;height:3px;background:#7f888d;"></div>
+        </div>
+        <!-- 侧向力箭头 -->
+        <div style="position:absolute;left:52px;top:150px;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ c_arrowO }};">侧向力 →</div>
+        <div style="position:absolute;left:52px;top:168px;width:56px;height:4px;background:#cf4436;border-radius:2px;opacity:{{ c_arrowO }};"></div>
+        <!-- 连墙件缺失 flag -->
+        <div style="position:absolute;left:238px;top:150px;background:#fdf2f0;border:1px solid #ecccc6;border-radius:7px;padding:3px 9px;font-size:10px;font-weight:800;color:#cf4436;opacity:{{ c_arrowO }};">连墙件 缺失 ✕</div>
+        <div style="position:absolute;left:50%;top:316px;transform:translateX(-50%);background:#cf4436;color:#fff;font-size:13px;font-weight:900;padding:6px 15px;border-radius:11px;box-shadow:3px 3px 0 rgba(207,68,54,.22);white-space:nowrap;opacity:{{ c_labO }};">整架倾覆 · 重大事故隐患</div>
+        <div style="position:absolute;left:50%;top:352px;transform:translateX(-50%) scale({{ c_stampS }}) rotate(-8deg);color:#cf4436;border:3px solid #cf4436;border-radius:9px;padding:1px 10px;font-size:11px;font-weight:900;opacity:{{ c_stampO }};white-space:nowrap;">防倾覆失效</div>
+      </div>
+
+      <!-- ░░ BEAT 5 · 拆除顺序：自上而下·先外后内·连墙件随层拆 ░░ -->
+      <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
+        <div style="position:absolute;left:16px;top:40px;font-size:12px;font-weight:900;color:#23282b;">拆除：自上而下 · 先外后内 · 连墙件随层拆</div>
+        <div style="position:absolute;left:20px;top:70px;font-size:10px;font-weight:800;color:#cf8a44;">↓ 拆除方向</div>
+        <!-- 三层 -->
+        <div style="position:absolute;left:56px;top:92px;width:288px;height:44px;opacity:{{ r_top }};">
+          <div style="position:absolute;left:0;top:11px;width:22px;height:22px;border-radius:50%;background:#cf4436;color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;">1</div>
+          <div style="position:absolute;left:32px;top:8px;width:120px;height:28px;background:#c99a5b;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">外层</div>
+          <div style="position:absolute;left:156px;top:8px;width:96px;height:28px;background:#2f6db0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">内层</div>
+          <div style="position:absolute;left:262px;top:12px;width:20px;height:20px;border-radius:4px;background:#2c8a5b;color:#fff;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;">连墙</div>
+        </div>
+        <div style="position:absolute;left:56px;top:152px;width:288px;height:44px;opacity:{{ r_mid }};">
+          <div style="position:absolute;left:0;top:11px;width:22px;height:22px;border-radius:50%;background:#cf8a44;color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;">2</div>
+          <div style="position:absolute;left:32px;top:8px;width:120px;height:28px;background:#c99a5b;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">外层</div>
+          <div style="position:absolute;left:156px;top:8px;width:96px;height:28px;background:#2f6db0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">内层</div>
+          <div style="position:absolute;left:262px;top:12px;width:20px;height:20px;border-radius:4px;background:#2c8a5b;color:#fff;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;">连墙</div>
+        </div>
+        <div style="position:absolute;left:56px;top:212px;width:288px;height:44px;opacity:{{ r_bot }};">
+          <div style="position:absolute;left:0;top:11px;width:22px;height:22px;border-radius:50%;background:#2c8a5b;color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;">3</div>
+          <div style="position:absolute;left:32px;top:8px;width:120px;height:28px;background:#c99a5b;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">外层</div>
+          <div style="position:absolute;left:156px;top:8px;width:96px;height:28px;background:#2f6db0;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">内层</div>
+          <div style="position:absolute;left:262px;top:12px;width:20px;height:20px;border-radius:4px;background:#2c8a5b;color:#fff;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;">连墙</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;top:272px;text-align:center;font-size:11.5px;font-weight:800;color:#cf4436;opacity:{{ r_wrong }};">✕ 从下往上 · ✕ 先整层拆连墙件（架体变悬臂侧倒）</div>
+      </div>
+
+      <!-- ░░ QA 场景 ░░ -->
+      <div style="position:absolute;inset:0;padding:44px 14px 16px;display:flex;flex-direction:column;opacity:{{ qaLayerO }};transition:opacity .4s ease;pointer-events:{{ qaLayerPE }};">
+        <div style="align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:300px;opacity:{{ qa_so }};transform:translateX({{ qa_sx }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#2f6db0;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(47,109,176,.2);">生</div>
+          <div style="background:#fff;border:1.5px solid #c9d8e6;border-radius:13px 13px 13px 4px;padding:9px 12px;font-size:13px;color:#23282b;line-height:1.5;font-weight:600;box-shadow:2px 2px 0 rgba(35,40,43,.06);">{{ qaQ }}</div>
+        </div>
+        <div style="align-self:flex-end;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;max-width:344px;margin-top:14px;opacity:{{ qa_to }};transform:translateY({{ qa_ty }}px);">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;box-shadow:2px 2px 0 rgba(207,68,54,.2);">师</div>
+          <div style="background:#2b2620;border-radius:13px 13px 4px 13px;padding:10px 13px;font-size:12.5px;color:#f1e6cf;line-height:1.55;font-weight:500;box-shadow:2px 2px 0 rgba(35,40,43,.12);min-width:248px;">
+            <div>{{ qaA }}</div>
+            <div style="margin-top:9px;background:#1b1814;border:1px solid #3a3127;border-radius:9px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:800;color:#a8997a;letter-spacing:1px;margin-bottom:5px;">{{ qaFigLabel }}</div>
+              <div style="position:relative;height:{{ qaFigH }}px;">
+                <sc-for list="{{ qaFigEls }}" as="e" hint-placeholder-count="5">
+                  <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.1;">{{ e.lab }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+          <sc-for list="{{ qaDots }}" as="d" hint-placeholder-count="4">
+            <button onClick="{{ d.onClick }}" style="border:none;cursor:pointer;width:{{ d.w }};height:8px;border-radius:4px;background:{{ d.bg }};padding:0;transition:all .2s ease;"></button>
+          </sc-for>
+          <button onClick="{{ openAsk }}" style="margin-left:6px;border:1.5px solid #cf4436;background:rgba(207,68,54,.1);color:#cf4436;border-radius:14px;padding:5px 11px;font-size:10px;font-weight:800;cursor:pointer;">接着问</button>
+        </div>
+      </div>
+
+      <!-- CAPTION -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(24,27,30,0),#181b1e 38%);padding:30px 16px 12px;z-index:30;opacity:{{ captionO }};pointer-events:{{ captionPE }};transition:opacity .3s ease;">
+        <div style="background:#23282b;border-radius:12px;padding:11px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">师</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:1.5px;color:#7f8a8f;font-weight:700;margin-bottom:2px;">老师旁白 · longanhuan_v3{{ captionPage }}</div>
+            <div style="font-size:12.5px;color:#f1efe8;line-height:1.5;font-weight:500;">{{ caption }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- ░░ 收官 END-SCREEN ░░ -->
+      <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">中集 · 唠完了</div>
+        <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
+          <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">搭设盯三个数、连墙件必刚性、剪刀撑配高宽比、拆除自上而下连墙件随层拆——这几处案例最爱设违规。写清数值和顺序，采分一句不落。</div>
+        </div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">步距≤2m · 自由高≤4m(≤2步) · 扫地杆≤200mm</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">连墙件必刚性 · 水平≤3跨/竖向≤3步/≤4m</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">剪刀撑45~60°/6~9m · 高宽比≤3.0</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">拆除：自上而下·先外后内·连墙件随层拆</div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:7px;flex-wrap:wrap;justify-content:center;">
+          <a href="P40_S01.teach.up.dc.html" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 13px;font-size:12px;font-weight:800;color:#5c6469;text-decoration:none;display:flex;align-items:center;">上一集 · 上</a>
+          <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 13px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
+          <a href="P40_S01.practice.middle.dc.html" style="border:none;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
+          <a href="P40_S01.teach.down.dc.html" style="border:1.5px solid #cf8a44;border-radius:11px;padding:9px 13px;font-size:12px;font-weight:900;color:#a9762a;text-decoration:none;display:flex;align-items:center;">下一集 · 下</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div style="background:#181b1e;padding:12px 16px 18px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:50%;border:none;background:#cf4436;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ playIcon }}</button>
+        <div style="flex:1;">
+          <input type="range" min="0" max="{{ durSec }}" step="0.1" value="{{ t }}" onChange="{{ seek }}" onInput="{{ seek }}" style="width:100%;accent-color:#cf4436;cursor:pointer;height:4px;"/>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:#7f8a8f;margin-top:3px;font-variant-numeric:tabular-nums;">
+            <span>{{ tLabel }}</span><span>{{ curTitle }}</span><span>{{ totalLabel }}</span>
+          </div>
+        </div>
+        <button onClick="{{ fullscreen }}" title="全屏" style="flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #3a4046;background:#23282b;color:#cdd2d5;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;">{{ fsIcon }}</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:11px;">
+        <sc-for list="{{ beatChips }}" as="c" hint-placeholder-count="6">
+          <button onClick="{{ c.onClick }}" style="flex:{{ c.flex }};border:none;border-radius:7px;padding:7px 1px;cursor:pointer;font-size:8.5px;font-weight:800;line-height:1.2;background:{{ c.bg }};color:{{ c.fg }};">
+            <div style="font-size:10px;">{{ c.num }}</div>{{ c.label }}
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:11px;">
+        <div style="flex:none;width:50px;font-size:10px;font-weight:800;color:#7f8a8f;line-height:1.3;">本考点<br/>分 3 集</div>
+        <a href="P40_S01.teach.up.dc.html" style="flex:1;text-align:center;border-radius:12px;padding:12px 4px;font-size:13.5px;font-weight:900;background:#23282b;color:#cdd2d5;text-decoration:none;">上集</a>
+        <div style="flex:1;text-align:center;border-radius:12px;padding:12px 4px;font-size:13.5px;font-weight:900;background:#cf4436;color:#fff;box-shadow:0 3px 12px rgba(207,68,54,.28);">中集 · 当前</div>
+        <a href="P40_S01.teach.down.dc.html" style="flex:1;text-align:center;border-radius:12px;padding:12px 4px;font-size:13.5px;font-weight:900;background:#23282b;color:#cdd2d5;text-decoration:none;">下集</a>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:11px;">
+        <button onClick="{{ openAsk }}" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:linear-gradient(90deg,#cf4436,#c9683e);color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(207,68,54,.28);">问追AI</button>
+        <a href="P40_S01.practice.middle.dc.html" style="flex:1;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:900;cursor:pointer;background:#2c8a5b;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(44,138,91,.28);text-decoration:none;">做练习</a>
+      </div>
+    </div>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 追问</div><div style="font-size:9px;color:#8b9398;font-weight:600;">就「{{ examTitle }}」这道考点问，老师按采分点答</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道考点问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ═══ 鲁班 S01 · 讲解（中集）· 搭设构造 + 失稳倾覆 · 骨架同母版 ═══ */
+class Component extends DCLogic {
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, muted:false };
+  audioBase="audio/middle/";
+  audioVersion="20260713161522";
+  DUR = 229.992;
+  examTitle="搭设构造与失稳倾覆"; examCode="S01 · 中"; examCat="安全 · 搭设/拆除";
+  posterSub="搭设找违规 · 连墙件 · 剪刀撑 · 倾覆 · 拆除顺序"; posterMeta="点击播放 · 6 幕精讲 + 4 追问 · 约 5 分钟";
+  KNOWLEDGE="脚手架 · 搭设构造与失稳倾覆（中集）。搭设硬阈值：立杆步距≤2m；纵向扫地杆距底端≤200mm、横向在纵向下方；一次搭设≤最上层连墙件以上2步、自由高度≤4m；可调底座/托撑螺杆插入≥150mm、伸出受限。连墙件：必须刚性，严禁仅用钢筋柔性连墙件；间距水平≤3跨、竖向≤3步、竖向≤4m；24m以上双排架必须刚性连墙件；缺连墙件=脚手架重大事故隐患。剪刀撑：倾角45~60°、一道跨4~6跨/宽6~9m、24m分界。支撑脚手架独立架体高宽比≤3.0（防整体倾覆）。拆除作业：自上而下、先外后内、逐层同步、严禁上下交叉；连墙件随架体逐层同步拆、严禁提前整层拆（否则架体变悬臂侧倒）。常见失分：连墙件当可有可无/用柔性钢筋(E01/E07)、拆除凭「从下往上」直觉(E06)、步距/扫地杆/自由高数值记混(M08)。";
+    beats=[["b0",0.0,16.076,"破误区"],["b1",16.076,41.2,"搭设违规"],["b2",41.2,60.756,"连墙件"],["b3",60.756,84.296,"剪刀撑"],["b4",84.296,102.412,"倾覆"],["b5",102.412,127.296,"拆除序"],["q0",127.296,154.452,"问答"],["q1",154.452,180.264,"问答"],["q2",180.264,204.348,"问答"],["q3",204.348,229.992,"问答"]];
+  keycards=[
+    "连墙件≠软拉绳；拆架≠从下往上，俩坑先划掉",
+    "步距≤2m · 自由高≤4m(≤2步) · 扫地杆≤200mm",
+    "连墙件必刚性 · 水平≤3跨/竖向≤3步/≤4m · 缺失=重大隐患",
+    "剪刀撑45~60°/宽6~9m · 支撑架高宽比≤3.0",
+    "缺刚性连墙件 → 整架侧倾倾覆 = 重大隐患",
+    "拆除：自上而下 · 先外后内 · 连墙件随层拆"
+  ];
+  narr=[
+    "接着上集唠搭设和拆除。俩老误区：一个把连墙件当可有可无、拿根钢筋柔性一拉；一个拆架图省事、从下往上、先把连墙件拆了腾地方。注意哈，这俩最爱在案例里丢分，先划掉。",
+    "先看搭设找违规，这架子三处硬伤：立杆步距 2 米 3，超了——步距必须不大于 2 米；一次搭设自由高度 5 米，超了——一次搭设不超过最上层连墙件以上 2 步、自由高度不超过 4 米；纵向扫地杆离底端 350，超了——距底端不大于 200 毫米。数字卡这儿，一处一分。",
+    "再看连墙件——它不是软拉绳，是抗倾覆的受力构件。必须刚性，严禁只用钢筋柔性连；间距水平不超 3 跨、竖向不超 3 步、竖向不大于 4 米；24 米以上的双排架，必须刚性连墙件。缺连墙件，直接算重大事故隐患。",
+    "光有连墙件还不够，得配剪刀撑增加抗侧刚度：倾角 45 到 60 度，一道剪刀撑跨 4 到 6 跨、宽 6 到 9 米，24 米是分界。再看整体，支撑脚手架独立架体高宽比不大于 3——高宽比一大，重心高、抗倾覆力矩小，整架容易翻。",
+    "缺了连墙件会咋样？看——高架体没了侧向锚固，一阵侧向力，架子先晃、后倾，整架翻过去。规范把连墙件缺失、防倾覆失效列成重大事故隐患，就是这道理。刚性连墙件在，架子才锚得住。",
+    "最后是拆除，顺序跟直觉相反：自上而下、先外后内、逐层同步，严禁上下同时交叉；连墙件随架体逐层同步拆，绝不能先把连墙件整层拆了腾地方——那一拆，架体立马变悬臂、拆着拆着就侧倒。写「自上而下、先外后内、连墙件随层拆」，这几分稳了。"
+  ];
+  qa=[
+    { figLabel:"连墙件 · 刚性 ✓ / 柔性钢筋 ✕", fig:"tie", q:"老师，连墙件我拿钢筋绑一下算不算数啊？看着也拉住了。", a:"不算数哈。连墙件是抗倾覆的受力构件，得刚性、能承压又能承拉，严禁只用钢筋柔性连；间距水平不超 3 跨、竖向不超 3 步、竖向不大于 4 米，24 米以上双排架必须刚性。缺了它，直接算重大事故隐患。别拿软钢筋糊弄。" },
+    { figLabel:"步距≤2m · 扫地杆≤200mm · 自由高≤4m", fig:"dims", q:"搭设那几个数我老记混，步距、扫地杆、自由高到底多少啊？", a:"钉死场景记：立杆步距不大于 2 米；纵向扫地杆距底端不大于 200 毫米、横向在纵向下方；一次搭设不超过最上层连墙件以上 2 步、自由高度不超过 4 米。案例辨错就盯这三个数，超一点就是违规。" },
+    { figLabel:"自上而下 · 先外后内 · 连墙件随层拆", fig:"teardown", q:"拆架我总想从底下先拆，咋还错了呢？", a:"拆是搭的逆着来，但不是从底拆。自上而下、先外后内、逐层同步，严禁上下交叉；连墙件随架体逐层同步拆，绝不能先整层拆连墙件腾地方——一拆架体变悬臂，准侧倒。方向记反，案例整问都丢。" },
+    { figLabel:"剪刀撑 45~60° · 高宽比 ≤ 3.0", fig:"brace", q:"剪刀撑和高宽比那几个数也说说呗？", a:"剪刀撑倾角 45 到 60 度，一道跨 4 到 6 跨、宽 6 到 9 米；支撑脚手架独立架体高宽比不大于 3。剪刀撑管抗侧刚度、高宽比管抗倾覆，俩一块儿把架子稳住。数记牢，构造题不丢。" }
+  ];
+  askPresets=["连墙件为啥必须刚性？","搭设三个数怎么记不混？","拆除顺序为啥不能从下往上？"];
+
+  componentDidMount(){
+    this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    if(!document.getElementById('lz-fs-style')){ var s=document.createElement('style'); s.id='lz-fs-style';
+      s.textContent='body.luban-fs .lz-card{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;width:100%!important;max-width:100%!important;height:100vh!important;overflow-y:auto!important;z-index:9999!important;box-shadow:none!important}body.luban-fs{overflow:hidden}';
+      document.head.appendChild(s); }
+  }
+  componentWillUnmount(){ this._dead=true; if(this._raf)cancelAnimationFrame(this._raf); this.stopSpeak(); }
+  speechText(ai){ if(ai<this.narr.length) return this.narr[ai]; const it=this.qa[ai-this.narr.length]; return it?(it.q+"。"+it.a):""; }
+  pickZhVoice(){ try{ const sy=window.speechSynthesis; if(!sy)return null; const vs=sy.getVoices()||[]; return vs.find(v=>/zh|Chinese|中文|普通话/i.test((v.lang||"")+(v.name||"")))||null; }catch(e){ return null; } }
+  webSpeak(text){ try{ const sy=window.speechSynthesis; if(!sy||!text)return; sy.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="zh-CN"; u.rate=1.0; const v=this.pickZhVoice(); if(v)u.voice=v; this._utter=u; sy.speak(u); }catch(e){} }
+  stopSpeak(){ try{ if(this._audio){ this._audio.pause(); this._audio=null; } }catch(e){} try{ if(window.speechSynthesis) window.speechSynthesis.cancel(); }catch(e){} }
+  speakBeat(ai){ this.stopSpeak(); this._audioStarted=false; if(this.state.muted)return; if(ai==null||!this.beats[ai])return; const text=this.speechText(ai); if(!text)return; const id=this.beats[ai][0]; let used=false; try{ const a=new Audio(this.audioBase+id+".mp3?v="+this.audioVersion); a.preload="auto"; this._audio=a; a.addEventListener("error",()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); a.addEventListener("playing",()=>{ used=true;this._audioStarted=true; }); a.addEventListener("ended",()=>{ this._audioStarted=false; }); const p=a.play(); if(p&&p.catch)p.catch(()=>{ if(!used){used=true;this._audioStarted=false;this._audio=null;this.webSpeak(text);} }); }catch(e){ this._audioStarted=false;this.webSpeak(text); } }
+  setSpeechPaused(p){ try{ if(this._audio){ p?this._audio.pause():this._audio.play().catch(()=>{}); } }catch(e){} try{ const sy=window.speechSynthesis; if(sy){ if(p)sy.pause(); else sy.resume(); } }catch(e){} }
+  toggleMute(){ const m=!this.state.muted; this.setState({muted:m}); if(m)this.stopSpeak(); else if(this.state.playing)this.speakBeat(this._activeBeat||0); }
+  loop(ts){ if(this._dead)return;
+    if(this.state.playing){ if(this._last==null)this._last=ts; const dt=Math.min(0.05,(ts-this._last)/1000); this._last=ts;
+      let nt=this.state.t+dt; const ab=this._activeBeat; if(ab!=null&&this.beats[ab]){const curStart=this.beats[ab][1],curEnd=this.beats[ab][2]; if(this._audio&&!this._audio.ended){ if(!this._audioStarted) nt=Math.min(nt,curStart+0.04); else if(!this._audio.paused&&isFinite(this._audio.currentTime)) nt=Math.max(curStart,Math.min(curEnd-0.02,curStart+this._audio.currentTime)); } if(nt>=curEnd && this._audio && !this._audio.paused && !this._audio.ended && (!isFinite(this._audio.duration)||this._audio.currentTime<this._audio.duration-0.08)) nt=Math.min(nt,curEnd-0.02);}
+      if(nt>=this.DUR){nt=this.DUR;this.setState({t:nt,playing:false});this.stopSpeak();this._activeBeat=null;}else{this.setState({t:nt});
+        let bi=0; for(let i=0;i<this.beats.length;i++){ if(nt>=this.beats[i][1]) bi=i; }
+        if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } } }
+    else { this._last=null; }
+    this._raf=requestAnimationFrame(this.loop);
+  }
+  toggle(){ if(this.state.t>=this.DUR-0.05){this._last=null;this._activeBeat=null;this.setState({t:0,playing:true});}
+    else{ const willPlay=!this.state.playing; this.setState({playing:willPlay});
+      if(willPlay){ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } if(bi!==this._activeBeat){ this._activeBeat=bi; this.speakBeat(bi); } else { this.setSpeechPaused(false); } }
+      else { this.setSpeechPaused(true); } } }
+  seek(e){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:parseFloat(e.target.value),playing:false}); }
+  jump(i){ this._last=null; this.stopSpeak(); this._activeBeat=null; this.setState({t:this.beats[i][1]+0.05,playing:false}); }
+  fullscreen(){ const n=!this.state.fs; this.setState({fs:n}); document.body.classList.toggle('luban-fs',n);
+    try{ const el=this._phone||document.documentElement; let p;
+      if(!n){p=(document.exitFullscreen||function(){}).call(document);} else {p=(el.requestFullscreen||function(){}).call(el);}
+      if(p&&p.catch)p.catch(function(){}); }catch(e){} }
+  phoneRef(el){ if(el) this._phone=el; }
+  replay(){ this._last=null; this._activeBeat=null; this.stopSpeak(); this.setState({t:0,playing:true}); }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢，正在讲“'+this.examTitle+'”。\n知识口径：'+this.KNOWLEDGE+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  qaFig(idx){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
+    const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=44;
+    if(it.fig==="tie"){ h=52;
+      els.push(D({x:0,top:2,w:36,h:34,bg:"#6b7378",r:3,fg:"#fff",fs:8,lab:"架"}));
+      els.push(D({x:212,top:2,w:34,h:34,bg:"#8f6b4e",r:3,fg:"#fff",fs:8,lab:"墙"}));
+      els.push(D({x:38,top:8,w:172,h:6,bg:"#2c8a5b",r:2}));
+      els.push(D({x:100,top:-2,w:48,h:10,fg:"#7fbf95",fs:8,lab:"刚性 ✓"}));
+      els.push(D({x:38,top:30,w:172,h:0,bd:"2px dashed #cf4436"}));
+      els.push(D({x:90,top:34,w:70,h:12,fg:"#e0a89f",fs:8,lab:"柔性钢筋 ✕"})); }
+    else if(it.fig==="dims"){ h=52; const rows=[["立杆步距","≤2m","#cf8a44"],["纵向扫地杆","≤200mm","#2c8a5b"],["一次搭设自由高","≤4m","#2f6db0"]];
+      rows.forEach((r,i)=>{ const y=i*17; els.push(D({x:0,top:y,w:168,h:15,bg:"#1b1814",bd:"1px solid #3a3127",r:4,fg:"#e7ddc9",fs:9,jc:"flex-start",lab:" "+r[0]}));
+        els.push(D({x:172,top:y,w:60,h:15,bg:r[2],r:4,fg:"#fff",fs:9.5,lab:r[1]})); }); }
+    else if(it.fig==="teardown"){ h=54; const L=[["①上","#cf4436"],["②中","#cf8a44"],["③下","#2c8a5b"]];
+      L.forEach((l,i)=>{ const y=i*15; els.push(D({x:0,top:y,w:22,h:13,bg:l[1],r:3,fg:"#fff",fs:8,lab:l[0]}));
+        els.push(D({x:26,top:y,w:96,h:13,bg:"#c99a5b",r:2,fg:"#fff",fs:8,jc:"flex-start",lab:" 外"}));
+        els.push(D({x:124,top:y,w:80,h:13,bg:"#2f6db0",r:2,fg:"#fff",fs:8,jc:"flex-start",lab:" 内"}));
+        els.push(D({x:206,top:y,w:34,h:13,bg:"#2c8a5b",r:2,fg:"#fff",fs:7,lab:"连墙"})); });
+      els.push(D({x:0,top:47,w:240,h:10,fg:"#a8997a",fs:7.5,jc:"flex-start",lab:"自上而下 · 先外后内 · 随层拆连墙件"})); }
+    else if(it.fig==="brace"){ h=52;
+      els.push(D({x:2,top:6,w:88,h:40,bg:"transparent",bd:"2px solid #6b7378",r:3}));
+      els.push(D({x:6,top:24,w:80,h:4,bg:"#cf4436",r:2,fw:"800"}));
+      els.push(D({x:0,top:0,w:92,h:8,fg:"#e0a89f",fs:7.5,lab:"剪刀撑 45~60°"}));
+      els.push(D({x:150,top:6,w:34,h:40,bg:"transparent",bd:"2px solid #2f6db0",r:3}));
+      els.push(D({x:120,top:18,w:100,h:14,fg:"#9fc7e0",fs:10,lab:"H/B ≤ 3.0"})); }
+    return {els,h};
+  }
+  cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
+  fmt(s){ const m=Math.floor(s/60),c=Math.floor(s%60); return (m<10?"0":"")+m+":"+(c<10?"0":"")+c; }
+  paginate(text,max){ if(!text)return[""]; const marks="。！？，、；："; const cl=[]; let c=""; for(const ch of text){ c+=ch; if(marks.indexOf(ch)>=0){cl.push(c);c="";} } if(c)cl.push(c); const ps=[]; let b=""; for(const x of cl){ if(b.length&&(b.length+x.length)>max){ps.push(b);b=x;}else b+=x; } if(b)ps.push(b); return ps.length?ps:[text]; }
+  renderVals(){
+    const t=this.state.t,B=this.beats; let ai=0; for(let i=0;i<B.length;i++){ if(t>=B[i][1]) ai=i; }
+    const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
+    const NB=this.narr.length;
+
+    const v={ p0_b1o:0,p0_b1s:.7,p0_b2o:0,p0_b2s:.7,p0_so:0,p0_ss:1.7,p0_siteO:0,p0_siteY:24,
+      g_frameO:0,g_c0:0,g_c1:0,g_c2:0,
+      w_wallO:0,w_r0:0,w_r1:0,w_r2:0,w_note:0,
+      x_frameO:0,x_braceO:0,x_angleO:0,x_ratioO:0,
+      c_frameO:0,c_arrowO:0,c_rot:0,c_labO:0,c_stampO:0,c_stampS:1.5,
+      r_top:1,r_mid:1,r_bot:1,r_wrong:0 };
+
+    if(A(0)){ const dim=W(.62,.8);
+      v.p0_b1o=W(0,.16)*(1-.5*dim); v.p0_b1s=this.lp(.7,1,W(0,.16));
+      v.p0_b2o=W(.2,.36)*(1-.5*dim); v.p0_b2s=this.lp(.7,1,W(.2,.36));
+      const st=W(.44,.6); v.p0_so=st; v.p0_ss=this.lp(1.7,1,st);
+      v.p0_siteO=W(.5,.74); v.p0_siteY=this.lp(24,0,v.p0_siteO); }
+    if(A(1)){ v.g_frameO=W(0,.2); v.g_c0=W(.24,.4); v.g_c1=W(.46,.62); v.g_c2=W(.68,.84); }
+    if(A(2)){ v.w_wallO=W(0,.16); v.w_r0=W(.2,.34); v.w_r1=W(.4,.56); v.w_r2=W(.6,.74); v.w_note=W(.8,.96); }
+    if(A(3)){ v.x_frameO=W(0,.2); v.x_braceO=W(.24,.46); v.x_angleO=W(.44,.6); v.x_ratioO=W(.62,.84); }
+    if(A(4)){ v.c_frameO=W(0,.2); v.c_arrowO=W(.24,.4); v.c_rot=this.lp(0,17,W(.42,.82)); v.c_labO=W(.64,.8); const stp=W(.82,.96); v.c_stampO=stp; v.c_stampS=this.lp(1.5,1,stp); }
+    if(A(5)){ v.r_top=this.lp(1,.14,W(.2,.42)); v.r_mid=this.lp(1,.14,W(.48,.68)); v.r_bot=1; v.r_wrong=W(.72,.9); }
+
+    const isQA=ai>=NB;
+    let qaLayerO=0,qa_so=0,qa_sx=-40,qa_to=0,qa_ty=24,qaQ="",qaA="",qaFigLabel="",qaFigEls=[],qaFigH=40;
+    if(isQA){ const it=this.qa[ai-NB]; if(it){ qaLayerO=1; qa_so=W(0,.24); qa_sx=this.lp(-40,0,qa_so); qa_to=W(.34,.64); qa_ty=this.lp(24,0,qa_to); qaQ=it.q; qaA=it.a; qaFigLabel=it.figLabel; const f=this.qaFig(ai-NB); qaFigEls=f.els; qaFigH=f.h; } }
+    const capPages=isQA?[""]:this.paginate(this.narr[ai]||"",26);
+    const capIx=isQA?0:Math.min(capPages.length-1,Math.floor(this.cl(lp,0,0.999)*capPages.length));
+    const capText=capPages[capIx]; const capPageInfo=(!isQA&&capPages.length>1)?(" · "+(capIx+1)+"/"+capPages.length):"";
+
+    const beatChips=[]; for(let i=0;i<NB;i++){ beatChips.push({num:(i+1<10?"0":"")+(i+1),label:B[i][3],onClick:()=>this.jump(i),bg:i===ai?"#cf4436":"#23282b",fg:i===ai?"#fff":"#9aa0a3",flex:"1"}); }
+    beatChips.push({num:"问答",label:"Q&A",onClick:()=>this.jump(NB),bg:isQA?"#cf8a44":"#23282b",fg:isQA?"#fff":"#9aa0a3",flex:"1.05"});
+    const qaDots=this.qa.map((_,i)=>({onClick:()=>this.jump(NB+i),bg:(ai-NB)===i?"#cf4436":"#ccc7b8",w:(ai-NB)===i?"18px":"8px"}));
+    const askChips=this.askPresets.map(tt=>({t:tt,onClick:()=>this.preset(tt)}));
+    const lo={},lpe={}; for(let i=0;i<NB;i++){ lo["lo"+i]=i===ai?1:0; lpe["lpe"+i]=i===ai?"auto":"none"; }
+    const empty=!((this.state.askText||"").trim());
+
+    return Object.assign(v,lo,lpe,{
+      examTitle:this.examTitle,examCode:this.examCode,examCat:this.examCat,posterSub:this.posterSub,posterMeta:this.posterMeta,
+      DUR:this.DUR,durSec:this.DUR, caption:capText, captionPage:capPageInfo, curKeycard:isQA?("学生追问 · 第 "+(ai-NB+1)+" / "+this.qa.length+" 问"):this.keycards[ai], curTitle:cur[3],
+      t:this.state.t,tLabel:this.fmt(this.state.t),totalLabel:this.fmt(this.DUR),playIcon:this.state.playing?"⏸":"▶",
+      toggle:()=>this.toggle(),seek:e=>this.seek(e),beatChips,
+      muted:this.state.muted,narrLabel:this.state.muted?"旁白·关":"旁白·开",narrBg:this.state.muted?"#23282b":"rgba(207,68,54,.92)",narrFg:this.state.muted?"#9aa0a3":"#fff",toggleMute:()=>this.toggleMute(),
+      captionO:isQA?0:1,captionPE:isQA?"none":"auto",
+      qaLayerO,qaLayerPE:isQA?"auto":"none",qa_so,qa_sx,qa_to,qa_ty,qaQ,qaA,qaFigLabel,qaFigEls,qaFigH,qaDots,askChips,
+      fullscreen:()=>this.fullscreen(),phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
+      askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",
+      posterO:(this.state.t<0.05&&!this.state.playing)?1:0,posterPE:(this.state.t<0.05&&!this.state.playing)?"auto":"none",
+      endO:(this.state.t>=this.DUR-0.05&&!this.state.playing)?1:0,
+      endPE:(this.state.t>=this.DUR-0.05&&!this.state.playing)?"auto":"none",
+      replay:()=>this.replay()
+    });
+  }
+}
+</script>
+</body>
+</html>

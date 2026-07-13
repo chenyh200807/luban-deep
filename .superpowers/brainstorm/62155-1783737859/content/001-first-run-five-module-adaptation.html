@@ -1,0 +1,110 @@
+<style>
+  :root { --paper:#f4f3ec; --paper2:#e8e5db; --ink:#23282b; --muted:#6f7678; --red:#cf4436; --ochre:#cf8a44; --blue:#2f6db0; --night:#101315; }
+  .intro {max-width:1120px;margin:0 auto 22px}
+  .intro h2 {margin-bottom:8px}
+  .decision-note {padding:12px 16px;border-left:4px solid var(--red);background:#fff8f1;border-radius:4px;color:#4d5355}
+  .adapt-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+  .adapt-card {cursor:pointer;border:2px solid transparent;border-radius:18px;padding:15px;background:#fff;box-shadow:0 12px 34px rgba(35,40,43,.09);transition:.18s ease;position:relative}
+  .adapt-card:hover {transform:translateY(-3px);box-shadow:0 16px 40px rgba(35,40,43,.14)}
+  .adapt-card.selected {border-color:var(--red);box-shadow:0 0 0 3px rgba(207,68,54,.12),0 16px 40px rgba(35,40,43,.14)}
+  .choice-tag {position:absolute;right:12px;top:12px;background:var(--ink);color:white;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800;letter-spacing:.06em}
+  .recommended {background:var(--red)}
+  .phone {width:100%;aspect-ratio:9/16;border-radius:26px;overflow:hidden;border:6px solid #171b1d;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);position:relative;margin-bottom:14px}
+  .phone .status {height:26px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.12em}
+  .phone .screen {height:calc(100% - 26px);padding:13px;box-sizing:border-box;position:relative}
+  .seal {width:29px;height:29px;border-radius:9px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;box-shadow:0 4px 12px rgba(207,68,54,.28)}
+  .top {display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .progress {font-size:9px;letter-spacing:.08em;font-weight:800}
+  .kicker {font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px}
+  .title {font-size:19px;line-height:1.18;font-weight:900;margin-bottom:8px}
+  .copy {font-size:10px;line-height:1.45;opacity:.72;margin-bottom:12px}
+  .option-row {border-radius:11px;padding:10px 9px;margin:7px 0;font-size:10px;font-weight:800;display:flex;align-items:center;gap:7px}
+  .option-row b {width:20px;height:20px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:9px}
+  .score-card {border-radius:14px;padding:12px;margin-top:10px}
+  .score-line {height:5px;border-radius:6px;margin:8px 0}
+  .score-line.s1 {width:86%}.score-line.s2 {width:68%}.score-line.s3 {width:78%}
+  .cta {position:absolute;left:13px;right:13px;bottom:18px;border-radius:12px;padding:11px;text-align:center;font-size:11px;font-weight:900}
+  .module-tabs {position:absolute;left:0;right:0;bottom:0;height:31px;display:flex;justify-content:space-around;align-items:center;font-size:7px;font-weight:800;border-top:1px solid rgba(35,40,43,.12)}
+  .module-tabs span:nth-child(1){color:var(--red)}
+  .a .phone {background:#0a0f1a;color:#fff}
+  .a .status {background:#07101a}.a .screen{background:radial-gradient(circle at 50% 0,rgba(34,211,238,.15),transparent 35%),#0a0f1a}
+  .a .kicker{color:#67e8f9}.a .option-row{background:linear-gradient(160deg,#14283a,#0d1723);border:1px solid rgba(103,232,249,.16)}.a .option-row b{color:#67e8f9;background:rgba(34,211,238,.1)}
+  .a .score-card{background:#101c28;border:1px solid rgba(103,232,249,.15)}.a .score-line{background:#22d3ee}.a .cta{background:#22d3ee;color:#06232d}.a .module-tabs{background:#0a0f1a;color:#94a3b8}
+  .b .phone {background:var(--paper);color:var(--ink)}
+  .b .status{background:var(--ink);color:var(--paper)}.b .screen{background:radial-gradient(#e4e2d7 1px,transparent 1px),var(--paper);background-size:16px 16px}
+  .b .kicker{color:var(--red)}.b .option-row{background:rgba(255,255,255,.72);border:1px solid #d8d3c6;box-shadow:0 5px 14px rgba(35,40,43,.07)}.b .option-row b{background:var(--ink);color:var(--paper)}
+  .b .score-card{background:#fffaf0;border-left:4px solid var(--ochre);box-shadow:0 6px 18px rgba(35,40,43,.08)}.b .score-line{background:var(--ochre)}.b .cta{background:var(--ink);color:var(--paper)}.b .module-tabs{background:rgba(244,243,236,.96)}
+  .transition-band {height:34px;margin:9px -13px 0;background:linear-gradient(90deg,var(--ink) 0 35%,var(--red) 35% 42%,var(--paper) 42%);color:#fff;font-size:8px;font-weight:900;display:flex;align-items:center;padding-left:10px;letter-spacing:.05em}
+  .c .phone {background:var(--paper);color:var(--ink)}
+  .c .status{background:var(--ink);color:var(--paper)}.c .screen{background:var(--paper)}
+  .c .home-hero{background:var(--ink);color:#fff;border-radius:16px;padding:15px 12px;margin-bottom:10px;position:relative;overflow:hidden}.c .home-hero:after{content:"";position:absolute;right:-24px;top:-26px;width:82px;height:82px;border:16px solid rgba(207,68,54,.3);border-radius:50%}
+  .c .task-card{background:#fff;border:1px solid #ded9cc;border-radius:14px;padding:11px;margin:9px 0;box-shadow:0 6px 18px rgba(35,40,43,.07)}.c .mini-step{display:flex;gap:7px;align-items:center;font-size:9px;margin-top:8px}.c .mini-step i{width:18px;height:18px;border-radius:50%;background:var(--red);color:white;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900}
+  .c .cta{background:var(--red);color:#fff;bottom:43px}.c .module-tabs{background:var(--paper)}
+  .adapt-card h3 {font-size:18px;margin:5px 0 6px;color:#222}
+  .adapt-card p {font-size:13px;line-height:1.5;color:#62686a;margin:0 0 8px}
+  .mini-list {font-size:12px;line-height:1.45;color:#4d5355;padding-left:17px;margin:8px 0 2px}
+  .mini-list li {margin:4px 0}
+  @media(max-width:900px){.adapt-grid{grid-template-columns:1fr}.phone{max-width:320px;margin-left:auto;margin-right:auto}}
+</style>
+
+<div class="intro">
+  <div class="label">FIRST-RUN → FIVE MODULES</div>
+  <h2>核心内容锁定后，怎样适配五模块？</h2>
+  <p class="subtitle">四道真题、侧写间奏、采分点判分卡、学习报告和“明天复测”都不改。这里只决定 UI 壳、旅程位置与完成出口。</p>
+  <div class="decision-note"><strong>评判标准：</strong>用户做完首跑后，是否自然知道下一步去「学习」，并在第二天回到「复习」，而不是又掉回一个空聊天框。</div>
+</div>
+
+<div class="adapt-grid">
+  <div class="adapt-card a" data-choice="a" onclick="toggleSelect(this)">
+    <div class="choice-tag">A</div>
+    <div class="phone">
+      <div class="status">鲁班智考 · 首次诊断</div>
+      <div class="screen">
+        <div class="top"><div class="seal">鲁</div><div class="progress">第 2 / 4 题</div></div>
+        <div class="kicker">真实考场切片</div><div class="title">这一步，阅卷人认哪几个采分点？</div>
+        <div class="copy">保持最终版老蓝视觉与页面结构，只在底部接五模块导航。</div>
+        <div class="option-row"><b>A</b> 先拆除鼓包，再清理基层</div><div class="option-row"><b>B</b> 直接覆盖新卷材</div>
+        <div class="score-card"><strong style="font-size:10px">阅卷认的词</strong><div class="score-line s1"></div><div class="score-line s2"></div></div>
+        <div class="cta">查看我的首次学习报告</div>
+        <div class="module-tabs"><span>学习</span><span>复习</span><span>问鲁班</span><span>学情</span><span>我的</span></div>
+      </div>
+    </div>
+    <h3>原样嵌入</h3><p>最终版几乎像素级保留，五模块只负责路由与底部壳。</p>
+    <ul class="mini-list"><li>改动最少</li><li>但首跑与五模块仍像两套产品</li><li>底部 Tab 会分散首次任务注意力</li></ul>
+  </div>
+
+  <div class="adapt-card b" data-choice="b" onclick="toggleSelect(this)">
+    <div class="choice-tag recommended">B · 推荐</div>
+    <div class="phone">
+      <div class="status">鲁班智考 · 第一次学习</div>
+      <div class="screen">
+        <div class="top"><div class="seal">鲁</div><div class="progress">一站 · 四题 · 约 3 分钟</div></div>
+        <div class="kicker">案例采分点诊断</div><div class="title">先做一题，让系统知道怎么带你学</div>
+        <div class="copy">内容和节奏不变；改用五模块纸墨组件、字体层级、按钮语义与状态语言。</div>
+        <div class="option-row"><b>A</b> 割除空鼓范围，基层处理</div><div class="option-row"><b>B</b> 表面加热后直接覆盖</div>
+        <div class="score-card"><strong style="font-size:10px">采分点账本 · 教材可溯源</strong><div class="score-line s1"></div><div class="score-line s3"></div><div class="transition-band">完成后直接生成「你的第一站」</div></div>
+        <div class="cta">继续完成首次诊断</div>
+      </div>
+    </div>
+    <h3>五模块原生旅程</h3><p>保持五幕核心，重做为五模块同一套组件与行为语言；首跑期间不显示 Tab，完成后落「学习下一站」。</p>
+    <ul class="mini-list"><li>学习/复习/学情形成一条连续主链</li><li>纸墨朱竹只服务教学与证据，不做装饰</li><li>需要调整布局、出口和状态文案</li></ul>
+  </div>
+
+  <div class="adapt-card c" data-choice="c" onclick="toggleSelect(this)">
+    <div class="choice-tag">C</div>
+    <div class="phone">
+      <div class="status">学习</div>
+      <div class="screen">
+        <div class="top"><div class="seal">鲁</div><div class="progress">距考试 286 天</div></div>
+        <div class="home-hero"><div class="kicker" style="color:#f0b179">新同学第一站</div><div class="title" style="font-size:17px">3 分钟，让鲁班先认识你</div><div class="copy" style="color:#d8dcdd">四道真题 + 一份首次学习报告</div></div>
+        <div class="task-card"><strong style="font-size:11px">首次诊断任务</strong><div class="mini-step"><i>1</i>真题点选与暖反馈</div><div class="mini-step"><i>2</i>采分点与易错点</div><div class="mini-step"><i>3</i>生成你的第一站</div></div>
+        <div class="cta">开始首次诊断</div>
+        <div class="module-tabs"><span>学习</span><span>复习</span><span>问鲁班</span><span>学情</span><span>我的</span></div>
+      </div>
+    </div>
+    <h3>嵌入学习首页</h3><p>取消独立首跑页，把最终版作为学习 Tab 的首个任务卡展开。</p>
+    <ul class="mini-list"><li>与五模块最统一</li><li>但削弱“第一次被产品带着走”的戏剧性</li><li>用户更容易中途切 Tab 逃离</li></ul>
+  </div>
+</div>
+
+<p style="text-align:center;margin-top:20px;color:#6f7678;font-size:13px">点击一个方案。当前建议：<strong style="color:#cf4436">B 五模块原生旅程</strong>。</p>
