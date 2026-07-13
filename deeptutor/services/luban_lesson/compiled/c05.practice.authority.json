@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "C05",
+  "source_pack_sha256": "48ab7ee6eef1a5f9170f8e4ab40d87259c0899f95df8c0d2f1b77bee6ebb5734",
+  "source_bundle_sha256": "1b49cfa15da2a9a34861222bd7930275305c988a92cbdfd8dbc01eb3329f5841",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html",
+      "source_html_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "C05-html-practice-html-q1-a8bb0089be20",
+        "C05-html-practice-html-q2-1a3530671de1",
+        "C05-html-practice-html-q3-53335854e455",
+        "C05-html-practice-html-q4-ad6cb81072cf",
+        "C05-html-practice-html-q15-c6ed1b359fba"
+      ],
+      "published_practice_sha256": "3e04245559799d7cf1f1a31ace9262489ca8d59e45295a33d37f2f54433cf665"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "选用总纲·条件维",
+      "stem": "钢筋连接的方法有哪几种？其中机械连接最常用的形式是什么？选出最完整、能得分的作答。",
+      "model_answer": "钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以剥肋滚压直螺纹套筒连接最为常用。",
+      "options": [
+        {
+          "text": "钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以剥肋滚压直螺纹套筒连接最为常用。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三类连接写全，再点出机械连接最常用形式是剥肋滚压直螺纹套筒，缺一都丢采分句。",
+          "option_id": "C05-html-practice-html-q1-a8bb0089be20:option-1"
+        },
+        {
+          "text": "钢筋连接方法有焊接、机械连接、绑扎连接三种；机械连接中以电渣压力焊连接最为常用。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记得有电渣压力焊这个名词，顺手就填上。",
+          "loss_reason": "电渣压力焊属焊接类，不是机械连接；机械连接最常用是剥肋滚压直螺纹套筒。",
+          "fix": "机械连接最常用是剥肋滚压直螺纹套筒连接。",
+          "option_id": "C05-html-practice-html-q1-a8bb0089be20:option-2"
+        },
+        {
+          "text": "钢筋连接主要就是焊接和绑扎两种，机械连接用得少可以不单列，按现场习惯选即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "平时现场焊接、绑扎见得多，机械连接反倒少见。",
+          "loss_reason": "漏了机械连接这一大类，采分点直接遗漏；机械连接恰恰是大直径/动力荷载首选。",
+          "fix": "三类都要列：焊接、机械连接、绑扎连接。",
+          "option_id": "C05-html-practice-html-q1-a8bb0089be20:option-3"
+        },
+        {
+          "text": "连接方法就看哪种最牢，直接选焊接把钢筋熔成一体，其余两种都不如焊接可靠。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "觉得熔成一体最结实，凭经验选最牢的。",
+          "loss_reason": "题问方法种类不是问哪种最牢；且焊接有热影响区、动力荷载还不宜。",
+          "fix": "先列三类方法，机械连接以剥肋滚压直螺纹套筒最常用。",
+          "option_id": "C05-html-practice-html-q1-a8bb0089be20:option-4"
+        }
+      ],
+      "variant_id": "C05-html-practice-html-q1-a8bb0089be20",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q1",
+      "source_html_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "端点·条件维",
+      "stem": "下列纵向受力钢筋中，宜采用绑扎搭接接头的是哪一种？选出正确且能说明理由的作答。",
+      "model_answer": "受压 Φ25 钢筋宜采用绑扎搭接；受拉大直径（Φ28）、桁架拉杆、行车梁受力筋不宜绑扎，应机械连接。",
+      "options": [
+        {
+          "text": "受压 Φ25 钢筋宜采用绑扎搭接；受拉 Φ28、桁架拉杆、行车梁受力筋不宜绑扎、应机械连接。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "受压中等直径可绑扎，受拉大直径/桁架/行车梁不宜绑扎，口诀拉25压28。",
+          "option_id": "C05-html-practice-html-q2-1a3530671de1:option-1"
+        },
+        {
+          "text": "受拉 Φ28 钢筋宜采用绑扎搭接，直径大搭接面积也大、握裹更牢，反而比受压更适合绑扎。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "想当然以为直径大搭接面积大就更牢。",
+          "loss_reason": "端点搞反：受拉大直径搭接区应力集中、握裹不住，不宜绑扎。",
+          "fix": "受拉 Φ28 不宜绑扎，应机械连接；受压 Φ25 才可绑扎。",
+          "option_id": "C05-html-practice-html-q2-1a3530671de1:option-2"
+        },
+        {
+          "text": "行车梁受力钢筋宜采用绑扎搭接，行车梁是静载构件，绑扎省工又能满足受力要求。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "没提取到行车梁是动力/重要受力筋这个条件。",
+          "loss_reason": "行车梁受力筋属不宜绑扎之列，条件提取不全导致误判。",
+          "fix": "行车梁受力筋不宜绑扎；宜绑扎的是受压 Φ25。",
+          "option_id": "C05-html-practice-html-q2-1a3530671de1:option-3"
+        },
+        {
+          "text": "桁架拉杆宜采用绑扎搭接，拉杆细长、绑扎方便，只要多绑几道丝扣就能保证连接强度。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得拉杆细、绑扎方便，多绑几道就行。",
+          "loss_reason": "桁架拉杆是受拉关键杆件，不宜绑扎；绑扎强度靠握裹不靠丝扣道数。",
+          "fix": "桁架拉杆不宜绑扎；宜绑扎的是受压 Φ25。",
+          "option_id": "C05-html-practice-html-q2-1a3530671de1:option-4"
+        }
+      ],
+      "variant_id": "C05-html-practice-html-q2-1a3530671de1",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q2",
+      "source_html_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "动力荷载·条件维",
+      "stem": "某吊车梁直接承受动力荷载，其 Φ20 纵向受力钢筋宜优先采用哪种连接方式？选出正确且说明理由的作答。",
+      "model_answer": "宜优先采用机械连接（剥肋滚压直螺纹套筒）；直接承受动力荷载的构件纵向钢筋不宜焊接。",
+      "options": [
+        {
+          "text": "宜优先采用机械连接（剥肋滚压直螺纹套筒）；直接承受动力荷载的构件纵向钢筋不宜焊接。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "动力荷载往机械连接端走，并点出焊接不宜，理由与结论都到位。",
+          "option_id": "C05-html-practice-html-q3-53335854e455:option-1"
+        },
+        {
+          "text": "宜优先采用焊接连接，焊接把钢筋熔为一体、传力最直接，最能承受吊车梁的动力荷载。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得熔为一体最结实、最抗动力。",
+          "loss_reason": "焊接有热影响区，直接承受动力荷载的构件纵向钢筋不宜焊接。",
+          "fix": "动力荷载优先机械连接（直螺纹套筒），焊接不宜。",
+          "option_id": "C05-html-practice-html-q3-53335854e455:option-2"
+        },
+        {
+          "text": "宜优先采用绑扎搭接，Φ20 直径不大、绑扎方便，动力荷载靠混凝土握裹也能传递。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "看直径 Φ20 不算大就想退到绑扎。",
+          "loss_reason": "动力荷载不是绑扎的地界；绑扎握裹扛不住反复动力，应机械连接。",
+          "fix": "动力荷载优先机械连接（直螺纹套筒），不退绑扎。",
+          "option_id": "C05-html-practice-html-q3-53335854e455:option-3"
+        },
+        {
+          "text": "三种连接都行，按现场哪种方便就用哪种，动力荷载对连接方式没有特别的选用要求。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "图省事，以为动力荷载没啥特别讲究。",
+          "loss_reason": "以常识替代规范：动力荷载明确导向机械连接、焊接不宜。",
+          "fix": "动力荷载优先机械连接（直螺纹套筒），焊接不宜。",
+          "option_id": "C05-html-practice-html-q3-53335854e455:option-4"
+        }
+      ],
+      "variant_id": "C05-html-practice-html-q3-53335854e455",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q3",
+      "source_html_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "接头百分率·计算表达维",
+      "stem": "直接承受动力荷载的构件采用机械连接时，同一连接区段的纵向受力钢筋接头面积百分率应如何控制？选出关键词与数值都能得分的作答。",
+      "model_answer": "直接承受动力荷载、采用机械连接时，接头面积百分率不应超过50%。",
+      "options": [
+        {
+          "text": "直接承受动力荷载、采用机械连接时，接头面积百分率不应超过50%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三要素齐：直接承受动力荷载 + 机械连接 + 不应超过50%，关键词是不应。",
+          "option_id": "C05-html-practice-html-q4-ad6cb81072cf:option-1"
+        },
+        {
+          "text": "直接承受动力荷载、采用机械连接时，接头面积百分率不宜超过50%，尽量控制在半数以内。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "数值 50% 记对了，不宜/不应没在意。",
+          "loss_reason": "把强制性的不应弱化成建议性的不宜，关键词分被扣。",
+          "fix": "应写不应超过50%（强制），不是不宜。",
+          "option_id": "C05-html-practice-html-q4-ad6cb81072cf:option-2"
+        },
+        {
+          "text": "直接承受动力荷载、采用机械连接时，接头面积百分率不应超过25%，动力荷载要更严。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得动力荷载更危险，数值想当然压到更低。",
+          "loss_reason": "数值记错：规范是不应超过50%，不是25%。",
+          "fix": "接头面积百分率不应超过50%。",
+          "option_id": "C05-html-practice-html-q4-ad6cb81072cf:option-3"
+        },
+        {
+          "text": "接头面积百分率不应超过50%，受拉受压、静载动力都一样，按这一个数控制即可。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "记住了 50% 就一刀切套到所有情况。",
+          "loss_reason": "漏了前提条件：受拉接头不宜>50%、受压可不受限，动力荷载机械连接才是不应超50%。",
+          "fix": "限定前提：直接承受动力荷载、机械连接，接头不应超过50%。",
+          "option_id": "C05-html-practice-html-q4-ad6cb81072cf:option-4"
+        }
+      ],
+      "variant_id": "C05-html-practice-html-q4-ad6cb81072cf",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q4",
+      "source_html_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生对一道动力荷载吊车梁配筋题作答：①Φ28受拉钢筋用绑扎搭接；②接头面积百分率不宜超过50%；③直尺检测直螺纹接头精度。选出最准确的诊断与补写。",
+      "model_answer": "三处都失分：①受拉Φ28不宜绑扎应机械连接；②不宜应改不应超过50%；③直尺不属检具应用通/止/量规。",
+      "options": [
+        {
+          "text": "三处都失分：①受拉Φ28不宜绑扎、应机械连接；②不宜应改为不应超过50%；③直尺不属检具、应用通止量规。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "逐处揪出并给出正确采分句——端点、关键词、检具三处都补齐，这就是会写答案。",
+          "option_id": "C05-html-practice-html-q15-c6ed1b359fba:option-1"
+        },
+        {
+          "text": "作答基本正确，只是③直尺换成卷尺更准，①②的绑扎和不宜超过50%都没有问题。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "只盯着量具这一处小毛病，放过了大错。",
+          "loss_reason": "漏诊①受拉Φ28绑扎（端点搞反）和②不宜应为不应两处，且卷尺同样不行。",
+          "fix": "①改机械连接、②改不应超过50%、③用通止量规，三处都要补。",
+          "option_id": "C05-html-practice-html-q15-c6ed1b359fba:option-2"
+        },
+        {
+          "text": "只有②的数值要改，把50%改成25%就全对了，①绑扎和③直尺检测都可以保留。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "以为问题只在一个数值上。",
+          "loss_reason": "50%数值本就是对的（错在不宜/不应），且①③都是错的，漏诊两处。",
+          "fix": "②改不应超过50%（数值不动），①改机械连接、③用通止量规。",
+          "option_id": "C05-html-practice-html-q15-c6ed1b359fba:option-3"
+        },
+        {
+          "text": "③改成通止量规就行，①受拉Φ28绑扎、②不宜超过50%都符合规范，无需改动。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "抓对检具一处，就以为其余都对。",
+          "loss_reason": "漏诊①端点搞反（受拉大直径不宜绑扎）与②不宜应为不应两处失分。",
+          "fix": "三处齐补：①机械连接、②不应超过50%、③通止量规。",
+          "option_id": "C05-html-practice-html-q15-c6ed1b359fba:option-4"
+        }
+      ],
+      "variant_id": "C05-html-practice-html-q15-c6ed1b359fba",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C05/P40_C05.practice.dc.html#Q15",
+      "source_html_sha256": "e962e0b86bc9c40b47c5f50a9f329c52e11f65615c069b5c5997ce7b2f26c40c"
+    }
+  ],
+  "published_lesson_sha256": "b5bae742bc67fdb9fb9bd38a28f677426d36894454a0cd488a9bc2577c90127a"
+}

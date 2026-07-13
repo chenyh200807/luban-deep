@@ -31,6 +31,10 @@ from deeptutor.services.luban_lesson import (
     list_green_lessons,
     retest_pool_meta,
 )
+from deeptutor.services.luban_lesson.practice_html import (
+    PracticeHtmlInvalid,
+    is_compiled_practice_pack,
+)
 from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
 
 router = secure_router(tags=["luban_lesson"])
@@ -96,12 +100,13 @@ async def retest_items(
     pack_id: str,
     limit: int = 5,
     mode: str = "review",
+    practice_surface: str = "",
     current_user: AuthContext = Depends(get_current_user),
 ) -> dict:
     """题面投影（同一 endpoint / 同一 completion authority）：
     - ``mode=review``（默认，复习轮换皮复测）；
-    - ``mode=forward``（学习轮课后轻练；F16 试点读取编译 HTML 固定五题，
-      其他 pack 仍读签发变体池）。completion 均由服务端重判；forward 非 promoting。
+    - ``mode=forward``（学习轮课后轻练；已编译 pack 读取 finished HTML 固定五题）。
+      completion 均由服务端重判；forward 非 promoting。
 
     未识别的 mode 归一为 review（thin 归一，不新增第二 builder/第二端点）。
     """
@@ -120,12 +125,14 @@ async def retest_items(
             day_index=day_index,
             limit=limit,
             mode=mode,
+            practice_surface=practice_surface,
         )
-    except LessonNotAvailable:
+    except (LessonNotAvailable, PracticeHtmlInvalid):
         raise HTTPException(status_code=404, detail="lesson not found")
-    compiled_forward = mode == "forward" and any(
-        item.get("answer_type") == "single_choice" for item in items
-    )
+    compiled_registered = mode == "forward" and is_compiled_practice_pack(pack_id)
+    if compiled_registered and not items:
+        raise HTTPException(status_code=404, detail="compiled practice unavailable")
+    compiled_forward = compiled_registered
     return {
         "pack_id": pack_id.upper(),
         "items": items,

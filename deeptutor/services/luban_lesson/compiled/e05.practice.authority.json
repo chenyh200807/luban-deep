@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "E05",
+  "source_pack_sha256": "8c29ebca6b36692f9006175958152ba3f31e447e20f209b8f6582956dfa281c9",
+  "source_bundle_sha256": "0f8a2ae55d1a966e630ec5e5caf3df4b10c8a96ab24b843e81e223094457ac78",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html",
+      "source_html_sha256": "5ba6f64609ea1776d1e7ebebdc4e016827900eedae64f7108752737619954117",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "E05-html-practice-html-q1-368ca609e03b",
+        "E05-html-practice-html-q2-0f20ede257a0",
+        "E05-html-practice-html-q3-a27747a1aaaf",
+        "E05-html-practice-html-q4-d7227a4b0101",
+        "E05-html-practice-html-q16-7061592c4f36"
+      ],
+      "published_practice_sha256": "443dc73f948e6693461ec82ab0f3f399f74656f40a62e32646adef701b63e57e"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "三值构成·概念维",
+      "stem": "挣值法三个基本参数中，BCWP（挣值）的构成式是哪一个？选出定义准确的作答。",
+      "model_answer": "BCWP（已完成工作预算成本／挣值）= 已完成工程量 × 预算单价。",
+      "options": [
+        {
+          "text": "BCWP = 已完成工程量 × 预算单价（已完成的量，按预算价计），即挣得的价值标尺。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "量取「已完成」、价取「预算」，BCWP 是把已干的活按预算价折算的挣值。",
+          "option_id": "E05-html-practice-html-q1-368ca609e03b:option-1"
+        },
+        {
+          "text": "BCWP = 已完成工程量 × 实际单价（已完成的量，按实际花的价计），反映实际挣得。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「已完成」对了，顺手把价也配成「实际」。",
+          "loss_reason": "价用错：已完成量×实际单价是 ACWP，不是 BCWP；BCWP 必须用预算单价隔离价格波动。",
+          "fix": "BCWP=已完成量×预算单价；已完成量×实际单价那是 ACWP。",
+          "option_id": "E05-html-practice-html-q1-368ca609e03b:option-2"
+        },
+        {
+          "text": "BCWP = 计划工程量 × 预算单价（计划的量，按预算价计），代表计划应挣的价值。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「预算价」对了，量却配成「计划」。",
+          "loss_reason": "量用错：计划量×预算单价是 BCWS，不是 BCWP；BCWP 的量必须是「已完成」。",
+          "fix": "BCWP=已完成量×预算单价；计划量×预算单价那是 BCWS。",
+          "option_id": "E05-html-practice-html-q1-368ca609e03b:option-3"
+        },
+        {
+          "text": "BCWP = 计划工程量 × 实际单价（计划的量，按实际价计），综合计划与实际。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把「计划」「实际」拼在一起，看着「兼顾两头」。",
+          "loss_reason": "量和价全错，且这个组合不对应任何一个基本参数，纯干扰项。",
+          "fix": "BCWP=已完成量×预算单价，量取已完成、价取预算，不掺计划量或实际价。",
+          "option_id": "E05-html-practice-html-q1-368ca609e03b:option-4"
+        }
+      ],
+      "variant_id": "E05-html-practice-html-q1-368ca609e03b",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q1",
+      "source_html_sha256": "5ba6f64609ea1776d1e7ebebdc4e016827900eedae64f7108752737619954117"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "三值构成·概念维",
+      "stem": "ACWP（已完成工作实际成本）的构成式是哪一个？选出定义准确的作答。",
+      "model_answer": "ACWP = 已完成工程量 × 实际单价（已经花出去的钱）。",
+      "options": [
+        {
+          "text": "ACWP = 已完成工程量 × 实际单价，就是已完成部分实际花出去的钱。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "量取「已完成」、价取「实际」，ACWP 是真金白银的实际支出。",
+          "option_id": "E05-html-practice-html-q2-0f20ede257a0:option-1"
+        },
+        {
+          "text": "ACWP = 已完成工程量 × 预算单价，按预算价核算已完成部分的成本。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「已完成」对了，价却配成「预算」。",
+          "loss_reason": "价用错：已完成量×预算单价是 BCWP（挣值），不是 ACWP；ACWP 必须用实际单价。",
+          "fix": "ACWP=已完成量×实际单价；已完成量×预算单价那是 BCWP。",
+          "option_id": "E05-html-practice-html-q2-0f20ede257a0:option-2"
+        },
+        {
+          "text": "ACWP = 计划工程量 × 实际单价，按实际价核算原计划工程量的成本。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「实际价」对了，量却配成「计划」。",
+          "loss_reason": "量用错：ACWP 的量是「已完成」，不是「计划」；计划量×任何价都不是 ACWP。",
+          "fix": "ACWP=已完成量×实际单价，量取已完成、不取计划量。",
+          "option_id": "E05-html-practice-html-q2-0f20ede257a0:option-3"
+        },
+        {
+          "text": "ACWP = 预算总成本，即项目开工前编制的全部预算金额。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「实际成本」听着像个总额，误当预算总账。",
+          "loss_reason": "ACWP 是到检查点「已完成部分」的实际支出，不是全项目预算总额。",
+          "fix": "ACWP=已完成量×实际单价，只算已干部分的实际花费。",
+          "option_id": "E05-html-practice-html-q2-0f20ede257a0:option-4"
+        }
+      ],
+      "variant_id": "E05-html-practice-html-q2-0f20ede257a0",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q2",
+      "source_html_sha256": "5ba6f64609ea1776d1e7ebebdc4e016827900eedae64f7108752737619954117"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "三值代入·背景提取维",
+      "stem": "第20周末检查：挣值 BCWP=6370 万元、已完成实际成本 ACWP=6240 万元、计划值 BCWS=5340 万元。下列把三值放入指标公式，哪一组位置正确？",
+      "model_answer": "CV=BCWP−ACWP=6370−6240；SV=BCWP−BCWS=6370−5340，三值各归其位不互换。",
+      "options": [
+        {
+          "text": "CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340，三值按定义各归其位。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "BCWP 恒作被减数/分子，ACWP 配成本、BCWS 配进度，位置不互换。",
+          "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-1"
+        },
+        {
+          "text": "CV=ACWP−BCWP=6240−6370、SV=BCWS−BCWP=5340−6370，用实际/计划减挣值。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "记成「实际减挣值」，被减数减数顺序反了。",
+          "loss_reason": "被减数减数颠倒会让 CV=−130、SV=−1030，方向整个判反成超支延误。",
+          "fix": "CV=BCWP−ACWP、SV=BCWP−BCWS，挣值 BCWP 永远作被减数。",
+          "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-2"
+        },
+        {
+          "text": "CV=BCWP−BCWS=6370−5340、SV=BCWP−ACWP=6370−6240，成本用计划、进度用实际。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记得都用 BCWP 减，却把 ACWP 和 BCWS 的分工调换了。",
+          "loss_reason": "成本偏差要减实际 ACWP、进度偏差要减计划 BCWS；两者互换后 CV/SV 全错。",
+          "fix": "成本 CV 减 ACWP、进度 SV 减 BCWS，别把两个减数换位置。",
+          "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-3"
+        },
+        {
+          "text": "把 BCWS 与 ACWP 互换代入：CV=BCWP−BCWS、CPI=BCWP/BCWS，成本一律配计划值。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "题干数字多，没读清哪个是实际、哪个是计划就代入。",
+          "loss_reason": "BCWS(计划)与 ACWP(实际)互换，成本侧四指标系统性全错。",
+          "fix": "先认清 ACWP=实际、BCWS=计划；成本侧一律用 ACWP。",
+          "option_id": "E05-html-practice-html-q3-a27747a1aaaf:option-4"
+        }
+      ],
+      "variant_id": "E05-html-practice-html-q3-a27747a1aaaf",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q3",
+      "source_html_sha256": "5ba6f64609ea1776d1e7ebebdc4e016827900eedae64f7108752737619954117"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "成本偏差CV·计算判读维",
+      "stem": "已知 BCWP=6370 万元、ACWP=6240 万元。求成本偏差 CV 并判读成本状态，选出能得分的作答。",
+      "model_answer": "CV=BCWP−ACWP=6370−6240=130 万元；CV>0 → 成本节支。",
+      "options": [
+        {
+          "text": "CV=BCWP−ACWP=6370−6240=130 万元，CV>0，成本节支。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "公式+代入+结果 130 万元+方向「节支」四件齐，偏差带万元。",
+          "option_id": "E05-html-practice-html-q4-d7227a4b0101:option-1"
+        },
+        {
+          "text": "CV=ACWP−BCWP=6240−6370=−130 万元，CV<0，成本超支。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "「实际花的减挣的」听着顺，算出负数就判超支。",
+          "loss_reason": "被减数减数反了，把节支的项目判成超支——方向彻底错。",
+          "fix": "CV=BCWP−ACWP=+130 万元，挣的减花的、正数是节支。",
+          "option_id": "E05-html-practice-html-q4-d7227a4b0101:option-2"
+        },
+        {
+          "text": "CV=BCWP−ACWP=6370−6240=130 万元，CV>0，说明成本超支了 130 万。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "算式对、结果对，却把「正数」的方向记反了。",
+          "loss_reason": "数值对但方向判反：CV>0 是节支不是超支，方向分丢光。",
+          "fix": "CV>0 → 成本节支；正数是省钱，不是超支。",
+          "option_id": "E05-html-practice-html-q4-d7227a4b0101:option-3"
+        },
+        {
+          "text": "CV=BCWP−ACWP=6370−6240=130，成本控制得不错，比预期好。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "结果对，用「控制得不错」口语带过。",
+          "loss_reason": "没写规范判读词「节支」、结果漏「万元」单位，口号化不给分。",
+          "fix": "补规范词与单位：CV=130 万元，CV>0 → 成本节支。",
+          "option_id": "E05-html-practice-html-q4-d7227a4b0101:option-4"
+        }
+      ],
+      "variant_id": "E05-html-practice-html-q4-d7227a4b0101",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q4",
+      "source_html_sha256": "5ba6f64609ea1776d1e7ebebdc4e016827900eedae64f7108752737619954117"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生作答如图：①CV 写成 ACWP−BCWP=−130；②判成本超支；③未算进度。选出最准确的诊断与补写。",
+      "model_answer": "CV 被减数减数颠倒（应 BCWP−ACWP=+130 万元，成本节支）、方向随之判反、且漏算进度 SV=1030 万元/SPI≈1.19（进度提前）；三处都要补。",
+      "options": [
+        {
+          "text": "CV 被减数减数颠倒致方向判反（应=BCWP−ACWP=+130 万元、成本节支），且漏算进度 SV=1030 万元、SPI≈1.19（进度提前），三处都要补。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "揪出「公式颠倒→方向反」和「漏进度侧」两类失分，补写即成满分采分句。",
+          "option_id": "E05-html-practice-html-q16-7061592c4f36:option-1"
+        },
+        {
+          "text": "计算和方向都没问题，只是漏了进度部分，把 SV、SPI 补上就是满分作答，学生的 CV 算式与成本超支判断本身都成立、不用改，只差把进度侧两项补齐、整道题就算完整作答了。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "只盯着「漏进度」，没发现 CV 公式本身写反。",
+          "loss_reason": "CV=ACWP−BCWP 已经颠倒、成本超支判反；只补进度仍是错的。",
+          "fix": "先纠 CV=BCWP−ACWP=+130 万元（节支），再补进度侧。",
+          "option_id": "E05-html-practice-html-q16-7061592c4f36:option-2"
+        },
+        {
+          "text": "CV 算出 −130、判成本超支，结论没错；只要再补一句进度提前即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把颠倒得到的 −130/超支当成正确结论。",
+          "loss_reason": "−130/超支正是公式颠倒造成的错误方向，不是正确结论。",
+          "fix": "CV 应=+130 万元、成本节支；方向要改回来。",
+          "option_id": "E05-html-practice-html-q16-7061592c4f36:option-3"
+        },
+        {
+          "text": "学生思路完全正确，CV 用实际减挣值更直观，判超支也合理，可给满分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "被「实际减挣值更直观」的错觉带偏。",
+          "loss_reason": "CV 定义就是 BCWP−ACWP，颠倒即错，且方向判反、漏进度，远非满分。",
+          "fix": "CV=BCWP−ACWP=+130 万元、成本节支，并补齐进度侧。",
+          "option_id": "E05-html-practice-html-q16-7061592c4f36:option-4"
+        }
+      ],
+      "variant_id": "E05-html-practice-html-q16-7061592c4f36",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_E05/P40_E05.practice.dc.html#Q16",
+      "source_html_sha256": "5ba6f64609ea1776d1e7ebebdc4e016827900eedae64f7108752737619954117"
+    }
+  ],
+  "published_lesson_sha256": "4f44aea89378b9e489a77314d42704dde0ca41b25ea3e6744cb4ed1709e54610"
+}

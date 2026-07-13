@@ -72,18 +72,15 @@ function loadStation(detail) {
     title: "S05",
     content_sha256: "pack-sha",
     card_url: "https://cdn/s05/lesson.html",
+    practice_url: "https://cdn/s05/practice.html?v=bundle",
   });
   s05.page.onLoad({ pack_id: "S05" });
   await flush();
   s05.page.onPrimaryTap();
   assert.strictEqual(s05.page.data.tier, "practice");
-  assert.strictEqual(s05.page.data.currentUrl, "https://cdn/s05/practice.html");
+  assert.strictEqual(s05.page.data.currentUrl, "https://cdn/s05/practice.html?v=bundle");
   s05.page.onPrimaryTap();
-  assert.deepStrictEqual(
-    s05.redirects,
-    ["/packageDeeptutor/pages/luban/retest/retest?mode=forward&pack_id=S05"],
-    "non-F16 stations must retain the existing signed-forward path",
-  );
+  assert.deepStrictEqual(s05.redirects, [], "all compiled packs must submit the finished answers");
 
   console.log("PASS test_station_f16_practice_scope.js");
 })().catch(function (error) {

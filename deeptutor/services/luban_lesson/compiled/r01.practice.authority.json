@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "R01",
+  "source_pack_sha256": "86e87afc3a453d012eb91f86508f9dd45fd04a532bbc073d0ffcc96fd1bdfbe1",
+  "source_bundle_sha256": "ce406e46e1b8b88bfe88cd29b921806443c68dd9e0f2b0205908710a7ff37fb7",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html",
+      "source_html_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "R01-html-practice-html-q1-4544f7872e42",
+        "R01-html-practice-html-q2-7f1b07651a45",
+        "R01-html-practice-html-q3-1538a7d3b154",
+        "R01-html-practice-html-q4-5dd998ff8703",
+        "R01-html-practice-html-q15-fe4a7892cba8"
+      ],
+      "published_practice_sha256": "05cf93896da727428789a636f630b3e4b55019ac2f15ce2e6bc2c63e9cce0a40"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "布置·上集",
+      "stem": "施工现场总体消防布置应包含哪些要素？选出成组列全、能得分的作答。",
+      "model_answer": "消防通道、消防水源、消防设施、灭火器材、明显标志、消防安全责任人；临时消防立管≥2根、消防箱≥2套。",
+      "options": [
+        {
+          "text": "消防通道、消防水源、消防设施、灭火器材、明显标志、消防安全责任人六要素齐全，临时消防立管≥2根、消防箱≥2套。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六要素成组列全，再补临时消防设施数量，布置分才拿得满。",
+          "option_id": "R01-html-practice-html-q1-4544f7872e42:option-1"
+        },
+        {
+          "text": "现场加强消防管理、多配灭火器、定期巡查，确保消防安全责任落实到位，做到防患于未然。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「加强管理、防患未然」听着面面俱到、像标准答案。",
+          "loss_reason": "全是口号，没有一项具体布置要素，阅卷按口号化表达不给分。",
+          "fix": "列出六要素：通道、水源、设施、器材、标志、责任人。",
+          "option_id": "R01-html-practice-html-q1-4544f7872e42:option-2"
+        },
+        {
+          "text": "配足灭火器材、留出消防通道两项即可，这两样是现场灭火最关键的硬件保障。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住了最显眼的通道和器材两项。",
+          "loss_reason": "漏了水源、设施、标志、责任人四项，采分点大面积遗漏。",
+          "fix": "六要素一项不落：通道、水源、设施、器材、标志、责任人。",
+          "option_id": "R01-html-practice-html-q1-4544f7872e42:option-3"
+        },
+        {
+          "text": "按仓库防火分区面积布置消防设施，控制每个分区不超过规定建筑面积并设防火墙分隔。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "「消防」二字相同，顺手把仓库防火分区搬来。",
+          "loss_reason": "答非所问——仓库防火分区是另一考点，不是现场消防布置。",
+          "fix": "回到现场消防布置六要素，别答仓库分区。",
+          "option_id": "R01-html-practice-html-q1-4544f7872e42:option-4"
+        }
+      ],
+      "variant_id": "R01-html-practice-html-q1-4544f7872e42",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q1",
+      "source_html_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "临时设施·上集",
+      "stem": "某工地临时消防设施：立管 1 根、消防箱 1 套、消火栓距路边 5m。指出不妥并改正，选出能得分的作答。",
+      "model_answer": "消防立管不应少于 2 根、消防箱不应少于 2 套、室外消火栓距路边不应大于 2m（并距拟建房屋≥5m 且≤25m）。",
+      "options": [
+        {
+          "text": "立管应不少于 2 根、消防箱应不少于 2 套、消火栓距路边应不大于 2m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处逐项改正、都带规范数值，改错题拿满就靠数值。",
+          "option_id": "R01-html-practice-html-q2-7f1b07651a45:option-1"
+        },
+        {
+          "text": "临时消防设施配置偏少，应适当增加立管、消防箱数量，并把消火栓移到离路边近一些的位置。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "方向对——确实要加、要移近，像是答对了。",
+          "loss_reason": "「适当增加/近一些」没有规范数值，改错题漏数字不给分。",
+          "fix": "写清立管≥2 根、消防箱≥2 套、消火栓距路边≤2m。",
+          "option_id": "R01-html-practice-html-q2-7f1b07651a45:option-2"
+        },
+        {
+          "text": "立管应不少于 2 根、消防箱应不少于 2 套、消火栓距路边应不大于 5m 符合要求，无需调整。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "改对了立管消防箱，消火栓 5m 看着也在范围内。",
+          "loss_reason": "消火栓距路边应≤2m，5m 已超标，规范数字记错。",
+          "fix": "消火栓距路边不应大于 2m，5m 要改。",
+          "option_id": "R01-html-practice-html-q2-7f1b07651a45:option-3"
+        },
+        {
+          "text": "消火栓距拟建房屋应不大于 2m，越近越方便取水灭火，其余立管消防箱各 1 个够用。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把「距路边≤2m」张冠李戴到「距拟建房屋」上。",
+          "loss_reason": "距拟建房屋应≥5m 且≤25m，不是≤2m；立管消防箱也各差 1。",
+          "fix": "距路边≤2m、距拟建房屋≥5m 且≤25m，立管消防箱各≥2。",
+          "option_id": "R01-html-practice-html-q2-7f1b07651a45:option-4"
+        }
+      ],
+      "variant_id": "R01-html-practice-html-q2-7f1b07651a45",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q2",
+      "source_html_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "灭火器·上集",
+      "stem": "临时建筑灭火器应如何配置？选出带规范数值、能得分的作答。",
+      "model_answer": "临时建筑每 100㎡ 配 2 只 10L 灭火器；面积超 1200㎡ 增设太平桶、积水池、黄砂池。",
+      "options": [
+        {
+          "text": "临时建筑每 100㎡ 配 2 只 10L 灭火器，面积超 1200㎡ 再增设太平桶、积水池、黄砂池。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "面积—数量—规格三件齐，超大面积补充设施也点到，数字全。",
+          "option_id": "R01-html-practice-html-q3-1538a7d3b154:option-1"
+        },
+        {
+          "text": "临时建筑应配置足够数量的灭火器，确保覆盖各个区域，满足现场初期火灾扑救需要。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「足够数量、满足需要」像是万金油答案。",
+          "loss_reason": "没有每 100㎡2 只 10L 的配置率，漏数字不给分。",
+          "fix": "写清每 100㎡ 配 2 只 10L。",
+          "option_id": "R01-html-practice-html-q3-1538a7d3b154:option-2"
+        },
+        {
+          "text": "临时建筑每 100㎡ 配 1 只 5L 灭火器，面积再大也按此比例线性增配即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得「100㎡配几只」的框架，只是数记小了。",
+          "loss_reason": "应是 2 只 10L，不是 1 只 5L；且超 1200㎡ 要另设太平桶等。",
+          "fix": "每 100㎡2 只 10L，超 1200㎡ 增设太平桶积水池黄砂池。",
+          "option_id": "R01-html-practice-html-q3-1538a7d3b154:option-3"
+        },
+        {
+          "text": "灭火器随便摆在门口方便拿即可，数量按现场感觉配，够用就行不必拘泥规格。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭「够用就行」的生活常识作答。",
+          "loss_reason": "用常识替代规范，既无配置率也无规格，判分眼全丢。",
+          "fix": "按规范每 100㎡2 只 10L 配置。",
+          "option_id": "R01-html-practice-html-q3-1538a7d3b154:option-4"
+        }
+      ],
+      "variant_id": "R01-html-practice-html-q3-1538a7d3b154",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q3",
+      "source_html_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "灭火器·上集",
+      "stem": "木料间、油漆间的灭火器配置与普通临时建筑相比应如何？选出能得分的作答。",
+      "model_answer": "木料间、油漆间每 25㎡ 配 1 只，比普通临建（100㎡2 只）配置更密，因火险大。",
+      "options": [
+        {
+          "text": "木料间、油漆间火险大，每 25㎡ 配 1 只灭火器，比普通临建配置更密。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出火险大→配更密，并给 25㎡1 只的具体比率，逻辑数值都在。",
+          "option_id": "R01-html-practice-html-q4-5dd998ff8703:option-1"
+        },
+        {
+          "text": "木料间、油漆间与普通临建一样，每 100㎡ 配 2 只 10L 灭火器即可，标准统一好管理。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "图省事，用一个统一标准套所有场所。",
+          "loss_reason": "火险大场所应加密到每 25㎡1 只，套 100㎡ 标准配置不足。",
+          "fix": "木料间油漆间每 25㎡1 只，比普通临建密。",
+          "option_id": "R01-html-practice-html-q4-5dd998ff8703:option-2"
+        },
+        {
+          "text": "木料间、油漆间火险大，应尽量多配灭火器，越多越安全，具体数量视现场情况灵活掌握。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "知道要多配，方向没错。",
+          "loss_reason": "「越多越好、灵活掌握」无配置率数字，漏采分点。",
+          "fix": "写清每 25㎡ 配 1 只。",
+          "option_id": "R01-html-practice-html-q4-5dd998ff8703:option-3"
+        },
+        {
+          "text": "木料间、油漆间火险大反而不宜放灭火器，以免占用空间，集中放在门外通道统一取用。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用「怕占空间」的想当然替代规范。",
+          "loss_reason": "火险大场所恰恰要就近加密配置，判断方向完全错。",
+          "fix": "火险大场所就近加密：每 25㎡1 只。",
+          "option_id": "R01-html-practice-html-q4-5dd998ff8703:option-4"
+        }
+      ],
+      "variant_id": "R01-html-practice-html-q4-5dd998ff8703",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q4",
+      "source_html_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·综合末题",
+      "stem": "某学生答「现场应加强消防管理、配足灭火器、动火前签字确认；电石着火用水降温」。选出最准确的诊断与补写。",
+      "model_answer": "四处失分：①口号化无布置六要素与数值；②灭火器缺配置率（100㎡2 只/25㎡1 只）；③签字≠分级审批（一级报企业安全部门、动火证当日有效）；④电石严禁用水（应干砂或二氧化碳）。",
+      "options": [
+        {
+          "text": "四处都丢分：布置口号化缺六要素、灭火器缺配置率、签字未走分级审批、电石绝不能用水应用干砂或二氧化碳，逐条补规范做法与数值。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "把口号化、漏数字、程序违规、常识灭火四处一次揪出并补齐，这就是会写答案。",
+          "option_id": "R01-html-practice-html-q15-fe4a7892cba8:option-1"
+        },
+        {
+          "text": "作答已覆盖消防管理、灭火器、动火、灭火四个方面，要点齐全，属于可给分的完整作答。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "看「面都提到了」就以为要点齐全——最危险的误判。",
+          "loss_reason": "每一项都是口号或错误：无数值、签字违规、电石用水，阅卷按点采分几乎不得分。",
+          "fix": "四项都要补规范数值与正确做法，尤其电石严禁用水。",
+          "option_id": "R01-html-practice-html-q15-fe4a7892cba8:option-2"
+        },
+        {
+          "text": "只是电石灭火写错了，把用水改成干砂即可，其余消防管理、灭火器、动火作答都没问题。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到电石一处硬错，就以为只此一错。",
+          "loss_reason": "漏诊布置口号化、灭火器缺数字、签字未分级审批三处失分。",
+          "fix": "布置补六要素、灭火器补配置率、动火补分级审批，均要改。",
+          "option_id": "R01-html-practice-html-q15-fe4a7892cba8:option-3"
+        },
+        {
+          "text": "作答方向对但不够详细，把每一项都再多写几句、扩充篇幅就能拿分，内容无原则性错误。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "以为「写多点、写长点」就能拿分。",
+          "loss_reason": "问题是无数值、程序违规、常识灭火等原则性错误，堆字数救不了。",
+          "fix": "按采分点补规范数值与正确做法，不是加篇幅。",
+          "option_id": "R01-html-practice-html-q15-fe4a7892cba8:option-4"
+        }
+      ],
+      "variant_id": "R01-html-practice-html-q15-fe4a7892cba8",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_R01/P40_R01.practice.dc.html#Q15",
+      "source_html_sha256": "18d4fc4d2f30560079b827bee8f4969e6b64585372007b13d7e573a0b710cd0c"
+    }
+  ],
+  "published_lesson_sha256": "40fb42f9985713f143d166b8b5dcb074718a2f0e9cf1711f16f33e6336a1f89a"
+}

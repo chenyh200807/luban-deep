@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "G03",
+  "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
+  "source_bundle_sha256": "6f5963ea75feea1a9db1a0cc822c85c2536a488b82b4f7013956c36c9484d6d3",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        3,
+        4,
+        14
+      ],
+      "variant_ids": [
+        "G03-html-practice-html-q1-eea4184844be",
+        "G03-html-practice-html-q2-aae75cddc48d",
+        "G03-html-practice-html-q4-8082ee20ea91",
+        "G03-html-practice-html-q5-a89c9f731582",
+        "G03-html-practice-html-q15-f68850feb673"
+      ],
+      "published_practice_sha256": "01f4d2b19d24b28c28bcf2319b694467a9bafa58a3123f41d9bf3cdf183b4068"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "定性·条件维",
+      "stem": "某工程采用灌注桩基础。判定灌注桩按成孔工法的分类，选出完整、能得分的作答。",
+      "model_answer": "灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查工艺要求。",
+      "options": [
+        {
+          "text": "灌注桩按成孔工法分泥浆护壁、沉管、长螺旋钻孔压灌、干作业成孔四类，先定性再查要求。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四类工法列全、并点出先定性再查要求，这是答题地基。",
+          "option_id": "G03-html-practice-html-q1-eea4184844be:option-1"
+        },
+        {
+          "text": "灌注桩主要就是泥浆护壁和沉管两种，其余工艺按现场情况灵活确定即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住最常见两种。",
+          "loss_reason": "漏长螺旋钻孔压灌与干作业成孔，工法分类不全。",
+          "fix": "补全四类：泥浆护壁/沉管/长螺旋钻孔压灌/干作业成孔。",
+          "option_id": "G03-html-practice-html-q1-eea4184844be:option-2"
+        },
+        {
+          "text": "灌注桩按受力分端承桩、摩擦桩两类，据受力性状直接确定成孔工艺。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "端承/摩擦听着像分类。",
+          "loss_reason": "端承/摩擦是受力性状，不是成孔工法分类，答错维度。",
+          "fix": "成孔工法=泥浆护壁/沉管/长螺旋/干作业，别用受力分类替代。",
+          "option_id": "G03-html-practice-html-q1-eea4184844be:option-3"
+        },
+        {
+          "text": "灌注桩与预制桩一样，先看锤击还是静压，据此确定成孔工法。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "把预制桩打法套到灌注桩。",
+          "loss_reason": "锤击/静压是预制桩沉桩方式，灌注桩看成孔工法，审题错位。",
+          "fix": "灌注桩按成孔工法定性，不用锤击/静压。",
+          "option_id": "G03-html-practice-html-q1-eea4184844be:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q1-eea4184844be",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q1",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "预制桩强度·条件维",
+      "stem": "预制混凝土桩的吊运与打桩，对桩身混凝土强度有何要求？选出数字准确的作答。",
+      "model_answer": "混凝土强度达设计≥70%可起吊、≥100%可运输和打桩；两点吊吊点距桩端0.2L。",
+      "options": [
+        {
+          "text": "混凝土强度达设计值≥70%方可起吊、≥100%方可运输和打桩；两点吊吊点距桩端0.2L。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "70%/100%两档写准，并带吊点0.2L，未达强度吊运致断桩的前提也点到。",
+          "option_id": "G03-html-practice-html-q2-aae75cddc48d:option-1"
+        },
+        {
+          "text": "混凝土强度达设计值≥100%方可起吊、达70%即可运输和打桩，先运后强度补足。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有70与100，配反了。",
+          "loss_reason": "70%/100%配反：起吊受力小≥70%即可，运输打桩受力大须≥100%。",
+          "fix": "≥70%起吊、≥100%运输打桩，别配反。",
+          "option_id": "G03-html-practice-html-q2-aae75cddc48d:option-2"
+        },
+        {
+          "text": "预制桩只要脱模成型、外观完好就能起吊运输，强度按现场经验掌握即可。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭手感觉得结实就行。",
+          "loss_reason": "用常识替代规范阈值，未达强度吊运会断桩。",
+          "fix": "按规范≥70%起吊、≥100%运输打桩。",
+          "option_id": "G03-html-practice-html-q2-aae75cddc48d:option-3"
+        },
+        {
+          "text": "混凝土强度达设计值≥75%即可起吊、≥90%即可运输和打桩。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记了个大概的数。",
+          "loss_reason": "数值错位，规范是70%与100%。",
+          "fix": "起吊≥70%、运输打桩≥100%。",
+          "option_id": "G03-html-practice-html-q2-aae75cddc48d:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q2-aae75cddc48d",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q2",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "锤击方式·条件维",
+      "stem": "锤击法沉桩宜采用何种落锤方式？选出正确作答。",
+      "model_answer": "宜重锤低击或低锤重打，避免桩头损坏、桩身开裂。",
+      "options": [
+        {
+          "text": "宜采用重锤低击或低锤重打，减小冲击峰值、保桩身完整。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "重锤低击/低锤重打，规范落锤方式，得分。",
+          "option_id": "G03-html-practice-html-q4-8082ee20ea91:option-1"
+        },
+        {
+          "text": "宜采用重锤高击，锤举高、能量大，沉桩更快。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "以为锤举越高越快。",
+          "loss_reason": "高落距冲击峰值超混凝土抗压，桩头碎裂、桩身纵裂。",
+          "fix": "应重锤低击，不是重锤高击。",
+          "option_id": "G03-html-practice-html-q4-8082ee20ea91:option-2"
+        },
+        {
+          "text": "宜采用轻锤高击，靠高频轻打逐渐把桩打入。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "觉得轻打不伤桩。",
+          "loss_reason": "轻锤高击有效贯入能量不足、桩头反复受冲击也易损。",
+          "fix": "应重锤低击或低锤重打。",
+          "option_id": "G03-html-practice-html-q4-8082ee20ea91:option-3"
+        },
+        {
+          "text": "落锤方式对桩身无影响，按机械默认落距施打即可。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "以为落锤方式无所谓。",
+          "loss_reason": "落锤方式直接影响桩头/桩身完整，须控制。",
+          "fix": "宜重锤低击或低锤重打。",
+          "option_id": "G03-html-practice-html-q4-8082ee20ea91:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q4-8082ee20ea91",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q4",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "静压·终止·主体维",
+      "stem": "静力压桩施工与终止沉桩控制，下列作答正确的是？",
+      "model_answer": "试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
+      "options": [
+        {
+          "text": "试压桩不应少于3根；不得边压边挖；终止沉桩摩擦桩以标高为主、端承桩以压力为主。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "试压桩根数、不得边压边挖、终止标准按桩型，三项齐，得分。",
+          "option_id": "G03-html-practice-html-q5-a89c9f731582:option-1"
+        },
+        {
+          "text": "试压桩不应少于3根；可边压边挖以便及时纠偏；终止沉桩一律以压力为主。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得边压边挖能纠偏、压力控制最直观。",
+          "loss_reason": "边压边挖破坏土体，且终止标准摩擦桩应以标高为主，答混。",
+          "fix": "不得边压边挖；摩擦桩以标高为主、端承桩以压力为主。",
+          "option_id": "G03-html-practice-html-q5-a89c9f731582:option-2"
+        },
+        {
+          "text": "试验桩1根即可；终止沉桩摩擦桩以压力为主、端承桩以标高为主。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "根数记少、终止标准配反。",
+          "loss_reason": "试压桩≥3根；终止标准摩擦↔端承互换错误。",
+          "fix": "试压桩≥3根；摩擦看标高、端承看压力。",
+          "option_id": "G03-html-practice-html-q5-a89c9f731582:option-3"
+        },
+        {
+          "text": "静压桩以压桩力大于机架配重即可，不必设试压桩。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只盯压桩力。",
+          "loss_reason": "漏试压桩要求；最大压桩力还应小于机架配重×0.9。",
+          "fix": "补试压桩≥3根，压桩力<(机架+配重)×0.9。",
+          "option_id": "G03-html-practice-html-q5-a89c9f731582:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q5-a89c9f731582",
+      "surface_id": "practice.html",
+      "source_index": 4,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q5",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "甲级灌注桩工程共900根。学生答：①超灌500mm即可；②完整性按20%抽检=180根；③接桩段断裂因混凝土质量差、防治为加强管理。选出最准确的诊断与补写。",
+      "model_answer": "三处都失分：超灌应0.8~1.0m；甲级灌注桩完整性≥30%且≥20根，900×30%=270根；断裂应写五因(弯曲/障碍物/不直/偏心/强度不足)+具体防治。",
+      "options": [
+        {
+          "text": "三处都不妥：超灌应0.8~1.0m；甲级灌注桩完整性≥30%即900×30%=270根；断裂应写五因+清障/垂直沉桩/接桩对中等具体防治。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "超灌、抽检、断桩三处全揪出并补写采分句，这就是会写答案。",
+          "option_id": "G03-html-practice-html-q15-f68850feb673:option-1"
+        },
+        {
+          "text": "作答基本正确：超灌500mm达标，20%抽检180根合规，断裂归因质量差也说得通，可给分。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "只看有没有作答、没核对采分点。",
+          "loss_reason": "三处全错还判对，超灌不足、甲级应30%、断裂空话。",
+          "fix": "三处都要改：0.8~1.0m、30%·270根、五因+具体防治。",
+          "option_id": "G03-html-practice-html-q15-f68850feb673:option-2"
+        },
+        {
+          "text": "只有抽检比例错，改成30%即可；超灌500mm和断裂归因都没问题。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到抽检一处就收手。",
+          "loss_reason": "漏诊超灌不足与断裂口号化两处失分。",
+          "fix": "超灌改0.8~1.0m、断裂写五因+具体防治，不止改抽检。",
+          "option_id": "G03-html-practice-html-q15-f68850feb673:option-3"
+        },
+        {
+          "text": "断裂原因写得对，主要问题是超灌，改成超灌2m、抽检仍按20%即可。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "以为断裂归因已到位。",
+          "loss_reason": "断裂归因质量差是口号未提五因，且超灌2m/抽检20%仍错。",
+          "fix": "断裂写五因+防治；超灌0.8~1.0m；甲级抽检30%·20根。",
+          "option_id": "G03-html-practice-html-q15-f68850feb673:option-4"
+        }
+      ],
+      "variant_id": "G03-html-practice-html-q15-f68850feb673",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G03/P40_G03.practice.dc.html#Q15",
+      "source_html_sha256": "86c6d2e384b1e25d967626731fe57b83119113b997f7f15a4a0ab80d686be8c6"
+    }
+  ],
+  "published_lesson_sha256": "4b551603885b0473b99c5b3d43c17b6cdca7366f9734dbe0003ccb7db3482a8e"
+}

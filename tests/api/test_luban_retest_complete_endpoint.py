@@ -142,3 +142,23 @@ def test_forward_compiled_html_endpoint_reports_fixed_pool_without_answer_key(
     assert result["pool"] == {"core_total": 5, "rule_groups_total": 5}
     assert result["selection_id"] == "signed-five"
     assert all("is_correct" not in option for item in result["items"] for option in item["options"])
+
+
+def test_registered_compiled_supply_never_falls_back_to_empty_signed_selection(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(router, "_review_module_enabled", lambda: True)
+    monkeypatch.setattr(router, "_light_practice_enabled", lambda: True)
+    monkeypatch.setattr(router, "build_retest_items", lambda *args, **kwargs: [])
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(
+            router.retest_items(
+                "F16",
+                mode="forward",
+                current_user=SimpleNamespace(user_id="qa_eval_retest_endpoint"),
+            )
+        )
+
+    assert exc.value.status_code == 404
+    assert exc.value.detail == "compiled practice unavailable"

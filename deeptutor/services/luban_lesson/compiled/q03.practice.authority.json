@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "Q03",
+  "source_pack_sha256": "4e22a6697aeba00353186f44a8ea1568041734406eabbda632b1a7262303e8bc",
+  "source_bundle_sha256": "057e0bb3f222d9f90a4999302fd5a0ffb54e0e6a4989bd232e664ce448b59aaf",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "Q03-html-practice-html-q1-781a1a1452d0",
+        "Q03-html-practice-html-q2-cf369f4525c5",
+        "Q03-html-practice-html-q3-667eefb8bc7c",
+        "Q03-html-practice-html-q4-52d43cc6a165",
+        "Q03-html-practice-html-q16-8e052f56df9e"
+      ],
+      "published_practice_sha256": "d29990b6018e8cff559c7268729c62a5ee5e511027ad07e8395a6bd63c31fb5a"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "表面缺陷·识别",
+      "stem": "地下室墙板拆模后出现四种表面缺陷。选出把它们对号入座、能得分的作答。",
+      "model_answer": "密布小凹点且钢筋不露=麻面；钢筋外露无保护层=露筋；石子成堆缺砂浆空隙连片=蜂窝；局部贯穿大洞=孔洞。",
+      "options": [
+        {
+          "text": "密布小凹点=麻面、钢筋外露=露筋、石子成堆缺砂浆=蜂窝、局部贯穿大洞=孔洞，按形貌逐一命名。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四种形貌逐一对应命名，是识别题的采分地基。",
+          "option_id": "Q03-html-practice-html-q1-781a1a1452d0:option-1"
+        },
+        {
+          "text": "表面缺陷都是振捣不实闹的，一律按蜂窝处理、成因都写漏振就行。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得四种只是轻重不同、都怪振捣。",
+          "loss_reason": "麻面主因在模板、露筋在保护层，一律叫蜂窝命名就错。",
+          "fix": "按形貌分别命名：麻面/露筋/蜂窝/孔洞。",
+          "option_id": "Q03-html-practice-html-q1-781a1a1452d0:option-2"
+        },
+        {
+          "text": "凡是凹陷类都算孔洞，表面小凹点也归到孔洞里一起报。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "都是凹进去的，笼统归孔洞。",
+          "loss_reason": "麻面是表面密布小凹点、孔洞是局部贯穿大洞，深浅范围完全不同。",
+          "fix": "密布小凹点是麻面，贯穿大洞才是孔洞。",
+          "option_id": "Q03-html-practice-html-q1-781a1a1452d0:option-3"
+        },
+        {
+          "text": "先不管叫啥名，直接写防治措施加强振捣、加强养护就够拿分。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "想跳过识别直接答措施。",
+          "loss_reason": "识别命名是采分地基，跳过=丢识别分。",
+          "fix": "先逐图命名，再对应写成因与措施。",
+          "option_id": "Q03-html-practice-html-q1-781a1a1452d0:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q1-781a1a1452d0",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q1",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "表面缺陷·成因",
+      "stem": "构件拆模后表面出现麻面（密布小凹点、钢筋未外露）。选出成因分析能得分的作答。",
+      "model_answer": "模板不光滑/接缝不严漏浆/浇筑前未湿润/隔离剂涂刷不匀，表面缺浆形成麻面。",
+      "options": [
+        {
+          "text": "模板表面不光滑、接缝不严漏浆、浇筑前未湿润、隔离剂涂刷不匀，表面缺浆形成麻面。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四个成因都落在模板与缺浆，正是麻面采分点。",
+          "option_id": "Q03-html-practice-html-q2-cf369f4525c5:option-1"
+        },
+        {
+          "text": "麻面是钢筋保护层垫块漏放、钢筋贴模造成的，属保护层不足。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把麻面和露筋的成因搞混。",
+          "loss_reason": "垫块漏放导致的是露筋不是麻面；麻面钢筋并未外露。",
+          "fix": "麻面主因在模板与缺浆，露筋才是保护层不足。",
+          "option_id": "Q03-html-practice-html-q2-cf369f4525c5:option-2"
+        },
+        {
+          "text": "麻面是混凝土内部石子成堆、砂浆包裹不足造成的密实度问题。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把麻面当蜂窝的成因来答。",
+          "loss_reason": "石子成堆缺砂浆是蜂窝；麻面是表面缺浆、非内部离析。",
+          "fix": "麻面归模板/缺浆，蜂窝才归振捣离析。",
+          "option_id": "Q03-html-practice-html-q2-cf369f4525c5:option-3"
+        },
+        {
+          "text": "麻面就是施工不认真、管理不到位造成的，加强管理确保质量即可。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "口号化、好写。",
+          "loss_reason": "只喊加强管理没写具体成因（模板/漏浆/湿润/隔离剂），拿不到采分。",
+          "fix": "写清模板不光滑·接缝漏浆·未湿润·隔离剂不匀。",
+          "option_id": "Q03-html-practice-html-q2-cf369f4525c5:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q2-cf369f4525c5",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q2",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "表面缺陷·成因",
+      "stem": "构件出现蜂窝（石子成堆、空隙连片）与孔洞（局部贯穿）。选出成因分析能得分的作答。",
+      "model_answer": "自由倾落过高致离析、漏振欠振、钢筋过密下料困难混凝土未振实，形成蜂窝孔洞。",
+      "options": [
+        {
+          "text": "自由倾落过高致离析、漏振欠振、钢筋过密下料困难混凝土未振实，形成蜂窝、孔洞。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "离析·漏振·配筋过密都是宆窝孔洞的采分成因。",
+          "option_id": "Q03-html-practice-html-q3-667eefb8bc7c:option-1"
+        },
+        {
+          "text": "蜂窝孔洞是模板接缝漏浆、隔离剂不匀造成表面缺浆。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "套用麻面的模板成因。",
+          "loss_reason": "模板漏浆致麻面；蜂窝孔洞主因是振捣离析与配筋过密。",
+          "fix": "蜂窝孔洞归布料/振捣/配筋，不是模板缺浆。",
+          "option_id": "Q03-html-practice-html-q3-667eefb8bc7c:option-2"
+        },
+        {
+          "text": "蜂窝孔洞是养护不到位、后期强度不够被压出来的。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把成因往养护上推。",
+          "loss_reason": "养护影响强度/收缩，蜂窝孔洞是浇筑振捣阶段的密实度问题。",
+          "fix": "成因写离析·漏振·配筋过密，不是养护。",
+          "option_id": "Q03-html-practice-html-q3-667eefb8bc7c:option-3"
+        },
+        {
+          "text": "蜂窝就是振捣不实一句话，写上就够了。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只答一条省事。",
+          "loss_reason": "漏了离析、下料过厚、配筋过密等采分点。",
+          "fix": "补齐离析·下料过厚·钢筋过密等成因。",
+          "option_id": "Q03-html-practice-html-q3-667eefb8bc7c:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q3-667eefb8bc7c",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q3",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "缺陷治理·工艺顺序",
+      "stem": "孔洞缺陷需按工艺流程治理。选出流程顺序正确、能得分的作答。",
+      "model_answer": "清理表面→支设模板→洒水湿润→涂混凝土界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。",
+      "options": [
+        {
+          "text": "清理表面→支设模板→洒水湿润→涂界面剂→高一强度等级细石混凝土浇筑密实→保温保湿养护不少于7天。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六步顺序正确、界面剂与高一强度与养护一个不漏。",
+          "option_id": "Q03-html-practice-html-q4-52d43cc6a165:option-1"
+        },
+        {
+          "text": "先浇筑高强细石混凝土填实，再清理表面、支模板、最后洒水湿润养护。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得先填上要紧、顺序无所谓。",
+          "loss_reason": "先浇后清、乱序=程序错，界面没处理浇了也白搭。",
+          "fix": "必须先清理→支模→湿润→界面剂→再浇筑→养护。",
+          "option_id": "Q03-html-practice-html-q4-52d43cc6a165:option-2"
+        },
+        {
+          "text": "清理表面→支设模板→浇筑混凝土→然后养护即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "看着步骤挺全。",
+          "loss_reason": "漏了洒水湿润、涂界面剂两个关键采分词。",
+          "fix": "补洒水湿润与涂混凝土界面剂两步。",
+          "option_id": "Q03-html-practice-html-q4-52d43cc6a165:option-3"
+        },
+        {
+          "text": "清理→支模→湿润→界面剂→浇筑→养护，养护2天即可拆模交工。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "顺序对，只是养护天数随手填。",
+          "loss_reason": "养护应不少于7天，写2天规范数值错。",
+          "fix": "保温保湿养护不少于7天。",
+          "option_id": "Q03-html-practice-html-q4-52d43cc6a165:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q4-52d43cc6a165",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q4",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生对空鼓/裂缝/渗漏三问作答：①空鼓归师傅手艺、敲掉重贴；②墙裂渗水，做完防水层就行；③填充墙裂缝，抹层灰盖上。选出最准确的诊断与补写。",
+      "model_answer": "三条均为治标：空鼓应清基层·浸砖·界面剂+背砂；渗漏应保湿养护治收缩+多道设防刚柔结合、穿墙管加止水环；填充墙应设2φ6@500拉结、下部墙砌完14d后砌顶、洞口加强网片。三处都需补规范措施。",
+      "options": [
+        {
+          "text": "三条都只答了治标：空鼓应清基层浸砖界面剂背砂、渗漏应养护治收缩加多道设防、填充墙应2φ6@500加14d后砌，均需补规范措施。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处治标全揪出，对症补写就是上答题纸的采分句。",
+          "option_id": "Q03-html-practice-html-q16-8e052f56df9e:option-1"
+        },
+        {
+          "text": "三条思路都对，只是写得简单些，补充点文字描述就能得满分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为方向对只是简略。",
+          "loss_reason": "三条全是治标、方向就错，不是简略问题，阅卷看规范措施。",
+          "fix": "三处成因与措施都要重写，非补字数。",
+          "option_id": "Q03-html-practice-html-q16-8e052f56df9e:option-2"
+        },
+        {
+          "text": "只有填充墙那条要补2φ6@500和14d，空鼓和渗漏两条其实没问题。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只抓到一处。",
+          "loss_reason": "空鼓漏界面处理、渗漏漏养护与多道设防，两处也失分。",
+          "fix": "空鼓与渗漏同样要补规范措施。",
+          "option_id": "Q03-html-practice-html-q16-8e052f56df9e:option-3"
+        },
+        {
+          "text": "空鼓补做防水层、渗漏敲掉重贴、填充墙把钢筋加密到间距200mm即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "看似都在加措施。",
+          "loss_reason": "措施张冠李戴且间距应≤500mm不是200mm，规范/对象错。",
+          "fix": "对症：空鼓清基层浸砖、渗漏养护+多道设防、填充塙2φ6@500。",
+          "option_id": "Q03-html-practice-html-q16-8e052f56df9e:option-4"
+        }
+      ],
+      "variant_id": "Q03-html-practice-html-q16-8e052f56df9e",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q03/P40_Q03.practice.dc.html#Q16",
+      "source_html_sha256": "438597561292a6c3740daca7e301dace09fa97b246822c8229b6b925ed15a6e3"
+    }
+  ],
+  "published_lesson_sha256": "e4fec202985d80095a55bcc715c0b407735a30f35702a97e3996284f66ee7a9d"
+}

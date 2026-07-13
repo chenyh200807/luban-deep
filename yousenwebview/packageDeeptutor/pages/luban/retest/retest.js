@@ -27,7 +27,7 @@ function parseBridgeAnswerIndexes(query, mode) {
 
 // 两种取题模式共用本页（复用同一 retest 页/内核，不建第二答题页）：
 // - review（默认，复习轮换皮复测）；
-// - forward（学习轮五题轻练；F16 题面/答案来自 compiled HTML）。
+// - forward（学习轮五题轻练；有 finished 供给的题面/答案来自 compiled HTML）。
 // review 旧判断题保留即时呈现；forward 单选不下发答案，服务端 completion 是唯一判分/写回入口。
 var COPY = {
   review: {
@@ -56,6 +56,7 @@ Page({
     navHeight: 96,
     isDark: true,
     packId: "",
+    practiceSurface: "",
     mode: "review",
     probeId: "",
     trainingIntentId: "",
@@ -103,6 +104,7 @@ Page({
     var statusBarHeight = info.statusBarHeight || 0;
     var packId = String((query && query.pack_id) || "").trim();
     var mode = String((query && query.mode) || "review") === "forward" ? "forward" : "review";
+    var practiceSurface = String((query && query.practice_surface) || "").trim();
     var bridgeAnswerIndexes = parseBridgeAnswerIndexes(query, mode);
     var bridgeRequested = String((query && query.presentation) || "") === "receipt";
     var probeId = String((query && query.probe_id) || "").trim();
@@ -122,6 +124,7 @@ Page({
       navHeight: statusBarHeight + 48,
       isDark: helpers.isDark(),
       packId: packId,
+      practiceSurface: practiceSurface,
       mode: mode,
       bridgeMode: bridgeRequested,
       bridgeAnswerIndexes: bridgeAnswerIndexes || [],
@@ -409,7 +412,9 @@ Page({
   _loadItems() {
     var that = this;
     return api
-      .getLubanRetestItems(this.data.packId, RETEST_LIMIT, this.data.mode)
+      .getLubanRetestItems(this.data.packId, RETEST_LIMIT, this.data.mode, {
+        practiceSurface: this.data.practiceSurface,
+      })
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var raw = Array.isArray(body.items) ? body.items : [];

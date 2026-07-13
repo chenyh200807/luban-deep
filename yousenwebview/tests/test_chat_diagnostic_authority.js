@@ -55,7 +55,9 @@ function loadChatPage(overrides) {
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
     require: function (request) {
-      if (request === "../../utils/auth") return {};
+      if (request === "../../utils/auth") {
+        return { getUserId: function () { return "user-1"; } };
+      }
       if (request === "../../utils/api") return apiMock;
       if (request === "../../utils/ai-message-state") return {};
       if (request === "../../utils/ws-stream") return {};
@@ -165,7 +167,7 @@ function loadChatPage(overrides) {
     await flushPromises();
 
     assert(loaded.modalCalls.length === 0, "diagnostic modal should be suppressed by backend assessment signal");
-    assert(loaded.storage.diagnostic_completed === true, "backend assessment signal should warm local completed cache");
+    assert(loaded.storage["diagnostic_completed:user-1"] === true, "backend assessment signal should warm the user-scoped completed cache");
   });
 
   await run("chat diagnostic should still show modal when backend assessment is empty", async function () {
@@ -199,7 +201,7 @@ function loadChatPage(overrides) {
     await flushPromises();
 
     assert(loaded.modalCalls.length === 0, "canonical first-run completion should prevent a second onboarding prompt");
-    assert(loaded.storage.diagnostic_completed === true, "canonical first-run completion should warm the local cache");
+    assert(loaded.storage["diagnostic_completed:user-1"] === true, "canonical first-run completion should warm the user-scoped cache");
   });
 
   if (fail) {

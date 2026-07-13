@@ -6,7 +6,7 @@
   （teach/practice .dc.html + support.js + assets/ + audio/）。托管副本永远由本脚本
   派生，不手改生成物。
 - 2026-07-05 owner 真机反馈两个问题在打包层治本：
-  1. **没有声音**：F16 托管漏了 ``audio/``（根因链 = ``.gitignore`` 全局 ``*.mp3``
+  1. **没有声音**：托管漏了 ``audio/``（根因链 = ``.gitignore`` 全局 ``*.mp3``
      把 11 段配音静默挡在 commit df688f571 之外 → 线上 404 → 回落 webSpeak 在微信
      web-view 静默失败）。本脚本无条件拷贝 audio/，.gitignore 已加窄豁免。
   2. **按钮触发真全屏 + 自适应**：把 owner 参考实现（起重吊装安全 S02 卡 +
@@ -51,22 +51,23 @@ lesson2.html（卡自带上下集互链，发布时只重写 href，不改 read_
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass, field
 import hashlib
 import json
+from pathlib import Path
 import re
 import shutil
 import sys
 import tempfile
-from dataclasses import dataclass, field
-from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from deeptutor.services.luban_lesson.practice_html import (
-    F16_PRACTICE_ORDER,
-    compile_practice_authority,
+    build_practice_authority,
+    compile_practice_surface,
+    transform_compiled_practice_html,
 )
 
 FINISHED = REPO / "artifacts" / "luban_case_family_assets" / "diagram_microlesson" / "finished"
@@ -208,7 +209,7 @@ _FONT_LINKS_OLD = (
 )
 _FONT_LINKS_NEW = '<link href="../fonts/fonts.css" rel="stylesheet"/>'
 
-# teach 卡额外注入微信 JSSDK（F16 practice 保存学习证据时也复用）
+# teach/practice 卡额外注入微信 JSSDK（practice 保存学习证据时复用）
 _JWEIXIN_TAG = '<script src="../vendor/jweixin.js"></script>'
 
 # 用户进入讲懂卡就是明确播放意图：只预热首段 b0，缩短第一次点播放到出声；
@@ -549,92 +550,26 @@ def transform_teach(text: str, pack_id: str) -> str:
     return text
 
 
-_F16_PICK_ORDER_OLD = """  pickOrder(){ const idx=this.Q.map((_,i)=>i);
-    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
-    const last=this.Q.length-1; const k=idx.indexOf(last); if(k>=0){ idx.splice(k,1); idx.push(last); }
-    return idx.slice(0, Math.min(this.SHOW_COUNT||6, idx.length)); }
-  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||6, this.Q.length)); }"""
-_F16_PICK_ORDER_NEW = """  pickOrder(){ return this.PRACTICE_ORDER.slice(); }
-  fallbackOrder(){ return this.PRACTICE_ORDER.slice(); }"""
-_F16_RESET_OLD = "  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false,order:this.pickOrder(),optOrder:this.pickOptOrders()}); }"
-_F16_RESET_NEW = """  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false,order:this.pickOrder(),optOrder:this.pickOptOrders(),saveError:"",autoSaving:false}); }
-  answerIndexes(){ return this.ord().map((_,i)=>this.state.sel[i]); }
-  saveEvidence(){ try{
-      const answers=this.answerIndexes();
-      if(answers.length!==this.qCount()||answers.some(v=>!Number.isInteger(v))){ this.setState({autoSaving:false,finished:true,saveError:"作答不完整，请完成五题。"}); return false; }
-      const wxm=window.wx&&window.wx.miniProgram;
-      const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
-      if(!wxm||!inMini||!wxm.redirectTo){ this.setState({autoSaving:false,finished:true,saveError:"网页预览结果不会写入学习记录。"}); return false; }
-      wxm.redirectTo({
-        url:'/packageDeeptutor/pages/luban/retest/retest?mode=forward&pack_id=F16&presentation=receipt&answer_indexes='+encodeURIComponent(answers.join(',')),
-        fail:()=>this.setState({autoSaving:true,finished:false,saveError:"暂时没保存成功，请重试。"})
-      });
-      return true; }catch(e){ this.setState({autoSaving:true,finished:false,saveError:"暂时没保存成功，请重试。"}); return false; } }
-  retrySave(){ this.setState({autoSaving:true,finished:false,saveError:""}); this.saveEvidence(); }"""
-_F16_RESULT_ANCHOR = '      <a href="P40_F16.teach.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">'
-_F16_RESULT_PREVIEW = """      <div style="font-size:10px;color:#8b9398;line-height:1.5;text-align:center;margin:0 8px 12px;">网页预览 · 不写入学习记录；小程序内只以服务端复核后的正式收据为准。</div>
-""" + _F16_RESULT_ANCHOR
-_F16_RESULTS_COMMENT = "    <!-- RESULTS VIEW -->"
-_F16_AUTO_SAVE_VIEW = """    <sc-if value="{{ autoSaving }}" hint-placeholder-val="{{ false }}">
-    <div style="padding:72px 24px 48px;text-align:center;">
-      <div style="width:44px;height:44px;border:3px solid #e1d8c6;border-top-color:#cf4436;border-radius:50%;margin:0 auto 18px;"></div>
-      <div style="font-size:18px;font-weight:900;color:#23282b;">正在确认这 5 题</div>
-      <div style="font-size:12px;color:#6f777b;line-height:1.7;margin-top:8px;">正在提交本次作答，马上生成正式结果…</div>
-      <sc-if value="{{ hasSaveError }}" hint-placeholder-val="{{ false }}">
-      <div style="font-size:11px;color:#cf4436;line-height:1.5;margin-top:16px;">{{ saveError }}</div>
-      <button onClick="{{ retrySave }}" style="width:100%;border:none;background:#23282b;border-radius:13px;padding:13px;font-size:13px;font-weight:900;color:#fff;cursor:pointer;margin-top:12px;">重试保存</button>
-      </sc-if>
-    </div>
-    </sc-if>
-
-    <!-- RESULTS VIEW -->"""
-
-
-def transform_practice(text: str, station_id: str) -> str:
-    font_tag = _FONT_LINKS_NEW
-    if station_id == "f16":
-        font_tag += "\n" + _JWEIXIN_TAG
-    text = _sub(text, _FONT_LINKS_OLD, font_tag, "font-links")
-    if station_id != "f16":
-        return text
-
-    order = ",".join(str(value) for value in F16_PRACTICE_ORDER)
+def transform_practice(
+    text: str,
+    *,
+    pack_id: str,
+    compiled_surface: dict[str, object],
+    items: list[dict[str, object]],
+) -> str:
+    """Thin publisher wrapper：字体/JSSDK 处理后交给内容内核。"""
     text = _sub(
         text,
-        "  SHOW_COUNT = 6;",
-        "  SHOW_COUNT = 5;\n"
-        f"  PRACTICE_ORDER = [{order}]; // 发布策略：从 final 六题中固定取五题，内容/答案不改",
-        "f16-five-question-policy",
+        _FONT_LINKS_OLD,
+        _FONT_LINKS_NEW + "\n" + _JWEIXIN_TAG,
+        "font-links",
     )
-    text = _sub(
-        text,
-        '  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };',
-        '  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null, saveError:"", autoSaving:false };',
-        "f16-save-state",
+    return transform_compiled_practice_html(
+        pack_id,
+        surface=compiled_surface,
+        items=items,
+        html=text,
     )
-    text = _sub(text, _F16_PICK_ORDER_OLD, _F16_PICK_ORDER_NEW, "f16-fixed-order")
-    text = _sub(text, _F16_RESET_OLD, _F16_RESET_NEW, "f16-evidence-method")
-    text = _sub(
-        text,
-        "  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }",
-        "  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else { this.setState({autoSaving:true,finished:false,saveError:\"\"}); setTimeout(()=>this.saveEvidence(),0); } }",
-        "f16-auto-save",
-    )
-    text = _sub(text, _F16_RESULTS_COMMENT, _F16_AUTO_SAVE_VIEW, "f16-saving-view")
-    text = _sub(text, _F16_RESULT_ANCHOR, _F16_RESULT_PREVIEW, "f16-result-preview")
-    text = _sub(
-        text,
-        "      reset:()=>this.reset(),",
-        "      reset:()=>this.reset(),saveEvidence:()=>this.saveEvidence(),retrySave:()=>this.retrySave(),saveError:this.state.saveError,hasSaveError:!!this.state.saveError,autoSaving:this.state.autoSaving,",
-        "f16-render-bridge",
-    )
-    text = _sub(
-        text,
-        "      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,",
-        "      examTitle:this.examTitle, inQuiz:!this.state.finished&&!this.state.autoSaving, finished:this.state.finished,",
-        "f16-exclusive-saving-view",
-    )
-    return text
 
 
 def _rewrite_hrefs(text: str, href_map: dict[str, str]) -> str:
@@ -683,6 +618,7 @@ def _pack_source_sha(pack_id: str) -> str:
 def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> list[str]:
     src = finished_root / st.pack_dir
     dst = HOST / station_id
+    pack_id = station_id.upper()
     if not src.is_dir():
         raise TransformError(f"finished pack missing: {src}")
     required = [*st.teach.values(), *st.practice.values(), "support.js"]
@@ -699,17 +635,47 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
         rendered_teach[hosted_name] = _strip_trailing_whitespace(
             _rewrite_hrefs(transform_teach(source, station_id.upper()), st.href_map)
         )
-    rendered_practice = {
-        hosted_name: _strip_trailing_whitespace(
+    rendered_practice: dict[str, str] = {}
+    compiled_surfaces: list[dict[str, object]] = []
+    for hosted_name, src_name in st.practice.items():
+        practice_source = src / src_name
+        source_text = practice_source.read_text(encoding="utf-8")
+        logical_source = (
+            "artifacts/luban_case_family_assets/diagram_microlesson/finished/"
+            f"{st.pack_dir}/{src_name}"
+        )
+        compiled = compile_practice_surface(
+            pack_id,
+            surface_id=hosted_name,
+            html=source_text,
+            source_path=logical_source,
+            source_html_sha256=_sha256(practice_source),
+        )
+        rendered = _strip_trailing_whitespace(
             _rewrite_hrefs(
                 transform_practice(
-                    (src / src_name).read_text(encoding="utf-8"), station_id
+                    source_text,
+                    pack_id=pack_id,
+                    compiled_surface=compiled["surface"],
+                    items=compiled["items"],
                 ),
                 st.href_map,
             )
         )
-        for hosted_name, src_name in st.practice.items()
-    }
+        compiled["surface"]["published_practice_sha256"] = hashlib.sha256(
+            rendered.encode("utf-8")
+        ).hexdigest()
+        rendered_practice[hosted_name] = rendered
+        compiled_surfaces.append(compiled)
+    authority = build_practice_authority(
+        pack_id,
+        source_pack_sha256=_pack_source_sha(pack_id),
+        source_bundle_sha256=_finished_bundle_sha(src),
+        compiled_surfaces=compiled_surfaces,
+    )
+    authority["published_lesson_sha256"] = hashlib.sha256(
+        rendered_teach["lesson.html"].encode("utf-8")
+    ).hexdigest()
     support = _self_host_support_runtime(
         (src / "support.js").read_text(encoding="utf-8")
     )
@@ -765,28 +731,13 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
         if staged.exists():
             shutil.rmtree(staged)
 
-    if station_id == "f16":
-        practice_source = src / st.practice["practice.html"]
-        source_text = practice_source.read_text(encoding="utf-8")
-        authority = compile_practice_authority(
-            "F16",
-            html=source_text,
-            source_path=(
-                "artifacts/luban_case_family_assets/diagram_microlesson/finished/"
-                f"{st.pack_dir}/{practice_source.name}"
-            ),
-            source_html_sha256=_sha256(practice_source),
-            source_pack_sha256=_pack_source_sha("F16"),
-            source_bundle_sha256=_finished_bundle_sha(src),
-        )
-        authority["published_lesson_sha256"] = _sha256(dst / "lesson.html")
-        authority["published_practice_sha256"] = _sha256(dst / "practice.html")
-        AUTHORITY_HOST.mkdir(parents=True, exist_ok=True)
-        (AUTHORITY_HOST / "f16.practice.authority.json").write_text(
-            json.dumps(authority, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        written.append("server-authority/f16")
+    AUTHORITY_HOST.mkdir(parents=True, exist_ok=True)
+    authority_path = AUTHORITY_HOST / f"{station_id}.practice.authority.json"
+    authority_path.write_text(
+        json.dumps(authority, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    written.append(f"server-authority/{station_id}")
     return written
 
 

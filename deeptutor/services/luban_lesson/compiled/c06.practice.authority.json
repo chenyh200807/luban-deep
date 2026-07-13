@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "C06",
+  "source_pack_sha256": "2e443ed86a102ae893115810ea1640438ab097461ff251419e690286102fd935",
+  "source_bundle_sha256": "cc5378ccec1864c4cc12a35bf6d69d05aeabbbc1692ce24c33f8c57b55ae5e01",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html",
+      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "C06-html-practice-html-q1-059b37587342",
+        "C06-html-practice-html-q2-c943f4f66e88",
+        "C06-html-practice-html-q3-f2a1a2da34e2",
+        "C06-html-practice-html-q4-ff391baa6a20",
+        "C06-html-practice-html-q16-d0b8b0f4eb46"
+      ],
+      "published_practice_sha256": "8d66fb3fcbd7a91641f51bd55d3ac883cb888e15c30ba2f85ac96b6e35fb14a8"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "留槎形式·条件维",
+      "stem": "抗震设防烈度 8 度地区，砖墙砌筑临时间断处应如何留槎？选出最完整、能得分的作答。",
+      "model_answer": "抗震设防 8 度及以上，临时间断处应留斜槎，不得留直槎。",
+      "options": [
+        {
+          "text": "抗震设防 8 度及以上，临时间断处应留斜槎，不得留直槎。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明‘8度及以上必留斜槎、不得直槎’，条件与做法齐，是采分句。",
+          "option_id": "C06-html-practice-html-q1-059b37587342:option-1"
+        },
+        {
+          "text": "8 度地区图省事留直槎，只要把接口清理干净、后砌时对齐即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得清理干净就不影响咬合。",
+          "loss_reason": "抗震 8 度及以上禁留直槎，留直槎即判不妥。",
+          "fix": "应留斜槎，不得留直槎。",
+          "option_id": "C06-html-practice-html-q1-059b37587342:option-2"
+        },
+        {
+          "text": "8 度地区可留直槎，只要沿墙加设拉结筋补强就满足抗震要求。",
+          "is_correct": false,
+          "source_error_code": "E11",
+          "temptation": "把‘非抗震直槎加拉结筋’迁移到抗震区。",
+          "loss_reason": "加拉结筋是非抗震直槎的做法，8 度及以上必须斜槎，拉结筋替代不了。",
+          "fix": "8 度及以上必留斜槎。",
+          "option_id": "C06-html-practice-html-q1-059b37587342:option-3"
+        },
+        {
+          "text": "只要留斜槎就行，斜槎留多长无所谓，能接上即算合格。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "以为留了斜槎就够。",
+          "loss_reason": "斜槎有尺寸要求，普通砖水平投影须≥高 2/3，不写尺寸丢分。",
+          "fix": "留斜槎且普通砖水平投影≥高 2/3。",
+          "option_id": "C06-html-practice-html-q1-059b37587342:option-4"
+        }
+      ],
+      "variant_id": "C06-html-practice-html-q1-059b37587342",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q1",
+      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "斜槎尺寸·记忆维",
+      "stem": "普通实心砖砌体留斜槎，斜槎长度应满足什么要求？",
+      "model_answer": "普通砖斜槎水平投影长度不应小于斜槎高度的 2/3。",
+      "options": [
+        {
+          "text": "普通砖斜槎的水平投影长度不应小于斜槎高度的 2/3。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "普通砖认准 2/3，写清‘水平投影≥高 2/3’即得分。",
+          "option_id": "C06-html-practice-html-q2-c943f4f66e88:option-1"
+        },
+        {
+          "text": "普通砖斜槎的水平投影长度不应小于斜槎高度的 1/2。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把多孔砖 1/2 用到了普通砖上。",
+          "loss_reason": "普通砖是 2/3、多孔砖才 1/2，两个数字混淆。",
+          "fix": "普通砖水平投影≥高 2/3。",
+          "option_id": "C06-html-practice-html-q2-c943f4f66e88:option-2"
+        },
+        {
+          "text": "普通砖留斜槎坡度自然、能接上就行，不必量具体长度。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "觉得凭手感留即可。",
+          "loss_reason": "缺‘≥2/3 高’关键数值，采分句不成立。",
+          "fix": "补‘水平投影≥高 2/3’。",
+          "option_id": "C06-html-practice-html-q2-c943f4f66e88:option-3"
+        },
+        {
+          "text": "普通砖斜槎高度不应大于 1.2m 即为合格。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把空心砖斜槎高 1.2m 套到普通砖。",
+          "loss_reason": "1.2m 是空心砖斜槎高度限值，不是普通砖的投影比。",
+          "fix": "普通砖看水平投影≥高 2/3。",
+          "option_id": "C06-html-practice-html-q2-c943f4f66e88:option-4"
+        }
+      ],
+      "variant_id": "C06-html-practice-html-q2-c943f4f66e88",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q2",
+      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "斜槎尺寸·记忆维",
+      "stem": "多孔砖砌体留斜槎，斜槎应满足什么要求？",
+      "model_answer": "多孔砖斜槎的长高比不应小于 1/2。",
+      "options": [
+        {
+          "text": "多孔砖斜槎的长高比不应小于 1/2。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "多孔砖认准 1/2，写‘长高比≥1/2’即得分。",
+          "option_id": "C06-html-practice-html-q3-f2a1a2da34e2:option-1"
+        },
+        {
+          "text": "多孔砖斜槎的水平投影长度不应小于高度的 2/3。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把普通砖 2/3 用到了多孔砖。",
+          "loss_reason": "多孔砖是长高比≥1/2，普通砖才 2/3，数字混淆。",
+          "fix": "多孔砖长高比≥1/2。",
+          "option_id": "C06-html-practice-html-q3-f2a1a2da34e2:option-2"
+        },
+        {
+          "text": "多孔砖不能留斜槎，只能同时砌筑或留直槎。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为多孔砖不许斜槎。",
+          "loss_reason": "多孔砖同样可留斜槎，只是比值取 1/2。",
+          "fix": "多孔砖可留斜槎，长高比≥1/2。",
+          "option_id": "C06-html-practice-html-q3-f2a1a2da34e2:option-3"
+        },
+        {
+          "text": "多孔砖留斜槎即可，长高比多少不影响验收。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "以为留了就行。",
+          "loss_reason": "缺‘长高比≥1/2’关键数值。",
+          "fix": "补‘长高比≥1/2’。",
+          "option_id": "C06-html-practice-html-q3-f2a1a2da34e2:option-4"
+        }
+      ],
+      "variant_id": "C06-html-practice-html-q3-f2a1a2da34e2",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q3",
+      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "留槎形式·条件维",
+      "stem": "非抗震设防地区，砖墙临时间断处不能留斜槎时可否留直槎？如何处理？",
+      "model_answer": "非抗震区可留直槎，但应沿墙加设拉结钢筋。",
+      "options": [
+        {
+          "text": "非抗震设防地区可留直槎，但应沿墙加设拉结钢筋。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "‘可直槎’要连着‘加拉结筋’一起写，两句才满分。",
+          "option_id": "C06-html-practice-html-q4-ff391baa6a20:option-1"
+        },
+        {
+          "text": "非抗震区可以直接留直槎，把接口清理干净即可，无需其他处理。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为非抗震区就随便留。",
+          "loss_reason": "漏了‘加设拉结筋’，采分点遗漏。",
+          "fix": "留直槎须沿墙加设拉结钢筋。",
+          "option_id": "C06-html-practice-html-q4-ff391baa6a20:option-2"
+        },
+        {
+          "text": "无论是否抗震，一律不得留直槎，只能留斜槎。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把抗震区规则扩大化。",
+          "loss_reason": "非抗震区允许留直槎(加拉结筋)，一律禁止是规范适用错误。",
+          "fix": "非抗震区可留直槎，但须加拉结筋。",
+          "option_id": "C06-html-practice-html-q4-ff391baa6a20:option-3"
+        },
+        {
+          "text": "非抗震留直槎加拉结筋，抗震 8 度区同样加拉结筋即可留直槎。",
+          "is_correct": false,
+          "source_error_code": "E11",
+          "temptation": "把做法迁移到抗震区。",
+          "loss_reason": "8 度及以上必留斜槎，拉结筋替代不了。",
+          "fix": "8 度及以上必斜槎，不能靠拉结筋留直槎。",
+          "option_id": "C06-html-practice-html-q4-ff391baa6a20:option-4"
+        }
+      ],
+      "variant_id": "C06-html-practice-html-q4-ff391baa6a20",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q4",
+      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·采分句输出",
+      "stem": "临时洞口案例，考生只写‘洞口净宽 1.2m 不妥、应改小’。要拿全采分，应如何补写完整采分句？",
+      "model_answer": "净宽应≤1m；距交接面应≥500mm；上设过梁或挑砖封口；并预埋拉结筋。",
+      "options": [
+        {
+          "text": "净宽不应大于 1m(1.2m 改为≤1m)；侧边距交接面不应小于 500mm；上设过梁或挑砖封口；并预埋拉结筋。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "给出具体数值+位置+封口+拉结筋，才是完整采分句。",
+          "option_id": "C06-html-practice-html-q16-d0b8b0f4eb46:option-1"
+        },
+        {
+          "text": "补一句‘洞口尺寸要再小一点、注意位置’即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为定性说明就够。",
+          "loss_reason": "没给具体数值和位置，采分句不成立。",
+          "fix": "写≤1m、距交接面≥500mm等具体值。",
+          "option_id": "C06-html-practice-html-q16-d0b8b0f4eb46:option-2"
+        },
+        {
+          "text": "写‘净宽≤1m’一句即可，其余不必展开。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "抓住净宽一项。",
+          "loss_reason": "漏距交接面、封口、拉结筋。",
+          "fix": "补距交接面≥500mm、过梁封口、拉结筋。",
+          "option_id": "C06-html-practice-html-q16-d0b8b0f4eb46:option-3"
+        },
+        {
+          "text": "净宽≤1m、距交接面≥300mm，并预埋拉结筋。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "距离数值记小了。",
+          "loss_reason": "距交接面应≥500mm，不是 300mm。",
+          "fix": "距交接面≥500mm。",
+          "option_id": "C06-html-practice-html-q16-d0b8b0f4eb46:option-4"
+        }
+      ],
+      "variant_id": "C06-html-practice-html-q16-d0b8b0f4eb46",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C06/P40_C06.practice.dc.html#Q16",
+      "source_html_sha256": "c39339f004eabaf20ec2e60586d020248f38c34931079e8a41b31559dee0f2e0"
+    }
+  ],
+  "published_lesson_sha256": "cc8cd10d362227fcdb0dad9f3285c63dc29ee8dbf5ca869bf74734e89a854f57"
+}

@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "C04",
+  "source_pack_sha256": "890334cf5c4a12d7a68f569af605ea5b5adb4637848ec9936521fbc292f9aed2",
+  "source_bundle_sha256": "73b3417a6985d3c8e465e5b507dea48aafd546ab266dac8611e5aa2117611c73",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html",
+      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "C04-html-practice-html-q1-3f9696fe7b90",
+        "C04-html-practice-html-q2-57b7aba68476",
+        "C04-html-practice-html-q3-fd09f109c0de",
+        "C04-html-practice-html-q4-2f60c2911a87",
+        "C04-html-practice-html-q16-bd3fe10391f8"
+      ],
+      "published_practice_sha256": "a105d001a097e8124fdd51a5921ae0f044d2bdb81ef4b093a4776ff06edc1c23"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "侧模判据·条件维",
+      "stem": "梁、柱、墙的侧模板要拆除，拆除条件怎么写才能得分？",
+      "model_answer": "不承重侧模：混凝土强度保证其表面、棱角不因拆模受损即可拆除；墙体大模板常温达 1N/mm² 即可拆除。",
+      "options": [
+        {
+          "text": "不承重侧模只要混凝土强度保证表面、棱角不因拆模受损即可拆；墙体大模板常温达 1N/mm² 即可拆。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "侧模判据两件套：表面棱角不受损 + 大模板 1N/mm²，别沾百分率表。",
+          "option_id": "C04-html-practice-html-q1-3f9696fe7b90:option-1"
+        },
+        {
+          "text": "侧模与底模一样，须按构件类型和跨度查强度百分率表，达到对应百分率后方可拆除。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "底模那张表太出名，顺手就往侧模上套。",
+          "loss_reason": "百分率表只管承重的底模及支架；侧模不承重，判据是表面棱角。",
+          "fix": "侧模看「表面、棱角不因拆模受损」，墙体大模板 1N/mm²。",
+          "option_id": "C04-html-practice-html-q1-3f9696fe7b90:option-2"
+        },
+        {
+          "text": "侧模拆除只要混凝土表面不粘模即可，对棱角没有要求，常温下随时可拆。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住了「表面」，忘了「棱角」。",
+          "loss_reason": "判据是「表面、棱角」两个词都得有，漏「棱角」就漏采分词。",
+          "fix": "写全「表面、棱角不因拆模受损」。",
+          "option_id": "C04-html-practice-html-q1-3f9696fe7b90:option-3"
+        },
+        {
+          "text": "所有模板包括底模，混凝土强度达到 1N/mm² 即可拆除，这是拆模的统一强度阈值。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "1N/mm² 这个数好记，容易当万能阈值。",
+          "loss_reason": "1N/mm² 只适用于墙体大模板（侧模）；底模按它拆就是重大安全事故级错误。",
+          "fix": "1N/mm² 仅限墙体大模板；底模按构件×跨度查表。",
+          "option_id": "C04-html-practice-html-q1-3f9696fe7b90:option-4"
+        }
+      ],
+      "variant_id": "C04-html-practice-html-q1-3f9696fe7b90",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q1",
+      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "底模强度表·条件维",
+      "stem": "底模及支架拆除时的混凝土强度要求，怎么写才完整、能得分？",
+      "model_answer": "按构件类型+跨度：板 ≤2m→50%、2~8m→75%、＞8m→100%；梁拱壳 ≤8m→75%、＞8m→100%；悬臂构件一律 100%。",
+      "options": [
+        {
+          "text": "按构件类型加跨度查表：板 ≤2m 取 50%、2~8m 取 75%、＞8m 取 100%；梁拱壳 ≤8m 取 75%、＞8m 取 100%；悬臂构件一律 100%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "构件三类 + 断点 2m/8m + 档值 50/75/100，全表一句写齐。",
+          "option_id": "C04-html-practice-html-q2-57b7aba68476:option-1"
+        },
+        {
+          "text": "底模拆除时混凝土达到设计强度即可拆除，不必区分构件类型，统一按设计强度掌握。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "「达到设计强度」听着最保险。",
+          "loss_reason": "漏掉构件×跨度分档——2m 内的板 50% 就能拆，全按 100% 是把表整个丢了。",
+          "fix": "写全按构件类型+跨度查表的三行档位。",
+          "option_id": "C04-html-practice-html-q2-57b7aba68476:option-2"
+        },
+        {
+          "text": "板和梁的底模统一按 75% 掌握，只有跨度特别大的构件才需要达到 100%。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "75% 是表里最常见的档，容易当成通用值。",
+          "loss_reason": "档值因构件与跨度而异：≤2m 板只要 50%，＞8m 就要 100%，「统一 75%」数字错。",
+          "fix": "板 50/75/100 三档、梁拱壳 75/100 两档，断点 2m、8m。",
+          "option_id": "C04-html-practice-html-q2-57b7aba68476:option-3"
+        },
+        {
+          "text": "悬臂构件的底模在混凝土强度达到设计强度的 75% 时即可拆除，与梁拱壳一致。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "悬臂看着和梁差不多，顺手套 75%。",
+          "loss_reason": "悬臂构件无支撑一侧最危险，规范要求一律 100%——2024 年真题错项原型。",
+          "fix": "悬臂构件不论跨度，一律达到 100% 方可拆。",
+          "option_id": "C04-html-practice-html-q2-57b7aba68476:option-4"
+        }
+      ],
+      "variant_id": "C04-html-practice-html-q2-57b7aba68476",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q2",
+      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "强度换算·计算表达维",
+      "stem": "某现浇楼板跨度 6m、混凝土 C30。拆底模时同条件养护试块强度至少应达到多少？写出可得分的算式与依据。",
+      "model_answer": "6m 板落 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块代表值≥22.5 方可拆底模。",
+      "options": [
+        {
+          "text": "6m 板属 2~8m 档取 75%：30×75%=22.5N/mm²，同条件养护试块强度≥22.5 方可拆底模。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "档位依据 + 算式 + 数值带单位 + 同条件养护，四件齐。",
+          "option_id": "C04-html-practice-html-q3-fd09f109c0de:option-1"
+        },
+        {
+          "text": "6m 板跨度较大从严掌握，按 100% 控制：混凝土达 30N/mm² 后方可拆除底模。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "「从严总没错」的心态，直接取顶格。",
+          "loss_reason": "档位判错：6m 落 2~8m 档取 75%；100% 是＞8m 档，白白压工期还丢档位分。",
+          "fix": "6m 属 2~8m 档，30×75%=22.5N/mm²。",
+          "option_id": "C04-html-practice-html-q3-fd09f109c0de:option-2"
+        },
+        {
+          "text": "6m 板取 75%：30×75%=22.5N/mm²，以标准养护试块强度达到 22.5 为准即可拆除。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数值 22.5 全对，试块口径看着无所谓。",
+          "loss_reason": "拆模看「同条件养护」试块——它才代表现场构件真实强度；写「标养」依据词错。",
+          "fix": "改成「同条件养护试块强度≥22.5N/mm²」。",
+          "option_id": "C04-html-practice-html-q3-fd09f109c0de:option-3"
+        },
+        {
+          "text": "6m 板不超 8m 属小跨度，按 50% 控制：30×50%=15N/mm² 即可拆除底模。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记混了断点，把 8m 内全当 50% 档。",
+          "loss_reason": "50% 只给 ≤2m 的板；6m 在 2~8m 档要 75%，15 就拆属过早拆除。",
+          "fix": "2~8m 档取 75%，最低 22.5N/mm²。",
+          "option_id": "C04-html-practice-html-q3-fd09f109c0de:option-4"
+        }
+      ],
+      "variant_id": "C04-html-practice-html-q3-fd09f109c0de",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q3",
+      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "边界辨析·条件维",
+      "stem": "某现浇混凝土梁跨度恰好为 8m。拆底模时强度百分率应取多少？选出依据正确的作答。",
+      "model_answer": "梁 8m 属「≤8m」档取 75%；只有跨度超过 8m 才取 100%。",
+      "options": [
+        {
+          "text": "梁跨度 8m 属「不超过 8m」档，取设计强度的 75%；超过 8m 才取 100%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "边界值归属：8m 本身在 ≤8m 档内，档位分界记「超过」二字。",
+          "option_id": "C04-html-practice-html-q4-2f60c2911a87:option-1"
+        },
+        {
+          "text": "8m 是分界值应从严掌握，按「大于 8m」档取 100%，达设计强度后方可拆除。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "边界值「从严」听着稳妥。",
+          "loss_reason": "表的口径是「＞8m 才 100%」，8m 本身仍在 ≤8m 档，从严反而档位错。",
+          "fix": "8m 取 75%；写明「超过 8m 才 100%」。",
+          "option_id": "C04-html-practice-html-q4-2f60c2911a87:option-2"
+        },
+        {
+          "text": "梁按板的档位掌握：8m 落 2~8m 档取 75%，依据是板的跨度分档表。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数值 75% 碰对了，依据却引错行。",
+          "loss_reason": "梁拱壳只有 8m 一个断点，没有 2m 档；引「板 2~8m」是构件行张冠李戴。",
+          "fix": "写「梁拱壳 ≤8m→75%」，别引板的档。",
+          "option_id": "C04-html-practice-html-q4-2f60c2911a87:option-3"
+        },
+        {
+          "text": "8m 悬挑梁与普通梁一致，取 75% 即可拆除底模，悬臂与否不影响档位。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "都叫梁，容易忽略悬臂特殊。",
+          "loss_reason": "悬臂构件一律 100%，与跨度无关；「悬臂 75%」是 2024 真题经典错项。",
+          "fix": "悬臂一律 100%；普通梁 8m 才是 75%。",
+          "option_id": "C04-html-practice-html-q4-2f60c2911a87:option-4"
+        }
+      ],
+      "variant_id": "C04-html-practice-html-q4-2f60c2911a87",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q4",
+      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生作答拆模条件题：①所有模板达 1N/mm² 即可拆；②顺序按施工方案执行；③经监理同意后拆除。选出最准确的诊断与补写。",
+      "model_answer": "三处全失分：①1N/mm² 仅限墙体大模板侧模，底模须按构件×跨度查表；②顺序须写成对句「后支先拆、先支后拆；非承重先、承重后」；③程序须填申请+试块达标+技术负责人批准。",
+      "options": [
+        {
+          "text": "三处都失分：1N/mm² 仅限墙体大模板，底模须查表；顺序须写成对句；程序须技术负责人批准。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "逐句诊断、逐句补写——把三句空话换成三句采分句，这就是会写答案。",
+          "option_id": "C04-html-practice-html-q16-bd3fe10391f8:option-1"
+        },
+        {
+          "text": "作答基本正确：三句话覆盖了强度、顺序、程序三个方面，结构完整可以给分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "三句话确实每句沾了一个门槛。",
+          "loss_reason": "沾边≠采分：数值张冠李戴、顺序口号化、主体错位，三句全是失分句。",
+          "fix": "逐句替换为查表句、成对句、三步程序句。",
+          "option_id": "C04-html-practice-html-q16-bd3fe10391f8:option-2"
+        },
+        {
+          "text": "只有第①句有问题，把 1N/mm² 改为「达到设计强度的 75%」即可，②③无须修改。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "抓到 1N/mm² 眼熟的错，想一改了之。",
+          "loss_reason": "「统一 75%」还是数字错（应按构件×跨度分档），且②口号化、③主体错都没诊出来。",
+          "fix": "①按构件×跨度查表；②补成对句；③技术负责人批准。",
+          "option_id": "C04-html-practice-html-q16-bd3fe10391f8:option-3"
+        },
+        {
+          "text": "第③句主体错应改为技术负责人，第①②句表述虽简略但方向正确，不影响得分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "诊出了主体错，觉得其余「意思到了」。",
+          "loss_reason": "漏诊①的通用阈值错误和②的口号化——阅卷不给「方向分」，只认采分词。",
+          "fix": "三句都要重写：查表句 + 成对句 + 程序句。",
+          "option_id": "C04-html-practice-html-q16-bd3fe10391f8:option-4"
+        }
+      ],
+      "variant_id": "C04-html-practice-html-q16-bd3fe10391f8",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_C04/P40_C04.practice.dc.html#Q16",
+      "source_html_sha256": "18ffb02f405971ff7cf54b591733fecb609d90ed3ba9bf3428a234fed03c1632"
+    }
+  ],
+  "published_lesson_sha256": "6c37849dc9bbf1f8d7be5b9f4253658ccedb5934aaae8300f4882dca2978d80a"
+}

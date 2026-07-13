@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "X03",
+  "source_pack_sha256": "6da4f10de5f46af7abdb5f1665d3a6db44e1cc6f870000a5c9e70fcc620769e1",
+  "source_bundle_sha256": "c94edccd7910fc061aad68629d5331afac8b70e0a146c70a6e99da80e56744bb",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "X03-html-practice-html-q1-1ec18c6e2879",
+        "X03-html-practice-html-q2-b496fe8fb1aa",
+        "X03-html-practice-html-q3-9bb6264d8af5",
+        "X03-html-practice-html-q4-6fc7530044e5",
+        "X03-html-practice-html-q16-bbe15ebcc71a"
+      ],
+      "published_practice_sha256": "ef3fdfc225ce14abedc4f04b69ca88704388f49cb21bd419157eec480a18a56b"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "文明施工·辨析",
+      "stem": "关于施工现场文明施工，下列说法中错误的是哪一项？",
+      "model_answer": "办公区与生活区宜分区域设置（不是「必须分开设置」）；施工区与办公生活区划分清晰并隔离防护，在建工程内严禁住人。",
+      "options": [
+        {
+          "text": "「办公区与生活区必须分开设置」——现场必须把办公区和生活区拆成两处独立区域，否则违规。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "规范口径是「宜分区域设置」，不是「必须分开」；这句把柔性要求写成刚性，正是要挑出的错误说法。",
+          "option_id": "X03-html-practice-html-q1-1ec18c6e2879:option-1"
+        },
+        {
+          "text": "施工区与办公、生活区应划分清晰，并采取相应的隔离防护措施。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "这句是对的，看着「像有问题」就想选，其实是标准采分句。",
+          "loss_reason": "这是文明施工正确要求，选它就等于把对的当错的，判型方向反了。",
+          "fix": "这是正确说法，题目要选错误的那句「必须分开设置」。",
+          "option_id": "X03-html-practice-html-q1-1ec18c6e2879:option-2"
+        },
+        {
+          "text": "在建工程内严禁住人。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "太短，怀疑「是不是漏条件」。",
+          "loss_reason": "这是明确的强制正确要求，选它即误判。",
+          "fix": "这是正确采分句，错误说法是「办公区生活区必须分开设置」。",
+          "option_id": "X03-html-practice-html-q1-1ec18c6e2879:option-3"
+        },
+        {
+          "text": "施工现场应设置封闭围挡，做到场容场貌整洁有序、材料码放整齐。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "内容多，容易觉得「哪里不严谨」。",
+          "loss_reason": "这是文明施工六化的正确表述，选它即误判。",
+          "fix": "正确说法，错误的是「必须分开设置」那句。",
+          "option_id": "X03-html-practice-html-q1-1ec18c6e2879:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q1-1ec18c6e2879",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q1",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "文明施工·六化",
+      "stem": "背景要求「写出该工程的文明施工措施」。下列作答中，最完整、能拿分的是哪一项？",
+      "model_answer": "封闭管理设标准化围挡；施工区与办公生活区隔离、在建工程严禁住人；材料码放整齐、生活设施整洁；主入口内侧挂五牌一图。",
+      "options": [
+        {
+          "text": "设标准化封闭围挡；施工区与办公生活区隔离、在建工程严禁住人；材料码放整齐、生活设施整洁；主入口内侧挂五牌一图。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "围挡+分区隔离+严禁住人+六化+五牌一图都落到可执行动作，采分点齐。",
+          "option_id": "X03-html-practice-html-q2-b496fe8fb1aa:option-1"
+        },
+        {
+          "text": "加强文明施工管理，搞好现场文明施工，做到文明有序、干净整洁，创建文明工地。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "话说得很「全面」，读着顺，像总结陈词。",
+          "loss_reason": "全是口号，没有一条落到围挡/分区/挂牌等可判分动作，阅卷不给分。",
+          "fix": "落到动作：标准化围挡、施工区÷生活区隔离、在建工程严禁住人、挂五牌一图。",
+          "option_id": "X03-html-practice-html-q2-b496fe8fb1aa:option-2"
+        },
+        {
+          "text": "设置围挡、材料码放整齐即可，现场干净就是文明施工的核心，其余按现场情况灵活安排。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "写了围挡和码放两条，感觉「有具体措施了」。",
+          "loss_reason": "漏了分区隔离、在建工程严禁住人、五牌一图等采分点，只答两条不全。",
+          "fix": "补分区隔离、在建工程严禁住人、五牌一图挂内侧。",
+          "option_id": "X03-html-practice-html-q2-b496fe8fb1aa:option-3"
+        },
+        {
+          "text": "配齐灭火器与消防水源、组织动火审批、做好职业病防护和食堂卫生，保障文明施工。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "消防、卫生听着都属于「现场管理」，容易混进来。",
+          "loss_reason": "消防防火属安全生产、职业卫生属安全卫生，都不是文明施工本体，串了考点。",
+          "fix": "文明施工只答围挡/分区/严禁住人/六化/五牌一图。",
+          "option_id": "X03-html-practice-html-q2-b496fe8fb1aa:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q2-b496fe8fb1aa",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q2",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "围挡·规范数字",
+      "stem": "关于施工现场（生活区/通用）围挡的设置，选出材料与高度都写对、能得分的一项。",
+      "model_answer": "围挡采用可循环、可拆卸、标准化定型材料，高度不得低于 1.8m。",
+      "options": [
+        {
+          "text": "围挡采用可循环、可拆卸、标准化定型材料，高度不得低于 1.8m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "材料三个词（可循环/可拆卸/标准化定型）+ 高度 1.8m，本源料语境的采分句。",
+          "option_id": "X03-html-practice-html-q3-9bb6264d8af5:option-1"
+        },
+        {
+          "text": "围挡按材料成分分为有机类围挡和无机类围挡两种，高度不得低于 1.8m。",
+          "is_correct": false,
+          "source_error_code": "M04",
+          "temptation": "「有机类/无机类」听着像专业分类，真题里也出现过这个词。",
+          "loss_reason": "有机类/无机类是真题干扰项，围挡按可循环/可拆卸/标准化定型分，不按成分分。",
+          "fix": "材料写「可循环、可拆卸、标准化定型」，不是有机/无机类。",
+          "option_id": "X03-html-practice-html-q3-9bb6264d8af5:option-2"
+        },
+        {
+          "text": "围挡采用标准化定型材料，高度不得低于 2.5m。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "2.5m 是常听到的围挡数字，顺手就填。",
+          "loss_reason": "2.5m 是市区主要路段场容围挡（另属 X01）；本源料语境围挡高度是不低于 1.8m，数字串档。",
+          "fix": "本题高度写「不得低于 1.8m」，2.5m 是市区主路场容的另一考点。",
+          "option_id": "X03-html-practice-html-q3-9bb6264d8af5:option-3"
+        },
+        {
+          "text": "围挡牢固美观即可，高度按现场情况确定，能挡住施工现场不外露就行。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「牢固美观、能挡住」就达到目的了。",
+          "loss_reason": "没有材料类型、没有明确高度数值，缺规范阈值不能判分。",
+          "fix": "补齐：可循环/可拆卸/标准化定型材料 + 高度不得低于 1.8m。",
+          "option_id": "X03-html-practice-html-q3-9bb6264d8af5:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q3-9bb6264d8af5",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q3",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "文明施工·五牌一图",
+      "stem": "施工现场主入口内侧应挂设「五牌一图」。选出列举完整、能得分的一项。",
+      "model_answer": "工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工牌、环境保护牌 + 施工总平面图，挂主入口内侧。",
+      "options": [
+        {
+          "text": "工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌、文明施工牌、环境保护牌，加施工总平面图。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六块牌 + 一张图齐全，最爱漏的文明施工牌、环境保护牌都写上了。",
+          "option_id": "X03-html-practice-html-q4-6fc7530044e5:option-1"
+        },
+        {
+          "text": "工程概况牌、管理人员名单及监督电话牌、消防保卫牌、安全生产牌，加施工总平面图，共五牌一图。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "名字叫「五牌」，凑够五个就以为齐了。",
+          "loss_reason": "漏了文明施工牌、环境保护牌——恰恰是最爱漏的两块采分牌。",
+          "fix": "补文明施工牌、环境保护牌，六块牌 + 一图。",
+          "option_id": "X03-html-practice-html-q4-6fc7530044e5:option-2"
+        },
+        {
+          "text": "把五牌一图挂在工地大门外侧显眼处，方便过往行人和监管部门查看监督。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "觉得「越显眼越好」，挂外面路人都能看到。",
+          "loss_reason": "规范要求挂主入口内侧，挂外侧位置错。",
+          "fix": "五牌一图挂主入口内侧。",
+          "option_id": "X03-html-practice-html-q4-6fc7530044e5:option-3"
+        },
+        {
+          "text": "挂工程概况牌和施工总平面图即可，其余牌按建设单位要求增设，核心是概况和平面图。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "觉得概况牌和总平面图「信息最全」，够用。",
+          "loss_reason": "漏了管理名单、消防保卫、安全生产、文明施工、环境保护五块牌。",
+          "fix": "六块牌一块不能少，加施工总平面图。",
+          "option_id": "X03-html-practice-html-q4-6fc7530044e5:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q4-6fc7530044e5",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q4",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生就「综合环保措施」作答：①设标准化围挡、施工区与生活区隔离；②现场洒水降尘、车辆冲洗池。请诊断其失分并选出最准确的补写。",
+      "model_answer": "已写文明施工、扬尘两组但扬尘漏源头覆盖；缺绿色施工组织、噪声、光污染、污水泥浆、四节、建筑垃圾多组。补写：扬尘加源头裸土覆盖篷盖；补噪声（低噪设备/隔声/封闭/工艺）、污水泥浆（封闭收集未处理不排）、四节（材水能地）、建筑垃圾（不宜高于3m/台账/再生骨料）。",
+      "options": [
+        {
+          "text": "文明与扬尘方向对但扬尘漏源头覆盖；且缺噪声、污水泥浆、四节、建筑垃圾等多组——扬尘补源头覆盖，另补噪声/污水/四节/建筑垃圾各组的可执行动作。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "既揪出扬尘缺环节，又补齐缺失的几组措施，条条落到动作，这才是会写答案。",
+          "option_id": "X03-html-practice-html-q16-bbe15ebcc71a:option-1"
+        },
+        {
+          "text": "两条措施都写了具体动作（围挡、洒水、冲洗池），方向也对，可以给满分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "看到有围挡、冲洗池等具体动作，就以为采分点够了。",
+          "loss_reason": "综合写措施要五组齐，只写文明+扬尘两组，漏噪声/污水/四节/建筑垃圾一大片。",
+          "fix": "补噪声、污水泥浆、四节、建筑垃圾等各组措施。",
+          "option_id": "X03-html-practice-html-q16-bbe15ebcc71a:option-2"
+        },
+        {
+          "text": "只是文字不够书面，把「洒水降尘」改成「采取抑尘措施」就更规范了，其余无需补。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "以为问题在措辞，改得「书面」一点就行。",
+          "loss_reason": "改口号反而更空；真问题是缺组和扬尘缺源头环节，不是措辞。",
+          "fix": "扬尘补源头覆盖，并补噪声/污水/四节/建筑垃圾各组动作。",
+          "option_id": "X03-html-practice-html-q16-bbe15ebcc71a:option-3"
+        },
+        {
+          "text": "补一句「加强绿色施工管理、做好节能环保」把绿色和四节都概括进去即可，无需逐条写。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "想用一句总括话「省事」地补上四节和绿色。",
+          "loss_reason": "一句口号补不了采分点，四节要逐节落到材/水/能/地的具体做法。",
+          "fix": "四节逐节写：商混、循环装置、节能设备、绿化代替硬化等可执行动作。",
+          "option_id": "X03-html-practice-html-q16-bbe15ebcc71a:option-4"
+        }
+      ],
+      "variant_id": "X03-html-practice-html-q16-bbe15ebcc71a",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X03/P40_X03.practice.dc.html#Q16",
+      "source_html_sha256": "810307b8fdb7e55790eba1a9cb868c7c8d5a85f2dc6dc36e721f56db3990cce6"
+    }
+  ],
+  "published_lesson_sha256": "37dea0be1ba98021f10a500408657c146e2f01013f24083451cb097f2c63f689"
+}

@@ -9,6 +9,20 @@
 > 战役级完整编年另见各战役 ops-log(如 `docs/plan/观测发布与生产上线/2026-07-12-battle2-compressed-train-operations-log.md`)。
 ---
 
+## 2026-07-14 · 从 F16 到全量不是复制特判，而是把供给与学情收进两个 authority
+
+**①现象**：F16 链路打通后，其他 finished 卡仍只在 HTML 内本地判分，客户端只对 F16 识别成品练习。表面上是“再加 36 个包”，实际上同一能力被 pack-id 特判、目录 glob、public HTML 和签发变体库四种供给选择争夺。
+
+**②发现路径（含走错的岔路）**：专家组先从 finished 注册表盘点，而不是 glob 目录，得到 37 pack / 39 surface。样本实读发现并非一种 JS 形状：常规 Q 有随机 ord 和直接顺序两型，S07 用 POOL/buildDeck，A02 由 bank() 返回 A/Dg。“一个 regex 扫所有卡”会把多选降格成单选；“按文件名全收”又会把未登记旧卡上线，两条捷径都被否决。hostile 遍历还抓到 ord 页的选项会随机打乱：页内存的是展示位次，服务端 sidecar 要的是源位次，直传 index 会静默判错。
+
+**③分析**：一等业务事实有且只有两个：“这道题的正确答案是什么”由当前 finished HTML 决定；“这个学生这次做了什么、是否形成学习证据”由 canonical terminal/LearnerState 决定。public HTML、sidecar、manifest 都只能是可验证投影，不能成为第三个答案或掌握度 authority。
+
+**④修法与理由**：把编译、格式适配、五题选择、identity 和 SHA 校验下沉到 `practice_html` fat service；publisher、API、web-view bridge 只做登记、投影和传输。manifest 显式声明哪个 pack 有 compiled practice，前端不再猜 URL；取题与 writeback 共读同一 sidecar，S01 用 `practice_surface` 在同一 authority 内区分三面。发现问鲁班 dashboard 的本地缓存未按用户分区，一并改成 user-scoped envelope，因为这是“全模块共享 LearnerState”后必须封住的跨账号读侧漏洞。
+
+**⑤验证与教训**：全量编译要同时证明数量（37/39/195）、适配器形状、展示位次→源选项 identity 还原、未登记文件拒绝、无答案泄漏、public/source SHA 漂移 fail-close、一个非 F16 的真实五 item + 一 terminal 写回，以及五模块返回刷新。可迁移教训：①泛化要从业务形状开分支，不从 ID 开分支；②显式注册比目录存在更接近发布 authority；③内容全量接入不等于 mastery 全量升级，forward 仍必须 L0/non-promoting；④缓存也是 reader，共享学情后必须按 canonical user 隔离；⑤用户点了哪个可见选项与 authoring 数组第几项是两个 identity，必须显式还原。
+
+---
+
 ## 2026-07-14 · 写进 LearnerState 不等于用户能感知：terminal 消费者必须共用同一裁决
 
 **①现象**：F16 五题完成接口返回 terminal 和正式分数，但学习路线仍可能显示未学、复习页没有次日任务、今日进度从 0 变 6；用户还会先看 HTML 本地成绩，再点一次“保存”看原生正式成绩。代码看起来每一段都存在，产品上却感知不到闭环。

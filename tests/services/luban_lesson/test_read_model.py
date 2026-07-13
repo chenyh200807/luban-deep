@@ -42,13 +42,23 @@ def test_green_pack_projects_viewmodel(tmp_path, monkeypatch):
     }
 
 
-def test_f16_projects_finished_practice_consumer_url(tmp_path, monkeypatch):
+def test_custom_manifest_without_compiled_capability_cannot_guess_practice_url(
+    tmp_path, monkeypatch
+):
     monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
     f16 = dict(_S05, pack_id="F16", title="屋面防水起鼓割补")
     mp = _write_manifest(tmp_path, [f16], ["F16"])
 
     vm = build_lesson_viewmodel("F16", manifest_path=mp)
 
+    assert vm["card_bundle_sha256"] == ""
+    assert vm["card_url"] == "https://cdn.example.com/luban/f16/lesson.html"
+    assert vm["practice_url"] == ""
+
+
+def test_real_compiled_pack_projects_finished_practice_consumer_url(monkeypatch):
+    monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
+    vm = build_lesson_viewmodel("F16")
     bundle_sha = vm["card_bundle_sha256"]
     assert len(bundle_sha) == 64
     assert vm["card_url"] == f"https://cdn.example.com/luban/f16/lesson.html?v={bundle_sha}"
@@ -238,7 +248,7 @@ def test_f16_forward_uses_fixed_five_compiled_html_questions() -> None:
     assert all("is_correct" not in option for item in items for option in item["options"])
 
 
-def test_f16_compiled_practice_sha_drift_does_not_fallback_to_variant_bank(
+def test_custom_manifest_without_compiled_capability_uses_its_signed_bank(
     tmp_path: Path,
 ) -> None:
     from deeptutor.services.luban_lesson import build_retest_items
@@ -265,10 +275,11 @@ def test_f16_compiled_practice_sha_drift_does_not_fallback_to_variant_bank(
         encoding="utf-8",
     )
 
-    assert build_retest_items(
+    items = build_retest_items(
         "F16", user_id="qa_eval_f16_sha_drift", day_index=1,
         mode="forward", manifest_path=mp,
-    ) == []
+    )
+    assert [item["variant_id"] for item in items] == ["F16-legacy"]
 
 
 def _bank(tmp_path, n_core=6, n_ext=2):

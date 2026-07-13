@@ -9,6 +9,7 @@
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -126,7 +127,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -187,6 +188,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 /* ░░░ 鲁班 S01 · 随堂练（下集）· 验收评分表 + 操作平台防护 ░░░ */
@@ -197,7 +199,7 @@ class Component extends DCLogic {
   KNOWLEDGE="脚手架/模板支架 · 验收评分表与操作平台防护（下集）。模板支架检查评分表：保证项目6项=施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收；一般项目4项=杆件连接、底座与托撑、构件材质、支架拆除。脚手架检查评分表共8类。脚手架验收四要素：材料、支承与固定、搭设质量、技术资料。搭设五阶段检查节点：基础完工后、首层水平杆搭设后、每搭完一楼层高度后、悬挑脚手架固定后、支撑脚手架每搭约6m后。操作平台：悬挑式 悬挑≤5m/均布≤5.5kN/m²/集中≤15kN/吊环≥4；移动式 面积≤10m²/高≤5m/高宽比≤2:1/荷载≤1.5kN/m²；落地式 高≤15m/高宽比≤3:1/荷载≤2.0kN/m²/连墙件≤4m。卸料平台搁支点与拉结点必须设在建筑主体结构上，严禁固定在作业脚手架上；缆风绳、泵管、大型设备支承件同理。禁竹木脚手架；限用：轮扣式≤15m双排/≤8m满堂、龙门架/井架≤25m、扣件式卸料平台≤10m。";
   moreText="补两组：① 满堂脚手架评分表保证/一般项目归类，练「照清单归、别凭听着重要」；② 悬挑式与落地式平台参数交叉对比，练「2:1 是移动式、3:1 是落地式、支撑架是 3.0」。回讲解页看归类标尺与卸料平台对比图再练一轮。";
   Q=[
-    { tag:"验收·保证/一般", typeHint:"单选 · 选出归类正确的作答", fig:"sort", figLabel:"模板支架评分表 · 保证6 / 一般4", figCaption:"哪组全是保证项目？",
+{ tag:"验收·保证/一般", typeHint:"单选 · 选出归类正确的作答", fig:"sort", figLabel:"模板支架评分表 · 保证6 / 一般4", figCaption:"哪组全是保证项目？",
       stem:"模板支架检查评分表中，下列哪组全部属于「保证项目」？选出能得分的作答。",
       model:"保证项目=施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收（6项）。",
       opts:[
@@ -206,7 +208,7 @@ class Component extends DCLogic {
         { t:"施工方案、支架稳定、支架拆除、构件材质。", ok:false, code:"M03", tempt:"混着选、有对有错。", lose:"支架拆除、构件材质是一般项目，混进保证项目。", fix:"支架拆除、构件材质属一般项，剔除。" },
         { t:"随便哪几项都行，保证/一般没固定清单。", ok:false, code:"E01", tempt:"觉得凭感觉分。", lose:"保证/一般项目是固定清单，须照清单归。", fix:"照清单：保证6项固定，别凭感觉。" }
       ] },
-    { tag:"验收·支架拆除归类", typeHint:"单选 · 选出归类与依据都对的作答", fig:"sort", figLabel:"支架拆除 · 归哪类？", figCaption:"听着重要 ≠ 保证项目",
+{ tag:"验收·支架拆除归类", typeHint:"单选 · 选出归类与依据都对的作答", fig:"sort", figLabel:"支架拆除 · 归哪类？", figCaption:"听着重要 ≠ 保证项目",
       stem:"模板支架评分表中，「支架拆除」属于保证项目还是一般项目？选出能得分的作答。",
       model:"支架拆除属一般项目；保证项目是施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收。",
       opts:[
@@ -215,7 +217,7 @@ class Component extends DCLogic {
         { t:"支架拆除既是保证也是一般，两边都算。", ok:false, code:"M03", tempt:"拿不准就两边都占。", lose:"评分项目归类唯一，支架拆除只在一般项目。", fix:"支架拆除只属一般项目。" },
         { t:"支架拆除不在评分表里。", ok:false, code:"E01", tempt:"没记住它在表里。", lose:"支架拆除是评分表一般项目之一，漏记。", fix:"支架拆除在一般项目里。" }
       ] },
-    { tag:"验收·四要素", typeHint:"单选 · 选出四要素齐全的作答", fig:"four", figLabel:"脚手架验收 · 四要素", figCaption:"验收查哪四样？",
+{ tag:"验收·四要素", typeHint:"单选 · 选出四要素齐全的作答", fig:"four", figLabel:"脚手架验收 · 四要素", figCaption:"验收查哪四样？",
       stem:"脚手架验收应检查哪四方面要素？选出齐全、能得分的作答。",
       model:"脚手架验收四要素：材料、支承与固定、搭设质量、技术资料。",
       opts:[
@@ -224,7 +226,7 @@ class Component extends DCLogic {
         { t:"材料、外观、颜色、品牌四样。", ok:false, code:"M03", tempt:"把无关项凑成四样。", lose:"外观/颜色/品牌不是验收要素，张冠李戴。", fix:"四要素=材料/支承固定/搭设质量/技术资料。" },
         { t:"只查技术资料齐不齐即可。", ok:false, code:"E01", tempt:"以为资料齐就验收过。", lose:"漏了实体检查（材料/支承固定/搭设质量）。", fix:"资料 + 实体三项一起查。" }
       ] },
-    { tag:"验收·五阶段节点", typeHint:"单选 · 选出检查节点正确的作答", fig:"stages", figLabel:"搭设过程 · 五阶段检查", figCaption:"支撑架每搭多少要查？",
+{ tag:"验收·五阶段节点", typeHint:"单选 · 选出检查节点正确的作答", fig:"stages", figLabel:"搭设过程 · 五阶段检查", figCaption:"支撑架每搭多少要查？",
       stem:"钢管脚手架搭设过程中的检查节点，下列哪项数值正确？选出能得分的作答。",
       model:"检查节点：基础完工后、首层水平杆搭设后、每搭完一楼层高度后、悬挑脚手架固定后、支撑脚手架每搭约6m后。",
       opts:[
@@ -233,88 +235,7 @@ class Component extends DCLogic {
         { t:"搭完整体后统一验收一次就行，中途不查。", ok:false, code:"E01", tempt:"图省事只验收一次。", lose:"搭设过程有五个阶段节点，须分阶段查。", fix:"分五节点查，不能只验收一次。" },
         { t:"只在基础完工后查一次即可。", ok:false, code:"E01", tempt:"记住了第一个节点。", lose:"漏了首层、每层、悬挑固定、支撑架6m 四节点。", fix:"补齐五节点，含支撑架每6m。" }
       ] },
-    { tag:"平台·悬挑式", typeHint:"单选 · 选出悬挑式参数正确的作答", fig:"platX", figLabel:"悬挑式操作平台 · 参数", figCaption:"悬挑/荷载/吊环各多少？",
-      stem:"悬挑式操作平台的构造参数，下列哪组正确？选出能得分的作答。",
-      model:"悬挑式：悬挑长度≤5m、均布荷载≤5.5kN/m²、集中荷载≤15kN、吊环≥4个。",
-      opts:[
-        { t:"悬挑≤5m、均布≤5.5kN/m²、集中≤15kN、吊环≥4。", ok:true, fix:"悬挑/均布/集中/吊环四参数齐全。", code:"" },
-        { t:"悬挑≤10m、荷载不限、吊环≥2。", ok:false, code:"M08", tempt:"把限值放宽、吊环记少。", lose:"悬挑≤5m、吊环≥4，写 10m/2 均超。", fix:"悬挑≤5m、吊环≥4。" },
-        { t:"悬挑式面积≤10m²、高宽比≤2:1。", ok:false, code:"M03", tempt:"把移动式参数安到悬挑式。", lose:"10m²/2:1 是移动式平台参数，张冠李戴。", fix:"悬挑式看悬挑5m/5.5/15kN/吊环4。" },
-        { t:"悬挑长度看现场情况定，无硬限。", ok:false, code:"E01", tempt:"以为悬挑长度灵活。", lose:"悬挑≤5m 是硬限，凭现场定违规。", fix:"悬挑≤5m 是硬限值。" }
-      ] },
-    { tag:"平台·移动式", typeHint:"单选 · 选出移动式参数正确的作答", fig:"platX", figLabel:"移动式操作平台 · 参数", figCaption:"面积/高/高宽比各多少？",
-      stem:"移动式操作平台的构造参数，下列哪组正确？选出能得分的作答。",
-      model:"移动式：面积≤10m²、高度≤5m、高宽比≤2:1、荷载≤1.5kN/m²。",
-      opts:[
-        { t:"面积≤10m²、高≤5m、高宽比≤2:1、荷载≤1.5kN/m²。", ok:true, fix:"面积/高/高宽比/荷载四参数齐。", code:"" },
-        { t:"面积≤10m²、高≤15m、高宽比≤3:1。", ok:false, code:"M03", tempt:"把落地式的 15m/3:1 混进来。", lose:"15m/3:1 是落地式，移动式是 5m/2:1。", fix:"移动式高≤5m、高宽比≤2:1。" },
-        { t:"移动式高宽比≤3.0，同支撑脚手架。", ok:false, code:"M08", tempt:"把支撑架 3.0 安到移动平台。", lose:"移动式高宽比≤2:1，3.0 是支撑脚手架的值。", fix:"移动式高宽比≤2:1，不是 3.0。" },
-        { t:"移动平台可移动，荷载面积都不限。", ok:false, code:"E01", tempt:"以为能移动就不受限。", lose:"移动式有面积10m²/高5m/2:1/1.5 硬限。", fix:"补面积≤10m²、高≤5m、荷载≤1.5。" }
-      ] },
-    { tag:"平台·落地式", typeHint:"单选 · 选出落地式参数正确的作答", fig:"platX", figLabel:"落地式操作平台 · 参数", figCaption:"高/高宽比/连墙件各多少？",
-      stem:"落地式操作平台的构造参数，下列哪组正确？选出能得分的作答。",
-      model:"落地式：高度≤15m、高宽比≤3:1、荷载≤2.0kN/m²、连墙件间距≤4m。",
-      opts:[
-        { t:"高≤15m、高宽比≤3:1、荷载≤2.0kN/m²、连墙件≤4m。", ok:true, fix:"高/高宽比/荷载/连墙件四参数齐。", code:"" },
-        { t:"高≤5m、高宽比≤2:1，同移动式。", ok:false, code:"M03", tempt:"把移动式参数套到落地式。", lose:"落地式是 15m/3:1，5m/2:1 是移动式。", fix:"落地式高≤15m、高宽比≤3:1。" },
-        { t:"落地式无需连墙件。", ok:false, code:"E01", tempt:"以为落地就不用拉结。", lose:"落地式高>某值需连墙件、间距≤4m，漏项。", fix:"落地式连墙件间距≤4m。" },
-        { t:"落地式高≤24m 才需验算。", ok:false, code:"M08", tempt:"把脚手架 24m 混进来。", lose:"落地式操作平台高≤15m，24m 是脚手架编案门。", fix:"落地式高≤15m。" }
-      ] },
-    { tag:"卸料平台·红线", typeHint:"单选 · 选出卸料平台支承规定正确的作答", fig:"unload", figLabel:"卸料平台 · 搁支/拉结点", figCaption:"能不能挂在脚手架上？",
-      stem:"悬挑式卸料平台的搁支点与拉结点应设在何处？选出能得分的作答。",
-      model:"卸料平台的搁支点与拉结点必须设在建筑主体结构上，严禁固定在作业脚手架上。",
-      opts:[
-        { t:"搁支点与拉结点必须设在建筑主体结构上，严禁固定在作业脚手架上。", ok:true, fix:"「设主体、严禁挂作业架」红线写全。", code:"" },
-        { t:"旁边有脚手架，把卸料平台搁、拉在脚手架上更方便。", ok:false, code:"E10", tempt:"图省事借用现成脚手架。", lose:"作业脚手架自重已满，卸料平台一压超载失稳、连锁塌。", fix:"必须设在建筑主体结构上，严禁挂作业架。" },
-        { t:"搁支点设主体、拉结点可设脚手架。", ok:false, code:"E10", tempt:"以为拉结点受力小可以挂架。", lose:"搁支与拉结点都必须在主体结构，拉结点也严禁挂作业架。", fix:"搁支点、拉结点都设主体，都不挂作业架。" },
-        { t:"设在地面临时支架上即可。", ok:false, code:"E10", tempt:"想另搭临时架承托。", lose:"悬挑卸料平台靠主体锚固，临时地面架不可靠。", fix:"搁支/拉结点设在建筑主体结构上。" }
-      ] },
-    { tag:"卸料平台·连带禁令", typeHint:"单选 · 选出禁止固定项齐全的作答", fig:"unload", figLabel:"严禁固定在作业脚手架上", figCaption:"还有哪些不能挂作业架？",
-      stem:"除卸料平台外，下列哪些同样严禁固定在作业脚手架上？选出能得分的作答。",
-      model:"缆风绳、泵管、大型设备的支承件（及卸料平台）均严禁固定在作业脚手架上。",
-      opts:[
-        { t:"缆风绳、泵管、大型设备支承件均严禁固定在作业脚手架上。", ok:true, fix:"缆风绳/泵管/大设备支承件一并列全。", code:"" },
-        { t:"只有卸料平台不能挂，缆风绳、泵管无所谓。", ok:false, code:"E10", tempt:"以为只有卸料平台受限。", lose:"缆风绳、泵管、大型设备支承件同样严禁固定在作业架上。", fix:"缆风绳、泵管、大设备支承件都严禁挂作业架。" },
-        { t:"泵管固定在脚手架上便于施工，允许。", ok:false, code:"E10", tempt:"图施工方便把泵管绑架上。", lose:"泵管冲击荷载大，固定作业架上致失稳，严禁。", fix:"泵管严禁固定在作业脚手架上。" },
-        { t:"缆风绳拉在脚手架上更稳。", ok:false, code:"E10", tempt:"以为借架拉缆稳当。", lose:"缆风绳拉力作用作业架致失稳，严禁固定其上。", fix:"缆风绳严禁固定在作业脚手架上。" }
-      ] },
-    { tag:"设备·禁用限用", typeHint:"单选 · 选出禁限用与限高都对的作答", fig:"device", figLabel:"禁用 / 限用设备 · 限高", figCaption:"竹木、轮扣、龙门架各如何？",
-      stem:"关于禁用与限用脚手架/设备，下列哪项正确？选出能得分的作答。",
-      model:"禁用竹木脚手架；限用：轮扣式≤15m双排/≤8m满堂、龙门架/井架≤25m、扣件式卸料平台≤10m。",
-      opts:[
-        { t:"禁用竹木脚手架；轮扣式限15m双排/8m满堂、龙门架/井架限25m、扣件式卸料平台限10m。", ok:true, fix:"禁用竹木 + 三档限高全，逐条清楚。", code:"" },
-        { t:"竹木脚手架可用，限高 15m 即可。", ok:false, code:"M03", tempt:"以为竹木限高就能用。", lose:"竹木脚手架是禁用，不是限用。", fix:"竹木脚手架禁用，不是限高使用。" },
-        { t:"轮扣式限 25m、龙门架限 15m。", ok:false, code:"M08", tempt:"把两个限高对调。", lose:"轮扣式限 15m、龙门架限 25m，数值对调。", fix:"轮扣15m、龙门架/井架25m。" },
-        { t:"限用设备只要方案批了就无限高。", ok:false, code:"E01", tempt:"以为批了方案就突破限高。", lose:"限用设备有硬限高，方案不能突破。", fix:"按限高：轮扣15m/龙门架25m/卸料10m。" }
-      ] },
-    { tag:"平台·高宽比串档", typeHint:"单选 · 选出高宽比对象与数值都对的作答", fig:"ratio", figLabel:"高宽比 · 别串对象", figCaption:"2:1 / 3:1 / 3.0 各属谁？",
-      stem:"下列关于「高宽比」的对象与数值对应，哪项正确？选出能得分的作答。",
-      model:"移动式操作平台高宽比≤2:1；落地式操作平台≤3:1；支撑（模板支撑）脚手架独立架体≤3.0。",
-      opts:[
-        { t:"移动式≤2:1、落地式≤3:1、支撑脚手架独立架体≤3.0。", ok:true, fix:"三个高宽比各归其对象、不串。", code:"" },
-        { t:"支撑脚手架高宽比≤2:1。", ok:false, code:"M08", tempt:"把移动式 2:1 安到支撑架。", lose:"支撑架独立架体高宽比≤3.0，2:1 是移动式。", fix:"支撑架≤3.0，移动式才≤2:1。" },
-        { t:"移动式与落地式高宽比都是≤3:1。", ok:false, code:"M03", tempt:"两类平台高宽比记成一样。", lose:"移动式≤2:1、落地式≤3:1，两者不同。", fix:"移动式≤2:1、落地式≤3:1。" },
-        { t:"高宽比是一个通用值，各类都≤3.0。", ok:false, code:"M03", tempt:"想用一个数省事。", lose:"不同对象高宽比不同：2:1/3:1/3.0，不能通用。", fix:"按对象分：移动2:1/落地3:1/支撑架3.0。" }
-      ] },
-    { tag:"验收·8类评分表", typeHint:"单选 · 选出评分表分类正确的作答", fig:"four", figLabel:"脚手架检查评分表 · 8类", figCaption:"评分表分几类、几档？",
-      stem:"关于脚手架安全检查评分表，下列哪项正确？选出能得分的作答。",
-      model:"脚手架检查评分表共8类（扣件式/门式/碗扣/盘扣/满堂/悬挑/附着升降/吊篮），每类分保证项目与一般项目两档。",
-      opts:[
-        { t:"共8类（扣件式/门式/碗扣/盘扣/满堂/悬挑/附着升降/吊篮），每类分保证与一般两档。", ok:true, fix:"8类 + 保证/一般两档，结构清楚。", code:"" },
-        { t:"只有一张通用评分表，不分类。", ok:false, code:"E01", tempt:"以为一张表打天下。", lose:"评分表按架型分 8 类，不通用。", fix:"按架型分 8 类评分表。" },
-        { t:"分保证/一般/优良三档。", ok:false, code:"M03", tempt:"多凑一个「优良」档。", lose:"只分保证项目、一般项目两档，无「优良」档。", fix:"只分保证、一般两档。" },
-        { t:"满堂脚手架与模板支架用同一张评分表。", ok:false, code:"M03", tempt:"觉得都是满堂差不多。", lose:"满堂脚手架与模板支架各有评分表，不可混用。", fix:"各用各的评分表，不混用。" }
-      ] },
-    { tag:"验收·保证项目（多选）", typeHint:"多选 · 选出全部保证项目", fig:"sort", figLabel:"模板支架 · 找出保证项目", figCaption:"多选 · 少选漏选都不得分",
-      stem:"模板支架检查评分表中，属「保证项目」的有（多选）：",
-      model:"保证项目：施工方案、支架基础、支架稳定、施工荷载；一般项目：支架拆除。",
-      opts:[
-        { t:"施工方案。", ok:true, fix:"施工方案是保证项目。", code:"" },
-        { t:"支架基础。", ok:true, fix:"支架基础是保证项目。", code:"" },
-        { t:"支架稳定。", ok:true, fix:"支架稳定是保证项目。", code:"" },
-        { t:"支架拆除。", ok:false, code:"M03", tempt:"支架拆除听着重要误当保证项。", lose:"支架拆除是一般项目，不是保证项目。", fix:"支架拆除属一般项目，别选。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 诊断作答失分并给正确补写", fig:"diag", figLabel:"模拟学生作答（待诊断）", figCaption:"归类对不对？卸料平台呢？",
+{ tag:"采分诊断·末题", typeHint:"单选 · 诊断作答失分并给正确补写", fig:"diag", figLabel:"模拟学生作答（待诊断）", figCaption:"归类对不对？卸料平台呢？",
       stem:"某学生答：「支架拆除是保证项目；卸料平台旁边有脚手架，搁支、拉结在脚手架上即可。」选出最准确的诊断与补写。",
       model:"两处均错：支架拆除属一般项目（保证项目=方案/基础/构造/稳定/荷载/交底验收）；卸料平台搁支/拉结点必须设建筑主体结构、严禁固定作业脚手架上。",
       opts:[
@@ -434,7 +355,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -453,6 +374,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S01")+'&practice_surface='+encodeURIComponent("practice3.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

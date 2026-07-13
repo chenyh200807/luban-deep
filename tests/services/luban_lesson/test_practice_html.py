@@ -1,20 +1,53 @@
 from __future__ import annotations
 
-import hashlib
+import json
 from pathlib import Path
 
 import pytest
 
 from deeptutor.services.luban_lesson.practice_html import (
-    F16_FINISHED_PRACTICE_SHA256,
     PracticeHtmlInvalid,
     _array_after,
+    _top_level_objects,
     load_compiled_practice,
     project_compiled_practice,
+    resolve_compiled_practice_items,
 )
 
+ROOT = Path(__file__).resolve().parents[3]
+MANIFEST = ROOT / "docs" / "原始数据" / "考点原料" / "成品" / "_pack_manifest.json"
+PUBLIC = ROOT / "web" / "public" / "luban-preview"
 
-def test_f16_compiled_html_projects_fixed_five_without_answer_leakage() -> None:
+
+def _compiled_pack_ids() -> list[str]:
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    return [
+        row["pack_id"]
+        for row in manifest["packs"]
+        if (row.get("practice") or {}).get("status") == "compiled"
+    ]
+
+
+def test_all_registered_finished_practices_compile_to_private_five_question_surfaces() -> None:
+    pack_ids = _compiled_pack_ids()
+    authorities = [load_compiled_practice(pack_id) for pack_id in pack_ids]
+
+    assert len(pack_ids) == 37
+    assert all(authority is not None for authority in authorities)
+    assert sum(len(authority["surfaces"]) for authority in authorities if authority) == 39
+    assert sum(len(authority["items"]) for authority in authorities if authority) == 195
+    for authority in authorities:
+        assert authority is not None
+        assert len({item["variant_id"] for item in authority["items"]}) == len(
+            authority["items"]
+        )
+        assert all(
+            sum(option["is_correct"] for option in item["options"]) == 1
+            for item in authority["items"]
+        )
+
+
+def test_f16_projects_curated_five_without_answer_leakage() -> None:
     canonical = load_compiled_practice("F16")
     projected = project_compiled_practice("F16")
 
@@ -27,56 +60,49 @@ def test_f16_compiled_html_projects_fixed_five_without_answer_leakage() -> None:
         "检验清单·记录维",
         "采分诊断·末题",
     ]
-    assert len({item["variant_id"] for item in canonical["items"]}) == 5
-    assert all(sum(option["is_correct"] for option in item["options"]) == 1 for item in canonical["items"])
     assert all("is_correct" not in option for item in projected for option in item["options"])
     assert all("model_answer" not in item for item in projected)
-    assert canonical["source_html_sha256"]
-    source_pack = (
-        Path(__file__).resolve().parents[3]
-        / "docs" / "原始数据" / "考点原料" / "成品" / "F16_屋面防水起鼓割补.md"
-    )
-    assert canonical["source_pack_sha256"] == hashlib.sha256(
-        source_pack.read_bytes()
-    ).hexdigest()
 
 
-def test_consumer_question_block_matches_tracked_compiled_source() -> None:
-    root = Path(__file__).resolve().parents[3]
-    consumer = (root / "web/public/luban-preview/f16/practice.html").read_text(
-        encoding="utf-8"
-    )
-    compiled = (
-        root
-        / "artifacts/luban_case_family_assets/diagram_microlesson/finished"
-        / "P40_F16/P40_F16.practice.dc.html"
-    ).read_text(encoding="utf-8")
-
-    assert _array_after(consumer, r"\bQ\s*=") == _array_after(compiled, r"\bQ\s*=")
-
-
-def test_finished_preview_does_not_claim_mastery_or_persisted_evidence() -> None:
-    root = Path(__file__).resolve().parents[3]
-    source = (
-        root
-        / "artifacts/luban_case_family_assets/diagram_microlesson/finished"
-        / "P40_F16/P40_F16.practice.dc.html"
-    ).read_text(encoding="utf-8")
-
-    assert "满分手" not in source
-    assert '"稳了"' not in source
-    assert "采分点都拿到了" not in source
-    assert "是否形成学习记录以小程序正式收据为准" in source
+def test_public_projection_contains_only_compiled_questions_and_server_bridge() -> None:
+    for pack_id in _compiled_pack_ids():
+        authority = load_compiled_practice(pack_id)
+        assert authority is not None
+        for surface in authority["surfaces"]:
+            html = (PUBLIC / pack_id.lower() / surface["surface_id"]).read_text(
+                encoding="utf-8"
+            )
+            marker = surface["array_marker"]
+            if marker:
+                assert len(_top_level_objects(_array_after(html, marker))) == 5
+            assert "__dtRedirectEvidence" in html
+            assert "this.optPerm(i)" in html
+            assert "Number(permutation[selected])" in html
+            assert f'encodeURIComponent("{pack_id}")' in html
+            assert f'encodeURIComponent("{surface["surface_id"]}")' in html
+            assert "网页预览作答仅供即时反馈" in html
+            assert "满分手" not in html
+            assert '"稳了"' not in html
+            assert "采分点都拿到了" not in html
+            assert "满分——采分点抓得稳" not in html
 
 
-def test_five_question_policy_is_anchored_to_current_finished_sha() -> None:
-    source = (
-        Path(__file__).resolve().parents[3]
-        / "artifacts/luban_case_family_assets/diagram_microlesson/finished"
-        / "P40_F16/P40_F16.practice.dc.html"
-    )
-
-    assert hashlib.sha256(source.read_bytes()).hexdigest() == F16_FINISHED_PRACTICE_SHA256
+def test_format_adapters_and_multi_surface_resolution_are_data_driven() -> None:
+    a02 = load_compiled_practice("A02")
+    s07 = load_compiled_practice("S07")
+    s01 = load_compiled_practice("S01")
+    assert a02 and a02["surfaces"][0]["format_kind"] == "bank_drawn"
+    assert s07 and s07["surfaces"][0]["format_kind"] == "pool_deck"
+    assert s01 and [surface["surface_id"] for surface in s01["surfaces"]] == [
+        "practice.html",
+        "practice2.html",
+        "practice3.html",
+    ]
+    second = resolve_compiled_practice_items("S01", surface_id="practice2.html")
+    assert second and [item["surface_id"] for item in second] == ["practice2.html"] * 5
+    assert resolve_compiled_practice_items(
+        "S01", variant_ids=[item["variant_id"] for item in second]
+    ) == second
 
 
 def test_authority_sidecar_answer_tamper_fails_closed(tmp_path: Path) -> None:
@@ -85,8 +111,13 @@ def test_authority_sidecar_answer_tamper_fails_closed(tmp_path: Path) -> None:
     for option in canonical["items"][0]["options"]:
         option["is_correct"] = False
     path = tmp_path / "practice.authority.json"
-    import json
-
     path.write_text(json.dumps(canonical, ensure_ascii=False), encoding="utf-8")
+
     with pytest.raises(PracticeHtmlInvalid, match="answer_invalid"):
         load_compiled_practice("F16", authority_path=path)
+
+
+def test_unregistered_or_wrong_surface_never_falls_back_to_another_question_set() -> None:
+    assert load_compiled_practice("B02") is None
+    with pytest.raises(PracticeHtmlInvalid, match="surface_not_found"):
+        resolve_compiled_practice_items("S01", surface_id="practice4.html")

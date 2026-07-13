@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-14 - finished 练习只有 F16 能入账，其他卡本地判分后断链
+
+- 问题：F16 有 compiled sidecar、服务端重判和 terminal 收据，其他 finished 教学卡虽然都带练习，但完成后只留在 HTML 本地结果，不进 LearnerState；客户端还用 F16 分支决定是否打开成品练习。
+- 根因：一等能力被绑在 pack id，而不是 manifest 声明的供给能力；publisher 、read model 和客户端各自做了一次“这个站有没有成品练习”的决策。同时 finished HTML 存在 Q/ord、Q/direct、POOL/deck、A02 bank 四种结构，用 F16 字符串替换不可能正确泛化。
+- 失败尝试及原因：按目录 glob 所有 `*.practice.dc.html` 会收进未登记旧卡，让文件存在取代发布授权；一个宽 regex 会将多选题静默降格为单选；继续复制 `isF16` 则会为每种页形创造新 patch anchor。
+- 成功修法：建立按 HTML 格式分派的 `practice_html` compiler，从 `STATIONS` 显式登记的 37 pack / 39 surface 确定性投影每面 5 道单选和私有 answer sidecar；manifest 成为供给能力唯一声明面。取题和 `RetestWritebackService` 共读 sidecar，客户端只传 pack/surface/answers；public/source/manifest SHA 任一不一致即 fail-close。hostile review 又将 ord 页的随机展示位次经 `optPerm` 还原为 source option index，防服务端静默错判。问鲁班学情缓存改成 canonical user scoped，避免全模块共读后跨账号串态。
+- 验证：编译数量、四格式适配、选项 identity 还原、未登记拒绝、答案不泄漏、SHA 篡改拒绝与非 F16（S05）真实五 item + 一 terminal 写回都有回归。luban service/API 103 passed，learner-state 相关 120 passed，小程序 Node 全量 98 passed；publisher determinism、manifest gate、contract guard、Ruff、diff check 均绿。DevTools 项目根打开且工具账号已登录，但 automator 因 DevTools `SDKVersion` 缺失的兼容性问题未跑成页面场景；因此本地代码与项目打开可 GO，true-entry scenario 和未部署线上效果仍 HOLD。
+- 教训：能力应由显式供给声明决定，不应由 pack id 或文件存在猜测；内容 authority 与学情 authority 可以是两个正交事实，但每个事实内部不能再有第二个 writer/reader decider。
+
 ## 2026-07-14 - F16 正式收据成功但学情未点亮，五题被算成六题
 
 - 问题：F16 finished 五题能进入服务端重判并返回 terminal，但 pack lifecycle 仍是 unlearned、review clock 不启动；学习报告把五条 item 加 terminal 统计成六题；HTML 本地结果与原生正式收据并存，用户还需第二次点击保存。

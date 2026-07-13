@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "K01",
+  "source_pack_sha256": "53a81cccfc3292efcb9e8827bd7162ae930acdf52d7fe7baaeb12b5c6afc5f03",
+  "source_bundle_sha256": "d301cdaabb99dc7c02f9045275bf048824a014f4764e015a9f22acedfb24023f",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "K01-html-practice-html-q1-a72a9f1c5eb0",
+        "K01-html-practice-html-q2-96bf0310053c",
+        "K01-html-practice-html-q3-e42b632650eb",
+        "K01-html-practice-html-q4-0ba04d80c42e",
+        "K01-html-practice-html-q15-3423b28936e0"
+      ],
+      "published_practice_sha256": "a79073bffe77331bb00be105e22b8ac85dfadb5a32028a8e1a62754cf870c2f7"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "责任归因·主体维",
+      "stem": "施工中发生设计变更（发包人原因）致承包人停工。就该索赔能否成立，选出最完整、能得分的定性作答。",
+      "model_answer": "本事件属发包人原因（设计变更），责任在发包人；应分别就工期、费用、利润逐项判成立性，不合并成一句「可索赔」。",
+      "options": [
+        {
+          "text": "本事件属发包人原因（设计变更），责任在发包人；应分别就工期、费用、利润逐项判成立性。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点责任方 + 分项判工期/费用/利润，定性地基就稳了。",
+          "option_id": "K01-html-practice-html-q1-a72a9f1c5eb0:option-1"
+        },
+        {
+          "text": "既然是发包人的责任，那么工期、费用就都随之成立，一并按发包人责任赔付即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「责任在对方就全赔」最顺手，一句话省事。",
+          "loss_reason": "把工期和费用绑死了——工期还得过关键线路/总时差闸，不能凭责任一刀切。",
+          "fix": "定责任后，工期看网络位置、费用看责任，两闸分开判。",
+          "option_id": "K01-html-practice-html-q1-a72a9f1c5eb0:option-2"
+        },
+        {
+          "text": "本事件的索赔成立。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "知道是发包人责任，图省事一句带过。",
+          "loss_reason": "没写责任方、没分工期/费用/利润，采分点几乎全漏。",
+          "fix": "点明发包人原因、责任在发包人，并分项判工期/费用/利润。",
+          "option_id": "K01-html-practice-html-q1-a72a9f1c5eb0:option-3"
+        },
+        {
+          "text": "设计变更属承包人施工方案问题，损失应由承包人自行承担。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "没抓住「设计变更是发包人给的」这个背景。",
+          "loss_reason": "责任方判反，后面工期费用连锁全错。",
+          "fix": "设计变更属发包人原因，责任在发包人。",
+          "option_id": "K01-html-practice-html-q1-a72a9f1c5eb0:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q1-a72a9f1c5eb0",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q1",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "程序·程序维",
+      "stem": "合同对索赔期限未作约定。就提出索赔的程序时限，选出可得分的完整表达。",
+      "model_answer": "应在索赔事件发生后、合同约定期限内（合同未约定的为28天内）提交书面索赔意向通知书，逾期丧失索赔权。",
+      "options": [
+        {
+          "text": "应在事件发生后、合同约定期限内（合同未约定的为28天）提交书面索赔意向通知书，逾期丧失索赔权。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "「合同未约定」前提 + 28天 + 书面意向通知 + 丧权，四要素齐。",
+          "option_id": "K01-html-practice-html-q2-96bf0310053c:option-1"
+        },
+        {
+          "text": "只要证据齐全，索赔可以在结算前任何时候一次性提出。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "觉得「反正有证据，什么时候提都行」。",
+          "loss_reason": "漏了意向通知的时限，程序顺序错，逾期即丧权。",
+          "fix": "须先在28天内递书面意向通知，不能拖到结算。",
+          "option_id": "K01-html-practice-html-q2-96bf0310053c:option-2"
+        },
+        {
+          "text": "应在28天内提出索赔。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "记得「28天」，顺手就写。",
+          "loss_reason": "漏「合同未约定」前提、漏「书面意向通知」，关键词缺失。",
+          "fix": "补「合同未约定的为28天」+「书面索赔意向通知书」。",
+          "option_id": "K01-html-practice-html-q2-96bf0310053c:option-3"
+        },
+        {
+          "text": "口头向监理说明情况即可，事后补交材料。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "现场先口头沟通，感觉也算通知了。",
+          "loss_reason": "意向通知必须书面，口头不产生程序效力。",
+          "fix": "必须提交书面索赔意向通知书。",
+          "option_id": "K01-html-practice-html-q2-96bf0310053c:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q2-96bf0310053c",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q2",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "工期闸·条件维",
+      "stem": "某发包人原因致延误的工作位于关键线路上（总时差为0），延误2个月。就工期索赔，选出可得分的判断。",
+      "model_answer": "该工作在关键线路上、总时差为0，延误直接影响总工期，可索赔工期2个月（延误几月顺延几月）。",
+      "options": [
+        {
+          "text": "该工作在关键线路上、总时差为0，延误直接影响总工期，可顺延工期2个月。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先判关键线路，再给「延误=顺延」，判据到位。",
+          "option_id": "K01-html-practice-html-q3-e42b632650eb:option-1"
+        },
+        {
+          "text": "要先看该工作有多少总时差，用延误减去总时差后才是可索工期。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把「非关键要减总时差」的规则套到了关键线路上。",
+          "loss_reason": "关键线路总时差为0，无需再减；套错分支。",
+          "fix": "关键线路总时差0，延误几月直接顺延几月。",
+          "option_id": "K01-html-practice-html-q3-e42b632650eb:option-2"
+        },
+        {
+          "text": "延误是否顺延要看是不是发包人责任，是发包人责任就顺延2个月。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「责任在发包人所以顺延」听着顺。",
+          "loss_reason": "工期闸只认网络位置不认责任方；这里顺延是因为在关键线路。",
+          "fix": "工期成立的依据是「在关键线路」，不是「责任在谁」。",
+          "option_id": "K01-html-practice-html-q3-e42b632650eb:option-3"
+        },
+        {
+          "text": "关键线路的延误只能顺延一半，即1个月。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "凭印象觉得要打个折。",
+          "loss_reason": "没有「顺延一半」的规则，数值错。",
+          "fix": "关键线路延误2个月，顺延2个月。",
+          "option_id": "K01-html-practice-html-q3-e42b632650eb:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q3-e42b632650eb",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q3",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "工期闸·条件维",
+      "stem": "C工作为非关键工作，总时差1个月，因设计变更延误2个月。就工期索赔，选出可得分的作答。",
+      "model_answer": "C为非关键工作，延误2个月超总时差1个月，只索赔超出部分，可顺延工期=2−1=1个月。",
+      "options": [
+        {
+          "text": "C为非关键工作，延误2个月超出总时差1个月，只索超出部分，可顺延工期=2−1=1个月。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "非关键→比总时差→顺延=延误−总时差，链条完整。",
+          "option_id": "K01-html-practice-html-q4-0ba04d80c42e:option-1"
+        },
+        {
+          "text": "C延误了2个月，对总工期的影响就是2个月，可顺延工期2个月。",
+          "is_correct": false,
+          "source_error_code": "E09",
+          "temptation": "「延误几月赔几月」最直觉。",
+          "loss_reason": "非关键工作要先扣总时差，只赔超出的1个月，多算1个月。",
+          "fix": "顺延=延误2−总时差1=1个月。",
+          "option_id": "K01-html-practice-html-q4-0ba04d80c42e:option-2"
+        },
+        {
+          "text": "C是非关键工作，不影响总工期，工期索赔不成立。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "记得「非关键不影响总工期」，直接判0。",
+          "loss_reason": "漏比总时差：延误2已超总时差1，仍顺延1个月。",
+          "fix": "延误超过总时差，超出部分1个月仍可索。",
+          "option_id": "K01-html-practice-html-q4-0ba04d80c42e:option-3"
+        },
+        {
+          "text": "C的总时差是1个月，所以可顺延工期1个月。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数值1恰好对，顺手就选。",
+          "loss_reason": "依据错——顺延1是「延误−总时差」的结果，不是「等于总时差」。",
+          "fix": "写「顺延=延误2−总时差1=1个月」，不是「等于总时差」。",
+          "option_id": "K01-html-practice-html-q4-0ba04d80c42e:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q4-0ba04d80c42e",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q4",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "学生答某设计变更事件：「甲方有责任，所以工期费用都成立，工期按延误2个月顺延、费用连利润一起算」。已知C为非关键、总时差1。选出最准确的诊断与补写。",
+      "model_answer": "工期费用不能绑死、非关键要减总时差、不可抗力才谈分担；补写：工期非关键顺延=2−1=1月，费用属发包人原因成立、可加利润，两闸分开判。",
+      "options": [
+        {
+          "text": "错在「工期费用绑死」「非关键不减总时差」。补写：工期顺延=2−1=1月，费用属发包人原因成立、可加利润，两闸分开判。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "揪出绑死与不减总时差两处，补写分闸采分句。",
+          "option_id": "K01-html-practice-html-q15-3423b28936e0:option-1"
+        },
+        {
+          "text": "作答基本正确，只是工期数字应从2改成1，其余照写即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只抓到工期数字一处错。",
+          "loss_reason": "漏诊「工期费用绑死」这一根本错误，且未点非关键减总时差的依据。",
+          "fix": "除改工期为1月，还要拆开两闸、点明费用独立成立。",
+          "option_id": "K01-html-practice-html-q15-3423b28936e0:option-2"
+        },
+        {
+          "text": "作答正确，责任在甲方，工期费用一起成立、一起算，给满分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「责任在甲方全成立」听着通顺。",
+          "loss_reason": "工期费用绑死+非关键不减总时差，两处硬伤。",
+          "fix": "工期非关键顺延1月、费用独立成立，分开判。",
+          "option_id": "K01-html-practice-html-q15-3423b28936e0:option-3"
+        },
+        {
+          "text": "错在把不可抗力的分担规则漏了，应把损失对半分。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "看到「分担」就想套对半。",
+          "loss_reason": "诊断方向错——本事件是设计变更、非不可抗力，不涉及对半分担。",
+          "fix": "本题按发包人原因判，工期减总时差、费用可加利润。",
+          "option_id": "K01-html-practice-html-q15-3423b28936e0:option-4"
+        }
+      ],
+      "variant_id": "K01-html-practice-html-q15-3423b28936e0",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_K01/P40_K01.practice.dc.html#Q15",
+      "source_html_sha256": "2370f4a5a59cec3afe47d78555708fd944d121bfbc9d26f5b2e9c34dfe1f7bff"
+    }
+  ],
+  "published_lesson_sha256": "1c59ae940e3554ecd6235fae236a19c1689907c213f952c0cb93d188ac073a98"
+}

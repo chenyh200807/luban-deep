@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "G01",
+  "source_pack_sha256": "3455920218f604373887e790d80419451e2877fbcd8a37dce3da206c7f0afa35",
+  "source_bundle_sha256": "c012557cb6a0173ec55218244ec7c4052d8ca622a4c02eb7b33f8dc0a95dbcad",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html",
+      "source_html_sha256": "0d306ec69d309cb50994d03d6b5617505d5b88dbc26729a10b48655206076596",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "G01-html-practice-html-q1-dda33aea0861",
+        "G01-html-practice-html-q2-56338410f994",
+        "G01-html-practice-html-q3-413c0fb7959f",
+        "G01-html-practice-html-q4-1ec0542e7a80",
+        "G01-html-practice-html-q15-e408d7998051"
+      ],
+      "published_practice_sha256": "b8a4abdff9ca6d077974a6db3116a91cbd44b608077fc8a25d18902f5541b350"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "降水分流·条件维",
+      "stem": "某基坑开挖深度 4m，场地为软土、地下水丰富。问降水方案怎么选，选出最完整、能得分的作答。",
+      "model_answer": "深度>3m 应井点降水；综合地质水文环境支护，危及周边截水回灌、有承压水验算突涌。",
+      "options": [
+        {
+          "text": "深度>3m 应采用井点降水；并综合地质、水文、环境、支护，危及周边时截水或回灌。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "先按深度分流定井点，再补综合因素与周边保护，判据链完整。",
+          "option_id": "G01-html-practice-html-q1-dda33aea0861:option-1"
+        },
+        {
+          "text": "有地下水就用集水明排、挖排水沟设集水井靠重力排走，简单经济即可满足降水。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "一见地下水就想到最常见的集水明排。",
+          "loss_reason": "深度 4m 已>3m，明排压不住；集水明排只适用≤3m 且软土。",
+          "fix": "深度>3m 应改井点降水，集水明排仅≤3m 软土。",
+          "option_id": "G01-html-practice-html-q1-dda33aea0861:option-2"
+        },
+        {
+          "text": "不看深度直接选降水管井，管井出水量大、适应性强，任何土质基坑都能可靠降水。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得管井出水大、万能。",
+          "loss_reason": "管井要求渗透系数较大（砂砾），软土/填土/黏土不宜；且未按深度分流。",
+          "fix": "先按深度分流用井点，再按渗透系数与土质选井点类型。",
+          "option_id": "G01-html-practice-html-q1-dda33aea0861:option-3"
+        },
+        {
+          "text": "只要写采取降水措施把水位降下去即可，具体哪种方法现场看着定不必写死。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "图省事、笼统写降水。",
+          "loss_reason": "没有可判分的方法与依据，采分点全落空。",
+          "fix": "写明>3m 井点降水+综合因素+周边保护+承压水验算。",
+          "option_id": "G01-html-practice-html-q1-dda33aea0861:option-4"
+        }
+      ],
+      "variant_id": "G01-html-practice-html-q1-dda33aea0861",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q1",
+      "source_html_sha256": "0d306ec69d309cb50994d03d6b5617505d5b88dbc26729a10b48655206076596"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "井点选型·计算表达维",
+      "stem": "某基坑降水深度约 8m，场地上部为填土层。按降水深度与土质选井点，选出能得分的作答。",
+      "model_answer": "排除集水明排(>3m)、轻型(≤6m)、管井(填土不宜)，宜选喷射井点(降水深度 8~20m)。",
+      "options": [
+        {
+          "text": "深 8m 超轻型≤6m、填土不宜管井，宜选喷射井点，其降水深度 8~20m 覆盖本工况。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "逐条卡深度与土质排除，落到喷射并回判 8m∈8~20m，判据完整。",
+          "option_id": "G01-html-practice-html-q2-56338410f994:option-1"
+        },
+        {
+          "text": "选轻型井点，轻型构造简单、布置方便，配合多级还能加深，用于本 8m 基坑最稳妥。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "轻型最常见、构造简单，顺手就选。",
+          "loss_reason": "轻型井点降水深度≤6m（多级 6~10m 需分级），单级 8m 够不着。",
+          "fix": "8m 超轻型单级，应选喷射井点(8~20m)。",
+          "option_id": "G01-html-practice-html-q2-56338410f994:option-2"
+        },
+        {
+          "text": "选降水管井，管井出水量大、对深度不敏感，8m 填土用管井降水效率最高最省事。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为管井深度大、出水多就通用。",
+          "loss_reason": "管井要求渗透系数较大（砂砾），填土渗透系数小、出水寥寥，不宜用管井。",
+          "fix": "填土不宜管井；按深度 8m 选喷射井点。",
+          "option_id": "G01-html-practice-html-q2-56338410f994:option-3"
+        },
+        {
+          "text": "选集水明排，沿坑底挖排水沟、设集水井把地下水引流抽走，明排对 8m 基坑也够用。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "明排看着简单便宜。",
+          "loss_reason": "明排只适用≤3m 且软土；8m 深坑必须井点降水。",
+          "fix": "深 8m 用井点（喷射），不是集水明排。",
+          "option_id": "G01-html-practice-html-q2-56338410f994:option-4"
+        }
+      ],
+      "variant_id": "G01-html-practice-html-q2-56338410f994",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q2",
+      "source_html_sha256": "0d306ec69d309cb50994d03d6b5617505d5b88dbc26729a10b48655206076596"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "轻型井点·条件维",
+      "stem": "关于轻型井点的降水深度，选出表述正确、能得分的作答。",
+      "model_answer": "轻型井点降水深度单级≤6m，多级可达 6~10m。",
+      "options": [
+        {
+          "text": "轻型井点单级降水深度≤6m，需要更深时采用多级轻型井点，可达 6~10m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "分清单级≤6m 与多级 6~10m，数字与条件都齐。",
+          "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-1"
+        },
+        {
+          "text": "轻型井点降水深度 8~20m，适用于较深基坑，是深层降水的主力方法。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把轻型和喷射的深度记混。",
+          "loss_reason": "8~20m 是喷射井点的范围，轻型单级≤6m。",
+          "fix": "轻型单级≤6m、多级 6~10m；8~20m 是喷射。",
+          "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-2"
+        },
+        {
+          "text": "轻型井点降水深度不受限制，加长井管即可任意加深，深基坑也能一级到位。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为加管就能无限加深。",
+          "loss_reason": "轻型受真空吸程限制，单级≤6m，不是不受限。",
+          "fix": "单级≤6m，更深需多级或改喷射/真空。",
+          "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-3"
+        },
+        {
+          "text": "轻型井点降水深度>6m 且要求渗透系数>1e-6、管径≥200mm，用于大渗透系数土层。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把真空降水井管的参数安到轻型头上。",
+          "loss_reason": ">6m·渗透系数>1e-6·管径≥200 是真空降水井管的条件。",
+          "fix": "轻型单级≤6m；>6m 大渗透用真空降水井管。",
+          "option_id": "G01-html-practice-html-q3-413c0fb7959f:option-4"
+        }
+      ],
+      "variant_id": "G01-html-practice-html-q3-413c0fb7959f",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q3",
+      "source_html_sha256": "0d306ec69d309cb50994d03d6b5617505d5b88dbc26729a10b48655206076596"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "管井适用·真题陷阱",
+      "stem": "下列降水方法中，不宜用于填土、黏土等渗透系数较小土层的是（真题口径）。选出正确作答。",
+      "model_answer": "降水管井——要求渗透系数较大（砂砾层），填土/黏土渗透系数小、出水量不足，不宜用管井。",
+      "options": [
+        {
+          "text": "降水管井——它属重力排水、要求渗透系数较大的砂砾层，填土黏土渗透系数小不宜用。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点出管井要砂砾、填土黏土不宜，正是真题采分句。",
+          "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-1"
+        },
+        {
+          "text": "轻型井点——轻型井点靠真空抽吸，只能用于砂砾等大渗透土层，填土黏土一律不能用。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把不宜填土误安到轻型头上。",
+          "loss_reason": "轻型井点适用渗透系数 1e-7~2e-4 的土层，恰能用于粉细砂等小渗透土，不是它。",
+          "fix": "不宜用于填土的是降水管井，不是轻型井点。",
+          "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-2"
+        },
+        {
+          "text": "喷射井点——喷射井点降水深度大，只适合砂砾，遇到填土黏土就会淤堵不能使用。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得深层方法都挑砂砾。",
+          "loss_reason": "题问的是不宜用于填土的降水管井；喷射不是标准答案。",
+          "fix": "标准答案是降水管井；喷射按深度 8~20m 选用。",
+          "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-3"
+        },
+        {
+          "text": "集水明排——明排只在浅坑用，遇到填土黏土会塌沟，所以填土基坑不宜集水明排。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "把明排的深度限制当成土质限制。",
+          "loss_reason": "题眼是渗透系数较小土层不宜用的降水方法=管井，不是明排。",
+          "fix": "答降水管井：填土黏土渗透系数小不宜用管井。",
+          "option_id": "G01-html-practice-html-q4-1ec0542e7a80:option-4"
+        }
+      ],
+      "variant_id": "G01-html-practice-html-q4-1ec0542e7a80",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q4",
+      "source_html_sha256": "0d306ec69d309cb50994d03d6b5617505d5b88dbc26729a10b48655206076596"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生对填土层、深 6m、坑底有承压水的基坑降水开挖方案作答：①用降水管井；②承压水靠井点回灌控制；③分层开挖每层 5m。选出最准确的诊断与补写。",
+      "model_answer": "①填土不宜管井，应按深度选轻型(多级)/喷射；②回灌防沉降不防突涌，应验算突涌+钻孔减压/水平封底隔渗；③分层应≤3m。",
+      "options": [
+        {
+          "text": "三处都不妥：填土不宜管井应改喷射/多级轻型、回灌不防突涌应减压封底隔渗、分层5m超3m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "逐条揪错并给正确方法/数值，正是判断纠错三段式。",
+          "option_id": "G01-html-practice-html-q15-e408d7998051:option-1"
+        },
+        {
+          "text": "方案基本合理，只是分层 5m 略大改成 4m 即可，管井和回灌的用法都没有问题。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "只盯着一处、放过了张冠李戴的两处。",
+          "loss_reason": "漏诊填土用管井、回灌当防突涌两处硬伤；分层应≤3m 非 4m。",
+          "fix": "三处都要改：喷射/多级轻型、减压封底、分层≤3m。",
+          "option_id": "G01-html-practice-html-q15-e408d7998051:option-2"
+        },
+        {
+          "text": "只有承压水那条要改成加大管井抽水，其余管井降水、分层 5m 都符合规范无需调整。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为加大抽水能治突涌。",
+          "loss_reason": "填土不宜管井、分层5m超限也错；防突涌是减压/封底不是加大抽水。",
+          "fix": "改喷射/多级轻型、分层≤3m、减压封底防突涌。",
+          "option_id": "G01-html-practice-html-q15-e408d7998051:option-3"
+        },
+        {
+          "text": "把降水管井换成集水明排就全对了，明排简单又便宜，回灌和分层 5m 保持不变即可。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "用明排简单的常识替代规范。",
+          "loss_reason": "深 6m 不能用明排；回灌当防突涌、分层5m 也未纠。",
+          "fix": "深6m 用喷射/多级轻型、分层≤3m、减压封底防突涌。",
+          "option_id": "G01-html-practice-html-q15-e408d7998051:option-4"
+        }
+      ],
+      "variant_id": "G01-html-practice-html-q15-e408d7998051",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_G01/P40_G01.practice.dc.html#Q15",
+      "source_html_sha256": "0d306ec69d309cb50994d03d6b5617505d5b88dbc26729a10b48655206076596"
+    }
+  ],
+  "published_lesson_sha256": "c9bd36a5c1229858466bb27e86e985334ca01746468bc5bc433c5b85573fd71b"
+}

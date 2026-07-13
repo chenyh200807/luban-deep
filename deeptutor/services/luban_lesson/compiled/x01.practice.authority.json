@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "X01",
+  "source_pack_sha256": "173b2bf67a0ef36794281518e3511873105f84b371f22cd23c2d0661240a94ef",
+  "source_bundle_sha256": "2ed45cad687158416c65519bb4b309ac3ff9fd8b017821823dc5b25976745615",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "X01-html-practice-html-q1-4b2d37a0e490",
+        "X01-html-practice-html-q2-108ecb03cdb7",
+        "X01-html-practice-html-q3-d62354979a17",
+        "X01-html-practice-html-q4-362393c85661",
+        "X01-html-practice-html-q15-2e5d7ee2846c"
+      ],
+      "published_practice_sha256": "4dc750c10034123d2e1b9b21ad8219c11c9e02057a80a43e6a6a6833dda2c7ca"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "设计原则·后果维",
+      "stem": "施工总平面图设计应遵循哪些原则？选出最完整、能得分的作答。",
+      "model_answer": "占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定。",
+      "options": [
+        {
+          "text": "遵循占地少、运输合理(减少二次搬运)、减少干扰、利用既有设施、分区设置、环保安全、遵守规定等原则。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "七条原则写全，每条都可判分，换背景数据也稳。",
+          "option_id": "X01-html-practice-html-q1-4b2d37a0e490:option-1"
+        },
+        {
+          "text": "本着科学规划、合理布置、统筹兼顾的思路，把现场安排得整齐美观、井然有序即可。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "这话听着很顺、像总结陈词。",
+          "loss_reason": "全是口号，没有一条可判分的具体原则。",
+          "fix": "写占地少、运输合理、减少干扰、分区设置等具体原则。",
+          "option_id": "X01-html-practice-html-q1-4b2d37a0e490:option-2"
+        },
+        {
+          "text": "主要就是分区设置这一条，把加工区、办公区分开，其余按现场情况灵活处理即可。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "分区确实是核心，容易只答这一条。",
+          "loss_reason": "只答一条，漏占地少/运输合理/减少干扰等多条原则。",
+          "fix": "补占地少、运输合理(减少二次搬运)、利用既有设施等。",
+          "option_id": "X01-html-practice-html-q1-4b2d37a0e490:option-3"
+        },
+        {
+          "text": "遵循先深后浅、先地下后地上、先主体后围护的施工顺序原则来布置平面。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "「原则」俩字沾边，像在答原则。",
+          "loss_reason": "那是施工顺序原则，不是平面布置设计原则，答错方向。",
+          "fix": "平面布置原则=占地少/运输合理/减少干扰/分区设置等。",
+          "option_id": "X01-html-practice-html-q1-4b2d37a0e490:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q1-4b2d37a0e490",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q1",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "图内容·记录表达维",
+      "stem": "施工总平面布置图应包含哪些内容？选出最完整、能得分的作答。",
+      "model_answer": "地形状况、拟建建构筑物位置、加工运输储存设施、临时道路及办公生活用房、安全消防环保设施、周边既有建筑环境。",
+      "options": [
+        {
+          "text": "应含：地形状况、拟建建构筑物位置、加工运输储存设施、临时道路及办公生活用房、安全消防环保设施、周边既有建筑环境。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六项齐全，正是补全题的给分点。",
+          "option_id": "X01-html-practice-html-q2-108ecb03cdb7:option-1"
+        },
+        {
+          "text": "画出拟建建筑物位置、临时道路和办公生活用房，把主要东西标上去就行。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "这几项确实都属图内容，像答对了。",
+          "loss_reason": "漏地形状况、加工运输储存设施、安全消防环保、周边既有环境等项。",
+          "fix": "补齐六项，尤其地形/加工运储/安全消防环保/周边环境。",
+          "option_id": "X01-html-practice-html-q2-108ecb03cdb7:option-2"
+        },
+        {
+          "text": "把建筑的平面尺寸、标高、轴线和结构做法在图上标注清楚、完整。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "觉得图上就该标尺寸做法。",
+          "loss_reason": "那是施工图内容，不是布置图布置要素，答错文件。",
+          "fix": "布置图要素是六项设施/环境，不是尺寸标高做法。",
+          "option_id": "X01-html-practice-html-q2-108ecb03cdb7:option-3"
+        },
+        {
+          "text": "重点画好围挡和大门位置，其余临时设施施工时再定，图上可不体现。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "以为围挡大门最重要、其余可省。",
+          "loss_reason": "漏加工运储/办公生活/安全消防环保等大项，内容不全。",
+          "fix": "六项都要在图上体现，不能只画围挡大门。",
+          "option_id": "X01-html-practice-html-q2-108ecb03cdb7:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q2-108ecb03cdb7",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q2",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "图内容辨识·记录表达维",
+      "stem": "下列哪一项不属于施工总平面布置图应表达的内容？选出正确判断。",
+      "model_answer": "混凝土配合比设计属施工技术文件，不属于平面布置图内容；图内容为地形/建筑位置/加工运储/临路办公/安全消防环保/周边环境六项。",
+      "options": [
+        {
+          "text": "混凝土配合比设计 —— 不属于；它是施工技术文件，平面布置图只表达六项布置要素。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "配合比是技术文件，抓住「布置图只表达布置要素」即可判「不属于」。",
+          "option_id": "X01-html-practice-html-q3-d62354979a17:option-1"
+        },
+        {
+          "text": "周边既有建筑环境 —— 不属于；既有建筑不是我们建的，不用画进布置图。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得既有建筑与本工程无关。",
+          "loss_reason": "周边既有建筑环境正是六项之一，必须画。",
+          "fix": "周边既有环境属图内容；不属于的是配合比设计。",
+          "option_id": "X01-html-practice-html-q3-d62354979a17:option-2"
+        },
+        {
+          "text": "加工运输储存设施 —— 不属于；那是临时的，布置图只画正式建筑。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为临时设施不入图。",
+          "loss_reason": "加工运输储存设施是图内容核心一项。",
+          "fix": "加工运储属图内容；配合比设计才不属于。",
+          "option_id": "X01-html-practice-html-q3-d62354979a17:option-3"
+        },
+        {
+          "text": "临时道路及办公生活用房 —— 不属于；生活区可另图单列。",
+          "is_correct": false,
+          "source_error_code": "E08",
+          "temptation": "觉得生活区可分开画。",
+          "loss_reason": "临时道路办公生活用房属图内容六项之一。",
+          "fix": "办公生活属图内容；不属于的是配合比设计。",
+          "option_id": "X01-html-practice-html-q3-d62354979a17:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q3-d62354979a17",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q3",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "大门·条件维",
+      "stem": "关于施工现场大门的布置，选出最完整、能得分的作答。",
+      "model_answer": "宜设置两个以上大门；大门位置考虑路网、转弯半径、坡度，高度宽度满足车辆运输。",
+      "options": [
+        {
+          "text": "宜设置两个以上大门；位置考虑路网、转弯半径、坡度，高度和宽度满足车辆运输需要。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "数量「≥2 个」+ 位置三因素，缺一不可，全写才拿满。",
+          "option_id": "X01-html-practice-html-q4-362393c85661:option-1"
+        },
+        {
+          "text": "设一个大门统一进出、便于门卫集中管理，位置选在离办公区最近处即可。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "一个门看着好管理。",
+          "loss_reason": "违反「宜设两个以上」，单门高峰拥堵、无疏散冗余。",
+          "fix": "宜设≥2 个大门，位置考虑路网/转弯半径/坡度。",
+          "option_id": "X01-html-practice-html-q4-362393c85661:option-2"
+        },
+        {
+          "text": "多设几个大门方便进出，越多越好，位置哪儿顺手就在哪儿开。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "觉得门越多越方便。",
+          "loss_reason": "漏「考虑路网/转弯半径/坡度」关键因素，且盲目多设不合理。",
+          "fix": "宜设≥2 个，位置须考虑路网/转弯半径/坡度。",
+          "option_id": "X01-html-practice-html-q4-362393c85661:option-3"
+        },
+        {
+          "text": "大门宽度按消防车道单车道 4m、双车道 6m 设置，这是大门布置的核心要求。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "记得道路宽度数字，套到大门上。",
+          "loss_reason": "那是道路宽度规格(属临设规格)，大门采分点是数量 + 路网/转弯半径/坡度。",
+          "fix": "大门写≥2 个 + 路网/转弯半径/坡度，别套道路宽度。",
+          "option_id": "X01-html-practice-html-q4-362393c85661:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q4-362393c85661",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q4",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生作答施工平面布置：①各区标了名字、写「布置合理」；②大门设 1 个；③围挡统一 1.8m。选出最准确的诊断与补写。",
+      "model_answer": "三处失分：布置理由口号化(应写因果)、大门应≥2 个、围挡应分路段。补写：各区补因果理由 / 大门宜≥2 个并考虑路网转弯半径坡度 / 围挡市区 2.5、一般 1.8、路口通透。",
+      "options": [
+        {
+          "text": "三处都失分：①布置理由口号化应补因果、②大门应设≥2 个、③围挡应分路段(市区 2.5 / 一般 1.8 / 路口通透)，逐处补写。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处失分全揪出，逐处补上采分句——这就是「会写答案」。",
+          "option_id": "X01-html-practice-html-q15-2e5d7ee2846c:option-1"
+        },
+        {
+          "text": "作答方向都对，只是不够详细，把字数写多点、语言组织顺畅些就能得分。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "觉得方向对就是小毛病。",
+          "loss_reason": "三处均为采分点错误(口号/单门/不分路段)，非详略问题。",
+          "fix": "逐处改：补因果理由、大门≥2、围挡分路段。",
+          "option_id": "X01-html-practice-html-q15-2e5d7ee2846c:option-2"
+        },
+        {
+          "text": "只有大门数量错，改成 2 个即可，布置理由和围挡都没问题。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只抓到大门一处。",
+          "loss_reason": "漏诊「布置理由口号化」和「围挡不分路段」两处。",
+          "fix": "三处都要改，不止大门。",
+          "option_id": "X01-html-practice-html-q15-2e5d7ee2846c:option-3"
+        },
+        {
+          "text": "整体作答思路清晰、要点齐全，属于合理规范的答案，可给较高分。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "末位看着像完成了。",
+          "loss_reason": "实为三处采分点错误，判「合理」即被口号误导。",
+          "fix": "三处失分需逐一补采分句，非合理答案。",
+          "option_id": "X01-html-practice-html-q15-2e5d7ee2846c:option-4"
+        }
+      ],
+      "variant_id": "X01-html-practice-html-q15-2e5d7ee2846c",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_X01/P40_X01.practice.dc.html#Q15",
+      "source_html_sha256": "8045b4de1156b8020dfa46a8cd05c89d7e4e6e8773889806ff0e681ebefb4ffe"
+    }
+  ],
+  "published_lesson_sha256": "5ab7b0aad2741300562d8317ecf2fe336abb3b690b130c5471146df89b43cd24"
+}

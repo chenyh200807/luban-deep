@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "D11",
+  "source_pack_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
+  "source_bundle_sha256": "2ce3ef9766092dd8459bbe1f869b69aae8001b879ee559153aa14fb00186f713",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "D11-html-practice-html-q1-9d9c40421eea",
+        "D11-html-practice-html-q2-f9d8018fa2c8",
+        "D11-html-practice-html-q3-f227887a4b72",
+        "D11-html-practice-html-q4-0e12bc15f773",
+        "D11-html-practice-html-q15-bcc203575c55"
+      ],
+      "published_practice_sha256": "795a97a6ab9a793d1415e8edaaff9ea33fd47188fd5f66134773ecc890734c78"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "控厚度·条件维",
+      "stem": "内墙一般抹灰，某处抹灰总厚度达到 38mm。关于是否采取加强措施，选出正确且能得分的作答。",
+      "model_answer": "抹灰总厚度≥35mm 时应采取加强措施（分层抹灰、设加强网）；38mm 已达阈值，须加强。",
+      "options": [
+        {
+          "text": "抹灰总厚度≥35mm 即应采取加强措施，38mm 已达标准，应分层抹灰并设加强网。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "阈值 35mm + 加强做法（分层+挂网）齐全，换个厚度数也不会错。",
+          "option_id": "D11-html-practice-html-q1-9d9c40421eea:option-1"
+        },
+        {
+          "text": "抹灰总厚度超过 50mm 才需要加强，38mm 尚未到 50mm，可正常一次抹灰不必加强。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "凭印象觉得更厚（50mm）才加强。",
+          "loss_reason": "加强阈值是 35mm 不是 50mm，规范数字记错就漏了加强这一步。",
+          "fix": "总厚≥35mm 即须加强，38mm 已达。",
+          "option_id": "D11-html-practice-html-q1-9d9c40421eea:option-2"
+        },
+        {
+          "text": "厚度大了容易开裂，做加强处理一下就行，具体到多少毫米无所谓。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道要加强，但嫌记数字麻烦。",
+          "loss_reason": "漏了“≥35mm”这个关键阈值，采分点落不到数字上。",
+          "fix": "写明总厚≥35mm 须加强，并给出分层+挂网。",
+          "option_id": "D11-html-practice-html-q1-9d9c40421eea:option-3"
+        },
+        {
+          "text": "只要控制每一遍抹灰不超过 8mm 薄涂，总厚多少都不用加强。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把单遍薄抹当成免加强的理由。",
+          "loss_reason": "混淆了单遍控制与总厚加强——总厚到 35mm 仍须加强。",
+          "fix": "总厚≥35mm 一律加强，与单遍厚薄无关。",
+          "option_id": "D11-html-practice-html-q1-9d9c40421eea:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q1-9d9c40421eea",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q1",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "控厚度·条件维",
+      "stem": "内墙普通抹灰与高级抹灰的抹灰层平均总厚度上限，选出正确作答。",
+      "model_answer": "内墙普通抹灰层平均总厚度≤20mm；高级抹灰层≤25mm。",
+      "options": [
+        {
+          "text": "内墙普通抹灰层平均总厚度不大于 20mm，高级抹灰层平均总厚度不大于 25mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "普通 20、高级 25，对象与数值一一对应，不对调。",
+          "option_id": "D11-html-practice-html-q2-f9d8018fa2c8:option-1"
+        },
+        {
+          "text": "内墙普通抹灰层平均总厚度不大于 25mm，高级抹灰层平均总厚度不大于 30mm。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "两个数都往上记大了一档。",
+          "loss_reason": "20/25 记成了 25/30，规范数值整体记高。",
+          "fix": "普通≤20mm、高级≤25mm。",
+          "option_id": "D11-html-practice-html-q2-f9d8018fa2c8:option-2"
+        },
+        {
+          "text": "内墙普通抹灰层不大于 25mm，高级抹灰层不大于 20mm。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数值都见过，顺手把两档对调了。",
+          "loss_reason": "普通/高级对象与数值张冠李戴。",
+          "fix": "普通≤20、高级≤25，别把两档对调。",
+          "option_id": "D11-html-practice-html-q2-f9d8018fa2c8:option-3"
+        },
+        {
+          "text": "这里的 20mm、25mm 指底层、中层、面层每一单层的厚度上限。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "把“平均总厚度”理解成单层厚度。",
+          "loss_reason": "题问的是抹灰层平均总厚度，不是底/中/面单层。",
+          "fix": "是抹灰层平均总厚度，非底中面单层。",
+          "option_id": "D11-html-practice-html-q2-f9d8018fa2c8:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q2-f9d8018fa2c8",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q2",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "交接防裂·条件维",
+      "stem": "框架填充墙，混凝土柱与砖砌体交接处抹灰。为防止交接处开裂，选出正确作答。",
+      "model_answer": "不同材料基体交接处应设加强网跨越接缝，分摊差动位移防止通缝开裂。",
+      "options": [
+        {
+          "text": "不同材料基体交接处应设加强网跨越接缝，分摊差动位移防止通缝开裂。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "抓住“不同材料基体交接处设加强网跨缝”这一核心措施。",
+          "option_id": "D11-html-practice-html-q3-f227887a4b72:option-1"
+        },
+        {
+          "text": "把交接处抹灰找平压实、多养护几天即可，不必额外做防裂处理。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为找平+养护就能防裂。",
+          "loss_reason": "漏了“设加强网”这个核心措施，采分点遗漏。",
+          "fix": "交接处必须设加强网跨越接缝。",
+          "option_id": "D11-html-practice-html-q3-f227887a4b72:option-2"
+        },
+        {
+          "text": "交接处贴一层饰面砖盖住就行，下面的抹灰层裂不裂不用管。",
+          "is_correct": false,
+          "source_error_code": "E11",
+          "temptation": "拿饰面遮盖当防裂手段。",
+          "loss_reason": "混淆饰面与抹灰防裂，措施张冠李戴。",
+          "fix": "应设加强网防裂，不是靠贴砖遮盖。",
+          "option_id": "D11-html-practice-html-q3-f227887a4b72:option-3"
+        },
+        {
+          "text": "只有抹灰总厚超过 50mm 的交接处才设加强网，一般交接处不用设。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把“设加强网”和厚度阈值绑死。",
+          "loss_reason": "不同材料基体交接处一律设网，与总厚阈值是两条独立要求。",
+          "fix": "不同材料基体交接处均应设加强网。",
+          "option_id": "D11-html-practice-html-q3-f227887a4b72:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q3-f227887a4b72",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q3",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "交接防裂·条件维",
+      "stem": "不同材料基体交接处已设加强网。关于加强网与各基体的搭接宽度，选出能得分的作答。",
+      "model_answer": "加强网与各基体的搭接宽度不应小于 100mm。",
+      "options": [
+        {
+          "text": "加强网与各基体的搭接宽度均不应小于 100mm。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "关键词“与各基体搭接”+数值“不小于100mm”都在。",
+          "option_id": "D11-html-practice-html-q4-0e12bc15f773:option-1"
+        },
+        {
+          "text": "加强网与各基体的搭接宽度不应小于 50mm。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "50mm 是最常见的设错值。",
+          "loss_reason": "50mm 不够，规范是不小于 100mm。",
+          "fix": "搭接宽度不应小于 100mm。",
+          "option_id": "D11-html-practice-html-q4-0e12bc15f773:option-2"
+        },
+        {
+          "text": "加强网搭接宽度不小于 80mm 即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "80 接近 100，容易当成合格。",
+          "loss_reason": "数值不足，规范定的是 100mm。",
+          "fix": "不小于 100mm，80mm 不达标。",
+          "option_id": "D11-html-practice-html-q4-0e12bc15f773:option-3"
+        },
+        {
+          "text": "加强网搭接够宽就行，具体多少看现场情况定。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道要搭接却不肯给数字。",
+          "loss_reason": "漏了“不小于 100mm”这个关键数值。",
+          "fix": "写明搭接宽度≥100mm。",
+          "option_id": "D11-html-practice-html-q4-0e12bc15f773:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q4-0e12bc15f773",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q4",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答“抹灰要控制好含水率、做好养护、按规范施工保证质量”。就抹灰质量控制要求，选出最准确的诊断与补写。",
+      "model_answer": "全是口号、无可判分数值/部位；应补：含水率 8/10/12 分对象、总厚 35 加强+层厚 20/25、交接搭接≥100mm、室内温度≥5℃、厨卫地下室耐水腻子。",
+      "options": [
+        {
+          "text": "全是口号无采分点——应补：含水率 8/10/12 分对象、总厚 35 加强层厚 20/25、交接搭接≥100mm、室内≥5℃、厨卫地下室耐水腻子。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "把口号换成可上答题纸的五句采分句，这就是“会写答案”。",
+          "option_id": "D11-html-practice-html-q15-bcc203575c55:option-1"
+        },
+        {
+          "text": "作答已覆盖要点，按规范施工即为满分答法。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "口号听着挺全面。",
+          "loss_reason": "没有任一可判分的数值/部位，口号化趋近 0 分。",
+          "fix": "逐条补数值与部位，别用口号。",
+          "option_id": "D11-html-practice-html-q15-bcc203575c55:option-2"
+        },
+        {
+          "text": "只要再补一句“控制好厚度”就完整了。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "以为补一句就够。",
+          "loss_reason": "仍缺数值、含水率对象、耐水腻子等多维采分点。",
+          "fix": "五控数值/部位逐条补全。",
+          "option_id": "D11-html-practice-html-q15-bcc203575c55:option-3"
+        },
+        {
+          "text": "把“做好养护”改成“加强人员管理”就能得分。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "用一个口号换另一个口号。",
+          "loss_reason": "仍是口号，没有具体采分动作。",
+          "fix": "写具体数值与部位，不是换口号。",
+          "option_id": "D11-html-practice-html-q15-bcc203575c55:option-4"
+        }
+      ],
+      "variant_id": "D11-html-practice-html-q15-bcc203575c55",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D11/P40_D11.practice.dc.html#Q15",
+      "source_html_sha256": "f44c3740851082071eaca93f097643beca8b5aea2617833c2f074204ab333132"
+    }
+  ],
+  "published_lesson_sha256": "da197431fda245b479a61eea033dc484db04ada26afeed3254ceb0fae0284758"
+}

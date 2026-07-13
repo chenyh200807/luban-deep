@@ -40,9 +40,10 @@ function loadPage(options) {
     "utf8",
   );
   var pageDef = null;
-  var calls = { complete: [], telemetry: [] };
+  var calls = { complete: [], items: [], telemetry: [] };
   var api = {
-    getLubanRetestItems: function () {
+    getLubanRetestItems: function (_packId, _limit, _mode, opts) {
+      calls.items.push(opts || {});
       return Promise.resolve({
         items: items(),
         day_index: 2026194,
@@ -154,14 +155,17 @@ async function answerFive(setup) {
 
   var bridged = loadPage();
   bridged.page.onLoad({
-    pack_id: "F16",
+    pack_id: "S01",
     mode: "forward",
     presentation: "receipt",
+    practice_surface: "practice2.html",
     answer_indexes: "1,0,1,0,1",
   });
   await flush();
   await flush();
   assert.strictEqual(bridged.page.data.bridgeMode, true);
+  assert.strictEqual(bridged.page.data.practiceSurface, "practice2.html");
+  assert.strictEqual(bridged.calls.items[0].practiceSurface, "practice2.html");
   assert.strictEqual(bridged.calls.complete.length, 1, "finished HTML answers must auto-submit without a second quiz");
   assert.deepStrictEqual(
     JSON.parse(JSON.stringify(bridged.calls.complete[0].answers)),

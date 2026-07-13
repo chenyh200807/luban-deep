@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "A02",
+  "source_pack_sha256": "ebc3b0793d53451b31324e6b212f5f45f5e70576b76254bab0c211f1619aa80b",
+  "source_bundle_sha256": "fc0f4de426f5466fccb19ddac53e6662ae7a0f4df149ee248818cf1660a37e58",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html",
+      "source_html_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee",
+      "format_kind": "bank_drawn",
+      "array_marker": "",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        20
+      ],
+      "variant_ids": [
+        "A02-html-practice-html-q1-728f764294c4",
+        "A02-html-practice-html-q2-2de44e410ea8",
+        "A02-html-practice-html-q3-1ce285425843",
+        "A02-html-practice-html-q4-34f5c52d4995",
+        "A02-html-practice-html-q21-0f835a0744d8"
+      ],
+      "published_practice_sha256": "187ffeb8a55c205d779f7b51dedc45ebac42c2383ca6d8c4851b4259832e54c0"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "进场关·材料进场验收",
+      "stem": "一批钢筋运到现场，作为施工方进场验收，最先应做的是？",
+      "model_answer": "核查质量证明文件，检查品种、规格、数量、外观，挂牌标识并登记收料台账",
+      "options": [
+        {
+          "text": "核查质量证明文件，检查品种、规格、数量、外观，挂牌标识并登记收料台账",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q1-728f764294c4:option-1"
+        },
+        {
+          "text": "只要随车带出厂合格证，即可直接入库投入使用",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q1-728f764294c4:option-2"
+        },
+        {
+          "text": "先送第三方做全项复验，合格后再办进场手续",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q1-728f764294c4:option-3"
+        },
+        {
+          "text": "通知监理旁站见证后方可卸车",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q1-728f764294c4:option-4"
+        }
+      ],
+      "variant_id": "A02-html-practice-html-q1-728f764294c4",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "A",
+      "source_group_index": 0,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q1",
+      "source_html_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "进场关·复验触发原则",
+      "stem": "下列关于材料复验的说法，正确的是？",
+      "model_answer": "涉及安全、节能、环保的主要材料须复验并经监理认可后方可使用",
+      "options": [
+        {
+          "text": "涉及安全、节能、环保的主要材料须复验并经监理认可后方可使用",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q2-2de44e410ea8:option-1"
+        },
+        {
+          "text": "只要有出厂合格证的材料一律无需复验",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q2-2de44e410ea8:option-2"
+        },
+        {
+          "text": "所有进场材料都必须做见证取样复验",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q2-2de44e410ea8:option-3"
+        },
+        {
+          "text": "是否复验由施工单位自行决定",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q2-2de44e410ea8:option-4"
+        }
+      ],
+      "variant_id": "A02-html-practice-html-q2-2de44e410ea8",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "A",
+      "source_group_index": 1,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q2",
+      "source_html_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "进场关·钢筋复试项目",
+      "stem": "普通热轧钢筋进场复试，应检验的项目是？",
+      "model_answer": "屈服强度、抗拉强度、伸长率、弯曲性能、重量偏差",
+      "options": [
+        {
+          "text": "屈服强度、抗拉强度、伸长率、弯曲性能、重量偏差",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q3-1ce285425843:option-1"
+        },
+        {
+          "text": "仅屈服强度和抗拉强度两项",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q3-1ce285425843:option-2"
+        },
+        {
+          "text": "屈服强度、抗拉强度、伸长率、含碳量",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q3-1ce285425843:option-3"
+        },
+        {
+          "text": "抗拉强度、弯曲性能、氯离子含量",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q3-1ce285425843:option-4"
+        }
+      ],
+      "variant_id": "A02-html-practice-html-q3-1ce285425843",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "A",
+      "source_group_index": 2,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q3",
+      "source_html_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "进场关·成型钢筋例外",
+      "stem": "成型钢筋进场复验时，可以不检验的项目是？",
+      "model_answer": "弯曲性能（屈服、抗拉、伸长、重量偏差仍照检）",
+      "options": [
+        {
+          "text": "弯曲性能（屈服、抗拉、伸长、重量偏差仍照检）",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q4-34f5c52d4995:option-1"
+        },
+        {
+          "text": "屈服强度",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q4-34f5c52d4995:option-2"
+        },
+        {
+          "text": "重量偏差",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q4-34f5c52d4995:option-3"
+        },
+        {
+          "text": "全部项目都要检验，无免检项",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q4-34f5c52d4995:option-4"
+        }
+      ],
+      "variant_id": "A02-html-practice-html-q4-34f5c52d4995",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "A",
+      "source_group_index": 3,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q4",
+      "source_html_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分句·见证取样·采分句",
+      "stem": "案例问'指出见证取样做法不妥并改正'。下列哪句是可直接得分的完整采分句？",
+      "model_answer": "见证人由建设单位书面确认，见证记录由见证人本人填写，试样现场内抽取、送检前通知见证人",
+      "options": [
+        {
+          "text": "见证人由建设单位书面确认，见证记录由见证人本人填写，试样现场内抽取、送检前通知见证人",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q21-0f835a0744d8:option-1"
+        },
+        {
+          "text": "见证取样要按规范认真做好",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q21-0f835a0744d8:option-2"
+        },
+        {
+          "text": "见证人签字确认就行",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q21-0f835a0744d8:option-3"
+        },
+        {
+          "text": "由监理确认见证人、由试验员填写见证记录",
+          "is_correct": false,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "",
+          "option_id": "A02-html-practice-html-q21-0f835a0744d8:option-4"
+        }
+      ],
+      "variant_id": "A02-html-practice-html-q21-0f835a0744d8",
+      "surface_id": "practice.html",
+      "source_index": 20,
+      "source_group": "Dg",
+      "source_group_index": 0,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_A02/P40_A02.practice.dc.html#Q21",
+      "source_html_sha256": "6fa600c4df994985debacb78e99af83c0b7b7b35802d5beeeb321c52874faaee"
+    }
+  ],
+  "published_lesson_sha256": "25a4bb769684e113d16bb23d4d3dcd6ff8ed5d4e51701840350f664e09af1cd9"
+}

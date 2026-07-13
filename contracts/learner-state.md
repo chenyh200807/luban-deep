@@ -605,7 +605,11 @@ Overlay 必须支持：
 
 ### Review Due Projection（双轮 §6 复习模块，2026-07-05 登记，`LUBAN_REVIEW_MODULE_ENABLED` 后）
 
-1. 练习完成事实只认服务端重判且满足严格 mode-authority 矩阵的
+1. finished 课后练习的题干/选项/答案 authoring authority 是 manifest 显式登记的
+   `*.practice.dc.html`；构建时 sidecar 与 public HTML 只是带 source/public SHA 的投影。
+   未登记文件、source SHA 漂移、public SHA 漂移或不能唯一重判的题型必须 fail-closed，
+   不得回退到 public 解析、客户端答案或 signed variant bank 伪装同一供给。
+2. 练习完成事实只认服务端重判且满足严格 mode-authority 矩阵的
    `completion_terminal=true` 事件：forward 可接受 `signed_variant_server_rescore` 或
    `compiled_html_server_rescore`，但必须是 `medium/L0_observed/promotion=false`；review
    只接受 `signed_variant_server_rescore`，且必须是
@@ -613,7 +617,7 @@ Overlay 必须支持：
    前端收据、本机 storage 和孤立 `station_completed` 都不得推进生命周期或移动复习时钟。
    `station_completed` 继续作为 completion 后的幂等业务信号，但不是 terminal outcome 的
    mirror，也不得复制分数/状态。相同 `retest_completion_id` replay 只算一次。
-2. 到期/间隔语义唯一权威=`revalidation_queue`：新学相 `state="fresh"`
+3. 到期/间隔语义唯一权威=`revalidation_queue`：新学相 `state="fresh"`
    首跳按 **UTC+8 日历日次日**（§6.1 分相最小实现 + §9-D2「天」=日历日，
    「明天见」承诺的调度载体；满 24h 判定被否——昨晚学的今早即到期）。
    §6.1 地平线参数同居本模块：间隔上限 cap ≤14 天恒生效；`exam_date`
@@ -623,35 +627,35 @@ Overlay 必须支持：
    的既有 schedule 索引推进（code_application 早期为 3/7/14，仍受 14 天 cap）；失败
    重置 success streak 并回 weak cadence。该 v1 是确定性规则调度，不得冒充 FSRS。
    `exam_date` 唯一读源 = member profile，读侧透传、不复制。
-3. pack 级到期投影 `luban_lesson/review_due.py`（GET `/api/v1/luban/review-due`）
+4. pack 级到期投影 `luban_lesson/review_due.py`（GET `/api/v1/luban/review-due`）
    只消费 `pack_lifecycle_projection` 的 terminal facts、做粒度桥接与绿灯 join，零调度
    逻辑（禁第二调度器）；`probe_id` 必须包含当前 cycle anchor，避免旧 verified outcome
    永久抑制新周期；`retest_available=false`
    的站客户端必须 fail-closed 隐藏「换皮」承诺句。
-4. `mistake_book` 的 `review_due_at` 是**读侧投影**（`derive_review_due_at`，
+5. `mistake_book` 的 `review_due_at` 是**读侧投影**（`derive_review_due_at`，
    错题=lapse 走 weak 相），零落库、零间隔常量在 mistake_book 内——写侧
    `record_review` 继续清空存量 `review_due_at`（防第二调度权威复活）。
-5. 「标记掌握」仍是呈现层旗标（见 `mark_mastered` 条款）。`RetestWritebackService`
+6. 「标记掌握」仍是呈现层旗标（见 `mark_mastered` 条款）。`RetestWritebackService`
    是变体练唯一 completion writer：item 事件只承载不可变作答证据，不得自报 pack 终态；
    全部 item 写成后再追加唯一 `completion_terminal=true` 事件，随后由同一服务写一次
    `station_completed`。页面、handoff 与 API wrapper 不得成为并行 writer。
-6. review completion 必须绑定 `revalidation_queue` 当前到期的 `probe_id`；客户端只传选择，
+7. review completion 必须绑定 `revalidation_queue` 当前到期的 `probe_id`；客户端只传选择，
    服务端从 signed variant bank 重判。forward 永远 non-promoting；review 只允许影响
    `pack:{pack_id}:rule:{rule_group}` 的同粒度概念，不得以 pack 粗粒度清除 sibling 错因。
    review 的 canonical `training_intent_id` 由服务端恢复为该 `probe_id`，忽略客户端自报 intent/mode；
    取题日使用服务端 UTC+8 日历日。
-7. 所有 read projection 必须先看同一 `retest_completion_id` 的 terminal commit。terminal 缺失时，
+8. 所有 read projection 必须先看同一 `retest_completion_id` 的 terminal commit。terminal 缺失时，
    即使 item 带高置信/L2 字段也只能作为 L0；partial append 不得产生 weak/improvement/verified。
    `LUBAN_REVIEW_MODULE_ENABLED`（以及 forward 的 `LUBAN_LIGHT_PRACTICE_ENABLED`）必须在任何
    append 前 fail closed，禁止“写完 terminal 才撞 rollout flag”。
-8. GET 取题必须签发 `selection_id`，绑定 canonical user、pack、服务端 UTC+8 day、mode 与
+9. GET 取题必须签发 `selection_id`，绑定 canonical user、pack、服务端 UTC+8 day、mode 与
    variant ID 集合；POST 必须验证该 identity 后才按原签发日重建并重判。这样跨午夜/断网
    retry 仍消费同一题组，同时客户端不能改 day、换题或跨用户复用 selection。
-9. 最近 8 天窗口只允许用于趋势/timeline。`pack_lifecycle` 与 pack review 必须读取分页后的
+10. 最近 8 天窗口只允许用于趋势/timeline。`pack_lifecycle` 与 pack review 必须读取分页后的
    全历史 `learning_evidence` 窄事件流；不得被 8 天、100/200/500 条页面窗口或 PostgREST
    单页 row cap 截断。`learning_report_read_model.v2.pack_review` 是学习/复习/学情共用的
    聚合切片，页面不得再各拉一份 learner-state 到期读模型。
-10. 今日进度的单位是题目作答：item event 可以计数，completion terminal 只是提交边界，
+11. 今日进度的单位是题目作答：item event 可以计数，completion terminal 只是提交边界，
     必须带 `quality.progress_countable=false`，读侧也必须识别并排除历史 terminal。五题练习
     只增加 5 题，不能因 terminal 或 `station_completed` 变成 6。
 

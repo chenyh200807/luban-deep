@@ -39,6 +39,7 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[1]
 PACK_DIR = REPO / "docs" / "原始数据" / "考点原料" / "成品"
 CARD_HOST_DIR = REPO / "web" / "public" / "luban-preview"  # 讲懂卡托管目录(确定性扫描)
+PRACTICE_AUTHORITY_DIR = REPO / "deeptutor" / "services" / "luban_lesson" / "compiled"
 MANIFEST_PATH = PACK_DIR / "_pack_manifest.json"
 OVERRIDES_PATH = PACK_DIR / "_pack_manifest.overrides.json"
 
@@ -94,17 +95,60 @@ def _companion_exists(pack_id: str, suffix: str) -> bool:
     return (PACK_DIR / name).exists() or (PACK_DIR.parent / name).exists()
 
 
+def _practice_capability(pack_id: str, content_sha256: str) -> dict[str, Any]:
+    """Sidecar 是 finished HTML 的可验证运行时投影，此处只登记已闭合的产物。"""
+    filename = f"{pack_id.lower()}.practice.authority.json"
+    path = PRACTICE_AUTHORITY_DIR / filename
+    try:
+        authority = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"status": "unavailable"}
+    surfaces = authority.get("surfaces") if isinstance(authority, dict) else None
+    items = authority.get("items") if isinstance(authority, dict) else None
+    public = CARD_HOST_DIR / pack_id.lower()
+    if (
+        authority.get("schema_version") != "luban_compiled_practice.v1"
+        or authority.get("pack_id") != pack_id
+        or authority.get("source_pack_sha256") != content_sha256
+        or not isinstance(surfaces, list)
+        or not surfaces
+        or not isinstance(items, list)
+        or len(items) != 5 * len(surfaces)
+        or authority.get("published_lesson_sha256")
+        != (_sha256(public / "lesson.html") if (public / "lesson.html").is_file() else "")
+    ):
+        return {"status": "unavailable"}
+    for surface in surfaces:
+        hosted = public / str(surface.get("surface_id") or "")
+        if (
+            not hosted.is_file()
+            or surface.get("published_practice_sha256") != _sha256(hosted)
+            or len(surface.get("variant_ids") or []) != 5
+        ):
+            return {"status": "unavailable"}
+    return {
+        "status": "compiled",
+        "authority_path": filename,
+        "source_pack_sha256": content_sha256,
+        "source_bundle_sha256": str(authority.get("source_bundle_sha256") or ""),
+        "surface_count": len(surfaces),
+        "question_count": len(items),
+        "writeback_contract": "luban_retest_completion.v1",
+    }
+
+
 def _scan_pack(path: Path, pack_id: str, title: str) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8")
     jury = _jury_stats(pack_id)
     coarse = "coarse_review" in text
     needs_leaf = "needs_leaf_review" in text
     barred = bool(re.search(r"不进(学员)?默认(学习)?入口", text)) or needs_leaf
+    content_sha256 = _sha256(path)
     entry: dict[str, Any] = {
         "pack_id": pack_id,
         "title": title,
         "file": path.name,
-        "content_sha256": _sha256(path),
+        "content_sha256": content_sha256,
         # 状态信号(确定性提取, 不做语义裁决)
         "review_level": "coarse_review" if coarse else "standard",
         "needs_leaf_review": needs_leaf,
@@ -117,6 +161,7 @@ def _scan_pack(path: Path, pack_id: str, title: str) -> dict[str, Any]:
         # 讲懂卡托管存在性(确定性: web/public/luban-preview/<id小写>/lesson.html 实存)
         # read_model 只对 card_hosted 的绿灯站派生 card_url——防 22 站 web-view 404(2026-07-05 部署探针实证)
         "card_hosted": (CARD_HOST_DIR / pack_id.lower() / "lesson.html").is_file(),
+        "practice": _practice_capability(pack_id, content_sha256),
         **jury,
         # 签发态: 脚本恒 False, 只能经 overrides 人工置 true
         "published": False,

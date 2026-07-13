@@ -9,12 +9,12 @@ Thin 投影层（§3 所有权表）：本模块**只读投影、零生成**—�
   ``source_pack_sha256`` 与 manifest 该 pack 的 ``content_sha256`` 一致——
   candidate 未签发/pack 正文修订后的旧变体，一律与 bank 缺失同形不可见
   （签发动作 = ``docs/原始数据/考点原料/promote_variant_bank.py``，人闸）；
-- F16 视频后 forward 试点由 ``practice_html`` 只读 publisher 从 finished 编译的
+- 视频后 forward 由 ``practice_html`` 只读 publisher 从 finished 编译的
   非公开 authority sidecar；客户端投影剥离答案，review 仍只认上述 signed bank；
 - 讲懂卡 URL = 业务托管基址（env ``LUBAN_LESSON_CARD_BASE``）+ pack slug 约定，
   卡产物按压缩预研 0.39MB 口径产出并开 Content-Encoding（托管侧职责）；
-- ``content_sha256`` 仍表示 pack Markdown；F16 卡片另用 finished bundle SHA 作 URL
-  cache-bust（本次 HTML/音频已升版但 Markdown 未变，不能混成一个版本事实）。
+- ``content_sha256`` 仍表示 pack Markdown；finished 卡片另用 bundle SHA 作 URL
+  cache-bust（HTML/音频与 Markdown 不能混成一个版本事实）。
 
 学习证据边界（防第四 builder）：本模块**不写任何学习证据**。档位①②轻练走既有
 ``learner_signal`` 路由（非 promoting），档位③走判分链路；学-evidence
@@ -89,9 +89,7 @@ def _card_url(pack_id: str, *, bundle_sha: str = "") -> str:
     base = str(os.getenv(_CARD_BASE_ENV) or "").strip().rstrip("/")
     if not base:
         return ""  # 托管未配置：viewmodel 仍可用（练档数据不依赖卡），客户端按无卡降级
-    if is_compiled_practice_pack(pack_id):
-        if not bundle_sha:
-            return ""
+    if bundle_sha:
         return f"{base}/{pack_id.lower()}/lesson.html?v={bundle_sha}"
     return f"{base}/{pack_id.lower()}/lesson.html"
 
@@ -184,9 +182,9 @@ def list_all_pack_ids(*, manifest_path: Path | None = None) -> list[str]:
 def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, Any]]:
     """绿灯站点列表投影（地图/路线消费）；只含绿灯包，锁定站的露脸文案归上层。
 
-    ``retest_available`` = signed 变体池真值（复用 ``_variant_summary`` 同一闸，
-    不建第二判定）——供学习页头牌轻练按供给路由/降级：承诺宽度收窄到有货的
-    站，不对空池站渲染练不了的按钮。
+    ``retest_available`` = manifest 登记的 compiled finished 供给或 signed 变体池真值
+    （各自复用唯一 loader/签发闸，不建第二判定）——供学习页按真实供给
+    路由/降级，不对空池站渲染练不了的按钮。
     """
     manifest = _load_manifest(manifest_path)
     green = set(manifest.get("projection_green") or [])
@@ -202,7 +200,11 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
                 "content_sha256": str(pack.get("content_sha256") or ""),
                 # 托管真值来自 manifest 对 lesson.html 的确定性扫描；路线绿灯与可播放分开。
                 "card_hosted": bool(pack.get("card_hosted")),
-                "retest_available": _variant_summary(
+                "retest_available": (
+                    manifest_path is None
+                    and is_compiled_practice_pack(str(pack["pack_id"]))
+                )
+                or _variant_summary(
                     str(pack["pack_id"]),
                     manifest_dir,
                     str(pack.get("content_sha256") or ""),
@@ -228,7 +230,7 @@ def build_lesson_viewmodel(
     if pack is None:  # manifest 自身不一致也 fail-closed
         raise LessonNotAvailable(pack_id)
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
-    bundle_sha = _compiled_bundle_sha(pack_id)
+    bundle_sha = _compiled_bundle_sha(pack_id) if manifest_path is None else ""
     return {
         "pack_id": pack_id,
         "title": str(pack.get("title") or ""),
@@ -240,13 +242,20 @@ def build_lesson_viewmodel(
             if pack.get("card_hosted")
             else ""
         ),
-        # F16 的正确产品面是 finished/P40_F16 随堂练成品的托管副本；客户端
-        # 不再从 lesson URL 猜路径，也不再跳过该产品面直接打开通用 retest 题页。
+        # finished 随堂练的托管副本；客户端不再从 lesson URL 猜路径。
         "practice_url": (
             _practice_card_url(pack_id, bundle_sha=bundle_sha)
             if pack.get("card_hosted")
             else ""
         ),
+        "practice_surface": {
+            "available": bool(pack.get("card_hosted") and bundle_sha),
+            "kind": "compiled_html" if bundle_sha else "",
+            "question_count": 5 if bundle_sha else 0,
+            "completion_contract": (
+                "luban_retest_completion.v1" if bundle_sha else ""
+            ),
+        },
         "card_bundle_sha256": bundle_sha,
         "variant_retest": _variant_summary(
             pack_id, manifest_dir, str(pack.get("content_sha256") or "")
@@ -302,6 +311,7 @@ def build_retest_items(
     day_index: int,
     limit: int = 5,
     mode: str = "review",
+    practice_surface: str = "",
     manifest_path: Path | None = None,
 ) -> list[dict[str, Any]]:
     """练习题面投影——runtime 只读编译产物，绝不在线生成。
@@ -310,8 +320,8 @@ def build_retest_items(
     - ``mode="review"``（默认，复习轮换皮复测）：跨天扁平确定性轮换，同一用户
       同一天取同一切片（多端幂等，§9-D3）；跨天按 ``day_index``（服务端本地日，
       §9-D2）前进，池耗尽自动回绕复用旧变体（产能降级预案①，绝不 runtime 现编）。
-    - ``mode="forward"``：F16 先读 compiled HTML 的固定五题客户端投影（不下发
-      正确项）；其余 pack 继续从 signed variant bank 广度优先抽取判断题。
+    - ``mode="forward"``：已编译 pack 读 finished HTML 固定五题投影
+      （不下发正确项）；``practice_surface`` 只能选 manifest 登记的成品面。
       证据仍由 RetestWritebackService server-rescore 且 non-promoting。
 
     signed variant 分支只发核心变体（extension=false）；对外投影字段
@@ -329,18 +339,20 @@ def build_retest_items(
     """
     vm = build_lesson_viewmodel(pack_id, manifest_path=manifest_path)
     normalized_mode = str(mode or "").strip().lower()
-    if normalized_mode == "forward":
+    if normalized_mode == "forward" and manifest_path is None:
         try:
             compiled = project_compiled_practice(
-                vm["pack_id"], expected_pack_sha256=vm["content_sha256"]
+                vm["pack_id"],
+                expected_pack_sha256=vm["content_sha256"],
+                surface_id=practice_surface,
             )
         except PracticeHtmlInvalid:
             compiled = None
         if compiled is not None:
-            # F16 试点是固定五题，不能让客户端用 limit 截短后仍签发完成凭证。
+            # 成品面是固定五题，不能用 limit 截短后仍签发完成凭证。
             return compiled
         if is_compiled_practice_pack(vm["pack_id"]):
-            return []  # pilot 内容损坏/SHA 漂移时禁回退第二套 signed-variant 题面
+            return []  # compiled 内容损坏/SHA 漂移时禁回退第二套 signed-variant 题面
     if not vm["variant_retest"]["available"]:
         return []
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent

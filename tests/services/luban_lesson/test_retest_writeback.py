@@ -543,6 +543,53 @@ def test_forward_compiled_html_mcq_is_server_rescored_and_written_as_l0(
     assert progress["unique_question_count"] == len(items)
 
 
+def test_non_f16_compiled_surface_writes_five_items_and_one_canonical_terminal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services.luban_lesson.practice_html import (
+        load_compiled_practice as real_load_compiled_practice,
+    )
+    from deeptutor.services.luban_lesson.read_model import (
+        build_lesson_viewmodel as real_build_lesson_viewmodel,
+    )
+
+    monkeypatch.setattr(module, "load_compiled_practice", real_load_compiled_practice)
+    monkeypatch.setattr(module, "build_lesson_viewmodel", real_build_lesson_viewmodel)
+    authority = real_load_compiled_practice("S05")
+    assert authority is not None
+    wanted = set(authority["surfaces"][0]["variant_ids"])
+    items = [item for item in authority["items"] if item["variant_id"] in wanted]
+    answers = [
+        {
+            "variant_id": item["variant_id"],
+            "selected_option_id": item["options"][0]["option_id"],
+        }
+        for item in items
+    ]
+    learner = _LearnerState()
+
+    result = _complete(
+        _service(learner),
+        pack_id="S05",
+        answers=answers,
+        training_intent_id="",
+    )
+
+    evidence = [
+        event
+        for event in learner.events
+        if event.source_feature == "assessment_testset"
+    ]
+    item_events = [event for event in evidence if not event.payload_json.get("completion_terminal")]
+    terminals = [event for event in evidence if event.payload_json.get("completion_terminal")]
+    assert len(item_events) == 5
+    assert len(terminals) == 1
+    assert result["terminal_event_id"] == terminals[0].event_id
+    lifecycle = project_pack_lifecycle(events=evidence, claims=[], pack_ids=["S05"])
+    assert lifecycle["packs"]["S05"]["lifecycle_state"] == "practiced"
+    assert lifecycle["packs"]["S05"]["practice_event_count"] == 5
+
+
 def test_forward_compiled_html_rejects_unknown_option_before_write(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

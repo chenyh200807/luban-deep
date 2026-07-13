@@ -10,7 +10,9 @@ from deeptutor.services.learner_state.evidence_lifecycle import (
     is_canonical_luban_retest_terminal,
 )
 from deeptutor.services.learner_state.learner_signal import record_learner_signal
-from deeptutor.services.luban_lesson.practice_html import load_compiled_practice
+from deeptutor.services.luban_lesson.practice_html import (
+    load_compiled_practice,
+)
 from deeptutor.services.luban_lesson.read_model import (
     build_lesson_viewmodel,
     build_retest_items,
@@ -215,7 +217,18 @@ class RetestWritebackService:
                 lesson.get("content_sha256") or ""
             ):
                 raise ValueError("retest_compiled_practice_pack_sha_mismatch")
-            canonical_items = list(compiled_practice.get("items") or [])
+            wanted_ids = {item["variant_id"] for item in normalized_answers}
+            surfaces = list(compiled_practice.get("surfaces") or [])
+            if surfaces and not any(
+                set(surface.get("variant_ids") or []) == wanted_ids
+                for surface in surfaces
+            ):
+                raise ValueError("retest_compiled_practice_surface_mismatch")
+            canonical_items = [
+                item
+                for item in compiled_practice.get("items") or []
+                if str(item.get("variant_id") or "") in wanted_ids
+            ]
         else:
             canonical_items = build_retest_items(
                 normalized_pack,

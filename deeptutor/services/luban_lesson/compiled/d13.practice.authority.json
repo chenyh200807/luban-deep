@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "D13",
+  "source_pack_sha256": "6745894a27086c053065b63739bd0fb66eee75a32a56ec5679fb8467cc9bbcf3",
+  "source_bundle_sha256": "f36ff6f7f3878f48ffa976715a832ab0f87792314c991b67d8734c9e32105d38",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html",
+      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "D13-html-practice-html-q1-a3b5c73ae494",
+        "D13-html-practice-html-q2-753aa408cfc1",
+        "D13-html-practice-html-q3-9fa02e489ab8",
+        "D13-html-practice-html-q4-b67400c5b10c",
+        "D13-html-practice-html-q15-2ff7d0b4fec0"
+      ],
+      "published_practice_sha256": "4c1738a3d81bffeb08a68d5c1d8edc95360e7d65f8812c95fa8318df6dc1594e"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "层间封堵·内容清单",
+      "stem": "幕墙与各层楼板间缝隙的防火封堵应满足哪些要求？选出要素最全、能得分的作答。",
+      "model_answer": "缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、楼层间形成水平防火烟带；防火层用≥1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。",
+      "options": [
+        {
+          "text": "缝隙用不燃材料(岩棉/矿棉)封堵、厚度≥100mm、满足耐火极限、形成水平防火烟带，1.5mm镀锌钢板承托、防火密封胶封缝。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "五要素全：不燃材料+厚度+耐火极限+水平烟带+钢板承托与密封胶，逐条列清才不漏维。",
+          "option_id": "D13-html-practice-html-q1-a3b5c73ae494:option-1"
+        },
+        {
+          "text": "缝隙用岩棉填塞封堵密实即可，把缝隙塞满、不透火，就满足层间防火封堵的要求了。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "只记住「塞岩棉」这一件，觉得填满就完事。",
+          "loss_reason": "漏了厚度≥100mm、水平防火烟带、钢板承托、防火密封胶整维要素。",
+          "fix": "补≥100mm、耐火极限、水平防火烟带、1.5mm镀锌钢板承托、防火密封胶。",
+          "option_id": "D13-html-practice-html-q1-a3b5c73ae494:option-2"
+        },
+        {
+          "text": "缝隙用防火材料封堵、达到设计要求的防火效果，做法由施工单位按现场情况灵活确定。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「达到防火效果、灵活确定」听着稳妥不出错。",
+          "loss_reason": "全是口号、无一条可判分要素，属以口号替代规范要求。",
+          "fix": "写死要素：不燃岩棉≥100mm+耐火极限+水平烟带+镀锌钢板承托+防火密封胶。",
+          "option_id": "D13-html-practice-html-q1-a3b5c73ae494:option-3"
+        },
+        {
+          "text": "缝隙用不燃岩棉封堵≥100mm、形成水平防火烟带，承托板托住岩棉即可，密封与否影响不大。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "前面写对了两条，容易以为够了。",
+          "loss_reason": "漏防火密封胶（承托板与主体/幕墙缝隙必须密封），且承托板材料厚度没点明。",
+          "fix": "补1.5mm镀锌钢板承托不得铝板、承托板缝隙用防火密封胶密封。",
+          "option_id": "D13-html-practice-html-q1-a3b5c73ae494:option-4"
+        }
+      ],
+      "variant_id": "D13-html-practice-html-q1-a3b5c73ae494",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q1",
+      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "承托板材料·判断纠错",
+      "stem": "某幕墙防火层承托板采用 1.5mm 铝板。指出是否妥当并写正确做法，选出最到位的作答。",
+      "model_answer": "不妥。防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板(铝熔点低火中熔化使防火层垮塌)。",
+      "options": [
+        {
+          "text": "不妥；防火层承托板应采用厚度≥1.5mm的镀锌钢板承托，不得采用铝板（铝熔点低火中熔化）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "指错+给正确材料与厚度+点明后果，纠错三段齐，正确做法带数值材料。",
+          "option_id": "D13-html-practice-html-q2-753aa408cfc1:option-1"
+        },
+        {
+          "text": "不妥；铝板不行，应该换成钢板承托，把铝板拆掉重新装上钢的承托板就符合要求了。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向对——知道铝板不行、要换钢板。",
+          "loss_reason": "「正确做法」缺关键数值与材料——没写≥1.5mm、没写镀锌钢板。",
+          "fix": "写死「≥1.5mm镀锌钢板承托，不得铝板」，纠错才给全分。",
+          "option_id": "D13-html-practice-html-q2-753aa408cfc1:option-2"
+        },
+        {
+          "text": "妥当；铝板也是金属、导热快、又轻，用作承托板托住岩棉没有问题，1.5mm 厚度也够。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「金属都耐用、又轻」是想当然的常识。",
+          "loss_reason": "防火层承托不得用铝——铝约660℃熔化，火灾中承托垮塌、岩棉坠落，防火层失效。",
+          "fix": "必须用≥1.5mm镀锌钢板，不得铝板。",
+          "option_id": "D13-html-practice-html-q2-753aa408cfc1:option-3"
+        },
+        {
+          "text": "不妥；应把铝板加厚到 2mm 以上增强耐火，厚一点的铝板就能承受火灾高温托住防火层。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "以为「加厚」就能解决耐火问题。",
+          "loss_reason": "问题在材料不在厚度——铝熔点低，加多厚也会熔；混淆了材料与厚度。",
+          "fix": "换材料：用≥1.5mm镀锌钢板，不得用铝板。",
+          "option_id": "D13-html-practice-html-q2-753aa408cfc1:option-4"
+        }
+      ],
+      "variant_id": "D13-html-practice-html-q2-753aa408cfc1",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q2",
+      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "承托板尺寸·数字陷阱",
+      "stem": "关于幕墙防火构造承托板，下列写法数值与单位都正确、能得分的是？",
+      "model_answer": "钢质承托板厚度≥1.5mm（毫米）；写成1.5m是其1000倍，幕墙构造无1.5m厚承托板。",
+      "options": [
+        {
+          "text": "防火层承托板应采用厚度≥1.5mm 的镀锌钢板，此处 1.5mm 是毫米，不是 1.5m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "数值+单位都点死(1.5mm毫米)，并主动排除1.5m单位陷阱。",
+          "option_id": "D13-html-practice-html-q3-9fa02e489ab8:option-1"
+        },
+        {
+          "text": "防火层承托板应采用厚度≥1.5m 的钢板承托，1.5 米厚的钢板足以承受火灾高温不变形。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "顺手把 mm 写成 m，或以为越厚越保险。",
+          "loss_reason": "单位错——1.5m 是 1.5mm 的 1000 倍，幕墙上没有 1.5m 厚的承托钢板。",
+          "fix": "写≥1.5mm（毫米），不是1.5m。",
+          "option_id": "D13-html-practice-html-q3-9fa02e489ab8:option-2"
+        },
+        {
+          "text": "防火层承托板应采用厚度≥15mm 的钢板承托，够厚才托得住岩棉、火中不塌。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "和防火涂料 15mm 之类的数字串了。",
+          "loss_reason": "承托板是≥1.5mm，不是15mm；数字记错同样丢分。",
+          "fix": "承托板厚度≥1.5mm镀锌钢板。",
+          "option_id": "D13-html-practice-html-q3-9fa02e489ab8:option-3"
+        },
+        {
+          "text": "防火层承托板只要是钢质、能托住岩棉就行，厚度不用写具体数值，注明「钢板承托」即可。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "知道要钢板，觉得材料对了就够。",
+          "loss_reason": "漏关键数值≥1.5mm，阅卷缺数值不给该分。",
+          "fix": "补厚度≥1.5mm，写「≥1.5mm镀锌钢板承托」。",
+          "option_id": "D13-html-practice-html-q3-9fa02e489ab8:option-4"
+        }
+      ],
+      "variant_id": "D13-html-practice-html-q3-9fa02e489ab8",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q3",
+      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "防火分隔·条件维",
+      "stem": "上下层开口之间的防火分隔应满足什么？选出尺寸判据完整、能得分的作答。",
+      "model_answer": "上下层开口间实体墙高度≥1.2m；或设防火挑檐，宽度≥1.0m且长度≥开口宽度。",
+      "options": [
+        {
+          "text": "上下层开口间应设高度≥1.2m 的实体墙；不足时设防火挑檐，宽度≥1.0m 且长度≥开口宽度。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "实体墙1.2m与挑檐1.0m二选一、挑檐还要长≥开口宽，判据全。",
+          "option_id": "D13-html-practice-html-q4-b67400c5b10c:option-1"
+        },
+        {
+          "text": "上下层开口之间做好防火分隔、留足安全距离、防止火焰向上蔓延到上层窗口就可以。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「留足距离、防蔓延」方向对、听着没错。",
+          "loss_reason": "全是口号无数值——没写实体墙≥1.2m、挑檐≥1.0m。",
+          "fix": "写死实体墙≥1.2m 或挑檐≥1.0m 且长≥开口宽。",
+          "option_id": "D13-html-practice-html-q4-b67400c5b10c:option-2"
+        },
+        {
+          "text": "上下层开口间实体墙高度≥1.2m 即可，挑檐是可选装饰、不影响防火，达不到高度也没关系。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "记住了实体墙1.2m一条，以为够了。",
+          "loss_reason": "漏了「实体墙不足时用防火挑檐≥1.0m替代」这条替代路径。",
+          "fix": "补：实体墙不足1.2m时设防火挑檐宽≥1.0m且长≥开口宽。",
+          "option_id": "D13-html-practice-html-q4-b67400c5b10c:option-3"
+        },
+        {
+          "text": "上下层开口间实体墙高度≥1.0m、或防火挑檐宽度≥1.2m 且长度不限，满足其一即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得有1.2和1.0俩数、随手对调了。",
+          "loss_reason": "数值张冠李戴——实体墙是≥1.2m、挑檐是≥1.0m且长≥开口宽，反了。",
+          "fix": "实体墙≥1.2m、挑檐≥1.0m且长≥开口宽，别对调。",
+          "option_id": "D13-html-practice-html-q4-b67400c5b10c:option-4"
+        }
+      ],
+      "variant_id": "D13-html-practice-html-q4-b67400c5b10c",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q4",
+      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答层间封堵：①缝隙塞岩棉；②承托板用铝板；③承托板缝隙没提。选出最准确的诊断与补写。",
+      "model_answer": "三处都要补：①缝隙应不燃岩棉≥100mm+耐火极限+水平防火烟带；②承托板应≥1.5mm镀锌钢板不得铝板；③承托板与主体/幕墙缝隙应用防火密封胶密封。",
+      "options": [
+        {
+          "text": "三处都失分：①缺≥100mm与水平烟带，②承托板应改≥1.5mm镀锌钢板不得铝板，③缝隙应用防火密封胶密封。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "逐条揪失分并补上采分句，正是「会写答案」——三句都要落纸。",
+          "option_id": "D13-html-practice-html-q15-2ff7d0b4fec0:option-1"
+        },
+        {
+          "text": "基本没问题：岩棉封堵、有承托板、缝隙小可忽略，把铝板换成钢板就能拿满分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到铝板一处错，以为改这一处就够。",
+          "loss_reason": "漏诊①缺≥100mm与水平防火烟带、③缝隙未用防火密封胶，两处失分没揪出。",
+          "fix": "三处都要补：厚度/水平烟带、镀锌钢板、防火密封胶。",
+          "option_id": "D13-html-practice-html-q15-2ff7d0b4fec0:option-2"
+        },
+        {
+          "text": "只是表达不规范，把「塞岩棉」写成「不燃材料封堵」就行，尺寸材料其实都对。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "以为只是措辞问题、内容都对。",
+          "loss_reason": "内容真缺——没≥100mm、没水平烟带、承托板还是错的铝板，不止措辞。",
+          "fix": "补数值(≥100mm)、水平烟带、镀锌钢板承托、防火密封胶。",
+          "option_id": "D13-html-practice-html-q15-2ff7d0b4fec0:option-3"
+        },
+        {
+          "text": "承托板用铝板没错、够轻，主要问题是岩棉塞得不够密，把岩棉塞实就合格了。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "把注意力放在「塞密实」这种常识上。",
+          "loss_reason": "方向全错——铝板必须换镀锌钢板；且漏水平烟带与防火密封胶。",
+          "fix": "承托板改≥1.5mm镀锌钢板，补≥100mm/水平烟带/防火密封胶。",
+          "option_id": "D13-html-practice-html-q15-2ff7d0b4fec0:option-4"
+        }
+      ],
+      "variant_id": "D13-html-practice-html-q15-2ff7d0b4fec0",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_D13/P40_D13.practice.dc.html#Q15",
+      "source_html_sha256": "f17fd5911c13b2c280e1e4023962648ad9289ec1fd4ee6f599daa8cfcbe5d66c"
+    }
+  ],
+  "published_lesson_sha256": "db1be68013180751edde5f6606be240d1256f3c45b54219fdaff6234d0df9cd6"
+}

@@ -9,6 +9,7 @@
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -129,7 +130,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -191,6 +192,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
@@ -200,7 +202,7 @@ class Component extends DCLogic {
   KNOWLEDGE="临时用电三级配电两级保护。三大系统缺一不可:三级配电系统(总配电箱→分配电箱→开关箱)+TN-S接零保护系统+二级剩余电流(漏电)动作保护系统(总箱一级、末级开关箱一级)。停送电顺序:送电总→分→开;停电开→分→总,禁颠倒。一机一闸:每台设备专用开关箱,严禁2台及以上共用(含插座);进线端严禁插头插座做活动连接;动力开关箱与照明开关箱必分设。安全电压:潮湿/隧道/人防≤36V、易触及带电体≤24V、金属容器/锅炉内≤12V;手持灯具≤36V须双绕组隔离变压器、金属容器内严禁;湿度>75%/积水未用安全电压照明=重大隐患。电缆直接埋地≥0.7m;五芯电缆N线=蓝色、PE线=黄绿双色;配电箱金属箱门与箱体连接=单股铜线。管理:电工持证上岗、拆除由电工完成;装饰装修阶段补编单项施工用电方案;50kW及以上编用电组织设计;开关箱与配电箱间距≤30m、仓库堆料场严禁碘钨灯。采分主线:架构对不对→参数够不够→管理顺不顺。";
   moreText="补两组：① 综合纠错案例（{2023第1题}共用开关箱+插头插座+装饰阶段），练「指不妥+违反哪条+正确做法带判据」三段式；② 参数记忆组（安全电压 36/24/12V、埋深 0.7m、N蓝 PE黄绿、单股铜线），练条件维数值不张冠李戴。";
   Q=[
-    { tag:"三大系统·架构", typeHint:"单选 · 选最完整、能拿分的作答", figLabel:"题给：临时用电必须采用的系统", figCaption:"三块拼图 · 缺一不可", fig:"sys3",
+{ tag:"三大系统·架构", typeHint:"单选 · 选最完整、能拿分的作答", figLabel:"题给：临时用电必须采用的系统", figCaption:"三块拼图 · 缺一不可", fig:"sys3",
       stem:"施工现场临时用电必须采用哪几大系统？选出最完整、能得分的作答。",
       model:"三级配电系统 + TN-S 接零保护系统 + 二级剩余电流（漏电）动作保护系统，三者缺一不可。",
       opts:[
@@ -209,7 +211,7 @@ class Component extends DCLogic {
         { t:"采用两级配电系统加一级漏电保护，并利用大地作为保护零线导体接零。", ok:false, code:"E07", tempt:"记成了「两级／一级」，还把大地当零线。", lose:"应是三级配电、二级漏保，且严禁利用大地作零线导体。", fix:"三级配电 + TN-S 接零（PE 线独立）+ 二级漏保。" },
         { t:"采用 TN-C 接零保护系统与三级配电系统，配一级漏电保护装置在总配电箱处。", ok:false, code:"E10", tempt:"知道要接零、要三级，顺手写成 TN-C。", lose:"应为 TN-S（PE 与 N 分开），且漏保是二级不是一级。", fix:"TN-S 接零 + 二级漏保（总箱 + 末级开关箱各一级）。" }
       ] },
-    { tag:"三级配电装置·架构", typeHint:"单选 · 选归类正确的作答", figLabel:"题给：三级配电的三级装置", figCaption:"总 → 分 → 开，逐级配电", fig:"levels",
+{ tag:"三级配电装置·架构", typeHint:"单选 · 选归类正确的作答", figLabel:"题给：三级配电的三级装置", figCaption:"总 → 分 → 开，逐级配电", fig:"levels",
       stem:"三级配电系统由哪三级配电装置组成？选出正确的作答。",
       model:"总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级。",
       opts:[
@@ -218,7 +220,7 @@ class Component extends DCLogic {
         { t:"总配电箱、分配电箱、开关箱、末端插座箱四级配电，层层加箱更安全。", ok:false, code:"E07", tempt:"以为加得越多越安全。", lose:"标准是三级配电，多加一级并非规范要求、概念混淆。", fix:"三级配电即总、分、开三级，不是四级。" },
         { t:"配电室、配电柜、配电盘三级，按室内配电层级组织临时用电。", ok:false, code:"E10", tempt:"把固定式室内配电层级套到临时用电上。", lose:"临时用电三级是总配电箱、分配电箱、开关箱，规范套错。", fix:"总配电箱、分配电箱、开关箱三级配电装置。" }
       ] },
-    { tag:"一机一闸·管理", typeHint:"单选 · 指出不妥并选正确做法", figLabel:"题给：瓷砖切割机、砂浆搅拌机", figCaption:"两台设备 · 共用一个开关箱（题给做法）", fig:"onebox",
+{ tag:"一机一闸·管理", typeHint:"单选 · 指出不妥并选正确做法", figLabel:"题给：瓷砖切割机、砂浆搅拌机", figCaption:"两台设备 · 共用一个开关箱（题给做法）", fig:"onebox",
       stem:"现场瓷砖切割机与砂浆搅拌机共用一个开关箱。此做法不妥，选出正确做法。",
       model:"每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
       opts:[
@@ -227,7 +229,7 @@ class Component extends DCLogic {
         { t:"给两台设备各装一个漏电保护器后共用一个开关箱，加装保护即可合规。", ok:false, code:"E10", tempt:"以为加了漏保就能共用一箱。", lose:"漏保解决不了共用问题，仍违反一机一闸。", fix:"每台设备必须专用开关箱，不得共用（含插座）。" },
         { t:"把两台设备接到同一开关箱不同回路上，一箱两路分开控制就算专用。", ok:false, code:"E03", tempt:"以为分回路就等于专用。", lose:"仍是一个开关箱控多台，漏了「专用开关箱」关键词。", fix:"每台设备各自专用开关箱，严禁 2 台及以上共用。" }
       ] },
-    { tag:"进线端·管理", typeHint:"单选 · 指出不妥并选正确做法", figLabel:"题给：开关箱与配电箱连接方式", figCaption:"用插头插座做活动连接（题给做法）", fig:"inlet",
+{ tag:"进线端·管理", typeHint:"单选 · 指出不妥并选正确做法", figLabel:"题给：开关箱与配电箱连接方式", figCaption:"用插头插座做活动连接（题给做法）", fig:"inlet",
       stem:"某开关箱使用插头插座与配电箱进线端连接。此做法不妥，选出正确做法。",
       model:"配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应固定可靠连接。",
       opts:[
@@ -236,124 +238,7 @@ class Component extends DCLogic {
         { t:"只要把插头插座连接处用绝缘胶布缠牢固定，就等于满足可靠连接。", ok:false, code:"M10", tempt:"用「缠牢」的常识替代规范。", lose:"缠胶布仍是活动连接，未达固定可靠连接要求。", fix:"进线端严禁插头插座活动连接，应固定连接。" },
         { t:"进线端可用插头插座、出线端固定连接即可，进出各一种方式最灵活。", ok:false, code:"E07", tempt:"把进线端和出线端要求记反。", lose:"恰恰是进线端严禁插头插座活动连接。", fix:"电源进线端严禁插头插座活动连接。" }
       ] },
-    { tag:"动力照明分设·管理", typeHint:"单选 · 选做法正确的作答", figLabel:"题给：动力开关箱与照明开关箱", figCaption:"能不能合用一个开关箱？", fig:"powlight",
-      stem:"关于动力与照明配电的设置，选出正确的作答。",
-      model:"动力配电箱与照明配电箱宜分别设置；合并设置时应分路配电；动力开关箱与照明开关箱必须分设。",
-      opts:[
-        { t:"动力配电箱与照明配电箱宜分设；合并时须分路配电；动力开关箱与照明开关箱必须分设。", ok:true, fix:"宜分设 + 合并须分路 + 开关箱必分设，层次写全。", code:"" },
-        { t:"动力和照明用一个开关箱统一控制最省线，只要总容量不超标就可以合用。", ok:false, code:"E10", tempt:"以为省线、不超容量就能合用。", lose:"动力开关箱与照明开关箱必须分设，不得合用。", fix:"动力开关箱与照明开关箱必须分设。" },
-        { t:"动力与照明配电箱必须共箱设置以便集中管理，分设反而增加箱体不利维护。", ok:false, code:"E07", tempt:"把「宜分设」记反成「必须共箱」。", lose:"配电箱宜分设，开关箱必须分设，方向记反。", fix:"配电箱宜分设、开关箱必分设。" },
-        { t:"照明可直接从动力开关箱引出一路使用，不必单独设照明开关箱。", ok:false, code:"E03", tempt:"觉得从动力箱分一路更方便。", lose:"漏了「动力/照明开关箱必须分设」关键要求。", fix:"照明须单设开关箱，动力照明开关箱分设。" }
-      ] },
-    { tag:"送电顺序·程序", typeHint:"单选 · 选顺序正确的作答", figLabel:"题给：三级配电箱", figCaption:"合闸送电，谁先谁后？", fig:"seqsend",
-      stem:"施工现场临时用电正常送电（合闸）的顺序是？选出正确的作答。",
-      model:"送电顺序：总配电箱 → 分配电箱 → 开关箱（从大到小逐级送电）。",
-      opts:[
-        { t:"送电顺序：总配电箱 → 分配电箱 → 开关箱，从大到小逐级合闸送电。", ok:true, fix:"送电从总到分到开，方向写对、逐级点明。", code:"" },
-        { t:"送电顺序：开关箱 → 分配电箱 → 总配电箱，从末端设备侧往回合闸。", ok:false, code:"E06", tempt:"把停电顺序套到送电上。", lose:"这是停电顺序；送电应总→分→开，顺序颠倒。", fix:"送电：总配电箱→分配电箱→开关箱。" },
-        { t:"送电顺序：分配电箱 → 总配电箱 → 开关箱，先送中间一级再补两头。", ok:false, code:"E06", tempt:"记成从中间一级先送。", lose:"顺序错乱，送电必须自总箱起逐级向下。", fix:"送电：总→分→开，不能从中间起。" },
-        { t:"送电无先后，三级配电箱可同时合闸以缩短送电时间。", ok:false, code:"M10", tempt:"以为同时合闸更快。", lose:"送电有严格顺序，不得同时或随意合闸。", fix:"送电必须总→分→开逐级进行。" }
-      ] },
-    { tag:"停电顺序·程序", typeHint:"单选 · 选顺序正确的作答", figLabel:"题给：三级配电箱", figCaption:"停电（拉闸），谁先谁后？", fig:"seqstop",
-      stem:"正常情况下，现场临时配电系统停电（拉闸）的顺序是？选出正确的作答。",
-      model:"停电顺序：开关箱 → 分配电箱 → 总配电箱（从末端开始，防带负荷拉闸拉弧）。",
-      opts:[
-        { t:"停电顺序：开关箱 → 分配电箱 → 总配电箱，从末端先停、逐级向总箱，防带负荷拉弧。", ok:true, fix:"停电从末端起 + 点明防带负荷拉弧，方向与理由齐。", code:"" },
-        { t:"停电顺序：总配电箱 → 分配电箱 → 开关箱，先断总箱一次性切掉全场电源。", ok:false, code:"E06", tempt:"觉得先断总箱一把切最干净。", lose:"先断总箱时开关箱仍带负荷，拉闸拉弧；这是送电顺序。", fix:"停电：开关箱→分配电箱→总配电箱。" },
-        { t:"停电顺序：分配电箱 → 开关箱 → 总配电箱，先切中间一级再收两头。", ok:false, code:"E06", tempt:"记成从中间一级先停。", lose:"顺序错乱，停电必须从末端开关箱起。", fix:"停电：开→分→总，从末端起。" },
-        { t:"停电与送电同序：总配电箱 → 分配电箱 → 开关箱，一套顺序好记。", ok:false, code:"E07", tempt:"图省事记成停送同序。", lose:"停送电顺序相反，停电从末端开始。", fix:"送电总→分→开；停电开→分→总。" }
-      ] },
-    { tag:"安全电压·条件维", typeHint:"单选 · 计算判定链：对照场所取限值", figLabel:"题给：金属容器内照明", figCaption:"场所=金属容器 → 电压上限=？", fig:"volt",
-      stem:"在金属容器（如锅炉、储罐）内作业时，照明行灯的供电电压上限应为多少？选出可得分的作答。",
-      model:"金属容器/锅炉内照明电压不得大于 12V（安全电压最低档）。",
-      opts:[
-        { t:"金属容器、锅炉内照明电压不得大于 12V，取安全电压最低一档。", ok:true, fix:"对照场所=金属容器，取 12V 最低档，判据链完整。", code:"" },
-        { t:"金属容器内照明电压不得大于 36V，按一般潮湿场所的安全电压执行即可。", ok:false, code:"M08", tempt:"把 36V 这一常见档位套到金属容器。", lose:"36V 是潮湿/隧道档，金属容器须降到 12V。", fix:"金属容器/锅炉内 ≤12V。" },
-        { t:"金属容器内照明电压不得大于 24V，比一般场所降一档就够安全。", ok:false, code:"M08", tempt:"只降一档到 24V，以为够了。", lose:"24V 是易触及带电体档，金属容器要再降到 12V。", fix:"金属容器/锅炉内 ≤12V，不是 24V。" },
-        { t:"金属容器内使用 220V 灯具但加装漏电保护器即可保证安全。", ok:false, code:"E10", tempt:"以为加漏保就能用 220V。", lose:"金属容器内必须用安全电压 12V，不能用 220V。", fix:"金属容器内 ≤12V 安全电压照明。" }
-      ] },
-    { tag:"安全电压分档·条件维", typeHint:"单选 · 选场所与限值对应正确的作答", figLabel:"题给：三档安全电压", figCaption:"36 / 24 / 12V 各对哪种场所？", fig:"voltmap",
-      stem:"下列安全电压限值与场所的对应，哪一项完全正确？",
-      model:"潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。",
-      opts:[
-        { t:"潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。", ok:true, fix:"三档场所一一对应正确，条件维不张冠李戴。", code:"" },
-        { t:"潮湿/隧道 ≤24V；易触及带电体 ≤36V；金属容器/锅炉内 ≤12V。", ok:false, code:"M08", tempt:"把 36V 与 24V 两档对调。", lose:"潮湿/隧道是 36V、易触及是 24V，档位调错。", fix:"潮湿/隧道 36V、易触及 24V、金属容器 12V。" },
-        { t:"潮湿/隧道 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤24V。", ok:false, code:"M08", tempt:"金属容器顺手也写成 24V。", lose:"金属容器/锅炉内须 ≤12V，不是 24V。", fix:"金属容器/锅炉内 ≤12V。" },
-        { t:"所有特殊场所统一 ≤36V，一个门槛好记又偏安全。", ok:false, code:"E02", tempt:"图好记用一个门槛套所有场所。", lose:"漏了 24V、12V 两档，采分点不全。", fix:"分三档：36V / 24V / 12V 对应不同场所。" }
-      ] },
-    { tag:"手持灯具·条件维", typeHint:"单选 · 选做法完整正确的作答", figLabel:"题给：手持行灯供电", figCaption:"电压 + 变压器 + 使用禁区", fig:"handlamp",
-      stem:"关于手持式照明灯具（行灯）的供电要求，选出完整正确的作答。",
-      model:"手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
-      opts:[
-        { t:"手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。", ok:true, fix:"电压 + 双绕组隔离变压器 + 金属容器内严禁，三点齐。", code:"" },
-        { t:"手持灯具电压不得超过 36V 即可，用普通变压器降到 36V 就满足要求。", ok:false, code:"E02", tempt:"只记住 36V 电压值。", lose:"漏了「双绕组型安全隔离变压器」这一关键器件。", fix:"须用双绕组型安全隔离变压器供电。" },
-        { t:"手持灯具用自耦变压器降压到 36V 供电，简单可靠。", ok:false, code:"E10", tempt:"以为自耦变压器也能降压用。", lose:"自耦变压器无电气隔离，必须用双绕组隔离变压器。", fix:"必须用双绕组型安全隔离变压器。" },
-        { t:"手持灯具电压不超过 36V，可在金属容器内正常使用照明。", ok:false, code:"M08", tempt:"以为 36V 在金属容器里也安全。", lose:"金属容器内严禁手持灯具、且须 12V 照明。", fix:"金属容器内严禁使用手持灯具。" }
-      ] },
-    { tag:"重大隐患·后果维", typeHint:"单选 · 选定性正确的作答", figLabel:"题给：湿度>75% / 有积水场所", figCaption:"未用安全电压照明，属什么？", fig:"hazard",
-      stem:"特殊环境（湿度大于 75%、有积水）作业未采用安全电压照明。此情形应如何定性？",
-      model:"属重大事故隐患，应立即整改为安全电压照明。",
-      opts:[
-        { t:"属重大事故隐患，必须立即整改为安全电压（对应场所限值）照明。", ok:true, fix:"点出「重大事故隐患」定性 + 整改方向，后果维到位。", code:"" },
-        { t:"属一般安全问题，记录后限期整改即可，不影响继续作业。", ok:false, code:"E07", tempt:"以为只是普通违规、可缓改。", lose:"这是重大事故隐患，定性偏轻。", fix:"应定性为重大事故隐患，立即整改。" },
-        { t:"注意用电安全、加强现场管理即可，属日常防护范畴。", ok:false, code:"E04", tempt:"用「加强管理」的口号带过。", lose:"口号化、未定性也无可判分措施。", fix:"定性重大事故隐患 + 改用安全电压照明。" },
-        { t:"只要给灯具加装漏电保护器就能继续用 220V 照明，无需停工。", ok:false, code:"E10", tempt:"以为加漏保就可用常规电压。", lose:"特殊潮湿场所必须用安全电压，加漏保不替代。", fix:"须用安全电压照明，属重大隐患须整改。" }
-      ] },
-    { tag:"电缆埋地·条件维", typeHint:"单选 · 计算判定链：对照阈值判合格", figLabel:"题给：电缆直接埋地敷设", figCaption:"埋深阈值 = ?", fig:"bury",
-      stem:"电缆直接埋地敷设时，埋设深度应满足什么要求？选出可得分的作答。",
-      model:"电缆直接埋地敷设深度不应小于 0.7m，穿越道路等处应加保护套管并设警示。",
-      opts:[
-        { t:"电缆直接埋地敷设深度不应小于 0.7m，穿越处应加保护套管并设警示标识。", ok:true, fix:"0.7m 阈值 + 保护措施，条件维带全。", code:"" },
-        { t:"电缆直接埋地敷设深度不应小于 0.5m，浅埋可减少土方、便于检修。", ok:false, code:"M08", tempt:"记成了 0.5m，觉得浅埋省事。", lose:"直接埋地深度须 ≥0.7m，数字记错。", fix:"直接埋地敷设深度 ≥0.7m。" },
-        { t:"电缆沿地面明敷并加盖木板保护即可，不必埋入地下。", ok:false, code:"E10", tempt:"以为盖木板就等于保护。", lose:"要求直接埋地 ≥0.7m，明敷不合规。", fix:"电缆直接埋地敷设 ≥0.7m。" },
-        { t:"只要埋进土里即可，深度按现场土方情况灵活确定。", ok:false, code:"E03", tempt:"只答「埋地」不给深度。", lose:"漏了「≥0.7m」这一关键数值。", fix:"直接埋地深度不应小于 0.7m。" }
-      ] },
-    { tag:"标识色·条件维", typeHint:"单选 · 选颜色对应正确的作答", figLabel:"题给：五芯电缆芯线颜色", figCaption:"N 线、PE 线各是什么色？", fig:"colors",
-      stem:"五芯电缆中，N 线（工作零线）与 PE 线（保护零线）的标识色分别是？选出正确的作答。",
-      model:"N 线=蓝色；PE 线=黄绿双色。二者不得混用或挪作他用。",
-      opts:[
-        { t:"N 线为蓝色，PE 线为黄绿双色，二者颜色不得混用或挪作他用。", ok:true, fix:"N 蓝、PE 黄绿对应正确，并点明不得挪用。", code:"" },
-        { t:"N 线为黄绿双色，PE 线为蓝色，按接零系统习惯配色即可。", ok:false, code:"M08", tempt:"把 N 与 PE 的颜色对调。", lose:"应是 N 蓝、PE 黄绿，颜色记反。", fix:"N 线=蓝色、PE 线=黄绿双色。" },
-        { t:"N 线为黑色，PE 线为绿色，与相线区分开就行。", ok:false, code:"M08", tempt:"随手写成黑、绿也能区分。", lose:"N 是蓝色、PE 是黄绿双色，颜色错。", fix:"N=蓝色、PE=黄绿双色。" },
-        { t:"N 线与 PE 线颜色不作强制规定，只要现场统一标注即可。", ok:false, code:"E10", tempt:"以为现场自定就行。", lose:"标识色是强制规定，N 蓝 PE 黄绿。", fix:"N=蓝色、PE=黄绿双色（强制）。" }
-      ] },
-    { tag:"箱门连接·条件维", typeHint:"单选 · 选材料正确的作答", figLabel:"题给：配电箱金属箱门与箱体", figCaption:"两者之间用什么连接？", fig:"copper",
-      stem:"配电箱、开关箱的金属箱门与箱体之间应采用什么连接？选出正确的作答。",
-      model:"金属箱门与箱体之间应采用软铜线（单股铜线）做电气连接（跨接）。",
-      opts:[
-        { t:"金属箱门与箱体之间应用单股铜线做电气连接（跨接），保证箱门可靠接地。", ok:true, fix:"单股铜线跨接、点明可靠接地，材料与目的齐。", code:"" },
-        { t:"金属箱门与箱体之间用多股编织铜带连接，越粗越软越好。", ok:false, code:"M08", tempt:"以为编织带更软更导电。", lose:"规范要求单股铜线连接，材料记错。", fix:"金属箱门与箱体连接用单股铜线。" },
-        { t:"金属箱门与箱体靠合页金属接触自然导通即可，无需另设连接线。", ok:false, code:"E10", tempt:"以为合页接触就够。", lose:"合页接触不可靠，须专设单股铜线跨接。", fix:"须用单股铜线做电气跨接。" },
-        { t:"金属箱门与箱体用塑料绝缘条隔开，避免箱门带电更安全。", ok:false, code:"E07", tempt:"以为隔开绝缘更安全。", lose:"箱门须可靠接地而非绝缘隔离，概念反了。", fix:"用单股铜线跨接使箱门可靠接地。" }
-      ] },
-    { tag:"电工持证·主体维", typeHint:"单选 · 选主体正确的作答", figLabel:"题给：电工资格与拆除主体", figCaption:"谁能上岗？谁来拆除？", fig:"cert",
-      stem:"关于电工上岗与用电设备的安装拆除，选出正确的作答。",
-      model:"电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。",
-      opts:[
-        { t:"电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。", ok:true, fix:"持证上岗 + 拆除由电工完成，主体两点齐。", code:"" },
-        { t:"电工经内部培训熟悉操作即可上岗，用电设备可由熟练工人自行拆除。", ok:false, code:"M10", tempt:"用「有经验/熟练」替代持证。", lose:"电工须持证上岗，拆除须电工完成。", fix:"电工持证上岗，用电设备拆除由电工完成。" },
-        { t:"用电设备的拆除由现场安全员负责监督并完成，比电工更懂安全。", ok:false, code:"E10", tempt:"觉得安全员更懂安全、可代劳。", lose:"拆除应由电工完成，主体写错。", fix:"用电设备拆除应由电工完成（非安全员）。" },
-        { t:"电工持证即可，用电设备安装拆除属机械操作，可由机操工兼做。", ok:false, code:"E02", tempt:"抓住持证一点，漏了拆除主体。", lose:"漏「拆除由电工完成」这一采分点。", fix:"用电设备安装拆除均应由电工完成。" }
-      ] },
-    { tag:"组织设计·主体维", typeHint:"单选 · 选做法完整正确的作答", figLabel:"题给：50kW 用电 + 装饰装修阶段", figCaption:"编什么文件？何时补方案？", fig:"plan",
-      stem:"某工程临时用电总容量 50kW 以上，且进入装饰装修阶段。用电文件应如何编制？选出正确的作答。",
-      model:"总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。",
-      opts:[
-        { t:"总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。", ok:true, fix:"50kW 组织设计 + 装饰阶段补方案，两项齐。", code:"" },
-        { t:"总容量 50kW 以上编用电组织设计即可，装饰阶段沿用原方案不必另编。", ok:false, code:"E05", tempt:"以为一份组织设计管到底。", lose:"漏识别装饰阶段用电变化，须补编单项方案。", fix:"装饰装修阶段应补编单项施工用电方案。" },
-        { t:"只需在装饰阶段补编单项方案，总容量大小不影响是否编组织设计。", ok:false, code:"E02", tempt:"只记住补方案，漏了 50kW 门槛。", lose:"漏「50kW 及以上编用电组织设计」采分点。", fix:"50kW 及以上须编用电组织设计。" },
-        { t:"编制一份施工现场防火防雷方案覆盖临时用电即可，无需专门用电文件。", ok:false, code:"E10", tempt:"用防火防雷方案冒充用电文件。", lose:"须编用电组织设计 + 单项用电方案，文件套错。", fix:"50kW+ 编用电组织设计、装饰阶段补单项用电方案。" }
-      ] },
-    { tag:"堆场综合·条件维", typeHint:"单选 · 综合纠错，选做法均正确的作答", figLabel:"题给：堆料场配电布置", figCaption:"间距 + 灯具，哪项都对？", fig:"yard",
-      stem:"关于堆料场临时用电布置（综合纠错），选出各项均正确的作答。",
-      model:"开关箱与其控制的固定式配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯。",
-      opts:[
-        { t:"开关箱与配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯照明。", ok:true, fix:"30m 间距 + 严禁碘钨灯，综合纠错两点齐。", code:"" },
-        { t:"开关箱与配电箱间距不得大于 30m；堆料场可用碘钨灯以增强照度。", ok:false, code:"E10", tempt:"觉得堆场大、碘钨灯亮更好用。", lose:"仓库堆料场严禁碘钨灯（高温易燃）。", fix:"仓库堆料场严禁使用碘钨灯。" },
-        { t:"开关箱与配电箱间距不得大于 50m；仓库堆料场严禁使用碘钨灯。", ok:false, code:"M08", tempt:"把间距记成 50m。", lose:"开关箱与配电箱间距须 ≤30m，数字错。", fix:"开关箱与配电箱间距 ≤30m。" },
-        { t:"开关箱靠近设备即可、与配电箱间距无硬性限制；碘钨灯远离堆垛使用可。", ok:false, code:"E03", tempt:"以为就近就行、灯挪远即可。", lose:"漏 30m 间距硬指标，且堆料场严禁碘钨灯。", fix:"间距 ≤30m，仓库堆料场严禁碘钨灯。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 指出漏诊并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"指出①共用不妥，但漏了什么？", fig:"sheet",
+{ tag:"采分诊断·末题", typeHint:"单选 · 指出漏诊并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"指出①共用不妥，但漏了什么？", fig:"sheet",
       stem:"案例：现场做法有①装饰阶段仅按原组织设计用电、②切割机与搅拌机共用一开关箱、③开关箱用插头插座与配电箱连接。某学生只答「②共用不妥，应分开」。选出最准确的诊断与补写。",
       model:"②改正缺判据（应写专用开关箱、严禁2台及以上含插座）；漏诊①装饰阶段应补编单项用电方案、③进线端严禁插头插座活动连接，三处都要补。",
       opts:[
@@ -517,7 +402,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -536,6 +421,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("S05")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

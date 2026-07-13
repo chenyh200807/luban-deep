@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "Q02",
+  "source_pack_sha256": "81d50133b6f7f8f7b777d40c46a67bd6a69096d6a7f4d69a546fdb8af7f639c4",
+  "source_bundle_sha256": "046b6906af96f63f9adcca0576a1f8127b39830b31ea707ca47f04972c134f9f",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        15
+      ],
+      "variant_ids": [
+        "Q02-html-practice-html-q1-083c0ceecfe4",
+        "Q02-html-practice-html-q2-1e7a2dd69e52",
+        "Q02-html-practice-html-q3-f86ab99fac09",
+        "Q02-html-practice-html-q4-b844d305af66",
+        "Q02-html-practice-html-q16-d048c3ff4a5a"
+      ],
+      "published_practice_sha256": "292c35ac72b0bf5e8c534680e85096043b332c654655f18a1cbb0addafa9007d"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "措施·四组骨架",
+      "stem": "案例问：底板大体积混凝土为防止温度裂缝，应从哪些方面采取技术措施？选出骨架完整、能得分的作答。",
+      "model_answer": "按四组作答：材料·降热源／配合比·控总热／施工·控入模分层／养护测温·控温差，每组句里嵌数值。",
+      "options": [
+        {
+          "text": "从材料、配合比、施工、养护测温四个方面分别采取措施，每组写明具体做法并带数值。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四组组名先立骨架，再逐组填「动作+数值」，这就是满分结构。",
+          "option_id": "Q02-html-practice-html-q1-083c0ceecfe4:option-1"
+        },
+        {
+          "text": "加强混凝土的保温保湿养护，严格控制里表温差，防止底板出现温度裂缝。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "养护和温差确实是核心，看着已经答到点上了。",
+          "loss_reason": "只沾养护测温一组的边，材料、配合比、施工三组整组漏。",
+          "fix": "四组逐组扫：材料、配合比、施工、养护测温各写一句。",
+          "option_id": "Q02-html-practice-html-q1-083c0ceecfe4:option-2"
+        },
+        {
+          "text": "施工中精心组织、加强管理，严格按规范和方案落实各项温控要求，确保工程质量。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "句句都「对」，考场一紧张最爱这么写。",
+          "loss_reason": "口号化表达，没有一个可判分的动作和数值。",
+          "fix": "落成动作+数值，如「保湿养护≥14d、里表温差≤25℃」。",
+          "option_id": "Q02-html-practice-html-q1-083c0ceecfe4:option-3"
+        },
+        {
+          "text": "选用低水化热水泥并掺粉煤灰、磨细矿渣粉，从源头减少水化热，避免温升过高。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "材料组答得很专业，容易以为这就够了。",
+          "loss_reason": "只有材料一组，配合比、施工、养护测温三组全漏。",
+          "fix": "材料句之外，另外三组各补一句带数值的措施。",
+          "option_id": "Q02-html-practice-html-q1-083c0ceecfe4:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q1-083c0ceecfe4",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q1",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "温控四指标·条件维",
+      "stem": "案例问：大体积混凝土施工的温控指标有哪些？选出指标齐全、能得分的作答。",
+      "model_answer": "①温升值≤50℃ ②里表温差≤25℃ ③降温速率≤2.0℃/d ④拆除保温覆盖时表面与大气温差≤20℃。",
+      "options": [
+        {
+          "text": "温升值≤50℃、里表温差≤25℃、降温速率≤2.0℃/d、拆保温时表面与大气温差≤20℃。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四指标齐、数值方向全对：50、25、2.0、20 一串背。",
+          "option_id": "Q02-html-practice-html-q2-1e7a2dd69e52:option-1"
+        },
+        {
+          "text": "控制混凝土浇筑体的温升值不超过50℃，并加强测温监控，发现温升过快及时处理。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "温升是最出名的指标，答了就觉得答完了。",
+          "loss_reason": "四指标漏三：里表温差、降温速率、拆保温温差全没写。",
+          "fix": "四个一起写：≤50℃、≤25℃、≤2.0℃/d、≤20℃。",
+          "option_id": "Q02-html-practice-html-q2-1e7a2dd69e52:option-2"
+        },
+        {
+          "text": "温升值≤50℃、里表温差≤20℃、降温速率≤2.0℃/d、拆保温时表面与大气温差≤25℃。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "四个指标都在，乍一看很齐全。",
+          "loss_reason": "20℃与25℃方向写反：里表是25℃、拆保温才是20℃。",
+          "fix": "里表温差≤25℃（剖面里），拆保温温差≤20℃（表面到大气）。",
+          "option_id": "Q02-html-practice-html-q2-1e7a2dd69e52:option-3"
+        },
+        {
+          "text": "温升值、里表温差、降温速率、拆保温温差四项指标都应控制在规范允许范围之内。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "四项名目全点到了，像是踩全了。",
+          "loss_reason": "关键词缺失——四项全没数值，采分眼正是那四个数。",
+          "fix": "补数值：≤50℃、≤25℃、≤2.0℃/d、≤20℃。",
+          "option_id": "Q02-html-practice-html-q2-1e7a2dd69e52:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q2-1e7a2dd69e52",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q2",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "判断纠错·养护时间",
+      "stem": "技术交底写明：「底板混凝土浇筑后保湿养护7d」。指出不妥之处并改正，选出能拿全分的作答。",
+      "model_answer": "不妥之处：保湿养护7d。理由：大体积混凝土保湿养护时间应≥14d。正确做法：保湿养护不少于14d。",
+      "options": [
+        {
+          "text": "不妥：保湿养护7d；理由：大体积混凝土保湿养护应≥14d；正确做法：养护不少于14d。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三段式齐全且带正确数值14d，这是纠错题的满分格式。",
+          "option_id": "Q02-html-practice-html-q3-f86ab99fac09:option-1"
+        },
+        {
+          "text": "保湿养护7d不妥，大体积混凝土水化热大、收缩持续时间长，应当适当延长养护时间。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "指出了不妥、也讲了道理，看着挺完整。",
+          "loss_reason": "「适当延长」没有14d——正确数值才是采分眼。",
+          "fix": "补上「应≥14d」这个数。",
+          "option_id": "Q02-html-practice-html-q3-f86ab99fac09:option-2"
+        },
+        {
+          "text": "保湿养护7d符合要求：采用硅酸盐水泥的混凝土养护不得少于7d，交底并无不妥之处。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "7d确实是一般混凝土的常见口径，很眼熟。",
+          "loss_reason": "把一般混凝土7d错套到大体积，大体积应≥14d。",
+          "fix": "大体积/防水混凝土保湿养护≥14d。",
+          "option_id": "Q02-html-practice-html-q3-f86ab99fac09:option-3"
+        },
+        {
+          "text": "不妥：养护方式错误。理由：大体积混凝土应蓄水养护而非覆盖养护。正确做法：改为蓄水养护14d。",
+          "is_correct": false,
+          "source_error_code": "E05",
+          "temptation": "也是三段式也有14d，格式很像满分。",
+          "loss_reason": "题干挑的是时间7d，不是方式；自设靶子答非所问。",
+          "fix": "紧扣题干数值纠错：7d改为≥14d。",
+          "option_id": "Q02-html-practice-html-q3-f86ab99fac09:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q3-f86ab99fac09",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q3",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "判断纠错·拆保温",
+      "stem": "技术交底写明：「拆除保温覆盖时，浇筑体表面与大气温差不大于25℃」。判断并选出能得分的作答。",
+      "model_answer": "不妥。理由：拆保温时表面与大气温差应≤20℃（25℃是里表温差限值，二者勿混）。正确做法：温差≤20℃方可拆除。",
+      "options": [
+        {
+          "text": "不妥：25℃是里表温差限值；拆保温时表面与大气温差应≤20℃，达标后方可拆除。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点破「25℃是里表的」并给出20℃，两个数都落位。",
+          "option_id": "Q02-html-practice-html-q4-b844d305af66:option-1"
+        },
+        {
+          "text": "妥当：该温差限值就是25℃，与里表温差控制要求一致，交底数值并无问题。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "25℃这个数在本考点确实存在，容易对上号。",
+          "loss_reason": "把里表温差25℃错套到拆保温，拆保温限值是20℃。",
+          "fix": "拆保温≤20℃（表面到大气），25℃是剖面里的里表温差。",
+          "option_id": "Q02-html-practice-html-q4-b844d305af66:option-2"
+        },
+        {
+          "text": "不妥：只要保湿养护满14d即可拆除保温覆盖，不必再对温差另提数值要求。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "「满14d就能拆」符合到点拆模的直觉。",
+          "loss_reason": "拆保温看的是温差条件不是天数，不查温差表面急冷开裂。",
+          "fix": "写明「表面与大气温差≤20℃方可拆除」。",
+          "option_id": "Q02-html-practice-html-q4-b844d305af66:option-3"
+        },
+        {
+          "text": "不妥：拆保温时的温差限值偏大，应从严控制，待温差再小一些时拆除更为稳妥。",
+          "is_correct": false,
+          "source_error_code": "E03",
+          "temptation": "方向判对了（25偏大），感觉已经答中。",
+          "loss_reason": "没给出20℃这个正确数值，纠错不带数等于半句。",
+          "fix": "补上「应≤20℃」。",
+          "option_id": "Q02-html-practice-html-q4-b844d305af66:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q4-b844d305af66",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q4",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "学生作答：①措施——加强养护、控制温差；②养护7d后拆除保温；③水泥=320kg/m³。选出最准确的诊断与补写方向。",
+      "model_answer": "三处都要补：①措施口号化且整组漏——按四组补句带数值；②7d应≥14d，且拆保温须查表面与大气温差≤20℃；③补算式400×(1−20%)=320、粉煤灰80kg/m³并回判水胶比≤0.45。",
+      "options": [
+        {
+          "text": "三处都失分：措施按四组补句带数值；养护应≥14d且拆保温查温差≤20℃；计算补列式与回判。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "三处逐一按采分句补写——这就是「会写答案」的收官动作。",
+          "option_id": "Q02-html-practice-html-q16-d048c3ff4a5a:option-1"
+        },
+        {
+          "text": "③水泥320kg/m³与标准数值一致，说明计算已掌握，只需把①②的表述略作润色即可。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "数值对就以为计算过关——最危险的误判。",
+          "loss_reason": "320无列式无回判照丢过程分；①②是硬伤不是润色问题。",
+          "fix": "三处都按采分句重写。",
+          "option_id": "Q02-html-practice-html-q16-d048c3ff4a5a:option-2"
+        },
+        {
+          "text": "主要问题在②：7d应改为不少于14d；①的方向正确、③的数值无误，均可保留原样。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "抓到7d这个最显眼的错，就以为只此一处。",
+          "loss_reason": "漏诊①口号化整组漏、③缺算式回判两处失分。",
+          "fix": "三处逐一补写，不止改7d。",
+          "option_id": "Q02-html-practice-html-q16-d048c3ff4a5a:option-3"
+        },
+        {
+          "text": "问题在于表述不够规范流畅，建议使用规范术语重新组织语言，使卷面更加整洁。",
+          "is_correct": false,
+          "source_error_code": "E04",
+          "temptation": "「表述不规范」是万能评语，怎么说都不错。",
+          "loss_reason": "诊断本身口号化——没指出漏组、漏数值、漏算式哪一处。",
+          "fix": "按四组、四指标、四步链逐项对照找漏。",
+          "option_id": "Q02-html-practice-html-q16-d048c3ff4a5a:option-4"
+        }
+      ],
+      "variant_id": "Q02-html-practice-html-q16-d048c3ff4a5a",
+      "surface_id": "practice.html",
+      "source_index": 15,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_Q02/P40_Q02.practice.dc.html#Q16",
+      "source_html_sha256": "58ce8fae5609e5bcce164a378ca54d78d9fd5a19ee23b0facc02611c134c68ba"
+    }
+  ],
+  "published_lesson_sha256": "79e9500cd39c0509b19e222403f1e40798e3d418059c095c100faaa3108df05f"
+}

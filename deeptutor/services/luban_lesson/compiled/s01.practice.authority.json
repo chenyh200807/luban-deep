@@ -1,0 +1,842 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "S01",
+  "source_pack_sha256": "13429caa1bd32a20f6708c393980b39566a92425793a2d15e9f841689edf2b13",
+  "source_bundle_sha256": "41148a90f2269b85a6866f1a170c403bd76299e3e9539b4ba1ac1bbbfee7a647",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "S01-html-practice-html-q1-3eaac6813f86",
+        "S01-html-practice-html-q2-e6bc9e4ad044",
+        "S01-html-practice-html-q3-0d824fc3a13f",
+        "S01-html-practice-html-q4-91c55a65672c",
+        "S01-html-practice-html-q15-c84007e64ab2"
+      ],
+      "published_practice_sha256": "f84ac5d0d3cfb23adb4c5812d3d0eb97398cfebaeb19ebe83aea065321d32e36"
+    },
+    {
+      "surface_id": "practice2.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        14
+      ],
+      "variant_ids": [
+        "S01-html-practice2-html-q1-6e97bf820647",
+        "S01-html-practice2-html-q2-4216c00de6ed",
+        "S01-html-practice2-html-q3-c232fd2408a4",
+        "S01-html-practice2-html-q4-0c8177f2026b",
+        "S01-html-practice2-html-q15-21defa249fa3"
+      ],
+      "published_practice_sha256": "dbdc1e72ea21d7eb74aff62dc07844655c740237f38d63b472b7e48942a9625f"
+    },
+    {
+      "surface_id": "practice3.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        13
+      ],
+      "variant_ids": [
+        "S01-html-practice3-html-q1-845c98b80a40",
+        "S01-html-practice3-html-q2-84705bb978b9",
+        "S01-html-practice3-html-q3-5b0d7df2a874",
+        "S01-html-practice3-html-q4-25a4df8b2864",
+        "S01-html-practice3-html-q14-6441c5410af5"
+      ],
+      "published_practice_sha256": "052748cc43710084eeebb5778d2686e50e9ec967562cb6467910e35f2263c499"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "危大·两道门",
+      "stem": "某工程落地式脚手架搭设高度 40m。判断是否需组织专家论证，选出能得分的作答。",
+      "model_answer": "落地脚手架 24m 起编专项方案、50m 及以上才组织专家论证；40m 只需编专项方案、不需论证。",
+      "options": [
+        {
+          "text": "落地脚手架 24m 起编专项方案、50m 及以上才论证；40m 只需编专项方案，不需组织专家论证。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两道门都点到、40m 落编案区，结论清楚。",
+          "option_id": "S01-html-practice-html-q1-3eaac6813f86:option-1"
+        },
+        {
+          "text": "脚手架 40m 已属超过一定规模危大工程，须组织专家论证。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "看着挺高，直觉「高就论证」。",
+          "loss_reason": "把编案门和论证门混成一条；落地脚手架论证门是 50m，40m 不到。",
+          "fix": "40m 只编专项方案，够 50m 才论证。",
+          "option_id": "S01-html-practice-html-q1-3eaac6813f86:option-2"
+        },
+        {
+          "text": "40m 脚手架很危险，凭经验应组织专家论证并停工整改。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "「危险」俩字一上头就选论证。",
+          "loss_reason": "用常识替代规范数值，没比落地脚手架 50m 论证阈值。",
+          "fix": "回数值：24m 编案、50m 论证，40m 只编案。",
+          "option_id": "S01-html-practice-html-q1-3eaac6813f86:option-3"
+        },
+        {
+          "text": "40m 未达 50m，既不用编专项方案也不用组织论证。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "看 40<50 就全盘否掉。",
+          "loss_reason": "漏了编案门 24m——40m 已过 24m，必须编专项方案。",
+          "fix": "40m 过 24m 编案门要编案，只是不论证。",
+          "option_id": "S01-html-practice-html-q1-3eaac6813f86:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q1-3eaac6813f86",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q1",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "危大·论证阈值",
+      "stem": "模板工程及支撑体系，满足下列哪种情形须组织专家论证？选出判据完整的作答。",
+      "model_answer": "模板支架 高≥8m 或 跨≥18m 或 施工总荷载≥15kN/m² 或 集中线荷载≥20kN/m，四者满足任一即须论证。",
+      "options": [
+        {
+          "text": "高≥8m、或跨≥18m、或施工总荷载≥15kN/m²、或集中线荷载≥20kN/m，满足任一即须组织专家论证。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四阈值列全、逻辑是「任一即论证」，换数据也不错。",
+          "option_id": "S01-html-practice-html-q2-e6bc9e4ad044:option-1"
+        },
+        {
+          "text": "必须四个阈值同时满足，才须组织专家论证。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "以为四个条件是「且」，都够才危险。",
+          "loss_reason": "四阈值是「或」，满足任一即论证；写成「且」会漏判。",
+          "fix": "任一满足即论证，不是全部满足。",
+          "option_id": "S01-html-practice-html-q2-e6bc9e4ad044:option-2"
+        },
+        {
+          "text": "只有高度超过 8m 才须论证，跨度、荷载不作数。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "只记住了最好背的「高 8m」。",
+          "loss_reason": "漏掉跨 18m、荷载 15、线荷载 20 三条阈值。",
+          "fix": "补全四阈值：高8m/跨18m/15/20，任一即论证。",
+          "option_id": "S01-html-practice-html-q2-e6bc9e4ad044:option-3"
+        },
+        {
+          "text": "模板支架只要属危大工程就要论证，不用比阈值。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "把编案门和论证门当一回事。",
+          "loss_reason": "危大工程只需编案，论证要再过「超一定规模」四阈值。",
+          "fix": "编案≠论证，论证要再比高8m/跨18m/15/20。",
+          "option_id": "S01-html-practice-html-q2-e6bc9e4ad044:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q2-e6bc9e4ad044",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q2",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "危大·编案门",
+      "stem": "下列哪组数值是「危大工程、须编专项施工方案」的判定门槛？选出齐全正确的作答。",
+      "model_answer": "基坑开挖≥3m、模板支架高≥5m、落地脚手架≥24m、起重吊装单件≥10kN，够任一即编专项方案。",
+      "options": [
+        {
+          "text": "基坑≥3m、模板支架高≥5m、落地脚手架≥24m、起重吊装单件≥10kN，够任一即编专项方案。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "编案门四数值齐、与论证门区分清楚。",
+          "option_id": "S01-html-practice-html-q3-0d824fc3a13f:option-1"
+        },
+        {
+          "text": "基坑≥5m、模板支架高≥8m、落地脚手架≥50m，够任一即编专项方案。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "这几个数看着眼熟、也是常背的。",
+          "loss_reason": "把「论证门」的数值当成「编案门」——那是超一定规模、须论证的门槛。",
+          "fix": "编案门是基坑3m/模板5m/脚手架24m/吊装10kN。",
+          "option_id": "S01-html-practice-html-q3-0d824fc3a13f:option-2"
+        },
+        {
+          "text": "只要工程危险，就编专项方案，不用看具体数值。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "凭感觉「危险就编案」省事。",
+          "loss_reason": "编案是查表判定，须回具体数值，不是凭危险感。",
+          "fix": "回数值：基坑3m/模板5m/脚手架24m/吊装10kN。",
+          "option_id": "S01-html-practice-html-q3-0d824fc3a13f:option-3"
+        },
+        {
+          "text": "基坑≥3m、模板支架高≥5m 两项即可，吊装和脚手架不在编案范围。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记住了前两个就以为齐了。",
+          "loss_reason": "漏了落地脚手架 24m、起重吊装单件 10kN 两条编案门。",
+          "fix": "补齐脚手架 24m、吊装单件 10kN。",
+          "option_id": "S01-html-practice-html-q3-0d824fc3a13f:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q3-0d824fc3a13f",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q3",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "拆模强度·跨≤8m",
+      "stem": "某现浇钢筋混凝土梁，计算跨度 6m，拟拆除底模。同条件养护强度应达到设计值的多少方可拆？",
+      "model_answer": "梁属梁板拱壳类、跨 6m≤8m，同条件养护强度应达设计值的 75% 方可拆底模。",
+      "options": [
+        {
+          "text": "梁属梁板拱壳类、跨 6m≤8m，同条件养护强度达设计值 75% 方可拆底模。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "构件归类 + 跨度落档 + 75% 三件齐。",
+          "option_id": "S01-html-practice-html-q4-91c55a65672c:option-1"
+        },
+        {
+          "text": "底模一律待强度达 100% 才可拆除。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得底模承重，越保险越好、直接 100%。",
+          "loss_reason": "跨≤8m 的梁板拱壳达 75% 即可，写 100% 是记死了另一档。",
+          "fix": "跨≤8m 取 75%，跨>8m 才 100%。",
+          "option_id": "S01-html-practice-html-q4-91c55a65672c:option-2"
+        },
+        {
+          "text": "侧模拆除不受强度限制，随时可拆，本题按侧模处理。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "记得「侧模不受强度限制」这句就套上。",
+          "loss_reason": "题问的是底模，不是侧模；把承重底模当侧模判错。",
+          "fix": "底模看强度：跨6m≤8m 取 75%。",
+          "option_id": "S01-html-practice-html-q4-91c55a65672c:option-3"
+        },
+        {
+          "text": "跨 6m 较小，凭经验大概达 50% 左右即可拆。",
+          "is_correct": false,
+          "source_error_code": "M10",
+          "temptation": "跨小就觉着「差不多就行」。",
+          "loss_reason": "50% 是快拆体系按 2m 计的档，凭经验估必丢分。",
+          "fix": "梁跨6m≤8m 应取 75%，不是估 50%。",
+          "option_id": "S01-html-practice-html-q4-91c55a65672c:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q4-91c55a65672c",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q4",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答：「16m 高模板支撑架——高、危险，编专项方案并组织专家论证；底模嘛一律 75% 拆。」选出最准确的诊断与补写。",
+      "model_answer": "论证判对但依据缺（应指高≥8m 达论证门）、底模一律 75% 错（跨>8m 及悬臂须 100%）；补写：模板支撑高 16m≥8m 达论证门须论证；拆底模按跨度构件分档，跨>8m/悬臂须 100%。",
+      "options": [
+        {
+          "text": "论证结论对但没写依据（应点明高 16m≥8m 达论证门）；「底模一律 75%」错——跨>8m 及悬臂须 100%。补写：高16m≥8m 须论证；拆底模按跨度构件分档、跨>8m 及悬臂 100%。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "依据缺 + 拆模档错两处都揪出，补写即可上答题纸。",
+          "option_id": "S01-html-practice-html-q15-c84007e64ab2:option-1"
+        },
+        {
+          "text": "结论「要论证 + 75% 拆」都对，可给满分。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "看结论「要论证」对了就以为全对。",
+          "loss_reason": "论证没写依据、底模一律 75% 是错档，过程采分丢两处。",
+          "fix": "补论证依据（高≥8m）、拆模按跨度构件分档。",
+          "option_id": "S01-html-practice-html-q15-c84007e64ab2:option-2"
+        },
+        {
+          "text": "只是论证依据没写清，拆模 75% 没问题。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "抓到依据缺、却漏了拆模的错。",
+          "loss_reason": "「一律 75%」漏了跨>8m/悬臂须 100%，拆模档也错。",
+          "fix": "拆模要分档：跨>8m 及悬臂须 100%。",
+          "option_id": "S01-html-practice-html-q15-c84007e64ab2:option-3"
+        },
+        {
+          "text": "应先判是否危大工程再论证，拆模改一律 100% 即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把拆模从一个极端改到另一个极端。",
+          "loss_reason": "拆模不是一律 100%，跨≤8m 梁板取 75%；矫枉过正。",
+          "fix": "拆模按跨度构件分档，不是一律 100%。",
+          "option_id": "S01-html-practice-html-q15-c84007e64ab2:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice-html-q15-c84007e64ab2",
+      "surface_id": "practice.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.up.dc.html#Q15",
+      "source_html_sha256": "95e01dcdfdad2096658aa9da993af346700f44176607be605896fd52d9ee212a"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "搭设·步距",
+      "stem": "检查双排脚手架，量得立杆步距 2.3m。判断是否违规并给依据，选出能得分的作答。",
+      "model_answer": "立杆步距应≤2m，实测 2.3m>2m，判违规，应调整步距至不大于 2m。",
+      "options": [
+        {
+          "text": "立杆步距应≤2m，实测 2.3m 超限，判违规，应将步距调整至≤2m。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "阈值 2m + 实测比对 + 违规结论齐。",
+          "option_id": "S01-html-practice2-html-q1-6e97bf820647:option-1"
+        },
+        {
+          "text": "步距 2.3m 与 2m 相差不大，可判合格。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得差 0.3m「差不多」。",
+          "loss_reason": "步距是硬阈值，2.3m>2m 即违规，「差不多」丢分。",
+          "fix": "步距>2m 即违规，须≤2m。",
+          "option_id": "S01-html-practice2-html-q1-6e97bf820647:option-2"
+        },
+        {
+          "text": "步距只要不超过 3m 就合格，2.3m 没问题。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把别的构造数值记成 3m。",
+          "loss_reason": "步距阈值是 2m，不是 3m，数值记混。",
+          "fix": "立杆步距应≤2m。",
+          "option_id": "S01-html-practice2-html-q1-6e97bf820647:option-3"
+        },
+        {
+          "text": "步距合不合格看整体稳不稳，与具体数值无关。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为凭整体感觉判。",
+          "loss_reason": "步距有明确阈值 2m，须比数值，非凭感觉。",
+          "fix": "按阈值判：步距应≤2m。",
+          "option_id": "S01-html-practice2-html-q1-6e97bf820647:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q1-6e97bf820647",
+      "surface_id": "practice2.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q1",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "搭设·扫地杆",
+      "stem": "脚手架纵向扫地杆距立杆底端 350mm，横向扫地杆设在纵向上方。判断违规，选出能得分的作答。",
+      "model_answer": "纵向扫地杆距底端应≤200mm，实测 350mm 超限；且横向扫地杆应在纵向下方，本例上下颠倒，均违规。",
+      "options": [
+        {
+          "text": "纵向扫地杆距底端应≤200mm，实测 350mm 超限；横向扫地杆应在纵向下方，本例颠倒，均违规。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "数值 200mm + 横纵上下关系两处都揪出。",
+          "option_id": "S01-html-practice2-html-q2-4216c00de6ed:option-1"
+        },
+        {
+          "text": "扫地杆距底端 350mm 属正常，横纵位置无所谓。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "觉得离地一点无关紧要。",
+          "loss_reason": "纵向扫地杆距底端应≤200mm，且横向须在纵向下方，两处都错。",
+          "fix": "距底端≤200mm，横向在纵向下方。",
+          "option_id": "S01-html-practice2-html-q2-4216c00de6ed:option-2"
+        },
+        {
+          "text": "只要设了扫地杆就合格，高低和上下都不影响。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为「有就行」。",
+          "loss_reason": "扫地杆有数值和构造要求，漏了≤200mm 与横纵关系。",
+          "fix": "补：≤200mm + 横向在纵向下方。",
+          "option_id": "S01-html-practice2-html-q2-4216c00de6ed:option-3"
+        },
+        {
+          "text": "扫地杆距底端应≤500mm，350mm 合格。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把底座伸出限值 500 混过来。",
+          "loss_reason": "扫地杆阈值是 200mm，500 是可调底座伸出值，张冠李戴。",
+          "fix": "纵向扫地杆距底端应≤200mm。",
+          "option_id": "S01-html-practice2-html-q2-4216c00de6ed:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q2-4216c00de6ed",
+      "surface_id": "practice2.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q2",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "搭设·一次搭设自由高",
+      "stem": "搭设作业中，架体一次搭设的自由高度达 5m（超出最上层连墙件以上多步）。判断违规，选出能得分的作答。",
+      "model_answer": "一次搭设高度不应超过最上层连墙件以上 2 步，且自由高度不应大于 4m；实测 5m 超限，违规。",
+      "options": [
+        {
+          "text": "一次搭设不应超过最上层连墙件以上 2 步、自由高度不应大于 4m；实测 5m 超限，违规。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "2 步 + 4m 两条限值都写、并给违规结论。",
+          "option_id": "S01-html-practice2-html-q3-c232fd2408a4:option-1"
+        },
+        {
+          "text": "一次搭设自由高度 5m 在 6m 以内，合格。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把别的限值记成 6m。",
+          "loss_reason": "自由高度限值是 4m，5m 已超，6m 是记错的数。",
+          "fix": "自由高度应≤4m，5m 违规。",
+          "option_id": "S01-html-practice2-html-q3-c232fd2408a4:option-2"
+        },
+        {
+          "text": "只要搭完补上连墙件即可，一次搭多高无所谓。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "觉得事后补救就行。",
+          "loss_reason": "一次搭设有 2 步/4m 硬限，防的是搭设中失稳。",
+          "fix": "一次搭设≤最上连墙件上 2 步、自由高≤4m。",
+          "option_id": "S01-html-practice2-html-q3-c232fd2408a4:option-3"
+        },
+        {
+          "text": "自由高度按步距算，2.3m×2=4.6m 也算合格。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "想用步距凑算。",
+          "loss_reason": "自由高度限值直接是 4m，且实测 5m 已超，凑算无意义。",
+          "fix": "自由高度≤4m，实测 5m 违规。",
+          "option_id": "S01-html-practice2-html-q3-c232fd2408a4:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q3-c232fd2408a4",
+      "surface_id": "practice2.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q3",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "连墙件·刚性",
+      "stem": "某双排脚手架用钢筋做柔性连墙件拉接。判断是否合规，选出能得分的作答。",
+      "model_answer": "连墙件应刚性、能承压承拉，严禁仅用钢筋柔性连墙件；本例用柔性钢筋违规，应改刚性连墙件。",
+      "options": [
+        {
+          "text": "连墙件应为刚性、能承压承拉，严禁仅用钢筋柔性连墙件；本例违规，应改刚性连墙件。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "点明「必刚性、严禁柔性钢筋」，定性到位。",
+          "option_id": "S01-html-practice2-html-q4-0c8177f2026b:option-1"
+        },
+        {
+          "text": "钢筋能把架体拉住，柔性连墙件也算合格。",
+          "is_correct": false,
+          "source_error_code": "E07",
+          "temptation": "看着「拉住了」就以为行。",
+          "loss_reason": "连墙件是抗倾覆受力构件，须刚性；柔性钢筋只抗拉不抗压，受压失稳。",
+          "fix": "必须刚性，严禁仅用柔性钢筋。",
+          "option_id": "S01-html-practice2-html-q4-0c8177f2026b:option-2"
+        },
+        {
+          "text": "连墙件只是防晃辅助件，刚性柔性都无所谓。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "把连墙件当可有可无的软拉绳。",
+          "loss_reason": "连墙件是防倾覆受力构件，缺失/柔性都属重大隐患。",
+          "fix": "连墙件必刚性、是受力构件，缺失=重大隐患。",
+          "option_id": "S01-html-practice2-html-q4-0c8177f2026b:option-3"
+        },
+        {
+          "text": "24m 以下可用柔性、24m 以上才要刚性。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记了「24m 双排必刚性」就反推低处可柔性。",
+          "loss_reason": "连墙件一律应刚性，严禁柔性钢筋，无「低处可柔性」之说。",
+          "fix": "一律刚性；24m 以上双排更强调必刚性。",
+          "option_id": "S01-html-practice2-html-q4-0c8177f2026b:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q4-0c8177f2026b",
+      "surface_id": "practice2.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q4",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答脚手架拆除：「从下往上拆，先把连墙件整层拆掉腾地方，再拆杆件。」选出最准确的诊断与补写。",
+      "model_answer": "方向错（应自上而下、先外后内）、连墙件拆除时机错（应随架体逐层同步拆、严禁先整层拆）；补写：自上而下、先外后内、逐层同步、严禁交叉；连墙件随层同步拆、悬臂段超2步加拉结。",
+      "options": [
+        {
+          "text": "方向错（应自上而下、先外后内）、连墙件时机错（应随层同步拆、严禁先整层拆）。补写：自上而下·先外后内·逐层同步·严禁交叉；连墙件随层拆、悬臂超2步加拉结。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "方向 + 连墙件时机两处失分都揪出，补写即上答题纸。",
+          "option_id": "S01-html-practice2-html-q15-21defa249fa3:option-1"
+        },
+        {
+          "text": "顺序基本合理，只是没写「严禁交叉」，补上即可。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "只挑出漏写一句，忽略方向和连墙件都反了。",
+          "loss_reason": "从下往上、先拆连墙件两处方向性错误，非只漏一句。",
+          "fix": "方向改自上而下、连墙件改随层拆。",
+          "option_id": "S01-html-practice2-html-q15-21defa249fa3:option-2"
+        },
+        {
+          "text": "从下往上没问题，只要连墙件最后拆即可。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "抓住「连墙件」却把方向判对了。",
+          "loss_reason": "从下往上本身错，连墙件也应随层拆而非最后拆。",
+          "fix": "自上而下 + 连墙件随层同步拆。",
+          "option_id": "S01-html-practice2-html-q15-21defa249fa3:option-3"
+        },
+        {
+          "text": "先拆连墙件是对的，问题只在从下往上。",
+          "is_correct": false,
+          "source_error_code": "E06",
+          "temptation": "只纠了方向、漏了连墙件时机。",
+          "loss_reason": "先整层拆连墙件会使架体变悬臂侧倒，是致命错。",
+          "fix": "连墙件随层同步拆，严禁先整层拆。",
+          "option_id": "S01-html-practice2-html-q15-21defa249fa3:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice2-html-q15-21defa249fa3",
+      "surface_id": "practice2.html",
+      "source_index": 14,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.middle.dc.html#Q15",
+      "source_html_sha256": "e90bb03938ba83a7d3d451e9cc914e2e34c80d0063bd47198440934530bc9342"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "验收·保证/一般",
+      "stem": "模板支架检查评分表中，下列哪组全部属于「保证项目」？选出能得分的作答。",
+      "model_answer": "保证项目=施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收（6项）。",
+      "options": [
+        {
+          "text": "施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "六项保证项目一个不差、照清单归。",
+          "option_id": "S01-html-practice3-html-q1-845c98b80a40:option-1"
+        },
+        {
+          "text": "支架拆除、杆件连接、构件材质、底座与托撑。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "支架拆除、杆件连接听着挺重要。",
+          "loss_reason": "这四项恰是一般项目，凭「听着重要」归错类。",
+          "fix": "保证项目=方案/基础/构造/稳定/荷载/交底验收。",
+          "option_id": "S01-html-practice3-html-q1-845c98b80a40:option-2"
+        },
+        {
+          "text": "施工方案、支架稳定、支架拆除、构件材质。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "混着选、有对有错。",
+          "loss_reason": "支架拆除、构件材质是一般项目，混进保证项目。",
+          "fix": "支架拆除、构件材质属一般项，剔除。",
+          "option_id": "S01-html-practice3-html-q1-845c98b80a40:option-3"
+        },
+        {
+          "text": "随便哪几项都行，保证/一般没固定清单。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "觉得凭感觉分。",
+          "loss_reason": "保证/一般项目是固定清单，须照清单归。",
+          "fix": "照清单：保证6项固定，别凭感觉。",
+          "option_id": "S01-html-practice3-html-q1-845c98b80a40:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q1-845c98b80a40",
+      "surface_id": "practice3.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q1",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "验收·支架拆除归类",
+      "stem": "模板支架评分表中，「支架拆除」属于保证项目还是一般项目？选出能得分的作答。",
+      "model_answer": "支架拆除属一般项目；保证项目是施工方案、支架基础、支架构造、支架稳定、施工荷载、交底与验收。",
+      "options": [
+        {
+          "text": "支架拆除属一般项目；保证项目为方案、基础、构造、稳定、荷载、交底与验收。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "归类对、并列出保证6项作对照。",
+          "option_id": "S01-html-practice3-html-q2-84705bb978b9:option-1"
+        },
+        {
+          "text": "支架拆除关系安全，属保证项目。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "「拆除关系安全」听着就该是保证项。",
+          "loss_reason": "支架拆除是一般项目，凭语感升成保证项归错。",
+          "fix": "支架拆除属一般项目，别凭听着重要。",
+          "option_id": "S01-html-practice3-html-q2-84705bb978b9:option-2"
+        },
+        {
+          "text": "支架拆除既是保证也是一般，两边都算。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "拿不准就两边都占。",
+          "loss_reason": "评分项目归类唯一，支架拆除只在一般项目。",
+          "fix": "支架拆除只属一般项目。",
+          "option_id": "S01-html-practice3-html-q2-84705bb978b9:option-3"
+        },
+        {
+          "text": "支架拆除不在评分表里。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "没记住它在表里。",
+          "loss_reason": "支架拆除是评分表一般项目之一，漏记。",
+          "fix": "支架拆除在一般项目里。",
+          "option_id": "S01-html-practice3-html-q2-84705bb978b9:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q2-84705bb978b9",
+      "surface_id": "practice3.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q2",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "验收·四要素",
+      "stem": "脚手架验收应检查哪四方面要素？选出齐全、能得分的作答。",
+      "model_answer": "脚手架验收四要素：材料、支承与固定、搭设质量、技术资料。",
+      "options": [
+        {
+          "text": "材料、支承与固定、搭设质量、技术资料。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "四要素齐全，验收查全才算过。",
+          "option_id": "S01-html-practice3-html-q3-5b0d7df2a874:option-1"
+        },
+        {
+          "text": "只看搭设质量合不合格就行。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "觉得搭得好就验收过。",
+          "loss_reason": "漏了材料、支承固定、技术资料三项。",
+          "fix": "补材料、支承与固定、技术资料。",
+          "option_id": "S01-html-practice3-html-q3-5b0d7df2a874:option-2"
+        },
+        {
+          "text": "材料、外观、颜色、品牌四样。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "把无关项凑成四样。",
+          "loss_reason": "外观/颜色/品牌不是验收要素，张冠李戴。",
+          "fix": "四要素=材料/支承固定/搭设质量/技术资料。",
+          "option_id": "S01-html-practice3-html-q3-5b0d7df2a874:option-3"
+        },
+        {
+          "text": "只查技术资料齐不齐即可。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "以为资料齐就验收过。",
+          "loss_reason": "漏了实体检查（材料/支承固定/搭设质量）。",
+          "fix": "资料 + 实体三项一起查。",
+          "option_id": "S01-html-practice3-html-q3-5b0d7df2a874:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q3-5b0d7df2a874",
+      "surface_id": "practice3.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q3",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "验收·五阶段节点",
+      "stem": "钢管脚手架搭设过程中的检查节点，下列哪项数值正确？选出能得分的作答。",
+      "model_answer": "检查节点：基础完工后、首层水平杆搭设后、每搭完一楼层高度后、悬挑脚手架固定后、支撑脚手架每搭约6m后。",
+      "options": [
+        {
+          "text": "支撑脚手架每搭约 6m 后应检查一次；另有基础完工后、首层水平杆后、每层楼高后、悬挑固定后。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "支撑架 6m 节点 + 其余四节点齐。",
+          "option_id": "S01-html-practice3-html-q4-25a4df8b2864:option-1"
+        },
+        {
+          "text": "支撑脚手架每搭约 10m 后检查一次即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把节点数值记大了。",
+          "loss_reason": "支撑架是每搭约 6m 检查，写 10m 超了。",
+          "fix": "支撑脚手架每搭约 6m 后检查。",
+          "option_id": "S01-html-practice3-html-q4-25a4df8b2864:option-2"
+        },
+        {
+          "text": "搭完整体后统一验收一次就行，中途不查。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "图省事只验收一次。",
+          "loss_reason": "搭设过程有五个阶段节点，须分阶段查。",
+          "fix": "分五节点查，不能只验收一次。",
+          "option_id": "S01-html-practice3-html-q4-25a4df8b2864:option-3"
+        },
+        {
+          "text": "只在基础完工后查一次即可。",
+          "is_correct": false,
+          "source_error_code": "E01",
+          "temptation": "记住了第一个节点。",
+          "loss_reason": "漏了首层、每层、悬挑固定、支撑架6m 四节点。",
+          "fix": "补齐五节点，含支撑架每6m。",
+          "option_id": "S01-html-practice3-html-q4-25a4df8b2864:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q4-25a4df8b2864",
+      "surface_id": "practice3.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q4",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "某学生答：「支架拆除是保证项目；卸料平台旁边有脚手架，搁支、拉结在脚手架上即可。」选出最准确的诊断与补写。",
+      "model_answer": "两处均错：支架拆除属一般项目（保证项目=方案/基础/构造/稳定/荷载/交底验收）；卸料平台搁支/拉结点必须设建筑主体结构、严禁固定作业脚手架上。",
+      "options": [
+        {
+          "text": "两处都错：支架拆除属一般项目（保证=方案/基础/构造/稳定/荷载/交底验收）；卸料平台搁支/拉结点必须设主体结构、严禁挂作业架。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "归类错 + 卸料平台红线两处都揪出并补写。",
+          "option_id": "S01-html-practice3-html-q14-6441c5410af5:option-1"
+        },
+        {
+          "text": "支架拆除归保证项没问题，只是卸料平台该设主体。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "只揪出卸料平台、放过归类错。",
+          "loss_reason": "支架拆除是一般项目，归保证项也错，漏诊一处。",
+          "fix": "支架拆除改一般项 + 卸料平台设主体。",
+          "option_id": "S01-html-practice3-html-q14-6441c5410af5:option-2"
+        },
+        {
+          "text": "卸料平台挂脚手架可以，只是支架拆除该归一般项。",
+          "is_correct": false,
+          "source_error_code": "E10",
+          "temptation": "纠了归类、却认可挂脚手架。",
+          "loss_reason": "卸料平台挂作业架是红线错误，超载失稳。",
+          "fix": "卸料平台必须设主体、严禁挂作业架。",
+          "option_id": "S01-html-practice3-html-q14-6441c5410af5:option-3"
+        },
+        {
+          "text": "两处都对，可给满分。",
+          "is_correct": false,
+          "source_error_code": "M03",
+          "temptation": "没看出两处都是典型错。",
+          "loss_reason": "支架拆除归错类、卸料平台挂错处，两处都失分。",
+          "fix": "两处都要改：一般项 + 设主体。",
+          "option_id": "S01-html-practice3-html-q14-6441c5410af5:option-4"
+        }
+      ],
+      "variant_id": "S01-html-practice3-html-q14-6441c5410af5",
+      "surface_id": "practice3.html",
+      "source_index": 13,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S01/P40_S01.practice.down.dc.html#Q14",
+      "source_html_sha256": "e405f0ba9cb02f4bef940a46e13e7056b54eb3a58fd6aeed98693acaba151377"
+    }
+  ],
+  "published_lesson_sha256": "1df959ad2d958d181996020721134994aad074122cdb7f58c3d301a08401c8e3"
+}

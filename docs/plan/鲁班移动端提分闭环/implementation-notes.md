@@ -9,6 +9,15 @@
 
 ## Deviations
 
+### 2026-07-14（finished 课后五题全量接入 · local code candidate）
+- **[范围真值]** 不再以 F16 作运行时特判。publisher 只遍历 `STATIONS` 显式登记的 finished 习题面：37 个 pack、39 个 practice surface（S01 三个），每面确定性编译 5 道可服务端重判单选，合计 195 道。未登记的历史 HTML 与暂无 finished 卡的 B02/D14/E01/N02 都 fail-closed，不靠 glob 或猜测 URL 上线。
+- **[两类 authority]** 题干、选项、正确答案与解析继续由用户指定 finished HTML 负责；构建时 compiler 按格式适配（Q/ord、Q/direct、POOL/deck、A02 bank）产生带 source/public SHA 的私有 sidecar。学生是否做过、本轮对错与后续复习仍只由 `RetestWritebackService -> canonical completion terminal -> LearnerState` 决定；HTML 本地结果只是即时反馈。
+- **[公用链路]** 有 compiled 供给的站点都走 `finished lesson -> finished 五题 -> receipt-only native bridge -> 服务端重判 -> terminal 收据`；客户端只传 pack、practice surface 和五个选择。同一 compiled authority 供取题与 writeback 重判双向校验，source/public/manifest 任一 SHA 漂移即拒绝收据，不回退到另一套题库。
+- **[选项 identity 纠偏]** hostile review 发现 ord 页会将选项随机打乱，HTML `state.sel` 存的是展示位次，直传 index 会让服务端错映射到源选项。统一 bridge 现在先经页内 `optPerm` 还原为 source option index，再由原生页映射到 sidecar `option_id`；POOL/bank 本来保存 source index，不做二次换算。
+- **[五模块感知]** 收据页是当下直接感知面，明示“服务器已复核·已更新学习记录 / 已练过·待验证 / 不等于已经掌握”。返回后学习、复习、问鲁班、学情报告与我的都重读同一 learning-report/LearnerState 投影；问鲁班 dashboard 缓存和诊断完成键同时改为 canonical user scoped，防跨账号串学情。
+- **[验证]** luban service/API 全域 `103 passed`，相关 learner-state 裁决/报告/复习 `120 passed`，小程序 Node 全量 `98 passed`，Ruff、contract guard、manifest gate、publisher 二次重放字节稳定均绿。DevTools 以唯一项目根 `yousenwebview` 成功打开且工具账号已登录；但当前 `miniprogram-automator 0.12.1` 与 DevTools 的 `Tool.getInfo` 返回形状不兼容（`SDKVersion` 缺失），页面场景未跑成，只记 `project-open preflight / scenario pending`。
+- **[诚实边界]** compiled forward 仍是 `L0_observed / non-promoting / non-official`；五题全对只表示“本轮全对”，不直接升 mastery。当前是本地 candidate，未部署前不声称线上用户已看到。
+
 ### 2026-07-14（F16 五题闭环收权 · local code candidate）
 - **[真正坏掉的一等事实]** `RetestWritebackService` 已写出真实 `compiled_html_server_rescore` terminal，但共享生命周期识别器只接受 `signed_variant_server_rescore`；因此同一完成事实会出现“正式收据成功 / F16 仍未学 / 次日复习不启动”。同时学习报告把 5 条 item + 1 条 terminal 统计成 6 题，HTML 本地结果又与原生服务端收据争最终结果。
 - **[收权修复]** `completion_terminal` 现在是练习完成的唯一事实。严格矩阵仅允许 forward=`signed_variant|compiled_html` + medium/L0/non-promoting，review 仅允许 signed + high/L2/promoting；同一 classifier 同时供 completion commit、item promotion 与 pack cadence 使用。带 completion id 的 item 必须经 canonical terminal 归包，partial item 不得绕过 terminal；compiled authority 未进入 mastery/trusted-promotion 来源。

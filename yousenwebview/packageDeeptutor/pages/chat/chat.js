@@ -201,6 +201,8 @@ function readCachedHomeDashboard() {
     if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function") return null;
     var cached = wx.getStorageSync(HOME_DASHBOARD_CACHE_KEY);
     if (!cached || typeof cached !== "object") return null;
+    var userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+    if (!userId || String(cached.userId || "") !== userId) return null;
     if (Date.now() - (Number(cached.cachedAt) || 0) > HOME_DASHBOARD_CACHE_MAX_AGE_MS) return null;
     var dashboard =
       cached.dashboard && typeof cached.dashboard === "object" ? cached.dashboard : null;
@@ -220,12 +222,15 @@ function writeCachedHomeDashboard(dashboard) {
   try {
     if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return;
     if (!dashboard || typeof dashboard !== "object") return;
+    var userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+    if (!userId) return;
     if (
       typeof learningHomeViewModel.isTrustedHomeDashboardPayload === "function" &&
       !learningHomeViewModel.isTrustedHomeDashboardPayload(dashboard)
     )
       return;
     wx.setStorageSync(HOME_DASHBOARD_CACHE_KEY, {
+      userId: userId,
       cachedAt: Date.now(),
       dashboard: dashboard,
     });
@@ -2818,8 +2823,14 @@ Page({
   _checkDiagnostic: function () {
     if (!flags.isFeatureEnabled("assessment")) return;
     // 已做过或已跳过则不弹
-    if (wx.getStorageSync("diagnostic_completed")) return;
-    if (wx.getStorageSync("diagnostic_skipped")) return;
+    var diagnosticUserId = String(
+      (auth && auth.getUserId && auth.getUserId()) || "",
+    ).trim();
+    if (!diagnosticUserId) return;
+    var diagnosticCompletedKey = "diagnostic_completed:" + diagnosticUserId;
+    var diagnosticSkippedKey = "diagnostic_skipped:" + diagnosticUserId;
+    if (wx.getStorageSync(diagnosticCompletedKey)) return;
+    if (wx.getStorageSync(diagnosticSkippedKey)) return;
     // 只在 Hero 主页弹出
     if (this.data.hasMessages) return;
     function showDiagnosticModal() {
@@ -2846,7 +2857,7 @@ Page({
           if (res.confirm) {
             wx.navigateTo({ url: route.assessment() });
           } else {
-            wx.setStorageSync("diagnostic_skipped", true);
+            wx.setStorageSync(diagnosticSkippedKey, true);
           }
         },
       });
@@ -2856,7 +2867,7 @@ Page({
       .getAssessmentProfile()
       .then(function (raw) {
         if (hasAssessmentSignal(raw)) {
-          wx.setStorageSync("diagnostic_completed", true);
+          wx.setStorageSync(diagnosticCompletedKey, true);
           return;
         }
         showDiagnosticModal();

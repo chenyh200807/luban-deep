@@ -9,6 +9,7 @@
 <x-dc>
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
+<script src="../vendor/jweixin.js"></script>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -132,7 +133,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 本轮题目已答完，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -194,6 +195,7 @@
 
   </div>
 </div>
+<div data-deeptutor-practice-authority="server" style="font-size:10px;line-height:1.6;text-align:center;color:#7b7f80;padding:8px 16px 14px;">网页预览作答仅供即时反馈；是否形成学习记录，以小程序服务端正式收据为准。</div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 /* ░░░ N01 双代号网络计划关键线路/总时差 · 随堂练（合并练习：覆盖上/下两集）░░░
@@ -209,7 +211,7 @@ class Component extends DCLogic {
   moreText="补两道方向：① 两条并列关键线路的图（并列最长全列 + 总工期带算式单位），专治漏第二条；② 甲方原因延误但未超总时差的判读（责任 + 时差两步链 + 工期费用分开判），专治只看责任方下结论。都可以点问鲁班要同型题。";
   // ── 题库（16 道；教学网络与讲解一致：两条关键线路 11=11，E/G 非关键 TF=3）──
   Q=[
-    { tag:"判据·条件维", typeHint:"单选 · 选出判据最完整、能得分的作答", figLabel:"双代号网络图 · 三条路径", figCaption:"路① 11 个月 · 路② 11 个月 · 路③ 8 个月", fig:"paths",
+{ tag:"判据·条件维", typeHint:"单选 · 选出判据最完整、能得分的作答", figLabel:"双代号网络图 · 三条路径", figCaption:"路① 11 个月 · 路② 11 个月 · 路③ 8 个月", fig:"paths",
       stem:"双代号网络计划中，如何判定关键工作与关键线路？选出判据最完整、能得分的作答。",
       model:"关键工作是总时差最小的工作；关键线路由全部关键工作组成，其工期等于网络计划的计算工期（最长路径）。",
       opts:[
@@ -218,7 +220,7 @@ class Component extends DCLogic {
         { t:"总时差为零的工作是关键工作，且一个网络图里关键线路只会有一条，找到即可。", ok:false, code:"E07", tempt:"「TF=0」这半句是对的，顺手就选了。", lose:"后半句错：并列最长路径可有两条及以上，「只有一条」是典型误区。", fix:"关键线路可能不止一条，并列最长的全部是关键线路。" },
         { t:"图中最长的线路是关键线路，据此原则判定即可，无须再写具体判据与线路。", ok:false, code:"E04", tempt:"方向对，觉得写个原则就算答了。", lose:"口号化表达：不落总时差判据、不落具体线路，阅卷无从给分。", fix:"写判据句并落到具体线路：关键线路为①→②→④→⑥（节点连续）。" }
       ] },
-    { tag:"全列·记录维", typeHint:"单选 · 选出能拿全分的关键线路作答", figLabel:"路径长度清单", figCaption:"两条路径并列最长（11 = 11）", fig:"twopaths",
+{ tag:"全列·记录维", typeHint:"单选 · 选出能拿全分的关键线路作答", figLabel:"路径长度清单", figCaption:"两条路径并列最长（11 = 11）", fig:"twopaths",
       stem:"某网络计划经计算：路①（①→②→④→⑥）= 11 个月，路②（①→③→④→⑥）= 11 个月，路③ = 8 个月。写出关键线路，选出能拿全分的作答。",
       model:"关键线路有两条：①→②→④→⑥ 和 ①→③→④→⑥（并列最长，工期相等，均为 11 个月）。",
       opts:[
@@ -227,7 +229,7 @@ class Component extends DCLogic {
         { t:"本网络计划中最长的路径即为关键线路，其总持续时间为 11 个月。", ok:false, code:"E04", tempt:"判据没错，感觉写了就有分。", lose:"没落到具体线路（节点序列），口号化表达不得分。", fix:"落到具体节点序列，且两条并列的都写。" },
         { t:"关键线路有两条：①→④→⑥ 和 ①→③→⑥，两条工期相等均为最长。", ok:false, code:"E03", tempt:"知道要写两条，随手把节点写「顺」了。", lose:"节点跳号、线路不连续，阅卷按错线路处理。", fix:"逐节点连续写：①→②→④→⑥ 和 ①→③→④→⑥。" }
       ] },
-    { tag:"总工期·计算表达维", typeHint:"单选 · 选出可得分的总工期写法", figLabel:"关键线路与各工作持续时间", figCaption:"沿关键线路：3、4、4（个月）", fig:"twopaths",
+{ tag:"总工期·计算表达维", typeHint:"单选 · 选出可得分的总工期写法", figLabel:"关键线路与各工作持续时间", figCaption:"沿关键线路：3、4、4（个月）", fig:"twopaths",
       stem:"承上题（关键线路 ①→②→④→⑥，各工作持续 3、4、4 个月）。写总工期，选出可得分的写法。",
       model:"总工期 T =（沿关键线路）3+4+4 = 11 个月；线路、算式、单位三件齐。",
       opts:[
@@ -236,7 +238,7 @@ class Component extends DCLogic {
         { t:"总工期沿路③①→②→⑤→⑥求和：T = 3+2+3 = 8 个月。", ok:false, code:"E09", tempt:"随手挑了条看着顺的路径求和。", lose:"沿非关键线路求和，总工期算错，属计算错误。", fix:"必须沿最长路径（关键线路）求和：3+4+4=11 个月。" },
         { t:"总工期沿关键线路求和：T = 3+4+4 = 11，算式与线路都已写明。", ok:false, code:"E03", tempt:"就差一个字，极容易看漏。", lose:"漏单位：11 是 11 个月还是 11 天？漏单位压线扣分。", fix:"数值后补单位：= 11 个月。" }
       ] },
-    { tag:"虚工作·程序维", typeHint:"单选 · 选出处理逻辑正确的作答", figLabel:"题给：新增紧前关系", figCaption:"F 须 B、C 均完成才能开始 · 原图缺一环", fig:"virt",
+{ tag:"虚工作·程序维", typeHint:"单选 · 选出处理逻辑正确的作答", figLabel:"题给：新增紧前关系", figCaption:"F 须 B、C 均完成才能开始 · 原图缺一环", fig:"virt",
       stem:"题干新增：工作 F 必须等 B、C 均完成后才能开始，但原图中 F 只与 C 相接。正确的处理是？",
       model:"原图逻辑不全，应在 B 的完成节点与 F 的开始节点之间增加一个虚工作（虚箭线，只表达逻辑关系），再在调整后的图上计算关键线路。",
       opts:[
@@ -245,106 +247,7 @@ class Component extends DCLogic {
         { t:"把工作 F 移到 B 之后串联布置，让 B 做完再做 F，即可满足新增关系。", ok:false, code:"E07", tempt:"「等 B 完成」听着像要排到 B 后面。", lose:"改串联改变了原网络逻辑（F 与 C 的关系被破坏），表达方式错。", fix:"用虚箭线补逻辑，不改动既有工作关系。" },
         { t:"增加一项持续时间 1 个月的联系工作连接 B 与 F，把等待时间也算进去。", ok:false, code:"E07", tempt:"觉得「连接工作」总得占点时间才真实。", lose:"虚工作只表达逻辑、不占时间资源；加了时长会把工期算长。", fix:"补的是虚工作：持续时间为 0，仅表达逻辑。" }
       ] },
-    { tag:"时差·计算表达维", typeHint:"单选 · 选出关键工作时差的正确表述", figLabel:"机动条图", figCaption:"关键工作踩在最长路上 · 机动 = ？", fig:"float",
-      stem:"某工作位于关键线路上（计划工期等于计算工期）。其总时差与自由时差各是多少？选出能得分的表述。",
-      model:"该工作为关键工作，总时差 TF=0，自由时差 FF=0（关键工作两者均为零）。",
-      opts:[
-        { t:"该工作为关键工作，总时差为 0，自由时差也为 0，两者均无机动时间。", ok:true, fix:"关键工作 TF=0 且 FF=0，两个都写、都标零，数值绑定到该工作。", code:"" },
-        { t:"该工作总时差为 0，但自由时差一般大于 0，可用于调剂紧后工作。", ok:false, code:"E07", tempt:"觉得两个时差总得有一个能松动。", lose:"FF≤TF，总时差为 0 时自由时差必为 0，概念混淆。", fix:"关键工作 TF=0 且 FF=0。" },
-        { t:"关键线路上的工作也有少量时差储备，具体数值需按 LS−ES 另行计算。", ok:false, code:"E07", tempt:"「都要算一算」显得严谨。", lose:"关键工作的判定特征就是无机动（TF 最小、计划=计算工期时为 0），说「有储备」判据错。", fix:"直接写：关键工作 TF=0、FF=0。" },
-        { t:"该工作总时差等于总工期减去其持续时间，自由时差取其一半估算。", ok:false, code:"E09", tempt:"看着像个公式，容易蒙。", lose:"公式编造：TF=LS−ES=LF−EF，不是总工期减持续时间，更没有「取一半」。", fix:"按 TF=LS−ES 计算；关键工作为 0。" }
-      ] },
-    { tag:"时差绑定·记录维", typeHint:"单选 · 选出阅卷能判对应关系的写法", figLabel:"题给：求 E、G 两工作的总时差", figCaption:"E 的 TF=3 个月 · G 的 TF=3 个月", fig:"float",
-      stem:"问「工作 E、工作 G 的总时差各为多少」。已算得均为 3 个月。选出阅卷能给分的写法。",
-      model:"工作 E 的总时差为 3 个月；工作 G 的总时差为 3 个月（数值分别绑定到具体工作，带单位）。",
-      opts:[
-        { t:"工作 E 的总时差为 3 个月，工作 G 的总时差为 3 个月。", ok:true, fix:"数值逐一绑定到工作名并带单位，阅卷可判对应关系。", code:"" },
-        { t:"总时差是 3 和 3。", ok:false, code:"E03", tempt:"数都对，写起来最快。", lose:"数值不绑定工作、不带单位，阅卷无法确认哪个是谁的。", fix:"写成「工作 E 的总时差为 3 个月；工作 G 的总时差为 3 个月」。" },
-        { t:"工作 E 的自由时差为 3 个月，工作 G 的自由时差为 3 个月。", ok:false, code:"E07", tempt:"就差俩字，顺手写混。", lose:"问的是总时差、答成自由时差，概念错答非所问。", fix:"审清问的是 TF 还是 FF，按问作答。" },
-        { t:"工作 E 的总时差为 3 个月，工作 G 与 E 情况差不多，不必重复写。", ok:false, code:"E02", tempt:"两个数一样，觉得写一个就代表了。", lose:"漏答 G：每个被问到的工作都要单独给出数值。", fix:"逐个作答：G 的总时差也写明为 3 个月。" }
-      ] },
-    { tag:"延误判读·条件维", typeHint:"单选 · 选出判读链完整的作答", figLabel:"延误 vs 机动条", figCaption:"E：总时差 3 个月 · 延误 2 个月", fig:"eat",
-      stem:"非关键工作 E 总时差 3 个月，因设计变更延误 2 个月。对总工期有何影响？选出判读链完整的作答。",
-      model:"延误 2 个月未超过其总时差 3 个月，故不影响总工期（总工期不变）。",
-      opts:[
-        { t:"延误 2 个月未超过 E 的总时差 3 个月，故不影响总工期。", ok:true, fix:"显式比较「延误 vs 总时差」再下结论，判读链完整。", code:"" },
-        { t:"E 发生了 2 个月延误，工期必然受影响，总工期应顺延 2 个月。", ok:false, code:"E07", tempt:"「延误了还能不影响？」直觉不放心。", lose:"非关键工作延误在时差内被机动时间吸收，当成必影响是概念混淆。", fix:"比较：2 ≤ 3，未超时差，不影响总工期。" },
-        { t:"设计变更属甲方原因，因此该延误对总工期的影响由甲方承担并顺延。", ok:false, code:"E05", tempt:"看见「设计变更」就先归责任，跳过了计算。", lose:"影不影响总工期是时差问题，不是责任问题；不比时差直接下结论。", fix:"先比时差：2 ≤ 3 不影响总工期，责任归属另行判。" },
-        { t:"延误 2 个月吃掉部分时差，总工期相应顺延 1 个月（3−2=1）。", ok:false, code:"E09", tempt:"算式看着头头是道。", lose:"计算逻辑错：时差没吃光就完全不影响，不存在「顺延剩余差值」。", fix:"未超时差即不影响；只有超出部分才顺延。" }
-      ] },
-    { tag:"关键延误·条件维", typeHint:"单选 · 选出判读正确的作答", figLabel:"关键工作延误 · 顶出总工期", figCaption:"F 在关键线路上（TF=0）· 延误 1 个月", fig:"eat2",
-      stem:"关键工作 F（TF=0）因故延误 1 个月。对总工期有何影响？选出判读正确的作答。",
-      model:"F 位于关键线路上、总时差为 0，延误 1 个月直接影响总工期，总工期顺延 1 个月。",
-      opts:[
-        { t:"F 在关键线路上、总时差为 0，延误 1 个月直接使总工期顺延 1 个月。", ok:true, fix:"点明「在关键线路 / TF=0」这一判据，再给顺延量，两步齐。", code:"" },
-        { t:"延误只有 1 个月、时间不长，可用其他工作的时差调剂吸收，不影响总工期。", ok:false, code:"E07", tempt:"「才 1 个月」感觉总有办法消化。", lose:"时差是各工作自己的，关键工作 TF=0 没有可吸收空间，别的工作时差救不了它。", fix:"关键工作延误多少、总工期顺延多少。" },
-        { t:"总工期是否受影响需先查明延误责任方，属承包人责任则不予顺延。", ok:false, code:"E05", tempt:"想起「责任归属」，用错了地方。", lose:"影不影响总工期是网络计算问题；责任只影响索赔成立与否，不改变顺延事实。", fix:"先判：在关键线路上 → 总工期顺延 1 个月。" },
-        { t:"F 延误后总工期会受影响，应加强进度管理、合理组织施工予以弥补。", ok:false, code:"E04", tempt:"结论方向对，补一句管理话觉得稳妥。", lose:"口号化表达：没有顺延量、没有判据，不可判分。", fix:"落数值：总时差 0，延误 1 个月，总工期顺延 1 个月。" }
-      ] },
-    { tag:"索赔两步·后果维", typeHint:"单选 · 选出两步链完整的索赔判读", figLabel:"两步判定链", figCaption:"事件 · ①责任归属 · ②比时差 · 结论", fig:"gates",
-      stem:"甲供材料延迟（甲方责任）致工作 E 延误 1 个月，E 总时差 3 个月。承包人提出工期索赔，是否成立？选出判读完整的作答。",
-      model:"①责任：甲供材料延迟属甲方责任；②时差：延误 1 个月未超总时差 3 个月，不影响总工期。故工期索赔不成立（费用索赔可另行提出）。",
-      opts:[
-        { t:"属甲方责任，但延误 1 个月未超总时差 3 个月、不影响总工期，工期索赔不成立。", ok:true, fix:"责任 + 时差两步都写，结论跟着时差走——责任方≠自动成立。", code:"" },
-        { t:"甲供材料延迟属甲方责任，非承包人原因造成，故工期索赔成立。", ok:false, code:"E05", tempt:"责任明明白白是甲方的，感觉稳成立。", lose:"只看责任方下结论，漏了时差比较：不影响总工期就没有工期可索。", fix:"补第二步：延误 1 ≤ 总时差 3，不影响总工期，工期索赔不成立。" },
-        { t:"延误未超时差不影响总工期，因此该事件的工期与费用索赔均不成立。", ok:false, code:"E07", tempt:"「不成立」顺手一竿子打死。", lose:"工期与费用要分开判：费用损失系甲方责任造成，可另行索赔。", fix:"工期索赔不成立；费用索赔可另行提出。" },
-        { t:"工期索赔不成立，因为承包人应在投标时已充分考虑此类材料供应风险。", ok:false, code:"E11", tempt:"结论碰巧对，理由看着也「专业」。", lose:"理由链错：本题判据是「未超总时差、不影响总工期」，不是风险分担条款。", fix:"理由写「延误 1 个月未超总时差 3 个月，不影响总工期」。" }
-      ] },
-    { tag:"工期费用分判·后果维", typeHint:"单选 · 选出结论组合正确的作答", figLabel:"两个章 · 分开盖", figCaption:"工期索赔 ？ · 费用索赔 ？", fig:"gates",
-      stem:"承上题（甲方责任、延误 1 个月未超总时差 3 个月，承包人发生了窝工费用）。工期索赔与费用索赔的结论组合是？",
-      model:"工期索赔不成立（不影响总工期）；费用索赔可成立（窝工损失系甲方责任造成），两项分开判、分开写。",
-      opts:[
-        { t:"工期索赔不成立（未超时差、不影响总工期）；费用索赔可另行成立（甲方责任致损）。", ok:true, fix:"两个章分开盖：工期看时差，费用看责任与实际损失。", code:"" },
-        { t:"既然是甲方责任造成的延误，工期索赔与费用索赔均应成立。", ok:false, code:"E05", tempt:"责任在甲方，感觉「都该赔」。", lose:"工期索赔以影响总工期为前提，未超时差就不成立，不随责任自动成立。", fix:"工期不成立；费用按责任与损失另行判。" },
-        { t:"延误未影响总工期，说明未受实质损失，工期与费用索赔均不成立。", ok:false, code:"E07", tempt:"「没影响工期=没损失」听着顺。", lose:"混淆两类索赔：窝工费用是真实损失，与总工期是否顺延无关。", fix:"费用索赔可另行提出，与工期结论分开写。" },
-        { t:"可先提出工期索赔占住程序，再视协商情况转为费用索赔处理。", ok:false, code:"E11", tempt:"觉得「先占程序」是实务技巧。", lose:"判读题要按判据下结论，不存在「先占后转」；理由链与判据无关。", fix:"按判据分别写：工期不成立、费用可另行索赔。" }
-      ] },
-    { tag:"调整五法·程序维", typeHint:"单选 · 选出方法集完整且重点正确的作答", figLabel:"进度计划调整方法", figCaption:"五种方法 · 救工期重点是哪个？", fig:"adjust5",
-      stem:"进度检查发现总工期将拖后，需调整进度计划。调整方法有哪些、重点是什么？选出完整的作答。",
-      model:"调整方法：①关键工作调整（救总工期的重点）②逻辑关系调整③重新编制计划④非关键工作调整⑤资源调整；缩短工期通常优先调整关键线路上的关键工作。",
-      opts:[
-        { t:"关键工作调整（重点）、逻辑关系调整、重新编制计划、非关键工作调整、资源调整，五法列全。", ok:true, fix:"五法一个不落，且点明救总工期优先压关键工作。", code:"" },
-        { t:"组织工人加班抢工、增加施工人数和机械投入，把拖后的时间赶回来。", ok:false, code:"E04", tempt:"现场最常听的就是「加人加班」。", lose:"口号化：没回到方法集，也没落到关键线路，不可判分。", fix:"按方法集作答，首选关键工作调整。" },
-        { t:"优先压缩总时差较大的非关键工作，因为它们机动多、压缩余地大。", ok:false, code:"E07", tempt:"「余地大好压缩」听着挺有道理。", lose:"压非关键工作不缩短最长路径，总工期一天不少，方向性错误。", fix:"救总工期要压关键线路上的关键工作。" },
-        { t:"调整方法主要是关键工作调整和资源调整两种，视情况选用其一。", ok:false, code:"E02", tempt:"记住了俩最顺口的。", lose:"漏了逻辑关系调整、重新编制、非关键工作调整三法，清单不全。", fix:"五种方法逐项列全再点重点。" }
-      ] },
-    { tag:"压缩对象·条件维", typeHint:"单选 · 选出压缩对象正确的作答", figLabel:"压谁才管用", figCaption:"压非关键：标尺不动 · 压关键：真缩短", fig:"press",
-      stem:"总工期需压缩 1 个月。图中 F 为关键工作（TF=0），E 为非关键工作（TF=3）。应压缩谁？选出正确作答。",
-      model:"应压缩关键线路上的关键工作 F：总工期由最长路径决定，压缩非关键工作 E 不改变最长路径长度，总工期不变。",
-      opts:[
-        { t:"压缩关键工作 F：总工期由最长路径决定，压缩它总工期才真缩短。", ok:true, fix:"对象 + 理由都有：最长路径决定总工期，压关键工作才有效。", code:"" },
-        { t:"压缩非关键工作 E：它有 3 个月时差，压缩余地大、对现场影响小。", ok:false, code:"E07", tempt:"挑「松」的下手，听着风险小。", lose:"压 E 只是把它的时差变得更大，最长路径没短，总工期纹丝不动。", fix:"压关键线路上的 F，总工期才会缩短。" },
-        { t:"将 E 与 F 都压缩 1 个月，双管齐下更保险，确保工期目标实现。", ok:false, code:"E09", tempt:"「都压」感觉最稳。", lose:"压 E 属无效投入（还多花赶工费），计算上对压缩量无贡献。", fix:"只需压关键工作 F 1 个月即可达标。" },
-        { t:"无须压缩具体工作，通过加强协调管理和过程督促即可把工期抢回。", ok:false, code:"E04", tempt:"管理话术看着四平八稳。", lose:"口号化：没有压缩对象和数值，不可判分。", fix:"落到对象：压缩关键工作 F 1 个月。" }
-      ] },
-    { tag:"监测内容·记录维", typeHint:"单选 · 选出监测内容完整的作答（训练用）", figLabel:"进度监测清单", figCaption:"跟踪检查阶段 · 该盯哪五样？", fig:"watch5",
-      stem:"网络计划实施中进行进度监测，监测内容包括哪些？选出完整、不混入调整动作的作答。",
-      model:"监测内容：记录各工作实际开始/完成时间、观测关键线路上的工作、检查非关键工作时差利用情况、核查逻辑关系变化、收集变更信息。",
-      opts:[
-        { t:"记录实际时间、观测关键线路、检查非关键工作时差、核查逻辑关系、收集变更信息。", ok:true, fix:"五项齐全且都属「监测」——盯与记，不含调整动作。", code:"" },
-        { t:"记录各工作实际时间、观测关键线路，并及时压缩滞后的关键工作赶回进度。", ok:false, code:"E07", tempt:"「发现了就赶紧压」看着积极。", lose:"「压缩关键工作」属进度调整不属监测，两阶段动作混淆。", fix:"监测只盯与记；压缩属调整方法。" },
-        { t:"进度监测主要是记录各工作的实际开始和完成时间，做好台账即可。", ok:false, code:"E02", tempt:"记录最直观，觉得记全时间就够。", lose:"漏观测关键线路、查非关键时差、核逻辑、收变更四项，清单缺项。", fix:"五项内容逐项列全。" },
-        { t:"监测的重点是资源供应和成本支出情况，据此判断进度是否正常。", ok:false, code:"E07", tempt:"资源成本也重要，容易搅进来。", lose:"资源/成本属其他管理内容，不是进度监测五项，属选项陷阱。", fix:"按五项监测内容作答，重点观测关键线路。" }
-      ] },
-    { tag:"程序顺序·程序维", typeHint:"单选 · 选出步骤顺序正确的作答", figLabel:"应用程序 · 四步链", figCaption:"绘图 · 算参数 · 定线路 · 编制实施", fig:"flow4",
-      stem:"运用双代号网络计划解题/编制时，正确的步骤顺序是？选出正确作答。",
-      model:"先绘图并校正逻辑（含补虚工作），再计算时间参数，据参数确定关键线路，最后编制并实施控制——顺序不可颠倒。",
-      opts:[
-        { t:"绘图并校正逻辑（含补虚工作），再计算时间参数，据以确定关键线路，最后编制实施。", ok:true, fix:"绘图、算参数、定线路、编制实施，四步顺序正确。", code:"" },
-        { t:"先在图上目测圈定关键线路，再倒推计算各工作时间参数进行验证。", ok:false, code:"E06", tempt:"图一眼看着哪条长，就想先圈再验。", lose:"跳过计算直接定线路，程序顺序错；目测在并列最长时必漏。", fix:"先算各路径长/时差，再据「总时差最小」定关键线路。" },
-        { t:"题给图纸即为最终依据，直接代入公式计算时间参数即可，逻辑无须校核。", ok:false, code:"E06", tempt:"想直奔计算，省掉「读题校图」。", lose:"未绘图/未补全逻辑就套公式，题干新增关系没进图，算了也白算。", fix:"第一步先校逻辑（含补虚工作），再算参数。" },
-        { t:"算出各工作时间参数后即可直接作答总工期，无须再确定关键线路。", ok:false, code:"E02", tempt:"参数都齐了，觉得「答案已经有了」。", lose:"漏「确定关键线路」这步，答不出线路采分点。", fix:"据参数确定并写出关键线路，再给总工期。" }
-      ] },
-    { tag:"TF与FF·条件维", typeHint:"单选 · 选出两个时差概念都正确的作答", figLabel:"两根不同的机动条", figCaption:"TF：不拖总工期 · FF：不误紧后", fig:"tfff",
-      stem:"总时差与自由时差有何区别与关系？选出概念完整正确的作答。",
-      model:"总时差 TF 是不影响总工期的机动时间；自由时差 FF 是不影响紧后工作最早开始的机动时间；FF≤TF；关键工作两者均为 0。",
-      opts:[
-        { t:"总时差是不影响总工期的机动时间；自由时差是不影响紧后工作最早开始的机动时间，FF≤TF。", ok:true, fix:"两个定义 + FF≤TF 的关系都写到，概念题满分句。", code:"" },
-        { t:"总时差是不影响紧后工作最早开始的机动时间；自由时差是不影响总工期的机动时间。", ok:false, code:"E07", tempt:"两句都眼熟，就是位置对调了。", lose:"定义互换：TF 对总工期、FF 对紧后工作，写反全错。", fix:"TF 管总工期、FF 管紧后工作，别对调。" },
-        { t:"自由时差可以大于总时差，因为它只受紧后一道工作约束、限制更少。", ok:false, code:"E07", tempt:"「约束少=更自由」听着合逻辑。", lose:"FF 是 TF 的子集空间，恒有 FF≤TF，「可以大于」概念错。", fix:"写明 FF≤TF。" },
-        { t:"只要工作不在关键线路上，其自由时差一定大于零，可放心利用。", ok:false, code:"E07", tempt:"非关键=有富余，顺推到 FF 也大于零。", lose:"非关键工作 TF>0 但 FF 可能为 0（紧后工作紧贴着开始），一定大于零不成立。", fix:"非关键工作 TF>0；FF 介于 0 与 TF 之间，需单独计算。" }
-      ] },
-    { tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", diag:true, figLabel:"模拟学生作答（待诊断）", figCaption:"三处作答 · 哪些能得分？", fig:"sheet",
+{ tag:"采分诊断·末题", typeHint:"单选 · 诊断失分并给正确补写", diag:true, figLabel:"模拟学生作答（待诊断）", figCaption:"三处作答 · 哪些能得分？", fig:"sheet",
       stem:"学生作答：①关键线路为 ①→②→⑤→⑥；②总时差是 3 和 3；③事件系甲方责任，故工期索赔成立。已知正确关键线路为 ①→②→④→⑥ 和 ①→③→④→⑥，E、G 总时差各 3 个月且延误未超时差。选出最准确的诊断与补写。",
       model:"三处都要改：①线路求错（选了 8 个月的非最长路径）且漏并列第二条；②时差数值未绑定工作名；③索赔只看责任、未比时差——延误未超时差，不影响总工期，工期索赔不成立。线路是地基，地基错后面判读连锁错。",
       opts:[
@@ -522,7 +425,7 @@ class Component extends DCLogic {
     let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
     const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","本轮已完成","本轮全对"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
@@ -541,6 +444,38 @@ class Component extends DCLogic {
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
     };
   }
+
+  pickOrder(){ return [0,1,2,3,4]; }
+  fallbackOrder(){ return [0,1,2,3,4]; }
+  ord(){ return [0,1,2,3,4]; }
+  __dtEvidenceAnswers(){
+    const source=Array.isArray(this.state.picks)?this.state.picks:(this.state.sel||{});
+    return [0,1,2,3,4].map(i=>{
+      const selected=Number(source[i]);
+      const permutation=typeof this.optPerm==='function'?this.optPerm(i):null;
+      return Array.isArray(permutation)&&Number.isInteger(selected)
+        ?Number(permutation[selected]):selected;
+    });
+  }
+  __dtRedirectEvidence(onFailure){
+    const answers=this.__dtEvidenceAnswers();
+    if(answers.length!==5||answers.some(v=>!Number.isInteger(v)||v<0||v>9)) return false;
+    const wxm=window.wx&&window.wx.miniProgram;
+    const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
+    if(!wxm||!inMini||!wxm.redirectTo) return false;
+    const url='/packageDeeptutor/pages/luban/retest/retest?mode=forward&presentation=receipt&pack_id='+encodeURIComponent("N01")+'&practice_surface='+encodeURIComponent("practice.html")+'&answer_indexes='+encodeURIComponent(answers.join(','));
+    wxm.redirectTo({url:url,fail:onFailure});
+    return true;
+  }
+  setState(patch,...args){
+    const done=patch&&(patch.finished===true||patch.phase==='result');
+    if(done){
+      const fallback=()=>DCLogic.prototype.setState.call(this,patch,...args);
+      if(this.__dtRedirectEvidence(fallback)) return;
+    }
+    return super.setState(patch,...args);
+  }
+
 }
 </script>
 </body>

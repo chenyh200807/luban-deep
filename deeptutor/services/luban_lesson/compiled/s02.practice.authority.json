@@ -1,0 +1,288 @@
+{
+  "schema_version": "luban_compiled_practice.v1",
+  "pack_id": "S02",
+  "source_pack_sha256": "32aa09500e3ba31c5b064058c1b51892f7976e8d069b5ff497d07f1a061cf1ab",
+  "source_bundle_sha256": "0606c4036bbb89d0f00d58a906331a034db1677c2aab7c489883b46d89f79b20",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html",
+      "source_html_sha256": "dc98da65cfea31a00110e82268fb7640a6d8611c23cca65fc5e05d619cb17887",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        16
+      ],
+      "variant_ids": [
+        "S02-html-practice-html-q1-dafe371b0b60",
+        "S02-html-practice-html-q2-9492e6b106f9",
+        "S02-html-practice-html-q3-21f675bf5b89",
+        "S02-html-practice-html-q4-b88ef63813a7",
+        "S02-html-practice-html-q17-ec6ea077b395"
+      ],
+      "published_practice_sha256": "3fd0354cdb5f56ec64181b876aecd0caaf0603e0981a309d43b9dfc39cf8d561"
+    }
+  ],
+  "items": [
+    {
+      "answer_type": "single_choice",
+      "rule_group": "危大判定·门槛",
+      "stem": "某工程一构件单件起吊重量 80kN，用塔式起重机吊装。关于危大等级，选出能得分的作答。",
+      "model_answer": "起重吊装单件≥10kN 即属危大工程，须编专项施工方案；80≥10，属危大（未达 100kN，不需专家论证）。",
+      "options": [
+        {
+          "text": "起重吊装单件起吊重量≥10kN 即属危大工程，须编专项施工方案；80kN 已超 10kN，属危大工程。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "引门槛 10kN + 结论「属危大」+ 须专项方案，三件齐。",
+          "option_id": "S02-html-practice-html-q1-dafe371b0b60:option-1"
+        },
+        {
+          "text": "80kN 不到 100kN，不属危大工程，按一般作业组织即可。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记成「起重吊装够 100kN 才算危大」。",
+          "loss_reason": "把超危大论证线 100kN 当成危大下限——危大门槛是 10kN。",
+          "fix": "≥10kN 即属危大，80kN 早已达标。",
+          "option_id": "S02-html-practice-html-q1-dafe371b0b60:option-2"
+        },
+        {
+          "text": "80kN 属危大且须专家论证。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "一见危大就联想到专家论证。",
+          "loss_reason": "专家论证要「非常规且单件≥100kN」（或总重≥300/高≥200），80kN 够不到。",
+          "fix": "属危大编专项方案即可，不需专家论证。",
+          "option_id": "S02-html-practice-html-q1-dafe371b0b60:option-3"
+        },
+        {
+          "text": "较重，注意加强现场安全即可，等级不必判。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "图省事跳过判等级。",
+          "loss_reason": "不判危大等级=丢结论采分，且漏专项方案。",
+          "fix": "明确 ≥10kN 属危大、须专项方案。",
+          "option_id": "S02-html-practice-html-q1-dafe371b0b60:option-4"
+        }
+      ],
+      "variant_id": "S02-html-practice-html-q1-dafe371b0b60",
+      "surface_id": "practice.html",
+      "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q1",
+      "source_html_sha256": "dc98da65cfea31a00110e82268fb7640a6d8611c23cca65fc5e05d619cb17887"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "危大判定·两层门槛",
+      "stem": "某常规塔式起重机吊装，单件起吊重量 150kN。是否需要专家论证？选出能得分的作答。",
+      "model_answer": "150≥10 属危大须专项方案；但专家论证须「非常规设备/方法」，常规设备的 150kN 够不到，不需论证。",
+      "options": [
+        {
+          "text": "150kN 属危大须专项方案；但为常规设备、未达「非常规且≥100kN」，不需专家论证。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "两阶写清：先 ≥10 判危大，再核「非常规+100/300/200」判论证。",
+          "option_id": "S02-html-practice-html-q2-9492e6b106f9:option-1"
+        },
+        {
+          "text": "150kN≥100kN，须专家论证。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "只比 100kN 数字，忽略「非常规设备/方法」前置。",
+          "loss_reason": "专家论证前置是非常规设备，常规 150kN 不触发论证。",
+          "fix": "属危大编专项方案，常规设备不需论证。",
+          "option_id": "S02-html-practice-html-q2-9492e6b106f9:option-2"
+        },
+        {
+          "text": "150kN<300kN，不属危大。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "拿总重 300kN 门槛去比单件。",
+          "loss_reason": "混淆单件与总重口径；单件 ≥10 已属危大。",
+          "fix": "单件 150≥10，属危大。",
+          "option_id": "S02-html-practice-html-q2-9492e6b106f9:option-3"
+        },
+        {
+          "text": "先开吊，专项方案随后补办。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "赶工期，先干后补。",
+          "loss_reason": "危大须先编专项方案并审批，漏方案=重大失分。",
+          "fix": "属危大，先编专项方案再作业。",
+          "option_id": "S02-html-practice-html-q2-9492e6b106f9:option-4"
+        }
+      ],
+      "variant_id": "S02-html-practice-html-q2-9492e6b106f9",
+      "surface_id": "practice.html",
+      "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q2",
+      "source_html_sha256": "dc98da65cfea31a00110e82268fb7640a6d8611c23cca65fc5e05d619cb17887"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "危大判定·超危大",
+      "stem": "双机抬吊一构件，构件总重 320kN。判定危大等级，选出能得分的作答。",
+      "model_answer": "总重≥300kN 达超危大，须专家论证（并编专项方案）。",
+      "options": [
+        {
+          "text": "构件总重 320kN≥300kN，达超危大工程，须组织专家论证（并编专项方案）。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "抓「总重≥300kN」这条独立论证门槛。",
+          "option_id": "S02-html-practice-html-q3-21f675bf5b89:option-1"
+        },
+        {
+          "text": "每台起重机各分担 160kN，均<300kN，不需论证。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "按每台分担去规避总重门槛。",
+          "loss_reason": "总重口径按构件总重 320 算，已≥300kN。",
+          "fix": "总重≥300kN，须专家论证。",
+          "option_id": "S02-html-practice-html-q3-21f675bf5b89:option-2"
+        },
+        {
+          "text": "320kN 属危大，编专项方案即可，不必论证。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "停在危大档、忘了超危大总重档。",
+          "loss_reason": "总重≥300 已进超危大论证档。",
+          "fix": "须专家论证，不止专项方案。",
+          "option_id": "S02-html-practice-html-q3-21f675bf5b89:option-3"
+        },
+        {
+          "text": "抬吊灵活，不受门槛约束。",
+          "is_correct": false,
+          "source_error_code": "M04",
+          "temptation": "把「灵活」当成免检理由。",
+          "loss_reason": "抬吊不改门槛，总重≥300 照样论证。",
+          "fix": "总重≥300kN 须论证。",
+          "option_id": "S02-html-practice-html-q3-21f675bf5b89:option-4"
+        }
+      ],
+      "variant_id": "S02-html-practice-html-q3-21f675bf5b89",
+      "surface_id": "practice.html",
+      "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q3",
+      "source_html_sha256": "dc98da65cfea31a00110e82268fb7640a6d8611c23cca65fc5e05d619cb17887"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "作业中·起吊90%",
+      "stem": "塔机起吊某构件，荷载达额定起重量的 95%。正式吊运前应如何处置？选出能得分的作答。",
+      "model_answer": "起吊达额定 90% 及以上，应先将重物吊离地面 200~500mm，检查机械稳定性、制动器、重物平稳性、绑扎牢固后再起吊。",
+      "options": [
+        {
+          "text": "达 90% 及以上，先将重物吊离地面 200~500mm，检查稳定性、制动器、重物平稳、绑扎牢固后再正式起吊。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "前置动作「先吊离 200~500」+ 四查清单，缺一扣一。",
+          "option_id": "S02-html-practice-html-q4-b88ef63813a7:option-1"
+        },
+        {
+          "text": "荷载偏大，起吊时加强观察、匀速慢吊即可。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "当成「加强注意」态度题。",
+          "loss_reason": "漏了「先吊离地 200~500 再四查」的前置程序，丢采分。",
+          "fix": "补「先吊离 200~500mm，查稳定/制动/平稳/绑扎」。",
+          "option_id": "S02-html-practice-html-q4-b88ef63813a7:option-2"
+        },
+        {
+          "text": "直接吊到位后再检查制动与绑扎。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "觉得吊上去再查也一样。",
+          "loss_reason": "检查须在吊离地面时做，吊到位才查已失意义、程序错。",
+          "fix": "先吊离地 200~500mm 检查，合格再升。",
+          "option_id": "S02-html-practice-html-q4-b88ef63813a7:option-3"
+        },
+        {
+          "text": "先吊离地面约 1m 稳一稳再检查。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "记得要吊离，却记错高度。",
+          "loss_reason": "离地高度应 200~500mm，不是 1m。",
+          "fix": "吊离 200~500mm 后四查。",
+          "option_id": "S02-html-practice-html-q4-b88ef63813a7:option-4"
+        }
+      ],
+      "variant_id": "S02-html-practice-html-q4-b88ef63813a7",
+      "surface_id": "practice.html",
+      "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q4",
+      "source_html_sha256": "dc98da65cfea31a00110e82268fb7640a6d8611c23cca65fc5e05d619cb17887"
+    },
+    {
+      "answer_type": "single_choice",
+      "rule_group": "采分诊断·末题",
+      "stem": "题目要求指出塔机吊装作业中的不妥。某学生只答：①基础未验收；②钢丝绳有断丝。背景另给：6 级大风仍露天作业、起吊达 92% 未先吊离地检查。选出最准确的诊断与补写。",
+      "model_answer": "漏采分：未答「6 级风应停露天作业」「起吊≥90% 应先吊离地 200~500 查四项」；补这两句，并把基础改为「须设计验算、高≥1m、C25」、钢丝绳补「断丝>10%/磨损40%报废」。",
+      "options": [
+        {
+          "text": "漏两条采分：一，6 级风应停露天作业；二，起吊达 90% 应先吊离地 200~500 查四项。基础、钢丝绳两条方向对，补足数值即可。",
+          "is_correct": true,
+          "source_error_code": "",
+          "temptation": "",
+          "loss_reason": "",
+          "fix": "照三关补齐气象与 90% 前置，这正是丢的采分句。",
+          "option_id": "S02-html-practice-html-q17-ec6ea077b395:option-1"
+        },
+        {
+          "text": "学生答了两条不妥，基本到位，可给大部分分。",
+          "is_correct": false,
+          "source_error_code": "E02",
+          "temptation": "看见答了两条就以为差不多。",
+          "loss_reason": "漏了气象（6 级停）与 90% 先吊离地两大采分点，逐条给分丢得多。",
+          "fix": "逐条比对，补 6 级停、90% 先吊离地四查。",
+          "option_id": "S02-html-practice-html-q17-ec6ea077b395:option-2"
+        },
+        {
+          "text": "只要再补一句「注意安全」就完整了。",
+          "is_correct": false,
+          "source_error_code": "M09",
+          "temptation": "用笼统一句凑数。",
+          "loss_reason": "「注意安全」不是采分句，须落到具体规范条。",
+          "fix": "补具体两句：6 级停、90% 先吊离地查四项。",
+          "option_id": "S02-html-practice-html-q17-ec6ea077b395:option-3"
+        },
+        {
+          "text": "背景里 92% 未到 100%，不用先吊离地。",
+          "is_correct": false,
+          "source_error_code": "M08",
+          "temptation": "把 90% 触发线记成 100%。",
+          "loss_reason": "触发线是 90% 及以上，92% 已触发先吊离地。",
+          "fix": "≥90% 即先吊离 200~500 查四项。",
+          "option_id": "S02-html-practice-html-q17-ec6ea077b395:option-4"
+        }
+      ],
+      "variant_id": "S02-html-practice-html-q17-ec6ea077b395",
+      "surface_id": "practice.html",
+      "source_index": 16,
+      "source_group": "Q",
+      "source_group_index": null,
+      "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_S02/P40_S02.practice.dc.html#Q17",
+      "source_html_sha256": "dc98da65cfea31a00110e82268fb7640a6d8611c23cca65fc5e05d619cb17887"
+    }
+  ],
+  "published_lesson_sha256": "cc7b700c21aef9a4aa0660a557d8bceead18376d91b9d2babb998b78fc3db3f6"
+}

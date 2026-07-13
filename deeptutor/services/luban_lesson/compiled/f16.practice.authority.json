@@ -1,15 +1,31 @@
 {
+  "schema_version": "luban_compiled_practice.v1",
   "pack_id": "F16",
-  "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html",
-  "source_html_sha256": "0ebd0de58bbdbc692da4965d09555fd33f34d115ed95058eeccdaa9703a3c374",
   "source_pack_sha256": "51b0f455ad205b4ed9965720d9562861a4a2ef7e8e7aa4c690ca69b8d88fff2e",
-  "source_bundle_sha256": "eaaf37a3b5421a0a57924032da43b36622b8041d6e1e60f228889341369678c8",
-  "presentation_order": [
-    0,
-    1,
-    2,
-    3,
-    5
+  "source_bundle_sha256": "393fd34e69420f46f74052ea4f0a3d958b1ba452a4a33657f849ae35d44b2806",
+  "surfaces": [
+    {
+      "surface_id": "practice.html",
+      "source_path": "artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html",
+      "source_html_sha256": "d46076db43f9c8dc32a42022c899ca60cb843be01bee6cf994933f4b5e41cb11",
+      "format_kind": "ord_method",
+      "array_marker": "\\bQ\\s*=",
+      "presentation_order": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "variant_ids": [
+        "F16-html-practice-html-q1-af7311017f72",
+        "F16-html-practice-html-q2-bb4148a37741",
+        "F16-html-practice-html-q3-32bee581fa3b",
+        "F16-html-practice-html-q4-d5fc73fb6010",
+        "F16-html-practice-html-q6-764582bd8fe7"
+      ],
+      "published_practice_sha256": "d8420e8a3e709e74f6401d6dce1f15747ae53df7b986fcceb77515ae9df3d152"
+    }
   ],
   "items": [
     {
@@ -25,7 +41,7 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "分档界 100mm + 两路治法配套写全，这就是判分眼。",
-          "option_id": "F16-html-q1-af7311017f72:option-1"
+          "option_id": "F16-html-practice-html-q1-af7311017f72:option-1"
         },
         {
           "text": "不分档，两类鼓泡一律用刀割开、清理干净再重贴新卷材，一步到位处理得最彻底。",
@@ -34,7 +50,7 @@
           "temptation": "觉得割补最彻底，小鼓大鼓一起割省得复发。",
           "loss_reason": "小鼓＜100mm 抽气灌胶即可，一律割开是把完好防水层豁开大口子，违反 100mm 分档。",
           "fix": "Ø80 用抽气灌胶法，只有 ≥100mm 才走割补。",
-          "option_id": "F16-html-q1-af7311017f72:option-2"
+          "option_id": "F16-html-practice-html-q1-af7311017f72:option-2"
         },
         {
           "text": "不分档，两类鼓泡一律采用抽气灌胶法，不破坏原有卷材又省时省料，现场操作最简便。",
@@ -43,7 +59,7 @@
           "temptation": "抽气灌胶听着稳妥又不动刀，像「保守正确」。",
           "loss_reason": "Ø160 大鼓胶结料大面积失效，只抽气治标不治本、原地复发；分档用错档。",
           "fix": "≥100mm 大鼓必须割补：割开、清理、吹干、重贴。",
-          "option_id": "F16-html-q1-af7311017f72:option-3"
+          "option_id": "F16-html-practice-html-q1-af7311017f72:option-3"
         },
         {
           "text": "按 300mm 直径分档：直径＜300mm 的抽气灌胶，≥300mm 的割开重贴，两类分开处理。",
@@ -52,13 +68,16 @@
           "temptation": "记得「按直径分档」这个动作，界值却记串了。",
           "loss_reason": "分档界是 100mm，写 300mm 属规范数字混淆，两类鼓泡全被分错档。",
           "fix": "分档界=100mm：＜100 抽气灌胶、≥100 割补。",
-          "option_id": "F16-html-q1-af7311017f72:option-4"
+          "option_id": "F16-html-practice-html-q1-af7311017f72:option-4"
         }
       ],
-      "variant_id": "F16-html-q1-af7311017f72",
+      "variant_id": "F16-html-practice-html-q1-af7311017f72",
+      "surface_id": "practice.html",
       "source_index": 0,
+      "source_group": "Q",
+      "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q1",
-      "source_html_sha256": "0ebd0de58bbdbc692da4965d09555fd33f34d115ed95058eeccdaa9703a3c374"
+      "source_html_sha256": "d46076db43f9c8dc32a42022c899ca60cb843be01bee6cf994933f4b5e41cb11"
     },
     {
       "answer_type": "single_choice",
@@ -73,7 +92,7 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "八环自前向后一环不落，放气/擦干/重做保护层三个易漏环都在。",
-          "option_id": "F16-html-q2-bb4148a37741:option-1"
+          "option_id": "F16-html-practice-html-q2-bb4148a37741:option-1"
         },
         {
           "text": "斜十字割开鼓泡→直接重贴方形新卷材→周边压实刮平→重做保护层，主干工序齐了即可。",
@@ -82,7 +101,7 @@
           "temptation": "记住了「割开、重贴、压实、保护层」这条主干，觉得够了。",
           "loss_reason": "漏放气、擦干水分、清除旧胶结料、烘烤剥离四步——擦干是防复发命门，漏了原地二次起鼓。",
           "fix": "割开后先放气、擦干、清旧胶、烘烤剥离，再重贴。",
-          "option_id": "F16-html-q2-bb4148a37741:option-2"
+          "option_id": "F16-html-practice-html-q2-bb4148a37741:option-2"
         },
         {
           "text": "斜十字割开鼓泡→放气→重贴方形新卷材→再擦干水分→清旧胶→烘烤压实→重做保护层收面。",
@@ -91,7 +110,7 @@
           "temptation": "步骤好像都有，顺序上「先贴上再收拾」显得快。",
           "loss_reason": "先贴后擦干=顺序颠倒，水分被封在新卷材底下，工序自前向后不可颠倒。",
           "fix": "必须先擦干、清旧胶、烘烤剥离，收拾干净再重贴。",
-          "option_id": "F16-html-q2-bb4148a37741:option-3"
+          "option_id": "F16-html-practice-html-q2-bb4148a37741:option-3"
         },
         {
           "text": "斜十字割开鼓泡、放出气体之后，把这块防水层重新做一遍，恢复整体防水功能即可。",
@@ -100,13 +119,16 @@
           "temptation": "考场紧张，想用一句「重新做防水」概括全部。",
           "loss_reason": "口号化表达、笼统跳步，无可判分的工序细节，典型 0 分写法。",
           "fix": "逐步写全八环：割开→放气→擦干→清旧胶→烘烤剥离→重贴→压实→重做保护层。",
-          "option_id": "F16-html-q2-bb4148a37741:option-4"
+          "option_id": "F16-html-practice-html-q2-bb4148a37741:option-4"
         }
       ],
-      "variant_id": "F16-html-q2-bb4148a37741",
+      "variant_id": "F16-html-practice-html-q2-bb4148a37741",
+      "surface_id": "practice.html",
       "source_index": 1,
+      "source_group": "Q",
+      "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q2",
-      "source_html_sha256": "0ebd0de58bbdbc692da4965d09555fd33f34d115ed95058eeccdaa9703a3c374"
+      "source_html_sha256": "d46076db43f9c8dc32a42022c899ca60cb843be01bee6cf994933f4b5e41cb11"
     },
     {
       "answer_type": "single_choice",
@@ -121,7 +143,7 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "三段式齐：照抄不妥做法 + 点中漏步理由 + 给出具体正确工序。",
-          "option_id": "F16-html-q3-32bee581fa3b:option-1"
+          "option_id": "F16-html-practice-html-q3-32bee581fa3b:option-1"
         },
         {
           "text": "妥当。既然已经把鼓泡割开处理过了，直接贴上新卷材就能恢复这块屋面的防水功能。",
@@ -130,7 +152,7 @@
           "temptation": "「割开+重贴」两个关键词都有，看着像走完了流程。",
           "loss_reason": "漏判：中间放气/擦干/清旧胶/烘烤剥离整段缺失，属采分点遗漏。",
           "fix": "割开与重贴之间必须补齐放气、擦干、清旧胶、烘烤剥离。",
-          "option_id": "F16-html-q3-32bee581fa3b:option-2"
+          "option_id": "F16-html-practice-html-q3-32bee581fa3b:option-2"
         },
         {
           "text": "不妥。理由：顺序整反了，应先把割口用新卷材贴上封住防进水，之后再回头擦干、清旧胶、做干燥处理。",
@@ -139,7 +161,7 @@
           "temptation": "「先封口防水」听着符合防水直觉。",
           "loss_reason": "方向纠反了：先贴后清=顺序颠倒，水分被封在底下必复发；工序不可颠倒。",
           "fix": "先清理干燥、后重贴，这个先后不能反。",
-          "option_id": "F16-html-q3-32bee581fa3b:option-3"
+          "option_id": "F16-html-practice-html-q3-32bee581fa3b:option-3"
         },
         {
           "text": "不妥。理由：该做法不够规范。正确做法：应当严格按照防水施工及验收规范的要求组织施工。",
@@ -148,13 +170,16 @@
           "temptation": "「按规范施工」万金油，写上感觉总没错。",
           "loss_reason": "泛泛而谈无采分细节：理由没点漏哪步、改正没给具体工序，阅卷不给分。",
           "fix": "理由写「漏放气/擦干/清旧胶」，改正写具体工序链。",
-          "option_id": "F16-html-q3-32bee581fa3b:option-4"
+          "option_id": "F16-html-practice-html-q3-32bee581fa3b:option-4"
         }
       ],
-      "variant_id": "F16-html-q3-32bee581fa3b",
+      "variant_id": "F16-html-practice-html-q3-32bee581fa3b",
+      "surface_id": "practice.html",
       "source_index": 2,
+      "source_group": "Q",
+      "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q3",
-      "source_html_sha256": "0ebd0de58bbdbc692da4965d09555fd33f34d115ed95058eeccdaa9703a3c374"
+      "source_html_sha256": "d46076db43f9c8dc32a42022c899ca60cb843be01bee6cf994933f4b5e41cb11"
     },
     {
       "answer_type": "single_choice",
@@ -169,7 +194,7 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "清单枚举全，且点明「基层平整干燥/排气孔」两个防复发关键项。",
-          "option_id": "F16-html-q4-d5fc73fb6010:option-1"
+          "option_id": "F16-html-practice-html-q4-d5fc73fb6010:option-1"
         },
         {
           "text": "只查搭接长度、泛水高度、卷材外观是否合格即可，其余项目按常规做法办理、不必逐项复核。",
@@ -178,7 +203,7 @@
           "temptation": "搭接、泛水是防水题最眼熟的两个词，顺手就写。",
           "loss_reason": "恰恰漏掉「基层平整干燥」「排气孔」这两个防起鼓复发的根因检查项。",
           "fix": "补上基层平整干燥、排气孔等项，清单枚举要全。",
-          "option_id": "F16-html-q4-d5fc73fb6010:option-2"
+          "option_id": "F16-html-practice-html-q4-d5fc73fb6010:option-2"
         },
         {
           "text": "重点检查卷材表面是否平整、有无鼓包翘边，只要外观验收合格这道防水工序就算过关。",
@@ -187,7 +212,7 @@
           "temptation": "「没鼓包就是没问题」符合直觉。",
           "loss_reason": "只看表面不查根因：基层含水、排气孔堵着，外观再平过俩月照样鼓。",
           "fix": "往根因查：基层平整干燥、排气孔通畅才是防复发关键。",
-          "option_id": "F16-html-q4-d5fc73fb6010:option-3"
+          "option_id": "F16-html-practice-html-q4-d5fc73fb6010:option-3"
         },
         {
           "text": "只检查最后的保护层做得好不好即可，下面各构造层既已被覆盖，无法检查也就无需再查。",
@@ -196,13 +221,16 @@
           "temptation": "「盖住了没法查」听着像现场实情。",
           "loss_reason": "过程检查就是要在覆盖前逐层查，尤其基层干燥与排气孔；只查最后一层=背景信息提取失败。",
           "fix": "施工过程中逐项检查基层干燥、排气孔、搭接、泛水、保护层等。",
-          "option_id": "F16-html-q4-d5fc73fb6010:option-4"
+          "option_id": "F16-html-practice-html-q4-d5fc73fb6010:option-4"
         }
       ],
-      "variant_id": "F16-html-q4-d5fc73fb6010",
+      "variant_id": "F16-html-practice-html-q4-d5fc73fb6010",
+      "surface_id": "practice.html",
       "source_index": 3,
+      "source_group": "Q",
+      "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q4",
-      "source_html_sha256": "0ebd0de58bbdbc692da4965d09555fd33f34d115ed95058eeccdaa9703a3c374"
+      "source_html_sha256": "d46076db43f9c8dc32a42022c899ca60cb843be01bee6cf994933f4b5e41cb11"
     },
     {
       "answer_type": "single_choice",
@@ -217,7 +245,7 @@
           "temptation": "",
           "loss_reason": "",
           "fix": "逐处指漏+给可抄的正确采分句——这就是「会看答案→会写答案」。",
-          "option_id": "F16-html-q6-764582bd8fe7:option-1"
+          "option_id": "F16-html-practice-html-q6-764582bd8fe7:option-1"
         },
         {
           "text": "作答里「抽气灌胶」「割开」「压实」等采分关键词都出现了，踩到了得分词，应当可以给满分。",
@@ -226,7 +254,7 @@
           "temptation": "关键词都眼熟，容易以为「词到分到」。",
           "loss_reason": "阅卷看的是完整采分句与工序链，不是关键词堆砌：分档错、漏步、缺保护层一个没诊出来。",
           "fix": "按分档+八环工序逐项核对，缺步就是丢分。",
-          "option_id": "F16-html-q6-764582bd8fe7:option-2"
+          "option_id": "F16-html-practice-html-q6-764582bd8fe7:option-2"
         },
         {
           "text": "作答基本没问题，只有末尾漏了「重做保护层」这一处小毛病，补上一句保护层即可，其余全对。",
@@ -235,7 +263,7 @@
           "temptation": "末尾漏保护层最显眼，抓到一处就以为诊断完了。",
           "loss_reason": "漏诊①不分档（一律抽气灌胶）和②割开直接贴（漏放气/擦干/清旧胶）两处大失分。",
           "fix": "三处一起补：分档、割补中段四步、保护层+究因。",
-          "option_id": "F16-html-q6-764582bd8fe7:option-3"
+          "option_id": "F16-html-practice-html-q6-764582bd8fe7:option-3"
         },
         {
           "text": "主要错误在治法选错：起鼓应改用钉钉子法固定卷材，把三行作答按钉钉子法思路整体重写即可。",
@@ -244,15 +272,17 @@
           "temptation": "看出「治法有问题」，却往姐妹病害的药方上纠。",
           "loss_reason": "诊断方向本身错：钉钉子法治流淌不治起鼓，照此重写全盘皆错。",
           "fix": "起鼓就按 100mm 分档+割补八环诊断补写。",
-          "option_id": "F16-html-q6-764582bd8fe7:option-4"
+          "option_id": "F16-html-practice-html-q6-764582bd8fe7:option-4"
         }
       ],
-      "variant_id": "F16-html-q6-764582bd8fe7",
+      "variant_id": "F16-html-practice-html-q6-764582bd8fe7",
+      "surface_id": "practice.html",
       "source_index": 5,
+      "source_group": "Q",
+      "source_group_index": null,
       "anchor": "compiled_html:artifacts/luban_case_family_assets/diagram_microlesson/finished/P40_F16/P40_F16.practice.dc.html#Q6",
-      "source_html_sha256": "0ebd0de58bbdbc692da4965d09555fd33f34d115ed95058eeccdaa9703a3c374"
+      "source_html_sha256": "d46076db43f9c8dc32a42022c899ca60cb843be01bee6cf994933f4b5e41cb11"
     }
   ],
-  "published_lesson_sha256": "6779158f322e089885d92fcffb7cdea7c9f637ef87370be6fce3569932a14fdc",
-  "published_practice_sha256": "af4271377dc4b222d08179003e9b07344835aaa7d0f6598d3602a469db4e9ea0"
+  "published_lesson_sha256": "63bf46eb90ff21fafc38d57293683075a6e1d354a12ee735940c8fd3d7a040fb"
 }
