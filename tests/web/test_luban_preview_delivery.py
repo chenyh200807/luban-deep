@@ -24,10 +24,10 @@ def test_luban_preview_cache_policy_separates_media_from_entry_html() -> None:
 def test_shared_card_runtime_is_self_hosted_and_integrity_pinned() -> None:
     root = ROOT / "web/public/luban-preview"
     expected = {
-        "babel-7.26.4.min.js": "a12872ea8da3d29b2a296c51bfac7c482e81419c755f2207a49ad9b77200f4ea",
-        "babel-7.29.0.min.js": "2623a9e22809915ce789b4461154e277ddce520d5a4320c14d44332a5d0dcea0",
-        "react-18.3.1.production.min.js": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd",
-        "react-dom-18.3.1.production.min.js": "35f4f974f4b2bcd44da73963347f8952e341f83909e4498227d4e26b98f66f0d",
+        "babel-7.26.4.min.js": "a12872ea8da3d29b2a296c51bfac7c482e81419c755f2207a49ad9b77200f4ea",  # pragma: allowlist secret - public asset SHA256
+        "babel-7.29.0.min.js": "2623a9e22809915ce789b4461154e277ddce520d5a4320c14d44332a5d0dcea0",  # pragma: allowlist secret - public asset SHA256
+        "react-18.3.1.production.min.js": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd",  # pragma: allowlist secret - public asset SHA256
+        "react-dom-18.3.1.production.min.js": "35f4f974f4b2bcd44da73963347f8952e341f83909e4498227d4e26b98f66f0d",  # pragma: allowlist secret - public asset SHA256
     }
     for name, expected_digest in expected.items():
         data = (root / "vendor" / name).read_bytes()
