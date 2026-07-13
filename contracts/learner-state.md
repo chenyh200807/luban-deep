@@ -525,6 +525,13 @@ Overlay 必须支持：
   `public.users`，且该镜像行必须满足现有 `users` schema 的必填列（当前线上必填为
   `createdAt`；不得写入 schema 不存在的 `updatedAt`）。移动端生成的 `user_6508` 这类 learner id 不能只停留在本地 JSONL
   或 outbox；否则 remote-first reader 会读不到证据并反复降级到 starter focus。
+- `public.users` 已存在时，learner-state mirror writer 只能合并 `metadata`，不得重写
+  `createdAt`；注册时间只在首次创建镜像行时写入。否则学情活动会被错误投影成 BI 新增会员。
+- learner-state mirror 与手机号 identity writer 必须按 canonical `user_id` 从 external-auth
+  identity authority 继承机器身份；任一 machine/eval 信号都必须闭合为
+  `account_kind='eval_runner'`、`actor_type='machine'`、`created_by='eval_runner'`、
+  `is_internal_test=true` 四字段，并同步到 `public.users.metadata` 与 phone alias `metadata`。
+  下游 writer 不得用空 metadata 或仅含 mirror 来源的 metadata 覆盖这些字段。
 - Home dashboard、heartbeat context 和 learner-facing projections 如果先经过
   member identity 合并，后续 learner-state reader 必须使用合并后的 canonical
   `member.user_id`。`user_2008` 等 legacy alias 只允许作为入口查询键，不得在

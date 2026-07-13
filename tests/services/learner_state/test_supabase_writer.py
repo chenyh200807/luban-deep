@@ -10,6 +10,7 @@ from deeptutor.services.learner_state.heartbeat.service import LearnerHeartbeatS
 from deeptutor.services.learning_plan import LearningPlanService
 from deeptutor.services.learner_state.outbox import LearnerStateOutboxItem
 from deeptutor.services.learner_state.supabase_writer import LearnerStateSupabaseWriter
+from deeptutor.services.member_console.external_auth import ensure_external_auth_user
 
 
 def _make_item(
@@ -38,6 +39,7 @@ def _make_client(
     requests: list[dict[str, object]],
     *,
     existing_summary_structured_json: dict | None = None,
+    existing_user_row: dict | None = None,
 ) -> httpx.AsyncClient:
     summary_state = {"summary_structured_json": existing_summary_structured_json}
 
@@ -53,6 +55,12 @@ def _make_client(
                 "json": request_json,
             }
         )
+        if request.method == "GET" and request.url.path == "/rest/v1/users":
+            return httpx.Response(
+                200,
+                json=[existing_user_row] if existing_user_row is not None else [],
+                request=request,
+            )
         if request.method == "GET" and request.url.path == "/rest/v1/learner_summaries":
             structured = summary_state["summary_structured_json"]
             if structured is None:
@@ -72,6 +80,10 @@ def _make_client(
         transport=httpx.MockTransport(handler),
         base_url="https://example.supabase.co",
     )
+
+
+def _write_requests(requests: list[dict[str, object]]) -> list[dict[str, object]]:
+    return [request for request in requests if request["method"] != "GET"]
 
 
 class _PathServiceStub:
@@ -116,13 +128,14 @@ def test_write_item_turn_writes_learner_memory_event_only() -> None:
 
     assert result.ok is True
     assert result.written_tables == ("users", "learner_memory_events")
-    assert len(requests) == 2
-    assert requests[0]["path"] == "/rest/v1/users"
-    assert requests[0]["params"]["on_conflict"] == "id"
-    assert requests[0]["json"][0]["id"] == "student_demo"
-    assert requests[0]["json"][0]["createdAt"]
-    assert "updatedAt" not in requests[0]["json"][0]
-    request = requests[1]
+    write_requests = _write_requests(requests)
+    assert len(write_requests) == 2
+    assert write_requests[0]["path"] == "/rest/v1/users"
+    assert write_requests[0]["params"]["on_conflict"] == "id"
+    assert write_requests[0]["json"][0]["id"] == "student_demo"
+    assert write_requests[0]["json"][0]["createdAt"]
+    assert "updatedAt" not in write_requests[0]["json"][0]
+    request = write_requests[1]
     assert request["path"] == "/rest/v1/learner_memory_events"
     assert request["params"]["on_conflict"] == "dedupe_key"
     assert request["headers"]["apikey"] == "service-key"
@@ -130,6 +143,103 @@ def test_write_item_turn_writes_learner_memory_event_only() -> None:
     assert request["headers"]["prefer"] == "resolution=merge-duplicates,return=representation"
     assert request["json"][0]["memory_kind"] == "turn"
     assert request["json"][0]["payload_json"]["assistant_message"] == "你好，我在。"
+
+    asyncio.run(client.aclose())
+
+
+def test_new_eval_runner_user_mirror_inherits_canonical_machine_identity(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(tmp_path / "users.json"))
+    external_user = ensure_external_auth_user(
+        "qa_eval_codex_learner_state",
+        "StrongPass123",
+    )
+    requests: list[dict[str, object]] = []
+    client = _make_client(requests)
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    item = _make_item(
+        event_type="turn",
+        dedupe_key="turn:eval-new",
+        user_id=str(external_user["id"]),
+        payload_json={"event_id": "evt_eval_new", "source_feature": "turn"},
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    user_write = next(
+        request
+        for request in _write_requests(requests)
+        if request["path"] == "/rest/v1/users"
+    )
+    assert user_write["method"] == "POST"
+    assert user_write["json"][0]["metadata"] == {
+        "source": "learner_state_outbox",
+        "mirror_reason": "learner_state_fk",
+        "account_kind": "eval_runner",
+        "actor_type": "machine",
+        "created_by": "eval_runner",
+        "is_internal_test": True,
+        "runner": "codex",
+        "agent_tool": "codex",
+    }
+
+    asyncio.run(client.aclose())
+
+
+def test_existing_eval_runner_user_mirror_preserves_registration_time_and_metadata(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(tmp_path / "users.json"))
+    external_user = ensure_external_auth_user(
+        "qa_eval_claude_learner_state",
+        "StrongPass123",
+    )
+    requests: list[dict[str, object]] = []
+    client = _make_client(
+        requests,
+        existing_user_row={
+            "metadata": {
+                "source": "learner_state_outbox",
+                "mirror_reason": "learner_state_fk",
+                "retained_key": "retained_value",
+            }
+        },
+    )
+    writer = LearnerStateSupabaseWriter(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+    item = _make_item(
+        event_type="turn",
+        dedupe_key="turn:eval-existing",
+        user_id=str(external_user["id"]),
+        payload_json={"event_id": "evt_eval_existing", "source_feature": "turn"},
+    )
+
+    result = asyncio.run(writer.write_item(item))
+
+    assert result.ok is True
+    user_write = next(
+        request
+        for request in _write_requests(requests)
+        if request["path"] == "/rest/v1/users"
+    )
+    assert user_write["method"] == "PATCH"
+    assert "createdAt" not in user_write["json"]
+    assert user_write["json"]["metadata"]["retained_key"] == "retained_value"
+    assert user_write["json"]["metadata"]["account_kind"] == "eval_runner"
+    assert user_write["json"]["metadata"]["actor_type"] == "machine"
+    assert user_write["json"]["metadata"]["created_by"] == "eval_runner"
+    assert user_write["json"]["metadata"]["is_internal_test"] is True
 
     asyncio.run(client.aclose())
 
@@ -164,11 +274,12 @@ def test_write_item_learning_evidence_writes_learner_memory_event() -> None:
 
     assert result.ok is True
     assert result.written_tables == ("users", "learner_memory_events")
-    assert requests[0]["path"] == "/rest/v1/users"
-    assert requests[0]["json"][0]["id"] == "student_demo"
-    assert requests[0]["json"][0]["createdAt"]
-    assert "updatedAt" not in requests[0]["json"][0]
-    request = requests[1]
+    write_requests = _write_requests(requests)
+    assert write_requests[0]["path"] == "/rest/v1/users"
+    assert write_requests[0]["json"][0]["id"] == "student_demo"
+    assert write_requests[0]["json"][0]["createdAt"]
+    assert "updatedAt" not in write_requests[0]["json"][0]
+    request = write_requests[1]
     assert request["path"] == "/rest/v1/learner_memory_events"
     assert request["json"][0]["memory_kind"] == "learning_evidence"
     assert request["json"][0]["payload_json"]["error_events"][0]["error_code"] == "E02"
@@ -348,13 +459,14 @@ def test_write_item_learning_plan_page_syncs_single_page_and_parent_plan(tmp_pat
 
     assert result.ok is True
     assert result.written_tables == ("users", "learning_plans", "learning_plan_pages")
-    assert [request["path"] for request in requests] == [
+    write_requests = _write_requests(requests)
+    assert [request["path"] for request in write_requests] == [
         "/rest/v1/users",
         "/rest/v1/learning_plans",
         "/rest/v1/learning_plan_pages",
     ]
-    plan_body = requests[1]["json"][0]
-    page_body = requests[2]["json"][0]
+    plan_body = write_requests[1]["json"][0]
+    page_body = write_requests[2]["json"][0]
     assert plan_body["plan_id"] == "guide_42"
     assert plan_body["status"] == "learning"
     assert page_body["plan_id"] == "guide_42"
@@ -399,9 +511,10 @@ def test_write_item_heartbeat_job_writes_heartbeat_jobs_only(tmp_path) -> None:
 
     assert result.ok is True
     assert result.written_tables == ("users", "heartbeat_jobs")
-    assert len(requests) == 2
-    assert requests[0]["path"] == "/rest/v1/users"
-    request = requests[1]
+    write_requests = _write_requests(requests)
+    assert len(write_requests) == 2
+    assert write_requests[0]["path"] == "/rest/v1/users"
+    request = write_requests[1]
     assert request["path"] == "/rest/v1/heartbeat_jobs"
     assert request["params"]["on_conflict"] == "user_id,bot_id,channel"
     body = request["json"][0]
@@ -454,7 +567,7 @@ def test_write_item_heartbeat_job_preserves_structured_last_result_json(tmp_path
     result = asyncio.run(writer.write_item(item))
 
     assert result.ok is True
-    body = requests[1]["json"][0]
+    body = _write_requests(requests)[1]["json"][0]
     assert body["last_result_json"]["success"] is True
     assert body["last_result_json"]["delivery"]["state"] == "sent"
     assert body["last_result_json"]["audit"]["status"] == "ok"
@@ -487,9 +600,10 @@ def test_write_item_summary_refresh_writes_summary_only() -> None:
 
     assert result.ok is True
     assert result.written_tables == ("users", "learner_summaries")
-    assert len(requests) == 2
-    assert requests[0]["path"] == "/rest/v1/users"
-    request = requests[1]
+    write_requests = _write_requests(requests)
+    assert len(write_requests) == 2
+    assert write_requests[0]["path"] == "/rest/v1/users"
+    request = write_requests[1]
     assert request["path"] == "/rest/v1/learner_summaries"
     assert request["json"][0]["summary_md"].startswith("## 当前学习概览")
     assert request["json"][0]["last_refreshed_from_feature"] == "chat"
@@ -734,16 +848,17 @@ def test_write_item_overlay_patch_writes_overlay_tables_and_event_stream() -> No
         "bot_learner_overlay_events",
         "bot_learner_overlay_audit",
     )
-    assert [request["path"] for request in requests] == [
+    write_requests = _write_requests(requests)
+    assert [request["path"] for request in write_requests] == [
         "/rest/v1/users",
         "/rest/v1/learner_memory_events",
         "/rest/v1/bot_learner_overlays",
         "/rest/v1/bot_learner_overlay_events",
         "/rest/v1/bot_learner_overlay_audit",
     ]
-    overlay_body = requests[2]["json"][0]
-    event_body = requests[3]["json"][0]
-    audit_body = requests[4]["json"][0]
+    overlay_body = write_requests[2]["json"][0]
+    event_body = write_requests[3]["json"][0]
+    audit_body = write_requests[4]["json"][0]
     assert overlay_body["bot_id"] == "bot_alpha"
     assert overlay_body["active_plan_id"] == "plan_1"
     assert overlay_body["working_memory_projection_md"] == "继续当前计划"

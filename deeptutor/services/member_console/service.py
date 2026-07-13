@@ -90,6 +90,7 @@ from deeptutor.services.member_console.external_auth import (
     delete_external_auth_sessions,
     delete_external_auth_user,
     ensure_external_auth_user_for_phone,
+    get_external_auth_identity_metadata,
     get_external_auth_user,
     get_external_auth_user_by_phone,
     load_external_auth_users,
@@ -8915,7 +8916,11 @@ class MemberConsoleService:
         if not db_url:
             logger.warning("phone identity persist skipped: DB_URL not configured")
             return
-        metadata_json = json.dumps(identity_metadata or {}, ensure_ascii=False)
+        canonical_identity_metadata = get_external_auth_identity_metadata(canonical_uid)
+        metadata_json = json.dumps(
+            {**(identity_metadata or {}), **canonical_identity_metadata},
+            ensure_ascii=False,
+        )
         try:
             try:
                 import psycopg
@@ -8958,10 +8963,15 @@ class MemberConsoleService:
                         canonical_uid,
                     )
                     return
-                # users.phone 只在空时写入，避免覆盖已有值
+                # 联系方式不覆盖已有值；机器身份始终从 external-auth authority 合并。
                 cur.execute(
-                    "UPDATE public.users SET phone = %s WHERE id = %s AND (phone IS NULL OR phone = '')",
-                    (phone, canonical_uid),
+                    """
+                    UPDATE public.users
+                    SET phone = CASE WHEN phone IS NULL OR phone = '' THEN %s ELSE phone END,
+                        metadata = COALESCE(metadata, '{}'::jsonb) || %s::jsonb
+                    WHERE id = %s
+                    """,
+                    (phone, metadata_json, canonical_uid),
                 )
                 # psycopg3 和 psycopg2 的 `with conn:` 均在 __exit__ 时自动 commit，
                 # 此处不需要显式调用 conn.commit()。
