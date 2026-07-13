@@ -14,6 +14,7 @@ import {
   Trash2,
   UserCog,
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import {
   useCallback,
   useEffect,
@@ -57,7 +58,6 @@ import {
   type BiCommercePackage,
   type BiInternalAccountState,
 } from '@/lib/bi-api'
-import { MemberOpsCockpit } from '@/components/bi-cockpit/MemberOpsCockpit'
 import {
   ALL_COLUMNS,
   DEFAULT_COLUMNS,
@@ -73,6 +73,12 @@ import {
   type SavedView,
 } from './data'
 import { useAuditedAction } from '../useAuditedAction'
+
+const MemberOpsCockpit = dynamic(
+  () =>
+    import('@/components/bi-cockpit/MemberOpsCockpit').then(module => module.MemberOpsCockpit),
+  { ssr: false }
+)
 
 const STATUS_TONE = {
   active: 'emerald',
@@ -365,6 +371,9 @@ export function BiV2MemberOpsPanel({
   const [internalActionWriting, setInternalActionWriting] = useState(false)
   const [internalActionError, setInternalActionError] = useState('')
   const lastAutoOpenedQueryRef = useRef('')
+  const internalStatesRef = useRef<Record<string, BiInternalAccountState>>({})
+  const internalAccountsLoadedRef = useRef(false)
+  const internalAccountsLoadingRef = useRef(false)
   const memberOpsAction = useAuditedAction({ actionType: 'member.ops_action.record' })
   const opsActionWriting = memberOpsAction.state.phase === 'writing'
   const opsActionError =
@@ -412,6 +421,35 @@ export function BiV2MemberOpsPanel({
     [behaviorCohort, filters, globalQuery, sortDir, sortKey]
   )
 
+  const loadInternalAccounts = useCallback(async (force = false) => {
+    if (internalAccountsLoadingRef.current || (!force && internalAccountsLoadedRef.current)) return
+    internalAccountsLoadingRef.current = true
+    try {
+      const internalData = await getBiInternalAccounts()
+      internalAccountsLoadedRef.current = true
+      internalStatesRef.current = internalData.states
+      setInternalStates(internalData.states)
+      setInternalAudit(internalData.audit)
+      setLiveRows(prev =>
+        prev.map(row => ({
+          ...row,
+          is_internal_account: Boolean(internalData.states[row.user_id]?.is_internal),
+        }))
+      )
+    } catch {
+      internalAccountsLoadedRef.current = false
+    } finally {
+      internalAccountsLoadingRef.current = false
+    }
+  }, [])
+
+  const loadMembershipPackages = useCallback(async () => {
+    const packages = await getBiMemberOpsPackages()
+    const available = packages.filter(pkg => (pkg.status || 'active') !== 'archived')
+    setMembershipPackages(available)
+    return available
+  }, [])
+
   const loadMembers = useCallback(async () => {
     if (!flagEnabled) {
       setLiveRows([])
@@ -426,32 +464,19 @@ export function BiV2MemberOpsPanel({
     try {
       setLoading(true)
       setError('')
-      const [overview, packages, internalData] = await Promise.all([
-        getMemberOpsOverview(memberListParams(1)),
-        getBiMemberOpsPackages().catch(() => []),
-        getBiInternalAccounts().catch(() => ({
-          states: {},
-          internal_accounts: [],
-          audit: [],
-          total_internal: 0,
-        })),
-      ])
-      setInternalStates(internalData.states)
-      setInternalAudit(internalData.audit)
+      const overview = await getMemberOpsOverview(memberListParams(1))
       const nextRows = overview.list.items.map(item => ({
         ...toMemberRow(item),
-        is_internal_account: Boolean(
-          (internalData.states as Record<string, BiInternalAccountState>)[item.user_id]?.is_internal
-        ),
+        is_internal_account: Boolean(internalStatesRef.current[item.user_id]?.is_internal),
       }))
       setDashboard(overview.dashboard)
-      setMembershipPackages(packages.filter(pkg => (pkg.status || 'active') !== 'archived'))
       setLiveRows(nextRows)
       setTotalRows(overview.list.total)
       setTotalPages(overview.list.pages)
       setSelectedRows(
         prev => new Set([...prev].filter(id => nextRows.some(row => row.user_id === id)))
       )
+      void loadInternalAccounts()
     } catch (err) {
       setError(err instanceof Error ? err.message : '会员列表加载失败')
       setLiveRows([])
@@ -463,6 +488,7 @@ export function BiV2MemberOpsPanel({
     }
   }, [
     flagEnabled,
+    loadInternalAccounts,
     memberListParams,
   ])
 
@@ -646,14 +672,18 @@ export function BiV2MemberOpsPanel({
       if (!flagEnabled) return
       try {
         setDetailLoading(true)
-        setSelectedDetail(await getMemberDetail(member.user_id))
+        const [detail] = await Promise.all([
+          getMemberDetail(member.user_id),
+          membershipPackages.length ? Promise.resolve(membershipPackages) : loadMembershipPackages(),
+        ])
+        setSelectedDetail(detail)
       } catch (err) {
         setDetailError(err instanceof Error ? err.message : '会员详情加载失败')
       } finally {
         setDetailLoading(false)
       }
     },
-    [flagEnabled, selectedMember]
+    [flagEnabled, loadMembershipPackages, membershipPackages, selectedMember]
   )
 
   function syncMembershipResult(member: MemberRow, detail: MemberDetail) {
@@ -728,7 +758,7 @@ export function BiV2MemberOpsPanel({
           ? `已将 ${member.phone_masked} 标记为内部账号`
           : `已取消 ${member.phone_masked} 的内部账号标记`
       )
-      await loadMembers()
+      await Promise.all([loadInternalAccounts(true), loadMembers()])
     } catch (err) {
       setInternalActionError(err instanceof Error ? err.message : '内部账号标记失败')
     } finally {
@@ -765,7 +795,14 @@ export function BiV2MemberOpsPanel({
 
   async function upgradeMemberToVip(member: MemberRow) {
     if (!canUpgradeToVip(member)) return
-    const vipPackage = findPackageForTier(membershipPackages, 'vip')
+    let packages = membershipPackages
+    try {
+      if (packages.length === 0) packages = await loadMembershipPackages()
+    } catch (err) {
+      setMembershipActionError(err instanceof Error ? err.message : '会员套餐加载失败')
+      return
+    }
+    const vipPackage = findPackageForTier(packages, 'vip')
     if (!vipPackage) {
       setOpsActionNotice('未找到有效 VIP 套餐，请在会员设置中选择套餐和实收金额后开通')
       await openMembershipSettings(member)

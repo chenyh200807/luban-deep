@@ -9,18 +9,26 @@ import {
   Wrench,
   ShieldCheck,
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BiAppShell, BiSideNav, BiTopBar, type BiSideNavItem } from '@/components/bi-v2'
 import type { BiFlagSnapshot } from '@/lib/bi-feature-flags'
-import { BiV2OverviewPanel } from './BiV2OverviewPanel'
 import { BiV2MemberOpsPanel } from './member-ops/BiV2MemberOpsPanel'
-import { BiV2CommercePanel } from './commerce/BiV2CommercePanel'
-import { BiV2FeedbackPanel } from './feedback/BiV2FeedbackPanel'
-import { BiV2OpsPanel } from './ops/BiV2OpsPanel'
-import { BiAdminConsole } from '../_components/BiAdminConsole'
 import { RequireBiAdmin } from './RequireBiAdmin'
 import { describeGlobalSearchActor, routeForGlobalSearch } from './global-search-route'
 import type { BiAdminIdentity } from './useBiAdminIdentity'
+
+const BiV2OverviewPanel = dynamic(() =>
+  import('./BiV2OverviewPanel').then(module => module.BiV2OverviewPanel)
+)
+const BiV2CommercePanel = dynamic(() =>
+  import('./commerce/BiV2CommercePanel').then(module => module.BiV2CommercePanel)
+)
+const BiV2FeedbackPanel = dynamic(() =>
+  import('./feedback/BiV2FeedbackPanel').then(module => module.BiV2FeedbackPanel)
+)
+const BiV2OpsPanel = dynamic(() => import('./ops/BiV2OpsPanel').then(module => module.BiV2OpsPanel))
+const BiAdminConsole = dynamic(() => import('../_components/BiAdminConsole').then(module => module.BiAdminConsole))
 
 export type BiV2Section =
   | 'overview'
