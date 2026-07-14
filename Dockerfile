@@ -225,7 +225,7 @@ COPY pyproject.toml ./
 COPY requirements/ ./requirements/
 COPY requirements.txt ./
 
-RUN chmod -R a+rX /app/deeptutor /app/deeptutor_cli /app/contracts /app/scripts /app/requirements \
+RUN chmod -R a+rX /app/deeptutor /app/deeptutor_cli /app/contracts /app/scripts /app/requirements /app/web/public \
     && chmod a+r /app/pyproject.toml /app/requirements.txt
 
 RUN cat > /usr/local/bin/deeptutor <<'EOF'
@@ -426,7 +426,9 @@ EXPOSE 8001 3782
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -fsS http://localhost:${BACKEND_PORT:-8001}/readyz || exit 1
+    CMD curl -fsS http://localhost:${BACKEND_PORT:-8001}/readyz >/dev/null \
+        && curl -fsS http://localhost:${FRONTEND_PORT:-3782}/ >/dev/null \
+        || exit 1
 
 # Set entrypoint
 USER deeptutor

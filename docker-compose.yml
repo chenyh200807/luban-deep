@@ -138,7 +138,7 @@ services:
       - ./secrets/wechat-pay:/app/secrets/wechat-pay:ro
 
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:${BACKEND_PORT:-8001}/readyz"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:$${BACKEND_PORT:-8001}/readyz >/dev/null && curl -fsS http://localhost:$${FRONTEND_PORT:-3782}/ >/dev/null"]
       interval: 30s
       timeout: 10s
       retries: 3

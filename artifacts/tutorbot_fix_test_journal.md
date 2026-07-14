@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-14 - 合入 main 后公网 502：静态资产目录权限让前端进程崩溃，后端单探针仍报 healthy
+
+- 问题：`d98f441d` 首次全量部署后，容器显示 healthy、`/healthz` 为 200，但公网首页连续 20 次 502；微信教学与练习因此都不可用。
+- 根因：完整卡发布器用 `tempfile.mkdtemp()` 生成 `0700` staging，写完后直接 rename 为正式目录，导致 37/37 个 `luban-preview/*` 根目录均为 `0700`；镜像再以 root 复制并保留该 mode，Next.js 切到 uid 10001 后首次扫描 `a01` 即 `EACCES` 并进入 FATAL。与此同时 Docker/Compose healthcheck 只探后端 `/readyz`，让“整容器可服务”这个事实被后端存活和公网可用两个 authority 分裂。
+- 失败尝试及原因：发布脚本正确重试 20 次后失败，证明继续等待不是冷启动；后端 200 与容器 healthy 也不能证明前端存活。没有在运行容器临时 `chmod`，因为这会越过镜像 authority、下一次重建必然复发。组合运行 `test_aliyun_deploy_scripts.py` 另有 8 个与本改动无关的主干既有失败，未扩大范围顺手修复。
+- 成功修法：发布器保留 staging 组装期 `0700`，只在原子切换为公开站点前将完整树根设为 `0755`；Dockerfile 在切换 runtime user 前继续对 `/app/web/public` 执行 `a+rX` 作为镜像 fail-safe，不再让构建机目录 mode 参与运行时真相。Dockerfile、普通 Compose 与 GHCR Compose 的 healthcheck 同时要求 backend ready 和 frontend 200；`verify_runtime_assets.py` 将两条运行时不变量机械化，并补充发布目录 mode、缺 public 权限归一化、仅后端健康三个反例。
+- 验证：修复前线上日志稳定复现 `EACCES: permission denied, scandir '/app/web/public/luban-preview/a01'`、frontend 四次退出后 FATAL、local frontend 000，而 backend health 200；窄门与实际镜像/公网复验结果在本条发布完成后补记。
+- 教训：同一容器承载多个进程时，health authority 必须覆盖所有对外进程；镜像可读性必须由 Dockerfile 归一化，不能继承构建机不可版本化的目录权限。
+
 ## 2026-07-14 - all-module 看似没有教学视频：登录失败被投影成供给为空
 
 - 问题：同一台微信开发者工具里，旧 F16 worktree 能显示教学入口，新 all-module worktree 却显示“微课即将上线”，造成多个版本并存、正式版不能播放的错觉；站点深链未登录时还会被 API 通用 401 兜底带回默认页，丢失原 pack。

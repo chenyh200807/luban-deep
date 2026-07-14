@@ -737,6 +737,10 @@ def publish(station_id: str, st: Station, *, finished_root: Path = FINISHED) -> 
                 )
                 written.append(sub + "/")
 
+        # mkdtemp intentionally keeps the incomplete tree private (0700). The
+        # atomically published directory is a public runtime asset and must be
+        # traversable by the container's non-root user.
+        staged.chmod(0o755)
         backup = dst.with_name(f".{dst.name}.previous")
         if backup.exists():
             shutil.rmtree(backup)
