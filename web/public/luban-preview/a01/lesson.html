@@ -11,6 +11,34 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=c91c4e682bfe205e"></script>
+<script data-luban-card-entry-bridge>
+(function(){
+  var ticket="";
+  try{
+    var current=new URL(window.location.href);
+    var capability=new URLSearchParams(String(current.hash||"").replace(/^#/,""));
+    ticket=String(capability.get("entry_ticket")||"").trim();
+    if(ticket){ window.__lubanCardEntryTicket=ticket; window.history.replaceState(window.history.state,document.title,current.pathname+(current.search||"")); }
+  }catch(_){ }
+  function closestAnchor(node){ while(node&&node!==document){ if(String(node.tagName||"").toUpperCase()==="A")return node; node=node.parentNode; } return null; }
+  function carryCapability(url){ if(!ticket)return url; url.hash="entry_ticket="+encodeURIComponent(ticket); return url; }
+  document.addEventListener("click",function(event){
+    var anchor=closestAnchor(event.target); if(!anchor||event.defaultPrevented)return;
+    var href=String(anchor.getAttribute("href")||"").trim(); if(!href||href.charAt(0)==="#")return;
+    var next; try{ next=new URL(anchor.href,window.location.href); }catch(_){return;}
+    if(next.origin!==window.location.origin)return;
+    var file=next.pathname.split("/").pop()||"";
+    if(/^lesson(?:\d+)?\.html$/i.test(file)){ if(ticket){ event.preventDefault(); window.location.assign(carryCapability(next).toString()); } return; }
+    if(!/^practice(?:\d+)?\.html$/i.test(file))return;
+    event.preventDefault();
+    if(!ticket){ window.alert("学习身份已过期，请返回小程序重新打开这一站。"); return; }
+    fetch("/api/v1/luban-preview/lesson-viewed",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contextId:"A01",cardId:"A01",entryTicket:ticket})})
+      .then(function(response){ if(!response.ok)throw new Error("lesson evidence rejected"); window.location.assign(next.toString()); })
+      .catch(function(){ window.alert("学习记录未确认，请留在本页稍后重试后再做练习。"); });
+  },true);
+})();
+</script>
 <style data-luban-ask-sheet-motion>@keyframes lzAskSheetIn{from{transform:translateY(100%);opacity:.72}to{transform:translateY(0);opacity:1}}</style>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
@@ -324,8 +352,23 @@
             <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
               <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
               <div style="flex:1;min-width:0;">
-                <div style="display:inline-flex;border:1px solid #527463;border-radius:999px;padding:3px 8px;color:#93c4a8;font-size:10px;font-weight:900;margin-bottom:8px;">结论 · 判断依据</div>
-                <div style="font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+                <div data-luban-workflow-status style="border:1px solid #527463;border-radius:12px;padding:10px 11px;background:#242820;margin-bottom:10px;">
+                  <div style="display:inline-flex;border:1px solid #527463;border-radius:999px;padding:3px 8px;color:#93c4a8;font-size:10px;font-weight:900;margin-bottom:6px;">{{ askWorkflowBadge }}</div>
+                  <div style="font-size:13px;color:#f1e6cf;font-weight:850;line-height:1.45;">{{ askWorkflowTitle }}</div>
+                  <div style="margin-top:3px;font-size:11px;color:#b9b59f;line-height:1.55;">{{ askWorkflowSub }}</div>
+                  <sc-for list="{{ askWorkflowEntries }}" as="step" hint-placeholder-count="5">
+                    <div style="margin-top:7px;padding-top:7px;border-top:1px solid #3a4438;font-size:10.5px;color:#c9c5ae;line-height:1.45;">{{ step.badge }} · {{ step.title }}</div>
+                  </sc-for>
+                </div>
+                <sc-for list="{{ askBlocks }}" as="b" hint-placeholder-count="5">
+                  <sc-if value="{{ b.type === 'heading' }}" hint-placeholder-val="{{ false }}"><div style="margin:11px 0 6px;color:#fff4dc;font-size:16px;line-height:1.45;font-weight:900;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
+                  <sc-if value="{{ b.type === 'paragraph' }}" hint-placeholder-val="{{ false }}"><div style="margin:8px 0;color:#f1e6cf;font-size:13.5px;line-height:1.75;font-weight:500;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
+                  <sc-if value="{{ b.type === 'callout' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:10px;border-left:3px solid #7fb69a;background:#202920;border-radius:8px;"><div style="display:inline-flex;color:#a8d1b4;font-size:10px;font-weight:900;margin-bottom:4px;">{{ b.label }}</div><div style="color:#eef3e9;font-size:13px;line-height:1.7;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></div></sc-if>
+                  <sc-if value="{{ b.type === 'ul' || b.type === 'ol' }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ b.items }}" as="item"><div style="display:flex;gap:7px;margin:7px 0;color:#f1e6cf;font-size:13px;line-height:1.7;"><span style="flex:none;color:#cf8a44;font-weight:900;">{{ item.marker }}</span><div style="flex:1;"><sc-for list="{{ item.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></div></sc-for></sc-if>
+                  <sc-if value="{{ b.type === 'blockquote' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:8px 10px;border-left:3px solid #cf8a44;background:#251f19;color:#e9dec7;font-size:12.5px;line-height:1.7;"><sc-for list="{{ b.lines }}" as="line"><div><sc-for list="{{ line }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-for></div></sc-if>
+                  <sc-if value="{{ b.type === 'code_block' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:9px 10px;border-radius:8px;background:#101415;color:#dfe7df;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.55;white-space:pre-wrap;">{{ b.code }}</div></sc-if>
+                  <sc-if value="{{ b.type === 'table' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;border:1px solid #4a3d2a;border-radius:8px;overflow:hidden;"><div style="padding:7px 9px;background:#30291f;color:#f3cd91;font-size:11px;font-weight:900;">{{ b.headers }}</div><sc-for list="{{ b.rows }}" as="row"><div style="padding:7px 9px;border-top:1px solid #3a3127;color:#efe4ce;font-size:11.5px;line-height:1.55;">{{ row.cells }}</div></sc-for></div></sc-if>
+                </sc-for>
               </div>
             </div>
           </div>
@@ -350,7 +393,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
-  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askError:"", fs:false, ctrlHidden:false, muted:false };
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askRawResponse:"", askBlocks:[], askWorkflowEntries:[], askWorkflowBadge:"", askWorkflowTitle:"", askWorkflowSub:"", askWorkflowActive:false, askStreaming:false, askError:"", fs:false, ctrlHidden:false, muted:false };
   audioBase="audio/up/";
   audioVersion="3677dcae21397346";
   DUR = 253.820;
@@ -441,23 +484,70 @@ class Component extends DCLogic {
   dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
   async submitAsk(){
     const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    const runtime=window.LubanTutorbotSheetRuntime;
+    const entryTicket=String(window.__lubanCardEntryTicket||"").trim();
+    if(!runtime||!runtime.workflow||!entryTicket){ this.setState({askError:"学习身份已过期，请返回小程序重新打开这一站。"}); return; }
     let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; }
     const beat=this.beats[bi]||[];
-    const payload={contextId:"A01",cardId:"A01",question:q,
+    const payload={contextId:"A01",cardId:"A01",question:q,entryTicket:entryTicket,
       currentScene:{id:String(bi+1),label:String(beat[3]||"当前画面").slice(0,80)},
       time:Number(this.state.t||0)};
-    this.setState({askLoading:true,askAnswer:"",askError:""});
+    let rawResponse="", workflowEntries=[], lastSeq=0, completed=false, reconnects=0, socket=null;
+    const self=this;
+    const renderWorkflow=function(active, extra){
+      const summary=runtime.workflow.summarizeWorkflow(workflowEntries,active!==false);
+      self.setState(Object.assign({askWorkflowEntries:workflowEntries,askWorkflowBadge:summary.badge||"",askWorkflowTitle:summary.headline||"",askWorkflowSub:summary.subline||"",askWorkflowActive:active!==false},extra||{}));
+    };
+    const setResponse=function(next, append){
+      rawResponse=append?rawResponse+String(next||""):String(next||"");
+      self.setState({askLoading:false,askStreaming:true,askRawResponse:rawResponse,askAnswer:rawResponse,askBlocks:runtime.projectMarkdown(rawResponse),askError:""});
+    };
+    const fail=function(message){
+      if(completed)return; completed=true;
+      renderWorkflow(false,{askLoading:false,askStreaming:true,askError:String(message||"TutorBot 暂时没有接通，请留在本页稍后重试。")});
+    };
+    const finish=function(){ if(completed)return; completed=true; renderWorkflow(false,{askLoading:false,askStreaming:true}); };
+    const consume=function(event){
+      if(!event||typeof event!=="object"||completed)return;
+      const seq=typeof event.seq==="number"?event.seq:0;
+      if(seq&&seq<=lastSeq)return; if(seq)lastSeq=seq;
+      const type=String(event.type||"");
+      if(type==="content"){ if(runtime.isPublicEvent(event))setResponse(event.content,true); return; }
+      const workflowEvent=runtime.toWorkflowEvent(event);
+      if(workflowEvent){ workflowEntries=runtime.workflow.appendWorkflowEntry(workflowEntries,workflowEvent); renderWorkflow(true,{askStreaming:true}); return; }
+      if(type==="result"){ if(runtime.isPublicEvent(event)){ const finalText=runtime.finalResponse(event); if(finalText)setResponse(finalText,false); } return; }
+      if(type==="error"){ const metadata=event.metadata||{}; if(metadata.turn_terminal)fail(event.content||"TutorBot 暂时不可用，请稍后重试。"); return; }
+      if(type==="done")finish();
+    };
+    const socketUrl=function(path){
+      const u=new URL(String(path||"/api/v1/ws"),window.location.href);
+      u.protocol=u.protocol==="https:"?"wss:":"ws:"; return u.toString();
+    };
+    const connect=function(stream){
+      if(completed)return;
+      try{
+        socket=new WebSocket(socketUrl(stream.url),[String(stream.protocol||"luban-preview-v1"),String(stream.ticket||"")]);
+        socket.onopen=function(){ if(completed)return; socket.send(JSON.stringify({type:"subscribe_turn",turn_id:String(stream.turn_id||""),after_seq:lastSeq||0})); };
+        socket.onmessage=function(message){ try{consume(JSON.parse(String(message.data||"")));}catch(_){ } };
+        socket.onclose=function(){
+          if(completed)return;
+          if(reconnects>=2){ fail("流式连接中断，请留在本页稍后重试。"); return; }
+          reconnects+=1; workflowEntries=runtime.workflow.appendWorkflowEntry(workflowEntries,{type:"status",eventType:"reconnect",data:"retry",content:"正在续接本轮回答…",seq:lastSeq||0}); renderWorkflow(true,{askStreaming:true});
+          setTimeout(function(){connect(stream);},400*reconnects);
+        };
+        socket.onerror=function(){};
+      }catch(err){ fail("流式连接暂时不可用，请留在本页稍后重试。"); }
+    };
+    this.setState({askLoading:true,askAnswer:"",askRawResponse:"",askBlocks:[],askWorkflowEntries:[],askWorkflowBadge:"",askWorkflowTitle:"",askWorkflowSub:"",askWorkflowActive:true,askStreaming:true,askError:""});
+    renderWorkflow(true);
     try{
-      const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",
-        headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
       const data=await res.json().catch(()=>({}));
       if(!res.ok)throw new Error(String(data.detail||"TutorBot 答疑暂时不可用"));
-      const answer=String(data.answer||"").trim();
-      if(!answer)throw new Error("TutorBot 没有返回答案");
-      this.setState({askLoading:false,askAnswer:answer,askError:""});
-    }catch(err){
-      this.setState({askLoading:false,askAnswer:"",askError:"TutorBot 暂时没有接通，请留在本页稍后重试。"});
-    }
+      const stream=data&&data.stream;
+      if(!stream||!stream.ticket||!stream.turn_id)throw new Error("TutorBot 流式回合未创建");
+      connect(stream);
+    }catch(err){ fail((err&&err.message)||"TutorBot 暂时没有接通，请留在本页稍后重试。"); }
   }
   qaFig(idx){
     const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
@@ -571,8 +661,8 @@ class Component extends DCLogic {
       fullscreen:(e)=>{if(e&&e.stopPropagation)e.stopPropagation();this.fullscreen();},phoneRef:el=>this.phoneRef(el),fsIcon:this.state.fs?"⊠":"⛶",fs:this.state.fs,capO:(!this.state.fs||!this.state.ctrlHidden)?1:0,cornerO:(!this.state.fs||!this.state.ctrlHidden)?1:0,cornerPE:(!this.state.fs||!this.state.ctrlHidden)?"auto":"none",fsBarO:(this.state.fs&&!this.state.ctrlHidden)?1:0,fsBarPE:(this.state.fs&&!this.state.ctrlHidden)?"auto":"none",fsBarY:(this.state.fs&&!this.state.ctrlHidden)?0:18,tapToggle:()=>this.tapToggle(),
       openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
       dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
-      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,askError:this.state.askError,
-      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer&&!this.state.askError,
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askBlocks:this.state.askBlocks,askWorkflowEntries:this.state.askWorkflowEntries,askWorkflowBadge:this.state.askWorkflowBadge,askWorkflowTitle:this.state.askWorkflowTitle,askWorkflowSub:this.state.askWorkflowSub,askError:this.state.askError,
+      hasAnswer:!!this.state.askStreaming||!!this.state.askBlocks.length||!!this.state.askWorkflowActive,askIdle:!this.state.askLoading&&!this.state.askStreaming&&!this.state.askError,
       askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
       askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",

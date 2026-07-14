@@ -162,6 +162,7 @@ function loadWsStream() {
     "utf8",
   );
   var module = { exports: {} };
+  var workflowStatus = require(path.join(__dirname, "../packageDeeptutor/utils/workflow-status.js"));
   var sandbox = {
     module: module,
     exports: module.exports,
@@ -170,6 +171,7 @@ function loadWsStream() {
       if (request === "./api") return {};
       if (request === "./endpoints") return {};
       if (request === "./host-runtime") return {};
+      if (request === "./workflow-status") return workflowStatus;
       throw new Error("unexpected require: " + request);
     },
     console: console,
@@ -405,6 +407,33 @@ run("chat page should not seed preparation wording for first-frame thinking stat
 
   assert(source.indexOf("AI 正在准备") === -1, "chat page should not contain preparation wording");
   assert(source.indexOf("鲁班正在按采分点琢磨…") !== -1, "chat page should seed active luban analysis wording (10d copy)");
+});
+
+run("hosted teaching-card sheet should reuse Markdown and workflow kernels", function () {
+  var source = fs.readFileSync(
+    path.join(__dirname, "../../web/public/luban-preview/vendor/luban-tutorbot-sheet-runtime.js"),
+    "utf8",
+  );
+  var sandbox = { window: {} };
+  vm.runInNewContext(source, sandbox, { filename: "luban-tutorbot-sheet-runtime.js" });
+  var runtime = sandbox.window.LubanTutorbotSheetRuntime;
+  assert(runtime && runtime.workflow && runtime.toWorkflowEvent, "card sheet should expose the shared runtime");
+
+  var blocks = runtime.projectMarkdown("## 作答结构\n\n**判断依据**：先核对条件。\n\n- 采分点一\n- 采分点二");
+  assert(blocks.some(function (block) { return block.type === "heading"; }), "heading should be rendered as a structured block");
+  assert(blocks.some(function (block) { return block.type === "callout"; }), "callout should be rendered as a structured block");
+  assert(blocks.some(function (block) { return block.type === "ul"; }), "list should be rendered as a structured block");
+
+  var status = runtime.toWorkflowEvent({
+    type: "tool_call",
+    tool_name: "retrieve_knowledge",
+    content: "retrieve_knowledge",
+    stage: "tool",
+    metadata: { visibility: "public" },
+    seq: 7,
+  });
+  var entry = runtime.workflow.buildWorkflowEntry(status);
+  assert(entry.badge === "检索依据", "card sheet must share chat workflow wording");
 });
 
 if (fail) {

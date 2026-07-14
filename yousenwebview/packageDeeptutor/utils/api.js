@@ -902,6 +902,22 @@ function getLubanLessonDetail(packId, opts) {
   );
 }
 
+/** 鲁班 — 已登录站点向同一张 H5 教学卡签发一次性身份承接凭据。
+ * 它不是通用登录 token，只能由该卡用于卡内追问和 lesson_viewed 桥接。 */
+function issueLubanCardEntry(packId, opts) {
+  return request(
+    Object.assign(
+      {
+        url: "/api/v1/luban/lessons/" + encodeURIComponent(String(packId || "")) + "/card-entry",
+        method: "POST",
+        data: {},
+        noRetry: true,
+      },
+      opts || {},
+    ),
+  );
+}
+
 /** 鲁班 — 学-evidence 上报（lesson_viewed，融合计划 §2.1 唯一 writer）。
  * 看完讲懂/闯关幕后调用；后端 progress_countable=false、evidence_level=exposed，
  * 绝不算掌握(M0)。watched_stage: "lesson"(讲懂) | "practice"(闯关)。 */
@@ -1172,6 +1188,7 @@ module.exports = {
   completeFirstRun: completeFirstRun,
   getLubanLessons: getLubanLessons,
   getLubanLessonDetail: getLubanLessonDetail,
+  issueLubanCardEntry: issueLubanCardEntry,
   getLubanRetestItems: getLubanRetestItems,
   completeLubanRetest: completeLubanRetest,
   getLubanReviewDue: getLubanReviewDue,

@@ -213,8 +213,8 @@ class Component extends DCLogic {
   SHOW_COUNT = 5;
   state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
   examTitle="流水施工参数与工期";
-  KNOWLEDGE="流水施工参数与工期(成倍节拍主样板)。判型：节拍全等·等节奏(K=t)；成倍数·等步距异节奏(K=各节拍最大公约数)；无规律·无节奏(大差法)。本题节拍3/3/6/3成倍数·等步距异节奏，K=gcd(3,6)=3个月。专业队数=各工序节拍÷K求和=1+1+2+1=5(砌筑6=2K拆2队，队数>工序数)。总工期T=(M+N′−1)×K=(2+5−1)×3=18个月，M=施工段数2、N′=拆队后总队数5，体现搭接非机械相加。采分四句：判型理由+K=最大公约数+队数=节拍÷K求和+工期(M+N′−1)×K带单位。常见失分：判型不写理由、K取最大/平均/最小节拍而非gcd、不拆队、工期机械相加。";
-  moreText="补两道：① {2019} 节拍 3/3/9/6/6 · 等步距异节奏、K=gcd=3、队数 1/1/3/2/2=9，练判型理由+K+拆队绑定工序；② {2015} 等节奏「不能连续作业」辨析，练「选项错+理由(K=t必连续无空闲)+正确表述」三段式。";
+  KNOWLEDGE="流水施工参数与工期(合并练习,覆盖上下两集)。三大组织方式:依次(顺序无搭接,工期最长省人)/平行(各段同时,工期最短耗人N倍)/流水(分段分序错位搭接,又快又稳)。三大参数:节拍t=某队在一个施工段的施工时间;步距K=相邻两队进入流水的间隔;工期T=首队投入到末队退出。参数三分类:工艺(过程数/段数)、时间(t/K/T)、空间(施工段/施工层)。施工段划分:劳动量差异≤15%、工作面充足、界限对结构缝、段数合理。判型:节拍全等→等节奏(K=t、队数=过程数、连续无空闲);不全等但成倍数→等步距异节奏(K=最大公约数、队数>过程数);无规律→无节奏(大差法:累加数列→错位相减→取最大值)。成倍节拍算例:节拍3/3/6/3→K=gcd(3,6)=3,队数1+1+2+1=5(砌筑6=2K拆2队),M=2段,总工期T=(M+N′−1)×K=(2+5−1)×3=18个月,体现搭接。常见失分:判型不写理由、K取最大/平均/最小节拍而非gcd、不拆队、工期机械相加、大差法只报方法名不展开三动作、参数归错类。";
+  moreText="继续补：① 无节奏大差法专练——列累加数列、错位相减、取最大值三动作写全；② 等节奏与无节奏特点辨析，别把‘连续无空闲’读成‘不能连续作业’；③ 参数三分类，节拍/步距/工期归时间参数不归工艺。判型理由 + K 取最大公约数 + 拆队队数 + 搭接工期，是四类高频失分，逐个过。";
   // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
   Q=[
 { tag:"判型·条件维", typeHint:"单选 · 选出最完整、最能拿分的作答", figLabel:"题给：四道工序流水节拍", figCaption:"基础3 结构3 砌筑6 装修3（月）· 类型你来判", fig:"bars",
@@ -265,10 +265,12 @@ class Component extends DCLogic {
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
   codeMap={
-    E02:{label:"采分点遗漏",advice:"判型理由/拆队/搭接工期逐项写，缺一扣一。"},
-    E05:{label:"审题错误",advice:"先看节拍成不成倍数，别一看不等就判无节奏。"},
-    E07:{label:"概念混淆",advice:"分清类型档、队数≠工序数、依据词不能换。"},
-    E09:{label:"计算错误",advice:"K 取最大公约数、队数=节拍÷K、工期体现搭接。"}
+    E01:{label:"知识点缺失",advice:"组织方式/参数定义/划分原则这些基础概念要背牢。"},
+    E02:{label:"采分点遗漏",advice:"判型理由/大差法三动作/拆队/搭接工期逐项写，缺一扣一。"},
+    E05:{label:"审题错误",advice:"先看节拍成不成倍数、再定型，别一看不等就判无节奏。"},
+    E07:{label:"概念混淆",advice:"分清三型、队数≠工序数、参数归类、依据词不能换。"},
+    E08:{label:"背景信息提取失败",advice:"题干给的劳动量/结构缝/段数条件要看全，别只盯一处。"},
+    E09:{label:"计算错误",advice:"K 取最大公约数、队数=节拍÷K、工期体现搭接、大差法取最大值。"}
   };
 
   componentDidMount(){
@@ -323,31 +325,65 @@ class Component extends DCLogic {
   }
   figFor(qi){
     const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
-    const q=this.qAt(qi), type=q.fig, els=[]; let figH=100;
-    const PAL=["#2f6db0","#cf8a44","#2c8a5b","#d9a521","#7a5bb0","#3fa06a"];
-    if(type==="bars"){ figH=104; const vals=(q.fd&&q.fd.bars)||[["基础",3],["结构",3],["砌筑",6],["装修",3]], base=78, n=vals.length, gap=Math.floor(300/n);
-      const mx=Math.max.apply(null,vals.map(v=>v[1]))||6, unit=Math.min(13,Math.floor(58/mx));
-      vals.forEach((v,i)=>{ const h=v[1]*unit, x=14+i*gap, col=PAL[i%PAL.length];
-        els.push(D({x:x+Math.floor(gap/2)-18,top:base-h-18,w:36,h:16,fg:col,fs:14,lab:String(v[1])}));
-        els.push(D({x:x+Math.floor(gap/2)-18,top:base-h,w:36,h:h,bg:col,r:5}));
-        els.push(D({x:x+Math.floor(gap/2)-26,top:base+4,w:52,h:14,fg:"#5c6469",fs:10,lab:v[0]})); }); }
-    else if(type==="gcd"){ figH=92; const vals=(q.fd&&q.fd.gcd)||[3,3,6,3], n=vals.length, gap=Math.min(52,Math.floor(300/n));
-      vals.forEach((v,i)=>{ els.push(D({x:20+i*gap,top:10,w:42,h:42,bg:"#f1ece0",bd:"1.5px solid #d8ccaa",r:8,fg:PAL[i%PAL.length],fs:18,lab:String(v)})); });
-      els.push(D({x:60,top:62,w:200,h:24,fg:"#a98a55",fs:16,lab:(q.fd&&q.fd.gcdLabel)||"K = ?"})); }
-    else if(type==="rows"){ figH=100; const rows=(q.fd&&q.fd.rows)||[["基础",3],["结构",3],["砌筑",6],["装修",3]], n=rows.length, rh=Math.floor(92/n);
-      rows.forEach((r,i)=>{ const y=4+i*rh, col=PAL[i%PAL.length];
-        els.push(D({x:4,top:y+2,w:40,h:16,fg:col,fs:11,ta:"right",jc:"flex-end",lab:r[0]}));
-        els.push(D({x:52,top:y,w:r[1]*15,h:Math.min(18,rh-4),bg:col,r:4}));
-        els.push(D({x:52+r[1]*15+8,top:y+2,w:96,h:16,fg:"#8b9398",fs:10,ta:"left",jc:"flex-start",lab:"节拍 "+r[1]})); }); }
-    else if(type==="gantt"){ figH=100; const seg=(q.fd&&q.fd.seg)||5, span=(q.fd&&q.fd.span)||18, mw=Math.max(6,Math.floor(252/span)), rh=Math.floor(92/seg);
-      for(let i=0;i<seg;i++){ const y=2+i*rh, col=PAL[i%PAL.length]; for(let sg=0;sg<2;sg++){ els.push(D({x:10+((i*3)+sg*3)*mw,top:y,w:3*mw-2,h:Math.min(14,rh-3),bg:col,r:3})); } }
-      els.push(D({x:10,top:96,w:span*mw,h:0,bd:"1.5px solid #cf4436",bg:"transparent"}));
-      els.push(D({x:10+span*mw+6,top:90,w:60,h:14,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"T = ?"})); }
-    else if(type==="params"){ figH=104; const toks=(q.fd&&q.fd.toks)||["施工过程数","施工段数","流水节拍 t","流水步距 K","工期 T","施工段","施工层"];
-      const pos=[[8,8],[116,8],[224,8],[8,42],[116,42],[224,42],[8,76],[116,76],[224,76]];
-      toks.forEach((tk,i)=>{ if(!pos[i])return; els.push(D({x:pos[i][0],top:pos[i][1],w:100,h:28,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:8,fg:"#2f6db0",fs:10.5,lab:tk})); }); }
-    else if(type==="sheet"){ figH=98; const lines=(q.fd&&q.fd.lines)||["① K 取最大节拍 = 6 个月","② 设 4 个专业施工队","③ 总工期 = 3+3+6+6 = 18 个月"];
-      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11.5,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="bars"){ figH=104; const vals=[["基础",3,"#2f6db0"],["结构",3,"#cf8a44"],["砌筑",6,"#2c8a5b"],["装修",3,"#d9a521"]], base=78;
+      vals.forEach((v,i)=>{ const h=v[1]*9, x=24+i*74;
+        els.push(D({x:x+18,top:base-h-18,w:36,h:16,fg:v[2],fs:14,lab:String(v[1])}));
+        els.push(D({x:x+18,top:base-h,w:36,h:h,bg:v[2],r:5}));
+        els.push(D({x:x+10,top:base+4,w:52,h:14,fg:"#5c6469",fs:10,lab:v[0]})); }); }
+    else if(type==="gcd"){ figH=92; const vals=[3,3,6,3], cols=["#2f6db0","#cf8a44","#2c8a5b","#d9a521"];
+      vals.forEach((v,i)=>{ els.push(D({x:74+i*52,top:10,w:42,h:42,bg:"#f1ece0",bd:"1.5px solid #d8ccaa",r:8,fg:cols[i],fs:18,lab:String(v)})); });
+      els.push(D({x:107,top:62,w:120,h:24,fg:"#a98a55",fs:18,lab:"K = ?"})); }
+    else if(type==="rows"){ figH=100; const rows=[["基础",3,"#2f6db0"],["结构",3,"#cf8a44"],["砌筑",6,"#2c8a5b"],["装修",3,"#d9a521"]];
+      rows.forEach((r,i)=>{ const y=6+i*23;
+        els.push(D({x:4,top:y+2,w:40,h:16,fg:r[2],fs:11,ta:"right",jc:"flex-end",lab:r[0]}));
+        els.push(D({x:52,top:y,w:r[1]*16,h:18,bg:r[2],r:4}));
+        els.push(D({x:52+r[1]*16+8,top:y+2,w:80,h:16,fg:"#8b9398",fs:10,ta:"left",jc:"flex-start",lab:"节拍 "+r[1]})); }); }
+    else if(type==="gantt"){ figH=100; const cols=["#2f6db0","#cf8a44","#2c8a5b","#3fa06a","#d9a521"], gx=10, mw=14;
+      for(let i=0;i<5;i++){ const y=4+i*18; for(let sg=0;sg<2;sg++){ els.push(D({x:gx+((i*3)+sg*3)*mw,top:y,w:3*mw-2,h:14,bg:cols[i],r:3})); } }
+      els.push(D({x:gx,top:96,w:18*mw,h:0,bd:"1.5px solid #cf4436",bg:"transparent"}));
+      els.push(D({x:gx+18*mw+6,top:90,w:60,h:14,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"T = ?"})); }
+    else if(type==="params"){ figH=104; const toks=["施工过程数","施工段数","流水节拍 t","流水步距 K","工期 T","施工段","施工层"];
+      const pos=[[8,8],[116,8],[224,8],[8,42],[116,42],[224,42],[8,76]];
+      toks.forEach((tk,i)=>{ els.push(D({x:pos[i][0],top:pos[i][1],w:100,h:28,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:8,fg:"#2f6db0",fs:10.5,lab:tk})); }); }
+    else if(type==="sheet"){ figH=98; const lines=["① K 取最大节拍 = 6 个月","② 设 4 个专业施工队","③ 总工期 = 3+3+6+6 = 18 个月"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    else if(type==="modes"){ figH=92;
+      const rows=[["依次","#b5564a",256,""],["平行","#cf8a44",96,"耗人料 N 倍"],["流水","#2c8a5b",170,"又快又稳"]];
+      rows.forEach((r,i)=>{ const y=8+i*28;
+        els.push(D({x:2,top:y,w:38,h:16,fg:r[1],fs:10,ta:"right",jc:"flex-end",lab:r[0]}));
+        els.push(D({x:46,top:y,w:r[2],h:16,bg:r[1],r:3}));
+        if(r[3])els.push(D({x:46+r[2]+6,top:y+1,w:120,h:14,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:r[3]})); }); }
+    else if(type==="seg"){ figH=104; const hs=[70,64,68,62],base=90;
+      els.push(D({x:30,top:base,w:296,h:0,bd:"2px solid #bdb8a8",bg:"transparent"}));
+      els.push(D({x:34,top:14,w:292,h:16,bg:"rgba(44,138,91,.12)",bd:"1px dashed #2c8a5b",r:0,fg:"#2c8a5b",fs:8.5,ta:"left",jc:"flex-start",p:"0 5px",lab:"各段劳动量落在 ±15% 带内"}));
+      [0,1,2].forEach(i=>els.push(D({x:104+i*74,top:20,w:0,h:76,bd:"1.5px dashed #b06a2a",bg:"transparent"})));
+      hs.forEach((h,i)=>{ const x=38+i*74; els.push(D({x:x,top:base-h,w:56,h:h,bg:"#2f6db0",r:5,fg:"#fff",fs:10,ai:"flex-end",p:"0 0 5px",lab:"段"+(i+1)})); }); }
+    else if(type==="tk"){ figH=88;
+      els.push(D({x:0,top:26,w:34,h:16,fg:"#2f6db0",fs:9,ta:"right",jc:"flex-end",lab:"队1"}));
+      els.push(D({x:40,top:26,w:56,h:16,bg:"#2f6db0",r:3}));
+      els.push(D({x:98,top:26,w:56,h:16,bg:"#2f6db0",r:3}));
+      els.push(D({x:0,top:48,w:34,h:16,fg:"#cf8a44",fs:9,ta:"right",jc:"flex-end",lab:"队2"}));
+      els.push(D({x:98,top:48,w:56,h:16,bg:"#cf8a44",r:3}));
+      els.push(D({x:156,top:48,w:56,h:16,bg:"#cf8a44",r:3}));
+      els.push(D({x:40,top:8,w:56,h:14,fg:"#2c8a5b",fs:9,lab:"t 一段"}));
+      els.push(D({x:40,top:68,w:58,h:14,fg:"#cf4436",fs:9,lab:"K 错开"})); }
+    else if(type==="diff"){ figH=92; const ax=[42,92,142,192];
+      els.push(D({x:2,top:8,w:34,h:22,fg:"#2f6db0",fs:10,lab:"甲"}));
+      [2,5,8,10].forEach((v,i)=>els.push(D({x:ax[i],top:8,w:44,h:22,bg:"#2f6db0",r:4,fg:"#fff",fs:12,lab:String(v)})));
+      els.push(D({x:2,top:36,w:34,h:22,fg:"#cf8a44",fs:10,lab:"乙"}));
+      [3,5,7,10].forEach((v,i)=>els.push(D({x:ax[i],top:36,w:44,h:22,bg:"#cf8a44",r:4,fg:"#fff",fs:12,lab:String(v)})));
+      els.push(D({x:2,top:64,w:34,h:22,fg:"#2c8a5b",fs:10,lab:"差"}));
+      [2,2,3,3].forEach((v,i)=>{ const mx=v===3; els.push(D({x:ax[i],top:64,w:44,h:22,bg:mx?"#2c8a5b":"#eef1f0",bd:mx?"none":"1px solid #d8d3c4",r:4,fg:mx?"#fff":"#5c6469",fs:12,lab:String(v)})); });
+      els.push(D({x:244,top:66,w:84,h:20,fg:"#2c8a5b",fs:9,ta:"left",jc:"flex-start",lab:"取最大 = K"})); }
+    else if(type==="eqbars"){ figH=92; const base=84;
+      els.push(D({x:30,top:base,w:300,h:0,bd:"2px solid #bdb8a8",bg:"transparent"}));
+      for(let i=0;i<4;i++){ const x=44+i*74; els.push(D({x:x,top:base-58,w:56,h:58,bg:"#2f6db0",r:5,fg:"#fff",fs:11,ai:"flex-start",p:"4px 0",lab:"t"})); } }
+    else if(type==="irr"){ figH=96; const vals=[2,4,3,5],base=88;
+      els.push(D({x:30,top:base,w:300,h:0,bd:"2px solid #bdb8a8",bg:"transparent"}));
+      vals.forEach((v,i)=>{ const h=v*12,x=44+i*74; els.push(D({x:x+8,top:base-h-16,w:40,h:14,fg:"#5c6469",fs:12,lab:String(v)})); els.push(D({x:x,top:base-h,w:56,h:h,bg:"#7a86b8",r:5})); }); }
+    else if(type==="rows5"){ figH=112; const rows=[["工序1",3],["工序2",3],["工序3",9],["工序4",6],["工序5",6]],cols=["#2f6db0","#cf8a44","#2c8a5b","#3fa06a","#d9a521"];
+      rows.forEach((r,i)=>{ const y=4+i*21; els.push(D({x:0,top:y+2,w:44,h:16,fg:cols[i],fs:10,ta:"right",jc:"flex-end",lab:r[0]})); els.push(D({x:52,top:y,w:r[1]*22,h:18,bg:cols[i],r:4})); els.push(D({x:52+r[1]*22+8,top:y+2,w:70,h:16,fg:"#8b9398",fs:10,ta:"left",jc:"flex-start",lab:"节拍 "+r[1]})); }); }
     return {els,figH};
   }
   renderVals(){

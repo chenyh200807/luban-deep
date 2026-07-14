@@ -43,6 +43,9 @@ DeepTutor 必须优先保证：
 负责：
 
 - `/api/v1/ws`
+- hosted Luban teaching card may carry an authenticated station user's
+  short-lived, one-turn subscription capability through the same endpoint; it
+  is not a second WebSocket route, bearer credential, or learner-state writer.
 - turn / session / stream / replay / resume
 - turn trace 词汇表
 - TutorBot 作为业务身份接入 turn

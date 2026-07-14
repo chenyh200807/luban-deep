@@ -41,6 +41,13 @@ def test_shared_card_runtime_is_self_hosted_and_integrity_pinned() -> None:
         assert '"../vendor/react-18.3.1.production.min.js"' in source
         assert '"../vendor/react-dom-18.3.1.production.min.js"' in source
 
+    sheet_runtime = root / "vendor" / "luban-tutorbot-sheet-runtime.js"
+    assert sheet_runtime.is_file()
+    runtime_source = sheet_runtime.read_text(encoding="utf-8")
+    assert "LubanTutorbotSheetRuntime" in runtime_source
+    assert "parseWithIds" in runtime_source
+    assert "toWorkflowEvent" in runtime_source
+
 
 def test_all_37_hosted_lessons_preload_only_the_first_audio_segment() -> None:
     root = ROOT / "web/public/luban-preview"
@@ -71,9 +78,18 @@ def test_all_37_hosted_lessons_keep_ai_ask_inside_the_teaching_card() -> None:
         assert "navigateTo({url:'/packageDeeptutor/pages/chat/chat" not in source
         assert "window.claude" not in source
         assert 'fetch("/api/v1/luban-preview/ai-ask"' in source
+        assert "entryTicket:entryTicket" in source
+        assert "new WebSocket" in source
+        assert 'type:"subscribe_turn"' in source
+        assert "entry_ticket" in source
+        assert 'current.searchParams.get("entry_ticket")' not in source
+        assert 'new URLSearchParams(String(current.hash||"").replace(/^#/,""))' in source
+        assert 'fetch("/api/v1/luban-preview/lesson-viewed"' in source
         assert "data-luban-ask-thread" in source
         assert "data-luban-ask-error" in source
-        assert "结论 · 判断依据" in source
+        assert "data-luban-workflow-status" in source
+        assert "askBlocks" in source
+        assert "askAnswer }}</div>" not in source
 
 
 def test_all_hosted_audio_manifests_have_every_declared_mp3() -> None:

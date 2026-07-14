@@ -36,6 +36,18 @@
 
 但它们只能做 bootstrap，不得定义第二套流式协议。
 
+鲁班教学卡的 H5 `web-view` 没有能力安全附带小程序的 Authorization header。它可以
+在**同一个** `/api/v1/ws` 连接中通过 `Sec-WebSocket-Protocol` 携带由已认证站点签发的
+短期 capability（协议名固定为 `luban-preview-v1`）。服务端必须从 SQLite capability
+表还原真实 learner、pack 和已创建的 turn；该连接只允许 `subscribe_turn` 且 `turn_id`
+必须等于 capability 绑定的那一个 turn。它不得 `start_turn`、`resume_from`、订阅 session
+或取消 turn，不能把 capability 升级为通用 bearer 身份。正常客户端仍使用 Bearer auth，
+两者消费同一 event grammar、同一 replay 和同一 public-redaction 边界。
+
+教学卡进入五题前可通过受限 HTTP bridge 委托既有 `record_lesson_view_evidence` 写
+`lesson_viewed`；bridge 本身不定义学习证据语义。五题完成后的掌握裁决仍只由服务端重判
+与 `RetestWritebackService` 写入，卡内追问不构成掌握证据。
+
 移动端 HTTP adapter 可以返回面向客户端渲染的 read-model，例如：
 
 - `created_at_ms / updated_at_ms`

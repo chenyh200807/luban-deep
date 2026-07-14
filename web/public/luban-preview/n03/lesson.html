@@ -6,12 +6,40 @@
 <script src="./support.js"></script>
 </head>
 <body>
-<audio data-luban-prewarm preload="auto" src="audio/b0.mp3?v=bedf6ee378f3279e" aria-hidden="true" style="display:none"></audio>
+<audio data-luban-prewarm preload="auto" src="audio/up/b0.mp3?v=5132178d38899453" aria-hidden="true" style="display:none"></audio>
 <x-dc>
 <!-- @template name="动画讲解页母版" description="鲁班智考动画学习卡 · 讲解页：RAF 时间轴 + 6 幕领域对象动画 + ≤3 行字幕分页 + 师生 QA 迷你领域图 + 问追AI。Fork 后只改【内容区】，骨架别动。" -->
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
+<script src="../vendor/luban-tutorbot-sheet-runtime.js?v=c91c4e682bfe205e"></script>
+<script data-luban-card-entry-bridge>
+(function(){
+  var ticket="";
+  try{
+    var current=new URL(window.location.href);
+    var capability=new URLSearchParams(String(current.hash||"").replace(/^#/,""));
+    ticket=String(capability.get("entry_ticket")||"").trim();
+    if(ticket){ window.__lubanCardEntryTicket=ticket; window.history.replaceState(window.history.state,document.title,current.pathname+(current.search||"")); }
+  }catch(_){ }
+  function closestAnchor(node){ while(node&&node!==document){ if(String(node.tagName||"").toUpperCase()==="A")return node; node=node.parentNode; } return null; }
+  function carryCapability(url){ if(!ticket)return url; url.hash="entry_ticket="+encodeURIComponent(ticket); return url; }
+  document.addEventListener("click",function(event){
+    var anchor=closestAnchor(event.target); if(!anchor||event.defaultPrevented)return;
+    var href=String(anchor.getAttribute("href")||"").trim(); if(!href||href.charAt(0)==="#")return;
+    var next; try{ next=new URL(anchor.href,window.location.href); }catch(_){return;}
+    if(next.origin!==window.location.origin)return;
+    var file=next.pathname.split("/").pop()||"";
+    if(/^lesson(?:\d+)?\.html$/i.test(file)){ if(ticket){ event.preventDefault(); window.location.assign(carryCapability(next).toString()); } return; }
+    if(!/^practice(?:\d+)?\.html$/i.test(file))return;
+    event.preventDefault();
+    if(!ticket){ window.alert("学习身份已过期，请返回小程序重新打开这一站。"); return; }
+    fetch("/api/v1/luban-preview/lesson-viewed",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contextId:"N03",cardId:"N03",entryTicket:ticket})})
+      .then(function(response){ if(!response.ok)throw new Error("lesson evidence rejected"); window.location.assign(next.toString()); })
+      .catch(function(){ window.alert("学习记录未确认，请留在本页稍后重试后再做练习。"); });
+  },true);
+})();
+</script>
 <style data-luban-ask-sheet-motion>@keyframes lzAskSheetIn{from{transform:translateY(100%);opacity:.72}to{transform:translateY(0);opacity:1}}</style>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
@@ -59,135 +87,101 @@
         <div style="margin-top:12px;font-size:10px;color:#9aa0a3;letter-spacing:1px;">{{ posterMeta }}</div>
       </div>
 
-      <!-- ░░ BEAT 0 · 破误区：节拍柱 + 误区气泡 + 红章淘汰 ░░ -->
+      <!-- ░░ BEAT 0 · 三大组织方式：依次 / 平行 / 流水 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo0 }};transition:opacity .4s ease;pointer-events:{{ lpe0 }};">
-        <div style="position:absolute;left:0;right:0;bottom:0;height:160px;background:linear-gradient(180deg,transparent,#e9e7da);opacity:{{ b0_op }};"></div>
-        <div style="position:absolute;inset:0;opacity:{{ b0_op }};transform:translateY({{ b0_y }}px);">
-          <div style="position:absolute;left:50px;top:222px;width:48px;text-align:center;"><div style="font-size:13px;font-weight:900;color:#2f6db0;">3</div><div style="width:48px;height:60px;background:#2f6db0;border-radius:5px 5px 0 0;"></div><div style="font-size:10px;font-weight:800;color:#5c6469;margin-top:4px;">基础</div></div>
-          <div style="position:absolute;left:130px;top:222px;width:48px;text-align:center;"><div style="font-size:13px;font-weight:900;color:#cf8a44;">3</div><div style="width:48px;height:60px;background:#cf8a44;border-radius:5px 5px 0 0;"></div><div style="font-size:10px;font-weight:800;color:#5c6469;margin-top:4px;">结构</div></div>
-          <div style="position:absolute;left:210px;top:162px;width:48px;text-align:center;"><div style="font-size:13px;font-weight:900;color:#2c8a5b;">6</div><div style="width:48px;height:120px;background:#2c8a5b;border-radius:5px 5px 0 0;"></div><div style="font-size:10px;font-weight:800;color:#5c6469;margin-top:4px;">砌筑</div></div>
-          <div style="position:absolute;left:290px;top:222px;width:48px;text-align:center;"><div style="font-size:13px;font-weight:900;color:#d9a521;">3</div><div style="width:48px;height:60px;background:#d9a521;border-radius:5px 5px 0 0;"></div><div style="font-size:10px;font-weight:800;color:#5c6469;margin-top:4px;">装修</div></div>
-          <div style="position:absolute;left:40px;right:40px;top:301px;height:2.5px;background:#bdb8a8;border-radius:2px;"></div>
-          <div style="position:absolute;left:0;right:0;top:336px;text-align:center;font-size:12px;font-weight:800;color:#5c6469;">{{ b0_tag }}</div>
-        </div>
-        <div style="position:absolute;left:46px;top:62px;width:240px;background:#fff;border:2.5px solid #cf4436;border-radius:16px;padding:13px 15px;font-size:14px;font-weight:700;color:#23282b;line-height:1.4;transform-origin:50% 100%;box-shadow:3px 3px 0 rgba(207,68,54,.18);opacity:{{ b0_bo }};transform:scale({{ b0_bs }});">{{ b0_bubble }}
-          <div style="position:absolute;left:30px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:13px solid #cf4436;"></div>
-        </div>
-        <div style="position:absolute;left:54px;top:140px;z-index:20;color:#cf4436;border:4px solid #cf4436;border-radius:10px;padding:3px 12px;font-size:22px;font-weight:900;letter-spacing:3px;transform-origin:50% 50%;opacity:{{ b0_so }};transform:scale({{ b0_ss }}) rotate(-13deg);">{{ b0_stamp }}</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ om_title }}</div>
+        <div style="position:absolute;left:16px;top:70px;font-size:11px;font-weight:900;color:#2f6db0;opacity:{{ om_o0 }};">依次施工 · 工期最长 · 省人</div>
+        <sc-for list="{{ om_seq }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:{{ c.x }}px;top:90px;width:{{ c.w }}px;height:18px;background:{{ c.bg }};opacity:{{ c.op }};border-radius:3px;box-shadow:1px 1px 0 rgba(0,0,0,.12);"></div>
+        </sc-for>
+        <div style="position:absolute;left:16px;top:146px;font-size:11px;font-weight:900;color:#cf8a44;opacity:{{ om_o1 }};">平行施工 · 工期最短 · 耗人 N 倍</div>
+        <sc-for list="{{ om_par }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:70px;top:{{ c.y }}px;width:82px;height:16px;background:{{ c.bg }};opacity:{{ c.op }};border-radius:3px;box-shadow:1px 1px 0 rgba(0,0,0,.12);"></div>
+        </sc-for>
+        <div style="position:absolute;left:16px;top:230px;font-size:11px;font-weight:900;color:#2c8a5b;opacity:{{ om_o2 }};">流水施工 · 错位搭接 · 又快又稳</div>
+        <div style="position:absolute;left:60px;top:246px;width:210px;height:62px;border:2px dashed #2c8a5b;border-radius:8px;opacity:{{ om_hl }};"></div>
+        <sc-for list="{{ om_flow }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:{{ c.x }}px;top:{{ c.y }}px;width:96px;height:16px;background:{{ c.bg }};opacity:{{ c.op }};border-radius:3px;box-shadow:1px 1px 0 rgba(0,0,0,.12);"></div>
+        </sc-for>
       </div>
 
-      <!-- ░░ BEAT 1 · 判型标尺命中 ░░ -->
+      <!-- ░░ BEAT 1 · 三大参数 t / K / T ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo1 }};transition:opacity .4s ease;pointer-events:{{ lpe1 }};">
-        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ b1_title }}</div>
-        <div style="position:absolute;left:70px;top:66px;width:300px;display:flex;font-size:8.5px;font-weight:800;text-align:center;color:#5c6469;">
-          <div style="flex:1;">{{ band0 }}</div><div style="flex:1;">{{ band1 }}</div><div style="flex:1;">{{ band2 }}</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ pr_title }}</div>
+        <sc-for list="{{ pr_cells }}" as="c" hint-placeholder-count="9">
+          <div style="position:absolute;left:{{ c.x }}px;top:{{ c.y }}px;width:50px;height:20px;background:{{ c.bg }};opacity:{{ c.op }};border-radius:4px;box-shadow:1px 1px 0 rgba(0,0,0,.12);"></div>
+        </sc-for>
+        <div style="position:absolute;left:70px;top:90px;width:50px;opacity:{{ pr_tO }};">
+          <div style="border-top:2px solid #2c8a5b;position:relative;"><div style="position:absolute;left:0;top:-4px;width:0;height:7px;border-left:2px solid #2c8a5b;"></div><div style="position:absolute;right:0;top:-4px;width:0;height:7px;border-left:2px solid #2c8a5b;"></div></div>
+          <div style="text-align:center;font-size:10px;font-weight:800;color:#2c8a5b;margin-top:2px;white-space:nowrap;">t 节拍·一段工时</div>
         </div>
-        <div style="position:absolute;left:10px;top:96px;width:58px;font-size:10px;font-weight:800;color:#cf4436;">{{ b1_axis }}</div>
-        <div style="position:absolute;left:70px;top:92px;width:300px;height:24px;">
-          <div style="position:absolute;inset:0;display:flex;border-radius:6px;overflow:hidden;transform-origin:left;transform:scaleX({{ b1_track }});">
-            <div style="flex:1;background:#dff0e6;border-right:1px solid #fff;"></div>
-            <div style="flex:1;background:#dff0e6;border-right:1px solid #fff;"></div>
-            <div style="flex:1;background:#fadcd6;"></div>
-          </div>
-          <div style="position:absolute;left:100px;top:-2px;width:100px;height:28px;border:2.5px solid #2c8a5b;border-radius:6px;box-shadow:0 0 0 3px rgba(44,138,91,.18);opacity:{{ b1_hit }};"></div>
+        <div style="position:absolute;left:70px;top:198px;width:34px;opacity:{{ pr_kO }};">
+          <div style="border-top:2px solid #cf4436;position:relative;"><div style="position:absolute;left:0;top:-4px;width:0;height:7px;border-left:2px solid #cf4436;"></div><div style="position:absolute;right:0;top:-4px;width:0;height:7px;border-left:2px solid #cf4436;"></div></div>
+          <div style="font-size:10px;font-weight:800;color:#cf4436;margin-top:2px;white-space:nowrap;">K 步距·相邻队错开</div>
         </div>
-        <div style="position:absolute;top:64px;left:{{ b1_px }}px;transform:translateX(-50%);z-index:10;opacity:{{ b1_po }};">
-          <div style="background:#cf4436;color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;box-shadow:2px 2px 0 rgba(0,0,0,.12);">{{ b1_probe }}</div>
-          <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #cf4436;margin:0 auto;"></div>
-        </div>
-        <div style="position:absolute;left:50%;top:166px;transform:translateX(-50%) translateY({{ b1_ry }}px);background:#fff8e2;border:1.5px dashed #d8b24a;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:#8a6d1f;white-space:nowrap;opacity:{{ b1_ro }};">{{ b1_rule }}</div>
-        <div style="position:absolute;left:50%;top:226px;transform:translateX(-50%) translateY({{ b1_ey }}px);text-align:center;opacity:{{ b1_eo }};">
-          <div style="display:inline-flex;align-items:center;gap:8px;background:#2c8a5b;color:#fff;border-radius:12px;padding:10px 18px;font-size:15px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.25);white-space:nowrap;">{{ b1_result }}</div>
+        <div style="position:absolute;left:70px;top:230px;width:218px;opacity:{{ pr_TO }};">
+          <div style="border-top:2.5px solid #cf8a44;position:relative;"><div style="position:absolute;left:0;top:-4px;width:0;height:8px;border-left:2px solid #cf8a44;"></div><div style="position:absolute;right:0;top:-4px;width:0;height:8px;border-left:2px solid #cf8a44;"></div></div>
+          <div style="text-align:center;font-size:11px;font-weight:800;color:#cf8a44;margin-top:3px;white-space:nowrap;">T 工期·首队入 → 末队退</div>
         </div>
       </div>
 
-      <!-- ░░ BEAT 2 · 取步距 K = gcd，淘汰 K 取最大节拍 ░░ -->
+      <!-- ░░ BEAT 2 · 参数三分类：工艺 / 时间 / 空间 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo2 }};transition:opacity .4s ease;pointer-events:{{ lpe2 }};">
-        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ k_title }}</div>
-        <!-- 左：gcd 推导 + K -->
-        <div style="position:absolute;left:20px;top:150px;font-size:16px;font-weight:800;color:#23282b;line-height:1.7;opacity:{{ k_gcdO }};">
-          3 = 3<br/>6 = 3 × 2<br/><span style="color:#2c8a5b;font-weight:900;">gcd(3,6) = 3</span>
-        </div>
-        <div style="position:absolute;left:20px;top:262px;background:#2c8a5b;color:#fff;border-radius:12px;padding:11px 18px;font-size:20px;font-weight:900;box-shadow:3px 3px 0 rgba(44,138,91,.25);opacity:{{ k_kO }};">K = 3 个月</div>
-        <!-- 右上：错解 K=6 队排稀 + 划掉 -->
-        <div style="position:absolute;left:188px;top:120px;font-size:11px;font-weight:800;color:#cf4436;opacity:{{ k_wO }};">✕ K 取最大节拍 6</div>
-        <div style="position:absolute;left:188px;top:142px;width:186px;height:30px;opacity:{{ k_wO }};">
-          <div style="position:absolute;left:0;top:0;width:34px;height:30px;background:#cf9a8f;border-radius:3px;"></div>
-          <div style="position:absolute;left:42px;top:0;width:34px;height:30px;background:repeating-linear-gradient(45deg,#f0d7d0,#f0d7d0 5px,#f6e6e0 5px,#f6e6e0 10px);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#c0392b;">空等</div>
-          <div style="position:absolute;left:84px;top:0;width:34px;height:30px;background:#cf9a8f;border-radius:3px;"></div>
-          <div style="position:absolute;left:126px;top:0;width:34px;height:30px;background:repeating-linear-gradient(45deg,#f0d7d0,#f0d7d0 5px,#f6e6e0 5px,#f6e6e0 10px);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#c0392b;">空等</div>
-        </div>
-        <div style="position:absolute;left:184px;top:152px;width:196px;height:4px;background:#cf4436;border-radius:2px;transform:rotate(7deg);transform-origin:left;opacity:{{ k_xO }};"></div>
-        <!-- 右下：正解 K=3 队咬紧 + K 标尺 -->
-        <div style="position:absolute;left:188px;top:228px;font-size:11px;font-weight:800;color:#2c8a5b;opacity:{{ k_rO }};">✓ K=3 队咬紧 · 连续无空闲</div>
-        <div style="position:absolute;left:188px;top:250px;width:186px;height:30px;opacity:{{ k_rO }};">
-          <div style="position:absolute;left:0;top:0;width:42px;height:30px;background:#6fa05f;border-radius:3px;"></div>
-          <div style="position:absolute;left:44px;top:0;width:42px;height:30px;background:#6fa05f;border-radius:3px;"></div>
-          <div style="position:absolute;left:88px;top:0;width:42px;height:30px;background:#6fa05f;border-radius:3px;"></div>
-          <div style="position:absolute;left:132px;top:0;width:42px;height:30px;background:#6fa05f;border-radius:3px;"></div>
-        </div>
-        <div style="position:absolute;left:188px;top:286px;width:42px;border-top:2px solid #cf4436;opacity:{{ k_rO }};"><div style="text-align:center;font-size:9px;font-weight:800;color:#cf4436;">K=3</div></div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ cls_title }}</div>
+        <div style="position:absolute;left:16px;top:76px;width:110px;text-align:center;background:#2f6db0;color:#fff;border-radius:8px;padding:7px 0;font-size:12px;font-weight:900;opacity:{{ cls_h0 }};">工艺参数<div style="font-size:8.5px;font-weight:600;opacity:.85;margin-top:1px;">干啥 · 分几块</div></div>
+        <div style="position:absolute;left:140px;top:76px;width:110px;text-align:center;background:#2c8a5b;color:#fff;border-radius:8px;padding:7px 0;font-size:12px;font-weight:900;opacity:{{ cls_h1 }};">时间参数<div style="font-size:8.5px;font-weight:600;opacity:.85;margin-top:1px;">多久</div></div>
+        <div style="position:absolute;left:264px;top:76px;width:110px;text-align:center;background:#cf8a44;color:#fff;border-radius:8px;padding:7px 0;font-size:12px;font-weight:900;opacity:{{ cls_h2 }};">空间参数<div style="font-size:8.5px;font-weight:600;opacity:.85;margin-top:1px;">在哪干</div></div>
+        <sc-for list="{{ cls_toks }}" as="c" hint-placeholder-count="7">
+          <div style="position:absolute;left:{{ c.x }}px;top:{{ c.y }}px;width:110px;text-align:center;background:{{ c.bg }};border:{{ c.bd }};border-radius:7px;padding:7px 0;font-size:11px;font-weight:700;color:{{ c.fg }};opacity:{{ c.op }};">{{ c.lab }}</div>
+        </sc-for>
+        <div style="position:absolute;left:0;right:0;top:238px;text-align:center;font-size:11px;font-weight:700;color:#cf8a44;opacity:{{ cls_noteO }};">节拍 · 步距 · 工期都是「时间参数」，别归错到工艺</div>
       </div>
 
-      <!-- ░░ BEAT 3 · 拆队：砌筑 6=2K 拆 2 队，队数=节拍÷K 求和 ░░ -->
+      <!-- ░░ BEAT 3 · 施工段划分：劳动量差≤15% · 对结构缝 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo3 }};transition:opacity .4s ease;pointer-events:{{ lpe3 }};">
-        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ d_title }}</div>
-        <!-- 基础 -->
-        <div style="position:absolute;left:18px;top:108px;font-size:12px;font-weight:800;color:#2f6db0;opacity:{{ d_rowO }};">基础</div>
-        <div style="position:absolute;left:74px;top:104px;width:48px;height:26px;background:#2f6db0;border-radius:4px;opacity:{{ d_rowO }};"></div>
-        <div style="position:absolute;left:200px;top:108px;font-size:13px;font-weight:800;color:#23282b;opacity:{{ d_divO }};">3 ÷ 3 = 1 队</div>
-        <!-- 结构 -->
-        <div style="position:absolute;left:18px;top:150px;font-size:12px;font-weight:800;color:#cf8a44;opacity:{{ d_rowO }};">结构</div>
-        <div style="position:absolute;left:74px;top:146px;width:48px;height:26px;background:#cf8a44;border-radius:4px;opacity:{{ d_rowO }};"></div>
-        <div style="position:absolute;left:200px;top:150px;font-size:13px;font-weight:800;color:#23282b;opacity:{{ d_divO }};">3 ÷ 3 = 1 队</div>
-        <!-- 砌筑（拆 2） -->
-        <div style="position:absolute;left:18px;top:192px;font-size:12px;font-weight:800;color:#2c8a5b;opacity:{{ d_rowO }};">砌筑</div>
-        <div style="position:absolute;left:74px;top:188px;width:48px;height:26px;background:#2c8a5b;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;opacity:{{ d_rowO }};">①</div>
-        <div style="position:absolute;left:{{ d_b2x }}px;top:188px;width:48px;height:26px;background:#3fa06a;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;opacity:{{ d_rowO }};">②</div>
-        <div style="position:absolute;left:200px;top:192px;font-size:13px;font-weight:800;color:#c0392b;opacity:{{ d_divO }};">6 ÷ 3 = 2 队</div>
-        <!-- 装修 -->
-        <div style="position:absolute;left:18px;top:234px;font-size:12px;font-weight:800;color:#d9a521;opacity:{{ d_rowO }};">装修</div>
-        <div style="position:absolute;left:74px;top:230px;width:48px;height:26px;background:#d9a521;border-radius:4px;opacity:{{ d_rowO }};"></div>
-        <div style="position:absolute;left:200px;top:234px;font-size:13px;font-weight:800;color:#23282b;opacity:{{ d_divO }};">3 ÷ 3 = 1 队</div>
-        <!-- 汇总 -->
-        <div style="position:absolute;left:50%;top:288px;transform:translateX(-50%);background:#cf4436;color:#fff;border-radius:11px;padding:9px 18px;font-size:16px;font-weight:900;box-shadow:3px 3px 0 rgba(207,68,54,.22);white-space:nowrap;opacity:{{ d_sumO }};">1+1+2+1 = 5 个专业队</div>
-        <div style="position:absolute;left:0;right:0;top:328px;text-align:center;font-size:11px;font-weight:700;color:#cf8a44;opacity:{{ d_sumO }};">成倍节拍拆队 · 队数 &gt; 工序数</div>
+        <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ seg_title }}</div>
+        <div style="position:absolute;left:56px;top:160px;width:300px;height:26px;background:rgba(44,138,91,.13);border-top:1.5px dashed #2c8a5b;border-bottom:1.5px dashed #2c8a5b;opacity:{{ seg_bandO }};"></div>
+        <div style="position:absolute;left:56px;top:138px;font-size:9.5px;font-weight:800;color:#2c8a5b;opacity:{{ seg_bandO }};">各段劳动量落在 ±15% 带内</div>
+        <sc-for list="{{ seg_seams }}" as="s" hint-placeholder-count="3">
+          <div style="position:absolute;left:{{ s.x }}px;top:150px;width:0;height:124px;border-left:1.5px dashed #b06a2a;opacity:{{ s.op }};"></div>
+        </sc-for>
+        <sc-for list="{{ seg_bars }}" as="b" hint-placeholder-count="4">
+          <div style="position:absolute;left:{{ b.x }}px;top:{{ b.y }}px;width:52px;height:{{ b.h }}px;background:#2f6db0;opacity:{{ b.op }};border-radius:5px 5px 0 0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-size:10px;font-weight:800;color:#fff;">{{ b.lab }}</div>
+        </sc-for>
+        <div style="position:absolute;left:40px;width:316px;top:274px;border-top:2.5px solid #bdb8a8;"></div>
+        <div style="position:absolute;left:0;right:0;top:284px;text-align:center;font-size:11px;font-weight:700;color:#cf8a44;opacity:{{ seg_noteO }};">劳动量差 ≤ 15% · 界限对结构缝 · 工作面充足</div>
       </div>
 
-      <!-- ░░ BEAT 4 · 横道图：5 队 2 段对角咬合 + 工期 ░░ -->
+      <!-- ░░ BEAT 4 · 判型三分叉：全等 / 成倍数 / 无规律 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo4 }};transition:opacity .4s ease;pointer-events:{{ lpe4 }};">
-        <div style="position:absolute;left:16px;top:38px;font-size:12px;font-weight:900;color:#23282b;">{{ g_title }}</div>
-        <sc-for list="{{ g2cells }}" as="c" hint-placeholder-count="10">
-          <div style="position:absolute;left:{{ c.x }}px;top:{{ c.y }}px;width:{{ c.w }}px;height:24px;background:{{ c.bg }};opacity:{{ c.op }};border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;box-shadow:1px 1px 0 rgba(0,0,0,.14);">{{ c.lab }}</div>
-        </sc-for>
-        <sc-for list="{{ g2rows }}" as="r" hint-placeholder-count="5">
-          <div style="position:absolute;left:12px;top:{{ r.y }}px;font-size:10px;font-weight:800;color:{{ r.c }};opacity:{{ r.op }};white-space:nowrap;">{{ r.n }}</div>
-        </sc-for>
-        <div style="position:absolute;top:{{ g2_ky }}px;left:{{ g2_kx }}px;width:{{ g2_kw }}px;opacity:{{ g2_kop }};">
-          <div style="text-align:center;font-size:10px;font-weight:800;color:#cf4436;margin-bottom:2px;line-height:1;">K=3</div>
-          <div style="border-top:2px solid #cf4436;position:relative;">
-            <div style="position:absolute;left:0;top:-3px;width:0;height:6px;border-left:2px solid #cf4436;"></div>
-            <div style="position:absolute;right:0;top:-3px;width:0;height:6px;border-left:2px solid #cf4436;"></div>
+        <div style="position:absolute;left:16px;top:38px;font-size:12px;font-weight:900;color:#23282b;">{{ jt_title }}</div>
+        <div style="position:absolute;left:50%;top:70px;transform:translateX(-50%);background:#23282b;color:#fff;border-radius:11px;padding:8px 16px;font-size:12px;font-weight:800;white-space:nowrap;opacity:{{ jt_srcO }};">看各段节拍关系</div>
+        <div style="position:absolute;left:195px;top:106px;width:0;height:26px;border-left:2px solid #c9c3b2;opacity:{{ jt_lineO }};"></div>
+        <div style="position:absolute;left:70px;top:132px;width:250px;border-top:2px solid #c9c3b2;opacity:{{ jt_lineO }};"></div>
+        <div style="position:absolute;left:70px;top:132px;width:0;height:16px;border-left:2px solid #c9c3b2;opacity:{{ jt_lineO }};"></div>
+        <div style="position:absolute;left:195px;top:132px;width:0;height:16px;border-left:2px solid #c9c3b2;opacity:{{ jt_lineO }};"></div>
+        <div style="position:absolute;left:320px;top:132px;width:0;height:16px;border-left:2px solid #c9c3b2;opacity:{{ jt_lineO }};"></div>
+        <sc-for list="{{ jt_cards }}" as="c" hint-placeholder-count="3">
+          <div style="position:absolute;left:{{ c.x }}px;top:150px;width:112px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid {{ c.ac }};border-radius:10px;padding:9px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c.op }};">
+            <div style="font-size:9.5px;font-weight:800;color:#8b9398;">{{ c.cond }}</div>
+            <div style="font-size:13px;font-weight:900;color:{{ c.ac }};margin-top:3px;">{{ c.type }}</div>
+            <div style="font-size:9.5px;color:#6b6358;margin-top:5px;font-weight:600;line-height:1.45;">{{ c.k }}</div>
           </div>
-        </div>
-        <div style="position:absolute;top:{{ g2_ty }}px;left:{{ g2_tx }}px;width:{{ g2_tw }}px;opacity:{{ g2_top }};">
-          <div style="border-top:2.5px solid {{ g2_tc }};"></div>
-          <div style="display:flex;justify-content:space-between;font-size:9px;color:{{ g2_tc }};font-weight:800;margin-top:1px;"><span>0</span><span>{{ g2_tend }}</span></div>
-        </div>
-        <div style="position:absolute;left:16px;right:16px;top:{{ g2_ny }}px;text-align:center;font-size:13px;font-weight:900;color:{{ g2_nc }};opacity:{{ g2_nop }};">{{ g2_note }}</div>
+        </sc-for>
+        <div style="position:absolute;left:0;right:0;top:292px;text-align:center;font-size:11px;font-weight:700;color:#cf4436;opacity:{{ jt_noteO }};">判型是地基 · 判错则 K、队数、工期连锁错</div>
       </div>
 
-      <!-- ░░ BEAT 5 · 口诀回扣：判型·K·队数·工期 ░░ -->
+      <!-- ░░ BEAT 5 · 概念口诀：方式·参数·分类·判型 ░░ -->
       <div style="position:absolute;inset:0;opacity:{{ lo5 }};transition:opacity .4s ease;pointer-events:{{ lpe5 }};">
         <div style="position:absolute;left:16px;top:42px;font-size:12px;font-weight:900;color:#23282b;">{{ c_title }}</div>
-        <div style="position:absolute;left:14px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c0 }};"><div style="font-size:14px;font-weight:900;color:#2f6db0;">1 判型</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">成倍数·等步距异节奏</div></div>
-        <div style="position:absolute;left:102px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf8a44;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c1 }};"><div style="font-size:14px;font-weight:900;color:#cf8a44;">2 取K</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">最大公约数 gcd=3</div></div>
-        <div style="position:absolute;left:190px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c2 }};"><div style="font-size:14px;font-weight:900;color:#2c8a5b;">3 队数</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">节拍÷K 求和=5</div></div>
-        <div style="position:absolute;left:278px;top:150px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #d9a521;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c3 }};"><div style="font-size:14px;font-weight:900;color:#d9a521;">4 工期</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">(2+5−1)×3=18</div></div>
+        <div style="position:absolute;left:14px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2f6db0;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c0 }};"><div style="font-size:14px;font-weight:900;color:#2f6db0;">1 方式</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">依次·平行·流水</div></div>
+        <div style="position:absolute;left:102px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #2c8a5b;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c1 }};"><div style="font-size:14px;font-weight:900;color:#2c8a5b;">2 参数</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">t · K · T</div></div>
+        <div style="position:absolute;left:190px;top:150px;width:80px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #cf8a44;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c2 }};"><div style="font-size:14px;font-weight:900;color:#cf8a44;">3 分类</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">工艺·时间·空间</div></div>
+        <div style="position:absolute;left:278px;top:150px;width:84px;background:#fff;border:1.5px solid #ddd2bb;border-top:5px solid #d9a521;border-radius:10px;padding:10px 8px;box-shadow:0 4px 12px rgba(0,0,0,.07);opacity:{{ c3 }};"><div style="font-size:14px;font-weight:900;color:#d9a521;">4 判型</div><div style="font-size:9.5px;color:#6b6358;margin-top:4px;font-weight:600;line-height:1.4;">全等/倍数/无规律</div></div>
         <div style="position:absolute;left:96px;top:188px;font-size:20px;color:#b3a692;opacity:{{ c1 }};">·</div>
         <div style="position:absolute;left:184px;top:188px;font-size:20px;color:#b3a692;opacity:{{ c2 }};">·</div>
         <div style="position:absolute;left:272px;top:188px;font-size:20px;color:#b3a692;opacity:{{ c3 }};">·</div>
-        <div style="position:absolute;left:0;right:0;top:262px;text-align:center;font-size:13px;font-weight:900;color:#23282b;opacity:{{ c3 }};">四步走全，采分句一句不少</div>
+        <div style="position:absolute;left:0;right:0;top:262px;text-align:center;font-size:13px;font-weight:900;color:#23282b;opacity:{{ c3 }};">四关认清，下集开算 K·队数·工期</div>
       </div>
 
       <!-- ░░ QA 场景 ░░ -->
@@ -232,22 +226,22 @@
       <!-- ░░ 收官 END-SCREEN（播到底 t≥DUR 才出 · 与海报对称）░░ -->
       <div style="position:absolute;inset:0;z-index:44;background:linear-gradient(180deg,#f4f3ec,#eceadf);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px;opacity:{{ endO }};pointer-events:{{ endPE }};transition:opacity .35s ease;">
         <img src="assets/mark-red.png" alt="鲁班智考" style="width:44px;height:auto;"/>
-        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">这道考点 · 唠完了</div>
+        <div style="font-size:15px;font-weight:900;color:#23282b;margin-top:7px;">上集·概念判型 · 唠完了</div>
         <div style="margin-top:11px;display:flex;gap:8px;align-items:flex-start;background:#23282b;border-radius:12px;padding:11px 13px;max-width:342px;box-shadow:3px 3px 0 rgba(35,40,43,.12);">
           <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
-          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">这道就唠到这儿哈——判型看成不成倍数，K 取最大公约数，队数节拍÷K 记得拆队，工期 (M+N′−1)×K 体现搭接。四句写全，阅卷一分不丢。</div>
+          <div style="flex:1;font-size:12px;color:#f1e6cf;line-height:1.55;font-weight:500;">上半场把概念和判型唠明白了——三种组织方式、三个参数、三类归属，最后按节拍关系判对型。判型是地基，判错后面全错。歇口气，下集咱就动手算 K、算队数、算工期。</div>
         </div>
-        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句采分句</div>
+        <div style="margin-top:11px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#9aa0a3;">带走这几句概念采分句</div>
         <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:344px;">
-          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">成倍数 · 等步距异节奏</div>
-          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">K = gcd(3,6) = 3 个月</div>
-          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">队数 = 节拍÷K 求和 = 5 队</div>
-          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">T = (2+5−1)×3 = 18 个月</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf4436;">三方式：依次 · 平行 · 流水</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2f6db0;">t=一格 · K=错开 · T=全程</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#cf8a44;">三分类：工艺 · 时间 · 空间</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;color:#2c8a5b;">判型：全等 / 成倍数 / 无规律</div>
         </div>
         <div style="margin-top:16px;display:flex;gap:8px;">
           <button onClick="{{ replay }}" style="border:1.5px solid #ccc9ba;background:transparent;border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#5c6469;cursor:pointer;">⟲ 重看</button>
           <button onClick="{{ openAsk }}" style="border:1.5px solid #cf4436;background:rgba(207,68,54,.08);border-radius:11px;padding:9px 15px;font-size:12px;font-weight:800;color:#cf4436;cursor:pointer;">问鲁班</button>
-          <a href="practice.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">做练习</a>
+          <a href="lesson2.html" style="border:none;border-radius:11px;padding:9px 17px;font-size:12px;font-weight:900;background:#2c8a5b;color:#fff;text-decoration:none;display:flex;align-items:center;box-shadow:0 3px 12px rgba(44,138,91,.28);">下集·算工期</a>
         </div>
       </div>
     </div>
@@ -336,8 +330,23 @@
             <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
               <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
               <div style="flex:1;min-width:0;">
-                <div style="display:inline-flex;border:1px solid #527463;border-radius:999px;padding:3px 8px;color:#93c4a8;font-size:10px;font-weight:900;margin-bottom:8px;">结论 · 判断依据</div>
-                <div style="font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+                <div data-luban-workflow-status style="border:1px solid #527463;border-radius:12px;padding:10px 11px;background:#242820;margin-bottom:10px;">
+                  <div style="display:inline-flex;border:1px solid #527463;border-radius:999px;padding:3px 8px;color:#93c4a8;font-size:10px;font-weight:900;margin-bottom:6px;">{{ askWorkflowBadge }}</div>
+                  <div style="font-size:13px;color:#f1e6cf;font-weight:850;line-height:1.45;">{{ askWorkflowTitle }}</div>
+                  <div style="margin-top:3px;font-size:11px;color:#b9b59f;line-height:1.55;">{{ askWorkflowSub }}</div>
+                  <sc-for list="{{ askWorkflowEntries }}" as="step" hint-placeholder-count="5">
+                    <div style="margin-top:7px;padding-top:7px;border-top:1px solid #3a4438;font-size:10.5px;color:#c9c5ae;line-height:1.45;">{{ step.badge }} · {{ step.title }}</div>
+                  </sc-for>
+                </div>
+                <sc-for list="{{ askBlocks }}" as="b" hint-placeholder-count="5">
+                  <sc-if value="{{ b.type === 'heading' }}" hint-placeholder-val="{{ false }}"><div style="margin:11px 0 6px;color:#fff4dc;font-size:16px;line-height:1.45;font-weight:900;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
+                  <sc-if value="{{ b.type === 'paragraph' }}" hint-placeholder-val="{{ false }}"><div style="margin:8px 0;color:#f1e6cf;font-size:13.5px;line-height:1.75;font-weight:500;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
+                  <sc-if value="{{ b.type === 'callout' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:10px;border-left:3px solid #7fb69a;background:#202920;border-radius:8px;"><div style="display:inline-flex;color:#a8d1b4;font-size:10px;font-weight:900;margin-bottom:4px;">{{ b.label }}</div><div style="color:#eef3e9;font-size:13px;line-height:1.7;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></div></sc-if>
+                  <sc-if value="{{ b.type === 'ul' || b.type === 'ol' }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ b.items }}" as="item"><div style="display:flex;gap:7px;margin:7px 0;color:#f1e6cf;font-size:13px;line-height:1.7;"><span style="flex:none;color:#cf8a44;font-weight:900;">{{ item.marker }}</span><div style="flex:1;"><sc-for list="{{ item.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></div></sc-for></sc-if>
+                  <sc-if value="{{ b.type === 'blockquote' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:8px 10px;border-left:3px solid #cf8a44;background:#251f19;color:#e9dec7;font-size:12.5px;line-height:1.7;"><sc-for list="{{ b.lines }}" as="line"><div><sc-for list="{{ line }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-for></div></sc-if>
+                  <sc-if value="{{ b.type === 'code_block' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;padding:9px 10px;border-radius:8px;background:#101415;color:#dfe7df;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.55;white-space:pre-wrap;">{{ b.code }}</div></sc-if>
+                  <sc-if value="{{ b.type === 'table' }}" hint-placeholder-val="{{ false }}"><div style="margin:9px 0;border:1px solid #4a3d2a;border-radius:8px;overflow:hidden;"><div style="padding:7px 9px;background:#30291f;color:#f3cd91;font-size:11px;font-weight:900;">{{ b.headers }}</div><sc-for list="{{ b.rows }}" as="row"><div style="padding:7px 9px;border-top:1px solid #3a3127;color:#efe4ce;font-size:11.5px;line-height:1.55;">{{ row.cells }}</div></sc-for></div></sc-if>
+                </sc-for>
               </div>
             </div>
           </div>
@@ -388,40 +397,42 @@
    logo 用 assets/mark-white.png(暗底) / mark-red.png(亮底)，不用 emoji。
    ═══════════════════════════════════════════════════════════════════════════ */
 class Component extends DCLogic {
-  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askError:"", fs:false, ctrlHidden:false, muted:false };
-  audioBase="audio/";
-  audioVersion="bedf6ee378f3279e";
-  DUR = 227.568;
-  examTitle="流水施工参数与工期"; examCode="N03"; examCat="案例·进度";
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askRawResponse:"", askBlocks:[], askWorkflowEntries:[], askWorkflowBadge:"", askWorkflowTitle:"", askWorkflowSub:"", askWorkflowActive:false, askStreaming:false, askError:"", fs:false, ctrlHidden:false, muted:false };
+  audioBase="audio/up/";
+  audioVersion="5132178d38899453";
+  DUR = 214.104;
+  examTitle="流水施工参数与工期"; examCode="N03·上"; examCat="案例·进度";
   // 分集：单集留 []；分集时按顺序列出，cur:true 标当前集。文件名放项目根目录（同级）。
-  // 示例：[{label:"上集",href:"流水施工参数与工期_讲解_上.dc.html"},{label:"下集",href:"流水施工参数与工期_讲解_下.dc.html",cur:true}]
-  episodes=[];
-  posterSub="判型 · 步距K · 队数 · 工期，一条计算判定链"; posterMeta="点击播放 · 6 幕精讲 + 4 追问 · 约 4 分 28 秒";
-  KNOWLEDGE="流水施工参数与工期(成倍节拍主样板,真题{2023第2题}流水子问)。判型:节拍全等·等节奏(K=t);成倍数·等步距异节奏(K=各节拍最大公约数);无规律·无节奏(大差法)。本题节拍3/3/6/3成倍数·等步距异节奏,K=gcd(3,6)=3个月。专业队数=各工序节拍÷K求和=1+1+2+1=5(砌筑6=2K拆2队,队数>工序数)。总工期T=(M+N′−1)×K=(2+5−1)×3=18个月,M=施工段数2、N′=拆队后总队数5,体现搭接非机械相加。采分四句:①判型理由(成倍数·等步距异节奏)②K=最大公约数③队数=节拍÷K求和④工期(M+N′−1)×K带单位。常见失分:判型不写理由(E02)、K取最大/平均/最小节拍而非gcd(E09)、不拆队以为队数=工序数(E07)、工期机械相加不体现搭接(E09)。边界:关键线路/时差归N01、赶工选序归N02,本卡只做流水参数。";
-    beats=[["b0",0.0,17.588,"破误区"],["b1",17.588,35.176,"判型"],["b2",35.176,58.572,"取步距K"],["b3",58.572,79.952,"拆队"],["b4",79.952,101.572,"算工期"],["b5",101.572,119.76,"口诀"],["q0",119.76,146.988,"问答"],["q1",146.988,172.752,"问答"],["q2",172.752,197.196,"问答"],["q3",197.196,227.568,"问答"]];
+  episodes=[
+    {label:"上集·概念判型",href:"lesson.html",cur:true},
+    {label:"下集·计算工期",href:"lesson2.html"}
+  ];
+  posterSub="上集·概念判型关：组织方式 · 三参数 · 三分类 · 判型"; posterMeta="点击播放 · 6 幕精讲 + 4 追问 · 约 4 分半";
+  KNOWLEDGE="流水施工参数与工期·上集(概念判型关)。三大组织方式:依次施工(顺序无搭接,工期最长,省人)/平行施工(各段同时,工期最短,耗人N倍)/流水施工(分段分序错位搭接,又快又稳)。三大参数:流水节拍t=某专业队在一个施工段的施工时间;流水步距K=相邻两专业队进入流水的时间间隔;工期T=首队投入到末队退出。参数三分类:工艺参数(施工过程数/施工段数)、时间参数(节拍t/步距K/工期T)、空间参数(施工段/施工层)——节拍步距工期属时间参数,勿归工艺。施工段划分原则:劳动量差异≤15%、工作面充足、界限与结构缝吻合、段数合理、多层分段分层。类型判别:节拍全等→等节奏(K=t、队数=过程数、连续无空闲);不全等但成倍数→等步距异节奏(K=最大公约数、队数>过程数);无规律→无节奏(大差法、过程间可能有间隔)。判型是地基,判错则K/队数/工期连锁错。本集只讲概念与判型,K/队数/工期的具体计算在下集。";
+    beats=[["b0",0.0,19.7,"组织方式"],["b1",19.7,41.512,"三参数"],["b2",41.512,61.212,"三分类"],["b3",61.212,78.536,"施工段"],["b4",78.536,98.596,"判型"],["b5",98.596,112.776,"概念口诀"],["q0",112.776,140.484,"问答"],["q1",140.484,165.504,"问答"],["q2",165.504,190.092,"问答"],["q3",190.092,214.104,"问答"]];
   keycards=[
-    "节拍不等 ≠ 无节奏，先看成不成倍数",
-    "成倍数 · 等步距异节奏",
-    "K = 各节拍最大公约数 gcd，不取最大节拍",
-    "队数 = 节拍÷K 求和，拆队 > 工序数",
-    "T=(M+N′−1)×K，体现搭接",
-    "判型·K·队数·工期，四步走全"
+    "三种组织方式：依次·平行·流水，流水又快又稳",
+    "t=一格 · K=错开 · T=全程",
+    "工艺‘干啥分几块’ · 时间‘多久’ · 空间‘在哪’",
+    "施工段：劳动量差≤15% · 对结构缝",
+    "判型看节拍：全等/成倍数/无规律",
+    "认方式·分参数·归三类·判对型"
   ];
   narr=[
-    "来，看这道流水施工题。好些同学一上来就栽——节拍 3、3、6、3 不全相等，张嘴就判「无节奏」；要么图省事，把最大节拍 6 当步距。注意哈，这俩都是坑，先给它划掉。",
-    "正确走法先判型。把节拍关系放尺子上量：全等是等节奏、无规律是无节奏；3、3、6、3 不全等、却都是 3 的倍数——成倍数，正落在「等步距异节奏」这一档。判型必须写出理由，不能光写结论。",
-    "判完型取流水步距 K。等步距异节奏，K 取各节拍的最大公约数：gcd(3,6)=3，所以 K=3 个月。千万别取最大节拍 6——你看，K 取 6 队就排稀了，施工段在那儿空等，工期反而拖长；K 取 3，队伍才咬得紧、连续无空闲。",
-    "K 定 3 个月，可砌筑节拍是 6，正好两个 K，得拆成两个队。各工序队数 = 节拍 ÷ K：基础 1、结构 1、砌筑 2、装修 1，求和一共 5 个专业队。记住哈，成倍节拍要拆队，队数比工序数多。",
-    "5 个队、2 个施工段排流水。要是不搭接、一段段死等，得 30 个月；流水一搭接——每队错开一个 K 进场、斜着咬下去——总工期 =(2+5−1)×3=18 个月。看见没，搭接省下的 12 个月，就是流水的本事。工期要体现搭接，不能机械相加。",
-    "最后把这条链子记牢：判型 · 取 K · 算队数 · 算工期。判型看成不成倍数，K 取最大公约数，队数节拍÷K 求和、记得拆队，工期 (M+N′−1)×K 体现搭接。四步走全，分才拿全。"
+    "先认识流水施工是啥。同样的活儿有三种排法：依次施工——一段段挨着干、不搭接，人省可工期最长；平行施工——所有段一块儿上，快是快、可要好几倍的人；流水施工——分段分序、错开搭接，又快又稳，这才是咱要学的。",
+    "流水施工盯三个参数。流水节拍 t：一个专业队在一个施工段上干的时间，就是一个方块的长；流水步距 K：相邻俩队进场差的那个间隔；工期 T：头一个队进场到最后一个队退场、整条流水拉满的总时间。t 是一格、K 是错开、T 是全程，别搞混。",
+    "这些参数分三类记。工艺参数管‘干啥、分几块’——施工过程数、施工段数；时间参数管‘多久’——节拍、步距、工期；空间参数管‘在哪儿干’——施工段、施工层。注意哈，节拍步距工期是时间参数，别错归到工艺里去。",
+    "排流水先得分施工段。分段有讲究：各段劳动量差异别超 15%，不然队伍忙闲不均、接不上茵；分段界限尽量对着结构缝走，工作面还得够。段分得匀，节拍才稳，后面判型算账才顺。",
+    "参数备齐，最关键一步——判型。就看节拍关系：全都相等，等节奏，步距 K 等于节拍；不全等但成倍数，等步距异节奏，步距取最大公约数；没规律，无节奏，步距得用大差法。判型判错是地基错，后面全跟着错。",
+    "上集这条概念链记牢：三种组织方式认清、三个参数分清、三类参数归清、按节拍关系判清型。这四关过了，下集咱就上手算 K、算队数、算工期。"
   ];
   qa=[
-    { figLabel:"K = gcd · 整除两者才咬合", fig:"gcd", q:"老师我寻思着，这 K 为啥非得是最大公约数啊？取个平均数中不？", a:"中不了哈。K 是相邻俩队进场的间隔，得让每个队在每个段上都干整数个 K。取最大公约数，3 和 6 都被 3 整除，队伍严丝合缝；取平均、取最大，准有队要么撞上、要么干等着。所以必须是最大公约数。" },
-    { figLabel:"4 道工序 · 拆队 · N′ = 5 队", fig:"split", q:"那拆完队是 5 个，工期咋还按 5 算啊？工序明明就 4 道哇。", a:"拆完队，这 5 个专业队就当 5 条流水线看。公式里的 N′ 是拆队后的总队数 5，不是原来 4 道工序。所以 (2+5−1)×3，M 是施工段数 2，N′ 是拆队后的 5，记牢用拆队后的队数。" },
-    { figLabel:"依次 30 个月 vs 流水搭接 18 个月", fig:"lap", q:"那工期为啥不能把节拍直接加起来啊？3 加 3 加 6 加 3 不也是个数么？", a:"直接加那是「依次施工」、一段段死等，30 个月往上。流水是搭接的——每队错开一个 K 就进场，前后咬着干，所以是 (2+5−1)×3=18。工期必须体现搭接，机械相加准超长、还丢分。" },
-    { figLabel:"采分四句 · 一句不能少", fig:"score", q:"整明白了！那最后这 18 个月，要是阅卷，我得咋写才给分呐？", a:"写全四句：一，判型——节拍成倍数、等步距异节奏；二，K 等于最大公约数 3 个月；三，队数 1+1+2+1=5 个；四，工期 (2+5−1)×3=18 个月，带单位。判型理由、最大公约数、队数求和、搭接工期，一句都不能少。" }
+    { figLabel:"依次最长 · 平行最短耗人 · 流水居中又稳", fig:"modes", q:"老师，依次、平行、流水这仨到底差在哪啊？我老分不清。", a:"就看搭不搭接哈。依次是一段段挨着干、谁也不搭谁，工期最长、可人最省；平行是所有段一块儿开工，最快、可得好几倍的人和料；流水是错开一个步距搭着干，工期居中、人还匀。记：依次省人、平行费人、流水又快又稳。" },
+    { figLabel:"t = 一格长 · K = 相邻队错开", fig:"tk", q:"老师我寻思着，流水节拍 t 和流水步距 K 老搞混，咋记啊？", a:"记俩画面哈。t 是‘一格’——一个队在一个施工段上干多久，就是横道图上一个方块的长；K 是‘错开’——后一个队比前一个队晚进场多少，是相邻俩队起点之间那段距离。一个说自己干多久，一个说俩队差多少，维度不一样。" },
+    { figLabel:"节拍/步距/工期 → 时间参数栏", fig:"cls", q:"那流水节拍、步距、工期，是算工艺参数还是时间参数啊？", a:"是时间参数哈，别归错。工艺参数管‘干啥、分几块’——施工过程数、施工段数；时间参数管‘多久’——节拍、步距、工期都在这儿；空间参数管‘在哪干’——施工段、施工层。凡是带时间的都进时间参数栏。" },
+    { figLabel:"不全等先看成不成倍数", fig:"fork", q:"节拍要是不全相等，是不是就直接判无节奏啊？", a:"可别急着判！不全等还得再看一眼成不成倍数。像 3、3、6、3 不全等、可都是 3 的倍数，那是‘等步距异节奏’，不是无节奏；只有真没规律、约不出公倍关系，才判无节奏。先看全等、再看成倍数、最后才无节奏。" }
   ];
-  askPresets=["判型为什么是等步距异节奏？","步距 K 怎么取才不丢分？","采分四句怎么写全？"];
+  askPresets=["依次、平行、流水咋区分？","流水节拍和步距怎么记不混？","节拍不全等一定是无节奏吗？"];
 
   componentDidMount(){
     this.loop=this.loop.bind(this); this._raf=requestAnimationFrame(this.loop);
@@ -481,50 +492,104 @@ class Component extends DCLogic {
   dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
   async submitAsk(){
     const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    const runtime=window.LubanTutorbotSheetRuntime;
+    const entryTicket=String(window.__lubanCardEntryTicket||"").trim();
+    if(!runtime||!runtime.workflow||!entryTicket){ this.setState({askError:"学习身份已过期，请返回小程序重新打开这一站。"}); return; }
     let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; }
     const beat=this.beats[bi]||[];
-    const payload={contextId:"N03",cardId:"N03",question:q,
+    const payload={contextId:"N03",cardId:"N03",question:q,entryTicket:entryTicket,
       currentScene:{id:String(bi+1),label:String(beat[3]||"当前画面").slice(0,80)},
       time:Number(this.state.t||0)};
-    this.setState({askLoading:true,askAnswer:"",askError:""});
+    let rawResponse="", workflowEntries=[], lastSeq=0, completed=false, reconnects=0, socket=null;
+    const self=this;
+    const renderWorkflow=function(active, extra){
+      const summary=runtime.workflow.summarizeWorkflow(workflowEntries,active!==false);
+      self.setState(Object.assign({askWorkflowEntries:workflowEntries,askWorkflowBadge:summary.badge||"",askWorkflowTitle:summary.headline||"",askWorkflowSub:summary.subline||"",askWorkflowActive:active!==false},extra||{}));
+    };
+    const setResponse=function(next, append){
+      rawResponse=append?rawResponse+String(next||""):String(next||"");
+      self.setState({askLoading:false,askStreaming:true,askRawResponse:rawResponse,askAnswer:rawResponse,askBlocks:runtime.projectMarkdown(rawResponse),askError:""});
+    };
+    const fail=function(message){
+      if(completed)return; completed=true;
+      renderWorkflow(false,{askLoading:false,askStreaming:true,askError:String(message||"TutorBot 暂时没有接通，请留在本页稍后重试。")});
+    };
+    const finish=function(){ if(completed)return; completed=true; renderWorkflow(false,{askLoading:false,askStreaming:true}); };
+    const consume=function(event){
+      if(!event||typeof event!=="object"||completed)return;
+      const seq=typeof event.seq==="number"?event.seq:0;
+      if(seq&&seq<=lastSeq)return; if(seq)lastSeq=seq;
+      const type=String(event.type||"");
+      if(type==="content"){ if(runtime.isPublicEvent(event))setResponse(event.content,true); return; }
+      const workflowEvent=runtime.toWorkflowEvent(event);
+      if(workflowEvent){ workflowEntries=runtime.workflow.appendWorkflowEntry(workflowEntries,workflowEvent); renderWorkflow(true,{askStreaming:true}); return; }
+      if(type==="result"){ if(runtime.isPublicEvent(event)){ const finalText=runtime.finalResponse(event); if(finalText)setResponse(finalText,false); } return; }
+      if(type==="error"){ const metadata=event.metadata||{}; if(metadata.turn_terminal)fail(event.content||"TutorBot 暂时不可用，请稍后重试。"); return; }
+      if(type==="done")finish();
+    };
+    const socketUrl=function(path){
+      const u=new URL(String(path||"/api/v1/ws"),window.location.href);
+      u.protocol=u.protocol==="https:"?"wss:":"ws:"; return u.toString();
+    };
+    const connect=function(stream){
+      if(completed)return;
+      try{
+        socket=new WebSocket(socketUrl(stream.url),[String(stream.protocol||"luban-preview-v1"),String(stream.ticket||"")]);
+        socket.onopen=function(){ if(completed)return; socket.send(JSON.stringify({type:"subscribe_turn",turn_id:String(stream.turn_id||""),after_seq:lastSeq||0})); };
+        socket.onmessage=function(message){ try{consume(JSON.parse(String(message.data||"")));}catch(_){ } };
+        socket.onclose=function(){
+          if(completed)return;
+          if(reconnects>=2){ fail("流式连接中断，请留在本页稍后重试。"); return; }
+          reconnects+=1; workflowEntries=runtime.workflow.appendWorkflowEntry(workflowEntries,{type:"status",eventType:"reconnect",data:"retry",content:"正在续接本轮回答…",seq:lastSeq||0}); renderWorkflow(true,{askStreaming:true});
+          setTimeout(function(){connect(stream);},400*reconnects);
+        };
+        socket.onerror=function(){};
+      }catch(err){ fail("流式连接暂时不可用，请留在本页稍后重试。"); }
+    };
+    this.setState({askLoading:true,askAnswer:"",askRawResponse:"",askBlocks:[],askWorkflowEntries:[],askWorkflowBadge:"",askWorkflowTitle:"",askWorkflowSub:"",askWorkflowActive:true,askStreaming:true,askError:""});
+    renderWorkflow(true);
     try{
-      const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",
-        headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
       const data=await res.json().catch(()=>({}));
       if(!res.ok)throw new Error(String(data.detail||"TutorBot 答疑暂时不可用"));
-      const answer=String(data.answer||"").trim();
-      if(!answer)throw new Error("TutorBot 没有返回答案");
-      this.setState({askLoading:false,askAnswer:answer,askError:""});
-    }catch(err){
-      this.setState({askLoading:false,askAnswer:"",askError:"TutorBot 暂时没有接通，请留在本页稍后重试。"});
-    }
+      const stream=data&&data.stream;
+      if(!stream||!stream.ticket||!stream.turn_id)throw new Error("TutorBot 流式回合未创建");
+      connect(stream);
+    }catch(err){ fail((err&&err.message)||"TutorBot 暂时没有接通，请留在本页稍后重试。"); }
   }
   qaFig(idx){
     const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
     const it=this.qa[idx]; if(!it)return{els:[],h:40}; const els=[]; let h=40;
-    if(it.fig==="gcd"){ h=52; const mw=15;
-      els.push(D({x:0,top:2,w:30,h:16,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"节拍3"}));
-      els.push(D({x:34,top:2,w:mw,h:16,bg:"#2c8a5b",r:3}));
-      els.push(D({x:0,top:24,w:30,h:16,fg:"#9fd3b4",fs:9,jc:"flex-start",lab:"节拍6"}));
-      els.push(D({x:34,top:24,w:mw,h:16,bg:"#2c8a5b",r:3}));
-      els.push(D({x:34+mw+2,top:24,w:mw,h:16,bg:"#3fa06a",r:3}));
-      els.push(D({x:34,top:-9,w:mw,h:8,fg:"#cf8a44",fs:7,lab:"K=3"}));
-      els.push(D({x:120,top:13,w:128,h:18,fg:"#7fbf95",fs:9,jc:"flex-start",lab:"3、6 都被 3 整除 ✓"})); }
-    else if(it.fig==="split"){ h=44; const proc=[["基础","#2f6db0"],["结构","#cf8a44"],["砌筑","#2c8a5b"],["装修","#d9a521"]];
-      proc.forEach((p,i)=>els.push(D({x:i*30,top:2,w:27,h:16,bg:p[1],r:4,fg:"#fff",fs:8,lab:p[0]})));
-      els.push(D({x:124,top:2,w:14,h:16,fg:"#a8997a",fs:11,lab:"·"}));
-      const team=[["基","#2f6db0"],["结","#cf8a44"],["砌①","#2c8a5b"],["砌②","#3fa06a"],["装","#d9a521"]];
-      team.forEach((p,i)=>els.push(D({x:142+i*22,top:2,w:20,h:16,bg:p[1],r:4,fg:"#fff",fs:7.5,lab:p[0]})));
-      els.push(D({x:0,top:24,w:252,h:14,fg:"#cf8a44",fs:8.5,jc:"flex-start",lab:"砌筑拆 2 队 · N′ = 5（≠ 4 工序）"})); }
-    else if(it.fig==="lap"){ h=56; const mw=6.6;
-      els.push(D({x:0,top:2,w:34,h:14,fg:"#e0a89f",fs:8,jc:"flex-start",lab:"依次"}));
-      els.push(D({x:36,top:2,w:30*mw,h:14,bg:"#b5564a",r:3,fg:"#fff",fs:8,lab:"30 个月"}));
-      els.push(D({x:0,top:24,w:34,h:14,fg:"#9fd3b4",fs:8,jc:"flex-start",lab:"流水"}));
-      els.push(D({x:36,top:24,w:18*mw,h:14,bg:"#2c8a5b",r:3,fg:"#fff",fs:8,lab:"18 个月"}));
-      els.push(D({x:36,top:42,w:30*mw,h:12,fg:"#cf8a44",fs:8.5,jc:"flex-start",lab:"搭接省下 12 个月"})); }
-    else if(it.fig==="score"){ h=44; const s=[["①判型","#2f6db0"],["②K","#cf8a44"],["③队数","#2c8a5b"],["④工期","#d9a521"]];
-      s.forEach((p,i)=>els.push(D({x:i*64,top:2,w:58,h:18,bg:"transparent",bd:"1.5px solid "+p[1],r:6,fg:p[1],fs:9.5,lab:p[0]})));
-      els.push(D({x:0,top:26,w:252,h:14,fg:"#a8997a",fs:8.5,jc:"flex-start",lab:"理由 + 最大公约数 + 求和 + 带单位"})); }
+    if(it.fig==="modes"){ h=58;
+      els.push(D({x:0,top:2,w:34,h:14,fg:"#9fc7e0",fs:8,jc:"flex-start",lab:"依次"}));
+      els.push(D({x:36,top:2,w:180,h:14,bg:"#b5564a",r:3}));
+      els.push(D({x:0,top:22,w:34,h:14,fg:"#e0b48f",fs:8,jc:"flex-start",lab:"平行"}));
+      els.push(D({x:36,top:22,w:66,h:14,bg:"#cf8a44",r:3}));
+      els.push(D({x:106,top:23,w:120,h:12,fg:"#a8997a",fs:7.5,jc:"flex-start",lab:"人料 N 倍"}));
+      els.push(D({x:0,top:42,w:34,h:14,fg:"#9fd3b4",fs:8,jc:"flex-start",lab:"流水"}));
+      els.push(D({x:36,top:42,w:110,h:14,bg:"#2c8a5b",r:3}));
+      els.push(D({x:150,top:43,w:100,h:12,fg:"#7fbf95",fs:7.5,jc:"flex-start",lab:"又快又稳"})); }
+    else if(it.fig==="tk"){ h=58;
+      els.push(D({x:0,top:8,w:30,h:14,fg:"#9fc7e0",fs:8,jc:"flex-start",lab:"队1"}));
+      els.push(D({x:36,top:8,w:38,h:14,bg:"#2f6db0",r:3}));
+      els.push(D({x:76,top:8,w:38,h:14,bg:"#2f6db0",r:3}));
+      els.push(D({x:0,top:28,w:30,h:14,fg:"#e0b48f",fs:8,jc:"flex-start",lab:"队2"}));
+      els.push(D({x:76,top:28,w:38,h:14,bg:"#cf8a44",r:3}));
+      els.push(D({x:116,top:28,w:38,h:14,bg:"#cf8a44",r:3}));
+      els.push(D({x:36,top:-7,w:38,h:8,fg:"#7fbf95",fs:7.5,lab:"t 一格"}));
+      els.push(D({x:36,top:46,w:78,h:8,fg:"#e0a89f",fs:7.5,lab:"K 错开"})); }
+    else if(it.fig==="cls"){ h=52;
+      els.push(D({x:0,top:2,w:80,h:16,bg:"#20343f",bd:"1px solid #33566a",r:5,fg:"#9fc7e0",fs:9,lab:"工艺"}));
+      els.push(D({x:86,top:2,w:80,h:16,bg:"#2c8a5b",r:5,fg:"#fff",fs:9,lab:"时间"}));
+      els.push(D({x:172,top:2,w:80,h:16,bg:"#3a2e1f",bd:"1px solid #5a4526",r:5,fg:"#e0b48f",fs:9,lab:"空间"}));
+      els.push(D({x:0,top:22,w:80,h:26,fg:"#a8997a",fs:8,lab:"过程数·段数"}));
+      els.push(D({x:86,top:22,w:80,h:26,bg:"#16281d",bd:"1px solid #2c8a5b",r:5,fg:"#7fbf95",fs:8,lab:"节拍·步距·工期"}));
+      els.push(D({x:172,top:22,w:80,h:26,fg:"#a8997a",fs:8,lab:"施工段·施工层"})); }
+    else if(it.fig==="fork"){ h=52;
+      els.push(D({x:96,top:0,w:60,h:14,fg:"#f1e6cf",fs:8.5,lab:"看节拍关系"}));
+      els.push(D({x:0,top:22,w:80,h:28,bg:"#20343f",bd:"1px solid #33566a",r:6,fg:"#9fc7e0",fs:8,lab:"全等→等节奏"}));
+      els.push(D({x:86,top:22,w:80,h:28,bg:"#3a2e1f",bd:"1px solid #6a5326",r:6,fg:"#e0b48f",fs:8,lab:"成倍数→等步距异节奏"}));
+      els.push(D({x:172,top:22,w:80,h:28,bg:"#2a2622",bd:"1px solid #4a4238",r:6,fg:"#c9b79a",fs:8,lab:"无规律→无节奏"})); }
     return {els,h};
   }
   cl(x,a,b){return Math.max(a,Math.min(b,x));} lp(a,b,p){return a+(b-a)*p;} eo(p){return 1-Math.pow(1-p,3);}
@@ -535,37 +600,46 @@ class Component extends DCLogic {
     const cur=B[ai],lp=this.cl((t-cur[1])/(cur[2]-cur[1]),0,1); const W=(a,b)=>this.eo(this.cl((lp-a)/(b-a),0,1)); const A=i=>i===ai;
     const NB=this.narr.length;
 
-    const v={ b0_op:0,b0_y:46,b0_bo:0,b0_bs:.6,b0_so:0,b0_ss:1.7,
-      b0_tag:"流水节拍 3·3·6·3 个月", b0_bubble:"节拍不等就当无节奏？K 取最大节拍 6？", b0_stamp:"误区 ✕",
-      b1_title:"判型 · 把节拍关系放尺子上量", b1_axis:"节拍关系",
-      band0:"全等·等节奏", band1:"成倍数·等步距异节奏", band2:"无规律·无节奏",
-      b1_track:0,b1_hit:0,b1_px:150,b1_po:0, b1_rule:"K = 各节拍最大公约数 gcd", b1_ro:0,b1_ry:8,
-      b1_result:"✓ 等步距异节奏 · K=gcd(3,6)=3 个月", b1_eo:0,b1_ey:12, b1_probe:"3·3·6·3 成倍数",
-      k_title:"取流水步距 K = 最大公约数", k_gcdO:0,k_kO:0,k_wO:0,k_xO:0,k_rO:0,
-      d_title:"成倍节拍要拆队：队数 = 节拍 ÷ K", d_rowO:0,d_b2x:74,d_divO:0,d_sumO:0,
-      g_title:"排流水 · 5 队 2 段 · 算总工期",
-      g2cells:[],g2rows:[], g2_kop:0,g2_kx:66,g2_ky:78,g2_kw:0,
-      g2_top:0,g2_tx:66,g2_ty:238,g2_tw:0,g2_tc:"#cf4436",g2_tend:"", g2_nop:0,g2_ny:266,g2_nc:"#cf4436",g2_note:"",
-      c_title:"一条链子：判型 · K · 队数 · 工期", c0:0,c1:0,c2:0,c3:0 };
+    const v={
+      om_title:"三大组织方式：依次 · 平行 · 流水", om_seq:[], om_par:[], om_flow:[], om_o0:0,om_o1:0,om_o2:0,om_hl:0,
+      pr_title:"三大参数：t 节拍 · K 步距 · T 工期", pr_cells:[], pr_tO:0,pr_kO:0,pr_TO:0,
+      cls_title:"参数三分类：工艺 · 时间 · 空间", cls_toks:[], cls_h0:0,cls_h1:0,cls_h2:0,cls_noteO:0,
+      seg_title:"分施工段：劳动量差 ≤ 15% · 对结构缝", seg_bars:[], seg_seams:[], seg_bandO:0,seg_noteO:0,
+      jt_title:"判型：看节拍关系分三型", jt_cards:[], jt_srcO:0,jt_lineO:0,jt_noteO:0,
+      c_title:"上集概念链：认方式 · 分参数 · 归三类 · 判型", c0:0,c1:0,c2:0,c3:0 };
 
-    if(A(0)){ const sp=W(0,.22),bp=W(.28,.46),dim=W(.74,.9),st=W(.56,.74);
-      v.b0_op=sp; v.b0_y=this.lp(46,0,sp); v.b0_bs=this.lp(.6,1,bp); v.b0_bo=bp*(1-.6*dim); v.b0_so=st*.95; v.b0_ss=this.lp(1.7,1,st); }
-    if(A(1)){ v.b1_track=W(0,.16); v.b1_px=this.lp(120,220,W(.28,.56)); v.b1_po=W(.24,.38); v.b1_hit=W(.56,.72);
-      const ru=W(.5,.66),re=W(.78,1); v.b1_ro=ru; v.b1_ry=this.lp(8,0,ru); v.b1_eo=re; v.b1_ey=this.lp(12,0,re); }
-    if(A(2)){ v.k_gcdO=W(0,.2); v.k_kO=W(.22,.38); v.k_wO=W(.4,.54); v.k_xO=W(.56,.7); v.k_rO=W(.74,.92); }
-    if(A(3)){ v.d_rowO=W(0,.28); v.d_b2x=this.lp(74,126,W(.34,.56)); v.d_divO=W(.5,.72); v.d_sumO=W(.8,.96); }
-    if(A(4)){ const teams=[["基础","#2f6db0"],["结构","#cf8a44"],["砌①","#2c8a5b"],["砌②","#3fa06a"],["装修","#d9a521"]];
-      const rev=W(0,.34); const mp=this.cl((lp-0.42)/0.4,0,1); const kgap=this.lp(6,3,this.eo(mp));
-      const Tcur=4*kgap+6, gx=66, monthW=292/Tcur, y0=92, step=30, cells=[], rows=[];
-      for(let i=0;i<5;i++){ const op=this.cl(rev*6-i,0,1), ry=y0+i*step;
-        rows.push({n:teams[i][0]+"队",c:teams[i][1],y:ry+4,op});
-        for(let sg=0;sg<2;sg++){ const xm=(i*kgap)+sg*3; cells.push({x:Math.round(gx+xm*monthW),y:ry,w:Math.max(10,Math.round(3*monthW-3)),bg:teams[i][1],op,lab:sg===0?"①":"②"}); } }
-      const stacked=kgap>4.6;
-      v.g2cells=cells; v.g2rows=rows;
-      v.g2_kop=stacked?0:W(.62,.78); v.g2_kx=gx; v.g2_ky=y0-26; v.g2_kw=Math.round(kgap*monthW);
-      v.g2_top=W(.1,.26); v.g2_tx=gx; v.g2_ty=y0+5*step-4; v.g2_tw=Math.round(Tcur*monthW); v.g2_tc=stacked?"#cf4436":"#2c8a5b"; v.g2_tend=Math.round(Tcur)+"个月";
-      v.g2_ny=y0+5*step+24; v.g2_nop=W(.12,.3); v.g2_nc=stacked?"#cf4436":"#2c8a5b";
-      v.g2_note=stacked?"不搭接 · 一段段死等 = 30 个月":"搭接 (2+5−1)×3 = 18 个月，省 12 个月"; }
+    if(A(0)){ const a=W(0,.24),b=W(.3,.54),c=W(.6,.9);
+      const seqC=["#2f6db0","#cf8a44","#2c8a5b"];
+      v.om_seq=seqC.map((bg,i)=>({x:70+i*78,w:76,bg,op:this.cl(a*5-i,0,1)}));
+      v.om_par=seqC.map((bg,i)=>({y:166+i*20,bg,op:this.cl(b*5-i,0,1)}));
+      v.om_flow=seqC.map((bg,i)=>({x:70+i*34,y:250+i*20,bg,op:this.cl(c*5-i,0,1)}));
+      v.om_o0=a; v.om_o1=b; v.om_o2=c; v.om_hl=W(.7,.95); }
+    if(A(1)){ const cell=W(0,.4),tb=W(.42,.58),kb=W(.6,.76),Tb=W(.78,.96);
+      const qC=["#2f6db0","#cf8a44","#2c8a5b"]; const cells=[];
+      for(let i=0;i<3;i++)for(let j=0;j<3;j++){ cells.push({x:70+i*34+j*50,y:120+i*24,bg:qC[i],op:this.cl(cell*8-(i*3+j),0,1)}); }
+      v.pr_cells=cells; v.pr_tO=tb; v.pr_kO=kb; v.pr_TO=Tb; }
+    if(A(2)){ const h=W(0,.3),tk=W(.3,.9);
+      v.cls_h0=this.cl(h*4,0,1); v.cls_h1=this.cl(h*4-0.6,0,1); v.cls_h2=this.cl(h*4-1.2,0,1);
+      const hi={bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",fg:"#2c8a5b"}, pl={bg:"#fff",bd:"1.5px solid #ddd2bb",fg:"#23282b"};
+      const toks=[
+        {x:16,y:128,lab:"施工过程数",bg:pl.bg,bd:pl.bd,fg:pl.fg},{x:16,y:158,lab:"施工段数",bg:pl.bg,bd:pl.bd,fg:pl.fg},
+        {x:140,y:128,lab:"流水节拍 t",bg:hi.bg,bd:hi.bd,fg:hi.fg},{x:140,y:158,lab:"流水步距 K",bg:hi.bg,bd:hi.bd,fg:hi.fg},{x:140,y:188,lab:"工期 T",bg:hi.bg,bd:hi.bd,fg:hi.fg},
+        {x:264,y:128,lab:"施工段",bg:pl.bg,bd:pl.bd,fg:pl.fg},{x:264,y:158,lab:"施工层",bg:pl.bg,bd:pl.bd,fg:pl.fg}
+      ];
+      v.cls_toks=toks.map((t,i)=>({x:t.x,y:t.y,lab:t.lab,bg:t.bg,bd:t.bd,fg:t.fg,op:this.cl(tk*9-i,0,1)})); v.cls_noteO=W(.7,1); }
+    if(A(3)){ const bars=W(0,.4),seam=W(.3,.5),band=W(.55,.75),note=W(.8,1);
+      const hs=[104,96,100,92]; const base=272;
+      v.seg_bars=hs.map((h,i)=>({x:64+i*68,y:base-h,h,lab:"段"+(i+1),op:this.cl(bars*5-i,0,1)}));
+      v.seg_seams=[0,1,2].map(i=>({x:122+i*68,op:this.cl(seam*4-i,0,1)}));
+      v.seg_bandO=band; v.seg_noteO=note; }
+    if(A(4)){ const src=W(0,.2),line=W(.22,.4),cards=W(.4,.86),note=W(.88,1);
+      const cd=[
+        {x:14,ac:"#2f6db0",cond:"节拍全等",type:"等节奏",k:"K = t，队数=过程数，连续无空闲"},
+        {x:139,ac:"#2c8a5b",cond:"不全等·成倍数",type:"等步距异节奏",k:"K = 最大公约数，队数>过程数"},
+        {x:264,ac:"#cf8a44",cond:"无规律",type:"无节奏",k:"大差法求 K，过程间可能有间隔"}
+      ];
+      v.jt_cards=cd.map((c,i)=>({x:c.x,ac:c.ac,cond:c.cond,type:c.type,k:c.k,op:this.cl(cards*4-i,0,1)}));
+      v.jt_srcO=src; v.jt_lineO=line; v.jt_noteO=note; }
     if(A(5)){ v.c0=W(.1,.34); v.c1=W(.28,.5); v.c2=W(.44,.66); v.c3=W(.6,.84); }
 
     const isQA=ai>=NB;
@@ -604,8 +678,8 @@ class Component extends DCLogic {
       stageWrapRef:el=>this.stageWrapRef(el),
       openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
       dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
-      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,askError:this.state.askError,
-      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer&&!this.state.askError,
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askBlocks:this.state.askBlocks,askWorkflowEntries:this.state.askWorkflowEntries,askWorkflowBadge:this.state.askWorkflowBadge,askWorkflowTitle:this.state.askWorkflowTitle,askWorkflowSub:this.state.askWorkflowSub,askError:this.state.askError,
+      hasAnswer:!!this.state.askStreaming||!!this.state.askBlocks.length||!!this.state.askWorkflowActive,askIdle:!this.state.askLoading&&!this.state.askStreaming&&!this.state.askError,
       askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",
       askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",

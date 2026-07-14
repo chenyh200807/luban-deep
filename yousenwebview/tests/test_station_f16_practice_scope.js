@@ -24,6 +24,7 @@ function loadStation(detail) {
       if (request === "../../../utils/api") {
         return {
           getLubanLessonDetail: function () { return Promise.resolve(detail); },
+          issueLubanCardEntry: function () { return Promise.resolve({ entry_ticket: "card-capability" }); },
           unwrapResponse: function (value) { return value; },
           postLessonProgress: function () { return Promise.resolve({}); },
           describeRequestError: function (_error, fallback) { return fallback; },
@@ -70,6 +71,11 @@ function loadStation(detail) {
   await f16.page.onPrimaryTap();
   assert.strictEqual(f16.page.data.tier, "practice");
   assert.strictEqual(f16.page.data.currentUrl, "https://cdn/f16/practice.html?v=bundle");
+  assert.strictEqual(
+    f16.page.data.cardUrl,
+    "https://cdn/f16/lesson.html?v=bundle#entry_ticket=card-capability",
+    "station must pass a narrow card-entry capability in the fragment, not its bearer credential",
+  );
   f16.page.onPrimaryTap();
   assert.deepStrictEqual(f16.redirects, [], "F16 must not skip finished answers into a second quiz");
 
