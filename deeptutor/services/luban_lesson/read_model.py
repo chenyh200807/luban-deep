@@ -13,11 +13,12 @@ Thin 投影层（§3 所有权表）：本模块**只读投影、零生成**—�
   非公开 authority sidecar；客户端投影剥离答案，review 仍只认上述 signed bank；
 - 讲懂卡 URL = 业务托管基址（env ``LUBAN_LESSON_CARD_BASE``）+ pack slug 约定，
   卡产物按压缩预研 0.39MB 口径产出并开 Content-Encoding（托管侧职责）；
-- ``content_sha256`` 仍表示 pack Markdown；finished 卡片另用 bundle SHA 作 URL
-  cache-bust（HTML/音频与 Markdown 不能混成一个版本事实）。
+- ``content_sha256`` 仍表示 pack Markdown；lesson 与 practice 各用自己的发布/源摘要
+  做 URL cache-bust，禁止一个 bundle SHA 同时代表两种内容事实。
 
-学习证据边界（防第四 builder）：本模块**不写任何学习证据**。档位①②轻练走既有
-``learner_signal`` 路由（非 promoting），档位③走判分链路；学-evidence
+学习证据边界（防第四 builder）：本模块**不写任何学习证据**。课后练统一走
+``luban_retest_completion.v1`` → ``RetestWritebackService``（forward 非 promoting），
+档位③走判分链路；学-evidence
 （lesson_viewed）唯一 writer = ``learner_state/lesson_evidence.py``（经
 ``lesson_progress`` 路由，融合计划 §2.1）——本投影模块仍零写入。
 """
@@ -32,8 +33,8 @@ from typing import Any
 
 from deeptutor.services.luban_lesson.practice_html import (
     PracticeHtmlInvalid,
-    compiled_practice_bundle_sha,
     is_compiled_practice_pack,
+    load_compiled_practice,
     project_compiled_practice,
 )
 
@@ -76,13 +77,17 @@ def _load_manifest(manifest_path: Path | None = None) -> dict[str, Any]:
     return manifest
 
 
-def _compiled_bundle_sha(pack_id: str) -> str:
-    if not is_compiled_practice_pack(pack_id):
-        return ""
+def _compiled_practice_meta(pack_id: str) -> dict[str, str]:
     try:
-        return compiled_practice_bundle_sha(pack_id)
+        authority = load_compiled_practice(pack_id)
     except PracticeHtmlInvalid:
-        return ""
+        return {}
+    if authority is None:
+        return {}
+    return {
+        "practice_sha": str(authority.get("source_bundle_sha256") or ""),
+        "lesson_sha": str(authority.get("published_lesson_sha256") or ""),
+    }
 
 
 def _card_url(pack_id: str, *, bundle_sha: str = "") -> str:
@@ -96,7 +101,7 @@ def _card_url(pack_id: str, *, bundle_sha: str = "") -> str:
 
 def _practice_card_url(pack_id: str, *, bundle_sha: str = "") -> str:
     """已编译随堂练成品的托管 URL；没有成品练习的 pack 不猜路径。"""
-    if not is_compiled_practice_pack(pack_id) or not bundle_sha:
+    if not bundle_sha:
         return ""
     base = str(os.getenv(_CARD_BASE_ENV) or "").strip().rstrip("/")
     if not base:
@@ -200,9 +205,9 @@ def list_green_lessons(*, manifest_path: Path | None = None) -> list[dict[str, A
                 "content_sha256": str(pack.get("content_sha256") or ""),
                 # 托管真值来自 manifest 对 lesson.html 的确定性扫描；路线绿灯与可播放分开。
                 "card_hosted": bool(pack.get("card_hosted")),
-                "retest_available": (
+                "retest_available": bool(
                     manifest_path is None
-                    and is_compiled_practice_pack(str(pack["pack_id"]))
+                    and _compiled_practice_meta(str(pack["pack_id"]))
                 )
                 or _variant_summary(
                     str(pack["pack_id"]),
@@ -230,7 +235,9 @@ def build_lesson_viewmodel(
     if pack is None:  # manifest 自身不一致也 fail-closed
         raise LessonNotAvailable(pack_id)
     manifest_dir = (manifest_path or _MANIFEST_PATH).parent
-    bundle_sha = _compiled_bundle_sha(pack_id) if manifest_path is None else ""
+    practice_meta = _compiled_practice_meta(pack_id) if manifest_path is None else {}
+    practice_sha = practice_meta.get("practice_sha", "")
+    lesson_sha = practice_meta.get("lesson_sha", "")
     return {
         "pack_id": pack_id,
         "title": str(pack.get("title") or ""),
@@ -238,31 +245,30 @@ def build_lesson_viewmodel(
         # card_hosted=manifest 确定性扫描(web/public/luban-preview/<id>/lesson.html 实存);
         # 非 hosted 站不发 URL——防 web-view 打开 404(部署探针实证 22/28 站无卡)
         "card_url": (
-            _card_url(pack_id, bundle_sha=bundle_sha)
+            _card_url(pack_id, bundle_sha=lesson_sha)
             if pack.get("card_hosted")
             else ""
         ),
         # finished 随堂练的托管副本；客户端不再从 lesson URL 猜路径。
         "practice_url": (
-            _practice_card_url(pack_id, bundle_sha=bundle_sha)
+            _practice_card_url(pack_id, bundle_sha=practice_sha)
             if pack.get("card_hosted")
             else ""
         ),
         "practice_surface": {
-            "available": bool(pack.get("card_hosted") and bundle_sha),
-            "kind": "compiled_html" if bundle_sha else "",
-            "question_count": 5 if bundle_sha else 0,
+            "available": bool(pack.get("card_hosted") and practice_sha),
+            "kind": "compiled_html" if practice_sha else "",
+            "question_count": 5 if practice_sha else 0,
             "completion_contract": (
-                "luban_retest_completion.v1" if bundle_sha else ""
+                "luban_retest_completion.v1" if practice_sha else ""
             ),
         },
-        "card_bundle_sha256": bundle_sha,
         "variant_retest": _variant_summary(
             pack_id, manifest_dir, str(pack.get("content_sha256") or "")
         ),
         # 证据写入路径声明（客户端按此接线，防第四 builder）：
         "evidence_channels": {
-            "light_practice": "learner_signal",  # 档位①②（非 promoting）
+            "practice_completion": "luban_retest_completion.v1",
             "full_answer": "case_grading",  # 档位③（判分内核链路）
         },
     }

@@ -102,7 +102,7 @@ assert.ok(stations.indexOf("onShow()") >= 0 && stations.indexOf("this._load()") 
 assert.ok(review.indexOf("this._hasShown && !this.data.loading") >= 0 && review.indexOf("this._loadAll()") >= 0, "review must refresh canonical due tasks after returning from a retest");
 assert.ok(learn.indexOf("onShow()") >= 0 && learn.indexOf("this._load()") >= 0, "learning must refresh the unified report on return");
 assert.ok(chat.indexOf("onShow: function") >= 0 && chat.indexOf("self._loadDashboard()") >= 0, "chat home must refresh the canonical dashboard");
-assert.ok(chat.indexOf("cached.userId") >= 0 && chat.indexOf("auth.getUserId") >= 0, "chat dashboard cache must be isolated by canonical user");
+assert.ok(chat.indexOf("readOwnerValue(HOME_DASHBOARD_CACHE_KEY)") >= 0 && chat.indexOf("currentOwnerId") >= 0, "chat dashboard cache must be isolated by canonical user");
 assert.ok(report.indexOf("onShow()") >= 0 && report.indexOf("this._loadReportPage()") >= 0, "report must refresh the unified report on show");
 assert.ok(profile.indexOf("onShow: function") >= 0 && profile.indexOf("this._loadRoute()") >= 0, "profile must refresh its route card from the unified report");
 assert.ok(gauntlet.indexOf('"&mode=forward"') >= 0, "gauntlet repeat must be forward practice");

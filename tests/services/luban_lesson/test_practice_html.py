@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
 import pytest
 
+import deeptutor.services.luban_lesson.practice_html as practice_html
 from deeptutor.services.luban_lesson.practice_html import (
     PracticeHtmlInvalid,
     _array_after,
@@ -45,6 +47,28 @@ def test_all_registered_finished_practices_compile_to_private_five_question_surf
             sum(option["is_correct"] for option in item["options"]) == 1
             for item in authority["items"]
         )
+        for surface in authority["surfaces"]:
+            source = ROOT / surface["source_path"]
+            assert source.is_file()
+            assert hashlib.sha256(source.read_bytes()).hexdigest() == surface[
+                "source_html_sha256"
+            ]
+
+
+def test_compiled_and_unavailable_pack_sets_are_exact() -> None:
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    compiled = {
+        row["pack_id"]
+        for row in manifest["packs"]
+        if (row.get("practice") or {}).get("status") == "compiled"
+    }
+    unavailable = {
+        row["pack_id"]
+        for row in manifest["packs"]
+        if (row.get("practice") or {}).get("status") == "unavailable"
+    }
+    assert len(compiled) == 37
+    assert unavailable == {"B02", "D14", "E01", "N02"}
 
 
 def test_f16_projects_curated_five_without_answer_leakage() -> None:
@@ -115,6 +139,50 @@ def test_authority_sidecar_answer_tamper_fails_closed(tmp_path: Path) -> None:
 
     with pytest.raises(PracticeHtmlInvalid, match="answer_invalid"):
         load_compiled_practice("F16", authority_path=path)
+
+
+def test_manifest_digest_rejects_shape_valid_answer_swap(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_path = ROOT / "deeptutor/services/luban_lesson/compiled/f16.practice.authority.json"
+    original = source_path.read_bytes()
+    tampered = json.loads(original)
+    first_options = tampered["items"][0]["options"]
+    correct_index = next(
+        index for index, option in enumerate(first_options) if option["is_correct"]
+    )
+    replacement = 1 if correct_index == 0 else 0
+    first_options[correct_index]["is_correct"] = False
+    first_options[replacement]["is_correct"] = True
+
+    compiled = tmp_path / "compiled"
+    compiled.mkdir()
+    (compiled / "f16.practice.authority.json").write_text(
+        json.dumps(tampered, ensure_ascii=False), encoding="utf-8"
+    )
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "packs": [
+                    {
+                        "pack_id": "F16",
+                        "practice": {
+                            "status": "compiled",
+                            "authority_path": "f16.practice.authority.json",
+                            "authority_sha256": hashlib.sha256(original).hexdigest(),
+                        },
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(practice_html, "_COMPILED_DIR", compiled)
+    monkeypatch.setattr(practice_html, "_MANIFEST_PATH", manifest)
+
+    with pytest.raises(PracticeHtmlInvalid, match="digest_mismatch"):
+        load_compiled_practice("F16")
 
 
 def test_unregistered_or_wrong_surface_never_falls_back_to_another_question_set() -> None:

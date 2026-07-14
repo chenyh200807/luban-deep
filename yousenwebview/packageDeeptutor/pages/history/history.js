@@ -460,7 +460,7 @@ Page({
     }
     var cacheKey =
       this.data.tab === "archived" ? CACHE_KEY_ARCHIVED : CACHE_KEY;
-    var cached = wx.getStorageSync(cacheKey);
+    var cached = auth.readOwnerStorage ? auth.readOwnerStorage(cacheKey) : null;
     var now = Date.now();
 
     if (cached && cached.groups && cached.ts && now - cached.ts < CACHE_TTL) {
@@ -502,7 +502,7 @@ Page({
 
         var cacheKey = isArchived ? CACHE_KEY_ARCHIVED : CACHE_KEY;
         var visibleConvs = _filterDeletedConversations(convs);
-        wx.setStorageSync(cacheKey, {
+        if (auth.writeOwnerStorage) auth.writeOwnerStorage(cacheKey, {
           conversations: visibleConvs,
           groups: _groupByDate(visibleConvs),
           totalCount: visibleConvs.length,

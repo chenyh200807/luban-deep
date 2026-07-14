@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关 · 中集</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="P40_S01.teach.middle.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="P40_S01.teach.middle.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 鲁班 S01 · 随堂练（中集）· 搭设构造 + 连墙件 + 拆除顺序 ░░░ */
+class Component extends DCLogic {
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null };
+  examTitle="搭设构造与失稳倾覆";
+  KNOWLEDGE="脚手架 · 搭设构造与失稳倾覆（中集）。搭设硬阈值：立杆步距≤2m；纵向扫地杆距底端≤200mm、横向在纵向下方；一次搭设≤最上层连墙件以上2步、自由高度≤4m；可调底座/托撑螺杆插入≥150mm、伸出受限（φ48.3≤500mm）；纵向水平杆接头错开≥500mm、搭接≥1m用3个扣件、端头≥100mm。连墙件必须刚性，严禁仅用钢筋柔性连；间距水平≤3跨、竖向≤3步、竖向≤4m；24m以上双排架必须刚性连墙件；缺连墙件=脚手架重大事故隐患。剪刀撑倾角45~60°、宽6~9m（4~6跨）、24m分界。支撑脚手架独立架体高宽比≤3.0（防整体倾覆）。拆除：自上而下、先外后内、逐层同步、严禁上下交叉；连墙件随架体逐层同步拆、严禁提前整层拆（否则架体变悬臂侧倒）。";
+  moreText="补两组：① 24m 以上双排架用钢筋柔性连墙件的辨错，练「必刚性 + 缺失=重大隐患」；② 拆除口诀默写「自上而下·先外后内·连墙件随层拆」，把方向和随层拆两处都写全。回讲解页看连墙件刚柔对比与拆除分层图再练一轮。";
+  Q=[
+    { tag:"搭设·步距", typeHint:"单选 · 选出违规判断与依据都对的作答", fig:"step", figLabel:"立杆步距 2.3m", figCaption:"步距超了没？阈值是多少？",
+      stem:"检查双排脚手架，量得立杆步距 2.3m。判断是否违规并给依据，选出能得分的作答。",
+      model:"立杆步距应≤2m，实测 2.3m>2m，判违规，应调整步距至不大于 2m。",
+      opts:[
+        { t:"立杆步距应≤2m，实测 2.3m 超限，判违规，应将步距调整至≤2m。", ok:true, fix:"阈值 2m + 实测比对 + 违规结论齐。", code:"" },
+        { t:"步距 2.3m 与 2m 相差不大，可判合格。", ok:false, code:"M08", tempt:"觉得差 0.3m「差不多」。", lose:"步距是硬阈值，2.3m>2m 即违规，「差不多」丢分。", fix:"步距>2m 即违规，须≤2m。" },
+        { t:"步距只要不超过 3m 就合格，2.3m 没问题。", ok:false, code:"M08", tempt:"把别的构造数值记成 3m。", lose:"步距阈值是 2m，不是 3m，数值记混。", fix:"立杆步距应≤2m。" },
+        { t:"步距合不合格看整体稳不稳，与具体数值无关。", ok:false, code:"E01", tempt:"以为凭整体感觉判。", lose:"步距有明确阈值 2m，须比数值，非凭感觉。", fix:"按阈值判：步距应≤2m。" }
+      ] },
+    { tag:"搭设·扫地杆", typeHint:"单选 · 选出数值与构造都对的作答", fig:"sweep", figLabel:"纵向扫地杆距底端 350mm", figCaption:"距底端多少才合格？",
+      stem:"脚手架纵向扫地杆距立杆底端 350mm，横向扫地杆设在纵向上方。判断违规，选出能得分的作答。",
+      model:"纵向扫地杆距底端应≤200mm，实测 350mm 超限；且横向扫地杆应在纵向下方，本例上下颠倒，均违规。",
+      opts:[
+        { t:"纵向扫地杆距底端应≤200mm，实测 350mm 超限；横向扫地杆应在纵向下方，本例颠倒，均违规。", ok:true, fix:"数值 200mm + 横纵上下关系两处都揪出。", code:"" },
+        { t:"扫地杆距底端 350mm 属正常，横纵位置无所谓。", ok:false, code:"M08", tempt:"觉得离地一点无关紧要。", lose:"纵向扫地杆距底端应≤200mm，且横向须在纵向下方，两处都错。", fix:"距底端≤200mm，横向在纵向下方。" },
+        { t:"只要设了扫地杆就合格，高低和上下都不影响。", ok:false, code:"E01", tempt:"以为「有就行」。", lose:"扫地杆有数值和构造要求，漏了≤200mm 与横纵关系。", fix:"补：≤200mm + 横向在纵向下方。" },
+        { t:"扫地杆距底端应≤500mm，350mm 合格。", ok:false, code:"M08", tempt:"把底座伸出限值 500 混过来。", lose:"扫地杆阈值是 200mm，500 是可调底座伸出值，张冠李戴。", fix:"纵向扫地杆距底端应≤200mm。" }
+      ] },
+    { tag:"搭设·一次搭设自由高", typeHint:"单选 · 选出限值与依据都对的作答", fig:"freeh", figLabel:"一次搭设自由高度 5m", figCaption:"自由高度上限是多少？",
+      stem:"搭设作业中，架体一次搭设的自由高度达 5m（超出最上层连墙件以上多步）。判断违规，选出能得分的作答。",
+      model:"一次搭设高度不应超过最上层连墙件以上 2 步，且自由高度不应大于 4m；实测 5m 超限，违规。",
+      opts:[
+        { t:"一次搭设不应超过最上层连墙件以上 2 步、自由高度不应大于 4m；实测 5m 超限，违规。", ok:true, fix:"2 步 + 4m 两条限值都写、并给违规结论。", code:"" },
+        { t:"一次搭设自由高度 5m 在 6m 以内，合格。", ok:false, code:"M08", tempt:"把别的限值记成 6m。", lose:"自由高度限值是 4m，5m 已超，6m 是记错的数。", fix:"自由高度应≤4m，5m 违规。" },
+        { t:"只要搭完补上连墙件即可，一次搭多高无所谓。", ok:false, code:"E01", tempt:"觉得事后补救就行。", lose:"一次搭设有 2 步/4m 硬限，防的是搭设中失稳。", fix:"一次搭设≤最上连墙件上 2 步、自由高≤4m。" },
+        { t:"自由高度按步距算，2.3m×2=4.6m 也算合格。", ok:false, code:"M08", tempt:"想用步距凑算。", lose:"自由高度限值直接是 4m，且实测 5m 已超，凑算无意义。", fix:"自由高度≤4m，实测 5m 违规。" }
+      ] },
+    { tag:"连墙件·刚性", typeHint:"单选 · 选出对连墙件定性正确的作答", fig:"tie", figLabel:"连墙件 · 刚性 ✓ / 柔性钢筋 ✕", figCaption:"钢筋柔性拉接算不算数？",
+      stem:"某双排脚手架用钢筋做柔性连墙件拉接。判断是否合规，选出能得分的作答。",
+      model:"连墙件应刚性、能承压承拉，严禁仅用钢筋柔性连墙件；本例用柔性钢筋违规，应改刚性连墙件。",
+      opts:[
+        { t:"连墙件应为刚性、能承压承拉，严禁仅用钢筋柔性连墙件；本例违规，应改刚性连墙件。", ok:true, fix:"点明「必刚性、严禁柔性钢筋」，定性到位。", code:"" },
+        { t:"钢筋能把架体拉住，柔性连墙件也算合格。", ok:false, code:"E07", tempt:"看着「拉住了」就以为行。", lose:"连墙件是抗倾覆受力构件，须刚性；柔性钢筋只抗拉不抗压，受压失稳。", fix:"必须刚性，严禁仅用柔性钢筋。" },
+        { t:"连墙件只是防晃辅助件，刚性柔性都无所谓。", ok:false, code:"E01", tempt:"把连墙件当可有可无的软拉绳。", lose:"连墙件是防倾覆受力构件，缺失/柔性都属重大隐患。", fix:"连墙件必刚性、是受力构件，缺失=重大隐患。" },
+        { t:"24m 以下可用柔性、24m 以上才要刚性。", ok:false, code:"M08", tempt:"记了「24m 双排必刚性」就反推低处可柔性。", lose:"连墙件一律应刚性，严禁柔性钢筋，无「低处可柔性」之说。", fix:"一律刚性；24m 以上双排更强调必刚性。" }
+      ] },
+    { tag:"连墙件·间距", typeHint:"单选 · 选出间距数值齐全的作答", fig:"spacing", figLabel:"连墙件间距 · 水平/竖向", figCaption:"水平、竖向各不超多少？",
+      stem:"关于连墙件的布置间距，选出数值齐全、能得分的作答。",
+      model:"连墙件间距水平≤3跨、竖向≤3步、竖向≤4m；转角及开口端应增设。",
+      opts:[
+        { t:"连墙件水平间距≤3跨、竖向≤3步、竖向≤4m，转角及开口端增设。", ok:true, fix:"水平3跨/竖向3步/4m 三数齐 + 增设部位。", code:"" },
+        { t:"连墙件水平≤4跨、竖向≤4步即可。", ok:false, code:"M08", tempt:"顺手把 3 记成 4。", lose:"间距是水平≤3跨、竖向≤3步，写 4 超限。", fix:"水平≤3跨、竖向≤3步、竖向≤4m。" },
+        { t:"连墙件只要每层设一道就够，间距不限。", ok:false, code:"E01", tempt:"以为「每层有」就行。", lose:"漏了水平3跨/竖向3步/4m 的间距硬限。", fix:"补间距：水平≤3跨、竖向≤3步、≤4m。" },
+        { t:"连墙件竖向间距按 6m 控制即可。", ok:false, code:"M08", tempt:"把别处的 6m 混过来。", lose:"连墙件竖向≤4m（且≤3步），不是 6m。", fix:"竖向≤3步且≤4m。" }
+      ] },
+    { tag:"连墙件·24m双排", typeHint:"单选 · 选出规范要求正确的作答", fig:"double24", figLabel:"24m 以上双排架", figCaption:"连墙件必须什么？",
+      stem:"高度 24m 以上的双排脚手架，对连墙件有何强制要求？选出能得分的作答。",
+      model:"24m 以上的双排脚手架必须采用刚性连墙件与建筑主体可靠连接，严禁使用柔性连墙件。",
+      opts:[
+        { t:"24m 以上双排架必须采用刚性连墙件与主体可靠连接，严禁柔性连墙件。", ok:true, fix:"点明「24m 以上双排必刚性、严禁柔性」。", code:"" },
+        { t:"24m 以上双排架用柔性连墙件加密即可。", ok:false, code:"E07", tempt:"以为加密就能替代刚性。", lose:"24m 以上必须刚性，加密柔性件仍受压失稳。", fix:"必须刚性连墙件，非柔性加密。" },
+        { t:"24m 以上双排架可不设连墙件，靠剪刀撑稳定。", ok:false, code:"E01", tempt:"以为剪刀撑能替连墙件。", lose:"剪刀撑管抗侧刚度、连墙件管锚固，缺连墙件=重大隐患。", fix:"必须设刚性连墙件，剪刀撑不替代。" },
+        { t:"24m 以上仅顶部设一道刚性连墙件即可。", ok:false, code:"M08", tempt:"觉得高处设一道就够。", lose:"仍须按水平≤3跨、竖向≤3步/4m 布置，不止一道。", fix:"按间距全高布置刚性连墙件。" }
+      ] },
+    { tag:"连墙件·缺失定性", typeHint:"单选 · 选出隐患定性正确的作答", fig:"hazard", figLabel:"连墙件缺失 → 防倾覆失效", figCaption:"缺连墙件算什么隐患？",
+      stem:"检查发现某高脚手架多处连墙件缺失。对该情形如何定性？选出能得分的作答。",
+      model:"连墙件缺失致防倾覆失效，属脚手架重大事故隐患，应立即停用整改、补设刚性连墙件。",
+      opts:[
+        { t:"连墙件缺失致防倾覆失效，属重大事故隐患，应停用整改、补设刚性连墙件。", ok:true, fix:"定性「重大事故隐患」+ 整改动作齐。", code:"" },
+        { t:"连墙件缺几处不影响使用，补齐前可继续作业。", ok:false, code:"E01", tempt:"觉得「缺几处」问题不大。", lose:"连墙件缺失是防倾覆失效、重大隐患，不得带患作业。", fix:"重大隐患，须停用整改后再用。" },
+        { t:"属一般缺陷，验收时扣分即可，不必停工。", ok:false, code:"E07", tempt:"把安全隐患降成验收扣分。", lose:"连墙件缺失是重大事故隐患，非一般扣分项。", fix:"定性重大事故隐患，立即整改。" },
+        { t:"用钢丝绳临时拉一下即可恢复使用。", ok:false, code:"E07", tempt:"想拿软拉件应急替代。", lose:"连墙件须刚性，钢丝绳柔性不抗压、仍失稳。", fix:"补设刚性连墙件，非柔性临时拉接。" }
+      ] },
+    { tag:"剪刀撑·角度宽度", typeHint:"单选 · 选出角度与宽度都对的作答", fig:"brace", figLabel:"剪刀撑 45~60° · 宽 6~9m", figCaption:"倾角、宽度各是多少？",
+      stem:"关于双排脚手架剪刀撑的倾角与宽度，选出能得分的作答。",
+      model:"剪刀撑倾角 45°~60°，一道剪刀撑跨 4~6 跨、宽 6~9m，24m 为分界（≤24m 局部、>24m 连续设置）。",
+      opts:[
+        { t:"剪刀撑倾角 45°~60°，一道跨 4~6 跨、宽 6~9m，24m 分界。", ok:true, fix:"角度 45~60° + 宽 6~9m + 24m 分界齐。", code:"" },
+        { t:"剪刀撑倾角 30°~45°、宽 3~6m 即可。", ok:false, code:"M08", tempt:"把角度、宽度都记小了。", lose:"倾角是 45~60°、宽 6~9m，数值记错。", fix:"倾角 45~60°、宽 6~9m。" },
+        { t:"剪刀撑随便斜拉一道防晃就行，角度不限。", ok:false, code:"E01", tempt:"以为剪刀撑「有就行」。", lose:"剪刀撑有 45~60°、宽 6~9m 硬要求，角度过缓传力差。", fix:"倾角 45~60°、一道宽 6~9m。" },
+        { t:"剪刀撑倾角 45~60°，但一道宽度不限、越宽越好。", ok:false, code:"M08", tempt:"角度记对了、宽度想当然。", lose:"一道剪刀撑宽 6~9m（4~6跨），非越宽越好。", fix:"一道宽 6~9m（4~6跨）。" }
+      ] },
+    { tag:"高宽比", typeHint:"单选 · 选出高宽比阈值与对象都对的作答", fig:"ratio", figLabel:"支撑脚手架独立架体 · 高宽比", figCaption:"高宽比上限是多少？",
+      stem:"支撑（模板支撑）脚手架独立架体的高宽比，规范要求不大于多少？选出能得分的作答。",
+      model:"支撑脚手架独立架体高宽比≤3.0；高宽比过大重心高、抗倾覆力矩小，易整体倾覆。",
+      opts:[
+        { t:"支撑脚手架独立架体高宽比≤3.0，过大则重心高、抗倾覆力矩小、易整体倾覆。", ok:true, fix:"阈值 3.0 + 对象「支撑架独立架体」+ 机理齐。", code:"" },
+        { t:"支撑架独立架体高宽比≤2:1。", ok:false, code:"M08", tempt:"把移动式操作平台的 2:1 混过来。", lose:"支撑脚手架高宽比≤3.0，2:1 是移动平台的值。", fix:"支撑架独立架体高宽比≤3.0。" },
+        { t:"高宽比越大越稳，不必限制。", ok:false, code:"E07", tempt:"直觉「高细的更稳」搞反。", lose:"高宽比大重心高、抗倾覆力矩小，反而易倾覆。", fix:"高宽比≤3.0，过大易倾覆。" },
+        { t:"高宽比≤5 即可。", ok:false, code:"M08", tempt:"把阈值记大了。", lose:"支撑架独立架体高宽比≤3.0，5 超限。", fix:"高宽比≤3.0。" }
+      ] },
+    { tag:"可调底座/托撑", typeHint:"单选 · 选出插入与伸出限值都对的作答", fig:"base", figLabel:"可调底座/托撑螺杆 · 插入/伸出", figCaption:"插入、伸出各有什么限？",
+      stem:"关于可调底座、可调托撑螺杆的插入与伸出长度，选出能得分的作答。",
+      model:"可调底座/托撑螺杆插入立杆的长度应≥150mm，伸出长度受限（如 φ48.3 立杆伸出≤500mm），过长偏心受压易局部压屈。",
+      opts:[
+        { t:"螺杆插入立杆长度应≥150mm，伸出长度受限（φ48.3 伸出≤500mm），过长偏心易局部压屈。", ok:true, fix:"插入≥150mm + 伸出限值 + 机理齐。", code:"" },
+        { t:"螺杆插入越少越好、伸出越长越方便调平。", ok:false, code:"E07", tempt:"觉得伸得长好调平。", lose:"伸出过长=悬臂受压杆、偏心增大先局部压屈；插入须≥150mm。", fix:"插入≥150mm、伸出受限，不宜过长。" },
+        { t:"螺杆插入≥50mm 即可，伸出不限。", ok:false, code:"M08", tempt:"把插入值记小、忽略伸出限。", lose:"插入应≥150mm，且伸出有限值，两处都错。", fix:"插入≥150mm、伸出受限（≤500mm 等）。" },
+        { t:"可调底座只管调平，长度无强制要求。", ok:false, code:"E01", tempt:"以为底座只是垫高工具。", lose:"底座/托撑螺杆有插入、伸出的构造硬限，漏则失稳。", fix:"补插入≥150mm、伸出受限。" }
+      ] },
+    { tag:"拆除·顺序方向", typeHint:"单选 · 选出拆除顺序正确的作答", fig:"teardown", figLabel:"拆除方向 · 自上而下", figCaption:"从上拆还是从下拆？",
+      stem:"脚手架拆除作业，正确的总顺序是？选出能得分的作答。",
+      model:"拆除应自上而下、先外后内、逐层同步进行，严禁上下同时交叉作业。",
+      opts:[
+        { t:"拆除应自上而下、先外后内、逐层同步，严禁上下同时交叉作业。", ok:true, fix:"方向自上而下 + 先外后内 + 禁交叉齐。", code:"" },
+        { t:"拆除从下往上，先把底层拆掉腾出场地。", ok:false, code:"E06", tempt:"把「拆」想成从底拆起。", lose:"从下往上拆，上层荷载落到已削弱下层，连锁垮塌。", fix:"应自上而下、先外后内。" },
+        { t:"上下层同时开工、多点交叉拆最快。", ok:false, code:"E06", tempt:"图快想多点同时拆。", lose:"严禁上下同时交叉，交叉作业极易失稳伤人。", fix:"逐层同步、严禁上下交叉。" },
+        { t:"先拆内层、再拆外层，方向随意。", ok:false, code:"E06", tempt:"把先外后内记反。", lose:"应先外后内，且方向自上而下，不能随意。", fix:"自上而下、先外后内。" }
+      ] },
+    { tag:"拆除·连墙件随层拆", typeHint:"单选 · 选出连墙件拆除时机正确的作答", fig:"tielayer", figLabel:"连墙件 · 随架体逐层拆", figCaption:"连墙件什么时候拆？",
+      stem:"拆除脚手架时，连墙件应如何拆除？选出能得分的作答。",
+      model:"连墙件应随架体逐层同步拆除，严禁先将连墙件整层拆除；悬臂段超 2 步应加临时拉结。",
+      opts:[
+        { t:"连墙件随架体逐层同步拆除，严禁先整层拆连墙件；悬臂段超 2 步加临时拉结。", ok:true, fix:"随层拆 + 禁提前整层拆 + 悬臂加固齐。", code:"" },
+        { t:"先把连墙件整层拆掉，再拆架体更省事。", ok:false, code:"E06", tempt:"觉得先清连墙件好拆架。", lose:"先整层拆连墙件，架体立即变悬臂、拆中侧倒。", fix:"随层同步拆，严禁先整层拆连墙件。" },
+        { t:"连墙件最后统一拆，先把杆件全拆完。", ok:false, code:"E06", tempt:"想先拆杆件、连墙件留到最后。", lose:"杆件拆了连墙件还在，受力紊乱；应随层同步。", fix:"连墙件随架体逐层同步拆。" },
+        { t:"连墙件拆不拆无所谓，反正要拆光。", ok:false, code:"E01", tempt:"觉得反正都要拆。", lose:"拆除时机错=拆中失稳，连墙件须随层拆。", fix:"随层同步拆、超 2 步悬臂加拉结。" }
+      ] },
+    { tag:"搭设·纵向水平杆", typeHint:"单选 · 选出搭接构造数值正确的作答", fig:"ledger", figLabel:"纵向水平杆 · 接头构造", figCaption:"搭接、错开各是多少？",
+      stem:"关于纵向水平杆（大横杆）的接头构造，选出数值正确、能得分的作答。",
+      model:"纵向水平杆宜设在立杆内侧；对接接头交错、错开≥500mm、距主节点≤1/3跨；搭接≥1m、用 3 个旋转扣件、端头伸出≥100mm。",
+      opts:[
+        { t:"设在立杆内侧；对接错开≥500mm、距主节点≤1/3跨；搭接≥1m、3 个扣件、端头≥100mm。", ok:true, fix:"内侧 + 错开500 + 搭接1m/3扣件/端100 齐。", code:"" },
+        { t:"搭接长度≥0.5m、用 2 个扣件即可。", ok:false, code:"M08", tempt:"把搭接和错开数值记混、扣件记少。", lose:"搭接应≥1m、3 个扣件，写 0.5m/2 扣件不够。", fix:"搭接≥1m、3 个扣件、端头≥100mm。" },
+        { t:"接头集中设在同一跨内便于施工。", ok:false, code:"E07", tempt:"图施工方便把接头集中。", lose:"接头集中形成局部弱面，应交错、错开≥500mm。", fix:"接头交错、错开≥500mm、距主节点≤1/3。" },
+        { t:"纵向水平杆设在立杆外侧更牢。", ok:false, code:"E10", tempt:"觉得外侧受力好。", lose:"纵向水平杆宜设在立杆内侧，外侧不符构造。", fix:"宜设在立杆内侧。" }
+      ] },
+    { tag:"搭设违规·多项（多选）", typeHint:"多选 · 选出全部违规项", fig:"multi", figLabel:"某扣件式脚手架检查", figCaption:"多选 · 少选漏选都不得分",
+      stem:"某扣件式双排脚手架检查记录如下，属违规的有（多选）：",
+      model:"违规：步距 2.3m（>2m）、用钢筋柔性连墙件（应刚性）、纵向扫地杆距底端 350mm（>200mm）、一次搭设自由高 5m（>4m）。",
+      opts:[
+        { t:"立杆步距 2.3m。", ok:true, fix:"步距>2m 违规。", code:"" },
+        { t:"用钢筋作柔性连墙件。", ok:true, fix:"连墙件须刚性，柔性钢筋违规。", code:"" },
+        { t:"纵向扫地杆距底端 350mm。", ok:true, fix:"距底端>200mm 违规。", code:"" },
+        { t:"每根立杆底部设置金属底座和垫板。", ok:false, code:"E10", tempt:"看着「底座垫板」像多此一举。", lose:"立杆底部设底座+垫板是正确构造，不是违规项。", fix:"底座+垫板是合规做法，不该判违规。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 诊断拆除作答失分并给正确补写", fig:"diag", figLabel:"模拟学生作答（待诊断）", figCaption:"顺序对不对？连墙件呢？",
+      stem:"某学生答脚手架拆除：「从下往上拆，先把连墙件整层拆掉腾地方，再拆杆件。」选出最准确的诊断与补写。",
+      model:"方向错（应自上而下、先外后内）、连墙件拆除时机错（应随架体逐层同步拆、严禁先整层拆）；补写：自上而下、先外后内、逐层同步、严禁交叉；连墙件随层同步拆、悬臂段超2步加拉结。",
+      opts:[
+        { t:"方向错（应自上而下、先外后内）、连墙件时机错（应随层同步拆、严禁先整层拆）。补写：自上而下·先外后内·逐层同步·严禁交叉；连墙件随层拆、悬臂超2步加拉结。", ok:true, fix:"方向 + 连墙件时机两处失分都揪出，补写即上答题纸。", code:"" },
+        { t:"顺序基本合理，只是没写「严禁交叉」，补上即可。", ok:false, code:"E06", tempt:"只挑出漏写一句，忽略方向和连墙件都反了。", lose:"从下往上、先拆连墙件两处方向性错误，非只漏一句。", fix:"方向改自上而下、连墙件改随层拆。" },
+        { t:"从下往上没问题，只要连墙件最后拆即可。", ok:false, code:"E06", tempt:"抓住「连墙件」却把方向判对了。", lose:"从下往上本身错，连墙件也应随层拆而非最后拆。", fix:"自上而下 + 连墙件随层同步拆。" },
+        { t:"先拆连墙件是对的，问题只在从下往上。", ok:false, code:"E06", tempt:"只纠了方向、漏了连墙件时机。", lose:"先整层拆连墙件会使架体变悬臂侧倒，是致命错。", fix:"连墙件随层同步拆，严禁先整层拆。" }
+      ] }
+  ];
+  codeMap={
+    E01:{label:"知识点缺失",advice:"连墙件、剪刀撑、扫地杆这些构造件别漏、别当可有可无。"},
+    E06:{label:"程序顺序错误",advice:"拆除自上而下、先外后内、连墙件随层拆，别从下往上。"},
+    E07:{label:"概念混淆",advice:"刚性≠柔性、支撑架高宽比≠移动平台、外内层别搞反。"},
+    E10:{label:"规范适用错误",advice:"看清架体类型/位置再套构造阈值。"},
+    M08:{label:"规范数字混淆",advice:"步距2m/扫地杆200mm/自由高4m/连墙件3跨3步4m，钉死场景。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    this.setState({order:this.pickOrder()});
+  }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    const head=idx.filter(i=>i<this.Q.length-1).slice(0,Math.max(0,(this.SHOW_COUNT||5)-1));
+    head.push(this.Q.length-1);
+    return head; }
+  fallbackOrder(){ const n=Math.min(this.SHOW_COUNT||5,this.Q.length); const a=this.Q.map((_,i)=>i).slice(0,n-1); a.push(this.Q.length-1); return a; }
+  ord(){ return (this.state.order && this.state.order.length) ? this.state.order : this.fallbackOrder(); }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi];
+    if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&q.opts[s]&&q.opts[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false,order:this.pickOrder()}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=96;
+    if(type==="step"){ figH=96; els.push(D({x:70,top:8,w:4,h:80,bg:"#6b7378",r:0}));
+      els.push(D({x:190,top:8,w:4,h:80,bg:"#6b7378",r:0}));
+      els.push(D({x:70,top:20,w:124,h:3,bg:"#7f888d"})); els.push(D({x:70,top:74,w:124,h:3,bg:"#7f888d"}));
+      els.push(D({x:36,top:36,w:30,h:24,fg:"#cf4436",fs:14,lab:"2.3m"}));
+      els.push(D({x:210,top:38,w:120,h:24,bg:"#fdf2f0",bd:"1.5px solid #ecccc6",r:8,fg:"#cf4436",fs:11,lab:"步距 ≤ 2m ?"})); }
+    else if(type==="sweep"){ figH=96; els.push(D({x:60,top:6,w:4,h:82,bg:"#6b7378"})); els.push(D({x:200,top:6,w:4,h:82,bg:"#6b7378"}));
+      els.push(D({x:60,top:60,w:144,h:4,bg:"#2c8a5b",r:2})); els.push(D({x:60,top:86,w:200,h:3,bg:"#bdb8a8"}));
+      els.push(D({x:206,top:56,w:120,h:14,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"距底端 350mm ✕"}));
+      els.push(D({x:206,top:72,w:120,h:12,fg:"#227a4c",fs:10,ta:"left",jc:"flex-start",lab:"应 ≤ 200mm"})); }
+    else if(type==="freeh"){ figH=100; els.push(D({x:80,top:6,w:4,h:90,bg:"#6b7378"})); els.push(D({x:180,top:6,w:4,h:90,bg:"#6b7378"}));
+      els.push(D({x:80,top:52,w:104,h:3,bg:"#2c8a5b"})); els.push(D({x:120,top:56,w:60,h:12,fg:"#227a4c",fs:9,lab:"连墙件"}));
+      els.push(D({x:80,top:6,w:104,h:0,bd:"1.5px dashed #cf4436"}));
+      els.push(D({x:200,top:20,w:130,h:14,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"自由高 5m ✕"}));
+      els.push(D({x:200,top:38,w:130,h:12,fg:"#227a4c",fs:10,ta:"left",jc:"flex-start",lab:"≤4m·≤2步"})); }
+    else if(type==="tie"){ figH=92; els.push(D({x:0,top:6,w:34,h:78,bg:"#6b7378",r:3,fg:"#fff",fs:9,lab:"架"}));
+      els.push(D({x:292,top:6,w:34,h:78,bg:"#8f6b4e",r:3,fg:"#fff",fs:9,lab:"墙"}));
+      els.push(D({x:36,top:20,w:254,h:7,bg:"#2c8a5b",r:2})); els.push(D({x:120,top:8,w:90,h:12,fg:"#227a4c",fs:10,lab:"刚性 ✓"}));
+      els.push(D({x:36,top:62,w:254,h:0,bd:"3px dashed #cf4436"})); els.push(D({x:110,top:68,w:110,h:12,fg:"#cf4436",fs:10,lab:"柔性钢筋 ✕ 严禁"})); }
+    else if(type==="spacing"){ figH=88; const c=[["水平","≤3跨"],["竖向","≤3步"],["竖向","≤4m"]];
+      c.forEach((k,i)=>{ els.push(D({x:i*110+4,top:26,w:100,h:38,bg:"#f0f8f3",bd:"1.5px solid #cfe4d7",r:9,fg:"#227a4c",fs:12,lab:k[0]+" "+k[1]})); });
+      els.push(D({x:0,top:4,w:320,h:14,fg:"#8b9398",fs:10,jc:"flex-start",ta:"left",lab:"连墙件布置间距（转角/开口端增设）"})); }
+    else if(type==="double24"){ figH=94; for(let i=0;i<2;i++)els.push(D({x:70+i*40,top:6,w:5,h:84,bg:"#6b7378"}));
+      els.push(D({x:70,top:30,w:45,h:3,bg:"#7f888d"})); els.push(D({x:70,top:64,w:45,h:3,bg:"#7f888d"}));
+      els.push(D({x:120,top:6,w:5,h:84,bg:"#8f6b4e"}));
+      els.push(D({x:115,top:28,w:34,h:7,bg:"#2c8a5b",r:2})); els.push(D({x:115,top:62,w:34,h:7,bg:"#2c8a5b",r:2}));
+      els.push(D({x:12,top:2,w:60,h:12,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"> 24m"}));
+      els.push(D({x:170,top:36,w:150,h:34,bg:"#f0f8f3",bd:"1.5px solid #cfe4d7",r:9,fg:"#227a4c",fs:11,lab:"双排必刚性连墙件"})); }
+    else if(type==="hazard"){ figH=96; els.push(D({x:70,top:6,w:5,h:80,bg:"#6b7378",r:0,fw:"800"}));
+      els.push(D({x:110,top:6,w:5,h:80,bg:"#6b7378",r:0}));
+      els.push(D({x:70,top:26,w:45,h:3,bg:"#7f888d"})); els.push(D({x:70,top:58,w:45,h:3,bg:"#7f888d"}));
+      els.push(D({x:44,top:86,w:110,h:3,bg:"#bdb8a8"}));
+      els.push(D({x:150,top:20,w:70,h:14,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"连墙件缺失"}));
+      els.push(D({x:150,top:44,w:170,h:30,bg:"#fdf2f0",bd:"1.5px solid #ecccc6",r:8,fg:"#cf4436",fs:11,lab:"防倾覆失效=重大隐患"})); }
+    else if(type==="brace"){ figH=92; els.push(D({x:8,top:8,w:120,h:76,bg:"transparent",bd:"2px solid #6b7378",r:3}));
+      els.push(D({x:14,top:44,w:108,h:4,bg:"#cf4436",r:2,fw:"800"}));
+      els.push(D({x:8,top:0,w:130,h:8,fg:"#cf4436",fs:9,lab:"剪刀撑 45~60°"}));
+      els.push(D({x:150,top:34,w:170,h:30,bg:"#fdf2f0",bd:"1.5px solid #ecccc6",r:8,fg:"#cf4436",fs:11,lab:"一道宽 6~9m（4~6跨）"})); }
+    else if(type==="ratio"){ figH=94; els.push(D({x:36,top:6,w:44,h:82,bg:"transparent",bd:"2.5px solid #2f6db0",r:4}));
+      els.push(D({x:84,top:8,w:16,h:12,fg:"#2f6db0",fs:9,lab:"H"})); els.push(D({x:36,top:90,w:44,h:0}));
+      els.push(D({x:150,top:30,w:170,h:36,fg:"#2f6db0",fs:15,lab:"H / B ≤ 3.0"})); }
+    else if(type==="base"){ figH=92; els.push(D({x:120,top:4,w:6,h:44,bg:"#6b7378"}));
+      els.push(D({x:110,top:48,w:26,h:8,bg:"#8a8f93",r:2})); els.push(D({x:118,top:56,w:10,h:24,bg:"#b08968"}));
+      els.push(D({x:100,top:80,w:46,h:6,bg:"#7a6a55",r:2}));
+      els.push(D({x:150,top:14,w:170,h:14,fg:"#227a4c",fs:10,ta:"left",jc:"flex-start",lab:"插入 ≥ 150mm"}));
+      els.push(D({x:150,top:34,w:170,h:14,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"伸出受限（≤500mm）"}));
+      els.push(D({x:150,top:56,w:170,h:12,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:"过长偏心→局部压屈"})); }
+    else if(type==="teardown"||type==="tielayer"){ figH=86; const L=[["①上","#cf4436"],["②中","#cf8a44"],["③下","#2c8a5b"]];
+      L.forEach((l,i)=>{ const y=6+i*24; els.push(D({x:0,top:y,w:26,h:18,bg:l[1],r:4,fg:"#fff",fs:9,lab:l[0]}));
+        els.push(D({x:30,top:y,w:120,h:18,bg:"#c99a5b",r:3,fg:"#fff",fs:9,jc:"flex-start",lab:" 外"}));
+        els.push(D({x:154,top:y,w:96,h:18,bg:"#2f6db0",r:3,fg:"#fff",fs:9,jc:"flex-start",lab:" 内"}));
+        els.push(D({x:254,top:y,w:34,h:18,bg:"#2c8a5b",r:3,fg:"#fff",fs:8,lab:"连墙"})); });
+      els.push(D({x:296,top:6,w:26,h:66,fg:"#cf8a44",fs:9,lab:"↓拆"})); }
+    else if(type==="ledger"){ figH=88; els.push(D({x:20,top:30,w:130,h:6,bg:"#2f6db0",r:2}));
+      els.push(D({x:140,top:30,w:130,h:6,bg:"#2f6db0",r:2}));
+      els.push(D({x:130,top:22,w:40,h:22,bg:"#fbeccb",bd:"1px solid #d8b24a",r:4,fg:"#a9762a",fs:8,lab:"搭接"}));
+      els.push(D({x:20,top:52,w:300,h:14,fg:"#227a4c",fs:10,jc:"flex-start",ta:"left",lab:"搭接≥1m · 3扣件 · 错开≥500mm · 端≥100mm"}));
+      els.push(D({x:20,top:6,w:300,h:12,fg:"#8b9398",fs:9,jc:"flex-start",ta:"left",lab:"纵向水平杆 · 立杆内侧"})); }
+    else if(type==="multi"){ figH=98; const rows=[["步距 2.3m","#cf4436"],["柔性钢筋连墙件","#cf4436"],["扫地杆 350mm","#cf4436"],["底座+垫板","#2c8a5b"]];
+      rows.forEach((r,i)=>{ els.push(D({x:4,top:4+i*23,w:316,h:19,bg:"#fffdf8",bd:"1px solid "+(r[1]==="#cf4436"?"#ecccc6":"#cfe4d7"),r:5,fg:r[1],fs:11,fw:"700",ta:"left",jc:"flex-start",p:"0 10px",lab:r[0]})); }); }
+    else if(type==="diag"){ figH=94; const lines=["「从下往上拆」","「先把连墙件整层拆掉腾地方」"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:8+i*30,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); });
+      els.push(D({x:4,top:72,w:320,h:14,fg:"#cf4436",fs:10,jc:"flex-start",ta:"left",lab:"方向对不对？连墙件时机对不对？"})); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

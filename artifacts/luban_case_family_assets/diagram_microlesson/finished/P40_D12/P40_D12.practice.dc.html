@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<!-- ░░░ 母版骨架：随堂练 ░░░ 改 Q[] 即可。每题必须有图示位 + 完整采分句选项 + 每错项三段解析 -->
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="P40_D12.teach.up.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <!-- 图示位（每题必有：标尺/变化图/管道/诊断图/答题纸；此处给通用占位，按题替换内部 SVG/结构）-->
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="P40_D12.teach.up.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY (大窗 · 自动带题目) -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 母版骨架逻辑：随堂练 ░░░
+   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
+   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
+   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
+   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
+     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
+   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
+     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+class Component extends DCLogic {
+  // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
+  //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="饰面砖板施工质量与空鼓防治";
+  KNOWLEDGE="饰面砖板施工质量与空鼓防治。饰面板按面层材料分六类(石材/瓷板/金属/木质/玻璃/塑料)。石材三法:干挂(工厂加工挂件·短槽/背槽/背栓·六面防护)/干粘/湿贴(水泥砂浆满铺·铲除背网)。薄型小规格块材厚≤10mm且边长<40cm方可粘贴,粘贴厚8~10mm,超规格改干挂。准备:后置埋件拉拔力检验合格·湿作业石板背面侧面防碱封闭·金属饰面板防雷与主体可靠接通。复验:饰面板=放射性/甲醛/粘结强度/吸水率/抗冻性;饰面砖=放射性/外墙砖拉伸粘结强度/吸水率/抗冻性(外墙砖拉伸粘结强度最易漏)。粘贴:排砖分格弹线·粘结剂厚3~8mm·调整期内微调超时严禁振动·填缝先水平后垂直;施工前总体排版策划减少损耗。抗震7度满粘法外墙饰面砖高度≤100m(别写24/50/54)。墙面饰面砖水泥砂浆粘贴属禁止使用工艺,应改粘结剂薄贴(旧'25m以下可用'口径已被覆盖)。空鼓防治五要点:基层清理干净/水泥基粘结材料/油性防护石材界面剂+背砂/大面积设伸缩缝/养护到位;人员机械维无采分点不强凑。地面块料防空鼓:石材浸湿晾干/瓷砖清脱模剂,序=基底处理→放线→浸砖→铺结合层砂浆→铺砖→养护→勾缝(浸砖在铺砂浆前)。错因:E02采分点遗漏/E03关键词缺失/E04口号化/E06程序顺序错误/E07概念混淆/E10规范适用错误/M08规范数字混淆。";
+  moreText="按错因补练：① 复验题——练‘饰面板放射性/甲醛/粘结强度/吸水率/抗冻性、饰面砖放射性/拉伸粘结强度/吸水率/抗冻性’逐项枚举，专治漏‘拉伸粘结强度’(E02)；② 空鼓措施题——练措施维度裁剪：基层/材料/界面剂背砂/伸缩缝/养护逐条写实措施，把‘加强管理/敲掉重贴’口号改成可判分动作(E04)；③ 判断纠错题——练三段式‘不妥＋理由＋正确做法带数值(3~8mm／≤100m／禁用改薄贴)’，防只指不妥不给正确做法。";
+  Q=[
+    { tag:"饰面板分类·记录表达维", typeHint:"单选 · 选出分类完整的作答", figLabel:"题给：饰面板工程按面层材料分类", figCaption:"按面层材料，共几类？", fig:"cls6",
+      stem:"饰面板工程按面层材料如何分类？选出完整、能得分的作答。",
+      model:"按面层材料分：石材、瓷板、金属、木质、玻璃、塑料饰面板工程（六类）。",
+      opts:[
+        { t:"按面层材料分为石材、瓷板、金属、木质、玻璃、塑料饰面板工程，共六类。", ok:true, fix:"六类一字不落、别混入幕墙板，正是分类采分点。", code:"" },
+        { t:"饰面板主要分石材饰面板和瓷板饰面板两类，其余按现场材料灵活归类即可。", ok:false, code:"E02", tempt:"只记住最常见的石材、瓷板两类。", lose:"漏了金属/木质/玻璃/塑料四类，采分点整维遗漏。", fix:"补全六类：石材、瓷板、金属、木质、玻璃、塑料饰面板工程。" },
+        { t:"按面层材料分石材、瓷板、金属、木质、玻璃、塑料，并把石材幕墙、玻璃幕墙一并列入饰面板。", ok:false, code:"E07", tempt:"觉得挂在墙上的板都算饰面板。", lose:"幕墙工程另成体系，混入饰面板属概念混淆。", fix:"饰面板六类不含幕墙；幕墙单独分类，别掺进来。" },
+        { t:"按材料分好几类，主要有石头的、瓷的、金属的、木头的等常见几种材料板。", ok:false, code:"E03", tempt:"意思对但用口语词代替规范名。", lose:"缺规范类名（瓷板/木质/塑料饰面板工程），关键词缺失。", fix:"用规范名：石材、瓷板、金属、木质、玻璃、塑料饰面板工程。" }
+      ] },
+    { tag:"石材三法·条件程序维", typeHint:"单选 · 选出方法与配套都对的作答", figLabel:"题给：墙柱面石材施工方法", figCaption:"干挂 / 干粘 / 湿贴 · 配套要求？", fig:"three",
+      stem:"墙柱面石材饰面板施工方法及其配套要求，选出正确、能得分的作答。",
+      model:"分干挂（短槽/背槽/背栓）、干粘、湿贴三法；干挂用工厂加工挂件并做六面防护，湿贴应铲除背网。",
+      opts:[
+        { t:"墙柱面石材分干挂（短槽/背槽/背栓）、干粘、湿贴三法；干挂工厂加工挂件做六面防护，湿贴应铲除背网。", ok:true, fix:"三法＋干挂六面防护＋湿贴铲背网，配套写全才满分。", code:"" },
+        { t:"墙柱面石材分干挂、干粘、湿贴三种方法，按现场条件任选一种施工即可完成。", ok:false, code:"E02", tempt:"只答方法名，觉得配套要求不重要。", lose:"漏了干挂六面防护、湿贴铲除背网等配套采分点。", fix:"补配套：干挂工厂加工挂件＋六面防护，湿贴铲除背网。" },
+        { t:"墙柱面石材采用干挂石材幕墙做法，龙骨挂装、打胶密封，不需要六面防护处理。", ok:false, code:"E07", tempt:"把干挂饰面板当成石材幕墙。", lose:"干挂饰面板≠石材幕墙，且干挂石材需六面防护，概念混淆。", fix:"干挂饰面板用工厂加工挂件＋六面防护，别当幕墙。" },
+        { t:"石材可以挂上去，也可以粘上去或贴上去，按情况处理好背面和防护就行了。", ok:false, code:"E03", tempt:"意思沾边但没点名方法与配套。", lose:"缺干挂/干粘/湿贴、六面防护、铲背网等关键词。", fix:"点名三法＋六面防护＋铲除背网。" }
+      ] },
+    { tag:"薄型块材·条件维", typeHint:"单选 · 选出门槛与厚度都对的作答", figLabel:"题给：某石材块材尺寸", figCaption:"能不能粘贴？粘贴厚度多少？", fig:"size",
+      stem:"石材薄型小规格块材可否采用粘贴法？其尺寸门槛与粘贴厚度如何？选出能得分的作答。",
+      model:"厚≤10mm 且边长<40cm 的薄型小规格块材方可粘贴，粘贴厚度 8~10mm；超规格须改干挂。",
+      opts:[
+        { t:"厚度≤10mm 且边长<40cm 的薄型小规格块材方可粘贴，粘贴厚度 8~10mm，超规格改干挂。", ok:true, fix:"两道门槛（≤10mm、<40cm）＋粘贴厚 8~10mm，缺一不可。", code:"" },
+        { t:"石材块材都可以采用粘贴法施工，只要粘结剂饱满、基层处理好即可，无尺寸限制。", ok:false, code:"E10", tempt:"以为粘贴法通用、不看尺寸。", lose:"忽略尺寸门槛，超规格石材粘贴易脱落，规范适用错误。", fix:"只有厚≤10mm、边长<40cm 的薄型块材才可粘贴。" },
+        { t:"小规格薄块材可以粘贴，注意别选太厚太大的，粘牢一点就行。", ok:false, code:"E03", tempt:"方向对但没给具体数值。", lose:"缺≤10mm、<40cm、8~10mm 具体门槛，关键词缺失。", fix:"写全厚≤10mm、边长<40cm、粘贴厚 8~10mm。" },
+        { t:"厚度≤10mm 且边长<40cm 可粘贴，粘贴厚度取 3~8mm 与饰面砖一致。", ok:false, code:"M08", tempt:"把粘结剂 3~8mm 套到石材粘贴厚度上。", lose:"薄型块材粘贴厚度是 8~10mm，3~8mm 是饰面砖粘结剂厚度，数值混淆。", fix:"薄型块材粘贴厚 8~10mm，别与饰面砖粘结剂 3~8mm 混。" }
+      ] },
+    { tag:"施工准备·记录条件维", typeHint:"单选 · 选出准备事项完整的作答", figLabel:"题给：饰面板上墙前施工准备", figCaption:"三件准备各是什么？", fig:"prep",
+      stem:"饰面板工程施工准备阶段应做哪些检验与处理？选出完整、能得分的作答。",
+      model:"后置埋件做拉拔力检验合格；湿作业法石板背面、侧面做防碱封闭；金属饰面板防雷装置与主体可靠接通。",
+      opts:[
+        { t:"后置埋件做拉拔力检验合格；湿作业法石板背面侧面防碱封闭；金属饰面板防雷装置与主体可靠接通。", ok:true, fix:"拉拔力＋防碱封闭＋防雷接通三件写全，防碱最易漏。", code:"" },
+        { t:"后置埋件做拉拔力检验合格，金属饰面板防雷装置与主体接通，基层清理干净后即可施工。", ok:false, code:"E02", tempt:"记住埋件和防雷，漏了防碱。", lose:"漏湿作业法石板防碱封闭，采分点遗漏。", fix:"补上湿作业法石板背面侧面防碱封闭。" },
+        { t:"湿作业法石板背面侧面要做防酸封闭、防辐射处理，后置埋件做拉拔力检验合格。", ok:false, code:"E10", tempt:"把防碱错记成防酸/防辐射。", lose:"是防碱封闭（防泛碱），不是防酸/防辐射，规范适用错误。", fix:"湿作业石板做防碱封闭，别写防酸/防辐射。" },
+        { t:"上墙前把埋件、封闭、接地这些准备都做到位，检验合格了再施工就行。", ok:false, code:"E03", tempt:"笼统带过没点名。", lose:"缺后置埋件拉拔力、防碱封闭、防雷接通关键词。", fix:"点名拉拔力检验＋防碱封闭＋防雷接通。" }
+      ] },
+    { tag:"饰面板复验·记录表达维", typeHint:"单选 · 选出复验项目完整的作答", figLabel:"题给：饰面板材料进场复验", figCaption:"复验哪几项？", fig:"recheck",
+      stem:"饰面板工程材料进场应复验哪些项目？选出完整、能得分的作答。",
+      model:"室内花岗石放射性、人造木板甲醛释放量、水泥基粘结料粘结强度、外墙陶瓷板吸水率、严寒地区陶瓷板抗冻性。",
+      opts:[
+        { t:"室内花岗石放射性、人造木板甲醛释放量、水泥基粘结料粘结强度、外墙陶瓷板吸水率、严寒地区陶瓷板抗冻性。", ok:true, fix:"放射性/甲醛/粘结强度/吸水率/抗冻性按材料对应写全。", code:"" },
+        { t:"室内花岗石复验放射性即可，其余材料只要合格证齐全就不必再复验了。", ok:false, code:"E02", tempt:"只记住放射性一项。", lose:"漏甲醛、粘结强度、吸水率、抗冻性，采分点遗漏。", fix:"补全甲醛/粘结强度/吸水率/抗冻性。" },
+        { t:"复验保温材料导热系数、燃烧性能，以及玻璃幕墙板的力学性能等项目内容。", ok:false, code:"E07", tempt:"把饰面板复验和保温/幕墙复验搞混。", lose:"复验对象错，属概念混淆。", fix:"饰面板复验放射性/甲醛/粘结强度/吸水率/抗冻性。" },
+        { t:"进场把放射性、甲醛这些有害的、还有些性能都复验一下就可以了。", ok:false, code:"E03", tempt:"意思到了但没点全项目名。", lose:"缺粘结强度/吸水率/抗冻性等具体项，关键词缺失。", fix:"逐项点名五项复验内容。" }
+      ] },
+    { tag:"饰面砖复验·记录表达维", typeHint:"单选 · 选出不漏拉伸粘结强度的作答", figLabel:"题给：外墙饰面砖进场复验", figCaption:"外墙砖复验最易漏哪项？", fig:"recheckT",
+      stem:"饰面砖工程材料进场应复验哪些项目？选出完整、能得分的作答。",
+      model:"室内瓷质砖放射性、水泥基粘结材料与外墙砖的拉伸粘结强度、外墙陶瓷砖吸水率、严寒寒冷地区外墙砖抗冻性。",
+      opts:[
+        { t:"室内瓷质砖放射性、水泥基粘结材料与外墙砖拉伸粘结强度、外墙陶瓷砖吸水率、严寒寒冷地区外墙砖抗冻性。", ok:true, fix:"外墙砖‘拉伸粘结强度’是招牌漏项，务必先写上。", code:"" },
+        { t:"室内瓷质砖放射性、外墙陶瓷砖吸水率、严寒地区外墙砖抗冻性，这三项复验齐全。", ok:false, code:"E02", tempt:"看着挺全，却正好漏了拉伸粘结强度。", lose:"漏‘拉伸粘结强度’——外墙砖核心采分点，经典丢分。", fix:"补‘水泥基粘结材料与外墙砖拉伸粘结强度’。" },
+        { t:"复验砌块抗压强度、砌筑砂浆强度，以及砖的放射性、吸水率等项目内容。", ok:false, code:"E07", tempt:"把饰面砖复验和砌体材料复验混。", lose:"复验对象错，概念混淆。", fix:"饰面砖复验放射性/拉伸粘结强度/吸水率/抗冻性。" },
+        { t:"把砖的放射性、粘结、吸水、抗冻这些都检一检、合格就可以用了。", ok:false, code:"E03", tempt:"‘粘结’含糊带过。", lose:"‘拉伸粘结强度’未点名，关键词缺失。", fix:"写全‘拉伸粘结强度’，不能只写‘粘结’。" }
+      ] },
+    { tag:"粘贴工艺·条件程序维", typeHint:"单选 · 选出厚度与调整规定都对的作答", figLabel:"题给：饰面砖粘结剂施工", figCaption:"粘结剂多厚？超调整期能振动吗？", fig:"thick",
+      stem:"饰面砖粘贴时粘结剂厚度及调整规定如何？选出能得分的作答。",
+      model:"粘结剂厚度 3~8mm；调整期内可微调，超过调整期严禁振动（超时振动＝假粘）。",
+      opts:[
+        { t:"粘结剂厚度控制在 3~8mm；调整期内可微调，超过调整期严禁振动。", ok:true, fix:"3~8mm＋超时严禁振动，两个采分点都写上。", code:"" },
+        { t:"粘结剂厚度 3~8mm，若超过调整期发现不平，可再振动找平后重新固定。", ok:false, code:"E06", tempt:"想着不平就再振一下找平。", lose:"超调整期振动会破坏初凝结晶成假粘，程序顺序错误。", fix:"超过调整期严禁振动，只能在调整期内微调。" },
+        { t:"粘结剂随抹灰层一道抹厚约 20mm，抹平后把砖贴上去压实即可。", ok:false, code:"E07", tempt:"把粘结剂当抹灰层随手抹厚。", lose:"粘结剂 3~8mm 非抹灰层厚度，概念混淆。", fix:"粘结剂厚度 3~8mm，不是 20mm 抹灰层。" },
+        { t:"粘结剂抹薄薄一层，趁它没干赶紧把砖位置调好压住就成。", ok:false, code:"E03", tempt:"方向对但没给数值和禁振规定。", lose:"缺 3~8mm、超时禁振关键词。", fix:"写 3~8mm、调整期内微调、超时严禁振动。" }
+      ] },
+    { tag:"粘贴程序·程序维", typeHint:"单选 · 选出工序顺序正确的作答", figLabel:"题给：饰面砖粘贴工序", figCaption:"上墙前做什么？填缝什么顺序？", fig:"seam",
+      stem:"饰面砖粘贴的排版与填缝顺序应如何？选出正确、能得分的作答。",
+      model:"粘贴前先排砖、分格、弹线（总体排版策划）；填缝先水平缝后垂直缝。",
+      opts:[
+        { t:"粘贴前先排砖、分格、弹线，做好总体排版策划；填缝先水平缝后垂直缝。", ok:true, fix:"排砖分格弹线＋填缝先水平后垂直，顺序写清。", code:"" },
+        { t:"清理基层后直接上墙粘贴，全部贴完再统一填缝即可，无需先做排版。", ok:false, code:"E02", tempt:"图快，跳过排版直接贴。", lose:"漏排砖分格弹线（排版策划）采分点。", fix:"粘贴前必须先排砖、分格、弹线。" },
+        { t:"先排砖分格弹线，填缝时先垂直缝后水平缝一次勾平即可。", ok:false, code:"E06", tempt:"填缝顺序凭感觉写反。", lose:"填缝应先水平后垂直，顺序颠倒扣分。", fix:"填缝先水平缝后垂直缝。" },
+        { t:"上墙前先大致规划一下排布，贴完把缝隙填严实就行了。", ok:false, code:"E03", tempt:"含糊带过没点名。", lose:"缺排砖分格弹线、先水平后垂直关键词。", fix:"点名排砖分格弹线、填缝先水平后垂直。" }
+      ] },
+    { tag:"满粘法高度·条件维", typeHint:"单选 · 选出高度限值正确的作答", figLabel:"题给：抗震7度地区满粘法外墙饰面砖", figCaption:"高度限值是多少？", fig:"sat",
+      stem:"抗震设防烈度 7 度地区，满粘法外墙饰面砖粘贴工程高度限值为多少？选出能得分的作答。",
+      model:"抗震设防 7 度地区，满粘法外墙饰面砖粘贴工程高度不应大于 100m，超高须改其他工艺。",
+      opts:[
+        { t:"抗震设防 7 度地区，满粘法外墙饰面砖粘贴工程高度不应大于 100m，超高改其他工艺。", ok:true, fix:"记准 100m、超高改工艺，别写别的数。", code:"" },
+        { t:"抗震设防 7 度地区，满粘法外墙饰面砖粘贴工程高度不应大于 54m，超高改工艺。", ok:false, code:"M08", tempt:"把别处条文的 54m 套过来。", lose:"满粘法限值是 100m，54m 属规范数字混淆。", fix:"限值是 100m，不是 24/50/54m。" },
+        { t:"满粘法外墙饰面砖是有高度限制的，超过一定高度就不能满粘，要改别的工艺。", ok:false, code:"E03", tempt:"知道有限制但说不出具体数。", lose:"缺‘不大于 100m’具体数值，关键词缺失。", fix:"写明‘高度不应大于 100m’。" },
+        { t:"外墙饰面砖不论多高都可满粘法施工，只要粘结牢固即可，无所谓高度限制。", ok:false, code:"E10", tempt:"以为满粘法通用不限高。", lose:"抗震 7 度满粘法有 100m 限值，规范适用错误。", fix:"抗震 7 度满粘法外墙饰面砖≤100m。" }
+      ] },
+    { tag:"排版策划·程序维", typeHint:"单选 · 选出绿色施工措施正确的作答", figLabel:"题给：饰面砖施工前策划", figCaption:"施工前做什么减少损耗？", fig:"plan",
+      stem:"饰面砖施工前为减少资源损耗（绿色施工）应做什么？选出能得分的作答。",
+      model:"饰面砖施工前应进行总体排版策划，合理排布减少切割损耗（绿色施工措施）。",
+      opts:[
+        { t:"饰面砖施工前应进行总体排版策划，合理排布减少切割损耗，属绿色施工措施。", ok:true, fix:"‘总体排版策划、减少损耗’是绿色施工采分句。", code:"" },
+        { t:"饰面砖施工前主要确定粘贴方法和材料品种，损耗按现场经验控制即可。", ok:false, code:"E02", tempt:"只谈方法材料，漏排版策划。", lose:"漏‘总体排版策划、减少损耗’采分点。", fix:"补‘施工前进行总体排版策划、减少损耗’。" },
+        { t:"施工前做好安全技术交底、机械设备进场，即为绿色施工的主要措施内容。", ok:false, code:"E07", tempt:"把安全/机械当绿色施工措施。", lose:"本问采分点是排版策划减少损耗，答非所问。", fix:"绿色施工此处指‘总体排版策划、减少损耗’。" },
+        { t:"施工前规划一下砖怎么贴，尽量省点材料就算绿色施工了。", ok:false, code:"E03", tempt:"口语带过。", lose:"缺‘总体排版策划’‘减少资源损耗’规范表述。", fix:"用规范表述‘总体排版策划、减少资源损耗’。" }
+      ] },
+    { tag:"禁用工艺·条件后果维", typeHint:"单选 · 选出符合现行口径的作答", figLabel:"题给：墙面饰面砖水泥砂浆粘贴", figCaption:"现行口径能用吗？", fig:"ban",
+      stem:"墙面饰面砖采用水泥砂浆粘贴，按现行口径是否妥当？选出能得分的作答。",
+      model:"不妥。墙面饰面砖水泥砂浆粘贴已列入禁止使用的施工工艺，应改用粘结剂薄贴等工艺。",
+      opts:[
+        { t:"不妥；墙面饰面砖水泥砂浆粘贴已列入禁止使用的施工工艺，应改用粘结剂薄贴等工艺。", ok:true, fix:"‘已列入禁止使用工艺＋改薄贴’是三段式正确做法。", code:"" },
+        { t:"妥当；墙面饰面砖水泥砂浆粘贴属限制类工艺，25m 及以下部位可正常使用。", ok:false, code:"E10", tempt:"沿用旧‘限制·25m 以下可用’口径。", lose:"新规已升级为禁止使用，旧口径被覆盖，规范适用错误。", fix:"按现行口径：水泥砂浆粘贴属禁止工艺，应改薄贴。" },
+        { t:"不妥；水泥砂浆粘贴质量不好容易空鼓，应加强施工管理、做好养护后再用。", ok:false, code:"E02", tempt:"指出不妥却不给正确工艺。", lose:"漏‘禁止工艺＋改薄贴’正确做法，只指不妥不得分。", fix:"补‘属禁止使用工艺，应改用粘结剂薄贴’。" },
+        { t:"不妥，这种老办法现在规范不让用了，得换一种新工艺来贴。", ok:false, code:"E03", tempt:"方向对但没点名。", lose:"缺‘禁止使用工艺’‘粘结剂薄贴’关键词。", fix:"点名‘禁止使用工艺’并写‘改用粘结剂薄贴’。" }
+      ] },
+    { tag:"空鼓防治·措施多维", typeHint:"单选 · 选出五要点齐全的措施", figLabel:"题给：外墙块料空鼓防治", figCaption:"从哪几方面防治空鼓？", fig:"kg5",
+      stem:"外墙块料空鼓防治应从哪些方面采取措施？选出完整、能得分的作答。",
+      model:"基层清理干净；用水泥基粘结材料；油性防护石材用界面剂＋背砂；大面积铺贴设伸缩缝；养护到位。",
+      opts:[
+        { t:"基层清理干净；用水泥基粘结材料；油性防护石材用界面剂＋背砂；大面积铺贴设伸缩缝；养护到位。", ok:true, fix:"基层/材料/界面剂背砂/伸缩缝/养护五条逐条写。", code:"" },
+        { t:"基层清理干净、选用水泥基粘结材料、养护到位，把这几条做好即可有效防空鼓。", ok:false, code:"E02", tempt:"写了三条觉得够了。", lose:"漏‘界面剂＋背砂’和‘设伸缩缝’两条，采分点遗漏。", fix:"补界面剂＋背砂、大面积设伸缩缝两条。" },
+        { t:"加强现场管理、提高工人操作水平、发现空鼓及时敲掉重贴，确保工程质量达标。", ok:false, code:"E04", tempt:"套‘加强管理、敲掉重贴’的万能口号。", lose:"全是口号、无可判分措施，口号化 0 分。", fix:"改写基层/材料/界面剂背砂/伸缩缝/养护五条实措施。" },
+        { t:"把基层、材料、构造、养护这几个方面都注意到位，空鼓自然就少了。", ok:false, code:"E03", tempt:"维度点到但没具体措施。", lose:"缺界面剂＋背砂、伸缩缝等具体关键词。", fix:"每维给出具体做法（界面剂＋背砂、设伸缩缝等）。" }
+      ] },
+    { tag:"措施维度·防口号化", typeHint:"单选 · 选出维度裁剪得当的作答", figLabel:"题给：空鼓措施按维度作答", figCaption:"没采分点的维要不要硬凑？", fig:"kgtrim",
+      stem:"用‘措施维度’作答外墙饰面砖空鼓防治时，如何处理人员、机械等维度？选出能得分的作答。",
+      model:"只在有采分点的维（基层/材料/粘结工艺/构造伸缩缝/养护/检验）写实措施；人员、机械维无采分点，不硬凑口号。",
+      opts:[
+        { t:"在基层、材料、粘结工艺、构造(伸缩缝)、养护、检验等有采分点的维写实措施，人员/机械维不硬凑。", ok:true, fix:"有采分点才写，宁缺人机维也不凑口号。", code:"" },
+        { t:"人材机法环记六维都要写满：加强人员管理、机械到位、加强环境管理，逐维都补上。", ok:false, code:"E04", tempt:"以为‘六维写满’更全更稳。", lose:"人员/机械维无采分点，硬塞成口号化反而扣分。", fix:"只写有采分点的维，删掉‘加强人员管理’等口号。" },
+        { t:"只写养护到位一条就够了，别的维度都是凑数、写多了反而乱。", ok:false, code:"E02", tempt:"走另一个极端，只写一条。", lose:"漏基层/材料/界面剂背砂/伸缩缝多维，采分点遗漏。", fix:"有采分点的五六条都要写全。" },
+        { t:"按维度把该注意的都写上，重点维度多写几句、次要维度带一句。", ok:false, code:"E03", tempt:"含糊没落到具体措施。", lose:"缺基层清理、界面剂＋背砂、伸缩缝等关键词。", fix:"逐维给出具体可判分措施。" }
+      ] },
+    { tag:"地面工序·程序维", typeHint:"单选 · 选出工序顺序正确的作答", figLabel:"题给：地面瓷砖铺设工艺流程", figCaption:"浸砖后接什么？顺序能颠倒吗？", fig:"soak",
+      stem:"地面瓷砖铺设‘基底处理→放线→浸砖’之后的工艺流程应如何？选出正确、能得分的作答。",
+      model:"浸砖→铺结合层砂浆→铺砖→养护→检查验收→勾缝→成品保护；浸砖须在铺砂浆前，不可颠倒。",
+      opts:[
+        { t:"浸砖后依次：铺结合层砂浆→铺砖→养护→检查验收→勾缝→成品保护；浸砖在铺砂浆前不可颠倒。", ok:true, fix:"后段养护/检查验收/勾缝/成品保护补全，顺序不颠倒。", code:"" },
+        { t:"浸砖后先铺结合层砂浆，铺砖前再补浸一次砖找水，然后铺砖、养护、勾缝。", ok:false, code:"E06", tempt:"想着铺前再浸一下更保险。", lose:"浸砖应在铺结合层砂浆之前，颠倒顺序程序错误。", fix:"浸砖在铺砂浆前，铺砂浆后直接铺砖，不再颠倒。" },
+        { t:"浸砖后铺结合层砂浆、把砖铺好，勾个缝就完成，可以交下道工序了。", ok:false, code:"E02", tempt:"补到铺砖就以为完了。", lose:"漏养护、检查验收、成品保护后段，采分点遗漏。", fix:"补养护→检查验收→勾缝→成品保护后段。" },
+        { t:"浸砖之后把砂浆铺上、砖摆好，后面按正常流程一步步做完就行了。", ok:false, code:"E03", tempt:"笼统带过没点名后段。", lose:"缺养护/检查验收/勾缝/成品保护关键词。", fix:"点名后段各工序名称。" }
+      ] },
+    { tag:"判断纠错·采分句输出", typeHint:"单选 · 选出三段式最完整的改正", figLabel:"题给：技术交底不妥做法", figCaption:"不妥＋理由＋正确做法，哪句最全？", fig:"correct",
+      stem:"技术交底：‘粘结剂随抹灰层一道抹厚约 20mm 后贴砖’。用三段式指出不妥并改正，选出能得分的作答。",
+      model:"不妥：粘结剂随抹灰层抹厚 20mm。理由：饰面砖粘结剂厚度应为 3~8mm，非抹灰层厚度。正确做法：控制在 3~8mm，调整期内微调、超时严禁振动。",
+      opts:[
+        { t:"不妥：粘结剂抹厚 20mm。理由：粘结剂厚度应为 3~8mm，不是抹灰层。正确做法：控制在 3~8mm、超时严禁振动。", ok:true, fix:"不妥＋理由＋正确做法带数值 3~8mm，三段齐。", code:"" },
+        { t:"不妥：粘结剂抹得太厚了。正确做法：把它抹薄一点再贴砖就好。", ok:false, code:"E03", tempt:"指出太厚也给了方向。", lose:"正确做法无 3~8mm 数值，关键词缺失只得半分。", fix:"正确做法必须写明 3~8mm。" },
+        { t:"不妥：粘结剂抹厚 20mm，这样贴容易空鼓、开裂、脱落。", ok:false, code:"E02", tempt:"只指不妥并说后果。", lose:"缺‘正确做法’一段，采分点遗漏。", fix:"补正确做法：控制在 3~8mm、超时严禁振动。" },
+        { t:"妥当：抹灰层 20mm 厚度合适，垫得厚一点贴砖反而更牢固。", ok:false, code:"E07", tempt:"把粘结剂当抹灰层，以为越厚越牢。", lose:"粘结剂 3~8mm 非抹灰层，判断方向就错。", fix:"应判不妥，粘结剂厚 3~8mm。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 空鼓答口号，诊断失分并补写", figLabel:"模拟学生作答（待诊断）", figCaption:"空鼓措施只写了口号，问题在哪？", fig:"diag",
+      stem:"某学生答外墙饰面砖空鼓防治：‘加强现场管理、提高工人责任心、空鼓的敲掉重贴’。选出最准确的诊断与补写。",
+      model:"全是口号无可判分措施(E04)，且漏空鼓五要点；应改写：基层清理干净、水泥基粘结材料、界面剂＋背砂、大面积设伸缩缝、养护到位。",
+      opts:[
+        { t:"作答口号化、无可判分措施，且漏空鼓五要点；应改写基层清理、水泥基粘结、界面剂＋背砂、伸缩缝、养护。", ok:true, fix:"识破口号化＋补五要点实措施，就是‘会写答案’。", code:"" },
+        { t:"作答基本到位，加强管理和敲掉重贴都是有效措施，再补一句养护即可给分。", ok:false, code:"E07", tempt:"把口号当有效措施，只想补一句。", lose:"‘加强管理/敲掉重贴’是口号非采分措施，诊断方向错。", fix:"整体口号化需重写五要点，不是补一句。" },
+        { t:"只是漏了养护一条，把养护补上，其余作答都算对可以给分。", ok:false, code:"E02", tempt:"以为只差一条。", lose:"漏基层/材料/界面剂背砂/伸缩缝多条，且原文全是口号。", fix:"五要点几乎全漏，需整体改写实措施。" },
+        { t:"方向是对的，只要把这些措施写得再具体些、别太笼统就能得分。", ok:false, code:"E03", tempt:"含糊指出笼统但没给内容。", lose:"未点名应补哪五条采分措施，指导无落点。", fix:"明确补基层/材料/界面剂背砂/伸缩缝/养护五条。" }
+      ] }
+  ];
+  // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"复验/空鼓五要点/工序后段逐条写，缺一扣一。"},
+    E03:{label:"关键词缺失",advice:"3~8mm、≤100m、拉伸粘结强度等数值与项目名必须点名。"},
+    E04:{label:"口号化表达",advice:"空鼓别写‘加强管理/敲掉重贴’，改基层/材料/界面剂背砂/伸缩缝/养护。"},
+    E06:{label:"程序顺序错误",advice:"浸砖在铺砂浆前、填缝先水平后垂直、超时严禁振动。"},
+    E07:{label:"概念混淆",advice:"干挂≠幕墙、粘结剂≠抹灰层、饰面砖复验≠砌体复验。"},
+    E10:{label:"规范适用错误",advice:"水泥砂浆粘贴按现行‘禁止’口径、防碱非防酸、薄型块材才可粘贴。"},
+    M08:{label:"规范数字混淆",advice:"满粘法≤100m(非24/50/54)、粘结剂3~8mm、薄型块材≤10mm且<40cm。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    // 抽题顺序与选项乱序在首帧惰性生成并缓存（ord()/optPerm()），不依赖此处 setState，
+    // 保证首屏渲染即已随机（消除"A 先出现再洗牌"的闪烁与对 componentDidMount 的依赖）。
+  }
+  // ── 随机抽题：从 Q[] 全量候选池洗牌后取前 SHOW_COUNT 条真实索引 ──
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  // ── 选项乱序：每题对 opts 独立洗牌，正确项落随机位置（防"永远选第一个/最长的"位置泄露）；重做重新洗 ──
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="cls6"){ figH=96; const c=[["石材","#2f6db0"],["瓷板","#2c8a5b"],["金属","#8a9296"],["木质","#cf8a44"],["玻璃","#46627e"],["塑料","#d9a521"]];
+      c.forEach((p,i)=>{ const col=i%3,row=Math.floor(i/3); els.push(D({x:8+col*108,top:8+row*44,w:100,h:34,bg:p[1],r:8,fg:"#fff",fs:13,lab:p[0]})); });
+      els.push(D({x:0,top:82,w:334,h:12,fg:"#8b9398",fs:10,lab:"饰面板 = 六类，别混入幕墙板"})); }
+    else if(type==="three"){ figH=104; const P=[["干挂","#2f6db0","留空腔+挂件·六面防护"],["干粘","#cf8a44","薄层胶粘·无空腔"],["湿贴","#2c8a5b","砂浆满铺·铲背网"]];
+      P.forEach((p,i)=>{ const x=8+i*110;
+        els.push(D({x:x+22,top:2,w:64,h:14,fg:p[1],fs:12,lab:p[0]}));
+        els.push(D({x:x+20,top:20,w:14,h:50,bg:"#b9a88a",r:2}));
+        if(i===0){ els.push(D({x:x+34,top:20,w:14,h:50,bd:"1.5px dashed #b79b6a",r:2})); els.push(D({x:x+38,top:40,w:8,h:10,bg:"#cf8a44",r:1})); els.push(D({x:x+48,top:20,w:14,h:50,bg:"#7f9bb5",r:2})); }
+        else if(i===1){ els.push(D({x:x+34,top:20,w:5,h:50,bg:"#cf8a44"})); els.push(D({x:x+39,top:20,w:14,h:50,bg:"#7f9bb5",r:2})); }
+        else { els.push(D({x:x+34,top:20,w:14,h:50,bg:"repeating-linear-gradient(45deg,#c8b48f,#c8b48f 3px,#dccaa4 3px,#dccaa4 6px)"})); els.push(D({x:x+48,top:20,w:14,h:50,bg:"#7f9bb5",r:2})); }
+        els.push(D({x:x-4,top:74,w:112,h:26,fg:p[1],fs:8.5,lab:p[2]})); }); }
+    else if(type==="size"){ figH=92;
+      els.push(D({x:2,top:8,w:44,h:16,fg:"#5c6469",fs:11,ta:"left",jc:"flex-start",lab:"厚度"}));
+      els.push(D({x:50,top:8,w:168,h:16,bg:"#dff0e6",r:4})); els.push(D({x:220,top:8,w:70,h:16,bg:"#fadcd6",r:4}));
+      els.push(D({x:190,top:26,w:44,h:12,fg:"#cf4436",fs:9,lab:"10mm"}));
+      els.push(D({x:2,top:46,w:44,h:16,fg:"#5c6469",fs:11,ta:"left",jc:"flex-start",lab:"边长"}));
+      els.push(D({x:50,top:46,w:158,h:16,bg:"#dff0e6",r:4})); els.push(D({x:210,top:46,w:80,h:16,bg:"#fadcd6",r:4}));
+      els.push(D({x:182,top:64,w:44,h:12,fg:"#cf4436",fs:9,lab:"40cm"}));
+      els.push(D({x:2,top:78,w:330,h:12,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",lab:"两条都够 → 可粘贴 8~10mm"})); }
+    else if(type==="prep"){ figH=98; const r=[["后置埋件","拉拔力检验合格","#cf4436"],["湿作业石板","背面侧面防碱封闭","#2c8a5b"],["金属饰面板","防雷与主体接通","#cf8a44"]];
+      r.forEach((p,i)=>{ const y=8+i*30; els.push(D({x:6,top:y,w:12,h:22,bg:p[2],r:3})); els.push(D({x:26,top:y+3,w:104,h:16,fg:"#23282b",fs:11,ta:"left",jc:"flex-start",lab:p[0]})); els.push(D({x:136,top:y+3,w:196,h:16,fg:p[2],fs:10.5,ta:"left",jc:"flex-start",lab:p[1]})); }); }
+    else if(type==="recheck"){ figH=98; const it=["放射性","甲醛释放量","粘结强度","吸水率","抗冻性"];
+      it.forEach((t,i)=>els.push(D({x:8,top:4+i*18,w:316,h:15,bd:"1px solid #cfe0ef",r:4,fg:"#2f6db0",fs:10.5,ta:"left",jc:"flex-start",p:"0 8px",lab:"· 饰面板 "+t}))); }
+    else if(type==="recheckT"){ figH=90; const it=["放射性","拉伸粘结强度","吸水率","抗冻性"];
+      it.forEach((t,i)=>{ const hot=i===1; els.push(D({x:8,top:6+i*20,w:316,h:16,bg:hot?"#fadcd6":"transparent",bd:hot?"1.5px solid #cf4436":"1px solid #efc9c1",r:4,fg:hot?"#a3271c":"#cf4436",fs:11,fw:hot?"900":"700",ta:"left",jc:"flex-start",p:"0 8px",lab:(hot?"★ 外墙砖 ":"· 外墙砖 ")+t})); }); }
+    else if(type==="thick"){ figH=90;
+      els.push(D({x:8,top:10,w:56,h:16,fg:"#2c8a5b",fs:11,ta:"left",jc:"flex-start",lab:"正确"}));
+      els.push(D({x:66,top:12,w:120,h:10,bg:"#2c8a5b",r:2})); els.push(D({x:194,top:10,w:120,h:14,fg:"#2c8a5b",fs:11,ta:"left",jc:"flex-start",lab:"3~8mm"}));
+      els.push(D({x:8,top:44,w:56,h:16,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"错误"}));
+      els.push(D({x:66,top:40,w:120,h:24,bg:"repeating-linear-gradient(45deg,#e0c9b0,#e0c9b0 4px,#eaddc9 4px,#eaddc9 8px)",r:2})); els.push(D({x:194,top:44,w:130,h:14,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"抹灰 20mm ✕"}));
+      els.push(D({x:8,top:74,w:320,h:12,fg:"#8b9398",fs:9.5,ta:"left",jc:"flex-start",lab:"超调整期严禁振动（假粘）"})); }
+    else if(type==="seam"){ figH=92;
+      els.push(D({x:8,top:4,w:316,h:14,fg:"#23282b",fs:11,ta:"left",jc:"flex-start",lab:"先排砖 · 分格 · 弹线"}));
+      for(let r=0;r<2;r++)for(let c=0;c<4;c++){ els.push(D({x:70+c*44,top:28+r*26,w:40,h:22,bg:"#cbb79a",r:2})); }
+      els.push(D({x:66,top:52,w:180,h:4,bg:"#2c8a5b"}));
+      els.push(D({x:8,top:78,w:330,h:12,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",lab:"填缝先水平缝(绿)后垂直缝"})); }
+    else if(type==="sat"){ figH=100;
+      els.push(D({x:140,top:6,w:40,h:88,bg:"#e7e3d6",r:5}));
+      els.push(D({x:140,top:6,w:40,h:14,bg:"#fadcd6",r:5}));
+      els.push(D({x:140,top:20,w:40,h:74,bg:"#2c8a5b"}));
+      els.push(D({x:186,top:14,w:130,h:12,fg:"#2c8a5b",fs:11,ta:"left",jc:"flex-start",lab:"100m 满粘上限"}));
+      els.push(D({x:186,top:2,w:130,h:12,fg:"#cf4436",fs:9.5,ta:"left",jc:"flex-start",lab:">100m 改工艺"}));
+      els.push(D({x:6,top:44,w:120,h:14,fg:"#a3271c",fs:10,ta:"left",jc:"flex-start",lab:"✕ 24/50/54m 别写"})); }
+    else if(type==="plan"){ figH=92;
+      for(let r=0;r<2;r++)for(let c=0;c<5;c++){ els.push(D({x:20+c*40,top:14+r*26,w:36,h:22,bg:"#cbb79a",r:2})); }
+      els.push(D({x:224,top:14,w:100,h:12,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:"合理排布"}));
+      els.push(D({x:8,top:72,w:330,h:14,fg:"#2c8a5b",fs:10.5,ta:"left",jc:"flex-start",lab:"施工前总体排版策划 · 减少损耗（绿色施工）"})); }
+    else if(type==="ban"){ figH=92;
+      els.push(D({x:8,top:8,w:230,h:26,bg:"#fbece9",bd:"1.5px solid #cf4436",r:6,fg:"#a3271c",fs:11,ta:"left",jc:"flex-start",p:"0 10px",lab:"水泥砂浆粘贴（禁用）"}));
+      els.push(D({x:246,top:6,w:40,h:30,bd:"2px solid #cf4436",r:6,fg:"#cf4436",fs:16,lab:"✕"}));
+      els.push(D({x:8,top:44,w:230,h:26,bg:"#f0f8f3",bd:"1.5px solid #2c8a5b",r:6,fg:"#23282b",fs:11,ta:"left",jc:"flex-start",p:"0 10px",lab:"✓ 改用粘结剂薄贴"}));
+      els.push(D({x:8,top:76,w:330,h:12,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:"旧‘限制·25m 以下’口径已被新规覆盖"})); }
+    else if(type==="kg5"){ figH=98; const m=[["基层清理干净","#8a7a5c"],["水泥基粘结材料","#cf8a44"],["界面剂+背砂","#2c8a5b"],["大面积设伸缩缝","#cf4436"],["养护到位","#2f6db0"]];
+      m.forEach((p,i)=>els.push(D({x:8,top:4+i*18,w:316,h:15,bd:"1px solid "+p[1],r:4,fg:p[1],fs:10.5,ta:"left",jc:"flex-start",p:"0 8px",lab:(i+1)+"  "+p[0]}))); }
+    else if(type==="kgtrim"){ figH=98; const m=[["基层 ✓","#2c8a5b"],["材料 ✓","#2c8a5b"],["界面剂+背砂 ✓","#2c8a5b"],["伸缩缝 ✓","#2c8a5b"],["养护 ✓","#2c8a5b"],["人员 ✕不凑","#cf4436"],["机械 ✕不凑","#cf4436"]];
+      m.forEach((p,i)=>{ const col=i%2,row=Math.floor(i/2); els.push(D({x:8+col*164,top:4+row*22,w:156,h:18,bd:"1px solid "+p[1],r:4,fg:p[1],fs:10,ta:"left",jc:"flex-start",p:"0 8px",lab:p[0]})); }); }
+    else if(type==="soak"){ figH=92; const n=[["1","基底"],["2","放线"],["3","浸砖"],["4","铺砂浆"],["5","铺砖"],["6","养护"],["7","勾缝"]]; const sx=[6,52,98,144,190,236,282];
+      els.push(D({x:14,top:22,w:300,h:2,bg:"#d8d3c4"}));
+      n.forEach((p,i)=>{ const hot=i===2; els.push(D({x:sx[i],top:12,w:22,h:22,bg:hot?"#cf4436":"#8a9296",r:11,fg:"#fff",fs:10,lab:p[0]})); els.push(D({x:sx[i]-8,top:38,w:38,h:14,fg:hot?"#cf4436":"#5c6469",fs:8.5,lab:p[1]})); });
+      els.push(D({x:8,top:70,w:330,h:14,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"浸砖必在铺砂浆前 · 不可颠倒"})); }
+    else if(type==="correct"){ figH=92; const seg=[["不妥","照抄题干做法","#cf4436"],["理由","违反规范/采分点","#cf8a44"],["正确做法","标准表达+数值","#2c8a5b"]];
+      seg.forEach((p,i)=>{ els.push(D({x:8,top:6+i*26,w:72,h:20,bg:p[2],r:5,fg:"#fff",fs:10,lab:p[0]})); els.push(D({x:88,top:8+i*26,w:238,h:16,fg:"#5c6469",fs:10,ta:"left",jc:"flex-start",lab:p[1]})); });
+      els.push(D({x:8,top:82,w:320,h:10,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:"正确做法带数值 3~8mm"})); }
+    else if(type==="diag"){ figH=92; const l=["加强现场管理","提高工人责任心","空鼓的敲掉重贴"];
+      l.forEach((t,i)=>els.push(D({x:6,top:6+i*24,w:236,h:18,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:5,fg:"#23282b",fs:11,ta:"left",jc:"flex-start",p:"0 10px",lab:"· "+t})));
+      els.push(D({x:250,top:6,w:78,h:64,bd:"1.5px solid #cf4436",r:6,fg:"#cf4436",fs:11,lab:"口号 E04"})); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div class="lz-card" data-screen-label="随堂练·A02" style="width:100%;max-width:390px;min-height:100vh;background:#181b1e;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;background:#181b1e;border-bottom:1px solid #262a2e;flex:none;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#2c8a5b;display:flex;align-items:center;justify-content:center;line-height:1;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:22px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">鲁班智考 · 随堂练</div>
+        <div style="font-size:15px;font-weight:900;color:#f1efe8;line-height:1.25;margin-top:1px;">隐蔽验收 · 材料复验 · 见证取样</div>
+      </div>
+      <div style="font-size:9px;color:#8b9398;text-align:right;line-height:1.4;flex:none;">A02<br/><span style="color:#cf8a44;">采分点过关</span></div>
+    </div>
+
+    <!-- PROGRESS -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;padding:10px 16px 4px;background:#181b1e;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <sc-for list="{{ progDots }}" as="d" hint-placeholder-count="5">
+          <div style="flex:1;height:5px;border-radius:3px;background:{{ d.bg }};transition:background .3s;"></div>
+        </sc-for>
+        <div style="flex:none;font-size:10px;font-weight:800;color:#9aa0a3;margin-left:4px;font-variant-numeric:tabular-nums;">{{ progLabel }}</div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- BODY -->
+    <div ref="{{ scrollRef }}" style="flex:1;overflow-y:auto;position:relative;">
+
+      <!-- ░░ COVER ░░ -->
+      <sc-if value="{{ isCover }}" hint-placeholder-val="{{ true }}">
+      <div style="min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 26px;background:linear-gradient(180deg,#f4f3ec,#eceadf);">
+        <img src="assets/mark-red.png" alt="鲁班智考" style="width:66px;height:auto;"/>
+        <div style="font-family:'Long Cang',cursive;font-size:26px;color:#cf4436;margin-top:6px;line-height:1;">鲁班智考</div>
+        <div style="font-size:18px;font-weight:900;color:#23282b;margin-top:12px;text-align:center;">A02 采分点随堂练</div>
+        <div style="font-size:12px;color:#5c6469;margin-top:8px;text-align:center;line-height:1.6;font-weight:600;">从题库随机抽 <b style="color:#cf4436;">5 道</b>：材料进场复验 · 见证取样 · 隐蔽验收 · 结构实体检验<br/>最后一道练"采分句 / 答案诊断"</div>
+        <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:20px;padding:6px 13px;font-size:11px;font-weight:800;color:#2f6db0;">选项＝完整采分动作</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:20px;padding:6px 13px;font-size:11px;font-weight:800;color:#cf8a44;">错项三段解析</div>
+          <div style="background:#fff;border:1px solid #ddd2bb;border-radius:20px;padding:6px 13px;font-size:11px;font-weight:800;color:#2c8a5b;">题题带图</div>
+        </div>
+        <button onClick="{{ start }}" style="margin-top:26px;border:none;border-radius:14px;padding:14px 44px;font-size:15px;font-weight:900;background:#cf4436;color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(207,68,54,.32);">抽 5 道 · 开始</button>
+        <div style="margin-top:14px;display:flex;gap:14px;">
+          <a href="P40_A02.teach.up.dc.html" style="font-size:11px;font-weight:800;color:#2f6db0;text-decoration:none;border-bottom:1.5px solid #2f6db0;">← 回讲解·上</a>
+          <a href="P40_A02.teach.down.dc.html" style="font-size:11px;font-weight:800;color:#2f6db0;text-decoration:none;border-bottom:1.5px solid #2f6db0;">回讲解·下 →</a>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ░░ QUESTION ░░ -->
+      <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:14px 16px 22px;">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">
+          <div style="background:{{ qBadgeBg }};color:#fff;font-size:9px;font-weight:900;padding:3px 8px;border-radius:6px;">{{ qBadge }}</div>
+          <div style="font-size:9.5px;font-weight:800;color:#8b9398;">{{ qTopic }}</div>
+        </div>
+        <div style="font-size:14.5px;font-weight:700;color:#f1efe8;line-height:1.5;">{{ qStem }}</div>
+
+        <!-- 诊断图 -->
+        <div style="margin-top:12px;background:#0f1214;border:1px solid #262a2e;border-radius:13px;padding:11px 13px;">
+          <div style="font-size:8px;font-weight:800;color:#7f8a8f;letter-spacing:1.5px;margin-bottom:8px;">{{ figLabel }}</div>
+          <div style="position:relative;height:{{ figH }}px;">
+            <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+              <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:center;justify-content:{{ e.jc }};text-align:center;line-height:1.15;padding:{{ e.pad }};">{{ e.lab }}</div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- 选项 -->
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:9px;">
+          <sc-for list="{{ optCards }}" as="o" hint-placeholder-count="4">
+            <div onClick="{{ o.onClick }}" style="border:2px solid {{ o.bd }};background:{{ o.bg }};border-radius:13px;padding:11px 13px;cursor:{{ o.cursor }};transition:all .15s ease;">
+              <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="flex:none;width:22px;height:22px;border-radius:6px;background:{{ o.tagBg }};color:{{ o.tagFg }};font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;">{{ o.tag }}</div>
+                <div style="flex:1;font-size:12.5px;font-weight:600;color:{{ o.fg }};line-height:1.5;">{{ o.label }}</div>
+              </div>
+              <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:9px;padding-top:9px;border-top:1px dashed {{ o.anaBd }};">
+                  <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:8px;font-weight:800;letter-spacing:1px;color:#2c8a5b;margin-bottom:3px;">✓ 采分句 · 照这句写</div>
+                    <div style="font-size:12px;font-weight:800;color:#1f6f47;line-height:1.5;">{{ o.note }}</div>
+                  </sc-if>
+                  <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:5px;">
+                      <div style="display:flex;gap:6px;"><div style="flex:none;font-size:8.5px;font-weight:900;color:#9aa0a3;width:52px;">易选因</div><div style="flex:1;font-size:11px;color:#8b6b3a;line-height:1.45;">{{ o.why }}</div></div>
+                      <div style="display:flex;gap:6px;"><div style="flex:none;font-size:8.5px;font-weight:900;color:#cf4436;width:52px;">扣分点</div><div style="flex:1;font-size:11px;color:#b23b2e;line-height:1.45;">{{ o.lose }}</div></div>
+                      <div style="display:flex;gap:6px;"><div style="flex:none;font-size:8.5px;font-weight:900;color:#2c8a5b;width:52px;">正确补</div><div style="flex:1;font-size:11px;color:#1f6f47;line-height:1.45;font-weight:700;">{{ o.fix }}</div></div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <!-- 提交 / 下一题 -->
+        <sc-if value="{{ notRevealed }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ submit }}" disabled="{{ submitDisabled }}" style="margin-top:16px;width:100%;border:none;border-radius:13px;padding:14px;font-size:14px;font-weight:900;cursor:{{ submitCursor }};background:{{ submitBg }};color:{{ submitFg }};">{{ submitLabel }}</button>
+        </sc-if>
+        <sc-if value="{{ revealed }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:16px;background:{{ verdictBg }};border-radius:13px;padding:12px 14px;display:flex;gap:10px;align-items:center;">
+          <div style="flex:none;width:32px;height:32px;border-radius:50%;background:{{ verdictMkBg }};color:#fff;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;">{{ verdictMk }}</div>
+          <div style="flex:1;font-size:12.5px;font-weight:800;color:{{ verdictFg }};line-height:1.4;">{{ verdictText }}</div>
+        </div>
+        <button onClick="{{ next }}" style="margin-top:12px;width:100%;border:none;border-radius:13px;padding:14px;font-size:14px;font-weight:900;cursor:pointer;background:#cf4436;color:#fff;box-shadow:0 4px 14px rgba(207,68,54,.28);">{{ nextLabel }}</button>
+        <button onClick="{{ openAsk }}" style="margin-top:9px;width:100%;border:1.5px solid #3a4046;background:#23282b;border-radius:13px;padding:11px;font-size:12.5px;font-weight:800;cursor:pointer;color:#cdd2d5;">这题没懂 · 问鲁班</button>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- ░░ RESULT ░░ -->
+      <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:22px 18px 28px;background:linear-gradient(180deg,#f4f3ec,#eceadf);min-height:100%;">
+        <div style="text-align:center;">
+          <div style="font-size:12px;font-weight:800;color:#8b9398;letter-spacing:1px;">本组成绩</div>
+          <div style="font-size:52px;font-weight:900;color:{{ scoreColor }};line-height:1;margin-top:4px;font-variant-numeric:tabular-nums;">{{ scoreN }}<span style="font-size:20px;color:#9aa0a3;">/5</span></div>
+          <div style="font-size:13px;font-weight:800;color:{{ scoreColor }};margin-top:6px;">{{ scoreVerdict }}</div>
+        </div>
+
+        <!-- 表现分析 -->
+        <div style="margin-top:18px;background:#fff;border:1px solid #ddd2bb;border-radius:14px;padding:14px;">
+          <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析</div>
+          <sc-for list="{{ reviewRows }}" as="r" hint-placeholder-count="5">
+            <div style="display:flex;gap:9px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #f0ece0;">
+              <div style="flex:none;width:20px;height:20px;border-radius:6px;background:{{ r.mkBg }};color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;">{{ r.mk }}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:11.5px;font-weight:800;color:#23282b;line-height:1.4;">{{ r.stem }}</div>
+                <div style="font-size:10px;font-weight:700;color:#8b9398;margin-top:2px;">{{ r.topic }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <!-- 薄弱点 -->
+        <div style="margin-top:14px;background:{{ weakBg }};border:1px solid {{ weakBd }};border-radius:14px;padding:14px;">
+          <div style="font-size:12px;font-weight:900;color:{{ weakTitleC }};margin-bottom:8px;">{{ weakTitle }}</div>
+          <sc-for list="{{ weakChips }}" as="w" hint-placeholder-count="2">
+            <div style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid #e0b4ad;border-radius:9px;padding:5px 10px;font-size:11px;font-weight:800;color:#b23b2e;margin:0 6px 6px 0;">{{ w.t }}</div>
+          </sc-for>
+          <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:11.5px;font-weight:700;color:#1f6f47;line-height:1.5;">全对——采分点抓得很稳，进考场按这几句写就行。</div>
+          </sc-if>
+        </div>
+
+        <!-- 继续补练 -->
+        <div style="margin-top:14px;">
+          <div style="font-size:11px;font-weight:900;color:#5c6469;margin-bottom:8px;letter-spacing:1px;">继续补练</div>
+          <div style="display:flex;flex-direction:column;gap:9px;">
+            <button onClick="{{ restart }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:14px;font-weight:900;cursor:pointer;background:#cf4436;color:#fff;box-shadow:0 4px 14px rgba(207,68,54,.28);">再抽 5 道</button>
+            <div style="display:flex;gap:9px;">
+              <a href="P40_A02.teach.up.dc.html" style="flex:1;border:1.5px solid #2f6db0;background:rgba(47,109,176,.06);border-radius:13px;padding:12px;font-size:12.5px;font-weight:800;color:#2f6db0;text-decoration:none;text-align:center;">重看讲解·上</a>
+              <a href="P40_A02.teach.down.dc.html" style="flex:1;border:1.5px solid #2f6db0;background:rgba(47,109,176,.06);border-radius:13px;padding:12px;font-size:12.5px;font-weight:800;color:#2f6db0;text-decoration:none;text-align:center;">重看讲解·下</a>
+            </div>
+            <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;background:rgba(207,68,54,.06);border-radius:13px;padding:12px;font-size:13px;font-weight:800;cursor:pointer;color:#cf4436;">就薄弱点问鲁班</button>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+
+    <!-- ASK-AI OVERLAY -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
+          <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
+        </div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问鲁班 · 就这道题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">老师按阅卷采分点给你讲透</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { phase:"cover", drawn:[], idx:0, picks:[], revealed:false, sel:-1, askOpen:false, askText:"", askLoading:false, askAnswer:"" };
+  KNOWLEDGE="A02 隐蔽工程验收+材料进场复验/见证取样。进场验收查凭证/数量/规格/外观+挂牌台账；不合格禁用或经审批降级、退场走申请-审批-见证退场-记录确认。复验触发：主要材料须检验、涉安全节能环保须复验经监理、关键试块须见证检验。钢筋复试屈服/抗拉/伸长/弯曲/重量偏差；成型钢筋免弯曲。水泥复试胶砂强度/氯离子/安定性/凝结时间；有氯离子要求首检外加剂。屋面保温复验导热系数/密度/燃烧性能；墙体保温砌块导热系数/抗压强度/吸水率；门窗节能严寒寒冷=传热系数+气密性。见证人由建设单位书面确认、见证记录由见证人本人填、试样现场内抽取、送检前通知见证人、检测机构核实见证人。隐蔽验收覆盖前完成并形成隐检记录；防雷连接必须隐蔽验收；装饰装修隐蔽项目龙骨/卫生间防水/吊顶暗龙骨；节能隐蔽基层/保温材料种类厚度/热桥/隔汽层。结构实体检验查混凝土强度/钢筋保护层/位置尺寸；混凝土强度同条件优先、不足回弹取芯、钻芯法须第三方。认证钢筋连续三批合格可扩大检验批抽样减半(原材料60t→120t、成型30t→60t)。预制构件梁板简支受弯必检结构性能、叠合板底板可不检、外墙板1000㎡一批淋水。不考A01层级验收程序与合格判定。";
+
+  // 图形构建器（领域对象）
+  fig(name){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:5,fg:"#cdd2d5",fs:10,fw:"800",jc:"center",pad:"0 4px",lab:""},o);
+    const cell=(x,top,lab,on)=>D({x,top,w:52,h:44,bg:on?"#2c8a5b":"#23282b",bd:on?"none":"1.5px solid #37402f",fg:on?"#fff":"#8b9398",fs:9,lab});
+    let els=[],h=54;
+    switch(name){
+      case "gate": h=56;
+        els=[D({x:0,top:6,w:150,h:22,bg:"#46627e",fg:"#fff",fs:11,lab:"材料安检门"}),
+          D({x:8,top:34,w:36,h:16,bg:"#2c8a5b",fg:"#fff",fs:8.5,lab:"凭证"}),D({x:48,top:34,w:36,h:16,bg:"#2c8a5b",fg:"#fff",fs:8.5,lab:"数量"}),
+          D({x:88,top:34,w:36,h:16,bg:"#2c8a5b",fg:"#fff",fs:8.5,lab:"规格"}),D({x:128,top:34,w:36,h:16,bg:"#2c8a5b",fg:"#fff",fs:8.5,lab:"外观"}),
+          D({x:180,top:16,w:150,h:24,bg:"#cf8a44",fg:"#fff",fs:10,lab:"挂牌 + 收料台账"})]; break;
+      case "trigger": h=76;
+        els=[D({x:0,top:0,w:130,h:20,bg:"#23282b",bd:"1.5px solid #2f6db0",fg:"#9fc7e0",fs:9.5,lab:"主要材料 · 检验"}),
+          D({x:0,top:28,w:210,h:20,bg:"#23282b",bd:"1.5px solid #cf8a44",fg:"#e0b98a",fs:9.5,lab:"涉安全节能环保 · 复验经监理"}),
+          D({x:0,top:56,w:150,h:20,bg:"#23282b",bd:"1.5px solid #2c8a5b",fg:"#7fbf95",fs:9.5,lab:"关键试块 · 见证检验"})]; break;
+      case "steel5": h=60;
+        ["屈服","抗拉","伸长","弯曲","重量"].forEach((n,i)=>els.push(cell(i*54,8,n,true)));
+        els.push(D({x:0,top:0,w:120,h:10,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"普通钢筋 5 项"})); break;
+      case "steelShaped": h=60;
+        ["屈服","抗拉","伸长","弯曲","重量"].forEach((n,i)=>{ const off=(i===3); els.push(off?D({x:i*54,top:8,w:52,h:44,bg:"#23282b",bd:"1.5px dashed #b06a5f",r:5,fg:"#e0a89f",fs:8.5,lab:"弯曲免"}):cell(i*54,8,n,true)); });
+        els.push(D({x:0,top:0,w:150,h:10,fg:"#e0b98a",fs:9,jc:"flex-start",lab:"成型钢筋 · 弯曲免检"})); break;
+      case "cement4": h=52;
+        ["胶砂强度","氯离子","安定性","凝结时间"].forEach((n,i)=>els.push(D({x:i*66,top:8,w:62,h:40,bg:"#2c8a5b",fg:"#fff",fs:9,lab:n}))); break;
+      case "chlor": h=52;
+        els=[D({x:0,top:14,w:64,h:24,bg:"#23282b",bd:"1.5px solid #37402f",fg:"#8b9398",fs:10,lab:"碎石"}),
+          D({x:72,top:14,w:64,h:24,bg:"#23282b",bd:"1.5px solid #37402f",fg:"#8b9398",fs:10,lab:"河砂"}),
+          D({x:144,top:14,w:78,h:24,bg:"#cf4436",fg:"#fff",fs:10,lab:"外加剂 ?"}),
+          D({x:162,top:0,w:44,h:10,fg:"#cf8a44",fs:8.5,jc:"flex-start",lab:"首检"})]; break;
+      case "insulRoof": h=52;
+        els=[D({x:0,top:2,w:110,h:14,fg:"#7fbf95",fs:9.5,jc:"flex-start",lab:"屋面保温材料"}),
+          D({x:0,top:22,w:72,h:24,bg:"#2c8a5b",fg:"#fff",fs:9,lab:"导热系数"}),
+          D({x:78,top:22,w:56,h:24,bg:"#2c8a5b",fg:"#fff",fs:9,lab:"密度"}),
+          D({x:140,top:22,w:72,h:24,bg:"#2c8a5b",fg:"#fff",fs:9,lab:"燃烧性能"})]; break;
+      case "insulBlock": h=52;
+        els=[D({x:0,top:2,w:110,h:14,fg:"#9fc7e0",fs:9.5,jc:"flex-start",lab:"墙体保温砌块"}),
+          D({x:0,top:22,w:72,h:24,bg:"#2f6db0",fg:"#fff",fs:9,lab:"导热系数"}),
+          D({x:78,top:22,w:64,h:24,bg:"#2f6db0",fg:"#fff",fs:9,lab:"抗压强度"}),
+          D({x:148,top:22,w:64,h:24,bg:"#2f6db0",fg:"#fff",fs:9,lab:"吸水率"})]; break;
+      case "window": h=58;
+        els=[D({x:0,top:0,w:150,h:22,bg:"#2f6db0",fg:"#fff",fs:9.5,lab:"严寒·寒冷区"}),
+          D({x:0,top:26,w:100,h:22,bg:"#23282b",bd:"1.5px solid #2f6db0",fg:"#9fc7e0",fs:9.5,lab:"传热系数"}),
+          D({x:106,top:26,w:100,h:22,bg:"#23282b",bd:"1.5px solid #2f6db0",fg:"#9fc7e0",fs:9.5,lab:"气密性"})]; break;
+      case "sealConfirm": h=54;
+        els=[D({x:0,top:8,w:70,h:36,bg:"#23282b",bd:"1.5px solid #2c8a5b",fg:"#7fbf95",fs:9.5,lab:"建设单位"}),
+          D({x:78,top:20,w:30,h:12,fg:"#cf8a44",fs:14,lab:"→"}),
+          D({x:112,top:8,w:70,h:36,bg:"#cf8a44",fg:"#fff",fs:9.5,lab:"确认见证人"}),
+          D({x:190,top:8,w:48,h:36,bg:"#23282b",bd:"1.5px dashed #b06a5f",fg:"#e0a89f",fs:8.5,lab:"监理?"})]; break;
+      case "sealRecord": h=54;
+        els=[D({x:0,top:8,w:70,h:36,bg:"#23282b",bd:"1.5px solid #cf8a44",fg:"#e0b98a",fs:9.5,lab:"见证人"}),
+          D({x:78,top:20,w:30,h:12,fg:"#cf8a44",fs:14,lab:"→"}),
+          D({x:112,top:8,w:78,h:36,bg:"#2c8a5b",fg:"#fff",fs:9.5,lab:"填见证记录"}),
+          D({x:196,top:8,w:44,h:36,bg:"#23282b",bd:"1.5px dashed #b06a5f",fg:"#e0a89f",fs:8.5,lab:"试验员?"})]; break;
+      case "sealRule": h=56;
+        els=[D({x:0,top:2,w:236,h:14,fg:"#7fbf95",fs:9.5,jc:"flex-start",lab:"① 试样现场内抽取"}),
+          D({x:0,top:20,w:236,h:14,fg:"#e0b98a",fs:9.5,jc:"flex-start",lab:"② 送检前通知见证人"}),
+          D({x:0,top:38,w:236,h:14,fg:"#9fc7e0",fs:9.5,jc:"flex-start",lab:"③ 检测机构核实见证人"})]; break;
+      case "shutter": h=54;
+        els=[D({x:0,top:6,w:112,h:30,bg:"transparent",bd:"1.5px solid #2c8a5b",fg:"#7fbf95",fs:9,lab:"覆盖前·可见✓"}),
+          D({x:126,top:6,w:112,h:30,bg:"transparent",bd:"1.5px dashed #b06a5f",fg:"#e0a89f",fs:9,lab:"覆盖后·补验✕"}),
+          D({x:0,top:40,w:236,h:12,fg:"#a8997a",fs:9,jc:"flex-start",lab:"隐检记录只在覆盖前那一下成立"})]; break;
+      case "lightning": h=56;
+        els=[D({x:0,top:8,w:60,h:4,bg:"#46627e",r:2,lab:""}),
+          D({x:0,top:12,w:4,h:34,bg:"#46627e",r:0,lab:""}),
+          D({x:44,top:20,w:16,h:16,bg:"transparent",bd:"2.5px solid #cf4436",r:20,lab:""}),
+          D({x:34,top:0,w:60,h:12,fg:"#cf4436",fs:9,jc:"flex-start",lab:"连接点"}),
+          D({x:120,top:16,w:120,h:24,bg:"#2c8a5b",fg:"#fff",fs:10,lab:"必须隐蔽验收"})]; break;
+      case "wall4": h=92;
+        els=[D({x:0,top:0,w:64,h:88,bg:"#8a7a5c",fg:"#fff",fs:8.5,lab:"墙体剖面"}),
+          D({x:74,top:0,w:150,h:18,bg:"#23282b",bd:"1px solid #cf8a44",fg:"#e0b98a",fs:9,jc:"flex-start",pad:"0 8px",lab:"① 基层处理"}),
+          D({x:74,top:23,w:170,h:18,bg:"#23282b",bd:"1px solid #2c8a5b",fg:"#7fbf95",fs:9,jc:"flex-start",pad:"0 8px",lab:"② 保温材料种类厚度"}),
+          D({x:74,top:46,w:150,h:18,bg:"#23282b",bd:"1px solid #cf4436",fg:"#e0a89f",fs:9,jc:"flex-start",pad:"0 8px",lab:"③ 热桥部位处理"}),
+          D({x:74,top:69,w:120,h:18,bg:"#23282b",bd:"1px solid #2f6db0",fg:"#9fc7e0",fs:9,jc:"flex-start",pad:"0 8px",lab:"④ 隔汽层"})]; break;
+      case "decor": h=76;
+        [["龙骨隔墙",0,0],["卫生间防水",120,0],["吊顶暗龙骨",0,26],["石材钢骨架焊接",120,26],["饰面基层",0,52],["隔墙岩棉",120,52]].forEach(p=>els.push(D({x:p[1],top:p[2],w:112,h:20,bg:"#294a37",bd:"1px solid #3f6b4f",fg:"#bfe6cf",fs:9,lab:p[0]}))); break;
+      case "entity3": h=80;
+        els=[D({x:0,top:0,w:236,h:18,bg:"#294a37",fg:"#bfe6cf",fs:9.5,jc:"flex-start",pad:"0 8px",lab:"① 同条件养护试件（优先）"}),
+          D({x:20,top:19,w:60,h:8,fg:"#b3a692",fs:8,jc:"flex-start",lab:"▽ 不足"}),
+          D({x:0,top:29,w:236,h:18,bg:"#4a3d1f",fg:"#e0c489",fs:9.5,jc:"flex-start",pad:"0 8px",lab:"② 回弹 + 取芯"}),
+          D({x:20,top:48,w:60,h:8,fg:"#b3a692",fs:8,jc:"flex-start",lab:"▽ 存疑"}),
+          D({x:0,top:58,w:236,h:18,bg:"#4a221d",fg:"#e8a99f",fs:9.5,jc:"flex-start",pad:"0 8px",lab:"③ 钻芯法 · 有资质第三方"})]; break;
+      case "entityScope": h=52;
+        els=[D({x:0,top:12,w:74,h:26,bg:"#2c8a5b",fg:"#fff",fs:9,lab:"混凝土强度"}),
+          D({x:80,top:12,w:80,h:26,bg:"#2c8a5b",fg:"#fff",fs:9,lab:"钢筋保护层"}),
+          D({x:166,top:12,w:74,h:26,bg:"#2c8a5b",fg:"#fff",fs:8.5,lab:"位置尺寸偏差"})]; break;
+      case "batch": h=72;
+        els=[D({x:0,top:20,w:70,h:34,bg:"#46627e",fg:"#fff",fs:11,lab:"60t"}),
+          D({x:0,top:56,w:70,h:12,fg:"#9fc7e0",fs:8.5,lab:"原检验批"}),
+          D({x:78,top:28,w:56,h:18,bg:"#cf4436",fg:"#fff",fs:9,lab:"扩大→"}),
+          D({x:78,top:8,w:150,h:14,fg:"#e0b98a",fs:8.5,jc:"flex-start",lab:"认证钢筋·连续三批合格"}),
+          D({x:140,top:20,w:100,h:34,bg:"#46627e",fg:"#fff",fs:11,lab:"120t"}),
+          D({x:140,top:56,w:100,h:12,fg:"#e0a89f",fs:8.5,lab:"抽样减半"})]; break;
+      case "precast": h=70;
+        els=[D({x:0,top:0,w:112,h:14,fg:"#7fbf95",fs:9,jc:"flex-start",lab:"梁板·简支受弯"}),
+          D({x:6,top:30,w:100,h:8,bg:"#8a7a5c",r:2,lab:""}),
+          D({x:0,top:44,w:112,h:16,bg:"#2c8a5b",fg:"#fff",fs:8.5,lab:"必做结构性能检验"}),
+          D({x:40,top:16,w:30,h:12,fg:"#cf4436",fs:12,lab:"↓"}),
+          D({x:126,top:0,w:112,h:14,fg:"#9fc7e0",fs:9,jc:"flex-start",lab:"叠合板·预制底板"}),
+          D({x:132,top:32,w:100,h:6,bg:"#7d94ab",r:2,lab:""}),
+          D({x:126,top:44,w:112,h:16,bg:"#2f6db0",fg:"#fff",fs:8.5,lab:"可不做结构性能检验"})]; break;
+      case "reject": h=56;
+        ["申请","审批","见证退场","记录确认"].forEach((n,i)=>els.push(D({x:i*60,top:16,w:54,h:24,bg:i===3?"#2c8a5b":"#23282b",bd:i===3?"none":"1.5px solid #cf8a44",fg:i===3?"#fff":"#e0b98a",fs:8.5,lab:n})));
+        els.push(D({x:0,top:0,w:200,h:12,fg:"#e0a89f",fs:9,jc:"flex-start",lab:"不合格材料退场闭环"})); break;
+      case "sheetSeal": case "sheetSteel": case "sheetEntity": case "sheetShutter": {
+        h=64; const tt={sheetSeal:"见证取样",sheetSteel:"钢筋复试",sheetEntity:"实体强度",sheetShutter:"隐蔽验收"}[name];
+        els=[D({x:0,top:0,w:238,h:16,bg:"#0d0f11",bd:"1px solid #2c3236",fg:"#8b9398",fs:9,jc:"flex-start",pad:"0 8px",lab:"答题纸 · "+tt+"（哪句能得分？）"}),
+          D({x:0,top:22,w:238,h:16,bg:"#181b1e",bd:"1px dashed #37402f",fg:"#6f787c",fs:9,jc:"flex-start",pad:"0 8px",lab:"________________________"}),
+          D({x:0,top:42,w:238,h:16,bg:"#181b1e",bd:"1px dashed #37402f",fg:"#6f787c",fs:9,jc:"flex-start",pad:"0 8px",lab:"________________________"})];
+        break; }
+      default: els=[D({x:0,top:16,w:238,h:20,fg:"#8b9398",fs:10,lab:name})];
+    }
+    return {els,h};
+  }
+
+  bank(){
+    const A=[
+      {ep:"进场关",topic:"材料进场验收",fig:"gate",stem:"一批钢筋运到现场，作为施工方进场验收，最先应做的是？",
+        opts:["核查质量证明文件，检查品种、规格、数量、外观，挂牌标识并登记收料台账","只要随车带出厂合格证，即可直接入库投入使用","先送第三方做全项复验，合格后再办进场手续","通知监理旁站见证后方可卸车"],c:0,
+        ana:[{s:"核查证明文件+查品种规格数量外观+挂牌标识+建收料台账"},
+          {why:"合格证看着挺齐全，容易觉得够了。",lose:"合格证只证出厂，进场仍要查外观数量并建台账，跳过验收程序要扣分。",fix:"先核查证明文件、品种规格数量外观，挂牌台账。"},
+          {why:"记得材料要复验。",lose:"复验是进场验收之后按材料触发的环节，且非全项复验，顺序错、范围扩大。",fix:"先完成进场查验，再按材料类型触发复验。"},
+          {why:"记得见证取样。",lose:"见证针对关键材料取样送检，不是卸车前置条件，张冠李戴。",fix:"进场先查验建台账，见证用于取样送检。"}]},
+      {ep:"进场关",topic:"复验触发原则",fig:"trigger",stem:"下列关于材料复验的说法，正确的是？",
+        opts:["涉及安全、节能、环保的主要材料须复验并经监理认可后方可使用","只要有出厂合格证的材料一律无需复验","所有进场材料都必须做见证取样复验","是否复验由施工单位自行决定"],c:0,
+        ana:[{s:"涉安全/节能/环保主要材料须复验并经监理认可"},
+          {why:"'有合格证=合格'的印象很顽固。",lose:"涉安全节能环保材料合格证不能免复验，写'无需复验'漏采分点。",fix:"涉安全节能环保须复验、经监理认可。"},
+          {why:"觉得宁可多做不会错。",lose:"并非全部材料都见证取样，扩大化不符规范。",fix:"主要材料检验、关键试块见证、涉安全节能环保复验，分层触发。"},
+          {why:"以为施工方能主导。",lose:"复验触发由规范和设计定，非自行决定。",fix:"按规范触发并经监理认可。"}]},
+      {ep:"进场关",topic:"钢筋复试项目",fig:"steel5",stem:"普通热轧钢筋进场复试，应检验的项目是？",
+        opts:["屈服强度、抗拉强度、伸长率、弯曲性能、重量偏差","仅屈服强度和抗拉强度两项","屈服强度、抗拉强度、伸长率、含碳量","抗拉强度、弯曲性能、氯离子含量"],c:0,
+        ana:[{s:"屈服强度/抗拉强度/伸长率/弯曲性能/重量偏差 五项"},
+          {why:"觉得强度最关键，两项就够。",lose:"漏伸长率、弯曲、重量偏差，列项不全扣分。",fix:"五项列全。"},
+          {why:"含碳量像个化学指标。",lose:"复试不查含碳量，把弯曲、重量偏差换成含碳量属错项。",fix:"五项=屈服/抗拉/伸长/弯曲/重量偏差。"},
+          {why:"氯离子记串了。",lose:"氯离子是水泥/外加剂项，不属钢筋复试。",fix:"钢筋五项不含氯离子。"}]},
+      {ep:"进场关",topic:"成型钢筋例外",fig:"steelShaped",stem:"成型钢筋进场复验时，可以不检验的项目是？",
+        opts:["弯曲性能（屈服、抗拉、伸长、重量偏差仍照检）","屈服强度","重量偏差","全部项目都要检验，无免检项"],c:0,
+        ana:[{s:"成型钢筋进场可不检验弯曲性能，其余四项照检"},
+          {why:"不确定谁能免，随手选一个。",lose:"屈服强度是核心力学指标，必检不能免。",fix:"免的是弯曲性能。"},
+          {why:"觉得重量偏差像次要项。",lose:"重量偏差仍需检验。",fix:"免弯曲性能，不是重量偏差。"},
+          {why:"保守起见想全检。",lose:"成型钢筋弯曲在加工时已定，进场免弯曲，全检=不懂例外。",fix:"成型钢筋免弯曲性能。"}]},
+      {ep:"进场关",topic:"水泥复试",fig:"cement4",stem:"水泥进场复试项目正确的一组是？",
+        opts:["胶砂强度、氯离子含量、安定性、凝结时间","胶砂强度、伸长率、密度、外观","抗压强度、弯曲性能、导热系数","安定性、凝结时间、含泥量、级配"],c:0,
+        ana:[{s:"胶砂强度/氯离子含量/安定性/凝结时间"},
+          {why:"伸长率、密度看着像性能。",lose:"伸长率是钢筋项，密度、外观非水泥复试项。",fix:"四项=胶砂强度/氯离子/安定性/凝结时间。"},
+          {why:"强度、导热像材料性能。",lose:"弯曲、导热系数分别是钢筋、保温材料项，全错位。",fix:"水泥四项。"},
+          {why:"含泥量、级配像检测项。",lose:"含泥量、级配是砂石骨料项，不是水泥。",fix:"水泥四项。"}]},
+      {ep:"进场关",topic:"氯离子首检",fig:"chlor",stem:"混凝土有氯离子含量要求时，应首先检验的材料是？",
+        opts:["外加剂","碎石","河砂","拌合用水"],c:0,
+        ana:[{s:"有氯离子含量要求时首先检验外加剂"},
+          {why:"骨料用量大，直觉先查它。",lose:"碎石不是氯盐主要来源，首检写碎石扣分。",fix:"首检外加剂。"},
+          {why:"海砂含盐的联想。",lose:"河砂非首要来源，题问首检应指外加剂。",fix:"首检外加剂。"},
+          {why:"觉得拌合水会带盐。",lose:"水非首检对象。",fix:"首检外加剂。"}]},
+      {ep:"进场关",topic:"保温材料复验",fig:"insulRoof",stem:"屋面保温材料进场必须复验的技术指标是？",
+        opts:["导热系数、密度、燃烧性能","抗拉强度、伸长率、屈服强度","导热系数、抗压强度、含水率","仅检查外观和厚度即可"],c:0,
+        ana:[{s:"导热系数/密度/燃烧性能"},
+          {why:"顺手套了钢筋的力学项。",lose:"抗拉、伸长、屈服是钢筋项，用于保温材料全错位。",fix:"屋面保温=导热系数/密度/燃烧性能。"},
+          {why:"抗压像砌块项，容易混。",lose:"抗压、吸水率是墙体保温砌块项，屋面材料查燃烧性能。",fix:"屋面=导热/密度/燃烧。"},
+          {why:"觉得看看外观厚度就行。",lose:"仅外观厚度不复验性能，节能要失分。",fix:"须复验导热/密度/燃烧。"}]},
+      {ep:"进场关",topic:"保温材料复验",fig:"insulBlock",stem:"墙体保温砌块进场复验内容是？",
+        opts:["导热系数、抗压强度、吸水率","导热系数、密度、燃烧性能","抗拉强度、伸长率、重量偏差","凝结时间、安定性、胶砂强度"],c:0,
+        ana:[{s:"导热系数/抗压强度/吸水率"},
+          {why:"和屋面保温混了。",lose:"密度、燃烧性能是屋面保温项，砌块查抗压、吸水率。",fix:"砌块=导热/抗压/吸水率。"},
+          {why:"套了钢筋项。",lose:"钢筋项错位。",fix:"砌块三项。"},
+          {why:"套了水泥项。",lose:"水泥项错位。",fix:"砌块三项。"}]},
+      {ep:"进场关",topic:"门窗节能复验",fig:"window",stem:"严寒和寒冷地区，建筑外门窗节能复验应包括？",
+        opts:["传热系数和气密性","太阳得热系数和可见光透射比","抗风压和水密性","传热系数和抗拉强度"],c:0,
+        ana:[{s:"严寒寒冷地区=传热系数+气密性"},
+          {why:"记成了夏热冬冷的加项。",lose:"太阳得热、可见光是夏热冬冷地区加项，严寒寒冷查传热系数+气密性。",fix:"严寒寒冷=传热系数+气密性。"},
+          {why:"抗风压、水密性像门窗性能。",lose:"这是门窗物理三性，非节能复验重点。",fix:"节能=传热系数+气密性。"},
+          {why:"传热系数对了一半。",lose:"抗拉强度不是门窗节能项。",fix:"传热系数+气密性。"}]},
+      {ep:"进场关",topic:"见证主体",fig:"sealConfirm",stem:"见证取样送检中，见证人应由谁书面确认？",
+        opts:["建设单位","监理单位","施工单位项目经理","检测机构"],c:0,
+        ana:[{s:"见证人由建设单位书面确认"},
+          {why:"监理管现场，直觉选它。",lose:"见证人由建设单位书面确认，写监理=主体配错，见证链断。",fix:"建设单位书面确认见证人。"},
+          {why:"施工方在取样。",lose:"施工方不能自定见证人。",fix:"建设单位确认。"},
+          {why:"检测机构最专业。",lose:"检测机构是核实见证人，不是确认见证人。",fix:"建设单位确认、机构核实。"}]},
+      {ep:"进场关",topic:"见证主体",fig:"sealRecord",stem:"见证取样时，见证记录应由谁填写？",
+        opts:["见证人本人","试验员","施工员","监理随意指定人员"],c:0,
+        ana:[{s:"见证记录由见证人本人填写"},
+          {why:"试验员在做试验，顺手选它。",lose:"见证记录须见证人本人填，试验员填=主体错扣分。",fix:"见证人本人填记录。"},
+          {why:"施工员在场。",lose:"施工员非见证主体。",fix:"见证人填。"},
+          {why:"觉得监理管见证。",lose:"不能随意指定，记录由见证人填。",fix:"见证人本人填。"}]},
+      {ep:"进场关",topic:"见证规则",fig:"sealRule",stem:"关于见证取样送检的规则，正确的是？",
+        opts:["试样现场内抽取，送检前通知见证人，检测机构核实见证人","试样可在现场外抽取后再送检","送检后再补通知见证人即可","施工单位可自行取样、自行送检"],c:0,
+        ana:[{s:"现场内抽取 + 送检前通知见证人 + 机构核实见证人"},
+          {why:"现场外抽取更方便。",lose:"现场外抽取无法保证代表性，违反见证规则。",fix:"现场内抽取。"},
+          {why:"对流程时序不敏感。",lose:"应送检前通知，送检后通知=时序错。",fix:"送检前通知见证人。"},
+          {why:"施工方图省事。",lose:"自取自送破坏见证第三方在场原则。",fix:"见证人在场取样、机构核实。"}]},
+      {ep:"覆盖关",topic:"隐蔽验收时机",fig:"shutter",stem:"关于隐蔽工程验收时机，正确的是？",
+        opts:["隐蔽部位在被后续工序覆盖前完成验收并形成隐检记录","可在覆盖后补做验收并补记录","只要最终实体检验合格，隐蔽验收可省略","由施工班组口头确认即可"],c:0,
+        ana:[{s:"覆盖前完成验收并形成隐检记录"},
+          {why:"以为记录能事后补。",lose:"覆盖后看不见，补验=没验，时机错扣分。",fix:"覆盖前完成验收并留记录。"},
+          {why:"觉得实体检验能兜底。",lose:"实体检验不能替代隐蔽验收，隐蔽部位覆盖后不可见。",fix:"覆盖前必须隐蔽验收。"},
+          {why:"现场想省事。",lose:"须形成书面隐检记录，口头不算。",fix:"覆盖前验收+隐检记录。"}]},
+      {ep:"覆盖关",topic:"防雷隐蔽",fig:"lightning",stem:"关于建筑防雷构造连接，正确的说法是？",
+        opts:["防雷构造连接必须进行隐蔽工程验收","防雷连接不必进行隐蔽工程验收","防雷连接可在覆盖后抽查","防雷连接只需电气专业自检"],c:0,
+        ana:[{s:"防雷构造连接必须进行隐蔽工程验收"},
+          {why:"题面'不必'读着顺，容易上当。",lose:"防雷连接必须隐蔽验收，判'不必'直接错。",fix:"必须隐蔽验收。"},
+          {why:"觉得抽查也够。",lose:"覆盖后不可见，须覆盖前隐蔽验收。",fix:"覆盖前隐蔽验收。"},
+          {why:"以为专业自检可替代。",lose:"自检不能替代隐蔽工程验收程序。",fix:"必须隐蔽验收并留记录。"}]},
+      {ep:"覆盖关",topic:"节能隐蔽",fig:"wall4",stem:"墙体节能隐蔽验收应包括的项目是？",
+        opts:["基层及表面处理、保温材料种类与厚度、热桥部位处理、隔汽层","仅保温材料的种类和厚度","基层处理、抗压强度、燃烧性能、可见光透射比","保温层、防水层、装饰面层、地面找平"],c:0,
+        ana:[{s:"基层及表面处理/保温材料种类厚度/热桥部位处理/隔汽层"},
+          {why:"觉得保温材料是核心，一项概括。",lose:"只写保温材料漏基层、热桥、隔汽层，列项不全。",fix:"四项列全。"},
+          {why:"把复验性能指标搬了过来。",lose:"抗压、燃烧、可见光是复验性能指标，非隐蔽验收部位。",fix:"隐蔽验收部位=基层/保温/热桥/隔汽层。"},
+          {why:"层次名称听着像。",lose:"防水、装饰、地面找平不属节能隐蔽四项。",fix:"节能隐蔽四项。"}]},
+      {ep:"覆盖关",topic:"结构实体检验",fig:"entity3",stem:"结构实体混凝土强度检验，正确的处理顺序是？",
+        opts:["优先同条件养护试件，不足时回弹辅以取芯，仍存疑用钻芯法且须第三方","强度不足直接判定构件报废","一律先钻芯，不用同条件养护试件","由施工单位实验室钻芯出具最终结论"],c:0,
+        ana:[{s:"同条件优先 → 回弹取芯 → 钻芯法（有资质第三方）"},
+          {why:"觉得不足就等于报废。",lose:"应按顺序复核，直接报废跳步扣分。",fix:"同条件→回弹取芯→钻芯第三方。"},
+          {why:"以为钻芯最准先钻。",lose:"应优先同条件养护试件，直接钻芯顺序错且破坏结构。",fix:"先同条件养护试件。"},
+          {why:"觉得自家实验室能出结论。",lose:"钻芯须有资质第三方，施工方自检不作数。",fix:"钻芯法须第三方检测。"}]},
+      {ep:"覆盖关",topic:"结构实体检验",fig:"entityScope",stem:"结构实体检验的内容包括？",
+        opts:["混凝土强度、钢筋保护层厚度、结构位置与尺寸偏差","仅混凝土强度一项","材料进场复验项目","隐蔽工程验收记录审查"],c:0,
+        ana:[{s:"混凝土强度/钢筋保护层厚度/结构位置与尺寸偏差"},
+          {why:"觉得强度最重要，一项就够。",lose:"漏保护层和尺寸偏差，列项不全。",fix:"强度+保护层+位置尺寸。"},
+          {why:"和材料复验混了。",lose:"进场复验是材料层，实体检验是成型结构层。",fix:"实体检验三项。"},
+          {why:"记录审查像检查动作。",lose:"记录审查非实体检验实测内容。",fix:"实测强度/保护层/尺寸。"}]},
+      {ep:"覆盖关",topic:"检验批扩大",fig:"batch",stem:"经认证的钢筋连续三批检验合格，其检验批可如何调整？",
+        opts:["检验批扩大、抽样量减半（原材料60t扩大到120t）","检验批不变、抽样量翻倍","直接免检","检验批缩小到30t"],c:0,
+        ana:[{s:"检验批扩大、抽样减半（原材料60t→120t、成型30t→60t）"},
+          {why:"方向记反了。",lose:"应扩大批、减半抽样，'翻倍抽样'理解反了。",fix:"扩大批+抽样减半。"},
+          {why:"觉得三批合格=可信任。",lose:"免检违规，只能扩大批减半抽样。",fix:"扩大不等于免检。"},
+          {why:"以为缩小更严格。",lose:"缩小与'扩大'相反。",fix:"60t→120t 扩大。"}]},
+      {ep:"覆盖关",topic:"预制构件检验",fig:"precast",stem:"关于预制构件进场结构性能检验，正确的是？",
+        opts:["梁板类简支受弯构件必做结构性能检验，叠合板预制底板可不做","所有预制构件都必须做结构性能检验","所有预制构件都可不做结构性能检验","预制外墙板做结构性能检验代替淋水试验"],c:0,
+        ana:[{s:"梁板简支受弯必做、叠合板预制底板可不做"},
+          {why:"保守起见想全做。",lose:"叠合板底板受力不同可不做，一刀切全做不符规范。",fix:"梁板必做、叠合板底板可不做。"},
+          {why:"反向一刀切。",lose:"梁板受弯构件必须做。",fix:"梁板必做。"},
+          {why:"把外墙板混进来了。",lose:"外墙板做淋水试验查渗漏，非用结构性能检验代替。",fix:"外墙板1000㎡一批淋水。"}]},
+      {ep:"进场关",topic:"材料进场验收",fig:"reject",stem:"进场材料检验不合格时，正确的处理是？",
+        opts:["禁用或经审批降级使用；退场须申请→审批→见证退场→记录确认","直接拉走退场即可，无需记录","施工方可自行降级使用","堆放现场待后续再定"],c:0,
+        ana:[{s:"禁用或经审批降级；退场走申请-审批-见证退场-记录确认"},
+          {why:"觉得退走就完事。",lose:"退场须走见证退场并记录确认，一退了之漏闭环。",fix:"申请-审批-见证退场-记录确认。"},
+          {why:"想省料降级用。",lose:"降级须经审批，擅自降级不妥。",fix:"经审批降级或见证退场。"},
+          {why:"先放着再说。",lose:"不合格材料滞留现场易误用，须明确处置。",fix:"禁用/审批降级/见证退场。"}]}
+    ];
+    const Dg=[
+      {ep:"采分句",topic:"见证取样·采分句",fig:"sheetSeal",stem:"案例问'指出见证取样做法不妥并改正'。下列哪句是可直接得分的完整采分句？",
+        opts:["见证人由建设单位书面确认，见证记录由见证人本人填写，试样现场内抽取、送检前通知见证人","见证取样要按规范认真做好","见证人签字确认就行","由监理确认见证人、由试验员填写见证记录"],c:0,
+        ana:[{s:"建设单位确认见证人 + 见证人填记录 + 现场内抽取 + 送检前通知"},
+          {why:"'按规范做好'听着稳妥。",lose:"口号化表达无具体采分点，阅卷不给分。",fix:"写明主体+抽样+时序。"},
+          {why:"觉得点到签字即可。",lose:"未点明主体和时序，采分点缺失。",fix:"建设单位确认+见证人填+现场内抽取送检前通知。"},
+          {why:"像一套完整流程。",lose:"主体全配错——监理确认、试验员填，见证链断，得0分。",fix:"建设单位确认、见证人本人填。"}]},
+      {ep:"答案诊断",topic:"钢筋复试·诊断",fig:"sheetSteel",stem:"学生把钢筋复试写成'屈服强度、抗拉强度'。诊断问题并给出补句？",
+        opts:["漏了伸长率、弯曲性能、重量偏差三项，应补齐为五项","完全正确，无需补充","多写了两项，应删掉抗拉强度","应改成检验氯离子含量"],c:0,
+        ana:[{s:"补伸长率、弯曲性能、重量偏差，凑齐五项"},
+          {why:"觉得强度写对就行。",lose:"只写两项列项不全，漏三项失分。",fix:"补伸长率/弯曲/重量偏差。"},
+          {why:"以为写多了。",lose:"抗拉强度是必检项，不能删。",fix:"五项列全。"},
+          {why:"串了水泥项。",lose:"氯离子非钢筋项，越改越错。",fix:"钢筋五项。"}]},
+      {ep:"采分句",topic:"实体强度·采分句",fig:"sheetEntity",stem:"案例问'结构实体混凝土强度存疑如何处理'。可直接得分的采分句是？",
+        opts:["优先用同条件养护试件评定，不足时回弹辅以取芯，仍存疑用钻芯法并由有资质第三方检测","强度不够就返工重做","让项目部实验室复测确认","直接判合格继续施工"],c:0,
+        ana:[{s:"同条件优先 → 回弹取芯 → 有资质第三方钻芯"},
+          {why:"觉得不够就返工。",lose:"未走复核顺序直接返工，漏采分点。",fix:"同条件→回弹取芯→第三方钻芯。"},
+          {why:"自家实验室方便。",lose:"项目部实验室无第三方资质，钻芯须第三方。",fix:"第三方钻芯。"},
+          {why:"想蒙混过关。",lose:"存疑判合格违规。",fix:"按顺序复核，第三方钻芯。"}]},
+      {ep:"答案诊断",topic:"隐蔽验收·诊断",fig:"sheetShutter",stem:"学生写'隐蔽工程覆盖后补做验收记录'。诊断并改正？",
+        opts:["时机错误，隐蔽验收须在覆盖前完成并形成隐检记录","完全正确","应改成由施工班组口头确认","应改成实体检验合格即可免隐蔽验收"],c:0,
+        ana:[{s:"覆盖前完成验收 + 形成隐检记录"},
+          {why:"觉得有记录就行。",lose:"覆盖后补=没验，时机错扣分。",fix:"覆盖前验收留记录。"},
+          {why:"现场想省事。",lose:"口头不算，须书面隐检记录。",fix:"覆盖前+书面记录。"},
+          {why:"以为实体检验兜底。",lose:"实体检验不能替代隐蔽验收。",fix:"覆盖前隐蔽验收。"}]}
+    ];
+    return {A,Dg};
+  }
+
+  shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+  start(){ const {A,Dg}=this.bank(); const mcq=this.shuffle(A).slice(0,4); const dg=this.shuffle(Dg).slice(0,1); const drawn=mcq.concat(dg);
+    drawn.forEach(q=>{ let ord=this.shuffle([0,1,2,3]); if(ord[0]===q.c){ const j=1+Math.floor(Math.random()*3); [ord[0],ord[j]]=[ord[j],ord[0]]; } q._order=ord; });
+    this.setState({phase:"quiz",drawn,idx:0,picks:[],revealed:false,sel:-1,askAnswer:"",askText:""}); this.scrollTop(); }
+  restart(){ this.start(); }
+  scrollRef(el){ if(el)this._scroll=el; }
+  scrollTop(){ try{ if(this._scroll)this._scroll.scrollTop=0; }catch(e){} }
+  pick(i){ if(this.state.revealed)return; this.setState({sel:i}); }
+  submit(){ if(this.state.sel<0||this.state.revealed)return; const picks=this.state.picks.slice(); picks[this.state.idx]=this.state.sel; this.setState({revealed:true,picks}); }
+  next(){ const ni=this.state.idx+1; if(ni>=this.state.drawn.length){ this.setState({phase:"result"}); this.scrollTop(); }
+    else { this.setState({idx:ni,revealed:false,sel:-1}); this.scrollTop(); } }
+  openAsk(){ this.setState({askOpen:true}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70) this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""});
+    const cur=this.state.drawn[this.state.idx];
+    const ctx=cur?("当前题：“"+cur.stem+"” 正确答案：“"+cur.opts[cur.c]+"”。"):"";
+    const prompt='你是“鲁班智考”一级建造师案例课老师龙安欢。\n知识口径：'+this.KNOWLEDGE+'\n'+ctx+'\n学生追问：“'+q+'”\n要求：东北话口语、亲切、简短(150字内)，面向阅卷采分点，先给结论再点依据；只答本考点范围。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。放进鲁班 App / 接了后端就能直接问。\n你的问题先记下：“"+q+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+
+  renderVals(){
+    const S=this.state, phase=S.phase;
+    const isCover=phase==="cover", inQuiz=phase==="quiz", isResult=phase==="result";
+    const cur=inQuiz?S.drawn[S.idx]:null;
+    const TAG=["A","B","C","D"];
+
+    let figEls=[],figH=40,figLabel="",optCards=[],qStem="",qTopic="",qBadge="",qBadgeBg="#2f6db0",verdict={};
+    if(cur){
+      const f=this.fig(cur.fig); figEls=f.els; figH=f.h; figLabel=cur.topic;
+      qStem=cur.stem; qTopic=cur.topic; qBadge=cur.ep; qBadgeBg=(cur.ep==="覆盖关")?"#cf8a44":(cur.ep==="采分句"||cur.ep==="答案诊断")?"#2c8a5b":"#2f6db0";
+      const order=cur._order||[0,1,2,3];
+      optCards=order.map((actual,pos)=>{
+        const label=cur.opts[actual]; const rev=S.revealed, isC=actual===cur.c, isSel=actual===S.sel, a=cur.ana[actual]||{};
+        let bd="#2c3236",bg="#1f2427",fg="#e7e4da",tagBg="#2c3236",tagFg="#cdd2d5",tag=TAG[pos];
+        if(!rev){ if(isSel){bd="#cf4436";bg="#241a18";tagBg="#cf4436";tagFg="#fff";} }
+        else { if(isC){bd="#2c8a5b";bg="#16241d";tagBg="#2c8a5b";tagFg="#fff";tag="✓";}
+          else if(isSel){bd="#cf4436";bg="#241416";tagBg="#cf4436";tagFg="#fff";tag="✕";fg="#c8a9a4";}
+          else {bd="#23282b";bg="#181b1e";fg="#7f8a8f";} }
+        return {label,tag,tagBg,tagFg,bd,bg,fg,onClick:()=>this.pick(actual),cursor:rev?"default":"pointer",
+          showAna:rev,ok:rev&&isC,bad:rev&&!isC,note:a.s||"",why:a.why||"",lose:a.lose||"",fix:a.fix||"",anaBd:isC?"#2c5a44":"#4a3128"};
+      });
+      const correct=S.picks[S.idx]===cur.c;
+      verdict={bg:correct?"#16241d":"#241416",mk:correct?"✓":"✕",mkBg:correct?"#2c8a5b":"#cf4436",fg:correct?"#7fbf95":"#e0a89f",
+        text:correct?"答对了——这句采分动作记牢，进考场照写。":"答错了——看下面正确采分句和三段解析，重点看'正确补'那行。"};
+    }
+
+    // progress
+    const N=inQuiz?S.drawn.length:5;
+    const progDots=[]; for(let i=0;i<N;i++){ progDots.push({bg:i<S.idx?"#2c8a5b":(i===S.idx?"#cf4436":"#2c3236")}); }
+    const progLabel=(S.idx+1)+"/"+N;
+
+    // result
+    let scoreN=0,reviewRows=[],weakChips=[],scoreVerdict="",scoreColor="#2c8a5b",weakTitle="薄弱点",weakBg="#fdf2f0",weakBd="#e6c9c4",weakTitleC="#b23b2e",noWeak=false;
+    if(isResult){
+      const topics={};
+      S.drawn.forEach((q,i)=>{ const ok=S.picks[i]===q.c; if(ok)scoreN++;
+        reviewRows.push({mk:ok?"✓":"✕",mkBg:ok?"#2c8a5b":"#cf4436",stem:q.stem,topic:q.ep+" · "+q.topic});
+        if(!ok){ topics[q.topic]=(topics[q.topic]||0)+1; } });
+      const wk=Object.keys(topics); noWeak=wk.length===0;
+      weakChips=wk.map(t=>({t})); 
+      scoreColor=scoreN>=4?"#2c8a5b":scoreN>=3?"#cf8a44":"#cf4436";
+      scoreVerdict=scoreN===5?"满分——采分点抓得稳":scoreN>=4?"不错，个别采分点再抠一下":scoreN>=3?"及格线，薄弱点回讲解补":"薄弱较多，建议重看讲解再练";
+      if(noWeak){weakTitle="薄弱点 · 无";weakBg="#eef7f1";weakBd="#bfe0cd";weakTitleC="#1f6f47";}
+      else {weakTitle="薄弱点 · 建议回看这些采分点";}
+    }
+
+    const empty=!((S.askText||"").trim());
+    const askChips=[{t:"这题为啥选它？",onClick:()=>this.preset("这道题正确答案为什么是它，其它为什么错？")},{t:"考场怎么写才得分？",onClick:()=>this.preset("这个采分点在案例里应该怎么写才能得分？")},{t:"和相邻考点咋区分？",onClick:()=>this.preset("这个知识点容易和哪个混，怎么区分？")}];
+
+    return {
+      isCover,inQuiz,isResult,
+      progDots,progLabel,
+      figEls,figH,figLabel,optCards,qStem,qTopic,qBadge,qBadgeBg,
+      notRevealed:!S.revealed,revealed:S.revealed,
+      submitDisabled:S.sel<0,submitCursor:S.sel<0?"not-allowed":"pointer",submitBg:S.sel<0?"#23282b":"#2c8a5b",submitFg:S.sel<0?"#5c6469":"#fff",submitLabel:S.sel<0?"选一个答案":"提交作答",
+      verdictBg:verdict.bg,verdictMk:verdict.mk,verdictMkBg:verdict.mkBg,verdictFg:verdict.fg,verdictText:verdict.text,
+      nextLabel:(S.idx>=(S.drawn.length-1))?"看成绩 →":"下一题 →",
+      start:()=>this.start(),restart:()=>this.restart(),submit:()=>this.submit(),next:()=>this.next(),
+      pick:i=>this.pick(i),scrollRef:el=>this.scrollRef(el),
+      scoreN,scoreColor,scoreVerdict,reviewRows,weakChips,noWeak,weakTitle,weakBg,weakBd,weakTitleC,
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),askChips,
+      askOpen:S.askOpen,askText:S.askText,askLoading:S.askLoading,askAnswer:S.askAnswer,
+      hasAnswer:!!S.askAnswer,askIdle:!S.askLoading&&!S.askAnswer,
+      askDisabled:empty||S.askLoading,askCursor:(empty||S.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||S.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||S.askLoading)?"#7a6f5e":"#fff",askBtnLabel:S.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

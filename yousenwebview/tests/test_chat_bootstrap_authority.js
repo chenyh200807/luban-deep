@@ -128,6 +128,22 @@ function loadChatPage(overrides) {
       getToken: function () {
         return "token";
       },
+      getUserId: function () {
+        return "student-a";
+      },
+      readOwnerStorage: function (key) {
+        var envelope = storage[key + ":student-a"];
+        if (!envelope || envelope.ownerId !== "student-a") return null;
+        return envelope.value;
+      },
+      writeOwnerStorage: function (key, value) {
+        storage[key + ":student-a"] = { ownerId: "student-a", value: value };
+        return true;
+      },
+      removeOwnerStorage: function (key) {
+        delete storage[key + ":student-a"];
+        return true;
+      },
     },
     (overrides && overrides.auth) || {},
   );
@@ -513,8 +529,10 @@ function loadChatPage(overrides) {
     async function () {
       var loaded = loadChatPage({
         storage: {
-          current_session_id: "conv_return",
-          current_session_ts: Date.now(),
+          "deeptutor.chat.currentSession.v1:student-a": {
+            ownerId: "student-a",
+            value: { conversationId: "conv_return", savedAt: Date.now() },
+          },
         },
       });
 
@@ -540,8 +558,10 @@ function loadChatPage(overrides) {
     async function () {
       var loaded = loadChatPage({
         storage: {
-          current_session_id: "s_1780445194569",
-          current_session_ts: Date.now(),
+          "deeptutor.chat.currentSession.v1:student-a": {
+            ownerId: "student-a",
+            value: { conversationId: "s_1780445194569", savedAt: Date.now() },
+          },
         },
       });
 
@@ -757,12 +777,15 @@ function loadChatPage(overrides) {
       var never = createDeferred();
       var loaded = loadChatPage({
         storage: {
-          chat_pending_turn_v1: {
-            conversationId: "conv_pending",
-            baselineCount: 1,
-            query: "上一轮较慢的问题",
-            clientTurnId: "client_pending",
-            createdAt: Date.now(),
+          "chat_pending_turn_v1:student-a": {
+            ownerId: "student-a",
+            value: {
+              conversationId: "conv_pending",
+              baselineCount: 1,
+              query: "上一轮较慢的问题",
+              clientTurnId: "client_pending",
+              createdAt: Date.now(),
+            },
           },
         },
         api: {
@@ -810,13 +833,16 @@ function loadChatPage(overrides) {
       var loaded = loadChatPage({
         immediateTimers: true,
         storage: {
-          chat_pending_turn_v1: {
-            conversationId: "conv_pending_incomplete",
-            baselineCount: 0,
-            query: "上一轮较慢的问题",
-            clientTurnId: "client_pending_incomplete",
-            turnId: "turn_pending_incomplete",
-            createdAt: Date.now(),
+          "chat_pending_turn_v1:student-a": {
+            ownerId: "student-a",
+            value: {
+              conversationId: "conv_pending_incomplete",
+              baselineCount: 0,
+              query: "上一轮较慢的问题",
+              clientTurnId: "client_pending_incomplete",
+              turnId: "turn_pending_incomplete",
+              createdAt: Date.now(),
+            },
           },
         },
         api: {

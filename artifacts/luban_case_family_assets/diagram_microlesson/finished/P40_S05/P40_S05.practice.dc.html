@@ -60,7 +60,6 @@
 
       <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
 
-      <!-- OPTIONS -->
       <div style="padding:0 16px;">
         <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
           <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
@@ -75,7 +74,7 @@
                 <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
               </sc-if>
               <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
-                <div style="font-size:11.5px;line-height:1.6;color:#3a3f42;">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
                   <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
                   <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
                   <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
@@ -132,7 +131,7 @@
           </sc-for>
         </sc-if>
         <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 架构、末端、顺序、参数、采分句都拿到了，保持手感。</div>
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
         </sc-if>
       </div>
       <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
@@ -141,9 +140,9 @@
       </div>
       <a href="P40_S05.teach.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
         <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
-        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？回看动画精讲</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">架构 · 参数 · 管理，三关重过</div></div>
       </a>
-      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍（重新抽题）</button>
     </div>
     </sc-if>
 
@@ -197,65 +196,185 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
-  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"" };
-  examTitle="临时用电三级配电两级保护";
-  KNOWLEDGE="临时用电三级配电两级保护(S05)。三大系统:三级配电系统+TN-S接零保护系统+二级剩余电流动作保护系统,缺一不可(只写三级配电=E01/E02)。三级配电装置:总配电箱→分配电箱→开关箱,设备逐级接入不得越级。末端:每台设备专用开关箱,不得一箱控制两台及以上;配电箱、开关箱电源进线端严禁插头插座活动连接(=E10/M10)。顺序:送电总→分→开,停电开→分→总(写反=E06)。参数:潮湿/隧道/人防≤36V,易触及带电体≤24V,金属容器/锅炉≤12V(=M08);电缆直接埋地≥0.7m;N线蓝色、PE线黄绿双色。管理:电工持证,50kW及以上编制临时用电组织设计,装饰装修阶段补编单项用电方案。真题锚:{2023第1题}/{2017第2题}/{2016第13题}/{2018第17题}。禁口号化表达(E04)。";
-  moreText="补两道：① 现场多台设备接入同一开关箱的纠错题（{2023第1题}）——练「每台设备专用开关箱 + 进线端禁插头插座活动连接」两句一起写；② 停送电顺序题（{2017第2题}）——练「送电总→分→开、停电开→分→总」互逆链，方向别写反。";
-  // ── 题库：供电树 → 一机一闸 → 顺序 → 参数 → 采分句诊断（5 题，来自 pack practice_blueprint）──
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="临时用电 · 三级配电两级保护";
+  KNOWLEDGE="临时用电三级配电两级保护。三大系统缺一不可:三级配电系统(总配电箱→分配电箱→开关箱)+TN-S接零保护系统+二级剩余电流(漏电)动作保护系统(总箱一级、末级开关箱一级)。停送电顺序:送电总→分→开;停电开→分→总,禁颠倒。一机一闸:每台设备专用开关箱,严禁2台及以上共用(含插座);进线端严禁插头插座做活动连接;动力开关箱与照明开关箱必分设。安全电压:潮湿/隧道/人防≤36V、易触及带电体≤24V、金属容器/锅炉内≤12V;手持灯具≤36V须双绕组隔离变压器、金属容器内严禁;湿度>75%/积水未用安全电压照明=重大隐患。电缆直接埋地≥0.7m;五芯电缆N线=蓝色、PE线=黄绿双色;配电箱金属箱门与箱体连接=单股铜线。管理:电工持证上岗、拆除由电工完成;装饰装修阶段补编单项施工用电方案;50kW及以上编用电组织设计;开关箱与配电箱间距≤30m、仓库堆料场严禁碘钨灯。采分主线:架构对不对→参数够不够→管理顺不顺。";
+  moreText="补两组：① 综合纠错案例（{2023第1题}共用开关箱+插头插座+装饰阶段），练「指不妥+违反哪条+正确做法带判据」三段式；② 参数记忆组（安全电压 36/24/12V、埋深 0.7m、N蓝 PE黄绿、单股铜线），练条件维数值不张冠李戴。";
   Q=[
-    { tag:"看供电树·架构", typeHint:"单选 · 选出最完整、能拿分的作答", figLabel:"图示：三级配电供电树", figCaption:"总配电箱 → 分配电箱 → 开关箱 → 用电设备 · 逐级接入", fig:"tree",
-      stem:"现场从分配电箱直接给用电设备供电，学生答案只写“应加强临时用电管理”。如果要求指出不妥并改正，第一句最稳应该怎么写？",
-      model:"不妥；临时用电应按总配电箱→分配电箱→开关箱→用电设备逐级配电，不能越级接设备。",
+    { tag:"三大系统·架构", typeHint:"单选 · 选最完整、能拿分的作答", figLabel:"题给：临时用电必须采用的系统", figCaption:"三块拼图 · 缺一不可", fig:"sys3",
+      stem:"施工现场临时用电必须采用哪几大系统？选出最完整、能得分的作答。",
+      model:"三级配电系统 + TN-S 接零保护系统 + 二级剩余电流（漏电）动作保护系统，三者缺一不可。",
       opts:[
-        { t:"不妥；临时用电应按总配电箱→分配电箱→开关箱→用电设备逐级配电，不能越级接设备。", ok:true, fix:"把现场接法改成三级配电拓扑：先指出越级不妥，再写逐级配电正确路径。", code:"" },
-        { t:"不妥；应加强安全管理，安排电工每天巡视。", ok:false, code:"E04", tempt:"安全题常见“加强管理”，听着稳妥。", lose:"有管理动作但没有改供电路径，扣分点在越级供电，口号化表达不得分。", fix:"改成总配电箱→分配电箱→开关箱→设备逐级配电。" },
-        { t:"应设置总配电箱、分配电箱、开关箱，三个箱名写全即可。", ok:false, code:"E02", tempt:"三个箱名背得熟，以为写全就够。", lose:"箱名是必要但不够：没指出越级供电这处不妥，也没写逐级接入的正确路径，采分点遗漏。", fix:"补「设备必须逐级接入、不得越级」并点出题干越级错法。" },
-        { t:"应先按36V、24V、12V安全电压分档，再决定如何配电。", ok:false, code:"E10", tempt:"记得安全电压数值，想先把参数摆出来。", lose:"安全电压是特殊场所照明参数，不是这道越级供电题的第一刀，规范适用错位。", fix:"先修配电拓扑（总→分→开→设备），参数题再谈 36/24/12V。" }
+        { t:"三级配电系统、TN-S 接零保护系统、二级剩余电流（漏电）动作保护系统，三者缺一不可。", ok:true, fix:"三块一块儿写全，正是阅卷分开给分的三个采分点。", code:"" },
+        { t:"采用三级配电系统即可，把总配电箱、分配电箱、开关箱设齐就满足临时用电要求。", ok:false, code:"E02", tempt:"三级配电最常被记住，容易以为写这一条就够。", lose:"漏了 TN-S 接零与二级漏电保护两大系统，系统不完整。", fix:"补 TN-S 接零保护系统 + 二级剩余电流动作保护系统。" },
+        { t:"采用两级配电系统加一级漏电保护，并利用大地作为保护零线导体接零。", ok:false, code:"E07", tempt:"记成了「两级／一级」，还把大地当零线。", lose:"应是三级配电、二级漏保，且严禁利用大地作零线导体。", fix:"三级配电 + TN-S 接零（PE 线独立）+ 二级漏保。" },
+        { t:"采用 TN-C 接零保护系统与三级配电系统，配一级漏电保护装置在总配电箱处。", ok:false, code:"E10", tempt:"知道要接零、要三级，顺手写成 TN-C。", lose:"应为 TN-S（PE 与 N 分开），且漏保是二级不是一级。", fix:"TN-S 接零 + 二级漏保（总箱 + 末级开关箱各一级）。" }
       ] },
-    { tag:"拆共箱错法·一机一闸", typeHint:"单选 · 选出案例题可给分的改正动作", figLabel:"图示：共用开关箱（待纠错）", figCaption:"电锯 + 砂轮机共用一箱 ✗ → 各自专用开关箱 ✓", fig:"shared",
-      stem:"电锯和砂轮机共用一个开关箱，开关箱进线端采用插头插座活动连接。下面哪句最像案例题可给分的改正动作？",
-      model:"不妥；每台设备应使用专用开关箱，不得一箱控制两台及以上设备，进线端严禁采用插头插座活动连接。",
+    { tag:"三级配电装置·架构", typeHint:"单选 · 选归类正确的作答", figLabel:"题给：三级配电的三级装置", figCaption:"总 → 分 → 开，逐级配电", fig:"levels",
+      stem:"三级配电系统由哪三级配电装置组成？选出正确的作答。",
+      model:"总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级。",
       opts:[
-        { t:"不妥；每台设备应使用专用开关箱，不得一箱控制两台及以上设备，进线端严禁采用插头插座活动连接。", ok:true, fix:"两个采分动作一起写：一机一闸专用开关箱 + 进线端禁插头插座活动连接。", code:"" },
-        { t:"可以共用，但应由专人看护开关箱，发生异常立即断电。", ok:false, code:"M10", tempt:"听起来安全，有人盯着总比没人强。", lose:"共用开关箱本身不符合一机一闸，规范禁令不能靠人盯来补，用常识替代规范。", fix:"每台设备使用专用开关箱，不得一箱控制两台及以上。" },
-        { t:"只要在共用开关箱上贴清楚设备名称，避免误操作即可。", ok:false, code:"E10", tempt:"贴标签好操作，像是管理到位了。", lose:"标签只帮识别，不能实现故障设备就近独立断电，仍然是一箱控两机，规范适用错误。", fix:"改成设备和开关箱一一对应的专用开关箱。" },
-        { t:"只需取消插头插座活动连接，共用开关箱本身可以保留。", ok:false, code:"E02", tempt:"进线端禁插接记住了，以为修完就齐。", lose:"题干还有共用开关箱这处不妥，只修连接方式漏掉一机一闸，采分点遗漏。", fix:"补「每台设备专用开关箱，不得一箱控两台及以上」。" }
+        { t:"总配电箱、分配电箱、开关箱三级配电装置，逐级配电、不得越级直接接用电设备。", ok:true, fix:"三级装置顺序写全并点明「不得越级」，归类到位。", code:"" },
+        { t:"总配电箱、开关箱两级配电装置，中间的分配电箱可省略以简化线路。", ok:false, code:"E02", tempt:"觉得两级也能供上电，省一级更省事。", lose:"少了分配电箱这一级，违反三级配电要求。", fix:"必须总配电箱、分配电箱、开关箱三级齐全。" },
+        { t:"总配电箱、分配电箱、开关箱、末端插座箱四级配电，层层加箱更安全。", ok:false, code:"E07", tempt:"以为加得越多越安全。", lose:"标准是三级配电，多加一级并非规范要求、概念混淆。", fix:"三级配电即总、分、开三级，不是四级。" },
+        { t:"配电室、配电柜、配电盘三级，按室内配电层级组织临时用电。", ok:false, code:"E10", tempt:"把固定式室内配电层级套到临时用电上。", lose:"临时用电三级是总配电箱、分配电箱、开关箱，规范套错。", fix:"总配电箱、分配电箱、开关箱三级配电装置。" }
       ] },
-    { tag:"判顺序·停送电", typeHint:"单选 · 诊断学生作答并补正", figLabel:"图示：停送电互逆链", figCaption:"送电 总→分→开（正向） · 停电 开→分→总（反向）", fig:"seq",
-      stem:"学生答：“送电时先合开关箱，停电时先断总配电箱。”这句话应该怎么诊断并补正？",
-      model:"判为顺序错误；送电应总配电箱→分配电箱→开关箱，停电应开关箱→分配电箱→总配电箱。",
+    { tag:"一机一闸·管理", typeHint:"单选 · 指出不妥并选正确做法", figLabel:"题给：瓷砖切割机、砂浆搅拌机", figCaption:"两台设备 · 共用一个开关箱（题给做法）", fig:"onebox",
+      stem:"现场瓷砖切割机与砂浆搅拌机共用一个开关箱。此做法不妥，选出正确做法。",
+      model:"每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。",
       opts:[
-        { t:"判为顺序错误；送电应总配电箱→分配电箱→开关箱，停电应开关箱→分配电箱→总配电箱。", ok:true, fix:"正向送电和反向停电都写全：送总→分→开，停开→分→总。", code:"" },
-        { t:"送电和停电都按总配电箱→分配电箱→开关箱，便于统一管理。", ok:false, code:"E06", tempt:"三级箱顺序看似固定，统一方向好记。", lose:"停电是反向链，写成同方向就是程序顺序错误。", fix:"停电从末端开始：开关箱→分配电箱→总配电箱。" },
-        { t:"顺序可由现场电工根据方便程度决定，只要最终断电即可。", ok:false, code:"M10", tempt:"觉得现场灵活处理更实际。", lose:"停送电是封闭有序链，不能交给现场随意决定，用经验方便替代程序顺序。", fix:"按规定顺序写：送总→分→开，停开→分→总。" },
-        { t:"只需写停电从开关箱开始，送电顺序一般不作为采分点。", ok:false, code:"E02", tempt:"记得停电考过，以为送电不用写。", lose:"送电总→分→开同样是教材给出的顺序，漏写就漏分，采分点遗漏。", fix:"送电、停电两个方向一并写全。" }
+        { t:"每台用电设备必须配备专用开关箱，严禁 2 台及以上用电设备（含插座）共用一个开关箱。", ok:true, fix:"专用开关箱 + 严禁 2 台及以上 + 含插座，判据带全才拿满分。", code:"" },
+        { t:"两台设备分开时段错峰使用同一个开关箱即可，不同时开就不违反一机一闸。", ok:false, code:"M10", tempt:"觉得「不同时用」就等于不共用。", lose:"一机一闸是硬性配置要求，与是否同时使用无关。", fix:"每台设备专用开关箱，严禁 2 台及以上共用（含插座）。" },
+        { t:"给两台设备各装一个漏电保护器后共用一个开关箱，加装保护即可合规。", ok:false, code:"E10", tempt:"以为加了漏保就能共用一箱。", lose:"漏保解决不了共用问题，仍违反一机一闸。", fix:"每台设备必须专用开关箱，不得共用（含插座）。" },
+        { t:"把两台设备接到同一开关箱不同回路上，一箱两路分开控制就算专用。", ok:false, code:"E03", tempt:"以为分回路就等于专用。", lose:"仍是一个开关箱控多台，漏了「专用开关箱」关键词。", fix:"每台设备各自专用开关箱，严禁 2 台及以上共用。" }
       ] },
-    { tag:"补参数·电压与电缆", typeHint:"单选 · 选出参数落到对象的补法", figLabel:"图示：安全电压分档 + 电缆埋地剖面", figCaption:"潮湿≤36V · 易触及≤24V · 金属容器≤12V · 埋地≥0.7m", fig:"volt",
-      stem:"金属容器内用 36V 照明灯；现场电缆浅埋，学生答案写“应采用安全电压并保护电缆”。哪句补法更像完整采分动作？",
-      model:"金属容器内照明电压不应大于12V；电缆直接埋地敷设深度不应小于0.7m，并按N线蓝色、PE线黄绿双色识别。",
+    { tag:"进线端·管理", typeHint:"单选 · 指出不妥并选正确做法", figLabel:"题给：开关箱与配电箱连接方式", figCaption:"用插头插座做活动连接（题给做法）", fig:"inlet",
+      stem:"某开关箱使用插头插座与配电箱进线端连接。此做法不妥，选出正确做法。",
+      model:"配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应固定可靠连接。",
       opts:[
-        { t:"金属容器内照明电压不应大于12V；电缆直接埋地敷设深度不应小于0.7m，并按N线蓝色、PE线黄绿双色识别。", ok:true, fix:"把场所、电压、剖面和标识色都落到参数：金属容器12V、埋地0.7m、N蓝PE黄绿。", code:"" },
-        { t:"应采用安全电压，并对电缆采取可靠保护措施。", ok:false, code:"E04", tempt:"方向没错，写起来最顺手。", lose:"太虚：没有场所分档数值，也没有 0.7m 埋深，口号化表达拿不到数值分。", fix:"补「金属容器≤12V」和「直接埋地≥0.7m」两个数。" },
-        { t:"特殊场所照明统一不超过36V，电缆埋地深度按现场情况确定。", ok:false, code:"M08", tempt:"36V 最常见，想统一记一个数。", lose:"金属容器不是 36V 档，应降到 12V；埋深也有 0.7m 定值，规范数字混淆。", fix:"分档写：潮湿36V、易触及24V、金属容器12V；埋地≥0.7m。" },
-        { t:"重点写五芯电缆N线为蓝色、PE线为黄绿双色，其他参数可略。", ok:false, code:"E02", tempt:"标识色记得牢，想突出细节。", lose:"标识色是采分点之一，但题干给了金属容器和浅埋电缆，只写颜色漏两处，采分点遗漏。", fix:"补「金属容器≤12V」和「埋地≥0.7m」再带标识色。" }
+        { t:"配电箱、开关箱电源进线端严禁采用插头插座做活动连接，应采用固定可靠的连接方式。", ok:true, fix:"点出「进线端」「严禁插头插座活动连接」两个关键词，判据齐。", code:"" },
+        { t:"选用防水防尘的工业插头插座连接即可，防护等级够高就能用于进线端。", ok:false, code:"E10", tempt:"以为换成高防护插头就合规。", lose:"进线端本身就严禁插头插座活动连接，与防护等级无关。", fix:"进线端严禁插头插座活动连接，须固定连接。" },
+        { t:"只要把插头插座连接处用绝缘胶布缠牢固定，就等于满足可靠连接。", ok:false, code:"M10", tempt:"用「缠牢」的常识替代规范。", lose:"缠胶布仍是活动连接，未达固定可靠连接要求。", fix:"进线端严禁插头插座活动连接，应固定连接。" },
+        { t:"进线端可用插头插座、出线端固定连接即可，进出各一种方式最灵活。", ok:false, code:"E07", tempt:"把进线端和出线端要求记反。", lose:"恰恰是进线端严禁插头插座活动连接。", fix:"电源进线端严禁插头插座活动连接。" }
       ] },
-    { tag:"写采分句·末题诊断", typeHint:"单选 · 诊断口号答案并补成采分句", figLabel:"图示：答题纸四行扫描", figCaption:"架构 · 末端 · 顺序参数 · 管理 · 四行写全", fig:"scan",
-      stem:"综合案例同时出现越级接电、共用开关箱、顺序写反和装饰阶段用电方案缺失，学生答：“现场临时用电管理不到位，应按规范整改，保证用电安全。”哪一项最能补成完整采分句？",
-      model:"答案应补成：采用三级配电、TN-S接零和二级漏保；总→分→开逐级配电；每台设备专用开关箱且进线端禁插接；送电总→分→开、停电开→分→总，并落实安全电压、电缆埋地、持证和用电方案要求。",
+    { tag:"动力照明分设·管理", typeHint:"单选 · 选做法正确的作答", figLabel:"题给：动力开关箱与照明开关箱", figCaption:"能不能合用一个开关箱？", fig:"powlight",
+      stem:"关于动力与照明配电的设置，选出正确的作答。",
+      model:"动力配电箱与照明配电箱宜分别设置；合并设置时应分路配电；动力开关箱与照明开关箱必须分设。",
       opts:[
-        { t:"答案应补成：采用三级配电、TN-S接零和二级漏保；总→分→开逐级配电；每台设备专用开关箱且进线端禁插接；送电总→分→开、停电开→分→总，并落实安全电压、电缆埋地、持证和用电方案要求。", ok:true, fix:"把架构、末端、顺序参数和管理闭环四行全部交付，题干每处错法都被扫进采分句。", code:"" },
-        { t:"答案只需补“项目部应建立用电管理制度，定期检查并落实责任人”。", ok:false, code:"E04", tempt:"管理制度听着更完整、更像总结。", lose:"这是原口号的升级版：仍然没有改越级接电、共用开关箱和顺序错误，口号化表达。", fix:"按架构、末端、顺序参数、管理四行补成可判分措施。" },
-        { t:"答案重点补“采用三级配电系统、TN-S系统和二级漏保”，其他可略。", ok:false, code:"E02", tempt:"三大系统是最出名的采分句。", lose:"架构命中，但综合案例还有末端错法和顺序参数，只写架构会 partial，采分点遗漏。", fix:"补一机一闸、禁插接、停送电顺序和参数管理行。" },
-        { t:"答案重点补36/24/12V、0.7m、N蓝PE黄绿这些数字，说明参数记得牢。", ok:false, code:"E02", tempt:"数字最像干货，写上显得专业。", lose:"参数命中，但没有三级配电、一机一闸和顺序链，题干错法没被诊断，采分点遗漏。", fix:"先写架构和末端改正句，再落参数数字。" }
+        { t:"动力配电箱与照明配电箱宜分设；合并时须分路配电；动力开关箱与照明开关箱必须分设。", ok:true, fix:"宜分设 + 合并须分路 + 开关箱必分设，层次写全。", code:"" },
+        { t:"动力和照明用一个开关箱统一控制最省线，只要总容量不超标就可以合用。", ok:false, code:"E10", tempt:"以为省线、不超容量就能合用。", lose:"动力开关箱与照明开关箱必须分设，不得合用。", fix:"动力开关箱与照明开关箱必须分设。" },
+        { t:"动力与照明配电箱必须共箱设置以便集中管理，分设反而增加箱体不利维护。", ok:false, code:"E07", tempt:"把「宜分设」记反成「必须共箱」。", lose:"配电箱宜分设，开关箱必须分设，方向记反。", fix:"配电箱宜分设、开关箱必分设。" },
+        { t:"照明可直接从动力开关箱引出一路使用，不必单独设照明开关箱。", ok:false, code:"E03", tempt:"觉得从动力箱分一路更方便。", lose:"漏了「动力/照明开关箱必须分设」关键要求。", fix:"照明须单设开关箱，动力照明开关箱分设。" }
+      ] },
+    { tag:"送电顺序·程序", typeHint:"单选 · 选顺序正确的作答", figLabel:"题给：三级配电箱", figCaption:"合闸送电，谁先谁后？", fig:"seqsend",
+      stem:"施工现场临时用电正常送电（合闸）的顺序是？选出正确的作答。",
+      model:"送电顺序：总配电箱 → 分配电箱 → 开关箱（从大到小逐级送电）。",
+      opts:[
+        { t:"送电顺序：总配电箱 → 分配电箱 → 开关箱，从大到小逐级合闸送电。", ok:true, fix:"送电从总到分到开，方向写对、逐级点明。", code:"" },
+        { t:"送电顺序：开关箱 → 分配电箱 → 总配电箱，从末端设备侧往回合闸。", ok:false, code:"E06", tempt:"把停电顺序套到送电上。", lose:"这是停电顺序；送电应总→分→开，顺序颠倒。", fix:"送电：总配电箱→分配电箱→开关箱。" },
+        { t:"送电顺序：分配电箱 → 总配电箱 → 开关箱，先送中间一级再补两头。", ok:false, code:"E06", tempt:"记成从中间一级先送。", lose:"顺序错乱，送电必须自总箱起逐级向下。", fix:"送电：总→分→开，不能从中间起。" },
+        { t:"送电无先后，三级配电箱可同时合闸以缩短送电时间。", ok:false, code:"M10", tempt:"以为同时合闸更快。", lose:"送电有严格顺序，不得同时或随意合闸。", fix:"送电必须总→分→开逐级进行。" }
+      ] },
+    { tag:"停电顺序·程序", typeHint:"单选 · 选顺序正确的作答", figLabel:"题给：三级配电箱", figCaption:"停电（拉闸），谁先谁后？", fig:"seqstop",
+      stem:"正常情况下，现场临时配电系统停电（拉闸）的顺序是？选出正确的作答。",
+      model:"停电顺序：开关箱 → 分配电箱 → 总配电箱（从末端开始，防带负荷拉闸拉弧）。",
+      opts:[
+        { t:"停电顺序：开关箱 → 分配电箱 → 总配电箱，从末端先停、逐级向总箱，防带负荷拉弧。", ok:true, fix:"停电从末端起 + 点明防带负荷拉弧，方向与理由齐。", code:"" },
+        { t:"停电顺序：总配电箱 → 分配电箱 → 开关箱，先断总箱一次性切掉全场电源。", ok:false, code:"E06", tempt:"觉得先断总箱一把切最干净。", lose:"先断总箱时开关箱仍带负荷，拉闸拉弧；这是送电顺序。", fix:"停电：开关箱→分配电箱→总配电箱。" },
+        { t:"停电顺序：分配电箱 → 开关箱 → 总配电箱，先切中间一级再收两头。", ok:false, code:"E06", tempt:"记成从中间一级先停。", lose:"顺序错乱，停电必须从末端开关箱起。", fix:"停电：开→分→总，从末端起。" },
+        { t:"停电与送电同序：总配电箱 → 分配电箱 → 开关箱，一套顺序好记。", ok:false, code:"E07", tempt:"图省事记成停送同序。", lose:"停送电顺序相反，停电从末端开始。", fix:"送电总→分→开；停电开→分→总。" }
+      ] },
+    { tag:"安全电压·条件维", typeHint:"单选 · 计算判定链：对照场所取限值", figLabel:"题给：金属容器内照明", figCaption:"场所=金属容器 → 电压上限=？", fig:"volt",
+      stem:"在金属容器（如锅炉、储罐）内作业时，照明行灯的供电电压上限应为多少？选出可得分的作答。",
+      model:"金属容器/锅炉内照明电压不得大于 12V（安全电压最低档）。",
+      opts:[
+        { t:"金属容器、锅炉内照明电压不得大于 12V，取安全电压最低一档。", ok:true, fix:"对照场所=金属容器，取 12V 最低档，判据链完整。", code:"" },
+        { t:"金属容器内照明电压不得大于 36V，按一般潮湿场所的安全电压执行即可。", ok:false, code:"M08", tempt:"把 36V 这一常见档位套到金属容器。", lose:"36V 是潮湿/隧道档，金属容器须降到 12V。", fix:"金属容器/锅炉内 ≤12V。" },
+        { t:"金属容器内照明电压不得大于 24V，比一般场所降一档就够安全。", ok:false, code:"M08", tempt:"只降一档到 24V，以为够了。", lose:"24V 是易触及带电体档，金属容器要再降到 12V。", fix:"金属容器/锅炉内 ≤12V，不是 24V。" },
+        { t:"金属容器内使用 220V 灯具但加装漏电保护器即可保证安全。", ok:false, code:"E10", tempt:"以为加漏保就能用 220V。", lose:"金属容器内必须用安全电压 12V，不能用 220V。", fix:"金属容器内 ≤12V 安全电压照明。" }
+      ] },
+    { tag:"安全电压分档·条件维", typeHint:"单选 · 选场所与限值对应正确的作答", figLabel:"题给：三档安全电压", figCaption:"36 / 24 / 12V 各对哪种场所？", fig:"voltmap",
+      stem:"下列安全电压限值与场所的对应，哪一项完全正确？",
+      model:"潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。",
+      opts:[
+        { t:"潮湿/隧道/人防 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤12V。", ok:true, fix:"三档场所一一对应正确，条件维不张冠李戴。", code:"" },
+        { t:"潮湿/隧道 ≤24V；易触及带电体 ≤36V；金属容器/锅炉内 ≤12V。", ok:false, code:"M08", tempt:"把 36V 与 24V 两档对调。", lose:"潮湿/隧道是 36V、易触及是 24V，档位调错。", fix:"潮湿/隧道 36V、易触及 24V、金属容器 12V。" },
+        { t:"潮湿/隧道 ≤36V；易触及带电体 ≤24V；金属容器/锅炉内 ≤24V。", ok:false, code:"M08", tempt:"金属容器顺手也写成 24V。", lose:"金属容器/锅炉内须 ≤12V，不是 24V。", fix:"金属容器/锅炉内 ≤12V。" },
+        { t:"所有特殊场所统一 ≤36V，一个门槛好记又偏安全。", ok:false, code:"E02", tempt:"图好记用一个门槛套所有场所。", lose:"漏了 24V、12V 两档，采分点不全。", fix:"分三档：36V / 24V / 12V 对应不同场所。" }
+      ] },
+    { tag:"手持灯具·条件维", typeHint:"单选 · 选做法完整正确的作答", figLabel:"题给：手持行灯供电", figCaption:"电压 + 变压器 + 使用禁区", fig:"handlamp",
+      stem:"关于手持式照明灯具（行灯）的供电要求，选出完整正确的作答。",
+      model:"手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。",
+      opts:[
+        { t:"手持灯具电压不得超过 36V，必须使用双绕组型安全隔离变压器，严禁在金属容器内使用。", ok:true, fix:"电压 + 双绕组隔离变压器 + 金属容器内严禁，三点齐。", code:"" },
+        { t:"手持灯具电压不得超过 36V 即可，用普通变压器降到 36V 就满足要求。", ok:false, code:"E02", tempt:"只记住 36V 电压值。", lose:"漏了「双绕组型安全隔离变压器」这一关键器件。", fix:"须用双绕组型安全隔离变压器供电。" },
+        { t:"手持灯具用自耦变压器降压到 36V 供电，简单可靠。", ok:false, code:"E10", tempt:"以为自耦变压器也能降压用。", lose:"自耦变压器无电气隔离，必须用双绕组隔离变压器。", fix:"必须用双绕组型安全隔离变压器。" },
+        { t:"手持灯具电压不超过 36V，可在金属容器内正常使用照明。", ok:false, code:"M08", tempt:"以为 36V 在金属容器里也安全。", lose:"金属容器内严禁手持灯具、且须 12V 照明。", fix:"金属容器内严禁使用手持灯具。" }
+      ] },
+    { tag:"重大隐患·后果维", typeHint:"单选 · 选定性正确的作答", figLabel:"题给：湿度>75% / 有积水场所", figCaption:"未用安全电压照明，属什么？", fig:"hazard",
+      stem:"特殊环境（湿度大于 75%、有积水）作业未采用安全电压照明。此情形应如何定性？",
+      model:"属重大事故隐患，应立即整改为安全电压照明。",
+      opts:[
+        { t:"属重大事故隐患，必须立即整改为安全电压（对应场所限值）照明。", ok:true, fix:"点出「重大事故隐患」定性 + 整改方向，后果维到位。", code:"" },
+        { t:"属一般安全问题，记录后限期整改即可，不影响继续作业。", ok:false, code:"E07", tempt:"以为只是普通违规、可缓改。", lose:"这是重大事故隐患，定性偏轻。", fix:"应定性为重大事故隐患，立即整改。" },
+        { t:"注意用电安全、加强现场管理即可，属日常防护范畴。", ok:false, code:"E04", tempt:"用「加强管理」的口号带过。", lose:"口号化、未定性也无可判分措施。", fix:"定性重大事故隐患 + 改用安全电压照明。" },
+        { t:"只要给灯具加装漏电保护器就能继续用 220V 照明，无需停工。", ok:false, code:"E10", tempt:"以为加漏保就可用常规电压。", lose:"特殊潮湿场所必须用安全电压，加漏保不替代。", fix:"须用安全电压照明，属重大隐患须整改。" }
+      ] },
+    { tag:"电缆埋地·条件维", typeHint:"单选 · 计算判定链：对照阈值判合格", figLabel:"题给：电缆直接埋地敷设", figCaption:"埋深阈值 = ?", fig:"bury",
+      stem:"电缆直接埋地敷设时，埋设深度应满足什么要求？选出可得分的作答。",
+      model:"电缆直接埋地敷设深度不应小于 0.7m，穿越道路等处应加保护套管并设警示。",
+      opts:[
+        { t:"电缆直接埋地敷设深度不应小于 0.7m，穿越处应加保护套管并设警示标识。", ok:true, fix:"0.7m 阈值 + 保护措施，条件维带全。", code:"" },
+        { t:"电缆直接埋地敷设深度不应小于 0.5m，浅埋可减少土方、便于检修。", ok:false, code:"M08", tempt:"记成了 0.5m，觉得浅埋省事。", lose:"直接埋地深度须 ≥0.7m，数字记错。", fix:"直接埋地敷设深度 ≥0.7m。" },
+        { t:"电缆沿地面明敷并加盖木板保护即可，不必埋入地下。", ok:false, code:"E10", tempt:"以为盖木板就等于保护。", lose:"要求直接埋地 ≥0.7m，明敷不合规。", fix:"电缆直接埋地敷设 ≥0.7m。" },
+        { t:"只要埋进土里即可，深度按现场土方情况灵活确定。", ok:false, code:"E03", tempt:"只答「埋地」不给深度。", lose:"漏了「≥0.7m」这一关键数值。", fix:"直接埋地深度不应小于 0.7m。" }
+      ] },
+    { tag:"标识色·条件维", typeHint:"单选 · 选颜色对应正确的作答", figLabel:"题给：五芯电缆芯线颜色", figCaption:"N 线、PE 线各是什么色？", fig:"colors",
+      stem:"五芯电缆中，N 线（工作零线）与 PE 线（保护零线）的标识色分别是？选出正确的作答。",
+      model:"N 线=蓝色；PE 线=黄绿双色。二者不得混用或挪作他用。",
+      opts:[
+        { t:"N 线为蓝色，PE 线为黄绿双色，二者颜色不得混用或挪作他用。", ok:true, fix:"N 蓝、PE 黄绿对应正确，并点明不得挪用。", code:"" },
+        { t:"N 线为黄绿双色，PE 线为蓝色，按接零系统习惯配色即可。", ok:false, code:"M08", tempt:"把 N 与 PE 的颜色对调。", lose:"应是 N 蓝、PE 黄绿，颜色记反。", fix:"N 线=蓝色、PE 线=黄绿双色。" },
+        { t:"N 线为黑色，PE 线为绿色，与相线区分开就行。", ok:false, code:"M08", tempt:"随手写成黑、绿也能区分。", lose:"N 是蓝色、PE 是黄绿双色，颜色错。", fix:"N=蓝色、PE=黄绿双色。" },
+        { t:"N 线与 PE 线颜色不作强制规定，只要现场统一标注即可。", ok:false, code:"E10", tempt:"以为现场自定就行。", lose:"标识色是强制规定，N 蓝 PE 黄绿。", fix:"N=蓝色、PE=黄绿双色（强制）。" }
+      ] },
+    { tag:"箱门连接·条件维", typeHint:"单选 · 选材料正确的作答", figLabel:"题给：配电箱金属箱门与箱体", figCaption:"两者之间用什么连接？", fig:"copper",
+      stem:"配电箱、开关箱的金属箱门与箱体之间应采用什么连接？选出正确的作答。",
+      model:"金属箱门与箱体之间应采用软铜线（单股铜线）做电气连接（跨接）。",
+      opts:[
+        { t:"金属箱门与箱体之间应用单股铜线做电气连接（跨接），保证箱门可靠接地。", ok:true, fix:"单股铜线跨接、点明可靠接地，材料与目的齐。", code:"" },
+        { t:"金属箱门与箱体之间用多股编织铜带连接，越粗越软越好。", ok:false, code:"M08", tempt:"以为编织带更软更导电。", lose:"规范要求单股铜线连接，材料记错。", fix:"金属箱门与箱体连接用单股铜线。" },
+        { t:"金属箱门与箱体靠合页金属接触自然导通即可，无需另设连接线。", ok:false, code:"E10", tempt:"以为合页接触就够。", lose:"合页接触不可靠，须专设单股铜线跨接。", fix:"须用单股铜线做电气跨接。" },
+        { t:"金属箱门与箱体用塑料绝缘条隔开，避免箱门带电更安全。", ok:false, code:"E07", tempt:"以为隔开绝缘更安全。", lose:"箱门须可靠接地而非绝缘隔离，概念反了。", fix:"用单股铜线跨接使箱门可靠接地。" }
+      ] },
+    { tag:"电工持证·主体维", typeHint:"单选 · 选主体正确的作答", figLabel:"题给：电工资格与拆除主体", figCaption:"谁能上岗？谁来拆除？", fig:"cert",
+      stem:"关于电工上岗与用电设备的安装拆除，选出正确的作答。",
+      model:"电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。",
+      opts:[
+        { t:"电工须经职业资格考试合格、持证上岗；用电设备的安装、拆除应由电工完成。", ok:true, fix:"持证上岗 + 拆除由电工完成，主体两点齐。", code:"" },
+        { t:"电工经内部培训熟悉操作即可上岗，用电设备可由熟练工人自行拆除。", ok:false, code:"M10", tempt:"用「有经验/熟练」替代持证。", lose:"电工须持证上岗，拆除须电工完成。", fix:"电工持证上岗，用电设备拆除由电工完成。" },
+        { t:"用电设备的拆除由现场安全员负责监督并完成，比电工更懂安全。", ok:false, code:"E10", tempt:"觉得安全员更懂安全、可代劳。", lose:"拆除应由电工完成，主体写错。", fix:"用电设备拆除应由电工完成（非安全员）。" },
+        { t:"电工持证即可，用电设备安装拆除属机械操作，可由机操工兼做。", ok:false, code:"E02", tempt:"抓住持证一点，漏了拆除主体。", lose:"漏「拆除由电工完成」这一采分点。", fix:"用电设备安装拆除均应由电工完成。" }
+      ] },
+    { tag:"组织设计·主体维", typeHint:"单选 · 选做法完整正确的作答", figLabel:"题给：50kW 用电 + 装饰装修阶段", figCaption:"编什么文件？何时补方案？", fig:"plan",
+      stem:"某工程临时用电总容量 50kW 以上，且进入装饰装修阶段。用电文件应如何编制？选出正确的作答。",
+      model:"总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。",
+      opts:[
+        { t:"总容量 50kW 及以上应编制用电组织设计；装饰装修阶段应补充编制单项施工用电方案。", ok:true, fix:"50kW 组织设计 + 装饰阶段补方案，两项齐。", code:"" },
+        { t:"总容量 50kW 以上编用电组织设计即可，装饰阶段沿用原方案不必另编。", ok:false, code:"E05", tempt:"以为一份组织设计管到底。", lose:"漏识别装饰阶段用电变化，须补编单项方案。", fix:"装饰装修阶段应补编单项施工用电方案。" },
+        { t:"只需在装饰阶段补编单项方案，总容量大小不影响是否编组织设计。", ok:false, code:"E02", tempt:"只记住补方案，漏了 50kW 门槛。", lose:"漏「50kW 及以上编用电组织设计」采分点。", fix:"50kW 及以上须编用电组织设计。" },
+        { t:"编制一份施工现场防火防雷方案覆盖临时用电即可，无需专门用电文件。", ok:false, code:"E10", tempt:"用防火防雷方案冒充用电文件。", lose:"须编用电组织设计 + 单项用电方案，文件套错。", fix:"50kW+ 编用电组织设计、装饰阶段补单项用电方案。" }
+      ] },
+    { tag:"堆场综合·条件维", typeHint:"单选 · 综合纠错，选做法均正确的作答", figLabel:"题给：堆料场配电布置", figCaption:"间距 + 灯具，哪项都对？", fig:"yard",
+      stem:"关于堆料场临时用电布置（综合纠错），选出各项均正确的作答。",
+      model:"开关箱与其控制的固定式配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯。",
+      opts:[
+        { t:"开关箱与配电箱间距不得大于 30m；仓库、堆料场严禁使用碘钨灯照明。", ok:true, fix:"30m 间距 + 严禁碘钨灯，综合纠错两点齐。", code:"" },
+        { t:"开关箱与配电箱间距不得大于 30m；堆料场可用碘钨灯以增强照度。", ok:false, code:"E10", tempt:"觉得堆场大、碘钨灯亮更好用。", lose:"仓库堆料场严禁碘钨灯（高温易燃）。", fix:"仓库堆料场严禁使用碘钨灯。" },
+        { t:"开关箱与配电箱间距不得大于 50m；仓库堆料场严禁使用碘钨灯。", ok:false, code:"M08", tempt:"把间距记成 50m。", lose:"开关箱与配电箱间距须 ≤30m，数字错。", fix:"开关箱与配电箱间距 ≤30m。" },
+        { t:"开关箱靠近设备即可、与配电箱间距无硬性限制；碘钨灯远离堆垛使用可。", ok:false, code:"E03", tempt:"以为就近就行、灯挪远即可。", lose:"漏 30m 间距硬指标，且堆料场严禁碘钨灯。", fix:"间距 ≤30m，仓库堆料场严禁碘钨灯。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 指出漏诊并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"指出①共用不妥，但漏了什么？", fig:"sheet",
+      stem:"案例：现场做法有①装饰阶段仅按原组织设计用电、②切割机与搅拌机共用一开关箱、③开关箱用插头插座与配电箱连接。某学生只答「②共用不妥，应分开」。选出最准确的诊断与补写。",
+      model:"②改正缺判据（应写专用开关箱、严禁2台及以上含插座）；漏诊①装饰阶段应补编单项用电方案、③进线端严禁插头插座活动连接，三处都要补。",
+      opts:[
+        { t:"②改正缺规范判据（应写专用开关箱、严禁 2 台及以上含插座）；还漏诊①装饰阶段补方案、③进线端禁插头插座，三处均须补。", ok:true, fix:"半命中项补判据 + 补齐两处漏诊，指漏到具体采分句。", code:"" },
+        { t:"学生指出②共用不妥、方向正确，本题作答基本到位，可给大部分分。", ok:false, code:"E02", tempt:"看方向对就以为差不多。", lose:"漏诊①③两处不妥，②改正也缺判据，失分严重。", fix:"补①装饰补方案、③进线端禁插接，②补专用开关箱判据。" },
+        { t:"只需把②的「应分开」补成「专用开关箱」即可，①③题干本无不妥。", ok:false, code:"E05", tempt:"以为只有②一处不妥。", lose:"①装饰未补方案、③插头插座连接都是不妥，审题漏项。", fix:"①③均不妥，须一并指出并改正。" },
+        { t:"重点是③插头插座连接不妥，①②做法其实符合规范，无需改动。", ok:false, code:"E07", tempt:"抓到③却把①②当合规。", lose:"②共用开关箱、①装饰未补方案同样不妥，判断反了。", fix:"①②③三处都不妥，逐条指出并给判据。" }
       ] }
   ];
   codeMap={
-    E02:{label:"采分点遗漏",advice:"架构、末端、顺序、参数逐项写，题干每处错法都要点到，缺一扣一。"},
-    E04:{label:"口号化表达",advice:"别写“加强管理、确保安全”：落到三级配电+TN-S+二级漏保、一机一闸、36/24/12V、0.7m 这些可判分措施。"},
-    E06:{label:"程序顺序错误",advice:"送电总→分→开，停电开→分→总，互逆链方向不可颠倒。"},
-    E10:{label:"规范适用错误",advice:"一机一闸、进线端禁插接是规范禁令，不能用看护、标签、先谈参数来替代。"},
-    M08:{label:"规范数字混淆",advice:"潮湿36V、易触及24V、金属容器12V、埋地0.7m，分档数字别混。"},
-    M10:{label:"用常识替代规范",advice:"专人看护、现场灵活决定都不是采分句；按规范写专用开关箱和停送电顺序。"}
+    E02:{label:"采分点遗漏",advice:"三大系统/分档/两点要求逐条写全，缺一扣一。"},
+    E03:{label:"关键词缺失",advice:"专用开关箱、进线端、≥0.7m 等判据词不能省。"},
+    E04:{label:"口号化表达",advice:"别用「加强管理」带过，要落到可判分措施与定性。"},
+    E05:{label:"审题错误",advice:"装饰阶段、金属容器等场景条件要先识别到。"},
+    E06:{label:"程序顺序错误",advice:"送电总→分→开、停电开→分→总，不能颠倒或混。"},
+    E07:{label:"概念混淆",advice:"分清 TN-S/TN-C、宜分设/必分设、档位与主体。"},
+    E10:{label:"规范适用错误",advice:"不能用漏保/防护/常识替代硬性规范要求。"},
+    M08:{label:"规范数字混淆",advice:"36/24/12V、0.7m、30m、N蓝PE黄绿别张冠李戴。"},
+    M10:{label:"用常识替代规范",advice:"错峰、熟练、缠胶布都不替代持证与专用开关箱。"}
   };
 
   componentDidMount(){
@@ -263,21 +382,32 @@ class Component extends DCLogic {
     if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
     vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
   }
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
   isMulti(q){ return q.tag.indexOf("多选")>=0; }
   optLetter(i){ return String.fromCharCode(65+i); }
-  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.Q[qi]; const sel={...this.state.sel};
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
     if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
     else sel[qi]=i; this.setState({sel}); }
-  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.Q[qi]; if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
   submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
-  graded(qi){ const q=this.Q[qi],s=this.state.sel[qi];
-    if(this.isMulti(q)){ const want=q.opts.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
-    return s!=null&&q.opts[s]&&q.opts[s].ok; }
-  next(){ if(this.state.qi<this.Q.length-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
-  reset(){ this.setState({qi:0,sel:{},sub:{},finished:false}); }
-  curCtx(){ const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
-    return { q, sub, mine, opts:q.opts.map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
   ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
   openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
   closeAsk(){ this.setState({askOpen:false}); }
@@ -295,77 +425,107 @@ class Component extends DCLogic {
   }
   figFor(qi){
     const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
-    const type=this.Q[qi].fig, els=[]; let figH=100;
-    if(type==="tree"){ figH=96;
-      els.push(D({x:4,top:22,w:74,h:38,bg:"#2f6db0",r:5,fg:"#fff",fs:9.5,lab:"总配电箱"}));
-      els.push(D({x:78,top:38,w:16,h:5,bg:"#2f6db0"}));
-      els.push(D({x:94,top:24,w:70,h:34,bg:"#3a5168",r:5,fg:"#fff",fs:9.5,lab:"分配电箱"}));
-      els.push(D({x:164,top:38,w:16,h:5,bg:"#2f6db0"}));
-      els.push(D({x:180,top:26,w:62,h:30,bg:"#46627e",r:5,fg:"#fff",fs:9.5,lab:"开关箱"}));
-      els.push(D({x:242,top:38,w:16,h:5,bg:"#2f6db0"}));
-      els.push(D({x:258,top:28,w:62,h:26,bg:"#b9a88a",r:5,fg:"#3a3325",fs:9.5,lab:"设备"}));
-      els.push(D({x:94,top:68,w:200,h:4,bg:"repeating-linear-gradient(90deg,#cf4436,#cf4436 8px,transparent 8px,transparent 14px)"}));
-      els.push(D({x:94,top:78,w:226,h:14,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 分配电箱直接拖线给设备 = 越级"}));
-      els.push(D({x:4,top:2,w:220,h:14,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"✓ 逐级接入 · 不缺级不越级"})); }
-    else if(type==="shared"){ figH=100;
-      els.push(D({x:0,top:0,w:120,h:12,fg:"#cf4436",fs:9.5,jc:"flex-start",ta:"left",lab:"✗ 一箱控两机"}));
-      els.push(D({x:30,top:16,w:60,h:26,bg:"#46627e",bd:"2px solid #cf4436",r:4,fg:"#fff",fs:8.5,lab:"开关箱"}));
-      els.push(D({x:6,top:58,w:52,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"电锯"}));
-      els.push(D({x:66,top:58,w:52,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"砂轮机"}));
-      els.push(D({x:40,top:42,w:4,h:16,bg:"#cf4436"}));
-      els.push(D({x:80,top:42,w:4,h:16,bg:"#cf4436"}));
-      els.push(D({x:172,top:0,w:130,h:12,fg:"#2c8a5b",fs:9.5,jc:"flex-start",ta:"left",lab:"✓ 一机一箱 · 进线端禁插接"}));
-      els.push(D({x:172,top:16,w:64,h:26,bg:"#46627e",bd:"2px solid #2c8a5b",r:4,fg:"#fff",fs:8,lab:"专用开关箱"}));
-      els.push(D({x:246,top:16,w:64,h:26,bg:"#46627e",bd:"2px solid #2c8a5b",r:4,fg:"#fff",fs:8,lab:"专用开关箱"}));
-      els.push(D({x:200,top:42,w:4,h:16,bg:"#2c8a5b"}));
-      els.push(D({x:274,top:42,w:4,h:16,bg:"#2c8a5b"}));
-      els.push(D({x:174,top:58,w:56,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"电锯"}));
-      els.push(D({x:250,top:58,w:56,h:22,bg:"#b9a88a",r:4,fg:"#3a3325",fs:8.5,lab:"砂轮机"})); }
-    else if(type==="seq"){ figH=84;
-      els.push(D({x:4,top:4,w:312,h:14,fg:"#2c8a5b",fs:10,jc:"flex-start",ta:"left",lab:"送电 ⟶ 总配电箱 → 分配电箱 → 开关箱"}));
-      els.push(D({x:4,top:26,w:312,h:3,bg:"rgba(44,138,91,.55)"}));
-      els.push(D({x:4,top:42,w:312,h:14,fg:"#2f6db0",fs:10,jc:"flex-start",ta:"left",lab:"停电 ⟵ 开关箱 → 分配电箱 → 总配电箱"}));
-      els.push(D({x:4,top:64,w:312,h:14,fg:"#cf4436",fs:9,jc:"flex-start",ta:"left",lab:"✗ 先合开关箱送电 / 先断总箱停电 = 顺序反"})); }
-    else if(type==="volt"){ figH=104;
-      els.push(D({x:0,top:4,w:100,h:40,bg:"#fff",bd:"1.5px solid #cdd9e2",r:7,fg:"#2f6db0",fs:10.5,lab:"潮湿/隧道\n≤36V"}));
-      els.push(D({x:110,top:4,w:100,h:40,bg:"#fff",bd:"1.5px solid #e7c9a0",r:7,fg:"#cf8a44",fs:10.5,lab:"易触及\n≤24V"}));
-      els.push(D({x:220,top:4,w:100,h:40,bg:"#fff",bd:"1.5px solid #e2b6ae",r:7,fg:"#cf4436",fs:10.5,lab:"金属容器\n≤12V"}));
-      els.push(D({x:0,top:56,w:150,h:4,bg:"#8a7d63"}));
-      els.push(D({x:64,top:76,w:16,h:16,bg:"#3a5168",r:16}));
-      els.push(D({x:86,top:58,w:2,h:36,bg:"#cf4436"}));
-      els.push(D({x:94,top:66,w:70,h:14,fg:"#cf4436",fs:10,jc:"flex-start",ta:"left",lab:"≥0.7m"}));
-      els.push(D({x:180,top:62,w:140,h:28,fg:"#5c6469",fs:9.5,jc:"flex-start",ta:"left",lab:"电缆直接埋地剖面\nN线蓝色 · PE线黄绿双色"})); }
-    else if(type==="scan"){ figH=104; const rows=[["① 架构：三级配电+TN-S+二级漏保","#2f6db0"],["② 末端：一机一箱 · 进线端禁插接","#cf8a44"],["③ 顺序参数：送总分开·停开分总·36/24/12·0.7m","#2c8a5b"],["④ 管理：电工持证 · 用电组织设计/补方案","#d9a521"]];
-      rows.forEach((r,i)=>{ els.push(D({x:0,top:i*26,w:320,h:22,bg:"#fffdf8",bd:"1px solid "+r[1],r:6,fg:"#23282b",fs:9.5,fw:"700",ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})); }); }
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="sys3"){ figH=86;
+      els.push(D({x:4,top:8,w:150,h:32,bg:"#eef3f7",bd:"1.5px solid #2f6db0",r:8,fg:"#2f6db0",fs:11,lab:"三级配电系统"}));
+      els.push(D({x:170,top:8,w:150,h:32,bg:"#fdf3ea",bd:"1.5px solid #cf8a44",r:8,fg:"#c07a34",fs:11,lab:"TN-S 接零保护"}));
+      els.push(D({x:4,top:46,w:150,h:32,bg:"#eef7f1",bd:"1.5px solid #2c8a5b",r:8,fg:"#2c8a5b",fs:11,lab:"二级漏电保护"}));
+      els.push(D({x:170,top:46,w:150,h:32,bg:"transparent",bd:"1.5px dashed #cf4436",r:8,fg:"#cf4436",fs:11,lab:"缺一不可"})); }
+    else if(type==="levels"){ figH=80; const b=[["总配电箱","一级","#2f6db0"],["分配电箱","二级","#3f7dc0"],["开关箱","末级","#4f8bcf"]];
+      b.forEach((p,i)=>{ els.push(D({x:8+i*106,top:16,w:96,h:36,bg:p[2],r:7,fg:"#fff",fs:11.5,lab:p[0]}));
+        els.push(D({x:8+i*106,top:56,w:96,h:16,fg:"#8b9398",fs:9,lab:p[1]})); }); }
+    else if(type==="onebox"){ figH=88;
+      els.push(D({x:36,top:6,w:80,h:28,bg:"#8a9298",r:6,fg:"#fff",fs:10.5,lab:"切割机"}));
+      els.push(D({x:200,top:6,w:80,h:28,bg:"#8a9298",r:6,fg:"#fff",fs:10.5,lab:"搅拌机"}));
+      els.push(D({x:118,top:52,w:88,h:30,bg:"#cf9a8f",bd:"2px solid #cf4436",r:6,fg:"#7a241a",fs:10.5,lab:"1 个开关箱"}));
+      els.push(D({x:8,top:52,w:104,h:30,fg:"#cf4436",fs:11,ta:"right",jc:"flex-end",lab:"两台共用 ✕"})); }
+    else if(type==="inlet"){ figH=84;
+      els.push(D({x:20,top:14,w:110,h:34,bg:"#3f7dc0",r:6,fg:"#fff",fs:10.5,lab:"配电箱"}));
+      els.push(D({x:200,top:14,w:110,h:34,bg:"#4f8bcf",r:6,fg:"#fff",fs:10.5,lab:"开关箱"}));
+      els.push(D({x:132,top:22,w:66,h:18,bg:"#fadcd6",bd:"1.5px dashed #cf4436",r:5,fg:"#a3271c",fs:9,lab:"插头插座"}));
+      els.push(D({x:20,top:58,w:290,h:16,fg:"#cf4436",fs:10.5,ta:"left",jc:"flex-start",lab:"进线端 活动连接（题给做法）"})); }
+    else if(type==="powlight"){ figH=76;
+      els.push(D({x:20,top:18,w:130,h:36,bg:"#eef3f7",bd:"1.5px solid #2f6db0",r:8,fg:"#2f6db0",fs:11,lab:"动力开关箱"}));
+      els.push(D({x:170,top:18,w:130,h:36,bg:"#fdf3ea",bd:"1.5px solid #cf8a44",r:8,fg:"#c07a34",fs:11,lab:"照明开关箱"}));
+      els.push(D({x:150,top:24,w:20,h:24,fg:"#cf4436",fs:14,lab:"?"})); }
+    else if(type==="seqsend"||type==="seqstop"){ figH=80; const b=["总配电箱","分配电箱","开关箱"]; const cols=["#2f6db0","#3f7dc0","#4f8bcf"];
+      b.forEach((n,i)=>els.push(D({x:8+i*106,top:16,w:96,h:34,bg:cols[i],r:7,fg:"#fff",fs:11,lab:n})));
+      els.push(D({x:8,top:56,w:312,h:16,fg:type==="seqsend"?"#2c8a5b":"#cf4436",fs:10.5,lab:type==="seqsend"?"送电：从左向右？":"停电：从右向左？"})); }
+    else if(type==="volt"){ figH=88;
+      els.push(D({x:110,top:8,w:104,h:44,bg:"#e9e7da",bd:"2px solid #8a9298",r:8,fg:"#5c6469",fs:10,lab:"金属容器内"}));
+      els.push(D({x:150,top:18,w:24,h:24,bg:"#ffd24a",r:12,fg:"#7a5a00",fs:9,lab:"灯"}));
+      els.push(D({x:96,top:60,w:132,h:20,fg:"#cf4436",fs:12,lab:"电压上限 = ? V"})); }
+    else if(type==="voltmap"){ figH=86;
+      els.push(D({x:4,top:6,w:150,h:22,bg:"#dff0e6",r:6,fg:"#2c8a5b",fs:10,ta:"left",jc:"flex-start",p:"0 8px",lab:"潮湿/隧道/人防"}));
+      els.push(D({x:160,top:6,w:44,h:22,bg:"#2c8a5b",r:6,fg:"#fff",fs:11,lab:"?V"}));
+      els.push(D({x:4,top:32,w:150,h:22,bg:"#fff4d6",r:6,fg:"#8a6d1f",fs:10,ta:"left",jc:"flex-start",p:"0 8px",lab:"易触及带电体"}));
+      els.push(D({x:160,top:32,w:44,h:22,bg:"#d8b24a",r:6,fg:"#fff",fs:11,lab:"?V"}));
+      els.push(D({x:4,top:58,w:150,h:22,bg:"#fadcd6",r:6,fg:"#c0392b",fs:10,ta:"left",jc:"flex-start",p:"0 8px",lab:"金属容器/锅炉"}));
+      els.push(D({x:160,top:58,w:44,h:22,bg:"#cf4436",r:6,fg:"#fff",fs:11,lab:"?V"})); }
+    else if(type==="handlamp"){ figH=80;
+      els.push(D({x:24,top:20,w:60,h:36,bg:"#ffd24a",r:8,fg:"#7a5a00",fs:10,lab:"手持灯"}));
+      els.push(D({x:120,top:20,w:110,h:36,bg:"#eef3f7",bd:"1.5px solid #2f6db0",r:8,fg:"#2f6db0",fs:9.5,lab:"变压器 ?型"}));
+      els.push(D({x:250,top:20,w:70,h:36,bg:"#fadcd6",bd:"1.5px solid #cf4436",r:8,fg:"#a3271c",fs:9.5,lab:"金属容器 ?"})); }
+    else if(type==="hazard"){ figH=82;
+      els.push(D({x:20,top:10,w:140,h:30,bg:"#dfe9f0",bd:"1.5px solid #2f6db0",r:7,fg:"#2f6db0",fs:10,lab:"湿度 >75%"}));
+      els.push(D({x:180,top:10,w:140,h:30,bg:"#dfe9f0",bd:"1.5px solid #2f6db0",r:7,fg:"#2f6db0",fs:10,lab:"地面积水"}));
+      els.push(D({x:60,top:50,w:220,h:24,bg:"#2b2620",r:7,fg:"#ffb0a3",fs:10.5,lab:"未用安全电压照明 = ?"})); }
+    else if(type==="bury"){ figH=92;
+      els.push(D({x:16,top:8,w:300,h:12,bg:"#c9a06a",r:3,fg:"#5c4321",fs:8,lab:"地面"}));
+      els.push(D({x:16,top:20,w:300,h:52,bg:"repeating-linear-gradient(0deg,#e6d3b3,#e6d3b3 7px,#dcc7a2 7px,#dcc7a2 14px)",r:0}));
+      els.push(D({x:120,top:58,w:96,h:12,bg:"#2f6db0",r:4,fg:"#fff",fs:8,lab:"电缆"}));
+      els.push(D({x:16,top:74,w:300,h:14,fg:"#cf4436",fs:11,lab:"埋深 = ? m"})); }
+    else if(type==="colors"){ figH=88; const c=[["L1","#d9a521"],["L2","#2c8a5b"],["L3","#cf4436"],["N","#2f6db0"],["PE","repeating-linear-gradient(45deg,#d9a521,#d9a521 5px,#2c8a5b 5px,#2c8a5b 10px)"]];
+      c.forEach((p,i)=>{ els.push(D({x:36+i*56,top:8,w:34,h:44,bg:p[1],r:5}));
+        els.push(D({x:36+i*56,top:56,w:34,h:16,fg:(p[0]==="N"||p[0]==="PE")?"#23282b":"#8b9398",fs:10,fw:"900",lab:p[0]})); }); }
+    else if(type==="copper"){ figH=80;
+      els.push(D({x:70,top:10,w:80,h:56,bg:"#dfe3e6",bd:"2px solid #8a9298",r:6,fg:"#5c6469",fs:9,lab:"箱体"}));
+      els.push(D({x:150,top:10,w:60,h:56,bg:"#eef1f3",bd:"2px solid #8a9298",r:6,fg:"#5c6469",fs:9,lab:"箱门"}));
+      els.push(D({x:210,top:30,w:110,h:16,fg:"#cf4436",fs:10.5,ta:"left",jc:"flex-start",lab:"两者用 ? 连接"})); }
+    else if(type==="cert"){ figH=80;
+      els.push(D({x:20,top:12,w:120,h:50,bg:"#fff",bd:"1.5px solid #2c8a5b",r:8,fg:"#2c8a5b",fs:11,lab:"电工证 ?"}));
+      els.push(D({x:160,top:20,w:160,h:34,fg:"#5c6469",fs:10,ta:"left",jc:"flex-start",lab:"设备拆除 由谁做？"})); }
+    else if(type==="plan"){ figH=82;
+      els.push(D({x:16,top:10,w:150,h:28,bg:"#3f7dc0",r:6,fg:"#fff",fs:9.5,lab:"主体结构阶段"}));
+      els.push(D({x:170,top:10,w:150,h:28,bg:"#cf8a44",r:6,fg:"#fff",fs:9.5,lab:"装饰装修阶段"}));
+      els.push(D({x:16,top:46,w:150,h:24,fg:"#2f6db0",fs:9.5,lab:"50kW+ → ?"}));
+      els.push(D({x:170,top:46,w:150,h:24,fg:"#c07a34",fs:9.5,lab:"装饰阶段 → ?"})); }
+    else if(type==="yard"){ figH=82;
+      els.push(D({x:16,top:16,w:70,h:30,bg:"#8a9298",r:6,fg:"#fff",fs:9.5,lab:"开关箱"}));
+      els.push(D({x:246,top:16,w:70,h:30,bg:"#8a9298",r:6,fg:"#fff",fs:9.5,lab:"配电箱"}));
+      els.push(D({x:90,top:26,w:152,h:0,bd:"2px dashed #cf4436",bg:"transparent"}));
+      els.push(D({x:90,top:50,w:152,h:16,fg:"#cf4436",fs:10,lab:"间距 ≤ ? m"})); }
+    else if(type==="sheet"){ figH=94; const lines=["① 装饰阶段仅按原组织设计用电","② 切割机与搅拌机共用一开关箱","③ 开关箱用插头插座接配电箱"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
     return {els,figH};
   }
   renderVals(){
-    const qi=this.state.qi,q=this.Q[qi],sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
     const fig=this.figFor(qi);
     const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
-    const opts=q.opts.map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
       if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
       else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
         else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
         else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
       return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
     });
-    const isLast=qi===this.Q.length-1;
+    const isLast=qi===this.qCount()-1;
     let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
     if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
-    else if(!isLast){ btnLabel="下一题 →"; btnAction=()=>this.next(); }
-    else { btnLabel="查看结果 →"; btnAction=()=>this.next(); btnBg="#23282b"; }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
 
-    let score=0; const review=this.Q.map((qq,i)=>{ const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
-    const wc={}; this.Q.forEach((qq,i)=>{ if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
     const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
-    const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(this.Q.length*0.4)?0:score<this.Q.length-1?1:score<this.Q.length?2:3;
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
     const empty=!((this.state.askText||"").trim());
 
     return {
       examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
-      qNum:qi+1, qTotal:this.Q.length, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
-      progPct:Math.round(((sub?qi+1:qi)/this.Q.length)*100), opts, showModel:sub, qModel:q.model,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
       btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
       score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
       reset:()=>this.reset(),

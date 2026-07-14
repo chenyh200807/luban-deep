@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<!-- ░░░ 母版骨架：随堂练 ░░░ 改 Q[] 即可。每题必须有图示位 + 完整采分句选项 + 每错项三段解析 -->
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="P40_E05.teach.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <!-- 图示位（每题必有：标尺/变化图/管道/诊断图/答题纸；此处给通用占位，按题替换内部 SVG/结构）-->
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="P40_E05.teach.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY (大窗 · 自动带题目) -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 母版骨架逻辑：随堂练 ░░░
+   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
+   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
+   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
+   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
+     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
+   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
+     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+class Component extends DCLogic {
+  // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
+  //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="挣值法/偏差分析";
+  KNOWLEDGE="挣值法/偏差分析(成本计算判定链)。三值构成不互换：BCWP挣值=已完成量×预算单价；BCWS计划值=计划量×预算单价；ACWP实际=已完成量×实际单价。四指标公式禁颠倒：成本偏差CV=BCWP−ACWP、进度偏差SV=BCWP−BCWS（带万元）；成本绩效CPI=BCWP/ACWP、进度绩效SPI=BCWP/BCWS（无量纲）。方向判读：CV/SV>0节支/提前、<0超支/延误；CPI/SPI>1节支/提前、<1超支/延误。母题(第20周末)BCWP=6370、ACWP=6240、BCWS=5340万元→CV=130万(节支)、SV=1030万(提前)、CPI≈1.02(节支)、SPI≈1.19(提前)→成本节支、进度提前。采分链：取三值(不互换)→套四公式(被减数减数、分子分母不反)→按正负与1判方向；偏差带万元、指数不带单位，每指标公式+代入+结果+方向成组。常见失分：三值含义混淆、CV写成ACWP−BCWP或分子分母颠倒、方向判反(CV>0说超支)、只写好坏不写节支/超支/提前/延误、只算CV/SV漏CPI/SPI。";
+  moreText="再练两组：① 只给「已完成量×单价、计划量、实际单价」不直接给三值，先自己求 BCWP/BCWS/ACWP 再套四公式，练「先提三值」这一步；② 换一组三值让 CV<0、SPI<1（成本超支、进度滞后），练方向判读不判反——正数、大于1才是好。";
+  // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
+  Q=[
+    { tag:"三值构成·概念维", typeHint:"单选 · 选出定义最准确、能得分的作答", figLabel:"三个基本参数（量×价 来源各不同）", figCaption:"BCWP / BCWS / ACWP 谁用预算价、谁用实际价、谁用计划量", fig:"mix",
+      stem:"挣值法三个基本参数中，BCWP（挣值）的构成式是哪一个？选出定义准确的作答。",
+      model:"BCWP（已完成工作预算成本／挣值）= 已完成工程量 × 预算单价。",
+      opts:[
+        { t:"BCWP = 已完成工程量 × 预算单价（已完成的量，按预算价计），即挣得的价值标尺。", ok:true, fix:"量取「已完成」、价取「预算」，BCWP 是把已干的活按预算价折算的挣值。", code:"" },
+        { t:"BCWP = 已完成工程量 × 实际单价（已完成的量，按实际花的价计），反映实际挣得。", ok:false, code:"E07", tempt:"「已完成」对了，顺手把价也配成「实际」。", lose:"价用错：已完成量×实际单价是 ACWP，不是 BCWP；BCWP 必须用预算单价隔离价格波动。", fix:"BCWP=已完成量×预算单价；已完成量×实际单价那是 ACWP。" },
+        { t:"BCWP = 计划工程量 × 预算单价（计划的量，按预算价计），代表计划应挣的价值。", ok:false, code:"E07", tempt:"「预算价」对了，量却配成「计划」。", lose:"量用错：计划量×预算单价是 BCWS，不是 BCWP；BCWP 的量必须是「已完成」。", fix:"BCWP=已完成量×预算单价；计划量×预算单价那是 BCWS。" },
+        { t:"BCWP = 计划工程量 × 实际单价（计划的量，按实际价计），综合计划与实际。", ok:false, code:"E07", tempt:"把「计划」「实际」拼在一起，看着「兼顾两头」。", lose:"量和价全错，且这个组合不对应任何一个基本参数，纯干扰项。", fix:"BCWP=已完成量×预算单价，量取已完成、价取预算，不掺计划量或实际价。" }
+      ] },
+    { tag:"三值构成·概念维", typeHint:"单选 · 选出定义最准确、能得分的作答", figLabel:"三个基本参数（量×价 来源各不同）", figCaption:"ACWP 用哪种量、哪种价？", fig:"mix",
+      stem:"ACWP（已完成工作实际成本）的构成式是哪一个？选出定义准确的作答。",
+      model:"ACWP = 已完成工程量 × 实际单价（已经花出去的钱）。",
+      opts:[
+        { t:"ACWP = 已完成工程量 × 实际单价，就是已完成部分实际花出去的钱。", ok:true, fix:"量取「已完成」、价取「实际」，ACWP 是真金白银的实际支出。", code:"" },
+        { t:"ACWP = 已完成工程量 × 预算单价，按预算价核算已完成部分的成本。", ok:false, code:"E07", tempt:"「已完成」对了，价却配成「预算」。", lose:"价用错：已完成量×预算单价是 BCWP（挣值），不是 ACWP；ACWP 必须用实际单价。", fix:"ACWP=已完成量×实际单价；已完成量×预算单价那是 BCWP。" },
+        { t:"ACWP = 计划工程量 × 实际单价，按实际价核算原计划工程量的成本。", ok:false, code:"E07", tempt:"「实际价」对了，量却配成「计划」。", lose:"量用错：ACWP 的量是「已完成」，不是「计划」；计划量×任何价都不是 ACWP。", fix:"ACWP=已完成量×实际单价，量取已完成、不取计划量。" },
+        { t:"ACWP = 预算总成本，即项目开工前编制的全部预算金额。", ok:false, code:"E07", tempt:"「实际成本」听着像个总额，误当预算总账。", lose:"ACWP 是到检查点「已完成部分」的实际支出，不是全项目预算总额。", fix:"ACWP=已完成量×实际单价，只算已干部分的实际花费。" }
+      ] },
+    { tag:"三值代入·背景提取维", typeHint:"单选 · 选出三值代入位置正确的作答", figLabel:"题给三值（第20周末）", figCaption:"BCWP=6370 · ACWP=6240 · BCWS=5340（万元）", fig:"threevals",
+      stem:"第20周末检查：挣值 BCWP=6370 万元、已完成实际成本 ACWP=6240 万元、计划值 BCWS=5340 万元。下列把三值放入指标公式，哪一组位置正确？",
+      model:"CV=BCWP−ACWP=6370−6240；SV=BCWP−BCWS=6370−5340，三值各归其位不互换。",
+      opts:[
+        { t:"CV=BCWP−ACWP=6370−6240、SV=BCWP−BCWS=6370−5340，三值按定义各归其位。", ok:true, fix:"BCWP 恒作被减数/分子，ACWP 配成本、BCWS 配进度，位置不互换。", code:"" },
+        { t:"CV=ACWP−BCWP=6240−6370、SV=BCWS−BCWP=5340−6370，用实际/计划减挣值。", ok:false, code:"E09", tempt:"记成「实际减挣值」，被减数减数顺序反了。", lose:"被减数减数颠倒会让 CV=−130、SV=−1030，方向整个判反成超支延误。", fix:"CV=BCWP−ACWP、SV=BCWP−BCWS，挣值 BCWP 永远作被减数。" },
+        { t:"CV=BCWP−BCWS=6370−5340、SV=BCWP−ACWP=6370−6240，成本用计划、进度用实际。", ok:false, code:"E07", tempt:"记得都用 BCWP 减，却把 ACWP 和 BCWS 的分工调换了。", lose:"成本偏差要减实际 ACWP、进度偏差要减计划 BCWS；两者互换后 CV/SV 全错。", fix:"成本 CV 减 ACWP、进度 SV 减 BCWS，别把两个减数换位置。" },
+        { t:"把 BCWS 与 ACWP 互换代入：CV=BCWP−BCWS、CPI=BCWP/BCWS，成本一律配计划值。", ok:false, code:"E08", tempt:"题干数字多，没读清哪个是实际、哪个是计划就代入。", lose:"BCWS(计划)与 ACWP(实际)互换，成本侧四指标系统性全错。", fix:"先认清 ACWP=实际、BCWS=计划；成本侧一律用 ACWP。" }
+      ] },
+    { tag:"成本偏差CV·计算判读维", typeHint:"单选 · 选出可得分的算式+方向", figLabel:"成本侧：挣值 vs 实际", figCaption:"CV = BCWP − ACWP = ? → 成本状态？", fig:"metric",
+      figData:{op:"−",a:["挣值 6370","#2c8a5b"],b:["实花 6240","#cf4436"],res:"CV = +130 万",div:"0",good:true,loLab:"＜0 超支",hiLab:"＞0 节支"},
+      stem:"已知 BCWP=6370 万元、ACWP=6240 万元。求成本偏差 CV 并判读成本状态，选出能得分的作答。",
+      model:"CV=BCWP−ACWP=6370−6240=130 万元；CV>0 → 成本节支。",
+      opts:[
+        { t:"CV=BCWP−ACWP=6370−6240=130 万元，CV>0，成本节支。", ok:true, fix:"公式+代入+结果 130 万元+方向「节支」四件齐，偏差带万元。", code:"" },
+        { t:"CV=ACWP−BCWP=6240−6370=−130 万元，CV<0，成本超支。", ok:false, code:"E09", tempt:"「实际花的减挣的」听着顺，算出负数就判超支。", lose:"被减数减数反了，把节支的项目判成超支——方向彻底错。", fix:"CV=BCWP−ACWP=+130 万元，挣的减花的、正数是节支。" },
+        { t:"CV=BCWP−ACWP=6370−6240=130 万元，CV>0，说明成本超支了 130 万。", ok:false, code:"E07", tempt:"算式对、结果对，却把「正数」的方向记反了。", lose:"数值对但方向判反：CV>0 是节支不是超支，方向分丢光。", fix:"CV>0 → 成本节支；正数是省钱，不是超支。" },
+        { t:"CV=BCWP−ACWP=6370−6240=130，成本控制得不错，比预期好。", ok:false, code:"E04", tempt:"结果对，用「控制得不错」口语带过。", lose:"没写规范判读词「节支」、结果漏「万元」单位，口号化不给分。", fix:"补规范词与单位：CV=130 万元，CV>0 → 成本节支。" }
+      ] },
+    { tag:"进度偏差SV·计算判读维", typeHint:"单选 · 选出可得分的算式+方向", figLabel:"进度侧：挣值 vs 计划", figCaption:"SV = BCWP − BCWS = ? → 进度状态？", fig:"metric",
+      figData:{op:"−",a:["挣值 6370","#2c8a5b"],b:["计划 5340","#2f6db0"],res:"SV = +1030 万",div:"0",good:true,loLab:"＜0 延误",hiLab:"＞0 提前"},
+      stem:"已知 BCWP=6370 万元、BCWS=5340 万元。求进度偏差 SV 并判读进度状态，选出能得分的作答。",
+      model:"SV=BCWP−BCWS=6370−5340=1030 万元；SV>0 → 进度提前。",
+      opts:[
+        { t:"SV=BCWP−BCWS=6370−5340=1030 万元，SV>0，进度提前。", ok:true, fix:"挣值减计划值、正数是提前；结果 1030 万元+方向齐。", code:"" },
+        { t:"SV=BCWP−ACWP=6370−6240=130 万元，SV>0，进度提前。", ok:false, code:"E07", tempt:"把进度偏差的减数配成了 ACWP（实际）。", lose:"SV 要减计划值 BCWS，不是实际 ACWP；减错对象，那其实是 CV。", fix:"SV=BCWP−BCWS=1030 万元，进度偏差减的是计划值。" },
+        { t:"SV=BCWS−BCWP=5340−6370=−1030 万元，SV<0，进度延误。", ok:false, code:"E09", tempt:"「计划减挣值」顺序反，算出负数判延误。", lose:"被减数减数颠倒，把提前的项目判成延误，方向全错。", fix:"SV=BCWP−BCWS=+1030 万元，挣值作被减数、正数是提前。" },
+        { t:"SV=BCWP−BCWS=6370−5340=1030，进度比计划快一些，形势不错。", ok:false, code:"E04", tempt:"结果对，用「快一些、形势不错」带过。", lose:"漏规范词「提前」、漏「万元」单位，口号化表达不得分。", fix:"补规范词与单位：SV=1030 万元，SV>0 → 进度提前。" }
+      ] },
+    { tag:"成本绩效CPI·计算判读维", typeHint:"单选 · 选出可得分的算式+方向", figLabel:"成本效率盘：以 1 分界", figCaption:"CPI = BCWP / ACWP = ? → 落在 1 的哪侧？", fig:"metric",
+      figData:{op:"÷",a:["挣值 6370","#2c8a5b"],b:["实花 6240","#cf4436"],res:"CPI ≈ 1.02",div:"1",good:true,loLab:"＜1 超支",hiLab:"＞1 节支"},
+      stem:"已知 BCWP=6370 万元、ACWP=6240 万元。求成本绩效指数 CPI 并判读，选出能得分的作答。",
+      model:"CPI=BCWP/ACWP=6370/6240≈1.02；CPI>1 → 成本节支（无量纲）。",
+      opts:[
+        { t:"CPI=BCWP/ACWP=6370/6240≈1.02，CPI>1，成本节支；指数为无量纲比值不带单位。", ok:true, fix:"分子挣值、分母实际，>1 节支；并点明指数无单位。", code:"" },
+        { t:"CPI=ACWP/BCWP=6240/6370≈0.98，CPI<1，成本节支；用实际成本作分子，更能反映每花一块钱的产出效率。", ok:false, code:"E09", tempt:"分子分母颠倒算出 0.98，方向却仍写节支。", lose:"分子分母倒置使数值与判读自相矛盾；CPI 必须挣值作分子。", fix:"CPI=BCWP/ACWP≈1.02，挣值作分子、>1 才节支。" },
+        { t:"CPI=BCWP/ACWP≈1.02，CPI>1，说明成本超支，效率偏低。", ok:false, code:"E07", tempt:"算式对，却把「大于1」的方向记反。", lose:"CPI>1 是节支/效率好，判成超支方向全反。", fix:"CPI>1 → 成本节支，大于1是每块钱挣回超过一块。" },
+        { t:"CPI=BCWP/ACWP=6370/6240≈1.02 万元，CPI>1，成本节支。", ok:false, code:"E03", tempt:"判读对了，顺手给指数加了「万元」。", lose:"绩效指数是无量纲比值，硬加单位反而扣分。", fix:"CPI≈1.02（无量纲、不带单位），偏差才带万元。" }
+      ] },
+    { tag:"进度绩效SPI·计算判读维", typeHint:"单选 · 选出可得分的算式+方向", figLabel:"进度效率盘：以 1 分界", figCaption:"SPI = BCWP / BCWS = ? → 落在 1 的哪侧？", fig:"metric",
+      figData:{op:"÷",a:["挣值 6370","#2c8a5b"],b:["计划 5340","#2f6db0"],res:"SPI ≈ 1.19",div:"1",good:true,loLab:"＜1 滞后",hiLab:"＞1 提前"},
+      stem:"已知 BCWP=6370 万元、BCWS=5340 万元。求进度绩效指数 SPI 并判读，选出能得分的作答。",
+      model:"SPI=BCWP/BCWS=6370/5340≈1.19；SPI>1 → 进度提前（无量纲）。",
+      opts:[
+        { t:"SPI=BCWP/BCWS=6370/5340≈1.19，SPI>1，进度提前；指数无量纲不带单位。", ok:true, fix:"分子挣值、分母计划值，>1 提前；指数无单位。", code:"" },
+        { t:"SPI=BCWS/BCWP=5340/6370≈0.84，SPI<1，进度提前；比值越小说明计划量越大、进度反而越靠前。", ok:false, code:"E09", tempt:"分子分母颠倒得 0.84，方向仍照抄「提前」。", lose:"倒置后数值<1、与「提前」矛盾；SPI 必须挣值作分子。", fix:"SPI=BCWP/BCWS≈1.19，挣值作分子、>1 才提前。" },
+        { t:"SPI=BCWP/ACWP=6370/6240≈1.02，SPI>1，进度提前。", ok:false, code:"E07", tempt:"把进度指数的分母配成了 ACWP（实际）。", lose:"SPI 分母是计划值 BCWS，不是实际 ACWP；配错分母那算的是 CPI。", fix:"SPI=BCWP/BCWS≈1.19，进度指数分母用计划值。" },
+        { t:"SPI=BCWP/BCWS≈1.19，进度还行、比计划快，问题不大。", ok:false, code:"E04", tempt:"数值对，用「还行、快」口语带过。", lose:"漏规范判读词「提前」，口号化表达不得分。", fix:"补规范词：SPI>1 → 进度提前。" }
+      ] },
+    { tag:"进度小问·计算判读维", typeHint:"单选 · 只给两值求 SPI 判进度", figLabel:"只给 BCWP 与 BCWS", figCaption:"SPI = BCWP / BCWS → 进度提前还是滞后？", fig:"metric",
+      figData:{op:"÷",a:["挣值 6370","#2c8a5b"],b:["计划 5340","#2f6db0"],res:"SPI ≈ 1.19",div:"1",good:true,loLab:"＜1 滞后",hiLab:"＞1 提前"},
+      stem:"某工程第20周末 BCWP=6370 万元、BCWS=5340 万元（题目只问进度）。求 SPI 并判进度状态，选出能得分的作答。",
+      model:"SPI=BCWP/BCWS=6370/5340≈1.19；SPI>1 → 进度提前。",
+      opts:[
+        { t:"SPI=BCWP/BCWS=6370/5340≈1.19，SPI>1，进度提前。", ok:true, fix:"进度问题用挣值除计划值，>1 提前，公式+结果+方向齐。", code:"" },
+        { t:"只给两值算不了进度，必须先知道 ACWP 才能判进度快慢。", ok:false, code:"E08", tempt:"以为判进度也要用到实际成本 ACWP。", lose:"进度只看 SPI=BCWP/BCWS，与 ACWP 无关；误判条件不足而放弃作答。", fix:"进度侧只需 BCWP 和 BCWS，SPI=1.19 即可判提前。" },
+        { t:"SPI=BCWP−BCWS=6370−5340=1030，SPI>0，进度提前。", ok:false, code:"E07", tempt:"把绩效「指数」当成了偏差用减法。", lose:"指数是除法比值不是减法差额；用减法算的是 SV，不是 SPI。", fix:"SPI 是除法：BCWP/BCWS≈1.19，不是相减。" },
+        { t:"SPI=6370/5340≈1.19 万元，SPI>1，进度提前。", ok:false, code:"E03", tempt:"数值方向都对，却给指数加了单位。", lose:"SPI 是无量纲比值，加「万元」反而扣分。", fix:"SPI≈1.19（无量纲），指数不带单位。" }
+      ] },
+    { tag:"方向判读·概念维", typeHint:"单选 · 选出方向铁律表述正确的作答", figLabel:"偏差以 0 分界 · 指数以 1 分界", figCaption:"哪侧是「好」（节支/提前）？", fig:"metric",
+      figData:{op:"·",a:["CV·SV vs 0","#8b9398"],b:["CPI·SPI vs 1","#8b9398"],res:"正 / ＞1 = 好",div:"1",good:true,loLab:"负·＜1 差",hiLab:"正·＞1 好"},
+      stem:"关于四指标方向判读，下列哪句表述正确、能作为判据得分？",
+      model:"CV/SV>0 且 CPI/SPI>1 → 节支/提前；CV/SV<0 且 CPI/SPI<1 → 超支/延误。",
+      opts:[
+        { t:"CV、SV 大于 0，CPI、SPI 大于 1，都判节支/提前；反之小于则超支/延误。", ok:true, fix:"「正数、大于1 都是好」一句铁律，四指标方向统一记牢。", code:"" },
+        { t:"CV、SV 大于 0 判超支/延误，CPI、SPI 大于 1 判节支/提前，两套方向相反。", ok:false, code:"E07", tempt:"把偏差和指数的方向记成「相反」。", lose:"偏差与指数方向一致——都是正/大于1为好；记成相反会判反一半。", fix:"两套同向：正数、大于1 都好；不存在相反口径。" },
+        { t:"指标数值越接近 0 越好，说明实际与计划几乎没偏差、控制最理想。", ok:false, code:"E07", tempt:"「偏差小=控制好」的直觉迁移到判方向上。", lose:"判方向看正负/与1的大小，不是「越接近0越好」；CV=0 只是打平，不等于节支。", fix:"看正负与1：CV>0 节支、CPI>1 节支，不是越接近0越好。" },
+        { t:"只要算出数值就行，节支/超支、提前/延误属于分析结论、可不写。", ok:false, code:"E03", tempt:"以为算出数就到位，方向词是「废话」。", lose:"方向判读是与计算同等的采分点，漏写直接丢方向分。", fix:"算完必写方向：正数、大于1 → 节支/提前，一句都不能省。" }
+      ] },
+    { tag:"CV vs CPI 互补·概念维", typeHint:"单选 · 选出解释准确的作答", figLabel:"同看成本 · 减法 vs 除法", figCaption:"为什么 CV 和 CPI 都要算？", fig:"metric",
+      figData:{op:"·",a:["CV 减法 =130万","#2c8a5b"],b:["CPI 除法 ≈1.02","#2f6db0"],res:"额 + 效率 互补",div:"1",good:true,loLab:"少算一个=漏分",hiLab:"两个都写"},
+      stem:"CV 和 CPI 都用来看成本，为什么阅卷要求两个都算？选出解释准确的作答。",
+      model:"CV 用减法给绝对偏差额（省了多少钱），CPI 用除法给相对效率（每块钱挣回多少、可横比），两者互补都要写。",
+      opts:[
+        { t:"CV 用减法给出省/超的绝对金额，CPI 用除法给出成本效率比值可横向对比，两者互补都要写。", ok:true, fix:"减法看「省多少钱」、除法看「效率」，一个绝对额一个相对比，缺一漏分。", code:"" },
+        { t:"CV 和 CPI 反映同一件事，算出一个另一个必然同向，任选一个写即可省时间，考场上时间紧、抓住绝对金额那个写清楚就够采分了。", ok:false, code:"E02", tempt:"两者常同向，误以为「算一个够了」。", lose:"同向不代表可省略——绝对额和相对效率是两个采分点，少写一个扣一个。", fix:"两个都写：CV=130 万元（额）、CPI≈1.02（效率）。" },
+        { t:"CV 更精确，CPI 只是估算，实际作答只写 CV 的绝对金额就够严谨了。", ok:false, code:"E07", tempt:"觉得「带钱的更实在、比值是虚的」。", lose:"两者都是精确计算、各有采分价值；CPI 提供可横比的效率信息，不是估算。", fix:"CV 与 CPI 都精确、都得写，一个看额一个看效率。" },
+        { t:"CV 看成本、CPI 看进度，一个管钱一个管时间，所以两个都要算。", ok:false, code:"E07", tempt:"把「两个都算」的理由错记成分管成本与进度。", lose:"CV 和 CPI 都看成本；看进度的是 SV/SPI。归错分工。", fix:"CV、CPI 同看成本（额 vs 效率）；进度侧才是 SV、SPI。" }
+      ] },
+    { tag:"作答表达·规范维", typeHint:"单选 · 选出单位/表达规范的作答", figLabel:"表达规范：偏差带单位 · 指数不带", figCaption:"哪一组单位与判读词都合规？", fig:"sheet",
+      figLines:["CV = 130 万元（偏差带金额单位）","CPI ≈ 1.02（指数无量纲，不带单位）","每指标：公式 + 代入 + 结果 + 方向 成组"],
+      stem:"关于挣值法作答的表达规范，下列哪一组完全合规、能拿到表达分？",
+      model:"偏差 CV/SV 带金额单位（万元）；绩效指数 CPI/SPI 无量纲不带单位；每指标公式+代入+结果+方向成组。",
+      opts:[
+        { t:"偏差 CV=130 万元、SV=1030 万元带单位；CPI≈1.02、SPI≈1.19 无量纲不带单位；各指标公式/结果/方向成组。", ok:true, fix:"偏差带万元、指数不带单位、四件成组，三条规范全踩中。", code:"" },
+        { t:"四个指标一律带「万元」单位：CV=130 万元、CPI=1.02 万元，统一单位更整齐。", ok:false, code:"E03", tempt:"图整齐，给所有指标都加万元。", lose:"绩效指数是无量纲比值，加单位反而错；只有偏差带万元。", fix:"偏差带万元、指数不带单位，不能一刀切。" },
+        { t:"四个指标一律不带单位，直接写 CV=130、SV=1030、CPI=1.02、SPI=1.19 即可，阅卷主要核对数值对错，单位属于细枝末节、不影响给分。", ok:false, code:"E03", tempt:"图省事，全都不写单位。", lose:"偏差 CV/SV 是金额，漏「万元」单位要扣表达分。", fix:"偏差补「万元」：CV=130 万元、SV=1030 万元；指数才不带单位。" },
+        { t:"只要把四个数值写清楚，公式、代入过程和方向判读都可以省略不写。", ok:false, code:"E02", tempt:"以为「数对了」就够，省略过程。", lose:"公式、代入、方向都是采分点，省略过程会大面积丢分。", fix:"每指标公式+代入+结果+方向成组，缺一扣一。" }
+      ] },
+    { tag:"采分完整·遗漏维", typeHint:"单选 · 选出采分点覆盖完整的作答", figLabel:"母题要求：成本 + 进度都判", figCaption:"只算一半会漏分吗？", fig:"threevals",
+      stem:"母题要求「分析成本与进度状态」。下列作答，哪一个采分点覆盖完整？",
+      model:"CV=130 万元、CPI≈1.02（成本节支）+ SV=1030 万元、SPI≈1.19（进度提前），成本进度两侧四指标齐全。",
+      opts:[
+        { t:"CV=130 万元、CPI≈1.02 判成本节支；SV=1030 万元、SPI≈1.19 判进度提前，成本进度都答。", ok:true, fix:"成本侧 CV/CPI + 进度侧 SV/SPI 全算全判，覆盖完整。", code:"" },
+        { t:"CV=130 万元、CPI≈1.02，成本节支——成本进度是一回事，判了成本进度自然也提前，成本和进度既然是一回事，再单列 SV、SPI 就重复了。", ok:false, code:"E02", tempt:"以为成本好进度必然好，省掉进度侧。", lose:"成本与进度相互独立，必须分别算 SV/SPI；漏进度侧丢一半采分点。", fix:"补进度侧：SV=1030 万元、SPI≈1.19 → 进度提前。" },
+        { t:"SV=1030 万元、SPI≈1.19，进度提前——项目进度提前，成本状态可不必再单独判。", ok:false, code:"E02", tempt:"只算了进度侧，觉得成本可略。", lose:"漏成本侧 CV/CPI；进度提前不代表成本一定节支，须分别判。", fix:"补成本侧：CV=130 万元、CPI≈1.02 → 成本节支。" },
+        { t:"直接下结论：本项目成本节支、进度提前，四个数不用一一列出。", ok:false, code:"E02", tempt:"结论方向对，图省事跳过计算过程。", lose:"四指标的公式/代入/结果都是采分点，只给结论会丢大量过程分。", fix:"逐项列 CV/SV/CPI/SPI 的公式代入结果，再下结论。" }
+      ] },
+    { tag:"先求三值·背景提取维", typeHint:"单选 · 题给量与价，先求三值再算", figLabel:"题给：量与单价（非现成三值）", figCaption:"先求 BCWP/BCWS/ACWP，再套公式", fig:"mix",
+      stem:"若题干只给「已完成工程量、计划工程量、预算单价、实际单价」而未直接给三值，正确的作答步骤是？",
+      model:"先求 BCWP=已完成量×预算单价、BCWS=计划量×预算单价、ACWP=已完成量×实际单价，再套 CV/SV/CPI/SPI。",
+      opts:[
+        { t:"先按构成式求出 BCWP、BCWS、ACWP 三值，再代入 CV/SV/CPI/SPI 四公式计算判读。", ok:true, fix:"先「量×价」提三值、再套四公式，两步分明不跳步。", code:"" },
+        { t:"把「已完成量×预算单价」直接当作最终答案，题目给了量和价就是要这个乘积。", ok:false, code:"E08", tempt:"看到量×价算出一个数就以为完事。", lose:"那只是 BCWP 一个值；还要求 BCWS、ACWP 并套四公式判读，提取不全。", fix:"三值都要求出，再算 CV/SV/CPI/SPI 并判方向。" },
+        { t:"用实际单价乘所有工程量得到总成本，再和预算比大小即可判断盈亏，这样一步到位，比分别求三个成本值省事得多。", ok:false, code:"E07", tempt:"图省事，绕开三值直接「实际比预算」。", lose:"跳过 BCWP/BCWS/ACWP 的规范构成，无法分离成本与进度偏差。", fix:"按构成式分别求三值，别用笼统的总成本比较。" },
+        { t:"量和价不全时无法计算，应直接说明条件不足、放弃求解。", ok:false, code:"E08", tempt:"觉得没直接给三值就是条件不够。", lose:"给了量与价就足以求三值，误判条件不足会整题丢分。", fix:"量×价即可求三值，条件充分，照常计算。" }
+      ] },
+    { tag:"方向反例·计算判读维", typeHint:"单选 · 换一组数，方向别判反", figLabel:"反例：CV<0、SPI<1", figCaption:"BCWP=5000 · ACWP=5200 · BCWS=5300", fig:"metric",
+      figData:{op:"−",a:["挣值 5000","#2c8a5b"],b:["实花 5200","#cf4436"],res:"CV = −200 万",div:"0",good:false,loLab:"＜0 超支",hiLab:"＞0 节支"},
+      stem:"另一项目：BCWP=5000、ACWP=5200、BCWS=5300 万元。求 CV 并判成本状态，选出正确作答。",
+      model:"CV=BCWP−ACWP=5000−5200=−200 万元；CV<0 → 成本超支。",
+      opts:[
+        { t:"CV=BCWP−ACWP=5000−5200=−200 万元，CV<0，成本超支。", ok:true, fix:"挣值减实际得负数，负数就是超支，方向随数值走。", code:"" },
+        { t:"CV=BCWP−ACWP=5000−5200=−200 万元，CV<0，但成本仍节支 200 万。", ok:false, code:"E07", tempt:"算出负数，方向却仍写「节支」。", lose:"CV<0 是超支，负数判成节支方向反了。", fix:"CV<0 → 成本超支；负数是多花了钱。" },
+        { t:"CV=ACWP−BCWP=5200−5000=200 万元，CV>0，成本节支。", ok:false, code:"E09", tempt:"怕出负数，把减数顺序调成正数。", lose:"被减数减数颠倒，把超支的项目算成节支，方向全错。", fix:"CV=BCWP−ACWP=−200 万元，不能为了正数调换顺序。" },
+        { t:"实际 5200 比挣值 5000 高，说明干得多、成本节约，判成本节支。", ok:false, code:"E07", tempt:"「实际高=干得多」的错觉。", lose:"实际成本高是多花钱=超支，不是干得多；混淆实际成本与工程量。", fix:"ACWP 高于 BCWP 是超支；量的多少看 SV/SPI。" }
+      ] },
+    { tag:"综合母题·计算判读维", typeHint:"单选 · 选出四指标+结论完整正确的作答", figLabel:"母题三值（第20周末）", figCaption:"BCWP=6370 · ACWP=6240 · BCWS=5340（万元）", fig:"threevals",
+      stem:"第20周末 BCWP=6370、ACWP=6240、BCWS=5340 万元。综合判读成本与进度，选出四指标与结论都正确的作答。",
+      model:"CV=130 万元、CPI≈1.02 → 成本节支；SV=1030 万元、SPI≈1.19 → 进度提前；结论：成本节支、进度提前。",
+      opts:[
+        { t:"CV=130 万元、CPI≈1.02（成本节支）；SV=1030 万元、SPI≈1.19（进度提前）；结论：成本节支、进度提前。", ok:true, fix:"四指标数值、方向、总结论全部正确且成组，标准满分作答。", code:"" },
+        { t:"CV=130 万元、CPI≈1.02（成本超支）；SV=1030 万元、SPI≈1.19（进度延误）；结论：成本超支、进度延误。", ok:false, code:"E07", tempt:"数值算对了，四个方向却整体判反。", lose:"正数、大于1 应判节支/提前，却全写成超支/延误，方向系统性反。", fix:"正数、大于1 → 节支/提前；结论应为成本节支、进度提前。" },
+        { t:"CV=130 万元（节支）、SV=1030 万元（提前），结论成本节支进度提前；CPI、SPI 意义重复可不算。", ok:false, code:"E02", tempt:"算完 CV/SV 觉得指数「重复」省掉。", lose:"CPI/SPI 是独立采分点（相对效率），漏算丢分。", fix:"补 CPI≈1.02、SPI≈1.19，指数与偏差都要写。" },
+        { t:"CV=130、SV=1030、CPI≈1.02、SPI≈1.19，四个数都算对，成本进度总体情况良好。", ok:false, code:"E04", tempt:"四个数全对，用「总体良好」收尾。", lose:"漏规范判读词（节支/提前）与偏差单位，口号化收尾丢方向/表达分。", fix:"落规范词与单位：成本节支、进度提前，偏差带万元。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"结论方向对，但过程有问题…", fig:"sheet",
+      figLines:["① CV = ACWP − BCWP = 6240 − 6370 = −130","② 成本超支 130 万元","③ 只算了成本，没算进度 SV/SPI"],
+      stem:"某学生作答如图：①CV 写成 ACWP−BCWP=−130；②判成本超支；③未算进度。选出最准确的诊断与补写。",
+      model:"CV 被减数减数颠倒（应 BCWP−ACWP=+130 万元，成本节支）、方向随之判反、且漏算进度 SV=1030 万元/SPI≈1.19（进度提前）；三处都要补。",
+      opts:[
+        { t:"CV 被减数减数颠倒致方向判反（应=BCWP−ACWP=+130 万元、成本节支），且漏算进度 SV=1030 万元、SPI≈1.19（进度提前），三处都要补。", ok:true, fix:"揪出「公式颠倒→方向反」和「漏进度侧」两类失分，补写即成满分采分句。", code:"" },
+        { t:"计算和方向都没问题，只是漏了进度部分，把 SV、SPI 补上就是满分作答，学生的 CV 算式与成本超支判断本身都成立、不用改，只差把进度侧两项补齐、整道题就算完整作答了。", ok:false, code:"E09", tempt:"只盯着「漏进度」，没发现 CV 公式本身写反。", lose:"CV=ACWP−BCWP 已经颠倒、成本超支判反；只补进度仍是错的。", fix:"先纠 CV=BCWP−ACWP=+130 万元（节支），再补进度侧。" },
+        { t:"CV 算出 −130、判成本超支，结论没错；只要再补一句进度提前即可。", ok:false, code:"E07", tempt:"把颠倒得到的 −130/超支当成正确结论。", lose:"−130/超支正是公式颠倒造成的错误方向，不是正确结论。", fix:"CV 应=+130 万元、成本节支；方向要改回来。" },
+        { t:"学生思路完全正确，CV 用实际减挣值更直观，判超支也合理，可给满分。", ok:false, code:"E07", tempt:"被「实际减挣值更直观」的错觉带偏。", lose:"CV 定义就是 BCWP−ACWP，颠倒即错，且方向判反、漏进度，远非满分。", fix:"CV=BCWP−ACWP=+130 万元、成本节支，并补齐进度侧。" }
+      ] }
+  ];
+  // ── 错因码库（按 deeptutor/contracts/error_codes 注册码 E01–E12，勿自造）──
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"成本侧 CV/CPI、进度侧 SV/SPI 四指标都要算，缺一扣一。"},
+    E03:{label:"关键词/单位缺失",advice:"偏差带「万元」、绩效指数无量纲不带单位，别加错也别漏。"},
+    E04:{label:"口号化表达",advice:"必须落规范判读词：节支/超支、提前/延误，不能只说「不错/良好」。"},
+    E07:{label:"概念混淆",advice:"三值量×价来源分清、公式别颠倒、正数与大于1一律是好。"},
+    E08:{label:"背景信息提取失败",advice:"先认清题给的是「量与价」还是三值；该先求 BCWP 就先求。"},
+    E09:{label:"计算错误",advice:"被减数减数、分子分母不反：CV=BCWP−ACWP、CPI=BCWP/ACWP。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    // 抽题顺序与选项乱序在首帧惰性生成并缓存（ord()/optPerm()），不依赖此处 setState，
+    // 保证首屏渲染即已随机（消除"A 先出现再洗牌"的闪烁与对 componentDidMount 的依赖）。
+  }
+  // ── 随机抽题：从 Q[] 全量候选池洗牌后取前 SHOW_COUNT 条真实索引 ──
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  // ── 选项乱序：每题对 opts 独立洗牌，正确项落随机位置（防"永远选第一个/最长的"位置泄露）；重做重新洗 ──
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const q=this.qAt(qi), type=q.fig, els=[]; let figH=100;
+    if(type==="threevals"){ figH=108; const vals=[["挣值 BCWP",6370,"#2c8a5b","已完成量×预算价"],["计划值 BCWS",5340,"#2f6db0","计划量×预算价"],["实际 ACWP",6240,"#cf4436","已完成量×实际价"]]; const base=66, x0=[16,132,248];
+      vals.forEach((v,i)=>{ const h=Math.round(v[1]*0.0088), x=x0[i];
+        els.push(D({x:x-4,top:base-h-15,w:64,h:13,fg:v[2],fs:12,lab:String(v[1])}));
+        els.push(D({x:x,top:base-h,w:56,h:h,bg:v[2],r:5}));
+        els.push(D({x:x-6,top:base+4,w:68,h:12,fg:v[2],fs:9.5,fw:"800",lab:v[0]}));
+        els.push(D({x:x-6,top:base+18,w:68,h:11,fg:"#8b9398",fs:8,lab:v[3]})); }); }
+    else if(type==="mix"){ figH=108; const rows=[["BCWP","#2c8a5b","已完成量","#2c8a5b","预算单价","#cf8a44"],["BCWS","#2f6db0","计划量","#2f6db0","预算单价","#cf8a44"],["ACWP","#cf4436","已完成量","#2c8a5b","实际单价","#cf4436"]];
+      rows.forEach((r,i)=>{ const y=8+i*32;
+        els.push(D({x:2,top:y,w:52,h:24,bg:r[1],r:7,fg:"#fff",fs:11,lab:r[0]}));
+        els.push(D({x:56,top:y,w:14,h:24,fg:"#8b9398",fs:12,lab:"="}));
+        els.push(D({x:72,top:y,w:92,h:24,bg:"#faf7f0",bd:"1.5px solid "+r[3],r:7,fg:r[3],fs:10,lab:r[2]}));
+        els.push(D({x:166,top:y,w:14,h:24,fg:"#8b9398",fs:12,lab:"×"}));
+        els.push(D({x:182,top:y,w:92,h:24,bg:"#faf7f0",bd:"1.5px solid "+r[5],r:7,fg:r[5],fs:10,lab:r[4]})); }); }
+    else if(type==="metric"){ figH=104; const fd=q.figData||{op:"−",a:["A","#2c8a5b"],b:["B","#cf4436"],res:"= ?",div:"0",good:true,loLab:"差",hiLab:"好"};
+      els.push(D({x:2,top:6,w:96,h:26,bg:fd.a[1],r:7,fg:"#fff",fs:10.5,lab:fd.a[0]}));
+      els.push(D({x:100,top:6,w:18,h:26,fg:"#5c6469",fs:15,lab:fd.op}));
+      els.push(D({x:120,top:6,w:96,h:26,bg:fd.b[1],r:7,fg:"#fff",fs:10.5,lab:fd.b[0]}));
+      els.push(D({x:218,top:6,w:16,h:26,fg:"#5c6469",fs:14,lab:"="}));
+      els.push(D({x:236,top:6,w:96,h:26,bg:(fd.good?"#2c8a5b":"#cf4436"),r:7,fg:"#fff",fs:10.5,lab:fd.res}));
+      const tx=16, tw=302, mid=tx+tw/2;
+      els.push(D({x:tx,top:64,w:tw/2,h:16,bg:"#f6ddd6",r:0,lab:""}));
+      els.push(D({x:mid,top:64,w:tw/2,h:16,bg:"#d9ecdf",r:0,lab:""}));
+      els.push(D({x:mid-1,top:58,w:2,h:28,bg:"#5c6469",lab:""}));
+      els.push(D({x:mid-14,top:40,w:28,h:14,fg:"#5c6469",fs:10,lab:fd.div}));
+      const dotX=fd.good?(mid+tw/4-7):(tx+tw/4-7);
+      els.push(D({x:dotX,top:62,w:20,h:20,bg:(fd.good?"#2c8a5b":"#cf4436"),r:10,bd:"2px solid #fff",lab:""}));
+      els.push(D({x:tx,top:86,w:tw/2-4,h:13,fg:"#c0392b",fs:9,ta:"left",jc:"flex-start",lab:fd.loLab}));
+      els.push(D({x:mid+4,top:86,w:tw/2-4,h:13,fg:"#2c8a5b",fs:9,ta:"right",jc:"flex-end",lab:fd.hiLab})); }
+    else if(type==="sheet"){ const lines=q.figLines||[]; figH=10+lines.length*29;
+      lines.forEach((l,i)=>{ els.push(D({x:2,top:6+i*29,w:328,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11.5,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

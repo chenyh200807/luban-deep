@@ -100,8 +100,9 @@ def _practice_capability(pack_id: str, content_sha256: str) -> dict[str, Any]:
     filename = f"{pack_id.lower()}.practice.authority.json"
     path = PRACTICE_AUTHORITY_DIR / filename
     try:
-        authority = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        authority_bytes = path.read_bytes()
+        authority = json.loads(authority_bytes)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return {"status": "unavailable"}
     surfaces = authority.get("surfaces") if isinstance(authority, dict) else None
     items = authority.get("items") if isinstance(authority, dict) else None
@@ -129,6 +130,7 @@ def _practice_capability(pack_id: str, content_sha256: str) -> dict[str, Any]:
     return {
         "status": "compiled",
         "authority_path": filename,
+        "authority_sha256": hashlib.sha256(authority_bytes).hexdigest(),
         "source_pack_sha256": content_sha256,
         "source_bundle_sha256": str(authority.get("source_bundle_sha256") or ""),
         "surface_count": len(surfaces),

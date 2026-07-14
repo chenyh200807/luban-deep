@@ -2,7 +2,7 @@
   "schema_version": "luban_compiled_practice.v1",
   "pack_id": "F16",
   "source_pack_sha256": "51b0f455ad205b4ed9965720d9562861a4a2ef7e8e7aa4c690ca69b8d88fff2e",
-  "source_bundle_sha256": "393fd34e69420f46f74052ea4f0a3d958b1ba452a4a33657f849ae35d44b2806",
+  "source_bundle_sha256": "fa2c51418c758198d7fe0222281aab9b0d94e9d68ce420169282c0fd54f23b13",
   "surfaces": [
     {
       "surface_id": "practice.html",

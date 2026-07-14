@@ -94,6 +94,13 @@ function loadPage(options) {
         };
       }
       if (request === "../../../utils/helpers") return { isDark: function () { return false; } };
+      if (request === "../../../utils/auth") {
+        return {
+          getUserId: function () { return "student-a"; },
+          readOwnerStorage: function () { return null; },
+          writeOwnerStorage: function () { return true; },
+        };
+      }
       if (request === "../../../utils/route") {
         return { lubanConceptCards: function () { return "/packageDeeptutor/pages/luban/concept-cards/concept-cards"; } };
       }

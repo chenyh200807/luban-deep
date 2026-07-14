@@ -27,6 +27,40 @@ def test_registry_has_exact_37_finished_topics_and_canonical_variants() -> None:
     assert set(_mod.STATIONS["s01"].practice) == {
         "practice.html", "practice2.html", "practice3.html"
     }
+    registered_sources = {
+        name for station in _mod.STATIONS.values() for name in station.practice.values()
+    }
+    assert "P40_C02.practice.up.dc.html" not in registered_sources
+    assert "P40_C02.practice.down.dc.html" not in registered_sources
+    assert all("S07B" not in name for name in registered_sources)
+
+
+def test_all_registered_practice_outputs_rebuild_from_tracked_sources() -> None:
+    for station_id, station in _mod.STATIONS.items():
+        rendered, authority = _mod._practice_only_outputs(
+            station_id, station, finished_root=_mod.FINISHED
+        )
+        for hosted_name, text in rendered.items():
+            assert (_mod.HOST / station_id / hosted_name).read_text(
+                encoding="utf-8"
+            ) == text
+        assert (_mod.AUTHORITY_HOST / f"{station_id}.practice.authority.json").read_text(
+            encoding="utf-8"
+        ) == json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
+
+
+def test_practice_only_check_does_not_touch_lesson_or_support() -> None:
+    station_id = "f16"
+    lesson = _mod.HOST / station_id / "lesson.html"
+    support = _mod.HOST / station_id / "support.js"
+    before = (_mod._sha256(lesson), _mod._sha256(support))
+
+    written = _mod.check_practice_only(
+        station_id, _mod.STATIONS[station_id], finished_root=_mod.FINISHED
+    )
+
+    assert written == ["practice.html", "server-authority/f16"]
+    assert (_mod._sha256(lesson), _mod._sha256(support)) == before
 
 
 def test_s07_registry_cannot_regress_to_the_n03_runtime() -> None:
@@ -165,7 +199,6 @@ def test_support_transform_failure_keeps_existing_hosted_tree(
         lambda *_args, **_kwargs: {},
     )
     monkeypatch.setattr(_mod, "_pack_source_sha", lambda _pack: "0" * 64)
-    monkeypatch.setattr(_mod, "_finished_bundle_sha", lambda _src: "1" * 64)
     station = _mod.Station(
         pack_dir="PACK",
         teach={"lesson.html": "teach.html"},

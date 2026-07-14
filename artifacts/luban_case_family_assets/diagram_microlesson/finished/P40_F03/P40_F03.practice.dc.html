@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<!-- ░░░ 母版骨架：随堂练 ░░░ 改 Q[] 即可。每题必须有图示位 + 完整采分句选项 + 每错项三段解析 -->
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="P40_F03.teach.up.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <!-- 图示位（每题必有：标尺/变化图/管道/诊断图/答题纸；此处给通用占位，按题替换内部 SVG/结构）-->
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="P40_F03.teach.up.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY (大窗 · 自动带题目) -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 母版骨架逻辑：随堂练 ░░░
+   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
+   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
+   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
+   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
+     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
+   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
+     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+class Component extends DCLogic {
+  // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
+  //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="防水构造层次 · 屋面/地下";
+  KNOWLEDGE="防水构造层次(屋面+地下合并练)。屋面:防水分三级(一级≥3道卷材≥1道/二级≥2道/三级≥1道);以防为主以排为辅、年限≥20年、泛水设附加层;倒置式自下而上结构→找坡→找平→防水→保温→保护(保温在防水之上);隔汽层在结构层上保温层下高出保温≥150mm;种植屋面10层多一道耐根穿刺防水层(改性沥青≥4mm/PVC等≥1.2mm/聚脲≥2mm),坡度≥2%天沟檐沟≥1%。地下:防水等级四级;一级≥3道=防水混凝土1道(应选)+外设≥2道(卷材/涂料≥1道)+抗渗≥P8;三级≥1道·P6·外设不作要求;防水混凝土抗渗≥P6·试配比设计提0.2MPa(P8→P10)·水胶比≤0.50·分层≤500mm;施工缝≥2种·后浇带≥1种·水平缝高出底板≥300mm·止水条最终膨胀率≥220%。室内:淋浴翻起≥2000/盥洗≥1200/其他≥250mm·迎水面设防水。常见失分:屋面地下级数互套、漏卷材≥1道/外设≥2道、倒置式保温写到防水下、隔汽漏150、种植漏耐根穿刺、试配不提0.2、施工缝只1种、淋浴写战1800。";
+  moreText="本套合并了屋面与地下两阶段：屋面(定级/道数/倒置式层序/隔汽/种植耐根穿刺) + 地下(四级/一级做法/试配抗渗/接缝设防/室内翻起)。错在哪个阶段就回看那一集讲解，把整句采分句练顺。";
+  // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
+  Q=[
+    { tag:"屋面·定级", typeHint:"单选 · 选出分级与道数配套正确的作答", figLabel:"题给：屋面防水等级", figCaption:"屋面分几级？各级几道？", fig:"grade3",
+      stem:"某工程屋面防水设计。关于屋面防水的分级与设防道数，选出正确、能得分的作答。",
+      model:"屋面防水分一、二、三级共三级；一级不少于3道(卷材≥1道)、二级不少于2道(卷材≥1道)、三级不少于1道。",
+      opts:[
+        { t:"屋面防水分一、二、三级共三级；一级不少于3道(其中卷材≥1道)、二级不少于2道、三级不少于1道。", ok:true, fix:"分级数写「三级」并把各级道数配套点出，一句到位。", code:"" },
+        { t:"屋面防水和地下一样分一、二、三、四级共四级，按四级对应各级设防道数。", ok:false, code:"E07", tempt:"屋面地下都叫防水，顺手记成同一套分级。", lose:"屋面是三级、地下才四级，分级数记混，等级一错道数全跟着错。", fix:"屋面防水分三级；四级是地下工程防水等级。" },
+        { t:"屋面防水分三级，但各级道数不用记，按现场渗漏情况增减道数即可。", ok:false, code:"E02", tempt:"记住「三级」就以为够了，懒得背道数。", lose:"漏了各级设防道数这组采分点，只答分级不给全分。", fix:"补写一级≥3道(卷材≥1道)、二级≥2道、三级≥1道。" },
+        { t:"屋面防水分三级，一级不少于2道、二级不少于1道，卷材涂料任选不作要求。", ok:false, code:"E03", tempt:"分级对，道数凭印象往小了写。", lose:"一级道数写少、且漏了「卷材≥1道」这个关键配套，数字错位。", fix:"一级≥3道且卷材≥1道、二级≥2道、三级≥1道。" }
+      ] },
+    { tag:"屋面·道数", typeHint:"单选 · 选出一级设防道数写得全的作答", figLabel:"题给：屋面一级防水", figCaption:"一级≥3道，怎么配才拿分？", fig:"roofdef",
+      stem:"某屋面防水等级为一级。关于其设防道数，选出完整、能得分的作答。",
+      model:"屋面一级防水设防不少于3道，其中卷材防水层不少于1道；多道设防、一道破了后道兜底。",
+      opts:[
+        { t:"屋面一级防水设防不少于3道，其中卷材防水层不少于1道，多道叠加、一道破了还有后手。", ok:true, fix:"道数+「卷材≥1道」配套+多道容错，采分句写全。", code:"" },
+        { t:"屋面一级防水做1道高性能卷材即可，材料好一道就顶住，不必叠多道。", ok:false, code:"E02", tempt:"觉得材料够好、一道省事又省钱。", lose:"一级要求≥3道，只写1道漏采分；单道被打穿水就进结构。", fix:"一级≥3道(卷材≥1道)，多道设防才容错。" },
+        { t:"屋面一级防水不少于3道，三道随便配，涂料涂膜叠三层也算达标。", ok:false, code:"E03", tempt:"记住「3道」就以为齐了。", lose:"漏了「其中卷材≥1道」这一硬性配套，三道全涂膜不达标。", fix:"3道里必须至少1道是卷材防水层。" },
+        { t:"屋面一级和地下一级一样，要防水混凝土1道加外设2道共3道。", ok:false, code:"E07", tempt:"都是「一级≥3道」，把地下的做法套到屋面。", lose:"防水混凝土+外设是地下的构成，屋面不用结构自防水这套。", fix:"屋面一级=≥3道(卷材≥1道)；防水混凝土应选是地下的。" }
+      ] },
+    { tag:"屋面·基本要求", typeHint:"单选 · 选出基本要求写得全的作答", figLabel:"题给：屋面防水基本要求", figCaption:"排水原则 / 年限 / 附加层", fig:"reqs",
+      stem:"关于屋面防水的基本要求，选出完整、能得分的作答。",
+      model:"屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位设附加层。",
+      opts:[
+        { t:"屋面防水以防为主、以排为辅；设计工作年限不少于20年；天沟、檐沟、变形缝、泛水等部位加设附加层。", ok:true, fix:"排水原则+年限+附加层三件齐，采分句到位。", code:"" },
+        { t:"屋面防水以排为主、以防为辅；设计工作年限不少于20年，泛水部位加设附加层。", ok:false, code:"E07", tempt:"觉得屋面靠排水、「以排为主」顺口。", lose:"原则写反了，屋面是「以防为主、以排为辅」，方针错要扣。", fix:"是以防为主、以排为辅，别把主辅颠倒。" },
+        { t:"屋面防水以防为主、以排为辅；设计工作年限不少于20年即可，各部位构造相同不必区别处理。", ok:false, code:"E02", tempt:"原则年限都对，就漏了细部。", lose:"漏了天沟/檐沟/变形缝/泛水设附加层这组采分点。", fix:"补写泛水等薄弱部位加设附加层。" },
+        { t:"屋面防水以防为主、以排为辅；设计工作年限不少于10年，泛水部位设附加层。", ok:false, code:"E03", tempt:"原则附加层都对，年限凭印象写10年。", lose:"年限数字写小，屋面防水设计工作年限应≥20年。", fix:"设计工作年限不少于20年，不是10年。" }
+      ] },
+    { tag:"屋面·层序", typeHint:"单选 · 选出倒置式层序自下而上正确的作答", figLabel:"题给：倒置式屋面构造层", figCaption:"自下而上怎么排？", fig:"invert",
+      stem:"某工程屋面采用倒置式保温屋面。写出自下而上的构造层次顺序，选出正确、能得分的作答。",
+      model:"倒置式屋面自下而上：结构层→找坡层→找平层→防水层→保温层→保护层（保温层在防水层之上）。",
+      opts:[
+        { t:"自下而上：结构层→找坡层→找平层→防水层→保温层→保护层，保温层在防水层之上。", ok:true, fix:"层序对+点出「保温在防水之上」这一倒置式特征，采分句齐。", code:"" },
+        { t:"自下而上：结构层→找坡层→找平层→保温层→防水层→保护层，保温层在防水层之下。", ok:false, code:"E06", tempt:"惯性按正置式排，保温先铺、防水后做。", lose:"把保温写在防水之下＝正置式，倒置式层序整维错。", fix:"倒置式保温层在防水层之上，顺序是防水→保温→保护。" },
+        { t:"自下而上：结构层→防水层→保温层→保护层，找坡找平不属构造层可省略。", ok:false, code:"E02", tempt:"只记住防水保温保护几个大层。", lose:"漏排找坡层、找平层两道过渡层，层次不全。", fix:"补齐结构→找坡→找平→防水→保温→保护。" },
+        { t:"自下而上：结构层→找平层→找坡层→防水层→保温层→保护层，先找平再找坡。", ok:false, code:"E06", tempt:"找坡找平都做，顺手把两者调了个位。", lose:"顺序反了，应先找坡再找平（口诀「结构找坡再找平」）。", fix:"是找坡层在下、找平层在上：结构→找坡→找平。" }
+      ] },
+    { tag:"屋面·层序辨析", typeHint:"单选 · 指出倒置式的判别特征", figLabel:"题给：正置式 vs 倒置式", figCaption:"区分两者的关键是哪一层的位置？", fig:"invert",
+      stem:"倒置式屋面与正置式屋面的关键区别在哪？选出准确、能得分的作答。",
+      model:"倒置式的特征是保温层设在防水层之上（正置式保温在防水之下），保温层保护防水层、延长其寿命。",
+      opts:[
+        { t:"倒置式特征是保温层设在防水层之上，反过来正置式保温在防水之下；保温在上保护防水层、延寿。", ok:true, fix:"点出唯一判别特征「保温相对防水的位置」，并说清好处。", code:"" },
+        { t:"倒置式与正置式的区别是有没有找坡层，倒置式取消找坡层直接做防水。", ok:false, code:"E07", tempt:"记不清特征，抓个「少一层」当区别。", lose:"两者都有找坡层，区别不在找坡；判别特征找错。", fix:"区别是保温层在防水层之上（倒置）还是之下（正置）。" },
+        { t:"倒置式是把保护层做到最下面、结构层做到最上面，整个层序上下颠倒。", ok:false, code:"E07", tempt:"望文生义，以为「倒置」是整摞层序翻转。", lose:"结构层始终在最下、保护层在最上，倒置只针对保温与防水的相对位置。", fix:"倒置只把保温层挪到防水层之上，其余不倒。" },
+        { t:"倒置式与正置式的区别是防水材料不同，倒置式必须用耐根穿刺卷材。", ok:false, code:"E07", tempt:"把种植屋面的耐根穿刺硬套过来。", lose:"倒置式区别在层位不在材料，耐根穿刺是种植屋面的层。", fix:"判别特征是保温在防水之上，与材料无关。" }
+      ] },
+    { tag:"屋面·隔汽层", typeHint:"单选 · 选出隔汽层位置与数值都对的作答", figLabel:"题给：隔汽层构造", figCaption:"放哪？翻起多高？", fig:"vapor",
+      stem:"关于屋面隔汽层的位置与构造，选出正确、能得分的作答。",
+      model:"隔汽层设在结构层之上、保温层之下，气密性好；沿周边墙面向上连续铺设，高出保温层不少于150mm。",
+      opts:[
+        { t:"隔汽层设在结构层之上、保温层之下，气密性好；沿墙面向上连续铺设、高出保温层不少于150mm。", ok:true, fix:"位置（结构上·保温下）+翻起150mm两个采分点都写到。", code:"" },
+        { t:"隔汽层设在防水层之上、保温层之上，把室内湿汽挡在最外层，高出保温层不少于150mm。", ok:false, code:"E06", tempt:"觉得隔汽要挡在外面、往上放。", lose:"位置错，隔汽层在结构层上、保温层下，不是放防水层上。", fix:"隔汽层在结构层之上、保温层之下。" },
+        { t:"隔汽层设在结构层之上、保温层之下，气密性好，沿墙面铺到与保温层齐平即可。", ok:false, code:"E03", tempt:"位置对，翻起高度凭印象写「齐平」。", lose:"漏了」高出保温层≥150mm「这个数值采分点。", fix:"沿墙翻起要高出保温层不少于150mm。" },
+        { t:"隔汽层设在结构层之上、保温层之下，沿墙面向上高出保温层不少于50mm即可。", ok:false, code:"E03", tempt:"位置对，把150记成了50。", lose:"翻起高度数字写小，应≥150mm不是50mm。", fix:"高出保温层不少于150mm。" }
+      ] },
+    { tag:"屋面·种植", typeHint:"单选 · 种植屋面比普通屋面多哪道", figLabel:"题给：种植屋面构造", figCaption:"多出来的是哪一层？", fig:"green",
+      stem:"种植屋面比普通屋面在构造上多了关键的一道防水层，是哪一道？选出正确、能得分的作答。",
+      model:"种植屋面在普通防水层之上多设一道耐根穿刺防水层，防止植物根系穿破防水层。",
+      opts:[
+        { t:"种植屋面在普通防水层之上多设一道耐根穿刺防水层，专防植物根系扎穿防水层。", ok:true, fix:"点名「耐根穿刺防水层」并说清作用，采分到位。", code:"" },
+        { t:"种植屋面比普通屋面多一道保温隔热层，用来给植物根部保温防冻。", ok:false, code:"E07", tempt:"想当然以为给植物就多保温。", lose:"多的是耐根穿刺防水层，不是保温层；层的性质记错。", fix:"多的是耐根穿刺防水层，防根扎穿。" },
+        { t:"种植屋面比普通屋面多一道过滤层就够，防水层与普通屋面完全相同。", ok:false, code:"E02", tempt:"看到「过滤层」这类新层就以为它是关键。", lose:"漏了耐根穿刺防水层这道关键采分层，过滤层挡不住根。", fix:"关键是多一道耐根穿刺防水层。" },
+        { t:"种植屋面把普通防水层换成一道耐根穿刺层，两者是替换关系、总层数不变。", ok:false, code:"E06", tempt:"以为耐根穿刺是替代普通防水。", lose:"是」多加」一道、普通防水在下耐根穿刺在上，不是替换。", fix:"普通防水层保留，其上再加耐根穿刺防水层。" }
+      ] },
+    { tag:"屋面·种植数值", typeHint:"单选 · 耐根穿刺厚度与排水坡度", figLabel:"题给：种植屋面参数", figCaption:"厚度 / 坡度各是多少？", fig:"green",
+      stem:"关于种植屋面耐根穿刺防水层厚度与排水坡度，选出数值正确、能得分的作答。",
+      model:"耐根穿刺：改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。",
+      opts:[
+        { t:"耐根穿刺改性沥青卷材≥4mm、PVC/TPO等≥1.2mm、喷涂聚脲≥2mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。", ok:true, fix:"厚度分材料写全、坡度两档写全，数值采分齐。", code:"" },
+        { t:"耐根穿刺各材料厚度都不少于1mm；排水坡度种植平屋面≥2%、天沟檐沟≥1%。", ok:false, code:"E03", tempt:"坡度对，厚度嫌麻烦笼统写「≥1mm」。", lose:"厚度按材料分档，改性沥青要≥4mm，一刀切1mm数值错。", fix:"改性沥青≥4mm、PVC等≥1.2mm、聚脲≥2mm。" },
+        { t:"耐根穿刺改性沥青≥4mm、PVC等≥1.2mm、聚脲≥2mm；排水坡度种植平屋面≥1%即可。", ok:false, code:"E03", tempt:"厚度对，坡度把2%记成1%。", lose:"种植平屋面坡度应≥2%，写1%数值偏小。", fix:"种植平屋面≥2%、天沟檐沟≥1%。" },
+        { t:"耐根穿刺厚度按现场定、无硬性要求；排水坡度种植平屋面≥2%、天沟檐沟≥1%。", ok:false, code:"E02", tempt:"坡度写对，厚度懒得记具体值。", lose:"漏了耐根穿刺分材料的最小厚度这组采分数值。", fix:"补写各材料最小厚度4/1.2/2mm。" }
+      ] },
+    { tag:"地下·定级", typeHint:"单选 · 地下工程防水等级分几级", figLabel:"题给：地下工程防水等级", figCaption:"分几级？和屋面一样吗？", fig:"grade4",
+      stem:"关于地下工程防水等级的分级，选出正确、能得分的作答。",
+      model:"地下工程防水等级分一、二、三、四级共四级（屋面防水才分三级），分级数不同不可互套。",
+      opts:[
+        { t:"地下工程防水等级分一、二、三、四级共四级；屋面防水分三级，两者分级数不同不可互套。", ok:true, fix:"分级数「四级」写准，并点明与屋面三级的区分，防互套。", code:"" },
+        { t:"地下工程防水等级和屋面一样分一、二、三级共三级，按三级选设防。", ok:false, code:"E07", tempt:"把屋面三级顺手套到地下。", lose:"地下是四级、屋面才三级，分级数记混、等级一错全错。", fix:"地下分四级；三级是屋面防水分级。" },
+        { t:"地下工程防水等级分一、二、三、四、五级共五级，级数越高要求越低。", ok:false, code:"E03", tempt:"觉得地下更复杂，多补一级凑「五级」。", lose:"地下只到四级，写五级分级数多了、数字错。", fix:"地下工程防水等级共四级，没有五级。" },
+        { t:"地下工程防水按有无渗水只分合格与不合格两档，不细分等级。", ok:false, code:"E07", tempt:"以为渗漏就是「合格/不合格」二分。", lose:"地下防水按渗漏程度分四级，不是两档。", fix:"分四级：一级不渗水到四级有漏点。" }
+      ] },
+    { tag:"地下·一级做法", typeHint:"单选 · 选出一级做法写得全的作答", figLabel:"题给：地下一级防水", figCaption:"≥3道怎么构成？", fig:"dugdef",
+      stem:"某地下工程防水等级为一级。关于其防水做法与抗渗，选出完整、能得分的作答。",
+      model:"地下一级防水做法不少于3道＝防水混凝土1道(应选)＋外设防水层不少于2道(卷材或涂料≥1道)，抗渗不低于P8。",
+      opts:[
+        { t:"地下一级防水不少于3道＝防水混凝土1道(应选)＋外设防水层≥2道(卷材或涂料≥1道)，抗渗不低于P8。", ok:true, fix:"防水混凝土应选＋外设≥2道＋P8，三件配套写全。", code:"" },
+        { t:"地下一级防水做防水混凝土一道即可，结构自防水抗渗到P8就不必再外加防水层。", ok:false, code:"E02", tempt:"觉得防水混凝土P8已很强、省去外设。", lose:"一级要≥3道，漏了外设防水层≥2道这组采分，只1道不达标。", fix:"防水混凝土1道＋外设≥2道，共≥3道。" },
+        { t:"地下一级防水不少于3道＝外设防水层3道，防水混凝土不作要求、抗渗到P8即可。", ok:false, code:"E02", tempt:"记得「3道」和「P8」，把混凝土漏了。", lose:"漏了」防水混凝土1道应选」这个必选采分项。", fix:"3道里防水混凝土是应选的1道。" },
+        { t:"地下一级防水不少于3道＝防水混凝土1道＋外设≥2道，抗渗不低于P6即可。", ok:false, code:"E03", tempt:"道数配套都对，抗渗把P8记成P6。", lose:"一级抗渗应≥P8，写P6数字偏低（P6是三级）。", fix:"一级抗渗不低于P8。" }
+      ] },
+    { tag:"地下·三级", typeHint:"单选 · 选出三级要求写得准的作答", figLabel:"题给：地下三级防水", figCaption:"三级和一级差在哪？", fig:"grade4",
+      stem:"某地下工程防水等级为三级。关于其防水做法与抗渗，选出正确、能得分的作答。",
+      model:"地下三级防水做法不少于1道，防水混凝土1道(应选)，外设防水层不作要求，抗渗不低于P6。",
+      opts:[
+        { t:"地下三级防水不少于1道、防水混凝土1道应选，外设防水层不作要求，抗渗不低于P6。", ok:true, fix:"道数、外设不作要求、抗渗P6三点写准，与一级区分清。", code:"" },
+        { t:"地下三级防水也要不少于3道、外设≥2道、抗渗P8，与一级要求相同。", ok:false, code:"E07", tempt:"把一级那套硬性要求套到三级。", lose:"三级只需≥1道、抗渗P6，写成一级要求过度设防、口径错。", fix:"三级≥1道、P6、外设不作要求。" },
+        { t:"地下三级防水不少于1道，抗渗不低于P8，外设防水层不作要求。", ok:false, code:"E03", tempt:"道数对，抗渗顺手写成P8。", lose:"三级抗渗应≥P6，P8是一级的数值，数字错位。", fix:"三级抗渗不低于P6。" },
+        { t:"地下三级防水不少于1道即可，防水混凝土可要可不要、抗渗不作要求。", ok:false, code:"E02", tempt:"觉得三级最松、什么都不作要求。", lose:"漏了防水混凝土1道应选、抗渗≥P6这两个采分点。", fix:"防水混凝土仍应选1道、抗渗仍≥P6。" }
+      ] },
+    { tag:"地下·结构自防水", typeHint:"单选 · 选出试配抗渗写得对的作答", figLabel:"题给：防水混凝土抗渗", figCaption:"设计P8，试配配到几？", fig:"mix",
+      stem:"某地下防水混凝土设计抗渗等级P8。关于试配抗渗的取值，选出正确、能得分的作答。",
+      model:"防水混凝土试配抗渗比设计提高0.2MPa，即设计P8时试配配到P10，以预留施工离散的富余。",
+      opts:[
+        { t:"防水混凝土试配抗渗比设计提高0.2MPa，设计P8则试配配到P10，预留施工离散富余。", ok:true, fix:"点出「试配比设计提高0.2MPa」并给出P8→P10，采分到位。", code:"" },
+        { t:"防水混凝土试配抗渗按设计值取，设计P8试配就配到P8，一致即可。", ok:false, code:"E07", tempt:"觉得试配＝设计、按设计值配最省事。", lose:"试配要比设计提高0.2MPa，直接按P8配现场实测易低于设计。", fix:"试配比设计提高0.2MPa，P8配到P10。" },
+        { t:"防水混凝土试配抗渗比设计提高0.2MPa，设计P8则试配配到P9。", ok:false, code:"E03", tempt:"知道要提高，把一个抗渗等级差算成0.1MPa。", lose:"一个抗渗等级是0.2MPa，P8提0.2应到P10不是P9。", fix:"提高0.2MPa即提高一个等级，P8→P10。" },
+        { t:"防水混凝土试配抗渗比设计降低0.2MPa，设计P8则试配P6，方便施工。", ok:false, code:"E07", tempt:"以为放宽试配好施工。", lose:"方向反了，试配要比设计」提高」不是降低，降低会不达标。", fix:"是提高0.2MPa，P8→P10。" }
+      ] },
+    { tag:"地下·接缝", typeHint:"单选 · 选出接缝设防种数写得对的作答", figLabel:"题给：接缝防水设防", figCaption:"施工缝、后浇带各几种？", fig:"joint",
+      stem:"关于地下工程施工缝、后浇带的防水设防种数，选出正确、能得分的作答。",
+      model:"施工缝防水设防不少于2种、后浇带防水设防不少于1种（中埋止水带、遇水膨胀止水条、注浆管、外贴卷材等搭配）。",
+      opts:[
+        { t:"施工缝防水设防不少于2种、后浇带不少于1种，中埋止水带、遇水膨胀止水条、外贴卷材等搭配互相兜底。", ok:true, fix:"两种缝的种数分别写准，并举出有效措施，采分齐。", code:"" },
+        { t:"施工缝、后浇带都只需设1种防水措施，选一种可靠的止水带即可。", ok:false, code:"E03", tempt:"觉得一种可靠措施就够。", lose:"施工缝要≥2种，写1种数字不足；单措施失效即漏。", fix:"施工缝≥2种、后浇带≥1种。" },
+        { t:"施工缝防水设防不少于1种、后浇带不少于2种，后浇带更弱要多设。", ok:false, code:"E07", tempt:"觉得后浇带更弱，把两者种数记反。", lose:"是施工缝≥2种、后浇带≥1种，两者种数记反了。", fix:"施工缝2种、后浇带1种，别调换。" },
+        { t:"施工缝防水设防不少于2种，后浇带用补偿收缩混凝土浇实即可、不必再设止水措施。", ok:false, code:"E02", tempt:"施工缝对，觉得后浇带浇实就行。", lose:"漏了后浇带仍需≥1种防水设防这个采分点。", fix:"后浇带也要≥1种防水设防措施。" }
+      ] },
+    { tag:"地下·施工缝位置", typeHint:"单选 · 选出施工缝位置与止水条数值对的作答", figLabel:"题给：水平施工缝设置", figCaption:"高出底板多少？止水条膨胀率多少？", fig:"joint",
+      stem:"关于地下水平施工缝的设置与遇水膨胀止水条性能，选出数值正确、能得分的作答。",
+      model:"水平施工缝高出底板不少于300mm、距孔洞边缘不少于300mm；遇水膨胀止水条最终膨胀率不低于220%。",
+      opts:[
+        { t:"水平施工缝高出底板不少于300mm、距孔洞边缘不少于300mm；遇水膨胀止水条最终膨胀率不低于220%。", ok:true, fix:"缝位300mm与止水条220%两个数值都写全。", code:"" },
+        { t:"水平施工缝留在底板表面处最省事，遇水膨胀止水条最终膨胀率不低于220%。", ok:false, code:"E10", tempt:"觉得缝留底板面好支模、好施工。", lose:"缝留底板面正处积水区易漏，应高出底板≥300mm。", fix:"水平施工缝高出底板不少于300mm。" },
+        { t:"水平施工缝高出底板不少于100mm；遇水膨胀止水条最终膨胀率不低于220%。", ok:false, code:"E03", tempt:"止水条对，缝高把300记成100。", lose:"高出底板应≥300mm，写100mm数字偏小。", fix:"高出底板不少于300mm。" },
+        { t:"水平施工缝高出底板不少于300mm；遇水膨胀止水条最终膨胀率不低于60%即可。", ok:false, code:"E03", tempt:"把7d净膨胀率≤60%当成了最终膨胀率。", lose:"60%是7d净膨胀率的上限，最终膨胀率应≥220%，两个指标混了。", fix:"最终膨胀率不低于220%（7d净膨胀率≤60%最终）。" }
+      ] },
+    { tag:"室内·翻起 · 诊断末题", typeHint:"单选 · 诊断学生作答并给正确采分句补写", figLabel:"模拟学生作答（待诊断）", figCaption:"淋浴翻起写1800、盥洗漏写", fig:"flush",
+      stem:"某学生答室内防水翻起高度：①淋浴区墙面翻起1800mm；②盥洗用水处未写；③其他泛水部位250mm。选出最准确的诊断与采分句补写。",
+      model:"淋浴区应≥2000mm(写1800偏低)、盥洗用水处漏写应补≥1200mm、其他泛水≥250mm正确；补写三档：淋浴≥2000、盥洗≥1200、其他≥250mm，迎水面设防潮/防水。",
+      opts:[
+        { t:"淋浴写1800偏低应改≥2000mm、盥洗漏写应补≥1200mm、其他250mm正确；三档补齐并注明迎水面设防潮/防水。", ok:true, fix:"逐档诊断+补写完整采分句，这就是「会写答案」。", code:"" },
+        { t:"三档里其他泛水250mm对、淋浴1800mm也在合理范围，只把盥洗补上1200mm即可。", ok:false, code:"E03", tempt:"只抓到漏写那档，放过了写小的淋浴。", lose:"淋浴区应≥2000mm，1800偏低仍要扣，不能只补盥洗。", fix:"淋浴改≥2000、盥洗补≥1200、其他≥250mm。" },
+        { t:"淋浴区翻起1800mm达标、盥洗按其他泛水250mm处理即可、无需单列1200mm一档。", ok:false, code:"E07", tempt:"把盥洗并进「其他泛水」少记一档。", lose:"盥洗用水处是单独一档≥1200mm，并进250mm整档记错。", fix:"盥洗用水处单列≥1200mm，别并入250mm。" },
+        { t:"三档高度都写小了，淋浴应≥2500、盥洗应≥1500、其他应≥300mm，全部上调。", ok:false, code:"E03", tempt:"知道要改大，凭感觉把三档都往上抬。", lose:"标准是2000/1200/250mm，随意上调成2500/1500/300数字全错。", fix:"淋浴≥2000、盥洗≥1200、其他≥250mm。" }
+      ] }
+  ];
+  // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"道数配套项(卷材≥1道/外设≥2道)、附加层、翻起各档逐项写全，缺一扣一。"},
+    E03:{label:"关键词缺失·漏数字",advice:"隔汽150、施工缝300、翻起2000/1200/250、试配+0.2这些数字一个不能漏。"},
+    E06:{label:"程序/层序错误",advice:"构造层次自下而上背口诀，倒置式保温在防水之上、种植别漏耐根穿刺。"},
+    E07:{label:"概念混淆",advice:"屋面三级↔地下四级、正置↔倒置、隔汽层位置别互套。"},
+    M03:{label:"概念混淆(客观)",advice:"分级数、层序方向、试配口径，记准别互套。"},
+    M08:{label:"规范数字混淆",advice:"抗渗P6/P8、试配+0.2、隔汽150、翻起三档，数字焊死。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    // 抽题顺序与选项乱序在首帧惰性生成并缓存（ord()/optPerm()），不依赖此处 setState，
+    // 保证首屏渲染即已随机（消除"A 先出现再洗牌"的闪烁与对 componentDidMount 的依赖）。
+  }
+  // ── 随机抽题：从 Q[] 全量候选池洗牌后取前 SHOW_COUNT 条真实索引 ──
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  // ── 选项乱序：每题对 opts 独立洗牌，正确项落随机位置（防"永远选第一个/最长的"位置泄露）；重做重新洗 ──
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="grade3"){ figH=90; const rows=[["一级 ≥3道(卷材≥1道)","#2f6db0"],["二级 ≥2道(卷材≥1道)","#5c8fc0"],["三级 ≥1道","#89aed3"]];
+      rows.forEach((r,i)=>els.push(D({x:74,top:8+i*26,w:196,h:22,bg:r[1],r:4,fg:"#fff",fs:11,ta:"left",jc:"flex-start",p:"0 10px",lab:r[0]})));
+      els.push(D({x:6,top:33,w:60,h:22,fg:"#2f6db0",fs:11,ta:"left",jc:"flex-start",lab:"屋面·?级"})); }
+    else if(type==="grade4"){ figH=100; const rows=[["一级 不允许渗水","#2c8a5b"],["二级 少量湿渍","#469a70"],["三级 少量漏水点","#6cb08d"],["四级 有漏水点","#93c5ac"]];
+      rows.forEach((r,i)=>els.push(D({x:74,top:6+i*22,w:196,h:19,bg:r[1],r:4,fg:"#fff",fs:10.5,ta:"left",jc:"flex-start",p:"0 10px",lab:r[0]})));
+      els.push(D({x:6,top:40,w:60,h:19,fg:"#2c8a5b",fs:11,ta:"left",jc:"flex-start",lab:"地下·?级"})); }
+    else if(type==="roofdef"){ figH=100; const rows=[["第1道 卷材","#2f6db0"],["第2道 涂膜","#3f86c6"],["第3道 卷材/涂料","#5c9bd4"]];
+      rows.forEach((r,i)=>els.push(D({x:78,top:6+i*20,w:176,h:18,bg:r[1],r:3,fg:"#fff",fs:9.5,ta:"left",jc:"flex-start",p:"0 8px",lab:r[0]})));
+      els.push(D({x:78,top:66,w:176,h:22,bg:"#6b7378",r:3,fg:"#e9edf0",fs:10,lab:"结构层"}));
+      els.push(D({x:262,top:20,w:70,h:40,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"一级≥?道 卷材≥?道"})); }
+    else if(type==="reqs"){ figH=96; const toks=["以? 为主 · 以? 为辅","设计工作年限 ≥? 年","天沟/檐沟/泛水 设? 层"];
+      toks.forEach((t,i)=>els.push(D({x:20,top:8+i*28,w:300,h:22,bg:"#fff8e2",bd:"1.5px solid #d8b24a",r:8,fg:"#8a6d1f",fs:11,ta:"left",jc:"flex-start",p:"0 12px",lab:t}))); }
+    else if(type==="invert"){ figH=94; const chips=[["找平层","#c9b48a"],["保护层","#8fae7a"],["结构层","#6b7378"],["保温层","#cf8a44"],["找坡层","#c9b48a"],["防水层","#2f6db0"]];
+      chips.forEach((c,i)=>els.push(D({x:12+(i%3)*110,top:8+Math.floor(i/3)*30,w:102,h:24,bg:c[1],r:5,fg:"#fff",fs:11,lab:c[0]})));
+      els.push(D({x:12,top:72,w:320,h:16,fg:"#8b9398",fs:10,ta:"left",jc:"flex-start",lab:"倒置式：这6层自下而上怎么排？保温相对防水放哪？"})); }
+    else if(type==="vapor"){ figH=92;
+      els.push(D({x:80,top:8,w:150,h:22,bg:"#cf8a44",r:3,fg:"#fff",fs:10,lab:"保温层"}));
+      els.push(D({x:80,top:34,w:150,h:22,bg:"#6b7378",r:3,fg:"#fff",fs:10,lab:"结构层"}));
+      els.push(D({x:80,top:62,w:150,h:16,fg:"#3f86c6",fs:10,ta:"left",jc:"flex-start",lab:"室内湿汽 ↑"}));
+      els.push(D({x:240,top:24,w:96,h:22,bg:"#fff",bd:"1.5px dashed #2c8a5b",r:6,fg:"#2c8a5b",fs:10,lab:"隔汽层放哪?"})); }
+    else if(type==="green"){ figH=100; const rows=[["植被 / 种植土","#3fa06a"],["过滤 / 排(蓄)水","#6aa0c0"],["保护层","#8fae7a"],["? 防根扎穿 ?","#cf4436"],["普通防水 / 基层","#2f6db0"]];
+      rows.forEach((r,i)=>els.push(D({x:70,top:6+i*18,w:200,h:16,bg:r[1],r:3,fg:"#fff",fs:9.5,ta:"left",jc:"flex-start",p:"0 10px",lab:r[0]})));
+      els.push(D({x:276,top:52,w:58,h:16,fg:"#2c8a5b",fs:9,ta:"left",jc:"flex-start",lab:"根系↓"})); }
+    else if(type==="dugdef"){ figH=100;
+      els.push(D({x:70,top:6,w:200,h:18,bg:"#3f86c6",r:3,fg:"#fff",fs:9.5,lab:"迎水面 · 地下水压"}));
+      els.push(D({x:70,top:26,w:200,h:16,bg:"#cfe0ee",bd:"1px dashed #5c9bd4",r:3,fg:"#2f6db0",fs:9,lab:"外设防水层 ? 道"}));
+      els.push(D({x:70,top:44,w:200,h:16,bg:"#cfe0ee",bd:"1px dashed #5c9bd4",r:3,fg:"#2f6db0",fs:9,lab:"外设防水层 ? 道"}));
+      els.push(D({x:70,top:62,w:200,h:22,bg:"#6b7378",r:3,fg:"#fff",fs:9.5,lab:"防水混凝土 抗渗 P?"}));
+      els.push(D({x:6,top:38,w:60,h:16,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"一级≥?道"})); }
+    else if(type==="mix"){ figH=88;
+      els.push(D({x:16,top:32,w:96,h:26,bg:"#2c8a5b",r:5,fg:"#fff",fs:12,lab:"P6 底线"}));
+      els.push(D({x:120,top:32,w:96,h:26,bg:"#2f6db0",r:5,fg:"#fff",fs:12,lab:"P8 设计"}));
+      els.push(D({x:224,top:32,w:96,h:26,bg:"#fff",bd:"1.5px dashed #cf4436",r:5,fg:"#cf4436",fs:12,lab:"试配=?"}));
+      els.push(D({x:120,top:8,w:210,h:16,fg:"#cf4436",fs:10,ta:"left",jc:"flex-start",lab:"设计P8，试配要配到几?"})); }
+    else if(type==="joint"){ figH=100;
+      els.push(D({x:60,top:70,w:220,h:20,bg:"#6b7378",r:2,fg:"#e9edf0",fs:9,lab:"底板"}));
+      els.push(D({x:150,top:12,w:44,h:58,bg:"#8a9095",r:2}));
+      els.push(D({x:150,top:40,w:44,h:4,bg:"#cf4436",r:1}));
+      els.push(D({x:198,top:34,w:70,h:14,fg:"#cf4436",fs:9,ta:"left",jc:"flex-start",lab:"施工缝"}));
+      els.push(D({x:6,top:46,w:58,h:28,fg:"#cf4436",fs:9,ta:"right",jc:"flex-end",lab:"高出底板?mm"}));
+      els.push(D({x:198,top:52,w:130,h:14,fg:"#cf8a44",fs:9,ta:"left",jc:"flex-start",lab:"设防?种 · 止水条?%"})); }
+    else if(type==="flush"){ figH=100;
+      els.push(D({x:20,top:88,w:300,h:4,bg:"#bdb8a8",r:2}));
+      els.push(D({x:40,top:24,w:56,h:64,bg:"#2c8a5b",r:4,fg:"#fff",fs:9,lab:"淋浴区"}));
+      els.push(D({x:40,top:8,w:56,h:14,fg:"#2c8a5b",fs:9,lab:"?mm"}));
+      els.push(D({x:150,top:44,w:56,h:44,bg:"#469a70",r:4,fg:"#fff",fs:9,lab:"盥洗处"}));
+      els.push(D({x:150,top:28,w:56,h:14,fg:"#469a70",fs:9,lab:"?mm"}));
+      els.push(D({x:258,top:66,w:56,h:22,bg:"#93c5ac",r:4,fg:"#fff",fs:8,lab:"其他泛水"}));
+      els.push(D({x:258,top:50,w:56,h:14,fg:"#6cb08d",fs:9,lab:"?mm"})); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

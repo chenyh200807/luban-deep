@@ -1,4 +1,10 @@
 var CACHE_KEY_DELETED = "history_deleted_conversation_ids";
+var auth = require("./auth");
+var ownerStorage = require("./owner-storage");
+
+function _ownerId() {
+  return String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+}
 
 function _normalizeTombstones(raw) {
   var tombstones = {};
@@ -19,11 +25,9 @@ function _normalizeTombstones(raw) {
 
 function readDeletedConversationIds() {
   try {
-    var raw = wx.getStorageSync(CACHE_KEY_DELETED);
+    var raw = ownerStorage.read(CACHE_KEY_DELETED, _ownerId());
     var tombstones = _normalizeTombstones(raw);
-    if (Array.isArray(raw)) {
-      wx.setStorageSync(CACHE_KEY_DELETED, tombstones);
-    }
+    if (Array.isArray(raw)) ownerStorage.write(CACHE_KEY_DELETED, _ownerId(), tombstones);
     return tombstones;
   } catch (_) {
     return {};
@@ -37,7 +41,7 @@ function rememberDeletedConversationIds(ids) {
     if (key) tombstones[key] = Date.now();
   });
   try {
-    wx.setStorageSync(CACHE_KEY_DELETED, tombstones);
+    ownerStorage.write(CACHE_KEY_DELETED, _ownerId(), tombstones);
   } catch (_) {}
   return tombstones;
 }

@@ -4,11 +4,10 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 import subprocess
 import sys
-from pathlib import Path
 from typing import Iterable
-
 
 WORKFLOW_FILES = {
     ".github/workflows/tests.yml",
@@ -22,6 +21,7 @@ SECRET_SCAN_EXCLUDED_PREFIXES = (
     "artifacts/",
     "deeptutor/services/benchmark/fixtures/",
     "deeptutor/services/construction_grading/runtime_supply/",
+    "deeptutor/services/luban_lesson/compiled/",
     "deeptutor/services/taxonomy/compiled/",
     "dist/",
     "output/",

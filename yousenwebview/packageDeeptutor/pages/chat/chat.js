@@ -50,6 +50,7 @@ var _IS_DEVTOOLS =
 var HISTORY_CACHE_KEY = "history_cache";
 var HISTORY_CACHE_KEY_ARCHIVED = "history_cache_archived";
 var CHAT_PENDING_TURN_KEY = "chat_pending_turn_v1";
+var CURRENT_SESSION_KEY = "deeptutor.chat.currentSession.v1";
 var PENDING_TURN_MAX_AGE_MS = 30 * 60 * 1000;
 var PENDING_TURN_POLL_MAX_ATTEMPTS = 1200;
 var PENDING_TURN_POLL_DELAY_MS = 1500;
@@ -57,6 +58,44 @@ var PENDING_TURN_FOREGROUND_MAX_ATTEMPTS = 4;
 var HYDRATED_HISTORY_EAGER_AI_MESSAGES = 8;
 var HOME_DASHBOARD_CACHE_KEY = "deeptutor.chat.homeDashboard.v2";
 var HOME_DASHBOARD_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
+
+function currentOwnerId() {
+  return String((auth && auth.getUserId && auth.getUserId()) || "").trim();
+}
+
+function readOwnerValue(baseKey) {
+  return auth && typeof auth.readOwnerStorage === "function"
+    ? auth.readOwnerStorage(baseKey)
+    : null;
+}
+
+function writeOwnerValue(baseKey, value) {
+  return auth && typeof auth.writeOwnerStorage === "function"
+    ? auth.writeOwnerStorage(baseKey, value)
+    : false;
+}
+
+function removeOwnerValue(baseKey) {
+  return auth && typeof auth.removeOwnerStorage === "function"
+    ? auth.removeOwnerStorage(baseKey)
+    : false;
+}
+
+function readCurrentSession() {
+  var value = readOwnerValue(CURRENT_SESSION_KEY);
+  return value && typeof value === "object" ? value : null;
+}
+
+function writeCurrentSession(conversationId) {
+  return writeOwnerValue(CURRENT_SESSION_KEY, {
+    conversationId: String(conversationId || "").trim(),
+    savedAt: Date.now(),
+  });
+}
+
+function clearCurrentSession() {
+  return removeOwnerValue(CURRENT_SESSION_KEY);
+}
 
 function isLocalDraftSessionId(id) {
   return /^s_\d{10,}$/.test(String(id || "").trim());
@@ -136,10 +175,8 @@ function rememberDeletedConversationIds(ids) {
 }
 
 function clearConversationHistoryCaches() {
-  try {
-    wx.removeStorageSync(HISTORY_CACHE_KEY);
-    wx.removeStorageSync(HISTORY_CACHE_KEY_ARCHIVED);
-  } catch (_) {}
+  removeOwnerValue(HISTORY_CACHE_KEY);
+  removeOwnerValue(HISTORY_CACHE_KEY_ARCHIVED);
 }
 
 function hasAssessmentSignal(raw) {
@@ -198,11 +235,8 @@ function buildFocusDisplayMeta(focus, meta) {
 
 function readCachedHomeDashboard() {
   try {
-    if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function") return null;
-    var cached = wx.getStorageSync(HOME_DASHBOARD_CACHE_KEY);
+    var cached = readOwnerValue(HOME_DASHBOARD_CACHE_KEY);
     if (!cached || typeof cached !== "object") return null;
-    var userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
-    if (!userId || String(cached.userId || "") !== userId) return null;
     if (Date.now() - (Number(cached.cachedAt) || 0) > HOME_DASHBOARD_CACHE_MAX_AGE_MS) return null;
     var dashboard =
       cached.dashboard && typeof cached.dashboard === "object" ? cached.dashboard : null;
@@ -220,17 +254,14 @@ function readCachedHomeDashboard() {
 
 function writeCachedHomeDashboard(dashboard) {
   try {
-    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return;
     if (!dashboard || typeof dashboard !== "object") return;
-    var userId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
-    if (!userId) return;
+    if (!currentOwnerId()) return;
     if (
       typeof learningHomeViewModel.isTrustedHomeDashboardPayload === "function" &&
       !learningHomeViewModel.isTrustedHomeDashboardPayload(dashboard)
     )
       return;
-    wx.setStorageSync(HOME_DASHBOARD_CACHE_KEY, {
-      userId: userId,
+    writeOwnerValue(HOME_DASHBOARD_CACHE_KEY, {
       cachedAt: Date.now(),
       dashboard: dashboard,
     });
@@ -537,8 +568,9 @@ Page({
 
     // [FIX-SESSION-1] 仅在 5 分钟内恢复 session（处理页面刷新），
     // 超时则开启新对话，防止所有问题堆积在同一个历史记录中
-    var savedSessionId = wx.getStorageSync("current_session_id");
-    var savedTs = wx.getStorageSync("current_session_ts") || 0;
+    var savedSession = readCurrentSession();
+    var savedSessionId = String((savedSession && savedSession.conversationId) || "");
+    var savedTs = Number((savedSession && savedSession.savedAt) || 0);
     var SESSION_MAX_AGE_MS = 5 * 60 * 1000; // 5 分钟过期
 
     if (
@@ -551,8 +583,7 @@ Page({
     } else {
       this._sid = "s_" + Date.now();
       this._convId = null;
-      wx.removeStorageSync("current_session_id");
-      wx.removeStorageSync("current_session_ts");
+      clearCurrentSession();
     }
     var pendingTurn = this._loadPendingTurn();
     if (pendingTurn) {
@@ -604,7 +635,8 @@ Page({
     if (runtime.consumeGoHomeFlag()) {
       this.clearMessages();
     }
-    if (isDeletedConversationId(this._convId || this._sid || wx.getStorageSync("current_session_id"))) {
+    var storedSession = readCurrentSession();
+    if (isDeletedConversationId(this._convId || this._sid || (storedSession && storedSession.conversationId))) {
       this.clearMessages();
     }
     self.setData({ timeGreeting: helpers.getTimeGreeting() });
@@ -796,13 +828,15 @@ Page({
   _loadPendingTurn: function () {
     var pending = null;
     try {
-      pending = normalizePendingTurn(wx.getStorageSync(CHAT_PENDING_TURN_KEY));
+      pending = normalizePendingTurn(
+        readOwnerValue(CHAT_PENDING_TURN_KEY),
+      );
     } catch (_) {
       pending = null;
     }
     if (!pending) {
       try {
-        wx.removeStorageSync(CHAT_PENDING_TURN_KEY);
+        removeOwnerValue(CHAT_PENDING_TURN_KEY);
       } catch (_) {}
       return null;
     }
@@ -815,7 +849,7 @@ Page({
     if (!normalized) return null;
     this._pendingTurn = normalized;
     try {
-      wx.setStorageSync(CHAT_PENDING_TURN_KEY, normalized);
+      writeOwnerValue(CHAT_PENDING_TURN_KEY, normalized);
     } catch (_) {}
     return normalized;
   },
@@ -830,7 +864,7 @@ Page({
     this._pendingTurn = null;
     this._pendingRecoveryActive = false;
     try {
-      wx.removeStorageSync(CHAT_PENDING_TURN_KEY);
+      removeOwnerValue(CHAT_PENDING_TURN_KEY);
     } catch (_) {}
   },
 
@@ -1222,11 +1256,11 @@ Page({
             return false;
           }
           if (err && err.statusCode === 404) {
-            if (wx.getStorageSync("current_session_id") === pending.conversationId) {
+            var storedSession = readCurrentSession();
+            if (storedSession && storedSession.conversationId === pending.conversationId) {
               self._sid = "s_" + Date.now();
               self._convId = null;
-              wx.removeStorageSync("current_session_id");
-              wx.removeStorageSync("current_session_ts");
+              clearCurrentSession();
             }
             self._finishPendingTurnRecovery();
             return false;
@@ -1267,8 +1301,7 @@ Page({
       this._sessionPersistTimer = null;
     }
     if (!this._sid || !this._convId) return;
-    wx.setStorageSync("current_session_id", this._sid);
-    wx.setStorageSync("current_session_ts", Date.now());
+    writeCurrentSession(this._sid);
   },
 
   _scheduleSessionPersist: function (immediate) {
@@ -1284,8 +1317,7 @@ Page({
     this._sessionPersistTimer = setTimeout(function () {
       self._sessionPersistTimer = null;
       if (!self._sid || !self._convId) return;
-      wx.setStorageSync("current_session_id", self._sid);
-      wx.setStorageSync("current_session_ts", Date.now());
+      writeCurrentSession(self._sid);
     }, 1200);
   },
 
@@ -1299,8 +1331,8 @@ Page({
       return;
     }
     try {
-      var cacheKey = "history_cache";
-      var cached = wx.getStorageSync(cacheKey);
+      var cacheKey = HISTORY_CACHE_KEY;
+      var cached = readOwnerValue(cacheKey);
       if (cached && cached.groups) {
         var found = false;
         for (var i = 0; i < cached.groups.length; i++) {
@@ -1314,7 +1346,7 @@ Page({
             }
           }
         }
-        if (found) wx.setStorageSync(cacheKey, cached);
+        if (found) writeOwnerValue(cacheKey, cached);
       }
     } catch (_) {}
     this._pendingHistoryTitle = "";
@@ -2782,8 +2814,7 @@ Page({
         self._sid = "s_" + Date.now();
       }
       self._clearPendingTurn();
-      wx.removeStorageSync("current_session_id");
-      wx.removeStorageSync("current_session_ts");
+      clearCurrentSession();
       if (!self.data.messages.length) {
         self.setData({ hasMessages: false, isStreaming: false });
         self._syncWorkspaceChrome({ hasMessages: false });
@@ -2805,10 +2836,9 @@ Page({
       })
       .catch(function (err) {
         if (err && err.statusCode === 404) {
-          if (wx.getStorageSync("current_session_id") === convId) {
-            wx.removeStorageSync("current_session_id");
-            wx.removeStorageSync("current_session_ts");
-          }
+          var storedSession = readCurrentSession();
+          if (storedSession && storedSession.conversationId === convId)
+            clearCurrentSession();
           self._convId = null;
           self._sid = "s_" + Date.now();
         }
@@ -2900,8 +2930,7 @@ Page({
     this._firstAnswerPending = false;
     this._messageIndexMap = Object.create(null);
     // [FIX-SESSION-4] 用户主动清除对话时清除持久化
-    wx.removeStorageSync("current_session_id");
-    wx.removeStorageSync("current_session_ts");
+    clearCurrentSession();
     // 回到 Hero 首页时恢复 tab bar
     var shell = helpers.getWorkspaceShell(this);
     if (shell) {

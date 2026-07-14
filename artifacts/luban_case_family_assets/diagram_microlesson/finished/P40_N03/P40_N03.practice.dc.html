@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="随堂练母版" description="鲁班智考动画学习卡 · 练习页：图示题卡 + 完整采分句选项 + 每错项三段解析（为什么容易选/为什么扣分/正确补哪句）+ 薄弱点诊断结果页 + 问追AI（自动带题目）。Fork 后只改 Q[] 等内容区。" -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Long+Cang&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+  html,body{margin:0;padding:0;}
+  body{background:#101315;font-family:"Noto Sans SC",system-ui,sans-serif;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<!-- ░░░ 母版骨架：随堂练 ░░░ 改 Q[] 即可。每题必须有图示位 + 完整采分句选项 + 每错项三段解析 -->
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2c8a5b"/><rect x="30" y="30" width="40" height="40" rx="9" fill="#f4f3ec"/><text x="50" y="64" font-family="serif" font-size="30" font-weight="900" text-anchor="middle" fill="#2c8a5b">练</text></svg></template>
+<div style="min-height:100vh;display:flex;justify-content:center;background:radial-gradient(120% 80% at 50% 0%,#1c2226 0%,#101315 70%);">
+  <div style="width:100%;max-width:390px;min-height:100vh;background:#f4f3ec;position:relative;box-shadow:0 0 60px rgba(0,0,0,.6);overflow:hidden;">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:#181b1e;">
+      <div style="width:32px;height:32px;border-radius:9px;background:#cf4436;display:flex;align-items:center;justify-content:center;flex:none;"><img src="assets/mark-white.png" alt="鲁班智考" style="width:21px;height:auto;display:block;"/></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
+        <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
+      </div>
+      <a href="P40_N03.teach.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <sc-if value="{{ inQuiz }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="padding:14px 16px 6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:11px;font-weight:900;color:#23282b;">第 {{ qNum }} / {{ qTotal }} 题</span>
+          <span style="font-size:9px;font-weight:800;color:#fff;background:#2f6db0;border-radius:10px;padding:3px 9px;">{{ qTag }}</span>
+        </div>
+        <div style="height:5px;background:#e2e0d5;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:#cf4436;border-radius:3px;width:{{ progPct }}%;transition:width .35s ease;"></div>
+        </div>
+      </div>
+
+      <div style="padding:8px 16px 4px;"><div style="font-size:14px;font-weight:700;color:#23282b;line-height:1.55;">{{ qStem }}</div></div>
+
+      <!-- 图示位（每题必有：标尺/变化图/管道/诊断图/答题纸；此处给通用占位，按题替换内部 SVG/结构）-->
+      <div style="margin:10px 16px;background:#fff;border:1.5px solid #dddacb;border-radius:12px;padding:11px 12px 12px;">
+        <div style="font-size:8px;font-weight:800;color:#9aa0a3;letter-spacing:1px;margin-bottom:9px;">{{ figLabel }}</div>
+        <div style="position:relative;height:{{ figH }}px;">
+          <sc-for list="{{ figEls }}" as="e" hint-placeholder-count="4">
+            <div style="position:absolute;left:{{ e.x }}px;top:{{ e.top }}px;width:{{ e.w }}px;height:{{ e.h }}px;background:{{ e.bg }};border:{{ e.bd }};border-radius:{{ e.r }}px;color:{{ e.fg }};font-size:{{ e.fs }}px;font-weight:{{ e.fw }};display:flex;align-items:{{ e.ai }};justify-content:{{ e.jc }};text-align:{{ e.ta }};line-height:1.2;padding:{{ e.p }};">{{ e.lab }}</div>
+          </sc-for>
+        </div>
+        <div style="margin-top:8px;font-size:9.5px;color:#8b9398;text-align:center;font-weight:600;">{{ figCaption }}</div>
+      </div>
+
+      <div style="padding:0 16px 6px;font-size:10px;color:#8b9398;font-weight:700;">{{ qTypeHint }}</div>
+
+      <!-- OPTIONS -->
+      <div style="padding:0 16px;">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="4">
+          <div onClick="{{ o.onClick }}" style="margin-bottom:9px;border:2px solid {{ o.border }};background:{{ o.bg }};border-radius:12px;padding:11px 12px;cursor:{{ o.cursor }};transition:all .15s ease;">
+            <div style="display:flex;gap:9px;align-items:flex-start;">
+              <div style="flex:none;width:22px;height:22px;border-radius:7px;background:{{ o.badgeBg }};color:{{ o.badgeFg }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ o.badge }}</div>
+              <div style="flex:1;font-size:12.5px;line-height:1.5;color:#23282b;font-weight:500;">{{ o.t }}</div>
+            </div>
+            <sc-if value="{{ o.showAna }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;margin-left:31px;border-left:2.5px solid {{ o.anaAccent }};padding-left:10px;">
+              <sc-if value="{{ o.ok }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;color:#2c8a5b;font-weight:800;margin-bottom:2px;">✓ 满分采分句</div>
+                <div style="font-size:11.5px;color:#3a3f42;line-height:1.55;">{{ o.fix }}</div>
+              </sc-if>
+              <sc-if value="{{ o.bad }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:11px;line-height:1.6;color:#3a3f42;">
+                  <div><b style="color:#cf8a44;">为什么容易选：</b>{{ o.tempt }}</div>
+                  <div><b style="color:#cf4436;">为什么扣分：</b>{{ o.lose }} <span style="background:#fadcd6;color:#a3271c;border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;">{{ o.code }}</span></div>
+                  <div><b style="color:#2c8a5b;">正确补这句：</b>{{ o.fix }}</div>
+                </div>
+              </sc-if>
+            </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ showModel }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:4px 16px 8px;background:#23282b;border-radius:12px;padding:12px 14px;">
+        <div style="font-size:9px;letter-spacing:1.5px;color:#cf8a44;font-weight:800;margin-bottom:5px;">抄进答题纸的采分句</div>
+        <div style="font-size:12px;color:#f1efe8;line-height:1.65;font-weight:500;">{{ qModel }}</div>
+      </div>
+      </sc-if>
+
+      <div style="padding:4px 16px 8px;">
+        <button onClick="{{ btnAction }}" disabled="{{ btnDisabled }}" style="width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;cursor:{{ btnCursor }};background:{{ btnBg }};color:{{ btnFg }};transition:all .15s ease;">{{ btnLabel }}</button>
+      </div>
+      <div style="padding:0 16px 24px;">
+        <button onClick="{{ openAsk }}" style="width:100%;border:1.5px solid #cf4436;border-radius:13px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;background:rgba(207,68,54,.07);color:#cf4436;display:flex;align-items:center;justify-content:center;gap:7px;">这道题没搞懂？问追AI（已带题目）</button>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- RESULTS VIEW -->
+    <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 16px 40px;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-family:'Long Cang',cursive;font-size:30px;color:#cf4436;line-height:1;">{{ scoreVerdict }}</div>
+        <div style="font-size:44px;font-weight:900;color:#23282b;margin-top:6px;line-height:1;">{{ score }}<span style="font-size:20px;color:#9aa0a3;"> / {{ qTotal }}</span></div>
+        <div style="font-size:11px;color:#8b9398;margin-top:5px;font-weight:600;">采分点过关 · {{ scoreLabel }}</div>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:10px;">表现分析 · 逐题</div>
+        <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #efeee6;">
+            <div style="flex:none;width:22px;height:22px;border-radius:50%;background:{{ r.bg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">{{ r.mark }}</div>
+            <div style="flex:1;font-size:11px;color:#3a3f42;font-weight:600;">{{ r.tag }}</div>
+            <div style="flex:none;font-size:10px;font-weight:800;color:{{ r.fg }};">{{ r.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:8px;">薄弱点诊断</div>
+        <sc-if value="{{ hasWeak }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ weak }}" as="w" hint-placeholder-count="2">
+            <div style="margin-bottom:9px;">
+              <div style="font-size:11.5px;font-weight:800;color:#cf4436;"><span style="background:#fadcd6;border-radius:4px;padding:0 5px;font-size:9px;">{{ w.code }}</span> {{ w.label }}</div>
+              <div style="font-size:11px;color:#5c6469;line-height:1.5;margin-top:2px;">{{ w.advice }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noWeak }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:#2c8a5b;font-weight:700;">全过 —— 采分点都拿到了，保持手感。</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1.5px solid #dddacb;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
+        <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
+      </div>
+      <a href="P40_N03.teach.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+        <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
+        <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
+      </a>
+      <button onClick="{{ reset }}" style="width:100%;border:1.5px solid #ccc9ba;background:transparent;border-radius:13px;padding:12px;font-size:13px;font-weight:800;color:#5c6469;cursor:pointer;">重做一遍</button>
+    </div>
+    </sc-if>
+
+    <!-- ASK-AI OVERLAY (大窗 · 自动带题目) -->
+    <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;max-width:390px;margin:0 auto;">
+      <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+        <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;"><div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div></div>
+        <div style="flex:none;display:flex;align-items:center;gap:9px;padding:2px 16px 8px;">
+          <div style="flex:none;width:30px;height:30px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:20px;">鲁</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:900;color:#f1efe8;">问追AI · 第 {{ qNum }} 题</div><div style="font-size:9px;color:#8b9398;font-weight:600;">已自动带上本题题干和你的作答，直接问</div></div>
+          <button onClick="{{ closeAsk }}" style="flex:none;width:28px;height:28px;border-radius:50%;border:none;background:#23282b;color:#9aa0a3;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div style="flex:none;padding:0 16px;">
+          <div style="background:#0f1214;border:1px solid #2c3236;border-radius:10px;padding:9px 11px;margin-bottom:11px;">
+            <div style="font-size:8px;letter-spacing:1px;color:#5c6469;font-weight:800;margin-bottom:4px;">已附带上下文</div>
+            <div style="font-size:10.5px;color:#9aa0a3;line-height:1.5;">{{ askCtx }}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px;">
+            <sc-for list="{{ askChips }}" as="s" hint-placeholder-count="3">
+              <button onClick="{{ s.onClick }}" style="border:1px solid #3a4046;background:#23282b;color:#cdd2d5;border-radius:13px;padding:5px 10px;font-size:10px;font-weight:600;cursor:pointer;">{{ s.t }}</button>
+            </sc-for>
+          </div>
+          <textarea value="{{ askText }}" onInput="{{ setAsk }}" placeholder="就这道题问鲁班…" style="width:100%;height:54px;resize:none;background:#0f1214;border:1.5px solid #2c3236;border-radius:11px;padding:10px 12px;font-size:13px;color:#f1efe8;font-family:inherit;line-height:1.5;outline:none;"></textarea>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px 16px 4px;min-height:0;">
+          <sc-if value="{{ askLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;color:#cf8a44;font-size:12px;font-weight:700;"><span style="display:inline-block;width:14px;height:14px;border:2px solid #cf8a44;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;"></span>鲁班正在按采分点琢磨…</div>
+          </sc-if>
+          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透这道题</div>
+          </sc-if>
+        </div>
+        <div style="flex:none;padding:8px 16px 18px;border-top:1px solid #23282b;">
+          <button onClick="{{ submitAsk }}" disabled="{{ askDisabled }}" style="width:100%;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;cursor:{{ askCursor }};background:{{ askBtnBg }};color:{{ askBtnFg }};">{{ askBtnLabel }}</button>
+          <div style="margin-top:8px;text-align:center;font-size:9px;color:#5c6469;">老师 longanhuan_v3 口吻 · 下拉或 ✕ 关闭</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+/* ░░░ 母版骨架逻辑：随堂练 ░░░
+   改考点时只动：examTitle / KNOWLEDGE / Q[]（题库）/ codeMap（错因码库）/ moreText
+   每题字段：tag,typeHint,figLabel,figCaption,stem,model, opts[{t,ok,(错项:code,tempt,lose),fix}]
+   多选题 tag 含“多选”。判分/解析/问追AI 机制已封装好。
+   ★ 选项位置：源里把 ok:true 写在第一个没关系——运行时 buildOptOrder() 会对每题选项独立洗牌，
+     正确项落到随机位置，"重做一遍"重新洗。作者无需手动打乱顺序。
+   ★ 但洗牌只解决"位置泄露"，解决不了"长度泄露"：别让正确项永远是最长/最详细那句，
+     否则学生靠"选最长的"就能蒙对。错项也要写成同样完整的采分句、长度相当。 */
+class Component extends DCLogic {
+  // ── 题库规模（design-system.md §7）：Q[] 候选题库 ≥15 道，每次随机抽 SHOW_COUNT 道展示；
+  //    重做时重新随机抽取，增加复练变化、防止学生记位置而非记采分点。──
+  SHOW_COUNT = 5;
+  state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
+  examTitle="流水施工参数与工期";
+  KNOWLEDGE="流水施工参数与工期(成倍节拍主样板)。判型：节拍全等·等节奏(K=t)；成倍数·等步距异节奏(K=各节拍最大公约数)；无规律·无节奏(大差法)。本题节拍3/3/6/3成倍数·等步距异节奏，K=gcd(3,6)=3个月。专业队数=各工序节拍÷K求和=1+1+2+1=5(砌筑6=2K拆2队，队数>工序数)。总工期T=(M+N′−1)×K=(2+5−1)×3=18个月，M=施工段数2、N′=拆队后总队数5，体现搭接非机械相加。采分四句：判型理由+K=最大公约数+队数=节拍÷K求和+工期(M+N′−1)×K带单位。常见失分：判型不写理由、K取最大/平均/最小节拍而非gcd、不拆队、工期机械相加。";
+  moreText="补两道：① {2019} 节拍 3/3/9/6/6 · 等步距异节奏、K=gcd=3、队数 1/1/3/2/2=9，练判型理由+K+拆队绑定工序；② {2015} 等节奏「不能连续作业」辨析，练「选项错+理由(K=t必连续无空闲)+正确表述」三段式。";
+  // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
+  Q=[
+    { tag:"判型·条件维", typeHint:"单选 · 选出最完整、最能拿分的作答", figLabel:"题给：四道工序流水节拍", figCaption:"基础3 结构3 砌筑6 装修3（月）· 类型你来判", fig:"bars",
+      stem:"某工程四个施工过程的流水节拍为 3、3、6、3 个月。判定流水组织类型，选出最完整、能得分的作答。",
+      model:"判型：节拍不全相等但成倍数（6=2×3）· 等步距异节奏流水；流水步距取各节拍最大公约数。",
+      opts:[
+        { t:"节拍不全相等但均成倍数（6=2×3），判「等步距异节奏流水」，步距取各节拍最大公约数。", ok:true, fix:"判据链写全：先点成倍数、再定类型、并指向 K=最大公约数，三件齐。", code:"" },
+        { t:"节拍 3、3、6、3 不全相等、看着无规律，判为「无节奏流水」，用大差法逐段求步距。", ok:false, code:"E05", tempt:"看 3、3、6、3 不全等，第一反应「无规律·无节奏」。", lose:"漏了「成倍数·等步距异节奏」这档；判型错是地基错，K/队数/工期连锁全错。", fix:"先看成不成倍数：本题成倍数，应判等步距异节奏。" },
+        { t:"四个里三个节拍都是 3，判为「等节奏流水」，流水步距 K=t=3 个月、各段连续施工。", ok:false, code:"E07", tempt:"四个里三个都是 3，像等节奏。", lose:"等节奏要求所有节拍全等，而 6≠3，条件不成立。", fix:"等节奏须全部节拍相等；本题有 6，应判等步距异节奏。" },
+        { t:"节拍不同不必先判型，直接取最大节拍 6 当步距把队伍排开施工，省去判型这步。", ok:false, code:"E02", tempt:"想省事，跳过判型直接取步距开干。", lose:"判型是采分地基，跳过=丢判据分，且 K 取最大节拍本身就错。", fix:"先写「成倍数·等步距异节奏」，再据型取 K=最大公约数。" }
+      ] },
+    { tag:"步距K·计算表达维", typeHint:"单选 · 选出可得分的算式与依据", figLabel:"题给：各节拍", figCaption:"3、3、6、3（月）· K = ？", fig:"gcd",
+      stem:"承上题（已判等步距异节奏，节拍 3、3、6、3）。求流水步距 K，写出可得分的算式与依据。",
+      model:"K = 各节拍最大公约数 gcd(3,6)=3 个月。",
+      opts:[
+        { t:"等步距异节奏，流水步距 K 取各节拍「最大公约数」：K=gcd(3,3,6,3)=3 个月。", ok:true, fix:"依据词「最大公约数」+算式+数值带单位，换组数据也不会错。", code:"" },
+        { t:"步距要能排开工序，取各节拍「最大值」：K=6 个月，按最长的砌筑节拍定步距。", ok:false, code:"E09", tempt:"怕步距小排不开，想用最长工序节拍当步距。", lose:"K 取最大节拍会让队排稀、施工段空等，违反 K=最大公约数。", fix:"据型 K=gcd(3,6)=3，不是最大节拍。" },
+        { t:"步距取各节拍「平均值」折中：K=(3+3+6+3)÷4=3.75 个月，兼顾各工序不排稀。", ok:false, code:"E09", tempt:"平均看着「折中又公平」。", lose:"流水步距没有平均口径，3.75 非整数无法让各段整数个 K 咬合。", fix:"用最大公约数 3，不是平均值。" },
+        { t:"步距取各节拍「最小值」保证咬合：K=3 个月，用最短节拍定步距最紧凑。", ok:false, code:"E07", tempt:"数值 3 恰好正确，极易顺手就选。", lose:"数值对、依据错——最小值等于 gcd 只是本题巧合；阅卷看依据词「最大公约数」，写「最小节拍」不给判据分。", fix:"必须写「K=最大公约数 gcd(3,6)=3」，不能写「取最小节拍」。" }
+      ] },
+    { tag:"队数·计算表达维", typeHint:"单选 · 选出可得分的列式与依据", figLabel:"题给：各工序节拍（K=3）", figCaption:"基础3 结构3 砌筑6 装修3 · 需几个专业队？", fig:"rows",
+      stem:"承上题（等步距异节奏，K=3，节拍 3、3、6、3）。需要多少个专业施工队？写出可得分的列式与依据。",
+      model:"各工序队数=节拍÷K=1+1+2+1=5 个；成倍节拍拆队，队数>工序数。",
+      opts:[
+        { t:"各工序队数=节拍÷K=1+1+2+1=5 个专业队；成倍节拍要拆队，队数大于工序数。", ok:true, fix:"逐工序÷K、求和、点明拆队与队数>工序数，砌筑拆 2 队归属清楚。", code:"" },
+        { t:"四个施工过程就设 4 个专业队，每个过程配 1 个队依次施工，队数等于工序数。", ok:false, code:"E07", tempt:"直觉「几道工序就几个队」，等节奏时确实如此。", lose:"成倍节拍未拆队：砌筑 6=2K 应拆 2 队，漏拆少 1 队。", fix:"队数=节拍÷K 求和=5，队数>工序数。" },
+        { t:"把节拍数当队数：砌筑 6 设 6 个队、其余每过程各设 3 个队，共 6+3+3+3=15 个队。", ok:false, code:"E09", tempt:"把「节拍数」直接当「队数」摆。", lose:"队数=节拍÷K，不是节拍本身，严重高估。", fix:"节拍÷K：6÷3=2 队、3÷3=1 队，合计 5 队。" },
+        { t:"队数=总节拍÷K=(3+3+6+3)÷3=5 个队，用总节拍一次除以步距求出队数。", ok:false, code:"E07", tempt:"数值 5 正确，算式看着也「成立」。", lose:"数值对、口径错——「总节拍÷K」掩盖拆队归属，阅卷要求队数落到具体工序（砌筑拆 2）。", fix:"写成 1+1+2+1=5，标明砌筑拆 2 队、队数>工序数。" }
+      ] },
+    { tag:"工期·计算表达维", typeHint:"单选 · 选出可得分的工期算式与依据", figLabel:"题给：M=2 段，N′=5 队，K=3", figCaption:"5 队 2 段对角咬合 · 总工期 T = ？", fig:"gantt",
+      stem:"承上题（等步距异节奏，K=3 个月，施工段 M=2，拆队后专业队 N′=5）。求总工期 T，写出可得分的算式与依据。",
+      model:"T=(M+N′−1)×K=(2+5−1)×3=18 个月，体现搭接、带单位。",
+      opts:[
+        { t:"总工期体现搭接：T=(M+N′−1)×K=(2+5−1)×3=18 个月。", ok:true, fix:"用拆队后队数 N′=5、施工段 M=2，体现搭接并带单位，公式与数值齐。", code:"" },
+        { t:"总工期就是各工序节拍相加：T=3+3+6+3=15 个月，把四道工序时间累加起来。", ok:false, code:"E09", tempt:"以为把工序节拍加起来就是工期。", lose:"机械相加不体现搭接，也没展开多施工段与拆队。", fix:"T=(M+N′−1)×K=(2+5−1)×3=18 个月。" },
+        { t:"总工期=节拍在两个施工段上全摆开=(3+3+6+3)×2=30 个月。", ok:false, code:"E09", tempt:"两段就乘 2，看着「全做完」。", lose:"那是不搭接、一段段死等的算法；流水搭接后只 18 个月。", fix:"体现搭接 T=(2+5−1)×3=18 个月，不是 30。" },
+        { t:"总工期=(M+N′−1)×K=(2+4−1)×3=15 个月（按 4 道工序算）。", ok:false, code:"E07", tempt:"公式对，但把 N′ 当成了 4 道工序。", lose:"N′ 是拆队后总队数 5，不是工序数 4；用错连锁错。", fix:"N′=5，T=(2+5−1)×3=18 个月。" }
+      ] },
+    { tag:"参数体系·条件维", typeHint:"单选 · 选出参数归类完整正确的作答", figLabel:"题给：组织流水施工的各参数（未分类）", figCaption:"把它们归进 工艺 / 时间 / 空间 三体系", fig:"params",
+      stem:"组织流水施工要确定哪几类参数？选出归类完整、能得分的作答。",
+      model:"工艺参数（施工过程数、施工段数）／时间参数（流水节拍 t、流水步距 K、工期 T）／空间参数（施工段、施工层）。",
+      opts:[
+        { t:"工艺参数：施工过程数、施工段数；时间参数：节拍、步距、工期；空间参数：施工段、施工层。", ok:true, fix:"三体系齐全、各参数归类正确，正是真题给分点。", code:"" },
+        { t:"组织流水只要确定时间参数：流水节拍、流水步距、工期，这三个算出来就够了。", ok:false, code:"E02", tempt:"流水题最常算的就是节拍/步距/工期，容易只答这一类。", lose:"漏了工艺参数与空间参数两类，采分点遗漏。", fix:"补工艺参数（过程数、段数）与空间参数（施工段、施工层）。" },
+        { t:"把流水节拍、流水步距也归进工艺参数，与施工过程数、施工段数一起算工艺安排。", ok:false, code:"E07", tempt:"觉得节拍/步距也算「工艺」上的安排。", lose:"节拍/步距/工期属时间参数，归错体系。", fix:"时间参数=节拍/步距/工期；工艺参数=过程数/段数。" },
+        { t:"流水施工的参数主要就是施工过程数、施工段数这两个工艺量，其余按现场情况灵活定即可。", ok:false, code:"E02", tempt:"只记住了工艺参数。", lose:"漏时间参数与空间参数，三缺二。", fix:"补全时间参数（节拍/步距/工期）与空间参数（施工段/施工层）。" }
+      ] },
+    { tag:"判型·条件维（等节奏）", typeHint:"单选 · 选出判型完整正确的作答", figLabel:"题给：另一工程四工序节拍", figCaption:"挖土4 垫层4 基础4 回填4（月）· 判型", fig:"bars", fd:{bars:[["挖土",4],["垫层",4],["基础",4],["回填",4]]},
+      stem:"某工程四个施工过程流水节拍均为 4 个月。判定流水组织类型并给步距，选最完整能得分的作答。",
+      model:"节拍全部相等 → 等节奏流水；流水步距 K=流水节拍 t=4 个月，各队连续无空闲。",
+      opts:[
+        { t:"节拍全部相等，判「等节奏流水」，流水步距 K=流水节拍 t=4 个月，各队连续施工。", ok:true, fix:"点全等这一判据、定等节奏、并给 K=t=4，三件齐。", code:"" },
+        { t:"节拍都是 4、成倍数关系，判「等步距异节奏流水」，步距取各节拍最大公约数 4。", ok:false, code:"E07", tempt:"看见「成倍数」就往等步距异节奏靠。", lose:"全部相等属等节奏，等步距异节奏要求节拍不全等但成倍数。", fix:"全等→等节奏，K=t=4，不是等步距异节奏。" },
+        { t:"节拍相等仍要判无节奏，用大差法逐段求步距 K，按最不利工序排队。", ok:false, code:"E05", tempt:"把大差法当成通用解法。", lose:"大差法只用于无节奏；全等场景是等节奏、K=t。", fix:"全等→等节奏，K=t=4，无需大差法。" },
+        { t:"节拍相等不必判型，直接让四个队一个接一个依次进场施工即可，不算流水。", ok:false, code:"E02", tempt:"觉得节拍一样就没啥可判。", lose:"跳过判型丢判据分，且等节奏是流水、要搭接不是依次。", fix:"写「全等→等节奏，K=t=4」，等节奏仍是搭接流水。" }
+      ] },
+    { tag:"判型·条件维（无节奏）", typeHint:"单选 · 选出判型完整正确的作答", figLabel:"题给：四工序节拍", figCaption:"2、4、3、5（月）· 判型", fig:"bars", fd:{bars:[["基础",2],["结构",4],["砌筑",3],["装修",5]]},
+      stem:"某工程四个施工过程流水节拍为 2、4、3、5 个月。判定流水组织类型，选最完整能得分的作答。",
+      model:"节拍不全相等、也不成倍数（无公倍规律）→ 无节奏流水；流水步距用累加数错位相减取大差法确定。",
+      opts:[
+        { t:"节拍不全等、又不成倍数，判「无节奏流水」，流水步距用累加错位相减的大差法确定。", ok:true, fix:"点明不成倍数、定无节奏、并指向大差法，判据与方法齐。", code:"" },
+        { t:"节拍不全相等但成倍数，判「等步距异节奏流水」，步距取各节拍最大公约数。", ok:false, code:"E05", tempt:"没验成倍数就套等步距异节奏。", lose:"2、4、3、5 不成整数倍关系，不是等步距异节奏。", fix:"不成倍数→无节奏，用大差法，不取最大公约数。" },
+        { t:"取各节拍最大公约数 gcd(2,4,3,5)=1 作步距 K=1 个月组织流水。", ok:false, code:"E09", tempt:"硬套「K=最大公约数」公式。", lose:"最大公约数口径只用于等步距异节奏；无节奏用大差法，K=1 也不合理。", fix:"判无节奏、用大差法求步距，不套 gcd。" },
+        { t:"节拍不同就按最大节拍 5 个月统一步距，让各队都按 5 个月的步距进场。", ok:false, code:"E07", tempt:"想用最长节拍拉齐步距。", lose:"无节奏没有统一步距，须大差法逐段算；取最大节拍会大量空等。", fix:"判无节奏、大差法定步距，不取最大节拍。" }
+      ] },
+    { tag:"步距K·计算表达维（另组）", typeHint:"单选 · 选出可得分的算式与依据", figLabel:"题给：各节拍", figCaption:"4、4、8、4（月）· K = ？", fig:"gcd", fd:{gcd:[4,4,8,4],gcdLabel:"gcd(4,8)=4 → K=?"},
+      stem:"某工程节拍 4、4、8、4 个月（已判等步距异节奏）。求流水步距 K，写出可得分的算式与依据。",
+      model:"K=各节拍最大公约数 gcd(4,4,8,4)=4 个月。",
+      opts:[
+        { t:"等步距异节奏，步距取各节拍最大公约数：K=gcd(4,4,8,4)=4 个月。", ok:true, fix:"依据词「最大公约数」+算式+带单位，换数不错。", code:"" },
+        { t:"步距取各节拍最大值：K=8 个月，用最长的第三工序节拍来定步距。", ok:false, code:"E09", tempt:"怕排不开取最长节拍。", lose:"K 取最大节拍队排稀、段空等，违反 K=最大公约数。", fix:"K=gcd(4,8)=4，不取最大节拍 8。" },
+        { t:"步距取各节拍平均值：K=(4+4+8+4)÷4=5 个月，折中兼顾各工序。", ok:false, code:"E09", tempt:"平均看着折中。", lose:"步距无平均口径，5 不能整除 8、无法咬合。", fix:"用最大公约数 4，不是平均 5。" },
+        { t:"步距取各节拍最小值：K=4 个月，用最短节拍保证队伍排得最紧凑。", ok:false, code:"E07", tempt:"数值 4 恰好对，顺手就选。", lose:"数值对依据错——最小值等于 gcd 是巧合，阅卷看「最大公约数」这个依据词。", fix:"写「K=最大公约数 gcd(4,8)=4」，不写「取最小节拍」。" }
+      ] },
+    { tag:"队数·计算表达维（另组）", typeHint:"单选 · 选出可得分的列式与依据", figLabel:"题给：各工序节拍（K=4）", figCaption:"4、4、8、4 · 需几个专业队？", fig:"rows", fd:{rows:[["挖土",4],["结构",4],["砌筑",8],["装修",4]]},
+      stem:"承上（等步距异节奏，K=4，节拍 4、4、8、4）。需要多少专业施工队？写出可得分的列式与依据。",
+      model:"各工序队数=节拍÷K=4÷4+4÷4+8÷4+4÷4=1+1+2+1=5 个；成倍节拍拆队，队数>工序数。",
+      opts:[
+        { t:"各工序队数=节拍÷K=1+1+2+1=5 个专业队；砌筑 8=2K 拆 2 队，队数大于工序数。", ok:true, fix:"逐工序÷K、求和、点明拆队归属，砌筑拆 2 队清楚。", code:"" },
+        { t:"四个施工过程配 4 个专业队，每个过程一个队依次做，队数就等于工序数四个。", ok:false, code:"E07", tempt:"直觉几道工序几个队。", lose:"砌筑 8=2K 应拆 2 队，未拆少 1 队。", fix:"队数=节拍÷K 求和=5，砌筑拆 2 队。" },
+        { t:"把节拍当队数：砌筑 8 设 8 个队、其余各设 4 个队，合计 8+4+4+4=20 个队。", ok:false, code:"E09", tempt:"节拍数直接当队数摆。", lose:"队数=节拍÷K，不是节拍本身，严重高估。", fix:"8÷4=2 队、4÷4=1 队，合计 5 队。" },
+        { t:"队数=总节拍÷K=(4+4+8+4)÷4=5 个队，用总节拍一次除以步距得出。", ok:false, code:"E07", tempt:"数值 5 对，算式看着成立。", lose:"总节拍÷K 掩盖拆队归属，阅卷要队数落到具体工序。", fix:"写 1+1+2+1=5，标砌筑拆 2 队。" }
+      ] },
+    { tag:"工期·计算表达维（另组）", typeHint:"单选 · 选出可得分的工期算式", figLabel:"题给：M=3 段，N′=5 队，K=4", figCaption:"多施工段搭接 · 总工期 T = ？", fig:"gantt", fd:{seg:5,span:28},
+      stem:"某工程等步距异节奏，K=4 个月，施工段 M=3，拆队后专业队 N′=5。求总工期 T 及依据。",
+      model:"T=(M+N′−1)×K=(3+5−1)×4=28 个月，体现搭接、带单位。",
+      opts:[
+        { t:"总工期体现搭接：T=(M+N′−1)×K=(3+5−1)×4=28 个月。", ok:true, fix:"代入 M=3、N′=5、K=4，体现搭接并带单位。", code:"" },
+        { t:"总工期=(M+N′−1)×K=(3+4−1)×4=24 个月，按 4 道工序代入 N′。", ok:false, code:"E07", tempt:"公式对，却把 N′ 当 4 道工序。", lose:"N′ 是拆队后总队数 5，不是工序数 4。", fix:"N′=5，T=(3+5−1)×4=28 个月。" },
+        { t:"总工期=各队节拍在三个施工段全摆开=(4+4+8+4)×3=60 个月。", ok:false, code:"E09", tempt:"三段乘 3 看着全做完。", lose:"那是不搭接死等的算法，流水搭接后只 28 个月。", fix:"体现搭接 T=(3+5−1)×4=28，不是 60。" },
+        { t:"总工期=M×N′×K=3×5×4=60 个月，把段数队数步距直接相乘。", ok:false, code:"E09", tempt:"以为三者相乘就是总工期。", lose:"公式是 (M+N′−1)×K，不是三者连乘。", fix:"T=(M+N′−1)×K=(3+5−1)×4=28 个月。" }
+      ] },
+    { tag:"参数体系·条件维（空间）", typeHint:"单选 · 选出空间参数归类正确的作答", figLabel:"题给：待归类的参数", figCaption:"哪些属于「空间参数」？", fig:"params", fd:{toks:["施工段（工作面）","施工层","流水节拍 t","流水步距 K","施工过程数","工期 T"]},
+      stem:"组织流水施工的空间参数指哪些？选出归类正确、能得分的作答。",
+      model:"空间参数=施工段（工作面）与施工层；节拍/步距/工期属时间参数，过程数/段数属工艺参数。",
+      opts:[
+        { t:"空间参数是施工段（工作面）和施工层；它决定队伍在空间上如何分区流动。", ok:true, fix:"空间参数只含施工段与施工层，归类准确。", code:"" },
+        { t:"空间参数是流水节拍和流水步距，因为它们决定队伍在现场的空间排布。", ok:false, code:"E07", tempt:"把节拍/步距误当空间排布。", lose:"节拍/步距属时间参数，不是空间参数。", fix:"空间参数=施工段、施工层；节拍/步距是时间参数。" },
+        { t:"空间参数就是施工过程数和施工段数这两个工艺量，反映空间上的划分。", ok:false, code:"E07", tempt:"把工艺参数当空间参数。", lose:"过程数属工艺参数；空间参数是施工段、施工层。", fix:"空间参数=施工段、施工层，不是过程数。" },
+        { t:"空间参数是工期 T，因为工期反映工程在空间上全部完成所需的时间跨度。", ok:false, code:"E07", tempt:"把工期硬拉进空间参数。", lose:"工期属时间参数，与空间参数是两类。", fix:"空间参数=施工段、施工层；工期是时间参数。" }
+      ] },
+    { tag:"类型辨析·条件维", typeHint:"单选 · 判断说法对错并给正确表述", figLabel:"待判断的说法", figCaption:"等节奏流水「各队不能连续作业」——对吗？", fig:"sheet", fd:{lines:["说法：等节奏流水专业队","「各段之间必然停歇、","不能连续作业」——对吗？"]},
+      stem:"有说法称「等节奏流水中各专业队在各施工段之间必然停歇、不能连续作业」。判断并选出正确表述。",
+      model:"说法错误。等节奏 K=t，相邻队错开一个 K 进场后即可在各段连续作业、无空闲停歇，这正是流水的连续性优点。",
+      opts:[
+        { t:"说法错误：等节奏 K=t，队错开一个 K 进场后在各段连续作业、无停歇，这是流水连续性优点。", ok:true, fix:"先判错、再给理由 K=t 连续无空闲，判断+依据齐。", code:"" },
+        { t:"说法正确：等节奏各段之间必然有停歇，专业队做完一段要等下一段腾出才能进。", ok:false, code:"E07", tempt:"把无节奏的空等误安到等节奏头上。", lose:"等节奏 K=t 恰好连续无空闲，说法本身是错的。", fix:"应判错：等节奏 K=t，各段连续作业。" },
+        { t:"说法正确：只有等步距异节奏才连续，等节奏因为节拍相等反而会互相撞车停歇。", ok:false, code:"E07", tempt:"把连续性错记成等步距异节奏独有。", lose:"等节奏才是最规整的连续流水，节拍相等不会撞车。", fix:"等节奏 K=t 连续无空闲，说法错误。" },
+        { t:"说法无法判断，要看具体施工段数量，段数少就停歇、段数多就连续。", ok:false, code:"E02", tempt:"用段数多少来搪塞判断。", lose:"等节奏连续性由 K=t 决定，与段数多少无关，回避了判断。", fix:"直接判错：等节奏 K=t 连续作业，与段数无关。" }
+      ] },
+    { tag:"步距意义·概念维", typeHint:"单选 · 选出流水步距定义正确的作答", figLabel:"流水步距 K 指什么", figCaption:"相邻两队 · 进场时间间隔", fig:"gantt", fd:{seg:3,span:9},
+      stem:"「流水步距 K」在流水施工里指的是什么？选出定义准确的作答。",
+      model:"流水步距 K 是相邻两个专业施工队先后进入同一施工段（开始工作）的时间间隔。",
+      opts:[
+        { t:"流水步距 K 是相邻两个专业队先后进入同一施工段开始作业的时间间隔。", ok:true, fix:"点明「相邻两队、进入同一段、时间间隔」三要素，定义准确。", code:"" },
+        { t:"流水步距 K 是一个专业队在一个施工段上完成作业所需要的持续时间。", ok:false, code:"E07", tempt:"把「节拍」的定义安到步距上。", lose:"那是流水节拍 t 的定义；步距是相邻队进场间隔。", fix:"K=相邻两队进场间隔；一队做一段的时间是节拍 t。" },
+        { t:"流水步距 K 是整个工程从第一个队进场到最后一个队完工的总时间。", ok:false, code:"E07", tempt:"把「工期」误当步距。", lose:"那是总工期 T；步距是相邻队进场间隔。", fix:"K=相邻两队进场间隔；全程时间是工期 T。" },
+        { t:"流水步距 K 是施工段的数量，反映工程在空间上被划分成几个工作面。", ok:false, code:"E07", tempt:"把空间参数当步距。", lose:"施工段数量是空间/工艺参数，不是步距。", fix:"K=相邻两队进场的时间间隔，不是段数。" }
+      ] },
+    { tag:"无节奏·计算表达维", typeHint:"单选 · 选出无节奏求步距方法正确的作答", figLabel:"无节奏流水", figCaption:"各队节拍无规律 · 步距怎么求？", fig:"sheet", fd:{lines:["无节奏流水：各专业队","在各段节拍无规律；","相邻两队步距怎么定？"]},
+      stem:"无节奏流水中，相邻两个专业队的流水步距怎么确定？选出方法正确的作答。",
+      model:"用累加斜线（潘特考夫斯基）法：先累加各队在各段的持续时间，相邻队累加数错位相减，取最大差值作流水步距，保证后队不超前、无干扰。",
+      opts:[
+        { t:"用累加错位相减的大差法：相邻队累加时间错位相减取最大差，保证后队不超前。", ok:true, fix:"点明累加、错位相减、取大差、目的（后队不超前），方法完整。", code:"" },
+        { t:"直接取相邻两队节拍的最大公约数作为流水步距，与等步距异节奏一样处理。", ok:false, code:"E07", tempt:"把 gcd 口径套到无节奏上。", lose:"最大公约数只用于等步距异节奏；无节奏用大差法。", fix:"无节奏用累加错位相减的大差法，不取 gcd。" },
+        { t:"取相邻两队各段节拍的平均值作步距，让快慢工序折中一个统一间隔。", ok:false, code:"E09", tempt:"平均看着能折中快慢。", lose:"平均不能保证后队不超前、不干扰，无节奏须大差法。", fix:"用累加错位相减取最大差，不取平均。" },
+        { t:"无节奏无法算步距，只能让各队做完一段等下一段空出再进，逐段串起来。", ok:false, code:"E02", tempt:"觉得无规律就没法求。", lose:"无节奏有明确的大差法可求步距，说不能算是放弃采分。", fix:"用累加错位相减大差法求步距，可算。" }
+      ] },
+    { tag:"采分诊断·末题（另份）", typeHint:"单选 · 诊断这份作答的失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"K 取了平均、队数只算工序数", fig:"sheet", fd:{lines:["① K=(3+3+6+3)÷4=3.75","② 4 道工序设 4 个队","③ T=(2+4−1)×3.75≈18.75"]},
+      stem:"某学生作答：①K 取平均 3.75 个月；②按 4 道工序设 4 个队；③T=(2+4−1)×3.75≈18.75 个月。选最准确的诊断与补写。",
+      model:"K 应取最大公约数 3（非平均 3.75）、砌筑成倍节拍应拆队 N′=5（非 4）、工期须用正确 K 与 N′ 体现搭接；补写：K=gcd(3,6)=3／队数 1+1+2+1=5／T=(2+5−1)×3=18 个月。",
+      opts:[
+        { t:"K 应取 gcd=3（非平均 3.75）、应拆队 N′=5（非 4）、工期按正确 K 与 N′ 重算=18 个月。", ok:true, fix:"三处错全揪出并补正确采分句，K/队数/工期一次补齐。", code:"" },
+        { t:"三步算出 18.75，与标准 18 很接近，思路基本正确，四舍五入到 18 即可给分。", ok:false, code:"E07", tempt:"看数值接近就以为对。", lose:"K 用平均、队数没拆，两处根本错，凑近的数值不给分。", fix:"K=gcd=3、队数拆队=5、T=18，不能靠凑近。" },
+        { t:"只是 K 小数不好看，把 3.75 约成 4 再算就行，队数 4 个和工期思路都对。", ok:false, code:"E09", tempt:"以为只是 K 取值小问题。", lose:"漏诊「未拆队 N′ 应为 5」，且 K 应是 gcd=3 不是 4。", fix:"K=gcd(3,6)=3、拆队 N′=5，一起补。" },
+        { t:"队数按 4 道工序算是对的，只要把 K 从 3.75 改成最大公约数 3 就全对了。", ok:false, code:"E07", tempt:"抓到 K 错一处，漏了拆队。", lose:"漏诊「成倍节拍应拆队 N′=5」，队数 4 是错的。", fix:"K=3 之外还要拆队 N′=5，T=(2+5−1)×3=18。" }
+      ] },
+    { tag:"采分诊断·末题", typeHint:"单选 · 工期数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"总工期 18 与标准答案数值一致，但…", fig:"sheet",
+      stem:"某学生作答：①K 取最大节拍=6 个月；②设 4 个专业队；③总工期=3+3+6+6=18 个月。其总工期 18 恰与标准答案一致。选出最准确的诊断与补写。",
+      model:"判型理由缺、K 取最大节拍（应 gcd=3）、未拆队（应 5 队）、工期机械相加未体现搭接；补写四句：成倍数·等步距异节奏／K=gcd(3,6)=3／队数 1+1+2+1=5／T=(2+5−1)×3=18 个月。",
+      opts:[
+        { t:"判型理由缺、K 应取 gcd=3、未拆队应 5 队、工期系机械相加碰巧得 18；四处都要补写。", ok:true, fix:"四处失分全揪出，补写即可上答题纸的四句采分句——这就是「会写答案」。", code:"" },
+        { t:"三步算出工期 18，与标准答案数值一致，判型 K 队数也都对，作答正确可给满分。", ok:false, code:"E07", tempt:"只看末位数字，数值对就以为全对——最危险的误判。", lose:"工期是机械相加 3+3+6+6 碰巧得 18，判型/K/队数全错且未体现搭接；阅卷看过程采分。", fix:"判型/K/队数都要重写，工期按 (2+5−1)×3 体现搭接。" },
+        { t:"只是总工期写法不够规范，把 K 从 6 改成 3 就行，判型和队数其余都正确无误。", ok:false, code:"E02", tempt:"抓到 K 错一处，就以为只此一错。", lose:"漏诊「判型理由缺失」和「未拆队（4 应 5）」两处失分。", fix:"判型理由、拆队 5 队、搭接工期三处都要补，不止改 K。" },
+        { t:"K 应取平均节拍 3.75 而非 6，队数与工期按 3.75 重算即可，其余判型思路都没问题。", ok:false, code:"E07", tempt:"看出 K=6 错了，却把它纠成了另一个错。", lose:"诊断方向本身错：K 是最大公约数 3，不是平均 3.75，用错 K 重算只会连锁错。", fix:"K=gcd(3,6)=3，按 K=3 重算队数 5、工期 18。" }
+      ] }
+  ];
+  // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
+  codeMap={
+    E02:{label:"采分点遗漏",advice:"判型理由/拆队/搭接工期逐项写，缺一扣一。"},
+    E05:{label:"审题错误",advice:"先看节拍成不成倍数，别一看不等就判无节奏。"},
+    E07:{label:"概念混淆",advice:"分清类型档、队数≠工序数、依据词不能换。"},
+    E09:{label:"计算错误",advice:"K 取最大公约数、队数=节拍÷K、工期体现搭接。"}
+  };
+
+  componentDidMount(){
+    var vp=document.querySelector('meta[name=viewport]');
+    if(!vp){ vp=document.createElement('meta'); vp.name='viewport'; document.head.appendChild(vp); }
+    vp.setAttribute('content','width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover');
+    // 抽题顺序与选项乱序在首帧惰性生成并缓存（ord()/optPerm()），不依赖此处 setState，
+    // 保证首屏渲染即已随机（消除"A 先出现再洗牌"的闪烁与对 componentDidMount 的依赖）。
+  }
+  // ── 随机抽题：从 Q[] 全量候选池洗牌后取前 SHOW_COUNT 条真实索引 ──
+  pickOrder(){ const idx=this.Q.map((_,i)=>i);
+    for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+    return idx.slice(0, Math.min(this.SHOW_COUNT||5, idx.length)); }
+  fallbackOrder(){ return this.Q.map((_,i)=>i).slice(0, Math.min(this.SHOW_COUNT||5, this.Q.length)); }
+  ord(){ if(!this._ord||!this._ord.length)this._ord=this.pickOrder(); return this._ord; }
+  qAt(i){ return this.Q[this.ord()[i]]; }
+  // ── 选项乱序：每题对 opts 独立洗牌，正确项落随机位置（防"永远选第一个/最长的"位置泄露）；重做重新洗 ──
+  buildOptOrder(){ const m={}; this.Q.forEach((q,realIdx)=>{ const idx=q.opts.map((_,i)=>i);
+      for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=idx[i]; idx[i]=idx[j]; idx[j]=t; } m[realIdx]=idx; }); return m; }
+  optPerm(qslot){ if(!this._optOrder)this._optOrder=this.buildOptOrder(); const realIdx=this.ord()[qslot]; const p=this._optOrder[realIdx]; return (p&&p.length)?p:this.qAt(qslot).opts.map((_,i)=>i); }
+  dispOpts(qslot){ const q=this.qAt(qslot),p=this.optPerm(qslot); return p.map(oi=>q.opts[oi]); }
+  qCount(){ return this.ord().length; }
+  isMulti(q){ return q.tag.indexOf("多选")>=0; }
+  optLetter(i){ return String.fromCharCode(65+i); }
+  onOpt(i){ const qi=this.state.qi; if(this.state.sub[qi])return; const q=this.qAt(qi); const sel={...this.state.sel};
+    if(this.isMulti(q)){ const a=Array.isArray(sel[qi])?[...sel[qi]]:[]; const k=a.indexOf(i); if(k>=0)a.splice(k,1);else a.push(i); sel[qi]=a; }
+    else sel[qi]=i; this.setState({sel}); }
+  hasSel(){ const qi=this.state.qi,s=this.state.sel[qi],q=this.qAt(qi); if(this.isMulti(q))return Array.isArray(s)&&s.length>0; return s!=null; }
+  submit(){ if(!this.hasSel())return; const sub={...this.state.sub}; sub[this.state.qi]=true; this.setState({sub}); }
+  graded(qi){ const q=this.qAt(qi),s=this.state.sel[qi],d=this.dispOpts(qi);
+    if(this.isMulti(q)){ const want=d.map((o,i)=>o.ok?i:-1).filter(i=>i>=0).sort(); const got=Array.isArray(s)?[...s].sort():[]; return got.length===want.length&&got.every((v,i)=>v===want[i]); }
+    return s!=null&&d[s]&&d[s].ok; }
+  next(){ if(this.state.qi<this.qCount()-1)this.setState({qi:this.state.qi+1}); else this.setState({finished:true}); }
+  reset(){ this._ord=this.pickOrder(); this._optOrder=this.buildOptOrder(); this.setState({qi:0,sel:{},sub:{},finished:false}); }
+  curCtx(){ const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    let mine="（还没作答）"; if(multi){ if(Array.isArray(sel)&&sel.length)mine=sel.map(i=>this.optLetter(i)).join("、"); } else if(sel!=null)mine=this.optLetter(sel);
+    return { q, sub, mine, opts:this.dispOpts(qi).map((o,i)=>this.optLetter(i)+". "+o.t).join("\n") }; }
+  ctxLine(){ const c=this.curCtx(); return "题干："+c.q.stem.slice(0,38)+"… ｜ 我的选择："+c.mine+(c.sub?" ｜ 已对答案":" ｜ 未对答案"); }
+  openAsk(){ this.setState({askOpen:true,askText:"",askAnswer:""}); }
+  closeAsk(){ this.setState({askOpen:false}); }
+  setAsk(e){ this.setState({askText:e.target.value}); }
+  preset(t){ this.setState({askText:t}); }
+  dragStart(e){ this._dy=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dd=0; this._drag=true; }
+  dragMove(e){ if(!this._drag)return; this._dd=(e.touches&&e.touches[0]?e.touches[0].clientY:0)-this._dy; }
+  dragEnd(){ if(this._drag&&this._dd>70)this.closeAsk(); this._drag=false; this._dd=0; }
+  async submitAsk(){ const userQ=(this.state.askText||"").trim(); if(!userQ||this.state.askLoading)return;
+    this.setState({askLoading:true,askAnswer:""}); const c=this.curCtx();
+    const prompt='你是“鲁班智考”一建案例课老师龙安欢，正在带学员做“'+this.examTitle+'”随堂练。\n知识口径：'+this.KNOWLEDGE+'\n【本题题干】'+c.q.stem+'\n【选项】\n'+c.opts+'\n【满分采分句】'+c.q.model+'\n【学员选择】'+c.mine+(c.sub?'（已对答案）':'（未对答案，别直接报字母，引导他想）')+'\n【学员追问】'+userQ+'\n要求：东北话口语、简短(150字内)、紧扣本题采分点；先结论再依据；未对答案且问选哪个就给思路。';
+    try{ if(window.claude&&window.claude.complete){ const a=await window.claude.complete(prompt); this.setState({askLoading:false,askAnswer:(a&&String(a).trim())||"（没拿到回答，再试一次哈）"}); }
+      else { this.setState({askLoading:false,askAnswer:"当前预览没接 AI。接了后端就能直接问。\n你的问题先记下：“"+userQ+"”"}); } }
+    catch(err){ this.setState({askLoading:false,askAnswer:"追问出错："+((err&&err.message)||err)}); }
+  }
+  figFor(qi){
+    const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
+    const q=this.qAt(qi), type=q.fig, els=[]; let figH=100;
+    const PAL=["#2f6db0","#cf8a44","#2c8a5b","#d9a521","#7a5bb0","#3fa06a"];
+    if(type==="bars"){ figH=104; const vals=(q.fd&&q.fd.bars)||[["基础",3],["结构",3],["砌筑",6],["装修",3]], base=78, n=vals.length, gap=Math.floor(300/n);
+      const mx=Math.max.apply(null,vals.map(v=>v[1]))||6, unit=Math.min(13,Math.floor(58/mx));
+      vals.forEach((v,i)=>{ const h=v[1]*unit, x=14+i*gap, col=PAL[i%PAL.length];
+        els.push(D({x:x+Math.floor(gap/2)-18,top:base-h-18,w:36,h:16,fg:col,fs:14,lab:String(v[1])}));
+        els.push(D({x:x+Math.floor(gap/2)-18,top:base-h,w:36,h:h,bg:col,r:5}));
+        els.push(D({x:x+Math.floor(gap/2)-26,top:base+4,w:52,h:14,fg:"#5c6469",fs:10,lab:v[0]})); }); }
+    else if(type==="gcd"){ figH=92; const vals=(q.fd&&q.fd.gcd)||[3,3,6,3], n=vals.length, gap=Math.min(52,Math.floor(300/n));
+      vals.forEach((v,i)=>{ els.push(D({x:20+i*gap,top:10,w:42,h:42,bg:"#f1ece0",bd:"1.5px solid #d8ccaa",r:8,fg:PAL[i%PAL.length],fs:18,lab:String(v)})); });
+      els.push(D({x:60,top:62,w:200,h:24,fg:"#a98a55",fs:16,lab:(q.fd&&q.fd.gcdLabel)||"K = ?"})); }
+    else if(type==="rows"){ figH=100; const rows=(q.fd&&q.fd.rows)||[["基础",3],["结构",3],["砌筑",6],["装修",3]], n=rows.length, rh=Math.floor(92/n);
+      rows.forEach((r,i)=>{ const y=4+i*rh, col=PAL[i%PAL.length];
+        els.push(D({x:4,top:y+2,w:40,h:16,fg:col,fs:11,ta:"right",jc:"flex-end",lab:r[0]}));
+        els.push(D({x:52,top:y,w:r[1]*15,h:Math.min(18,rh-4),bg:col,r:4}));
+        els.push(D({x:52+r[1]*15+8,top:y+2,w:96,h:16,fg:"#8b9398",fs:10,ta:"left",jc:"flex-start",lab:"节拍 "+r[1]})); }); }
+    else if(type==="gantt"){ figH=100; const seg=(q.fd&&q.fd.seg)||5, span=(q.fd&&q.fd.span)||18, mw=Math.max(6,Math.floor(252/span)), rh=Math.floor(92/seg);
+      for(let i=0;i<seg;i++){ const y=2+i*rh, col=PAL[i%PAL.length]; for(let sg=0;sg<2;sg++){ els.push(D({x:10+((i*3)+sg*3)*mw,top:y,w:3*mw-2,h:Math.min(14,rh-3),bg:col,r:3})); } }
+      els.push(D({x:10,top:96,w:span*mw,h:0,bd:"1.5px solid #cf4436",bg:"transparent"}));
+      els.push(D({x:10+span*mw+6,top:90,w:60,h:14,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"T = ?"})); }
+    else if(type==="params"){ figH=104; const toks=(q.fd&&q.fd.toks)||["施工过程数","施工段数","流水节拍 t","流水步距 K","工期 T","施工段","施工层"];
+      const pos=[[8,8],[116,8],[224,8],[8,42],[116,42],[224,42],[8,76],[116,76],[224,76]];
+      toks.forEach((tk,i)=>{ if(!pos[i])return; els.push(D({x:pos[i][0],top:pos[i][1],w:100,h:28,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:8,fg:"#2f6db0",fs:10.5,lab:tk})); }); }
+    else if(type==="sheet"){ figH=98; const lines=(q.fd&&q.fd.lines)||["① K 取最大节拍 = 6 个月","② 设 4 个专业施工队","③ 总工期 = 3+3+6+6 = 18 个月"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11.5,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    return {els,figH};
+  }
+  renderVals(){
+    const qi=this.state.qi,q=this.qAt(qi),sub=!!this.state.sub[qi],multi=this.isMulti(q),sel=this.state.sel[qi];
+    const fig=this.figFor(qi);
+    const selSet=i=>multi?(Array.isArray(sel)&&sel.indexOf(i)>=0):(sel===i);
+    const opts=this.dispOpts(qi).map((o,i)=>{ const chosen=selSet(i); let border="#e2e0d5",bg="#fff",badge=this.optLetter(i),badgeBg="#ece9dd",badgeFg="#5c6469",showAna=false,anaAccent="#ccc";
+      if(!sub){ if(chosen){border="#cf4436";bg="#fdf2f0";badgeBg="#cf4436";badgeFg="#fff";} }
+      else { showAna=true; if(o.ok){border="#2c8a5b";bg="#f0f8f3";badge="✓";badgeBg="#2c8a5b";badgeFg="#fff";anaAccent="#2c8a5b";}
+        else if(chosen){border="#cf4436";bg="#fdf2f0";badge="✕";badgeBg="#cf4436";badgeFg="#fff";anaAccent="#cf4436";}
+        else {border="#e2e0d5";bg="#faf9f3";badgeBg="#ece9dd";badgeFg="#9aa0a3";anaAccent="#d8b24a";} }
+      return { t:o.t,ok:o.ok,bad:!o.ok,tempt:o.tempt,lose:o.lose,fix:o.fix,code:o.code,onClick:()=>this.onOpt(i),border,bg,badge,badgeBg,badgeFg,showAna,anaAccent,cursor:sub?"default":"pointer" };
+    });
+    const isLast=qi===this.qCount()-1;
+    let btnLabel,btnAction,btnDisabled=false,btnBg="#cf4436",btnFg="#fff",btnCursor="pointer";
+    if(!sub){ btnLabel=multi?"提交诊断":"对答案"; btnAction=()=>this.submit(); if(!this.hasSel()){btnDisabled=true;btnBg="#e2e0d5";btnFg="#9aa0a3";btnCursor="not-allowed";} }
+    else if(!isLast){ btnLabel="下一题"; btnAction=()=>this.next(); }
+    else { btnLabel="查看结果"; btnAction=()=>this.next(); btnBg="#23282b"; }
+
+    let score=0; const review=this.ord().map((realIdx,i)=>{ const qq=this.Q[realIdx]; const ok=this.graded(i); if(ok)score++; return {tag:qq.tag,mark:ok?"✓":"✕",bg:ok?"#2c8a5b":"#cf4436",fg:ok?"#2c8a5b":"#cf4436",label:ok?"得分":"漏分"}; });
+    const wc={}; this.ord().forEach((realIdx,i)=>{ const qq=this.Q[realIdx]; if(!this.graded(i)){ qq.opts.forEach(o=>{ if(o.code) wc[o.code]=1; }); } });
+    const weak=Object.keys(wc).sort().map(c=>({code:c,label:(this.codeMap[c]||{}).label||c,advice:(this.codeMap[c]||{}).advice||""}));
+    const qCount=this.qCount(); const verdicts=["再练练","有手感","稳了","满分手"]; const vi=score<=Math.floor(qCount*0.4)?0:score<qCount-1?1:score<qCount?2:3;
+    const empty=!((this.state.askText||"").trim());
+
+    return {
+      examTitle:this.examTitle, inQuiz:!this.state.finished, finished:this.state.finished,
+      qNum:qi+1, qTotal:qCount, qTag:q.tag, qStem:q.stem, qTypeHint:q.typeHint, figLabel:q.figLabel, figCaption:q.figCaption, figEls:fig.els, figH:fig.figH,
+      progPct:Math.round(((sub?qi+1:qi)/qCount)*100), opts, showModel:sub, qModel:q.model,
+      btnLabel,btnAction,btnDisabled,btnBg,btnFg,btnCursor,
+      score,review,weak,hasWeak:weak.length>0,noWeak:weak.length===0,scoreVerdict:verdicts[vi],scoreLabel:score+" 个采分点过关",moreText:this.moreText,
+      reset:()=>this.reset(),
+      openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
+      dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askCtx:this.ctxLine(),askIdle:!this.state.askLoading&&!this.state.askAnswer,
+      askChips:[{t:"为什么我选的不对？",onClick:()=>this.preset("为什么我选的这个不对？")},{t:"正确答案怎么想出来的？",onClick:()=>this.preset("正确答案是怎么一步步想出来的？")},{t:"采分句怎么写全？",onClick:()=>this.preset("这道题阅卷的采分句应该怎么写全？")}],
+      askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
+      askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班"
+    };
+  }
+}
+</script>
+</body>
+</html>

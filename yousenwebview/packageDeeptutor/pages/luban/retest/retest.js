@@ -13,6 +13,7 @@ const api = require("../../../utils/api");
 const telemetry = require("../../../utils/surface-telemetry");
 const helpers = require("../../../utils/helpers");
 const route = require("../../../utils/route");
+const auth = require("../../../utils/auth");
 
 var RETEST_LIMIT = 5;
 
@@ -256,21 +257,19 @@ Page({
   // 本地"已见变体"集合(收集感, 呈现层非学情): 读旧集合并入本场
   _seenCount(items) {
     var key = "luban_retest_seen:" + (this.data.packId || "");
+    var ownerId = String((auth && auth.getUserId && auth.getUserId()) || "").trim();
     var seen = [];
     try {
-      if (typeof wx !== "undefined" && wx.getStorageSync) {
-        var raw = wx.getStorageSync(key);
-        if (raw && Array.isArray(raw.ids)) seen = raw.ids;
-      }
+      var raw = auth.readOwnerStorage ? auth.readOwnerStorage(key) : null;
+      if (raw && Array.isArray(raw.ids)) seen = raw.ids;
     } catch (_e) {}
     var set = {};
     seen.forEach(function (id) { set[id] = true; });
     (items || []).forEach(function (it) { set[it.variant_id] = true; });
     var ids = Object.keys(set);
     try {
-      if (typeof wx !== "undefined" && wx.setStorageSync) {
-        wx.setStorageSync(key, { ids: ids, at: Date.now() });
-      }
+      if (ownerId && auth.writeOwnerStorage)
+        auth.writeOwnerStorage(key, { ids: ids, at: Date.now() });
     } catch (_e) {}
     return ids.length;
   },

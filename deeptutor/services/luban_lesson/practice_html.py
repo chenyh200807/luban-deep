@@ -26,6 +26,15 @@ _MANIFEST_PATH = _REPO / "docs" / "原始数据" / "考点原料" / "成品" / "
 _JS_STRING = r"(?P<quote>[\"'])(?P<value>(?:\\.|(?!\1).)*)\1"
 PRACTICE_LIMIT = 5
 SCHEMA_VERSION = "luban_compiled_practice.v1"
+AUTHORITY_FIELDS = (
+    "schema_version",
+    "pack_id",
+    "source_pack_sha256",
+    "source_bundle_sha256",
+    "surfaces",
+    "items",
+    "published_lesson_sha256",
+)
 
 
 class PracticeHtmlInvalid(ValueError):
@@ -469,6 +478,7 @@ def _validate_authority(value: Any, *, expected_pack: str) -> dict[str, Any]:
         not isinstance(value, dict)
         or value.get("schema_version") != SCHEMA_VERSION
         or value.get("pack_id") != expected_pack
+        or set(value) != set(AUTHORITY_FIELDS)
     ):
         raise PracticeHtmlInvalid("practice_authority_pack_mismatch")
     for key in ("source_pack_sha256", "source_bundle_sha256", "published_lesson_sha256"):
@@ -553,8 +563,18 @@ def load_compiled_practice(
         return None
     path = authority_path or registration[0]
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        raw = path.read_bytes()
+        if registration is not None:
+            expected_authority_sha = str(
+                registration[1].get("authority_sha256") or ""
+            )
+            if (
+                not re.fullmatch(r"[0-9a-f]{64}", expected_authority_sha)
+                or hashlib.sha256(raw).hexdigest() != expected_authority_sha
+            ):
+                raise PracticeHtmlInvalid("practice_authority_digest_mismatch")
+        value = json.loads(raw)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise PracticeHtmlInvalid("practice_authority_unavailable") from exc
     authority = _validate_authority(value, expected_pack=normalized)
     if registration is not None:
@@ -654,6 +674,7 @@ def project_compiled_practice(
 
 
 __all__ = [
+    "AUTHORITY_FIELDS",
     "PRACTICE_LIMIT",
     "PracticeHtmlInvalid",
     "build_practice_authority",

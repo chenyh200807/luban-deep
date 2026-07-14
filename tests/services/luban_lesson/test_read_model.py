@@ -11,6 +11,7 @@ from deeptutor.services.luban_lesson import (
     build_lesson_viewmodel,
     list_green_lessons,
 )
+from deeptutor.services.luban_lesson.practice_html import load_compiled_practice
 
 
 def _write_manifest(tmp_path: Path, packs, green) -> Path:
@@ -38,7 +39,8 @@ def test_green_pack_projects_viewmodel(tmp_path, monkeypatch):
     assert vm["card_url"] == "https://cdn.example.com/luban/s05/lesson.html"
     assert vm["practice_url"] == ""
     assert vm["evidence_channels"] == {
-        "light_practice": "learner_signal", "full_answer": "case_grading",
+        "practice_completion": "luban_retest_completion.v1",
+        "full_answer": "case_grading",
     }
 
 
@@ -51,7 +53,6 @@ def test_custom_manifest_without_compiled_capability_cannot_guess_practice_url(
 
     vm = build_lesson_viewmodel("F16", manifest_path=mp)
 
-    assert vm["card_bundle_sha256"] == ""
     assert vm["card_url"] == "https://cdn.example.com/luban/f16/lesson.html"
     assert vm["practice_url"] == ""
 
@@ -59,10 +60,17 @@ def test_custom_manifest_without_compiled_capability_cannot_guess_practice_url(
 def test_real_compiled_pack_projects_finished_practice_consumer_url(monkeypatch):
     monkeypatch.setenv("LUBAN_LESSON_CARD_BASE", "https://cdn.example.com/luban")
     vm = build_lesson_viewmodel("F16")
-    bundle_sha = vm["card_bundle_sha256"]
-    assert len(bundle_sha) == 64
-    assert vm["card_url"] == f"https://cdn.example.com/luban/f16/lesson.html?v={bundle_sha}"
-    assert vm["practice_url"] == f"https://cdn.example.com/luban/f16/practice.html?v={bundle_sha}"
+    authority = load_compiled_practice("F16")
+    assert authority is not None
+    assert vm["card_url"] == (
+        "https://cdn.example.com/luban/f16/lesson.html?v="
+        + authority["published_lesson_sha256"]
+    )
+    assert vm["practice_url"] == (
+        "https://cdn.example.com/luban/f16/practice.html?v="
+        + authority["source_bundle_sha256"]
+    )
+    assert authority["published_lesson_sha256"] != authority["source_bundle_sha256"]
 
 
 def test_unhosted_green_pack_gets_no_card_url(tmp_path, monkeypatch):

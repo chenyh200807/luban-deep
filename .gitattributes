@@ -16,3 +16,6 @@ docker-compose.*.yml text eol=lf
 *.toml text eol=lf
 *.cfg text eol=lf
 *.ini text eol=lf
+
+# Finished compiled practice HTML is tracked byte-for-byte as the authoring authority.
+artifacts/luban_case_family_assets/diagram_microlesson/finished/**/P40_*.practice*.dc.html -whitespace
