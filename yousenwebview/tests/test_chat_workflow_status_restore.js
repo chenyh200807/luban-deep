@@ -422,7 +422,9 @@ run("hosted teaching-card sheet should reuse Markdown and workflow kernels", fun
   var blocks = runtime.projectMarkdown("## 作答结构\n\n**判断依据**：先核对条件。\n\n- 采分点一\n- 采分点二");
   assert(blocks.some(function (block) { return block.type === "heading"; }), "heading should be rendered as a structured block");
   assert(blocks.some(function (block) { return block.type === "callout"; }), "callout should be rendered as a structured block");
-  assert(blocks.some(function (block) { return block.type === "ul"; }), "list should be rendered as a structured block");
+  var listBlock = blocks.find(function (block) { return block.type === "ul"; });
+  assert(listBlock, "list should be rendered as a structured block");
+  assert(listBlock.isList === true, "card projection should expose a DC-compatible list predicate");
 
   var status = runtime.toWorkflowEvent({
     type: "tool_call",

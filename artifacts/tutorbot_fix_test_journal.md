@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-14 - 教学卡追问答案缺采分点与易错点：DC 模板静默丢弃全部列表块
+
+- 问题：A02 教学卡内追问“保温材料复验哪几项？”后，底部弹层能看到“采分点”“易错点”标题，却没有对应条目；同一答案中的编号项目也一并消失，造成 TutorBot 输出不完整的观感。
+- 根因：canonical turn terminal 实际已完整持久化 535 字答案，182 个公开 content event 与 result metadata 完全一致，包含 5 个通用复验项、1 个墙体专项、4 个采分点和 3 个易错点。Markdown 投影也正确产出 `ul`/`ol` block；第一处错误发生在生成卡片的 DC 模板条件 `b.type === 'ul' || b.type === 'ol'`。DC 表达式解释器只支持相等比较和属性读取，不支持逻辑 `||`，条件静默变为 false，导致全部列表 block 被跳过。业务事实“答案内容是什么”因此被服务端 terminal truth 与客户端模板表达式共同裁剪。
+- 失败尝试及原因：否决扩大模型字数、补 prompt、切 TutorBot/deep-question 分支或增加 RAG 召回，因为服务端与持久化结果已经完整，这些改动只会制造第二个答案完整性 authority；也没有为这一个条件扩写 DC 表达式引擎，因为那会把局部渲染缺陷扩大成新的语言能力与维护面。
+- 成功修法：共享发布器在普通 JavaScript 投影阶段为 `ul`/`ol` block 计算单一展示属性 `isList`，DC 模板只读取 `b.isList`；列表内容仍唯一来自 canonical persisted response，不在客户端补写或重判。由 finished 最终源重新生成全部 40 个站、74 个教学页面及对应 authority hash，避免只修 A02/F16，并覆盖同期进入 main 的 B02、N02、D14。
+- 验证：RED 测试先证明旧模板没有 DC-compatible list predicate；GREEN 后 Node 卡片投影 52 assertions 通过，聚焦 publisher/delivery 2 tests 通过。静态全量审计确认 74/74 个教学页面均使用 `b.isList`，0 个页面残留不支持的 `b.type === 'ul' || b.type === 'ol'`。完整相关套件、contract guard、发布后公网与微信真入口复验结果在本条后续交付中补充。
+- 教训：terminal 完整不代表展示完整，必须分别验证 stream/result persistence 与最终 renderer；嵌入式模板支持的表达式子集也是运行时合同，复杂判断应在共享投影层一次完成，模板保持薄读取。
+
 ## 2026-07-14 - 合入 main 后公网 502：静态资产目录权限让前端进程崩溃，后端单探针仍报 healthy
 
 - 问题：`d98f441d` 首次全量部署后，容器显示 healthy、`/healthz` 为 200，但公网首页连续 20 次 502；微信教学与练习因此都不可用。

@@ -19,7 +19,7 @@
    "pack_id": "A01",
    "practice": {
     "authority_path": "a01.practice.authority.json",
-    "authority_sha256": "8de2f7c0b73336a17ebcbb232240aa11f9ed6e27e36913bbef238d28437ff313",
+    "authority_sha256": "d34d45c01ced61fb9ac2ec03e3a2953a44d8f2e11df22c079ef8abbd2f4742ee",
     "question_count": 5,
     "source_bundle_sha256": "d61035ef66d80d636d952dab0453f65fab225c13eed7c3b827ce38c1c83c2b15",
     "source_pack_sha256": "23593d60ab10292ab5b2e9dac8ce767f0ed111e4b5fc669051aa5cf1824e92f1",
@@ -50,7 +50,7 @@
    "pack_id": "A02",
    "practice": {
     "authority_path": "a02.practice.authority.json",
-    "authority_sha256": "228c21d27a74363ee178de68fc31f8d0fddcd57a90983c8553862bc14d4aedfa",
+    "authority_sha256": "136c3d423d2fddf0c6fe7f6385bfd466555567e4d8f42083d381ae5d483dd6a4",
     "question_count": 5,
     "source_bundle_sha256": "5fbb57dea7d03e4a85ba82bb91d18de87bcd73bb19382e979c76b88cfdaacebb",
     "source_pack_sha256": "ebc3b0793d53451b31324e6b212f5f45f5e70576b76254bab0c211f1619aa80b",
@@ -81,7 +81,7 @@
    "pack_id": "B02",
    "practice": {
     "authority_path": "b02.practice.authority.json",
-    "authority_sha256": "81b46dedc322839a93760da10bffc132998704d7ca57f8e714710f8a1713ef57",
+    "authority_sha256": "58afd42f7870b39a29a0576d95952989ecb648bd5586d42a98c7ac35199c0f8b",
     "question_count": 10,
     "source_bundle_sha256": "dee7e76dc839a82ae9d3e1db66c8f27a6719bda9e00d76fec2de81677dbcf8ab",
     "source_pack_sha256": "5386e2fa881ff36c29700b42e04c11dff17b6b4d0c41f19d832b24e0d4f7cd39",
@@ -112,7 +112,7 @@
    "pack_id": "C01",
    "practice": {
     "authority_path": "c01.practice.authority.json",
-    "authority_sha256": "1d2a095f9eea95ad5a44e194243d6991406ea35b9e4c56649723ac42c8d3d558",
+    "authority_sha256": "cba4676755b8120155fa22a867698cf7acdd918f5dccbd9015049e76e8eb1ffc",
     "question_count": 5,
     "source_bundle_sha256": "d5ae48ec488c6de9b21eee2362cefa529525db7146f2e6f9ef84761fd9eb665c",
     "source_pack_sha256": "3fbe3c37fe1c3b842538d932f403a12c2ce1c9aa48bd883bf081aac6b9b40124",
@@ -143,7 +143,7 @@
    "pack_id": "C02",
    "practice": {
     "authority_path": "c02.practice.authority.json",
-    "authority_sha256": "d1ea3d16c26a4e254efb3019e6e6011db9114181f8214c61eb9e48d99a184a69",
+    "authority_sha256": "ad7cc7fc270329d7bc288fedc6defb593ceca331c20005c49682b1620973707f",
     "question_count": 5,
     "source_bundle_sha256": "94240e3e6d7af85ccd4db470e52a92fc149e0e8817786993dcfd6f1c4a00fec9",
     "source_pack_sha256": "12a2f31df2efefc5a80746462c1d8a1f855c914842632e95c6b395051e598111",
@@ -174,7 +174,7 @@
    "pack_id": "C04",
    "practice": {
     "authority_path": "c04.practice.authority.json",
-    "authority_sha256": "d9cac43f31e3edc276b5818f63bb04ff83ecc341f017061e331d563a653c61ed",
+    "authority_sha256": "8a736f752f4e35ca9b7689da926db0200d90dd022dd797c62058709ba2a3c2c4",
     "question_count": 5,
     "source_bundle_sha256": "96ec196afc9422ad8e66de9be55d25e28e695e21c4f262a74cf1d1c9b0b94042",
     "source_pack_sha256": "890334cf5c4a12d7a68f569af605ea5b5adb4637848ec9936521fbc292f9aed2",
@@ -205,7 +205,7 @@
    "pack_id": "C05",
    "practice": {
     "authority_path": "c05.practice.authority.json",
-    "authority_sha256": "c10aa8088a9c4ff405913ca4f04f185e1b94519cb67216663150abfac11c7b28",
+    "authority_sha256": "68a83d439633353b25fe72a5b297393033b30c65c3cba20b3c0c2fc8da579137",
     "question_count": 5,
     "source_bundle_sha256": "58da79010d30f3bab204b9a87010a1ebb09b8ed83fa5d4a45fbd46130ef1e490",
     "source_pack_sha256": "48ab7ee6eef1a5f9170f8e4ab40d87259c0899f95df8c0d2f1b77bee6ebb5734",
@@ -237,7 +237,7 @@
    "pack_id": "C06",
    "practice": {
     "authority_path": "c06.practice.authority.json",
-    "authority_sha256": "656196ebd230b25aa7df6d72af34c8d341ec4e787da7acde8542b3a936813e53",
+    "authority_sha256": "357bd64ee1bc26f38b1888745b58f10e45cdda8677ad886e4a152a269f0ba1f6",
     "question_count": 5,
     "source_bundle_sha256": "4ab780e7e670ee4a4d7e612066e676695ff67a66dea3504a3e8c1aec602be19c",
     "source_pack_sha256": "2e443ed86a102ae893115810ea1640438ab097461ff251419e690286102fd935",
@@ -269,7 +269,7 @@
    "pack_id": "C07",
    "practice": {
     "authority_path": "c07.practice.authority.json",
-    "authority_sha256": "cba5e5a7642d9e21bc2e8abf32ad776f5a0893b0d96c3ca7f9495519292a1ed8",
+    "authority_sha256": "a9c726a6099eda57806c975e38771f163ecaf6aa8d74c486d0119cdc20529865",
     "question_count": 5,
     "source_bundle_sha256": "b1ad81b0f4b641bd599933fa0180f0f31080db93cb1f20c3bb6857dc2de771fd",
     "source_pack_sha256": "8b631ce2e6ac6297bf715a0890b40294b9b3d6d43bc122a15274eb719479e8ac",
@@ -300,7 +300,7 @@
    "pack_id": "D11",
    "practice": {
     "authority_path": "d11.practice.authority.json",
-    "authority_sha256": "af455793918ec574b640dd4b4b7b6bbcccf3594d43386b8991ec9cc6a3784b6e",
+    "authority_sha256": "c4e2a565405680dc70c0c79b1ee77ed103ec11f16b1dd89a537fabdfffc1dbba",
     "question_count": 5,
     "source_bundle_sha256": "4a1cd8b3027cab70df3359fda588bdc285e18b2b0f07e850acdcc423575a68e0",
     "source_pack_sha256": "ce80a466b7226a610b73b3e5beb5935138164c05d74daf3466ad3d5d53be0fe3",
@@ -331,7 +331,7 @@
    "pack_id": "D12",
    "practice": {
     "authority_path": "d12.practice.authority.json",
-    "authority_sha256": "6f66fe9e415c12506376d69adf10f064afb686951dedea81d0de1f32b58681d6",
+    "authority_sha256": "bbc854322b6ab3b40aa15f7b9abfc6440740f5e28b595c26d9733891f29b8ac8",
     "question_count": 5,
     "source_bundle_sha256": "0405f85b607d6600a03d46e99234817a2f1a135360a044d9554fde7b65d6d3f3",
     "source_pack_sha256": "701c192b8452c27afb6af58d3c7054eeda3e8a2a4f2ef0526df840650a01b8fc",
@@ -362,7 +362,7 @@
    "pack_id": "D13",
    "practice": {
     "authority_path": "d13.practice.authority.json",
-    "authority_sha256": "4431f630e942ad82d3272d87d83d5760891ee7341611caffb798581934b2079c",
+    "authority_sha256": "37b2189384e4ee908d5426c4acc53fef165fa94cfa4ad64ef1f50059452088c3",
     "question_count": 5,
     "source_bundle_sha256": "e4299c8bd9fc1ac5fe44ee55532f5ff9f17539ea71782920c2b7c1245455ae37",
     "source_pack_sha256": "6745894a27086c053065b63739bd0fb66eee75a32a56ec5679fb8467cc9bbcf3",
@@ -393,7 +393,7 @@
    "pack_id": "D14",
    "practice": {
     "authority_path": "d14.practice.authority.json",
-    "authority_sha256": "728c2c03845e5edd1fa8ab5ce61c68c366e79e351dde72c4b366a08ee786abc7",
+    "authority_sha256": "d965ff843f9f1005ba908c7d23a62ccd4d8ee4cfb7c3484546a458182c5d15b6",
     "question_count": 5,
     "source_bundle_sha256": "25fe57e1a5f7438f8d49b781bda457c4d5de73cc5ecbf67d476fb2c5ade912f8",
     "source_pack_sha256": "11ecd47be950ed09d72b3d93cf11e5f5ab29922f408099a9c4861442ea4a2fc0",
@@ -448,7 +448,7 @@
    "pack_id": "E05",
    "practice": {
     "authority_path": "e05.practice.authority.json",
-    "authority_sha256": "a2037388912bc0080d95bc43a1a656956fe8a858cb03528f085e5752242e43d5",
+    "authority_sha256": "2c6d12bd48d99054d9f5fd15fef4ff37ff8b17be89293e1db5a53b82ffbb5462",
     "question_count": 5,
     "source_bundle_sha256": "a9d4e7dd3e55e327bc5d3a9ffa5c3ace9a1b1d0b7beaa45b52e8ceac6e9ea23f",
     "source_pack_sha256": "8c29ebca6b36692f9006175958152ba3f31e447e20f209b8f6582956dfa281c9",
@@ -479,7 +479,7 @@
    "pack_id": "F02",
    "practice": {
     "authority_path": "f02.practice.authority.json",
-    "authority_sha256": "2c2b613cd3897eaca2de44382a766cd420abe067f2edb65b743ede4206514b13",
+    "authority_sha256": "b9bffef91f91df4725879d9d5600717eb9b3bc0ed7f243249cb4fdb37dde209b",
     "question_count": 5,
     "source_bundle_sha256": "9efbda616c8ea0283cd1bc1cdbb55c7490866284c8d8fac5eda709affa400681",
     "source_pack_sha256": "298679b544b698d0621f778f498e6c9aac914931cfd4833013efe698d372d710",
@@ -510,7 +510,7 @@
    "pack_id": "F03",
    "practice": {
     "authority_path": "f03.practice.authority.json",
-    "authority_sha256": "18b94eea069ca97b56dfefaba264d4ef251fc41f015d5dac66ff96d3b78a3f75",
+    "authority_sha256": "265d12cd20e6a0ab18cfd78bb5dbc2443a9af3ea796b2d770be6123517b790da",
     "question_count": 5,
     "source_bundle_sha256": "fa0262229402d3ac249dff67bf3be2150e1e2ebbf582fba022eb658fd6e07ca8",
     "source_pack_sha256": "12b0066ad4ed932dd0ccdebf292cafb5fa005970a9108b808d4bfed705ff12e7",
@@ -542,7 +542,7 @@
    "pack_id": "F04",
    "practice": {
     "authority_path": "f04.practice.authority.json",
-    "authority_sha256": "4f8c912523407457c9360d178fc4e4247c0df29a8f7fbd0d7a4b15315a88f64c",
+    "authority_sha256": "660a7243930523c35a03dc6fbe8c23dc2b5bbe25c9fc2dfcff8fc73415a16047",
     "question_count": 5,
     "source_bundle_sha256": "79062efb6da51219aafefa22f5137cb81c50536c7201c45431913dca616a1378",
     "source_pack_sha256": "7fc64c43b64eb10782cda1014ce062c8420075b21ca78c05a29ed2eb5e63760a",
@@ -574,7 +574,7 @@
    "pack_id": "F05",
    "practice": {
     "authority_path": "f05.practice.authority.json",
-    "authority_sha256": "b919e913c351d4276e67d02718b7cd694f5216b60af7ce13bfb68d28fd5b9999",
+    "authority_sha256": "12a0b1d56d57287038f298f79c015a2c44197f108108c64ad3f14fc105da1b80",
     "question_count": 5,
     "source_bundle_sha256": "ce35efb72b7d4a0610d728a132753e7311a3943b035b3c7e8e968e7fea9af5f4",
     "source_pack_sha256": "eeb066fb568138d8358817e5fd9e05b9e6283ec175664ded3edf965cc80c3bf0",
@@ -605,7 +605,7 @@
    "pack_id": "F16",
    "practice": {
     "authority_path": "f16.practice.authority.json",
-    "authority_sha256": "5a4df2754d4c86c7e0fa72771b26b70c7671d3a4425da28641a70ac731dc2f2a",
+    "authority_sha256": "624e446c97266c51086d6bb228fafffd88d85ba2187531808fa252675f783b78",
     "question_count": 5,
     "source_bundle_sha256": "fa2c51418c758198d7fe0222281aab9b0d94e9d68ce420169282c0fd54f23b13",
     "source_pack_sha256": "51b0f455ad205b4ed9965720d9562861a4a2ef7e8e7aa4c690ca69b8d88fff2e",
@@ -636,7 +636,7 @@
    "pack_id": "G01",
    "practice": {
     "authority_path": "g01.practice.authority.json",
-    "authority_sha256": "6bcc06032358812fd83a8d376e441a8a11107ecdb947948467a343c65e2012f0",
+    "authority_sha256": "7edd44acbc583a001a47481a6dcd21c088c2b3aef9c37ca3276d3a6a0679384f",
     "question_count": 5,
     "source_bundle_sha256": "fb736ca5d96196767dd096b33a36e588defa099db41f269a9a4baea33377ec65",
     "source_pack_sha256": "3455920218f604373887e790d80419451e2877fbcd8a37dce3da206c7f0afa35",
@@ -667,7 +667,7 @@
    "pack_id": "G02",
    "practice": {
     "authority_path": "g02.practice.authority.json",
-    "authority_sha256": "7460f330a0f69c330806aa17235f991477bbdbd9e46c1a01cf51429f253a15d2",
+    "authority_sha256": "22dfbc82423d114d9244061cf6597abbe0f1d5c98117802cf23c0d4d37200908",
     "question_count": 5,
     "source_bundle_sha256": "6235b8e10360c229e9cc61813b99f6c600128612a822a7a7a15068ae8314ab2b",
     "source_pack_sha256": "c7439e8e1907c65d489879e883d865e136c8f45d633c0aaa92916561f749aecc",
@@ -698,7 +698,7 @@
    "pack_id": "G03",
    "practice": {
     "authority_path": "g03.practice.authority.json",
-    "authority_sha256": "57addaa96dfec6971e7cd497c8cc90f71da094ed9c4ad864977326ea75b9591e",
+    "authority_sha256": "186849c64020d431ec77bc7cfea55b60d182769abd80b626705b88f551c34952",
     "question_count": 5,
     "source_bundle_sha256": "551390b6da3161fdf968d3a93c50ea5649110ae9750813c7aa439efe8687c664",
     "source_pack_sha256": "902b1ed8e7a0bdc893b4d402acc5386f817a5e107802354215262c5e0a7ff65d",
@@ -729,7 +729,7 @@
    "pack_id": "G04",
    "practice": {
     "authority_path": "g04.practice.authority.json",
-    "authority_sha256": "4adca19261e01f311b623750348061be10298c86af2b297902b9183caf3c7e93",
+    "authority_sha256": "39d9335dad3f6234da94cc8c0a10fd0c870100465158c1fa65b348f0b2ea0f12",
     "question_count": 5,
     "source_bundle_sha256": "a46dc6a3d20755b26e8dd53cbf06cc34cb3204088a2cdef995c2a533827956a2",
     "source_pack_sha256": "658a60001d44a2c125e1c7b3576bb4083ca52c4a17d55f04c9abf98e1d79775f",
@@ -760,7 +760,7 @@
    "pack_id": "J01",
    "practice": {
     "authority_path": "j01.practice.authority.json",
-    "authority_sha256": "4e0bd9a0c738c65e0021b35506a621880e5a38f6e9c0238e825684bba608d9f9",
+    "authority_sha256": "f5aac0dfccbf355f9913057936f095c27128ad9f9964b1e4b8cf752ab60b68f3",
     "question_count": 5,
     "source_bundle_sha256": "450b89c170a6c81d8515f6bb3ecbe40e5ac2a725aa6af5825d664d2c30ceba9b",
     "source_pack_sha256": "17310309a7e5d3f74630d14ece7562099fc7c850087d4637087173ff17419910",
@@ -791,7 +791,7 @@
    "pack_id": "K01",
    "practice": {
     "authority_path": "k01.practice.authority.json",
-    "authority_sha256": "3df6a53745e83ac0b0f900456b7bcd6c40df1ccbb1727256773d09b201b89003",
+    "authority_sha256": "6295a801d40de2999aa65df13d3318fbb76e2743902b6e77f6036af04c4dcf86",
     "question_count": 5,
     "source_bundle_sha256": "2f342d7cafee43a674da8c87847430e0deb72856ecb01b31f29eeab70dbf2545",
     "source_pack_sha256": "53a81cccfc3292efcb9e8827bd7162ae930acdf52d7fe7baaeb12b5c6afc5f03",
@@ -822,7 +822,7 @@
    "pack_id": "N01",
    "practice": {
     "authority_path": "n01.practice.authority.json",
-    "authority_sha256": "64bb7f728bd83e8647cdcaa096a14bfe74f022cbc3336551fc822d9535ae9687",
+    "authority_sha256": "ef23a529f97b07b6400bc53383477aa0f52832139ce9cff934897a6998d229d9",
     "question_count": 5,
     "source_bundle_sha256": "0f29e07b665daee24732f088dc920addc515aa5ff187d97ec5acd8f980173360",
     "source_pack_sha256": "fd0eefe9d128a1065d767a6b6d4715be2bcb29675cebc1971c3c7d54e7142a6e",
@@ -853,7 +853,7 @@
    "pack_id": "N02",
    "practice": {
     "authority_path": "n02.practice.authority.json",
-    "authority_sha256": "7cac2d165c2e286de4bd08341e23ab9696f9a5282307547cd0eb4f242b94759d",
+    "authority_sha256": "c8a28ecb5c9d9b70069aa8bd5833306b4c2e9fc9b2e40fa38247256cfe816adf",
     "question_count": 5,
     "source_bundle_sha256": "a8593ca578d6c6c1d6a8fb36b5c100b70a8a6ecd316b52535643d68f3ef01408",
     "source_pack_sha256": "272cacd10a5be6faa88e13c85a79cfd5570cde2e4bf03de07beaee99af40effd",
@@ -884,7 +884,7 @@
    "pack_id": "N03",
    "practice": {
     "authority_path": "n03.practice.authority.json",
-    "authority_sha256": "d7a9f669021e423b9f51664da3af4895872118b5dc4475f9b55236731108d19f",
+    "authority_sha256": "0db57e8dcde0e90dc31d2ab9bdfe26f0e4854cafc25977a23cc2fc1d137c99d6",
     "question_count": 5,
     "source_bundle_sha256": "58fa7d39d501017884dc068f17e20f100741ae8b2e680775c648025422c957c9",
     "source_pack_sha256": "ae9e5525c4f86bda1a0868a65663b2b56dcd4bd48846f8aa7e5a62af9999b590",
@@ -915,7 +915,7 @@
    "pack_id": "Q01",
    "practice": {
     "authority_path": "q01.practice.authority.json",
-    "authority_sha256": "a4257050b1082cf8f0f0e085d27189731a84c6e3383205a36af5a5918e2a8cdc",
+    "authority_sha256": "8b8d2a407dc16782550ed9f5db03fbb81fe44d12f213cc57f578fc87819850e7",
     "question_count": 5,
     "source_bundle_sha256": "856a632c7ba7dbcaca74c7c00ba66b48cfd304fd90ec8daf24dde23142d064f4",
     "source_pack_sha256": "be6eae789509f1b0c19c808b1a6b822e8d6181553fcda4fcfd60f7c183f56354",
@@ -946,7 +946,7 @@
    "pack_id": "Q02",
    "practice": {
     "authority_path": "q02.practice.authority.json",
-    "authority_sha256": "a21d4e66676ff76c5f193b98a0e433304ff2f806296cfa075f4044c9fc575b43",
+    "authority_sha256": "e09092a4c89165387b44ebfa6d37d30845b4dcf14d6c8380b73479c2ae21c23e",
     "question_count": 5,
     "source_bundle_sha256": "8898cc2836c854bc16794ea76f608b83cb10b039f0395754c1fbe6664e1f6773",
     "source_pack_sha256": "81d50133b6f7f8f7b777d40c46a67bd6a69096d6a7f4d69a546fdb8af7f639c4",
@@ -978,7 +978,7 @@
    "pack_id": "Q03",
    "practice": {
     "authority_path": "q03.practice.authority.json",
-    "authority_sha256": "56ab5ce1cbdf8bd297e0072db2d12f1e955ef9a28c76c0f762656222c4de8a56",
+    "authority_sha256": "368acb071dcc98f2748d780fa1b709ce9e7fca60c5f3cbb71d2ea3b4180ca7a7",
     "question_count": 5,
     "source_bundle_sha256": "ebae1dfc4237664918384021113f784042989f7b4443944e8e057ba1524175b8",
     "source_pack_sha256": "4e22a6697aeba00353186f44a8ea1568041734406eabbda632b1a7262303e8bc",
@@ -1010,7 +1010,7 @@
    "pack_id": "R01",
    "practice": {
     "authority_path": "r01.practice.authority.json",
-    "authority_sha256": "1d1d120b33f950f3d3aefade839bf8033ddfc6b31fa783721de0354bc43fa823",
+    "authority_sha256": "7194b4fb81743617b975d40deaf05bbf1e277978049f37f477fae1c43f7176e8",
     "question_count": 5,
     "source_bundle_sha256": "8ad75498d87d4d02f56da9015f3668a177da9c3e7b7fa5e4b8011f9a8ae45369",
     "source_pack_sha256": "86e87afc3a453d012eb91f86508f9dd45fd04a532bbc073d0ffcc96fd1bdfbe1",
@@ -1041,7 +1041,7 @@
    "pack_id": "S01",
    "practice": {
     "authority_path": "s01.practice.authority.json",
-    "authority_sha256": "166f9530ed772a0bdb1a4b37600edae886b41a509906299a2a825286d655589b",
+    "authority_sha256": "993f7cf04ee7c3d0351aafaef416fe81cb44f22476c0bd41adb6e0d6ef1c6865",
     "question_count": 15,
     "source_bundle_sha256": "a98cfebf2795b636448099326fdfeba35779268d20caaaa54d0a07bc01d1ba6f",
     "source_pack_sha256": "13429caa1bd32a20f6708c393980b39566a92425793a2d15e9f841689edf2b13",
@@ -1072,7 +1072,7 @@
    "pack_id": "S02",
    "practice": {
     "authority_path": "s02.practice.authority.json",
-    "authority_sha256": "7f1d777648ddd1a21330c218cb81f82fcf520b26dbea0e51472f13b51f997ae2",
+    "authority_sha256": "bed916d4b5b3c4c7f6d8ebe0ab3c8374f7b8ac588d583ee5dbc2b5096c1afb23",
     "question_count": 5,
     "source_bundle_sha256": "890d5fea23f6b690d08046060e1240bce82a57a605c708e1a3a80a6726277050",
     "source_pack_sha256": "32aa09500e3ba31c5b064058c1b51892f7976e8d069b5ff497d07f1a061cf1ab",
@@ -1103,7 +1103,7 @@
    "pack_id": "S05",
    "practice": {
     "authority_path": "s05.practice.authority.json",
-    "authority_sha256": "0ac4012ed92e379f7ce9fccda99f251fc7a951a3d4e972907f576d4df3b28645",
+    "authority_sha256": "7a9276ec763757289cc482a3bc8dbdec2a83ddd3a1c841e2314e8925c8975573",
     "question_count": 5,
     "source_bundle_sha256": "bdc043b7e32bf32f9d79f08ffacafaf67d0b5c2ba45c0634ad233923957ba5a9",
     "source_pack_sha256": "8add558112c8e9c23ef33c148451d8d32f06adbfa7ba184f9d8ee60b12ea68fe",
@@ -1134,7 +1134,7 @@
    "pack_id": "S06",
    "practice": {
     "authority_path": "s06.practice.authority.json",
-    "authority_sha256": "36e033dc973a2dd0573b74c1f5f3a06a32efac4242b6f87b282023252b6bacc7",
+    "authority_sha256": "d96cc6eef01c5f0d6b3e183b6c183574becac622d0005e8e3a082390a3378466",
     "question_count": 5,
     "source_bundle_sha256": "0142062b113cd9227beebc2231043fd72fdb190cfb256c92f755224f7e99a193",
     "source_pack_sha256": "22438b347c9f36c8fb53a305b4c2f3d5eb07b8d7438b7bdb3d6e24e0d71870d8",
@@ -1166,7 +1166,7 @@
    "pack_id": "S07",
    "practice": {
     "authority_path": "s07.practice.authority.json",
-    "authority_sha256": "00b0dc79973eb92fc7d1a0c71bf5ff9db2f80792979508b4e4efbb1a2339f77b",
+    "authority_sha256": "49875d470e1f0b6432e3843ce99c7fb58f38a27af325eb5b259c8c324c087edf",
     "question_count": 5,
     "source_bundle_sha256": "96762dd59fe6a77745671cd318b125effe6613cd6ca6e399c1d7031def9e2914",
     "source_pack_sha256": "4f4bb9138304e1a874ad07961d268a322f3fe87be4ac04312425ec381eeb497e",
@@ -1198,7 +1198,7 @@
    "pack_id": "X01",
    "practice": {
     "authority_path": "x01.practice.authority.json",
-    "authority_sha256": "9b19ba530e74fc031003d337e32da65c4ad7a3adba5271cd766bee8bd9c9c086",
+    "authority_sha256": "8f475049f98eb7294524c16c91d0d18a211c75b1efdd46b779272ab53685ea2f",
     "question_count": 5,
     "source_bundle_sha256": "3e84bd1b7f6fc2f13a04afc05d22334d91b2471672499b25925e83591d3d95bf",
     "source_pack_sha256": "173b2bf67a0ef36794281518e3511873105f84b371f22cd23c2d0661240a94ef",
@@ -1229,7 +1229,7 @@
    "pack_id": "X02",
    "practice": {
     "authority_path": "x02.practice.authority.json",
-    "authority_sha256": "a7a0c3b33de541effee02e487c665784a66f274cf70df43d736768b02e8a6788",
+    "authority_sha256": "613f8ce4cd919b26ab4aa27ca5d134d4f273b10c5ffae5772130e30c1540e98f",
     "question_count": 5,
     "source_bundle_sha256": "a38e55c013125f8881d796cc2c816dbaa39b8e8bbfc5f718efc436df26486fe0",
     "source_pack_sha256": "d3a4eec1f279c91dce1254ca27e09de0a4ece72c42f8bffbf6551f665ae94c01",
@@ -1260,7 +1260,7 @@
    "pack_id": "X03",
    "practice": {
     "authority_path": "x03.practice.authority.json",
-    "authority_sha256": "10631fabc21167a721b7f9dbd9b87919e3701c26980e06b6f4c7b5103a3ce478",
+    "authority_sha256": "a3ea4d08e62f74404308856e5937ffb1af67f41bb7761aeb4cc03c43ac8e0d04",
     "question_count": 5,
     "source_bundle_sha256": "38d38ebf847217afb9c769f92dc8db80f38e10882dda3ebd5461072e72c194e7",
     "source_pack_sha256": "6da4f10de5f46af7abdb5f1665d3a6db44e1cc6f870000a5c9e70fcc620769e1",
