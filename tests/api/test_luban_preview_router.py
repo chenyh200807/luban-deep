@@ -176,18 +176,71 @@ def test_h5_lesson_viewed_delegates_to_existing_evidence_writer_with_real_user(m
     }
 
 
-def test_tutorbot_prompt_keeps_browser_scene_as_non_authoritative_hint() -> None:
-    card = luban_preview.PublishedCardContext(pack_id="F16", title="服务端标题")
-    prompt = luban_preview._build_tutorbot_query(
+def test_luban_card_context_keeps_browser_scene_as_non_authoritative_anchor() -> None:
+    card = luban_preview.PublishedCardContext(
+        pack_id="F16", title="服务端标题", content_sha256="sha256:published"
+    )
+    context = luban_preview._build_luban_turn_context_metadata(
         luban_preview.LubanPreviewAskRequest(
             contextId="F16",
             title="浏览器标题",
             question="我该怎么写？",
             currentScene={"label": "当前幕", "keycard": "客户端提示"},
+            currentCaption={"speaker": "鲁班", "text": "当前旁白"},
         ),
         card,
     )
 
-    assert "已发布卡片：F16｜服务端标题" in prompt
-    assert "浏览器标题" not in prompt
-    assert "不能覆盖题库、教材或规范的知识口径" in prompt
+    assert context == {
+        "source": "luban_teaching_card",
+        "card": {
+            "pack_id": "F16",
+            "title": "服务端标题",
+            "content_sha256": "sha256:published",
+            "current_scene": {"label": "当前幕", "keycard": "客户端提示"},
+            "current_caption": {"speaker": "鲁班", "text": "当前旁白"},
+            "time": None,
+        },
+    }
+
+
+def test_luban_card_reuses_mobile_turn_bootstrap_and_preserves_plain_question(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeRuntime:
+        async def start_turn(self, payload: dict[str, object]):
+            captured.update(payload)
+            return {"id": "session-real"}, {"id": "turn-real"}
+
+    monkeypatch.setattr(luban_preview, "get_turn_runtime_manager", lambda: FakeRuntime())
+    card = luban_preview.PublishedCardContext(pack_id="F16", title="服务端标题")
+    payload = luban_preview.LubanPreviewAskRequest(
+        contextId="F16",
+        question="为什么这一步不能省？",
+        currentScene={"id": "b3", "label": "割补前半", "keycard": "先放气"},
+        currentCaption={"speaker": "鲁班", "text": "先放气再擦干"},
+        time=75.3,
+    )
+
+    asyncio.run(luban_preview._start_tutorbot_turn(payload, card, user_id="student-real"))
+
+    assert captured["content"] == "为什么这一步不能省？"
+    assert captured["capability"] is None
+    assert str(captured["session_id"]).startswith("luban-preview:F16:")
+    config = captured["config"]
+    assert isinstance(config, dict)
+    assert config["general_knowledge_context"] is True
+    assert config["chat_mode"] == "smart"
+    assert "followup_question_context" not in config
+    assert config["billing_context"]["source"] == "luban_teaching_card"
+    assert config["luban_teaching_card_context"] == {
+        "source": "luban_teaching_card",
+        "card": {
+            "pack_id": "F16",
+            "title": "服务端标题",
+            "content_sha256": "",
+            "current_scene": {"id": "b3", "label": "割补前半", "keycard": "先放气"},
+            "current_caption": {"speaker": "鲁班", "text": "先放气再擦干"},
+            "time": 75.3,
+        },
+    }

@@ -6,7 +6,7 @@ from deeptutor.services.session.turn_runtime import _normalize_billing_context
 
 def _payload(*, eval_bypass_verified: bool, config: dict | None = None) -> dict:
     body = mobile.MobileStartTurnRequest(query="判一道题", config=config)
-    return mobile._build_mobile_turn_payload(
+    return mobile.build_mobile_turn_payload(
         body=body,
         authenticated_user_id="uuid-user-1",
         wallet_user_id="uuid-user-1",

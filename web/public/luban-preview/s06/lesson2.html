@@ -391,9 +391,12 @@
                   <div style="display:inline-flex;border:1px solid #527463;border-radius:999px;padding:3px 8px;color:#93c4a8;font-size:10px;font-weight:900;margin-bottom:6px;">{{ askWorkflowBadge }}</div>
                   <div style="font-size:13px;color:#f1e6cf;font-weight:850;line-height:1.45;">{{ askWorkflowTitle }}</div>
                   <div style="margin-top:3px;font-size:11px;color:#b9b59f;line-height:1.55;">{{ askWorkflowSub }}</div>
-                  <sc-for list="{{ askWorkflowEntries }}" as="step" hint-placeholder-count="5">
-                    <div style="margin-top:7px;padding-top:7px;border-top:1px solid #3a4438;font-size:10.5px;color:#c9c5ae;line-height:1.45;">{{ step.badge }} · {{ step.title }}</div>
-                  </sc-for>
+                  <button data-luban-workflow-toggle onClick="{{ toggleAskWorkflow }}" style="margin-top:8px;border:0;background:transparent;padding:0;color:#93c4a8;font-size:10.5px;font-weight:800;cursor:pointer;">{{ askWorkflowToggleText }}</button>
+                  <sc-if value="{{ askWorkflowExpanded }}" hint-placeholder-val="{{ false }}">
+                    <sc-for list="{{ askWorkflowEntries }}" as="step" hint-placeholder-count="5">
+                      <div style="margin-top:7px;padding-top:7px;border-top:1px solid #3a4438;font-size:10.5px;color:#c9c5ae;line-height:1.45;">{{ step.badge }} · {{ step.title }}</div>
+                    </sc-for>
+                  </sc-if>
                 </div>
                 <sc-for list="{{ askBlocks }}" as="b" hint-placeholder-count="5">
                   <sc-if value="{{ b.type === 'heading' }}" hint-placeholder-val="{{ false }}"><div style="margin:11px 0 6px;color:#fff4dc;font-size:16px;line-height:1.45;font-weight:900;"><sc-for list="{{ b.parts }}" as="p"><span style="{{ p.style }}">{{ p.text }}</span></sc-for></div></sc-if>
@@ -428,7 +431,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
 class Component extends DCLogic {
-  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askRawResponse:"", askBlocks:[], askWorkflowEntries:[], askWorkflowBadge:"", askWorkflowTitle:"", askWorkflowSub:"", askWorkflowActive:false, askStreaming:false, askError:"", fs:false, ctrlHidden:false, muted:false };
+  state = { t:0, playing:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askRawResponse:"", askBlocks:[], askWorkflowEntries:[], askWorkflowBadge:"", askWorkflowTitle:"", askWorkflowSub:"", askWorkflowExpanded:false, askWorkflowToggleText:"查看处理摘要", askWorkflowActive:false, askStreaming:false, askError:"", fs:false, ctrlHidden:false, muted:false };
   audioBase="audio/down/";
   audioVersion="4396fe485e1a1f54";
   DUR = 251.780;
@@ -525,14 +528,20 @@ class Component extends DCLogic {
     if(!runtime||!runtime.workflow||!entryTicket){ this.setState({askError:"学习身份已过期，请返回小程序重新打开这一站。"}); return; }
     let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; }
     const beat=this.beats[bi]||[];
+    const isFollowup=bi>=this.narr.length;
+    const followup=isFollowup?(this.qa[bi-this.narr.length]||{}):{};
+    const captionText=isFollowup?(String(followup.q||"")+"。"+String(followup.a||"")):String(this.narr[bi]||"");
+    const keycard=isFollowup?("学生追问 · 第 "+(bi-this.narr.length+1)+" / "+this.qa.length+" 问"):String(this.keycards[bi]||"");
     const payload={contextId:"S06",cardId:"S06",question:q,entryTicket:entryTicket,
-      currentScene:{id:String(bi+1),label:String(beat[3]||"当前画面").slice(0,80)},
+      currentScene:{id:String(beat[0]||bi+1),label:String(beat[3]||"当前画面").slice(0,80),keycard:keycard.slice(0,160),coach:captionText.slice(0,320)},
+      currentCaption:{speaker:isFollowup?"学员追问":"鲁班讲解",text:captionText.slice(0,260)},
       time:Number(this.state.t||0)};
     let rawResponse="", workflowEntries=[], lastSeq=0, completed=false, reconnects=0, socket=null;
     const self=this;
     const renderWorkflow=function(active, extra){
       const summary=runtime.workflow.summarizeWorkflow(workflowEntries,active!==false);
-      self.setState(Object.assign({askWorkflowEntries:workflowEntries,askWorkflowBadge:summary.badge||"",askWorkflowTitle:summary.headline||"",askWorkflowSub:summary.subline||"",askWorkflowActive:active!==false},extra||{}));
+      const expanded=!!self.state.askWorkflowExpanded;
+      self.setState(Object.assign({askWorkflowEntries:workflowEntries,askWorkflowBadge:summary.badge||"",askWorkflowTitle:summary.headline||"",askWorkflowSub:summary.subline||"",askWorkflowActive:active!==false,askWorkflowToggleText:expanded?"收起处理摘要":(summary.toggleText||"查看处理摘要")},extra||{}));
     };
     const setResponse=function(next, append){
       rawResponse=append?rawResponse+String(next||""):String(next||"");
@@ -567,15 +576,15 @@ class Component extends DCLogic {
         socket.onmessage=function(message){ try{consume(JSON.parse(String(message.data||"")));}catch(_){ } };
         socket.onclose=function(){
           if(completed)return;
-          if(reconnects>=2){ fail("流式连接中断，请留在本页稍后重试。"); return; }
+          if(reconnects>=5){ fail("流式连接中断，请留在本页稍后重试。"); return; }
           reconnects+=1; workflowEntries=runtime.workflow.appendWorkflowEntry(workflowEntries,{type:"status",eventType:"reconnect",data:"retry",content:"正在续接本轮回答…",seq:lastSeq||0}); renderWorkflow(true,{askStreaming:true});
           setTimeout(function(){connect(stream);},400*reconnects);
         };
         socket.onerror=function(){};
       }catch(err){ fail("流式连接暂时不可用，请留在本页稍后重试。"); }
     };
-    this.setState({askLoading:true,askAnswer:"",askRawResponse:"",askBlocks:[],askWorkflowEntries:[],askWorkflowBadge:"",askWorkflowTitle:"",askWorkflowSub:"",askWorkflowActive:true,askStreaming:true,askError:""});
-    renderWorkflow(true);
+    this.setState({askLoading:true,askAnswer:"",askRawResponse:"",askBlocks:[],askWorkflowEntries:[],askWorkflowBadge:"",askWorkflowTitle:"",askWorkflowSub:"",askWorkflowExpanded:false,askWorkflowToggleText:"查看处理摘要",askWorkflowActive:true,askStreaming:true,askError:""});
+    renderWorkflow(true,{askWorkflowExpanded:false,askWorkflowToggleText:"查看处理摘要"});
     try{
       const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
       const data=await res.json().catch(()=>({}));
@@ -584,6 +593,10 @@ class Component extends DCLogic {
       if(!stream||!stream.ticket||!stream.turn_id)throw new Error("TutorBot 流式回合未创建");
       connect(stream);
     }catch(err){ fail((err&&err.message)||"TutorBot 暂时没有接通，请留在本页稍后重试。"); }
+  }
+  toggleAskWorkflow(){
+    const expanded=!this.state.askWorkflowExpanded;
+    this.setState({askWorkflowExpanded:expanded,askWorkflowToggleText:expanded?"收起处理摘要":"查看处理摘要"});
   }
   qaFig(idx){
     const D=(o)=>Object.assign({x:0,top:0,w:40,h:16,bg:"transparent",bd:"none",r:3,fg:"#f1e6cf",fs:9,fw:"800",jc:"center",lab:""},o);
@@ -681,7 +694,7 @@ class Component extends DCLogic {
       stageWrapRef:el=>this.stageWrapRef(el),
       openAsk:()=>this.openAsk(),closeAsk:()=>this.closeAsk(),setAsk:e=>this.setAsk(e),submitAsk:()=>this.submitAsk(),
       dragStart:e=>this.dragStart(e),dragMove:e=>this.dragMove(e),dragEnd:()=>this.dragEnd(),
-      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askBlocks:this.state.askBlocks,askWorkflowEntries:this.state.askWorkflowEntries,askWorkflowBadge:this.state.askWorkflowBadge,askWorkflowTitle:this.state.askWorkflowTitle,askWorkflowSub:this.state.askWorkflowSub,askError:this.state.askError,
+      askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askBlocks:this.state.askBlocks,askWorkflowEntries:this.state.askWorkflowEntries,askWorkflowBadge:this.state.askWorkflowBadge,askWorkflowTitle:this.state.askWorkflowTitle,askWorkflowSub:this.state.askWorkflowSub,askWorkflowExpanded:this.state.askWorkflowExpanded,askWorkflowToggleText:this.state.askWorkflowToggleText,askError:this.state.askError,
       hasAnswer:!!this.state.askStreaming||!!this.state.askBlocks.length||!!this.state.askWorkflowActive,askIdle:!this.state.askLoading&&!this.state.askStreaming&&!this.state.askError,
       askDisabled:empty||this.state.askLoading,askCursor:(empty||this.state.askLoading)?"not-allowed":"pointer",
       askBtnBg:(empty||this.state.askLoading)?"#3a3127":"#cf4436",askBtnFg:(empty||this.state.askLoading)?"#7a6f5e":"#fff",

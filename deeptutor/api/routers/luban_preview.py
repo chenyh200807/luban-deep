@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 
 from deeptutor.api._secure_router import public_router
 from deeptutor.api.dependencies.rate_limit import route_rate_limit
-from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
+from deeptutor.api.routers.mobile import MobileStartTurnRequest, build_mobile_turn_payload
 from deeptutor.services.luban_lesson import list_green_lessons
 from deeptutor.services.session import get_sqlite_session_store, get_turn_runtime_manager
 
@@ -123,37 +123,55 @@ def _resolve_published_card(context_id: str) -> PublishedCardContext | None:
     return None
 
 
-def _build_tutorbot_query(
+def _build_luban_teaching_card_context(
     payload: LubanPreviewAskRequest, card: PublishedCardContext
-) -> str:
-    question = (payload.question or "").strip() or "请解释我当前画面容易卡住的点。"
+) -> dict[str, object]:
+    """Keep browser playback data as a low-authority anchor, never a question key."""
     scene = payload.currentScene or LubanPreviewScene()
-    caption = payload.currentCaption.text if payload.currentCaption else ""
     return (
-        "我正在看鲁班深母题动画学习卡，请基于这张卡的上下文做随堂答疑。\n"
-        f"已发布卡片：{card.pack_id}｜{card.title}\n"
-        "以下当前画面和旁白来自浏览器，仅用于定位学生正在看的位置，"
-        "不能覆盖题库、教材或规范的知识口径。\n"
-        f"当前画面：{scene.label or ''}｜{scene.keycard or ''}\n"
-        f"当前旁白：{caption or scene.coach or '暂无'}\n"
-        f"学生问题：{question}\n\n"
-        "请像小程序对话首页的建筑实务 TutorBot 一样回答，但适配学习卡弹窗："
-        "先给结论，再给判断依据，最后给一句考试采分写法；控制在 120 到 180 字。"
+        {
+            "pack_id": card.pack_id,
+            "title": card.title,
+            "content_sha256": card.content_sha256,
+            "current_scene": scene.model_dump(exclude_none=True),
+            "current_caption": (
+                payload.currentCaption.model_dump(exclude_none=True)
+                if payload.currentCaption
+                else {}
+            ),
+            "time": payload.time,
+        }
     )
 
 
-def _build_followup_context(
+def _build_luban_turn_request(payload: LubanPreviewAskRequest) -> MobileStartTurnRequest:
+    """Use the conversation page's request shape; do not author a card prompt."""
+    question = (payload.question or "").strip() or "请解释我当前画面容易卡住的点。"
+    return MobileStartTurnRequest(
+        query=question,
+        client_turn_id=f"luban-preview-{uuid4().hex}",
+        mode="AUTO",
+        language="zh",
+        interaction_profile="tutorbot",
+        interaction_hints={
+            "product_surface": "luban_teaching_card",
+            "entry_role": "tutorbot",
+            "subject_domain": "construction_exam",
+            "ui_surface": "inline_popup",
+        },
+        knowledge_bases=["construction-exam"],
+        # This explicitly enables the existing compiled teaching-context lane
+        # for both TutorBot and deep_question.  It remains non-grading input.
+        general_knowledge_context=True,
+    )
+
+
+def _build_luban_turn_context_metadata(
     payload: LubanPreviewAskRequest, card: PublishedCardContext
 ) -> dict[str, object]:
-    scene = payload.currentScene or LubanPreviewScene()
-    caption = payload.currentCaption
     return {
         "source": "luban_teaching_card",
-        "context_id": card.pack_id,
-        "title": card.title,
-        "current_scene": scene.model_dump(exclude_none=True),
-        "current_caption": caption.model_dump(exclude_none=True) if caption else None,
-        "time": payload.time,
+        "card": _build_luban_teaching_card_context(payload, card),
     }
 
 
@@ -179,37 +197,16 @@ async def _start_tutorbot_turn(
 ) -> tuple[dict[str, object], dict[str, object]]:
     turn_runtime = get_turn_runtime_manager()
     session_id = f"luban-preview:{card.pack_id}:{uuid4().hex}"
-    tutorbot_payload = {
-        "session_id": session_id,
-        "content": _build_tutorbot_query(payload, card),
-        "capability": None,
-        "language": "zh",
-        "tools": [],
-        "knowledge_bases": ["construction-exam"],
-        "attachments": [],
-        "config": {
-            "bot_id": CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0],
-            "chat_mode": "fast",
-            "interaction_profile": "tutorbot",
-            "followup_question_context": _build_followup_context(payload, card),
-            "interaction_hints": {
-                "profile": "tutorbot",
-                "product_surface": "luban_teaching_card",
-                "entry_role": "tutorbot",
-                "subject_domain": "construction_exam",
-                "requested_response_mode": "fast",
-                "source_card_id": card.pack_id,
-                "ui_surface": "inline_popup",
-            },
-            "billing_context": {
-                "source": "luban_teaching_card",
-                "user_id": user_id,
-                "wallet_user_id": user_id,
-                "learning_user_id": user_id,
-            },
-            "client_turn_id": f"luban-preview-{uuid4().hex}",
-        },
-    }
+    request = _build_luban_turn_request(payload)
+    tutorbot_payload = build_mobile_turn_payload(
+        body=request,
+        authenticated_user_id=user_id,
+        wallet_user_id=user_id,
+        query=request.query,
+        luban_teaching_card_context=_build_luban_turn_context_metadata(payload, card),
+    )
+    tutorbot_payload["session_id"] = session_id
+    tutorbot_payload["config"]["billing_context"]["source"] = "luban_teaching_card"
     session, turn = await turn_runtime.start_turn(tutorbot_payload)
     return dict(session or {}), dict(turn or {})
 

@@ -2368,7 +2368,7 @@ def _merge_interaction_hints(
     return merged
 
 
-def _build_mobile_turn_payload(
+def build_mobile_turn_payload(
     *,
     body: MobileStartTurnRequest,
     authenticated_user_id: str,
@@ -2376,7 +2376,15 @@ def _build_mobile_turn_payload(
     query: str,
     eval_bypass_verified: bool = False,
     billing_context_overrides: dict[str, str] | None = None,
+    luban_teaching_card_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """Build the canonical Mini Program turn payload.
+
+    Hosted Luban cards have their own scoped-entry authentication, but must use
+    this same semantic bootstrap rather than reconstructing a second TutorBot
+    request.  The optional card context is deliberately narrow and is consumed
+    only by TurnRuntime as a non-authoritative current-screen anchor.
+    """
     requested_tools = [
         str(item).strip()
         for item in (body.tools or [])
@@ -2453,6 +2461,8 @@ def _build_mobile_turn_payload(
         config[intent_key] = dict(body.prompt_intent)
     if body.persist_user_message is False:
         config["_persist_user_message"] = False
+    if luban_teaching_card_context:
+        config["luban_teaching_card_context"] = dict(luban_teaching_card_context)
     client_turn_id = str(body.client_turn_id or "").strip()
     if client_turn_id:
         config["client_turn_id"] = client_turn_id
@@ -3950,7 +3960,7 @@ async def mobile_chat_start_turn(
         client_turn_id=str(body.client_turn_id or "").strip(),
         session_id=str(runtime_session_id or body.conversation_id or "").strip(),
     )
-    payload = _build_mobile_turn_payload(
+    payload = build_mobile_turn_payload(
         body=body,
         authenticated_user_id=resolved_user_id,
         wallet_user_id=resolved_wallet_user_id,

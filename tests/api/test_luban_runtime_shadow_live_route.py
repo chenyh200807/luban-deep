@@ -228,7 +228,7 @@ def test_mobile_start_turn_can_carry_runtime_shadow_flag_to_runtime_config() -> 
         },
     )
 
-    payload = mobile_module._build_mobile_turn_payload(
+    payload = mobile_module.build_mobile_turn_payload(
         body=body,
         authenticated_user_id="qa_mobile_shadow_user",
         wallet_user_id="qa_mobile_shadow_user",

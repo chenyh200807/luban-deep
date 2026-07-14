@@ -130,6 +130,39 @@ def test_serialize_mobile_message_projects_public_result_response_for_empty_assi
     assert serialized["content"] == "public result answer"
 
 
+def test_mobile_turn_bootstrap_preserves_scoped_luban_card_context_for_runtime_only() -> None:
+    body = mobile_module.MobileStartTurnRequest(
+        query="为什么这一步不能省？",
+        mode="AUTO",
+        interaction_profile="tutorbot",
+        general_knowledge_context=True,
+    )
+
+    payload = mobile_module.build_mobile_turn_payload(
+        body=body,
+        authenticated_user_id="student-demo",
+        wallet_user_id="wallet-demo",
+        query=body.query,
+        luban_teaching_card_context={
+            "source": "luban_teaching_card",
+            "card": {
+                "pack_id": "F16",
+                "title": "卷材防水层起鼓割补",
+                "current_scene": {"id": "b3", "keycard": "先放气"},
+                "current_caption": {"text": "先放气再擦干"},
+                "time": 75.3,
+            },
+        },
+    )
+
+    assert payload["content"] == "为什么这一步不能省？"
+    assert payload["capability"] is None
+    assert payload["config"]["chat_mode"] == "smart"
+    assert payload["config"]["general_knowledge_context"] is True
+    assert payload["config"]["luban_teaching_card_context"]["source"] == "luban_teaching_card"
+    assert "followup_question_context" not in payload["config"]
+
+
 @pytest.fixture(autouse=True)
 def _clear_rate_limit_state(monkeypatch: pytest.MonkeyPatch) -> None:
     PathService.get_instance()._user_data_dir = _TEST_USER_DATA_DIR

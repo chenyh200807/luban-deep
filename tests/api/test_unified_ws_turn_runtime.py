@@ -30,6 +30,8 @@ from deeptutor.services.session.turn_runtime import (
     _billing_capture_amount_from_usage_summary,
     _build_turn_semantic_decision,
     _enrich_result_question_authority_from_trace,
+    _extract_luban_teaching_card_context,
+    _format_luban_teaching_card_context,
     _is_mobile_surface_turn_config,
     _learning_prompt_intent_trace_metadata,
     _LiveSubscriber,
@@ -109,6 +111,37 @@ def test_turn_runtime_question_domain_decision_uses_canonical_semantic_shape() -
         "reason": "用户修正上一题答案。",
         "target_object_ref": {"object_type": "single_question", "object_id": "q_1"},
     }
+
+
+def test_turn_runtime_keeps_luban_card_screen_as_location_context_not_question_authority() -> None:
+    config = {
+        "luban_teaching_card_context": {
+            "source": "luban_teaching_card",
+            "card": {
+                "pack_id": "F16",
+                "title": "屋面卷材防水起鼓割补",
+                "current_scene": {
+                    "id": "b3",
+                    "label": "割补前半",
+                    "keycard": "放气后再擦干",
+                    "coach": "不要直接贴新卷材",
+                },
+                "current_caption": {"speaker": "鲁班", "text": "先放气、擦干、清旧胶"},
+                "time": 75.3,
+            },
+        }
+    }
+
+    context = _extract_luban_teaching_card_context(config)
+
+    assert "luban_teaching_card_context" not in config
+    assert context is not None
+    assert context["scene"]["keycard"] == "放气后再擦干"
+    assert context["caption"]["text"] == "先放气、擦干、清旧胶"
+    rendered = _format_luban_teaching_card_context(context)
+    assert "仅作学习位置定位" in rendered
+    assert "不覆盖题库、教材、规范或判分口径" in rendered
+    assert "question_id" not in rendered
 
 
 def test_turn_runtime_unwraps_transport_content_envelope_for_case_grading() -> None:

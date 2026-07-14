@@ -165,6 +165,9 @@ def test_teach_transform_replaces_authoring_preview_ai_with_tutorbot_adapter() -
     assert 'contextId:"F16"' in rendered
     assert 'fetch("/api/v1/luban-preview/ai-ask"' in rendered
     assert "entryTicket:entryTicket" in rendered
+    assert "currentCaption:{speaker:isFollowup?\"学员追问\":\"鲁班讲解\"" in rendered
+    assert "keycard:keycard.slice(0,160)" in rendered
+    assert "if(reconnects>=5)" in rendered
     assert "new WebSocket" in rendered
     assert 'type:"subscribe_turn"' in rendered
     assert "LubanTutorbotSheetRuntime" in rendered
@@ -172,6 +175,11 @@ def test_teach_transform_replaces_authoring_preview_ai_with_tutorbot_adapter() -
     assert "data-luban-ask-thread" in rendered
     assert "data-luban-ask-error" in rendered
     assert "data-luban-workflow-status" in rendered
+    assert "data-luban-workflow-toggle" in rendered
+    assert 'onClick="{{ toggleAskWorkflow }}"' in rendered
+    assert 'value="{{ askWorkflowExpanded }}"' in rendered
+    assert "askWorkflowExpanded:false" in rendered
+    assert "toggleAskWorkflow()" in rendered
     assert "askBlocks" in rendered
     assert "entry_ticket" in rendered
     assert 'current.searchParams.get("entry_ticket")' not in rendered
