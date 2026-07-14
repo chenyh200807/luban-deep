@@ -38,8 +38,11 @@ PUBLIC_PATHS: list[tuple[str, str, str]] = [
     # Invite test form (PII landing, rate-limited + openid required)
     ("POST", "/api/v1/invite-test/applications", "anonymous invite test form (rate-limited)"),
 
-    # Hosted Luban teaching-card TutorBot adapter (published-card allowlist + rate-limit)
-    ("POST", "/api/v1/luban-preview/ai-ask", "anonymous hosted Luban teaching-card AI ask (published-card allowlist, rate-limited)"),
+    # Hosted Luban teaching-card bridges.  The H5 has no bearer header, but both
+    # routes require a short-lived, pack-scoped capability issued to an authenticated
+    # station user; they are not anonymous LLM or learner-state entry points.
+    ("POST", "/api/v1/luban-preview/ai-ask", "hosted Luban card ask via scoped station capability (rate-limited)"),
+    ("POST", "/api/v1/luban-preview/lesson-viewed", "hosted Luban card lesson evidence via scoped station capability (rate-limited)"),
 
     # Static UI metadata
     ("GET",  "/api/v1/agent-config/agents",                  "static UI agent registry"),

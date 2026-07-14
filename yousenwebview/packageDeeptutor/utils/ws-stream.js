@@ -3,6 +3,7 @@ const auth = require("./auth");
 const api = require("./api");
 const endpoints = require("./endpoints");
 const hostRuntime = require("./host-runtime");
+const workflowStatus = require("./workflow-status");
 
 function inferConversationTitle(query) {
   var text = String(query || "").trim();
@@ -208,43 +209,7 @@ function buildTurnSocketPayload(turnId, lastSeq) {
 }
 
 function buildStatusEvent(event) {
-  if (!event || typeof event !== "object") return null;
-  var eventType = String(event.type || "").trim();
-  if (["thinking", "progress", "observation", "stage_start", "tool_call", "tool_result"].indexOf(eventType) === -1) {
-    return null;
-  }
-
-  var eventMetadata = event.metadata || {};
-  var visibility = resolveEventVisibility(event);
-  var stage = String(event.stage || "").trim();
-  var content = String(event.content || "");
-  var toolName =
-    String(event.tool_name || eventMetadata.tool_name || eventMetadata.tool || "").trim() ||
-    (eventType === "tool_call" ? content : "");
-  var metadata = Object.assign({}, eventMetadata, {
-    visibility: visibility,
-  });
-
-  if (visibility === "internal" && eventType === "progress") {
-    return null;
-  }
-
-  if (visibility === "internal" && (eventType === "thinking" || eventType === "observation")) {
-    metadata.sanitized_internal = true;
-    content = "";
-  }
-
-  return {
-    type: "status",
-    data: content || stage || eventType,
-    content: content,
-    source: event.source || "",
-    stage: stage,
-    eventType: eventType,
-    toolName: toolName,
-    metadata: metadata,
-    seq: typeof event.seq === "number" ? event.seq : 0,
-  };
+  return workflowStatus.toWorkflowEvent(event);
 }
 
 function streamChat(opts, callbacks) {

@@ -54,7 +54,7 @@ function makePage(definition) {
   let detailCalls = 0;
   let telemetryCalls = 0;
   const page = makePage(loadPage("pages/luban/station/station.js", {
-    "../../../utils/api": { getLubanLessonDetail() { detailCalls += 1; return Promise.resolve({}); } },
+    "../../../utils/api": { getLubanLessonDetail() { detailCalls += 1; return Promise.resolve({}); }, issueLubanCardEntry() { return Promise.resolve({ entry_ticket: "card-capability" }); } },
     "../../../utils/auth": { isLoggedIn: () => false },
     "../../../utils/route": { lubanStation: (packId) => "/packageDeeptutor/pages/luban/station/station?pack_id=" + packId },
     "../../../utils/runtime": { redirectToLogin: (target) => { redirected = target; } },
@@ -106,6 +106,7 @@ function makePage(definition) {
   const stationPage = makePage(loadPage("pages/luban/station/station.js", {
     "../../../utils/api": {
       getLubanLessonDetail(_packId, options) { stationOptions = options; stationLoggedIn = false; return Promise.reject(new Error("AUTH_EXPIRED")); },
+      issueLubanCardEntry() { return Promise.resolve({ entry_ticket: "card-capability" }); },
       describeRequestError(_error, fallback) { return fallback; },
     },
     "../../../utils/auth": { isLoggedIn: () => stationLoggedIn },
@@ -132,6 +133,7 @@ function makePage(definition) {
           practice_url: "https://cdn/f16/practice.html",
         });
       },
+      issueLubanCardEntry() { return Promise.resolve({ entry_ticket: "card-capability" }); },
       unwrapResponse(value) { return value; },
       postLessonProgress(_packId, _tier, _sha, options) {
         progressOptions = options;

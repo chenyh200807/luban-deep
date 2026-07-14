@@ -36,6 +36,7 @@ from deeptutor.services.luban_lesson.practice_html import (
     is_compiled_practice_pack,
 )
 from deeptutor.services.luban_lesson.retest_selection import issue_retest_selection
+from deeptutor.services.session import get_sqlite_session_store
 
 router = secure_router(tags=["luban_lesson"])
 
@@ -54,6 +55,13 @@ class RetestCompletionRequest(BaseModel):
     answers: list[RetestAnswerRequest] = Field(min_length=1, max_length=10)
     training_intent_id: str = ""
     probe_id: str = ""
+
+
+class CardEntryResponse(BaseModel):
+    """A narrow, short-lived H5 capability — never a reusable user bearer token."""
+
+    entry_ticket: str
+    expires_in_seconds: int
 
 
 @router.get(
@@ -88,6 +96,37 @@ async def lesson_detail(pack_id: str, _: AuthContext = Depends(get_current_user)
         return build_lesson_viewmodel(pack_id)
     except LessonNotAvailable:
         raise HTTPException(status_code=404, detail="lesson not found")
+
+
+@router.post(
+    "/lessons/{pack_id}/card-entry",
+    response_model=CardEntryResponse,
+    dependencies=[
+        Depends(route_rate_limit("luban_lesson_card_entry", default_max_requests=30, default_window_seconds=60.0))
+    ],
+)
+async def issue_card_entry(
+    pack_id: str,
+    current_user: AuthContext = Depends(get_current_user),
+) -> CardEntryResponse:
+    """Bridge one authenticated station into its hosted H5 card.
+
+    The browser card needs a narrowly scoped capability because a WeChat
+    ``web-view`` cannot safely receive the Mini Program's bearer credential.
+    Availability stays with ``build_lesson_viewmodel``; ticket ownership stays
+    with the authenticated user and the session store is its sole persistence.
+    """
+    try:
+        viewmodel = build_lesson_viewmodel(pack_id)
+    except LessonNotAvailable as exc:
+        raise HTTPException(status_code=404, detail="lesson not found") from exc
+    if not str(viewmodel.get("card_url") or "").strip():
+        raise HTTPException(status_code=404, detail="lesson card not found")
+    ticket = await get_sqlite_session_store().issue_luban_card_entry_ticket(
+        user_id=current_user.user_id,
+        pack_id=str(viewmodel.get("pack_id") or pack_id),
+    )
+    return CardEntryResponse(entry_ticket=ticket, expires_in_seconds=45 * 60)
 
 
 @router.get(

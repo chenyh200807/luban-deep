@@ -25,6 +25,20 @@ const helpers = require("../../../utils/helpers");
 var TIER_LESSON = "lesson";
 var TIER_PRACTICE = "practice";
 
+function appendCardEntryTicket(cardUrl, ticket) {
+  var source = String(cardUrl || "");
+  var capability = String(ticket || "").trim();
+  if (!source || !capability) return "";
+  var hashIndex = source.indexOf("#");
+  // A web-view source URL is fetched before its H5 bridge can run. Keep the
+  // short-lived capability in the fragment: WebView exposes it to the card,
+  // but it is never sent to the static host nor leaked as an asset referrer.
+  // Published cards do not use anchors, so an existing fragment is not a
+  // competing business input here.
+  var base = hashIndex >= 0 ? source.slice(0, hashIndex) : source;
+  return base + "#entry_ticket=" + encodeURIComponent(capability);
+}
+
 Page({
   data: {
     packId: "",
@@ -174,15 +188,23 @@ Page({
           return;
         }
         var practiceUrl = String(body.practice_url || "");
-        that.setData({
-          title: String(body.title || ""),
-          cardUrl: cardUrl,
-          practiceUrl: practiceUrl,
-          cardSha: String(body.content_sha256 || ""),
-          loading: false,
-          errorText: "",
+        // web-view 无法安全取得小程序 Authorization header。这里由已认证的
+        // 站点签发仅绑定本卡的短期凭据；H5 会马上从地址栏抹去，绝不写入缓存。
+        return api.issueLubanCardEntry(that.data.packId, { suppressAuthRedirect: true }).then(function (ticketResp) {
+          var ticketBody = api.unwrapResponse(ticketResp) || {};
+          var cardEntryUrl = appendCardEntryTicket(cardUrl, ticketBody.entry_ticket);
+          if (!cardEntryUrl) throw new Error("CARD_ENTRY_UNAVAILABLE");
+          that.setData({
+            title: String(body.title || ""),
+            cardUrl: cardEntryUrl,
+            practiceUrl: practiceUrl,
+            cardSha: String(body.content_sha256 || ""),
+            loading: false,
+            errorText: "",
+          });
+          that._enterTier(TIER_LESSON);
+          return null;
         });
-        that._enterTier(TIER_LESSON);
       })
       .catch(function (err) {
         if (!auth.isLoggedIn()) {

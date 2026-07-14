@@ -7,8 +7,11 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import contextlib
+import hashlib
+import hmac
 import json
 import os
+import secrets
 import sqlite3
 import threading
 import time
@@ -38,6 +41,8 @@ _INTERACTION_HINT_SYSTEM_PREFIXES = (
     "You are operating in a learning-product scenario.",
 )
 _SESSION_TITLE_PLACEHOLDERS = {"new conversation", "新对话"}
+_LUBAN_CARD_ENTRY_TICKET_KIND = "luban_card_entry"
+_LUBAN_TURN_STREAM_TICKET_KIND = "luban_turn_stream"
 
 
 def _json_dumps(value: Any) -> str:
@@ -696,6 +701,24 @@ class SQLiteSessionStore:
 
                 CREATE INDEX IF NOT EXISTS idx_turn_events_turn_seq
                     ON turn_events(turn_id, seq);
+
+                -- A hosted teaching card cannot receive the Mini Program's bearer
+                -- token.  These opaque, short-lived tickets are the one narrow
+                -- bridge: a card-entry ticket can start a turn for exactly one
+                -- learner and pack; a turn ticket can subscribe to exactly one
+                -- already-created turn.  Raw tickets never reach this database.
+                CREATE TABLE IF NOT EXISTS webview_access_tickets (
+                    ticket_digest TEXT PRIMARY KEY,
+                    ticket_kind TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    pack_id TEXT NOT NULL DEFAULT '',
+                    turn_id TEXT NOT NULL DEFAULT '',
+                    expires_at REAL NOT NULL,
+                    created_at REAL NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_webview_access_tickets_expiry
+                    ON webview_access_tickets(expires_at);
 
                 CREATE TABLE IF NOT EXISTS notebook_entries (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -2310,6 +2333,152 @@ class SQLiteSessionStore:
 
     async def update_session_preferences(self, session_id: str, preferences: dict[str, Any]) -> bool:
         return await self._run(self._update_session_preferences_sync, session_id, preferences)
+
+    @staticmethod
+    def _webview_ticket_digest(ticket: str) -> str:
+        return hashlib.sha256(str(ticket or "").encode("utf-8")).hexdigest()
+
+    def _issue_webview_access_ticket_sync(
+        self,
+        *,
+        ticket_kind: str,
+        user_id: str,
+        pack_id: str = "",
+        turn_id: str = "",
+        ttl_seconds: float,
+    ) -> str:
+        normalized_kind = str(ticket_kind or "").strip()
+        normalized_user = str(user_id or "").strip()
+        normalized_pack = str(pack_id or "").strip().upper()
+        normalized_turn = str(turn_id or "").strip()
+        if not normalized_kind or not normalized_user:
+            raise ValueError("webview access ticket requires kind and user_id")
+        if normalized_kind == _LUBAN_CARD_ENTRY_TICKET_KIND and not normalized_pack:
+            raise ValueError("luban card entry ticket requires pack_id")
+        if normalized_kind == _LUBAN_TURN_STREAM_TICKET_KIND and not normalized_turn:
+            raise ValueError("luban turn stream ticket requires turn_id")
+        ttl = max(30.0, min(float(ttl_seconds), 60.0 * 60.0))
+        now = time.time()
+        raw_ticket = secrets.token_urlsafe(32)
+        digest = self._webview_ticket_digest(raw_ticket)
+        with self._connect() as conn:
+            # TTL is the canonical invalidation rule.  Opportunistic cleanup keeps
+            # this small append surface bounded without a separate janitor.
+            conn.execute("DELETE FROM webview_access_tickets WHERE expires_at <= ?", (now,))
+            conn.execute(
+                """
+                INSERT INTO webview_access_tickets (
+                    ticket_digest, ticket_kind, user_id, pack_id, turn_id, expires_at, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    digest,
+                    normalized_kind,
+                    normalized_user,
+                    normalized_pack,
+                    normalized_turn,
+                    now + ttl,
+                    now,
+                ),
+            )
+            conn.commit()
+        return raw_ticket
+
+    def _resolve_webview_access_ticket_sync(
+        self,
+        *,
+        ticket: str,
+        ticket_kind: str,
+        pack_id: str = "",
+    ) -> dict[str, Any] | None:
+        raw_ticket = str(ticket or "").strip()
+        normalized_kind = str(ticket_kind or "").strip()
+        normalized_pack = str(pack_id or "").strip().upper()
+        if not raw_ticket or not normalized_kind:
+            return None
+        digest = self._webview_ticket_digest(raw_ticket)
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT ticket_digest, ticket_kind, user_id, pack_id, turn_id, expires_at
+                FROM webview_access_tickets
+                WHERE ticket_digest = ? AND ticket_kind = ?
+                """,
+                (digest, normalized_kind),
+            ).fetchone()
+        if row is None or float(row["expires_at"] or 0) <= time.time():
+            return None
+        if normalized_pack and str(row["pack_id"] or "").strip().upper() != normalized_pack:
+            return None
+        # The indexed lookup is already exact; compare again so a future storage
+        # refactor cannot accidentally turn this bearer capability into a prefix
+        # match or a timing oracle.
+        if not hmac.compare_digest(str(row["ticket_digest"] or ""), digest):
+            return None
+        return {
+            "user_id": str(row["user_id"] or "").strip(),
+            "pack_id": str(row["pack_id"] or "").strip().upper(),
+            "turn_id": str(row["turn_id"] or "").strip(),
+            "expires_at": float(row["expires_at"] or 0),
+        }
+
+    async def issue_luban_card_entry_ticket(
+        self,
+        *,
+        user_id: str,
+        pack_id: str,
+        ttl_seconds: float = 45.0 * 60.0,
+    ) -> str:
+        """Mint the only H5 bridge from an authenticated station into one pack."""
+        return await self._run(
+            lambda: self._issue_webview_access_ticket_sync(
+                ticket_kind=_LUBAN_CARD_ENTRY_TICKET_KIND,
+                user_id=user_id,
+                pack_id=pack_id,
+                ttl_seconds=ttl_seconds,
+            )
+        )
+
+    async def resolve_luban_card_entry_ticket(
+        self,
+        ticket: str,
+        *,
+        pack_id: str,
+    ) -> dict[str, Any] | None:
+        return await self._run_read(
+            lambda: self._resolve_webview_access_ticket_sync(
+                ticket=ticket,
+                ticket_kind=_LUBAN_CARD_ENTRY_TICKET_KIND,
+                pack_id=pack_id,
+            )
+        )
+
+    async def issue_luban_turn_stream_ticket(
+        self,
+        *,
+        user_id: str,
+        pack_id: str,
+        turn_id: str,
+        ttl_seconds: float = 3.0 * 60.0,
+    ) -> str:
+        """Mint a read-only subscription capability for one already-created turn."""
+        return await self._run(
+            lambda: self._issue_webview_access_ticket_sync(
+                ticket_kind=_LUBAN_TURN_STREAM_TICKET_KIND,
+                user_id=user_id,
+                pack_id=pack_id,
+                turn_id=turn_id,
+                ttl_seconds=ttl_seconds,
+            )
+        )
+
+    async def resolve_luban_turn_stream_ticket(self, ticket: str) -> dict[str, Any] | None:
+        return await self._run_read(
+            lambda: self._resolve_webview_access_ticket_sync(
+                ticket=ticket,
+                ticket_kind=_LUBAN_TURN_STREAM_TICKET_KIND,
+            )
+        )
 
     def _get_active_object_sync(self, session_id: str) -> dict[str, Any] | None:
         with self._connect() as conn:

@@ -195,6 +195,8 @@ def test_ws_start_turn_cancelled_error_is_not_swallowed(
     frames = iter([{"type": "start_turn", "content": "boom", "config": {}}])
 
     class _FakeWS:
+        scope = {"subprotocols": []}
+
         async def receive_text(self):
             import json as _json
 

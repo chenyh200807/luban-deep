@@ -116,6 +116,39 @@ def test_sqlite_store_persists_message_metadata(tmp_path: Path) -> None:
     }
 
 
+def test_luban_webview_capabilities_are_scoped_hashed_and_expire(tmp_path: Path) -> None:
+    store = SQLiteSessionStore(tmp_path / "webview-capability.db")
+
+    entry_ticket = asyncio.run(
+        store.issue_luban_card_entry_ticket(user_id="student_real", pack_id="f16")
+    )
+    entry_access = asyncio.run(store.resolve_luban_card_entry_ticket(entry_ticket, pack_id="F16"))
+    assert entry_access is not None
+    assert entry_access["user_id"] == "student_real"
+    assert entry_access["pack_id"] == "F16"
+    assert entry_access["turn_id"] == ""
+    assert entry_access["expires_at"] > time.time()
+    assert asyncio.run(store.resolve_luban_card_entry_ticket(entry_ticket, pack_id="D11")) is None
+
+    stream_ticket = asyncio.run(
+        store.issue_luban_turn_stream_ticket(
+            user_id="student_real", pack_id="F16", turn_id="turn-real"
+        )
+    )
+    stream_access = asyncio.run(store.resolve_luban_turn_stream_ticket(stream_ticket))
+    assert stream_access is not None
+    assert stream_access["user_id"] == "student_real"
+    assert stream_access["pack_id"] == "F16"
+    assert stream_access["turn_id"] == "turn-real"
+
+    with store._connect() as conn:
+        raw_rows = conn.execute("SELECT ticket_digest FROM webview_access_tickets").fetchall()
+        assert all(entry_ticket not in str(row["ticket_digest"]) for row in raw_rows)
+        conn.execute("UPDATE webview_access_tickets SET expires_at = 0 WHERE ticket_digest = ?", (store._webview_ticket_digest(stream_ticket),))
+        conn.commit()
+    assert asyncio.run(store.resolve_luban_turn_stream_ticket(stream_ticket)) is None
+
+
 def test_sqlite_store_migrates_legacy_messages_metadata_column(tmp_path: Path) -> None:
     db_path = tmp_path / "legacy-messages.db"
     now = time.time()

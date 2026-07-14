@@ -57,6 +57,7 @@ _MAX_WS_CONNECTIONS_PER_USER = 8
 # crashed worker's never-released entries (no permanent lock-out), and makes the limit
 # fail-OPEN (a very-long-idle connection may stop being counted) rather than fail-closed.
 _WS_CONN_TTL_SECONDS = 3600
+_LUBAN_CARD_STREAM_PROTOCOL = "luban-preview-v1"
 _active_ws_connections: dict[str, int] = {}
 _active_ws_connections_lock = asyncio.Lock()
 _ws_conn_redis: "object | None" = None
@@ -160,6 +161,52 @@ async def _await_stopped_subscription_task(key: str, task: asyncio.Task[None]) -
         pass
     except Exception:
         logger.exception("Unified WS subscription task failed during cleanup: %s", key)
+
+
+async def _resolve_luban_card_stream_auth(
+    ws: WebSocket,
+) -> tuple[AuthContext | None, str | None, str]:
+    """Resolve the H5 card's one-turn subscription capability, if offered.
+
+    A native WebSocket cannot set an Authorization header.  The teaching card
+    therefore sends its opaque, short-lived stream capability as the second
+    offered subprotocol.  The SQLite session store is the sole authority for
+    that capability; the resulting auth context is deliberately limited to
+    one already-created turn below.
+
+    Returns ``(auth, accepted_protocol, bound_turn_id)``.  An empty tuple
+    means this is an ordinary bearer-auth WebSocket.  An invalid card-shaped
+    handshake returns a sentinel auth with no user so the caller closes 4401.
+    """
+    offered = list(ws.scope.get("subprotocols") or [])
+    if not offered:
+        return None, None, ""
+    if offered[0] != _LUBAN_CARD_STREAM_PROTOCOL:
+        return None, None, ""
+    if len(offered) != 2:
+        return AuthContext(user_id="", provider="", token="", claims={}), None, ""
+
+    from deeptutor.services.session import get_sqlite_session_store
+
+    access = await get_sqlite_session_store().resolve_luban_turn_stream_ticket(offered[1])
+    user_id = str((access or {}).get("user_id") or "").strip()
+    turn_id = str((access or {}).get("turn_id") or "").strip()
+    if not user_id or not turn_id:
+        return AuthContext(user_id="", provider="", token="", claims={}), None, ""
+    return (
+        AuthContext(
+            user_id=user_id,
+            provider="luban_card_turn_stream",
+            token="",
+            claims={
+                "scope": "luban_card_turn_stream",
+                "pack_id": str((access or {}).get("pack_id") or "").strip(),
+                "turn_id": turn_id,
+            },
+        ),
+        _LUBAN_CARD_STREAM_PROTOCOL,
+        turn_id,
+    )
 
 _LEGACY_INTERACTION_HINT_KEYS = (
     "profile",
@@ -556,17 +603,29 @@ def _clamp_event_for_public(event: dict[str, Any]) -> dict[str, Any]:
 @router.websocket("/ws")
 async def unified_websocket(ws: WebSocket) -> None:
     # SR1 PR-1b: A2 closed — anonymous WS connections now reject 4401 (was: pass-through).
+    # The only non-bearer route is a DB-validated, short-lived H5 capability
+    # that may subscribe to its exact bound turn and nothing else.
+    scoped_auth, accepted_subprotocol, bound_turn_id = await _resolve_luban_card_stream_auth(ws)
+    if scoped_auth is not None and not scoped_auth.user_id:
+        await ws.close(code=4401, reason="Invalid teaching-card stream capability")
+        return
     current_user = await secure_ws_endpoint(
         ws,
         rate_limit_scope="unified_ws_connect",
         rate_limit_max=60,
         rate_limit_window_seconds=60.0,
+        validated_auth=scoped_auth,
+        accept_subprotocol=accepted_subprotocol,
     )
     if current_user is None:
         return  # ws already closed (4401 or 1013)
 
     # Per-user concurrent connection cap (admins exempt). Acquire before doing any work;
     # release in the finally below. Over-cap → 1013 and return.
+    # A card stream resolves to the real learner before this point, so it must
+    # share the same per-user connection budget as the chat page.  The narrow
+    # ticket limits *which turn* it can see; it must not become an unbounded
+    # bypass around the existing socket-resource authority.
     ws_slot_user = None if current_user.is_admin else str(current_user.user_id)
     ws_slot_token: str | None = None
     if ws_slot_user is not None:
@@ -670,6 +729,29 @@ async def unified_websocket(ws: WebSocket) -> None:
                 continue
 
             msg_type = msg.get("type")
+
+            if bound_turn_id:
+                if msg_type != "subscribe_turn":
+                    await safe_send(
+                        _build_error_event(
+                            content="This teaching-card stream only permits subscribing to its bound turn.",
+                            turn_id=bound_turn_id,
+                        )
+                    )
+                    continue
+                try:
+                    sub_message = UnifiedTurnSubscribeMessage.model_validate(msg)
+                    if sub_message.turn_id != bound_turn_id:
+                        raise PermissionError
+                    await _authorize_turn_access(sub_message.turn_id, current_user)
+                except ValidationError:
+                    await safe_send({"type": "error", "content": _public_validation_message("subscribe_turn")})
+                    continue
+                except (LookupError, PermissionError):
+                    await safe_send(_build_error_event(content="Turn not found", turn_id=str(msg.get("turn_id") or "")))
+                    continue
+                await subscribe_turn(bound_turn_id, after_seq=sub_message.after_seq)
+                continue
 
             if msg_type in {"message", "start_turn"}:
                 # SR3 PR-3: per-connection start_turn rate limit (v2.1 P1-S3 promoted to P0).

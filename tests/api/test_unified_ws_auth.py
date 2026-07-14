@@ -160,6 +160,83 @@ def test_ws_anonymous_connection_rejected_with_4401(
     assert exc_info.value.code == 4401
 
 
+def test_luban_card_stream_capability_only_subscribes_its_bound_turn(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The web-view has no bearer header, but cannot gain a general WS identity."""
+    import asyncio
+
+    store = SQLiteSessionStore(db_path=tmp_path / "ws-card-capability.db")
+    fake_runtime = _FakeRuntime()
+    monkeypatch.setattr(secure_router_mod, "resolve_auth_context", lambda _authorization: None)
+    monkeypatch.setattr("deeptutor.services.session.get_sqlite_session_store", lambda: store)
+    monkeypatch.setattr("deeptutor.services.session.get_turn_runtime_manager", lambda: fake_runtime)
+
+    asyncio.run(
+        store.create_session(
+            session_id="card-session",
+            owner_key=build_user_owner_key("student_real"),
+        )
+    )
+    bound_turn = asyncio.run(store.create_turn("card-session", capability="chat"))
+    asyncio.run(
+        store.create_session(
+            session_id="other-card-session",
+            owner_key=build_user_owner_key("student_real"),
+        )
+    )
+    other_turn = asyncio.run(store.create_turn("other-card-session", capability="chat"))
+    ticket = asyncio.run(
+        store.issue_luban_turn_stream_ticket(
+            user_id="student_real",
+            pack_id="F16",
+            turn_id=str(bound_turn["id"]),
+        )
+    )
+
+    with TestClient(_build_app()) as client:
+        with client.websocket_connect(
+            "/api/v1/ws",
+            subprotocols=["luban-preview-v1", ticket],
+        ) as websocket:
+            websocket.send_json(
+                {"type": "subscribe_turn", "turn_id": str(other_turn["id"]), "after_seq": 0}
+            )
+            rejected = websocket.receive_json()
+            websocket.send_json(
+                {"type": "subscribe_turn", "turn_id": str(bound_turn["id"]), "after_seq": 0}
+            )
+            completed = websocket.receive_json()
+            websocket.send_json({"type": "start_turn", "content": "must not start"})
+            forbidden = websocket.receive_json()
+
+    assert rejected["type"] == "error"
+    assert rejected["content"] == "Turn not found"
+    assert completed["type"] == "done"
+    assert completed["turn_id"] == str(bound_turn["id"])
+    assert forbidden["type"] == "error"
+    assert "only permits subscribing" in forbidden["content"]
+    assert fake_runtime.started_payload is None
+
+
+def test_luban_card_stream_rejects_invalid_capability_without_bearer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from starlette.websockets import WebSocketDisconnect
+
+    monkeypatch.setattr(secure_router_mod, "resolve_auth_context", lambda _authorization: None)
+
+    with TestClient(_build_app()) as client:
+        with pytest.raises(WebSocketDisconnect) as exc_info:
+            with client.websocket_connect(
+                "/api/v1/ws",
+                subprotocols=["luban-preview-v1", "not-a-real-capability"],
+            ) as websocket:
+                websocket.receive_json()
+    assert exc_info.value.code == 4401
+
+
 def test_ws_resume_from_rejects_foreign_owned_turn(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,

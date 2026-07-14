@@ -126,12 +126,19 @@ async def secure_ws_endpoint(
     rate_limit_scope: str,
     rate_limit_max: int,
     rate_limit_window_seconds: float,
+    validated_auth: AuthContext | None = None,
+    accept_subprotocol: str | None = None,
 ) -> AuthContext | None:
     """Mandatory authenticated WS handshake.
 
     Returns `AuthContext` on success — caller can rely on `auth.user_id` being non-empty.
     Returns `None` when either rate-limited or unauthenticated; in both cases the
     WS connection has already been closed by us. **Caller MUST early-return on None.**
+
+    ``validated_auth`` is intentionally narrow: callers may pass it only after
+    validating an endpoint-specific, scoped capability against its canonical
+    persistence authority.  It exists for browser WebSocket surfaces that
+    cannot attach an Authorization header; it is not a bearer-token bypass.
 
     Closing codes:
     - 1013 — rate-limited (set by `enforce_websocket_rate_limit`)
@@ -149,9 +156,9 @@ async def secure_ws_endpoint(
         default_window_seconds=rate_limit_window_seconds,
     ):
         return None  # ws.close(code=1013) already called by rate_limit helper
-    auth = resolve_auth_context(ws.headers.get("authorization"))
+    auth = validated_auth or resolve_auth_context(ws.headers.get("authorization"))
     if auth is None:
         await ws.close(code=4401, reason="Authentication required")
         return None
-    await ws.accept()
+    await ws.accept(subprotocol=accept_subprotocol)
     return auth
