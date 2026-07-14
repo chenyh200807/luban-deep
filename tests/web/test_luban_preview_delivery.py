@@ -59,6 +59,23 @@ def test_all_37_hosted_lessons_preload_only_the_first_audio_segment() -> None:
         assert (lesson.parent / preload.group(1)).is_file()
 
 
+def test_all_37_hosted_lessons_keep_ai_ask_inside_the_teaching_card() -> None:
+    """web-view 上方不能可靠叠原生层；问答抽屉必须由 lesson.html 自己承载。"""
+    lessons = sorted((ROOT / "web/public/luban-preview").glob("*/lesson.html"))
+
+    assert len(lessons) == 37
+    for lesson in lessons:
+        source = lesson.read_text(encoding="utf-8")
+        assert "askOpen" in source
+        assert "lzAskSheetIn" in source
+        assert "navigateTo({url:'/packageDeeptutor/pages/chat/chat" not in source
+        assert "window.claude" not in source
+        assert 'fetch("/api/v1/luban-preview/ai-ask"' in source
+        assert "data-luban-ask-thread" in source
+        assert "data-luban-ask-error" in source
+        assert "结论 · 判断依据" in source
+
+
 def test_all_hosted_audio_manifests_have_every_declared_mp3() -> None:
     root = ROOT / "web/public/luban-preview"
 

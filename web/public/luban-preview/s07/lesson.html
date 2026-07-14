@@ -11,6 +11,7 @@
 <helmet>
 <link href="../fonts/fonts.css" rel="stylesheet"/>
 <script src="../vendor/jweixin.js"></script>
+<style data-luban-ask-sheet-motion>@keyframes lzAskSheetIn{from{transform:translateY(100%);opacity:.72}to{transform:translateY(0);opacity:1}}</style>
 <style>
   *{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
   html,body{margin:0;padding:0;}
@@ -391,7 +392,7 @@
     <sc-if value="{{ askOpen }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;inset:0;z-index:60;background:rgba(16,19,21,.82);display:flex;flex-direction:column;justify-content:flex-end;">
       <div onClick="{{ closeAsk }}" style="flex:1;cursor:pointer;min-height:36px;"></div>
-      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;overflow:hidden;animation:lzAskSheetIn .24s cubic-bezier(.22,.8,.28,1) both;will-change:transform;">
         <div onClick="{{ closeAsk }}" onTouchStart="{{ dragStart }}" onTouchMove="{{ dragMove }}" onTouchEnd="{{ dragEnd }}" style="flex:none;padding:9px 0 4px;cursor:grab;display:flex;justify-content:center;touch-action:none;">
           <div style="width:42px;height:5px;border-radius:3px;background:#3a4046;"></div>
         </div>
@@ -420,10 +421,22 @@
           </div>
           </sc-if>
           <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
-          <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
-            <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
-            <div style="flex:1;font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+          <div data-luban-ask-thread style="display:flex;flex-direction:column;gap:10px;">
+            <div style="align-self:flex-end;max-width:82%;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;">
+              <div style="flex:none;width:26px;height:26px;border-radius:50%;background:#e8e4d8;color:#3a3329;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">我</div>
+              <div style="background:#f2eee3;color:#292820;border-radius:13px 13px 4px 13px;padding:9px 11px;font-size:12.5px;line-height:1.55;font-weight:650;">{{ askText }}</div>
+            </div>
+            <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+              <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:inline-flex;border:1px solid #527463;border-radius:999px;padding:3px 8px;color:#93c4a8;font-size:10px;font-weight:900;margin-bottom:8px;">结论 · 判断依据</div>
+                <div style="font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+              </div>
+            </div>
           </div>
+          </sc-if>
+          <sc-if value="{{ askError }}" hint-placeholder-val="{{ false }}">
+          <div data-luban-ask-error style="margin-top:12px;border:1px solid #80503c;background:#2b211d;color:#f0c9a8;border-radius:12px;padding:11px 12px;font-size:12.5px;line-height:1.6;">{{ askError }}</div>
           </sc-if>
           <sc-if value="{{ askIdle }}" hint-placeholder-val="{{ true }}">
           <div style="text-align:center;color:#4a5054;font-size:11px;padding:24px 12px;line-height:1.7;">点上面的快捷追问，或自己打一句<br/>鲁班按阅卷采分点给你讲透</div>
@@ -444,7 +457,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { t: 0, playing: false, askOpen:false, askText:"", askLoading:false, askAnswer:"", fs:false, muted:false };
+  state = { t: 0, playing: false, askOpen:false, askText:"", askLoading:false, askAnswer:"", askError:"", fs:false, muted:false };
   DUR = 163.532;
     beats=[["b0",0.0,7.724,"别拍脑袋"],["b1",7.724,17.128,"先定性"],["b2",17.128,31.74,"量三把尺子"],["b3",31.74,48.848,"报给谁·时限"],["b4",48.848,67.156,"谁查·谁担责"],["b5",67.156,76.392,"写成分"],["q0",76.392,94.692,"问答"],["q1",94.692,112.968,"问答"],["q2",112.968,131.796,"问答"],["q3",131.796,146.88,"问答"],["end",146.88,163.532,"收官"]];
   endNarr = "好，这一讲就到这儿。记住哈——定级量三把尺子、任一达高级就按高级；上报先报本单位负责人、3 0 天补报；调查走政府批复、追责到领导。把这四句采分句带走，考场上就能拿分。";
@@ -519,15 +532,7 @@ class Component extends DCLogic {
     }catch(e){}
   }
   phoneRef(el){ if(el) this._phone=el; }
-    wxAsk(){ try{
-      const wxm=window.wx&&window.wx.miniProgram;
-      const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
-      if(!wxm||!inMini) return false;
-      let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
-      if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
-      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=S07'+(st?'&scene_title='+encodeURIComponent(st):'')});
-      return true; }catch(e){ return false; } }
-  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }
+  openAsk(){ this.setState({askOpen:true,playing:false}); }
   closeAsk(){ this.setState({askOpen:false}); }
   dragStart(e){ this._dragY=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dragDelta=0; this._dragging=true; }
   dragMove(e){ if(!this._dragging)return; const y=(e.touches&&e.touches[0]?e.touches[0].clientY:0); this._dragDelta=y-this._dragY; }
@@ -536,16 +541,23 @@ class Component extends DCLogic {
   preset(t){ this.setState({askText:t}); }
   async submitAsk(){
     const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
-    this.setState({askLoading:true,askAnswer:""});
-    const prompt='你是“鲁班深”一级建造师案例课老师龙安欢，正在讲“安全事故等级判定与上报”。\\n知识口径：①事故类型≠事故等级。②定级量三把尺子(死亡人数/重伤人数/直接经济损失)，任一达更高级即按更高级，不平均不取最低；阈值——一般<3死或<10重伤或<1000万；较大3≤死<10 或 10≤重伤<50 或 1000万≤损失<5000万；重大10≤死<30 或 50≤重伤<100 或 5000万≤损失<1亿；特别重大≥30死或≥100重伤或≥1亿。③上报：现场人员立即向本单位负责人报告→逐级上报至市(设区)级人民政府住建主管部门；报告含事故初步原因、报告联系人及方式、其他；自事故发生之日起30天内伤亡变化及时补报。④调查处理：调查组(有关政府/安监/负有安监职责部门/监察/公安/工会/检察院/专家)提建议→负责调查的政府批复→单位执行；追直接责任人+领导责任，单位不得自裁。\\n学生追问：“'+q+'”\\n要求：用东北话口语化、亲切、简短(140字以内)，面向阅卷采分点回答，先给结论再点一句依据；只答这个考点范围内的问题，若超纲就温和提示回到本考点。';
+    let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; }
+    const beat=this.beats[bi]||[];
+    const payload={contextId:"S07",cardId:"S07",question:q,
+      currentScene:{id:String(bi+1),label:String(beat[3]||"当前画面").slice(0,80)},
+      time:Number(this.state.t||0)};
+    this.setState({askLoading:true,askAnswer:"",askError:""});
     try{
-      if(window.claude && typeof window.claude.complete==='function'){
-        const ans=await window.claude.complete(prompt);
-        this.setState({askLoading:false,askAnswer:(ans&&String(ans).trim())||"（这次没拿到回答，再点一下试试哈）"});
-      } else {
-        this.setState({askLoading:false,askAnswer:"当前预览环境没接 AI 接口。把这张卡放进鲁班 App 里，「追问」就能直接连老师啦。\\n\\n你的问题我先记下了：“"+q+"”。\\n小提示：定级永远先量三把尺子，任一达更高级就按更高级。"});
-      }
-    }catch(err){ this.setState({askLoading:false,askAnswer:"追问出错了："+((err&&err.message)||err)+"。稍后再试。"}); }
+      const res=await fetch("/api/v1/luban-preview/ai-ask",{method:"POST",
+        headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok)throw new Error(String(data.detail||"TutorBot 答疑暂时不可用"));
+      const answer=String(data.answer||"").trim();
+      if(!answer)throw new Error("TutorBot 没有返回答案");
+      this.setState({askLoading:false,askAnswer:answer,askError:""});
+    }catch(err){
+      this.setState({askLoading:false,askAnswer:"",askError:"TutorBot 暂时没有接通，请留在本页稍后重试。"});
+    }
   }
   cl(x,a,b){return Math.max(a,Math.min(b,x));}
   lp(a,b,p){return a+(b-a)*p;}
@@ -633,8 +645,8 @@ class Component extends DCLogic {
       openAsk:()=>this.openAsk(), closeAsk:()=>this.closeAsk(), setAsk:(e)=>this.setAsk(e), submitAsk:()=>this.submitAsk(),
       dragStart:(e)=>this.dragStart(e), dragMove:(e)=>this.dragMove(e), dragEnd:()=>this.dragEnd(),
       askOpen:this.state.askOpen, askText:this.state.askText, askLoading:this.state.askLoading,
-      askAnswer:this.state.askAnswer, hasAnswer:!!this.state.askAnswer,
-      askIdle:!this.state.askLoading && !this.state.askAnswer,
+      askAnswer:this.state.askAnswer, askError:this.state.askError, hasAnswer:!!this.state.askAnswer,
+      askIdle:!this.state.askLoading && !this.state.askAnswer && !this.state.askError,
       askDisabled:askEmpty||this.state.askLoading, askCursor:(askEmpty||this.state.askLoading)?"not-allowed":"pointer",
       askBtnBg:(askEmpty||this.state.askLoading)?"#3a3127":"#cf4436", askBtnFg:(askEmpty||this.state.askLoading)?"#7a6f5e":"#fff",
       askBtnLabel:this.state.askLoading?"鲁班思考中…":"问鲁班",

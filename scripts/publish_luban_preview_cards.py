@@ -29,12 +29,11 @@
      >780px 桌面封顶居中防过度放大）；html/body 背景改为卡自身 .lz-card 深墨底色
      （逐卡运行时提取，锚不中即 fail-closed），残留边距与卡浑然一体。全屏态
      ``body.luban-fs .lz-card{zoom:1!important}`` 归位，退出全屏回到宽度自适应态。
-  4. **「问追AI」接通问鲁班**：唯一聊天入口铁律——不在卡内做第二套聊天。注入自托管
-     ``../vendor/jweixin.js``；小程序 web-view 环境（__wxjs_environment / UA 双检 +
-     wx.miniProgram 在场）下 openAsk 改跳
-     ``/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=<pack>``
-     （scene_title 取当前幕 beats[bi][3]，取不到省略）；非微信环境保持原卡内追问
-     浮层，不报错。
+  4. **「问追AI」保持在教学卡内**：微信 ``web-view`` 会覆盖原生层，不能由站点页
+     可靠地叠一个抽屉；问答层因此必须由教学卡本身拥有。发布层不得把 ``openAsk``
+     改写为跳转聊天页——那会丢掉正在看的视频和时间轴。卡内既有抽屉从底部推入，
+     关闭后仍留在同一教学画面；实际答疑能力仍由既有 TutorBot 主链路负责，不在此
+     打包器新增聊天协议或会话 authority。
 
 用法::
 
@@ -71,6 +70,8 @@ from deeptutor.services.luban_lesson.practice_html import (
     compile_practice_surface,
     transform_compiled_practice_html,
 )
+from scripts.build_luban_pack_manifest import MANIFEST_PATH as PACK_MANIFEST_PATH
+from scripts.build_luban_pack_manifest import build_manifest
 
 FINISHED = REPO / "artifacts" / "luban_case_family_assets" / "diagram_microlesson" / "finished"
 HOST = REPO / "web" / "public" / "luban-preview"
@@ -210,6 +211,15 @@ _FONT_LINKS_OLD = (
     '&family=Long+Cang&display=swap" rel="stylesheet"/>'
 )
 _FONT_LINKS_NEW = '<link href="../fonts/fonts.css" rel="stylesheet"/>'
+
+# 卡内问答是学习舞台的第二层，不是一次路由跳转。动画只属于呈现层，不能影响
+# openAsk/closeAsk 的状态语义或播放器时间轴。
+_ASK_SHEET_MOTION_CSS = (
+    "<style data-luban-ask-sheet-motion>"
+    "@keyframes lzAskSheetIn{from{transform:translateY(100%);opacity:.72}"
+    "to{transform:translateY(0);opacity:1}}"
+    "</style>"
+)
 
 # teach/practice 卡额外注入微信 JSSDK（practice 保存学习证据时复用）
 _JWEIXIN_TAG = '<script src="../vendor/jweixin.js"></script>'
@@ -366,18 +376,17 @@ _FULLSCREEN_NEW = """  fullscreen(){ const n=!this.state.fs; this.setState({fs:n
   updateFsScale(){ try{ const sc=Math.min(window.innerWidth/390, window.innerHeight/462); document.body.style.setProperty('--fs-scale', String(sc)); }catch(e){} }
   scheduleHide(){ if(this._hideT){clearTimeout(this._hideT);this._hideT=null;} if(this.state.fs&&!this.state.ctrlHidden){ this._hideT=setTimeout(()=>{ if(this.state.playing)this.setState({ctrlHidden:true}); },3500); } }
   tapToggle(){ if(!this.state.fs)return; const h=!this.state.ctrlHidden; this.setState({ctrlHidden:h}); if(!h)this.scheduleHide(); }
-  updateFitZoom(){ try{ const z=Math.min(window.innerWidth/390, __LZ_FIT_CAP__); document.body.style.setProperty('--lz-fit', String(z)); }catch(e){} }
-  wxAsk(){ try{
-      const wxm=window.wx&&window.wx.miniProgram;
-      const inMini=(window.__wxjs_environment==='miniprogram')||/miniprogram/i.test(navigator.userAgent||'');
-      if(!wxm||!inMini) return false;
-      let st=''; try{ let bi=0; for(let i=0;i<this.beats.length;i++){ if(this.state.t>=this.beats[i][1]) bi=i; } st=String((this.beats[bi]&&this.beats[bi][3])||''); }catch(e){}
-      if(this.state.playing){ this.setState({playing:false}); this.setSpeechPaused(true); }
-      wxm.navigateTo({url:'/packageDeeptutor/pages/chat/chat?entrySource=teach_card&pack_id=__LZ_PACK__'+(st?'&scene_title='+encodeURIComponent(st):'')});
-      return true; }catch(e){ return false; } }"""
+  updateFitZoom(){ try{ const z=Math.min(window.innerWidth/390, __LZ_FIT_CAP__); document.body.style.setProperty('--lz-fit', String(z)); }catch(e){} }"""
 
 _OPENASK_OLD = "openAsk(){ this.setState({askOpen:true,playing:false}); }"
-_OPENASK_NEW = "  openAsk(){ if(this.wxAsk())return; this.setState({askOpen:true,playing:false}); }"
+_ASK_SHEET_STYLE_OLD = (
+    "background:#181b1e;border-top:2px solid #cf4436;border-radius:20px 20px 0 0;"
+    "box-shadow:0 -8px 30px rgba(0,0,0,.5);height:88vh;display:flex;flex-direction:column;"
+    "overflow:hidden;"
+)
+_ASK_SHEET_STYLE_NEW = _ASK_SHEET_STYLE_OLD + (
+    "animation:lzAskSheetIn .24s cubic-bezier(.22,.8,.28,1) both;will-change:transform;"
+)
 
 _RVALS_APPEND = (
     # stopPropagation:角标在 lz-stagewrap(tapToggle 点屏显隐)内,不截断冒泡则
@@ -463,27 +472,131 @@ _CORNER_MUTE_RE = re.compile(
 _CAPSULE_RE = re.compile(
     r'(<div style="position:absolute;top:10px;left:50%;transform:translateX\(-50%\);z-index:40;[^"]*)(">)')
 _AUTOSTART_RE = re.compile(r"^\s*this\._autoTimer=setTimeout\([^\n]*\n", re.M)
+_SUBMIT_ASK_RE = re.compile(
+    r"^  async submitAsk\(\)\{.*?^  \}\n(?=  [A-Za-z_]\w*\()", re.M | re.S
+)
+_AUTHORING_CLAUDE_RE = re.compile(r"window\.claude(?:\.complete)?")
+_ASK_RESPONSE_RE = re.compile(
+    r'          <sc-if value="\{\{ hasAnswer \}\}" hint-placeholder-val="\{\{ false \}\}">.*?'
+    r"          </sc-if>",
+    re.S,
+)
+_ASK_RESPONSE_THREAD = '''          <sc-if value="{{ hasAnswer }}" hint-placeholder-val="{{ false }}">
+          <div data-luban-ask-thread style="display:flex;flex-direction:column;gap:10px;">
+            <div style="align-self:flex-end;max-width:82%;display:flex;gap:8px;align-items:flex-start;flex-direction:row-reverse;">
+              <div style="flex:none;width:26px;height:26px;border-radius:50%;background:#e8e4d8;color:#3a3329;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">我</div>
+              <div style="background:#f2eee3;color:#292820;border-radius:13px 13px 4px 13px;padding:9px 11px;font-size:12.5px;line-height:1.55;font-weight:650;">{{ askText }}</div>
+            </div>
+            <div style="background:#2b2620;border:1px solid #4a3d2a;border-radius:13px;padding:13px 14px;display:flex;gap:10px;align-items:flex-start;">
+              <div style="flex:none;width:28px;height:28px;border-radius:50%;background:#cf4436;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:18px;">师</div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:inline-flex;border:1px solid #527463;border-radius:999px;padding:3px 8px;color:#93c4a8;font-size:10px;font-weight:900;margin-bottom:8px;">结论 · 判断依据</div>
+                <div style="font-size:13.5px;color:#f1e6cf;line-height:1.7;font-weight:500;white-space:pre-wrap;">{{ askAnswer }}</div>
+              </div>
+            </div>
+          </div>
+          </sc-if>'''
+_ASK_ERROR_THREAD = '''          <sc-if value="{{ askError }}" hint-placeholder-val="{{ false }}">
+          <div data-luban-ask-error style="margin-top:12px;border:1px solid #80503c;background:#2b211d;color:#f0c9a8;border-radius:12px;padding:11px 12px;font-size:12.5px;line-height:1.6;">{{ askError }}</div>
+          </sc-if>'''
+_ASK_STATE_OLD = 'askAnswer:"", fs:false'
+_ASK_STATE_NEW = 'askAnswer:"", askError:"", fs:false'
+_ASK_RENDER_VALS_OLD = '''askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer,'''
+_ASK_RENDER_VALS_NEW = '''askOpen:this.state.askOpen,askText:this.state.askText,askLoading:this.state.askLoading,askAnswer:this.state.askAnswer,askError:this.state.askError,
+      hasAnswer:!!this.state.askAnswer,askIdle:!this.state.askLoading&&!this.state.askAnswer&&!this.state.askError,'''
+_ASK_RENDER_VALS_S07_OLD = '''askOpen:this.state.askOpen, askText:this.state.askText, askLoading:this.state.askLoading,
+      askAnswer:this.state.askAnswer, hasAnswer:!!this.state.askAnswer,
+      askIdle:!this.state.askLoading && !this.state.askAnswer,'''
+_ASK_RENDER_VALS_S07_NEW = '''askOpen:this.state.askOpen, askText:this.state.askText, askLoading:this.state.askLoading,
+      askAnswer:this.state.askAnswer, askError:this.state.askError, hasAnswer:!!this.state.askAnswer,
+      askIdle:!this.state.askLoading && !this.state.askAnswer && !this.state.askError,'''
+
+
+def _inline_tutorbot_ask_method(pack_id: str) -> str:
+    """Render the one browser-to-server adapter used by every hosted teach card.
+
+    The raw finished card may contain a ``window.claude`` authoring preview
+    hook.  It is not available in a real WeChat web-view, so the published card
+    must call the already-governed REST adapter instead.  The card sends only a
+    bounded question and scene hint; the server resolves the canonical pack.
+    """
+    return f'''  async submitAsk(){{
+    const q=(this.state.askText||"").trim(); if(!q||this.state.askLoading)return;
+    let bi=0; for(let i=0;i<this.beats.length;i++){{ if(this.state.t>=this.beats[i][1]) bi=i; }}
+    const beat=this.beats[bi]||[];
+    const payload={{contextId:"{pack_id}",cardId:"{pack_id}",question:q,
+      currentScene:{{id:String(bi+1),label:String(beat[3]||"当前画面").slice(0,80)}},
+      time:Number(this.state.t||0)}};
+    this.setState({{askLoading:true,askAnswer:"",askError:""}});
+    try{{
+      const res=await fetch("/api/v1/luban-preview/ai-ask",{{method:"POST",
+        headers:{{"Content-Type":"application/json"}},body:JSON.stringify(payload)}});
+      const data=await res.json().catch(()=>({{}}));
+      if(!res.ok)throw new Error(String(data.detail||"TutorBot 答疑暂时不可用"));
+      const answer=String(data.answer||"").trim();
+      if(!answer)throw new Error("TutorBot 没有返回答案");
+      this.setState({{askLoading:false,askAnswer:answer,askError:""}});
+    }}catch(err){{
+      this.setState({{askLoading:false,askAnswer:"",askError:"TutorBot 暂时没有接通，请留在本页稍后重试。"}});
+    }}
+  }}
+'''
 
 
 def transform_teach(text: str, pack_id: str) -> str:
-    # 1. 字体自托管 + 微信 JSSDK（自托管）
+    # 1. 字体自托管 + 微信 JSSDK（练习完成收据仍使用）+ 卡内问答上推动画。
     preload_element = _audio_preload_element(text)
-    text = _sub(text, _FONT_LINKS_OLD, _FONT_LINKS_NEW + "\n" + _JWEIXIN_TAG, "font-links")
+    text = _sub(
+        text,
+        _FONT_LINKS_OLD,
+        _FONT_LINKS_NEW + "\n" + _JWEIXIN_TAG + "\n" + _ASK_SHEET_MOTION_CSS,
+        "font-links",
+    )
     text = _sub(text, "<body>", "<body>\n" + preload_element, "audio-preload")
+    # 所有当前教学卡都使用这一份抽屉骨架。锚点漂移即 fail-closed，避免把未知
+    # 容器误判成可覆盖的教学舞台。
+    text = _sub(text, _ASK_SHEET_STYLE_OLD, _ASK_SHEET_STYLE_NEW, "ask-sheet-motion")
+    # 发布产物不能依赖作者环境才存在的 window.claude 预览钩子。这个替换只负责
+    # 浏览器 transport；回答、知识口径和会话仍由服务端 TutorBot runtime 唯一决定。
+    text = _sub(
+        text,
+        _SUBMIT_ASK_RE,
+        _inline_tutorbot_ask_method(pack_id),
+        "inline-tutorbot-ask",
+        literal_pattern=False,
+    )
+    # 复用对话页的最小阅读顺序：学生问题气泡 → TutorBot 结论/依据卡。回答正文
+    # 原样来自服务端，发布层不切段、不重写、不伪造结构化判断。
+    text = _sub(
+        text,
+        _ASK_RESPONSE_RE,
+        _ASK_RESPONSE_THREAD + "\n" + _ASK_ERROR_THREAD,
+        "ask-response-thread",
+        literal_pattern=False,
+    )
+    text = _sub(text, _ASK_STATE_OLD, _ASK_STATE_NEW, "ask-error-state")
+    if _ASK_RENDER_VALS_OLD in text:
+        text = _sub(text, _ASK_RENDER_VALS_OLD, _ASK_RENDER_VALS_NEW, "ask-error-render")
+    elif _ASK_RENDER_VALS_S07_OLD in text:
+        text = _sub(
+            text,
+            _ASK_RENDER_VALS_S07_OLD,
+            _ASK_RENDER_VALS_S07_NEW,
+            "ask-error-render-s07",
+        )
+    else:
+        raise TransformError("anchor [ask-error-render] not found")
+    # 同时清掉作者注释中对预览桥的提及，避免未来有人误以为它是发布时依赖。
+    text = _AUTHORING_CLAUDE_RE.sub("authoring preview bridge", text)
     # 新一批 finished 已内置全屏/控制条结构（ctrlHidden），不能再把旧母版的
-    # 锚定回灌重复套进去。只做所有卡共用的字体/JSSDK/问鲁班桥接；这仍是同一
-    # 打包入口，且 bridge 锚不中就 fail-closed，不会把陌生模板误判为可发布。
+    # 锚定回灌重复套进去。卡内 askOpen 是唯一展示 authority，不把它分叉为
+    # 小程序 native 聊天页。
     if "ctrlHidden:false" in text:
-        if "wxAsk(){" not in text:
-            wx_ask = _FULLSCREEN_NEW[_FULLSCREEN_NEW.index("  wxAsk(){"):].replace("__LZ_PACK__", pack_id)
-            text = _sub(text, _OPENASK_OLD, wx_ask + "\n" + _OPENASK_NEW, "openask-wx")
         return text
     # S07 安全事故成品使用另一套已自带双向全屏的母版（multiline `next` 版本）。
-    # 不把旧单行母版的整套控制条再次套入；只接入同一问鲁班桥接。
+    # 不把旧单行母版的整套控制条再次套入；问答仍在同一张教学卡里。
     if "const next=!this.state.fs;" in text and "document.body.classList.toggle('luban-fs', next);" in text:
-        if "wxAsk(){" not in text:
-            wx_ask = _FULLSCREEN_NEW[_FULLSCREEN_NEW.index("  wxAsk(){"):].replace("__LZ_PACK__", pack_id)
-            text = _sub(text, _OPENASK_OLD, wx_ask + "\n" + _OPENASK_NEW, "openask-wx")
         return text
     # 1b. 普通态宽度自适应 + html/body 底色改为卡自身深墨（逐卡提取，fail-closed）
     bg_m = _CARD_BG_RE.search(text)
@@ -511,13 +624,10 @@ def transform_teach(text: str, pack_id: str) -> str:
                 "state-ctrlHidden", literal_pattern=False)
     # 5. componentWillUnmount 清理
     text = _sub(text, _UNMOUNT_OLD_RE, _UNMOUNT_NEW, "unmount", literal_pattern=False)
-    # 6. fullscreen() 替换 + 新方法（updateFsScale/scheduleHide/tapToggle/updateFitZoom/wxAsk）
+    # 6. fullscreen() 替换 + 新方法（updateFsScale/scheduleHide/tapToggle/updateFitZoom）
     fs_methods = (_FULLSCREEN_NEW
-                  .replace("__LZ_FIT_CAP__", str(_FIT_ZOOM_CAP))
-                  .replace("__LZ_PACK__", pack_id))
+                  .replace("__LZ_FIT_CAP__", str(_FIT_ZOOM_CAP)))
     text = _sub(text, _FULLSCREEN_OLD_RE, fs_methods, "fullscreen-method", literal_pattern=False)
-    # 6b. openAsk：小程序 web-view 内改跳问鲁班 chat 页（非微信环境保持原浮层）
-    text = _sub(text, _OPENASK_OLD, _OPENASK_NEW, "openask-wx")
     # 7. toggle() 播放后调度自动隐藏
     text = _sub(text, _TOGGLE_END_OLD, _TOGGLE_END_NEW, "toggle-schedulehide")
     # 8. renderVals 补键
@@ -588,6 +698,36 @@ def _rewrite_hrefs(text: str, href_map: dict[str, str]) -> str:
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _render_pack_manifest() -> str:
+    """返回由最终托管卡和 sidecar 决定的唯一 manifest 投影。"""
+    return json.dumps(build_manifest(), ensure_ascii=False, indent=1, sort_keys=True) + "\n"
+
+
+def _refresh_pack_manifest() -> None:
+    """发布完成后再同步 manifest，避免登记到尚未写完的 sidecar。"""
+    PACK_MANIFEST_PATH.write_text(_render_pack_manifest(), encoding="utf-8")
+
+
+def _assert_manifest_registers_authority(pack_id: str, authority_path: Path) -> None:
+    """运行时只信 manifest 登记的 sidecar；发布校验也必须复现这一约束。"""
+    try:
+        manifest = json.loads(PACK_MANIFEST_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise TransformError(f"pack manifest unreadable: {exc}") from exc
+    row = next(
+        (
+            item
+            for item in manifest.get("packs") or []
+            if str(item.get("pack_id") or "").strip().upper() == pack_id.upper()
+        ),
+        None,
+    )
+    practice = row.get("practice") if isinstance(row, dict) else None
+    expected = practice.get("authority_sha256") if isinstance(practice, dict) else None
+    if expected != _sha256(authority_path):
+        raise TransformError(f"practice manifest authority drift: {pack_id}")
 
 
 def _practice_source_bundle_sha(src: Path, st: Station) -> str:
@@ -799,6 +939,7 @@ def check_practice_only(
     expected = json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
     if not authority_path.is_file() or authority_path.read_text(encoding="utf-8") != expected:
         raise TransformError(f"practice authority drift: {station_id}")
+    _assert_manifest_registers_authority(station_id, authority_path)
     return [*rendered, f"server-authority/{station_id}"]
 
 
@@ -894,6 +1035,8 @@ def main(argv: list[str]) -> int:
         for f in failures:
             print("  " + f, file=sys.stderr)
         return 1
+    if not args.check:
+        _refresh_pack_manifest()
     return 0
 
 

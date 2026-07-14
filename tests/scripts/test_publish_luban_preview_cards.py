@@ -38,6 +38,12 @@ def test_registry_has_exact_37_finished_topics_and_canonical_variants() -> None:
 
 
 def test_all_registered_practice_outputs_rebuild_from_tracked_sources() -> None:
+    manifest = json.loads(
+        (REPO / "docs/原始数据/考点原料/成品/_pack_manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    registrations = {row["pack_id"]: row["practice"] for row in manifest["packs"]}
     for station_id, station in _mod.STATIONS.items():
         rendered, authority = _mod._practice_only_outputs(
             station_id, station, finished_root=_mod.FINISHED
@@ -49,6 +55,9 @@ def test_all_registered_practice_outputs_rebuild_from_tracked_sources() -> None:
         assert (_mod.AUTHORITY_HOST / f"{station_id}.practice.authority.json").read_text(
             encoding="utf-8"
         ) == json.dumps(authority, ensure_ascii=False, indent=2) + "\n"
+        assert registrations[station_id.upper()]["authority_sha256"] == _mod._sha256(
+            _mod.AUTHORITY_HOST / f"{station_id}.practice.authority.json"
+        )
 
 
 def test_registered_practice_sources_survive_autocrlf_checkout_byte_exact(
@@ -117,12 +126,27 @@ def test_audio_preload_targets_first_versioned_segment() -> None:
     element = _mod._audio_preload_element(
         'audioBase="audio/up/";\naudioVersion="20260713-a01";'
     )
-
     assert element == (
         '<audio data-luban-prewarm preload="auto" '
         'src="audio/up/b0.mp3?v=20260713-a01" aria-hidden="true" '
         'style="display:none"></audio>'
     )
+
+
+def test_teach_transform_replaces_authoring_preview_ai_with_tutorbot_adapter() -> None:
+    source = (
+        _mod.FINISHED / "P40_F16" / "P40_F16.teach.dc.html"
+    ).read_text(encoding="utf-8")
+
+    rendered = _mod.transform_teach(source, "F16")
+
+    assert "window.claude" not in rendered
+    assert 'contextId:"F16"' in rendered
+    assert 'fetch("/api/v1/luban-preview/ai-ask"' in rendered
+    assert "lzAskSheetIn" in rendered
+    assert "data-luban-ask-thread" in rendered
+    assert "data-luban-ask-error" in rendered
+    assert 'askAnswer:"",askError:"TutorBot 暂时没有接通，请留在本页稍后重试。"' in rendered
 
 
 def test_audio_manifest_missing_segment_fails_closed(tmp_path: Path) -> None:

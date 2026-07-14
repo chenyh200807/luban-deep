@@ -73,7 +73,7 @@ http_routes:
   - {prefix: /api/v1/learner-signal, reason: "Learner subjective signal write adapter; records learning_evidence with source_feature=learner_signal and does not enter compiler truth."}
   - {prefix: /api/v1/lesson-progress, reason: "学-evidence (lesson_viewed) write adapter (融合计划 §2.1): records learning_evidence with source_feature=luban_lesson, evidence_level=exposed, progress_countable=false; stays OUT of the synthesis whitelist and never promotes mastery (M0)."}
   - {prefix: /api/v1/learning-brain, reason: "Learning-brain QA (dev-gated)."}
-  - {prefix: /api/v1/luban-preview, reason: "Luban preview AI ask adapter; production REST surface must stay explicitly governed and rate-limited."}
+  - {prefix: /api/v1/luban-preview, reason: "Hosted Luban teaching-card TutorBot adapter; it must resolve only published card-hosted packs, stay explicitly governed and rate-limited, and never write learner evidence."}
   - {prefix: /api/v1/luban, reason: "Luban lesson runtime: authenticated signed-pack projections plus canonical retest completion adapter; item answers are server-rescored and only the fat RetestWritebackService may commit terminal learning evidence and station_completed."}
   - {prefix: /api/v1/member, reason: "Member console: profile / progress / goals / wallet."}
   - {prefix: /api/v1/memory, reason: "Learner memory read models."}
