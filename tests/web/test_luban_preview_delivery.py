@@ -99,6 +99,8 @@ def test_all_74_teaching_episodes_keep_ai_ask_inside_the_teaching_card() -> None
         assert "askWorkflowExpanded:false" in source
         assert "toggleAskWorkflow()" in source
         assert "askBlocks" in source
+        assert 'value="{{ b.isList }}"' in source
+        assert "b.type === 'ul' || b.type === 'ol'" not in source
         assert "askAnswer }}</div>" not in source
 
 

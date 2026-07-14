@@ -222,6 +222,8 @@ def test_teach_transform_replaces_authoring_preview_ai_with_tutorbot_adapter() -
     assert "askWorkflowExpanded:false" in rendered
     assert "toggleAskWorkflow()" in rendered
     assert "askBlocks" in rendered
+    assert 'value="{{ b.isList }}"' in rendered
+    assert "b.type === 'ul' || b.type === 'ol'" not in rendered
     assert "entry_ticket" in rendered
     assert 'current.searchParams.get("entry_ticket")' not in rendered
     assert 'new URLSearchParams(String(current.hash||"").replace(/^#/,""))' in rendered

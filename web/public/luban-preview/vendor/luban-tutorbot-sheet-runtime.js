@@ -1395,7 +1395,7 @@ module.exports = {
   function project(block, index) {
     var source=block&&typeof block==="object"?block:{};
     var kind=String(source.type||"paragraph");
-    var result={id:String(source.id||("sheet-"+index)),type:kind,parts:parts(source.content),label:String(source.label||""),variant:String(source.variant||"highlight")};
+    var result={id:String(source.id||("sheet-"+index)),type:kind,isList:kind==="ul"||kind==="ol",parts:parts(source.content),label:String(source.label||""),variant:String(source.variant||"highlight")};
     if(kind==="ul"||kind==="ol") {
       result.items=(Array.isArray(source.items)?source.items:[]).map(function(item, itemIndex) {
         return {marker:kind==="ol"?String((item&&item.index)||itemIndex+1)+".":"•",parts:parts(item&&item.content)};
