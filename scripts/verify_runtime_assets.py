@@ -39,8 +39,8 @@ def validate_runtime_assets(repo_root: Path) -> list[str]:
     backup_doc = repo_root / "docs" / "zh" / "guide" / "runtime-backup-restore.md"
     observability_doc = repo_root / "docs" / "zh" / "guide" / "runtime-observability.md"
 
-    # SR5 PR-3: healthcheck path consistency across 3 deploy artifacts.
-    # All MUST probe /readyz (not / which returns the welcome page).
+    # The image serves backend and frontend from one container. Health must represent
+    # both processes, otherwise a healthy backend can mask a crashed frontend.
     for compose_target in (compose_path, compose_ghcr_path):
         if not compose_target.exists():
             errors.append(f"missing compose file: {compose_target}")
@@ -55,6 +55,8 @@ def validate_runtime_assets(repo_root: Path) -> list[str]:
             )
             if "/readyz" not in flat_command:
                 errors.append(f"{compose_target.name} healthcheck must probe /readyz")
+            if "FRONTEND_PORT" not in flat_command:
+                errors.append(f"{compose_target.name} healthcheck must probe the frontend")
         except Exception as exc:
             errors.append(f"failed to parse {compose_target.name}: {exc}")
 
@@ -63,15 +65,29 @@ def validate_runtime_assets(repo_root: Path) -> list[str]:
     else:
         try:
             dockerfile_text = _load_text(dockerfile_path)
-            # Locate HEALTHCHECK CMD line(s) — the line containing 'CMD curl ...'.
-            healthcheck_lines = [
-                line for line in dockerfile_text.splitlines()
-                if "CMD" in line and "curl" in line and "localhost" in line
-            ]
-            if not healthcheck_lines:
+            healthcheck_marker = "HEALTHCHECK "
+            healthcheck_start = dockerfile_text.find(healthcheck_marker)
+            healthcheck_block = (
+                dockerfile_text[healthcheck_start:].split("\n\n", 1)[0]
+                if healthcheck_start >= 0
+                else ""
+            )
+            if not healthcheck_block:
                 errors.append("Dockerfile HEALTHCHECK CMD curl line not found")
-            elif not any("/readyz" in line for line in healthcheck_lines):
+            elif "/readyz" not in healthcheck_block:
                 errors.append("Dockerfile HEALTHCHECK must probe /readyz")
+            if "FRONTEND_PORT" not in healthcheck_block:
+                errors.append("Dockerfile HEALTHCHECK must probe the frontend")
+            runtime_readability_block = next(
+                (
+                    line
+                    for line in dockerfile_text.splitlines()
+                    if line.startswith("RUN chmod -R a+rX ")
+                ),
+                "",
+            )
+            if "/app/web/public" not in runtime_readability_block:
+                errors.append("Dockerfile must make web/public readable by the runtime user")
         except Exception as exc:
             errors.append(f"failed to parse Dockerfile: {exc}")
 

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import yaml
 
+import scripts.verify_runtime_assets as runtime_assets
 from scripts.verify_runtime_assets import validate_runtime_assets
 
 
@@ -17,6 +18,42 @@ SYNC_SCRIPT = PROJECT_ROOT / "scripts" / "sync_to_aliyun.sh"
 def test_runtime_assets_remain_self_consistent() -> None:
     errors = validate_runtime_assets(PROJECT_ROOT)
     assert errors == []
+
+
+def test_runtime_assets_reject_unreadable_public_assets(monkeypatch) -> None:
+    original_load_text = runtime_assets._load_text
+
+    def load_text_without_public_permission(path: Path) -> str:
+        text = original_load_text(path)
+        if path.name == "Dockerfile":
+            return "\n".join(
+                line.replace(" /app/web/public", "")
+                if line.startswith("RUN chmod -R a+rX ")
+                else line
+                for line in text.splitlines()
+            )
+        return text
+
+    monkeypatch.setattr(runtime_assets, "_load_text", load_text_without_public_permission)
+    errors = runtime_assets.validate_runtime_assets(PROJECT_ROOT)
+    assert "Dockerfile must make web/public readable by the runtime user" in errors
+
+
+def test_runtime_assets_reject_backend_only_docker_healthcheck(monkeypatch) -> None:
+    original_load_text = runtime_assets._load_text
+
+    def load_text_without_frontend_health(path: Path) -> str:
+        text = original_load_text(path)
+        if path.name == "Dockerfile":
+            start = text.index("HEALTHCHECK ")
+            end = text.index("\n\n", start)
+            healthcheck = text[start:end].replace("FRONTEND_PORT", "OMITTED_PORT")
+            return text[:start] + healthcheck + text[end:]
+        return text
+
+    monkeypatch.setattr(runtime_assets, "_load_text", load_text_without_frontend_health)
+    errors = runtime_assets.validate_runtime_assets(PROJECT_ROOT)
+    assert "Dockerfile HEALTHCHECK must probe the frontend" in errors
 
 
 def _observability_secret_mount_sources() -> list[str]:
