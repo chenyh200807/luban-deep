@@ -117,6 +117,12 @@
 - mobile conversation id 与 TutorBot internal session id 可能同时存在于历史数据中；adapter 只能把它们归一为同一个用户可见 conversation read-model，并在删除/归档等操作中覆盖同一 owner scope 下的 direct 与 mirror variants，不能让 mirror session 成为第二套会话真相。
 - TutorBot runtime 可以把 `context.user_message` 扩展成带上下文、参考证据、working memory projection 或 overlay 的 LLM prompt envelope，但 canonical session 与 TutorBot mirror session 的 `role=user` 持久内容只能写真实用户输入。`raw_user_message` 是 request-scoped 写入侧投影，不得进入 session preferences、learner-state、RAG 或 compiled truth authority；`参考证据`、`局部工作记忆投影` 等 prompt 标题不得被物化为用户消息正文。
 
+## Hosted Luban 教学卡上下文
+
+- hosted Luban card 的答疑只可在既有 `/api/v1/ws` turn 上订阅；它复用 `/api/v1/chat/start-turn` 的 canonical payload bootstrap，卡片路由只保留 scoped entry capability 的身份归一与 one-turn stream ticket 签发，不得创建第二条聊天协议或第二个 capability selector。
+- 每次提问可携带 `luban_teaching_card_context`（已发布 card identity、当前幕/keycard、旁白、播放位置）。`turn_runtime` 是它唯一的恢复与格式化位置：该输入只作为低权重学习位置锚点附加到 `conversation_context_text`，不属于 user message、`followup_question_context`、active object、题库/教材/规范、评分或 learner-state authority。浏览器字段永远不能覆盖服务端编译知识或官方题目/答案口径。
+- card context 必须与原始学生问题分离：session 中持久化的 user message 仍是学生真实提问；runtime-resolved capability（包括 `deep_question`）与既有 compiled general knowledge / rich-leaf supply 读取同一 `UnifiedContext`。卡片仅投影该 turn 的 public stream，不得截断、重写或另造 final answer。
+
 ## Schema
 
 - 机器可读 schema：`deeptutor/contracts/unified_turn.py`

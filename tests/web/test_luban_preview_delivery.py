@@ -79,6 +79,9 @@ def test_all_37_hosted_lessons_keep_ai_ask_inside_the_teaching_card() -> None:
         assert "window.claude" not in source
         assert 'fetch("/api/v1/luban-preview/ai-ask"' in source
         assert "entryTicket:entryTicket" in source
+        assert "currentCaption:{speaker:isFollowup?\"学员追问\":\"鲁班讲解\"" in source
+        assert "keycard:keycard.slice(0,160)" in source
+        assert "if(reconnects>=5)" in source
         assert "new WebSocket" in source
         assert 'type:"subscribe_turn"' in source
         assert "entry_ticket" in source
@@ -88,6 +91,11 @@ def test_all_37_hosted_lessons_keep_ai_ask_inside_the_teaching_card() -> None:
         assert "data-luban-ask-thread" in source
         assert "data-luban-ask-error" in source
         assert "data-luban-workflow-status" in source
+        assert "data-luban-workflow-toggle" in source
+        assert 'onClick="{{ toggleAskWorkflow }}"' in source
+        assert 'value="{{ askWorkflowExpanded }}"' in source
+        assert "askWorkflowExpanded:false" in source
+        assert "toggleAskWorkflow()" in source
         assert "askBlocks" in source
         assert "askAnswer }}</div>" not in source
 

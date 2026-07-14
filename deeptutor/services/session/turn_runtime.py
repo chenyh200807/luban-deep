@@ -1984,6 +1984,84 @@ def _extract_followup_question_context(
     return normalized
 
 
+def _extract_luban_teaching_card_context(
+    config: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Accept the hosted-card screen anchor without upgrading it to knowledge truth.
+
+    The card's browser can report where the learner is looking, but it cannot
+    supply a grading key, a source of truth, or a second question lifecycle.
+    This normalizer keeps only bounded display context; compiled knowledge and
+    question authority continue through their existing canonical lanes.
+    """
+    if not isinstance(config, dict):
+        return None
+    raw = config.pop("luban_teaching_card_context", None)
+    if not isinstance(raw, dict) or str(raw.get("source") or "").strip() != "luban_teaching_card":
+        return None
+    card = raw.get("card") if isinstance(raw.get("card"), dict) else {}
+    scene = card.get("current_scene") if isinstance(card.get("current_scene"), dict) else {}
+    caption = card.get("current_caption") if isinstance(card.get("current_caption"), dict) else {}
+
+    def clip(value: Any, limit: int) -> str:
+        return _clip_text(str(value or "").strip(), limit=limit)
+
+    try:
+        playback_time = float(card.get("time")) if card.get("time") is not None else None
+    except (TypeError, ValueError):
+        playback_time = None
+    return {
+        "pack_id": clip(card.get("pack_id"), 80),
+        "title": clip(card.get("title"), 120),
+        "content_sha256": clip(card.get("content_sha256"), 128),
+        "scene": {
+            "id": clip(scene.get("id"), 80),
+            "label": clip(scene.get("label"), 80),
+            "focus": clip(scene.get("focus"), 80),
+            "keycard": clip(scene.get("keycard"), 160),
+            "coach": clip(scene.get("coach"), 320),
+        },
+        "caption": {
+            "speaker": clip(caption.get("speaker"), 8),
+            "text": clip(caption.get("text"), 260),
+        },
+        "time": playback_time,
+    }
+
+
+def _format_luban_teaching_card_context(context: dict[str, Any] | None) -> str:
+    if not isinstance(context, dict):
+        return ""
+    card_label = "｜".join(
+        part
+        for part in (str(context.get("pack_id") or "").strip(), str(context.get("title") or "").strip())
+        if part
+    )
+    scene = context.get("scene") if isinstance(context.get("scene"), dict) else {}
+    caption = context.get("caption") if isinstance(context.get("caption"), dict) else {}
+    lines = ["[当前鲁班教学卡画面 - 仅作学习位置定位，不覆盖题库、教材、规范或判分口径]"]
+    if card_label:
+        lines.append(f"卡片：{card_label}")
+    scene_text = "｜".join(
+        part
+        for part in (
+            str(scene.get("label") or "").strip(),
+            str(scene.get("focus") or "").strip(),
+            str(scene.get("keycard") or "").strip(),
+            str(scene.get("coach") or "").strip(),
+        )
+        if part
+    )
+    if scene_text:
+        lines.append(f"当前画面：{scene_text}")
+    caption_text = str(caption.get("text") or "").strip()
+    if caption_text:
+        lines.append(f"当前旁白：{caption_text}")
+    if context.get("time") is not None:
+        lines.append(f"播放位置：{context['time']:.1f} 秒")
+    return "\n".join(lines) if len(lines) > 1 else ""
+
+
 def _extract_interaction_hints(
     config: dict[str, Any] | None,
 ) -> dict[str, Any] | None:
@@ -3975,6 +4053,7 @@ class TurnRuntimeManager:
             "grading_engine_m31_governed_objective",
             "grading_engine_textbook_knowledge",
             "general_knowledge_context",
+            "luban_teaching_card_context",
             "interaction_profile",
             "chat_mode_explicit",
             "context_orchestration_enabled",
@@ -4776,6 +4855,7 @@ class TurnRuntimeManager:
             requested_skills = _string_list(payload.get("skills"))
             memory_references = _string_list(payload.get("memory_references"))
             followup_question_context = _extract_followup_question_context(request_config)
+            luban_teaching_card_context = _extract_luban_teaching_card_context(request_config)
             followup_question_action = _normalize_question_followup_action(
                 request_config.pop("_question_followup_action", None)
             )
@@ -5632,6 +5712,15 @@ class TurnRuntimeManager:
 
                 conversation_history = list(history_result.conversation_history)
                 conversation_context_text = history_result.context_text
+                luban_teaching_card_context_text = _format_luban_teaching_card_context(
+                    luban_teaching_card_context
+                )
+                if luban_teaching_card_context_text:
+                    conversation_context_text = "\n\n".join(
+                        part
+                        for part in (conversation_context_text, luban_teaching_card_context_text)
+                        if part
+                    )
                 trace_metadata.update(
                     {
                         "context_route": context_route,
@@ -5668,6 +5757,11 @@ class TurnRuntimeManager:
                         "raw_user_message": raw_user_content,
                         "conversation_summary": history_result.conversation_summary,
                         "conversation_context_text": conversation_context_text,
+                        **(
+                            {"luban_teaching_card_context": luban_teaching_card_context}
+                            if luban_teaching_card_context
+                            else {}
+                        ),
                         "history_token_count": history_result.token_count,
                         "history_budget": history_result.budget,
                         "chat_mode_explicit": bool(payload.get("_chat_mode_explicit", False)),
