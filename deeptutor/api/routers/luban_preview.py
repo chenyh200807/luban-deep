@@ -218,7 +218,11 @@ async def _start_tutorbot_turn(
         luban_teaching_card_context=_build_luban_turn_context_metadata(payload, card),
     )
     tutorbot_payload["session_id"] = session_id
-    tutorbot_payload["config"]["billing_context"]["source"] = "luban_teaching_card"
+    # Keep the canonical session lineage authored by the shared Mini Program
+    # bootstrap.  The history read model scopes on ``wx_miniprogram``; replacing
+    # that value with the product surface made a real SessionStore conversation
+    # invisible.  Card identity already travels through interaction_hints and
+    # luban_teaching_card_context, so it must not compete for session authority.
     session, turn = await turn_runtime.start_turn(tutorbot_payload)
     return dict(session or {}), dict(turn or {})
 

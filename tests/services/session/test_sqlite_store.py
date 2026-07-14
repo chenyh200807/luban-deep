@@ -721,6 +721,69 @@ def test_list_sessions_by_owner_filters_source_and_archived(store: SQLiteSession
     assert active[0]["preferences"]["archived"] is False
 
 
+def test_store_normalizes_existing_luban_card_sessions_into_mobile_history(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "card-history.db"
+    owner_key = build_user_owner_key("student_demo")
+    first_store = SQLiteSessionStore(db_path)
+    asyncio.run(
+        first_store.create_session(
+            session_id="luban-preview:F16:existing",
+            owner_key=owner_key,
+            source="luban_teaching_card",
+        )
+    )
+    asyncio.run(
+        first_store.update_session_preferences(
+            "luban-preview:F16:existing",
+            {
+                "source": "luban_teaching_card",
+                "user_id": "student_demo",
+                "archived": False,
+            },
+        )
+    )
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            "UPDATE sessions SET preferences_json = '[]' WHERE id = ?",
+            ("luban-preview:F16:existing",),
+        )
+        conn.commit()
+
+    migrated_store = SQLiteSessionStore(db_path)
+
+    visible = asyncio.run(
+        migrated_store.list_sessions_by_owner(
+            owner_key,
+            source="wx_miniprogram",
+            archived=False,
+        )
+    )
+    stale = asyncio.run(
+        migrated_store.list_sessions_by_owner(
+            owner_key,
+            source="luban_teaching_card",
+            archived=False,
+        )
+    )
+    detail = asyncio.run(
+        migrated_store.get_session("luban-preview:F16:existing")
+    )
+
+    assert [item["id"] for item in visible] == ["luban-preview:F16:existing"]
+    assert stale == []
+    assert detail is not None
+    assert detail["preferences"]["source"] == "wx_miniprogram"
+
+    reopened_store = SQLiteSessionStore(db_path)
+    reopened = asyncio.run(
+        reopened_store.get_session("luban-preview:F16:existing")
+    )
+    assert reopened is not None
+    assert reopened["preferences"]["source"] == "wx_miniprogram"
+
+
 def test_session_payloads_do_not_expose_internal_runtime_state(
     store: SQLiteSessionStore,
 ) -> None:
