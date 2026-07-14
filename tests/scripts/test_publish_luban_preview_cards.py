@@ -228,6 +228,55 @@ def test_teach_transform_replaces_authoring_preview_ai_with_tutorbot_adapter() -
     assert 'current.searchParams.get("entry_ticket")' not in rendered
     assert 'new URLSearchParams(String(current.hash||"").replace(/^#/,""))' in rendered
     assert "lesson-viewed" in rendered
+    assert 'data-luban-ask-composer' in rendered
+    assert 'data-luban-ask-history' in rendered
+    assert rendered.index('data-luban-ask-thread') < rendered.index('data-luban-ask-composer')
+    assert rendered.index('data-luban-ask-composer') < rendered.index('<textarea value="{{ askText }}"')
+
+
+def test_teaching_card_keeps_first_answer_when_second_question_starts() -> None:
+    source = (
+        _mod.FINISHED / "P40_F16" / "P40_F16.teach.dc.html"
+    ).read_text(encoding="utf-8")
+    rendered = _mod.transform_teach(source, "F16")
+    match = _mod._SUBMIT_ASK_RE.search(rendered)
+    assert match is not None
+    runtime, _digest = _mod._render_tutorbot_sheet_runtime()
+    script = "global.window={};\n" + runtime + """
+global.window.__lubanCardEntryTicket="entry-ticket";
+global.window.location={href:"https://example.test/luban-preview/f16/lesson.html"};
+let fetchCount=0;
+global.fetch=async()=>{fetchCount+=1;return {ok:true,json:async()=>({stream:{url:"/api/v1/ws",protocol:"luban-preview-v1",ticket:"stream-ticket",turn_id:"turn-1"}})}};
+let socket=null;
+global.WebSocket=class { constructor(){socket=this;} send(){} };
+""" + f"class TeachingCard {{\n{match.group(0)}\n" + """
+  setState(next){ this.state={...this.state,...next}; }
+}
+(async()=>{
+  const card=new TeachingCard();
+  card.beats=[["b0",0,10,"当前"]]; card.narr=["讲解"]; card.qa=[]; card.keycards=["要点"];
+  card.state={askText:"第一问",askQuestion:"",askHistory:[],askLoading:false,askBlocks:[],askError:"",askWorkflowEntries:[],askWorkflowExpanded:false,t:0};
+  await card.submitAsk();
+  socket.onmessage({data:JSON.stringify({type:"content",seq:1,content:"第一答"})});
+  card.setState({askText:"过早的第二问"});
+  await card.submitAsk();
+  if(fetchCount!==1)throw new Error("second turn started before first done");
+  if(card.state.askHistory.length!==0)throw new Error("partial first answer was archived");
+  socket.onmessage({data:JSON.stringify({type:"done",seq:2})});
+  card.setState({askText:"第二问"});
+  await card.submitAsk();
+  if(card.state.askHistory.length!==1)throw new Error("first turn was not archived");
+  if(card.state.askHistory[0].question!=="第一问")throw new Error("first question was replaced");
+  if(card.state.askHistory[0].blocks[0].parts[0].text!=="第一答")throw new Error("first answer was replaced");
+  if(card.state.askQuestion!=="第二问")throw new Error("second submitted question was not snapshotted");
+  if(card.state.askText!=="")throw new Error("composer was not cleared for the next message");
+  if(fetchCount!==2)throw new Error("second turn did not start after first done");
+})().catch((error)=>{console.error(error);process.exit(1);});
+"""
+    checked = subprocess.run(
+        ["node", "-"], input=script, text=True, capture_output=True, check=False
+    )
+    assert checked.returncode == 0, checked.stderr
 
 
 def test_practice_transform_replaces_authoring_preview_ai_with_same_tutorbot_stream() -> None:
