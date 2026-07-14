@@ -12,6 +12,7 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/luban/concept-cards/concept-cards": true,
   "pages/luban/errorbank/errorbank": true,
   "pages/luban/review/review": true,
+  "pages/luban/station/station": true,
   "pages/luban/stations/stations": true,
   "pages/mistake-book/mistake-book": true,
   "pages/onboarding/onboarding": true,
@@ -110,6 +111,9 @@ module.exports = {
   },
   lubanStations: function (query) {
     return withQuery("pages/luban/stations/stations", query);
+  },
+  lubanStation: function (packId) {
+    return withQuery("pages/luban/station/station", { pack_id: packId });
   },
   lubanReview: function (query) {
     return withQuery("pages/luban/review/review", query);

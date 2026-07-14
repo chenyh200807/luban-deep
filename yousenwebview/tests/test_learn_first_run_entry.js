@@ -15,8 +15,9 @@ function loadLearn(options) {
     "utf8",
   );
   var pageDef = null;
-  var calls = { navigateTo: [], completeFirstRun: [], clearPending: 0, done: 0, syncTabBar: 0 };
+  var calls = { navigateTo: [], completeFirstRun: [], completeFirstRunOptions: [], redirects: [], clearPending: 0, done: 0, syncTabBar: 0 };
   var state = options.state || { state: "new", checkpoint: null, pending: null };
+  var loggedIn = true;
   var sandbox = {
     console: console,
     Promise: Promise,
@@ -29,17 +30,26 @@ function loadLearn(options) {
           getLearningReport: function () { return Promise.resolve({}); },
           getLubanSeethroughLibrary: function () { return Promise.resolve({}); },
           unwrapResponse: function (value) { return value; },
-          completeFirstRun: function (payload) {
+          completeFirstRun: function (payload, requestOptions) {
             calls.completeFirstRun.push(payload);
+            calls.completeFirstRunOptions.push(requestOptions || {});
+            if (options.expireFirstRun) {
+              loggedIn = false;
+              return Promise.reject(new Error("AUTH_EXPIRED"));
+            }
             return Promise.resolve({ sync_status: "synced" });
           },
+          errorCodeOf: function () { return "unknown_error"; },
         };
       }
       if (request === "../first-run/script-data") {
         // learn.js 陈旧 pending 自愈会读取 SCRIPT_VERSION;pending 无 script_version → 触发重放对齐
         return { SCRIPT_VERSION: "first_run_script.v1@test" };
       }
-      if (request === "../../utils/auth") return { getUserId: function () { return "user-1"; } };
+      if (request === "../../utils/auth") return {
+        getUserId: function () { return "user-1"; },
+        isLoggedIn: function () { return loggedIn; },
+      };
       if (request === "../../utils/first-run-entry") {
         return {
           getState: function () { return state; },
@@ -52,12 +62,16 @@ function loadLearn(options) {
           syncTabBar: function () { calls.syncTabBar++; },
         };
       }
-      if (request === "../../utils/runtime") return { setPendingChatIntent: function () {} };
+      if (request === "../../utils/runtime") return {
+        setPendingChatIntent: function () {},
+        redirectToLogin: function (target) { calls.redirects.push(target); },
+      };
       if (request === "../../utils/route") {
         return {
           resolve: function (value) { return "/packageDeeptutor/" + value; },
           lubanReview: function () { return "/packageDeeptutor/pages/review/review"; },
           chat: function () { return "/packageDeeptutor/pages/chat/chat"; },
+          learn: function () { return "/packageDeeptutor/pages/learn/learn"; },
         };
       }
       if (request === "../../utils/flags") return { shouldShowWorkspaceShell: function () { return true; } };
@@ -100,10 +114,22 @@ function loadLearn(options) {
   await flushPromises();
   assert.strictEqual(pending.calls.completeFirstRun.length, 1);
   assert.strictEqual(pending.calls.completeFirstRun[0].completion_id, "completion-pending-0001");
+  assert.strictEqual(pending.calls.completeFirstRunOptions[0].suppressAuthRedirect, true);
   assert.strictEqual(pending.calls.clearPending, 1);
   assert.strictEqual(pending.calls.done, 1);
   assert.strictEqual(pending.page.data.firstRunState, "hidden");
   assert(pending.calls.syncTabBar > 0, "Learning home restores the five-tab shell");
+
+  var expiredPending = loadLearn({
+    state: { state: "syncing", checkpoint: null, pending: { completion_id: "completion-expired-0001" } },
+    expireFirstRun: true,
+  });
+  expiredPending.page.onShow();
+  await flushPromises();
+  await flushPromises();
+  assert.deepStrictEqual(expiredPending.calls.redirects, ["/packageDeeptutor/pages/learn/learn"]);
+  assert.strictEqual(expiredPending.calls.clearPending, 0);
+  assert.strictEqual(expiredPending.calls.done, 0);
 
   var wxml = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/learn/learn.wxml"),

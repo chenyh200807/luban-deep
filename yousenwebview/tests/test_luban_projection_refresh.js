@@ -46,7 +46,10 @@ async function testStationsRefresh() {
   };
   var page = instantiate("packageDeeptutor/pages/luban/stations/stations.js", {
     "../../../utils/api": api,
+    "../../../utils/auth": { isLoggedIn: function () { return true; } },
     "../../../utils/helpers": { isDark: function () { return false; } },
+    "../../../utils/route": { lubanStations: function () { return "/stations"; } },
+    "../../../utils/runtime": { redirectToLogin: function () {} },
     "../../../utils/learn-view-model": {
       buildLearnViewModel: function () { return { posters: [], litCount: 0, packUniverse: 40 }; },
     },

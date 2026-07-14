@@ -16,6 +16,9 @@
 // - 幕/档位切换 = learning_action_started（action=start_training,
 //   object_id="<pack>:<tier>"）
 const api = require("../../../utils/api");
+const auth = require("../../../utils/auth");
+const route = require("../../../utils/route");
+const runtime = require("../../../utils/runtime");
 const telemetry = require("../../../utils/surface-telemetry");
 const helpers = require("../../../utils/helpers");
 
@@ -40,6 +43,11 @@ Page({
   onLoad(query) {
     var packId = String((query && query.pack_id) || "").trim();
     this.setData({ packId: packId, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
+    if (!packId) {
+      this.setData({ loading: false, errorText: "缺少站点参数，请从提分路线进入" });
+      return;
+    }
+    if (!this._requireAuth()) return;
     // 站进入（任务稿 luban_station_enter 的登记名）
     telemetry.trackProductBehavior("module_viewed", {
       module: "learning",
@@ -47,16 +55,24 @@ Page({
       objectType: "station",
       objectId: packId,
     });
-    if (!packId) {
-      this.setData({ loading: false, errorText: "缺少站点参数，请从提分路线进入" });
-      return;
-    }
     this._loadDetail();
   },
 
   retry() {
     this.setData({ loading: true, errorText: "" });
     this._loadDetail();
+  },
+
+  _requireAuth() {
+    if (auth.isLoggedIn()) {
+      this._authRedirectPending = false;
+      return true;
+    }
+    if (!this._authRedirectPending) {
+      this._authRedirectPending = true;
+      runtime.redirectToLogin(route.lubanStation(this.data.packId));
+    }
+    return false;
   },
 
   goBack() {
@@ -74,33 +90,58 @@ Page({
 
   // 看完讲解进入同 pack 的 finished 成品随堂练。
   onPrimaryTap() {
+    if (!this._requireAuth()) return Promise.resolve(false);
     if (this.data.tier === TIER_LESSON) {
-      // 融合计划 §2.1:讲懂幕看完 = lesson_viewed 学-evidence(唯一 writer)。
-      this._reportLessonViewed();
       if (!this.data.practiceUrl) {
         this.setData({ errorText: "成品练习版本校验失败，请稍后再试" });
-        return;
+        return Promise.resolve(false);
       }
-      this._enterTier(TIER_PRACTICE);
-      return;
+      // 融合计划 §2.1:讲懂幕看完 = lesson_viewed 学-evidence(唯一 writer)。
+      // 服务端判 token 过期时必须先回登录，不能与进入练习幕竞速。
+      var that = this;
+      return this._reportLessonViewed().then(function (canContinue) {
+        if (!canContinue || !that._requireAuth()) return false;
+        that._enterTier(TIER_PRACTICE);
+        return true;
+      });
     }
     // 必须由成品结果页提交同一轮答案，禁止绕过题目直接产生完成态。
+    return Promise.resolve(false);
   },
 
   _reportLessonViewed() {
-    if (this.data._lessonReported || !this.data.packId) return;
+    if (this.data._lessonReported || !this.data.packId) return Promise.resolve(true);
     this.setData({ _lessonReported: true });
     var packId = this.data.packId;
-    // fire-and-forget 但绝不静默吞：失败必留 console 痕迹（真机验收可观测）。
+    var that = this;
+    // 只等待身份裁决：普通网络失败不阻断练习，401 则由本页保留 pack 回登录。
     try {
-      var p = api.postLessonProgress(packId, TIER_LESSON, this.data.cardSha, { silent: true });
-      if (p && typeof p.catch === "function") {
-        p.catch(function (err) {
+      var p = api.postLessonProgress(packId, TIER_LESSON, this.data.cardSha, {
+        silent: true,
+        suppressAuthRedirect: true,
+      });
+      if (p && typeof p.then === "function") {
+        return p.then(function () {
+          return true;
+        }).catch(function (err) {
+          that.setData({ _lessonReported: false });
+          if (!auth.isLoggedIn()) {
+            that._requireAuth();
+            return false;
+          }
           console.warn("[station] lesson_viewed 上报失败(不打断学习流)", packId, err);
+          return true;
         });
       }
+      return Promise.resolve(true);
     } catch (e) {
+      this.setData({ _lessonReported: false });
+      if (!auth.isLoggedIn()) {
+        this._requireAuth();
+        return Promise.resolve(false);
+      }
       console.warn("[station] lesson_viewed 上报异常(不打断学习流)", packId, e);
+      return Promise.resolve(true);
     }
   },
 
@@ -118,8 +159,9 @@ Page({
 
   _loadDetail() {
     var that = this;
+    if (!this._requireAuth()) return Promise.resolve();
     return api
-      .getLubanLessonDetail(this.data.packId)
+      .getLubanLessonDetail(this.data.packId, { suppressAuthRedirect: true })
       .then(function (resp) {
         var body = api.unwrapResponse(resp) || {};
         var cardUrl = String(body.card_url || "");
@@ -143,10 +185,15 @@ Page({
         that._enterTier(TIER_LESSON);
       })
       .catch(function (err) {
+        if (!auth.isLoggedIn()) {
+          that._requireAuth();
+          return null;
+        }
         that.setData({
           loading: false,
           errorText: api.describeRequestError(err, "站点加载失败，请稍后重试"),
         });
+        return null;
       });
   },
 });

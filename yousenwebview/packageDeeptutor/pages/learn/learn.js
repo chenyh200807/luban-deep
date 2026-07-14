@@ -8,6 +8,7 @@ const auth = require("../../utils/auth");
 const firstRunEntry = require("../../utils/first-run-entry");
 const helpers = require("../../utils/helpers");
 const route = require("../../utils/route");
+const runtime = require("../../utils/runtime");
 const flags = require("../../utils/flags");
 const { buildLearnViewModel } = require("../../utils/learn-view-model");
 
@@ -23,6 +24,7 @@ Page({
     loading: true,
     vm: null, // learn-view-model 输出
     whyOpen: false,
+    supplyError: "",
     firstRunState: "new", // new | resume | syncing | blocked | hidden
     firstRunProgress: 0,
   },
@@ -33,6 +35,7 @@ Page({
     var sbh = info.statusBarHeight || 0;
     this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
     this._loadLongCangFont();
+    if (!this._requireAuth()) return;
     this._load();
   },
 
@@ -42,6 +45,7 @@ Page({
       isDark: this.data.isDark,
       hidden: !flags.shouldShowWorkspaceShell(),
     });
+    if (!this._requireAuth()) return;
     const firstRunSnapshot = this._syncFirstRunState();
     this._retryPendingFirstRun(firstRunSnapshot);
     // 从站点/复习返回时刷新 canonical 投影。
@@ -76,7 +80,7 @@ Page({
       pending.script_version = scriptData.SCRIPT_VERSION;
     }
     return api
-      .completeFirstRun(pending, { silent: true })
+      .completeFirstRun(pending, { silent: true, suppressAuthRedirect: true })
       .then(function (result) {
         firstRunEntry.clearPendingSync(userId);
         if (typeof firstRunEntry.clearCheckpoint === "function") {
@@ -88,6 +92,10 @@ Page({
         return result;
       })
       .catch(function (error) {
+        if (!auth.isLoggedIn()) {
+          that._requireAuth();
+          return null;
+        }
         const code = api.errorCodeOf(error);
         that.setData({
           firstRunState:
@@ -119,6 +127,24 @@ Page({
     });
   },
 
+  retrySupply() {
+    if (!this._requireAuth()) return;
+    this.setData({ loading: true, supplyError: "" });
+    return this._load();
+  },
+
+  _requireAuth() {
+    if (auth.isLoggedIn()) {
+      this._authRedirectPending = false;
+      return true;
+    }
+    if (!this._authRedirectPending) {
+      this._authRedirectPending = true;
+      runtime.redirectToLogin(route.learn());
+    }
+    return false;
+  },
+
   // H2:CDN 子集加载,失败静默降级 Kaiti(不内嵌、不报错打断)
   _loadLongCangFont() {
     if (!LONG_CANG_FONT_URL || typeof wx === "undefined" || !wx.loadFontFace) return;
@@ -134,7 +160,9 @@ Page({
 
   _load() {
     var that = this;
-    var opt = { silent: true };
+    if (!this._requireAuth()) return Promise.resolve(null);
+    // 页面拥有 returnTo 语义；API 只清理过期 token 并返回错误，不能抢先跳默认登录。
+    var opt = { silent: true, suppressAuthRedirect: true };
     var settle = function (p) {
       return Promise.resolve(p).then(
         function (r) {
@@ -145,17 +173,24 @@ Page({
         }
       );
     };
-    var lessonsPromise = settle(api.getLubanLessons(opt));
+    // 教学供给是本页唯一内容 authority：dashboard/report 可以独立降级，
+    // lessons 失败不能伪装成“微课未上线”。
+    var lessonsPromise = Promise.resolve(api.getLubanLessons(opt));
     // 首屏快通道:绿灯站列表是静态 manifest 投影(live 实测 ~0.15s),
     // dashboard/learning-report 是重 read model(live 实测 3-5s)。
     // 冷启动先用 lessons 画出舞台+课程架(view-model 对缺 dashboard/report
     // 本就降级),整页数据到齐后再覆盖——不发明数据,只是分两拍投影。
-    lessonsPromise.then(function (lessonsRes) {
-      if (that.data.vm) return; // 已有整页数据(onShow 静默刷新),不做部分回退
-      var lessons = api.unwrapResponse(lessonsRes) || {};
-      var fast = buildLearnViewModel({ homeDashboard: {}, report: {}, lessons: lessons });
-      if (fast.hasSupply) that.setData({ vm: fast, loading: false });
-    });
+    lessonsPromise.then(
+      function (lessonsRes) {
+        if (that.data.vm) return; // 已有整页数据(onShow 静默刷新),不做部分回退
+        var lessons = api.unwrapResponse(lessonsRes) || {};
+        var fast = buildLearnViewModel({ homeDashboard: {}, report: {}, lessons: lessons });
+        if (fast.hasSupply) that.setData({ vm: fast, loading: false, supplyError: "" });
+      },
+      function () {
+        // 最终错误由下方 Promise.all 的单一终态处理，避免第二套错误文案。
+      },
+    );
     return Promise.all([
       settle(api.getHomeDashboard(opt)),
       settle(api.getLearningReport(100, opt)),
@@ -163,6 +198,10 @@ Page({
       // 看穿库总览:头牌轻练 practice_kind 供给真值之一(失败=空集保守降级)
       settle(api.getLubanSeethroughLibrary(opt)),
     ]).then(function (res) {
+      if (!auth.isLoggedIn()) {
+        that._requireAuth();
+        return null;
+      }
       var homeDashboard = api.unwrapResponse(res[0]) || {};
       var report = api.unwrapResponse(res[1]) || {};
       var lessons = api.unwrapResponse(res[2]) || {};
@@ -173,7 +212,23 @@ Page({
         lessons: lessons,
         seethroughLibrary: seethroughLibrary,
       });
-      that.setData({ vm: vm, loading: false });
+      that.setData({ vm: vm, loading: false, supplyError: "" });
+      return vm;
+    }).catch(function (err) {
+      if (!auth.isLoggedIn()) {
+        that._requireAuth();
+        return null;
+      }
+      var fallbackVm = that.data.vm || buildLearnViewModel({});
+      that.setData({
+        vm: fallbackVm,
+        loading: false,
+        supplyError: api.describeRequestError(
+          err,
+          "教学资源加载失败，请检查登录或网络后重试",
+        ),
+      });
+      return null;
     });
   },
 

@@ -3,7 +3,10 @@
 // 复用学习 home 同一 view-model(单一来源),海报组件与学习 home 课程架一致。
 // 零学习证据写入(学习证据归 lesson-progress[讲懂幕] / 判分链路,本页不碰)。
 const api = require("../../../utils/api");
+const auth = require("../../../utils/auth");
 const helpers = require("../../../utils/helpers");
+const route = require("../../../utils/route");
+const runtime = require("../../../utils/runtime");
 const { buildLearnViewModel } = require("../../../utils/learn-view-model");
 
 Page({
@@ -24,10 +27,15 @@ Page({
       typeof wx !== "undefined" && wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
     var sbh = info.statusBarHeight || 0;
     this.setData({ statusBarHeight: sbh, navHeight: sbh + 48, isDark: false /* 第10版主色=宣纸亮,默认亮色;夜宣纸暗版 wxss 仍在 */ });
+    if (!this._requireAuth()) return;
     this._load();
   },
 
   onShow() {
+    if (!this._requireAuth()) {
+      this._hasShown = true;
+      return;
+    }
     if (this._hasShown && !this.data.loading) this._load();
     this._hasShown = true;
   },
@@ -42,6 +50,18 @@ Page({
   retry() {
     this.setData({ loading: true, errorText: "" });
     this._load();
+  },
+
+  _requireAuth() {
+    if (auth.isLoggedIn()) {
+      this._authRedirectPending = false;
+      return true;
+    }
+    if (!this._authRedirectPending) {
+      this._authRedirectPending = true;
+      runtime.redirectToLogin(route.lubanStations());
+    }
+    return false;
   },
 
   goBack() {
@@ -72,15 +92,20 @@ Page({
 
   _load() {
     var that = this;
-    var opt = { silent: true };
+    if (!this._requireAuth()) return Promise.resolve();
+    var opt = { silent: true, suppressAuthRedirect: true };
     var settle = function (p) {
       return Promise.resolve(p).then(function (r) { return r; }, function () { return null; });
     };
     return Promise.all([
-      settle(api.getLubanLessons(opt)),
+      api.getLubanLessons(opt),
       settle(api.getLearningReport(100, opt)),
       settle(api.getHomeDashboard(opt)),
     ]).then(function (res) {
+      if (!auth.isLoggedIn()) {
+        that._requireAuth();
+        return null;
+      }
       var lessons = api.unwrapResponse(res[0]) || {};
       var report = api.unwrapResponse(res[1]) || {};
       var homeDashboard = api.unwrapResponse(res[2]) || {};
@@ -92,6 +117,16 @@ Page({
         loading: false,
         errorText: "",
       });
+    }).catch(function (err) {
+      if (!auth.isLoggedIn()) {
+        that._requireAuth();
+        return null;
+      }
+      that.setData({
+        loading: false,
+        errorText: api.describeRequestError(err, "教学路线加载失败，请稍后重试"),
+      });
+      return null;
     });
   },
 });

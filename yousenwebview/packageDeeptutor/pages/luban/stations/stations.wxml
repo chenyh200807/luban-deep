@@ -12,7 +12,7 @@
 
   <scroll-view class="sr-scroll" scroll-y enhanced show-scrollbar="{{false}}" style="top: {{navHeight}}px">
     <view class="sr-inner">
-      <view class="sr-hero">
+      <view class="sr-hero" wx:if="{{!errorText}}">
         <text class="pk-kicker">鲁班学习双轮</text>
         <text class="sr-title">你的提分路线 · 每天走一站</text>
         <text class="sr-lit">已点亮 {{litCount}} / {{packUniverse}} 站</text>

@@ -29,6 +29,11 @@ function loadStation(detail) {
           describeRequestError: function (_error, fallback) { return fallback; },
         };
       }
+      if (request === "../../../utils/auth") return { isLoggedIn: function () { return true; } };
+      if (request === "../../../utils/route") {
+        return { lubanStation: function (packId) { return "/station?pack_id=" + packId; } };
+      }
+      if (request === "../../../utils/runtime") return { redirectToLogin: function () {} };
       if (request === "../../../utils/surface-telemetry") {
         return { trackProductBehavior: function () {} };
       }
@@ -62,7 +67,7 @@ function loadStation(detail) {
   });
   f16.page.onLoad({ pack_id: "F16" });
   await flush();
-  f16.page.onPrimaryTap();
+  await f16.page.onPrimaryTap();
   assert.strictEqual(f16.page.data.tier, "practice");
   assert.strictEqual(f16.page.data.currentUrl, "https://cdn/f16/practice.html?v=bundle");
   f16.page.onPrimaryTap();
@@ -76,7 +81,7 @@ function loadStation(detail) {
   });
   s05.page.onLoad({ pack_id: "S05" });
   await flush();
-  s05.page.onPrimaryTap();
+  await s05.page.onPrimaryTap();
   assert.strictEqual(s05.page.data.tier, "practice");
   assert.strictEqual(s05.page.data.currentUrl, "https://cdn/s05/practice.html?v=bundle");
   s05.page.onPrimaryTap();
