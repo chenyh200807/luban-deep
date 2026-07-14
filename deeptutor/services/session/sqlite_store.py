@@ -841,6 +841,22 @@ class SQLiteSessionStore:
                     preferences
                 )
                 derived_source = _derive_session_source(preferences, row["source"])
+                if (
+                    str(row["id"] or "").startswith("luban-preview:")
+                    and derived_source == "luban_teaching_card"
+                ):
+                    # One-time authority repair for card turns written before
+                    # the Mini Program bootstrap source was preserved.  Update
+                    # both the indexed column and its preferences projection so
+                    # the next store initialization cannot restore the bad alias.
+                    derived_source = "wx_miniprogram"
+                    if not isinstance(preferences, dict):
+                        preferences = {}
+                    preferences["source"] = derived_source
+                    conn.execute(
+                        "UPDATE sessions SET preferences_json = ? WHERE id = ?",
+                        (_json_dumps(preferences), row["id"]),
+                    )
                 derived_archived = _derive_session_archived(preferences, row["archived"])
                 derived_conversation_id = (
                     str(row["conversation_id"] or "").strip()

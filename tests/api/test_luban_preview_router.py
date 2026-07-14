@@ -260,7 +260,13 @@ def test_luban_card_reuses_mobile_turn_bootstrap_and_preserves_plain_question(mo
     assert config["general_knowledge_context"] is True
     assert config["chat_mode"] == "smart"
     assert "followup_question_context" not in config
-    assert config["billing_context"]["source"] == "luban_teaching_card"
+    assert config["billing_context"] == {
+        "source": "wx_miniprogram",
+        "user_id": "student-real",
+        "wallet_user_id": "student-real",
+        "learning_user_id": "student-real",
+    }
+    assert config["interaction_hints"]["product_surface"] == "luban_teaching_card"
     assert config["luban_teaching_card_context"] == {
         "source": "luban_teaching_card",
         "card": {

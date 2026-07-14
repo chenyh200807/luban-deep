@@ -9,6 +9,15 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-15 - 教学卡问答已落 SessionStore 但历史页找不到：入口标签覆盖 session source
+
+- 问题：教学卡底部弹层可连续追问，同一 entry ticket 也已复用同一个 canonical session，但小程序「历史对话」查不到该会话，用户无法从历史页继续；同时需要确认这条问答是否进入 LearnerState，而不是另建卡内状态。
+- 根因：`build_mobile_turn_payload()` 已用真实学员身份生成 `source=wx_miniprogram`，教学卡 adapter 随后却把 `billing_context.source` 改成 `luban_teaching_card`。`TurnRuntimeManager` 会把该字段物化为 SessionStore 的 session source，而现有历史 reader 唯一查询条件是 owner + `source=wx_miniprogram`，所以同一 canonical store 内的真实会话被过滤掉。LearnerState 并未缺 writer：统一 turn terminal 已经通过既有 `refresh_from_turn()` 与 `write_conversation_learning_evidence_event()` 写入低权重 `conversation_synthesis`，且 `truth_eligible=false`、`progress_countable=false`。
+- 失败尝试 / 被否决方案：否决新增「卡内历史表」、单独历史 API、客户端持久化聊天或卡片专用 learner-state writer，这些都会复制 SessionStore / LearnerState authority；也否决把提问直接算 mastery，因为合同明确掌握只由五题服务端重判与 `RetestWritebackService` 晋升。
+- 成功修法：删除教学卡对 `billing_context.source` 的二次覆盖；session lineage 继续由共享小程序 bootstrap 唯一写为 `wx_miniprogram`，卡片来源只通过既有 `interaction_hints.product_surface=luban_teaching_card` 与 `luban_teaching_card_context` 表达。`SQLiteSessionStore` 初始化时一次性把已落库的 `luban-preview:* + source=luban_teaching_card` 同步归一为 `wx_miniprogram`（indexed column 与 preferences projection 同改），历史 reader 因而仍只认一个来源。所有 pack 共用同一 adapter，未增加表、route、schema、WebSocket 或 learner-state event type。
+- 验证：旧卡 session 迁移与 source 过滤 2/2 passed；教学卡 router + conversation learner evidence 18/18 passed；移动端 conversation 历史相关 21/21 passed（含 web session 反例）；统一 turn conversation evidence 与 session source 持久化 4/4 passed，合计 45/45。contract guard、排除未改动既有 import 告警后的 scoped Ruff 与 `git diff --check` 均 passed。
+- 教训：入口 surface 与 session lineage 是两个不同事实；把展示标签写进持久化查询维度，会让「已经写入」退化成「读不到」。跨模块闭环应接已有 authority 的投影，不应为可见性问题创建第二套存储。
+
 ## 2026-07-14 - 教学卡追问答案缺采分点与易错点：DC 模板静默丢弃全部列表块
 
 - 问题：A02 教学卡内追问“保温材料复验哪几项？”后，底部弹层能看到“采分点”“易错点”标题，却没有对应条目；同一答案中的编号项目也一并消失，造成 TutorBot 输出不完整的观感。
