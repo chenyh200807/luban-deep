@@ -9,6 +9,14 @@
 >
 > 下方正文（倒序）不动；新增详细复盘仍按原格式 append 到本文件顶部。
 
+## 2026-07-14 - all-module 看似没有教学视频：登录失败被投影成供给为空
+
+- 问题：同一台微信开发者工具里，旧 F16 worktree 能显示教学入口，新 all-module worktree 却显示“微课即将上线”，造成多个版本并存、正式版不能播放的错觉；站点深链未登录时还会被 API 通用 401 兜底带回默认页，丢失原 pack。
+- 根因：一等业务事实“当前用户是否有权读取教学供给”应由 auth session 唯一裁决，“当前站是否托管教学”应由 lessons manifest 投影唯一裁决；但学习页把受保护 lessons 的 401/网络失败与可选 dashboard/report 一起 `settle(null)`，随后用空 lessons 构造空 ViewModel，再由 WXML 误报成“微课未上线”。不同 worktree 的 DevTools storage 正常隔离，旧窗口有 token、新窗口无 token，放大了这条错误投影。站点详情路由又未登记为允许的登录回跳目标。
+- 失败尝试及原因：回退旧 F16 分支只会借用其本地登录态，并恢复客户端猜 `lesson.html → practice.html` 的第二供给 authority；复制旧 token 会破坏项目级存储隔离；把 lessons 改匿名则会让视频观看与 LearnerState 写回身份割裂。这三种都否决。
+- 成功修法：学习首页在任何受保护读取前统一检查 auth，单次携带 `returnTo=learn` 进入既有登录链；所有受保护读取（含 pending first-run 自动同步）都设置 `suppressAuthRedirect`，API 只负责清理过期 token，页面唯一负责带目标页跳登录，覆盖“本地 token 有效、服务端 401”的竞态。lessons 从可选读取提升为本页供给 authority，失败显式显示“教学内容没有加载成功/不是微课未上线”并提供重试，dashboard/report 仍可独立降级；错误终态隐藏 0/40、待设置、首跑/任务/复习等正常投影。路线页与站点深链同步前置 auth；新增 canonical `lubanStation(packId)` 路由并登记为安全回跳目标，未登录不请求详情、不记录 station view，登录后回原 pack。视频播完进入练习前再次校验身份，lesson evidence 上报的 401 由站点页保留 pack 回跳且不得抢先切入练习幕。没有新增供给缓存、客户端 URL 推导或第二登录状态。
+- 验证：RED 先复现“匿名 learn 请求被吞成空供给”“服务端 401 抢跳默认登录”“错误态仍显示 0/40”“pending first-run 抢跳 chat”“lesson evidence 401 仍进入 practice”和“station 深链丢 returnTo”；GREEN 覆盖匿名只跳一次且 lessons 调用 0、主/可选/首跑读取 401 都回 learn、lessons 网络失败显式错误、可选网络失败不阻断 A01、路线/站点/lesson evidence 401 保留原路径与 F16、错误态不渲染假路线进度。小程序 Node 全量 102 个测试脚本通过，页面脚本 syntax check 与 diff check 通过。真入口只读审计确认 A01/F16 教学 HTML、700/700 音频与 175/175 公网资源均可达，A01/F16 真点击可播放；公网 API runtime 仍是旧投影、尚未签发 `practice_url/practice_surface`，故部署并验证五题字段前不声称完整线上闭环。
+
 ## 2026-07-14 - finished 练习只有 F16 能入账，其他卡本地判分后断链
 
 - 问题：F16 有 compiled sidecar、服务端重判和 terminal 收据，其他 finished 教学卡虽然都带练习，但完成后只留在 HTML 本地结果，不进 LearnerState；客户端还用 F16 分支决定是否打开成品练习。

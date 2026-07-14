@@ -80,6 +80,9 @@
 .lr-gauge-sm-num { font-size: 24rpx; font-weight: 700; color: var(--pk-t3); }
 
 /* ── 动画精讲卡 ── */
+.lr-supply-error { padding: 34rpx; display: flex; flex-direction: column; gap: 16rpx; }
+.lr-supply-error-title { font-size: 32rpx; font-weight: 800; color: var(--pk-t1); }
+.lr-supply-retry { align-self: flex-start; margin-top: 8rpx; min-width: 180rpx; }
 .lr-lesson { overflow: hidden; padding: 0; }
 .lr-lesson-head { display: flex; align-items: center; gap: 18rpx; padding: 24rpx 28rpx; border-bottom: 1rpx solid var(--pk-bd); }
 .lr-lesson-head--empty { opacity: 0.75; }

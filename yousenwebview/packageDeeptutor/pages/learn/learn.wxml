@@ -18,7 +18,7 @@
 
     <!-- 骨架屏:首拍数据(绿灯站,~0.2s)到达前不渲染误导性空数据(0/40 等) -->
     <view class="lr-inner" wx:if="{{loading}}">
-      <view class="lr-status-row">
+      <view class="lr-status-row" wx:if="{{!supplyError}}">
         <view class="lr-status pk-card lr-skel-block"></view>
         <view class="lr-status pk-card lr-skel-block"></view>
         <view class="lr-status pk-card lr-skel-block"></view>
@@ -31,7 +31,7 @@
 
       <!-- 新用户第一段原生学习旅程：入口投影，不计算推荐、不写学情 -->
       <view
-        wx:if="{{firstRunState !== 'hidden'}}"
+        wx:if="{{!supplyError && firstRunState !== 'hidden'}}"
         class="lr-first-run pk-card lr-first-run--{{firstRunState}}"
         bindtap="openFirstRun"
       >
@@ -53,7 +53,7 @@
       </view>
 
       <!-- 三枚状态卡:距考 / 路线 X/40 / 今日 -->
-      <view class="lr-status-row">
+      <view class="lr-status-row" wx:if="{{!supplyError}}">
         <view class="lr-status pk-card">
           <view class="lr-gauge-sm">
             <text class="lr-gauge-sm-num">{{vm.examDate ? '✓' : '—'}}</text>
@@ -70,8 +70,15 @@
         </view>
       </view>
 
+      <view class="lr-supply-error pk-card" wx:if="{{supplyError}}">
+        <text class="pk-kicker">教学内容没有加载成功</text>
+        <text class="lr-supply-error-title">不是微课未上线</text>
+        <text class="pk-desc">{{supplyError}}</text>
+        <view class="pk-btn-ink lr-supply-retry" bindtap="retrySupply">重新加载</view>
+      </view>
+
       <!-- 动画精讲卡:下一站 header + 宣纸舞台 + 横滑课程架 -->
-      <view class="lr-lesson pk-card">
+      <view class="lr-lesson pk-card" wx:if="{{!supplyError}}">
         <!-- header -->
         <view class="lr-lesson-head" wx:if="{{vm.nextStation}}" bindtap="openStation" data-pack-id="{{vm.nextStation.pack_id}}" data-green="{{vm.nextStation.green}}" data-card-hosted="{{vm.nextStation.card_hosted}}">
           <view class="lr-lesson-seal pk-seal">
@@ -154,7 +161,7 @@
       </view>
 
       <!-- 今日任务卡 -->
-      <view class="lr-task pk-card" wx:if="{{vm.todayTask}}">
+      <view class="lr-task pk-card" wx:if="{{!supplyError && vm.todayTask}}">
         <view class="lr-task-head">
           <view class="lr-task-main">
             <text class="pk-kicker">今天最该完成</text>
@@ -182,14 +189,14 @@
       </view>
 
       <!-- 复习到期条 -->
-      <view class="lr-review pk-card" wx:if="{{vm.dueCount}}" bindtap="goReview">
+      <view class="lr-review pk-card" wx:if="{{!supplyError && vm.dueCount}}" bindtap="goReview">
         <view class="lr-review-bolt"></view>
         <text class="lr-review-txt">复习 {{vm.dueCount}} 张到期</text>
         <text class="lr-review-go">去复习 →</text>
       </view>
 
       <!-- 三枚指标卡 -->
-      <view class="lr-metric-row">
+      <view class="lr-metric-row" wx:if="{{!supplyError}}">
         <view class="lr-metric pk-card">
           <text class="pk-kicker">近 3 天练习</text>
           <text class="lr-metric-num">{{vm.stats.recent_practice || 0}} 次</text>
