@@ -32,7 +32,7 @@
         <div style="font-size:9px;letter-spacing:2px;color:#7f8a8f;font-weight:700;">随堂练 · 采分点过关</div>
         <div style="font-size:14px;font-weight:900;color:#f1efe8;">{{ examTitle }}</div>
       </div>
-      <a href="P40_N03.teach.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
+      <a href="P40_N03.teach.up.dc.html" style="flex:none;font-size:10px;color:#cf8a44;text-decoration:none;border:1px solid #4a3d2a;border-radius:14px;padding:5px 10px;font-weight:700;">看讲解</a>
     </div>
 
     <!-- QUIZ VIEW -->
@@ -142,7 +142,7 @@
         <div style="font-size:12px;font-weight:900;color:#23282b;margin-bottom:9px;">继续补练</div>
         <div style="font-size:11px;color:#5c6469;line-height:1.5;">{{ moreText }}</div>
       </div>
-      <a href="P40_N03.teach.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
+      <a href="P40_N03.teach.up.dc.html" style="display:flex;align-items:center;gap:11px;background:#cf4436;border-radius:13px;padding:13px 14px;margin-bottom:11px;text-decoration:none;">
         <div style="flex:none;width:34px;height:34px;border-radius:50%;background:#fff;color:#cf4436;display:flex;align-items:center;justify-content:center;font-family:'Long Cang',cursive;font-size:22px;">鲁</div>
         <div style="flex:1;"><div style="font-size:13px;font-weight:900;color:#fff;">没搞透？问鲁班</div><div style="font-size:10px;color:#f6d6cf;margin-top:1px;">回看动画精讲</div></div>
       </a>
@@ -213,8 +213,8 @@ class Component extends DCLogic {
   SHOW_COUNT = 5;
   state = { qi:0, sel:{}, sub:{}, finished:false, askOpen:false, askText:"", askLoading:false, askAnswer:"", order:null, optOrder:null };
   examTitle="流水施工参数与工期";
-  KNOWLEDGE="流水施工参数与工期(成倍节拍主样板)。判型：节拍全等·等节奏(K=t)；成倍数·等步距异节奏(K=各节拍最大公约数)；无规律·无节奏(大差法)。本题节拍3/3/6/3成倍数·等步距异节奏，K=gcd(3,6)=3个月。专业队数=各工序节拍÷K求和=1+1+2+1=5(砌筑6=2K拆2队，队数>工序数)。总工期T=(M+N′−1)×K=(2+5−1)×3=18个月，M=施工段数2、N′=拆队后总队数5，体现搭接非机械相加。采分四句：判型理由+K=最大公约数+队数=节拍÷K求和+工期(M+N′−1)×K带单位。常见失分：判型不写理由、K取最大/平均/最小节拍而非gcd、不拆队、工期机械相加。";
-  moreText="补两道：① {2019} 节拍 3/3/9/6/6 · 等步距异节奏、K=gcd=3、队数 1/1/3/2/2=9，练判型理由+K+拆队绑定工序；② {2015} 等节奏「不能连续作业」辨析，练「选项错+理由(K=t必连续无空闲)+正确表述」三段式。";
+  KNOWLEDGE="流水施工参数与工期(合并练习,覆盖上下两集)。三大组织方式:依次(顺序无搭接,工期最长省人)/平行(各段同时,工期最短耗人N倍)/流水(分段分序错位搭接,又快又稳)。三大参数:节拍t=某队在一个施工段的施工时间;步距K=相邻两队进入流水的间隔;工期T=首队投入到末队退出。参数三分类:工艺(过程数/段数)、时间(t/K/T)、空间(施工段/施工层)。施工段划分:劳动量差异≤15%、工作面充足、界限对结构缝、段数合理。判型:节拍全等→等节奏(K=t、队数=过程数、连续无空闲);不全等但成倍数→等步距异节奏(K=最大公约数、队数>过程数);无规律→无节奏(大差法:累加数列→错位相减→取最大值)。成倍节拍算例:节拍3/3/6/3→K=gcd(3,6)=3,队数1+1+2+1=5(砌筑6=2K拆2队),M=2段,总工期T=(M+N′−1)×K=(2+5−1)×3=18个月,体现搭接。常见失分:判型不写理由、K取最大/平均/最小节拍而非gcd、不拆队、工期机械相加、大差法只报方法名不展开三动作、参数归错类。";
+  moreText="继续补：① 无节奏大差法专练——列累加数列、错位相减、取最大值三动作写全；② 等节奏与无节奏特点辨析，别把‘连续无空闲’读成‘不能连续作业’；③ 参数三分类，节拍/步距/工期归时间参数不归工艺。判型理由 + K 取最大公约数 + 拆队队数 + 搭接工期，是四类高频失分，逐个过。";
   // ── 题库：判型 · 步距K · 队数 · 采分诊断（4 题级联）──
   Q=[
     { tag:"判型·条件维", typeHint:"单选 · 选出最完整、最能拿分的作答", figLabel:"题给：四道工序流水节拍", figCaption:"基础3 结构3 砌筑6 装修3（月）· 类型你来判", fig:"bars",
@@ -262,96 +262,6 @@ class Component extends DCLogic {
         { t:"把流水节拍、流水步距也归进工艺参数，与施工过程数、施工段数一起算工艺安排。", ok:false, code:"E07", tempt:"觉得节拍/步距也算「工艺」上的安排。", lose:"节拍/步距/工期属时间参数，归错体系。", fix:"时间参数=节拍/步距/工期；工艺参数=过程数/段数。" },
         { t:"流水施工的参数主要就是施工过程数、施工段数这两个工艺量，其余按现场情况灵活定即可。", ok:false, code:"E02", tempt:"只记住了工艺参数。", lose:"漏时间参数与空间参数，三缺二。", fix:"补全时间参数（节拍/步距/工期）与空间参数（施工段/施工层）。" }
       ] },
-    { tag:"判型·条件维（等节奏）", typeHint:"单选 · 选出判型完整正确的作答", figLabel:"题给：另一工程四工序节拍", figCaption:"挖土4 垫层4 基础4 回填4（月）· 判型", fig:"bars", fd:{bars:[["挖土",4],["垫层",4],["基础",4],["回填",4]]},
-      stem:"某工程四个施工过程流水节拍均为 4 个月。判定流水组织类型并给步距，选最完整能得分的作答。",
-      model:"节拍全部相等 → 等节奏流水；流水步距 K=流水节拍 t=4 个月，各队连续无空闲。",
-      opts:[
-        { t:"节拍全部相等，判「等节奏流水」，流水步距 K=流水节拍 t=4 个月，各队连续施工。", ok:true, fix:"点全等这一判据、定等节奏、并给 K=t=4，三件齐。", code:"" },
-        { t:"节拍都是 4、成倍数关系，判「等步距异节奏流水」，步距取各节拍最大公约数 4。", ok:false, code:"E07", tempt:"看见「成倍数」就往等步距异节奏靠。", lose:"全部相等属等节奏，等步距异节奏要求节拍不全等但成倍数。", fix:"全等→等节奏，K=t=4，不是等步距异节奏。" },
-        { t:"节拍相等仍要判无节奏，用大差法逐段求步距 K，按最不利工序排队。", ok:false, code:"E05", tempt:"把大差法当成通用解法。", lose:"大差法只用于无节奏；全等场景是等节奏、K=t。", fix:"全等→等节奏，K=t=4，无需大差法。" },
-        { t:"节拍相等不必判型，直接让四个队一个接一个依次进场施工即可，不算流水。", ok:false, code:"E02", tempt:"觉得节拍一样就没啥可判。", lose:"跳过判型丢判据分，且等节奏是流水、要搭接不是依次。", fix:"写「全等→等节奏，K=t=4」，等节奏仍是搭接流水。" }
-      ] },
-    { tag:"判型·条件维（无节奏）", typeHint:"单选 · 选出判型完整正确的作答", figLabel:"题给：四工序节拍", figCaption:"2、4、3、5（月）· 判型", fig:"bars", fd:{bars:[["基础",2],["结构",4],["砌筑",3],["装修",5]]},
-      stem:"某工程四个施工过程流水节拍为 2、4、3、5 个月。判定流水组织类型，选最完整能得分的作答。",
-      model:"节拍不全相等、也不成倍数（无公倍规律）→ 无节奏流水；流水步距用累加数错位相减取大差法确定。",
-      opts:[
-        { t:"节拍不全等、又不成倍数，判「无节奏流水」，流水步距用累加错位相减的大差法确定。", ok:true, fix:"点明不成倍数、定无节奏、并指向大差法，判据与方法齐。", code:"" },
-        { t:"节拍不全相等但成倍数，判「等步距异节奏流水」，步距取各节拍最大公约数。", ok:false, code:"E05", tempt:"没验成倍数就套等步距异节奏。", lose:"2、4、3、5 不成整数倍关系，不是等步距异节奏。", fix:"不成倍数→无节奏，用大差法，不取最大公约数。" },
-        { t:"取各节拍最大公约数 gcd(2,4,3,5)=1 作步距 K=1 个月组织流水。", ok:false, code:"E09", tempt:"硬套「K=最大公约数」公式。", lose:"最大公约数口径只用于等步距异节奏；无节奏用大差法，K=1 也不合理。", fix:"判无节奏、用大差法求步距，不套 gcd。" },
-        { t:"节拍不同就按最大节拍 5 个月统一步距，让各队都按 5 个月的步距进场。", ok:false, code:"E07", tempt:"想用最长节拍拉齐步距。", lose:"无节奏没有统一步距，须大差法逐段算；取最大节拍会大量空等。", fix:"判无节奏、大差法定步距，不取最大节拍。" }
-      ] },
-    { tag:"步距K·计算表达维（另组）", typeHint:"单选 · 选出可得分的算式与依据", figLabel:"题给：各节拍", figCaption:"4、4、8、4（月）· K = ？", fig:"gcd", fd:{gcd:[4,4,8,4],gcdLabel:"gcd(4,8)=4 → K=?"},
-      stem:"某工程节拍 4、4、8、4 个月（已判等步距异节奏）。求流水步距 K，写出可得分的算式与依据。",
-      model:"K=各节拍最大公约数 gcd(4,4,8,4)=4 个月。",
-      opts:[
-        { t:"等步距异节奏，步距取各节拍最大公约数：K=gcd(4,4,8,4)=4 个月。", ok:true, fix:"依据词「最大公约数」+算式+带单位，换数不错。", code:"" },
-        { t:"步距取各节拍最大值：K=8 个月，用最长的第三工序节拍来定步距。", ok:false, code:"E09", tempt:"怕排不开取最长节拍。", lose:"K 取最大节拍队排稀、段空等，违反 K=最大公约数。", fix:"K=gcd(4,8)=4，不取最大节拍 8。" },
-        { t:"步距取各节拍平均值：K=(4+4+8+4)÷4=5 个月，折中兼顾各工序。", ok:false, code:"E09", tempt:"平均看着折中。", lose:"步距无平均口径，5 不能整除 8、无法咬合。", fix:"用最大公约数 4，不是平均 5。" },
-        { t:"步距取各节拍最小值：K=4 个月，用最短节拍保证队伍排得最紧凑。", ok:false, code:"E07", tempt:"数值 4 恰好对，顺手就选。", lose:"数值对依据错——最小值等于 gcd 是巧合，阅卷看「最大公约数」这个依据词。", fix:"写「K=最大公约数 gcd(4,8)=4」，不写「取最小节拍」。" }
-      ] },
-    { tag:"队数·计算表达维（另组）", typeHint:"单选 · 选出可得分的列式与依据", figLabel:"题给：各工序节拍（K=4）", figCaption:"4、4、8、4 · 需几个专业队？", fig:"rows", fd:{rows:[["挖土",4],["结构",4],["砌筑",8],["装修",4]]},
-      stem:"承上（等步距异节奏，K=4，节拍 4、4、8、4）。需要多少专业施工队？写出可得分的列式与依据。",
-      model:"各工序队数=节拍÷K=4÷4+4÷4+8÷4+4÷4=1+1+2+1=5 个；成倍节拍拆队，队数>工序数。",
-      opts:[
-        { t:"各工序队数=节拍÷K=1+1+2+1=5 个专业队；砌筑 8=2K 拆 2 队，队数大于工序数。", ok:true, fix:"逐工序÷K、求和、点明拆队归属，砌筑拆 2 队清楚。", code:"" },
-        { t:"四个施工过程配 4 个专业队，每个过程一个队依次做，队数就等于工序数四个。", ok:false, code:"E07", tempt:"直觉几道工序几个队。", lose:"砌筑 8=2K 应拆 2 队，未拆少 1 队。", fix:"队数=节拍÷K 求和=5，砌筑拆 2 队。" },
-        { t:"把节拍当队数：砌筑 8 设 8 个队、其余各设 4 个队，合计 8+4+4+4=20 个队。", ok:false, code:"E09", tempt:"节拍数直接当队数摆。", lose:"队数=节拍÷K，不是节拍本身，严重高估。", fix:"8÷4=2 队、4÷4=1 队，合计 5 队。" },
-        { t:"队数=总节拍÷K=(4+4+8+4)÷4=5 个队，用总节拍一次除以步距得出。", ok:false, code:"E07", tempt:"数值 5 对，算式看着成立。", lose:"总节拍÷K 掩盖拆队归属，阅卷要队数落到具体工序。", fix:"写 1+1+2+1=5，标砌筑拆 2 队。" }
-      ] },
-    { tag:"工期·计算表达维（另组）", typeHint:"单选 · 选出可得分的工期算式", figLabel:"题给：M=3 段，N′=5 队，K=4", figCaption:"多施工段搭接 · 总工期 T = ？", fig:"gantt", fd:{seg:5,span:28},
-      stem:"某工程等步距异节奏，K=4 个月，施工段 M=3，拆队后专业队 N′=5。求总工期 T 及依据。",
-      model:"T=(M+N′−1)×K=(3+5−1)×4=28 个月，体现搭接、带单位。",
-      opts:[
-        { t:"总工期体现搭接：T=(M+N′−1)×K=(3+5−1)×4=28 个月。", ok:true, fix:"代入 M=3、N′=5、K=4，体现搭接并带单位。", code:"" },
-        { t:"总工期=(M+N′−1)×K=(3+4−1)×4=24 个月，按 4 道工序代入 N′。", ok:false, code:"E07", tempt:"公式对，却把 N′ 当 4 道工序。", lose:"N′ 是拆队后总队数 5，不是工序数 4。", fix:"N′=5，T=(3+5−1)×4=28 个月。" },
-        { t:"总工期=各队节拍在三个施工段全摆开=(4+4+8+4)×3=60 个月。", ok:false, code:"E09", tempt:"三段乘 3 看着全做完。", lose:"那是不搭接死等的算法，流水搭接后只 28 个月。", fix:"体现搭接 T=(3+5−1)×4=28，不是 60。" },
-        { t:"总工期=M×N′×K=3×5×4=60 个月，把段数队数步距直接相乘。", ok:false, code:"E09", tempt:"以为三者相乘就是总工期。", lose:"公式是 (M+N′−1)×K，不是三者连乘。", fix:"T=(M+N′−1)×K=(3+5−1)×4=28 个月。" }
-      ] },
-    { tag:"参数体系·条件维（空间）", typeHint:"单选 · 选出空间参数归类正确的作答", figLabel:"题给：待归类的参数", figCaption:"哪些属于「空间参数」？", fig:"params", fd:{toks:["施工段（工作面）","施工层","流水节拍 t","流水步距 K","施工过程数","工期 T"]},
-      stem:"组织流水施工的空间参数指哪些？选出归类正确、能得分的作答。",
-      model:"空间参数=施工段（工作面）与施工层；节拍/步距/工期属时间参数，过程数/段数属工艺参数。",
-      opts:[
-        { t:"空间参数是施工段（工作面）和施工层；它决定队伍在空间上如何分区流动。", ok:true, fix:"空间参数只含施工段与施工层，归类准确。", code:"" },
-        { t:"空间参数是流水节拍和流水步距，因为它们决定队伍在现场的空间排布。", ok:false, code:"E07", tempt:"把节拍/步距误当空间排布。", lose:"节拍/步距属时间参数，不是空间参数。", fix:"空间参数=施工段、施工层；节拍/步距是时间参数。" },
-        { t:"空间参数就是施工过程数和施工段数这两个工艺量，反映空间上的划分。", ok:false, code:"E07", tempt:"把工艺参数当空间参数。", lose:"过程数属工艺参数；空间参数是施工段、施工层。", fix:"空间参数=施工段、施工层，不是过程数。" },
-        { t:"空间参数是工期 T，因为工期反映工程在空间上全部完成所需的时间跨度。", ok:false, code:"E07", tempt:"把工期硬拉进空间参数。", lose:"工期属时间参数，与空间参数是两类。", fix:"空间参数=施工段、施工层；工期是时间参数。" }
-      ] },
-    { tag:"类型辨析·条件维", typeHint:"单选 · 判断说法对错并给正确表述", figLabel:"待判断的说法", figCaption:"等节奏流水「各队不能连续作业」——对吗？", fig:"sheet", fd:{lines:["说法：等节奏流水专业队","「各段之间必然停歇、","不能连续作业」——对吗？"]},
-      stem:"有说法称「等节奏流水中各专业队在各施工段之间必然停歇、不能连续作业」。判断并选出正确表述。",
-      model:"说法错误。等节奏 K=t，相邻队错开一个 K 进场后即可在各段连续作业、无空闲停歇，这正是流水的连续性优点。",
-      opts:[
-        { t:"说法错误：等节奏 K=t，队错开一个 K 进场后在各段连续作业、无停歇，这是流水连续性优点。", ok:true, fix:"先判错、再给理由 K=t 连续无空闲，判断+依据齐。", code:"" },
-        { t:"说法正确：等节奏各段之间必然有停歇，专业队做完一段要等下一段腾出才能进。", ok:false, code:"E07", tempt:"把无节奏的空等误安到等节奏头上。", lose:"等节奏 K=t 恰好连续无空闲，说法本身是错的。", fix:"应判错：等节奏 K=t，各段连续作业。" },
-        { t:"说法正确：只有等步距异节奏才连续，等节奏因为节拍相等反而会互相撞车停歇。", ok:false, code:"E07", tempt:"把连续性错记成等步距异节奏独有。", lose:"等节奏才是最规整的连续流水，节拍相等不会撞车。", fix:"等节奏 K=t 连续无空闲，说法错误。" },
-        { t:"说法无法判断，要看具体施工段数量，段数少就停歇、段数多就连续。", ok:false, code:"E02", tempt:"用段数多少来搪塞判断。", lose:"等节奏连续性由 K=t 决定，与段数多少无关，回避了判断。", fix:"直接判错：等节奏 K=t 连续作业，与段数无关。" }
-      ] },
-    { tag:"步距意义·概念维", typeHint:"单选 · 选出流水步距定义正确的作答", figLabel:"流水步距 K 指什么", figCaption:"相邻两队 · 进场时间间隔", fig:"gantt", fd:{seg:3,span:9},
-      stem:"「流水步距 K」在流水施工里指的是什么？选出定义准确的作答。",
-      model:"流水步距 K 是相邻两个专业施工队先后进入同一施工段（开始工作）的时间间隔。",
-      opts:[
-        { t:"流水步距 K 是相邻两个专业队先后进入同一施工段开始作业的时间间隔。", ok:true, fix:"点明「相邻两队、进入同一段、时间间隔」三要素，定义准确。", code:"" },
-        { t:"流水步距 K 是一个专业队在一个施工段上完成作业所需要的持续时间。", ok:false, code:"E07", tempt:"把「节拍」的定义安到步距上。", lose:"那是流水节拍 t 的定义；步距是相邻队进场间隔。", fix:"K=相邻两队进场间隔；一队做一段的时间是节拍 t。" },
-        { t:"流水步距 K 是整个工程从第一个队进场到最后一个队完工的总时间。", ok:false, code:"E07", tempt:"把「工期」误当步距。", lose:"那是总工期 T；步距是相邻队进场间隔。", fix:"K=相邻两队进场间隔；全程时间是工期 T。" },
-        { t:"流水步距 K 是施工段的数量，反映工程在空间上被划分成几个工作面。", ok:false, code:"E07", tempt:"把空间参数当步距。", lose:"施工段数量是空间/工艺参数，不是步距。", fix:"K=相邻两队进场的时间间隔，不是段数。" }
-      ] },
-    { tag:"无节奏·计算表达维", typeHint:"单选 · 选出无节奏求步距方法正确的作答", figLabel:"无节奏流水", figCaption:"各队节拍无规律 · 步距怎么求？", fig:"sheet", fd:{lines:["无节奏流水：各专业队","在各段节拍无规律；","相邻两队步距怎么定？"]},
-      stem:"无节奏流水中，相邻两个专业队的流水步距怎么确定？选出方法正确的作答。",
-      model:"用累加斜线（潘特考夫斯基）法：先累加各队在各段的持续时间，相邻队累加数错位相减，取最大差值作流水步距，保证后队不超前、无干扰。",
-      opts:[
-        { t:"用累加错位相减的大差法：相邻队累加时间错位相减取最大差，保证后队不超前。", ok:true, fix:"点明累加、错位相减、取大差、目的（后队不超前），方法完整。", code:"" },
-        { t:"直接取相邻两队节拍的最大公约数作为流水步距，与等步距异节奏一样处理。", ok:false, code:"E07", tempt:"把 gcd 口径套到无节奏上。", lose:"最大公约数只用于等步距异节奏；无节奏用大差法。", fix:"无节奏用累加错位相减的大差法，不取 gcd。" },
-        { t:"取相邻两队各段节拍的平均值作步距，让快慢工序折中一个统一间隔。", ok:false, code:"E09", tempt:"平均看着能折中快慢。", lose:"平均不能保证后队不超前、不干扰，无节奏须大差法。", fix:"用累加错位相减取最大差，不取平均。" },
-        { t:"无节奏无法算步距，只能让各队做完一段等下一段空出再进，逐段串起来。", ok:false, code:"E02", tempt:"觉得无规律就没法求。", lose:"无节奏有明确的大差法可求步距，说不能算是放弃采分。", fix:"用累加错位相减大差法求步距，可算。" }
-      ] },
-    { tag:"采分诊断·末题（另份）", typeHint:"单选 · 诊断这份作答的失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"K 取了平均、队数只算工序数", fig:"sheet", fd:{lines:["① K=(3+3+6+3)÷4=3.75","② 4 道工序设 4 个队","③ T=(2+4−1)×3.75≈18.75"]},
-      stem:"某学生作答：①K 取平均 3.75 个月；②按 4 道工序设 4 个队；③T=(2+4−1)×3.75≈18.75 个月。选最准确的诊断与补写。",
-      model:"K 应取最大公约数 3（非平均 3.75）、砌筑成倍节拍应拆队 N′=5（非 4）、工期须用正确 K 与 N′ 体现搭接；补写：K=gcd(3,6)=3／队数 1+1+2+1=5／T=(2+5−1)×3=18 个月。",
-      opts:[
-        { t:"K 应取 gcd=3（非平均 3.75）、应拆队 N′=5（非 4）、工期按正确 K 与 N′ 重算=18 个月。", ok:true, fix:"三处错全揪出并补正确采分句，K/队数/工期一次补齐。", code:"" },
-        { t:"三步算出 18.75，与标准 18 很接近，思路基本正确，四舍五入到 18 即可给分。", ok:false, code:"E07", tempt:"看数值接近就以为对。", lose:"K 用平均、队数没拆，两处根本错，凑近的数值不给分。", fix:"K=gcd=3、队数拆队=5、T=18，不能靠凑近。" },
-        { t:"只是 K 小数不好看，把 3.75 约成 4 再算就行，队数 4 个和工期思路都对。", ok:false, code:"E09", tempt:"以为只是 K 取值小问题。", lose:"漏诊「未拆队 N′ 应为 5」，且 K 应是 gcd=3 不是 4。", fix:"K=gcd(3,6)=3、拆队 N′=5，一起补。" },
-        { t:"队数按 4 道工序算是对的，只要把 K 从 3.75 改成最大公约数 3 就全对了。", ok:false, code:"E07", tempt:"抓到 K 错一处，漏了拆队。", lose:"漏诊「成倍节拍应拆队 N′=5」，队数 4 是错的。", fix:"K=3 之外还要拆队 N′=5，T=(2+5−1)×3=18。" }
-      ] },
     { tag:"采分诊断·末题", typeHint:"单选 · 工期数值蒙对，诊断失分并给正确补写", figLabel:"模拟学生作答（待诊断）", figCaption:"总工期 18 与标准答案数值一致，但…", fig:"sheet",
       stem:"某学生作答：①K 取最大节拍=6 个月；②设 4 个专业队；③总工期=3+3+6+6=18 个月。其总工期 18 恰与标准答案一致。选出最准确的诊断与补写。",
       model:"判型理由缺、K 取最大节拍（应 gcd=3）、未拆队（应 5 队）、工期机械相加未体现搭接；补写四句：成倍数·等步距异节奏／K=gcd(3,6)=3／队数 1+1+2+1=5／T=(2+5−1)×3=18 个月。",
@@ -360,14 +270,97 @@ class Component extends DCLogic {
         { t:"三步算出工期 18，与标准答案数值一致，判型 K 队数也都对，作答正确可给满分。", ok:false, code:"E07", tempt:"只看末位数字，数值对就以为全对——最危险的误判。", lose:"工期是机械相加 3+3+6+6 碰巧得 18，判型/K/队数全错且未体现搭接；阅卷看过程采分。", fix:"判型/K/队数都要重写，工期按 (2+5−1)×3 体现搭接。" },
         { t:"只是总工期写法不够规范，把 K 从 6 改成 3 就行，判型和队数其余都正确无误。", ok:false, code:"E02", tempt:"抓到 K 错一处，就以为只此一错。", lose:"漏诊「判型理由缺失」和「未拆队（4 应 5）」两处失分。", fix:"判型理由、拆队 5 队、搭接工期三处都要补，不止改 K。" },
         { t:"K 应取平均节拍 3.75 而非 6，队数与工期按 3.75 重算即可，其余判型思路都没问题。", ok:false, code:"E07", tempt:"看出 K=6 错了，却把它纠成了另一个错。", lose:"诊断方向本身错：K 是最大公约数 3，不是平均 3.75，用错 K 重算只会连锁错。", fix:"K=gcd(3,6)=3，按 K=3 重算队数 5、工期 18。" }
+      ] },
+    { tag:"组织方式·条件维", typeHint:"单选 · 选出对三种组织方式最准确的表述", figLabel:"题给：同一批活的三种排法", figCaption:"依次 / 平行 / 流水 · 谁又快又稳？", fig:"modes",
+      stem:"同样的施工任务有依次、平行、流水三种组织方式。选出对三者关系最准确、能得分的表述。",
+      model:"依次施工顺序无搭接、工期最长但省人；平行施工各段同时、工期最短但耗人料 N 倍；流水施工分段分序、错位搭接，工期居中且资源均衡。",
+      opts:[
+        { t:"依次施工顺序无搭接、工期最长而省人；平行施工各段同时、工期最短但耗人料 N 倍；流水施工错位搭接、工期居中且资源均衡。", ok:true, fix:"三种方式的时间与资源特征都点到，正是给分点。", code:"" },
+        { t:"三种方式里平行施工既最快又最省人料，工程上应当一律优先选用平行施工组织。", ok:false, code:"E07", tempt:"看「平行最快」就以为它最省最优。", lose:"平行工期虽短却要 N 倍人料，并非最省，也非普遍最优。", fix:"平行工期最短但耗人料 N 倍；流水才是又快又资源均衡。" },
+        { t:"依次施工因为一段段挨着干、不搭接，所以工期在三者里最短、效率最高。", ok:false, code:"E07", tempt:"把「挨着干」误当成「快」。", lose:"依次无搭接、工期最长，不是最短。", fix:"依次工期最长；工期最短的是平行施工。" },
+        { t:"组织方式其实只有依次和平行两种，流水施工只是平行施工的另一种叫法，不单列一类。", ok:false, code:"E02", tempt:"把流水混同平行、少记一类。", lose:"漏掉流水这一独立方式，且流水是错位搭接、≠平行同时。", fix:"三种方式：依次、平行、流水，流水单独一类。" }
+      ] },
+    { tag:"施工段划分·条件维", typeHint:"单选 · 选出划分施工段的正确原则", figLabel:"题给：把一栋楼分施工段", figCaption:"各段劳动量要接近 · 界限对哪儿？", fig:"seg",
+      stem:"组织流水施工划分施工段时应遵循的原则是？选出完整、能得分的作答。",
+      model:"各施工段劳动量差异宜≤15% 以保证节拍均衡，工作面充足，分段界限尽量与结构缝吻合，段数合理，多层工程分段又分层。",
+      opts:[
+        { t:"各段劳动量差异宜控制在 15% 以内以均衡节拍，工作面充足，界限尽量与结构缝吻合，段数合理，多层分段分层。", ok:true, fix:"劳动量≤15%、对结构缝、工作面、段数、分层，原则齐。", code:"" },
+        { t:"施工段只要保证每段工作面够一个专业队施展就行，各段活儿多活儿少、劳动量差多少都无所谓。", ok:false, code:"E08", tempt:"只盯工作面，忽略劳动量差异。", lose:"漏了劳动量差异≤15% 这一关键约束，节拍会忽长忽短、接不上茬。", fix:"还须各段劳动量差异≤15%。" },
+        { t:"各段劳动量差异控制在 50% 以内即可，段与段之间差一半属正常，不影响流水连续。", ok:false, code:"E09", tempt:"记得有个百分比却记错成 50%。", lose:"阈值错：应≤15% 不是 50%，差一半节拍严重失衡。", fix:"劳动量差异应≤15%。" },
+        { t:"施工段划分主要看工期紧不紧，工期紧就多分几段、松就少分，与结构缝、劳动量无关。", ok:false, code:"E01", tempt:"凭「工期」直觉定段数。", lose:"漏了劳动量≤15%、界限对结构缝等硬原则。", fix:"分段须劳动量差≤15%、界限对结构缝、工作面充足。" }
+      ] },
+    { tag:"参数定义·记录表达维", typeHint:"单选 · 选出对 t、K、T 定义都正确的作答", figLabel:"题给：横道图上的三个参数", figCaption:"t 是啥 · K 是啥 · T 是啥？", fig:"tk",
+      stem:"流水施工三大时间参数 流水节拍 t、流水步距 K、工期 T 的定义，哪一项全部正确？",
+      model:"t=某专业队在一个施工段上的施工时间；K=相邻两专业队先后进入流水的时间间隔；T=首队投入到末队完成最后一段退出的持续时间。",
+      opts:[
+        { t:"t 是某专业队在一个施工段上的施工时间；K 是相邻两专业队进入流水的时间间隔；T 是首队投入到末队退出的持续时间。", ok:true, fix:"t、K、T 三个定义各自准确、维度分清。", code:"" },
+        { t:"t 是相邻两专业队进场的时间间隔；K 是一个专业队在一个施工段上的施工时间；T 是全部时间之和。", ok:false, code:"E07", tempt:"t 和 K 定义正好记反。", lose:"t 与 K 互换，概念混淆，两参数维度不同。", fix:"t=单队一段工时；K=相邻队进场间隔，别互换。" },
+        { t:"t、K、T 说的是一回事——都是一个专业队干完一个施工段所用的时间，只是叫法不同。", ok:false, code:"E07", tempt:"三个符号混为一谈。", lose:"把三个不同参数当成同一个，全混。", fix:"t 单队一段、K 相邻队间隔、T 首入末退，三者不同。" },
+        { t:"t 是一个专业队在一段上的施工时间；K 是相邻队进场间隔（T 会算就行、略）。", ok:false, code:"E02", tempt:"t、K 对了就省略 T。", lose:"漏写 T 定义，采分点遗漏。", fix:"补 T=首队投入到末队退出的持续时间。" }
+      ] },
+    { tag:"等节奏辨析·后果维", typeHint:"单选 · 选出对等节奏特点表述准确的一项", figLabel:"题给：等节奏流水（节拍全等）", figCaption:"下面哪句说对了？", fig:"eqbars",
+      stem:"关于等节奏流水施工的特点，选出表述准确、能得分的一项。",
+      model:"等节奏各段节拍相等、流水步距 K=t、专业队数=施工过程数，各队在各施工段上能连续作业、无空闲。",
+      opts:[
+        { t:"等节奏各段节拍相等、流水步距 K=t、专业队数=施工过程数，各队在各施工段上能连续作业、无空闲。", ok:true, fix:"节拍相等、K=t、队数=过程数、连续无空闲，四点齐。", code:"" },
+        { t:"等节奏虽然节拍相等，但相邻专业队之间必然有空闲等待，各队不能连续作业。", ok:false, code:"E07", tempt:"以为节拍相等也会停工等待（真题同款陷阱）。", lose:"等节奏 K=t、前队完成即后队进入，必然连续无空闲；「有间隔」是无节奏特点。", fix:"等节奏各队能连续作业、无空闲。" },
+        { t:"等节奏流水步距 K 等于各节拍的最大公约数，且专业队数大于施工过程数。", ok:false, code:"E07", tempt:"把等步距异节奏的 K=gcd、队数>过程数套到等节奏。", lose:"等节奏 K=t、队数=过程数，不是 gcd、不>过程数。", fix:"等节奏 K=t、队数=过程数。" },
+        { t:"等节奏就是各段节拍都相等（其余特点略）。", ok:false, code:"E02", tempt:"只答一句节拍相等。", lose:"漏 K=t、队数=过程数、连续无空闲等特点。", fix:"补 K=t、队数=过程数、连续作业。" }
+      ] },
+    { tag:"大差法·程序维", typeHint:"单选 · 选出无节奏求步距的正确步骤", figLabel:"题给：无节奏流水（节拍无规律）", figCaption:"步距 K 怎么求？", fig:"diff",
+      stem:"无节奏流水施工（各段节拍无规律）求相邻专业队的流水步距，正确方法是？",
+      model:"用大差法：先列各施工过程节拍的累加数列，再将相邻两累加数列错位相减，取差值中的最大值作为流水步距，三动作缺一不可。",
+      opts:[
+        { t:"用大差法：先列各施工过程节拍的累加数列，再相邻累加数列错位相减，取差值的最大值作为流水步距。", ok:true, fix:"累加→错位相减→取最大值，三动作齐，正是给分点。", code:"" },
+        { t:"无节奏直接说明「采用大差法计算流水步距」即可，具体累加、相减过程不必展开写。", ok:false, code:"E02", tempt:"以为报方法名就给分。", lose:"漏写累加→错位相减→取最大值三动作，采分点遗漏。", fix:"必须展开累加数列、错位相减、取最大值三步。" },
+        { t:"大差法就是把相邻累加数列错位相减后，取差值的最小值作为流水步距。", ok:false, code:"E09", tempt:"记得错位相减，却把「取最大」记成「取最小」。", lose:"应取差值最大值，取最小会让后队抢工作面。", fix:"错位相减后取最大值，不是最小值。" },
+        { t:"无节奏流水步距直接取各段节拍里的最大值即可，用不着列累加数列。", ok:false, code:"E07", tempt:"把「取最大」误当成取最大节拍。", lose:"取的是错位相减后差值的最大值，不是节拍最大值。", fix:"先累加、错位相减，再取差值最大值。" }
+      ] },
+    { tag:"判型·条件维", typeHint:"单选 · 选出判型与步距都对的作答", figLabel:"题给：四段节拍 4/4/4/4（月）", figCaption:"这是什么流水？K=？", fig:"eqbars",
+      stem:"某工程四个施工过程流水节拍均为 4 个月。判定类型并求流水步距，选出能得分的作答。",
+      model:"各节拍全部相等，判为等节奏流水；流水步距 K=流水节拍 t=4 个月，专业队数=施工过程数，各段连续无空闲。",
+      opts:[
+        { t:"节拍全部相等，判为等节奏流水，流水步距 K=t=4 个月，专业队数=施工过程数、连续无空闲。", ok:true, fix:"判等节奏 + K=t=4 + 队数=过程数，链齐。", code:"" },
+        { t:"节拍相等判等节奏，但流水步距要取各节拍最大公约数 gcd(4,4,4,4)，还得再拆队。", ok:false, code:"E09", tempt:"把 gcd／拆队套到等节奏。", lose:"等节奏 K 直接=t=4，队数=过程数、无需拆队。", fix:"等节奏 K=t=4，不拆队。" },
+        { t:"四个节拍都是 4、看着无规律，判为无节奏流水，用大差法求步距。", ok:false, code:"E05", tempt:"没认出「全等」。", lose:"全等应判等节奏，不是无节奏。", fix:"节拍全等→等节奏、K=t。" },
+        { t:"节拍相等判等节奏，流水步距 K=各节拍之和=16 个月。", ok:false, code:"E07", tempt:"把步距当成节拍求和。", lose:"K=t=4，不是节拍求和。", fix:"等节奏 K=t=4 个月。" }
+      ] },
+    { tag:"判型·条件维", typeHint:"单选 · 选出判型正确的作答", figLabel:"题给：四段节拍 2/4/3/5（天）", figCaption:"既不全等也不成倍数", fig:"irr",
+      stem:"某工程四个施工过程流水节拍为 2、4、3、5 天，彼此不成倍数关系。判定流水组织类型，选出能得分的作答。",
+      model:"节拍既不全相等、也不成整数倍关系，判为无节奏流水，流水步距用大差法逐对求出、步距不尽相等，专业队数=施工过程数。",
+      opts:[
+        { t:"节拍不全等且不成倍数，判为无节奏流水，步距用大差法求、各步距不尽相等，专业队数=施工过程数。", ok:true, fix:"判无节奏 + 大差法 + 队数=过程数，判据齐。", code:"" },
+        { t:"节拍不全相等，判为等步距异节奏流水，流水步距取各节拍最大公约数。", ok:false, code:"E07", tempt:"一见不等就往异节奏靠。", lose:"等步距异节奏要求节拍成倍数；2/4/3/5 不成倍数，应判无节奏。", fix:"不成倍数→无节奏，用大差法。" },
+        { t:"其中有两个节拍不同，判为等节奏流水，流水步距 K=t。", ok:false, code:"E07", tempt:"「等节奏」张冠李戴。", lose:"等节奏要求全部节拍相等，此处不等。", fix:"节拍无规律→无节奏。" },
+        { t:"节拍里最小 2、最大 5，判型看最大节拍、按 5 天定步距即可，不必分类型。", ok:false, code:"E05", tempt:"跳过判型直接取步距。", lose:"跳过判型丢判据分，且步距非取最大节拍。", fix:"先判无节奏，再用大差法求步距。" }
+      ] },
+    { tag:"队数变式·计算表达维", typeHint:"单选 · 选出队数列式与依据都对的作答", figLabel:"题给：五工序节拍 3/3/9/6/6（天）", figCaption:"成倍节拍 · 需几个专业队？", fig:"rows5",
+      stem:"某工程五个施工过程流水节拍为 3、3、9、6、6 天（成倍节拍）。求专业施工队总数，选出能得分的作答。",
+      model:"K=各节拍最大公约数 gcd=3；各工序队数=节拍÷K=1、1、3、2、2，合计 9 个专业队，队数>施工过程数。",
+      opts:[
+        { t:"K=gcd=3，各工序队数=节拍÷K=1+1+3+2+2=9 个专业队，成倍节拍拆队、队数大于工序数。", ok:true, fix:"K=gcd + 逐工序÷K 求和=9 + 队数>工序数，齐。", code:"" },
+        { t:"五个施工过程就配 5 个专业队，每过程 1 队，队数等于工序数即可。", ok:false, code:"E07", tempt:"直觉「几工序几队」。", lose:"未按节拍÷K 拆队，节拍 9、6 应各拆多队。", fix:"队数=节拍÷K 求和=9，队数>工序数。" },
+        { t:"K 取最大节拍 9，各工序队数=节拍÷9，凑不成整数就都算 1 队，共 5 队。", ok:false, code:"E09", tempt:"K 取最大节拍导致队数全≈1。", lose:"K 应取 gcd=3，取 9 连锁错队数。", fix:"K=gcd=3，队数=1+1+3+2+2=9。" },
+        { t:"把节拍直接当队数：3+3+9+6+6=27 个专业队。", ok:false, code:"E09", tempt:"节拍当队数。", lose:"队数=节拍÷K，不是节拍本身。", fix:"节拍÷K 求和=9 队。" }
+      ] },
+    { tag:"采分句输出·末题", typeHint:"单选 · 选出四步采分句写得最全的作答", figLabel:"题给：节拍 3/3/6/3（月），M=2 段", figCaption:"要拿满分，四句怎么写全？", fig:"gantt",
+      stem:"节拍 3、3、6、3 个月、施工段 M=2，组织成倍节拍流水。按阅卷采分点写全答案，选出四步采分句最完整的作答。",
+      model:"①判型：节拍成倍数→等步距异节奏；②K=最大公约数 gcd(3,6)=3 个月；③队数=节拍÷K=1+1+2+1=5、拆队队数>工序数；④工期 T=(M+N′−1)×K=(2+5−1)×3=18 个月，带单位。",
+      opts:[
+        { t:"①成倍数→等步距异节奏；②K=gcd(3,6)=3 个月；③队数=1+1+2+1=5（拆队>工序数）；④T=(2+5−1)×3=18 个月。", ok:true, fix:"判型理由+K+队数拆队+搭接工期，四句一句不少。", code:"" },
+        { t:"K=3 个月，专业队 5 个，总工期 18 个月。", ok:false, code:"E02", tempt:"只报数值结论、省了判型理由。", lose:"漏判型理由（成倍数·等步距异节奏），采分点遗漏。", fix:"开头补「判型：成倍数→等步距异节奏」再列 K/队数/工期。" },
+        { t:"判型等步距异节奏；K=3；队数 4 个（每工序 1 队）；工期 3+3+6+3=15 个月。", ok:false, code:"E09", tempt:"判型对、后面不拆队又机械相加。", lose:"队数未拆队（应 5）、工期机械相加未体现搭接（应 18）。", fix:"队数=1+1+2+1=5，工期=(2+5−1)×3=18。" },
+        { t:"判型等节奏；K=t=3；队数=工序数 4；工期按 K=t 排=18 个月。", ok:false, code:"E07", tempt:"判成等节奏、蒙到 18。", lose:"节拍不全等应判等步距异节奏、须拆队 5；判型地基错。", fix:"判等步距异节奏、拆队 5、T=(2+5−1)×3=18。" }
       ] }
   ];
   // ── 错因码库（按 deeptutor/contracts/error_codes 注册码，勿自造）──
   codeMap={
-    E02:{label:"采分点遗漏",advice:"判型理由/拆队/搭接工期逐项写，缺一扣一。"},
-    E05:{label:"审题错误",advice:"先看节拍成不成倍数，别一看不等就判无节奏。"},
-    E07:{label:"概念混淆",advice:"分清类型档、队数≠工序数、依据词不能换。"},
-    E09:{label:"计算错误",advice:"K 取最大公约数、队数=节拍÷K、工期体现搭接。"}
+    E01:{label:"知识点缺失",advice:"组织方式/参数定义/划分原则这些基础概念要背牢。"},
+    E02:{label:"采分点遗漏",advice:"判型理由/大差法三动作/拆队/搭接工期逐项写，缺一扣一。"},
+    E05:{label:"审题错误",advice:"先看节拍成不成倍数、再定型，别一看不等就判无节奏。"},
+    E07:{label:"概念混淆",advice:"分清三型、队数≠工序数、参数归类、依据词不能换。"},
+    E08:{label:"背景信息提取失败",advice:"题干给的劳动量/结构缝/段数条件要看全，别只盯一处。"},
+    E09:{label:"计算错误",advice:"K 取最大公约数、队数=节拍÷K、工期体现搭接、大差法取最大值。"}
   };
 
   componentDidMount(){
@@ -422,31 +415,65 @@ class Component extends DCLogic {
   }
   figFor(qi){
     const D=(o)=>Object.assign({x:0,top:0,w:40,h:20,bg:"transparent",bd:"none",r:4,fg:"#23282b",fs:11,fw:"800",ai:"center",jc:"center",ta:"center",p:"0",lab:""},o);
-    const q=this.qAt(qi), type=q.fig, els=[]; let figH=100;
-    const PAL=["#2f6db0","#cf8a44","#2c8a5b","#d9a521","#7a5bb0","#3fa06a"];
-    if(type==="bars"){ figH=104; const vals=(q.fd&&q.fd.bars)||[["基础",3],["结构",3],["砌筑",6],["装修",3]], base=78, n=vals.length, gap=Math.floor(300/n);
-      const mx=Math.max.apply(null,vals.map(v=>v[1]))||6, unit=Math.min(13,Math.floor(58/mx));
-      vals.forEach((v,i)=>{ const h=v[1]*unit, x=14+i*gap, col=PAL[i%PAL.length];
-        els.push(D({x:x+Math.floor(gap/2)-18,top:base-h-18,w:36,h:16,fg:col,fs:14,lab:String(v[1])}));
-        els.push(D({x:x+Math.floor(gap/2)-18,top:base-h,w:36,h:h,bg:col,r:5}));
-        els.push(D({x:x+Math.floor(gap/2)-26,top:base+4,w:52,h:14,fg:"#5c6469",fs:10,lab:v[0]})); }); }
-    else if(type==="gcd"){ figH=92; const vals=(q.fd&&q.fd.gcd)||[3,3,6,3], n=vals.length, gap=Math.min(52,Math.floor(300/n));
-      vals.forEach((v,i)=>{ els.push(D({x:20+i*gap,top:10,w:42,h:42,bg:"#f1ece0",bd:"1.5px solid #d8ccaa",r:8,fg:PAL[i%PAL.length],fs:18,lab:String(v)})); });
-      els.push(D({x:60,top:62,w:200,h:24,fg:"#a98a55",fs:16,lab:(q.fd&&q.fd.gcdLabel)||"K = ?"})); }
-    else if(type==="rows"){ figH=100; const rows=(q.fd&&q.fd.rows)||[["基础",3],["结构",3],["砌筑",6],["装修",3]], n=rows.length, rh=Math.floor(92/n);
-      rows.forEach((r,i)=>{ const y=4+i*rh, col=PAL[i%PAL.length];
-        els.push(D({x:4,top:y+2,w:40,h:16,fg:col,fs:11,ta:"right",jc:"flex-end",lab:r[0]}));
-        els.push(D({x:52,top:y,w:r[1]*15,h:Math.min(18,rh-4),bg:col,r:4}));
-        els.push(D({x:52+r[1]*15+8,top:y+2,w:96,h:16,fg:"#8b9398",fs:10,ta:"left",jc:"flex-start",lab:"节拍 "+r[1]})); }); }
-    else if(type==="gantt"){ figH=100; const seg=(q.fd&&q.fd.seg)||5, span=(q.fd&&q.fd.span)||18, mw=Math.max(6,Math.floor(252/span)), rh=Math.floor(92/seg);
-      for(let i=0;i<seg;i++){ const y=2+i*rh, col=PAL[i%PAL.length]; for(let sg=0;sg<2;sg++){ els.push(D({x:10+((i*3)+sg*3)*mw,top:y,w:3*mw-2,h:Math.min(14,rh-3),bg:col,r:3})); } }
-      els.push(D({x:10,top:96,w:span*mw,h:0,bd:"1.5px solid #cf4436",bg:"transparent"}));
-      els.push(D({x:10+span*mw+6,top:90,w:60,h:14,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"T = ?"})); }
-    else if(type==="params"){ figH=104; const toks=(q.fd&&q.fd.toks)||["施工过程数","施工段数","流水节拍 t","流水步距 K","工期 T","施工段","施工层"];
-      const pos=[[8,8],[116,8],[224,8],[8,42],[116,42],[224,42],[8,76],[116,76],[224,76]];
-      toks.forEach((tk,i)=>{ if(!pos[i])return; els.push(D({x:pos[i][0],top:pos[i][1],w:100,h:28,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:8,fg:"#2f6db0",fs:10.5,lab:tk})); }); }
-    else if(type==="sheet"){ figH=98; const lines=(q.fd&&q.fd.lines)||["① K 取最大节拍 = 6 个月","② 设 4 个专业施工队","③ 总工期 = 3+3+6+6 = 18 个月"];
-      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:11.5,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    const type=this.qAt(qi).fig, els=[]; let figH=100;
+    if(type==="bars"){ figH=104; const vals=[["基础",3,"#2f6db0"],["结构",3,"#cf8a44"],["砌筑",6,"#2c8a5b"],["装修",3,"#d9a521"]], base=78;
+      vals.forEach((v,i)=>{ const h=v[1]*9, x=24+i*74;
+        els.push(D({x:x+18,top:base-h-18,w:36,h:16,fg:v[2],fs:14,lab:String(v[1])}));
+        els.push(D({x:x+18,top:base-h,w:36,h:h,bg:v[2],r:5}));
+        els.push(D({x:x+10,top:base+4,w:52,h:14,fg:"#5c6469",fs:10,lab:v[0]})); }); }
+    else if(type==="gcd"){ figH=92; const vals=[3,3,6,3], cols=["#2f6db0","#cf8a44","#2c8a5b","#d9a521"];
+      vals.forEach((v,i)=>{ els.push(D({x:74+i*52,top:10,w:42,h:42,bg:"#f1ece0",bd:"1.5px solid #d8ccaa",r:8,fg:cols[i],fs:18,lab:String(v)})); });
+      els.push(D({x:107,top:62,w:120,h:24,fg:"#a98a55",fs:18,lab:"K = ?"})); }
+    else if(type==="rows"){ figH=100; const rows=[["基础",3,"#2f6db0"],["结构",3,"#cf8a44"],["砌筑",6,"#2c8a5b"],["装修",3,"#d9a521"]];
+      rows.forEach((r,i)=>{ const y=6+i*23;
+        els.push(D({x:4,top:y+2,w:40,h:16,fg:r[2],fs:11,ta:"right",jc:"flex-end",lab:r[0]}));
+        els.push(D({x:52,top:y,w:r[1]*16,h:18,bg:r[2],r:4}));
+        els.push(D({x:52+r[1]*16+8,top:y+2,w:80,h:16,fg:"#8b9398",fs:10,ta:"left",jc:"flex-start",lab:"节拍 "+r[1]})); }); }
+    else if(type==="gantt"){ figH=100; const cols=["#2f6db0","#cf8a44","#2c8a5b","#3fa06a","#d9a521"], gx=10, mw=14;
+      for(let i=0;i<5;i++){ const y=4+i*18; for(let sg=0;sg<2;sg++){ els.push(D({x:gx+((i*3)+sg*3)*mw,top:y,w:3*mw-2,h:14,bg:cols[i],r:3})); } }
+      els.push(D({x:gx,top:96,w:18*mw,h:0,bd:"1.5px solid #cf4436",bg:"transparent"}));
+      els.push(D({x:gx+18*mw+6,top:90,w:60,h:14,fg:"#cf4436",fs:11,ta:"left",jc:"flex-start",lab:"T = ?"})); }
+    else if(type==="params"){ figH=104; const toks=["施工过程数","施工段数","流水节拍 t","流水步距 K","工期 T","施工段","施工层"];
+      const pos=[[8,8],[116,8],[224,8],[8,42],[116,42],[224,42],[8,76]];
+      toks.forEach((tk,i)=>{ els.push(D({x:pos[i][0],top:pos[i][1],w:100,h:28,bg:"#eef3f7",bd:"1.5px solid #cdd9e2",r:8,fg:"#2f6db0",fs:10.5,lab:tk})); }); }
+    else if(type==="sheet"){ figH=98; const lines=["① K 取最大节拍 = 6 个月","② 设 4 个专业施工队","③ 总工期 = 3+3+6+6 = 18 个月"];
+      lines.forEach((l,i)=>{ els.push(D({x:4,top:6+i*29,w:320,h:24,bg:"#fffdf8",bd:"1px dashed #d8ccaa",r:6,fg:"#23282b",fs:12,fw:"600",ta:"left",jc:"flex-start",p:"0 10px",lab:l})); }); }
+    else if(type==="modes"){ figH=92;
+      const rows=[["依次","#b5564a",256,""],["平行","#cf8a44",96,"耗人料 N 倍"],["流水","#2c8a5b",170,"又快又稳"]];
+      rows.forEach((r,i)=>{ const y=8+i*28;
+        els.push(D({x:2,top:y,w:38,h:16,fg:r[1],fs:10,ta:"right",jc:"flex-end",lab:r[0]}));
+        els.push(D({x:46,top:y,w:r[2],h:16,bg:r[1],r:3}));
+        if(r[3])els.push(D({x:46+r[2]+6,top:y+1,w:120,h:14,fg:"#8b9398",fs:9,ta:"left",jc:"flex-start",lab:r[3]})); }); }
+    else if(type==="seg"){ figH=104; const hs=[70,64,68,62],base=90;
+      els.push(D({x:30,top:base,w:296,h:0,bd:"2px solid #bdb8a8",bg:"transparent"}));
+      els.push(D({x:34,top:14,w:292,h:16,bg:"rgba(44,138,91,.12)",bd:"1px dashed #2c8a5b",r:0,fg:"#2c8a5b",fs:8.5,ta:"left",jc:"flex-start",p:"0 5px",lab:"各段劳动量落在 ±15% 带内"}));
+      [0,1,2].forEach(i=>els.push(D({x:104+i*74,top:20,w:0,h:76,bd:"1.5px dashed #b06a2a",bg:"transparent"})));
+      hs.forEach((h,i)=>{ const x=38+i*74; els.push(D({x:x,top:base-h,w:56,h:h,bg:"#2f6db0",r:5,fg:"#fff",fs:10,ai:"flex-end",p:"0 0 5px",lab:"段"+(i+1)})); }); }
+    else if(type==="tk"){ figH=88;
+      els.push(D({x:0,top:26,w:34,h:16,fg:"#2f6db0",fs:9,ta:"right",jc:"flex-end",lab:"队1"}));
+      els.push(D({x:40,top:26,w:56,h:16,bg:"#2f6db0",r:3}));
+      els.push(D({x:98,top:26,w:56,h:16,bg:"#2f6db0",r:3}));
+      els.push(D({x:0,top:48,w:34,h:16,fg:"#cf8a44",fs:9,ta:"right",jc:"flex-end",lab:"队2"}));
+      els.push(D({x:98,top:48,w:56,h:16,bg:"#cf8a44",r:3}));
+      els.push(D({x:156,top:48,w:56,h:16,bg:"#cf8a44",r:3}));
+      els.push(D({x:40,top:8,w:56,h:14,fg:"#2c8a5b",fs:9,lab:"t 一段"}));
+      els.push(D({x:40,top:68,w:58,h:14,fg:"#cf4436",fs:9,lab:"K 错开"})); }
+    else if(type==="diff"){ figH=92; const ax=[42,92,142,192];
+      els.push(D({x:2,top:8,w:34,h:22,fg:"#2f6db0",fs:10,lab:"甲"}));
+      [2,5,8,10].forEach((v,i)=>els.push(D({x:ax[i],top:8,w:44,h:22,bg:"#2f6db0",r:4,fg:"#fff",fs:12,lab:String(v)})));
+      els.push(D({x:2,top:36,w:34,h:22,fg:"#cf8a44",fs:10,lab:"乙"}));
+      [3,5,7,10].forEach((v,i)=>els.push(D({x:ax[i],top:36,w:44,h:22,bg:"#cf8a44",r:4,fg:"#fff",fs:12,lab:String(v)})));
+      els.push(D({x:2,top:64,w:34,h:22,fg:"#2c8a5b",fs:10,lab:"差"}));
+      [2,2,3,3].forEach((v,i)=>{ const mx=v===3; els.push(D({x:ax[i],top:64,w:44,h:22,bg:mx?"#2c8a5b":"#eef1f0",bd:mx?"none":"1px solid #d8d3c4",r:4,fg:mx?"#fff":"#5c6469",fs:12,lab:String(v)})); });
+      els.push(D({x:244,top:66,w:84,h:20,fg:"#2c8a5b",fs:9,ta:"left",jc:"flex-start",lab:"取最大 = K"})); }
+    else if(type==="eqbars"){ figH=92; const base=84;
+      els.push(D({x:30,top:base,w:300,h:0,bd:"2px solid #bdb8a8",bg:"transparent"}));
+      for(let i=0;i<4;i++){ const x=44+i*74; els.push(D({x:x,top:base-58,w:56,h:58,bg:"#2f6db0",r:5,fg:"#fff",fs:11,ai:"flex-start",p:"4px 0",lab:"t"})); } }
+    else if(type==="irr"){ figH=96; const vals=[2,4,3,5],base=88;
+      els.push(D({x:30,top:base,w:300,h:0,bd:"2px solid #bdb8a8",bg:"transparent"}));
+      vals.forEach((v,i)=>{ const h=v*12,x=44+i*74; els.push(D({x:x+8,top:base-h-16,w:40,h:14,fg:"#5c6469",fs:12,lab:String(v)})); els.push(D({x:x,top:base-h,w:56,h:h,bg:"#7a86b8",r:5})); }); }
+    else if(type==="rows5"){ figH=112; const rows=[["工序1",3],["工序2",3],["工序3",9],["工序4",6],["工序5",6]],cols=["#2f6db0","#cf8a44","#2c8a5b","#3fa06a","#d9a521"];
+      rows.forEach((r,i)=>{ const y=4+i*21; els.push(D({x:0,top:y+2,w:44,h:16,fg:cols[i],fs:10,ta:"right",jc:"flex-end",lab:r[0]})); els.push(D({x:52,top:y,w:r[1]*22,h:18,bg:cols[i],r:4})); els.push(D({x:52+r[1]*22+8,top:y+2,w:70,h:16,fg:"#8b9398",fs:10,ta:"left",jc:"flex-start",lab:"节拍 "+r[1]})); }); }
     return {els,figH};
   }
   renderVals(){
